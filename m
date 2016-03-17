@@ -1,76 +1,73 @@
-From: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 04/15] irqchip/gic: WARN if setting the interrupt type
- fails
-Date: Thu, 17 Mar 2016 16:20:11 +0000
-Message-ID: <56EAD93B.7040105@nvidia.com>
-References: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com>
- <1458224359-32665-5-git-send-email-jonathanh@nvidia.com>
- <alpine.DEB.2.11.1603171550200.3978@nanos> <56EAC761.1040801@nvidia.com>
- <20160317151800.GH1184@io.lakedaemon.net>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 02/23] ARM: dts: n950: add display support
+Date: Thu, 17 Mar 2016 14:14:26 +0200
+Message-ID: <21766689.NesyW3QHk4@avalon>
+References: <1457455195-1938-1-git-send-email-sre@kernel.org>
+ <1457455195-1938-3-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160317151800.GH1184-fahSIxCzskDQ+YiMSub0/l6hYfS7NtTn@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>
-Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <1457455195-1938-3-git-send-email-sre@kernel.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-On 17/03/16 15:18, Jason Cooper wrote:
-> On Thu, Mar 17, 2016 at 03:04:01PM +0000, Jon Hunter wrote:
->>
->> On 17/03/16 14:51, Thomas Gleixner wrote:
->>> On Thu, 17 Mar 2016, Jon Hunter wrote:
->>>
->>>> Setting the interrupt type for private peripheral interrupts (PPIs) may
->>>> not be supported by a given GIC because it is IMPLEMENTATION DEFINED
->>>> whether this is allowed. There is no way to know if setting the type is
->>>> supported for a given GIC and so the value written is read back to
->>>> verify it matches the desired configuration. If it does not match then
->>>> an error is return.
->>>>
->>>> There are cases where the interrupt configuration read from firmware
->>>> (such as a device-tree blob), has been incorrect and hence
->>>> gic_configure_irq() has returned an error. This error has gone
->>>> undetected because the error code returned was ignored but the interrupt
->>>> still worked fine because the configuration for the interrupt could not
->>>> be overwritten.
->>>>
->>>> Given that this has done undetected and we should only fail to set the
->>>> type for PPIs whose configuration cannot be changed anyway, don't return
->>>> an error and simply WARN if this fails. This will allows us to fix up any
->>>> places in the kernel where we should be checking the return status and
->>>> maintain back compatibility with firmware images that may have incorrect
->>>> interrupt configurations.
->>>
->>> Though silently returning 0 is really the wrong thing to do. You can add the
->>> warn, but why do you want to return success?
->>
->> Yes that would be the correct thing to do I agree. However, the problem
->> is that if we do this, then after the patch "irqdomain: Don't set type
->> when mapping an IRQ" is applied, we may break interrupts for some
->> existing device-tree binaries that have bad configuration (such as omap4
->> and tegra20/30 ... see patches 1 and 2) that have gone unnoticed. So it
->> is a back compatibility issue.
-> 
-> This sounds like a textbook case for adding a boolean dt property.  If
-> "can-set-ppi-type" is absent (old DT blobs and new blobs without the
-> ability), warn and return zero.  If it's present, the driver can set the
-> type, returning errors as encountered.
-
-True. However, if we did have this "can-set-ppi-type" property set for a
-device, it really should never fail (unless someone specified it
-incorrectly). So I am trying to understand the value in adding a new DT
-property.
-
-Please note that gic_configure_irq() never used to return an error and
-only when adding support for setting the type of PPIs was this added.
-However, given that this has gone unnoticed and does not have a real
-functional impact on the device behaviour, I wonder now if this function
-should return an error? Yes, ideally, it should, but does it still make
-sense?
-
-Cheers
-Jon
+SGkgU2ViYXN0aWFuLAoKVGhhbmsgeW91IGZvciB0aGUgcGF0Y2guCgpPbiBUdWVzZGF5IDA4IE1h
+cmNoIDIwMTYgMTc6Mzk6MzQgU2ViYXN0aWFuIFJlaWNoZWwgd3JvdGU6Cj4gU2lnbmVkLW9mZi1C
+eTogU2ViYXN0aWFuIFJlaWNoZWwgPHNyZUBrZXJuZWwub3JnPgo+IC0tLQo+ICBhcmNoL2FybS9i
+b290L2R0cy9vbWFwMy1uOTUwLmR0cyB8IDcxICsrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysKPiAgMSBmaWxlIGNoYW5nZWQsIDcxIGluc2VydGlvbnMoKykKPiAKPiBkaWZmIC0t
+Z2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtbjk1MC5kdHMKPiBiL2FyY2gvYXJtL2Jvb3Qv
+ZHRzL29tYXAzLW45NTAuZHRzIGluZGV4IDA4ODViMzRkNWQ3ZC4uNDFiOGZiNTg1MjcyIDEwMDY0
+NAo+IC0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLW45NTAuZHRzCj4gKysrIGIvYXJjaC9h
+cm0vYm9vdC9kdHMvb21hcDMtbjk1MC5kdHMKPiBAQCAtMTcsNiArMTcsMjYgQEAKPiAgCWNvbXBh
+dGlibGUgPSAibm9raWEsb21hcDMtbjk1MCIsICJ0aSxvbWFwMzZ4eCIsICJ0aSxvbWFwMyI7Cj4g
+IH07Cj4gCj4gKyZvbWFwM19wbXhfY29yZSB7Cj4gKwlkc2lfcGluczogcGlubXV4X2RzaV9waW5z
+IHsKPiArCQlwaW5jdHJsLXNpbmdsZSxwaW5zID0gPAo+ICsJCQlPTUFQM19DT1JFMV9JT1BBRCgw
+eDIwZGMsIFBJTl9PVVRQVVQgfCBNVVhfTU9ERTEpIC8qIGRzaV9keDAgLQo+IGRhdGEwKyAqLwo+
+ICsJCQlPTUFQM19DT1JFMV9JT1BBRCgweDIwZGUsIFBJTl9PVVRQVVQgfCBNVVhfTU9ERTEpIC8q
+IGRzaV9keTAgLQo+IGRhdGEwLSAqLwo+ICsJCQlPTUFQM19DT1JFMV9JT1BBRCgweDIwZTAsIFBJ
+Tl9PVVRQVVQgfCBNVVhfTU9ERTEpIC8qIGRzaV9keDEgLQo+IGNsaysgICAqLwo+ICsJCQlPTUFQ
+M19DT1JFMV9JT1BBRCgweDIwZTIsIFBJTl9PVVRQVVQgfCBNVVhfTU9ERTEpIC8qIGRzaV9keTEg
+LQo+IGNsay0gICAqLwo+ICsJCQlPTUFQM19DT1JFMV9JT1BBRCgweDIwZTQsIFBJTl9PVVRQVVQg
+fCBNVVhfTU9ERTEpIC8qIGRzaV9keDIgLQo+IGRhdGExKyAqLwo+ICsJCQlPTUFQM19DT1JFMV9J
+T1BBRCgweDIwZTYsIFBJTl9PVVRQVVQgfCBNVVhfTU9ERTEpIC8qIGRzaV9keTIgLQo+IGRhdGEx
+LSAqLwo+ICsJCT47Cj4gKwl9Owo+ICsKPiArCWRpc3BsYXlfcGluczogcGlubXV4X2Rpc3BsYXlf
+cGlucyB7Cj4gKwkJcGluY3RybC1zaW5nbGUscGlucyA9IDwKPiArCQkJT01BUDNfQ09SRTFfSU9Q
+QUQoMHgyMGNhLCBQSU5fSU5QVVQgfCBNVVhfTU9ERTQpIC8qIGdwaW8gNjIgLQo+IGRpc3BsYXkg
+dGUgKi8KPiArCQkJT01BUDNfQ09SRTFfSU9QQUQoMHgyMGZlLCBQSU5fT1VUUFVUIHwgTVVYX01P
+REU0KSAvKiBncGlvIDg3IC0KPiBkaXNwbGF5IHJlc2V0ICovCj4gKwkJPjsKPiArCX07Cj4gK307
+Cj4gKwo+ICAmaTJjMiB7Cj4gIAlzbWlhXzE6IGNhbWVyYUAxMCB7Cj4gIAkJY29tcGF0aWJsZSA9
+ICJub2tpYSxzbWlhIjsKPiBAQCAtNTMsMyArNzMsNTQgQEAKPiAgCQl9Owo+ICAJfTsKPiAgfTsK
+PiArCj4gKyZkc3Mgewo+ICsJc3RhdHVzID0gIm9rIjsKPiArCj4gKwl2ZGRhX3ZpZGVvLXN1cHBs
+eSA9IDwmdmRhYz47Cj4gK307Cj4gKwo+ICsmZHNpIHsKPiArCXN0YXR1cyA9ICJvayI7Cj4gKwo+
+ICsJcGluY3RybC1uYW1lcyA9ICJkZWZhdWx0IjsKPiArCXBpbmN0cmwtMCA9IDwmZHNpX3BpbnM+
+Owo+ICsKPiArCXZkZC1zdXBwbHkgPSA8JnZwbGwyPjsKPiArCj4gKwlwb3J0IHsKPiArCQlkc2lf
+b3V0X2VwOiBlbmRwb2ludCB7Cj4gKwkJCXJlbW90ZS1lbmRwb2ludCA9IDwmbGNkMF9pbj47Cj4g
+KwkJCWxhbmVzID0gPDIgMyAwIDEgNCA1PjsKPiArCQl9Owo+ICsJfTsKPiArCj4gKwlsY2QwOiBk
+aXNwbGF5IHsKPiArCQljb21wYXRpYmxlID0gIm5va2lhLGhpbWFsYXlhIiwgInBhbmVsLWRzaS1j
+bSI7Cj4gKwkJbGFiZWwgPSAibGNkMCI7Cj4gKwo+ICsJCXBpbmN0cmwtbmFtZXMgPSAiZGVmYXVs
+dCI7Cj4gKwkJcGluY3RybC0wID0gPCZkaXNwbGF5X3BpbnM+Owo+ICsKPiArCQl2cG5sLXN1cHBs
+eSA9IDwmdm1tYzI+Owo+ICsJCXZkZGktc3VwcGx5ID0gPCZ2aW8+Owo+ICsKPiArCQlyZXNldC1n
+cGlvcyA9IDwmZ3BpbzMgMjMgR1BJT19BQ1RJVkVfSElHSD47CS8qIDg3ICovCj4gKwkJdGUtZ3Bp
+b3MgPSA8JmdwaW8yIDMwIEdQSU9fQUNUSVZFX0hJR0g+OwkvKiA2MiAqLwo+ICsKPiArCQloYXMt
+ZHNpLWJhY2tsaWdodDsKPiArCj4gKwkJLyogcGFuZWwgaXMgNDgweDQ2NCB3aXRoIHRvcCBhbmQg
+Ym90dG9tIDUgbGluZXMgbm90IHZpc2libGUgKi8KCkkgYXNzdW1lIHlvdSBtZWFuIDQ4MHg4NjQg
+PwoKPiArCQkvKiBwaHlzaWNhbCBkaW1lbnNpb25zOiA0ODk2MMK1bSB4IDg4MTI4wrVtICovCj4g
+KwkJcmVzb2x1dGlvbi14ID0gPDQ4MD47Cj4gKwkJcmVzb2x1dGlvbi15ID0gPDg1ND47Cj4gKwkJ
+b2Zmc2V0LXggPSA8MD47Cj4gKwkJb2Zmc2V0LXkgPSA8NT47Cj4gKwo+ICsJCXBvcnQgewo+ICsJ
+CQlsY2QwX2luOiBlbmRwb2ludCB7Cj4gKwkJCQlyZW1vdGUtZW5kcG9pbnQgPSA8JmRzaV9vdXRf
+ZXA+Owo+ICsJCQl9Owo+ICsJCX07Cj4gKwl9Owo+ICt9OwoKLS0gClJlZ2FyZHMsCgpMYXVyZW50
+IFBpbmNoYXJ0CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcK
+aHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
