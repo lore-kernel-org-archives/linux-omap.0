@@ -1,109 +1,79 @@
-From: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 07/15] irqdomain: Don't set type when mapping an IRQ
-Date: Thu, 17 Mar 2016 14:19:11 +0000
-Message-ID: <1458224359-32665-8-git-send-email-jonathanh@nvidia.com>
+From: Jon Hunter <jonathanh@nvidia.com>
+Subject: [PATCH 05/15] irqchip: Mask the non-type/sense bits when translating an IRQ
+Date: Thu, 17 Mar 2016 14:19:09 +0000
+Message-ID: <1458224359-32665-6-git-send-email-jonathanh@nvidia.com>
 References: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1458224359-32665-1-git-send-email-jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>
+Cc: Kevin Hilman <khilman@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Jon Hunter <jonathanh@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
 
-Some IRQ chips, such as GPIO controllers or secondary level interrupt
-controllers, may require require additional runtime power management
-control to ensure they are accessible. For such IRQ chips, it makes sense
-to enable the IRQ chip when interrupts are requested and disabled them
-again once all interrupts have been freed.
+The firmware parameter that contains the IRQ sense bits may also contain
+other data. When return the IRQ type, bits outside of these sense bits
+should be masked. If these bits are not masked and
+irq_create_fwspec_mapping() is called to map an IRQ, then the comparison
+of the type returned from irq_domain_translate() will never match
+that returned by irq_get_trigger_type() (because this function masks the
+none sense bits) and so we will always call irq_set_irq_type() to program
+the type even if it was not really necessary.
 
-When mapping an IRQ, the IRQ type settings are read and then programmed.
-The mapping of the IRQ happens before the IRQ is requested and so the
-programming of the type settings occurs before the IRQ is requested. This
-is a problem for IRQ chips that require additional power management
-control because they may not be accessible yet. Therefore, when mapping
-the IRQ, don't program the type settings, just save them and then program
-these saved settings when the IRQ is requested (so long as if they are not
-overridden via the call to request the IRQ).
+Currently, the downside to this is unnecessarily re-programmming the type
+but nevertheless this should be avoided.
 
-Add a stub function for irq_domain_free_irqs() to avoid any compilation
-errors when CONFIG_IRQ_DOMAIN_HIERARCHY is not selected.
+The Tegra LIC, TI Crossbar and GIC-V3 irqchips all have client instances
+(from reviewing the device-tree sources) where bits outside the IRQ sense
+bits are set, but do not mask these bits. Therefore, ensure these bits
+are masked for these irqchips.
 
-Signed-off-by: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
 ---
- include/linux/irqdomain.h |  3 +++
- kernel/irq/irqdomain.c    | 18 ++++++++++++++----
- kernel/irq/manage.c       |  7 +++++++
- 3 files changed, 24 insertions(+), 4 deletions(-)
+ drivers/irqchip/irq-crossbar.c | 2 +-
+ drivers/irqchip/irq-gic-v3.c   | 2 +-
+ drivers/irqchip/irq-tegra.c    | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
-index 2aed04396210..fc66876d1965 100644
---- a/include/linux/irqdomain.h
-+++ b/include/linux/irqdomain.h
-@@ -440,6 +440,9 @@ static inline int irq_domain_alloc_irqs(struct irq_domain *domain,
- 	return -1;
- }
+diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
+index 75573fa431ba..1eef56a89b1f 100644
+--- a/drivers/irqchip/irq-crossbar.c
++++ b/drivers/irqchip/irq-crossbar.c
+@@ -183,7 +183,7 @@ static int crossbar_domain_translate(struct irq_domain *d,
+ 			return -EINVAL;
  
-+static inline void irq_domain_free_irqs(unsigned int virq,
-+					unsigned int nr_irqs) { }
-+
- static inline bool irq_domain_is_hierarchy(struct irq_domain *domain)
- {
- 	return false;
-diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
-index 0ea285baa619..332bee2205e0 100644
---- a/kernel/irq/irqdomain.c
-+++ b/kernel/irq/irqdomain.c
-@@ -576,6 +576,7 @@ static void of_phandle_args_to_fwspec(struct of_phandle_args *irq_data,
- unsigned int irq_create_fwspec_mapping(struct irq_fwspec *fwspec)
- {
- 	struct irq_domain *domain;
-+	struct irq_data *irq_data;
- 	irq_hw_number_t hwirq;
- 	unsigned int cur_type = IRQ_TYPE_NONE;
- 	unsigned int type = IRQ_TYPE_NONE;
-@@ -638,10 +639,19 @@ unsigned int irq_create_fwspec_mapping(struct irq_fwspec *fwspec)
+ 		*hwirq = fwspec->param[1];
+-		*type = fwspec->param[2];
++		*type = fwspec->param[2] & IRQ_TYPE_SENSE_MASK;
  		return 0;
  	}
  
--	/* Set type if specified and different than the current one */
--	if (type != IRQ_TYPE_NONE &&
--	    type != irq_get_trigger_type(virq))
--		irq_set_irq_type(virq, type);
-+	irq_data = irq_get_irq_data(virq);
-+	if (!irq_data) {
-+		if (irq_domain_is_hierarchy(domain))
-+			irq_domain_free_irqs(virq, 1);
-+		else
-+			irq_dispose_mapping(virq);
-+
-+		return 0;
-+	}
-+
-+	/* Store trigger type */
-+	irqd_set_trigger_type(irq_data, type);
-+
- 	return virq;
- }
- EXPORT_SYMBOL_GPL(irq_create_fwspec_mapping);
-diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
-index cc1cc641d653..b2a93a37f772 100644
---- a/kernel/irq/manage.c
-+++ b/kernel/irq/manage.c
-@@ -1117,6 +1117,13 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
- 	new->irq = irq;
+diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
+index c569c466fa31..972335b32eae 100644
+--- a/drivers/irqchip/irq-gic-v3.c
++++ b/drivers/irqchip/irq-gic-v3.c
+@@ -777,7 +777,7 @@ static int gic_irq_domain_translate(struct irq_domain *d,
+ 			return -EINVAL;
  
- 	/*
-+	 * If the trigger type is not specified by the caller,
-+	 * then use the default for this interrupt.
-+	 */
-+	if (!(new->flags & IRQF_TRIGGER_MASK))
-+		new->flags |= irqd_get_trigger_type(&desc->irq_data);
-+
-+	/*
- 	 * Check whether the interrupt nests into another interrupt
- 	 * thread.
- 	 */
+ 		*hwirq = fwspec->param[0];
+-		*type = fwspec->param[1];
++		*type = fwspec->param[1] & IRQ_TYPE_SENSE_MASK;
+ 		return 0;
+ 	}
+ 
+diff --git a/drivers/irqchip/irq-tegra.c b/drivers/irqchip/irq-tegra.c
+index 121ec301372e..7ceaff099072 100644
+--- a/drivers/irqchip/irq-tegra.c
++++ b/drivers/irqchip/irq-tegra.c
+@@ -235,7 +235,7 @@ static int tegra_ictlr_domain_translate(struct irq_domain *d,
+ 			return -EINVAL;
+ 
+ 		*hwirq = fwspec->param[1];
+-		*type = fwspec->param[2];
++		*type = fwspec->param[2] & IRQ_TYPE_SENSE_MASK;
+ 		return 0;
+ 	}
+ 
 -- 
 2.1.4
