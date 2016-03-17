@@ -1,120 +1,43 @@
-From: "Franklin S Cooper Jr." <fcooper@ti.com>
-Subject: Re: [PATCH 5/5] pwm: pwm-tiehrpwm: Update dt binding document to use
- generic node name
-Date: Thu, 17 Mar 2016 14:51:54 -0500
-Message-ID: <56EB0ADA.4020006@ti.com>
-References: <1457380318-15452-1-git-send-email-fcooper@ti.com>
- <1457380318-15452-6-git-send-email-fcooper@ti.com>
- <20160317150305.GA27356@rob-hp-laptop> <56EAE014.8070606@ti.com>
- <CAL_Jsq+3vRMezgrA53jPgMZUYR+DAA_886K1Q6YfxV1bPinoQQ@mail.gmail.com>
- <56EAF562.9060408@ti.com>
- <CAL_JsqLwpvjMHmEwhouiUR1vs4xG2hOn4AovNv1VaFEaSDpMug@mail.gmail.com>
- <56EB04C1.3010709@ti.com>
- <CAL_JsqKLhyOVUa_21bwf4vRNCNFt0tadwW+RUavgsXeJu3p1pQ@mail.gmail.com>
+From: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 14/15] dt-bindings: arm-gic: Drop 'clock-names' from
+ binding document
+Date: Thu, 17 Mar 2016 15:14:30 -0500
+Message-ID: <CAL_JsqLwvhbCnQzkRd1cyz+O6HU8a3X3MYoX=ChhuDyvdTWQYA@mail.gmail.com>
+References: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com> <1458224359-32665-15-git-send-email-jonathanh@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAL_JsqKLhyOVUa_21bwf4vRNCNFt0tadwW+RUavgsXeJu3p1pQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: Thierry Reding <thierry.reding@gmail.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tero Kristo <t-kristo@ti.com>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, Linux PWM List <linux-pwm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-clk <linux-clk@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1458224359-32665-15-git-send-email-jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 03/17/2016 02:48 PM, Rob Herring wrote:
-> On Thu, Mar 17, 2016 at 2:25 PM, Franklin S Cooper Jr. <fcooper@ti.com> wrote:
->> +Sekhar
->>
->> On 03/17/2016 01:56 PM, Rob Herring wrote:
->>> On Thu, Mar 17, 2016 at 1:20 PM, Franklin S Cooper Jr. <fcooper@ti.com> wrote:
->>>> On 03/17/2016 01:00 PM, Rob Herring wrote:
->>>>> On Thu, Mar 17, 2016 at 11:49 AM, Franklin S Cooper Jr. <fcooper@ti.com> wrote:
->>>>>> On 03/17/2016 10:03 AM, Rob Herring wrote:
->>>>>>> On Mon, Mar 07, 2016 at 01:51:58PM -0600, Franklin S Cooper Jr wrote:
->>>>>>>> Now that the node name has been changed from ehrpwm to pwm the document
->>>>>>>> should show this proper usage. Also change the unit address in the example
->>>>>>>> from 0 to the proper physical address value that should be used.
->>>>>>>>
->>>>>>>> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
->>>>>>>> ---
->>>>>>>>  Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt | 4 ++--
->>>>>>>>  1 file changed, 2 insertions(+), 2 deletions(-)
->>>>>>>>
->>>>>>>> diff --git a/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt b/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
->>>>>>>> index 9c100b2..20211ed 100644
->>>>>>>> --- a/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
->>>>>>>> +++ b/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
->>>>>>>> @@ -15,14 +15,14 @@ Optional properties:
->>>>>>>>
->>>>>>>>  Example:
->>>>>>>>
->>>>>>>> -ehrpwm0: ehrpwm@0 { /* EHRPWM on am33xx */
->>>>>>>> +ehrpwm0: pwm@48300200 { /* EHRPWM on am33xx */
->>>>>>>>      compatible = "ti,am33xx-ehrpwm";
->>>>>>>>      #pwm-cells = <3>;
->>>>>>>>      reg = <0x48300200 0x100>;
->>>>>>>>      ti,hwmods = "ehrpwm0";
->>>>>>>>  };
->>>>>>>>
->>>>>>>> -ehrpwm0: ehrpwm@0 { /* EHRPWM on da850 */
->>>>>>>> +ehrpwm0: pwm@01f00000 { /* EHRPWM on da850 */
->>>>>>> No leading 0s, but more importantly the address is wrong.
->>>>>> I will remove the leading 0. However, this value was taken
->>>>>> from the .dtsi and I just double checked and I see the same
->>>>>> value in the datasheet. I believe DA850,OMAP-L138 and AM18x
->>>>>> all have the same memory mapping. I'm looking at
->>>>>> http://www.ti.com/lit/ds/symlink/am1808.pdf page 233 and the
->>>>>> addresses match up what is seen here and in the .dtsi.
->>>>>>
->>>>>> Can you point me to which document your looking at that
->>>>>> shows a different value?
->>>>> Ummm, ...
->>>>>
->>>>>>>>      compatible = "ti,da850-ehrpwm", "ti,am33xx-ehrpwm";
->>>>>>>>      #pwm-cells = <3>;
->>>>>>>>      reg = <0x300000 0x2000>;
->>>>> right here.
->>>> So I don't know the history but the SOC node specifies a
->>>> ranges value of ranges = <0x0 0x01c00000 0x400000>;. It
->>>> seems that all child nodes of SOC have a reg property then
->>>> is based on an offset of 0x01c00000. So this is true for
->>>> UART, rtc, i2c, wdt, mmc, spi etc... So using a base offset
->>>> of 0x01c00000 + 0x300000 (reg value of the pwm) equals the
->>>> physical address of the ehrpwm0 register 0x1f00000.
->>>>
->>>> For the child nodes within the SOC node, the unit-address is
->>>> always based on the physical address not based on the offset
->>>> address.
->>> They are all wrong and should be fixed. Unit address should match the
->>> reg property unless the bus has defined something different (e.g.
->>> PCI).
->> I added Sekhar to hopefully comment if it would be better to
->> try to get the reg properties to use their physical
->> addresses or change the unit address to use the offset values.
-> Change the unit addresses (i.e. use ranges). The main reason ranges
-> with translation is preferred is it limits the scope of the bus as the
-> h/w design typically would.
+On Thu, Mar 17, 2016 at 9:19 AM, Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org> wrote:
+> Commit afbbd2338176 ("irqchip/gic: Document optional Clock and Power
+> Domain properties") documented optional clock and power-dmoain properties
+> for the ARM GIC. Currently, there are no users of these and for the
+> Tegra210 Audio GIC (based upon the GIC-400) there are two clocks, a
+> functional clock and interface clock, that need to be enabled.
 >
->> I don't mind shooting a patch that makes this massive switch
->> for all the various peripherals and documentation. However,
->> this is a bit beyond this series.  In this series I am not
->> setting the unit address or reg address I am simply
->> documenting what is currently being used. This patch set is
->> a dependency for another patchset to get PWM support for DRA7.
-> Agreed. I'm not asking for everything to be fixed.
+> To allow flexibility, drop the 'clock-names' from the GIC binding and
+> just provide a list of clocks which the driver can parse. It is assumed
+> that any clocks that are listed, need to be enabled in order to access
+> the GIC.
 >
->> Are you ok with me doing the below?
->> I submit a v2 that removes the leading 0 in this patch. This
->> way this patchset and my PWMSS support for DRA7 patchset can
->> get merged. I can then follow up with another separate
->> patchset that insures both the unit address and the value in
->> the reg property are aligned.
-> The example is an example. It doesn't have to match dts files (if it
-> always did, then examples would be pointless). So please fix the
-> documentation now. The dts files can be updated separately.
+> Signed-off-by: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+>
+> ---
+>
+> Please note that I am not sure if this will be popular, but I am trying
+> to come up with a generic way to handle multiple clocks that may be
+> required for accessing a GIC.
 
-Ok will do.
->
-> Rob
+It's not. :)
+
+We need to specify the number and order of clocks by compatible string
+at a minimum. Sadly, ARM's GICs are well documented and include clock
+names, so you can't just make up genericish names either which is
+probably often the case.
+
+Rob
