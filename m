@@ -1,53 +1,63 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: Re: Nokia N900 - audio TPA6130A2 problems
-Date: Thu, 17 Mar 2016 16:58:54 +0200
-Message-ID: <56EAC62E.7020302@gmail.com>
-References: <20160316144709.GA3389@earth> <56E9A42B.3010209@gmail.com>
- <56E9A6D9.7000003@ti.com> <56E9B910.7000904@gmail.com>
- <20160317004917.GA6750@earth> <56EA6326.4000702@gmail.com>
- <20160317130115.GU8413@pali> <56EAACF4.2040005@gmail.com>
- <20160317133313.GL9329@atomide.com> <56EAB62D.80803@gmail.com>
- <20160317143204.GM9329@atomide.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 4/5] pwm: pwm-tipwmss: Update documentation to use empty
+ range property
+Date: Thu, 17 Mar 2016 10:01:40 -0500
+Message-ID: <20160317150140.GA25775@rob-hp-laptop>
+References: <1457380318-15452-1-git-send-email-fcooper@ti.com>
+ <1457380318-15452-5-git-send-email-fcooper@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160317143204.GM9329@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, Sebastian Reichel <sre@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Lars-Peter Clausen <lars@metafoo.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, merlijn@wizzup.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1457380318-15452-5-git-send-email-fcooper@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Franklin S Cooper Jr <fcooper@ti.com>
+Cc: thierry.reding@gmail.com, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, t-kristo@ti.com, mturquette@baylibre.com, sboyd@codeaurora.org, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Mon, Mar 07, 2016 at 01:51:57PM -0600, Franklin S Cooper Jr wrote:
+> Since the PWMSS and its subdevices (eCAP and ePWM) use the same address
+> space then the range property should be empty. Update the documentation
+> to show the correct usage.
 
-On 17.03.2016 16:32, Tony Lindgren wrote:
->
-> Seems like a bug to me. My bets are on the deferred probe related
-> Peter posted.
->
+Why does it matter? An empty ranges is generally not preferred.
 
-I will test Peter's patch as well, however I really doubt internal 
-pull-ups enabled by Nokia to be a bug - keep in mind there are (or at 
-least were) enough devices on the field for such a bug to not remain 
-unnoticed, esp if it directly affects the signal quality over the i2c bus.
-
->
-> You can calculate the parallel resistor value of the weak internal
-> pull with the 1k external pull :)
-
-Sure :)
-
-> If the i2c line pulls are wrong
-> the signal quality won't match the spec and you will be getting
-> i2c bus errors. If you can read and write to the i2c chip, this
-> is not the issue.
->
-
-And it seems stock kernel can read/write without problems with those 
-pull-ups enabled.
-
-However, lets continue the discussion after I have tested both the 
-Peter's patch and internal pull-ups enabled.
-
-Thanks,
-Ivo
+> 
+> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+> ---
+>  Documentation/devicetree/bindings/pwm/pwm-tipwmss.txt | 12 ++++--------
+>  1 file changed, 4 insertions(+), 8 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/pwm/pwm-tipwmss.txt b/Documentation/devicetree/bindings/pwm/pwm-tipwmss.txt
+> index f7eae77..672fa71 100644
+> --- a/Documentation/devicetree/bindings/pwm/pwm-tipwmss.txt
+> +++ b/Documentation/devicetree/bindings/pwm/pwm-tipwmss.txt
+> @@ -7,11 +7,9 @@ Required properties:
+>  		  Should set to 1.
+>  - size-cells: specify number of u32 entries needed to specify child nodes size
+>  		in reg property. Should set to 1.
+> -- ranges: describes the address mapping of a memory-mapped bus. Should set to
+> -	   physical address map of child's base address, physical address within
+> -	   parent's address  space and length of the address map. For am33xx,
+> -	   3 set of child register maps present, ECAP register space, EQEP
+> -	   register space, EHRPWM register space.
+> +- ranges: describes the address mapping of a memory-mapped bus. Its value
+> +	  should be empty since no address translation is needed between the
+> +	  parent and the child.
+>  
+>  Also child nodes should also populated under PWMSS DT node.
+>  
+> @@ -23,9 +21,7 @@ pwmss0: pwmss@48300000 {
+>  	#address-cells = <1>;
+>  	#size-cells = <1>;
+>  	status = "disabled";
+> -	ranges = <0x48300100 0x48300100 0x80   /* ECAP */
+> -		  0x48300180 0x48300180 0x80   /* EQEP */
+> -		  0x48300200 0x48300200 0x80>; /* EHRPWM */
+> +	ranges;
+>  
+>  	/* child nodes go here */
+>  };
+> -- 
+> 2.7.0
+> 
