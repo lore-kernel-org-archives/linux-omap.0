@@ -1,54 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Nokia N900 - audio TPA6130A2 problems
-Date: Thu, 17 Mar 2016 07:32:05 -0700
-Message-ID: <20160317143204.GM9329@atomide.com>
-References: <20160316144709.GA3389@earth>
- <56E9A42B.3010209@gmail.com>
- <56E9A6D9.7000003@ti.com>
- <56E9B910.7000904@gmail.com>
- <20160317004917.GA6750@earth>
- <56EA6326.4000702@gmail.com>
- <20160317130115.GU8413@pali>
- <56EAACF4.2040005@gmail.com>
- <20160317133313.GL9329@atomide.com>
- <56EAB62D.80803@gmail.com>
+From: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] dt-bindings: Correct path for ARM GIC documentation
+Date: Thu, 17 Mar 2016 14:47:57 +0000
+Message-ID: <1458226077-7179-1-git-send-email-jonathanh@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <56EAB62D.80803@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Sebastian Reichel <sre@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Lars-Peter Clausen <lars@metafoo.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, merlijn@wizzup.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160317 06:51]:
-> Hi,
-> 
-> On 17.03.2016 15:33, Tony Lindgren wrote:
-> >
-> >Check the schematics. If the hardware has external pull-ups on a
-> >line then don't enable the internal pull-ups. Otherwise both the
-> >external and intenal pulls are parallel the pull value will be
-> >wrong. My guess is that on n900 all the i2c lines have external
-> >pulls.
-> 
-> There are, 1k connected to VIO_18, but still, stock Nokia kernel enables the
-> internal pull-ups as well. I doubt Nokia devs did that by mistake. Could it
-> be that VIO_18 is disabled by the time  TPA6130A2 is probed?
+Commit eb3fcf007fff ("dt-bindings: consolidate interrupt controller
+bindings") moved the binding documentation for the ARM GIC from
+arm/gic.txt to interrupt-controller/arm,gic.txt. However, there are
+still some binding documents referring to the old path. Update these
+binding documents to use the correct location.
 
-Seems like a bug to me. My bets are on the deferred probe related
-Peter posted.
+Fixes: eb3fcf007fff ("dt-bindings: consolidate interrupt controller bindings")
 
-> Also, what is the problem to have both internal and external pull-ups in
-> parallel?
+Signed-off-by: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+---
+ Documentation/devicetree/bindings/arm/omap/crossbar.txt                | 3 ++-
+ Documentation/devicetree/bindings/arm/ux500/boards.txt                 | 2 +-
+ .../devicetree/bindings/interrupt-controller/mediatek,sysirq.txt       | 3 +--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-You can calculate the parallel resistor value of the weak internal
-pull with the 1k external pull :) If the i2c line pulls are wrong
-the signal quality won't match the spec and you will be getting
-i2c bus errors. If you can read and write to the i2c chip, this
-is not the issue.
+diff --git a/Documentation/devicetree/bindings/arm/omap/crossbar.txt b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+index a9b28d74d902..bb5727ae004a 100644
+--- a/Documentation/devicetree/bindings/arm/omap/crossbar.txt
++++ b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+@@ -42,7 +42,8 @@ Examples:
+ Consumer:
+ ========
+ See Documentation/devicetree/bindings/interrupt-controller/interrupts.txt and
+-Documentation/devicetree/bindings/arm/gic.txt for further details.
++Documentation/devicetree/bindings/interrupt-controller/arm,gic.txt for
++further details.
+ 
+ An interrupt consumer on an SoC using crossbar will use:
+ 	interrupts = <GIC_SPI request_number interrupt_level>
+diff --git a/Documentation/devicetree/bindings/arm/ux500/boards.txt b/Documentation/devicetree/bindings/arm/ux500/boards.txt
+index b8737a8de718..7334c24625fc 100644
+--- a/Documentation/devicetree/bindings/arm/ux500/boards.txt
++++ b/Documentation/devicetree/bindings/arm/ux500/boards.txt
+@@ -23,7 +23,7 @@ scu:
+ 	see binding for arm/scu.txt
+ 
+ interrupt-controller:
+-	see binding for arm/gic.txt
++	see binding for interrupt-controller/arm,gic.txt
+ 
+ timer:
+ 	see binding for arm/twd.txt
+diff --git a/Documentation/devicetree/bindings/interrupt-controller/mediatek,sysirq.txt b/Documentation/devicetree/bindings/interrupt-controller/mediatek,sysirq.txt
+index b8e1674c7837..8cf564d083d2 100644
+--- a/Documentation/devicetree/bindings/interrupt-controller/mediatek,sysirq.txt
++++ b/Documentation/devicetree/bindings/interrupt-controller/mediatek,sysirq.txt
+@@ -16,8 +16,7 @@ Required properties:
+ 	"mediatek,mt6577-sysirq"
+ 	"mediatek,mt2701-sysirq"
+ - interrupt-controller : Identifies the node as an interrupt controller
+-- #interrupt-cells : Use the same format as specified by GIC in
+-  Documentation/devicetree/bindings/arm/gic.txt
++- #interrupt-cells : Use the same format as specified by GIC in arm,gic.txt.
+ - interrupt-parent: phandle of irq parent for sysirq. The parent must
+   use the same interrupt-cells format as GIC.
+ - reg: Physical base address of the intpol registers and length of memory
+-- 
+2.1.4
 
-Regards,
-
-Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
