@@ -1,83 +1,37 @@
-From: "Franklin S Cooper Jr." <fcooper@ti.com>
-Subject: Re: [PATCH 4/5] pwm: pwm-tipwmss: Update documentation to use empty
- range property
-Date: Thu, 17 Mar 2016 16:29:39 -0500
-Message-ID: <56EB21C3.8000806@ti.com>
-References: <1457380318-15452-1-git-send-email-fcooper@ti.com>
- <1457380318-15452-5-git-send-email-fcooper@ti.com>
- <20160317150140.GA25775@rob-hp-laptop> <56EAE1BD.9040601@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <56EAE1BD.9040601@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: thierry.reding@gmail.com, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, t-kristo@ti.com, mturquette@baylibre.com, sboyd@codeaurora.org, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
+From: Franklin S Cooper Jr <fcooper@ti.com>
+Subject: [PATCH v2 0/3] ARM: am335x/am437x: Correct PWM bindings
+Date: Thu, 17 Mar 2016 17:07:40 -0500
+Message-ID: <1458252463-8821-1-git-send-email-fcooper@ti.com>
+Return-path: <linux-pwm-owner@vger.kernel.org>
+Sender: linux-pwm-owner@vger.kernel.org
+To: thierry.reding@gmail.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, t-kristo@ti.com, mturquette@baylibre.com, sboyd@codeaurora.org, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
+Cc: Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+Unlike the majority of other SOCs the PWM node uses ehrpwm instead of
+the generic pwm node name. This patch series switches to the pwm node
+name and while at it fix some other minor binding documentation issues.
 
+This patch series also includes a patch to insure ABI compatibility.
 
-On 03/17/2016 11:56 AM, Franklin S Cooper Jr. wrote:
->
-> On 03/17/2016 10:01 AM, Rob Herring wrote:
->> On Mon, Mar 07, 2016 at 01:51:57PM -0600, Franklin S Cooper Jr wrote:
->>> Since the PWMSS and its subdevices (eCAP and ePWM) use the same address
->>> space then the range property should be empty. Update the documentation
->>> to show the correct usage.
->> Why does it matter? An empty ranges is generally not preferred.
-> Someone pointed out that ranges should probably be empty. I
-> double checked it with what is in the ePAPR doc and based on
-> the definition it should be set to empty. I also checked
-> against the am33xx.dtsi and saw that both USB and ethernet
-> uses an empty value for ranges.
->
-> Can you elaborate on why this isn't preferable?
+This series was tested on AM335x and AM437x GP evm. I also validated that
+ABI compatibility was maintained.
 
-I'm going to drop this patch and the previous patch for now
-that messes with the ranges property. I can resubmit them
-separately later on if that is the route we decide to take.
->
->>> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
->>> ---
->>>  Documentation/devicetree/bindings/pwm/pwm-tipwmss.txt | 12 ++++--------
->>>  1 file changed, 4 insertions(+), 8 deletions(-)
->>>
->>> diff --git a/Documentation/devicetree/bindings/pwm/pwm-tipwmss.txt b/Documentation/devicetree/bindings/pwm/pwm-tipwmss.txt
->>> index f7eae77..672fa71 100644
->>> --- a/Documentation/devicetree/bindings/pwm/pwm-tipwmss.txt
->>> +++ b/Documentation/devicetree/bindings/pwm/pwm-tipwmss.txt
->>> @@ -7,11 +7,9 @@ Required properties:
->>>  		  Should set to 1.
->>>  - size-cells: specify number of u32 entries needed to specify child nodes size
->>>  		in reg property. Should set to 1.
->>> -- ranges: describes the address mapping of a memory-mapped bus. Should set to
->>> -	   physical address map of child's base address, physical address within
->>> -	   parent's address  space and length of the address map. For am33xx,
->>> -	   3 set of child register maps present, ECAP register space, EQEP
->>> -	   register space, EHRPWM register space.
->>> +- ranges: describes the address mapping of a memory-mapped bus. Its value
->>> +	  should be empty since no address translation is needed between the
->>> +	  parent and the child.
->>>  
->>>  Also child nodes should also populated under PWMSS DT node.
->>>  
->>> @@ -23,9 +21,7 @@ pwmss0: pwmss@48300000 {
->>>  	#address-cells = <1>;
->>>  	#size-cells = <1>;
->>>  	status = "disabled";
->>> -	ranges = <0x48300100 0x48300100 0x80   /* ECAP */
->>> -		  0x48300180 0x48300180 0x80   /* EQEP */
->>> -		  0x48300200 0x48300200 0x80>; /* EHRPWM */
->>> +	ranges;
->>>  
->>>  	/* child nodes go here */
->>>  };
->>> -- 
->>> 2.7.0
->>>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+V2 changes:
+Dropped patches related to the ranges property.
 
+Franklin S Cooper Jr (3):
+  clk: ti: am335x/am4372: Add tbclk to pwm node
+  ARM: DTS: da850/am4372/am33xx: Use generic node name for ehrpwm
+  pwm: pwm-tiehrpwm: Update dt binding document to use generic node name
+
+ Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt |  4 ++--
+ arch/arm/boot/dts/am33xx.dtsi                          |  6 +++---
+ arch/arm/boot/dts/am4372.dtsi                          | 12 ++++++------
+ arch/arm/boot/dts/da850.dtsi                           |  4 ++--
+ drivers/clk/ti/clk-33xx.c                              |  3 +++
+ drivers/clk/ti/clk-43xx.c                              |  6 ++++++
+ 6 files changed, 22 insertions(+), 13 deletions(-)
+
+-- 
+2.7.0
