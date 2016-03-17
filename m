@@ -1,45 +1,39 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [RFC PATCH] ARM: clocksource: make ARM_GLOBAL_TIMER selectable
-Date: Thu, 17 Mar 2016 14:42:37 +0100
-Message-ID: <56EAB44D.7020902@linaro.org>
-References: <1454610017-25499-1-git-send-email-grygorii.strashko@ti.com>
- <20160204224128.GG4215@xsjsorenbubuntu>
- <CAAtXAHcV-9gXcZOX8dzUOBZUwj9M=O4MAsMCJNQYAP+os-D7Tg@mail.gmail.com>
- <20160204233950.GH4215@xsjsorenbubuntu> <56D04D17.6030502@ti.com>
- <20160226152714.GD3173@xsjsorenbubuntu> <56DEAFB7.50105@ti.com>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: Re: Nokia N900 - audio TPA6130A2 problems
+Date: Thu, 17 Mar 2016 15:50:37 +0200
+Message-ID: <56EAB62D.80803@gmail.com>
+References: <56E68B71.2030202@ti.com> <20160316133319.GR8413@pali>
+ <20160316144709.GA3389@earth> <56E9A42B.3010209@gmail.com>
+ <56E9A6D9.7000003@ti.com> <56E9B910.7000904@gmail.com>
+ <20160317004917.GA6750@earth> <56EA6326.4000702@gmail.com>
+ <20160317130115.GU8413@pali> <56EAACF4.2040005@gmail.com>
+ <20160317133313.GL9329@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56DEAFB7.50105@ti.com>
+In-Reply-To: <20160317133313.GL9329@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, =?UTF-8?Q?S=c3=b6ren_Brinkmann?= <soren.brinkmann@xilinx.com>, Olof Johansson <olof@lixom.net>
-Cc: Moritz Fischer <moritz.fischer@ettus.com>, kernel@stlinux.com, tony@atomide.com, nsekhar@ti.com, Masahiro Yamada <yamada.masahiro@socionext.com>, Florian Fainelli <f.fainelli@gmail.com>, Russell King <linux@arm.linux.org.uk>, Michal Simek <michal.simek@xilinx.com>, Wei Xu <xuwei5@hisilicon.com>, linux-rockchip@lists.infradead.org, bcm-kernel-feedback-list@broadcom.com, Arnd Bergmann <arnd@arndb.de>, Liviu Dudau <liviu.dudau@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Maxime Coquelin <maxime.coquelin@st.com>, Srinivas Kandagatla <srinivas.kandagatla@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Sudeep Holla <sudeep.holla@arm.com>, Jun Nie <jun.nie@linaro.org>, Shawn Guo <shawnguo@kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, Sebastian Reichel <sre@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Lars-Peter Clausen <lars@metafoo.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
-On 03/08/2016 11:55 AM, Grygorii Strashko wrote:
-> Yeah. Thanks
+Hi,
+
+On 17.03.2016 15:33, Tony Lindgren wrote:
 >
-> I'll re-send it after 4.6-rc.
-> But What I'm not fully understand is how to get it merged taking into=
- account that
-> it touches few maches & clocksource :(
+> Check the schematics. If the hardware has external pull-ups on a
+> line then don't enable the internal pull-ups. Otherwise both the
+> external and intenal pulls are parallel the pull value will be
+> wrong. My guess is that on n900 all the i2c lines have external
+> pulls.
 
-This is not a problem. Send it based on timers/core from the tip tree=20
-and Cc the maintainers for the maches dir. As soon as they ack the=20
-patches, I will merge it through my tree.
+There are, 1k connected to VIO_18, but still, stock Nokia kernel enables 
+the internal pull-ups as well. I doubt Nokia devs did that by mistake. 
+Could it be that VIO_18 is disabled by the time  TPA6130A2 is probed?
 
-Thanks
+Also, what is the problem to have both internal and external pull-ups in 
+parallel?
 
-   -- Daniel
-
-
-
---=20
-  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
-r ARM SoCs
-
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
+Regards,
+Ivo
