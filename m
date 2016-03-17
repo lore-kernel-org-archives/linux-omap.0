@@ -1,74 +1,45 @@
-From: Jon Hunter <jonathanh@nvidia.com>
-Subject: Re: [PATCH 04/15] irqchip/gic: WARN if setting the interrupt type
- fails
-Date: Thu, 17 Mar 2016 15:04:01 +0000
-Message-ID: <56EAC761.1040801@nvidia.com>
-References: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com>
- <1458224359-32665-5-git-send-email-jonathanh@nvidia.com>
- <alpine.DEB.2.11.1603171550200.3978@nanos>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v5 3/6] ARM: AM335x/AM437x: hwmod: Remove eQEP, ePWM and
+ eCAP hwmod entries
+Date: Thu, 17 Mar 2016 10:06:19 -0500
+Message-ID: <20160317150619.GA28105@rob-hp-laptop>
+References: <1457400224-24797-1-git-send-email-fcooper@ti.com>
+ <1457400224-24797-4-git-send-email-fcooper@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.11.1603171550200.3978@nanos>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Kevin Hilman <khilman@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1457400224-24797-4-git-send-email-fcooper-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
+Cc: thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, linux-pwm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, vigneshr-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On Mon, Mar 07, 2016 at 07:23:41PM -0600, Franklin S Cooper Jr wrote:
+> Devices that utilize the OCP registers and/or PRCM registers and
+> register bit fields should be modelled using hwmod. Since eQEP, ePWM and
 
-On 17/03/16 14:51, Thomas Gleixner wrote:
-> On Thu, 17 Mar 2016, Jon Hunter wrote:
+s/modelled/modeled/
+
+> eCAP don't fall under this category, remove their hwmod entries.
 > 
->> Setting the interrupt type for private peripheral interrupts (PPIs) may
->> not be supported by a given GIC because it is IMPLEMENTATION DEFINED
->> whether this is allowed. There is no way to know if setting the type is
->> supported for a given GIC and so the value written is read back to
->> verify it matches the desired configuration. If it does not match then
->> an error is return.
->>
->> There are cases where the interrupt configuration read from firmware
->> (such as a device-tree blob), has been incorrect and hence
->> gic_configure_irq() has returned an error. This error has gone
->> undetected because the error code returned was ignored but the interrupt
->> still worked fine because the configuration for the interrupt could not
->> be overwritten.
->>
->> Given that this has done undetected and we should only fail to set the
->> type for PPIs whose configuration cannot be changed anyway, don't return
->> an error and simply WARN if this fails. This will allows us to fix up any
->> places in the kernel where we should be checking the return status and
->> maintain back compatibility with firmware images that may have incorrect
->> interrupt configurations.
-> 
-> Though silently returning 0 is really the wrong thing to do. You can add the
-> warn, but why do you want to return success?
+> Instead these clocks simply use the clock that is pass through by its
+> parent PWMSS. Therefore, PWMSS handles the clock for itself and its
+> subdevices.
 
-Yes that would be the correct thing to do I agree. However, the problem
-is that if we do this, then after the patch "irqdomain: Don't set type
-when mapping an IRQ" is applied, we may break interrupts for some
-existing device-tree binaries that have bad configuration (such as omap4
-and tegra20/30 ... see patches 1 and 2) that have gone unnoticed. So it
-is a back compatibility issue.
-
-If you are wondering why these interrupts break after "irqdomain: Don't
-set type when mapping an IRQ", it is because today
-irq_create_fwspec_mapping() does not check the return code from setting
-the type, but if we defer setting the type until __setup_irq() which
-does check the return code, then all of a sudden interrupts that were
-working (even with bad configurations) start to fail.
-
-The reason why I opted not to return an error code from
-gic_configure_irq() is it really can't fail. The failure being reported
-does not prevent the interrupt from working, but tells you your
-configuration does not match the hardware setting which you cannot
-overwrite.
-
-So to maintain back compatibility and avoid any silent errors, I opted
-to make it a WARN and not return an error.
-
-If people are ok with potentially breaking interrupts for device-tree
-binaries with bad settings, then I am ok to return an error here.
-
-Cheers
-Jon
+Are you breaking compatibility with old DTs here? 
+ 
+> Signed-off-by: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
+> ---
+>  .../devicetree/bindings/pwm/pwm-tiecap.txt         |  1 -
+>  .../devicetree/bindings/pwm/pwm-tiehrpwm.txt       |  7 +-
+>  .../mach-omap2/omap_hwmod_33xx_43xx_common_data.h  | 18 -----
+>  .../omap_hwmod_33xx_43xx_interconnect_data.c       | 64 -----------------
+>  .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 84 ----------------------
+>  arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |  9 ---
+>  arch/arm/mach-omap2/omap_hwmod_43xx_data.c         | 54 --------------
+>  7 files changed, 4 insertions(+), 233 deletions(-)
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
