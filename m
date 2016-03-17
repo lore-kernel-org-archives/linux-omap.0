@@ -1,68 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Nokia N900 - audio TPA6130A2 problems
-Date: Thu, 17 Mar 2016 06:33:14 -0700
-Message-ID: <20160317133313.GL9329@atomide.com>
-References: <56E68B71.2030202@ti.com>
- <20160316133319.GR8413@pali>
- <20160316144709.GA3389@earth>
- <56E9A42B.3010209@gmail.com>
- <56E9A6D9.7000003@ti.com>
- <56E9B910.7000904@gmail.com>
- <20160317004917.GA6750@earth>
- <56EA6326.4000702@gmail.com>
- <20160317130115.GU8413@pali>
- <56EAACF4.2040005@gmail.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [RFC PATCH] ARM: clocksource: make ARM_GLOBAL_TIMER selectable
+Date: Thu, 17 Mar 2016 14:42:37 +0100
+Message-ID: <56EAB44D.7020902@linaro.org>
+References: <1454610017-25499-1-git-send-email-grygorii.strashko@ti.com>
+ <20160204224128.GG4215@xsjsorenbubuntu>
+ <CAAtXAHcV-9gXcZOX8dzUOBZUwj9M=O4MAsMCJNQYAP+os-D7Tg@mail.gmail.com>
+ <20160204233950.GH4215@xsjsorenbubuntu> <56D04D17.6030502@ti.com>
+ <20160226152714.GD3173@xsjsorenbubuntu> <56DEAFB7.50105@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <56EAACF4.2040005@gmail.com>
+In-Reply-To: <56DEAFB7.50105@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Sebastian Reichel <sre@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Lars-Peter Clausen <lars@metafoo.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, merlijn@wizzup.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, =?UTF-8?Q?S=c3=b6ren_Brinkmann?= <soren.brinkmann@xilinx.com>, Olof Johansson <olof@lixom.net>
+Cc: Moritz Fischer <moritz.fischer@ettus.com>, kernel@stlinux.com, tony@atomide.com, nsekhar@ti.com, Masahiro Yamada <yamada.masahiro@socionext.com>, Florian Fainelli <f.fainelli@gmail.com>, Russell King <linux@arm.linux.org.uk>, Michal Simek <michal.simek@xilinx.com>, Wei Xu <xuwei5@hisilicon.com>, linux-rockchip@lists.infradead.org, bcm-kernel-feedback-list@broadcom.com, Arnd Bergmann <arnd@arndb.de>, Liviu Dudau <liviu.dudau@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Maxime Coquelin <maxime.coquelin@st.com>, Srinivas Kandagatla <srinivas.kandagatla@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Sudeep Holla <sudeep.holla@arm.com>, Jun Nie <jun.nie@linaro.org>, Shawn Guo <shawnguo@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160317 06:11]:
-> Hi,
->=20
-> On 17.03.2016 15:01, Pali Roh=C3=A1r wrote:
-> >On Thursday 17 March 2016 09:56:22 Ivaylo Dimitrov wrote:
-> >>Hi,
-> >>
-> >
-> >Is camera on same bus as tpa? Maybe this is reason why camera is
-> >non-functional too?
-> >
->=20
-> It doesn't matter, all the i2c busses are missing the pullups.
->=20
-> >>Will fix the board DTS file later on an will report
-> >
-> >Thanks for investigation! Is that problem in both DTS and also legac=
-y
-> >board code?
-> >
->=20
-> I guess legacy board code does not set i2c pull-ups either, as we
-> have that problem since the beginning of time. Anyway, let me first
-> check if enabling pullups really solves the issue, I hope to test tha=
-t in a
-> couple of hours when I am back home.
->=20
-> Or you can do it yourself, it is just a matter of replacing PIN_INPUT=
- with
-> PIN_INPUT_PULLUP in https://git.kernel.org/cgit/linux/kernel/git/torv=
-alds/linux.git/tree/arch/arm/boot/dts/omap3-n900.dts?id=3Drefs/tags/v4.=
-5#n199
-> for all the 3 ic2 busses
+On 03/08/2016 11:55 AM, Grygorii Strashko wrote:
+> Yeah. Thanks
+>
+> I'll re-send it after 4.6-rc.
+> But What I'm not fully understand is how to get it merged taking into=
+ account that
+> it touches few maches & clocksource :(
 
-Check the schematics. If the hardware has external pull-ups on a
-line then don't enable the internal pull-ups. Otherwise both the
-external and intenal pulls are parallel the pull value will be
-wrong. My guess is that on n900 all the i2c lines have external
-pulls.
+This is not a problem. Send it based on timers/core from the tip tree=20
+and Cc the maintainers for the maches dir. As soon as they ack the=20
+patches, I will merge it through my tree.
 
-Regards,
+Thanks
 
-Tony
+   -- Daniel
+
+
+
+--=20
+  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
+r ARM SoCs
+
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
