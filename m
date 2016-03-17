@@ -1,222 +1,164 @@
 From: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 08/15] genirq: Add runtime power management support for IRQ chips
-Date: Thu, 17 Mar 2016 14:19:12 +0000
-Message-ID: <1458224359-32665-9-git-send-email-jonathanh@nvidia.com>
+Subject: [PATCH 04/15] irqchip/gic: WARN if setting the interrupt type fails
+Date: Thu, 17 Mar 2016 14:19:08 +0000
+Message-ID: <1458224359-32665-5-git-send-email-jonathanh@nvidia.com>
 References: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1458224359-32665-1-git-send-email-jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Some IRQ chips may be located in a power domain outside of the CPU
-subsystem and hence will require device specific runtime power
-management. In order to support such IRQ chips, add a pointer for a
-device structure to the irq_chip structure, and if this pointer is
-populated by the IRQ chip driver and CONFIG_PM is selected in the kernel
-configuration, then the pm_runtime_get/put APIs for this chip will be
-called when an IRQ is requested/freed, respectively.
+Setting the interrupt type for private peripheral interrupts (PPIs) may
+not be supported by a given GIC because it is IMPLEMENTATION DEFINED
+whether this is allowed. There is no way to know if setting the type is
+supported for a given GIC and so the value written is read back to
+verify it matches the desired configuration. If it does not match then
+an error is return.
 
-When entering system suspend and each interrupt is disabled if there is
-no wake-up set for that interrupt. For an IRQ chip that utilises runtime
-power management, print a warning message for each active interrupt that
-has no wake-up set because these interrupts may be unnecessarily keeping
-the IRQ chip enabled during system suspend.
+There are cases where the interrupt configuration read from firmware
+(such as a device-tree blob), has been incorrect and hence
+gic_configure_irq() has returned an error. This error has gone
+undetected because the error code returned was ignored but the interrupt
+still worked fine because the configuration for the interrupt could not
+be overwritten.
+
+Given that this has done undetected and we should only fail to set the
+type for PPIs whose configuration cannot be changed anyway, don't return
+an error and simply WARN if this fails. This will allows us to fix up any
+places in the kernel where we should be checking the return status and
+maintain back compatibility with firmware images that may have incorrect
+interrupt configurations.
 
 Signed-off-by: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 ---
- include/linux/irq.h    |  5 +++++
- kernel/irq/chip.c      | 52 ++++++++++++++++++++++++++++++++++++++++++++++++++
- kernel/irq/internals.h |  1 +
- kernel/irq/manage.c    | 14 +++++++++++---
- kernel/irq/pm.c        |  3 +++
- 5 files changed, 72 insertions(+), 3 deletions(-)
+ drivers/irqchip/irq-gic-common.c | 13 ++++---------
+ drivers/irqchip/irq-gic-common.h |  2 +-
+ drivers/irqchip/irq-gic-v3.c     |  4 +++-
+ drivers/irqchip/irq-gic.c        |  4 +++-
+ drivers/irqchip/irq-hip04.c      |  5 ++---
+ 5 files changed, 13 insertions(+), 15 deletions(-)
 
-diff --git a/include/linux/irq.h b/include/linux/irq.h
-index c4de62348ff2..82f36390048d 100644
---- a/include/linux/irq.h
-+++ b/include/linux/irq.h
-@@ -315,6 +315,7 @@ static inline irq_hw_number_t irqd_to_hwirq(struct irq_data *d)
- /**
-  * struct irq_chip - hardware interrupt chip descriptor
-  *
-+ * @parent:		pointer to associated device
-  * @name:		name for /proc/interrupts
-  * @irq_startup:	start up the interrupt (defaults to ->enable if NULL)
-  * @irq_shutdown:	shut down the interrupt (defaults to ->disable if NULL)
-@@ -354,6 +355,7 @@ static inline irq_hw_number_t irqd_to_hwirq(struct irq_data *d)
-  * @flags:		chip specific flags
-  */
- struct irq_chip {
-+	struct device	*parent;
- 	const char	*name;
- 	unsigned int	(*irq_startup)(struct irq_data *data);
- 	void		(*irq_shutdown)(struct irq_data *data);
-@@ -488,6 +490,9 @@ extern void handle_bad_irq(struct irq_desc *desc);
- extern void handle_nested_irq(unsigned int irq);
- 
- extern int irq_chip_compose_msi_msg(struct irq_data *data, struct msi_msg *msg);
-+extern int irq_chip_pm_get(struct irq_data *data);
-+extern int irq_chip_pm_put(struct irq_data *data);
-+extern bool irq_chip_pm_suspended(struct irq_data *data);
- #ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
- extern void irq_chip_enable_parent(struct irq_data *data);
- extern void irq_chip_disable_parent(struct irq_data *data);
-diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
-index 2f9f2b0e79f2..c575b700e88a 100644
---- a/kernel/irq/chip.c
-+++ b/kernel/irq/chip.c
-@@ -1093,3 +1093,55 @@ int irq_chip_compose_msi_msg(struct irq_data *data, struct msi_msg *msg)
- 
- 	return 0;
+diff --git a/drivers/irqchip/irq-gic-common.c b/drivers/irqchip/irq-gic-common.c
+index ffff5a45f1e3..423a345d7b75 100644
+--- a/drivers/irqchip/irq-gic-common.c
++++ b/drivers/irqchip/irq-gic-common.c
+@@ -32,13 +32,12 @@ void gic_enable_quirks(u32 iidr, const struct gic_quirk *quirks,
+ 	}
  }
-+
-+/**
-+ * irq_chip_pm_get - Enable power for an IRQ chip
-+ * @data:	Pointer to interrupt specific data
-+ *
-+ * Enable the power to the IRQ chip referenced by the interrupt data
-+ * structure.
-+ */
-+int irq_chip_pm_get(struct irq_data *data)
-+{
-+	int retval = 0;
-+
-+	if (IS_ENABLED(CONFIG_PM) && data->chip->parent)
-+		retval = pm_runtime_get_sync(data->chip->parent);
-+
-+	return (retval < 0) ? retval : 0;
-+}
-+
-+/**
-+ * irq_chip_pm_put - Disable power for an IRQ chip
-+ * @data:	Pointer to interrupt specific data
-+ *
-+ * Disable the power to the IRQ chip referenced by the interrupt data
-+ * structure, belongs. Note that power will only be disabled, once this
-+ * function has been called for all IRQs that have called irq_chip_pm_get().
-+ */
-+int irq_chip_pm_put(struct irq_data *data)
-+{
-+	int retval = 0;
-+
-+	if (IS_ENABLED(CONFIG_PM) && data->chip->parent)
-+		retval = pm_runtime_put(data->chip->parent);
-+
-+	return (retval < 0) ? retval : 0;
-+}
-+
-+/**
-+ * irq_chip_pm_suspended - Power status for an IRQ chip
-+ * @data:	Pointer to interrupt specific data
-+ *
-+ * Return the runtime power status for an IRQ chip referenced by the
-+ * interrupt data structure.
-+ */
-+bool irq_chip_pm_suspended(struct irq_data *data)
-+{
-+	bool status = true;
-+
-+	if (IS_ENABLED(CONFIG_PM) && data->chip->parent)
-+		status = pm_runtime_status_suspended(data->chip->parent);
-+
-+	return status;
-+}
-diff --git a/kernel/irq/internals.h b/kernel/irq/internals.h
-index 09be2c903c6d..d5edcdc9382a 100644
---- a/kernel/irq/internals.h
-+++ b/kernel/irq/internals.h
-@@ -7,6 +7,7 @@
-  */
- #include <linux/irqdesc.h>
- #include <linux/kernel_stat.h>
-+#include <linux/pm_runtime.h>
  
- #ifdef CONFIG_SPARSE_IRQ
- # define IRQ_BITMAP_BITS	(NR_IRQS + 8196)
-diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
-index b2a93a37f772..65878e7c7c82 100644
---- a/kernel/irq/manage.c
-+++ b/kernel/irq/manage.c
-@@ -1114,6 +1114,10 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
- 	if (!try_module_get(desc->owner))
- 		return -ENODEV;
- 
-+	ret = irq_chip_pm_get(&desc->irq_data);
-+	if (ret < 0)
-+		goto out_mput;
-+
- 	new->irq = irq;
+-int gic_configure_irq(unsigned int irq, unsigned int type,
++void gic_configure_irq(unsigned int irq, unsigned int type,
+ 		       void __iomem *base, void (*sync_access)(void))
+ {
+ 	u32 confmask = 0x2 << ((irq % 16) * 2);
+ 	u32 confoff = (irq / 16) * 4;
+ 	u32 val, oldval;
+-	int ret = 0;
  
  	/*
-@@ -1131,7 +1135,7 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
- 	if (nested) {
- 		if (!new->thread_fn) {
- 			ret = -EINVAL;
--			goto out_mput;
-+			goto out_pm;
- 		}
- 		/*
- 		 * Replace the primary handler which was provided from
-@@ -1143,7 +1147,7 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
- 		if (irq_settings_can_thread(desc)) {
- 			ret = irq_setup_forced_threading(new);
- 			if (ret)
--				goto out_mput;
-+				goto out_pm;
- 		}
+ 	 * Read current configuration register, and insert the config
+@@ -52,21 +51,17 @@ int gic_configure_irq(unsigned int irq, unsigned int type,
+ 
+ 	/* If the current configuration is the same, then we are done */
+ 	if (val == oldval)
+-		return 0;
++		return;
+ 
+ 	/*
+ 	 * Write back the new configuration, and possibly re-enable
+-	 * the interrupt. If we fail to write a new configuration,
+-	 * return an error.
++	 * the interrupt. WARN if we fail to write a new configuration.
+ 	 */
+ 	writel_relaxed(val, base + GIC_DIST_CONFIG + confoff);
+-	if (readl_relaxed(base + GIC_DIST_CONFIG + confoff) != val)
+-		ret = -EINVAL;
++	WARN_ON(readl_relaxed(base + GIC_DIST_CONFIG + confoff) != val);
+ 
+ 	if (sync_access)
+ 		sync_access();
+-
+-	return ret;
+ }
+ 
+ void __init gic_dist_config(void __iomem *base, int gic_irqs,
+diff --git a/drivers/irqchip/irq-gic-common.h b/drivers/irqchip/irq-gic-common.h
+index fff697db8e22..73dee3bc6bba 100644
+--- a/drivers/irqchip/irq-gic-common.h
++++ b/drivers/irqchip/irq-gic-common.h
+@@ -27,7 +27,7 @@ struct gic_quirk {
+ 	u32 mask;
+ };
+ 
+-int gic_configure_irq(unsigned int irq, unsigned int type,
++void gic_configure_irq(unsigned int irq, unsigned int type,
+                        void __iomem *base, void (*sync_access)(void));
+ void gic_dist_config(void __iomem *base, int gic_irqs,
+ 		     void (*sync_access)(void));
+diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
+index 5b7d3c2129d8..c569c466fa31 100644
+--- a/drivers/irqchip/irq-gic-v3.c
++++ b/drivers/irqchip/irq-gic-v3.c
+@@ -310,7 +310,9 @@ static int gic_set_type(struct irq_data *d, unsigned int type)
+ 		rwp_wait = gic_dist_wait_for_rwp;
  	}
  
-@@ -1155,7 +1159,7 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
- 	if (new->thread_fn && !nested) {
- 		ret = setup_irq_thread(new, irq, false);
- 		if (ret)
--			goto out_mput;
-+			goto out_pm;
- 		if (new->secondary) {
- 			ret = setup_irq_thread(new->secondary, irq, true);
- 			if (ret)
-@@ -1397,6 +1401,8 @@ out_thread:
- 		kthread_stop(t);
- 		put_task_struct(t);
- 	}
-+out_pm:
-+	irq_chip_pm_put(&desc->irq_data);
- out_mput:
- 	module_put(desc->owner);
- 	return ret;
-@@ -1513,6 +1519,7 @@ static struct irqaction *__free_irq(unsigned int irq, void *dev_id)
- 		}
- 	}
+-	return gic_configure_irq(irq, type, base, rwp_wait);
++	gic_configure_irq(irq, type, base, rwp_wait);
++
++	return 0;
+ }
  
-+	irq_chip_pm_put(&desc->irq_data);
- 	module_put(desc->owner);
- 	kfree(action->secondary);
- 	return action;
-@@ -1829,6 +1836,7 @@ static struct irqaction *__free_percpu_irq(unsigned int irq, void __percpu *dev_
+ static int gic_irq_set_vcpu_affinity(struct irq_data *d, void *vcpu)
+diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+index 282344b95ec2..6c555a2c5315 100644
+--- a/drivers/irqchip/irq-gic.c
++++ b/drivers/irqchip/irq-gic.c
+@@ -279,7 +279,9 @@ static int gic_set_type(struct irq_data *d, unsigned int type)
+ 			    type != IRQ_TYPE_EDGE_RISING)
+ 		return -EINVAL;
  
- 	unregister_handler_proc(irq, action);
+-	return gic_configure_irq(gicirq, type, base, NULL);
++	gic_configure_irq(gicirq, type, base, NULL);
++
++	return 0;
+ }
  
-+	irq_chip_pm_put(&desc->irq_data);
- 	module_put(desc->owner);
- 	return action;
+ static int gic_irq_set_vcpu_affinity(struct irq_data *d, void *vcpu)
+diff --git a/drivers/irqchip/irq-hip04.c b/drivers/irqchip/irq-hip04.c
+index 9688d2e2a636..12be5906e91a 100644
+--- a/drivers/irqchip/irq-hip04.c
++++ b/drivers/irqchip/irq-hip04.c
+@@ -120,7 +120,6 @@ static int hip04_irq_set_type(struct irq_data *d, unsigned int type)
+ {
+ 	void __iomem *base = hip04_dist_base(d);
+ 	unsigned int irq = hip04_irq(d);
+-	int ret;
  
-diff --git a/kernel/irq/pm.c b/kernel/irq/pm.c
-index cea1de0161f1..ab436119084f 100644
---- a/kernel/irq/pm.c
-+++ b/kernel/irq/pm.c
-@@ -83,6 +83,9 @@ static bool suspend_device_irq(struct irq_desc *desc)
- 		 * suspend_device_irqs().
- 		 */
- 		return true;
-+	} else if (!irq_chip_pm_suspended(&desc->irq_data)) {
-+		pr_warn("irq %d has no wakeup set and has not been freed!\n",
-+			desc->irq_data.irq);
- 	}
+ 	/* Interrupt configuration for SGIs can't be changed */
+ 	if (irq < 16)
+@@ -133,11 +132,11 @@ static int hip04_irq_set_type(struct irq_data *d, unsigned int type)
  
- 	desc->istate |= IRQS_SUSPENDED;
+ 	raw_spin_lock(&irq_controller_lock);
+ 
+-	ret = gic_configure_irq(irq, type, base, NULL);
++	gic_configure_irq(irq, type, base, NULL);
+ 
+ 	raw_spin_unlock(&irq_controller_lock);
+ 
+-	return ret;
++	return 0;
+ }
+ 
+ #ifdef CONFIG_SMP
 -- 
 2.1.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
