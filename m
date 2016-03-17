@@ -1,73 +1,69 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 02/23] ARM: dts: n950: add display support
-Date: Thu, 17 Mar 2016 14:14:26 +0200
-Message-ID: <21766689.NesyW3QHk4@avalon>
-References: <1457455195-1938-1-git-send-email-sre@kernel.org>
- <1457455195-1938-3-git-send-email-sre@kernel.org>
+From: "Franklin S Cooper Jr." <fcooper@ti.com>
+Subject: Re: [PATCH 5/5] pwm: pwm-tiehrpwm: Update dt binding document to use
+ generic node name
+Date: Thu, 17 Mar 2016 11:49:24 -0500
+Message-ID: <56EAE014.8070606@ti.com>
+References: <1457380318-15452-1-git-send-email-fcooper@ti.com>
+ <1457380318-15452-6-git-send-email-fcooper@ti.com>
+ <20160317150305.GA27356@rob-hp-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1457455195-1938-3-git-send-email-sre@kernel.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <20160317150305.GA27356@rob-hp-laptop>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: thierry.reding@gmail.com, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, t-kristo@ti.com, mturquette@baylibre.com, sboyd@codeaurora.org, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgU2ViYXN0aWFuLAoKVGhhbmsgeW91IGZvciB0aGUgcGF0Y2guCgpPbiBUdWVzZGF5IDA4IE1h
-cmNoIDIwMTYgMTc6Mzk6MzQgU2ViYXN0aWFuIFJlaWNoZWwgd3JvdGU6Cj4gU2lnbmVkLW9mZi1C
-eTogU2ViYXN0aWFuIFJlaWNoZWwgPHNyZUBrZXJuZWwub3JnPgo+IC0tLQo+ICBhcmNoL2FybS9i
-b290L2R0cy9vbWFwMy1uOTUwLmR0cyB8IDcxICsrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysKPiAgMSBmaWxlIGNoYW5nZWQsIDcxIGluc2VydGlvbnMoKykKPiAKPiBkaWZmIC0t
-Z2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtbjk1MC5kdHMKPiBiL2FyY2gvYXJtL2Jvb3Qv
-ZHRzL29tYXAzLW45NTAuZHRzIGluZGV4IDA4ODViMzRkNWQ3ZC4uNDFiOGZiNTg1MjcyIDEwMDY0
-NAo+IC0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLW45NTAuZHRzCj4gKysrIGIvYXJjaC9h
-cm0vYm9vdC9kdHMvb21hcDMtbjk1MC5kdHMKPiBAQCAtMTcsNiArMTcsMjYgQEAKPiAgCWNvbXBh
-dGlibGUgPSAibm9raWEsb21hcDMtbjk1MCIsICJ0aSxvbWFwMzZ4eCIsICJ0aSxvbWFwMyI7Cj4g
-IH07Cj4gCj4gKyZvbWFwM19wbXhfY29yZSB7Cj4gKwlkc2lfcGluczogcGlubXV4X2RzaV9waW5z
-IHsKPiArCQlwaW5jdHJsLXNpbmdsZSxwaW5zID0gPAo+ICsJCQlPTUFQM19DT1JFMV9JT1BBRCgw
-eDIwZGMsIFBJTl9PVVRQVVQgfCBNVVhfTU9ERTEpIC8qIGRzaV9keDAgLQo+IGRhdGEwKyAqLwo+
-ICsJCQlPTUFQM19DT1JFMV9JT1BBRCgweDIwZGUsIFBJTl9PVVRQVVQgfCBNVVhfTU9ERTEpIC8q
-IGRzaV9keTAgLQo+IGRhdGEwLSAqLwo+ICsJCQlPTUFQM19DT1JFMV9JT1BBRCgweDIwZTAsIFBJ
-Tl9PVVRQVVQgfCBNVVhfTU9ERTEpIC8qIGRzaV9keDEgLQo+IGNsaysgICAqLwo+ICsJCQlPTUFQ
-M19DT1JFMV9JT1BBRCgweDIwZTIsIFBJTl9PVVRQVVQgfCBNVVhfTU9ERTEpIC8qIGRzaV9keTEg
-LQo+IGNsay0gICAqLwo+ICsJCQlPTUFQM19DT1JFMV9JT1BBRCgweDIwZTQsIFBJTl9PVVRQVVQg
-fCBNVVhfTU9ERTEpIC8qIGRzaV9keDIgLQo+IGRhdGExKyAqLwo+ICsJCQlPTUFQM19DT1JFMV9J
-T1BBRCgweDIwZTYsIFBJTl9PVVRQVVQgfCBNVVhfTU9ERTEpIC8qIGRzaV9keTIgLQo+IGRhdGEx
-LSAqLwo+ICsJCT47Cj4gKwl9Owo+ICsKPiArCWRpc3BsYXlfcGluczogcGlubXV4X2Rpc3BsYXlf
-cGlucyB7Cj4gKwkJcGluY3RybC1zaW5nbGUscGlucyA9IDwKPiArCQkJT01BUDNfQ09SRTFfSU9Q
-QUQoMHgyMGNhLCBQSU5fSU5QVVQgfCBNVVhfTU9ERTQpIC8qIGdwaW8gNjIgLQo+IGRpc3BsYXkg
-dGUgKi8KPiArCQkJT01BUDNfQ09SRTFfSU9QQUQoMHgyMGZlLCBQSU5fT1VUUFVUIHwgTVVYX01P
-REU0KSAvKiBncGlvIDg3IC0KPiBkaXNwbGF5IHJlc2V0ICovCj4gKwkJPjsKPiArCX07Cj4gK307
-Cj4gKwo+ICAmaTJjMiB7Cj4gIAlzbWlhXzE6IGNhbWVyYUAxMCB7Cj4gIAkJY29tcGF0aWJsZSA9
-ICJub2tpYSxzbWlhIjsKPiBAQCAtNTMsMyArNzMsNTQgQEAKPiAgCQl9Owo+ICAJfTsKPiAgfTsK
-PiArCj4gKyZkc3Mgewo+ICsJc3RhdHVzID0gIm9rIjsKPiArCj4gKwl2ZGRhX3ZpZGVvLXN1cHBs
-eSA9IDwmdmRhYz47Cj4gK307Cj4gKwo+ICsmZHNpIHsKPiArCXN0YXR1cyA9ICJvayI7Cj4gKwo+
-ICsJcGluY3RybC1uYW1lcyA9ICJkZWZhdWx0IjsKPiArCXBpbmN0cmwtMCA9IDwmZHNpX3BpbnM+
-Owo+ICsKPiArCXZkZC1zdXBwbHkgPSA8JnZwbGwyPjsKPiArCj4gKwlwb3J0IHsKPiArCQlkc2lf
-b3V0X2VwOiBlbmRwb2ludCB7Cj4gKwkJCXJlbW90ZS1lbmRwb2ludCA9IDwmbGNkMF9pbj47Cj4g
-KwkJCWxhbmVzID0gPDIgMyAwIDEgNCA1PjsKPiArCQl9Owo+ICsJfTsKPiArCj4gKwlsY2QwOiBk
-aXNwbGF5IHsKPiArCQljb21wYXRpYmxlID0gIm5va2lhLGhpbWFsYXlhIiwgInBhbmVsLWRzaS1j
-bSI7Cj4gKwkJbGFiZWwgPSAibGNkMCI7Cj4gKwo+ICsJCXBpbmN0cmwtbmFtZXMgPSAiZGVmYXVs
-dCI7Cj4gKwkJcGluY3RybC0wID0gPCZkaXNwbGF5X3BpbnM+Owo+ICsKPiArCQl2cG5sLXN1cHBs
-eSA9IDwmdm1tYzI+Owo+ICsJCXZkZGktc3VwcGx5ID0gPCZ2aW8+Owo+ICsKPiArCQlyZXNldC1n
-cGlvcyA9IDwmZ3BpbzMgMjMgR1BJT19BQ1RJVkVfSElHSD47CS8qIDg3ICovCj4gKwkJdGUtZ3Bp
-b3MgPSA8JmdwaW8yIDMwIEdQSU9fQUNUSVZFX0hJR0g+OwkvKiA2MiAqLwo+ICsKPiArCQloYXMt
-ZHNpLWJhY2tsaWdodDsKPiArCj4gKwkJLyogcGFuZWwgaXMgNDgweDQ2NCB3aXRoIHRvcCBhbmQg
-Ym90dG9tIDUgbGluZXMgbm90IHZpc2libGUgKi8KCkkgYXNzdW1lIHlvdSBtZWFuIDQ4MHg4NjQg
-PwoKPiArCQkvKiBwaHlzaWNhbCBkaW1lbnNpb25zOiA0ODk2MMK1bSB4IDg4MTI4wrVtICovCj4g
-KwkJcmVzb2x1dGlvbi14ID0gPDQ4MD47Cj4gKwkJcmVzb2x1dGlvbi15ID0gPDg1ND47Cj4gKwkJ
-b2Zmc2V0LXggPSA8MD47Cj4gKwkJb2Zmc2V0LXkgPSA8NT47Cj4gKwo+ICsJCXBvcnQgewo+ICsJ
-CQlsY2QwX2luOiBlbmRwb2ludCB7Cj4gKwkJCQlyZW1vdGUtZW5kcG9pbnQgPSA8JmRzaV9vdXRf
-ZXA+Owo+ICsJCQl9Owo+ICsJCX07Cj4gKwl9Owo+ICt9OwoKLS0gClJlZ2FyZHMsCgpMYXVyZW50
-IFBpbmNoYXJ0CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcK
-aHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+
+
+On 03/17/2016 10:03 AM, Rob Herring wrote:
+> On Mon, Mar 07, 2016 at 01:51:58PM -0600, Franklin S Cooper Jr wrote:
+>> Now that the node name has been changed from ehrpwm to pwm the document
+>> should show this proper usage. Also change the unit address in the example
+>> from 0 to the proper physical address value that should be used.
+>>
+>> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+>> ---
+>>  Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt | 4 ++--
+>>  1 file changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt b/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
+>> index 9c100b2..20211ed 100644
+>> --- a/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
+>> +++ b/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
+>> @@ -15,14 +15,14 @@ Optional properties:
+>>  
+>>  Example:
+>>  
+>> -ehrpwm0: ehrpwm@0 { /* EHRPWM on am33xx */
+>> +ehrpwm0: pwm@48300200 { /* EHRPWM on am33xx */
+>>  	compatible = "ti,am33xx-ehrpwm";
+>>  	#pwm-cells = <3>;
+>>  	reg = <0x48300200 0x100>;
+>>  	ti,hwmods = "ehrpwm0";
+>>  };
+>>  
+>> -ehrpwm0: ehrpwm@0 { /* EHRPWM on da850 */
+>> +ehrpwm0: pwm@01f00000 { /* EHRPWM on da850 */
+> No leading 0s, but more importantly the address is wrong.
+
+I will remove the leading 0. However, this value was taken
+from the .dtsi and I just double checked and I see the same
+value in the datasheet. I believe DA850,OMAP-L138 and AM18x
+all have the same memory mapping. I'm looking at
+http://www.ti.com/lit/ds/symlink/am1808.pdf page 233 and the
+addresses match up what is seen here and in the .dtsi.
+
+Can you point me to which document your looking at that
+shows a different value?
+
+
+>
+>>  	compatible = "ti,da850-ehrpwm", "ti,am33xx-ehrpwm";
+>>  	#pwm-cells = <3>;
+>>  	reg = <0x300000 0x2000>;
+>> -- 
+>> 2.7.0
+>>
