@@ -1,45 +1,40 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v5 3/6] ARM: AM335x/AM437x: hwmod: Remove eQEP, ePWM and
- eCAP hwmod entries
-Date: Thu, 17 Mar 2016 10:06:19 -0500
-Message-ID: <20160317150619.GA28105@rob-hp-laptop>
-References: <1457400224-24797-1-git-send-email-fcooper@ti.com>
- <1457400224-24797-4-git-send-email-fcooper@ti.com>
+From: Jon Hunter <jonathanh@nvidia.com>
+Subject: Re: [PATCH 07/15] irqdomain: Don't set type when mapping an IRQ
+Date: Thu, 17 Mar 2016 15:06:30 +0000
+Message-ID: <56EAC7F6.8000504@nvidia.com>
+References: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com>
+ <1458224359-32665-8-git-send-email-jonathanh@nvidia.com>
+ <alpine.DEB.2.11.1603171553170.3978@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1457400224-24797-4-git-send-email-fcooper-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
-Cc: thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, linux-pwm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, vigneshr-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.11.1603171553170.3978@nanos>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Kevin Hilman <khilman@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Mar 07, 2016 at 07:23:41PM -0600, Franklin S Cooper Jr wrote:
-> Devices that utilize the OCP registers and/or PRCM registers and
-> register bit fields should be modelled using hwmod. Since eQEP, ePWM and
 
-s/modelled/modeled/
-
-> eCAP don't fall under this category, remove their hwmod entries.
+On 17/03/16 14:55, Thomas Gleixner wrote:
+> On Thu, 17 Mar 2016, Jon Hunter wrote:
+>> --- a/kernel/irq/manage.c
+>> +++ b/kernel/irq/manage.c
+>> @@ -1117,6 +1117,13 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
+>>  	new->irq = irq;
+>>  
+>>  	/*
+>> +	 * If the trigger type is not specified by the caller,
+>> +	 * then use the default for this interrupt.
+>> +	 */
+>> +	if (!(new->flags & IRQF_TRIGGER_MASK))
+>> +		new->flags |= irqd_get_trigger_type(&desc->irq_data);
+>> +
 > 
-> Instead these clocks simply use the clock that is pass through by its
-> parent PWMSS. Therefore, PWMSS handles the clock for itself and its
-> subdevices.
+> This change is independent of the irqdomain part and should be in a seperate
+> patch because it affects all callers.
 
-Are you breaking compatibility with old DTs here? 
- 
-> Signed-off-by: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
-> ---
->  .../devicetree/bindings/pwm/pwm-tiecap.txt         |  1 -
->  .../devicetree/bindings/pwm/pwm-tiehrpwm.txt       |  7 +-
->  .../mach-omap2/omap_hwmod_33xx_43xx_common_data.h  | 18 -----
->  .../omap_hwmod_33xx_43xx_interconnect_data.c       | 64 -----------------
->  .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 84 ----------------------
->  arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |  9 ---
->  arch/arm/mach-omap2/omap_hwmod_43xx_data.c         | 54 --------------
->  7 files changed, 4 insertions(+), 233 deletions(-)
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ok, I will put this into a separate patch.
+
+Cheers
+Jon
