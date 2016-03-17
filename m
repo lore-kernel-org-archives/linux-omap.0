@@ -1,7 +1,7 @@
 From: Jon Hunter <jonathanh@nvidia.com>
-Subject: [PATCH 05/15] irqchip: Mask the non-type/sense bits when translating an IRQ
-Date: Thu, 17 Mar 2016 14:19:09 +0000
-Message-ID: <1458224359-32665-6-git-send-email-jonathanh@nvidia.com>
+Subject: [PATCH 09/15] irqchip/gic: Don't initialise chip if mapping IO space fails
+Date: Thu, 17 Mar 2016 14:19:13 +0000
+Message-ID: <1458224359-32665-10-git-send-email-jonathanh@nvidia.com>
 References: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,68 +12,35 @@ To: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, M
 Cc: Kevin Hilman <khilman@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Jon Hunter <jonathanh@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
 
-The firmware parameter that contains the IRQ sense bits may also contain
-other data. When return the IRQ type, bits outside of these sense bits
-should be masked. If these bits are not masked and
-irq_create_fwspec_mapping() is called to map an IRQ, then the comparison
-of the type returned from irq_domain_translate() will never match
-that returned by irq_get_trigger_type() (because this function masks the
-none sense bits) and so we will always call irq_set_irq_type() to program
-the type even if it was not really necessary.
-
-Currently, the downside to this is unnecessarily re-programmming the type
-but nevertheless this should be avoided.
-
-The Tegra LIC, TI Crossbar and GIC-V3 irqchips all have client instances
-(from reviewing the device-tree sources) where bits outside the IRQ sense
-bits are set, but do not mask these bits. Therefore, ensure these bits
-are masked for these irqchips.
+If we fail to map the address space for the GIC distributor or CPU
+interface, then don't attempt to initialise the chip, just WARN and
+return.
 
 Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
 ---
- drivers/irqchip/irq-crossbar.c | 2 +-
- drivers/irqchip/irq-gic-v3.c   | 2 +-
- drivers/irqchip/irq-tegra.c    | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/irqchip/irq-gic.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
-index 75573fa431ba..1eef56a89b1f 100644
---- a/drivers/irqchip/irq-crossbar.c
-+++ b/drivers/irqchip/irq-crossbar.c
-@@ -183,7 +183,7 @@ static int crossbar_domain_translate(struct irq_domain *d,
- 			return -EINVAL;
+diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+index 6c555a2c5315..a4a13ef35c1b 100644
+--- a/drivers/irqchip/irq-gic.c
++++ b/drivers/irqchip/irq-gic.c
+@@ -1203,10 +1203,14 @@ gic_of_init(struct device_node *node, struct device_node *parent)
+ 		return -ENODEV;
  
- 		*hwirq = fwspec->param[1];
--		*type = fwspec->param[2];
-+		*type = fwspec->param[2] & IRQ_TYPE_SENSE_MASK;
- 		return 0;
- 	}
+ 	dist_base = of_iomap(node, 0);
+-	WARN(!dist_base, "unable to map gic dist registers\n");
++	if (WARN(!dist_base, "unable to map gic dist registers\n"))
++		return -ENOMEM;
  
-diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
-index c569c466fa31..972335b32eae 100644
---- a/drivers/irqchip/irq-gic-v3.c
-+++ b/drivers/irqchip/irq-gic-v3.c
-@@ -777,7 +777,7 @@ static int gic_irq_domain_translate(struct irq_domain *d,
- 			return -EINVAL;
+ 	cpu_base = of_iomap(node, 1);
+-	WARN(!cpu_base, "unable to map gic cpu registers\n");
++	if (WARN(!cpu_base, "unable to map gic cpu registers\n")) {
++		iounmap(dist_base);
++		return -ENOMEM;
++	}
  
- 		*hwirq = fwspec->param[0];
--		*type = fwspec->param[1];
-+		*type = fwspec->param[1] & IRQ_TYPE_SENSE_MASK;
- 		return 0;
- 	}
- 
-diff --git a/drivers/irqchip/irq-tegra.c b/drivers/irqchip/irq-tegra.c
-index 121ec301372e..7ceaff099072 100644
---- a/drivers/irqchip/irq-tegra.c
-+++ b/drivers/irqchip/irq-tegra.c
-@@ -235,7 +235,7 @@ static int tegra_ictlr_domain_translate(struct irq_domain *d,
- 			return -EINVAL;
- 
- 		*hwirq = fwspec->param[1];
--		*type = fwspec->param[2];
-+		*type = fwspec->param[2] & IRQ_TYPE_SENSE_MASK;
- 		return 0;
- 	}
- 
+ 	/*
+ 	 * Disable split EOI/Deactivate if either HYP is not available
 -- 
 2.1.4
