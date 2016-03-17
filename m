@@ -1,101 +1,84 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v5 6/6] ARM: dts: DRA7: Add dt nodes for PWMSS
-Date: Thu, 17 Mar 2016 10:11:47 -0500
-Message-ID: <20160317151147.GA29802@rob-hp-laptop>
-References: <1457400224-24797-1-git-send-email-fcooper@ti.com>
- <1457400224-24797-7-git-send-email-fcooper@ti.com>
+From: Jon Hunter <jonathanh@nvidia.com>
+Subject: Re: [PATCH 08/15] genirq: Add runtime power management support for
+ IRQ chips
+Date: Thu, 17 Mar 2016 15:13:14 +0000
+Message-ID: <56EAC98A.7090405@nvidia.com>
+References: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com>
+ <1458224359-32665-9-git-send-email-jonathanh@nvidia.com>
+ <56EAC6E8.1070806@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1457400224-24797-7-git-send-email-fcooper-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
-Cc: thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, linux-pwm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, vigneshr-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <56EAC6E8.1070806@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Linus Walleij <linus.walleij@linaro.org>
+Cc: Kevin Hilman <khilman@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Mar 07, 2016 at 07:23:44PM -0600, Franklin S Cooper Jr wrote:
-> From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Hi Marc,
+
+On 17/03/16 15:02, Marc Zyngier wrote:
+> Hi Jon,
 > 
-> Add PWMSS device tree nodes for DRA7 SoC family and add documentation
-> for dt bindings.
+> On 17/03/16 14:19, Jon Hunter wrote:
+>> Some IRQ chips may be located in a power domain outside of the CPU
+>> subsystem and hence will require device specific runtime power
+>> management. In order to support such IRQ chips, add a pointer for a
+>> device structure to the irq_chip structure, and if this pointer is
+>> populated by the IRQ chip driver and CONFIG_PM is selected in the kernel
+>> configuration, then the pm_runtime_get/put APIs for this chip will be
+>> called when an IRQ is requested/freed, respectively.
+>>
+>> When entering system suspend and each interrupt is disabled if there is
+>> no wake-up set for that interrupt. For an IRQ chip that utilises runtime
+>> power management, print a warning message for each active interrupt that
+>> has no wake-up set because these interrupts may be unnecessarily keeping
+>> the IRQ chip enabled during system suspend.
+>>
+>> Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+>> ---
+>>  include/linux/irq.h    |  5 +++++
+>>  kernel/irq/chip.c      | 52 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>>  kernel/irq/internals.h |  1 +
+>>  kernel/irq/manage.c    | 14 +++++++++++---
+>>  kernel/irq/pm.c        |  3 +++
+>>  5 files changed, 72 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/include/linux/irq.h b/include/linux/irq.h
+>> index c4de62348ff2..82f36390048d 100644
+>> --- a/include/linux/irq.h
+>> +++ b/include/linux/irq.h
+>> @@ -315,6 +315,7 @@ static inline irq_hw_number_t irqd_to_hwirq(struct irq_data *d)
+>>  /**
+>>   * struct irq_chip - hardware interrupt chip descriptor
+>>   *
+>> + * @parent:		pointer to associated device
+>>   * @name:		name for /proc/interrupts
+>>   * @irq_startup:	start up the interrupt (defaults to ->enable if NULL)
+>>   * @irq_shutdown:	shut down the interrupt (defaults to ->disable if NULL)
+>> @@ -354,6 +355,7 @@ static inline irq_hw_number_t irqd_to_hwirq(struct irq_data *d)
+>>   * @flags:		chip specific flags
+>>   */
+>>  struct irq_chip {
+>> +	struct device	*parent;
 > 
-> Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-> [fcooper-l0cyMroinI0@public.gmane.org: Add eCAP and use updated bindings for PWMSS and ePWM]
-> Signed-off-by: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
-> ---
-> Version 5 changes:
-> Add DT node for eCAP and update eCAP binding documentation
+> Nit: Please don't call this just "parent". We have parent fields in
+> irq_data and irq_domain structures, and they always are a pointer to the
+> same type, indicating some form of stacking. Here, we're pointing to a
+> different type altogether...
 > 
-> Version 4 changes:
-> Updated link to the latest documentation
-> 
->  .../devicetree/bindings/pwm/pwm-tiecap.txt         |  9 +++
->  .../devicetree/bindings/pwm/pwm-tiehrpwm.txt       |  9 +++
->  .../devicetree/bindings/pwm/pwm-tipwmss.txt        | 15 +++-
->  arch/arm/boot/dts/dra7.dtsi                        | 84 ++++++++++++++++++++++
->  4 files changed, 116 insertions(+), 1 deletion(-)
+> How about calling it "dev", or "device" instead? It would make it much
+> clearer that when crossing that pointer, we're in another subsystem
+> altogether.
 
+I will defer to Linus W here, as it was his request we make this
+'parent' and not 'dev'. See ...
 
-> +			ehrpwm1: pwm@48440200 {
-> +				compatible = "ti,dra7xx-ehrpwm",
-> +					     "ti,am33xx-ehrpwm";
-> +				#pwm-cells = <3>;
-> +				reg = <0x48440200 0x80>;
-> +				clocks = <&ehrpwm1_tbclk>;
-> +				clock-names = "tbclk";
-> +				status = "disabled";
-> +			};
-> +
-> +			ecap1: ecap@48440100 {
+http://marc.info/?l=linux-kernel&m=145035839623442&w=2
 
-This also is a PWM? Then it should also be pwm@...
+> I'll come back to the rest of the patch a bit later, but I wanted to put
+> that one out right away... ;-)
 
-> +				compatible = "ti,dra7xx-ecap",
-> +					     "ti,am33xx-ecap";
-> +				#pwm-cells = <3>;
-> +				reg = <0x48440100 0x80>;
-> +				status = "disabled";
-> +			};
-> +		};
-> +
-> +		epwmss2: epwmss@48442000 {
-> +			compatible = "ti,dra7xx-pwmss", "ti,am33xx-pwmss";
-> +			reg = <0x48442000 0x30>;
-> +			ti,hwmods = "epwmss2";
-> +			#address-cells = <1>;
-> +			#size-cells = <1>;
-> +			status = "disabled";
-> +			ranges;
-> +
-> +			ehrpwm2: pwm@48442200 {
-> +				compatible = "ti,dra7xx-ehrpwm",
-> +					     "ti,am33xx-ehrpwm";
-> +				#pwm-cells = <3>;
-> +				reg = <0x48442200 0x80>;
-> +				clocks = <&ehrpwm2_tbclk>;
-> +				clock-names = "tbclk";
-> +				status = "disabled";
-> +			};
-> +
-> +			ecap2: ecap@48442100 {
-
-And here.
-
-> +				compatible = "ti,dra7xx-ecap",
-> +					     "ti,am33xx-ecap";
-> +				#pwm-cells = <3>;
-> +				reg = <0x48442100 0x80>;
-> +				status = "disabled";
-> +			};
-> +		};
->  	};
->  
->  	thermal_zones: thermal-zones {
-> -- 
-> 2.7.0
-> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Jon
