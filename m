@@ -1,7 +1,7 @@
 From: Jon Hunter <jonathanh@nvidia.com>
-Subject: [PATCH 14/15] dt-bindings: arm-gic: Drop 'clock-names' from binding document
-Date: Thu, 17 Mar 2016 14:19:18 +0000
-Message-ID: <1458224359-32665-15-git-send-email-jonathanh@nvidia.com>
+Subject: [PATCH 12/15] irqchip/gic: Pass GIC pointer to save/restore functions
+Date: Thu, 17 Mar 2016 14:19:16 +0000
+Message-ID: <1458224359-32665-13-git-send-email-jonathanh@nvidia.com>
 References: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,49 +12,232 @@ To: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, M
 Cc: Kevin Hilman <khilman@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Jon Hunter <jonathanh@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
 
-Commit afbbd2338176 ("irqchip/gic: Document optional Clock and Power
-Domain properties") documented optional clock and power-dmoain properties
-for the ARM GIC. Currently, there are no users of these and for the
-Tegra210 Audio GIC (based upon the GIC-400) there are two clocks, a
-functional clock and interface clock, that need to be enabled.
-
-To allow flexibility, drop the 'clock-names' from the GIC binding and
-just provide a list of clocks which the driver can parse. It is assumed
-that any clocks that are listed, need to be enabled in order to access
-the GIC.
+Instead of passing the GIC index to the save/restore functions pass a
+pointer to the GIC chip data. This will allow these save/restore
+functions to be re-used by a platform driver where the GIC chip data
+structure is allocated dynamically and so there is no applicable index
+for identifying the GIC.
 
 Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
-
 ---
+ drivers/irqchip/irq-gic.c | 74 +++++++++++++++++++++++++----------------------
+ 1 file changed, 39 insertions(+), 35 deletions(-)
 
-Please note that I am not sure if this will be popular, but I am trying
-to come up with a generic way to handle multiple clocks that may be
-required for accessing a GIC.
-
- .../devicetree/bindings/interrupt-controller/arm,gic.txt      | 11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/interrupt-controller/arm,gic.txt b/Documentation/devicetree/bindings/interrupt-controller/arm,gic.txt
-index 793c20ff8fcc..c471d1a7a8ea 100644
---- a/Documentation/devicetree/bindings/interrupt-controller/arm,gic.txt
-+++ b/Documentation/devicetree/bindings/interrupt-controller/arm,gic.txt
-@@ -61,15 +61,8 @@ Optional
-   regions, used when the GIC doesn't have banked registers. The offset is
-   cpu-offset * cpu-nr.
+diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+index 42a1412b5186..de9f1caee648 100644
+--- a/drivers/irqchip/irq-gic.c
++++ b/drivers/irqchip/irq-gic.c
+@@ -519,34 +519,35 @@ int gic_cpu_if_down(unsigned int gic_nr)
+  * this function, no interrupts will be delivered by the GIC, and another
+  * platform-specific wakeup source must be enabled.
+  */
+-static void gic_dist_save(unsigned int gic_nr)
++static void gic_dist_save(struct gic_chip_data *gic)
+ {
+ 	unsigned int gic_irqs;
+ 	void __iomem *dist_base;
+ 	int i;
  
--- clocks        : List of phandle and clock-specific pairs, one for each entry
--  in clock-names.
--- clock-names   : List of names for the GIC clock input(s). Valid clock names
--  depend on the GIC variant:
--	"ic_clk" (for "arm,arm11mp-gic")
--	"PERIPHCLKEN" (for "arm,cortex-a15-gic")
--	"PERIPHCLK", "PERIPHCLKEN" (for "arm,cortex-a9-gic")
--	"clk" (for "arm,gic-400")
--	"gclk" (for "arm,pl390")
-+- clocks        : List of phandle and clock-specific pairs required for
-+		  accessing the GIC.
+-	BUG_ON(gic_nr >= CONFIG_ARM_GIC_MAX_NR);
++	if (WARN_ON(!gic))
++		return;
  
- - power-domains : A phandle and PM domain specifier as defined by bindings of
- 		  the power controller specified by phandle, used when the GIC
+-	gic_irqs = gic_data[gic_nr].gic_irqs;
+-	dist_base = gic_data_dist_base(&gic_data[gic_nr]);
++	gic_irqs = gic->gic_irqs;
++	dist_base = gic_data_dist_base(gic);
+ 
+ 	if (!dist_base)
+ 		return;
+ 
+ 	for (i = 0; i < DIV_ROUND_UP(gic_irqs, 16); i++)
+-		gic_data[gic_nr].saved_spi_conf[i] =
++		gic->saved_spi_conf[i] =
+ 			readl_relaxed(dist_base + GIC_DIST_CONFIG + i * 4);
+ 
+ 	for (i = 0; i < DIV_ROUND_UP(gic_irqs, 4); i++)
+-		gic_data[gic_nr].saved_spi_target[i] =
++		gic->saved_spi_target[i] =
+ 			readl_relaxed(dist_base + GIC_DIST_TARGET + i * 4);
+ 
+ 	for (i = 0; i < DIV_ROUND_UP(gic_irqs, 32); i++)
+-		gic_data[gic_nr].saved_spi_enable[i] =
++		gic->saved_spi_enable[i] =
+ 			readl_relaxed(dist_base + GIC_DIST_ENABLE_SET + i * 4);
+ 
+ 	for (i = 0; i < DIV_ROUND_UP(gic_irqs, 32); i++)
+-		gic_data[gic_nr].saved_spi_active[i] =
++		gic->saved_spi_active[i] =
+ 			readl_relaxed(dist_base + GIC_DIST_ACTIVE_SET + i * 4);
+ }
+ 
+@@ -557,16 +558,17 @@ static void gic_dist_save(unsigned int gic_nr)
+  * handled normally, but any edge interrupts that occured will not be seen by
+  * the GIC and need to be handled by the platform-specific wakeup source.
+  */
+-static void gic_dist_restore(unsigned int gic_nr)
++static void gic_dist_restore(struct gic_chip_data *gic)
+ {
+ 	unsigned int gic_irqs;
+ 	unsigned int i;
+ 	void __iomem *dist_base;
+ 
+-	BUG_ON(gic_nr >= CONFIG_ARM_GIC_MAX_NR);
++	if (WARN_ON(!gic))
++		return;
+ 
+-	gic_irqs = gic_data[gic_nr].gic_irqs;
+-	dist_base = gic_data_dist_base(&gic_data[gic_nr]);
++	gic_irqs = gic->gic_irqs;
++	dist_base = gic_data_dist_base(gic);
+ 
+ 	if (!dist_base)
+ 		return;
+@@ -574,7 +576,7 @@ static void gic_dist_restore(unsigned int gic_nr)
+ 	writel_relaxed(GICD_DISABLE, dist_base + GIC_DIST_CTRL);
+ 
+ 	for (i = 0; i < DIV_ROUND_UP(gic_irqs, 16); i++)
+-		writel_relaxed(gic_data[gic_nr].saved_spi_conf[i],
++		writel_relaxed(gic->saved_spi_conf[i],
+ 			dist_base + GIC_DIST_CONFIG + i * 4);
+ 
+ 	for (i = 0; i < DIV_ROUND_UP(gic_irqs, 4); i++)
+@@ -582,85 +584,87 @@ static void gic_dist_restore(unsigned int gic_nr)
+ 			dist_base + GIC_DIST_PRI + i * 4);
+ 
+ 	for (i = 0; i < DIV_ROUND_UP(gic_irqs, 4); i++)
+-		writel_relaxed(gic_data[gic_nr].saved_spi_target[i],
++		writel_relaxed(gic->saved_spi_target[i],
+ 			dist_base + GIC_DIST_TARGET + i * 4);
+ 
+ 	for (i = 0; i < DIV_ROUND_UP(gic_irqs, 32); i++) {
+ 		writel_relaxed(GICD_INT_EN_CLR_X32,
+ 			dist_base + GIC_DIST_ENABLE_CLEAR + i * 4);
+-		writel_relaxed(gic_data[gic_nr].saved_spi_enable[i],
++		writel_relaxed(gic->saved_spi_enable[i],
+ 			dist_base + GIC_DIST_ENABLE_SET + i * 4);
+ 	}
+ 
+ 	for (i = 0; i < DIV_ROUND_UP(gic_irqs, 32); i++) {
+ 		writel_relaxed(GICD_INT_EN_CLR_X32,
+ 			dist_base + GIC_DIST_ACTIVE_CLEAR + i * 4);
+-		writel_relaxed(gic_data[gic_nr].saved_spi_active[i],
++		writel_relaxed(gic->saved_spi_active[i],
+ 			dist_base + GIC_DIST_ACTIVE_SET + i * 4);
+ 	}
+ 
+ 	writel_relaxed(GICD_ENABLE, dist_base + GIC_DIST_CTRL);
+ }
+ 
+-static void gic_cpu_save(unsigned int gic_nr)
++static void gic_cpu_save(struct gic_chip_data *gic)
+ {
+ 	int i;
+ 	u32 *ptr;
+ 	void __iomem *dist_base;
+ 	void __iomem *cpu_base;
+ 
+-	BUG_ON(gic_nr >= CONFIG_ARM_GIC_MAX_NR);
++	if (WARN_ON(!gic))
++		return;
+ 
+-	dist_base = gic_data_dist_base(&gic_data[gic_nr]);
+-	cpu_base = gic_data_cpu_base(&gic_data[gic_nr]);
++	dist_base = gic_data_dist_base(gic);
++	cpu_base = gic_data_cpu_base(gic);
+ 
+ 	if (!dist_base || !cpu_base)
+ 		return;
+ 
+-	ptr = raw_cpu_ptr(gic_data[gic_nr].saved_ppi_enable);
++	ptr = raw_cpu_ptr(gic->saved_ppi_enable);
+ 	for (i = 0; i < DIV_ROUND_UP(32, 32); i++)
+ 		ptr[i] = readl_relaxed(dist_base + GIC_DIST_ENABLE_SET + i * 4);
+ 
+-	ptr = raw_cpu_ptr(gic_data[gic_nr].saved_ppi_active);
++	ptr = raw_cpu_ptr(gic->saved_ppi_active);
+ 	for (i = 0; i < DIV_ROUND_UP(32, 32); i++)
+ 		ptr[i] = readl_relaxed(dist_base + GIC_DIST_ACTIVE_SET + i * 4);
+ 
+-	ptr = raw_cpu_ptr(gic_data[gic_nr].saved_ppi_conf);
++	ptr = raw_cpu_ptr(gic->saved_ppi_conf);
+ 	for (i = 0; i < DIV_ROUND_UP(32, 16); i++)
+ 		ptr[i] = readl_relaxed(dist_base + GIC_DIST_CONFIG + i * 4);
+ 
+ }
+ 
+-static void gic_cpu_restore(unsigned int gic_nr)
++static void gic_cpu_restore(struct gic_chip_data *gic)
+ {
+ 	int i;
+ 	u32 *ptr;
+ 	void __iomem *dist_base;
+ 	void __iomem *cpu_base;
+ 
+-	BUG_ON(gic_nr >= CONFIG_ARM_GIC_MAX_NR);
++	if (WARN_ON(!gic))
++		return;
+ 
+-	dist_base = gic_data_dist_base(&gic_data[gic_nr]);
+-	cpu_base = gic_data_cpu_base(&gic_data[gic_nr]);
++	dist_base = gic_data_dist_base(gic);
++	cpu_base = gic_data_cpu_base(gic);
+ 
+ 	if (!dist_base || !cpu_base)
+ 		return;
+ 
+-	ptr = raw_cpu_ptr(gic_data[gic_nr].saved_ppi_enable);
++	ptr = raw_cpu_ptr(gic->saved_ppi_enable);
+ 	for (i = 0; i < DIV_ROUND_UP(32, 32); i++) {
+ 		writel_relaxed(GICD_INT_EN_CLR_X32,
+ 			       dist_base + GIC_DIST_ENABLE_CLEAR + i * 4);
+ 		writel_relaxed(ptr[i], dist_base + GIC_DIST_ENABLE_SET + i * 4);
+ 	}
+ 
+-	ptr = raw_cpu_ptr(gic_data[gic_nr].saved_ppi_active);
++	ptr = raw_cpu_ptr(gic->saved_ppi_active);
+ 	for (i = 0; i < DIV_ROUND_UP(32, 32); i++) {
+ 		writel_relaxed(GICD_INT_EN_CLR_X32,
+ 			       dist_base + GIC_DIST_ACTIVE_CLEAR + i * 4);
+ 		writel_relaxed(ptr[i], dist_base + GIC_DIST_ACTIVE_SET + i * 4);
+ 	}
+ 
+-	ptr = raw_cpu_ptr(gic_data[gic_nr].saved_ppi_conf);
++	ptr = raw_cpu_ptr(gic->saved_ppi_conf);
+ 	for (i = 0; i < DIV_ROUND_UP(32, 16); i++)
+ 		writel_relaxed(ptr[i], dist_base + GIC_DIST_CONFIG + i * 4);
+ 
+@@ -669,7 +673,7 @@ static void gic_cpu_restore(unsigned int gic_nr)
+ 					dist_base + GIC_DIST_PRI + i * 4);
+ 
+ 	writel_relaxed(GICC_INT_PRI_THRESHOLD, cpu_base + GIC_CPU_PRIMASK);
+-	gic_cpu_if_up(&gic_data[gic_nr]);
++	gic_cpu_if_up(gic);
+ }
+ 
+ static int gic_notifier(struct notifier_block *self, unsigned long cmd,	void *v)
+@@ -684,18 +688,18 @@ static int gic_notifier(struct notifier_block *self, unsigned long cmd,	void *v)
+ #endif
+ 		switch (cmd) {
+ 		case CPU_PM_ENTER:
+-			gic_cpu_save(i);
++			gic_cpu_save(&gic_data[i]);
+ 			break;
+ 		case CPU_PM_ENTER_FAILED:
+ 		case CPU_PM_EXIT:
+-			gic_cpu_restore(i);
++			gic_cpu_restore(&gic_data[i]);
+ 			break;
+ 		case CPU_CLUSTER_PM_ENTER:
+-			gic_dist_save(i);
++			gic_dist_save(&gic_data[i]);
+ 			break;
+ 		case CPU_CLUSTER_PM_ENTER_FAILED:
+ 		case CPU_CLUSTER_PM_EXIT:
+-			gic_dist_restore(i);
++			gic_dist_restore(&gic_data[i]);
+ 			break;
+ 		}
+ 	}
 -- 
 2.1.4
