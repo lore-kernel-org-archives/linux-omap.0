@@ -1,43 +1,62 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: Re: Nokia N900 - audio TPA6130A2 problems
-Date: Thu, 17 Mar 2016 19:26:27 +0200
-Message-ID: <56EAE8C3.1080301@gmail.com>
-References: <201507251228.27128@pali> <201601050034.12810@pali>
- <20160306152339.GA428@earth> <201603121342.33099@pali>
- <56E68B71.2030202@ti.com> <20160316133319.GR8413@pali>
- <20160316144709.GA3389@earth> <56E9A42B.3010209@gmail.com>
- <56E9A6D9.7000003@ti.com> <56E9B910.7000904@gmail.com>
- <56EA6282.5050501@ti.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: re: mmc: omap_hsmmc: Pin remux workaround to support SDIO interrupt
+ on AM335x
+Date: Thu, 17 Mar 2016 20:32:50 +0300
+Message-ID: <20160317173250.GA21370@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56EA6282.5050501@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Sebastian Reichel <sre@kernel.org>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, Lars-Peter Clausen <lars@metafoo.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, merlijn@wizzup.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-mmc-owner@vger.kernel.org
+To: afenkart@gmail.com
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hello Andreas Fenkart,
 
->
-> can you try this:
-> diff --git a/sound/soc/codecs/tpa6130a2.c b/sound/soc/codecs/tpa6130a2.c
-> index 11d85c5c787a..7f5881bff5d9 100644
-> --- a/sound/soc/codecs/tpa6130a2.c
-> +++ b/sound/soc/codecs/tpa6130a2.c
-> @@ -386,6 +386,8 @@ static int tpa6130a2_probe(struct i2c_client *client,
->                  data->power_gpio = pdata->power_gpio;
->          } else if (np) {
->                  data->power_gpio = of_get_named_gpio(np, "power-gpio", 0);
-> +               if (data->power_gpio == -EPROBE_DEFER)
-> +                       return data->power_gpio;
->          } else {
->                  dev_err(dev, "Platform data not set\n");
->                  dump_stack();
->
+The patch 455e5cd6f736: "mmc: omap_hsmmc: Pin remux workaround to
+support SDIO interrupt on AM335x" from May 29, 2014, leads to the
+following static checker warning:
 
+	drivers/mmc/host/omap_hsmmc.c:1788 omap_hsmmc_configure_wake_irq()
+	error: 'p' dereferencing possible ERR_PTR()
 
-Doesn't help :(
+drivers/mmc/host/omap_hsmmc.c
+  1780          if (host->pdata->controller_flags & OMAP_HSMMC_SWAKEUP_MISSING) {
+  1781                  struct pinctrl *p = devm_pinctrl_get(host->dev);
+                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  1782                  if (!p) {
+  1783                          ret = -ENODEV;
+  1784                          goto err_free_irq;
+  1785                  }
+  1786                  if (IS_ERR(pinctrl_lookup_state(p, PINCTRL_STATE_DEFAULT))) {
+  1787                          dev_info(host->dev, "missing default pinctrl state\n");
+  1788                          devm_pinctrl_put(p);
+                                ^^^^^^^^^^^^^^^^^^^^
 
-Ivo
+I believe that devm_pinctrl_get() only returns NULL when we are building
+with COMPILE_TEST and not on bootable kernels.
+
+This is an annoying thing, btw, because Smatch does cross function
+analysis and I have to handle all these as a special case.  "Whatever
+function() returns ERR_PTR (and never NULL) in real life but NULL when
+you are parsing the inline code."  A lot of people do this or the
+opposite and I can't see how it hels anyone, only how it hurts me.
+
+And of course doing it all backwards depending leads to bugs like this.
+
+  1789                          ret = -EINVAL;
+  1790                          goto err_free_irq;
+  1791                  }
+  1792  
+  1793                  if (IS_ERR(pinctrl_lookup_state(p, PINCTRL_STATE_IDLE))) {
+  1794                          dev_info(host->dev, "missing idle pinctrl state\n");
+  1795                          devm_pinctrl_put(p);
+  1796                          ret = -EINVAL;
+  1797                          goto err_free_irq;
+  1798                  }
+  1799                  devm_pinctrl_put(p);
+  1800          }
+
+regards,
+dan carpenter
