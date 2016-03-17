@@ -1,39 +1,62 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: Re: Nokia N900 - audio TPA6130A2 problems
-Date: Thu, 17 Mar 2016 15:50:37 +0200
-Message-ID: <56EAB62D.80803@gmail.com>
-References: <56E68B71.2030202@ti.com> <20160316133319.GR8413@pali>
- <20160316144709.GA3389@earth> <56E9A42B.3010209@gmail.com>
- <56E9A6D9.7000003@ti.com> <56E9B910.7000904@gmail.com>
- <20160317004917.GA6750@earth> <56EA6326.4000702@gmail.com>
- <20160317130115.GU8413@pali> <56EAACF4.2040005@gmail.com>
- <20160317133313.GL9329@atomide.com>
+From: Jon Hunter <jonathanh@nvidia.com>
+Subject: [PATCH 01/15] ARM: tegra: Correct interrupt type for ARM TWD
+Date: Thu, 17 Mar 2016 14:19:05 +0000
+Message-ID: <1458224359-32665-2-git-send-email-jonathanh@nvidia.com>
+References: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160317133313.GL9329@atomide.com>
+In-Reply-To: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, Sebastian Reichel <sre@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Lars-Peter Clausen <lars@metafoo.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, merlijn@wizzup.org
+To: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>
+Cc: Kevin Hilman <khilman@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Jon Hunter <jonathanh@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+The ARM TWD interrupt is a private peripheral interrupt (PPI) and per
+the ARM GIC documentation, whether the type for PPIs can be set is
+IMPLEMENTATION DEFINED. For Tegra20/30 devices the PPI type cannot be
+set and so when we attempt to set the type for the ARM TWD interrupt it
+fails. This has done unnoticed because it fails silently and because we
+cannot re-configure the type it has had no impact. Nevertheless fix the
+type for the TWD interrupt so that it matches the hardware configuration.
 
-On 17.03.2016 15:33, Tony Lindgren wrote:
->
-> Check the schematics. If the hardware has external pull-ups on a
-> line then don't enable the internal pull-ups. Otherwise both the
-> external and intenal pulls are parallel the pull value will be
-> wrong. My guess is that on n900 all the i2c lines have external
-> pulls.
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
 
-There are, 1k connected to VIO_18, but still, stock Nokia kernel enables 
-the internal pull-ups as well. I doubt Nokia devs did that by mistake. 
-Could it be that VIO_18 is disabled by the time  TPA6130A2 is probed?
+---
+Ideally, we would not be attempting to set the type for an interrupt
+where it cannot be programmed but this would require changes to the
+device-tree bindings for the GIC. This series adds a WARNING to catch
+any of these silent failures.
+---
+ arch/arm/boot/dts/tegra20.dtsi | 2 +-
+ arch/arm/boot/dts/tegra30.dtsi | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Also, what is the problem to have both internal and external pull-ups in 
-parallel?
-
-Regards,
-Ivo
+diff --git a/arch/arm/boot/dts/tegra20.dtsi b/arch/arm/boot/dts/tegra20.dtsi
+index 8fb61b93c226..2207c08e3fa3 100644
+--- a/arch/arm/boot/dts/tegra20.dtsi
++++ b/arch/arm/boot/dts/tegra20.dtsi
+@@ -145,7 +145,7 @@
+ 		interrupt-parent = <&intc>;
+ 		reg = <0x50040600 0x20>;
+ 		interrupts = <GIC_PPI 13
+-			(GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_HIGH)>;
++			(GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_EDGE_RISING)>;
+ 		clocks = <&tegra_car TEGRA20_CLK_TWD>;
+ 	};
+ 
+diff --git a/arch/arm/boot/dts/tegra30.dtsi b/arch/arm/boot/dts/tegra30.dtsi
+index c6edc8cea34e..5030065cbdfe 100644
+--- a/arch/arm/boot/dts/tegra30.dtsi
++++ b/arch/arm/boot/dts/tegra30.dtsi
+@@ -230,7 +230,7 @@
+ 		reg = <0x50040600 0x20>;
+ 		interrupt-parent = <&intc>;
+ 		interrupts = <GIC_PPI 13
+-			(GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_HIGH)>;
++			(GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_EDGE_RISING)>;
+ 		clocks = <&tegra_car TEGRA30_CLK_TWD>;
+ 	};
+ 
+-- 
+2.1.4
