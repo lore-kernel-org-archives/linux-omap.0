@@ -1,103 +1,76 @@
-From: "Franklin S Cooper Jr." <fcooper@ti.com>
-Subject: Re: [PATCH v5 6/6] ARM: dts: DRA7: Add dt nodes for PWMSS
-Date: Thu, 17 Mar 2016 10:53:57 -0500
-Message-ID: <56EAD315.1030307@ti.com>
-References: <1457400224-24797-1-git-send-email-fcooper@ti.com>
- <1457400224-24797-7-git-send-email-fcooper@ti.com>
- <20160317151147.GA29802@rob-hp-laptop>
+From: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 04/15] irqchip/gic: WARN if setting the interrupt type
+ fails
+Date: Thu, 17 Mar 2016 16:20:11 +0000
+Message-ID: <56EAD93B.7040105@nvidia.com>
+References: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com>
+ <1458224359-32665-5-git-send-email-jonathanh@nvidia.com>
+ <alpine.DEB.2.11.1603171550200.3978@nanos> <56EAC761.1040801@nvidia.com>
+ <20160317151800.GH1184@io.lakedaemon.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <20160317151147.GA29802@rob-hp-laptop>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: thierry.reding@gmail.com, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, paul@pwsan.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, vigneshr@ti.com
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160317151800.GH1184-fahSIxCzskDQ+YiMSub0/l6hYfS7NtTn@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>
+Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
+On 17/03/16 15:18, Jason Cooper wrote:
+> On Thu, Mar 17, 2016 at 03:04:01PM +0000, Jon Hunter wrote:
+>>
+>> On 17/03/16 14:51, Thomas Gleixner wrote:
+>>> On Thu, 17 Mar 2016, Jon Hunter wrote:
+>>>
+>>>> Setting the interrupt type for private peripheral interrupts (PPIs) may
+>>>> not be supported by a given GIC because it is IMPLEMENTATION DEFINED
+>>>> whether this is allowed. There is no way to know if setting the type is
+>>>> supported for a given GIC and so the value written is read back to
+>>>> verify it matches the desired configuration. If it does not match then
+>>>> an error is return.
+>>>>
+>>>> There are cases where the interrupt configuration read from firmware
+>>>> (such as a device-tree blob), has been incorrect and hence
+>>>> gic_configure_irq() has returned an error. This error has gone
+>>>> undetected because the error code returned was ignored but the interrupt
+>>>> still worked fine because the configuration for the interrupt could not
+>>>> be overwritten.
+>>>>
+>>>> Given that this has done undetected and we should only fail to set the
+>>>> type for PPIs whose configuration cannot be changed anyway, don't return
+>>>> an error and simply WARN if this fails. This will allows us to fix up any
+>>>> places in the kernel where we should be checking the return status and
+>>>> maintain back compatibility with firmware images that may have incorrect
+>>>> interrupt configurations.
+>>>
+>>> Though silently returning 0 is really the wrong thing to do. You can add the
+>>> warn, but why do you want to return success?
+>>
+>> Yes that would be the correct thing to do I agree. However, the problem
+>> is that if we do this, then after the patch "irqdomain: Don't set type
+>> when mapping an IRQ" is applied, we may break interrupts for some
+>> existing device-tree binaries that have bad configuration (such as omap4
+>> and tegra20/30 ... see patches 1 and 2) that have gone unnoticed. So it
+>> is a back compatibility issue.
+> 
+> This sounds like a textbook case for adding a boolean dt property.  If
+> "can-set-ppi-type" is absent (old DT blobs and new blobs without the
+> ability), warn and return zero.  If it's present, the driver can set the
+> type, returning errors as encountered.
 
-On 03/17/2016 10:11 AM, Rob Herring wrote:
-> On Mon, Mar 07, 2016 at 07:23:44PM -0600, Franklin S Cooper Jr wrote:
->> From: Vignesh R <vigneshr@ti.com>
->>
->> Add PWMSS device tree nodes for DRA7 SoC family and add documentation
->> for dt bindings.
->>
->> Signed-off-by: Vignesh R <vigneshr@ti.com>
->> [fcooper@ti.com: Add eCAP and use updated bindings for PWMSS and ePWM]
->> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
->> ---
->> Version 5 changes:
->> Add DT node for eCAP and update eCAP binding documentation
->>
->> Version 4 changes:
->> Updated link to the latest documentation
->>
->>  .../devicetree/bindings/pwm/pwm-tiecap.txt         |  9 +++
->>  .../devicetree/bindings/pwm/pwm-tiehrpwm.txt       |  9 +++
->>  .../devicetree/bindings/pwm/pwm-tipwmss.txt        | 15 +++-
->>  arch/arm/boot/dts/dra7.dtsi                        | 84 ++++++++++++++++++++++
->>  4 files changed, 116 insertions(+), 1 deletion(-)
->
->> +			ehrpwm1: pwm@48440200 {
->> +				compatible = "ti,dra7xx-ehrpwm",
->> +					     "ti,am33xx-ehrpwm";
->> +				#pwm-cells = <3>;
->> +				reg = <0x48440200 0x80>;
->> +				clocks = <&ehrpwm1_tbclk>;
->> +				clock-names = "tbclk";
->> +				status = "disabled";
->> +			};
->> +
->> +			ecap1: ecap@48440100 {
-> This also is a PWM? Then it should also be pwm@...
+True. However, if we did have this "can-set-ppi-type" property set for a
+device, it really should never fail (unless someone specified it
+incorrectly). So I am trying to understand the value in adding a new DT
+property.
 
-The enhanced capture module primary purpose is to measure
-time between external signals which is called capture mode.
-It also has a PWM mode. So I wouldn't recommend generalizing
-the entire node to pwm.
->
->> +				compatible = "ti,dra7xx-ecap",
->> +					     "ti,am33xx-ecap";
->> +				#pwm-cells = <3>;
->> +				reg = <0x48440100 0x80>;
->> +				status = "disabled";
->> +			};
->> +		};
->> +
->> +		epwmss2: epwmss@48442000 {
->> +			compatible = "ti,dra7xx-pwmss", "ti,am33xx-pwmss";
->> +			reg = <0x48442000 0x30>;
->> +			ti,hwmods = "epwmss2";
->> +			#address-cells = <1>;
->> +			#size-cells = <1>;
->> +			status = "disabled";
->> +			ranges;
->> +
->> +			ehrpwm2: pwm@48442200 {
->> +				compatible = "ti,dra7xx-ehrpwm",
->> +					     "ti,am33xx-ehrpwm";
->> +				#pwm-cells = <3>;
->> +				reg = <0x48442200 0x80>;
->> +				clocks = <&ehrpwm2_tbclk>;
->> +				clock-names = "tbclk";
->> +				status = "disabled";
->> +			};
->> +
->> +			ecap2: ecap@48442100 {
-> And here.
->
->> +				compatible = "ti,dra7xx-ecap",
->> +					     "ti,am33xx-ecap";
->> +				#pwm-cells = <3>;
->> +				reg = <0x48442100 0x80>;
->> +				status = "disabled";
->> +			};
->> +		};
->>  	};
->>  
->>  	thermal_zones: thermal-zones {
->> -- 
->> 2.7.0
->>
+Please note that gic_configure_irq() never used to return an error and
+only when adding support for setting the type of PPIs was this added.
+However, given that this has gone unnoticed and does not have a real
+functional impact on the device behaviour, I wonder now if this function
+should return an error? Yes, ideally, it should, but does it still make
+sense?
+
+Cheers
+Jon
