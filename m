@@ -1,52 +1,57 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: Nokia N900 - audio TPA6130A2 problems
-Date: Fri, 18 Mar 2016 12:33:14 +0200
-Message-ID: <56EBD96A.8090505@ti.com>
-References: <201507251228.27128@pali> <201601050034.12810@pali>
- <20160306152339.GA428@earth> <201603121342.33099@pali>
- <56E68B71.2030202@ti.com> <20160316133319.GR8413@pali>
- <20160316144709.GA3389@earth> <56E9A42B.3010209@gmail.com>
- <56E9A6D9.7000003@ti.com> <56E9B910.7000904@gmail.com>
- <56EA6282.5050501@ti.com> <56EAE8C3.1080301@gmail.com>
+From: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+Subject: Re: [PATCH 14/15] dt-bindings: arm-gic: Drop 'clock-names' from
+ binding document
+Date: Fri, 18 Mar 2016 11:52:17 +0100
+Message-ID: <CAMuHMdWXqS9cru74Ckr47gFVTf2MkmjZUtMt4MeXW_1V7x+KHw@mail.gmail.com>
+References: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com>
+	<1458224359-32665-15-git-send-email-jonathanh@nvidia.com>
+	<CAMuHMdV0QiWR0bML44zhAx+MStmQhQWKd=b_TMKnEdu_hw_ReA@mail.gmail.com>
+	<56EBD4E5.1060002@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56EAE8C3.1080301@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Sebastian Reichel <sre@kernel.org>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, Lars-Peter Clausen <lars@metafoo.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, merlijn@wizzup.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <56EBD4E5.1060002-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/17/16 19:26, Ivaylo Dimitrov wrote:
-> Hi,
->=20
+Hi Jon,
+
+On Fri, Mar 18, 2016 at 11:13 AM, Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org> wrote:
+> On 18/03/16 09:13, Geert Uytterhoeven wrote:
+>> On Thu, Mar 17, 2016 at 3:19 PM, Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org> wrote:
+>>> Commit afbbd2338176 ("irqchip/gic: Document optional Clock and Power
+>>> Domain properties") documented optional clock and power-dmoain properties
+>>> for the ARM GIC. Currently, there are no users of these and for the
+>>> Tegra210 Audio GIC (based upon the GIC-400) there are two clocks, a
+>>> functional clock and interface clock, that need to be enabled.
 >>
->> can you try this:
->> diff --git a/sound/soc/codecs/tpa6130a2.c b/sound/soc/codecs/tpa6130=
-a2.c
->> index 11d85c5c787a..7f5881bff5d9 100644
->> --- a/sound/soc/codecs/tpa6130a2.c
->> +++ b/sound/soc/codecs/tpa6130a2.c
->> @@ -386,6 +386,8 @@ static int tpa6130a2_probe(struct i2c_client *cl=
-ient,
->>                  data->power_gpio =3D pdata->power_gpio;
->>          } else if (np) {
->>                  data->power_gpio =3D of_get_named_gpio(np, "power-g=
-pio", 0);
->> +               if (data->power_gpio =3D=3D -EPROBE_DEFER)
->> +                       return data->power_gpio;
->>          } else {
->>                  dev_err(dev, "Platform data not set\n");
->>                  dump_stack();
+>> The reason that there are no users for this is twofold:
+>>   1. The GIC driver doesn't have Runtime PM support yet,
+>>   2. There was no clean way to prevent the GIC's clock from being disabled.
+>> Due to this, adding the clocks to the DTSes would mean that they will be
+>> disabled during boot up as unused clocks, leading to a system lock-up.
 >>
->=20
->=20
-> Doesn't help :(
+>> I had hoped your series would fix part 1. I gave it a try on r8a7791/koelsch,
+>> but unfortunately it seems the platform driver only supports non-root
+>> controllers, while the r8a7791 GIC is the primary one...
+>
+> Can you try making the following change ...
 
-it worth a try ;)
+Thanks! I gave it a try, but no difference.
 
-But enabling the pull via DT for the i2c2 works?
+Gr{oetje,eeting}s,
 
---=20
-P=E9ter
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
