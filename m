@@ -1,118 +1,122 @@
-From: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 14/15] dt-bindings: arm-gic: Drop 'clock-names' from
- binding document
-Date: Fri, 18 Mar 2016 10:13:57 +0000
-Message-ID: <56EBD4E5.1060002@nvidia.com>
+From: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+Subject: Re: [PATCH 04/15] irqchip/gic: WARN if setting the interrupt type fails
+Date: Fri, 18 Mar 2016 11:22:59 +0100
+Message-ID: <CAMuHMdV9H5_uV_KFAYg10NHhB4t1z18_zNo-uuOC4L_yyedK4Q@mail.gmail.com>
 References: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com>
- <1458224359-32665-15-git-send-email-jonathanh@nvidia.com>
- <CAMuHMdV0QiWR0bML44zhAx+MStmQhQWKd=b_TMKnEdu_hw_ReA@mail.gmail.com>
+	<1458224359-32665-5-git-send-email-jonathanh@nvidia.com>
+	<alpine.DEB.2.11.1603171550200.3978@nanos>
+	<56EAC761.1040801@nvidia.com>
+	<20160317151800.GH1184@io.lakedaemon.net>
+	<56EAD93B.7040105@nvidia.com>
+	<CAMuHMdU8PDUVZ8=S04fkahez1dh7JHjpj2-3w+Vfz05X=ZFMUQ@mail.gmail.com>
+	<56EBD061.6030502@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAMuHMdV0QiWR0bML44zhAx+MStmQhQWKd=b_TMKnEdu_hw_ReA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <56EBD061.6030502-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Cc: Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-renesas-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Jon,
 
-On 18/03/16 09:13, Geert Uytterhoeven wrote:
-> Hi Jon,
-> 
-> On Thu, Mar 17, 2016 at 3:19 PM, Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org> wrote:
->> Commit afbbd2338176 ("irqchip/gic: Document optional Clock and Power
->> Domain properties") documented optional clock and power-dmoain properties
->> for the ARM GIC. Currently, there are no users of these and for the
->> Tegra210 Audio GIC (based upon the GIC-400) there are two clocks, a
->> functional clock and interface clock, that need to be enabled.
-> 
-> The reason that there are no users for this is twofold:
->   1. The GIC driver doesn't have Runtime PM support yet,
->   2. There was no clean way to prevent the GIC's clock from being disabled.
-> Due to this, adding the clocks to the DTSes would mean that they will be
-> disabled during boot up as unused clocks, leading to a system lock-up.
-> 
-> I had hoped your series would fix part 1. I gave it a try on r8a7791/koelsch,
-> but unfortunately it seems the platform driver only supports non-root
-> controllers, while the r8a7791 GIC is the primary one...
+On Fri, Mar 18, 2016 at 10:54 AM, Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org> wrote:
+> On 18/03/16 09:20, Geert Uytterhoeven wrote:
+>> On Thu, Mar 17, 2016 at 5:20 PM, Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org> wrote:
+>>> On 17/03/16 15:18, Jason Cooper wrote:
+>>>> On Thu, Mar 17, 2016 at 03:04:01PM +0000, Jon Hunter wrote:
+>>>>> On 17/03/16 14:51, Thomas Gleixner wrote:
+>>>>>> On Thu, 17 Mar 2016, Jon Hunter wrote:
+>>>>>>> Setting the interrupt type for private peripheral interrupts (PPIs) may
+>>>>>>> not be supported by a given GIC because it is IMPLEMENTATION DEFINED
+>>>>>>> whether this is allowed. There is no way to know if setting the type is
+>>>>>>> supported for a given GIC and so the value written is read back to
+>>>>>>> verify it matches the desired configuration. If it does not match then
+>>>>>>> an error is return.
+>>>>>>>
+>>>>>>> There are cases where the interrupt configuration read from firmware
+>>>>>>> (such as a device-tree blob), has been incorrect and hence
+>>>>>>> gic_configure_irq() has returned an error. This error has gone
+>>>>>>> undetected because the error code returned was ignored but the interrupt
+>>>>>>> still worked fine because the configuration for the interrupt could not
+>>>>>>> be overwritten.
+>>>>>>>
+>>>>>>> Given that this has done undetected and we should only fail to set the
+>>>>>>> type for PPIs whose configuration cannot be changed anyway, don't return
+>>>>>>> an error and simply WARN if this fails. This will allows us to fix up any
+>>>>>>> places in the kernel where we should be checking the return status and
+>>>>>>> maintain back compatibility with firmware images that may have incorrect
+>>>>>>> interrupt configurations.
+>>>>>>
+>>>>>> Though silently returning 0 is really the wrong thing to do. You can add the
+>>>>>> warn, but why do you want to return success?
+>>>>>
+>>>>> Yes that would be the correct thing to do I agree. However, the problem
+>>>>> is that if we do this, then after the patch "irqdomain: Don't set type
+>>>>> when mapping an IRQ" is applied, we may break interrupts for some
+>>>>> existing device-tree binaries that have bad configuration (such as omap4
+>>>>> and tegra20/30 ... see patches 1 and 2) that have gone unnoticed. So it
+>>>>> is a back compatibility issue.
+>>
+>> Indeed (also for sh73a0 and r8a7779).
+>
+> Thanks. I was wondering if there are others. Do you know what the
+> correct setting should be? Ie. should it be IRQ_TYPE_EDGE_RISING as
+> well? I can then include this with OMAP and Tegra.
 
-Can you try making the following change ...
+The warnings went away when using IRQ_TYPE_EDGE_RISING.
+Patches sent.
 
-diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index 9e7cf7abf757..2e971e600036 100644
---- a/drivers/irqchip/irq-gic.c
-+++ b/drivers/irqchip/irq-gic.c
-@@ -1372,7 +1372,7 @@ static int gic_probe(struct platform_device *pdev)
-        void __iomem *dist_base;
-        void __iomem *cpu_base;
-        u32 percpu_offset;
--       int ret, irq;
-+       int ret, irq = 0;
- 
-        if (dev->of_node == NULL)
-                return -EINVAL;
-@@ -1393,11 +1393,8 @@ static int gic_probe(struct platform_device *pdev)
-        if (ret < 0)
-                goto rpm_disable;
- 
--       irq = irq_of_parse_and_map(dev->of_node, 0);
--       if (!irq) {
--               ret = -EINVAL;
--               goto rpm_put;
--       }
-+       if (of_irq_count(dev->of_node) > 0)
-+               irq = irq_of_parse_and_map(dev->of_node, 0);
- 
-        ret = gic_of_setup(dev->of_node, &dist_base, &cpu_base, &percpu_offset);
-        if (ret)
-@@ -1411,7 +1408,8 @@ static int gic_probe(struct platform_device *pdev)
- 
-        gic->chip.parent = dev;
- 
--       irq_set_chained_handler_and_data(irq, gic_handle_cascade_irq, gic);
-+       if (irq)
-+               irq_set_chained_handler_and_data(irq, gic_handle_cascade_irq, gic);
- 
-        pm_runtime_put(dev);
- 
-@@ -1424,7 +1422,6 @@ gic_unmap:
-        iounmap(cpu_base);
- irq_dispose:
-        irq_dispose_mapping(irq);
--rpm_put:
-        pm_runtime_put_sync(dev);
- rpm_disable:
-        pm_runtime_disable(dev);
+>>>> This sounds like a textbook case for adding a boolean dt property.  If
+>>>> "can-set-ppi-type" is absent (old DT blobs and new blobs without the
+>>>> ability), warn and return zero.  If it's present, the driver can set the
+>>>> type, returning errors as encountered.
+>>>
+>>> True. However, if we did have this "can-set-ppi-type" property set for a
+>>> device, it really should never fail (unless someone specified it
+>>> incorrectly). So I am trying to understand the value in adding a new DT
+>>> property.
+>>
+>> Do we really want to add properties that basically indicate that a description
+>> in DT is correct?
+>>
+>> Alternatively, it can be fixed in the kernel in a DT quirk (if SoC == xxx then
+>> fix TWD).
+>
+> I am not sure I fully understand your proposal, but please note that it
 
- 
-> Alternatively, part 2 can to be fixed by "clk: introduce CLK_ENABLE_HAND_OFF
-> flag", combined with the clock driver setting the flag when needed.
-> Unfortunately that patch is not yet upstream, and not even in -next.
-> Note that drivers/clk/renesas/renesas-cpg-mssr.c already handles
-> CLK_ENABLE_HAND_OFF if present, and else just ignores the clock.
-> So I could already add the clock to r8a7795.dtsi, which uses that driver.
-> 
-> For older SoCs, the module clocks are described in the dtsi, and I would need a
-> crude hack to enable CLK_ENABLE_HAND_OFF in the clock driver.
-> 
->> To allow flexibility, drop the 'clock-names' from the GIC binding and
->> just provide a list of clocks which the driver can parse. It is assumed
->> that any clocks that are listed, need to be enabled in order to access
->> the GIC.
-> 
-> Originally I just wanted to have "clocks", and let the details be handled by
-> SoC-specific code. However, Mark Rutland insisted on using the clock naming
-> from the GIC TRMs, as the number of clocks and their names depend on the
-> GIC variant.
-> 
-> Apparently they also depend on the SoC...
+The kernel can modify the DT in early startup code if it detects that the
+TWD's interrupt type is wrong.
 
-Yes this case is a little different because the GIC is a 2nd level GIC.
+> may not be just limited to the TWD (although this does appear to be the
+> one client that is wrong for a lot of SoCs). PPIs are also used for the
+> armv7/8 timers as well.
 
-Cheers
-Jon
+True.
+
+> The problem is that we have a lot of SoCs with twd-timers and I have no
+> way to test all of these to know which could be a problem. So I thought
+> that warning would be a good first step to fixing them.
+
+Definitely.
+
+> However, I am still trying to see the real value in returning an error
+> in this case. May be I am the only one with that perspective?
+
+Given the above, we cannot start returning an error until all problems are
+fixed.
+
+Even after that, we have to care about stable DT ABIs. In this case it's not
+really an ABI change, but a real buggy description in DTS.
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
