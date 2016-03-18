@@ -1,69 +1,81 @@
-From: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 08/15] genirq: Add runtime power management support for
- IRQ chips
-Date: Fri, 18 Mar 2016 14:56:25 +0000
-Message-ID: <56EC1719.5020408@nvidia.com>
-References: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com>
- <1458224359-32665-9-git-send-email-jonathanh@nvidia.com>
- <56EBE244.6070400@ti.com> <56EBF447.8070808@nvidia.com>
- <56EC0F7D.8050106@ti.com> <56EC1362.2000005@nvidia.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: Nokia N900 - audio TPA6130A2 problems
+Date: Fri, 18 Mar 2016 16:04:04 +0100
+Message-ID: <20160318150404.GA30829@earth>
+References: <20160316144709.GA3389@earth>
+ <56E9A42B.3010209@gmail.com>
+ <56E9A6D9.7000003@ti.com>
+ <56E9B910.7000904@gmail.com>
+ <56EA6282.5050501@ti.com>
+ <56EAE8C3.1080301@gmail.com>
+ <56EBD96A.8090505@ti.com>
+ <1458306829.11841.2.camel@Nokia-N900>
+ <20160318133641.GB16747@earth>
+ <56EC0676.3000509@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56EC1362.2000005-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="tThc/1wpZn/ma/RB"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <56EC0676.3000509@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, Lars-Peter Clausen <lars@metafoo.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
 
-On 18/03/16 14:40, Jon Hunter wrote:
-> On 18/03/16 14:23, Grygorii Strashko wrote:
->> On 03/18/2016 02:27 PM, Jon Hunter wrote:
->>>
->>> On 18/03/16 11:11, Grygorii Strashko wrote:
+--tThc/1wpZn/ma/RB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-[snip]
+Hi,
 
->> oh :( That will require updating of all drivers (and if it will be taken into account that
->> wakeup can be configured from sysfs + devm_ - it will be painful).
-> 
-> Will it? I know that there are a few gpio chips that have some hacked
-> ways to get around the PM issue, but I wonder how many drivers this
-> really impacts. What sysfs entries are you referring too?
+On Fri, Mar 18, 2016 at 03:45:26PM +0200, Ivaylo Dimitrov wrote:
+> On 18.03.2016 15:36, Sebastian Reichel wrote:
+>=20
+> >Have you tried the ideas from <20160317004917.GA6750@earth> (Date:
+> >Thu, 17 Mar 2016 01:49:18 +0100)?
+> >
+>=20
+> To the extend I understood them :)
+>=20
+> Regulator is V28_A, which is always-on, so it is enabled no matter what
+> probe does. Anyway, I added a various delays after regulator_enable(), to=
+ no
+> success.
 
-Thinking about this some more, yes I guess it would impact all drivers
-that use a gpio but don't use it for a wake-up. I could see that could
-be a few drivers indeed.
+Did you by chance also test adding a delay after setting the power
+gpio? According to the datasheet:
 
->>> but it would avoid every irqchip having to
->>> handle this themselves and having a custom handler.
->>
->> irqchip like TI OMAP GPIO will need custom handling any way even if it's not expected
->> to be Powered off during Suspend or deep CPUIdle states, simply because its state
->> in suspend is unknown - PM state managed automatically (and depends on many factors)
->> and wakeup can be handled by special HW in case if GPIO bank was really switched off.
->>
->>>> I propose do not touch common/generic suspend code now. Any common code can be always
->>>> refactored later once there will be real drivers updated to use irqchip RPM
->>>> and which will support Suspend.
->>>
->>> If this is strongly opposed, I would concede to making this a pr_debug()
->>> as I think it could be useful.
->>
->> Probably yes, because most of the drivers now and IRQ PM core are not ready
->> for this approach. 
-> 
-> May be this calls for a new flag to not WARN if non-wakeup IRQs are not
-> freed when entering suspend.
+Start-up time from shutdown: typical 5ms
 
-Flag or pr_debug()?
+> I didn't try building the driver as a module, instead I played with
+> bind/unbind functionality - makes no difference.
 
-Jon
+Ok.
 
+-- Sebastian
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--tThc/1wpZn/ma/RB
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJW7BjgAAoJENju1/PIO/qa8iYP+QFnFfu1K1OyChLk8Kr6/mtc
+Cz5xxKhHQ+7ghDZazGtqUZ0CKWibyo6VqAD0RqHgjkSMhqIS5erlC92oLb7srYhi
+xsh5yEE9k28qWRQA8QnNOZ3tukNgQW/pH+w2+HFzNa7JEaEOenxvJldx0mE93uBo
+wWo81/0h/rwO51lin3dgkfK13E+VQDWPKuVxpweL/+eEadFpdRsPKa3Z0esRnsc3
+Wr4so91GfNhlx/WbVkOc8uwqIFTaRHgmZRjdg5hlyF40gHFQcpU8H9Fx6ra2jsHc
+2aOVS8hqUl/1h2NOm+o1nZ6acNDjBCQNHNKY9mvoncNLX6Snul69V5iKAPOCqTPk
+1wwxuj1oeedLKdOz8c/arA6M3FmZnCAONDKv/yufZxnxUBBw4p7c8uuwe8VLmecx
+eCcR9lu1QJVL6KBgxlQ/ww+kPg4VWex67TzEYLDegiU+zXjCDt3mLI8xr9D/HqHY
+Si943kmiO+HZrjtFdRn8jjxDUPZpFwKvB/OpFK04Ltf4iqo3hAIjmI9fNDV73G39
+pEXHEQ8xhT1xf+Y+eH3tgljVZDt4tvD8J5vq2GgHaQIKLnySzbtIfU1U1IMN3xe3
+77hW0i6iqtarDsdYhHbPi0Nuc5C9UGycVHHxKN1P+8S/H7MOOxqvYQ9jtSFWcR86
+fXT73PxRNm/YZCO7im0l
+=gpO0
+-----END PGP SIGNATURE-----
+
+--tThc/1wpZn/ma/RB--
