@@ -1,58 +1,79 @@
-From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH v3 1/3] clk: ti: am335x/am4372: Add tbclk to pwm node
-Date: Thu, 17 Mar 2016 20:15:21 -0500
-Message-ID: <1458263723-25770-2-git-send-email-fcooper@ti.com>
-References: <1458263723-25770-1-git-send-email-fcooper@ti.com>
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <1458263723-25770-1-git-send-email-fcooper@ti.com>
-Sender: linux-pwm-owner@vger.kernel.org
-To: thierry.reding@gmail.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, t-kristo@ti.com, mturquette@baylibre.com, sboyd@codeaurora.org, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
-Cc: Franklin S Cooper Jr <fcooper@ti.com>
+From: Ruslan Bilovol <ruslan.bilovol@gmail.com>
+Subject: Re: usb: gadget breakage on N900: bind UDC by name passed via
+ usb_gadget_driver structure
+Date: Fri, 18 Mar 2016 09:47:57 +0200
+Message-ID: <CAB=otbSfj24nSUe1DyfVBDKD=trCp2-X-S-AcA1D+PTHZuP1Bg@mail.gmail.com>
+References: <20160317212603.GA16651@amd>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160317212603.GA16651@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, Maxime Ripard <maxime.ripard@free-electrons.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Peter Chen <peter.chen@freescale.com>, "Balbi, Felipe" <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add tblck to the pwm nodes. This insures that the ehrpwm driver has access
-to the time-based clk.
+Hi Pavel
 
-Do not remove similar entries for ehrpwm node. Later patches will switch
-from using ehrpwm node name to pwm. But to maintain ABI compatibility we
-shouldn't remove the old entries.
+On Thu, Mar 17, 2016 at 11:26 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> Hi!
+>
+> USB gadget stops working for me on n900, if I merge
 
-Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
----
- drivers/clk/ti/clk-33xx.c | 3 +++
- drivers/clk/ti/clk-43xx.c | 6 ++++++
- 2 files changed, 9 insertions(+)
+Could you please give us more details?
+Which gadget driver do you use (g_nokia?)
 
-diff --git a/drivers/clk/ti/clk-33xx.c b/drivers/clk/ti/clk-33xx.c
-index ef2ec64..0e47d95 100644
---- a/drivers/clk/ti/clk-33xx.c
-+++ b/drivers/clk/ti/clk-33xx.c
-@@ -108,6 +108,9 @@ static struct ti_dt_clk am33xx_clks[] = {
- 	DT_CLK("48300200.ehrpwm", "tbclk", "ehrpwm0_tbclk"),
- 	DT_CLK("48302200.ehrpwm", "tbclk", "ehrpwm1_tbclk"),
- 	DT_CLK("48304200.ehrpwm", "tbclk", "ehrpwm2_tbclk"),
-+	DT_CLK("48300200.pwm", "tbclk", "ehrpwm0_tbclk"),
-+	DT_CLK("48302200.pwm", "tbclk", "ehrpwm1_tbclk"),
-+	DT_CLK("48304200.pwm", "tbclk", "ehrpwm2_tbclk"),
- 	{ .node_name = NULL },
- };
- 
-diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
-index 097fc90..7255aa8 100644
---- a/drivers/clk/ti/clk-43xx.c
-+++ b/drivers/clk/ti/clk-43xx.c
-@@ -115,6 +115,12 @@ static struct ti_dt_clk am43xx_clks[] = {
- 	DT_CLK("48306200.ehrpwm", "tbclk", "ehrpwm3_tbclk"),
- 	DT_CLK("48308200.ehrpwm", "tbclk", "ehrpwm4_tbclk"),
- 	DT_CLK("4830a200.ehrpwm", "tbclk", "ehrpwm5_tbclk"),
-+	DT_CLK("48300200.pwm", "tbclk", "ehrpwm0_tbclk"),
-+	DT_CLK("48302200.pwm", "tbclk", "ehrpwm1_tbclk"),
-+	DT_CLK("48304200.pwm", "tbclk", "ehrpwm2_tbclk"),
-+	DT_CLK("48306200.pwm", "tbclk", "ehrpwm3_tbclk"),
-+	DT_CLK("48308200.pwm", "tbclk", "ehrpwm4_tbclk"),
-+	DT_CLK("4830a200.pwm", "tbclk", "ehrpwm5_tbclk"),
- 	{ .node_name = NULL },
- };
- 
--- 
-2.7.0
+>
+> usb: gadget: bind UDC by name passed via usb_gadget_driver structure
+>
+> patch.
+>
+> commit 2284b29d3d9dd16490909962574d7f3fef83fd97
+> Author: Ruslan Bilovol <ruslan.bilovol@gmail.com>
+> Date:   Mon Nov 23 09:56:35 2015 +0100
+>
+>     usb: gadget: bind UDC by name passed via usb_gadget_driver
+>     structure
+>
+>     Introduce new 'udc_name' member to usb_gadget_driver structure.
+>         The 'udc_name' is a name of UDC that usb_gadget_driver should
+>             be bound to. If udc_name is NULL, it will be bound to any
+>                 available UDC.
+>
+>     Tested-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+>         Signed-off-by: Ruslan Bilovol <ruslan.bilovol@gmail.com>
+>             Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>                 Tested-by: Peter Chen <peter.chen@freescale.com>
+>                     Signed-off-by: Felipe Balbi <balbi@ti.com>
+>
+>
+> Patch is obvious enough... if there's someone who sets udc_name to
+> NULL. Who is supposed to do that?
+
+That is done automatically if you use libcomposite.
+There is a static usb_gadget_driver composite_driver_template structure in
+composite.c that is used in usb_composite_probe later (used by libcomposite
+based gadgets). Since it's statically declared, 'udc_name' member is set
+to NULL automatically.
+
+Other gadgets (not based on libcomposite) use same approach with
+statically declared usb_gadget_driver structure.
+
+>
+> (I have patch in my tree to make USB gadget work when it is not
+> modular).
+
+So this can be reproduced only on builtin gadget, right?
+
+BTW, I have N900 and can try to play with it this weekend if you'll
+give us more details.
+
+Best regards,
+Ruslan
+
+>
+> Best regards,
+>                                                                         Pavel
+> --
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
