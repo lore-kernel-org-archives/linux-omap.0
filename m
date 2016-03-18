@@ -1,55 +1,58 @@
-From: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 3/3] pwm: pwm-tiehrpwm: Update dt binding document to use generic node name
-Date: Thu, 17 Mar 2016 20:15:23 -0500
-Message-ID: <1458263723-25770-4-git-send-email-fcooper@ti.com>
+From: Franklin S Cooper Jr <fcooper@ti.com>
+Subject: [PATCH v3 1/3] clk: ti: am335x/am4372: Add tbclk to pwm node
+Date: Thu, 17 Mar 2016 20:15:21 -0500
+Message-ID: <1458263723-25770-2-git-send-email-fcooper@ti.com>
 References: <1458263723-25770-1-git-send-email-fcooper@ti.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1458263723-25770-1-git-send-email-fcooper-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-pwm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <1458263723-25770-1-git-send-email-fcooper@ti.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: thierry.reding@gmail.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, t-kristo@ti.com, mturquette@baylibre.com, sboyd@codeaurora.org, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
+Cc: Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Now that the node name has been changed from ehrpwm to pwm the document
-should show this proper usage. Also change the unit address in the example
-from 0 to the proper physical address value that should be used.
+Add tblck to the pwm nodes. This insures that the ehrpwm driver has access
+to the time-based clk.
 
-Signed-off-by: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
+Do not remove similar entries for ehrpwm node. Later patches will switch
+from using ehrpwm node name to pwm. But to maintain ABI compatibility we
+shouldn't remove the old entries.
+
+Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
 ---
-Version 3 changes:
-N/A
+ drivers/clk/ti/clk-33xx.c | 3 +++
+ drivers/clk/ti/clk-43xx.c | 6 ++++++
+ 2 files changed, 9 insertions(+)
 
-Version 2 changes:
-Changed the unit address for da850 to match the value in the reg property.
-
- Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt b/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
-index 9c100b2..0f9ba50 100644
---- a/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
-+++ b/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
-@@ -15,14 +15,14 @@ Optional properties:
- 
- Example:
- 
--ehrpwm0: ehrpwm@0 { /* EHRPWM on am33xx */
-+ehrpwm0: pwm@48300200 { /* EHRPWM on am33xx */
- 	compatible = "ti,am33xx-ehrpwm";
- 	#pwm-cells = <3>;
- 	reg = <0x48300200 0x100>;
- 	ti,hwmods = "ehrpwm0";
+diff --git a/drivers/clk/ti/clk-33xx.c b/drivers/clk/ti/clk-33xx.c
+index ef2ec64..0e47d95 100644
+--- a/drivers/clk/ti/clk-33xx.c
++++ b/drivers/clk/ti/clk-33xx.c
+@@ -108,6 +108,9 @@ static struct ti_dt_clk am33xx_clks[] = {
+ 	DT_CLK("48300200.ehrpwm", "tbclk", "ehrpwm0_tbclk"),
+ 	DT_CLK("48302200.ehrpwm", "tbclk", "ehrpwm1_tbclk"),
+ 	DT_CLK("48304200.ehrpwm", "tbclk", "ehrpwm2_tbclk"),
++	DT_CLK("48300200.pwm", "tbclk", "ehrpwm0_tbclk"),
++	DT_CLK("48302200.pwm", "tbclk", "ehrpwm1_tbclk"),
++	DT_CLK("48304200.pwm", "tbclk", "ehrpwm2_tbclk"),
+ 	{ .node_name = NULL },
  };
  
--ehrpwm0: ehrpwm@0 { /* EHRPWM on da850 */
-+ehrpwm0: pwm@300000 { /* EHRPWM on da850 */
- 	compatible = "ti,da850-ehrpwm", "ti,am33xx-ehrpwm";
- 	#pwm-cells = <3>;
- 	reg = <0x300000 0x2000>;
+diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
+index 097fc90..7255aa8 100644
+--- a/drivers/clk/ti/clk-43xx.c
++++ b/drivers/clk/ti/clk-43xx.c
+@@ -115,6 +115,12 @@ static struct ti_dt_clk am43xx_clks[] = {
+ 	DT_CLK("48306200.ehrpwm", "tbclk", "ehrpwm3_tbclk"),
+ 	DT_CLK("48308200.ehrpwm", "tbclk", "ehrpwm4_tbclk"),
+ 	DT_CLK("4830a200.ehrpwm", "tbclk", "ehrpwm5_tbclk"),
++	DT_CLK("48300200.pwm", "tbclk", "ehrpwm0_tbclk"),
++	DT_CLK("48302200.pwm", "tbclk", "ehrpwm1_tbclk"),
++	DT_CLK("48304200.pwm", "tbclk", "ehrpwm2_tbclk"),
++	DT_CLK("48306200.pwm", "tbclk", "ehrpwm3_tbclk"),
++	DT_CLK("48308200.pwm", "tbclk", "ehrpwm4_tbclk"),
++	DT_CLK("4830a200.pwm", "tbclk", "ehrpwm5_tbclk"),
+ 	{ .node_name = NULL },
+ };
+ 
 -- 
 2.7.0
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
