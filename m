@@ -1,59 +1,73 @@
 From: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-Subject: Re: [PATCH 14/15] dt-bindings: arm-gic: Drop 'clock-names' from
- binding document
-Date: Fri, 18 Mar 2016 10:13:36 +0100
-Message-ID: <CAMuHMdV0QiWR0bML44zhAx+MStmQhQWKd=b_TMKnEdu_hw_ReA@mail.gmail.com>
-References: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com>
-	<1458224359-32665-15-git-send-email-jonathanh@nvidia.com>
+Subject: Re: [RFC PATCH V2 2/8] irqdomain: Don't set type when mapping an IRQ
+Date: Fri, 18 Mar 2016 10:16:07 +0100
+Message-ID: <CAMuHMdULUMy2oi3fXVT-DNXAOg+KqjOVFAW2+CLVCDYFcjKO1w@mail.gmail.com>
+References: <1450349309-8107-1-git-send-email-jonathanh@nvidia.com>
+	<1450349309-8107-3-git-send-email-jonathanh@nvidia.com>
+	<56793191.30502@ti.com>
+	<56793A5B.4040302@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1458224359-32665-15-git-send-email-jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <56793A5B.4040302-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Soren Brinkmann <soren.brinkmann-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Jon,
+On Tue, Dec 22, 2015 at 12:56 PM, Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org> wrote:
+> On 22/12/15 11:18, Grygorii Strashko wrote:
+>> On 12/17/2015 12:48 PM, Jon Hunter wrote:
+>>> Some IRQ chips, such as GPIO controllers or secondary level interrupt
+>>> controllers, may require require additional runtime power management
+>>> control to ensure they are accessible. For such IRQ chips, it makes sense
+>>> to enable the IRQ chip when interrupts are requested and disabled them
+>>> again once all interrupts have been freed.
+>>>
+>>> When mapping an IRQ, the IRQ type settings are read and then programmed.
+>>> The mapping of the IRQ happens before the IRQ is requested and so the
+>>> programming of the type settings occurs before the IRQ is requested. This
+>>> is a problem for IRQ chips that require additional power management
+>>> control because they may not be accessible yet. Therefore, when mapping
+>>> the IRQ, don't program the type settings, just save them and then program
+>>> these saved settings when the IRQ is requested (so long as if they are not
+>>> overridden via the call to request the IRQ).
+>>>
+>>> Signed-off-by: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 
-On Thu, Mar 17, 2016 at 3:19 PM, Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org> wrote:
-> Commit afbbd2338176 ("irqchip/gic: Document optional Clock and Power
-> Domain properties") documented optional clock and power-dmoain properties
-> for the ARM GIC. Currently, there are no users of these and for the
-> Tegra210 Audio GIC (based upon the GIC-400) there are two clocks, a
-> functional clock and interface clock, that need to be enabled.
+>> This patch has side effect - some boards which have
+>> ARM TWD timer will produce below backtrace on boot:
+>>
+>>  genirq: Setting trigger mode 4 for irq 17 failed (gic_set_type+0x0/0x58)
+>>  twd: can't register interrupt 17 (-22)
+>> ------------[ cut here ]------------
+>> WARNING: CPU: 0 PID: 0 at arch/arm/kernel/smp_twd.c:405 twd_local_timer_of_register+0x68/0x7c()
 
-The reason that there are no users for this is twofold:
-  1. The GIC driver doesn't have Runtime PM support yet,
-  2. There was no clean way to prevent the GIC's clock from being disabled.
-Due to this, adding the clocks to the DTSes would mean that they will be
-disabled during boot up as unused clocks, leading to a system lock-up.
+>> This happens, most probably, because TWD IRQs definitions in DT
+>> do not corresponds HW and gic_configure_irq() will return -EINVAL
+>> example (am4372.dtsi):
+>>       local_timer: timer@48240600 {
+>>               compatible = "arm,cortex-a9-twd-timer";
+>>               reg = <0x48240600 0x100>;
+>>               interrupts = <GIC_PPI 13 IRQ_TYPE_LEVEL_HIGH>;
+>>               interrupt-parent = <&gic>;
+>>               clocks = <&mpu_periphclk>;
+>>               status = "disabled";
+>>       };
+>
+>
+> Hmm ... that's interesting. Looking at the GIC documentation, it does
+> say that it is "implementation defined" whether you can program the type
+> bit for a PPI. Therefore, I am wondering if we should convert the error
+> into a WARN instead? It would be hard to know which of the below would
+> be impacted from just looking at the DT files.
+>
+>> So, some additional fixes might be required. Potentially problematic files are:
 
-I had hoped your series would fix part 1. I gave it a try on r8a7791/koelsch,
-but unfortunately it seems the platform driver only supports non-root
-controllers, while the r8a7791 GIC is the primary one...
+>> arch/arm/boot/dts/r8a7779.dts
+>> arch/arm/boot/dts/sh73a0.dtsi
 
-Alternatively, part 2 can to be fixed by "clk: introduce CLK_ENABLE_HAND_OFF
-flag", combined with the clock driver setting the flag when needed.
-Unfortunately that patch is not yet upstream, and not even in -next.
-Note that drivers/clk/renesas/renesas-cpg-mssr.c already handles
-CLK_ENABLE_HAND_OFF if present, and else just ignores the clock.
-So I could already add the clock to r8a7795.dtsi, which uses that driver.
-
-For older SoCs, the module clocks are described in the dtsi, and I would need a
-crude hack to enable CLK_ENABLE_HAND_OFF in the clock driver.
-
-> To allow flexibility, drop the 'clock-names' from the GIC binding and
-> just provide a list of clocks which the driver can parse. It is assumed
-> that any clocks that are listed, need to be enabled in order to access
-> the GIC.
-
-Originally I just wanted to have "clocks", and let the details be handled by
-SoC-specific code. However, Mark Rutland insisted on using the clock naming
-from the GIC TRMs, as the number of clocks and their names depend on the
-GIC variant.
-
-Apparently they also depend on the SoC...
+The above two are affected. Sending patches...
 
 Gr{oetje,eeting}s,
 
@@ -65,7 +79,3 @@ Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert-Td1EMuHUCqxL1ZN
 In personal conversations with technical people, I call myself a hacker. But
 when I'm talking to journalists I just say "programmer" or something like that.
                                 -- Linus Torvalds
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
