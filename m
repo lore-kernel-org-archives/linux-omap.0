@@ -1,125 +1,109 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: Nokia N900 - audio TPA6130A2 problems
-Date: Sun, 20 Mar 2016 06:17:04 +0100
-Message-ID: <20160320051704.GA12934@earth>
-References: <56E9A6D9.7000003@ti.com>
- <56E9B910.7000904@gmail.com>
- <56EA6282.5050501@ti.com>
- <56EAE8C3.1080301@gmail.com>
- <56EBD96A.8090505@ti.com>
- <1458306829.11841.2.camel@Nokia-N900>
- <20160318133641.GB16747@earth>
- <56EC0676.3000509@gmail.com>
- <20160318150404.GA30829@earth>
- <56ED12B5.9000103@gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: N900 sleep mode (in 4.5-rc0, if that matters)
+Date: Sun, 20 Mar 2016 09:33:08 +0100
+Message-ID: <20160320083308.GA13408@amd>
+References: <20160126140010.GA29723@amd>
+ <20160126172527.GY3500@atomide.com>
+ <20160130200244.GA30429@amd>
+ <20160130201452.GC30429@amd>
+ <20160130221509.GA28644@amd>
+ <20160201181316.GM19432@atomide.com>
+ <20160201211736.GA11283@amd>
+ <20160201221111.GP19432@atomide.com>
+ <20160207212316.GA6147@amd>
+ <20160209172403.GK19432@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="45Z9DzgjV8m4Oswq"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <56ED12B5.9000103@gmail.com>
+In-Reply-To: <20160209172403.GK19432@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, Lars-Peter Clausen <lars@metafoo.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, merlijn@wizzup.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
+Hi!
 
---45Z9DzgjV8m4Oswq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+First, sorry for the delay. Busy with other projects, then tried to
+keep USB in 4.5 from regressing.
 
-Hi,
+I'm now back on 4.4 branch.
 
-On Sat, Mar 19, 2016 at 10:49:57AM +0200, Ivaylo Dimitrov wrote:
-> On 18.03.2016 17:04, Sebastian Reichel wrote:
-> >On Fri, Mar 18, 2016 at 03:45:26PM +0200, Ivaylo Dimitrov wrote:
-> >>On 18.03.2016 15:36, Sebastian Reichel wrote:
-> >>Regulator is V28_A, which is always-on, so it is enabled no matter what
-> >>probe does. Anyway, I added a various delays after regulator_enable(), =
-to no
-> >>success.
->=20
-> I guess we're getting closer - I put some printks in various functions in
-> the twl-regulator.c, here is the result:
->=20
-> on power-up:
->=20
-> [    2.378601] twl4030ldo_get_voltage_sel VMMC2 vsel 0x00000008
-> [    2.384948] twl4030reg_enable VMMC2 grp 0x00000020
-> [    2.408416] twl4030ldo_get_voltage_sel VMMC2 vsel 0x00000008
-> [    7.196685] twl4030reg_is_enabled VMMC2 state 0x0000002e
-> [    7.202819] twl4030reg_is_enabled VMMC2 state 0x0000002e
-> [    7.209777] twl4030reg_is_enabled VMMC2 state 0x0000002e
-> [    7.215728] twl4030reg_is_enabled VMMC2 state 0x0000002e
-> [    7.223205] twl4030reg_is_enabled VMMC2 state 0x0000002e
+> > > > (I assume I have to insmod and rmmod, right? Because powersave is not
+> > > > entered if I simply compile-out usb).
+> > > 
+> > > Depending on what the bootloader does and probably also if
+> > > USB was used during the booting.. So yeah you may need to modprobe
+> > > and then rmmod.
+> > > 
+> > > > Would you have commit ids for those rmmod fixes? It might be good to
+> > > > push them into stable, and I should try again with them applied...
+> > > 
+> > > 055555fc459 ("usb: musb: core: Fix handling of the phy notifications")
+> > > 03e43528ab68 ("usb: musb: Fix unbalanced pm_runtime_enable")
+> > 
+> > Ok, with that, I can insmod and rmmod. But I still get:
+> > 
+> > 00001fff 48005020 (fa005020) cm_idlest_per blocking bits: 0007e000
+> 
+> I think the cm_idlest_per is fine.
+> 
+> > ffdffebd 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00200042
+> > 0000000d 48004a28 (fa004a28) cm_idlest3_core
+> 
+> Bit 21 in cm_idlest1_core is for MCSPI4 so WLAN. Does that go
+> down if do sleep 5; cat /sys/kernel/debug/pm_debug/count ?
 
-Ok, so normal power up results in running VMMC2 (always-on works),
-but voltage is not configured correctly. 2.6V is default according
-to the TRM. I think this is a "bug" in the regulator framework. It
-should setup the minimum allowed voltage before enabling the
-always-on regulator.
+I'm using
 
-In case of the tpa6130a2/tpa6140a2 driver it may also be nice to add
-something like this to the driver (Vdd may be between 2.5V and 5.5V
-according to both datasheets):
+sudo iw dev wlan0 set power_save on ; not sure if it matters.
 
-if (regulator_can_change_voltage(data->supply))
-    regulator_set_voltage(data->supply, 2500000, 5500000);
+I now have:
 
-> after restart from stock kernel:
->=20
-> [    2.388610] twl4030ldo_get_voltage_sel VMMC2 vsel 0x0000000a
-> [    2.394958] twl4030reg_enable VMMC2 grp 0x00000028
+f7de3e8d 48004a20 (fa004a20) cm_idlest1_core blocking bits: 0021c072
 
-I had a quick glance at this. I think stock kernel put VMMC2
-into sleep mode. Mainline kernel does not expect sleep mode
-being set and does not disable it.
+So that bit seems to stay here. Aha... and it went off now:
 
-> [    2.418426] twl4030ldo_get_voltage_sel VMMC2 vsel 0x0000000a
-> [    7.186645] twl4030reg_is_enabled VMMC2 state 0x00000020
-> [    7.192718] twl4030reg_is_enabled VMMC2 state 0x00000020
-> [    7.199615] twl4030reg_is_enabled VMMC2 state 0x00000020
-> [    7.205535] twl4030reg_is_enabled VMMC2 state 0x00000020
-> [    7.212951] twl4030reg_is_enabled VMMC2 state 0x00000020
->=20
-> I don't see twl4030ldo_set_voltage_sel() for VMMC2(V28_A) regulator, thou=
-gh
-> there are calls for VMMC1 and VAUX3.
+f7fe3e8d 48004a20 (fa004a20) cm_idlest1_core blocking bits: 0001c072
 
-I guess that's because the voltage is only configured if at least
-one regulator consumer requests anything specific.
+Good. I still have some work in USB disabling.
 
-> So, it seems to me that V28_A is not enabled or correctly set-up
-> and all devices connected to it does not function. And it looks
-> like even after power-on VMMC2 is not correctly set-up - it is
-> supposed to have voltage of 2.85V (10) but kernel leaves it to
-> 2.60V (8). However my twl-fu ends here so any help is appreciated.
+> If not, the're PM runtime missing or broken somewhere.
+> 
+> FYI, below is my omap3 usb test script that I use to start and
+> stop USB, it also works on n900. And after stopping it n900
+> continues hitting deeper idle states just fine.
+> 
+> That is with these two phy patches applied on v4.5-rc3:
+> 
+> "phy: twl4030-usb: Fix unbalanced pm_runtime_enable on module reload")
+> "phy: twl4030-usb: Relase usb phy on unload")
+> 
+> Maybe I gave you wrong info on the USB patches needed.. But these
+> two above are needed on v4.5-rc3. And looks like Kishon has now
+> applied them.
 
-So in case of reboot from stock kernel voltage is already configured
-to 2.8V, but it does not work, because of the sleep mode.
+Lets see... yes, I seem to have those. Messing with modules is hard in
+my environment, and I push kernels over usb from the "NOLO" IIRC.
 
--- Sebastian
+> Oh and I also have the MMC PM runtime regression fix here that I
+> have not yet posted. Will post today. But I guess you're on
+> v4.4 right now still.
 
---45Z9DzgjV8m4Oswq
-Content-Type: application/pgp-signature; name="signature.asc"
+Yes. I can now go to 4.5 (or even 4.6-rc0 if needed), but I guess
+staying on 4.4 is easiest for now.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Thanks for the script.
 
-iQIcBAEBCgAGBQJW7jJOAAoJENju1/PIO/qaV+sQAJfVD8xwyn4pGYypZzKMYZNH
-HfE2S+UTD2Sz4/gUEWJqtc03ujsorE6A9WV6ozmDZQNO2/GMeHIu2newScvoZcEL
-o/Q3RMNBZ6uTyONwvPfV8iDL2h6xsrBibUaFx7rDQfPHDfzxopskBqi9O/SY4J7F
-bR8A5wWrB/RHG8UNcDiRQwv/Eg2sxTIwvyhpNOl2Q2sCLrQx53pJ3stSSC2n+rWQ
-uVn7TGD4j+oh/gPD9QhveJ8P1zU4O+acfsj61VgSN9TmAcRmI9CAL3dR5jXyDRo8
-ES5zt5/YeXp6Q0NADUF9V8EbKCUX6UEujqflYwF6bokhU6gtH5iGzdOTepbjGrLI
-Pb+izktkQ/tSgtqxtRZomMiX71eAeJqWSDtKH8hI3seDNmelyNlc1Nh/5ejTGJIQ
-MdD+sgx5vF1NPn3z6WnMv9uH3mkpFEOabmFajQ4UEkh7kJyj2R2jmGTUCQ5T0xF6
-UeZQWPQnrjImZdPP6nprxizZkYQAhD+ImnuEouey81mgJEX4D8SZUJd5KYijI3Y6
-oGHCD/ogbJZ+EuefYPOFW0V68XmaJEiN+MA+kGO84+4R1KFyfDpwFG07AWZRbpdh
-Rluf8voH/k98LrxfOSperjfR95/+Piv4EKtTNLERp1agKsEL3kLHIncXNpwb2J0F
-LP0hIs0+moTkg+wDLYlr
-=01ZJ
------END PGP SIGNATURE-----
+> 	rmmod $udc_glue
+> 	rmmod $phy_module
+> 	rmmod $udc_module
 
---45Z9DzgjV8m4Oswq--
+Aha, you are removing one more module; I was not working with
+musb_hdrc.
+
+Best regards,
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
