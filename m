@@ -1,111 +1,116 @@
-From: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
-Subject: Re: [PATCH v4 1/5] ARM: dts: LG Optimus Black codename sniper basic
- support
-Date: Sun, 20 Mar 2016 16:58:38 +0100
-Message-ID: <1458489518.29161.3.camel@paulk.fr>
-References: <1456663185-14170-1-git-send-email-contact@paulk.fr>
-	 <1456663185-14170-2-git-send-email-contact@paulk.fr>
-	 <20160229215136.GO13417@atomide.com>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: Re: Nokia N900 - audio TPA6130A2 problems
+Date: Sun, 20 Mar 2016 21:43:11 +0200
+Message-ID: <56EEFD4F.4030705@gmail.com>
+References: <56E9A6D9.7000003@ti.com> <56E9B910.7000904@gmail.com>
+ <56EA6282.5050501@ti.com> <56EAE8C3.1080301@gmail.com>
+ <56EBD96A.8090505@ti.com> <1458306829.11841.2.camel@Nokia-N900>
+ <20160318133641.GB16747@earth> <56EC0676.3000509@gmail.com>
+ <20160318150404.GA30829@earth> <56ED12B5.9000103@gmail.com>
+ <20160320051704.GA12934@earth>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-94AEBQ1pEYSQvS60BkB5"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160229215136.GO13417-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160320051704.GA12934@earth>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, Lars-Peter Clausen <lars@metafoo.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi
 
---=-94AEBQ1pEYSQvS60BkB5
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-Le lundi 29 f=C3=A9vrier 2016 =C3=A0 13:51 -0800, Tony Lindgren a =C3=A9cri=
-t=C2=A0:
+On 20.03.2016 07:17, Sebastian Reichel wrote:
 > Hi,
->=20
-> * Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org> [160228 04:40]:
-> >=20
-> > The LG Optimus Black codename sniper is a smartphone that was designed =
-and
-> > manufactured by LG Electronics (LGE) and released back in 2011.
-> > It is using an OMAP3630 SoC, GP version.
-> >=20
-> > This adds devicetree support for the device, with only a few basic feat=
-ures
-> > supported, such as debug uart, i2c, internal emmc and external mmc.
-> ...
-> >=20
-> > +&i2c1 {
-> > +	pinctrl-names =3D "default";
-> > +	pinctrl-0 =3D <&i2c1_pins>;
-> > +
-> > +	clock-frequency =3D <2600000>;
-> > +
-> > +	twl: twl@48 {
-> > +		reg =3D <0x48>;
-> > +		interrupts =3D <7>; /* SYS_NIRQ cascaded to intc */
-> > +		interrupt-parent =3D <&intc>;
-> > +
-> > +		power {
-> > +			compatible =3D "ti,twl4030-power";
-> > +			ti,use_poweroff;
-> > +		};
-> > +	};
-> > +};
-> Chances are this devices supports cutting off the voltages and
-> the high frequency oscillator during idle. So you may want to
-> at some point set compatible =3D "ti,twl4030-power-idle-osc-off"
-> here.
->=20
-> Anyways, applying the dts changes into omap-for-v4.6/dt thanks.
+>
+> On Sat, Mar 19, 2016 at 10:49:57AM +0200, Ivaylo Dimitrov wrote:
+>> On 18.03.2016 17:04, Sebastian Reichel wrote:
+>>> On Fri, Mar 18, 2016 at 03:45:26PM +0200, Ivaylo Dimitrov wrote:
+>>>> On 18.03.2016 15:36, Sebastian Reichel wrote:
+>>>> Regulator is V28_A, which is always-on, so it is enabled no matter what
+>>>> probe does. Anyway, I added a various delays after regulator_enable(), to no
+>>>> success.
+>>
+>> I guess we're getting closer - I put some printks in various functions in
+>> the twl-regulator.c, here is the result:
+>>
+>> on power-up:
+>>
+>> [    2.378601] twl4030ldo_get_voltage_sel VMMC2 vsel 0x00000008
+>> [    2.384948] twl4030reg_enable VMMC2 grp 0x00000020
+>> [    2.408416] twl4030ldo_get_voltage_sel VMMC2 vsel 0x00000008
+>> [    7.196685] twl4030reg_is_enabled VMMC2 state 0x0000002e
+>> [    7.202819] twl4030reg_is_enabled VMMC2 state 0x0000002e
+>> [    7.209777] twl4030reg_is_enabled VMMC2 state 0x0000002e
+>> [    7.215728] twl4030reg_is_enabled VMMC2 state 0x0000002e
+>> [    7.223205] twl4030reg_is_enabled VMMC2 state 0x0000002e
+>
+> Ok, so normal power up results in running VMMC2 (always-on works),
+> but voltage is not configured correctly. 2.6V is default according
+> to the TRM. I think this is a "bug" in the regulator framework. It
+> should setup the minimum allowed voltage before enabling the
+> always-on regulator.
+>
 
-It seems that v3 of this patch was merged into your tree instead of v4, whi=
-ch
-contains some improvements over v3.
+/sys/kernel/debug/regulator/regulator_summary shows 2850mV for V28_A, so 
+I would remove the quotes. Also, always-on is because if V28_A regulator 
+is turned off, there is a leakage through tlv320aic34 VIO. BTW one of 
+the things I did while trying to find the problem, was to remove that 
+always-on property from the DTS - it didn't help.
 
-Should I submit a cleanup patch with the diff or can you use v4 instead (if=
- not
-too late)?
+> In case of the tpa6130a2/tpa6140a2 driver it may also be nice to add
+> something like this to the driver (Vdd may be between 2.5V and 5.5V
+> according to both datasheets):
+>
+> if (regulator_can_change_voltage(data->supply))
+>      regulator_set_voltage(data->supply, 2500000, 5500000);
+>
 
-Cheers,
+and add DT property for that voltage range, as max output power and 
+harmonics depend on the supply voltage.
 
---=20
-Paul Kocialkowski, low-level free software developer on embedded devices
+>> after restart from stock kernel:
+>>
+>> [    2.388610] twl4030ldo_get_voltage_sel VMMC2 vsel 0x0000000a
+>> [    2.394958] twl4030reg_enable VMMC2 grp 0x00000028
+>
+> I had a quick glance at this. I think stock kernel put VMMC2
+> into sleep mode. Mainline kernel does not expect sleep mode
+> being set and does not disable it.
+>
 
-Website: https://www.paulk.fr/
-Coding blog: https://code.paulk.fr/
-Git repositories: https://git.paulk.fr/ https://git.code.paulk.fr/
+Well, one would think that kernel should not have expectations on what 
+would be the state of the hardware by the time it takes control over it, 
+but setup everything needed instead.
 
---=-94AEBQ1pEYSQvS60BkB5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+>> [    2.418426] twl4030ldo_get_voltage_sel VMMC2 vsel 0x0000000a
+>> [    7.186645] twl4030reg_is_enabled VMMC2 state 0x00000020
+>> [    7.192718] twl4030reg_is_enabled VMMC2 state 0x00000020
+>> [    7.199615] twl4030reg_is_enabled VMMC2 state 0x00000020
+>> [    7.205535] twl4030reg_is_enabled VMMC2 state 0x00000020
+>> [    7.212951] twl4030reg_is_enabled VMMC2 state 0x00000020
+>>
+>> I don't see twl4030ldo_set_voltage_sel() for VMMC2(V28_A) regulator, though
+>> there are calls for VMMC1 and VAUX3.
+>
+> I guess that's because the voltage is only configured if at least
+> one regulator consumer requests anything specific.
+>
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+But then the board DTS is simply ignored. Doesn't look good :)
 
-iQIcBAABCAAGBQJW7siuAAoJEIT9weqP7pUMrVMP/Riycq5Z5Crssczc/72uA8sK
-uPbYyZCvEp2gScWwWBWoQWC3Mdej0HGpEKR+BgoB+suhEedvgdczwp13QuaQ3gLO
-qzOD0/yuYGsUsdGjBIpnl++KIlyLHs8C9PHWlsa2j3LYRgIrE8qAcVN+kzboo74x
-UR3/qHDoYe0BdeHhUNVm5pHr4ByGWK0SLnjK9a8UqbcOTRrlFITgCbGzlz+Oybk/
-ZenYcNW5ktXsk2mmdcgYU4PpW889EJV+acPHAEU2RXBfSX7kuEpZdlTS338JsBDF
-bSXgmplIqzpDQHUMcqgOxz1ZD02Q+eDcMrWYqxMRiTG7K1bAdUKlLuStVVC4EeLn
-sJeZCJag+DVEfWc8X7UYiVFHI8O9w0NDHMkk15LflA3vLnxpl0RwNAdRiK5ig2lp
-FX5+ep9HkOKvWKBECTOQc+2h8PtiAakPRf/ErD7TMdIMr5mMwJBj9xxj/3fxL8CO
-DVqwinw6vOREe9+0DXu20D0IiMEYpcaHPLVrdOoyXVSm13HnQ+p3Kd+Sbua6XLVP
-6yS5XQo0cHEg/9DupiOiNAaMHzvODm0MxKrX3A5EBN+M1zpegfSWoAkI/dtHDSJn
-vODgBIekQtMIeP9z9bK1Vo5ZCBwpS+sQ1qMVDGaIkvMBLS/HfD7QAG11GGEddPH2
-t/6quanX+ZlI2fYX+WBz
-=ubsa
------END PGP SIGNATURE-----
+>> So, it seems to me that V28_A is not enabled or correctly set-up
+>> and all devices connected to it does not function. And it looks
+>> like even after power-on VMMC2 is not correctly set-up - it is
+>> supposed to have voltage of 2.85V (10) but kernel leaves it to
+>> 2.60V (8). However my twl-fu ends here so any help is appreciated.
+>
+> So in case of reboot from stock kernel voltage is already configured
+> to 2.8V, but it does not work, because of the sleep mode.
+>
 
---=-94AEBQ1pEYSQvS60BkB5--
+Yeah, that sleep is pretty clear, I was rather asking - "any idea how to 
+fix that?". Or it is someone else expected to fix it?
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Ivo
