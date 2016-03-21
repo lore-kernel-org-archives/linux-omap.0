@@ -1,152 +1,73 @@
-From: Akinobu Mita <akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] spi: omap2-mcspi: fix dma transfer for vmalloced buffer
-Date: Tue, 22 Mar 2016 01:00:21 +0900
-Message-ID: <1458576021-4373-1-git-send-email-akinobu.mita@gmail.com>
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Akinobu Mita <akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2 0/3] ARM: OMAP3: Fix McBSP2/3 hwmod setup for
+ sidetone
+Date: Mon, 21 Mar 2016 17:44:37 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1603211743200.31059@utopia.booyaka.com>
+References: <1458311007-19168-1-git-send-email-peter.ujfalusi@ti.com> <alpine.DEB.2.02.1603191937430.6629@utopia.booyaka.com> <56EFB794.5010505@ti.com>
+Mime-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-1537027876-1458582277=:31059"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <56EFB794.5010505@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: tony@atomide.com, jarkko.nikula@bitmer.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Currently omap2-mcspi cannot handle dma transfer for vmalloced buffer.
-I hit this problem when using mtdblock on spi-nor.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-This lets the SPI core handle the page mapping for dma transfer buffer.
+--843723315-1537027876-1458582277=:31059
+Content-Type: TEXT/PLAIN; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Signed-off-by: Akinobu Mita <akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/spi/spi-omap2-mcspi.c | 62 ++++++++++++-------------------------------
- 1 file changed, 17 insertions(+), 45 deletions(-)
+Hi P=E9ter,
 
-diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index 0caa3c8..43a02e3 100644
---- a/drivers/spi/spi-omap2-mcspi.c
-+++ b/drivers/spi/spi-omap2-mcspi.c
-@@ -423,16 +423,12 @@ static void omap2_mcspi_tx_dma(struct spi_device *spi,
- 
- 	if (mcspi_dma->dma_tx) {
- 		struct dma_async_tx_descriptor *tx;
--		struct scatterlist sg;
- 
- 		dmaengine_slave_config(mcspi_dma->dma_tx, &cfg);
- 
--		sg_init_table(&sg, 1);
--		sg_dma_address(&sg) = xfer->tx_dma;
--		sg_dma_len(&sg) = xfer->len;
--
--		tx = dmaengine_prep_slave_sg(mcspi_dma->dma_tx, &sg, 1,
--		DMA_MEM_TO_DEV, DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
-+		tx = dmaengine_prep_slave_sg(mcspi_dma->dma_tx, xfer->tx_sg.sgl,
-+					     xfer->tx_sg.nents, DMA_MEM_TO_DEV,
-+					     DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
- 		if (tx) {
- 			tx->callback = omap2_mcspi_tx_callback;
- 			tx->callback_param = spi;
-@@ -478,20 +474,15 @@ omap2_mcspi_rx_dma(struct spi_device *spi, struct spi_transfer *xfer,
- 
- 	if (mcspi_dma->dma_rx) {
- 		struct dma_async_tx_descriptor *tx;
--		struct scatterlist sg;
- 
- 		dmaengine_slave_config(mcspi_dma->dma_rx, &cfg);
- 
- 		if ((l & OMAP2_MCSPI_CHCONF_TURBO) && mcspi->fifo_depth == 0)
- 			dma_count -= es;
- 
--		sg_init_table(&sg, 1);
--		sg_dma_address(&sg) = xfer->rx_dma;
--		sg_dma_len(&sg) = dma_count;
--
--		tx = dmaengine_prep_slave_sg(mcspi_dma->dma_rx, &sg, 1,
--				DMA_DEV_TO_MEM, DMA_PREP_INTERRUPT |
--				DMA_CTRL_ACK);
-+		tx = dmaengine_prep_slave_sg(mcspi_dma->dma_rx, xfer->rx_sg.sgl,
-+					     xfer->rx_sg.nents, DMA_DEV_TO_MEM,
-+					     DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
- 		if (tx) {
- 			tx->callback = omap2_mcspi_rx_callback;
- 			tx->callback_param = spi;
-@@ -505,8 +496,6 @@ omap2_mcspi_rx_dma(struct spi_device *spi, struct spi_transfer *xfer,
- 	omap2_mcspi_set_dma_req(spi, 1, 1);
- 
- 	wait_for_completion(&mcspi_dma->dma_rx_completion);
--	dma_unmap_single(mcspi->dev, xfer->rx_dma, count,
--			 DMA_FROM_DEVICE);
- 
- 	if (mcspi->fifo_depth > 0)
- 		return count;
-@@ -619,8 +608,6 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
- 
- 	if (tx != NULL) {
- 		wait_for_completion(&mcspi_dma->dma_tx_completion);
--		dma_unmap_single(mcspi->dev, xfer->tx_dma, xfer->len,
--				 DMA_TO_DEVICE);
- 
- 		if (mcspi->fifo_depth > 0) {
- 			irqstat_reg = mcspi->base + OMAP2_MCSPI_IRQSTATUS;
-@@ -1087,6 +1074,16 @@ static void omap2_mcspi_cleanup(struct spi_device *spi)
- 		gpio_free(spi->cs_gpio);
- }
- 
-+static bool omap2_mcspi_can_dma(struct spi_master *master,
-+				struct spi_device *spi,
-+				struct spi_transfer *xfer)
-+{
-+	if (xfer->len < DMA_MIN_BYTES)
-+		return false;
-+
-+	return true;
-+}
-+
- static int omap2_mcspi_work_one(struct omap2_mcspi *mcspi,
- 		struct spi_device *spi, struct spi_transfer *t)
- {
-@@ -1268,32 +1265,6 @@ static int omap2_mcspi_transfer_one(struct spi_master *master,
- 		return -EINVAL;
- 	}
- 
--	if (len < DMA_MIN_BYTES)
--		goto skip_dma_map;
--
--	if (mcspi_dma->dma_tx && tx_buf != NULL) {
--		t->tx_dma = dma_map_single(mcspi->dev, (void *) tx_buf,
--				len, DMA_TO_DEVICE);
--		if (dma_mapping_error(mcspi->dev, t->tx_dma)) {
--			dev_dbg(mcspi->dev, "dma %cX %d bytes error\n",
--					'T', len);
--			return -EINVAL;
--		}
--	}
--	if (mcspi_dma->dma_rx && rx_buf != NULL) {
--		t->rx_dma = dma_map_single(mcspi->dev, rx_buf, t->len,
--				DMA_FROM_DEVICE);
--		if (dma_mapping_error(mcspi->dev, t->rx_dma)) {
--			dev_dbg(mcspi->dev, "dma %cX %d bytes error\n",
--					'R', len);
--			if (tx_buf != NULL)
--				dma_unmap_single(mcspi->dev, t->tx_dma,
--						len, DMA_TO_DEVICE);
--			return -EINVAL;
--		}
--	}
--
--skip_dma_map:
- 	return omap2_mcspi_work_one(mcspi, spi, t);
- }
- 
-@@ -1377,6 +1348,7 @@ static int omap2_mcspi_probe(struct platform_device *pdev)
- 	master->transfer_one = omap2_mcspi_transfer_one;
- 	master->set_cs = omap2_mcspi_set_cs;
- 	master->cleanup = omap2_mcspi_cleanup;
-+	master->can_dma = omap2_mcspi_can_dma;
- 	master->dev.of_node = node;
- 	master->max_speed_hz = OMAP2_MCSPI_MAX_FREQ;
- 	master->min_speed_hz = OMAP2_MCSPI_MAX_FREQ >> 15;
--- 
-2.5.0
+On Mon, 21 Mar 2016, Peter Ujfalusi wrote:
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> On 03/19/16 21:38, Paul Walmsley wrote:
+> > On Fri, 18 Mar 2016, Peter Ujfalusi wrote:
+> >=20
+> >> Hi,
+> >>
+> >> Chanes since v1:
+> >> - removed the ASoC patch as Mark has applied it already
+> >> - Added my signed-off to the hwmod patch
+> >> - New patch to handle the case when the sidetone hwmod has been remove=
+d for
+> >>   legacy boot.
+> >>
+> >> The series addresses a long standing issue with McBSP2/3 regarding to =
+hwmod
+> >> setup. When booting with DT a warning is printed that mcbsp2/3 is usin=
+g two
+> >> hwmod.
+> >> The root of the issue is the way how the hwmod data was constructed in=
+ the first
+> >> place for OMAP3 McBSP2/3.
+> >> After re-reading the TRM it is clear that the sidetone should not have=
+ it's
+> >> own hwmod data as it is not a separate IP, it is part of the McBSP mod=
+ule. It
+> >> can not affect PRCM either since it's SYSCONFIG register's AUTOIDLE bi=
+t is only
+> >> sets the autoidle from the internal McBSP_iclk clock to the sidetone b=
+lock of
+> >> the same McBSP.
+> >=20
+> > NAK, at least without further discussion - see my comments on the v1 0/=
+3=20
+> > introduction.
+>=20
+> Yes, I could have sent the first series as RFC, but I believe(d) that thi=
+s is
+> the correct way to fix the McBSP sidetone integration.
+
+Yep not a problem.  You're handling the process correctly.  There's no=20
+need to send things as an RFC unless you are unsure.=20
+
+What you and I are doing now is exactly how the discussion and review=20
+process is supposed to work.
+
+
+- Paul
+--843723315-1537027876-1458582277=:31059--
