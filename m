@@ -1,316 +1,60 @@
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: usb: gadget breakage on N900: bind UDC by name passed via
- usb_gadget_driver structure
-Date: Mon, 21 Mar 2016 12:51:51 +0100
-Message-ID: <56EFE057.7070106@samsung.com>
-References: <20160317212603.GA16651@amd>
- <CAB=otbSfj24nSUe1DyfVBDKD=trCp2-X-S-AcA1D+PTHZuP1Bg@mail.gmail.com>
- <20160318202041.GA20196@amd>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: Nokia N900 - audio TPA6130A2 problems
+Date: Mon, 21 Mar 2016 12:03:49 +0000
+Message-ID: <20160321120349.GP2566@sirena.org.uk>
+References: <56EAE8C3.1080301@gmail.com>
+ <56EBD96A.8090505@ti.com>
+ <1458306829.11841.2.camel@Nokia-N900>
+ <20160318133641.GB16747@earth>
+ <56EC0676.3000509@gmail.com>
+ <20160318150404.GA30829@earth>
+ <56ED12B5.9000103@gmail.com>
+ <20160320051704.GA12934@earth>
+ <56EEFD4F.4030705@gmail.com>
+ <20160321000417.GA21902@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="Fc4772q/IDjJVU21"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <20160318202041.GA20196@amd>
+Content-Disposition: inline
+In-Reply-To: <20160321000417.GA21902@earth>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, Ruslan Bilovol <ruslan.bilovol@gmail.com>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, Maxime Ripard <maxime.ripard@free-electrons.com>, Peter Chen <peter.chen@freescale.com>, Felipe Balbi <balbi@kernel.org>
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, Lars-Peter Clausen <lars@metafoo.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi
 
-On 2016-03-18 21:20, Pavel Machek wrote:
-> Hi!
->
->>> USB gadget stops working for me on n900, if I merge
->> Could you please give us more details?
->> Which gadget driver do you use (g_nokia?)
-> Ok, so I could get it to work with v4.5, and this patch. I'm including
-> my config, too. No, I don't think I'm using g_nokia.
+--Fc4772q/IDjJVU21
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This shows that there are some serious problems, probably with your udc 
-driver, which doesn't handle deferred probe properly. Your patch 
-workaround it by waiting some predefined time before registering gadget 
-driver, however this is not the proper way. Please try to isolate what 
-exactly is needed to get the gadget driver registered properly in your 
-system or at least please provide some logs from the failed case.
+On Mon, Mar 21, 2016 at 01:04:18AM +0100, Sebastian Reichel wrote:
 
+> Right thinking about it, the voltage must also be configured for the
+> non always-on cases. So it's not a problem with the regulator
+> framework, but with twl-regulator's probe function, that should take
+> care of this.
 
->
-> Best regards,
-> 								Pavel
->
-> diff --git a/.config b/.config
-> new file mode 100644
-> index 0000000..a504a94
-> --- /dev/null
-> +++ b/.config
-> ...
-> +# CONFIG_USB_SWITCH_FSA9480 is not set
-> +# CONFIG_LATTICE_ECP3_CONFIG is not set
-> +# CONFIG_SRAM is not set
-> +# CONFIG_C2PORT is not set
-> +
-> +CONFIG_NET_VENDOR_WIZNET=y
-> +# CONFIG_WIZNET_W5100 is not set
-> +# CONFIG_WIZNET_W5300 is not set
-> +# CONFIG_PHYLIB is not set
-> +# CONFIG_MICREL_KS8995MA is not set
-> +# CONFIG_PPP is not set
-> +# CONFIG_SLIP is not set
-> +CONFIG_USB_NET_DRIVERS=y
-> +# CONFIG_USB_CATC is not set
-> +# CONFIG_USB_KAWETH is not set
-> +# CONFIG_USB_PEGASUS is not set
-> +# CONFIG_USB_RTL8150 is not set
-> +# CONFIG_USB_RTL8152 is not set
-> +# CONFIG_USB_LAN78XX is not set
-> +# CONFIG_USB_USBNET is not set
-> +# CONFIG_USB_IPHETH is not set
-> +CONFIG_WLAN=y
-> +# CONFIG_WLAN_VENDOR_ADMTEK is not set
-> +# CONFIG_WLAN_VENDOR_ATH is not set
-> +# CONFIG_WLAN_VENDOR_ATMEL is not set
-> +# CONFIG_WLAN_VENDOR_BROADCOM is not set
-> +# CONFIG_WLAN_VENDOR_CISCO is not set
-> +# CONFIG_WLAN_VENDOR_INTEL is not set
-> +# CONFIG_WLAN_VENDOR_INTERSIL is not set
-> +# CONFIG_WLAN_VENDOR_MARVELL is not set
-> +
-> +#
-> +# USB HID support
-> +#
-> +CONFIG_USB_HID=y
-> +# CONFIG_HID_PID is not set
-> +# CONFIG_USB_HIDDEV is not set
-> +
-> +#
-> +# I2C HID support
-> +#
-> +# CONFIG_I2C_HID is not set
-> +CONFIG_USB_OHCI_LITTLE_ENDIAN=y
-> +CONFIG_USB_SUPPORT=y
-> +CONFIG_USB_COMMON=y
-> +CONFIG_USB_ARCH_HAS_HCD=y
-> +CONFIG_USB=y
-> +CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
-> +
-> +#
-> +# Miscellaneous USB options
-> +#
-> +CONFIG_USB_DEFAULT_PERSIST=y
-> +# CONFIG_USB_DYNAMIC_MINORS is not set
-> +# CONFIG_USB_OTG is not set
-> +# CONFIG_USB_OTG_WHITELIST is not set
-> +# CONFIG_USB_OTG_BLACKLIST_HUB is not set
-> +# CONFIG_USB_ULPI_BUS is not set
-> +# CONFIG_USB_MON is not set
-> +# CONFIG_USB_WUSB_CBAF is not set
-> +
-> +#
-> +# USB Host Controller Drivers
-> +#
-> +# CONFIG_USB_C67X00_HCD is not set
-> +# CONFIG_USB_XHCI_HCD is not set
-> +# CONFIG_USB_EHCI_HCD is not set
-> +# CONFIG_USB_OXU210HP_HCD is not set
-> +# CONFIG_USB_ISP116X_HCD is not set
-> +# CONFIG_USB_ISP1362_HCD is not set
-> +# CONFIG_USB_FOTG210_HCD is not set
-> +# CONFIG_USB_MAX3421_HCD is not set
-> +# CONFIG_USB_OHCI_HCD is not set
-> +# CONFIG_USB_SL811_HCD is not set
-> +# CONFIG_USB_R8A66597_HCD is not set
-> +# CONFIG_USB_HCD_TEST_MODE is not set
-> +
-> +#
-> +# USB Device Class drivers
-> +#
-> +# CONFIG_USB_ACM is not set
-> +# CONFIG_USB_PRINTER is not set
-> +# CONFIG_USB_WDM is not set
-> +# CONFIG_USB_TMC is not set
-> +
-> +#
-> +# NOTE: USB_STORAGE depends on SCSI but BLK_DEV_SD may
-> +#
-> +
-> +#
-> +# also be needed; see USB_STORAGE Help for more info
-> +#
-> +# CONFIG_USB_STORAGE is not set
-> +
-> +#
-> +# USB Imaging devices
-> +#
-> +# CONFIG_USB_MDC800 is not set
-> +# CONFIG_USB_MICROTEK is not set
-> +# CONFIG_USBIP_CORE is not set
-> +CONFIG_USB_MUSB_HDRC=y
-> +# CONFIG_USB_MUSB_HOST is not set
-> +CONFIG_USB_MUSB_GADGET=y
-> +# CONFIG_USB_MUSB_DUAL_ROLE is not set
-> +
-> +#
-> +# Platform Glue Layer
-> +#
-> +# CONFIG_USB_MUSB_TUSB6010 is not set
-> +CONFIG_USB_MUSB_OMAP2PLUS=y
-> +# CONFIG_USB_MUSB_AM35X is not set
-> +# CONFIG_USB_MUSB_DSPS is not set
-> +
-> +#
-> +# MUSB DMA mode
-> +#
-> +CONFIG_MUSB_PIO_ONLY=y
-> +# CONFIG_USB_DWC3 is not set
-> +# CONFIG_USB_DWC2 is not set
-> +# CONFIG_USB_CHIPIDEA is not set
-> +# CONFIG_USB_ISP1760 is not set
-> +
-> +#
-> +# USB port drivers
-> +#
-> +# CONFIG_USB_SERIAL is not set
-> +
-> diff --git a/drivers/usb/gadget/udc/udc-core.c b/drivers/usb/gadget/udc/udc-core.c
-> index b86a6f0..bee109f 100644
-> --- a/drivers/usb/gadget/udc/udc-core.c
-> +++ b/drivers/usb/gadget/udc/udc-core.c
-> @@ -542,14 +542,37 @@ err1:
->   	return ret;
->   }
->   
-> -int usb_gadget_probe_driver(struct usb_gadget_driver *driver)
-> +int usb_udc_attach_driver(const char *name, struct usb_gadget_driver *driver)
-> +{
-> +	struct usb_udc *udc = NULL;
-> +	int ret = -ENODEV;
-> +
-> +	mutex_lock(&udc_lock);
-> +	list_for_each_entry(udc, &udc_list, list) {
-> +		ret = strcmp(name, dev_name(&udc->dev));
-> +		if (!ret)
-> +			break;
-> +	}
-> +	if (ret) {
-> +		ret = -ENODEV;
-> +		goto out;
-> +	}
-> +	if (udc->driver) {
-> +		ret = -EBUSY;
-> +		goto out;
-> +	}
-> +	ret = udc_bind_to_driver(udc, driver);
-> +out:
-> +	mutex_unlock(&udc_lock);
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(usb_udc_attach_driver);
-> +
-> +int __usb_gadget_probe_driver(struct usb_gadget_driver *driver)
->   {
->   	struct usb_udc		*udc = NULL;
->   	int			ret = -ENODEV;
->   
-> -	if (!driver || !driver->bind || !driver->setup)
-> -		return -EINVAL;
-> -
->   	mutex_lock(&udc_lock);
->   	if (driver->udc_name) {
->   		list_for_each_entry(udc, &udc_list, list) {
-> @@ -567,16 +590,47 @@ int usb_gadget_probe_driver(struct usb_gadget_driver *driver)
->   		}
->   	}
->   
-> -	list_add_tail(&driver->pending, &gadget_driver_pending_list);
-> +//	list_add_tail(&driver->pending, &gadget_driver_pending_list); FIXME
->   	pr_info("udc-core: couldn't find an available UDC - added [%s] to list of pending drivers\n",
->   		driver->function);
-> +
->   	mutex_unlock(&udc_lock);
-> -	return 0;
-> +	return ret;
->   found:
->   	ret = udc_bind_to_driver(udc, driver);
->   	mutex_unlock(&udc_lock);
->   	return ret;
->   }
-> +
-> +#define USB_GADGET_BIND_RETRIES		5
-> +#define USB_GADGET_BIND_TIMEOUT		(3 * HZ)
-> +static void usb_gadget_work(struct work_struct *work)
-> +{
-> +	struct usb_gadget_driver *driver = container_of(work,
-> +						struct usb_gadget_driver,
-> +						work.work);
-> +	int res;
-> +	
-> +	if (driver->retries++ > USB_GADGET_BIND_RETRIES) {
-> +		pr_err("couldn't find an available UDC\n");
-> +		return;
-> +	}
-> +
-> +	res = __usb_gadget_probe_driver(driver);
-> +	if (res == -ENODEV)
-> +		schedule_delayed_work(&driver->work, USB_GADGET_BIND_TIMEOUT);
-> +}
-> +
-> +int usb_gadget_probe_driver(struct usb_gadget_driver *driver)
-> +{
-> +	if (!driver || !driver->bind || !driver->setup)
-> +		return -EINVAL;
-> +
-> +	INIT_DELAYED_WORK(&driver->work, usb_gadget_work);
-> +	schedule_delayed_work(&driver->work, 0);
-> +
-> +	return 0;
-> +}
->   EXPORT_SYMBOL_GPL(usb_gadget_probe_driver);
->   
->   int usb_gadget_unregister_driver(struct usb_gadget_driver *driver)
-> @@ -587,6 +641,8 @@ int usb_gadget_unregister_driver(struct usb_gadget_driver *driver)
->   	if (!driver || !driver->unbind)
->   		return -EINVAL;
->   
-> +	cancel_delayed_work(&driver->work);
-> +
->   	mutex_lock(&udc_lock);
->   	list_for_each_entry(udc, &udc_list, list)
->   		if (udc->driver == driver) {
-> @@ -747,7 +803,7 @@ static int __init usb_udc_init(void)
->   	udc_class->dev_uevent = usb_udc_uevent;
->   	return 0;
->   }
-> -subsys_initcall(usb_udc_init);
-> +late_initcall_sync(usb_udc_init);
->   
->   static void __exit usb_udc_exit(void)
->   {
-> diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
-> index d82d006..adb1e68 100644
-> --- a/include/linux/usb/gadget.h
-> +++ b/include/linux/usb/gadget.h
-> @@ -1014,6 +1014,8 @@ static inline int usb_gadget_activate(struct usb_gadget *gadget)
->    * @resume: Invoked on USB resume.  May be called in_interrupt.
->    * @reset: Invoked on USB bus reset. It is mandatory for all gadget drivers
->    *	and should be called in_interrupt.
-> + * @work: Gadget work used to bind to the USB controller.
-> + * @retries: Gadget retries to bind to the USB controller.
->    * @driver: Driver model state for this driver.
->    * @udc_name: A name of UDC this driver should be bound to. If udc_name is NULL,
->    *	this driver will be bound to any available UDC.
-> @@ -1075,6 +1077,8 @@ struct usb_gadget_driver {
->   	void			(*suspend)(struct usb_gadget *);
->   	void			(*resume)(struct usb_gadget *);
->   	void			(*reset)(struct usb_gadget *);
-> +	struct delayed_work	work;
-> +	int			retries;
->   
->   	/* FIXME support safe rmmod */
->   	struct device_driver	driver;
->
+Absolutely not!  Like all other regulator drivers the twl driver should
+be taking no decisions about what voltage to set except in response to a
+set_voltage() call.  All the logic about setting voltages is factored
+out into the core.
 
-Best regards
--- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+Please try to understand the abstractions we're using in the framework.
+
+--Fc4772q/IDjJVU21
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJW7+MkAAoJECTWi3JdVIfQpB8H/ictFhXP1bmdgeRCOQq9igXm
+Z7LQCZ3Aq8NJs5pAhVWKoW1nyftmEOj6PoDNVqxMhemXanJn9BxcTgNajrREkC09
+7yeTmYVlRCYhbKLLEWfAX+98+H/Dm4LaDCYIQzZtQDV7k4QR66++KRPPwdfalW0E
+OugsaYW5QYN7CgNL+spzV6fCum4twbhGyYE7AnbvD4XWj6rqZDzUuBlxzX2QO5TI
+qVfHQzRblvD7UxuJwPjVi+B4sXFfMnkQxzEJeZVmpGy7IklqQ1WZ2dxHv4m/1JMP
+q99rLPMXaiOtngdGmseJ8/rk0fiRwv5uhYd1/ag6xlWOULl7MPFHvyXrCf6/pGc=
+=WfX1
+-----END PGP SIGNATURE-----
+
+--Fc4772q/IDjJVU21--
