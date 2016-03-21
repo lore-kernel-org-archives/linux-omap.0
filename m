@@ -1,58 +1,66 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 3/3] ASoC: omap-mcbsp: Enable/disable sidetone block auto
- clock gating for omap3
-Date: Mon, 21 Mar 2016 09:52:19 +0000
-Message-ID: <20160321095219.GM2566@sirena.org.uk>
-References: <1458296929-718-1-git-send-email-peter.ujfalusi@ti.com>
- <1458296929-718-4-git-send-email-peter.ujfalusi@ti.com>
- <alpine.DEB.2.02.1603191932240.6629@utopia.booyaka.com>
+From: Jon Hunter <jonathanh@nvidia.com>
+Subject: Re: [PATCH 08/15] genirq: Add runtime power management support for
+ IRQ chips
+Date: Mon, 21 Mar 2016 10:09:12 +0000
+Message-ID: <56EFC848.6030301@nvidia.com>
+References: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com>
+ <1458224359-32665-9-git-send-email-jonathanh@nvidia.com>
+ <56EBE244.6070400@ti.com> <56EBF447.8070808@nvidia.com>
+ <56EC0F7D.8050106@ti.com> <56EC1362.2000005@nvidia.com>
+ <56EC1719.5020408@nvidia.com> <56EC404A.9060001@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="633Qqqc8nwy7lrt9"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1603191932240.6629-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Cc: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jarkko Nikula <jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <56EC404A.9060001@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>
+Cc: Kevin Hilman <khilman@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---633Qqqc8nwy7lrt9
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 18/03/16 17:52, Grygorii Strashko wrote:
+> On 03/18/2016 04:56 PM, Jon Hunter wrote:
+>>
+>> On 18/03/16 14:40, Jon Hunter wrote:
+>>> On 18/03/16 14:23, Grygorii Strashko wrote:
+>>>> On 03/18/2016 02:27 PM, Jon Hunter wrote:
+>>>>>
+>>>>> On 18/03/16 11:11, Grygorii Strashko wrote:
+>>
+>> [snip]
+>>
+>>>> oh :( That will require updating of all drivers (and if it will be taken into account that
+>>>> wakeup can be configured from sysfs + devm_ - it will be painful).
+>>>
+>>> Will it? I know that there are a few gpio chips that have some hacked
+>>> ways to get around the PM issue, but I wonder how many drivers this
+>>> really impacts. What sysfs entries are you referring too?
+> 
+> echo enabled > /sys/devices/platform/44000000.ocp/48020000.serial/tty/ttyS2/power/wakeup
+> 
+>>
+>> Thinking about this some more, yes I guess it would impact all drivers
+>> that use a gpio but don't use it for a wake-up. I could see that could
+>> be a few drivers indeed.
+> 
+> yep. I've just tested it
+> - gpio was requested through sysfs and configured as IRQ
+> - do suspend
+> 
+> the same is if GPIO is requested as IRQ only and not configured as wakeup source 
+> 
+> [  319.669760] PM: late suspend of devices complete after 0.213 msecs
+> [  319.671195] irq 191 has no wakeup set and has not been freed!
+> [  319.673453] PM: noirq suspend of devices complete after 2.258 msecs
+> 
+> this is very minimal configuration - the regular one is at ~30-50 devices
+> most of them will use IRQ and only ~10% are used as wakeup sources.
 
-On Sat, Mar 19, 2016 at 07:37:33PM +0000, Paul Walmsley wrote:
+Then it is working as intended :-)
 
-> Mark, please drop this patch for the time being, until the SoC integratio=
-n=20
-> issues can be sorted out first.  It's best to wait a little while before=
-=20
-> applying patches like these so folks have a chance to comment on their=20
-> correctness first.
+However, if this is too verbose for some irqchips, then as I mentioned
+we can have a flag to avoid these messages.
 
-Nobody except Peter and Jarkko ever shows any interest in the OMAP code
-- the amount of time I wait for review depends on who's sending the
-patches and if I expect anyone else is going to respond.
-
---633Qqqc8nwy7lrt9
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJW78RSAAoJECTWi3JdVIfQi9AH/jbkOJkGHzLLOo8IDDRzNNaC
-mNUmVWHpYTeA622b1XdV+fGTSLe+tKC9AYFwYU32Bd242cwqssjcXwRMRSmV7bvr
-sZGkKLXXgm/0bzgbWMw5duV59ZYUB1tmp83l/T+GfZHjoc1kKxnXdFNAKEmtxTvd
-Kz/Smd0WxXh4Zn+iFk+10twUsmn1PpgSWNLneF8zxIJe0utxF9AhZZeRmUBtsoCd
-80fagad9sT49H7bD8PBTkpWcTbnrzApIOMmcFQr3xnVeRGZj76Rm52lvpYwmAmBb
-gi7Zj0mKqcB+mdEYvIS3grdsve0hMx1Y7IY4RXI/GwihBD4GsfwR4Gz+aGJgdWk=
-=Xx3v
------END PGP SIGNATURE-----
-
---633Qqqc8nwy7lrt9--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cheers
+Jon
