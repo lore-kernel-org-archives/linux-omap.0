@@ -1,41 +1,45 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH v3 1/3] clk: ti: am335x/am4372: Add tbclk to pwm node
-Date: Mon, 21 Mar 2016 21:34:23 +0200
-Message-ID: <56F04CBF.7080506@ti.com>
-References: <1458263723-25770-1-git-send-email-fcooper@ti.com>
- <1458263723-25770-2-git-send-email-fcooper@ti.com>
- <20160321184318.GS25972@codeaurora.org>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/3] ARM: OMAP3: Fix McBSP2/3 hwmod setup for sidetone
+Date: Mon, 21 Mar 2016 13:21:07 -0700
+Message-ID: <20160321202107.GO9329@atomide.com>
+References: <1458296929-718-1-git-send-email-peter.ujfalusi@ti.com>
+ <alpine.DEB.2.02.1603191908070.6629@utopia.booyaka.com>
+ <56EFB31C.9090103@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <20160321184318.GS25972@codeaurora.org>
-Sender: linux-clk-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>, Franklin S Cooper Jr <fcooper@ti.com>
-Cc: thierry.reding@gmail.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, mturquette@baylibre.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <56EFB31C.9090103-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jarkko Nikula <jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 03/21/2016 08:43 PM, Stephen Boyd wrote:
-> On 03/17, Franklin S Cooper Jr wrote:
->> Add tblck to the pwm nodes. This insures that the ehrpwm driver has access
->> to the time-based clk.
->>
->> Do not remove similar entries for ehrpwm node. Later patches will switch
->> from using ehrpwm node name to pwm. But to maintain ABI compatibility we
->> shouldn't remove the old entries.
->>
->> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
->> ---
->
-> Acked-by: Stephen Boyd <sboyd@codeaurora.org>
->
-> Are there any plans to get off these DT_CLK entries entirely?
+Hi,
 
-The series that adds support for the hwmod clock type for OMAPs has a 
-support patch that should address this problem at least partially; I am 
-planning to post next rev of that set soonish. It should allow getting 
-rid of majority of the clock aliases, I will remove any aliases I can at 
-the same time.
+* Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [160321 01:39]:
+> 
+> This is also interesting:
+> McBSP2 sidetone is in region 39 and 40 (module and L4 interconnect) which is
+> unique in case of OMAP34xx and OMAP35xx, but it is overlapping with GPIO6 on
+> OMAP36xx. Not sure what are the implications.
 
--Tero
+Hmm GPIO6 is in a different L4 segment though? Maybe
+you did not account for the segments?
 
+0x49000000 + 0x20000 + 0x2000/0x4000/0x6000 for McBSP
+0x49000000 + 0x50000 + 0x8000 for GPIO6
+
+Or maybe I don't understand at which physical address the
+overlap is? :)
+
+Let me know if you need me to dump out the IO ranges for
+you from the AP table for 34xx and 36xx.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
