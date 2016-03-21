@@ -1,60 +1,36 @@
-From: Mark Brown <broonie@kernel.org>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 Subject: Re: Nokia N900 - audio TPA6130A2 problems
-Date: Mon, 21 Mar 2016 12:03:49 +0000
-Message-ID: <20160321120349.GP2566@sirena.org.uk>
-References: <56EAE8C3.1080301@gmail.com>
- <56EBD96A.8090505@ti.com>
- <1458306829.11841.2.camel@Nokia-N900>
- <20160318133641.GB16747@earth>
- <56EC0676.3000509@gmail.com>
- <20160318150404.GA30829@earth>
- <56ED12B5.9000103@gmail.com>
- <20160320051704.GA12934@earth>
- <56EEFD4F.4030705@gmail.com>
- <20160321000417.GA21902@earth>
+Date: Mon, 21 Mar 2016 15:39:15 +0200
+Message-ID: <56EFF983.2050303@gmail.com>
+References: <56E9B910.7000904@gmail.com> <56EA6282.5050501@ti.com>
+ <56EAE8C3.1080301@gmail.com> <56EBD96A.8090505@ti.com>
+ <1458306829.11841.2.camel@Nokia-N900> <20160318133641.GB16747@earth>
+ <56EC0676.3000509@gmail.com> <20160318150404.GA30829@earth>
+ <56ED12B5.9000103@gmail.com> <20160320051704.GA12934@earth>
+ <20160321114521.GO2566@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="Fc4772q/IDjJVU21"
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160321000417.GA21902@earth>
+In-Reply-To: <20160321114521.GO2566@sirena.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, Lars-Peter Clausen <lars@metafoo.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, merlijn@wizzup.org
+To: Mark Brown <broonie@kernel.org>, Sebastian Reichel <sre@kernel.org>
+Cc: Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, Lars-Peter Clausen <lars@metafoo.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
---Fc4772q/IDjJVU21
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On 21.03.2016 13:45, Mark Brown wrote:
+>
+> No, if the voltage is variable we can't tell what the current
+> constraints are without something telling us so we just don't vary the
+> voltage until we're told to do this.  If we immediately lower the
+> voltage to the minimum supported voltage that's going to break things.
+>
 
-On Mon, Mar 21, 2016 at 01:04:18AM +0100, Sebastian Reichel wrote:
+There are constraints set by the board DTS. Isn't it reasonable the 
+framework to set the voltage to minimum voltage from the dts if the 
+current set one is bellow it?
 
-> Right thinking about it, the voltage must also be configured for the
-> non always-on cases. So it's not a problem with the regulator
-> framework, but with twl-regulator's probe function, that should take
-> care of this.
-
-Absolutely not!  Like all other regulator drivers the twl driver should
-be taking no decisions about what voltage to set except in response to a
-set_voltage() call.  All the logic about setting voltages is factored
-out into the core.
-
-Please try to understand the abstractions we're using in the framework.
-
---Fc4772q/IDjJVU21
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJW7+MkAAoJECTWi3JdVIfQpB8H/ictFhXP1bmdgeRCOQq9igXm
-Z7LQCZ3Aq8NJs5pAhVWKoW1nyftmEOj6PoDNVqxMhemXanJn9BxcTgNajrREkC09
-7yeTmYVlRCYhbKLLEWfAX+98+H/Dm4LaDCYIQzZtQDV7k4QR66++KRPPwdfalW0E
-OugsaYW5QYN7CgNL+spzV6fCum4twbhGyYE7AnbvD4XWj6rqZDzUuBlxzX2QO5TI
-qVfHQzRblvD7UxuJwPjVi+B4sXFfMnkQxzEJeZVmpGy7IklqQ1WZ2dxHv4m/1JMP
-q99rLPMXaiOtngdGmseJ8/rk0fiRwv5uhYd1/ag6xlWOULl7MPFHvyXrCf6/pGc=
-=WfX1
------END PGP SIGNATURE-----
-
---Fc4772q/IDjJVU21--
+Regards,
+Ivo
