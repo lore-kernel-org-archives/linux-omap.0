@@ -1,34 +1,232 @@
-From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 0/2] ARM: am335x: Add support for ICEv2 board
-Date: Tue, 22 Mar 2016 12:07:35 +0530
-Message-ID: <1458628657-30468-1-git-send-email-lokeshvutla@ti.com>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: Re: Nokia N900 - audio TPA6130A2 problems
+Date: Tue, 22 Mar 2016 10:02:23 +0200
+Message-ID: <56F0FC0F.8000107@gmail.com>
+References: <56EBD96A.8090505@ti.com> <1458306829.11841.2.camel@Nokia-N900>
+ <20160318133641.GB16747@earth> <56EC0676.3000509@gmail.com>
+ <20160318150404.GA30829@earth> <56ED12B5.9000103@gmail.com>
+ <20160320051704.GA12934@earth> <20160321114521.GO2566@sirena.org.uk>
+ <56EFF983.2050303@gmail.com> <20160321134515.GT2566@sirena.org.uk>
+ <20160321145347.GA19391@earth> <56F04CC7.1040403@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, nm-l0cyMroinI0@public.gmane.org, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <56F04CC7.1040403@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, Lars-Peter Clausen <lars@metafoo.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
-This series adds support for AM3359 ICEv2 board.
 
-Boot log: http://pastebin.ubuntu.com/15470564/ 
 
-Lokesh Vutla (2):
-  ARM: dts: am335x: Add initial support for ICEv2 board
-  ARM: omap2plus_defconfig: Enable GPIO_TPIC2810
+On 21.03.2016 21:34, Ivaylo Dimitrov wrote:
+>
+>
+> On 21.03.2016 16:53, Sebastian Reichel wrote:
+>> Hi Mark,
+>>
+>> On Mon, Mar 21, 2016 at 01:45:15PM +0000, Mark Brown wrote:
+>>> On Mon, Mar 21, 2016 at 03:39:15PM +0200, Ivaylo Dimitrov wrote:
+>>>> On 21.03.2016 13:45, Mark Brown wrote:
+>>>
+>>>>> No, if the voltage is variable we can't tell what the current
+>>>>> constraints are without something telling us so we just don't vary the
+>>>>> voltage until we're told to do this.  If we immediately lower the
+>>>>> voltage to the minimum supported voltage that's going to break things.
+>>>
+>>>> There are constraints set by the board DTS. Isn't it reasonable the
+>>>> framework to set the voltage to minimum voltage from the dts if the
+>>>> current
+>>>> set one is bellow it?
+>>>
+>>> Yes, if it's out of bounds for the constraints we should bring it
+>>> up/down to the minimum/maximum (when copying people into a thread it's a
+>>> good idea to explain what the problem you are trying to solve is,
+>>> especially if you're throwing around bodges).
+>>
+>> We have this regulator definition in omap3-n900.dts:
+>>
+>> &vmmc2 {
+>>     regulator-name = "V28_A";
+>>     regulator-min-microvolt = <2800000>;
+>>     regulator-max-microvolt = <3000000>;
+>>     regulator-always-on; /* due VIO leak to AIC34 VDDs */
+>> };
+>>
+>> The regulator is enabled during probe, but the voltage is not
+>> configured. The default reset voltage of the regulator is 2.6V.
+>> So basically when the regulator is enabled, it uses a voltage,
+>> which is out of the DT specified range.
+>>
+>> We also have a second problem: If the system has been rebooted from
+>> Nokia's stock kernel the regulator is left in STANDBY mode. Since
+>> the mode is not configured during probe, it results in different
+>> problems. According to my understanding it can be fixed trivially
+>> by adding
+>>
+>> &vmmc2 {
+>>      regulator-initial-mode = <2>;
+>> };
+>>
+>
+> doesn't work:
+>
+> "regulator-vmmc2: mapping for mode 2 not defined"
+>
+> twl-regulator is missing .of_map_mode function.
+>
+> Also, if we go that route, we should set the initial modes for all the
+> regulators, not only vmmc2 (and not only for N900), as we don't really
+> know what is the status of regulators at startup. I think a better
+> approach is if regulator framework sets all always-on regulators to
+> enabled, unless stated otherwise (which it already does iiuc).
+>
+> I think there is a bug in twl-regulator twl4030reg_enable() and/or
+> twl4030reg_is_enabled() - the latter only checks if DEV_GRP is P1, but
+> not for the actual state of the regulator (bits 3:0). Also, what looks
+> suspicious to me is that all the regulators are put in P1 device group.
+> Legacy board code spreads the regulators all over the groups, so maybe
+> this is simply a regression compared to legacy boot.
+>
 
- .../devicetree/bindings/arm/omap/omap.txt          |   3 +
- arch/arm/boot/dts/Makefile                         |   1 +
- arch/arm/boot/dts/am335x-icev2.dts                 | 303 +++++++++++++++++++++
- arch/arm/configs/omap2plus_defconfig               |   1 +
- 4 files changed, 308 insertions(+)
- create mode 100644 arch/arm/boot/dts/am335x-icev2.dts
+This is what seems to work, I would like some comments from those who 
+are more experienced with twl4030 than me before posting a formal patch. 
+I borrowed the code from stock Nokia kernel.
 
--- 
-2.1.4
+diff --git a/drivers/regulator/twl-regulator.c 
+b/drivers/regulator/twl-regulator.c
+index 955a6fb..3740df4 100644
+--- a/drivers/regulator/twl-regulator.c
++++ b/drivers/regulator/twl-regulator.c
+@@ -21,7 +21,7 @@
+  #include <linux/regulator/machine.h>
+  #include <linux/regulator/of_regulator.h>
+  #include <linux/i2c/twl.h>
+-
++#include <linux/delay.h>
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  /*
+   * The TWL4030/TW5030/TPS659x0/TWL6030 family chips include power 
+management, a
+@@ -165,7 +165,7 @@ static int twl4030reg_is_enabled(struct 
+regulator_dev *rdev)
+  	if (state < 0)
+  		return state;
+
+-	return state & P1_GRP_4030;
++	return (state & 0x0f) != 0;
+  }
+
+  static int twl6030reg_is_enabled(struct regulator_dev *rdev)
+@@ -188,11 +188,75 @@ static int twl6030reg_is_enabled(struct 
+regulator_dev *rdev)
+  	return grp && (val == TWL6030_CFG_STATE_ON);
+  }
+
++static int twl4030_wait_pb_ready(void)
++{
++
++	int ret, timeout = 10;
++	u8 pb_state;
++
++	do {
++		ret = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &pb_state,
++				      TWL4030_PM_MASTER_PB_CFG);
++		if (ret < 0)
++			return ret;
++
++		if (!(pb_state & 1))
++			return 0;
++
++		mdelay(1);
++		timeout--;
++
++	} while (timeout);
++
++	return -ETIMEDOUT;
++}
++
++static int twl4030_send_pb_msg(unsigned msg)
++{
++	u8 pb_state;
++	int ret;
++
++	/* save powerbus configuration */
++	ret = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &pb_state,
++			      TWL4030_PM_MASTER_PB_CFG);
++	if (ret < 0)
++		return ret;
++
++	/* Enable I2C access to powerbus */
++	ret = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, pb_state | BIT(1),
++			       TWL4030_PM_MASTER_PB_CFG);
++	if (ret < 0)
++		return ret;
++
++	ret = twl4030_wait_pb_ready();
++	if (ret < 0)
++		return ret;
++
++	ret = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, msg >> 8,
++			       TWL4030_PM_MASTER_PB_WORD_MSB);
++	if (ret < 0)
++		return ret;
++
++	ret = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, msg & 0xff,
++			       TWL4030_PM_MASTER_PB_WORD_LSB);
++	if (ret < 0)
++		return ret;
++
++	ret = twl4030_wait_pb_ready();
++	if (ret < 0)
++		return ret;
++
++	/* Restore powerbus configuration */
++	return twl_i2c_write_u8(TWL_MODULE_PM_MASTER, pb_state,
++				TWL_MODULE_PM_MASTER);
++}
++
+  static int twl4030reg_enable(struct regulator_dev *rdev)
+  {
+  	struct twlreg_info	*info = rdev_get_drvdata(rdev);
+  	int			grp;
+  	int			ret;
++	unsigned 		message;
+
+  	grp = twlreg_grp(rdev);
+  	if (grp < 0)
+@@ -201,8 +265,12 @@ static int twl4030reg_enable(struct regulator_dev 
+*rdev)
+  	grp |= P1_GRP_4030;
+
+  	ret = twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_GRP, grp);
++	if (ret < 0)
++		return ret;
+
+-	return ret;
++	message = MSG_SINGULAR(DEV_GRP_P1, info->id, RES_STATE_ACTIVE);
++
++	return twl4030_send_pb_msg(message);
+  }
+
+  static int twl6030reg_enable(struct regulator_dev *rdev)
+@@ -324,13 +392,7 @@ static int twl4030reg_set_mode(struct regulator_dev 
+*rdev, unsigned mode)
+  	if (!(status & (P3_GRP_4030 | P2_GRP_4030 | P1_GRP_4030)))
+  		return -EACCES;
+
+-	status = twl_i2c_write_u8(TWL_MODULE_PM_MASTER,
+-			message >> 8, TWL4030_PM_MASTER_PB_WORD_MSB);
+-	if (status < 0)
+-		return status;
+-
+-	return twl_i2c_write_u8(TWL_MODULE_PM_MASTER,
+-			message & 0xff, TWL4030_PM_MASTER_PB_WORD_LSB);
++	return twl4030_send_pb_msg(message);
+  }
+
+  static int twl6030reg_set_mode(struct regulator_dev *rdev, unsigned mode)
+
+Regards,
+Ivo
