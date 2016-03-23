@@ -1,131 +1,37 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: N900 sleep mode (in 4.5-rc0, if that matters)
-Date: Wed, 23 Mar 2016 13:38:01 +0100
-Message-ID: <20160323123801.GC32031@amd>
-References: <20160126140010.GA29723@amd>
- <20160126172527.GY3500@atomide.com>
- <20160130200244.GA30429@amd>
- <20160130201452.GC30429@amd>
- <20160130221509.GA28644@amd>
- <20160201181316.GM19432@atomide.com>
- <20160201211736.GA11283@amd>
- <20160201221111.GP19432@atomide.com>
- <20160207212316.GA6147@amd>
- <20160209172403.GK19432@atomide.com>
+From: Jani Nikula <jani.nikula@linux.intel.com>
+Subject: Re: [PATCH 02/23] ARM: dts: n950: add display support
+Date: Wed, 23 Mar 2016 14:40:53 +0200
+Message-ID: <87lh59pdt6.fsf@intel.com>
+References: <1457455195-1938-1-git-send-email-sre@kernel.org>
+ <1457455195-1938-3-git-send-email-sre@kernel.org>
+ <21766689.NesyW3QHk4@avalon> <20160317174901.GB3864@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160209172403.GK19432@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20160317174901.GB3864@earth>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Sebastian Reichel <sre@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
-
-> > > 055555fc459 ("usb: musb: core: Fix handling of the phy notifications")
-> > > 03e43528ab68 ("usb: musb: Fix unbalanced pm_runtime_enable")
-> > 
-> > Ok, with that, I can insmod and rmmod. But I still get:
-> > 
-> > 00001fff 48005020 (fa005020) cm_idlest_per blocking bits: 0007e000
-> 
-> I think the cm_idlest_per is fine.
-> 
-> > ffdffebd 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00200042
-> > 0000000d 48004a28 (fa004a28) cm_idlest3_core
-> 
-> Bit 21 in cm_idlest1_core is for MCSPI4 so WLAN. Does that go
-> down if do sleep 5; cat /sys/kernel/debug/pm_debug/count ?
-> 
-> If not, the're PM runtime missing or broken somewhere.
-> 
-> FYI, below is my omap3 usb test script that I use to start and
-> stop USB, it also works on n900. And after stopping it n900
-> continues hitting deeper idle states just fine.
-
-You rmmod musb_hdrc, so I checked, and found:
-
-550a7375f (Felipe Balbi              2008-07-24 12:27:36 +0300 1093)
-static void musb_shutdown(struct platform_de
-vice *pdev)
-550a7375f (Felipe Balbi              2008-07-24 12:27:36 +0300 1094) {
-550a7375f (Felipe Balbi              2008-07-24 12:27:36 +0300 1095)
-struct musb     *musb = dev_to_musb(&pdev
-->dev);
-550a7375f (Felipe Balbi              2008-07-24 12:27:36 +0300 1096)
-unsigned long   flags;
-550a7375f (Felipe Balbi              2008-07-24 12:27:36 +0300 1097)
-4f9edd2d7 (Hema HK                   2011-03-22 16:02:12 +0530 1098)
-pm_runtime_get_sync(musb->controller);
-24307caef (Grazvydas Ignotas         2012-01-12 15:22:45 +0200 1099)
-2cc65feab (Daniel Mack               2013-04-10 21:55:47 +0200 1100)
-musb_host_cleanup(musb);
-24307caef (Grazvydas Ignotas         2012-01-12 15:22:45 +0200 1101)
-musb_gadget_cleanup(musb);
-24307caef (Grazvydas Ignotas         2012-01-12 15:22:45 +0200 1102)
-550a7375f (Felipe Balbi              2008-07-24 12:27:36 +0300 1103)
-spin_lock_irqsave(&musb->lock, flags);
-550a7375f (Felipe Balbi              2008-07-24 12:27:36 +0300 1104)
-musb_platform_disable(musb);
-550a7375f (Felipe Balbi              2008-07-24 12:27:36 +0300 1105)
-musb_generic_disable(musb);
-550a7375f (Felipe Balbi              2008-07-24 12:27:36 +0300 1106)
-spin_unlock_irqrestore(&musb->lock, flags
-);
-550a7375f (Felipe Balbi              2008-07-24 12:27:36 +0300 1107)
-120d074c5 (Grazvydas Ignotas         2010-10-10 13:52:22 -0500 1108)
-musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
-120d074c5 (Grazvydas Ignotas         2010-10-10 13:52:22 -0500 1109)
-musb_platform_exit(musb);
-120d074c5 (Grazvydas Ignotas         2010-10-10 13:52:22 -0500 1110)
-4f9edd2d7 (Hema HK                   2011-03-22 16:02:12 +0530 1111)
-pm_runtime_put(musb->controller);
-550a7375f (Felipe Balbi              2008-07-24 12:27:36 +0300 1112)
-/* FIXME power down */
-550a7375f (Felipe Balbi              2008-07-24 12:27:36 +0300 1113) }
-
-I thought i was responsible for the FIXME, but apparently not... If
-you happen to have some changes there, that would be useful to
-know....
-
-Ok, another attempt at shutting USB down:
-
-00001fff 48005020 (fa005020) cm_idlest_per blocking bits: 0007e000
-f7dffe9d 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00200062
-0000000d 48004a28 (fa004a28) cm_idlest3_core
-
-Tried again today:
-
-00001fff 48005020 (fa005020) cm_idlest_per blocking bits: 0007e000
-f7dffe9d 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00200062
-0000000d 48004a28 (fa004a28) cm_idlest3_core
-pavel@n900:/my/tui/ofone$ sleep test
-
-00001fff 48005020 (fa005020) cm_idlest_per blocking bits: 0007e000
-ffde7e9d 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00218062
-0000000d 48004a28 (fa004a28) cm_idlest3_core
-
-00001fff 48005020 (fa005020) cm_idlest_per blocking bits: 0007e000
-fedffe9d 48004a20 (fa004a20) cm_idlest1_core blocking bits: 01200062
-0000000d 48004a28 (fa004a28) cm_idlest3_core
-
-00001fff 48005020 (fa005020) cm_idlest_per blocking bits: 0007e000
-ffde7e9d 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00218062
-0000000d 48004a28 (fa004a28) cm_idlest3_core
-
-Is there documentation for the cm_idlest1_ bits?
-
-How idle system do I need to have? Screen is blanked and machine
-should be mostly idle, but there's X running on another vt with Mate
-desktop, and some python scripts... GSM modem should be online.
-
-Are you booting over USB from NOLO?
-
-Thanks and best regards,
-
-								Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+T24gVGh1LCAxNyBNYXIgMjAxNiwgU2ViYXN0aWFuIFJlaWNoZWwgPHNyZUBrZXJuZWwub3JnPiB3
+cm90ZToKPiBPbiBUaHUsIE1hciAxNywgMjAxNiBhdCAwMjoxNDoyNlBNICswMjAwLCBMYXVyZW50
+IFBpbmNoYXJ0IHdyb3RlOgo+PiBbLi4uXQo+PiA+ICsKPj4gPiArCQkvKiBwYW5lbCBpcyA0ODB4
+NDY0IHdpdGggdG9wIGFuZCBib3R0b20gNSBsaW5lcyBub3QgdmlzaWJsZSAqLwo+PiAKPj4gSSBh
+c3N1bWUgeW91IG1lYW4gNDgweDg2NCA/Cj4KPiBZZXMsIG5pY2UgY2F0Y2guIEJhc2ljYWxseSB0
+aGUgc2NyZWVuIGlzIDQ4MHg4NjQsIGJ1dCBvbmx5Cj4gNDgweDg1NCBhcmUgdmlzaWJsZS4KCkl0
+J3MgYmVlbiBhIHdoaWxlLCBidXQgSSB0aG91Z2h0IHRoZSBmdWxsIDQ4MHg4NjQgd2FzIGFjdHVh
+bGx5IHVzYWJsZQphbmQgdmlzaWJsZS4KCkJSLApKYW5pLgoKCi0tIApKYW5pIE5pa3VsYSwgSW50
+ZWwgT3BlbiBTb3VyY2UgVGVjaG5vbG9neSBDZW50ZXIKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxA
+bGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxt
+YW4vbGlzdGluZm8vZHJpLWRldmVsCg==
