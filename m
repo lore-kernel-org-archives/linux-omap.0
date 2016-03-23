@@ -1,48 +1,152 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: USB gadgets with configfs hang reboot
-Date: Wed, 23 Mar 2016 20:24:57 +0200
-Message-ID: <56F2DF79.6010903@gmail.com>
-References: <20160115224839.GA19432@atomide.com> <569A1E32.1020502@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <569A1E32.1020502-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: [PATCH] regulator: twl: Enable regulators over the powerbus as well
+Date: Wed, 23 Mar 2016 21:22:36 +0200
+Message-ID: <1458760956-29892-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com, lgirdwood@gmail.com, broonie@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+Assigning a device group to a regulator does not change its state. To
+change the state of a regulator a message over the powerbus is required.
+Also, the check for the current state of a regulator should not count on
+a device group being assigned, but on the current resource state.
 
-On 16.01.2016 12:40, Ivaylo Dimitrov wrote:
-> Hi,
->
-> On 16.01.2016 00:48, Tony Lindgren wrote:
->> Hi all,
->>
->> Looks like there's some issue with the USB gadgets and configfs.
->>
->> I'm seeing rmmod of the UDC driver cause a warning and then reboot
->> hangs the system. This happens at least with v4.4, and I've reproduced
->> it with dwc3 and musb so it seems to be generic.
->>
->
-> Having configfs is not needed, disabling usb gadgets (#
-> CONFIG_USB_MUSB_GADGET is not set) seems to solved at least poweroff
-> hang issue on N900. Also, g_nokia is not a module in the config I use,
-> so I guess the problem is not related whether gadgets are modular or
-> not. Unfortunately I was not able to test reboot, as rootfs became
-> corrupted after the first poweroff :( . So it looks like my theory that
-> onenand corruption on N900 is because poweroff/reboot hangs is wrong.
->
-> Ivo
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+---
+ drivers/regulator/twl-regulator.c | 85 ++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 75 insertions(+), 10 deletions(-)
 
-
-Is there any progress on the issue?
-
-Ivo
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
+index 955a6fb..125d5b1 100644
+--- a/drivers/regulator/twl-regulator.c
++++ b/drivers/regulator/twl-regulator.c
+@@ -21,7 +21,7 @@
+ #include <linux/regulator/machine.h>
+ #include <linux/regulator/of_regulator.h>
+ #include <linux/i2c/twl.h>
+-
++#include <linux/delay.h>
+ 
+ /*
+  * The TWL4030/TW5030/TPS659x0/TWL6030 family chips include power management, a
+@@ -165,7 +165,7 @@ static int twl4030reg_is_enabled(struct regulator_dev *rdev)
+ 	if (state < 0)
+ 		return state;
+ 
+-	return state & P1_GRP_4030;
++	return (state & 0x0f) != 0;
+ }
+ 
+ static int twl6030reg_is_enabled(struct regulator_dev *rdev)
+@@ -188,11 +188,78 @@ static int twl6030reg_is_enabled(struct regulator_dev *rdev)
+ 	return grp && (val == TWL6030_CFG_STATE_ON);
+ }
+ 
++#define PB_I2C_BUSY	BIT(0)
++#define PB_I2C_BWEN	BIT(1)
++
++static int twl4030_wait_pb_ready(void)
++{
++
++	int	ret;
++	int	timeout = 10;
++	u8	val;
++
++	do {
++		ret = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &val,
++				      TWL4030_PM_MASTER_PB_CFG);
++		if (ret < 0)
++			return ret;
++
++		if (!(val & PB_I2C_BUSY))
++			return 0;
++
++		mdelay(1);
++		timeout--;
++	} while (timeout);
++
++	return -ETIMEDOUT;
++}
++
++static int twl4030_send_pb_msg(unsigned msg)
++{
++	u8	val;
++	int	ret;
++
++	/* save powerbus configuration */
++	ret = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &val,
++			      TWL4030_PM_MASTER_PB_CFG);
++	if (ret < 0)
++		return ret;
++
++	/* Enable I2C access to powerbus */
++	ret = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, val | PB_I2C_BWEN,
++			       TWL4030_PM_MASTER_PB_CFG);
++	if (ret < 0)
++		return ret;
++
++	ret = twl4030_wait_pb_ready();
++	if (ret < 0)
++		return ret;
++
++	ret = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, msg >> 8,
++			       TWL4030_PM_MASTER_PB_WORD_MSB);
++	if (ret < 0)
++		return ret;
++
++	ret = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, msg & 0xff,
++			       TWL4030_PM_MASTER_PB_WORD_LSB);
++	if (ret < 0)
++		return ret;
++
++	ret = twl4030_wait_pb_ready();
++	if (ret < 0)
++		return ret;
++
++	/* Restore powerbus configuration */
++	return twl_i2c_write_u8(TWL_MODULE_PM_MASTER, val,
++				TWL_MODULE_PM_MASTER);
++}
++
+ static int twl4030reg_enable(struct regulator_dev *rdev)
+ {
+ 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
+ 	int			grp;
+ 	int			ret;
++	unsigned		message;
+ 
+ 	grp = twlreg_grp(rdev);
+ 	if (grp < 0)
+@@ -201,8 +268,12 @@ static int twl4030reg_enable(struct regulator_dev *rdev)
+ 	grp |= P1_GRP_4030;
+ 
+ 	ret = twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_GRP, grp);
++	if (ret < 0)
++		return ret;
+ 
+-	return ret;
++	message = MSG_SINGULAR(DEV_GRP_P1, info->id, RES_STATE_ACTIVE);
++
++	return twl4030_send_pb_msg(message);
+ }
+ 
+ static int twl6030reg_enable(struct regulator_dev *rdev)
+@@ -324,13 +395,7 @@ static int twl4030reg_set_mode(struct regulator_dev *rdev, unsigned mode)
+ 	if (!(status & (P3_GRP_4030 | P2_GRP_4030 | P1_GRP_4030)))
+ 		return -EACCES;
+ 
+-	status = twl_i2c_write_u8(TWL_MODULE_PM_MASTER,
+-			message >> 8, TWL4030_PM_MASTER_PB_WORD_MSB);
+-	if (status < 0)
+-		return status;
+-
+-	return twl_i2c_write_u8(TWL_MODULE_PM_MASTER,
+-			message & 0xff, TWL4030_PM_MASTER_PB_WORD_LSB);
++	return twl4030_send_pb_msg(message);
+ }
+ 
+ static int twl6030reg_set_mode(struct regulator_dev *rdev, unsigned mode)
+-- 
+1.9.1
