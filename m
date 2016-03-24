@@ -1,159 +1,493 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: USB gadgets with configfs hang reboot
-Date: Thu, 24 Mar 2016 20:46:52 +0200
-Message-ID: <56F4361C.9040907@gmail.com>
-References: <20160115224839.GA19432@atomide.com> <569A1E32.1020502@gmail.com>
- <56F2DF79.6010903@gmail.com> <87fuvgxtc3.fsf@intel.com>
- <56F3914B.4010206@gmail.com> <87a8loxsdm.fsf@intel.com>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] ARM: dts: AM572x-IDK Initial Support
+Date: Thu, 24 Mar 2016 17:30:44 -0500
+Message-ID: <1458858644-13800-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <87a8loxsdm.fsf-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Schuyler Patton <spatton-l0cyMroinI0@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+From: Schuyler Patton <spatton-l0cyMroinI0@public.gmane.org>
 
-On 24.03.2016 09:11, Felipe Balbi wrote:
->
-> Hi,
->
-> Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
->>> Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
->>>> On 16.01.2016 12:40, Ivaylo Dimitrov wrote:
->>>>> Hi,
->>>>>
->>>>> On 16.01.2016 00:48, Tony Lindgren wrote:
->>>>>> Hi all,
->>>>>>
->>>>>> Looks like there's some issue with the USB gadgets and configfs.
->>>>>>
->>>>>> I'm seeing rmmod of the UDC driver cause a warning and then reboot
->>>>>> hangs the system. This happens at least with v4.4, and I've reproduced
->>>>>> it with dwc3 and musb so it seems to be generic.
->>>>>>
->>>>>
->>>>> Having configfs is not needed, disabling usb gadgets (#
->>>>> CONFIG_USB_MUSB_GADGET is not set) seems to solved at least poweroff
->>>>> hang issue on N900. Also, g_nokia is not a module in the config I use,
->>>>> so I guess the problem is not related whether gadgets are modular or
->>>>> not. Unfortunately I was not able to test reboot, as rootfs became
->>>>> corrupted after the first poweroff :( . So it looks like my theory that
->>>>> onenand corruption on N900 is because poweroff/reboot hangs is wrong.
->>>>>
->>>>> Ivo
->>>>
->>>>
->>>> Is there any progress on the issue?
->>>
->>
->> Doing Nokia-N900:/sys/bus/platform/drivers/musb-hdrc# echo
->> musb-hdrc.0.auto > unbind results in:
->>
->> <1>[ 1418.511260] Unable to handle kernel paging request at virtual
->> address 6c6c757a
->> <7>[ 1418.677215] pvr: Xorg: cleaning up 49 unfreed resources
->> <1>[ 1418.683349] pgd = c0004000
->> <1>[ 1418.739959] [6c6c757a] *pgd=00000000
->> <0>[ 1418.746307] Internal error: Oops: 5 [#1] PREEMPT ARM
->> <4>[ 1418.753997] Modules linked in: sha256_generic hmac drbg ansi_cprng
->> ctr ccm vfat fat rfcomm sd_mod scsi_mod bnep bluetooth omaplfb pvrsrvkm
->> ipv6 bq2415x_charger uinput radio_platform_si4713 joydev cmt_speech
->> hsi_char video_bus_switch arc4 wl1251_spi wl1251 isp1704_charger
->> gpio_keys mac80211 smc91x mii cfg80211 omap_wdt crc7 omap_sham tsc2005
->> tsc200x_core bq27xxx_battery_i2c si4713 adp1653 tsl2563 leds_lp5523
->> leds_lp55xx_common bq27xxx_battery rtc_twl twl4030_wdt et8ek8 ad5820
->> v4l2_common smiaregs twl4030_vibra videodev ff_memless lis3lv02d_i2c
->> lis3lv02d media input_polldev omap_ssi_port ti_soc_thermal nokia_modem
->> ssi_protocol omap_ssi hsi rx51_battery
->> <4>[ 1418.835906] CPU: 0 PID: 53 Comm: file-storage Not tainted
->> 4.5.0-rc5+ #59
->> <4>[ 1418.846130] Hardware name: Nokia RX-51 board
->> <4>[ 1418.853820] task: ceb8a300 ti: ce008000 task.ti: ce008000
->> <4>[ 1418.862792] PC is at handle_exception+0xa8/0x418
->> <4>[ 1418.871002] LR is at recalc_sigpending+0x18/0x7c
->> <4>[ 1418.879241] pc : [<c031d0e4>]    lr : [<c0037b84>]    psr: 80000013
->> <4>[ 1418.879241] sp : ce009ea0  ip : 00000000  fp : 00000000
->> <4>[ 1418.898284] r10: 00000000  r9 : 00000000  r8 : 00000000
->> <4>[ 1418.907287] r7 : c031d8d0  r6 : 6c6c7566  r5 : 00000000  r4 : cebe1600
->> <4>[ 1418.917663] r3 : 6f642820  r2 : 00000000  r1 : 00000000  r0 : 00000000
->> <4>[ 1418.928039] Flags: Nzcv  IRQs on  FIQs on  Mode SVC_32  ISA ARM
->> Segment none
->> <4>[ 1418.939025] Control: 10c5387d  Table: 8e244019  DAC: 00000051
->> <0>[ 1418.948516] Process file-storage (pid: 53, stack limit = 0xce008210)
->> <0>[ 1418.958679] Stack: (0xce009ea0 to 0xce00a000)
->> <0>[ 1418.966735] 9ea0: 0000000f 00000000 00000000 00000b07 00000000
->> 00000001 000003ff 00000001
->> <0>[ 1418.978973] 9ec0: ceb8a300 ceb8a300 00000000 c004841c 00000000
->> 00000002 ce888000 c0451a50
->> <0>[ 1418.991180] 9ee0: ffffffff 00000000 00000000 00000008 cebe1600
->> 00000001 c0717dd0 00000001
->> <0>[ 1419.003387] 9f00: 00000000 00000000 ce009f14 c044ddf4 00000000
->> c031c020 00000042 ce009f30
->> <0>[ 1419.015686] 9f20: ce009f30 00000000 cebe1600 c031d958 00000000
->> c044d864 a0000013 00000000
->> <0>[ 1419.027923] 9f40: cebe1600 c031d8d0 cebfa100 cebfa100 00000000
->> cebe1600 c031d8d0 00000000
->> <0>[ 1419.040130] 9f60: 00000000 00000000 00000000 c00474e4 dc4d900d
->> 00000000 31bc92e7 cebe1600
->> <0>[ 1419.052429] 9f80: 00000000 ce009f84 ce009f84 00000000 ce009f90
->> ce009f90 ce009fac cebfa100
->> <0>[ 1419.064697] 9fa0: c0047418 00000000 00000000 c000f218 00000000
->> 00000000 00000000 00000000
->> <0>[ 1419.076934] 9fc0: 00000000 00000000 00000000 00000000 00000000
->> 00000000 00000000 00000000
->> <0>[ 1419.089050] 9fe0: 00000000 00000000 00000000 00000000 00000013
->> 00000000 00002000 30000891
->> <4>[ 1419.101043] [<c031d0e4>] (handle_exception) from [<c031d958>]
->> (fsg_main_thread+0x88/0x13dc)
->> <4>[ 1419.113189] [<c031d958>] (fsg_main_thread) from [<c00474e4>]
->> (kthread+0xcc/0xe0)
->> <4>[ 1419.124267] [<c00474e4>] (kthread) from [<c000f218>]
->> (ret_from_fork+0x14/0x3c)
->> <0>[ 1419.135101] Code: 1a000015 ea000040 e5946038 e0866285 (e5963014)
->> <4>[ 1419.330841] ---[ end trace 3377457e25b0732c ]---
->> <0>[ 1419.340972] Kernel panic - not syncing: Fatal exception
->>
->> weirdly, I have that log only in mtdoops, but not in dmesg. However,
->> after that oops "reboot" command does not hang, but reboots the device.
->
->
-> So, what is handle_exception + 0xa8 ? You can figure that out either
-> with gdb or addr2line assuming your vmlinux has dbg symbols.
->
-> For gdb you would:
->
-> gdb vmlinux
-> (gdb) l *(handle_exception + 0xa8)
->
+The AM572x-IDK board is a board based on TI's AM5728 SOC
+which has a dual core 1.5GHz A15 processor. This board is a
+development platform for the Industrial market with:
+- 2GB of DDR3L
+- Dual 1Gbps Ethernet
+- HDMI,
+- PRU-ICSS
+- uSD
+- 16GB eMMC
+- CAN
+- RS-485
+- PCIe
+- USB3.0
+- Video Input Port
+- Industrial IO port and expansion connector
 
-Yeah, sorry I didn't do it with the previous mail.
+The link to the data sheet and TRM can be found here:
 
-Reading symbols from 
-/home/ivo/workspace/linux-upstream/github/fmg/linux-n900/vmlinux...done.
-(gdb) l *(handle_exception + 0xa8)
-0xc031d0e4 is in handle_exception 
-(drivers/usb/gadget/function/f_mass_storage.c:2373).
-2368	
-2369		/* Cancel all the pending transfers */
-2370		if (likely(common->fsg)) {
-2371			for (i = 0; i < common->fsg_num_buffers; ++i) {
-2372				bh = &common->buffhds[i];
-2373				if (bh->inreq_busy)
-2374					usb_ep_dequeue(common->fsg->bulk_in, bh->inreq);
-2375				if (bh->outreq_busy)
-2376					usb_ep_dequeue(common->fsg->bulk_out,
-2377						       bh->outreq);
-(gdb)
+http://www.ti.com/product/AM5728
 
+This patch creates a common dtsi file that will provide a common board
+dtsi file to define the nodes that are common to AM57xx (including the
+upcoming AM5718) IDK boards.
 
-Thanks,
-Ivo
+Initial support is only for basic peripherals
+
+Signed-off-by: Schuyler Patton <spatton-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+---
+Based on 6f30d29c603c Add linux-next specific files for 20160324
+
+Test log: http://pastebin.ubuntu.com/15490907/
+
+ .../devicetree/bindings/arm/omap/omap.txt          |   3 +
+ arch/arm/boot/dts/Makefile                         |   1 +
+ arch/arm/boot/dts/am572x-idk.dts                   |  85 ++++++
+ arch/arm/boot/dts/am57xx-idk-common.dtsi           | 308 +++++++++++++++++++++
+ 4 files changed, 397 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am572x-idk.dts
+ create mode 100644 arch/arm/boot/dts/am57xx-idk-common.dtsi
+
+diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+index 21e71a5e866e..38659aa35ce3 100644
+--- a/Documentation/devicetree/bindings/arm/omap/omap.txt
++++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+@@ -169,6 +169,9 @@ Boards:
+ - AM57XX SBC-AM57x
+   compatible = "compulab,sbc-am57x", "compulab,cl-som-am57x", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7"
+ 
++- AM5728 IDK
++  compatible = "ti,am5728-idk", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7"
++
+ - DRA742 EVM:  Software Development Board for DRA742
+   compatible = "ti,dra7-evm", "ti,dra742", "ti,dra74", "ti,dra7"
+ 
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index b25621ae2ff7..fec03c814a95 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -526,6 +526,7 @@ dtb-$(CONFIG_SOC_DRA7XX) += \
+ 	am57xx-beagle-x15.dtb \
+ 	am57xx-cl-som-am57x.dtb \
+ 	am57xx-sbc-am57x.dtb \
++	am572x-idk.dtb \
+ 	dra7-evm.dtb \
+ 	dra72-evm.dtb
+ dtb-$(CONFIG_ARCH_ORION5X) += \
+diff --git a/arch/arm/boot/dts/am572x-idk.dts b/arch/arm/boot/dts/am572x-idk.dts
+new file mode 100644
+index 000000000000..bb51f6de7b45
+--- /dev/null
++++ b/arch/arm/boot/dts/am572x-idk.dts
+@@ -0,0 +1,85 @@
++/*
++ * Copyright (C) 2015-2016 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/dts-v1/;
++
++#include "dra74x.dtsi"
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/interrupt-controller/irq.h>
++#include "am57xx-idk-common.dtsi"
++
++/ {
++	model = "TI AM5728 IDK";
++	compatible = "ti,am5728-idk", "ti,am5728", "ti,dra742", "ti,dra74",
++		     "ti,dra7";
++
++	memory {
++		device_type = "memory";
++		reg = <0x0 0x80000000 0x0 0x80000000>;
++	};
++
++	extcon_usb2: extcon_usb2 {
++		compatible = "linux,extcon-usb-gpio";
++		id-gpio = <&gpio3 16 GPIO_ACTIVE_HIGH>;
++	};
++
++	leds {
++		compatible = "gpio-leds";
++		led@0 {
++			label = "status0:red:cpu0";
++			gpios = <&gpio4 0 GPIO_ACTIVE_HIGH>;
++			default-state = "off";
++			linux,default-trigger = "cpu0";
++		};
++
++		led@1 {
++			label = "status0:green:usr";
++			gpios = <&gpio3 11 GPIO_ACTIVE_HIGH>;
++			default-state = "off";
++		};
++
++		led@2 {
++			label = "status0:blue:heartbeat";
++			gpios = <&gpio3 12 GPIO_ACTIVE_HIGH>;
++			default-state = "off";
++			linux,default-trigger = "heartbeat";
++		};
++
++		led@3 {
++			label = "status1:red:cpu1";
++			gpios = <&gpio3 10 GPIO_ACTIVE_HIGH>;
++			default-state = "off";
++			linux,default-trigger = "cpu1";
++		};
++
++		led@4 {
++			label = "status1:green:usr";
++			gpios = <&gpio7 23 GPIO_ACTIVE_HIGH>;
++			default-state = "off";
++		};
++
++		led@5 {
++			label = "status1:blue:mmc0";
++			gpios = <&gpio7 22 GPIO_ACTIVE_HIGH>;
++			default-state = "off";
++			linux,default-trigger = "mmc0";
++		};
++	};
++};
++
++&omap_dwc3_2 {
++	extcon = <&extcon_usb2>;
++};
++
++&mmc1 {
++	status = "okay";
++	vmmc-supply = <&v3_3d>;
++	vmmc_aux-supply = <&ldo1_reg>;
++	bus-width = <4>;
++	cd-gpios = <&gpio6 27 0>; /* gpio 219 */
++};
+diff --git a/arch/arm/boot/dts/am57xx-idk-common.dtsi b/arch/arm/boot/dts/am57xx-idk-common.dtsi
+new file mode 100644
+index 000000000000..f1d734a31339
+--- /dev/null
++++ b/arch/arm/boot/dts/am57xx-idk-common.dtsi
+@@ -0,0 +1,308 @@
++/*
++ * Copyright (C) 2015-2016 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/ {
++	aliases {
++		rtc0 = &tps659038_rtc;
++		rtc1 = &rtc;
++	};
++
++	vmain: fixedregulator-vmain {
++		compatible = "regulator-fixed";
++		regulator-name = "VMAIN";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	v3_3d: fixedregulator-v3_3d {
++		compatible = "regulator-fixed";
++		regulator-name = "V3_3D";
++		vin-supply = <&smps9_reg>;
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	vtt_fixed: fixedregulator-vtt {
++		/* TPS51200 */
++		compatible = "regulator-fixed";
++		regulator-name = "vtt_fixed";
++		vin-supply = <&v3_3d>;
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	src_clk_x1: src_clk_x1 {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <20000000>;
++	};
++};
++
++&i2c1 {
++	status = "okay";
++	clock-frequency = <400000>;
++
++	tps659038: tps659038@58 {
++		compatible = "ti,tps659038";
++		reg = <0x58>;
++		interrupts-extended = <&gpio6 16 IRQ_TYPE_LEVEL_HIGH
++			       &dra7_pmx_core 0x418>;
++		#interrupt-cells = <2>;
++		interrupt-controller;
++		ti,system-power-controller;
++
++		tps659038_pmic {
++			compatible = "ti,tps659038-pmic";
++			regulators {
++				smps12_reg: smps12 {
++					/* VDD_MPU */
++					vin-supply = <&vmain>;
++					regulator-name = "smps12";
++					regulator-min-microvolt = <850000>;
++					regulator-max-microvolt = <1250000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				smps3_reg: smps3 {
++					/* VDD_DDR EMIF1 EMIF2 */
++					vin-supply = <&vmain>;
++					regulator-name = "smps3";
++					regulator-min-microvolt = <1350000>;
++					regulator-max-microvolt = <1350000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				smps45_reg: smps45 {
++					/* VDD_DSPEVE on AM572 */
++					/* VDD_IVA + VDD_DSP on AM571 */
++					vin-supply = <&vmain>;
++					regulator-name = "smps45";
++					regulator-min-microvolt = <850000>;
++					regulator-max-microvolt = <1250000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				smps6_reg: smps6 {
++					/* VDD_GPU */
++					vin-supply = <&vmain>;
++					regulator-name = "smps6";
++					regulator-min-microvolt = <850000>;
++					regulator-max-microvolt = <1250000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				smps7_reg: smps7 {
++					/* VDD_CORE */
++					vin-supply = <&vmain>;
++					regulator-name = "smps7";
++					regulator-min-microvolt = <850000>;
++					regulator-max-microvolt = <1150000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				smps8_reg: smps8 {
++					/* 5728 - VDD_IVAHD */
++					/* 5718 - N.C. test point */
++					vin-supply = <&vmain>;
++					regulator-name = "smps8";
++				};
++
++				smps9_reg: smps9 {
++					/* VDD_3_3D */
++					vin-supply = <&vmain>;
++					regulator-name = "smps9";
++					regulator-min-microvolt = <3300000>;
++					regulator-max-microvolt = <3300000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				ldo1_reg: ldo1 {
++					/* VDDSHV8 - VSDMMC  */
++					/* NOTE: on rev 1.3a, data supply */
++					vin-supply = <&vmain>;
++					regulator-name = "ldo1";
++					regulator-min-microvolt = <1800000>;
++					regulator-max-microvolt = <3300000>;
++					regulator-boot-on;
++					regulator-always-on;
++				};
++
++				ldo2_reg: ldo2 {
++					/* VDDSH18V */
++					vin-supply = <&vmain>;
++					regulator-name = "ldo2";
++					regulator-min-microvolt = <1800000>;
++					regulator-max-microvolt = <1800000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				ldo3_reg: ldo3 {
++					/* R1.3a 572x V1_8PHY_LDO3: USB, SATA */
++					vin-supply = <&vmain>;
++					regulator-name = "ldo3";
++					regulator-min-microvolt = <1800000>;
++					regulator-max-microvolt = <1800000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				ldo4_reg: ldo4 {
++					/* R1.3a 572x V1_8PHY_LDO4: PCIE, HDMI*/
++					vin-supply = <&vmain>;
++					regulator-name = "ldo4";
++					regulator-min-microvolt = <1800000>;
++					regulator-max-microvolt = <1800000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				/* LDO5-8 unused */
++
++				ldo9_reg: ldo9 {
++					/* VDD_RTC  */
++					vin-supply = <&vmain>;
++					regulator-name = "ldo9";
++					regulator-min-microvolt = <840000>;
++					regulator-max-microvolt = <1160000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				ldoln_reg: ldoln {
++					/* VDDA_1V8_PLL */
++					vin-supply = <&vmain>;
++					regulator-name = "ldoln";
++					regulator-min-microvolt = <1800000>;
++					regulator-max-microvolt = <1800000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				ldousb_reg: ldousb {
++					/* VDDA_3V_USB: VDDA_USBHS33 */
++					vin-supply = <&vmain>;
++					regulator-name = "ldousb";
++					regulator-min-microvolt = <3300000>;
++					regulator-max-microvolt = <3300000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				ldortc_reg: ldortc {
++					/* VDDA_RTC  */
++					vin-supply = <&vmain>;
++					regulator-name = "ldortc";
++					regulator-min-microvolt = <1800000>;
++					regulator-max-microvolt = <1800000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				regen1: regen1 {
++					/* VDD_3V3_ON */
++					regulator-name = "regen1";
++					regulator-boot-on;
++					regulator-always-on;
++				};
++
++				regen2: regen2 {
++					/* Needed for PMIC internal resource */
++					regulator-name = "regen2";
++					regulator-boot-on;
++					regulator-always-on;
++				};
++			};
++		};
++
++		tps659038_rtc: tps659038_rtc {
++			compatible = "ti,palmas-rtc";
++			interrupt-parent = <&tps659038>;
++			interrupts = <8 IRQ_TYPE_EDGE_FALLING>;
++			wakeup-source;
++		};
++
++		tps659038_pwr_button: tps659038_pwr_button {
++			compatible = "ti,palmas-pwrbutton";
++			interrupt-parent = <&tps659038>;
++			interrupts = <1 IRQ_TYPE_EDGE_FALLING>;
++			wakeup-source;
++			ti,palmas-long-press-seconds = <12>;
++		};
++
++		tps659038_gpio: tps659038_gpio {
++			compatible = "ti,palmas-gpio";
++			gpio-controller;
++			#gpio-cells = <2>;
++		};
++	};
++};
++
++&uart3 {
++	status = "okay";
++	interrupts-extended = <&crossbar_mpu GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH
++			       &dra7_pmx_core 0x248>;
++};
++
++&rtc {
++	status = "okay";
++	ext-clk-src;
++};
++
++&mac {
++	status = "okay";
++	dual_emac;
++};
++
++&cpsw_emac0 {
++	phy_id = <&davinci_mdio>, <0>;
++	phy-mode = "rgmii";
++	dual_emac_res_vlan = <1>;
++};
++
++&cpsw_emac1 {
++	phy_id = <&davinci_mdio>, <1>;
++	phy-mode = "rgmii";
++	dual_emac_res_vlan = <2>;
++};
++
++&usb2_phy1 {
++	phy-supply = <&ldousb_reg>;
++};
++
++&usb2_phy2 {
++	phy-supply = <&ldousb_reg>;
++};
++
++&usb1 {
++	dr_mode = "host";
++};
++
++&usb2 {
++	dr_mode = "otg";
++};
++
++&mmc2 {
++	status = "okay";
++	vmmc-supply = <&v3_3d>;
++	bus-width = <8>;
++	ti,non-removable;
++	max-frequency = <96000000>;
++};
+-- 
+2.8.0.rc3
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
