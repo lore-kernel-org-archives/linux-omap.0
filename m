@@ -1,63 +1,56 @@
 From: Mark Brown <broonie@kernel.org>
 Subject: Re: [PATCH] regulator: twl: Enable regulators over the powerbus as
  well
-Date: Fri, 25 Mar 2016 17:05:58 +0000
-Message-ID: <20160325170558.GB5028@sirena.org.uk>
+Date: Fri, 25 Mar 2016 17:23:22 +0000
+Message-ID: <20160325172322.GC5028@sirena.org.uk>
 References: <1458760956-29892-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
  <20160325111757.GC2566@sirena.org.uk>
  <20160325150259.GA9372@earth>
  <20160325155419.GI2566@sirena.org.uk>
- <56F562B7.10107@gmail.com>
- <20160325161954.GA5028@sirena.org.uk>
- <56F56C4A.7070502@gmail.com>
+ <20160325164750.GA14392@earth>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="BwCQnh7xodEAoBMC"
+	protocol="application/pgp-signature"; boundary="ZwgA9U+XZDXt4+m+"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <56F56C4A.7070502@gmail.com>
+In-Reply-To: <20160325164750.GA14392@earth>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Sebastian Reichel <sre@kernel.org>, tony@atomide.com, lgirdwood@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, tony@atomide.com, lgirdwood@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---BwCQnh7xodEAoBMC
+--ZwgA9U+XZDXt4+m+
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Mar 25, 2016 at 06:50:18PM +0200, Ivaylo Dimitrov wrote:
-> On 25.03.2016 18:19, Mark Brown wrote:
+On Fri, Mar 25, 2016 at 05:47:50PM +0100, Sebastian Reichel wrote:
 
-> >What makes you claim that this is a bug in the framework?  Does anything
-> >in the machine configuration say that changing the modes is allowed?
+> I just tried to describe what's going on, so that you can see the
+> whole picture. I don't agree with the patch and think that the mode
+> should be switched to normal at probe time. I assumed, that you
+> would suggest the correct solution if I describe the problem.
 
-> My understanding is that regulator core have to make sure an enabled
-> regulator to be in REGULATOR_STATUS_NORMAL. Now it enables the regulator,
+Well, I'm not 100% sure what's going on.  If there is a constraint in
+the system that requires setting the mode then something needs to
+set that but it sounds like it might be more the case that the mode
+support in this driver is just broken at the minute if it's not
+orthogonal to the enable support.  Perhaps the mode API is being used
+for suspend states or something?
 
-No, absolutely not.  Modes are completely orthogonal to enabling and
-disabling the regulator - modes reflect an efficiency/accuracy tradeoff
-in the regulation, they are nothing to do with the regulator being
-enabled.  Setting a mode should not affect the regulator enable state
-and enabling the regulator should not affect the mode.
-
-> It might be that I am not getting the logic behind.
-
-Yes, that seems to be the case.
-
---BwCQnh7xodEAoBMC
+--ZwgA9U+XZDXt4+m+
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQEcBAEBCAAGBQJW9W/1AAoJECTWi3JdVIfQvcgH/jr1se/zKraVavlHFmYLZUP/
-aUpsdRkS/nMmPEMLj64CJQGrwUWxZY0cWUUNysdNw9YHkv/vDUtnQLeYMuoC5OSC
-WNIVrGnALrw2yy94+4U0s9KJhfb5ZBo8wesuDINqAZ4JuOKvpPt5UtEXik9OmLcj
-zyp6SDLc00bki4D3tLaY4JFJwOCcPB2dYCi2WhpCDiMG/kG2XrbbCPizKBC1/xYh
-nMkfc0dTalH0awxgkfbljPdbz/2NBovArNriU1Yk7sLENoAsyU80JnyUY1mADxTR
-dLdaRusXYEgtunD5Y1dOjZJTAvpxcFjzujAMmmc5x1QFk9DwHOgmMB5tZz1cly0=
-=jvIB
+iQEcBAEBCAAGBQJW9XQJAAoJECTWi3JdVIfQPiMH/0g6jatd3XA7uxUlQMYSiShJ
+blohLZ4fCrlLd66NxiZWMJozLqIvIxzsCmFqRoLnsD6cNrK4EknNP5WMN5h6U30I
+yjBph+kWq4+gOgV3gnzri/S0eeYQaXlkaB1+RtJJYBj/I2UFVGMcH1RU6JsYgKv1
+5jjiezNWSNR+0P9UKqv+XkmgrWANTpfRUtBbfdTkqCAdf2JvAhldDM93qI7D1YEy
+NcR2zqsj5uO/y9HCNy/9sUsvguCqWMpfP+nVNSNu8r4JHfFhNs4RYpjCN/SmhYYw
+3rp6kc8/8Tml2m2IdAqGFVvRZnxOG6BQ3N1Zppxf3fkZH4MZkWZl08x+1BplkL8=
+=IbZa
 -----END PGP SIGNATURE-----
 
---BwCQnh7xodEAoBMC--
+--ZwgA9U+XZDXt4+m+--
