@@ -1,7 +1,7 @@
 From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: [PATCH 1/3] regulator: twl: Make sure we have access to powerbus before trying to write to it
-Date: Sat, 26 Mar 2016 10:28:13 +0200
-Message-ID: <1458980895-10240-2-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Subject: [PATCH 2/3] regulator: twl: Provide of_map_mode for twl4030
+Date: Sat, 26 Mar 2016 10:28:14 +0200
+Message-ID: <1458980895-10240-3-git-send-email-ivo.g.dimitrov.75@gmail.com>
 References: <1458980895-10240-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1458980895-10240-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
@@ -10,119 +10,78 @@ To: tony@atomide.com, lgirdwood@gmail.com, broonie@kernel.org
 Cc: sre@kernel.org, pali.rohar@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-According to the TRM, we need to enable i2c access to powerbus before
-writing to it. Also, a new write to powerbus should not be attempted if
-there is a pending transfer. The current code does not implement that
-functionality and while there are no known problems caused by that, it is
-better to follow what TRM says.
+of_map_mode is needed so to be possible to set initial regulators mode from
+the board DTS. Otherwise, for DT boot, regulators are left in their default
+state after reset/reboot.
 
 Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 ---
- drivers/regulator/twl-regulator.c | 78 +++++++++++++++++++++++++++++++++++----
- 1 file changed, 70 insertions(+), 8 deletions(-)
+ drivers/regulator/twl-regulator.c | 16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
-index 955a6fb..aad748b0 100644
+index aad748b0..be8d05e 100644
 --- a/drivers/regulator/twl-regulator.c
 +++ b/drivers/regulator/twl-regulator.c
-@@ -21,7 +21,7 @@
- #include <linux/regulator/machine.h>
- #include <linux/regulator/of_regulator.h>
- #include <linux/i2c/twl.h>
--
-+#include <linux/delay.h>
- 
- /*
-  * The TWL4030/TW5030/TPS659x0/TWL6030 family chips include power management, a
-@@ -188,6 +188,74 @@ static int twl6030reg_is_enabled(struct regulator_dev *rdev)
- 	return grp && (val == TWL6030_CFG_STATE_ON);
+@@ -395,6 +395,12 @@ static int twl4030reg_set_mode(struct regulator_dev *rdev, unsigned mode)
+ 	return twl4030_send_pb_msg(message);
  }
  
-+#define PB_I2C_BUSY	BIT(0)
-+#define PB_I2C_BWEN	BIT(1)
-+
-+/* Wait until buffer empty/ready to send a word on power bus. */
-+static int twl4030_wait_pb_ready(void)
++static inline unsigned int twl4030reg_map_mode(unsigned int mode)
 +{
-+
-+	int	ret;
-+	int	timeout = 10;
-+	u8	val;
-+
-+	do {
-+		ret = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &val,
-+				      TWL4030_PM_MASTER_PB_CFG);
-+		if (ret < 0)
-+			return ret;
-+
-+		if (!(val & PB_I2C_BUSY))
-+			return 0;
-+
-+		mdelay(1);
-+		timeout--;
-+	} while (timeout);
-+
-+	return -ETIMEDOUT;
++	return mode == RES_STATE_ACTIVE ?
++				REGULATOR_MODE_NORMAL : REGULATOR_MODE_STANDBY;
 +}
 +
-+/* Send a word over the powerbus */
-+static int twl4030_send_pb_msg(unsigned msg)
-+{
-+	u8	val;
-+	int	ret;
-+
-+	/* save powerbus configuration */
-+	ret = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &val,
-+			      TWL4030_PM_MASTER_PB_CFG);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* Enable i2c access to powerbus */
-+	ret = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, val | PB_I2C_BWEN,
-+			       TWL4030_PM_MASTER_PB_CFG);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = twl4030_wait_pb_ready();
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, msg >> 8,
-+			       TWL4030_PM_MASTER_PB_WORD_MSB);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, msg & 0xff,
-+			       TWL4030_PM_MASTER_PB_WORD_LSB);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = twl4030_wait_pb_ready();
-+	if (ret < 0)
-+		return ret;
-+
-+	/* Restore powerbus configuration */
-+	return twl_i2c_write_u8(TWL_MODULE_PM_MASTER, val,
-+				TWL_MODULE_PM_MASTER);
-+}
-+
- static int twl4030reg_enable(struct regulator_dev *rdev)
+ static int twl6030reg_set_mode(struct regulator_dev *rdev, unsigned mode)
  {
  	struct twlreg_info	*info = rdev_get_drvdata(rdev);
-@@ -324,13 +392,7 @@ static int twl4030reg_set_mode(struct regulator_dev *rdev, unsigned mode)
- 	if (!(status & (P3_GRP_4030 | P2_GRP_4030 | P1_GRP_4030)))
- 		return -EACCES;
+@@ -897,10 +903,11 @@ static struct regulator_ops twlsmps_ops = {
+ #define TWL4030_FIXED_LDO(label, offset, mVolts, num, turnon_delay, \
+ 			remap_conf) \
+ 		TWL_FIXED_LDO(label, offset, mVolts, num, turnon_delay, \
+-			remap_conf, TWL4030, twl4030fixed_ops)
++			remap_conf, TWL4030, twl4030fixed_ops, \
++			twl4030reg_map_mode)
+ #define TWL6030_FIXED_LDO(label, offset, mVolts, turnon_delay) \
+ 		TWL_FIXED_LDO(label, offset, mVolts, 0x0, turnon_delay, \
+-			0x0, TWL6030, twl6030fixed_ops)
++			0x0, TWL6030, twl6030fixed_ops, 0x0)
  
--	status = twl_i2c_write_u8(TWL_MODULE_PM_MASTER,
--			message >> 8, TWL4030_PM_MASTER_PB_WORD_MSB);
--	if (status < 0)
--		return status;
--
--	return twl_i2c_write_u8(TWL_MODULE_PM_MASTER,
--			message & 0xff, TWL4030_PM_MASTER_PB_WORD_LSB);
-+	return twl4030_send_pb_msg(message);
- }
+ #define TWL4030_ADJUSTABLE_LDO(label, offset, num, turnon_delay, remap_conf) \
+ static const struct twlreg_info TWL4030_INFO_##label = { \
+@@ -917,6 +924,7 @@ static const struct twlreg_info TWL4030_INFO_##label = { \
+ 		.type = REGULATOR_VOLTAGE, \
+ 		.owner = THIS_MODULE, \
+ 		.enable_time = turnon_delay, \
++		.of_map_mode = twl4030reg_map_mode, \
+ 		}, \
+ 	}
  
- static int twl6030reg_set_mode(struct regulator_dev *rdev, unsigned mode)
+@@ -932,6 +940,7 @@ static const struct twlreg_info TWL4030_INFO_##label = { \
+ 		.type = REGULATOR_VOLTAGE, \
+ 		.owner = THIS_MODULE, \
+ 		.enable_time = turnon_delay, \
++		.of_map_mode = twl4030reg_map_mode, \
+ 		}, \
+ 	}
+ 
+@@ -977,7 +986,7 @@ static const struct twlreg_info TWL6032_INFO_##label = { \
+ 	}
+ 
+ #define TWL_FIXED_LDO(label, offset, mVolts, num, turnon_delay, remap_conf, \
+-		family, operations) \
++		family, operations, map_mode) \
+ static const struct twlreg_info TWLFIXED_INFO_##label = { \
+ 	.base = offset, \
+ 	.id = num, \
+@@ -992,6 +1001,7 @@ static const struct twlreg_info TWLFIXED_INFO_##label = { \
+ 		.owner = THIS_MODULE, \
+ 		.min_uV = mVolts * 1000, \
+ 		.enable_time = turnon_delay, \
++		.of_map_mode = map_mode, \
+ 		}, \
+ 	}
+ 
 -- 
 1.9.1
