@@ -1,13 +1,13 @@
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 08/23] drm: omapdrm: crtc: add enabled bit to state
-Date: Sat, 26 Mar 2016 18:35:56 +0200
-Message-ID: <7825357.9S665VRxLh@avalon>
-References: <1457455195-1938-1-git-send-email-sre@kernel.org> <1457455195-1938-9-git-send-email-sre@kernel.org>
+Subject: Re: [PATCH 11/23] include: video: omapdss: provide fifo threshold methods
+Date: Sat, 26 Mar 2016 18:44:15 +0200
+Message-ID: <3716861.y7tsY0dg3h@avalon>
+References: <1457455195-1938-1-git-send-email-sre@kernel.org> <1457455195-1938-12-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1457455195-1938-9-git-send-email-sre@kernel.org>
+In-Reply-To: <1457455195-1938-12-git-send-email-sre@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sebastian Reichel <sre@kernel.org>
 Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tomi Valkeinen <tomi.valkeinen@ti.com>, David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
@@ -17,43 +17,42 @@ Hi Sebastian,
 
 Thank you for the patch.
 
-Given that you only add four lines of code here, and given that the enabled 
-bit is unused here, I'd just squash this patch with the one that makes use of 
-the enabled bit.
+On Tuesday 08 Mar 2016 17:39:43 Sebastian Reichel wrote:
+> The FIFO thresholds must be configured by omapdrm for
+> manually updated DSI panels due to a hardware bug.
 
-On Tuesday 08 Mar 2016 17:39:40 Sebastian Reichel wrote:
-> Signed-off-by: Sebastian Reichel <sre@kernel.org>
+I find the subject a bit misleading, it made me think that the patch added new 
+methods, while it only declares them as part of the DSS public API.
+
+> Signed-off-By: Sebastian Reichel <sre@kernel.org>
 > ---
->  drivers/gpu/drm/omapdrm/omap_crtc.c | 4 ++++
->  1 file changed, 4 insertions(+)
+>  include/video/omapdss.h | 6 ++++++
+>  1 file changed, 6 insertions(+)
 > 
-> diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.c
-> b/drivers/gpu/drm/omapdrm/omap_crtc.c index 5ef27664bcfa..78ef9773cca1
-> 100644
-> --- a/drivers/gpu/drm/omapdrm/omap_crtc.c
-> +++ b/drivers/gpu/drm/omapdrm/omap_crtc.c
-> @@ -207,6 +207,8 @@ static int omap_crtc_dss_enable(struct
-> omap_overlay_manager *mgr) &omap_crtc->timings);
->  	omap_crtc_set_enabled(&omap_crtc->base, true);
+> diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+> index 9bde65b79220..f6cdd809ae5c 100644
+> --- a/include/video/omapdss.h
+> +++ b/include/video/omapdss.h
+> @@ -935,6 +935,12 @@ int dispc_ovl_setup(enum omap_plane plane, const struct
+> omap_overlay_info *oi, bool replication, const struct omap_video_timings
+> *mgr_timings, bool mem_to_mem);
 > 
-> +	set_bit(crtc_enabled, &omap_crtc->state);
+> +void dispc_ovl_compute_fifo_thresholds(enum omap_plane plane,
+> +		u32 *fifo_low, u32 *fifo_high, bool use_fifomerge,
+> +		bool manual_update);
+> +void dispc_ovl_set_fifo_threshold(enum omap_plane plane, u32 low, u32
+> high);
+
+Should you then remove the function declarations from 
+drivers/gpu/drm/omapdrm/dss/dss.h ?
+
+> +
 > +
 
-Atomic KMS drivers should store state in the state structure, not the KMS 
-objects themselves. Beside, how does this differ from the CRTC state enable 
-and active fields ?
+One blank line is enough.
 
->  	return 0;
->  }
-> 
-> @@ -214,6 +216,8 @@ static void omap_crtc_dss_disable(struct
-> omap_overlay_manager *mgr) {
->  	struct omap_crtc *omap_crtc = omap_crtcs[mgr->id];
-> 
-> +	clear_bit(crtc_enabled, &omap_crtc->state);
-> +
->  	omap_crtc_set_enabled(&omap_crtc->base, false);
->  }
+>  int omapdss_compat_init(void);
+>  void omapdss_compat_uninit(void);
 
 -- 
 Regards,
