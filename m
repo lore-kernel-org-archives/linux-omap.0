@@ -1,52 +1,51 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: dts: AM572x-IDK Initial Support
-Date: Mon, 28 Mar 2016 11:37:03 -0500
-Message-ID: <56F95DAF.1080901@ti.com>
-References: <1458858644-13800-1-git-send-email-nm@ti.com>
- <20160325150344.GA1268@rob-hp-laptop>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 13/23] drm: omapdrm: crtc: update plane fifos on lcd
+ config change
+Date: Sat, 26 Mar 2016 19:00:53 +0200
+Message-ID: <3716864.g0dovaDAJW@avalon>
+References: <1457455195-1938-1-git-send-email-sre@kernel.org>
+ <1457455195-1938-14-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160325150344.GA1268@rob-hp-laptop>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Schuyler Patton <spatton@ti.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <1457455195-1938-14-git-send-email-sre@kernel.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 03/25/2016 10:03 AM, Rob Herring wrote:
-> On Thu, Mar 24, 2016 at 05:30:44PM -0500, Nishanth Menon wrote:
->> From: Schuyler Patton <spatton@ti.com>
-[...]
-
->> +- AM5728 IDK
->> +  compatible = "ti,am5728-idk", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7"
-> 
-> Okay, but I think the TI folks have gone a bit crazy with all these 
-> compatible strings...
-> 
-
-Sadly yes :( too many paper spins and trying to maintain requirements
-of exact match than wild cards is starting to look crazier over time :(
-
->> diff --git a/arch/arm/boot/dts/am572x-idk.dts b/arch/arm/boot/dts/am572x-idk.dts
->> new file mode 100644
->> index 000000000000..bb51f6de7b45
->> --- /dev/null
->> +++ b/arch/arm/boot/dts/am572x-idk.dts
->> @@ -0,0 +1,85 @@
-[...]
-
->> +	leds {
->> +		compatible = "gpio-leds";
->> +		led@0 {
-> 
-> Unit-address without reg is going to start warning in dtc. Use something 
-> like "cpu0-led" instead.
-> 
-Fixed. Thanks. Updated version posted
-https://patchwork.kernel.org/patch/8679861/
-
--- 
-Regards,
-Nishanth Menon
+SGkgU2ViYXN0aWFuLAoKVGhhbmsgeW91IGZvciB0aGUgcGF0Y2guCgpPbiBUdWVzZGF5IDA4IE1h
+ciAyMDE2IDE3OjM5OjQ1IFNlYmFzdGlhbiBSZWljaGVsIHdyb3RlOgo+IER1ZSB0byBhIGhhcmR3
+YXJlIGJ1ZywgRklGT3MgdGhyZXNob2xkcyBtdXN0IGJlCj4gY29uZmlndXJlZCB2ZXJ5IGNhcmVm
+dWxseSBmb3IgbWFudWFsbHkgdXBkYXRlZAo+IGRpc3BsYXlzLgoKQ291bGQgeW91IHBsZWFzZSBw
+cm92aWRlIG1vcmUgaW5mb3JtYXRpb24gYWJvdXQgdGhlIGJ1ZyBhbmQgaG93IHRoZSBjb2RlIApo
+YW5kbGVzIGl0ID8KCj4gU2lnbmVkLW9mZi1ieTogU2ViYXN0aWFuIFJlaWNoZWwgPHNyZUBrZXJu
+ZWwub3JnPgo+IC0tLQo+ICBkcml2ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX2NydGMuYyB8IDQg
+KysrKwo+ICAxIGZpbGUgY2hhbmdlZCwgNCBpbnNlcnRpb25zKCspCj4gCj4gZGlmZiAtLWdpdCBh
+L2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL29tYXBfY3J0Yy5jCj4gYi9kcml2ZXJzL2dwdS9kcm0v
+b21hcGRybS9vbWFwX2NydGMuYyBpbmRleCA4OTY3MDEzYzFmYjUuLjA5NGU4OWEyZmE5NAo+IDEw
+MDY0NAo+IC0tLSBhL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL29tYXBfY3J0Yy5jCj4gKysrIGIv
+ZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vb21hcF9jcnRjLmMKPiBAQCAtMjUzLDYgKzI1MywxMCBA
+QCBzdGF0aWMgdm9pZCBvbWFwX2NydGNfZHNzX3NldF9sY2RfY29uZmlnKHN0cnVjdAo+IG9tYXBf
+b3ZlcmxheV9tYW5hZ2VyICptZ3IsIG9tYXBfY3J0Yy0+bWFudWFsbHlfdXBkYXRlZCA9Cj4gZHNz
+X2xjZF9tZ3JfY29uZmlnX2dldF9zdGFsbG1vZGUoY29uZmlnKTsKPiAKPiAgCWRpc3BjX21ncl9z
+ZXRfbGNkX2NvbmZpZyhvbWFwX2NydGMtPmNoYW5uZWwsIGNvbmZpZyk7Cj4gKwo+ICsJZHJtX2Zv
+cl9lYWNoX3BsYW5lKHBsYW5lLCBkZXYpIHsKPiArCQlvbWFwX3BsYW5lX3VwZGF0ZV9maWZvKHBs
+YW5lKTsKPiArCX0KClRoaXMgc2VlbXMgZmlzaHkgOi0vIFRvIHN0YXJ0IHdpdGggeW91IHNob3Vs
+ZG4ndCB0b3VjaCBwbGFuZXMgdGhhdCBkb24ndCAKYmVsb25nIHRvIHRoaXMgQ1JUQy4gVGhlbiwg
+dXBkYXRpbmcgdGhlIEZJRk8gdGhyZXNob2xkcyBoZXJlIGluIGFkZGl0aW9uIHRvIApvbWFwX3Bs
+YW5lX2F0b21pY191cGRhdGUoKSBtYWtlcyBtZSB3b25kZXIgaWYgYm90aCBhcmUgbmVlZGVkLCBh
+bmQgaWYgc28sIHdoeS4KCj4gIH0KPiAKPiAgc3RhdGljIGludCBvbWFwX2NydGNfZHNzX3JlZ2lz
+dGVyX2ZyYW1lZG9uZSgKCi0tIApSZWdhcmRzLAoKTGF1cmVudCBQaW5jaGFydAoKX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcg
+bGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRl
+c2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
