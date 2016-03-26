@@ -1,103 +1,87 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 06/23] drm: omapdrm: wait for pending operations before
- updating plane
-Date: Sat, 26 Mar 2016 16:52:24 +0100
-Message-ID: <20160326155224.GA25190@earth>
-References: <1457455195-1938-1-git-send-email-sre@kernel.org>
- <1457455195-1938-7-git-send-email-sre@kernel.org>
- <2247354.2fBg1ifxEX@avalon>
+From: Ruslan Bilovol <ruslan.bilovol@gmail.com>
+Subject: Re: usb: gadget breakage on N900: bind UDC by name passed via
+ usb_gadget_driver structure
+Date: Sat, 26 Mar 2016 23:32:46 +0200
+Message-ID: <CAB=otbQ1J7FZm9vWLwor93+uD3Fv38ykduWMXG3qByNh4mV9=g@mail.gmail.com>
+References: <20160317212603.GA16651@amd>
+	<CAB=otbSfj24nSUe1DyfVBDKD=trCp2-X-S-AcA1D+PTHZuP1Bg@mail.gmail.com>
+	<20160318202041.GA20196@amd>
+	<56EFE057.7070106@samsung.com>
+	<20160323122143.GB32031@amd>
+	<CAB=otbT2VsZ8Rhc-jbKwtRAssn01ecVFyTyAp+5hS=d40AsGKA@mail.gmail.com>
+	<CAB=otbQdpEtsXg2etX+3YYjrTfPYGtdKJo_V_rtfNb+VNV7g-w@mail.gmail.com>
+	<20160325210944.GA26394@amd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="sdtB3X0nJg68CQEu"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2247354.2fBg1ifxEX@avalon>
+In-Reply-To: <20160325210944.GA26394@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tomi Valkeinen <tomi.valkeinen@ti.com>, David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, Patrik Bachan <patrikbachan@gmail.com>, serge@hallyn.com, Maxime Ripard <maxime.ripard@free-electrons.com>, Peter Chen <peter.chen@freescale.com>, Felipe Balbi <balbi@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi
 
---sdtB3X0nJg68CQEu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Fri, Mar 25, 2016 at 11:09 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> Hi!
+>
+>> OK, so at last I finished charging of my N900; found 1.8V USB
+>> to UART adapter and soldered it to the phone.
+>>
+>> I managed to boot N900 with working USB gadget (builtin g_ether)
+>> in boardfile mode, can ping it from PC and transfer data. I don't
+>> see any issue (except of musb name issue in twl phy driver, I've
+>> already sent a fix for that: https://lkml.org/lkml/2016/3/24/670 )
+>>
+>> Pavel, I still don't see how you've got your issue, please share
+>> more detials
+>
+> Ok, let me try. I undid all the changes in drivers/phy drivers/usb and
+> include/linux/usb . I have all the gadget stuff built-in, so that I
+> could use nfsroot, but this is boot from mmcblk.
 
-Hi Laurent,
+So do you mean you use original rootfs that was shipeed with N900?
 
-On Sat, Mar 26, 2016 at 11:20:00AM +0200, Laurent Pinchart wrote:
-> On Tuesday 08 Mar 2016 17:39:38 Sebastian Reichel wrote:
-> > Updating the plane may interrupt ongoing display
-> > updates, so wait for any pending operations.
->=20
-> There's already an omap_atomic_wait_for_completion() call a couple of lin=
-es=20
-> below, do we need two of them ? Why can display update be ongoing there, =
-given=20
-> that the previous omap_atomic_complete() call did wait for completion bef=
-ore=20
-> returning?
+>
+> gzipped config is attached.
 
-This is a preparation for the manual display update. The planes
-should not be touched while a manual display update is in progress.
+Thanks, I'll try that
 
-I only checked the patches for the N950's manually updated DSI
-panel, but none of the other supported panel types. Since I wasn't
-sure what is triggered by the plane update for the other panel
-types, I kept the second wait_for_completion.
+>
+> PC is unable to work with the gadget:
+>
+> [256526.716099] usb 2-1: new full-speed USB device number 52 using
+> uhci_hcd
+> [256526.832091] usb 2-1: device descriptor read/64, error -32
+> [256527.052095] usb 2-1: device descriptor read/64, error -32
+> [256527.268160] usb 2-1: new full-speed USB device number 53 using
+> uhci_hcd
+> [256527.388121] usb 2-1: device descriptor read/64, error -32
+> [256527.608116] usb 2-1: device descriptor read/64, error -32
+> [256527.824170] usb 2-1: new full-speed USB device number 54 using
+> uhci_hcd
+> [256527.851175] usb 2-1: device descriptor read/8, error -32
+> [256527.975175] usb 2-1: device descriptor read/8, error -32
+> [256528.188133] usb 2-1: new full-speed USB device number 55 using
+> uhci_hcd
+> [256528.218184] usb 2-1: device descriptor read/8, error -32
+> [256528.343183] usb 2-1: device descriptor read/8, error -32
+> [256528.444314] usb usb2-port1: unable to enumerate USB device
+>
+> Dmesg from the n900 is attached as /tmp/delme.gz. I did _not_ apply
+> the patch from https://lkml.org/lkml/2016/3/24/670 , yet, as I'm using
+> devicetree boot.
 
-I guess I will drop the second wait in the next revision and see
-what happens.
+Hmm.. don't see anything strange in the boot log related to USB,
+I'll try your config
 
--- Sebastian
+Best regards
+Ruslan
 
-> > Signed-off-By: Sebastian Reichel <sre@kernel.org>
-> > ---
-> >  drivers/gpu/drm/omapdrm/omap_drv.c | 4 ++++
-> >  1 file changed, 4 insertions(+)
-> >=20
-> > diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c
-> > b/drivers/gpu/drm/omapdrm/omap_drv.c index a3ff35f5f6cd..e142a4245766
-> > 100644
-> > --- a/drivers/gpu/drm/omapdrm/omap_drv.c
-> > +++ b/drivers/gpu/drm/omapdrm/omap_drv.c
-> > @@ -95,6 +95,10 @@ static void omap_atomic_complete(struct
-> > omap_atomic_state_commit *commit) /* Apply the atomic update. */
-> >  	dispc_runtime_get();
-> >=20
-> > +	dev_dbg(dev->dev, "omap_atomic_complete");
-> > +
-> > +	omap_atomic_wait_for_completion(dev, old_state);
-> > +
-> >  	drm_atomic_helper_commit_modeset_disables(dev, old_state);
-> >  	drm_atomic_helper_commit_planes(dev, old_state, false);
-> >  	drm_atomic_helper_commit_modeset_enables(dev, old_state);
->=20
-> --=20
-> Regards,
->=20
-> Laurent Pinchart
->=20
-
---sdtB3X0nJg68CQEu
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJW9rA1AAoJENju1/PIO/qaFDAQAIz2+1imTKFLEtnYiQnMT1O1
-TFkyKBlZYy5f/g/nYySDAdgPx2IQbGlJWhy3MyKQm3nP33ug+wXbiOOsuV9IMW7f
-QX9HooSBlDycm0W+tgKi2xwjn5lri++VKPsZJXMfQDPA7yVWYzYY06D556wBGqSS
-hrRO/6vUH6p+0SzHrojabkALimgVRHliBT9uiQT3uO28STxo4QOnrbKgjbdref8Q
-Y1L57gNDrvB+2vDyXpB/WP1xsVbtiCkLvy3oHiXnfBXQhuyi2eaigLhezTSXZyW4
-pIxogJuNw2zSuuPfLsE3WzMpoBKwVarThuXWpgv8s+suMAES1q4dZPFIIsNRO+BN
-PzBvxQeXHV0Mn4dobAsk4ZeSZCjlcaJn+IIwgoBBZ2jtlsxr/RbdkZRrD5ZI2p8/
-sjdsNNPEw9W7hv0FkO67AM4Lk0WfNEnp9NjpNc/ehvBdT0pTRHHItt+FxMNqg+QJ
-nSug8eczaEvemV7LtpfoUpzrVs8zemZBlwYwJw+9FbjIGGmhJexx+iHImUNdnNKH
-DUpmXyDutjv/jIHDXHFFDg0R/xH8fRsiHclMfsuMIbXQyqYX4YKrGgxCrWeEwiiI
-jnzw248InW1HRA3Pqqe6dW1Do/RSj0v4/ZvP4f6s4Wu9jKabl7NjROx8xWHJps4e
-fjGW8M/4NI7ZNfKK0Pku
-=n3So
------END PGP SIGNATURE-----
-
---sdtB3X0nJg68CQEu--
+>
+> Best regards,
+>
+>                                                                         Pavel
+> --
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
