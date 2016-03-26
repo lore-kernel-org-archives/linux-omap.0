@@ -1,38 +1,37 @@
 From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: Re: [PATCH] regulator: twl: Enable regulators over the powerbus as
- well
-Date: Sat, 26 Mar 2016 08:18:51 +0200
-Message-ID: <56F629CB.9070102@gmail.com>
-References: <20160325111757.GC2566@sirena.org.uk>
- <20160325150259.GA9372@earth> <20160325155419.GI2566@sirena.org.uk>
- <56F562B7.10107@gmail.com> <20160325161954.GA5028@sirena.org.uk>
- <56F56C4A.7070502@gmail.com> <20160325170558.GB5028@sirena.org.uk>
- <56F573E5.6030408@gmail.com> <20160325182017.GE5028@sirena.org.uk>
- <20160325201911.GA25471@earth> <20160325222818.GF5028@sirena.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH 0/3] regulator: twl: Fix regulator mode support
+Date: Sat, 26 Mar 2016 10:28:12 +0200
+Message-ID: <1458980895-10240-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160325222818.GF5028@sirena.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>, Sebastian Reichel <sre@kernel.org>
-Cc: tony@atomide.com, lgirdwood@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: tony@atomide.com, lgirdwood@gmail.com, broonie@kernel.org
+Cc: sre@kernel.org, pali.rohar@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
+On Nokia N900 regulators are left in the mode last set by the bootloader
+or by the stock kernel, depends on whether it is power-on or reboot from
+stock kernel to mainline. That leads to problem with devices connected
+to vmmc2 regulator - when the device is rebooted from stock kernel vmmc2
+is left in "sleep" mode (REGULATOR_STATUS_STANDBY in terms of regulator
+framework) and as noone in mainline kernel switches vmmc2 regulator to
+normal (REGULATOR_STATUS_NORMAL) mode, devices supplied by it does not
+get enough power to operate normally.
 
+Fix that by providing the correct functionality for initial mode setting
+from the board DTS. Fix i2c access to powerbus while at it.
 
-On 26.03.2016 00:28, Mark Brown wrote:
-> On Fri, Mar 25, 2016 at 09:19:12PM +0100, Sebastian Reichel wrote:
->> On Fri, Mar 25, 2016 at 06:20:17PM +0000, Mark Brown wrote:
->
->>> Then there is a constraint that the regulators must be in normal mode
->>> and this needs to be expressed in the machine constraints.
->
->> As in adding "regulator-initial-mode = <TWL4030_OPMODE_NORMAL>;" to
->> the regulator's DT node (and providing an of_map_mode method in the
->> twl-regulator driver)?
->
-> Yes, that sounds like a sensible way to do it.
->
+I will send a follow-up patch for N900 board DTS that sets initial
+regulators mode once the $subject series is assumed to be ok.
 
-Ok, going to send the relevant patches.
+Ivaylo Dimitrov (3):
+  regulator: twl: Make sure we have access to powerbus before trying to
+    write to it
+  regulator: twl: Provide of_map_mode for twl4030
+  regulator: twl: Regulator mode should not depend on regulator enabled
+    state
+
+ drivers/regulator/twl-regulator.c | 100 +++++++++++++++++++++++++++++++-------
+ 1 file changed, 82 insertions(+), 18 deletions(-)
+
+-- 
+1.9.1
