@@ -1,44 +1,103 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 04/23] drm: omapdrm: add DSI mapping
-Date: Sat, 26 Mar 2016 11:09:49 +0200
-Message-ID: <1784184.CvZvWeMIYv@avalon>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH 06/23] drm: omapdrm: wait for pending operations before
+ updating plane
+Date: Sat, 26 Mar 2016 16:52:24 +0100
+Message-ID: <20160326155224.GA25190@earth>
 References: <1457455195-1938-1-git-send-email-sre@kernel.org>
- <1457455195-1938-5-git-send-email-sre@kernel.org>
+ <1457455195-1938-7-git-send-email-sre@kernel.org>
+ <2247354.2fBg1ifxEX@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1457455195-1938-5-git-send-email-sre@kernel.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="sdtB3X0nJg68CQEu"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <2247354.2fBg1ifxEX@avalon>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tomi Valkeinen <tomi.valkeinen@ti.com>, David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgU2ViYXN0aWFuLAoKVGhhbmsgeW91IGZvciB0aGUgcGF0Y2guCgpPbiBUdWVzZGF5IDA4IE1h
-ciAyMDE2IDE3OjM5OjM2IFNlYmFzdGlhbiBSZWljaGVsIHdyb3RlOgo+IFRoaXMgc2V0cyBwcm9w
-ZXIgY29ubmVjdG9yIHR5cGUgZm9yIERTSSBjb25uZWN0ZWQgcGFuZWxzLgo+IAo+IFNpZ25lZC1v
-ZmYtQnk6IFNlYmFzdGlhbiBSZWljaGVsIDxzcmVAa2VybmVsLm9yZz4KClJldmlld2VkLWJ5OiBM
-YXVyZW50IFBpbmNoYXJ0IDxsYXVyZW50LnBpbmNoYXJ0QGlkZWFzb25ib2FyZC5jb20+Cgo+IC0t
-LQo+ICBkcml2ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX2Rydi5jIHwgMiArKwo+ICAxIGZpbGUg
-Y2hhbmdlZCwgMiBpbnNlcnRpb25zKCspCj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2Ry
-bS9vbWFwZHJtL29tYXBfZHJ2LmMKPiBiL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL29tYXBfZHJ2
-LmMgaW5kZXggZGZhZmRiNjAyYWQyLi5hM2ZmMzVmNWY2Y2QKPiAxMDA2NDQKPiAtLS0gYS9kcml2
-ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX2Rydi5jCj4gKysrIGIvZHJpdmVycy9ncHUvZHJtL29t
-YXBkcm0vb21hcF9kcnYuYwo+IEBAIC0yMTUsNiArMjE1LDggQEAgc3RhdGljIGludCBnZXRfY29u
-bmVjdG9yX3R5cGUoc3RydWN0IG9tYXBfZHNzX2RldmljZQo+ICpkc3NkZXYpIHJldHVybiBEUk1f
-TU9ERV9DT05ORUNUT1JfSERNSUE7Cj4gIAljYXNlIE9NQVBfRElTUExBWV9UWVBFX0RWSToKPiAg
-CQlyZXR1cm4gRFJNX01PREVfQ09OTkVDVE9SX0RWSUQ7Cj4gKwljYXNlIE9NQVBfRElTUExBWV9U
-WVBFX0RTSToKPiArCQlyZXR1cm4gRFJNX01PREVfQ09OTkVDVE9SX0RTSTsKPiAgCWRlZmF1bHQ6
-Cj4gIAkJcmV0dXJuIERSTV9NT0RFX0NPTk5FQ1RPUl9Vbmtub3duOwo+ICAJfQoKLS0gClJlZ2Fy
-ZHMsCgpMYXVyZW50IFBpbmNoYXJ0CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVl
-ZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5m
-by9kcmktZGV2ZWwK
+
+--sdtB3X0nJg68CQEu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi Laurent,
+
+On Sat, Mar 26, 2016 at 11:20:00AM +0200, Laurent Pinchart wrote:
+> On Tuesday 08 Mar 2016 17:39:38 Sebastian Reichel wrote:
+> > Updating the plane may interrupt ongoing display
+> > updates, so wait for any pending operations.
+>=20
+> There's already an omap_atomic_wait_for_completion() call a couple of lin=
+es=20
+> below, do we need two of them ? Why can display update be ongoing there, =
+given=20
+> that the previous omap_atomic_complete() call did wait for completion bef=
+ore=20
+> returning?
+
+This is a preparation for the manual display update. The planes
+should not be touched while a manual display update is in progress.
+
+I only checked the patches for the N950's manually updated DSI
+panel, but none of the other supported panel types. Since I wasn't
+sure what is triggered by the plane update for the other panel
+types, I kept the second wait_for_completion.
+
+I guess I will drop the second wait in the next revision and see
+what happens.
+
+-- Sebastian
+
+> > Signed-off-By: Sebastian Reichel <sre@kernel.org>
+> > ---
+> >  drivers/gpu/drm/omapdrm/omap_drv.c | 4 ++++
+> >  1 file changed, 4 insertions(+)
+> >=20
+> > diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c
+> > b/drivers/gpu/drm/omapdrm/omap_drv.c index a3ff35f5f6cd..e142a4245766
+> > 100644
+> > --- a/drivers/gpu/drm/omapdrm/omap_drv.c
+> > +++ b/drivers/gpu/drm/omapdrm/omap_drv.c
+> > @@ -95,6 +95,10 @@ static void omap_atomic_complete(struct
+> > omap_atomic_state_commit *commit) /* Apply the atomic update. */
+> >  	dispc_runtime_get();
+> >=20
+> > +	dev_dbg(dev->dev, "omap_atomic_complete");
+> > +
+> > +	omap_atomic_wait_for_completion(dev, old_state);
+> > +
+> >  	drm_atomic_helper_commit_modeset_disables(dev, old_state);
+> >  	drm_atomic_helper_commit_planes(dev, old_state, false);
+> >  	drm_atomic_helper_commit_modeset_enables(dev, old_state);
+>=20
+> --=20
+> Regards,
+>=20
+> Laurent Pinchart
+>=20
+
+--sdtB3X0nJg68CQEu
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJW9rA1AAoJENju1/PIO/qaFDAQAIz2+1imTKFLEtnYiQnMT1O1
+TFkyKBlZYy5f/g/nYySDAdgPx2IQbGlJWhy3MyKQm3nP33ug+wXbiOOsuV9IMW7f
+QX9HooSBlDycm0W+tgKi2xwjn5lri++VKPsZJXMfQDPA7yVWYzYY06D556wBGqSS
+hrRO/6vUH6p+0SzHrojabkALimgVRHliBT9uiQT3uO28STxo4QOnrbKgjbdref8Q
+Y1L57gNDrvB+2vDyXpB/WP1xsVbtiCkLvy3oHiXnfBXQhuyi2eaigLhezTSXZyW4
+pIxogJuNw2zSuuPfLsE3WzMpoBKwVarThuXWpgv8s+suMAES1q4dZPFIIsNRO+BN
+PzBvxQeXHV0Mn4dobAsk4ZeSZCjlcaJn+IIwgoBBZ2jtlsxr/RbdkZRrD5ZI2p8/
+sjdsNNPEw9W7hv0FkO67AM4Lk0WfNEnp9NjpNc/ehvBdT0pTRHHItt+FxMNqg+QJ
+nSug8eczaEvemV7LtpfoUpzrVs8zemZBlwYwJw+9FbjIGGmhJexx+iHImUNdnNKH
+DUpmXyDutjv/jIHDXHFFDg0R/xH8fRsiHclMfsuMIbXQyqYX4YKrGgxCrWeEwiiI
+jnzw248InW1HRA3Pqqe6dW1Do/RSj0v4/ZvP4f6s4Wu9jKabl7NjROx8xWHJps4e
+fjGW8M/4NI7ZNfKK0Pku
+=n3So
+-----END PGP SIGNATURE-----
+
+--sdtB3X0nJg68CQEu--
