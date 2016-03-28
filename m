@@ -1,161 +1,60 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v4.6-rc1
-Date: Sun, 27 Mar 2016 21:45:14 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1603272143420.11112@utopia.booyaka.com>
+From: Emil Velikov <emil.l.velikov@gmail.com>
+Subject: Re: [PATCH 00/23] Nokia N950 display support
+Date: Mon, 28 Mar 2016 13:34:51 +0100
+Message-ID: <CACvgo53yG4U471fv4nw4czVKKc8=NQsD_37Gxf_3vX8638tBWQ@mail.gmail.com>
+References: <1457455195-1938-1-git-send-email-sre@kernel.org>
+ <CACvgo51ys5DQYKLd4qJv6yFj9TKeZM3cfmsY0ECVVvnS+e_-4g@mail.gmail.com>
+ <20160309170925.GA3062@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20160309170925.GA3062@earth>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, ML dri-devel <dri-devel@lists.freedesktop.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-Here are some basic OMAP test results for Linux v4.6-rc1.
-Logs and other details at:
-
-    http://www.pwsan.com/omap/testlogs/test_v4.6-rc1/20160327002700/
-
-
-Test summary
-------------
-
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
-
-Build: uImage+dtb:
-    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/omap4-var-stk-om44,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig_n800_only_a/omap2420-n800,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-sbc-t3517,
-		  omap2plus_defconfig/omap5-uevm,
-		  omap2plus_defconfig/omap5-sbc-t54
-
-Build: zImage:
-    Pass (18/18): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  omap2plus_defconfig_ti81xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
-
-Build warnings from toolchain: uImage:
-    (none)
-
-Build warnings from toolchain: uImage+dtb:
-    (none)
-
-Build warnings from toolchain: zImage:
-    FAIL ( 1/18): multi_v7_defconfig
-
-Boot to userspace:
-    FAIL ( 1/18): 2430sdp
-    skip ( 3/18): 5912osk, 3517evm, 5430es2sbct54
-    Pass (14/18): am335xbonelt, am437xsk, am335xbone, 4430es2panda,
-		  4460pandaes, 4460varsomom, 37xxevm, 3530es3beagle,
-		  3530es31beagle, 3730beaglexm, 3730es12beaglexm,
-		  cmt3517, 5430es2uevm, 2420n800
-
-Kernel warnings during boot to userspace:
-    FAIL ( 2/18): 4430es2panda, cmt3517
-
-PM: chip retention via suspend:
-    FAIL ( 6/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
-		  2430sdp, 5430es2uevm
-    Pass ( 5/11): 4460pandaes, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm
-
-PM: chip retention via dynamic idle:
-    FAIL ( 8/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
-		  3530es3beagle, 3530es31beagle, 2430sdp, 5430es2uevm
-    Pass ( 3/11): 4460pandaes, 3730beaglexm, 3730es12beaglexm
-
-PM: chip off (except CORE, due to errata) via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off (except CORE, due to errata) via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    FAIL ( 2/ 4): 37xxevm, 3530es3beagle
-    Pass ( 2/ 4): 3530es31beagle, 3730es12beaglexm
-
-PM: chip off via dynamic idle:
-    FAIL ( 3/ 4): 37xxevm, 3530es3beagle, 3530es31beagle
-    Pass ( 1/ 4): 3730es12beaglexm
-
-Kernel warnings during PM test:
-    FAIL ( 1/18): 4430es2panda
-
-Obsolete Kconfig symbols:
-    FAIL ( 3/21): omap1_defconfig, omap2plus_defconfig,
-		  multi_v7_defconfig
-
-
-vmlinux object size
-(delta in bytes from test_v4.5 (b562e44f507e863c6792946e4e1b1449fbbac85d)):
-   text     data      bss    total  kernel
- +39904    +3992    -5400   +38496  omap1_defconfig
- +34788    +3704    -5400   +33092  omap1_defconfig_1510innovator_only
- +38468    +3672    -5400   +36740  omap1_defconfig_5912osk_only
--3662156  +3897648    -4616  +230876  multi_v7_defconfig
--2014753  +2154576    -6120  +133703  omap2plus_defconfig
- +34235    +8896    -6336   +36795  omap2plus_defconfig_2430sdp_only
--1918811  +2010976    -6120   +86045  omap2plus_defconfig_am33xx_only
--1927041  +2019328    -6120   +86167  omap2plus_defconfig_am43xx_only
--2014753  +2158672    -6120  +137799  omap2plus_defconfig_cpupm
--1935173  +2028088    -6120   +86795  omap2plus_defconfig_dra7xx_only
- +46484     +256    -6332   +40408  omap2plus_defconfig_n800_multi_omap2xxx
- +41628     +528    -6332   +35824  omap2plus_defconfig_n800_only_a
--1998689  +2138128    -6056  +133383  omap2plus_defconfig_no_pm
--1958285  +2056384    -6184   +91915  omap2plus_defconfig_omap2_4_only
--1963229  +2100168    -6120  +130819  omap2plus_defconfig_omap3_4_only
--1931101  +2023360    -6120   +86139  omap2plus_defconfig_omap5_only
--1803209  +1857308    -6440   +47659  omap2plus_defconfig_ti81xx_only
- +39224    +1320    -5684   +34860  rmk_omap3430_ldp_allnoconfig
- +58737    +3392    -6224   +55905  rmk_omap3430_ldp_oldconfig
- +32216     +764    -3368   +29612  rmk_omap4430_sdp_allnoconfig
- +56264    +2392    -6580   +52076  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v4.5 (b562e44f507e863c6792946e4e1b1449fbbac85d))
-  avail  rsrvd   high  freed  board          kconfig
-     8k    -8k      .      .  2420n800       omap2plus_defconfig_n800_only_a
-    -8k     8k      .      .  2430sdp        omap2plus_defconfig
-    -4k     4k      .      .  3530es31beagle omap2plus_defconfig
-    -4k     4k      .      .  3530es3beagle  omap2plus_defconfig
-    -8k     8k      .      .  3730beaglexm   omap2plus_defconfig
-    -8k     8k      .      .  3730es12beaglexmomap2plus_defconfig
-   -12k    12k      .      .  37xxevm        omap2plus_defconfig
-    -4k     4k      .      .  4430es2panda   omap2plus_defconfig
-    -8k     8k      .      .  4460pandaes    omap2plus_defconfig
-    -8k     8k      .      .  4460varsomom   omap2plus_defconfig
-    -8k     8k      .      .  5430es2uevm    omap2plus_defconfig
-    -8k     8k      .      .  am335xbonelt   omap2plus_defconfig
-    -8k     8k      .      .  am437xsk       omap2plus_defconfig
+SGkgU2ViYXN0aWFuLAoKT24gOSBNYXJjaCAyMDE2IGF0IDE3OjA5LCBTZWJhc3RpYW4gUmVpY2hl
+bCA8c3JlQGtlcm5lbC5vcmc+IHdyb3RlOgo+IEhpIEVtaWwsCj4KPiBPbiBXZWQsIE1hciAwOSwg
+MjAxNiBhdCAwNDoxOTo0OFBNICswMDAwLCBFbWlsIFZlbGlrb3Ygd3JvdGU6Cj4+IEhpIFNlYmFz
+dGlhbiwKPj4KPj4gT24gOCBNYXJjaCAyMDE2IGF0IDE2OjM5LCBTZWJhc3RpYW4gUmVpY2hlbCA8
+c3JlQGtlcm5lbC5vcmc+IHdyb3RlOgo+Pgo+PiA+ICBhcmNoL2FybS9ib290L2R0cy9vbWFwMy1u
+OTUwLW45LmR0c2kgICAgICAgICAgICB8ICA3MiArKysrKysrKysKPj4gPiAgYXJjaC9hcm0vYm9v
+dC9kdHMvb21hcDMtbjk1MC5kdHMgICAgICAgICAgICAgICAgfCAgNzEgKysrKysrKysrCj4+IEp1
+c3QgYSBmcmllbmRseSByZW1pbmRlciB0aGF0IHVwZGF0aW5nIHRoZXNlIGFuZCBvbmUgd2lsbCBo
+YXZlIHRvIGtlZXAKPj4gdGhlIGRyaXZlciBiYWNrd2FyZHMgY29tcGF0aWJsZSBmb3JldmVyLgo+
+Cj4gT2YgY291cnNlLiBCYXNpY2FsbHkgdGhlIG5ldyBEVCBwcm9wZXJ0aWVzIGFyZToKPgo+ICAq
+IG9wdGlvbmFsIHJlZ3VsYXRvcnMgKHZwbmwgJiB2ZGRpKQo+ICAqIGJvb2xlYW4gImhhcy1kc2kt
+YmFja2xpZ2h0Igo+ICAqIHJlc29sdXRpb24teC95Cj4gICogb2Zmc2V0LXgveQo+Cj4gU28gcHJv
+YmFibHkgbm90IHRoYXQgbXVjaCBvZiBhIHByb2JsZW0gZXZlbiBpZiBvdGhlciBBUEkgaXMKPiBp
+bnZlbnRlZC4gSSBqdXN0IG5vdGljZWQsIHRoYXQgSSBmb3Jnb3QgdG8gYWN0dWFsbHkgYWRkIGRv
+Y3VtZW50YXRpb24KPiBpbiBEb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvZGlzcGxh
+eS9wYW5lbC9wYW5lbC1kc2ktY20udHh0Cj4KPiBJIHdpbGwgZml4IHRoYXQgaW4gdGhlIG5leHQg
+cGF0Y2hzZXQgcmV2aXNpb24uCj4KPj4gVG9taSwgaGFzIGJlZW4gaW4gdGhlIHByb2Nlc3Mgb2Yg
+cmVtb3ZpbmcgYWxsIHRoZSB1bm5lZWRlZCBjcnVmdCwKPj4gYWx0aG91Z2ggb21hcGRybSBpdCBp
+cyBzdGlsbCB1c2luZyB0aGUgY3VzdG9tIHBhbmVsLCBkc2kgYW5kIG90aGVyCj4+IGNvZGUgYXMg
+b3Bwb3NlZCB0byB0aGUgb25lcyBwcm92aWRlZCBieSBEUk0uIEFzIGhlIGdldHMgdG8gcmV1c2lu
+Zwo+PiB0aG9zZSBoZSBtaWdodCBoYXZlIHNvbWUgZnVuIGtlZXBpbmcgdGhpbmdzIGNvbXBhdGli
+bGUuCj4KPiBJIGNvdWxkIG5vdCBmaW5kICJnZW5lcmljIiBwYW5lbCBiaW5kaW5nIGRvY3VtZW50
+YXRpb24uIENhbiB5b3UKPiBnaXZlIG1lIGEgcG9pbnRlcj8gSSBjYW4ganVzdCBzdGljayB0byB0
+aGUgc2FtZSBwcm9wZXJ0eSBuYW1lcwo+IHRvIGF2b2lkIHBvdGVudGlhbCBmdXR1cmUgcHJvYmxl
+bXMuCj4KUGFyZG9uIGZvciB0aGUgbGF0ZSByZXBseS4KCkFzIG1lbnRpb25lZCBpbiBhbm90aGVy
+IGVtYWlsLCBpZiB5b3UncmUgaW50ZXJlc3RlZCBpbiByZXVzaW5nIHRoZSBkcm0KcGFuZWwgaW5m
+cmFzdHJ1Y3R1cmUgeW91IHNob3VsZCBiZSBsb29raW5nIGluCkRvY3VtZW50YXRpb24vZGV2aWNl
+dHJlZS9iaW5kaW5ncy9kaXNwbGF5L3BhbmVsLy4gV2l0aCBkaXNwbGF5LXRpbWluZwpwYW5lbC1k
+cGkgcGFuZWwtZHNpLWNtIGFuZCAob3B0aW9uYWwpIHNpbXBsZS1wYW5lbCBhcyBhIHN0YXJ0LgoK
+V291bGQgcmVzaHVmZmxpbmcvZG9jdW1lbnRpbmcgdGhpbmdzIG1ha2UgaXQgbW9yZSBvYnZpb3Vz
+ID8gRmVlbCBmcmVlCnRvIGxldCBSb2IgSGVycmluZywgVGhpZXJyeSBSZWRpbmcga25vdy4KClJl
+Z2FyZHMsCkVtaWwKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
+Cmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
+Cg==
