@@ -1,70 +1,90 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V2] ARM: dts: AM572x-IDK Initial Support
-Date: Mon, 28 Mar 2016 16:10:15 -0500
-Message-ID: <20160328211015.GA28249@rob-hp-laptop>
-References: <1459182909-23502-1-git-send-email-nm@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: usb: gadget breakage on N900: bind UDC by name passed via
+ usb_gadget_driver structure
+Date: Mon, 28 Mar 2016 23:33:35 +0200
+Message-ID: <20160328213334.GA10849@amd>
+References: <CAB=otbRd+hZaO6ihL3c88Ys_q-R4grmup4cfP70PT+N2JEQ3WQ@mail.gmail.com>
+ <CAB=otbQ=jJNk=CtB4hu51HXxOLxhWEDaeWf3V0Uc7Uh3veXsfg@mail.gmail.com>
+ <CAB=otbQ1J7FZm9vWLwor93+uD3Fv38ykduWMXG3qByNh4mV9=g@mail.gmail.com>
+ <20160327202657.GA31059@amd>
+ <CAB=otbTsAwBohbYmwBERpdG-ZdAUk_vJwoZoO8dUf_H-W4jREg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1459182909-23502-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Schuyler Patton <spatton-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <CAB=otbTsAwBohbYmwBERpdG-ZdAUk_vJwoZoO8dUf_H-W4jREg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ruslan Bilovol <ruslan.bilovol@gmail.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, Patrik Bachan <patrikbachan@gmail.com>, serge@hallyn.com, Maxime Ripard <maxime.ripard@free-electrons.com>, Peter Chen <peter.chen@freescale.com>, Felipe Balbi <balbi@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Mar 28, 2016 at 11:35:09AM -0500, Nishanth Menon wrote:
-> From: Schuyler Patton <spatton-l0cyMroinI0@public.gmane.org>
-> 
-> The AM572x-IDK board is a board based on TI's AM5728 SOC
-> which has a dual core 1.5GHz A15 processor. This board is a
-> development platform for the Industrial market with:
-> - 2GB of DDR3L
-> - Dual 1Gbps Ethernet
-> - HDMI,
-> - PRU-ICSS
-> - uSD
-> - 16GB eMMC
-> - CAN
-> - RS-485
-> - PCIe
-> - USB3.0
-> - Video Input Port
-> - Industrial IO port and expansion connector
-> 
-> The link to the data sheet and TRM can be found here:
-> 
-> http://www.ti.com/product/AM5728
-> 
-> This patch creates a common dtsi file that will provide a common board
-> dtsi file to define the nodes that are common to AM57xx (including the
-> upcoming AM5718) IDK boards.
-> 
-> Initial support is only for basic peripherals
-> 
-> Signed-off-by: Schuyler Patton <spatton-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-> ---
-> based on v4.6-rc1
-> 
-> Changes since V1:
-> 	- Renamed the led nodes
-> 	- Dropped unused src_clk_x1 node (will introduce when needed).
-> 
-> Test: http://pastebin.ubuntu.com/15540747/
-> 
-> V1: https://patchwork.kernel.org/patch/8665181/
-> 
->  .../devicetree/bindings/arm/omap/omap.txt          |   3 +
->  arch/arm/boot/dts/Makefile                         |   1 +
->  arch/arm/boot/dts/am572x-idk.dts                   |  85 ++++++
->  arch/arm/boot/dts/am57xx-idk-common.dtsi           | 302 +++++++++++++++++++++
->  4 files changed, 391 insertions(+)
->  create mode 100644 arch/arm/boot/dts/am572x-idk.dts
->  create mode 100644 arch/arm/boot/dts/am57xx-idk-common.dtsi
+Hi!
 
-Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >> >> I managed to boot N900 with working USB gadget (builtin g_ether)
+> >> >> in boardfile mode, can ping it from PC and transfer data. I don't
+> >> >> see any issue (except of musb name issue in twl phy driver, I've
+> >> >> already sent a fix for that: https://lkml.org/lkml/2016/3/24/670 )
+> >> >>
+> >> >> Pavel, I still don't see how you've got your issue, please share
+> >> >> more detials
+> >> >
+> >> > Ok, let me try. I undid all the changes in drivers/phy drivers/usb and
+> >> > include/linux/usb . I have all the gadget stuff built-in, so that I
+> >> > could use nfsroot, but this is boot from mmcblk.
+> >>
+> >> So do you mean you use original rootfs that was shipeed with N900?
+> >
+> > No. I'm using Debian ARM root. It includes useful X and even phone
+> > functions. https://gitlab.com/tui/tui .
+> >
+> >> > gzipped config is attached.
+> >>
+> >> Thanks, I'll try that
+> >
+> > Thanks.
+> >
+> >> > Dmesg from the n900 is attached as /tmp/delme.gz. I did _not_ apply
+> >> > the patch from https://lkml.org/lkml/2016/3/24/670 , yet, as I'm using
+> >> > devicetree boot.
+> >>
+> >> Hmm.. don't see anything strange in the boot log related to USB,
+> >> I'll try your config
+> >
+> > Let me know how it went.
+> 
+> I tried your config (with slight modifications) with vanilla kernel v4.5
+> (modifications: cmdline changed to default; used INITRAMFS_SOURCE
+> for prebuilt cpio archive with rootfs) and Device Tree booting.
+> Works fine for me except I need to unplug-plug usb cable or issue
+> # echo connect > /sys/devices/platform/68000000.ocp/480ab000
+> .usb_otg_hs/musb-hdrc.0.auto/udc/musb-hdrc.0.auto/soft_connect
+> to make connection.
+> The gadget driver successfully binds to the gadget, but I don't know
+> why the musb core doesn't issue pullup on USB lines during boot.
+
+I did a quick test here, and unplug/replug does not help, I still get
+error message on my PC.
+
+[53907.784294] usb usb4-port1: unable to enumerate USB device
+[53990.480064] usb 1-5: new high-speed USB device number 27 using
+ehci-pci
+[53990.592036] usb 1-5: device descriptor read/64, error -32
+[53990.808092] usb 1-5: device descriptor read/64, error -32
+[53991.024042] usb 1-5: new high-speed USB device number 28 using
+ehci-pci
+[53991.136043] usb 1-5: device descriptor read/64, error -32
+[53991.352041] usb 1-5: device descriptor read/64, error -32
+[53991.568076] usb 1-5: new high-speed USB device number 29 using
+ehci-pci
+[53991.589955] usb 1-5: device descriptor read/8, error -32
+[53991.709703] usb 1-5: device descriptor read/8, error -32
+[53991.924577] usb 1-5: new high-speed USB device number 30 using
+ehci-pci
+[53991.944944] usb 1-5: device descriptor read/8, error -32
+[53992.065822] usb 1-5: device descriptor read/8, error -32
+
+Best regards,
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
