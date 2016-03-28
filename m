@@ -1,71 +1,46 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v8 1/6] ALSA: pcm: add IEC958 channel status helper for
- hw_params
-Date: Mon, 28 Mar 2016 12:38:01 -0700
-Message-ID: <20160328193801.GI2350@sirena.org.uk>
-References: <cover.1458214526.git.jsarha@ti.com>
- <164484552294777b0b9b88d7982bd6bfb0da9a9f.1458214526.git.jsarha@ti.com>
+Subject: Re: [PATCH 2/3] regulator: twl: Provide of_map_mode for twl4030
+Date: Mon, 28 Mar 2016 10:39:38 +0100
+Message-ID: <20160328093938.GA2350@sirena.org.uk>
+References: <1458980895-10240-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <1458980895-10240-3-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1724348531=="
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <164484552294777b0b9b88d7982bd6bfb0da9a9f.1458214526.git.jsarha@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jyri Sarha <jsarha@ti.com>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, arnaud.pouliquen@st.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, tomi.valkeinen@ti.com, bcousson@baylibre.com, rmk+kernel@arm.linux.org.uk, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="G4iJoqBmSsgzjUCe"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1458980895-10240-3-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: tony@atomide.com, lgirdwood@gmail.com, sre@kernel.org, pali.rohar@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---===============1724348531==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="SdaPbLtAangIkrMZ"
-Content-Disposition: inline
-
-
---SdaPbLtAangIkrMZ
+--G4iJoqBmSsgzjUCe
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Mar 17, 2016 at 02:22:29PM +0200, Jyri Sarha wrote:
-> Add IEC958 channel status helper that gets the audio properties from
-> snd_pcm_hw_params instead of snd_pcm_runtime. This is needed to
-> produce the channel status bits already in audio stream configuration
-> phase.
+On Sat, Mar 26, 2016 at 10:28:14AM +0200, Ivaylo Dimitrov wrote:
+> of_map_mode is needed so to be possible to set initial regulators mode from
+> the board DTS. Otherwise, for DT boot, regulators are left in their default
+> state after reset/reboot.
 
-Takashi?
+This should also update the DT binding document for the device to
+specify what the valid modes for the device are.
 
---SdaPbLtAangIkrMZ
+--G4iJoqBmSsgzjUCe
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQEcBAEBCAAGBQJW+YgXAAoJECTWi3JdVIfQAs0H/RYb3o5zjgkQ3CYHI1U9rfcP
-82WbmTqYQvCoKB8ZGQvgh6em9aNNIiwmaWltx9ZswmxLxT3vWkoqmjp+EN3pkXN2
-k3cg9ZKSjzTBh749duR8J3nICbzhUc363ntypAOjYhQ5E4jNyhwh+AnR4vGC4/Sb
-SrY0WXi0JkKHRFce5LfbPYbdPhv76sRcTFVidetUtimTTJ9jNJ33CkmXEZ9NEAX9
-gajgQoeujmJ8Pjwb7k4oqeh8B8AcDgpBnVULEv0CDL3QkPfxqaNJl4DgKHDRqu2J
-Cbt5x5NTqH3+DM4zyHNbhOk4sFun0pczB8+zhv/CPWUwpcID18kCGhjXvIdCQso=
-=FhlN
+iQEcBAEBCAAGBQJW+PvWAAoJECTWi3JdVIfQurwIAIYbzJCT7y/h3hKl+VrDxEzo
+WKoEi25poedxWhqwOz7Wck/xolqUNt9s63WHhf/n34K7RPjY7mLgCNNWs8O8gqs3
+7A66OeXc7pcpbUKFSVp3RjOTmdoApifSQRnIs1pafrH5pvK5bRnrex+hStA2m7Pa
++JX/7A0/3TLNNmHZ0/xAaopjpz98HiG8TnlFRd4JSsNAdroHVKTjjNtOqaNVENTB
+8hGV33lBpUwkMWU7ys2nIiRQMus+BscvLex+r699KzMYHsQFbmjlMghddbkR4TBP
+ElokpW3zrEXwSzVx2vaReuUzymwVBzB29FXL6bCwP2tn3d+XBdFkKSNy8ZQQ3og=
+=YBYB
 -----END PGP SIGNATURE-----
 
---SdaPbLtAangIkrMZ--
-
---===============1724348531==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
-
---===============1724348531==--
+--G4iJoqBmSsgzjUCe--
