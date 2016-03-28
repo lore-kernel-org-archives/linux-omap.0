@@ -1,575 +1,491 @@
-From: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v3 2/6] iio: pulse: add TI ECAP driver
-Date: Mon, 28 Mar 2016 16:30:00 +0100
-Message-ID: <56F94DF8.9010003@kernel.org>
-References: <1391626901-31684-1-git-send-email-mporter@linaro.org>
- <1391626901-31684-3-git-send-email-mporter@linaro.org>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH V2] ARM: dts: AM572x-IDK Initial Support
+Date: Mon, 28 Mar 2016 11:35:09 -0500
+Message-ID: <1459182909-23502-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1391626901-31684-3-git-send-email-mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matt Porter <mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Linux IIO List <linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PWM List <linux-pwm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Schuyler Patton <spatton-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 05/02/14 19:01, Matt Porter wrote:
-> Adds support for capturing PWM signals using the TI ECAP peripheral.
-> This driver supports triggered buffer capture of pulses on multiple
-> ECAP instances. In addition, the driver supports configurable polarity
-> of the signal to be captured.
-> 
-> Signed-off-by: Matt Porter <mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Hi Matt,
+From: Schuyler Patton <spatton-l0cyMroinI0@public.gmane.org>
 
-Given I had a personal message asking about this a few weeks ago, I thought I'd
-ask... Any plans to resurrect this?
-> ---
->  drivers/iio/pulse/Kconfig  |  20 ++
->  drivers/iio/pulse/Makefile |   6 +
->  drivers/iio/pulse/tiecap.c | 491 +++++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 517 insertions(+)
->  create mode 100644 drivers/iio/pulse/Kconfig
->  create mode 100644 drivers/iio/pulse/Makefile
->  create mode 100644 drivers/iio/pulse/tiecap.c
-> 
-> diff --git a/drivers/iio/pulse/Kconfig b/drivers/iio/pulse/Kconfig
-> new file mode 100644
-> index 0000000..9864d4b
-> --- /dev/null
-> +++ b/drivers/iio/pulse/Kconfig
-> @@ -0,0 +1,20 @@
-> +#
-> +# Pulse Capture Devices
-> +#
-> +# When adding new entries keep the list in alphabetical order
-> +
-> +menu "Pulse Capture Devices"
-> +
-> +config IIO_TIECAP
-> +	tristate "TI ECAP Pulse Capture"
-> +	depends on SOC_AM33XX
-> +	select IIO_BUFFER
-> +	select IIO_TRIGGERED_BUFFER
-> +	help
-> +	 If you say yes here you get support for the TI ECAP peripheral
-> +	 in pulse capture mode.
-> +
-> +	 This driver can also be built as a module.  If so, the module
-> +	 will be called tiecap
-> +
-> +endmenu
-> diff --git a/drivers/iio/pulse/Makefile b/drivers/iio/pulse/Makefile
-> new file mode 100644
-> index 0000000..94d4b00
-> --- /dev/null
-> +++ b/drivers/iio/pulse/Makefile
-> @@ -0,0 +1,6 @@
-> +#
-> +# Makefile for IIO PWM Capture Devices
-> +#
-> +
-> +# When adding new entries keep the list in alphabetical order
-> +obj-$(CONFIG_IIO_TIECAP)	+= tiecap.o
-> diff --git a/drivers/iio/pulse/tiecap.c b/drivers/iio/pulse/tiecap.c
-> new file mode 100644
-> index 0000000..fd96745
-> --- /dev/null
-> +++ b/drivers/iio/pulse/tiecap.c
-> @@ -0,0 +1,491 @@
-> +/*
-> + * ECAP IIO pulse capture driver
-> + *
-> + * Copyright (C) 2014 Linaro Limited
-> + * Author: Matt Porter <mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + */
-> +
-> +#include <linux/clk.h>
-> +#include <linux/err.h>
-> +#include <linux/iio/buffer.h>
-> +#include <linux/iio/iio.h>
-> +#include <linux/iio/sysfs.h>
-> +#include <linux/iio/trigger.h>
-> +#include <linux/iio/trigger_consumer.h>
-> +#include <linux/iio/triggered_buffer.h>
-> +#include <linux/io.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/irq.h>
-> +#include <linux/module.h>
-> +#include <linux/of_device.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/pm_runtime.h>
-> +
-> +#include "../../pwm/pwm-tipwmss.h"
-> +
-> +/* ECAP regs and bits */
-> +#define CAP1			0x08
-> +#define CAP2			0x0c
-> +#define ECCTL1			0x28
-> +#define ECCTL1_RUN_FREE		BIT(15)
-> +#define ECCTL1_CAPLDEN		BIT(8)
-> +#define ECCTL1_CAP2POL		BIT(2)
-> +#define ECCTL1_CTRRST1		BIT(1)
-> +#define ECCTL1_CAP1POL		BIT(0)
-> +#define ECCTL2			0x2a
-> +#define ECCTL2_SYNCO_SEL_DIS	BIT(7)
-> +#define ECCTL2_TSCTR_FREERUN	BIT(4)
-> +#define ECCTL2_REARM		BIT(3)
-> +#define ECCTL2_STOP_WRAP_2	BIT(1)
-> +#define ECEINT			0x2c
-> +#define ECFLG			0x2e
-> +#define ECCLR			0x30
-> +#define ECINT_CTRCMP		BIT(7)
-> +#define ECINT_CTRPRD		BIT(6)
-> +#define ECINT_CTROVF		BIT(5)
-> +#define ECINT_CEVT4		BIT(4)
-> +#define ECINT_CEVT3		BIT(3)
-> +#define ECINT_CEVT2		BIT(2)
-> +#define ECINT_CEVT1		BIT(1)
-> +#define ECINT_ALL		(ECINT_CTRCMP |	\
-> +				ECINT_CTRPRD |	\
-> +				ECINT_CTROVF |	\
-> +				ECINT_CEVT4 |	\
-> +				ECINT_CEVT3 |	\
-> +				ECINT_CEVT2 |	\
-> +				ECINT_CEVT1)
-> +
-> +/* ECAP driver flags */
-> +#define ECAP_POLARITY_HIGH	BIT(1)
-> +#define ECAP_ENABLED		BIT(0)
-> +
-> +struct ecap_context {
-> +	u32	cap1;
-> +	u32	cap2;
-> +	u16	ecctl1;
-> +	u16	ecctl2;
-> +	u16	eceint;
-> +};
-> +
-> +struct ecap_state {
-> +	unsigned long		flags;
-> +	unsigned int		clk_rate;
-> +	void __iomem		*regs;
-> +	u32			*buf;
-> +	struct ecap_context	ctx;
-> +};
-> +
-> +#define dev_to_ecap_state(d)	iio_priv(dev_to_iio_dev(d))
-> +
-> +static const struct iio_chan_spec ecap_channels[] = {
-> +	{
-> +		.type		= IIO_PULSE,
-> +		.info_mask_separate =
-> +			BIT(IIO_CHAN_INFO_RAW) | BIT(IIO_CHAN_INFO_SCALE),
-> +		.scan_index	= 0,
-> +		.scan_type = {
-> +			.sign		= 'u',
-> +			.realbits	= 32,
-> +			.storagebits	= 32,
-> +			.endianness	= IIO_LE,
-> +		},
-> +	},
-> +	IIO_CHAN_SOFT_TIMESTAMP(1)
-> +};
-> +
-> +static ssize_t ecap_attr_show(struct device *dev,
-> +			      struct device_attribute *attr, char *buf)
-> +{
-> +	struct ecap_state *state = dev_to_ecap_state(dev);
-> +
-> +	return sprintf(buf, "%d\n",
-> +		       test_bit(ECAP_POLARITY_HIGH, &state->flags));
-> +}
-> +
-> +static ssize_t ecap_attr_store(struct device *dev,
-> +			       struct device_attribute *attr,
-> +			       const char *buf,
-> +			       size_t len)
-> +{
-> +	int ret;
-> +	bool val;
-> +	struct ecap_state *state = dev_to_ecap_state(dev);
-> +
-> +	if (test_bit(ECAP_ENABLED, &state->flags))
-> +		return -EINVAL;
-> +
-> +	ret = strtobool(buf, &val);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (val)
-> +		set_bit(ECAP_POLARITY_HIGH, &state->flags);
-> +	else
-> +		clear_bit(ECAP_POLARITY_HIGH, &state->flags);
-> +
-> +	return len;
-> +}
-> +
-> +static IIO_DEVICE_ATTR(pulse_polarity, S_IRUGO | S_IWUSR,
-> +	ecap_attr_show, ecap_attr_store, 0);
-> +
-> +static struct attribute *ecap_attributes[] = {
-> +	&iio_dev_attr_pulse_polarity.dev_attr.attr,
-> +	NULL,
-> +};
-> +
-> +static struct attribute_group ecap_attribute_group = {
-> +	.attrs = ecap_attributes,
-> +};
-> +
-> +static int ecap_read_raw(struct iio_dev *idev,
-> +			struct iio_chan_spec const *ch, int *val,
-> +			int *val2, long mask)
-> +{
-> +	struct ecap_state *state = iio_priv(idev);
-> +
-> +	switch (mask) {
-> +	case IIO_CHAN_INFO_RAW:
-> +		/*
-> +		 * Always return 0 as a pulse width sample
-> +		 * is only valid in a triggered condition
-> +		 */
-> +		*val = 0;
-> +		return IIO_VAL_INT;
-> +	case IIO_CHAN_INFO_SCALE:
-> +		*val = 0;
-> +		*val2 = NSEC_PER_SEC / state->clk_rate;
-> +		return IIO_VAL_INT_PLUS_NANO;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +}
-> +
-> +static const struct iio_info ecap_info = {
-> +	.driver_module = THIS_MODULE,
-> +	.attrs = &ecap_attribute_group,
-> +	.read_raw = &ecap_read_raw,
-> +};
-> +
-> +static irqreturn_t ecap_trigger_handler(int irq, void *private)
-> +{
-> +	struct iio_poll_func *pf = private;
-> +	struct iio_dev *idev = pf->indio_dev;
-> +	struct ecap_state *state = iio_priv(idev);
-> +
-> +	/* Read pulse counter value */
-> +	*state->buf = readl(state->regs + CAP2);
-> +
-> +	iio_push_to_buffers_with_timestamp(idev, state->buf, iio_get_time_ns());
-> +
-> +	iio_trigger_notify_done(idev->trig);
-> +
-> +	return IRQ_HANDLED;
-> +};
-> +
-> +
-> +static const struct iio_trigger_ops iio_interrupt_trigger_ops = {
-> +	.owner = THIS_MODULE,
-> +};
-> +
-> +static irqreturn_t ecap_interrupt_handler(int irq, void *private)
-> +{
-> +	struct iio_dev *idev = private;
-> +	struct ecap_state *state = iio_priv(idev);
-> +	u16 ints;
-> +
-> +	iio_trigger_poll(idev->trig, 0);
-> +
-> +	/* Clear CAP2 interrupt */
-> +	ints = readw(state->regs + ECFLG);
-> +	if (ints & ECINT_CEVT2)
-> +		writew(ECINT_CEVT2, state->regs + ECCLR);
-> +	else
-> +		dev_warn(&idev->dev, "unhandled interrupt flagged: %04x\n",
-> +			 ints);
-> +
-> +	return IRQ_HANDLED;
-> +}
-> +
-> +static int ecap_buffer_predisable(struct iio_dev *idev)
-> +{
-> +	struct ecap_state *state = iio_priv(idev);
-> +	int ret = 0;
-> +	u16 ecctl2;
-> +
-> +	/* Stop capture */
-> +	clear_bit(ECAP_ENABLED, &state->flags);
-> +	ecctl2 = readw(state->regs + ECCTL2) & ~ECCTL2_TSCTR_FREERUN;
-> +	writew(ecctl2, state->regs + ECCTL2);
-> +
-> +	/* Disable and clear all interrupts */
-> +	writew(0, state->regs + ECEINT);
-> +	writew(ECINT_ALL, state->regs + ECCLR);
-> +
-> +	ret = iio_triggered_buffer_predisable(idev);
-> +
-> +	pm_runtime_put_sync(idev->dev.parent);
-> +
-> +	return ret;
-> +}
-> +
-> +static int ecap_buffer_postenable(struct iio_dev *idev)
-> +{
-> +	struct ecap_state *state = iio_priv(idev);
-> +	int ret = 0;
-> +	u16 ecctl1, ecctl2;
-> +
-> +	pm_runtime_get_sync(idev->dev.parent);
-> +
-> +	/* Configure pulse polarity */
-> +	ecctl1 = readw(state->regs + ECCTL1);
-> +	if (test_bit(ECAP_POLARITY_HIGH, &state->flags)) {
-> +		/* CAP1 rising, CAP2 falling */
-> +		ecctl1 |= ECCTL1_CAP2POL;
-> +		ecctl1 &= ~ECCTL1_CAP1POL;
-> +	} else {
-> +		/* CAP1 falling, CAP2 rising */
-> +		ecctl1 &= ~ECCTL1_CAP2POL;
-> +		ecctl1 |= ECCTL1_CAP1POL;
-> +	}
-> +	writew(ecctl1, state->regs + ECCTL1);
-> +
-> +	/* Enable CAP2 interrupt */
-> +	writew(ECINT_CEVT2, state->regs + ECEINT);
-> +
-> +	/* Enable capture */
-> +	ecctl2 = readw(state->regs + ECCTL2);
-> +	ecctl2 |= ECCTL2_TSCTR_FREERUN | ECCTL2_REARM;
-> +	writew(ecctl2, state->regs + ECCTL2);
-> +	set_bit(ECAP_ENABLED, &state->flags);
-> +
-> +	ret = iio_triggered_buffer_postenable(idev);
-> +
-> +	return ret;
-> +}
-> +
-> +static const struct iio_buffer_setup_ops ecap_buffer_setup_ops = {
-> +	.postenable = &ecap_buffer_postenable,
-> +	.predisable = &ecap_buffer_predisable,
-> +};
-> +
-> +static void ecap_init_hw(struct iio_dev *idev)
-> +{
-> +	struct ecap_state *state = iio_priv(idev);
-> +
-> +	clear_bit(ECAP_ENABLED, &state->flags);
-> +	set_bit(ECAP_POLARITY_HIGH, &state->flags);
-> +
-> +	writew(ECCTL1_RUN_FREE | ECCTL1_CAPLDEN |
-> +	       ECCTL1_CAP2POL | ECCTL1_CTRRST1,
-> +	       state->regs + ECCTL1);
-> +
-> +	writew(ECCTL2_SYNCO_SEL_DIS | ECCTL2_STOP_WRAP_2,
-> +	       state->regs + ECCTL2);
-> +}
-> +
-> +static const struct of_device_id ecap_of_ids[] = {
-> +	{ .compatible	= "ti,am33xx-ecap" },
-> +	{ /* sentinel */ },
-> +};
-> +MODULE_DEVICE_TABLE(of, ecap_of_ids);
-> +
-> +static int ecap_probe(struct platform_device *pdev)
-> +{
-> +	int irq, ret;
-> +	struct iio_dev *idev;
-> +	struct ecap_state *state;
-> +	struct resource *r;
-> +	struct clk *clk;
-> +	struct iio_trigger *trig;
-> +	u16 status;
-> +
-> +	idev = devm_iio_device_alloc(&pdev->dev, sizeof(struct ecap_state));
-> +	if (!idev)
-> +		return -ENOMEM;
-> +
-> +	state = iio_priv(idev);
-> +
-> +	clk = devm_clk_get(&pdev->dev, "fck");
-> +	if (IS_ERR(clk)) {
-> +		dev_err(&pdev->dev, "failed to get clock\n");
-> +		return PTR_ERR(clk);
-> +	}
-> +
-> +	state->clk_rate = clk_get_rate(clk);
-> +	if (!state->clk_rate) {
-> +		dev_err(&pdev->dev, "failed to get clock rate\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	platform_set_drvdata(pdev, idev);
-> +
-> +	idev->dev.parent = &pdev->dev;
-> +	idev->name = dev_name(&pdev->dev);
-> +	idev->modes = INDIO_DIRECT_MODE;
-> +	idev->info = &ecap_info;
-> +	idev->channels = ecap_channels;
-> +	/* One h/w capture and one s/w timestamp channel per instance */
-> +	idev->num_channels = ARRAY_SIZE(ecap_channels);
-> +
-> +	trig = devm_iio_trigger_alloc(&pdev->dev, "%s-dev%d",
-> +				      idev->name, idev->id);
-> +	if (!trig)
-> +		return -ENOMEM;
-> +	trig->dev.parent = idev->dev.parent;
-> +	iio_trigger_set_drvdata(trig, idev);
-> +	trig->ops = &iio_interrupt_trigger_ops;
-> +
-> +	ret = iio_trigger_register(trig);
-> +	if (ret) {
-> +		dev_err(&pdev->dev, "failed to register trigger\n");
-> +		return ret;
-> +	}
-> +
-> +	ret = iio_triggered_buffer_setup(idev, NULL,
-> +					 &ecap_trigger_handler,
-> +					 &ecap_buffer_setup_ops);
-> +	if (ret)
-> +		return ret;
-> +
-> +	irq = platform_get_irq(pdev, 0);
-> +	if (irq < 0) {
-> +		dev_err(&pdev->dev, "no irq is specified\n");
-> +		return irq;
-> +	}
-> +	ret = devm_request_irq(&pdev->dev, irq,
-> +				&ecap_interrupt_handler,
-> +				0, dev_name(&pdev->dev), idev);
-> +	if (ret) {
-> +		dev_err(&pdev->dev, "unable to request irq\n");
-> +		goto uninit_buffer;
-> +	}
-> +
-> +	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	state->regs = devm_ioremap_resource(&pdev->dev, r);
-> +	if (IS_ERR(state->regs)) {
-> +		dev_err(&pdev->dev, "unable to remap registers\n");
-> +		ret = PTR_ERR(state->regs);
-> +		goto uninit_buffer;
-> +	};
-> +
-> +	ret = iio_device_register(idev);
-> +	if (ret < 0) {
-> +		dev_err(&pdev->dev, "unable to register device\n");
-> +		goto uninit_buffer;
-> +	}
-> +
-> +	state->buf = devm_kzalloc(&idev->dev, idev->scan_bytes, GFP_KERNEL);
-> +	if (!state->buf) {
-> +		ret = -ENOMEM;
-> +		goto uninit_buffer;
-> +	}
-> +
-> +	pm_runtime_enable(&pdev->dev);
-> +	pm_runtime_get_sync(&pdev->dev);
-> +
-> +	status = pwmss_submodule_state_change(pdev->dev.parent,
-> +			PWMSS_ECAPCLK_EN);
-> +	if (!(status & PWMSS_ECAPCLK_EN_ACK)) {
-> +		dev_err(&pdev->dev, "failed to enable PWMSS config space clock\n");
-> +		ret = -EINVAL;
-> +		goto pwmss_clk_failure;
-> +	}
-> +
-> +	ecap_init_hw(idev);
-> +
-> +	pm_runtime_put_sync(&pdev->dev);
-> +
-> +	return 0;
-> +
-> +pwmss_clk_failure:
-> +	pm_runtime_put_sync(&pdev->dev);
-> +	pm_runtime_disable(&pdev->dev);
-> +	iio_device_unregister(idev);
-> +
-> +uninit_buffer:
-> +	iio_triggered_buffer_cleanup(idev);
-> +
-> +	return ret;
-> +}
-> +
-> +static int ecap_remove(struct platform_device *pdev)
-> +{
-> +	struct iio_dev *idev = platform_get_drvdata(pdev);
-> +
-> +	pm_runtime_get_sync(&pdev->dev);
-> +
-> +	pwmss_submodule_state_change(pdev->dev.parent, PWMSS_ECAPCLK_STOP_REQ);
-> +
-> +	pm_runtime_put_sync(&pdev->dev);
-> +	pm_runtime_disable(&pdev->dev);
-> +
-> +	iio_device_unregister(idev);
-> +	iio_triggered_buffer_cleanup(idev);
-> +
-> +	return 0;
-> +}
-> +
-> +#ifdef CONFIG_PM_SLEEP
-> +static int ecap_suspend(struct device *dev)
-> +{
-> +	struct ecap_state *state = dev_to_ecap_state(dev);
-> +
-> +	pm_runtime_get_sync(dev);
-> +	state->ctx.cap1 = readl(state->regs + CAP1);
-> +	state->ctx.cap2 = readl(state->regs + CAP2);
-> +	state->ctx.eceint = readw(state->regs + ECEINT);
-> +	state->ctx.ecctl1 = readw(state->regs + ECCTL1);
-> +	state->ctx.ecctl2 = readw(state->regs + ECCTL2);
-> +	pm_runtime_put_sync(dev);
-> +
-> +	/* If capture was active, disable ECAP */
-> +	if (test_bit(ECAP_ENABLED, &state->flags))
-> +		pm_runtime_put_sync(dev);
-> +
-> +	return 0;
-> +}
-> +
-> +static int ecap_resume(struct device *dev)
-> +{
-> +	struct ecap_state *state = dev_to_ecap_state(dev);
-> +
-> +	/* If capture was active, enable ECAP */
-> +	if (test_bit(ECAP_ENABLED, &state->flags))
-> +		pm_runtime_get_sync(dev);
-> +
-> +	pm_runtime_get_sync(dev);
-> +	writel(state->ctx.cap1, state->regs + CAP1);
-> +	writel(state->ctx.cap2, state->regs + CAP2);
-> +	writew(state->ctx.eceint, state->regs + ECEINT);
-> +	writew(state->ctx.ecctl1, state->regs + ECCTL1);
-> +	writew(state->ctx.ecctl2, state->regs + ECCTL2);
-> +	pm_runtime_put_sync(dev);
-> +
-> +	return 0;
-> +}
-> +#endif
-> +
-> +static SIMPLE_DEV_PM_OPS(ecap_pm_ops, ecap_suspend, ecap_resume);
-> +
-> +static struct platform_driver ecap_iio_driver = {
-> +	.driver = {
-> +		.name		= "ecap",
-> +		.owner		= THIS_MODULE,
-> +		.of_match_table = of_match_ptr(ecap_of_ids),
-> +		.pm		= &ecap_pm_ops,
-> +	},
-> +	.probe = ecap_probe,
-> +	.remove = ecap_remove,
-> +};
-> +
-> +module_platform_driver(ecap_iio_driver);
-> +
-> +MODULE_DESCRIPTION("ECAP IIO pulse capture driver");
-> +MODULE_AUTHOR("Matt Porter <mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>");
-> +MODULE_LICENSE("GPL");
-> 
+The AM572x-IDK board is a board based on TI's AM5728 SOC
+which has a dual core 1.5GHz A15 processor. This board is a
+development platform for the Industrial market with:
+- 2GB of DDR3L
+- Dual 1Gbps Ethernet
+- HDMI,
+- PRU-ICSS
+- uSD
+- 16GB eMMC
+- CAN
+- RS-485
+- PCIe
+- USB3.0
+- Video Input Port
+- Industrial IO port and expansion connector
+
+The link to the data sheet and TRM can be found here:
+
+http://www.ti.com/product/AM5728
+
+This patch creates a common dtsi file that will provide a common board
+dtsi file to define the nodes that are common to AM57xx (including the
+upcoming AM5718) IDK boards.
+
+Initial support is only for basic peripherals
+
+Signed-off-by: Schuyler Patton <spatton-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+---
+based on v4.6-rc1
+
+Changes since V1:
+	- Renamed the led nodes
+	- Dropped unused src_clk_x1 node (will introduce when needed).
+
+Test: http://pastebin.ubuntu.com/15540747/
+
+V1: https://patchwork.kernel.org/patch/8665181/
+
+ .../devicetree/bindings/arm/omap/omap.txt          |   3 +
+ arch/arm/boot/dts/Makefile                         |   1 +
+ arch/arm/boot/dts/am572x-idk.dts                   |  85 ++++++
+ arch/arm/boot/dts/am57xx-idk-common.dtsi           | 302 +++++++++++++++++++++
+ 4 files changed, 391 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am572x-idk.dts
+ create mode 100644 arch/arm/boot/dts/am57xx-idk-common.dtsi
+
+diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+index 21e71a5e866e..38659aa35ce3 100644
+--- a/Documentation/devicetree/bindings/arm/omap/omap.txt
++++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+@@ -169,6 +169,9 @@ Boards:
+ - AM57XX SBC-AM57x
+   compatible = "compulab,sbc-am57x", "compulab,cl-som-am57x", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7"
+ 
++- AM5728 IDK
++  compatible = "ti,am5728-idk", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7"
++
+ - DRA742 EVM:  Software Development Board for DRA742
+   compatible = "ti,dra7-evm", "ti,dra742", "ti,dra74", "ti,dra7"
+ 
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 95c1923ce6fa..4341df332a4f 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -526,6 +526,7 @@ dtb-$(CONFIG_SOC_DRA7XX) += \
+ 	am57xx-beagle-x15.dtb \
+ 	am57xx-cl-som-am57x.dtb \
+ 	am57xx-sbc-am57x.dtb \
++	am572x-idk.dtb \
+ 	dra7-evm.dtb \
+ 	dra72-evm.dtb
+ dtb-$(CONFIG_ARCH_ORION5X) += \
+diff --git a/arch/arm/boot/dts/am572x-idk.dts b/arch/arm/boot/dts/am572x-idk.dts
+new file mode 100644
+index 000000000000..e3acb99703e1
+--- /dev/null
++++ b/arch/arm/boot/dts/am572x-idk.dts
+@@ -0,0 +1,85 @@
++/*
++ * Copyright (C) 2015-2016 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/dts-v1/;
++
++#include "dra74x.dtsi"
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/interrupt-controller/irq.h>
++#include "am57xx-idk-common.dtsi"
++
++/ {
++	model = "TI AM5728 IDK";
++	compatible = "ti,am5728-idk", "ti,am5728", "ti,dra742", "ti,dra74",
++		     "ti,dra7";
++
++	memory {
++		device_type = "memory";
++		reg = <0x0 0x80000000 0x0 0x80000000>;
++	};
++
++	extcon_usb2: extcon_usb2 {
++		compatible = "linux,extcon-usb-gpio";
++		id-gpio = <&gpio3 16 GPIO_ACTIVE_HIGH>;
++	};
++
++	status-leds {
++		compatible = "gpio-leds";
++		cpu0-led {
++			label = "status0:red:cpu0";
++			gpios = <&gpio4 0 GPIO_ACTIVE_HIGH>;
++			default-state = "off";
++			linux,default-trigger = "cpu0";
++		};
++
++		usr0-led {
++			label = "status0:green:usr";
++			gpios = <&gpio3 11 GPIO_ACTIVE_HIGH>;
++			default-state = "off";
++		};
++
++		heartbeat-led {
++			label = "status0:blue:heartbeat";
++			gpios = <&gpio3 12 GPIO_ACTIVE_HIGH>;
++			default-state = "off";
++			linux,default-trigger = "heartbeat";
++		};
++
++		cpu1-led {
++			label = "status1:red:cpu1";
++			gpios = <&gpio3 10 GPIO_ACTIVE_HIGH>;
++			default-state = "off";
++			linux,default-trigger = "cpu1";
++		};
++
++		usr1-led {
++			label = "status1:green:usr";
++			gpios = <&gpio7 23 GPIO_ACTIVE_HIGH>;
++			default-state = "off";
++		};
++
++		mmc0-led {
++			label = "status1:blue:mmc0";
++			gpios = <&gpio7 22 GPIO_ACTIVE_HIGH>;
++			default-state = "off";
++			linux,default-trigger = "mmc0";
++		};
++	};
++};
++
++&omap_dwc3_2 {
++	extcon = <&extcon_usb2>;
++};
++
++&mmc1 {
++	status = "okay";
++	vmmc-supply = <&v3_3d>;
++	vmmc_aux-supply = <&ldo1_reg>;
++	bus-width = <4>;
++	cd-gpios = <&gpio6 27 0>; /* gpio 219 */
++};
+diff --git a/arch/arm/boot/dts/am57xx-idk-common.dtsi b/arch/arm/boot/dts/am57xx-idk-common.dtsi
+new file mode 100644
+index 000000000000..2805b68f3e0b
+--- /dev/null
++++ b/arch/arm/boot/dts/am57xx-idk-common.dtsi
+@@ -0,0 +1,302 @@
++/*
++ * Copyright (C) 2015-2016 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/ {
++	aliases {
++		rtc0 = &tps659038_rtc;
++		rtc1 = &rtc;
++	};
++
++	vmain: fixedregulator-vmain {
++		compatible = "regulator-fixed";
++		regulator-name = "VMAIN";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	v3_3d: fixedregulator-v3_3d {
++		compatible = "regulator-fixed";
++		regulator-name = "V3_3D";
++		vin-supply = <&smps9_reg>;
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
++	vtt_fixed: fixedregulator-vtt {
++		/* TPS51200 */
++		compatible = "regulator-fixed";
++		regulator-name = "vtt_fixed";
++		vin-supply = <&v3_3d>;
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++};
++
++&i2c1 {
++	status = "okay";
++	clock-frequency = <400000>;
++
++	tps659038: tps659038@58 {
++		compatible = "ti,tps659038";
++		reg = <0x58>;
++		interrupts-extended = <&gpio6 16 IRQ_TYPE_LEVEL_HIGH
++			       &dra7_pmx_core 0x418>;
++		#interrupt-cells = <2>;
++		interrupt-controller;
++		ti,system-power-controller;
++
++		tps659038_pmic {
++			compatible = "ti,tps659038-pmic";
++			regulators {
++				smps12_reg: smps12 {
++					/* VDD_MPU */
++					vin-supply = <&vmain>;
++					regulator-name = "smps12";
++					regulator-min-microvolt = <850000>;
++					regulator-max-microvolt = <1250000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				smps3_reg: smps3 {
++					/* VDD_DDR EMIF1 EMIF2 */
++					vin-supply = <&vmain>;
++					regulator-name = "smps3";
++					regulator-min-microvolt = <1350000>;
++					regulator-max-microvolt = <1350000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				smps45_reg: smps45 {
++					/* VDD_DSPEVE on AM572 */
++					/* VDD_IVA + VDD_DSP on AM571 */
++					vin-supply = <&vmain>;
++					regulator-name = "smps45";
++					regulator-min-microvolt = <850000>;
++					regulator-max-microvolt = <1250000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				smps6_reg: smps6 {
++					/* VDD_GPU */
++					vin-supply = <&vmain>;
++					regulator-name = "smps6";
++					regulator-min-microvolt = <850000>;
++					regulator-max-microvolt = <1250000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				smps7_reg: smps7 {
++					/* VDD_CORE */
++					vin-supply = <&vmain>;
++					regulator-name = "smps7";
++					regulator-min-microvolt = <850000>;
++					regulator-max-microvolt = <1150000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				smps8_reg: smps8 {
++					/* 5728 - VDD_IVAHD */
++					/* 5718 - N.C. test point */
++					vin-supply = <&vmain>;
++					regulator-name = "smps8";
++				};
++
++				smps9_reg: smps9 {
++					/* VDD_3_3D */
++					vin-supply = <&vmain>;
++					regulator-name = "smps9";
++					regulator-min-microvolt = <3300000>;
++					regulator-max-microvolt = <3300000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				ldo1_reg: ldo1 {
++					/* VDDSHV8 - VSDMMC  */
++					/* NOTE: on rev 1.3a, data supply */
++					vin-supply = <&vmain>;
++					regulator-name = "ldo1";
++					regulator-min-microvolt = <1800000>;
++					regulator-max-microvolt = <3300000>;
++					regulator-boot-on;
++					regulator-always-on;
++				};
++
++				ldo2_reg: ldo2 {
++					/* VDDSH18V */
++					vin-supply = <&vmain>;
++					regulator-name = "ldo2";
++					regulator-min-microvolt = <1800000>;
++					regulator-max-microvolt = <1800000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				ldo3_reg: ldo3 {
++					/* R1.3a 572x V1_8PHY_LDO3: USB, SATA */
++					vin-supply = <&vmain>;
++					regulator-name = "ldo3";
++					regulator-min-microvolt = <1800000>;
++					regulator-max-microvolt = <1800000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				ldo4_reg: ldo4 {
++					/* R1.3a 572x V1_8PHY_LDO4: PCIE, HDMI*/
++					vin-supply = <&vmain>;
++					regulator-name = "ldo4";
++					regulator-min-microvolt = <1800000>;
++					regulator-max-microvolt = <1800000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				/* LDO5-8 unused */
++
++				ldo9_reg: ldo9 {
++					/* VDD_RTC  */
++					vin-supply = <&vmain>;
++					regulator-name = "ldo9";
++					regulator-min-microvolt = <840000>;
++					regulator-max-microvolt = <1160000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				ldoln_reg: ldoln {
++					/* VDDA_1V8_PLL */
++					vin-supply = <&vmain>;
++					regulator-name = "ldoln";
++					regulator-min-microvolt = <1800000>;
++					regulator-max-microvolt = <1800000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				ldousb_reg: ldousb {
++					/* VDDA_3V_USB: VDDA_USBHS33 */
++					vin-supply = <&vmain>;
++					regulator-name = "ldousb";
++					regulator-min-microvolt = <3300000>;
++					regulator-max-microvolt = <3300000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				ldortc_reg: ldortc {
++					/* VDDA_RTC  */
++					vin-supply = <&vmain>;
++					regulator-name = "ldortc";
++					regulator-min-microvolt = <1800000>;
++					regulator-max-microvolt = <1800000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				regen1: regen1 {
++					/* VDD_3V3_ON */
++					regulator-name = "regen1";
++					regulator-boot-on;
++					regulator-always-on;
++				};
++
++				regen2: regen2 {
++					/* Needed for PMIC internal resource */
++					regulator-name = "regen2";
++					regulator-boot-on;
++					regulator-always-on;
++				};
++			};
++		};
++
++		tps659038_rtc: tps659038_rtc {
++			compatible = "ti,palmas-rtc";
++			interrupt-parent = <&tps659038>;
++			interrupts = <8 IRQ_TYPE_EDGE_FALLING>;
++			wakeup-source;
++		};
++
++		tps659038_pwr_button: tps659038_pwr_button {
++			compatible = "ti,palmas-pwrbutton";
++			interrupt-parent = <&tps659038>;
++			interrupts = <1 IRQ_TYPE_EDGE_FALLING>;
++			wakeup-source;
++			ti,palmas-long-press-seconds = <12>;
++		};
++
++		tps659038_gpio: tps659038_gpio {
++			compatible = "ti,palmas-gpio";
++			gpio-controller;
++			#gpio-cells = <2>;
++		};
++	};
++};
++
++&uart3 {
++	status = "okay";
++	interrupts-extended = <&crossbar_mpu GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH
++			       &dra7_pmx_core 0x248>;
++};
++
++&rtc {
++	status = "okay";
++	ext-clk-src;
++};
++
++&mac {
++	status = "okay";
++	dual_emac;
++};
++
++&cpsw_emac0 {
++	phy_id = <&davinci_mdio>, <0>;
++	phy-mode = "rgmii";
++	dual_emac_res_vlan = <1>;
++};
++
++&cpsw_emac1 {
++	phy_id = <&davinci_mdio>, <1>;
++	phy-mode = "rgmii";
++	dual_emac_res_vlan = <2>;
++};
++
++&usb2_phy1 {
++	phy-supply = <&ldousb_reg>;
++};
++
++&usb2_phy2 {
++	phy-supply = <&ldousb_reg>;
++};
++
++&usb1 {
++	dr_mode = "host";
++};
++
++&usb2 {
++	dr_mode = "otg";
++};
++
++&mmc2 {
++	status = "okay";
++	vmmc-supply = <&v3_3d>;
++	bus-width = <8>;
++	ti,non-removable;
++	max-frequency = <96000000>;
++};
+-- 
+2.8.0.rc3
 
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
