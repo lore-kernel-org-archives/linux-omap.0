@@ -1,60 +1,20 @@
-From: Emil Velikov <emil.l.velikov@gmail.com>
-Subject: Re: [PATCH 00/23] Nokia N950 display support
-Date: Mon, 28 Mar 2016 13:34:51 +0100
-Message-ID: <CACvgo53yG4U471fv4nw4czVKKc8=NQsD_37Gxf_3vX8638tBWQ@mail.gmail.com>
-References: <1457455195-1938-1-git-send-email-sre@kernel.org>
- <CACvgo51ys5DQYKLd4qJv6yFj9TKeZM3cfmsY0ECVVvnS+e_-4g@mail.gmail.com>
- <20160309170925.GA3062@earth>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: Re: [PATCH] MAINTAINERS: ti-soc-thermal: add a co-maintainer and
+ update the entry
+Date: Mon, 28 Mar 2016 06:45:16 -0700
+Message-ID: <20160328134515.GD7624@localhost.localdomain>
+References: <1458108778-3803-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20160309170925.GA3062@earth>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, ML dri-devel <dri-devel@lists.freedesktop.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1458108778-3803-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, akpm@linux-foundation.org, gregkh@linuxfoundation.org, davem@davemloft.net, rui.zhang@intel.com
 List-Id: linux-omap@vger.kernel.org
 
-SGkgU2ViYXN0aWFuLAoKT24gOSBNYXJjaCAyMDE2IGF0IDE3OjA5LCBTZWJhc3RpYW4gUmVpY2hl
-bCA8c3JlQGtlcm5lbC5vcmc+IHdyb3RlOgo+IEhpIEVtaWwsCj4KPiBPbiBXZWQsIE1hciAwOSwg
-MjAxNiBhdCAwNDoxOTo0OFBNICswMDAwLCBFbWlsIFZlbGlrb3Ygd3JvdGU6Cj4+IEhpIFNlYmFz
-dGlhbiwKPj4KPj4gT24gOCBNYXJjaCAyMDE2IGF0IDE2OjM5LCBTZWJhc3RpYW4gUmVpY2hlbCA8
-c3JlQGtlcm5lbC5vcmc+IHdyb3RlOgo+Pgo+PiA+ICBhcmNoL2FybS9ib290L2R0cy9vbWFwMy1u
-OTUwLW45LmR0c2kgICAgICAgICAgICB8ICA3MiArKysrKysrKysKPj4gPiAgYXJjaC9hcm0vYm9v
-dC9kdHMvb21hcDMtbjk1MC5kdHMgICAgICAgICAgICAgICAgfCAgNzEgKysrKysrKysrCj4+IEp1
-c3QgYSBmcmllbmRseSByZW1pbmRlciB0aGF0IHVwZGF0aW5nIHRoZXNlIGFuZCBvbmUgd2lsbCBo
-YXZlIHRvIGtlZXAKPj4gdGhlIGRyaXZlciBiYWNrd2FyZHMgY29tcGF0aWJsZSBmb3JldmVyLgo+
-Cj4gT2YgY291cnNlLiBCYXNpY2FsbHkgdGhlIG5ldyBEVCBwcm9wZXJ0aWVzIGFyZToKPgo+ICAq
-IG9wdGlvbmFsIHJlZ3VsYXRvcnMgKHZwbmwgJiB2ZGRpKQo+ICAqIGJvb2xlYW4gImhhcy1kc2kt
-YmFja2xpZ2h0Igo+ICAqIHJlc29sdXRpb24teC95Cj4gICogb2Zmc2V0LXgveQo+Cj4gU28gcHJv
-YmFibHkgbm90IHRoYXQgbXVjaCBvZiBhIHByb2JsZW0gZXZlbiBpZiBvdGhlciBBUEkgaXMKPiBp
-bnZlbnRlZC4gSSBqdXN0IG5vdGljZWQsIHRoYXQgSSBmb3Jnb3QgdG8gYWN0dWFsbHkgYWRkIGRv
-Y3VtZW50YXRpb24KPiBpbiBEb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvZGlzcGxh
-eS9wYW5lbC9wYW5lbC1kc2ktY20udHh0Cj4KPiBJIHdpbGwgZml4IHRoYXQgaW4gdGhlIG5leHQg
-cGF0Y2hzZXQgcmV2aXNpb24uCj4KPj4gVG9taSwgaGFzIGJlZW4gaW4gdGhlIHByb2Nlc3Mgb2Yg
-cmVtb3ZpbmcgYWxsIHRoZSB1bm5lZWRlZCBjcnVmdCwKPj4gYWx0aG91Z2ggb21hcGRybSBpdCBp
-cyBzdGlsbCB1c2luZyB0aGUgY3VzdG9tIHBhbmVsLCBkc2kgYW5kIG90aGVyCj4+IGNvZGUgYXMg
-b3Bwb3NlZCB0byB0aGUgb25lcyBwcm92aWRlZCBieSBEUk0uIEFzIGhlIGdldHMgdG8gcmV1c2lu
-Zwo+PiB0aG9zZSBoZSBtaWdodCBoYXZlIHNvbWUgZnVuIGtlZXBpbmcgdGhpbmdzIGNvbXBhdGli
-bGUuCj4KPiBJIGNvdWxkIG5vdCBmaW5kICJnZW5lcmljIiBwYW5lbCBiaW5kaW5nIGRvY3VtZW50
-YXRpb24uIENhbiB5b3UKPiBnaXZlIG1lIGEgcG9pbnRlcj8gSSBjYW4ganVzdCBzdGljayB0byB0
-aGUgc2FtZSBwcm9wZXJ0eSBuYW1lcwo+IHRvIGF2b2lkIHBvdGVudGlhbCBmdXR1cmUgcHJvYmxl
-bXMuCj4KUGFyZG9uIGZvciB0aGUgbGF0ZSByZXBseS4KCkFzIG1lbnRpb25lZCBpbiBhbm90aGVy
-IGVtYWlsLCBpZiB5b3UncmUgaW50ZXJlc3RlZCBpbiByZXVzaW5nIHRoZSBkcm0KcGFuZWwgaW5m
-cmFzdHJ1Y3R1cmUgeW91IHNob3VsZCBiZSBsb29raW5nIGluCkRvY3VtZW50YXRpb24vZGV2aWNl
-dHJlZS9iaW5kaW5ncy9kaXNwbGF5L3BhbmVsLy4gV2l0aCBkaXNwbGF5LXRpbWluZwpwYW5lbC1k
-cGkgcGFuZWwtZHNpLWNtIGFuZCAob3B0aW9uYWwpIHNpbXBsZS1wYW5lbCBhcyBhIHN0YXJ0LgoK
-V291bGQgcmVzaHVmZmxpbmcvZG9jdW1lbnRpbmcgdGhpbmdzIG1ha2UgaXQgbW9yZSBvYnZpb3Vz
-ID8gRmVlbCBmcmVlCnRvIGxldCBSb2IgSGVycmluZywgVGhpZXJyeSBSZWRpbmcga25vdy4KClJl
-Z2FyZHMsCkVtaWwKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
-Cmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
-Cg==
+On Wed, Mar 16, 2016 at 11:42:58AM +0530, Keerthy wrote:
+> Add myself as a co-maintainer for ti-soc-thermal
+
+Cool. I am queueing this one.
