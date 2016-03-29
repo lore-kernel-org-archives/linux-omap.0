@@ -1,71 +1,54 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: am335x: no multicast reception over VLAN
-Date: Tue, 29 Mar 2016 15:44:26 +0300
-Message-ID: <56FA78AA.4030402@ti.com>
-References: <CAGm1_ktOqB4QBMy2G4XeHTkaP+WvG8GOc8maVv3dDoxM+-F+ZA@mail.gmail.com>
- <56F9FDD0.8030504@ti.com>
- <CAGm1_ksxRPCAqx4n5gbsARSYeF116BT7r8cC6=1QYnEsYRxpVw@mail.gmail.com>
- <56FA616C.9080502@ti.com>
- <CAGm1_ksvEdk-mF-hW4o5+bri6J6sMgnQQVD3j-e7xm6PsP8k0A@mail.gmail.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH] Documentation: devicetree: bindings: regulator: palmas-pmic.txt
+Date: Tue, 29 Mar 2016 18:12:43 +0530
+Message-ID: <1459255363-21101-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAGm1_ksvEdk-mF-hW4o5+bri6J6sMgnQQVD3j-e7xm6PsP8k0A@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Yegor Yefremov <yegorslists@googlemail.com>
-Cc: Mugunthan V N <mugunthanvnm@ti.com>, netdev <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, drivshin@allworx.com, ml@markusgrimm.de
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: robh+dt@kernel.org, mark.rutland@arm.com
+Cc: spatton@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 03/29/2016 03:35 PM, Yegor Yefremov wrote:
-> On Tue, Mar 29, 2016 at 1:05 PM, Grygorii Strashko
-> <grygorii.strashko@ti.com> wrote:
->> On 03/29/2016 08:21 AM, Yegor Yefremov wrote:
->>> Hi Mugunthan,
->>>
->>> On Tue, Mar 29, 2016 at 6:00 AM, Mugunthan V N <mugunthanvnm@ti.com> wrote:
->>>> Hi Yegor
->>>>
->>>> On Wednesday 16 March 2016 08:35 PM, Yegor Yefremov wrote:
->>>>> I have an am335x based board using CPSW in Dual EMAC mode. Without
->>>>> VLAN IDs I can receive and send multicast packets [1]. When I create
->>>>> VLAN ID:
->>>>>
->>>>> ip link add link eth1 name eth1.100 type vlan id 100
->>>>> ip addr add 192.168.100.2/24 brd 192.168.100.255 dev eth1.100
->>>>> route add -net 224.0.0.0 netmask 224.0.0.0 eth1.100
->>>>>
->>>>> I can successfully send multicast packets, but not receive them. On
->>>>> the other side of the Ethernet cable I've used Pandaboard. Pandaboard
->>>>> could both receive and send multicast packets via VLAN.
->>>>
->>>> Are you trying multicast tx/rx on eth1 or eth1.100?
->>>
->>> I'm trying multicast tx/rx on eth1.100.
->>>
->>> eth1 has no problems.
->>>
->>
->> it'd be nice if will be able to post here output fom commands:
->> # switch-config -d [git://git.ti.com/switch-config/switch-config.git v4.1]
->> # ifconfig -a
->> # tcpdump -e -f -Q in -i eth0
->> # tcpdump -e -f -Q in -i eth0.100
-> 
-> Which kernel/branch do you want me to test?
-> 
-> git://git.ti.com/ti-linux-kernel/ti-linux-kernel.git and ti-rt-linux-4.1.y?
-> 
-> So far I was using vanilla kernel.
+From: Schuyler Patton <spatton@ti.com>
 
-Your branch (but better 4.5 kernels (or 4.4)). 
-Just when you've done with configuration run cmds 1&2,
-and when you run your use-case - run cmds 2&3 on receiver side (grap ~5-10 packets).
-then stop test and run cmd 1 again.
+Adding support for the tps659038 pmic so it doesn't generate a warning
+when running the patch check script to
+Documentation/devicetree/bindings/regulator/palmas-pmic.txt
 
-After all could you provide your console output here, pls.
+Adding a note that the tps659037 device is a OTP spin of the
+tps659038 pmic and device compatible.
 
+Signed-off-by: Schuyler Patton <spatton@ti.com>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
+ Documentation/devicetree/bindings/regulator/palmas-pmic.txt | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
+diff --git a/Documentation/devicetree/bindings/regulator/palmas-pmic.txt b/Documentation/devicetree/bindings/regulator/palmas-pmic.txt
+index 725393c..9987281 100644
+--- a/Documentation/devicetree/bindings/regulator/palmas-pmic.txt
++++ b/Documentation/devicetree/bindings/regulator/palmas-pmic.txt
+@@ -1,5 +1,12 @@
+ * palmas regulator IP block devicetree bindings
+ 
++The tps659038 for the AM57x class have OTP spins that
++have different part numbers but the same functionality. There
++is not a need to add the OTP spins to the palmas driver. The
++spin devices should use the tps659038 as it's compatible value.
++This is the list of those devices:
++tps659037
++
+ Required properties:
+ - compatible : Should be from the list
+   ti,twl6035-pmic
+@@ -8,6 +15,7 @@ Required properties:
+   ti,tps65913-pmic
+   ti,tps65914-pmic
+   ti,tps65917-pmic
++  ti,tps659038-pmic
+ and also the generic series names
+   ti,palmas-pmic
+ - interrupt-parent : The parent interrupt controller which is palmas.
 -- 
-regards,
--grygorii
+1.9.1
