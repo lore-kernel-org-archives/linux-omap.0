@@ -1,22 +1,33 @@
-From: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
-Subject: [PATCH 0/5] Amazon Kindle Fire (first generation) codename kc1 support series
-Date: Tue, 29 Mar 2016 21:28:21 +0200
-Message-ID: <1459279707-17611-1-git-send-email-contact@paulk.fr>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+From: Paul Kocialkowski <contact@paulk.fr>
+Subject: [PATCH 1/5] devicetree: bindings: Add vendor prefix for Amazon.com, Inc.
+Date: Tue, 29 Mar 2016 21:28:23 +0200
+Message-ID: <1459279707-17611-3-git-send-email-contact@paulk.fr>
+References: <1459279707-17611-1-git-send-email-contact@paulk.fr>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1459279707-17611-1-git-send-email-contact@paulk.fr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Paul Kocialkowski <contact@paulk.fr>
 List-Id: linux-omap@vger.kernel.org
 
-This series adds basic support for the Amazon Kindle Fire (first generation)
-codename kc1. A few features such as serial, i2c, the internal eMMC, USB gadget
-and power button leds.
+This adds the amazon vendor prefix for Amazon.com, Inc.
 
-It requires some TWL-related patches to work properly, in particular:
-* pwm: twl: Reliably disable TWL6030 PWMs
-* mfd: Add TWL6030 power driver, with minimal support for power off
+Signed-off-by: Paul Kocialkowski <contact@paulk.fr>
+---
+ Documentation/devicetree/bindings/vendor-prefixes.txt | 1 +
+ 1 file changed, 1 insertion(+)
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
+index 86740d4..54b647c 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.txt
++++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
+@@ -16,6 +16,7 @@ al	Annapurna Labs
+ allwinner	Allwinner Technology Co., Ltd.
+ alphascale	AlphaScale Integrated Circuits Systems, Inc.
+ altr	Altera Corp.
++amazon	Amazon.com, Inc.
+ amcc	Applied Micro Circuits Corporation (APM, formally AMCC)
+ amd	Advanced Micro Devices (AMD), Inc.
+ amlogic	Amlogic, Inc.
+-- 
+2.7.4
