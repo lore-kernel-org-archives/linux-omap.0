@@ -1,74 +1,76 @@
-From: yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org
-Subject: [PATCH] ARM: dts: am335x-baltos-ir5221: use dedicated RTS/CTS signals
-Date: Tue, 29 Mar 2016 12:08:08 +0200
-Message-ID: <1459246088-17768-1-git-send-email-yegorslists@googlemail.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [PATCH 4/7] ARM: dts: Enable N950 keyboard sleep leds by default
+Date: Tue, 29 Mar 2016 12:51:28 +0200
+Message-ID: <20160329105128.GA30184@amd>
+References: <1457827580-16919-1-git-send-email-sre@kernel.org>
+ <1457827580-16919-5-git-send-email-sre@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1457827580-16919-5-git-send-email-sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+Hi!
 
-Before "tty: Add software emulated RS485 support for 8250" patch Baltos devices
-relied on MCTRL_GPIO framework to handle both modem signals and RS485 mode.
+For 1-3 in the series, Acked-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 
-With emulated RS485 support for 8250 we can now use these pins as dedicated
-RTS/CTS signals taking advantage of hardware flow control etc. when operating
-in RS232 mode.
+> Like the Nokia N900, the N950 has leds to show
+> the state of sys_clkreq and sys_off_mode pins.
+> 
+> A detailed description for the LEDs and
+> OMAP's sleep states can be found in Tony's
+> commit for the Nokia N900:
+> 
+> c1be2032f66df9e1238bd5bc4ca666de88a62abc
 
-Signed-off-by: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
----
- arch/arm/boot/dts/am335x-baltos-ir5221.dts | 12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+I must say I've seen it on N900, and yes, it is useful, but no, I
+don't think this is right.
 
-diff --git a/arch/arm/boot/dts/am335x-baltos-ir5221.dts b/arch/arm/boot/dts/am335x-baltos-ir5221.dts
-index 4e28d87..7fd2bb6 100644
---- a/arch/arm/boot/dts/am335x-baltos-ir5221.dts
-+++ b/arch/arm/boot/dts/am335x-baltos-ir5221.dts
-@@ -109,8 +109,8 @@
- 		pinctrl-single,pins = <
- 			AM33XX_IOPAD(0x980, PIN_INPUT | MUX_MODE0)      /* uart1_rxd */
- 			AM33XX_IOPAD(0x984, PIN_INPUT | MUX_MODE0)      /* uart1_txd */
--			AM33XX_IOPAD(0x978, PIN_INPUT_PULLDOWN | MUX_MODE7)      /* uart1_ctsn, INPUT | MODE0 */
--			AM33XX_IOPAD(0x97c, PIN_OUTPUT_PULLDOWN | MUX_MODE7)      /* uart1_rtsn, OUTPUT | MODE0 */
-+			AM33XX_IOPAD(0x978, PIN_INPUT_PULLDOWN | MUX_MODE0)      /* uart1_ctsn */
-+			AM33XX_IOPAD(0x97c, PIN_OUTPUT_PULLDOWN | MUX_MODE0)      /* uart1_rtsn */
- 			AM33XX_IOPAD(0x8e0, PIN_OUTPUT_PULLDOWN | MUX_MODE7)      /* lcd_vsync.gpio2[22] DTR */
- 			AM33XX_IOPAD(0x8e4, PIN_INPUT_PULLDOWN | MUX_MODE7)      /* lcd_hsync.gpio2[23] DSR */
- 			AM33XX_IOPAD(0x8e8, PIN_INPUT_PULLDOWN | MUX_MODE7)      /* lcd_pclk.gpio2[24] DCD */
-@@ -122,8 +122,8 @@
- 		pinctrl-single,pins = <
- 			AM33XX_IOPAD(0x950, PIN_INPUT | MUX_MODE1)      /* spi0_sclk.uart2_rxd_mux3 */
- 			AM33XX_IOPAD(0x954, PIN_OUTPUT | MUX_MODE1)      /* spi0_d0.uart2_txd_mux3 */
--			AM33XX_IOPAD(0x988, PIN_INPUT_PULLDOWN | MUX_MODE7)      /* i2c0_sda.uart2_ctsn_mux0 */
--			AM33XX_IOPAD(0x98c, PIN_OUTPUT_PULLDOWN | MUX_MODE7)      /* i2c0_scl.uart2_rtsn_mux0 */
-+			AM33XX_IOPAD(0x988, PIN_INPUT_PULLDOWN | MUX_MODE2)      /* i2c0_sda.uart2_ctsn_mux0 */
-+			AM33XX_IOPAD(0x98c, PIN_OUTPUT_PULLDOWN | MUX_MODE2)      /* i2c0_scl.uart2_rtsn_mux0 */
- 			AM33XX_IOPAD(0x830, PIN_OUTPUT_PULLDOWN | MUX_MODE7)      /* gpmc_ad12.gpio1[12] DTR */
- 			AM33XX_IOPAD(0x834, PIN_INPUT_PULLDOWN | MUX_MODE7)      /* gpmc_ad13.gpio1[13] DSR */
- 			AM33XX_IOPAD(0x838, PIN_INPUT_PULLDOWN | MUX_MODE7)      /* gpmc_ad14.gpio1[14] DCD */
-@@ -287,8 +287,6 @@
- 	dsr-gpios = <&gpio2 23 GPIO_ACTIVE_LOW>;
- 	dcd-gpios = <&gpio2 24 GPIO_ACTIVE_LOW>;
- 	rng-gpios = <&gpio2 25 GPIO_ACTIVE_LOW>;
--	cts-gpios = <&gpio0 12 GPIO_ACTIVE_LOW>;
--	rts-gpios = <&gpio0 13 GPIO_ACTIVE_LOW>;
- 
- 	status = "okay";
- };
-@@ -300,8 +298,6 @@
- 	dsr-gpios = <&gpio1 13 GPIO_ACTIVE_LOW>;
- 	dcd-gpios = <&gpio1 14 GPIO_ACTIVE_LOW>;
- 	rng-gpios = <&gpio1 15 GPIO_ACTIVE_LOW>;
--	cts-gpios = <&gpio3 5 GPIO_ACTIVE_LOW>;
--	rts-gpios = <&gpio3 6 GPIO_ACTIVE_LOW>;
- 
- 	status = "okay";
- };
+This is not a LED. This is a interface that changes meaning of two
+other LEDs. I guess it should go to debugfs somewhere.
+
+Best regards,
+								Pavel
+								
+> Signed-off-by: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+
+> +++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+> @@ -31,9 +31,27 @@
+>  		startup-delay-us = <150>;
+>  		enable-active-high;
+>  	};
+> +
+> +	leds {
+> +		compatible = "gpio-leds";
+> +
+> +		heartbeat {
+> +			label = "debug::sleep";
+> +			gpios = <&gpio3 28 GPIO_ACTIVE_HIGH>;  /* gpio92 */
+> +			linux,default-trigger = "default-on";
+> +			pinctrl-names = "default";
+> +			pinctrl-0 = <&debug_leds>;
+> +		};
+> +	};
+>  };
+>  
+>  &omap3_pmx_core {
+> +	debug_leds: pinmux_debug_led_pins {
+> +		pinctrl-single,pins = <
+> +			OMAP3_CORE1_IOPAD(0x2108, PIN_OUTPUT | MUX_MODE4)       /* dss_data22.gpio_92 */
+> +		>;
+> +	};
+> +
+>  	mmc2_pins: pinmux_mmc2_pins {
+>  		pinctrl-single,pins = <
+>  			OMAP3_CORE1_IOPAD(0x2158, PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_clk */
+
 -- 
-2.1.4
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
