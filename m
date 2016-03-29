@@ -1,64 +1,62 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [PATCH 4/7] ARM: dts: Enable N950 keyboard sleep leds by default
-Date: Tue, 29 Mar 2016 19:54:42 +0200
-Message-ID: <20160329175442.GA28516@amd>
-References: <1457827580-16919-1-git-send-email-sre@kernel.org>
- <1457827580-16919-5-git-send-email-sre@kernel.org>
- <20160329105128.GA30184@amd>
- <20160329145209.GB31858@earth>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160329145209.GB31858@earth>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Paul Kocialkowski <contact@paulk.fr>
+Subject: [PATCH] pwm: twl: Reliably disable TWL6030 PWMs
+Date: Tue, 29 Mar 2016 20:55:45 +0200
+Message-ID: <1459277745-16878-1-git-send-email-contact@paulk.fr>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
+Cc: Thierry Reding <thierry.reding@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Paul Kocialkowski <contact@paulk.fr>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue 2016-03-29 16:52:09, Sebastian Reichel wrote:
-> Hi,
-> 
-> On Tue, Mar 29, 2016 at 12:51:28PM +0200, Pavel Machek wrote:
-> > For 1-3 in the series, Acked-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-> > 
-> > > Like the Nokia N900, the N950 has leds to show
-> > > the state of sys_clkreq and sys_off_mode pins.
-> > > 
-> > > A detailed description for the LEDs and
-> > > OMAP's sleep states can be found in Tony's
-> > > commit for the Nokia N900:
-> > > 
-> > > c1be2032f66df9e1238bd5bc4ca666de88a62abc
-> > 
-> > I must say I've seen it on N900, and yes, it is useful, but no, I
-> > don't think this is right.
-> >
-> > This is not a LED. This is a interface that changes meaning of two
-> > other LEDs. I guess it should go to debugfs somewhere.
-> 
-> I don't think we should diverge N900 and N950 userspace
-> APIs in this regard.
+The current TWL6030 code for the TWL PWM driver does not reliably disable the
+PWM output, as tested with LEDs. The previous commit to that driver introduced
+that regression.
 
-That's a good argument.
+However, it does make sense to disable the PWM clock after resetting the PWM,
+but for some obscure reason, doing it all at once simply doesn't work.
 
-But maybe we should move both to debugfs somewhere before we get too
-much userspace that relies on it...
+The TWL6030 datasheet mentions that PWMs have to be disabled in two distinct
+steps. However, clearing the clock enable bit in a second step (after issuing a
+reset first) does not work.
 
-> Actually the correct way would be a custom trigger
-> for the leds IMHO. I don't know if the led framework
-> supports per led custom triggers, though.
+The only approach that works is the one that was in place before the previous
+commit to the driver. It consists in enabling the PWM clock after issuing a
+reset. This is what TI kernel trees and production code seem to be using.
 
-Well, not even custom trigger would make this easy: AFAIK you need to
-enable this on two LEDs or not at all, so you'd have one trigger _that
-would need to be shared over two LEDs_.
+However, adding an extra step to disable the PWM clock seems to work reliably,
+despite looking quite odd.
 
-Best regards,
-									Pavel
+Signed-off-by: Paul Kocialkowski <contact@paulk.fr>
+---
+ drivers/pwm/pwm-twl.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/drivers/pwm/pwm-twl.c b/drivers/pwm/pwm-twl.c
+index 04f7672..7a993b0 100644
+--- a/drivers/pwm/pwm-twl.c
++++ b/drivers/pwm/pwm-twl.c
+@@ -269,6 +269,22 @@ static void twl6030_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
+ 		goto out;
+ 	}
+ 
++	val |= TWL6030_PWM_TOGGLE(pwm->hwpwm, TWL6030_PWMXEN);
++
++	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, TWL6030_TOGGLE3_REG);
++	if (ret < 0) {
++		dev_err(chip->dev, "%s: Failed to disable PWM\n", pwm->label);
++		goto out;
++	}
++
++	val &= ~TWL6030_PWM_TOGGLE(pwm->hwpwm, TWL6030_PWMXEN);
++
++	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, TWL6030_TOGGLE3_REG);
++	if (ret < 0) {
++		dev_err(chip->dev, "%s: Failed to disable PWM\n", pwm->label);
++		goto out;
++	}
++
+ 	twl->twl6030_toggle3 = val;
+ out:
+ 	mutex_unlock(&twl->mutex);
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.7.4
