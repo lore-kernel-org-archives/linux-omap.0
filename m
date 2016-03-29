@@ -1,35 +1,53 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 7/7] ARM: dts: N9/N950: Add support for accelerometer
-Date: Tue, 29 Mar 2016 12:53:05 +0200
-Message-ID: <20160329105304.GB30184@amd>
-References: <1457827580-16919-1-git-send-email-sre@kernel.org>
- <1457827580-16919-8-git-send-email-sre@kernel.org>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: am335x: no multicast reception over VLAN
+Date: Tue, 29 Mar 2016 14:05:16 +0300
+Message-ID: <56FA616C.9080502@ti.com>
+References: <CAGm1_ktOqB4QBMy2G4XeHTkaP+WvG8GOc8maVv3dDoxM+-F+ZA@mail.gmail.com>
+ <56F9FDD0.8030504@ti.com>
+ <CAGm1_ksxRPCAqx4n5gbsARSYeF116BT7r8cC6=1QYnEsYRxpVw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1457827580-16919-8-git-send-email-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CAGm1_ksxRPCAqx4n5gbsARSYeF116BT7r8cC6=1QYnEsYRxpVw@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Yegor Yefremov <yegorslists@googlemail.com>, Mugunthan V N <mugunthanvnm@ti.com>
+Cc: netdev <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, drivshin@allworx.com, ml@markusgrimm.de
 List-Id: linux-omap@vger.kernel.org
 
-On Sun 2016-03-13 01:06:20, Sebastian Reichel wrote:
-> From: Filip Matijevi=C4=87 <filip.matijevic.pz@gmail.com>
->=20
-> Signed-off-by: Filip Matijevi=C4=87 <filip.matijevic.pz@gmail.com>
-> Signed-off-by: Sebastian Reichel <sre@kernel.org>
-> ---
->  arch/arm/boot/dts/omap3-n9.dts       | 14 ++++++++++
->  arch/arm/boot/dts/omap3-n950-n9.dtsi | 54 ++++++++++++++++++++++++++=
-++++++++++
->  arch/arm/boot/dts/omap3-n950.dts     | 14 ++++++++++
->  3 files changed, 82 insertions(+)
+On 03/29/2016 08:21 AM, Yegor Yefremov wrote:
+> Hi Mugunthan,
+> 
+> On Tue, Mar 29, 2016 at 6:00 AM, Mugunthan V N <mugunthanvnm@ti.com> wrote:
+>> Hi Yegor
+>>
+>> On Wednesday 16 March 2016 08:35 PM, Yegor Yefremov wrote:
+>>> I have an am335x based board using CPSW in Dual EMAC mode. Without
+>>> VLAN IDs I can receive and send multicast packets [1]. When I create
+>>> VLAN ID:
+>>>
+>>> ip link add link eth1 name eth1.100 type vlan id 100
+>>> ip addr add 192.168.100.2/24 brd 192.168.100.255 dev eth1.100
+>>> route add -net 224.0.0.0 netmask 224.0.0.0 eth1.100
+>>>
+>>> I can successfully send multicast packets, but not receive them. On
+>>> the other side of the Ethernet cable I've used Pandaboard. Pandaboard
+>>> could both receive and send multicast packets via VLAN.
+>>
+>> Are you trying multicast tx/rx on eth1 or eth1.100?
+> 
+> I'm trying multicast tx/rx on eth1.100.
+> 
+> eth1 has no problems.
+> 
 
-5-7: Acked-by: Pavel Machek <pavel@ucw.cz>
+it'd be nice if will be able to post here output fom commands:
+# switch-config -d [git://git.ti.com/switch-config/switch-config.git v4.1]
+# ifconfig -a
+# tcpdump -e -f -Q in -i eth0
+# tcpdump -e -f -Q in -i eth0.100
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
-/blog.html
+
+-- 
+regards,
+-grygorii
