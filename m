@@ -1,51 +1,96 @@
 From: Paul Kocialkowski <contact@paulk.fr>
-Subject: [PATCH 1/2] ARM: OMAP3: Use offset definition and omap_ctrl_writel for boot mode
-Date: Tue, 29 Mar 2016 21:25:16 +0200
-Message-ID: <1459279517-17479-1-git-send-email-contact@paulk.fr>
+Subject: [PATCH 2/2] ARM: OMAP4: Store reboot mode to SAR scratchpad memory before restart
+Date: Tue, 29 Mar 2016 21:25:17 +0200
+Message-ID: <1459279517-17479-2-git-send-email-contact@paulk.fr>
+References: <1459279517-17479-1-git-send-email-contact@paulk.fr>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1459279517-17479-1-git-send-email-contact@paulk.fr>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Paul Kocialkowski <contact@paulk.fr>
 List-Id: linux-omap@vger.kernel.org
 
-This introduces offset definitions for scratchpad and scratchpad boot mode to
-be used with omap_ctrl_writel, fixing a comment suggesting this.
+This adds support for storing the reboot mode command to SAR scratchpad memory,
+at a location compatible with TI kernels, so that bootloaders can grab the
+reboot mode and act upon it.
+
+Currently, upstream U-Boot has support for this feature on OMAP4.
 
 Signed-off-by: Paul Kocialkowski <contact@paulk.fr>
 ---
- arch/arm/mach-omap2/control.c | 4 +---
- arch/arm/mach-omap2/control.h | 3 +++
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/common.h           |  1 +
+ arch/arm/mach-omap2/omap4-common.c     | 12 ++++++++++++
+ arch/arm/mach-omap2/omap4-restart.c    |  2 +-
+ arch/arm/mach-omap2/omap4-sar-layout.h |  3 +++
+ 4 files changed, 17 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index 1662071..3690d78 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -225,10 +225,8 @@ void omap3_ctrl_write_boot_mode(u8 bootmode)
- 	 * describing the boot process can be stored there,
- 	 * cf. OMAP34xx TRM, Initialization / Software Booting
- 	 * Configuration.
--	 *
--	 * XXX This should use some omap_ctrl_writel()-type function
- 	 */
--	writel_relaxed(l, OMAP2_L4_IO_ADDRESS(OMAP343X_SCRATCHPAD + 4));
-+	omap_ctrl_writel(l, OMAP343X_CONTROL_SCRATCHPAD_BOOT_MODE);
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index f7666b9..d773385 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -258,6 +258,7 @@ extern bool gic_dist_disabled(void);
+ extern void gic_timer_retrigger(void);
+ extern void omap_smc1(u32 fn, u32 arg);
+ extern void __iomem *omap4_get_sar_ram_base(void);
++extern void omap4_sar_ram_write_boot_mode(const char *cmd);
+ extern void omap_do_wfi(void);
+ 
+ #ifdef CONFIG_SMP
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index 949696b..85f251e 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -265,6 +265,18 @@ void __iomem *omap4_get_sar_ram_base(void)
+ 	return sar_ram_base;
  }
  
- #endif
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index ec406bc..b839ea2 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -177,6 +177,9 @@
- #define OMAP343X_CONTROL_SRAMLDO5	(OMAP2_CONTROL_GENERAL + 0x02C0)
- #define OMAP343X_CONTROL_CSI		(OMAP2_CONTROL_GENERAL + 0x02C4)
- 
-+#define OMAP343X_CONTROL_SCRATCHPAD		(OMAP2_CONTROL_GENERAL + 0x06A0)
-+#define OMAP343X_CONTROL_SCRATCHPAD_BOOT_MODE	(OMAP2_CONTROL_GENERAL + 0x06A4)
++void omap4_sar_ram_write_boot_mode(const char *cmd)
++{
++	void __iomem *sar_base;
 +
- /* OMAP3630 only CONTROL_GENERAL register offsets */
- #define OMAP3630_CONTROL_FUSE_OPP1G_VDD1        (OMAP2_CONTROL_GENERAL + 0x0110)
- #define OMAP3630_CONTROL_FUSE_OPP50_VDD1        (OMAP2_CONTROL_GENERAL + 0x0114)
++	sar_base = omap4_get_sar_ram_base();
++
++	if (!cmd)
++		strncpy(sar_base + BOOT_MODE_OFFSET, "", BOOT_MODE_SIZE);
++	else
++		strncpy(sar_base + BOOT_MODE_OFFSET, cmd, BOOT_MODE_SIZE);
++}
++
+ /*
+  * SAR RAM used to save and restore the HW
+  * context in low power modes
+diff --git a/arch/arm/mach-omap2/omap4-restart.c b/arch/arm/mach-omap2/omap4-restart.c
+index e17136a..74f29b5 100644
+--- a/arch/arm/mach-omap2/omap4-restart.c
++++ b/arch/arm/mach-omap2/omap4-restart.c
+@@ -22,6 +22,6 @@
+  */
+ void omap44xx_restart(enum reboot_mode mode, const char *cmd)
+ {
+-	/* XXX Should save 'cmd' into scratchpad for use after reboot */
++	omap4_sar_ram_write_boot_mode(cmd);
+ 	omap_prm_reset_system();
+ }
+diff --git a/arch/arm/mach-omap2/omap4-sar-layout.h b/arch/arm/mach-omap2/omap4-sar-layout.h
+index 792b106..247b2bf 100644
+--- a/arch/arm/mach-omap2/omap4-sar-layout.h
++++ b/arch/arm/mach-omap2/omap4-sar-layout.h
+@@ -20,6 +20,7 @@
+ #define SAR_BANK4_OFFSET		0x3000
+ 
+ /* Scratch pad memory offsets from SAR_BANK1 */
++#define BOOT_MODE_OFFSET			0xa0c
+ #define SCU_OFFSET0				0xfe4
+ #define SCU_OFFSET1				0xfe8
+ #define OMAP_TYPE_OFFSET			0xfec
+@@ -28,6 +29,8 @@
+ #define L2X0_AUXCTRL_OFFSET			0xff8
+ #define L2X0_PREFETCH_CTRL_OFFSET		0xffc
+ 
++#define BOOT_MODE_SIZE				0xf
++
+ /* CPUx Wakeup Non-Secure Physical Address offsets in SAR_BANK3 */
+ #define CPU0_WAKEUP_NS_PA_ADDR_OFFSET		0xa04
+ #define CPU1_WAKEUP_NS_PA_ADDR_OFFSET		0xa08
 -- 
 2.7.4
