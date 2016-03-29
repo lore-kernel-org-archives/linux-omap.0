@@ -1,52 +1,64 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v8 1/6] ALSA: pcm: add IEC958 channel status helper for
- hw_params
-Date: Tue, 29 Mar 2016 18:23:12 +0100
-Message-ID: <20160329172312.GR5783@n2100.arm.linux.org.uk>
-References: <cover.1458214526.git.jsarha@ti.com>
- <164484552294777b0b9b88d7982bd6bfb0da9a9f.1458214526.git.jsarha@ti.com>
- <s5hzithhdfz.wl-tiwai@suse.de>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [PATCH 4/7] ARM: dts: Enable N950 keyboard sleep leds by default
+Date: Tue, 29 Mar 2016 19:54:42 +0200
+Message-ID: <20160329175442.GA28516@amd>
+References: <1457827580-16919-1-git-send-email-sre@kernel.org>
+ <1457827580-16919-5-git-send-email-sre@kernel.org>
+ <20160329105128.GA30184@amd>
+ <20160329145209.GB31858@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <s5hzithhdfz.wl-tiwai@suse.de>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Takashi Iwai <tiwai@suse.de>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, tomi.valkeinen@ti.com, arnaud.pouliquen@st.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, broonie@kernel.org, Jyri Sarha <jsarha@ti.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org
+In-Reply-To: <20160329145209.GB31858@earth>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gVHVlLCBNYXIgMjksIDIwMTYgYXQgMTA6NTQ6MDhBTSArMDIwMCwgVGFrYXNoaSBJd2FpIHdy
-b3RlOgo+IE9uIFRodSwgMTcgTWFyIDIwMTYgMTM6MjI6MjkgKzAxMDAsCj4gSnlyaSBTYXJoYSB3
-cm90ZToKPiA+IAo+ID4gQWRkIElFQzk1OCBjaGFubmVsIHN0YXR1cyBoZWxwZXIgdGhhdCBnZXRz
-IHRoZSBhdWRpbyBwcm9wZXJ0aWVzIGZyb20KPiA+IHNuZF9wY21faHdfcGFyYW1zIGluc3RlYWQg
-b2Ygc25kX3BjbV9ydW50aW1lLiBUaGlzIGlzIG5lZWRlZCB0bwo+ID4gcHJvZHVjZSB0aGUgY2hh
-bm5lbCBzdGF0dXMgYml0cyBhbHJlYWR5IGluIGF1ZGlvIHN0cmVhbSBjb25maWd1cmF0aW9uCj4g
-PiBwaGFzZS4KPiA+IAo+ID4gU2lnbmVkLW9mZi1ieTogSnlyaSBTYXJoYSA8anNhcmhhQHRpLmNv
-bT4KPiAKPiBUaGlzIHBhdGNoIGxvb2tzIGFsbW9zdCBnb29kIHRvIG1lLCBidXQuLi4KPiAKPiA+
-IEBAIC03MSw2ICs1OSw3IEBAIGludCBzbmRfcGNtX2NyZWF0ZV9pZWM5NThfY29uc3VtZXIoc3Ry
-dWN0IHNuZF9wY21fcnVudGltZSAqcnVudGltZSwgdTggKmNzLAo+ID4gIAkJCSAgICAgSUVDOTU4
-X0FFUzRfQ09OX01BWF9XT1JETEVOXzI0Owo+ID4gIAkJCWJyZWFrOwo+ID4gIAkJY2FzZSAyNDoK
-PiA+ICsJCWNhc2UgMzI6IC8qIEFzc3VtZSAyNC1iaXQgd2lkdGggZm9yIDMyLWJpdCBzYW1wbGVz
-LiAqLwo+ID4gIAkJCXdzID0gSUVDOTU4X0FFUzRfQ09OX1dPUkRMRU5fMjRfMjAgfAo+ID4gIAkJ
-CSAgICAgSUVDOTU4X0FFUzRfQ09OX01BWF9XT1JETEVOXzI0Owo+ID4gIAkJCWJyZWFrOwo+IAo+
-IC4uLiB0aGlzIGNoYW5nZSBpcyBzaWxlbnRseSBzbGlwcGVkIGluLiAgSXQgc2hvdWxkIGJlIG1l
-bnRpb25lZCBpbiB0aGUKPiBjaGFuZ2Vsb2csIG9yIHNwbGl0IHRvIGFub3RoZXIgcGF0Y2gsIGFz
-IHRoaXMgaXMgYmFzaWNhbGx5IGFuCj4gb3J0aG9nb25hbCBjaGFuZ2UuCgpEb2VzIGl0IGV2ZW4g
-bWFrZSBzZW5zZSAtIEFFUyBkb2Vzbid0IGhhdmUgc3VwcG9ydCBmb3IgMzItYml0IHNhbXBsZXMs
-Cml0IGNhbiBvbmx5IGV2ZXIgdHJ1bmNhdGUgdGhlbSBkb3duIHRvIDI0LWJpdC4KCi0tIApSTUsn
-cyBQYXRjaCBzeXN0ZW06IGh0dHA6Ly93d3cuYXJtLmxpbnV4Lm9yZy51ay9kZXZlbG9wZXIvcGF0
-Y2hlcy8KRlRUQyBicm9hZGJhbmQgZm9yIDAuOG1pbGUgbGluZTogY3VycmVudGx5IGF0IDkuNk1i
-cHMgZG93biA0MDBrYnBzIHVwCmFjY29yZGluZyB0byBzcGVlZHRlc3QubmV0LgpfX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBs
-aXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVz
-a3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+On Tue 2016-03-29 16:52:09, Sebastian Reichel wrote:
+> Hi,
+> 
+> On Tue, Mar 29, 2016 at 12:51:28PM +0200, Pavel Machek wrote:
+> > For 1-3 in the series, Acked-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+> > 
+> > > Like the Nokia N900, the N950 has leds to show
+> > > the state of sys_clkreq and sys_off_mode pins.
+> > > 
+> > > A detailed description for the LEDs and
+> > > OMAP's sleep states can be found in Tony's
+> > > commit for the Nokia N900:
+> > > 
+> > > c1be2032f66df9e1238bd5bc4ca666de88a62abc
+> > 
+> > I must say I've seen it on N900, and yes, it is useful, but no, I
+> > don't think this is right.
+> >
+> > This is not a LED. This is a interface that changes meaning of two
+> > other LEDs. I guess it should go to debugfs somewhere.
+> 
+> I don't think we should diverge N900 and N950 userspace
+> APIs in this regard.
+
+That's a good argument.
+
+But maybe we should move both to debugfs somewhere before we get too
+much userspace that relies on it...
+
+> Actually the correct way would be a custom trigger
+> for the leds IMHO. I don't know if the led framework
+> supports per led custom triggers, though.
+
+Well, not even custom trigger would make this easy: AFAIK you need to
+enable this on two LEDs or not at all, so you'd have one trigger _that
+would need to be shared over two LEDs_.
+
+Best regards,
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
