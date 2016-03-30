@@ -1,84 +1,185 @@
-From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v8 1/6] ALSA: pcm: add IEC958 channel status helper for
- hw_params
-Date: Wed, 30 Mar 2016 11:25:52 +0300
-Message-ID: <56FB8D90.9080200@ti.com>
-References: <cover.1458214526.git.jsarha@ti.com>
- <164484552294777b0b9b88d7982bd6bfb0da9a9f.1458214526.git.jsarha@ti.com>
- <s5hzithhdfz.wl-tiwai@suse.de> <20160329172312.GR5783@n2100.arm.linux.org.uk>
- <s5h4mbo8p0h.wl-tiwai@suse.de>
+From: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: USB gadgets with configfs hang reboot
+Date: Wed, 30 Mar 2016 13:22:27 +0300
+Message-ID: <877fgkqn8c.fsf@intel.com>
+References: <20160115224839.GA19432@atomide.com> <569A1E32.1020502@gmail.com> <56F2DF79.6010903@gmail.com> <87fuvgxtc3.fsf@intel.com> <56F3914B.4010206@gmail.com> <87a8loxsdm.fsf@intel.com> <56F4361C.9040907@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <s5h4mbo8p0h.wl-tiwai-l3A5Bk7waGM@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, arnaud.pouliquen-qxv4g6HH51o@public.gmane.org
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <56F4361C.9040907-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/30/16 09:21, Takashi Iwai wrote:
-> On Tue, 29 Mar 2016 19:23:12 +0200,
-> Russell King - ARM Linux wrote:
->>
->> On Tue, Mar 29, 2016 at 10:54:08AM +0200, Takashi Iwai wrote:
->>> On Thu, 17 Mar 2016 13:22:29 +0100,
->>> Jyri Sarha wrote:
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
+
+Hi,
+
+Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
+>> Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
+>>>> Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
+>>>>> On 16.01.2016 12:40, Ivaylo Dimitrov wrote:
+>>>>>> Hi,
+>>>>>>
+>>>>>> On 16.01.2016 00:48, Tony Lindgren wrote:
+>>>>>>> Hi all,
+>>>>>>>
+>>>>>>> Looks like there's some issue with the USB gadgets and configfs.
+>>>>>>>
+>>>>>>> I'm seeing rmmod of the UDC driver cause a warning and then reboot
+>>>>>>> hangs the system. This happens at least with v4.4, and I've reprodu=
+ced
+>>>>>>> it with dwc3 and musb so it seems to be generic.
+>>>>>>>
+>>>>>>
+>>>>>> Having configfs is not needed, disabling usb gadgets (#
+>>>>>> CONFIG_USB_MUSB_GADGET is not set) seems to solved at least poweroff
+>>>>>> hang issue on N900. Also, g_nokia is not a module in the config I us=
+e,
+>>>>>> so I guess the problem is not related whether gadgets are modular or
+>>>>>> not. Unfortunately I was not able to test reboot, as rootfs became
+>>>>>> corrupted after the first poweroff :( . So it looks like my theory t=
+hat
+>>>>>> onenand corruption on N900 is because poweroff/reboot hangs is wrong.
+>>>>>>
+>>>>>> Ivo
+>>>>>
+>>>>>
+>>>>> Is there any progress on the issue?
 >>>>
->>>> Add IEC958 channel status helper that gets the audio properties from
->>>> snd_pcm_hw_params instead of snd_pcm_runtime. This is needed to
->>>> produce the channel status bits already in audio stream configuration
->>>> phase.
->>>>
->>>> Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
 >>>
->>> This patch looks almost good to me, but...
+>>> Doing Nokia-N900:/sys/bus/platform/drivers/musb-hdrc# echo
+>>> musb-hdrc.0.auto > unbind results in:
 >>>
->>>> @@ -71,6 +59,7 @@ int snd_pcm_create_iec958_consumer(struct snd_pcm_runtime *runtime, u8 *cs,
->>>>  			     IEC958_AES4_CON_MAX_WORDLEN_24;
->>>>  			break;
->>>>  		case 24:
->>>> +		case 32: /* Assume 24-bit width for 32-bit samples. */
->>>>  			ws = IEC958_AES4_CON_WORDLEN_24_20 |
->>>>  			     IEC958_AES4_CON_MAX_WORDLEN_24;
->>>>  			break;
+>>> <1>[ 1418.511260] Unable to handle kernel paging request at virtual
+>>> address 6c6c757a
+>>> <7>[ 1418.677215] pvr: Xorg: cleaning up 49 unfreed resources
+>>> <1>[ 1418.683349] pgd =3D c0004000
+>>> <1>[ 1418.739959] [6c6c757a] *pgd=3D00000000
+>>> <0>[ 1418.746307] Internal error: Oops: 5 [#1] PREEMPT ARM
+>>> <4>[ 1418.753997] Modules linked in: sha256_generic hmac drbg ansi_cprng
+>>> ctr ccm vfat fat rfcomm sd_mod scsi_mod bnep bluetooth omaplfb pvrsrvkm
+>>> ipv6 bq2415x_charger uinput radio_platform_si4713 joydev cmt_speech
+>>> hsi_char video_bus_switch arc4 wl1251_spi wl1251 isp1704_charger
+>>> gpio_keys mac80211 smc91x mii cfg80211 omap_wdt crc7 omap_sham tsc2005
+>>> tsc200x_core bq27xxx_battery_i2c si4713 adp1653 tsl2563 leds_lp5523
+>>> leds_lp55xx_common bq27xxx_battery rtc_twl twl4030_wdt et8ek8 ad5820
+>>> v4l2_common smiaregs twl4030_vibra videodev ff_memless lis3lv02d_i2c
+>>> lis3lv02d media input_polldev omap_ssi_port ti_soc_thermal nokia_modem
+>>> ssi_protocol omap_ssi hsi rx51_battery
+>>> <4>[ 1418.835906] CPU: 0 PID: 53 Comm: file-storage Not tainted
+>>> 4.5.0-rc5+ #59
+>>> <4>[ 1418.846130] Hardware name: Nokia RX-51 board
+>>> <4>[ 1418.853820] task: ceb8a300 ti: ce008000 task.ti: ce008000
+>>> <4>[ 1418.862792] PC is at handle_exception+0xa8/0x418
+>>> <4>[ 1418.871002] LR is at recalc_sigpending+0x18/0x7c
+>>> <4>[ 1418.879241] pc : [<c031d0e4>]    lr : [<c0037b84>]    psr: 800000=
+13
+>>> <4>[ 1418.879241] sp : ce009ea0  ip : 00000000  fp : 00000000
+>>> <4>[ 1418.898284] r10: 00000000  r9 : 00000000  r8 : 00000000
+>>> <4>[ 1418.907287] r7 : c031d8d0  r6 : 6c6c7566  r5 : 00000000  r4 : ceb=
+e1600
+>>> <4>[ 1418.917663] r3 : 6f642820  r2 : 00000000  r1 : 00000000  r0 : 000=
+00000
+>>> <4>[ 1418.928039] Flags: Nzcv  IRQs on  FIQs on  Mode SVC_32  ISA ARM
+>>> Segment none
+>>> <4>[ 1418.939025] Control: 10c5387d  Table: 8e244019  DAC: 00000051
+>>> <0>[ 1418.948516] Process file-storage (pid: 53, stack limit =3D 0xce00=
+8210)
+>>> <0>[ 1418.958679] Stack: (0xce009ea0 to 0xce00a000)
+>>> <0>[ 1418.966735] 9ea0: 0000000f 00000000 00000000 00000b07 00000000
+>>> 00000001 000003ff 00000001
+>>> <0>[ 1418.978973] 9ec0: ceb8a300 ceb8a300 00000000 c004841c 00000000
+>>> 00000002 ce888000 c0451a50
+>>> <0>[ 1418.991180] 9ee0: ffffffff 00000000 00000000 00000008 cebe1600
+>>> 00000001 c0717dd0 00000001
+>>> <0>[ 1419.003387] 9f00: 00000000 00000000 ce009f14 c044ddf4 00000000
+>>> c031c020 00000042 ce009f30
+>>> <0>[ 1419.015686] 9f20: ce009f30 00000000 cebe1600 c031d958 00000000
+>>> c044d864 a0000013 00000000
+>>> <0>[ 1419.027923] 9f40: cebe1600 c031d8d0 cebfa100 cebfa100 00000000
+>>> cebe1600 c031d8d0 00000000
+>>> <0>[ 1419.040130] 9f60: 00000000 00000000 00000000 c00474e4 dc4d900d
+>>> 00000000 31bc92e7 cebe1600
+>>> <0>[ 1419.052429] 9f80: 00000000 ce009f84 ce009f84 00000000 ce009f90
+>>> ce009f90 ce009fac cebfa100
+>>> <0>[ 1419.064697] 9fa0: c0047418 00000000 00000000 c000f218 00000000
+>>> 00000000 00000000 00000000
+>>> <0>[ 1419.076934] 9fc0: 00000000 00000000 00000000 00000000 00000000
+>>> 00000000 00000000 00000000
+>>> <0>[ 1419.089050] 9fe0: 00000000 00000000 00000000 00000000 00000013
+>>> 00000000 00002000 30000891
+>>> <4>[ 1419.101043] [<c031d0e4>] (handle_exception) from [<c031d958>]
+>>> (fsg_main_thread+0x88/0x13dc)
+>>> <4>[ 1419.113189] [<c031d958>] (fsg_main_thread) from [<c00474e4>]
+>>> (kthread+0xcc/0xe0)
+>>> <4>[ 1419.124267] [<c00474e4>] (kthread) from [<c000f218>]
+>>> (ret_from_fork+0x14/0x3c)
+>>> <0>[ 1419.135101] Code: 1a000015 ea000040 e5946038 e0866285 (e5963014)
+>>> <4>[ 1419.330841] ---[ end trace 3377457e25b0732c ]---
+>>> <0>[ 1419.340972] Kernel panic - not syncing: Fatal exception
 >>>
->>> ... this change is silently slipped in.  It should be mentioned in the
->>> changelog, or split to another patch, as this is basically an
->>> orthogonal change.
+>>> weirdly, I have that log only in mtdoops, but not in dmesg. However,
+>>> after that oops "reboot" command does not hang, but reboots the device.
 >>
->> Does it even make sense - AES doesn't have support for 32-bit samples,
->> it can only ever truncate them down to 24-bit.
-> 
-> Well, using SNDRV_PCM_FORMAT_S32_* for 24 bit samples is seen often on
-> real devices, mostly on PCI ones.  So, adding the value 32 check there
-> itself is valid, I suppose.  It's rather due to a bad design in the
-> current API.
-> 
+>>
+>> So, what is handle_exception + 0xa8 ? You can figure that out either
+>> with gdb or addr2line assuming your vmlinux has dbg symbols.
+>>
+>> For gdb you would:
+>>
+>> gdb vmlinux
+>> (gdb) l *(handle_exception + 0xa8)
+>>
+>
+> Yeah, sorry I didn't do it with the previous mail.
+>
+> Reading symbols from=20
+> /home/ivo/workspace/linux-upstream/github/fmg/linux-n900/vmlinux...done.
+> (gdb) l *(handle_exception + 0xa8)
+> 0xc031d0e4 is in handle_exception=20
+> (drivers/usb/gadget/function/f_mass_storage.c:2373).
+> 2368=09
+> 2369		/* Cancel all the pending transfers */
+> 2370		if (likely(common->fsg)) {
+> 2371			for (i =3D 0; i < common->fsg_num_buffers; ++i) {
+> 2372				bh =3D &common->buffhds[i];
+> 2373				if (bh->inreq_busy)
 
-That also happens on SoC environment i2s interfaces for various reasons.
-For instance if the i2s bit-clock for sample-rate * 24 * 2 is not
-available, but sample-rate * 32 * 2 is.
+so this would mean we have a race here where bh->inreq_busy is still set
+while bh->inreq was already freed, right ? I'll try to reproduce this
+with dwc3 and let you know.
 
-> The actual bits should be specified hw_params.msbits field, instead.
-> But, not all drivers set this properly, unfortunately.
-> 
+=2D-=20
+balbi
 
-How about allowing the 32-bit format only if hw_params.msbits is set to
-24 bits?
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
 
-I can set the hw_params.msbits to 24 in ASoC hdmi-codec's hw_params,
-can't I? I could also fake the whole hw_params struct that I pass to
-snd_pcm_create_iec958_consumer_hw_params(), but would that make sense?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-What ever the approach, I can of course split the 32 bit support into a
-separate subsequent patch, but for instance Beaglebone-black 48kHz
-24-bit HDMI audio needs 32 bit format on i2s bus because of the
-available i2s bit-clocks.
-
-Best regards,
-Jyri
+iQIcBAEBAgAGBQJW+6jjAAoJEIaOsuA1yqREJ2QP/jg9LpxXXnGETg7u8LloERo6
+6+O/zKWsurVO4IO49w+AMHj/UA6HR7xf9164iA0O/pUE/WmpkrSBQ67X9CiVd/1w
+ZUoZGgjENCpInoeknV0csn8nchmD/Qx1h/C+z33QS+2+kAAS07zWwHdP1W2AicVB
+/4Qsu1MX+Kb0tNgsTfTGzRkO/qM4ezsOBeO7RFtEBd3yHEvB2k2a5zTeKedpQxqB
+3D+vdjRBlKkUDG6nQc/eGSKgfp7km+3MMx57W3RYftgfb1dQhYGP2t/kRAwWP+yj
+Yknx9KDqzkBYJRi2BqP6XJ7iYGkTCMXSveiJyXvqhxDFU7CvHcdHLOejS7Tgd0rV
+zlTQQcla1K/NG/ri+bpQUJtrPanMIhyeaSFJYvW4HZ/bS76m1dUQh62+vidEzGHR
+sNbrs0PKxhjWd4y1dGWIakqEQ8vDm0tTsfBeOD5qZiyqsoe0K70UpLsjhgoFY2Lv
++hFdiXIP0cv2NdvKulwmVN9LyPZDblWS9mQsDXG1rBobKoOEyXAUXX14WqPb64r6
+ZMrrZbz9j/WolLj+Q3n5PRtK4fpmvN0/JM1EVrMPHP27Ugg4PNAftBYrql4Rjkbv
+hlbzDC5oLPHkwU4lZ9HW29PWaZKqPndTI8MB67MOwNjm5vwAcYsIsbzhtEzDkS+i
+9/SJybJi9AAnvIIdT6QE
+=u4OO
+-----END PGP SIGNATURE-----
+--=-=-=--
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
