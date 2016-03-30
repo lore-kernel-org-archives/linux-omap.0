@@ -1,44 +1,75 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+From: Paul Kocialkowski <contact@paulk.fr>
 Subject: Re: [PATCH v4 1/5] ARM: dts: LG Optimus Black codename sniper basic
  support
-Date: Wed, 30 Mar 2016 12:13:56 -0700
-Message-ID: <20160330191356.GX9329@atomide.com>
+Date: Wed, 30 Mar 2016 21:22:45 +0200
+Message-ID: <1459365765.1125.0.camel@paulk.fr>
 References: <1456663185-14170-1-git-send-email-contact@paulk.fr>
- <1456663185-14170-2-git-send-email-contact@paulk.fr>
- <20160229215136.GO13417@atomide.com>
- <1458489518.29161.3.camel@paulk.fr>
+	 <1456663185-14170-2-git-send-email-contact@paulk.fr>
+	 <20160229215136.GO13417@atomide.com> <1458489518.29161.3.camel@paulk.fr>
+	 <20160330191356.GX9329@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1458489518.29161.3.camel-W9ppeneeCTY@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-sCv+QZ/KBUpKs+87rodb"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160330191356.GX9329@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Liam Girdwood <lgirdwood@gmail.com>, Javier Martinez Canillas <javier@dowhile0.org>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org> [160320 08:59]:
-> Le lundi 29 f=C3=A9vrier 2016 =C3=A0 13:51 -0800, Tony Lindgren a =C3=
+
+--=-sCv+QZ/KBUpKs+87rodb
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Le mercredi 30 mars 2016 =C3=A0 12:13 -0700, Tony Lindgren a =C3=A9crit=C2=
+=A0:
+> * Paul Kocialkowski <contact@paulk.fr> [160320 08:59]:
+> >=20
+> > Le lundi 29 f=C3=A9vrier 2016 =C3=A0 13:51 -0800, Tony Lindgren a =C3=
 =A9crit=C2=A0:
-> > Anyways, applying the dts changes into omap-for-v4.6/dt thanks.
->=20
-> It seems that v3 of this patch was merged into your tree instead of v=
-4, which
-> contains some improvements over v3.
->=20
-> Should I submit a cleanup patch with the diff or can you use v4 inste=
-ad (if not
-> too late)?
+> > >=20
+> > > Anyways, applying the dts changes into omap-for-v4.6/dt thanks.
+> > It seems that v3 of this patch was merged into your tree instead of v4,
+> > which
+> > contains some improvements over v3.
+> >=20
+> > Should I submit a cleanup patch with the diff or can you use v4 instead=
+ (if
+> > not
+> > too late)?
+> Oops sorry. Yes please send an incremental patch against v4.6-rc1.
 
-Oops sorry. Yes please send an incremental patch against v4.6-rc1.
+Ah my bad, nevermind this, I double-checked and everything looks good!
 
-Thanks,
+--=20
+Paul Kocialkowski, low-level free software developer on embedded devices
 
-Tony
+Website: https://www.paulk.fr/
+Coding blog: https://code.paulk.fr/
+Git repositories: https://git.paulk.fr/ https://git.code.paulk.fr/
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=-sCv+QZ/KBUpKs+87rodb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJW/CeGAAoJEIT9weqP7pUMzh0P/1EollWFvQkghkp6geMU/I9a
+5K5/VeUwf59c52d5QriErnRLumx7eL+7/uiIL82+UHyUeS0RNghnexinXeadZdcn
+xwIZn0koKDoa5/R39XglKNp/81t5Gzlumk3hRr8vcdIImnsNPx3W1KOPkii37geF
+k7T/lbiRiREhaLVB+T0mfCgAwhuuFKNVbCAXkmNuh5ohLareGDNL6D/cYCsW0I65
+cJb2pF0ZBOisgNRDGdvejGB7MtapxSSfvTYknBJF6k8bog5FHjEWXE3u/NRSfI3c
+dxBlgdNa2uMPA77GXARnLWxUqnuWbBTLr44ZsTPNCCDQAIGjAjypHSOQEGCT2tg7
+aVk90zev9rj94e43uR1llSANo7Rkw4agRPh2/SAFeOgSEBM94Pb/DWGH6T7+ZF2s
+bkNSYbMUlRg1zWxavCLtjuU0lnMNo+wubpCt3jCmqI+Qxa2kjxx/PXb98u7HAcDG
+RXV0H7iD/xfqziaw/Gyk828KrqzVNdIkzkgovZqrLUJGloQHKaK2+i5JWiexnPY4
+YaHshOj9sQ+w69rhWhbTLlYlZiFtOCJP2Wn+pkoYSd9SeruuAikn/s0V06ZzJ9yl
+8IJw+darXg2ixj5uHPFWsRYsj9gf1ALNL3pLPVVHHI/qv6jN8JDOhTEShD4cImsS
+u+UruXcKYhZweqI+J5gg
+=cuaX
+-----END PGP SIGNATURE-----
+
+--=-sCv+QZ/KBUpKs+87rodb--
