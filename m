@@ -1,75 +1,76 @@
-From: Paul Kocialkowski <contact@paulk.fr>
-Subject: Re: [PATCH v4 1/5] ARM: dts: LG Optimus Black codename sniper basic
- support
-Date: Wed, 30 Mar 2016 21:22:45 +0200
-Message-ID: <1459365765.1125.0.camel@paulk.fr>
-References: <1456663185-14170-1-git-send-email-contact@paulk.fr>
-	 <1456663185-14170-2-git-send-email-contact@paulk.fr>
-	 <20160229215136.GO13417@atomide.com> <1458489518.29161.3.camel@paulk.fr>
-	 <20160330191356.GX9329@atomide.com>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: USB gadgets with configfs hang reboot
+Date: Wed, 30 Mar 2016 15:25:43 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1603301509180.2194-100000@iolanthe.rowland.org>
+References: <56FC1FD8.6090003@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-sCv+QZ/KBUpKs+87rodb"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160330191356.GX9329@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Liam Girdwood <lgirdwood@gmail.com>, Javier Martinez Canillas <javier@dowhile0.org>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <56FC1FD8.6090003-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, =?UTF-8?Q?pali_Roh=c3=a1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Wed, 30 Mar 2016, Ivaylo Dimitrov wrote:
 
---=-sCv+QZ/KBUpKs+87rodb
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+> >>> seems to be created twice :). Maybe the problem is that the first time
+> >>> musb-hdrc is probed it fails with -EPROBE_DEFER, however that failure is
+> >>> after gadget drivers got loaded and noone unloads them.
+> >>
+> >> gadget drivers will get added to a pending list, then later they'll
+> >> bind. But they shouldn't bind() twice, unless there are multiple
+> >> interfaces for them.
+> >>
+> >
+> > Well, then it seems we have problem, as the 2 unbind() calls are with
+> > one and the same "common" pointer (again, from memory).
+> >
+> >>> Just some wild guesses based on my memories as I've lost the logs (power
+> >>> outage). For sure I can recreate them if needed.
+> >>
+> >> okay.
+> >
+> > I will redo dump_stack() and printks and will provide logs as soon as I
+> > have some time, so to stop counting on my memories.
+> >
+> 
+> Please find attached the relevant logs. It really seems that g_nokia is 
+> probed twice, with all the gadgets in it created two times. I am 
+> starting to suspect 855ed04a3758b205e84b269f92d26ab36ed8e2f7 ("usb: 
+> gadget: udc-core: independent registration of gadgets and gadget 
+> drivers") has something to do with the problem, though reverting it 
+> resulted in g_nokia not being probed at all :)
 
-Le mercredi 30 mars 2016 =C3=A0 12:13 -0700, Tony Lindgren a =C3=A9crit=C2=
-=A0:
-> * Paul Kocialkowski <contact@paulk.fr> [160320 08:59]:
-> >=20
-> > Le lundi 29 f=C3=A9vrier 2016 =C3=A0 13:51 -0800, Tony Lindgren a =C3=
-=A9crit=C2=A0:
-> > >=20
-> > > Anyways, applying the dts changes into omap-for-v4.6/dt thanks.
-> > It seems that v3 of this patch was merged into your tree instead of v4,
-> > which
-> > contains some improvements over v3.
-> >=20
-> > Should I submit a cleanup patch with the diff or can you use v4 instead=
- (if
-> > not
-> > too late)?
-> Oops sorry. Yes please send an incremental patch against v4.6-rc1.
+The problem is not caused by nokia_bind() getting called twice.  The
+log clearly shows that nokia_bind() is called only once, but it calls
+usb_add_config() from two different places:
 
-Ah my bad, nevermind this, I double-checked and everything looks good!
+Jan  1 02:00:10 Nokia-N900 kernel: [    8.002838] [<c040c5b4>] (usb_add_config) from [<c041b274>] (nokia_bind+0x160/0x2f0)
+Jan  1 02:00:10 Nokia-N900 kernel: [    8.014526] [<c041b274>] (nokia_bind) from [<c040e128>] (composite_bind+0x68/0x1a0)
+...
+Jan  1 02:00:10 Nokia-N900 kernel: [    8.381286] [<c040c5b4>] (usb_add_config) from [<c041b28c>] (nokia_bind+0x178/0x2f0)
+Jan  1 02:00:10 Nokia-N900 kernel: [    8.394348] [<c041b28c>] (nokia_bind) from [<c040e128>] (composite_bind+0x68/0x1a0)
 
---=20
-Paul Kocialkowski, low-level free software developer on embedded devices
+Everything else along the two pathways is the same, so this is where
+the multiple binds come from.  And indeed, looking at the code in
+nokia_bind() you can see the two calls:
 
-Website: https://www.paulk.fr/
-Coding blog: https://code.paulk.fr/
-Git repositories: https://git.paulk.fr/ https://git.code.paulk.fr/
+        /* finally register the configuration */
+        status = usb_add_config(cdev, &nokia_config_500ma_driver,
+                        nokia_bind_config);
+        if (status < 0)
+                goto err_msg_luns;
 
---=-sCv+QZ/KBUpKs+87rodb
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+        status = usb_add_config(cdev, &nokia_config_100ma_driver,
+                        nokia_bind_config);
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+This isn't supposed to cause any problems.  The two instances should 
+never run at the same time, because they belong to different configs.
 
-iQIcBAABCAAGBQJW/CeGAAoJEIT9weqP7pUMzh0P/1EollWFvQkghkp6geMU/I9a
-5K5/VeUwf59c52d5QriErnRLumx7eL+7/uiIL82+UHyUeS0RNghnexinXeadZdcn
-xwIZn0koKDoa5/R39XglKNp/81t5Gzlumk3hRr8vcdIImnsNPx3W1KOPkii37geF
-k7T/lbiRiREhaLVB+T0mfCgAwhuuFKNVbCAXkmNuh5ohLareGDNL6D/cYCsW0I65
-cJb2pF0ZBOisgNRDGdvejGB7MtapxSSfvTYknBJF6k8bog5FHjEWXE3u/NRSfI3c
-dxBlgdNa2uMPA77GXARnLWxUqnuWbBTLr44ZsTPNCCDQAIGjAjypHSOQEGCT2tg7
-aVk90zev9rj94e43uR1llSANo7Rkw4agRPh2/SAFeOgSEBM94Pb/DWGH6T7+ZF2s
-bkNSYbMUlRg1zWxavCLtjuU0lnMNo+wubpCt3jCmqI+Qxa2kjxx/PXb98u7HAcDG
-RXV0H7iD/xfqziaw/Gyk828KrqzVNdIkzkgovZqrLUJGloQHKaK2+i5JWiexnPY4
-YaHshOj9sQ+w69rhWhbTLlYlZiFtOCJP2Wn+pkoYSd9SeruuAikn/s0V06ZzJ9yl
-8IJw+darXg2ixj5uHPFWsRYsj9gf1ALNL3pLPVVHHI/qv6jN8JDOhTEShD4cImsS
-u+UruXcKYhZweqI+J5gg
-=cuaX
------END PGP SIGNATURE-----
+Alan Stern
 
---=-sCv+QZ/KBUpKs+87rodb--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
