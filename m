@@ -1,122 +1,78 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP4: Store reboot mode to SAR scratchpad
- memory before restart
-Date: Tue, 29 Mar 2016 18:50:43 -0500
-Message-ID: <56FB14D3.5090207@ti.com>
-References: <1459279517-17479-1-git-send-email-contact@paulk.fr>
- <1459279517-17479-2-git-send-email-contact@paulk.fr>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: am335x: no multicast reception over VLAN
+Date: Wed, 30 Mar 2016 11:03:55 +0530
+Message-ID: <56FB6543.9060904@ti.com>
+References: <CAGm1_ktOqB4QBMy2G4XeHTkaP+WvG8GOc8maVv3dDoxM+-F+ZA@mail.gmail.com>
+ <56F9FDD0.8030504@ti.com>
+ <CAGm1_ksxRPCAqx4n5gbsARSYeF116BT7r8cC6=1QYnEsYRxpVw@mail.gmail.com>
+ <56FA616C.9080502@ti.com>
+ <CAGm1_ksvEdk-mF-hW4o5+bri6J6sMgnQQVD3j-e7xm6PsP8k0A@mail.gmail.com>
+ <56FA78AA.4030402@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1459279517-17479-2-git-send-email-contact@paulk.fr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Kocialkowski <contact@paulk.fr>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "Mahaveer, Vishal" <vishalm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <56FA78AA.4030402@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Yegor Yefremov <yegorslists@googlemail.com>
+Cc: netdev <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, drivshin@allworx.com, ml@markusgrimm.de
 List-Id: linux-omap@vger.kernel.org
 
-On 03/29/2016 02:25 PM, Paul Kocialkowski wrote:
-> This adds support for storing the reboot mode command to SAR scratchpad memory,
-> at a location compatible with TI kernels, so that bootloaders can grab the
-> reboot mode and act upon it.
+On Tuesday 29 March 2016 06:14 PM, Grygorii Strashko wrote:
+> On 03/29/2016 03:35 PM, Yegor Yefremov wrote:
+>> On Tue, Mar 29, 2016 at 1:05 PM, Grygorii Strashko
+>> <grygorii.strashko@ti.com> wrote:
+>>> On 03/29/2016 08:21 AM, Yegor Yefremov wrote:
+>>>> Hi Mugunthan,
+>>>>
+>>>> On Tue, Mar 29, 2016 at 6:00 AM, Mugunthan V N <mugunthanvnm@ti.com> wrote:
+>>>>> Hi Yegor
+>>>>>
+>>>>> On Wednesday 16 March 2016 08:35 PM, Yegor Yefremov wrote:
+>>>>>> I have an am335x based board using CPSW in Dual EMAC mode. Without
+>>>>>> VLAN IDs I can receive and send multicast packets [1]. When I create
+>>>>>> VLAN ID:
+>>>>>>
+>>>>>> ip link add link eth1 name eth1.100 type vlan id 100
+>>>>>> ip addr add 192.168.100.2/24 brd 192.168.100.255 dev eth1.100
+>>>>>> route add -net 224.0.0.0 netmask 224.0.0.0 eth1.100
+>>>>>>
+>>>>>> I can successfully send multicast packets, but not receive them. On
+>>>>>> the other side of the Ethernet cable I've used Pandaboard. Pandaboard
+>>>>>> could both receive and send multicast packets via VLAN.
+>>>>>
+>>>>> Are you trying multicast tx/rx on eth1 or eth1.100?
+>>>>
+>>>> I'm trying multicast tx/rx on eth1.100.
+>>>>
+>>>> eth1 has no problems.
+>>>>
+>>>
+>>> it'd be nice if will be able to post here output fom commands:
+>>> # switch-config -d [git://git.ti.com/switch-config/switch-config.git v4.1]
+>>> # ifconfig -a
+>>> # tcpdump -e -f -Q in -i eth0
+>>> # tcpdump -e -f -Q in -i eth0.100
+>>
+>> Which kernel/branch do you want me to test?
+>>
+>> git://git.ti.com/ti-linux-kernel/ti-linux-kernel.git and ti-rt-linux-4.1.y?
+>>
+>> So far I was using vanilla kernel.
 > 
-> Currently, upstream U-Boot has support for this feature on OMAP4.
-
-Since this impacts more SoCs than OMAP4, + Vishal.
-
+> Your branch (but better 4.5 kernels (or 4.4)). 
+> Just when you've done with configuration run cmds 1&2,
+> and when you run your use-case - run cmds 2&3 on receiver side (grap ~5-10 packets).
+> then stop test and run cmd 1 again.
 > 
-> Signed-off-by: Paul Kocialkowski <contact@paulk.fr>
-> ---
->  arch/arm/mach-omap2/common.h           |  1 +
->  arch/arm/mach-omap2/omap4-common.c     | 12 ++++++++++++
->  arch/arm/mach-omap2/omap4-restart.c    |  2 +-
->  arch/arm/mach-omap2/omap4-sar-layout.h |  3 +++
->  4 files changed, 17 insertions(+), 1 deletion(-)
+> After all could you provide your console output here, pls.
 > 
-> diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-> index f7666b9..d773385 100644
-> --- a/arch/arm/mach-omap2/common.h
-> +++ b/arch/arm/mach-omap2/common.h
-> @@ -258,6 +258,7 @@ extern bool gic_dist_disabled(void);
->  extern void gic_timer_retrigger(void);
->  extern void omap_smc1(u32 fn, u32 arg);
->  extern void __iomem *omap4_get_sar_ram_base(void);
-> +extern void omap4_sar_ram_write_boot_mode(const char *cmd);
->  extern void omap_do_wfi(void);
->  
->  #ifdef CONFIG_SMP
-> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-> index 949696b..85f251e 100644
-> --- a/arch/arm/mach-omap2/omap4-common.c
-> +++ b/arch/arm/mach-omap2/omap4-common.c
-> @@ -265,6 +265,18 @@ void __iomem *omap4_get_sar_ram_base(void)
->  	return sar_ram_base;
->  }
->  
-> +void omap4_sar_ram_write_boot_mode(const char *cmd)
-> +{
-> +	void __iomem *sar_base;
-> +
-> +	sar_base = omap4_get_sar_ram_base();
-> +
-> +	if (!cmd)
-> +		strncpy(sar_base + BOOT_MODE_OFFSET, "", BOOT_MODE_SIZE);
-> +	else
-> +		strncpy(sar_base + BOOT_MODE_OFFSET, cmd, BOOT_MODE_SIZE);
-> +}
-
-> +
->  /*
->   * SAR RAM used to save and restore the HW
->   * context in low power modes
-> diff --git a/arch/arm/mach-omap2/omap4-restart.c b/arch/arm/mach-omap2/omap4-restart.c
-> index e17136a..74f29b5 100644
-> --- a/arch/arm/mach-omap2/omap4-restart.c
-> +++ b/arch/arm/mach-omap2/omap4-restart.c
-> @@ -22,6 +22,6 @@
->   */
->  void omap44xx_restart(enum reboot_mode mode, const char *cmd)
->  {
-> -	/* XXX Should save 'cmd' into scratchpad for use after reboot */
-> +	omap4_sar_ram_write_boot_mode(cmd);
-
-I think you might have noticed that the function gets reused for more
-SoCs than just OMAP4. Did you consider the impact on other SoCs?
-
-
-A) I would suggest you should download the TRMs from TI website and
-check the impact this change has for all other platforms.
-B) on certain platforms like DRA74 SoCs, warm reset cannot be used -
-instead all warm resets are converted to cold resets. what that means is
-that you'd probably want to update the reset reason to a PMIC scratch
-pad register.
-
->  	omap_prm_reset_system();
->  }
-> diff --git a/arch/arm/mach-omap2/omap4-sar-layout.h b/arch/arm/mach-omap2/omap4-sar-layout.h
-> index 792b106..247b2bf 100644
-> --- a/arch/arm/mach-omap2/omap4-sar-layout.h
-> +++ b/arch/arm/mach-omap2/omap4-sar-layout.h
-> @@ -20,6 +20,7 @@
->  #define SAR_BANK4_OFFSET		0x3000
->  
->  /* Scratch pad memory offsets from SAR_BANK1 */
-> +#define BOOT_MODE_OFFSET			0xa0c
->  #define SCU_OFFSET0				0xfe4
->  #define SCU_OFFSET1				0xfe8
->  #define OMAP_TYPE_OFFSET			0xfec
-> @@ -28,6 +29,8 @@
->  #define L2X0_AUXCTRL_OFFSET			0xff8
->  #define L2X0_PREFETCH_CTRL_OFFSET		0xffc
->  
-> +#define BOOT_MODE_SIZE				0xf
-> +
->  /* CPUx Wakeup Non-Secure Physical Address offsets in SAR_BANK3 */
->  #define CPU0_WAKEUP_NS_PA_ADDR_OFFSET		0xa04
->  #define CPU1_WAKEUP_NS_PA_ADDR_OFFSET		0xa08
 > 
 
+To use command 1, you need TI kernel [1] as it won't build with vanilla
+kernel.
 
--- 
-Regards,
-Nishanth Menon
+[1]: git://git.ti.com/ti-linux-kernel/ti-linux-kernel.git ti-linux-4.1.y
+
+Regards
+Mugunthan V N
