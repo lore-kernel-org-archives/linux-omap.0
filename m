@@ -1,74 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: N900 sleep mode (in 4.5-rc0, if that matters)
-Date: Wed, 30 Mar 2016 12:12:09 -0700
-Message-ID: <20160330191208.GW9329@atomide.com>
-References: <20160126172527.GY3500@atomide.com>
- <20160130200244.GA30429@amd>
- <20160130201452.GC30429@amd>
- <20160130221509.GA28644@amd>
- <20160201181316.GM19432@atomide.com>
- <20160201211736.GA11283@amd>
- <20160201221111.GP19432@atomide.com>
- <20160207212316.GA6147@amd>
- <20160209172403.GK19432@atomide.com>
- <20160323123801.GC32031@amd>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v4 1/5] ARM: dts: LG Optimus Black codename sniper basic
+ support
+Date: Wed, 30 Mar 2016 12:13:56 -0700
+Message-ID: <20160330191356.GX9329@atomide.com>
+References: <1456663185-14170-1-git-send-email-contact@paulk.fr>
+ <1456663185-14170-2-git-send-email-contact@paulk.fr>
+ <20160229215136.GO13417@atomide.com>
+ <1458489518.29161.3.camel@paulk.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160323123801.GC32031@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
+In-Reply-To: <1458489518.29161.3.camel-W9ppeneeCTY@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [160323 05:38]:
-> 
-> Ok, another attempt at shutting USB down:
-> 
-> 00001fff 48005020 (fa005020) cm_idlest_per blocking bits: 0007e000
-> f7dffe9d 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00200062
-> 0000000d 48004a28 (fa004a28) cm_idlest3_core
-> 
-> Tried again today:
-> 
-> 00001fff 48005020 (fa005020) cm_idlest_per blocking bits: 0007e000
-> f7dffe9d 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00200062
-> 0000000d 48004a28 (fa004a28) cm_idlest3_core
-> pavel@n900:/my/tui/ofone$ sleep test
-> 
-> 00001fff 48005020 (fa005020) cm_idlest_per blocking bits: 0007e000
-> ffde7e9d 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00218062
-> 0000000d 48004a28 (fa004a28) cm_idlest3_core
-> 
-> 00001fff 48005020 (fa005020) cm_idlest_per blocking bits: 0007e000
-> fedffe9d 48004a20 (fa004a20) cm_idlest1_core blocking bits: 01200062
-> 0000000d 48004a28 (fa004a28) cm_idlest3_core
-> 
-> 00001fff 48005020 (fa005020) cm_idlest_per blocking bits: 0007e000
-> ffde7e9d 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00218062
-> 0000000d 48004a28 (fa004a28) cm_idlest3_core
-> 
-> Is there documentation for the cm_idlest1_ bits?
+* Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org> [160320 08:59]:
+> Le lundi 29 f=C3=A9vrier 2016 =C3=A0 13:51 -0800, Tony Lindgren a =C3=
+=A9crit=C2=A0:
+> > Anyways, applying the dts changes into omap-for-v4.6/dt thanks.
+>=20
+> It seems that v3 of this patch was merged into your tree instead of v=
+4, which
+> contains some improvements over v3.
+>=20
+> Should I submit a cleanup patch with the diff or can you use v4 inste=
+ad (if not
+> too late)?
 
-Yes, see the TRM.
+Oops sorry. Yes please send an incremental patch against v4.6-rc1.
 
-> How idle system do I need to have? Screen is blanked and machine
-> should be mostly idle, but there's X running on another vt with Mate
-> desktop, and some python scripts... GSM modem should be online.
-
-Well I think it's the USB only you have blocking deeper idle states.
-
-Are you sure you rmmod:ed all the USB related modules like in my
-test script?
-
-MUSB currently has an unresolved issue where it blocks idle states
-if loaded.
-
-> Are you booting over USB from NOLO?
-
-I'm booting over smc91x using u-boot.
-
-Regards,
+Thanks,
 
 Tony
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
