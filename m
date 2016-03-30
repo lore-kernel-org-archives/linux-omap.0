@@ -1,77 +1,83 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 4/7] ARM: dts: Enable N950 keyboard sleep leds by default
-Date: Wed, 30 Mar 2016 12:35:21 -0700
-Message-ID: <20160330193520.GY9329@atomide.com>
-References: <1457827580-16919-1-git-send-email-sre@kernel.org>
- <1457827580-16919-5-git-send-email-sre@kernel.org>
- <20160329105128.GA30184@amd>
- <20160329145209.GB31858@earth>
+Subject: Re: USB gadgets with configfs hang reboot
+Date: Wed, 30 Mar 2016 12:41:37 -0700
+Message-ID: <20160330194137.GZ9329@atomide.com>
+References: <56FC1FD8.6090003@gmail.com>
+ <Pine.LNX.4.44L0.1603301509180.2194-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160329145209.GB31858@earth>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <Pine.LNX.4.44L0.1603301509180.2194-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, pali =?utf-8?B?Um9ow6Fy?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [160329 07:53]:
-> Hi,
+* Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> [160330 12:26]:
+> On Wed, 30 Mar 2016, Ivaylo Dimitrov wrote:
 > 
-> On Tue, Mar 29, 2016 at 12:51:28PM +0200, Pavel Machek wrote:
-> > For 1-3 in the series, Acked-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+> > >>> seems to be created twice :). Maybe the problem is that the first time
+> > >>> musb-hdrc is probed it fails with -EPROBE_DEFER, however that failure is
+> > >>> after gadget drivers got loaded and noone unloads them.
+> > >>
+> > >> gadget drivers will get added to a pending list, then later they'll
+> > >> bind. But they shouldn't bind() twice, unless there are multiple
+> > >> interfaces for them.
+> > >>
+> > >
+> > > Well, then it seems we have problem, as the 2 unbind() calls are with
+> > > one and the same "common" pointer (again, from memory).
+> > >
+> > >>> Just some wild guesses based on my memories as I've lost the logs (power
+> > >>> outage). For sure I can recreate them if needed.
+> > >>
+> > >> okay.
+> > >
+> > > I will redo dump_stack() and printks and will provide logs as soon as I
+> > > have some time, so to stop counting on my memories.
+> > >
 > > 
-> > > Like the Nokia N900, the N950 has leds to show
-> > > the state of sys_clkreq and sys_off_mode pins.
-> > > 
-> > > A detailed description for the LEDs and
-> > > OMAP's sleep states can be found in Tony's
-> > > commit for the Nokia N900:
-> > > 
-> > > c1be2032f66df9e1238bd5bc4ca666de88a62abc
-> > 
-> > I must say I've seen it on N900, and yes, it is useful, but no, I
-> > don't think this is right.
-> >
-> > This is not a LED. This is a interface that changes meaning of two
-> > other LEDs. I guess it should go to debugfs somewhere.
-
-Eh that sounds like a GPIO LED to me :) And it already has a
-/sys/class/leds/debug interface.
-
-The two LEDs this GPIO controls are hardwired to sys_clkreq and
-sys_off_mode pins that are the control signals between the SoC
-and PMIC.
-
-In theory you could steal the sys_clkreq and sys_off_mode pins
-from the PMIC at the cost of breaking PM. But I doubt anybody
-wants to do that considering it's a battery operated device.
-
-> I don't think we should diverge N900 and N950 userspace
-> APIs in this regard.
+> > Please find attached the relevant logs. It really seems that g_nokia is 
+> > probed twice, with all the gadgets in it created two times. I am 
+> > starting to suspect 855ed04a3758b205e84b269f92d26ab36ed8e2f7 ("usb: 
+> > gadget: udc-core: independent registration of gadgets and gadget 
+> > drivers") has something to do with the problem, though reverting it 
+> > resulted in g_nokia not being probed at all :)
 > 
-> Actually the correct way would be a custom trigger
-> for the leds IMHO. I don't know if the led framework
-> supports per led custom triggers, though.
+> The problem is not caused by nokia_bind() getting called twice.  The
+> log clearly shows that nokia_bind() is called only once, but it calls
+> usb_add_config() from two different places:
+> 
+> Jan  1 02:00:10 Nokia-N900 kernel: [    8.002838] [<c040c5b4>] (usb_add_config) from [<c041b274>] (nokia_bind+0x160/0x2f0)
+> Jan  1 02:00:10 Nokia-N900 kernel: [    8.014526] [<c041b274>] (nokia_bind) from [<c040e128>] (composite_bind+0x68/0x1a0)
+> ...
+> Jan  1 02:00:10 Nokia-N900 kernel: [    8.381286] [<c040c5b4>] (usb_add_config) from [<c041b28c>] (nokia_bind+0x178/0x2f0)
+> Jan  1 02:00:10 Nokia-N900 kernel: [    8.394348] [<c041b28c>] (nokia_bind) from [<c040e128>] (composite_bind+0x68/0x1a0)
+> 
+> Everything else along the two pathways is the same, so this is where
+> the multiple binds come from.  And indeed, looking at the code in
+> nokia_bind() you can see the two calls:
+> 
+>         /* finally register the configuration */
+>         status = usb_add_config(cdev, &nokia_config_500ma_driver,
+>                         nokia_bind_config);
+>         if (status < 0)
+>                 goto err_msg_luns;
+> 
+>         status = usb_add_config(cdev, &nokia_config_100ma_driver,
+>                         nokia_bind_config);
+> 
+> This isn't supposed to cause any problems.  The two instances should 
+> never run at the same time, because they belong to different configs.
 
-Sure, there are something like 10 triggers already. And
-you can already change them using:
-
-echo none > /sys/class/leds/debug::sleep/trigger
-
-That still does not change the fact that the LEDs trigger
-based on the state of sys_clkreq and sys_off_mode.
-
-Maybe I'm not following what you guys are trying to achieve
-here though :) If so, please let me know.
+Maybe drivers/usb/gadget/legacy/ether.c suffers from a similar issue
+as that's what I noticed the $subject problem with.
 
 Regards,
 
 Tony
-
-
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
