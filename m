@@ -1,83 +1,34 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: USB gadgets with configfs hang reboot
-Date: Wed, 30 Mar 2016 12:41:37 -0700
-Message-ID: <20160330194137.GZ9329@atomide.com>
-References: <56FC1FD8.6090003@gmail.com>
- <Pine.LNX.4.44L0.1603301509180.2194-100000@iolanthe.rowland.org>
+From: Peter Korsgaard <peter@korsgaard.com>
+Subject: Re: am335x: no multicast reception over VLAN
+Date: Wed, 30 Mar 2016 21:47:32 +0200
+Message-ID: <878u0z9297.fsf@dell.be.48ers.dk>
+References: <CAGm1_ktOqB4QBMy2G4XeHTkaP+WvG8GOc8maVv3dDoxM+-F+ZA@mail.gmail.com>
+	<56F9FDD0.8030504@ti.com>
+	<CAGm1_ksxRPCAqx4n5gbsARSYeF116BT7r8cC6=1QYnEsYRxpVw@mail.gmail.com>
+	<56FA616C.9080502@ti.com>
+	<CAGm1_ksvEdk-mF-hW4o5+bri6J6sMgnQQVD3j-e7xm6PsP8k0A@mail.gmail.com>
+	<56FA78AA.4030402@ti.com> <56FB6543.9060904@ti.com>
+	<CAGm1_kvXA4egrK8-oCedYjvPm7BhJdy_w-5ON24snYdKiN3K7g@mail.gmail.com>
+	<56FC0431.5000106@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1603301509180.2194-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, pali =?utf-8?B?Um9ow6Fy?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <56FC0431.5000106@ti.com> (Mugunthan V. N.'s message of "Wed, 30
+	Mar 2016 22:22:01 +0530")
+Sender: netdev-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: Yegor Yefremov <yegorslists@googlemail.com>, Grygorii Strashko <grygorii.strashko@ti.com>, netdev <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, drivshin@allworx.com, ml@markusgrimm.de
 List-Id: linux-omap@vger.kernel.org
 
-* Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> [160330 12:26]:
-> On Wed, 30 Mar 2016, Ivaylo Dimitrov wrote:
-> 
-> > >>> seems to be created twice :). Maybe the problem is that the first time
-> > >>> musb-hdrc is probed it fails with -EPROBE_DEFER, however that failure is
-> > >>> after gadget drivers got loaded and noone unloads them.
-> > >>
-> > >> gadget drivers will get added to a pending list, then later they'll
-> > >> bind. But they shouldn't bind() twice, unless there are multiple
-> > >> interfaces for them.
-> > >>
-> > >
-> > > Well, then it seems we have problem, as the 2 unbind() calls are with
-> > > one and the same "common" pointer (again, from memory).
-> > >
-> > >>> Just some wild guesses based on my memories as I've lost the logs (power
-> > >>> outage). For sure I can recreate them if needed.
-> > >>
-> > >> okay.
-> > >
-> > > I will redo dump_stack() and printks and will provide logs as soon as I
-> > > have some time, so to stop counting on my memories.
-> > >
-> > 
-> > Please find attached the relevant logs. It really seems that g_nokia is 
-> > probed twice, with all the gadgets in it created two times. I am 
-> > starting to suspect 855ed04a3758b205e84b269f92d26ab36ed8e2f7 ("usb: 
-> > gadget: udc-core: independent registration of gadgets and gadget 
-> > drivers") has something to do with the problem, though reverting it 
-> > resulted in g_nokia not being probed at all :)
-> 
-> The problem is not caused by nokia_bind() getting called twice.  The
-> log clearly shows that nokia_bind() is called only once, but it calls
-> usb_add_config() from two different places:
-> 
-> Jan  1 02:00:10 Nokia-N900 kernel: [    8.002838] [<c040c5b4>] (usb_add_config) from [<c041b274>] (nokia_bind+0x160/0x2f0)
-> Jan  1 02:00:10 Nokia-N900 kernel: [    8.014526] [<c041b274>] (nokia_bind) from [<c040e128>] (composite_bind+0x68/0x1a0)
-> ...
-> Jan  1 02:00:10 Nokia-N900 kernel: [    8.381286] [<c040c5b4>] (usb_add_config) from [<c041b28c>] (nokia_bind+0x178/0x2f0)
-> Jan  1 02:00:10 Nokia-N900 kernel: [    8.394348] [<c041b28c>] (nokia_bind) from [<c040e128>] (composite_bind+0x68/0x1a0)
-> 
-> Everything else along the two pathways is the same, so this is where
-> the multiple binds come from.  And indeed, looking at the code in
-> nokia_bind() you can see the two calls:
-> 
->         /* finally register the configuration */
->         status = usb_add_config(cdev, &nokia_config_500ma_driver,
->                         nokia_bind_config);
->         if (status < 0)
->                 goto err_msg_luns;
-> 
->         status = usb_add_config(cdev, &nokia_config_100ma_driver,
->                         nokia_bind_config);
-> 
-> This isn't supposed to cause any problems.  The two instances should 
-> never run at the same time, because they belong to different configs.
+>>>>> "Mugunthan" == Mugunthan V N <mugunthanvnm@ti.com> writes:
 
-Maybe drivers/usb/gadget/legacy/ether.c suffers from a similar issue
-as that's what I noticed the $subject problem with.
+Hi,
 
-Regards,
+ > You had received these packets as tcpdump will enable promiscuous mode
+ > so that you receive all the packets from the wire.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+FYI, you can use the -p option to tcpdump to not put the interface into
+promiscuous mode.
+
+-- 
+Bye, Peter Korsgaard
