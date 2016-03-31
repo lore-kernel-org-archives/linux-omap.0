@@ -1,78 +1,89 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH v3 2/2] usb:dwc3: pass arch data to xhci-hcd child
-Date: Thu, 31 Mar 2016 18:07:27 +0300
-Message-ID: <56FD3D2F.8070501@ti.com>
-References: <1457594332-7490-1-git-send-email-tqnguyen@apm.com>
- <1457594332-7490-3-git-send-email-tqnguyen@apm.com>
- <87mvpgi02f.fsf@intel.com> <56FBDA0D.4030507@ti.com>
- <87egashxz8.fsf@intel.com>
- <CAKrQpSvgTm+OM+ffO4ZKwpb=J3ewKoWYA7ojE+WKBbiYKwdMqw@mail.gmail.com>
- <87k2kjgjjf.fsf@intel.com>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: USB gadgets with configfs hang reboot
+Date: Thu, 31 Mar 2016 19:32:44 +0300
+Message-ID: <56FD512C.2070108@gmail.com>
+References: <Pine.LNX.4.44L0.1603301509180.2194-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87k2kjgjjf.fsf@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@linux.intel.com>, "Thang Q. Nguyen" <tqnguyen@apm.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, "Karicheri, Muralidharan" <m-karicheri2@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Phong Vo <pvo@apm.com>, Loc Ho <lho@apm.com>, patches <patches@apm.com>, Santosh Shilimkar <ssantosh@kernel.org>, "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44L0.1603301509180.2194-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, =?UTF-8?Q?pali_Roh=c3=a1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/31/2016 11:04 AM, Felipe Balbi wrote:
-> "Thang Q. Nguyen" <tqnguyen@apm.com> writes:
->> [ text/plain ]
->> Thanks Grygorii for information.
->> I checked but do not see dma_init_dev_from_parent is used in
->> linux-next repository. Can you give me more information for what
->> branch I can checkout to use it for USB DWC3?
-> 
-> dma_init_dev_from_parent() is still a proposal ;-)
-> 
-
-Felipe,
-
-After some experiments I came up with below fix (not common, but fixes USB
-case on keystone 2). if you agree with proposed fix I'll send proper
-patches to fix usb_add_gadget_udc_release() and dwc3_host_init() in the same
-way.
-
-diff --git a/drivers/usb/dwc3/host.c b/drivers/usb/dwc3/host.c
-index c679f63..3fe1c65 100644
---- a/drivers/usb/dwc3/host.c
-+++ b/drivers/usb/dwc3/host.c
-@@ -17,6 +17,7 @@
- 
- #include <linux/platform_device.h>
- #include <linux/usb/xhci_pdriver.h>
-+#include <linux/of_device.h>
- 
- #include "core.h"
- 
-@@ -35,8 +36,6 @@ int dwc3_host_init(struct dwc3 *dwc)
-        dma_set_coherent_mask(&xhci->dev, dwc->dev->coherent_dma_mask);
- 
-        xhci->dev.parent        = dwc->dev;
--       xhci->dev.dma_mask      = dwc->dev->dma_mask;
--       xhci->dev.dma_parms     = dwc->dev->dma_parms;
- 
-        dwc->xhci = xhci;
- 
-@@ -62,6 +61,12 @@ int dwc3_host_init(struct dwc3 *dwc)
-        phy_create_lookup(dwc->usb3_generic_phy, "usb3-phy",
-                          dev_name(&xhci->dev));
- 
-+       if (!dwc->dev->of_node) {
-+               xhci->dev.dma_mask      = dwc->dev->dma_mask;
-+               xhci->dev.dma_parms     = dwc->dev->dma_parms;
-+       } else 
-+               of_dma_configure(&xhci->dev, dwc->dev->of_node);
-+
-        ret = platform_device_add(xhci);
-        if (ret) {
-                dev_err(dwc->dev, "failed to register xHCI device\n");
 
 
+On 30.03.2016 22:25, Alan Stern wrote:
+> On Wed, 30 Mar 2016, Ivaylo Dimitrov wrote:
+>
+>>>>> seems to be created twice :). Maybe the problem is that the first time
+>>>>> musb-hdrc is probed it fails with -EPROBE_DEFER, however that failure is
+>>>>> after gadget drivers got loaded and noone unloads them.
+>>>>
+>>>> gadget drivers will get added to a pending list, then later they'll
+>>>> bind. But they shouldn't bind() twice, unless there are multiple
+>>>> interfaces for them.
+>>>>
+>>>
+>>> Well, then it seems we have problem, as the 2 unbind() calls are with
+>>> one and the same "common" pointer (again, from memory).
+>>>
+>>>>> Just some wild guesses based on my memories as I've lost the logs (power
+>>>>> outage). For sure I can recreate them if needed.
+>>>>
+>>>> okay.
+>>>
+>>> I will redo dump_stack() and printks and will provide logs as soon as I
+>>> have some time, so to stop counting on my memories.
+>>>
+>>
+>> Please find attached the relevant logs. It really seems that g_nokia is
+>> probed twice, with all the gadgets in it created two times. I am
+>> starting to suspect 855ed04a3758b205e84b269f92d26ab36ed8e2f7 ("usb:
+>> gadget: udc-core: independent registration of gadgets and gadget
+>> drivers") has something to do with the problem, though reverting it
+>> resulted in g_nokia not being probed at all :)
+>
+> The problem is not caused by nokia_bind() getting called twice.  The
+> log clearly shows that nokia_bind() is called only once, but it calls
+> usb_add_config() from two different places:
+>
+> Jan  1 02:00:10 Nokia-N900 kernel: [    8.002838] [<c040c5b4>] (usb_add_config) from [<c041b274>] (nokia_bind+0x160/0x2f0)
+> Jan  1 02:00:10 Nokia-N900 kernel: [    8.014526] [<c041b274>] (nokia_bind) from [<c040e128>] (composite_bind+0x68/0x1a0)
+> ...
+> Jan  1 02:00:10 Nokia-N900 kernel: [    8.381286] [<c040c5b4>] (usb_add_config) from [<c041b28c>] (nokia_bind+0x178/0x2f0)
+> Jan  1 02:00:10 Nokia-N900 kernel: [    8.394348] [<c041b28c>] (nokia_bind) from [<c040e128>] (composite_bind+0x68/0x1a0)
+>
+> Everything else along the two pathways is the same, so this is where
+> the multiple binds come from.  And indeed, looking at the code in
+> nokia_bind() you can see the two calls:
+>
+>          /* finally register the configuration */
+>          status = usb_add_config(cdev, &nokia_config_500ma_driver,
+>                          nokia_bind_config);
+>          if (status < 0)
+>                  goto err_msg_luns;
+>
+>          status = usb_add_config(cdev, &nokia_config_100ma_driver,
+>                          nokia_bind_config);
+>
 
--- 
-regards,
--grygorii
+Right, somehow I've overslept there are two different nokia_bind+XXX values.
+
+> This isn't supposed to cause any problems.  The two instances should
+> never run at the same time, because they belong to different configs.
+>
+
+The problem seems to be that fsg driver creates a thread for every 
+fsg_bind() call, which overwrites common->thread_task without first 
+checking if a thread is already created. I don't know the idea behind - 
+should it have only one thread for all instances, or there should be a 
+thread per instance, but anyway the current implementation looks wrong.
+
+Ivo
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
