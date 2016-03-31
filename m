@@ -1,38 +1,40 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] Documentation: devicetree: bindings: regulator:
- palmas-pmic.txt
-Date: Thu, 31 Mar 2016 09:15:42 -0500
-Message-ID: <20160331141542.GA17373@rob-hp-laptop>
-References: <1459255363-21101-1-git-send-email-j-keerthy@ti.com>
+From: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH] tty: serial: 8250_omap: do not defer termios changes
+Date: Thu, 31 Mar 2016 15:33:39 +0100
+Message-ID: <20160331153339.671d305f@lxorguk.ukuu.org.uk>
+References: <8737r7ght7.fsf@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1459255363-21101-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, spatton-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <8737r7ght7.fsf@linutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: John Ogness <john.ogness@linutronix.de>
+Cc: Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Mar 29, 2016 at 06:12:43PM +0530, Keerthy wrote:
-> From: Schuyler Patton <spatton-l0cyMroinI0@public.gmane.org>
-> 
-> Adding support for the tps659038 pmic so it doesn't generate a warning
-> when running the patch check script to
-> Documentation/devicetree/bindings/regulator/palmas-pmic.txt
-> 
-> Adding a note that the tps659037 device is a OTP spin of the
-> tps659038 pmic and device compatible.
-> 
-> Signed-off-by: Schuyler Patton <spatton-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-> ---
->  Documentation/devicetree/bindings/regulator/palmas-pmic.txt | 8 ++++++++
->  1 file changed, 8 insertions(+)
+> +		 * TCSANOW requests the change to occur immediately, however
+> +		 * if we have a TX-DMA operation in progress then it has been
+> +		 * observed that it might stall and never complete. Therefore
+> +		 * we wait until DMA completes to prevent this hang from
+> +		 * happening.
+> +		 */
+> +
+> +		dma->tx_running = 2;
+> +
+> +		spin_unlock_irq(&up->port.lock);
+> +		wait_event_interruptible(priv->termios_wait,
+> +					 dma->tx_running == 3);
+> +		spin_lock_irq(&up->port.lock);
+> +		complete_dma = 1;
+> +	}
 
-Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+This look wrong if a signal is received. termios setting is not an
+interruptible event and this would mean for example that a random other
+signal to a terminal process would cause mysterious non-setting of
+termios changes.
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Should this therefore not just be a straight wait_event or even a
+completion() handler ?
+
+Alan
