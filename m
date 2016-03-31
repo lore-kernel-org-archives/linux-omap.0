@@ -1,219 +1,150 @@
-From: Yegor Yefremov <yegorslists@googlemail.com>
-Subject: Re: am335x: no multicast reception over VLAN
-Date: Thu, 31 Mar 2016 09:52:53 +0200
-Message-ID: <CAGm1_kutVn+jNf58QwKyO8j5NmRhaOCUsXmpTiLbX75AczCm6w@mail.gmail.com>
-References: <CAGm1_ktOqB4QBMy2G4XeHTkaP+WvG8GOc8maVv3dDoxM+-F+ZA@mail.gmail.com>
- <56F9FDD0.8030504@ti.com> <CAGm1_ksxRPCAqx4n5gbsARSYeF116BT7r8cC6=1QYnEsYRxpVw@mail.gmail.com>
- <56FA616C.9080502@ti.com> <CAGm1_ksvEdk-mF-hW4o5+bri6J6sMgnQQVD3j-e7xm6PsP8k0A@mail.gmail.com>
- <56FA78AA.4030402@ti.com> <56FB6543.9060904@ti.com> <CAGm1_kvXA4egrK8-oCedYjvPm7BhJdy_w-5ON24snYdKiN3K7g@mail.gmail.com>
- <56FC0431.5000106@ti.com> <878u0z9297.fsf@dell.be.48ers.dk> <56FCC59B.70209@ti.com>
+From: Felipe Balbi <felipe.balbi@linux.intel.com>
+Subject: Re: [PATCH v3 1/2] usb:dwc3: Enable support for 64-bit system
+Date: Thu, 31 Mar 2016 11:04:13 +0300
+Message-ID: <87mvpfgjk2.fsf@intel.com>
+References: <1457594332-7490-1-git-send-email-tqnguyen@apm.com> <1457594332-7490-2-git-send-email-tqnguyen@apm.com> <87pouci03i.fsf@intel.com> <CAKrQpSt3Tm4Bu02ujgDnYu+29zA8VuWQ18o-TFMU1HJ970CkSA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=001a1144a0e4e6d4c4052f538da9
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <56FCC59B.70209@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: Peter Korsgaard <peter@korsgaard.com>, Grygorii Strashko <grygorii.strashko@ti.com>, netdev <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, drivshin@allworx.com, ml@markusgrimm.de
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAKrQpSt3Tm4Bu02ujgDnYu+29zA8VuWQ18o-TFMU1HJ970CkSA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Thang Q. Nguyen" <tqnguyen@apm.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm@lists.infradead.org, Phong Vo <pvo@apm.com>, Loc Ho <lho@apm.com>, patches <patches@apm.com>
 List-Id: linux-omap@vger.kernel.org
 
---001a1144a0e4e6d4c4052f538da9
-Content-Type: text/plain; charset=UTF-8
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Mar 31, 2016 at 8:37 AM, Mugunthan V N <mugunthanvnm@ti.com> wrote:
-> On Thursday 31 March 2016 01:17 AM, Peter Korsgaard wrote:
->>>>>>> "Mugunthan" == Mugunthan V N <mugunthanvnm@ti.com> writes:
+
+Hi,
+
+(please don't top-post)
+
+"Thang Q. Nguyen" <tqnguyen@apm.com> writes:
+> Hi Balbi,
+> If CONFIG_DMA_CMA=3Dy, dma mask is set properly. The issue just happen
+> when CONFIG_DMA_CMA is not set. In this case, dma mask is not set and
+> we need this code to check if dma mask should be manually set to 32 or
+> 64.
+
+Can you point me to the code which has this conditional ? Why would
+DMA_CMA=3Dn mean that dma_mask isn't initialized ? According to DMA_CMA's
+help text (see below) that's supposed to allow drivers to *allocate*
+large contiguous buffers, but that's not the case here.
+
+config DMA_CMA
+	bool "DMA Contiguous Memory Allocator"
+	depends on HAVE_DMA_CONTIGUOUS && CMA
+	help
+	  This enables the Contiguous Memory Allocator which allows drivers
+	  to allocate big physically-contiguous blocks of memory for use with
+	  hardware components that do not support I/O map nor scatter-gather.
+
+	  You can disable CMA by specifying "cma=3D0" on the kernel's command
+	  line.
+
+	  For more information see <include/linux/dma-contiguous.h>.
+	  If unsure, say "n".
+
+
+
+>
+> ----
+> Thang
+>
+> On Wed, Mar 30, 2016 at 8:09 PM, Felipe Balbi
+> <felipe.balbi@linux.intel.com> wrote:
 >>
 >> Hi,
 >>
->>  > You had received these packets as tcpdump will enable promiscuous mode
->>  > so that you receive all the packets from the wire.
+>> "Thang Q. Nguyen" <tqnguyen@apm.com> writes:
+>>> From: "Thang Q. Nguyen" <tqnguyen@apm.com>
+>>>
+>>> Add 64-bit DMA operation support to the USB DWC3 driver.
+>>> First attempt to set the coherent DMA mask for 64-bit DMA.
+>>> If that failed, attempt again with 32-bit DMA.
+>>>
+>>> Changes from v2:
+>>>       - None.
+>>>
+>>> Changes from v1:
+>>>       - Remove WARN_ON if dma_mask is NULL
 >>
->> FYI, you can use the -p option to tcpdump to not put the interface into
->> promiscuous mode.
+>> these changes lines should be between the tearline (---) and diffstat
+>> below.
 >>
+>>> Signed-off-by: Thang Q. Nguyen <tqnguyen@apm.com>
+>>> ---
+>>>  drivers/usb/dwc3/core.c | 15 +++++++++++++++
+>>>  1 file changed, 15 insertions(+)
+>>>
+>>> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+>>> index de5e01f..2479c24 100644
+>>> --- a/drivers/usb/dwc3/core.c
+>>> +++ b/drivers/usb/dwc3/core.c
+>>> @@ -831,6 +831,21 @@ static int dwc3_probe(struct platform_device *pdev)
+>>>       dwc->mem =3D mem;
+>>>       dwc->dev =3D dev;
+>>>
+>>> +     /* Try to set 64-bit DMA first */
+>>> +     if (!pdev->dev.dma_mask)
+>>> +             /* Platform did not initialize dma_mask */
+>>> +             ret =3D dma_coerce_mask_and_coherent(&pdev->dev,
+>>> +                                                DMA_BIT_MASK(64));
+>>> +     else
+>>> +             ret =3D dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MAS=
+K(64));
+>>> +
+>>> +     /* If seting 64-bit DMA mask fails, fall back to 32-bit DMA mask =
+*/
+>>> +     if (ret) {
+>>> +             ret =3D dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MAS=
+K(32));
+>>> +             if (ret)
+>>> +                     return ret;
+>>> +     }
+>>
+>> Also, why is it so that you need this now ? glue layers are copying dma
+>> mask from parent device and that should be set properly. This really
+>> shouldn't be necessary in dwc3-core; it would mean that glue layer
+>> didn't set this device up properly.
+>>
+>> --
+>> balbi
 >
-> Thanks for the information Peter Korsgaard.
 >
-> Yegor, can you provide tcpdump using -p as well in Grygorii commands.
+>
+> --=20
+>
+> Thang Q. Nguyen    | Staff SW Eng.
+>
+> C: +849.7684.7606 | O: +848.3770.0640
+>
+> F: +848.3770.0641  | tqnguyen@apm.com
 
-Before VLAN configuration:
+=2D-=20
+balbi
 
-# switch-config -d
-cpsw hw version 1.12 (0)
-0   : type: vlan , vid = 1, untag_force = 0x3, reg_mcast = 0x3,
-unreg_mcast = 0x0, member_list = 0x3
-1   : type: mcast, vid = 1, addr = ff:ff:ff:ff:ff:ff, mcast_state = f,
-no super, port_mask = 0x3
-2   : type: ucast, vid = 1, addr = 74:6a:8f:00:16:12, ucast_type =
-persistant, port_num = 0x0, Secure
-3   : type: vlan , vid = 0, untag_force = 0x7, reg_mcast = 0x0,
-unreg_mcast = 0x0, member_list = 0x7
-4   : type: mcast, vid = 1, addr = 01:00:5e:00:00:01, mcast_state = f,
-no super, port_mask = 0x3
-5   : type: vlan , vid = 2, untag_force = 0x5, reg_mcast = 0x5,
-unreg_mcast = 0x0, member_list = 0x5
-6   : type: mcast, vid = 2, addr = ff:ff:ff:ff:ff:ff, mcast_state = f,
-no super, port_mask = 0x5
-7   : type: ucast, vid = 2, addr = 74:6a:8f:00:16:13, ucast_type =
-persistant, port_num = 0x0, Secure
-8   : type: mcast, vid = 2, addr = 01:00:5e:00:00:01, mcast_state = f,
-no super, port_mask = 0x5
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
 
-After VLAN configuration:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-# switch-config -d
-cpsw hw version 1.12 (0)
-0   : type: vlan , vid = 1, untag_force = 0x3, reg_mcast = 0x3,
-unreg_mcast = 0x0, member_list = 0x3
-1   : type: mcast, vid = 1, addr = ff:ff:ff:ff:ff:ff, mcast_state = f,
-no super, port_mask = 0x3
-2   : type: ucast, vid = 1, addr = 74:6a:8f:00:16:12, ucast_type =
-persistant, port_num = 0x0, Secure
-3   : type: vlan , vid = 0, untag_force = 0x7, reg_mcast = 0x0,
-unreg_mcast = 0x0, member_list = 0x7
-4   : type: mcast, vid = 1, addr = 01:00:5e:00:00:01, mcast_state = f,
-no super, port_mask = 0x3
-5   : type: vlan , vid = 2, untag_force = 0x5, reg_mcast = 0x5,
-unreg_mcast = 0x0, member_list = 0x5
-6   : type: mcast, vid = 2, addr = ff:ff:ff:ff:ff:ff, mcast_state = f,
-no super, port_mask = 0x5
-7   : type: ucast, vid = 2, addr = 74:6a:8f:00:16:13, ucast_type =
-persistant, port_num = 0x0, Secure
-8   : type: mcast, vid = 2, addr = 01:00:5e:00:00:01, mcast_state = f,
-no super, port_mask = 0x5
-9   : type: vlan , vid = 100, untag_force = 0x0, reg_mcast = 0x5,
-unreg_mcast = 0x0, member_list = 0x5
-10  : type: ucast, vid = 100, addr = 74:6a:8f:00:16:13, ucast_type =
-persistant, port_num = 0x0
-11  : type: mcast, vid = 100, addr = ff:ff:ff:ff:ff:ff, mcast_state =
-f, no super, port_mask = 0x5
-12  : type: mcast, vid = 2, addr = 01:80:c2:00:00:21, mcast_state = f,
-no super, port_mask = 0x5
-
-During mulitcast receive:
-
-# switch-config -d
-cpsw hw version 1.12 (0)
-0   : type: vlan , vid = 1, untag_force = 0x3, reg_mcast = 0x3,
-unreg_mcast = 0x0, member_list = 0x3
-1   : type: mcast, vid = 1, addr = ff:ff:ff:ff:ff:ff, mcast_state = f,
-no super, port_mask = 0x3
-2   : type: ucast, vid = 1, addr = 74:6a:8f:00:16:12, ucast_type =
-persistant, port_num = 0x0, Secure
-3   : type: vlan , vid = 0, untag_force = 0x7, reg_mcast = 0x0,
-unreg_mcast = 0x0, member_list = 0x7
-4   : type: mcast, vid = 1, addr = 01:00:5e:00:00:01, mcast_state = f,
-no super, port_mask = 0x3
-5   : type: vlan , vid = 2, untag_force = 0x5, reg_mcast = 0x5,
-unreg_mcast = 0x0, member_list = 0x5
-6   : type: mcast, vid = 2, addr = ff:ff:ff:ff:ff:ff, mcast_state = f,
-no super, port_mask = 0x5
-7   : type: ucast, vid = 2, addr = 74:6a:8f:00:16:13, ucast_type =
-persistant, port_num = 0x0, Secure
-8   : type: mcast, vid = 2, addr = 01:00:5e:00:00:01, mcast_state = f,
-no super, port_mask = 0x5
-9   : type: vlan , vid = 100, untag_force = 0x0, reg_mcast = 0x5,
-unreg_mcast = 0x0, member_list = 0x5
-10  : type: ucast, vid = 100, addr = 74:6a:8f:00:16:13, ucast_type =
-persistant, port_num = 0x0
-11  : type: mcast, vid = 100, addr = ff:ff:ff:ff:ff:ff, mcast_state =
-f, no super, port_mask = 0x5
-12  : type: mcast, vid = 2, addr = 01:80:c2:00:00:21, mcast_state = f,
-no super, port_mask = 0x5
-13  : type: mcast, vid = 2, addr = 01:00:5e:03:1d:47, mcast_state = f,
-no super, port_mask = 0x5
-14  : type: ucast, vid = 100, addr = 66:22:04:bc:90:26, ucast_type =
-untouched , port_num = 0x2
-
-
-After multicast receive use case:
-
-# switch-config -d
-cpsw hw version 1.12 (0)
-0   : type: vlan , vid = 1, untag_force = 0x3, reg_mcast = 0x3,
-unreg_mcast = 0x0, member_list = 0x3
-1   : type: mcast, vid = 1, addr = ff:ff:ff:ff:ff:ff, mcast_state = f,
-no super, port_mask = 0x3
-2   : type: ucast, vid = 1, addr = 74:6a:8f:00:16:12, ucast_type =
-persistant, port_num = 0x0, Secure
-3   : type: vlan , vid = 0, untag_force = 0x7, reg_mcast = 0x0,
-unreg_mcast = 0x0, member_list = 0x7
-4   : type: mcast, vid = 1, addr = 01:00:5e:00:00:01, mcast_state = f,
-no super, port_mask = 0x3
-5   : type: vlan , vid = 2, untag_force = 0x5, reg_mcast = 0x5,
-unreg_mcast = 0x0, member_list = 0x5
-6   : type: mcast, vid = 2, addr = ff:ff:ff:ff:ff:ff, mcast_state = f,
-no super, port_mask = 0x5
-7   : type: ucast, vid = 2, addr = 74:6a:8f:00:16:13, ucast_type =
-persistant, port_num = 0x0, Secure
-8   : type: mcast, vid = 2, addr = 01:00:5e:00:00:01, mcast_state = f,
-no super, port_mask = 0x5
-9   : type: vlan , vid = 100, untag_force = 0x0, reg_mcast = 0x5,
-unreg_mcast = 0x0, member_list = 0x5
-10  : type: ucast, vid = 100, addr = 74:6a:8f:00:16:13, ucast_type =
-persistant, port_num = 0x0
-11  : type: mcast, vid = 100, addr = ff:ff:ff:ff:ff:ff, mcast_state =
-f, no super, port_mask = 0x5
-12  : type: mcast, vid = 2, addr = 01:80:c2:00:00:21, mcast_state = f,
-no super, port_mask = 0x5
-15  : type: ucast, vid = 100, addr = 66:22:04:bc:90:26, ucast_type =
-untouched , port_num = 0x2
-
-Both tcpdumps with -p option showed no packets. If I execute ping, I
-can see related ICMP packets. addr = 66:22:04:bc:90:26 is PandaBoards
-MAC.
-
-Btw I've attached my test scripts (mcastr.py - multicast receiver and
-mcastt.py - multicast transmitter). Could you reproduce my setup?
-
-Thanks.
-
-Yegor
-
---001a1144a0e4e6d4c4052f538da9
-Content-Type: text/plain; charset=US-ASCII; name="mcastr.py"
-Content-Disposition: attachment; filename="mcastr.py"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_imfzeo620
-
-aW1wb3J0IHNvY2tldAppbXBvcnQgc3RydWN0CmltcG9ydCBzeXMKCm11bHRpY2FzdF9ncm91cCA9
-ICcyMjQuMy4yOS43MScKc2VydmVyX2FkZHJlc3MgPSAoJycsIDEwMDAwKQoKIyBDcmVhdGUgdGhl
-IHNvY2tldApzb2NrID0gc29ja2V0LnNvY2tldChzb2NrZXQuQUZfSU5FVCwgc29ja2V0LlNPQ0tf
-REdSQU0pCgojIEJpbmQgdG8gdGhlIHNlcnZlciBhZGRyZXNzCnNvY2suYmluZChzZXJ2ZXJfYWRk
-cmVzcykKCiMgVGVsbCB0aGUgb3BlcmF0aW5nIHN5c3RlbSB0byBhZGQgdGhlIHNvY2tldCB0byB0
-aGUgbXVsdGljYXN0IGdyb3VwCiMgb24gYWxsIGludGVyZmFjZXMuCmdyb3VwID0gc29ja2V0Lmlu
-ZXRfYXRvbihtdWx0aWNhc3RfZ3JvdXApCm1yZXEgPSBzdHJ1Y3QucGFjaygnNHNMJywgZ3JvdXAs
-IHNvY2tldC5JTkFERFJfQU5ZKQpzb2NrLnNldHNvY2tvcHQoc29ja2V0LklQUFJPVE9fSVAsIHNv
-Y2tldC5JUF9BRERfTUVNQkVSU0hJUCwgbXJlcSkKCiMgUmVjZWl2ZS9yZXNwb25kIGxvb3AKd2hp
-bGUgVHJ1ZToKICAgIHByaW50ID4+c3lzLnN0ZGVyciwgJ1xud2FpdGluZyB0byByZWNlaXZlIG1l
-c3NhZ2UnCiAgICBkYXRhLCBhZGRyZXNzID0gc29jay5yZWN2ZnJvbSgxMDI0KQogICAgCiAgICBw
-cmludCA+PnN5cy5zdGRlcnIsICdyZWNlaXZlZCAlcyBieXRlcyBmcm9tICVzJyAlIChsZW4oZGF0
-YSksIGFkZHJlc3MpCiAgICBwcmludCA+PnN5cy5zdGRlcnIsIGRhdGEKCiAgICBwcmludCA+PnN5
-cy5zdGRlcnIsICdzZW5kaW5nIGFja25vd2xlZGdlbWVudCB0bycsIGFkZHJlc3MKICAgIHNvY2su
-c2VuZHRvKCdhY2snLCBhZGRyZXNzKQo=
---001a1144a0e4e6d4c4052f538da9
-Content-Type: text/plain; charset=US-ASCII; name="mcastt.py"
-Content-Disposition: attachment; filename="mcastt.py"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_imfzevjt1
-
-aW1wb3J0IHNvY2tldAppbXBvcnQgc3RydWN0CmltcG9ydCBzeXMKCm1lc3NhZ2UgPSAndmVyeSBp
-bXBvcnRhbnQgZGF0YScKbXVsdGljYXN0X2dyb3VwID0gKCcyMjQuMy4yOS43MScsIDEwMDAwKQoK
-IyBDcmVhdGUgdGhlIGRhdGFncmFtIHNvY2tldApzb2NrID0gc29ja2V0LnNvY2tldChzb2NrZXQu
-QUZfSU5FVCwgc29ja2V0LlNPQ0tfREdSQU0pCgojIFNldCBhIHRpbWVvdXQgc28gdGhlIHNvY2tl
-dCBkb2VzIG5vdCBibG9jayBpbmRlZmluaXRlbHkgd2hlbiB0cnlpbmcKIyB0byByZWNlaXZlIGRh
-dGEuCnNvY2suc2V0dGltZW91dCgwLjIpCgojIFNldCB0aGUgdGltZS10by1saXZlIGZvciBtZXNz
-YWdlcyB0byAxIHNvIHRoZXkgZG8gbm90IGdvIHBhc3QgdGhlCiMgbG9jYWwgbmV0d29yayBzZWdt
-ZW50Lgp0dGwgPSBzdHJ1Y3QucGFjaygnYicsIDEpCnNvY2suc2V0c29ja29wdChzb2NrZXQuSVBQ
-Uk9UT19JUCwgc29ja2V0LklQX01VTFRJQ0FTVF9UVEwsIHR0bCkKCnRyeToKCiAgICAjIFNlbmQg
-ZGF0YSB0byB0aGUgbXVsdGljYXN0IGdyb3VwCiAgICBwcmludCA+PnN5cy5zdGRlcnIsICdzZW5k
-aW5nICIlcyInICUgbWVzc2FnZQogICAgc2VudCA9IHNvY2suc2VuZHRvKG1lc3NhZ2UsIG11bHRp
-Y2FzdF9ncm91cCkKCiAgICAjIExvb2sgZm9yIHJlc3BvbnNlcyBmcm9tIGFsbCByZWNpcGllbnRz
-CiAgICB3aGlsZSBUcnVlOgogICAgICAgIHByaW50ID4+c3lzLnN0ZGVyciwgJ3dhaXRpbmcgdG8g
-cmVjZWl2ZScKICAgICAgICB0cnk6CiAgICAgICAgICAgIGRhdGEsIHNlcnZlciA9IHNvY2sucmVj
-dmZyb20oMTYpCiAgICAgICAgZXhjZXB0IHNvY2tldC50aW1lb3V0OgogICAgICAgICAgICBwcmlu
-dCA+PnN5cy5zdGRlcnIsICd0aW1lZCBvdXQsIG5vIG1vcmUgcmVzcG9uc2VzJwogICAgICAgICAg
-ICBicmVhawogICAgICAgIGVsc2U6CiAgICAgICAgICAgIHByaW50ID4+c3lzLnN0ZGVyciwgJ3Jl
-Y2VpdmVkICIlcyIgZnJvbSAlcycgJSAoZGF0YSwgc2VydmVyKQoKZmluYWxseToKICAgIHByaW50
-ID4+c3lzLnN0ZGVyciwgJ2Nsb3Npbmcgc29ja2V0JwogICAgc29jay5jbG9zZSgpCg==
---001a1144a0e4e6d4c4052f538da9--
+iQIcBAEBAgAGBQJW/Nn9AAoJEIaOsuA1yqRE3t8P/0Ftsfei7GZ9W1ba8hEOq5L2
+oQ8FYIcsqoxtxgK8AXFpxDAJtAVek8GM65+c9jO1dKcRcudM19tc7IPYo2qo8mOM
+9c+rpdfCgwcC/gSBX4jLgUHnqCBlV2Cty+rIZDQDLZ1mk6D8XArH9qvKleigOfuV
+Thl2EvDkfd040VjR0wPv89X9XaUcaRBN6r2kPgbgPs7KEyuEe8jHoannMIGIYvKD
+NcUIMAF86bVFCGvV04OOi7eI6smDyNakn5JhKwTbt/GW35xpl1mI+qmSL/FxyKQ3
+wenv+PsdJ6GBIhANWpyUhy0ykjnbp6WLtc2kbQWxueI/taMBSt9YlZQOmCw1iGnx
+fZ1+aiUosfacmrfrP9JgJC83sdeVv0ZU9APcFbey/eqQOSkxSaNjoL2IpJsOzpyk
+yi08uGkJ39iiN4AqhueJr1clzTn9pwufwx7y/4a07mEuKd+nVfIIL45eCjr7eUdU
++uAqngrGolaq4S8KjXAsaLuFFYCl7j+zlYYeVO9MuTbR7dsGddF+f0i4cIMLUuY0
+4slAwyiSKsupv4PPBYTGu0CRJhF1ahqVE4Ok2rI/dQDBy4zlS8GyaMcgN5I9+DOr
++VhzscLUBvY2p2iy+q0Wkpk6Udt3ALW9zb4GEDysLBC/OiZtSR3mK0r3mwy1W7Lk
+WgKwhiRvjzKqwICbrtoV
+=fMK3
+-----END PGP SIGNATURE-----
+--=-=-=--
