@@ -1,40 +1,40 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH v2] ARM: dts: dra7: Correct clock tree for sys_32k_ck
-Date: Thu, 31 Mar 2016 09:30:23 +0300
-Message-ID: <56FCC3FF.7080901@ti.com>
-References: <1457957001-720-1-git-send-email-j-keerthy@ti.com>
- <20160330211828.GE9329@atomide.com> <20160330213224.GH9329@atomide.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: am335x: no multicast reception over VLAN
+Date: Thu, 31 Mar 2016 12:07:15 +0530
+Message-ID: <56FCC59B.70209@ti.com>
+References: <CAGm1_ktOqB4QBMy2G4XeHTkaP+WvG8GOc8maVv3dDoxM+-F+ZA@mail.gmail.com>
+ <56F9FDD0.8030504@ti.com>
+ <CAGm1_ksxRPCAqx4n5gbsARSYeF116BT7r8cC6=1QYnEsYRxpVw@mail.gmail.com>
+ <56FA616C.9080502@ti.com>
+ <CAGm1_ksvEdk-mF-hW4o5+bri6J6sMgnQQVD3j-e7xm6PsP8k0A@mail.gmail.com>
+ <56FA78AA.4030402@ti.com> <56FB6543.9060904@ti.com>
+ <CAGm1_kvXA4egrK8-oCedYjvPm7BhJdy_w-5ON24snYdKiN3K7g@mail.gmail.com>
+ <56FC0431.5000106@ti.com> <878u0z9297.fsf@dell.be.48ers.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160330213224.GH9329@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, robh+dt@kernel.org, galak@codeaurora.org, mark.rutland@arm.com, Lokesh Vutla <lokeshvutla@ti.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <878u0z9297.fsf@dell.be.48ers.dk>
+Sender: netdev-owner@vger.kernel.org
+To: Peter Korsgaard <peter@korsgaard.com>
+Cc: Yegor Yefremov <yegorslists@googlemail.com>, Grygorii Strashko <grygorii.strashko@ti.com>, netdev <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, drivshin@allworx.com, ml@markusgrimm.de
 List-Id: linux-omap@vger.kernel.org
 
-On 03/31/2016 12:32 AM, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [160330 14:19]:
->> * Keerthy <j-keerthy@ti.com> [160314 05:04]:
->>> This is w.r.t J6/J6eco: 32clk is pseudo (erratum i856) - clock source.
->>> Errata i856 for the AM572x (DRA7xx) points out that the 32.768KHz external
->>> crystal is not enabled at power up. Instead the CPU falls back to using
->>> an emulation for the 32KHz clock which is SYSCLK1/610.  SYSCLK1 is usually
->>> 20MHz on boards so far (which gives an emulated frequency of 32.786KHz)
->>
->> Thanks applying into omap-for-v4.6/fixes.
->
-> Actually let's wait a review from Tero on this one, not sure
-> about the pseudo clock naming here. So dropping for now.
+On Thursday 31 March 2016 01:17 AM, Peter Korsgaard wrote:
+>>>>>> "Mugunthan" == Mugunthan V N <mugunthanvnm@ti.com> writes:
+> 
+> Hi,
+> 
+>  > You had received these packets as tcpdump will enable promiscuous mode
+>  > so that you receive all the packets from the wire.
+> 
+> FYI, you can use the -p option to tcpdump to not put the interface into
+> promiscuous mode.
+> 
 
-The patch is fine for me, I didn't comment anything before as I thought 
-you already applied it.
+Thanks for the information Peter Korsgaard.
 
-Acked-by: Tero Kristo <t-kristo@ti.com>
+Yegor, can you provide tcpdump using -p as well in Grygorii commands.
 
->
-> Regards,
->
-> Tony
->
+Regards
+Mugunthan V N
