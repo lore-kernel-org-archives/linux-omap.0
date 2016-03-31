@@ -1,149 +1,69 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v9 0/7] Implement generic ASoC HDMI codec and
-	use it in tda998x
-Date: Thu, 31 Mar 2016 16:35:57 +0300
-Message-ID: <cover.1459431292.git.jsarha@ti.com>
+Subject: [PATCH v9 4/7] ASoC: hdmi-codec: Add audio abort() callback for video
+ side to use
+Date: Thu, 31 Mar 2016 16:36:01 +0300
+Message-ID: <36a4881da9400908b2e033cb2d931daf0d59bac9.1459431292.git.jsarha@ti.com>
+References: <cover.1459431292.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <cover.1459431292.git.jsarha@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org
-Cc: peter.ujfalusi@ti.com, tony@atomide.com, broonie@kernel.org, arnaud.pouliquen@st.com, Jyri Sarha <jsarha@ti.com>, liam.r.girdwood@linux.intel.com, tiwai@suse.de, tomi.valkeinen@ti.com, p.zabel@pengutronix.de, rmk+kernel@arm.linux.org.uk
+Cc: peter.ujfalusi@ti.com, tony@atomide.com, broonie@kernel.org, arnaud.pouliquen@st.com, Jyri Sarha <jsarha@ti.com>, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-Couple of minor changes since v8 to ALSA/ASoC side patches. The series
-is based on top of drm-next. However, it does not look like there is
-enough attention to the DRM side so that the tda998x patches would get
-in any time soon. So I am happy to rebase the first ALSA-side patches
-on top of Mark Brown's for-next tree, for instance, if they would have
-a change to go in on their own. The first two IEC958 helper patches
-should apply as such.
-
-There is currently two other patch series[2][3] that depend on the
-first three (ALSA-) patches of this series. The third ("ASoC:
-hdmi-codec: Add audio abort() callback for video side to use") is
-currently not used and can be dropped if so decided. The rest depends
-on those the first patches and adds hdmi-audio support for
-Beaglebone-black.
-
-Best regards,
-Jyri
-
-[1] "[PATCH v6 0/6] Implement generic ASoC HDMI codec and use it in tda998x"
-    http://mailman.alsa-project.org/pipermail/alsa-devel/2016-March/105524.html
-[2] "[PATCH v6 00/10] ASoC: Add mediatek HDMI codec support" by Philipp Zabel 
-    http://mailman.alsa-project.org/pipermail/alsa-devel/2016-March/105509.html
-[3] "[RFC v2 0/6] sti: add audio interface to the hdmi driver"
-    http://mailman.alsa-project.org/pipermail/alsa-devel/2016-January/103374.html
-    and "[PATCH v4 0/6] add IEC958 channel status control helpers"
-    http://mailman.alsa-project.org/pipermail/alsa-devel/2016-March/105502.html
-    by Arnaud Pouliquen
-
-Changes since v8
-* "ALSA: pcm: add IEC958 channel status helper for hw_params"
-  - Split out the 32 bit support
-  - add: "ALSA: pcm: Allow 32 bit sample format in IEC958 channel status helper"
-* "ASoC: hdmi-codec: Add hdmi-codec for external HDMI-encoders"
-  - Set hw_params->msbits to 24 in hw_params() callback if sample width is
-    greater than 24 bits
-
-Changes since v7
-* "drm/i2c: tda998x: Register ASoC hdmi-codec and add audio DT binding"
-  - Remove the unused "int ret" variable from tda998x_configure_audio()
-
-Changes since v6
-* "ASoC: hdmi-codec: Add hdmi-codec for external HDMI-encoders"
- - Add "Acked-by: Arnaud Pouliquen <arnaud.pouliquen@st.com>" and
-   "Tested-by: Philipp Zabel <p.zabel@pengutronix.de>", no other changes
-* "ALSA: pcm: add IEC958 channel status helper for hw_param"
- - Added kernel-doc for snd_pcm_create_iec958_consumer_hw_params()
-* "drm/i2c: tda998x: Register ASoC hdmi-codec and add audio DT binding"
- - Use PTR_ERR_OR_ZERO() in tda998x_audio_codec_init()
- - Fix possible uninitialized use of 'size' in tda998x_get_audio_ports()
- - Store audio configuration in tda998x_audio_hw_params() instead of
-   tda998x_configure_audio().
-
-Changes since v5
- - Rebased on top of the latest drm-next branch
- - Allow 32 bit samplewidth in snd_pcm_create_iec958_consumer() and
-   snd_pcm_create_iec958_consumer_hw_params()
- - Propose new simpler DT binding for tda998x audio
- - Squash tda998x audio DT binding together with hdmi-codec integration
-
-Changes since RFC v4,
- - Rebased on top of the latest drm-next branch
- - Split the hdmi-codec abort functionality into a separate patch for
-   better visibility of what it is all about
-   - This does not affect the tda998x patches as the abort
-     functionality is not used
- - Drop S18_3* formats from I2S_FORMATS and add a comment about formats
-   not supported by HDMI
-
-Changes since RFC v3,
- ASoC side:
- - Add "ALSA: pcm: add IEC958 channel status helper for hw_params"
- - Add "tda998x: Improve tda998x_configure_audio() audio related pdata"
- - use snd_pcm_create_iec958_consumer_hw_params() to construct the stream header
- - Remove set_clk() callback from hdmi-codec. It is not needed for now.
- - Refer to stream header in AIF as specified in HDMI standard
- - Set current_stream to NULL only after video side audio_shutdown() has
-   been called. Avoid potential race if video side attempts to abort audio
-   at the same time.
- - No need to have video side device pointer in the hdmi codec's pdata as
-   it is found from dev->parent.
- - Fix hdmi-codec enum: DAI_ID_I2C > DAI_ID_I2S
- - Improve audio_startup API comment
- - Make improved checkpatch happy 
-   - BUG_ON > WARN_ON
-   - put */ ending the block comment to a separate line
-
- DRM side:
- - Fix tda998x get_eld() locking
- - Change tda998x audio parameters in pdata to more generic, that can
-   be readily used in tda998x_audio_config()
- - Rename and restructure audio port related private data members to
-   be more descriptive
- - Require audio configuration trough ASoC hdmi-codec if HDMI audio is
-   configured trough DT binding. 
-
- DTS:
- - Increase McASP fifo usage form 1 to 32
-
-Jyri Sarha (7):
-  ALSA: pcm: add IEC958 channel status helper for hw_params
-  ALSA: pcm: Allow 32 bit sample format in IEC958 channel status helper
-  ASoC: hdmi-codec: Add hdmi-codec for external HDMI-encoders
-  ASoC: hdmi-codec: Add audio abort() callback for video side to use
-  drm/i2c: tda998x: Improve tda998x_configure_audio() audio related
-    pdata
-  drm/i2c: tda998x: Register ASoC hdmi-codec and add audio DT binding
-  ARM: dts: am335x-boneblack: Add HDMI audio support
-
- .../devicetree/bindings/display/bridge/tda998x.txt |  18 +
- arch/arm/boot/dts/am335x-boneblack.dts             |  71 +++-
- drivers/gpu/drm/i2c/Kconfig                        |   1 +
- drivers/gpu/drm/i2c/tda998x_drv.c                  | 275 ++++++++++++--
- include/drm/i2c/tda998x.h                          |  24 +-
- include/dt-bindings/display/tda998x.h              |   7 +
- include/sound/hdmi-codec.h                         | 104 ++++++
- include/sound/pcm_iec958.h                         |   2 +
- sound/core/pcm_iec958.c                            |  65 +++-
- sound/soc/codecs/Kconfig                           |   6 +
- sound/soc/codecs/Makefile                          |   2 +
- sound/soc/codecs/hdmi-codec.c                      | 414 +++++++++++++++++++++
- 12 files changed, 917 insertions(+), 72 deletions(-)
- create mode 100644 include/dt-bindings/display/tda998x.h
- create mode 100644 include/sound/hdmi-codec.h
- create mode 100644 sound/soc/codecs/hdmi-codec.c
-
--- 
-1.9.1
+QWRkIGF1ZGlvIGFib3J0KCkgY2FsbGJhY2ssIHRoYXQgaXMgcHJvdmlkZWQgYXQgYXVkaW8gc3Ry
+ZWFtIHN0YXJ0LApmb3IgdmlkZW8gc2lkZS4gVGhpcyBpcyBmb3IgdmlkZW8gc2lkZSB0byB1c2Ug
+aW4gY2FzZSB0aGVyZSBpcyBhCnByZXNzaW5nIG5lZWQgdG8gdGVhciBkb3duIHRoZSBhdWRpbyBw
+bGF5YmFjayBmb3Igc29tZSByZWFzb24uCgpTaWduZWQtb2ZmLWJ5OiBKeXJpIFNhcmhhIDxqc2Fy
+aGFAdGkuY29tPgotLS0KIGluY2x1ZGUvc291bmQvaGRtaS1jb2RlYy5oICAgIHwgIDggKysrKysr
+LS0KIHNvdW5kL3NvYy9jb2RlY3MvaGRtaS1jb2RlYy5jIHwgMjAgKysrKysrKysrKysrKysrKysr
+Ky0KIDIgZmlsZXMgY2hhbmdlZCwgMjUgaW5zZXJ0aW9ucygrKSwgMyBkZWxldGlvbnMoLSkKCmRp
+ZmYgLS1naXQgYS9pbmNsdWRlL3NvdW5kL2hkbWktY29kZWMuaCBiL2luY2x1ZGUvc291bmQvaGRt
+aS1jb2RlYy5oCmluZGV4IGZjM2E0ODEuLjE1ZmU3MGYgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUvc291
+bmQvaGRtaS1jb2RlYy5oCisrKyBiL2luY2x1ZGUvc291bmQvaGRtaS1jb2RlYy5oCkBAIC01NSwx
+MCArNTUsMTQgQEAgc3RydWN0IGhkbWlfY29kZWNfcGFyYW1zIHsKIAogc3RydWN0IGhkbWlfY29k
+ZWNfb3BzIHsKIAkvKgotCSAqIENhbGxlZCB3aGVuIEFTb0Mgc3RhcnRzIGFuIGF1ZGlvIHN0cmVh
+bSBzZXR1cC4KKwkgKiBDYWxsZWQgd2hlbiBBU29DIHN0YXJ0cyBhbiBhdWRpbyBzdHJlYW0gc2V0
+dXAuIFRoZSBjYWxsCisJICogcHJvdmlkZXMgYW4gYXVkaW8gYWJvcnQgY2FsbGJhY2sgZm9yIHN0
+b3BpbmcgYW4gb25nb2luZworCSAqIHN0cmVhbSBmcm9tIHZpZGVvIHNpZGUgZHJpdmVyIGlmIHRo
+ZSBIRE1JIGF1ZGlvIGJlY29tZXMKKwkgKiB1bmF2YWlsYWJsZS4KIAkgKiBPcHRpb25hbAogCSAq
+LwotCWludCAoKmF1ZGlvX3N0YXJ0dXApKHN0cnVjdCBkZXZpY2UgKmRldik7CisJaW50ICgqYXVk
+aW9fc3RhcnR1cCkoc3RydWN0IGRldmljZSAqZGV2LAorCQkJICAgICB2b2lkICgqYWJvcnRfY2Ip
+KHN0cnVjdCBkZXZpY2UgKmRldikpOwogCiAJLyoKIAkgKiBDb25maWd1cmVzIEhETUktZW5jb2Rl
+ciBmb3IgYXVkaW8gc3RyZWFtLgpkaWZmIC0tZ2l0IGEvc291bmQvc29jL2NvZGVjcy9oZG1pLWNv
+ZGVjLmMgYi9zb3VuZC9zb2MvY29kZWNzL2hkbWktY29kZWMuYwppbmRleCBiNDZiOGVkLi4zNTE1
+MWE0IDEwMDY0NAotLS0gYS9zb3VuZC9zb2MvY29kZWNzL2hkbWktY29kZWMuYworKysgYi9zb3Vu
+ZC9zb2MvY29kZWNzL2hkbWktY29kZWMuYwpAQCAtNDcsNiArNDcsMjMgQEAgZW51bSB7CiAJREFJ
+X0lEX1NQRElGLAogfTsKIAorc3RhdGljIHZvaWQgaGRtaV9jb2RlY19hYm9ydChzdHJ1Y3QgZGV2
+aWNlICpkZXYpCit7CisJc3RydWN0IGhkbWlfY29kZWNfcHJpdiAqaGNwID0gZGV2X2dldF9kcnZk
+YXRhKGRldik7CisKKwlkZXZfZGJnKGRldiwgIiVzKClcbiIsIF9fZnVuY19fKTsKKworCW11dGV4
+X2xvY2soJmhjcC0+Y3VycmVudF9zdHJlYW1fbG9jayk7CisJaWYgKGhjcC0+Y3VycmVudF9zdHJl
+YW0gJiYgaGNwLT5jdXJyZW50X3N0cmVhbS0+cnVudGltZSAmJgorCSAgICBzbmRfcGNtX3J1bm5p
+bmcoaGNwLT5jdXJyZW50X3N0cmVhbSkpIHsKKwkJZGV2X2luZm8oZGV2LCAiSERNSSBhdWRpbyBw
+bGF5YmFjayBhYm9ydGVkXG4iKTsKKwkJc25kX3BjbV9zdHJlYW1fbG9ja19pcnEoaGNwLT5jdXJy
+ZW50X3N0cmVhbSk7CisJCXNuZF9wY21fc3RvcChoY3AtPmN1cnJlbnRfc3RyZWFtLCBTTkRSVl9Q
+Q01fU1RBVEVfRElTQ09OTkVDVEVEKTsKKwkJc25kX3BjbV9zdHJlYW1fdW5sb2NrX2lycShoY3At
+PmN1cnJlbnRfc3RyZWFtKTsKKwl9CisJbXV0ZXhfdW5sb2NrKCZoY3AtPmN1cnJlbnRfc3RyZWFt
+X2xvY2spOworfQorCiBzdGF0aWMgaW50IGhkbWlfY29kZWNfbmV3X3N0cmVhbShzdHJ1Y3Qgc25k
+X3BjbV9zdWJzdHJlYW0gKnN1YnN0cmVhbSwKIAkJCQkgc3RydWN0IHNuZF9zb2NfZGFpICpkYWkp
+CiB7CkBAIC03OCw3ICs5NSw4IEBAIHN0YXRpYyBpbnQgaGRtaV9jb2RlY19zdGFydHVwKHN0cnVj
+dCBzbmRfcGNtX3N1YnN0cmVhbSAqc3Vic3RyZWFtLAogCQlyZXR1cm4gcmV0OwogCiAJaWYgKGhj
+cC0+aGNkLm9wcy0+YXVkaW9fc3RhcnR1cCkgewotCQlyZXQgPSBoY3AtPmhjZC5vcHMtPmF1ZGlv
+X3N0YXJ0dXAoZGFpLT5kZXYtPnBhcmVudCk7CisJCXJldCA9IGhjcC0+aGNkLm9wcy0+YXVkaW9f
+c3RhcnR1cChkYWktPmRldi0+cGFyZW50LAorCQkJCQkJICBoZG1pX2NvZGVjX2Fib3J0KTsKIAkJ
+aWYgKHJldCkgewogCQkJbXV0ZXhfbG9jaygmaGNwLT5jdXJyZW50X3N0cmVhbV9sb2NrKTsKIAkJ
+CWhjcC0+Y3VycmVudF9zdHJlYW0gPSBOVUxMOwotLSAKMS45LjEKCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJp
+LWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9y
+Zy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
