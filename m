@@ -1,81 +1,87 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v9 6/7] drm/i2c: tda998x: Register ASoC hdmi-codec and
- add audio DT binding
-Date: Fri, 1 Apr 2016 13:37:06 -0500
-Message-ID: <20160401183706.GA17145@rob-hp-laptop>
-References: <cover.1459431292.git.jsarha@ti.com>
- <f8bdb070efdf6724ddc6bdb28baaa624ce6fb8af.1459431292.git.jsarha@ti.com>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2] ARM: dts: dra7: Correct clock tree for sys_32k_ck
+Date: Fri, 1 Apr 2016 21:48:55 +0300
+Message-ID: <56FEC297.50102@ti.com>
+References: <1457957001-720-1-git-send-email-j-keerthy@ti.com>
+ <20160330211828.GE9329@atomide.com> <20160330213224.GH9329@atomide.com>
+ <56FCC3FF.7080901@ti.com> <56FCEC61.5020400@ti.com>
+ <20160331170017.GI9329@atomide.com> <20160401153606.GJ9329@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <f8bdb070efdf6724ddc6bdb28baaa624ce6fb8af.1459431292.git.jsarha@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jyri Sarha <jsarha@ti.com>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, arnaud.pouliquen@st.com, dri-devel@lists.freedesktop.org, peter.ujfalusi@ti.com, tony@atomide.com, broonie@kernel.org, bcousson@baylibre.com, rmk+kernel@arm.linux.org.uk, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160401153606.GJ9329-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
+Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gVGh1LCBNYXIgMzEsIDIwMTYgYXQgMDQ6MzY6MDNQTSArMDMwMCwgSnlyaSBTYXJoYSB3cm90
-ZToKPiBSZWdpc3RlciBBU29DIEhETUkgY29kZWMgZm9yIGF1ZGlvIGZ1bmN0aW9uYWxpdHkgYW5k
-IGFkZHMgZGV2aWNlIHRyZWUKPiBiaW5kaW5nIGZvciBhdWRpbyBjb25maWd1cmF0aW9uLgo+IAo+
-IFdpdGggdGhlIHJlZ2lzdGVyZWQgSERNSSBjb2RlYyB0aGUgdGRhOTk4eCBub2RlIGNhbiBiZSB1
-c2VkIGxpa2UgYQo+IHJlZ3VsYXIgY29kZWMgbm9kZSBpbiBBU29DIGNhcmQgY29uZmlndXJhdGlv
-bnMuIEhETUkgYXVkaW8gaW5mby1mcmFtZQo+IGFuZCBhdWRpbyBzdHJlYW0gaGVhZGVyIGlzIGdl
-bmVyYXRlZCBieSB0aGUgQVNvQyBIRE1JIGNvZGVjLiBUaGUgY29kZWMKPiBhbHNvIGFwcGxpZXMg
-Y29uc3RyYWludHMgZm9yIGF2YWlsYWJsZSBzYW1wbGUtcmF0ZXMgYmFzZWQgb24gRWRpZCBMaWtl
-Cj4gRGF0YSBmcm9tIHRoZSBkaXNwbGF5LiBUaGUgZGV2aWNlIHRyZWUgYmluZGluZyBkb2N1bWVu
-dCBoYXMgYmVlbgo+IHVwZGF0ZWQgWzFdLgo+IAo+IFBhcnQgb2YgdGhpcyBwYXRjaCBoYXMgYmVl
-biBpbnNwaXJlZCBieSBKZWFuIEZyYW5jb2lzZSdzICJkcm0vaTJjOiB0ZGE5OTh4Ogo+IEFkZCBz
-dXBwb3J0IG9mIGEgRFQgZ3JhcGggb2YgcG9ydHMiLXBhdGNoIFsyXS4gVGhlcmUgbWF5IHN0aWxs
-IGJlIHNvbWUKPiBpZGVudGljYWwgbGluZXMgbGVmdCBmcm9tIHRoZSBvcmlnaW5hbCBwYXRjaCBh
-bmQgc29tZSBvZiB0aGUgaWRlYXMKPiBoYXZlIGNvbWUgZnJvbSB0aGVyZS4KPiAKPiBbMV0gRG9j
-dW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2Rpc3BsYXkvYnJpZGdlL3RkYTk5OHgudHh0
-Cj4gWzJdIGh0dHA6Ly9tYWlsbWFuLmFsc2EtcHJvamVjdC5vcmcvcGlwZXJtYWlsL2Fsc2EtZGV2
-ZWwvMjAxNS1KdWx5LzA5NTI1NS5odG1sCj4gCj4gU2lnbmVkLW9mZi1ieTogSnlyaSBTYXJoYSA8
-anNhcmhhQHRpLmNvbT4KPiAtLS0KPiAgLi4uL2RldmljZXRyZWUvYmluZGluZ3MvZGlzcGxheS9i
-cmlkZ2UvdGRhOTk4eC50eHQgfCAgMTggKysKPiAgZHJpdmVycy9ncHUvZHJtL2kyYy9LY29uZmln
-ICAgICAgICAgICAgICAgICAgICAgICAgfCAgIDEgKwo+ICBkcml2ZXJzL2dwdS9kcm0vaTJjL3Rk
-YTk5OHhfZHJ2LmMgICAgICAgICAgICAgICAgICB8IDE5OCArKysrKysrKysrKysrKysrKysrKy0K
-PiAgaW5jbHVkZS9kcm0vaTJjL3RkYTk5OHguaCAgICAgICAgICAgICAgICAgICAgICAgICAgfCAg
-IDQgKy0KPiAgaW5jbHVkZS9kdC1iaW5kaW5ncy9kaXNwbGF5L3RkYTk5OHguaCAgICAgICAgICAg
-ICAgfCAgIDcgKwo+ICA1IGZpbGVzIGNoYW5nZWQsIDIyMyBpbnNlcnRpb25zKCspLCA1IGRlbGV0
-aW9ucygtKQo+ICBjcmVhdGUgbW9kZSAxMDA2NDQgaW5jbHVkZS9kdC1iaW5kaW5ncy9kaXNwbGF5
-L3RkYTk5OHguaAo+IAo+IGRpZmYgLS1naXQgYS9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmlu
-ZGluZ3MvZGlzcGxheS9icmlkZ2UvdGRhOTk4eC50eHQgYi9Eb2N1bWVudGF0aW9uL2RldmljZXRy
-ZWUvYmluZGluZ3MvZGlzcGxheS9icmlkZ2UvdGRhOTk4eC50eHQKPiBpbmRleCBlMTc4ZTZiLi4y
-NGNjMjQ2IDEwMDY0NAo+IC0tLSBhL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9k
-aXNwbGF5L2JyaWRnZS90ZGE5OTh4LnR4dAo+ICsrKyBiL0RvY3VtZW50YXRpb24vZGV2aWNldHJl
-ZS9iaW5kaW5ncy9kaXNwbGF5L2JyaWRnZS90ZGE5OTh4LnR4dAo+IEBAIC0yMSw4ICsyMSwxOSBA
-QCBPcHRpb25hbCBwcm9wZXJ0aWVzOgo+ICAgIC0gdmlkZW8tcG9ydHM6IDI0IGJpdHMgdmFsdWUg
-d2hpY2ggZGVmaW5lcyBob3cgdGhlIHZpZGVvIGNvbnRyb2xsZXIKPiAgCW91dHB1dCBpcyB3aXJl
-ZCB0byB0aGUgVERBOTk4eCBpbnB1dCAtIGRlZmF1bHQ6IDwweDIzMDE0NT4KPiAgCj4gKyAgLSBh
-dWRpby1wb3J0czogYXJyYXkgb2YgOC1iaXQgdmFsdWVzLCAyIHZhbHVlcyBwZXIgb25lIERBSVsx
-XS4KClRoaXMgc2hvdWxkIGhhdmUgbnhwIHByZWZpeC4gV2l0aCB0aGF0LAoKQWNrZWQtYnk6IFJv
-YiBIZXJyaW5nIDxyb2JoQGtlcm5lbC5vcmc+CgoKPiArCVRoZSBmaXJzdCB2YWx1ZSBkZWZpbmVz
-IHRoZSBEQUkgdHlwZTogVERBOTk4eF9TUERJRiBvciBUREE5OTh4X0kyU1syXS4KPiArCVRoZSBz
-ZWNvbmQgdmFsdWUgZGVmaW5lcyB0aGUgdGRhOTk4eCBBUF9FTkEgcmVnIGNvbnRlbnQgd2hlbiB0
-aGUgREFJCj4gKwlpbiBxdWVzdGlvbiBpcyB1c2VkLiBUaGUgaW1wbGVtZW50YXRpb24gYWxsb3dz
-IG9uZSBvciB0d28gREFJcy4gSWYgdHdvCj4gKwlEQUlzIGFyZSBkZWZpbmVkLCB0aGV5IG11c3Qg
-YmUgb2YgZGlmZmVyZW50IHR5cGUuCj4gKwo+ICtbMV0gRG9jdW1lbnRhdGlvbi9zb3VuZC9hbHNh
-L3NvYy9EQUkudHh0Cj4gK1syXSBpbmNsdWRlL2R0LWJpbmRpbmdzL2Rpc3BsYXkvdGRhOTk4eC5o
-Cj4gKwo+ICBFeGFtcGxlOgo+ICAKPiArI2luY2x1ZGUgPGR0LWJpbmRpbmdzL2Rpc3BsYXkvdGRh
-OTk4eC5oPgo+ICsKPiAgCXRkYTk5OHg6IGhkbWktZW5jb2RlciB7Cj4gIAkJY29tcGF0aWJsZSA9
-ICJueHAsdGRhOTk4eCI7Cj4gIAkJcmVnID0gPDB4NzA+Owo+IEBAIC0zMCw0ICs0MSwxMSBAQCBF
-eGFtcGxlOgo+ICAJCWludGVycnVwdHMgPSA8MjcgMj47CQkvKiBmYWxsaW5nIGVkZ2UgKi8KPiAg
-CQlwaW5jdHJsLTAgPSA8JnBteF9jYW1lcmE+Owo+ICAJCXBpbmN0cmwtbmFtZXMgPSAiZGVmYXVs
-dCI7Cj4gKwkJdmlkZW8tcG9ydHMgPSA8MHgyMzAxNDU+Owo+ICsKPiArCQkjc291bmQtZGFpLWNl
-bGxzID0gPDI+Owo+ICsJCQkgICAgIC8qCURBSS1mb3JtYXQJQVBfRU5BIHJlZyB2YWx1ZSAqLwo+
-ICsJCWF1ZGlvLXBvcnRzID0gPAlUREE5OTh4X1NQRElGCTB4MDQKPiArCQkJCVREQTk5OHhfSTJT
-CTB4MDM+Owo+ICsKPiAgCX07Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNr
-dG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Ry
-aS1kZXZlbAo=
+On 04/01/2016 06:36 PM, Tony Lindgren wrote:
+> Hi,
+>
+> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [160331 10:04]:
+>> * Keerthy <a0393675-l0cyMroinI0@public.gmane.org> [160331 02:26]:
+>>>
+>>>
+>>> On Thursday 31 March 2016 12:00 PM, Tero Kristo wrote:
+>>>> On 03/31/2016 12:32 AM, Tony Lindgren wrote:
+>>>>> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [160330 14:19]:
+>>>>>> * Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> [160314 05:04]:
+>>>>>>> This is w.r.t J6/J6eco: 32clk is pseudo (erratum i856) - clock source.
+>>>>>>> Errata i856 for the AM572x (DRA7xx) points out that the 32.768KHz
+>>>>>>> external
+>>>>>>> crystal is not enabled at power up. Instead the CPU falls back to using
+>>>>>>> an emulation for the 32KHz clock which is SYSCLK1/610.  SYSCLK1 is
+>>>>>>> usually
+>>>>>>> 20MHz on boards so far (which gives an emulated frequency of 32.786KHz)
+>>>>>>
+>>>>>> Thanks applying into omap-for-v4.6/fixes.
+>>>>>
+>>>>> Actually let's wait a review from Tero on this one, not sure
+>>>>> about the pseudo clock naming here. So dropping for now.
+>>>>
+>>>> The patch is fine for me, I didn't comment anything before as I thought
+>>>> you already applied it.
+>>>>
+>>>> Acked-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+>>>
+>>> Thanks Tero.
+>>
+>> OK applying with Tero's ack.
+>
+> I'm dropping this again as it introduces new warnings with make dtbs:
+>
+> Warning (reg_format): "reg" property in /ocp/l4@4a000000/cm_core@8000/clockdomains/sys_32k_ck has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+> Warning (avoid_default_addr_size): Relying on default #address-cells value for /ocp/l4@4a000000/cm_core@8000/clockdomains/sys_32k_ck
+> Warning (avoid_default_addr_size): Relying on default #size-cells value for /ocp/l4@4a000000/cm_core@8000/clockdomains/sys_32k_ck
+>    DTC     arch/arm/boot/dts/am57xx-cl-som-am57x.dtb
+> Warning (reg_format): "reg" property in /ocp/l4@4a000000/cm_core@8000/clockdomains/sys_32k_ck has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+> Warning (avoid_default_addr_size): Relying on default #address-cells value for /ocp/l4@4a000000/cm_core@8000/clockdomains/sys_32k_ck
+> Warning (avoid_default_addr_size): Relying on default #size-cells value for /ocp/l4@4a000000/cm_core@8000/clockdomains/sys_32k_ck
+>    DTC     arch/arm/boot/dts/am57xx-sbc-am57x.dtb
+> Warning (reg_format): "reg" property in /ocp/l4@4a000000/cm_core@8000/clockdomains/sys_32k_ck has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+> Warning (avoid_default_addr_size): Relying on default #address-cells value for /ocp/l4@4a000000/cm_core@8000/clockdomains/sys_32k_ck
+> Warning (avoid_default_addr_size): Relying on default #size-cells value for /ocp/l4@4a000000/cm_core@8000/clockdomains/sys_32k_ck
+>    DTC     arch/arm/boot/dts/dra7-evm.dtb
+> Warning (reg_format): "reg" property in /ocp/l4@4a000000/cm_core@8000/clockdomains/sys_32k_ck has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+> Warning (avoid_default_addr_size): Relying on default #address-cells value for /ocp/l4@4a000000/cm_core@8000/clockdomains/sys_32k_ck
+> Warning (avoid_default_addr_size): Relying on default #size-cells value for /ocp/l4@4a000000/cm_core@8000/clockdomains/sys_32k_ck
+>    DTC     arch/arm/boot/dts/dra72-evm.dtb
+> Warning (reg_format): "reg" property in /ocp/l4@4a000000/cm_core@8000/clockdomains/sys_32k_ck has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+> Warning (avoid_default_addr_size): Relying on default #address-cells value for /ocp/l4@4a000000/cm_core@8000/clockdomains/sys_32k_ck
+> Warning (avoid_default_addr_size): Relying on default #size-cells value for /ocp/l4@4a000000/cm_core@8000/clockdomains/sys_32k_ck
+>
+> Regards,
+>
+> Tony
+>
+
+Looks like a merge conflict to me, sys_32k_ck has gone under 
+clockdomains for some reason. It should be under clocks.
+
+-Tero
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
