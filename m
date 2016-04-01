@@ -1,130 +1,208 @@
-From: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH v3 2/2] usb:dwc3: pass arch data to xhci-hcd child
-Date: Fri, 01 Apr 2016 14:57:07 +0300
-Message-ID: <878u0x8ru4.fsf@intel.com>
-References: <1457594332-7490-1-git-send-email-tqnguyen@apm.com> <1457594332-7490-3-git-send-email-tqnguyen@apm.com> <87mvpgi02f.fsf@intel.com> <56FBDA0D.4030507@ti.com> <87egashxz8.fsf@intel.com> <CAKrQpSvgTm+OM+ffO4ZKwpb=J3ewKoWYA7ojE+WKBbiYKwdMqw@mail.gmail.com> <87k2kjgjjf.fsf@intel.com> <56FD3D2F.8070501@ti.com> <871t6pahg8.fsf@intel.com> <56FE4378.3030205@ti.com> <87shz58wbw.fsf@intel.com> <56FE54DB.5000201@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: am335x: no multicast reception over VLAN
+Date: Fri, 1 Apr 2016 15:09:18 +0300
+Message-ID: <56FE64EE.6050701@ti.com>
+References: <CAGm1_ktOqB4QBMy2G4XeHTkaP+WvG8GOc8maVv3dDoxM+-F+ZA@mail.gmail.com>
+ <56F9FDD0.8030504@ti.com>
+ <CAGm1_ksxRPCAqx4n5gbsARSYeF116BT7r8cC6=1QYnEsYRxpVw@mail.gmail.com>
+ <56FA616C.9080502@ti.com>
+ <CAGm1_ksvEdk-mF-hW4o5+bri6J6sMgnQQVD3j-e7xm6PsP8k0A@mail.gmail.com>
+ <56FA78AA.4030402@ti.com> <56FB6543.9060904@ti.com>
+ <CAGm1_kvXA4egrK8-oCedYjvPm7BhJdy_w-5ON24snYdKiN3K7g@mail.gmail.com>
+ <56FC0431.5000106@ti.com> <878u0z9297.fsf@dell.be.48ers.dk>
+ <56FCC59B.70209@ti.com>
+ <CAGm1_kutVn+jNf58QwKyO8j5NmRhaOCUsXmpTiLbX75AczCm6w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56FE54DB.5000201-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, "Thang Q. Nguyen" <tqnguyen-qTEPVZfXA3Y@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "Karicheri, Muralidharan" <m-karicheri2-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Phong Vo <pvo-qTEPVZfXA3Y@public.gmane.org>, Loc Ho <lho-qTEPVZfXA3Y@public.gmane.org>, patches <patches-qTEPVZfXA3Y@public.gmane.org>, Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Ben Dooks (embedded platforms)" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CAGm1_kutVn+jNf58QwKyO8j5NmRhaOCUsXmpTiLbX75AczCm6w@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Yegor Yefremov <yegorslists@googlemail.com>, Mugunthan V N <mugunthanvnm@ti.com>
+Cc: Peter Korsgaard <peter@korsgaard.com>, netdev <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, drivshin@allworx.com, ml@markusgrimm.de
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
-
-Hi,
-
-Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> writes:
-> On 04/01/2016 01:20 PM, Felipe Balbi wrote:
->>=20
->> Hi,
->>=20
->> Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> writes:
->>>> if of_dma_configure() does what you want, why don't you just stick it =
-in
->>>> dwc3-keystone.c and let the driver continue to copy things for now ?
->>>> Something like below, perhaps ?
->>>>
+On 03/31/2016 10:52 AM, Yegor Yefremov wrote:
+> On Thu, Mar 31, 2016 at 8:37 AM, Mugunthan V N <mugunthanvnm@ti.com> =
+wrote:
+>> On Thursday 31 March 2016 01:17 AM, Peter Korsgaard wrote:
+>>>>>>>> "Mugunthan" =3D=3D Mugunthan V N <mugunthanvnm@ti.com> writes:
 >>>
->>> I know (and i have patch to fix that which I'm going to send) that DMA =
-config
->>>   in dwc3-keystone.c is not correct and we are good till now just
->>> because dwc3_keystone is not used for DMA operations directly.
+>>> Hi,
 >>>
->>> Now about xhci and friends:
->>> dwc3_keystone *is created* from DT : of_platform_device_create() -> of_=
-platform_device_create_pdata() -> of_dma_configure()
->>> |- dwc3 *is created* from DT : of_platform_device_create() -> of_platfo=
-rm_device_create_pdata() -> of_dma_configure()
->>>     |- [1] *creates* xhci dev manually : DMA configuration copied manua=
-lly in dwc3_host_init()
->>>     |- [2] *creates* usb_gadget dev manually: DMA configuration copied =
-manually in usb_add_gadget_udc_release()
->>>     |- *creates* usb_udc dev manually : not used for DMA operations dir=
-ectly (as I've checked)
+>>>   > You had received these packets as tcpdump will enable promiscuo=
+us mode
+>>>   > so that you receive all the packets from the wire.
 >>>
->>> Now cases [1] & [2] introduces failures, because DMA configuration is n=
-ot complete for
->>> these devices.
->>=20
->> right, then we just copy whatever's missing, right ? Until there's a
->> generic way of copying these bits, I want to avoid introducing any of_*
->> specific methodologies and prefer to have the manual copy.
->
-> Sry, I've found no other way (right now) to fix it, except by using of_dm=
-a_configure()
-> which will do all work in DT case (including calling of arch specific cal=
-lbacks).
-> [it might be unsafe to just copy archdata, for example, as it might(will =
-for arm)
->  contain pointers]=20
->
->>=20
->>> I can confirm that if I fix [1] & [2] as above USB Device/Dual modes wi=
-ll start
->>> working on K2E.
->
-> Above is for 4.1 kernel
->
->>=20
->> cool, I'd be happy to take both patches ;-)
->>=20
->
-> ok. And seems gadget case is fixed already
-> commit 7ace8fc8219e4cbbfd5b4790390d9a01a2541cdf
-> Author: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
-> Date:   Mon Jul 13 18:10:05 2015 +0900
->
->     usb: gadget: udc: core: Fix argument of dma_map_single for IOMMU
->=20=20=20=20=20
->     The dma_map_single and dma_unmap_single should set "gadget->dev.paren=
-t"
->     instead of "&gadget->dev" in the first argument because the parent has
->     a udc controller's device pointer.
->     Otherwise, iommu functions are not called in ARM environment.
->=20=20=20=20=20
->     Signed-off-by: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
->     Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
->
-> Above actually means that DMA configuration code can be dropped from
-> usb_add_gadget_udc_release() completely. Right?:
+>>> FYI, you can use the -p option to tcpdump to not put the interface =
+into
+>>> promiscuous mode.
+>>>
+>>
+>> Thanks for the information Peter Korsgaard.
+>>
+>> Yegor, can you provide tcpdump using -p as well in Grygorii commands=
+=2E
+>=20
+> Before VLAN configuration:
+>=20
+> # switch-config -d
+> cpsw hw version 1.12 (0)
+> 0   : type: vlan , vid =3D 1, untag_force =3D 0x3, reg_mcast =3D 0x3,
+> unreg_mcast =3D 0x0, member_list =3D 0x3
+> 1   : type: mcast, vid =3D 1, addr =3D ff:ff:ff:ff:ff:ff, mcast_state=
+ =3D f,
+> no super, port_mask =3D 0x3
+> 2   : type: ucast, vid =3D 1, addr =3D 74:6a:8f:00:16:12, ucast_type =
+=3D
+> persistant, port_num =3D 0x0, Secure
+> 3   : type: vlan , vid =3D 0, untag_force =3D 0x7, reg_mcast =3D 0x0,
+> unreg_mcast =3D 0x0, member_list =3D 0x7
+> 4   : type: mcast, vid =3D 1, addr =3D 01:00:5e:00:00:01, mcast_state=
+ =3D f,
+> no super, port_mask =3D 0x3
+> 5   : type: vlan , vid =3D 2, untag_force =3D 0x5, reg_mcast =3D 0x5,
+> unreg_mcast =3D 0x0, member_list =3D 0x5
+> 6   : type: mcast, vid =3D 2, addr =3D ff:ff:ff:ff:ff:ff, mcast_state=
+ =3D f,
+> no super, port_mask =3D 0x5
+> 7   : type: ucast, vid =3D 2, addr =3D 74:6a:8f:00:16:13, ucast_type =
+=3D
+> persistant, port_num =3D 0x0, Secure
+> 8   : type: mcast, vid =3D 2, addr =3D 01:00:5e:00:00:01, mcast_state=
+ =3D f,
+> no super, port_mask =3D 0x5
+>=20
+> After VLAN configuration:
+>=20
+> # switch-config -d
+> cpsw hw version 1.12 (0)
+> 0   : type: vlan , vid =3D 1, untag_force =3D 0x3, reg_mcast =3D 0x3,
+> unreg_mcast =3D 0x0, member_list =3D 0x3
+> 1   : type: mcast, vid =3D 1, addr =3D ff:ff:ff:ff:ff:ff, mcast_state=
+ =3D f,
+> no super, port_mask =3D 0x3
+> 2   : type: ucast, vid =3D 1, addr =3D 74:6a:8f:00:16:12, ucast_type =
+=3D
+> persistant, port_num =3D 0x0, Secure
+> 3   : type: vlan , vid =3D 0, untag_force =3D 0x7, reg_mcast =3D 0x0,
+> unreg_mcast =3D 0x0, member_list =3D 0x7
+> 4   : type: mcast, vid =3D 1, addr =3D 01:00:5e:00:00:01, mcast_state=
+ =3D f,
+> no super, port_mask =3D 0x3
+> 5   : type: vlan , vid =3D 2, untag_force =3D 0x5, reg_mcast =3D 0x5,
+> unreg_mcast =3D 0x0, member_list =3D 0x5
+> 6   : type: mcast, vid =3D 2, addr =3D ff:ff:ff:ff:ff:ff, mcast_state=
+ =3D f,
+> no super, port_mask =3D 0x5
+> 7   : type: ucast, vid =3D 2, addr =3D 74:6a:8f:00:16:13, ucast_type =
+=3D
+> persistant, port_num =3D 0x0, Secure
+> 8   : type: mcast, vid =3D 2, addr =3D 01:00:5e:00:00:01, mcast_state=
+ =3D f,
+> no super, port_mask =3D 0x5
+> 9   : type: vlan , vid =3D 100, untag_force =3D 0x0, reg_mcast =3D 0x=
+5,
+> unreg_mcast =3D 0x0, member_list =3D 0x5
+> 10  : type: ucast, vid =3D 100, addr =3D 74:6a:8f:00:16:13, ucast_typ=
+e =3D
+> persistant, port_num =3D 0x0
+> 11  : type: mcast, vid =3D 100, addr =3D ff:ff:ff:ff:ff:ff, mcast_sta=
+te =3D
+> f, no super, port_mask =3D 0x5
+> 12  : type: mcast, vid =3D 2, addr =3D 01:80:c2:00:00:21, mcast_state=
+ =3D f,
+> no super, port_mask =3D 0x5
+>=20
+> During mulitcast receive:
+>=20
+> # switch-config -d
+> cpsw hw version 1.12 (0)
+> 0   : type: vlan , vid =3D 1, untag_force =3D 0x3, reg_mcast =3D 0x3,=
+ unreg_mcast =3D 0x0, member_list =3D 0x3
+> 1   : type: mcast, vid =3D 1, addr =3D ff:ff:ff:ff:ff:ff, mcast_state=
+ =3D f, no super, port_mask =3D 0x3
+> 2   : type: ucast, vid =3D 1, addr =3D 74:6a:8f:00:16:12, ucast_type =
+=3D persistant, port_num =3D 0x0, Secure
+> 3   : type: vlan , vid =3D 0, untag_force =3D 0x7, reg_mcast =3D 0x0,=
+ unreg_mcast =3D 0x0, member_list =3D 0x7
 
-true, but now I'm not sure what's better: copy all necessary bits from
-parent or just pass the parent device to all DMA API.
+unreg_mcast =3D 0x0 means unregistered multicast packets will be droppe=
+d
 
-Anybody to shed a light here ?
+> 4   : type: mcast, vid =3D 1, addr =3D 01:00:5e:00:00:01, mcast_state=
+ =3D f, no super, port_mask =3D 0x3
+> 5   : type: vlan , vid =3D 2, untag_force =3D 0x5, reg_mcast =3D 0x5,=
+ unreg_mcast =3D 0x0, member_list =3D 0x5
 
-=2D-=20
-balbi
+unreg_mcast =3D 0x0=20
 
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
+> 6   : type: mcast, vid =3D 2, addr =3D ff:ff:ff:ff:ff:ff, mcast_state=
+ =3D f, no super, port_mask =3D 0x5
+> 7   : type: ucast, vid =3D 2, addr =3D 74:6a:8f:00:16:13, ucast_type =
+=3D persistant, port_num =3D 0x0, Secure
+> 8   : type: mcast, vid =3D 2, addr =3D 01:00:5e:00:00:01, mcast_state=
+ =3D f, no super, port_mask =3D 0x5
+> 9   : type: vlan , vid =3D 100, untag_force =3D 0x0, reg_mcast =3D 0x=
+5, unreg_mcast =3D 0x0, member_list =3D 0x5
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+unreg_mcast =3D 0x0=20
 
-iQIcBAEBAgAGBQJW/mIUAAoJEIaOsuA1yqREb10P/iZJZ3FlrYT+5JQrq9zTH8kx
-p7YDQHLpFiGUoUllEqXIXyWvaMQo1LO+emVthCQailmWlj4QU/FPsf/XFrLZXqr3
-DQPbOvK6qffiR9H7OWV7939HBJzu4l+TLzR5GGdV7cCxJFnBNPIYn3mGrR6a+sPx
-TLqA9vaOiOZT1z8QbnNZA9qu+DPemHt+GJ9y/sCOq1NHw/wd+CHXJjtBeon6197e
-trOghzIEDLfbI3cWRw+FGCG6BQfwpTOuKTYc72bsBnMGTAICK+1iXS8gU2sZQCIS
-ZPqKHkVb96306DxBoziMEyLF/hyNcF0NHRys3Rrxdu8QY+SSGkNf4r4sk5gXL6/L
-WV9nEpuc+wDklKDQUTYN0bczzOTFcmlsnuxz1ADuYpYDMScK95bL5qPV+mWKNn4u
-6hZ5SurGw+oEH+DgPlkpPuvCUN+QV50JBG9y3/IuqfsNjptKeJ4OID1NXySI2wci
-j575vuQSvRgrGJ/e8vZ5rsq2JPm6pZuvZnvZ5ucip9adgtFL3m76ElRjDYTaYyKD
-ELJCna5OKjX7r509h11Pe2DGZIksJ5kDwBr0+3mkdULIm0mM3MllA6SscgImhV69
-1COKFpZ3cMw9W330MUDCT0ATk/S88dGG8j9LSOCDcudk5eoc32kWYieDNeyncZIY
-vAzL0tz1tVT64BUcDFfQ
-=G1DB
------END PGP SIGNATURE-----
---=-=-=--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 10  : type: ucast, vid =3D 100, addr =3D 74:6a:8f:00:16:13, ucast_typ=
+e =3D persistant, port_num =3D 0x0
+> 11  : type: mcast, vid =3D 100, addr =3D ff:ff:ff:ff:ff:ff, mcast_sta=
+te =3D f, no super, port_mask =3D 0x5
+> 12  : type: mcast, vid =3D 2, addr =3D 01:80:c2:00:00:21, mcast_state=
+ =3D f, no super, port_mask =3D 0x5
+> 13  : type: mcast, vid =3D 2, addr =3D 01:00:5e:03:1d:47, mcast_state=
+ =3D f, no super, port_mask =3D 0x5
+
+This is requested mcast address, but it's registered for vid=3D2 (propa=
+gated through .ndo_set_rx_mode())
+
+> 14  : type: ucast, vid =3D 100, addr =3D 66:22:04:bc:90:26, ucast_typ=
+e =3D untouched , port_num =3D 0x2
+
+[...]
+>=20
+> Both tcpdumps with -p option showed no packets. If I execute ping, I
+> can see related ICMP packets. addr =3D 66:22:04:bc:90:26 is PandaBoar=
+ds
+> MAC.
+>=20
+> Btw I've attached my test scripts (mcastr.py - multicast receiver and
+> mcastt.py - multicast transmitter). Could you reproduce my setup?
+>=20
+
+I was able to reproduce an issue with your script. As I understand, whe=
+n cpsw receive the
+mcast packet with dst_address=3D01:00:5e:03:1d:47 and vid=3D100 it hits
+the case:
+"if (Multicast packet) # destination address not found
+then portmask is the logical =93AND=94 of unreg_mcast_flood_mask and vl=
+an_member_list
+then goto Egress process"
+
+and as result packet is dropped (you can check eth1 statistic # ethtool=
+ -S eth1).
+
+Unfortunately, I was no able to configure mcast address properly in dua=
+l mac mode :(,
+but probably Mugunthan can comment here - mcast addressess are offloade=
+d to cpsw from
+Net core through  .ndo_set_rx_mode() and struct netdev_hw_addr doesn't =
+contain any
+information about vlan and cpsw uses default port vlan, which is vid=3D=
+2 for eth1 in=20
+dual mac mode.
+=20
+
+
+As W/A the allmulti flag can be used:
+
+# ifconfig eth1.100 allmulti=20
+
+
+--=20
+regards,
+-grygorii
