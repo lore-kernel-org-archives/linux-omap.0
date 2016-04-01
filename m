@@ -1,162 +1,132 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] extcon: palmas: Drop stray IRQF_EARLY_RESUME flag
-Date: Fri, 1 Apr 2016 08:59:21 +0100
-Message-ID: <20160401075921.GR3323@x1>
-References: <1459458951-4882-1-git-send-email-nm@ti.com>
+From: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH v3 2/2] usb:dwc3: pass arch data to xhci-hcd child
+Date: Fri, 01 Apr 2016 10:58:31 +0300
+Message-ID: <871t6pahg8.fsf@intel.com>
+References: <1457594332-7490-1-git-send-email-tqnguyen@apm.com> <1457594332-7490-3-git-send-email-tqnguyen@apm.com> <87mvpgi02f.fsf@intel.com> <56FBDA0D.4030507@ti.com> <87egashxz8.fsf@intel.com> <CAKrQpSvgTm+OM+ffO4ZKwpb=J3ewKoWYA7ojE+WKBbiYKwdMqw@mail.gmail.com> <87k2kjgjjf.fsf@intel.com> <56FD3D2F.8070501@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1459458951-4882-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <56FD3D2F.8070501-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, "Thang Q. Nguyen" <tqnguyen-qTEPVZfXA3Y@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "Karicheri, Muralidharan" <m-karicheri2-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Phong Vo <pvo-qTEPVZfXA3Y@public.gmane.org>, Loc Ho <lho-qTEPVZfXA3Y@public.gmane.org>, patches <patches-qTEPVZfXA3Y@public.gmane.org>, Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Ben Dooks (embedded platforms)" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 31 Mar 2016, Nishanth Menon wrote:
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-> Palams extcon IRQs are nested threaded and wired to the Palmas
-> inerrupt controller. So, this flag is not required for nested
-> irqs anymore, since commit 3c646f2c6aa9 ("genirq: Don't suspend
-> nested_thread irqs over system suspend") was merged. However, the
-> fix missed a stray flag causing the following crash on resume on
-> BeagleBoard-X15 platform:
-> [   53.670141] Unhandled fault: imprecise external abort (0x1406) at =
-0x00000000
-> [   53.670141] pgd =3D ecd30000
-> [   53.670141] [00000000] *pgd=3Dfe3c1835
-> [   53.670141] Internal error: : 1406 [#1] SMP ARM
-> [   53.670141] Modules linked in: xhci_plat_hcd xhci_hcd usbcore enco=
-der_tpd12s015 connector_hdmi omapfb cfbcopyarea c
-> fbimgblt cfbfillrect evdev dwc3 snd_soc_simple_card udc_core leds_gpi=
-o gpio_fan cpufreq_dt omapdss snd_soc_davinci_mca
-> sp snd_soc_omap snd_soc_edma snd_soc_tlv320aic3x omap_wdt extcon_usb_=
-gpio led_class rtc_omap snd_soc_core snd_pcm_dmae
-> ngine extcon_palmas ti_soc_thermal dwc3_omap palmas_pwrbutton phy_oma=
-p_usb2 tmp102 snd_pcm thermal_sys rtc_palmas snd_
-> timer at24 extcon rtc_ds1307 hwmon snd soundcore nvmem_core
-> [   53.670141] CPU: 0 PID: 2297 Comm: rtcwake Not tainted 4.6.0-rc1-0=
-0004-g7b08b6942309-dirty #6
-> [   53.670141] Hardware name: Generic DRA74X (Flattened Device Tree)
-> [   53.670141] task: ed3ab280 ti: ecb28000 task.ti: ecb28000
-> [   53.670141] PC is at omap_set_gpio_triggering+0x44/0x23c
-> [   53.670141] LR is at 0xfa059140
-> [   53.670141] pc : [<c04ae734>]    lr : [<fa059140>]    psr: 6007009=
-3
-> [   53.670141] sp : ecb29db8  ip : fa059000  fp : c09d3fd4
-> [   53.670141] r10: 60070093  r9 : ee143660  r8 : 60070093
-> [   53.670141] r7 : ee13bc64  r6 : 00000003  r5 : ee13bc10  r4 : 0000=
-0000
-> [   53.670141] r3 : c10821cc  r2 : 00000003  r1 : 00200000  r0 : ee13=
-bc10
-> [   53.670141] Flags: nZCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  =
-Segment none
-> [   53.670141] Control: 10c5387d  Table: acd3006a  DAC: 00000051
-> [   53.670141] Process rtcwake (pid: 2297, stack limit =3D 0xecb28218=
-)
-> [   53.670141] Stack: (0xecb29db8 to 0xecb2a000)
-> [   53.670141] 9da0:                                                 =
-      00000015 ee13bc10
-> [   53.670141] 9dc0: 00000003 c04aeb94 ee143600 ee143600 c1043dd0 000=
-00001 c099c354 c01a0b88
-> [   53.670141] 9de0: ee143600 c019ebd8 00000099 c01a4e60 c1044100 c10=
-8baf8 c10c6020 c10c20e0
-> [   53.670141] 9e00: c10029cc c10c169f c09d3fa8 c0514840 c100409c 000=
-00003 c1851644 00000000
-> [   53.670141] 9e20: c1851628 00000000 00000000 c10c20e0 00000000 c01=
-981cc c1851650 00000000
-> [   53.670141] 9e40: c099b204 ecb29f88 0000000c c019bd04 c099b1c8 ecb=
-29e74 c10029cc 00000003
-> [   53.670141] 9e60: c10029cc c10c20e0 c1851650 00000000 c099b204 ecb=
-29f88 0000000c c0198a60
-> [   53.670141] 9e80: 0000006d 00000003 c0995434 00000003 c1851654 000=
-00004 ecaddc80 ecb29f88
-> [   53.670141] 9ea0: 00000051 c0196bec ecb13500 00000000 00000004 eca=
-ddc80 00000000 00000000
-> [   53.670141] 9ec0: ecb29f88 c0307944 00000000 00000000 00000001 ecb=
-1350c ecb28000 ecc5d280
-> [   53.670141] 9ee0: c0307884 b6f8f000 ecb29f88 c01079e4 ecb28000 000=
-00000 bedaab3b c028acb0
-> [   53.670141] 9f00: 00000003 00000000 bedaae72 ee6f023c ee6f023c 000=
-00001 00000000 c018abc0
-> [   53.670141] 9f20: ee6f023c 00000001 00000000 c018ac5c 00000001 000=
-00000 c028ec60 c028b940
-> [   53.670141] 9f40: 00001000 00000001 00000004 ecc5d280 00000004 b6f=
-8f000 ecb29f88 c01079e4
-> [   53.670141] 9f60: ecb28000 c028bba0 b6f8f000 c024c784 ecc5d280 ecc=
-5d280 b6f8f000 00000004
-> [   53.670141] 9f80: c01079e4 c028c8c0 00000000 00000000 000277b8 000=
-00004 b6f8f000 000277b8
-> [   53.670141] 9fa0: 00000004 c0107840 00000004 b6f8f000 00000004 b6f=
-8f000 00000004 00000000
-> [   53.670141] 9fc0: 00000004 b6f8f000 000277b8 00000004 00000004 000=
-00000 bedaae65 bedaab3b
-> [   53.670141] 9fe0: 00000000 bedaaa3c b6ebac85 b6ef6026 400d0030 000=
-00004 00000000 00000000
-> [   53.670141] [<c04ae734>] (omap_set_gpio_triggering) from [<c04aeb9=
-4>] (omap_gpio_unmask_irq+0xc0/0xc4)
-> [   53.670141] [<c04aeb94>] (omap_gpio_unmask_irq) from [<c01a0b88>] =
-(irq_enable+0x30/0x44)
-> [   53.670141] [<c01a0b88>] (irq_enable) from [<c019ebd8>] (__enable_=
-irq+0x54/0x78)
-> [   53.670141] [<c019ebd8>] (__enable_irq) from [<c01a4e60>] (resume_=
-irqs+0xe8/0x100)
-> [   53.670141] [<c01a4e60>] (resume_irqs) from [<c0514840>] (syscore_=
-resume+0x94/0x298)
-> [   53.670141] [<c0514840>] (syscore_resume) from [<c01981cc>] (suspe=
-nd_devices_and_enter+0x790/0x9e4)
-> [   53.670141] [<c01981cc>] (suspend_devices_and_enter) from [<c0198a=
-60>] (pm_suspend+0x640/0x75c)
-> [   53.670141] [<c0198a60>] (pm_suspend) from [<c0196bec>] (state_sto=
-re+0x64/0xb8)
-> [   53.670141] [<c0196bec>] (state_store) from [<c0307944>] (kernfs_f=
-op_write+0xc0/0x1bc)
-> [   53.670141] [<c0307944>] (kernfs_fop_write) from [<c028acb0>] (__v=
-fs_write+0x1c/0xd8)
-> [   53.670141] [<c028acb0>] (__vfs_write) from [<c028bba0>] (vfs_writ=
-e+0x90/0x16c)
-> [   53.670141] [<c028bba0>] (vfs_write) from [<c028c8c0>] (SyS_write+=
-0x44/0x9c)
-> [   53.670141] [<c028c8c0>] (SyS_write) from [<c0107840>] (ret_fast_s=
-yscall+0x0/0x1c)
-> [   53.670141] Code: e3120008 11814004 01c44001 e58e4000 (e1d342b6)
 
-Please don't put all this in the commit message.  Can you trim it
-(right) down to only the critical information required please?
+Hi,
 
-> Fixes: ae64e42cc2b3 ("extcon: palmas: Drop IRQF_EARLY_RESUME flag")
-> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-> Cc: MyungJoo Ham <myungjoo.ham@samsung.com>
-> Cc: Chanwoo Choi <cw00.choi@samsung.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Lee Jones <lee.jones@linaro.org>
-> Cc: Roger Quadros <rogerq@ti.com>
->=20
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
->  drivers/extcon/extcon-palmas.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
->=20
-> diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-p=
-almas.c
-> index 841a4b586395..8b3226dca1d9 100644
-> --- a/drivers/extcon/extcon-palmas.c
-> +++ b/drivers/extcon/extcon-palmas.c
-> @@ -348,8 +348,7 @@ static int palmas_usb_probe(struct platform_devic=
-e *pdev)
->  						palmas_vbus_irq_handler,
->  						IRQF_TRIGGER_FALLING |
->  						IRQF_TRIGGER_RISING |
-> -						IRQF_ONESHOT |
-> -						IRQF_EARLY_RESUME,
-> +						IRQF_ONESHOT,
->  						"palmas_usb_vbus",
->  						palmas_usb);
->  		if (status < 0) {
+Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> writes:
+> On 03/31/2016 11:04 AM, Felipe Balbi wrote:
+>> "Thang Q. Nguyen" <tqnguyen-qTEPVZfXA3Y@public.gmane.org> writes:
+>>> [ text/plain ]
+>>> Thanks Grygorii for information.
+>>> I checked but do not see dma_init_dev_from_parent is used in
+>>> linux-next repository. Can you give me more information for what
+>>> branch I can checkout to use it for USB DWC3?
+>>=20
+>> dma_init_dev_from_parent() is still a proposal ;-)
+>>=20
+>
+> Felipe,
+>
+> After some experiments I came up with below fix (not common, but fixes USB
+> case on keystone 2). if you agree with proposed fix I'll send proper
+> patches to fix usb_add_gadget_udc_release() and dwc3_host_init() in the s=
+ame
+> way.
+>
+> diff --git a/drivers/usb/dwc3/host.c b/drivers/usb/dwc3/host.c
+> index c679f63..3fe1c65 100644
+> --- a/drivers/usb/dwc3/host.c
+> +++ b/drivers/usb/dwc3/host.c
+> @@ -17,6 +17,7 @@
+>=20=20
+>  #include <linux/platform_device.h>
+>  #include <linux/usb/xhci_pdriver.h>
+> +#include <linux/of_device.h>
+>=20=20
+>  #include "core.h"
+>=20=20
+> @@ -35,8 +36,6 @@ int dwc3_host_init(struct dwc3 *dwc)
+>         dma_set_coherent_mask(&xhci->dev, dwc->dev->coherent_dma_mask);
+>=20=20
+>         xhci->dev.parent        =3D dwc->dev;
+> -       xhci->dev.dma_mask      =3D dwc->dev->dma_mask;
+> -       xhci->dev.dma_parms     =3D dwc->dev->dma_parms;
+>=20=20
+>         dwc->xhci =3D xhci;
+>=20=20
+> @@ -62,6 +61,12 @@ int dwc3_host_init(struct dwc3 *dwc)
+>         phy_create_lookup(dwc->usb3_generic_phy, "usb3-phy",
+>                           dev_name(&xhci->dev));
+>=20=20
+> +       if (!dwc->dev->of_node) {
+> +               xhci->dev.dma_mask      =3D dwc->dev->dma_mask;
+> +               xhci->dev.dma_parms     =3D dwc->dev->dma_parms;
+> +       } else=20
+> +               of_dma_configure(&xhci->dev, dwc->dev->of_node);
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
+if of_dma_configure() does what you want, why don't you just stick it in
+dwc3-keystone.c and let the driver continue to copy things for now ?
+Something like below, perhaps ?
+
+diff --git a/drivers/usb/dwc3/dwc3-keystone.c b/drivers/usb/dwc3/dwc3-keyst=
+one.c
+index 2be268d2423d..a4bd7f16090f 100644
+=2D-- a/drivers/usb/dwc3/dwc3-keystone.c
++++ b/drivers/usb/dwc3/dwc3-keystone.c
+@@ -39,8 +39,6 @@
+ #define USBSS_IRQ_COREIRQ_EN	BIT(0)
+ #define USBSS_IRQ_COREIRQ_CLR	BIT(0)
+=20
+=2Dstatic u64 kdwc3_dma_mask;
+=2D
+ struct dwc3_keystone {
+ 	struct device			*dev;
+ 	struct clk			*clk;
+@@ -108,9 +106,7 @@ static int kdwc3_probe(struct platform_device *pdev)
+ 	if (IS_ERR(kdwc->usbss))
+ 		return PTR_ERR(kdwc->usbss);
+=20
+=2D	kdwc3_dma_mask =3D dma_get_mask(dev);
+=2D	dev->dma_mask =3D &kdwc3_dma_mask;
+=2D
++	of_dma_configure(&kdwc->dev, node);
+ 	kdwc->clk =3D devm_clk_get(kdwc->dev, "usb");
+=20
+ 	error =3D clk_prepare_enable(kdwc->clk);
+
+
+=2D-=20
+balbi
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJW/iooAAoJEIaOsuA1yqRETZYQALZMFoH0UCrSp3Gf8r+1i2kK
+NmBGHQ7j5FV4hrzoiuII5aRb4L/X/sZx8Uxblm1/9TcWflJ0X6fKe5yd6O3ug34h
+M9DZ7NwiH5yE1fQTCoLX5Nh7rsyxClbOpt0uRzQHAmaUWxo8sIcCqvPEdOa0/WkN
+HqtdvleWfuaO3kAQjHmrE/7dhYDKhuLKRKgzrjhzFYJa7iHuCmrroaZRkAJ+BCYw
+2g2TFYBC9hnr+uN3mUrgf4wpzbAwfiJb711UyTdepdbsYJ4wzgVMBmGE6fDzrpEg
+dCJwXPDCrPc768jajlYKMc/1c8IIEQUusmX84BgFsmNz9oQir+26DO0Koq12veop
+zl3QoNkofeQ4CS8bq1X2Qo1mg+RGx2ITl+qVSlr2qIXOLxTHvcOz8vMebACot4Vx
+SLE37o+Ft9P6WQJM1gmlNK+gBhOPlZbQD93sKT3AabmDlru0BLf1ocYLkD+iKMFi
+R9tRZysVEVeCJIfyFSiO5eeRsGwMI9UBpyhUBK5H0YJtEUJpNUUSbbKjIAVBYxqQ
+u5/ENLaoyoeu9XAA3RNG/STx5DRlIJJgluMxz+agWIXSuY7TukKUC/IkjsfdB8cg
+Rnr/nhCaX/0oaHKnWQXDFt2d/qPjoMq7esSc1kUHJu76032VGK6TcBAmrYLbQZ84
+h73mZHjrICV3v3q3CGlh
+=TAE/
+-----END PGP SIGNATURE-----
+--=-=-=--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
