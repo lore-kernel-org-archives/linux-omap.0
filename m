@@ -1,68 +1,102 @@
-From: santosh shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 2/2] usb:dwc3: pass arch data to xhci-hcd child
-Date: Fri, 1 Apr 2016 11:15:29 -0700
-Message-ID: <56FEBAC1.2040509@oracle.com>
-References: <1457594332-7490-1-git-send-email-tqnguyen@apm.com>
- <1457594332-7490-3-git-send-email-tqnguyen@apm.com>
- <87mvpgi02f.fsf@intel.com> <56FBDA0D.4030507@ti.com>
- <87egashxz8.fsf@intel.com>
- <CAKrQpSvgTm+OM+ffO4ZKwpb=J3ewKoWYA7ojE+WKBbiYKwdMqw@mail.gmail.com>
- <87k2kjgjjf.fsf@intel.com> <56FD3D2F.8070501@ti.com>
- <871t6pahg8.fsf@intel.com> <56FE4378.3030205@ti.com>
- <87shz58wbw.fsf@intel.com> <56FE54DB.5000201@ti.com>
- <878u0x8ru4.fsf@intel.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 4/7] ARM: dts: Enable N950 keyboard sleep leds by default
+Date: Fri, 1 Apr 2016 11:32:21 -0700
+Message-ID: <20160401183221.GN9329@atomide.com>
+References: <1457827580-16919-1-git-send-email-sre@kernel.org>
+ <1457827580-16919-5-git-send-email-sre@kernel.org>
+ <20160329105128.GA30184@amd>
+ <20160329145209.GB31858@earth>
+ <20160330193520.GY9329@atomide.com>
+ <20160401124523.GB10776@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <878u0x8ru4.fsf-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, "Thang Q. Nguyen" <tqnguyen-qTEPVZfXA3Y@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "Karicheri, Muralidharan" <m-karicheri2-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Phong Vo <pvo-qTEPVZfXA3Y@public.gmane.org>, Loc Ho <lho-qTEPVZfXA3Y@public.gmane.org>, patches <patches-qTEPVZfXA3Y@public.gmane.org>, Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Ben Dooks (embedded platforms)" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160401124523.GB10776@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sebastian Reichel <sre@kernel.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-+Arnd, RMK,
+* Pavel Machek <pavel@ucw.cz> [160401 05:46]:
+> Hi!
+> 
+> > > On Tue, Mar 29, 2016 at 12:51:28PM +0200, Pavel Machek wrote:
+> > > > For 1-3 in the series, Acked-by: Pavel Machek <pavel@ucw.cz>
+> > > > 
+> > > > > Like the Nokia N900, the N950 has leds to show
+> > > > > the state of sys_clkreq and sys_off_mode pins.
+> > > > > 
+> > > > > A detailed description for the LEDs and
+> > > > > OMAP's sleep states can be found in Tony's
+> > > > > commit for the Nokia N900:
+> > > > > 
+> > > > > c1be2032f66df9e1238bd5bc4ca666de88a62abc
+> > > > 
+> > > > I must say I've seen it on N900, and yes, it is useful, but no, I
+> > > > don't think this is right.
+> > > >
+> > > > This is not a LED. This is a interface that changes meaning of two
+> > > > other LEDs. I guess it should go to debugfs somewhere.
+> > 
+> > Eh that sounds like a GPIO LED to me :) And it already has a
+> > /sys/class/leds/debug interface.
+> > 
+> > The two LEDs this GPIO controls are hardwired to sys_clkreq and
+> > sys_off_mode pins that are the control signals between the SoC
+> > and PMIC.
+> 
+> No, not on N900. On N900, these LEDs are normally used for keyboard
+> backlight.
 
-On 4/1/2016 4:57 AM, Felipe Balbi wrote:
->
-> Hi,
->
-> Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> writes:
->> On 04/01/2016 01:20 PM, Felipe Balbi wrote:
+Oh I see. I've totally forgotten that as I always keep the debug
+option enabled :) The extra battery consumption by those is quite
+minimal and warns you if you have something hogging the CPU.
 
-[...]
+> > In theory you could steal the sys_clkreq and sys_off_mode pins
+> > from the PMIC at the cost of breaking PM. But I doubt anybody
+> > wants to do that considering it's a battery operated device.
+> 
+> No. It seems that on N900, you can select whether sys_clkreq and
+> sys_off_mode is binary-or'ed with normal control of two keyboard
+> backlight LEDs.
 
->> commit 7ace8fc8219e4cbbfd5b4790390d9a01a2541cdf
->> Author: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
->> Date:   Mon Jul 13 18:10:05 2015 +0900
->>
->>      usb: gadget: udc: core: Fix argument of dma_map_single for IOMMU
->>
->>      The dma_map_single and dma_unmap_single should set "gadget->dev.parent"
->>      instead of "&gadget->dev" in the first argument because the parent has
->>      a udc controller's device pointer.
->>      Otherwise, iommu functions are not called in ARM environment.
->>
->>      Signed-off-by: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
->>      Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
->>
->> Above actually means that DMA configuration code can be dropped from
->> usb_add_gadget_udc_release() completely. Right?:
->
-> true, but now I'm not sure what's better: copy all necessary bits from
-> parent or just pass the parent device to all DMA API.
->
-> Anybody to shed a light here ?
->
-The expectation is drivers should pass the proper dev pointers and let 
-core DMA code deal with it since it knows the per device dma properties.
-RMK did massive series of patches to fix many drivers which were not
-adhering to dma APIs.
+That might be doable by reconfiguring the I2C LED driver.
 
-Regrds,
-Santosh
+For the GPIO, the "default-on" just keeps the I2C LED driver
+powered.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > I don't think we should diverge N900 and N950 userspace
+> > > APIs in this regard.
+> > > 
+> > > Actually the correct way would be a custom trigger
+> > > for the leds IMHO. I don't know if the led framework
+> > > supports per led custom triggers, though.
+> > 
+> > Sure, there are something like 10 triggers already. And
+> > you can already change them using:
+> > 
+> > echo none > /sys/class/leds/debug::sleep/trigger
+> > 
+> > That still does not change the fact that the LEDs trigger
+> > based on the state of sys_clkreq and sys_off_mode.
+> > 
+> > Maybe I'm not following what you guys are trying to achieve
+> > here though :) If so, please let me know.
+> 
+> ...and this is what this GPIO does. So it is not exactly a LED. You
+> can turn it on, but than, _two_ LEDs will start blinking. You can't
+> control them with the brightess control. "Heartbeat" trigger is going
+> to be very confusing on debug::sleep.
+
+And it occured to me that adding any other policy than
+"default-on" to the GPIO LED will only work when the device
+is active.
+
+Sounds like the thing to do is to just configure the I2C LED
+controller in the dts file if we don't already have that. And
+assuming it has a Linux driver.
+
+Regards,
+
+Tony
