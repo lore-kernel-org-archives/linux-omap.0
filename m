@@ -1,45 +1,64 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 2/3] ARM: OMAP: DRA7: Provide proper class to omap2_set_globals_tap
-Date: Fri, 1 Apr 2016 17:53:06 -0500
-Message-ID: <1459551187-5992-3-git-send-email-nm@ti.com>
+Subject: [PATCH 3/3] ARM: OMAP: Catch callers of revision information prior to
+ it being populated
+Date: Fri, 1 Apr 2016 17:53:07 -0500
+Message-ID: <1459551187-5992-4-git-send-email-nm@ti.com>
 References: <1459551187-5992-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1459551187-5992-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, Keerthy <j-keerthy@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-When commit 06c2d368fc36 ("ARM: OMAP: DRA7: Make use of omap_revision
-information for soc_is* calls") introduced SoC check using
-omap_revision, it missed providing DRA7 as class for initializing
-the omap_version variable. Without doing this, soc_is_dra7xx() will
-fail and as a result, omap4_pm_init_early never initializes the dra7
-erratum for CPU power state. This causes the suspend path to fail
-on DRA7 devices.
+omap_rev is used to detect various SoC types, however any misuse of
+the usage by invoking it earlier than it being populated will result
+in invalid results. Lets flag them as early as possible to prevent
+unintended side effects taking place. We get 0 if it is uninitialized
+and -1 when detection is done using device tree (as the case was for
+DRA7 as the case was prior to commit 06c2d368fc36 ("ARM: OMAP: DRA7:
+Make use of omap_revision information for soc_is* calls")
 
-Fixes: 06c2d368fc36 ("ARM: OMAP: DRA7: Make use of omap_revision information for soc_is* calls")
-Cc: Keerthy <j-keerthy@ti.com>
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/io.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap1/id.c | 1 +
+ arch/arm/mach-omap2/id.c | 1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 3c87e40650cf..2b86b25bcb83 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -736,7 +736,8 @@ void __init omap5_init_late(void)
- #ifdef CONFIG_SOC_DRA7XX
- void __init dra7xx_init_early(void)
+diff --git a/arch/arm/mach-omap1/id.c b/arch/arm/mach-omap1/id.c
+index 52de382fc804..bfabc065d331 100644
+--- a/arch/arm/mach-omap1/id.c
++++ b/arch/arm/mach-omap1/id.c
+@@ -65,6 +65,7 @@ static struct omap_id omap_ids[] __initdata = {
+ 
+ unsigned int omap_rev(void)
  {
--	omap2_set_globals_tap(-1, OMAP2_L4_IO_ADDRESS(DRA7XX_TAP_BASE));
-+	omap2_set_globals_tap(DRA7XX_CLASS,
-+			      OMAP2_L4_IO_ADDRESS(DRA7XX_TAP_BASE));
- 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
- 	omap2_control_base_init();
- 	omap4_pm_init_early();
++	WARN_ON_ONCE(!omap_revision || omap_revision == -1);
+ 	return omap_revision;
+ }
+ EXPORT_SYMBOL(omap_rev);
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index d85c24918c17..75fb6c006e86 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -46,6 +46,7 @@ u32 omap_features;
+ 
+ unsigned int omap_rev(void)
+ {
++	WARN_ON_ONCE(!omap_revision || omap_revision == -1);
+ 	return omap_revision;
+ }
+ EXPORT_SYMBOL(omap_rev);
 -- 
 2.8.0
