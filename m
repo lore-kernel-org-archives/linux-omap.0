@@ -1,132 +1,112 @@
-From: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH v3 2/2] usb:dwc3: pass arch data to xhci-hcd child
-Date: Fri, 01 Apr 2016 10:58:31 +0300
-Message-ID: <871t6pahg8.fsf@intel.com>
-References: <1457594332-7490-1-git-send-email-tqnguyen@apm.com> <1457594332-7490-3-git-send-email-tqnguyen@apm.com> <87mvpgi02f.fsf@intel.com> <56FBDA0D.4030507@ti.com> <87egashxz8.fsf@intel.com> <CAKrQpSvgTm+OM+ffO4ZKwpb=J3ewKoWYA7ojE+WKBbiYKwdMqw@mail.gmail.com> <87k2kjgjjf.fsf@intel.com> <56FD3D2F.8070501@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 0/3] ARM: OMAP3: Fix McBSP2/3 hwmod setup for sidetone
+Date: Fri, 1 Apr 2016 12:33:50 +0300
+Message-ID: <56FE407E.9030803@ti.com>
+References: <1458311007-19168-1-git-send-email-peter.ujfalusi@ti.com>
+ <alpine.DEB.2.02.1603191937430.6629@utopia.booyaka.com>
+ <56EFB794.5010505@ti.com>
+ <alpine.DEB.2.02.1603211743200.31059@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56FD3D2F.8070501-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, "Thang Q. Nguyen" <tqnguyen-qTEPVZfXA3Y@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "Karicheri, Muralidharan" <m-karicheri2-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Phong Vo <pvo-qTEPVZfXA3Y@public.gmane.org>, Loc Ho <lho-qTEPVZfXA3Y@public.gmane.org>, patches <patches-qTEPVZfXA3Y@public.gmane.org>, Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Ben Dooks (embedded platforms)" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.02.1603211743200.31059-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Hi Paul,
 
-
-Hi,
-
-Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> writes:
-> On 03/31/2016 11:04 AM, Felipe Balbi wrote:
->> "Thang Q. Nguyen" <tqnguyen-qTEPVZfXA3Y@public.gmane.org> writes:
->>> [ text/plain ]
->>> Thanks Grygorii for information.
->>> I checked but do not see dma_init_dev_from_parent is used in
->>> linux-next repository. Can you give me more information for what
->>> branch I can checkout to use it for USB DWC3?
->>=20
->> dma_init_dev_from_parent() is still a proposal ;-)
->>=20
->
-> Felipe,
->
-> After some experiments I came up with below fix (not common, but fixes USB
-> case on keystone 2). if you agree with proposed fix I'll send proper
-> patches to fix usb_add_gadget_udc_release() and dwc3_host_init() in the s=
-ame
-> way.
->
-> diff --git a/drivers/usb/dwc3/host.c b/drivers/usb/dwc3/host.c
-> index c679f63..3fe1c65 100644
-> --- a/drivers/usb/dwc3/host.c
-> +++ b/drivers/usb/dwc3/host.c
-> @@ -17,6 +17,7 @@
->=20=20
->  #include <linux/platform_device.h>
->  #include <linux/usb/xhci_pdriver.h>
-> +#include <linux/of_device.h>
->=20=20
->  #include "core.h"
->=20=20
-> @@ -35,8 +36,6 @@ int dwc3_host_init(struct dwc3 *dwc)
->         dma_set_coherent_mask(&xhci->dev, dwc->dev->coherent_dma_mask);
->=20=20
->         xhci->dev.parent        =3D dwc->dev;
-> -       xhci->dev.dma_mask      =3D dwc->dev->dma_mask;
-> -       xhci->dev.dma_parms     =3D dwc->dev->dma_parms;
->=20=20
->         dwc->xhci =3D xhci;
->=20=20
-> @@ -62,6 +61,12 @@ int dwc3_host_init(struct dwc3 *dwc)
->         phy_create_lookup(dwc->usb3_generic_phy, "usb3-phy",
->                           dev_name(&xhci->dev));
->=20=20
-> +       if (!dwc->dev->of_node) {
-> +               xhci->dev.dma_mask      =3D dwc->dev->dma_mask;
-> +               xhci->dev.dma_parms     =3D dwc->dev->dma_parms;
-> +       } else=20
-> +               of_dma_configure(&xhci->dev, dwc->dev->of_node);
-
-if of_dma_configure() does what you want, why don't you just stick it in
-dwc3-keystone.c and let the driver continue to copy things for now ?
-Something like below, perhaps ?
-
-diff --git a/drivers/usb/dwc3/dwc3-keystone.c b/drivers/usb/dwc3/dwc3-keyst=
-one.c
-index 2be268d2423d..a4bd7f16090f 100644
-=2D-- a/drivers/usb/dwc3/dwc3-keystone.c
-+++ b/drivers/usb/dwc3/dwc3-keystone.c
-@@ -39,8 +39,6 @@
- #define USBSS_IRQ_COREIRQ_EN	BIT(0)
- #define USBSS_IRQ_COREIRQ_CLR	BIT(0)
+On 03/21/16 19:44, Paul Walmsley wrote:
+> Hi P=E9ter,
+>=20
+> On Mon, 21 Mar 2016, Peter Ujfalusi wrote:
+>=20
+>> On 03/19/16 21:38, Paul Walmsley wrote:
+>>> On Fri, 18 Mar 2016, Peter Ujfalusi wrote:
+>>>
+>>>> Hi,
+>>>>
+>>>> Chanes since v1:
+>>>> - removed the ASoC patch as Mark has applied it already
+>>>> - Added my signed-off to the hwmod patch
+>>>> - New patch to handle the case when the sidetone hwmod has been re=
+moved for
+>>>>   legacy boot.
+>>>>
+>>>> The series addresses a long standing issue with McBSP2/3 regarding=
+ to hwmod
+>>>> setup. When booting with DT a warning is printed that mcbsp2/3 is =
+using two
+>>>> hwmod.
+>>>> The root of the issue is the way how the hwmod data was constructe=
+d in the first
+>>>> place for OMAP3 McBSP2/3.
+>>>> After re-reading the TRM it is clear that the sidetone should not =
+have it's
+>>>> own hwmod data as it is not a separate IP, it is part of the McBSP=
+ module. It
+>>>> can not affect PRCM either since it's SYSCONFIG register's AUTOIDL=
+E bit is only
+>>>> sets the autoidle from the internal McBSP_iclk clock to the sideto=
+ne block of
+>>>> the same McBSP.
+>>>
+>>> NAK, at least without further discussion - see my comments on the v=
+1 0/3=20
+>>> introduction.
+>>
+>> Yes, I could have sent the first series as RFC, but I believe(d) tha=
+t this is
+>> the correct way to fix the McBSP sidetone integration.
+>=20
+> Yep not a problem.  You're handling the process correctly.  There's n=
+o=20
+> need to send things as an RFC unless you are unsure.=20
+>=20
+> What you and I are doing now is exactly how the discussion and review=
 =20
-=2Dstatic u64 kdwc3_dma_mask;
-=2D
- struct dwc3_keystone {
- 	struct device			*dev;
- 	struct clk			*clk;
-@@ -108,9 +106,7 @@ static int kdwc3_probe(struct platform_device *pdev)
- 	if (IS_ERR(kdwc->usbss))
- 		return PTR_ERR(kdwc->usbss);
-=20
-=2D	kdwc3_dma_mask =3D dma_get_mask(dev);
-=2D	dev->dma_mask =3D &kdwc3_dma_mask;
-=2D
-+	of_dma_configure(&kdwc->dev, node);
- 	kdwc->clk =3D devm_clk_get(kdwc->dev, "usb");
-=20
- 	error =3D clk_prepare_enable(kdwc->clk);
+> process is supposed to work.
 
+So what shall we do with the OMAP3 McBSP2/3 sidetone? It has been broke=
+n in DT
+boot since the first time we booted OMAP3 with DT... Only in legacy mod=
+e we
+can have properly working ST.
 
-=2D-=20
-balbi
+I have the second level of patches based on this set (I think I need to=
+ resend
+this series since I might have changed it, can not recall) for both arc=
+h/arm
+and ASoC to have working ST in legacy and DT boot. We will no longer ha=
+ve
+warning regarding to broken hwmod data in DT boot.
+But all is based on the assumption that we agree at some point that the=
+ ST
+block is part of the McBSP module ;)
 
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
+If I need to write separate driver for the McBSP module's ST block, it =
+would
+mean some sort of API between the McBSP and ST driver. This is not stra=
+ight
+forward since there are registers both in McBSP block and ST block that=
+ needs
+to be configured in specific order -> simple enable_st() would not work
+(probably enable_st_stage1(), enable_st_stage2()) and callbacks from Mc=
+BSP to
+ST, ST to McBSP also going to be needed. As far as I can see it is goin=
+g to be
+a huge mess.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Other option would be to deprecate the ST support as such, but that wou=
+ld
+leave the n900 guys in trouble as they need ST to be functional...
 
-iQIcBAEBAgAGBQJW/iooAAoJEIaOsuA1yqRETZYQALZMFoH0UCrSp3Gf8r+1i2kK
-NmBGHQ7j5FV4hrzoiuII5aRb4L/X/sZx8Uxblm1/9TcWflJ0X6fKe5yd6O3ug34h
-M9DZ7NwiH5yE1fQTCoLX5Nh7rsyxClbOpt0uRzQHAmaUWxo8sIcCqvPEdOa0/WkN
-HqtdvleWfuaO3kAQjHmrE/7dhYDKhuLKRKgzrjhzFYJa7iHuCmrroaZRkAJ+BCYw
-2g2TFYBC9hnr+uN3mUrgf4wpzbAwfiJb711UyTdepdbsYJ4wzgVMBmGE6fDzrpEg
-dCJwXPDCrPc768jajlYKMc/1c8IIEQUusmX84BgFsmNz9oQir+26DO0Koq12veop
-zl3QoNkofeQ4CS8bq1X2Qo1mg+RGx2ITl+qVSlr2qIXOLxTHvcOz8vMebACot4Vx
-SLE37o+Ft9P6WQJM1gmlNK+gBhOPlZbQD93sKT3AabmDlru0BLf1ocYLkD+iKMFi
-R9tRZysVEVeCJIfyFSiO5eeRsGwMI9UBpyhUBK5H0YJtEUJpNUUSbbKjIAVBYxqQ
-u5/ENLaoyoeu9XAA3RNG/STx5DRlIJJgluMxz+agWIXSuY7TukKUC/IkjsfdB8cg
-Rnr/nhCaX/0oaHKnWQXDFt2d/qPjoMq7esSc1kUHJu76032VGK6TcBAmrYLbQZ84
-h73mZHjrICV3v3q3CGlh
-=TAE/
------END PGP SIGNATURE-----
---=-=-=--
+--=20
+P=E9ter
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
