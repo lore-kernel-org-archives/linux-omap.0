@@ -1,13 +1,13 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH 11/12] mtd: nand: sh_flctl: rely on generic DT
+Subject: [PATCH 07/12] mtd: nand: hisi504: rely on generic DT
  parsing done in nand_scan_ident()
-Date: Fri,  1 Apr 2016 14:54:31 +0200
-Message-ID: <1459515272-31011-12-git-send-email-boris.brezillon@free-electrons.com>
+Date: Fri,  1 Apr 2016 14:54:27 +0200
+Message-ID: <1459515272-31011-8-git-send-email-boris.brezillon@free-electrons.com>
 References: <1459515272-31011-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBHW77G3QKGQERZRPGNY-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBG677G3QKGQEFCBG2AI-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 Sender: linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 In-Reply-To: <1459515272-31011-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <https://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -27,80 +27,55 @@ manually.
 
 Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 ---
- drivers/mtd/nand/sh_flctl.c | 31 ++++++++++++++-----------------
- 1 file changed, 14 insertions(+), 17 deletions(-)
+ drivers/mtd/nand/hisi504_nand.c | 14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/mtd/nand/sh_flctl.c b/drivers/mtd/nand/sh_flctl.c
-index 4814402..8d4e97c 100644
---- a/drivers/mtd/nand/sh_flctl.c
-+++ b/drivers/mtd/nand/sh_flctl.c
-@@ -31,7 +31,6 @@
- #include <linux/io.h>
+diff --git a/drivers/mtd/nand/hisi504_nand.c b/drivers/mtd/nand/hisi504_nand.c
+index 96502b6..38cdc84 100644
+--- a/drivers/mtd/nand/hisi504_nand.c
++++ b/drivers/mtd/nand/hisi504_nand.c
+@@ -19,7 +19,6 @@
+  * GNU General Public License for more details.
+  */
  #include <linux/of.h>
- #include <linux/of_device.h>
 -#include <linux/of_mtd.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/sh_dma.h>
-@@ -1044,8 +1043,6 @@ static struct sh_flctl_platform_data *flctl_parse_dt(struct device *dev)
- 	const struct of_device_id *match;
- 	struct flctl_soc_config *config;
- 	struct sh_flctl_platform_data *pdata;
--	struct device_node *dn = dev->of_node;
--	int ret;
+ #include <linux/mtd/mtd.h>
+ #include <linux/sizes.h>
+ #include <linux/clk.h>
+@@ -642,10 +641,9 @@ static int hisi_nfc_ecc_probe(struct hinfc_host *host)
+ 	struct device *dev = host->dev;
+ 	struct nand_chip *chip = &host->chip;
+ 	struct mtd_info *mtd = nand_to_mtd(chip);
+-	struct device_node *np = host->dev->of_node;
  
- 	match = of_match_device(of_flctl_match, dev);
- 	if (match)
-@@ -1065,15 +1062,6 @@ static struct sh_flctl_platform_data *flctl_parse_dt(struct device *dev)
- 	pdata->has_hwecc = config->has_hwecc;
- 	pdata->use_holden = config->use_holden;
+-	size = of_get_nand_ecc_step_size(np);
+-	strength = of_get_nand_ecc_strength(np);
++	size = chip->ecc.size;
++	strength = chip->ecc.strength;
+ 	if (size != 1024) {
+ 		dev_err(dev, "error ecc size: %d\n", size);
+ 		return -EINVAL;
+@@ -695,7 +693,7 @@ static int hisi_nfc_ecc_probe(struct hinfc_host *host)
  
--	/* parse user defined options */
--	ret = of_get_nand_bus_width(dn);
--	if (ret == 16)
--		pdata->flcmncr_val |= SEL_16BIT;
--	else if (ret != 8) {
--		dev_err(dev, "%s: invalid bus width\n", __func__);
--		return NULL;
--	}
+ static int hisi_nfc_probe(struct platform_device *pdev)
+ {
+-	int ret = 0, irq, buswidth, flag, max_chips = HINFC504_MAX_CHIP;
++	int ret = 0, irq, flag, max_chips = HINFC504_MAX_CHIP;
+ 	struct device *dev = &pdev->dev;
+ 	struct hinfc_host *host;
+ 	struct nand_chip  *chip;
+@@ -747,12 +745,6 @@ static int hisi_nfc_probe(struct platform_device *pdev)
+ 	chip->read_buf		= hisi_nfc_read_buf;
+ 	chip->chip_delay	= HINFC504_CHIP_DELAY;
+ 
+-	chip->ecc.mode = of_get_nand_ecc_mode(np);
 -
- 	return pdata;
- }
- 
-@@ -1141,20 +1129,29 @@ static int flctl_probe(struct platform_device *pdev)
- 	nand->select_chip = flctl_select_chip;
- 	nand->cmdfunc = flctl_cmdfunc;
- 
--	if (pdata->flcmncr_val & SEL_16BIT) {
--		nand->options |= NAND_BUSWIDTH_16;
--		nand->read_word = flctl_read_word;
--	}
+-	buswidth = of_get_nand_bus_width(np);
+-	if (buswidth == 16)
+-		chip->options |= NAND_BUSWIDTH_16;
 -
- 	pm_runtime_enable(&pdev->dev);
- 	pm_runtime_resume(&pdev->dev);
+ 	hisi_nfc_host_init(host);
  
- 	flctl_setup_dma(flctl);
- 
-+	if (pdata->flcmncr_val & SEL_16BIT)
-+		nand->options |= NAND_BUSWIDTH_16;
-+
- 	ret = nand_scan_ident(flctl_mtd, 1, NULL);
- 	if (ret)
- 		goto err_chip;
- 
-+	if (nand->options & NAND_BUSWIDTH_16) {
-+		/*
-+		 * NAND_BUSWIDTH_16 may have been set by nand_scan_ident().
-+		 * Add the SEL_16BIT flag in pdata->flcmncr_val and re-assign
-+		 * flctl->flcmncr_base to pdata->flcmncr_val.
-+		 */
-+		pdata->flcmncr_val |= SEL_16BIT;
-+		flctl->flcmncr_base = pdata->flcmncr_val;
-+		nand->read_word = flctl_read_word;
-+	}
-+
- 	ret = flctl_chip_init_tail(flctl_mtd);
- 	if (ret)
- 		goto err_chip;
+ 	ret = devm_request_irq(dev, irq, hinfc_irq_handle, 0x0, "nandc", host);
 -- 
 2.5.0
