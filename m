@@ -1,102 +1,120 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] of/platform: Allow secondary compatible match in
- of_dev_lookup
-Date: Fri, 1 Apr 2016 14:40:54 -0700
-Message-ID: <20160401214053.GQ9329@atomide.com>
-References: <1459546504-32668-1-git-send-email-tony@atomide.com>
+From: Michal Nazarewicz <mina86-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>
+Subject: Re: USB gadgets with configfs hang reboot
+Date: Sat, 02 Apr 2016 00:16:14 +0200
+Message-ID: <xa1tbn5tynyp.fsf@mina86.com>
+References: <Pine.LNX.4.44L0.1604011452580.1957-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1459546504-32668-1-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44L0.1604011452580.1957-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, pali =?utf-8?Q?Roh=C3=A1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [160401 14:37]:
-> We currently try to match of_dev_auxdata based on compatible,
-> IO address, and device name. But in some cases we have multiple
-> instances of drivers that can use the same auxdata.
-> 
-> Let's add an additional secondary lookup for generic compatible
-> match for auxdata if no device specific match is found. This does
-> not change the existing matching, and still allows adding device
-> specific auxdata.
-> 
-> This simplifies things as specifying the IO address and device
-> name is prone errors as it requires maintaining an in kernel
-> database for each SoC.
+> On Fri, 1 Apr 2016, Michal Nazarewicz wrote:
+>> @@ -3050,9 +3053,11 @@ static int fsg_bind(struct usb_configuration =
+*c, struct usb_function *f)
+>>                 if (ret)
+>>                         return ret;
+>>                 fsg_common_set_inquiry_string(fsg->common, NULL, NUL=
+L);
+>> -               ret =3D fsg_common_run_thread(fsg->common);
+>> -               if (ret)
+>> -                       return ret;
+>> +               if (common->thread_task) {
+>
+On Fri, Apr 01 2016, Alan Stern wrote:
+> Do you mean: if (!common->thread_task)?
 
-And here's what I can apply later on to get rid of some
-ifdeffery.
+Correct.
 
-I'm also planning to move some of the legacy omap hwmod
-functionality into proper device drivers, so can generic
-pdata for that too.
+>> +                       ret =3D fsg_common_run_thread(fsg->common);
+>> +                       if (ret)
+>> +                               return ret;
+>> +               }
+>>         }
+>> =20
+>>         fsg->gadget =3D gadget;
+>> ---- >8 ------------------------------------------------------------=
+----
+>>=20
+>> With that, the whole fsg_common_run_thread call should be moved outs=
+ide
+>> of the if (!no_configfs) and legacy should no longer call it IMO.
+>
+> I'm not so sure about this.  Earlier I was undecided about what to do
+> if there are multiple mass-storage interfaces in the same config, but
+> now I realize that one thread won't work in that situation.  The
+> difficulty is exception handling.  If an error occurs in one of the
+> interfaces, it shouldn't affect the others -- but with only one threa=
+d
+> you can't make that work.
+>
+> I don't know the details of how the composite core works (I don't eve=
+n
+> remember the difference between a usb_function and
+> a usb_function_instance).
 
-Cheers,
+configfs made things quite confusing, yes.  IIRC, usb_function roughly
+corresponds to an interface while usb_function_instance corresponds to
+a module/function driver, except you can easily create multiple
+instances.
 
-Tony
+> Suppose there are several interfaces in one config, each bound to the
+> mass-storage driver.  Then won't the driver's bind routine get called
+> several times whenever the config is installed?
+>
+> If so, then each of those calls should create a new thread.  There's =
+no
+> need to check if the thread has already been started.
+>
+> If not, then there's no way to use f_mass_storage on multiple
+> interfaces in a single config.  The driver should refuse to run on
+> more than one interface at a time.
 
-8< -----------------------
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Date: Fri, 1 Apr 2016 13:57:49 -0700
-Subject: [PATCH] ARM: OMAP2+: Simplify auxdata by using the generic match
+Right, but that=E2=80=99s not what is happening.  We have a situation w=
+here
+single mass storage instance is bound to two interfaces on two differen=
+t
+configs:
 
-We can now just use the compatible if there's no need to have
-device instance specific auxdata.
+	mkdir functions/mass_storage.0
+	echo $file > functions/mass_storage.0/lun.0/file
+	ln -s functions/mass_storage.0 configs/c.1
+	ln -s functions/mass_storage.0 configs/c.2
 
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- arch/arm/mach-omap2/pdata-quirks.c | 17 ++---------------
- 1 file changed, 2 insertions(+), 15 deletions(-)
+configfs doesn=E2=80=99t even allows to express situation where a singl=
+e
+instance of a function is bound to multiple interfaces in a single
+configuration (IIRC).
 
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -492,9 +492,6 @@ static struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
- 	OF_DEV_AUXDATA("tlv320aic3x", 0x18, "2-0018", &n810_aic33_data),
- #endif
- #ifdef CONFIG_ARCH_OMAP3
--	OF_DEV_AUXDATA("ti,omap3-padconf", 0x48002030, "48002030.pinmux", &pcs_pdata),
--	OF_DEV_AUXDATA("ti,omap3-padconf", 0x480025a0, "480025a0.pinmux", &pcs_pdata),
--	OF_DEV_AUXDATA("ti,omap3-padconf", 0x48002a00, "48002a00.pinmux", &pcs_pdata),
- 	OF_DEV_AUXDATA("ti,omap2-iommu", 0x5d000000, "5d000000.mmu",
- 		       &omap3_iommu_pdata),
- 	/* Only on am3517 */
-@@ -506,19 +503,7 @@ static struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
- 	OF_DEV_AUXDATA("ti,am3352-wkup-m3", 0x44d00000, "44d00000.wkup_m3",
- 		       &wkup_m3_data),
- #endif
--#ifdef CONFIG_ARCH_OMAP4
--	OF_DEV_AUXDATA("ti,omap4-padconf", 0x4a100040, "4a100040.pinmux", &pcs_pdata),
--	OF_DEV_AUXDATA("ti,omap4-padconf", 0x4a31e040, "4a31e040.pinmux", &pcs_pdata),
--#endif
--#ifdef CONFIG_SOC_OMAP5
--	OF_DEV_AUXDATA("ti,omap5-padconf", 0x4a002840, "4a002840.pinmux", &pcs_pdata),
--	OF_DEV_AUXDATA("ti,omap5-padconf", 0x4ae0c840, "4ae0c840.pinmux", &pcs_pdata),
--#endif
--#ifdef CONFIG_SOC_DRA7XX
--	OF_DEV_AUXDATA("ti,dra7-padconf", 0x4a003400, "4a003400.pinmux", &pcs_pdata),
--#endif
- #ifdef CONFIG_SOC_AM43XX
--	OF_DEV_AUXDATA("ti,am437-padconf", 0x44e10800, "44e10800.pinmux", &pcs_pdata),
- 	OF_DEV_AUXDATA("ti,am4372-wkup-m3", 0x44d00000, "44d00000.wkup_m3",
- 		       &wkup_m3_data),
- #endif
-@@ -531,6 +516,8 @@ static struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
- 	OF_DEV_AUXDATA("ti,omap4-iommu", 0x55082000, "55082000.mmu",
- 		       &omap4_iommu_pdata),
- #endif
-+	/* Common auxdata */
-+	OF_DEV_AUXDATA("pinctrl-single", 0, NULL, &pcs_pdata),
- 	{ /* sentinel */ },
- };
- 
--- 
-2.7.0
+At the same time, mass storage should work fine if it=E2=80=99s bound t=
+o
+multiple configurations.  Only one configuration can be active at any
+given time so interfaces on different configurations cannot interfere
+with each other.
 
+The problem we are having is that when mass storage is added to
+a configuration, fsg_bind is called and it starts the thread.
+
+If someone wanted to have two mass storage interfaces on a single
+configuration they would have to create two mass storage instances and
+each instance has it=E2=80=99s own fsg_common struct (see fsg_alloc_ins=
+t
+function).
+
+PS. It seems that legacy/multi is broken because it calls
+    fsg_common_run_thread twice.
+
+--=20
+Best regards
+=E3=83=9F=E3=83=8F=E3=82=A6 =E2=80=9C=F0=9D=93=B6=F0=9D=93=B2=F0=9D=93=B7=
+=F0=9D=93=AA86=E2=80=9D =E3=83=8A=E3=82=B6=E3=83=AC=E3=83=B4=E3=82=A4=E3=
+=83=84
+=C2=ABIf at first you don=E2=80=99t succeed, give up skydiving=C2=BB
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
