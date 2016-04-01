@@ -1,13 +1,13 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH 09/12] mtd: nand: mxc: rely on generic DT
+Subject: [PATCH 11/12] mtd: nand: sh_flctl: rely on generic DT
  parsing done in nand_scan_ident()
-Date: Fri,  1 Apr 2016 14:54:29 +0200
-Message-ID: <1459515272-31011-10-git-send-email-boris.brezillon@free-electrons.com>
+Date: Fri,  1 Apr 2016 14:54:31 +0200
+Message-ID: <1459515272-31011-12-git-send-email-boris.brezillon@free-electrons.com>
 References: <1459515272-31011-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBHO77G3QKGQEGVJKL7I-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBHW77G3QKGQERZRPGNY-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 Sender: linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 In-Reply-To: <1459515272-31011-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <https://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -27,104 +27,80 @@ manually.
 
 Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 ---
- drivers/mtd/nand/mxc_nand.c | 50 ++++++++++++++++++++++-----------------------
- 1 file changed, 25 insertions(+), 25 deletions(-)
+ drivers/mtd/nand/sh_flctl.c | 31 ++++++++++++++-----------------
+ 1 file changed, 14 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/mtd/nand/mxc_nand.c b/drivers/mtd/nand/mxc_nand.c
-index 854c832..f25913b 100644
---- a/drivers/mtd/nand/mxc_nand.c
-+++ b/drivers/mtd/nand/mxc_nand.c
-@@ -34,7 +34,6 @@
- #include <linux/completion.h>
+diff --git a/drivers/mtd/nand/sh_flctl.c b/drivers/mtd/nand/sh_flctl.c
+index 4814402..8d4e97c 100644
+--- a/drivers/mtd/nand/sh_flctl.c
++++ b/drivers/mtd/nand/sh_flctl.c
+@@ -31,7 +31,6 @@
+ #include <linux/io.h>
  #include <linux/of.h>
  #include <linux/of_device.h>
 -#include <linux/of_mtd.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/sh_dma.h>
+@@ -1044,8 +1043,6 @@ static struct sh_flctl_platform_data *flctl_parse_dt(struct device *dev)
+ 	const struct of_device_id *match;
+ 	struct flctl_soc_config *config;
+ 	struct sh_flctl_platform_data *pdata;
+-	struct device_node *dn = dev->of_node;
+-	int ret;
  
- #include <asm/mach/flash.h>
- #include <linux/platform_data/mtd-mxc_nand.h>
-@@ -1461,25 +1460,12 @@ MODULE_DEVICE_TABLE(of, mxcnd_dt_ids);
- static int __init mxcnd_probe_dt(struct mxc_nand_host *host)
- {
- 	struct device_node *np = host->dev->of_node;
--	struct mxc_nand_platform_data *pdata = &host->pdata;
- 	const struct of_device_id *of_id =
- 		of_match_device(mxcnd_dt_ids, host->dev);
--	int buswidth;
+ 	match = of_match_device(of_flctl_match, dev);
+ 	if (match)
+@@ -1065,15 +1062,6 @@ static struct sh_flctl_platform_data *flctl_parse_dt(struct device *dev)
+ 	pdata->has_hwecc = config->has_hwecc;
+ 	pdata->use_holden = config->use_holden;
  
- 	if (!np)
- 		return 1;
- 
--	if (of_get_nand_ecc_mode(np) >= 0)
--		pdata->hw_ecc = 1;
--
--	pdata->flash_bbt = of_get_nand_on_flash_bbt(np);
--
--	buswidth = of_get_nand_bus_width(np);
--	if (buswidth < 0)
--		return buswidth;
--
--	pdata->width = buswidth / 8;
--
- 	host->devtype_data = of_id->data;
- 
- 	return 0;
-@@ -1578,25 +1564,18 @@ static int mxcnd_probe(struct platform_device *pdev)
- 	this->ecc.size = 512;
- 	this->ecc.layout = host->devtype_data->ecclayout_512;
- 
--	if (host->pdata.hw_ecc) {
--		this->ecc.calculate = mxc_nand_calculate_ecc;
--		this->ecc.hwctl = mxc_nand_enable_hwecc;
--		this->ecc.correct = host->devtype_data->correct_data;
-+	if (host->pdata.hw_ecc)
- 		this->ecc.mode = NAND_ECC_HW;
--	} else {
-+	else
- 		this->ecc.mode = NAND_ECC_SOFT;
+-	/* parse user defined options */
+-	ret = of_get_nand_bus_width(dn);
+-	if (ret == 16)
+-		pdata->flcmncr_val |= SEL_16BIT;
+-	else if (ret != 8) {
+-		dev_err(dev, "%s: invalid bus width\n", __func__);
+-		return NULL;
 -	}
+-
+ 	return pdata;
+ }
  
- 	/* NAND bus width determines access functions used by upper layer */
- 	if (host->pdata.width == 2)
- 		this->options |= NAND_BUSWIDTH_16;
+@@ -1141,20 +1129,29 @@ static int flctl_probe(struct platform_device *pdev)
+ 	nand->select_chip = flctl_select_chip;
+ 	nand->cmdfunc = flctl_cmdfunc;
  
--	if (host->pdata.flash_bbt) {
--		this->bbt_td = &bbt_main_descr;
--		this->bbt_md = &bbt_mirror_descr;
--		/* update flash based bbt */
-+	/* update flash based bbt */
-+	if (host->pdata.flash_bbt)
- 		this->bbt_options |= NAND_BBT_USE_FLASH;
+-	if (pdata->flcmncr_val & SEL_16BIT) {
+-		nand->options |= NAND_BUSWIDTH_16;
+-		nand->read_word = flctl_read_word;
 -	}
+-
+ 	pm_runtime_enable(&pdev->dev);
+ 	pm_runtime_resume(&pdev->dev);
  
- 	init_completion(&host->op_completion);
+ 	flctl_setup_dma(flctl);
  
-@@ -1637,6 +1616,27 @@ static int mxcnd_probe(struct platform_device *pdev)
- 		goto escan;
- 	}
- 
-+	switch (this->ecc.mode) {
-+	case NAND_ECC_HW:
-+		this->ecc.calculate = mxc_nand_calculate_ecc;
-+		this->ecc.hwctl = mxc_nand_enable_hwecc;
-+		this->ecc.correct = host->devtype_data->correct_data;
-+		break;
++	if (pdata->flcmncr_val & SEL_16BIT)
++		nand->options |= NAND_BUSWIDTH_16;
 +
-+	case NAND_ECC_SOFT:
-+	case NAND_ECC_SOFT_BCH:
-+		break;
-+
-+	default:
-+		err = -EINVAL;
-+		goto escan;
+ 	ret = nand_scan_ident(flctl_mtd, 1, NULL);
+ 	if (ret)
+ 		goto err_chip;
+ 
++	if (nand->options & NAND_BUSWIDTH_16) {
++		/*
++		 * NAND_BUSWIDTH_16 may have been set by nand_scan_ident().
++		 * Add the SEL_16BIT flag in pdata->flcmncr_val and re-assign
++		 * flctl->flcmncr_base to pdata->flcmncr_val.
++		 */
++		pdata->flcmncr_val |= SEL_16BIT;
++		flctl->flcmncr_base = pdata->flcmncr_val;
++		nand->read_word = flctl_read_word;
 +	}
 +
-+	if (this->bbt_options & NAND_BBT_USE_FLASH) {
-+		this->bbt_td = &bbt_main_descr;
-+		this->bbt_md = &bbt_mirror_descr;
-+	}
-+
- 	/* allocate the right size buffer now */
- 	devm_kfree(&pdev->dev, (void *)host->data_buf);
- 	host->data_buf = devm_kzalloc(&pdev->dev, mtd->writesize + mtd->oobsize,
+ 	ret = flctl_chip_init_tail(flctl_mtd);
+ 	if (ret)
+ 		goto err_chip;
 -- 
 2.5.0
