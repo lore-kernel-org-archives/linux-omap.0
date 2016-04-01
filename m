@@ -1,28 +1,21 @@
-From: Chanwoo Choi <cw00.choi@samsung.com>
+From: Lee Jones <lee.jones@linaro.org>
 Subject: Re: [PATCH] extcon: palmas: Drop stray IRQF_EARLY_RESUME flag
-Date: Fri, 01 Apr 2016 08:19:54 +0900
-Message-ID: <56FDB09A.8000202@samsung.com>
+Date: Fri, 1 Apr 2016 08:59:21 +0100
+Message-ID: <20160401075921.GR3323@x1>
 References: <1459458951-4882-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <1459458951-4882-1-git-send-email-nm@ti.com>
+Content-Disposition: inline
+In-Reply-To: <1459458951-4882-1-git-send-email-nm@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, MyungJoo Ham <myungjoo.ham@samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Roger Quadros <rogerq@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: Chanwoo Choi <cw00.choi@samsung.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Nishanth,
+On Thu, 31 Mar 2016, Nishanth Menon wrote:
 
-Don't need to add the IRQF_ONE_SHOT flag for "palmas_usb_id" interrupt?
-If don't need it, I'll merge it on extcon-fixes and then send the pull =
-request for rc cycle.
-
-Best Regards,
-Chanwoo Choi
-
-On 2016=EB=85=84 04=EC=9B=94 01=EC=9D=BC 06:15, Nishanth Menon wrote:
 > Palams extcon IRQs are nested threaded and wired to the Palmas
 > inerrupt controller. So, this flag is not required for nested
 > irqs anymore, since commit 3c646f2c6aa9 ("genirq: Don't suspend
@@ -128,7 +121,10 @@ e+0x90/0x16c)
 > [   53.670141] [<c028c8c0>] (SyS_write) from [<c0107840>] (ret_fast_s=
 yscall+0x0/0x1c)
 > [   53.670141] Code: e3120008 11814004 01c44001 e58e4000 (e1d342b6)
->=20
+
+Please don't put all this in the commit message.  Can you trim it
+(right) down to only the critical information required please?
+
 > Fixes: ae64e42cc2b3 ("extcon: palmas: Drop IRQF_EARLY_RESUME flag")
 > Cc: Grygorii Strashko <grygorii.strashko@ti.com>
 > Cc: MyungJoo Ham <myungjoo.ham@samsung.com>
@@ -158,4 +154,9 @@ e *pdev)
 >  						"palmas_usb_vbus",
 >  						palmas_usb);
 >  		if (status < 0) {
->=20
+
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
