@@ -1,39 +1,53 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH 2/3] clk: ti: amx3xx: limit the maximum frequency of
- DPLLs based on spec
-Date: Fri, 1 Apr 2016 12:28:39 -0700
-Message-ID: <20160401192839.GW18567@codeaurora.org>
-References: <1458158097-21137-1-git-send-email-t-kristo@ti.com>
- <1458158097-21137-3-git-send-email-t-kristo@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1458158097-21137-3-git-send-email-t-kristo@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, mturquette@baylibre.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
+From: Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
+Subject: [PATCH 0/5] ARM: dts: omap: Fix some DTC warnings
+Date: Fri,  1 Apr 2016 16:20:17 -0400
+Message-ID: <1459542022-17246-1-git-send-email-javier@osg.samsung.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/16, Tero Kristo wrote:
-> AM33xx/AM43xx devices use the same DPLL IP blocks, which only support
-> maximum rate of 1GHz [1] for the default and 2GHz for the low-jitter type
-> DPLLs [2]. Reflect this limitation in the DPLL init code by adding the
-> max-rate parameter based on the DPLL types.
-> 
-> [1] Functional, integration & test specification for GS70 ADPLLS, Rev 1.0-01
-> [2] Functional, integration & test specification for GS70 ADPLLLJ, Rev 0.8-02
-> 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> Cc: Nishanth Menon <nm@ti.com>
-> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Cc: Lokesh Vutla <lokeshvutla@ti.com>
-> ---
+Hello Tony
 
-Acked-by: Stephen Boyd <sboyd@codeaurora.org>
+DTC reports a lot of warnings on omap DTS due a mismatch between unit
+names and reg properties in different device nodes. This series tries
+to fix at least some of them, but there are still a lot remaining.
 
-Or I can apply these two targeting 4.7 if you like.
+Best regards,
+Javier
+
+
+Javier Martinez Canillas (5):
+  ARM: dts: omap: add missing unit name to pbias regulator nodes
+  ARM: dts: n8x0: remove unneeded unit name for i2c node
+  ARM: dts: omap3: add missing unit name to PMU node
+  ARM: dts: omap: remove unneeded unit name for sound nodes
+  ARM: dts: omap: add missing unit names to bandgap nodes
+
+ arch/arm/boot/dts/am437x-gp-evm.dts         | 2 +-
+ arch/arm/boot/dts/am43x-epos-evm.dts        | 2 +-
+ arch/arm/boot/dts/am57xx-beagle-x15.dts     | 2 +-
+ arch/arm/boot/dts/am57xx-cl-som-am57x.dts   | 2 +-
+ arch/arm/boot/dts/dra7-evm.dts              | 2 +-
+ arch/arm/boot/dts/dra7.dtsi                 | 2 +-
+ arch/arm/boot/dts/dra72-evm.dts             | 2 +-
+ arch/arm/boot/dts/omap2420-n8x0-common.dtsi | 2 +-
+ arch/arm/boot/dts/omap2430.dtsi             | 2 +-
+ arch/arm/boot/dts/omap3.dtsi                | 4 ++--
+ arch/arm/boot/dts/omap34xx.dtsi             | 2 +-
+ arch/arm/boot/dts/omap36xx.dtsi             | 2 +-
+ arch/arm/boot/dts/omap4-var-som-om44.dtsi   | 2 +-
+ arch/arm/boot/dts/omap4.dtsi                | 2 +-
+ arch/arm/boot/dts/omap443x.dtsi             | 2 +-
+ arch/arm/boot/dts/omap4460.dtsi             | 2 +-
+ arch/arm/boot/dts/omap5.dtsi                | 2 +-
+ 17 files changed, 18 insertions(+), 18 deletions(-)
 
 -- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+2.5.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
