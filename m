@@ -1,93 +1,86 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: usb: gadget breakage on N900: bind UDC by name passed via
- usb_gadget_driver structure
-Date: Fri, 1 Apr 2016 16:38:07 +0200
-Message-ID: <20160401143807.GF11860@amd>
-References: <CAB=otbRd+hZaO6ihL3c88Ys_q-R4grmup4cfP70PT+N2JEQ3WQ@mail.gmail.com>
- <CAB=otbQ=jJNk=CtB4hu51HXxOLxhWEDaeWf3V0Uc7Uh3veXsfg@mail.gmail.com>
- <CAB=otbQ1J7FZm9vWLwor93+uD3Fv38ykduWMXG3qByNh4mV9=g@mail.gmail.com>
- <20160327202657.GA31059@amd>
- <CAB=otbTsAwBohbYmwBERpdG-ZdAUk_vJwoZoO8dUf_H-W4jREg@mail.gmail.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH V2] extcon: palmas: Drop stray IRQF_EARLY_RESUME flag
+Date: Fri, 1 Apr 2016 17:45:17 +0300
+Message-ID: <56FE897D.3040107@ti.com>
+References: <1459518767-20382-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAB=otbTsAwBohbYmwBERpdG-ZdAUk_vJwoZoO8dUf_H-W4jREg@mail.gmail.com>
+In-Reply-To: <1459518767-20382-1-git-send-email-nm@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ruslan Bilovol <ruslan.bilovol@gmail.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, Patrik Bachan <patrikbachan@gmail.com>, serge@hallyn.com, Maxime Ripard <maxime.ripard@free-electrons.com>, Peter Chen <peter.chen@freescale.com>, Felipe Balbi <balbi@kernel.org>
+To: Nishanth Menon <nm@ti.com>, Chanwoo Choi <cw00.choi@samsung.com>, MyungJoo Ham <myungjoo.ham@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
-
-> >> > Dmesg from the n900 is attached as /tmp/delme.gz. I did _not_ apply
-> >> > the patch from https://lkml.org/lkml/2016/3/24/670 , yet, as I'm using
-> >> > devicetree boot.
-> >>
-> >> Hmm.. don't see anything strange in the boot log related to USB,
-> >> I'll try your config
-> >
-> > Let me know how it went.
+On 01/04/16 16:52, Nishanth Menon wrote:
+> Palmas extcon IRQs are nested threaded and wired to the Palmas
+> interrupt controller. So, this flag is not required for nested
+> IRQs anymore, since commit 3c646f2c6aa9 ("genirq: Don't suspend
+> nested_thread irqs over system suspend") was merged. However, the
+> fix in commit ae64e42cc2b3 ("extcon: palmas: Drop IRQF_EARLY_RESUME
+> flag") missed a stray flag causing the following crash on resume on
+> BeagleBoard-X15 platform:
 > 
-> I tried your config (with slight modifications) with vanilla kernel v4.5
-> (modifications: cmdline changed to default; used INITRAMFS_SOURCE
-> for prebuilt cpio archive with rootfs) and Device Tree booting.
-> Works fine for me except I need to unplug-plug usb cable or issue
-> # echo connect > /sys/devices/platform/68000000.ocp/480ab000
-> .usb_otg_hs/musb-hdrc.0.auto/udc/musb-hdrc.0.auto/soft_connect
-> to make connection.
-> The gadget driver successfully binds to the gadget, but I don't know
-> why the musb core doesn't issue pullup on USB lines during boot.
+> [   53.670141] Unhandled fault: imprecise external abort (0x1406) at 0x00000000
+> [..]
+> [   53.670141] [<c04ae734>] (omap_set_gpio_triggering) from [<c04aeb94>] (omap_gpio_unmask_irq+0xc0/0xc4)
+> [   53.670141] [<c04aeb94>] (omap_gpio_unmask_irq) from [<c01a0b88>] (irq_enable+0x30/0x44)
+> [   53.670141] [<c01a0b88>] (irq_enable) from [<c019ebd8>] (__enable_irq+0x54/0x78)
+> [   53.670141] [<c019ebd8>] (__enable_irq) from [<c01a4e60>] (resume_irqs+0xe8/0x100)
+> [   53.670141] [<c01a4e60>] (resume_irqs) from [<c0514840>] (syscore_resume+0x94/0x298)
+> [   53.670141] [<c0514840>] (syscore_resume) from [<c01981cc>] (suspend_devices_and_enter+0x790/0x9e4)
+> [   53.670141] [<c01981cc>] (suspend_devices_and_enter) from [<c0198a60>] (pm_suspend+0x640/0x75c)
+> [   53.670141] [<c0198a60>] (pm_suspend) from [<c0196bec>] (state_store+0x64/0xb8)
+> [   53.670141] [<c0196bec>] (state_store) from [<c0307944>] (kernfs_fop_write+0xc0/0x1bc)
+> [   53.670141] [<c0307944>] (kernfs_fop_write) from [<c028acb0>] (__vfs_write+0x1c/0xd8)
+> [   53.670141] [<c028acb0>] (__vfs_write) from [<c028bba0>] (vfs_write+0x90/0x16c)
+> [   53.670141] [<c028bba0>] (vfs_write) from [<c028c8c0>] (SyS_write+0x44/0x9c)
+> [   53.670141] [<c028c8c0>] (SyS_write) from [<c0107840>] (ret_fast_syscall+0x0/0x1c)
+> [..]
+> 
+> Fixes: ae64e42cc2b3 ("extcon: palmas: Drop IRQF_EARLY_RESUME flag")
+> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+> Cc: MyungJoo Ham <myungjoo.ham@samsung.com>
+> Cc: Chanwoo Choi <cw00.choi@samsung.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Lee Jones <lee.jones@linaro.org>
+> Cc: Roger Quadros <rogerq@ti.com>
+> 
+> Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
 
-Hmm, strange. Unplug/replug of the USB cable results in:
+Acked-by: Roger Quadros <rogerq@ti.com>
 
-<6>usb 1-5: new high-speed USB device number 100 using ehci-pci
-<3>usb 1-5: device descriptor read/64, error -32
-tail: /proc/kmsg: file truncated
-<3>usb 1-5: device descriptor read/64, error -32
-<3>usb 1-5: device descriptor read/64, error -32
-<3>usb 1-5: device descriptor read/8, error -32
-<3>usb 1-5: device descriptor read/8, error -32
-<6>usb 1-5: new high-speed USB device number 103 using ehci-pci
-<3>usb 1-5: device descriptor read/8, error -32
-<3>usb 1-5: device descriptor read/8, error -32
-<3>usb usb1-port5: unable to enumerate USB device
-<6>usb 4-1: new full-speed USB device number 80 using uhci_hcd
-<3>usb 4-1: device descriptor read/64, error -32
-<3>usb 4-1: device descriptor read/64, error -32
-<6>usb 4-1: new full-speed USB device number 81 using uhci_hcd
-<3>usb 4-1: device descriptor read/64, error -32
-<3>usb 4-1: device descriptor read/64, error -32
-<3>usb usb4-port1: unable to enumerate USB device
+cheers,
+-roger
 
-echo connect does not seem to do the trick, either:
-
-root@n900:~# echo connect >
-/sys/devices/platform/68000000.ocp/480ab000.usb_otg_hs/musb-hdrc.0.auto/udc/musb-hdrc.0.auto/soft_connect
--bash: echo: write error: Operation not supported
-root@n900:~# uname -a
-Linux n900 4.4.0-omap3-149558-g5cf5ee5-dirty #168 PREEMPT Tue Mar 29
-09:49:40 CEST 2016 armv7l GNU/Linux
-
-Hmm, documentation is not too helpful, either...
-
-What:           /sys/class/udc/<udc>/soft_connect
-Date:           June 2011
-KernelVersion:  3.1
-Contact:        Felipe Balbi <balbi@kernel.org>
-Description:
-		Allows users to disconnect data pullup resistors thus
-		causing a
- 		logical disconnection from the USB
- 		Host.
-
-Dmesg says:
-
-[  619.471374] udc musb-hdrc.0.auto: soft-connect without a gadget
-driver
-
-Any ideas?
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+> ---
+> based on v4.6-rc1
+> Changes in V2:
+> 	- commit message updates for:
+> 		- Trimming the crash log down to base stack trace
+> 		- Fix up a few typos
+> 		- Update commit log to indicate that this is a completion of
+> 		  previously attempted fix .
+> 
+> V1: https://patchwork.kernel.org/patch/8718431/
+> 
+>  drivers/extcon/extcon-palmas.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-palmas.c
+> index 841a4b586395..8b3226dca1d9 100644
+> --- a/drivers/extcon/extcon-palmas.c
+> +++ b/drivers/extcon/extcon-palmas.c
+> @@ -348,8 +348,7 @@ static int palmas_usb_probe(struct platform_device *pdev)
+>  						palmas_vbus_irq_handler,
+>  						IRQF_TRIGGER_FALLING |
+>  						IRQF_TRIGGER_RISING |
+> -						IRQF_ONESHOT |
+> -						IRQF_EARLY_RESUME,
+> +						IRQF_ONESHOT,
+>  						"palmas_usb_vbus",
+>  						palmas_usb);
+>  		if (status < 0) {
+> 
