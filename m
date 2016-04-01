@@ -1,1428 +1,1092 @@
-From: Heiko Stuebner <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>
+From: kbuild test robot <lkp@intel.com>
 Subject: Re: [PATCH 1/2] phy: Group vendor specific phy drivers
-Date: Fri, 01 Apr 2016 17:16:59 +0200
-Message-ID: <2184537.UxPmHQG1V3@phil>
+Date: Fri, 1 Apr 2016 23:31:05 +0800
+Message-ID: <201604012318.jqf9PVXF%fengguang.wu@intel.com>
 References: <1459510156-9147-1-git-send-email-gautam.vivek@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1459510156-9147-1-git-send-email-gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Cc: vireshk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, shiraz.linux.kernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, wens-jdAy2FN1RRM@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, spear-devel-nkJGhpqTU55BDgjK7y7TUQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cpgs-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org
+Content-Type: multipart/mixed; boundary="Qxx1br4bt0+wmkIi"
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1459510156-9147-1-git-send-email-gautam.vivek@samsung.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+Cc: kbuild-all@01.org, vireshk@kernel.org, shiraz.linux.kernel@gmail.com, kishon@ti.com, heiko@sntech.de, maxime.ripard@free-electrons.com, wens@csie.org, linux@arm.linux.org.uk, gautam.vivek@samsung.com, linux-arm-kernel@lists.infradead.org, spear-devel@list.st.com, linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, cpgs@samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-Am Freitag, 1. April 2016, 16:59:15 schrieb Vivek Gautam:
-> Adding vendor specific directories in phy to group
-> phy drivers under their respective vendor umbrella.
-> 
-> Signed-off-by: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 
-I don't have a preference about the phy-locations either way, so for 
-Rockchip phys
+--Qxx1br4bt0+wmkIi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Acked-by: Heiko Stuebner <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>
+Hi Vivek,
 
-> ---
-> 
-> With growing number of phy drivers, it makes sense to
-> group these drivers under their respective vendor/platform
-> umbrella directory.
-> 
-> Build-tested 'multi_v7_defconfig'.
-> 
->  drivers/phy/Kconfig                               | 386
-> +--------------------- drivers/phy/Makefile                             
-> |  57 +---
->  drivers/phy/bcom/Kconfig                          |  27 ++
->  drivers/phy/bcom/Makefile                         |   3 +
->  drivers/phy/{ => bcom}/phy-bcm-cygnus-pcie.c      |   0
->  drivers/phy/{ => bcom}/phy-bcm-kona-usb2.c        |   0
->  drivers/phy/{ => bcom}/phy-brcmstb-sata.c         |   0
->  drivers/phy/hisi/Kconfig                          |  20 ++
->  drivers/phy/hisi/Makefile                         |   2 +
->  drivers/phy/{ => hisi}/phy-hi6220-usb.c           |   0
->  drivers/phy/{ => hisi}/phy-hix5hd2-sata.c         |   0
->  drivers/phy/marvell/Kconfig                       |  50 +++
->  drivers/phy/marvell/Makefile                      |   6 +
->  drivers/phy/{ => marvell}/phy-armada375-usb2.c    |   0
->  drivers/phy/{ => marvell}/phy-berlin-sata.c       |   0
->  drivers/phy/{ => marvell}/phy-berlin-usb.c        |   0
->  drivers/phy/{ => marvell}/phy-mvebu-sata.c        |   0
->  drivers/phy/{ => marvell}/phy-pxa-28nm-hsic.c     |   0
->  drivers/phy/{ => marvell}/phy-pxa-28nm-usb2.c     |   0
->  drivers/phy/qcom/Kconfig                          |  23 ++
->  drivers/phy/qcom/Makefile                         |   5 +
->  drivers/phy/{ => qcom}/phy-qcom-apq8064-sata.c    |   0
->  drivers/phy/{ => qcom}/phy-qcom-ipq806x-sata.c    |   0
->  drivers/phy/{ => qcom}/phy-qcom-ufs-i.h           |   0
->  drivers/phy/{ => qcom}/phy-qcom-ufs-qmp-14nm.c    |   0
->  drivers/phy/{ => qcom}/phy-qcom-ufs-qmp-14nm.h    |   0
->  drivers/phy/{ => qcom}/phy-qcom-ufs-qmp-20nm.c    |   0
->  drivers/phy/{ => qcom}/phy-qcom-ufs-qmp-20nm.h    |   0
->  drivers/phy/{ => qcom}/phy-qcom-ufs.c             |   0
->  drivers/phy/rcar/Kconfig                          |  16 +
->  drivers/phy/rcar/Makefile                         |   2 +
->  drivers/phy/{ => rcar}/phy-rcar-gen2.c            |   0
->  drivers/phy/{ => rcar}/phy-rcar-gen3-usb2.c       |   0
->  drivers/phy/rockchip/Kconfig                      |  23 ++
->  drivers/phy/rockchip/Makefile                     |   3 +
->  drivers/phy/{ => rockchip}/phy-rockchip-dp.c      |   0
->  drivers/phy/{ => rockchip}/phy-rockchip-emmc.c    |   0
->  drivers/phy/{ => rockchip}/phy-rockchip-usb.c     |   0
->  drivers/phy/samsung/Kconfig                       |  87 +++++
->  drivers/phy/samsung/Makefile                      |  10 +
->  drivers/phy/{ => samsung}/phy-exynos-dp-video.c   |   0
->  drivers/phy/{ => samsung}/phy-exynos-mipi-video.c |   0
->  drivers/phy/{ => samsung}/phy-exynos4210-usb2.c   |   0
->  drivers/phy/{ => samsung}/phy-exynos4x12-usb2.c   |   0
->  drivers/phy/{ => samsung}/phy-exynos5-usbdrd.c    |   0
->  drivers/phy/{ => samsung}/phy-exynos5250-sata.c   |   0
->  drivers/phy/{ => samsung}/phy-exynos5250-usb2.c   |   0
->  drivers/phy/{ => samsung}/phy-s5pv210-usb2.c      |   0
->  drivers/phy/{ => samsung}/phy-samsung-usb2.c      |   0
->  drivers/phy/{ => samsung}/phy-samsung-usb2.h      |   0
->  drivers/phy/st/Kconfig                            |  51 +++
->  drivers/phy/st/Makefile                           |   6 +
->  drivers/phy/{ => st}/phy-miphy28lp.c              |   0
->  drivers/phy/{ => st}/phy-miphy365x.c              |   0
->  drivers/phy/{ => st}/phy-spear1310-miphy.c        |   0
->  drivers/phy/{ => st}/phy-spear1340-miphy.c        |   0
->  drivers/phy/{ => st}/phy-stih407-usb.c            |   0
->  drivers/phy/{ => st}/phy-stih41x-usb.c            |   0
->  drivers/phy/sunxi/Kconfig                         |  28 ++
->  drivers/phy/sunxi/Makefile                        |   2 +
->  drivers/phy/{ => sunxi}/phy-sun4i-usb.c           |   0
->  drivers/phy/{ => sunxi}/phy-sun9i-usb.c           |   0
->  drivers/phy/ti/Kconfig                            |  67 ++++
->  drivers/phy/ti/Makefile                           |   6 +
->  drivers/phy/{ => ti}/phy-dm816x-usb.c             |   0
->  drivers/phy/{ => ti}/phy-omap-control.c           |   0
->  drivers/phy/{ => ti}/phy-omap-usb2.c              |   0
->  drivers/phy/{ => ti}/phy-ti-pipe3.c               |   0
->  drivers/phy/{ => ti}/phy-tusb1210.c               |   0
->  drivers/phy/{ => ti}/phy-twl4030-usb.c            |   0
->  drivers/phy/{ => ti}/ulpi_phy.h                   |   0
->  71 files changed, 464 insertions(+), 416 deletions(-)
->  create mode 100644 drivers/phy/bcom/Kconfig
->  create mode 100644 drivers/phy/bcom/Makefile
->  rename drivers/phy/{ => bcom}/phy-bcm-cygnus-pcie.c (100%)
->  rename drivers/phy/{ => bcom}/phy-bcm-kona-usb2.c (100%)
->  rename drivers/phy/{ => bcom}/phy-brcmstb-sata.c (100%)
->  create mode 100644 drivers/phy/hisi/Kconfig
->  create mode 100644 drivers/phy/hisi/Makefile
->  rename drivers/phy/{ => hisi}/phy-hi6220-usb.c (100%)
->  rename drivers/phy/{ => hisi}/phy-hix5hd2-sata.c (100%)
->  create mode 100644 drivers/phy/marvell/Kconfig
->  create mode 100644 drivers/phy/marvell/Makefile
->  rename drivers/phy/{ => marvell}/phy-armada375-usb2.c (100%)
->  rename drivers/phy/{ => marvell}/phy-berlin-sata.c (100%)
->  rename drivers/phy/{ => marvell}/phy-berlin-usb.c (100%)
->  rename drivers/phy/{ => marvell}/phy-mvebu-sata.c (100%)
->  rename drivers/phy/{ => marvell}/phy-pxa-28nm-hsic.c (100%)
->  rename drivers/phy/{ => marvell}/phy-pxa-28nm-usb2.c (100%)
->  create mode 100644 drivers/phy/qcom/Kconfig
->  create mode 100644 drivers/phy/qcom/Makefile
->  rename drivers/phy/{ => qcom}/phy-qcom-apq8064-sata.c (100%)
->  rename drivers/phy/{ => qcom}/phy-qcom-ipq806x-sata.c (100%)
->  rename drivers/phy/{ => qcom}/phy-qcom-ufs-i.h (100%)
->  rename drivers/phy/{ => qcom}/phy-qcom-ufs-qmp-14nm.c (100%)
->  rename drivers/phy/{ => qcom}/phy-qcom-ufs-qmp-14nm.h (100%)
->  rename drivers/phy/{ => qcom}/phy-qcom-ufs-qmp-20nm.c (100%)
->  rename drivers/phy/{ => qcom}/phy-qcom-ufs-qmp-20nm.h (100%)
->  rename drivers/phy/{ => qcom}/phy-qcom-ufs.c (100%)
->  create mode 100644 drivers/phy/rcar/Kconfig
->  create mode 100644 drivers/phy/rcar/Makefile
->  rename drivers/phy/{ => rcar}/phy-rcar-gen2.c (100%)
->  rename drivers/phy/{ => rcar}/phy-rcar-gen3-usb2.c (100%)
->  create mode 100644 drivers/phy/rockchip/Kconfig
->  create mode 100644 drivers/phy/rockchip/Makefile
->  rename drivers/phy/{ => rockchip}/phy-rockchip-dp.c (100%)
->  rename drivers/phy/{ => rockchip}/phy-rockchip-emmc.c (100%)
->  rename drivers/phy/{ => rockchip}/phy-rockchip-usb.c (100%)
->  create mode 100644 drivers/phy/samsung/Kconfig
->  create mode 100644 drivers/phy/samsung/Makefile
->  rename drivers/phy/{ => samsung}/phy-exynos-dp-video.c (100%)
->  rename drivers/phy/{ => samsung}/phy-exynos-mipi-video.c (100%)
->  rename drivers/phy/{ => samsung}/phy-exynos4210-usb2.c (100%)
->  rename drivers/phy/{ => samsung}/phy-exynos4x12-usb2.c (100%)
->  rename drivers/phy/{ => samsung}/phy-exynos5-usbdrd.c (100%)
->  rename drivers/phy/{ => samsung}/phy-exynos5250-sata.c (100%)
->  rename drivers/phy/{ => samsung}/phy-exynos5250-usb2.c (100%)
->  rename drivers/phy/{ => samsung}/phy-s5pv210-usb2.c (100%)
->  rename drivers/phy/{ => samsung}/phy-samsung-usb2.c (100%)
->  rename drivers/phy/{ => samsung}/phy-samsung-usb2.h (100%)
->  create mode 100644 drivers/phy/st/Kconfig
->  create mode 100644 drivers/phy/st/Makefile
->  rename drivers/phy/{ => st}/phy-miphy28lp.c (100%)
->  rename drivers/phy/{ => st}/phy-miphy365x.c (100%)
->  rename drivers/phy/{ => st}/phy-spear1310-miphy.c (100%)
->  rename drivers/phy/{ => st}/phy-spear1340-miphy.c (100%)
->  rename drivers/phy/{ => st}/phy-stih407-usb.c (100%)
->  rename drivers/phy/{ => st}/phy-stih41x-usb.c (100%)
->  create mode 100644 drivers/phy/sunxi/Kconfig
->  create mode 100644 drivers/phy/sunxi/Makefile
->  rename drivers/phy/{ => sunxi}/phy-sun4i-usb.c (100%)
->  rename drivers/phy/{ => sunxi}/phy-sun9i-usb.c (100%)
->  create mode 100644 drivers/phy/ti/Kconfig
->  create mode 100644 drivers/phy/ti/Makefile
->  rename drivers/phy/{ => ti}/phy-dm816x-usb.c (100%)
->  rename drivers/phy/{ => ti}/phy-omap-control.c (100%)
->  rename drivers/phy/{ => ti}/phy-omap-usb2.c (100%)
->  rename drivers/phy/{ => ti}/phy-ti-pipe3.c (100%)
->  rename drivers/phy/{ => ti}/phy-tusb1210.c (100%)
->  rename drivers/phy/{ => ti}/phy-twl4030-usb.c (100%)
->  rename drivers/phy/{ => ti}/ulpi_phy.h (100%)
-> 
-> diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
-> index 26566db..80c8c68 100644
-> --- a/drivers/phy/Kconfig
-> +++ b/drivers/phy/Kconfig
-> @@ -15,45 +15,6 @@ config GENERIC_PHY
->  	  phy users can obtain reference to the PHY. All the users of this
->  	  framework should select this config.
-> 
-> -config PHY_BERLIN_USB
-> -	tristate "Marvell Berlin USB PHY Driver"
-> -	depends on ARCH_BERLIN && RESET_CONTROLLER && HAS_IOMEM && OF
-> -	select GENERIC_PHY
-> -	help
-> -	  Enable this to support the USB PHY on Marvell Berlin SoCs.
-> -
-> -config PHY_BERLIN_SATA
-> -	tristate "Marvell Berlin SATA PHY driver"
-> -	depends on ARCH_BERLIN && HAS_IOMEM && OF
-> -	select GENERIC_PHY
-> -	help
-> -	  Enable this to support the SATA PHY on Marvell Berlin SoCs.
-> -
-> -config ARMADA375_USBCLUSTER_PHY
-> -	def_bool y
-> -	depends on MACH_ARMADA_375 || COMPILE_TEST
-> -	depends on OF && HAS_IOMEM
-> -	select GENERIC_PHY
-> -
-> -config PHY_DM816X_USB
-> -	tristate "TI dm816x USB PHY driver"
-> -	depends on ARCH_OMAP2PLUS
-> -	depends on USB_SUPPORT
-> -	select GENERIC_PHY
-> -	select USB_PHY
-> -	help
-> -	  Enable this for dm816x USB to work.
-> -
-> -config PHY_EXYNOS_MIPI_VIDEO
-> -	tristate "S5P/EXYNOS SoC series MIPI CSI-2/DSI PHY driver"
-> -	depends on HAS_IOMEM
-> -	depends on ARCH_S5PV210 || ARCH_EXYNOS || COMPILE_TEST
-> -	select GENERIC_PHY
-> -	default y if ARCH_S5PV210 || ARCH_EXYNOS
-> -	help
-> -	  Support for MIPI CSI-2 and MIPI DSI DPHY found on Samsung S5P
-> -	  and EXYNOS SoCs.
-> -
->  config PHY_LPC18XX_USB_OTG
->  	tristate "NXP LPC18xx/43xx SoC USB OTG PHY driver"
->  	depends on OF && (ARCH_LPC18XX || COMPILE_TEST)
-> @@ -65,154 +26,6 @@ config PHY_LPC18XX_USB_OTG
->  	  This driver is need for USB0 support on LPC18xx/43xx and takes
->  	  care of enabling and clock setup.
-> 
-> -config PHY_PXA_28NM_HSIC
-> -	tristate "Marvell USB HSIC 28nm PHY Driver"
-> -	depends on HAS_IOMEM
-> -	select GENERIC_PHY
-> -	help
-> -	  Enable this to support Marvell USB HSIC PHY driver for Marvell
-> -	  SoC. This driver will do the PHY initialization and shutdown.
-> -	  The PHY driver will be used by Marvell ehci driver.
-> -
-> -	  To compile this driver as a module, choose M here.
-> -
-> -config PHY_PXA_28NM_USB2
-> -	tristate "Marvell USB 2.0 28nm PHY Driver"
-> -	depends on HAS_IOMEM
-> -	select GENERIC_PHY
-> -	help
-> -	  Enable this to support Marvell USB 2.0 PHY driver for Marvell
-> -	  SoC. This driver will do the PHY initialization and shutdown.
-> -	  The PHY driver will be used by Marvell udc/ehci/otg driver.
-> -
-> -	  To compile this driver as a module, choose M here.
-> -
-> -config PHY_MVEBU_SATA
-> -	def_bool y
-> -	depends on ARCH_DOVE || MACH_DOVE || MACH_KIRKWOOD
-> -	depends on OF
-> -	select GENERIC_PHY
-> -
-> -config PHY_MIPHY28LP
-> -	tristate "STMicroelectronics MIPHY28LP PHY driver for STiH407"
-> -	depends on ARCH_STI
-> -	select GENERIC_PHY
-> -	help
-> -	  Enable this to support the miphy transceiver (for SATA/PCIE/USB3)
-> -	  that is part of STMicroelectronics STiH407 SoC.
-> -
-> -config PHY_MIPHY365X
-> -	tristate "STMicroelectronics MIPHY365X PHY driver for STiH41x series"
-> -	depends on ARCH_STI
-> -	depends on HAS_IOMEM
-> -	depends on OF
-> -	select GENERIC_PHY
-> -	help
-> -	  Enable this to support the miphy transceiver (for SATA/PCIE)
-> -	  that is part of STMicroelectronics STiH41x SoC series.
-> -
-> -config PHY_RCAR_GEN2
-> -	tristate "Renesas R-Car generation 2 USB PHY driver"
-> -	depends on ARCH_SHMOBILE
-> -	depends on GENERIC_PHY
-> -	help
-> -	  Support for USB PHY found on Renesas R-Car generation 2 SoCs.
-> -
-> -config PHY_RCAR_GEN3_USB2
-> -	tristate "Renesas R-Car generation 3 USB 2.0 PHY driver"
-> -	depends on OF && ARCH_SHMOBILE
-> -	select GENERIC_PHY
-> -	help
-> -	  Support for USB 2.0 PHY found on Renesas R-Car generation 3 SoCs.
-> -
-> -config OMAP_CONTROL_PHY
-> -	tristate "OMAP CONTROL PHY Driver"
-> -	depends on ARCH_OMAP2PLUS || COMPILE_TEST
-> -	help
-> -	  Enable this to add support for the PHY part present in the control
-> -	  module. This driver has API to power on the USB2 PHY and to write to
-> -	  the mailbox. The mailbox is present only in omap4 and the register to
-> -	  power on the USB2 PHY is present in OMAP4 and OMAP5. OMAP5 has an
-> -	  additional register to power on USB3 PHY/SATA PHY/PCIE PHY
-> -	  (PIPE3 PHY).
-> -
-> -config OMAP_USB2
-> -	tristate "OMAP USB2 PHY Driver"
-> -	depends on ARCH_OMAP2PLUS
-> -	depends on USB_SUPPORT
-> -	select GENERIC_PHY
-> -	select USB_PHY
-> -	select OMAP_CONTROL_PHY
-> -	depends on OMAP_OCP2SCP
-> -	help
-> -	  Enable this to support the transceiver that is part of SOC. This
-> -	  driver takes care of all the PHY functionality apart from comparator.
-> -	  The USB OTG controller communicates with the comparator using this
-> -	  driver.
-> -
-> -config TI_PIPE3
-> -	tristate "TI PIPE3 PHY Driver"
-> -	depends on ARCH_OMAP2PLUS || COMPILE_TEST
-> -	select GENERIC_PHY
-> -	select OMAP_CONTROL_PHY
-> -	depends on OMAP_OCP2SCP
-> -	help
-> -	  Enable this to support the PIPE3 PHY that is part of TI SOCs. This
-> -	  driver takes care of all the PHY functionality apart from comparator.
-> -	  This driver interacts with the "OMAP Control PHY Driver" to power
-> -	  on/off the PHY.
-> -
-> -config TWL4030_USB
-> -	tristate "TWL4030 USB Transceiver Driver"
-> -	depends on TWL4030_CORE && REGULATOR_TWL4030 && USB_MUSB_OMAP2PLUS
-> -	depends on USB_SUPPORT
-> -	select GENERIC_PHY
-> -	select USB_PHY
-> -	help
-> -	  Enable this to support the USB OTG transceiver on TWL4030
-> -	  family chips (including the TWL5030 and TPS659x0 devices).
-> -	  This transceiver supports high and full speed devices plus,
-> -	  in host mode, low speed.
-> -
-> -config PHY_EXYNOS_DP_VIDEO
-> -	tristate "EXYNOS SoC series Display Port PHY driver"
-> -	depends on OF
-> -	depends on ARCH_EXYNOS || COMPILE_TEST
-> -	default ARCH_EXYNOS
-> -	select GENERIC_PHY
-> -	help
-> -	  Support for Display Port PHY found on Samsung EXYNOS SoCs.
-> -
-> -config BCM_KONA_USB2_PHY
-> -	tristate "Broadcom Kona USB2 PHY Driver"
-> -	depends on HAS_IOMEM
-> -	select GENERIC_PHY
-> -	help
-> -	  Enable this to support the Broadcom Kona USB 2.0 PHY.
-> -
-> -config PHY_EXYNOS5250_SATA
-> -	tristate "Exynos5250 Sata SerDes/PHY driver"
-> -	depends on SOC_EXYNOS5250
-> -	depends on HAS_IOMEM
-> -	depends on OF
-> -	select GENERIC_PHY
-> -	select I2C
-> -	select I2C_S3C2410
-> -	select MFD_SYSCON
-> -	help
-> -	  Enable this to support SATA SerDes/Phy found on Samsung's
-> -	  Exynos5250 based SoCs.This SerDes/Phy supports SATA 1.5 Gb/s,
-> -	  SATA 3.0 Gb/s, SATA 6.0 Gb/s speeds. It supports one SATA host
-> -	  port to accept one SATA device.
-> -
-> -config PHY_HIX5HD2_SATA
-> -	tristate "HIX5HD2 SATA PHY Driver"
-> -	depends on ARCH_HIX5HD2 && OF && HAS_IOMEM
-> -	select GENERIC_PHY
-> -	select MFD_SYSCON
-> -	help
-> -	  Support for SATA PHY on Hisilicon hix5hd2 Soc.
-> -
->  config PHY_MT65XX_USB3
->  	tristate "Mediatek USB3.0 PHY Driver"
->  	depends on ARCH_MEDIATEK && OF
-> @@ -222,93 +35,6 @@ config PHY_MT65XX_USB3
->  	  for mt65xx SoCs. it supports two usb2.0 ports and
->  	  one usb3.0 port.
-> 
-> -config PHY_HI6220_USB
-> -	tristate "hi6220 USB PHY support"
-> -	depends on (ARCH_HISI && ARM64) || COMPILE_TEST
-> -	select GENERIC_PHY
-> -	select MFD_SYSCON
-> -	help
-> -	  Enable this to support the HISILICON HI6220 USB PHY.
-> -
-> -	  To compile this driver as a module, choose M here.
-> -
-> -config PHY_SUN4I_USB
-> -	tristate "Allwinner sunxi SoC USB PHY driver"
-> -	depends on ARCH_SUNXI && HAS_IOMEM && OF
-> -	depends on RESET_CONTROLLER
-> -	depends on EXTCON
-> -	depends on POWER_SUPPLY
-> -	select GENERIC_PHY
-> -	help
-> -	  Enable this to support the transceiver that is part of Allwinner
-> -	  sunxi SoCs.
-> -
-> -	  This driver controls the entire USB PHY block, both the USB OTG
-> -	  parts, as well as the 2 regular USB 2 host PHYs.
-> -
-> -config PHY_SUN9I_USB
-> -	tristate "Allwinner sun9i SoC USB PHY driver"
-> -	depends on ARCH_SUNXI && HAS_IOMEM && OF
-> -	depends on RESET_CONTROLLER
-> -	depends on USB_COMMON
-> -	select GENERIC_PHY
-> -	help
-> -	  Enable this to support the transceiver that is part of Allwinner
-> -	  sun9i SoCs.
-> -
-> -	  This driver controls each individual USB 2 host PHY.
-> -
-> -config PHY_SAMSUNG_USB2
-> -	tristate "Samsung USB 2.0 PHY driver"
-> -	depends on HAS_IOMEM
-> -	depends on USB_EHCI_EXYNOS || USB_OHCI_EXYNOS || USB_DWC2
-> -	select GENERIC_PHY
-> -	select MFD_SYSCON
-> -	default ARCH_EXYNOS
-> -	help
-> -	  Enable this to support the Samsung USB 2.0 PHY driver for Samsung
-> -	  SoCs. This driver provides the interface for USB 2.0 PHY. Support
-> -	  for particular PHYs will be enabled based on the SoC type in addition
-> -	  to this driver.
-> -
-> -config PHY_S5PV210_USB2
-> -	bool "Support for S5PV210"
-> -	depends on PHY_SAMSUNG_USB2
-> -	depends on ARCH_S5PV210
-> -	help
-> -	  Enable USB PHY support for S5PV210. This option requires that Samsung
-> -	  USB 2.0 PHY driver is enabled and means that support for this
-> -	  particular SoC is compiled in the driver. In case of S5PV210 two phys
-> -	  are available - device and host.
-> -
-> -config PHY_EXYNOS4210_USB2
-> -	bool
-> -	depends on PHY_SAMSUNG_USB2
-> -	default CPU_EXYNOS4210
-> -
-> -config PHY_EXYNOS4X12_USB2
-> -	bool
-> -	depends on PHY_SAMSUNG_USB2
-> -	default SOC_EXYNOS3250 || SOC_EXYNOS4212 || SOC_EXYNOS4412
-> -
-> -config PHY_EXYNOS5250_USB2
-> -	bool
-> -	depends on PHY_SAMSUNG_USB2
-> -	default SOC_EXYNOS5250 || SOC_EXYNOS5420
-> -
-> -config PHY_EXYNOS5_USBDRD
-> -	tristate "Exynos5 SoC series USB DRD PHY driver"
-> -	depends on ARCH_EXYNOS && OF
-> -	depends on HAS_IOMEM
-> -	depends on USB_DWC3_EXYNOS
-> -	select GENERIC_PHY
-> -	select MFD_SYSCON
-> -	default y
-> -	help
-> -	  Enable USB DRD PHY support for Exynos 5 SoC series.
-> -	  This driver provides PHY interface for USB 3.0 DRD controller
-> -	  present on Exynos5 SoC series.
-> -
->  config PHY_PISTACHIO_USB
->  	tristate "IMG Pistachio USB2.0 PHY driver"
->  	depends on MACH_PISTACHIO
-> @@ -316,55 +42,6 @@ config PHY_PISTACHIO_USB
->  	help
->  	  Enable this to support the USB2.0 PHY on the IMG Pistachio SoC.
-> 
-> -config PHY_QCOM_APQ8064_SATA
-> -	tristate "Qualcomm APQ8064 SATA SerDes/PHY driver"
-> -	depends on ARCH_QCOM
-> -	depends on HAS_IOMEM
-> -	depends on OF
-> -	select GENERIC_PHY
-> -
-> -config PHY_QCOM_IPQ806X_SATA
-> -	tristate "Qualcomm IPQ806x SATA SerDes/PHY driver"
-> -	depends on ARCH_QCOM
-> -	depends on HAS_IOMEM
-> -	depends on OF
-> -	select GENERIC_PHY
-> -
-> -config PHY_ROCKCHIP_USB
-> -	tristate "Rockchip USB2 PHY Driver"
-> -	depends on ARCH_ROCKCHIP && OF
-> -	select GENERIC_PHY
-> -	help
-> -	  Enable this to support the Rockchip USB 2.0 PHY.
-> -
-> -config PHY_ROCKCHIP_EMMC
-> -	tristate "Rockchip EMMC PHY Driver"
-> -	depends on ARCH_ROCKCHIP && OF
-> -	select GENERIC_PHY
-> -	help
-> -	  Enable this to support the Rockchip EMMC PHY.
-> -
-> -config PHY_ROCKCHIP_DP
-> -	tristate "Rockchip Display Port PHY Driver"
-> -	depends on ARCH_ROCKCHIP && OF
-> -	select GENERIC_PHY
-> -	help
-> -	  Enable this to support the Rockchip Display Port PHY.
-> -
-> -config PHY_ST_SPEAR1310_MIPHY
-> -	tristate "ST SPEAR1310-MIPHY driver"
-> -	select GENERIC_PHY
-> -	depends on MACH_SPEAR1310 || COMPILE_TEST
-> -	help
-> -	  Support for ST SPEAr1310 MIPHY which can be used for PCIe and SATA.
-> -
-> -config PHY_ST_SPEAR1340_MIPHY
-> -	tristate "ST SPEAR1340-MIPHY driver"
-> -	select GENERIC_PHY
-> -	depends on MACH_SPEAR1340 || COMPILE_TEST
-> -	help
-> -	  Support for ST SPEAr1340 MIPHY which can be used for PCIe and SATA.
-> -
->  config PHY_XGENE
->  	tristate "APM X-Gene 15Gbps PHY support"
->  	depends on HAS_IOMEM && OF && (ARM64 || COMPILE_TEST)
-> @@ -372,53 +49,20 @@ config PHY_XGENE
->  	help
->  	  This option enables support for APM X-Gene SoC multi-purpose PHY.
-> 
-> -config PHY_STIH407_USB
-> -	tristate "STMicroelectronics USB2 picoPHY driver for STiH407 family"
-> -	depends on RESET_CONTROLLER
-> -	depends on ARCH_STI || COMPILE_TEST
-> -	select GENERIC_PHY
-> -	help
-> -	  Enable this support to enable the picoPHY device used by USB2
-> -	  and USB3 controllers on STMicroelectronics STiH407 SoC families.
-> -
-> -config PHY_STIH41X_USB
-> -	tristate "STMicroelectronics USB2 PHY driver for STiH41x series"
-> -	depends on ARCH_STI
-> -	select GENERIC_PHY
-> -	help
-> -	  Enable this to support the USB transceiver that is part of
-> -	  STMicroelectronics STiH41x SoC series.
-> -
-> -config PHY_QCOM_UFS
-> -	tristate "Qualcomm UFS PHY driver"
-> -	depends on OF && ARCH_QCOM
-> -	select GENERIC_PHY
-> -	help
-> -	  Support for UFS PHY on QCOM chipsets.
-> -
-> -config PHY_TUSB1210
-> -	tristate "TI TUSB1210 ULPI PHY module"
-> -	depends on USB_ULPI_BUS
-> -	select GENERIC_PHY
-> -	help
-> -	  Support for TI TUSB1210 USB ULPI PHY.
-> -
-> -config PHY_BRCMSTB_SATA
-> -	tristate "Broadcom STB SATA PHY driver"
-> -	depends on ARCH_BRCMSTB || BMIPS_GENERIC
-> -	depends on OF
-> -	select GENERIC_PHY
-> -	help
-> -	  Enable this to support the SATA3 PHY on 28nm or 40nm Broadcom STB
-> SoCs. -	  Likely useful only with CONFIG_SATA_BRCMSTB enabled.
-> -
-> -config PHY_CYGNUS_PCIE
-> -	tristate "Broadcom Cygnus PCIe PHY driver"
-> -	depends on OF && (ARCH_BCM_CYGNUS || COMPILE_TEST)
-> -	select GENERIC_PHY
-> -	default ARCH_BCM_CYGNUS
-> -	help
-> -	  Enable this to support the Broadcom Cygnus PCIe PHY.
-> -	  If unsure, say N.
-> +menuconfig PHY_PLAT
-> +	bool "Platform Phy drivers"
-> +
-> +if PHY_PLAT
-> +source "drivers/phy/bcom/Kconfig"
-> +source "drivers/phy/hisi/Kconfig"
-> +source "drivers/phy/marvell/Kconfig"
-> +source "drivers/phy/qcom/Kconfig"
-> +source "drivers/phy/rcar/Kconfig"
-> +source "drivers/phy/rockchip/Kconfig"
-> +source "drivers/phy/samsung/Kconfig"
-> +source "drivers/phy/st/Kconfig"
-> +source "drivers/phy/sunxi/Kconfig"
-> +source "drivers/phy/ti/Kconfig"
-> +endif
-> 
->  endmenu
-> diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
-> index 24596a9..73d563b 100644
-> --- a/drivers/phy/Makefile
-> +++ b/drivers/phy/Makefile
-> @@ -3,52 +3,19 @@
->  #
-> 
->  obj-$(CONFIG_GENERIC_PHY)		+= phy-core.o
-> -obj-$(CONFIG_PHY_BERLIN_USB)		+= phy-berlin-usb.o
-> -obj-$(CONFIG_PHY_BERLIN_SATA)		+= phy-berlin-sata.o
-> -obj-$(CONFIG_PHY_DM816X_USB)		+= phy-dm816x-usb.o
-> -obj-$(CONFIG_ARMADA375_USBCLUSTER_PHY)	+= phy-armada375-usb2.o
-> -obj-$(CONFIG_BCM_KONA_USB2_PHY)		+= phy-bcm-kona-usb2.o
-> -obj-$(CONFIG_PHY_EXYNOS_DP_VIDEO)	+= phy-exynos-dp-video.o
-> -obj-$(CONFIG_PHY_EXYNOS_MIPI_VIDEO)	+= phy-exynos-mipi-video.o
->  obj-$(CONFIG_PHY_LPC18XX_USB_OTG)	+= phy-lpc18xx-usb-otg.o
-> -obj-$(CONFIG_PHY_PXA_28NM_USB2)		+= phy-pxa-28nm-usb2.o
-> -obj-$(CONFIG_PHY_PXA_28NM_HSIC)		+= phy-pxa-28nm-hsic.o
-> -obj-$(CONFIG_PHY_MVEBU_SATA)		+= phy-mvebu-sata.o
-> -obj-$(CONFIG_PHY_MIPHY28LP) 		+= phy-miphy28lp.o
-> -obj-$(CONFIG_PHY_MIPHY365X)		+= phy-miphy365x.o
-> -obj-$(CONFIG_PHY_RCAR_GEN2)		+= phy-rcar-gen2.o
-> -obj-$(CONFIG_PHY_RCAR_GEN3_USB2)	+= phy-rcar-gen3-usb2.o
-> -obj-$(CONFIG_OMAP_CONTROL_PHY)		+= phy-omap-control.o
-> -obj-$(CONFIG_OMAP_USB2)			+= phy-omap-usb2.o
-> -obj-$(CONFIG_TI_PIPE3)			+= phy-ti-pipe3.o
-> -obj-$(CONFIG_TWL4030_USB)		+= phy-twl4030-usb.o
-> -obj-$(CONFIG_PHY_EXYNOS5250_SATA)	+= phy-exynos5250-sata.o
-> -obj-$(CONFIG_PHY_HIX5HD2_SATA)		+= phy-hix5hd2-sata.o
-> -obj-$(CONFIG_PHY_HI6220_USB)		+= phy-hi6220-usb.o
->  obj-$(CONFIG_PHY_MT65XX_USB3)		+= phy-mt65xx-usb3.o
-> -obj-$(CONFIG_PHY_SUN4I_USB)		+= phy-sun4i-usb.o
-> -obj-$(CONFIG_PHY_SUN9I_USB)		+= phy-sun9i-usb.o
-> -obj-$(CONFIG_PHY_SAMSUNG_USB2)		+= phy-exynos-usb2.o
-> -phy-exynos-usb2-y			+= phy-samsung-usb2.o
-> -phy-exynos-usb2-$(CONFIG_PHY_EXYNOS4210_USB2)	+= phy-exynos4210-usb2.o
-> -phy-exynos-usb2-$(CONFIG_PHY_EXYNOS4X12_USB2)	+= phy-exynos4x12-usb2.o
-> -phy-exynos-usb2-$(CONFIG_PHY_EXYNOS5250_USB2)	+= phy-exynos5250-usb2.o
-> -phy-exynos-usb2-$(CONFIG_PHY_S5PV210_USB2)	+= phy-s5pv210-usb2.o
-> -obj-$(CONFIG_PHY_EXYNOS5_USBDRD)	+= phy-exynos5-usbdrd.o
-> -obj-$(CONFIG_PHY_QCOM_APQ8064_SATA)	+= phy-qcom-apq8064-sata.o
-> -obj-$(CONFIG_PHY_ROCKCHIP_USB) += phy-rockchip-usb.o
-> -obj-$(CONFIG_PHY_ROCKCHIP_EMMC) += phy-rockchip-emmc.o
-> -obj-$(CONFIG_PHY_ROCKCHIP_DP)		+= phy-rockchip-dp.o
-> -obj-$(CONFIG_PHY_QCOM_IPQ806X_SATA)	+= phy-qcom-ipq806x-sata.o
-> -obj-$(CONFIG_PHY_ST_SPEAR1310_MIPHY)	+= phy-spear1310-miphy.o
-> -obj-$(CONFIG_PHY_ST_SPEAR1340_MIPHY)	+= phy-spear1340-miphy.o
->  obj-$(CONFIG_PHY_XGENE)			+= phy-xgene.o
-> -obj-$(CONFIG_PHY_STIH407_USB)		+= phy-stih407-usb.o
-> -obj-$(CONFIG_PHY_STIH41X_USB)		+= phy-stih41x-usb.o
-> -obj-$(CONFIG_PHY_QCOM_UFS) 	+= phy-qcom-ufs.o
-> -obj-$(CONFIG_PHY_QCOM_UFS) 	+= phy-qcom-ufs-qmp-20nm.o
-> -obj-$(CONFIG_PHY_QCOM_UFS) 	+= phy-qcom-ufs-qmp-14nm.o
-> -obj-$(CONFIG_PHY_TUSB1210)		+= phy-tusb1210.o
-> -obj-$(CONFIG_PHY_BRCMSTB_SATA)		+= phy-brcmstb-sata.o
->  obj-$(CONFIG_PHY_PISTACHIO_USB)		+= phy-pistachio-usb.o
-> -obj-$(CONFIG_PHY_CYGNUS_PCIE)		+= phy-bcm-cygnus-pcie.o
-> +
-> +# Phy drivers for different platforms.
-> +obj-$(CONFIG_PHY_PLAT)		+= bcom/	\
-> +				   hisi/	\
-> +				   marvell/	\
-> +				   qcom/	\
-> +				   rcar/	\
-> +				   rockchip/	\
-> +				   samsung/	\
-> +				   st/		\
-> +				   sunxi/	\
-> +				   ti/
-> diff --git a/drivers/phy/bcom/Kconfig b/drivers/phy/bcom/Kconfig
-> new file mode 100644
-> index 0000000..8243372
-> --- /dev/null
-> +++ b/drivers/phy/bcom/Kconfig
-> @@ -0,0 +1,27 @@
-> +#
-> +# PHY drivers for Broadcom platforms
-> +#
-> +config PHY_CYGNUS_PCIE
-> +	tristate "Broadcom Cygnus PCIe PHY driver"
-> +	depends on OF && (ARCH_BCM_CYGNUS || COMPILE_TEST)
-> +	select GENERIC_PHY
-> +	default ARCH_BCM_CYGNUS
-> +	help
-> +	  Enable this to support the Broadcom Cygnus PCIe PHY.
-> +	  If unsure, say N.
-> +
-> +config BCM_KONA_USB2_PHY
-> +	tristate "Broadcom Kona USB2 PHY Driver"
-> +	depends on HAS_IOMEM
-> +	select GENERIC_PHY
-> +	help
-> +	  Enable this to support the Broadcom Kona USB 2.0 PHY.
-> +
-> +config PHY_BRCMSTB_SATA
-> +	tristate "Broadcom STB SATA PHY driver"
-> +	depends on ARCH_BRCMSTB || BMIPS_GENERIC
-> +	depends on OF
-> +	select GENERIC_PHY
-> +	help
-> +	  Enable this to support the SATA3 PHY on 28nm or 40nm Broadcom STB
-> SoCs. +	  Likely useful only with CONFIG_SATA_BRCMSTB enabled.
-> diff --git a/drivers/phy/bcom/Makefile b/drivers/phy/bcom/Makefile
-> new file mode 100644
-> index 0000000..f30fa76
-> --- /dev/null
-> +++ b/drivers/phy/bcom/Makefile
-> @@ -0,0 +1,3 @@
-> +obj-$(CONFIG_PHY_CYGNUS_PCIE)		+= phy-bcm-cygnus-pcie.o
-> +obj-$(CONFIG_BCM_KONA_USB2_PHY)		+= phy-bcm-kona-usb2.o
-> +obj-$(CONFIG_PHY_BRCMSTB_SATA)		+= phy-brcmstb-sata.o
-> diff --git a/drivers/phy/phy-bcm-cygnus-pcie.c
-> b/drivers/phy/bcom/phy-bcm-cygnus-pcie.c similarity index 100%
-> rename from drivers/phy/phy-bcm-cygnus-pcie.c
-> rename to drivers/phy/bcom/phy-bcm-cygnus-pcie.c
-> diff --git a/drivers/phy/phy-bcm-kona-usb2.c
-> b/drivers/phy/bcom/phy-bcm-kona-usb2.c similarity index 100%
-> rename from drivers/phy/phy-bcm-kona-usb2.c
-> rename to drivers/phy/bcom/phy-bcm-kona-usb2.c
-> diff --git a/drivers/phy/phy-brcmstb-sata.c
-> b/drivers/phy/bcom/phy-brcmstb-sata.c similarity index 100%
-> rename from drivers/phy/phy-brcmstb-sata.c
-> rename to drivers/phy/bcom/phy-brcmstb-sata.c
-> diff --git a/drivers/phy/hisi/Kconfig b/drivers/phy/hisi/Kconfig
-> new file mode 100644
-> index 0000000..affa9ed
-> --- /dev/null
-> +++ b/drivers/phy/hisi/Kconfig
-> @@ -0,0 +1,20 @@
-> +#
-> +# PHY drivers for HiSilicon platforms
-> +#
-> +config PHY_HIX5HD2_SATA
-> +	tristate "HIX5HD2 SATA PHY Driver"
-> +	depends on ARCH_HIX5HD2 && OF && HAS_IOMEM
-> +	select GENERIC_PHY
-> +	select MFD_SYSCON
-> +	help
-> +	  Support for SATA PHY on Hisilicon hix5hd2 Soc.
-> +
-> +config PHY_HI6220_USB
-> +	tristate "hi6220 USB PHY support"
-> +	depends on (ARCH_HISI && ARM64) || COMPILE_TEST
-> +	select GENERIC_PHY
-> +	select MFD_SYSCON
-> +	help
-> +	  Enable this to support the HISILICON HI6220 USB PHY.
-> +
-> +	  To compile this driver as a module, choose M here.
-> diff --git a/drivers/phy/hisi/Makefile b/drivers/phy/hisi/Makefile
-> new file mode 100644
-> index 0000000..6059ed8
-> --- /dev/null
-> +++ b/drivers/phy/hisi/Makefile
-> @@ -0,0 +1,2 @@
-> +obj-$(CONFIG_PHY_HIX5HD2_SATA)		+= phy-hix5hd2-sata.o
-> +obj-$(CONFIG_PHY_HI6220_USB)		+= phy-hi6220-usb.o
-> diff --git a/drivers/phy/phy-hi6220-usb.c
-> b/drivers/phy/hisi/phy-hi6220-usb.c similarity index 100%
-> rename from drivers/phy/phy-hi6220-usb.c
-> rename to drivers/phy/hisi/phy-hi6220-usb.c
-> diff --git a/drivers/phy/phy-hix5hd2-sata.c
-> b/drivers/phy/hisi/phy-hix5hd2-sata.c similarity index 100%
-> rename from drivers/phy/phy-hix5hd2-sata.c
-> rename to drivers/phy/hisi/phy-hix5hd2-sata.c
-> diff --git a/drivers/phy/marvell/Kconfig b/drivers/phy/marvell/Kconfig
-> new file mode 100644
-> index 0000000..6c1576c
-> --- /dev/null
-> +++ b/drivers/phy/marvell/Kconfig
-> @@ -0,0 +1,50 @@
-> +#
-> +# PHY drivers for Marvell platforms
-> +#
-> +config ARMADA375_USBCLUSTER_PHY
-> +	def_bool y
-> +	depends on MACH_ARMADA_375 || COMPILE_TEST
-> +	depends on OF && HAS_IOMEM
-> +	select GENERIC_PHY
-> +
-> +config PHY_BERLIN_USB
-> +	tristate "Marvell Berlin USB PHY Driver"
-> +	depends on ARCH_BERLIN && RESET_CONTROLLER && HAS_IOMEM && OF
-> +	select GENERIC_PHY
-> +	help
-> +	  Enable this to support the USB PHY on Marvell Berlin SoCs.
-> +
-> +config PHY_BERLIN_SATA
-> +	tristate "Marvell Berlin SATA PHY driver"
-> +	depends on ARCH_BERLIN && HAS_IOMEM && OF
-> +	select GENERIC_PHY
-> +	help
-> +	  Enable this to support the SATA PHY on Marvell Berlin SoCs.
-> +
-> +config PHY_MVEBU_SATA
-> +	def_bool y
-> +	depends on ARCH_DOVE || MACH_DOVE || MACH_KIRKWOOD
-> +	depends on OF
-> +	select GENERIC_PHY
-> +
-> +config PHY_PXA_28NM_HSIC
-> +	tristate "Marvell USB HSIC 28nm PHY Driver"
-> +	depends on HAS_IOMEM
-> +	select GENERIC_PHY
-> +	help
-> +	  Enable this to support Marvell USB HSIC PHY driver for Marvell
-> +	  SoC. This driver will do the PHY initialization and shutdown.
-> +	  The PHY driver will be used by Marvell ehci driver.
-> +
-> +	  To compile this driver as a module, choose M here.
-> +
-> +config PHY_PXA_28NM_USB2
-> +	tristate "Marvell USB 2.0 28nm PHY Driver"
-> +	depends on HAS_IOMEM
-> +	select GENERIC_PHY
-> +	help
-> +	  Enable this to support Marvell USB 2.0 PHY driver for Marvell
-> +	  SoC. This driver will do the PHY initialization and shutdown.
-> +	  The PHY driver will be used by Marvell udc/ehci/otg driver.
-> +
-> +	  To compile this driver as a module, choose M here.
-> diff --git a/drivers/phy/marvell/Makefile b/drivers/phy/marvell/Makefile
-> new file mode 100644
-> index 0000000..f4fa255
-> --- /dev/null
-> +++ b/drivers/phy/marvell/Makefile
-> @@ -0,0 +1,6 @@
-> +obj-$(CONFIG_ARMADA375_USBCLUSTER_PHY)	+= phy-armada375-usb2.o
-> +obj-$(CONFIG_PHY_BERLIN_USB)		+= phy-berlin-usb.o
-> +obj-$(CONFIG_PHY_BERLIN_SATA)		+= phy-berlin-sata.o
-> +obj-$(CONFIG_PHY_MVEBU_SATA)		+= phy-mvebu-sata.o
-> +obj-$(CONFIG_PHY_PXA_28NM_USB2)		+= phy-pxa-28nm-usb2.o
-> +obj-$(CONFIG_PHY_PXA_28NM_HSIC)		+= phy-pxa-28nm-hsic.o
-> diff --git a/drivers/phy/phy-armada375-usb2.c
-> b/drivers/phy/marvell/phy-armada375-usb2.c similarity index 100%
-> rename from drivers/phy/phy-armada375-usb2.c
-> rename to drivers/phy/marvell/phy-armada375-usb2.c
-> diff --git a/drivers/phy/phy-berlin-sata.c
-> b/drivers/phy/marvell/phy-berlin-sata.c similarity index 100%
-> rename from drivers/phy/phy-berlin-sata.c
-> rename to drivers/phy/marvell/phy-berlin-sata.c
-> diff --git a/drivers/phy/phy-berlin-usb.c
-> b/drivers/phy/marvell/phy-berlin-usb.c similarity index 100%
-> rename from drivers/phy/phy-berlin-usb.c
-> rename to drivers/phy/marvell/phy-berlin-usb.c
-> diff --git a/drivers/phy/phy-mvebu-sata.c
-> b/drivers/phy/marvell/phy-mvebu-sata.c similarity index 100%
-> rename from drivers/phy/phy-mvebu-sata.c
-> rename to drivers/phy/marvell/phy-mvebu-sata.c
-> diff --git a/drivers/phy/phy-pxa-28nm-hsic.c
-> b/drivers/phy/marvell/phy-pxa-28nm-hsic.c similarity index 100%
-> rename from drivers/phy/phy-pxa-28nm-hsic.c
-> rename to drivers/phy/marvell/phy-pxa-28nm-hsic.c
-> diff --git a/drivers/phy/phy-pxa-28nm-usb2.c
-> b/drivers/phy/marvell/phy-pxa-28nm-usb2.c similarity index 100%
-> rename from drivers/phy/phy-pxa-28nm-usb2.c
-> rename to drivers/phy/marvell/phy-pxa-28nm-usb2.c
-> diff --git a/drivers/phy/qcom/Kconfig b/drivers/phy/qcom/Kconfig
-> new file mode 100644
-> index 0000000..9718d01
-> --- /dev/null
-> +++ b/drivers/phy/qcom/Kconfig
-> @@ -0,0 +1,23 @@
-> +#
-> +# PHY drivers for Qualcomm platforms
-> +#
-> +config PHY_QCOM_APQ8064_SATA
-> +	tristate "Qualcomm APQ8064 SATA SerDes/PHY driver"
-> +	depends on ARCH_QCOM
-> +	depends on HAS_IOMEM
-> +	depends on OF
-> +	select GENERIC_PHY
-> +
-> +config PHY_QCOM_IPQ806X_SATA
-> +	tristate "Qualcomm IPQ806x SATA SerDes/PHY driver"
-> +	depends on ARCH_QCOM
-> +	depends on HAS_IOMEM
-> +	depends on OF
-> +	select GENERIC_PHY
-> +
-> +config PHY_QCOM_UFS
-> +	tristate "Qualcomm UFS PHY driver"
-> +	depends on OF && ARCH_QCOM
-> +	select GENERIC_PHY
-> +	help
-> +	  Support for UFS PHY on QCOM chipsets.
-> diff --git a/drivers/phy/qcom/Makefile b/drivers/phy/qcom/Makefile
-> new file mode 100644
-> index 0000000..2db3e77
-> --- /dev/null
-> +++ b/drivers/phy/qcom/Makefile
-> @@ -0,0 +1,5 @@
-> +obj-$(CONFIG_PHY_QCOM_APQ8064_SATA)	+= phy-qcom-apq8064-sata.o
-> +obj-$(CONFIG_PHY_QCOM_IPQ806X_SATA)	+= phy-qcom-ipq806x-sata.o
-> +obj-$(CONFIG_PHY_QCOM_UFS)		+= phy-qcom-ufs.o \
-> +					+= phy-qcom-ufs-qmp-20nm.o \
-> +					+= phy-qcom-ufs-qmp-14nm.o
-> diff --git a/drivers/phy/phy-qcom-apq8064-sata.c
-> b/drivers/phy/qcom/phy-qcom-apq8064-sata.c similarity index 100%
-> rename from drivers/phy/phy-qcom-apq8064-sata.c
-> rename to drivers/phy/qcom/phy-qcom-apq8064-sata.c
-> diff --git a/drivers/phy/phy-qcom-ipq806x-sata.c
-> b/drivers/phy/qcom/phy-qcom-ipq806x-sata.c similarity index 100%
-> rename from drivers/phy/phy-qcom-ipq806x-sata.c
-> rename to drivers/phy/qcom/phy-qcom-ipq806x-sata.c
-> diff --git a/drivers/phy/phy-qcom-ufs-i.h
-> b/drivers/phy/qcom/phy-qcom-ufs-i.h similarity index 100%
-> rename from drivers/phy/phy-qcom-ufs-i.h
-> rename to drivers/phy/qcom/phy-qcom-ufs-i.h
-> diff --git a/drivers/phy/phy-qcom-ufs-qmp-14nm.c
-> b/drivers/phy/qcom/phy-qcom-ufs-qmp-14nm.c similarity index 100%
-> rename from drivers/phy/phy-qcom-ufs-qmp-14nm.c
-> rename to drivers/phy/qcom/phy-qcom-ufs-qmp-14nm.c
-> diff --git a/drivers/phy/phy-qcom-ufs-qmp-14nm.h
-> b/drivers/phy/qcom/phy-qcom-ufs-qmp-14nm.h similarity index 100%
-> rename from drivers/phy/phy-qcom-ufs-qmp-14nm.h
-> rename to drivers/phy/qcom/phy-qcom-ufs-qmp-14nm.h
-> diff --git a/drivers/phy/phy-qcom-ufs-qmp-20nm.c
-> b/drivers/phy/qcom/phy-qcom-ufs-qmp-20nm.c similarity index 100%
-> rename from drivers/phy/phy-qcom-ufs-qmp-20nm.c
-> rename to drivers/phy/qcom/phy-qcom-ufs-qmp-20nm.c
-> diff --git a/drivers/phy/phy-qcom-ufs-qmp-20nm.h
-> b/drivers/phy/qcom/phy-qcom-ufs-qmp-20nm.h similarity index 100%
-> rename from drivers/phy/phy-qcom-ufs-qmp-20nm.h
-> rename to drivers/phy/qcom/phy-qcom-ufs-qmp-20nm.h
-> diff --git a/drivers/phy/phy-qcom-ufs.c b/drivers/phy/qcom/phy-qcom-ufs.c
-> similarity index 100%
-> rename from drivers/phy/phy-qcom-ufs.c
-> rename to drivers/phy/qcom/phy-qcom-ufs.c
-> diff --git a/drivers/phy/rcar/Kconfig b/drivers/phy/rcar/Kconfig
-> new file mode 100644
-> index 0000000..169b5e2
-> --- /dev/null
-> +++ b/drivers/phy/rcar/Kconfig
-> @@ -0,0 +1,16 @@
-> +#
-> +# PHY drivers for Renesas's r-car platforms
-> +#
-> +config PHY_RCAR_GEN2
-> +	tristate "Renesas R-Car generation 2 USB PHY driver"
-> +	depends on ARCH_SHMOBILE
-> +	depends on GENERIC_PHY
-> +	help
-> +	  Support for USB PHY found on Renesas R-Car generation 2 SoCs.
-> +
-> +config PHY_RCAR_GEN3_USB2
-> +	tristate "Renesas R-Car generation 3 USB 2.0 PHY driver"
-> +	depends on OF && ARCH_SHMOBILE
-> +	select GENERIC_PHY
-> +	help
-> +	  Support for USB 2.0 PHY found on Renesas R-Car generation 3 SoCs.
-> diff --git a/drivers/phy/rcar/Makefile b/drivers/phy/rcar/Makefile
-> new file mode 100644
-> index 0000000..695241a
-> --- /dev/null
-> +++ b/drivers/phy/rcar/Makefile
-> @@ -0,0 +1,2 @@
-> +obj-$(CONFIG_PHY_RCAR_GEN2)		+= phy-rcar-gen2.o
-> +obj-$(CONFIG_PHY_RCAR_GEN3_USB2)	+= phy-rcar-gen3-usb2.o
-> diff --git a/drivers/phy/phy-rcar-gen2.c
-> b/drivers/phy/rcar/phy-rcar-gen2.c similarity index 100%
-> rename from drivers/phy/phy-rcar-gen2.c
-> rename to drivers/phy/rcar/phy-rcar-gen2.c
-> diff --git a/drivers/phy/phy-rcar-gen3-usb2.c
-> b/drivers/phy/rcar/phy-rcar-gen3-usb2.c similarity index 100%
-> rename from drivers/phy/phy-rcar-gen3-usb2.c
-> rename to drivers/phy/rcar/phy-rcar-gen3-usb2.c
-> diff --git a/drivers/phy/rockchip/Kconfig b/drivers/phy/rockchip/Kconfig
-> new file mode 100644
-> index 0000000..c575d1e
-> --- /dev/null
-> +++ b/drivers/phy/rockchip/Kconfig
-> @@ -0,0 +1,23 @@
-> +#
-> +# PHY drivers for Rockchip platforms
-> +#
-> +config PHY_ROCKCHIP_USB
-> +	tristate "Rockchip USB2 PHY Driver"
-> +	depends on ARCH_ROCKCHIP && OF
-> +	select GENERIC_PHY
-> +	help
-> +	  Enable this to support the Rockchip USB 2.0 PHY.
-> +
-> +config PHY_ROCKCHIP_EMMC
-> +	tristate "Rockchip EMMC PHY Driver"
-> +	depends on ARCH_ROCKCHIP && OF
-> +	select GENERIC_PHY
-> +	help
-> +	  Enable this to support the Rockchip EMMC PHY.
-> +
-> +config PHY_ROCKCHIP_DP
-> +	tristate "Rockchip Display Port PHY Driver"
-> +	depends on ARCH_ROCKCHIP && OF
-> +	select GENERIC_PHY
-> +	help
-> +	  Enable this to support the Rockchip Display Port PHY.
-> diff --git a/drivers/phy/rockchip/Makefile b/drivers/phy/rockchip/Makefile
-> new file mode 100644
-> index 0000000..c15acc1
-> --- /dev/null
-> +++ b/drivers/phy/rockchip/Makefile
-> @@ -0,0 +1,3 @@
-> +obj-$(CONFIG_PHY_ROCKCHIP_DP)	+= phy-rockchip-dp.o
-> +obj-$(CONFIG_PHY_ROCKCHIP_EMMC)	+= phy-rockchip-emmc.o
-> +obj-$(CONFIG_PHY_ROCKCHIP_USB)	+= phy-rockchip-usb.o
-> diff --git a/drivers/phy/phy-rockchip-dp.c
-> b/drivers/phy/rockchip/phy-rockchip-dp.c similarity index 100%
-> rename from drivers/phy/phy-rockchip-dp.c
-> rename to drivers/phy/rockchip/phy-rockchip-dp.c
-> diff --git a/drivers/phy/phy-rockchip-emmc.c
-> b/drivers/phy/rockchip/phy-rockchip-emmc.c similarity index 100%
-> rename from drivers/phy/phy-rockchip-emmc.c
-> rename to drivers/phy/rockchip/phy-rockchip-emmc.c
-> diff --git a/drivers/phy/phy-rockchip-usb.c
-> b/drivers/phy/rockchip/phy-rockchip-usb.c similarity index 100%
-> rename from drivers/phy/phy-rockchip-usb.c
-> rename to drivers/phy/rockchip/phy-rockchip-usb.c
-> diff --git a/drivers/phy/samsung/Kconfig b/drivers/phy/samsung/Kconfig
-> new file mode 100644
-> index 0000000..80bdea7
-> --- /dev/null
-> +++ b/drivers/phy/samsung/Kconfig
-> @@ -0,0 +1,87 @@
-> +#
-> +# PHY drivers for Samsung platforms
-> +#
-> +config PHY_SAMSUNG_USB2
-> +	tristate "Samsung USB 2.0 PHY driver"
-> +	depends on HAS_IOMEM
-> +	depends on USB_EHCI_EXYNOS || USB_OHCI_EXYNOS || USB_DWC2
-> +	select GENERIC_PHY
-> +	select MFD_SYSCON
-> +	default ARCH_EXYNOS
-> +	help
-> +	  Enable this to support the Samsung USB 2.0 PHY driver for Samsung
-> +	  SoCs. This driver provides the interface for USB 2.0 PHY. Support
-> +	  for particular PHYs will be enabled based on the SoC type in addition
-> +	  to this driver.
-> +
-> +config PHY_S5PV210_USB2
-> +	bool "Support for S5PV210"
-> +	depends on PHY_SAMSUNG_USB2
-> +	depends on ARCH_S5PV210
-> +	help
-> +	  Enable USB PHY support for S5PV210. This option requires that Samsung
-> +	  USB 2.0 PHY driver is enabled and means that support for this
-> +	  particular SoC is compiled in the driver. In case of S5PV210 two phys
-> +	  are available - device and host.
-> +
-> +config PHY_EXYNOS4210_USB2
-> +	bool
-> +	depends on PHY_SAMSUNG_USB2
-> +	default CPU_EXYNOS4210
-> +
-> +config PHY_EXYNOS4X12_USB2
-> +	bool
-> +	depends on PHY_SAMSUNG_USB2
-> +	default SOC_EXYNOS3250 || SOC_EXYNOS4212 || SOC_EXYNOS4412
-> +
-> +config PHY_EXYNOS5250_USB2
-> +	bool
-> +	depends on PHY_SAMSUNG_USB2
-> +	default SOC_EXYNOS5250 || SOC_EXYNOS5420
-> +
-> +config PHY_EXYNOS5_USBDRD
-> +	tristate "Exynos5 SoC series USB DRD PHY driver"
-> +	depends on ARCH_EXYNOS && OF
-> +	depends on HAS_IOMEM
-> +	depends on USB_DWC3_EXYNOS
-> +	select GENERIC_PHY
-> +	select MFD_SYSCON
-> +	default y
-> +	help
-> +	  Enable USB DRD PHY support for Exynos 5 SoC series.
-> +	  This driver provides PHY interface for USB 3.0 DRD controller
-> +	  present on Exynos5 SoC series.
-> +
-> +config PHY_EXYNOS_DP_VIDEO
-> +	tristate "EXYNOS SoC series Display Port PHY driver"
-> +	depends on OF
-> +	depends on ARCH_EXYNOS || COMPILE_TEST
-> +	default ARCH_EXYNOS
-> +	select GENERIC_PHY
-> +	help
-> +	  Support for Display Port PHY found on Samsung EXYNOS SoCs.
-> +
-> +config PHY_EXYNOS_MIPI_VIDEO
-> +	tristate "S5P/EXYNOS SoC series MIPI CSI-2/DSI PHY driver"
-> +	depends on HAS_IOMEM
-> +	depends on ARCH_S5PV210 || ARCH_EXYNOS || COMPILE_TEST
-> +	select GENERIC_PHY
-> +	default y if ARCH_S5PV210 || ARCH_EXYNOS
-> +	help
-> +	  Support for MIPI CSI-2 and MIPI DSI DPHY found on Samsung S5P
-> +	  and EXYNOS SoCs.
-> +
-> +config PHY_EXYNOS5250_SATA
-> +	tristate "Exynos5250 Sata SerDes/PHY driver"
-> +	depends on SOC_EXYNOS5250
-> +	depends on HAS_IOMEM
-> +	depends on OF
-> +	select GENERIC_PHY
-> +	select I2C
-> +	select I2C_S3C2410
-> +	select MFD_SYSCON
-> +	help
-> +	  Enable this to support SATA SerDes/Phy found on Samsung's
-> +	  Exynos5250 based SoCs.This SerDes/Phy supports SATA 1.5 Gb/s,
-> +	  SATA 3.0 Gb/s, SATA 6.0 Gb/s speeds. It supports one SATA host
-> +	  port to accept one SATA device.
-> diff --git a/drivers/phy/samsung/Makefile b/drivers/phy/samsung/Makefile
-> new file mode 100644
-> index 0000000..585dbd7
-> --- /dev/null
-> +++ b/drivers/phy/samsung/Makefile
-> @@ -0,0 +1,10 @@
-> +obj-$(CONFIG_PHY_SAMSUNG_USB2)		+= phy-exynos-usb2.o
-> +phy-exynos-usb2-y			+= phy-samsung-usb2.o
-> +phy-exynos-usb2-$(CONFIG_PHY_S5PV210_USB2)	+= phy-s5pv210-usb2.o
-> +phy-exynos-usb2-$(CONFIG_PHY_EXYNOS4210_USB2)	+= phy-exynos4210-usb2.o
-> +phy-exynos-usb2-$(CONFIG_PHY_EXYNOS4X12_USB2)	+= phy-exynos4x12-usb2.o
-> +phy-exynos-usb2-$(CONFIG_PHY_EXYNOS5250_USB2)	+= phy-exynos5250-usb2.o
-> +obj-$(CONFIG_PHY_EXYNOS5_USBDRD)	+= phy-exynos5-usbdrd.o
-> +obj-$(CONFIG_PHY_EXYNOS_DP_VIDEO)	+= phy-exynos-dp-video.o
-> +obj-$(CONFIG_PHY_EXYNOS_MIPI_VIDEO)	+= phy-exynos-mipi-video.o
-> +obj-$(CONFIG_PHY_EXYNOS5250_SATA)	+= phy-exynos5250-sata.o
-> diff --git a/drivers/phy/phy-exynos-dp-video.c
-> b/drivers/phy/samsung/phy-exynos-dp-video.c similarity index 100%
-> rename from drivers/phy/phy-exynos-dp-video.c
-> rename to drivers/phy/samsung/phy-exynos-dp-video.c
-> diff --git a/drivers/phy/phy-exynos-mipi-video.c
-> b/drivers/phy/samsung/phy-exynos-mipi-video.c similarity index 100%
-> rename from drivers/phy/phy-exynos-mipi-video.c
-> rename to drivers/phy/samsung/phy-exynos-mipi-video.c
-> diff --git a/drivers/phy/phy-exynos4210-usb2.c
-> b/drivers/phy/samsung/phy-exynos4210-usb2.c similarity index 100%
-> rename from drivers/phy/phy-exynos4210-usb2.c
-> rename to drivers/phy/samsung/phy-exynos4210-usb2.c
-> diff --git a/drivers/phy/phy-exynos4x12-usb2.c
-> b/drivers/phy/samsung/phy-exynos4x12-usb2.c similarity index 100%
-> rename from drivers/phy/phy-exynos4x12-usb2.c
-> rename to drivers/phy/samsung/phy-exynos4x12-usb2.c
-> diff --git a/drivers/phy/phy-exynos5-usbdrd.c
-> b/drivers/phy/samsung/phy-exynos5-usbdrd.c similarity index 100%
-> rename from drivers/phy/phy-exynos5-usbdrd.c
-> rename to drivers/phy/samsung/phy-exynos5-usbdrd.c
-> diff --git a/drivers/phy/phy-exynos5250-sata.c
-> b/drivers/phy/samsung/phy-exynos5250-sata.c similarity index 100%
-> rename from drivers/phy/phy-exynos5250-sata.c
-> rename to drivers/phy/samsung/phy-exynos5250-sata.c
-> diff --git a/drivers/phy/phy-exynos5250-usb2.c
-> b/drivers/phy/samsung/phy-exynos5250-usb2.c similarity index 100%
-> rename from drivers/phy/phy-exynos5250-usb2.c
-> rename to drivers/phy/samsung/phy-exynos5250-usb2.c
-> diff --git a/drivers/phy/phy-s5pv210-usb2.c
-> b/drivers/phy/samsung/phy-s5pv210-usb2.c similarity index 100%
-> rename from drivers/phy/phy-s5pv210-usb2.c
-> rename to drivers/phy/samsung/phy-s5pv210-usb2.c
-> diff --git a/drivers/phy/phy-samsung-usb2.c
-> b/drivers/phy/samsung/phy-samsung-usb2.c similarity index 100%
-> rename from drivers/phy/phy-samsung-usb2.c
-> rename to drivers/phy/samsung/phy-samsung-usb2.c
-> diff --git a/drivers/phy/phy-samsung-usb2.h
-> b/drivers/phy/samsung/phy-samsung-usb2.h similarity index 100%
-> rename from drivers/phy/phy-samsung-usb2.h
-> rename to drivers/phy/samsung/phy-samsung-usb2.h
-> diff --git a/drivers/phy/st/Kconfig b/drivers/phy/st/Kconfig
-> new file mode 100644
-> index 0000000..651b2bf
-> --- /dev/null
-> +++ b/drivers/phy/st/Kconfig
-> @@ -0,0 +1,51 @@
-> +#
-> +# PHY drivers for ST Micro platforms
-> +#
-> +config PHY_MIPHY28LP
-> +	tristate "STMicroelectronics MIPHY28LP PHY driver for STiH407"
-> +	depends on ARCH_STI
-> +	select GENERIC_PHY
-> +	help
-> +	  Enable this to support the miphy transceiver (for SATA/PCIE/USB3)
-> +	  that is part of STMicroelectronics STiH407 SoC.
-> +
-> +config PHY_MIPHY365X
-> +	tristate "STMicroelectronics MIPHY365X PHY driver for STiH41x series"
-> +	depends on ARCH_STI
-> +	depends on HAS_IOMEM
-> +	depends on OF
-> +	select GENERIC_PHY
-> +	help
-> +	  Enable this to support the miphy transceiver (for SATA/PCIE)
-> +	  that is part of STMicroelectronics STiH41x SoC series.
-> +
-> +config PHY_ST_SPEAR1310_MIPHY
-> +	tristate "ST SPEAR1310-MIPHY driver"
-> +	select GENERIC_PHY
-> +	depends on MACH_SPEAR1310 || COMPILE_TEST
-> +	help
-> +	  Support for ST SPEAr1310 MIPHY which can be used for PCIe and SATA.
-> +
-> +config PHY_ST_SPEAR1340_MIPHY
-> +	tristate "ST SPEAR1340-MIPHY driver"
-> +	select GENERIC_PHY
-> +	depends on MACH_SPEAR1340 || COMPILE_TEST
-> +	help
-> +	  Support for ST SPEAr1340 MIPHY which can be used for PCIe and SATA.
-> +
-> +config PHY_STIH407_USB
-> +	tristate "STMicroelectronics USB2 picoPHY driver for STiH407 family"
-> +	depends on RESET_CONTROLLER
-> +	depends on ARCH_STI || COMPILE_TEST
-> +	select GENERIC_PHY
-> +	help
-> +	  Enable this support to enable the picoPHY device used by USB2
-> +	  and USB3 controllers on STMicroelectronics STiH407 SoC families.
-> +
-> +config PHY_STIH41X_USB
-> +	tristate "STMicroelectronics USB2 PHY driver for STiH41x series"
-> +	depends on ARCH_STI
-> +	select GENERIC_PHY
-> +	help
-> +	  Enable this to support the USB transceiver that is part of
-> +	  STMicroelectronics STiH41x SoC series.
-> diff --git a/drivers/phy/st/Makefile b/drivers/phy/st/Makefile
-> new file mode 100644
-> index 0000000..907561b
-> --- /dev/null
-> +++ b/drivers/phy/st/Makefile
-> @@ -0,0 +1,6 @@
-> +obj-$(CONFIG_PHY_MIPHY28LP) 		+= phy-miphy28lp.o
-> +obj-$(CONFIG_PHY_MIPHY365X)		+= phy-miphy365x.o
-> +obj-$(CONFIG_PHY_ST_SPEAR1310_MIPHY)	+= phy-spear1310-miphy.o
-> +obj-$(CONFIG_PHY_ST_SPEAR1340_MIPHY)	+= phy-spear1340-miphy.o
-> +obj-$(CONFIG_PHY_STIH407_USB)		+= phy-stih407-usb.o
-> +obj-$(CONFIG_PHY_STIH41X_USB)		+= phy-stih41x-usb.o
-> diff --git a/drivers/phy/phy-miphy28lp.c b/drivers/phy/st/phy-miphy28lp.c
-> similarity index 100%
-> rename from drivers/phy/phy-miphy28lp.c
-> rename to drivers/phy/st/phy-miphy28lp.c
-> diff --git a/drivers/phy/phy-miphy365x.c b/drivers/phy/st/phy-miphy365x.c
-> similarity index 100%
-> rename from drivers/phy/phy-miphy365x.c
-> rename to drivers/phy/st/phy-miphy365x.c
-> diff --git a/drivers/phy/phy-spear1310-miphy.c
-> b/drivers/phy/st/phy-spear1310-miphy.c similarity index 100%
-> rename from drivers/phy/phy-spear1310-miphy.c
-> rename to drivers/phy/st/phy-spear1310-miphy.c
-> diff --git a/drivers/phy/phy-spear1340-miphy.c
-> b/drivers/phy/st/phy-spear1340-miphy.c similarity index 100%
-> rename from drivers/phy/phy-spear1340-miphy.c
-> rename to drivers/phy/st/phy-spear1340-miphy.c
-> diff --git a/drivers/phy/phy-stih407-usb.c
-> b/drivers/phy/st/phy-stih407-usb.c similarity index 100%
-> rename from drivers/phy/phy-stih407-usb.c
-> rename to drivers/phy/st/phy-stih407-usb.c
-> diff --git a/drivers/phy/phy-stih41x-usb.c
-> b/drivers/phy/st/phy-stih41x-usb.c similarity index 100%
-> rename from drivers/phy/phy-stih41x-usb.c
-> rename to drivers/phy/st/phy-stih41x-usb.c
-> diff --git a/drivers/phy/sunxi/Kconfig b/drivers/phy/sunxi/Kconfig
-> new file mode 100644
-> index 0000000..eb06427
-> --- /dev/null
-> +++ b/drivers/phy/sunxi/Kconfig
-> @@ -0,0 +1,28 @@
-> +#
-> +# PHY drivers for Allwinner's sunxi platforms
-> +#
-> +config PHY_SUN4I_USB
-> +	tristate "Allwinner sunxi SoC USB PHY driver"
-> +	depends on ARCH_SUNXI && HAS_IOMEM && OF
-> +	depends on RESET_CONTROLLER
-> +	depends on EXTCON
-> +	depends on POWER_SUPPLY
-> +	select GENERIC_PHY
-> +	help
-> +	  Enable this to support the transceiver that is part of Allwinner
-> +	  sunxi SoCs.
-> +
-> +	  This driver controls the entire USB PHY block, both the USB OTG
-> +	  parts, as well as the 2 regular USB 2 host PHYs.
-> +
-> +config PHY_SUN9I_USB
-> +	tristate "Allwinner sun9i SoC USB PHY driver"
-> +	depends on ARCH_SUNXI && HAS_IOMEM && OF
-> +	depends on RESET_CONTROLLER
-> +	depends on USB_COMMON
-> +	select GENERIC_PHY
-> +	help
-> +	  Enable this to support the transceiver that is part of Allwinner
-> +	  sun9i SoCs.
-> +
-> +	  This driver controls each individual USB 2 host PHY.
-> diff --git a/drivers/phy/sunxi/Makefile b/drivers/phy/sunxi/Makefile
-> new file mode 100644
-> index 0000000..8605529c
-> --- /dev/null
-> +++ b/drivers/phy/sunxi/Makefile
-> @@ -0,0 +1,2 @@
-> +obj-$(CONFIG_PHY_SUN4I_USB)		+= phy-sun4i-usb.o
-> +obj-$(CONFIG_PHY_SUN9I_USB)		+= phy-sun9i-usb.o
-> diff --git a/drivers/phy/phy-sun4i-usb.c
-> b/drivers/phy/sunxi/phy-sun4i-usb.c similarity index 100%
-> rename from drivers/phy/phy-sun4i-usb.c
-> rename to drivers/phy/sunxi/phy-sun4i-usb.c
-> diff --git a/drivers/phy/phy-sun9i-usb.c
-> b/drivers/phy/sunxi/phy-sun9i-usb.c similarity index 100%
-> rename from drivers/phy/phy-sun9i-usb.c
-> rename to drivers/phy/sunxi/phy-sun9i-usb.c
-> diff --git a/drivers/phy/ti/Kconfig b/drivers/phy/ti/Kconfig
-> new file mode 100644
-> index 0000000..1e3e307
-> --- /dev/null
-> +++ b/drivers/phy/ti/Kconfig
-> @@ -0,0 +1,67 @@
-> +#
-> +# PHY drivers for TI platforms
-> +#
-> +config PHY_DM816X_USB
-> +	tristate "TI dm816x USB PHY driver"
-> +	depends on ARCH_OMAP2PLUS
-> +	depends on USB_SUPPORT
-> +	select GENERIC_PHY
-> +	select USB_PHY
-> +	help
-> +	  Enable this for dm816x USB to work.
-> +
-> +config OMAP_CONTROL_PHY
-> +	tristate "OMAP CONTROL PHY Driver"
-> +	depends on ARCH_OMAP2PLUS || COMPILE_TEST
-> +	help
-> +	  Enable this to add support for the PHY part present in the control
-> +	  module. This driver has API to power on the USB2 PHY and to write to
-> +	  the mailbox. The mailbox is present only in omap4 and the register to
-> +	  power on the USB2 PHY is present in OMAP4 and OMAP5. OMAP5 has an
-> +	  additional register to power on USB3 PHY/SATA PHY/PCIE PHY
-> +	  (PIPE3 PHY).
-> +
-> +config OMAP_USB2
-> +	tristate "OMAP USB2 PHY Driver"
-> +	depends on ARCH_OMAP2PLUS
-> +	depends on USB_SUPPORT
-> +	select GENERIC_PHY
-> +	select USB_PHY
-> +	select OMAP_CONTROL_PHY
-> +	depends on OMAP_OCP2SCP
-> +	help
-> +	  Enable this to support the transceiver that is part of SOC. This
-> +	  driver takes care of all the PHY functionality apart from comparator.
-> +	  The USB OTG controller communicates with the comparator using this
-> +	  driver.
-> +
-> +config TI_PIPE3
-> +	tristate "TI PIPE3 PHY Driver"
-> +	depends on ARCH_OMAP2PLUS || COMPILE_TEST
-> +	select GENERIC_PHY
-> +	select OMAP_CONTROL_PHY
-> +	depends on OMAP_OCP2SCP
-> +	help
-> +	  Enable this to support the PIPE3 PHY that is part of TI SOCs. This
-> +	  driver takes care of all the PHY functionality apart from comparator.
-> +	  This driver interacts with the "OMAP Control PHY Driver" to power
-> +	  on/off the PHY.
-> +
-> +config PHY_TUSB1210
-> +	tristate "TI TUSB1210 ULPI PHY module"
-> +	depends on USB_ULPI_BUS
-> +	select GENERIC_PHY
-> +	help
-> +	  Support for TI TUSB1210 USB ULPI PHY.
-> +
-> +config TWL4030_USB
-> +	tristate "TWL4030 USB Transceiver Driver"
-> +	depends on TWL4030_CORE && REGULATOR_TWL4030 && USB_MUSB_OMAP2PLUS
-> +	depends on USB_SUPPORT
-> +	select GENERIC_PHY
-> +	select USB_PHY
-> +	help
-> +	  Enable this to support the USB OTG transceiver on TWL4030
-> +	  family chips (including the TWL5030 and TPS659x0 devices).
-> +	  This transceiver supports high and full speed devices plus,
-> +	  in host mode, low speed.
-> diff --git a/drivers/phy/ti/Makefile b/drivers/phy/ti/Makefile
-> new file mode 100644
-> index 0000000..2d16f77
-> --- /dev/null
-> +++ b/drivers/phy/ti/Makefile
-> @@ -0,0 +1,6 @@
-> +obj-$(CONFIG_PHY_DM816X_USB)		+= phy-dm816x-usb.o
-> +obj-$(CONFIG_OMAP_CONTROL_PHY)		+= phy-omap-control.o
-> +obj-$(CONFIG_OMAP_USB2)			+= phy-omap-usb2.o
-> +obj-$(CONFIG_TI_PIPE3)			+= phy-ti-pipe3.o
-> +obj-$(CONFIG_PHY_TUSB1210)		+= phy-tusb1210.o
-> +obj-$(CONFIG_TWL4030_USB)		+= phy-twl4030-usb.o
-> diff --git a/drivers/phy/phy-dm816x-usb.c
-> b/drivers/phy/ti/phy-dm816x-usb.c similarity index 100%
-> rename from drivers/phy/phy-dm816x-usb.c
-> rename to drivers/phy/ti/phy-dm816x-usb.c
-> diff --git a/drivers/phy/phy-omap-control.c
-> b/drivers/phy/ti/phy-omap-control.c similarity index 100%
-> rename from drivers/phy/phy-omap-control.c
-> rename to drivers/phy/ti/phy-omap-control.c
-> diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/ti/phy-omap-usb2.c
-> similarity index 100%
-> rename from drivers/phy/phy-omap-usb2.c
-> rename to drivers/phy/ti/phy-omap-usb2.c
-> diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/ti/phy-ti-pipe3.c
-> similarity index 100%
-> rename from drivers/phy/phy-ti-pipe3.c
-> rename to drivers/phy/ti/phy-ti-pipe3.c
-> diff --git a/drivers/phy/phy-tusb1210.c b/drivers/phy/ti/phy-tusb1210.c
-> similarity index 100%
-> rename from drivers/phy/phy-tusb1210.c
-> rename to drivers/phy/ti/phy-tusb1210.c
-> diff --git a/drivers/phy/phy-twl4030-usb.c
-> b/drivers/phy/ti/phy-twl4030-usb.c similarity index 100%
-> rename from drivers/phy/phy-twl4030-usb.c
-> rename to drivers/phy/ti/phy-twl4030-usb.c
-> diff --git a/drivers/phy/ulpi_phy.h b/drivers/phy/ti/ulpi_phy.h
-> similarity index 100%
-> rename from drivers/phy/ulpi_phy.h
-> rename to drivers/phy/ti/ulpi_phy.h
+[auto build test ERROR on rockchip/for-next]
+[also build test ERROR on v4.6-rc1 next-20160401]
+[if your patch is applied to the wrong git tree, please drop us a note to help improving the system]
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+url:    https://github.com/0day-ci/linux/commits/Vivek-Gautam/phy-Group-vendor-specific-phy-drivers/20160401-192920
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/mmind/linux-rockchip.git for-next
+config: arm-allyesconfig (attached as .config)
+reproduce:
+        wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # save the attached .config to linux build tree
+        make.cross ARCH=arm 
+
+All errors (new ones prefixed by >>):
+
+>> make[4]: *** No rule to make target 'drivers/phy/qcom/+=', needed by 'drivers/phy/qcom/built-in.o'.
+   make[4]: Target '__build' not remade because of errors.
+
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+
+--Qxx1br4bt0+wmkIi
+Content-Type: application/octet-stream
+Content-Disposition: attachment; filename=".config.gz"
+Content-Transfer-Encoding: base64
+
+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
+7q5wbHo8zClqWDVeEt910vH/B+gLEk+CkQMA
+
+--Qxx1br4bt0+wmkIi--
