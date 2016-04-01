@@ -1,85 +1,121 @@
-From: Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
-Subject: [PATCH 5/5] ARM: dts: omap: add missing unit names to bandgap nodes
-Date: Fri,  1 Apr 2016 16:20:22 -0400
-Message-ID: <1459542022-17246-6-git-send-email-javier@osg.samsung.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH 4/5] ARM: dts: omap: remove unneeded unit name for sound nodes
+Date: Fri,  1 Apr 2016 16:20:21 -0400
+Message-ID: <1459542022-17246-5-git-send-email-javier@osg.samsung.com>
 References: <1459542022-17246-1-git-send-email-javier@osg.samsung.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1459542022-17246-1-git-send-email-javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1459542022-17246-1-git-send-email-javier@osg.samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@osg.samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch fixes the following DTC warnings:
+This patch fixes the following DTC warning:
 
-"bandgap has a reg or ranges property, but no unit name"
+"sound@0 has a unit name, but no reg property"
 
-Signed-off-by: Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
-
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 ---
 
- arch/arm/boot/dts/omap34xx.dtsi | 2 +-
- arch/arm/boot/dts/omap36xx.dtsi | 2 +-
- arch/arm/boot/dts/omap443x.dtsi | 2 +-
- arch/arm/boot/dts/omap4460.dtsi | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/boot/dts/am437x-gp-evm.dts       | 2 +-
+ arch/arm/boot/dts/am43x-epos-evm.dts      | 2 +-
+ arch/arm/boot/dts/am57xx-beagle-x15.dts   | 2 +-
+ arch/arm/boot/dts/am57xx-cl-som-am57x.dts | 2 +-
+ arch/arm/boot/dts/dra7-evm.dts            | 2 +-
+ arch/arm/boot/dts/dra72-evm.dts           | 2 +-
+ arch/arm/boot/dts/omap4-var-som-om44.dtsi | 2 +-
+ 7 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34xx.dtsi
-index 387dc31822fe..5cdba1f6499f 100644
---- a/arch/arm/boot/dts/omap34xx.dtsi
-+++ b/arch/arm/boot/dts/omap34xx.dtsi
-@@ -55,7 +55,7 @@
- 			};
- 		};
- 
--		bandgap {
-+		bandgap@48002524 {
- 			reg = <0x48002524 0x4>;
- 			compatible = "ti,omap34xx-bandgap";
- 			#thermal-sensor-cells = <0>;
-diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
-index f19c87bd6bf3..ce1e242d4dc0 100644
---- a/arch/arm/boot/dts/omap36xx.dtsi
-+++ b/arch/arm/boot/dts/omap36xx.dtsi
-@@ -87,7 +87,7 @@
- 			};
- 		};
- 
--		bandgap {
-+		bandgap@48002524 {
- 			reg = <0x48002524 0x4>;
- 			compatible = "ti,omap36xx-bandgap";
- 			#thermal-sensor-cells = <0>;
-diff --git a/arch/arm/boot/dts/omap443x.dtsi b/arch/arm/boot/dts/omap443x.dtsi
-index 0adfa1d1ef20..fc6a8610c24c 100644
---- a/arch/arm/boot/dts/omap443x.dtsi
-+++ b/arch/arm/boot/dts/omap443x.dtsi
-@@ -35,7 +35,7 @@
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+index 8889be1ca1c3..95ec82a77e67 100644
+--- a/arch/arm/boot/dts/am437x-gp-evm.dts
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -119,7 +119,7 @@
+ 		clock-frequency = <32768>;
  	};
  
- 	ocp {
--		bandgap: bandgap {
-+		bandgap: bandgap@4a002260 {
- 			reg = <0x4a002260 0x4
- 			       0x4a00232C 0x4>;
- 			compatible = "ti,omap4430-bandgap";
-diff --git a/arch/arm/boot/dts/omap4460.dtsi b/arch/arm/boot/dts/omap4460.dtsi
-index 5fa68f191af7..ef66e12e0a67 100644
---- a/arch/arm/boot/dts/omap4460.dtsi
-+++ b/arch/arm/boot/dts/omap4460.dtsi
-@@ -40,7 +40,7 @@
+-	sound0: sound@0 {
++	sound0: sound0 {
+ 		compatible = "simple-audio-card";
+ 		simple-audio-card,name = "AM437x-GP-EVM";
+ 		simple-audio-card,widgets =
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+index d5dd72047a7e..04125b43e3a9 100644
+--- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -107,7 +107,7 @@
+ 		default-brightness-level = <8>;
  	};
  
- 	ocp {
--		bandgap: bandgap {
-+		bandgap: bandgap@4a002260 {
- 			reg = <0x4a002260 0x4
- 			       0x4a00232C 0x4
- 			       0x4a002378 0x18>;
+-	sound0: sound@0 {
++	sound0: sound0 {
+ 		compatible = "simple-audio-card";
+ 		simple-audio-card,name = "AM43-EPOS-EVM";
+ 		simple-audio-card,widgets =
+diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+index 0a5fc5d02ce2..75bd09b175cd 100644
+--- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
++++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+@@ -151,7 +151,7 @@
+ 		};
+ 	};
+ 
+-	sound0: sound@0 {
++	sound0: sound0 {
+ 		compatible = "simple-audio-card";
+ 		simple-audio-card,name = "BeagleBoard-X15";
+ 		simple-audio-card,widgets =
+diff --git a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+index 14f912a1b4fd..378b142ef88c 100644
+--- a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
++++ b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+@@ -51,7 +51,7 @@
+ 		regulator-max-microvolt = <3300000>;
+ 	};
+ 
+-	sound0: sound@0 {
++	sound0: sound0 {
+ 		compatible = "simple-audio-card";
+ 		simple-audio-card,name = "CL-SOM-AM57x-Sound-Card";
+ 		simple-audio-card,format = "i2s";
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index d9b87236019d..074d70b191e2 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -67,7 +67,7 @@
+ 		gpio = <&gpio7 11 GPIO_ACTIVE_HIGH>;
+ 	};
+ 
+-	sound0: sound@0 {
++	sound0: sound0 {
+ 		compatible = "simple-audio-card";
+ 		simple-audio-card,name = "DRA7xx-EVM";
+ 		simple-audio-card,widgets =
+diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
+index 6affe2d137da..6006ced8f6b3 100644
+--- a/arch/arm/boot/dts/dra72-evm.dts
++++ b/arch/arm/boot/dts/dra72-evm.dts
+@@ -104,7 +104,7 @@
+ 		};
+ 	};
+ 
+-	sound0: sound@0 {
++	sound0: sound0 {
+ 		compatible = "simple-audio-card";
+ 		simple-audio-card,name = "DRA7xx-EVM";
+ 		simple-audio-card,widgets =
+diff --git a/arch/arm/boot/dts/omap4-var-som-om44.dtsi b/arch/arm/boot/dts/omap4-var-som-om44.dtsi
+index 49d032b846be..a17997f4e9aa 100644
+--- a/arch/arm/boot/dts/omap4-var-som-om44.dtsi
++++ b/arch/arm/boot/dts/omap4-var-som-om44.dtsi
+@@ -17,7 +17,7 @@
+ 		reg = <0x80000000 0x40000000>; /* 1 GB */
+ 	};
+ 
+-	sound: sound@0 {
++	sound: sound {
+ 		compatible = "ti,abe-twl6040";
+ 		ti,model = "VAR-SOM-OM44";
+ 
 -- 
 2.5.0
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
