@@ -1,13 +1,12 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH 06/12] mtd: nand: gpmi: rely on generic DT
- parsing done in nand_scan_ident()
-Date: Fri,  1 Apr 2016 14:54:26 +0200
-Message-ID: <1459515272-31011-7-git-send-email-boris.brezillon@free-electrons.com>
+Subject: [PATCH 01/12] mtd: nand: remove unneeded of_mtd.h inclusions
+Date: Fri,  1 Apr 2016 14:54:21 +0200
+Message-ID: <1459515272-31011-2-git-send-email-boris.brezillon@free-electrons.com>
 References: <1459515272-31011-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBG677G3QKGQEFCBG2AI-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBFW77G3QKGQEYR24RTA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 Sender: linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 In-Reply-To: <1459515272-31011-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <https://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -20,61 +19,77 @@ To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nicolas Ferre <nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>, Jean-Christophe Plagniol-Villard <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Thomas Petazzoni <thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>, bcm-kernel-feedback-list-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Chen-Yu Tsai <wens-jdAy2FN1RRM@public.gmane.org>, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Zhou Wang <wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, Alex Smith <alex.smith-1AXoQHu6uovQT0dZR+AlfA@public.gmane.org>, Harvey Hunt <harvey.hunt-1AXoQHu6uovQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The core now takes care of parsing generic DT properties in
-nand_scan_ident() when nand_set_flash_node() has been called.
-Rely on this initialization instead of calling of_get_nand_xxx()
-manually.
+Some drivers are including linux/of_mtd.h even if they don't use any of
+the of_get_nand_xxx() helpers.
 
 Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 ---
- drivers/mtd/nand/gpmi-nand/gpmi-nand.c | 21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ drivers/mtd/nand/jz4780_nand.c | 1 -
+ drivers/mtd/nand/lpc32xx_mlc.c | 1 -
+ drivers/mtd/nand/qcom_nandc.c  | 1 -
+ drivers/mtd/nand/sunxi_nand.c  | 1 -
+ drivers/mtd/nand/vf610_nfc.c   | 1 -
+ 5 files changed, 5 deletions(-)
 
-diff --git a/drivers/mtd/nand/gpmi-nand/gpmi-nand.c b/drivers/mtd/nand/gpmi-nand/gpmi-nand.c
-index 8122c69..c6e8a1c 100644
---- a/drivers/mtd/nand/gpmi-nand/gpmi-nand.c
-+++ b/drivers/mtd/nand/gpmi-nand/gpmi-nand.c
-@@ -25,7 +25,6 @@
+diff --git a/drivers/mtd/nand/jz4780_nand.c b/drivers/mtd/nand/jz4780_nand.c
+index e1c016c..23a1999 100644
+--- a/drivers/mtd/nand/jz4780_nand.c
++++ b/drivers/mtd/nand/jz4780_nand.c
+@@ -17,7 +17,6 @@
+ #include <linux/of.h>
+ #include <linux/of_address.h>
+ #include <linux/gpio/consumer.h>
+-#include <linux/of_mtd.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <linux/mtd/mtd.h>
+diff --git a/drivers/mtd/nand/lpc32xx_mlc.c b/drivers/mtd/nand/lpc32xx_mlc.c
+index d8c3e7a..8e43978 100644
+--- a/drivers/mtd/nand/lpc32xx_mlc.c
++++ b/drivers/mtd/nand/lpc32xx_mlc.c
+@@ -35,7 +35,6 @@
+ #include <linux/completion.h>
+ #include <linux/interrupt.h>
+ #include <linux/of.h>
+-#include <linux/of_mtd.h>
+ #include <linux/of_gpio.h>
+ #include <linux/mtd/lpc32xx_mlc.h>
+ #include <linux/io.h>
+diff --git a/drivers/mtd/nand/qcom_nandc.c b/drivers/mtd/nand/qcom_nandc.c
+index f550a57..f3de983 100644
+--- a/drivers/mtd/nand/qcom_nandc.c
++++ b/drivers/mtd/nand/qcom_nandc.c
+@@ -21,7 +21,6 @@
  #include <linux/mtd/partitions.h>
  #include <linux/of.h>
  #include <linux/of_device.h>
 -#include <linux/of_mtd.h>
- #include "gpmi-nand.h"
- #include "bch-regs.h"
+ #include <linux/delay.h>
  
-@@ -1914,16 +1913,6 @@ static int gpmi_nand_init(struct gpmi_nand_data *this)
- 	/* Set up swap_block_mark, must be set before the gpmi_set_geometry() */
- 	this->swap_block_mark = !GPMI_IS_MX23(this);
- 
--	if (of_get_nand_on_flash_bbt(this->dev->of_node)) {
--		chip->bbt_options |= NAND_BBT_USE_FLASH | NAND_BBT_NO_OOB;
--
--		if (of_property_read_bool(this->dev->of_node,
--						"fsl,no-blockmark-swap"))
--			this->swap_block_mark = false;
--	}
--	dev_dbg(this->dev, "Blockmark swapping %sabled\n",
--		this->swap_block_mark ? "en" : "dis");
--
- 	/*
- 	 * Allocate a temporary DMA buffer for reading ID in the
- 	 * nand_scan_ident().
-@@ -1938,6 +1927,16 @@ static int gpmi_nand_init(struct gpmi_nand_data *this)
- 	if (ret)
- 		goto err_out;
- 
-+	if (chip->bbt_options & NAND_BBT_USE_FLASH) {
-+		chip->bbt_options |= NAND_BBT_NO_OOB;
-+
-+		if (of_property_read_bool(this->dev->of_node,
-+						"fsl,no-blockmark-swap"))
-+			this->swap_block_mark = false;
-+	}
-+	dev_dbg(this->dev, "Blockmark swapping %sabled\n",
-+		this->swap_block_mark ? "en" : "dis");
-+
- 	ret = gpmi_init_last(this);
- 	if (ret)
- 		goto err_out;
+ /* NANDc reg offsets */
+diff --git a/drivers/mtd/nand/sunxi_nand.c b/drivers/mtd/nand/sunxi_nand.c
+index 1c03eee..3a97093 100644
+--- a/drivers/mtd/nand/sunxi_nand.c
++++ b/drivers/mtd/nand/sunxi_nand.c
+@@ -30,7 +30,6 @@
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+ #include <linux/of_gpio.h>
+-#include <linux/of_mtd.h>
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/nand.h>
+ #include <linux/mtd/partitions.h>
+diff --git a/drivers/mtd/nand/vf610_nfc.c b/drivers/mtd/nand/vf610_nfc.c
+index 293feb1..a7f2756 100644
+--- a/drivers/mtd/nand/vf610_nfc.c
++++ b/drivers/mtd/nand/vf610_nfc.c
+@@ -33,7 +33,6 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/nand.h>
+ #include <linux/mtd/partitions.h>
+-#include <linux/of_mtd.h>
+ #include <linux/of_device.h>
+ #include <linux/pinctrl/consumer.h>
+ #include <linux/platform_device.h>
 -- 
 2.5.0
