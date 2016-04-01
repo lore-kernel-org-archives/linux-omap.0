@@ -1,59 +1,89 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/5] ARM: dts: omap: Fix some DTC warnings
-Date: Fri, 1 Apr 2016 13:38:13 -0700
-Message-ID: <20160401203812.GP9329@atomide.com>
-References: <1459542022-17246-1-git-send-email-javier@osg.samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH] of/platform: Allow secondary compatible match in of_dev_lookup
+Date: Fri,  1 Apr 2016 14:35:04 -0700
+Message-ID: <1459546504-32668-1-git-send-email-tony@atomide.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1459542022-17246-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Tero Kristo <t-kristo@ti.com>
+To: Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robh+dt@kernel.org>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Javier Martinez Canillas <javier@osg.samsung.com> [160401 13:21]:
-> Hello Tony
-> 
-> DTC reports a lot of warnings on omap DTS due a mismatch between unit
-> names and reg properties in different device nodes. This series tries
-> to fix at least some of them, but there are still a lot remaining.
+We currently try to match of_dev_auxdata based on compatible,
+IO address, and device name. But in some cases we have multiple
+instances of drivers that can use the same auxdata.
 
-Great, adding Tero to Cc as I think he is already looking at fixing
-the clock related warnings.
+Let's add an additional secondary lookup for generic compatible
+match for auxdata if no device specific match is found. This does
+not change the existing matching, and still allows adding device
+specific auxdata.
 
-Regards,
+This simplifies things as specifying the IO address and device
+name is prone errors as it requires maintaining an in kernel
+database for each SoC.
 
-Tony
+To specify a generic match, all that is needed is to add a
+OF_DEV_AUXDATA entry with no device instance specified:
 
+OF_DEV_AUXDATA("pinctrl-single", 0, NULL, &pcs_pdata),
 
-> Javier Martinez Canillas (5):
->   ARM: dts: omap: add missing unit name to pbias regulator nodes
->   ARM: dts: n8x0: remove unneeded unit name for i2c node
->   ARM: dts: omap3: add missing unit name to PMU node
->   ARM: dts: omap: remove unneeded unit name for sound nodes
->   ARM: dts: omap: add missing unit names to bandgap nodes
-> 
->  arch/arm/boot/dts/am437x-gp-evm.dts         | 2 +-
->  arch/arm/boot/dts/am43x-epos-evm.dts        | 2 +-
->  arch/arm/boot/dts/am57xx-beagle-x15.dts     | 2 +-
->  arch/arm/boot/dts/am57xx-cl-som-am57x.dts   | 2 +-
->  arch/arm/boot/dts/dra7-evm.dts              | 2 +-
->  arch/arm/boot/dts/dra7.dtsi                 | 2 +-
->  arch/arm/boot/dts/dra72-evm.dts             | 2 +-
->  arch/arm/boot/dts/omap2420-n8x0-common.dtsi | 2 +-
->  arch/arm/boot/dts/omap2430.dtsi             | 2 +-
->  arch/arm/boot/dts/omap3.dtsi                | 4 ++--
->  arch/arm/boot/dts/omap34xx.dtsi             | 2 +-
->  arch/arm/boot/dts/omap36xx.dtsi             | 2 +-
->  arch/arm/boot/dts/omap4-var-som-om44.dtsi   | 2 +-
->  arch/arm/boot/dts/omap4.dtsi                | 2 +-
->  arch/arm/boot/dts/omap443x.dtsi             | 2 +-
->  arch/arm/boot/dts/omap4460.dtsi             | 2 +-
->  arch/arm/boot/dts/omap5.dtsi                | 2 +-
->  17 files changed, 18 insertions(+), 18 deletions(-)
-> 
-> -- 
-> 2.5.0
-> 
+As the auxdata is already initialized only for the booted SoC,
+there's not much of a chance of getting things wrong.
+
+Let's also fix two checkpatch warnings while at it to add a
+space before parenthesis in the for loop, and remove a comparison
+to NULL by using !auxdata->compatible.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/of/platform.c | 28 +++++++++++++++++++++++-----
+ 1 file changed, 23 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/of/platform.c b/drivers/of/platform.c
+index 8d103e4..16e8daf 100644
+--- a/drivers/of/platform.c
++++ b/drivers/of/platform.c
+@@ -297,19 +297,37 @@ static struct amba_device *of_amba_device_create(struct device_node *node,
+ static const struct of_dev_auxdata *of_dev_lookup(const struct of_dev_auxdata *lookup,
+ 				 struct device_node *np)
+ {
++	const struct of_dev_auxdata *auxdata;
+ 	struct resource res;
++	int compatible = 0;
+ 
+ 	if (!lookup)
+ 		return NULL;
+ 
+-	for(; lookup->compatible != NULL; lookup++) {
+-		if (!of_device_is_compatible(np, lookup->compatible))
++	auxdata = lookup;
++	for (; auxdata->compatible; auxdata++) {
++		if (!of_device_is_compatible(np, auxdata->compatible))
+ 			continue;
++		compatible++;
+ 		if (!of_address_to_resource(np, 0, &res))
+-			if (res.start != lookup->phys_addr)
++			if (res.start != auxdata->phys_addr)
+ 				continue;
+-		pr_debug("%s: devname=%s\n", np->full_name, lookup->name);
+-		return lookup;
++		pr_debug("%s: devname=%s\n", np->full_name, auxdata->name);
++		return auxdata;
++	}
++
++	if (!compatible)
++		return NULL;
++
++	/* Try compatible match if no phys_addr and name are specified */
++	auxdata = lookup;
++	for (; auxdata->compatible; auxdata++) {
++		if (!of_device_is_compatible(np, auxdata->compatible))
++			continue;
++		if (!auxdata->phys_addr && !auxdata->name) {
++			pr_debug("%s: compatible match\n", np->full_name);
++			return auxdata;
++		}
+ 	}
+ 
+ 	return NULL;
+-- 
+2.7.0
