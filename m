@@ -1,13 +1,13 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH 08/12] mtd: nand: lpc32xx: rely on generic DT
+Subject: [PATCH 06/12] mtd: nand: gpmi: rely on generic DT
  parsing done in nand_scan_ident()
-Date: Fri,  1 Apr 2016 14:54:28 +0200
-Message-ID: <1459515272-31011-9-git-send-email-boris.brezillon@free-electrons.com>
+Date: Fri,  1 Apr 2016 14:54:26 +0200
+Message-ID: <1459515272-31011-7-git-send-email-boris.brezillon@free-electrons.com>
 References: <1459515272-31011-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBHG77G3QKGQEMZDHVXA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBG677G3QKGQEFCBG2AI-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 Sender: linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 In-Reply-To: <1459515272-31011-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <https://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -27,57 +27,54 @@ manually.
 
 Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 ---
- drivers/mtd/nand/lpc32xx_slc.c | 24 +++++++++---------------
- 1 file changed, 9 insertions(+), 15 deletions(-)
+ drivers/mtd/nand/gpmi-nand/gpmi-nand.c | 21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/mtd/nand/lpc32xx_slc.c b/drivers/mtd/nand/lpc32xx_slc.c
-index 3b8f373..99925a2 100644
---- a/drivers/mtd/nand/lpc32xx_slc.c
-+++ b/drivers/mtd/nand/lpc32xx_slc.c
-@@ -194,7 +194,6 @@ struct lpc32xx_nand_cfg_slc {
- 	uint32_t rwidth;
- 	uint32_t rhold;
- 	uint32_t rsetup;
--	bool use_bbt;
- 	int wp_gpio;
- 	struct mtd_partition *parts;
- 	unsigned num_parts;
-@@ -747,7 +746,6 @@ static struct lpc32xx_nand_cfg_slc *lpc32xx_parse_dt(struct device *dev)
- 		return NULL;
- 	}
+diff --git a/drivers/mtd/nand/gpmi-nand/gpmi-nand.c b/drivers/mtd/nand/gpmi-nand/gpmi-nand.c
+index 8122c69..c6e8a1c 100644
+--- a/drivers/mtd/nand/gpmi-nand/gpmi-nand.c
++++ b/drivers/mtd/nand/gpmi-nand/gpmi-nand.c
+@@ -25,7 +25,6 @@
+ #include <linux/mtd/partitions.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+-#include <linux/of_mtd.h>
+ #include "gpmi-nand.h"
+ #include "bch-regs.h"
  
--	ncfg->use_bbt = of_get_nand_on_flash_bbt(np);
- 	ncfg->wp_gpio = of_get_named_gpio(np, "gpios", 0);
+@@ -1914,16 +1913,6 @@ static int gpmi_nand_init(struct gpmi_nand_data *this)
+ 	/* Set up swap_block_mark, must be set before the gpmi_set_geometry() */
+ 	this->swap_block_mark = !GPMI_IS_MX23(this);
  
- 	return ncfg;
-@@ -882,19 +880,15 @@ static int lpc32xx_nand_probe(struct platform_device *pdev)
- 	chip->ecc.bytes = LPC32XX_SLC_DEV_ECC_BYTES;
- 	chip->ecc.prepad = chip->ecc.postpad = 0;
- 
--	/* Avoid extra scan if using BBT, setup BBT support */
--	if (host->ncfg->use_bbt) {
--		chip->bbt_options |= NAND_BBT_USE_FLASH;
+-	if (of_get_nand_on_flash_bbt(this->dev->of_node)) {
+-		chip->bbt_options |= NAND_BBT_USE_FLASH | NAND_BBT_NO_OOB;
 -
--		/*
--		 * Use a custom BBT marker setup for small page FLASH that
--		 * won't interfere with the ECC layout. Large and huge page
--		 * FLASH use the standard layout.
--		 */
--		if (mtd->writesize <= 512) {
--			chip->bbt_td = &bbt_smallpage_main_descr;
--			chip->bbt_md = &bbt_smallpage_mirror_descr;
--		}
-+	/*
-+	 * Use a custom BBT marker setup for small page FLASH that
-+	 * won't interfere with the ECC layout. Large and huge page
-+	 * FLASH use the standard layout.
-+	 */
-+	if ((chip->bbt_options & NAND_BBT_USE_FLASH) &&
-+	    mtd->writesize <= 512) {
-+		chip->bbt_td = &bbt_smallpage_main_descr;
-+		chip->bbt_md = &bbt_smallpage_mirror_descr;
- 	}
- 
+-		if (of_property_read_bool(this->dev->of_node,
+-						"fsl,no-blockmark-swap"))
+-			this->swap_block_mark = false;
+-	}
+-	dev_dbg(this->dev, "Blockmark swapping %sabled\n",
+-		this->swap_block_mark ? "en" : "dis");
+-
  	/*
+ 	 * Allocate a temporary DMA buffer for reading ID in the
+ 	 * nand_scan_ident().
+@@ -1938,6 +1927,16 @@ static int gpmi_nand_init(struct gpmi_nand_data *this)
+ 	if (ret)
+ 		goto err_out;
+ 
++	if (chip->bbt_options & NAND_BBT_USE_FLASH) {
++		chip->bbt_options |= NAND_BBT_NO_OOB;
++
++		if (of_property_read_bool(this->dev->of_node,
++						"fsl,no-blockmark-swap"))
++			this->swap_block_mark = false;
++	}
++	dev_dbg(this->dev, "Blockmark swapping %sabled\n",
++		this->swap_block_mark ? "en" : "dis");
++
+ 	ret = gpmi_init_last(this);
+ 	if (ret)
+ 		goto err_out;
 -- 
 2.5.0
