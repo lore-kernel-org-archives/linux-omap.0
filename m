@@ -1,81 +1,202 @@
-From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH 07/12] mtd: nand: hisi504: rely on generic DT
- parsing done in nand_scan_ident()
-Date: Fri,  1 Apr 2016 14:54:27 +0200
-Message-ID: <1459515272-31011-8-git-send-email-boris.brezillon@free-electrons.com>
-References: <1459515272-31011-1-git-send-email-boris.brezillon@free-electrons.com>
-Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/2] phy: Group vendor specific phy drivers
+Date: Fri, 1 Apr 2016 18:35:56 +0530
+Message-ID: <56FE7234.5000505@ti.com>
+References: <1459510156-9147-1-git-send-email-gautam.vivek@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBG677G3QKGQEFCBG2AI-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-Sender: linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-In-Reply-To: <1459515272-31011-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-List-Post: <https://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <https://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <https://groups.google.com/group/linux-sunxi
-List-Subscribe: <https://groups.google.com/group/linux-sunxi/subscribe>, <mailto:linux-sunxi+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+1076902468213+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <https://groups.google.com/group/linux-sunxi/subscribe>
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wenyou Yang <wenyou.yang-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>, Josh Wu <rainyfeeling-1ViLX0X+lBJBDgjK7y7TUQ@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Richard Weinberger <richard-/L3Ra7n9ekc@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kamal Dasu <kdasu.kdev-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Han Xu <han.xu-3arQi8VN3Tc@public.gmane.org>, Ezequiel Garcia <ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Stefan Agner <stefan-XLVq0VzYD2Y@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nicolas Ferre <nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>, Jean-Christophe Plagniol-Villard <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Thomas Petazzoni <thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>, bcm-kernel-feedback-list-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Chen-Yu Tsai <wens-jdAy2FN1RRM@public.gmane.org>, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Zhou Wang <wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, Alex Smith <alex.smith-1AXoQHu6uovQT0dZR+AlfA@public.gmane.org>, Harvey Hunt <harvey.hunt-1AXoQHu6uovQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <1459510156-9147-1-git-send-email-gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-rockchip>,
+ <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-rockchip/>
+List-Post: <mailto:linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-rockchip>,
+ <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "Linux-rockchip" <linux-rockchip-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, vireshk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, shiraz.linux.kernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org, maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, wens-jdAy2FN1RRM@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, spear-devel-nkJGhpqTU55BDgjK7y7TUQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cpgs-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The core now takes care of parsing generic DT properties in
-nand_scan_ident() when nand_set_flash_node() has been called.
-Rely on this initialization instead of calling of_get_nand_xxx()
-manually.
+Hi,
 
-Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
----
- drivers/mtd/nand/hisi504_nand.c | 14 +++-----------
- 1 file changed, 3 insertions(+), 11 deletions(-)
+On Friday 01 April 2016 04:59 PM, Vivek Gautam wrote:
+> Adding vendor specific directories in phy to group
+> phy drivers under their respective vendor umbrella.
+> 
+> Signed-off-by: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+> ---
+> 
+> With growing number of phy drivers, it makes sense to
+> group these drivers under their respective vendor/platform
+> umbrella directory.
+> 
+> Build-tested 'multi_v7_defconfig'.
+> 
+>  drivers/phy/Kconfig                               | 386 +---------------------
+>  drivers/phy/Makefile                              |  57 +---
+>  drivers/phy/bcom/Kconfig                          |  27 ++
+>  drivers/phy/bcom/Makefile                         |   3 +
+>  drivers/phy/{ => bcom}/phy-bcm-cygnus-pcie.c      |   0
+>  drivers/phy/{ => bcom}/phy-bcm-kona-usb2.c        |   0
+>  drivers/phy/{ => bcom}/phy-brcmstb-sata.c         |   0
+>  drivers/phy/hisi/Kconfig                          |  20 ++
+>  drivers/phy/hisi/Makefile                         |   2 +
+>  drivers/phy/{ => hisi}/phy-hi6220-usb.c           |   0
+>  drivers/phy/{ => hisi}/phy-hix5hd2-sata.c         |   0
+>  drivers/phy/marvell/Kconfig                       |  50 +++
+>  drivers/phy/marvell/Makefile                      |   6 +
+>  drivers/phy/{ => marvell}/phy-armada375-usb2.c    |   0
+>  drivers/phy/{ => marvell}/phy-berlin-sata.c       |   0
+>  drivers/phy/{ => marvell}/phy-berlin-usb.c        |   0
+>  drivers/phy/{ => marvell}/phy-mvebu-sata.c        |   0
+>  drivers/phy/{ => marvell}/phy-pxa-28nm-hsic.c     |   0
+>  drivers/phy/{ => marvell}/phy-pxa-28nm-usb2.c     |   0
+>  drivers/phy/qcom/Kconfig                          |  23 ++
+>  drivers/phy/qcom/Makefile                         |   5 +
+>  drivers/phy/{ => qcom}/phy-qcom-apq8064-sata.c    |   0
+>  drivers/phy/{ => qcom}/phy-qcom-ipq806x-sata.c    |   0
+>  drivers/phy/{ => qcom}/phy-qcom-ufs-i.h           |   0
+>  drivers/phy/{ => qcom}/phy-qcom-ufs-qmp-14nm.c    |   0
+>  drivers/phy/{ => qcom}/phy-qcom-ufs-qmp-14nm.h    |   0
+>  drivers/phy/{ => qcom}/phy-qcom-ufs-qmp-20nm.c    |   0
+>  drivers/phy/{ => qcom}/phy-qcom-ufs-qmp-20nm.h    |   0
+>  drivers/phy/{ => qcom}/phy-qcom-ufs.c             |   0
+>  drivers/phy/rcar/Kconfig                          |  16 +
+>  drivers/phy/rcar/Makefile                         |   2 +
+>  drivers/phy/{ => rcar}/phy-rcar-gen2.c            |   0
+>  drivers/phy/{ => rcar}/phy-rcar-gen3-usb2.c       |   0
+>  drivers/phy/rockchip/Kconfig                      |  23 ++
+>  drivers/phy/rockchip/Makefile                     |   3 +
+>  drivers/phy/{ => rockchip}/phy-rockchip-dp.c      |   0
+>  drivers/phy/{ => rockchip}/phy-rockchip-emmc.c    |   0
+>  drivers/phy/{ => rockchip}/phy-rockchip-usb.c     |   0
+>  drivers/phy/samsung/Kconfig                       |  87 +++++
+>  drivers/phy/samsung/Makefile                      |  10 +
+>  drivers/phy/{ => samsung}/phy-exynos-dp-video.c   |   0
+>  drivers/phy/{ => samsung}/phy-exynos-mipi-video.c |   0
+>  drivers/phy/{ => samsung}/phy-exynos4210-usb2.c   |   0
+>  drivers/phy/{ => samsung}/phy-exynos4x12-usb2.c   |   0
+>  drivers/phy/{ => samsung}/phy-exynos5-usbdrd.c    |   0
+>  drivers/phy/{ => samsung}/phy-exynos5250-sata.c   |   0
+>  drivers/phy/{ => samsung}/phy-exynos5250-usb2.c   |   0
+>  drivers/phy/{ => samsung}/phy-s5pv210-usb2.c      |   0
+>  drivers/phy/{ => samsung}/phy-samsung-usb2.c      |   0
+>  drivers/phy/{ => samsung}/phy-samsung-usb2.h      |   0
+>  drivers/phy/st/Kconfig                            |  51 +++
+>  drivers/phy/st/Makefile                           |   6 +
+>  drivers/phy/{ => st}/phy-miphy28lp.c              |   0
+>  drivers/phy/{ => st}/phy-miphy365x.c              |   0
+>  drivers/phy/{ => st}/phy-spear1310-miphy.c        |   0
+>  drivers/phy/{ => st}/phy-spear1340-miphy.c        |   0
+>  drivers/phy/{ => st}/phy-stih407-usb.c            |   0
+>  drivers/phy/{ => st}/phy-stih41x-usb.c            |   0
+>  drivers/phy/sunxi/Kconfig                         |  28 ++
+>  drivers/phy/sunxi/Makefile                        |   2 +
+>  drivers/phy/{ => sunxi}/phy-sun4i-usb.c           |   0
+>  drivers/phy/{ => sunxi}/phy-sun9i-usb.c           |   0
+>  drivers/phy/ti/Kconfig                            |  67 ++++
+>  drivers/phy/ti/Makefile                           |   6 +
+>  drivers/phy/{ => ti}/phy-dm816x-usb.c             |   0
+>  drivers/phy/{ => ti}/phy-omap-control.c           |   0
+>  drivers/phy/{ => ti}/phy-omap-usb2.c              |   0
+>  drivers/phy/{ => ti}/phy-ti-pipe3.c               |   0
+>  drivers/phy/{ => ti}/phy-tusb1210.c               |   0
+>  drivers/phy/{ => ti}/phy-twl4030-usb.c            |   0
+>  drivers/phy/{ => ti}/ulpi_phy.h                   |   0
 
-diff --git a/drivers/mtd/nand/hisi504_nand.c b/drivers/mtd/nand/hisi504_nand.c
-index 96502b6..38cdc84 100644
---- a/drivers/mtd/nand/hisi504_nand.c
-+++ b/drivers/mtd/nand/hisi504_nand.c
-@@ -19,7 +19,6 @@
-  * GNU General Public License for more details.
-  */
- #include <linux/of.h>
--#include <linux/of_mtd.h>
- #include <linux/mtd/mtd.h>
- #include <linux/sizes.h>
- #include <linux/clk.h>
-@@ -642,10 +641,9 @@ static int hisi_nfc_ecc_probe(struct hinfc_host *host)
- 	struct device *dev = host->dev;
- 	struct nand_chip *chip = &host->chip;
- 	struct mtd_info *mtd = nand_to_mtd(chip);
--	struct device_node *np = host->dev->of_node;
- 
--	size = of_get_nand_ecc_step_size(np);
--	strength = of_get_nand_ecc_strength(np);
-+	size = chip->ecc.size;
-+	strength = chip->ecc.strength;
- 	if (size != 1024) {
- 		dev_err(dev, "error ecc size: %d\n", size);
- 		return -EINVAL;
-@@ -695,7 +693,7 @@ static int hisi_nfc_ecc_probe(struct hinfc_host *host)
- 
- static int hisi_nfc_probe(struct platform_device *pdev)
- {
--	int ret = 0, irq, buswidth, flag, max_chips = HINFC504_MAX_CHIP;
-+	int ret = 0, irq, flag, max_chips = HINFC504_MAX_CHIP;
- 	struct device *dev = &pdev->dev;
- 	struct hinfc_host *host;
- 	struct nand_chip  *chip;
-@@ -747,12 +745,6 @@ static int hisi_nfc_probe(struct platform_device *pdev)
- 	chip->read_buf		= hisi_nfc_read_buf;
- 	chip->chip_delay	= HINFC504_CHIP_DELAY;
- 
--	chip->ecc.mode = of_get_nand_ecc_mode(np);
--
--	buswidth = of_get_nand_bus_width(np);
--	if (buswidth == 16)
--		chip->options |= NAND_BUSWIDTH_16;
--
- 	hisi_nfc_host_init(host);
- 
- 	ret = devm_request_irq(dev, irq, hinfc_irq_handle, 0x0, "nandc", host);
--- 
-2.5.0
+ulpi_phy.h is not specific to TI though at this point tusb1210 is the only ULPI
+driver.
+>  71 files changed, 464 insertions(+), 416 deletions(-)
+>  create mode 100644 drivers/phy/bcom/Kconfig
+>  create mode 100644 drivers/phy/bcom/Makefile
+>  rename drivers/phy/{ => bcom}/phy-bcm-cygnus-pcie.c (100%)
+>  rename drivers/phy/{ => bcom}/phy-bcm-kona-usb2.c (100%)
+>  rename drivers/phy/{ => bcom}/phy-brcmstb-sata.c (100%)
+>  create mode 100644 drivers/phy/hisi/Kconfig
+>  create mode 100644 drivers/phy/hisi/Makefile
+>  rename drivers/phy/{ => hisi}/phy-hi6220-usb.c (100%)
+>  rename drivers/phy/{ => hisi}/phy-hix5hd2-sata.c (100%)
+>  create mode 100644 drivers/phy/marvell/Kconfig
+>  create mode 100644 drivers/phy/marvell/Makefile
+>  rename drivers/phy/{ => marvell}/phy-armada375-usb2.c (100%)
+>  rename drivers/phy/{ => marvell}/phy-berlin-sata.c (100%)
+>  rename drivers/phy/{ => marvell}/phy-berlin-usb.c (100%)
+>  rename drivers/phy/{ => marvell}/phy-mvebu-sata.c (100%)
+>  rename drivers/phy/{ => marvell}/phy-pxa-28nm-hsic.c (100%)
+>  rename drivers/phy/{ => marvell}/phy-pxa-28nm-usb2.c (100%)
+>  create mode 100644 drivers/phy/qcom/Kconfig
+>  create mode 100644 drivers/phy/qcom/Makefile
+>  rename drivers/phy/{ => qcom}/phy-qcom-apq8064-sata.c (100%)
+>  rename drivers/phy/{ => qcom}/phy-qcom-ipq806x-sata.c (100%)
+>  rename drivers/phy/{ => qcom}/phy-qcom-ufs-i.h (100%)
+>  rename drivers/phy/{ => qcom}/phy-qcom-ufs-qmp-14nm.c (100%)
+>  rename drivers/phy/{ => qcom}/phy-qcom-ufs-qmp-14nm.h (100%)
+>  rename drivers/phy/{ => qcom}/phy-qcom-ufs-qmp-20nm.c (100%)
+>  rename drivers/phy/{ => qcom}/phy-qcom-ufs-qmp-20nm.h (100%)
+>  rename drivers/phy/{ => qcom}/phy-qcom-ufs.c (100%)
+>  create mode 100644 drivers/phy/rcar/Kconfig
+>  create mode 100644 drivers/phy/rcar/Makefile
+>  rename drivers/phy/{ => rcar}/phy-rcar-gen2.c (100%)
+>  rename drivers/phy/{ => rcar}/phy-rcar-gen3-usb2.c (100%)
+>  create mode 100644 drivers/phy/rockchip/Kconfig
+>  create mode 100644 drivers/phy/rockchip/Makefile
+>  rename drivers/phy/{ => rockchip}/phy-rockchip-dp.c (100%)
+>  rename drivers/phy/{ => rockchip}/phy-rockchip-emmc.c (100%)
+>  rename drivers/phy/{ => rockchip}/phy-rockchip-usb.c (100%)
+>  create mode 100644 drivers/phy/samsung/Kconfig
+>  create mode 100644 drivers/phy/samsung/Makefile
+>  rename drivers/phy/{ => samsung}/phy-exynos-dp-video.c (100%)
+>  rename drivers/phy/{ => samsung}/phy-exynos-mipi-video.c (100%)
+>  rename drivers/phy/{ => samsung}/phy-exynos4210-usb2.c (100%)
+>  rename drivers/phy/{ => samsung}/phy-exynos4x12-usb2.c (100%)
+>  rename drivers/phy/{ => samsung}/phy-exynos5-usbdrd.c (100%)
+>  rename drivers/phy/{ => samsung}/phy-exynos5250-sata.c (100%)
+>  rename drivers/phy/{ => samsung}/phy-exynos5250-usb2.c (100%)
+>  rename drivers/phy/{ => samsung}/phy-s5pv210-usb2.c (100%)
+>  rename drivers/phy/{ => samsung}/phy-samsung-usb2.c (100%)
+>  rename drivers/phy/{ => samsung}/phy-samsung-usb2.h (100%)
+>  create mode 100644 drivers/phy/st/Kconfig
+>  create mode 100644 drivers/phy/st/Makefile
+>  rename drivers/phy/{ => st}/phy-miphy28lp.c (100%)
+>  rename drivers/phy/{ => st}/phy-miphy365x.c (100%)
+>  rename drivers/phy/{ => st}/phy-spear1310-miphy.c (100%)
+>  rename drivers/phy/{ => st}/phy-spear1340-miphy.c (100%)
+>  rename drivers/phy/{ => st}/phy-stih407-usb.c (100%)
+>  rename drivers/phy/{ => st}/phy-stih41x-usb.c (100%)
+>  create mode 100644 drivers/phy/sunxi/Kconfig
+>  create mode 100644 drivers/phy/sunxi/Makefile
+>  rename drivers/phy/{ => sunxi}/phy-sun4i-usb.c (100%)
+>  rename drivers/phy/{ => sunxi}/phy-sun9i-usb.c (100%)
+>  create mode 100644 drivers/phy/ti/Kconfig
+>  create mode 100644 drivers/phy/ti/Makefile
+>  rename drivers/phy/{ => ti}/phy-dm816x-usb.c (100%)
+>  rename drivers/phy/{ => ti}/phy-omap-control.c (100%)
+>  rename drivers/phy/{ => ti}/phy-omap-usb2.c (100%)
+>  rename drivers/phy/{ => ti}/phy-ti-pipe3.c (100%)
+>  rename drivers/phy/{ => ti}/phy-tusb1210.c (100%)
+>  rename drivers/phy/{ => ti}/phy-twl4030-usb.c (100%)
+>  rename drivers/phy/{ => ti}/ulpi_phy.h (100%)
+> 
+> diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
+> index 26566db..80c8c68 100644
+> --- a/drivers/phy/Kconfig
+> +++ b/drivers/phy/Kconfig
+> @@ -15,45 +15,6 @@ config GENERIC_PHY
+>  	  phy users can obtain reference to the PHY. All the users of this
+>  	  framework should select this config.
+>  
+
+> +menuconfig PHY_PLAT
+> +	bool "Platform Phy drivers"
+
+Not really convinced about adding a new config here. This will create new
+dependencies and will also start breaking users of oldconfig.
+
+Also not all of them are platform drivers (e.g ULPI PHY drivers).
+
+Thanks
+Kishon
