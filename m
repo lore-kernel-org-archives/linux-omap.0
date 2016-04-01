@@ -1,102 +1,81 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/7] ARM: dts: Enable N950 keyboard sleep leds by default
-Date: Fri, 1 Apr 2016 11:32:21 -0700
-Message-ID: <20160401183221.GN9329@atomide.com>
-References: <1457827580-16919-1-git-send-email-sre@kernel.org>
- <1457827580-16919-5-git-send-email-sre@kernel.org>
- <20160329105128.GA30184@amd>
- <20160329145209.GB31858@earth>
- <20160330193520.GY9329@atomide.com>
- <20160401124523.GB10776@amd>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v9 6/7] drm/i2c: tda998x: Register ASoC hdmi-codec and
+ add audio DT binding
+Date: Fri, 1 Apr 2016 13:37:06 -0500
+Message-ID: <20160401183706.GA17145@rob-hp-laptop>
+References: <cover.1459431292.git.jsarha@ti.com>
+ <f8bdb070efdf6724ddc6bdb28baaa624ce6fb8af.1459431292.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <20160401124523.GB10776@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sebastian Reichel <sre@kernel.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <f8bdb070efdf6724ddc6bdb28baaa624ce6fb8af.1459431292.git.jsarha@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Jyri Sarha <jsarha@ti.com>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, arnaud.pouliquen@st.com, dri-devel@lists.freedesktop.org, peter.ujfalusi@ti.com, tony@atomide.com, broonie@kernel.org, bcousson@baylibre.com, rmk+kernel@arm.linux.org.uk, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [160401 05:46]:
-> Hi!
-> 
-> > > On Tue, Mar 29, 2016 at 12:51:28PM +0200, Pavel Machek wrote:
-> > > > For 1-3 in the series, Acked-by: Pavel Machek <pavel@ucw.cz>
-> > > > 
-> > > > > Like the Nokia N900, the N950 has leds to show
-> > > > > the state of sys_clkreq and sys_off_mode pins.
-> > > > > 
-> > > > > A detailed description for the LEDs and
-> > > > > OMAP's sleep states can be found in Tony's
-> > > > > commit for the Nokia N900:
-> > > > > 
-> > > > > c1be2032f66df9e1238bd5bc4ca666de88a62abc
-> > > > 
-> > > > I must say I've seen it on N900, and yes, it is useful, but no, I
-> > > > don't think this is right.
-> > > >
-> > > > This is not a LED. This is a interface that changes meaning of two
-> > > > other LEDs. I guess it should go to debugfs somewhere.
-> > 
-> > Eh that sounds like a GPIO LED to me :) And it already has a
-> > /sys/class/leds/debug interface.
-> > 
-> > The two LEDs this GPIO controls are hardwired to sys_clkreq and
-> > sys_off_mode pins that are the control signals between the SoC
-> > and PMIC.
-> 
-> No, not on N900. On N900, these LEDs are normally used for keyboard
-> backlight.
-
-Oh I see. I've totally forgotten that as I always keep the debug
-option enabled :) The extra battery consumption by those is quite
-minimal and warns you if you have something hogging the CPU.
-
-> > In theory you could steal the sys_clkreq and sys_off_mode pins
-> > from the PMIC at the cost of breaking PM. But I doubt anybody
-> > wants to do that considering it's a battery operated device.
-> 
-> No. It seems that on N900, you can select whether sys_clkreq and
-> sys_off_mode is binary-or'ed with normal control of two keyboard
-> backlight LEDs.
-
-That might be doable by reconfiguring the I2C LED driver.
-
-For the GPIO, the "default-on" just keeps the I2C LED driver
-powered.
-
-> > > I don't think we should diverge N900 and N950 userspace
-> > > APIs in this regard.
-> > > 
-> > > Actually the correct way would be a custom trigger
-> > > for the leds IMHO. I don't know if the led framework
-> > > supports per led custom triggers, though.
-> > 
-> > Sure, there are something like 10 triggers already. And
-> > you can already change them using:
-> > 
-> > echo none > /sys/class/leds/debug::sleep/trigger
-> > 
-> > That still does not change the fact that the LEDs trigger
-> > based on the state of sys_clkreq and sys_off_mode.
-> > 
-> > Maybe I'm not following what you guys are trying to achieve
-> > here though :) If so, please let me know.
-> 
-> ...and this is what this GPIO does. So it is not exactly a LED. You
-> can turn it on, but than, _two_ LEDs will start blinking. You can't
-> control them with the brightess control. "Heartbeat" trigger is going
-> to be very confusing on debug::sleep.
-
-And it occured to me that adding any other policy than
-"default-on" to the GPIO LED will only work when the device
-is active.
-
-Sounds like the thing to do is to just configure the I2C LED
-controller in the dts file if we don't already have that. And
-assuming it has a Linux driver.
-
-Regards,
-
-Tony
+T24gVGh1LCBNYXIgMzEsIDIwMTYgYXQgMDQ6MzY6MDNQTSArMDMwMCwgSnlyaSBTYXJoYSB3cm90
+ZToKPiBSZWdpc3RlciBBU29DIEhETUkgY29kZWMgZm9yIGF1ZGlvIGZ1bmN0aW9uYWxpdHkgYW5k
+IGFkZHMgZGV2aWNlIHRyZWUKPiBiaW5kaW5nIGZvciBhdWRpbyBjb25maWd1cmF0aW9uLgo+IAo+
+IFdpdGggdGhlIHJlZ2lzdGVyZWQgSERNSSBjb2RlYyB0aGUgdGRhOTk4eCBub2RlIGNhbiBiZSB1
+c2VkIGxpa2UgYQo+IHJlZ3VsYXIgY29kZWMgbm9kZSBpbiBBU29DIGNhcmQgY29uZmlndXJhdGlv
+bnMuIEhETUkgYXVkaW8gaW5mby1mcmFtZQo+IGFuZCBhdWRpbyBzdHJlYW0gaGVhZGVyIGlzIGdl
+bmVyYXRlZCBieSB0aGUgQVNvQyBIRE1JIGNvZGVjLiBUaGUgY29kZWMKPiBhbHNvIGFwcGxpZXMg
+Y29uc3RyYWludHMgZm9yIGF2YWlsYWJsZSBzYW1wbGUtcmF0ZXMgYmFzZWQgb24gRWRpZCBMaWtl
+Cj4gRGF0YSBmcm9tIHRoZSBkaXNwbGF5LiBUaGUgZGV2aWNlIHRyZWUgYmluZGluZyBkb2N1bWVu
+dCBoYXMgYmVlbgo+IHVwZGF0ZWQgWzFdLgo+IAo+IFBhcnQgb2YgdGhpcyBwYXRjaCBoYXMgYmVl
+biBpbnNwaXJlZCBieSBKZWFuIEZyYW5jb2lzZSdzICJkcm0vaTJjOiB0ZGE5OTh4Ogo+IEFkZCBz
+dXBwb3J0IG9mIGEgRFQgZ3JhcGggb2YgcG9ydHMiLXBhdGNoIFsyXS4gVGhlcmUgbWF5IHN0aWxs
+IGJlIHNvbWUKPiBpZGVudGljYWwgbGluZXMgbGVmdCBmcm9tIHRoZSBvcmlnaW5hbCBwYXRjaCBh
+bmQgc29tZSBvZiB0aGUgaWRlYXMKPiBoYXZlIGNvbWUgZnJvbSB0aGVyZS4KPiAKPiBbMV0gRG9j
+dW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2Rpc3BsYXkvYnJpZGdlL3RkYTk5OHgudHh0
+Cj4gWzJdIGh0dHA6Ly9tYWlsbWFuLmFsc2EtcHJvamVjdC5vcmcvcGlwZXJtYWlsL2Fsc2EtZGV2
+ZWwvMjAxNS1KdWx5LzA5NTI1NS5odG1sCj4gCj4gU2lnbmVkLW9mZi1ieTogSnlyaSBTYXJoYSA8
+anNhcmhhQHRpLmNvbT4KPiAtLS0KPiAgLi4uL2RldmljZXRyZWUvYmluZGluZ3MvZGlzcGxheS9i
+cmlkZ2UvdGRhOTk4eC50eHQgfCAgMTggKysKPiAgZHJpdmVycy9ncHUvZHJtL2kyYy9LY29uZmln
+ICAgICAgICAgICAgICAgICAgICAgICAgfCAgIDEgKwo+ICBkcml2ZXJzL2dwdS9kcm0vaTJjL3Rk
+YTk5OHhfZHJ2LmMgICAgICAgICAgICAgICAgICB8IDE5OCArKysrKysrKysrKysrKysrKysrKy0K
+PiAgaW5jbHVkZS9kcm0vaTJjL3RkYTk5OHguaCAgICAgICAgICAgICAgICAgICAgICAgICAgfCAg
+IDQgKy0KPiAgaW5jbHVkZS9kdC1iaW5kaW5ncy9kaXNwbGF5L3RkYTk5OHguaCAgICAgICAgICAg
+ICAgfCAgIDcgKwo+ICA1IGZpbGVzIGNoYW5nZWQsIDIyMyBpbnNlcnRpb25zKCspLCA1IGRlbGV0
+aW9ucygtKQo+ICBjcmVhdGUgbW9kZSAxMDA2NDQgaW5jbHVkZS9kdC1iaW5kaW5ncy9kaXNwbGF5
+L3RkYTk5OHguaAo+IAo+IGRpZmYgLS1naXQgYS9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmlu
+ZGluZ3MvZGlzcGxheS9icmlkZ2UvdGRhOTk4eC50eHQgYi9Eb2N1bWVudGF0aW9uL2RldmljZXRy
+ZWUvYmluZGluZ3MvZGlzcGxheS9icmlkZ2UvdGRhOTk4eC50eHQKPiBpbmRleCBlMTc4ZTZiLi4y
+NGNjMjQ2IDEwMDY0NAo+IC0tLSBhL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9k
+aXNwbGF5L2JyaWRnZS90ZGE5OTh4LnR4dAo+ICsrKyBiL0RvY3VtZW50YXRpb24vZGV2aWNldHJl
+ZS9iaW5kaW5ncy9kaXNwbGF5L2JyaWRnZS90ZGE5OTh4LnR4dAo+IEBAIC0yMSw4ICsyMSwxOSBA
+QCBPcHRpb25hbCBwcm9wZXJ0aWVzOgo+ICAgIC0gdmlkZW8tcG9ydHM6IDI0IGJpdHMgdmFsdWUg
+d2hpY2ggZGVmaW5lcyBob3cgdGhlIHZpZGVvIGNvbnRyb2xsZXIKPiAgCW91dHB1dCBpcyB3aXJl
+ZCB0byB0aGUgVERBOTk4eCBpbnB1dCAtIGRlZmF1bHQ6IDwweDIzMDE0NT4KPiAgCj4gKyAgLSBh
+dWRpby1wb3J0czogYXJyYXkgb2YgOC1iaXQgdmFsdWVzLCAyIHZhbHVlcyBwZXIgb25lIERBSVsx
+XS4KClRoaXMgc2hvdWxkIGhhdmUgbnhwIHByZWZpeC4gV2l0aCB0aGF0LAoKQWNrZWQtYnk6IFJv
+YiBIZXJyaW5nIDxyb2JoQGtlcm5lbC5vcmc+CgoKPiArCVRoZSBmaXJzdCB2YWx1ZSBkZWZpbmVz
+IHRoZSBEQUkgdHlwZTogVERBOTk4eF9TUERJRiBvciBUREE5OTh4X0kyU1syXS4KPiArCVRoZSBz
+ZWNvbmQgdmFsdWUgZGVmaW5lcyB0aGUgdGRhOTk4eCBBUF9FTkEgcmVnIGNvbnRlbnQgd2hlbiB0
+aGUgREFJCj4gKwlpbiBxdWVzdGlvbiBpcyB1c2VkLiBUaGUgaW1wbGVtZW50YXRpb24gYWxsb3dz
+IG9uZSBvciB0d28gREFJcy4gSWYgdHdvCj4gKwlEQUlzIGFyZSBkZWZpbmVkLCB0aGV5IG11c3Qg
+YmUgb2YgZGlmZmVyZW50IHR5cGUuCj4gKwo+ICtbMV0gRG9jdW1lbnRhdGlvbi9zb3VuZC9hbHNh
+L3NvYy9EQUkudHh0Cj4gK1syXSBpbmNsdWRlL2R0LWJpbmRpbmdzL2Rpc3BsYXkvdGRhOTk4eC5o
+Cj4gKwo+ICBFeGFtcGxlOgo+ICAKPiArI2luY2x1ZGUgPGR0LWJpbmRpbmdzL2Rpc3BsYXkvdGRh
+OTk4eC5oPgo+ICsKPiAgCXRkYTk5OHg6IGhkbWktZW5jb2RlciB7Cj4gIAkJY29tcGF0aWJsZSA9
+ICJueHAsdGRhOTk4eCI7Cj4gIAkJcmVnID0gPDB4NzA+Owo+IEBAIC0zMCw0ICs0MSwxMSBAQCBF
+eGFtcGxlOgo+ICAJCWludGVycnVwdHMgPSA8MjcgMj47CQkvKiBmYWxsaW5nIGVkZ2UgKi8KPiAg
+CQlwaW5jdHJsLTAgPSA8JnBteF9jYW1lcmE+Owo+ICAJCXBpbmN0cmwtbmFtZXMgPSAiZGVmYXVs
+dCI7Cj4gKwkJdmlkZW8tcG9ydHMgPSA8MHgyMzAxNDU+Owo+ICsKPiArCQkjc291bmQtZGFpLWNl
+bGxzID0gPDI+Owo+ICsJCQkgICAgIC8qCURBSS1mb3JtYXQJQVBfRU5BIHJlZyB2YWx1ZSAqLwo+
+ICsJCWF1ZGlvLXBvcnRzID0gPAlUREE5OTh4X1NQRElGCTB4MDQKPiArCQkJCVREQTk5OHhfSTJT
+CTB4MDM+Owo+ICsKPiAgCX07Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNr
+dG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Ry
+aS1kZXZlbAo=
