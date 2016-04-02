@@ -1,61 +1,43 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 4/7] ARM: dts: Enable N950 keyboard sleep leds by default
-Date: Sat, 2 Apr 2016 08:47:57 +0200
-Message-ID: <20160402064757.GA13872@amd>
-References: <1457827580-16919-1-git-send-email-sre@kernel.org>
- <1457827580-16919-5-git-send-email-sre@kernel.org>
- <20160329105128.GA30184@amd>
- <20160329145209.GB31858@earth>
- <20160330193520.GY9329@atomide.com>
- <20160401124523.GB10776@amd>
- <20160401183221.GN9329@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160401183221.GN9329@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Sebastian Reichel <sre@kernel.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Felipe Balbi <balbif-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/6] usb: dwc3: st: fix dma initialization
+Date: Sat,  2 Apr 2016 11:28:54 +0300
+Message-ID: <1459585739-21204-2-git-send-email-felipe.balbi@linux.intel.com>
+References: <1459585739-21204-1-git-send-email-felipe.balbi@linux.intel.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1459585739-21204-1-git-send-email-felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Srinivas Kandagatla <srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Maxime Coquelin <maxime.coquelin-qxv4g6HH51o@public.gmane.org>, Patrice Chotard <patrice.chotard-qxv4g6HH51o@public.gmane.org>, Andy Gross <andy.gross-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Ivan T . Ivanov" <ivan.ivanov-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+Current code was basically a no-op. As it was
+initializing dev->coherent_dma_mask with
+dev->coherent_dma_mask. Due to lack of more
+information, just initialize it to a 32-bit mask.
 
-> > > The two LEDs this GPIO controls are hardwired to sys_clkreq and
-> > > sys_off_mode pins that are the control signals between the SoC
-> > > and PMIC.
-> > 
-> > No, not on N900. On N900, these LEDs are normally used for keyboard
-> > backlight.
-> 
-> Oh I see. I've totally forgotten that as I always keep the debug
-> option enabled :) The extra battery consumption by those is quite
-> minimal and warns you if you have something hogging the CPU.
+Signed-off-by: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+---
+ drivers/usb/dwc3/dwc3-st.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Yes, I like it.
-
-> > ...and this is what this GPIO does. So it is not exactly a LED. You
-> > can turn it on, but than, _two_ LEDs will start blinking. You can't
-> > control them with the brightess control. "Heartbeat" trigger is going
-> > to be very confusing on debug::sleep.
-> 
-> And it occured to me that adding any other policy than
-> "default-on" to the GPIO LED will only work when the device
-> is active.
-> 
-> Sounds like the thing to do is to just configure the I2C LED
-> controller in the dts file if we don't already have that. And
-> assuming it has a Linux driver.
-
-I don't see what you mean here. If you want to always keep the debug
-leds on... that may be a bit confusing for the users (and Pali wants
-to keep kernel usable for mere mortals it seems).
-
-Anyway, current solution is not too horrible (its wrong but it does
-not hurt that much), so...
-
-Best regards,
-									Pavel
+diff --git a/drivers/usb/dwc3/dwc3-st.c b/drivers/usb/dwc3/dwc3-st.c
+index 5c0adb9c6fb2..33b85ae4e698 100644
+--- a/drivers/usb/dwc3/dwc3-st.c
++++ b/drivers/usb/dwc3/dwc3-st.c
+@@ -212,7 +212,8 @@ static int st_dwc3_probe(struct platform_device *pdev)
+ 	if (IS_ERR(regmap))
+ 		return PTR_ERR(regmap);
+ 
+-	dma_set_coherent_mask(dev, dev->coherent_dma_mask);
++	dma_coerce_mask_and_coherent(dev, DMA_BIT_MASK(32));
++
+ 	dwc3_data->dev = dev;
+ 	dwc3_data->regmap = regmap;
+ 
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+2.7.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
