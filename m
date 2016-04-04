@@ -1,107 +1,59 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 0/3] ARM: OMAP3: Fix McBSP2/3 hwmod setup for sidetone
-Date: Mon, 4 Apr 2016 08:12:01 -0700
-Message-ID: <20160404151200.GA4652@atomide.com>
-References: <1458311007-19168-1-git-send-email-peter.ujfalusi@ti.com>
- <alpine.DEB.2.02.1603191937430.6629@utopia.booyaka.com>
- <56EFB794.5010505@ti.com>
- <alpine.DEB.2.02.1603211743200.31059@utopia.booyaka.com>
- <56FE407E.9030803@ti.com>
- <20160402001753.GR9329@atomide.com>
- <57026205.6020105@ti.com>
+From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RFC PATCH] ARM: clocksource: make ARM_GLOBAL_TIMER selectable
+Date: Mon, 4 Apr 2016 18:12:30 +0300
+Message-ID: <5702845E.90606@ti.com>
+References: <1454610017-25499-1-git-send-email-grygorii.strashko@ti.com>
+ <20160204224128.GG4215@xsjsorenbubuntu>
+ <CAAtXAHcV-9gXcZOX8dzUOBZUwj9M=O4MAsMCJNQYAP+os-D7Tg@mail.gmail.com>
+ <20160204233950.GH4215@xsjsorenbubuntu> <56D04D17.6030502@ti.com>
+ <20160226152714.GD3173@xsjsorenbubuntu> <56DEAFB7.50105@ti.com>
+ <56EAB44D.7020902@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <57026205.6020105@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, jarkko.nikula@bitmer.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <56EAB44D.7020902-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-rockchip>,
+ <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-rockchip/>
+List-Post: <mailto:linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-rockchip>,
+ <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "Linux-rockchip" <linux-rockchip-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, =?UTF-8?Q?S=c3=b6ren_Brinkmann?= <soren.brinkmann-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+Cc: kernel-F5mvAk5X5gdBDgjK7y7TUQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Liviu Dudau <liviu.dudau-5wv7dgnIgG8@public.gmane.org>, Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, Florian Fainelli <f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Michal Simek <michal.simek-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, Wei Xu <xuwei5-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, bcm-kernel-feedback-list-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Maxime Coquelin <maxime.coquelin-qxv4g6HH51o@public.gmane.org>, Moritz Fischer <moritz.fischer-+aYTwkv1SeIAvxtiuMwx3w@public.gmane.org>, Srinivas Kandagatla <srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Jun Nie <jun.nie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [160404 05:47]:
-> On 04/02/16 03:17, Tony Lindgren wrote:
-> > * Peter Ujfalusi <peter.ujfalusi@ti.com> [160401 02:34]:
-> >> So what shall we do with the OMAP3 McBSP2/3 sidetone? It has been broken in DT
-> >> boot since the first time we booted OMAP3 with DT... Only in legacy mode we
-> >> can have properly working ST.
-> > 
-> > Grr.
+Hi Daniel,
+On 03/17/2016 03:42 PM, Daniel Lezcano wrote:
+> On 03/08/2016 11:55 AM, Grygorii Strashko wrote:
+>> Yeah. Thanks
+>>
+>> I'll re-send it after 4.6-rc.
+>> But What I'm not fully understand is how to get it merged taking into 
+>> account that
+>> it touches few maches & clocksource :(
 > 
-> Yes :(
-> The reason for this is that in DT boot we can not provide the
-> enable_st_clock() callback to the mcbsp driver stack. This is done for legacy
-> boot in mach-omap2/mcbsp.c
-
-Seems like the short term fix there is to pass enable_st_clock pointer
-in pdata using pdata-quirks.c. Then for the long term solution using
-PM runtime to block gating of the clock while sidetone is active is
-the way to go it seems.
-
-> The ST does not have clocks coming from PRCM level, it only uses the McBSP
-> iclk when it is enabled (the McBSP block of the McBSP). As far as pm_runtime
-> goes I think the ST module should not use it. We can not tell hwmod to
-> enable/disable the McBSP2/3 iclk when we pm_runtime for the ST. It does not
-> help at all. We can have nop action for the ST when pm_runtime is used, but
-> then why would we have it?
-
-Using PM runtime in the sidetone driver should just work as long as the
-sidetone device driver depends on the McBSP driver before it gets probed.
-The clock framework handles things for the mcbsp ick with the usecount.
-And doing pm_runtime_get() in the sidetone driver will do what the legacy
-enable_st_clock() does currently.
-
-> > So having two separate drivers might make things a lot simpler.
+> This is not a problem. Send it based on timers/core from the tip tree 
+> and Cc the maintainers for the maches dir. As soon as they ack the 
+> patches, I will merge it through my tree.
 > 
-> Not really. It will make things way more complicated imho. How to handle
-> legacy boot as we still have that supported?
 
-Hey both the legacy driver and DT driver are really just platform devices
-and drivers. And passing both dts and platform data can be done just
-fine, no?
+I've rebased my patch on top of 4.6-rc2 and extended it on new mach
+arch/arm/mach-artpec.
 
-> When the McBSP driver is loaded we must know if it has sidetone or not so
-> we can create the needed audio controls, sysfs entries. The sysfs and
-> kcontrol registration could be moved out to the new ST driver, true.
+Then, as you've suggested, I've tried to apply it on top of 
+kernel-tip/timers/core
+kernel-tip := git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip.git
 
-Yeah during the probe, the sidetone driver must register with the McBSP
-driver to tell it's there. I guess no need to pass anything in the
-dts or platform_data for that.
+but seems timers/core is obsolete (It doesn't contain arch/arm/mach-artpec yet).
 
-> I actually started with two separate drivers approach first, but decided that
-> it does not worth the effort (legacy boot support, pm_runtime/hwmod hassle,
-> platform data, callback API design, etc).
-> I know, it is not rocket science but it is king of shoot out of cannon into
-> sparrows.
-> I'll think about it for a little while ;)
+Should I wait more or can resend it basing on top of  4.6-rc2?
 
-Well what we've seen so far is that any kind of non-standard solution
-will always be a pain to maintain in the long run :)
 
-> > If you don't treat the McBSP and sidetone as separate modules, things can
-> > easily fail. For example, doing a read-back to flush of posted write to
-> > sidetone registers flushes nothing for McBSP and the other way around.
-> 
-> I don't see problem with the need of flushing if we would need it. I don't
-> think we are doing anything proactively to flush writes in the driver today
-> and we do have at least one product using the ST (n900).
 
-Usually the problem is with an interrupt ack write not reaching the device
-in time before something else happens. So I could see mysterious issues
-happening with the McBSP and sidetone having separate interrupts. Maybe
-not a real problem, but the chance for it is still there for sure.
-
-> >> Other option would be to deprecate the ST support as such, but that would
-> >> leave the n900 guys in trouble as they need ST to be functional...
-> > 
-> > That does not sound like a nice option at all :(
-> 
-> I know. This has been bugging me for a long time. I want to fix this one
-> before my beagleboard-xm gives up and won't boot up anymore since after that I
-> will have no omap3 board to work with :(
-
-There are plenty of cheap omap3 devices available out there though :)
-
-Regards,
-
-Tony
+-- 
+regards,
+-grygorii
