@@ -1,59 +1,66 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC PATCH] ARM: clocksource: make ARM_GLOBAL_TIMER selectable
-Date: Mon, 4 Apr 2016 18:12:30 +0300
-Message-ID: <5702845E.90606@ti.com>
-References: <1454610017-25499-1-git-send-email-grygorii.strashko@ti.com>
- <20160204224128.GG4215@xsjsorenbubuntu>
- <CAAtXAHcV-9gXcZOX8dzUOBZUwj9M=O4MAsMCJNQYAP+os-D7Tg@mail.gmail.com>
- <20160204233950.GH4215@xsjsorenbubuntu> <56D04D17.6030502@ti.com>
- <20160226152714.GD3173@xsjsorenbubuntu> <56DEAFB7.50105@ti.com>
- <56EAB44D.7020902@linaro.org>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 0/8] ARM: dts: fixes for DT warnings on OMAP2+ platforms
+Date: Mon, 4 Apr 2016 18:16:05 +0300
+Message-ID: <1459782973-21201-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-In-Reply-To: <56EAB44D.7020902-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-rockchip>,
- <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-rockchip/>
-List-Post: <mailto:linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-rockchip>,
- <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "Linux-rockchip" <linux-rockchip-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, =?UTF-8?Q?S=c3=b6ren_Brinkmann?= <soren.brinkmann-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
-Cc: kernel-F5mvAk5X5gdBDgjK7y7TUQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Liviu Dudau <liviu.dudau-5wv7dgnIgG8@public.gmane.org>, Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, Florian Fainelli <f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Michal Simek <michal.simek-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, Wei Xu <xuwei5-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, bcm-kernel-feedback-list-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Maxime Coquelin <maxime.coquelin-qxv4g6HH51o@public.gmane.org>, Moritz Fischer <moritz.fischer-+aYTwkv1SeIAvxtiuMwx3w@public.gmane.org>, Srinivas Kandagatla <srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Jun Nie <jun.nie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Daniel,
-On 03/17/2016 03:42 PM, Daniel Lezcano wrote:
-> On 03/08/2016 11:55 AM, Grygorii Strashko wrote:
->> Yeah. Thanks
->>
->> I'll re-send it after 4.6-rc.
->> But What I'm not fully understand is how to get it merged taking into 
->> account that
->> it touches few maches & clocksource :(
-> 
-> This is not a problem. Send it based on timers/core from the tip tree 
-> and Cc the maintainers for the maches dir. As soon as they ack the 
-> patches, I will merge it through my tree.
-> 
+Hi,
 
-I've rebased my patch on top of 4.6-rc2 and extended it on new mach
-arch/arm/mach-artpec.
+This set fixes the clock node related warnings for OMAP2+ platforms
+that are going to be introduced with the new version of DTC that
+does stricter checks on DT structure. Basically, the address component
+is currently missing on the node names that have a reg properly, which
+is illegal.
 
-Then, as you've suggested, I've tried to apply it on top of 
-kernel-tip/timers/core
-kernel-tip := git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip.git
+Set applied on top of 4.6-rc2. Pushed branch here also:
 
-but seems timers/core is obsolete (It doesn't contain arch/arm/mach-artpec yet).
+tree: https://github.com/t-kristo/linux-pm.git
+branch: 4.6-rc2-clk-dt-warn-fixes
 
-Should I wait more or can resend it basing on top of  4.6-rc2?
+Boot tested on following boards:
 
+  : Board           : Boot WRN version                 
+ 1: am335x-evm      : PASS   0 4.6.0-rc2-00008-gadb720d
+ 2: am335x-evmsk    : PASS   0 4.6.0-rc2-00008-gadb720d
+ 3: am3517-evm      : PASS   1 4.6.0-rc2-00008-gadb720d
+ 4: am37x-evm       : PASS   0 4.6.0-rc2-00008-gadb720d
+ 5: am437x-sk       : PASS   0 4.6.0-rc2-00008-gadb720d
+ 6: am43x-epos-evm  : FAIL   0 4.6.0-rc2-00008-gadb720d
+ 7: am437x-gp-evm   : PASS   0 4.6.0-rc2-00008-gadb720d
+ 8: am57xx-evm      : PASS   0 4.6.0-rc2-00008-gadb720d
+ 9: omap3-beagle-xm : PASS   0 4.6.0-rc2-00008-gadb720d
+10: omap3-beagle    : PASS   0 4.6.0-rc2-00008-gadb720d
+11: am335x-boneblack: PASS   0 4.6.0-rc2-00008-gadb720d
+12: am335x-bone     : PASS   0 4.6.0-rc2-00008-gadb720d
+13: craneboard      : PASS   1 4.6.0-rc2-00008-gadb720d
+14: dra72x-evm      : PASS   0 4.6.0-rc2-00008-gadb720d
+15: dra7xx-evm      : PASS   0 4.6.0-rc2-00008-gadb720d
+16: ldp3430         : PASS   0 4.6.0-rc2-00008-gadb720d
+17: omap3-n900      : FAIL   0                         
+18: omap5-uevm      : FAIL   0                         
+19: omap4-panda-es  : PASS   0 4.6.0-rc2-00008-gadb720d
+20: omap4-panda     : PASS   0 4.6.0-rc2-00008-gadb720d
+21: omap2430-sdp    : PASS   0 4.6.0-rc2-00008-gadb720d
+22: omap3430-sdp    : PASS   0 4.6.0-rc2-00008-gadb720d
+23: omap4-sdp-es23plus: PASS   0 4.6.0-rc2-00008-gadb720d
+TOTAL = 23 boards, Booted Boards = 20, No Boot boards = 3
 
+The boot failures detected are caused by board defects on the test
+farm I am using, except for the am43xx-epos, which is a known issue
+(syntimer fix still missing from -rc2.)
 
--- 
-regards,
--grygorii
+Also ran a quick suspend/resume test on omap3/omap4 and that seems
+to be working fine also.
+
+-Tero
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
