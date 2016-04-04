@@ -1,35 +1,112 @@
-From: Michal Nazarewicz <mina86-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>
-Subject: Re: USB gadgets with configfs hang reboot
-Date: Mon, 04 Apr 2016 20:48:30 +0200
-Message-ID: <xa1tr3eli51d.fsf@mina86.com>
-References: <Pine.LNX.4.44L0.1604021031030.19366-100000@netrider.rowland.org> <xa1ty48tilai.fsf@mina86.com> <570293E8.2060406@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <570293E8.2060406-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, pali =?utf-8?Q?Roh=C3=A1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] regulator: twl: Provide of_map_mode for twl4030
+Date: Mon,  4 Apr 2016 21:57:14 +0300
+Message-ID: <1459796234-2430-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+References: <20160328093938.GA2350@sirena.org.uk>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160328093938.GA2350-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Apr 04 2016, Ivaylo Dimitrov wrote:
-> Who and when is going to destroy the thread if one does
-> "/sys/bus/platform/drivers/musb-hdrc# echo musb-hdrc.0.auto > unbind"=
-?
-> Wouldn't some kind of refcounting make sense here?
+of_map_mode is needed so to be possible to set initial regulators mode from
+the board DTS. Otherwise, for DT boot, regulators are left in their default
+state after reset/reboot. Document device specific modes as well.
 
-Currently the thread is killed when fsg_common structure is released an=
-d
-that structure has a reference counter.
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ .../devicetree/bindings/regulator/twl-regulator.txt      |  8 ++++++++
+ drivers/regulator/twl-regulator.c                        | 16 +++++++++++++---
+ 2 files changed, 21 insertions(+), 3 deletions(-)
 
---=20
-Best regards
-=E3=83=9F=E3=83=8F=E3=82=A6 =E2=80=9C=F0=9D=93=B6=F0=9D=93=B2=F0=9D=93=B7=
-=F0=9D=93=AA86=E2=80=9D =E3=83=8A=E3=82=B6=E3=83=AC=E3=83=B4=E3=82=A4=E3=
-=83=84
-=C2=ABIf at first you don=E2=80=99t succeed, give up skydiving=C2=BB
+diff --git a/Documentation/devicetree/bindings/regulator/twl-regulator.txt b/Documentation/devicetree/bindings/regulator/twl-regulator.txt
+index 75b0c16..fe759903 100644
+--- a/Documentation/devicetree/bindings/regulator/twl-regulator.txt
++++ b/Documentation/devicetree/bindings/regulator/twl-regulator.txt
+@@ -57,6 +57,14 @@ For twl4030 regulators/LDOs
+ 
+ Optional properties:
+ - Any optional property defined in bindings/regulator/regulator.txt
++For twl4030 regulators/LDOs:
++ - regulator-initial-mode:
++  - 0x00 - Off mode, the output voltage is not maintained and voltage regulator
++           power consumption is 0.
++  - 0x08 - Sleep mode, the nominal output voltage is maintained with low power
++           consumption with low load current capability.
++  - 0x0e - Active mode, the regulator can deliver its nominal output voltage
++           with full-load current capability.
+ 
+ Example:
+ 
+diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
+index aad748b0..be8d05e 100644
+--- a/drivers/regulator/twl-regulator.c
++++ b/drivers/regulator/twl-regulator.c
+@@ -395,6 +395,12 @@ static int twl4030reg_set_mode(struct regulator_dev *rdev, unsigned mode)
+ 	return twl4030_send_pb_msg(message);
+ }
+ 
++static inline unsigned int twl4030reg_map_mode(unsigned int mode)
++{
++	return mode == RES_STATE_ACTIVE ?
++				REGULATOR_MODE_NORMAL : REGULATOR_MODE_STANDBY;
++}
++
+ static int twl6030reg_set_mode(struct regulator_dev *rdev, unsigned mode)
+ {
+ 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
+@@ -897,10 +903,11 @@ static struct regulator_ops twlsmps_ops = {
+ #define TWL4030_FIXED_LDO(label, offset, mVolts, num, turnon_delay, \
+ 			remap_conf) \
+ 		TWL_FIXED_LDO(label, offset, mVolts, num, turnon_delay, \
+-			remap_conf, TWL4030, twl4030fixed_ops)
++			remap_conf, TWL4030, twl4030fixed_ops, \
++			twl4030reg_map_mode)
+ #define TWL6030_FIXED_LDO(label, offset, mVolts, turnon_delay) \
+ 		TWL_FIXED_LDO(label, offset, mVolts, 0x0, turnon_delay, \
+-			0x0, TWL6030, twl6030fixed_ops)
++			0x0, TWL6030, twl6030fixed_ops, 0x0)
+ 
+ #define TWL4030_ADJUSTABLE_LDO(label, offset, num, turnon_delay, remap_conf) \
+ static const struct twlreg_info TWL4030_INFO_##label = { \
+@@ -917,6 +924,7 @@ static const struct twlreg_info TWL4030_INFO_##label = { \
+ 		.type = REGULATOR_VOLTAGE, \
+ 		.owner = THIS_MODULE, \
+ 		.enable_time = turnon_delay, \
++		.of_map_mode = twl4030reg_map_mode, \
+ 		}, \
+ 	}
+ 
+@@ -932,6 +940,7 @@ static const struct twlreg_info TWL4030_INFO_##label = { \
+ 		.type = REGULATOR_VOLTAGE, \
+ 		.owner = THIS_MODULE, \
+ 		.enable_time = turnon_delay, \
++		.of_map_mode = twl4030reg_map_mode, \
+ 		}, \
+ 	}
+ 
+@@ -977,7 +986,7 @@ static const struct twlreg_info TWL6032_INFO_##label = { \
+ 	}
+ 
+ #define TWL_FIXED_LDO(label, offset, mVolts, num, turnon_delay, remap_conf, \
+-		family, operations) \
++		family, operations, map_mode) \
+ static const struct twlreg_info TWLFIXED_INFO_##label = { \
+ 	.base = offset, \
+ 	.id = num, \
+@@ -992,6 +1001,7 @@ static const struct twlreg_info TWLFIXED_INFO_##label = { \
+ 		.owner = THIS_MODULE, \
+ 		.min_uV = mVolts * 1000, \
+ 		.enable_time = turnon_delay, \
++		.of_map_mode = map_mode, \
+ 		}, \
+ 	}
+ 
+-- 
+1.9.1
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
