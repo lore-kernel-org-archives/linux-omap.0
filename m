@@ -1,93 +1,94 @@
-From: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH v3 2/2] usb:dwc3: pass arch data to xhci-hcd child
-Date: Mon, 04 Apr 2016 09:28:14 +0300
-Message-ID: <87oa9p7url.fsf@intel.com>
-References: <1457594332-7490-1-git-send-email-tqnguyen@apm.com> <1457594332-7490-3-git-send-email-tqnguyen@apm.com> <87mvpgi02f.fsf@intel.com> <56FBDA0D.4030507@ti.com> <87egashxz8.fsf@intel.com> <CAKrQpSvgTm+OM+ffO4ZKwpb=J3ewKoWYA7ojE+WKBbiYKwdMqw@mail.gmail.com> <87k2kjgjjf.fsf@intel.com> <56FD3D2F.8070501@ti.com> <871t6pahg8.fsf@intel.com> <56FE4378.3030205@ti.com> <87shz58wbw.fsf@intel.com> <56FE54DB.5000201@ti.com> <878u0x8ru4.fsf@intel.com> <56FEBAC1.2040509@oracle.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 03/12] mtd: nand: omap2: rely on generic DT
+ parsing done in nand_scan_ident()
+Date: Mon, 4 Apr 2016 10:23:04 +0300
+Message-ID: <57021658.5060901@ti.com>
+References: <1459515272-31011-1-git-send-email-boris.brezillon@free-electrons.com>
+ <1459515272-31011-4-git-send-email-boris.brezillon@free-electrons.com>
+Reply-To: rogerq-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56FEBAC1.2040509-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: santosh shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, "Thang Q. Nguyen" <tqnguyen-qTEPVZfXA3Y@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "Karicheri, Muralidharan" <m-karicheri2-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Phong Vo <pvo-qTEPVZfXA3Y@public.gmane.org>, Loc Ho <lho-qTEPVZfXA3Y@public.gmane.org>, patches <patches-qTEPVZfXA3Y@public.gmane.org>, Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Ben Dooks (embedded platforms)" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-sunxi+bncBD45J6OZZMOBB5NMRC4AKGQEP7OH3WQ-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Sender: linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+In-Reply-To: <1459515272-31011-4-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+List-Post: <https://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <https://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <https://groups.google.com/group/linux-sunxi
+List-Subscribe: <https://groups.google.com/group/linux-sunxi/subscribe>, <mailto:linux-sunxi+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+1076902468213+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <https://groups.google.com/group/linux-sunxi/subscribe>
+To: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wenyou Yang <wenyou.yang-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>, Josh Wu <rainyfeeling-1ViLX0X+lBJBDgjK7y7TUQ@public.gmane.org>, Richard Weinberger <richard-/L3Ra7n9ekc@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kamal Dasu <kdasu.kdev-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Han Xu <han.xu-3arQi8VN3Tc@public.gmane.org>, Ezequiel Garcia <ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Stefan Agner <stefan-XLVq0VzYD2Y@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nicolas Ferre <nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>, Jean-Christophe Plagniol-Villard <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Thomas Petazzoni <thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>, bcm-kernel-feedback-list-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Chen-Yu Tsai <wens-jdAy2FN1RRM@public.gmane.org>, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Zhou Wang <wan>
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+On 01/04/16 15:54, Boris Brezillon wrote:
+> The core now takes care of parsing generic DT properties in
+> nand_scan_ident() when nand_set_flash_node() has been called.
+> Rely on this initialization instead of calling of_get_nand_xxx()
+> manually.
+> 
+> Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 
-santosh shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> writes:
-> +Arnd, RMK,
->
-> On 4/1/2016 4:57 AM, Felipe Balbi wrote:
->>
->> Hi,
->>
->> Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> writes:
->>> On 04/01/2016 01:20 PM, Felipe Balbi wrote:
->
-> [...]
->
->>> commit 7ace8fc8219e4cbbfd5b4790390d9a01a2541cdf
->>> Author: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
->>> Date:   Mon Jul 13 18:10:05 2015 +0900
->>>
->>>      usb: gadget: udc: core: Fix argument of dma_map_single for IOMMU
->>>
->>>      The dma_map_single and dma_unmap_single should set "gadget->dev.pa=
-rent"
->>>      instead of "&gadget->dev" in the first argument because the parent=
- has
->>>      a udc controller's device pointer.
->>>      Otherwise, iommu functions are not called in ARM environment.
->>>
->>>      Signed-off-by: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
->>>      Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
->>>
->>> Above actually means that DMA configuration code can be dropped from
->>> usb_add_gadget_udc_release() completely. Right?:
->>
->> true, but now I'm not sure what's better: copy all necessary bits from
->> parent or just pass the parent device to all DMA API.
->>
->> Anybody to shed a light here ?
->>
-> The expectation is drivers should pass the proper dev pointers and let=20
-> core DMA code deal with it since it knows the per device dma properties.
+Acked-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 
-okay, so how do you get proper DMA pointers with something like this:
+cheers,
+-roger
 
-	kdwc3_dma_mask =3D dma_get_mask(dev);
-	dev->dma_mask =3D &kdwc3_dma_mask;
-
-This doesn't anything.
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXAgl/AAoJEIaOsuA1yqREasYP/R2cBnfVQwZ/e5SpOVDGCEKU
-wXSSPz7G+jCJoad7BawgZWnEkoYUFazrQNknDtW0/mTCmuwmRkrYmSFJOPNIXV7P
-66yuhcUhQZEWG3fzjIVLbb2+gnh25zBzPvBt6dMNj0BI3CvGTzjxTg0lLY23Aqb/
-OoTJLDCQLN49CTpd5g5gDw4NMt1+IaCT/tystX8fc3yS9Pq0tUnwCdu0+9e9D3IF
-KiVgkFQ6i3YdcJvm1yWZ4Si9Ivws5m30Hc0vJUkMFfe/VJvW1pVcdPpd1r21/Y4/
-CV2y6XeA6GbLpSZAtawWb/QkL2OFgGXzoojnvn4GDwUAKjQmV1gmknxwU7auGdrG
-otdhRlL4ID3FLG2fwrlec4Ol/xQYbUNfy9l4jSs0Faf6uRGe6vL2laF0RCMGZqjW
-4uCRz0zE2ecrPbOXmCPWsnGalQRsW0+BtYxrKIqni27ZpY7dmJ19pyf3kp8QN5P3
-FqmQJvO6BbjO69qfvUjSKPZHKgpGMRVZZ7hWHUAv3Qx6hm/CW9uRbEbRaLTXhVCW
-XsiqeZdb2O9ddzGMAcIpkSuExCdHyMiMepDhip9NJYlA5BWGe8xNbuueyH2Jxa5v
-+61Td01U0KOrV47ETWmROEaEXE0zY3GPFCaEb5zuMo6KTYjGQ91kOOkPEELu3r9F
-xyU0NbikAzeV6A6VGZf4
-=QbeW
------END PGP SIGNATURE-----
---=-=-=--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  drivers/memory/omap-gpmc.c | 7 -------
+>  drivers/mtd/nand/omap2.c   | 9 ++++++---
+>  2 files changed, 6 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+> index 21825dd..85aa85e 100644
+> --- a/drivers/memory/omap-gpmc.c
+> +++ b/drivers/memory/omap-gpmc.c
+> @@ -25,7 +25,6 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/of.h>
+>  #include <linux/of_address.h>
+> -#include <linux/of_mtd.h>
+>  #include <linux/of_device.h>
+>  #include <linux/of_platform.h>
+>  #include <linux/omap-gpmc.h>
+> @@ -1876,12 +1875,6 @@ static int gpmc_probe_nand_child(struct platform_device *pdev,
+>  				break;
+>  			}
+>  
+> -	gpmc_nand_data->flash_bbt = of_get_nand_on_flash_bbt(child);
+> -
+> -	val = of_get_nand_bus_width(child);
+> -	if (val == 16)
+> -		gpmc_nand_data->devsize = NAND_BUSWIDTH_16;
+> -
+>  	gpmc_read_timings_dt(child, &gpmc_t);
+>  	gpmc_nand_init(gpmc_nand_data, &gpmc_t);
+>  
+> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> index 0749ca1..8921283 100644
+> --- a/drivers/mtd/nand/omap2.c
+> +++ b/drivers/mtd/nand/omap2.c
+> @@ -1704,9 +1704,7 @@ static int omap_nand_probe(struct platform_device *pdev)
+>  	}
+>  
+>  	if (pdata->flash_bbt)
+> -		nand_chip->bbt_options |= NAND_BBT_USE_FLASH | NAND_BBT_NO_OOB;
+> -	else
+> -		nand_chip->options |= NAND_SKIP_BBTSCAN;
+> +		nand_chip->bbt_options |= NAND_BBT_USE_FLASH;
+>  
+>  	/* scan NAND device connected to chip controller */
+>  	nand_chip->options |= pdata->devsize & NAND_BUSWIDTH_16;
+> @@ -1716,6 +1714,11 @@ static int omap_nand_probe(struct platform_device *pdev)
+>  		goto return_error;
+>  	}
+>  
+> +	if (nand_chip->bbt_options & NAND_BBT_USE_FLASH)
+> +		nand_chip->bbt_options |= NAND_BBT_NO_OOB;
+> +	else
+> +		nand_chip->options |= NAND_SKIP_BBTSCAN;
+> +
+>  	/* re-populate low-level callbacks based on xfer modes */
+>  	switch (pdata->xfer_type) {
+>  	case NAND_OMAP_PREFETCH_POLLED:
+> 
