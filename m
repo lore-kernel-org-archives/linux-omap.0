@@ -1,7 +1,7 @@
 From: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-Subject: [PATCH 0/5] mfd: tps65217: Add power-button support
-Date: Mon,  4 Apr 2016 19:11:00 +0200
-Message-ID: <1459789865-3704-2-git-send-email-m.niestroj@grinn-global.com>
+Subject: [PATCH 3/5] power_supply: tps65217-charger: Add support for IRQs
+Date: Mon,  4 Apr 2016 19:11:03 +0200
+Message-ID: <1459789865-3704-5-git-send-email-m.niestroj@grinn-global.com>
 References: <1459789865-3704-1-git-send-email-m.niestroj@grinn-global.com>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1459789865-3704-1-git-send-email-m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
@@ -10,34 +10,92 @@ To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Eremin-Solenikov <dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Make use of IRQ resources defined in tps65217 mfd code. If they are valid
+we use them instead separate poll task, in order to define AC power state.
 
-the following patches add tps65217 power button support and make it usable
-with am335x boards. They also fix a NULL dereference in tps65217 charger
-subsystem and add possibility to use IRQs instead of polling task to
-update AC power state.
+Signed-off-by: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
+---
+ drivers/power/tps65217_charger.c | 40 +++++++++++++++++++++++++++++++++-------
+ 1 file changed, 33 insertions(+), 7 deletions(-)
 
-Developed and tested on top of v4.6-rc2.
-
-Marcin Niestroj (5):
-  mfd: tps65217: Add support for IRQs
-  power_supply: tps65217-charger: Fix NULL deref during property export
-  power_supply: tps65217-charger: Add support for IRQs
-  mfd: tps65217: Add power button as subdevice
-  Input: Add tps65217 power button driver
-
- .../bindings/input/tps65217-pwrbutton.txt          |  14 ++
- drivers/input/misc/Kconfig                         |  10 ++
- drivers/input/misc/Makefile                        |   1 +
- drivers/input/misc/tps65217-pwrbutton.c            | 131 ++++++++++++++
- drivers/mfd/Kconfig                                |   1 +
- drivers/mfd/tps65217.c                             | 192 ++++++++++++++++++++-
- drivers/power/tps65217_charger.c                   |  46 ++++-
- include/linux/mfd/tps65217.h                       |  11 ++
- 8 files changed, 396 insertions(+), 10 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/input/tps65217-pwrbutton.txt
- create mode 100644 drivers/input/misc/tps65217-pwrbutton.c
-
+diff --git a/drivers/power/tps65217_charger.c b/drivers/power/tps65217_charger.c
+index 73dfae4..c8c4a0c 100644
+--- a/drivers/power/tps65217_charger.c
++++ b/drivers/power/tps65217_charger.c
+@@ -46,6 +46,8 @@ struct tps65217_charger {
+ 	int	prev_ac_online;
+ 
+ 	struct task_struct	*poll_task;
++
++	int	irq;
+ };
+ 
+ static enum power_supply_property tps65217_ac_props[] = {
+@@ -198,6 +200,7 @@ static int tps65217_charger_probe(struct platform_device *pdev)
+ 	struct tps65217 *tps = dev_get_drvdata(pdev->dev.parent);
+ 	struct tps65217_charger *charger;
+ 	struct power_supply_config cfg = {};
++	int irq;
+ 	int ret;
+ 
+ 	dev_dbg(&pdev->dev, "%s\n", __func__);
+@@ -220,18 +223,40 @@ static int tps65217_charger_probe(struct platform_device *pdev)
+ 		return PTR_ERR(charger->ac);
+ 	}
+ 
++	irq = platform_get_irq_byname(pdev, "AC");
++	if (irq < 0)
++		irq = -ENXIO;
++	charger->irq = irq;
++
+ 	ret = tps65217_config_charger(charger);
+ 	if (ret < 0) {
+ 		dev_err(charger->dev, "charger config failed, err %d\n", ret);
+ 		return ret;
+ 	}
+ 
+-	charger->poll_task = kthread_run(tps65217_charger_poll_task,
+-				      charger, "ktps65217charger");
+-	if (IS_ERR(charger->poll_task)) {
+-		ret = PTR_ERR(charger->poll_task);
+-		dev_err(charger->dev, "Unable to run kthread err %d\n", ret);
+-		return ret;
++	if (irq != -ENXIO) {
++		ret = devm_request_threaded_irq(&pdev->dev, irq, NULL,
++						tps65217_charger_irq,
++						0, "tps65217-charger",
++						charger);
++		if (ret) {
++			dev_err(charger->dev,
++				"Unable to register irq %d err %d\n", irq,
++				ret);
++			return ret;
++		}
++
++		/* Check current state */
++		tps65217_charger_irq(irq, charger);
++	} else {
++		charger->poll_task = kthread_run(tps65217_charger_poll_task,
++						charger, "ktps65217charger");
++		if (IS_ERR(charger->poll_task)) {
++			ret = PTR_ERR(charger->poll_task);
++			dev_err(charger->dev,
++				"Unable to run kthread err %d\n", ret);
++			return ret;
++		}
+ 	}
+ 
+ 	return 0;
+@@ -241,7 +266,8 @@ static int tps65217_charger_remove(struct platform_device *pdev)
+ {
+ 	struct tps65217_charger *charger = platform_get_drvdata(pdev);
+ 
+-	kthread_stop(charger->poll_task);
++	if (charger->irq == -ENXIO)
++		kthread_stop(charger->poll_task);
+ 
+ 	return 0;
+ }
 -- 
 2.8.0
 
