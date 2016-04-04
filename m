@@ -1,75 +1,96 @@
-From: santosh shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH v3 2/2] usb:dwc3: pass arch data to xhci-hcd child
-Date: Mon, 4 Apr 2016 09:11:30 -0700
-Message-ID: <57029232.1080103@oracle.com>
-References: <1457594332-7490-1-git-send-email-tqnguyen@apm.com>
- <1457594332-7490-3-git-send-email-tqnguyen@apm.com>
- <87mvpgi02f.fsf@intel.com> <56FBDA0D.4030507@ti.com>
- <87egashxz8.fsf@intel.com>
- <CAKrQpSvgTm+OM+ffO4ZKwpb=J3ewKoWYA7ojE+WKBbiYKwdMqw@mail.gmail.com>
- <87k2kjgjjf.fsf@intel.com> <56FD3D2F.8070501@ti.com>
- <871t6pahg8.fsf@intel.com> <56FE4378.3030205@ti.com>
- <87shz58wbw.fsf@intel.com> <56FE54DB.5000201@ti.com>
- <878u0x8ru4.fsf@intel.com> <56FEBAC1.2040509@oracle.com>
- <87oa9p7url.fsf@intel.com>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: USB gadgets with configfs hang reboot
+Date: Mon, 4 Apr 2016 19:18:48 +0300
+Message-ID: <570293E8.2060406@gmail.com>
+References: <Pine.LNX.4.44L0.1604021031030.19366-100000@netrider.rowland.org>
+ <xa1ty48tilai.fsf@mina86.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87oa9p7url.fsf@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@linux.intel.com>, Grygorii Strashko <grygorii.strashko@ti.com>, "Thang Q. Nguyen" <tqnguyen@apm.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, "Karicheri, Muralidharan" <m-karicheri2@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Phong Vo <pvo@apm.com>, Loc Ho <lho@apm.com>, patches <patches@apm.com>, Santosh Shilimkar <ssantosh@kernel.org>, "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>, Russell King <linux@arm.linux.org.uk>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <xa1ty48tilai.fsf-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Michal Nazarewicz <mina86-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, =?UTF-8?Q?pali_Roh=c3=a1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 4/3/2016 11:28 PM, Felipe Balbi wrote:
-> santosh shilimkar <santosh.shilimkar@oracle.com> writes:
->> +Arnd, RMK,
->>
->> On 4/1/2016 4:57 AM, Felipe Balbi wrote:
->>>
->>> Hi,
->>>
->>> Grygorii Strashko <grygorii.strashko@ti.com> writes:
->>>> On 04/01/2016 01:20 PM, Felipe Balbi wrote:
->>
->> [...]
->>
->>>> commit 7ace8fc8219e4cbbfd5b4790390d9a01a2541cdf
->>>> Author: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
->>>> Date:   Mon Jul 13 18:10:05 2015 +0900
->>>>
->>>>       usb: gadget: udc: core: Fix argument of dma_map_single for IOMMU
->>>>
->>>>       The dma_map_single and dma_unmap_single should set "gadget->dev.parent"
->>>>       instead of "&gadget->dev" in the first argument because the parent has
->>>>       a udc controller's device pointer.
->>>>       Otherwise, iommu functions are not called in ARM environment.
->>>>
->>>>       Signed-off-by: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
->>>>       Signed-off-by: Felipe Balbi <balbi@ti.com>
->>>>
->>>> Above actually means that DMA configuration code can be dropped from
->>>> usb_add_gadget_udc_release() completely. Right?:
->>>
->>> true, but now I'm not sure what's better: copy all necessary bits from
->>> parent or just pass the parent device to all DMA API.
->>>
->>> Anybody to shed a light here ?
->>>
->> The expectation is drivers should pass the proper dev pointers and let
->> core DMA code deal with it since it knows the per device dma properties.
->
-> okay, so how do you get proper DMA pointers with something like this:
->
-> 	kdwc3_dma_mask = dma_get_mask(dev);
-> 	dev->dma_mask = &kdwc3_dma_mask;
->
-> This doesn't anything.
->
-Drivers actually needs to touch dma_mask(s) only if the core DMA
-code hasn't populated it it. I see Grygorii pointed out couple
-of things already.
+Hi,
 
-Reagrds,
-Santosh
+On  4.04.2016 15:57, Michal Nazarewicz wrote:
+> On Sat, Apr 02 2016, Alan Stern wrote:
+>> On Sat, 2 Apr 2016, Michal Nazarewicz wrote:
+>
+> Because of all that, I think the best course of action is to just check
+> whether the thread is running and conditionally start it in fsg_bind,
+> i.e.:
+>
+> --- a/drivers/usb/gadget/function/f_mass_storage.c
+> +++ b/drivers/usb/gadget/function/f_mass_storage.c
+> @@ -2979,20 +2979,7 @@ EXPORT_SYMBOL_GPL(fsg_common_set_inquiry_string);
+>
+>   int fsg_common_run_thread(struct fsg_common *common)
+>   {
+> -       common->state = FSG_STATE_IDLE;
+> -       /* Tell the thread to start working */
+> -       common->thread_task =
+> -               kthread_create(fsg_main_thread, common, "file-storage");
+> -       if (IS_ERR(common->thread_task)) {
+> -               common->state = FSG_STATE_TERMINATED;
+> -               return PTR_ERR(common->thread_task);
+> -       }
+> -
+> -       DBG(common, "I/O thread pid: %d\n", task_pid_nr(common->thread_task));
+> -
+> -       wake_up_process(common->thread_task);
+> -
+> -       return 0;
+> +       /* kill this function and all call sites */
+>   }
+>   EXPORT_SYMBOL_GPL(fsg_common_run_thread);
+>
+> @@ -3005,6 +2992,7 @@ static void fsg_common_release(struct kref *ref)
+>          if (common->state != FSG_STATE_TERMINATED) {
+>                  raise_exception(common, FSG_STATE_EXIT);
+>                  wait_for_completion(&common->thread_notifier);
+> +               common->thread_task = NULL;
+>          }
+>
+>          for (i = 0; i < ARRAY_SIZE(common->luns); ++i) {
+> @@ -3050,9 +3038,21 @@ static int fsg_bind(struct usb_configuration *c, struct usb_function *f)
+>                  if (ret)
+>                          return ret;
+>                  fsg_common_set_inquiry_string(fsg->common, NULL, NULL);
+> -               ret = fsg_common_run_thread(fsg->common);
+> -               if (ret)
+> +       }
+> +
+> +       if (!common->thread_task) {
+> +               common->state = FSG_STATE_IDLE;
+> +               common->thread_task =
+> +                       kthread_create(fsg_main_thread, common, "file-storage");
+> +               if (IS_ERR(common->thread_task)) {
+> +                       int ret = PTR_ERR(common->thread_task);
+> +                       common->thread_task = NULL;
+> +                       common->state = FSG_STATE_TERMINATED;
+>                          return ret;
+> +               }
+> +               DBG(common, "I/O thread pid: %d\n",
+> +                   task_pid_nr(common->thread_task));
+> +               wake_up_process(common->thread_task);
+>          }
+>
+>          fsg->gadget = gadget;
+>
+> This should get rid of all the confusion and just do the right thing.
+>
+
+Who and when is going to destroy the thread if one does 
+"/sys/bus/platform/drivers/musb-hdrc# echo musb-hdrc.0.auto > unbind"? 
+Wouldn't some kind of refcounting make sense here?
+
+Regards,
+Ivo
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
