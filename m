@@ -1,112 +1,104 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] regulator: twl: Provide of_map_mode for twl4030
-Date: Mon,  4 Apr 2016 21:57:14 +0300
-Message-ID: <1459796234-2430-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-References: <20160328093938.GA2350@sirena.org.uk>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160328093938.GA2350-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: USB gadgets with configfs hang reboot
+Date: Mon, 4 Apr 2016 15:37:01 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1604041458310.1704-100000@iolanthe.rowland.org>
+References: <xa1ttwjhi6fo.fsf@mina86.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <xa1ttwjhi6fo.fsf-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Michal Nazarewicz <mina86-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, pali =?utf-8?Q?Roh=C3=A1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-of_map_mode is needed so to be possible to set initial regulators mode from
-the board DTS. Otherwise, for DT boot, regulators are left in their default
-state after reset/reboot. Document device specific modes as well.
+On Mon, 4 Apr 2016, Michal Nazarewicz wrote:
 
-Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
- .../devicetree/bindings/regulator/twl-regulator.txt      |  8 ++++++++
- drivers/regulator/twl-regulator.c                        | 16 +++++++++++++---
- 2 files changed, 21 insertions(+), 3 deletions(-)
+> On Mon, Apr 04 2016, Alan Stern wrote:
+> > So there is no way to add a single function to several configuratio=
+ns?
+>=20
+> There is.  f_mass_storage (and any other usb_function_instance) simpl=
+y
+> has to have multiple usb_function structures.
+>=20
+> > It sounds like there are two problems then.  The first problem is t=
+hat
+> > struct usb_function has a ->disable() callback but no ->enable()
+> > callback.  The set_config() routine in composite.c should invoke th=
+e
+> > ->enable() callback for each function in the config when the config=
+ is
+> > installed.
+>=20
+> Well, there is set_alt which is called when configuration is chosen (=
+as
+> well as when interface=E2=80=99s alternative is chosen).  It=E2=80=99=
+s not ideal but if
+> we had to we could work with that.
 
-diff --git a/Documentation/devicetree/bindings/regulator/twl-regulator.txt b/Documentation/devicetree/bindings/regulator/twl-regulator.txt
-index 75b0c16..fe759903 100644
---- a/Documentation/devicetree/bindings/regulator/twl-regulator.txt
-+++ b/Documentation/devicetree/bindings/regulator/twl-regulator.txt
-@@ -57,6 +57,14 @@ For twl4030 regulators/LDOs
- 
- Optional properties:
- - Any optional property defined in bindings/regulator/regulator.txt
-+For twl4030 regulators/LDOs:
-+ - regulator-initial-mode:
-+  - 0x00 - Off mode, the output voltage is not maintained and voltage regulator
-+           power consumption is 0.
-+  - 0x08 - Sleep mode, the nominal output voltage is maintained with low power
-+           consumption with low load current capability.
-+  - 0x0e - Active mode, the regulator can deliver its nominal output voltage
-+           with full-load current capability.
- 
- Example:
- 
-diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
-index aad748b0..be8d05e 100644
---- a/drivers/regulator/twl-regulator.c
-+++ b/drivers/regulator/twl-regulator.c
-@@ -395,6 +395,12 @@ static int twl4030reg_set_mode(struct regulator_dev *rdev, unsigned mode)
- 	return twl4030_send_pb_msg(message);
- }
- 
-+static inline unsigned int twl4030reg_map_mode(unsigned int mode)
-+{
-+	return mode == RES_STATE_ACTIVE ?
-+				REGULATOR_MODE_NORMAL : REGULATOR_MODE_STANDBY;
-+}
-+
- static int twl6030reg_set_mode(struct regulator_dev *rdev, unsigned mode)
- {
- 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
-@@ -897,10 +903,11 @@ static struct regulator_ops twlsmps_ops = {
- #define TWL4030_FIXED_LDO(label, offset, mVolts, num, turnon_delay, \
- 			remap_conf) \
- 		TWL_FIXED_LDO(label, offset, mVolts, num, turnon_delay, \
--			remap_conf, TWL4030, twl4030fixed_ops)
-+			remap_conf, TWL4030, twl4030fixed_ops, \
-+			twl4030reg_map_mode)
- #define TWL6030_FIXED_LDO(label, offset, mVolts, turnon_delay) \
- 		TWL_FIXED_LDO(label, offset, mVolts, 0x0, turnon_delay, \
--			0x0, TWL6030, twl6030fixed_ops)
-+			0x0, TWL6030, twl6030fixed_ops, 0x0)
- 
- #define TWL4030_ADJUSTABLE_LDO(label, offset, num, turnon_delay, remap_conf) \
- static const struct twlreg_info TWL4030_INFO_##label = { \
-@@ -917,6 +924,7 @@ static const struct twlreg_info TWL4030_INFO_##label = { \
- 		.type = REGULATOR_VOLTAGE, \
- 		.owner = THIS_MODULE, \
- 		.enable_time = turnon_delay, \
-+		.of_map_mode = twl4030reg_map_mode, \
- 		}, \
- 	}
- 
-@@ -932,6 +940,7 @@ static const struct twlreg_info TWL4030_INFO_##label = { \
- 		.type = REGULATOR_VOLTAGE, \
- 		.owner = THIS_MODULE, \
- 		.enable_time = turnon_delay, \
-+		.of_map_mode = twl4030reg_map_mode, \
- 		}, \
- 	}
- 
-@@ -977,7 +986,7 @@ static const struct twlreg_info TWL6032_INFO_##label = { \
- 	}
- 
- #define TWL_FIXED_LDO(label, offset, mVolts, num, turnon_delay, remap_conf, \
--		family, operations) \
-+		family, operations, map_mode) \
- static const struct twlreg_info TWLFIXED_INFO_##label = { \
- 	.base = offset, \
- 	.id = num, \
-@@ -992,6 +1001,7 @@ static const struct twlreg_info TWLFIXED_INFO_##label = { \
- 		.owner = THIS_MODULE, \
- 		.min_uV = mVolts * 1000, \
- 		.enable_time = turnon_delay, \
-+		.of_map_mode = map_mode, \
- 		}, \
- 	}
- 
--- 
-1.9.1
+I suppose so.
+
+> > Except that you'll have a bunch of threads hanging around with noth=
+ing=20
+> > to do.  They shouldn't be created until it is known that they will =
+be=20
+> > needed, and they should be destroyed when it is known that they won=
+'t=20
+> > have any more work to do.
+>=20
+> I=E2=80=99m not sure how big of a deal that is.  The flip side is tha=
+t equating
+> thread=E2=80=99s lifetime to the lifetime of the function instance is
+> conceptually easier.  Even with thread started in fsg_bind this is st=
+ill
+> less complex than having the thread pop in and out of existence.
+
+True.  (Provided one understands that a function instance corresponds=20
+to the usb_function structure, not the usb_function_instance=20
+structure.)
+
+> Furthermore, having it start and stop may lead to unnecessary delays
+> when host switches configurations.  This may be an esoteric problem
+> though.
+>=20
+> I=E2=80=99m not married to any either idea, but right now my patch is=
+ a better
+> course of action because it brings a quick fix to the bug.  More
+> dramatic changes to thread=E2=80=99s lifetime should be handled by se=
+parate
+> patches.
+
+Okay.  However, I noticed your patch does:
+
+> +	if (!common->thread_task) {
+> +		common->state =3D FSG_STATE_IDLE;
+> +		common->thread_task =3D
+> +			kthread_create(fsg_main_thread, common,
+
+in fsg_bind().  How could thread_task ever be non-NULL at this point? =20
+Wouldn't that mean the usb_function structure was registered twice?
+
+Which brings us back to the nokia driver.  Apparently it _does_ manage
+to create the thread twice.  How can this happen?  The function that
+nokia_bind_config() registers is created dynamically:
+
+	f_msg =3D usb_get_function(fi_msg);
+
+which goes through fsg_alloc().
+
+Aha, and now I see the problem.  fsg_alloc() shares opts->common among
+all the fsg structures it creates.  This means all the function
+instances will share common->thread_task, because they all share
+common.  The same goes for common->state and a bunch of other fields.
+
+It looks like a lot of stuff has to move out of fsg->common and into=20
+fsg.
+
+Alan Stern
 
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
