@@ -1,7 +1,7 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 4/4] iommu/omap: Align code with open parenthesis
-Date: Mon, 4 Apr 2016 17:46:21 -0500
-Message-ID: <1459809981-37984-5-git-send-email-s-anna@ti.com>
+Subject: [PATCH 2/4] iommu/omap: Replace BUG() in iopgtable_store_entry_core()
+Date: Mon, 4 Apr 2016 17:46:19 -0500
+Message-ID: <1459809981-37984-3-git-send-email-s-anna@ti.com>
 References: <1459809981-37984-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,27 +21,32 @@ To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
 Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch fixes one existing alignment checkpatch check
-warning of the type "Alignment should match open parenthesis"
-in the OMAP IOMMU debug source file.
+The iopgtable_store_entry_core() function uses a BUG() statement
+for an unsupported page size entry programming. Replace this with
+a less severe WARN_ON() and perform a graceful bailout on error.
 
 Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 ---
- drivers/iommu/omap-iommu-debug.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/iommu/omap-iommu.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/iommu/omap-iommu-debug.c b/drivers/iommu/omap-iommu-debug.c
-index 9bc20e2119a3..505548aafeff 100644
---- a/drivers/iommu/omap-iommu-debug.c
-+++ b/drivers/iommu/omap-iommu-debug.c
-@@ -136,7 +136,7 @@ static ssize_t iotlb_dump_cr(struct omap_iommu *obj, struct cr_regs *cr,
- 			     struct seq_file *s)
- {
- 	seq_printf(s, "%08x %08x %01x\n", cr->cam, cr->ram,
--			  (cr->cam & MMU_CAM_P) ? 1 : 0);
-+		   (cr->cam & MMU_CAM_P) ? 1 : 0);
- 	return 0;
- }
+diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+index c05d48f88596..f6cf728ee32a 100644
+--- a/drivers/iommu/omap-iommu.c
++++ b/drivers/iommu/omap-iommu.c
+@@ -628,10 +628,12 @@ iopgtable_store_entry_core(struct omap_iommu *obj, struct iotlb_entry *e)
+ 		break;
+ 	default:
+ 		fn = NULL;
+-		BUG();
+ 		break;
+ 	}
  
++	if (WARN_ON(!fn))
++		return -EINVAL;
++
+ 	prot = get_iopte_attr(e);
+ 
+ 	spin_lock(&obj->page_table_lock);
 -- 
 2.7.4
