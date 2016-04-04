@@ -1,54 +1,35 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v3] iio: light: new driver for the ROHM BH1780
-Date: Mon, 4 Apr 2016 15:35:47 -0700
-Message-ID: <20160404223546.GC8755@atomide.com>
-References: <1459326847-9444-1-git-send-email-linus.walleij@linaro.org>
- <5700E7AF.6040903@kernel.org>
- <CACRpkdYkqzvu_fMcDPy8i0OCpGdGQ39S534HbCQL8T93gadKmQ@mail.gmail.com>
- <20160404074239.GT7800@tbergstrom-lnx.Nvidia.com>
+Subject: Re: [PATCH] rtc: omap: Support ext_wakeup configuration
+Date: Mon, 4 Apr 2016 15:40:47 -0700
+Message-ID: <20160404224046.GA17042@atomide.com>
+References: <1459785403-1725-1-git-send-email-m.niestroj@grinn-global.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160404074239.GT7800-Rysk9IDjsxmJz7etNGeUX8VPkgjIgRvpAL8bYrjMMd8@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter De Schrijver <pdeschrijver-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, "linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Daniel Mack <daniel-rDUAYElUppE@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1459785403-1725-1-git-send-email-m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
+Cc: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter De Schrijver <pdeschrijver-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org> [160404 00:43]:
-> On Sun, Apr 03, 2016 at 06:30:49PM +0200, Linus Walleij wrote:
-> > On Sun, Apr 3, 2016 at 11:51 AM, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> > > On 30/03/16 09:34, Linus Walleij wrote:
-> > 
-> > >> I want to phase out the old misc driver, but don't know how that
-> > >> should properly be handled. The driver has an old (totally
-> > >> undocumented) sysfs ABI for raw measurements, should I add
-> > >> this as backward-compatibility and symlink the device to the old
-> > >> location?
-> > >
-> > > Good question.  I guess we unfortunately do need to jump through the hoops as
-> > > who knows what userspace code there is out there using that interface.
-> > > At least it is small!
-> > 
-> > The maintainer Hemanth seems to have disappeared.
-> > 
-> > Let's ask some of the OMAP and ex-OMAP people, I think they know
-> > or know who knows...
-> > 
-> > Tony, Peter, Paul: drivers/misc/bh1780gli.c has a funky sysfs ABI.
-> > It is only used in arch/arm/boot/dts/omap4-sdp.dts as far as I can
-> > tell. What device is this, and more importantly, who is running it
-> > and with what userspace? I'm happy to go and patch that userspace
-> > if I can just get a pointer to whoever is developing it. Sailfish?
-> 
-> Sailfish has never used OMAP4 afaik. OMAP4 sdp is a TI dev board, so maybe
-> someone from TI knows what this is for?
+Hi,
 
-Adding linux-omap to Cc. I suggest do a minimal patch to remove the
-sysfs interface, then revert the patch if needed. I don't think
-people are using it.
+* Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org> [160404 08:57]:
+> Support configuration of ext_wakeup sources. This patch makes it
+> possible to enable ext_wakeup and set it's polarity, depending on board
+> configuration. AM335x's dedicated PMIC (tps65217) uses ext_wakeup to
+> notify about power-button presses. Handling power-button presses enables
+> to recover from RTC-only power states correctly.
+
+I suggest you just set this pin up as a minimal gpiochip. That way
+we can use the standard binding :) And if we get lucky, this pin can
+also trigger during runtime.
 
 Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
