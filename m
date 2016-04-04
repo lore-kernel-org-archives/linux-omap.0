@@ -1,104 +1,110 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: USB gadgets with configfs hang reboot
-Date: Mon, 4 Apr 2016 15:37:01 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1604041458310.1704-100000@iolanthe.rowland.org>
-References: <xa1ttwjhi6fo.fsf@mina86.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: N900 sleep mode (in 4.5-rc0, if that matters)
+Date: Mon, 4 Apr 2016 23:30:56 +0200
+Message-ID: <20160404213056.GA25912@amd>
+References: <20160130200244.GA30429@amd>
+ <20160130201452.GC30429@amd>
+ <20160130221509.GA28644@amd>
+ <20160201181316.GM19432@atomide.com>
+ <20160201211736.GA11283@amd>
+ <20160201221111.GP19432@atomide.com>
+ <20160207212316.GA6147@amd>
+ <20160209172403.GK19432@atomide.com>
+ <20160323123801.GC32031@amd>
+ <20160330191208.GW9329@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <xa1ttwjhi6fo.fsf-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michal Nazarewicz <mina86-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, pali =?utf-8?Q?Roh=C3=A1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160330191208.GW9329@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 4 Apr 2016, Michal Nazarewicz wrote:
+Hi!
 
-> On Mon, Apr 04 2016, Alan Stern wrote:
-> > So there is no way to add a single function to several configuratio=
-ns?
->=20
-> There is.  f_mass_storage (and any other usb_function_instance) simpl=
-y
-> has to have multiple usb_function structures.
->=20
-> > It sounds like there are two problems then.  The first problem is t=
-hat
-> > struct usb_function has a ->disable() callback but no ->enable()
-> > callback.  The set_config() routine in composite.c should invoke th=
-e
-> > ->enable() callback for each function in the config when the config=
- is
-> > installed.
->=20
-> Well, there is set_alt which is called when configuration is chosen (=
-as
-> well as when interface=E2=80=99s alternative is chosen).  It=E2=80=99=
-s not ideal but if
-> we had to we could work with that.
+> > How idle system do I need to have? Screen is blanked and machine
+> > should be mostly idle, but there's X running on another vt with Mate
+> > desktop, and some python scripts... GSM modem should be online.
+> 
+> Well I think it's the USB only you have blocking deeper idle states.
+> 
+> Are you sure you rmmod:ed all the USB related modules like in my
+> test script?
 
-I suppose so.
+I tested with rmmoding two, and then modified kernel to do equivalent
+operations.
 
-> > Except that you'll have a bunch of threads hanging around with noth=
-ing=20
-> > to do.  They shouldn't be created until it is known that they will =
-be=20
-> > needed, and they should be destroyed when it is known that they won=
-'t=20
-> > have any more work to do.
->=20
-> I=E2=80=99m not sure how big of a deal that is.  The flip side is tha=
-t equating
-> thread=E2=80=99s lifetime to the lifetime of the function instance is
-> conceptually easier.  Even with thread started in fsg_bind this is st=
-ill
-> less complex than having the thread pop in and out of existence.
+Let me try again:
 
-True.  (Provided one understands that a function instance corresponds=20
-to the usb_function structure, not the usb_function_instance=20
-structure.)
+phy_module=phy_twl4030_usb
+udc_glue=omap2430
+udc_module=musb_hdrc
 
-> Furthermore, having it start and stop may lead to unnecessary delays
-> when host switches configurations.  This may be an esoteric problem
-> though.
->=20
-> I=E2=80=99m not married to any either idea, but right now my patch is=
- a better
-> course of action because it brings a quick fix to the bug.  More
-> dramatic changes to thread=E2=80=99s lifetime should be handled by se=
-parate
-> patches.
+Ok, I did "start" with your script. After some fiddling it seems to
+work, and PC detected the values:
 
-Okay.  However, I noticed your patch does:
+[25379.533127] usb 1-5: USB disconnect, device number 12
+[27161.884132] usb 1-5: new high-speed USB device number 13 using
+ehci-pci
+[27161.996037] usb 1-5: device descriptor read/64, error -32
+[27162.420048] usb 4-1: new full-speed USB device number 2 using
+uhci_hcd
+[27162.563098] usb 4-1: not running at top speed; connect to a high
+speed hub
+[27162.601106] usb 4-1: New USB device found, idVendor=1d6b,
+idProduct=0106
+[27162.601112] usb 4-1: New USB device strings: Mfr=1, Product=2,
+SerialNumber=3
+[27162.601115] usb 4-1: Product: Multi Gadget
+[27162.601118] usb 4-1: Manufacturer: foo
+[27162.601121] usb 4-1: SerialNumber: 123456789
+[27162.614766] cdc_ether 4-1:1.0 usb0: register 'cdc_ether' at
+usb-0000:00:1d.2-1, CDC Ethernet Device, c6:8b:83:74:f2:f3
+[27163.195272] cdc_ether 4-1:1.0 usb0: kevent 12 may have been dropped
 
-> +	if (!common->thread_task) {
-> +		common->state =3D FSG_STATE_IDLE;
-> +		common->thread_task =3D
-> +			kthread_create(fsg_main_thread, common,
+Stop seemed to work, too:
 
-in fsg_bind().  How could thread_task ever be non-NULL at this point? =20
-Wouldn't that mean the usb_function structure was registered twice?
+root@n900:/my/tui/ofone# ./gadgets.sh stop
+rm: cannot remove `configs/c.1/acm.0': No such file or directory
+rm: cannot remove `configs/c.5/acm.0': No such file or directory
+rmdir: failed to remove `functions/acm.0': No such file or directory
+./gadgets.sh: line 74: functions/mass_storage.0/lun.0/file: No such
+file or directory
+rm: cannot remove `configs/c.1/mass_storage.0': No such file or
+directory
+rm: cannot remove `configs/c.5/mass_storage.0': No such file or
+directory
+rmdir: failed to remove `functions/mass_storage.0': No such file or
+directory
+root@n900:/my/tui/ofone# lsmod
+Module                  Size  Used by
+root@n900:/my/tui/ofone#
 
-Which brings us back to the nokia driver.  Apparently it _does_ manage
-to create the thread twice.  How can this happen?  The function that
-nokia_bind_config() registers is created dynamically:
+Display off, on wifi:
 
-	f_msg =3D usb_get_function(fi_msg);
+00001fff 48005020 (fa005020) cm_idlest_per blocking bits: 0007e000
+f7de7ebd 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00218042
+0000000d 48004a28 (fa004a28) cm_idlest3_core
 
-which goes through fsg_alloc().
+00001fff 48005020 (fa005020) cm_idlest_per blocking bits: 0007e000
+ffde7ebd 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00218042
 
-Aha, and now I see the problem.  fsg_alloc() shares opts->common among
-all the fsg structures it creates.  This means all the function
-instances will share common->thread_task, because they all share
-common.  The same goes for common->state and a bunch of other fields.
+00001fff 48005020 (fa005020) cm_idlest_per blocking bits: 0007e000
+ffdffebd 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00200042
 
-It looks like a lot of stuff has to move out of fsg->common and into=20
-fsg.
+..so I believe gadget bits are still set.
 
-Alan Stern
+> I'm booting over smc91x using u-boot.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm booting directly from NOLO over usb. Machine is running X, but
+they are not active -- chvt. Screen is off.
+
+Best regards,
+
+
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
