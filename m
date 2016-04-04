@@ -1,83 +1,48 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v3] ARM: dts: dra7: Correct clock tree for sys_32k_ck
-Date: Mon, 4 Apr 2016 11:07:15 +0530
-Message-ID: <1459748235-27232-1-git-send-email-j-keerthy@ti.com>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH 0/3] ARM: OMAP2: Make suspend work again.
+Date: Mon, 4 Apr 2016 11:17:24 +0530
+Message-ID: <5701FFEC.5020008@ti.com>
+References: <1459551187-5992-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1459551187-5992-1-git-send-email-nm@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, lokeshvutla@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, j-keerthy@ti.com
+To: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This is w.r.t J6/J6eco: 32clk is pseudo (erratum i856) - clock source.
-Errata i856 for the AM572x (DRA7xx) points out that the 32.768KHz external
-crystal is not enabled at power up. Instead the CPU falls back to using
-an emulation for the 32KHz clock which is SYSCLK1/610.  SYSCLK1 is usually
-20MHz on boards so far (which gives an emulated frequency of 32.786KHz)
 
-Modelling the same in device tree.
 
-Acked-by: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Keerthy <j-keerthy@ti.com>
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
----
-Errata Document: http://www.ti.com/lit/er/sprz429h/sprz429h.pdf
-Errata number: i856
+On Saturday 02 April 2016 04:23 AM, Nishanth Menon wrote:
+> Hi,
+> series of patches for fixing up attempt to suspend on X15
+>
+> Test: http://pastebin.ubuntu.com/15582436/
+>
+> Based on v4.6-rc1
+>
+> Also needs https://patchwork.kernel.org/patch/8724791/ if kernel
+> modules are installed
 
-Tested the debugfs clock tree nodes on DRA7-EVM.
+Thanks for the series Nishanth.
 
-Changes in v3:
+I tested suspend/resume and used no_console_suspend and woke up using 
+uart on DRA7-EVM.
 
-  Rebased to 4.6-rc2
-  Tested on top of omap-for-v4.6/fixes-rc1 branch and the patch applied
-  cleanly.
- 
-Changes in v2:
+Tested-by: Keerthy <j-keerthy@ti.com>
 
-  Added missing Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-
- arch/arm/boot/dts/dra7xx-clocks.dtsi | 18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-index d0bae06..ef2164a 100644
---- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-@@ -98,12 +98,20 @@
- 		clock-frequency = <32768>;
- 	};
- 
--	sys_32k_ck: sys_32k_ck {
-+	sys_clk32_crystal_ck: sys_clk32_crystal_ck {
- 		#clock-cells = <0>;
- 		compatible = "fixed-clock";
- 		clock-frequency = <32768>;
- 	};
- 
-+	sys_clk32_pseudo_ck: sys_clk32_pseudo_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-factor-clock";
-+		clocks = <&sys_clkin1>;
-+		clock-mult = <1>;
-+		clock-div = <610>;
-+	};
-+
- 	virt_12000000_ck: virt_12000000_ck {
- 		#clock-cells = <0>;
- 		compatible = "fixed-clock";
-@@ -2170,4 +2178,12 @@
- 		ti,bit-shift = <22>;
- 		reg = <0x0558>;
- 	};
-+
-+	sys_32k_ck: sys_32k_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&sys_clk32_crystal_ck>, <&sys_clk32_pseudo_ck>, <&sys_clk32_pseudo_ck>, <&sys_clk32_pseudo_ck>;
-+		ti,bit-shift = <8>;
-+		reg = <0x6c4>;
-+	};
- };
--- 
-1.9.1
+>
+> Nishanth Menon (3):
+>    ARM: OMAP: DRA7: wakeupgen: Skip SAR save for wakeupgen
+>    ARM: OMAP: DRA7: Provide proper class to omap2_set_globals_tap
+>    ARM: OMAP: Catch callers of revision information prior to it being
+>      populated
+>
+>   arch/arm/mach-omap1/id.c             | 1 +
+>   arch/arm/mach-omap2/id.c             | 1 +
+>   arch/arm/mach-omap2/io.c             | 3 ++-
+>   arch/arm/mach-omap2/omap-wakeupgen.c | 7 +++++++
+>   4 files changed, 11 insertions(+), 1 deletion(-)
+>
