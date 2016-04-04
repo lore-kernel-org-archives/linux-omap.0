@@ -1,58 +1,125 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 3/4] iommu/omap: Use WARN_ON for page table alignment check
-Date: Mon, 4 Apr 2016 17:46:20 -0500
-Message-ID: <1459809981-37984-4-git-send-email-s-anna@ti.com>
-References: <1459809981-37984-1-git-send-email-s-anna@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH] ARM: OMAP2+: hwmod: fix _idle() hwmod state sanity check
+ sequence
+Date: Mon, 4 Apr 2016 18:30:38 -0500
+Message-ID: <1459812638-38789-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1459809981-37984-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The OMAP IOMMU page table needs to be aligned on a 16K boundary,
-and the current code uses a BUG_ON on the alignment sanity check
-in the .domain_alloc() ops implementation. Replace this with a
-less severe WARN_ON and bail out gracefully.
+The omap_hwmod _enable() function can return success without setting
+the hwmod state to _HWMOD_STATE_ENABLED for IPs with reset lines when
+all of the reset lines are asserted. The omap_hwmod _idle() function
+also performs a similar check, but after checking for the hwmod state
+first. This triggers the WARN when pm_runtime_get and pm_runtime_put
+are invoked on IPs with all reset lines asserted. Reverse the checks
+for hwmod state and reset lines status to fix this.
 
-Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Issue found during a unbind operation on a device with reset lines
+still asserted, example backtrace below
+
+ ------------[ cut here ]------------
+ WARNING: CPU: 1 PID: 879 at arch/arm/mach-omap2/omap_hwmod.c:2207 _idle+0x1e4/0x240()
+ omap_hwmod: mmu_dsp: idle state can only be entered from enabled state
+ Modules linked in:
+ CPU: 1 PID: 879 Comm: sh Not tainted 4.4.0-00008-ga989d951331a #3
+ Hardware name: Generic OMAP5 (Flattened Device Tree)
+ [<c0018e60>] (unwind_backtrace) from [<c0014dc4>] (show_stack+0x10/0x14)
+ [<c0014dc4>] (show_stack) from [<c037ac28>] (dump_stack+0x90/0xc0)
+ [<c037ac28>] (dump_stack) from [<c003f420>] (warn_slowpath_common+0x78/0xb4)
+ [<c003f420>] (warn_slowpath_common) from [<c003f48c>] (warn_slowpath_fmt+0x30/0x40)
+ [<c003f48c>] (warn_slowpath_fmt) from [<c0028c20>] (_idle+0x1e4/0x240)
+ [<c0028c20>] (_idle) from [<c0029080>] (omap_hwmod_idle+0x28/0x48)
+ [<c0029080>] (omap_hwmod_idle) from [<c002a5a4>] (omap_device_idle+0x3c/0x90)
+ [<c002a5a4>] (omap_device_idle) from [<c0427a90>] (__rpm_callback+0x2c/0x60)
+ [<c0427a90>] (__rpm_callback) from [<c0427ae4>] (rpm_callback+0x20/0x80)
+ [<c0427ae4>] (rpm_callback) from [<c0427f84>] (rpm_suspend+0x138/0x74c)
+ [<c0427f84>] (rpm_suspend) from [<c0428b78>] (__pm_runtime_idle+0x78/0xa8)
+ [<c0428b78>] (__pm_runtime_idle) from [<c041f514>] (__device_release_driver+0x64/0x100)
+ [<c041f514>] (__device_release_driver) from [<c041f5d0>] (device_release_driver+0x20/0x2c)
+ [<c041f5d0>] (device_release_driver) from [<c041d85c>] (unbind_store+0x78/0xf8)
+ [<c041d85c>] (unbind_store) from [<c0206df8>] (kernfs_fop_write+0xc0/0x1c4)
+ [<c0206df8>] (kernfs_fop_write) from [<c018a120>] (__vfs_write+0x20/0xdc)
+ [<c018a120>] (__vfs_write) from [<c018a9cc>] (vfs_write+0x90/0x164)
+ [<c018a9cc>] (vfs_write) from [<c018b1f0>] (SyS_write+0x44/0x9c)
+ [<c018b1f0>] (SyS_write) from [<c0010420>] (ret_fast_syscall+0x0/0x1c)
+ ---[ end trace a4182013c75a9f50 ]---
+
+While at this, fix the sequence in _shutdown() as well, though there
+is no easy reproducible scenario.
+
+Fixes: 747834ab8347 ("ARM: OMAP2+: hwmod: revise hardreset behavior")
+Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/iommu/omap-iommu.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Hi Paul,
 
-diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index f6cf728ee32a..e2583cce2cc1 100644
---- a/drivers/iommu/omap-iommu.c
-+++ b/drivers/iommu/omap-iommu.c
-@@ -1162,7 +1162,8 @@ static struct iommu_domain *omap_iommu_domain_alloc(unsigned type)
- 	 * should never fail, but please keep this around to ensure
- 	 * we keep the hardware happy
- 	 */
--	BUG_ON(!IS_ALIGNED((long)omap_domain->pgtable, IOPGD_TABLE_SIZE));
-+	if (WARN_ON(!IS_ALIGNED((long)omap_domain->pgtable, IOPGD_TABLE_SIZE)))
-+		goto fail_align;
+There are couple of pr_debug statements that only print once the code
+flow passes through certain conditions. Not sure if you wanted them
+to be printed first thing when entering the functions or only if the
+function is really doing something. But it is still not consistent
+between _enable(), _idle() and _shutdown().
+
+regards
+Suman
+
+ arch/arm/mach-omap2/omap_hwmod.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index b6d62e4cdfdd..027371c29fb9 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2207,15 +2207,15 @@ static int _idle(struct omap_hwmod *oh)
  
- 	clean_dcache_area(omap_domain->pgtable, IOPGD_TABLE_SIZE);
- 	spin_lock_init(&omap_domain->lock);
-@@ -1173,6 +1174,8 @@ static struct iommu_domain *omap_iommu_domain_alloc(unsigned type)
+ 	pr_debug("omap_hwmod: %s: idling\n", oh->name);
  
- 	return &omap_domain->domain;
++	if (_are_all_hardreset_lines_asserted(oh))
++		return 0;
++
+ 	if (oh->_state != _HWMOD_STATE_ENABLED) {
+ 		WARN(1, "omap_hwmod: %s: idle state can only be entered from enabled state\n",
+ 			oh->name);
+ 		return -EINVAL;
+ 	}
  
-+fail_align:
-+	kfree(omap_domain->pgtable);
- fail_nomem:
- 	kfree(omap_domain);
- out:
+-	if (_are_all_hardreset_lines_asserted(oh))
+-		return 0;
+-
+ 	if (oh->class->sysc)
+ 		_idle_sysc(oh);
+ 	_del_initiator_dep(oh, mpu_oh);
+@@ -2262,6 +2262,9 @@ static int _shutdown(struct omap_hwmod *oh)
+ 	int ret, i;
+ 	u8 prev_state;
+ 
++	if (_are_all_hardreset_lines_asserted(oh))
++		return 0;
++
+ 	if (oh->_state != _HWMOD_STATE_IDLE &&
+ 	    oh->_state != _HWMOD_STATE_ENABLED) {
+ 		WARN(1, "omap_hwmod: %s: disabled state can only be entered from idle, or enabled state\n",
+@@ -2269,9 +2272,6 @@ static int _shutdown(struct omap_hwmod *oh)
+ 		return -EINVAL;
+ 	}
+ 
+-	if (_are_all_hardreset_lines_asserted(oh))
+-		return 0;
+-
+ 	pr_debug("omap_hwmod: %s: disabling\n", oh->name);
+ 
+ 	if (oh->class->pre_shutdown) {
 -- 
 2.7.4
