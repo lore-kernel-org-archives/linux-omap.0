@@ -1,35 +1,49 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] rtc: omap: Support ext_wakeup configuration
-Date: Mon, 4 Apr 2016 15:40:47 -0700
-Message-ID: <20160404224046.GA17042@atomide.com>
-References: <1459785403-1725-1-git-send-email-m.niestroj@grinn-global.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 0/4] Some OMAP IOMMU Cleanups
+Date: Mon, 4 Apr 2016 17:46:17 -0500
+Message-ID: <1459809981-37984-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1459785403-1725-1-git-send-email-m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-Cc: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Joerg,
 
-* Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org> [160404 08:57]:
-> Support configuration of ext_wakeup sources. This patch makes it
-> possible to enable ext_wakeup and set it's polarity, depending on board
-> configuration. AM335x's dedicated PMIC (tps65217) uses ext_wakeup to
-> notify about power-button presses. Handling power-button presses enables
-> to recover from RTC-only power states correctly.
+Following are some minor cleanups to the OMAP IOMMU driver intended
+for the next merge window.
 
-I suggest you just set this pin up as a minimal gpiochip. That way
-we can use the standard binding :) And if we get lucky, this pin can
-also trigger during runtime.
+Patch 1 fixes a crash when the IOMMU device is attempted to be unbound
+from the driver using sysfs when no clients were attached to the MMU.
+This is not a critical failure during normal usage flow. Feel free to
+pick it up either for the -rc cycle or for the next merge window.
 
-Regards,
+Remaining patches are trivial cleanups addressing some of the current
+checkpatch warnings/checks.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards
+Suman
+
+Suman Anna (4):
+  iommu/omap: Remove iopgtable_clear_entry_all() from driver remove
+  iommu/omap: Replace BUG() in iopgtable_store_entry_core()
+  iommu/omap: Use WARN_ON for page table alignment check
+  iommu/omap: Align code with open parenthesis
+
+ drivers/iommu/omap-iommu-debug.c |  2 +-
+ drivers/iommu/omap-iommu.c       | 10 +++++++---
+ 2 files changed, 8 insertions(+), 4 deletions(-)
+
+-- 
+2.7.4
