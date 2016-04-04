@@ -1,56 +1,55 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [RFC PATCH] ARM: clocksource: make ARM_GLOBAL_TIMER selectable
-Date: Mon, 4 Apr 2016 17:03:03 -0700
-Message-ID: <20160405000303.GA15936@localhost>
-References: <1454610017-25499-1-git-send-email-grygorii.strashko@ti.com>
- <20160204224128.GG4215@xsjsorenbubuntu>
- <CAAtXAHcV-9gXcZOX8dzUOBZUwj9M=O4MAsMCJNQYAP+os-D7Tg@mail.gmail.com>
- <20160204233950.GH4215@xsjsorenbubuntu>
- <56D04D17.6030502@ti.com>
- <20160226152714.GD3173@xsjsorenbubuntu>
- <56DEAFB7.50105@ti.com>
- <56EAB44D.7020902@linaro.org>
- <5702845E.90606@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] regulator: twl: Provide of_map_mode for twl4030
+Date: Mon, 4 Apr 2016 15:26:38 -0700
+Message-ID: <20160404222638.GM2350@sirena.org.uk>
+References: <20160328093938.GA2350@sirena.org.uk>
+ <1459796234-2430-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="klUO3blZLrAR18XW"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5702845E.90606@ti.com>
+In-Reply-To: <1459796234-2430-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: S??ren Brinkmann <soren.brinkmann@xilinx.com>, Olof Johansson <olof@lixom.net>, Moritz Fischer <moritz.fischer@ettus.com>, kernel@stlinux.com, tony@atomide.com, nsekhar@ti.com, Masahiro Yamada <yamada.masahiro@socionext.com>, Florian Fainelli <f.fainelli@gmail.com>, Russell King <linux@arm.linux.org.uk>, Michal Simek <michal.simek@xilinx.com>, Wei Xu <xuwei5@hisilicon.com>, linux-rockchip@lists.infradead.org, bcm-kernel-feedback-list@broadcom.com, Arnd Bergmann <arnd@arndb.de>, Liviu Dudau <liviu.dudau@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Maxime Coquelin <maxime.coquelin@st.com>, Srinivas Kandagatla <srinivas.kandagatla@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Sudeep Holla <sudeep.holla@arm.com>, Jun Nie <jun.nie@linaro.org>, Shawn Guo <shawn>
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, tony@atomide.com, lgirdwood@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Apr 04, 2016 at 06:12:30PM +0300, Grygorii Strashko wrote:
-> Hi Daniel,
-> On 03/17/2016 03:42 PM, Daniel Lezcano wrote:
-> > On 03/08/2016 11:55 AM, Grygorii Strashko wrote:
-> >> Yeah. Thanks
-> >>
-> >> I'll re-send it after 4.6-rc.
-> >> But What I'm not fully understand is how to get it merged taking into 
-> >> account that
-> >> it touches few maches & clocksource :(
-> > 
-> > This is not a problem. Send it based on timers/core from the tip tree 
-> > and Cc the maintainers for the maches dir. As soon as they ack the 
-> > patches, I will merge it through my tree.
-> > 
-> 
-> I've rebased my patch on top of 4.6-rc2 and extended it on new mach
-> arch/arm/mach-artpec.
-> 
-> Then, as you've suggested, I've tried to apply it on top of 
-> kernel-tip/timers/core
-> kernel-tip := git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip.git
-> 
-> but seems timers/core is obsolete (It doesn't contain arch/arm/mach-artpec yet).
-> 
-> Should I wait more or can resend it basing on top of  4.6-rc2?
-> 
 
-Yes, wait a bit the tip tree is updated.
+--klUO3blZLrAR18XW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Thanks
+On Mon, Apr 04, 2016 at 09:57:14PM +0300, Ivaylo Dimitrov wrote:
 
-  -- Daniel
+> +For twl4030 regulators/LDOs:
+> + - regulator-initial-mode:
+> +  - 0x00 - Off mode, the output voltage is not maintained and voltage regulator
+> +           power consumption is 0.
+
+This isn't a mode, it's just the regulator being off.  Just drop it.
+
+> +static inline unsigned int twl4030reg_map_mode(unsigned int mode)
+> +{
+> +	return mode == RES_STATE_ACTIVE ?
+> +				REGULATOR_MODE_NORMAL : REGULATOR_MODE_STANDBY;
+> +}
+
+Please write normal if statements, the code should be readable.
+
+--klUO3blZLrAR18XW
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJXAuoZAAoJECTWi3JdVIfQVfIH/R2li9V6BC6G3g25eNNE0G2C
+tftACfc75RIb5J6Gfp/iPLNa+HEN3lcqq0uAKfBCbtPMPFFvL9a1nAwOxP6rAtli
+EvVGZ30VYRtUUb6InQWbNaIt0aA8seFydmJOGcPqwbFNcdlQx4x08T1VIFTwlseC
+YGe1UkdqCdouERC7v+hGJlkGz/xLV188UZVvXgBT9K28/3/qGxVJm38rzNw+2WKP
+rF5pMnK3kMT65VsWEOjVR8E+aJIv+vAX6YYFFE7XZq+0e11TzU+Pg/EbaZaNKorq
+Rnl9r0cqKKByUB/JhNfcHsznOaSDdo2b+yBSMdLTrSRy8LGvgVqr8fFEY1eTOoI=
+=vUeL
+-----END PGP SIGNATURE-----
+
+--klUO3blZLrAR18XW--
