@@ -1,45 +1,45 @@
-From: Vishal Mahaveer <vishalm@ti.com>
-Subject: [PATCH v2] ARM: DRA722: remove redundant definition of 1.0 device
-Date: Mon, 4 Apr 2016 12:05:37 -0500
-Message-ID: <1459789537-3423-1-git-send-email-vishalm@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>
+From: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
+Subject: [PATCH 0/5] mfd: tps65217: Add power-button and IRQ support
+Date: Mon,  4 Apr 2016 19:10:59 +0200
+Message-ID: <1459789865-3704-1-git-send-email-m.niestroj@grinn-global.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Eremin-Solenikov <dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Vishal Mahaveer <vishalm@ti.com>
+Hi,
 
-Remove duplicate definition of Rev 1.0 device.
+the following patches add tps65217 power button support and make it usable
+with am335x boards. They also fix a NULL dereference in tps65217 charger
+subsystem and add possibility to use IRQs instead of polling task to
+update AC power state.
 
-Fixes: 81032e34e184 ("ARM: DRA752: Add ID detect for ES2.0")
-Signed-off-by: Vishal Mahaveer <vishalm@ti.com>
----
- arch/arm/mach-omap2/soc.h |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+Developed and tested on top of v4.6-rc2.
 
-diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
-index 79ca3c3..83d3547 100644
---- a/arch/arm/mach-omap2/soc.h
-+++ b/arch/arm/mach-omap2/soc.h
-@@ -471,7 +471,6 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define DRA752_REV_ES1_1	(DRA7XX_CLASS | (0x52 << 16) | (0x11 << 8))
- #define DRA752_REV_ES2_0	(DRA7XX_CLASS | (0x52 << 16) | (0x20 << 8))
- #define DRA722_REV_ES1_0	(DRA7XX_CLASS | (0x22 << 16) | (0x10 << 8))
--#define DRA722_REV_ES1_0	(DRA7XX_CLASS | (0x22 << 16) | (0x10 << 8))
- 
- void omap2xxx_check_revision(void);
- void omap3xxx_check_revision(void);
+Marcin Niestroj (5):
+  mfd: tps65217: Add support for IRQs
+  power_supply: tps65217-charger: Fix NULL deref during property export
+  power_supply: tps65217-charger: Add support for IRQs
+  mfd: tps65217: Add power button as subdevice
+  Input: Add tps65217 power button driver
+
+ .../bindings/input/tps65217-pwrbutton.txt          |  14 ++
+ drivers/input/misc/Kconfig                         |  10 ++
+ drivers/input/misc/Makefile                        |   1 +
+ drivers/input/misc/tps65217-pwrbutton.c            | 131 ++++++++++++++
+ drivers/mfd/Kconfig                                |   1 +
+ drivers/mfd/tps65217.c                             | 192 ++++++++++++++++++++-
+ drivers/power/tps65217_charger.c                   |  46 ++++-
+ include/linux/mfd/tps65217.h                       |  11 ++
+ 8 files changed, 396 insertions(+), 10 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/input/tps65217-pwrbutton.txt
+ create mode 100644 drivers/input/misc/tps65217-pwrbutton.c
+
 -- 
-1.7.4.1
+2.8.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
