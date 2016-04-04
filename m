@@ -1,77 +1,83 @@
-From: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: USB gadgets with configfs hang reboot
-Date: Mon, 04 Apr 2016 07:45:24 +0300
-Message-ID: <87zita6kyj.fsf@intel.com>
-References: <Pine.LNX.4.44L0.1603311255560.1516-100000@iolanthe.rowland.org>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v3] ARM: dts: dra7: Correct clock tree for sys_32k_ck
+Date: Mon, 4 Apr 2016 11:07:15 +0530
+Message-ID: <1459748235-27232-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44L0.1603311255560.1516-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Michal Nazarewicz <mina86-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, pali =?utf-8?Q?Roh=C3=A1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, lokeshvutla@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+This is w.r.t J6/J6eco: 32clk is pseudo (erratum i856) - clock source.
+Errata i856 for the AM572x (DRA7xx) points out that the 32.768KHz external
+crystal is not enabled at power up. Instead the CPU falls back to using
+an emulation for the 32KHz clock which is SYSCLK1/610.  SYSCLK1 is usually
+20MHz on boards so far (which gives an emulated frequency of 32.786KHz)
 
+Modelling the same in device tree.
 
-Hi,
+Acked-by: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+---
+Errata Document: http://www.ti.com/lit/er/sprz429h/sprz429h.pdf
+Errata number: i856
 
-Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> writes:
-> On Thu, 31 Mar 2016, Ivaylo Dimitrov wrote:
->
->> > This isn't supposed to cause any problems.  The two instances should
->> > never run at the same time, because they belong to different configs.
->> >
->>=20
->> The problem seems to be that fsg driver creates a thread for every=20
->> fsg_bind() call, which overwrites common->thread_task without first=20
->> checking if a thread is already created. I don't know the idea behind -=
-=20
->> should it have only one thread for all instances, or there should be a=20
->> thread per instance, but anyway the current implementation looks wrong.
->
-> You've put your finger on the problem.
->
-> Michal, I'm not sure how you intended to handle this.  We only need to
-> have one thread per interface (even if there's more than one LUN), but
-> if there are multiple mass-storage interfaces in one configuration then
-> you might want to have multiple threads.  Of course, then you would
-> have to handle cases where one config has one mass-storage interface
-> and another config has two...
->
-> It's your decision, but clearly the driver needs to be fixed.
+Tested the debugfs clock tree nodes on DRA7-EVM.
 
-I agree, this is now very clear what the problem is.
+Changes in v3:
 
-=2D-=20
-balbi
+  Rebased to 4.6-rc2
+  Tested on top of omap-for-v4.6/fixes-rc1 branch and the patch applied
+  cleanly.
+ 
+Changes in v2:
 
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
+  Added missing Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+ arch/arm/boot/dts/dra7xx-clocks.dtsi | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
-iQIcBAEBAgAGBQJXAfFlAAoJEIaOsuA1yqREbGIP/2oH+lUruOxj0V1+Wv0LzZwz
-3EgyuYgt0BdtEIMj7NzysybGbo1cnw9PaQfZ2L/tLlaT7sqk9plfwbIoAPDS31xm
-k+HtrG+gIyIHFOXMU1MDd7OE/h9d4xf4AvLqagrkNzXoJVEqmMdu2s7K/YQftVem
-IZbNX8+vtAahMeKdXnD+MbX6qg/e6H2QFjHNc8rvjpL5PlAtJC1J1ZgtApvdG82m
-/4A6fM4jyUwPlIQAcTyanlHSNYbCCjwrgDyTkWcPB65tZmWHsuj721ZdrbhZ0VXJ
-NQZJlk6FK0CIxLuGdJPxwhdD32nfPosBy0rJeTqoikdju/Q9YMfSSkgsld+37Wgj
-5W7pW2LCVlxcbgSmY14C21XmrVn/m6zIPvR7uSjhKIEral9BKfcgXCYmrpuQfH15
-BYtOM3lKnMJlARLeR3a03NmMHjftHjYh9WuBinjtcXwCWdHNFmEQEvtNMuKgyB6t
-NwQZdKH0Ducp8fE6UK05EsxYPqSHk5sdwfquXgEIE0ADYZFGsOPwpWfZmKhWhCuD
-YzprEYZ2PYf+TA0uwFrVv8Jqu7Fe1e/JOV4uzjkdBHH+8ZBhlU7R08fUdw8FfSPs
-fpKO7mFe2xHw6AcP9lOLOF1sm4N8p0hH0+/QtDMBpZByYI0F3TaN2t0ZP1GnvF2F
-qYFeN1tYq2dRTAr68zMB
-=Hwll
------END PGP SIGNATURE-----
---=-=-=--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+index d0bae06..ef2164a 100644
+--- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
++++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+@@ -98,12 +98,20 @@
+ 		clock-frequency = <32768>;
+ 	};
+ 
+-	sys_32k_ck: sys_32k_ck {
++	sys_clk32_crystal_ck: sys_clk32_crystal_ck {
+ 		#clock-cells = <0>;
+ 		compatible = "fixed-clock";
+ 		clock-frequency = <32768>;
+ 	};
+ 
++	sys_clk32_pseudo_ck: sys_clk32_pseudo_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-factor-clock";
++		clocks = <&sys_clkin1>;
++		clock-mult = <1>;
++		clock-div = <610>;
++	};
++
+ 	virt_12000000_ck: virt_12000000_ck {
+ 		#clock-cells = <0>;
+ 		compatible = "fixed-clock";
+@@ -2170,4 +2178,12 @@
+ 		ti,bit-shift = <22>;
+ 		reg = <0x0558>;
+ 	};
++
++	sys_32k_ck: sys_32k_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clk32_crystal_ck>, <&sys_clk32_pseudo_ck>, <&sys_clk32_pseudo_ck>, <&sys_clk32_pseudo_ck>;
++		ti,bit-shift = <8>;
++		reg = <0x6c4>;
++	};
+ };
+-- 
+1.9.1
