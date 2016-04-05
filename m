@@ -1,32 +1,33 @@
-From: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 0/4] Some OMAP IOMMU Cleanups
-Date: Tue, 5 Apr 2016 17:54:18 +0200
-Message-ID: <20160405155418.GI11519@8bytes.org>
-References: <1459809981-37984-1-git-send-email-s-anna@ti.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH v3 0/2] dmaengine: omap-dma: Fix polled completion
+Date: Tue, 5 Apr 2016 09:10:16 -0700
+Message-ID: <20160405161014.GA5392@vkoul-mobl.iind.intel.com>
+References: <1459858821-25191-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1459809981-37984-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1459858821-25191-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux@arm.linux.org.uk, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Apr 04, 2016 at 05:46:17PM -0500, Suman Anna wrote:
-> Suman Anna (4):
->   iommu/omap: Remove iopgtable_clear_entry_all() from driver remove
->   iommu/omap: Replace BUG() in iopgtable_store_entry_core()
->   iommu/omap: Use WARN_ON for page table alignment check
->   iommu/omap: Align code with open parenthesis
+On Tue, Apr 05, 2016 at 03:20:19PM +0300, Peter Ujfalusi wrote:
+> Hi,
+> 
+> Changes since v2:
+> - series rebased on -rc1 for resending
+> 
+> Cover letter from v2:
+> 
+> Based on the discussion on the first version:
+> https://lkml.org/lkml/2016/2/25/167
+> 
+> I have fixed the omap_dma_tx_status() - first patch and added the second patch
+> to not disable the interrupts for memcpy so multiple transfers can be queued.
 
-Applied them all, thanks.
+Applied thanks
+
+-- 
+~Vinod
