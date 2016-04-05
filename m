@@ -1,79 +1,59 @@
-From: Felipe Balbi <felipe.balbi@linux.intel.com>
-Subject: Re: [PATCH v3 2/2] usb:dwc3: pass arch data to xhci-hcd child
-Date: Tue, 05 Apr 2016 08:18:24 +0300
-Message-ID: <878u0s63bz.fsf@intel.com>
-References: <1457594332-7490-1-git-send-email-tqnguyen@apm.com> <1457594332-7490-3-git-send-email-tqnguyen@apm.com> <87mvpgi02f.fsf@intel.com> <56FBDA0D.4030507@ti.com> <87egashxz8.fsf@intel.com> <CAKrQpSvgTm+OM+ffO4ZKwpb=J3ewKoWYA7ojE+WKBbiYKwdMqw@mail.gmail.com> <87k2kjgjjf.fsf@intel.com> <56FD3D2F.8070501@ti.com> <871t6pahg8.fsf@intel.com> <56FE4378.3030205@ti.com> <87shz58wbw.fsf@intel.com> <56FE54DB.5000201@ti.com> <878u0x8ru4.fsf@intel.com> <56FEBAC1.2040509@oracle.com> <87oa9p7url.fsf@intel.com> <57029232.1080103@oracle.com>
+From: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH 2/6] usb: dwc3: omap: don't access DMA bits directly
+Date: Tue, 05 Apr 2016 08:51:45 +0300
+Message-ID: <87y48s4n7y.fsf@intel.com>
+References: <1459585739-21204-1-git-send-email-felipe.balbi@linux.intel.com> <1459585739-21204-3-git-send-email-felipe.balbi@linux.intel.com> <570271BF.9040902@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; boundary="=-=-=";
 	micalg=pgp-sha1; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <57029232.1080103@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: santosh shilimkar <santosh.shilimkar@oracle.com>, Grygorii Strashko <grygorii.strashko@ti.com>, "Thang Q. Nguyen" <tqnguyen@apm.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, "Karicheri, Muralidharan" <m-karicheri2@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Phong Vo <pvo@apm.com>, Loc Ho <lho@apm.com>, patches <patches@apm.com>, Santosh Shilimkar <ssantosh@kernel.org>, "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>, Russell King <linux@arm.linux.org.uk>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <570271BF.9040902-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbif-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Srinivas Kandagatla <srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Maxime Coquelin <maxime.coquelin-qxv4g6HH51o@public.gmane.org>, Patrice Chotard <patrice.chotard-qxv4g6HH51o@public.gmane.org>, Andy Gross <andy.gross-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Ivan T . Ivanov" <ivan.ivanov-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
 --=-=-=
 Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-santosh shilimkar <santosh.shilimkar@oracle.com> writes:
-> On 4/3/2016 11:28 PM, Felipe Balbi wrote:
->> santosh shilimkar <santosh.shilimkar@oracle.com> writes:
->>> +Arnd, RMK,
->>>
->>> On 4/1/2016 4:57 AM, Felipe Balbi wrote:
->>>>
->>>> Hi,
->>>>
->>>> Grygorii Strashko <grygorii.strashko@ti.com> writes:
->>>>> On 04/01/2016 01:20 PM, Felipe Balbi wrote:
->>>
->>> [...]
->>>
->>>>> commit 7ace8fc8219e4cbbfd5b4790390d9a01a2541cdf
->>>>> Author: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
->>>>> Date:   Mon Jul 13 18:10:05 2015 +0900
->>>>>
->>>>>       usb: gadget: udc: core: Fix argument of dma_map_single for IOMMU
->>>>>
->>>>>       The dma_map_single and dma_unmap_single should set "gadget->dev=
-.parent"
->>>>>       instead of "&gadget->dev" in the first argument because the par=
-ent has
->>>>>       a udc controller's device pointer.
->>>>>       Otherwise, iommu functions are not called in ARM environment.
->>>>>
->>>>>       Signed-off-by: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.=
-com>
->>>>>       Signed-off-by: Felipe Balbi <balbi@ti.com>
->>>>>
->>>>> Above actually means that DMA configuration code can be dropped from
->>>>> usb_add_gadget_udc_release() completely. Right?:
->>>>
->>>> true, but now I'm not sure what's better: copy all necessary bits from
->>>> parent or just pass the parent device to all DMA API.
->>>>
->>>> Anybody to shed a light here ?
->>>>
->>> The expectation is drivers should pass the proper dev pointers and let
->>> core DMA code deal with it since it knows the per device dma properties.
->>
->> okay, so how do you get proper DMA pointers with something like this:
->>
->> 	kdwc3_dma_mask =3D dma_get_mask(dev);
->> 	dev->dma_mask =3D &kdwc3_dma_mask;
->>
->> This doesn't anything.
->>
-> Drivers actually needs to touch dma_mask(s) only if the core DMA
-> code hasn't populated it it.
+Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> writes:
+> On 04/02/2016 11:28 AM, Felipe Balbi wrote:
+>> Instead of having a static global just for
+>> initializing dma_mask directly, let's use
+>> dma_coerce_mask_and_coherent() for that.
+>>=20
+>> Signed-off-by: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+>> ---
+>>   drivers/usb/dwc3/dwc3-omap.c | 4 +---
+>>   1 file changed, 1 insertion(+), 3 deletions(-)
+>>=20
+>> diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+>> index 22e9606d8e08..c219118bfda0 100644
+>> --- a/drivers/usb/dwc3/dwc3-omap.c
+>> +++ b/drivers/usb/dwc3/dwc3-omap.c
+>> @@ -331,8 +331,6 @@ static void dwc3_omap_disable_irqs(struct dwc3_omap =
+*omap)
+>>   	dwc3_omap_write_irqmisc_clr(omap, reg);
+>>   }
+>>=20=20=20
+>> -static u64 dwc3_omap_dma_mask =3D DMA_BIT_MASK(32);
+>> -
+>>   static int dwc3_omap_id_notifier(struct notifier_block *nb,
+>>   	unsigned long event, void *ptr)
+>>   {
+>> @@ -490,7 +488,7 @@ static int dwc3_omap_probe(struct platform_device *p=
+dev)
+>>   	omap->irq	=3D irq;
+>>   	omap->base	=3D base;
+>>   	omap->vbus_reg	=3D vbus_reg;
+>> -	dev->dma_mask	=3D &dwc3_omap_dma_mask;
+>> +	dma_coerce_mask_and_coherent(dev, DMA_BIT_MASK(32));
+>
+> I think, It'll be better to just remove DMA configuration code
+> from this driver and other drivers which support DT-boot mode only.
 
-that's fair, but when driver _do_ touch it, I'd rather it be useful ;-)
-
-> I see Grygorii pointed out couple of things already.
-
-yeah
+I don't have HW, can you test that on AM57x and/or AM437x ?
 
 =2D-=20
 balbi
@@ -84,18 +64,22 @@ Content-Type: application/pgp-signature; name="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXA0qgAAoJEIaOsuA1yqRELsgP/RifF0K7uK36UA7I7WDUZiad
-5lc9MotMgaQumSZtWZwScko7lx9XqPbh4ZRPCNGjGQivgbxhOFOurDIoJPe4kuMZ
-whwOwiH6ncIqiyHVmZqPjKTnqt899H7GZ/mOgPpmFC53lAErcAyA6PiTEhWnWcVy
-kYZYLcz/Gcbpj38ea4UEWObcmiY/CgHE/f+VdDObRbGFMX5JWOlQkcd0GMYLjLTS
-kSXDBANZh8EE8AibBJBUGXk9yyq35lHck3rsP8LF6kRa7JiQiTaGdWznx95oJ6rJ
-sEEBI9019u0TOzsDxGvRtIi9pzyCq8Oi4/uCsIBItPmMrXpLdERxSN6i4ENwjlPs
-HXuTPbDObHxkZqFDePMVKztf8Nf2PwBaccjhsFT87wyq/CM6ynjQNkEG0KZjUwDD
-yg7m5+I6xtU3e/pusSJiRa2VV8RgqkPyKGWTZLATP61fOZ4/7JMa0Bkd/I7OSf/W
-VnhJoGDrKxiuhhzDoSnD4SYramtqaKaihG1ImiQPShZLLKxv+HEI66DUm3gUdgZa
-+IljohZwuiLnLSvvVtB5+RWXlX+od1QwG4UT/ICxvEFzyPKS83EnX9+rPIA3V89n
-yJMqveeHGUw2mbzvLq6qHYQl3tw/X+F07jsc+bEWQKtCfB7bl0I/m2yHVl/dqEkf
-8XALQCvaTM3IWIIvrthB
-=ZHYk
+iQIcBAEBAgAGBQJXA1JyAAoJEIaOsuA1yqREI0EQAIkjWvGtO4707tFV8eanjg3e
+tI8cu9Z4Fck/qM0aqNy7m8i9e/8TJ6mhqidtf1Z5gtncbEXtuoDGn2+pY5108npg
+XA3ZDN7wv0kEObwtLDeTUbWg24KZdxQ0vGmaFa80UPvY59RCocT8+v85nA37LCnH
+43k/EyLTTO6jf1XNGUvJLjhi0N88i1qF7eJymTYLyb+06qN56m1XEpYcX9shcEj9
+4phrkuJA+7Qsz8ywzOU/NjCr1Clt19Jx/hEGLSAWnpqDntQ8uTgyLVcGCohM138B
+ZL/0MJzzITV3PV5/as65s1FUQ1gVzpiRaL8EKPB7runUisU5/p5phDYavwOnZk1W
+AURSFK2AB2OlZ7d9ikdcLSdzbM/vpNfcYZo5R3k5qeYnyoycdIGJvWhQdKE3MBtU
+pja7fb78wagsGepebG4aOzvQknwTYplfOY5JwE3bD3EzD7IsGIZdgrJ7t6QIf8ze
+DTxzpcdY2c1lVFKVYBhxwMUKsUX88OfgJTI/kubd9g3VCS3B6w9Ckd11lGPtKY8q
+4Rtdw3vbf0HcXLaEBrf26/eW1MJ5sW5ZkcpAf25qmfEDzpb07CzLLJCUoR8ORkb6
+PVXJV/E430V1dFeLgYFWCDlDvl7E2L9DNpfeVMYVL98lxnrM9kikWzmuq+dHzF+u
+ePttLIQuitfddcXCy7cg
+=yxfY
 -----END PGP SIGNATURE-----
 --=-=-=--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
