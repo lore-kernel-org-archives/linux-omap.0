@@ -1,115 +1,118 @@
-From: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH 2/6] usb: dwc3: omap: don't access DMA bits directly
-Date: Tue, 05 Apr 2016 14:44:13 +0300
-Message-ID: <8760vw46wi.fsf@intel.com>
-References: <1459585739-21204-1-git-send-email-felipe.balbi@linux.intel.com> <1459585739-21204-3-git-send-email-felipe.balbi@linux.intel.com> <570271BF.9040902@ti.com> <87y48s4n7y.fsf@intel.com> <570385AB.8060507@ti.com> <87egak4adi.fsf@intel.com> <5703A4AE.1090301@ti.com>
+From: Laxman Dewangan <ldewangan@nvidia.com>
+Subject: [PATCH 01/20] mfd: Add devm_ apis for mfd_add_devices and mfd_release_devices
+Date: Tue, 5 Apr 2016 17:18:13 +0530
+Message-ID: <1459856912-17859-2-git-send-email-ldewangan@nvidia.com>
+References: <1459856912-17859-1-git-send-email-ldewangan@nvidia.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5703A4AE.1090301-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbif-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Srinivas Kandagatla <srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Maxime Coquelin <maxime.coquelin-qxv4g6HH51o@public.gmane.org>, Patrice Chotard <patrice.chotard-qxv4g6HH51o@public.gmane.org>, Andy Gross <andy.gross-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Ivan T . Ivanov" <ivan.ivanov-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1459856912-17859-1-git-send-email-ldewangan@nvidia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: lee.jones@linaro.org, corbet@lwn.net
+Cc: andreas.werner@men.de, tony@atomide.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, patches@opensource.wolfsonmicro.com, Laxman Dewangan <ldewangan@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Add device managed APIs devm_mfd_add_devices() and
+devm_mfd_remove_devices() for the APIs mfd_add_devices()
+and mfd_remove_devices().
 
+This helps in reducing code in error path and sometimes
+removal of .remove callback for driver unbind.
 
-Hi,
+Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
+---
+ drivers/mfd/mfd-core.c   | 62 ++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/mfd/core.h |  7 ++++++
+ 2 files changed, 69 insertions(+)
 
-Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> writes:
-> On 04/05/2016 01:29 PM, Felipe Balbi wrote:
->> Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> writes:
->>> On 04/05/2016 08:51 AM, Felipe Balbi wrote:
->>>> Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> writes:
->>>>> On 04/02/2016 11:28 AM, Felipe Balbi wrote:
->>>>>> Instead of having a static global just for
->>>>>> initializing dma_mask directly, let's use
->>>>>> dma_coerce_mask_and_coherent() for that.
->>>>>>
->>>>>> Signed-off-by: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
->>>>>> ---
->>>>>>     drivers/usb/dwc3/dwc3-omap.c | 4 +---
->>>>>>     1 file changed, 1 insertion(+), 3 deletions(-)
->>>>>>
->>>>>> diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-om=
-ap.c
->>>>>> index 22e9606d8e08..c219118bfda0 100644
->>>>>> --- a/drivers/usb/dwc3/dwc3-omap.c
->>>>>> +++ b/drivers/usb/dwc3/dwc3-omap.c
->>>>>> @@ -331,8 +331,6 @@ static void dwc3_omap_disable_irqs(struct dwc3_o=
-map *omap)
->>>>>>     	dwc3_omap_write_irqmisc_clr(omap, reg);
->>>>>>     }
->>>>>>=20=20=20=20=20
->>>>>> -static u64 dwc3_omap_dma_mask =3D DMA_BIT_MASK(32);
->>>>>> -
->>>>>>     static int dwc3_omap_id_notifier(struct notifier_block *nb,
->>>>>>     	unsigned long event, void *ptr)
->>>>>>     {
->>>>>> @@ -490,7 +488,7 @@ static int dwc3_omap_probe(struct platform_devic=
-e *pdev)
->>>>>>     	omap->irq	=3D irq;
->>>>>>     	omap->base	=3D base;
->>>>>>     	omap->vbus_reg	=3D vbus_reg;
->>>>>> -	dev->dma_mask	=3D &dwc3_omap_dma_mask;
->>>>>> +	dma_coerce_mask_and_coherent(dev, DMA_BIT_MASK(32));
->>>>>
->>>>> I think, It'll be better to just remove DMA configuration code
->>>>> from this driver and other drivers which support DT-boot mode only.
->>>>
->>>> I don't have HW, can you test that on AM57x and/or AM437x ?
->>>>
->>>
->>> Yes. I can. With below change I see no issues with USB in Host mode
->>> on my AM57x board:
->>=20
->> what about peripheral side ? Host mode worked fine on K2 devices, only
->> peripheral suffered from the bad DMA API usage.
->>=20
->
-> As I've mentioned before (and we verified that) on newer kernels=20
-> peripheral mode has been fixed by commit:
->
-> 7ace8fc usb: gadget: udc: core: Fix argument of dma_map_single for IOMMU
->
-> Also, on OMAP devices dwc3 core device is created from DT now  (dwc3-omap=
- calls=20
-> of_platform_populate()), so it's safe to drop manual DMA configuration co=
-de
-> from this driver (and if statement should be kept unchanged in dwc3/core.c
-> - as per my comment on your patch 5).
-
-fair enough, all I'm missing now is a proper patch ;-)
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXA6UOAAoJEIaOsuA1yqRElusP/3DTCnVPfPQ0jHYeipHBA/pJ
-gWbjGZ3vxcNEQqhwSyTS3e7IhT7y2w3urGZKOeUWwixG5n68cbCh31ZWUvX1YIHI
-0y+qfZTwfd3QkHt8Es4Dz3vZhs51haN/iBmBuK6n7y4TjHUyhTK/Icz/p6fuOS34
-HKT3lQL/DPgozw60fAS9i5Yc1qfHsEKz4RIFgYc9lxdqZCQlzZhTyIyt+VYZftiQ
-NDF8pjX3t63IK8xOAbKG6xpvTrWzZu7JV3m7AT7Zx7q1SBmhQ7/MvltPGqk5Koqs
-Lhi2BuzdBHmPlV+CCtpp8Jzgqnd543MCwH9DUbWe9nF6/fZdbGAmzM+np3W4mqLz
-4vEzuRrfAprHo5NImkjQKbvSuPzyc2zY19HFRwvqkWAVVPDKXc+KY7QwxJ6wy/m4
-0Tt61DTPeg/46rb90ascAO3LanV9O2edKsNVXWXN1Tb05WWv8Uib/iLyHzFppsxi
-HqvV3ind0HLf2kvMmcCLGqTp/qAWaj+o+Gb0LPGLyHnC1ONmMu3ZkOl6WJumTFvv
-o96+nnrRgLcjlrJBafyf4yQ90RTswN0YJm6qoQ8EJIbTCibmHgjXsZHyQTI5uqMa
-HOk8GW/fUsBNdnKOYGd7qFipqYBQxLhENetkzdKDO3zxw6HPhDY64Y17tJt2/MSI
-R4X6wkqR9vKpDn1SWiTr
-=GD6F
------END PGP SIGNATURE-----
---=-=-=--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/mfd/mfd-core.c b/drivers/mfd/mfd-core.c
+index 409da01..145712e 100644
+--- a/drivers/mfd/mfd-core.c
++++ b/drivers/mfd/mfd-core.c
+@@ -334,6 +334,68 @@ void mfd_remove_devices(struct device *parent)
+ }
+ EXPORT_SYMBOL(mfd_remove_devices);
+ 
++static void devm_mfd_dev_release(struct device *dev, void *res)
++{
++	mfd_remove_devices(dev);
++}
++
++/**
++ * devm_mfd_add_devices - Resource managed version of mfd_add_devices()
++ *
++ * This returns the 0 on success otherwise error number in the failure.
++ * The allocated mfd devices will automatically be released when the
++ * device is unbound.
++ */
++int devm_mfd_add_devices(struct device *dev, int id,
++		    const struct mfd_cell *cells, int n_devs,
++		    struct resource *mem_base,
++		    int irq_base, struct irq_domain *domain)
++{
++	struct device **ptr;
++	int ret;
++
++	ptr = devres_alloc(devm_mfd_dev_release, sizeof(*ptr), GFP_KERNEL);
++	if (!ptr)
++		return -ENOMEM;
++
++	ret = mfd_add_devices(dev, id, cells, n_devs, mem_base,
++			      irq_base, domain);
++	if (!ret) {
++		*ptr = dev;
++		devres_add(dev, ptr);
++	} else {
++		devres_free(ptr);
++	}
++
++	return ret;
++}
++EXPORT_SYMBOL(devm_mfd_add_devices);
++
++static int devm_mfd_devs_match(struct device *dev, void *res, void *data)
++{
++	struct device **r = res;
++
++	if (WARN_ON(!r || !*r))
++		return 0;
++
++	return *r == data;
++}
++
++/**
++ * devm_mfd_remove_device - Resource managed version of mfd_remove_devices()
++ * @dev: Device for which which resource was allocated.
++ *
++ * Remove all mfd devices added on the device.
++ * Normally this function will not need to be called and the resource
++ * management code will ensure that the resource is freed.
++ */
++void devm_mfd_remove_devices(struct device *dev)
++{
++	WARN_ON(devres_release(dev, devm_mfd_dev_release,
++			       devm_mfd_devs_match, dev));
++}
++EXPORT_SYMBOL(devm_mfd_remove_devices);
++
+ int mfd_clone_cell(const char *cell, const char **clones, size_t n_clones)
+ {
+ 	struct mfd_cell cell_entry;
+diff --git a/include/linux/mfd/core.h b/include/linux/mfd/core.h
+index bc6f7e0..d658d7f 100644
+--- a/include/linux/mfd/core.h
++++ b/include/linux/mfd/core.h
+@@ -131,4 +131,11 @@ static inline int mfd_add_hotplug_devices(struct device *parent,
+ 
+ extern void mfd_remove_devices(struct device *parent);
+ 
++extern int devm_mfd_add_devices(struct device *dev, int id,
++			   const struct mfd_cell *cells, int n_devs,
++			   struct resource *mem_base,
++			   int irq_base, struct irq_domain *irq_domain);
++
++extern void devm_mfd_remove_devices(struct device *dev);
++
+ #endif
+-- 
+2.1.4
