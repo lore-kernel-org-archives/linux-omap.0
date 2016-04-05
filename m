@@ -1,87 +1,111 @@
-From: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH 5/6] usb: dwc3: core: don't access DMA bits directly
-Date: Tue, 05 Apr 2016 08:52:43 +0300
-Message-ID: <87vb3w4n6c.fsf@intel.com>
-References: <1459585739-21204-1-git-send-email-felipe.balbi@linux.intel.com> <1459585739-21204-6-git-send-email-felipe.balbi@linux.intel.com> <570271C3.9030707@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <570271C3.9030707-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbif-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Srinivas Kandagatla <srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Maxime Coquelin <maxime.coquelin-qxv4g6HH51o@public.gmane.org>, Patrice Chotard <patrice.chotard-qxv4g6HH51o@public.gmane.org>, Andy Gross <andy.gross-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Ivan T . Ivanov" <ivan.ivanov-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: [PATCH v1] regulator: twl: Provide of_map_mode for twl4030
+Date: Tue,  5 Apr 2016 08:59:34 +0300
+Message-ID: <1459835974-31664-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+References: <20160404222638.GM2350@sirena.org.uk>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160404222638.GM2350@sirena.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: broonie@kernel.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, tony@atomide.com, lgirdwood@gmail.com
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+of_map_mode is needed so to be possible to set initial regulators mode from
+the board DTS. Otherwise, for DT boot, regulators are left in their default
+state after reset/reboot. Document device specific modes as well.
 
-Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> writes:
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+---
+ .../bindings/regulator/twl-regulator.txt           |  6 ++++++
+ drivers/regulator/twl-regulator.c                  | 22 +++++++++++++++++++---
+ 2 files changed, 25 insertions(+), 3 deletions(-)
 
-> On 04/02/2016 11:28 AM, Felipe Balbi wrote:
->> instead of manually copying DMA bits from parent
->> device, we should let DMA API do its job.
->>=20
->> Signed-off-by: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
->> ---
->>   drivers/usb/dwc3/core.c | 6 +-----
->>   1 file changed, 1 insertion(+), 5 deletions(-)
->>=20
->> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
->> index 17fd81447c9f..d601de20e1cd 100644
->> --- a/drivers/usb/dwc3/core.c
->> +++ b/drivers/usb/dwc3/core.c
->> @@ -981,11 +981,7 @@ static int dwc3_probe(struct platform_device *pdev)
->>=20=20=20
->>   	spin_lock_init(&dwc->lock);
->>=20=20=20
->> -	if (!dev->dma_mask) {
->> -		dev->dma_mask =3D dev->parent->dma_mask;
->> -		dev->dma_parms =3D dev->parent->dma_parms;
->
-> Here, and in most of other patches you've dropped dma_parms copying -
-> Is it expected?
-
-I mentioned in cover letter that I don't know exactly what's the proper
-way of dealing with dma_parms.
-
->> -		dma_set_coherent_mask(dev, dev->parent->coherent_dma_mask);
->> -	}
->> +	dma_coerce_mask_and_coherent(dev, dma_get_mask(dev->parent));
->
->
-> No. Above if case should stay, otherwise, already valid, DMA configuratio=
-n=20
-> might be overwritten:
-
-okay.
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXA1KrAAoJEIaOsuA1yqREwIcP/igqbRGPV1ysVqWO+/RTSuw1
-mXzHHGR2eAwNd5vVOiu6q5juvWJTpk7rBVLBkNyP8664hjabqKFos9FzFA7XrH0a
-GJOXhOJvQ79qnzJC8kHaWJQi2PEP1bEQIggpa1D8N7M05z3gxvw9JDqIruZ2Y41A
-c6WJ601xNrBPg5VkjaZZLoz++vnLS9YVxlaI09fBkZrSV5op/1k1vj/tb4+EPNI7
-6TVoRzb83T8cyG2O3YrutvTyWj0Drlqlh7G1cHSbiIqRn/03N+5yOYPBYDqKhFct
-oDVjxnUCY/Hpk8ACy/GBgs8WLFn7jjEq8mS2xQtkYNDT/ztPyJii5HzRI3gSGC9y
-ceJVZyi/F5+obQ43CyPH5PghV+qlIsHqrk7YWsKOu4+wBvao1g4R/+tacXvY4t8x
-42oyse7lz0j3k1nbeQ6FEKVC44EAesJlo581LMLlsoAELUyWwJOmF1WT2F4ONaSa
-AV4fydFaYacaP5tixEd2vfpnTw4qebAE4I2vI8ezqWHJL1M06dVcD/DlAYJv4jG2
-kMxQSsYMhXSX81+6mdelDRSc+8dZPv8wE1O4YRYa5FGCww9GchAGOVPT2Pz3ZtQt
-q5QsgGIi5KyJczF+T/9YYQ5lyPxEygQ21x8mE3A/3Oqk+xBni/0CNzmVujDNqL6l
-vC4t2bq3aLVf1kkK+OS4
-=uDKY
------END PGP SIGNATURE-----
---=-=-=--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/Documentation/devicetree/bindings/regulator/twl-regulator.txt b/Documentation/devicetree/bindings/regulator/twl-regulator.txt
+index 75b0c16..74a91c4 100644
+--- a/Documentation/devicetree/bindings/regulator/twl-regulator.txt
++++ b/Documentation/devicetree/bindings/regulator/twl-regulator.txt
+@@ -57,6 +57,12 @@ For twl4030 regulators/LDOs
+ 
+ Optional properties:
+ - Any optional property defined in bindings/regulator/regulator.txt
++For twl4030 regulators/LDOs:
++ - regulator-initial-mode:
++  - 0x08 - Sleep mode, the nominal output voltage is maintained with low power
++           consumption with low load current capability.
++  - 0x0e - Active mode, the regulator can deliver its nominal output voltage
++           with full-load current capability.
+ 
+ Example:
+ 
+diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
+index aad748b0..53fcbb0 100644
+--- a/drivers/regulator/twl-regulator.c
++++ b/drivers/regulator/twl-regulator.c
+@@ -395,6 +395,18 @@ static int twl4030reg_set_mode(struct regulator_dev *rdev, unsigned mode)
+ 	return twl4030_send_pb_msg(message);
+ }
+ 
++static inline unsigned int twl4030reg_map_mode(unsigned int mode)
++{
++	switch (mode) {
++	case RES_STATE_ACTIVE:
++		return REGULATOR_MODE_NORMAL;
++	case RES_STATE_SLEEP:
++		return REGULATOR_MODE_STANDBY;
++	default:
++		return -EINVAL;
++	}
++}
++
+ static int twl6030reg_set_mode(struct regulator_dev *rdev, unsigned mode)
+ {
+ 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
+@@ -897,10 +909,11 @@ static struct regulator_ops twlsmps_ops = {
+ #define TWL4030_FIXED_LDO(label, offset, mVolts, num, turnon_delay, \
+ 			remap_conf) \
+ 		TWL_FIXED_LDO(label, offset, mVolts, num, turnon_delay, \
+-			remap_conf, TWL4030, twl4030fixed_ops)
++			remap_conf, TWL4030, twl4030fixed_ops, \
++			twl4030reg_map_mode)
+ #define TWL6030_FIXED_LDO(label, offset, mVolts, turnon_delay) \
+ 		TWL_FIXED_LDO(label, offset, mVolts, 0x0, turnon_delay, \
+-			0x0, TWL6030, twl6030fixed_ops)
++			0x0, TWL6030, twl6030fixed_ops, 0x0)
+ 
+ #define TWL4030_ADJUSTABLE_LDO(label, offset, num, turnon_delay, remap_conf) \
+ static const struct twlreg_info TWL4030_INFO_##label = { \
+@@ -917,6 +930,7 @@ static const struct twlreg_info TWL4030_INFO_##label = { \
+ 		.type = REGULATOR_VOLTAGE, \
+ 		.owner = THIS_MODULE, \
+ 		.enable_time = turnon_delay, \
++		.of_map_mode = twl4030reg_map_mode, \
+ 		}, \
+ 	}
+ 
+@@ -932,6 +946,7 @@ static const struct twlreg_info TWL4030_INFO_##label = { \
+ 		.type = REGULATOR_VOLTAGE, \
+ 		.owner = THIS_MODULE, \
+ 		.enable_time = turnon_delay, \
++		.of_map_mode = twl4030reg_map_mode, \
+ 		}, \
+ 	}
+ 
+@@ -977,7 +992,7 @@ static const struct twlreg_info TWL6032_INFO_##label = { \
+ 	}
+ 
+ #define TWL_FIXED_LDO(label, offset, mVolts, num, turnon_delay, remap_conf, \
+-		family, operations) \
++		family, operations, map_mode) \
+ static const struct twlreg_info TWLFIXED_INFO_##label = { \
+ 	.base = offset, \
+ 	.id = num, \
+@@ -992,6 +1007,7 @@ static const struct twlreg_info TWLFIXED_INFO_##label = { \
+ 		.owner = THIS_MODULE, \
+ 		.min_uV = mVolts * 1000, \
+ 		.enable_time = turnon_delay, \
++		.of_map_mode = map_mode, \
+ 		}, \
+ 	}
+ 
+-- 
+1.9.1
