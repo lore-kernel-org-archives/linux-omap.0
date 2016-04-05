@@ -1,120 +1,55 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v6 12/12] usb: host: xhci-plat: Add otg device to platform data
-Date: Tue, 5 Apr 2016 17:05:17 +0300
-Message-ID: <1459865117-7032-13-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v6 05/12] usb: gadget.h: Add OTG to gadget interface
+Date: Tue, 5 Apr 2016 17:05:10 +0300
+Message-ID: <1459865117-7032-6-git-send-email-rogerq@ti.com>
 References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1459865117-7032-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org
-Cc: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1459865117-7032-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: stern@rowland.harvard.edu, balbi@kernel.org, gregkh@linuxfoundation.org, peter.chen@freescale.com
+Cc: dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, r.baldyga@samsung.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Host controllers that are part of an OTG/dual-role instance
-need to somehow pass the OTG controller device information
-to the HCD core.
+The OTG core will use struct otg_gadget_ops to
+start/stop the gadget controller.
 
-We use platform data to pass the OTG controller device.
+The main purpose of this interface is to avoid directly
+calling usb_gadget_start/stop() from the OTG core as they
+wouldn't be defined in the built-in symbol table if
+CONFIG_USB_GADGET is m.
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+Reviewed-by: Peter Chen <peter.chen@freescale.com>
 ---
- drivers/usb/host/xhci-plat.c     | 35 ++++++++++++++++++++++++++++-------
- include/linux/usb/xhci_pdriver.h |  3 +++
- 2 files changed, 31 insertions(+), 7 deletions(-)
+ include/linux/usb/gadget.h | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/drivers/usb/host/xhci-plat.c b/drivers/usb/host/xhci-plat.c
-index 5c15e9b..3d0f597 100644
---- a/drivers/usb/host/xhci-plat.c
-+++ b/drivers/usb/host/xhci-plat.c
-@@ -230,11 +230,20 @@ static int xhci_plat_probe(struct platform_device *pdev)
- 			goto put_usb3_hcd;
- 	}
- 
--	ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
-+	if (pdata->otg_dev)
-+		ret = usb_otg_add_hcd(hcd, irq, IRQF_SHARED, pdata->otg_dev);
-+	else
-+		ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
-+
- 	if (ret)
- 		goto disable_usb_phy;
- 
--	ret = usb_add_hcd(xhci->shared_hcd, irq, IRQF_SHARED);
-+	if (pdata->otg_dev)
-+		ret = usb_otg_add_hcd(xhci->shared_hcd, irq, IRQF_SHARED,
-+				      pdata->otg_dev);
-+	else
-+		ret = usb_add_hcd(xhci->shared_hcd, irq, IRQF_SHARED);
-+
- 	if (ret)
- 		goto dealloc_usb2_hcd;
- 
-@@ -242,7 +251,10 @@ static int xhci_plat_probe(struct platform_device *pdev)
- 
- 
- dealloc_usb2_hcd:
--	usb_remove_hcd(hcd);
-+	if (pdata->otg_dev)
-+		usb_otg_remove_hcd(hcd);
-+	else
-+		usb_remove_hcd(hcd);
- 
- disable_usb_phy:
- 	usb_phy_shutdown(hcd->usb_phy);
-@@ -260,16 +272,25 @@ put_hcd:
- 	return ret;
- }
- 
--static int xhci_plat_remove(struct platform_device *dev)
-+static int xhci_plat_remove(struct platform_device *pdev)
- {
--	struct usb_hcd	*hcd = platform_get_drvdata(dev);
-+	struct usb_hcd	*hcd = platform_get_drvdata(pdev);
- 	struct xhci_hcd	*xhci = hcd_to_xhci(hcd);
- 	struct clk *clk = xhci->clk;
-+	struct usb_xhci_pdata *pdata = dev_get_platdata(&pdev->dev);
-+
-+	if (pdata->otg_dev)
-+		usb_otg_remove_hcd(xhci->shared_hcd);
-+	else
-+		usb_remove_hcd(xhci->shared_hcd);
- 
--	usb_remove_hcd(xhci->shared_hcd);
- 	usb_phy_shutdown(hcd->usb_phy);
- 
--	usb_remove_hcd(hcd);
-+	if (pdata->otg_dev)
-+		usb_otg_remove_hcd(hcd);
-+	else
-+		usb_remove_hcd(hcd);
-+
- 	usb_put_hcd(xhci->shared_hcd);
- 
- 	if (!IS_ERR(clk))
-diff --git a/include/linux/usb/xhci_pdriver.h b/include/linux/usb/xhci_pdriver.h
-index 376654b..5c68b83 100644
---- a/include/linux/usb/xhci_pdriver.h
-+++ b/include/linux/usb/xhci_pdriver.h
-@@ -18,10 +18,13 @@
-  *
-  * @usb3_lpm_capable:	determines if this xhci platform supports USB3
-  *			LPM capability
-+ * @otg_dev:		OTG controller device. Only requied if part of
-+ *			OTG/dual-role.
-  *
-  */
- struct usb_xhci_pdata {
- 	unsigned	usb3_lpm_capable:1;
-+	struct device	*otg_dev;
+diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
+index 5d4e151..8c0ae64 100644
+--- a/include/linux/usb/gadget.h
++++ b/include/linux/usb/gadget.h
+@@ -1100,6 +1100,20 @@ struct usb_gadget_driver {
  };
  
- #endif /* __USB_CORE_XHCI_PDRIVER_H */
+ 
++/*-------------------------------------------------------------------------*/
++
++/**
++ * struct otg_gadget_ops - Interface between OTG core and gadget
++ *
++ * Provided by the gadget core to allow the OTG core to start/stop the gadget
++ *
++ * @start: function to start the gadget
++ * @stop: function to stop the gadget
++ */
++struct otg_gadget_ops {
++	int (*start)(struct usb_gadget *gadget);
++	int (*stop)(struct usb_gadget *gadget);
++};
+ 
+ /*-------------------------------------------------------------------------*/
+ 
 -- 
 2.5.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
