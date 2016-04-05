@@ -1,125 +1,56 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH] ARM: OMAP2+: hwmod: fix _idle() hwmod state sanity check
- sequence
-Date: Mon, 4 Apr 2016 18:30:38 -0500
-Message-ID: <1459812638-38789-1-git-send-email-s-anna@ti.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [RFC PATCH] ARM: clocksource: make ARM_GLOBAL_TIMER selectable
+Date: Mon, 4 Apr 2016 17:03:03 -0700
+Message-ID: <20160405000303.GA15936@localhost>
+References: <1454610017-25499-1-git-send-email-grygorii.strashko@ti.com>
+ <20160204224128.GG4215@xsjsorenbubuntu>
+ <CAAtXAHcV-9gXcZOX8dzUOBZUwj9M=O4MAsMCJNQYAP+os-D7Tg@mail.gmail.com>
+ <20160204233950.GH4215@xsjsorenbubuntu>
+ <56D04D17.6030502@ti.com>
+ <20160226152714.GD3173@xsjsorenbubuntu>
+ <56DEAFB7.50105@ti.com>
+ <56EAB44D.7020902@linaro.org>
+ <5702845E.90606@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5702845E.90606@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: S??ren Brinkmann <soren.brinkmann@xilinx.com>, Olof Johansson <olof@lixom.net>, Moritz Fischer <moritz.fischer@ettus.com>, kernel@stlinux.com, tony@atomide.com, nsekhar@ti.com, Masahiro Yamada <yamada.masahiro@socionext.com>, Florian Fainelli <f.fainelli@gmail.com>, Russell King <linux@arm.linux.org.uk>, Michal Simek <michal.simek@xilinx.com>, Wei Xu <xuwei5@hisilicon.com>, linux-rockchip@lists.infradead.org, bcm-kernel-feedback-list@broadcom.com, Arnd Bergmann <arnd@arndb.de>, Liviu Dudau <liviu.dudau@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Maxime Coquelin <maxime.coquelin@st.com>, Srinivas Kandagatla <srinivas.kandagatla@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Sudeep Holla <sudeep.holla@arm.com>, Jun Nie <jun.nie@linaro.org>, Shawn Guo <shawn>
 List-Id: linux-omap@vger.kernel.org
 
-The omap_hwmod _enable() function can return success without setting
-the hwmod state to _HWMOD_STATE_ENABLED for IPs with reset lines when
-all of the reset lines are asserted. The omap_hwmod _idle() function
-also performs a similar check, but after checking for the hwmod state
-first. This triggers the WARN when pm_runtime_get and pm_runtime_put
-are invoked on IPs with all reset lines asserted. Reverse the checks
-for hwmod state and reset lines status to fix this.
+On Mon, Apr 04, 2016 at 06:12:30PM +0300, Grygorii Strashko wrote:
+> Hi Daniel,
+> On 03/17/2016 03:42 PM, Daniel Lezcano wrote:
+> > On 03/08/2016 11:55 AM, Grygorii Strashko wrote:
+> >> Yeah. Thanks
+> >>
+> >> I'll re-send it after 4.6-rc.
+> >> But What I'm not fully understand is how to get it merged taking into 
+> >> account that
+> >> it touches few maches & clocksource :(
+> > 
+> > This is not a problem. Send it based on timers/core from the tip tree 
+> > and Cc the maintainers for the maches dir. As soon as they ack the 
+> > patches, I will merge it through my tree.
+> > 
+> 
+> I've rebased my patch on top of 4.6-rc2 and extended it on new mach
+> arch/arm/mach-artpec.
+> 
+> Then, as you've suggested, I've tried to apply it on top of 
+> kernel-tip/timers/core
+> kernel-tip := git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip.git
+> 
+> but seems timers/core is obsolete (It doesn't contain arch/arm/mach-artpec yet).
+> 
+> Should I wait more or can resend it basing on top of  4.6-rc2?
+> 
 
-Issue found during a unbind operation on a device with reset lines
-still asserted, example backtrace below
+Yes, wait a bit the tip tree is updated.
 
- ------------[ cut here ]------------
- WARNING: CPU: 1 PID: 879 at arch/arm/mach-omap2/omap_hwmod.c:2207 _idle+0x1e4/0x240()
- omap_hwmod: mmu_dsp: idle state can only be entered from enabled state
- Modules linked in:
- CPU: 1 PID: 879 Comm: sh Not tainted 4.4.0-00008-ga989d951331a #3
- Hardware name: Generic OMAP5 (Flattened Device Tree)
- [<c0018e60>] (unwind_backtrace) from [<c0014dc4>] (show_stack+0x10/0x14)
- [<c0014dc4>] (show_stack) from [<c037ac28>] (dump_stack+0x90/0xc0)
- [<c037ac28>] (dump_stack) from [<c003f420>] (warn_slowpath_common+0x78/0xb4)
- [<c003f420>] (warn_slowpath_common) from [<c003f48c>] (warn_slowpath_fmt+0x30/0x40)
- [<c003f48c>] (warn_slowpath_fmt) from [<c0028c20>] (_idle+0x1e4/0x240)
- [<c0028c20>] (_idle) from [<c0029080>] (omap_hwmod_idle+0x28/0x48)
- [<c0029080>] (omap_hwmod_idle) from [<c002a5a4>] (omap_device_idle+0x3c/0x90)
- [<c002a5a4>] (omap_device_idle) from [<c0427a90>] (__rpm_callback+0x2c/0x60)
- [<c0427a90>] (__rpm_callback) from [<c0427ae4>] (rpm_callback+0x20/0x80)
- [<c0427ae4>] (rpm_callback) from [<c0427f84>] (rpm_suspend+0x138/0x74c)
- [<c0427f84>] (rpm_suspend) from [<c0428b78>] (__pm_runtime_idle+0x78/0xa8)
- [<c0428b78>] (__pm_runtime_idle) from [<c041f514>] (__device_release_driver+0x64/0x100)
- [<c041f514>] (__device_release_driver) from [<c041f5d0>] (device_release_driver+0x20/0x2c)
- [<c041f5d0>] (device_release_driver) from [<c041d85c>] (unbind_store+0x78/0xf8)
- [<c041d85c>] (unbind_store) from [<c0206df8>] (kernfs_fop_write+0xc0/0x1c4)
- [<c0206df8>] (kernfs_fop_write) from [<c018a120>] (__vfs_write+0x20/0xdc)
- [<c018a120>] (__vfs_write) from [<c018a9cc>] (vfs_write+0x90/0x164)
- [<c018a9cc>] (vfs_write) from [<c018b1f0>] (SyS_write+0x44/0x9c)
- [<c018b1f0>] (SyS_write) from [<c0010420>] (ret_fast_syscall+0x0/0x1c)
- ---[ end trace a4182013c75a9f50 ]---
+Thanks
 
-While at this, fix the sequence in _shutdown() as well, though there
-is no easy reproducible scenario.
-
-Fixes: 747834ab8347 ("ARM: OMAP2+: hwmod: revise hardreset behavior")
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
-Hi Paul,
-
-There are couple of pr_debug statements that only print once the code
-flow passes through certain conditions. Not sure if you wanted them
-to be printed first thing when entering the functions or only if the
-function is really doing something. But it is still not consistent
-between _enable(), _idle() and _shutdown().
-
-regards
-Suman
-
- arch/arm/mach-omap2/omap_hwmod.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index b6d62e4cdfdd..027371c29fb9 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2207,15 +2207,15 @@ static int _idle(struct omap_hwmod *oh)
- 
- 	pr_debug("omap_hwmod: %s: idling\n", oh->name);
- 
-+	if (_are_all_hardreset_lines_asserted(oh))
-+		return 0;
-+
- 	if (oh->_state != _HWMOD_STATE_ENABLED) {
- 		WARN(1, "omap_hwmod: %s: idle state can only be entered from enabled state\n",
- 			oh->name);
- 		return -EINVAL;
- 	}
- 
--	if (_are_all_hardreset_lines_asserted(oh))
--		return 0;
--
- 	if (oh->class->sysc)
- 		_idle_sysc(oh);
- 	_del_initiator_dep(oh, mpu_oh);
-@@ -2262,6 +2262,9 @@ static int _shutdown(struct omap_hwmod *oh)
- 	int ret, i;
- 	u8 prev_state;
- 
-+	if (_are_all_hardreset_lines_asserted(oh))
-+		return 0;
-+
- 	if (oh->_state != _HWMOD_STATE_IDLE &&
- 	    oh->_state != _HWMOD_STATE_ENABLED) {
- 		WARN(1, "omap_hwmod: %s: disabled state can only be entered from idle, or enabled state\n",
-@@ -2269,9 +2272,6 @@ static int _shutdown(struct omap_hwmod *oh)
- 		return -EINVAL;
- 	}
- 
--	if (_are_all_hardreset_lines_asserted(oh))
--		return 0;
--
- 	pr_debug("omap_hwmod: %s: disabling\n", oh->name);
- 
- 	if (oh->class->pre_shutdown) {
--- 
-2.7.4
+  -- Daniel
