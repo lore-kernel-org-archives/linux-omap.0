@@ -1,62 +1,29 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: N900 sleep mode (in 4.5-rc0, if that matters)
-Date: Tue, 5 Apr 2016 15:17:04 +0200
-Message-ID: <20160405131704.GA2973@amd>
-References: <20160130221509.GA28644@amd>
- <20160201181316.GM19432@atomide.com>
- <20160201211736.GA11283@amd>
- <20160201221111.GP19432@atomide.com>
- <20160207212316.GA6147@amd>
- <20160209172403.GK19432@atomide.com>
- <20160323123801.GC32031@amd>
- <20160330191208.GW9329@atomide.com>
- <20160404213056.GA25912@amd>
- <20160404220748.GA16484@atomide.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 16/20] mfd: stw481x: Use devm_mfd_add_devices() for
+ mfd_device registration
+Date: Tue, 5 Apr 2016 15:18:49 +0200
+Message-ID: <CACRpkdbVNxCRS6dGFHa6v0o-DBhx=0uGmmBPgUU5pRS=Y90Otg@mail.gmail.com>
+References: <1459856912-17859-1-git-send-email-ldewangan@nvidia.com>
+	<1459856912-17859-17-git-send-email-ldewangan@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160404220748.GA16484@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1459856912-17859-17-git-send-email-ldewangan@nvidia.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Laxman Dewangan <ldewangan@nvidia.com>
+Cc: Lee Jones <lee.jones@linaro.org>, Jon Corbet <corbet@lwn.net>, Andreas Werner <andreas.werner@men.de>, Tony Lindgren <tony@atomide.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "open list:WOLFSON MICROELECTRONICS DRIVERS" <patches@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+On Tue, Apr 5, 2016 at 1:48 PM, Laxman Dewangan <ldewangan@nvidia.com> wrote:
 
-> > 
-> > Display off, on wifi:
-> > 
-> > 00001fff 48005020 (fa005020) cm_idlest_per blocking bits: 0007e000
-> > f7de7ebd 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00218042
-> > 0000000d 48004a28 (fa004a28) cm_idlest3_core
-> > 
-> > 00001fff 48005020 (fa005020) cm_idlest_per blocking bits: 0007e000
-> > ffde7ebd 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00218042
-> > 
-> > 00001fff 48005020 (fa005020) cm_idlest_per blocking bits: 0007e000
-> > ffdffebd 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00200042
-> > 
-> > ..so I believe gadget bits are still set.
-> 
-> Nope, you got PM working now for the USB as it's now ending with 0x42
-> instead of 0x62 :) You still have bit 21 blocking, sorry don't
-> remember what that one is, but that's in the TRM for idlest1
-> register.
+> Use devm_mfd_add_devices() for mfd devices registration and get
+> rid of .remove callback to remove mfd devices. This is done
+> by managed device framework.
+>
+> Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
+> CC: Linus Walleij <linus.walleij@linaro.org>
 
-Looking more through the registers... GPIO banks seem to be listed in
-cm_idlest_per. You mentioned that they should be automatically
-controlled? Does that still work when they are exported to the
-userspace?
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 
-pavel@n900:~$ ls /sys/class/gpio/
-export	       gpio177  gpio73  gpio75     gpiochip128  gpiochip32
-gpiochip64  unexport
-gpio157  gpio70   gpio74  gpiochip0  gpiochip160  gpiochip494
-gpiochip96
-
-Best regards,
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Yours,
+Linus Walleij
