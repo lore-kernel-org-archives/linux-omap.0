@@ -1,52 +1,66 @@
-From: Michal Nazarewicz <mina86-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>
-Subject: Re: USB gadgets with configfs hang reboot
-Date: Tue, 05 Apr 2016 17:18:50 +0200
-Message-ID: <xa1t4mbgxew5.fsf@mina86.com>
-References: <Pine.LNX.4.44L0.1603311255560.1516-100000@iolanthe.rowland.org> <xa1tmvpdz2h4.fsf@mina86.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: 4.4: camera and unlock buttons produce tons of interrupts (was
+ Re: N900 sleep mode)
+Date: Tue, 5 Apr 2016 08:29:16 -0700
+Message-ID: <20160405152916.GE16484@atomide.com>
+References: <20160201181316.GM19432@atomide.com>
+ <20160201211736.GA11283@amd>
+ <20160201221111.GP19432@atomide.com>
+ <20160207212316.GA6147@amd>
+ <20160209172403.GK19432@atomide.com>
+ <20160323123801.GC32031@amd>
+ <20160330191208.GW9329@atomide.com>
+ <20160404213056.GA25912@amd>
+ <20160404220748.GA16484@atomide.com>
+ <20160405142250.GA6429@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <xa1tmvpdz2h4.fsf-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, pali =?utf-8?Q?Roh=C3=A1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160405142250.GA6429@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Apr 01 2016, Michal Nazarewicz wrote:
-> For legacy/nokia setting no_configfs should be a valid solution:
+* Pavel Machek <pavel@ucw.cz> [160405 07:23]:
 >
-> ---- >8 -------------------------------------------------------------=
----
-> diff --git a/drivers/usb/gadget/legacy/nokia.c b/drivers/usb/gadget/l=
-egacy/nokia.c
-> index 0997504..e4bc607 100644
-> --- a/drivers/usb/gadget/legacy/nokia.c
-> +++ b/drivers/usb/gadget/legacy/nokia.c
-> @@ -223,6 +223,7 @@ static int nokia_bind_config(struct usb_configura=
-tion *c)
->         }
-> =20
->         fsg_opts =3D fsg_opts_from_func_inst(fi_msg);
-> +       fsg_opts->no_configfs =3D true;
-> =20
->         status =3D fsg_common_run_thread(fsg_opts->common);
->         if (status)
-> ---- >8 -------------------------------------------------------------=
----
->
-> This is what other legacy gadgets do after all.
+> Ok, I realized that _something_ set up my keyboard on console, too, so
+> I'm able to do "init 1" and still interact with the console.
+> 
+> cm_idlest1_core blocking bits are now 0x42 pretty consistently. But
+> they stay 0x42, even when screen is on (and screen on prevents low
+> power, right?) so I guess they are not the whole story.
 
-Scratch that.  legacy/nokia sets no_configfs in nokia_bind so
-legacy/nokia appears to be a different issue all together.
+Yes they stay at 0x42. And it seems you've configured the UART
+idle timeouts too.
 
---=20
-Best regards
-=E3=83=9F=E3=83=8F=E3=82=A6 =E2=80=9C=F0=9D=93=B6=F0=9D=93=B2=F0=9D=93=B7=
-=F0=9D=93=AA86=E2=80=9D =E3=83=8A=E3=82=B6=E3=83=AC=E3=83=B4=E3=82=A4=E3=
-=83=84
-=C2=ABIf at first you don=E2=80=99t succeed, give up skydiving=C2=BB
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I'm able to get down to 50mA power consumption with screen off. I was
+> getting 90mA with X, wifi in powersave and screen off.
+> 
+> Head proximity sensor is still on in this configuration. But I guess
+> that should not keep the system busy...?
+> 
+> Ok, wait a moment, I'm getting "Camera Focus", "Camera Capture" and
+> "Lock button" interrupts ... at something like 20/second. Without
+> touching anything. Hmm. Also "pm_wkup", but that might be
+> expected. Plus, 49052000.gpio and 49054000.gpio are rather
+> active. Might be related to the above. Also "gp_timer" and
+> 48070000.i2c are active, perhaps also related. I don't think I have
+> the camera working...
+
+Hmm that does not sound right at all for the GPIOs. The pm_wkup
+interrupt triggers every time you hit wfi pretty much, so that
+should be OK.
+
+> "Lock button" interrupt stops increasing as long as I hold the lock
+> button in the "unlock" position. "Camera Focus" and "Camera Capture"
+> will stop increasing when I hold down the Camera button.
+
+I have not seen that issue last time I checked. Sorry won't
+be able to test it until Thursday, maybe there's some GPIO
+regression now.
+
+Regards,
+
+Tony
