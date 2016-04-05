@@ -1,7 +1,7 @@
 From: Laxman Dewangan <ldewangan@nvidia.com>
-Subject: [PATCH 12/20] mfd: rk808: Use devm_mfd_add_devices() for mfd_device registration
-Date: Tue, 5 Apr 2016 17:18:24 +0530
-Message-ID: <1459856912-17859-13-git-send-email-ldewangan@nvidia.com>
+Subject: [PATCH 11/20] mfd: rdc321x: Use devm_mfd_add_devices() for mfd_device registration
+Date: Tue, 5 Apr 2016 17:18:23 +0530
+Message-ID: <1459856912-17859-12-git-send-email-ldewangan@nvidia.com>
 References: <1459856912-17859-1-git-send-email-ldewangan@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,39 +9,48 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1459856912-17859-1-git-send-email-ldewangan@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: lee.jones@linaro.org, corbet@lwn.net
-Cc: andreas.werner@men.de, tony@atomide.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, patches@opensource.wolfsonmicro.com, Laxman Dewangan <ldewangan@nvidia.com>, Chris Zhong <zyw@rock-chips.com>
+Cc: andreas.werner@men.de, tony@atomide.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, patches@opensource.wolfsonmicro.com, Laxman Dewangan <ldewangan@nvidia.com>, Florian Fainelli <florian@openwrt.org>
 List-Id: linux-omap@vger.kernel.org
 
-Use devm_mfd_add_devices() for mfd devices registration and remove
-the call of mfd_remove_devices() from .remove callback to remove
-mfd devices. This is done by managed device framework.
+Use devm_mfd_add_devices() for mfd devices registration and get
+rid of .remove callback to remove mfd devices. This is done
+by managed device framework.
 
 Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
-CC: Chris Zhong <zyw@rock-chips.com>
+CC: Florian Fainelli <florian@openwrt.org>
 ---
- drivers/mfd/rk808.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/mfd/rdc321x-southbridge.c | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff --git a/drivers/mfd/rk808.c b/drivers/mfd/rk808.c
-index 4b1e439..a3026ca 100644
---- a/drivers/mfd/rk808.c
-+++ b/drivers/mfd/rk808.c
-@@ -213,7 +213,7 @@ static int rk808_probe(struct i2c_client *client,
- 	rk808->i2c = client;
- 	i2c_set_clientdata(client, rk808);
+diff --git a/drivers/mfd/rdc321x-southbridge.c b/drivers/mfd/rdc321x-southbridge.c
+index 6575585..3ddb644 100644
+--- a/drivers/mfd/rdc321x-southbridge.c
++++ b/drivers/mfd/rdc321x-southbridge.c
+@@ -85,16 +85,11 @@ static int rdc321x_sb_probe(struct pci_dev *pdev,
+ 	rdc321x_gpio_pdata.sb_pdev = pdev;
+ 	rdc321x_wdt_pdata.sb_pdev = pdev;
  
--	ret = mfd_add_devices(&client->dev, -1,
-+	ret = devm_mfd_add_devices(&client->dev, -1,
- 			      rk808s, ARRAY_SIZE(rk808s),
- 			      NULL, 0, regmap_irq_get_domain(rk808->irq_data));
- 	if (ret) {
-@@ -240,7 +240,6 @@ static int rk808_remove(struct i2c_client *client)
- 	struct rk808 *rk808 = i2c_get_clientdata(client);
+-	return mfd_add_devices(&pdev->dev, -1,
++	return devm_mfd_add_devices(&pdev->dev, -1,
+ 			       rdc321x_sb_cells, ARRAY_SIZE(rdc321x_sb_cells),
+ 			       NULL, 0, NULL);
+ }
  
- 	regmap_del_irq_chip(client->irq, rk808->irq_data);
--	mfd_remove_devices(&client->dev);
- 	pm_power_off = NULL;
+-static void rdc321x_sb_remove(struct pci_dev *pdev)
+-{
+-	mfd_remove_devices(&pdev->dev);
+-}
+-
+ static const struct pci_device_id rdc321x_sb_table[] = {
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_RDC, PCI_DEVICE_ID_RDC_R6030) },
+ 	{}
+@@ -105,7 +100,6 @@ static struct pci_driver rdc321x_sb_driver = {
+ 	.name		= "RDC321x Southbridge",
+ 	.id_table	= rdc321x_sb_table,
+ 	.probe		= rdc321x_sb_probe,
+-	.remove		= rdc321x_sb_remove,
+ };
  
- 	return 0;
+ module_pci_driver(rdc321x_sb_driver);
 -- 
 2.1.4
