@@ -1,31 +1,67 @@
-From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v3] iio: light: new driver for the ROHM BH1780
-Date: Tue, 5 Apr 2016 09:50:23 +0200
-Message-ID: <CACRpkdbi=big65-yMXXipE1i_YSDo=7BMWDohXcVCpwSi5HMPg@mail.gmail.com>
-References: <1459326847-9444-1-git-send-email-linus.walleij@linaro.org>
-	<5700E7AF.6040903@kernel.org>
-	<CACRpkdYkqzvu_fMcDPy8i0OCpGdGQ39S534HbCQL8T93gadKmQ@mail.gmail.com>
-	<20160404074239.GT7800@tbergstrom-lnx.Nvidia.com>
-	<20160404223546.GC8755@atomide.com>
+From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/6] usb: dwc3: omap: don't access DMA bits directly
+Date: Tue, 5 Apr 2016 12:30:19 +0300
+Message-ID: <570385AB.8060507@ti.com>
+References: <1459585739-21204-1-git-send-email-felipe.balbi@linux.intel.com>
+ <1459585739-21204-3-git-send-email-felipe.balbi@linux.intel.com>
+ <570271BF.9040902@ti.com> <87y48s4n7y.fsf@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160404223546.GC8755-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Peter De Schrijver <pdeschrijver-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, "linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Daniel Mack <daniel-rDUAYElUppE@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87y48s4n7y.fsf-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Felipe Balbi <balbif-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Srinivas Kandagatla <srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Maxime Coquelin <maxime.coquelin-qxv4g6HH51o@public.gmane.org>, Patrice Chotard <patrice.chotard-qxv4g6HH51o@public.gmane.org>, Andy Gross <andy.gross-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Ivan T . Ivanov" <ivan.ivanov-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 5, 2016 at 12:35 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+On 04/05/2016 08:51 AM, Felipe Balbi wrote:
+> Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> writes:
+>> On 04/02/2016 11:28 AM, Felipe Balbi wrote:
+>>> Instead of having a static global just for
+>>> initializing dma_mask directly, let's use
+>>> dma_coerce_mask_and_coherent() for that.
+>>>
+>>> Signed-off-by: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+>>> ---
+>>>    drivers/usb/dwc3/dwc3-omap.c | 4 +---
+>>>    1 file changed, 1 insertion(+), 3 deletions(-)
+>>>
+>>> diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+>>> index 22e9606d8e08..c219118bfda0 100644
+>>> --- a/drivers/usb/dwc3/dwc3-omap.c
+>>> +++ b/drivers/usb/dwc3/dwc3-omap.c
+>>> @@ -331,8 +331,6 @@ static void dwc3_omap_disable_irqs(struct dwc3_omap *omap)
+>>>    	dwc3_omap_write_irqmisc_clr(omap, reg);
+>>>    }
+>>>    
+>>> -static u64 dwc3_omap_dma_mask = DMA_BIT_MASK(32);
+>>> -
+>>>    static int dwc3_omap_id_notifier(struct notifier_block *nb,
+>>>    	unsigned long event, void *ptr)
+>>>    {
+>>> @@ -490,7 +488,7 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+>>>    	omap->irq	= irq;
+>>>    	omap->base	= base;
+>>>    	omap->vbus_reg	= vbus_reg;
+>>> -	dev->dma_mask	= &dwc3_omap_dma_mask;
+>>> +	dma_coerce_mask_and_coherent(dev, DMA_BIT_MASK(32));
+>>
+>> I think, It'll be better to just remove DMA configuration code
+>> from this driver and other drivers which support DT-boot mode only.
+> 
+> I don't have HW, can you test that on AM57x and/or AM437x ?
+> 
 
-> Adding linux-omap to Cc. I suggest do a minimal patch to remove the
-> sysfs interface, then revert the patch if needed. I don't think
-> people are using it.
+Yes. I can. With below change I see no issues with USB in Host mode
+on my AM57x board:
 
-The old driver in misc is just using sysfs for everything, so removing the
-sysfs is like deleting the driver. Once the IIO driver is merged I guess
-I'll boldly post a patch to delete it and then a patch to activate the new
-driver in the OMAP defconfig.
-
-Yours,
-Linus Walleij
+diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+index 16cb14f..d5feaf9 100644
+--- a/drivers/usb/dwc3/dwc3-omap.c
++++ b/drivers/usb/dwc3/dwc3-omap.c
+@@ -367,8 +367,6 @@ static void dwc3_omap_disable_irqs(struct dwc3_omap *omap)
+        dwc3_omap_write_irqmisc_clr(omap, reg);
+ }
+ 
+-static u64 dwc3_omap_dma_mask = DMA_BIT_MASK(32);
