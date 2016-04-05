@@ -1,209 +1,64 @@
-From: Jonas Rabenstein <jonas.rabenstein@studium.uni-erlangen.de>
-Subject: [PATCH v2] arm: omap2: remove redundant multiplatform checks
-Date: Wed,  6 Apr 2016 00:35:38 +0200
-Message-ID: <1459895738-6546-1-git-send-email-jonas.rabenstein@studium.uni-erlangen.de>
-References: <201604060526.ouhQYqrT%fengguang.wu@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201604060526.ouhQYqrT%fengguang.wu@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux@arm.linux.org.uk, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Jonas Rabenstein <jonas.rabenstein@studium.uni-erlangen.de>
+From: "Kim, Milo" <milo.kim@ti.com>
+Subject: Re: [PATCH 08/20] mfd: lp3943: Use devm_mfd_add_devices() for
+ mfd_device registration
+Date: Wed, 6 Apr 2016 08:59:10 +0900
+Message-ID: <5704514E.3020603@ti.com>
+References: <1459856912-17859-1-git-send-email-ldewangan@nvidia.com>
+ <1459856912-17859-9-git-send-email-ldewangan@nvidia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1459856912-17859-9-git-send-email-ldewangan@nvidia.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Laxman Dewangan <ldewangan@nvidia.com>
+Cc: lee.jones@linaro.org, corbet@lwn.net, andreas.werner@men.de, tony@atomide.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, patches@opensource.wolfsonmicro.com
 List-Id: linux-omap@vger.kernel.org
 
-The directory arch/arm/mach-omap2 is only selected for compilation if
-CONFIG_ARCH_OMAP2PLUS is selected. CONFIG_ARCH_OMAP2PLUS itself is a
-silent option and all machines selecting this option are multiplatform
-devices. As a consequence checks for CONFIG_ARCH_MULTIPLATFORM as well
-as CONFIG_ARCH_OMAP2PLUS within that directory are superfluous and can
-be removed.
+On 4/5/2016 8:48 PM, Laxman Dewangan wrote:
+> Use devm_mfd_add_devices() for mfd devices registration and get
+> rid of .remove callback to remove mfd devices. This is done
+> by managed device framework.
+>
+> Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
+> CC: Milo Kim <milo.kim@ti.com>
 
-Signed-off-by: Jonas Rabenstein <jonas.rabenstein@studium.uni-erlangen.de>
----
-changes in v2:
- * missed two #endif's
+Acked-by: Milo Kim <milo.kim@ti.com>
 
- arch/arm/mach-omap2/Makefile |   2 +-
- arch/arm/mach-omap2/soc.h    | 121 +++----------------------------------------
- 2 files changed, 8 insertions(+), 115 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 0ba6a0e..04e276c 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -2,7 +2,7 @@
- # Makefile for the linux kernel.
- #
- 
--ccflags-$(CONFIG_ARCH_MULTIPLATFORM) := -I$(srctree)/$(src)/include \
-+ccflags-y := -I$(srctree)/$(src)/include \
- 	-I$(srctree)/arch/arm/plat-omap/include
- 
- # Common support
-diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
-index 364418c..79f1573 100644
---- a/arch/arm/mach-omap2/soc.h
-+++ b/arch/arm/mach-omap2/soc.h
-@@ -42,79 +42,7 @@
-  * Test if multicore OMAP support is needed
-  */
- #undef MULTI_OMAP2
--#undef OMAP_NAME
--
--#ifdef CONFIG_ARCH_MULTIPLATFORM
- #define MULTI_OMAP2
--#endif
--#ifdef CONFIG_SOC_OMAP2420
--# ifdef OMAP_NAME
--#  undef  MULTI_OMAP2
--#  define MULTI_OMAP2
--# else
--#  define OMAP_NAME omap2420
--# endif
--#endif
--#ifdef CONFIG_SOC_OMAP2430
--# ifdef OMAP_NAME
--#  undef  MULTI_OMAP2
--#  define MULTI_OMAP2
--# else
--#  define OMAP_NAME omap2430
--# endif
--#endif
--#ifdef CONFIG_ARCH_OMAP3
--# ifdef OMAP_NAME
--#  undef  MULTI_OMAP2
--#  define MULTI_OMAP2
--# else
--#  define OMAP_NAME omap3
--# endif
--#endif
--#ifdef CONFIG_ARCH_OMAP4
--# ifdef OMAP_NAME
--#  undef  MULTI_OMAP2
--#  define MULTI_OMAP2
--# else
--#  define OMAP_NAME omap4
--# endif
--#endif
--
--#ifdef CONFIG_SOC_OMAP5
--# ifdef OMAP_NAME
--#  undef  MULTI_OMAP2
--#  define MULTI_OMAP2
--# else
--#  define OMAP_NAME omap5
--# endif
--#endif
--
--#ifdef CONFIG_SOC_AM33XX
--# ifdef OMAP_NAME
--#  undef  MULTI_OMAP2
--#  define MULTI_OMAP2
--# else
--#  define OMAP_NAME am33xx
--# endif
--#endif
--
--#ifdef CONFIG_SOC_AM43XX
--# ifdef OMAP_NAME
--#  undef  MULTI_OMAP2
--#  define MULTI_OMAP2
--# else
--#  define OMAP_NAME am43xx
--# endif
--#endif
--
--#ifdef CONFIG_SOC_DRA7XX
--# ifdef OMAP_NAME
--#  undef MULTI_OMAP2
--#  define MULTI_OMAP2
--# else
--#  define OMAP_NAME DRA7XX
--# endif
--#endif
- 
- /*
-  * Omap device type i.e. EMU/HS/TST/GP/BAD
-@@ -242,11 +170,6 @@ IS_AM_SUBCLASS(437x, 0x437)
- IS_DRA_SUBCLASS(75x, 0x75)
- IS_DRA_SUBCLASS(72x, 0x72)
- 
--#define soc_is_omap24xx()		0
--#define soc_is_omap242x()		0
--#define soc_is_omap243x()		0
--#define soc_is_omap34xx()		0
--#define soc_is_omap343x()		0
- #define soc_is_ti81xx()			0
- #define soc_is_ti816x()			0
- #define soc_is_ti814x()			0
-@@ -265,46 +188,18 @@ IS_DRA_SUBCLASS(72x, 0x72)
- #define soc_is_dra74x()			0
- #define soc_is_dra72x()			0
- 
--#if defined(MULTI_OMAP2)
--# if defined(CONFIG_ARCH_OMAP2)
--#  undef  soc_is_omap24xx
-+#if defined(CONFIG_ARCH_OMAP2)
- #  define soc_is_omap24xx()		is_omap24xx()
--# endif
--# if defined (CONFIG_SOC_OMAP2420)
--#  undef  soc_is_omap242x
-+#endif
-+#if defined(CONFIG_SOC_OMAP2420)
- #  define soc_is_omap242x()		is_omap242x()
--# endif
--# if defined (CONFIG_SOC_OMAP2430)
--#  undef  soc_is_omap243x
-+#endif
-+#if defined(CONFIG_SOC_OMAP2430)
- #  define soc_is_omap243x()		is_omap243x()
--# endif
--# if defined(CONFIG_ARCH_OMAP3)
--#  undef  soc_is_omap34xx
--#  undef  soc_is_omap343x
-+#endif
-+#if defined(CONFIG_ARCH_OMAP3)
- #  define soc_is_omap34xx()		is_omap34xx()
- #  define soc_is_omap343x()		is_omap343x()
--# endif
--#else
--# if defined(CONFIG_ARCH_OMAP2)
--#  undef  soc_is_omap24xx
--#  define soc_is_omap24xx()		1
--# endif
--# if defined(CONFIG_SOC_OMAP2420)
--#  undef  soc_is_omap242x
--#  define soc_is_omap242x()		1
--# endif
--# if defined(CONFIG_SOC_OMAP2430)
--#  undef  soc_is_omap243x
--#  define soc_is_omap243x()		1
--# endif
--# if defined(CONFIG_ARCH_OMAP3)
--#  undef  soc_is_omap34xx
--#  define soc_is_omap34xx()		1
--# endif
--# if defined(CONFIG_SOC_OMAP3430)
--#  undef  soc_is_omap343x
--#  define soc_is_omap343x()		1
--# endif
- #endif
- 
- /*
-@@ -339,7 +234,6 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define soc_is_omap5430()		0
- 
- /* These are needed for the common code */
--#ifdef CONFIG_ARCH_OMAP2PLUS
- #define soc_is_omap7xx()		0
- #define soc_is_omap15xx()		0
- #define soc_is_omap16xx()		0
-@@ -350,7 +244,6 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define soc_is_omap1710()		0
- #define cpu_class_is_omap1()		0
- #define cpu_class_is_omap2()		1
--#endif
- 
- #if defined(CONFIG_ARCH_OMAP2)
- # undef  soc_is_omap2420
--- 
-2.7.3
+> ---
+>   drivers/mfd/lp3943.c | 14 +++-----------
+>   1 file changed, 3 insertions(+), 11 deletions(-)
+>
+> diff --git a/drivers/mfd/lp3943.c b/drivers/mfd/lp3943.c
+> index eecbb13..65a2a8f1 100644
+> --- a/drivers/mfd/lp3943.c
+> +++ b/drivers/mfd/lp3943.c
+> @@ -123,16 +123,9 @@ static int lp3943_probe(struct i2c_client *cl, const struct i2c_device_id *id)
+>   	lp3943->mux_cfg = lp3943_mux_cfg;
+>   	i2c_set_clientdata(cl, lp3943);
+>
+> -	return mfd_add_devices(dev, -1, lp3943_devs, ARRAY_SIZE(lp3943_devs),
+> -			       NULL, 0, NULL);
+> -}
+> -
+> -static int lp3943_remove(struct i2c_client *cl)
+> -{
+> -	struct lp3943 *lp3943 = i2c_get_clientdata(cl);
+> -
+> -	mfd_remove_devices(lp3943->dev);
+> -	return 0;
+> +	return devm_mfd_add_devices(dev, -1, lp3943_devs,
+> +				    ARRAY_SIZE(lp3943_devs),
+> +				    NULL, 0, NULL);
+>   }
+>
+>   static const struct i2c_device_id lp3943_ids[] = {
+> @@ -151,7 +144,6 @@ MODULE_DEVICE_TABLE(of, lp3943_of_match);
+>
+>   static struct i2c_driver lp3943_driver = {
+>   	.probe = lp3943_probe,
+> -	.remove = lp3943_remove,
+>   	.driver = {
+>   		.name = "lp3943",
+>   		.of_match_table = of_match_ptr(lp3943_of_match),
+>
