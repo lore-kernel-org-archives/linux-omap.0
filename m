@@ -1,7 +1,7 @@
 From: Laxman Dewangan <ldewangan@nvidia.com>
-Subject: [PATCH 15/20] mfd: sky81452: Use devm_mfd_add_devices() for mfd_device registration
-Date: Tue, 5 Apr 2016 17:18:27 +0530
-Message-ID: <1459856912-17859-16-git-send-email-ldewangan@nvidia.com>
+Subject: [PATCH 12/20] mfd: rk808: Use devm_mfd_add_devices() for mfd_device registration
+Date: Tue, 5 Apr 2016 17:18:24 +0530
+Message-ID: <1459856912-17859-13-git-send-email-ldewangan@nvidia.com>
 References: <1459856912-17859-1-git-send-email-ldewangan@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,52 +9,39 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1459856912-17859-1-git-send-email-ldewangan@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: lee.jones@linaro.org, corbet@lwn.net
-Cc: andreas.werner@men.de, tony@atomide.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, patches@opensource.wolfsonmicro.com, Laxman Dewangan <ldewangan@nvidia.com>, Gyungoh Yoo <jack.yoo@skyworksinc.com>
+Cc: andreas.werner@men.de, tony@atomide.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, patches@opensource.wolfsonmicro.com, Laxman Dewangan <ldewangan@nvidia.com>, Chris Zhong <zyw@rock-chips.com>
 List-Id: linux-omap@vger.kernel.org
 
-Use devm_mfd_add_devices() for mfd devices registration and get
-rid of .remove callback to remove mfd devices. This is done
-by managed device framework.
+Use devm_mfd_add_devices() for mfd devices registration and remove
+the call of mfd_remove_devices() from .remove callback to remove
+mfd devices. This is done by managed device framework.
 
 Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
-CC: Gyungoh Yoo <jack.yoo@skyworksinc.com>
+CC: Chris Zhong <zyw@rock-chips.com>
 ---
- drivers/mfd/sky81452.c | 10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ drivers/mfd/rk808.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/mfd/sky81452.c b/drivers/mfd/sky81452.c
-index b0c9b04..30a2a67 100644
---- a/drivers/mfd/sky81452.c
-+++ b/drivers/mfd/sky81452.c
-@@ -64,19 +64,14 @@ static int sky81452_probe(struct i2c_client *client,
- 	cells[1].platform_data = pdata->regulator_init_data;
- 	cells[1].pdata_size = sizeof(*pdata->regulator_init_data);
+diff --git a/drivers/mfd/rk808.c b/drivers/mfd/rk808.c
+index 4b1e439..a3026ca 100644
+--- a/drivers/mfd/rk808.c
++++ b/drivers/mfd/rk808.c
+@@ -213,7 +213,7 @@ static int rk808_probe(struct i2c_client *client,
+ 	rk808->i2c = client;
+ 	i2c_set_clientdata(client, rk808);
  
--	ret = mfd_add_devices(dev, -1, cells, ARRAY_SIZE(cells), NULL, 0, NULL);
-+	ret = devm_mfd_add_devices(dev, -1, cells, ARRAY_SIZE(cells),
-+				   NULL, 0, NULL);
- 	if (ret)
- 		dev_err(dev, "failed to add child devices. err=%d\n", ret);
+-	ret = mfd_add_devices(&client->dev, -1,
++	ret = devm_mfd_add_devices(&client->dev, -1,
+ 			      rk808s, ARRAY_SIZE(rk808s),
+ 			      NULL, 0, regmap_irq_get_domain(rk808->irq_data));
+ 	if (ret) {
+@@ -240,7 +240,6 @@ static int rk808_remove(struct i2c_client *client)
+ 	struct rk808 *rk808 = i2c_get_clientdata(client);
  
- 	return ret;
- }
- 
--static int sky81452_remove(struct i2c_client *client)
--{
+ 	regmap_del_irq_chip(client->irq, rk808->irq_data);
 -	mfd_remove_devices(&client->dev);
--	return 0;
--}
--
- static const struct i2c_device_id sky81452_ids[] = {
- 	{ "sky81452" },
- 	{ }
-@@ -97,7 +92,6 @@ static struct i2c_driver sky81452_driver = {
- 		.of_match_table = of_match_ptr(sky81452_of_match),
- 	},
- 	.probe = sky81452_probe,
--	.remove = sky81452_remove,
- 	.id_table = sky81452_ids,
- };
+ 	pm_power_off = NULL;
  
+ 	return 0;
 -- 
 2.1.4
