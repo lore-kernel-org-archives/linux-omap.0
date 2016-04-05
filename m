@@ -1,134 +1,78 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v6 08/12] usb: hcd: Adapt to OTG core
-Date: Tue, 5 Apr 2016 17:05:13 +0300
-Message-ID: <1459865117-7032-9-git-send-email-rogerq@ti.com>
-References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: 4.4: camera and unlock buttons produce tons of interrupts (was Re:
+ N900 sleep mode)
+Date: Tue, 5 Apr 2016 16:22:50 +0200
+Message-ID: <20160405142250.GA6429@amd>
+References: <20160130221509.GA28644@amd>
+ <20160201181316.GM19432@atomide.com>
+ <20160201211736.GA11283@amd>
+ <20160201221111.GP19432@atomide.com>
+ <20160207212316.GA6147@amd>
+ <20160209172403.GK19432@atomide.com>
+ <20160323123801.GC32031@amd>
+ <20160330191208.GW9329@atomide.com>
+ <20160404213056.GA25912@amd>
+ <20160404220748.GA16484@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1459865117-7032-1-git-send-email-rogerq@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20160404220748.GA16484@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: stern@rowland.harvard.edu, balbi@kernel.org, gregkh@linuxfoundation.org, peter.chen@freescale.com
-Cc: dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, r.baldyga@samsung.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-Introduce usb_otg_add/remove_hcd() for use by host
-controllers that are part of OTG/dual-role port.
+Hi!
 
-Non Device tree platforms can use the otg_dev argument
-to specify the OTG controller device. If otg_dev is NULL
-then the device tree node's otg-controller property is used to
-get the otg_dev device.
+> * Pavel Machek <pavel@ucw.cz> [160404 14:31]:
+> > 
+> > Display off, on wifi:
+> > 
+> > 00001fff 48005020 (fa005020) cm_idlest_per blocking bits: 0007e000
+> > f7de7ebd 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00218042
+> > 0000000d 48004a28 (fa004a28) cm_idlest3_core
+> > 
+> > 00001fff 48005020 (fa005020) cm_idlest_per blocking bits: 0007e000
+> > ffde7ebd 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00218042
+> > 
+> > 00001fff 48005020 (fa005020) cm_idlest_per blocking bits: 0007e000
+> > ffdffebd 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00200042
+> > 
+> > ..so I believe gadget bits are still set.
+> 
+> Nope, you got PM working now for the USB as it's now ending with 0x42
+> instead of 0x62 :) You still have bit 21 blocking, sorry don't
+> remember what that one is, but that's in the TRM for idlest1
+> register.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- drivers/usb/core/hcd.c  | 71 +++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/usb/hcd.h |  4 +++
- 2 files changed, 75 insertions(+)
+Ok, I realized that _something_ set up my keyboard on console, too, so
+I'm able to do "init 1" and still interact with the console.
 
-diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
-index 6b1930d..6a80193 100644
---- a/drivers/usb/core/hcd.c
-+++ b/drivers/usb/core/hcd.c
-@@ -46,6 +46,10 @@
- #include <linux/usb.h>
- #include <linux/usb/hcd.h>
- #include <linux/usb/phy.h>
-+#include <linux/usb/otg.h>
-+
-+#include <linux/of.h>
-+#include <linux/of_platform.h>
- 
- #include "usb.h"
- 
-@@ -3013,6 +3017,73 @@ void usb_remove_hcd(struct usb_hcd *hcd)
- }
- EXPORT_SYMBOL_GPL(usb_remove_hcd);
- 
-+
-+static struct otg_hcd_ops otg_hcd_intf = {
-+	.add = usb_add_hcd,
-+	.remove = usb_remove_hcd,
-+	.usb_bus_start_enum = usb_bus_start_enum,
-+	.usb_control_msg = usb_control_msg,
-+	.usb_hub_find_child = usb_hub_find_child,
-+};
-+
-+/**
-+ * usb_otg_add_hcd - Register the HCD with OTG core.
-+ * @hcd: the usb_hcd structure to initialize
-+ * @irqnum: Interrupt line to allocate
-+ * @irqflags: Interrupt type flags
-+ * @otg_dev: OTG controller device manging this HCD
-+ *
-+ * Registers the HCD with OTG core. OTG core will call usb_add_hcd()
-+ * or usb_remove_hcd() as necessary.
-+ * If otg_dev is NULL then device tree node is checked for OTG
-+ * controller device via the otg-controller property.
-+ */
-+int usb_otg_add_hcd(struct usb_hcd *hcd,
-+		    unsigned int irqnum, unsigned long irqflags,
-+		    struct device *otg_dev)
-+{
-+	struct device *dev = hcd->self.controller;
-+
-+	if (!otg_dev) {
-+		struct device_node *np;
-+		struct platform_device *pdev;
-+
-+		np = of_parse_phandle(dev->of_node, "otg-controller", 0);
-+		if (!np) {
-+			dev_err(dev,
-+				"otg_dev is NULL and no otg-controller property in DT\n");
-+			return -EINVAL;
-+		}
-+
-+		pdev = of_find_device_by_node(np);
-+		of_node_put(np);
-+		if (!pdev) {
-+			dev_err(dev,
-+				"couldn't get otg-controller device\n");
-+			return -ENODEV;
-+		}
-+
-+		hcd->otg_dev = &pdev->dev;
-+	} else {
-+		hcd->otg_dev = otg_dev;
-+	}
-+
-+	return usb_otg_register_hcd(hcd, irqnum, irqflags, &otg_hcd_intf);
-+}
-+EXPORT_SYMBOL_GPL(usb_otg_add_hcd);
-+
-+/**
-+ * usb_otg_remove_hcd - Unregister the HCD with OTG core.
-+ * @hcd: the usb_hcd structure to remove
-+ *
-+ * Unregisters the HCD from the OTG core.
-+ */
-+void usb_otg_remove_hcd(struct usb_hcd *hcd)
-+{
-+	usb_otg_unregister_hcd(hcd);
-+}
-+EXPORT_SYMBOL_GPL(usb_otg_remove_hcd);
-+
- void
- usb_hcd_platform_shutdown(struct platform_device *dev)
- {
-diff --git a/include/linux/usb/hcd.h b/include/linux/usb/hcd.h
-index 2017cd4..adcf2e7 100644
---- a/include/linux/usb/hcd.h
-+++ b/include/linux/usb/hcd.h
-@@ -472,6 +472,10 @@ extern int usb_hcd_is_primary_hcd(struct usb_hcd *hcd);
- extern int usb_add_hcd(struct usb_hcd *hcd,
- 		unsigned int irqnum, unsigned long irqflags);
- extern void usb_remove_hcd(struct usb_hcd *hcd);
-+extern int usb_otg_add_hcd(struct usb_hcd *hcd,
-+			   unsigned int irqnum, unsigned long irqflags,
-+			   struct device *otg_dev);
-+extern void usb_otg_remove_hcd(struct usb_hcd *hcd);
- extern int usb_hcd_find_raw_port_number(struct usb_hcd *hcd, int port1);
- 
- struct platform_device;
+cm_idlest1_core blocking bits are now 0x42 pretty consistently. But
+they stay 0x42, even when screen is on (and screen on prevents low
+power, right?) so I guess they are not the whole story.
+
+I'm able to get down to 50mA power consumption with screen off. I was
+getting 90mA with X, wifi in powersave and screen off.
+
+Head proximity sensor is still on in this configuration. But I guess
+that should not keep the system busy...?
+
+Ok, wait a moment, I'm getting "Camera Focus", "Camera Capture" and
+"Lock button" interrupts ... at something like 20/second. Without
+touching anything. Hmm. Also "pm_wkup", but that might be
+expected. Plus, 49052000.gpio and 49054000.gpio are rather
+active. Might be related to the above. Also "gp_timer" and
+48070000.i2c are active, perhaps also related. I don't think I have
+the camera working...
+
+"Lock button" interrupt stops increasing as long as I hold the lock
+button in the "unlock" position. "Camera Focus" and "Camera Capture"
+will stop increasing when I hold down the Camera button.
+
+Best regards,
+									Pavel
 -- 
-2.5.0
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
