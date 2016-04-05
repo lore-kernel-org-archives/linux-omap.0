@@ -1,86 +1,111 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: 4.4: camera and unlock buttons produce tons of interrupts (was
- Re: N900 sleep mode)
-Date: Tue, 5 Apr 2016 22:51:37 +0200
-Message-ID: <20160405205137.GA10196@amd>
-References: <20160201211736.GA11283@amd>
- <20160201221111.GP19432@atomide.com>
- <20160207212316.GA6147@amd>
- <20160209172403.GK19432@atomide.com>
- <20160323123801.GC32031@amd>
- <20160330191208.GW9329@atomide.com>
- <20160404213056.GA25912@amd>
- <20160404220748.GA16484@atomide.com>
- <20160405142250.GA6429@amd>
- <20160405152916.GE16484@atomide.com>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH] clk: ti: dflt: remove redundant unlikely
+Date: Tue, 05 Apr 2016 14:30:15 -0700
+Message-ID: <1459891815.6715.15.camel@perches.com>
+References: <1459880937-22349-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160405152916.GE16484@atomide.com>
+In-Reply-To: <1459880937-22349-1-git-send-email-s-anna@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
+To: Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Mike Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+On Tue, 2016-04-05 at 13:28 -0500, Suman Anna wrote:
+> Commit 7aba4f5201d1 ("clk: ti: dflt: fix enable_reg validity check")
+> fixed a validation check by using an IS_ERR() macro within the
+> existing unlikely expression, but IS_ERR() macro already has an
+> unlikely inside it, so get rid of the redundant unlikely macro
+> from the validation check.
+[]
+> diff --git a/drivers/clk/ti/clkt_dflt.c b/drivers/clk/ti/clkt_dflt.c
+[]
+> @@ -222,7 +222,7 @@ int omap2_dflt_clk_enable(struct clk_hw *hw)
+> =A0		}
+> =A0	}
+> =A0
+> -	if (unlikely(IS_ERR(clk->enable_reg))) {
+> +	if (IS_ERR(clk->enable_reg)) {
+> =A0		pr_err("%s: %s missing enable_reg\n", __func__,
+> =A0		=A0=A0=A0=A0=A0=A0=A0clk_hw_get_name(hw));
+> =A0		ret =3D -EINVAL;
 
-> > Ok, I realized that _something_ set up my keyboard on console, too, so
-> > I'm able to do "init 1" and still interact with the console.
-> > 
-> > cm_idlest1_core blocking bits are now 0x42 pretty consistently. But
-> > they stay 0x42, even when screen is on (and screen on prevents low
-> > power, right?) so I guess they are not the whole story.
-> 
-> Yes they stay at 0x42. And it seems you've configured the UART
-> idle timeouts too.
+There are several of these:
 
-Yes, thanks for the script ;-).
+$ git grep -n -E "likely.*\bIS_ERR\s*\(" *
+drivers/clk/ti/clkt_dflt.c:225: if (unlikely(IS_ERR(clk->enable_reg))) =
+{
+drivers/md/dm-verity-fec.c:76:=A0=A0if (unlikely(IS_ERR(res))) {
+drivers/md/dm-verity-fec.c:168:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0if (unlikely(IS_ERR(par)))
+drivers/md/dm-verity-fec.c:253:=A0=A0=A0=A0=A0=A0=A0=A0=A0if (unlikely(=
+IS_ERR(bbuf))) {
+drivers/net/ethernet/broadcom/bnxt/bnxt.c:1109:=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0if (unlikely(IS_ERR(skb)))
+drivers/net/ethernet/hisilicon/hns/hns_enet.c:1010:=A0=A0=A0=A0=A0if (u=
+nlikely(!phy_dev) || IS_ERR(phy_dev))
+drivers/net/ethernet/sun/ldmvsw.c:302:=A0=A0if (unlikely(IS_ERR(vp))) {
+drivers/scsi/bnx2fc/bnx2fc_fcoe.c:2547: if (likely(!IS_ERR(thread))) {
+drivers/scsi/bnx2i/bnx2i_init.c:431:=A0=A0=A0=A0if (likely(!IS_ERR(thre=
+ad))) {
+drivers/scsi/fcoe/fcoe.c:1263:=A0=A0if (likely(!IS_ERR(thread))) {
+drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.c:1500:=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0if (likely(!IS_ERR(pfmr))) {
+drivers/thermal/intel_powerclamp.c:541:=A0=A0=A0=A0=A0=A0=A0=A0=A0if (l=
+ikely(!IS_ERR(thread))) {
+drivers/thermal/intel_powerclamp.c:591:=A0=A0=A0=A0=A0=A0=A0=A0=A0if (l=
+ikely(!IS_ERR(thread))) {
+drivers/tty/serial/serial_core.c:2682:=A0=A0if (likely(!IS_ERR(tty_dev)=
+)) {
+fs/gfs2/dir.c:854:=A0=A0=A0=A0=A0=A0if (unlikely(dent =3D=3D NULL || IS=
+_ERR(dent))) {
+fs/ntfs/inode.c:2724:=A0=A0=A0if (unlikely(err || IS_ERR(m))) {
+fs/ntfs/lcnalloc.c:744: if (likely(page && !IS_ERR(page))) {
+fs/ntfs/mft.c:85:=A0=A0=A0=A0=A0=A0=A0if (likely(!IS_ERR(page))) {
+fs/ntfs/mft.c:168:=A0=A0=A0=A0=A0=A0if (likely(!IS_ERR(m)))
+fs/ntfs/mft.c:285:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0if (likely(=
+!IS_ERR(m))) {
+fs/ntfs/mft.c:1311:=A0=A0=A0=A0=A0if (unlikely(IS_ERR(rl) || !rl->lengt=
+h || rl->lcn < 0)) {
+fs/ntfs/mft.c:1742:=A0=A0=A0=A0=A0if (unlikely(IS_ERR(rl) || !rl->lengt=
+h || rl->lcn < 0)) {
+fs/ntfs/mft.c:1784:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0if (likely(!I=
+S_ERR(rl2)))
+fs/ntfs/namei.c:132:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0if (likely(!IS_=
+ERR(dent_inode))) {
+fs/ntfs/runlist.c:968:=A0=A0if (likely(!IS_ERR(old_rl)))
+fs/ntfs/super.c:1492:=A0=A0=A0if (unlikely(IS_ERR(tmp_ino) || is_bad_in=
+ode(tmp_ino))) {
+net/ipv6/addrconf.c:3212:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0i=
+f (unlikely(IS_ERR(rt)))
+net/kcm/kcmsock.c:1969: if (unlikely(IS_ERR(newfile))) {
+net/openvswitch/datapath.c:1315:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0if (likely(!IS_ERR(reply))) {
+net/socket.c:399:=A0=A0=A0=A0=A0=A0=A0if (likely(!IS_ERR(newfile))) {
 
-> > I'm able to get down to 50mA power consumption with screen off. I was
-> > getting 90mA with X, wifi in powersave and screen off.
-> > 
-> > Head proximity sensor is still on in this configuration. But I guess
-> > that should not keep the system busy...?
-> > 
-> > Ok, wait a moment, I'm getting "Camera Focus", "Camera Capture" and
-> > "Lock button" interrupts ... at something like 20/second. Without
-> > touching anything. Hmm. Also "pm_wkup", but that might be
-> > expected. Plus, 49052000.gpio and 49054000.gpio are rather
-> > active. Might be related to the above. Also "gp_timer" and
-> > 48070000.i2c are active, perhaps also related. I don't think I have
-> > the camera working...
-> 
-> Hmm that does not sound right at all for the GPIOs. The pm_wkup
-> interrupt triggers every time you hit wfi pretty much, so that
-> should be OK.
+Maybe a new checkpatch test like:
+---
+=A0scripts/checkpatch.pl | 7 +++++++
+=A01 file changed, 7 insertions(+)
 
-Wifi was down at that point.
-
-Some more testing: after boot, interrupt counts stay low, as
-expected. But when I attempt to enable power management, they start
-rising. Sometimes 60/second, sometimes less.
-
-Things are fine as long as I don't enable the off mode; when I enable
-the off mode, "echo 1 > /sys/kernel/debug/pm_debug/enable_off_mode"
-interrupt counts start rising immediately. "echo 0 >
-/sys/kernel/debug/pm_debug/enable_off_mode" stops that.
-
-But no matter what configuration, activity LEDs still indicate it is
-busy, and idle power consumption is cca 53mA.
-
-> > "Lock button" interrupt stops increasing as long as I hold the lock
-> > button in the "unlock" position. "Camera Focus" and "Camera Capture"
-> > will stop increasing when I hold down the Camera button.
-> 
-> I have not seen that issue last time I checked. Sorry won't
-> be able to test it until Thursday, maybe there's some GPIO
-> regression now.
-
-No problem, thanks for all the help.
-
-Best regards,
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+index e3d9c34..25e81b9 100755
+--- a/scripts/checkpatch.pl
++++ b/scripts/checkpatch.pl
+@@ -5734,6 +5734,13 @@ sub process {
+=A0			}
+=A0		}
+=A0
++# check for IS_ERR with likely
++
++		if ($line =3D~ /\b((?:un)?likely)\s*\(\s*\!?\s*IS_ERR\s*\(/) {
++			WARN("IS_ERR_IS_UNLIKELY",
++			=A0=A0=A0=A0=A0"Using $1 isn't recommended as IS_ERR already uses u=
+nlikely\n" . $herecurr);
++		}
++
+=A0# check for semaphores initialized locked
+=A0		if ($line =3D~ /^.\s*sema_init.+,\W?0\W?\)/) {
+=A0			WARN("CONSIDER_COMPLETION",
