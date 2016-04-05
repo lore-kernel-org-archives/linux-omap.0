@@ -1,51 +1,49 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/4] ARM: dts: DRA7: Add timer12 node
-Date: Tue, 5 Apr 2016 16:44:10 -0500
-Message-ID: <1459892652-47845-3-git-send-email-s-anna@ti.com>
-References: <1459892652-47845-1-git-send-email-s-anna@ti.com>
+Subject: [PATCH 0/4] DRA7 Timer extended support
+Date: Tue, 5 Apr 2016 16:44:08 -0500
+Message-ID: <1459892652-47845-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1459892652-47845-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add the DT node for Timer12 present on DRA7 family of
-SoCs. Timer12 is present in PD_WKUPAON power domain, and
-has the same capabilities as the other timers, except for
-the fact that it serves as a secure timer on HS devices
-and is clocked only from the secure 32K clock.
+Hi Tony,
 
-Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
----
-Changes from previous post:
-Drop status = "disabled" line
+Following series includes couple of patches to add the missing
+Timer12 and enable Timers 13 through 16 by default, and a timer
+errata fix on DRA7 platforms.  The Timer errata is documented in
+the public AM572x Silicon Errata document [1].
 
- arch/arm/boot/dts/dra7.dtsi | 9 +++++++++
- 1 file changed, 9 insertions(+)
+Patches 2 and 3 were reposted versions of the two patches left
+out from the DRA7 Timer12 Support series [1] from last year.
+Only difference is in Patch 2 where the node is not marked
+as disabled anymore compared to the previous version [3]
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 66c7924e5491..955d562c70f0 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -773,6 +773,15 @@
- 			ti,hwmods = "timer11";
- 		};
- 
-+		timer12: timer@4ae20000 {
-+			compatible = "ti,omap5430-timer";
-+			reg = <0x4ae20000 0x80>;
-+			interrupts = <GIC_SPI 90 IRQ_TYPE_LEVEL_HIGH>;
-+			ti,hwmods = "timer12";
-+			ti,timer-alwon;
-+			ti,timer-secure;
-+		};
-+
- 		timer13: timer@48828000 {
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x48828000 0x80>;
+Patches baselined on 4.6-rc2.
+
+regards
+Suman
+
+[1] http://www.ti.com/lit/er/sprz429h/sprz429h.pdf
+[2] http://marc.info/?l=linux-omap&m=144408774017569&w=2
+[3] https://patchwork.kernel.org/patch/7332221/
+
+Keerthy (1):
+  ARM: DRA7: clockdomain: Implement timer workaround for errata i874
+
+Suman Anna (3):
+  ARM: dts: DRA7: Enable Timers 13 through 16
+  ARM: dts: DRA7: Add timer12 node
+  ARM: DRA7: hwmod: Add data for GPTimer 12
+
+ arch/arm/boot/dts/dra7.dtsi                | 13 +++++++----
+ arch/arm/mach-omap2/clockdomains7xx_data.c |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c  | 36 ++++++++++++++++++++++++++++--
+ 3 files changed, 44 insertions(+), 7 deletions(-)
+
 -- 
 2.7.4
 
