@@ -1,7 +1,7 @@
 From: Laxman Dewangan <ldewangan@nvidia.com>
-Subject: [PATCH 04/20] mfd: as3711: Use devm_mfd_add_devices() for mfd_device registration
-Date: Tue, 5 Apr 2016 17:18:16 +0530
-Message-ID: <1459856912-17859-5-git-send-email-ldewangan@nvidia.com>
+Subject: [PATCH 08/20] mfd: lp3943: Use devm_mfd_add_devices() for mfd_device registration
+Date: Tue, 5 Apr 2016 17:18:20 +0530
+Message-ID: <1459856912-17859-9-git-send-email-ldewangan@nvidia.com>
 References: <1459856912-17859-1-git-send-email-ldewangan@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,7 +9,7 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1459856912-17859-1-git-send-email-ldewangan@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: lee.jones@linaro.org, corbet@lwn.net
-Cc: andreas.werner@men.de, tony@atomide.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, patches@opensource.wolfsonmicro.com, Laxman Dewangan <ldewangan@nvidia.com>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: andreas.werner@men.de, tony@atomide.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, patches@opensource.wolfsonmicro.com, Laxman Dewangan <ldewangan@nvidia.com>, Milo Kim <milo.kim@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
 Use devm_mfd_add_devices() for mfd devices registration and get
@@ -17,46 +17,42 @@ rid of .remove callback to remove mfd devices. This is done
 by managed device framework.
 
 Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Milo Kim <milo.kim@ti.com>
 ---
- drivers/mfd/as3711.c | 11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
+ drivers/mfd/lp3943.c | 14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/mfd/as3711.c b/drivers/mfd/as3711.c
-index 09e1483..435bfa6 100644
---- a/drivers/mfd/as3711.c
-+++ b/drivers/mfd/as3711.c
-@@ -189,7 +189,7 @@ static int as3711_i2c_probe(struct i2c_client *client,
- 		as3711_subdevs[AS3711_BACKLIGHT].pdata_size = 0;
- 	}
+diff --git a/drivers/mfd/lp3943.c b/drivers/mfd/lp3943.c
+index eecbb13..65a2a8f1 100644
+--- a/drivers/mfd/lp3943.c
++++ b/drivers/mfd/lp3943.c
+@@ -123,16 +123,9 @@ static int lp3943_probe(struct i2c_client *cl, const struct i2c_device_id *id)
+ 	lp3943->mux_cfg = lp3943_mux_cfg;
+ 	i2c_set_clientdata(cl, lp3943);
  
--	ret = mfd_add_devices(as3711->dev, -1, as3711_subdevs,
-+	ret = devm_mfd_add_devices(as3711->dev, -1, as3711_subdevs,
- 			      ARRAY_SIZE(as3711_subdevs), NULL, 0, NULL);
- 	if (ret < 0)
- 		dev_err(&client->dev, "add mfd devices failed: %d\n", ret);
-@@ -197,14 +197,6 @@ static int as3711_i2c_probe(struct i2c_client *client,
- 	return ret;
- }
- 
--static int as3711_i2c_remove(struct i2c_client *client)
--{
--	struct as3711 *as3711 = i2c_get_clientdata(client);
--
--	mfd_remove_devices(as3711->dev);
--	return 0;
+-	return mfd_add_devices(dev, -1, lp3943_devs, ARRAY_SIZE(lp3943_devs),
+-			       NULL, 0, NULL);
 -}
 -
- static const struct i2c_device_id as3711_i2c_id[] = {
- 	{.name = "as3711", .driver_data = 0},
- 	{}
-@@ -218,7 +210,6 @@ static struct i2c_driver as3711_i2c_driver = {
- 		   .of_match_table = of_match_ptr(as3711_of_match),
- 	},
- 	.probe = as3711_i2c_probe,
--	.remove = as3711_i2c_remove,
- 	.id_table = as3711_i2c_id,
- };
+-static int lp3943_remove(struct i2c_client *cl)
+-{
+-	struct lp3943 *lp3943 = i2c_get_clientdata(cl);
+-
+-	mfd_remove_devices(lp3943->dev);
+-	return 0;
++	return devm_mfd_add_devices(dev, -1, lp3943_devs,
++				    ARRAY_SIZE(lp3943_devs),
++				    NULL, 0, NULL);
+ }
  
+ static const struct i2c_device_id lp3943_ids[] = {
+@@ -151,7 +144,6 @@ MODULE_DEVICE_TABLE(of, lp3943_of_match);
+ 
+ static struct i2c_driver lp3943_driver = {
+ 	.probe = lp3943_probe,
+-	.remove = lp3943_remove,
+ 	.driver = {
+ 		.name = "lp3943",
+ 		.of_match_table = of_match_ptr(lp3943_of_match),
 -- 
 2.1.4
