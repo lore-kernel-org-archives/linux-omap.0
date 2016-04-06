@@ -1,48 +1,40 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2] rtc: omap: Support ext_wakeup configuration
-Date: Wed, 6 Apr 2016 15:36:13 -0700
-Message-ID: <20160406223612.GH16484@atomide.com>
-References: <1459960367-29399-1-git-send-email-m.niestroj@grinn-global.com>
- <1459960367-29399-2-git-send-email-m.niestroj@grinn-global.com>
- <20160406191103.GE27411@atomide.com>
- <57056352.1060801@grinn-global.com>
+From: "Franklin S Cooper Jr." <fcooper@ti.com>
+Subject: Boot failure when using NFS on OMAP based evms
+Date: Wed, 6 Apr 2016 18:12:42 -0500
+Message-ID: <570597EA.3040902@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <57056352.1060801-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-Cc: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: samanthakumar@google.com, willemb@google.com, edumazet@google.com, tony@atomide.com, mugunthanvnm@ti.com
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, davem@davemloft.net, kuznet@ms2.inr.ac.ru, jmorris@namei.org, yoshfuji@linux-ipv6.org, kaber@trash.net, nsekhar@ti.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org> [160406 12:29]:
-> Hi,
-> 
-> On 06.04.2016 21:11, Tony Lindgren wrote:
-> >* Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org> [160406 09:34]:
-> >>Support configuration of ext_wakeup sources. This patch makes it
-> >>possible to enable ext_wakeup (and set it's polarity), depending on
-> >>board configuration. AM335x's dedicated PMIC (tps65217) uses ext_wakeup
-> >>in SLEEP mode (RTC-only) to notify about power-button presses. Handling
-> >>power-button presses enables to recover from RTC-only power states
-> >>correctly.
-> >>
-> >>Implementation uses gpiochip to utilize standard bindings. However,
-> >>configuration is possible only using device-tree (no runtime changes).
-> >
-> >Hey looks good to me, adding linux-omap list to Cc.
-> >
-> >Can you please check that the "depends on GPIOLIB" does not disable
-> >the RTC driver for omap1?
-> 
-> Looks ok for omap1. ARCH_OMAP1 selects ARCH_REQUIRE_GPIOLIB, which
-> selects GPIOLIB.
+Hi All,
 
-OK thanks for checking.
+Currently linux-next is failing to boot via NFS on my AM335x GP evm,
+AM437x GP evm and Beagle X15. I bisected the problem down to the commit
+"udp: remove headers from UDP packets before queueing".
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I had to revert the following three commits to get things working again:
+
+e6afc8ace6dd5cef5e812f26c72579da8806f5ac
+udp: remove headers from UDP packets before queueing
+
+627d2d6b550094d88f9e518e15967e7bf906ebbf
+udp: enable MSG_PEEK at non-zero offset
+
+b9bb53f3836f4eb2bdeb3447be11042bd29c2408
+sock: convert sk_peek_offset functions to WRITE_ONCE
+
+
+I'm using omap2plus_defconfig for my config.
+
+Below bootlogs are from my AM335x GP evm:
+
+Working
+http://pastebin.ubuntu.com/15661989/ (Linux-next 3 patches reverted)
+
+Failing
+http://pastebin.ubuntu.com/15661318/ (Linux-next)
