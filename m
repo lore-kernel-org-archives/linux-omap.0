@@ -1,28 +1,40 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [RESEND 0/2] dmaengine: edma: cyclic slot limitation wa and TPTC
- pm fix
-Date: Wed, 6 Apr 2016 07:30:35 -0700
-Message-ID: <20160406143034.GD27292@vkoul-mobl.iind.intel.com>
-References: <1459936907-23920-1-git-send-email-peter.ujfalusi@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH 0/4] OMAP Mailbox legacy platform device support removal
+Date: Wed, 6 Apr 2016 12:37:36 -0500
+Message-ID: <1459964260-43054-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1459936907-23920-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, tony@atomide.com, t-kristo@ti.com, john.ogness@linutronix.de
+To: Jassi Brar <jassisinghbrar@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Apr 06, 2016 at 01:01:45PM +0300, Peter Ujfalusi wrote:
-> Hi Vinod,
-> 
-> I just noticed that the following two patch got lost somehow. If it is still
-> possible, it would be great to send them for 4.6 as they are correcting
-> important issues in the driver.
+Hi Jassi,
 
-Done now. I will check how they got dropped
-They should be in topic branch though..
+This series cleans up the OMAP Mailbox driver dropping the
+support for legacy non-DT platform devices. The infrastructure
+for creating any such devices has all been cleaned up from the
+mach-omap2 layers.
+
+The removal from the driver is accomplished in patch 1, while the
+remaining patches do some minor checkpatch fixes.
+
+Patches baselined on 4.6-rc2.
+
+regards
+Suman
+
+Suman Anna (4):
+  mailbox/omap: drop legacy platform device support
+  mailbox/omap: use variable name for sizeof() operator
+  mailbox/omap: remove FSF mailing address paragraph
+  mailbox/omap: add blank lines after declarations
+
+ drivers/mailbox/omap-mailbox.c             | 116 ++++++++++++-----------------
+ include/linux/platform_data/mailbox-omap.h |  58 ---------------
+ 2 files changed, 48 insertions(+), 126 deletions(-)
+ delete mode 100644 include/linux/platform_data/mailbox-omap.h
 
 -- 
-~Vinod
+2.7.4
