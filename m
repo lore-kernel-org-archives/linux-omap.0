@@ -1,106 +1,63 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH 2/4] mailbox/omap: add support for suspend/resume
-Date: Wed, 6 Apr 2016 18:37:18 -0500
-Message-ID: <1459985840-1106-3-git-send-email-s-anna@ti.com>
+Subject: [PATCH 3/4] mailbox/omap: check for any unread messages during suspend
+Date: Wed, 6 Apr 2016 18:37:19 -0500
+Message-ID: <1459985840-1106-4-git-send-email-s-anna@ti.com>
 References: <1459985840-1106-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1459985840-1106-1-git-send-email-s-anna@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Jassi Brar <jassisinghbrar@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Support has been added to the OMAP mailbox driver to allow it
-to work across a system suspend/resume. The OMAP mailbox driver
-requires only the interrupt configuration registers to be saved
-and restored, and this is done in the suspend/resume callbacks.
-The registers need to be saved only if there are active clients
-at the time of suspend. The enabling and disabling of the mailbox
-clocks is done automatically by the omap_device layer.
+The OMAP mailbox driver is used by clients to communicate with remote
+processors in general. The mailbox clients are expected to have stopped
+communicating with these remote processors during a system suspend. The
+OMAP mailbox fifos are expected to not have any messages as such. Add a
+check for any pending unprocessed messages in the suspend callback, to
+detect any communication protocol issues of the mailbox clients. The
+system suspend is aborted if any messages are found.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/mailbox/omap-mailbox.c | 45 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
+ drivers/mailbox/omap-mailbox.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/mailbox/omap-mailbox.c b/drivers/mailbox/omap-mailbox.c
-index adf37f494690..1b90eb380d44 100644
+index 1b90eb380d44..b61c6e8654b5 100644
 --- a/drivers/mailbox/omap-mailbox.c
 +++ b/drivers/mailbox/omap-mailbox.c
-@@ -88,6 +88,7 @@ struct omap_mbox_device {
- 	struct device *dev;
- 	struct mutex cfg_lock;
- 	void __iomem *mbox_base;
-+	u32 *irq_ctx;
- 	u32 num_users;
- 	u32 num_fifos;
- 	u32 intr_type;
-@@ -650,6 +651,44 @@ static const struct mbox_chan_ops omap_mbox_chan_ops = {
- 	.shutdown       = omap_mbox_chan_shutdown,
- };
+@@ -655,11 +655,19 @@ static const struct mbox_chan_ops omap_mbox_chan_ops = {
+ static int omap_mbox_suspend(struct device *dev)
+ {
+ 	struct omap_mbox_device *mdev = dev_get_drvdata(dev);
+-	u32 usr, reg;
++	u32 usr, fifo, reg;
  
-+#ifdef CONFIG_PM_SLEEP
-+static int omap_mbox_suspend(struct device *dev)
-+{
-+	struct omap_mbox_device *mdev = dev_get_drvdata(dev);
-+	u32 usr, reg;
-+
-+	if (pm_runtime_status_suspended(dev))
-+		return 0;
-+
-+	for (usr = 0; usr < mdev->num_users; usr++) {
-+		reg = MAILBOX_IRQENABLE(mdev->intr_type, usr);
-+		mdev->irq_ctx[usr] = mbox_read_reg(mdev, reg);
+ 	if (pm_runtime_status_suspended(dev))
+ 		return 0;
+ 
++	for (fifo = 0; fifo < mdev->num_fifos; fifo++) {
++		if (mbox_read_reg(mdev, MAILBOX_MSGSTATUS(fifo))) {
++			dev_err(mdev->dev, "fifo %d has unexpected unread messages\n",
++				fifo);
++			return -EBUSY;
++		}
 +	}
 +
-+	return 0;
-+}
-+
-+static int omap_mbox_resume(struct device *dev)
-+{
-+	struct omap_mbox_device *mdev = dev_get_drvdata(dev);
-+	u32 usr, reg;
-+
-+	if (pm_runtime_status_suspended(dev))
-+		return 0;
-+
-+	for (usr = 0; usr < mdev->num_users; usr++) {
-+		reg = MAILBOX_IRQENABLE(mdev->intr_type, usr);
-+		mbox_write_reg(mdev, mdev->irq_ctx[usr], reg);
-+	}
-+
-+	return 0;
-+}
-+#endif
-+
-+static const struct dev_pm_ops omap_mbox_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(omap_mbox_suspend, omap_mbox_resume)
-+};
-+
- static const struct of_device_id omap_mailbox_of_match[] = {
- 	{
- 		.compatible	= "ti,omap2-mailbox",
-@@ -777,6 +816,11 @@ static int omap_mbox_probe(struct platform_device *pdev)
- 	if (IS_ERR(mdev->mbox_base))
- 		return PTR_ERR(mdev->mbox_base);
- 
-+	mdev->irq_ctx = devm_kzalloc(&pdev->dev, num_users * sizeof(u32),
-+				     GFP_KERNEL);
-+	if (!mdev->irq_ctx)
-+		return -ENOMEM;
-+
- 	/* allocate one extra for marking end of list */
- 	list = devm_kzalloc(&pdev->dev, (info_count + 1) * sizeof(*list),
- 			    GFP_KERNEL);
-@@ -887,6 +931,7 @@ static struct platform_driver omap_mbox_driver = {
- 	.remove	= omap_mbox_remove,
- 	.driver	= {
- 		.name = "omap-mailbox",
-+		.pm = &omap_mbox_pm_ops,
- 		.of_match_table = of_match_ptr(omap_mailbox_of_match),
- 	},
- };
+ 	for (usr = 0; usr < mdev->num_users; usr++) {
+ 		reg = MAILBOX_IRQENABLE(mdev->intr_type, usr);
+ 		mdev->irq_ctx[usr] = mbox_read_reg(mdev, reg);
 -- 
 2.7.4
