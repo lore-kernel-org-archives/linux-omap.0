@@ -1,42 +1,228 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v6 01/12] usb: hcd: Initialize hcd->flags to 0
-Date: Wed, 6 Apr 2016 09:32:22 +0300
-Message-ID: <5704AD76.9080806@ti.com>
-References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
- <1459865117-7032-2-git-send-email-rogerq@ti.com> <87zit72rqz.fsf@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <87zit72rqz.fsf-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org
-Cc: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Jonas Rabenstein <ve92mose@stud.informatik.uni-erlangen.de>
+Subject: [PATCH v3] arm: omap2: remove redundant multiplatform checks
+Date: Wed,  6 Apr 2016 10:14:08 +0200
+Message-ID: <1459930448-32638-1-git-send-email-ve92mose@stud.informatik.uni-erlangen.de>
+References: <201604060526.ouhQYqrT%fengguang.wu@intel.com> <1459895738-6546-1-git-send-email-jonas.rabenstein@studium.uni-erlangen.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <57048FE3.30909@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lokesh Vutla <a0131933@ti.com>
+Cc: Jonas Rabenstein <jonas.rabenstein@studium.uni-erlangen.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 06/04/16 09:09, Felipe Balbi wrote:
-> 
-> Hi,
-> 
-> Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> writes:
->> diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
->> index 2ca2cef..6b1930d 100644
->> --- a/drivers/usb/core/hcd.c
->> +++ b/drivers/usb/core/hcd.c
->> @@ -2706,6 +2706,7 @@ int usb_add_hcd(struct usb_hcd *hcd,
->>  	int retval;
->>  	struct usb_device *rhdev;
->>  
->> +	hcd->flags = 0;
-> 
-> seems like this would make more sense in usb_del_hcd() instead.
-> 
+From: Jonas Rabenstein <jonas.rabenstein@studium.uni-erlangen.de>
 
-OK, I'll move it there.
+The directory arch/arm/mach-omap2 is only selected for compilation if
+CONFIG_ARCH_OMAP2PLUS is selected. CONFIG_ARCH_OMAP2PLUS itself is a
+silent option and all machines selecting this option are multiplatform
+devices. As a consequence checks for CONFIG_ARCH_MULTIPLATFORM as well
+as CONFIG_ARCH_OMAP2PLUS within that directory are superfluous and can
+be removed.
 
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Jonas Rabenstein <jonas.rabenstein@studium.uni-erlangen.de>
+---
+change in v3:
+ * fix build error with unselected ARCH_OMAP2 and ARCH_OMAP3
+
+ arch/arm/mach-omap2/Makefile |   2 +-
+ arch/arm/mach-omap2/soc.h    | 140 +++++++------------------------------------
+ 2 files changed, 22 insertions(+), 120 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 0ba6a0e..04e276c 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -2,7 +2,7 @@
+ # Makefile for the linux kernel.
+ #
+ 
+-ccflags-$(CONFIG_ARCH_MULTIPLATFORM) := -I$(srctree)/$(src)/include \
++ccflags-y := -I$(srctree)/$(src)/include \
+ 	-I$(srctree)/arch/arm/plat-omap/include
+ 
+ # Common support
+diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
+index 364418c..2aa01c2 100644
+--- a/arch/arm/mach-omap2/soc.h
++++ b/arch/arm/mach-omap2/soc.h
+@@ -39,82 +39,10 @@
+ #include <linux/of.h>
+ 
+ /*
+- * Test if multicore OMAP support is needed
++ * OMAP2+ is always defined as ARCH_MULTIPLATFORM in Kconfig
+  */
+ #undef MULTI_OMAP2
+-#undef OMAP_NAME
+-
+-#ifdef CONFIG_ARCH_MULTIPLATFORM
+ #define MULTI_OMAP2
+-#endif
+-#ifdef CONFIG_SOC_OMAP2420
+-# ifdef OMAP_NAME
+-#  undef  MULTI_OMAP2
+-#  define MULTI_OMAP2
+-# else
+-#  define OMAP_NAME omap2420
+-# endif
+-#endif
+-#ifdef CONFIG_SOC_OMAP2430
+-# ifdef OMAP_NAME
+-#  undef  MULTI_OMAP2
+-#  define MULTI_OMAP2
+-# else
+-#  define OMAP_NAME omap2430
+-# endif
+-#endif
+-#ifdef CONFIG_ARCH_OMAP3
+-# ifdef OMAP_NAME
+-#  undef  MULTI_OMAP2
+-#  define MULTI_OMAP2
+-# else
+-#  define OMAP_NAME omap3
+-# endif
+-#endif
+-#ifdef CONFIG_ARCH_OMAP4
+-# ifdef OMAP_NAME
+-#  undef  MULTI_OMAP2
+-#  define MULTI_OMAP2
+-# else
+-#  define OMAP_NAME omap4
+-# endif
+-#endif
+-
+-#ifdef CONFIG_SOC_OMAP5
+-# ifdef OMAP_NAME
+-#  undef  MULTI_OMAP2
+-#  define MULTI_OMAP2
+-# else
+-#  define OMAP_NAME omap5
+-# endif
+-#endif
+-
+-#ifdef CONFIG_SOC_AM33XX
+-# ifdef OMAP_NAME
+-#  undef  MULTI_OMAP2
+-#  define MULTI_OMAP2
+-# else
+-#  define OMAP_NAME am33xx
+-# endif
+-#endif
+-
+-#ifdef CONFIG_SOC_AM43XX
+-# ifdef OMAP_NAME
+-#  undef  MULTI_OMAP2
+-#  define MULTI_OMAP2
+-# else
+-#  define OMAP_NAME am43xx
+-# endif
+-#endif
+-
+-#ifdef CONFIG_SOC_DRA7XX
+-# ifdef OMAP_NAME
+-#  undef MULTI_OMAP2
+-#  define MULTI_OMAP2
+-# else
+-#  define OMAP_NAME DRA7XX
+-# endif
+-#endif
+ 
+ /*
+  * Omap device type i.e. EMU/HS/TST/GP/BAD
+@@ -242,11 +170,6 @@ IS_AM_SUBCLASS(437x, 0x437)
+ IS_DRA_SUBCLASS(75x, 0x75)
+ IS_DRA_SUBCLASS(72x, 0x72)
+ 
+-#define soc_is_omap24xx()		0
+-#define soc_is_omap242x()		0
+-#define soc_is_omap243x()		0
+-#define soc_is_omap34xx()		0
+-#define soc_is_omap343x()		0
+ #define soc_is_ti81xx()			0
+ #define soc_is_ti816x()			0
+ #define soc_is_ti814x()			0
+@@ -265,46 +188,27 @@ IS_DRA_SUBCLASS(72x, 0x72)
+ #define soc_is_dra74x()			0
+ #define soc_is_dra72x()			0
+ 
+-#if defined(MULTI_OMAP2)
+-# if defined(CONFIG_ARCH_OMAP2)
+-#  undef  soc_is_omap24xx
+-#  define soc_is_omap24xx()		is_omap24xx()
+-# endif
+-# if defined (CONFIG_SOC_OMAP2420)
+-#  undef  soc_is_omap242x
+-#  define soc_is_omap242x()		is_omap242x()
+-# endif
+-# if defined (CONFIG_SOC_OMAP2430)
+-#  undef  soc_is_omap243x
+-#  define soc_is_omap243x()		is_omap243x()
+-# endif
+-# if defined(CONFIG_ARCH_OMAP3)
+-#  undef  soc_is_omap34xx
+-#  undef  soc_is_omap343x
+-#  define soc_is_omap34xx()		is_omap34xx()
+-#  define soc_is_omap343x()		is_omap343x()
+-# endif
++#if defined(CONFIG_ARCH_OMAP2)
++# define soc_is_omap24xx()		is_omap24xx()
+ #else
+-# if defined(CONFIG_ARCH_OMAP2)
+-#  undef  soc_is_omap24xx
+-#  define soc_is_omap24xx()		1
+-# endif
+-# if defined(CONFIG_SOC_OMAP2420)
+-#  undef  soc_is_omap242x
+-#  define soc_is_omap242x()		1
+-# endif
+-# if defined(CONFIG_SOC_OMAP2430)
+-#  undef  soc_is_omap243x
+-#  define soc_is_omap243x()		1
+-# endif
+-# if defined(CONFIG_ARCH_OMAP3)
+-#  undef  soc_is_omap34xx
+-#  define soc_is_omap34xx()		1
+-# endif
+-# if defined(CONFIG_SOC_OMAP3430)
+-#  undef  soc_is_omap343x
+-#  define soc_is_omap343x()		1
+-# endif
++# define soc_is_omap24xx()		0
++#endif
++#if defined(CONFIG_SOC_OMAP2420)
++# define soc_is_omap242x()		is_omap242x()
++#else
++# define soc_is_omap242x()		0
++#endif
++#if defined(CONFIG_SOC_OMAP2430)
++# define soc_is_omap243x()		is_omap243x()
++#else
++# define soc_is_omap243x()		0
++#endif
++#if defined(CONFIG_ARCH_OMAP3)
++# define soc_is_omap34xx()		is_omap34xx()
++# define soc_is_omap343x()		is_omap343x()
++#else
++# define soc_is_omap34xx()		0
++# define soc_is_omap343x()		0
+ #endif
+ 
+ /*
+@@ -339,7 +243,6 @@ IS_OMAP_TYPE(3430, 0x3430)
+ #define soc_is_omap5430()		0
+ 
+ /* These are needed for the common code */
+-#ifdef CONFIG_ARCH_OMAP2PLUS
+ #define soc_is_omap7xx()		0
+ #define soc_is_omap15xx()		0
+ #define soc_is_omap16xx()		0
+@@ -350,7 +253,6 @@ IS_OMAP_TYPE(3430, 0x3430)
+ #define soc_is_omap1710()		0
+ #define cpu_class_is_omap1()		0
+ #define cpu_class_is_omap2()		1
+-#endif
+ 
+ #if defined(CONFIG_ARCH_OMAP2)
+ # undef  soc_is_omap2420
+-- 
+1.9.1
