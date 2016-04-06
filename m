@@ -1,56 +1,162 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [PATCH 3/3] cpufreq: Use consistent prefixing via pr_fmt
-Date: Wed, 6 Apr 2016 11:53:15 +0530
-Message-ID: <20160406062315.GU20655@vireshk-i7>
-References: <cover.1459887986.git.joe@perches.com>
- <45c8dae5844fb626ab6f4e59298e225c3315269e.1459887986.git.joe@perches.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v6 12/12] usb: host: xhci-plat: Add otg device to platform
+ data
+Date: Wed, 6 Apr 2016 09:30:10 +0300
+Message-ID: <5704ACF2.6020201@ti.com>
+References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
+ <1459865117-7032-13-git-send-email-rogerq@ti.com>
+ <SG2PR06MB09197D03470D6E6083270343D89F0@SG2PR06MB0919.apcprd06.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <45c8dae5844fb626ab6f4e59298e225c3315269e.1459887986.git.joe@perches.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Kevin Hilman <khilman@kernel.org>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <SG2PR06MB09197D03470D6E6083270343D89F0-ESzmfEwOt/zNQ8RBPPB5A20DtJ1/0DrXvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, "stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org" <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
+Cc: "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org" <abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, "r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 05-04-16, 13:28, Joe Perches wrote:
-> Use the more common kernel style adding a define for pr_fmt.
-> 
-> Miscellanea:
-> 
-> o Remove now unused PFX defines
-> 
-> Signed-off-by: Joe Perches <joe@perches.com>
-> ---
->  drivers/cpufreq/acpi-cpufreq.c            |  8 ++---
->  drivers/cpufreq/cpufreq-nforce2.c         | 20 +++++------
->  drivers/cpufreq/e_powersaver.c            | 38 ++++++++++----------
->  drivers/cpufreq/elanfreq.c                |  2 ++
->  drivers/cpufreq/ia64-acpi-cpufreq.c       |  5 +--
->  drivers/cpufreq/longhaul.c                | 60 +++++++++++++++----------------
->  drivers/cpufreq/loongson2_cpufreq.c       |  7 ++--
->  drivers/cpufreq/maple-cpufreq.c           |  6 ++--
->  drivers/cpufreq/omap-cpufreq.c            |  5 ++-
->  drivers/cpufreq/p4-clockmod.c             | 10 +++---
->  drivers/cpufreq/pmac32-cpufreq.c          |  8 +++--
->  drivers/cpufreq/pmac64-cpufreq.c          | 28 ++++++++-------
->  drivers/cpufreq/powernow-k6.c             | 15 ++++----
->  drivers/cpufreq/powernow-k7.c             | 43 +++++++++++-----------
->  drivers/cpufreq/pxa2xx-cpufreq.c          | 13 +++----
->  drivers/cpufreq/s3c2412-cpufreq.c         | 14 ++++----
->  drivers/cpufreq/s3c2440-cpufreq.c         |  2 ++
->  drivers/cpufreq/s3c24xx-cpufreq-debugfs.c |  2 ++
->  drivers/cpufreq/s3c24xx-cpufreq.c         |  8 +++--
->  drivers/cpufreq/s5pv210-cpufreq.c         |  6 ++--
->  drivers/cpufreq/sc520_freq.c              |  6 ++--
->  drivers/cpufreq/speedstep-centrino.c      |  5 +--
->  drivers/cpufreq/speedstep-ich.c           |  8 +++--
->  drivers/cpufreq/speedstep-lib.c           |  4 ++-
->  drivers/cpufreq/speedstep-smi.c           |  4 ++-
->  25 files changed, 181 insertions(+), 146 deletions(-)
+Hi,
 
-Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+On 06/04/16 06:23, Yoshihiro Shimoda wrote:
+> Hi,
+> 
+>> Sent: Tuesday, April 05, 2016 11:05 PM
+>>
+>> Host controllers that are part of an OTG/dual-role instance
+>> need to somehow pass the OTG controller device information
+>> to the HCD core.
+>>
+>> We use platform data to pass the OTG controller device.
+>>
+>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  drivers/usb/host/xhci-plat.c     | 35 ++++++++++++++++++++++++++++-------
+>>  include/linux/usb/xhci_pdriver.h |  3 +++
+>>  2 files changed, 31 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/drivers/usb/host/xhci-plat.c b/drivers/usb/host/xhci-plat.c
+>> index 5c15e9b..3d0f597 100644
+>> --- a/drivers/usb/host/xhci-plat.c
+>> +++ b/drivers/usb/host/xhci-plat.c
+>> @@ -230,11 +230,20 @@ static int xhci_plat_probe(struct platform_device *pdev)
+>>  			goto put_usb3_hcd;
+>>  	}
+>>
+>> -	ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
+>> +	if (pdata->otg_dev)
+> 
+> I think that this should be changed like below:
+> 	if (pdata && pdata->otg_dev)
 
--- 
-viresh
+Indeed, I'll fix this and the remaining occurrences. Thanks.
+
+cheers,
+-roger
+
+> 
+> Otherwise, panic happened on my environment (arm64 / r8a7795 board) because the pdata was NULL.
+> 
+>> +		ret = usb_otg_add_hcd(hcd, irq, IRQF_SHARED, pdata->otg_dev);
+>> +	else
+>> +		ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
+>> +
+>>  	if (ret)
+>>  		goto disable_usb_phy;
+>>
+>> -	ret = usb_add_hcd(xhci->shared_hcd, irq, IRQF_SHARED);
+>> +	if (pdata->otg_dev)
+> 
+> Ditto.
+> 
+>> +		ret = usb_otg_add_hcd(xhci->shared_hcd, irq, IRQF_SHARED,
+>> +				      pdata->otg_dev);
+>> +	else
+>> +		ret = usb_add_hcd(xhci->shared_hcd, irq, IRQF_SHARED);
+>> +
+>>  	if (ret)
+>>  		goto dealloc_usb2_hcd;
+>>
+>> @@ -242,7 +251,10 @@ static int xhci_plat_probe(struct platform_device *pdev)
+>>
+>>
+>>  dealloc_usb2_hcd:
+>> -	usb_remove_hcd(hcd);
+>> +	if (pdata->otg_dev)
+> 
+> Ditto.
+> 
+>> +		usb_otg_remove_hcd(hcd);
+>> +	else
+>> +		usb_remove_hcd(hcd);
+>>
+>>  disable_usb_phy:
+>>  	usb_phy_shutdown(hcd->usb_phy);
+>> @@ -260,16 +272,25 @@ put_hcd:
+>>  	return ret;
+>>  }
+>>
+>> -static int xhci_plat_remove(struct platform_device *dev)
+>> +static int xhci_plat_remove(struct platform_device *pdev)
+>>  {
+>> -	struct usb_hcd	*hcd = platform_get_drvdata(dev);
+>> +	struct usb_hcd	*hcd = platform_get_drvdata(pdev);
+>>  	struct xhci_hcd	*xhci = hcd_to_xhci(hcd);
+>>  	struct clk *clk = xhci->clk;
+>> +	struct usb_xhci_pdata *pdata = dev_get_platdata(&pdev->dev);
+>> +
+>> +	if (pdata->otg_dev)
+> 
+> Ditto.
+> 
+>> +		usb_otg_remove_hcd(xhci->shared_hcd);
+>> +	else
+>> +		usb_remove_hcd(xhci->shared_hcd);
+>>
+>> -	usb_remove_hcd(xhci->shared_hcd);
+>>  	usb_phy_shutdown(hcd->usb_phy);
+>>
+>> -	usb_remove_hcd(hcd);
+>> +	if (pdata->otg_dev)
+> 
+> Ditto.
+> 
+> Best regards,
+> Yoshihiro Shimoda
+> 
+>> +		usb_otg_remove_hcd(hcd);
+>> +	else
+>> +		usb_remove_hcd(hcd);
+>> +
+>>  	usb_put_hcd(xhci->shared_hcd);
+>>
+>>  	if (!IS_ERR(clk))
+>> diff --git a/include/linux/usb/xhci_pdriver.h b/include/linux/usb/xhci_pdriver.h
+>> index 376654b..5c68b83 100644
+>> --- a/include/linux/usb/xhci_pdriver.h
+>> +++ b/include/linux/usb/xhci_pdriver.h
+>> @@ -18,10 +18,13 @@
+>>   *
+>>   * @usb3_lpm_capable:	determines if this xhci platform supports USB3
+>>   *			LPM capability
+>> + * @otg_dev:		OTG controller device. Only requied if part of
+>> + *			OTG/dual-role.
+>>   *
+>>   */
+>>  struct usb_xhci_pdata {
+>>  	unsigned	usb3_lpm_capable:1;
+>> +	struct device	*otg_dev;
+>>  };
+>>
+>>  #endif /* __USB_CORE_XHCI_PDRIVER_H */
+>> --
+>> 2.5.0
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
