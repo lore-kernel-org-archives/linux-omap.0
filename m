@@ -1,7 +1,8 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v6 11/17] memory: omap-gpmc: Prevent mapping into 1st 16MB
-Date: Thu, 7 Apr 2016 13:08:29 +0300
-Message-ID: <1460023715-19332-12-git-send-email-rogerq@ti.com>
+Subject: [PATCH v6 06/17] mtd: nand: omap: Use gpmc_omap_get_nand_ops() to get
+ NAND registers
+Date: Thu, 7 Apr 2016 13:08:24 +0300
+Message-ID: <1460023715-19332-7-git-send-email-rogerq@ti.com>
 References: <1460023715-19332-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,68 +22,85 @@ To: tony@atomide.com, computersforpeace@gmail.com, boris.brezillon@free-electron
 Cc: devicetree@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, linux-omap@vger.kernel.org, dwmw2@infradead.org, fcooper@ti.com, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-We have been preventing mapping GPMC children in the
-first 1MB but really it has to be the first 16MB as
-the minimum GPMC partition size is 16MB.
-
-Also print an error message if CS mapping fails
-due to DT requesting address outside the GPMC
-map.
+Deprecate nand register passing via platform data and use
+gpmc_omap_get_nand_ops() instead.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
+Acked-by: Brian Norris <computersforpeace@gmail.com>
 ---
- drivers/memory/omap-gpmc.c | 24 ++++++++++++++++++------
- 1 file changed, 18 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/gpmc-nand.c              | 2 --
+ drivers/mtd/nand/omap2.c                     | 9 ++++++++-
+ include/linux/platform_data/mtd-nand-omap2.h | 4 +++-
+ 3 files changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-index 8dc6e3b..bfe4e87 100644
---- a/drivers/memory/omap-gpmc.c
-+++ b/drivers/memory/omap-gpmc.c
-@@ -94,6 +94,14 @@
- #define GPMC_CS_SIZE		0x30
- #define	GPMC_BCH_SIZE		0x10
+diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+index 72918c4..04e6998 100644
+--- a/arch/arm/mach-omap2/gpmc-nand.c
++++ b/arch/arm/mach-omap2/gpmc-nand.c
+@@ -121,8 +121,6 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+ 	if (err < 0)
+ 		goto out_free_cs;
  
-+/*
-+ * The first 1MB of GPMC address space is typically mapped to
-+ * the internal ROM. Never allocate the first page, to
-+ * facilitate bug detection; even if we didn't boot from ROM.
-+ * As GPMC minimum partition size is 16MB we can only start from
-+ * there.
-+ */
-+#define GPMC_MEM_START		0x1000000
- #define GPMC_MEM_END		0x3FFFFFFF
+-	gpmc_update_nand_reg(&gpmc_nand_data->reg, gpmc_nand_data->cs);
+-
+ 	if (!gpmc_hwecc_bch_capable(gpmc_nand_data->ecc_opt)) {
+ 		pr_err("omap2-nand: Unsupported NAND ECC scheme selected\n");
+ 		err = -EINVAL;
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index 0749ca1..cba9bf0 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -28,6 +28,7 @@
+ #include <linux/mtd/nand_bch.h>
+ #include <linux/platform_data/elm.h>
  
- #define GPMC_CHUNK_SHIFT	24		/* 16 MB */
-@@ -1297,12 +1305,7 @@ static void gpmc_mem_init(void)
- {
- 	int cs;
++#include <linux/omap-gpmc.h>
+ #include <linux/platform_data/mtd-nand-omap2.h>
  
--	/*
--	 * The first 1MB of GPMC address space is typically mapped to
--	 * the internal ROM. Never allocate the first page, to
--	 * facilitate bug detection; even if we didn't boot from ROM.
--	 */
--	gpmc_mem_root.start = SZ_1M;
-+	gpmc_mem_root.start = GPMC_MEM_START;
- 	gpmc_mem_root.end = GPMC_MEM_END;
+ #define	DRIVER_NAME	"omap2-nand"
+@@ -168,7 +169,9 @@ struct omap_nand_info {
+ 	} iomode;
+ 	u_char				*buf;
+ 	int					buf_len;
++	/* Interface to GPMC */
+ 	struct gpmc_nand_regs		reg;
++	struct gpmc_nand_ops		*ops;
+ 	/* generated at runtime depending on ECC algorithm and layout selected */
+ 	struct nand_ecclayout		oobinfo;
+ 	/* fields specific for BCHx_HW ECC scheme */
+@@ -1665,9 +1668,13 @@ static int omap_nand_probe(struct platform_device *pdev)
  
- 	/* Reserve all regions that has been set up by bootloader */
-@@ -1966,6 +1969,15 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "cannot remap GPMC CS %d to %pa\n",
- 			cs, &res.start);
-+		if (res.start < GPMC_MEM_START) {
-+			dev_info(&pdev->dev,
-+				 "GPMC CS %d start cannot be lesser than 0x%x\n",
-+				 cs, GPMC_MEM_START);
-+		} else if (res.end > GPMC_MEM_END) {
-+			dev_info(&pdev->dev,
-+				 "GPMC CS %d end cannot be greater than 0x%x\n",
-+				 cs, GPMC_MEM_END);
-+		}
- 		goto err;
- 	}
+ 	platform_set_drvdata(pdev, info);
  
++	info->ops = gpmc_omap_get_nand_ops(&info->reg, info->gpmc_cs);
++	if (!info->ops) {
++		dev_err(&pdev->dev, "Failed to get GPMC->NAND interface\n");
++		return -ENODEV;
++	}
+ 	info->pdev		= pdev;
+ 	info->gpmc_cs		= pdata->cs;
+-	info->reg		= pdata->reg;
+ 	info->of_node		= pdata->of_node;
+ 	info->ecc_opt		= pdata->ecc_opt;
+ 	nand_chip		= &info->nand;
+diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
+index 090bbab..a067f58 100644
+--- a/include/linux/platform_data/mtd-nand-omap2.h
++++ b/include/linux/platform_data/mtd-nand-omap2.h
+@@ -75,10 +75,12 @@ struct omap_nand_platform_data {
+ 	enum nand_io		xfer_type;
+ 	int			devsize;
+ 	enum omap_ecc           ecc_opt;
+-	struct gpmc_nand_regs	reg;
+ 
+ 	/* for passing the partitions */
+ 	struct device_node	*of_node;
+ 	struct device_node	*elm_of_node;
++
++	/* deprecated */
++	struct gpmc_nand_regs	reg;
+ };
+ #endif
 -- 
 2.5.0
 
