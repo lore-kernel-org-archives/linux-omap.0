@@ -1,166 +1,68 @@
-From: Akinobu Mita <akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] spi: omap2-mcspi: fix dma transfer for vmalloced buffer
-Date: Thu, 7 Apr 2016 21:17:29 +0900
-Message-ID: <CAC5umyj0zbwqt0Tmbubh0=URYvrvtWLO0q1ym1F2c7a84vRHjg@mail.gmail.com>
-References: <1458576021-4373-1-git-send-email-akinobu.mita@gmail.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH 1/4] mailbox/omap: store mailbox interrupt type in
+ omap_mbox_device
+Date: Thu, 7 Apr 2016 07:24:48 -0500
+Message-ID: <57065190.4050904@ti.com>
+References: <1459985840-1106-1-git-send-email-s-anna@ti.com>
+ <1459985840-1106-2-git-send-email-s-anna@ti.com> <57063731.9010201@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1458576021-4373-1-git-send-email-akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Akinobu Mita <akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <57063731.9010201@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Jassi Brar <jassisinghbrar@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-2016-03-22 1:00 GMT+09:00 Akinobu Mita <akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
-> Currently omap2-mcspi cannot handle dma transfer for vmalloced buffer.
-> I hit this problem when using mtdblock on spi-nor.
->
-> This lets the SPI core handle the page mapping for dma transfer buffer.
->
-> Signed-off-by: Akinobu Mita <akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> ---
->  drivers/spi/spi-omap2-mcspi.c | 62 ++++++++++++-------------------------------
->  1 file changed, 17 insertions(+), 45 deletions(-)
->
-> diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-> index 0caa3c8..43a02e3 100644
-> --- a/drivers/spi/spi-omap2-mcspi.c
-> +++ b/drivers/spi/spi-omap2-mcspi.c
-> @@ -423,16 +423,12 @@ static void omap2_mcspi_tx_dma(struct spi_device *spi,
->
->         if (mcspi_dma->dma_tx) {
->                 struct dma_async_tx_descriptor *tx;
-> -               struct scatterlist sg;
->
->                 dmaengine_slave_config(mcspi_dma->dma_tx, &cfg);
->
-> -               sg_init_table(&sg, 1);
-> -               sg_dma_address(&sg) = xfer->tx_dma;
-> -               sg_dma_len(&sg) = xfer->len;
-> -
-> -               tx = dmaengine_prep_slave_sg(mcspi_dma->dma_tx, &sg, 1,
-> -               DMA_MEM_TO_DEV, DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
-> +               tx = dmaengine_prep_slave_sg(mcspi_dma->dma_tx, xfer->tx_sg.sgl,
-> +                                            xfer->tx_sg.nents, DMA_MEM_TO_DEV,
-> +                                            DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
->                 if (tx) {
->                         tx->callback = omap2_mcspi_tx_callback;
->                         tx->callback_param = spi;
-> @@ -478,20 +474,15 @@ omap2_mcspi_rx_dma(struct spi_device *spi, struct spi_transfer *xfer,
->
->         if (mcspi_dma->dma_rx) {
->                 struct dma_async_tx_descriptor *tx;
-> -               struct scatterlist sg;
->
->                 dmaengine_slave_config(mcspi_dma->dma_rx, &cfg);
->
->                 if ((l & OMAP2_MCSPI_CHCONF_TURBO) && mcspi->fifo_depth == 0)
->                         dma_count -= es;
->
+Hi Grygorii,
 
-The actual transfer length can be smaller than xfer->len by above line.
-And the last word is filled after dma transfer completion.
+On 04/07/2016 05:32 AM, Grygorii Strashko wrote:
+> On 04/07/2016 02:37 AM, Suman Anna wrote:
+>> The interrupt type used for identifying the layout of the interrupt
+>> configuration registers between OMAP4+ SoCs and older SoCs is stored
+>> only in the sub-mailbox structures for easier access. Store this type
+>> in the the omap_mbox_device structure as well along with the other
+>> global variables. This is being done to facilitate the context save
+>> and restore of appropriate registers during system suspend/resume.
+>>
+>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>> ---
+>>   drivers/mailbox/omap-mailbox.c | 2 ++
+>>   1 file changed, 2 insertions(+)
+>>
+>> diff --git a/drivers/mailbox/omap-mailbox.c
+>> b/drivers/mailbox/omap-mailbox.c
+>> index 84cafc02e761..adf37f494690 100644
+>> --- a/drivers/mailbox/omap-mailbox.c
+>> +++ b/drivers/mailbox/omap-mailbox.c
+>> @@ -90,6 +90,7 @@ struct omap_mbox_device {
+>>       void __iomem *mbox_base;
+>>       u32 num_users;
+>>       u32 num_fifos;
+>> +    u32 intr_type;
+>>       struct omap_mbox **mboxes;
+>>       struct mbox_controller controller;
+>>       struct list_head elem;
+>> @@ -828,6 +829,7 @@ static int omap_mbox_probe(struct platform_device
+>> *pdev)
+>>       mdev->dev = &pdev->dev;
+>>       mdev->num_users = num_users;
+>>       mdev->num_fifos = num_fifos;
+>> +    mdev->intr_type = intr_type;
+>>       mdev->mboxes = list;
+>>
+>>       /* OMAP does not have a Tx-Done IRQ, but rather a Tx-Ready IRQ */
+>>
+> 
+> This smth. which definitely has to be done using compatible props.
+> Why not to pass more info through of_device_id->data?
+> 
 
-So this patch is broken.  Could you revert remove this from your
-development tree?
-I don't find a way how to fix it without copy and pasting a lot of
-line from spi core.
+Yeah, that's already the case, intr_type is a local variable assigned
+from compatible match data. This patch merely caches it in the
+omap_mbox_device structure so that it can be leveraged by the PM
+callback functions in the next patch.
 
-> -               sg_init_table(&sg, 1);
-> -               sg_dma_address(&sg) = xfer->rx_dma;
-> -               sg_dma_len(&sg) = dma_count;
-> -
-> -               tx = dmaengine_prep_slave_sg(mcspi_dma->dma_rx, &sg, 1,
-> -                               DMA_DEV_TO_MEM, DMA_PREP_INTERRUPT |
-> -                               DMA_CTRL_ACK);
-> +               tx = dmaengine_prep_slave_sg(mcspi_dma->dma_rx, xfer->rx_sg.sgl,
-> +                                            xfer->rx_sg.nents, DMA_DEV_TO_MEM,
-> +                                            DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
->                 if (tx) {
->                         tx->callback = omap2_mcspi_rx_callback;
->                         tx->callback_param = spi;
-> @@ -505,8 +496,6 @@ omap2_mcspi_rx_dma(struct spi_device *spi, struct spi_transfer *xfer,
->         omap2_mcspi_set_dma_req(spi, 1, 1);
->
->         wait_for_completion(&mcspi_dma->dma_rx_completion);
-> -       dma_unmap_single(mcspi->dev, xfer->rx_dma, count,
-> -                        DMA_FROM_DEVICE);
->
->         if (mcspi->fifo_depth > 0)
->                 return count;
-> @@ -619,8 +608,6 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
->
->         if (tx != NULL) {
->                 wait_for_completion(&mcspi_dma->dma_tx_completion);
-> -               dma_unmap_single(mcspi->dev, xfer->tx_dma, xfer->len,
-> -                                DMA_TO_DEVICE);
->
->                 if (mcspi->fifo_depth > 0) {
->                         irqstat_reg = mcspi->base + OMAP2_MCSPI_IRQSTATUS;
-> @@ -1087,6 +1074,16 @@ static void omap2_mcspi_cleanup(struct spi_device *spi)
->                 gpio_free(spi->cs_gpio);
->  }
->
-> +static bool omap2_mcspi_can_dma(struct spi_master *master,
-> +                               struct spi_device *spi,
-> +                               struct spi_transfer *xfer)
-> +{
-> +       if (xfer->len < DMA_MIN_BYTES)
-> +               return false;
-> +
-> +       return true;
-> +}
-> +
->  static int omap2_mcspi_work_one(struct omap2_mcspi *mcspi,
->                 struct spi_device *spi, struct spi_transfer *t)
->  {
-> @@ -1268,32 +1265,6 @@ static int omap2_mcspi_transfer_one(struct spi_master *master,
->                 return -EINVAL;
->         }
->
-> -       if (len < DMA_MIN_BYTES)
-> -               goto skip_dma_map;
-> -
-> -       if (mcspi_dma->dma_tx && tx_buf != NULL) {
-> -               t->tx_dma = dma_map_single(mcspi->dev, (void *) tx_buf,
-> -                               len, DMA_TO_DEVICE);
-> -               if (dma_mapping_error(mcspi->dev, t->tx_dma)) {
-> -                       dev_dbg(mcspi->dev, "dma %cX %d bytes error\n",
-> -                                       'T', len);
-> -                       return -EINVAL;
-> -               }
-> -       }
-> -       if (mcspi_dma->dma_rx && rx_buf != NULL) {
-> -               t->rx_dma = dma_map_single(mcspi->dev, rx_buf, t->len,
-> -                               DMA_FROM_DEVICE);
-> -               if (dma_mapping_error(mcspi->dev, t->rx_dma)) {
-> -                       dev_dbg(mcspi->dev, "dma %cX %d bytes error\n",
-> -                                       'R', len);
-> -                       if (tx_buf != NULL)
-> -                               dma_unmap_single(mcspi->dev, t->tx_dma,
-> -                                               len, DMA_TO_DEVICE);
-> -                       return -EINVAL;
-> -               }
-> -       }
-> -
-> -skip_dma_map:
->         return omap2_mcspi_work_one(mcspi, spi, t);
->  }
->
-> @@ -1377,6 +1348,7 @@ static int omap2_mcspi_probe(struct platform_device *pdev)
->         master->transfer_one = omap2_mcspi_transfer_one;
->         master->set_cs = omap2_mcspi_set_cs;
->         master->cleanup = omap2_mcspi_cleanup;
-> +       master->can_dma = omap2_mcspi_can_dma;
->         master->dev.of_node = node;
->         master->max_speed_hz = OMAP2_MCSPI_MAX_FREQ;
->         master->min_speed_hz = OMAP2_MCSPI_MAX_FREQ >> 15;
-> --
-> 2.5.0
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards
+Suman
