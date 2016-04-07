@@ -1,118 +1,46 @@
-From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Subject: Re: Boot failure when using NFS on OMAP based evms
-Date: Wed, 6 Apr 2016 22:22:58 -0400
-Message-ID: <CAF=yD-L=HZtD+LaKt1y4OcY0CQKOk_jmXZcQcyXjdfrPLpAhEQ@mail.gmail.com>
-References: <570597EA.3040902@ti.com>
+From: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] of/platform: Allow secondary compatible match in of_dev_lookup
+Date: Wed, 6 Apr 2016 23:52:24 -0500
+Message-ID: <CAL_Jsq+PcTD=duHmWgHyx_ywYbT10vEtcm=79x5o5wYSkgG63g@mail.gmail.com>
+References: <1459546504-32668-1-git-send-email-tony@atomide.com> <20160401214053.GQ9329@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <570597EA.3040902@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Franklin S Cooper Jr." <fcooper@ti.com>
-Cc: Sam Kumar <samanthakumar@google.com>, Willem de Bruijn <willemb@google.com>, Eric Dumazet <edumazet@google.com>, tony@atomide.com, mugunthanvnm@ti.com, Network Development <netdev@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, David Miller <davem@davemloft.net>, kuznet@ms2.inr.ac.ru, jmorris@namei.org, yoshfuji@linux-ipv6.org, kaber@trash.net, nsekhar@ti.com, linux-omap@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160401214053.GQ9329-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Apr 6, 2016 at 7:12 PM, Franklin S Cooper Jr. <fcooper@ti.com> wrote:
-> Hi All,
+On Fri, Apr 1, 2016 at 4:40 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [160401 14:37]:
+>> We currently try to match of_dev_auxdata based on compatible,
+>> IO address, and device name. But in some cases we have multiple
+>> instances of drivers that can use the same auxdata.
+>>
+>> Let's add an additional secondary lookup for generic compatible
+>> match for auxdata if no device specific match is found. This does
+>> not change the existing matching, and still allows adding device
+>> specific auxdata.
+>>
+>> This simplifies things as specifying the IO address and device
+>> name is prone errors as it requires maintaining an in kernel
+>> database for each SoC.
 >
-> Currently linux-next is failing to boot via NFS on my AM335x GP evm,
-> AM437x GP evm and Beagle X15. I bisected the problem down to the commit
-> "udp: remove headers from UDP packets before queueing".
+> And here's what I can apply later on to get rid of some
+> ifdeffery.
 >
-> I had to revert the following three commits to get things working again:
->
-> e6afc8ace6dd5cef5e812f26c72579da8806f5ac
-> udp: remove headers from UDP packets before queueing
->
-> 627d2d6b550094d88f9e518e15967e7bf906ebbf
-> udp: enable MSG_PEEK at non-zero offset
->
-> b9bb53f3836f4eb2bdeb3447be11042bd29c2408
-> sock: convert sk_peek_offset functions to WRITE_ONCE
->
+> I'm also planning to move some of the legacy omap hwmod
+> functionality into proper device drivers, so can generic
+> pdata for that too.
 
-Thanks for the report, and apologies for breaking your configuration.
-I had missed that sunrpc can dequeue skbs from a udp receive
-queue and makes assumptions about the layout of those packets. rxrpc
-does the same. From what I can tell so far, those are the only two
-protocols that do this. I have verified that the following fixes rxrpc for me
+Why can't the platform data be moved into the driver given that it
+appears to be only SoC family specific? Auxdata was somewhat intended
+to be temporary. It appears there is already some per compatible match
+data for these OMAP parts in the driver.
 
---- a/net/rxrpc/ar-input.c
-+++ b/net/rxrpc/ar-input.c
-@@ -612,9 +612,9 @@ int rxrpc_extract_header(struct rxrpc_skb_priv
-*sp, struct sk_buff *skb)
-        struct rxrpc_wire_header whdr;
-
-        /* dig out the RxRPC connection details */
--       if (skb_copy_bits(skb, sizeof(struct udphdr), &whdr, sizeof(whdr)) < 0)
-+       if (skb_copy_bits(skb, 0, &whdr, sizeof(whdr)) < 0)
-                return -EBADMSG;
--       if (!pskb_pull(skb, sizeof(struct udphdr) + sizeof(whdr)))
-+       if (!pskb_pull(skb, sizeof(whdr)))
-                BUG();
-
-I have not yet been able to reproduce the sunrpc/nfs issue, but I
-suspect that the following might fix it. I will try to create an NFS
-setup.
-
-diff --git a/net/sunrpc/socklib.c b/net/sunrpc/socklib.c
-index 2df87f7..8ab40ba 100644
---- a/net/sunrpc/socklib.c
-+++ b/net/sunrpc/socklib.c
-@@ -155,7 +155,7 @@ int csum_partial_copy_to_xdr(struct xdr_buf *xdr,
-struct sk_buff *skb)
-        struct xdr_skb_reader   desc;
-
-        desc.skb = skb;
--       desc.offset = sizeof(struct udphdr);
-+       desc.offset = 0;
-        desc.count = skb->len - desc.offset;
-
-        if (skb_csum_unnecessary(skb))
-diff --git a/net/sunrpc/svcsock.c b/net/sunrpc/svcsock.c
-index 1413cdc..71d6072 100644
---- a/net/sunrpc/svcsock.c
-+++ b/net/sunrpc/svcsock.c
-@@ -617,7 +617,7 @@ static int svc_udp_recvfrom(struct svc_rqst *rqstp)
-        svsk->sk_sk->sk_stamp = skb->tstamp;
-        set_bit(XPT_DATA, &svsk->sk_xprt.xpt_flags); /* there may be
-more data... */
-
--       len  = skb->len - sizeof(struct udphdr);
-+       len  = skb->len;
-        rqstp->rq_arg.len = len;
-
-        rqstp->rq_prot = IPPROTO_UDP;
-@@ -641,8 +641,7 @@ static int svc_udp_recvfrom(struct svc_rqst *rqstp)
-                skb_free_datagram_locked(svsk->sk_sk, skb);
-        } else {
-                /* we can use it in-place */
--               rqstp->rq_arg.head[0].iov_base = skb->data +
--                       sizeof(struct udphdr);
-+               rqstp->rq_arg.head[0].iov_base = skb->data;
-                rqstp->rq_arg.head[0].iov_len = len;
-                if (skb_checksum_complete(skb))
-                        goto out_free;
-diff --git a/net/sunrpc/xprtsock.c b/net/sunrpc/xprtsock.c
-index 65e7595..c1fc7b2 100644
---- a/net/sunrpc/xprtsock.c
-+++ b/net/sunrpc/xprtsock.c
-@@ -995,15 +995,14 @@ static void xs_udp_data_read_skb(struct rpc_xprt *xprt,
-        u32 _xid;
-        __be32 *xp;
-
--       repsize = skb->len - sizeof(struct udphdr);
-+       repsize = skb->len;
-        if (repsize < 4) {
-                dprintk("RPC:       impossible RPC reply size %d!\n", repsize);
-                return;
-        }
-
-
-
-        /* Copy the XID from the skb... */
--       xp = skb_header_pointer(skb, sizeof(struct udphdr),
--                               sizeof(_xid), &_xid);
-+       xp = skb_header_pointer(skb, 0, sizeof(_xid), &_xid);
-        if (xp == NULL)
-                return;
+Rob
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
