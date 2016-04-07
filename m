@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 04/13] ARM: dts: dra7: Enable gpio controller for GPMC
-Date: Thu, 7 Apr 2016 13:25:31 +0300
-Message-ID: <1460024740-19716-5-git-send-email-rogerq@ti.com>
+Subject: [PATCH 08/13] ARM: dts: dm814x: Enable gpio controller for GPMC
+Date: Thu, 7 Apr 2016 13:25:35 +0300
+Message-ID: <1460024740-19716-9-git-send-email-rogerq@ti.com>
 References: <1460024740-19716-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -17,22 +17,22 @@ Mark it gpio controller capable.
 
 Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/dra7.dtsi | 2 ++
+ arch/arm/boot/dts/dm814x.dtsi | 2 ++
  1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 13ac882..111594e 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1404,6 +1404,8 @@
+diff --git a/arch/arm/boot/dts/dm814x.dtsi b/arch/arm/boot/dts/dm814x.dtsi
+index 4a6ce8c..d4537dc 100644
+--- a/arch/arm/boot/dts/dm814x.dtsi
++++ b/arch/arm/boot/dts/dm814x.dtsi
+@@ -568,6 +568,8 @@
  			#size-cells = <1>;
  			interrupt-controller;
  			#interrupt-cells = <2>;
 +			gpio-controller;
 +			#gpio-cells = <2>;
- 			status = "disabled";
  		};
- 
+ 	};
+ };
 -- 
 2.5.0
 
