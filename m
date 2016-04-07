@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 01/13] ARM: dts: omap24xx: Enable gpio and interrupt controller for GPMC
-Date: Thu, 7 Apr 2016 13:25:28 +0300
-Message-ID: <1460024740-19716-2-git-send-email-rogerq@ti.com>
+Subject: [PATCH 02/13] ARM: dts: omap4: Enable gpio and interrupt controller for GPMC
+Date: Thu, 7 Apr 2016 13:25:29 +0300
+Message-ID: <1460024740-19716-3-git-send-email-rogerq@ti.com>
 References: <1460024740-19716-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -17,40 +17,24 @@ Mark it as gpio and interrupt capable.
 
 Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap2420.dtsi | 4 ++++
- arch/arm/boot/dts/omap2430.dtsi | 4 ++++
- 2 files changed, 8 insertions(+)
+ arch/arm/boot/dts/omap4.dtsi | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap2420.dtsi b/arch/arm/boot/dts/omap2420.dtsi
-index 5b9a376..fb712b9 100644
---- a/arch/arm/boot/dts/omap2420.dtsi
-+++ b/arch/arm/boot/dts/omap2420.dtsi
-@@ -130,6 +130,10 @@
- 			gpmc,num-cs = <8>;
- 			gpmc,num-waitpins = <4>;
- 			ti,hwmods = "gpmc";
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 2bd9c83..5965e89 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -370,6 +370,10 @@
+ 			ti,no-idle-on-init;
+ 			clocks = <&l3_div_ck>;
+ 			clock-names = "fck";
 +			interrupt-controller;
 +			#interrupt-cells = <2>;
 +			gpio-controller;
 +			#gpio-cells = <2>;
  		};
  
- 		mcbsp1: mcbsp@48074000 {
-diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
-index 798dda0..5c16a1f 100644
---- a/arch/arm/boot/dts/omap2430.dtsi
-+++ b/arch/arm/boot/dts/omap2430.dtsi
-@@ -154,6 +154,10 @@
- 			gpmc,num-cs = <8>;
- 			gpmc,num-waitpins = <4>;
- 			ti,hwmods = "gpmc";
-+			interrupt-controller;
-+			#interrupt-cells = <2>;
-+			gpio-controller;
-+			#gpio-cells = <2>;
- 		};
- 
- 		mcbsp1: mcbsp@48074000 {
+ 		uart1: serial@4806a000 {
 -- 
 2.5.0
 
