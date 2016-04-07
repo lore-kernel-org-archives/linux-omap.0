@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 02/13] ARM: dts: omap4: Enable gpio and interrupt controller for GPMC
-Date: Thu, 7 Apr 2016 13:25:29 +0300
-Message-ID: <1460024740-19716-3-git-send-email-rogerq@ti.com>
+Subject: [PATCH 03/13] ARM: dts: omap5: Enable gpio and interrupt controller for GPMC
+Date: Thu, 7 Apr 2016 13:25:30 +0300
+Message-ID: <1460024740-19716-4-git-send-email-rogerq@ti.com>
 References: <1460024740-19716-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -17,16 +17,16 @@ Mark it as gpio and interrupt capable.
 
 Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap4.dtsi | 4 ++++
+ arch/arm/boot/dts/omap5.dtsi | 4 ++++
  1 file changed, 4 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 2bd9c83..5965e89 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -370,6 +370,10 @@
- 			ti,no-idle-on-init;
- 			clocks = <&l3_div_ck>;
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 38805eb..aecdc69 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -398,6 +398,10 @@
+ 			ti,hwmods = "gpmc";
+ 			clocks = <&l3_iclk_div>;
  			clock-names = "fck";
 +			interrupt-controller;
 +			#interrupt-cells = <2>;
@@ -34,7 +34,7 @@ index 2bd9c83..5965e89 100644
 +			#gpio-cells = <2>;
  		};
  
- 		uart1: serial@4806a000 {
+ 		i2c1: i2c@48070000 {
 -- 
 2.5.0
 
