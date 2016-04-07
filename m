@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v6 09/17] mtd: nand: omap: Clean up device tree support
-Date: Thu, 7 Apr 2016 13:08:27 +0300
-Message-ID: <1460023715-19332-10-git-send-email-rogerq@ti.com>
+Subject: [PATCH v6 17/17] mtd: nand: omap2: Implement NAND ready using gpiolib
+Date: Thu, 7 Apr 2016 13:08:35 +0300
+Message-ID: <1460023715-19332-18-git-send-email-rogerq@ti.com>
 References: <1460023715-19332-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,442 +12,137 @@ To: tony@atomide.com, computersforpeace@gmail.com, boris.brezillon@free-electron
 Cc: dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Move NAND specific device tree parsing to NAND driver.
-
-The NAND controller node must have a compatible id, register space
-resource and interrupt resource.
+The GPMC WAIT pin status are now available over gpiolib.
+Update the omap_dev_ready() function to use gpio instead of
+directly accessing GPMC register space.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 Acked-by: Brian Norris <computersforpeace@gmail.com>
+Acked-by: Boris Brezillon <boris.brezillon@free-electrons.com>
 ---
- arch/arm/mach-omap2/gpmc-nand.c              |   5 +-
- drivers/memory/omap-gpmc.c                   | 143 +++++++--------------------
- drivers/mtd/nand/omap2.c                     | 134 +++++++++++++++++++++----
- include/linux/platform_data/mtd-nand-omap2.h |   3 +-
- 4 files changed, 153 insertions(+), 132 deletions(-)
+ .../devicetree/bindings/mtd/gpmc-nand.txt          |  2 ++
+ drivers/mtd/nand/omap2.c                           | 29 ++++++++++++++--------
+ include/linux/platform_data/mtd-nand-omap2.h       |  2 +-
+ 3 files changed, 21 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-index 04e6998..f6ac027 100644
---- a/arch/arm/mach-omap2/gpmc-nand.c
-+++ b/arch/arm/mach-omap2/gpmc-nand.c
-@@ -97,10 +97,7 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
- 	gpmc_nand_res[2].start = gpmc_get_client_irq(GPMC_IRQ_COUNT_EVENT);
+diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+index ff3215d2..3ee7e20 100644
+--- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
++++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+@@ -48,6 +48,7 @@ Optional properties:
+ 		locating ECC errors for BCHx algorithms. SoC devices which have
+ 		ELM hardware engines should specify this device node in .dtsi
+ 		Using ELM for ECC error correction frees some CPU cycles.
++ - rb-gpios:	GPIO specifier for the ready/busy# pin.
  
- 	memset(&s, 0, sizeof(struct gpmc_settings));
--	if (gpmc_nand_data->of_node)
--		gpmc_read_settings_dt(gpmc_nand_data->of_node, &s);
--	else
--		gpmc_set_legacy(gpmc_nand_data, &s);
-+	gpmc_set_legacy(gpmc_nand_data, &s);
+ For inline partition table parsing (optional):
  
- 	s.device_nand = true;
+@@ -78,6 +79,7 @@ Example for an AM33xx board:
+ 			nand-bus-width = <16>;
+ 			ti,nand-ecc-opt = "bch8";
+ 			ti,nand-xfer-type = "polled";
++			rb-gpios = <&gpmc 0 GPIO_ACTIVE_HIGH>; /* gpmc_wait0 */
  
-diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-index e28d6bc..8dc6e3b 100644
---- a/drivers/memory/omap-gpmc.c
-+++ b/drivers/memory/omap-gpmc.c
-@@ -30,7 +30,6 @@
- #include <linux/of_device.h>
- #include <linux/of_platform.h>
- #include <linux/omap-gpmc.h>
--#include <linux/mtd/nand.h>
- #include <linux/pm_runtime.h>
- 
- #include <linux/platform_data/mtd-nand-omap2.h>
-@@ -1852,105 +1851,6 @@ static void __maybe_unused gpmc_read_timings_dt(struct device_node *np,
- 		of_property_read_bool(np, "gpmc,time-para-granularity");
- }
- 
--#if IS_ENABLED(CONFIG_MTD_NAND)
--
--static const char * const nand_xfer_types[] = {
--	[NAND_OMAP_PREFETCH_POLLED]		= "prefetch-polled",
--	[NAND_OMAP_POLLED]			= "polled",
--	[NAND_OMAP_PREFETCH_DMA]		= "prefetch-dma",
--	[NAND_OMAP_PREFETCH_IRQ]		= "prefetch-irq",
--};
--
--static int gpmc_probe_nand_child(struct platform_device *pdev,
--				 struct device_node *child)
--{
--	u32 val;
--	const char *s;
--	struct gpmc_timings gpmc_t;
--	struct omap_nand_platform_data *gpmc_nand_data;
--
--	if (of_property_read_u32(child, "reg", &val) < 0) {
--		dev_err(&pdev->dev, "%s has no 'reg' property\n",
--			child->full_name);
--		return -ENODEV;
--	}
--
--	gpmc_nand_data = devm_kzalloc(&pdev->dev, sizeof(*gpmc_nand_data),
--				      GFP_KERNEL);
--	if (!gpmc_nand_data)
--		return -ENOMEM;
--
--	gpmc_nand_data->cs = val;
--	gpmc_nand_data->of_node = child;
--
--	/* Detect availability of ELM module */
--	gpmc_nand_data->elm_of_node = of_parse_phandle(child, "ti,elm-id", 0);
--	if (gpmc_nand_data->elm_of_node == NULL)
--		gpmc_nand_data->elm_of_node =
--					of_parse_phandle(child, "elm_id", 0);
--
--	/* select ecc-scheme for NAND */
--	if (of_property_read_string(child, "ti,nand-ecc-opt", &s)) {
--		pr_err("%s: ti,nand-ecc-opt not found\n", __func__);
--		return -ENODEV;
--	}
--
--	if (!strcmp(s, "sw"))
--		gpmc_nand_data->ecc_opt = OMAP_ECC_HAM1_CODE_SW;
--	else if (!strcmp(s, "ham1") ||
--		 !strcmp(s, "hw") || !strcmp(s, "hw-romcode"))
--		gpmc_nand_data->ecc_opt =
--				OMAP_ECC_HAM1_CODE_HW;
--	else if (!strcmp(s, "bch4"))
--		if (gpmc_nand_data->elm_of_node)
--			gpmc_nand_data->ecc_opt =
--				OMAP_ECC_BCH4_CODE_HW;
--		else
--			gpmc_nand_data->ecc_opt =
--				OMAP_ECC_BCH4_CODE_HW_DETECTION_SW;
--	else if (!strcmp(s, "bch8"))
--		if (gpmc_nand_data->elm_of_node)
--			gpmc_nand_data->ecc_opt =
--				OMAP_ECC_BCH8_CODE_HW;
--		else
--			gpmc_nand_data->ecc_opt =
--				OMAP_ECC_BCH8_CODE_HW_DETECTION_SW;
--	else if (!strcmp(s, "bch16"))
--		if (gpmc_nand_data->elm_of_node)
--			gpmc_nand_data->ecc_opt =
--				OMAP_ECC_BCH16_CODE_HW;
--		else
--			pr_err("%s: BCH16 requires ELM support\n", __func__);
--	else
--		pr_err("%s: ti,nand-ecc-opt invalid value\n", __func__);
--
--	/* select data transfer mode for NAND controller */
--	if (!of_property_read_string(child, "ti,nand-xfer-type", &s))
--		for (val = 0; val < ARRAY_SIZE(nand_xfer_types); val++)
--			if (!strcasecmp(s, nand_xfer_types[val])) {
--				gpmc_nand_data->xfer_type = val;
--				break;
--			}
--
--	gpmc_nand_data->flash_bbt = of_get_nand_on_flash_bbt(child);
--
--	val = of_get_nand_bus_width(child);
--	if (val == 16)
--		gpmc_nand_data->devsize = NAND_BUSWIDTH_16;
--
--	gpmc_read_timings_dt(child, &gpmc_t);
--	gpmc_nand_init(gpmc_nand_data, &gpmc_t);
--
--	return 0;
--}
--#else
--static int gpmc_probe_nand_child(struct platform_device *pdev,
--				 struct device_node *child)
--{
--	return 0;
--}
--#endif
--
- #if IS_ENABLED(CONFIG_MTD_ONENAND)
- static int gpmc_probe_onenand_child(struct platform_device *pdev,
- 				 struct device_node *child)
-@@ -2069,9 +1969,42 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
- 		goto err;
- 	}
- 
--	ret = of_property_read_u32(child, "bank-width", &gpmc_s.device_width);
--	if (ret < 0)
--		goto err;
-+	if (of_node_cmp(child->name, "nand") == 0) {
-+		/* Warn about older DT blobs with no compatible property */
-+		if (!of_property_read_bool(child, "compatible")) {
-+			dev_warn(&pdev->dev,
-+				 "Incompatible NAND node: missing compatible");
-+			ret = -EINVAL;
-+			goto err;
-+		}
-+	}
-+
-+	if (of_device_is_compatible(child, "ti,omap2-nand")) {
-+		/* NAND specific setup */
-+		val = of_get_nand_bus_width(child);
-+		switch (val) {
-+		case 8:
-+			gpmc_s.device_width = GPMC_DEVWIDTH_8BIT;
-+			break;
-+		case 16:
-+			gpmc_s.device_width = GPMC_DEVWIDTH_16BIT;
-+			break;
-+		default:
-+			dev_err(&pdev->dev, "%s: invalid 'nand-bus-width'\n",
-+				child->name);
-+			ret = -EINVAL;
-+			goto err;
-+		}
-+
-+		/* disable write protect */
-+		gpmc_configure(GPMC_CONFIG_WP, 0);
-+		gpmc_s.device_nand = true;
-+	} else {
-+		ret = of_property_read_u32(child, "bank-width",
-+					   &gpmc_s.device_width);
-+		if (ret < 0)
-+			goto err;
-+	}
- 
- 	gpmc_cs_show_timings(cs, "before gpmc_cs_program_settings");
- 	ret = gpmc_cs_program_settings(cs, &gpmc_s);
-@@ -2155,9 +2088,7 @@ static int gpmc_probe_dt(struct platform_device *pdev)
- 		if (!child->name)
- 			continue;
- 
--		if (of_node_cmp(child->name, "nand") == 0)
--			ret = gpmc_probe_nand_child(pdev, child);
--		else if (of_node_cmp(child->name, "onenand") == 0)
-+		if (of_node_cmp(child->name, "onenand") == 0)
- 			ret = gpmc_probe_onenand_child(pdev, child);
- 		else
- 			ret = gpmc_probe_generic_child(pdev, child);
+ 			gpmc,sync-clk-ps = <0>;
+ 			gpmc,cs-on-ns = <0>;
 diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 7e4e263..35b8f33 100644
+index 35b8f33..e0b2b2f 100644
 --- a/drivers/mtd/nand/omap2.c
 +++ b/drivers/mtd/nand/omap2.c
-@@ -24,6 +24,7 @@
- #include <linux/slab.h>
- #include <linux/of.h>
- #include <linux/of_device.h>
-+#include <linux/of_mtd.h>
- 
- #include <linux/mtd/nand_bch.h>
- #include <linux/platform_data/elm.h>
-@@ -176,11 +177,11 @@ struct omap_nand_info {
- 	/* Interface to GPMC */
- 	struct gpmc_nand_regs		reg;
- 	struct gpmc_nand_ops		*ops;
-+	bool				flash_bbt;
- 	/* generated at runtime depending on ECC algorithm and layout selected */
+@@ -12,6 +12,7 @@
+ #include <linux/dmaengine.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/delay.h>
++#include <linux/gpio/consumer.h>
+ #include <linux/module.h>
+ #include <linux/interrupt.h>
+ #include <linux/jiffies.h>
+@@ -182,6 +183,8 @@ struct omap_nand_info {
  	struct nand_ecclayout		oobinfo;
  	/* fields specific for BCHx_HW ECC scheme */
  	struct device			*elm_dev;
--	struct device_node		*of_node;
++	/* NAND ready gpio */
++	struct gpio_desc		*ready_gpiod;
  };
  
  static inline struct omap_nand_info *mtd_to_omap(struct mtd_info *mtd)
-@@ -1643,10 +1644,86 @@ static bool omap2_nand_ecc_check(struct omap_nand_info *info,
- 	return true;
+@@ -1023,21 +1026,16 @@ static int omap_wait(struct mtd_info *mtd, struct nand_chip *chip)
  }
  
-+static const char * const nand_xfer_types[] = {
-+	[NAND_OMAP_PREFETCH_POLLED] = "prefetch-polled",
-+	[NAND_OMAP_POLLED] = "polled",
-+	[NAND_OMAP_PREFETCH_DMA] = "prefetch-dma",
-+	[NAND_OMAP_PREFETCH_IRQ] = "prefetch-irq",
-+};
-+
-+static int omap_get_dt_info(struct device *dev, struct omap_nand_info *info)
-+{
-+	struct device_node *child = dev->of_node;
-+	int i;
-+	const char *s;
-+	u32 cs;
-+
-+	if (of_property_read_u32(child, "reg", &cs) < 0) {
-+		dev_err(dev, "reg not found in DT\n");
-+		return -EINVAL;
-+	}
-+
-+	info->gpmc_cs = cs;
-+
-+	/* detect availability of ELM module. Won't be present pre-OMAP4 */
-+	info->elm_of_node = of_parse_phandle(child, "ti,elm-id", 0);
-+	if (!info->elm_of_node)
-+		dev_dbg(dev, "ti,elm-id not in DT\n");
-+
-+	/* select ecc-scheme for NAND */
-+	if (of_property_read_string(child, "ti,nand-ecc-opt", &s)) {
-+		dev_err(dev, "ti,nand-ecc-opt not found\n");
-+		return -EINVAL;
-+	}
-+
-+	if (!strcmp(s, "sw")) {
-+		info->ecc_opt = OMAP_ECC_HAM1_CODE_SW;
-+	} else if (!strcmp(s, "ham1") ||
-+		   !strcmp(s, "hw") || !strcmp(s, "hw-romcode")) {
-+		info->ecc_opt =	OMAP_ECC_HAM1_CODE_HW;
-+	} else if (!strcmp(s, "bch4")) {
-+		if (info->elm_of_node)
-+			info->ecc_opt = OMAP_ECC_BCH4_CODE_HW;
-+		else
-+			info->ecc_opt = OMAP_ECC_BCH4_CODE_HW_DETECTION_SW;
-+	} else if (!strcmp(s, "bch8")) {
-+		if (info->elm_of_node)
-+			info->ecc_opt = OMAP_ECC_BCH8_CODE_HW;
-+		else
-+			info->ecc_opt = OMAP_ECC_BCH8_CODE_HW_DETECTION_SW;
-+	} else if (!strcmp(s, "bch16")) {
-+		info->ecc_opt =	OMAP_ECC_BCH16_CODE_HW;
-+	} else {
-+		dev_err(dev, "unrecognized value for ti,nand-ecc-opt\n");
-+		return -EINVAL;
-+	}
-+
-+	/* select data transfer mode */
-+	if (!of_property_read_string(child, "ti,nand-xfer-type", &s)) {
-+		for (i = 0; i < ARRAY_SIZE(nand_xfer_types); i++) {
-+			if (!strcasecmp(s, nand_xfer_types[i])) {
-+				info->xfer_type = i;
-+				goto next;
-+			}
-+		}
-+
-+		dev_err(dev, "unrecognized value for ti,nand-xfer-type\n");
-+		return -EINVAL;
-+	}
-+
-+next:
-+	of_get_nand_on_flash_bbt(child);
-+
-+	if (of_get_nand_bus_width(child) == 16)
-+		info->devsize = NAND_BUSWIDTH_16;
-+
-+	return 0;
-+}
-+
- static int omap_nand_probe(struct platform_device *pdev)
+ /**
+- * omap_dev_ready - calls the platform specific dev_ready function
++ * omap_dev_ready - checks the NAND Ready GPIO line
+  * @mtd: MTD device structure
++ *
++ * Returns true if ready and false if busy.
+  */
+ static int omap_dev_ready(struct mtd_info *mtd)
  {
- 	struct omap_nand_info		*info;
--	struct omap_nand_platform_data	*pdata;
-+	struct omap_nand_platform_data	*pdata = NULL;
- 	struct mtd_info			*mtd;
- 	struct nand_chip		*nand_chip;
- 	struct nand_ecclayout		*ecclayout;
-@@ -1656,39 +1733,47 @@ static int omap_nand_probe(struct platform_device *pdev)
- 	unsigned			sig;
- 	unsigned			oob_index;
- 	struct resource			*res;
+-	unsigned int val = 0;
+ 	struct omap_nand_info *info = mtd_to_omap(mtd);
+ 
+-	val = readl(info->reg.gpmc_status);
 -
--	pdata = dev_get_platdata(&pdev->dev);
--	if (pdata == NULL) {
--		dev_err(&pdev->dev, "platform data missing\n");
--		return -ENODEV;
+-	if ((val & 0x100) == 0x100) {
+-		return 1;
+-	} else {
+-		return 0;
 -	}
-+	struct device			*dev = &pdev->dev;
- 
- 	info = devm_kzalloc(&pdev->dev, sizeof(struct omap_nand_info),
- 				GFP_KERNEL);
- 	if (!info)
- 		return -ENOMEM;
- 
--	platform_set_drvdata(pdev, info);
-+	info->pdev = pdev;
- 
-+	if (dev->of_node) {
-+		if (omap_get_dt_info(dev, info))
-+			return -EINVAL;
-+	} else {
-+		pdata = dev_get_platdata(&pdev->dev);
-+		if (!pdata) {
-+			dev_err(&pdev->dev, "platform data missing\n");
-+			return -EINVAL;
-+		}
-+
-+		info->gpmc_cs = pdata->cs;
-+		info->reg = pdata->reg;
-+		info->ecc_opt = pdata->ecc_opt;
-+		info->dev_ready	= pdata->dev_ready;
-+		info->xfer_type = pdata->xfer_type;
-+		info->devsize = pdata->devsize;
-+		info->elm_of_node = pdata->elm_of_node;
-+		info->flash_bbt = pdata->flash_bbt;
-+	}
-+
-+	platform_set_drvdata(pdev, info);
- 	info->ops = gpmc_omap_get_nand_ops(&info->reg, info->gpmc_cs);
- 	if (!info->ops) {
- 		dev_err(&pdev->dev, "Failed to get GPMC->NAND interface\n");
- 		return -ENODEV;
- 	}
--	info->pdev		= pdev;
--	info->gpmc_cs		= pdata->cs;
--	info->of_node		= pdata->of_node;
--	info->ecc_opt		= pdata->ecc_opt;
--	info->dev_ready	= pdata->dev_ready;
--	info->xfer_type = pdata->xfer_type;
--	info->devsize = pdata->devsize;
--	info->elm_of_node = pdata->elm_of_node;
- 
- 	nand_chip		= &info->nand;
- 	mtd			= nand_to_mtd(nand_chip);
- 	mtd->dev.parent		= &pdev->dev;
- 	nand_chip->ecc.priv	= NULL;
--	nand_set_flash_node(nand_chip, pdata->of_node);
-+	nand_set_flash_node(nand_chip, dev->of_node);
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	nand_chip->IO_ADDR_R = devm_ioremap_resource(&pdev->dev, res);
-@@ -1717,7 +1802,7 @@ static int omap_nand_probe(struct platform_device *pdev)
- 		nand_chip->chip_delay = 50;
- 	}
- 
--	if (pdata->flash_bbt)
-+	if (info->flash_bbt)
- 		nand_chip->bbt_options |= NAND_BBT_USE_FLASH | NAND_BBT_NO_OOB;
- 	else
- 		nand_chip->options |= NAND_SKIP_BBTSCAN;
-@@ -2035,7 +2120,10 @@ scan_tail:
- 		goto return_error;
- 	}
- 
--	mtd_device_register(mtd, pdata->parts, pdata->nr_parts);
-+	if (dev->of_node)
-+		mtd_device_register(mtd, NULL, 0);
-+	else
-+		mtd_device_register(mtd, pdata->parts, pdata->nr_parts);
- 
- 	platform_set_drvdata(pdev, mtd);
- 
-@@ -2066,11 +2154,17 @@ static int omap_nand_remove(struct platform_device *pdev)
- 	return 0;
++	return gpiod_get_value(info->ready_gpiod);
  }
  
-+static const struct of_device_id omap_nand_ids[] = {
-+	{ .compatible = "ti,omap2-nand", },
-+	{},
-+};
+ /**
+@@ -1755,7 +1753,9 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 		info->gpmc_cs = pdata->cs;
+ 		info->reg = pdata->reg;
+ 		info->ecc_opt = pdata->ecc_opt;
+-		info->dev_ready	= pdata->dev_ready;
++		if (pdata->dev_ready)
++			dev_info(&pdev->dev, "pdata->dev_ready is deprecated\n");
 +
- static struct platform_driver omap_nand_driver = {
- 	.probe		= omap_nand_probe,
- 	.remove		= omap_nand_remove,
- 	.driver		= {
- 		.name	= DRIVER_NAME,
-+		.of_match_table = of_match_ptr(omap_nand_ids),
- 	},
- };
+ 		info->xfer_type = pdata->xfer_type;
+ 		info->devsize = pdata->devsize;
+ 		info->elm_of_node = pdata->elm_of_node;
+@@ -1787,6 +1787,13 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 	nand_chip->IO_ADDR_W = nand_chip->IO_ADDR_R;
+ 	nand_chip->cmd_ctrl  = omap_hwcontrol;
  
++	info->ready_gpiod = devm_gpiod_get_optional(&pdev->dev, "rb",
++						    GPIOD_IN);
++	if (IS_ERR(info->ready_gpiod)) {
++		dev_err(dev, "failed to get ready gpio\n");
++		return PTR_ERR(info->ready_gpiod);
++	}
++
+ 	/*
+ 	 * If RDY/BSY line is connected to OMAP then use the omap ready
+ 	 * function and the generic nand_wait function which reads the status
+@@ -1794,7 +1801,7 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 	 * chip delay which is slightly more than tR (AC Timing) of the NAND
+ 	 * device and read status register until you get a failure or success
+ 	 */
+-	if (info->dev_ready) {
++	if (info->ready_gpiod) {
+ 		nand_chip->dev_ready = omap_dev_ready;
+ 		nand_chip->chip_delay = 0;
+ 	} else {
 diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
-index a067f58..ff27e5a 100644
+index 7f6de53..17d57a1 100644
 --- a/include/linux/platform_data/mtd-nand-omap2.h
 +++ b/include/linux/platform_data/mtd-nand-omap2.h
-@@ -76,11 +76,10 @@ struct omap_nand_platform_data {
+@@ -71,7 +71,6 @@ struct omap_nand_platform_data {
+ 	int			cs;
+ 	struct mtd_partition	*parts;
+ 	int			nr_parts;
+-	bool			dev_ready;
+ 	bool			flash_bbt;
+ 	enum nand_io		xfer_type;
  	int			devsize;
- 	enum omap_ecc           ecc_opt;
- 
--	/* for passing the partitions */
--	struct device_node	*of_node;
- 	struct device_node	*elm_of_node;
- 
+@@ -82,5 +81,6 @@ struct omap_nand_platform_data {
  	/* deprecated */
  	struct gpmc_nand_regs	reg;
-+	struct device_node	*of_node;
+ 	struct device_node	*of_node;
++	bool			dev_ready;
  };
  #endif
 -- 
