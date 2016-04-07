@@ -1,135 +1,82 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v6 03/17] memory: omap-gpmc: Introduce GPMC to NAND interface
-Date: Thu, 7 Apr 2016 13:08:21 +0300
-Message-ID: <1460023715-19332-4-git-send-email-rogerq@ti.com>
+Subject: [PATCH v6 14/17] memory: omap-gpmc: Reserve WAITPIN if needed for WAIT monitoring
+Date: Thu, 7 Apr 2016 13:08:32 +0300
+Message-ID: <1460023715-19332-15-git-send-email-rogerq@ti.com>
 References: <1460023715-19332-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1460023715-19332-1-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, computersforpeace@gmail.com, boris.brezillon@free-electrons.com
-Cc: devicetree@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, linux-omap@vger.kernel.org, dwmw2@infradead.org, fcooper@ti.com, Roger Quadros <rogerq@ti.com>
+Cc: dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The OMAP GPMC module has certain registers dedicated for NAND
-access and some NAND bits mixed with other GPMC functionality.
-
-For the NAND dedicated registers we have the struct gpmc_nand_regs.
-
-The NAND driver needs to access NAND specific bits from the
-following non-dedicated registers
-- EMPTYWRITEBUFFERSTATUS from GPMC_STATUS
-
-For accessing these bits we introduce the struct gpmc_nand_ops.
-
-Add gpmc_omap_get_nand_ops() that returns the gpmc_nand_ops along
-with updating the gpmc_nand_regs. This API will be called by the
-OMAP NAND driver to access the necessary bits in GPMC register space.
+If the device attached to GPMC wants to use the WAIT pin
+for WAIT monitoring then we reserve it internally for
+exclusive use.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/memory/omap-gpmc.c | 21 +++++++++++++++++++++
- include/linux/omap-gpmc.h  | 35 +++++++++++++++++++++++++++++++++--
- 2 files changed, 54 insertions(+), 2 deletions(-)
+ drivers/memory/omap-gpmc.c | 24 ++++++++++++++++++++++--
+ 1 file changed, 22 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-index 21825dd..0b62afd 100644
+index 4dd1c65..784a64f 100644
 --- a/drivers/memory/omap-gpmc.c
 +++ b/drivers/memory/omap-gpmc.c
-@@ -1118,6 +1118,27 @@ void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
+@@ -1911,6 +1911,8 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 	const char *name;
+ 	int ret, cs;
+ 	u32 val;
++	struct gpio_desc *waitpin_desc = NULL;
++	struct gpmc_device *gpmc = platform_get_drvdata(pdev);
+ 
+ 	if (of_property_read_u32(child, "reg", &cs) < 0) {
+ 		dev_err(&pdev->dev, "%s has no 'reg' property\n",
+@@ -2020,16 +2022,30 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 			goto err;
  	}
- }
  
-+static struct gpmc_nand_ops nand_ops;
++	/* Reserve wait pin if it is required and valid */
++	if (gpmc_s.wait_on_read || gpmc_s.wait_on_write) {
++		unsigned int wait_pin = gpmc_s.wait_pin;
 +
-+/**
-+ * gpmc_omap_get_nand_ops - Get the GPMC NAND interface
-+ * @regs: the GPMC NAND register map exclusive for NAND use.
-+ * @cs: GPMC chip select number on which the NAND sits. The
-+ *      register map returned will be specific to this chip select.
-+ *
-+ * Returns NULL on error e.g. invalid cs.
-+ */
-+struct gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *reg, int cs)
-+{
-+	if (cs >= gpmc_cs_num)
-+		return NULL;
++		waitpin_desc = gpiochip_request_own_desc(&gpmc->gpio_chip,
++							 wait_pin, "WAITPIN");
++		if (IS_ERR(waitpin_desc)) {
++			dev_err(&pdev->dev, "invalid wait-pin: %d\n", wait_pin);
++			ret = PTR_ERR(waitpin_desc);
++			goto err;
++		}
++	}
 +
-+	gpmc_update_nand_reg(reg, cs);
+ 	gpmc_cs_show_timings(cs, "before gpmc_cs_program_settings");
 +
-+	return &nand_ops;
-+}
-+EXPORT_SYMBOL_GPL(gpmc_omap_get_nand_ops);
-+
- int gpmc_get_client_irq(unsigned irq_config)
- {
- 	int i;
-diff --git a/include/linux/omap-gpmc.h b/include/linux/omap-gpmc.h
-index 2dcef1c..dc2ada6 100644
---- a/include/linux/omap-gpmc.h
-+++ b/include/linux/omap-gpmc.h
-@@ -14,14 +14,45 @@
- #define GPMC_IRQ_FIFOEVENTENABLE	0x01
- #define GPMC_IRQ_COUNT_EVENT		0x02
+ 	ret = gpmc_cs_program_settings(cs, &gpmc_s);
+ 	if (ret < 0)
+-		goto err;
++		goto err_cs;
  
-+/**
-+ * gpmc_nand_ops - Interface between NAND and GPMC
-+ * @nand_write_buffer_empty: get the NAND write buffer empty status.
-+ */
-+struct gpmc_nand_ops {
-+	bool (*nand_writebuffer_empty)(void);
-+};
-+
-+struct gpmc_nand_regs;
-+
-+#if IS_ENABLED(CONFIG_OMAP_GPMC)
-+struct gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *regs,
-+					     int cs);
-+#else
-+static inline gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *regs,
-+						    int cs)
-+{
-+	return NULL;
-+}
-+#endif /* CONFIG_OMAP_GPMC */
-+
-+/*--------------------------------*/
-+
-+/* deprecated APIs */
-+#if IS_ENABLED(CONFIG_OMAP_GPMC)
-+void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs);
-+#else
-+static inline void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
-+{
-+}
-+#endif /* CONFIG_OMAP_GPMC */
-+/*--------------------------------*/
-+
- extern int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
- 			     struct gpmc_settings *gpmc_s,
- 			     struct gpmc_device_timings *dev_t);
+ 	ret = gpmc_cs_set_timings(cs, &gpmc_t, &gpmc_s);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to set gpmc timings for: %s\n",
+ 			child->name);
+-		goto err;
++		goto err_cs;
+ 	}
  
--struct gpmc_nand_regs;
- struct device_node;
+ 	/* Clear limited address i.e. enable A26-A11 */
+@@ -2060,6 +2076,10 @@ err_child_fail:
+ 	dev_err(&pdev->dev, "failed to create gpmc child %s\n", child->name);
+ 	ret = -ENODEV;
  
--extern void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs);
- extern int gpmc_get_client_irq(unsigned irq_config);
++err_cs:
++	if (waitpin_desc)
++		gpiochip_free_own_desc(waitpin_desc);
++
+ err:
+ 	gpmc_cs_free(cs);
  
- extern unsigned int gpmc_ticks_to_ns(unsigned int ticks);
 -- 
 2.5.0
-
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
