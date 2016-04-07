@@ -1,82 +1,81 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v6 14/17] memory: omap-gpmc: Reserve WAITPIN if needed for WAIT monitoring
-Date: Thu, 7 Apr 2016 13:08:32 +0300
-Message-ID: <1460023715-19332-15-git-send-email-rogerq@ti.com>
+Subject: [PATCH v6 07/17] mtd: nand: omap: Switch to using GPMC-NAND ops for
+ writebuffer empty check
+Date: Thu, 7 Apr 2016 13:08:25 +0300
+Message-ID: <1460023715-19332-8-git-send-email-rogerq@ti.com>
 References: <1460023715-19332-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
 In-Reply-To: <1460023715-19332-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
 To: tony@atomide.com, computersforpeace@gmail.com, boris.brezillon@free-electrons.com
-Cc: dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Cc: devicetree@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, linux-omap@vger.kernel.org, dwmw2@infradead.org, fcooper@ti.com, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-If the device attached to GPMC wants to use the WAIT pin
-for WAIT monitoring then we reserve it internally for
-exclusive use.
+Instead of accessing the gpmc_status register directly start
+using the gpmc_nand_ops->nand_writebuffer_empty() helper
+to check write buffer empty status.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
+Acked-by: Brian Norris <computersforpeace@gmail.com>
 ---
- drivers/memory/omap-gpmc.c | 24 ++++++++++++++++++++++--
- 1 file changed, 22 insertions(+), 2 deletions(-)
+ drivers/mtd/nand/omap2.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-index 4dd1c65..784a64f 100644
---- a/drivers/memory/omap-gpmc.c
-+++ b/drivers/memory/omap-gpmc.c
-@@ -1911,6 +1911,8 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
- 	const char *name;
- 	int ret, cs;
- 	u32 val;
-+	struct gpio_desc *waitpin_desc = NULL;
-+	struct gpmc_device *gpmc = platform_get_drvdata(pdev);
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index cba9bf0..98023d5 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -291,14 +291,13 @@ static void omap_write_buf8(struct mtd_info *mtd, const u_char *buf, int len)
+ {
+ 	struct omap_nand_info *info = mtd_to_omap(mtd);
+ 	u_char *p = (u_char *)buf;
+-	u32	status = 0;
++	bool status;
  
- 	if (of_property_read_u32(child, "reg", &cs) < 0) {
- 		dev_err(&pdev->dev, "%s has no 'reg' property\n",
-@@ -2020,16 +2022,30 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
- 			goto err;
+ 	while (len--) {
+ 		iowrite8(*p++, info->nand.IO_ADDR_W);
+ 		/* wait until buffer is available for write */
+ 		do {
+-			status = readl(info->reg.gpmc_status) &
+-					STATUS_BUFF_EMPTY;
++			status = info->ops->nand_writebuffer_empty();
+ 		} while (!status);
  	}
+ }
+@@ -326,7 +325,7 @@ static void omap_write_buf16(struct mtd_info *mtd, const u_char * buf, int len)
+ {
+ 	struct omap_nand_info *info = mtd_to_omap(mtd);
+ 	u16 *p = (u16 *) buf;
+-	u32	status = 0;
++	bool status;
+ 	/* FIXME try bursts of writesw() or DMA ... */
+ 	len >>= 1;
  
-+	/* Reserve wait pin if it is required and valid */
-+	if (gpmc_s.wait_on_read || gpmc_s.wait_on_write) {
-+		unsigned int wait_pin = gpmc_s.wait_pin;
-+
-+		waitpin_desc = gpiochip_request_own_desc(&gpmc->gpio_chip,
-+							 wait_pin, "WAITPIN");
-+		if (IS_ERR(waitpin_desc)) {
-+			dev_err(&pdev->dev, "invalid wait-pin: %d\n", wait_pin);
-+			ret = PTR_ERR(waitpin_desc);
-+			goto err;
-+		}
-+	}
-+
- 	gpmc_cs_show_timings(cs, "before gpmc_cs_program_settings");
-+
- 	ret = gpmc_cs_program_settings(cs, &gpmc_s);
- 	if (ret < 0)
--		goto err;
-+		goto err_cs;
- 
- 	ret = gpmc_cs_set_timings(cs, &gpmc_t, &gpmc_s);
- 	if (ret) {
- 		dev_err(&pdev->dev, "failed to set gpmc timings for: %s\n",
- 			child->name);
--		goto err;
-+		goto err_cs;
+@@ -334,8 +333,7 @@ static void omap_write_buf16(struct mtd_info *mtd, const u_char * buf, int len)
+ 		iowrite16(*p++, info->nand.IO_ADDR_W);
+ 		/* wait until buffer is available for write */
+ 		do {
+-			status = readl(info->reg.gpmc_status) &
+-					STATUS_BUFF_EMPTY;
++			status = info->ops->nand_writebuffer_empty();
+ 		} while (!status);
  	}
- 
- 	/* Clear limited address i.e. enable A26-A11 */
-@@ -2060,6 +2076,10 @@ err_child_fail:
- 	dev_err(&pdev->dev, "failed to create gpmc child %s\n", child->name);
- 	ret = -ENODEV;
- 
-+err_cs:
-+	if (waitpin_desc)
-+		gpiochip_free_own_desc(waitpin_desc);
-+
- err:
- 	gpmc_cs_free(cs);
- 
+ }
 -- 
 2.5.0
+
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
