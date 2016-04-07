@@ -1,69 +1,71 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v6 10/17] mtd: nand: omap: Update DT binding documentation
-Date: Thu, 7 Apr 2016 13:08:28 +0300
-Message-ID: <1460023715-19332-11-git-send-email-rogerq@ti.com>
-References: <1460023715-19332-1-git-send-email-rogerq@ti.com>
+From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] of/platform: Allow secondary compatible match in
+ of_dev_lookup
+Date: Thu, 7 Apr 2016 13:21:00 +0300
+Message-ID: <5706348C.1040709@ti.com>
+References: <1459546504-32668-1-git-send-email-tony@atomide.com>
+ <20160401214053.GQ9329@atomide.com>
+ <CAL_Jsq+PcTD=duHmWgHyx_ywYbT10vEtcm=79x5o5wYSkgG63g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1460023715-19332-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, computersforpeace@gmail.com, boris.brezillon@free-electrons.com
-Cc: dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAL_Jsq+PcTD=duHmWgHyx_ywYbT10vEtcm=79x5o5wYSkgG63g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add compatible id and interrupts. The NAND interrupts are
-provided by the GPMC controller node.
+On 04/07/2016 07:52 AM, Rob Herring wrote:
+> On Fri, Apr 1, 2016 at 4:40 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+>> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [160401 14:37]:
+>>> We currently try to match of_dev_auxdata based on compatible,
+>>> IO address, and device name. But in some cases we have multiple
+>>> instances of drivers that can use the same auxdata.
+>>>
+>>> Let's add an additional secondary lookup for generic compatible
+>>> match for auxdata if no device specific match is found. This does
+>>> not change the existing matching, and still allows adding device
+>>> specific auxdata.
+>>>
+>>> This simplifies things as specifying the IO address and device
+>>> name is prone errors as it requires maintaining an in kernel
+>>> database for each SoC.
+>>
+>> And here's what I can apply later on to get rid of some
+>> ifdeffery.
+>>
+>> I'm also planning to move some of the legacy omap hwmod
+>> functionality into proper device drivers, so can generic
+>> pdata for that too.
+> 
+> Why can't the platform data be moved into the driver given that it
+> appears to be only SoC family specific? Auxdata was somewhat intended
+> to be temporary. It appears there is already some per compatible match
+> data for these OMAP parts in the driver.
+> 
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
-Acked-by: Rob Herring <robh@kernel.org>
-Acked-by: Brian Norris <computersforpeace@gmail.com>
----
- Documentation/devicetree/bindings/mtd/gpmc-nand.txt | 17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+Most probably this is required to pass some data from parent device to
+children when parent dev instantiate children from DT, at least I've experimented with
+this in mostly similar way (I've not added second pass and did break in the first
+if !phys_addr, but Tony's patch is more correct).
 
-diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-index fb733c4..ff3215d2 100644
---- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-+++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-@@ -13,7 +13,11 @@ Documentation/devicetree/bindings/mtd/nand.txt
- 
- Required properties:
- 
-- - reg:		The CS line the peripheral is connected to
-+ - compatible:	"ti,omap2-nand"
-+ - reg:		range id (CS number), base offset and length of the
-+		NAND I/O space
-+ - interrupt-parent: must point to gpmc node
-+ - interrupts:	Two interrupt specifiers, one for fifoevent, one for termcount.
- 
- Optional properties:
- 
-@@ -55,17 +59,22 @@ Example for an AM33xx board:
- 	gpmc: gpmc@50000000 {
- 		compatible = "ti,am3352-gpmc";
- 		ti,hwmods = "gpmc";
--		reg = <0x50000000 0x1000000>;
-+		reg = <0x50000000 0x36c>;
- 		interrupts = <100>;
- 		gpmc,num-cs = <8>;
- 		gpmc,num-waitpins = <2>;
- 		#address-cells = <2>;
- 		#size-cells = <1>;
--		ranges = <0 0 0x08000000 0x2000>;	/* CS0: NAND */
-+		ranges = <0 0 0x08000000 0x1000000>;	/* CS0 space, 16MB */
- 		elm_id = <&elm>;
-+		interrupt-controller;
-+		#interrupt-cells = <2>;
- 
- 		nand@0,0 {
--			reg = <0 0 0>; /* CS0, offset 0 */
-+			compatible = "ti,omap2-nand";
-+			reg = <0 0 4>;		/* CS0, offset 0, NAND I/O window 4 */
-+			interrupt-parent = <&gpmc>;
-+			interrupts = <0 IRQ_TYPE_NONE>, <1 IRQ_TYPE NONE>;
- 			nand-bus-width = <16>;
- 			ti,nand-ecc-opt = "bch8";
- 			ti,nand-xfer-type = "polled";
+For example,
+- USB dwc3 platform/integration layer dev creates DWC3-core device (of_platform_populate())
+- DWC3-core device creates xhci device
+- USB dwc3 platform/integration layer dev can dynamically get rev info
+  from HW and identify limitation/erratas/quirks which need to be applied to 
+  to its children.
+- DWC3-core can dynamically get rev info ...
+
+I was not able to find any other proper way to pass this (platfrom)data to children, except
+using Auxdata. And, as per Felipe Balbi, It was the major reason why now
+DWC3-core device creates xhci device manually.
+
 -- 
-2.5.0
+regards,
+-grygorii
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
