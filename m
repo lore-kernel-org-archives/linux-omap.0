@@ -1,59 +1,164 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v6 01/12] usb: hcd: Initialize hcd->flags to 0
-Date: Thu, 7 Apr 2016 13:40:21 +0300
-Message-ID: <57063915.7000700@ti.com>
-References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
- <1459865117-7032-2-git-send-email-rogerq@ti.com> <87zit72rqz.fsf@intel.com>
- <5704AD76.9080806@ti.com> <20160407094246.GA9963@shlinux2.ap.freescale.net>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 01/20] mfd: Add devm_ apis for mfd_add_devices and
+ mfd_release_devices
+Date: Thu, 7 Apr 2016 11:44:03 +0100
+Message-ID: <20160407104403.GZ3323@x1>
+References: <1459856912-17859-1-git-send-email-ldewangan@nvidia.com>
+ <1459856912-17859-2-git-send-email-ldewangan@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160407094246.GA9963@shlinux2.ap.freescale.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Chen <hzpeterchen@gmail.com>
-Cc: Felipe Balbi <balbi@kernel.org>, stern@rowland.harvard.edu, gregkh@linuxfoundation.org, peter.chen@freescale.com, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1459856912-17859-2-git-send-email-ldewangan@nvidia.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Laxman Dewangan <ldewangan@nvidia.com>
+Cc: corbet@lwn.net, andreas.werner@men.de, tony@atomide.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, patches@opensource.wolfsonmicro.com
 List-Id: linux-omap@vger.kernel.org
 
-On 07/04/16 12:42, Peter Chen wrote:
-> On Wed, Apr 06, 2016 at 09:32:22AM +0300, Roger Quadros wrote:
->> On 06/04/16 09:09, Felipe Balbi wrote:
->>>
->>> Hi,
->>>
->>> Roger Quadros <rogerq@ti.com> writes:
->>>> diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
->>>> index 2ca2cef..6b1930d 100644
->>>> --- a/drivers/usb/core/hcd.c
->>>> +++ b/drivers/usb/core/hcd.c
->>>> @@ -2706,6 +2706,7 @@ int usb_add_hcd(struct usb_hcd *hcd,
->>>>  	int retval;
->>>>  	struct usb_device *rhdev;
->>>>  
->>>> +	hcd->flags = 0;
->>>
-> 
-> I am not sure if this usb_add(remove)_hcd pair is safe and clean enough
-> for start/stop host role. From my point, we may need to do like
-> .probe/.remove host platform driver interface. In that case, we can make
+On Tue, 05 Apr 2016, Laxman Dewangan wrote:
 
-probe and remove are meant to be called from bus layer.
-I do not see a way how OTG framework can call probe/remove of HCD driver.
-Some HCDs may be platform devices, some PCI, so different entities are calling
-the HCD .probe hook.
+> Add device managed APIs devm_mfd_add_devices() and
+> devm_mfd_remove_devices() for the APIs mfd_add_devices()
+> and mfd_remove_devices().
 
-> sure the clocks and regulators are off, and hcd will be zero-initialized
+Nit: Line wrap after "devm_mfd_remove_devices()" instead.
 
-why can't we make that sure that is taken care of within the hcd_ops?
-Why should some driver keep its regulators and clocks enabled when hcd is stopped?
-It doesn't need to. If it is doing so now, it needs to be fixed.
+> This helps in reducing code in error path and sometimes
+> removal of .remove callback for driver unbind.
 
-> next time. Assume we are at gadget mode, we may not hope the vbus regulator
-> is still on which is for host only. So, this part may need to implement
-> by each user.
-> 
+s/for/during/
 
-Yes, correctness of this has to be taken care by each driver.
+> Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
+> ---
+>  drivers/mfd/mfd-core.c   | 62 ++++++++++++++++++++++++++++++++++++++=
+++++++++++
+>  include/linux/mfd/core.h |  7 ++++++
+>  2 files changed, 69 insertions(+)
+>=20
+> diff --git a/drivers/mfd/mfd-core.c b/drivers/mfd/mfd-core.c
+> index 409da01..145712e 100644
+> --- a/drivers/mfd/mfd-core.c
+> +++ b/drivers/mfd/mfd-core.c
+> @@ -334,6 +334,68 @@ void mfd_remove_devices(struct device *parent)
+>  }
+>  EXPORT_SYMBOL(mfd_remove_devices);
+> =20
+> +static void devm_mfd_dev_release(struct device *dev, void *res)
+> +{
+> +	mfd_remove_devices(dev);
+> +}
+> +
+> +/**
+> + * devm_mfd_add_devices - Resource managed version of mfd_add_device=
+s()
+> + *
+> + * This returns the 0 on success otherwise error number in the failu=
+re.
 
-cheers,
--roger
+"Returns 0 on success or an appropriate negative error number on failur=
+e."
+
+> + * The allocated mfd devices will automatically be released when the
+
+s/mfd/MFD/
+
+> + * device is unbound.
+> + */
+> +int devm_mfd_add_devices(struct device *dev, int id,
+> +		    const struct mfd_cell *cells, int n_devs,
+> +		    struct resource *mem_base,
+> +		    int irq_base, struct irq_domain *domain)
+> +{
+> +	struct device **ptr;
+> +	int ret;
+> +
+> +	ptr =3D devres_alloc(devm_mfd_dev_release, sizeof(*ptr), GFP_KERNEL=
+);
+> +	if (!ptr)
+> +		return -ENOMEM;
+> +
+> +	ret =3D mfd_add_devices(dev, id, cells, n_devs, mem_base,
+> +			      irq_base, domain);
+> +	if (!ret) {
+> +		*ptr =3D dev;
+> +		devres_add(dev, ptr);
+> +	} else {
+> +		devres_free(ptr);
+> +	}
+
+Switch these round.  If you encounter a problem, free and return.  If
+not, skip the error handling and add the device outside of the if().
+
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL(devm_mfd_add_devices);
+> +
+> +static int devm_mfd_devs_match(struct device *dev, void *res, void *=
+data)
+> +{
+> +	struct device **r =3D res;
+> +
+> +	if (WARN_ON(!r || !*r))
+> +		return 0;
+> +
+> +	return *r =3D=3D data;
+> +}
+> +
+> +/**
+> + * devm_mfd_remove_device - Resource managed version of mfd_remove_d=
+evices()
+> + * @dev: Device for which which resource was allocated.
+
+Did you proof read your own writing?  Pleaes re-word.
+
+> + * Remove all mfd devices added on the device.
+
+s/mfd/MFD/
+
+'D' already means devices, so here you are saying "devices devices".
+Please re-word.  Besides, you need to be more specific as to which
+"devices on the devices" you are detailing, since this sentence
+doesn't really make a great deal of sense.
+
+> + * Normally this function will not need to be called and the resourc=
+e
+> + * management code will ensure that the resource is freed.
+
+Then what is the purpose of providing it?  Do you have a user?
+
+> + */
+> +void devm_mfd_remove_devices(struct device *dev)
+> +{
+> +	WARN_ON(devres_release(dev, devm_mfd_dev_release,
+> +			       devm_mfd_devs_match, dev));
+> +}
+> +EXPORT_SYMBOL(devm_mfd_remove_devices);
+> +
+>  int mfd_clone_cell(const char *cell, const char **clones, size_t n_c=
+lones)
+>  {
+>  	struct mfd_cell cell_entry;
+> diff --git a/include/linux/mfd/core.h b/include/linux/mfd/core.h
+> index bc6f7e0..d658d7f 100644
+> --- a/include/linux/mfd/core.h
+> +++ b/include/linux/mfd/core.h
+> @@ -131,4 +131,11 @@ static inline int mfd_add_hotplug_devices(struct=
+ device *parent,
+> =20
+>  extern void mfd_remove_devices(struct device *parent);
+> =20
+> +extern int devm_mfd_add_devices(struct device *dev, int id,
+> +			   const struct mfd_cell *cells, int n_devs,
+> +			   struct resource *mem_base,
+> +			   int irq_base, struct irq_domain *irq_domain);
+> +
+> +extern void devm_mfd_remove_devices(struct device *dev);
+> +
+>  #endif
+
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
