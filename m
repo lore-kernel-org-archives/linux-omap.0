@@ -1,36 +1,35 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: wakeupgen: Add comment for unhandled FROZEN
- transitions
-Date: Thu, 7 Apr 2016 10:01:46 -0700
-Message-ID: <20160407170146.GK16484@atomide.com>
-References: <1459774517-58943-1-git-send-email-anna-maria@linutronix.de>
- <570290DA.2050100@oracle.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v3] iio: light: new driver for the ROHM BH1780
+Date: Thu, 7 Apr 2016 10:05:23 -0700
+Message-ID: <20160407170522.GL16484@atomide.com>
+References: <1459326847-9444-1-git-send-email-linus.walleij@linaro.org>
+ <5700E7AF.6040903@kernel.org>
+ <CACRpkdYkqzvu_fMcDPy8i0OCpGdGQ39S534HbCQL8T93gadKmQ@mail.gmail.com>
+ <20160404074239.GT7800@tbergstrom-lnx.Nvidia.com>
+ <20160404223546.GC8755@atomide.com>
+ <CACRpkdbi=big65-yMXXipE1i_YSDo=7BMWDohXcVCpwSi5HMPg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <570290DA.2050100@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: santosh shilimkar <santosh.shilimkar@oracle.com>
-Cc: Anna-Maria Gleixner <anna-maria@linutronix.de>, linux-kernel@vger.kernel.org, rt@linutronix.de, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org
+In-Reply-To: <CACRpkdbi=big65-yMXXipE1i_YSDo=7BMWDohXcVCpwSi5HMPg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Peter De Schrijver <pdeschrijver-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, "linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Daniel Mack <daniel-rDUAYElUppE@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* santosh shilimkar <santosh.shilimkar@oracle.com> [160404 09:06]:
-> On 4/4/2016 5:55 AM, Anna-Maria Gleixner wrote:
-> >FROZEN hotplug notifiers are not handled and do not have to be. Insert
-> >a comment to remember that the lack of the FROZEN transitions is no
-> >accident.
-> >
-> >Cc: Tony Lindgren <tony@atomide.com>
-> >Cc: Santosh Shilimkar <ssantosh@kernel.org>
-> >Cc: linux-omap@vger.kernel.org
-> >Signed-off-by: Anna-Maria Gleixner <anna-maria@linutronix.de>
-> >---
-> Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
+* Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> [160405 00:51]:
+> On Tue, Apr 5, 2016 at 12:35 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+> 
+> > Adding linux-omap to Cc. I suggest do a minimal patch to remove the
+> > sysfs interface, then revert the patch if needed. I don't think
+> > people are using it.
+> 
+> The old driver in misc is just using sysfs for everything, so removing the
+> sysfs is like deleting the driver. Once the IIO driver is merged I guess
+> I'll boldly post a patch to delete it and then a patch to activate the new
+> driver in the OMAP defconfig.
 
-Yeah looks good to me too, will apply for v4.7 when I get through the
-pending fixes here first.
-
-Regards,
+OK
 
 Tony
