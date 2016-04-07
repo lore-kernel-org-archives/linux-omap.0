@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 07/13] ARM: dts: omap3: Enable gpio controller for GPMC
-Date: Thu, 7 Apr 2016 13:25:34 +0300
-Message-ID: <1460024740-19716-8-git-send-email-rogerq@ti.com>
+Subject: [PATCH 09/13] ARM: dts: dm816x: Enable gpio controller for GPMC
+Date: Thu, 7 Apr 2016 13:25:36 +0300
+Message-ID: <1460024740-19716-10-git-send-email-rogerq@ti.com>
 References: <1460024740-19716-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -17,22 +17,22 @@ Mark it gpio controller capable.
 
 Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap3.dtsi | 2 ++
+ arch/arm/boot/dts/dm816x.dtsi | 2 ++
  1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index b41d07e..47d1e77 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -725,6 +725,8 @@
- 			#size-cells = <1>;
+diff --git a/arch/arm/boot/dts/dm816x.dtsi b/arch/arm/boot/dts/dm816x.dtsi
+index d9309a0..44e39c74 100644
+--- a/arch/arm/boot/dts/dm816x.dtsi
++++ b/arch/arm/boot/dts/dm816x.dtsi
+@@ -185,6 +185,8 @@
+ 			gpmc,num-waitpins = <2>;
  			interrupt-controller;
  			#interrupt-cells = <2>;
 +			gpio-controller;
 +			#gpio-cells = <2>;
  		};
  
- 		usb_otg_hs: usb_otg_hs@480ab000 {
+ 		i2c1: i2c@48028000 {
 -- 
 2.5.0
 
