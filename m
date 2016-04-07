@@ -1,120 +1,60 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 12/13] ARM: dts: am335x: Provide NAND ready pin
-Date: Thu, 7 Apr 2016 13:25:39 +0300
-Message-ID: <1460024740-19716-13-git-send-email-rogerq@ti.com>
-References: <1460024740-19716-1-git-send-email-rogerq@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 1/4] mailbox/omap: store mailbox interrupt type in
+ omap_mbox_device
+Date: Thu, 7 Apr 2016 13:32:17 +0300
+Message-ID: <57063731.9010201@ti.com>
+References: <1459985840-1106-1-git-send-email-s-anna@ti.com>
+ <1459985840-1106-2-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1460024740-19716-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>, Ilya Ledvich <ilya-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, Rostislav Lisovy <lisovy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Enric Balletbo i Serra <eballetbo-VIneJrwqLopBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1459985840-1106-2-git-send-email-s-anna@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>, Jassi Brar <jassisinghbrar@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On these boards NAND ready pin status is avilable over
-GPMC_WAIT0 pin.
+On 04/07/2016 02:37 AM, Suman Anna wrote:
+> The interrupt type used for identifying the layout of the interrupt
+> configuration registers between OMAP4+ SoCs and older SoCs is stored
+> only in the sub-mailbox structures for easier access. Store this type
+> in the the omap_mbox_device structure as well along with the other
+> global variables. This is being done to facilitate the context save
+> and restore of appropriate registers during system suspend/resume.
+>
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> ---
+>   drivers/mailbox/omap-mailbox.c | 2 ++
+>   1 file changed, 2 insertions(+)
+>
+> diff --git a/drivers/mailbox/omap-mailbox.c b/drivers/mailbox/omap-mailbox.c
+> index 84cafc02e761..adf37f494690 100644
+> --- a/drivers/mailbox/omap-mailbox.c
+> +++ b/drivers/mailbox/omap-mailbox.c
+> @@ -90,6 +90,7 @@ struct omap_mbox_device {
+>   	void __iomem *mbox_base;
+>   	u32 num_users;
+>   	u32 num_fifos;
+> +	u32 intr_type;
+>   	struct omap_mbox **mboxes;
+>   	struct mbox_controller controller;
+>   	struct list_head elem;
+> @@ -828,6 +829,7 @@ static int omap_mbox_probe(struct platform_device *pdev)
+>   	mdev->dev = &pdev->dev;
+>   	mdev->num_users = num_users;
+>   	mdev->num_fifos = num_fifos;
+> +	mdev->intr_type = intr_type;
+>   	mdev->mboxes = list;
+>
+>   	/* OMAP does not have a Tx-Done IRQ, but rather a Tx-Ready IRQ */
+>
 
-For NAND we don't use GPMC wait pin monitoring but
-get the NAND Ready/Busy# status using GPIOlib.
-GPMC driver provides the WAIT0 pin status over GPIOlib.
+This smth. which definitely has to be done using compatible props.
+Why not to pass more info through of_device_id->data?
 
-Read speed increases from 7869 KiB/ to 8875 KiB/s
-and write speed was unchanged at 5100 KiB/s.
 
-Measured using mtd_speedtest.ko on am335x-evm.
 
-Cc: Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
-Cc: Ilya Ledvich <ilya-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Cc: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-Cc: Rostislav Lisovy <lisovy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Enric Balletbo i Serra <eballetbo-VIneJrwqLopBDgjK7y7TUQ@public.gmane.org>
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/am335x-baltos-ir5221.dts | 1 +
- arch/arm/boot/dts/am335x-chilisom.dtsi     | 1 +
- arch/arm/boot/dts/am335x-cm-t335.dts       | 1 +
- arch/arm/boot/dts/am335x-evm.dts           | 1 +
- arch/arm/boot/dts/am335x-igep0033.dtsi     | 1 +
- arch/arm/boot/dts/am335x-phycore-som.dtsi  | 1 +
- 6 files changed, 6 insertions(+)
-
-diff --git a/arch/arm/boot/dts/am335x-baltos-ir5221.dts b/arch/arm/boot/dts/am335x-baltos-ir5221.dts
-index 6c667fb..17e92e8 100644
---- a/arch/arm/boot/dts/am335x-baltos-ir5221.dts
-+++ b/arch/arm/boot/dts/am335x-baltos-ir5221.dts
-@@ -241,6 +241,7 @@
- 		interrupt-parent = <&gpmc>;
- 		interrupts = <0 IRQ_TYPE_NONE>, /* fifoevent */
- 			     <1 IRQ_TYPE_NONE>;	/* termcount */
-+		rb-gpios = <&gpmc 0 GPIO_ACTIVE_HIGH>; /* gpmc_wait0 */
- 		nand-bus-width = <8>;
- 		ti,nand-ecc-opt = "bch8";
- 		ti,nand-xfer-type = "polled";
-diff --git a/arch/arm/boot/dts/am335x-chilisom.dtsi b/arch/arm/boot/dts/am335x-chilisom.dtsi
-index 95461a2..e48c282 100644
---- a/arch/arm/boot/dts/am335x-chilisom.dtsi
-+++ b/arch/arm/boot/dts/am335x-chilisom.dtsi
-@@ -214,6 +214,7 @@
- 		interrupt-parent = <&gpmc>;
- 		interrupts = <0 IRQ_TYPE_NONE>, /* fifoevent */
- 			     <1 IRQ_TYPE_NONE>;	/* termcount */
-+		rb-gpios = <&gpmc 0 GPIO_ACTIVE_HIGH>; /* gpmc_wait0 */
- 		ti,nand-ecc-opt = "bch8";
- 		ti,elm-id = <&elm>;
- 		nand-bus-width = <8>;
-diff --git a/arch/arm/boot/dts/am335x-cm-t335.dts b/arch/arm/boot/dts/am335x-cm-t335.dts
-index e835644..817b1de 100644
---- a/arch/arm/boot/dts/am335x-cm-t335.dts
-+++ b/arch/arm/boot/dts/am335x-cm-t335.dts
-@@ -411,6 +411,7 @@ status = "okay";
- 		interrupt-parent = <&gpmc>;
- 		interrupts = <0 IRQ_TYPE_NONE>, /* fifoevent */
- 			     <1 IRQ_TYPE_NONE>;	/* termcount */
-+		rb-gpios = <&gpmc 0 GPIO_ACTIVE_HIGH>; /* gpmc_wait0 */
- 		ti,nand-ecc-opt = "bch8";
- 		ti,elm-id = <&elm>;
- 		nand-bus-width = <8>;
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 28b9162..516673b 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -524,6 +524,7 @@
- 		interrupt-parent = <&gpmc>;
- 		interrupts = <0 IRQ_TYPE_NONE>, /* fifoevent */
- 			     <1 IRQ_TYPE_NONE>;	/* termcount */
-+		rb-gpios = <&gpmc 0 GPIO_ACTIVE_HIGH>; /* gpmc_wait0 */
- 		ti,nand-ecc-opt = "bch8";
- 		ti,elm-id = <&elm>;
- 		nand-bus-width = <8>;
-diff --git a/arch/arm/boot/dts/am335x-igep0033.dtsi b/arch/arm/boot/dts/am335x-igep0033.dtsi
-index 6c3a9bf..df63484 100644
---- a/arch/arm/boot/dts/am335x-igep0033.dtsi
-+++ b/arch/arm/boot/dts/am335x-igep0033.dtsi
-@@ -135,6 +135,7 @@
- 		interrupt-parent = <&gpmc>;
- 		interrupts = <0 IRQ_TYPE_NONE>, /* fifoevent */
- 			     <1 IRQ_TYPE_NONE>;	/* termcount */
-+		rb-gpios = <&gpmc 0 GPIO_ACTIVE_HIGH>; /* gpmc_wait0 */
- 		nand-bus-width = <8>;
- 		ti,nand-ecc-opt = "bch8";
- 		gpmc,device-width = <1>;
-diff --git a/arch/arm/boot/dts/am335x-phycore-som.dtsi b/arch/arm/boot/dts/am335x-phycore-som.dtsi
-index d4b7f3b..86f7731 100644
---- a/arch/arm/boot/dts/am335x-phycore-som.dtsi
-+++ b/arch/arm/boot/dts/am335x-phycore-som.dtsi
-@@ -171,6 +171,7 @@
- 		interrupt-parent = <&gpmc>;
- 		interrupts = <0 IRQ_TYPE_NONE>, /* fifoevent */
- 			     <1 IRQ_TYPE_NONE>;	/* termcount */
-+		rb-gpios = <&gpmc 0 GPIO_ACTIVE_HIGH>; /* gpmc_wait0 */
- 		nand-bus-width = <8>;
- 		ti,nand-ecc-opt = "bch8";
- 		gpmc,device-nand = "true";
 -- 
-2.5.0
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards,
+-grygorii
