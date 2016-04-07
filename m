@@ -1,34 +1,59 @@
-From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Subject: Re: Boot failure when using NFS on OMAP based evms
-Date: Thu, 7 Apr 2016 11:52:40 -0400
-Message-ID: <CAF=yD-JHbCOLOMZNwEjGwVosd8=zJ5DbdLP2dV_zWk7irQBN2w@mail.gmail.com>
-References: <570597EA.3040902@ti.com> <CAF=yD-L=HZtD+LaKt1y4OcY0CQKOk_jmXZcQcyXjdfrPLpAhEQ@mail.gmail.com>
- <57067089.4080406@ti.com> <CA+FuTSeNJZPN70S_4UWt_68Wjo5Oks0swKRwVdwLLtYvgWDk+A@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] of/platform: Allow secondary compatible match in
+ of_dev_lookup
+Date: Thu, 7 Apr 2016 09:58:43 -0700
+Message-ID: <20160407165842.GJ16484@atomide.com>
+References: <1459546504-32668-1-git-send-email-tony@atomide.com>
+ <20160401214053.GQ9329@atomide.com>
+ <CAL_Jsq+PcTD=duHmWgHyx_ywYbT10vEtcm=79x5o5wYSkgG63g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CA+FuTSeNJZPN70S_4UWt_68Wjo5Oks0swKRwVdwLLtYvgWDk+A@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <CAL_Jsq+PcTD=duHmWgHyx_ywYbT10vEtcm=79x5o5wYSkgG63g@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Willem de Bruijn <willemb@google.com>
-Cc: "Franklin S Cooper Jr." <fcooper@ti.com>, Sam Kumar <samanthakumar@google.com>, Eric Dumazet <edumazet@google.com>, Tony Lindgren <tony@atomide.com>, mugunthanvnm@ti.com, Network Development <netdev@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, David Miller <davem@davemloft.net>, Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>, jmorris@namei.org, yoshfuji@linux-ipv6.org, Patrick McHardy <kaber@trash.net>, nsekhar@ti.com, linux-omap@vger.kernel.org
+To: Rob Herring <robh+dt@kernel.org>
+Cc: Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
->>>> Currently linux-next is failing to boot via NFS on my AM335x GP evm,
->>>> AM437x GP evm and Beagle X15. I bisected the problem down to the commit
->>>> "udp: remove headers from UDP packets before queueing".
->>>
->>> Thanks for the report, and apologies for breaking your configuration.
->>> I had missed that sunrpc can dequeue skbs from a udp receive
->>> queue and makes assumptions about the layout of those packets. rxrpc
->>> does the same. From what I can tell so far, those are the only two
->>> protocols that do this. I have verified that the following fixes rxrpc for me
->>>
->>
->> Thank you for your quick response. I verified with all of the above
->> suggested changes that NFS works again on my 3 evms.
->
-> Thanks a lot for testing, Franklin. I will send out the two patches.
+* Rob Herring <robh+dt@kernel.org> [160406 21:53]:
+> On Fri, Apr 1, 2016 at 4:40 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > * Tony Lindgren <tony@atomide.com> [160401 14:37]:
+> >> We currently try to match of_dev_auxdata based on compatible,
+> >> IO address, and device name. But in some cases we have multiple
+> >> instances of drivers that can use the same auxdata.
+> >>
+> >> Let's add an additional secondary lookup for generic compatible
+> >> match for auxdata if no device specific match is found. This does
+> >> not change the existing matching, and still allows adding device
+> >> specific auxdata.
+> >>
+> >> This simplifies things as specifying the IO address and device
+> >> name is prone errors as it requires maintaining an in kernel
+> >> database for each SoC.
+> >
+> > And here's what I can apply later on to get rid of some
+> > ifdeffery.
+> >
+> > I'm also planning to move some of the legacy omap hwmod
+> > functionality into proper device drivers, so can generic
+> > pdata for that too.
+> 
+> Why can't the platform data be moved into the driver given that it
+> appears to be only SoC family specific? Auxdata was somewhat intended
+> to be temporary. It appears there is already some per compatible match
+> data for these OMAP parts in the driver.
 
-Patches sent to netdev. I'll do another scan to verify that there are
-no additional protocols that dequeue skbs from udp receive queues
-and expect udp headers present.
+There are just too many dependencies to move legacy code into drivers
+directly. Especially when moving the omap hwmod code into drivers,
+we still to use hwmod callbacks at least for clockdomain configuration,
+wake-up dependencies and clock autogating configuration.
+
+When we have Linux generic frameworks available for all this we no longer
+need the auxdata. But meanwhile, removing the depenencies by using
+auxdata already allows moving big chunks of the hwmod code into regular
+device drivers.
+
+Regards,
+
+Tony
