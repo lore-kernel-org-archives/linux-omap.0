@@ -1,7 +1,7 @@
 From: Laxman Dewangan <ldewangan@nvidia.com>
-Subject: [PATCH V2 01/20] mfd: Add resource managed apis for mfd_add_devices
-Date: Fri, 8 Apr 2016 00:12:55 +0530
-Message-ID: <1460054594-32325-2-git-send-email-ldewangan@nvidia.com>
+Subject: [PATCH V2 03/20] mfd: act8945a: Use devm_mfd_add_devices() for mfd_device registration
+Date: Fri, 8 Apr 2016 00:12:57 +0530
+Message-ID: <1460054594-32325-4-git-send-email-ldewangan@nvidia.com>
 References: <1460054594-32325-1-git-send-email-ldewangan@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,90 +9,62 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1460054594-32325-1-git-send-email-ldewangan@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: lee.jones@linaro.org, corbet@lwn.net, andreas.werner@men.de, tony@atomide.com
-Cc: linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, patches@opensource.wolfsonmicro.com, Laxman Dewangan <ldewangan@nvidia.com>
+Cc: linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, patches@opensource.wolfsonmicro.com, Laxman Dewangan <ldewangan@nvidia.com>, Wenyou Yang <wenyou.yang@atmel.com>, Krzysztof Kozlowski <k.kozlowski@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add resource managed API devm_mfd_add_devices() for the mfd_add_devices().
-
-This helps in reducing code in error path as it is not required
-to call mfd_remove_devices() explicitly to remove all child-devices.
-In some cases, it also helps not to implement .remove() callback
-which get called during driver unbind.
+Use devm_mfd_add_devices() for MFD devices registration and get
+rid of .remove callback to remove MFD child-devices. This is done
+by managed device framework.
 
 Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
+CC: Wenyou Yang <wenyou.yang@atmel.com>
+CC: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 
 ---
 Changes from V1:
-- Reformat the commit message.
+- Convert mfd to MFD.
 - Run checkpatch with --strict option and fix warning.
-- Remove devm_ for mfd_remove_devices() as this is not used.
-- Consider V1 review comment on error handling.
 
- drivers/mfd/mfd-core.c   | 38 ++++++++++++++++++++++++++++++++++++++
- include/linux/mfd/core.h |  4 ++++
- 2 files changed, 42 insertions(+)
+ drivers/mfd/act8945a.c | 13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/mfd/mfd-core.c b/drivers/mfd/mfd-core.c
-index 409da01..4b4c1d4 100644
---- a/drivers/mfd/mfd-core.c
-+++ b/drivers/mfd/mfd-core.c
-@@ -334,6 +334,44 @@ void mfd_remove_devices(struct device *parent)
+diff --git a/drivers/mfd/act8945a.c b/drivers/mfd/act8945a.c
+index 525b546..10c6d2d 100644
+--- a/drivers/mfd/act8945a.c
++++ b/drivers/mfd/act8945a.c
+@@ -46,8 +46,9 @@ static int act8945a_i2c_probe(struct i2c_client *i2c,
+ 
+ 	i2c_set_clientdata(i2c, regmap);
+ 
+-	ret = mfd_add_devices(&i2c->dev, PLATFORM_DEVID_NONE, act8945a_devs,
+-			      ARRAY_SIZE(act8945a_devs), NULL, 0, NULL);
++	ret = devm_mfd_add_devices(&i2c->dev, PLATFORM_DEVID_NONE,
++				   act8945a_devs, ARRAY_SIZE(act8945a_devs),
++				   NULL, 0, NULL);
+ 	if (ret) {
+ 		dev_err(&i2c->dev, "Failed to add sub devices\n");
+ 		return ret;
+@@ -56,13 +57,6 @@ static int act8945a_i2c_probe(struct i2c_client *i2c,
+ 	return 0;
  }
- EXPORT_SYMBOL(mfd_remove_devices);
  
-+static void devm_mfd_dev_release(struct device *dev, void *res)
-+{
-+	mfd_remove_devices(dev);
-+}
-+
-+/**
-+ * devm_mfd_add_devices - Resource managed version of mfd_add_devices()
-+ *
-+ * Returns 0 on success or an appropriate negative error number on failure.
-+ * All child-devices of the MFD will automatically be removed when it gets
-+ * unbinded.
-+ */
-+int devm_mfd_add_devices(struct device *dev, int id,
-+			 const struct mfd_cell *cells, int n_devs,
-+			 struct resource *mem_base,
-+			 int irq_base, struct irq_domain *domain)
-+{
-+	struct device **ptr;
-+	int ret;
-+
-+	ptr = devres_alloc(devm_mfd_dev_release, sizeof(*ptr), GFP_KERNEL);
-+	if (!ptr)
-+		return -ENOMEM;
-+
-+	ret = mfd_add_devices(dev, id, cells, n_devs, mem_base,
-+			      irq_base, domain);
-+	if (ret < 0) {
-+		devres_free(ptr);
-+		return ret;
-+	}
-+
-+	*ptr = dev;
-+	devres_add(dev, ptr);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(devm_mfd_add_devices);
-+
- int mfd_clone_cell(const char *cell, const char **clones, size_t n_clones)
- {
- 	struct mfd_cell cell_entry;
-diff --git a/include/linux/mfd/core.h b/include/linux/mfd/core.h
-index bc6f7e0..4a0268a 100644
---- a/include/linux/mfd/core.h
-+++ b/include/linux/mfd/core.h
-@@ -131,4 +131,8 @@ static inline int mfd_add_hotplug_devices(struct device *parent,
+-static int act8945a_i2c_remove(struct i2c_client *i2c)
+-{
+-	mfd_remove_devices(&i2c->dev);
+-
+-	return 0;
+-}
+-
+ static const struct i2c_device_id act8945a_i2c_id[] = {
+ 	{ "act8945a", 0 },
+ 	{}
+@@ -81,7 +75,6 @@ static struct i2c_driver act8945a_i2c_driver = {
+ 		   .of_match_table = of_match_ptr(act8945a_of_match),
+ 	},
+ 	.probe = act8945a_i2c_probe,
+-	.remove = act8945a_i2c_remove,
+ 	.id_table = act8945a_i2c_id,
+ };
  
- extern void mfd_remove_devices(struct device *parent);
- 
-+extern int devm_mfd_add_devices(struct device *dev, int id,
-+				const struct mfd_cell *cells, int n_devs,
-+				struct resource *mem_base,
-+				int irq_base, struct irq_domain *irq_domain);
- #endif
 -- 
 2.1.4
