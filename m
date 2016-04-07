@@ -1,136 +1,99 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP3: Fix imprecise external abort for off mode on
- 36xx
-Date: Thu, 7 Apr 2016 16:16:04 -0700
-Message-ID: <20160407231604.GP16484@atomide.com>
-References: <1455140107-3328-1-git-send-email-tony@atomide.com>
- <5706C062.4040803@ti.com>
+Subject: Re: 4.4, 4.6: camera and unlock buttons produce tons of interrupts
+ (was Re: N900 sleep mode)
+Date: Thu, 7 Apr 2016 16:41:34 -0700
+Message-ID: <20160407234134.GQ16484@atomide.com>
+References: <20160330191208.GW9329@atomide.com>
+ <20160404213056.GA25912@amd>
+ <20160404220748.GA16484@atomide.com>
+ <20160405142250.GA6429@amd>
+ <20160405152916.GE16484@atomide.com>
+ <20160405205137.GA10196@amd>
+ <20160407174019.GM16484@atomide.com>
+ <20160407194828.GA13338@amd>
+ <20160407213229.GO16484@atomide.com>
+ <20160407230150.GA16552@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5706C062.4040803@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Tero Kristo <t-kristo@ti.com>, Richard Woodruff <r-woodruff2@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20160407230150.GA16552@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-* Dave Gerlach <d-gerlach@ti.com> [160407 13:18]:
+* Pavel Machek <pavel@ucw.cz> [160407 16:02]:
+> Hi!
 > 
-> I have a series to convert omap3 PM code to using generic SRAM driver but
-> when testing I see an external abort on BBXM off mode resume very similar to
-> this that seems to be timing related caused by using generic SRAM driver to
-> re-copy PM code rather than omap3_sram_restore_context.
+> > > gzipped config is attached.
+> > > 
+> > > Note that I'm still using NOLO. I enabled the sleep, then went to
+> > > runlevel 1. LEDs still stay on, 55mA power consumption. That was with
+> > > 1 in off_mode.
+> > 
+> > Nothing idling for me with your .config.. And it seems slower to boot
+> > compared to omap2plus_defconfig? Maybe because of the extra GPIO
+> > interrupts?
 > 
-> By tracing the resume path I believe the abort is caused by
-> omap3_intc_resume_idle in pm34xx.c, which writes to two registers in the
-> INTC. Removing this call makes the abort unreproducible in my experiments
-> and changing the writes to reads causes a bus lock, so I'm pretty confident
-> it's coming from this call attempting to write to an idled INTC.
+> Extra interrupts only happen when enable_off_mode is 1, so that should
+> not be an issue during boot.
+
+OK maybe it's just the extra driver probe time then.
+
+> > Looks like you have 117 additional entries in .config enabled compared
+> > to omap2plus_defconfig. Maybe go back to omap2plus_defconfig with minimal
+> > changes and verify it idles properly first?
+> > 
+> > I'm suspecting it's some driver(s) you have enabled causing the
+> > issue.
 > 
-> Advisory 1.106 in DM3730 Silicon Errata Document [1] describes an issue with
-> "MPU Leaves MSTANDBY State Before IDLEREQ of Interrupt Controller is
-> Released" which sounds like a very similar failure situation to what we are
-> seeing even though the timing of INTC access is a bit further from WFI exit
-> than it describes. Perhaps there are more conditions where it can occur.
-> Pushed my WIP branch for SRAM series that shows the same failure here [2].
+> I guess so. Do you (or anyone else) have minimum non-modular config
+> for N900 that boots with video? Could I get lsmod from your system?
+> (Yes, I still have nightmares from getting .config that works).
 
-Interesting, I think you may have something with the errata 1.106.. And
-looks like we also need still errata 1.62 handled also on 36xx in the
-same pdf. And need to disable intc autoidle early at least for HS omaps
-as save_secure_ram context supposedly also can do WFI.
+Well I've been just using omap2plus_defconfig with:
 
-Maybe something like the following would make sense? It seems to work
-here without external aborts with your test branch on dm3730, and boots
-fine on omap3430 hs (n900).
+# modprobe tsc2005
+# modprobe gpio_backlight
+# modprobe panel_sony_acx565akm
+# modprobe omapfb
 
-Or do you have some better ideas for a fix?
+# echo 255 > /sys/class/backlight/acx565akm/brightness
+
+And then the following to blank for idle:
+
+# echo 1 > /sys/devices/platform/omapfb/graphics/fb0/blank
+
+But in the world of eternal regressions, I'm not seeing anything
+on the framebuffer with v4.6-rc2 :( No idea what broke it or when
+as my n900 is in the rack.
+
+Anyways, below is also my lsmod output.
 
 Regards,
 
 Tony
 
-8< ------------------------
-From: Tony Lindgren <tony@atomide.com>
-Date: Thu, 7 Apr 2016 16:06:35 -0700
-Subject: [PATCH] ARM: OMAP3: Fix external abort on 36xx waking from off mode
- idle
 
-Depending on the timings affected by .config options, we may get
-external aborts with 36xx. These seem to be caused by the following:
-
-- omap3 errata 1.62 "MPU Cannot Exit from Standby" says we need to
-  disable disable intc autoidle before WFI
-
-- dm3730 errata 1.106 "MPU Leaves MSTANDBY State Before IDLEREQ of
-  Interrupt Controller is Released" says we need to wait before
-  accessing intc
-
-Looks like we're currently disabling intc autoidle after we save
-the intc context. And then we attempt to re-enable intc autoidle
-after we restore intc context.
-
-This means we're trying to restore intc autoidle twice, and it
-occasionally fails as the intc restore may take a while for
-things to get configured?
-
-So we should either completely leave out omap3_intc_resume_idle()
-assuming that the context restore really also enables the intc
-autoidle.
-
-Or we can disable intc autoidle before saving context, and then
-reenable intc autoidle only after the context restore. This pairs
-the calls, can we can call omap3_intc_resume_idle() later to
-allow some time for intc to settle down.
-
-Note that supposedly save_secure_ram() also can cause a WFI
-in the secure ram code, so we need to disable intc autoidle
-early. There's some information about that in the old thread
-"[PATCH 09/13] OMAP3: PM: Apply errata i540 before save
-secure ram".
-
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -303,6 +303,8 @@ void omap_sram_idle(void)
- 		omap2_gpio_prepare_for_idle(per_going_off);
- 	}
- 
-+	omap3_intc_prepare_idle();
-+
- 	/* CORE */
- 	if (core_next_state < PWRDM_POWER_ON) {
- 		if (core_next_state == PWRDM_POWER_OFF) {
-@@ -314,8 +316,6 @@ void omap_sram_idle(void)
- 	/* Configure PMIC signaling for I2C4 or sys_off_mode */
- 	omap3_vc_set_pmic_signaling(core_next_state);
- 
--	omap3_intc_prepare_idle();
--
- 	/*
- 	 * On EMU/HS devices ROM code restores a SRDC value
- 	 * from scratchpad which has automatic self refresh on timeout
-@@ -358,13 +358,14 @@ void omap_sram_idle(void)
- 			omap2_sms_restore_context();
- 		}
- 	}
--	omap3_intc_resume_idle();
- 
- 	pwrdm_post_transition(NULL);
- 
- 	/* PER */
- 	if (per_next_state < PWRDM_POWER_ON)
- 		omap2_gpio_resume_after_idle();
-+
-+	omap3_intc_resume_idle();
- }
- 
- static void omap3_pm_idle(void)
+Module                  Size  Used by
+panel_sharp_ls037v7dw01     4148  0
+ads7846                12959  0
+hwmon                   4213  1 ads7846
+gpio_keys               9053  0
+twl4030_keypad          3896  0
+matrix_keymap           2801  1 twl4030_keypad
+omapfb                 39255  1
+cfbfillrect             3614  1 omapfb
+cfbimgblt               2416  1 omapfb
+cfbcopyarea             3187  1 omapfb
+panel_sony_acx565akm     7895  1
+omapdss               269684  4 panel_sharp_ls037v7dw01,omapfb,panel_sony_acx565akm
+gpio_backlight          2804  0
+tsc2005                 1782  0
+tsc200x_core            7337  1 tsc2005
+ledtrig_default_on      1119  0
+leds_gpio               3530  0
+led_class               5418  1 leds_gpio
+rtc_twl                 6234  0
+twl4030_wdt             2711  0
