@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 06/13] ARM: dts: am4372: Enable gpio controller for GPMC
-Date: Thu, 7 Apr 2016 13:25:33 +0300
-Message-ID: <1460024740-19716-7-git-send-email-rogerq@ti.com>
+Subject: [PATCH 04/13] ARM: dts: dra7: Enable gpio controller for GPMC
+Date: Thu, 7 Apr 2016 13:25:31 +0300
+Message-ID: <1460024740-19716-5-git-send-email-rogerq@ti.com>
 References: <1460024740-19716-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -17,14 +17,14 @@ Mark it gpio controller capable.
 
 Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/am4372.dtsi | 2 ++
+ arch/arm/boot/dts/dra7.dtsi | 2 ++
  1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index 6e4f5af..f2cc207 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -896,6 +896,8 @@
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 13ac882..111594e 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1404,6 +1404,8 @@
  			#size-cells = <1>;
  			interrupt-controller;
  			#interrupt-cells = <2>;
