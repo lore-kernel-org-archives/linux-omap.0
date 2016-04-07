@@ -1,38 +1,47 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC PATCH] PM / wakeirq: fix wakeirq setting after wakup re-configuration from sysfs
-Date: Thu, 07 Apr 2016 23:25:50 +0200
-Message-ID: <1664339.h6rI5IB9Xd@vostro.rjw.lan>
-References: <1459943153-2553-1-git-send-email-grygorii.strashko@ti.com> <20160407175600.GN16484@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: 4.4, 4.6: camera and unlock buttons produce tons of interrupts
+ (was Re: N900 sleep mode)
+Date: Thu, 7 Apr 2016 14:32:30 -0700
+Message-ID: <20160407213229.GO16484@atomide.com>
+References: <20160209172403.GK19432@atomide.com>
+ <20160323123801.GC32031@amd>
+ <20160330191208.GW9329@atomide.com>
+ <20160404213056.GA25912@amd>
+ <20160404220748.GA16484@atomide.com>
+ <20160405142250.GA6429@amd>
+ <20160405152916.GE16484@atomide.com>
+ <20160405205137.GA10196@amd>
+ <20160407174019.GM16484@atomide.com>
+ <20160407194828.GA13338@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20160407175600.GN16484@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: linux-pm@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, nsekhar@ti.com, nm@ti.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160407194828.GA13338@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday, April 07, 2016 10:56:01 AM Tony Lindgren wrote:
-> * Grygorii Strashko <grygorii.strashko@ti.com> [160406 04:47]:
-> > Now wakeirq stops working for device if wakeup option for
-> > this device will be reconfigured through sysfs, like:
-> > 
-> > echo disabled > /sys/devices/platform/extcon_usb1/power/wakeup
-> > echo enabled > /sys/devices/platform/extcon_usb1/power/wakeup
-> > 
-> > Once above set of commands is executed the device's wakeup_source
-> > opject will be recreated and dev->power.wakeup->wakeirq field will
-> > contain NULL. As result, device_wakeup_arm_wake_irqs() will not arm
-> > wakeirq for the affected device.
-> > 
-> > Hece, lets try to fix it in the following way:
-> >   check for dev->wakeirq field when device_wakeup_attach() is called
-> >   and if !NULL re-attach wakeirq to the device
+* Pavel Machek <pavel@ucw.cz> [160407 12:49]:
 > 
-> Yeah I think that's all there is to it, thanks for fixing it:
+> gzipped config is attached.
 > 
-> Acked-by: Tony Lindgren <tony@atomide.com>
+> Note that I'm still using NOLO. I enabled the sleep, then went to
+> runlevel 1. LEDs still stay on, 55mA power consumption. That was with
+> 1 in off_mode.
 
-Applied, thanks!
+Nothing idling for me with your .config.. And it seems slower to boot
+compared to omap2plus_defconfig? Maybe because of the extra GPIO
+interrupts?
 
+Looks like you have 117 additional entries in .config enabled compared
+to omap2plus_defconfig. Maybe go back to omap2plus_defconfig with minimal
+changes and verify it idles properly first?
+
+I'm suspecting it's some driver(s) you have enabled causing the
+issue.
+
+Regards,
+
+Tony
