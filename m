@@ -1,60 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes against v4.6-rc2
-Date: Fri, 8 Apr 2016 12:18:54 -0700
-Message-ID: <20160408191854.GZ16484@atomide.com>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: USB gadgets with configfs hang reboot
+Date: Fri, 8 Apr 2016 23:13:57 +0300
+Message-ID: <57081105.2050206@gmail.com>
+References: <20160115224839.GA19432@atomide.com> <569A1E32.1020502@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <569A1E32.1020502-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Michal Nazarewicz <mina86-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 9735a22799b9214d17d3c231fe377fc852f042e9:
+Hi,
 
-  Linux 4.6-rc2 (2016-04-03 09:09:40 -0500)
+On 16.01.2016 12:40, Ivaylo Dimitrov wrote:
+> Hi,
+>
+> On 16.01.2016 00:48, Tony Lindgren wrote:
+>> Hi all,
+>>
+>> Looks like there's some issue with the USB gadgets and configfs.
+>>
+>> I'm seeing rmmod of the UDC driver cause a warning and then reboot
+>> hangs the system. This happens at least with v4.4, and I've reproduced
+>> it with dwc3 and musb so it seems to be generic.
+>>
+>
+> Having configfs is not needed, disabling usb gadgets (#
+> CONFIG_USB_MUSB_GADGET is not set) seems to solved at least poweroff
+> hang issue on N900. Also, g_nokia is not a module in the config I use,
+> so I guess the problem is not related whether gadgets are modular or
+> not. Unfortunately I was not able to test reboot, as rootfs became
+> corrupted after the first poweroff :( . So it looks like my theory that
+> onenand corruption on N900 is because poweroff/reboot hangs is wrong.
 
-are available in the git repository at:
+(copied from "Re: [PATCH] usb: f_mass_storage: test whether thread is 
+running before starting another" thread)
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.6/fixes-rc2
+Yet another problem with USB gadget, this time with f_acm - if there is 
+an open /dev/ttyGSn device, it is impossible to reboot/power down the 
+device.
 
-for you to fetch changes up to 571afb4c8a4bbe88541364e7f6827340562f2736:
+My investigation shown that there is a process(pnatd) that opens 
+/dev/ttyGSn devices, so gserial_free_port() hangs on 
+wait_event(port->close_wait, gs_closed(port)); if I do "cd 
+/sys/bus/platform/drivers/musb-hdrc && echo musb-hdrc.0.auto > unbind".
 
-  ARM: OMAP: Catch callers of revision information prior to it being populated (2016-04-08 09:02:39 -0700)
+Unfortunately I don't have serial debug port connector on my N900, so I 
+can't capture logs after the reboot command, however, I suspect it hangs 
+on the same place as with unbind.
 
-----------------------------------------------------------------
-Fixes for omaps against v4.6-rc2, mostly to fix suspend for beagle-x15
-that broke when we added runtime based SoC revision detection earlier.
+That looks weird, as one would expect that close() is called when the 
+kernel kills user processes on reboot/powerdown.
 
-It seems suspend worked earlier as things were only partially initialized,
-while now we initialize things properly for dra7. Let's also add a warning
-if SoC is not properly detected to prevent similar issues later on.
-
-Also included is a fix for dra7 sys_32k_ck clock source that is not
-enabled on boot making system fall back to using emulated clock.
-
-----------------------------------------------------------------
-Keerthy (1):
-      ARM: dts: dra7: Correct clock tree for sys_32k_ck
-
-Nishanth Menon (3):
-      ARM: OMAP: DRA7: wakeupgen: Skip SAR save for wakeupgen
-      ARM: OMAP: DRA7: Provide proper class to omap2_set_globals_tap
-      ARM: OMAP: Catch callers of revision information prior to it being populated
-
- arch/arm/boot/dts/dra7xx-clocks.dtsi | 18 +++++++++++++++++-
- arch/arm/mach-omap1/id.c             |  1 +
- arch/arm/mach-omap2/id.c             |  1 +
- arch/arm/mach-omap2/io.c             |  3 ++-
- arch/arm/mach-omap2/omap-wakeupgen.c |  7 +++++++
- 5 files changed, 28 insertions(+), 2 deletions(-)
+Ivo
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
