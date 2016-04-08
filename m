@@ -1,114 +1,361 @@
-From: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v6 01/12] usb: hcd: Initialize hcd->flags to 0
-Date: Fri, 8 Apr 2016 15:45:40 +0800
-Message-ID: <20160408074540.GB9070@shlinux2.ap.freescale.net>
-References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
- <1459865117-7032-2-git-send-email-rogerq@ti.com>
- <87zit72rqz.fsf@intel.com>
- <5704AD76.9080806@ti.com>
- <20160407094246.GA9963@shlinux2.ap.freescale.net>
- <57063915.7000700@ti.com>
- <20160408010130.GA9070@shlinux2.ap.freescale.net>
- <57075ACE.1010702@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <57075ACE.1010702-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Marcin Niestroj <m.niestroj@grinn-global.com>
+Subject: [PATCH v3] rtc: omap: Support ext_wakeup configuration
+Date: Fri,  8 Apr 2016 09:58:16 +0200
+Message-ID: <1460102296-23304-2-git-send-email-m.niestroj@grinn-global.com>
+References: <1460102296-23304-1-git-send-email-m.niestroj@grinn-global.com>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1460102296-23304-1-git-send-email-m.niestroj@grinn-global.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: rtc-linux@googlegroups.com, devicetree@vger.kernel.org
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, Marcin Niestroj <m.niestroj@grinn-global.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Apr 08, 2016 at 10:16:30AM +0300, Roger Quadros wrote:
-> On 08/04/16 04:01, Peter Chen wrote:
-> > On Thu, Apr 07, 2016 at 01:40:21PM +0300, Roger Quadros wrote:
-> >> On 07/04/16 12:42, Peter Chen wrote:
-> >>> On Wed, Apr 06, 2016 at 09:32:22AM +0300, Roger Quadros wrote:
-> >>>> On 06/04/16 09:09, Felipe Balbi wrote:
-> >>>>>
-> >>>>> Hi,
-> >>>>>
-> >>>>> Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> writes:
-> >>>>>> diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
-> >>>>>> index 2ca2cef..6b1930d 100644
-> >>>>>> --- a/drivers/usb/core/hcd.c
-> >>>>>> +++ b/drivers/usb/core/hcd.c
-> >>>>>> @@ -2706,6 +2706,7 @@ int usb_add_hcd(struct usb_hcd *hcd,
-> >>>>>>  	int retval;
-> >>>>>>  	struct usb_device *rhdev;
-> >>>>>>  
-> >>>>>> +	hcd->flags = 0;
-> >>>>>
-> >>>
-> >>> I am not sure if this usb_add(remove)_hcd pair is safe and clean enough
-> >>> for start/stop host role. From my point, we may need to do like
-> >>> .probe/.remove host platform driver interface. In that case, we can make
-> >>
-> >> probe and remove are meant to be called from bus layer.
-> >> I do not see a way how OTG framework can call probe/remove of HCD driver.
-> >> Some HCDs may be platform devices, some PCI, so different entities are calling
-> >> the HCD .probe hook.
-> >>
-> >>> sure the clocks and regulators are off, and hcd will be zero-initialized
-> >>
-> >> why can't we make that sure that is taken care of within the hcd_ops?
-> >> Why should some driver keep its regulators and clocks enabled when hcd is stopped?
-> >> It doesn't need to. If it is doing so now, it needs to be fixed.
-> >>
-> > 
-> > Well, you may misunderstand me. I mean your hcd_ops->start or ->stop
-> > is hard to be a general one which only calls usb_hcd_add or
-> > usb_hcd_remove. It needs to implement like .probe or .remove at platform
-> > driver, some example code like host_start and host_stop at
-> > drivers/usb/chipidea/host.c.
-> > 
-> The only extra thing the host_start/stop() of that driver is doing is
-> enabling/disabling the VBUS regulator.
-> In the OTG/dual role scope VBUS regulator handling has to be done via the
-> OTG driver using the otg ops otg_drv_vbus() and not at HCD level. Do you agree?
-> 
+Support configuration of ext_wakeup sources. This patch makes it
+possible to enable ext_wakeup (and set it's polarity), depending on
+board configuration. AM335x's dedicated PMIC (tps65217) uses ext_wakeup
+in SLEEP mode (RTC-only) to notify about power-button presses. Handling
+power-button presses enables to recover from RTC-only power states
+correctly.
 
-I agree with you that vbus handling should be handled by otg_drv_vbus
-for OTG case.
+Implementation uses gpiochip to utilize standard bindings. However,
+configuration is possible only using device-tree (no runtime changes).
 
-> I don't want to complicate the OTG to HCD interface by adding new hooks there.
-> If HCD driver wants to do something special for OTG case it can always do that
-> within the struct hc_driver interface. But ideally OTG specific handling must
-> be done in the OTG driver. All that the HCD driver should care about is making sure
-> all used resources are disabled once usb_remove_hcd() is called.
-> 
+Signed-off-by: Marcin Niestroj <m.niestroj@grinn-global.com>
+---
+ Documentation/devicetree/bindings/rtc/rtc-omap.txt |  18 +-
+ drivers/rtc/Kconfig                                |   2 +-
+ drivers/rtc/rtc-omap.c                             | 187 ++++++++++++++++++++-
+ 3 files changed, 204 insertions(+), 3 deletions(-)
 
-In this patch, we set hcd->flag as 0 to fix one problem, but if any
-problems are still existed due to non-zero hcd structure. We have
-tested a lot for insmod/rmmod procedure for host driver, it doesn't
-show many problems. In a word, once the host role is stopped do we
-need to remove all things belong to host, and re-initialized all things
-belong to host when the host role is re-started? From my point is 'yes'.
-
-host_stop()
-{
-	usb_remove_hcd(hcd);
-	usb_put_hcd(hcd);
-	platform_deinit(); /* clock, gpio, etc */
-}
-
-host_start()
-{
-	platform_init(); /* clock, gpio, etc */
-	usb_create_hcd();
-	... /* initialize hcd structure from platform information */
-	usb_add_hcd(hcd);
-}
-
-Maybe you have already done something, but there is no user now.
-Things will be more clear after your post your dwc3 changes :)
-
+diff --git a/Documentation/devicetree/bindings/rtc/rtc-omap.txt b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+index bf7d11a..4a7738e 100644
+--- a/Documentation/devicetree/bindings/rtc/rtc-omap.txt
++++ b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+@@ -18,8 +18,12 @@ Optional properties:
+   through pmic_power_en
+ - clocks: Any internal or external clocks feeding in to rtc
+ - clock-names: Corresponding names of the clocks
++- gpio-controller: Mark as gpio controller when using ext_wakeup
++- #gpio-cells: Should be set to 2
++- ngpios: Number of ext_wakeup sources supported by processor (board)
++- ext-wakeup-gpios: List of ext_wakeup sources to configure
+ 
+-Example:
++Examples:
+ 
+ rtc@1c23000 {
+ 	compatible = "ti,da830-rtc";
+@@ -31,3 +35,15 @@ rtc@1c23000 {
+ 	clocks = <&clk_32k_rtc>, <&clk_32768_ck>;
+ 	clock-names = "ext-clk", "int-clk";
+ };
++
++rtc: rtc@44e3e000 {
++	compatible = "ti,am3352-rtc", "ti,da830-rtc";
++	reg = <0x44e3e000 0x1000>;
++	interrupts = <75
++		      76>;
++	system-power-controller;
++	gpio-controller;
++	#gpio-cells = <2>;
++	ngpios = <1>;
++	ext-wakeup-gpios = <&rtc 0 GPIO_ACTIVE_LOW>;
++};
+diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
+index 3e84315..f013346 100644
+--- a/drivers/rtc/Kconfig
++++ b/drivers/rtc/Kconfig
+@@ -1208,7 +1208,7 @@ config RTC_DRV_IMXDI
+ 
+ config RTC_DRV_OMAP
+ 	tristate "TI OMAP Real Time Clock"
+-	depends on ARCH_OMAP || ARCH_DAVINCI || COMPILE_TEST
++	depends on (ARCH_OMAP || ARCH_DAVINCI || COMPILE_TEST) && GPIOLIB
+ 	help
+ 	  Say "yes" here to support the on chip real time clock
+ 	  present on TI OMAP1, AM33xx, DA8xx/OMAP-L13x, AM43xx and DRA7xx.
+diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+index ec2e9c5..e21e229 100644
+--- a/drivers/rtc/rtc-omap.c
++++ b/drivers/rtc/rtc-omap.c
+@@ -16,6 +16,7 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
++#include <linux/slab.h>
+ #include <linux/ioport.h>
+ #include <linux/delay.h>
+ #include <linux/rtc.h>
+@@ -23,6 +24,8 @@
+ #include <linux/platform_device.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
++#include <linux/of_gpio.h>
++#include <linux/gpio/driver.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/io.h>
+ #include <linux/clk.h>
+@@ -114,7 +117,11 @@
+ #define OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN	BIT(1)
+ 
+ /* OMAP_RTC_PMIC bit fields: */
+-#define OMAP_RTC_PMIC_POWER_EN_EN	BIT(16)
++#define OMAP_RTC_PMIC_POWER_EN_EN		BIT(16)
++#define OMAP_RTC_PMIC_EXT_WAKEUP_EN(x)		(BIT(x))
++#define OMAP_RTC_PMIC_EXT_WAKEUP_POL(x)		(BIT(x) << 4)
++#define OMAP_RTC_PMIC_EXT_WAKEUP_EN_MASK	(0x0F)
++#define OMAP_RTC_PMIC_EXT_WAKEUP_POL_MASK	(0x0F << 4)
+ 
+ /* OMAP_RTC_KICKER values */
+ #define	KICK0_VALUE			0x83e70b13
+@@ -131,6 +138,17 @@ struct omap_rtc_device_type {
+ 	void (*unlock)(struct omap_rtc *rtc);
+ };
+ 
++struct omap_rtc_gpio_desc {
++	struct gpio_desc *desc;
++	int hwnum;
++	bool active_low;
++};
++
++struct omap_rtc_gpio_descs {
++	unsigned int ndescs;
++	struct omap_rtc_gpio_desc desc[];
++};
++
+ struct omap_rtc {
+ 	struct rtc_device *rtc;
+ 	void __iomem *base;
+@@ -141,6 +159,8 @@ struct omap_rtc {
+ 	bool is_pmic_controller;
+ 	bool has_ext_clk;
+ 	const struct omap_rtc_device_type *type;
++	struct gpio_chip gpio_chip;
++	struct omap_rtc_gpio_descs *descs;
+ };
+ 
+ static inline u8 rtc_read(struct omap_rtc *rtc, unsigned int reg)
+@@ -183,6 +203,135 @@ static void default_rtc_lock(struct omap_rtc *rtc)
+ {
+ }
+ 
++static int omap_rtc_gpio_get_direction(struct gpio_chip *chip,
++				unsigned int offset)
++{
++	return 1; /* Always in */
++}
++
++static int omap_rtc_gpio_direction_input(struct gpio_chip *chip,
++					unsigned int offset)
++{
++	return 0;
++}
++
++static int omap_rtc_gpio_get(struct gpio_chip *chip, unsigned int offset)
++{
++	return 0;
++}
++
++static struct gpio_chip template_chip = {
++	.label			= "omap-rtc-gpio",
++	.owner			= THIS_MODULE,
++	.get_direction		= omap_rtc_gpio_get_direction,
++	.direction_input	= omap_rtc_gpio_direction_input,
++	.get			= omap_rtc_gpio_get,
++	.base			= -1,
++	.ngpio			= 4,
++	.can_sleep		= true,
++};
++
++static void omap_rtc_gpio_enable(struct omap_rtc *rtc)
++{
++	struct omap_rtc_gpio_descs *descs = rtc->descs;
++	struct omap_rtc_gpio_desc *desc;
++	u32 val;
++	unsigned int i;
++
++	if (!descs)
++		return;
++
++	val = rtc_readl(rtc, OMAP_RTC_PMIC_REG);
++	val &= ~(OMAP_RTC_PMIC_EXT_WAKEUP_EN_MASK
++		| OMAP_RTC_PMIC_EXT_WAKEUP_POL_MASK);
++
++	for (i = 0; i < descs->ndescs; i++) {
++		desc = &descs->desc[i];
++		val |= OMAP_RTC_PMIC_EXT_WAKEUP_EN(desc->hwnum);
++		if (desc->active_low)
++			val |= OMAP_RTC_PMIC_EXT_WAKEUP_POL(desc->hwnum);
++	}
++
++	rtc_writel(rtc, OMAP_RTC_PMIC_REG, val);
++}
++
++static void omap_rtc_gpio_disable(struct omap_rtc *rtc)
++{
++	u32 val;
++
++	val = rtc_readl(rtc, OMAP_RTC_PMIC_REG);
++	val &= ~(OMAP_RTC_PMIC_EXT_WAKEUP_EN_MASK
++		| OMAP_RTC_PMIC_EXT_WAKEUP_POL_MASK);
++	rtc_writel(rtc, OMAP_RTC_PMIC_REG, val);
++}
++
++static void omap_rtc_gpio_descs_put(struct omap_rtc_gpio_descs *descs)
++{
++	unsigned int i;
++
++	for (i = 0; i < descs->ndescs; i++)
++		gpiochip_free_own_desc(descs->desc[i].desc);
++
++	kfree(descs);
++}
++
++static struct omap_rtc_gpio_descs *omap_rtc_gpio_descs_get(struct device *dev)
++{
++	struct omap_rtc *rtc = dev_get_drvdata(dev);
++	struct device_node *np = dev->of_node;
++	struct gpio_chip *chip = &rtc->gpio_chip;
++	struct of_phandle_args of_args;
++	enum of_gpio_flags of_flags;
++	struct omap_rtc_gpio_descs *descs;
++	struct omap_rtc_gpio_desc *desc;
++	int index;
++	int count;
++	int ret;
++
++	count = of_gpio_named_count(np, "ext-wakeup-gpios");
++	if (count <= 0)
++		return ERR_PTR(-ENOENT);
++
++	descs = kzalloc(sizeof(*descs) + sizeof(descs->desc[0]) * count,
++			GFP_KERNEL);
++	if (!descs)
++		return ERR_PTR(-ENOMEM);
++
++	for (index = 0; index < count; index++) {
++		desc = &descs->desc[index];
++		ret = of_parse_phandle_with_args(np, "ext-wakeup-gpios",
++						"#gpio-cells", index,
++						&of_args);
++		if (ret) {
++			dev_err(dev, "Could not parse ext-wakeup-gpios %d\n",
++				index);
++			omap_rtc_gpio_descs_put(descs);
++			return ERR_PTR(ret);
++		}
++
++		ret = of_gpio_simple_xlate(chip, &of_args, &of_flags);
++		if (ret < 0) {
++			dev_err(dev, "Could not xlate %d\n", index);
++			omap_rtc_gpio_descs_put(descs);
++			return ERR_PTR(ret);
++		}
++		desc->hwnum = ret;
++
++		desc->desc = gpiochip_request_own_desc(chip, ret,
++						"omap-rtc-gpio");
++		if (IS_ERR(desc->desc)) {
++			dev_err(dev, "Could not request gpio %d\n", index);
++			omap_rtc_gpio_descs_put(descs);
++			return ERR_CAST(desc->desc);
++		}
++
++		desc->active_low = (of_flags & OF_GPIO_ACTIVE_LOW);
++		descs->ndescs++;
++	}
++
++	return descs;
++}
++
+ /*
+  * We rely on the rtc framework to handle locking (rtc->ops_lock),
+  * so the only other requirement is that register accesses which
+@@ -532,6 +681,8 @@ static int omap_rtc_probe(struct platform_device *pdev)
+ 	u8 reg, mask, new_ctrl;
+ 	const struct platform_device_id *id_entry;
+ 	const struct of_device_id *of_id;
++	struct omap_rtc_gpio_descs *descs = NULL;
++	u32 ngpios = 0;
+ 	int ret;
+ 
+ 	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
+@@ -544,6 +695,10 @@ static int omap_rtc_probe(struct platform_device *pdev)
+ 		rtc->is_pmic_controller = rtc->type->has_pmic_mode &&
+ 				of_property_read_bool(pdev->dev.of_node,
+ 						"system-power-controller");
++		ret = of_property_read_u32(pdev->dev.of_node, "ngpios",
++					&ngpios);
++		if (ret)
++			ngpios = 0;
+ 	} else {
+ 		id_entry = platform_get_device_id(pdev);
+ 		rtc->type = (void *)id_entry->driver_data;
+@@ -577,6 +732,26 @@ static int omap_rtc_probe(struct platform_device *pdev)
+ 	pm_runtime_enable(&pdev->dev);
+ 	pm_runtime_get_sync(&pdev->dev);
+ 
++	if (ngpios > 0) {
++		rtc->gpio_chip = template_chip;
++		rtc->gpio_chip.parent = &pdev->dev;
++		rtc->gpio_chip.ngpio = ngpios;
++		ret = devm_gpiochip_add_data(&pdev->dev, &rtc->gpio_chip,
++					rtc);
++		if (ret < 0) {
++			dev_err(&pdev->dev, "Could not register gpiochip, %d\n",
++				ret);
++			return ret;
++		}
++
++		descs = omap_rtc_gpio_descs_get(&pdev->dev);
++		if (IS_ERR(descs)) {
++			dev_err(&pdev->dev, "Could not request gpios\n");
++			return PTR_ERR(descs);
++		}
++		rtc->descs = descs;
++	}
++
+ 	rtc->type->unlock(rtc);
+ 
+ 	/*
+@@ -619,6 +794,8 @@ static int omap_rtc_probe(struct platform_device *pdev)
+ 	new_ctrl = reg & (OMAP_RTC_CTRL_SPLIT | OMAP_RTC_CTRL_AUTO_COMP);
+ 	new_ctrl |= OMAP_RTC_CTRL_STOP;
+ 
++	omap_rtc_gpio_enable(rtc);
++
+ 	/*
+ 	 * BOARD-SPECIFIC CUSTOMIZATION CAN GO HERE:
+ 	 *
+@@ -684,6 +861,8 @@ static int omap_rtc_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ err:
++	if (descs)
++		omap_rtc_gpio_descs_put(descs);
+ 	device_init_wakeup(&pdev->dev, false);
+ 	rtc->type->lock(rtc);
+ 	pm_runtime_put_sync(&pdev->dev);
+@@ -697,6 +876,9 @@ static int __exit omap_rtc_remove(struct platform_device *pdev)
+ 	struct omap_rtc *rtc = platform_get_drvdata(pdev);
+ 	u8 reg;
+ 
++	if (rtc->descs)
++		omap_rtc_gpio_descs_put(rtc->descs);
++
+ 	if (pm_power_off == omap_rtc_power_off &&
+ 			omap_rtc_power_off_rtc == rtc) {
+ 		pm_power_off = NULL;
+@@ -709,6 +891,9 @@ static int __exit omap_rtc_remove(struct platform_device *pdev)
+ 		clk_disable_unprepare(rtc->clk);
+ 
+ 	rtc->type->unlock(rtc);
++
++	omap_rtc_gpio_disable(rtc);
++
+ 	/* leave rtc running, but disable irqs */
+ 	rtc_write(rtc, OMAP_RTC_INTERRUPTS_REG, 0);
+ 
 -- 
+2.8.0
 
-Best Regards,
-Peter Chen
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
