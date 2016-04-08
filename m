@@ -1,57 +1,60 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v1] regulator: twl: Provide of_map_mode for twl4030
-Date: Fri, 8 Apr 2016 10:54:56 -0700
-Message-ID: <20160408175456.GY16484@atomide.com>
-References: <20160404222638.GM2350@sirena.org.uk>
- <1459835974-31664-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160407175745.GK32257@rob-hp-laptop>
- <20160408154907.GT16484@atomide.com>
- <20160408160828.GA10562@earth>
- <20160408161923.GW16484@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fixes against v4.6-rc2
+Date: Fri, 8 Apr 2016 12:18:54 -0700
+Message-ID: <20160408191854.GZ16484@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20160408161923.GW16484-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>
-Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [160408 09:21]:
-> * Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org> [160408 09:09]:
-> > Hi Tony,
-> > 
-> > On Fri, Apr 08, 2016 at 08:49:07AM -0700, Tony Lindgren wrote:
-> > > * Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [160407 10:58]:
-> > > > On Tue, Apr 05, 2016 at 08:59:34AM +0300, Ivaylo Dimitrov wrote:
-> > > > > of_map_mode is needed so to be possible to set initial regulators mode from
-> > > > > the board DTS. Otherwise, for DT boot, regulators are left in their default
-> > > > > state after reset/reboot. Document device specific modes as well.
-> > > > > 
-> > > > > Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> > > > > ---
-> > > > >  .../bindings/regulator/twl-regulator.txt           |  6 ++++++
-> > > > 
-> > > > Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > > 
-> > > I'd like to test these patches, but I don't know which combination
-> > > of patches needed? It seems we're waiting for an update on at least
-> > > one of the patches in this series?
-> > > 
-> > > Might be best to repost the whole series so people can test the
-> > > right patches.
-> > 
-> > As far as I can see Mark has already queued all patches in his
-> > for-next branch and they are already in today's linux-next, so
-> > you can just test linux-next.
-> 
-> OK thanks will do.
+The following changes since commit 9735a22799b9214d17d3c231fe377fc852f042e9:
 
-Yup PM seems to work just fine with these.
+  Linux 4.6-rc2 (2016-04-03 09:09:40 -0500)
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.6/fixes-rc2
+
+for you to fetch changes up to 571afb4c8a4bbe88541364e7f6827340562f2736:
+
+  ARM: OMAP: Catch callers of revision information prior to it being populated (2016-04-08 09:02:39 -0700)
+
+----------------------------------------------------------------
+Fixes for omaps against v4.6-rc2, mostly to fix suspend for beagle-x15
+that broke when we added runtime based SoC revision detection earlier.
+
+It seems suspend worked earlier as things were only partially initialized,
+while now we initialize things properly for dra7. Let's also add a warning
+if SoC is not properly detected to prevent similar issues later on.
+
+Also included is a fix for dra7 sys_32k_ck clock source that is not
+enabled on boot making system fall back to using emulated clock.
+
+----------------------------------------------------------------
+Keerthy (1):
+      ARM: dts: dra7: Correct clock tree for sys_32k_ck
+
+Nishanth Menon (3):
+      ARM: OMAP: DRA7: wakeupgen: Skip SAR save for wakeupgen
+      ARM: OMAP: DRA7: Provide proper class to omap2_set_globals_tap
+      ARM: OMAP: Catch callers of revision information prior to it being populated
+
+ arch/arm/boot/dts/dra7xx-clocks.dtsi | 18 +++++++++++++++++-
+ arch/arm/mach-omap1/id.c             |  1 +
+ arch/arm/mach-omap2/id.c             |  1 +
+ arch/arm/mach-omap2/io.c             |  3 ++-
+ arch/arm/mach-omap2/omap-wakeupgen.c |  7 +++++++
+ 5 files changed, 28 insertions(+), 2 deletions(-)
