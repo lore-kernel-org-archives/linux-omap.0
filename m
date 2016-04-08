@@ -1,43 +1,63 @@
-From: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-Subject: [PATCH v3] rtc: omap: Support ext_wakeup configuration
-Date: Fri,  8 Apr 2016 09:58:15 +0200
-Message-ID: <1460102296-23304-1-git-send-email-m.niestroj@grinn-global.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: 4.4, 4.6: camera and unlock buttons produce tons of interrupts
+ (was Re: N900 sleep mode)
+Date: Fri, 8 Apr 2016 11:19:35 +0200
+Message-ID: <20160408091934.GA15221@amd>
+References: <20160404213056.GA25912@amd>
+ <20160404220748.GA16484@atomide.com>
+ <20160405142250.GA6429@amd>
+ <20160405152916.GE16484@atomide.com>
+ <20160405205137.GA10196@amd>
+ <20160407174019.GM16484@atomide.com>
+ <20160407194828.GA13338@amd>
+ <20160407213229.GO16484@atomide.com>
+ <20160407230150.GA16552@amd>
+ <20160407234134.GQ16484@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160407234134.GQ16484@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi!
 
-This is third approach for adding support of ext_wakeup configuration
-in OMAP RTC.
-Developed and tested on ChiliBoard (am335x) using v4.6-rc2.
+> > > Looks like you have 117 additional entries in .config enabled compared
+> > > to omap2plus_defconfig. Maybe go back to omap2plus_defconfig with minimal
+> > > changes and verify it idles properly first?
+> > > 
+> > > I'm suspecting it's some driver(s) you have enabled causing the
+> > > issue.
+> > 
+> > I guess so. Do you (or anyone else) have minimum non-modular config
+> > for N900 that boots with video? Could I get lsmod from your system?
+> > (Yes, I still have nightmares from getting .config that works).
+> 
+> Well I've been just using omap2plus_defconfig with:
+> 
+> # modprobe tsc2005
+> # modprobe gpio_backlight
+> # modprobe panel_sony_acx565akm
+> # modprobe omapfb
+> 
+> # echo 255 > /sys/class/backlight/acx565akm/brightness
+> 
+> And then the following to blank for idle:
+> 
+> # echo 1 > /sys/devices/platform/omapfb/graphics/fb0/blank
+> 
+> But in the world of eternal regressions, I'm not seeing anything
+> on the framebuffer with v4.6-rc2 :( No idea what broke it or when
+> as my n900 is in the rack.
 
-Changes v2 -> v3:
- * Use gpiochip_request_own_desc() instead of gpiod_get_array() to make
-   it possible to rmmod and insmod module (as suggested by Grygorii
-   Strashko)
- * Go a little lower level, so the gpio number and active_low flag
-   (present in device-tree bindings) are not hidden by gpiolib
-   implementation
+Well, for the record, framebuffer works in my config with v4.6-rc2. So
+that is another config issue. Hopefully it is not the same issue ;-).
 
-Changes v1 -> v2:
- * Use gpiochip implementation to utilize existing device-tree bindings
-   (as suggested by Tony Lindgren)
-
-Marcin Niestroj (1):
-  rtc: omap: Support ext_wakeup configuration
-
- Documentation/devicetree/bindings/rtc/rtc-omap.txt |  18 +-
- drivers/rtc/Kconfig                                |   2 +-
- drivers/rtc/rtc-omap.c                             | 187 ++++++++++++++++++++-
- 3 files changed, 204 insertions(+), 3 deletions(-)
-
+Best regards,
+									Pavel
 -- 
-2.8.0
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
