@@ -1,37 +1,61 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH 12/15] irqchip/gic: Pass GIC pointer to save/restore
- functions
-Date: Sat, 9 Apr 2016 12:52:07 +0100
-Message-ID: <20160409125207.4f1d73dd@arm.com>
-References: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com>
-	<1458224359-32665-13-git-send-email-jonathanh@nvidia.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] rtc: omap: Support ext_wakeup configuration
+Date: Sat, 9 Apr 2016 09:42:20 -0700
+Message-ID: <20160409164220.GA16484@atomide.com>
+References: <1459785403-1725-1-git-send-email-m.niestroj@grinn-global.com>
+ <20160404224046.GA17042@atomide.com>
+ <57078A89.3080809@ti.com>
+ <20160408151408.GS16484@atomide.com>
+ <5707E764.7050204@ti.com>
+ <20160408175114.GX16484@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1458224359-32665-13-git-send-email-jonathanh@nvidia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jon Hunter <jonathanh@nvidia.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Kevin Hilman <khilman@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160408175114.GX16484-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Cc: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 17 Mar 2016 14:19:16 +0000
-Jon Hunter <jonathanh@nvidia.com> wrote:
-
-> Instead of passing the GIC index to the save/restore functions pass a
-> pointer to the GIC chip data. This will allow these save/restore
-> functions to be re-used by a platform driver where the GIC chip data
-> structure is allocated dynamically and so there is no applicable index
-> for identifying the GIC.
+* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [160408 10:52]:
+> * Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [160408 10:17]:
+> > 
+> > It can't :( It can't generate IRQ when state of ext_wakeup line has 
+> > been changed.
 > 
-> Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+> Hmm to me it certainly seems it should be capable of generating and RTC
+> interrupt as we have EXT_WAKEUP_STATUS register containing four bits,
+> one for each wakeup line.
 
-Eventually, I'd like to move to a situation where we don't statically
-allocate the chip data anymore, and kill CONFIG_ARM_GIC_MAX_NR
-altogether. This is obviously a step in the right direction.
+So I played a bit with RTC last night and the RTC_PMIC_REG options..
+And I came to the same conclusion as Grygorii pretty much. It looks
+like an interrupt, except it can't generate any interrupts. Sorry
+for not believing it earlier. It might still be a good idea to
+confirm this with some hardware folks at TI, maybe newer versions
+could add support for an interrupt.
 
-Acked-by: Marc Zyngier <marc.zyngier@arm.com>
+The EXT_WAKEUP configuration only seems to affect pmic_pwr_enable
+pin if configured right. Depending on the PMIC, we could use a
+shared interrupt for handling the ext wakeup line changes in the
+RTC driver.
 
-	M.
--- 
-Jazz is not dead. It just smells funny.
+The ext wakeup lines are not really GPIOs either as we can't
+monitor the wakeup line states, they are just trigger and then
+hold the state until cleared.
+
+If we ever need to provide the state of the wakeup lines to the
+other drivers, we could still use GPIO, input, or pinctrl. All
+these allow adding interrupt support for the cases that allow
+sharing the interrupt with PMIC.
+
+I guess we should just pick the framework that already has support
+for configuring the debounce time for a pin.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
