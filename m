@@ -1,161 +1,50 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v4.6-rc2
-Date: Sun, 10 Apr 2016 17:28:31 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1604101722210.11457@utopia.booyaka.com>
+From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 4/4] ARM: DRA7: clockdomain: Implement timer workaround
+ for errata i874
+Date: Sun, 10 Apr 2016 17:44:53 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1604101744350.11457@utopia.booyaka.com>
+References: <1459892652-47845-1-git-send-email-s-anna@ti.com> <1459892652-47845-5-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1459892652-47845-5-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Tue, 5 Apr 2016, Suman Anna wrote:
 
-Here are some basic OMAP test results for Linux v4.6-rc2.
-Logs and other details at:
+> From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+> 
+> Errata Title:
+> i874: TIMER5/6/7/8 interrupts not propagated
+> 
+> Description:
+> When TIMER5, TIMER6, TIMER7, or TIMER8 clocks are enabled
+> (CM_IPU_TIMER5/6/7/8_CLKCTRL[0:1]MODULEMODE=0x2:ENABLE) and the CD-IPU
+> is in HW_AUTO mode (CM_IPU_CLKSTCTRL[0:1]CLKTRCTRL=0x3:HW_AUTO) the
+> corresponding TIMER will continue counting, but enabled interrupts
+> will not be propagated to the destinations (MPU, DSP, etc) in the
+> SoC until the TIMER registers are accessed from the CPUs (MPU, DSP
+> etc.). This can result in missed timer interrupts.
+> 
+> Workaround:
+> In order for TIMER5/6/7/8 interrupts to be propagated and serviced
+> correctly the CD_IPU domain should be set to SW_WKUP mode
+> (CM_IPU_CLKSTCTRL[0:1]CLKTRCTRL=0x2:SW_WKUP).
+> 
+> The above workaround is achieved by switching the IPU clockdomain
+> flags from HWSUP_SWSUP to SWSUP only.
+> 
+> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 
-    http://www.pwsan.com/omap/testlogs/test_v4.6-rc2/20160410004807/
-
-
-Test summary
-------------
-
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
-
-Build: uImage+dtb:
-    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/omap4-var-stk-om44,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig_n800_only_a/omap2420-n800,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-sbc-t3517,
-		  omap2plus_defconfig/omap5-uevm,
-		  omap2plus_defconfig/omap5-sbc-t54
-
-Build: zImage:
-    Pass (18/18): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  omap2plus_defconfig_ti81xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
-
-Build warnings from toolchain: uImage:
-    (none)
-
-Build warnings from toolchain: uImage+dtb:
-    (none)
-
-Build warnings from toolchain: zImage:
-    FAIL (16/18): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  omap2plus_defconfig_ti81xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap4430_sdp_oldconfig, multi_v7_defconfig
-
-Boot to userspace:
-    FAIL ( 1/18): 2430sdp
-    skip ( 3/18): 5912osk, 3517evm, 5430es2sbct54
-    Pass (14/18): am335xbonelt, am437xsk, am335xbone, 4430es2panda,
-		  4460pandaes, 4460varsomom, 37xxevm, 3530es3beagle,
-		  3530es31beagle, 3730beaglexm, 3730es12beaglexm,
-		  cmt3517, 5430es2uevm, 2420n800
-
-Kernel warnings during boot to userspace:
-    FAIL ( 2/18): 4430es2panda, cmt3517
-
-PM: chip retention via suspend:
-    FAIL ( 6/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
-		  2430sdp, 5430es2uevm
-    Pass ( 5/11): 4460pandaes, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm
-
-PM: chip retention via dynamic idle:
-    FAIL ( 8/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
-		  3530es3beagle, 3530es31beagle, 2430sdp, 5430es2uevm
-    Pass ( 3/11): 4460pandaes, 3730beaglexm, 3730es12beaglexm
-
-PM: chip off (except CORE, due to errata) via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off (except CORE, due to errata) via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    FAIL ( 2/ 4): 37xxevm, 3530es3beagle
-    Pass ( 2/ 4): 3530es31beagle, 3730es12beaglexm
-
-PM: chip off via dynamic idle:
-    FAIL ( 3/ 4): 37xxevm, 3530es3beagle, 3530es31beagle
-    Pass ( 1/ 4): 3730es12beaglexm
-
-Kernel warnings during PM test:
-    FAIL ( 1/18): 4430es2panda
-
-Obsolete Kconfig symbols:
-    FAIL ( 3/21): omap1_defconfig, omap2plus_defconfig,
-		  multi_v7_defconfig
+Thanks, queued for v4.6-rc fixes.
 
 
-vmlinux object size
-(delta in bytes from test_v4.6-rc1 (f55532a0c0b8bb6148f4e07853b876ef73bc69ca)):
-   text     data      bss    total  kernel
-  +4223        0        0    +4223  omap1_defconfig
-  +4259       -8        0    +4251  omap1_defconfig_1510innovator_only
-  +4215        0        0    +4215  omap1_defconfig_5912osk_only
-   +344     -128        0     +216  multi_v7_defconfig
-   +200        0        0     +200  omap2plus_defconfig
-   +136        0        0     +136  omap2plus_defconfig_2430sdp_only
-   +136        0        0     +136  omap2plus_defconfig_am33xx_only
-   +136        0        0     +136  omap2plus_defconfig_am43xx_only
-   +200        0        0     +200  omap2plus_defconfig_cpupm
-   +136        0        0     +136  omap2plus_defconfig_dra7xx_only
-    +64        0        0      +64  omap2plus_defconfig_n800_multi_omap2xxx
-    +64        0        0      +64  omap2plus_defconfig_n800_only_a
-   +200        0        0     +200  omap2plus_defconfig_no_pm
-   +200        0        0     +200  omap2plus_defconfig_omap2_4_only
-   +136        0        0     +136  omap2plus_defconfig_omap3_4_only
-   +136        0        0     +136  omap2plus_defconfig_omap5_only
-   +136        0        0     +136  omap2plus_defconfig_ti81xx_only
-  +3964        0      -36    +3928  rmk_omap3430_ldp_allnoconfig
-   +208       +8        0     +216  rmk_omap3430_ldp_oldconfig
-  +4308        0     -380    +3928  rmk_omap4430_sdp_allnoconfig
-  +4039        0        0    +4039  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v4.6-rc1 (f55532a0c0b8bb6148f4e07853b876ef73bc69ca))
-  avail  rsrvd   high  freed  board          kconfig
-    -4k     4k      .      .  4430es2panda   omap2plus_defconfig
+- Paul
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
