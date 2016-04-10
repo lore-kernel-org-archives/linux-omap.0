@@ -1,195 +1,82 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v5 4/6] ARM: OMAP2+: DRA7: Add hwmod entries for PWMSS
-Date: Sun, 10 Apr 2016 18:57:18 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1604101845460.11457@utopia.booyaka.com>
-References: <1457400224-24797-1-git-send-email-fcooper@ti.com> <1457400224-24797-5-git-send-email-fcooper@ti.com> <alpine.DEB.2.02.1603080644580.4974@utopia.booyaka.com>
+From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v5 1/6] pwms: pwm-ti*: Get the clock from the PWMSS
+ (parent)
+Date: Sun, 10 Apr 2016 20:51:33 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1604102048380.11457@utopia.booyaka.com>
+References: <1457400224-24797-1-git-send-email-fcooper@ti.com> <1457400224-24797-2-git-send-email-fcooper@ti.com> <5703564C.7090700@ti.com> <5703A0C4.6010406@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.02.1603080644580.4974@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Franklin S Cooper Jr <fcooper@ti.com>, vigneshr@ti.com
-Cc: thierry.reding@gmail.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5703A0C4.6010406-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Franklin S Cooper Jr." <fcooper-l0cyMroinI0@public.gmane.org>
+Cc: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, "Kristo, Tero" <t-kristo-l0cyMroinI0@public.gmane.org>, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-pwm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, vigneshr-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Vignesh, Franklin,
+Hi guys
 
-On Tue, 8 Mar 2016, Paul Walmsley wrote:
+On Tue, 5 Apr 2016, Franklin S Cooper Jr. wrote:
 
-> On Mon, 7 Mar 2016, Franklin S Cooper Jr wrote:
+> On 04/05/2016 01:08 AM, Sekhar Nori wrote:
+> > On Tuesday 08 March 2016 06:53 AM, Franklin S Cooper Jr wrote:
+> > > The eCAP and ePWM doesn't have their own separate clocks. They simply
+> > > utilize the clock provided directly by the PWMSS. Therefore, they simply
+> > > need to grab a reference to their parent's clock.
+> > >
+> > > Signed-off-by: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
+> >
+> > So this assumes that eCAP and eHRPWM are always under the PWMSS
+> > umbrella. But on TI AM18x, thats not true. These IPs exist independently
+> > and receive functional clock from PLL sysclk outputs.
+> >
+> > > ---
+> > >  drivers/pwm/pwm-tiecap.c   | 2 +-
+> > >  drivers/pwm/pwm-tiehrpwm.c | 2 +-
+> > >  2 files changed, 2 insertions(+), 2 deletions(-)
+> > >
+> > > diff --git a/drivers/pwm/pwm-tiecap.c b/drivers/pwm/pwm-tiecap.c
+> > > index 616af76..9418159 100644
+> > > --- a/drivers/pwm/pwm-tiecap.c
+> > > +++ b/drivers/pwm/pwm-tiecap.c
+> > > @@ -212,7 +212,7 @@ static int ecap_pwm_probe(struct platform_device *pdev)
+> > >      if (!pc)
+> > >          return -ENOMEM;
+> > >  
+> > > -    clk = devm_clk_get(&pdev->dev, "fck");
+> > > +    clk = devm_clk_get(pdev->dev.parent, "fck");
+> >
+> > Even keeping the AM18x usecase aside, this seems to be pushing too much
+> > platform information into the driver. The "fck" is a valid connection id
+> > for the eCAP IP. Whether its valid for the parent device too is not
+> > something this driver should need to know.
+> >
+> > So it looks like what you need is for the clock hierarchy for the
+> > platform to have clocks for eHRPWM and eCAP derived out of PWMSS clock?
 > 
-> > From: Vignesh R <vigneshr@ti.com>
-> > 
-> > Add hwmod entries for the PWMSS on DRA7.
-> > 
-> > Set l4_root_clk_div as the main_clk of PWMSS. It is fixed-factored clock
-> > equal to L4PER2_L3_GICLK/2(l3_iclk_div/2).
-> > 
-> > Signed-off-by: Vignesh R <vigneshr@ti.com>
-> > [fcooper@ti.com: Do not add eQEP, ePWM and eCAP hwmod entries]
-> > Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+> So I believe this is a question on if we want to hide the minor
+> delta between AM18 vs AM335x, AM437x and AM57x/DRA7 in the driver
+> or within the DT.
 > 
-> Thanks, queued for v4.7.
+> Note that handling this by defining new clocks in DT will then
+> result in older DTBs not working. I don't think its worth breaking
+> backwards compatibility for AM335x and AM437x DTBs for fixing support
+> for AM18 based SOCs. Especially since those SOCs haven't worked with
+> this driver for several years. By handling things within the driver rather
+> than DT we can atleast insure that we can get everything working while
+> avoiding breaking backwards compatibility.
 
-I took a closer look at this while preparing to merge it and it adds a 
-bunch of sparse warnings:
+I agree with Sekhar that we shouldn't embed this parent clock quirk 
+into the driver.  
 
-> arch/arm/mach-omap2/omap_hwmod_7xx_data.c:3104:26: warning: symbol 'dra7xx_l4_per2__epwmss0' was not declared. Should it be static?
-> arch/arm/mach-omap2/omap_hwmod_7xx_data.c:3111:26: warning: symbol 'dra7xx_l4_per2__epwmss1' was not declared. Should it be static?
-> arch/arm/mach-omap2/omap_hwmod_7xx_data.c:3118:26: warning: symbol 'dra7xx_l4_per2__epwmss2' was not declared. Should it be static?
-> arch/arm/mach-omap2/omap_hwmod_7xx_data.c:395:25: warning: symbol 'dra7xx_epwmss_hwmod_class' was not declared. Should it be static?
-> arch/arm/mach-omap2/omap_hwmod_7xx_data.c:401:19: warning: symbol 'dra7xx_epwmss0_hwmod' was not declared. Should it be static?
-> arch/arm/mach-omap2/omap_hwmod_7xx_data.c:416:19: warning: symbol 'dra7xx_epwmss1_hwmod' was not declared. Should it be static?
-> arch/arm/mach-omap2/omap_hwmod_7xx_data.c:431:19: warning: symbol 'dra7xx_epwmss2_hwmod' was not declared. Should it be static?
-
-It's also missing the one-line comments above each OCP interface record, 
-e.g.
-
-/* l4_per1 -> gpio6 */
-
-and a few other hwmod comments.  I've added those too.
-
-By courtesy, I've fixed these issues for this patch.  But in the future, 
-please check your patches before sending to make sure that they don't add 
-new sparse warnings. If you need help running sparse, let us know (or 
-Nishanth can probably help you out; I think he's got some scripts that 
-test patch sets for common pre-submission problems).  And please try to 
-align with the comment style of the rest of the hwmod files.
+Can you just define a new compatibility string such that the driver can be 
+written with no embedded integration quirks?  Then add a workaround in the 
+driver that will use pdev->dev.parent for the old (deprecated) 
+compatibility string and log a warning to the kernel console that the DT 
+needs to be updated.
 
 
 - Paul
-
-From: Vignesh R <vigneshr@ti.com>
-Date: Sun, 10 Apr 2016 11:54:24 -0600
-Subject: [PATCH] ARM: OMAP2+: DRA7: Add hwmod entries for PWMSS
-
-Add hwmod entries for the PWMSS on DRA7.
-
-Set l4_root_clk_div as the main_clk of PWMSS. It is fixed-factored clock
-equal to L4PER2_L3_GICLK/2(l3_iclk_div/2).
-
-Signed-off-by: Vignesh R <vigneshr@ti.com>
-[fcooper@ti.com: Do not add eQEP, ePWM and eCAP hwmod entries]
-Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
-[paul@pwsan.com: fixed sparse warnings; added missing comments]
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 89 +++++++++++++++++++++++++++++++
- 1 file changed, 89 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index 7610f3ef28b7..2f15cf13e0d7 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -383,6 +383,68 @@ static struct omap_hwmod dra7xx_dcan2_hwmod = {
- 	},
- };
- 
-+/* pwmss  */
-+static struct omap_hwmod_class_sysconfig dra7xx_epwmss_sysc = {
-+	.rev_offs	= 0x0,
-+	.sysc_offs	= 0x4,
-+	.sysc_flags	= SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET,
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type2,
-+};
-+
-+/*
-+ * epwmss class
-+ */
-+static struct omap_hwmod_class dra7xx_epwmss_hwmod_class = {
-+	.name		= "epwmss",
-+	.sysc		= &dra7xx_epwmss_sysc,
-+};
-+
-+/* epwmss0 */
-+static struct omap_hwmod dra7xx_epwmss0_hwmod = {
-+	.name		= "epwmss0",
-+	.class		= &dra7xx_epwmss_hwmod_class,
-+	.clkdm_name	= "l4per2_clkdm",
-+	.main_clk	= "l4_root_clk_div",
-+	.prcm		= {
-+		.omap4	= {
-+			.modulemode	= MODULEMODE_SWCTRL,
-+			.clkctrl_offs	= DRA7XX_CM_L4PER2_PWMSS1_CLKCTRL_OFFSET,
-+			.context_offs	= DRA7XX_RM_L4PER2_PWMSS1_CONTEXT_OFFSET,
-+		},
-+	},
-+};
-+
-+/* epwmss1 */
-+static struct omap_hwmod dra7xx_epwmss1_hwmod = {
-+	.name		= "epwmss1",
-+	.class		= &dra7xx_epwmss_hwmod_class,
-+	.clkdm_name	= "l4per2_clkdm",
-+	.main_clk	= "l4_root_clk_div",
-+	.prcm		= {
-+		.omap4	= {
-+			.modulemode	= MODULEMODE_SWCTRL,
-+			.clkctrl_offs	= DRA7XX_CM_L4PER2_PWMSS2_CLKCTRL_OFFSET,
-+			.context_offs	= DRA7XX_RM_L4PER2_PWMSS2_CONTEXT_OFFSET,
-+		},
-+	},
-+};
-+
-+/* epwmss2 */
-+static struct omap_hwmod dra7xx_epwmss2_hwmod = {
-+	.name		= "epwmss2",
-+	.class		= &dra7xx_epwmss_hwmod_class,
-+	.clkdm_name	= "l4per2_clkdm",
-+	.main_clk	= "l4_root_clk_div",
-+	.prcm		= {
-+		.omap4	= {
-+			.modulemode	= MODULEMODE_SWCTRL,
-+			.clkctrl_offs	= DRA7XX_CM_L4PER2_PWMSS3_CLKCTRL_OFFSET,
-+			.context_offs	= DRA7XX_RM_L4PER2_PWMSS3_CONTEXT_OFFSET,
-+		},
-+	},
-+};
-+
- /*
-  * 'dma' class
-  *
-@@ -3693,6 +3755,30 @@ static struct omap_hwmod_ocp_if dra7xx_l4_wkup__wd_timer2 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* l4_per2 -> epwmss0 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per2__epwmss0 = {
-+	.master		= &dra7xx_l4_per2_hwmod,
-+	.slave		= &dra7xx_epwmss0_hwmod,
-+	.clk		= "l4_root_clk_div",
-+	.user		= OCP_USER_MPU,
-+};
-+
-+/* l4_per2 -> epwmss1 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per2__epwmss1 = {
-+	.master		= &dra7xx_l4_per2_hwmod,
-+	.slave		= &dra7xx_epwmss1_hwmod,
-+	.clk		= "l4_root_clk_div",
-+	.user		= OCP_USER_MPU,
-+};
-+
-+/* l4_per2 -> epwmss2 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per2__epwmss2 = {
-+	.master		= &dra7xx_l4_per2_hwmod,
-+	.slave		= &dra7xx_epwmss2_hwmod,
-+	.clk		= "l4_root_clk_div",
-+	.user		= OCP_USER_MPU,
-+};
-+
- static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
- 	&dra7xx_l3_main_1__dmm,
- 	&dra7xx_l3_main_2__l3_instr,
-@@ -3814,6 +3900,9 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
- 	&dra7xx_l3_main_1__vcp2,
- 	&dra7xx_l4_per2__vcp2,
- 	&dra7xx_l4_wkup__wd_timer2,
-+	&dra7xx_l4_per2__epwmss0,
-+	&dra7xx_l4_per2__epwmss1,
-+	&dra7xx_l4_per2__epwmss2,
- 	NULL,
- };
- 
--- 
-2.8.0.rc3
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
