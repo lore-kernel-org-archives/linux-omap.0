@@ -1,97 +1,68 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH] tty: serial: 8250_omap: do not defer termios changes
-Date: Mon, 11 Apr 2016 13:10:41 -0700
-Message-ID: <570C04C1.40201@hurleysoftware.com>
-References: <8737r7ght7.fsf@linutronix.de>
- <570339E8.6010808@hurleysoftware.com> <87y48kftip.fsf@linutronix.de>
- <570BE48F.60801@hurleysoftware.com> <570BED7B.9080803@linutronix.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 6/6] ARM: dts: DRA7: Add dt nodes for PWMSS
+Date: Mon, 11 Apr 2016 13:21:12 -0700
+Message-ID: <20160411202112.GE5995@atomide.com>
+References: <1457400224-24797-1-git-send-email-fcooper@ti.com>
+ <1457400224-24797-7-git-send-email-fcooper@ti.com>
+ <20160317151147.GA29802@rob-hp-laptop>
+ <56EAD315.1030307@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <570BED7B.9080803@linutronix.de>
+Content-Disposition: inline
+In-Reply-To: <56EAD315.1030307@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, John Ogness <john.ogness@linutronix.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org
+To: "Franklin S Cooper Jr." <fcooper@ti.com>
+Cc: Rob Herring <robh@kernel.org>, thierry.reding@gmail.com, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, linux@arm.linux.org.uk, paul@pwsan.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, vigneshr@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 04/11/2016 11:31 AM, Sebastian Andrzej Siewior wrote:
-> On 04/11/2016 07:53 PM, Peter Hurley wrote:
->> On 04/11/2016 01:18 AM, John Ogness wrote:
->>> On 2016-04-05, Peter Hurley <peter@hurleysoftware.com> wrote:
->>>> On 03/31/2016 01:41 AM, John Ogness wrote:
->>>>> It has been observed that the TX-DMA can stall
->>>>
->>>> Does this happen on any other OMAP part besides am335x?
->>>> I looked back over the LKML history of this and didn't see
->>>> any other design implicated in this problem.
->>>
->>> I just ran the tests again using 4.6-rc2. I am able to reproduce the
->>> dma-tx stall with am335x/edma and dra7/sdma.
->>
->> I thought we already established sdma was not to be used since
->> the hardware does not actually support pausing without data loss.
+* Franklin S Cooper Jr. <fcooper@ti.com> [160317 08:55]:
 > 
-> This workaround was not invented for sdma but for edma (with am335x).
-
-According to John above, dra7/sdma requires this workaround.
-
-
->> http://www.spinics.net/lists/linux-serial/msg18503.html
 > 
-> This could be fixed. See
->   http://www.spinics.net/lists/linux-serial/msg18517.html
->   http://www.spinics.net/lists/linux-serial/msg18531.html
+> On 03/17/2016 10:11 AM, Rob Herring wrote:
+> > On Mon, Mar 07, 2016 at 07:23:44PM -0600, Franklin S Cooper Jr wrote:
+> >> From: Vignesh R <vigneshr@ti.com>
+> >>
+> >> Add PWMSS device tree nodes for DRA7 SoC family and add documentation
+> >> for dt bindings.
+> >>
+> >> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> >> [fcooper@ti.com: Add eCAP and use updated bindings for PWMSS and ePWM]
+> >> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+> >> ---
+> >> Version 5 changes:
+> >> Add DT node for eCAP and update eCAP binding documentation
+> >>
+> >> Version 4 changes:
+> >> Updated link to the latest documentation
+> >>
+> >>  .../devicetree/bindings/pwm/pwm-tiecap.txt         |  9 +++
+> >>  .../devicetree/bindings/pwm/pwm-tiehrpwm.txt       |  9 +++
+> >>  .../devicetree/bindings/pwm/pwm-tipwmss.txt        | 15 +++-
+> >>  arch/arm/boot/dts/dra7.dtsi                        | 84 ++++++++++++++++++++++
+> >>  4 files changed, 116 insertions(+), 1 deletion(-)
+> >
+> >> +			ehrpwm1: pwm@48440200 {
+> >> +				compatible = "ti,dra7xx-ehrpwm",
+> >> +					     "ti,am33xx-ehrpwm";
+> >> +				#pwm-cells = <3>;
+> >> +				reg = <0x48440200 0x80>;
+> >> +				clocks = <&ehrpwm1_tbclk>;
+> >> +				clock-names = "tbclk";
+> >> +				status = "disabled";
+> >> +			};
+> >> +
+> >> +			ecap1: ecap@48440100 {
+> > This also is a PWM? Then it should also be pwm@...
 > 
-> rmk was fine with it from what I read. So what is missing is just
-> refurbish the patch (update the comment according to rmk replay) and
-> then we could re-enable DMA again.
+> The enhanced capture module primary purpose is to measure
+> time between external signals which is called capture mode.
+> It also has a PWM mode. So I wouldn't recommend generalizing
+> the entire node to pwm.
 
-That's hardly all that is required.
+So is this patch safe for me to apply now or do we need more
+changes?
 
-1. edma pause returns an error if the descriptor has already been retired
-   when a pause is attempted. This makes distinguishing between reporting an
-   error for unsupported feature indistinguishable from a transient dma
-   error that can simply be logged.
-2. The question of a spurious uart interrupt with every dma transaction
-   on am335x is still unanswered.
-3. Handling XON/XOFF transmit is mandatory; I don't see a way to do that
-   without pause/resume.
-4. Since virt-dma uses tasklets which since 3.8 are no longer serviced
-   in a timely manner, rx dma is unreliable, since it's often kicked out
-   to regular interrupts.
-5. omap dma maintenance is not keeping up with baseline dma.
+Regards,
 
-
-IOW, omap dma has turned into one big tangle of workarounds.
-
-Let's start with making a list of which TI designs need which workarounds.
-
-*am335x*
-- requires write to tx fifo to trigger tx dma (ie. OMAP_DMA_TX_KICK
-  workaround necessitating completely different tx dma completion handler)
-- requires rx dma already queued before UART data ready interrupt
-  (ie., necessitates completely different irq handler and rx dma completion
-  handler)
-- hangs changing some unknown register if tx dma in progress
-  (ie., this termios change workaround)
-- generates spurious uart interrupt for every rx dma transaction
-  (ie., necessitates acking every UART interrupt, even UART_IIR_NO_INT)
-  _Even with this workaround_, it still generates spurious interrupt warning
-  which shuts off interrupts for several ms while logging the error
-  message to the console, virtually guaranteeing lost data.
-
-
-Can any TI design use the baseline 8250 tx dma transaction flow without
-workarounds?  I know the am335x can't; any others?
-Can any TI design use the baseline 8250 rx dma transaction flow without
-workarounds?  Again, I know the am335x can't; any others?
-
-
-
->> So I'm wondering if we're carrying all this extra DMA complexity
->> and workarounds for just am335x?
->>
-> 
-> Sebastian
-> 
+Tony
