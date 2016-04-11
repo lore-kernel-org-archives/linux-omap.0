@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v6 01/10] usb: dwc3: core.h: add some register definitions
-Date: Mon, 11 Apr 2016 14:34:57 +0300
-Message-ID: <1460374506-9779-2-git-send-email-rogerq@ti.com>
+Subject: [PATCH v6 05/10] usb: dwc3: core: cleanup IRQ resources
+Date: Mon, 11 Apr 2016 14:35:01 +0300
+Message-ID: <1460374506-9779-6-git-send-email-rogerq@ti.com>
 References: <1460374506-9779-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,121 +12,168 @@ To: balbi@kernel.org
 Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add OTG and GHWPARAMS6 register definitions
+Implementations might use different IRQs for
+host, gadget and OTG so use named interrupt resources
+to allow Device tree to specify the 3 interrupts.
+
+Following are the interrupt names
+
+Peripheral Interrupt - peripheral
+HOST Interrupt - host
+OTG Interrupt - otg
+
+We still maintain backward compatibility for a single named
+interrupt for all 3 interrupts (e.g. for dwc3-pci) and
+single unnamed interrupt for all 3 interrupts (e.g. old DT).
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/usb/dwc3/core.h | 84 ++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 83 insertions(+), 1 deletion(-)
+ drivers/usb/dwc3/core.c   | 26 ++++++++++++++++----------
+ drivers/usb/dwc3/core.h   |  5 +++++
+ drivers/usb/dwc3/gadget.c | 19 ++++++++++++++++++-
+ drivers/usb/dwc3/host.c   | 19 +++++++++++++++++++
+ 4 files changed, 58 insertions(+), 11 deletions(-)
 
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index 17fd8144..1c754749 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -746,6 +746,8 @@ static int dwc3_core_init_mode(struct dwc3 *dwc)
+ {
+ 	struct device *dev = dwc->dev;
+ 	int ret;
++	struct resource *res;
++	struct platform_device *dwc3_pdev = to_platform_device(dwc->dev);
+ 
+ 	switch (dwc->dr_mode) {
+ 	case USB_DR_MODE_PERIPHERAL:
+@@ -765,6 +767,20 @@ static int dwc3_core_init_mode(struct dwc3 *dwc)
+ 		}
+ 		break;
+ 	case USB_DR_MODE_OTG:
++		dwc->otg_irq = platform_get_irq_byname(dwc3_pdev, "otg");
++		if (dwc->otg_irq <= 0) {
++			dwc->otg_irq = platform_get_irq_byname(dwc3_pdev,
++							       "dwc_usb3");
++			if (dwc->otg_irq <= 0) {
++				res = platform_get_resource(dwc3_pdev,
++							    IORESOURCE_IRQ, 0);
++				if (!res) {
++					dev_err(dwc->dev, "missing otg IRQ\n");
++					return -ENODEV;
++				}
++				dwc->otg_irq = res->start;
++			}
++		}
+ 		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_OTG);
+ 		ret = dwc3_host_init(dwc);
+ 		if (ret) {
+@@ -831,16 +847,6 @@ static int dwc3_probe(struct platform_device *pdev)
+ 	dwc->mem = mem;
+ 	dwc->dev = dev;
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+-	if (!res) {
+-		dev_err(dev, "missing IRQ\n");
+-		return -ENODEV;
+-	}
+-	dwc->xhci_resources[1].start = res->start;
+-	dwc->xhci_resources[1].end = res->end;
+-	dwc->xhci_resources[1].flags = res->flags;
+-	dwc->xhci_resources[1].name = res->name;
+-
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!res) {
+ 		dev_err(dev, "missing memory resource\n");
 diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
-index 6254b2f..81039f7 100644
+index 81039f7..79422dd 100644
 --- a/drivers/usb/dwc3/core.h
 +++ b/drivers/usb/dwc3/core.h
-@@ -176,6 +176,15 @@
- #define DWC3_GCTL_GBLHIBERNATIONEN	(1 << 1)
- #define DWC3_GCTL_DSBLCLKGTNG		(1 << 0)
+@@ -754,6 +754,8 @@ struct dwc3_scratchpad_array {
+  * @maximum_speed: maximum speed requested (mainly for testing purposes)
+  * @revision: revision register contents
+  * @dr_mode: requested mode of operation
++ * @gadget_irq: IRQ number for Peripheral IRQs
++ * @otg_irq: IRQ number for OTG IRQs
+  * @usb2_phy: pointer to USB2 PHY
+  * @usb3_phy: pointer to USB3 PHY
+  * @usb2_generic_phy: pointer to USB2 PHY
+@@ -857,6 +859,9 @@ struct dwc3 {
  
-+/* Global Status Register */
-+#define DWC3_GSTS_OTG_IP	BIT(10)
-+#define DWC3_GSTS_BC_IP		BIT(9)
-+#define DWC3_GSTS_ADP_IP	BIT(8)
-+#define DWC3_GSTS_HOST_IP	BIT(7)
-+#define DWC3_GSTS_DEVICE_IP	BIT(6)
-+#define DWC3_GSTS_CSR_TIMEOUT	BIT(5)
-+#define DWC3_GSTS_BUS_ERR_ADDR_VLD	BIT(4)
-+
- /* Global USB2 PHY Configuration Register */
- #define DWC3_GUSB2PHYCFG_PHYSOFTRST	(1 << 31)
- #define DWC3_GUSB2PHYCFG_SUSPHY		(1 << 6)
-@@ -239,7 +248,12 @@
- #define DWC3_MAX_HIBER_SCRATCHBUFS		15
+ 	enum usb_dr_mode	dr_mode;
  
- /* Global HWPARAMS6 Register */
--#define DWC3_GHWPARAMS6_EN_FPGA			(1 << 7)
-+#define DWC3_GHWPARAMS6_BCSUPPORT		BIT(14)
-+#define DWC3_GHWPARAMS6_OTG3SUPPORT		BIT(13)
-+#define DWC3_GHWPARAMS6_ADPSUPPORT		BIT(12)
-+#define DWC3_GHWPARAMS6_HNPSUPPORT		BIT(11)
-+#define DWC3_GHWPARAMS6_SRPSUPPORT		BIT(10)
-+#define DWC3_GHWPARAMS6_EN_FPGA			BIT(7)
++	int			gadget_irq;
++	int			otg_irq;
++
+ 	/* used for suspend/resume */
+ 	u32			dcfg;
+ 	u32			gctl;
+diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+index 3ac170f..90f514c 100644
+--- a/drivers/usb/dwc3/gadget.c
++++ b/drivers/usb/dwc3/gadget.c
+@@ -1617,7 +1617,7 @@ static int dwc3_gadget_start(struct usb_gadget *g,
+ 	int			irq;
+ 	u32			reg;
  
- /* Global Frame Length Adjustment Register */
- #define DWC3_GFLADJ_30MHZ_SDBND_SEL		(1 << 7)
-@@ -404,6 +418,74 @@
- #define DWC3_DEPCMD_TYPE_BULK		2
- #define DWC3_DEPCMD_TYPE_INTR		3
+-	irq = platform_get_irq(to_platform_device(dwc->dev), 0);
++	irq = dwc->gadget_irq;
+ 	ret = request_threaded_irq(irq, dwc3_interrupt, dwc3_thread_interrupt,
+ 			IRQF_SHARED, "dwc3", dwc);
+ 	if (ret) {
+@@ -2795,6 +2795,23 @@ static irqreturn_t dwc3_interrupt(int irq, void *_dwc)
+ int dwc3_gadget_init(struct dwc3 *dwc)
+ {
+ 	int					ret;
++	struct resource *res;
++	struct platform_device *dwc3_pdev = to_platform_device(dwc->dev);
++
++	dwc->gadget_irq = platform_get_irq_byname(dwc3_pdev, "peripheral");
++	if (dwc->gadget_irq <= 0) {
++		dwc->gadget_irq = platform_get_irq_byname(dwc3_pdev,
++							  "dwc_usb3");
++		if (dwc->gadget_irq <= 0) {
++			res = platform_get_resource(dwc3_pdev, IORESOURCE_IRQ,
++						    0);
++			if (!res) {
++				dev_err(dwc->dev, "missing peripheral IRQ\n");
++				return -ENODEV;
++			}
++			dwc->gadget_irq = res->start;
++		}
++	}
  
-+/* OTG Configuration Register */
-+#define DWC3_OCFG_DISPWRCUTTOFF		BIT(5)
-+#define DWC3_OCFG_HIBDISMASK		BIT(4)
-+#define DWC3_OCFG_SFTRSTMASK		BIT(3)
-+#define DWC3_OCFG_OTGVERSION		BIT(2)
-+#define DWC3_OCFG_HNPCAP		BIT(1)
-+#define DWC3_OCFG_SRPCAP		BIT(0)
+ 	dwc->ctrl_req = dma_alloc_coherent(dwc->dev, sizeof(*dwc->ctrl_req),
+ 			&dwc->ctrl_req_addr, GFP_KERNEL);
+diff --git a/drivers/usb/dwc3/host.c b/drivers/usb/dwc3/host.c
+index c679f63..f2b60a4 100644
+--- a/drivers/usb/dwc3/host.c
++++ b/drivers/usb/dwc3/host.c
+@@ -25,6 +25,25 @@ int dwc3_host_init(struct dwc3 *dwc)
+ 	struct platform_device	*xhci;
+ 	struct usb_xhci_pdata	pdata;
+ 	int			ret;
++	struct resource		*res;
++	struct platform_device	*dwc3_pdev = to_platform_device(dwc->dev);
 +
-+/* OTG CTL Register */
-+#define DWC3_OCTL_OTG3GOERR		BIT(7)
-+#define DWC3_OCTL_PERIMODE		BIT(6)
-+#define DWC3_OCTL_PRTPWRCTL		BIT(5)
-+#define DWC3_OCTL_HNPREQ		BIT(4)
-+#define DWC3_OCTL_SESREQ		BIT(3)
-+#define DWC3_OCTL_TERMSELIDPULSE	BIT(2)
-+#define DWC3_OCTL_DEVSETHNPEN		BIT(1)
-+#define DWC3_OCTL_HSTSETHNPEN		BIT(0)
++	res = platform_get_resource_byname(dwc3_pdev, IORESOURCE_IRQ, "host");
++	if (!res) {
++		res = platform_get_resource_byname(dwc3_pdev, IORESOURCE_IRQ,
++						   "dwc_usb3");
++		if (!res) {
++			res = platform_get_resource(dwc3_pdev, IORESOURCE_IRQ,
++						    0);
++			if (!res)
++				return -ENOMEM;
++		}
++	}
 +
-+/* OTG Event Register */
-+#define DWC3_OEVT_DEVICEMODE		BIT(31)
-+#define DWC3_OEVT_XHCIRUNSTPSET		BIT(27)
-+#define DWC3_OEVT_DEVRUNSTPSET		BIT(26)
-+#define DWC3_OEVT_HIBENTRY		BIT(25)
-+#define DWC3_OEVT_CONIDSTSCHNG		BIT(24)
-+#define DWC3_OEVT_HRRCONFNOTIF		BIT(23)
-+#define DWC3_OEVT_HRRINITNOTIF		BIT(22)
-+#define DWC3_OEVT_ADEVIDLE		BIT(21)
-+#define DWC3_OEVT_ADEVBHOSTEND		BIT(20)
-+#define DWC3_OEVT_ADEVHOST		BIT(19)
-+#define DWC3_OEVT_ADEVHNPCHNG		BIT(18)
-+#define DWC3_OEVT_ADEVSRPDET		BIT(17)
-+#define DWC3_OEVT_ADEVSESSENDDET	BIT(16)
-+#define DWC3_OEVT_BDEVBHOSTEND		BIT(11)
-+#define DWC3_OEVT_BDEVHNPCHNG		BIT(10)
-+#define DWC3_OEVT_BDEVSESSVLDDET	BIT(9)
-+#define DWC3_OEVT_BDEVVBUSCHNG		BIT(8)
-+#define DWC3_OEVT_BSESSVLD		BIT(3)
-+#define DWC3_OEVT_HSTNEGSTS		BIT(2)
-+#define DWC3_OEVT_SESREQSTS		BIT(1)
-+#define DWC3_OEVT_ERROR			BIT(0)
-+
-+/* OTG Event Enable Register */
-+#define DWC3_OEVTEN_XHCIRUNSTPSETEN	BIT(27)
-+#define DWC3_OEVTEN_DEVRUNSTPSETEN	BIT(26)
-+#define DWC3_OEVTEN_HIBENTRYEN		BIT(25)
-+#define DWC3_OEVTEN_CONIDSTSCHNGEN	BIT(24)
-+#define DWC3_OEVTEN_HRRCONFNOTIFEN	BIT(23)
-+#define DWC3_OEVTEN_HRRINITNOTIFEN	BIT(22)
-+#define DWC3_OEVTEN_ADEVIDLEEN		BIT(21)
-+#define DWC3_OEVTEN_ADEVBHOSTENDEN	BIT(20)
-+#define DWC3_OEVTEN_ADEVHOSTEN		BIT(19)
-+#define DWC3_OEVTEN_ADEVHNPCHNGEN	BIT(18)
-+#define DWC3_OEVTEN_ADEVSRPDETEN	BIT(17)
-+#define DWC3_OEVTEN_ADEVSESSENDDETEN	BIT(16)
-+#define DWC3_OEVTEN_BDEVHOSTENDEN	BIT(11)
-+#define DWC3_OEVTEN_BDEVHNPCHNGEN	BIT(10)
-+#define DWC3_OEVTEN_BDEVSESSVLDDETEN	BIT(9)
-+#define DWC3_OEVTEN_BDEVVBUSCHNGE	BIT(8)
-+
-+/* OTG Status Register */
-+#define DWC3_OSTS_DEVRUNSTP		BIT(13)
-+#define DWC3_OSTS_XHCIRUNSTP		BIT(12)
-+#define DWC3_OSTS_PERIPHERALSTATE	BIT(4)
-+#define DWC3_OSTS_XHCIPRTPOWER		BIT(3)
-+#define DWC3_OSTS_BSESVLD		BIT(2)
-+#define DWC3_OSTS_VBUSVLD		BIT(1)
-+#define DWC3_OSTS_CONIDSTS		BIT(0)
-+
- /* Structures */
++	dwc->xhci_resources[1].start = res->start;
++	dwc->xhci_resources[1].end = res->end;
++	dwc->xhci_resources[1].flags = res->flags;
++	dwc->xhci_resources[1].name = res->name;
  
- struct dwc3_trb;
+ 	xhci = platform_device_alloc("xhci-hcd", PLATFORM_DEVID_AUTO);
+ 	if (!xhci) {
 -- 
 2.5.0
