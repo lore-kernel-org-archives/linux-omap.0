@@ -1,48 +1,77 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v6 07/10] usb: dwc3: gadget: Fix suspend/resume during
- dual-role mode
-Date: Mon, 11 Apr 2016 16:53:17 +0300
-Message-ID: <570BAC4D.8010209@ti.com>
-References: <1460374506-9779-1-git-send-email-rogerq@ti.com>
- <1460374506-9779-8-git-send-email-rogerq@ti.com> <878u0knxkp.fsf@intel.com>
- <570BA2AA.8030308@ti.com> <87oa9gmg2k.fsf@intel.com>
+Subject: [PATCH 1/2] usb: dwc3: omap: fix up error path on probe()
+Date: Mon, 11 Apr 2016 17:12:33 +0300
+Message-ID: <1460383954-3240-2-git-send-email-rogerq@ti.com>
+References: <1460383954-3240-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87oa9gmg2k.fsf@intel.com>
+In-Reply-To: <1460383954-3240-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@kernel.org>
-Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: balbi@kernel.org
+Cc: nsekhar@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/04/16 16:26, Felipe Balbi wrote:
-> 
-> Hi,
-> 
-> Roger Quadros <rogerq@ti.com> writes:
->> On 11/04/16 15:23, Felipe Balbi wrote:
->>>
->>> Hi,
->>>
->>> Roger Quadros <rogerq@ti.com> writes:
->>>> Gadget controller might not be always active during suspend/
->>>> resume when we are operating in dual-role/otg mode.
->>>> Check if we're active and only if we are then perform
->>>> necessary actions during suspend/resume.
->>>
->>> I don't get this. If we're operating in OTG, we should have a gadget
->>> driver loaded, no ?
->>>
->> At boot gadget driver is not automatically loaded. We're still in OTG mode
->> but OTG state machine hasn't started.
->> System suspend/resume can still happen.
->>
->> User might also load/unload the gadget driver prior to system suspend.
-> 
-> good point, this should go in the -rc too.
-> 
-But there is no dual-role mode currently so it won't fix any bug yet :).
+From: Felipe Balbi <balbi@kernel.org>
 
-cheers,
--roger
+Even if pm_runtime_get*() fails, we *MUST* call
+pm_runtime_put_sync() before disabling PM.
+
+While at it, remove superfluous dwc3_omap_disable_irqs()
+in error path.
+
+Signed-off-by: Felipe Balbi <balbi@kernel.org>
+[nsekhar@ti.com: patch description updates]
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ drivers/usb/dwc3/dwc3-omap.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+index 22e9606..55da2c7 100644
+--- a/drivers/usb/dwc3/dwc3-omap.c
++++ b/drivers/usb/dwc3/dwc3-omap.c
+@@ -496,7 +496,7 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+ 	ret = pm_runtime_get_sync(dev);
+ 	if (ret < 0) {
+ 		dev_err(dev, "get_sync failed with err %d\n", ret);
+-		goto err0;
++		goto err1;
+ 	}
+ 
+ 	dwc3_omap_map_offset(omap);
+@@ -516,28 +516,24 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+ 
+ 	ret = dwc3_omap_extcon_register(omap);
+ 	if (ret < 0)
+-		goto err2;
++		goto err1;
+ 
+ 	ret = of_platform_populate(node, NULL, NULL, dev);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to create dwc3 core\n");
+-		goto err3;
++		goto err2;
+ 	}
+ 
+ 	dwc3_omap_enable_irqs(omap);
+ 
+ 	return 0;
+ 
+-err3:
++err2:
+ 	extcon_unregister_notifier(omap->edev, EXTCON_USB, &omap->vbus_nb);
+ 	extcon_unregister_notifier(omap->edev, EXTCON_USB_HOST, &omap->id_nb);
+-err2:
+-	dwc3_omap_disable_irqs(omap);
+ 
+ err1:
+ 	pm_runtime_put_sync(dev);
+-
+-err0:
+ 	pm_runtime_disable(dev);
+ 
+ 	return ret;
+-- 
+2.5.0
