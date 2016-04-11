@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 1/2] usb: dwc3: omap: fix up error path on probe()
-Date: Mon, 11 Apr 2016 17:12:33 +0300
-Message-ID: <1460383954-3240-2-git-send-email-rogerq@ti.com>
+Subject: [PATCH 2/2] usb: dwc3: core: fix PHY handling during suspend
+Date: Mon, 11 Apr 2016 17:12:34 +0300
+Message-ID: <1460383954-3240-3-git-send-email-rogerq@ti.com>
 References: <1460383954-3240-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,64 +14,68 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Felipe Balbi <balbi@kernel.org>
 
-Even if pm_runtime_get*() fails, we *MUST* call
-pm_runtime_put_sync() before disabling PM.
-
-While at it, remove superfluous dwc3_omap_disable_irqs()
-in error path.
+we need to power off the PHY during suspend and
+power it back on during resume.
 
 Signed-off-by: Felipe Balbi <balbi@kernel.org>
-[nsekhar@ti.com: patch description updates]
+[nsekhar@ti.com: fix call to usb_phy_set_suspend() in dwc3_suspend()]
 Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/usb/dwc3/dwc3-omap.c | 12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ drivers/usb/dwc3/core.c | 23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index 22e9606..55da2c7 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -496,7 +496,7 @@ static int dwc3_omap_probe(struct platform_device *pdev)
- 	ret = pm_runtime_get_sync(dev);
- 	if (ret < 0) {
- 		dev_err(dev, "get_sync failed with err %d\n", ret);
--		goto err0;
-+		goto err1;
- 	}
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index 17fd8144..44ff68e 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -1162,6 +1162,11 @@ static int dwc3_suspend(struct device *dev)
+ 	phy_exit(dwc->usb2_generic_phy);
+ 	phy_exit(dwc->usb3_generic_phy);
  
- 	dwc3_omap_map_offset(omap);
-@@ -516,28 +516,24 @@ static int dwc3_omap_probe(struct platform_device *pdev)
- 
- 	ret = dwc3_omap_extcon_register(omap);
- 	if (ret < 0)
--		goto err2;
-+		goto err1;
- 
- 	ret = of_platform_populate(node, NULL, NULL, dev);
- 	if (ret) {
- 		dev_err(&pdev->dev, "failed to create dwc3 core\n");
--		goto err3;
-+		goto err2;
- 	}
- 
- 	dwc3_omap_enable_irqs(omap);
++	usb_phy_set_suspend(dwc->usb2_phy, 1);
++	usb_phy_set_suspend(dwc->usb3_phy, 1);
++	WARN_ON(phy_power_off(dwc->usb2_generic_phy) < 0);
++	WARN_ON(phy_power_off(dwc->usb3_generic_phy) < 0);
++
+ 	pinctrl_pm_select_sleep_state(dev);
  
  	return 0;
+@@ -1175,11 +1180,21 @@ static int dwc3_resume(struct device *dev)
  
--err3:
-+err2:
- 	extcon_unregister_notifier(omap->edev, EXTCON_USB, &omap->vbus_nb);
- 	extcon_unregister_notifier(omap->edev, EXTCON_USB_HOST, &omap->id_nb);
--err2:
--	dwc3_omap_disable_irqs(omap);
+ 	pinctrl_pm_select_default_state(dev);
  
- err1:
- 	pm_runtime_put_sync(dev);
--
--err0:
- 	pm_runtime_disable(dev);
++	usb_phy_set_suspend(dwc->usb2_phy, 0);
++	usb_phy_set_suspend(dwc->usb3_phy, 0);
++	ret = phy_power_on(dwc->usb2_generic_phy);
++	if (ret < 0)
++		return ret;
++
++	ret = phy_power_on(dwc->usb3_generic_phy);
++	if (ret < 0)
++		goto err_usb2phy_power;
++
+ 	usb_phy_init(dwc->usb3_phy);
+ 	usb_phy_init(dwc->usb2_phy);
+ 	ret = phy_init(dwc->usb2_generic_phy);
+ 	if (ret < 0)
+-		return ret;
++		goto err_usb3phy_power;
  
+ 	ret = phy_init(dwc->usb3_generic_phy);
+ 	if (ret < 0)
+@@ -1212,6 +1227,12 @@ static int dwc3_resume(struct device *dev)
+ err_usb2phy_init:
+ 	phy_exit(dwc->usb2_generic_phy);
+ 
++err_usb3phy_power:
++	phy_power_off(dwc->usb3_generic_phy);
++
++err_usb2phy_power:
++	phy_power_off(dwc->usb2_generic_phy);
++
  	return ret;
+ }
+ 
 -- 
 2.5.0
