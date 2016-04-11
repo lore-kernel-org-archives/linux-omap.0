@@ -1,57 +1,56 @@
-From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 03/30] ARM: OMAP2+: omap_device: create clock alias purely from DT data
-Date: Mon, 11 Apr 2016 11:18:54 +0300
-Message-ID: <1460362761-4842-4-git-send-email-t-kristo@ti.com>
-References: <1460362761-4842-1-git-send-email-t-kristo@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH 00/30] ARM: OMAP2+: hwmod module clock type support
+Date: Mon, 11 Apr 2016 11:18:51 +0300
+Message-ID: <1460362761-4842-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1460362761-4842-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-clk-owner@vger.kernel.org>
+Sender: linux-clk-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, mturquette@baylibre.com, sboyd@codeaurora.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-clk@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This avoids the need to add most of the clock aliases under
-drivers/clk/ti/clk-xyz.c files.
+Hi,
 
-Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
----
- arch/arm/mach-omap2/omap_device.c |   17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+This series transfers the hwmod clkctrl handling from the hwmod core
+under clock driver, the data is also transferred from hwmod data to
+devicetree. Done for most of the OMAP2+ platforms, except OMAP2 / OMAP3,
+where work is still under progress.
 
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-index f7ff3b9..b32d7c8 100644
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -63,7 +63,22 @@ static void _add_clkdev(struct omap_device *od, const char *clk_alias,
- 		return;
- 	}
- 
--	rc = clk_add_alias(clk_alias, dev_name(&od->pdev->dev), clk_name, NULL);
-+	r = clk_get_sys(NULL, clk_name);
-+
-+	if (IS_ERR(r) && of_have_populated_dt()) {
-+		struct of_phandle_args clkspec;
-+
-+		clkspec.np = of_find_node_by_name(NULL, clk_name);
-+
-+		r = of_clk_get_from_provider(&clkspec);
-+
-+		rc = clk_register_clkdev(r, clk_alias,
-+					 dev_name(&od->pdev->dev));
-+	} else {
-+		rc = clk_add_alias(clk_alias, dev_name(&od->pdev->dev),
-+				   clk_name, NULL);
-+	}
-+
- 	if (rc) {
- 		if (rc == -ENODEV || rc == -ENOMEM)
- 			dev_err(&od->pdev->dev,
--- 
-1.7.9.5
+Major part of this set is also to add support function ti_clk_get, which
+when used, allows us to get rid of number of clock aliases under TI
+clock driver.
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The ordering on this set is kind of tricky to avoid any boot issues,
+and it still currently causes a boot breakage between the DTS data
+introduction and removal of hwmod data; this generates duplicate
+entries for clocks which is prone to cause issues (both DT and hwmod
+have the same entries in place under the hwmod data is removed.) I
+didn't quite figure out a good way to avoid this, and could use some
+guidance here. Shall we squash the DT + hwmod data patches together?
+This avoids the boot breakage but creates pretty large patches. Also,
+AMx3xx data needs to be grouped together as part of their data is
+re-used commonly by both SoCs.
+
+Another issue with the set is with patch #18 which introduces the
+hwmod clock driver itself; the startup / shutdown latencies for
+clocks are tricky to handle within a spinlocked region (and really
+early boot also where ktime_get doesn't work yet) so I ended up
+writing a timeout function which uses alternate implementations
+for early vs. late boot. It doesn't look that neat but it works.
+
+Set built on top of the DT warning fix set:
+
+http://comments.gmane.org/gmane.linux.drivers.devicetree/162659
+
+Boot tested on following boards:
+am33xx-bone, am33xx-boneblack, am437x-gp-evm, am437x-sk-evm, am57xx-beagle,
+omap5-uevm, dra7-evm, dra72x-evm, omap4-panda-es, omap4430-sdp. Also,
+omap4 suspend-resume seems to be fine still after this set.
+
+Test branch pushed also:
+Tree: https://github.com/t-kristo/linux-pm.git
+Branch: 4.6-rc2-hwmod-clks-v1
+
+-Tero
+
