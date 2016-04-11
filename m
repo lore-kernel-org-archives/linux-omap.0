@@ -1,19 +1,19 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH V2 06/20] mfd: bcm590xx: Use devm_mfd_add_devices() for
+Subject: Re: [PATCH V2 04/20] mfd: as3711: Use devm_mfd_add_devices() for
  mfd_device registration
-Date: Mon, 11 Apr 2016 10:15:46 +0100
-Message-ID: <20160411091546.GT4592@x1>
+Date: Mon, 11 Apr 2016 10:15:30 +0100
+Message-ID: <20160411091530.GR4592@x1>
 References: <1460054594-32325-1-git-send-email-ldewangan@nvidia.com>
- <1460054594-32325-7-git-send-email-ldewangan@nvidia.com>
+ <1460054594-32325-5-git-send-email-ldewangan@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1460054594-32325-7-git-send-email-ldewangan@nvidia.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <1460054594-32325-5-git-send-email-ldewangan@nvidia.com>
+Sender: linux-doc-owner@vger.kernel.org
 To: Laxman Dewangan <ldewangan@nvidia.com>
-Cc: corbet@lwn.net, andreas.werner@men.de, tony@atomide.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, patches@opensource.wolfsonmicro.com, Matt Porter <mporter@linaro.org>
+Cc: corbet@lwn.net, andreas.werner@men.de, tony@atomide.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, patches@opensource.wolfsonmicro.com, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 List-Id: linux-omap@vger.kernel.org
 
 Applied, thanks.
@@ -25,54 +25,54 @@ On Fri, 08 Apr 2016, Laxman Dewangan wrote:
 > by managed device framework.
 >=20
 > Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
-> CC: Matt Porter <mporter@linaro.org>
+> CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 >=20
 > ---
 > Changes from V1:
 > - Convert mfd to MFD.
 > - Run checkpatch with --strict option and fix warning.
 >=20
->  drivers/mfd/bcm590xx.c | 11 ++---------
->  1 file changed, 2 insertions(+), 9 deletions(-)
+>  drivers/mfd/as3711.c | 13 ++-----------
+>  1 file changed, 2 insertions(+), 11 deletions(-)
 >=20
-> diff --git a/drivers/mfd/bcm590xx.c b/drivers/mfd/bcm590xx.c
-> index 320aaef..0d76d69 100644
-> --- a/drivers/mfd/bcm590xx.c
-> +++ b/drivers/mfd/bcm590xx.c
-> @@ -82,8 +82,8 @@ static int bcm590xx_i2c_probe(struct i2c_client *i2=
-c_pri,
->  		goto err;
+> diff --git a/drivers/mfd/as3711.c b/drivers/mfd/as3711.c
+> index 09e1483..67b1241 100644
+> --- a/drivers/mfd/as3711.c
+> +++ b/drivers/mfd/as3711.c
+> @@ -189,22 +189,14 @@ static int as3711_i2c_probe(struct i2c_client *=
+client,
+>  		as3711_subdevs[AS3711_BACKLIGHT].pdata_size =3D 0;
 >  	}
 > =20
-> -	ret =3D mfd_add_devices(&i2c_pri->dev, -1, bcm590xx_devs,
-> -			      ARRAY_SIZE(bcm590xx_devs), NULL, 0, NULL);
-> +	ret =3D devm_mfd_add_devices(&i2c_pri->dev, -1, bcm590xx_devs,
-> +				   ARRAY_SIZE(bcm590xx_devs), NULL, 0, NULL);
->  	if (ret < 0) {
->  		dev_err(&i2c_pri->dev, "failed to add sub-devices: %d\n", ret);
->  		goto err;
-> @@ -96,12 +96,6 @@ err:
+> -	ret =3D mfd_add_devices(as3711->dev, -1, as3711_subdevs,
+> -			      ARRAY_SIZE(as3711_subdevs), NULL, 0, NULL);
+> +	ret =3D devm_mfd_add_devices(as3711->dev, -1, as3711_subdevs,
+> +				   ARRAY_SIZE(as3711_subdevs), NULL, 0, NULL);
+>  	if (ret < 0)
+>  		dev_err(&client->dev, "add mfd devices failed: %d\n", ret);
+> =20
 >  	return ret;
 >  }
 > =20
-> -static int bcm590xx_i2c_remove(struct i2c_client *i2c)
+> -static int as3711_i2c_remove(struct i2c_client *client)
 > -{
-> -	mfd_remove_devices(&i2c->dev);
+> -	struct as3711 *as3711 =3D i2c_get_clientdata(client);
+> -
+> -	mfd_remove_devices(as3711->dev);
 > -	return 0;
 > -}
 > -
->  static const struct of_device_id bcm590xx_of_match[] =3D {
->  	{ .compatible =3D "brcm,bcm59056" },
->  	{ }
-> @@ -120,7 +114,6 @@ static struct i2c_driver bcm590xx_i2c_driver =3D =
-{
->  		   .of_match_table =3D of_match_ptr(bcm590xx_of_match),
+>  static const struct i2c_device_id as3711_i2c_id[] =3D {
+>  	{.name =3D "as3711", .driver_data =3D 0},
+>  	{}
+> @@ -218,7 +210,6 @@ static struct i2c_driver as3711_i2c_driver =3D {
+>  		   .of_match_table =3D of_match_ptr(as3711_of_match),
 >  	},
->  	.probe =3D bcm590xx_i2c_probe,
-> -	.remove =3D bcm590xx_i2c_remove,
->  	.id_table =3D bcm590xx_i2c_id,
+>  	.probe =3D as3711_i2c_probe,
+> -	.remove =3D as3711_i2c_remove,
+>  	.id_table =3D as3711_i2c_id,
 >  };
->  module_i2c_driver(bcm590xx_i2c_driver);
+> =20
 
 --=20
 Lee Jones
