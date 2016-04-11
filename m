@@ -1,43 +1,43 @@
-From: Akinobu Mita <akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] spi: omap2-mcspi: fix dma transfer for vmalloced buffer
-Date: Tue, 12 Apr 2016 01:31:22 +0900
-Message-ID: <CAC5umyiPBORDqEZxa-kbwJ97xWetuEVETSwh5=e92OWfGkEAZA@mail.gmail.com>
-References: <1458576021-4373-1-git-send-email-akinobu.mita@gmail.com>
-	<CAC5umyj0zbwqt0Tmbubh0=URYvrvtWLO0q1ym1F2c7a84vRHjg@mail.gmail.com>
-	<20160407175748.GY1924@sirena.org.uk>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 00/30] ARM: OMAP2+: hwmod module clock type support
+Date: Mon, 11 Apr 2016 10:40:59 -0700
+Message-ID: <20160411173518.GA5995@atomide.com>
+References: <1460362761-4842-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160407175748.GY1924-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1460362761-4842-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-2016-04-08 2:57 GMT+09:00 Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>:
-> On Thu, Apr 07, 2016 at 09:17:29PM +0900, Akinobu Mita wrote:
->> 2016-03-22 1:00 GMT+09:00 Akinobu Mita <akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
->
->> >                 if ((l & OMAP2_MCSPI_CHCONF_TURBO) && mcspi->fifo_depth == 0)
->> >                         dma_count -= es;
->
->> The actual transfer length can be smaller than xfer->len by above line.
->> And the last word is filled after dma transfer completion.
->
->> So this patch is broken.  Could you revert remove this from your
->> development tree?
->> I don't find a way how to fix it without copy and pasting a lot of
->> line from spi core.
->
-> Can you please send a patch doing the revert and explaining why we can't
-> do this in the changelog?  That might help someone else looking at this
-> to figure it out in future, or at least stop them trying the same thing
-> and running into problems.
+Hi,
 
-I'm going to come up with a fix that detects xfer->len != dma_count
-and remap rx_sg in omap2_mcspi_rx_dma().  But I plan to spend
-enough time tesing it, so feel free to apply revert that I sent a while ago.
+Nice to see this moving along :)
+
+* Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org> [160411 01:20]:
+>
+> The ordering on this set is kind of tricky to avoid any boot issues,
+> and it still currently causes a boot breakage between the DTS data
+> introduction and removal of hwmod data; this generates duplicate
+> entries for clocks which is prone to cause issues (both DT and hwmod
+> have the same entries in place under the hwmod data is removed.) I
+> didn't quite figure out a good way to avoid this, and could use some
+> guidance here. Shall we squash the DT + hwmod data patches together?
+> This avoids the boot breakage but creates pretty large patches. Also,
+> AMx3xx data needs to be grouped together as part of their data is
+> re-used commonly by both SoCs.
+
+How about use clocks from dts if clocks property is defined? Otherwise
+fall back to the old static data. Then drop the static data later on
+with follow up patches.
+
+Regards,
+
+Tony
 --
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
