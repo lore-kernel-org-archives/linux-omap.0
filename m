@@ -1,59 +1,86 @@
-From: Felipe Balbi <balbi@kernel.org>
-Subject: Re: [PATCH v6 08/10] usb: dwc3: core: fix PHY handling during suspend
-Date: Mon, 11 Apr 2016 15:24:48 +0300
-Message-ID: <8760vonxin.fsf@intel.com>
-References: <1460374506-9779-1-git-send-email-rogerq@ti.com> <1460374506-9779-9-git-send-email-rogerq@ti.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 4/5] mfd: tps65217: Add power button as subdevice
+Date: Mon, 11 Apr 2016 13:35:51 +0100
+Message-ID: <20160411123551.GW8094@x1>
+References: <1459789865-3704-1-git-send-email-m.niestroj@grinn-global.com>
+ <1459789865-3704-6-git-send-email-m.niestroj@grinn-global.com>
+ <20160411094452.GC8094@x1>
+ <570B7BFE.6000501@ti.com>
+ <20160411103724.GD8094@x1>
+ <570B84DD.6040003@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1460374506-9779-9-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <570B84DD.6040003@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Marcin Niestroj <m.niestroj@grinn-global.com>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-input@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+On Mon, 11 Apr 2016, Grygorii Strashko wrote:
 
+> On 04/11/2016 01:37 PM, Lee Jones wrote:
+> >On Mon, 11 Apr 2016, Grygorii Strashko wrote:
+> >
+> >>On 04/11/2016 12:44 PM, Lee Jones wrote:
+> >>>On Mon, 04 Apr 2016, Marcin Niestroj wrote:
+> >>>
+> >>>>Add tps65217 power buttor subdevice with assigned IRQ resources.
+> >>>>
+> >>>>Signed-off-by: Marcin Niestroj <m.niestroj@grinn-global.com>
+> >>>>---
+> >>>>  drivers/mfd/tps65217.c | 10 ++++++++++
+> >>>>  1 file changed, 10 insertions(+)
+> >>>
+> >>>Applied, thanks.
+> >>
+> >>Seems there is dependency from patch 1 :(
+> >
+> >What is the dependency?
+>=20
+> TPS65217_IRQ_PB definition added in patch 1.
 
-Hi,
+Very well.  Unappiled.
+> >>>>diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
+> >>>>index a20980f..fd3b5d8 100644
+> >>>>--- a/drivers/mfd/tps65217.c
+> >>>>+++ b/drivers/mfd/tps65217.c
+> >>>>@@ -38,6 +38,10 @@ static struct resource charger_resources[] =3D=
+ {
+> >>>>  	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_USB, "USB"),
+> >>>>  };
+> >>>>
+> >>>>+static struct resource pb_resources[] =3D {
+> >>>>+	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_PB, "PB"),
+> >>>>+};
+> >>>>+
+> >>>>  struct tps65217_irq {
+> >>>>  	int mask;
+> >>>>  	int interrupt;
+> >>>>@@ -122,6 +126,12 @@ static struct mfd_cell tps65217s[] =3D {
+> >>>>  		.resources =3D charger_resources,
+> >>>>  		.of_compatible =3D "ti,tps65217-charger",
+> >>>>  	},
+> >>>>+	{
+> >>>>+		.name =3D "tps65217-pwrbutton",
+> >>>>+		.num_resources =3D ARRAY_SIZE(pb_resources),
+> >>>>+		.resources =3D pb_resources,
+> >>>>+		.of_compatible =3D "ti,tps65217-pwrbutton",
+> >>>>+	},
+> >>>>  };
+> >>>>
+> >>>>  static irqreturn_t tps65217_irq_thread(int irq, void *data)
+> >>>
+> >>
+> >>
+> >
+>=20
+>=20
 
-Roger Quadros <rogerq@ti.com> writes:
-> From: Felipe Balbi <balbi@kernel.org>
->
-> we need to power off the PHY during suspend and
-> power it back on during resume.
->
-> Signed-off-by: Felipe Balbi <balbi@kernel.org>
-> [nsekhar@ti.com: fix call to usb_phy_set_suspend() in dwc3_suspend()]
-> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-
-is this also a fix which needs to be rebased on v4.6-rc3 and merged
-during current -rc cycle ?
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXC5eRAAoJEIaOsuA1yqREU8AP/RoiU9NrZWgFpc5nLPjnAA18
-9BNCB9Tj6cvgj4SWSIQaaJ30DXnBYqKQQJX4erqR8NPfsPG3TSpkVmQy+fMEP1nx
-m9A/S1ICfl7R600ti6bgiOqd1AinR5u0Il5S2UBFhfsKh/DI3BujLSYxZMfH9Im2
-Yi8HJhUK8G3eF1uUj9O9UN8BjSckBkQ51liHxbp0pZLFufm86YY21Wg5usTmGmdy
-HV+LGByyVBllrwgItC2+SGRGD+hhKUWhh0Q9WIdr1MxQOkTXrgpf3BosooJzzq36
-/HpFPEpaD04LadLQEVUb+2yPo5hbewEpQS0N+Ng7eN2FyrNCEIE1qDKKqvZFM2nK
-ajyYENSy8Kcsp5dBro+2xUIy5NwuX89FBEJCeNHCrU25hkPBoa0dSOYYOLHsVPLa
-2Oyz6FhLmoRje3ztBkBOZyeeokLE7iKknhf/yl9u5+gZI1K5TxqW27ar+NUamOi2
-hqTpamQh5Gn+ZHo+HhlathK0zbnSzysPiqs9fqyyrrdAdkIK9WkqOpfSHAyUPIxm
-Q8ZwoDtv3cn2EKAno1Hp7rjxs4Xn37atF39DIQsUe7BW2d+L418DwJ8J805Ateed
-ZthDrMyTbIZdGEllnoDA+5tklPn4dTS+7tBno+24vtLZ9C4XN+NWkpGJn09n6Sto
-V3uX97KxPfgCzzMwtbcP
-=F69G
------END PGP SIGNATURE-----
---=-=-=--
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
