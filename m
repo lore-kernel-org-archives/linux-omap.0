@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 29/30] ARM: dts: dra7: add hwmod module clocks
-Date: Mon, 11 Apr 2016 11:19:20 +0300
-Message-ID: <1460362761-4842-30-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 28/30] ARM: OMAP5: hwmod_data: use module clocks from DT
+Date: Mon, 11 Apr 2016 11:19:19 +0300
+Message-ID: <1460362761-4842-29-git-send-email-t-kristo@ti.com>
 References: <1460362761-4842-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,1320 +12,1054 @@ To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, mturquette@bay
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-clk@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add clock nodes for the SoC hwmods. This is done in preparation to remove
-hwmod data from kernel, hwmod will use the clock nodes instead for
-module level enable / disable logic.
+Replace the usage of prcm->clkstctrl with main_clk:s provided via DT.
+This is done in preparation to get rid of hwmod data from kernel.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/boot/dts/dra7xx-clocks.dtsi |  986 ++++++++++++++++++++++++++++++----
- 1 file changed, 885 insertions(+), 101 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c |  274 ++++++++--------------------
+ 1 file changed, 76 insertions(+), 198 deletions(-)
 
-diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-index c437c5c..fb7d00d 100644
---- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-@@ -411,6 +411,13 @@
- 		ti,invert-autoidle-bit;
- 	};
- 
-+	mpu_mod_ck: mpu_mod_ck@320 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x0320>;
-+		clocks = <&dpll_mpu_m2_ck>;
-+	};
-+
- 	dpll_core_m2_ck: dpll_core_m2_ck@130 {
- 		#clock-cells = <0>;
- 		compatible = "ti,divider-clock";
-@@ -801,44 +808,67 @@
- 		reg = <0x0550>;
- 	};
- 
--	mcasp1_aux_gfclk_mux: mcasp1_aux_gfclk_mux@550 {
-+	timer5_mod_ck: timer5_mod_ck@558 {
- 		#clock-cells = <0>;
--		compatible = "ti,mux-clock";
--		clocks = <&per_abe_x1_gfclk2_div>, <&video1_clk2_div>, <&video2_clk2_div>, <&hdmi_clk2_div>;
--		ti,bit-shift = <22>;
--		reg = <0x0550>;
-+		compatible = "ti,omap4-sw-mux-mod-clock";
-+		reg = <0x0558>, <0x0558>;
-+		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
-+			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
-+			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
-+			 <&video2_div_clk>, <&hdmi_div_clk>,
-+			 <&clkoutmux0_clk_mux>;
-+		ti,bit-shift = <24>;
- 	};
- 
--	timer5_gfclk_mux: timer5_gfclk_mux@558 {
-+	timer6_mod_ck: timer6_mod_ck@560 {
- 		#clock-cells = <0>;
--		compatible = "ti,mux-clock";
--		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>, <&clkoutmux0_clk_mux>;
-+		compatible = "ti,omap4-sw-mux-mod-clock";
-+		reg = <0x0560>, <0x0560>;
-+		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
-+			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
-+			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
-+			 <&video2_div_clk>, <&hdmi_div_clk>,
-+			 <&clkoutmux0_clk_mux>;
- 		ti,bit-shift = <24>;
--		reg = <0x0558>;
- 	};
- 
--	timer6_gfclk_mux: timer6_gfclk_mux@560 {
-+	timer7_mod_ck: timer7_mod_ck@568 {
- 		#clock-cells = <0>;
--		compatible = "ti,mux-clock";
--		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>, <&clkoutmux0_clk_mux>;
-+		compatible = "ti,omap4-sw-mux-mod-clock";
-+		reg = <0x0568>, <0x0568>;
-+		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
-+			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
-+			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
-+			 <&video2_div_clk>, <&hdmi_div_clk>,
-+			 <&clkoutmux0_clk_mux>;
- 		ti,bit-shift = <24>;
--		reg = <0x0560>;
- 	};
- 
--	timer7_gfclk_mux: timer7_gfclk_mux@568 {
-+	timer8_mod_ck: timer8_mod_ck@570 {
- 		#clock-cells = <0>;
--		compatible = "ti,mux-clock";
--		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>, <&clkoutmux0_clk_mux>;
-+		compatible = "ti,omap4-sw-mux-mod-clock";
-+		reg = <0x0570>, <0x0570>;
-+		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
-+			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
-+			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
-+			 <&video2_div_clk>, <&hdmi_div_clk>,
-+			 <&clkoutmux0_clk_mux>;
- 		ti,bit-shift = <24>;
--		reg = <0x0568>;
- 	};
- 
--	timer8_gfclk_mux: timer8_gfclk_mux@570 {
-+	i2c5_mod_ck: i2c5_mod_ck@578 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x0578>;
-+		clocks = <&func_96m_fclk>;
-+	};
-+
-+	mcasp1_aux_gfclk_mux: mcasp1_aux_gfclk_mux@550 {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
--		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>, <&clkoutmux0_clk_mux>;
--		ti,bit-shift = <24>;
--		reg = <0x0570>;
-+		clocks = <&per_abe_x1_gfclk2_div>, <&video1_clk2_div>, <&video2_clk2_div>, <&hdmi_clk2_div>;
-+		ti,bit-shift = <22>;
-+		reg = <0x0550>;
- 	};
- 
- 	uart6_gfclk_mux: uart6_gfclk_mux@580 {
-@@ -849,6 +879,20 @@
- 		reg = <0x0580>;
- 	};
- 
-+	uart6_mod_ck: uart6_mod_ck@580 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x0580>;
-+		clocks = <&uart6_gfclk_mux>;
-+	};
-+
-+	rtcss_mod_ck: rtcss_mod_ck@744 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x0744>;
-+		clocks = <&sys_32k_ck>;
-+	};
-+
- 	dummy_ck: dummy_ck {
- 		#clock-cells = <0>;
- 		compatible = "fixed-clock";
-@@ -932,6 +976,20 @@
- 		reg = <0x01dc>;
- 	};
- 
-+	l4_wkup_mod_ck: l4_wkup_mod_ck@1820 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x1820>;
-+		clocks = <&wkupaon_iclk_mux>;
-+	};
-+
-+	wd_timer2_mod_ck: wd_timer2_mod_ck@1830 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x1830>;
-+		clocks = <&sys_32k_ck>;
-+	};
-+
- 	sys_clk1_dclk_div: sys_clk1_dclk_div@1c8 {
- 		#clock-cells = <0>;
- 		compatible = "ti,divider-clock";
-@@ -1165,6 +1223,31 @@
- 		reg = <0x1838>;
- 	};
- 
-+	gpio1_mod_ck: gpio1_mod_ck@1838 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-hw-mod-clock";
-+		reg = <0x1838>;
-+		clocks = <&wkupaon_iclk_mux>;
-+	};
-+
-+	timer1_mod_ck: timer1_mod_ck@1840 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mux-mod-clock";
-+		reg = <0x1840>, <0x1840>;
-+		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
-+			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
-+			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
-+			 <&video2_div_clk>, <&hdmi_div_clk>;
-+		ti,bit-shift = <24>;
-+	};
-+
-+	counter_32k_mod_ck: counter_32k_mod_ck@1850 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x1850>;
-+		clocks = <&wkupaon_iclk_mux>;
-+	};
-+
- 	dcan1_sys_clk_mux: dcan1_sys_clk_mux@1888 {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
-@@ -1173,12 +1256,11 @@
- 		reg = <0x1888>;
- 	};
- 
--	timer1_gfclk_mux: timer1_gfclk_mux@1840 {
-+	dcan1_mod_ck: dcan1_mod_ck@1888 {
- 		#clock-cells = <0>;
--		compatible = "ti,mux-clock";
--		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>;
--		ti,bit-shift = <24>;
--		reg = <0x1840>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x1888>;
-+		clocks = <&dcan1_sys_clk_mux>;
- 	};
- 
- 	uart10_gfclk_mux: uart10_gfclk_mux@1880 {
-@@ -1188,6 +1270,13 @@
- 		ti,bit-shift = <24>;
- 		reg = <0x1880>;
- 	};
-+
-+	uart10_mod_ck: uart10_mod_ck@1880 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x1880>;
-+		clocks = <&uart10_gfclk_mux>;
-+	};
- };
- &cm_core_clocks {
- 	dpll_pcie_ref_ck: dpll_pcie_ref_ck@200 {
-@@ -1223,6 +1312,20 @@
- 		reg = <0x021c>, <0x0220>;
- 	};
- 
-+	smartreflex_mpu_mod_ck: smartreflex_mpu_mod_ck@628 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x0628>;
-+		clocks = <&wkupaon_iclk_mux>;
-+	};
-+
-+	smartreflex_core_mod_ck: smartreflex_core_mod_ck@638 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x0638>;
-+		clocks = <&wkupaon_iclk_mux>;
-+	};
-+
- 	optfclk_pciephy1_32khz: optfclk_pciephy1_32khz@4a0093b0 {
- 		compatible = "ti,gate-clock";
- 		clocks = <&sys_32k_ck>;
-@@ -1231,6 +1334,13 @@
- 		ti,bit-shift = <8>;
- 	};
- 
-+	pcie1_mod_ck: pcie1_mod_ck@13b0 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x13b0>;
-+		clocks = <&l4_root_clk_div>;
-+	};
-+
- 	optfclk_pciephy2_32khz: optfclk_pciephy2_32khz@4a0093b8 {
- 		compatible = "ti,gate-clock";
- 		clocks = <&sys_32k_ck>;
-@@ -1265,6 +1375,13 @@
- 		ti,bit-shift = <9>;
- 	};
- 
-+	pcie2_mod_ck: pcie2_mod_ck@13b8 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x13b8>;
-+		clocks = <&l4_root_clk_div>;
-+	};
-+
- 	optfclk_pciephy1_div_clk: optfclk_pciephy1_div_clk@4a0093b0 {
- 		compatible = "ti,gate-clock";
- 		clocks = <&optfclk_pciephy_div>;
-@@ -1509,6 +1626,69 @@
- 		reg = <0x06c0>;
- 	};
- 
-+	l3_main_1_mod_ck: l3_main_1_mod_ck@720 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x0720>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	gpmc_mod_ck: gpmc_mod_ck@728 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-hw-mod-clock";
-+		reg = <0x0728>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	tpcc_mod_ck: tpcc_mod_ck@770 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x0770>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	tptc0_mod_ck: tptc0_mod_ck@778 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-hw-mod-clock";
-+		reg = <0x0778>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	tptc1_mod_ck: tptc1_mod_ck@780 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-hw-mod-clock";
-+		reg = <0x0780>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	vcp1_mod_ck: vcp1_mod_ck@788 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x0788>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	vcp2_mod_ck: vcp2_mod_ck@790 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x0790>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	dma_system_mod_ck: dma_system_mod_ck@a20 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x0a20>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	dmm_mod_ck: dmm_mod_ck@b20 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x0b20>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
- 	dss_32khz_clk: dss_32khz_clk@1120 {
- 		#clock-cells = <0>;
- 		compatible = "ti,gate-clock";
-@@ -1542,6 +1722,34 @@
- 		reg = <0x1120>;
- 	};
- 
-+	dss_dispc_mod_ck: dss_dispc_mod_ck@1120 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x1120>;
-+		clocks = <&dss_dss_clk>;
-+	};
-+
-+	dss_core_mod_ck: dss_core_mod_ck@1120 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x1120>;
-+		clocks = <&dss_dss_clk>;
-+	};
-+
-+	dss_hdmi_mod_ck: dss_hdmi_mod_ck@1120 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x1120>;
-+		clocks = <&dss_48mhz_clk>;
-+	};
-+
-+	bb2d_mod_ck: bb2d_mod_ck@1130 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x1130>;
-+		clocks = <&dpll_core_h24x2_ck>;
-+	};
-+
- 	dss_video1_clk: dss_video1_clk@1120 {
- 		#clock-cells = <0>;
- 		compatible = "ti,gate-clock";
-@@ -1566,6 +1774,13 @@
- 		reg = <0x1760>;
- 	};
- 
-+	gpio2_mod_ck: gpio2_mod_ck@1760 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-hw-mod-clock";
-+		reg = <0x1760>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
- 	gpio3_dbclk: gpio3_dbclk@1768 {
- 		#clock-cells = <0>;
- 		compatible = "ti,gate-clock";
-@@ -1574,6 +1789,13 @@
- 		reg = <0x1768>;
- 	};
- 
-+	gpio3_mod_ck: gpio3_mod_ck@1768 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-hw-mod-clock";
-+		reg = <0x1768>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
- 	gpio4_dbclk: gpio4_dbclk@1770 {
- 		#clock-cells = <0>;
- 		compatible = "ti,gate-clock";
-@@ -1582,6 +1804,13 @@
- 		reg = <0x1770>;
- 	};
- 
-+	gpio4_mod_ck: gpio4_mod_ck@1770 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-hw-mod-clock";
-+		reg = <0x1770>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
- 	gpio5_dbclk: gpio5_dbclk@1778 {
- 		#clock-cells = <0>;
- 		compatible = "ti,gate-clock";
-@@ -1590,6 +1819,13 @@
- 		reg = <0x1778>;
- 	};
- 
-+	gpio5_mod_ck: gpio5_mod_ck@1778 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-hw-mod-clock";
-+		reg = <0x1778>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
- 	gpio6_dbclk: gpio6_dbclk@1780 {
- 		#clock-cells = <0>;
- 		compatible = "ti,gate-clock";
-@@ -1598,6 +1834,116 @@
- 		reg = <0x1780>;
- 	};
- 
-+	gpio6_mod_ck: gpio6_mod_ck@1780 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-hw-mod-clock";
-+		reg = <0x1780>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	hdq1w_mod_ck: hdq1w_mod_ck@1788 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x1788>;
-+		clocks = <&func_12m_fclk>;
-+	};
-+
-+	i2c1_mod_ck: i2c1_mod_ck@17a0 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x17a0>;
-+		clocks = <&func_96m_fclk>;
-+	};
-+
-+	i2c2_mod_ck: i2c2_mod_ck@17a8 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x17a8>;
-+		clocks = <&func_96m_fclk>;
-+	};
-+
-+	i2c3_mod_ck: i2c3_mod_ck@17b0 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x17b0>;
-+		clocks = <&func_96m_fclk>;
-+	};
-+
-+	i2c4_mod_ck: i2c4_mod_ck@17b8 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x17b8>;
-+		clocks = <&func_96m_fclk>;
-+	};
-+
-+	l4_per1_mod_ck: l4_per1_mod_ck@17c0 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x17c0>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	timer13_mod_ck: timer13_mod_ck@17c8 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mux-mod-clock";
-+		reg = <0x17c8>, <0x17c8>;
-+		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
-+			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
-+			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
-+			 <&video2_div_clk>, <&hdmi_div_clk>;
-+		ti,bit-shift = <24>;
-+	};
-+
-+	timer14_mod_ck: timer14_mod_ck@17d0 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mux-mod-clock";
-+		reg = <0x17d0>, <0x17d0>;
-+		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
-+			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
-+			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
-+			 <&video2_div_clk>, <&hdmi_div_clk>;
-+		ti,bit-shift = <24>;
-+	};
-+
-+	timer15_mod_ck: timer15_mod_ck@17d8 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mux-mod-clock";
-+		reg = <0x17d8>, <0x17d8>;
-+		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
-+			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
-+			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
-+			 <&video2_div_clk>, <&hdmi_div_clk>;
-+		ti,bit-shift = <24>;
-+	};
-+
-+	mcspi1_mod_ck: mcspi1_mod_ck@17f0 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x17f0>;
-+		clocks = <&func_48m_fclk>;
-+	};
-+
-+	mcspi2_mod_ck: mcspi2_mod_ck@17f8 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x17f8>;
-+		clocks = <&func_48m_fclk>;
-+	};
-+
-+	mcspi3_mod_ck: mcspi3_mod_ck@1800 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x1800>;
-+		clocks = <&func_48m_fclk>;
-+	};
-+
-+	mcspi4_mod_ck: mcspi4_mod_ck@1808 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x1808>;
-+		clocks = <&func_48m_fclk>;
-+	};
-+
- 	gpio7_dbclk: gpio7_dbclk@1810 {
- 		#clock-cells = <0>;
- 		compatible = "ti,gate-clock";
-@@ -1606,6 +1952,13 @@
- 		reg = <0x1810>;
- 	};
- 
-+	gpio7_mod_ck: gpio7_mod_ck@1810 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-hw-mod-clock";
-+		reg = <0x1810>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
- 	gpio8_dbclk: gpio8_dbclk@1818 {
- 		#clock-cells = <0>;
- 		compatible = "ti,gate-clock";
-@@ -1614,6 +1967,13 @@
- 		reg = <0x1818>;
- 	};
- 
-+	gpio8_mod_ck: gpio8_mod_ck@1818 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-hw-mod-clock";
-+		reg = <0x1818>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
- 	mmc1_clk32k: mmc1_clk32k@1328 {
- 		#clock-cells = <0>;
- 		compatible = "ti,gate-clock";
-@@ -1646,6 +2006,24 @@
- 		reg = <0x1828>;
- 	};
- 
-+	mmc4_mod_ck: mmc4_mod_ck@1828 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x1828>;
-+		clocks = <&mmc4_gfclk_div>;
-+	};
-+
-+	timer16_mod_ck: timer16_mod_ck@1830 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mux-mod-clock";
-+		reg = <0x1830>, <0x1830>;
-+		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
-+			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
-+			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
-+			 <&video2_div_clk>, <&hdmi_div_clk>;
-+		ti,bit-shift = <24>;
-+	};
-+
- 	sata_ref_clk: sata_ref_clk@1388 {
- 		#clock-cells = <0>;
- 		compatible = "ti,gate-clock";
-@@ -1654,6 +2032,13 @@
- 		reg = <0x1388>;
- 	};
- 
-+	sata_mod_ck: sata_mod_ck@1388 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x1388>;
-+		clocks = <&func_48m_fclk>;
-+	};
-+
- 	usb_otg_ss1_refclk960m: usb_otg_ss1_refclk960m@13f0 {
- 		#clock-cells = <0>;
- 		compatible = "ti,gate-clock";
-@@ -1662,6 +2047,100 @@
- 		reg = <0x13f0>;
- 	};
- 
-+	usb_otg_ss1_mod_ck: usb_otg_ss1_mod_ck@13f0 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-hw-mod-clock";
-+		reg = <0x13f0>;
-+		clocks = <&dpll_core_h13x2_ck>;
-+	};
-+
-+	l4_per2_mod_ck: l4_per2_mod_ck@170c {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x170c>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	l4_per3_mod_ck: l4_per3_mod_ck@1714 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x1714>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	timer10_mod_ck: timer10_mod_ck@1728 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mux-mod-clock";
-+		reg = <0x1728>, <0x1728>;
-+		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
-+			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
-+			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
-+			 <&video2_div_clk>, <&hdmi_div_clk>;
-+		ti,bit-shift = <24>;
-+	};
-+
-+	timer11_mod_ck: timer11_mod_ck@1730 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mux-mod-clock";
-+		reg = <0x1730>, <0x1730>;
-+		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
-+			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
-+			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
-+			 <&video2_div_clk>, <&hdmi_div_clk>;
-+		ti,bit-shift = <24>;
-+	};
-+
-+	timer2_mod_ck: timer2_mod_ck@1738 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mux-mod-clock";
-+		reg = <0x1738>, <0x1738>;
-+		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
-+			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
-+			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
-+			 <&video2_div_clk>, <&hdmi_div_clk>;
-+		ti,bit-shift = <24>;
-+	};
-+
-+	timer3_mod_ck: timer3_mod_ck@1740 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mux-mod-clock";
-+		reg = <0x1740>, <0x1740>;
-+		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
-+			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
-+			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
-+			 <&video2_div_clk>, <&hdmi_div_clk>;
-+		ti,bit-shift = <24>;
-+	};
-+
-+	timer4_mod_ck: timer4_mod_ck@1748 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mux-mod-clock";
-+		reg = <0x1748>, <0x1748>;
-+		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
-+			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
-+			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
-+			 <&video2_div_clk>, <&hdmi_div_clk>;
-+		ti,bit-shift = <24>;
-+	};
-+
-+	timer9_mod_ck: timer9_mod_ck@1750 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mux-mod-clock";
-+		reg = <0x1750>, <0x1750>;
-+		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
-+			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
-+			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
-+			 <&video2_div_clk>, <&hdmi_div_clk>;
-+		ti,bit-shift = <24>;
-+	};
-+
-+	elm_mod_ck: elm_mod_ck@1758 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x1758>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
- 	usb_otg_ss2_refclk960m: usb_otg_ss2_refclk960m@1340 {
- 		#clock-cells = <0>;
- 		compatible = "ti,gate-clock";
-@@ -1670,6 +2149,27 @@
- 		reg = <0x1340>;
- 	};
- 
-+	usb_otg_ss2_mod_ck: usb_otg_ss2_mod_ck@1340 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-hw-mod-clock";
-+		reg = <0x1340>;
-+		clocks = <&dpll_core_h13x2_ck>;
-+	};
-+
-+	usb_otg_ss3_mod_ck: usb_otg_ss3_mod_ck@1348 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-hw-mod-clock";
-+		reg = <0x1348>;
-+		clocks = <&dpll_core_h13x2_ck>;
-+	};
-+
-+	usb_otg_ss4_mod_ck: usb_otg_ss4_mod_ck@1350 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-hw-mod-clock";
-+		reg = <0x1350>;
-+		clocks = <&dpll_core_h13x2_ck>;
-+	};
-+
- 	usb_phy1_always_on_clk32k: usb_phy1_always_on_clk32k@640 {
- 		#clock-cells = <0>;
- 		compatible = "ti,gate-clock";
-@@ -1710,6 +2210,132 @@
- 		reg = <0x0c00>;
- 	};
- 
-+	atl_mod_ck: atl_mod_ck@c00 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x0c00>;
-+		clocks = <&atl_gfclk_mux>;
-+	};
-+
-+	l4_cfg_mod_ck: l4_cfg_mod_ck@d20 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x0d20>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	spinlock_mod_ck: spinlock_mod_ck@d28 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x0d28>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	mailbox1_mod_ck: mailbox1_mod_ck@d30 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x0d30>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	mailbox2_mod_ck: mailbox2_mod_ck@d48 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x0d48>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	mailbox3_mod_ck: mailbox3_mod_ck@d50 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x0d50>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	mailbox4_mod_ck: mailbox4_mod_ck@d58 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x0d58>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	mailbox5_mod_ck: mailbox5_mod_ck@d60 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x0d60>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	mailbox6_mod_ck: mailbox6_mod_ck@d68 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x0d68>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	mailbox7_mod_ck: mailbox7_mod_ck@d70 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x0d70>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	mailbox8_mod_ck: mailbox8_mod_ck@d78 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x0d78>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	mailbox9_mod_ck: mailbox9_mod_ck@d80 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x0d80>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	mailbox10_mod_ck: mailbox10_mod_ck@d88 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x0d88>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	mailbox11_mod_ck: mailbox11_mod_ck@d90 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x0d90>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	mailbox12_mod_ck: mailbox12_mod_ck@d98 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x0d98>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	mailbox13_mod_ck: mailbox13_mod_ck@da0 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-mod-clock";
-+		reg = <0x0da0>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	l3_main_2_mod_ck: l3_main_2_mod_ck@e20 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-hw-mod-clock";
-+		reg = <0x0e20>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
-+	l3_instr_mod_ck: l3_instr_mod_ck@e28 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-hw-mod-clock";
-+		reg = <0x0e28>;
-+		clocks = <&l3_iclk_div>;
-+	};
-+
- 	gmac_gmii_ref_clk_div: gmac_gmii_ref_clk_div@13d0 {
- 		#clock-cells = <0>;
- 		compatible = "ti,divider-clock";
-@@ -1719,6 +2345,27 @@
- 		ti,dividers = <2>;
- 	};
- 
-+	gmac_mod_ck: gmac_mod_ck@13d0 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x13d0>;
-+		clocks = <&dpll_gmac_ck>;
-+	};
-+
-+	ocp2scp1_mod_ck: ocp2scp1_mod_ck@13e0 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-hw-mod-clock";
-+		reg = <0x13e0>;
-+		clocks = <&l4_root_clk_div>;
-+	};
-+
-+	ocp2scp3_mod_ck: ocp2scp3_mod_ck@13e8 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-hw-mod-clock";
-+		reg = <0x13e8>;
-+		clocks = <&l4_root_clk_div>;
-+	};
-+
- 	gmac_rft_clk_mux: gmac_rft_clk_mux@13d0 {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
-@@ -1792,6 +2439,13 @@
- 		reg = <0x1868>;
- 	};
- 
-+	mcasp3_mod_ck: mcasp3_mod_ck@1868 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x1868>;
-+		clocks = <&mcasp3_aux_gfclk_mux>;
-+	};
-+
- 	mcasp4_ahclkx_mux: mcasp4_ahclkx_mux@1898 {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
-@@ -1880,6 +2534,13 @@
- 		reg = <0x1328>;
- 	};
- 
-+	mmc1_mod_ck: mmc1_mod_ck@1328 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x1328>;
-+		clocks = <&mmc1_fclk_div>;
-+	};
-+
- 	mmc1_fclk_div: mmc1_fclk_div@1328 {
- 		#clock-cells = <0>;
- 		compatible = "ti,divider-clock";
-@@ -1908,6 +2569,13 @@
- 		ti,index-power-of-two;
- 	};
- 
-+	mmc2_mod_ck: mmc2_mod_ck@1330 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x1330>;
-+		clocks = <&mmc2_fclk_div>;
-+	};
-+
- 	mmc3_gfclk_mux: mmc3_gfclk_mux@1820 {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
-@@ -1926,6 +2594,13 @@
- 		ti,index-power-of-two;
- 	};
- 
-+	mmc3_mod_ck: mmc3_mod_ck@1820 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x1820>;
-+		clocks = <&mmc3_gfclk_div>;
-+	};
-+
- 	mmc4_gfclk_mux: mmc4_gfclk_mux@1828 {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
-@@ -1952,6 +2627,13 @@
- 		reg = <0x1838>;
- 	};
- 
-+	qspi_mod_ck: qspi_mod_ck@1838 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x1838>;
-+		clocks = <&qspi_gfclk_div>;
-+	};
-+
- 	qspi_gfclk_div: qspi_gfclk_div@1838 {
- 		#clock-cells = <0>;
- 		compatible = "ti,divider-clock";
-@@ -1962,148 +2644,131 @@
- 		ti,index-power-of-two;
- 	};
- 
--	timer10_gfclk_mux: timer10_gfclk_mux@1728 {
-+	uart1_gfclk_mux: uart1_gfclk_mux@1840 {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
--		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>;
-+		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
- 		ti,bit-shift = <24>;
--		reg = <0x1728>;
-+		reg = <0x1840>;
- 	};
- 
--	timer11_gfclk_mux: timer11_gfclk_mux@1730 {
-+	uart1_mod_ck: uart1_mod_ck@1840 {
- 		#clock-cells = <0>;
--		compatible = "ti,mux-clock";
--		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>;
--		ti,bit-shift = <24>;
--		reg = <0x1730>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x1840>;
-+		clocks = <&uart1_gfclk_mux>;
- 	};
- 
--	timer13_gfclk_mux: timer13_gfclk_mux@17c8 {
-+	uart2_gfclk_mux: uart2_gfclk_mux@1848 {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
--		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>;
-+		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
- 		ti,bit-shift = <24>;
--		reg = <0x17c8>;
-+		reg = <0x1848>;
- 	};
- 
--	timer14_gfclk_mux: timer14_gfclk_mux@17d0 {
-+	uart2_mod_ck: uart2_mod_ck@1848 {
- 		#clock-cells = <0>;
--		compatible = "ti,mux-clock";
--		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>;
--		ti,bit-shift = <24>;
--		reg = <0x17d0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x1848>;
-+		clocks = <&uart2_gfclk_mux>;
- 	};
- 
--	timer15_gfclk_mux: timer15_gfclk_mux@17d8 {
-+	uart3_gfclk_mux: uart3_gfclk_mux@1850 {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
--		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>;
-+		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
- 		ti,bit-shift = <24>;
--		reg = <0x17d8>;
-+		reg = <0x1850>;
- 	};
- 
--	timer16_gfclk_mux: timer16_gfclk_mux@1830 {
-+	uart3_mod_ck: uart3_mod_ck@1850 {
- 		#clock-cells = <0>;
--		compatible = "ti,mux-clock";
--		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>;
--		ti,bit-shift = <24>;
--		reg = <0x1830>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x1850>;
-+		clocks = <&uart3_gfclk_mux>;
- 	};
- 
--	timer2_gfclk_mux: timer2_gfclk_mux@1738 {
-+	uart4_gfclk_mux: uart4_gfclk_mux@1858 {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
--		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>;
-+		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
- 		ti,bit-shift = <24>;
--		reg = <0x1738>;
-+		reg = <0x1858>;
- 	};
- 
--	timer3_gfclk_mux: timer3_gfclk_mux@1740 {
-+	uart4_mod_ck: uart4_mod_ck@1858 {
- 		#clock-cells = <0>;
--		compatible = "ti,mux-clock";
--		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>;
--		ti,bit-shift = <24>;
--		reg = <0x1740>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x1858>;
-+		clocks = <&uart4_gfclk_mux>;
- 	};
- 
--	timer4_gfclk_mux: timer4_gfclk_mux@1748 {
-+	uart5_gfclk_mux: uart5_gfclk_mux@1870 {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
--		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>;
-+		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
- 		ti,bit-shift = <24>;
--		reg = <0x1748>;
-+		reg = <0x1870>;
- 	};
- 
--	timer9_gfclk_mux: timer9_gfclk_mux@1750 {
-+	uart5_mod_ck: uart5_mod_ck@1870 {
- 		#clock-cells = <0>;
--		compatible = "ti,mux-clock";
--		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>;
--		ti,bit-shift = <24>;
--		reg = <0x1750>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x1870>;
-+		clocks = <&uart5_gfclk_mux>;
- 	};
- 
--	uart1_gfclk_mux: uart1_gfclk_mux@1840 {
-+	uart7_gfclk_mux: uart7_gfclk_mux@18d0 {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
- 		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
- 		ti,bit-shift = <24>;
--		reg = <0x1840>;
-+		reg = <0x18d0>;
- 	};
- 
--	uart2_gfclk_mux: uart2_gfclk_mux@1848 {
-+	uart7_mod_ck: uart7_mod_ck@18d0 {
- 		#clock-cells = <0>;
--		compatible = "ti,mux-clock";
--		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
--		ti,bit-shift = <24>;
--		reg = <0x1848>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x18d0>;
-+		clocks = <&uart7_gfclk_mux>;
- 	};
- 
--	uart3_gfclk_mux: uart3_gfclk_mux@1850 {
-+	uart8_gfclk_mux: uart8_gfclk_mux@18e0 {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
- 		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
- 		ti,bit-shift = <24>;
--		reg = <0x1850>;
-+		reg = <0x18e0>;
- 	};
- 
--	uart4_gfclk_mux: uart4_gfclk_mux@1858 {
-+	uart8_mod_ck: uart8_mod_ck@18e0 {
- 		#clock-cells = <0>;
--		compatible = "ti,mux-clock";
--		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
--		ti,bit-shift = <24>;
--		reg = <0x1858>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x18e0>;
-+		clocks = <&uart8_gfclk_mux>;
- 	};
- 
--	uart5_gfclk_mux: uart5_gfclk_mux@1870 {
-+	uart9_gfclk_mux: uart9_gfclk_mux@18e8 {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
- 		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
- 		ti,bit-shift = <24>;
--		reg = <0x1870>;
-+		reg = <0x18e8>;
- 	};
- 
--	uart7_gfclk_mux: uart7_gfclk_mux@18d0 {
-+	uart9_mod_ck: uart9_mod_ck@18e8 {
- 		#clock-cells = <0>;
--		compatible = "ti,mux-clock";
--		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
--		ti,bit-shift = <24>;
--		reg = <0x18d0>;
--	};
--
--	uart8_gfclk_mux: uart8_gfclk_mux@18e0 {
--		#clock-cells = <0>;
--		compatible = "ti,mux-clock";
--		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
--		ti,bit-shift = <24>;
--		reg = <0x18e0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x18e8>;
-+		clocks = <&uart9_gfclk_mux>;
- 	};
- 
--	uart9_gfclk_mux: uart9_gfclk_mux@18e8 {
-+	dcan2_mod_ck: dcan2_mod_ck@18f0 {
- 		#clock-cells = <0>;
--		compatible = "ti,mux-clock";
--		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
--		ti,bit-shift = <24>;
--		reg = <0x18e8>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x18f0>;
-+		clocks = <&sys_clkin1>;
- 	};
- 
- 	vip1_gclk_mux: vip1_gclk_mux@1020 {
-@@ -2134,7 +2799,100 @@
- &cm_core_clockdomains {
- 	coreaon_clkdm: coreaon_clkdm {
- 		compatible = "ti,clockdomain";
--		clocks = <&dpll_usb_ck>;
-+		clocks = <&smartreflex_mpu_mod_ck>, <&smartreflex_core_mod_ck>,
-+			 <&dpll_usb_ck>;
-+	};
-+
-+	atl_clkdm: atl_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&atl_mod_ck>;
-+	};
-+
-+	l3main1_clkdm: l3main1_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&tpcc_mod_ck>, <&tptc1_mod_ck>, <&l3_main_1_mod_ck>,
-+			 <&vcp1_mod_ck>, <&gpmc_mod_ck>, <&tptc0_mod_ck>,
-+			 <&vcp2_mod_ck>;
-+	};
-+
-+	l4cfg_clkdm: l4cfg_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&mailbox12_mod_ck>, <&mailbox6_mod_ck>,
-+			 <&mailbox10_mod_ck>, <&mailbox11_mod_ck>,
-+			 <&mailbox4_mod_ck>, <&mailbox8_mod_ck>,
-+			 <&mailbox5_mod_ck>, <&mailbox3_mod_ck>,
-+			 <&mailbox2_mod_ck>, <&l4_cfg_mod_ck>,
-+			 <&mailbox13_mod_ck>, <&mailbox7_mod_ck>,
-+			 <&mailbox1_mod_ck>, <&spinlock_mod_ck>,
-+			 <&mailbox9_mod_ck>;
-+	};
-+
-+	l3instr_clkdm: l3instr_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&l3_instr_mod_ck>, <&l3_main_2_mod_ck>;
-+	};
-+
-+	l4per_clkdm: l4per_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&timer3_mod_ck>, <&gpio6_mod_ck>, <&timer11_mod_ck>,
-+			 <&hdq1w_mod_ck>, <&uart3_mod_ck>, <&gpio2_mod_ck>,
-+			 <&uart1_mod_ck>, <&i2c4_mod_ck>, <&i2c2_mod_ck>,
-+			 <&timer4_mod_ck>, <&i2c3_mod_ck>, <&l4_per1_mod_ck>,
-+			 <&elm_mod_ck>, <&gpio3_mod_ck>, <&mcspi3_mod_ck>,
-+			 <&uart4_mod_ck>, <&mmc4_mod_ck>, <&timer2_mod_ck>,
-+			 <&mmc3_mod_ck>, <&gpio5_mod_ck>, <&gpio8_mod_ck>,
-+			 <&gpio4_mod_ck>, <&mcspi1_mod_ck>, <&timer9_mod_ck>,
-+			 <&mcspi2_mod_ck>, <&uart5_mod_ck>, <&timer10_mod_ck>,
-+			 <&mcspi4_mod_ck>, <&uart2_mod_ck>, <&i2c1_mod_ck>,
-+			 <&gpio7_mod_ck>;
-+	};
-+
-+	l4per3_clkdm: l4per3_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&timer16_mod_ck>, <&timer15_mod_ck>,
-+			 <&l4_per3_mod_ck>, <&timer13_mod_ck>,
-+			 <&timer14_mod_ck>;
-+	};
-+
-+	l4per2_clkdm: l4per2_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&qspi_mod_ck>, <&uart8_mod_ck>, <&uart7_mod_ck>,
-+			 <&l4_per2_mod_ck>, <&uart9_mod_ck>, <&mcasp3_mod_ck>,
-+			 <&dcan2_mod_ck>;
-+	};
-+
-+	dss_clkdm: dss_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&dss_hdmi_mod_ck>, <&dss_core_mod_ck>,
-+			 <&dss_dispc_mod_ck>, <&bb2d_mod_ck>;
-+	};
-+
-+	pcie_clkdm: pcie_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&pcie2_mod_ck>, <&pcie1_mod_ck>;
-+	};
-+
-+	emif_clkdm: emif_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&dmm_mod_ck>;
-+	};
-+
-+	l3init_clkdm: l3init_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&ocp2scp1_mod_ck>, <&usb_otg_ss1_mod_ck>,
-+			 <&sata_mod_ck>, <&mmc1_mod_ck>, <&usb_otg_ss4_mod_ck>,
-+			 <&usb_otg_ss2_mod_ck>, <&ocp2scp3_mod_ck>,
-+			 <&usb_otg_ss3_mod_ck>, <&mmc2_mod_ck>;
-+	};
-+
-+	dma_clkdm: dma_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&dma_system_mod_ck>;
-+	};
-+
-+	gmac_clkdm: gmac_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&gmac_mod_ck>;
- 	};
+diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+index 8cdfd9b..e36843e 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+@@ -62,10 +62,10 @@ static struct omap_hwmod omap54xx_dmm_hwmod = {
+ 	.clkdm_name	= "emif_clkdm",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_EMIF_DMM_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_EMIF_DMM_CONTEXT_OFFSET,
+ 		},
+ 	},
++	.main_clk	= "dmm_mod_ck",
  };
  
-@@ -2171,3 +2929,30 @@
- 		reg = <0x0558>;
- 	};
+ /*
+@@ -83,11 +83,10 @@ static struct omap_hwmod omap54xx_l3_instr_hwmod = {
+ 	.clkdm_name	= "l3instr_clkdm",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L3INSTR_L3_INSTR_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L3INSTR_L3_INSTR_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_HWCTRL,
+ 		},
+ 	},
++	.main_clk	= "l3_instr_mod_ck",
  };
-+
-+&prm_clockdomains {
-+	wkupaon_clkdm: wkupaon_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&gpio1_mod_ck>, <&wd_timer2_mod_ck>,
-+			 <&l4_wkup_mod_ck>, <&timer1_mod_ck>, <&uart10_mod_ck>,
-+			 <&dcan1_mod_ck>, <&counter_32k_mod_ck>;
-+	};
-+};
-+
-+&cm_core_aon_clockdomains {
-+	ipu_clkdm: ipu_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&timer7_mod_ck>, <&timer6_mod_ck>, <&uart6_mod_ck>,
-+			 <&i2c5_mod_ck>, <&timer8_mod_ck>, <&timer5_mod_ck>;
-+	};
-+
-+	mpu_clkdm: mpu_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&mpu_mod_ck>;
-+	};
-+
-+	rtc_clkdm: rtc_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&rtcss_mod_ck>;
-+	};
-+};
+ 
+ /* l3_main_1 */
+@@ -97,10 +96,10 @@ static struct omap_hwmod omap54xx_l3_main_1_hwmod = {
+ 	.clkdm_name	= "l3main1_clkdm",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L3MAIN1_L3_MAIN_1_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L3MAIN1_L3_MAIN_1_CONTEXT_OFFSET,
+ 		},
+ 	},
++	.main_clk	= "l3_main_1_mod_ck",
+ };
+ 
+ /* l3_main_2 */
+@@ -110,10 +109,10 @@ static struct omap_hwmod omap54xx_l3_main_2_hwmod = {
+ 	.clkdm_name	= "l3main2_clkdm",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L3MAIN2_L3_MAIN_2_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L3MAIN2_L3_MAIN_2_CONTEXT_OFFSET,
+ 		},
+ 	},
++	.main_clk	= "l3_main_2_mod_ck",
+ };
+ 
+ /* l3_main_3 */
+@@ -123,11 +122,10 @@ static struct omap_hwmod omap54xx_l3_main_3_hwmod = {
+ 	.clkdm_name	= "l3instr_clkdm",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L3INSTR_L3_MAIN_3_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L3INSTR_L3_MAIN_3_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_HWCTRL,
+ 		},
+ 	},
++	.main_clk	= "l3_main_3_mod_ck",
+ };
+ 
+ /*
+@@ -145,10 +143,10 @@ static struct omap_hwmod omap54xx_l4_abe_hwmod = {
+ 	.clkdm_name	= "abe_clkdm",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_ABE_L4_ABE_CLKCTRL_OFFSET,
+ 			.flags = HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
+ 		},
+ 	},
++	.main_clk	= "l4_abe_mod_ck",
+ };
+ 
+ /* l4_cfg */
+@@ -158,10 +156,10 @@ static struct omap_hwmod omap54xx_l4_cfg_hwmod = {
+ 	.clkdm_name	= "l4cfg_clkdm",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4CFG_L4_CFG_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4CFG_L4_CFG_CONTEXT_OFFSET,
+ 		},
+ 	},
++	.main_clk	= "l4_cfg_mod_ck",
+ };
+ 
+ /* l4_per */
+@@ -171,10 +169,10 @@ static struct omap_hwmod omap54xx_l4_per_hwmod = {
+ 	.clkdm_name	= "l4per_clkdm",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_L4_PER_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_L4_PER_CONTEXT_OFFSET,
+ 		},
+ 	},
++	.main_clk	= "l4_per_mod_ck",
+ };
+ 
+ /* l4_wkup */
+@@ -184,10 +182,10 @@ static struct omap_hwmod omap54xx_l4_wkup_hwmod = {
+ 	.clkdm_name	= "wkupaon_clkdm",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_WKUPAON_L4_WKUP_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_WKUPAON_L4_WKUP_CONTEXT_OFFSET,
+ 		},
+ 	},
++	.main_clk	= "l4_wkup_mod_ck",
+ };
+ 
+ /*
+@@ -234,10 +232,9 @@ static struct omap_hwmod omap54xx_counter_32k_hwmod = {
+ 	.class		= &omap54xx_counter_hwmod_class,
+ 	.clkdm_name	= "wkupaon_clkdm",
+ 	.flags		= HWMOD_SWSUP_SIDLE,
+-	.main_clk	= "wkupaon_iclk_mux",
++	.main_clk	= "counter_32k_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_WKUPAON_COUNTER_32K_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_WKUPAON_COUNTER_32K_CONTEXT_OFFSET,
+ 		},
+ 	},
+@@ -289,10 +286,9 @@ static struct omap_hwmod omap54xx_dma_system_hwmod = {
+ 	.clkdm_name	= "dma_clkdm",
+ 	.mpu_irqs	= omap54xx_dma_system_irqs,
+ 	.xlate_irq	= omap4_xlate_irq,
+-	.main_clk	= "l3_iclk_div",
++	.main_clk	= "dma_system_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_DMA_DMA_SYSTEM_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_DMA_DMA_SYSTEM_CONTEXT_OFFSET,
+ 		},
+ 	},
+@@ -324,12 +320,10 @@ static struct omap_hwmod omap54xx_dmic_hwmod = {
+ 	.name		= "dmic",
+ 	.class		= &omap54xx_dmic_hwmod_class,
+ 	.clkdm_name	= "abe_clkdm",
+-	.main_clk	= "dmic_gfclk",
++	.main_clk	= "dmic_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_ABE_DMIC_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_ABE_DMIC_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -362,12 +356,10 @@ static struct omap_hwmod omap54xx_dss_hwmod = {
+ 	.class		= &omap54xx_dss_hwmod_class,
+ 	.clkdm_name	= "dss_clkdm",
+ 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+-	.main_clk	= "dss_dss_clk",
++	.main_clk	= "dss_core_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_DSS_DSS_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ 	.opt_clks	= dss_opt_clks,
+@@ -412,10 +404,9 @@ static struct omap_hwmod omap54xx_dss_dispc_hwmod = {
+ 	.name		= "dss_dispc",
+ 	.class		= &omap54xx_dispc_hwmod_class,
+ 	.clkdm_name	= "dss_clkdm",
+-	.main_clk	= "dss_dss_clk",
++	.main_clk	= "dss_dispc_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
+ 			.flags = HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
+ 		},
+ 	},
+@@ -455,10 +446,9 @@ static struct omap_hwmod omap54xx_dss_dsi1_a_hwmod = {
+ 	.name		= "dss_dsi1",
+ 	.class		= &omap54xx_dsi1_hwmod_class,
+ 	.clkdm_name	= "dss_clkdm",
+-	.main_clk	= "dss_dss_clk",
++	.main_clk	= "dss_dsi1_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
+ 			.flags = HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
+ 		},
+ 	},
+@@ -476,10 +466,9 @@ static struct omap_hwmod omap54xx_dss_dsi1_c_hwmod = {
+ 	.name		= "dss_dsi2",
+ 	.class		= &omap54xx_dsi1_hwmod_class,
+ 	.clkdm_name	= "dss_clkdm",
+-	.main_clk	= "dss_dss_clk",
++	.main_clk	= "dss_dsi2_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
+ 			.flags = HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
+ 		},
+ 	},
+@@ -516,10 +505,9 @@ static struct omap_hwmod omap54xx_dss_hdmi_hwmod = {
+ 	.name		= "dss_hdmi",
+ 	.class		= &omap54xx_hdmi_hwmod_class,
+ 	.clkdm_name	= "dss_clkdm",
+-	.main_clk	= "dss_48mhz_clk",
++	.main_clk	= "dss_hdmi_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
+ 			.flags = HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
+ 		},
+ 	},
+@@ -559,13 +547,13 @@ static struct omap_hwmod omap54xx_dss_rfbi_hwmod = {
+ 	.clkdm_name	= "dss_clkdm",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
+ 			.flags = HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
+ 		},
+ 	},
+ 	.opt_clks	= dss_rfbi_opt_clks,
+ 	.opt_clks_cnt	= ARRAY_SIZE(dss_rfbi_opt_clks),
+ 	.parent_hwmod	= &omap54xx_dss_hwmod,
++	.main_clk	= "dss_rfbi_mod_ck",
+ };
+ 
+ /*
+@@ -588,12 +576,10 @@ static struct omap_hwmod omap54xx_emif1_hwmod = {
+ 	.class		= &omap54xx_emif_hwmod_class,
+ 	.clkdm_name	= "emif_clkdm",
+ 	.flags		= HWMOD_INIT_NO_IDLE,
+-	.main_clk	= "dpll_core_h11x2_ck",
++	.main_clk	= "emif1_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_EMIF_EMIF1_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_EMIF_EMIF1_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_HWCTRL,
+ 		},
+ 	},
+ };
+@@ -604,12 +590,10 @@ static struct omap_hwmod omap54xx_emif2_hwmod = {
+ 	.class		= &omap54xx_emif_hwmod_class,
+ 	.clkdm_name	= "emif_clkdm",
+ 	.flags		= HWMOD_INIT_NO_IDLE,
+-	.main_clk	= "dpll_core_h11x2_ck",
++	.main_clk	= "emif2_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_EMIF_EMIF2_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_EMIF_EMIF2_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_HWCTRL,
+ 		},
+ 	},
+ };
+@@ -652,12 +636,10 @@ static struct omap_hwmod omap54xx_gpio1_hwmod = {
+ 	.name		= "gpio1",
+ 	.class		= &omap54xx_gpio_hwmod_class,
+ 	.clkdm_name	= "wkupaon_clkdm",
+-	.main_clk	= "wkupaon_iclk_mux",
++	.main_clk	= "gpio1_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_WKUPAON_GPIO1_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_WKUPAON_GPIO1_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_HWCTRL,
+ 		},
+ 	},
+ 	.opt_clks	= gpio1_opt_clks,
+@@ -675,12 +657,10 @@ static struct omap_hwmod omap54xx_gpio2_hwmod = {
+ 	.class		= &omap54xx_gpio_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+ 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+-	.main_clk	= "l4_root_clk_div",
++	.main_clk	= "gpio2_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_GPIO2_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_GPIO2_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_HWCTRL,
+ 		},
+ 	},
+ 	.opt_clks	= gpio2_opt_clks,
+@@ -698,12 +678,10 @@ static struct omap_hwmod omap54xx_gpio3_hwmod = {
+ 	.class		= &omap54xx_gpio_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+ 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+-	.main_clk	= "l4_root_clk_div",
++	.main_clk	= "gpio3_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_GPIO3_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_GPIO3_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_HWCTRL,
+ 		},
+ 	},
+ 	.opt_clks	= gpio3_opt_clks,
+@@ -721,12 +699,10 @@ static struct omap_hwmod omap54xx_gpio4_hwmod = {
+ 	.class		= &omap54xx_gpio_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+ 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+-	.main_clk	= "l4_root_clk_div",
++	.main_clk	= "gpio4_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_GPIO4_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_GPIO4_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_HWCTRL,
+ 		},
+ 	},
+ 	.opt_clks	= gpio4_opt_clks,
+@@ -744,12 +720,10 @@ static struct omap_hwmod omap54xx_gpio5_hwmod = {
+ 	.class		= &omap54xx_gpio_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+ 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+-	.main_clk	= "l4_root_clk_div",
++	.main_clk	= "gpio5_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_GPIO5_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_GPIO5_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_HWCTRL,
+ 		},
+ 	},
+ 	.opt_clks	= gpio5_opt_clks,
+@@ -767,12 +741,10 @@ static struct omap_hwmod omap54xx_gpio6_hwmod = {
+ 	.class		= &omap54xx_gpio_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+ 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+-	.main_clk	= "l4_root_clk_div",
++	.main_clk	= "gpio6_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_GPIO6_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_GPIO6_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_HWCTRL,
+ 		},
+ 	},
+ 	.opt_clks	= gpio6_opt_clks,
+@@ -790,12 +762,10 @@ static struct omap_hwmod omap54xx_gpio7_hwmod = {
+ 	.class		= &omap54xx_gpio_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+ 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+-	.main_clk	= "l4_root_clk_div",
++	.main_clk	= "gpio7_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_GPIO7_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_GPIO7_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_HWCTRL,
+ 		},
+ 	},
+ 	.opt_clks	= gpio7_opt_clks,
+@@ -813,12 +783,10 @@ static struct omap_hwmod omap54xx_gpio8_hwmod = {
+ 	.class		= &omap54xx_gpio_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+ 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+-	.main_clk	= "l4_root_clk_div",
++	.main_clk	= "gpio8_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_GPIO8_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_GPIO8_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_HWCTRL,
+ 		},
+ 	},
+ 	.opt_clks	= gpio8_opt_clks,
+@@ -861,12 +829,10 @@ static struct omap_hwmod omap54xx_i2c1_hwmod = {
+ 	.class		= &omap54xx_i2c_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+ 	.flags		= HWMOD_16BIT_REG | HWMOD_SET_DEFAULT_CLOCKACT,
+-	.main_clk	= "func_96m_fclk",
++	.main_clk	= "i2c1_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_I2C1_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_I2C1_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ 	.dev_attr	= &i2c_dev_attr,
+@@ -878,12 +844,10 @@ static struct omap_hwmod omap54xx_i2c2_hwmod = {
+ 	.class		= &omap54xx_i2c_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+ 	.flags		= HWMOD_16BIT_REG | HWMOD_SET_DEFAULT_CLOCKACT,
+-	.main_clk	= "func_96m_fclk",
++	.main_clk	= "i2c2_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_I2C2_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_I2C2_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ 	.dev_attr	= &i2c_dev_attr,
+@@ -895,12 +859,10 @@ static struct omap_hwmod omap54xx_i2c3_hwmod = {
+ 	.class		= &omap54xx_i2c_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+ 	.flags		= HWMOD_16BIT_REG | HWMOD_SET_DEFAULT_CLOCKACT,
+-	.main_clk	= "func_96m_fclk",
++	.main_clk	= "i2c3_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_I2C3_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_I2C3_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ 	.dev_attr	= &i2c_dev_attr,
+@@ -912,12 +874,10 @@ static struct omap_hwmod omap54xx_i2c4_hwmod = {
+ 	.class		= &omap54xx_i2c_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+ 	.flags		= HWMOD_16BIT_REG | HWMOD_SET_DEFAULT_CLOCKACT,
+-	.main_clk	= "func_96m_fclk",
++	.main_clk	= "i2c4_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_I2C4_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_I2C4_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ 	.dev_attr	= &i2c_dev_attr,
+@@ -929,12 +889,10 @@ static struct omap_hwmod omap54xx_i2c5_hwmod = {
+ 	.class		= &omap54xx_i2c_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+ 	.flags		= HWMOD_16BIT_REG | HWMOD_SET_DEFAULT_CLOCKACT,
+-	.main_clk	= "func_96m_fclk",
++	.main_clk	= "i2c5_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_I2C5_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_I2C5_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ 	.dev_attr	= &i2c_dev_attr,
+@@ -964,12 +922,10 @@ static struct omap_hwmod omap54xx_kbd_hwmod = {
+ 	.name		= "kbd",
+ 	.class		= &omap54xx_kbd_hwmod_class,
+ 	.clkdm_name	= "wkupaon_clkdm",
+-	.main_clk	= "sys_32k_ck",
++	.main_clk	= "kbd_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_WKUPAON_KBD_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_WKUPAON_KBD_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1001,10 +957,10 @@ static struct omap_hwmod omap54xx_mailbox_hwmod = {
+ 	.clkdm_name	= "l4cfg_clkdm",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4CFG_MAILBOX_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4CFG_MAILBOX_CONTEXT_OFFSET,
+ 		},
+ 	},
++	.main_clk	= "mailbox_mod_ck",
+ };
+ 
+ /*
+@@ -1036,12 +992,10 @@ static struct omap_hwmod omap54xx_mcbsp1_hwmod = {
+ 	.name		= "mcbsp1",
+ 	.class		= &omap54xx_mcbsp_hwmod_class,
+ 	.clkdm_name	= "abe_clkdm",
+-	.main_clk	= "mcbsp1_gfclk",
++	.main_clk	= "mcbsp1_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_ABE_MCBSP1_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_ABE_MCBSP1_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ 	.opt_clks	= mcbsp1_opt_clks,
+@@ -1058,12 +1012,10 @@ static struct omap_hwmod omap54xx_mcbsp2_hwmod = {
+ 	.name		= "mcbsp2",
+ 	.class		= &omap54xx_mcbsp_hwmod_class,
+ 	.clkdm_name	= "abe_clkdm",
+-	.main_clk	= "mcbsp2_gfclk",
++	.main_clk	= "mcbsp2_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_ABE_MCBSP2_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_ABE_MCBSP2_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ 	.opt_clks	= mcbsp2_opt_clks,
+@@ -1080,12 +1032,10 @@ static struct omap_hwmod omap54xx_mcbsp3_hwmod = {
+ 	.name		= "mcbsp3",
+ 	.class		= &omap54xx_mcbsp_hwmod_class,
+ 	.clkdm_name	= "abe_clkdm",
+-	.main_clk	= "mcbsp3_gfclk",
++	.main_clk	= "mcbsp3_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_ABE_MCBSP3_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_ABE_MCBSP3_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ 	.opt_clks	= mcbsp3_opt_clks,
+@@ -1131,12 +1081,10 @@ static struct omap_hwmod omap54xx_mcpdm_hwmod = {
+ 	 */
+ 
+ 	.flags		= HWMOD_EXT_OPT_MAIN_CLK | HWMOD_SWSUP_SIDLE,
+-	.main_clk	= "pad_clks_ck",
++	.main_clk	= "mcpdm_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_ABE_MCPDM_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_ABE_MCPDM_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1173,12 +1121,10 @@ static struct omap_hwmod omap54xx_mcspi1_hwmod = {
+ 	.name		= "mcspi1",
+ 	.class		= &omap54xx_mcspi_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+-	.main_clk	= "func_48m_fclk",
++	.main_clk	= "mcspi1_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_MCSPI1_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_MCSPI1_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ 	.dev_attr	= &mcspi1_dev_attr,
+@@ -1194,12 +1140,10 @@ static struct omap_hwmod omap54xx_mcspi2_hwmod = {
+ 	.name		= "mcspi2",
+ 	.class		= &omap54xx_mcspi_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+-	.main_clk	= "func_48m_fclk",
++	.main_clk	= "mcspi2_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_MCSPI2_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_MCSPI2_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ 	.dev_attr	= &mcspi2_dev_attr,
+@@ -1215,12 +1159,10 @@ static struct omap_hwmod omap54xx_mcspi3_hwmod = {
+ 	.name		= "mcspi3",
+ 	.class		= &omap54xx_mcspi_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+-	.main_clk	= "func_48m_fclk",
++	.main_clk	= "mcspi3_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_MCSPI3_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_MCSPI3_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ 	.dev_attr	= &mcspi3_dev_attr,
+@@ -1236,12 +1178,10 @@ static struct omap_hwmod omap54xx_mcspi4_hwmod = {
+ 	.name		= "mcspi4",
+ 	.class		= &omap54xx_mcspi_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+-	.main_clk	= "func_48m_fclk",
++	.main_clk	= "mcspi4_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_MCSPI4_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_MCSPI4_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ 	.dev_attr	= &mcspi4_dev_attr,
+@@ -1283,12 +1223,10 @@ static struct omap_hwmod omap54xx_mmc1_hwmod = {
+ 	.name		= "mmc1",
+ 	.class		= &omap54xx_mmc_hwmod_class,
+ 	.clkdm_name	= "l3init_clkdm",
+-	.main_clk	= "mmc1_fclk",
++	.main_clk	= "mmc1_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L3INIT_MMC1_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L3INIT_MMC1_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ 	.opt_clks	= mmc1_opt_clks,
+@@ -1301,12 +1239,10 @@ static struct omap_hwmod omap54xx_mmc2_hwmod = {
+ 	.name		= "mmc2",
+ 	.class		= &omap54xx_mmc_hwmod_class,
+ 	.clkdm_name	= "l3init_clkdm",
+-	.main_clk	= "mmc2_fclk",
++	.main_clk	= "mmc2_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L3INIT_MMC2_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L3INIT_MMC2_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1316,12 +1252,10 @@ static struct omap_hwmod omap54xx_mmc3_hwmod = {
+ 	.name		= "mmc3",
+ 	.class		= &omap54xx_mmc_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+-	.main_clk	= "func_48m_fclk",
++	.main_clk	= "mmc3_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_MMC3_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_MMC3_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1331,12 +1265,10 @@ static struct omap_hwmod omap54xx_mmc4_hwmod = {
+ 	.name		= "mmc4",
+ 	.class		= &omap54xx_mmc_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+-	.main_clk	= "func_48m_fclk",
++	.main_clk	= "mmc4_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_MMC4_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_MMC4_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1346,12 +1278,10 @@ static struct omap_hwmod omap54xx_mmc5_hwmod = {
+ 	.name		= "mmc5",
+ 	.class		= &omap54xx_mmc_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+-	.main_clk	= "func_96m_fclk",
++	.main_clk	= "mmc5_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_MMC5_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_MMC5_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1388,13 +1318,11 @@ static struct omap_hwmod omap54xx_mmu_dsp_hwmod = {
+ 	.clkdm_name	= "dsp_clkdm",
+ 	.rst_lines	= omap54xx_mmu_dsp_resets,
+ 	.rst_lines_cnt	= ARRAY_SIZE(omap54xx_mmu_dsp_resets),
+-	.main_clk	= "dpll_iva_h11x2_ck",
++	.main_clk	= "mmu_dsp_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_DSP_DSP_CLKCTRL_OFFSET,
+ 			.rstctrl_offs = OMAP54XX_RM_DSP_RSTCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_DSP_DSP_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_HWCTRL,
+ 		},
+ 	},
+ };
+@@ -1410,13 +1338,11 @@ static struct omap_hwmod omap54xx_mmu_ipu_hwmod = {
+ 	.clkdm_name	= "ipu_clkdm",
+ 	.rst_lines	= omap54xx_mmu_ipu_resets,
+ 	.rst_lines_cnt	= ARRAY_SIZE(omap54xx_mmu_ipu_resets),
+-	.main_clk	= "dpll_core_h22x2_ck",
++	.main_clk	= "mmu_ipu_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_IPU_IPU_CLKCTRL_OFFSET,
+ 			.rstctrl_offs = OMAP54XX_RM_IPU_RSTCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_IPU_IPU_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_HWCTRL,
+ 		},
+ 	},
+ };
+@@ -1436,10 +1362,9 @@ static struct omap_hwmod omap54xx_mpu_hwmod = {
+ 	.class		= &omap54xx_mpu_hwmod_class,
+ 	.clkdm_name	= "mpu_clkdm",
+ 	.flags		= HWMOD_INIT_NO_IDLE,
+-	.main_clk	= "dpll_mpu_m2_ck",
++	.main_clk	= "mpu_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_MPU_MPU_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_MPU_MPU_CONTEXT_OFFSET,
+ 		},
+ 	},
+@@ -1474,10 +1399,10 @@ static struct omap_hwmod omap54xx_spinlock_hwmod = {
+ 	.clkdm_name	= "l4cfg_clkdm",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4CFG_SPINLOCK_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4CFG_SPINLOCK_CONTEXT_OFFSET,
+ 		},
+ 	},
++	.main_clk	= "spinlock_mod_ck",
+ };
+ 
+ /*
+@@ -1506,12 +1431,10 @@ static struct omap_hwmod omap54xx_ocp2scp1_hwmod = {
+ 	.name		= "ocp2scp1",
+ 	.class		= &omap54xx_ocp2scp_hwmod_class,
+ 	.clkdm_name	= "l3init_clkdm",
+-	.main_clk	= "l4_root_clk_div",
++	.main_clk	= "ocp2scp1_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L3INIT_OCP2SCP1_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L3INIT_OCP2SCP1_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_HWCTRL,
+ 		},
+ 	},
+ };
+@@ -1558,13 +1481,11 @@ static struct omap_hwmod omap54xx_timer1_hwmod = {
+ 	.name		= "timer1",
+ 	.class		= &omap54xx_timer_1ms_hwmod_class,
+ 	.clkdm_name	= "wkupaon_clkdm",
+-	.main_clk	= "timer1_gfclk_mux",
++	.main_clk	= "timer1_mod_ck",
+ 	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_WKUPAON_TIMER1_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_WKUPAON_TIMER1_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1574,13 +1495,11 @@ static struct omap_hwmod omap54xx_timer2_hwmod = {
+ 	.name		= "timer2",
+ 	.class		= &omap54xx_timer_1ms_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+-	.main_clk	= "timer2_gfclk_mux",
++	.main_clk	= "timer2_mod_ck",
+ 	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_TIMER2_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_TIMER2_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1590,12 +1509,10 @@ static struct omap_hwmod omap54xx_timer3_hwmod = {
+ 	.name		= "timer3",
+ 	.class		= &omap54xx_timer_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+-	.main_clk	= "timer3_gfclk_mux",
++	.main_clk	= "timer3_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_TIMER3_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_TIMER3_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1605,12 +1522,10 @@ static struct omap_hwmod omap54xx_timer4_hwmod = {
+ 	.name		= "timer4",
+ 	.class		= &omap54xx_timer_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+-	.main_clk	= "timer4_gfclk_mux",
++	.main_clk	= "timer4_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_TIMER4_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_TIMER4_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1620,12 +1535,10 @@ static struct omap_hwmod omap54xx_timer5_hwmod = {
+ 	.name		= "timer5",
+ 	.class		= &omap54xx_timer_hwmod_class,
+ 	.clkdm_name	= "abe_clkdm",
+-	.main_clk	= "timer5_gfclk_mux",
++	.main_clk	= "timer5_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_ABE_TIMER5_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_ABE_TIMER5_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1635,12 +1548,10 @@ static struct omap_hwmod omap54xx_timer6_hwmod = {
+ 	.name		= "timer6",
+ 	.class		= &omap54xx_timer_hwmod_class,
+ 	.clkdm_name	= "abe_clkdm",
+-	.main_clk	= "timer6_gfclk_mux",
++	.main_clk	= "timer6_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_ABE_TIMER6_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_ABE_TIMER6_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1650,12 +1561,10 @@ static struct omap_hwmod omap54xx_timer7_hwmod = {
+ 	.name		= "timer7",
+ 	.class		= &omap54xx_timer_hwmod_class,
+ 	.clkdm_name	= "abe_clkdm",
+-	.main_clk	= "timer7_gfclk_mux",
++	.main_clk	= "timer7_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_ABE_TIMER7_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_ABE_TIMER7_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1665,12 +1574,10 @@ static struct omap_hwmod omap54xx_timer8_hwmod = {
+ 	.name		= "timer8",
+ 	.class		= &omap54xx_timer_hwmod_class,
+ 	.clkdm_name	= "abe_clkdm",
+-	.main_clk	= "timer8_gfclk_mux",
++	.main_clk	= "timer8_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_ABE_TIMER8_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_ABE_TIMER8_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1680,12 +1587,10 @@ static struct omap_hwmod omap54xx_timer9_hwmod = {
+ 	.name		= "timer9",
+ 	.class		= &omap54xx_timer_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+-	.main_clk	= "timer9_gfclk_mux",
++	.main_clk	= "timer9_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_TIMER9_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_TIMER9_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1695,13 +1600,11 @@ static struct omap_hwmod omap54xx_timer10_hwmod = {
+ 	.name		= "timer10",
+ 	.class		= &omap54xx_timer_1ms_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+-	.main_clk	= "timer10_gfclk_mux",
++	.main_clk	= "timer10_mod_ck",
+ 	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_TIMER10_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_TIMER10_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1711,12 +1614,10 @@ static struct omap_hwmod omap54xx_timer11_hwmod = {
+ 	.name		= "timer11",
+ 	.class		= &omap54xx_timer_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+-	.main_clk	= "timer11_gfclk_mux",
++	.main_clk	= "timer11_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_TIMER11_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_TIMER11_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1748,12 +1649,10 @@ static struct omap_hwmod omap54xx_uart1_hwmod = {
+ 	.name		= "uart1",
+ 	.class		= &omap54xx_uart_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+-	.main_clk	= "func_48m_fclk",
++	.main_clk	= "uart1_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_UART1_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_UART1_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1763,12 +1662,10 @@ static struct omap_hwmod omap54xx_uart2_hwmod = {
+ 	.name		= "uart2",
+ 	.class		= &omap54xx_uart_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+-	.main_clk	= "func_48m_fclk",
++	.main_clk	= "uart2_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_UART2_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_UART2_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1779,12 +1676,10 @@ static struct omap_hwmod omap54xx_uart3_hwmod = {
+ 	.class		= &omap54xx_uart_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+ 	.flags		= DEBUG_OMAP4UART3_FLAGS,
+-	.main_clk	= "func_48m_fclk",
++	.main_clk	= "uart3_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_UART3_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_UART3_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1795,12 +1690,10 @@ static struct omap_hwmod omap54xx_uart4_hwmod = {
+ 	.class		= &omap54xx_uart_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+ 	.flags		= DEBUG_OMAP4UART4_FLAGS,
+-	.main_clk	= "func_48m_fclk",
++	.main_clk	= "uart4_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_UART4_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_UART4_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1810,12 +1703,10 @@ static struct omap_hwmod omap54xx_uart5_hwmod = {
+ 	.name		= "uart5",
+ 	.class		= &omap54xx_uart_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+-	.main_clk	= "func_48m_fclk",
++	.main_clk	= "uart5_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_UART5_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_UART5_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1825,12 +1716,10 @@ static struct omap_hwmod omap54xx_uart6_hwmod = {
+ 	.name		= "uart6",
+ 	.class		= &omap54xx_uart_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+-	.main_clk	= "func_48m_fclk",
++	.main_clk	= "uart6_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L4PER_UART6_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L4PER_UART6_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1899,12 +1788,10 @@ static struct omap_hwmod omap54xx_usb_host_hs_hwmod = {
+ 	 */
+ 
+ 	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
+-	.main_clk	= "l3init_60m_fclk",
++	.main_clk	= "usb_host_hs_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L3INIT_USB_HOST_HS_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L3INIT_USB_HOST_HS_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -1934,12 +1821,10 @@ static struct omap_hwmod omap54xx_usb_tll_hs_hwmod = {
+ 	.name		= "usb_tll_hs",
+ 	.class		= &omap54xx_usb_tll_hs_hwmod_class,
+ 	.clkdm_name	= "l3init_clkdm",
+-	.main_clk	= "l4_root_clk_div",
++	.main_clk	= "usb_tll_hs_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L3INIT_USB_TLL_HS_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L3INIT_USB_TLL_HS_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_HWCTRL,
+ 		},
+ 	},
+ };
+@@ -1975,12 +1860,10 @@ static struct omap_hwmod omap54xx_usb_otg_ss_hwmod = {
+ 	.class		= &omap54xx_usb_otg_ss_hwmod_class,
+ 	.clkdm_name	= "l3init_clkdm",
+ 	.flags		= HWMOD_SWSUP_SIDLE,
+-	.main_clk	= "dpll_core_h13x2_ck",
++	.main_clk	= "usb_otg_ss_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L3INIT_USB_OTG_SS_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L3INIT_USB_OTG_SS_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_HWCTRL,
+ 		},
+ 	},
+ 	.opt_clks	= usb_otg_ss_opt_clks,
+@@ -2015,12 +1898,10 @@ static struct omap_hwmod omap54xx_wd_timer2_hwmod = {
+ 	.name		= "wd_timer2",
+ 	.class		= &omap54xx_wd_timer_hwmod_class,
+ 	.clkdm_name	= "wkupaon_clkdm",
+-	.main_clk	= "sys_32k_ck",
++	.main_clk	= "wd_timer2_mod_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_WKUPAON_WD_TIMER2_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_WKUPAON_WD_TIMER2_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+@@ -2046,11 +1927,10 @@ static struct omap_hwmod omap54xx_ocp2scp3_hwmod = {
+ 	.clkdm_name	= "l3init_clkdm",
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L3INIT_OCP2SCP3_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L3INIT_OCP2SCP3_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_HWCTRL,
+ 		},
+ 	},
++	.main_clk	= "ocp2scp3_mod_ck",
+ };
+ 
+ /*
+@@ -2078,13 +1958,11 @@ static struct omap_hwmod omap54xx_sata_hwmod = {
+ 	.class		= &omap54xx_sata_hwmod_class,
+ 	.clkdm_name	= "l3init_clkdm",
+ 	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
+-	.main_clk	= "func_48m_fclk",
++	.main_clk	= "sata_mod_ck",
+ 	.mpu_rt_idx	= 1,
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs = OMAP54XX_CM_L3INIT_SATA_CLKCTRL_OFFSET,
+ 			.context_offs = OMAP54XX_RM_L3INIT_SATA_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
 -- 
 1.7.9.5
 
