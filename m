@@ -1,26 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/2] drivers: net: cpsw: fix ale calls and drop
- host_port field from cpsw_priv
-Date: Mon, 11 Apr 2016 15:12:29 -0400 (EDT)
-Message-ID: <20160411.151229.7068975173395002.davem@davemloft.net>
-References: <1460031404-28594-1-git-send-email-grygorii.strashko@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/5] ARM: dts: omap: Fix some DTC warnings
+Date: Mon, 11 Apr 2016 12:39:54 -0700
+Message-ID: <20160411193954.GB5995@atomide.com>
+References: <1459542022-17246-1-git-send-email-javier@osg.samsung.com>
+ <20160401203812.GP9329@atomide.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1460031404-28594-1-git-send-email-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@ti.com
-Cc: netdev@vger.kernel.org, mugunthanvnm@ti.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160401203812.GP9329-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Date: Thu, 7 Apr 2016 15:16:42 +0300
-
-> This clean up series intended to:
->  - fix port_mask parameters in ale calls and drop unnecessary shifts
->  - drop host_port field from struct cpsw_priv
+* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [160401 13:39]:
+> * Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org> [160401 13:21]:
+> > Hello Tony
+> > 
+> > DTC reports a lot of warnings on omap DTS due a mismatch between unit
+> > names and reg properties in different device nodes. This series tries
+> > to fix at least some of them, but there are still a lot remaining.
 > 
-> Nothing critical. Tested on am437x-idk-evm in dual mac and switch modes.
+> Great, adding Tero to Cc as I think he is already looking at fixing
+> the clock related warnings.
 
-Looks good, series applied, thanks.
+OK adding these finally into omap-for-v4.7/dt thanks.
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
