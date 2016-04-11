@@ -1,86 +1,89 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 4/5] mfd: tps65217: Add power button as subdevice
-Date: Mon, 11 Apr 2016 13:35:51 +0100
-Message-ID: <20160411123551.GW8094@x1>
-References: <1459789865-3704-1-git-send-email-m.niestroj@grinn-global.com>
- <1459789865-3704-6-git-send-email-m.niestroj@grinn-global.com>
- <20160411094452.GC8094@x1>
- <570B7BFE.6000501@ti.com>
- <20160411103724.GD8094@x1>
- <570B84DD.6040003@ti.com>
+From: Rob Herring <robh+dt@kernel.org>
+Subject: Re: [PATCH v5 1/6] pwms: pwm-ti*: Get the clock from the PWMSS (parent)
+Date: Mon, 11 Apr 2016 07:45:22 -0500
+Message-ID: <CAL_JsqLkpQzVb6bzpsH5NwfLLWEtf3o6LezrL1hCejsw65J=Bw@mail.gmail.com>
+References: <1457400224-24797-1-git-send-email-fcooper@ti.com>
+ <1457400224-24797-2-git-send-email-fcooper@ti.com> <5703564C.7090700@ti.com>
+ <5703A0C4.6010406@ti.com> <alpine.DEB.2.02.1604102048380.11457@utopia.booyaka.com>
+ <570B8F51.6040108@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <570B84DD.6040003@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Marcin Niestroj <m.niestroj@grinn-global.com>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-input@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <570B8F51.6040108@ti.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "Franklin S Cooper Jr." <fcooper@ti.com>, "Kristo, Tero" <t-kristo@ti.com>, Thierry Reding <thierry.reding@gmail.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Linux PWM List <linux-pwm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 11 Apr 2016, Grygorii Strashko wrote:
+On Mon, Apr 11, 2016 at 6:49 AM, Sekhar Nori <nsekhar@ti.com> wrote:
+> On Monday 11 April 2016 02:21 AM, Paul Walmsley wrote:
+>> Hi guys
+>>
+>> On Tue, 5 Apr 2016, Franklin S Cooper Jr. wrote:
+>>
+>>> On 04/05/2016 01:08 AM, Sekhar Nori wrote:
+>>>> On Tuesday 08 March 2016 06:53 AM, Franklin S Cooper Jr wrote:
+>>>>> The eCAP and ePWM doesn't have their own separate clocks. They simply
+>>>>> utilize the clock provided directly by the PWMSS. Therefore, they simply
+>>>>> need to grab a reference to their parent's clock.
+>>>>>
+>>>>> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+>>>>
+>>>> So this assumes that eCAP and eHRPWM are always under the PWMSS
+>>>> umbrella. But on TI AM18x, thats not true. These IPs exist independently
+>>>> and receive functional clock from PLL sysclk outputs.
+>>>>
+>>>>> ---
+>>>>>  drivers/pwm/pwm-tiecap.c   | 2 +-
+>>>>>  drivers/pwm/pwm-tiehrpwm.c | 2 +-
+>>>>>  2 files changed, 2 insertions(+), 2 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/pwm/pwm-tiecap.c b/drivers/pwm/pwm-tiecap.c
+>>>>> index 616af76..9418159 100644
+>>>>> --- a/drivers/pwm/pwm-tiecap.c
+>>>>> +++ b/drivers/pwm/pwm-tiecap.c
+>>>>> @@ -212,7 +212,7 @@ static int ecap_pwm_probe(struct platform_device *pdev)
+>>>>>      if (!pc)
+>>>>>          return -ENOMEM;
+>>>>>
+>>>>> -    clk = devm_clk_get(&pdev->dev, "fck");
+>>>>> +    clk = devm_clk_get(pdev->dev.parent, "fck");
+>>>>
+>>>> Even keeping the AM18x usecase aside, this seems to be pushing too much
+>>>> platform information into the driver. The "fck" is a valid connection id
+>>>> for the eCAP IP. Whether its valid for the parent device too is not
+>>>> something this driver should need to know.
+>>>>
+>>>> So it looks like what you need is for the clock hierarchy for the
+>>>> platform to have clocks for eHRPWM and eCAP derived out of PWMSS clock?
+>>>
+>>> So I believe this is a question on if we want to hide the minor
+>>> delta between AM18 vs AM335x, AM437x and AM57x/DRA7 in the driver
+>>> or within the DT.
+>>>
+>>> Note that handling this by defining new clocks in DT will then
+>>> result in older DTBs not working. I don't think its worth breaking
+>>> backwards compatibility for AM335x and AM437x DTBs for fixing support
+>>> for AM18 based SOCs. Especially since those SOCs haven't worked with
+>>> this driver for several years. By handling things within the driver rather
+>>> than DT we can atleast insure that we can get everything working while
+>>> avoiding breaking backwards compatibility.
+>>
+>> I agree with Sekhar that we shouldn't embed this parent clock quirk
+>> into the driver.
+>>
+>> Can you just define a new compatibility string such that the driver can be
+>> written with no embedded integration quirks?  Then add a workaround in the
+>> driver that will use pdev->dev.parent for the old (deprecated)
+>> compatibility string and log a warning to the kernel console that the DT
+>> needs to be updated.
+>
+> Thanks Paul! Although not sure if adding a new compatible for the IP is
+> the best way (since that would denote a different version of the IP).
+> How about checking for parent clock iff clk_get() on own device fails
+> and of_machine_is_compatible() matches the platforms where backward
+> compatibility needs to be maintained?
 
-> On 04/11/2016 01:37 PM, Lee Jones wrote:
-> >On Mon, 11 Apr 2016, Grygorii Strashko wrote:
-> >
-> >>On 04/11/2016 12:44 PM, Lee Jones wrote:
-> >>>On Mon, 04 Apr 2016, Marcin Niestroj wrote:
-> >>>
-> >>>>Add tps65217 power buttor subdevice with assigned IRQ resources.
-> >>>>
-> >>>>Signed-off-by: Marcin Niestroj <m.niestroj@grinn-global.com>
-> >>>>---
-> >>>>  drivers/mfd/tps65217.c | 10 ++++++++++
-> >>>>  1 file changed, 10 insertions(+)
-> >>>
-> >>>Applied, thanks.
-> >>
-> >>Seems there is dependency from patch 1 :(
-> >
-> >What is the dependency?
->=20
-> TPS65217_IRQ_PB definition added in patch 1.
+New compatible strings are acceptable.
 
-Very well.  Unappiled.
-> >>>>diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
-> >>>>index a20980f..fd3b5d8 100644
-> >>>>--- a/drivers/mfd/tps65217.c
-> >>>>+++ b/drivers/mfd/tps65217.c
-> >>>>@@ -38,6 +38,10 @@ static struct resource charger_resources[] =3D=
- {
-> >>>>  	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_USB, "USB"),
-> >>>>  };
-> >>>>
-> >>>>+static struct resource pb_resources[] =3D {
-> >>>>+	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_PB, "PB"),
-> >>>>+};
-> >>>>+
-> >>>>  struct tps65217_irq {
-> >>>>  	int mask;
-> >>>>  	int interrupt;
-> >>>>@@ -122,6 +126,12 @@ static struct mfd_cell tps65217s[] =3D {
-> >>>>  		.resources =3D charger_resources,
-> >>>>  		.of_compatible =3D "ti,tps65217-charger",
-> >>>>  	},
-> >>>>+	{
-> >>>>+		.name =3D "tps65217-pwrbutton",
-> >>>>+		.num_resources =3D ARRAY_SIZE(pb_resources),
-> >>>>+		.resources =3D pb_resources,
-> >>>>+		.of_compatible =3D "ti,tps65217-pwrbutton",
-> >>>>+	},
-> >>>>  };
-> >>>>
-> >>>>  static irqreturn_t tps65217_irq_thread(int irq, void *data)
-> >>>
-> >>
-> >>
-> >
->=20
->=20
-
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
+Rob
