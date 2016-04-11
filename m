@@ -1,77 +1,62 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 4/5] mfd: tps65217: Add power button as subdevice
-Date: Mon, 11 Apr 2016 14:05:01 +0300
-Message-ID: <570B84DD.6040003@ti.com>
-References: <1459789865-3704-1-git-send-email-m.niestroj@grinn-global.com>
- <1459789865-3704-6-git-send-email-m.niestroj@grinn-global.com>
- <20160411094452.GC8094@x1> <570B7BFE.6000501@ti.com>
- <20160411103724.GD8094@x1>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v6 00/10] usb: dwc3: add dual-role support
+Date: Mon, 11 Apr 2016 14:34:56 +0300
+Message-ID: <1460374506-9779-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20160411103724.GD8094@x1>
-Sender: linux-input-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Marcin Niestroj <m.niestroj@grinn-global.com>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-input@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@kernel.org
+Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/11/2016 01:37 PM, Lee Jones wrote:
-> On Mon, 11 Apr 2016, Grygorii Strashko wrote:
->
->> On 04/11/2016 12:44 PM, Lee Jones wrote:
->>> On Mon, 04 Apr 2016, Marcin Niestroj wrote:
->>>
->>>> Add tps65217 power buttor subdevice with assigned IRQ resources.
->>>>
->>>> Signed-off-by: Marcin Niestroj <m.niestroj@grinn-global.com>
->>>> ---
->>>>   drivers/mfd/tps65217.c | 10 ++++++++++
->>>>   1 file changed, 10 insertions(+)
->>>
->>> Applied, thanks.
->>
->> Seems there is dependency from patch 1 :(
->
-> What is the dependency?
+Hi,
 
-TPS65217_IRQ_PB definition added in patch 1.
+This series adds dual role support to dwc3 controller driver.
+Series depends on the OTG/dual-role framework [1].
 
->
->>>> diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
->>>> index a20980f..fd3b5d8 100644
->>>> --- a/drivers/mfd/tps65217.c
->>>> +++ b/drivers/mfd/tps65217.c
->>>> @@ -38,6 +38,10 @@ static struct resource charger_resources[] = {
->>>>   	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_USB, "USB"),
->>>>   };
->>>>
->>>> +static struct resource pb_resources[] = {
->>>> +	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_PB, "PB"),
->>>> +};
->>>> +
->>>>   struct tps65217_irq {
->>>>   	int mask;
->>>>   	int interrupt;
->>>> @@ -122,6 +126,12 @@ static struct mfd_cell tps65217s[] = {
->>>>   		.resources = charger_resources,
->>>>   		.of_compatible = "ti,tps65217-charger",
->>>>   	},
->>>> +	{
->>>> +		.name = "tps65217-pwrbutton",
->>>> +		.num_resources = ARRAY_SIZE(pb_resources),
->>>> +		.resources = pb_resources,
->>>> +		.of_compatible = "ti,tps65217-pwrbutton",
->>>> +	},
->>>>   };
->>>>
->>>>   static irqreturn_t tps65217_irq_thread(int irq, void *data)
->>>
->>
->>
->
+[1] - https://lkml.org/lkml/2016/4/5/492
 
+Patches are based on v4.6-rc1.
+
+v6:
+- use just otg irq to get otg events and don't depend on extcon at all.
+- follow OTG flow in TRM strictly.
+- use tracepoints instead of dev_dbg().
+- match IRQ flags in dwc3_omap and core.c for shared otg interrupt.
+
+v5: Internal revision. Not sent to mailing list.
+
+v4: first version that was reviewed.
+
+cheers,
+-roger
+
+Felipe Balbi (2):
+  usb: dwc3: omap: fix up error path on probe()
+  usb: dwc3: core: fix PHY handling during suspend
+
+Roger Quadros (8):
+  usb: dwc3: core.h: add some register definitions
+  usb: dwc3: omap: Make the wrapper interrupt shared
+  usb: dwc3: omap: Pass VBUS and ID events transparently
+  usb: dwc3: core: cleanup IRQ resources
+  usb: dwc3: add dual-role support
+  usb: dwc3: gadget: Fix suspend/resume during dual-role mode
+  ARM: dts: dra7*-evm: Enable dual-role for usb1
+  ARM: dts: am43xx: Enable dual-role on USB1
+
+ arch/arm/boot/dts/am437x-gp-evm.dts  |   2 +-
+ arch/arm/boot/dts/am437x-sk-evm.dts  |   2 +-
+ arch/arm/boot/dts/am43x-epos-evm.dts |   2 +-
+ arch/arm/boot/dts/dra7-evm.dts       |   2 +-
+ arch/arm/boot/dts/dra72-evm.dts      |   2 +-
+ drivers/usb/dwc3/core.c              | 565 +++++++++++++++++++++++++++++++++--
+ drivers/usb/dwc3/core.h              | 109 ++++++-
+ drivers/usb/dwc3/dwc3-omap.c         |  39 ++-
+ drivers/usb/dwc3/gadget.c            |  31 +-
+ drivers/usb/dwc3/host.c              |  21 ++
+ 10 files changed, 729 insertions(+), 46 deletions(-)
 
 -- 
-regards,
--grygorii
+2.5.0
