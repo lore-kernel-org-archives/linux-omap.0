@@ -1,50 +1,26 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH] tty: serial: 8250_omap: do not defer termios changes
-Date: Mon, 11 Apr 2016 20:31:23 +0200
-Message-ID: <570BED7B.9080803@linutronix.de>
-References: <8737r7ght7.fsf@linutronix.de>
- <570339E8.6010808@hurleysoftware.com> <87y48kftip.fsf@linutronix.de>
- <570BE48F.60801@hurleysoftware.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/2] drivers: net: cpsw: fix ale calls and drop
+ host_port field from cpsw_priv
+Date: Mon, 11 Apr 2016 15:12:29 -0400 (EDT)
+Message-ID: <20160411.151229.7068975173395002.davem@davemloft.net>
+References: <1460031404-28594-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <570BE48F.60801@hurleysoftware.com>
+In-Reply-To: <1460031404-28594-1-git-send-email-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>, John Ogness <john.ogness@linutronix.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org
+To: grygorii.strashko@ti.com
+Cc: netdev@vger.kernel.org, mugunthanvnm@ti.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 04/11/2016 07:53 PM, Peter Hurley wrote:
-> On 04/11/2016 01:18 AM, John Ogness wrote:
->> On 2016-04-05, Peter Hurley <peter@hurleysoftware.com> wrote:
->>> On 03/31/2016 01:41 AM, John Ogness wrote:
->>>> It has been observed that the TX-DMA can stall
->>>
->>> Does this happen on any other OMAP part besides am335x?
->>> I looked back over the LKML history of this and didn't see
->>> any other design implicated in this problem.
->>
->> I just ran the tests again using 4.6-rc2. I am able to reproduce the
->> dma-tx stall with am335x/edma and dra7/sdma.
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Date: Thu, 7 Apr 2016 15:16:42 +0300
+
+> This clean up series intended to:
+>  - fix port_mask parameters in ale calls and drop unnecessary shifts
+>  - drop host_port field from struct cpsw_priv
 > 
-> I thought we already established sdma was not to be used since
-> the hardware does not actually support pausing without data loss.
+> Nothing critical. Tested on am437x-idk-evm in dual mac and switch modes.
 
-This workaround was not invented for sdma but for edma (with am335x).
-
-> http://www.spinics.net/lists/linux-serial/msg18503.html
-
-This could be fixed. See
-  http://www.spinics.net/lists/linux-serial/msg18517.html
-  http://www.spinics.net/lists/linux-serial/msg18531.html
-
-rmk was fine with it from what I read. So what is missing is just
-refurbish the patch (update the comment according to rmk replay) and
-then we could re-enable DMA again.
-
-> So I'm wondering if we're carrying all this extra DMA complexity
-> and workarounds for just am335x?
-> 
-
-Sebastian
+Looks good, series applied, thanks.
