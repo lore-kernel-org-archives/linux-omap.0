@@ -1,39 +1,97 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 00/10] ARM: DTS/clk: DRA7 family: enable eDMA and
- audio updates
-Date: Mon, 11 Apr 2016 13:06:26 -0700
-Message-ID: <20160411200625.GD5995@atomide.com>
-References: <1457363857-20797-1-git-send-email-peter.ujfalusi@ti.com>
- <570BA7A2.3080507@ti.com>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH] tty: serial: 8250_omap: do not defer termios changes
+Date: Mon, 11 Apr 2016 13:10:41 -0700
+Message-ID: <570C04C1.40201@hurleysoftware.com>
+References: <8737r7ght7.fsf@linutronix.de>
+ <570339E8.6010808@hurleysoftware.com> <87y48kftip.fsf@linutronix.de>
+ <570BE48F.60801@hurleysoftware.com> <570BED7B.9080803@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <570BA7A2.3080507-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <570BED7B.9080803@linutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, John Ogness <john.ogness@linutronix.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [160411 06:34]:
-> Tony,
+On 04/11/2016 11:31 AM, Sebastian Andrzej Siewior wrote:
+> On 04/11/2016 07:53 PM, Peter Hurley wrote:
+>> On 04/11/2016 01:18 AM, John Ogness wrote:
+>>> On 2016-04-05, Peter Hurley <peter@hurleysoftware.com> wrote:
+>>>> On 03/31/2016 01:41 AM, John Ogness wrote:
+>>>>> It has been observed that the TX-DMA can stall
+>>>>
+>>>> Does this happen on any other OMAP part besides am335x?
+>>>> I looked back over the LKML history of this and didn't see
+>>>> any other design implicated in this problem.
+>>>
+>>> I just ran the tests again using 4.6-rc2. I am able to reproduce the
+>>> dma-tx stall with am335x/edma and dra7/sdma.
+>>
+>> I thought we already established sdma was not to be used since
+>> the hardware does not actually support pausing without data loss.
 > 
-> according to Nishanth, linux-next is broken for dra7 family:
-> http://pastebin.ubuntu.com/15758542/ on x15 next-20160411
-> because of the missing DT patches.
+> This workaround was not invented for sdma but for edma (with am335x).
 
-OK yeah thanks for letting me know.
+According to John above, dra7/sdma requires this workaround.
 
-> Do you want me to resend this series w/o the hwmod patch?
 
-No need to, applying your dts patches into omap-for-v4.7/dt
-thanks.
+>> http://www.spinics.net/lists/linux-serial/msg18503.html
+> 
+> This could be fixed. See
+>   http://www.spinics.net/lists/linux-serial/msg18517.html
+>   http://www.spinics.net/lists/linux-serial/msg18531.html
+> 
+> rmk was fine with it from what I read. So what is missing is just
+> refurbish the patch (update the comment according to rmk replay) and
+> then we could re-enable DMA again.
 
-The epwmss entries still produce warnings, looks like there's
-discussion still going on with those.
+That's hardly all that is required.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1. edma pause returns an error if the descriptor has already been retired
+   when a pause is attempted. This makes distinguishing between reporting an
+   error for unsupported feature indistinguishable from a transient dma
+   error that can simply be logged.
+2. The question of a spurious uart interrupt with every dma transaction
+   on am335x is still unanswered.
+3. Handling XON/XOFF transmit is mandatory; I don't see a way to do that
+   without pause/resume.
+4. Since virt-dma uses tasklets which since 3.8 are no longer serviced
+   in a timely manner, rx dma is unreliable, since it's often kicked out
+   to regular interrupts.
+5. omap dma maintenance is not keeping up with baseline dma.
+
+
+IOW, omap dma has turned into one big tangle of workarounds.
+
+Let's start with making a list of which TI designs need which workarounds.
+
+*am335x*
+- requires write to tx fifo to trigger tx dma (ie. OMAP_DMA_TX_KICK
+  workaround necessitating completely different tx dma completion handler)
+- requires rx dma already queued before UART data ready interrupt
+  (ie., necessitates completely different irq handler and rx dma completion
+  handler)
+- hangs changing some unknown register if tx dma in progress
+  (ie., this termios change workaround)
+- generates spurious uart interrupt for every rx dma transaction
+  (ie., necessitates acking every UART interrupt, even UART_IIR_NO_INT)
+  _Even with this workaround_, it still generates spurious interrupt warning
+  which shuts off interrupts for several ms while logging the error
+  message to the console, virtually guaranteeing lost data.
+
+
+Can any TI design use the baseline 8250 tx dma transaction flow without
+workarounds?  I know the am335x can't; any others?
+Can any TI design use the baseline 8250 rx dma transaction flow without
+workarounds?  Again, I know the am335x can't; any others?
+
+
+
+>> So I'm wondering if we're carrying all this extra DMA complexity
+>> and workarounds for just am335x?
+>>
+> 
+> Sebastian
+> 
