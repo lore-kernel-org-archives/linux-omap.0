@@ -1,93 +1,109 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v5 1/6] pwms: pwm-ti*: Get the clock from the PWMSS
- (parent)
-Date: Mon, 11 Apr 2016 17:19:37 +0530
-Message-ID: <570B8F51.6040108@ti.com>
-References: <1457400224-24797-1-git-send-email-fcooper@ti.com>
- <1457400224-24797-2-git-send-email-fcooper@ti.com> <5703564C.7090700@ti.com>
- <5703A0C4.6010406@ti.com>
- <alpine.DEB.2.02.1604102048380.11457@utopia.booyaka.com>
+From: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v6 02/10] usb: dwc3: omap: Make the wrapper interrupt shared
+Date: Mon, 11 Apr 2016 15:13:43 +0300
+Message-ID: <87h9f8ny14.fsf@intel.com>
+References: <1460374506-9779-1-git-send-email-rogerq@ti.com> <1460374506-9779-3-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.02.1604102048380.11457-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, "Franklin S Cooper Jr." <fcooper-l0cyMroinI0@public.gmane.org>
-Cc: "Kristo, Tero" <t-kristo-l0cyMroinI0@public.gmane.org>, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-pwm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, vigneshr-l0cyMroinI0@public.gmane.org
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1460374506-9779-3-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 11 April 2016 02:21 AM, Paul Walmsley wrote:
-> Hi guys
-> 
-> On Tue, 5 Apr 2016, Franklin S Cooper Jr. wrote:
-> 
->> On 04/05/2016 01:08 AM, Sekhar Nori wrote:
->>> On Tuesday 08 March 2016 06:53 AM, Franklin S Cooper Jr wrote:
->>>> The eCAP and ePWM doesn't have their own separate clocks. They simply
->>>> utilize the clock provided directly by the PWMSS. Therefore, they simply
->>>> need to grab a reference to their parent's clock.
->>>>
->>>> Signed-off-by: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
->>>
->>> So this assumes that eCAP and eHRPWM are always under the PWMSS
->>> umbrella. But on TI AM18x, thats not true. These IPs exist independently
->>> and receive functional clock from PLL sysclk outputs.
->>>
->>>> ---
->>>>  drivers/pwm/pwm-tiecap.c   | 2 +-
->>>>  drivers/pwm/pwm-tiehrpwm.c | 2 +-
->>>>  2 files changed, 2 insertions(+), 2 deletions(-)
->>>>
->>>> diff --git a/drivers/pwm/pwm-tiecap.c b/drivers/pwm/pwm-tiecap.c
->>>> index 616af76..9418159 100644
->>>> --- a/drivers/pwm/pwm-tiecap.c
->>>> +++ b/drivers/pwm/pwm-tiecap.c
->>>> @@ -212,7 +212,7 @@ static int ecap_pwm_probe(struct platform_device *pdev)
->>>>      if (!pc)
->>>>          return -ENOMEM;
->>>>  
->>>> -    clk = devm_clk_get(&pdev->dev, "fck");
->>>> +    clk = devm_clk_get(pdev->dev.parent, "fck");
->>>
->>> Even keeping the AM18x usecase aside, this seems to be pushing too much
->>> platform information into the driver. The "fck" is a valid connection id
->>> for the eCAP IP. Whether its valid for the parent device too is not
->>> something this driver should need to know.
->>>
->>> So it looks like what you need is for the clock hierarchy for the
->>> platform to have clocks for eHRPWM and eCAP derived out of PWMSS clock?
->>
->> So I believe this is a question on if we want to hide the minor
->> delta between AM18 vs AM335x, AM437x and AM57x/DRA7 in the driver
->> or within the DT.
->>
->> Note that handling this by defining new clocks in DT will then
->> result in older DTBs not working. I don't think its worth breaking
->> backwards compatibility for AM335x and AM437x DTBs for fixing support
->> for AM18 based SOCs. Especially since those SOCs haven't worked with
->> this driver for several years. By handling things within the driver rather
->> than DT we can atleast insure that we can get everything working while
->> avoiding breaking backwards compatibility.
-> 
-> I agree with Sekhar that we shouldn't embed this parent clock quirk 
-> into the driver.  
-> 
-> Can you just define a new compatibility string such that the driver can be 
-> written with no embedded integration quirks?  Then add a workaround in the 
-> driver that will use pdev->dev.parent for the old (deprecated) 
-> compatibility string and log a warning to the kernel console that the DT 
-> needs to be updated.
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Thanks Paul! Although not sure if adding a new compatible for the IP is
-the best way (since that would denote a different version of the IP).
-How about checking for parent clock iff clk_get() on own device fails
-and of_machine_is_compatible() matches the platforms where backward
-compatibility needs to be maintained?
 
-Thanks,
-Sekhar
+Hi,
+
+Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> writes:
+> The wrapper interrupt is shared with OTG core so mark it IRQF_SHARED.
+>
+> Use request_threaded_irq() to ensure that irqflags match for the
+> shared interrupt handlers. If we don't use request_treaded_irq() then
+> forced threaded irq will set IRQF_ONESHOT and this won't match with
+> the OTG irq handler.
+
+then it seems you need to _first_ fix the OTG IRQ handler. Why does it
+defer ? At a minimum, first switch to threaded IRQ handler, then (in
+another patch) switch to IRQF_SHARED
+
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/usb/dwc3/dwc3-omap.c | 12 +++++++++---
+>  1 file changed, 9 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+> index 22e9606..51ca098 100644
+> --- a/drivers/usb/dwc3/dwc3-omap.c
+> +++ b/drivers/usb/dwc3/dwc3-omap.c
+> @@ -274,19 +274,25 @@ static irqreturn_t dwc3_omap_interrupt(int irq, voi=
+d *_omap)
+>  {
+>  	struct dwc3_omap	*omap =3D _omap;
+>  	u32			reg;
+> +	int			ret =3D IRQ_NONE;
+>=20=20
+>  	reg =3D dwc3_omap_read_irqmisc_status(omap);
+>=20=20
+> +	if (reg)
+> +		ret =3D IRQ_HANDLED;
+
+you can avoid the local variable by returning early here.
+
+	if (!reg)
+        	return IRQ_NONE;
+
+>  	if (reg & USBOTGSS_IRQMISC_DMADISABLECLR)
+>  		omap->dma_status =3D false;
+>=20=20
+>  	dwc3_omap_write_irqmisc_status(omap, reg);
+>=20=20
+>  	reg =3D dwc3_omap_read_irq0_status(omap);
+> +	if (reg)
+> +		ret =3D IRQ_HANDLED;
+
+and this check is probably unnecessary.
+
+> @@ -506,8 +512,8 @@ static int dwc3_omap_probe(struct platform_device *pd=
+ev)
+>  	reg =3D dwc3_omap_readl(omap->base, USBOTGSS_SYSCONFIG);
+>  	omap->dma_status =3D !!(reg & USBOTGSS_SYSCONFIG_DMADISABLE);
+>=20=20
+> -	ret =3D devm_request_irq(dev, omap->irq, dwc3_omap_interrupt, 0,
+> -			"dwc3-omap", omap);
+> +	ret =3D devm_request_threaded_irq(dev, omap->irq, dwc3_omap_interrupt,
+
+this switch to threaded IRQ is not part of $subject.
+
+=2D-=20
+balbi
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXC5T4AAoJEIaOsuA1yqREJYcQAIljlXNVhe583nhTVtM0wddz
+VjCzE/0+t5aMbcY7TgHlsoDkPUCirQha7PpDGg+RlLC2QTXTeAd8YaZq2N9oMnLO
+KpFkg8WAKY92RXt7Y3DraPHLHtTOGaBwIAsbK4IreYsX5AHwirj8ItZKwznsD60K
+WBzxEzc4EfIJ3lcsXMmUrdDdHmVyP65sCF3qfAsVP0qMQXxBHX6GOlTkoYVpizR2
+YDrSFwDNg1IlZIzoixe7UT6i43pXjsj5XKH1afPgK2piZlL2buBGTcDflrn26Y0R
+jXK0xwMO0BTUbTFli4MG1mie6d3s3023R3qB3E/IXUL+GM4y+MBGkeJ+QngmCF/x
+Ll1z2OPeiSjNExmy0Eim7OfLHJs32TvFzSJpNINTe+K/jsy/e/7/nHuGBaqtJXn5
+ps/XgnMXLTECKALJzOHJcNGIDAr3R9psGcgtLTEraE5NR/P+5vpyGLvuc+1ZFzq0
+xAn/LujrmPtMy1QB3/Kytxif8slDDZrFqmw7SEaFoPpfwRsb+ozaFQgAm1SW9rKm
+X6UcQWpXx8vef8yfO2sbWBHGbroH6bwXrGN884ckPnJNOK7T3cONtipW1q3Cqu0Z
+fpUCsnzhpbsVVC5KiAxQPazf38P21WXKzOANHmUpeQzGUG+iwGkB7bIxFqzy3s8i
+Urks5/mb5yK7FougONgy
+=qPCU
+-----END PGP SIGNATURE-----
+--=-=-=--
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
