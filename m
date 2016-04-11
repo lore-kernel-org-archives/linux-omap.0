@@ -1,46 +1,79 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP2+: hwmod: fix _idle() hwmod state sanity check
- sequence
-Date: Sun, 10 Apr 2016 23:02:30 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1604102302080.11457@utopia.booyaka.com>
-References: <1459812638-38789-1-git-send-email-s-anna@ti.com>
- <alpine.DEB.2.02.1604101840270.11457@utopia.booyaka.com>
- <570AC1EA.3030501@ti.com>
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: Re: next-20160401+: ARM: DRA7: linux-next regression: mm/slab:
+ clean-up kmem_cache_node setup
+Date: Mon, 11 Apr 2016 11:02:03 +0900
+Message-ID: <20160411020203.GA25211@js1304-P5Q-DELUXE>
+References: <570816F8.9070301@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <570AC1EA.3030501@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-next-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <570816F8.9070301@ti.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, lkml <linux-kernel@vger.kernel.org>, linux-next <linux-next@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Suman
-
-On Sun, 10 Apr 2016, Suman Anna wrote:
-
-> >> There are couple of pr_debug statements that only print once the code
-> >> flow passes through certain conditions. Not sure if you wanted them
-> >> to be printed first thing when entering the functions or only if the
-> >> function is really doing something. But it is still not consistent
-> >> between _enable(), _idle() and _shutdown().
-> > 
-> > Yeah those need to be cleaned up.  Seems like the best thing to do 
-> > is to move them all to the beginning of their respective functions.
+On Fri, Apr 08, 2016 at 03:39:20PM -0500, Nishanth Menon wrote:
+> Hi,
 > 
-> You want that fixed in this patch or a separate patch?
+> http://marc.info/?l=linux-omap&m=146014314115625&w=2 series works with
+> v4.6-rc2 kernel, however, it fails with linux-next for suspend-to-ram
+> (mem) on BeagleBoard-X15
+> 
+> next-20160327 - good
+> next-20160329 - good
+> next-20160330 - Fails to boot - I2C crashes
+> next-20160331-  Fails to boot - USB crashes
+> next-20160401 -> bad
+> next-20160408 -> bad
+> 
+> Bisect log of next-20160408 vs v4.6-rc2 ->
+> http://pastebin.ubuntu.com/15697856/
+> 
+> # first bad commit: [2b629704a2b6a5b239f23750e5517a9d8c3a4e8c]
+> mm/slab: clean-up kmem_cache_node setup
+> 
 
-A separate one would be great.  No rush
+Hello,
 
+I made a mistake on that patch. Could you try to test below one on
+top of it.
 
+Thanks.
 
-- Paul
+--------->8----------------
+>From d3af3cc409527e9be6beb62ea395cde67f3c5029 Mon Sep 17 00:00:00 2001
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Date: Mon, 11 Apr 2016 10:48:29 +0900
+Subject: [PATCH] mm/slab: clean-up kmem_cache_node setup-fix
+
+After calling free_block(), we need to re-calculate array_cache's
+avail counter. Fix it.
+
+And, it's better to free objects in shared array when it is
+really necessary. Check it before calling free_block().
+
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+---
+ mm/slab.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/mm/slab.c b/mm/slab.c
+index fcd5fbb..27cb390 100644
+--- a/mm/slab.c
++++ b/mm/slab.c
+@@ -927,9 +927,10 @@ static int setup_kmem_cache_node(struct kmem_cache *cachep,
+ 
+ 	n = get_node(cachep, node);
+ 	spin_lock_irq(&n->list_lock);
+-	if (n->shared) {
++	if (n->shared && force_change) {
+ 		free_block(cachep, n->shared->entry,
+ 				n->shared->avail, node, &list);
++		n->shared->avail = 0;
+ 	}
+ 
+ 	if (!n->shared || force_change) {
+-- 
+1.9.1
