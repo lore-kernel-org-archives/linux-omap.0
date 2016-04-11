@@ -1,7 +1,7 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: (unknown)
-Date: Mon, 11 Apr 2016 07:51:12 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1604110749570.4726@utopia.booyaka.com>
+Subject: OMAP baseline test results for v4.6-rc3
+Date: Mon, 11 Apr 2016 07:52:06 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1604110751510.4726@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,7 +19,6 @@ To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-OMAP baseline test results for v4.6-rc3
 
 Here are some basic OMAP test results for Linux v4.6-rc3.
 Logs and other details at:
