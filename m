@@ -1,234 +1,150 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 06/30] clk: ti: omap2: transition to usage of ti_clk_get
-Date: Mon, 11 Apr 2016 11:18:57 +0300
-Message-ID: <1460362761-4842-7-git-send-email-t-kristo@ti.com>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 07/30] clk: ti: am33xx: transition to usage of ti_clk_get
+Date: Mon, 11 Apr 2016 11:18:58 +0300
+Message-ID: <1460362761-4842-8-git-send-email-t-kristo@ti.com>
 References: <1460362761-4842-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <1460362761-4842-1-git-send-email-t-kristo@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, mturquette@baylibre.com, sboyd@codeaurora.org
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-clk@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1460362761-4842-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Cleanup any unnecessary DT_CLK() alias entries from OMAP2 clock file.
+Cleanup any unnecessary DT_CLK() alias entries from the AM33xx clock file.
 Also, use ti_clk_get where necessary.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 ---
- drivers/clk/ti/clk-2xxx.c |  151 ++-------------------------------------------
- 1 file changed, 4 insertions(+), 147 deletions(-)
+ drivers/clk/ti/clk-33xx.c |   92 ++++-----------------------------------------
+ 1 file changed, 7 insertions(+), 85 deletions(-)
 
-diff --git a/drivers/clk/ti/clk-2xxx.c b/drivers/clk/ti/clk-2xxx.c
-index 657c4fe..0b9d7fa 100644
---- a/drivers/clk/ti/clk-2xxx.c
-+++ b/drivers/clk/ti/clk-2xxx.c
-@@ -22,126 +22,22 @@
+diff --git a/drivers/clk/ti/clk-33xx.c b/drivers/clk/ti/clk-33xx.c
+index ef2ec64..43847bc 100644
+--- a/drivers/clk/ti/clk-33xx.c
++++ b/drivers/clk/ti/clk-33xx.c
+@@ -23,88 +23,10 @@
  #include "clock.h"
  
- static struct ti_dt_clk omap2xxx_clks[] = {
--	DT_CLK(NULL, "func_32k_ck", "func_32k_ck"),
--	DT_CLK(NULL, "secure_32k_ck", "secure_32k_ck"),
--	DT_CLK(NULL, "virt_12m_ck", "virt_12m_ck"),
--	DT_CLK(NULL, "virt_13m_ck", "virt_13m_ck"),
+ static struct ti_dt_clk am33xx_clks[] = {
+-	DT_CLK(NULL, "clk_32768_ck", "clk_32768_ck"),
+-	DT_CLK(NULL, "clk_rc32k_ck", "clk_rc32k_ck"),
 -	DT_CLK(NULL, "virt_19200000_ck", "virt_19200000_ck"),
--	DT_CLK(NULL, "virt_26m_ck", "virt_26m_ck"),
--	DT_CLK(NULL, "aplls_clkin_ck", "aplls_clkin_ck"),
--	DT_CLK(NULL, "aplls_clkin_x2_ck", "aplls_clkin_x2_ck"),
--	DT_CLK(NULL, "osc_ck", "osc_ck"),
--	DT_CLK(NULL, "sys_ck", "sys_ck"),
--	DT_CLK(NULL, "alt_ck", "alt_ck"),
--	DT_CLK(NULL, "mcbsp_clks", "mcbsp_clks"),
--	DT_CLK(NULL, "dpll_ck", "dpll_ck"),
--	DT_CLK(NULL, "apll96_ck", "apll96_ck"),
--	DT_CLK(NULL, "apll54_ck", "apll54_ck"),
--	DT_CLK(NULL, "func_54m_ck", "func_54m_ck"),
--	DT_CLK(NULL, "core_ck", "core_ck"),
--	DT_CLK(NULL, "func_96m_ck", "func_96m_ck"),
--	DT_CLK(NULL, "func_48m_ck", "func_48m_ck"),
--	DT_CLK(NULL, "func_12m_ck", "func_12m_ck"),
--	DT_CLK(NULL, "sys_clkout_src", "sys_clkout_src"),
--	DT_CLK(NULL, "sys_clkout", "sys_clkout"),
--	DT_CLK(NULL, "emul_ck", "emul_ck"),
--	DT_CLK(NULL, "mpu_ck", "mpu_ck"),
--	DT_CLK(NULL, "dsp_fck", "dsp_fck"),
--	DT_CLK(NULL, "gfx_3d_fck", "gfx_3d_fck"),
--	DT_CLK(NULL, "gfx_2d_fck", "gfx_2d_fck"),
--	DT_CLK(NULL, "gfx_ick", "gfx_ick"),
- 	DT_CLK("omapdss_dss", "ick", "dss_ick"),
--	DT_CLK(NULL, "dss_ick", "dss_ick"),
--	DT_CLK(NULL, "dss1_fck", "dss1_fck"),
--	DT_CLK(NULL, "dss2_fck", "dss2_fck"),
--	DT_CLK(NULL, "dss_54m_fck", "dss_54m_fck"),
--	DT_CLK(NULL, "core_l3_ck", "core_l3_ck"),
- 	DT_CLK(NULL, "ssi_fck", "ssi_ssr_sst_fck"),
--	DT_CLK(NULL, "usb_l4_ick", "usb_l4_ick"),
--	DT_CLK(NULL, "l4_ck", "l4_ck"),
--	DT_CLK(NULL, "ssi_l4_ick", "ssi_l4_ick"),
--	DT_CLK(NULL, "gpt1_ick", "gpt1_ick"),
--	DT_CLK(NULL, "gpt1_fck", "gpt1_fck"),
--	DT_CLK(NULL, "gpt2_ick", "gpt2_ick"),
--	DT_CLK(NULL, "gpt2_fck", "gpt2_fck"),
--	DT_CLK(NULL, "gpt3_ick", "gpt3_ick"),
--	DT_CLK(NULL, "gpt3_fck", "gpt3_fck"),
--	DT_CLK(NULL, "gpt4_ick", "gpt4_ick"),
--	DT_CLK(NULL, "gpt4_fck", "gpt4_fck"),
--	DT_CLK(NULL, "gpt5_ick", "gpt5_ick"),
--	DT_CLK(NULL, "gpt5_fck", "gpt5_fck"),
--	DT_CLK(NULL, "gpt6_ick", "gpt6_ick"),
--	DT_CLK(NULL, "gpt6_fck", "gpt6_fck"),
--	DT_CLK(NULL, "gpt7_ick", "gpt7_ick"),
--	DT_CLK(NULL, "gpt7_fck", "gpt7_fck"),
--	DT_CLK(NULL, "gpt8_ick", "gpt8_ick"),
--	DT_CLK(NULL, "gpt8_fck", "gpt8_fck"),
--	DT_CLK(NULL, "gpt9_ick", "gpt9_ick"),
--	DT_CLK(NULL, "gpt9_fck", "gpt9_fck"),
--	DT_CLK(NULL, "gpt10_ick", "gpt10_ick"),
--	DT_CLK(NULL, "gpt10_fck", "gpt10_fck"),
--	DT_CLK(NULL, "gpt11_ick", "gpt11_ick"),
--	DT_CLK(NULL, "gpt11_fck", "gpt11_fck"),
--	DT_CLK(NULL, "gpt12_ick", "gpt12_ick"),
--	DT_CLK(NULL, "gpt12_fck", "gpt12_fck"),
- 	DT_CLK("omap-mcbsp.1", "ick", "mcbsp1_ick"),
--	DT_CLK(NULL, "mcbsp1_ick", "mcbsp1_ick"),
--	DT_CLK(NULL, "mcbsp1_fck", "mcbsp1_fck"),
- 	DT_CLK("omap-mcbsp.2", "ick", "mcbsp2_ick"),
--	DT_CLK(NULL, "mcbsp2_ick", "mcbsp2_ick"),
--	DT_CLK(NULL, "mcbsp2_fck", "mcbsp2_fck"),
- 	DT_CLK("omap2_mcspi.1", "ick", "mcspi1_ick"),
--	DT_CLK(NULL, "mcspi1_ick", "mcspi1_ick"),
--	DT_CLK(NULL, "mcspi1_fck", "mcspi1_fck"),
- 	DT_CLK("omap2_mcspi.2", "ick", "mcspi2_ick"),
--	DT_CLK(NULL, "mcspi2_ick", "mcspi2_ick"),
--	DT_CLK(NULL, "mcspi2_fck", "mcspi2_fck"),
--	DT_CLK(NULL, "uart1_ick", "uart1_ick"),
--	DT_CLK(NULL, "uart1_fck", "uart1_fck"),
--	DT_CLK(NULL, "uart2_ick", "uart2_ick"),
--	DT_CLK(NULL, "uart2_fck", "uart2_fck"),
--	DT_CLK(NULL, "uart3_ick", "uart3_ick"),
--	DT_CLK(NULL, "uart3_fck", "uart3_fck"),
--	DT_CLK(NULL, "gpios_ick", "gpios_ick"),
--	DT_CLK(NULL, "gpios_fck", "gpios_fck"),
- 	DT_CLK("omap_wdt", "ick", "mpu_wdt_ick"),
--	DT_CLK(NULL, "mpu_wdt_ick", "mpu_wdt_ick"),
--	DT_CLK(NULL, "mpu_wdt_fck", "mpu_wdt_fck"),
--	DT_CLK(NULL, "sync_32k_ick", "sync_32k_ick"),
--	DT_CLK(NULL, "wdt1_ick", "wdt1_ick"),
--	DT_CLK(NULL, "omapctrl_ick", "omapctrl_ick"),
- 	DT_CLK("omap24xxcam", "fck", "cam_fck"),
--	DT_CLK(NULL, "cam_fck", "cam_fck"),
- 	DT_CLK("omap24xxcam", "ick", "cam_ick"),
--	DT_CLK(NULL, "cam_ick", "cam_ick"),
--	DT_CLK(NULL, "mailboxes_ick", "mailboxes_ick"),
--	DT_CLK(NULL, "wdt4_ick", "wdt4_ick"),
--	DT_CLK(NULL, "wdt4_fck", "wdt4_fck"),
--	DT_CLK(NULL, "mspro_ick", "mspro_ick"),
--	DT_CLK(NULL, "mspro_fck", "mspro_fck"),
--	DT_CLK(NULL, "fac_ick", "fac_ick"),
--	DT_CLK(NULL, "fac_fck", "fac_fck"),
- 	DT_CLK("omap_hdq.0", "ick", "hdq_ick"),
--	DT_CLK(NULL, "hdq_ick", "hdq_ick"),
- 	DT_CLK("omap_hdq.0", "fck", "hdq_fck"),
--	DT_CLK(NULL, "hdq_fck", "hdq_fck"),
- 	DT_CLK("omap_i2c.1", "ick", "i2c1_ick"),
--	DT_CLK(NULL, "i2c1_ick", "i2c1_ick"),
- 	DT_CLK("omap_i2c.2", "ick", "i2c2_ick"),
--	DT_CLK(NULL, "i2c2_ick", "i2c2_ick"),
--	DT_CLK(NULL, "gpmc_fck", "gpmc_fck"),
--	DT_CLK(NULL, "sdma_fck", "sdma_fck"),
--	DT_CLK(NULL, "sdma_ick", "sdma_ick"),
--	DT_CLK(NULL, "sdrc_ick", "sdrc_ick"),
--	DT_CLK(NULL, "des_ick", "des_ick"),
- 	DT_CLK("omap-sham", "ick", "sha_ick"),
--	DT_CLK(NULL, "sha_ick", "sha_ick"),
- 	DT_CLK("omap_rng", "ick", "rng_ick"),
--	DT_CLK(NULL, "rng_ick", "rng_ick"),
- 	DT_CLK("omap-aes", "ick", "aes_ick"),
--	DT_CLK(NULL, "aes_ick", "aes_ick"),
--	DT_CLK(NULL, "pka_ick", "pka_ick"),
--	DT_CLK(NULL, "usb_fck", "usb_fck"),
- 	DT_CLK(NULL, "timer_32k_ck", "func_32k_ck"),
- 	DT_CLK(NULL, "timer_sys_ck", "sys_ck"),
- 	DT_CLK(NULL, "timer_ext_ck", "alt_ck"),
-@@ -149,62 +45,23 @@ static struct ti_dt_clk omap2xxx_clks[] = {
- };
+-	DT_CLK(NULL, "virt_24000000_ck", "virt_24000000_ck"),
+-	DT_CLK(NULL, "virt_25000000_ck", "virt_25000000_ck"),
+-	DT_CLK(NULL, "virt_26000000_ck", "virt_26000000_ck"),
+-	DT_CLK(NULL, "sys_clkin_ck", "sys_clkin_ck"),
+-	DT_CLK(NULL, "tclkin_ck", "tclkin_ck"),
+-	DT_CLK(NULL, "dpll_core_ck", "dpll_core_ck"),
+-	DT_CLK(NULL, "dpll_core_x2_ck", "dpll_core_x2_ck"),
+-	DT_CLK(NULL, "dpll_core_m4_ck", "dpll_core_m4_ck"),
+-	DT_CLK(NULL, "dpll_core_m5_ck", "dpll_core_m5_ck"),
+-	DT_CLK(NULL, "dpll_core_m6_ck", "dpll_core_m6_ck"),
+-	DT_CLK(NULL, "dpll_mpu_ck", "dpll_mpu_ck"),
+-	DT_CLK(NULL, "dpll_mpu_m2_ck", "dpll_mpu_m2_ck"),
+-	DT_CLK(NULL, "dpll_ddr_ck", "dpll_ddr_ck"),
+-	DT_CLK(NULL, "dpll_ddr_m2_ck", "dpll_ddr_m2_ck"),
+-	DT_CLK(NULL, "dpll_ddr_m2_div2_ck", "dpll_ddr_m2_div2_ck"),
+-	DT_CLK(NULL, "dpll_disp_ck", "dpll_disp_ck"),
+-	DT_CLK(NULL, "dpll_disp_m2_ck", "dpll_disp_m2_ck"),
+-	DT_CLK(NULL, "dpll_per_ck", "dpll_per_ck"),
+-	DT_CLK(NULL, "dpll_per_m2_ck", "dpll_per_m2_ck"),
+-	DT_CLK(NULL, "dpll_per_m2_div4_wkupdm_ck", "dpll_per_m2_div4_wkupdm_ck"),
+-	DT_CLK(NULL, "dpll_per_m2_div4_ck", "dpll_per_m2_div4_ck"),
+-	DT_CLK(NULL, "adc_tsc_fck", "adc_tsc_fck"),
+-	DT_CLK(NULL, "cefuse_fck", "cefuse_fck"),
+-	DT_CLK(NULL, "clkdiv32k_ck", "clkdiv32k_ck"),
+-	DT_CLK(NULL, "clkdiv32k_ick", "clkdiv32k_ick"),
+-	DT_CLK(NULL, "dcan0_fck", "dcan0_fck"),
+-	DT_CLK("481cc000.d_can", NULL, "dcan0_fck"),
+-	DT_CLK(NULL, "dcan1_fck", "dcan1_fck"),
+-	DT_CLK("481d0000.d_can", NULL, "dcan1_fck"),
+-	DT_CLK(NULL, "pruss_ocp_gclk", "pruss_ocp_gclk"),
+-	DT_CLK(NULL, "mcasp0_fck", "mcasp0_fck"),
+-	DT_CLK(NULL, "mcasp1_fck", "mcasp1_fck"),
+-	DT_CLK(NULL, "mmu_fck", "mmu_fck"),
+-	DT_CLK(NULL, "smartreflex0_fck", "smartreflex0_fck"),
+-	DT_CLK(NULL, "smartreflex1_fck", "smartreflex1_fck"),
+-	DT_CLK(NULL, "sha0_fck", "sha0_fck"),
+-	DT_CLK(NULL, "aes0_fck", "aes0_fck"),
+-	DT_CLK(NULL, "rng_fck", "rng_fck"),
+-	DT_CLK(NULL, "timer1_fck", "timer1_fck"),
+-	DT_CLK(NULL, "timer2_fck", "timer2_fck"),
+-	DT_CLK(NULL, "timer3_fck", "timer3_fck"),
+-	DT_CLK(NULL, "timer4_fck", "timer4_fck"),
+-	DT_CLK(NULL, "timer5_fck", "timer5_fck"),
+-	DT_CLK(NULL, "timer6_fck", "timer6_fck"),
+-	DT_CLK(NULL, "timer7_fck", "timer7_fck"),
+-	DT_CLK(NULL, "usbotg_fck", "usbotg_fck"),
+-	DT_CLK(NULL, "ieee5000_fck", "ieee5000_fck"),
+-	DT_CLK(NULL, "wdt1_fck", "wdt1_fck"),
+-	DT_CLK(NULL, "l4_rtc_gclk", "l4_rtc_gclk"),
+-	DT_CLK(NULL, "l3_gclk", "l3_gclk"),
+-	DT_CLK(NULL, "dpll_core_m4_div2_ck", "dpll_core_m4_div2_ck"),
+-	DT_CLK(NULL, "l4hs_gclk", "l4hs_gclk"),
+-	DT_CLK(NULL, "l3s_gclk", "l3s_gclk"),
+-	DT_CLK(NULL, "l4fw_gclk", "l4fw_gclk"),
+-	DT_CLK(NULL, "l4ls_gclk", "l4ls_gclk"),
+-	DT_CLK(NULL, "clk_24mhz", "clk_24mhz"),
+-	DT_CLK(NULL, "sysclk_div_ck", "sysclk_div_ck"),
+-	DT_CLK(NULL, "cpsw_125mhz_gclk", "cpsw_125mhz_gclk"),
+-	DT_CLK(NULL, "cpsw_cpts_rft_clk", "cpsw_cpts_rft_clk"),
+-	DT_CLK(NULL, "gpio0_dbclk_mux_ck", "gpio0_dbclk_mux_ck"),
+-	DT_CLK(NULL, "gpio0_dbclk", "gpio0_dbclk"),
+-	DT_CLK(NULL, "gpio1_dbclk", "gpio1_dbclk"),
+-	DT_CLK(NULL, "gpio2_dbclk", "gpio2_dbclk"),
+-	DT_CLK(NULL, "gpio3_dbclk", "gpio3_dbclk"),
+-	DT_CLK(NULL, "lcd_gclk", "lcd_gclk"),
+-	DT_CLK(NULL, "mmc_clk", "mmc_clk"),
+-	DT_CLK(NULL, "gfx_fclk_clksel_ck", "gfx_fclk_clksel_ck"),
+-	DT_CLK(NULL, "gfx_fck_div_ck", "gfx_fck_div_ck"),
+-	DT_CLK(NULL, "sysclkout_pre_ck", "sysclkout_pre_ck"),
+-	DT_CLK(NULL, "clkout2_div_ck", "clkout2_div_ck"),
+ 	DT_CLK(NULL, "timer_32k_ck", "clkdiv32k_ick"),
+ 	DT_CLK(NULL, "timer_sys_ck", "sys_clkin_ck"),
+-	DT_CLK(NULL, "dbg_sysclk_ck", "dbg_sysclk_ck"),
+-	DT_CLK(NULL, "dbg_clka_ck", "dbg_clka_ck"),
+-	DT_CLK(NULL, "stm_pmd_clock_mux_ck", "stm_pmd_clock_mux_ck"),
+-	DT_CLK(NULL, "trace_pmd_clk_mux_ck", "trace_pmd_clk_mux_ck"),
+-	DT_CLK(NULL, "stm_clk_div_ck", "stm_clk_div_ck"),
+-	DT_CLK(NULL, "trace_clk_div_ck", "trace_clk_div_ck"),
+-	DT_CLK(NULL, "clkout2_ck", "clkout2_ck"),
++	DT_CLK("481cc000.d_can", NULL, "dcan0_fck"),
++	DT_CLK("481d0000.d_can", NULL, "dcan1_fck"),
+ 	DT_CLK("48300200.ehrpwm", "tbclk", "ehrpwm0_tbclk"),
+ 	DT_CLK("48302200.ehrpwm", "tbclk", "ehrpwm1_tbclk"),
+ 	DT_CLK("48304200.ehrpwm", "tbclk", "ehrpwm2_tbclk"),
+@@ -142,11 +64,11 @@ int __init am33xx_dt_clk_init(void)
+ 	 *    oscillator clock.
+ 	 */
  
- static struct ti_dt_clk omap2420_clks[] = {
--	DT_CLK(NULL, "sys_clkout2_src", "sys_clkout2_src"),
--	DT_CLK(NULL, "sys_clkout2", "sys_clkout2"),
--	DT_CLK(NULL, "dsp_ick", "dsp_ick"),
--	DT_CLK(NULL, "iva1_ifck", "iva1_ifck"),
--	DT_CLK(NULL, "iva1_mpu_int_ifck", "iva1_mpu_int_ifck"),
--	DT_CLK(NULL, "wdt3_ick", "wdt3_ick"),
--	DT_CLK(NULL, "wdt3_fck", "wdt3_fck"),
- 	DT_CLK("mmci-omap.0", "ick", "mmc_ick"),
--	DT_CLK(NULL, "mmc_ick", "mmc_ick"),
- 	DT_CLK("mmci-omap.0", "fck", "mmc_fck"),
--	DT_CLK(NULL, "mmc_fck", "mmc_fck"),
--	DT_CLK(NULL, "eac_ick", "eac_ick"),
--	DT_CLK(NULL, "eac_fck", "eac_fck"),
--	DT_CLK(NULL, "i2c1_fck", "i2c1_fck"),
--	DT_CLK(NULL, "i2c2_fck", "i2c2_fck"),
--	DT_CLK(NULL, "vlynq_ick", "vlynq_ick"),
--	DT_CLK(NULL, "vlynq_fck", "vlynq_fck"),
- 	DT_CLK("musb-hdrc", "fck", "osc_ck"),
- 	{ .node_name = NULL },
- };
+-	clk1 = clk_get_sys(NULL, "sys_clkin_ck");
+-	clk2 = clk_get_sys(NULL, "timer3_fck");
++	clk1 = ti_clk_get("sys_clkin_ck");
++	clk2 = ti_clk_get("timer3_fck");
+ 	clk_set_parent(clk2, clk1);
  
- static struct ti_dt_clk omap2430_clks[] = {
- 	DT_CLK("twl", "fck", "osc_ck"),
--	DT_CLK(NULL, "iva2_1_ick", "iva2_1_ick"),
--	DT_CLK(NULL, "mdm_ick", "mdm_ick"),
--	DT_CLK(NULL, "mdm_osc_ck", "mdm_osc_ck"),
- 	DT_CLK("omap-mcbsp.3", "ick", "mcbsp3_ick"),
--	DT_CLK(NULL, "mcbsp3_ick", "mcbsp3_ick"),
--	DT_CLK(NULL, "mcbsp3_fck", "mcbsp3_fck"),
- 	DT_CLK("omap-mcbsp.4", "ick", "mcbsp4_ick"),
--	DT_CLK(NULL, "mcbsp4_ick", "mcbsp4_ick"),
--	DT_CLK(NULL, "mcbsp4_fck", "mcbsp4_fck"),
- 	DT_CLK("omap-mcbsp.5", "ick", "mcbsp5_ick"),
--	DT_CLK(NULL, "mcbsp5_ick", "mcbsp5_ick"),
--	DT_CLK(NULL, "mcbsp5_fck", "mcbsp5_fck"),
- 	DT_CLK("omap2_mcspi.3", "ick", "mcspi3_ick"),
--	DT_CLK(NULL, "mcspi3_ick", "mcspi3_ick"),
--	DT_CLK(NULL, "mcspi3_fck", "mcspi3_fck"),
--	DT_CLK(NULL, "icr_ick", "icr_ick"),
--	DT_CLK(NULL, "i2chs1_fck", "i2chs1_fck"),
--	DT_CLK(NULL, "i2chs2_fck", "i2chs2_fck"),
- 	DT_CLK("musb-omap2430", "ick", "usbhs_ick"),
--	DT_CLK(NULL, "usbhs_ick", "usbhs_ick"),
- 	DT_CLK("omap_hsmmc.0", "ick", "mmchs1_ick"),
--	DT_CLK(NULL, "mmchs1_ick", "mmchs1_ick"),
--	DT_CLK(NULL, "mmchs1_fck", "mmchs1_fck"),
- 	DT_CLK("omap_hsmmc.1", "ick", "mmchs2_ick"),
--	DT_CLK(NULL, "mmchs2_ick", "mmchs2_ick"),
--	DT_CLK(NULL, "mmchs2_fck", "mmchs2_fck"),
--	DT_CLK(NULL, "gpio5_ick", "gpio5_ick"),
--	DT_CLK(NULL, "gpio5_fck", "gpio5_fck"),
--	DT_CLK(NULL, "mdm_intc_ick", "mdm_intc_ick"),
- 	DT_CLK("omap_hsmmc.0", "mmchsdb_fck", "mmchsdb1_fck"),
--	DT_CLK(NULL, "mmchsdb1_fck", "mmchsdb1_fck"),
- 	DT_CLK("omap_hsmmc.1", "mmchsdb_fck", "mmchsdb2_fck"),
--	DT_CLK(NULL, "mmchsdb2_fck", "mmchsdb2_fck"),
- 	{ .node_name = NULL },
- };
- 
-@@ -239,10 +96,10 @@ static int __init omap2xxx_dt_clk_init(int soc_type)
- 				     ARRAY_SIZE(enable_init_clks));
- 
- 	pr_info("Clocking rate (Crystal/DPLL/MPU): %ld.%01ld/%ld/%ld MHz\n",
--		(clk_get_rate(clk_get_sys(NULL, "sys_ck")) / 1000000),
--		(clk_get_rate(clk_get_sys(NULL, "sys_ck")) / 100000) % 10,
--		(clk_get_rate(clk_get_sys(NULL, "dpll_ck")) / 1000000),
--		(clk_get_rate(clk_get_sys(NULL, "mpu_ck")) / 1000000));
-+		(clk_get_rate(ti_clk_get("sys_ck")) / 1000000),
-+		(clk_get_rate(ti_clk_get("sys_ck")) / 100000) % 10,
-+		(clk_get_rate(ti_clk_get("dpll_ck")) / 1000000),
-+		(clk_get_rate(ti_clk_get("mpu_ck")) / 1000000));
+-	clk2 = clk_get_sys(NULL, "timer6_fck");
++	clk2 = ti_clk_get("timer6_fck");
+ 	clk_set_parent(clk2, clk1);
+ 	/*
+ 	 * The On-Chip 32K RC Osc clock is not an accurate clock-source as per
+@@ -155,8 +77,8 @@ int __init am33xx_dt_clk_init(void)
+ 	 * not expected by any use-case, so change WDT1 clock source to PRCM
+ 	 * 32KHz clock.
+ 	 */
+-	clk1 = clk_get_sys(NULL, "wdt1_fck");
+-	clk2 = clk_get_sys(NULL, "clkdiv32k_ick");
++	clk1 = ti_clk_get("wdt1_fck");
++	clk2 = ti_clk_get("clkdiv32k_ick");
+ 	clk_set_parent(clk1, clk2);
  
  	return 0;
- }
 -- 
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
