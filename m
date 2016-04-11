@@ -1,47 +1,115 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 1/5] mfd: tps65217: Add support for IRQs
-Date: Mon, 11 Apr 2016 11:48:12 +0300
-Message-ID: <570B64CC.9040105@ti.com>
-References: <1459789865-3704-1-git-send-email-m.niestroj@grinn-global.com>
- <1459789865-3704-3-git-send-email-m.niestroj@grinn-global.com>
- <57038E46.9070204@ti.com> <57039E74.7030704@grinn-global.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH V2 01/20] mfd: Add resource managed apis for
+ mfd_add_devices
+Date: Mon, 11 Apr 2016 10:15:00 +0100
+Message-ID: <20160411091500.GO4592@x1>
+References: <1460054594-32325-1-git-send-email-ldewangan@nvidia.com>
+ <1460054594-32325-2-git-send-email-ldewangan@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <57039E74.7030704@grinn-global.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Marcin Niestroj <m.niestroj@grinn-global.com>, Lee Jones <lee.jones@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-input@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1460054594-32325-2-git-send-email-ldewangan@nvidia.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Laxman Dewangan <ldewangan@nvidia.com>
+Cc: corbet@lwn.net, andreas.werner@men.de, tony@atomide.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, patches@opensource.wolfsonmicro.com
 List-Id: linux-omap@vger.kernel.org
 
-On 04/05/2016 02:16 PM, Marcin Niestroj wrote:
->
->
-> On 05.04.2016 12:07, Grygorii Strashko wrote:
->> On 04/04/2016 08:11 PM, Marcin Niestroj wrote:
->>> Add support for handling IRQs: power button, AC and USB power state
->>> changes. Mask and interrupt bits are shared within one register, which
->>> prevents us to use regmap_irq implementation. New irq_domain is
->>> created in
->>> order to add interrupt handling for each tps65217's subsystem. IRQ
->>> resources have been added for charger subsystem to be able to notify
->>> about
->>> AC and USB state changes.
->>>
->>> Signed-off-by: Marcin Niestroj <m.niestroj@grinn-global.com>
->>> ---
->>
->> Just curious Why not use a regmap_irq?
->>
->
-> tps65217 has IRQ mask and status bits in a single register. regmap_irq
-> works in case of two different registers (one mask, one status), but
-> with the same layout of mask and status bits in both.
->
+Applied, thanks.
 
-Thanks for the info.
+> Add resource managed API devm_mfd_add_devices() for the mfd_add_devic=
+es().
+>=20
+> This helps in reducing code in error path as it is not required
+> to call mfd_remove_devices() explicitly to remove all child-devices.
+> In some cases, it also helps not to implement .remove() callback
+> which get called during driver unbind.
+>=20
+> Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
+>=20
+> ---
+> Changes from V1:
+> - Reformat the commit message.
+> - Run checkpatch with --strict option and fix warning.
+> - Remove devm_ for mfd_remove_devices() as this is not used.
+> - Consider V1 review comment on error handling.
+>=20
+>  drivers/mfd/mfd-core.c   | 38 ++++++++++++++++++++++++++++++++++++++
+>  include/linux/mfd/core.h |  4 ++++
+>  2 files changed, 42 insertions(+)
+>=20
+> diff --git a/drivers/mfd/mfd-core.c b/drivers/mfd/mfd-core.c
+> index 409da01..4b4c1d4 100644
+> --- a/drivers/mfd/mfd-core.c
+> +++ b/drivers/mfd/mfd-core.c
+> @@ -334,6 +334,44 @@ void mfd_remove_devices(struct device *parent)
+>  }
+>  EXPORT_SYMBOL(mfd_remove_devices);
+> =20
+> +static void devm_mfd_dev_release(struct device *dev, void *res)
+> +{
+> +	mfd_remove_devices(dev);
+> +}
+> +
+> +/**
+> + * devm_mfd_add_devices - Resource managed version of mfd_add_device=
+s()
+> + *
+> + * Returns 0 on success or an appropriate negative error number on f=
+ailure.
+> + * All child-devices of the MFD will automatically be removed when i=
+t gets
+> + * unbinded.
+> + */
+> +int devm_mfd_add_devices(struct device *dev, int id,
+> +			 const struct mfd_cell *cells, int n_devs,
+> +			 struct resource *mem_base,
+> +			 int irq_base, struct irq_domain *domain)
+> +{
+> +	struct device **ptr;
+> +	int ret;
+> +
+> +	ptr =3D devres_alloc(devm_mfd_dev_release, sizeof(*ptr), GFP_KERNEL=
+);
+> +	if (!ptr)
+> +		return -ENOMEM;
+> +
+> +	ret =3D mfd_add_devices(dev, id, cells, n_devs, mem_base,
+> +			      irq_base, domain);
+> +	if (ret < 0) {
+> +		devres_free(ptr);
+> +		return ret;
+> +	}
+> +
+> +	*ptr =3D dev;
+> +	devres_add(dev, ptr);
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL(devm_mfd_add_devices);
+> +
+>  int mfd_clone_cell(const char *cell, const char **clones, size_t n_c=
+lones)
+>  {
+>  	struct mfd_cell cell_entry;
+> diff --git a/include/linux/mfd/core.h b/include/linux/mfd/core.h
+> index bc6f7e0..4a0268a 100644
+> --- a/include/linux/mfd/core.h
+> +++ b/include/linux/mfd/core.h
+> @@ -131,4 +131,8 @@ static inline int mfd_add_hotplug_devices(struct =
+device *parent,
+> =20
+>  extern void mfd_remove_devices(struct device *parent);
+> =20
+> +extern int devm_mfd_add_devices(struct device *dev, int id,
+> +				const struct mfd_cell *cells, int n_devs,
+> +				struct resource *mem_base,
+> +				int irq_base, struct irq_domain *irq_domain);
+>  #endif
 
--- 
-regards,
--grygorii
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
