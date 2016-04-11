@@ -1,81 +1,45 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v6 03/10] usb: dwc3: omap: Pass VBUS and ID events
- transparently
-Date: Mon, 11 Apr 2016 16:03:45 +0300
-Message-ID: <570BA0B1.1060404@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v6 04/10] usb: dwc3: omap: fix up error path on probe()
+Date: Mon, 11 Apr 2016 16:09:45 +0300
+Message-ID: <570BA219.3000606@ti.com>
 References: <1460374506-9779-1-git-send-email-rogerq@ti.com>
- <1460374506-9779-4-git-send-email-rogerq@ti.com> <87egacnxtr.fsf@intel.com>
+ <1460374506-9779-5-git-send-email-rogerq@ti.com> <87bn5gnxp9.fsf@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87egacnxtr.fsf@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@kernel.org>
-Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87bn5gnxp9.fsf-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11/04/16 15:18, Felipe Balbi wrote:
+On 11/04/16 15:20, Felipe Balbi wrote:
 > 
 > Hi,
 > 
-> Roger Quadros <rogerq@ti.com> writes:
->> Don't make any decisions regarding VBUS session based on ID
->> status. That is best left to the OTG core.
-> 
-> what about builds who don't want OTG and/or dual-role ?
-> 
->> Pass ID and VBUS events independent of each other so that OTG
->> core knows exactly what to do.
+> Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> writes:
+>> From: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 >>
->> This makes dual-role with extcon work with OTG irq on OMAP platforms.
+>> Even if pm_runtime_get*() fails, we *MUST* call
+>> pm_runtime_put_sync() before disabling PM.
 >>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->>  drivers/usb/dwc3/dwc3-omap.c | 15 ++++++---------
->>  1 file changed, 6 insertions(+), 9 deletions(-)
+>> While at it, remove superfluous dwc3_omap_disable_irqs()
+>> in error path.
 >>
->> diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
->> index 51ca098..c9b918d 100644
->> --- a/drivers/usb/dwc3/dwc3-omap.c
->> +++ b/drivers/usb/dwc3/dwc3-omap.c
->> @@ -233,19 +233,14 @@ static void dwc3_omap_set_mailbox(struct dwc3_omap *omap,
->>  		}
->>  
->>  		val = dwc3_omap_read_utmi_ctrl(omap);
->> -		val &= ~(USBOTGSS_UTMI_OTG_CTRL_IDDIG
->> -				| USBOTGSS_UTMI_OTG_CTRL_VBUSVALID
->> -				| USBOTGSS_UTMI_OTG_CTRL_SESSEND);
->> -		val |= USBOTGSS_UTMI_OTG_CTRL_SESSVALID
->> -				| USBOTGSS_UTMI_OTG_CTRL_POWERPRESENT;
->> +		val &= ~USBOTGSS_UTMI_OTG_CTRL_IDDIG;
+>> Signed-off-by: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>> [nsekhar-l0cyMroinI0@public.gmane.org: patch description updates]
+>> Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 > 
-> this creates the possibility of having a USB peripheral with VBUS_VALID,
-> right 
-
-Sorry, I didn't get what you meant.
-
+> this fix is unrelated to DRD/OTG work, right ? Care to rebase only this
+> patch on v4.6-rc3 so I can apply it during current -rc ?
 > 
->>  		dwc3_omap_write_utmi_ctrl(omap, val);
->>  		break;
->>  
->>  	case OMAP_DWC3_VBUS_VALID:
->>  		val = dwc3_omap_read_utmi_ctrl(omap);
->>  		val &= ~USBOTGSS_UTMI_OTG_CTRL_SESSEND;
->> -		val |= USBOTGSS_UTMI_OTG_CTRL_IDDIG
->> -				| USBOTGSS_UTMI_OTG_CTRL_VBUSVALID
->> +		val |= USBOTGSS_UTMI_OTG_CTRL_VBUSVALID
->>  				| USBOTGSS_UTMI_OTG_CTRL_SESSVALID
->>  				| USBOTGSS_UTMI_OTG_CTRL_POWERPRESENT;
-> 
-> I remember discussing this with TI's IP owner back in OMAP5 days. This
-> code was a result of talking to that guy and was, back then, tested by
-> Silicon Validation team. I would strongly advise that before changing
-> these bits you check with whoever's currently handling this IP inside TI
-> to make sure your changes are still within the expectations of the
-> wrapper block.
-> 
-OK, I wasn't aware about this. I will check with the Silicon team.
+Sure, will do that.
 
 cheers,
 -roger
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
