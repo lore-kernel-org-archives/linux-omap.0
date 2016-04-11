@@ -1,87 +1,73 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2 00/10] ARM: DTS/clk: DRA7 family: enable eDMA and audio
- updates
-Date: Mon, 11 Apr 2016 16:33:22 +0300
-Message-ID: <570BA7A2.3080507@ti.com>
-References: <1457363857-20797-1-git-send-email-peter.ujfalusi@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v6 03/10] usb: dwc3: omap: Pass VBUS and ID events
+ transparently
+Date: Mon, 11 Apr 2016 16:51:54 +0300
+Message-ID: <570BABFA.8060307@ti.com>
+References: <1460374506-9779-1-git-send-email-rogerq@ti.com>
+ <1460374506-9779-4-git-send-email-rogerq@ti.com> <87egacnxtr.fsf@intel.com>
+ <570BA0B1.1060404@ti.com> <87r3ecmg3p.fsf@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1457363857-20797-1-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <87r3ecmg3p.fsf@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, robh+dt@kernel.org
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Felipe Balbi <balbi@kernel.org>
+Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Tony,
-
-according to Nishanth, linux-next is broken for dra7 family:
-http://pastebin.ubuntu.com/15758542/ on x15 next-20160411
-because of the missing DT patches.
-Do you want me to resend this series w/o the hwmod patch?
-
---=20
-P=E9ter
-
-On 03/07/16 17:17, Peter Ujfalusi wrote:
+On 11/04/16 16:26, Felipe Balbi wrote:
+> 
 > Hi,
->=20
-> Changes since v1:
-> - hwmod patch for eDMA (tpcc/tptc0/tptc1) removed as it is already in=
- linux-next
-> - mcasp hwmod changes:
->  - all module have HWMOD_OPT_CLKS_NEEDED and no HWMOD_SWSUP_SIDLE (pe=
-r Paul's
->    comment)
->  - mcasp1,2: add ahclkr as opt clock since those modules have fclk, a=
-hclkx and
->    ahclkr marked as functional clocks.
->    Same change is added to the DTS patch
->=20
-> On dra7 family we have two DMA engine available: sDMA (omap-dma) and =
-eDMA.
-> For some peripherals the use of eDMA is better due to L3 interconnect=
- limitation
-> when using sDMA. Such peripherals are McASP1/2/3. By switching to eDM=
-A we can
-> enable the AFIFO which will help to avoid under or overruns in audio.
->=20
-> This set will:
-> - add the hwmod data for eDMA TPCC and TPTCs
-> - add the needed DT nodes for eDMA and the crossbar
-> - we will enable the AFIFO use for audio
-> - add hwmod data and DT nodes for all McASP ports
-> - Fix the beagle-x15's clkout2 parent setting for the codec
->=20
-> The patch set has been tested on top of linux-next.
->=20
-> Regards,
-> Peter
-> ---
-> Misael Lopez Cruz (1):
->   ARM: DTS: dra7: Use eDMA and add DAT port address for McASP3
->=20
-> Peter Ujfalusi (9):
->   ARM: DTS: dra7: Move the sDMA crossbar node under l4_cfg/scm
->   ARM: DTS: dra7: Enable eDMA
->   ARM: DTS: dra7-evm: Enable AFIFO use for McASP3
->   ARM: DTS: dra72-evm: Enable AFIFO use for McASP3
->   ARM: DTS: am57xx-beagle-x15: Move clkout2 source selection to codec
->     node
->   ARM: DTS: am57xx-beagle-x15: Enable AFIFO use for McASP3
->   ARM: clk: dra7xx: Correct mcasp8_ahclkx_mux name
->   ARM: DRA7: hwmod: Add data for McASP1/2/4/5/6/7/8
->   ARM: DTS: dra7: Add nodes for McASP1/2/4/5/6/7/8
->=20
->  arch/arm/boot/dts/am57xx-beagle-x15.dts   |   7 +-
->  arch/arm/boot/dts/dra7-evm.dts            |   2 +
->  arch/arm/boot/dts/dra7.dtsi               | 183 ++++++++++++++++++++=
-+--
->  arch/arm/boot/dts/dra72-evm.dts           |   2 +
->  arch/arm/boot/dts/dra7xx-clocks.dtsi      |   2 +-
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 237 ++++++++++++++++++++=
-++++++++++
->  drivers/clk/ti/clk-7xx.c                  |   2 +-
->  7 files changed, 421 insertions(+), 14 deletions(-)
->=20
+> 
+> Roger Quadros <rogerq@ti.com> writes:
+>> On 11/04/16 15:18, Felipe Balbi wrote:
+>>>
+>>> Hi,
+>>>
+>>> Roger Quadros <rogerq@ti.com> writes:
+>>>> Don't make any decisions regarding VBUS session based on ID
+>>>> status. That is best left to the OTG core.
+>>>
+>>> what about builds who don't want OTG and/or dual-role ?
+>>>
+>>>> Pass ID and VBUS events independent of each other so that OTG
+>>>> core knows exactly what to do.
+>>>>
+>>>> This makes dual-role with extcon work with OTG irq on OMAP platforms.
+>>>>
+>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>> ---
+>>>>  drivers/usb/dwc3/dwc3-omap.c | 15 ++++++---------
+>>>>  1 file changed, 6 insertions(+), 9 deletions(-)
+>>>>
+>>>> diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+>>>> index 51ca098..c9b918d 100644
+>>>> --- a/drivers/usb/dwc3/dwc3-omap.c
+>>>> +++ b/drivers/usb/dwc3/dwc3-omap.c
+>>>> @@ -233,19 +233,14 @@ static void dwc3_omap_set_mailbox(struct dwc3_omap *omap,
+>>>>  		}
+>>>>  
+>>>>  		val = dwc3_omap_read_utmi_ctrl(omap);
+>>>> -		val &= ~(USBOTGSS_UTMI_OTG_CTRL_IDDIG
+>>>> -				| USBOTGSS_UTMI_OTG_CTRL_VBUSVALID
+>>>> -				| USBOTGSS_UTMI_OTG_CTRL_SESSEND);
+>>>> -		val |= USBOTGSS_UTMI_OTG_CTRL_SESSVALID
+>>>> -				| USBOTGSS_UTMI_OTG_CTRL_POWERPRESENT;
+>>>> +		val &= ~USBOTGSS_UTMI_OTG_CTRL_IDDIG;
+>>>
+>>> this creates the possibility of having a USB peripheral with VBUS_VALID,
+>>> right 
+>>
+>> Sorry, I didn't get what you meant.
+> 
+> if you're touching these bits independently from each other, won't you
+> have a situation where you notify IDFLOAT but don't notify that VBUS is
+> off ?
+> 
+We're setting the mailbox state for both ID and VBUS in dwc3_omap_extcon_register()
+depending on the initial extcon state. After that, ID and VBUS will be signalled
+only when they change.
+
+cheers,
+-roger
