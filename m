@@ -1,30 +1,54 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 0/2] usb: dwc3: fixes for v4.6-rc
-Date: Mon, 11 Apr 2016 17:12:32 +0300
-Message-ID: <1460383954-3240-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH] usb: dwc3: omap: get rid of dma_status
+Date: Mon, 11 Apr 2016 17:18:25 +0300
+Message-ID: <1460384305-21256-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: balbi@kernel.org
-Cc: nsekhar@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+dma_status bit flag is set but never really used
+so get rid of it.
 
-These are some dwc3 fixes that were done by Felipe.
-I've just rebased and posted them.
+Reported-by: Felipe Balbi <balbi@kernel.org>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ drivers/usb/dwc3/dwc3-omap.c | 6 ------
+ 1 file changed, 6 deletions(-)
 
-cheers,
--roger
-
-Felipe Balbi (2):
-  usb: dwc3: omap: fix up error path on probe()
-  usb: dwc3: core: fix PHY handling during suspend
-
- drivers/usb/dwc3/core.c      | 23 ++++++++++++++++++++++-
- drivers/usb/dwc3/dwc3-omap.c | 12 ++++--------
- 2 files changed, 26 insertions(+), 9 deletions(-)
-
+diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+index 55da2c7..890b8a6 100644
+--- a/drivers/usb/dwc3/dwc3-omap.c
++++ b/drivers/usb/dwc3/dwc3-omap.c
+@@ -126,8 +126,6 @@ struct dwc3_omap {
+ 	u32			debug_offset;
+ 	u32			irq0_offset;
+ 
+-	u32			dma_status:1;
+-
+ 	struct extcon_dev	*edev;
+ 	struct notifier_block	vbus_nb;
+ 	struct notifier_block	id_nb;
+@@ -277,9 +275,6 @@ static irqreturn_t dwc3_omap_interrupt(int irq, void *_omap)
+ 
+ 	reg = dwc3_omap_read_irqmisc_status(omap);
+ 
+-	if (reg & USBOTGSS_IRQMISC_DMADISABLECLR)
+-		omap->dma_status = false;
+-
+ 	dwc3_omap_write_irqmisc_status(omap, reg);
+ 
+ 	reg = dwc3_omap_read_irq0_status(omap);
+@@ -504,7 +499,6 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+ 
+ 	/* check the DMA Status */
+ 	reg = dwc3_omap_readl(omap->base, USBOTGSS_SYSCONFIG);
+-	omap->dma_status = !!(reg & USBOTGSS_SYSCONFIG_DMADISABLE);
+ 
+ 	ret = devm_request_irq(dev, omap->irq, dwc3_omap_interrupt, 0,
+ 			"dwc3-omap", omap);
 -- 
 2.5.0
