@@ -1,43 +1,44 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 00/30] ARM: OMAP2+: hwmod module clock type support
-Date: Mon, 11 Apr 2016 10:40:59 -0700
-Message-ID: <20160411173518.GA5995@atomide.com>
-References: <1460362761-4842-1-git-send-email-t-kristo@ti.com>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH] tty: serial: 8250_omap: do not defer termios changes
+Date: Mon, 11 Apr 2016 10:53:19 -0700
+Message-ID: <570BE48F.60801@hurleysoftware.com>
+References: <8737r7ght7.fsf@linutronix.de>
+ <570339E8.6010808@hurleysoftware.com> <87y48kftip.fsf@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1460362761-4842-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <87y48kftip.fsf@linutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: John Ogness <john.ogness@linutronix.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On 04/11/2016 01:18 AM, John Ogness wrote:
+> On 2016-04-05, Peter Hurley <peter@hurleysoftware.com> wrote:
+>> On 03/31/2016 01:41 AM, John Ogness wrote:
+>>> It has been observed that the TX-DMA can stall
+>>
+>> Does this happen on any other OMAP part besides am335x?
+>> I looked back over the LKML history of this and didn't see
+>> any other design implicated in this problem.
+> 
+> I just ran the tests again using 4.6-rc2. I am able to reproduce the
+> dma-tx stall with am335x/edma and dra7/sdma.
 
-Nice to see this moving along :)
+I thought we already established sdma was not to be used since
+the hardware does not actually support pausing without data loss.
 
-* Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org> [160411 01:20]:
->
-> The ordering on this set is kind of tricky to avoid any boot issues,
-> and it still currently causes a boot breakage between the DTS data
-> introduction and removal of hwmod data; this generates duplicate
-> entries for clocks which is prone to cause issues (both DT and hwmod
-> have the same entries in place under the hwmod data is removed.) I
-> didn't quite figure out a good way to avoid this, and could use some
-> guidance here. Shall we squash the DT + hwmod data patches together?
-> This avoids the boot breakage but creates pretty large patches. Also,
-> AMx3xx data needs to be grouped together as part of their data is
-> re-used commonly by both SoCs.
+http://www.spinics.net/lists/linux-serial/msg18503.html
 
-How about use clocks from dts if clocks property is defined? Otherwise
-fall back to the old static data. Then drop the static data later on
-with follow up patches.
 
-Regards,
+So I'm wondering if we're carrying all this extra DMA complexity
+and workarounds for just am335x?
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> Note: To achieve the stall, both the delayed_restore and the
+>       rx_dma_broken features of the mainline 8250_omap driver needed to
+>       be removed.
+> 
+> John Ogness
+> 
