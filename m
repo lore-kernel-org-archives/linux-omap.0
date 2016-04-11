@@ -1,19 +1,19 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH V2 15/20] mfd: sky81452: Use devm_mfd_add_devices() for
+Subject: Re: [PATCH V2 14/20] mfd: rt5033: Use devm_mfd_add_devices() for
  mfd_device registration
-Date: Mon, 11 Apr 2016 10:31:56 +0100
-Message-ID: <20160411093156.GF7994@x1>
+Date: Mon, 11 Apr 2016 10:31:49 +0100
+Message-ID: <20160411093149.GE7994@x1>
 References: <1460054594-32325-1-git-send-email-ldewangan@nvidia.com>
- <1460054594-32325-16-git-send-email-ldewangan@nvidia.com>
+ <1460054594-32325-15-git-send-email-ldewangan@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1460054594-32325-16-git-send-email-ldewangan@nvidia.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <1460054594-32325-15-git-send-email-ldewangan@nvidia.com>
+Sender: linux-doc-owner@vger.kernel.org
 To: Laxman Dewangan <ldewangan@nvidia.com>
-Cc: corbet@lwn.net, andreas.werner@men.de, tony@atomide.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, patches@opensource.wolfsonmicro.com, Gyungoh Yoo <jack.yoo@skyworksinc.com>
+Cc: corbet@lwn.net, andreas.werner@men.de, tony@atomide.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, patches@opensource.wolfsonmicro.com, Ingi Kim <ingi2.kim@samsung.com>, Javier Martinez Canillas <javier@osg.samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
 Applied, thanks.
@@ -25,52 +25,59 @@ On Fri, 08 Apr 2016, Laxman Dewangan wrote:
 > by managed device framework.
 >=20
 > Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
-> CC: Gyungoh Yoo <jack.yoo@skyworksinc.com>
+> CC: Ingi Kim <ingi2.kim@samsung.com>
+> CC: Javier Martinez Canillas <javier@osg.samsung.com>
+> Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
 >=20
 > ---
 > Changes from V1:
 > - Convert mfd to MFD.
 > - Run checkpatch with --strict option and fix warning.
+> - Collected reviewed by.
 >=20
->  drivers/mfd/sky81452.c | 10 ++--------
->  1 file changed, 2 insertions(+), 8 deletions(-)
+>  drivers/mfd/rt5033.c | 14 +++-----------
+>  1 file changed, 3 insertions(+), 11 deletions(-)
 >=20
-> diff --git a/drivers/mfd/sky81452.c b/drivers/mfd/sky81452.c
-> index b0c9b04..30a2a67 100644
-> --- a/drivers/mfd/sky81452.c
-> +++ b/drivers/mfd/sky81452.c
-> @@ -64,19 +64,14 @@ static int sky81452_probe(struct i2c_client *clie=
-nt,
->  	cells[1].platform_data =3D pdata->regulator_init_data;
->  	cells[1].pdata_size =3D sizeof(*pdata->regulator_init_data);
+> diff --git a/drivers/mfd/rt5033.c b/drivers/mfd/rt5033.c
+> index 2b95485..9bd089c 100644
+> --- a/drivers/mfd/rt5033.c
+> +++ b/drivers/mfd/rt5033.c
+> @@ -97,9 +97,9 @@ static int rt5033_i2c_probe(struct i2c_client *i2c,
+>  		return ret;
+>  	}
 > =20
-> -	ret =3D mfd_add_devices(dev, -1, cells, ARRAY_SIZE(cells), NULL, 0,=
- NULL);
-> +	ret =3D devm_mfd_add_devices(dev, -1, cells, ARRAY_SIZE(cells),
-> +				   NULL, 0, NULL);
->  	if (ret)
->  		dev_err(dev, "failed to add child devices. err=3D%d\n", ret);
-> =20
->  	return ret;
+> -	ret =3D mfd_add_devices(rt5033->dev, -1, rt5033_devs,
+> -			ARRAY_SIZE(rt5033_devs), NULL, 0,
+> -			regmap_irq_get_domain(rt5033->irq_data));
+> +	ret =3D devm_mfd_add_devices(rt5033->dev, -1, rt5033_devs,
+> +				   ARRAY_SIZE(rt5033_devs), NULL, 0,
+> +				   regmap_irq_get_domain(rt5033->irq_data));
+>  	if (ret < 0) {
+>  		dev_err(&i2c->dev, "Failed to add RT5033 child devices.\n");
+>  		return ret;
+> @@ -110,13 +110,6 @@ static int rt5033_i2c_probe(struct i2c_client *i=
+2c,
+>  	return 0;
 >  }
 > =20
-> -static int sky81452_remove(struct i2c_client *client)
+> -static int rt5033_i2c_remove(struct i2c_client *i2c)
 > -{
-> -	mfd_remove_devices(&client->dev);
+> -	mfd_remove_devices(&i2c->dev);
+> -
 > -	return 0;
 > -}
 > -
->  static const struct i2c_device_id sky81452_ids[] =3D {
->  	{ "sky81452" },
+>  static const struct i2c_device_id rt5033_i2c_id[] =3D {
+>  	{ "rt5033", },
 >  	{ }
-> @@ -97,7 +92,6 @@ static struct i2c_driver sky81452_driver =3D {
->  		.of_match_table =3D of_match_ptr(sky81452_of_match),
+> @@ -135,7 +128,6 @@ static struct i2c_driver rt5033_driver =3D {
+>  		.of_match_table =3D of_match_ptr(rt5033_dt_match),
 >  	},
->  	.probe =3D sky81452_probe,
-> -	.remove =3D sky81452_remove,
->  	.id_table =3D sky81452_ids,
+>  	.probe =3D rt5033_i2c_probe,
+> -	.remove =3D rt5033_i2c_remove,
+>  	.id_table =3D rt5033_i2c_id,
 >  };
-> =20
+>  module_i2c_driver(rt5033_driver);
 
 --=20
 Lee Jones
