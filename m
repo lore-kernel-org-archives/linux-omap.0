@@ -1,60 +1,56 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: 4.4, 4.6: camera and unlock buttons produce tons of interrupts
- (was Re: N900 sleep mode)
-Date: Mon, 11 Apr 2016 11:41:30 +0200
-Message-ID: <20160411094130.GA5753@amd>
-References: <20160404220748.GA16484@atomide.com>
- <20160405142250.GA6429@amd>
- <20160405152916.GE16484@atomide.com>
- <20160405205137.GA10196@amd>
- <20160407174019.GM16484@atomide.com>
- <20160407194828.GA13338@amd>
- <20160407213229.GO16484@atomide.com>
- <20160407230150.GA16552@amd>
- <20160407234134.GQ16484@atomide.com>
- <20160411093023.GC11814@amd>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 1/5] mfd: tps65217: Add support for IRQs
+Date: Mon, 11 Apr 2016 10:44:26 +0100
+Message-ID: <20160411094426.GB8094@x1>
+References: <1459789865-3704-1-git-send-email-m.niestroj@grinn-global.com>
+ <1459789865-3704-3-git-send-email-m.niestroj@grinn-global.com>
+ <57038E46.9070204@ti.com>
+ <57039E74.7030704@grinn-global.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160411093023.GC11814@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
+In-Reply-To: <57039E74.7030704@grinn-global.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Marcin Niestroj <m.niestroj@grinn-global.com>, broonie@kernel.org
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-input@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+=46AO Mark,
 
-> > > > > gzipped config is attached.
-> > > > > 
-> > > > > Note that I'm still using NOLO. I enabled the sleep, then went to
-> > > > > runlevel 1. LEDs still stay on, 55mA power consumption. That was with
-> > > > > 1 in off_mode.
-> > > > 
-> > > > Nothing idling for me with your .config.. And it seems slower to boot
-> > > > compared to omap2plus_defconfig? Maybe because of the extra GPIO
-> > > > interrupts?
-> > > 
-> > > Extra interrupts only happen when enable_off_mode is 1, so that should
-> > > not be an issue during boot.
-> > 
-> > OK maybe it's just the extra driver probe time then.
-> 
-> Ok, I did try to minimize config differences. I'm still booting from
-> NOLO. Now I'm doing the tests from init=... boot. idlest1_core
-> blocking bits says 0042. But the LEDs still don't blink.
-> 
-> I made config with pretty minimal differences from defconfig (making
-> required drivers =y, lockdep off so that video works).
-> 
-> Do you think you could try with my config?
+> On 05.04.2016 12:07, Grygorii Strashko wrote:
+> >On 04/04/2016 08:11 PM, Marcin Niestroj wrote:
+> >>Add support for handling IRQs: power button, AC and USB power state
+> >>changes. Mask and interrupt bits are shared within one register, wh=
+ich
+> >>prevents us to use regmap_irq implementation. New irq_domain is
+> >>created in
+> >>order to add interrupt handling for each tps65217's subsystem. IRQ
+> >>resources have been added for charger subsystem to be able to notif=
+y
+> >>about
+> >>AC and USB state changes.
+> >>
+> >>Signed-off-by: Marcin Niestroj <m.niestroj@grinn-global.com>
+> >>---
+> >
+> >Just curious Why not use a regmap_irq?
+>=20
+> tps65217 has IRQ mask and status bits in a single register.
+> regmap_irq works in case of two different registers (one mask, one
+> status), but with the same layout of mask and status bits in both.
 
-Ok, it works now. I was doing tests in daylight so it was poorly
-visible. The right part of keyboard stays lit (but that's expected
-AFAICT), but the left part blinks.
+Mark, is this the right approach?  Or is there another way regmap_irq
+can be manipulated to support this configuration?
 
-Thanks!
-								Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
