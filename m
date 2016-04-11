@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v6 03/10] usb: dwc3: omap: Pass VBUS and ID events transparently
-Date: Mon, 11 Apr 2016 14:34:59 +0300
-Message-ID: <1460374506-9779-4-git-send-email-rogerq@ti.com>
+Subject: [PATCH v6 07/10] usb: dwc3: gadget: Fix suspend/resume during dual-role mode
+Date: Mon, 11 Apr 2016 14:35:03 +0300
+Message-ID: <1460374506-9779-8-git-send-email-rogerq@ti.com>
 References: <1460374506-9779-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,63 +12,39 @@ To: balbi@kernel.org
 Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Don't make any decisions regarding VBUS session based on ID
-status. That is best left to the OTG core.
-
-Pass ID and VBUS events independent of each other so that OTG
-core knows exactly what to do.
-
-This makes dual-role with extcon work with OTG irq on OMAP platforms.
+Gadget controller might not be always active during suspend/
+resume when we are operating in dual-role/otg mode.
+Check if we're active and only if we are then perform
+necessary actions during suspend/resume.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/usb/dwc3/dwc3-omap.c | 15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ drivers/usb/dwc3/gadget.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index 51ca098..c9b918d 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -233,19 +233,14 @@ static void dwc3_omap_set_mailbox(struct dwc3_omap *omap,
- 		}
+diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+index 83d5c57..1ca5ac0 100644
+--- a/drivers/usb/dwc3/gadget.c
++++ b/drivers/usb/dwc3/gadget.c
+@@ -2952,6 +2952,9 @@ void dwc3_gadget_exit(struct dwc3 *dwc)
  
- 		val = dwc3_omap_read_utmi_ctrl(omap);
--		val &= ~(USBOTGSS_UTMI_OTG_CTRL_IDDIG
--				| USBOTGSS_UTMI_OTG_CTRL_VBUSVALID
--				| USBOTGSS_UTMI_OTG_CTRL_SESSEND);
--		val |= USBOTGSS_UTMI_OTG_CTRL_SESSVALID
--				| USBOTGSS_UTMI_OTG_CTRL_POWERPRESENT;
-+		val &= ~USBOTGSS_UTMI_OTG_CTRL_IDDIG;
- 		dwc3_omap_write_utmi_ctrl(omap, val);
- 		break;
+ int dwc3_gadget_suspend(struct dwc3 *dwc)
+ {
++	if (!dwc->gadget_driver)
++		return 0;
++
+ 	if (dwc->pullups_connected) {
+ 		dwc3_gadget_disable_irq(dwc);
+ 		dwc3_gadget_run_stop(dwc, true, true);
+@@ -2970,6 +2973,9 @@ int dwc3_gadget_resume(struct dwc3 *dwc)
+ 	struct dwc3_ep		*dep;
+ 	int			ret;
  
- 	case OMAP_DWC3_VBUS_VALID:
- 		val = dwc3_omap_read_utmi_ctrl(omap);
- 		val &= ~USBOTGSS_UTMI_OTG_CTRL_SESSEND;
--		val |= USBOTGSS_UTMI_OTG_CTRL_IDDIG
--				| USBOTGSS_UTMI_OTG_CTRL_VBUSVALID
-+		val |= USBOTGSS_UTMI_OTG_CTRL_VBUSVALID
- 				| USBOTGSS_UTMI_OTG_CTRL_SESSVALID
- 				| USBOTGSS_UTMI_OTG_CTRL_POWERPRESENT;
- 		dwc3_omap_write_utmi_ctrl(omap, val);
-@@ -254,14 +249,16 @@ static void dwc3_omap_set_mailbox(struct dwc3_omap *omap,
- 	case OMAP_DWC3_ID_FLOAT:
- 		if (omap->vbus_reg)
- 			regulator_disable(omap->vbus_reg);
-+		val = dwc3_omap_read_utmi_ctrl(omap);
-+		val |= USBOTGSS_UTMI_OTG_CTRL_IDDIG;
-+		dwc3_omap_write_utmi_ctrl(omap, val);
- 
- 	case OMAP_DWC3_VBUS_OFF:
- 		val = dwc3_omap_read_utmi_ctrl(omap);
- 		val &= ~(USBOTGSS_UTMI_OTG_CTRL_SESSVALID
- 				| USBOTGSS_UTMI_OTG_CTRL_VBUSVALID
- 				| USBOTGSS_UTMI_OTG_CTRL_POWERPRESENT);
--		val |= USBOTGSS_UTMI_OTG_CTRL_SESSEND
--				| USBOTGSS_UTMI_OTG_CTRL_IDDIG;
-+		val |= USBOTGSS_UTMI_OTG_CTRL_SESSEND;
- 		dwc3_omap_write_utmi_ctrl(omap, val);
- 		break;
++	if (!dwc->gadget_driver)
++		return 0;
++
+ 	/* Start with SuperSpeed Default */
+ 	dwc3_gadget_ep0_desc.wMaxPacketSize = cpu_to_le16(512);
  
 -- 
 2.5.0
