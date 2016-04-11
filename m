@@ -1,81 +1,64 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH V2 04/20] mfd: as3711: Use devm_mfd_add_devices() for
- mfd_device registration
-Date: Mon, 11 Apr 2016 10:15:30 +0100
-Message-ID: <20160411091530.GR4592@x1>
-References: <1460054594-32325-1-git-send-email-ldewangan@nvidia.com>
- <1460054594-32325-5-git-send-email-ldewangan@nvidia.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: 4.4, 4.6: camera and unlock buttons produce tons of interrupts
+ (was Re: N900 sleep mode)
+Date: Mon, 11 Apr 2016 11:30:23 +0200
+Message-ID: <20160411093023.GC11814@amd>
+References: <20160404213056.GA25912@amd>
+ <20160404220748.GA16484@atomide.com>
+ <20160405142250.GA6429@amd>
+ <20160405152916.GE16484@atomide.com>
+ <20160405205137.GA10196@amd>
+ <20160407174019.GM16484@atomide.com>
+ <20160407194828.GA13338@amd>
+ <20160407213229.GO16484@atomide.com>
+ <20160407230150.GA16552@amd>
+ <20160407234134.GQ16484@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1460054594-32325-5-git-send-email-ldewangan@nvidia.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Laxman Dewangan <ldewangan@nvidia.com>
-Cc: corbet@lwn.net, andreas.werner@men.de, tony@atomide.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, patches@opensource.wolfsonmicro.com, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+In-Reply-To: <20160407234134.GQ16484@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-Applied, thanks.
+Hi!
 
-On Fri, 08 Apr 2016, Laxman Dewangan wrote:
+> > > > gzipped config is attached.
+> > > > 
+> > > > Note that I'm still using NOLO. I enabled the sleep, then went to
+> > > > runlevel 1. LEDs still stay on, 55mA power consumption. That was with
+> > > > 1 in off_mode.
+> > > 
+> > > Nothing idling for me with your .config.. And it seems slower to boot
+> > > compared to omap2plus_defconfig? Maybe because of the extra GPIO
+> > > interrupts?
+> > 
+> > Extra interrupts only happen when enable_off_mode is 1, so that should
+> > not be an issue during boot.
+> 
+> OK maybe it's just the extra driver probe time then.
 
-> Use devm_mfd_add_devices() for MFD devices registration and get
-> rid of .remove callback to remove MFD child-devices. This is done
-> by managed device framework.
->=20
-> Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
-> CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->=20
-> ---
-> Changes from V1:
-> - Convert mfd to MFD.
-> - Run checkpatch with --strict option and fix warning.
->=20
->  drivers/mfd/as3711.c | 13 ++-----------
->  1 file changed, 2 insertions(+), 11 deletions(-)
->=20
-> diff --git a/drivers/mfd/as3711.c b/drivers/mfd/as3711.c
-> index 09e1483..67b1241 100644
-> --- a/drivers/mfd/as3711.c
-> +++ b/drivers/mfd/as3711.c
-> @@ -189,22 +189,14 @@ static int as3711_i2c_probe(struct i2c_client *=
-client,
->  		as3711_subdevs[AS3711_BACKLIGHT].pdata_size =3D 0;
->  	}
-> =20
-> -	ret =3D mfd_add_devices(as3711->dev, -1, as3711_subdevs,
-> -			      ARRAY_SIZE(as3711_subdevs), NULL, 0, NULL);
-> +	ret =3D devm_mfd_add_devices(as3711->dev, -1, as3711_subdevs,
-> +				   ARRAY_SIZE(as3711_subdevs), NULL, 0, NULL);
->  	if (ret < 0)
->  		dev_err(&client->dev, "add mfd devices failed: %d\n", ret);
-> =20
->  	return ret;
->  }
-> =20
-> -static int as3711_i2c_remove(struct i2c_client *client)
-> -{
-> -	struct as3711 *as3711 =3D i2c_get_clientdata(client);
-> -
-> -	mfd_remove_devices(as3711->dev);
-> -	return 0;
-> -}
-> -
->  static const struct i2c_device_id as3711_i2c_id[] =3D {
->  	{.name =3D "as3711", .driver_data =3D 0},
->  	{}
-> @@ -218,7 +210,6 @@ static struct i2c_driver as3711_i2c_driver =3D {
->  		   .of_match_table =3D of_match_ptr(as3711_of_match),
->  	},
->  	.probe =3D as3711_i2c_probe,
-> -	.remove =3D as3711_i2c_remove,
->  	.id_table =3D as3711_i2c_id,
->  };
-> =20
+Ok, I did try to minimize config differences. I'm still booting from
+NOLO. Now I'm doing the tests from init=... boot. idlest1_core
+blocking bits says 0042. But the LEDs still don't blink.
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
+I made config with pretty minimal differences from defconfig (making
+required drivers =y, lockdep off so that video works).
+
+Do you think you could try with my config?
+
+> # echo 255 > /sys/class/backlight/acx565akm/brightness
+> 
+> And then the following to blank for idle:
+> 
+> # echo 1 > /sys/devices/platform/omapfb/graphics/fb0/blank
+
+Yes, I'm doing this, on console.
+
+Thanks and best regards,
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
