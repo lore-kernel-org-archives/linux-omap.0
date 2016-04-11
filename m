@@ -1,16 +1,16 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v6 03/10] usb: dwc3: omap: Pass VBUS and ID events
- transparently
-Date: Mon, 11 Apr 2016 16:51:54 +0300
-Message-ID: <570BABFA.8060307@ti.com>
+Subject: Re: [PATCH v6 07/10] usb: dwc3: gadget: Fix suspend/resume during
+ dual-role mode
+Date: Mon, 11 Apr 2016 16:53:17 +0300
+Message-ID: <570BAC4D.8010209@ti.com>
 References: <1460374506-9779-1-git-send-email-rogerq@ti.com>
- <1460374506-9779-4-git-send-email-rogerq@ti.com> <87egacnxtr.fsf@intel.com>
- <570BA0B1.1060404@ti.com> <87r3ecmg3p.fsf@intel.com>
+ <1460374506-9779-8-git-send-email-rogerq@ti.com> <878u0knxkp.fsf@intel.com>
+ <570BA2AA.8030308@ti.com> <87oa9gmg2k.fsf@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87r3ecmg3p.fsf@intel.com>
+In-Reply-To: <87oa9gmg2k.fsf@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Felipe Balbi <balbi@kernel.org>
 Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
@@ -21,53 +21,28 @@ On 11/04/16 16:26, Felipe Balbi wrote:
 > Hi,
 > 
 > Roger Quadros <rogerq@ti.com> writes:
->> On 11/04/16 15:18, Felipe Balbi wrote:
+>> On 11/04/16 15:23, Felipe Balbi wrote:
 >>>
 >>> Hi,
 >>>
 >>> Roger Quadros <rogerq@ti.com> writes:
->>>> Don't make any decisions regarding VBUS session based on ID
->>>> status. That is best left to the OTG core.
+>>>> Gadget controller might not be always active during suspend/
+>>>> resume when we are operating in dual-role/otg mode.
+>>>> Check if we're active and only if we are then perform
+>>>> necessary actions during suspend/resume.
 >>>
->>> what about builds who don't want OTG and/or dual-role ?
+>>> I don't get this. If we're operating in OTG, we should have a gadget
+>>> driver loaded, no ?
 >>>
->>>> Pass ID and VBUS events independent of each other so that OTG
->>>> core knows exactly what to do.
->>>>
->>>> This makes dual-role with extcon work with OTG irq on OMAP platforms.
->>>>
->>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>> ---
->>>>  drivers/usb/dwc3/dwc3-omap.c | 15 ++++++---------
->>>>  1 file changed, 6 insertions(+), 9 deletions(-)
->>>>
->>>> diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
->>>> index 51ca098..c9b918d 100644
->>>> --- a/drivers/usb/dwc3/dwc3-omap.c
->>>> +++ b/drivers/usb/dwc3/dwc3-omap.c
->>>> @@ -233,19 +233,14 @@ static void dwc3_omap_set_mailbox(struct dwc3_omap *omap,
->>>>  		}
->>>>  
->>>>  		val = dwc3_omap_read_utmi_ctrl(omap);
->>>> -		val &= ~(USBOTGSS_UTMI_OTG_CTRL_IDDIG
->>>> -				| USBOTGSS_UTMI_OTG_CTRL_VBUSVALID
->>>> -				| USBOTGSS_UTMI_OTG_CTRL_SESSEND);
->>>> -		val |= USBOTGSS_UTMI_OTG_CTRL_SESSVALID
->>>> -				| USBOTGSS_UTMI_OTG_CTRL_POWERPRESENT;
->>>> +		val &= ~USBOTGSS_UTMI_OTG_CTRL_IDDIG;
->>>
->>> this creates the possibility of having a USB peripheral with VBUS_VALID,
->>> right 
+>> At boot gadget driver is not automatically loaded. We're still in OTG mode
+>> but OTG state machine hasn't started.
+>> System suspend/resume can still happen.
 >>
->> Sorry, I didn't get what you meant.
+>> User might also load/unload the gadget driver prior to system suspend.
 > 
-> if you're touching these bits independently from each other, won't you
-> have a situation where you notify IDFLOAT but don't notify that VBUS is
-> off ?
+> good point, this should go in the -rc too.
 > 
-We're setting the mailbox state for both ID and VBUS in dwc3_omap_extcon_register()
-depending on the initial extcon state. After that, ID and VBUS will be signalled
-only when they change.
+But there is no dual-role mode currently so it won't fix any bug yet :).
 
 cheers,
 -roger
