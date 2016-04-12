@@ -1,62 +1,53 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v6 07/10] usb: dwc3: gadget: Fix suspend/resume during
- dual-role mode
-Date: Tue, 12 Apr 2016 11:25:46 +0300
-Message-ID: <570CB10A.2020903@ti.com>
-References: <1460374506-9779-1-git-send-email-rogerq@ti.com>
- <1460374506-9779-8-git-send-email-rogerq@ti.com> <878u0knxkp.fsf@intel.com>
- <570BA2AA.8030308@ti.com> <87oa9gmg2k.fsf@intel.com>
- <570BAC4D.8010209@ti.com> <87shyrl0iw.fsf@intel.com>
+Subject: [PATCH 3/3] usb: dwc3: gadget: Fix suspend/resume during device mode
+Date: Tue, 12 Apr 2016 11:33:29 +0300
+Message-ID: <570CB2D9.2060300@ti.com>
+References: <1460383954-3240-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87shyrl0iw.fsf@intel.com>
+In-Reply-To: <1460383954-3240-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@kernel.org>
-Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: balbi@kernel.org
+Cc: nsekhar@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 12/04/16 11:00, Felipe Balbi wrote:
-> 
-> Hi,
-> 
-> Roger Quadros <rogerq@ti.com> writes:
->> On 11/04/16 16:26, Felipe Balbi wrote:
->>>
->>> Hi,
->>>
->>> Roger Quadros <rogerq@ti.com> writes:
->>>> On 11/04/16 15:23, Felipe Balbi wrote:
->>>>>
->>>>> Hi,
->>>>>
->>>>> Roger Quadros <rogerq@ti.com> writes:
->>>>>> Gadget controller might not be always active during suspend/
->>>>>> resume when we are operating in dual-role/otg mode.
->>>>>> Check if we're active and only if we are then perform
->>>>>> necessary actions during suspend/resume.
->>>>>
->>>>> I don't get this. If we're operating in OTG, we should have a gadget
->>>>> driver loaded, no ?
->>>>>
->>>> At boot gadget driver is not automatically loaded. We're still in OTG mode
->>>> but OTG state machine hasn't started.
->>>> System suspend/resume can still happen.
->>>>
->>>> User might also load/unload the gadget driver prior to system suspend.
->>>
->>> good point, this should go in the -rc too.
->>>
->> But there is no dual-role mode currently so it won't fix any bug yet :).
-> 
-> this should be a problem even for device-only, right ?
-> 
-> i) boot-up
-> ii) modprobe dwc3
-> iii) echo mem > /sys/power/state
-> 
-Indeed. It is applicable for device-only mode as well. I'll send this patch for rc then.
+Gadget controller might not be always active during system
+suspend/resume as gadget driver might not have yet been loaded or
+might have been unloaded prior to system suspend.
 
-cheers,
--roger
+Check if we're active and only then perform
+necessary actions during suspend/resume.
+
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ drivers/usb/dwc3/gadget.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+index 3ac170f..efbb801 100644
+--- a/drivers/usb/dwc3/gadget.c
++++ b/drivers/usb/dwc3/gadget.c
+@@ -2931,6 +2931,9 @@ void dwc3_gadget_exit(struct dwc3 *dwc)
+ 
+ int dwc3_gadget_suspend(struct dwc3 *dwc)
+ {
++	if (!dwc->gadget_driver)
++		return 0;
++
+ 	if (dwc->pullups_connected) {
+ 		dwc3_gadget_disable_irq(dwc);
+ 		dwc3_gadget_run_stop(dwc, true, true);
+@@ -2949,6 +2952,9 @@ int dwc3_gadget_resume(struct dwc3 *dwc)
+ 	struct dwc3_ep		*dep;
+ 	int			ret;
+ 
++	if (!dwc->gadget_driver)
++		return 0;
++
+ 	/* Start with SuperSpeed Default */
+ 	dwc3_gadget_ep0_desc.wMaxPacketSize = cpu_to_le16(512);
+ 
+-- 
+2.5.0
