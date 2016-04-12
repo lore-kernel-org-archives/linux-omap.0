@@ -1,86 +1,94 @@
-From: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v6 07/10] usb: dwc3: gadget: Fix suspend/resume during dual-role mode
-Date: Tue, 12 Apr 2016 11:00:23 +0300
-Message-ID: <87shyrl0iw.fsf@intel.com>
-References: <1460374506-9779-1-git-send-email-rogerq@ti.com> <1460374506-9779-8-git-send-email-rogerq@ti.com> <878u0knxkp.fsf@intel.com> <570BA2AA.8030308@ti.com> <87oa9gmg2k.fsf@intel.com> <570BAC4D.8010209@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH v5 1/6] pwms: pwm-ti*: Get the clock from the PWMSS
+ (parent)
+Date: Tue, 12 Apr 2016 13:40:44 +0530
+Message-ID: <570CAD84.2090701@ti.com>
+References: <1457400224-24797-1-git-send-email-fcooper@ti.com>
+ <1457400224-24797-2-git-send-email-fcooper@ti.com> <5703564C.7090700@ti.com>
+ <5703A0C4.6010406@ti.com>
+ <alpine.DEB.2.02.1604102048380.11457@utopia.booyaka.com>
+ <570B8F51.6040108@ti.com>
+ <CAL_JsqLkpQzVb6bzpsH5NwfLLWEtf3o6LezrL1hCejsw65J=Bw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <570BAC4D.8010209-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <CAL_JsqLkpQzVb6bzpsH5NwfLLWEtf3o6LezrL1hCejsw65J=Bw@mail.gmail.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Rob Herring <robh+dt@kernel.org>
+Cc: Paul Walmsley <paul@pwsan.com>, "Franklin S Cooper Jr." <fcooper@ti.com>, "Kristo, Tero" <t-kristo@ti.com>, Thierry Reding <thierry.reding@gmail.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Linux PWM List <linux-pwm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
-
-Hi,
-
-Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> writes:
-> On 11/04/16 16:26, Felipe Balbi wrote:
->>=20
->> Hi,
->>=20
->> Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> writes:
->>> On 11/04/16 15:23, Felipe Balbi wrote:
+On Monday 11 April 2016 06:15 PM, Rob Herring wrote:
+> On Mon, Apr 11, 2016 at 6:49 AM, Sekhar Nori <nsekhar@ti.com> wrote:
+>> On Monday 11 April 2016 02:21 AM, Paul Walmsley wrote:
+>>> On Tue, 5 Apr 2016, Franklin S Cooper Jr. wrote:
+>>>> On 04/05/2016 01:08 AM, Sekhar Nori wrote:
+>>>>> On Tuesday 08 March 2016 06:53 AM, Franklin S Cooper Jr wrote:
+>>>>>> The eCAP and ePWM doesn't have their own separate clocks. They simply
+>>>>>> utilize the clock provided directly by the PWMSS. Therefore, they simply
+>>>>>> need to grab a reference to their parent's clock.
+>>>>>>
+>>>>>> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+>>>>>
+>>>>> So this assumes that eCAP and eHRPWM are always under the PWMSS
+>>>>> umbrella. But on TI AM18x, thats not true. These IPs exist independently
+>>>>> and receive functional clock from PLL sysclk outputs.
+>>>>>
+>>>>>> ---
+>>>>>>  drivers/pwm/pwm-tiecap.c   | 2 +-
+>>>>>>  drivers/pwm/pwm-tiehrpwm.c | 2 +-
+>>>>>>  2 files changed, 2 insertions(+), 2 deletions(-)
+>>>>>>
+>>>>>> diff --git a/drivers/pwm/pwm-tiecap.c b/drivers/pwm/pwm-tiecap.c
+>>>>>> index 616af76..9418159 100644
+>>>>>> --- a/drivers/pwm/pwm-tiecap.c
+>>>>>> +++ b/drivers/pwm/pwm-tiecap.c
+>>>>>> @@ -212,7 +212,7 @@ static int ecap_pwm_probe(struct platform_device *pdev)
+>>>>>>      if (!pc)
+>>>>>>          return -ENOMEM;
+>>>>>>
+>>>>>> -    clk = devm_clk_get(&pdev->dev, "fck");
+>>>>>> +    clk = devm_clk_get(pdev->dev.parent, "fck");
+>>>>>
+>>>>> Even keeping the AM18x usecase aside, this seems to be pushing too much
+>>>>> platform information into the driver. The "fck" is a valid connection id
+>>>>> for the eCAP IP. Whether its valid for the parent device too is not
+>>>>> something this driver should need to know.
+>>>>>
+>>>>> So it looks like what you need is for the clock hierarchy for the
+>>>>> platform to have clocks for eHRPWM and eCAP derived out of PWMSS clock?
 >>>>
->>>> Hi,
+>>>> So I believe this is a question on if we want to hide the minor
+>>>> delta between AM18 vs AM335x, AM437x and AM57x/DRA7 in the driver
+>>>> or within the DT.
 >>>>
->>>> Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> writes:
->>>>> Gadget controller might not be always active during suspend/
->>>>> resume when we are operating in dual-role/otg mode.
->>>>> Check if we're active and only if we are then perform
->>>>> necessary actions during suspend/resume.
->>>>
->>>> I don't get this. If we're operating in OTG, we should have a gadget
->>>> driver loaded, no ?
->>>>
->>> At boot gadget driver is not automatically loaded. We're still in OTG m=
-ode
->>> but OTG state machine hasn't started.
->>> System suspend/resume can still happen.
+>>>> Note that handling this by defining new clocks in DT will then
+>>>> result in older DTBs not working. I don't think its worth breaking
+>>>> backwards compatibility for AM335x and AM437x DTBs for fixing support
+>>>> for AM18 based SOCs. Especially since those SOCs haven't worked with
+>>>> this driver for several years. By handling things within the driver rather
+>>>> than DT we can atleast insure that we can get everything working while
+>>>> avoiding breaking backwards compatibility.
 >>>
->>> User might also load/unload the gadget driver prior to system suspend.
->>=20
->> good point, this should go in the -rc too.
->>=20
-> But there is no dual-role mode currently so it won't fix any bug yet :).
+>>> I agree with Sekhar that we shouldn't embed this parent clock quirk
+>>> into the driver.
+>>>
+>>> Can you just define a new compatibility string such that the driver can be
+>>> written with no embedded integration quirks?  Then add a workaround in the
+>>> driver that will use pdev->dev.parent for the old (deprecated)
+>>> compatibility string and log a warning to the kernel console that the DT
+>>> needs to be updated.
+>>
+>> Thanks Paul! Although not sure if adding a new compatible for the IP is
+>> the best way (since that would denote a different version of the IP).
+>> How about checking for parent clock iff clk_get() on own device fails
+>> and of_machine_is_compatible() matches the platforms where backward
+>> compatibility needs to be maintained?
+> 
+> New compatible strings are acceptable.
 
-this should be a problem even for device-only, right ?
+Alright, thanks for clarifying that.
 
-i) boot-up
-ii) modprobe dwc3
-iii) echo mem > /sys/power/state
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXDKsYAAoJEIaOsuA1yqRE6M4P/j2sBryLB5qYW8JvrpF0zbZ9
-t7OCSuiKp1/3x6aD6H8LUbKvVdcPvnn4jS7knpM2h6TBYTeN+QdEYkJ2ek76bsQN
-Yy8044y/gq5mr6pzQx0zcarFStuDJPELUa5TkjRaVfokjMQIUG/oVJPPL7VlxaBp
-33gZ4RDpRktPnoreb96ffZ6Gbh7dwE+Hi+pfTvXwybdnea01kXsK6iqn+Gwj7DQ5
-txQfnCDrLQIq9l9B8c0QK3hT0hzn+iLJB1tlu/+znhuRXOsi6h8i0gPHCDBxPinr
-DTP7MBI7cRJbVFlWoJCp71z2zu1sfvahqRJSdRU+aZR21IP8yKHE/aInHgrKxGZr
-XGZ7cHL6iPy968BRkcuaRpoxd/LHTxjJnx97fyO+AwNVjFi40mEAomsskzhhzsrY
-ja0hQg1iv+PyEAEiGSteP9hzdUkhKFz7yZTTyh9NBbXAgVNc0MsBzfTBF6A6pmal
-xy/38oHGxMMfWgITWFhD3+9IbPnAMdbTy+9wezYLCdlwYgUL582hX573ziQYv8tC
-HdY4UC/J2FXvoyIU/7QVmg82LR3CVM/+dthg90Hioh4VM2DpZ1AT70bJMw9fmstk
-OgVMPC0UvsoTxecvvtoLr/QkDuuzrFn6QCuouJ6gyOu2++BRzJnc3vV5MyucaG0v
-5IMkMcMF3O5fZylW+DcB
-=Ln3c
------END PGP SIGNATURE-----
---=-=-=--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Sekhar
