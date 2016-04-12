@@ -1,55 +1,91 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] of/platform: Allow secondary compatible match in
- of_dev_lookup
-Date: Tue, 12 Apr 2016 08:13:27 -0700
-Message-ID: <20160412151326.GL5995@atomide.com>
-References: <1459546504-32668-1-git-send-email-tony@atomide.com>
- <20160401214053.GQ9329@atomide.com>
- <CAL_Jsq+PcTD=duHmWgHyx_ywYbT10vEtcm=79x5o5wYSkgG63g@mail.gmail.com>
- <5706348C.1040709@ti.com>
- <87d1q1r7o3.fsf@intel.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH] ARM: OMAP3: Fix external abort on 36xx waking from off mode
+ idle
+Date: Tue, 12 Apr 2016 10:43:57 -0500
+Message-ID: <1460475837-1984-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <87d1q1r7o3.fsf@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@linux.intel.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Richard Woodruff <r-woodruff2@ti.com>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Felipe Balbi <felipe.balbi@linux.intel.com> [160407 04:19]:
-> Grygorii Strashko <grygorii.strashko@ti.com> writes:
-> > Most probably this is required to pass some data from parent device to
-> > children when parent dev instantiate children from DT, at least I've experimented with
-> > this in mostly similar way (I've not added second pass and did break in the first
-> > if !phys_addr, but Tony's patch is more correct).
+Depending on timing during the resume path from off mode on 36xx, we may
+see external aborts. These seem to be caused by the following:
 
-OK that's a different use case I have, but good to know it helps
-with that too.
+- OMAP3 Advisory 1.62 "MPU Cannot Exit from Standby" says we need to
+  disable disable intc autoidle before WFI
 
-> > For example,
-> > - USB dwc3 platform/integration layer dev creates DWC3-core device (of_platform_populate())
-> > - DWC3-core device creates xhci device
-> > - USB dwc3 platform/integration layer dev can dynamically get rev info
-> >   from HW and identify limitation/erratas/quirks which need to be applied to 
-> >   to its children.
-> > - DWC3-core can dynamically get rev info ...
-> >
-> > I was not able to find any other proper way to pass this (platfrom)data to children, except
-> > using Auxdata. And, as per Felipe Balbi, It was the major reason why now
-> > DWC3-core device creates xhci device manually.
-> 
-> doesn't device_property() solve that ? I'm just waiting for some patches
-> from Heikki (in Cc) before we rip pdata from dwc3 completely. At that
-> point, we can look at building xhci from DT.
-> 
-> The only thing that comes to mind is how this will look for PCI-only
-> systems if we rip manual xHCI device creation completely.
+- DM3730 Advisory 1.106 "MPU Leaves MSTANDBY State Before IDLEREQ of
+  Interrupt Controller is Released" says we need to wait before
+  accessing intc
 
-Sounds like this dwc3 thread is a bit separate from the $subject patch
-except for the legacy usage.
+omap3_intc_resume_idle restores the intc autoidle for all resume paths,
+however in the resume path from off mode only it is also being restored
+by omap_intc_restore_context before this call to omap3_intc_resume_idle
+happens. The second restore of the intc autoidle in this path is what
+appears to be causing the external abort so for the off mode resume path
+let's rely on omap_intc_restore_context to restore intc autoidle, and
+for all other paths let omap3_intc_resume_idle handle it as it is now.
 
-Regards,
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+---
+ arch/arm/mach-omap2/pm34xx.c | 25 ++++++++++++++-----------
+ 1 file changed, 14 insertions(+), 11 deletions(-)
 
-Tony
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index fcf975eb5e9d..bb6e13ce673a 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -268,7 +268,6 @@ void omap_sram_idle(void)
+ 	int per_next_state = PWRDM_POWER_ON;
+ 	int core_next_state = PWRDM_POWER_ON;
+ 	int per_going_off;
+-	int core_prev_state;
+ 	u32 sdrc_pwr = 0;
+ 
+ 	mpu_next_state = pwrdm_read_next_pwrst(mpu_pwrdm);
+@@ -348,17 +347,21 @@ void omap_sram_idle(void)
+ 		sdrc_write_reg(sdrc_pwr, SDRC_POWER);
+ 
+ 	/* CORE */
+-	if (core_next_state < PWRDM_POWER_ON) {
+-		core_prev_state = pwrdm_read_prev_pwrst(core_pwrdm);
+-		if (core_prev_state == PWRDM_POWER_OFF) {
+-			omap3_core_restore_context();
+-			omap3_cm_restore_context();
+-			omap3_push_sram_idle();
+-			omap3_push_sram_secure_idle();
+-			omap2_sms_restore_context();
+-		}
++	if (core_next_state < PWRDM_POWER_ON &&
++	    pwrdm_read_prev_pwrst(core_pwrdm) == PWRDM_POWER_OFF) {
++		omap3_core_restore_context();
++		omap3_cm_restore_context();
++		omap3_push_sram_idle();
++		omap3_push_sram_secure_idle();
++		omap2_sms_restore_context();
++	} else {
++		/*
++		 * In off-mode resume path above, omap3_core_restore_context
++		 * also handles the INTC autoidle restore done here so limit
++		 * this to non-off mode resume paths so we don't do it twice.
++		 */
++		omap3_intc_resume_idle();
+ 	}
+-	omap3_intc_resume_idle();
+ 
+ 	pwrdm_post_transition(NULL);
+ 
+-- 
+2.7.3
