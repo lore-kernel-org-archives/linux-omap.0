@@ -1,198 +1,65 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH] of: Add generic handling for hardware incomplete fail state
-Date: Tue, 12 Apr 2016 11:37:55 -0700
-Message-ID: <1460486275-12256-1-git-send-email-tony@atomide.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Tom Rini <trini-OWPKS81ov/FWk0Htik3J/w@public.gmane.org>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH] tty: serial: 8250_omap: do not defer termios changes
+Date: Tue, 12 Apr 2016 11:42:48 -0700
+Message-ID: <570D41A8.3050706@hurleysoftware.com>
+References: <8737r7ght7.fsf@linutronix.de>
+ <570339E8.6010808@hurleysoftware.com> <87y48kftip.fsf@linutronix.de>
+ <570BE48F.60801@hurleysoftware.com> <570BED7B.9080803@linutronix.de>
+ <570C04C1.40201@hurleysoftware.com> <570D2A46.2050106@linutronix.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <570D2A46.2050106@linutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, John Ogness <john.ogness@linutronix.de>, Tony Lindgren <tony@atomide.com>, nsekhar@ti.com
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-We have devices that are in incomplete state, but still need to be
-probed to allow properly idling them for PM. Some examples are
-devices that are not pinned out on certain packages, or otherwise
-not enabled for use on some SoCs.
+On 04/12/2016 10:03 AM, Sebastian Andrzej Siewior wrote:
+> On 04/11/2016 10:10 PM, Peter Hurley wrote:
+>> On 04/11/2016 11:31 AM, Sebastian Andrzej Siewior wrote:
+>>> On 04/11/2016 07:53 PM, Peter Hurley wrote:
+>>>> On 04/11/2016 01:18 AM, John Ogness wrote:
+>>>>> On 2016-04-05, Peter Hurley <peter@hurleysoftware.com> wrote:
+>>>>>> On 03/31/2016 01:41 AM, John Ogness wrote:
+>>>>>>> It has been observed that the TX-DMA can stall
+>>>>>>
+>>>>>> Does this happen on any other OMAP part besides am335x?
+>>>>>> I looked back over the LKML history of this and didn't see
+>>>>>> any other design implicated in this problem.
+>>>>>
+>>>>> I just ran the tests again using 4.6-rc2. I am able to reproduce the
+>>>>> dma-tx stall with am335x/edma and dra7/sdma.
+>>>>
+>>>> I thought we already established sdma was not to be used since
+>>>> the hardware does not actually support pausing without data loss.
+>>>
+>>> This workaround was not invented for sdma but for edma (with am335x).
+>>
+>> According to John above, dra7/sdma requires this workaround.
+> 
+> It was reported by Frans Klaver against am335x
+>  http://lkml.kernel.org/r/20140908183353.GB4686@ci00147.xsens-tech.local
+> 
+> and I managed to reproduce this with his yocto image on dra7 and am335x:
+>  http://lkml.kernel.org/r/20140921204100.GA10111@linutronix.de
 
-Setting status = "disabled" cannot be used for this case. Setting
-"disabled" makes Linux ignore these devices so they are not probed.
+[...]
 
-To proper way deal with the incomplete devices is to probe them,
-then allow the driver to check the state, and the disable or idle
-the device using PM runtime. To do this we need to often enable
-the device and run some device specific code to idle the device.
+>> - hangs changing some unknown register if tx dma in progress
+>>   (ie., this termios change workaround)
+> 
+> I think some registers are the baud-rate registers which pause engine.
 
-Also boards may have needs to disable and idle unused devices.
-This may be needed for example if all resources are not wired
-for a certain board variant.
+Let's back up here and focus on just this problem for now.
 
-It seems we can use the ePAPR 1.1 status fail-sss to do this.
->From "Table 2-4 Values for status property" we have "fail-sss":
+Since this is observable on dra7/sdma, then it's not related to
+the OMAP_DMA_TX_KICK problem. IOW, dropping tx dma support for am335x
+does not make this go away, which is what I was asking.
 
-"Indicates that the device is not operational. A serious error was
- detected in the device and it is unlikely to become operational
- without repair. The sss portion of the value is specific to the
- device and indicates the error condition detected."
-
-At least some of these fail states can be handled in a generic
-way. So let's introduce a generic status = "fail-hw-incomplete"
-that describes a situation where a device driver probe should
-just shut down or idle the device if possible and then bail out.
-This allows the SoC variant and board specific dts files to set
-the status "fail-hw-incomplete" as needed.
-
-The suggested usage in a device driver probe is:
-
-static int foo_probe(struct platform_device *pdev)
-{
-	int err;
-	...
-
-        pm_runtime_enable(&pdev->dev);
-        pm_runtime_get_sync(&pdev->dev);
-        pm_runtime_use_autosuspend(&pdev->dev);
-	...
-
-	/* Configure device, load firmware, idle device */
-	...
-
-	if (of_device_is_incomplete(pdev->dev.of_node)) {
-		err = -ENODEV;
-		goto out;
-	}
-
-	/* Continue normal device probe */
-	...
-
-	return 0;
-
-out:
-	pm_runtime_dont_use_autosuspend(&pdev->dev);
-	pm_runtime_put_sync(&pdev->dev);
-	pm_runtime_disable(&pdev->dev);
-
-	return err;
-}
-
-Then as needed, handling for other generic status = "fail-sss"
-states can be added if needed as per ePAPR 1.1.
-
-Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Cc: Tom Rini <trini-OWPKS81ov/FWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- drivers/of/base.c  | 55 +++++++++++++++++++++++++++++++++++++++++++++++++++---
- include/linux/of.h |  6 ++++++
- 2 files changed, 58 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/of/base.c b/drivers/of/base.c
-index b299de2..8eb161f 100644
---- a/drivers/of/base.c
-+++ b/drivers/of/base.c
-@@ -518,8 +518,8 @@ EXPORT_SYMBOL(of_machine_is_compatible);
-  *
-  *  @device: Node to check for availability, with locks already held
-  *
-- *  Returns true if the status property is absent or set to "okay" or "ok",
-- *  false otherwise
-+ *  Returns true if the status property is absent or set to "okay", "ok",
-+ *  or "fail-hw-incomplete", false otherwise
-  */
- static bool __of_device_is_available(const struct device_node *device)
- {
-@@ -534,7 +534,8 @@ static bool __of_device_is_available(const struct device_node *device)
- 		return true;
- 
- 	if (statlen > 0) {
--		if (!strcmp(status, "okay") || !strcmp(status, "ok"))
-+		if (!strcmp(status, "okay") || !strcmp(status, "ok") ||
-+		    !strcmp(status, "fail-hw-incomplete"))
- 			return true;
- 	}
- 
-@@ -563,6 +564,54 @@ bool of_device_is_available(const struct device_node *device)
- EXPORT_SYMBOL(of_device_is_available);
- 
- /**
-+ *  __of_device_is_incomplete - check if a device is incomplete
-+ *
-+ *  @device: Node to check for partial failure with locks already held
-+ *
-+ *  Returns true if the status is "fail-hw-incomplete", false otherwise.
-+ */
-+static bool __of_device_is_incomplete(const struct device_node *device)
-+{
-+	const char *status;
-+	int statlen;
-+
-+	if (!device)
-+		return false;
-+
-+	status = __of_get_property(device, "status", &statlen);
-+	if (status == NULL)
-+		return false;
-+
-+	if (statlen > 0) {
-+		if (!strcmp(status, "fail-hw-incomplete"))
-+			return true;
-+	}
-+
-+	return false;
-+}
-+
-+/**
-+ *  of_device_is_incomplete - check if a device is incomplete
-+ *
-+ *  @device: Node to check for partial failure
-+ *
-+ *  Returns true if the status property is set to "fail-hw-incomplete",
-+ *  false otherwise. Fore more information, see fail-sss in ePAPR 1.1
-+ *  "Table 2-4 Values for status property".
-+ */
-+bool of_device_is_incomplete(const struct device_node *device)
-+{
-+	unsigned long flags;
-+	bool res;
-+
-+	raw_spin_lock_irqsave(&devtree_lock, flags);
-+	res = __of_device_is_incomplete(device);
-+	raw_spin_unlock_irqrestore(&devtree_lock, flags);
-+	return res;
-+}
-+EXPORT_SYMBOL(of_device_is_incomplete);
-+
-+/**
-  *  of_device_is_big_endian - check if a device has BE registers
-  *
-  *  @device: Node to check for endianness
-diff --git a/include/linux/of.h b/include/linux/of.h
-index 7fcb681..1d37db2 100644
---- a/include/linux/of.h
-+++ b/include/linux/of.h
-@@ -308,6 +308,7 @@ extern int of_property_read_string_helper(const struct device_node *np,
- extern int of_device_is_compatible(const struct device_node *device,
- 				   const char *);
- extern bool of_device_is_available(const struct device_node *device);
-+extern bool of_device_is_incomplete(const struct device_node *device);
- extern bool of_device_is_big_endian(const struct device_node *device);
- extern const void *of_get_property(const struct device_node *node,
- 				const char *name,
-@@ -480,6 +481,11 @@ static inline bool of_device_is_available(const struct device_node *device)
- 	return false;
- }
- 
-+static inline bool of_device_is_incomplete(const struct device_node *device)
-+{
-+	return false;
-+}
-+
- static inline bool of_device_is_big_endian(const struct device_node *device)
- {
- 	return false;
--- 
-2.7.0
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Now, if the DLL/DLH/MDR1 register writes are causing dma to stall,
+then skipping those if they're unchanged should fix this, and then
+pause/terminating in-progress DMA if any of these registers are being
+written would be acceptable since some data loss is to be expected
+when changing the baud rate without waiting.
