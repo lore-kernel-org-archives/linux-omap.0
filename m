@@ -1,65 +1,72 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH] tty: serial: 8250_omap: do not defer termios changes
-Date: Tue, 12 Apr 2016 11:42:48 -0700
-Message-ID: <570D41A8.3050706@hurleysoftware.com>
-References: <8737r7ght7.fsf@linutronix.de>
- <570339E8.6010808@hurleysoftware.com> <87y48kftip.fsf@linutronix.de>
- <570BE48F.60801@hurleysoftware.com> <570BED7B.9080803@linutronix.de>
- <570C04C1.40201@hurleysoftware.com> <570D2A46.2050106@linutronix.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: omap2: am437x: rollback to use
+ omap3_gptimer_timer_init()
+Date: Tue, 12 Apr 2016 11:42:50 -0700
+Message-ID: <20160412184250.GT5995@atomide.com>
+References: <1460457775-23850-1-git-send-email-grygorii.strashko@ti.com>
+ <20160412160448.GN5995@atomide.com> <570D3EC8.7090807@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <570D2A46.2050106@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, John Ogness <john.ogness@linutronix.de>, Tony Lindgren <tony@atomide.com>, nsekhar@ti.com
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <570D3EC8.7090807@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, Felipe Balbi <balbi@kernel.org>, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 04/12/2016 10:03 AM, Sebastian Andrzej Siewior wrote:
-> On 04/11/2016 10:10 PM, Peter Hurley wrote:
->> On 04/11/2016 11:31 AM, Sebastian Andrzej Siewior wrote:
->>> On 04/11/2016 07:53 PM, Peter Hurley wrote:
->>>> On 04/11/2016 01:18 AM, John Ogness wrote:
->>>>> On 2016-04-05, Peter Hurley <peter@hurleysoftware.com> wrote:
->>>>>> On 03/31/2016 01:41 AM, John Ogness wrote:
->>>>>>> It has been observed that the TX-DMA can stall
->>>>>>
->>>>>> Does this happen on any other OMAP part besides am335x?
->>>>>> I looked back over the LKML history of this and didn't see
->>>>>> any other design implicated in this problem.
->>>>>
->>>>> I just ran the tests again using 4.6-rc2. I am able to reproduce the
->>>>> dma-tx stall with am335x/edma and dra7/sdma.
->>>>
->>>> I thought we already established sdma was not to be used since
->>>> the hardware does not actually support pausing without data loss.
->>>
->>> This workaround was not invented for sdma but for edma (with am335x).
->>
->> According to John above, dra7/sdma requires this workaround.
+* Grygorii Strashko <grygorii.strashko@ti.com> [160412 11:31]:
+> On 04/12/2016 07:04 PM, Tony Lindgren wrote:
+> > * Grygorii Strashko <grygorii.strashko@ti.com> [160412 03:44]:
+> >> The commit 55ee7017ee31 ("arm: omap2: board-generic: use
+> >> omap4_local_timer_init for AM437x") unintentionally changes the
+> >> clocksource devices for AM437x from OMAP GP Timer to SyncTimer32K.
+> >>
+> >> Unfortunately, the SyncTimer32K is starving from frequency deviation
+> >> as mentioned in commit 5b5c01359152 ("ARM: OMAP2+: AM43x: Use gptimer
+> >> as clocksource") and, as reported by Franklin [1], even its monotonic
+> >> nature is under question (most probably there is a HW issue, but it's
+> >> still under investigation).
+> >>
+> >> Taking into account above facts It's reasonable to rollback to the use
+> >> of omap3_gptimer_timer_init().
+> > 
+> > I thought only the ePOS EVM does not have the 32k clock available?
+> > Maybe this is the the old sync timer autocorrection drift issue?
+> > 
 > 
-> It was reported by Frans Klaver against am335x
->  http://lkml.kernel.org/r/20140908183353.GB4686@ci00147.xsens-tech.local
+> May be, as i mentioned in [1] it could be errata same as for Watchdog
+> Advisory 22 (or OMAP_TIMER_ERRATA_I103_I767).
 > 
-> and I managed to reproduce this with his yocto image on dra7 and am335x:
->  http://lkml.kernel.org/r/20140921204100.GA10111@linutronix.de
-
-[...]
-
->> - hangs changing some unknown register if tx dma in progress
->>   (ie., this termios change workaround)
+> But as per commit 5b5c01359152 ("ARM: OMAP2+: AM43x: Use gptimer
+> as clocksource") there is no reason to use SyncTimer32K as
+> clocksource any way (not only on epos):
 > 
-> I think some registers are the baud-rate registers which pause engine.
+> commit 5b5c01359152f3ddaa1aa0e5d1141bc2b29ba2c5
+> Author: Rajendra Nayak <rnayak@ti.com>
+> Date:   Fri Feb 7 15:51:26 2014 +0530
+> 
+>     ARM: OMAP2+: AM43x: Use gptimer as clocksource
+>     
+>     The SyncTimer in AM43x is clocked using the following two sources:
+>     1) An inaccuarte 32k clock (CLK_32KHZ) derived from PER DPLL, causing system
+>        time to go slowly (~10% deviation).
+> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>     2) external 32KHz RTC clock, which may not always be available on board like
+>        in the case of ePOS EVM
 
-Let's back up here and focus on just this problem for now.
+This sounds similar to recent "ARM: dts: dra7: Correct clock tree for
+sys_32k_ck", can you see if similar changes help for am43x?
 
-Since this is observable on dra7/sdma, then it's not related to
-the OMAP_DMA_TX_KICK problem. IOW, dropping tx dma support for am335x
-does not make this go away, which is what I was asking.
+Regards,
 
-Now, if the DLL/DLH/MDR1 register writes are causing dma to stall,
-then skipping those if they're unchanged should fix this, and then
-pause/terminating in-progress DMA if any of these registers are being
-written would be acceptable since some data loss is to be expected
-when changing the baud rate without waiting.
+Tony
