@@ -1,59 +1,46 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Nokia N900 retention mode in v4.6, camera buttons fun
-Date: Tue, 12 Apr 2016 14:30:13 +0200
-Message-ID: <20160412123013.GA12296@amd>
-References: <20160405205137.GA10196@amd>
- <20160407174019.GM16484@atomide.com>
- <20160407194828.GA13338@amd>
- <20160407213229.GO16484@atomide.com>
- <20160407230150.GA16552@amd>
- <20160407234134.GQ16484@atomide.com>
- <20160411093023.GC11814@amd>
- <20160411094130.GA5753@amd>
- <20160411211026.GH5995@atomide.com>
- <20160412121658.GA32486@amd>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 00/30] ARM: OMAP2+: hwmod module clock type support
+Date: Tue, 12 Apr 2016 16:55:28 +0300
+Message-ID: <570CFE50.5010709@ti.com>
+References: <1460362761-4842-1-git-send-email-t-kristo@ti.com>
+ <20160411173518.GA5995@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160412121658.GA32486@amd>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <20160411173518.GA5995@atomide.com>
+Sender: linux-clk-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, mturquette@baylibre.com, sboyd@codeaurora.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-clk@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+On 04/11/2016 08:40 PM, Tony Lindgren wrote:
+> Hi,
+>
+> Nice to see this moving along :)
+>
+> * Tero Kristo <t-kristo@ti.com> [160411 01:20]:
+>>
+>> The ordering on this set is kind of tricky to avoid any boot issues,
+>> and it still currently causes a boot breakage between the DTS data
+>> introduction and removal of hwmod data; this generates duplicate
+>> entries for clocks which is prone to cause issues (both DT and hwmod
+>> have the same entries in place under the hwmod data is removed.) I
+>> didn't quite figure out a good way to avoid this, and could use some
+>> guidance here. Shall we squash the DT + hwmod data patches together?
+>> This avoids the boot breakage but creates pretty large patches. Also,
+>> AMx3xx data needs to be grouped together as part of their data is
+>> re-used commonly by both SoCs.
+>
+> How about use clocks from dts if clocks property is defined? Otherwise
+> fall back to the old static data. Then drop the static data later on
+> with follow up patches.
 
-> > > Ok, it works now. I was doing tests in daylight so it was poorly
-> > > visible. The right part of keyboard stays lit (but that's expected
-> > > AFAICT), but the left part blinks.
-> > 
-> > During idle, both should go off and are doing so for me. Both LEDs off
-> > indicates off mode, left LED off is for retention mode. So you still
-> > have something blocking off mode, maybe check:
-> > 
-> > echo 1 > /sys/kernel/debug/pm_debug/enable_off_mode
-> 
-> What is the power difference between retention and off? I'm now down
-> to cca 25mA, which should be around 50 hours standby time. Not ideal,
-> but should be usable.
-> 
-> In the meantime, I found what is causing the rention mode to break for
-> me: CONFIG_HSI (aka wireless modem support). With HSI off, it seems to work.
-> 
-> I still get problems with the camera button, in config similar to
-> defconfig.  For some reason, I'm even getting (autorepeating) ^@ on
-> console. As long as I hold camera button down, I even get it into off
-> mode for brief period.
+The underlying issue is the hardcoded names of hwmod clocks within hwmod 
+data. I think I figured out a fix for this, I am adding a few patches to 
+this series to lookup main_clk based on the hwmod name itself. This 
+allows re-directing the main_clk to the DT module clock in case one is 
+available for the hwmod. The bisect issues seem to be gone with this 
+also, I need to cleanup the patches a bit and re-post.
 
-Ok, if I turn off CONFIG_KEYBOARD_GPIO, I get it into off
-mode... once per screen blank, for about a second. (Does CONFIG_KEYBOARD_GPIO also cause
-problems for you?)
-
-Any idea why it enters off mode only once after each screenblank?
-
-Best regards,
-								Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+-Tero
