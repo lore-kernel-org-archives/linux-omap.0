@@ -1,99 +1,60 @@
-From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH 03/12] mtd: nand: omap2: rely on generic DT
- parsing done in nand_scan_ident()
-Date: Wed, 13 Apr 2016 00:22:30 +0200
-Message-ID: <20160413002230.59f0930b@bbrezillon>
-References: <1459515272-31011-1-git-send-email-boris.brezillon@free-electrons.com>
-	<1459515272-31011-4-git-send-email-boris.brezillon@free-electrons.com>
-Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] of: Add generic handling for hardware incomplete fail
+ state
+Date: Tue, 12 Apr 2016 15:27:32 -0700
+Message-ID: <20160412222732.GL5995@atomide.com>
+References: <1460486275-12256-1-git-send-email-tony@atomide.com>
+ <570D56FE.2070408@gmail.com>
+ <20160412203431.GU5995@atomide.com>
+ <570D6B7A.3050203@gmail.com>
+ <CAL_Jsq+B67np4qcwJ2m1yz3TOzYgb7ZQtRH+vhANm9Snw5QnzQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBKXKWW4AKGQEQZZR6LI-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-Sender: linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-In-Reply-To: <1459515272-31011-4-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-List-Post: <https://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <https://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <https://groups.google.com/group/linux-sunxi
-List-Subscribe: <https://groups.google.com/group/linux-sunxi/subscribe>, <mailto:linux-sunxi+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+1076902468213+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <https://groups.google.com/group/linux-sunxi/subscribe>
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wenyou Yang <wenyou.yang-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>, Josh Wu <rainyfeeling-1ViLX0X+lBJBDgjK7y7TUQ@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Richard Weinberger <richard-/L3Ra7n9ekc@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kamal Dasu <kdasu.kdev-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Han Xu <han.xu-3arQi8VN3Tc@public.gmane.org>, Ezequiel Garcia <ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Stefan Agner <stefan-XLVq0VzYD2Y@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nicolas Ferre <nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>, Jean-Christophe Plagniol-Villard <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Thomas Petazzoni <thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>, bcm-kernel-feedback-list-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Chen-Yu Tsai <wens-jdAy2FN1RRM@public.gmane.org>, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Zhou Wang <wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, Alex Smith <alex.smith-1AXoQHu6uovQT0dZR+AlfA@public.gmane.org>, Harvey Hunt <harvey.hunt-1AXoQHu6uovQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAL_Jsq+B67np4qcwJ2m1yz3TOzYgb7ZQtRH+vhANm9Snw5QnzQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Herring <robh+dt@kernel.org>
+Cc: Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Tom Rini <trini@konsulko.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri,  1 Apr 2016 14:54:23 +0200
-Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org> wrote:
-
-> The core now takes care of parsing generic DT properties in
-> nand_scan_ident() when nand_set_flash_node() has been called.
-> Rely on this initialization instead of calling of_get_nand_xxx()
-> manually.
+* Rob Herring <robh+dt@kernel.org> [160412 15:22]:
+> On Tue, Apr 12, 2016 at 4:41 PM, Frank Rowand <frowand.list@gmail.com> wrote:
+> >>> Status of "fail-sss" is meant to indicate an error was detected in
+> >>> the device, and that the error might (or might not) be repairable.
+> >>>
+> >>> So the difference I see is state vs hardware description.
 > 
-> Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-
-Applied.
-
-> ---
->  drivers/memory/omap-gpmc.c | 7 -------
->  drivers/mtd/nand/omap2.c   | 9 ++++++---
->  2 files changed, 6 insertions(+), 10 deletions(-)
+> The question to ask is are we indicating the "operational status of a
+> device"? If yes, that is the definition of status and using it would
+> be appropriate.
 > 
-> diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-> index 21825dd..85aa85e 100644
-> --- a/drivers/memory/omap-gpmc.c
-> +++ b/drivers/memory/omap-gpmc.c
-> @@ -25,7 +25,6 @@
->  #include <linux/platform_device.h>
->  #include <linux/of.h>
->  #include <linux/of_address.h>
-> -#include <linux/of_mtd.h>
->  #include <linux/of_device.h>
->  #include <linux/of_platform.h>
->  #include <linux/omap-gpmc.h>
-> @@ -1876,12 +1875,6 @@ static int gpmc_probe_nand_child(struct platform_device *pdev,
->  				break;
->  			}
->  
-> -	gpmc_nand_data->flash_bbt = of_get_nand_on_flash_bbt(child);
-> -
-> -	val = of_get_nand_bus_width(child);
-> -	if (val == 16)
-> -		gpmc_nand_data->devsize = NAND_BUSWIDTH_16;
-> -
->  	gpmc_read_timings_dt(child, &gpmc_t);
->  	gpmc_nand_init(gpmc_nand_data, &gpmc_t);
->  
-> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> index 0749ca1..8921283 100644
-> --- a/drivers/mtd/nand/omap2.c
-> +++ b/drivers/mtd/nand/omap2.c
-> @@ -1704,9 +1704,7 @@ static int omap_nand_probe(struct platform_device *pdev)
->  	}
->  
->  	if (pdata->flash_bbt)
-> -		nand_chip->bbt_options |= NAND_BBT_USE_FLASH | NAND_BBT_NO_OOB;
-> -	else
-> -		nand_chip->options |= NAND_SKIP_BBTSCAN;
-> +		nand_chip->bbt_options |= NAND_BBT_USE_FLASH;
->  
->  	/* scan NAND device connected to chip controller */
->  	nand_chip->options |= pdata->devsize & NAND_BUSWIDTH_16;
-> @@ -1716,6 +1714,11 @@ static int omap_nand_probe(struct platform_device *pdev)
->  		goto return_error;
->  	}
->  
-> +	if (nand_chip->bbt_options & NAND_BBT_USE_FLASH)
-> +		nand_chip->bbt_options |= NAND_BBT_NO_OOB;
-> +	else
-> +		nand_chip->options |= NAND_SKIP_BBTSCAN;
-> +
->  	/* re-populate low-level callbacks based on xfer modes */
->  	switch (pdata->xfer_type) {
->  	case NAND_OMAP_PREFETCH_POLLED:
+> IMO, I think we are.
+> 
+> >> OK thanks for the clarification. I don't see why "fail-hw-incomplete"
+> >> could not be set dynamically during the probe in some cases based
+> >> on the SoC revision detection for example. So from that point of
+> >> view using status with the "fail-sss" logic would make more sense.
+> >
+> > If the probe detects that the device should only be power managed
+> > based on the SoC revision, then it would simply be one more
+> > test added at the top of probe.  The patch would change from:
+> >
+> >    if (of_device_is_incomplete(pdev->dev.of_node)) {
+> >
+> > to:
+> >
+> >    if (of_device_is_incomplete(pdev->dev.of_node) || socrev == XXX) {
+> 
+> I think Tony meant the bootloader or platform code would do this and
+> tweak the DT. We don't have much of a standard API for revision
+> checking, so drivers don't check SoC revisions generally.
 
+Yes bootloader may need to set these based on the SoC revision.
+There are already many boards with multiple SoC variants
+available. Would like to hear Tom's comments on this one as
+well from the u-boot point of view.
 
+Regards,
 
--- 
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+Tony
