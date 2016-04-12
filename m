@@ -1,241 +1,78 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 0/3] ARM: OMAP3: Fix McBSP2/3 hwmod setup for sidetone
-Date: Tue, 12 Apr 2016 12:52:14 +0300
-Message-ID: <570CC54E.6020703@ti.com>
-References: <1458311007-19168-1-git-send-email-peter.ujfalusi@ti.com>
- <alpine.DEB.2.02.1603191937430.6629@utopia.booyaka.com>
- <56EFB794.5010505@ti.com>
- <alpine.DEB.2.02.1603211743200.31059@utopia.booyaka.com>
- <56FE407E.9030803@ti.com> <20160402001753.GR9329@atomide.com>
- <57026205.6020105@ti.com> <20160404151200.GA4652@atomide.com>
- <5703BA6B.1080208@ti.com> <20160411212845.GJ5995@atomide.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH 04/15] irqchip/gic: WARN if setting the interrupt type
+ fails
+Date: Tue, 12 Apr 2016 11:14:52 +0100
+Message-ID: <570CCA9C.1030907@arm.com>
+References: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com>
+ <1458224359-32665-5-git-send-email-jonathanh@nvidia.com>
+ <alpine.DEB.2.11.1603171550200.3978@nanos> <56EAC761.1040801@nvidia.com>
+ <20160409115854.492090a5@arm.com> <570BC34A.5030806@nvidia.com>
+ <570BC528.9050601@arm.com> <570CB6DA.2050909@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160411212845.GJ5995-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <570CB6DA.2050909@nvidia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jon Hunter <jonathanh@nvidia.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Kevin Hilman <khilman@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Tony,
-
-On 04/12/16 00:28, Tony Lindgren wrote:
->>> Then for the long term solution using
->>> PM runtime to block gating of the clock while sidetone is active is
->>> the way to go it seems.
->>
->> Hrm, I think one of the main issue is that with pm_runtime we can no=
-t block
->> the clock gating, this is why legacy code uses enable_st_clock(), wh=
-ich will
->> call omap2_clk_deny_idle() or omap2_clk_allow_idle().
->=20
-> I see. I think Tero wanted to export omap2_clk_allow_idle() and
-> omap2_clk_deny_idle() for drivers to use. That should get discussed i=
-n
-> the linux-clk list, probably best to use the pdata callbacks until
-> the clock idling issue has been discussed.
-
-It is already exported, used by the arch/arm/mach-omap2/mcbsp.c file.
-
->=20
->>>> The ST does not have clocks coming from PRCM level, it only uses t=
-he McBSP
->>>> iclk when it is enabled (the McBSP block of the McBSP). As far as =
-pm_runtime
->>>> goes I think the ST module should not use it. We can not tell hwmo=
-d to
->>>> enable/disable the McBSP2/3 iclk when we pm_runtime for the ST. It=
- does not
->>>> help at all. We can have nop action for the ST when pm_runtime is =
-used, but
->>>> then why would we have it?
->>>
->>> Using PM runtime in the sidetone driver should just work as long as=
- the
->>> sidetone device driver depends on the McBSP driver before it gets p=
-robed.
->>> The clock framework handles things for the mcbsp ick with the useco=
-unt.
->>
->> Yes, that is not the problem. The problem is that when McBSP is used=
- w/o
->> sidetone the iclk can and should be autogated, but if the sidetone i=
-s enabled
->> then the iclk must not autogate and this needs to be prevented in PR=
-CM level.
->> Note also that while the McBSP is running we must be able to enable/=
-disable
->> the sidetone any time w/o affecting the McBSP operation.
->=20
-> OK I see.
->=20
->>> And doing pm_runtime_get() in the sidetone driver will do what the =
-legacy
->>> enable_st_clock() does currently.
->>
->> it can't do that as we do not have way to deny/enable just the autoi=
-dle for a
->> given clock.
->=20
-> Yup. So I suggest the pdata callbacs for the omap2_clk_allow_idle() a=
-nd
-> omap2_clk_deny_idle() for now.
-
-Why not to remove the callback for legacy also and handle it in the dri=
-ver? It
-is less ugly in my opinion.
-Going via the pdata callback is just going to cement the current setup.
-
->>>>> So having two separate drivers might make things a lot simpler.
+On 12/04/16 09:50, Jon Hunter wrote:
+> 
+> On 11/04/16 16:39, Marc Zyngier wrote:
+>> On 11/04/16 16:31, Jon Hunter wrote:
+>>> On 09/04/16 11:58, Marc Zyngier wrote:
+> 
+> [snip]
+> 
+>>>> I think we need to phase things. Let's start with warning people for a
+>>>> few kernel releases. Actively maintained platforms will quickly address
+>>>> the issue (fixing their DT). As I see it, this issue seems rather
+>>>> widespread (even kvmtool outputs a DT with the wrong triggering
+>>>> information).
 >>>>
->>>> Not really. It will make things way more complicated imho. How to =
-handle
->>>> legacy boot as we still have that supported?
+>>>> Once we've fixed the bulk of the platforms and virtual environments, we
+>>>> can start thinking about making it fail harder.
 >>>
->>> Hey both the legacy driver and DT driver are really just platform d=
-evices
->>> and drivers. And passing both dts and platform data can be done jus=
-t
->>> fine, no?
+>>> Ok, so are you OK with this patch as-is? If so, can I add your ACK?
 >>
->> Sure, but McBSP2-ST needs to bind with McBSP2 driver instance and th=
-e
->> McBSP3-ST should bind with McBSP3 instance. In legacy mode we can st=
-ore the
->> McBSP pdev pointers in a array and use the devid or get the McBSP id=
- from the
->> device name. While with DT boot we must have phandle pointing to/fro=
-m ST
->> from/to McBSP node to be able to figure out who is who.
+>> It depends where you plan to handle the error. Ideally, I'd keep on
+>> returning the error (because that's the right thing to do), and move the
+>> WARN_ON() into the core code. We'd keep on ignoring the error as we're
+>> doing today, but we'd scream about it.
 >>
->>>> When the McBSP driver is loaded we must know if it has sidetone or=
- not so
->>>> we can create the needed audio controls, sysfs entries. The sysfs =
-and
->>>> kcontrol registration could be moved out to the new ST driver, tru=
-e.
->>>
->>> Yeah during the probe, the sidetone driver must register with the M=
-cBSP
->>> driver to tell it's there.
+>> After a couple of releases, we'd turn the WARN_ON into a hard fail.
 >>
->> When McBSP driver probes, it registers itself to ASoC core and it ne=
-eds to
->> know at that point if we need to prepare for ST or not. So probably =
-the McBSP
->> driver needs to register to ST driver?
->=20
-> OK yes if that makes more sense.
+>> Thoughts?
+> 
+> I agree that would be best/ideal, but looking at it, I don't believe it
+> is possible and this is why I have not done that so far.
+> 
+> If we were to add the WARN to the core code, then we would need to add a
+> warning everywhere __irq_set_trigger() is called. One of the places it
+> is called today is from __setup_irq() and today this does the right
+> thing and handle any error returned. The problem is that in
+> irq_create_fwspec_mapping() we have never checked the return code from
+> irq_set_irq_type() (which calls __irq_set_trigger()) or attempted to
+> handle any errors. So the problem is that depending on the path through
+> which the type is programmed, errors may or may not be detected. This is
+> the actual headache :-(
+> 
+> Given that this problem so far only pertains to GIC PPI interrupts and
+> that it is a not a catastrophic error (interrupts still work fine), I
+> was thinking we add the warning to the GIC driver.
+> 
+> May be a less severe change would be to only return an error if
+> configuring an SPI fails and if it is a PPI then simply WARN and
+> carry-on as we assume we cannot change it.
 
-I have drafted out something which would be needed if we separate the M=
-cBSP-ST
-from the McBSP driver. It is not pretty...
+I'd take that. Limiting it to PPIs would be a minimal change, and the
+warning would hopefully make people realize their DT is wrong. Failing
+to program an SPI is really not expected, and should definitely explode.
 
-In the new omap3-mcbsp-st.h:
+Thanks,
 
-struct omap3_mcbspst;
-
-struct omap_st_to_mcbsp_data {
-	bool (*is_enabled)(struct omap_st_to_mcbsp_data *st_data);
-	bool (*enable)(struct omap_st_to_mcbsp_data *st_data);
-	bool (*disable)(struct omap_st_to_mcbsp_data *st_data);
-	struct omap3_mcbspst *st_priv;
-};
-
-In the current omap-mcbsp.h:
-
-#include <omap3-mcbsp-st.h>
-=2E..
-struct omap_mcbsp_to_st_data {
-	bool (*is_enabled)(struct omap_mcbsp_to_st_data *mcbsp_data);
-	bool (*iclk_idle)(struct omap_mcbsp_to_st_data *mcbsp_data, bool allow=
-);
-	bool (*enable)(struct omap_mcbsp_to_st_data *mcbsp_data);
-	bool (*disable)(struct omap_mcbsp_to_st_data *mcbsp_data);
-	struct omap_mcbsp *mcbsp_priv;
-};
-
-#ifdef CONFIG_SND_SOC_OMAP3_MCBSPST
-struct omap_mcbsp_to_st_data *omap_mcbsp_st_register(
-						struct platform_device *pdev, /* McBSP pdev! probably? */
-						struct omap_st_to_mcbsp_data *st_data);
-int omap_mcbsp_st_unregister(struct omap_st_to_mcbsp_data *st_data);
-#else
-static inline int omap_mcbsp_st_register(struct platform_device *pdev,
-					 struct omap_st_to_mcbsp_data *st_data)
-{
-	return -ENODEV;
-}
-static inline int omap_mcbsp_st_unregister(struct omap_st_to_mcbsp_data=
- *st_data)
-{
-	return 0;
-}
-#endif
-
-Since the ST would be separate driver, it should create the needed ALSA
-controls as well, probably I need to pass something else here and there=
-=2E
-But, in this setup it would be possible to remove the ST driver while t=
-he
-McBSP and the sound card is up, which means we must be able to remove
-kcontrols runtime, probably there is a way, but not sure about this.
-
-There will be issues like this we have not prepared for I'm sure if we =
-do
-dramatic change to the simple implementation we have right now.
-
->>> I guess no need to pass anything in the
->>> dts or platform_data for that.
->>>
->>>> I actually started with two separate drivers approach first, but d=
-ecided that
->>>> it does not worth the effort (legacy boot support, pm_runtime/hwmo=
-d hassle,
->>>> platform data, callback API design, etc).
->>>> I know, it is not rocket science but it is king of shoot out of ca=
-nnon into
->>>> sparrows.
->>>> I'll think about it for a little while ;)
->>>
->>> Well what we've seen so far is that any kind of non-standard soluti=
-on
->>> will always be a pain to maintain in the long run :)
->>
->> The current implementation (one driver to handle McBSP and the ST) i=
-s there
->> ever since OMAP3 was introduced afaik. Changing a working (was worki=
-ng) design
->> to something which has not been tested will for sure going to open i=
-ssues we
->> have not prepared for.
->> I would avoid the rewrite of a proven driver architecture if it is n=
-ot broken.
->=20
-> Well probably the best thing to do is the use of platform callback
-> for now until we know how it can be done incrementally :)
-
-I have reasonably clean patches (6 of them) on top of this three which =
-would
-remove the arch code for the iclk handling and implements it in the mcb=
-sp
-driver w/o changing the architecture of the McBSP driver itself. Both D=
-T and
-legacy boot works. The only part I was not happy about the one where I =
-looked
-up the mcbsp2/3_ick, but I think I have found much cleaner way to do it
-(meaning that the code will not look hackish at all).
-If you want to see, I can make this change and I can send the whole thi=
-ng as
-RFC and continue the discussion around that?
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	M.
+-- 
+Jazz is not dead. It just smells funny...
