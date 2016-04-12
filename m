@@ -1,15 +1,16 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH 01/12] mtd: nand: remove unneeded of_mtd.h inclusions
-Date: Wed, 13 Apr 2016 00:22:15 +0200
-Message-ID: <20160413002215.166d4340@bbrezillon>
+Subject: Re: [PATCH 03/12] mtd: nand: omap2: rely on generic DT
+ parsing done in nand_scan_ident()
+Date: Wed, 13 Apr 2016 00:22:30 +0200
+Message-ID: <20160413002230.59f0930b@bbrezillon>
 References: <1459515272-31011-1-git-send-email-boris.brezillon@free-electrons.com>
-	<1459515272-31011-2-git-send-email-boris.brezillon@free-electrons.com>
+	<1459515272-31011-4-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBGXKWW4AKGQEAUNQG7I-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBKXKWW4AKGQEQZZR6LI-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 Sender: linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-In-Reply-To: <1459515272-31011-2-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <1459515272-31011-4-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <https://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <https://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Archive: <https://groups.google.com/group/linux-sunxi
@@ -20,84 +21,75 @@ To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nicolas Ferre <nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>, Jean-Christophe Plagniol-Villard <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Thomas Petazzoni <thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>, bcm-kernel-feedback-list-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Chen-Yu Tsai <wens-jdAy2FN1RRM@public.gmane.org>, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Zhou Wang <wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, Alex Smith <alex.smith-1AXoQHu6uovQT0dZR+AlfA@public.gmane.org>, Harvey Hunt <harvey.hunt-1AXoQHu6uovQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri,  1 Apr 2016 14:54:21 +0200
+On Fri,  1 Apr 2016 14:54:23 +0200
 Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org> wrote:
 
-> Some drivers are including linux/of_mtd.h even if they don't use any of
-> the of_get_nand_xxx() helpers.
+> The core now takes care of parsing generic DT properties in
+> nand_scan_ident() when nand_set_flash_node() has been called.
+> Rely on this initialization instead of calling of_get_nand_xxx()
+> manually.
 > 
 > Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 
 Applied.
 
 > ---
->  drivers/mtd/nand/jz4780_nand.c | 1 -
->  drivers/mtd/nand/lpc32xx_mlc.c | 1 -
->  drivers/mtd/nand/qcom_nandc.c  | 1 -
->  drivers/mtd/nand/sunxi_nand.c  | 1 -
->  drivers/mtd/nand/vf610_nfc.c   | 1 -
->  5 files changed, 5 deletions(-)
+>  drivers/memory/omap-gpmc.c | 7 -------
+>  drivers/mtd/nand/omap2.c   | 9 ++++++---
+>  2 files changed, 6 insertions(+), 10 deletions(-)
 > 
-> diff --git a/drivers/mtd/nand/jz4780_nand.c b/drivers/mtd/nand/jz4780_nand.c
-> index e1c016c..23a1999 100644
-> --- a/drivers/mtd/nand/jz4780_nand.c
-> +++ b/drivers/mtd/nand/jz4780_nand.c
-> @@ -17,7 +17,6 @@
+> diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+> index 21825dd..85aa85e 100644
+> --- a/drivers/memory/omap-gpmc.c
+> +++ b/drivers/memory/omap-gpmc.c
+> @@ -25,7 +25,6 @@
+>  #include <linux/platform_device.h>
 >  #include <linux/of.h>
 >  #include <linux/of_address.h>
->  #include <linux/gpio/consumer.h>
 > -#include <linux/of_mtd.h>
->  #include <linux/platform_device.h>
->  #include <linux/slab.h>
->  #include <linux/mtd/mtd.h>
-> diff --git a/drivers/mtd/nand/lpc32xx_mlc.c b/drivers/mtd/nand/lpc32xx_mlc.c
-> index d8c3e7a..8e43978 100644
-> --- a/drivers/mtd/nand/lpc32xx_mlc.c
-> +++ b/drivers/mtd/nand/lpc32xx_mlc.c
-> @@ -35,7 +35,6 @@
->  #include <linux/completion.h>
->  #include <linux/interrupt.h>
->  #include <linux/of.h>
-> -#include <linux/of_mtd.h>
->  #include <linux/of_gpio.h>
->  #include <linux/mtd/lpc32xx_mlc.h>
->  #include <linux/io.h>
-> diff --git a/drivers/mtd/nand/qcom_nandc.c b/drivers/mtd/nand/qcom_nandc.c
-> index f550a57..f3de983 100644
-> --- a/drivers/mtd/nand/qcom_nandc.c
-> +++ b/drivers/mtd/nand/qcom_nandc.c
-> @@ -21,7 +21,6 @@
->  #include <linux/mtd/partitions.h>
->  #include <linux/of.h>
 >  #include <linux/of_device.h>
-> -#include <linux/of_mtd.h>
->  #include <linux/delay.h>
+>  #include <linux/of_platform.h>
+>  #include <linux/omap-gpmc.h>
+> @@ -1876,12 +1875,6 @@ static int gpmc_probe_nand_child(struct platform_device *pdev,
+>  				break;
+>  			}
 >  
->  /* NANDc reg offsets */
-> diff --git a/drivers/mtd/nand/sunxi_nand.c b/drivers/mtd/nand/sunxi_nand.c
-> index 1c03eee..3a97093 100644
-> --- a/drivers/mtd/nand/sunxi_nand.c
-> +++ b/drivers/mtd/nand/sunxi_nand.c
-> @@ -30,7 +30,6 @@
->  #include <linux/of.h>
->  #include <linux/of_device.h>
->  #include <linux/of_gpio.h>
-> -#include <linux/of_mtd.h>
->  #include <linux/mtd/mtd.h>
->  #include <linux/mtd/nand.h>
->  #include <linux/mtd/partitions.h>
-> diff --git a/drivers/mtd/nand/vf610_nfc.c b/drivers/mtd/nand/vf610_nfc.c
-> index 293feb1..a7f2756 100644
-> --- a/drivers/mtd/nand/vf610_nfc.c
-> +++ b/drivers/mtd/nand/vf610_nfc.c
-> @@ -33,7 +33,6 @@
->  #include <linux/mtd/mtd.h>
->  #include <linux/mtd/nand.h>
->  #include <linux/mtd/partitions.h>
-> -#include <linux/of_mtd.h>
->  #include <linux/of_device.h>
->  #include <linux/pinctrl/consumer.h>
->  #include <linux/platform_device.h>
+> -	gpmc_nand_data->flash_bbt = of_get_nand_on_flash_bbt(child);
+> -
+> -	val = of_get_nand_bus_width(child);
+> -	if (val == 16)
+> -		gpmc_nand_data->devsize = NAND_BUSWIDTH_16;
+> -
+>  	gpmc_read_timings_dt(child, &gpmc_t);
+>  	gpmc_nand_init(gpmc_nand_data, &gpmc_t);
+>  
+> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> index 0749ca1..8921283 100644
+> --- a/drivers/mtd/nand/omap2.c
+> +++ b/drivers/mtd/nand/omap2.c
+> @@ -1704,9 +1704,7 @@ static int omap_nand_probe(struct platform_device *pdev)
+>  	}
+>  
+>  	if (pdata->flash_bbt)
+> -		nand_chip->bbt_options |= NAND_BBT_USE_FLASH | NAND_BBT_NO_OOB;
+> -	else
+> -		nand_chip->options |= NAND_SKIP_BBTSCAN;
+> +		nand_chip->bbt_options |= NAND_BBT_USE_FLASH;
+>  
+>  	/* scan NAND device connected to chip controller */
+>  	nand_chip->options |= pdata->devsize & NAND_BUSWIDTH_16;
+> @@ -1716,6 +1714,11 @@ static int omap_nand_probe(struct platform_device *pdev)
+>  		goto return_error;
+>  	}
+>  
+> +	if (nand_chip->bbt_options & NAND_BBT_USE_FLASH)
+> +		nand_chip->bbt_options |= NAND_BBT_NO_OOB;
+> +	else
+> +		nand_chip->options |= NAND_SKIP_BBTSCAN;
+> +
+>  	/* re-populate low-level callbacks based on xfer modes */
+>  	switch (pdata->xfer_type) {
+>  	case NAND_OMAP_PREFETCH_POLLED:
 
 
 
