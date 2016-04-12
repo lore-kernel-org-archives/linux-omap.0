@@ -1,91 +1,66 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH] ARM: OMAP3: Fix external abort on 36xx waking from off mode
- idle
-Date: Tue, 12 Apr 2016 10:43:57 -0500
-Message-ID: <1460475837-1984-1-git-send-email-d-gerlach@ti.com>
+From: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] of/platform: Allow secondary compatible match in of_dev_lookup
+Date: Tue, 12 Apr 2016 10:56:21 -0500
+Message-ID: <CAL_Jsq+XrNoqEjCnQ=rLJVdQe9EdHb+MopUtvM2vy12N2veo3A@mail.gmail.com>
+References: <1459546504-32668-1-git-send-email-tony@atomide.com>
+ <20160401214053.GQ9329@atomide.com> <CAL_Jsq+PcTD=duHmWgHyx_ywYbT10vEtcm=79x5o5wYSkgG63g@mail.gmail.com>
+ <20160407165842.GJ16484@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Richard Woodruff <r-woodruff2@ti.com>, Dave Gerlach <d-gerlach@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160407165842.GJ16484-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Depending on timing during the resume path from off mode on 36xx, we may
-see external aborts. These seem to be caused by the following:
+On Thu, Apr 7, 2016 at 11:58 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+> * Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [160406 21:53]:
+>> On Fri, Apr 1, 2016 at 4:40 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+>> > * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [160401 14:37]:
+>> >> We currently try to match of_dev_auxdata based on compatible,
+>> >> IO address, and device name. But in some cases we have multiple
+>> >> instances of drivers that can use the same auxdata.
+>> >>
+>> >> Let's add an additional secondary lookup for generic compatible
+>> >> match for auxdata if no device specific match is found. This does
+>> >> not change the existing matching, and still allows adding device
+>> >> specific auxdata.
+>> >>
+>> >> This simplifies things as specifying the IO address and device
+>> >> name is prone errors as it requires maintaining an in kernel
+>> >> database for each SoC.
+>> >
+>> > And here's what I can apply later on to get rid of some
+>> > ifdeffery.
+>> >
+>> > I'm also planning to move some of the legacy omap hwmod
+>> > functionality into proper device drivers, so can generic
+>> > pdata for that too.
+>>
+>> Why can't the platform data be moved into the driver given that it
+>> appears to be only SoC family specific? Auxdata was somewhat intended
+>> to be temporary. It appears there is already some per compatible match
+>> data for these OMAP parts in the driver.
+>
+> There are just too many dependencies to move legacy code into drivers
+> directly. Especially when moving the omap hwmod code into drivers,
+> we still to use hwmod callbacks at least for clockdomain configuration,
+> wake-up dependencies and clock autogating configuration.
+>
+> When we have Linux generic frameworks available for all this we no longer
+> need the auxdata. But meanwhile, removing the depenencies by using
+> auxdata already allows moving big chunks of the hwmod code into regular
+> device drivers.
 
-- OMAP3 Advisory 1.62 "MPU Cannot Exit from Standby" says we need to
-  disable disable intc autoidle before WFI
+Okay. In that case:
 
-- DM3730 Advisory 1.106 "MPU Leaves MSTANDBY State Before IDLEREQ of
-  Interrupt Controller is Released" says we need to wait before
-  accessing intc
+Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-omap3_intc_resume_idle restores the intc autoidle for all resume paths,
-however in the resume path from off mode only it is also being restored
-by omap_intc_restore_context before this call to omap3_intc_resume_idle
-happens. The second restore of the intc autoidle in this path is what
-appears to be causing the external abort so for the off mode resume path
-let's rely on omap_intc_restore_context to restore intc autoidle, and
-for all other paths let omap3_intc_resume_idle handle it as it is now.
+Apply it when you have actual users depending on it.
 
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
----
- arch/arm/mach-omap2/pm34xx.c | 25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index fcf975eb5e9d..bb6e13ce673a 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -268,7 +268,6 @@ void omap_sram_idle(void)
- 	int per_next_state = PWRDM_POWER_ON;
- 	int core_next_state = PWRDM_POWER_ON;
- 	int per_going_off;
--	int core_prev_state;
- 	u32 sdrc_pwr = 0;
- 
- 	mpu_next_state = pwrdm_read_next_pwrst(mpu_pwrdm);
-@@ -348,17 +347,21 @@ void omap_sram_idle(void)
- 		sdrc_write_reg(sdrc_pwr, SDRC_POWER);
- 
- 	/* CORE */
--	if (core_next_state < PWRDM_POWER_ON) {
--		core_prev_state = pwrdm_read_prev_pwrst(core_pwrdm);
--		if (core_prev_state == PWRDM_POWER_OFF) {
--			omap3_core_restore_context();
--			omap3_cm_restore_context();
--			omap3_push_sram_idle();
--			omap3_push_sram_secure_idle();
--			omap2_sms_restore_context();
--		}
-+	if (core_next_state < PWRDM_POWER_ON &&
-+	    pwrdm_read_prev_pwrst(core_pwrdm) == PWRDM_POWER_OFF) {
-+		omap3_core_restore_context();
-+		omap3_cm_restore_context();
-+		omap3_push_sram_idle();
-+		omap3_push_sram_secure_idle();
-+		omap2_sms_restore_context();
-+	} else {
-+		/*
-+		 * In off-mode resume path above, omap3_core_restore_context
-+		 * also handles the INTC autoidle restore done here so limit
-+		 * this to non-off mode resume paths so we don't do it twice.
-+		 */
-+		omap3_intc_resume_idle();
- 	}
--	omap3_intc_resume_idle();
- 
- 	pwrdm_post_transition(NULL);
- 
--- 
-2.7.3
+Rob
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
