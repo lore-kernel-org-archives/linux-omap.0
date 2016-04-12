@@ -1,88 +1,193 @@
-From: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-Subject: Re: [PATCH] rtc: omap: Support ext_wakeup configuration
-Date: Tue, 12 Apr 2016 19:25:13 +0200
-Message-ID: <570D2F79.9040202@grinn-global.com>
-References: <1459785403-1725-1-git-send-email-m.niestroj@grinn-global.com>
- <20160404224046.GA17042@atomide.com> <57078A89.3080809@ti.com>
- <20160408151408.GS16484@atomide.com> <5707E764.7050204@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH] gpio: omap: fix irq triggering in smart-idle wakeup mode
+Date: Tue, 12 Apr 2016 21:10:03 +0300
+Message-ID: <570D39FB.8050006@ti.com>
+References: <1460458351-24187-1-git-send-email-grygorii.strashko@ti.com>
+ <570D25EB.1010709@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5707E764.7050204-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <570D25EB.1010709@oracle.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: santosh shilimkar <santosh.shilimkar@oracle.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Santosh Shilimkar <ssantosh@kernel.org>, tony@atomide.com
+Cc: nsekhar@ti.com, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On 04/12/2016 07:44 PM, santosh shilimkar wrote:
+> On 4/12/2016 3:52 AM, Grygorii Strashko wrote:
+>> Now GPIO IRQ loss is observed on dra7-evm after suspend/resume cycle
+>> in the following case:
+>>    extcon_usb1(id_irq) ->  pcf8575.gpio1 -> omapgpio6.gpio11 -> gic
+>>
+>> the extcon_usb1 is wake up source and it enables IRQ wake up for
+>> id_irq by calling enable/disable_irq_wake() during suspend/resume
+>> which, in turn, causes execution of omap_gpio_wake_enable(). And
+>> omap_gpio_wake_enable() will set/clear corresponding bit in
+>> GPIO_IRQWAKEN_x register.
+>>
+>> omapgpio6 configuration after boot - wakeup is enabled for GPIO IRQs
+>> by default from  omap_gpio_irq_type:
+>> GPIO_IRQSTATUS_SET_0    | 0x00000400
+>> GPIO_IRQSTATUS_CLR_0    | 0x00000400
+>> GPIO_IRQWAKEN_0         | 0x00000400
+>> GPIO_RISINGDETECT       | 0x00000000
+>> GPIO_FALLINGDETECT      | 0x00000400
+>>
+>> omapgpio6 configuration after after suspend/resume cycle:
+>> GPIO_IRQSTATUS_SET_0    | 0x00000400
+>> GPIO_IRQSTATUS_CLR_0    | 0x00000400
+>> GPIO_IRQWAKEN_0         | 0x00000000 <---
+>> GPIO_RISINGDETECT       | 0x00000000
+>> GPIO_FALLINGDETECT      | 0x00000400
+>>
+>> As result, system will start to lose interrupts from pcf8575 GPIO
+>> expander, because when OMAP GPIO IP is in smart-idle wakeup mode, there
+>> is no guarantee that transition(s) on input non wake up GPIO pin will
+>> trigger asynchronous wake-up request to PRCM and then IRQ generation.
+>> IRQ will be generated when GPIO is in active mode - for example, some
+>> time after accessing GPIO bank registers IRQs will be generated
+>> normally, but issue will happen again once PRCM will put GPIO in low
+>> power smart-idle wakeup mode.
+>>
+>> Note 1. Issue is not reproduced if debounce clk is enabled for GPIO
+>> bank.
+>>
+>> Note 2. Issue hardly reproducible if GPIO pins group contains both
+>> wakeup/non-wakeup gpios - for example, it will be hard to reproduce
+>> issue with pin2 if GPIO_IRQWAKEN_0=0x1 GPIO_IRQSTATUS_SET_0=0x3
+>> GPIO_FALLINGDETECT = 0x3 (TRM "Power Saving by Grouping the Edge/Level
+>> Detection").
+>>
+>> Note 3. There nothing common bitween System wake up and OMAP GPIO bank
+>> IP wake up logic - the last one defines how the GPIO bank ON-IDLE-ON
+>> transition will happen inside SoC under control of PRCM.
+>>
+>> Hence, fix the problem by removing omap_set_gpio_wakeup() function
+>> completely and so keeping always in sync GPIO IRQ mask/unmask
+>> (IRQSTATUS_SET) and wake up enable (GPIO_IRQWAKEN) bits; 
 
-On 08.04.2016 19:16, Grygorii Strashko wrote:
-> On 04/08/2016 06:14 PM, Tony Lindgren wrote:
->> * Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [160408 03:41]:
->>> Hi Tony,
->>>
->>> On 04/05/2016 01:40 AM, Tony Lindgren wrote:
->>>> Hi,
->>>>
->>>> * Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org> [160404 08:57]:
->>>>> Support configuration of ext_wakeup sources. This patch makes it
->>>>> possible to enable ext_wakeup and set it's polarity, depending on board
->>>>> configuration. AM335x's dedicated PMIC (tps65217) uses ext_wakeup to
->>>>> notify about power-button presses. Handling power-button presses enables
->>>>> to recover from RTC-only power states correctly.
->>>>
->>>> I suggest you just set this pin up as a minimal gpiochip. That way
->>>> we can use the standard binding :) And if we get lucky, this pin can
->>>> also trigger during runtime.
->>>>
->>>
->>> Following my comments on v2 of this patch I propose to rollback to
->>> this version of the patch.
->>>
->>> It seems doesn't fit in gpiochip, it's more likely irqchip, but since
->>> rtc can't generate IRQ there are nor reasons for these genetic
->>> experiments and RTC's specific bindings looks more suitable, at least for me.
->>
->> Hmm well gpiochips typically are irqchip too. IMO the generic binding
->> here sounds like "gpio-wakeup" as it's an input with polarity and with
->> an optional interrupt.
->>
->> Plain irqchip would work too in this case if there are no other GPIO
->> specific features. Some other RTCs may have more GPIO like features.
->>
->> In any case, setting the ext_wakeup up as an irqchip means that the
->> RTC controller can be used as a dedicated wakeirq with Linux :)
->
-> It can't :( It can't generate IRQ when state of ext_wakeup line has
-> been changed.
->
->>
->> Are you guys sure there's no wake pin events during runtime? AFAIK
->> the RTCs just typically produce an interrupt when programmed to
->> do so, they don't know the state of the SoC.
->>
->
-> I do not think that It can be fit in gpiochip or irqchip -
-> in my opinion right way is to proceed with bindings proposed by
-> Marcin in this patch v1.
->
-> But, probably, it could fit in pinctrl:
-> - this is pin's configuration
-> - this is one-time configuration
-> - or - configuration which can be applied before suspend
->    and resorted after suspend.
->
-> if you still wanna try some generic framework.
->
+^^^ only omap_set_gpio_wakeup() is removed, which shouldn't touch
+GPIO_IRQWAKEN register (note 3). 
+IRQchip .irq_set_irq_wake() in our case should just mark irq parent as System wake up source,
+ so it will be kept unmasked during System suspend. GPIO Irq by itself will
+ be marked by IRQ Core. 
+ All other  GPIO IRQs must be masked during System suspend
+  (and it is done gracefully by using IRQCHIP_MASK_ON_SUSPEND:).
 
-pinctrl bindings looks ok for our use case (enable/disable input,
-configure debounce), except I don't see any way to pass polarity
-(active low/high) to the driver.
+
+>> and adding
+>> IRQCHIP_MASK_ON_SUSPEND flag in OMAP GPIO irqchip. That way non wakeup
+>> GPIO IRQs will be properly masked/unmask by IRQ PM core during
+>> suspend/resume cycle.
+>>
+>> Cc: Roger Quadros <rogerq@ti.com>
+>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>> ---
+> GPIO IP has two levels of controls for wakeups and you are
+> just removing the SYSCFG wakeup and relying on the IRQ
+> line wakeup.
+
+No. I don't remove SYSCFG wakeup. SYSCFG.ENAWAKEUP will be
+configured by OMAP hwmod and this patch do not change that.
+
+Also, GPIO_IRQWAKEN will also be configured properly -
+It alway configured from omap_set_gpio_trigger().
+
+In addition:
+omap_gpio_mask_irq() -> omap_set_gpio_trigger(IRQ_TYPE_NONE) : 
+  ---> irq masked, GPIO_IRQWAKEN bit cleared, irq type is IRQ_TYPE_NONE
+
+omap_gpio_unmask_irq() -> omap_set_gpio_trigger(IRQ_TYPE_xxx) : 
+  ---> irq unmasked, GPIO_IRQWAKEN bit is set, irq type is IRQ_TYPE_xxx
+
+
+
+> line wakeup. I like usage of "IRQCHIP_MASK_ON_SUSPEND" but
+> please be acreful this change which might break older OMAPs.
+
+I expect no issues (only if some platforms expect to wake up from
+gpio irq, but do not configure this irq as wakeup irq).
+^ and this will be a bug which need to be fixed.
+
+> 
+>>   drivers/gpio/gpio-omap.c | 42 
+>> ++----------------------------------------
+>>   1 file changed, 2 insertions(+), 40 deletions(-)
+>>
+>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>> index 551dfa9..b98ede7 100644
+>> --- a/drivers/gpio/gpio-omap.c
+>> +++ b/drivers/gpio/gpio-omap.c
+>> @@ -611,51 +611,12 @@ static inline void 
+>> omap_set_gpio_irqenable(struct gpio_bank *bank,
+>>           omap_disable_gpio_irqbank(bank, BIT(offset));
+>>   }
+>>
+>> -/*
+>> - * Note that ENAWAKEUP needs to be enabled in GPIO_SYSCONFIG register.
+>> - * 1510 does not seem to have a wake-up register. If JTAG is connected
+>> - * to the target, system will wake up always on GPIO events. While
+>> - * system is running all registered GPIO interrupts need to have wake-up
+>> - * enabled. When system is suspended, only selected GPIO interrupts need
+>> - * to have wake-up enabled.
+>> - */
+>> -static int omap_set_gpio_wakeup(struct gpio_bank *bank, unsigned offset,
+>> -                int enable)
+>> -{
+>> -    u32 gpio_bit = BIT(offset);
+>> -    unsigned long flags;
+>> -
+>> -    if (bank->non_wakeup_gpios & gpio_bit) {
+>> -        dev_err(bank->chip.parent,
+>> -            "Unable to modify wakeup on non-wakeup GPIO%d\n",
+>> -            offset);
+>> -        return -EINVAL;
+>> -    }
+>> -
+>> -    raw_spin_lock_irqsave(&bank->lock, flags);
+>> -    if (enable)
+>> -        bank->context.wake_en |= gpio_bit;
+>> -    else
+>> -        bank->context.wake_en &= ~gpio_bit;
+>> -
+>> -    writel_relaxed(bank->context.wake_en, bank->base + 
+>> bank->regs->wkup_en);
+>> -    raw_spin_unlock_irqrestore(&bank->lock, flags);
+>> -
+>> -    return 0;
+>> -}
+>> -
+>>   /* Use disable_irq_wake() and enable_irq_wake() functions from 
+>> drivers */
+>>   static int omap_gpio_wake_enable(struct irq_data *d, unsigned int 
+>> enable)
+>>   {
+>>       struct gpio_bank *bank = omap_irq_data_get_bank(d);
+>> -    unsigned offset = d->hwirq;
+>> -    int ret;
+>>
+>> -    ret = omap_set_gpio_wakeup(bank, offset, enable);
+>> -    if (!ret)
+>> -        ret = irq_set_irq_wake(bank->irq, enable);
+>> -
+>> -    return ret;
+>> +    return irq_set_irq_wake(bank->irq, enable);
+>>   }
+>>
+>>   static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
+>> @@ -1187,6 +1148,7 @@ static int omap_gpio_probe(struct 
+>> platform_device *pdev)
+>>       irqc->irq_bus_lock = omap_gpio_irq_bus_lock,
+>>       irqc->irq_bus_sync_unlock = gpio_irq_bus_sync_unlock,
+>>       irqc->name = dev_name(&pdev->dev);
+>> +    irqc->flags = IRQCHIP_MASK_ON_SUSPEND;
+>>
+>>       bank->irq = platform_get_irq(pdev, 0);
+>>       if (bank->irq <= 0) {
+>>
+
 
 -- 
-Marcin Niestroj
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards,
+-grygorii
