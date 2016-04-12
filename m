@@ -1,78 +1,85 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH 04/15] irqchip/gic: WARN if setting the interrupt type
- fails
-Date: Tue, 12 Apr 2016 11:14:52 +0100
-Message-ID: <570CCA9C.1030907@arm.com>
-References: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com>
- <1458224359-32665-5-git-send-email-jonathanh@nvidia.com>
- <alpine.DEB.2.11.1603171550200.3978@nanos> <56EAC761.1040801@nvidia.com>
- <20160409115854.492090a5@arm.com> <570BC34A.5030806@nvidia.com>
- <570BC528.9050601@arm.com> <570CB6DA.2050909@nvidia.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH] ARM: omap2: am437x: rollback to use omap3_gptimer_timer_init()
+Date: Tue, 12 Apr 2016 13:42:55 +0300
+Message-ID: <1460457775-23850-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <570CB6DA.2050909@nvidia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jon Hunter <jonathanh@nvidia.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Kevin Hilman <khilman@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com
+Cc: Felipe Balbi <balbi@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 12/04/16 09:50, Jon Hunter wrote:
-> 
-> On 11/04/16 16:39, Marc Zyngier wrote:
->> On 11/04/16 16:31, Jon Hunter wrote:
->>> On 09/04/16 11:58, Marc Zyngier wrote:
-> 
-> [snip]
-> 
->>>> I think we need to phase things. Let's start with warning people for a
->>>> few kernel releases. Actively maintained platforms will quickly address
->>>> the issue (fixing their DT). As I see it, this issue seems rather
->>>> widespread (even kvmtool outputs a DT with the wrong triggering
->>>> information).
->>>>
->>>> Once we've fixed the bulk of the platforms and virtual environments, we
->>>> can start thinking about making it fail harder.
->>>
->>> Ok, so are you OK with this patch as-is? If so, can I add your ACK?
->>
->> It depends where you plan to handle the error. Ideally, I'd keep on
->> returning the error (because that's the right thing to do), and move the
->> WARN_ON() into the core code. We'd keep on ignoring the error as we're
->> doing today, but we'd scream about it.
->>
->> After a couple of releases, we'd turn the WARN_ON into a hard fail.
->>
->> Thoughts?
-> 
-> I agree that would be best/ideal, but looking at it, I don't believe it
-> is possible and this is why I have not done that so far.
-> 
-> If we were to add the WARN to the core code, then we would need to add a
-> warning everywhere __irq_set_trigger() is called. One of the places it
-> is called today is from __setup_irq() and today this does the right
-> thing and handle any error returned. The problem is that in
-> irq_create_fwspec_mapping() we have never checked the return code from
-> irq_set_irq_type() (which calls __irq_set_trigger()) or attempted to
-> handle any errors. So the problem is that depending on the path through
-> which the type is programmed, errors may or may not be detected. This is
-> the actual headache :-(
-> 
-> Given that this problem so far only pertains to GIC PPI interrupts and
-> that it is a not a catastrophic error (interrupts still work fine), I
-> was thinking we add the warning to the GIC driver.
-> 
-> May be a less severe change would be to only return an error if
-> configuring an SPI fails and if it is a PPI then simply WARN and
-> carry-on as we assume we cannot change it.
+The commit 55ee7017ee31 ("arm: omap2: board-generic: use
+omap4_local_timer_init for AM437x") unintentionally changes the
+clocksource devices for AM437x from OMAP GP Timer to SyncTimer32K.
 
-I'd take that. Limiting it to PPIs would be a minimal change, and the
-warning would hopefully make people realize their DT is wrong. Failing
-to program an SPI is really not expected, and should definitely explode.
+Unfortunately, the SyncTimer32K is starving from frequency deviation
+as mentioned in commit 5b5c01359152 ("ARM: OMAP2+: AM43x: Use gptimer
+as clocksource") and, as reported by Franklin [1], even its monotonic
+nature is under question (most probably there is a HW issue, but it's
+still under investigation).
 
-Thanks,
+Taking into account above facts It's reasonable to rollback to the use
+of omap3_gptimer_timer_init().
 
-	M.
+[1] http://www.spinics.net/lists/linux-omap/msg127425.html
+Cc: Felipe Balbi <balbi@kernel.org>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>
+Reported-by: Cooper Jr., Franklin <fcooper@ti.com>
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+ arch/arm/mach-omap2/board-generic.c | 2 +-
+ arch/arm/mach-omap2/timer.c         | 7 +++++--
+ 2 files changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index bab814d..60f5e83 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -306,7 +306,7 @@ DT_MACHINE_START(AM43_DT, "Generic AM43 (Flattened Device Tree)")
+ 	.init_late	= am43xx_init_late,
+ 	.init_irq	= omap_gic_of_init,
+ 	.init_machine	= omap_generic_init,
+-	.init_time	= omap4_local_timer_init,
++	.init_time	= omap3_gptimer_timer_init,
+ 	.dt_compat	= am43_boards_compat,
+ 	.restart	= omap44xx_restart,
+ MACHINE_END
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 6261e93..7cc055c 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -500,16 +500,19 @@ void __init omap3_secure_sync32k_timer_init(void)
+ }
+ #endif /* CONFIG_ARCH_OMAP3 */
+ 
+-#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX)
++#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX) || \
++	defined(CONFIG_SOC_AM43XX)
+ void __init omap3_gptimer_timer_init(void)
+ {
+ 	__omap_sync32k_timer_init(2, "timer_sys_ck", NULL,
+ 			1, "timer_sys_ck", "ti,timer-alwon", true);
++	if (of_have_populated_dt())
++		clocksource_probe();
+ }
+ #endif
+ 
+ #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) ||		\
+-	defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM43XX)
++	defined(CONFIG_SOC_DRA7XX)
+ static void __init omap4_sync32k_timer_init(void)
+ {
+ 	__omap_sync32k_timer_init(1, "timer_32k_ck", "ti,timer-alwon",
 -- 
-Jazz is not dead. It just smells funny...
+2.8.1
