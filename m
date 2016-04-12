@@ -1,78 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Nokia N900 retention mode in v4.6, camera buttons fun
-Date: Tue, 12 Apr 2016 09:30:56 -0700
-Message-ID: <20160412163055.GP5995@atomide.com>
-References: <20160407174019.GM16484@atomide.com>
- <20160407194828.GA13338@amd>
- <20160407213229.GO16484@atomide.com>
- <20160407230150.GA16552@amd>
- <20160407234134.GQ16484@atomide.com>
- <20160411093023.GC11814@amd>
- <20160411094130.GA5753@amd>
- <20160411211026.GH5995@atomide.com>
- <20160412121658.GA32486@amd>
- <20160412123013.GA12296@amd>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] of/platform: Allow secondary compatible match in
+ of_dev_lookup
+Date: Tue, 12 Apr 2016 09:31:57 -0700
+Message-ID: <20160412163156.GQ5995@atomide.com>
+References: <1459546504-32668-1-git-send-email-tony@atomide.com>
+ <20160401214053.GQ9329@atomide.com>
+ <CAL_Jsq+PcTD=duHmWgHyx_ywYbT10vEtcm=79x5o5wYSkgG63g@mail.gmail.com>
+ <20160407165842.GJ16484@atomide.com>
+ <CAL_Jsq+XrNoqEjCnQ=rLJVdQe9EdHb+MopUtvM2vy12N2veo3A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160412123013.GA12296@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
+In-Reply-To: <CAL_Jsq+XrNoqEjCnQ=rLJVdQe9EdHb+MopUtvM2vy12N2veo3A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [160412 05:31]:
-> Hi!
+* Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [160412 08:57]:
+> On Thu, Apr 7, 2016 at 11:58 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+> > * Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [160406 21:53]:
+> >> On Fri, Apr 1, 2016 at 4:40 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+> >> > * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [160401 14:37]:
+> >> >> We currently try to match of_dev_auxdata based on compatible,
+> >> >> IO address, and device name. But in some cases we have multiple
+> >> >> instances of drivers that can use the same auxdata.
+> >> >>
+> >> >> Let's add an additional secondary lookup for generic compatible
+> >> >> match for auxdata if no device specific match is found. This does
+> >> >> not change the existing matching, and still allows adding device
+> >> >> specific auxdata.
+> >> >>
+> >> >> This simplifies things as specifying the IO address and device
+> >> >> name is prone errors as it requires maintaining an in kernel
+> >> >> database for each SoC.
+> >> >
+> >> > And here's what I can apply later on to get rid of some
+> >> > ifdeffery.
+> >> >
+> >> > I'm also planning to move some of the legacy omap hwmod
+> >> > functionality into proper device drivers, so can generic
+> >> > pdata for that too.
+> >>
+> >> Why can't the platform data be moved into the driver given that it
+> >> appears to be only SoC family specific? Auxdata was somewhat intended
+> >> to be temporary. It appears there is already some per compatible match
+> >> data for these OMAP parts in the driver.
+> >
+> > There are just too many dependencies to move legacy code into drivers
+> > directly. Especially when moving the omap hwmod code into drivers,
+> > we still to use hwmod callbacks at least for clockdomain configuration,
+> > wake-up dependencies and clock autogating configuration.
+> >
+> > When we have Linux generic frameworks available for all this we no longer
+> > need the auxdata. But meanwhile, removing the depenencies by using
+> > auxdata already allows moving big chunks of the hwmod code into regular
+> > device drivers.
 > 
-> > > > Ok, it works now. I was doing tests in daylight so it was poorly
-> > > > visible. The right part of keyboard stays lit (but that's expected
-> > > > AFAICT), but the left part blinks.
-> > > 
-> > > During idle, both should go off and are doing so for me. Both LEDs off
-> > > indicates off mode, left LED off is for retention mode. So you still
-> > > have something blocking off mode, maybe check:
-> > > 
-> > > echo 1 > /sys/kernel/debug/pm_debug/enable_off_mode
-> > 
-> > What is the power difference between retention and off? I'm now down
-> > to cca 25mA, which should be around 50 hours standby time. Not ideal,
-> > but should be usable.
-
-The 25mA sounds way too big to me even for retention mode, some
-devices must be still on.
-
-The off mode makes a huge difference for standby time, it should cut
-down the total power consumption to something like 10+ mW with modem
-enabled. Aproximately the breakdown is roughly: 900 uW for omap, 5 mW
-for memory and 5 or more for the modem. Sorry I don't know the exact
-numbers for the modem. But with 37xx torpedo, mainline kernel is
-already getting very close to the 900 uW + 5 mW numbers for the CPU
-module during idle measured from the ina219 shunt on the torpedo devkit.
-
-> > In the meantime, I found what is causing the rention mode to break for
-> > me: CONFIG_HSI (aka wireless modem support). With HSI off, it seems to work.
-> > 
-> > I still get problems with the camera button, in config similar to
-> > defconfig.  For some reason, I'm even getting (autorepeating) ^@ on
-> > console. As long as I hold camera button down, I even get it into off
-> > mode for brief period.
+> Okay. In that case:
 > 
-> Ok, if I turn off CONFIG_KEYBOARD_GPIO, I get it into off
-> mode... once per screen blank, for about a second. (Does CONFIG_KEYBOARD_GPIO also cause
-> problems for you?)
+> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 > 
-> Any idea why it enters off mode only once after each screenblank?
+> Apply it when you have actual users depending on it.
 
-After disabling CONFIG_PROVE_LOCKING, loading the LCD modules, and
-blanking the screen, my n900 hits off mode just fine about once
-a second. Sounds like you still have some extra devices enabled
-causing it.
-
-With LCD enabled, both LEDs are on contantly. I think we should
-be able to hit retention in that state, at least n950 is doing it
-with the Nokia kernel.
+OK thanks will do.
 
 Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
