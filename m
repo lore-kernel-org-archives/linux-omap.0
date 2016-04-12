@@ -1,33 +1,39 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: am335x-baltos-ir5221: use dedicated RTS/CTS
- signals
-Date: Tue, 12 Apr 2016 14:17:03 -0700
-Message-ID: <20160412211703.GG5995@atomide.com>
-References: <1459246088-17768-1-git-send-email-yegorslists@googlemail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: omap3-sniper: Discard deprecated twl4030-power
+ property
+Date: Tue, 12 Apr 2016 14:19:44 -0700
+Message-ID: <20160412211943.GH5995@atomide.com>
+References: <1459279545-17539-1-git-send-email-contact@paulk.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1459246088-17768-1-git-send-email-yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1459279545-17539-1-git-send-email-contact@paulk.fr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Kocialkowski <contact@paulk.fr>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org> [160329 03:10]:
-> From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-> 
-> Before "tty: Add software emulated RS485 support for 8250" patch Baltos devices
-> relied on MCTRL_GPIO framework to handle both modem signals and RS485 mode.
-> 
-> With emulated RS485 support for 8250 we can now use these pins as dedicated
-> RTS/CTS signals taking advantage of hardware flow control etc. when operating
-> in RS232 mode.
+* Paul Kocialkowski <contact@paulk.fr> [160329 12:26]:
+> This uses ti,system-power-controller instead of the deprecated ti,use_poweroff
+> property for powering off.
 
-Applying into omap-for-v4.7/dt thanks.
+But what about the others?
+
+We have more of them:
+
+$ git grep ti,use_poweroff arch/arm/boot/dts
+arch/arm/boot/dts/logicpd-som-lv.dtsi:          ti,use_poweroff;
+arch/arm/boot/dts/logicpd-torpedo-som.dtsi:             ti,use_poweroff;
+arch/arm/boot/dts/omap3-beagle-xm.dts:                  ti,use_poweroff;
+arch/arm/boot/dts/omap3-evm-common.dtsi:                ti,use_poweroff;
+arch/arm/boot/dts/omap3-gta04.dtsi:                     ti,use_poweroff;
+arch/arm/boot/dts/omap3-ldp.dts:                        ti,use_poweroff;
+arch/arm/boot/dts/omap3-n900.dts:               ti,use_poweroff;
+arch/arm/boot/dts/omap3-n950-n9.dtsi:           ti,use_poweroff;
+arch/arm/boot/dts/omap3-pandora-common.dtsi:                    ti,use_poweroff;
+arch/arm/boot/dts/omap3-sniper.dts:                     ti,use_poweroff;
+
+Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
