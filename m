@@ -1,39 +1,32 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: omap3-sniper: Discard deprecated twl4030-power
- property
-Date: Tue, 12 Apr 2016 14:19:44 -0700
-Message-ID: <20160412211943.GH5995@atomide.com>
-References: <1459279545-17539-1-git-send-email-contact@paulk.fr>
+Subject: Re: [PATCH 1/5] devicetree: bindings: Add vendor prefix for
+ Amazon.com, Inc.
+Date: Tue, 12 Apr 2016 14:22:37 -0700
+Message-ID: <20160412212236.GI5995@atomide.com>
+References: <1459279707-17611-1-git-send-email-contact@paulk.fr>
+ <1459279707-17611-3-git-send-email-contact@paulk.fr>
+ <20160401170110.GA8364@rob-hp-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1459279545-17539-1-git-send-email-contact@paulk.fr>
+In-Reply-To: <20160401170110.GA8364@rob-hp-laptop>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Kocialkowski <contact@paulk.fr>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: Paul Kocialkowski <contact@paulk.fr>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Paul Kocialkowski <contact@paulk.fr> [160329 12:26]:
-> This uses ti,system-power-controller instead of the deprecated ti,use_poweroff
-> property for powering off.
+* Rob Herring <robh@kernel.org> [160401 10:02]:
+> On Tue, Mar 29, 2016 at 09:28:23PM +0200, Paul Kocialkowski wrote:
+> > This adds the amazon vendor prefix for Amazon.com, Inc.
+> > 
+> > Signed-off-by: Paul Kocialkowski <contact@paulk.fr>
+> > ---
+> >  Documentation/devicetree/bindings/vendor-prefixes.txt | 1 +
+> >  1 file changed, 1 insertion(+)
+> 
+> Acked-by: Rob Herring <robh@kernel.org>
 
-But what about the others?
-
-We have more of them:
-
-$ git grep ti,use_poweroff arch/arm/boot/dts
-arch/arm/boot/dts/logicpd-som-lv.dtsi:          ti,use_poweroff;
-arch/arm/boot/dts/logicpd-torpedo-som.dtsi:             ti,use_poweroff;
-arch/arm/boot/dts/omap3-beagle-xm.dts:                  ti,use_poweroff;
-arch/arm/boot/dts/omap3-evm-common.dtsi:                ti,use_poweroff;
-arch/arm/boot/dts/omap3-gta04.dtsi:                     ti,use_poweroff;
-arch/arm/boot/dts/omap3-ldp.dts:                        ti,use_poweroff;
-arch/arm/boot/dts/omap3-n900.dts:               ti,use_poweroff;
-arch/arm/boot/dts/omap3-n950-n9.dtsi:           ti,use_poweroff;
-arch/arm/boot/dts/omap3-pandora-common.dtsi:                    ti,use_poweroff;
-arch/arm/boot/dts/omap3-sniper.dts:                     ti,use_poweroff;
-
-Regards,
+Applying this whole series into omap-for-v4.7/dt thanks.
 
 Tony
