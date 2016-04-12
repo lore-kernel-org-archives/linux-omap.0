@@ -1,192 +1,77 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH] gpio: omap: fix irq triggering in smart-idle wakeup mode
-Date: Tue, 12 Apr 2016 21:10:03 +0300
-Message-ID: <570D39FB.8050006@ti.com>
-References: <1460458351-24187-1-git-send-email-grygorii.strashko@ti.com>
- <570D25EB.1010709@oracle.com>
+Subject: Re: [PATCH] ARM: omap2: am437x: rollback to use
+ omap3_gptimer_timer_init()
+Date: Tue, 12 Apr 2016 21:30:32 +0300
+Message-ID: <570D3EC8.7090807@ti.com>
+References: <1460457775-23850-1-git-send-email-grygorii.strashko@ti.com>
+ <20160412160448.GN5995@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <570D25EB.1010709@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: santosh shilimkar <santosh.shilimkar@oracle.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Santosh Shilimkar <ssantosh@kernel.org>, tony@atomide.com
-Cc: nsekhar@ti.com, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160412160448.GN5995@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, Felipe Balbi <balbi@kernel.org>, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 04/12/2016 07:44 PM, santosh shilimkar wrote:
-> On 4/12/2016 3:52 AM, Grygorii Strashko wrote:
->> Now GPIO IRQ loss is observed on dra7-evm after suspend/resume cycle
->> in the following case:
->>    extcon_usb1(id_irq) ->  pcf8575.gpio1 -> omapgpio6.gpio11 -> gic
+On 04/12/2016 07:04 PM, Tony Lindgren wrote:
+> * Grygorii Strashko <grygorii.strashko@ti.com> [160412 03:44]:
+>> The commit 55ee7017ee31 ("arm: omap2: board-generic: use
+>> omap4_local_timer_init for AM437x") unintentionally changes the
+>> clocksource devices for AM437x from OMAP GP Timer to SyncTimer32K.
 >>
->> the extcon_usb1 is wake up source and it enables IRQ wake up for
->> id_irq by calling enable/disable_irq_wake() during suspend/resume
->> which, in turn, causes execution of omap_gpio_wake_enable(). And
->> omap_gpio_wake_enable() will set/clear corresponding bit in
->> GPIO_IRQWAKEN_x register.
+>> Unfortunately, the SyncTimer32K is starving from frequency deviation
+>> as mentioned in commit 5b5c01359152 ("ARM: OMAP2+: AM43x: Use gptimer
+>> as clocksource") and, as reported by Franklin [1], even its monotonic
+>> nature is under question (most probably there is a HW issue, but it's
+>> still under investigation).
 >>
->> omapgpio6 configuration after boot - wakeup is enabled for GPIO IRQs
->> by default from  omap_gpio_irq_type:
->> GPIO_IRQSTATUS_SET_0    | 0x00000400
->> GPIO_IRQSTATUS_CLR_0    | 0x00000400
->> GPIO_IRQWAKEN_0         | 0x00000400
->> GPIO_RISINGDETECT       | 0x00000000
->> GPIO_FALLINGDETECT      | 0x00000400
->>
->> omapgpio6 configuration after after suspend/resume cycle:
->> GPIO_IRQSTATUS_SET_0    | 0x00000400
->> GPIO_IRQSTATUS_CLR_0    | 0x00000400
->> GPIO_IRQWAKEN_0         | 0x00000000 <---
->> GPIO_RISINGDETECT       | 0x00000000
->> GPIO_FALLINGDETECT      | 0x00000400
->>
->> As result, system will start to lose interrupts from pcf8575 GPIO
->> expander, because when OMAP GPIO IP is in smart-idle wakeup mode, there
->> is no guarantee that transition(s) on input non wake up GPIO pin will
->> trigger asynchronous wake-up request to PRCM and then IRQ generation.
->> IRQ will be generated when GPIO is in active mode - for example, some
->> time after accessing GPIO bank registers IRQs will be generated
->> normally, but issue will happen again once PRCM will put GPIO in low
->> power smart-idle wakeup mode.
->>
->> Note 1. Issue is not reproduced if debounce clk is enabled for GPIO
->> bank.
->>
->> Note 2. Issue hardly reproducible if GPIO pins group contains both
->> wakeup/non-wakeup gpios - for example, it will be hard to reproduce
->> issue with pin2 if GPIO_IRQWAKEN_0=0x1 GPIO_IRQSTATUS_SET_0=0x3
->> GPIO_FALLINGDETECT = 0x3 (TRM "Power Saving by Grouping the Edge/Level
->> Detection").
->>
->> Note 3. There nothing common bitween System wake up and OMAP GPIO bank
->> IP wake up logic - the last one defines how the GPIO bank ON-IDLE-ON
->> transition will happen inside SoC under control of PRCM.
->>
->> Hence, fix the problem by removing omap_set_gpio_wakeup() function
->> completely and so keeping always in sync GPIO IRQ mask/unmask
->> (IRQSTATUS_SET) and wake up enable (GPIO_IRQWAKEN) bits; 
-
-^^^ only omap_set_gpio_wakeup() is removed, which shouldn't touch
-GPIO_IRQWAKEN register (note 3). 
-IRQchip .irq_set_irq_wake() in our case should just mark irq parent as System wake up source,
- so it will be kept unmasked during System suspend. GPIO Irq by itself will
- be marked by IRQ Core. 
- All other  GPIO IRQs must be masked during System suspend
-  (and it is done gracefully by using IRQCHIP_MASK_ON_SUSPEND:).
-
-
->> and adding
->> IRQCHIP_MASK_ON_SUSPEND flag in OMAP GPIO irqchip. That way non wakeup
->> GPIO IRQs will be properly masked/unmask by IRQ PM core during
->> suspend/resume cycle.
->>
->> Cc: Roger Quadros <rogerq@ti.com>
->> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->> ---
-> GPIO IP has two levels of controls for wakeups and you are
-> just removing the SYSCFG wakeup and relying on the IRQ
-> line wakeup.
-
-No. I don't remove SYSCFG wakeup. SYSCFG.ENAWAKEUP will be
-configured by OMAP hwmod and this patch do not change that.
-
-Also, GPIO_IRQWAKEN will also be configured properly -
-It alway configured from omap_set_gpio_trigger().
-
-In addition:
-omap_gpio_mask_irq() -> omap_set_gpio_trigger(IRQ_TYPE_NONE) : 
-  ---> irq masked, GPIO_IRQWAKEN bit cleared, irq type is IRQ_TYPE_NONE
-
-omap_gpio_unmask_irq() -> omap_set_gpio_trigger(IRQ_TYPE_xxx) : 
-  ---> irq unmasked, GPIO_IRQWAKEN bit is set, irq type is IRQ_TYPE_xxx
-
-
-
-> line wakeup. I like usage of "IRQCHIP_MASK_ON_SUSPEND" but
-> please be acreful this change which might break older OMAPs.
-
-I expect no issues (only if some platforms expect to wake up from
-gpio irq, but do not configure this irq as wakeup irq).
-^ and this will be a bug which need to be fixed.
-
+>> Taking into account above facts It's reasonable to rollback to the use
+>> of omap3_gptimer_timer_init().
 > 
->>   drivers/gpio/gpio-omap.c | 42 
->> ++----------------------------------------
->>   1 file changed, 2 insertions(+), 40 deletions(-)
->>
->> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
->> index 551dfa9..b98ede7 100644
->> --- a/drivers/gpio/gpio-omap.c
->> +++ b/drivers/gpio/gpio-omap.c
->> @@ -611,51 +611,12 @@ static inline void 
->> omap_set_gpio_irqenable(struct gpio_bank *bank,
->>           omap_disable_gpio_irqbank(bank, BIT(offset));
->>   }
->>
->> -/*
->> - * Note that ENAWAKEUP needs to be enabled in GPIO_SYSCONFIG register.
->> - * 1510 does not seem to have a wake-up register. If JTAG is connected
->> - * to the target, system will wake up always on GPIO events. While
->> - * system is running all registered GPIO interrupts need to have wake-up
->> - * enabled. When system is suspended, only selected GPIO interrupts need
->> - * to have wake-up enabled.
->> - */
->> -static int omap_set_gpio_wakeup(struct gpio_bank *bank, unsigned offset,
->> -                int enable)
->> -{
->> -    u32 gpio_bit = BIT(offset);
->> -    unsigned long flags;
->> -
->> -    if (bank->non_wakeup_gpios & gpio_bit) {
->> -        dev_err(bank->chip.parent,
->> -            "Unable to modify wakeup on non-wakeup GPIO%d\n",
->> -            offset);
->> -        return -EINVAL;
->> -    }
->> -
->> -    raw_spin_lock_irqsave(&bank->lock, flags);
->> -    if (enable)
->> -        bank->context.wake_en |= gpio_bit;
->> -    else
->> -        bank->context.wake_en &= ~gpio_bit;
->> -
->> -    writel_relaxed(bank->context.wake_en, bank->base + 
->> bank->regs->wkup_en);
->> -    raw_spin_unlock_irqrestore(&bank->lock, flags);
->> -
->> -    return 0;
->> -}
->> -
->>   /* Use disable_irq_wake() and enable_irq_wake() functions from 
->> drivers */
->>   static int omap_gpio_wake_enable(struct irq_data *d, unsigned int 
->> enable)
->>   {
->>       struct gpio_bank *bank = omap_irq_data_get_bank(d);
->> -    unsigned offset = d->hwirq;
->> -    int ret;
->>
->> -    ret = omap_set_gpio_wakeup(bank, offset, enable);
->> -    if (!ret)
->> -        ret = irq_set_irq_wake(bank->irq, enable);
->> -
->> -    return ret;
->> +    return irq_set_irq_wake(bank->irq, enable);
->>   }
->>
->>   static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
->> @@ -1187,6 +1148,7 @@ static int omap_gpio_probe(struct 
->> platform_device *pdev)
->>       irqc->irq_bus_lock = omap_gpio_irq_bus_lock,
->>       irqc->irq_bus_sync_unlock = gpio_irq_bus_sync_unlock,
->>       irqc->name = dev_name(&pdev->dev);
->> +    irqc->flags = IRQCHIP_MASK_ON_SUSPEND;
->>
->>       bank->irq = platform_get_irq(pdev, 0);
->>       if (bank->irq <= 0) {
->>
+> I thought only the ePOS EVM does not have the 32k clock available?
+> Maybe this is the the old sync timer autocorrection drift issue?
+> 
 
+May be, as i mentioned in [1] it could be errata same as for Watchdog
+Advisory 22 (or OMAP_TIMER_ERRATA_I103_I767).
+
+But as per commit 5b5c01359152 ("ARM: OMAP2+: AM43x: Use gptimer
+as clocksource") there is no reason to use SyncTimer32K as
+clocksource any way (not only on epos):
+
+commit 5b5c01359152f3ddaa1aa0e5d1141bc2b29ba2c5
+Author: Rajendra Nayak <rnayak@ti.com>
+Date:   Fri Feb 7 15:51:26 2014 +0530
+
+    ARM: OMAP2+: AM43x: Use gptimer as clocksource
+    
+    The SyncTimer in AM43x is clocked using the following two sources:
+    1) An inaccuarte 32k clock (CLK_32KHZ) derived from PER DPLL, causing system
+       time to go slowly (~10% deviation).
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    2) external 32KHz RTC clock, which may not always be available on board like
+       in the case of ePOS EVM
+    
+    Use gptimer as clocksource instead, as is done in the case of AM335x
+    (which does not have a SyncTimer). With this, system time keeping works
+    accurately.
+    
+    Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+    Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+    Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+
+[1] http://www.spinics.net/lists/linux-omap/msg127425.html
 
 -- 
 regards,
