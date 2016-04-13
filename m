@@ -1,38 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/3] ARM: OMAP: DRA7: Updates for power domain data
-Date: Wed, 13 Apr 2016 14:30:56 -0700
-Message-ID: <20160413213055.GE5995@atomide.com>
-References: <1459461515-5192-1-git-send-email-nm@ti.com>
+Subject: Re: [PATCH] ARM: OMAP: wakeupgen: Add comment for unhandled FROZEN
+ transitions
+Date: Wed, 13 Apr 2016 14:32:26 -0700
+Message-ID: <20160413213226.GF5995@atomide.com>
+References: <1459774517-58943-1-git-send-email-anna-maria@linutronix.de>
+ <570290DA.2050100@oracle.com>
+ <20160407170146.GK16484@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1459461515-5192-1-git-send-email-nm@ti.com>
+In-Reply-To: <20160407170146.GK16484@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: santosh shilimkar <santosh.shilimkar@oracle.com>
+Cc: Anna-Maria Gleixner <anna-maria@linutronix.de>, linux-kernel@vger.kernel.org, rt@linutronix.de, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm@ti.com> [160331 15:01]:
-> First level updates for power domain data, in line with the latest
-> AM57xx and DRA7 TRMs.
+* Tony Lindgren <tony@atomide.com> [160407 10:04]:
+> * santosh shilimkar <santosh.shilimkar@oracle.com> [160404 09:06]:
+> > On 4/4/2016 5:55 AM, Anna-Maria Gleixner wrote:
+> > >FROZEN hotplug notifiers are not handled and do not have to be. Insert
+> > >a comment to remember that the lack of the FROZEN transitions is no
+> > >accident.
+> > >
+> > >Cc: Tony Lindgren <tony@atomide.com>
+> > >Cc: Santosh Shilimkar <ssantosh@kernel.org>
+> > >Cc: linux-omap@vger.kernel.org
+> > >Signed-off-by: Anna-Maria Gleixner <anna-maria@linutronix.de>
+> > >---
+> > Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
 > 
-> NOTE: follow on patches are pending for the following:
-> 
-> a) wakeupgen is somehow messedup again and mpu pd no
-> longer goes to low power mode. I am looking into that.
-> http://pastebin.ubuntu.com/15571519/ gets past that story - but I see
-> mpu_pwrdm stuck in ON though..
-> 
-> b) beagleboard-X15 does require the following patch
-> https://patchwork.kernel.org/patch/8718431/
-> 
-> c) We do have yet another major TRM update to only allow ON and OFF
-> for all power domains other than core and MPU (MPU still will support
-> CSWR) - I am still waiting for TRM update to take place before we can
-> actually post upstream.
-> 
-> BeagleBoard-X15 test log: http://pastebin.ubuntu.com/15571570/
+> Yeah looks good to me too, will apply for v4.7 when I get through the
+> pending fixes here first.
 
 Applying into omap-for-v4.7/soc thanks.
 
