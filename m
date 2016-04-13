@@ -1,15 +1,15 @@
 From: Arnaud Pouliquen <arnaud.pouliquen@st.com>
-Subject: Re: [PATCH v9 3/7] ASoC: hdmi-codec: Add hdmi-codec
- for external HDMI-encoders
-Date: Wed, 13 Apr 2016 10:06:22 +0200
-Message-ID: <570DFDFE.4080602@st.com>
+Subject: Re: [PATCH v9 4/7] ASoC: hdmi-codec: Add audio abort()
+ callback for video side to use
+Date: Wed, 13 Apr 2016 10:31:24 +0200
+Message-ID: <570E03DC.6030707@st.com>
 References: <cover.1459431292.git.jsarha@ti.com>
- <636486b25db48fa13ae640516cdebe7bcfea0d23.1459431292.git.jsarha@ti.com>
+ <36a4881da9400908b2e033cb2d931daf0d59bac9.1459431292.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <636486b25db48fa13ae640516cdebe7bcfea0d23.1459431292.git.jsarha@ti.com>
+In-Reply-To: <36a4881da9400908b2e033cb2d931daf0d59bac9.1459431292.git.jsarha@ti.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -23,584 +23,84 @@ To: Jyri Sarha <jsarha@ti.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lis
 Cc: "peter.ujfalusi@ti.com" <peter.ujfalusi@ti.com>, "tony@atomide.com" <tony@atomide.com>, "broonie@kernel.org" <broonie@kernel.org>, "liam.r.girdwood@linux.intel.com" <liam.r.girdwood@linux.intel.com>, "tiwai@suse.de" <tiwai@suse.de>, "tomi.valkeinen@ti.com" <tomi.valkeinen@ti.com>, "p.zabel@pengutronix.de" <p.zabel@pengutronix.de>, "rmk+kernel@arm.linux.org.uk" <rmk+kernel@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-New version Tested with success on sti platform
-
-Acked-by: Arnaud Pouliquen <arnaud.pouliquen@st.com>
-
-Regards
-Arnaud
 
 
 On 03/31/2016 03:36 PM, Jyri Sarha wrote:
-> The hdmi-codec is a platform device driver to be registered from
-> drivers of external HDMI encoders with I2S and/or spdif interface. The
-> driver in turn registers an ASoC codec for the HDMI encoder's audio
-> functionality.
-> 
-> The structures and definitions in the API header are mostly redundant
-> copies of similar structures in ASoC headers. This is on purpose to
-> avoid direct dependencies to ASoC structures in video side driver.
+> Add audio abort() callback, that is provided at audio stream start,
+> for video side. This is for video side to use in case there is a
+> pressing need to tear down the audio playback for some reason.
 > 
 > Signed-off-by: Jyri Sarha <jsarha@ti.com>
 > ---
->  include/sound/hdmi-codec.h    | 100 +++++++++++
->  sound/soc/codecs/Kconfig      |   6 +
->  sound/soc/codecs/Makefile     |   2 +
->  sound/soc/codecs/hdmi-codec.c | 396 ++++++++++++++++++++++++++++++++++++++++++
->  4 files changed, 504 insertions(+)
->  create mode 100644 include/sound/hdmi-codec.h
->  create mode 100644 sound/soc/codecs/hdmi-codec.c
+>  include/sound/hdmi-codec.h    |  8 ++++++--
+>  sound/soc/codecs/hdmi-codec.c | 20 +++++++++++++++++++-
+>  2 files changed, 25 insertions(+), 3 deletions(-)
 > 
 > diff --git a/include/sound/hdmi-codec.h b/include/sound/hdmi-codec.h
-> new file mode 100644
-> index 0000000..fc3a481
-> --- /dev/null
+> index fc3a481..15fe70f 100644
+> --- a/include/sound/hdmi-codec.h
 > +++ b/include/sound/hdmi-codec.h
-> @@ -0,0 +1,100 @@
-> +/*
-> + * hdmi-codec.h - HDMI Codec driver API
-> + *
-> + * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com
-> + *
-> + * Author: Jyri Sarha <jsarha@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + */
-> +
-> +#ifndef __HDMI_CODEC_H__
-> +#define __HDMI_CODEC_H__
-> +
-> +#include <linux/hdmi.h>
-> +#include <drm/drm_edid.h>
-> +#include <sound/asoundef.h>
-> +#include <uapi/sound/asound.h>
-> +
-> +/*
-> + * Protocol between ASoC cpu-dai and HDMI-encoder
-> + */
-> +struct hdmi_codec_daifmt {
-> +	enum {
-> +		HDMI_I2S,
-> +		HDMI_RIGHT_J,
-> +		HDMI_LEFT_J,
-> +		HDMI_DSP_A,
-> +		HDMI_DSP_B,
-> +		HDMI_AC97,
-> +		HDMI_SPDIF,
-> +	} fmt;
-> +	int bit_clk_inv:1;
-> +	int frame_clk_inv:1;
-> +	int bit_clk_master:1;
-> +	int frame_clk_master:1;
-> +};
-> +
-> +/*
-> + * HDMI audio parameters
-> + */
-> +struct hdmi_codec_params {
-> +	struct hdmi_audio_infoframe cea;
-> +	struct snd_aes_iec958 iec;
-> +	int sample_rate;
-> +	int sample_width;
-> +	int channels;
-> +};
-> +
-> +struct hdmi_codec_ops {
-> +	/*
-> +	 * Called when ASoC starts an audio stream setup.
-> +	 * Optional
-> +	 */
-> +	int (*audio_startup)(struct device *dev);
-> +
-> +	/*
-> +	 * Configures HDMI-encoder for audio stream.
-> +	 * Mandatory
-> +	 */
-> +	int (*hw_params)(struct device *dev,
-> +			 struct hdmi_codec_daifmt *fmt,
-> +			 struct hdmi_codec_params *hparms);
-> +
-> +	/*
-> +	 * Shuts down the audio stream.
-> +	 * Mandatory
-> +	 */
-> +	void (*audio_shutdown)(struct device *dev);
-> +
-> +	/*
-> +	 * Mute/unmute HDMI audio stream.
-> +	 * Optional
-> +	 */
-> +	int (*digital_mute)(struct device *dev, bool enable);
-> +
-> +	/*
-> +	 * Provides EDID-Like-Data from connected HDMI device.
-> +	 * Optional
-> +	 */
-> +	int (*get_eld)(struct device *dev, uint8_t *buf, size_t len);
-> +};
-> +
-> +/* HDMI codec initalization data */
-> +struct hdmi_codec_pdata {
-> +	const struct hdmi_codec_ops *ops;
-> +	uint i2s:1;
-> +	uint spdif:1;
-> +	int max_i2s_channels;
-> +};
-> +
-> +#define HDMI_CODEC_DRV_NAME "hdmi-audio-codec"
-> +
-> +#endif /* __HDMI_CODEC_H__ */
-> diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
-> index 50693c8..62b62fe 100644
-> --- a/sound/soc/codecs/Kconfig
-> +++ b/sound/soc/codecs/Kconfig
-> @@ -86,6 +86,7 @@ config SND_SOC_ALL_CODECS
->  	select SND_SOC_MC13783 if MFD_MC13XXX
->  	select SND_SOC_ML26124 if I2C
->  	select SND_SOC_NAU8825 if I2C
-> +	select SND_SOC_HDMI_CODEC
->  	select SND_SOC_PCM1681 if I2C
->  	select SND_SOC_PCM179X if SPI_MASTER
->  	select SND_SOC_PCM3008
-> @@ -473,6 +474,11 @@ config SND_SOC_BT_SCO
->  config SND_SOC_DMIC
->  	tristate
+> @@ -55,10 +55,14 @@ struct hdmi_codec_params {
 >  
-> +config SND_SOC_HDMI_CODEC
-> +       tristate
-> +       select SND_PCM_ELD
-> +       select SND_PCM_IEC958
-> +
->  config SND_SOC_ES8328
->  	tristate "Everest Semi ES8328 CODEC"
+>  struct hdmi_codec_ops {
+>  	/*
+> -	 * Called when ASoC starts an audio stream setup.
+> +	 * Called when ASoC starts an audio stream setup. The call
+> +	 * provides an audio abort callback for stoping an ongoing
+stopping
+> +	 * stream from video side driver if the HDMI audio becomes
+> +	 * unavailable.
+>  	 * Optional
+>  	 */
+> -	int (*audio_startup)(struct device *dev);
+> +	int (*audio_startup)(struct device *dev,
+> +			     void (*abort_cb)(struct device *dev));
 >  
-> diff --git a/sound/soc/codecs/Makefile b/sound/soc/codecs/Makefile
-> index d44f7d3..5f7b002 100644
-> --- a/sound/soc/codecs/Makefile
-> +++ b/sound/soc/codecs/Makefile
-> @@ -79,6 +79,7 @@ snd-soc-max9850-objs := max9850.o
->  snd-soc-mc13783-objs := mc13783.o
->  snd-soc-ml26124-objs := ml26124.o
->  snd-soc-nau8825-objs := nau8825.o
-> +snd-soc-hdmi-codec-objs := hdmi-codec.o
->  snd-soc-pcm1681-objs := pcm1681.o
->  snd-soc-pcm179x-codec-objs := pcm179x.o
->  snd-soc-pcm3008-objs := pcm3008.o
-> @@ -283,6 +284,7 @@ obj-$(CONFIG_SND_SOC_MAX9850)	+= snd-soc-max9850.o
->  obj-$(CONFIG_SND_SOC_MC13783)	+= snd-soc-mc13783.o
->  obj-$(CONFIG_SND_SOC_ML26124)	+= snd-soc-ml26124.o
->  obj-$(CONFIG_SND_SOC_NAU8825)   += snd-soc-nau8825.o
-> +obj-$(CONFIG_SND_SOC_HDMI_CODEC)	+= snd-soc-hdmi-codec.o
->  obj-$(CONFIG_SND_SOC_PCM1681)	+= snd-soc-pcm1681.o
->  obj-$(CONFIG_SND_SOC_PCM179X)	+= snd-soc-pcm179x-codec.o
->  obj-$(CONFIG_SND_SOC_PCM3008)	+= snd-soc-pcm3008.o
+>  	/*
+>  	 * Configures HDMI-encoder for audio stream.
 > diff --git a/sound/soc/codecs/hdmi-codec.c b/sound/soc/codecs/hdmi-codec.c
-> new file mode 100644
-> index 0000000..b46b8ed
-> --- /dev/null
+> index b46b8ed..35151a4 100644
+> --- a/sound/soc/codecs/hdmi-codec.c
 > +++ b/sound/soc/codecs/hdmi-codec.c
-> @@ -0,0 +1,396 @@
-> +/*
-> + * ALSA SoC codec for HDMI encoder drivers
-> + * Copyright (C) 2015 Texas Instruments Incorporated - http://www.ti.com/
-> + * Author: Jyri Sarha <jsarha@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
-> + * General Public License for more details.
-> + */
-> +#include <linux/module.h>
-> +#include <linux/string.h>
-> +#include <sound/core.h>
-> +#include <sound/pcm.h>
-> +#include <sound/pcm_params.h>
-> +#include <sound/soc.h>
-> +#include <sound/pcm_drm_eld.h>
-> +#include <sound/hdmi-codec.h>
-> +#include <sound/pcm_iec958.h>
-> +
-> +#include <drm/drm_crtc.h> /* This is only to get MAX_ELD_BYTES */
-> +
-> +struct hdmi_codec_priv {
-> +	struct hdmi_codec_pdata hcd;
-> +	struct snd_soc_dai_driver *daidrv;
-> +	struct hdmi_codec_daifmt daifmt[2];
-> +	struct mutex current_stream_lock;
-> +	struct snd_pcm_substream *current_stream;
-> +	struct snd_pcm_hw_constraint_list ratec;
-> +	uint8_t eld[MAX_ELD_BYTES];
-> +};
-> +
-> +static const struct snd_soc_dapm_widget hdmi_widgets[] = {
-> +	SND_SOC_DAPM_OUTPUT("TX"),
-> +};
-> +
-> +static const struct snd_soc_dapm_route hdmi_routes[] = {
-> +	{ "TX", NULL, "Playback" },
-> +};
-> +
-> +enum {
-> +	DAI_ID_I2S = 0,
-> +	DAI_ID_SPDIF,
-> +};
-> +
-> +static int hdmi_codec_new_stream(struct snd_pcm_substream *substream,
-> +				 struct snd_soc_dai *dai)
+> @@ -47,6 +47,23 @@ enum {
+>  	DAI_ID_SPDIF,
+>  };
+>  
+> +static void hdmi_codec_abort(struct device *dev)
 > +{
-> +	struct hdmi_codec_priv *hcp = snd_soc_dai_get_drvdata(dai);
-> +	int ret = 0;
-> +
-> +	mutex_lock(&hcp->current_stream_lock);
-> +	if (!hcp->current_stream) {
-> +		hcp->current_stream = substream;
-> +	} else if (hcp->current_stream != substream) {
-> +		dev_err(dai->dev, "Only one simultaneous stream supported!\n");
-> +		ret = -EINVAL;
-> +	}
-> +	mutex_unlock(&hcp->current_stream_lock);
-> +
-> +	return ret;
-> +}
-> +
-> +static int hdmi_codec_startup(struct snd_pcm_substream *substream,
-> +			      struct snd_soc_dai *dai)
-> +{
-> +	struct hdmi_codec_priv *hcp = snd_soc_dai_get_drvdata(dai);
-> +	int ret = 0;
-> +
-> +	dev_dbg(dai->dev, "%s()\n", __func__);
-> +
-> +	ret = hdmi_codec_new_stream(substream, dai);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (hcp->hcd.ops->audio_startup) {
-> +		ret = hcp->hcd.ops->audio_startup(dai->dev->parent);
-> +		if (ret) {
-> +			mutex_lock(&hcp->current_stream_lock);
-> +			hcp->current_stream = NULL;
-> +			mutex_unlock(&hcp->current_stream_lock);
-> +			return ret;
-> +		}
-> +	}
-> +
-> +	if (hcp->hcd.ops->get_eld) {
-> +		ret = hcp->hcd.ops->get_eld(dai->dev->parent, hcp->eld,
-> +					    sizeof(hcp->eld));
-> +
-> +		if (!ret) {
-> +			ret = snd_pcm_hw_constraint_eld(substream->runtime,
-> +							hcp->eld);
-> +			if (ret)
-> +				return ret;
-> +		}
-> +	}
-> +	return 0;
-> +}
-> +
-> +static void hdmi_codec_shutdown(struct snd_pcm_substream *substream,
-> +				struct snd_soc_dai *dai)
-> +{
-> +	struct hdmi_codec_priv *hcp = snd_soc_dai_get_drvdata(dai);
-> +
-> +	dev_dbg(dai->dev, "%s()\n", __func__);
-> +
-> +	WARN_ON(hcp->current_stream != substream);
-> +
-> +	hcp->hcd.ops->audio_shutdown(dai->dev->parent);
-> +
-> +	mutex_lock(&hcp->current_stream_lock);
-> +	hcp->current_stream = NULL;
-> +	mutex_unlock(&hcp->current_stream_lock);
-> +}
-> +
-> +static int hdmi_codec_hw_params(struct snd_pcm_substream *substream,
-> +				struct snd_pcm_hw_params *params,
-> +				struct snd_soc_dai *dai)
-> +{
-> +	struct hdmi_codec_priv *hcp = snd_soc_dai_get_drvdata(dai);
-> +	struct hdmi_codec_params hp = {
-> +		.iec = {
-> +			.status = { 0 },
-> +			.subcode = { 0 },
-> +			.pad = 0,
-> +			.dig_subframe = { 0 },
-> +		}
-> +	};
-> +	int ret;
-> +
-> +	dev_dbg(dai->dev, "%s() width %d rate %d channels %d\n", __func__,
-> +		params_width(params), params_rate(params),
-> +		params_channels(params));
-> +
-> +	if (params_width(params) > 24)
-> +		params->msbits = 24;
-> +
-> +	ret = snd_pcm_create_iec958_consumer_hw_params(params, hp.iec.status,
-> +						       sizeof(hp.iec.status));
-> +	if (ret < 0) {
-> +		dev_err(dai->dev, "Creating IEC958 channel status failed %d\n",
-> +			ret);
-> +		return ret;
-> +	}
-> +
-> +	ret = hdmi_codec_new_stream(substream, dai);
-> +	if (ret)
-> +		return ret;
-> +
-> +	hdmi_audio_infoframe_init(&hp.cea);
-> +	hp.cea.channels = params_channels(params);
-> +	hp.cea.coding_type = HDMI_AUDIO_CODING_TYPE_STREAM;
-> +	hp.cea.sample_size = HDMI_AUDIO_SAMPLE_SIZE_STREAM;
-> +	hp.cea.sample_frequency = HDMI_AUDIO_SAMPLE_FREQUENCY_STREAM;
-> +
-> +	hp.sample_width = params_width(params);
-> +	hp.sample_rate = params_rate(params);
-> +	hp.channels = params_channels(params);
-> +
-> +	return hcp->hcd.ops->hw_params(dai->dev->parent, &hcp->daifmt[dai->id],
-> +				       &hp);
-> +}
-> +
-> +static int hdmi_codec_set_fmt(struct snd_soc_dai *dai,
-> +			      unsigned int fmt)
-> +{
-> +	struct hdmi_codec_priv *hcp = snd_soc_dai_get_drvdata(dai);
-> +	struct hdmi_codec_daifmt cf = { 0 };
-> +	int ret = 0;
-> +
-> +	dev_dbg(dai->dev, "%s()\n", __func__);
-> +
-> +	if (dai->id == DAI_ID_SPDIF) {
-> +		cf.fmt = HDMI_SPDIF;
-> +	} else {
-> +		switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
-> +		case SND_SOC_DAIFMT_CBM_CFM:
-> +			cf.bit_clk_master = 1;
-> +			cf.frame_clk_master = 1;
-> +			break;
-> +		case SND_SOC_DAIFMT_CBS_CFM:
-> +			cf.frame_clk_master = 1;
-> +			break;
-> +		case SND_SOC_DAIFMT_CBM_CFS:
-> +			cf.bit_clk_master = 1;
-> +			break;
-> +		case SND_SOC_DAIFMT_CBS_CFS:
-> +			break;
-> +		default:
-> +			return -EINVAL;
-> +		}
-> +
-> +		switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
-> +		case SND_SOC_DAIFMT_NB_NF:
-> +			break;
-> +		case SND_SOC_DAIFMT_NB_IF:
-> +			cf.frame_clk_inv = 1;
-> +			break;
-> +		case SND_SOC_DAIFMT_IB_NF:
-> +			cf.bit_clk_inv = 1;
-> +			break;
-> +		case SND_SOC_DAIFMT_IB_IF:
-> +			cf.frame_clk_inv = 1;
-> +			cf.bit_clk_inv = 1;
-> +			break;
-> +		}
-> +
-> +		switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
-> +		case SND_SOC_DAIFMT_I2S:
-> +			cf.fmt = HDMI_I2S;
-> +			break;
-> +		case SND_SOC_DAIFMT_DSP_A:
-> +			cf.fmt = HDMI_DSP_A;
-> +			break;
-> +		case SND_SOC_DAIFMT_DSP_B:
-> +			cf.fmt = HDMI_DSP_B;
-> +			break;
-> +		case SND_SOC_DAIFMT_RIGHT_J:
-> +			cf.fmt = HDMI_RIGHT_J;
-> +			break;
-> +		case SND_SOC_DAIFMT_LEFT_J:
-> +			cf.fmt = HDMI_LEFT_J;
-> +			break;
-> +		case SND_SOC_DAIFMT_AC97:
-> +			cf.fmt = HDMI_AC97;
-> +			break;
-> +		default:
-> +			dev_err(dai->dev, "Invalid DAI interface format\n");
-> +			return -EINVAL;
-> +		}
-> +	}
-> +
-> +	hcp->daifmt[dai->id] = cf;
-> +
-> +	return ret;
-> +}
-> +
-> +static int hdmi_codec_digital_mute(struct snd_soc_dai *dai, int mute)
-> +{
-> +	struct hdmi_codec_priv *hcp = snd_soc_dai_get_drvdata(dai);
-> +
-> +	dev_dbg(dai->dev, "%s()\n", __func__);
-> +
-> +	if (hcp->hcd.ops->digital_mute)
-> +		return hcp->hcd.ops->digital_mute(dai->dev->parent, mute);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct snd_soc_dai_ops hdmi_dai_ops = {
-> +	.startup	= hdmi_codec_startup,
-> +	.shutdown	= hdmi_codec_shutdown,
-> +	.hw_params	= hdmi_codec_hw_params,
-> +	.set_fmt	= hdmi_codec_set_fmt,
-> +	.digital_mute	= hdmi_codec_digital_mute,
-> +};
-> +
-> +
-> +#define HDMI_RATES	(SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_44100 |\
-> +			 SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_88200 |\
-> +			 SNDRV_PCM_RATE_96000 | SNDRV_PCM_RATE_176400 |\
-> +			 SNDRV_PCM_RATE_192000)
-> +
-> +#define SPDIF_FORMATS	(SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S16_BE |\
-> +			 SNDRV_PCM_FMTBIT_S20_3LE | SNDRV_PCM_FMTBIT_S20_3BE |\
-> +			 SNDRV_PCM_FMTBIT_S24_3LE | SNDRV_PCM_FMTBIT_S24_3BE |\
-> +			 SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S24_BE)
-> +
-> +/*
-> + * This list is only for formats allowed on the I2S bus. So there is
-> + * some formats listed that are not supported by HDMI interface. For
-> + * instance allowing the 32-bit formats enables 24-precision with CPU
-> + * DAIs that do not support 24-bit formats. If the extra formats cause
-> + * problems, we should add the video side driver an option to disable
-> + * them.
-> + */
-> +#define I2S_FORMATS	(SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S16_BE |\
-> +			 SNDRV_PCM_FMTBIT_S20_3LE | SNDRV_PCM_FMTBIT_S20_3BE |\
-> +			 SNDRV_PCM_FMTBIT_S24_3LE | SNDRV_PCM_FMTBIT_S24_3BE |\
-> +			 SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S24_BE |\
-> +			 SNDRV_PCM_FMTBIT_S32_LE | SNDRV_PCM_FMTBIT_S32_BE)
-> +
-> +static struct snd_soc_dai_driver hdmi_i2s_dai = {
-> +	.name = "i2s-hifi",
-> +	.id = DAI_ID_I2S,
-> +	.playback = {
-> +		.stream_name = "Playback",
-> +		.channels_min = 2,
-> +		.channels_max = 8,
-> +		.rates = HDMI_RATES,
-> +		.formats = I2S_FORMATS,
-> +		.sig_bits = 24,
-> +	},
-> +	.ops = &hdmi_dai_ops,
-> +};
-> +
-> +static const struct snd_soc_dai_driver hdmi_spdif_dai = {
-> +	.name = "spdif-hifi",
-> +	.id = DAI_ID_SPDIF,
-> +	.playback = {
-> +		.stream_name = "Playback",
-> +		.channels_min = 2,
-> +		.channels_max = 2,
-> +		.rates = HDMI_RATES,
-> +		.formats = SPDIF_FORMATS,
-> +	},
-> +	.ops = &hdmi_dai_ops,
-> +};
-> +
-> +static struct snd_soc_codec_driver hdmi_codec = {
-> +	.dapm_widgets = hdmi_widgets,
-> +	.num_dapm_widgets = ARRAY_SIZE(hdmi_widgets),
-> +	.dapm_routes = hdmi_routes,
-> +	.num_dapm_routes = ARRAY_SIZE(hdmi_routes),
-> +};
-> +
-> +static int hdmi_codec_probe(struct platform_device *pdev)
-> +{
-> +	struct hdmi_codec_pdata *hcd = pdev->dev.platform_data;
-> +	struct device *dev = &pdev->dev;
-> +	struct hdmi_codec_priv *hcp;
-> +	int dai_count, i = 0;
-> +	int ret;
+> +	struct hdmi_codec_priv *hcp = dev_get_drvdata(dev);
 > +
 > +	dev_dbg(dev, "%s()\n", __func__);
 > +
-> +	if (!hcd) {
-> +		dev_err(dev, "%s: No plalform data\n", __func__);
-> +		return -EINVAL;
+> +	mutex_lock(&hcp->current_stream_lock);
+> +	if (hcp->current_stream && hcp->current_stream->runtime &&
+> +	    snd_pcm_running(hcp->current_stream)) {
+> +		dev_info(dev, "HDMI audio playback aborted\n");
+> +		snd_pcm_stream_lock_irq(hcp->current_stream);
+> +		snd_pcm_stop(hcp->current_stream, SNDRV_PCM_STATE_DISCONNECTED);
+> +		snd_pcm_stream_unlock_irq(hcp->current_stream);
 > +	}
-> +
-> +	dai_count = hcd->i2s + hcd->spdif;
-> +	if (dai_count < 1 || !hcd->ops || !hcd->ops->hw_params ||
-> +	    !hcd->ops->audio_shutdown) {
-> +		dev_err(dev, "%s: Invalid parameters\n", __func__);
-> +		return -EINVAL;
-> +	}
-> +
-> +	hcp = devm_kzalloc(dev, sizeof(*hcp), GFP_KERNEL);
-> +	if (!hcp)
-> +		return -ENOMEM;
-> +
-> +	hcp->hcd = *hcd;
-> +	mutex_init(&hcp->current_stream_lock);
-> +
-> +	hcp->daidrv = devm_kzalloc(dev, dai_count * sizeof(*hcp->daidrv),
-> +				   GFP_KERNEL);
-> +	if (!hcp->daidrv)
-> +		return -ENOMEM;
-> +
-> +	if (hcd->i2s) {
-> +		hcp->daidrv[i] = hdmi_i2s_dai;
-> +		hcp->daidrv[i].playback.channels_max =
-> +			hcd->max_i2s_channels;
-> +		i++;
-> +	}
-> +
-> +	if (hcd->spdif)
-> +		hcp->daidrv[i] = hdmi_spdif_dai;
-> +
-> +	ret = snd_soc_register_codec(dev, &hdmi_codec, hcp->daidrv,
-> +				     dai_count);
-> +	if (ret) {
-> +		dev_err(dev, "%s: snd_soc_register_codec() failed (%d)\n",
-> +			__func__, ret);
-> +		return ret;
-> +	}
-> +
-> +	dev_set_drvdata(dev, hcp);
-> +	return 0;
+> +	mutex_unlock(&hcp->current_stream_lock);
 > +}
 > +
-> +static int hdmi_codec_remove(struct platform_device *pdev)
-> +{
-> +	snd_soc_unregister_codec(&pdev->dev);
-> +	return 0;
-> +}
-> +
-> +static struct platform_driver hdmi_codec_driver = {
-> +	.driver = {
-> +		.name = HDMI_CODEC_DRV_NAME,
-> +	},
-> +	.probe = hdmi_codec_probe,
-> +	.remove = hdmi_codec_remove,
-> +};
-> +
-> +module_platform_driver(hdmi_codec_driver);
-> +
-> +MODULE_AUTHOR("Jyri Sarha <jsarha@ti.com>");
-> +MODULE_DESCRIPTION("HDMI Audio Codec Driver");
-> +MODULE_LICENSE("GPL");
-> +MODULE_ALIAS("platform:" HDMI_CODEC_DRV_NAME);
+still not understand the need... i can not find a use case that
+justifies it.
+As example, in case of HDMI plug/unplug i would not want that audio
+stream is stopped (live playback). From my point of view this should be
+a decision from user.
+But as it is optional, I'm ok if need is justified.
+
+>  static int hdmi_codec_new_stream(struct snd_pcm_substream *substream,
+>  				 struct snd_soc_dai *dai)
+>  {
+> @@ -78,7 +95,8 @@ static int hdmi_codec_startup(struct snd_pcm_substream *substream,
+>  		return ret;
+>  
+>  	if (hcp->hcd.ops->audio_startup) {
+> -		ret = hcp->hcd.ops->audio_startup(dai->dev->parent);
+> +		ret = hcp->hcd.ops->audio_startup(dai->dev->parent,
+> +						  hdmi_codec_abort);
+>  		if (ret) {
+>  			mutex_lock(&hcp->current_stream_lock);
+>  			hcp->current_stream = NULL;
 > 
