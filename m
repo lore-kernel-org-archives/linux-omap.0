@@ -1,24 +1,24 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 2/2] ARM: omap2plus_defconfig: Enable GPIO_TPIC2810
-Date: Wed, 13 Apr 2016 14:41:13 -0700
-Message-ID: <20160413214113.GG5995@atomide.com>
-References: <1458704054-18152-1-git-send-email-lokeshvutla@ti.com>
- <1458704054-18152-3-git-send-email-lokeshvutla@ti.com>
+Subject: Re: [PATCH 2/2] ARM: omap2plus_defconfig: Enable DP83867 support
+Date: Wed, 13 Apr 2016 14:42:37 -0700
+Message-ID: <20160413214237.GH5995@atomide.com>
+References: <1458859969-14298-1-git-send-email-nm@ti.com>
+ <1458859969-14298-3-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1458704054-18152-3-git-send-email-lokeshvutla-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1458859969-14298-3-git-send-email-nm-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, nm-l0cyMroinI0@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org> [160322 20:38]:
-> Enable the TI TPIC2810 8-Bit LED Driver with I2C Interface. This is used
-> in AM335x ICEv2 Boards.
+* Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [160324 15:53]:
+> Enable DP83867 Ethernet phy for supporting networking on DRA72-EVM rev C
+> (SR2.0).
 
-Applying into omap-for-v4.6/defconfig thanks.
+Applying into omap-for-v4.7/defconfig thanks.
 
 Tony
 --
