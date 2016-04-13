@@ -1,61 +1,43 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2] ARM: dts: dra7xx: Fix compatible string for PCF8575
- chip
-Date: Wed, 13 Apr 2016 10:21:48 +0300
-Message-ID: <570DF38C.8000600@ti.com>
-References: <1458147150.20441.2.camel@codethink.co.uk>
- <56E9DED9.6020909@ti.com> <20160412210438.GA5995@atomide.com>
- <570DEE5B.1010001@linutronix.de> <570DF110.3070805@ti.com>
- <570DF235.6040705@linutronix.de>
+From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH 04/12] mtd: nand: brcm: rely on generic DT
+ parsing done in nand_scan_ident()
+Date: Wed, 13 Apr 2016 09:42:15 +0200
+Message-ID: <20160413094215.5f317588@bbrezillon>
+References: <1459515272-31011-1-git-send-email-boris.brezillon@free-electrons.com>
+	<1459515272-31011-5-git-send-email-boris.brezillon@free-electrons.com>
+	<20160412223111.GA21705@localhost>
+Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <570DF235.6040705-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: Ben Hutchings <ben.hutchings-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, CT kernel <linux-kernel-81qHHgoATdFT9dQujB1mzip2UmYkHbXO@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBY7QW64AKGQE4NGW5AY-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Sender: linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+In-Reply-To: <20160412223111.GA21705@localhost>
+List-Post: <https://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <https://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <https://groups.google.com/group/linux-sunxi
+List-Subscribe: <https://groups.google.com/group/linux-sunxi/subscribe>, <mailto:linux-sunxi+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+1076902468213+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <https://groups.google.com/group/linux-sunxi/subscribe>
+To: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wenyou Yang <wenyou.yang-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>, Josh Wu <rainyfeeling-1ViLX0X+lBJBDgjK7y7TUQ@public.gmane.org>, Richard Weinberger <richard-/L3Ra7n9ekc@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Kamal Dasu <kdasu.kdev-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Han Xu <han.xu-3arQi8VN3Tc@public.gmane.org>, Ezequiel Garcia <ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Stefan Agner <stefan-XLVq0VzYD2Y@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nicolas Ferre <nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>, Jean-Christophe Plagniol-Villard <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Thomas Petazzoni <thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 13/04/16 10:16, Sebastian Andrzej Siewior wrote:
-> On 04/13/2016 09:11 AM, Roger Quadros wrote:
->> On 13/04/16 09:59, Sebastian Andrzej Siewior wrote:
->>> On 04/12/2016 11:04 PM, Tony Lindgren wrote:
->>>>> While at it, do you want to fix up (+Seb):
->>>>> a) Documentation/devicetree/bindings/i2c/i2c-pxa-pci-ce4100.txt which
->>>>> also seems to refer to ti,pcf in example (introduced by df2634f43f51
->>>>> x86: dtb: Add a device tree for CE4100 )
->>>>> b) arch/x86/platform/ce4100/falconfalls.dts as well?
->>>>
->>>> Applying this one with Roger's ack, seems like those should be
->>>> additional patches.
->>>
->>> Okay. I looked it up on the board and it says NXP PCF8575 and not TI.
->>> TI's was probably the first hit while I was looking for it (I think
->>> CE4100 manual mentioned just PCF8575).
->>>
->>> But if it would have a TI branding on it I would keep the TI prefix in
->>> front and add the NXP prefix. As of today we might not know a
->>> functional difference between those two but this does not mean we might
->>> find one in the future.
->>> That said, are you people sure that the DRA7 has a TI or a NXP branding
->>> on it?
->>
->> Board has a Texas Instruments part: PCF8575PWR TSSOP24.
->> http://www.ti.com/product/PCF8575
-> 
-> So this sounds like
-> 
-> 	compatible = "ti,pcf8575", "nxp,pcf8575";
-> 
-> then.
+On Tue, 12 Apr 2016 15:31:11 -0700
+Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-Agree with you.
+> On Fri, Apr 01, 2016 at 02:54:24PM +0200, Boris Brezillon wrote:
+> > The core now takes care of parsing generic DT properties in
+> > nand_scan_ident() when nand_set_flash_node() has been called.
+> > Rely on this initialization instead of calling of_get_nand_xxx()
+> > manually.
+> > 
+> > Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+> 
+> Acked-by: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
---
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied.
+
+-- 
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
