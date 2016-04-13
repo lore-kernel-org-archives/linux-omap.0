@@ -1,33 +1,39 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v6 00/17] memory: omap-gpmc: mtd: nand: Support GPMC NAND
- on non-OMAP platforms
-Date: Wed, 13 Apr 2016 14:25:00 -0700
-Message-ID: <20160413212500.GD5995@atomide.com>
-References: <1460023715-19332-1-git-send-email-rogerq@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/3] ARM: OMAP: DRA7: Updates for power domain data
+Date: Wed, 13 Apr 2016 14:30:56 -0700
+Message-ID: <20160413213055.GE5995@atomide.com>
+References: <1459461515-5192-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1460023715-19332-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1459461515-5192-1-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [160407 03:10]:
-> Hi,
+* Nishanth Menon <nm@ti.com> [160331 15:01]:
+> First level updates for power domain data, in line with the latest
+> AM57xx and DRA7 TRMs.
 > 
-> As this series has cross dependency between omap and mtd subsystems,
-> I'll set up a immutable branch which omap-soc and l2-mtd must
-> merge in together to avoid any conflicts/breakage during integration.
+> NOTE: follow on patches are pending for the following:
 > 
-> Brian has acked all mtd patches. Tony needs to give his Ack for the
-> gpmc driver part and then I can provide the immutable branch.
+> a) wakeupgen is somehow messedup again and mpu pd no
+> longer goes to low power mode. I am looking into that.
+> http://pastebin.ubuntu.com/15571519/ gets past that story - but I see
+> mpu_pwrdm stuck in ON though..
+> 
+> b) beagleboard-X15 does require the following patch
+> https://patchwork.kernel.org/patch/8718431/
+> 
+> c) We do have yet another major TRM update to only allow ON and OFF
+> for all power domains other than core and MPU (MPU still will support
+> CSWR) - I am still waiting for TRM update to take place before we can
+> actually post upstream.
+> 
+> BeagleBoard-X15 test log: http://pastebin.ubuntu.com/15571570/
 
-Looks good to me, please feel free to add:
+Applying into omap-for-v4.7/soc thanks.
 
-Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
