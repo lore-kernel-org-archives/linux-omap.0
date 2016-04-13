@@ -1,41 +1,68 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Nokia N900 retention mode in v4.6, camera buttons fun
-Date: Wed, 13 Apr 2016 08:15:27 -0700
-Message-ID: <20160413151526.GO5995@atomide.com>
-References: <20160407213229.GO16484@atomide.com>
- <20160407230150.GA16552@amd>
- <20160407234134.GQ16484@atomide.com>
- <20160411093023.GC11814@amd>
- <20160411094130.GA5753@amd>
- <20160411211026.GH5995@atomide.com>
- <20160412121658.GA32486@amd>
- <20160412123013.GA12296@amd>
- <20160412163055.GP5995@atomide.com>
- <570DDE9C.10504@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2] ARM: dts: dra7xx: Fix compatible string for PCF8575
+ chip
+Date: Wed, 13 Apr 2016 08:17:00 -0700
+Message-ID: <20160413151700.GP5995@atomide.com>
+References: <1458147150.20441.2.camel@codethink.co.uk>
+ <56E9DED9.6020909@ti.com>
+ <20160412210438.GA5995@atomide.com>
+ <570DEE5B.1010001@linutronix.de>
+ <570DF110.3070805@ti.com>
+ <570DF235.6040705@linutronix.de>
+ <570DF38C.8000600@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <570DDE9C.10504@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
+In-Reply-To: <570DF38C.8000600-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Ben Hutchings <ben.hutchings-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, CT kernel <linux-kernel-81qHHgoATdFT9dQujB1mzip2UmYkHbXO@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [160412 22:53]:
+* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [160413 00:23]:
+> On 13/04/16 10:16, Sebastian Andrzej Siewior wrote:
+> > On 04/13/2016 09:11 AM, Roger Quadros wrote:
+> >> On 13/04/16 09:59, Sebastian Andrzej Siewior wrote:
+> >>> On 04/12/2016 11:04 PM, Tony Lindgren wrote:
+> >>>>> While at it, do you want to fix up (+Seb):
+> >>>>> a) Documentation/devicetree/bindings/i2c/i2c-pxa-pci-ce4100.txt which
+> >>>>> also seems to refer to ti,pcf in example (introduced by df2634f43f51
+> >>>>> x86: dtb: Add a device tree for CE4100 )
+> >>>>> b) arch/x86/platform/ce4100/falconfalls.dts as well?
+> >>>>
+> >>>> Applying this one with Roger's ack, seems like those should be
+> >>>> additional patches.
+> >>>
+> >>> Okay. I looked it up on the board and it says NXP PCF8575 and not TI.
+> >>> TI's was probably the first hit while I was looking for it (I think
+> >>> CE4100 manual mentioned just PCF8575).
+> >>>
+> >>> But if it would have a TI branding on it I would keep the TI prefix in
+> >>> front and add the NXP prefix. As of today we might not know a
+> >>> functional difference between those two but this does not mean we might
+> >>> find one in the future.
+> >>> That said, are you people sure that the DRA7 has a TI or a NXP branding
+> >>> on it?
+> >>
+> >> Board has a Texas Instruments part: PCF8575PWR TSSOP24.
+> >> http://www.ti.com/product/PCF8575
+> > 
+> > So this sounds like
+> > 
+> > 	compatible = "ti,pcf8575", "nxp,pcf8575";
+> > 
+> > then.
 > 
-> On 12/04/16 19:30, Tony Lindgren wrote:
-> 
-> > With LCD enabled, both LEDs are on contantly. I think we should
-> > be able to hit retention in that state, at least n950 is doing it
-> > with the Nokia kernel.
-> 
-> N900's display needs constant updating, where N950's display has
-> internal framebuffer, allowing OMAP to be off.
+> Agree with you.
 
-OK, so the results are as expected then.
+Can you please do an additional patch against omap-for-v4.7/dt
+for this one please? And also update the related binding documentation.
 
 Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
