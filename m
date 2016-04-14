@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv2 08/28] ARM: OMAP2+: clockdomain: add usecounting support to autoidle APIs
-Date: Thu, 14 Apr 2016 14:07:57 +0300
-Message-ID: <1460632097-25727-9-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2 13/28] clk: ti: am43xx: transition to usage of ti_clk_get
+Date: Thu, 14 Apr 2016 14:08:02 +0300
+Message-ID: <1460632097-25727-14-git-send-email-t-kristo@ti.com>
 References: <1460632097-25727-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,324 +12,122 @@ To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@pu
 Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The previous implementation was racy in many locations, where the current
-status of the clockdomain was read out, some operations were executed,
-and the previous status info was used afterwards to decide next state
-for the clockdomain. Instead, fix the implementation of the allow_idle /
-deny_idle APIs to properly have usecounting support. This allows clean
-handling internally within the clockdomain core, and simplifies the
-usage also within hwmod.
+Cleanup any unnecessary DT_CLK() alias entries from the AM43xx clock file.
+Also, use ti_clk_get where necessary.
 
 Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/clockdomain.c |   36 ++++++++++++++++++++++++------------
- arch/arm/mach-omap2/clockdomain.h |    2 ++
- arch/arm/mach-omap2/cpuidle44xx.c |    2 +-
- arch/arm/mach-omap2/omap-smp.c    |    2 +-
- arch/arm/mach-omap2/omap_hwmod.c  |   27 ++++++++++++---------------
- arch/arm/mach-omap2/pm.c          |    8 +-------
- arch/arm/mach-omap2/powerdomain.c |   20 ++++++--------------
- 7 files changed, 47 insertions(+), 50 deletions(-)
+ drivers/clk/ti/clk-43xx.c |   88 ++-------------------------------------------
+ 1 file changed, 2 insertions(+), 86 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index 2da3b5e..b79b1ca 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -465,10 +465,7 @@ int clkdm_complete_init(void)
- 		return -EACCES;
+diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
+index 097fc90..eefa62b 100644
+--- a/drivers/clk/ti/clk-43xx.c
++++ b/drivers/clk/ti/clk-43xx.c
+@@ -23,92 +23,8 @@
+ #include "clock.h"
  
- 	list_for_each_entry(clkdm, &clkdm_list, node) {
--		if (clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)
--			clkdm_wakeup(clkdm);
--		else if (clkdm->flags & CLKDM_CAN_DISABLE_AUTO)
--			clkdm_deny_idle(clkdm);
-+		clkdm_deny_idle(clkdm);
- 
- 		_resolve_clkdm_deps(clkdm, clkdm->wkdep_srcs);
- 		clkdm_clear_all_wkdeps(clkdm);
-@@ -925,11 +922,20 @@ void clkdm_allow_idle_nolock(struct clockdomain *clkdm)
- 	if (!clkdm)
- 		return;
- 
--	if (!(clkdm->flags & CLKDM_CAN_ENABLE_AUTO)) {
--		pr_debug("clock: %s: automatic idle transitions cannot be enabled\n",
--			 clkdm->name);
-+	if (!WARN_ON(!clkdm->forcewake_count))
-+		clkdm->forcewake_count--;
-+
-+	if (clkdm->forcewake_count)
-+		return;
-+
-+	if (!clkdm->usecount && (clkdm->flags & CLKDM_CAN_FORCE_SLEEP))
-+		clkdm_sleep_nolock(clkdm);
-+
-+	if (!(clkdm->flags & CLKDM_CAN_ENABLE_AUTO))
-+		return;
-+
-+	if (clkdm->flags & CLKDM_MISSING_IDLE_REPORTING)
- 		return;
--	}
- 
- 	if (!arch_clkdm || !arch_clkdm->clkdm_allow_idle)
- 		return;
-@@ -974,11 +980,17 @@ void clkdm_deny_idle_nolock(struct clockdomain *clkdm)
- 	if (!clkdm)
- 		return;
- 
--	if (!(clkdm->flags & CLKDM_CAN_DISABLE_AUTO)) {
--		pr_debug("clockdomain: %s: automatic idle transitions cannot be disabled\n",
--			 clkdm->name);
-+	if (clkdm->forcewake_count++)
-+		return;
-+
-+	if (clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)
-+		clkdm_wakeup_nolock(clkdm);
-+
-+	if (!(clkdm->flags & CLKDM_CAN_DISABLE_AUTO))
-+		return;
-+
-+	if (clkdm->flags & CLKDM_MISSING_IDLE_REPORTING)
- 		return;
--	}
- 
- 	if (!arch_clkdm || !arch_clkdm->clkdm_deny_idle)
- 		return;
-diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
-index 2c398ce..24667a5 100644
---- a/arch/arm/mach-omap2/clockdomain.h
-+++ b/arch/arm/mach-omap2/clockdomain.h
-@@ -114,6 +114,7 @@ struct omap_hwmod;
-  * @wkdep_srcs: Clockdomains that can be told to wake this powerdomain up
-  * @sleepdep_srcs: Clockdomains that can be told to keep this clkdm from inact
-  * @usecount: Usecount tracking
-+ * @forcewake_count: Usecount for forcing the domain active
-  * @node: list_head to link all clockdomains together
-  *
-  * @prcm_partition should be a macro from mach-omap2/prcm44xx.h (OMAP4 only)
-@@ -138,6 +139,7 @@ struct clockdomain {
- 	struct clkdm_dep *wkdep_srcs;
- 	struct clkdm_dep *sleepdep_srcs;
- 	int usecount;
-+	int forcewake_count;
- 	struct list_head node;
- };
- 
-diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
-index 4b8e9f4..fa138d4 100644
---- a/arch/arm/mach-omap2/cpuidle44xx.c
-+++ b/arch/arm/mach-omap2/cpuidle44xx.c
-@@ -140,7 +140,7 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
- 		    mpuss_can_lose_context)
- 			gic_dist_disable();
- 
--		clkdm_wakeup(cpu_clkdm[1]);
-+		clkdm_deny_idle(cpu_clkdm[1]);
- 		omap_set_pwrdm_state(cpu_pd[1], PWRDM_POWER_ON);
- 		clkdm_allow_idle(cpu_clkdm[1]);
- 
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-index c625cc1..690bfa5 100644
---- a/arch/arm/mach-omap2/omap-smp.c
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -143,7 +143,7 @@ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
- 		 * Ensure that CPU power state is set to ON to avoid CPU
- 		 * powerdomain transition on wfi
- 		 */
--		clkdm_wakeup_nolock(cpu1_clkdm);
-+		clkdm_deny_idle_nolock(cpu1_clkdm);
- 		pwrdm_set_next_pwrst(cpu1_pwrdm, PWRDM_POWER_ON);
- 		clkdm_allow_idle_nolock(cpu1_clkdm);
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 31da3b5..310bd95 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1696,7 +1696,6 @@ static int _deassert_hardreset(struct omap_hwmod *oh, const char *name)
- {
- 	struct omap_hwmod_rst_info ohri;
- 	int ret = -EINVAL;
--	int hwsup = 0;
- 
- 	if (!oh)
- 		return -EINVAL;
-@@ -1714,7 +1713,7 @@ static int _deassert_hardreset(struct omap_hwmod *oh, const char *name)
- 		 * might not be completed. The clockdomain can be set
- 		 * in HW_AUTO only when the module become ready.
- 		 */
--		hwsup = clkdm_in_hwsup(oh->clkdm);
-+		clkdm_deny_idle(oh->clkdm);
- 		ret = clkdm_hwmod_enable(oh->clkdm, oh);
- 		if (ret) {
- 			WARN(1, "omap_hwmod: %s: could not enable clockdomain %s: %d\n",
-@@ -1741,8 +1740,7 @@ static int _deassert_hardreset(struct omap_hwmod *oh, const char *name)
- 		 * Set the clockdomain to HW_AUTO, assuming that the
- 		 * previous state was HW_AUTO.
- 		 */
--		if (hwsup)
--			clkdm_allow_idle(oh->clkdm);
-+		clkdm_allow_idle(oh->clkdm);
- 
- 		clkdm_hwmod_disable(oh->clkdm, oh);
- 	}
-@@ -2096,7 +2094,6 @@ static int _enable_preprogram(struct omap_hwmod *oh)
- static int _enable(struct omap_hwmod *oh)
- {
- 	int r;
--	int hwsup = 0;
- 
- 	pr_debug("omap_hwmod: %s: enabling\n", oh->name);
- 
-@@ -2156,8 +2153,7 @@ static int _enable(struct omap_hwmod *oh)
- 		 * completely the module. The clockdomain can be set
- 		 * in HW_AUTO only when the module become ready.
- 		 */
--		hwsup = clkdm_in_hwsup(oh->clkdm) &&
--			!clkdm_missing_idle_reporting(oh->clkdm);
-+		clkdm_deny_idle(oh->clkdm);
- 		r = clkdm_hwmod_enable(oh->clkdm, oh);
- 		if (r) {
- 			WARN(1, "omap_hwmod: %s: could not enable clockdomain %s: %d\n",
-@@ -2177,14 +2173,10 @@ static int _enable(struct omap_hwmod *oh)
- 
- 	r = (soc_ops.wait_target_ready) ? soc_ops.wait_target_ready(oh) :
- 		-EINVAL;
--	if (!r) {
--		/*
--		 * Set the clockdomain to HW_AUTO only if the target is ready,
--		 * assuming that the previous state was HW_AUTO
--		 */
--		if (oh->clkdm && hwsup)
--			clkdm_allow_idle(oh->clkdm);
-+	if (oh->clkdm)
-+		clkdm_allow_idle(oh->clkdm);
- 
-+	if (!r) {
- 		oh->_state = _HWMOD_STATE_ENABLED;
- 
- 		/* Access the sysconfig only if the target is ready */
-@@ -2238,6 +2230,9 @@ static int _idle(struct omap_hwmod *oh)
- 		_idle_sysc(oh);
- 	_del_initiator_dep(oh, mpu_oh);
- 
-+	if (oh->clkdm)
-+		clkdm_deny_idle(oh->clkdm);
-+
- 	if (oh->flags & HWMOD_BLOCK_WFI)
- 		cpu_idle_poll_ctrl(false);
- 	if (soc_ops.disable_module)
-@@ -2250,8 +2245,10 @@ static int _idle(struct omap_hwmod *oh)
- 	 * transition to complete properly.
+ static struct ti_dt_clk am43xx_clks[] = {
+-	DT_CLK(NULL, "clk_32768_ck", "clk_32768_ck"),
+-	DT_CLK(NULL, "clk_rc32k_ck", "clk_rc32k_ck"),
+-	DT_CLK(NULL, "virt_19200000_ck", "virt_19200000_ck"),
+-	DT_CLK(NULL, "virt_24000000_ck", "virt_24000000_ck"),
+-	DT_CLK(NULL, "virt_25000000_ck", "virt_25000000_ck"),
+-	DT_CLK(NULL, "virt_26000000_ck", "virt_26000000_ck"),
+-	DT_CLK(NULL, "sys_clkin_ck", "sys_clkin_ck"),
+-	DT_CLK(NULL, "tclkin_ck", "tclkin_ck"),
+-	DT_CLK(NULL, "dpll_core_ck", "dpll_core_ck"),
+-	DT_CLK(NULL, "dpll_core_x2_ck", "dpll_core_x2_ck"),
+-	DT_CLK(NULL, "dpll_core_m4_ck", "dpll_core_m4_ck"),
+-	DT_CLK(NULL, "dpll_core_m5_ck", "dpll_core_m5_ck"),
+-	DT_CLK(NULL, "dpll_core_m6_ck", "dpll_core_m6_ck"),
+-	DT_CLK(NULL, "dpll_mpu_ck", "dpll_mpu_ck"),
+-	DT_CLK(NULL, "dpll_mpu_m2_ck", "dpll_mpu_m2_ck"),
+-	DT_CLK(NULL, "dpll_ddr_ck", "dpll_ddr_ck"),
+-	DT_CLK(NULL, "dpll_ddr_m2_ck", "dpll_ddr_m2_ck"),
+-	DT_CLK(NULL, "dpll_disp_ck", "dpll_disp_ck"),
+-	DT_CLK(NULL, "dpll_disp_m2_ck", "dpll_disp_m2_ck"),
+-	DT_CLK(NULL, "dpll_per_ck", "dpll_per_ck"),
+-	DT_CLK(NULL, "dpll_per_m2_ck", "dpll_per_m2_ck"),
+-	DT_CLK(NULL, "dpll_per_m2_div4_wkupdm_ck", "dpll_per_m2_div4_wkupdm_ck"),
+-	DT_CLK(NULL, "dpll_per_m2_div4_ck", "dpll_per_m2_div4_ck"),
+-	DT_CLK(NULL, "adc_tsc_fck", "adc_tsc_fck"),
+-	DT_CLK(NULL, "clkdiv32k_ck", "clkdiv32k_ck"),
+-	DT_CLK(NULL, "clkdiv32k_ick", "clkdiv32k_ick"),
+-	DT_CLK(NULL, "dcan0_fck", "dcan0_fck"),
+-	DT_CLK(NULL, "dcan1_fck", "dcan1_fck"),
+-	DT_CLK(NULL, "pruss_ocp_gclk", "pruss_ocp_gclk"),
+-	DT_CLK(NULL, "mcasp0_fck", "mcasp0_fck"),
+-	DT_CLK(NULL, "mcasp1_fck", "mcasp1_fck"),
+-	DT_CLK(NULL, "smartreflex0_fck", "smartreflex0_fck"),
+-	DT_CLK(NULL, "smartreflex1_fck", "smartreflex1_fck"),
+-	DT_CLK(NULL, "sha0_fck", "sha0_fck"),
+-	DT_CLK(NULL, "aes0_fck", "aes0_fck"),
+-	DT_CLK(NULL, "timer1_fck", "timer1_fck"),
+-	DT_CLK(NULL, "timer2_fck", "timer2_fck"),
+-	DT_CLK(NULL, "timer3_fck", "timer3_fck"),
+-	DT_CLK(NULL, "timer4_fck", "timer4_fck"),
+-	DT_CLK(NULL, "timer5_fck", "timer5_fck"),
+-	DT_CLK(NULL, "timer6_fck", "timer6_fck"),
+-	DT_CLK(NULL, "timer7_fck", "timer7_fck"),
+-	DT_CLK(NULL, "wdt1_fck", "wdt1_fck"),
+-	DT_CLK(NULL, "l3_gclk", "l3_gclk"),
+-	DT_CLK(NULL, "dpll_core_m4_div2_ck", "dpll_core_m4_div2_ck"),
+-	DT_CLK(NULL, "l4hs_gclk", "l4hs_gclk"),
+-	DT_CLK(NULL, "l3s_gclk", "l3s_gclk"),
+-	DT_CLK(NULL, "l4ls_gclk", "l4ls_gclk"),
+-	DT_CLK(NULL, "clk_24mhz", "clk_24mhz"),
+-	DT_CLK(NULL, "cpsw_125mhz_gclk", "cpsw_125mhz_gclk"),
+-	DT_CLK(NULL, "cpsw_cpts_rft_clk", "cpsw_cpts_rft_clk"),
+-	DT_CLK(NULL, "dpll_clksel_mac_clk", "dpll_clksel_mac_clk"),
+-	DT_CLK(NULL, "gpio0_dbclk_mux_ck", "gpio0_dbclk_mux_ck"),
+-	DT_CLK(NULL, "gpio0_dbclk", "gpio0_dbclk"),
+-	DT_CLK(NULL, "gpio1_dbclk", "gpio1_dbclk"),
+-	DT_CLK(NULL, "gpio2_dbclk", "gpio2_dbclk"),
+-	DT_CLK(NULL, "gpio3_dbclk", "gpio3_dbclk"),
+-	DT_CLK(NULL, "gpio4_dbclk", "gpio4_dbclk"),
+-	DT_CLK(NULL, "gpio5_dbclk", "gpio5_dbclk"),
+-	DT_CLK(NULL, "mmc_clk", "mmc_clk"),
+-	DT_CLK(NULL, "gfx_fclk_clksel_ck", "gfx_fclk_clksel_ck"),
+-	DT_CLK(NULL, "gfx_fck_div_ck", "gfx_fck_div_ck"),
+ 	DT_CLK(NULL, "timer_32k_ck", "clkdiv32k_ick"),
+ 	DT_CLK(NULL, "timer_sys_ck", "sys_clkin_ck"),
+-	DT_CLK(NULL, "sysclk_div", "sysclk_div"),
+-	DT_CLK(NULL, "disp_clk", "disp_clk"),
+-	DT_CLK(NULL, "clk_32k_mosc_ck", "clk_32k_mosc_ck"),
+-	DT_CLK(NULL, "clk_32k_tpm_ck", "clk_32k_tpm_ck"),
+-	DT_CLK(NULL, "dpll_extdev_ck", "dpll_extdev_ck"),
+-	DT_CLK(NULL, "dpll_extdev_m2_ck", "dpll_extdev_m2_ck"),
+-	DT_CLK(NULL, "mux_synctimer32k_ck", "mux_synctimer32k_ck"),
+-	DT_CLK(NULL, "synctimer_32kclk", "synctimer_32kclk"),
+-	DT_CLK(NULL, "timer8_fck", "timer8_fck"),
+-	DT_CLK(NULL, "timer9_fck", "timer9_fck"),
+-	DT_CLK(NULL, "timer10_fck", "timer10_fck"),
+-	DT_CLK(NULL, "timer11_fck", "timer11_fck"),
+-	DT_CLK(NULL, "cpsw_50m_clkdiv", "cpsw_50m_clkdiv"),
+-	DT_CLK(NULL, "cpsw_5m_clkdiv", "cpsw_5m_clkdiv"),
+-	DT_CLK(NULL, "dpll_ddr_x2_ck", "dpll_ddr_x2_ck"),
+-	DT_CLK(NULL, "dpll_ddr_m4_ck", "dpll_ddr_m4_ck"),
+-	DT_CLK(NULL, "dpll_per_clkdcoldo", "dpll_per_clkdcoldo"),
+-	DT_CLK(NULL, "dll_aging_clk_div", "dll_aging_clk_div"),
+-	DT_CLK(NULL, "div_core_25m_ck", "div_core_25m_ck"),
+-	DT_CLK(NULL, "func_12m_clk", "func_12m_clk"),
+-	DT_CLK(NULL, "vtp_clk_div", "vtp_clk_div"),
+-	DT_CLK(NULL, "usbphy_32khz_clkmux", "usbphy_32khz_clkmux"),
+ 	DT_CLK("48300200.ehrpwm", "tbclk", "ehrpwm0_tbclk"),
+ 	DT_CLK("48302200.ehrpwm", "tbclk", "ehrpwm1_tbclk"),
+ 	DT_CLK("48304200.ehrpwm", "tbclk", "ehrpwm2_tbclk"),
+@@ -136,8 +52,8 @@ int __init am43xx_dt_clk_init(void)
+ 	 * By selecting dpll_core_m5_ck as the clocksource fixes this issue.
+ 	 * In AM335x dpll_core_m5_ck is the default clocksource.
  	 */
- 	_disable_clocks(oh);
--	if (oh->clkdm)
-+	if (oh->clkdm) {
-+		clkdm_allow_idle(oh->clkdm);
- 		clkdm_hwmod_disable(oh->clkdm, oh);
-+	}
+-	clk1 = clk_get_sys(NULL, "cpsw_cpts_rft_clk");
+-	clk2 = clk_get_sys(NULL, "dpll_core_m5_ck");
++	clk1 = ti_clk_get("cpsw_cpts_rft_clk");
++	clk2 = ti_clk_get("dpll_core_m5_ck");
+ 	clk_set_parent(clk1, clk2);
  
- 	/* Mux pins for device idle if populated */
- 	if (oh->mux && oh->mux->pads_dynamic) {
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 83143fe..630b305 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -110,13 +110,7 @@ static void __init omap2_init_processor_devices(void)
- 
- int __init omap_pm_clkdms_setup(struct clockdomain *clkdm, void *unused)
- {
--	/* XXX The usecount test is racy */
--	if ((clkdm->flags & CLKDM_CAN_ENABLE_AUTO) &&
--	    !(clkdm->flags & CLKDM_MISSING_IDLE_REPORTING))
--		clkdm_allow_idle(clkdm);
--	else if (clkdm->flags & CLKDM_CAN_FORCE_SLEEP &&
--		 clkdm->usecount == 0)
--		clkdm_sleep(clkdm);
-+	clkdm_allow_idle(clkdm);
  	return 0;
- }
- 
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 78af6d8..be7a976 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -222,7 +222,6 @@ static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
-  * @pwrdm: struct powerdomain * to operate on
-  * @curr_pwrst: current power state of @pwrdm
-  * @pwrst: power state to switch to
-- * @hwsup: ptr to a bool to return whether the clkdm is hardware-supervised
-  *
-  * Determine whether the powerdomain needs to be turned on before
-  * attempting to switch power states.  Called by
-@@ -233,8 +232,7 @@ static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
-  * "Types of sleep_switch" comment above).
-  */
- static u8 _pwrdm_save_clkdm_state_and_activate(struct powerdomain *pwrdm,
--					       u8 curr_pwrst, u8 pwrst,
--					       bool *hwsup)
-+					       u8 curr_pwrst, u8 pwrst)
- {
- 	u8 sleep_switch;
- 
-@@ -244,8 +242,7 @@ static u8 _pwrdm_save_clkdm_state_and_activate(struct powerdomain *pwrdm,
- 		    arch_pwrdm->pwrdm_set_lowpwrstchange) {
- 			sleep_switch = LOWPOWERSTATE_SWITCH;
- 		} else {
--			*hwsup = clkdm_in_hwsup(pwrdm->pwrdm_clkdms[0]);
--			clkdm_wakeup_nolock(pwrdm->pwrdm_clkdms[0]);
-+			clkdm_deny_idle_nolock(pwrdm->pwrdm_clkdms[0]);
- 			sleep_switch = FORCEWAKEUP_SWITCH;
- 		}
- 	} else {
-@@ -259,7 +256,6 @@ static u8 _pwrdm_save_clkdm_state_and_activate(struct powerdomain *pwrdm,
-  * _pwrdm_restore_clkdm_state - restore the clkdm hwsup state after pwrst change
-  * @pwrdm: struct powerdomain * to operate on
-  * @sleep_switch: return value from _pwrdm_save_clkdm_state_and_activate()
-- * @hwsup: should @pwrdm's first clockdomain be set to hardware-supervised mode?
-  *
-  * Restore the clockdomain state perturbed by
-  * _pwrdm_save_clkdm_state_and_activate(), and call the power state
-@@ -270,14 +266,11 @@ static u8 _pwrdm_save_clkdm_state_and_activate(struct powerdomain *pwrdm,
-  * software-supervised sleep.  No return value.
-  */
- static void _pwrdm_restore_clkdm_state(struct powerdomain *pwrdm,
--				       u8 sleep_switch, bool hwsup)
-+				       u8 sleep_switch)
- {
- 	switch (sleep_switch) {
- 	case FORCEWAKEUP_SWITCH:
--		if (hwsup)
--			clkdm_allow_idle_nolock(pwrdm->pwrdm_clkdms[0]);
--		else
--			clkdm_sleep_nolock(pwrdm->pwrdm_clkdms[0]);
-+		clkdm_allow_idle_nolock(pwrdm->pwrdm_clkdms[0]);
- 		break;
- 	case LOWPOWERSTATE_SWITCH:
- 		if (pwrdm->flags & PWRDM_HAS_LOWPOWERSTATECHANGE &&
-@@ -1092,7 +1085,6 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u8 pwrst)
- 	u8 next_pwrst, sleep_switch;
- 	int curr_pwrst;
- 	int ret = 0;
--	bool hwsup = false;
- 
- 	if (!pwrdm || IS_ERR(pwrdm))
- 		return -EINVAL;
-@@ -1116,14 +1108,14 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u8 pwrst)
- 		goto osps_out;
- 
- 	sleep_switch = _pwrdm_save_clkdm_state_and_activate(pwrdm, curr_pwrst,
--							    pwrst, &hwsup);
-+							    pwrst);
- 
- 	ret = pwrdm_set_next_pwrst(pwrdm, pwrst);
- 	if (ret)
- 		pr_err("%s: unable to set power state of powerdomain: %s\n",
- 		       __func__, pwrdm->name);
- 
--	_pwrdm_restore_clkdm_state(pwrdm, sleep_switch, hwsup);
-+	_pwrdm_restore_clkdm_state(pwrdm, sleep_switch);
- 
- osps_out:
- 	pwrdm_unlock(pwrdm);
 -- 
 1.7.9.5
 
