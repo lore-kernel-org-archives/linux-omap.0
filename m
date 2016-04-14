@@ -1,90 +1,99 @@
 From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH 2/2] ARM: dts: dra7x: Support QSPI MODE-0 operation at 64MHz
-Date: Thu, 14 Apr 2016 15:48:21 +0530
-Message-ID: <1460629101-24309-3-git-send-email-vigneshr@ti.com>
+Subject: [PATCH 1/2] ARM: dts: dra7x: Remove QSPI pinmux
+Date: Thu, 14 Apr 2016 15:48:20 +0530
+Message-ID: <1460629101-24309-2-git-send-email-vigneshr@ti.com>
 References: <1460629101-24309-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1460629101-24309-1-git-send-email-vigneshr@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Vignesh R <vigneshr@ti.com>, nsekhar@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: devicetree@vger.kernel.org, Vignesh R <vigneshr@ti.com>, nsekhar@ti.com, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-According to Data Manual(SPRS915P) of AM57x, TI QSPI controller on
-DRA74(rev 1.1+)/DRA72 EVM can support up to 64MHz in MODE-0, whereas
-MODE-3 is limited to 48MHz. Hence, switch to MODE-0 for better
-throughput.
-
-Signed-off-by: Vignesh R <vigneshr@ti.com>
----
- Documentation/devicetree/bindings/spi/ti_qspi.txt | 7 +++++++
- arch/arm/boot/dts/dra7-evm.dts                    | 6 ++----
- arch/arm/boot/dts/dra72-evm.dts                   | 6 ++----
- 3 files changed, 11 insertions(+), 8 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/spi/ti_qspi.txt b/Documentation/devicetree/bindings/spi/ti_qspi.txt
-index cc8304aa64ac..50b14f6b53a3 100644
---- a/Documentation/devicetree/bindings/spi/ti_qspi.txt
-+++ b/Documentation/devicetree/bindings/spi/ti_qspi.txt
-@@ -19,6 +19,13 @@ Optional properties:
- - syscon-chipselects: Handle to system control region contains QSPI
- 		      chipselect register and offset of that register.
- 
-+NOTE: TI QSPI controller requires different pinmux and IODelay
-+paramaters for Mode-0 and Mode-3 operations, which needs to be set up by
-+the bootloader (U-Boot). Default configuration only supports Mode-0
-+operation. Hence, "spi-cpol" and "spi-cpha" DT properties cannot be
-+specified in the slave nodes of TI QSPI controller without appropriate
-+modification to bootloader.
-+
- Example:
- 
- For am4372:
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index 47d0745a08ad..507a8ec0a268 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -664,15 +664,13 @@
- &qspi {
- 	status = "okay";
- 
--	spi-max-frequency = <48000000>;
-+	spi-max-frequency = <64000000>;
- 	m25p80@0 {
- 		compatible = "s25fl256s1";
--		spi-max-frequency = <48000000>;
-+		spi-max-frequency = <64000000>;
- 		reg = <0>;
- 		spi-tx-bus-width = <1>;
- 		spi-rx-bus-width = <4>;
--		spi-cpol;
--		spi-cpha;
- 		#address-cells = <1>;
- 		#size-cells = <1>;
- 
-diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
-index 479b74e1641e..46e1b72866f5 100644
---- a/arch/arm/boot/dts/dra72-evm.dts
-+++ b/arch/arm/boot/dts/dra72-evm.dts
-@@ -704,15 +704,13 @@
- &qspi {
- 	status = "okay";
- 
--	spi-max-frequency = <48000000>;
-+	spi-max-frequency = <64000000>;
- 	m25p80@0 {
- 		compatible = "s25fl256s1";
--		spi-max-frequency = <48000000>;
-+		spi-max-frequency = <64000000>;
- 		reg = <0>;
- 		spi-tx-bus-width = <1>;
- 		spi-rx-bus-width = <4>;
--		spi-cpol;
--		spi-cpha;
- 		#address-cells = <1>;
- 		#size-cells = <1>;
- 
--- 
-2.8.1
+RFJBNyBmYW1pbHkgb2YgcHJvY2Vzc29ycyBmcm9tIFRleGFzIEluc3RydW1lbnRzLCBoYXZlIGEg
+aGFyZHdhcmUgbW9kdWxlCmNhbGxlZCBJT0RFTEFZQ09ORklHIE1vZHVsZSB3aGljaCBpcyBleHBl
+Y3RlZCB0byBiZSBjb25maWd1cmVkLiBUaGlzCmJsb2NrIGFsbG93cyB2ZXJ5IHNwZWNpZmljIGN1
+c3RvbSBmaW5lIHR1bmluZyBmb3IgZWxlY3RyaWNhbApjaGFyYWN0ZXJpc3RpY3Mgb2YgSU8gcGlu
+cyB0aGF0IGFyZSBuZWNlc3NhcnkgZm9yIGZ1bmN0aW9uYWxpdHkgYW5kCmRldmljZSBsaWZldGlt
+ZSByZXF1aXJlbWVudHMuIElPRGVsYXkgbW9kdWxlIGhhcyBpdCdzIG93biByZWdpc3RlciBzcGFj
+ZQp3aXRoIHJlZ2lzdGVycyB0byBjb25maWd1cmUgdmFyaW91cyBwaW5zLgoKQWNjb3JkaW5nIHRv
+IEFNNTcyeCBUUk0gU1BSVUhaNkUgT2N0b2JlciAyMDE04oCTUmV2aXNlZCBKYW51YXJ5IDIwMTZb
+MV0Kc2VjdGlvbiAxOC40LjYuMSBQYWQgQ29uZmlndXJhdGlvbiwgaW4gYWRkaXRpb24gdG8gcGlu
+bXV4aW5nKE1VWE1PREUpLAp3aGVuIG9wZXJhdGluZyBhIHBhZCBpbiBjZXJ0YWluIG1vZGUsIFZp
+cnR1YWwvTWFudWFsIElPIFRpbWluZyBNb2RlIG11c3QKYWxzbyBiZSBjb25maWd1cmVkIHRvIGVu
+c3VyZSB0aGF0IElPIHRpbWluZ3MgYXJlIG1ldCAoREVMQVlNT0RFIGFuZApNT0RFU0VMRUNUIGZp
+ZWxkcyBvZiBwYWQncyBJT0RFTEFZQ09ORklHIG1vZHVsZSByZWdpc3RlcikuIEFjY29yZGluZyB0
+bwpzZWN0aW9uIDE4LjQuNi4xLjcgSXNvbGF0aW9uIFJlcXVpcmVtZW50cyBvZiBhYm92ZSBUUk0s
+IHdoZW4KcmVwcm9ncmFtbWluZyBNVVhNT0RFLCBERUxBWU1PREUsIGFuZCBNT0RFU0VMRUNUIGZp
+ZWxkcywgdGhlcmUgaXMgYQpwb3RlbnRpYWwgZm9yIGEgc2lnbmlmaWNhbnQgZ2xpdGNoIG9uIHRo
+ZSBjb3JyZXNwb25kaW5nIElPLiBJdCBpcyBoZW5jZQpyZWNvbW1lbmRlZCB0byBkbyB0aGlzIHdp
+dGggSS9PIGlzb2xhdGlvbiAod2hpY2ggY2FuIG9ubHkgYmUgZG9uZSBpbgppbml0aWFsIHN0YWdl
+cyBvZiBib290bG9hZGVyKS4gUVNQSSBpcyBvbmUgc3VjaCBtb2R1bGUgdGhhdCByZXF1aXJlcwpJ
+T0RFTEFZIGNvbmZpZ3VyYXRpb24uIFNvLCB0aGlzIHBhdGNoIHJlbW92ZXMgdGhlIHBpbm11eCBm
+b3IKUVNQSSBmb3IgRFJBNzQvRFJBNzIgRVZNIGFzIGl0IG5lZWRzIHRvIGJlIGRvbmUgaW4gYm9v
+dGxvYWRlciAoVS1Cb290KQphbmQgY2Fubm90IGJlIGRvbmUgaW4ga2VybmVsLgoKVXNlcnMgc2hv
+dWxkIG1pZ3JhdGUgdG8gVS1Cb290IHYyMDE2LjA1LXJjMSBvciBoaWdoZXIuCgpbMV0gaHR0cDov
+L3d3dy50aS5jb20vbGl0L3VnL3NwcnVoejZlL3NwcnVoejZlLnBkZgoKU2lnbmVkLW9mZi1ieTog
+VmlnbmVzaCBSIDx2aWduZXNockB0aS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvZHJhNy1l
+dm0uZHRzICB8IDE3IC0tLS0tLS0tLS0tLS0tLS0tCiBhcmNoL2FybS9ib290L2R0cy9kcmE3Mi1l
+dm0uZHRzIHwgMTQgLS0tLS0tLS0tLS0tLS0KIDIgZmlsZXMgY2hhbmdlZCwgMzEgZGVsZXRpb25z
+KC0pCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvZHJhNy1ldm0uZHRzIGIvYXJjaC9h
+cm0vYm9vdC9kdHMvZHJhNy1ldm0uZHRzCmluZGV4IGQyNzJjZjE0MDE5Ny4uNDdkMDc0NWEwOGFk
+IDEwMDY0NAotLS0gYS9hcmNoL2FybS9ib290L2R0cy9kcmE3LWV2bS5kdHMKKysrIGIvYXJjaC9h
+cm0vYm9vdC9kdHMvZHJhNy1ldm0uZHRzCkBAIC0yMjYsMjEgKzIyNiw2IEBACiAJCT47CiAJfTsK
+IAotCXFzcGkxX3BpbnM6IHBpbm11eF9xc3BpMV9waW5zIHsKLQkJcGluY3RybC1zaW5nbGUscGlu
+cyA9IDwKLQkJCURSQTdYWF9DT1JFX0lPUEFEKDB4MzQ0YywgUElOX0lOUFVUIHwgTVVYX01PREUx
+KSAgLyogZ3BtY19hMy5xc3BpMV9jczIgKi8KLQkJCURSQTdYWF9DT1JFX0lPUEFEKDB4MzQ1MCwg
+UElOX0lOUFVUIHwgTVVYX01PREUxKSAgLyogZ3BtY19hNC5xc3BpMV9jczMgKi8KLQkJCURSQTdY
+WF9DT1JFX0lPUEFEKDB4MzQ3NCwgUElOX0lOUFVUIHwgTVVYX01PREUxKSAgLyogZ3BtY19hMTMu
+cXNwaTFfcnRjbGsgKi8KLQkJCURSQTdYWF9DT1JFX0lPUEFEKDB4MzQ3OCwgUElOX0lOUFVUIHwg
+TVVYX01PREUxKSAgLyogZ3BtY19hMTQucXNwaTFfZDMgKi8KLQkJCURSQTdYWF9DT1JFX0lPUEFE
+KDB4MzQ3YywgUElOX0lOUFVUIHwgTVVYX01PREUxKSAgLyogZ3BtY19hMTUucXNwaTFfZDIgKi8K
+LQkJCURSQTdYWF9DT1JFX0lPUEFEKDB4MzQ4MCwgUElOX0lOUFVUIHwgTVVYX01PREUxKSAvKiBn
+cG1jX2ExNi5xc3BpMV9kMSAqLwotCQkJRFJBN1hYX0NPUkVfSU9QQUQoMHgzNDg0LCBQSU5fSU5Q
+VVQgfCBNVVhfTU9ERTEpICAvKiBncG1jX2ExNy5xc3BpMV9kMCAqLwotCQkJRFJBN1hYX0NPUkVf
+SU9QQUQoMHgzNDg4LCBQSU5fSU5QVVQgfCBNVVhfTU9ERTEpICAvKiBxcG1jX2ExOC5xc3BpMV9z
+Y2xrICovCi0JCQlEUkE3WFhfQ09SRV9JT1BBRCgweDM0YjgsIFBJTl9JTlBVVF9QVUxMVVAgfCBN
+VVhfTU9ERTEpICAvKiBncG1jX2NzMi5xc3BpMV9jczAgKi8KLQkJCURSQTdYWF9DT1JFX0lPUEFE
+KDB4MzRiYywgUElOX0lOUFVUX1BVTExVUCB8IE1VWF9NT0RFMSkgIC8qIGdwbWNfY3MzLnFzcGkx
+X2NzMSAqLwotCQk+OwotCX07Ci0KIAl1c2IxX3BpbnM6IHBpbm11eF91c2IxX3BpbnMgewogICAg
+ICAgICAgICAgICAgIHBpbmN0cmwtc2luZ2xlLHBpbnMgPSA8CiAJCQlEUkE3WFhfQ09SRV9JT1BB
+RCgweDM2ODAsIFBJTl9JTlBVVF9TTEVXIHwgTVVYX01PREUwKSAvKiB1c2IxX2RydnZidXMgKi8K
+QEAgLTY3OCw4ICs2NjMsNiBAQAogCiAmcXNwaSB7CiAJc3RhdHVzID0gIm9rYXkiOwotCXBpbmN0
+cmwtbmFtZXMgPSAiZGVmYXVsdCI7Ci0JcGluY3RybC0wID0gPCZxc3BpMV9waW5zPjsKIAogCXNw
+aS1tYXgtZnJlcXVlbmN5ID0gPDQ4MDAwMDAwPjsKIAltMjVwODBAMCB7CmRpZmYgLS1naXQgYS9h
+cmNoL2FybS9ib290L2R0cy9kcmE3Mi1ldm0uZHRzIGIvYXJjaC9hcm0vYm9vdC9kdHMvZHJhNzIt
+ZXZtLmR0cwppbmRleCAzZTYzZjY2MGNkN2MuLjQ3OWI3NGUxNjQxZSAxMDA2NDQKLS0tIGEvYXJj
+aC9hcm0vYm9vdC9kdHMvZHJhNzItZXZtLmR0cworKysgYi9hcmNoL2FybS9ib290L2R0cy9kcmE3
+Mi1ldm0uZHRzCkBAIC0yNDcsMTggKzI0Nyw2IEBACiAJCT47CiAJfTsKIAotCXFzcGkxX3BpbnM6
+IHBpbm11eF9xc3BpMV9waW5zIHsKLQkJcGluY3RybC1zaW5nbGUscGlucyA9IDwKLQkJCURSQTdY
+WF9DT1JFX0lPUEFEKDB4MzQ3NCwgUElOX09VVFBVVCB8IE1VWF9NT0RFMSkJLyogZ3BtY19hMTMu
+cXNwaTFfcnRjbGsgKi8KLQkJCURSQTdYWF9DT1JFX0lPUEFEKDB4MzQ3OCwgUElOX0lOUFVUIHwg
+TVVYX01PREUxKQkvKiBncG1jX2ExNC5xc3BpMV9kMyAqLwotCQkJRFJBN1hYX0NPUkVfSU9QQUQo
+MHgzNDdjLCBQSU5fSU5QVVQgfCBNVVhfTU9ERTEpCS8qIGdwbWNfYTE1LnFzcGkxX2QyICovCi0J
+CQlEUkE3WFhfQ09SRV9JT1BBRCgweDM0ODAsIFBJTl9JTlBVVCB8IE1VWF9NT0RFMSkJLyogZ3Bt
+Y19hMTYucXNwaTFfZDEgKi8KLQkJCURSQTdYWF9DT1JFX0lPUEFEKDB4MzQ4NCwgUElOX0lOUFVU
+IHwgTVVYX01PREUxKQkvKiBncG1jX2ExNy5xc3BpMV9kMCAqLwotCQkJRFJBN1hYX0NPUkVfSU9Q
+QUQoMHgzNDg4LCBQSU5fT1VUUFVUIHwgTVVYX01PREUxKQkvKiBxcG1jX2ExOC5xc3BpMV9zY2xr
+ICovCi0JCQlEUkE3WFhfQ09SRV9JT1BBRCgweDM0YjgsIFBJTl9PVVRQVVQgfCBNVVhfTU9ERTEp
+CS8qIGdwbWNfY3MyLnFzcGkxX2NzMCAqLwotCQk+OwotCX07Ci0KIAloZG1pX3BpbnM6IHBpbm11
+eF9oZG1pX3BpbnMgewogCQlwaW5jdHJsLXNpbmdsZSxwaW5zID0gPAogCQkJRFJBN1hYX0NPUkVf
+SU9QQUQoMHgzODA4LCBQSU5fSU5QVVQgfCBNVVhfTU9ERTEpIC8qIGkyYzJfc2RhLmhkbWkxX2Rk
+Y19zY2wgKi8KQEAgLTcxNSw4ICs3MDMsNiBAQAogCiAmcXNwaSB7CiAJc3RhdHVzID0gIm9rYXki
+OwotCXBpbmN0cmwtbmFtZXMgPSAiZGVmYXVsdCI7Ci0JcGluY3RybC0wID0gPCZxc3BpMV9waW5z
+PjsKIAogCXNwaS1tYXgtZnJlcXVlbmN5ID0gPDQ4MDAwMDAwPjsKIAltMjVwODBAMCB7Ci0tIAoy
+LjguMQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxp
+bnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFk
+ZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
+LWFybS1rZXJuZWwK
