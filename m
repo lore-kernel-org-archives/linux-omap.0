@@ -1,114 +1,142 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: 8250 dma issues ( was Re: [PATCH] tty: serial: 8250_omap: do not
- defer termios changes)
-Date: Thu, 14 Apr 2016 10:54:40 -0700
-Message-ID: <570FD960.707@hurleysoftware.com>
-References: <8737r7ght7.fsf@linutronix.de>
- <570339E8.6010808@hurleysoftware.com> <87y48kftip.fsf@linutronix.de>
- <570BE48F.60801@hurleysoftware.com> <570BED7B.9080803@linutronix.de>
- <570C04C1.40201@hurleysoftware.com> <570D2A46.2050106@linutronix.de>
- <570D82B6.2090506@hurleysoftware.com>
- <20160414160706.4c316d38@lxorguk.ukuu.org.uk>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2 0/3] ARM: OMAP3: Fix McBSP2/3 hwmod setup for sidetone
+Date: Thu, 14 Apr 2016 22:37:07 +0300
+Message-ID: <570FF163.1050603@ti.com>
+References: <20160402001753.GR9329@atomide.com> <57026205.6020105@ti.com>
+ <20160404151200.GA4652@atomide.com> <5703BA6B.1080208@ti.com>
+ <20160411212845.GJ5995@atomide.com> <570CC54E.6020703@ti.com>
+ <20160412163750.GR5995@atomide.com> <570E3428.5020804@ti.com>
+ <20160413152829.GQ5995@atomide.com> <570F4804.4050006@ti.com>
+ <20160414165514.GL5995@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160414160706.4c316d38@lxorguk.ukuu.org.uk>
+In-Reply-To: <20160414165514.GL5995@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, John Ogness <john.ogness@linutronix.de>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Tony Lindgren <tony@atomide.com>, nsekhar@ti.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, jarkko.nikula@bitmer.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 04/14/2016 08:07 AM, One Thousand Gnomes wrote:
->>>> 3. Handling XON/XOFF transmit is mandatory; I don't see a way to do that
->>>>    without pause/resume.  
+On 04/14/2016 07:55 PM, Tony Lindgren wrote:
+> * Peter Ujfalusi <peter.ujfalusi@ti.com> [160414 00:35]:
+>> On 04/13/16 18:28, Tony Lindgren wrote:
 >>>
->>> Yes, not doing XON/XOFF with DMA is not good. Using hardware flow
->>> control is one workaround but the user has no chance of knowing that
->>> XON/XOFF has been silently disabled.
-> 
-> You can clear the bits in the termios when the termios is set and the
-> application *should* interpret that as not supported. I doubt many
-> applications do for the XON/XOFF case. Equally you can just say that soft
-> flow control turns off DMA or reduces buffering depending upon the data
-> rate. We have plenty of hardware in the kernel that is more optimal in
-> some configurations than others.
-> 
-> This also shouldn't be about whether 4K is a lot - it's about time to
-> respond. Thus the _time_ latency of getting the ^S/^Q out is what matters
-> at higher rates. At low speed (1200-9600 etc) you want to be able to
-> respond within a few characters because the chances are the device the
-> other end is not very bright.
-
-Currently, tcflow(TCIOFF/TCION) ignores the flow control modes and always
-sends XON/XOFF, so disabling DMA based on flow control mode won't work.
-
-
->>> the transfer right away. Oh now I see the same thing in
->>> edma_completion_handler(). Okay but this affects now everyone that
->>> relies on low latency?  
+>>> You could just create the sidetone child device manually on probe i=
+n the
+>>> driver as needed. That way you'd have two devices to do the PM runt=
+ime
+>>> on. I think that was Paul's main concern as they are separate modul=
+es.
 >>
->> Well, the real problem is that only one rx buffer is being used serially,
->> first filled by the dma h/w, then emptied by the driver, then resubmitted.
->> This creates a gap of time between the dma h/w completion interrupt and
->> the resubmission where data loss is possible (and happens).
-> 
-> Most low latency users are concerned about the latency between transmit
-> and receive.
+>> You mean that not to have separate compatible for the McBSP module's=
+ Sidetone
+>> core?
+>> If yes, then it is a valid thing to remove the hwmod data for the si=
+detone,
+>> like I did in this series.
+>=20
+> No, I meant keep the sidetone hwmod, it really is there in the hardwa=
+re.
 
-Sebastian really confused this problem by relating it to low latency.
-That's not the problem.
+Hrm, the Sidetone is there, yes. It is part of the McBSP module and the=
+ hwmod
+for the sidetone is not correct. From hwmod (or PRCM) point of view the=
+re is
+no sidetone module, there is only McBSP module which consist of McBSP c=
+ore and
+Sidetone core.
 
-The problem is that softirqs and tasklets are not reliable bottom halves
-anymore, because since 3.8 they don't always run when interrupts are
-re-enabled. They can now be deferred to the lowest priority process,
-ksoftirqd.
+> I meant only probe the sidetone in the McBSP probe so you have two
+> struct dev and two hwmod entries in the McBSP driver. I don't know if
+> this actually makes things easier or not though.
 
-For a uart trying not to overrun a 64-byte fifo at 3Mbaud creates a hard
-213us deadline for the uart driver to give the dmaengine driver the
-_next_ RX buffer to fill. Right now, the 8250 driver is only using 1
-RX buffer, so until the DMA completion handler runs (in tasklet), the
-8250 driver doesn't supply the dmaengine driver a new one.
+But the hwmod for the sidetone is wrong, there should not have been hwm=
+od for
+the sidetone to start with.
 
+>>> It still leaves the chance of bugs with flush of posted writes. But=
+ might
+>>> make things easier to deal with in small steps?
+>>
+>> The only 'benefit' I see with separated driver for McBSP core and Si=
+detone
+>> core is that the register writes will happen to the cores in separat=
+e drivers.
+>>
+>> If the McBSP driver creates the device for the sidetone driver, then=
+ passing
+>> the needed callbacks and data to it is going to be cleaner. Register=
+ing back
+>> the callbacks to McBSP is what need to be figured out, so it is simp=
+le and
+>> clean. Either with a callback to McBSP to set the ST callbacks or ha=
+ve the
+>> callback struct used by ST via pdata to have places for the ST to Mc=
+BSP
+>> callbacks and when the driver loads it is going to set up those.
+>=20
+> OK yeah makes sense to me.
+>=20
+>> If I remove the prcm section for the ST hwmod:
+>> [   87.784820] omap_hwmod: mcbsp2_sidetone: _wait_target_ready faile=
+d: -22
+>> [   87.784851] omap-mcbsp 49022000.mcbsp: use pm_runtime_put_sync_su=
+spend() in
+>> driver?
+>>
+>> When first try to use the audio.
+>> So the hwmod code at least was checking the idlest bit.
+>=20
+> Yes the module is really there for sidetone, and it really has hardwa=
+re
+> registers :)
 
+Yes it has registers, but it has no prcm level existence, it is part of=
+ McBSP
+module. I guess when the OMAP3 was designed the HW people did not wante=
+d to
+create new version of the McBSP core for McBSP2/3 so they attached a ne=
+w core
+to the McBSP cores with different targets, etc, but w/o external depend=
+ency.
 
-> The usual case is windowless protocols like firmware
-> downloaders. For higher speed that tends to be driven by the DMA
-> timeouts, for lower baud rates you can perhaps mitigate this by using
-> chains of very small buffers or just turning off DMA just as we turn off
-> some of the FIFOs at very low speed ?
-> 
->> But that's why I'd like to bring the two implementations closer, so that
->> maybe both can be replaced with a single rx dma transaction flow.
->> [ And perhaps extending tty buffer to perform direct fill, skipping the
->>   buffer copy ]
-> 
-> For the general case what IMHO is needed is probably not a direct fill of
-> the tty buffer (which is surprisingly locking hard - we used to have one
-> but it was broken) but rather a fastpath around it. With the specific
-> exception of N_TTY I think every single other line discipline we have is
-> capable of accepting a pointer and length to a block of data that ceases
-> to be valid the moment the function returns. All the networking ones
-> certainly are and it would speed up the usual culprits (3G modems over
-> USB, bluetooth over onboard 3.3v uart etc). 
-> 
-> So a way to call
-> 
-> 	port->fast_rx(data, flags, len);
-> 
-> with a rule that you never mix fast and tty buffers, and with an atomic
-> swap of port->fast_rx between tty_buffer queueing logic, discard and
-> ldisc->fast_rx pointers done when the ldisc is set or changes.
+>> OK. I will go with the assumption that the sidetone hwmod can be rem=
+oved (as
+>> it is not correct) and rework my current series to use pdata callbac=
+k for the
+>> iclk autogate allow/deny. With this set the ST will be operational i=
+n legacy
+>> and DT boot.
+>=20
+> Sorry, no I did not want to drop the sidetone hwmod, I was just tryin=
+g to
+> come up with ideas on how to make the driver changes easier. It sound=
+s like
+> you already figured out the driver changes part though with two drive=
+rs.
 
-Yes, that's one possible alternative. The drawback is that makes
-testing more difficult, but maybe the tradeoff would be worth it.
+If I need to keep the sidetone hwmod around I don't see how it can be d=
+one in
+a safe and clean way. It is part of McBSP module, it is accessible only=
+ if the
+McBSP module is enabled, you can not enable the Sidetone alone you need=
+ to go
+and enable the McBSP module. I don't think it is a good idea to let two
+separate hwmods to poke around the same PRCM bits. Have not checked, bu=
+t I
+don't think we have refcounting for the PRCM register bits.
 
-Regards,
-Peter Hurley
+I have things working w/o the two drivers with pdata callback both in l=
+egacy
+and DT case and it is pretty neat looking, thanks for the suggestion! I=
+'m
+still figuring out the needed amount of callbacks from McBSP to ST and =
+from ST
+to McBSP. We for sure going to need enable_stage1,2 probably three as w=
+ell.
+But this crossing driver boundaries needs a bit more time to figure out=
+=2E
 
-
-> There are very few cases where n_tty is the one that needs the optimized
-> path: uucp died a long time ago 8)
-> 
-> Alan
-> 
+--=20
+P=E9ter
