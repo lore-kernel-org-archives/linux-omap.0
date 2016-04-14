@@ -1,88 +1,71 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [PATCH] ARM: OMAP3: Fix external abort on 36xx waking from off
- mode idle
-Date: Wed, 13 Apr 2016 20:52:28 -0500
-Message-ID: <570EF7DC.1010504@ti.com>
-References: <1460475837-1984-1-git-send-email-d-gerlach@ti.com>
- <20160413193003.GW5995@atomide.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v2]  pinctrl: pinctrl-single: Fix pcs_parse_bits_in_pinctrl_entry to use __ffs than ffs
+Date: Thu, 14 Apr 2016 10:29:16 +0530
+Message-ID: <1460609956-26539-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160413193003.GW5995@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Tero Kristo <t-kristo@ti.com>, Richard Woodruff <r-woodruff2@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: linus.walleij@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, j-keerthy@ti.com, t-kristo@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 04/13/2016 02:30 PM, Tony Lindgren wrote:
-> * Dave Gerlach <d-gerlach@ti.com> [160412 08:45]:
->> --- a/arch/arm/mach-omap2/pm34xx.c
->> +++ b/arch/arm/mach-omap2/pm34xx.c
->> @@ -268,7 +268,6 @@ void omap_sram_idle(void)
->>  	int per_next_state = PWRDM_POWER_ON;
->>  	int core_next_state = PWRDM_POWER_ON;
->>  	int per_going_off;
->> -	int core_prev_state;
->>  	u32 sdrc_pwr = 0;
->>  
->>  	mpu_next_state = pwrdm_read_next_pwrst(mpu_pwrdm);
->> @@ -348,17 +347,21 @@ void omap_sram_idle(void)
->>  		sdrc_write_reg(sdrc_pwr, SDRC_POWER);
->>  
->>  	/* CORE */
->> -	if (core_next_state < PWRDM_POWER_ON) {
->> -		core_prev_state = pwrdm_read_prev_pwrst(core_pwrdm);
->> -		if (core_prev_state == PWRDM_POWER_OFF) {
->> -			omap3_core_restore_context();
->> -			omap3_cm_restore_context();
->> -			omap3_push_sram_idle();
->> -			omap3_push_sram_secure_idle();
->> -			omap2_sms_restore_context();
->> -		}
->> +	if (core_next_state < PWRDM_POWER_ON &&
->> +	    pwrdm_read_prev_pwrst(core_pwrdm) == PWRDM_POWER_OFF) {
->> +		omap3_core_restore_context();
->> +		omap3_cm_restore_context();
->> +		omap3_push_sram_idle();
->> +		omap3_push_sram_secure_idle();
->> +		omap2_sms_restore_context();
->> +	} else {
->> +		/*
->> +		 * In off-mode resume path above, omap3_core_restore_context
->> +		 * also handles the INTC autoidle restore done here so limit
->> +		 * this to non-off mode resume paths so we don't do it twice.
->> +		 */
->> +		omap3_intc_resume_idle();
->>  	}
->> -	omap3_intc_resume_idle();
->>  
->>  	pwrdm_post_transition(NULL);
-> 
-> Can you please repost against v4.7-rc? This does not apply as
-> mainline still uses omap3_sram_restore_context(). Should be
-> retested again with your patches applied on top of this fix.
-> 
+pcs_parse_bits_in_pinctrl_entry uses ffs which gives bit indices
+ranging from 1 to MAX. This leads to a corner case where we try to request
+the pin number = MAX and fails.
 
-Whoops, complete oversight on my part, retested and reported here:
-https://patchwork.kernel.org/patch/8830421/
+bit_pos value is being calculted using ffs. pin_num_from_lsb uses
+bit_pos value. pins array is populated with:
 
-Tests showed the exact same behavior, no abort with or without patch, with my
-sram series on top there was also no abort, but if I remove the fix patch the
-abort comes back.
+pin + pin_num_from_lsb.
 
-Regards,
-Dave
+The above is 1 more than usual bit indices as bit_pos uses ffs to compute
+first set bit. Hence the last of the pins array is populated with the MAX
+value and not MAX - 1 which causes error when we call pin_request.
 
-> Regards,
-> 
-> Tony
-> 
+mask_pos is rightly calculated as ((pcs->fmask) << (bit_pos - 1))
+Consequently val_pos and submask are correct.
+
+Hence use __ffs which gives (ffs(x) - 1) as the first bit set.
+
+fixes: 4e7e8017a8 ("pinctrl: pinctrl-single: enhance to configure multiple pins of different modules")
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
+
+Changes in v2:
+
+  * Changed pcs->fshift to use __ffs instead of ffs to be consistent.
+
+Boot tesed on da850-evm and checked the pinctrl sysfs nodes.
+
+ drivers/pinctrl/pinctrl-single.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index fb126d5..cf9bafa 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -1280,9 +1280,9 @@ static int pcs_parse_bits_in_pinctrl_entry(struct pcs_device *pcs,
+ 
+ 		/* Parse pins in each row from LSB */
+ 		while (mask) {
+-			bit_pos = ffs(mask);
++			bit_pos = __ffs(mask);
+ 			pin_num_from_lsb = bit_pos / pcs->bits_per_pin;
+-			mask_pos = ((pcs->fmask) << (bit_pos - 1));
++			mask_pos = ((pcs->fmask) << bit_pos);
+ 			val_pos = val & mask_pos;
+ 			submask = mask & mask_pos;
+ 
+@@ -1852,7 +1852,7 @@ static int pcs_probe(struct platform_device *pdev)
+ 	ret = of_property_read_u32(np, "pinctrl-single,function-mask",
+ 				   &pcs->fmask);
+ 	if (!ret) {
+-		pcs->fshift = ffs(pcs->fmask) - 1;
++		pcs->fshift = __ffs(pcs->fmask);
+ 		pcs->fmax = pcs->fmask >> pcs->fshift;
+ 	} else {
+ 		/* If mask property doesn't exist, function mux is invalid. */
+-- 
+1.9.1
+
