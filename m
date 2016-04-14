@@ -1,39 +1,94 @@
-From: PC Liao <pc.liao-NuS5LvNUpcJWk0Htik3J/w@public.gmane.org>
-Subject: Re: [alsa-devel] [PATCH v9 3/7] ASoC: hdmi-codec: Add hdmi-codec
- for external HDMI-encoders
-Date: Thu, 14 Apr 2016 13:31:21 +0800
-Message-ID: <1460611881.22320.6.camel@mtksdaap41>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: Re: [PATCH v9 4/7] ASoC: hdmi-codec: Add audio abort() callback for
+ video side to use
+Date: Thu, 14 Apr 2016 09:21:35 +0300
+Message-ID: <570F36EF.4090902@ti.com>
 References: <cover.1459431292.git.jsarha@ti.com>
-	 <636486b25db48fa13ae640516cdebe7bcfea0d23.1459431292.git.jsarha@ti.com>
+ <36a4881da9400908b2e033cb2d931daf0d59bac9.1459431292.git.jsarha@ti.com>
+ <570E03DC.6030707@st.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <636486b25db48fa13ae640516cdebe7bcfea0d23.1459431292.git.jsarha-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, arnaud.pouliquen-qxv4g6HH51o@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tiwai-l3A5Bk7waGM@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <570E03DC.6030707@st.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Arnaud Pouliquen <arnaud.pouliquen@st.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "airlied@linux.ie" <airlied@linux.ie>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
+Cc: "peter.ujfalusi@ti.com" <peter.ujfalusi@ti.com>, "tony@atomide.com" <tony@atomide.com>, "broonie@kernel.org" <broonie@kernel.org>, "liam.r.girdwood@linux.intel.com" <liam.r.girdwood@linux.intel.com>, "tomi.valkeinen@ti.com" <tomi.valkeinen@ti.com>, "rmk+kernel@arm.linux.org.uk" <rmk+kernel@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Jyri,
-
-On Thu, 2016-03-31 at 16:36 +0300, Jyri Sarha wrote:
-> The hdmi-codec is a platform device driver to be registered from
-> drivers of external HDMI encoders with I2S and/or spdif interface. The
-> driver in turn registers an ASoC codec for the HDMI encoder's audio
-> functionality.
-> 
-> The structures and definitions in the API header are mostly redundant
-> copies of similar structures in ASoC headers. This is on purpose to
-> avoid direct dependencies to ASoC structures in video side driver.
-> 
-> Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-
-I successfully tested new version on mt8173. 
-Acked-by: PC Liao <pc.liao-NuS5LvNUpcJWk0Htik3J/w@public.gmane.org>
-
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gMDQvMTMvMTYgMTE6MzEsIEFybmF1ZCBQb3VsaXF1ZW4gd3JvdGU6Cj4gCj4gCj4gT24gMDMv
+MzEvMjAxNiAwMzozNiBQTSwgSnlyaSBTYXJoYSB3cm90ZToKPj4gQWRkIGF1ZGlvIGFib3J0KCkg
+Y2FsbGJhY2ssIHRoYXQgaXMgcHJvdmlkZWQgYXQgYXVkaW8gc3RyZWFtIHN0YXJ0LAo+PiBmb3Ig
+dmlkZW8gc2lkZS4gVGhpcyBpcyBmb3IgdmlkZW8gc2lkZSB0byB1c2UgaW4gY2FzZSB0aGVyZSBp
+cyBhCj4+IHByZXNzaW5nIG5lZWQgdG8gdGVhciBkb3duIHRoZSBhdWRpbyBwbGF5YmFjayBmb3Ig
+c29tZSByZWFzb24uCj4+Cj4+IFNpZ25lZC1vZmYtYnk6IEp5cmkgU2FyaGEgPGpzYXJoYUB0aS5j
+b20+Cj4+IC0tLQo+PiAgaW5jbHVkZS9zb3VuZC9oZG1pLWNvZGVjLmggICAgfCAgOCArKysrKyst
+LQo+PiAgc291bmQvc29jL2NvZGVjcy9oZG1pLWNvZGVjLmMgfCAyMCArKysrKysrKysrKysrKysr
+KysrLQo+PiAgMiBmaWxlcyBjaGFuZ2VkLCAyNSBpbnNlcnRpb25zKCspLCAzIGRlbGV0aW9ucygt
+KQo+Pgo+PiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9zb3VuZC9oZG1pLWNvZGVjLmggYi9pbmNsdWRl
+L3NvdW5kL2hkbWktY29kZWMuaAo+PiBpbmRleCBmYzNhNDgxLi4xNWZlNzBmIDEwMDY0NAo+PiAt
+LS0gYS9pbmNsdWRlL3NvdW5kL2hkbWktY29kZWMuaAo+PiArKysgYi9pbmNsdWRlL3NvdW5kL2hk
+bWktY29kZWMuaAo+PiBAQCAtNTUsMTAgKzU1LDE0IEBAIHN0cnVjdCBoZG1pX2NvZGVjX3BhcmFt
+cyB7Cj4+ICAKPj4gIHN0cnVjdCBoZG1pX2NvZGVjX29wcyB7Cj4+ICAJLyoKPj4gLQkgKiBDYWxs
+ZWQgd2hlbiBBU29DIHN0YXJ0cyBhbiBhdWRpbyBzdHJlYW0gc2V0dXAuCj4+ICsJICogQ2FsbGVk
+IHdoZW4gQVNvQyBzdGFydHMgYW4gYXVkaW8gc3RyZWFtIHNldHVwLiBUaGUgY2FsbAo+PiArCSAq
+IHByb3ZpZGVzIGFuIGF1ZGlvIGFib3J0IGNhbGxiYWNrIGZvciBzdG9waW5nIGFuIG9uZ29pbmcK
+PiBzdG9wcGluZwo+PiArCSAqIHN0cmVhbSBmcm9tIHZpZGVvIHNpZGUgZHJpdmVyIGlmIHRoZSBI
+RE1JIGF1ZGlvIGJlY29tZXMKPj4gKwkgKiB1bmF2YWlsYWJsZS4KPj4gIAkgKiBPcHRpb25hbAo+
+PiAgCSAqLwo+PiAtCWludCAoKmF1ZGlvX3N0YXJ0dXApKHN0cnVjdCBkZXZpY2UgKmRldik7Cj4+
+ICsJaW50ICgqYXVkaW9fc3RhcnR1cCkoc3RydWN0IGRldmljZSAqZGV2LAo+PiArCQkJICAgICB2
+b2lkICgqYWJvcnRfY2IpKHN0cnVjdCBkZXZpY2UgKmRldikpOwo+PiAgCj4+ICAJLyoKPj4gIAkg
+KiBDb25maWd1cmVzIEhETUktZW5jb2RlciBmb3IgYXVkaW8gc3RyZWFtLgo+PiBkaWZmIC0tZ2l0
+IGEvc291bmQvc29jL2NvZGVjcy9oZG1pLWNvZGVjLmMgYi9zb3VuZC9zb2MvY29kZWNzL2hkbWkt
+Y29kZWMuYwo+PiBpbmRleCBiNDZiOGVkLi4zNTE1MWE0IDEwMDY0NAo+PiAtLS0gYS9zb3VuZC9z
+b2MvY29kZWNzL2hkbWktY29kZWMuYwo+PiArKysgYi9zb3VuZC9zb2MvY29kZWNzL2hkbWktY29k
+ZWMuYwo+PiBAQCAtNDcsNiArNDcsMjMgQEAgZW51bSB7Cj4+ICAJREFJX0lEX1NQRElGLAo+PiAg
+fTsKPj4gIAo+PiArc3RhdGljIHZvaWQgaGRtaV9jb2RlY19hYm9ydChzdHJ1Y3QgZGV2aWNlICpk
+ZXYpCj4+ICt7Cj4+ICsJc3RydWN0IGhkbWlfY29kZWNfcHJpdiAqaGNwID0gZGV2X2dldF9kcnZk
+YXRhKGRldik7Cj4+ICsKPj4gKwlkZXZfZGJnKGRldiwgIiVzKClcbiIsIF9fZnVuY19fKTsKPj4g
+Kwo+PiArCW11dGV4X2xvY2soJmhjcC0+Y3VycmVudF9zdHJlYW1fbG9jayk7Cj4+ICsJaWYgKGhj
+cC0+Y3VycmVudF9zdHJlYW0gJiYgaGNwLT5jdXJyZW50X3N0cmVhbS0+cnVudGltZSAmJgo+PiAr
+CSAgICBzbmRfcGNtX3J1bm5pbmcoaGNwLT5jdXJyZW50X3N0cmVhbSkpIHsKPj4gKwkJZGV2X2lu
+Zm8oZGV2LCAiSERNSSBhdWRpbyBwbGF5YmFjayBhYm9ydGVkXG4iKTsKPj4gKwkJc25kX3BjbV9z
+dHJlYW1fbG9ja19pcnEoaGNwLT5jdXJyZW50X3N0cmVhbSk7Cj4+ICsJCXNuZF9wY21fc3RvcCho
+Y3AtPmN1cnJlbnRfc3RyZWFtLCBTTkRSVl9QQ01fU1RBVEVfRElTQ09OTkVDVEVEKTsKPj4gKwkJ
+c25kX3BjbV9zdHJlYW1fdW5sb2NrX2lycShoY3AtPmN1cnJlbnRfc3RyZWFtKTsKPj4gKwl9Cj4+
+ICsJbXV0ZXhfdW5sb2NrKCZoY3AtPmN1cnJlbnRfc3RyZWFtX2xvY2spOwo+PiArfQo+PiArCj4g
+c3RpbGwgbm90IHVuZGVyc3RhbmQgdGhlIG5lZWQuLi4gaSBjYW4gbm90IGZpbmQgYSB1c2UgY2Fz
+ZSB0aGF0Cj4ganVzdGlmaWVzIGl0Lgo+IEFzIGV4YW1wbGUsIGluIGNhc2Ugb2YgSERNSSBwbHVn
+L3VucGx1ZyBpIHdvdWxkIG5vdCB3YW50IHRoYXQgYXVkaW8KPiBzdHJlYW0gaXMgc3RvcHBlZCAo
+bGl2ZSBwbGF5YmFjaykuIEZyb20gbXkgcG9pbnQgb2YgdmlldyB0aGlzIHNob3VsZCBiZQo+IGEg
+ZGVjaXNpb24gZnJvbSB1c2VyLgo+IEJ1dCBhcyBpdCBpcyBvcHRpb25hbCwgSSdtIG9rIGlmIG5l
+ZWQgaXMganVzdGlmaWVkLgo+IAoKV2VsbCwgSSB0aGluayB3ZSBjYW4gZHJvcCB0aGlzIGFzIHRo
+ZXJlIGlzIG5vIHVzZSBmb3IgaXQgQVRNLgoKSSBjb3BpZWQgdGhpcyBmZWF0dXJlIGZyb20gbXkg
+b21hcC1oZG1pLWF1ZGlvIGRyaXZlciwgd2hlcmUgdGhlIGRpc3BsYXkKbW9kdWxlIG9uIHRoZSBT
+b0MgaW1wbGVtZW50cyBBU29DIENQVS1EQUkgaXRzZWxmLiBJbiB0aGF0IHNldHVwIHRoZSBETUEK
+c2ltcGx5IHN0b3BzIGlmIHRoZSBkaXNwbGF5IGlzIHR1cm5lZCBvZmYsIHdoaWNoIGV2ZW50dWFs
+bHkgY2F1c2VzIHRoZQphdWRpbyBzdHJlYW0gdG8gdGltZSBvdXQuIEhvd2V2ZXIsIGl0IGlzIHVu
+bGlrZWx5IHRvIGhhdmUgYSBzaW1pbGFyCnNpdHVhdGlvbiBoZXJlLCBzaW5jZSB0aGUgcHVycG9z
+ZSBpcyB0byBpbXBsZW1lbnQgQVNvQyBjb2RlYyBEQUkgZm9yIGFuCmV4dGVybmFsIEhETUkgZW5j
+b2RlciBzaXR0aW5nIGJlaGluZCBpMnMgYW5kL29yIHNwZGlmIHdpcmVzIGFuZCB0aGUKQ1BVLURB
+SSBjYW4ga2VlcCBvbiBwbGF5aW5nIHRoZSBhdWRpbyBldmVuIGlmIHRoZSB3aG9sZSBlbmNvZGVy
+IHBvd2VyZWQKZG93bi4gVGhhdCBpcyBpZiB0aGUgSERNSSBlbmNvZGVyIGRvZXMgbm90IHByb3Zp
+ZGUgdGhlIGNsb2NrcyBmb3IgdGhlCkRBSSBsaW5rLiBBbnl3YXksIHdlIGNhbiBhZGQgdGhpcyBm
+ZWF0dXJlIGxhdGVyIGlmIHRoZXJlIGV2ZXIgaXMgYSBuZWVkCmZvciBpdC4KCj4+ICBzdGF0aWMg
+aW50IGhkbWlfY29kZWNfbmV3X3N0cmVhbShzdHJ1Y3Qgc25kX3BjbV9zdWJzdHJlYW0gKnN1YnN0
+cmVhbSwKPj4gIAkJCQkgc3RydWN0IHNuZF9zb2NfZGFpICpkYWkpCj4+ICB7Cj4+IEBAIC03OCw3
+ICs5NSw4IEBAIHN0YXRpYyBpbnQgaGRtaV9jb2RlY19zdGFydHVwKHN0cnVjdCBzbmRfcGNtX3N1
+YnN0cmVhbSAqc3Vic3RyZWFtLAo+PiAgCQlyZXR1cm4gcmV0Owo+PiAgCj4+ICAJaWYgKGhjcC0+
+aGNkLm9wcy0+YXVkaW9fc3RhcnR1cCkgewo+PiAtCQlyZXQgPSBoY3AtPmhjZC5vcHMtPmF1ZGlv
+X3N0YXJ0dXAoZGFpLT5kZXYtPnBhcmVudCk7Cj4+ICsJCXJldCA9IGhjcC0+aGNkLm9wcy0+YXVk
+aW9fc3RhcnR1cChkYWktPmRldi0+cGFyZW50LAo+PiArCQkJCQkJICBoZG1pX2NvZGVjX2Fib3J0
+KTsKPj4gIAkJaWYgKHJldCkgewo+PiAgCQkJbXV0ZXhfbG9jaygmaGNwLT5jdXJyZW50X3N0cmVh
+bV9sb2NrKTsKPj4gIAkJCWhjcC0+Y3VycmVudF9zdHJlYW0gPSBOVUxMOwo+PgoKX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcg
+bGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRl
+c2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
