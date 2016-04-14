@@ -1,82 +1,80 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH] tty: serial: 8250_omap: do not defer termios changes
-Date: Thu, 14 Apr 2016 09:03:49 -0700
-Message-ID: <570FBF65.4070306@hurleysoftware.com>
-References: <8737r7ght7.fsf@linutronix.de>
- <570339E8.6010808@hurleysoftware.com> <87y48kftip.fsf@linutronix.de>
- <570BE48F.60801@hurleysoftware.com> <570BED7B.9080803@linutronix.de>
- <570C04C1.40201@hurleysoftware.com> <570D2A46.2050106@linutronix.de>
- <570D41A8.3050706@hurleysoftware.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 0/3] ARM: OMAP3: Fix McBSP2/3 hwmod setup for sidetone
+Date: Thu, 14 Apr 2016 09:55:15 -0700
+Message-ID: <20160414165514.GL5995@atomide.com>
+References: <20160402001753.GR9329@atomide.com>
+ <57026205.6020105@ti.com>
+ <20160404151200.GA4652@atomide.com>
+ <5703BA6B.1080208@ti.com>
+ <20160411212845.GJ5995@atomide.com>
+ <570CC54E.6020703@ti.com>
+ <20160412163750.GR5995@atomide.com>
+ <570E3428.5020804@ti.com>
+ <20160413152829.GQ5995@atomide.com>
+ <570F4804.4050006@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <570D41A8.3050706@hurleysoftware.com>
+Content-Disposition: inline
+In-Reply-To: <570F4804.4050006@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, John Ogness <john.ogness@linutronix.de>, nsekhar@ti.com
-Cc: Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, jarkko.nikula@bitmer.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 04/12/2016 11:42 AM, Peter Hurley wrote:
-> On 04/12/2016 10:03 AM, Sebastian Andrzej Siewior wrote:
->> On 04/11/2016 10:10 PM, Peter Hurley wrote:
->>> On 04/11/2016 11:31 AM, Sebastian Andrzej Siewior wrote:
->>>> On 04/11/2016 07:53 PM, Peter Hurley wrote:
->>>>> On 04/11/2016 01:18 AM, John Ogness wrote:
->>>>>> On 2016-04-05, Peter Hurley <peter@hurleysoftware.com> wrote:
->>>>>>> On 03/31/2016 01:41 AM, John Ogness wrote:
->>>>>>>> It has been observed that the TX-DMA can stall
->>>>>>>
->>>>>>> Does this happen on any other OMAP part besides am335x?
->>>>>>> I looked back over the LKML history of this and didn't see
->>>>>>> any other design implicated in this problem.
->>>>>>
->>>>>> I just ran the tests again using 4.6-rc2. I am able to reproduce the
->>>>>> dma-tx stall with am335x/edma and dra7/sdma.
-
-What "test" is reproducing this problem?
-
-
->>>>> I thought we already established sdma was not to be used since
->>>>> the hardware does not actually support pausing without data loss.
->>>>
->>>> This workaround was not invented for sdma but for edma (with am335x).
->>>
->>> According to John above, dra7/sdma requires this workaround.
->>
->> It was reported by Frans Klaver against am335x
->>  http://lkml.kernel.org/r/20140908183353.GB4686@ci00147.xsens-tech.local
->>
->> and I managed to reproduce this with his yocto image on dra7 and am335x:
->>  http://lkml.kernel.org/r/20140921204100.GA10111@linutronix.de
-
-I overlooked Sebastian's statement from that message:
-
-This includes
-changing the baudrate (not by yocto but the driver sets it to 0 and then
-to the requested one) and this seems to be responsible for the "bad
-bytes".
-
-What is changing the baud rate to 0? How about get a stack trace for that?
-
-
-
-> [...]
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [160414 00:35]:
+> On 04/13/16 18:28, Tony Lindgren wrote:
+> > 
+> > You could just create the sidetone child device manually on probe in the
+> > driver as needed. That way you'd have two devices to do the PM runtime
+> > on. I think that was Paul's main concern as they are separate modules.
 > 
->>> - hangs changing some unknown register if tx dma in progress
->>>   (ie., this termios change workaround)
->>
->> I think some registers are the baud-rate registers which pause engine.
+> You mean that not to have separate compatible for the McBSP module's Sidetone
+> core?
+> If yes, then it is a valid thing to remove the hwmod data for the sidetone,
+> like I did in this series.
+
+No, I meant keep the sidetone hwmod, it really is there in the hardware.
+
+I meant only probe the sidetone in the McBSP probe so you have two
+struct dev and two hwmod entries in the McBSP driver. I don't know if
+this actually makes things easier or not though.
+
+> > It still leaves the chance of bugs with flush of posted writes. But might
+> > make things easier to deal with in small steps?
 > 
-> Let's back up here and focus on just this problem for now.
+> The only 'benefit' I see with separated driver for McBSP core and Sidetone
+> core is that the register writes will happen to the cores in separate drivers.
 > 
-> Since this is observable on dra7/sdma, then it's not related to
-> the OMAP_DMA_TX_KICK problem. IOW, dropping tx dma support for am335x
-> does not make this go away, which is what I was asking.
+> If the McBSP driver creates the device for the sidetone driver, then passing
+> the needed callbacks and data to it is going to be cleaner. Registering back
+> the callbacks to McBSP is what need to be figured out, so it is simple and
+> clean. Either with a callback to McBSP to set the ST callbacks or have the
+> callback struct used by ST via pdata to have places for the ST to McBSP
+> callbacks and when the driver loads it is going to set up those.
+
+OK yeah makes sense to me.
+
+> If I remove the prcm section for the ST hwmod:
+> [   87.784820] omap_hwmod: mcbsp2_sidetone: _wait_target_ready failed: -22
+> [   87.784851] omap-mcbsp 49022000.mcbsp: use pm_runtime_put_sync_suspend() in
+> driver?
 > 
-> Now, if the DLL/DLH/MDR1 register writes are causing dma to stall,
-> then skipping those if they're unchanged should fix this, and then
-> pause/terminating in-progress DMA if any of these registers are being
-> written would be acceptable since some data loss is to be expected
-> when changing the baud rate without waiting.
-> 
+> When first try to use the audio.
+> So the hwmod code at least was checking the idlest bit.
+
+Yes the module is really there for sidetone, and it really has hardware
+registers :)
+
+> OK. I will go with the assumption that the sidetone hwmod can be removed (as
+> it is not correct) and rework my current series to use pdata callback for the
+> iclk autogate allow/deny. With this set the ST will be operational in legacy
+> and DT boot.
+
+Sorry, no I did not want to drop the sidetone hwmod, I was just trying to
+come up with ideas on how to make the driver changes easier. It sounds like
+you already figured out the driver changes part though with two drivers.
+
+Regards,
+
+Tony
