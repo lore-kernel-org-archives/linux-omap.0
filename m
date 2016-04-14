@@ -1,47 +1,37 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/2] ARM: dts: Add support for dra72-evm rev C (ES2.0)
-Date: Wed, 13 Apr 2016 16:54:14 -0500
-Message-ID: <570EC006.7050900@ti.com>
-References: <1458859969-14298-1-git-send-email-nm@ti.com>
- <1458859969-14298-2-git-send-email-nm@ti.com>
- <20160412211322.GE5995@atomide.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH v2] clk: let clk_disable() return immediately if clk is
+ NULL or error
+Date: Wed, 13 Apr 2016 17:40:50 -0700
+Message-ID: <20160414004050.GJ14441@codeaurora.org>
+References: <1459821083-28116-1-git-send-email-yamada.masahiro@socionext.com>
+ <20160408003328.GA14441@codeaurora.org>
+ <20160408100600.GI1668@linux-mips.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160412211322.GE5995-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160408100600.GI1668@linux-mips.org>
+Sender: linux-clk-owner@vger.kernel.org
+To: Ralf Baechle <ralf@linux-mips.org>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>, linux-clk@vger.kernel.org, Michael Turquette <mturquette@baylibre.com>, linux-mips@linux-mips.org, linux-sh@vger.kernel.org, Haojian Zhuang <haojian.zhuang@gmail.com>, Eric Miao <eric.y.miao@gmail.com>, Hartley Sweeten <hsweeten@visionengravers.com>, Greg Ungerer <gerg@uclinux.org>, Ryan Mallon <rmallon@gmail.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Steven Miao <realmz6@gmail.com>, Simon Horman <horms@verge.net.au>, Wan ZongShun <mcuos.com@gmail.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, adi-buildroot-devel@lists.sourceforge.net, Russell King <linux@arm.linux.org.uk>, linux-m68k@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, John Crispin <blogic@openwrt.org>H
 List-Id: linux-omap@vger.kernel.org
 
-On 04/12/2016 04:13 PM, Tony Lindgren wrote:
-> * Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [160324 15:53]:
->> DRA72-EVM now has an upgrade to Rev C with ES2.0 silicon. As part of
->> this change, a few updates were factored in that were software
->> incompatible with previous board in few areas:
->> - We now use DP83867 ethernet phy instead of older DP838865 which fails
->>   in certain usecases.
->> - Two ethernet ports now instead of the single one in rev B.
->> - polarities changed for certain pcf gpios
->> - Due to SoC phy current requirements, VDDA supplies are split between
->>  ldo5 and ldo2 (ldo2 was previously unused). NOTE: DSS (VDDA_VIDEO) is
->>  still supplied by ldo5.
->>
->> NOTE: It does not make much sense to spin off a new board compatible
->> flag since there is no real benefit for the same.
+On 04/08, Ralf Baechle wrote:
 > 
-> I guess that can always be added later on if needed.
+> While your argument makes perfect sense, Many clk_disable implementations
+> are already doing similar checks, for example:
 > 
-> Can you please repost this against current omap-for-v4.7/dt as it
-> no longer applies?
+> arch/arm/mach-davinci/clock.c:
+> 
+[...]
+> 
+> So should we go and weed out these checks?
 
-Will do. thanks.
+Yes, it would be nice to at least make the differing
+implementations of the clk API consistent. Of course, we should
+really put our efforts towards getting rid of the non-CCF
+implementations instead so that there's less confusion overall.
+
 -- 
-Regards,
-Nishanth Menon
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
