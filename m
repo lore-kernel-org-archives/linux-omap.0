@@ -1,99 +1,259 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH 1/2] ARM: dts: dra7x: Remove QSPI pinmux
-Date: Thu, 14 Apr 2016 15:48:20 +0530
-Message-ID: <1460629101-24309-2-git-send-email-vigneshr@ti.com>
-References: <1460629101-24309-1-git-send-email-vigneshr@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
+Date: Thu, 14 Apr 2016 13:59:51 +0300
+Message-ID: <570F7827.8050707@ti.com>
+References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
+ <1459865117-7032-8-git-send-email-rogerq@ti.com>
+ <SG2PR06MB091922CDE73AE061A79E90E4D8900@SG2PR06MB0919.apcprd06.prod.outlook.com>
+ <57064850.3060405@ti.com>
+ <SG2PR06MB09197595F9D810CF8A22D860D8910@SG2PR06MB0919.apcprd06.prod.outlook.com>
+ <570B8268.6090700@ti.com>
+ <SG2PR06MB0919398D3CF4944A6EA2754DD8970@SG2PR06MB0919.apcprd06.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1460629101-24309-1-git-send-email-vigneshr@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, Vignesh R <vigneshr@ti.com>, nsekhar@ti.com, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <SG2PR06MB0919398D3CF4944A6EA2754DD8970@SG2PR06MB0919.apcprd06.prod.outlook.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "balbi@kernel.org" <balbi@kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "peter.chen@freescale.com" <peter.chen@freescale.com>
+Cc: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "jun.li@freescale.com" <jun.li@freescale.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Joao.Pinto@synopsys.com" <Joao.Pinto@synopsys.com>, "abrestic@chromium.org" <abrestic@chromium.org>, "r.baldyga@samsung.com" <r.baldyga@samsung.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-RFJBNyBmYW1pbHkgb2YgcHJvY2Vzc29ycyBmcm9tIFRleGFzIEluc3RydW1lbnRzLCBoYXZlIGEg
-aGFyZHdhcmUgbW9kdWxlCmNhbGxlZCBJT0RFTEFZQ09ORklHIE1vZHVsZSB3aGljaCBpcyBleHBl
-Y3RlZCB0byBiZSBjb25maWd1cmVkLiBUaGlzCmJsb2NrIGFsbG93cyB2ZXJ5IHNwZWNpZmljIGN1
-c3RvbSBmaW5lIHR1bmluZyBmb3IgZWxlY3RyaWNhbApjaGFyYWN0ZXJpc3RpY3Mgb2YgSU8gcGlu
-cyB0aGF0IGFyZSBuZWNlc3NhcnkgZm9yIGZ1bmN0aW9uYWxpdHkgYW5kCmRldmljZSBsaWZldGlt
-ZSByZXF1aXJlbWVudHMuIElPRGVsYXkgbW9kdWxlIGhhcyBpdCdzIG93biByZWdpc3RlciBzcGFj
-ZQp3aXRoIHJlZ2lzdGVycyB0byBjb25maWd1cmUgdmFyaW91cyBwaW5zLgoKQWNjb3JkaW5nIHRv
-IEFNNTcyeCBUUk0gU1BSVUhaNkUgT2N0b2JlciAyMDE04oCTUmV2aXNlZCBKYW51YXJ5IDIwMTZb
-MV0Kc2VjdGlvbiAxOC40LjYuMSBQYWQgQ29uZmlndXJhdGlvbiwgaW4gYWRkaXRpb24gdG8gcGlu
-bXV4aW5nKE1VWE1PREUpLAp3aGVuIG9wZXJhdGluZyBhIHBhZCBpbiBjZXJ0YWluIG1vZGUsIFZp
-cnR1YWwvTWFudWFsIElPIFRpbWluZyBNb2RlIG11c3QKYWxzbyBiZSBjb25maWd1cmVkIHRvIGVu
-c3VyZSB0aGF0IElPIHRpbWluZ3MgYXJlIG1ldCAoREVMQVlNT0RFIGFuZApNT0RFU0VMRUNUIGZp
-ZWxkcyBvZiBwYWQncyBJT0RFTEFZQ09ORklHIG1vZHVsZSByZWdpc3RlcikuIEFjY29yZGluZyB0
-bwpzZWN0aW9uIDE4LjQuNi4xLjcgSXNvbGF0aW9uIFJlcXVpcmVtZW50cyBvZiBhYm92ZSBUUk0s
-IHdoZW4KcmVwcm9ncmFtbWluZyBNVVhNT0RFLCBERUxBWU1PREUsIGFuZCBNT0RFU0VMRUNUIGZp
-ZWxkcywgdGhlcmUgaXMgYQpwb3RlbnRpYWwgZm9yIGEgc2lnbmlmaWNhbnQgZ2xpdGNoIG9uIHRo
-ZSBjb3JyZXNwb25kaW5nIElPLiBJdCBpcyBoZW5jZQpyZWNvbW1lbmRlZCB0byBkbyB0aGlzIHdp
-dGggSS9PIGlzb2xhdGlvbiAod2hpY2ggY2FuIG9ubHkgYmUgZG9uZSBpbgppbml0aWFsIHN0YWdl
-cyBvZiBib290bG9hZGVyKS4gUVNQSSBpcyBvbmUgc3VjaCBtb2R1bGUgdGhhdCByZXF1aXJlcwpJ
-T0RFTEFZIGNvbmZpZ3VyYXRpb24uIFNvLCB0aGlzIHBhdGNoIHJlbW92ZXMgdGhlIHBpbm11eCBm
-b3IKUVNQSSBmb3IgRFJBNzQvRFJBNzIgRVZNIGFzIGl0IG5lZWRzIHRvIGJlIGRvbmUgaW4gYm9v
-dGxvYWRlciAoVS1Cb290KQphbmQgY2Fubm90IGJlIGRvbmUgaW4ga2VybmVsLgoKVXNlcnMgc2hv
-dWxkIG1pZ3JhdGUgdG8gVS1Cb290IHYyMDE2LjA1LXJjMSBvciBoaWdoZXIuCgpbMV0gaHR0cDov
-L3d3dy50aS5jb20vbGl0L3VnL3NwcnVoejZlL3NwcnVoejZlLnBkZgoKU2lnbmVkLW9mZi1ieTog
-VmlnbmVzaCBSIDx2aWduZXNockB0aS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvZHJhNy1l
-dm0uZHRzICB8IDE3IC0tLS0tLS0tLS0tLS0tLS0tCiBhcmNoL2FybS9ib290L2R0cy9kcmE3Mi1l
-dm0uZHRzIHwgMTQgLS0tLS0tLS0tLS0tLS0KIDIgZmlsZXMgY2hhbmdlZCwgMzEgZGVsZXRpb25z
-KC0pCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvZHJhNy1ldm0uZHRzIGIvYXJjaC9h
-cm0vYm9vdC9kdHMvZHJhNy1ldm0uZHRzCmluZGV4IGQyNzJjZjE0MDE5Ny4uNDdkMDc0NWEwOGFk
-IDEwMDY0NAotLS0gYS9hcmNoL2FybS9ib290L2R0cy9kcmE3LWV2bS5kdHMKKysrIGIvYXJjaC9h
-cm0vYm9vdC9kdHMvZHJhNy1ldm0uZHRzCkBAIC0yMjYsMjEgKzIyNiw2IEBACiAJCT47CiAJfTsK
-IAotCXFzcGkxX3BpbnM6IHBpbm11eF9xc3BpMV9waW5zIHsKLQkJcGluY3RybC1zaW5nbGUscGlu
-cyA9IDwKLQkJCURSQTdYWF9DT1JFX0lPUEFEKDB4MzQ0YywgUElOX0lOUFVUIHwgTVVYX01PREUx
-KSAgLyogZ3BtY19hMy5xc3BpMV9jczIgKi8KLQkJCURSQTdYWF9DT1JFX0lPUEFEKDB4MzQ1MCwg
-UElOX0lOUFVUIHwgTVVYX01PREUxKSAgLyogZ3BtY19hNC5xc3BpMV9jczMgKi8KLQkJCURSQTdY
-WF9DT1JFX0lPUEFEKDB4MzQ3NCwgUElOX0lOUFVUIHwgTVVYX01PREUxKSAgLyogZ3BtY19hMTMu
-cXNwaTFfcnRjbGsgKi8KLQkJCURSQTdYWF9DT1JFX0lPUEFEKDB4MzQ3OCwgUElOX0lOUFVUIHwg
-TVVYX01PREUxKSAgLyogZ3BtY19hMTQucXNwaTFfZDMgKi8KLQkJCURSQTdYWF9DT1JFX0lPUEFE
-KDB4MzQ3YywgUElOX0lOUFVUIHwgTVVYX01PREUxKSAgLyogZ3BtY19hMTUucXNwaTFfZDIgKi8K
-LQkJCURSQTdYWF9DT1JFX0lPUEFEKDB4MzQ4MCwgUElOX0lOUFVUIHwgTVVYX01PREUxKSAvKiBn
-cG1jX2ExNi5xc3BpMV9kMSAqLwotCQkJRFJBN1hYX0NPUkVfSU9QQUQoMHgzNDg0LCBQSU5fSU5Q
-VVQgfCBNVVhfTU9ERTEpICAvKiBncG1jX2ExNy5xc3BpMV9kMCAqLwotCQkJRFJBN1hYX0NPUkVf
-SU9QQUQoMHgzNDg4LCBQSU5fSU5QVVQgfCBNVVhfTU9ERTEpICAvKiBxcG1jX2ExOC5xc3BpMV9z
-Y2xrICovCi0JCQlEUkE3WFhfQ09SRV9JT1BBRCgweDM0YjgsIFBJTl9JTlBVVF9QVUxMVVAgfCBN
-VVhfTU9ERTEpICAvKiBncG1jX2NzMi5xc3BpMV9jczAgKi8KLQkJCURSQTdYWF9DT1JFX0lPUEFE
-KDB4MzRiYywgUElOX0lOUFVUX1BVTExVUCB8IE1VWF9NT0RFMSkgIC8qIGdwbWNfY3MzLnFzcGkx
-X2NzMSAqLwotCQk+OwotCX07Ci0KIAl1c2IxX3BpbnM6IHBpbm11eF91c2IxX3BpbnMgewogICAg
-ICAgICAgICAgICAgIHBpbmN0cmwtc2luZ2xlLHBpbnMgPSA8CiAJCQlEUkE3WFhfQ09SRV9JT1BB
-RCgweDM2ODAsIFBJTl9JTlBVVF9TTEVXIHwgTVVYX01PREUwKSAvKiB1c2IxX2RydnZidXMgKi8K
-QEAgLTY3OCw4ICs2NjMsNiBAQAogCiAmcXNwaSB7CiAJc3RhdHVzID0gIm9rYXkiOwotCXBpbmN0
-cmwtbmFtZXMgPSAiZGVmYXVsdCI7Ci0JcGluY3RybC0wID0gPCZxc3BpMV9waW5zPjsKIAogCXNw
-aS1tYXgtZnJlcXVlbmN5ID0gPDQ4MDAwMDAwPjsKIAltMjVwODBAMCB7CmRpZmYgLS1naXQgYS9h
-cmNoL2FybS9ib290L2R0cy9kcmE3Mi1ldm0uZHRzIGIvYXJjaC9hcm0vYm9vdC9kdHMvZHJhNzIt
-ZXZtLmR0cwppbmRleCAzZTYzZjY2MGNkN2MuLjQ3OWI3NGUxNjQxZSAxMDA2NDQKLS0tIGEvYXJj
-aC9hcm0vYm9vdC9kdHMvZHJhNzItZXZtLmR0cworKysgYi9hcmNoL2FybS9ib290L2R0cy9kcmE3
-Mi1ldm0uZHRzCkBAIC0yNDcsMTggKzI0Nyw2IEBACiAJCT47CiAJfTsKIAotCXFzcGkxX3BpbnM6
-IHBpbm11eF9xc3BpMV9waW5zIHsKLQkJcGluY3RybC1zaW5nbGUscGlucyA9IDwKLQkJCURSQTdY
-WF9DT1JFX0lPUEFEKDB4MzQ3NCwgUElOX09VVFBVVCB8IE1VWF9NT0RFMSkJLyogZ3BtY19hMTMu
-cXNwaTFfcnRjbGsgKi8KLQkJCURSQTdYWF9DT1JFX0lPUEFEKDB4MzQ3OCwgUElOX0lOUFVUIHwg
-TVVYX01PREUxKQkvKiBncG1jX2ExNC5xc3BpMV9kMyAqLwotCQkJRFJBN1hYX0NPUkVfSU9QQUQo
-MHgzNDdjLCBQSU5fSU5QVVQgfCBNVVhfTU9ERTEpCS8qIGdwbWNfYTE1LnFzcGkxX2QyICovCi0J
-CQlEUkE3WFhfQ09SRV9JT1BBRCgweDM0ODAsIFBJTl9JTlBVVCB8IE1VWF9NT0RFMSkJLyogZ3Bt
-Y19hMTYucXNwaTFfZDEgKi8KLQkJCURSQTdYWF9DT1JFX0lPUEFEKDB4MzQ4NCwgUElOX0lOUFVU
-IHwgTVVYX01PREUxKQkvKiBncG1jX2ExNy5xc3BpMV9kMCAqLwotCQkJRFJBN1hYX0NPUkVfSU9Q
-QUQoMHgzNDg4LCBQSU5fT1VUUFVUIHwgTVVYX01PREUxKQkvKiBxcG1jX2ExOC5xc3BpMV9zY2xr
-ICovCi0JCQlEUkE3WFhfQ09SRV9JT1BBRCgweDM0YjgsIFBJTl9PVVRQVVQgfCBNVVhfTU9ERTEp
-CS8qIGdwbWNfY3MyLnFzcGkxX2NzMCAqLwotCQk+OwotCX07Ci0KIAloZG1pX3BpbnM6IHBpbm11
-eF9oZG1pX3BpbnMgewogCQlwaW5jdHJsLXNpbmdsZSxwaW5zID0gPAogCQkJRFJBN1hYX0NPUkVf
-SU9QQUQoMHgzODA4LCBQSU5fSU5QVVQgfCBNVVhfTU9ERTEpIC8qIGkyYzJfc2RhLmhkbWkxX2Rk
-Y19zY2wgKi8KQEAgLTcxNSw4ICs3MDMsNiBAQAogCiAmcXNwaSB7CiAJc3RhdHVzID0gIm9rYXki
-OwotCXBpbmN0cmwtbmFtZXMgPSAiZGVmYXVsdCI7Ci0JcGluY3RybC0wID0gPCZxc3BpMV9waW5z
-PjsKIAogCXNwaS1tYXgtZnJlcXVlbmN5ID0gPDQ4MDAwMDAwPjsKIAltMjVwODBAMCB7Ci0tIAoy
-LjguMQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxp
-bnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFk
-ZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
-LWFybS1rZXJuZWwK
+On 14/04/16 11:36, Yoshihiro Shimoda wrote:
+> Hi,
+> 
+>> From: Roger Quadros
+>> Sent: Monday, April 11, 2016 7:55 PM
+>>
+>> On 08/04/16 14:22, Yoshihiro Shimoda wrote:
+>>> Hi,
+>>>
+>>>> From: Roger Quadros
+>>>> Sent: Thursday, April 07, 2016 8:45 PM
+>>>>
+>>>> Hi,
+>>>>
+>>>> On 07/04/16 11:52, Yoshihiro Shimoda wrote:
+>>>>> Hi,
+>>>>>
+>>>>>> From: Roger Quadros
+>>>>>> Sent: Tuesday, April 05, 2016 11:05 PM
+>>> < snip >
+>>>>> diff --git a/drivers/usb/common/usb-otg.c b/drivers/usb/common/usb-otg.c
+>>>>> index 41e762a..4d7f043 100644
+>>>>> --- a/drivers/usb/common/usb-otg.c
+>>>>> +++ b/drivers/usb/common/usb-otg.c
+>>>>> @@ -825,11 +825,16 @@ int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
+>>>>>  	if (otg->primary_hcd.hcd) {
+>>>>>  		/* probably a shared HCD ? */
+>>>>>  		if (usb_otg_hcd_is_primary_hcd(hcd)) {
+>>>>> +			if (hcd->driver->flags & HCD_USB11) {
+>>>>> +				dev_info(otg_dev, "this assumes usb 1.1 hc is as shared_hcd\n");
+>>>>> +				goto check_shared_hcd;
+>>>>> +			}
+>>>>>  			dev_err(otg_dev, "otg: primary host already registered\n");
+>>>>>  			goto err;
+>>>>>  		}
+>>>>>
+>>>>>  		if (hcd->shared_hcd == otg->primary_hcd.hcd) {
+>>>>> +check_shared_hcd:
+>>>>>  			if (otg->shared_hcd.hcd) {
+>>>>>  				dev_err(otg_dev, "otg: shared host already registered\n");
+>>>>>  				goto err;
+>>>>>
+>>>>> What do you think this local hack?
+>>>>
+>>>> Is it guaranteed that EHCI hcd registers before OHCI hcd?
+>>>
+>>> Thank you for the comment. No, it is not guaranteed.
+>>>
+>>>> If not we need to improve the code still.
+>>>> We will also need to remove the constraint that primary_hcd must be registered
+>>>> first in usb_otg_register_hcd(). I think that constraint is no longer
+>>>> needed anyways.
+>>>
+>>> I got it.
+>>> So, I made a patch to avoid the constraint using an additional property "otg-hcds".
+>>> The patch is in this end of email. What do you think about the patch?
+>>
+>> This might only solve the issue for device tree but what about non-device tree?
+>> We need to deal with both cases.
+> 
+> Thank you for the comment. I got it.
+> 
+>>>> If EHCI & OHCI HCDs register before OTG driver then things will break unless
+>>>> we fix usb_otg_hcd_wait_add(). We need to add this HCD_USB11 check there to
+>>>> populate wait->shared_hcd.
+>>>
+>>> I see. In my environment, since EHCI & OHCI HCDs need phy driver and phy driver
+>>> will calls usb_otg_register(), the order is right. In other words,
+>>> EHCI & OHCI HCDs never register before OTG driver because even if EHCI driver
+>>> is probed first, the driver will be deferred (EHCI driver needs the phy driver).
+>>
+>> But still we cannot assume this is true for all platforms. OTG driver can also
+>> be a separate entity than PHY driver.
+> 
+> I understood it.
+> 
+>>>>> I also wonder if array of hcd may be good for both xHCI and EHCI/OHCI.
+>>>>> For example of xHCI:
+>>>>>  - otg->hcds[0] = primary_hcd
+>>>>>  - otg->hcds[1] = shared_hcd
+>>>>>
+>>>>> For example of EHCI/OHCI:
+>>>>>  - otg->hcds[0] = primary_hcd of EHCI
+>>>>>  - otg->hcds[1] = primary_hcd of OHCI
+>>>>
+>>>> The bigger problem is that how do we know in the OHCI/EHCI case that we need to wait
+>>>> for both of them before starting the OTG FSM?
+>>>> Some systems might use just OHCI or just EHCI.
+>>>>
+>>>> There is no guarantee that OTG driver registers before the HCDs so this piece
+>>>> of information must come from the HCD itself. i.e. whether it needs a companion or not.
+>>>
+>>> I understood these problems. I wonder if my patch can resolve these problems.
+>>>
+>>> Best regards,
+>>> Yoshihiro Shimoda
+>>> ---
+>>> diff --git a/Documentation/devicetree/bindings/usb/generic.txt b/Documentation/devicetree/bindings/usb/generic.txt
+>>> index f6866c1..518b9eb 100644
+>>> --- a/Documentation/devicetree/bindings/usb/generic.txt
+>>> +++ b/Documentation/devicetree/bindings/usb/generic.txt
+>>> @@ -27,6 +27,12 @@ Optional properties:
+>>>   - otg-controller: phandle to otg controller. Host or gadget controllers can
+>>>  			contain this property to link it to a particular OTG
+>>>  			controller.
+>>> + - otg-hcds: phandle to host controller(s). An OTG controller can contain this
+>>> +	     property. The first one is as "primary", and (optional) the second
+>>> +	     one is as "shared".
+>>> +	     - For example for xHCI:		otg-hcds = <&xhci>, <&xhci>;
+>>> +	     - For example for EHCI/OHCI:	otg-hcds = <&ehci>, <&ohci>;
+>>> +	     - For example for just EHCI:	otg-hcds = <&ehci>;
+>>>
+>>
+>> This is kind of duplicating the information. We are already specifying in the
+>> hcd nodes as to which otg controller it is linked to.
+>>
+>> Instead, how about just adding a boolean property in the otg node saying that
+>> HCD needs companion. e.g.
+>> 	hcd-needs-compainion: must be present if otg controller is dealing with
+>> 			EHCI host controller that needs a companion OHCI host controller.
+>>
+>> This can also be added in struct usb_otg_config so that it can deal with non-DT cases.
+>>
+>> So if this property is true, the OTG core will wait for 2 primary HCDs to be registered.
+> 
+> Thank you for your suggestion. I agree with you.
+> So, I made such a patch which. It is simple than my previous patch.
+> What do you think?
+> 
+> Best regards,
+> Yoshihiro Shimoda
+> 
+> ---
+>  Documentation/devicetree/bindings/usb/generic.txt |  3 +++
+>  drivers/usb/common/common.c                       |  2 ++
+>  drivers/usb/common/usb-otg.c                      | 11 +++++++----
+>  include/linux/usb/otg.h                           |  2 ++
+>  4 files changed, 14 insertions(+), 4 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/usb/generic.txt b/Documentation/devicetree/bindings/usb/generic.txt
+> index f6866c1..1db1c33 100644
+> --- a/Documentation/devicetree/bindings/usb/generic.txt
+> +++ b/Documentation/devicetree/bindings/usb/generic.txt
+> @@ -27,6 +27,9 @@ Optional properties:
+>   - otg-controller: phandle to otg controller. Host or gadget controllers can
+>  			contain this property to link it to a particular OTG
+>  			controller.
+> + - hcd-needs-companion: must be present if otg controller is dealing with
+> +			EHCI host controller that needs a companion OHCI host
+> +			controller.
+>  
+>  This is an attribute to a USB controller such as:
+>  
+> diff --git a/drivers/usb/common/common.c b/drivers/usb/common/common.c
+> index e3d0161..8b74715 100644
+> --- a/drivers/usb/common/common.c
+> +++ b/drivers/usb/common/common.c
+> @@ -233,6 +233,8 @@ int of_usb_update_otg_caps(struct device_node *np,
+>  	if (of_find_property(np, "adp-disable", NULL) ||
+>  				(otg_caps->otg_rev < 0x0200))
+>  		otg_caps->adp_support = false;
+> +	if (of_find_property(np, "hcd-needs-companion", NULL))
+> +		otg_caps->needs_companion = true;
+
+I'm not sure if otg_caps structure is a right place for this. Maybe Peter can confirm
+if this is OK or not.
+
+I was thinking more about adding this bit in the otg_config structure.
+
+>  
+>  	return 0;
+>  }
+> diff --git a/drivers/usb/common/usb-otg.c b/drivers/usb/common/usb-otg.c
+> index 41e762a..e0df839 100644
+> --- a/drivers/usb/common/usb-otg.c
+> +++ b/drivers/usb/common/usb-otg.c
+> @@ -823,13 +823,15 @@ int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
+>  	/* HCD will be started by OTG fsm when needed */
+>  	mutex_lock(&otg->fsm.lock);
+>  	if (otg->primary_hcd.hcd) {
+> -		/* probably a shared HCD ? */
+> -		if (usb_otg_hcd_is_primary_hcd(hcd)) {
+> +		/* probably a shared HCD or a companion OHCI HCD ? */
+> +		if (!otg->caps->needs_companion &&
+> +		    usb_otg_hcd_is_primary_hcd(hcd)) {
+>  			dev_err(otg_dev, "otg: primary host already registered\n");
+>  			goto err;
+>  		}
+>  
+> -		if (hcd->shared_hcd == otg->primary_hcd.hcd) {
+> +		if (otg->caps->needs_companion ||
+> +		    (hcd->shared_hcd == otg->primary_hcd.hcd)) {
+>  			if (otg->shared_hcd.hcd) {
+>  				dev_err(otg_dev, "otg: shared host already registered\n");
+>  				goto err;
+> @@ -865,7 +867,8 @@ int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
+>  	 * we're ready only if we have shared HCD
+>  	 * or we don't need shared HCD.
+>  	 */
+> -	if (otg->shared_hcd.hcd || !otg->primary_hcd.hcd->shared_hcd) {
+> +	if (otg->shared_hcd.hcd || (!otg->caps->needs_companion &&
+> +				    !otg->primary_hcd.hcd->shared_hcd)) {
+>  		otg->host = hcd_to_bus(hcd);
+>  		/* FIXME: set bus->otg_port if this is true OTG port with HNP */
+>  
+
+These changes look good to me. Thanks.
+
+> diff --git a/include/linux/usb/otg.h b/include/linux/usb/otg.h
+> index b094352..64a7db8 100644
+> --- a/include/linux/usb/otg.h
+> +++ b/include/linux/usb/otg.h
+> @@ -112,12 +112,14 @@ struct usb_otg {
+>   * @hnp_support: Indicates if the device supports HNP.
+>   * @srp_support: Indicates if the device supports SRP.
+>   * @adp_support: Indicates if the device supports ADP.
+> + * @needs_companion: Indicates if the device needs a companion controller.
+
+Description is not exact. How about this.
+"Indicates if host controller needs a companion controller"
+
+Is hcd_needs_companion is better than just needs_companion?
+
+
+>   */
+>  struct usb_otg_caps {
+>  	u16 otg_rev;
+>  	bool hnp_support;
+>  	bool srp_support;
+>  	bool adp_support;
+> +	bool needs_companion;
+>  };
+>  
+>  /**
+> 
+
+cheers,
+-roger
