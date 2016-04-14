@@ -1,37 +1,55 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH v2] clk: let clk_disable() return immediately if clk is
- NULL or error
-Date: Wed, 13 Apr 2016 17:40:50 -0700
-Message-ID: <20160414004050.GJ14441@codeaurora.org>
-References: <1459821083-28116-1-git-send-email-yamada.masahiro@socionext.com>
- <20160408003328.GA14441@codeaurora.org>
- <20160408100600.GI1668@linux-mips.org>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: omap uart + dma issues (Re: [PATCH] tty: serial: 8250_omap: do
+ not defer termios changes)
+Date: Wed, 13 Apr 2016 18:14:24 -0700
+Message-ID: <570EEEF0.2070102@hurleysoftware.com>
+References: <8737r7ght7.fsf@linutronix.de>
+ <570339E8.6010808@hurleysoftware.com> <87y48kftip.fsf@linutronix.de>
+ <570BE48F.60801@hurleysoftware.com> <570BED7B.9080803@linutronix.de>
+ <570C04C1.40201@hurleysoftware.com> <570D2A46.2050106@linutronix.de>
+ <570D8C16.1010702@hurleysoftware.com> <570E295B.2030708@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160408100600.GI1668@linux-mips.org>
-Sender: linux-clk-owner@vger.kernel.org
-To: Ralf Baechle <ralf@linux-mips.org>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>, linux-clk@vger.kernel.org, Michael Turquette <mturquette@baylibre.com>, linux-mips@linux-mips.org, linux-sh@vger.kernel.org, Haojian Zhuang <haojian.zhuang@gmail.com>, Eric Miao <eric.y.miao@gmail.com>, Hartley Sweeten <hsweeten@visionengravers.com>, Greg Ungerer <gerg@uclinux.org>, Ryan Mallon <rmallon@gmail.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Steven Miao <realmz6@gmail.com>, Simon Horman <horms@verge.net.au>, Wan ZongShun <mcuos.com@gmail.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, adi-buildroot-devel@lists.sourceforge.net, Russell King <linux@arm.linux.org.uk>, linux-m68k@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, John Crispin <blogic@openwrt.org>H
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <570E295B.2030708@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sekhar Nori <nsekhar@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, John Ogness <john.ogness@linutronix.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 04/08, Ralf Baechle wrote:
+On 04/13/2016 04:11 AM, Sekhar Nori wrote:
+> On Wednesday 13 April 2016 05:30 AM, Peter Hurley wrote:
 > 
-> While your argument makes perfect sense, Many clk_disable implementations
-> are already doing similar checks, for example:
-> 
-> arch/arm/mach-davinci/clock.c:
-> 
-[...]
-> 
-> So should we go and weed out these checks?
+>>>> - generates spurious uart interrupt for every rx dma transaction
+>>>>   (ie., necessitates acking every UART interrupt, even UART_IIR_NO_INT)
+>>>>   _Even with this workaround_, it still generates spurious interrupt warning
+>>>>   which shuts off interrupts for several ms while logging the error
+>>>>   message to the console, virtually guaranteeing lost data.
+>>>
+>>> as I wrote in my other email I think RDI should be disabled with DMA
+>>
+>>
+>> I'll test to see if disabling RDI eliminates the UART_IIR_NO_INT spurious
+>> interrupts.
 
-Yes, it would be nice to at least make the differing
-implementations of the clk API consistent. Of course, we should
-really put our efforts towards getting rid of the non-CCF
-implementations instead so that there's less confusion overall.
+Ok; disabling UART_IER_RDI eliminates the UART_IIR_NO_INT spurious
+interrupts.
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+However, disabling RDI disables RX timeout as well, so data just sits in
+the RX fifo with no way to get it out. AFAICT that's a showstopper.
+
+
+>>> according the Intel manual and I *think* someone here reported that
+>>> they see the same problem.
+>>
+>> Let's confirm with the Intel folks that this is true, which would argue
+>> for using the omap-style rx dma flow.
+> 
+> Andy Shevchenko pointed this out here: https://lkml.org/lkml/2016/2/23/588
+
+which Andy noted as well:
+
+On 02/23/2016 08:56 AM, Andy Shevchenko wrote:
+> The problem is that we have no separate bit to control timeout
+> interrupts from UART.
