@@ -1,223 +1,240 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2 0/3] ARM: OMAP3: Fix McBSP2/3 hwmod setup for sidetone
-Date: Thu, 14 Apr 2016 10:34:28 +0300
-Message-ID: <570F4804.4050006@ti.com>
-References: <alpine.DEB.2.02.1603211743200.31059@utopia.booyaka.com>
- <56FE407E.9030803@ti.com> <20160402001753.GR9329@atomide.com>
- <57026205.6020105@ti.com> <20160404151200.GA4652@atomide.com>
- <5703BA6B.1080208@ti.com> <20160411212845.GJ5995@atomide.com>
- <570CC54E.6020703@ti.com> <20160412163750.GR5995@atomide.com>
- <570E3428.5020804@ti.com> <20160413152829.GQ5995@atomide.com>
+From: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
+Subject: RE: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
+Date: Thu, 14 Apr 2016 08:36:54 +0000
+Message-ID: <SG2PR06MB0919398D3CF4944A6EA2754DD8970@SG2PR06MB0919.apcprd06.prod.outlook.com>
+References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
+ <1459865117-7032-8-git-send-email-rogerq@ti.com>
+ <SG2PR06MB091922CDE73AE061A79E90E4D8900@SG2PR06MB0919.apcprd06.prod.outlook.com>
+ <57064850.3060405@ti.com>
+ <SG2PR06MB09197595F9D810CF8A22D860D8910@SG2PR06MB0919.apcprd06.prod.outlook.com>
+ <570B8268.6090700@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160413152829.GQ5995@atomide.com>
+In-Reply-To: <570B8268.6090700@ti.com>
+Content-Language: ja-JP
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, jarkko.nikula@bitmer.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "balbi@kernel.org" <balbi@kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "peter.chen@freescale.com" <peter.chen@freescale.com>
+Cc: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "jun.li@freescale.com" <jun.li@freescale.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Joao.Pinto@synopsys.com" <Joao.Pinto@synopsys.com>, "abrestic@chromium.org" <abrestic@chromium.org>, "r.baldyga@samsung.com" <r.baldyga@samsung.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/13/16 18:28, Tony Lindgren wrote:
->>> Oh but not with EXPORT_SYMBOL so not usable except for built-in cod=
-e.
->>> Probably best to keep it that way IMO..
->>
->> It is up to Tero if he want to keep omap2_clk_allow/deny_idle() only=
- be usable
->> for built in code. It is there just because of OMAP3 McBSP2/3 sideto=
-ne support
->> on the other hand. It is a fair assumption that it could be used by =
-the driver.
->=20
-> The problem with EXPORT_SYMBOL is that it tends to then suddenly then=
- get
-> used all over the drivers. And we've seen what that means..
+Hi,
 
-:) Yes, I agree.
+> From: Roger Quadros
+> Sent: Monday, April 11, 2016 7:55 PM
+> 
+> On 08/04/16 14:22, Yoshihiro Shimoda wrote:
+> > Hi,
+> >
+> >> From: Roger Quadros
+> >> Sent: Thursday, April 07, 2016 8:45 PM
+> >>
+> >> Hi,
+> >>
+> >> On 07/04/16 11:52, Yoshihiro Shimoda wrote:
+> >>> Hi,
+> >>>
+> >>>> From: Roger Quadros
+> >>>> Sent: Tuesday, April 05, 2016 11:05 PM
+> > < snip >
+> >>> diff --git a/drivers/usb/common/usb-otg.c b/drivers/usb/common/usb-otg.c
+> >>> index 41e762a..4d7f043 100644
+> >>> --- a/drivers/usb/common/usb-otg.c
+> >>> +++ b/drivers/usb/common/usb-otg.c
+> >>> @@ -825,11 +825,16 @@ int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
+> >>>  	if (otg->primary_hcd.hcd) {
+> >>>  		/* probably a shared HCD ? */
+> >>>  		if (usb_otg_hcd_is_primary_hcd(hcd)) {
+> >>> +			if (hcd->driver->flags & HCD_USB11) {
+> >>> +				dev_info(otg_dev, "this assumes usb 1.1 hc is as shared_hcd\n");
+> >>> +				goto check_shared_hcd;
+> >>> +			}
+> >>>  			dev_err(otg_dev, "otg: primary host already registered\n");
+> >>>  			goto err;
+> >>>  		}
+> >>>
+> >>>  		if (hcd->shared_hcd == otg->primary_hcd.hcd) {
+> >>> +check_shared_hcd:
+> >>>  			if (otg->shared_hcd.hcd) {
+> >>>  				dev_err(otg_dev, "otg: shared host already registered\n");
+> >>>  				goto err;
+> >>>
+> >>> What do you think this local hack?
+> >>
+> >> Is it guaranteed that EHCI hcd registers before OHCI hcd?
+> >
+> > Thank you for the comment. No, it is not guaranteed.
+> >
+> >> If not we need to improve the code still.
+> >> We will also need to remove the constraint that primary_hcd must be registered
+> >> first in usb_otg_register_hcd(). I think that constraint is no longer
+> >> needed anyways.
+> >
+> > I got it.
+> > So, I made a patch to avoid the constraint using an additional property "otg-hcds".
+> > The patch is in this end of email. What do you think about the patch?
+> 
+> This might only solve the issue for device tree but what about non-device tree?
+> We need to deal with both cases.
 
->>>> Why not to remove the callback for legacy also and handle it in th=
-e driver? It
->>>> is less ugly in my opinion.
->>>> Going via the pdata callback is just going to cement the current s=
-etup.
->>>
->>> Sure, maybe you can have a piece of built-in driver code to do that=
-?
->>
->> You mean something like:
->> int omap3_mcbsp23_ick_for_sidetone_force(struct clk *clk, bool force=
-_on)
->> {
->> 	if (!clk)
->> 		return 0;
->>
->> 	if (force_on)
->> 		return omap2_clk_deny_idle(clk);
->> 	else
->> 		return omap2_clk_allow_idle(clk);
->> }
->> EXPORT_SYMBOL(omap3_mcbsp23_ick_for_sidetone_force);
->=20
-> Yeah that's something I was thinking.
->=20
->> Looks similarly hackish as with the pdata callback, but if I were to=
- choose,
->> the pdata callback might be a bit more polite hack if we do not look=
- at how we
->> will have the pdata crafted for DT boot.
->=20
-> Well the pdata solution avoids exporting custom functions to all the
-> drivers.
+Thank you for the comment. I got it.
 
-True. In this light the pdata callback is much sensible thing to do.
-I will look at the DT side of crafting out this.
+> >> If EHCI & OHCI HCDs register before OTG driver then things will break unless
+> >> we fix usb_otg_hcd_wait_add(). We need to add this HCD_USB11 check there to
+> >> populate wait->shared_hcd.
+> >
+> > I see. In my environment, since EHCI & OHCI HCDs need phy driver and phy driver
+> > will calls usb_otg_register(), the order is right. In other words,
+> > EHCI & OHCI HCDs never register before OTG driver because even if EHCI driver
+> > is probed first, the driver will be deferred (EHCI driver needs the phy driver).
+> 
+> But still we cannot assume this is true for all platforms. OTG driver can also
+> be a separate entity than PHY driver.
 
->> If we were to split the McBSP driver into half - not literally as th=
-e ST
->> support has small amount of code right now, we would consider all po=
-ssibility
->> to not introduce regression and keep things working along the way. T=
-here will
->> be a point were the code need to be shuffled..
->=20
-> You could just create the sidetone child device manually on probe in =
-the
-> driver as needed. That way you'd have two devices to do the PM runtim=
-e
-> on. I think that was Paul's main concern as they are separate modules=
-=2E
+I understood it.
 
-You mean that not to have separate compatible for the McBSP module's Si=
-detone
-core?
-If yes, then it is a valid thing to remove the hwmod data for the sidet=
-one,
-like I did in this series.
+> >>> I also wonder if array of hcd may be good for both xHCI and EHCI/OHCI.
+> >>> For example of xHCI:
+> >>>  - otg->hcds[0] = primary_hcd
+> >>>  - otg->hcds[1] = shared_hcd
+> >>>
+> >>> For example of EHCI/OHCI:
+> >>>  - otg->hcds[0] = primary_hcd of EHCI
+> >>>  - otg->hcds[1] = primary_hcd of OHCI
+> >>
+> >> The bigger problem is that how do we know in the OHCI/EHCI case that we need to wait
+> >> for both of them before starting the OTG FSM?
+> >> Some systems might use just OHCI or just EHCI.
+> >>
+> >> There is no guarantee that OTG driver registers before the HCDs so this piece
+> >> of information must come from the HCD itself. i.e. whether it needs a companion or not.
+> >
+> > I understood these problems. I wonder if my patch can resolve these problems.
+> >
+> > Best regards,
+> > Yoshihiro Shimoda
+> > ---
+> > diff --git a/Documentation/devicetree/bindings/usb/generic.txt b/Documentation/devicetree/bindings/usb/generic.txt
+> > index f6866c1..518b9eb 100644
+> > --- a/Documentation/devicetree/bindings/usb/generic.txt
+> > +++ b/Documentation/devicetree/bindings/usb/generic.txt
+> > @@ -27,6 +27,12 @@ Optional properties:
+> >   - otg-controller: phandle to otg controller. Host or gadget controllers can
+> >  			contain this property to link it to a particular OTG
+> >  			controller.
+> > + - otg-hcds: phandle to host controller(s). An OTG controller can contain this
+> > +	     property. The first one is as "primary", and (optional) the second
+> > +	     one is as "shared".
+> > +	     - For example for xHCI:		otg-hcds = <&xhci>, <&xhci>;
+> > +	     - For example for EHCI/OHCI:	otg-hcds = <&ehci>, <&ohci>;
+> > +	     - For example for just EHCI:	otg-hcds = <&ehci>;
+> >
+> 
+> This is kind of duplicating the information. We are already specifying in the
+> hcd nodes as to which otg controller it is linked to.
+> 
+> Instead, how about just adding a boolean property in the otg node saying that
+> HCD needs companion. e.g.
+> 	hcd-needs-compainion: must be present if otg controller is dealing with
+> 			EHCI host controller that needs a companion OHCI host controller.
+> 
+> This can also be added in struct usb_otg_config so that it can deal with non-DT cases.
+> 
+> So if this property is true, the OTG core will wait for 2 primary HCDs to be registered.
 
-> It still leaves the chance of bugs with flush of posted writes. But m=
-ight
-> make things easier to deal with in small steps?
+Thank you for your suggestion. I agree with you.
+So, I made such a patch which. It is simple than my previous patch.
+What do you think?
 
-The only 'benefit' I see with separated driver for McBSP core and Sidet=
-one
-core is that the register writes will happen to the cores in separate d=
-rivers.
+Best regards,
+Yoshihiro Shimoda
 
-If the McBSP driver creates the device for the sidetone driver, then pa=
-ssing
-the needed callbacks and data to it is going to be cleaner. Registering=
- back
-the callbacks to McBSP is what need to be figured out, so it is simple =
-and
-clean. Either with a callback to McBSP to set the ST callbacks or have =
-the
-callback struct used by ST via pdata to have places for the ST to McBSP
-callbacks and when the driver loads it is going to set up those.
+---
+ Documentation/devicetree/bindings/usb/generic.txt |  3 +++
+ drivers/usb/common/common.c                       |  2 ++
+ drivers/usb/common/usb-otg.c                      | 11 +++++++----
+ include/linux/usb/otg.h                           |  2 ++
+ 4 files changed, 14 insertions(+), 4 deletions(-)
 
->>>> I have reasonably clean patches (6 of them) on top of this three w=
-hich would
->>>> remove the arch code for the iclk handling and implements it in th=
-e mcbsp
->>>> driver w/o changing the architecture of the McBSP driver itself. B=
-oth DT and
->>>> legacy boot works. The only part I was not happy about the one whe=
-re I looked
->>>> up the mcbsp2/3_ick, but I think I have found much cleaner way to =
-do it
->>>> (meaning that the code will not look hackish at all).
->>>> If you want to see, I can make this change and I can send the whol=
-e thing as
->>>> RFC and continue the discussion around that?
->>>
->>> Sure, especially if that helps with splitting up the modules too.
->>
->> To start with the hwmod data is wrong for mcbsp2/3 mcbsp2/3_sidetone=
-:
->> static struct omap_hwmod omap3xxx_mcbsp2_hwmod =3D {
->> 	.name		=3D "mcbsp2",
->> 	.class		=3D &omap3xxx_mcbsp_hwmod_class,
->> 	.mpu_irqs	=3D omap3xxx_mcbsp2_irqs,
->> 	.sdma_reqs	=3D omap2_mcbsp2_sdma_reqs,
->> 	.main_clk	=3D "mcbsp2_fck",
->> 	.prcm		=3D {
->> 		.omap2 =3D {
->> 			.prcm_reg_id =3D 1,
->> 			.module_bit =3D OMAP3430_EN_MCBSP2_SHIFT,
->> 			.module_offs =3D OMAP3430_PER_MOD,
->> 			.idlest_reg_id =3D 1,
->> 			.idlest_idle_bit =3D OMAP3430_ST_MCBSP2_SHIFT,
->> 		},
->> 	},
->> 	.opt_clks	=3D mcbsp234_opt_clks,
->> 	.opt_clks_cnt	=3D ARRAY_SIZE(mcbsp234_opt_clks),
->> 	.dev_attr	=3D &omap34xx_mcbsp2_dev_attr,
->> };
->>
->> static struct omap_hwmod omap3xxx_mcbsp2_sidetone_hwmod =3D {
->> 	.name		=3D "mcbsp2_sidetone",
->> 	.class		=3D &omap3xxx_mcbsp_sidetone_hwmod_class,
->> 	.mpu_irqs	=3D omap3xxx_mcbsp2_sidetone_irqs,
->> 	.main_clk	=3D "mcbsp2_fck",
->> 	.prcm		=3D {
->> 		.omap2 =3D {
->> 			.prcm_reg_id =3D 1,
->> 			 .module_bit =3D OMAP3430_EN_MCBSP2_SHIFT,
->> 			.module_offs =3D OMAP3430_PER_MOD,
->> 			.idlest_reg_id =3D 1,
->> 			.idlest_idle_bit =3D OMAP3430_ST_MCBSP2_SHIFT,
->> 		},
->> 	},
->> };
->>
->> The McBSP2_ST main_clk is mcbsp2_ick, not mcbsp2_fck (ch 21.3.2.2.6 =
-in
->> OMAP36xx TRM).
->> The sidetone should not have prcm section at all as it does not have=
- control
->> over it's clocks in that level. Giving the same PRCM registers and b=
-its for
->> both McBSP and it's sidetone is wrong. What should be expected if Mc=
-BSP is
->> enabled and we disable the ST via pm_runtime? Will the hwmod toggle =
-bits in
->> PRCM? If it does, the McBSP will looses it's clocks...
->=20
-> I think for omap3 we're just using the clk_get/set. For omap4, the is=
-sue
-> is different as the clkctrl registers are used directly.
-
-If I remove the prcm section for the ST hwmod:
-[   87.784820] omap_hwmod: mcbsp2_sidetone: _wait_target_ready failed: =
--22
-[   87.784851] omap-mcbsp 49022000.mcbsp: use pm_runtime_put_sync_suspe=
-nd() in
-driver?
-
-When first try to use the audio.
-So the hwmod code at least was checking the idlest bit.
-
->> While the McBSP and ST regions are different, the ST is part of the =
-McBSP from
->> PRCM point of view so not sure how this could be worked around with =
-separated
->> drivers.
->=20
-> Just create the struct device as a child for ST as needed from McBSP?
-
-OK. I will go with the assumption that the sidetone hwmod can be remove=
-d (as
-it is not correct) and rework my current series to use pdata callback f=
-or the
-iclk autogate allow/deny. With this set the ST will be operational in l=
-egacy
-and DT boot.
-=46rom there I can start to draft out the needed architecture to separa=
-te the ST
-core handing into a new driver and when it looks good I can make the ch=
-ange.
-How this sounds?
-
-
---=20
-P=E9ter
+diff --git a/Documentation/devicetree/bindings/usb/generic.txt b/Documentation/devicetree/bindings/usb/generic.txt
+index f6866c1..1db1c33 100644
+--- a/Documentation/devicetree/bindings/usb/generic.txt
++++ b/Documentation/devicetree/bindings/usb/generic.txt
+@@ -27,6 +27,9 @@ Optional properties:
+  - otg-controller: phandle to otg controller. Host or gadget controllers can
+ 			contain this property to link it to a particular OTG
+ 			controller.
++ - hcd-needs-companion: must be present if otg controller is dealing with
++			EHCI host controller that needs a companion OHCI host
++			controller.
+ 
+ This is an attribute to a USB controller such as:
+ 
+diff --git a/drivers/usb/common/common.c b/drivers/usb/common/common.c
+index e3d0161..8b74715 100644
+--- a/drivers/usb/common/common.c
++++ b/drivers/usb/common/common.c
+@@ -233,6 +233,8 @@ int of_usb_update_otg_caps(struct device_node *np,
+ 	if (of_find_property(np, "adp-disable", NULL) ||
+ 				(otg_caps->otg_rev < 0x0200))
+ 		otg_caps->adp_support = false;
++	if (of_find_property(np, "hcd-needs-companion", NULL))
++		otg_caps->needs_companion = true;
+ 
+ 	return 0;
+ }
+diff --git a/drivers/usb/common/usb-otg.c b/drivers/usb/common/usb-otg.c
+index 41e762a..e0df839 100644
+--- a/drivers/usb/common/usb-otg.c
++++ b/drivers/usb/common/usb-otg.c
+@@ -823,13 +823,15 @@ int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
+ 	/* HCD will be started by OTG fsm when needed */
+ 	mutex_lock(&otg->fsm.lock);
+ 	if (otg->primary_hcd.hcd) {
+-		/* probably a shared HCD ? */
+-		if (usb_otg_hcd_is_primary_hcd(hcd)) {
++		/* probably a shared HCD or a companion OHCI HCD ? */
++		if (!otg->caps->needs_companion &&
++		    usb_otg_hcd_is_primary_hcd(hcd)) {
+ 			dev_err(otg_dev, "otg: primary host already registered\n");
+ 			goto err;
+ 		}
+ 
+-		if (hcd->shared_hcd == otg->primary_hcd.hcd) {
++		if (otg->caps->needs_companion ||
++		    (hcd->shared_hcd == otg->primary_hcd.hcd)) {
+ 			if (otg->shared_hcd.hcd) {
+ 				dev_err(otg_dev, "otg: shared host already registered\n");
+ 				goto err;
+@@ -865,7 +867,8 @@ int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
+ 	 * we're ready only if we have shared HCD
+ 	 * or we don't need shared HCD.
+ 	 */
+-	if (otg->shared_hcd.hcd || !otg->primary_hcd.hcd->shared_hcd) {
++	if (otg->shared_hcd.hcd || (!otg->caps->needs_companion &&
++				    !otg->primary_hcd.hcd->shared_hcd)) {
+ 		otg->host = hcd_to_bus(hcd);
+ 		/* FIXME: set bus->otg_port if this is true OTG port with HNP */
+ 
+diff --git a/include/linux/usb/otg.h b/include/linux/usb/otg.h
+index b094352..64a7db8 100644
+--- a/include/linux/usb/otg.h
++++ b/include/linux/usb/otg.h
+@@ -112,12 +112,14 @@ struct usb_otg {
+  * @hnp_support: Indicates if the device supports HNP.
+  * @srp_support: Indicates if the device supports SRP.
+  * @adp_support: Indicates if the device supports ADP.
++ * @needs_companion: Indicates if the device needs a companion controller.
+  */
+ struct usb_otg_caps {
+ 	u16 otg_rev;
+ 	bool hnp_support;
+ 	bool srp_support;
+ 	bool adp_support;
++	bool needs_companion;
+ };
+ 
+ /**
+-- 
+1.9.1
