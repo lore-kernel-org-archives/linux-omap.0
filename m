@@ -1,77 +1,71 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 0/3] ARM: OMAP3: Fix McBSP2/3 hwmod setup for sidetone
-Date: Thu, 14 Apr 2016 13:34:58 -0700
-Message-ID: <20160414203457.GM5995@atomide.com>
-References: <20160404151200.GA4652@atomide.com>
- <5703BA6B.1080208@ti.com>
- <20160411212845.GJ5995@atomide.com>
- <570CC54E.6020703@ti.com>
- <20160412163750.GR5995@atomide.com>
- <570E3428.5020804@ti.com>
- <20160413152829.GQ5995@atomide.com>
- <570F4804.4050006@ti.com>
- <20160414165514.GL5995@atomide.com>
- <570FF163.1050603@ti.com>
+Subject: [GIT PULL] omap fixes for v4.6-rc cycle
+Date: Thu, 14 Apr 2016 13:36:19 -0700
+Message-ID: <20160414203619.GR5973@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <570FF163.1050603@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, jarkko.nikula@bitmer.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [160414 12:38]:
-> 
-> Yes it has registers, but it has no prcm level existence, it is part of McBSP
-> module. I guess when the OMAP3 was designed the HW people did not wanted to
-> create new version of the McBSP core for McBSP2/3 so they attached a new core
-> to the McBSP cores with different targets, etc, but w/o external dependency.
+The following changes since commit 19e831b272e6db5884be085be66e44da975c73a9:
 
-Yeah well we do have a bunch of modules that don't need any separate
-functional clock and are clocked only by the interface clock. So in this
-case McBSP and sidetone are both consumers for the clock we just happen
-to call McBSP interface clock. They should be able to share that no
-problem.
+  Merge branch 'fixes-rc2' into omap-for-v4.6/fixes (2016-04-08 09:18:00 -0700)
 
-> >> OK. I will go with the assumption that the sidetone hwmod can be removed (as
-> >> it is not correct) and rework my current series to use pdata callback for the
-> >> iclk autogate allow/deny. With this set the ST will be operational in legacy
-> >> and DT boot.
-> > 
-> > Sorry, no I did not want to drop the sidetone hwmod, I was just trying to
-> > come up with ideas on how to make the driver changes easier. It sounds like
-> > you already figured out the driver changes part though with two drivers.
-> 
-> If I need to keep the sidetone hwmod around I don't see how it can be done in
-> a safe and clean way. It is part of McBSP module, it is accessible only if the
-> McBSP module is enabled, you can not enable the Sidetone alone you need to go
-> and enable the McBSP module. I don't think it is a good idea to let two
-> separate hwmods to poke around the same PRCM bits. Have not checked, but I
-> don't think we have refcounting for the PRCM register bits.
+are available in the git repository at:
 
-Yeah there's no refcounting on the PRCM, but the clock framework has it
-for the share McBSP interface clock. Then there are two separate sets of
-sysconfig registers that PM runtime should manage. And then there's the
-clock autogating issue.
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.6/fixes-rc3
 
-Note that we do have an issue with the omap4 and later clkctrl registers
-that don't have refcounting. Tero's clkctrl work will sort out that
-issue. I don't think we have a similar issue with omap3.
+for you to fetch changes up to 1560d15861769c23fd981e2d60dc7fd790b21e1e:
 
-So from that point of view the two separate hwmod modules should work
-just fine sharing the clock.
+  ARM: OMAP3: Fix external abort on 36xx waking from off mode idle (2016-04-14 08:27:30 -0700)
 
-> I have things working w/o the two drivers with pdata callback both in legacy
-> and DT case and it is pretty neat looking, thanks for the suggestion! I'm
-> still figuring out the needed amount of callbacks from McBSP to ST and from ST
-> to McBSP. We for sure going to need enable_stage1,2 probably three as well.
-> But this crossing driver boundaries needs a bit more time to figure out.
+----------------------------------------------------------------
+Fixes for omaps for v4.6-rc cycle:
 
-Yeah I still think we need to struct device instances, one to manage
-McBSP and the other to manage sidetone :)
+- Clockdomain fix for dra7 timer interrupts
 
-Regards,
+- Two fixes for GPMC EDMA binding, I missed the need for a merge with
+  GPMC changes and EDMA changes
 
-Tony
+- Fix beagle-x15 eSATA by dropping misconfigured extcon_usb1
+
+- Fix occasional external aborts on 36xx with PM that we've been
+  chasing for past few months. It turned out to be duplicate restore
+  of INTC registers that can in some cases cause us to hit erratum 1.106.
+
+----------------------------------------------------------------
+Dave Gerlach (1):
+      ARM: OMAP3: Fix external abort on 36xx waking from off mode idle
+
+Franklin S Cooper Jr (2):
+      ARM: dts: am33xx: Fix GPMC dma properties
+      ARM: dts: am437x: Fix GPMC dma properties
+
+Keerthy (1):
+      ARM: DRA7: clockdomain: Implement timer workaround for errata i874
+
+Roger Quadros (1):
+      ARM: dts: am57xx-beagle-x15: remove extcon_usb1
+
+Tony Lindgren (1):
+      Merge tag 'for-v4.6-rc/omap-fixes-b' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v4.6/fixes
+
+ arch/arm/boot/dts/am33xx.dtsi              |  2 +-
+ arch/arm/boot/dts/am4372.dtsi              |  2 +-
+ arch/arm/boot/dts/am57xx-beagle-x15.dts    | 17 -----------------
+ arch/arm/mach-omap2/clockdomains7xx_data.c |  2 +-
+ arch/arm/mach-omap2/pm34xx.c               | 23 +++++++++++++----------
+ 5 files changed, 16 insertions(+), 30 deletions(-)
