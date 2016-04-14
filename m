@@ -1,71 +1,39 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v2]  pinctrl: pinctrl-single: Fix pcs_parse_bits_in_pinctrl_entry to use __ffs than ffs
-Date: Thu, 14 Apr 2016 10:29:16 +0530
-Message-ID: <1460609956-26539-1-git-send-email-j-keerthy@ti.com>
+From: PC Liao <pc.liao-NuS5LvNUpcJWk0Htik3J/w@public.gmane.org>
+Subject: Re: [alsa-devel] [PATCH v9 3/7] ASoC: hdmi-codec: Add hdmi-codec
+ for external HDMI-encoders
+Date: Thu, 14 Apr 2016 13:31:21 +0800
+Message-ID: <1460611881.22320.6.camel@mtksdaap41>
+References: <cover.1459431292.git.jsarha@ti.com>
+	 <636486b25db48fa13ae640516cdebe7bcfea0d23.1459431292.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: linus.walleij@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, j-keerthy@ti.com, t-kristo@ti.com, nsekhar@ti.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <636486b25db48fa13ae640516cdebe7bcfea0d23.1459431292.git.jsarha-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, arnaud.pouliquen-qxv4g6HH51o@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tiwai-l3A5Bk7waGM@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-pcs_parse_bits_in_pinctrl_entry uses ffs which gives bit indices
-ranging from 1 to MAX. This leads to a corner case where we try to request
-the pin number = MAX and fails.
+Hi Jyri,
 
-bit_pos value is being calculted using ffs. pin_num_from_lsb uses
-bit_pos value. pins array is populated with:
+On Thu, 2016-03-31 at 16:36 +0300, Jyri Sarha wrote:
+> The hdmi-codec is a platform device driver to be registered from
+> drivers of external HDMI encoders with I2S and/or spdif interface. The
+> driver in turn registers an ASoC codec for the HDMI encoder's audio
+> functionality.
+> 
+> The structures and definitions in the API header are mostly redundant
+> copies of similar structures in ASoC headers. This is on purpose to
+> avoid direct dependencies to ASoC structures in video side driver.
+> 
+> Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
 
-pin + pin_num_from_lsb.
+I successfully tested new version on mt8173. 
+Acked-by: PC Liao <pc.liao-NuS5LvNUpcJWk0Htik3J/w@public.gmane.org>
 
-The above is 1 more than usual bit indices as bit_pos uses ffs to compute
-first set bit. Hence the last of the pins array is populated with the MAX
-value and not MAX - 1 which causes error when we call pin_request.
 
-mask_pos is rightly calculated as ((pcs->fmask) << (bit_pos - 1))
-Consequently val_pos and submask are correct.
-
-Hence use __ffs which gives (ffs(x) - 1) as the first bit set.
-
-fixes: 4e7e8017a8 ("pinctrl: pinctrl-single: enhance to configure multiple pins of different modules")
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
-
-Changes in v2:
-
-  * Changed pcs->fshift to use __ffs instead of ffs to be consistent.
-
-Boot tesed on da850-evm and checked the pinctrl sysfs nodes.
-
- drivers/pinctrl/pinctrl-single.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-index fb126d5..cf9bafa 100644
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -1280,9 +1280,9 @@ static int pcs_parse_bits_in_pinctrl_entry(struct pcs_device *pcs,
- 
- 		/* Parse pins in each row from LSB */
- 		while (mask) {
--			bit_pos = ffs(mask);
-+			bit_pos = __ffs(mask);
- 			pin_num_from_lsb = bit_pos / pcs->bits_per_pin;
--			mask_pos = ((pcs->fmask) << (bit_pos - 1));
-+			mask_pos = ((pcs->fmask) << bit_pos);
- 			val_pos = val & mask_pos;
- 			submask = mask & mask_pos;
- 
-@@ -1852,7 +1852,7 @@ static int pcs_probe(struct platform_device *pdev)
- 	ret = of_property_read_u32(np, "pinctrl-single,function-mask",
- 				   &pcs->fmask);
- 	if (!ret) {
--		pcs->fshift = ffs(pcs->fmask) - 1;
-+		pcs->fshift = __ffs(pcs->fmask);
- 		pcs->fmax = pcs->fmask >> pcs->fshift;
- 	} else {
- 		/* If mask property doesn't exist, function mux is invalid. */
--- 
-1.9.1
-
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
