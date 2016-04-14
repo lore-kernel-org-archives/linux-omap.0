@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 23/28] clk: ti: add support for omap4 module clocks
-Date: Thu, 14 Apr 2016 14:08:12 +0300
-Message-ID: <1460632097-25727-24-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2 28/28] ARM: dts: dra7: add hwmod module clocks
+Date: Thu, 14 Apr 2016 14:08:17 +0300
+Message-ID: <1460632097-25727-29-git-send-email-t-kristo@ti.com>
 References: <1460632097-25727-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,478 +12,1320 @@ To: tony@atomide.com, paul@pwsan.com, sboyd@codeaurora.org, mturquette@baylibre.
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-clk@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Previously, hwmod core has been used for controlling the hwmod level
-clocks. This has certain drawbacks, like being unable to share the
-clocks for multiple users, missing usecounting and generally being
-totally incompatible with common clock framework.
-
-Add support for new clock type under the TI clock driver, which will
-be used to convert all the existing hwmdo clocks to. This helps to
-get rid of the clock related hwmod data from kernel and instead
-parsing this from DT.
+Add clock nodes for the SoC hwmods. This is done in preparation to remove
+hwmod data from kernel, hwmod will use the clock nodes instead for
+module level enable / disable logic.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/Makefile   |    3 +-
- drivers/clk/ti/clkt_mod.c |  414 +++++++++++++++++++++++++++++++++++++++++++++
- include/linux/clk/ti.h    |    2 +
- 3 files changed, 418 insertions(+), 1 deletion(-)
- create mode 100644 drivers/clk/ti/clkt_mod.c
+ arch/arm/boot/dts/dra7xx-clocks.dtsi |  987 ++++++++++++++++++++++++++++++----
+ 1 file changed, 886 insertions(+), 101 deletions(-)
 
-diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-index 0deac98..15886ef 100644
---- a/drivers/clk/ti/Makefile
-+++ b/drivers/clk/ti/Makefile
-@@ -3,7 +3,8 @@ ifeq ($(CONFIG_ARCH_OMAP2PLUS), y)
- obj-y					+= clk.o autoidle.o clockdomain.o
- clk-common				= dpll.o composite.o divider.o gate.o \
- 					  fixed-factor.o mux.o apll.o \
--					  clkt_dpll.o clkt_iclk.o clkt_dflt.o
-+					  clkt_dpll.o clkt_iclk.o clkt_dflt.o \
-+					  clkt_mod.o
- obj-$(CONFIG_SOC_AM33XX)		+= $(clk-common) clk-33xx.o dpll3xxx.o
- obj-$(CONFIG_SOC_TI81XX)		+= $(clk-common) fapll.o clk-814x.o clk-816x.o
- obj-$(CONFIG_ARCH_OMAP2)		+= $(clk-common) interface.o clk-2xxx.o
-diff --git a/drivers/clk/ti/clkt_mod.c b/drivers/clk/ti/clkt_mod.c
-new file mode 100644
-index 0000000..a201cc6
---- /dev/null
-+++ b/drivers/clk/ti/clkt_mod.c
-@@ -0,0 +1,414 @@
-+/*
-+ * OMAP hardware module clock support
-+ *
-+ * Copyright (C) 2015 Texas Instruments, Inc.
-+ *
-+ * Tero Kristo <t-kristo@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
+diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+index c437c5c..d1675ac 100644
+--- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
++++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+@@ -411,6 +411,13 @@
+ 		ti,invert-autoidle-bit;
+ 	};
+ 
++	mpu_mod_ck: mpu_mod_ck@320 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x0320>;
++		clocks = <&dpll_mpu_m2_ck>;
++	};
 +
-+#include <linux/clk-provider.h>
-+#include <linux/slab.h>
-+#include <linux/of.h>
-+#include <linux/of_address.h>
-+#include <linux/clk/ti.h>
-+#include <linux/delay.h>
-+#include "clock.h"
+ 	dpll_core_m2_ck: dpll_core_m2_ck@130 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,divider-clock";
+@@ -801,44 +808,67 @@
+ 		reg = <0x0550>;
+ 	};
+ 
+-	mcasp1_aux_gfclk_mux: mcasp1_aux_gfclk_mux@550 {
++	timer5_mod_ck: timer5_mod_ck@558 {
+ 		#clock-cells = <0>;
+-		compatible = "ti,mux-clock";
+-		clocks = <&per_abe_x1_gfclk2_div>, <&video1_clk2_div>, <&video2_clk2_div>, <&hdmi_clk2_div>;
+-		ti,bit-shift = <22>;
+-		reg = <0x0550>;
++		compatible = "ti,omap4-sw-mux-mod-clock";
++		reg = <0x0558>, <0x0558>;
++		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
++			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
++			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
++			 <&video2_div_clk>, <&hdmi_div_clk>,
++			 <&clkoutmux0_clk_mux>;
++		ti,bit-shift = <24>;
+ 	};
+ 
+-	timer5_gfclk_mux: timer5_gfclk_mux@558 {
++	timer6_mod_ck: timer6_mod_ck@560 {
+ 		#clock-cells = <0>;
+-		compatible = "ti,mux-clock";
+-		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>, <&clkoutmux0_clk_mux>;
++		compatible = "ti,omap4-sw-mux-mod-clock";
++		reg = <0x0560>, <0x0560>;
++		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
++			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
++			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
++			 <&video2_div_clk>, <&hdmi_div_clk>,
++			 <&clkoutmux0_clk_mux>;
+ 		ti,bit-shift = <24>;
+-		reg = <0x0558>;
+ 	};
+ 
+-	timer6_gfclk_mux: timer6_gfclk_mux@560 {
++	timer7_mod_ck: timer7_mod_ck@568 {
+ 		#clock-cells = <0>;
+-		compatible = "ti,mux-clock";
+-		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>, <&clkoutmux0_clk_mux>;
++		compatible = "ti,omap4-sw-mux-mod-clock";
++		reg = <0x0568>, <0x0568>;
++		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
++			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
++			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
++			 <&video2_div_clk>, <&hdmi_div_clk>,
++			 <&clkoutmux0_clk_mux>;
+ 		ti,bit-shift = <24>;
+-		reg = <0x0560>;
+ 	};
+ 
+-	timer7_gfclk_mux: timer7_gfclk_mux@568 {
++	timer8_mod_ck: timer8_mod_ck@570 {
+ 		#clock-cells = <0>;
+-		compatible = "ti,mux-clock";
+-		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>, <&clkoutmux0_clk_mux>;
++		compatible = "ti,omap4-sw-mux-mod-clock";
++		reg = <0x0570>, <0x0570>;
++		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
++			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
++			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
++			 <&video2_div_clk>, <&hdmi_div_clk>,
++			 <&clkoutmux0_clk_mux>;
+ 		ti,bit-shift = <24>;
+-		reg = <0x0568>;
+ 	};
+ 
+-	timer8_gfclk_mux: timer8_gfclk_mux@570 {
++	i2c5_mod_ck: i2c5_mod_ck@578 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x0578>;
++		clocks = <&func_96m_fclk>;
++	};
 +
-+#undef pr_fmt
-+#define pr_fmt(fmt) "%s: " fmt, __func__
++	mcasp1_aux_gfclk_mux: mcasp1_aux_gfclk_mux@550 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>, <&clkoutmux0_clk_mux>;
+-		ti,bit-shift = <24>;
+-		reg = <0x0570>;
++		clocks = <&per_abe_x1_gfclk2_div>, <&video1_clk2_div>, <&video2_clk2_div>, <&hdmi_clk2_div>;
++		ti,bit-shift = <22>;
++		reg = <0x0550>;
+ 	};
+ 
+ 	uart6_gfclk_mux: uart6_gfclk_mux@580 {
+@@ -849,6 +879,20 @@
+ 		reg = <0x0580>;
+ 	};
+ 
++	uart6_mod_ck: uart6_mod_ck@580 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x0580>;
++		clocks = <&uart6_gfclk_mux>;
++	};
 +
-+#define NO_IDLEST			0x1
++	rtcss_mod_ck: rtcss_mod_ck@744 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x0744>;
++		clocks = <&sys_32k_ck>;
++	};
 +
-+#define OMAP4_MODULEMODE_MASK		0x3
+ 	dummy_ck: dummy_ck {
+ 		#clock-cells = <0>;
+ 		compatible = "fixed-clock";
+@@ -932,6 +976,20 @@
+ 		reg = <0x01dc>;
+ 	};
+ 
++	l4_wkup_mod_ck: l4_wkup_mod_ck@1820 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x1820>;
++		clocks = <&wkupaon_iclk_mux>;
++	};
 +
-+#define MODULEMODE_HWCTRL		0x1
-+#define MODULEMODE_SWCTRL		0x2
++	wd_timer2_mod_ck: wd_timer2_mod_ck@1830 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x1830>;
++		clocks = <&sys_32k_ck>;
++	};
 +
-+#define OMAP4_IDLEST_MASK		(0x3 << 16)
-+#define OMAP4_IDLEST_SHIFT		16
+ 	sys_clk1_dclk_div: sys_clk1_dclk_div@1c8 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,divider-clock";
+@@ -1165,6 +1223,31 @@
+ 		reg = <0x1838>;
+ 	};
+ 
++	gpio1_mod_ck: gpio1_mod_ck@1838 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-hw-mod-clock";
++		reg = <0x1838>;
++		clocks = <&wkupaon_iclk_mux>;
++	};
 +
-+#define CLKCTRL_IDLEST_FUNCTIONAL	0x0
-+#define CLKCTRL_IDLEST_INTERFACE_IDLE	0x2
-+#define CLKCTRL_IDLEST_DISABLED		0x3
++	timer1_mod_ck: timer1_mod_ck@1840 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mux-mod-clock";
++		reg = <0x1840>, <0x1840>;
++		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
++			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
++			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
++			 <&video2_div_clk>, <&hdmi_div_clk>;
++		ti,bit-shift = <24>;
++	};
 +
-+/* These timeouts are in us */
-+#define OMAP4_MAX_MODULE_READY_TIME	2000
-+#define OMAP4_MAX_MODULE_DISABLE_TIME	5000
++	counter_32k_mod_ck: counter_32k_mod_ck@1850 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x1850>;
++		clocks = <&wkupaon_iclk_mux>;
++	};
 +
-+static bool _early_timeout = true;
+ 	dcan1_sys_clk_mux: dcan1_sys_clk_mux@1888 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+@@ -1173,12 +1256,11 @@
+ 		reg = <0x1888>;
+ 	};
+ 
+-	timer1_gfclk_mux: timer1_gfclk_mux@1840 {
++	dcan1_mod_ck: dcan1_mod_ck@1888 {
+ 		#clock-cells = <0>;
+-		compatible = "ti,mux-clock";
+-		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>;
+-		ti,bit-shift = <24>;
+-		reg = <0x1840>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x1888>;
++		clocks = <&dcan1_sys_clk_mux>;
+ 	};
+ 
+ 	uart10_gfclk_mux: uart10_gfclk_mux@1880 {
+@@ -1188,6 +1270,13 @@
+ 		ti,bit-shift = <24>;
+ 		reg = <0x1880>;
+ 	};
 +
-+union omap4_timeout {
-+	u32 cycles;
-+	ktime_t start;
++	uart10_mod_ck: uart10_mod_ck@1880 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x1880>;
++		clocks = <&uart10_gfclk_mux>;
++	};
+ };
+ &cm_core_clocks {
+ 	dpll_pcie_ref_ck: dpll_pcie_ref_ck@200 {
+@@ -1223,6 +1312,20 @@
+ 		reg = <0x021c>, <0x0220>;
+ 	};
+ 
++	smartreflex_mpu_mod_ck: smartreflex_mpu_mod_ck@628 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x0628>;
++		clocks = <&wkupaon_iclk_mux>;
++	};
++
++	smartreflex_core_mod_ck: smartreflex_core_mod_ck@638 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x0638>;
++		clocks = <&wkupaon_iclk_mux>;
++	};
++
+ 	optfclk_pciephy1_32khz: optfclk_pciephy1_32khz@4a0093b0 {
+ 		compatible = "ti,gate-clock";
+ 		clocks = <&sys_32k_ck>;
+@@ -1231,6 +1334,13 @@
+ 		ti,bit-shift = <8>;
+ 	};
+ 
++	pcie1_mod_ck: pcie1_mod_ck@13b0 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x13b0>;
++		clocks = <&l4_root_clk_div>;
++	};
++
+ 	optfclk_pciephy2_32khz: optfclk_pciephy2_32khz@4a0093b8 {
+ 		compatible = "ti,gate-clock";
+ 		clocks = <&sys_32k_ck>;
+@@ -1265,6 +1375,13 @@
+ 		ti,bit-shift = <9>;
+ 	};
+ 
++	pcie2_mod_ck: pcie2_mod_ck@13b8 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x13b8>;
++		clocks = <&l4_root_clk_div>;
++	};
++
+ 	optfclk_pciephy1_div_clk: optfclk_pciephy1_div_clk@4a0093b0 {
+ 		compatible = "ti,gate-clock";
+ 		clocks = <&optfclk_pciephy_div>;
+@@ -1509,6 +1626,69 @@
+ 		reg = <0x06c0>;
+ 	};
+ 
++	l3_main_1_mod_ck: l3_main_1_mod_ck@720 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x0720>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	gpmc_mod_ck: gpmc_mod_ck@728 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-hw-mod-clock";
++		reg = <0x0728>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	tpcc_mod_ck: tpcc_mod_ck@770 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x0770>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	tptc0_mod_ck: tptc0_mod_ck@778 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-hw-mod-clock";
++		reg = <0x0778>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	tptc1_mod_ck: tptc1_mod_ck@780 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-hw-mod-clock";
++		reg = <0x0780>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	vcp1_mod_ck: vcp1_mod_ck@788 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x0788>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	vcp2_mod_ck: vcp2_mod_ck@790 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x0790>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	dma_system_mod_ck: dma_system_mod_ck@a20 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x0a20>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	dmm_mod_ck: dmm_mod_ck@b20 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x0b20>;
++		clocks = <&l3_iclk_div>;
++	};
++
+ 	dss_32khz_clk: dss_32khz_clk@1120 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,gate-clock";
+@@ -1542,6 +1722,34 @@
+ 		reg = <0x1120>;
+ 	};
+ 
++	dss_dispc_mod_ck: dss_dispc_mod_ck@1120 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x1120>;
++		clocks = <&dss_dss_clk>;
++	};
++
++	dss_core_mod_ck: dss_core_mod_ck@1120 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x1120>;
++		clocks = <&dss_dss_clk>;
++	};
++
++	dss_hdmi_mod_ck: dss_hdmi_mod_ck@1120 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x1120>;
++		clocks = <&dss_48mhz_clk>;
++	};
++
++	bb2d_mod_ck: bb2d_mod_ck@1130 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x1130>;
++		clocks = <&dpll_core_h24x2_ck>;
++	};
++
+ 	dss_video1_clk: dss_video1_clk@1120 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,gate-clock";
+@@ -1566,6 +1774,13 @@
+ 		reg = <0x1760>;
+ 	};
+ 
++	gpio2_mod_ck: gpio2_mod_ck@1760 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-hw-mod-clock";
++		reg = <0x1760>;
++		clocks = <&l3_iclk_div>;
++	};
++
+ 	gpio3_dbclk: gpio3_dbclk@1768 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,gate-clock";
+@@ -1574,6 +1789,13 @@
+ 		reg = <0x1768>;
+ 	};
+ 
++	gpio3_mod_ck: gpio3_mod_ck@1768 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-hw-mod-clock";
++		reg = <0x1768>;
++		clocks = <&l3_iclk_div>;
++	};
++
+ 	gpio4_dbclk: gpio4_dbclk@1770 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,gate-clock";
+@@ -1582,6 +1804,13 @@
+ 		reg = <0x1770>;
+ 	};
+ 
++	gpio4_mod_ck: gpio4_mod_ck@1770 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-hw-mod-clock";
++		reg = <0x1770>;
++		clocks = <&l3_iclk_div>;
++	};
++
+ 	gpio5_dbclk: gpio5_dbclk@1778 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,gate-clock";
+@@ -1590,6 +1819,13 @@
+ 		reg = <0x1778>;
+ 	};
+ 
++	gpio5_mod_ck: gpio5_mod_ck@1778 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-hw-mod-clock";
++		reg = <0x1778>;
++		clocks = <&l3_iclk_div>;
++	};
++
+ 	gpio6_dbclk: gpio6_dbclk@1780 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,gate-clock";
+@@ -1598,6 +1834,116 @@
+ 		reg = <0x1780>;
+ 	};
+ 
++	gpio6_mod_ck: gpio6_mod_ck@1780 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-hw-mod-clock";
++		reg = <0x1780>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	hdq1w_mod_ck: hdq1w_mod_ck@1788 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x1788>;
++		clocks = <&func_12m_fclk>;
++	};
++
++	i2c1_mod_ck: i2c1_mod_ck@17a0 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x17a0>;
++		clocks = <&func_96m_fclk>;
++	};
++
++	i2c2_mod_ck: i2c2_mod_ck@17a8 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x17a8>;
++		clocks = <&func_96m_fclk>;
++	};
++
++	i2c3_mod_ck: i2c3_mod_ck@17b0 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x17b0>;
++		clocks = <&func_96m_fclk>;
++	};
++
++	i2c4_mod_ck: i2c4_mod_ck@17b8 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x17b8>;
++		clocks = <&func_96m_fclk>;
++	};
++
++	l4_per1_mod_ck: l4_per1_mod_ck@17c0 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x17c0>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	timer13_mod_ck: timer13_mod_ck@17c8 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mux-mod-clock";
++		reg = <0x17c8>, <0x17c8>;
++		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
++			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
++			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
++			 <&video2_div_clk>, <&hdmi_div_clk>;
++		ti,bit-shift = <24>;
++	};
++
++	timer14_mod_ck: timer14_mod_ck@17d0 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mux-mod-clock";
++		reg = <0x17d0>, <0x17d0>;
++		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
++			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
++			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
++			 <&video2_div_clk>, <&hdmi_div_clk>;
++		ti,bit-shift = <24>;
++	};
++
++	timer15_mod_ck: timer15_mod_ck@17d8 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mux-mod-clock";
++		reg = <0x17d8>, <0x17d8>;
++		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
++			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
++			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
++			 <&video2_div_clk>, <&hdmi_div_clk>;
++		ti,bit-shift = <24>;
++	};
++
++	mcspi1_mod_ck: mcspi1_mod_ck@17f0 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x17f0>;
++		clocks = <&func_48m_fclk>;
++	};
++
++	mcspi2_mod_ck: mcspi2_mod_ck@17f8 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x17f8>;
++		clocks = <&func_48m_fclk>;
++	};
++
++	mcspi3_mod_ck: mcspi3_mod_ck@1800 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x1800>;
++		clocks = <&func_48m_fclk>;
++	};
++
++	mcspi4_mod_ck: mcspi4_mod_ck@1808 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x1808>;
++		clocks = <&func_48m_fclk>;
++	};
++
+ 	gpio7_dbclk: gpio7_dbclk@1810 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,gate-clock";
+@@ -1606,6 +1952,13 @@
+ 		reg = <0x1810>;
+ 	};
+ 
++	gpio7_mod_ck: gpio7_mod_ck@1810 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-hw-mod-clock";
++		reg = <0x1810>;
++		clocks = <&l3_iclk_div>;
++	};
++
+ 	gpio8_dbclk: gpio8_dbclk@1818 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,gate-clock";
+@@ -1614,6 +1967,13 @@
+ 		reg = <0x1818>;
+ 	};
+ 
++	gpio8_mod_ck: gpio8_mod_ck@1818 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-hw-mod-clock";
++		reg = <0x1818>;
++		clocks = <&l3_iclk_div>;
++	};
++
+ 	mmc1_clk32k: mmc1_clk32k@1328 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,gate-clock";
+@@ -1646,6 +2006,24 @@
+ 		reg = <0x1828>;
+ 	};
+ 
++	mmc4_mod_ck: mmc4_mod_ck@1828 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x1828>;
++		clocks = <&mmc4_gfclk_div>;
++	};
++
++	timer16_mod_ck: timer16_mod_ck@1830 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mux-mod-clock";
++		reg = <0x1830>, <0x1830>;
++		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
++			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
++			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
++			 <&video2_div_clk>, <&hdmi_div_clk>;
++		ti,bit-shift = <24>;
++	};
++
+ 	sata_ref_clk: sata_ref_clk@1388 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,gate-clock";
+@@ -1654,6 +2032,13 @@
+ 		reg = <0x1388>;
+ 	};
+ 
++	sata_mod_ck: sata_mod_ck@1388 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x1388>;
++		clocks = <&func_48m_fclk>;
++	};
++
+ 	usb_otg_ss1_refclk960m: usb_otg_ss1_refclk960m@13f0 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,gate-clock";
+@@ -1662,6 +2047,100 @@
+ 		reg = <0x13f0>;
+ 	};
+ 
++	usb_otg_ss1_mod_ck: usb_otg_ss1_mod_ck@13f0 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-hw-mod-clock";
++		reg = <0x13f0>;
++		clocks = <&dpll_core_h13x2_ck>;
++	};
++
++	l4_per2_mod_ck: l4_per2_mod_ck@170c {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x170c>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	l4_per3_mod_ck: l4_per3_mod_ck@1714 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x1714>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	timer10_mod_ck: timer10_mod_ck@1728 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mux-mod-clock";
++		reg = <0x1728>, <0x1728>;
++		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
++			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
++			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
++			 <&video2_div_clk>, <&hdmi_div_clk>;
++		ti,bit-shift = <24>;
++	};
++
++	timer11_mod_ck: timer11_mod_ck@1730 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mux-mod-clock";
++		reg = <0x1730>, <0x1730>;
++		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
++			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
++			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
++			 <&video2_div_clk>, <&hdmi_div_clk>;
++		ti,bit-shift = <24>;
++	};
++
++	timer2_mod_ck: timer2_mod_ck@1738 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mux-mod-clock";
++		reg = <0x1738>, <0x1738>;
++		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
++			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
++			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
++			 <&video2_div_clk>, <&hdmi_div_clk>;
++		ti,bit-shift = <24>;
++	};
++
++	timer3_mod_ck: timer3_mod_ck@1740 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mux-mod-clock";
++		reg = <0x1740>, <0x1740>;
++		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
++			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
++			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
++			 <&video2_div_clk>, <&hdmi_div_clk>;
++		ti,bit-shift = <24>;
++	};
++
++	timer4_mod_ck: timer4_mod_ck@1748 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mux-mod-clock";
++		reg = <0x1748>, <0x1748>;
++		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
++			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
++			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
++			 <&video2_div_clk>, <&hdmi_div_clk>;
++		ti,bit-shift = <24>;
++	};
++
++	timer9_mod_ck: timer9_mod_ck@1750 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mux-mod-clock";
++		reg = <0x1750>, <0x1750>;
++		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>,
++			 <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>,
++			 <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>,
++			 <&video2_div_clk>, <&hdmi_div_clk>;
++		ti,bit-shift = <24>;
++	};
++
++	elm_mod_ck: elm_mod_ck@1758 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x1758>;
++		clocks = <&l3_iclk_div>;
++	};
++
+ 	usb_otg_ss2_refclk960m: usb_otg_ss2_refclk960m@1340 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,gate-clock";
+@@ -1670,6 +2149,27 @@
+ 		reg = <0x1340>;
+ 	};
+ 
++	usb_otg_ss2_mod_ck: usb_otg_ss2_mod_ck@1340 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-hw-mod-clock";
++		reg = <0x1340>;
++		clocks = <&dpll_core_h13x2_ck>;
++	};
++
++	usb_otg_ss3_mod_ck: usb_otg_ss3_mod_ck@1348 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-hw-mod-clock";
++		reg = <0x1348>;
++		clocks = <&dpll_core_h13x2_ck>;
++	};
++
++	usb_otg_ss4_mod_ck: usb_otg_ss4_mod_ck@1350 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-hw-mod-clock";
++		reg = <0x1350>;
++		clocks = <&dpll_core_h13x2_ck>;
++	};
++
+ 	usb_phy1_always_on_clk32k: usb_phy1_always_on_clk32k@640 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,gate-clock";
+@@ -1710,6 +2210,132 @@
+ 		reg = <0x0c00>;
+ 	};
+ 
++	atl_mod_ck: atl_mod_ck@c00 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x0c00>;
++		clocks = <&atl_gfclk_mux>;
++	};
++
++	l4_cfg_mod_ck: l4_cfg_mod_ck@d20 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x0d20>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	spinlock_mod_ck: spinlock_mod_ck@d28 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x0d28>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	mailbox1_mod_ck: mailbox1_mod_ck@d30 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x0d30>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	mailbox2_mod_ck: mailbox2_mod_ck@d48 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x0d48>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	mailbox3_mod_ck: mailbox3_mod_ck@d50 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x0d50>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	mailbox4_mod_ck: mailbox4_mod_ck@d58 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x0d58>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	mailbox5_mod_ck: mailbox5_mod_ck@d60 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x0d60>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	mailbox6_mod_ck: mailbox6_mod_ck@d68 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x0d68>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	mailbox7_mod_ck: mailbox7_mod_ck@d70 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x0d70>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	mailbox8_mod_ck: mailbox8_mod_ck@d78 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x0d78>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	mailbox9_mod_ck: mailbox9_mod_ck@d80 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x0d80>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	mailbox10_mod_ck: mailbox10_mod_ck@d88 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x0d88>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	mailbox11_mod_ck: mailbox11_mod_ck@d90 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x0d90>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	mailbox12_mod_ck: mailbox12_mod_ck@d98 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x0d98>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	mailbox13_mod_ck: mailbox13_mod_ck@da0 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-mod-clock";
++		reg = <0x0da0>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	l3_main_2_mod_ck: l3_main_2_mod_ck@e20 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-hw-mod-clock";
++		reg = <0x0e20>;
++		clocks = <&l3_iclk_div>;
++	};
++
++	l3_instr_mod_ck: l3_instr_mod_ck@e28 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-hw-mod-clock";
++		reg = <0x0e28>;
++		clocks = <&l3_iclk_div>;
++	};
++
+ 	gmac_gmii_ref_clk_div: gmac_gmii_ref_clk_div@13d0 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,divider-clock";
+@@ -1719,6 +2345,27 @@
+ 		ti,dividers = <2>;
+ 	};
+ 
++	gmac_mod_ck: gmac_mod_ck@13d0 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x13d0>;
++		clocks = <&dpll_gmac_ck>;
++	};
++
++	ocp2scp1_mod_ck: ocp2scp1_mod_ck@13e0 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-hw-mod-clock";
++		reg = <0x13e0>;
++		clocks = <&l4_root_clk_div>;
++	};
++
++	ocp2scp3_mod_ck: ocp2scp3_mod_ck@13e8 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-hw-mod-clock";
++		reg = <0x13e8>;
++		clocks = <&l4_root_clk_div>;
++	};
++
+ 	gmac_rft_clk_mux: gmac_rft_clk_mux@13d0 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+@@ -1792,6 +2439,13 @@
+ 		reg = <0x1868>;
+ 	};
+ 
++	mcasp3_mod_ck: mcasp3_mod_ck@1868 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x1868>;
++		clocks = <&mcasp3_aux_gfclk_mux>;
++	};
++
+ 	mcasp4_ahclkx_mux: mcasp4_ahclkx_mux@1898 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+@@ -1880,6 +2534,13 @@
+ 		reg = <0x1328>;
+ 	};
+ 
++	mmc1_mod_ck: mmc1_mod_ck@1328 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x1328>;
++		clocks = <&mmc1_fclk_div>;
++	};
++
+ 	mmc1_fclk_div: mmc1_fclk_div@1328 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,divider-clock";
+@@ -1908,6 +2569,13 @@
+ 		ti,index-power-of-two;
+ 	};
+ 
++	mmc2_mod_ck: mmc2_mod_ck@1330 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x1330>;
++		clocks = <&mmc2_fclk_div>;
++	};
++
+ 	mmc3_gfclk_mux: mmc3_gfclk_mux@1820 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+@@ -1926,6 +2594,13 @@
+ 		ti,index-power-of-two;
+ 	};
+ 
++	mmc3_mod_ck: mmc3_mod_ck@1820 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x1820>;
++		clocks = <&mmc3_gfclk_div>;
++	};
++
+ 	mmc4_gfclk_mux: mmc4_gfclk_mux@1828 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+@@ -1952,6 +2627,13 @@
+ 		reg = <0x1838>;
+ 	};
+ 
++	qspi_mod_ck: qspi_mod_ck@1838 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x1838>;
++		clocks = <&qspi_gfclk_div>;
++	};
++
+ 	qspi_gfclk_div: qspi_gfclk_div@1838 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,divider-clock";
+@@ -1962,148 +2644,131 @@
+ 		ti,index-power-of-two;
+ 	};
+ 
+-	timer10_gfclk_mux: timer10_gfclk_mux@1728 {
+-		#clock-cells = <0>;
+-		compatible = "ti,mux-clock";
+-		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>;
+-		ti,bit-shift = <24>;
+-		reg = <0x1728>;
+-	};
+-
+-	timer11_gfclk_mux: timer11_gfclk_mux@1730 {
++	uart1_gfclk_mux: uart1_gfclk_mux@1840 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>;
++		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
+ 		ti,bit-shift = <24>;
+-		reg = <0x1730>;
++		reg = <0x1840>;
+ 	};
+ 
+-	timer13_gfclk_mux: timer13_gfclk_mux@17c8 {
++	uart1_mod_ck: uart1_mod_ck@1840 {
+ 		#clock-cells = <0>;
+-		compatible = "ti,mux-clock";
+-		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>;
+-		ti,bit-shift = <24>;
+-		reg = <0x17c8>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x1840>;
++		clocks = <&uart1_gfclk_mux>;
+ 	};
+ 
+-	timer14_gfclk_mux: timer14_gfclk_mux@17d0 {
++	uart2_gfclk_mux: uart2_gfclk_mux@1848 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>;
++		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
+ 		ti,bit-shift = <24>;
+-		reg = <0x17d0>;
++		reg = <0x1848>;
+ 	};
+ 
+-	timer15_gfclk_mux: timer15_gfclk_mux@17d8 {
++	uart2_mod_ck: uart2_mod_ck@1848 {
+ 		#clock-cells = <0>;
+-		compatible = "ti,mux-clock";
+-		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>;
+-		ti,bit-shift = <24>;
+-		reg = <0x17d8>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x1848>;
++		clocks = <&uart2_gfclk_mux>;
+ 	};
+ 
+-	timer16_gfclk_mux: timer16_gfclk_mux@1830 {
++	uart3_gfclk_mux: uart3_gfclk_mux@1850 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>;
++		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
+ 		ti,bit-shift = <24>;
+-		reg = <0x1830>;
++		reg = <0x1850>;
+ 	};
+ 
+-	timer2_gfclk_mux: timer2_gfclk_mux@1738 {
++	uart3_mod_ck: uart3_mod_ck@1850 {
+ 		#clock-cells = <0>;
+-		compatible = "ti,mux-clock";
+-		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>;
+-		ti,bit-shift = <24>;
+-		reg = <0x1738>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x1850>;
++		clocks = <&uart3_gfclk_mux>;
+ 	};
+ 
+-	timer3_gfclk_mux: timer3_gfclk_mux@1740 {
++	uart4_gfclk_mux: uart4_gfclk_mux@1858 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>;
++		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
+ 		ti,bit-shift = <24>;
+-		reg = <0x1740>;
++		reg = <0x1858>;
+ 	};
+ 
+-	timer4_gfclk_mux: timer4_gfclk_mux@1748 {
++	uart4_mod_ck: uart4_mod_ck@1858 {
+ 		#clock-cells = <0>;
+-		compatible = "ti,mux-clock";
+-		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>;
+-		ti,bit-shift = <24>;
+-		reg = <0x1748>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x1858>;
++		clocks = <&uart4_gfclk_mux>;
+ 	};
+ 
+-	timer9_gfclk_mux: timer9_gfclk_mux@1750 {
++	uart5_gfclk_mux: uart5_gfclk_mux@1870 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&timer_sys_clk_div>, <&sys_32k_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&abe_giclk_div>, <&video1_div_clk>, <&video2_div_clk>, <&hdmi_div_clk>;
++		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
+ 		ti,bit-shift = <24>;
+-		reg = <0x1750>;
++		reg = <0x1870>;
+ 	};
+ 
+-	uart1_gfclk_mux: uart1_gfclk_mux@1840 {
++	uart5_mod_ck: uart5_mod_ck@1870 {
+ 		#clock-cells = <0>;
+-		compatible = "ti,mux-clock";
+-		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
+-		ti,bit-shift = <24>;
+-		reg = <0x1840>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x1870>;
++		clocks = <&uart5_gfclk_mux>;
+ 	};
+ 
+-	uart2_gfclk_mux: uart2_gfclk_mux@1848 {
++	uart7_gfclk_mux: uart7_gfclk_mux@18d0 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+ 		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
+ 		ti,bit-shift = <24>;
+-		reg = <0x1848>;
++		reg = <0x18d0>;
+ 	};
+ 
+-	uart3_gfclk_mux: uart3_gfclk_mux@1850 {
++	uart7_mod_ck: uart7_mod_ck@18d0 {
+ 		#clock-cells = <0>;
+-		compatible = "ti,mux-clock";
+-		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
+-		ti,bit-shift = <24>;
+-		reg = <0x1850>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x18d0>;
++		clocks = <&uart7_gfclk_mux>;
+ 	};
+ 
+-	uart4_gfclk_mux: uart4_gfclk_mux@1858 {
++	uart8_gfclk_mux: uart8_gfclk_mux@18e0 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+ 		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
+ 		ti,bit-shift = <24>;
+-		reg = <0x1858>;
++		reg = <0x18e0>;
+ 	};
+ 
+-	uart5_gfclk_mux: uart5_gfclk_mux@1870 {
++	uart8_mod_ck: uart8_mod_ck@18e0 {
+ 		#clock-cells = <0>;
+-		compatible = "ti,mux-clock";
+-		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
+-		ti,bit-shift = <24>;
+-		reg = <0x1870>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x18e0>;
++		clocks = <&uart8_gfclk_mux>;
+ 	};
+ 
+-	uart7_gfclk_mux: uart7_gfclk_mux@18d0 {
++	uart9_gfclk_mux: uart9_gfclk_mux@18e8 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+ 		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
+ 		ti,bit-shift = <24>;
+-		reg = <0x18d0>;
++		reg = <0x18e8>;
+ 	};
+ 
+-	uart8_gfclk_mux: uart8_gfclk_mux@18e0 {
++	uart9_mod_ck: uart9_mod_ck@18e8 {
+ 		#clock-cells = <0>;
+-		compatible = "ti,mux-clock";
+-		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
+-		ti,bit-shift = <24>;
+-		reg = <0x18e0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x18e8>;
++		clocks = <&uart9_gfclk_mux>;
+ 	};
+ 
+-	uart9_gfclk_mux: uart9_gfclk_mux@18e8 {
++	dcan2_mod_ck: dcan2_mod_ck@18f0 {
+ 		#clock-cells = <0>;
+-		compatible = "ti,mux-clock";
+-		clocks = <&func_48m_fclk>, <&dpll_per_m2x2_ck>;
+-		ti,bit-shift = <24>;
+-		reg = <0x18e8>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x18f0>;
++		clocks = <&sys_clkin1>;
+ 	};
+ 
+ 	vip1_gclk_mux: vip1_gclk_mux@1020 {
+@@ -2134,7 +2799,100 @@
+ &cm_core_clockdomains {
+ 	coreaon_clkdm: coreaon_clkdm {
+ 		compatible = "ti,clockdomain";
+-		clocks = <&dpll_usb_ck>;
++		clocks = <&smartreflex_mpu_mod_ck>, <&smartreflex_core_mod_ck>,
++			 <&dpll_usb_ck>;
++	};
++
++	atl_clkdm: atl_clkdm {
++		compatible = "ti,clockdomain";
++		clocks = <&atl_mod_ck>;
++	};
++
++	l3main1_clkdm: l3main1_clkdm {
++		compatible = "ti,clockdomain";
++		clocks = <&tpcc_mod_ck>, <&tptc1_mod_ck>, <&l3_main_1_mod_ck>,
++			 <&vcp1_mod_ck>, <&gpmc_mod_ck>, <&tptc0_mod_ck>,
++			 <&vcp2_mod_ck>;
++	};
++
++	l4cfg_clkdm: l4cfg_clkdm {
++		compatible = "ti,clockdomain";
++		clocks = <&mailbox12_mod_ck>, <&mailbox6_mod_ck>,
++			 <&mailbox10_mod_ck>, <&mailbox11_mod_ck>,
++			 <&mailbox4_mod_ck>, <&mailbox8_mod_ck>,
++			 <&mailbox5_mod_ck>, <&mailbox3_mod_ck>,
++			 <&mailbox2_mod_ck>, <&l4_cfg_mod_ck>,
++			 <&mailbox13_mod_ck>, <&mailbox7_mod_ck>,
++			 <&mailbox1_mod_ck>, <&spinlock_mod_ck>,
++			 <&mailbox9_mod_ck>;
++	};
++
++	l3instr_clkdm: l3instr_clkdm {
++		compatible = "ti,clockdomain";
++		clocks = <&l3_instr_mod_ck>, <&l3_main_2_mod_ck>;
++	};
++
++	l4per_clkdm: l4per_clkdm {
++		compatible = "ti,clockdomain";
++		clocks = <&timer3_mod_ck>, <&gpio6_mod_ck>, <&timer11_mod_ck>,
++			 <&hdq1w_mod_ck>, <&uart3_mod_ck>, <&gpio2_mod_ck>,
++			 <&uart1_mod_ck>, <&i2c4_mod_ck>, <&i2c2_mod_ck>,
++			 <&timer4_mod_ck>, <&i2c3_mod_ck>, <&l4_per1_mod_ck>,
++			 <&elm_mod_ck>, <&gpio3_mod_ck>, <&mcspi3_mod_ck>,
++			 <&uart4_mod_ck>, <&mmc4_mod_ck>, <&timer2_mod_ck>,
++			 <&mmc3_mod_ck>, <&gpio5_mod_ck>, <&gpio8_mod_ck>,
++			 <&gpio4_mod_ck>, <&mcspi1_mod_ck>, <&timer9_mod_ck>,
++			 <&mcspi2_mod_ck>, <&uart5_mod_ck>, <&timer10_mod_ck>,
++			 <&mcspi4_mod_ck>, <&uart2_mod_ck>, <&i2c1_mod_ck>,
++			 <&gpio7_mod_ck>;
++	};
++
++	l4per3_clkdm: l4per3_clkdm {
++		compatible = "ti,clockdomain";
++		clocks = <&timer16_mod_ck>, <&timer15_mod_ck>,
++			 <&l4_per3_mod_ck>, <&timer13_mod_ck>,
++			 <&timer14_mod_ck>;
++	};
++
++	l4per2_clkdm: l4per2_clkdm {
++		compatible = "ti,clockdomain";
++		clocks = <&qspi_mod_ck>, <&uart8_mod_ck>, <&uart7_mod_ck>,
++			 <&l4_per2_mod_ck>, <&uart9_mod_ck>, <&mcasp3_mod_ck>,
++			 <&dcan2_mod_ck>;
++	};
++
++	dss_clkdm: dss_clkdm {
++		compatible = "ti,clockdomain";
++		clocks = <&dss_hdmi_mod_ck>, <&dss_core_mod_ck>,
++			 <&dss_dispc_mod_ck>, <&bb2d_mod_ck>;
++	};
++
++	pcie_clkdm: pcie_clkdm {
++		compatible = "ti,clockdomain";
++		clocks = <&pcie2_mod_ck>, <&pcie1_mod_ck>;
++	};
++
++	emif_clkdm: emif_clkdm {
++		compatible = "ti,clockdomain";
++		clocks = <&dmm_mod_ck>;
++	};
++
++	l3init_clkdm: l3init_clkdm {
++		compatible = "ti,clockdomain";
++		clocks = <&ocp2scp1_mod_ck>, <&usb_otg_ss1_mod_ck>,
++			 <&sata_mod_ck>, <&mmc1_mod_ck>, <&usb_otg_ss4_mod_ck>,
++			 <&usb_otg_ss2_mod_ck>, <&ocp2scp3_mod_ck>,
++			 <&usb_otg_ss3_mod_ck>, <&mmc2_mod_ck>;
++	};
++
++	dma_clkdm: dma_clkdm {
++		compatible = "ti,clockdomain";
++		clocks = <&dma_system_mod_ck>;
++	};
++
++	gmac_clkdm: gmac_clkdm {
++		compatible = "ti,clockdomain";
++		clocks = <&gmac_mod_ck>;
+ 	};
+ };
+ 
+@@ -2171,3 +2929,30 @@
+ 		reg = <0x0558>;
+ 	};
+ };
++
++&prm_clockdomains {
++	wkupaon_clkdm: wkupaon_clkdm {
++		compatible = "ti,clockdomain";
++		clocks = <&gpio1_mod_ck>, <&wd_timer2_mod_ck>,
++			 <&l4_wkup_mod_ck>, <&timer1_mod_ck>, <&uart10_mod_ck>,
++			 <&dcan1_mod_ck>, <&counter_32k_mod_ck>;
++	};
 +};
 +
-+static u32 _omap4_idlest(u32 val)
-+{
-+	val &= OMAP4_IDLEST_MASK;
-+	val >>= OMAP4_IDLEST_SHIFT;
++&cm_core_aon_clockdomains {
++	ipu_clkdm: ipu_clkdm {
++		compatible = "ti,clockdomain";
++		clocks = <&timer7_mod_ck>, <&timer6_mod_ck>, <&uart6_mod_ck>,
++			 <&i2c5_mod_ck>, <&timer8_mod_ck>, <&timer5_mod_ck>;
++	};
 +
-+	return val;
-+}
++	mpu_clkdm: mpu_clkdm {
++		compatible = "ti,clockdomain";
++		clocks = <&mpu_mod_ck>;
++	};
 +
-+static bool _omap4_is_idle(u32 val)
-+{
-+	val = _omap4_idlest(val);
-+
-+	return val == CLKCTRL_IDLEST_DISABLED;
-+}
-+
-+static bool _omap4_is_ready(u32 val)
-+{
-+	val = _omap4_idlest(val);
-+
-+	return val == CLKCTRL_IDLEST_FUNCTIONAL ||
-+	       val == CLKCTRL_IDLEST_INTERFACE_IDLE;
-+}
-+
-+static bool _omap4_is_timeout(union omap4_timeout *time, u32 timeout)
-+{
-+	if (unlikely(_early_timeout)) {
-+		if (time->cycles++ < timeout) {
-+			udelay(1);
-+			return false;
-+		}
-+	} else {
-+		if (!ktime_to_ns(time->start)) {
-+			time->start = ktime_get();
-+			return false;
-+		}
-+
-+		if (ktime_us_delta(ktime_get(), time->start) < timeout) {
-+			cpu_relax();
-+			return false;
-+		}
-+	}
-+
-+	return true;
-+}
-+
-+static int __init _omap4_disable_early_timeout(void)
-+{
-+	_early_timeout = false;
-+
-+	return 0;
-+}
-+arch_initcall(_omap4_disable_early_timeout);
-+
-+static int _omap4_hwmod_clk_enable(struct clk_hw *hw)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	u32 val;
-+	int ret;
-+	union omap4_timeout timeout = { 0 };
-+
-+	if (!clk->enable_bit)
-+		return 0;
-+
-+	if (clk->clkdm) {
-+		ret = ti_clk_ll_ops->clkdm_clk_enable(clk->clkdm, hw->clk);
-+		if (ret) {
-+			WARN(1,
-+			     "%s: could not enable %s's clockdomain %s: %d\n",
-+			     __func__, clk_hw_get_name(hw),
-+			     clk->clkdm_name, ret);
-+			return ret;
-+		}
-+	}
-+
-+	val = ti_clk_ll_ops->clk_readl(clk->enable_reg);
-+
-+	val &= ~OMAP4_MODULEMODE_MASK;
-+	val |= clk->enable_bit;
-+
-+	ti_clk_ll_ops->clk_writel(val, clk->enable_reg);
-+
-+	if (clk->flags & NO_IDLEST)
-+		return 0;
-+
-+	/* Wait until module is enabled */
-+	while (!_omap4_is_ready(ti_clk_ll_ops->clk_readl(clk->enable_reg))) {
-+		if (_omap4_is_timeout(&timeout, OMAP4_MAX_MODULE_READY_TIME)) {
-+			pr_err("%s: failed to enable\n", clk_hw_get_name(hw));
-+			return -EBUSY;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static void _omap4_hwmod_clk_disable(struct clk_hw *hw)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	u32 val;
-+	union omap4_timeout timeout = { 0 };
-+
-+	if (!clk->enable_bit)
-+		return;
-+
-+	val = ti_clk_ll_ops->clk_readl(clk->enable_reg);
-+
-+	val &= ~OMAP4_MODULEMODE_MASK;
-+
-+	ti_clk_ll_ops->clk_writel(val, clk->enable_reg);
-+
-+	if (clk->flags & NO_IDLEST)
-+		return;
-+
-+	/* Wait until module is disabled */
-+	while (!_omap4_is_idle(ti_clk_ll_ops->clk_readl(clk->enable_reg))) {
-+		if (_omap4_is_timeout(&timeout,
-+				      OMAP4_MAX_MODULE_DISABLE_TIME)) {
-+			pr_err("%s: failed to disable\n", clk_hw_get_name(hw));
-+			break;
-+		}
-+	}
-+
-+	if (clk->clkdm)
-+		ti_clk_ll_ops->clkdm_clk_disable(clk->clkdm, hw->clk);
-+}
-+
-+static int _omap4_hwmod_clk_is_enabled(struct clk_hw *hw)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	u32 val;
-+
-+	val = ti_clk_ll_ops->clk_readl(clk->enable_reg);
-+
-+	if (val & clk->enable_bit)
-+		return 1;
-+
-+	return 0;
-+}
-+
-+static const struct clk_ops omap4_module_clk_ops = {
-+	.enable		= _omap4_hwmod_clk_enable,
-+	.disable	= _omap4_hwmod_clk_disable,
-+	.is_enabled	= _omap4_hwmod_clk_is_enabled,
++	rtc_clkdm: rtc_clkdm {
++		compatible = "ti,clockdomain";
++		clocks = <&rtcss_mod_ck>;
++	};
 +};
-+
-+static void __init _of_ti_hwmod_clk_setup(struct device_node *node,
-+					  u8 modulemode, u8 flags)
-+{
-+	const char *parent_name;
-+	void __iomem *reg;
-+	u8 enable_bit;
-+	struct clk_hw_omap *clk_hw;
-+	struct clk_init_data init = { NULL };
-+	struct clk *clk;
-+
-+	reg = ti_clk_get_reg_addr(node, 0);
-+	if (IS_ERR(reg))
-+		return;
-+
-+	parent_name = of_clk_get_parent_name(node, 0);
-+	if (!parent_name) {
-+		pr_err("%s must have 1 parent\n", node->name);
-+		return;
-+	}
-+
-+	enable_bit = modulemode;
-+
-+	clk_hw = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
-+
-+	clk_hw->flags = flags;
-+
-+	clk_hw->enable_reg = reg;
-+	clk_hw->enable_bit = enable_bit;
-+
-+	init.parent_names = &parent_name;
-+	init.num_parents = 1;
-+	init.flags = 0;
-+
-+	init.ops = &omap4_module_clk_ops;
-+	clk_hw->hw.init = &init;
-+	init.name = node->name;
-+
-+	clk = clk_register(NULL, &clk_hw->hw);
-+
-+	if (!IS_ERR(clk))
-+		of_clk_add_provider(node, of_clk_src_simple_get, clk);
-+}
-+
-+static void __init of_ti_omap4_hwmod_clk_setup(struct device_node *node)
-+{
-+	_of_ti_hwmod_clk_setup(node, 0, 0);
-+}
-+
-+CLK_OF_DECLARE(ti_omap4_hwmod_clk, "ti,omap4-mod-clock",
-+	       of_ti_omap4_hwmod_clk_setup);
-+
-+static void __init of_ti_omap4_hwmod_hw_clk_setup(struct device_node *node)
-+{
-+	_of_ti_hwmod_clk_setup(node, MODULEMODE_HWCTRL, 0);
-+}
-+
-+CLK_OF_DECLARE(ti_omap4_hwmod_hw_clk, "ti,omap4-hw-mod-clock",
-+	       of_ti_omap4_hwmod_hw_clk_setup);
-+
-+static void __init of_ti_omap4_hwmod_sw_clk_setup(struct device_node *node)
-+{
-+	_of_ti_hwmod_clk_setup(node, MODULEMODE_SWCTRL, 0);
-+}
-+
-+CLK_OF_DECLARE(ti_omap4_hwmod_sw_clk, "ti,omap4-sw-mod-clock",
-+	       of_ti_omap4_hwmod_sw_clk_setup);
-+
-+static void __init
-+of_ti_omap4_hwmod_sw_no_idlest_clk_setup(struct device_node *node)
-+{
-+	_of_ti_hwmod_clk_setup(node, MODULEMODE_SWCTRL, NO_IDLEST);
-+}
-+
-+CLK_OF_DECLARE(ti_omap4_hwmod_sw_no_idlest_clk,
-+	       "ti,omap4-sw-no-idlest-mod-clock",
-+	       of_ti_omap4_hwmod_sw_no_idlest_clk_setup);
-+
-+static u8 _omap4_mux_mod_get_parent(struct clk_hw *hw)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	struct clk_hw *mux_hw = clk->mux;
-+
-+	__clk_hw_set_clk(mux_hw, hw);
-+
-+	return ti_clk_mux_get_parent(mux_hw);
-+}
-+
-+static int _omap4_mux_mod_set_parent(struct clk_hw *hw, u8 index)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	struct clk_hw *mux_hw = clk->mux;
-+
-+	__clk_hw_set_clk(mux_hw, hw);
-+
-+	return ti_clk_mux_set_parent(mux_hw, index);
-+}
-+
-+static int _omap4_mux_mod_determine_rate(struct clk_hw *hw,
-+					 struct clk_rate_request *req)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	struct clk_hw *mux_hw = clk->mux;
-+
-+	__clk_hw_set_clk(mux_hw, hw);
-+
-+	return __clk_mux_determine_rate(mux_hw, req);
-+}
-+
-+static const struct clk_ops omap4_mux_module_clk_ops = {
-+	.enable		= _omap4_hwmod_clk_enable,
-+	.disable	= _omap4_hwmod_clk_disable,
-+	.is_enabled	= _omap4_hwmod_clk_is_enabled,
-+	.get_parent	= _omap4_mux_mod_get_parent,
-+	.set_parent	= _omap4_mux_mod_set_parent,
-+	.determine_rate	= _omap4_mux_mod_determine_rate,
-+};
-+
-+static void __init _of_ti_omap4_hwmod_mux_clk_setup(struct device_node *node,
-+						    u8 modulemode)
-+{
-+	struct clk_hw_omap *gate;
-+	struct clk_mux *mux;
-+	int num_parents;
-+	const char **parent_names = NULL;
-+	u32 val;
-+	void __iomem *reg;
-+	struct clk *clk;
-+	struct clk_init_data init = { NULL };
-+
-+	mux = kzalloc(sizeof(*mux), GFP_KERNEL);
-+	gate = kzalloc(sizeof(*gate), GFP_KERNEL);
-+
-+	if (!mux || !gate)
-+		goto err;
-+
-+	gate->mux = &mux->hw;
-+
-+	if (!of_property_read_u32(node, "ti,bit-shift", &val))
-+		mux->shift = val;
-+
-+	if (of_property_read_bool(node, "ti,index-starts-at-one"))
-+		mux->flags |= CLK_MUX_INDEX_ONE;
-+
-+	num_parents = of_clk_get_parent_count(node);
-+
-+	if (num_parents < 2) {
-+		pr_err("%s: must have parents\n", node->name);
-+		goto err;
-+	}
-+
-+	parent_names = kzalloc((sizeof(char *) * num_parents), GFP_KERNEL);
-+	if (!parent_names)
-+		goto err;
-+
-+	of_clk_parent_fill(node, parent_names, num_parents);
-+
-+	reg = ti_clk_get_reg_addr(node, 0);
-+
-+	if (IS_ERR(reg))
-+		goto err;
-+
-+	gate->enable_bit = modulemode;
-+	gate->enable_reg = reg;
-+
-+	reg = ti_clk_get_reg_addr(node, 1);
-+
-+	if (IS_ERR(reg))
-+		goto err;
-+
-+	mux->reg = reg;
-+
-+	init.parent_names = parent_names;
-+	init.num_parents = num_parents;
-+	init.flags = 0;
-+
-+	init.ops = &omap4_mux_module_clk_ops;
-+	gate->hw.init = &init;
-+	init.name = node->name;
-+
-+	clk = clk_register(NULL, &gate->hw);
-+
-+	if (!IS_ERR(clk)) {
-+		of_clk_add_provider(node, of_clk_src_simple_get, clk);
-+		goto cleanup;
-+	}
-+err:
-+	kfree(gate);
-+	kfree(mux);
-+
-+cleanup:
-+	kfree(parent_names);
-+}
-+
-+static void __init of_ti_omap4_hwmod_mux_clk_setup(struct device_node *node)
-+{
-+	_of_ti_omap4_hwmod_mux_clk_setup(node, 0);
-+}
-+
-+CLK_OF_DECLARE(ti_omap4_mux_hwmod_clk, "ti,omap4-mux-mod-clock",
-+	       of_ti_omap4_hwmod_mux_clk_setup);
-+
-+static void __init of_ti_omap4_hwmod_sw_mux_clk_setup(struct device_node *node)
-+{
-+	_of_ti_omap4_hwmod_mux_clk_setup(node, MODULEMODE_SWCTRL);
-+}
-+
-+CLK_OF_DECLARE(ti_omap4_mux_hwmod_sw_clk, "ti,omap4-sw-mux-mod-clock",
-+	       of_ti_omap4_hwmod_sw_mux_clk_setup);
-+
-+static void __init of_ti_omap4_hwmod_hw_mux_clk_setup(struct device_node *node)
-+{
-+	_of_ti_omap4_hwmod_mux_clk_setup(node, MODULEMODE_HWCTRL);
-+}
-+
-+CLK_OF_DECLARE(ti_omap4_mux_hwmod_hw_clk, "ti,omap4-hw-mux-mod-clock",
-+	       of_ti_omap4_hwmod_hw_mux_clk_setup);
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 1451291..4ba364e 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -127,6 +127,7 @@ struct clk_hw_omap_ops {
-  * @enable_bit: bitshift to write to enable/disable the clock (see @enable_reg)
-  * @flags: see "struct clk.flags possibilities" above
-  * @clksel_reg: for clksel clks, register va containing src/divisor select
-+ * @mux: for module clocks, pointer to the optional mux component
-  * @dpll_data: for DPLLs, pointer to struct dpll_data for this clock
-  * @clkdm_name: clockdomain name that this clock is contained in
-  * @clkdm: pointer to struct clockdomain, resolved from @clkdm_name at runtime
-@@ -141,6 +142,7 @@ struct clk_hw_omap {
- 	u8			enable_bit;
- 	u8			flags;
- 	void __iomem		*clksel_reg;
-+	struct clk_hw		*mux;
- 	struct dpll_data	*dpll_data;
- 	const char		*clkdm_name;
- 	struct clockdomain	*clkdm;
 -- 
 1.7.9.5
 
