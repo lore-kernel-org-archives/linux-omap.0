@@ -1,80 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 0/3] ARM: OMAP3: Fix McBSP2/3 hwmod setup for sidetone
-Date: Thu, 14 Apr 2016 09:55:15 -0700
-Message-ID: <20160414165514.GL5995@atomide.com>
-References: <20160402001753.GR9329@atomide.com>
- <57026205.6020105@ti.com>
- <20160404151200.GA4652@atomide.com>
- <5703BA6B.1080208@ti.com>
- <20160411212845.GJ5995@atomide.com>
- <570CC54E.6020703@ti.com>
- <20160412163750.GR5995@atomide.com>
- <570E3428.5020804@ti.com>
- <20160413152829.GQ5995@atomide.com>
- <570F4804.4050006@ti.com>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 2/2] ARM: dts: dra7x: Support QSPI MODE-0 operation at
+ 64MHz
+Date: Thu, 14 Apr 2016 12:12:15 -0500
+Message-ID: <20160414171215.GA9860@rob-hp-laptop>
+References: <1460629101-24309-1-git-send-email-vigneshr@ti.com>
+ <1460629101-24309-3-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <570F4804.4050006@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, jarkko.nikula@bitmer.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+In-Reply-To: <1460629101-24309-3-git-send-email-vigneshr-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [160414 00:35]:
-> On 04/13/16 18:28, Tony Lindgren wrote:
-> > 
-> > You could just create the sidetone child device manually on probe in the
-> > driver as needed. That way you'd have two devices to do the PM runtime
-> > on. I think that was Paul's main concern as they are separate modules.
+On Thu, Apr 14, 2016 at 03:48:21PM +0530, Vignesh R wrote:
+> According to Data Manual(SPRS915P) of AM57x, TI QSPI controller on
+> DRA74(rev 1.1+)/DRA72 EVM can support up to 64MHz in MODE-0, whereas
+> MODE-3 is limited to 48MHz. Hence, switch to MODE-0 for better
+> throughput.
 > 
-> You mean that not to have separate compatible for the McBSP module's Sidetone
-> core?
-> If yes, then it is a valid thing to remove the hwmod data for the sidetone,
-> like I did in this series.
-
-No, I meant keep the sidetone hwmod, it really is there in the hardware.
-
-I meant only probe the sidetone in the McBSP probe so you have two
-struct dev and two hwmod entries in the McBSP driver. I don't know if
-this actually makes things easier or not though.
-
-> > It still leaves the chance of bugs with flush of posted writes. But might
-> > make things easier to deal with in small steps?
+> Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+> ---
+>  Documentation/devicetree/bindings/spi/ti_qspi.txt | 7 +++++++
+>  arch/arm/boot/dts/dra7-evm.dts                    | 6 ++----
+>  arch/arm/boot/dts/dra72-evm.dts                   | 6 ++----
+>  3 files changed, 11 insertions(+), 8 deletions(-)
 > 
-> The only 'benefit' I see with separated driver for McBSP core and Sidetone
-> core is that the register writes will happen to the cores in separate drivers.
-> 
-> If the McBSP driver creates the device for the sidetone driver, then passing
-> the needed callbacks and data to it is going to be cleaner. Registering back
-> the callbacks to McBSP is what need to be figured out, so it is simple and
-> clean. Either with a callback to McBSP to set the ST callbacks or have the
-> callback struct used by ST via pdata to have places for the ST to McBSP
-> callbacks and when the driver loads it is going to set up those.
+> diff --git a/Documentation/devicetree/bindings/spi/ti_qspi.txt b/Documentation/devicetree/bindings/spi/ti_qspi.txt
+> index cc8304aa64ac..50b14f6b53a3 100644
+> --- a/Documentation/devicetree/bindings/spi/ti_qspi.txt
+> +++ b/Documentation/devicetree/bindings/spi/ti_qspi.txt
+> @@ -19,6 +19,13 @@ Optional properties:
+>  - syscon-chipselects: Handle to system control region contains QSPI
+>  		      chipselect register and offset of that register.
+>  
+> +NOTE: TI QSPI controller requires different pinmux and IODelay
+> +paramaters for Mode-0 and Mode-3 operations, which needs to be set up by
+> +the bootloader (U-Boot). Default configuration only supports Mode-0
+> +operation. Hence, "spi-cpol" and "spi-cpha" DT properties cannot be
+> +specified in the slave nodes of TI QSPI controller without appropriate
+> +modification to bootloader.
 
-OK yeah makes sense to me.
+But these properties are properties of what the slave device supports, 
+right? I don't see how you can change them based on the controller.
 
-> If I remove the prcm section for the ST hwmod:
-> [   87.784820] omap_hwmod: mcbsp2_sidetone: _wait_target_ready failed: -22
-> [   87.784851] omap-mcbsp 49022000.mcbsp: use pm_runtime_put_sync_suspend() in
-> driver?
-> 
-> When first try to use the audio.
-> So the hwmod code at least was checking the idlest bit.
-
-Yes the module is really there for sidetone, and it really has hardware
-registers :)
-
-> OK. I will go with the assumption that the sidetone hwmod can be removed (as
-> it is not correct) and rework my current series to use pdata callback for the
-> iclk autogate allow/deny. With this set the ST will be operational in legacy
-> and DT boot.
-
-Sorry, no I did not want to drop the sidetone hwmod, I was just trying to
-come up with ideas on how to make the driver changes easier. It sounds like
-you already figured out the driver changes part though with two drivers.
-
-Regards,
-
-Tony
+Rob
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
