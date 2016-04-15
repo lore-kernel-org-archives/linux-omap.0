@@ -1,8 +1,8 @@
 From: Boris Brezillon <boris.brezillon@free-electrons.com>
 Subject: Re: [PATCH v6 00/17] memory: omap-gpmc: mtd: nand: Support GPMC
  NAND on non-OMAP platforms
-Date: Fri, 15 Apr 2016 13:12:02 +0200
-Message-ID: <20160415131202.7cf2ae5e@bbrezillon>
+Date: Fri, 15 Apr 2016 13:51:08 +0200
+Message-ID: <20160415135108.63716f06@bbrezillon>
 References: <1460023715-19332-1-git-send-email-rogerq@ti.com>
 	<20160413212500.GD5995@atomide.com>
 	<5710B58C.7050108@ti.com>
@@ -17,6 +17,8 @@ Sender: linux-kernel-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>
 Cc: javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, computersforpeace@gmail.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+
+Roger, Tony,
 
 On Fri, 15 Apr 2016 13:54:34 +0300
 Roger Quadros <rogerq@ti.com> wrote:
@@ -61,10 +63,27 @@ Roger Quadros <rogerq@ti.com> wrote:
 > today's nand/next) and I can base my branch on that and Tony can use my
 > branch without causing any merge-conflict in linux-next?
 
-You want those patches to go through the arm-soc tree, right?
-I'm not an expert, but I'd say that Tony should take those patches and
-provide an immutable branch I can pull into nand/next.
+I just created a branch called nand/for-gpmc-rework based on today's
+nand/next, but I'm still unsure how to proceed once you've rebased your
+work on this branch?
 
+Tony will first have to pull my immutable branch, then pull yours, and
+then I'll have to pull an immutable branch from the the omap-soc tree
+to get your changes into my nand/next branch (in case other patches
+modify the same files before I send my PR). Am I missing something?
+If I'm not, then this option looks over-complicated to me.
+
+ITOH, if we decide to let your patches go through the nand or omap-soc
+tree, only one immutable branch will be created, and either the nand or
+omap-soc maintainer (depending on who takes the patches) will have to
+pull it into its -next branch.
+
+I'm quite new to all this merging process, so don't hesitate to correct
+me if I'm wrong.
+
+Thanks,
+
+Boris
 
 -- 
 Boris Brezillon, Free Electrons
