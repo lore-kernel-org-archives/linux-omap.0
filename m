@@ -1,70 +1,92 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+From: Roger Quadros <rogerq@ti.com>
 Subject: Re: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
-Date: Fri, 15 Apr 2016 13:57:44 +0300
-Message-ID: <5710C928.2020704@ti.com>
+Date: Fri, 15 Apr 2016 14:00:46 +0300
+Message-ID: <5710C9DE.2050106@ti.com>
 References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
  <1459865117-7032-8-git-send-email-rogerq@ti.com>
- <SG2PR06MB091922CDE73AE061A79E90E4D8900@SG2PR06MB0919.apcprd06.prod.outlook.com>
- <57064850.3060405@ti.com>
- <SG2PR06MB09197595F9D810CF8A22D860D8910@SG2PR06MB0919.apcprd06.prod.outlook.com>
- <570B8268.6090700@ti.com>
- <SG2PR06MB0919398D3CF4944A6EA2754DD8970@SG2PR06MB0919.apcprd06.prod.outlook.com>
- <570F7827.8050707@ti.com>
- <SG2PR06MB09195754753D7FDDAB05D3FDD8970@SG2PR06MB0919.apcprd06.prod.outlook.com>
- <570F7FB3.2040807@ti.com>
- <SG2PR06MB09195F411F6BBE840F7A22D2D8680@SG2PR06MB0919.apcprd06.prod.outlook.com>
+ <20160415092534.GA21274@shlinux2.ap.freescale.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <SG2PR06MB09195F411F6BBE840F7A22D2D8680-ESzmfEwOt/zNQ8RBPPB5A20DtJ1/0DrXvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, "stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org" <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
-Cc: "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org" <abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, "r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160415092534.GA21274@shlinux2.ap.freescale.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Chen <hzpeterchen@gmail.com>
+Cc: stern@rowland.harvard.edu, balbi@kernel.org, gregkh@linuxfoundation.org, peter.chen@freescale.com, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, r.baldyga@samsung.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 15/04/16 12:59, Yoshihiro Shimoda wrote:
-> Hi,
+On 15/04/16 12:25, Peter Chen wrote:
+> On Tue, Apr 05, 2016 at 05:05:12PM +0300, Roger Quadros wrote:
+>> + * usb_otg_register() - Register the OTG/dual-role device to OTG core
+>> + * @dev: OTG/dual-role controller device.
+>> + * @config: OTG configuration.
+>> + *
+>> + * Registers the OTG/dual-role controller device with the USB OTG core.
+>> + *
+>> + * Return: struct usb_otg * if success, ERR_PTR() if error.
+>> + */
+>> +struct usb_otg *usb_otg_register(struct device *dev,
+>> +				 struct usb_otg_config *config)
+>> +{
+>> +	struct usb_otg *otg;
+>> +	struct otg_wait_data *wait;
+>> +	int ret = 0;
+>> +
+>> +	if (!dev || !config || !config->fsm_ops)
+>> +		return ERR_PTR(-EINVAL);
+>> +
+>> +	/* already in list? */
+>> +	mutex_lock(&otg_list_mutex);
+>> +	if (usb_otg_get_data(dev)) {
+>> +		dev_err(dev, "otg: %s: device already in otg list\n",
+>> +			__func__);
+>> +		ret = -EINVAL;
+>> +		goto unlock;
+>> +	}
+>> +
+>> +	/* allocate and add to list */
+>> +	otg = kzalloc(sizeof(*otg), GFP_KERNEL);
+>> +	if (!otg) {
+>> +		ret = -ENOMEM;
+>> +		goto unlock;
+>> +	}
+>> +
+>> +	otg->dev = dev;
+>> +	otg->caps = config->otg_caps;
+>> +
+>> +	if ((otg->caps->hnp_support || otg->caps->srp_support ||
+>> +	     otg->caps->adp_support) && !config->otg_work)
+>> +		dev_info(dev, "otg: limiting to dual-role\n");
 > 
->> From: Roger Quadros
->> Sent: Thursday, April 14, 2016 8:32 PM
->>
->> On 14/04/16 14:15, Yoshihiro Shimoda wrote:
->>> Hi,
->>>
-> < snip >
->>>>> @@ -865,7 +867,8 @@ int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
->>>>>  	 * we're ready only if we have shared HCD
->>>>>  	 * or we don't need shared HCD.
->>>>>  	 */
->>>>> -	if (otg->shared_hcd.hcd || !otg->primary_hcd.hcd->shared_hcd) {
->>>>> +	if (otg->shared_hcd.hcd || (!otg->caps->needs_companion &&
->>>>> +				    !otg->primary_hcd.hcd->shared_hcd)) {
->>>>>  		otg->host = hcd_to_bus(hcd);
->>>>>  		/* FIXME: set bus->otg_port if this is true OTG port with HNP */
->>>>>
->>>>
->>>> These changes look good to me. Thanks.
->>>
->>> Thank you for the comment.
->>> If we change the "needs_companion" place to the otg_config,
->>> do we need to add a flag into the otg, instead of otg->caps?
->>
->> Yes we can add a flag in struct usb_otg.
-> 
-> Thank you for the comment.
-> 
-> I made a fixed patch.
-> So, should I send this patch to ML after you sent v7 patches?
-> Or, would you apply this patch before you send v7 patches?
-> 
+> What does above mean? Customized otg_work item may be dual-role,
+> may be full otg.
 
-Thanks for working on this and testing the series. I will pick your patch
-as part of v7.
+I'm checking for !config->otg_work so we're sure of using the
+default dual-role only work function.
 
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+>> +
+>> +	if (config->otg_work)	/* custom otg_work ? */
+>> +		INIT_WORK(&otg->work, config->otg_work);
+>> +	else
+>> +		INIT_WORK(&otg->work, usb_otg_work);
+>> +
+>> +	otg->wq = create_singlethread_workqueue("usb_otg");
+>> +	if (!otg->wq) {
+>> +		dev_err(dev, "otg: %s: can't create workqueue\n",
+>> +			__func__);
+>> +		ret = -ENOMEM;
+>> +		goto err_wq;
+>> +	}
+> 
+> I found a bug that caused by non-freezable workqueue, change it
+> as freezable please.
+> 
+> https://marc.ttias.be/linux-stable/2016-03/msg00723.php
+
+OK.
+
+> 
+> I will review the whole set from next week.
+
+Thanks.
