@@ -1,92 +1,69 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v6 00/17] memory: omap-gpmc: mtd: nand: Support GPMC NAND
- on non-OMAP platforms
-Date: Fri, 15 Apr 2016 12:34:04 +0300
-Message-ID: <5710B58C.7050108@ti.com>
-References: <1460023715-19332-1-git-send-email-rogerq@ti.com>
- <20160413212500.GD5995@atomide.com>
+From: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
+Subject: RE: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
+Date: Fri, 15 Apr 2016 09:59:31 +0000
+Message-ID: <SG2PR06MB09195F411F6BBE840F7A22D2D8680@SG2PR06MB0919.apcprd06.prod.outlook.com>
+References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
+ <1459865117-7032-8-git-send-email-rogerq@ti.com>
+ <SG2PR06MB091922CDE73AE061A79E90E4D8900@SG2PR06MB0919.apcprd06.prod.outlook.com>
+ <57064850.3060405@ti.com>
+ <SG2PR06MB09197595F9D810CF8A22D860D8910@SG2PR06MB0919.apcprd06.prod.outlook.com>
+ <570B8268.6090700@ti.com>
+ <SG2PR06MB0919398D3CF4944A6EA2754DD8970@SG2PR06MB0919.apcprd06.prod.outlook.com>
+ <570F7827.8050707@ti.com>
+ <SG2PR06MB09195754753D7FDDAB05D3FDD8970@SG2PR06MB0919.apcprd06.prod.outlook.com>
+ <570F7FB3.2040807@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160413212500.GD5995-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
-Cc: computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <570F7FB3.2040807-l0cyMroinI0@public.gmane.org>
+Content-Language: ja-JP
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, "stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org" <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
+Cc: "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org" <abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, "r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Tony & Boris,
+Hi,
 
-On 14/04/16 00:25, Tony Lindgren wrote:
-> * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [160407 03:10]:
->> Hi,
->>
->> As this series has cross dependency between omap and mtd subsystems,
->> I'll set up a immutable branch which omap-soc and l2-mtd must
->> merge in together to avoid any conflicts/breakage during integration.
->>
->> Brian has acked all mtd patches. Tony needs to give his Ack for the
->> gpmc driver part and then I can provide the immutable branch.
+> From: Roger Quadros
+> Sent: Thursday, April 14, 2016 8:32 PM
 > 
-> Looks good to me, please feel free to add:
+> On 14/04/16 14:15, Yoshihiro Shimoda wrote:
+> > Hi,
+> >
+< snip >
+> >>> @@ -865,7 +867,8 @@ int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
+> >>>  	 * we're ready only if we have shared HCD
+> >>>  	 * or we don't need shared HCD.
+> >>>  	 */
+> >>> -	if (otg->shared_hcd.hcd || !otg->primary_hcd.hcd->shared_hcd) {
+> >>> +	if (otg->shared_hcd.hcd || (!otg->caps->needs_companion &&
+> >>> +				    !otg->primary_hcd.hcd->shared_hcd)) {
+> >>>  		otg->host = hcd_to_bus(hcd);
+> >>>  		/* FIXME: set bus->otg_port if this is true OTG port with HNP */
+> >>>
+> >>
+> >> These changes look good to me. Thanks.
+> >
+> > Thank you for the comment.
+> > If we change the "needs_companion" place to the otg_config,
+> > do we need to add a flag into the otg, instead of otg->caps?
 > 
-> Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> 
+> Yes we can add a flag in struct usb_otg.
 
-I've added Tony and Rob's Acked-by tags and pushed the patches at the
-below PULL request.
+Thank you for the comment.
 
-Please take this into omap-soc and l2-mtd trees. Thanks.
+I made a fixed patch.
+So, should I send this patch to ML after you sent v7 patches?
+Or, would you apply this patch before you send v7 patches?
 
-The following changes since commit f55532a0c0b8bb6148f4e07853b876ef73bc69ca:
+Best regards,
+Yoshihiro Shimoda
 
-  Linux 4.6-rc1 (2016-03-26 16:03:24 -0700)
+---
 
-are available in the git repository at:
-
-  git-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org:rogerq/linux.git for-v4.7/gpmc-mtd-common
-
-for you to fetch changes up to 10f22ee367c4aff7841da6a83c10445d7d6328d9:
-
-  mtd: nand: omap2: Implement NAND ready using gpiolib (2016-04-15 11:55:37 +0300)
-
-----------------------------------------------------------------
-Roger Quadros (17):
-      ARM: OMAP2+: gpmc: Add platform data
-      ARM: OMAP2+: gpmc: Add gpmc timings and settings to platform data
-      memory: omap-gpmc: Introduce GPMC to NAND interface
-      memory: omap-gpmc: Add GPMC-NAND ops to get writebufferempty status
-      memory: omap-gpmc: Implement IRQ domain for NAND IRQs
-      mtd: nand: omap: Use gpmc_omap_get_nand_ops() to get NAND registers
-      mtd: nand: omap: Switch to using GPMC-NAND ops for writebuffer empty check
-      mtd: nand: omap: Copy platform data parameters to omap_nand_info data
-      mtd: nand: omap: Clean up device tree support
-      mtd: nand: omap: Update DT binding documentation
-      memory: omap-gpmc: Prevent mapping into 1st 16MB
-      memory: omap-gpmc: Move device tree binding to correct location
-      memory: omap-gpmc: Support general purpose input for WAITPINs
-      memory: omap-gpmc: Reserve WAITPIN if needed for WAIT monitoring
-      memory: omap-gpmc: Support WAIT pin edge interrupts
-      memory: omap-gpmc: Prevent GPMC_STATUS from being accessed via gpmc_regs
-      mtd: nand: omap2: Implement NAND ready using gpiolib
-
- Documentation/devicetree/bindings/{bus/ti-gpmc.txt => memory-controllers/omap-gpmc.txt} |  17 +++
- Documentation/devicetree/bindings/mtd/gpmc-nand.txt                                     |  19 +++-
- arch/arm/mach-omap2/gpmc-nand.c                                                         |   7 +-
- drivers/memory/Kconfig                                                                  |   1 +
- drivers/memory/omap-gpmc.c                                                              | 655 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++------------------------------------------
- drivers/mtd/nand/omap2.c                                                                | 194 +++++++++++++++++++++++++++-------
- include/linux/omap-gpmc.h                                                               | 172 ++++++------------------------
- include/linux/platform_data/gpmc-omap.h                                                 | 172 ++++++++++++++++++++++++++++++
- include/linux/platform_data/mtd-nand-omap2.h                                            |  12 ++-
- 9 files changed, 817 insertions(+), 432 deletions(-)
- rename Documentation/devicetree/bindings/{bus/ti-gpmc.txt => memory-controllers/omap-gpmc.txt} (89%)
- create mode 100644 include/linux/platform_data/gpmc-omap.h
 
 --
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
