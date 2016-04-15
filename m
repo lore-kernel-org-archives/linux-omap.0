@@ -1,48 +1,51 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH] gpio: omap: fix irq triggering in smart-idle wakeup mode
-Date: Fri, 15 Apr 2016 12:26:17 +0300
-Message-ID: <5710B3B9.4090807@ti.com>
-References: <1460458351-24187-1-git-send-email-grygorii.strashko@ti.com>
- <CACRpkdbGcO7i5B9e3dicAEaTTfG7u_owe3hS2u6Sd6tCNXNzBg@mail.gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v2] pinctrl: pinctrl-single: Fix pcs_parse_bits_in_pinctrl_entry
+ to use __ffs than ffs
+Date: Fri, 15 Apr 2016 11:27:51 +0200
+Message-ID: <CACRpkdZxY3FNti37HfuwS7KT9K+pA=REr_G=hEQRi-D3=CHUpQ@mail.gmail.com>
+References: <1460609956-26539-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdbGcO7i5B9e3dicAEaTTfG7u_owe3hS2u6Sd6tCNXNzBg@mail.gmail.com>
+In-Reply-To: <1460609956-26539-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Santosh Shilimkar <ssantosh@kernel.org>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Roger Quadros <rogerq@ti.com>
+To: Keerthy <j-keerthy@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/15/2016 11:32 AM, Linus Walleij wrote:
-> On Tue, Apr 12, 2016 at 12:52 PM, Grygorii Strashko
-> <grygorii.strashko@ti.com> wrote:
-> 
->> Now GPIO IRQ loss is observed on dra7-evm after suspend/resume cycle
-> (...)
->> Cc: Roger Quadros <rogerq@ti.com>
->> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> 
-> Can I get some explicit ACK / Tested-by tags for this patch?
+On Thu, Apr 14, 2016 at 6:59 AM, Keerthy <j-keerthy@ti.com> wrote:
 
-Roger's promised to test it once suspend regression will be fixed
-for dra7-evm, probably next rc.
+> pcs_parse_bits_in_pinctrl_entry uses ffs which gives bit indices
+> ranging from 1 to MAX. This leads to a corner case where we try to request
+> the pin number = MAX and fails.
+>
+> bit_pos value is being calculted using ffs. pin_num_from_lsb uses
+> bit_pos value. pins array is populated with:
+>
+> pin + pin_num_from_lsb.
+>
+> The above is 1 more than usual bit indices as bit_pos uses ffs to compute
+> first set bit. Hence the last of the pins array is populated with the MAX
+> value and not MAX - 1 which causes error when we call pin_request.
+>
+> mask_pos is rightly calculated as ((pcs->fmask) << (bit_pos - 1))
+> Consequently val_pos and submask are correct.
+>
+> Hence use __ffs which gives (ffs(x) - 1) as the first bit set.
+>
+> fixes: 4e7e8017a8 ("pinctrl: pinctrl-single: enhance to configure multiple pins of different modules")
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>
+> Changes in v2:
+>
+>   * Changed pcs->fshift to use __ffs instead of ffs to be consistent.
+>
+> Boot tesed on da850-evm and checked the pinctrl sysfs nodes.
 
-> 
-> Is it a serious regression that will need to go in as a fix and
-> tagged for stable?
-> 
+Patch applied for fixes with Tony's ACK.
 
-This issue is here since 2012, so I think it's not very critical -
-It seems bits combination which causing the issue is rare.
+Should it also be tagged for stable?
 
-Regarding stable:
-4.4 - good to have, simple merge conflict
-4.1 - some merge resolution is required
-older kernel - it will be hard to backport it due to significant
-changes in omap gpio driver
-
-Santosh, Tony, do you want me to perform any additional actions regarding this patch?
--- 
-regards,
--grygorii
+Yours,
+Linus Walleij
