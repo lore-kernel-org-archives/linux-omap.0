@@ -1,41 +1,29 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V2] ARM: dts: Add support for dra72-evm rev C (SR2.0)
-Date: Thu, 14 Apr 2016 13:44:53 -0700
-Message-ID: <20160414204452.GO5995@atomide.com>
-References: <1460655958-4639-1-git-send-email-nm@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] gpio: omap: fix irq triggering in smart-idle wakeup mode
+Date: Fri, 15 Apr 2016 10:32:23 +0200
+Message-ID: <CACRpkdbGcO7i5B9e3dicAEaTTfG7u_owe3hS2u6Sd6tCNXNzBg@mail.gmail.com>
+References: <1460458351-24187-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1460655958-4639-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1460458351-24187-1-git-send-email-grygorii.strashko@ti.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Santosh Shilimkar <ssantosh@kernel.org>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm@ti.com> [160414 10:47]:
-> DRA72-EVM now has an upgrade to Rev C with SR2.0 silicon. As part of
-> this change, a few updates were factored in that were software
-> incompatible with previous board in few areas:
-> - We now use DP83867 ethernet phy instead of older DP838865 which fails
->   in certain use cases.
-> - Two Ethernet ports now instead of the single one in rev B.
-> - polarities changed for certain pcf gpios
-> - Due to SoC phy current requirements, VDDA supplies are split between
->  ldo3 and ldo2 (ldo2 was previously unused). NOTE: DSS (VDDA_VIDEO) is
->  still supplied by ldo5, HDMI is now supplied by LDO2 instead of using
->  LDO3.
-> 
-> NOTE: It does not make much sense to spin off a new board compatible
-> flag since there is no real benefit for the same.
-> 
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
-> Updates in v2:
->  - minor fixes + rebase to
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
->   omap-for-v4.7/dt   4cb53a2308a9 ARM: dts: omap3-beagle: Provide NAND ready pin
+On Tue, Apr 12, 2016 at 12:52 PM, Grygorii Strashko
+<grygorii.strashko@ti.com> wrote:
 
-Thanks for updating this, applying into omap-for-v4.7/dt.
+> Now GPIO IRQ loss is observed on dra7-evm after suspend/resume cycle
+(...)
+> Cc: Roger Quadros <rogerq@ti.com>
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
-Tony
+Can I get some explicit ACK / Tested-by tags for this patch?
+
+Is it a serious regression that will need to go in as a fix and
+tagged for stable?
+
+Yours,
+Linus Walleij
