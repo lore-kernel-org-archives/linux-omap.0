@@ -1,50 +1,31 @@
-From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH 2/2] mtd: nand: omap2: Fix high memory dma prefetch transfer
-Date: Fri, 15 Apr 2016 15:28:59 -0500
-Message-ID: <1460752139-12742-3-git-send-email-fcooper@ti.com>
-References: <1460752139-12742-1-git-send-email-fcooper@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1460752139-12742-1-git-send-email-fcooper@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: boris.brezillon@free-electrons.com, dwmw2@infradead.org, computersforpeace@gmail.com, tony@atomide.com, rogerq@ti.com, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: "Cooper Jr., Franklin" <fcooper@ti.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH] clk: ti: dflt: remove redundant unlikely
+Date: Fri, 15 Apr 2016 15:52:50 -0700
+Message-ID: <20160415225250.GZ14441@codeaurora.org>
+References: <1459880937-22349-1-git-send-email-s-anna@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1459880937-22349-1-git-send-email-s-anna@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@baylibre.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: "Cooper Jr., Franklin" <fcooper@ti.com>
+On 04/05, Suman Anna wrote:
+> Commit 7aba4f5201d1 ("clk: ti: dflt: fix enable_reg validity check")
+> fixed a validation check by using an IS_ERR() macro within the
+> existing unlikely expression, but IS_ERR() macro already has an
+> unlikely inside it, so get rid of the redundant unlikely macro
+> from the validation check.
+> 
+> Reported-by: Stephen Boyd <sboyd@codeaurora.org>
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> ---
 
-Based on DMA documentation and testing using high memory buffer when doing
-dma transfers can lead to various issues including kernel panics.
+Applied to clk-next
 
-To workaround this simply use cpu copy.
-
-Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
----
- drivers/mtd/nand/omap2.c | 13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 762e0ed..8d0ae3a 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -467,17 +467,8 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
- 	int ret;
- 	u32 val;
- 
--	if (addr >= high_memory) {
--		struct page *p1;
--
--		if (((size_t)addr & PAGE_MASK) !=
--			((size_t)(addr + len - 1) & PAGE_MASK))
--			goto out_copy;
--		p1 = vmalloc_to_page(addr);
--		if (!p1)
--			goto out_copy;
--		addr = page_address(p1) + ((size_t)addr & ~PAGE_MASK);
--	}
-+	if (!virt_addr_valid(addr))
-+		goto out_copy;
- 
- 	sg_init_one(&sg, addr, len);
- 	n = dma_map_sg(info->dma->device->dev, &sg, 1, dir);
 -- 
-2.7.0
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
