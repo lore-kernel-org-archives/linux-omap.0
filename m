@@ -1,91 +1,78 @@
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: Re: [PATCH v6 00/17] memory: omap-gpmc: mtd: nand: Support GPMC
- NAND on non-OMAP platforms
-Date: Fri, 15 Apr 2016 13:51:08 +0200
-Message-ID: <20160415135108.63716f06@bbrezillon>
-References: <1460023715-19332-1-git-send-email-rogerq@ti.com>
-	<20160413212500.GD5995@atomide.com>
-	<5710B58C.7050108@ti.com>
-	<20160415120942.3131eac1@bbrezillon>
-	<5710C86A.9060108@ti.com>
+From: "R, Vignesh" <vigneshr@ti.com>
+Subject: Re: [PATCH 2/2] ARM: dts: dra7x: Support QSPI MODE-0 operation at
+ 64MHz
+Date: Fri, 15 Apr 2016 20:38:07 +0530
+Message-ID: <571103D7.8060407@ti.com>
+References: <1460629101-24309-1-git-send-email-vigneshr@ti.com>
+ <1460629101-24309-3-git-send-email-vigneshr@ti.com>
+ <20160414171215.GA9860@rob-hp-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5710C86A.9060108@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, computersforpeace@gmail.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160414171215.GA9860@rob-hp-laptop>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Rob Herring <robh@kernel.org>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Roger, Tony,
 
-On Fri, 15 Apr 2016 13:54:34 +0300
-Roger Quadros <rogerq@ti.com> wrote:
 
-> On 15/04/16 13:09, Boris Brezillon wrote:
-> > Hi Roger,
-> > 
-> > On Fri, 15 Apr 2016 12:34:04 +0300
-> > Roger Quadros <rogerq@ti.com> wrote:
-> > 
-> >> Tony & Boris,
-> >>
-> >> On 14/04/16 00:25, Tony Lindgren wrote:
-> >>> * Roger Quadros <rogerq@ti.com> [160407 03:10]:
-> >>>> Hi,
-> >>>>
-> >>>> As this series has cross dependency between omap and mtd subsystems,
-> >>>> I'll set up a immutable branch which omap-soc and l2-mtd must
-> >>>> merge in together to avoid any conflicts/breakage during integration.
-> >>>>
-> >>>> Brian has acked all mtd patches. Tony needs to give his Ack for the
-> >>>> gpmc driver part and then I can provide the immutable branch.
-> >>>
-> >>> Looks good to me, please feel free to add:
-> >>>
-> >>> Acked-by: Tony Lindgren <tony@atomide.com>
-> >>>
-> >>
-> >> I've added Tony and Rob's Acked-by tags and pushed the patches at the
-> >> below PULL request.
-> >>
-> >> Please take this into omap-soc and l2-mtd trees. Thanks.
-> > 
-> > I Pulled this branch into nand/next and had to resolve a few conflicts
-> > (as you may have noticed, a few other reworks in the NAND and MTD layer
-> > have been merged in the meantime).
+On 04/14/2016 10:42 PM, Rob Herring wrote:
+> On Thu, Apr 14, 2016 at 03:48:21PM +0530, Vignesh R wrote:
+>> According to Data Manual(SPRS915P) of AM57x, TI QSPI controller on
+>> DRA74(rev 1.1+)/DRA72 EVM can support up to 64MHz in MODE-0, whereas
+>> MODE-3 is limited to 48MHz. Hence, switch to MODE-0 for better
+>> throughput.
+>>
+>> Signed-off-by: Vignesh R <vigneshr@ti.com>
+>> ---
+>>  Documentation/devicetree/bindings/spi/ti_qspi.txt | 7 +++++++
+>>  arch/arm/boot/dts/dra7-evm.dts                    | 6 ++----
+>>  arch/arm/boot/dts/dra72-evm.dts                   | 6 ++----
+>>  3 files changed, 11 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/spi/ti_qspi.txt b/Documentation/devicetree/bindings/spi/ti_qspi.txt
+>> index cc8304aa64ac..50b14f6b53a3 100644
+>> --- a/Documentation/devicetree/bindings/spi/ti_qspi.txt
+>> +++ b/Documentation/devicetree/bindings/spi/ti_qspi.txt
+>> @@ -19,6 +19,13 @@ Optional properties:
+>>  - syscon-chipselects: Handle to system control region contains QSPI
+>>  		      chipselect register and offset of that register.
+>>  
+>> +NOTE: TI QSPI controller requires different pinmux and IODelay
+>> +paramaters for Mode-0 and Mode-3 operations, which needs to be set up by
+>> +the bootloader (U-Boot). Default configuration only supports Mode-0
+>> +operation. Hence, "spi-cpol" and "spi-cpha" DT properties cannot be
+>> +specified in the slave nodes of TI QSPI controller without appropriate
+>> +modification to bootloader.
 > 
-> OK. I'm not sure how well this will play when this merges into liunx-next
-> via the omap-soc tree.
-> 
-> Instead, can you please create a non-mutable nand/base for me (which could be
-> today's nand/next) and I can base my branch on that and Tony can use my
-> branch without causing any merge-conflict in linux-next?
+> But these properties are properties of what the slave device supports, 
+> right? I don't see how you can change them based on the controller.
 
-I just created a branch called nand/for-gpmc-rework based on today's
-nand/next, but I'm still unsure how to proceed once you've rebased your
-work on this branch?
-
-Tony will first have to pull my immutable branch, then pull yours, and
-then I'll have to pull an immutable branch from the the omap-soc tree
-to get your changes into my nand/next branch (in case other patches
-modify the same files before I send my PR). Am I missing something?
-If I'm not, then this option looks over-complicated to me.
-
-ITOH, if we decide to let your patches go through the nand or omap-soc
-tree, only one immutable branch will be created, and either the nand or
-omap-soc maintainer (depending on who takes the patches) will have to
-pull it into its -next branch.
-
-I'm quite new to all this merging process, so don't hesitate to correct
-me if I'm wrong.
-
-Thanks,
-
-Boris
+Yeah, although these are properties of slave device, they indicate what
+clock phase and clock polarity(mode) should the controller use to
+communicate with slave. AFAIK, most slave normally support Mode 0 and
+Mode 3 operation. If "spi-cpol" and "spi-cpha" are defined then
+communication is Mode 3 else (if both properties are absent) its Mode 0.
+SPI controller driver then uses the appropriate clock polarity and clock
+phase.
+Depending on controller capabilities, slave capabilities and board
+specific constraints either Mode 0 or Mode 3 is chosen(not both).
+The above NOTE is to indicate that its _not possible_ to use spi slave
+that strictly require mode-3(indicated by defining "spi-cpol" and
+"spi-cpha" DT properties) with ti-qspi controller without appropriate
+modification to bootloader. In other words Mode-3 slaves are not
+supported by TI QSPI driver with upstream U-Boot.
 
 -- 
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+Regards
+Vignesh
