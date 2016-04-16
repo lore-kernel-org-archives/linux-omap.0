@@ -1,39 +1,31 @@
 From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH] clk: ti: dra7: fix kernel boot with arg
- 'clocksource=gp_timer'
-Date: Fri, 15 Apr 2016 17:30:15 -0700
-Message-ID: <20160416003015.GI26353@codeaurora.org>
-References: <1449767025-2438-1-git-send-email-grygorii.strashko@ti.com>
+Subject: Re: [PATCH 1/5] clk: ti: am335x/am4372: Add tbclk to pwm node
+Date: Fri, 15 Apr 2016 17:46:54 -0700
+Message-ID: <20160416004654.GP26353@codeaurora.org>
+References: <1457380318-15452-1-git-send-email-fcooper@ti.com>
+ <1457380318-15452-2-git-send-email-fcooper@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
+Return-path: <linux-pwm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1449767025-2438-1-git-send-email-grygorii.strashko@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: t-kristo@ti.com, Michael Turquette <mturquette@baylibre.com>, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+In-Reply-To: <1457380318-15452-2-git-send-email-fcooper@ti.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Franklin S Cooper Jr <fcooper@ti.com>
+Cc: thierry.reding@gmail.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, t-kristo@ti.com, mturquette@baylibre.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 12/10, Grygorii Strashko wrote:
-> The OMAP Platform code provides possibility to select GP Timer as
-> default clocksource instead of counter_32K by using bootcmd parameter
-> 'clocksource', but the system will crash during early boot when this
-> option is used on dra7 or omap5 platforms, because it will hit BUG()
-> statement:
+On 03/07, Franklin S Cooper Jr wrote:
+> Add tblck to the pwm nodes. This insures that the ehrpwm driver has access
+> to the time-based clk.
 > 
->  omap2_gptimer_clocksource_init
->   ->BUG_ON(res);
+> Do not remove similar entries for ehrpwm node. Later patches will switch
+> from using ehrpwm node name to pwm. But to maintain ABI compatibility we
+> shouldn't remove the old entries.
 > 
-> This happens because clk_dev alias "sys_clkin_ck" is not registered.
-> Hence, fix it by adding missing "sys_clkin_ck" clk_dev aliases
-> definitions for omap5 and dra7.
-> 
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
 > ---
 
-Applied to clk-next
+Acked-by: Stephen Boyd <sboyd@codeaurora.org>
 
 -- 
 Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
