@@ -1,93 +1,56 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: [PATCH] ARM: dts: omap3-n900: Specify peripherals LDO regulators initial mode
-Date: Sat, 16 Apr 2016 09:37:23 +0300
-Message-ID: <1460788643-18590-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: Re: [PATCH v6 00/17] memory: omap-gpmc: mtd: nand: Support GPMC
+ NAND on non-OMAP platforms
+Date: Sat, 16 Apr 2016 10:57:11 +0200
+Message-ID: <20160416105711.5310d2d0@bbrezillon>
+References: <1460023715-19332-1-git-send-email-rogerq@ti.com>
+	<20160413212500.GD5995@atomide.com>
+	<5710B58C.7050108@ti.com>
+	<20160415120942.3131eac1@bbrezillon>
+	<5710C86A.9060108@ti.com>
+	<20160415135108.63716f06@bbrezillon>
+	<20160415154139.GS5995@atomide.com>
+	<20160415180531.15d790d2@bbrezillon>
+	<20160415161950.GT5995@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160415161950.GT5995@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, bcousson@baylibre.com
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Roger Quadros <rogerq@ti.com>, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, computersforpeace@gmail.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Without that, regulators are left in the mode last set by the bootloader or
-by the kernel the device was rebooted from. This leads to various problems
-like non-working peripherals.
+On Fri, 15 Apr 2016 09:19:51 -0700
+Tony Lindgren <tony@atomide.com> wrote:
 
-Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
----
- arch/arm/boot/dts/omap3-n900.dts | 9 +++++++++
- 1 file changed, 9 insertions(+)
+> 
+> > Or should I just pull this immutable branch in my current nand/next and
+> > let you pull the same immutable branch in omap-soc. I mean, would this
+> > prevent conflicts when our branches are merged into linux-next, no
+> > matter the order.
+> 
+> Ideally just one or more branches with just minimal changes in
+> them against -rc1. But you may have other dependencies in
+> your NAND tree so that may no longer be doable :) Usually if
+> I merge something that may need to get merged into other
+> branches, I just apply them into a separate branch against -rc1
+> to start with, then merge that branch in.
 
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index b3c26a9..1bb36e2 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -329,6 +329,7 @@
- 	regulator-name = "V28";
- 	regulator-min-microvolt = <2800000>;
- 	regulator-max-microvolt = <2800000>;
-+	regulator-initial-mode = <0x0e>;
- 	regulator-always-on; /* due to battery cover sensor */
- };
- 
-@@ -336,30 +337,35 @@
- 	regulator-name = "VCSI";
- 	regulator-min-microvolt = <1800000>;
- 	regulator-max-microvolt = <1800000>;
-+	regulator-initial-mode = <0x0e>;
- };
- 
- &vaux3 {
- 	regulator-name = "VMMC2_30";
- 	regulator-min-microvolt = <2800000>;
- 	regulator-max-microvolt = <3000000>;
-+	regulator-initial-mode = <0x0e>;
- };
- 
- &vaux4 {
- 	regulator-name = "VCAM_ANA_28";
- 	regulator-min-microvolt = <2800000>;
- 	regulator-max-microvolt = <2800000>;
-+	regulator-initial-mode = <0x0e>;
- };
- 
- &vmmc1 {
- 	regulator-name = "VMMC1";
- 	regulator-min-microvolt = <1850000>;
- 	regulator-max-microvolt = <3150000>;
-+	regulator-initial-mode = <0x0e>;
- };
- 
- &vmmc2 {
- 	regulator-name = "V28_A";
- 	regulator-min-microvolt = <2800000>;
- 	regulator-max-microvolt = <3000000>;
-+	regulator-initial-mode = <0x0e>;
- 	regulator-always-on; /* due VIO leak to AIC34 VDDs */
- };
- 
-@@ -367,6 +373,7 @@
- 	regulator-name = "VPLL";
- 	regulator-min-microvolt = <1800000>;
- 	regulator-max-microvolt = <1800000>;
-+	regulator-initial-mode = <0x0e>;
- 	regulator-always-on;
- };
- 
-@@ -374,6 +381,7 @@
- 	regulator-name = "VSDI_CSI";
- 	regulator-min-microvolt = <1800000>;
- 	regulator-max-microvolt = <1800000>;
-+	regulator-initial-mode = <0x0e>;
- 	regulator-always-on;
- };
- 
-@@ -381,6 +389,7 @@
- 	regulator-name = "VMMC2_IO_18";
- 	regulator-min-microvolt = <1800000>;
- 	regulator-max-microvolt = <1800000>;
-+	regulator-initial-mode = <0x0e>;
- };
- 
- &vio {
+Okay, in this case, that's pretty much what I did from the beginning,
+except the immutable branch was provided by Roger (based on 4.6-rc1).
+Thanks for this detailed explanation, I'll try to remember that when
+I'll need to provide an immutable branch for another subsystem.
+
+Roger, my request remains, could you check/test my conflict resolution
+(branch nand/next-with-gpmc-rework)?
+
+Thanks,
+
+Boris
+
 -- 
-1.9.1
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
