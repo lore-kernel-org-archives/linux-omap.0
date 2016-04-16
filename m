@@ -1,32 +1,39 @@
 From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH 1/3] clk: ti: dpll: add support for specifying max rate
- for DPLLs
-Date: Fri, 15 Apr 2016 17:26:38 -0700
-Message-ID: <20160416002638.GG26353@codeaurora.org>
-References: <1458158097-21137-1-git-send-email-t-kristo@ti.com>
- <1458158097-21137-2-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCH] clk: ti: dra7: fix kernel boot with arg
+ 'clocksource=gp_timer'
+Date: Fri, 15 Apr 2016 17:30:15 -0700
+Message-ID: <20160416003015.GI26353@codeaurora.org>
+References: <1449767025-2438-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-clk-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1458158097-21137-2-git-send-email-t-kristo@ti.com>
+In-Reply-To: <1449767025-2438-1-git-send-email-grygorii.strashko@ti.com>
 Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, mturquette@baylibre.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: t-kristo@ti.com, Michael Turquette <mturquette@baylibre.com>, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/16, Tero Kristo wrote:
-> DPLLs typically have a maximum rate they can support, and this varies
-> from DPLL to DPLL. Add support of the maximum rate value to the DPLL
-> data struct, and also add check for this in the DPLL round_rate function.
+On 12/10, Grygorii Strashko wrote:
+> The OMAP Platform code provides possibility to select GP Timer as
+> default clocksource instead of counter_32K by using bootcmd parameter
+> 'clocksource', but the system will crash during early boot when this
+> option is used on dra7 or omap5 platforms, because it will hit BUG()
+> statement:
 > 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> Cc: Nishanth Menon <nm@ti.com>
-> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Cc: Lokesh Vutla <lokeshvutla@ti.com>
+>  omap2_gptimer_clocksource_init
+>   ->BUG_ON(res);
+> 
+> This happens because clk_dev alias "sys_clkin_ck" is not registered.
+> Hence, fix it by adding missing "sys_clkin_ck" clk_dev aliases
+> definitions for omap5 and dra7.
+> 
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 > ---
 
-Applied to clk-next with some munging for clk_hw_get_rate()
+Applied to clk-next
 
 -- 
 Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
