@@ -1,68 +1,58 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Nokia N900 retention mode in v4.6, camera buttons fun
-Date: Mon, 18 Apr 2016 16:47:46 -0700
-Message-ID: <20160418234746.GY5995@atomide.com>
-References: <20160407213229.GO16484@atomide.com>
- <20160407230150.GA16552@amd>
- <20160407234134.GQ16484@atomide.com>
- <20160411093023.GC11814@amd>
- <20160411094130.GA5753@amd>
- <20160411211026.GH5995@atomide.com>
- <20160412121658.GA32486@amd>
- <20160412123013.GA12296@amd>
- <20160412163055.GP5995@atomide.com>
- <20160417175539.GA502@amd>
+Subject: Re: [PATCH v2 0/3] ARM: OMAP3: Fix McBSP2/3 hwmod setup for sidetone
+Date: Mon, 18 Apr 2016 16:51:53 -0700
+Message-ID: <20160418235152.GZ5995@atomide.com>
+References: <20160412163750.GR5995@atomide.com>
+ <570E3428.5020804@ti.com>
+ <20160413152829.GQ5995@atomide.com>
+ <570F4804.4050006@ti.com>
+ <20160414165514.GL5995@atomide.com>
+ <570FF163.1050603@ti.com>
+ <20160414203457.GM5995@atomide.com>
+ <5710C10A.6040908@ti.com>
+ <20160415151651.GP5995@atomide.com>
+ <571145F6.2040508@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160417175539.GA502@amd>
+In-Reply-To: <571145F6.2040508@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, jarkko.nikula@bitmer.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [160417 10:56]:
-> > The off mode makes a huge difference for standby time, it should cut
-> > down the total power consumption to something like 10+ mW with modem
-> > enabled. Aproximately the breakdown is roughly: 900 uW for omap, 5 mW
-> > for memory and 5 or more for the modem. Sorry I don't know the exact
-> > numbers for the modem. But with 37xx torpedo, mainline kernel is
-> > already getting very close to the 900 uW + 5 mW numbers for the CPU
-> > module during idle measured from the ina219 shunt on the torpedo
-> > devkit.
-> 
-> CONFIG_HSI breaks power management completely, so power management
-> with modem will be another topic.  
-
-OK
-
-> > > > In the meantime, I found what is causing the rention mode to break for
-> > > > me: CONFIG_HSI (aka wireless modem support). With HSI off, it seems to work.
-> > > > 
-> > > > I still get problems with the camera button, in config similar to
-> > > > defconfig.  For some reason, I'm even getting (autorepeating) ^@ on
-> > > > console. As long as I hold camera button down, I even get it into off
-> > > > mode for brief period.
-> > > 
-> > > Ok, if I turn off CONFIG_KEYBOARD_GPIO, I get it into off
-> > > mode... once per screen blank, for about a second. (Does CONFIG_KEYBOARD_GPIO also cause
-> > > problems for you?)
-> > > 
-> > > Any idea why it enters off mode only once after each screenblank?
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [160415 12:52]:
+> On 04/15/2016 06:16 PM, Tony Lindgren wrote:
+> >> We can hack this around by adding HWMOD_NO_IDLEST to the sidetone hwmod I
+> >> guess. As the sidetone does not have PRCM level control - it is part of McBSP.
 > > 
-> > After disabling CONFIG_PROVE_LOCKING, loading the LCD modules, and
-> > blanking the screen, my n900 hits off mode just fine about once
-> > a second. Sounds like you still have some extra devices enabled
-> > causing it.
+> > Heh if they are using the same register bits for two separate modules,
+> > then that's a bug for sure :) I think the sidetone module only has the
+> > clock gating bit in the ST_SYSCONFIG.
 > 
-> I checked again... also with vanilla 4.6-rc2 to double check... same effect.
+> Yes, the sidetone only has clock gating bit in ST_SYSCONFIG, but the hwmod has
+> the prcm section which is identical of the corresponding McBSP hwmod prcm section.
 > 
-> Aha, got it... cat-ing /sys/kernel/debug/pm_debug/count breaks the
-> off mode. If I don't do that (tm), it seems to work way better.
+> Since we have only one MCBSP2_ICLK and only one bit in PRCM registers for it,
+> this is a bug in the hwmod data for sure. Only the mcbsp hwmod should have
+> prcm section and the sidetone hwmod is not needed IMO:
+> It is a bug to have sidetone enabled when McBSP is not enabled and configured
+> properly. The sidetone can not work w/o proper McBSP configuration.
+> 
+> If we were to keep both hwmods and add new set of pm_runtime calls for the
+> mcbsp.sidetone, it will only increase/decrease the mcbsp_iclk enable count. It
+> must never enable the clock itself since that is a bug in the SW.
 
-Ah I see yeah :)
+OK makes sense. I'd prefer to keep it to match the hardware for the modules.
 
-Regards,
+> > Then all these modules just sit on the L4 interconnet at
+> > separate targets, including the clockdomain.
+> 
+> The McBSPi core and it's sidetone is in the same clock domain as the sidetone
+> is using the McBSPi interface clock. It is kind of a leech ;)
+
+Well they still are able to use the McBSP interface clock independently
+AFAIK :)
 
 Tony
