@@ -1,50 +1,122 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH v6 01/12] usb: hcd: Initialize hcd->flags to 0
-Date: Mon, 18 Apr 2016 10:11:29 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1604181007240.1775-100000@iolanthe.rowland.org>
-References: <20160418022956.GB32090@shlinux2.ap.freescale.net>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v6 00/17] memory: omap-gpmc: mtd: nand: Support GPMC NAND
+ on non-OMAP platforms
+Date: Mon, 18 Apr 2016 17:39:01 +0300
+Message-ID: <5714F185.5080103@ti.com>
+References: <1460023715-19332-1-git-send-email-rogerq@ti.com>
+ <20160413212500.GD5995@atomide.com> <5710B58C.7050108@ti.com>
+ <20160415120942.3131eac1@bbrezillon> <5710C86A.9060108@ti.com>
+ <20160415135108.63716f06@bbrezillon> <20160415154139.GS5995@atomide.com>
+ <20160415180531.15d790d2@bbrezillon> <20160415161950.GT5995@atomide.com>
+ <20160416105711.5310d2d0@bbrezillon> <5714D3A4.2050405@ti.com>
+ <5714D8AA.9040304@ti.com> <20160418151305.17a42437@bbrezillon>
+ <5714E5AA.5050200@ti.com> <20160418161001.2a1c0bed@bbrezillon>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160418022956.GB32090@shlinux2.ap.freescale.net>
+In-Reply-To: <20160418161001.2a1c0bed@bbrezillon>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Chen <hzpeterchen@gmail.com>
-Cc: Roger Quadros <rogerq@ti.com>, Felipe Balbi <balbi@kernel.org>, gregkh@linuxfoundation.org, peter.chen@freescale.com, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Tony Lindgren <tony@atomide.com>, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, computersforpeace@gmail.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 18 Apr 2016, Peter Chen wrote:
-
-> On Wed, Apr 06, 2016 at 09:32:22AM +0300, Roger Quadros wrote:
-> > On 06/04/16 09:09, Felipe Balbi wrote:
-> > > 
-> > > Hi,
-> > > 
-> > > Roger Quadros <rogerq@ti.com> writes:
-> > >> diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
-> > >> index 2ca2cef..6b1930d 100644
-> > >> --- a/drivers/usb/core/hcd.c
-> > >> +++ b/drivers/usb/core/hcd.c
-> > >> @@ -2706,6 +2706,7 @@ int usb_add_hcd(struct usb_hcd *hcd,
-> > >>  	int retval;
-> > >>  	struct usb_device *rhdev;
-> > >>  
-> > >> +	hcd->flags = 0;
-> > > 
-> > > seems like this would make more sense in usb_del_hcd() instead.
-> > > 
-> > 
-> > OK, I'll move it there.
-> > 
+On 18/04/16 17:10, Boris Brezillon wrote:
+> On Mon, 18 Apr 2016 16:48:26 +0300
+> Roger Quadros <rogerq@ti.com> wrote:
 > 
-> It depends on Alan's comments, whether only usb_add_hcd/usb_del_hcd
-> pair can be called repeat. If Alan acks it, I have no idea for it.
+>> Boris,
+>>
+>> On 18/04/16 16:13, Boris Brezillon wrote:
+>>> Hi Roger,
+>>>
+>>> On Mon, 18 Apr 2016 15:52:58 +0300
+>>> Roger Quadros <rogerq@ti.com> wrote:
+>>>
+>>>> On 18/04/16 15:31, Roger Quadros wrote:
+>>>>> On 16/04/16 11:57, Boris Brezillon wrote:
+>>>>>> On Fri, 15 Apr 2016 09:19:51 -0700
+>>>>>> Tony Lindgren <tony@atomide.com> wrote:
+>>>>>>
+>>>>>>>
+>>>>>>>> Or should I just pull this immutable branch in my current nand/next and
+>>>>>>>> let you pull the same immutable branch in omap-soc. I mean, would this
+>>>>>>>> prevent conflicts when our branches are merged into linux-next, no
+>>>>>>>> matter the order.
+>>>>>>>
+>>>>>>> Ideally just one or more branches with just minimal changes in
+>>>>>>> them against -rc1. But you may have other dependencies in
+>>>>>>> your NAND tree so that may no longer be doable :) Usually if
+>>>>>>> I merge something that may need to get merged into other
+>>>>>>> branches, I just apply them into a separate branch against -rc1
+>>>>>>> to start with, then merge that branch in.
+>>>>>>
+>>>>>> Okay, in this case, that's pretty much what I did from the beginning,
+>>>>>> except the immutable branch was provided by Roger (based on 4.6-rc1).
+>>>>>> Thanks for this detailed explanation, I'll try to remember that when
+>>>>>> I'll need to provide an immutable branch for another subsystem.
+>>>>>>
+>>>>>> Roger, my request remains, could you check/test my conflict resolution
+>>>>>> (branch nand/next-with-gpmc-rework)?
+>>>>>
+>>>>> I couldn't test that branch yet as nand/next is broken on omap platforms
+>>>>> (at least on dra7-evm).
+>>>>>
+>>>>> The commit where it breaks is:
+>>>>> a662ef4 mtd: nand: omap2: use mtd_ooblayout_xxx() helpers where appropriate
+>>>>>
+>>>>> I'm trying to figure out what went wrong there. Failure log below.
+>>>>
+>>>> OK. I was able to fix it when at commit a662ef4 with the below patch.
+>>>
+>>> Thanks for debugging that.
+>>>
+>>>>
+>>>> Looks like we need to read exactly the ECC bytes through the ECC engine and not
+>>>> the entire OOB region.
+>>>
+>>> Hm, it looks like there's a bug somewhere else, because I don't see any
+>>> reason why the controller wouldn't be able to read the full OOB region.
+>>
+>> The controller can read the full OOB region but we only want it to read just
+>> the ECC bytes because that is the way the ELM ECC engine works.
+> 
+> Ok, I think I got it: the ECC correction is pipelined with data read,
+> and the controller expect to have ECC bytes right after the in-band
+> data, is that correct?
 
-Most of the host controller drivers were not written with this in mind,
-but I think it would be a good thing to allow.  It would speed up the
-host/device role switches.
+That is correct.
 
-This might mean we need to fix up several drivers to make them work 
-correctly in an OTG environment.  It should be possible to do this.  Is 
-there any particular reason why it would be difficult for Chipidea?
+> 
+>>
+>>>>
+>>>> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+>>>> index e622a1b..46b61d2 100644
+>>>> --- a/drivers/mtd/nand/omap2.c
+>>>> +++ b/drivers/mtd/nand/omap2.c
+>>>> @@ -1547,8 +1547,8 @@ static int omap_read_page_bch(struct mtd_info *mtd, struct nand_chip *chip,
+>>>>  	chip->read_buf(mtd, buf, mtd->writesize);
+>>>>  
+>>>>  	/* Read oob bytes */
+>>>> -	chip->cmdfunc(mtd, NAND_CMD_RNDOUT, mtd->writesize, -1);
+>>>> -	chip->read_buf(mtd, chip->oob_poi, mtd->oobsize);
+>>>> +	chip->cmdfunc(mtd, NAND_CMD_RNDOUT, mtd->writesize + chip->ecc.layout->eccpos[0], -1);
+>>>
+>>> The whole point of this series is to get rid of chip->ecc.layout, so
+>>> we'd rather use the mtd_ooblayout_find_eccregion() instead of
+>>> chip->ecc.layout->eccpos[0].
+>>
+>> We just need the position of the first ECC byte offset.
+>> Is that the most optimal way to get it?
+> 
+> For the BCH case, it seems that ECC bytes always start at offset
+> BADBLOCK_MARKER_LENGTH, so you can just pass
+> mtd->writesize + BADBLOCK_MARKER_LENGTH.
+> 
+> Let me know if this works, and I'll squash those changes into the
+> faulty commit (I know this implies a rebase + push -f, but IMO that's
+> better than breaking bisectability).
+> 
+> 
 
-Alan Stern
+So, the below patch works as well. Please feel free to fold it with your patch.
