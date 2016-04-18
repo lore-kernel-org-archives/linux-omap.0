@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v2 3/5] ARM: dts: omap5: fix range of permitted wakeup pinmux registers
-Date: Mon, 18 Apr 2016 20:20:59 +0200
-Message-ID: <df4871d061d698cbee340000a2665ed3b4e44738.1461003660.git.hns@goldelico.com>
+Subject: [PATCH v2 4/5] ARM: dts: omap5: describe control for ckobuffer
+Date: Mon, 18 Apr 2016 20:21:00 +0200
+Message-ID: <a5fb89737594a656318896a8e43814c21ca992eb.1461003660.git.hns@goldelico.com>
 References: <cover.1461003660.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1461003660.git.hns@goldelico.com>
@@ -12,25 +12,37 @@ To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <to
 Cc: ldewangan@nvidia.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, marek@goldelico.com, kernel@pyra-handheld.com, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-otherwise we can't define gpio1_wk14
+OMAP5 has a register to control if the ckobuffer is enabled
+and defines the polarity. ckobuffer is required to drive a twl6040
+with the system clock. Hence, add the pinctrl,single to the
+OMAP5 SoC description so that omap5-board-common can
+set up the ckobuffer as required.
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap5.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/omap5.dtsi | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 38805eb..120b6b8 100644
+index 120b6b8..1d9050f 100644
 --- a/arch/arm/boot/dts/omap5.dtsi
 +++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -269,7 +269,7 @@
- 			omap5_pmx_wkup: pinmux@c840 {
- 				compatible = "ti,omap5-padconf",
- 					     "pinctrl-single";
--				reg = <0xc840 0x0038>;
-+				reg = <0xc840 0x003c>;
- 				#address-cells = <1>;
- 				#size-cells = <0>;
- 				#interrupt-cells = <1>;
+@@ -277,6 +277,16 @@
+ 				pinctrl-single,register-width = <16>;
+ 				pinctrl-single,function-mask = <0x7fff>;
+ 			};
++
++			omap5_control_ckobuffer: pinmux@cdb4 {
++				compatible = "ti,omap5-padconf",
++					     "pinctrl-single";
++				reg = <0xcdb4 4>;
++				#address-cells = <1>;
++				#size-cells = <0>;
++				pinctrl-single,register-width = <32>;
++				pinctrl-single,function-mask = <0xf0000000>;
++			};
+ 		};
+ 
+ 		ocmcram: ocmcram@40300000 {
 -- 
 2.7.3
