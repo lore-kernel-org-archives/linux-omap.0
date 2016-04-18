@@ -1,115 +1,64 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] omapfb: panel-sharp-ls037v7dw01: fix check of
- gpio_to_desc() return value
-Date: Mon, 18 Apr 2016 12:20:28 +0300
-Message-ID: <5714A6DC.2@ti.com>
-References: <1458687114-9390-1-git-send-email-vz@mleia.com>
+Subject: [PATCH 1/2] ARM: dts: omap5-board-common: fix ldo1_reg and ldo4_reg
+ ranges
+Date: Mon, 18 Apr 2016 13:06:06 +0300
+Message-ID: <1460973967-25077-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="v3CpLCC9JVM0ReP5SAnWdqaXA3gPiCqUF"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1458687114-9390-1-git-send-email-vz@mleia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vladimir Zapolskiy <vz@mleia.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---v3CpLCC9JVM0ReP5SAnWdqaXA3gPiCqUF
-Content-Type: multipart/mixed; boundary="6keT5uWhF5Ehs3xaLsqPA0l7SQjJaHbrH"
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: Vladimir Zapolskiy <vz@mleia.com>,
- Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Message-ID: <5714A6DC.2@ti.com>
-Subject: Re: [PATCH] omapfb: panel-sharp-ls037v7dw01: fix check of
- gpio_to_desc() return value
-References: <1458687114-9390-1-git-send-email-vz@mleia.com>
-In-Reply-To: <1458687114-9390-1-git-send-email-vz@mleia.com>
+ldo4_reg is connected to DSS, and should always be 1.8V. However the
+The dts defines a range of 1.5V-1.8V, which requires somethings to set
+the actual voltage at runtime. Currently we set the voltage in omapdss
+driver.
 
---6keT5uWhF5Ehs3xaLsqPA0l7SQjJaHbrH
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+As the voltage must always be 1.8V, let's just define the range to 1.8V
+so that the driver doesn't need to deal with the voltage. In fact, the
+driver should not touch the voltage, except in the cases where the
+voltage needs to be changed at runtime.
 
+I presume the situation is the same for ldo1_reg, used for CSI, although
+I think it is not currently used in the mainline.
 
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ arch/arm/boot/dts/omap5-board-common.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-On 23/03/16 00:51, Vladimir Zapolskiy wrote:
-> The change fixes a check of gpio_to_desc() return value, the function
-> returns either a valid pointer to struct gpio_desc or NULL, this makes
-> IS_ERR() check invalid and may lead to a NULL pointer dereference in
-> runtime.
->=20
-> Signed-off-by: Vladimir Zapolskiy <vz@mleia.com>
-> ---
->  .../fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c    | 12 ++++=
---------
->  1 file changed, 4 insertions(+), 8 deletions(-)
->=20
-> diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls03=
-7v7dw01.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7=
-dw01.c
-> index abfd1f6..1954ec9 100644
-> --- a/drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01=
-=2Ec
-> +++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01=
-=2Ec
-> @@ -200,20 +200,16 @@ static struct omap_dss_driver sharp_ls_ops =3D {
->  static int sharp_ls_get_gpio(struct device *dev, int gpio, unsigned lo=
-ng flags,
->  		  char *desc, struct gpio_desc **gpiod)
->  {
-> -	struct gpio_desc *gd;
->  	int r;
-> =20
-> -	*gpiod =3D NULL;
-> -
->  	r =3D devm_gpio_request_one(dev, gpio, flags, desc);
-> -	if (r)
-> +	if (r) {
-> +		*gpiod =3D NULL;
->  		return r =3D=3D -ENOENT ? 0 : r;
-> +	}
-> =20
-> -	gd =3D gpio_to_desc(gpio);
-> -	if (IS_ERR(gd))
-> -		return PTR_ERR(gd) =3D=3D -ENOENT ? 0 : PTR_ERR(gd);
-> +	*gpiod =3D gpio_to_desc(gpio);
-> =20
-> -	*gpiod =3D gd;
->  	return 0;
->  }
-> =20
->=20
-
-Thanks, queued for 4.6 fixes.
-
- Tomi
-
-
---6keT5uWhF5Ehs3xaLsqPA0l7SQjJaHbrH--
-
---v3CpLCC9JVM0ReP5SAnWdqaXA3gPiCqUF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJXFKbcAAoJEPo9qoy8lh715L4QAI8a9Z9kDzDvFnc+lBu2YlI4
-PQcaLD2FArTT/+WgMiwCuQpFSIqojh+7HAp+scNt8Sp1CQOIXLv9071mQ9s9gol7
-3FiOlrgysUjPbL8VAq7aza4QTtafENJynHO3xTaEJODqtfhbxUK7OIbHONxla39+
-DCm3M6TP9beRc3wjsYYiytENODM4cnE59VcWPRXXtQQ28v6vkj3dEijM4n5nngEs
-rSr4YCZkjYR4i2oi0wgVw25yAcL4drKYgg//QTGEnp/rPqGYKYx8h8wftFicMMgD
-1TbVSZjJ01w8xIOi0u6MfuK9ZvyQvZCcgvFcuplcK6rwAhGfsQvpI+CHuCOtcBMz
-UZfxWIzYU3Fx9uHjQcXOMmb4eRbd2l9hB5hPeh4uZRlf6kINF9MgkAOIQ7setjJF
-ivy53LBOsCFjUHOmedvLPUSBJA1tp5zds2IxvTHV5DJ2/dOLyhENY25ACW9AQD79
-jXhnDfAx5b6ONTDOq8bwJKNoDYnMc7F76h0mCHr+Cih044IShW55HChdrqa3KESj
-0bA7C5ueOntL77QnM1S84MfLLBJXAiiMCujciKMqOWfa0PayxjSgYH0x1pDJBTPj
-AkSf6j0cv1HBQejBZxDupdDGShfRNLsPvJXCXp1XkrBRQosv3bXFc8MRICBmKcfd
-x3Jnti6yrEIQ9TrUtBq6
-=p0jl
------END PGP SIGNATURE-----
-
---v3CpLCC9JVM0ReP5SAnWdqaXA3gPiCqUF--
+diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
+index 902657d6713b..914bf4c47404 100644
+--- a/arch/arm/boot/dts/omap5-board-common.dtsi
++++ b/arch/arm/boot/dts/omap5-board-common.dtsi
+@@ -472,7 +472,7 @@
+ 				ldo1_reg: ldo1 {
+ 					/* VDDAPHY_CAM: vdda_csiport */
+ 					regulator-name = "ldo1";
+-					regulator-min-microvolt = <1500000>;
++					regulator-min-microvolt = <1800000>;
+ 					regulator-max-microvolt = <1800000>;
+ 				};
+ 
+@@ -498,7 +498,7 @@
+ 				ldo4_reg: ldo4 {
+ 					/* VDDAPHY_DISP: vdda_dsiport/hdmi */
+ 					regulator-name = "ldo4";
+-					regulator-min-microvolt = <1500000>;
++					regulator-min-microvolt = <1800000>;
+ 					regulator-max-microvolt = <1800000>;
+ 				};
+ 
+-- 
+2.5.0
