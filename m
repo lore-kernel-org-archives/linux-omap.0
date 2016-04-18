@@ -1,169 +1,158 @@
-From: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v6 04/12] usb: otg-fsm: move host controller operations
- into usb_otg->hcd_ops
-Date: Mon, 18 Apr 2016 16:00:35 +0800
-Message-ID: <20160418080035.GF4477@shlinux2.ap.freescale.net>
+From: Peter Chen <hzpeterchen@gmail.com>
+Subject: Re: [PATCH v6 06/12] usb: otg: get rid of CONFIG_USB_OTG_FSM in
+ favour of CONFIG_USB_OTG
+Date: Mon, 18 Apr 2016 16:05:14 +0800
+Message-ID: <20160418080514.GG4477@shlinux2.ap.freescale.net>
 References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
- <1459865117-7032-5-git-send-email-rogerq@ti.com>
+ <1459865117-7032-7-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1459865117-7032-5-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1459865117-7032-7-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: stern@rowland.harvard.edu, balbi@kernel.org, gregkh@linuxfoundation.org, peter.chen@freescale.com, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, r.baldyga@samsung.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 05, 2016 at 05:05:09PM +0300, Roger Quadros wrote:
-> This is to prevent missing symbol build error if OTG is
-> enabled (built-in) and HCD core (CONFIG_USB) is module.
+On Tue, Apr 05, 2016 at 05:05:11PM +0300, Roger Quadros wrote:
+> Let's use CONFIG_USB_OTG as a single config option to enable
+> USB OTG and the OTG FSM. This makes things a lot less confusing.
 > 
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-
-Acked-by: Peter Chen <peter.chen-3arQi8VN3Tc@public.gmane.org>
-
+> Update all users of CONFIG_USB_OTG_FSM to CONFIG_USB_OTG.
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 > ---
->  drivers/usb/chipidea/otg_fsm.c   |  7 +++++++
->  drivers/usb/common/usb-otg-fsm.c | 15 +++++++++++----
->  drivers/usb/phy/phy-fsl-usb.c    |  7 +++++++
->  include/linux/usb/otg.h          |  2 ++
->  4 files changed, 27 insertions(+), 4 deletions(-)
+>  Documentation/usb/chipidea.txt | 2 +-
+>  drivers/usb/Makefile           | 1 +
+>  drivers/usb/chipidea/Makefile  | 2 +-
+>  drivers/usb/chipidea/ci.h      | 2 +-
+>  drivers/usb/chipidea/otg_fsm.h | 2 +-
+>  drivers/usb/common/Makefile    | 3 ++-
+>  drivers/usb/core/Kconfig       | 8 --------
+>  drivers/usb/phy/Kconfig        | 2 +-
+>  8 files changed, 8 insertions(+), 14 deletions(-)
 > 
-> diff --git a/drivers/usb/chipidea/otg_fsm.c b/drivers/usb/chipidea/otg_fsm.c
-> index f4e9fb5..5fdf8ca 100644
-> --- a/drivers/usb/chipidea/otg_fsm.c
-> +++ b/drivers/usb/chipidea/otg_fsm.c
-> @@ -582,6 +582,12 @@ static struct otg_fsm_ops ci_otg_ops = {
->  	.start_gadget = ci_otg_start_gadget,
->  };
+> diff --git a/Documentation/usb/chipidea.txt b/Documentation/usb/chipidea.txt
+> index 678741b..3b1f263 100644
+> --- a/Documentation/usb/chipidea.txt
+> +++ b/Documentation/usb/chipidea.txt
+> @@ -5,7 +5,7 @@ with 2 Freescale i.MX6Q sabre SD boards.
 >  
-> +static struct otg_hcd_ops ci_hcd_ops = {
-> +	.usb_bus_start_enum = usb_bus_start_enum,
-> +	.usb_control_msg = usb_control_msg,
-> +	.usb_hub_find_child = usb_hub_find_child,
-> +};
-> +
->  int ci_otg_fsm_work(struct ci_hdrc *ci)
+>  1.1 How to enable OTG FSM in menuconfig
+>  ---------------------------------------
+> -Select CONFIG_USB_OTG_FSM, rebuild kernel Image and modules.
+> +Select CONFIG_USB_OTG, rebuild kernel Image and modules.
+>  If you want to check some internal variables for otg fsm,
+>  mount debugfs, there are 2 files which can show otg fsm
+>  variables and some controller registers value:
+> diff --git a/drivers/usb/Makefile b/drivers/usb/Makefile
+> index dca7856..16a5b55 100644
+> --- a/drivers/usb/Makefile
+> +++ b/drivers/usb/Makefile
+> @@ -59,5 +59,6 @@ obj-$(CONFIG_USB_RENESAS_USBHS)	+= renesas_usbhs/
+>  obj-$(CONFIG_USB_GADGET)	+= gadget/
+>  
+>  obj-$(CONFIG_USB_COMMON)	+= common/
+> +obj-$(CONFIG_USB_OTG)		+= common/
+
+Why we need to add above line?
+
+Peter
+>  
+>  obj-$(CONFIG_USBIP_CORE)	+= usbip/
+> diff --git a/drivers/usb/chipidea/Makefile b/drivers/usb/chipidea/Makefile
+> index 518e445..45aa24d 100644
+> --- a/drivers/usb/chipidea/Makefile
+> +++ b/drivers/usb/chipidea/Makefile
+> @@ -3,7 +3,7 @@ obj-$(CONFIG_USB_CHIPIDEA)		+= ci_hdrc.o
+>  ci_hdrc-y				:= core.o otg.o debug.o
+>  ci_hdrc-$(CONFIG_USB_CHIPIDEA_UDC)	+= udc.o
+>  ci_hdrc-$(CONFIG_USB_CHIPIDEA_HOST)	+= host.o
+> -ci_hdrc-$(CONFIG_USB_OTG_FSM)		+= otg_fsm.o
+> +ci_hdrc-$(CONFIG_USB_OTG)		+= otg_fsm.o
+>  
+>  # Glue/Bridge layers go here
+>  
+> diff --git a/drivers/usb/chipidea/ci.h b/drivers/usb/chipidea/ci.h
+> index c523975..1a32b8c 100644
+> --- a/drivers/usb/chipidea/ci.h
+> +++ b/drivers/usb/chipidea/ci.h
+> @@ -406,7 +406,7 @@ static inline u32 hw_test_and_write(struct ci_hdrc *ci, enum ci_hw_regs reg,
+>   */
+>  static inline bool ci_otg_is_fsm_mode(struct ci_hdrc *ci)
 >  {
->  	/*
-> @@ -805,6 +811,7 @@ int ci_hdrc_otg_fsm_init(struct ci_hdrc *ci)
->  	ci->otg.state = OTG_STATE_UNDEFINED;
->  	ci->otg.fsm.ops = &ci_otg_ops;
->  	ci->otg.fsm.dev = ci->dev;
-> +	ci->otg.hcd_ops = &ci_hcd_ops;
->  	ci->gadget.hnp_polling_support = 1;
->  	ci->otg.fsm.host_req_flag = devm_kzalloc(ci->dev, 1, GFP_KERNEL);
->  	if (!ci->otg.fsm.host_req_flag)
-> diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
-> index abc462c..2cb4aed 100644
-> --- a/drivers/usb/common/usb-otg-fsm.c
-> +++ b/drivers/usb/common/usb-otg-fsm.c
-> @@ -135,11 +135,16 @@ static void otg_hnp_polling_work(struct work_struct *work)
->  	enum usb_otg_state state = otg->state;
->  	u8 flag;
->  	int retval;
-> +	struct otg_hcd_ops *hcd_ops = otg->hcd_ops;
+> -#ifdef CONFIG_USB_OTG_FSM
+> +#ifdef CONFIG_USB_OTG
+>  	struct usb_otg_caps *otg_caps = &ci->platdata->ci_otg_caps;
 >  
->  	if (state != OTG_STATE_A_HOST && state != OTG_STATE_B_HOST)
->  		return;
+>  	return ci->is_otg && ci->roles[CI_ROLE_HOST] &&
+> diff --git a/drivers/usb/chipidea/otg_fsm.h b/drivers/usb/chipidea/otg_fsm.h
+> index 6366fe3..2d451bb 100644
+> --- a/drivers/usb/chipidea/otg_fsm.h
+> +++ b/drivers/usb/chipidea/otg_fsm.h
+> @@ -64,7 +64,7 @@
 >  
-> -	udev = usb_hub_find_child(otg->host->root_hub, 1);
-> +	if (!hcd_ops || !hcd_ops->usb_control_msg ||
-> +	    !hcd_ops->usb_hub_find_child)
-> +		return;
-> +
-> +	udev = hcd_ops->usb_hub_find_child(otg->host->root_hub, 1);
->  	if (!udev) {
->  		dev_err(otg->host->controller,
->  			"no usb dev connected, can't start HNP polling\n");
-> @@ -148,7 +153,7 @@ static void otg_hnp_polling_work(struct work_struct *work)
+>  #define TB_AIDL_BDIS         (20)	/* 4ms ~ 150ms, section 5.2.1 */
 >  
->  	*fsm->host_req_flag = 0;
->  	/* Get host request flag from connected USB device */
-> -	retval = usb_control_msg(udev,
-> +	retval = hcd_ops->usb_control_msg(udev,
->  				usb_rcvctrlpipe(udev, 0),
->  				USB_REQ_GET_STATUS,
->  				USB_DIR_IN | USB_RECIP_DEVICE,
-> @@ -177,7 +182,7 @@ static void otg_hnp_polling_work(struct work_struct *work)
->  	if (state == OTG_STATE_A_HOST) {
->  		/* Set b_hnp_enable */
->  		if (!otg->host->b_hnp_enable) {
-> -			retval = usb_control_msg(udev,
-> +			retval = hcd_ops->usb_control_msg(udev,
->  					usb_sndctrlpipe(udev, 0),
->  					USB_REQ_SET_FEATURE, 0,
->  					USB_DEVICE_B_HNP_ENABLE,
-> @@ -256,7 +261,9 @@ static int otg_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
->  		otg_loc_conn(otg, 0);
->  		otg_loc_sof(otg, 1);
->  		otg_set_protocol(fsm, PROTO_HOST);
-> -		usb_bus_start_enum(otg->host, otg->host->otg_port);
-> +		if (otg->hcd_ops && otg->hcd_ops->usb_bus_start_enum)
-> +			otg->hcd_ops->usb_bus_start_enum(otg->host,
-> +							 otg->host->otg_port);
->  		otg_start_hnp_polling(fsm);
->  		break;
->  	case OTG_STATE_A_IDLE:
-> diff --git a/drivers/usb/phy/phy-fsl-usb.c b/drivers/usb/phy/phy-fsl-usb.c
-> index a18a2ee..39605d5 100644
-> --- a/drivers/usb/phy/phy-fsl-usb.c
-> +++ b/drivers/usb/phy/phy-fsl-usb.c
-> @@ -792,6 +792,12 @@ static struct otg_fsm_ops fsl_otg_ops = {
->  	.start_gadget = fsl_otg_start_gadget,
->  };
+> -#if IS_ENABLED(CONFIG_USB_OTG_FSM)
+> +#if IS_ENABLED(CONFIG_USB_OTG)
 >  
-> +static struct otg_hcd_ops fsl_hcd_ops = {
-> +	.usb_bus_start_enum = usb_bus_start_enum,
-> +	.usb_control_msg = usb_control_msg,
-> +	.usb_hub_find_child = usb_hub_find_child,
-> +};
-> +
->  /* Initialize the global variable fsl_otg_dev and request IRQ for OTG */
->  static int fsl_otg_conf(struct platform_device *pdev)
->  {
-> @@ -821,6 +827,7 @@ static int fsl_otg_conf(struct platform_device *pdev)
->  	/* Set OTG state machine operations */
->  	fsl_otg_tc->otg.fsm.ops = &fsl_otg_ops;
->  	fsl_otg_tc->otg.fsm.dev = &pdev->dev;
-> +	fsl_otg_tc->otg.hcd_ops = &fsl_hcd_ops;
+>  int ci_hdrc_otg_fsm_init(struct ci_hdrc *ci);
+>  int ci_otg_fsm_work(struct ci_hdrc *ci);
+> diff --git a/drivers/usb/common/Makefile b/drivers/usb/common/Makefile
+> index 6bbb3ec..f8f2c88 100644
+> --- a/drivers/usb/common/Makefile
+> +++ b/drivers/usb/common/Makefile
+> @@ -6,5 +6,6 @@ obj-$(CONFIG_USB_COMMON)	  += usb-common.o
+>  usb-common-y			  += common.o
+>  usb-common-$(CONFIG_USB_LED_TRIG) += led.o
 >  
->  	/* initialize the otg structure */
->  	fsl_otg_tc->phy.label = DRIVER_DESC;
-> diff --git a/include/linux/usb/otg.h b/include/linux/usb/otg.h
-> index e8a14dc..85b8fb5 100644
-> --- a/include/linux/usb/otg.h
-> +++ b/include/linux/usb/otg.h
-> @@ -12,6 +12,7 @@
->  #include <linux/phy/phy.h>
->  #include <linux/usb/phy.h>
->  #include <linux/usb/otg-fsm.h>
-> +#include <linux/usb/hcd.h>
+> -obj-$(CONFIG_USB_OTG_FSM) += usb-otg-fsm.o
+>  obj-$(CONFIG_USB_ULPI_BUS)	+= ulpi.o
+> +usbotg-y		:= usb-otg-fsm.o
+> +obj-$(CONFIG_USB_OTG)	+= usbotg.o
+> diff --git a/drivers/usb/core/Kconfig b/drivers/usb/core/Kconfig
+> index dd28010..ae228d0 100644
+> --- a/drivers/usb/core/Kconfig
+> +++ b/drivers/usb/core/Kconfig
+> @@ -75,14 +75,6 @@ config USB_OTG_BLACKLIST_HUB
+>  	  and software costs by not supporting external hubs.  So
+>  	  are "Embedded Hosts" that don't offer OTG support.
 >  
->  struct usb_otg {
->  	u8			default_a;
-> @@ -24,6 +25,7 @@ struct usb_otg {
+> -config USB_OTG_FSM
+> -	tristate "USB 2.0 OTG FSM implementation"
+> -	depends on USB && USB_OTG
+> -	select USB_PHY
+> -	help
+> -	  Implements OTG Finite State Machine as specified in On-The-Go
+> -	  and Embedded Host Supplement to the USB Revision 2.0 Specification.
+> -
+>  config USB_ULPI_BUS
+>  	tristate "USB ULPI PHY interface support"
+>  	depends on USB_SUPPORT
+> diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
+> index c690474..06794e2 100644
+> --- a/drivers/usb/phy/Kconfig
+> +++ b/drivers/usb/phy/Kconfig
+> @@ -20,7 +20,7 @@ config AB8500_USB
 >  
->  	enum usb_otg_state	state;
->  	struct otg_fsm fsm;
-> +	struct otg_hcd_ops	*hcd_ops;
->  
->  	/* bind/unbind the host controller */
->  	int	(*set_host)(struct usb_otg *otg, struct usb_bus *host);
+>  config FSL_USB2_OTG
+>  	bool "Freescale USB OTG Transceiver Driver"
+> -	depends on USB_EHCI_FSL && USB_FSL_USB2 && USB_OTG_FSM && PM
+> +	depends on USB_EHCI_FSL && USB_FSL_USB2 && USB_OTG && PM
+>  	select USB_PHY
+>  	help
+>  	  Enable this to support Freescale USB OTG transceiver.
 > -- 
 > 2.5.0
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
 
 Best Regards,
 Peter Chen
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
