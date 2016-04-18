@@ -1,84 +1,168 @@
-From: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: RE: [PATCH v2 0/2] usb: dwc3: add disable receiver detection in P3 quirk
-Date: Mon, 18 Apr 2016 10:56:41 +0300
-Message-ID: <87lh4bgxja.fsf@intel.com>
-References: <1457946651-23381-1-git-send-email-rajesh.bhagat@nxp.com> <DB5PR0401MB2024DEBF67F3990558A1D6BBF56B0@DB5PR0401MB2024.eurprd04.prod.outlook.com> <HE1PR0401MB202883D07F5AB0E1FF7C00E1E36B0@HE1PR0401MB2028.eurprd04.prod.outlook.com>
+From: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v6 04/12] usb: otg-fsm: move host controller operations
+ into usb_otg->hcd_ops
+Date: Mon, 18 Apr 2016 16:00:35 +0800
+Message-ID: <20160418080035.GF4477@shlinux2.ap.freescale.net>
+References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
+ <1459865117-7032-5-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <HE1PR0401MB202883D07F5AB0E1FF7C00E1E36B0-B0v07Ae2tapU4+HIaoOb3Y3W/0Ik+aLCnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1459865117-7032-5-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "balbi@ti.com" <balbi-l0cyMroinI0@public.gmane.org>
-Cc: "gregkh@linuxfoundation.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "linux-usb@vger.kernel.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel@vger.kernel.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap@vger.kernel.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sriram Dash <sriram.dash-3arQi8VN3Tc@public.gmane.org>, Rajesh Bhagat <rajesh.bhagat-3arQi8VN3Tc@public.gmane.org>
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+On Tue, Apr 05, 2016 at 05:05:09PM +0300, Roger Quadros wrote:
+> This is to prevent missing symbol build error if OTG is
+> enabled (built-in) and HCD core (CONFIG_USB) is module.
+> 
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 
+Acked-by: Peter Chen <peter.chen-3arQi8VN3Tc@public.gmane.org>
 
-Hi,
+> ---
+>  drivers/usb/chipidea/otg_fsm.c   |  7 +++++++
+>  drivers/usb/common/usb-otg-fsm.c | 15 +++++++++++----
+>  drivers/usb/phy/phy-fsl-usb.c    |  7 +++++++
+>  include/linux/usb/otg.h          |  2 ++
+>  4 files changed, 27 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/usb/chipidea/otg_fsm.c b/drivers/usb/chipidea/otg_fsm.c
+> index f4e9fb5..5fdf8ca 100644
+> --- a/drivers/usb/chipidea/otg_fsm.c
+> +++ b/drivers/usb/chipidea/otg_fsm.c
+> @@ -582,6 +582,12 @@ static struct otg_fsm_ops ci_otg_ops = {
+>  	.start_gadget = ci_otg_start_gadget,
+>  };
+>  
+> +static struct otg_hcd_ops ci_hcd_ops = {
+> +	.usb_bus_start_enum = usb_bus_start_enum,
+> +	.usb_control_msg = usb_control_msg,
+> +	.usb_hub_find_child = usb_hub_find_child,
+> +};
+> +
+>  int ci_otg_fsm_work(struct ci_hdrc *ci)
+>  {
+>  	/*
+> @@ -805,6 +811,7 @@ int ci_hdrc_otg_fsm_init(struct ci_hdrc *ci)
+>  	ci->otg.state = OTG_STATE_UNDEFINED;
+>  	ci->otg.fsm.ops = &ci_otg_ops;
+>  	ci->otg.fsm.dev = ci->dev;
+> +	ci->otg.hcd_ops = &ci_hcd_ops;
+>  	ci->gadget.hnp_polling_support = 1;
+>  	ci->otg.fsm.host_req_flag = devm_kzalloc(ci->dev, 1, GFP_KERNEL);
+>  	if (!ci->otg.fsm.host_req_flag)
+> diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
+> index abc462c..2cb4aed 100644
+> --- a/drivers/usb/common/usb-otg-fsm.c
+> +++ b/drivers/usb/common/usb-otg-fsm.c
+> @@ -135,11 +135,16 @@ static void otg_hnp_polling_work(struct work_struct *work)
+>  	enum usb_otg_state state = otg->state;
+>  	u8 flag;
+>  	int retval;
+> +	struct otg_hcd_ops *hcd_ops = otg->hcd_ops;
+>  
+>  	if (state != OTG_STATE_A_HOST && state != OTG_STATE_B_HOST)
+>  		return;
+>  
+> -	udev = usb_hub_find_child(otg->host->root_hub, 1);
+> +	if (!hcd_ops || !hcd_ops->usb_control_msg ||
+> +	    !hcd_ops->usb_hub_find_child)
+> +		return;
+> +
+> +	udev = hcd_ops->usb_hub_find_child(otg->host->root_hub, 1);
+>  	if (!udev) {
+>  		dev_err(otg->host->controller,
+>  			"no usb dev connected, can't start HNP polling\n");
+> @@ -148,7 +153,7 @@ static void otg_hnp_polling_work(struct work_struct *work)
+>  
+>  	*fsm->host_req_flag = 0;
+>  	/* Get host request flag from connected USB device */
+> -	retval = usb_control_msg(udev,
+> +	retval = hcd_ops->usb_control_msg(udev,
+>  				usb_rcvctrlpipe(udev, 0),
+>  				USB_REQ_GET_STATUS,
+>  				USB_DIR_IN | USB_RECIP_DEVICE,
+> @@ -177,7 +182,7 @@ static void otg_hnp_polling_work(struct work_struct *work)
+>  	if (state == OTG_STATE_A_HOST) {
+>  		/* Set b_hnp_enable */
+>  		if (!otg->host->b_hnp_enable) {
+> -			retval = usb_control_msg(udev,
+> +			retval = hcd_ops->usb_control_msg(udev,
+>  					usb_sndctrlpipe(udev, 0),
+>  					USB_REQ_SET_FEATURE, 0,
+>  					USB_DEVICE_B_HNP_ENABLE,
+> @@ -256,7 +261,9 @@ static int otg_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
+>  		otg_loc_conn(otg, 0);
+>  		otg_loc_sof(otg, 1);
+>  		otg_set_protocol(fsm, PROTO_HOST);
+> -		usb_bus_start_enum(otg->host, otg->host->otg_port);
+> +		if (otg->hcd_ops && otg->hcd_ops->usb_bus_start_enum)
+> +			otg->hcd_ops->usb_bus_start_enum(otg->host,
+> +							 otg->host->otg_port);
+>  		otg_start_hnp_polling(fsm);
+>  		break;
+>  	case OTG_STATE_A_IDLE:
+> diff --git a/drivers/usb/phy/phy-fsl-usb.c b/drivers/usb/phy/phy-fsl-usb.c
+> index a18a2ee..39605d5 100644
+> --- a/drivers/usb/phy/phy-fsl-usb.c
+> +++ b/drivers/usb/phy/phy-fsl-usb.c
+> @@ -792,6 +792,12 @@ static struct otg_fsm_ops fsl_otg_ops = {
+>  	.start_gadget = fsl_otg_start_gadget,
+>  };
+>  
+> +static struct otg_hcd_ops fsl_hcd_ops = {
+> +	.usb_bus_start_enum = usb_bus_start_enum,
+> +	.usb_control_msg = usb_control_msg,
+> +	.usb_hub_find_child = usb_hub_find_child,
+> +};
+> +
+>  /* Initialize the global variable fsl_otg_dev and request IRQ for OTG */
+>  static int fsl_otg_conf(struct platform_device *pdev)
+>  {
+> @@ -821,6 +827,7 @@ static int fsl_otg_conf(struct platform_device *pdev)
+>  	/* Set OTG state machine operations */
+>  	fsl_otg_tc->otg.fsm.ops = &fsl_otg_ops;
+>  	fsl_otg_tc->otg.fsm.dev = &pdev->dev;
+> +	fsl_otg_tc->otg.hcd_ops = &fsl_hcd_ops;
+>  
+>  	/* initialize the otg structure */
+>  	fsl_otg_tc->phy.label = DRIVER_DESC;
+> diff --git a/include/linux/usb/otg.h b/include/linux/usb/otg.h
+> index e8a14dc..85b8fb5 100644
+> --- a/include/linux/usb/otg.h
+> +++ b/include/linux/usb/otg.h
+> @@ -12,6 +12,7 @@
+>  #include <linux/phy/phy.h>
+>  #include <linux/usb/phy.h>
+>  #include <linux/usb/otg-fsm.h>
+> +#include <linux/usb/hcd.h>
+>  
+>  struct usb_otg {
+>  	u8			default_a;
+> @@ -24,6 +25,7 @@ struct usb_otg {
+>  
+>  	enum usb_otg_state	state;
+>  	struct otg_fsm fsm;
+> +	struct otg_hcd_ops	*hcd_ops;
+>  
+>  	/* bind/unbind the host controller */
+>  	int	(*set_host)(struct usb_otg *otg, struct usb_bus *host);
+> -- 
+> 2.5.0
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Rajesh Bhagat <rajesh.bhagat-3arQi8VN3Tc@public.gmane.org> writes:
->>-----Original Message-----
->>From: Rajesh Bhagat [mailto:rajesh.bhagat-3arQi8VN3Tc@public.gmane.org]
->>Sent: Monday, March 14, 2016 2:41 PM
->>To: balbi-l0cyMroinI0@public.gmane.org
->>Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
->>kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Sriram Dash
->><sriram.dash-3arQi8VN3Tc@public.gmane.org>; Rajesh Bhagat <rajesh.bhagat-3arQi8VN3Tc@public.gmane.org>
->>Subject: [PATCH v2 0/2] usb: dwc3: add disable receiver detection in P3
->>quirk
->>
->>Adds disable receiver detection in P3 quirk in DWC3 driver.
->>
->>Rajesh Bhagat (2):
->>  usb: dwc3: add disable receiver detection in P3 quirk
->>  Documentation: dt: dwc3: Add snps,dis_rxdet_inp3_quirk property
->>
->> Documentation/devicetree/bindings/usb/dwc3.txt | 2 ++
->> drivers/usb/dwc3/core.c                        | 6 ++++++
->> drivers/usb/dwc3/core.h                        | 2 ++
->> drivers/usb/dwc3/platform_data.h               | 1 +
->> 4 files changed, 11 insertions(+)
->>
->
-> Hello Felipe,
->
-> Any comments on above [v2] patches?
->
+-- 
 
-https://git.kernel.org/cgit/linux/kernel/git/balbi/usb.git/commit/?h=3Dtest=
-ing/next&id=3Dddf332eb6a5379c3f4bcade6760ae41bcd8f2202
-
-https://git.kernel.org/cgit/linux/kernel/git/balbi/usb.git/commit/?h=3Dtest=
-ing/next&id=3Dbdeb03b4ed887a36595fc8ccdd04f82e718e9ab4
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXFJM6AAoJEIaOsuA1yqREYsoP/39Jon1uld6sVF+HFg0mKLZ7
-YzkqfSNU5ibpcWwA8OQIZuIYQuF8lvER3mw3GckM271qzvOOdiAVlOX7CoKFT9U+
-Hqm7OfVY1hGHCVI7Q2VszNCQtNe9TJC2o8CTIlWHG/XKpPz5ijdvYYuRnb7ilaxk
-MsTqQRyX2/Ezodv3ktfjtZK7TOSOnK9LV6exWpOtNmIQgiiPBzEs2vaYgG2HNvFM
-biqyCTyiYWMWYVLPq3zhQklSXkmD9mWdP3+cdGiZLmwOn6DM0Tz3Of6FzIiGMgXw
-MH3+4tKxauBaidbsJIpBuCTabQeTxCdbyJCTXKFW9cwoFBOzDtQ+i3fCLYNKV5DM
-+2Z8QsbBVHDALtZ0jINs30Bth54ATI7m3y0A5VzY/ce48CxB1eaA8rQI8EcnJUbs
-gL7RCAmH70CMFBgfIiufMsbAURlakPv9NV13C0SxfzGWfZTU4I6HmX8aMUeDynWk
-eeg/7oM3oLl75OKg+7iiGMIb2pVux0ArUjQtGdKQADtJ5JbSN8bMZJ1+hcVFcWKt
-6+2IwNDRrWlGhAlmRuWpEfILsGmn7heZeRsbVIZhMc0oManUB0KrKvBuSivPDuA/
-wE/SKaDYObbwFYxtzGkBRPW2QcOHg6YFNO9At9PpcPUtfJ3x07tuSWzu3T1EQIHD
-J9Qu79sr3UuFKjtmJ5KJ
-=G7Xo
------END PGP SIGNATURE-----
---=-=-=--
+Best Regards,
+Peter Chen
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
