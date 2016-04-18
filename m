@@ -1,118 +1,58 @@
-From: Peter Chen <hzpeterchen@gmail.com>
-Subject: Re: [PATCH v6 08/12] usb: hcd: Adapt to OTG core
-Date: Mon, 18 Apr 2016 14:29:37 +0800
-Message-ID: <20160418062937.GA4477@shlinux2.ap.freescale.net>
-References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
- <1459865117-7032-9-git-send-email-rogerq@ti.com>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: USB gadgets with configfs hang reboot
+Date: Mon, 18 Apr 2016 10:02:57 +0300
+Message-ID: <571486A1.2060006@gmail.com>
+References: <20160115224839.GA19432@atomide.com> <569A1E32.1020502@gmail.com>
+ <57081105.2050206@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1459865117-7032-9-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: stern@rowland.harvard.edu, balbi@kernel.org, gregkh@linuxfoundation.org, peter.chen@freescale.com, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, r.baldyga@samsung.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <57081105.2050206-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Michal Nazarewicz <mina86-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 05, 2016 at 05:05:13PM +0300, Roger Quadros wrote:
-> Introduce usb_otg_add/remove_hcd() for use by host
-> controllers that are part of OTG/dual-role port.
-> 
-> Non Device tree platforms can use the otg_dev argument
-> to specify the OTG controller device. If otg_dev is NULL
-> then the device tree node's otg-controller property is used to
-> get the otg_dev device.
-> 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  drivers/usb/core/hcd.c  | 71 +++++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/usb/hcd.h |  4 +++
->  2 files changed, 75 insertions(+)
-> 
-> diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
-> index 6b1930d..6a80193 100644
-> --- a/drivers/usb/core/hcd.c
-> +++ b/drivers/usb/core/hcd.c
-> @@ -46,6 +46,10 @@
->  #include <linux/usb.h>
->  #include <linux/usb/hcd.h>
->  #include <linux/usb/phy.h>
-> +#include <linux/usb/otg.h>
-> +
-> +#include <linux/of.h>
-> +#include <linux/of_platform.h>
->  
->  #include "usb.h"
->  
-> @@ -3013,6 +3017,73 @@ void usb_remove_hcd(struct usb_hcd *hcd)
->  }
->  EXPORT_SYMBOL_GPL(usb_remove_hcd);
->  
-> +
-> +static struct otg_hcd_ops otg_hcd_intf = {
-> +	.add = usb_add_hcd,
-> +	.remove = usb_remove_hcd,
-> +	.usb_bus_start_enum = usb_bus_start_enum,
-> +	.usb_control_msg = usb_control_msg,
-> +	.usb_hub_find_child = usb_hub_find_child,
-> +};
-> +
-> +/**
-> + * usb_otg_add_hcd - Register the HCD with OTG core.
-> + * @hcd: the usb_hcd structure to initialize
-> + * @irqnum: Interrupt line to allocate
-> + * @irqflags: Interrupt type flags
-> + * @otg_dev: OTG controller device manging this HCD
 
-%s/manging/managing
 
-> + *
-> + * Registers the HCD with OTG core. OTG core will call usb_add_hcd()
-> + * or usb_remove_hcd() as necessary.
-> + * If otg_dev is NULL then device tree node is checked for OTG
-> + * controller device via the otg-controller property.
-> + */
-> +int usb_otg_add_hcd(struct usb_hcd *hcd,
-> +		    unsigned int irqnum, unsigned long irqflags,
-> +		    struct device *otg_dev)
-> +{
+On  8.04.2016 23:13, Ivaylo Dimitrov wrote:
+> Hi,
+>
+> On 16.01.2016 12:40, Ivaylo Dimitrov wrote:
+>> Hi,
+>>
+>> On 16.01.2016 00:48, Tony Lindgren wrote:
+>>> Hi all,
+>>>
+>>> Looks like there's some issue with the USB gadgets and configfs.
+>>>
+...
+>
+> (copied from "Re: [PATCH] usb: f_mass_storage: test whether thread is
+> running before starting another" thread)
+>
+> Yet another problem with USB gadget, this time with f_acm - if there is
+> an open /dev/ttyGSn device, it is impossible to reboot/power down the
+> device.
+>
+> My investigation shown that there is a process(pnatd) that opens
+> /dev/ttyGSn devices, so gserial_free_port() hangs on
+> wait_event(port->close_wait, gs_closed(port)); if I do "cd
+> /sys/bus/platform/drivers/musb-hdrc && echo musb-hdrc.0.auto > unbind".
+>
+> Unfortunately I don't have serial debug port connector on my N900, so I
+> can't capture logs after the reboot command, however, I suspect it hangs
+> on the same place as with unbind.
+>
+> That looks weird, as one would expect that close() is called when the
+> kernel kills user processes on reboot/powerdown.
+>
+> Ivo
 
-Some users may not want to use default otg_hcd_ops, would you please
-add one more parameter (eg, hcd_ops) for that? If hcd_ops is NULL, just
-use the default one.
 
-> +	struct device *dev = hcd->self.controller;
-> +
-> +	if (!otg_dev) {
-> +		struct device_node *np;
-> +		struct platform_device *pdev;
-> +
-> +		np = of_parse_phandle(dev->of_node, "otg-controller", 0);
-> +		if (!np) {
-> +			dev_err(dev,
-> +				"otg_dev is NULL and no otg-controller property in DT\n");
-> +			return -EINVAL;
-> +		}
-> +
-> +		pdev = of_find_device_by_node(np);
-> +		of_node_put(np);
-> +		if (!pdev) {
-> +			dev_err(dev,
-> +				"couldn't get otg-controller device\n");
-> +			return -ENODEV;
-> +		}
-> +
-> +		hcd->otg_dev = &pdev->dev;
-> +	} else {
-> +		hcd->otg_dev = otg_dev;
-> +	}
-> +
-> +	return usb_otg_register_hcd(hcd, irqnum, irqflags, &otg_hcd_intf);
-> +}
-> +EXPORT_SYMBOL_GPL(usb_otg_add_hcd);
-> +
-
--- 
-
-Best Regards,
-Peter Chen
+Anyone?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
