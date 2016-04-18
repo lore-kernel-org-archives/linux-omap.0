@@ -1,47 +1,61 @@
-From: Peter Chen <hzpeterchen@gmail.com>
-Subject: Re: [PATCH v6 01/12] usb: hcd: Initialize hcd->flags to 0
-Date: Mon, 18 Apr 2016 10:29:56 +0800
-Message-ID: <20160418022956.GB32090@shlinux2.ap.freescale.net>
-References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
- <1459865117-7032-2-git-send-email-rogerq@ti.com>
- <87zit72rqz.fsf@intel.com>
- <5704AD76.9080806@ti.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH v1] ARM: dts: omap3-n900: Specify peripherals LDO
+ regulators initial mode
+Date: Mon, 18 Apr 2016 07:11:46 +0200
+Message-ID: <20160418051146.GA3215@earth>
+References: <20160417122933.GA8093@earth>
+ <1460903363-2197-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="gKMricLos+KVdGMg"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5704AD76.9080806@ti.com>
+In-Reply-To: <1460903363-2197-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, stern@rowland.harvard.edu
-Cc: Felipe Balbi <balbi@kernel.org>, gregkh@linuxfoundation.org, peter.chen@freescale.com, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: tony@atomide.com, bcousson@baylibre.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Apr 06, 2016 at 09:32:22AM +0300, Roger Quadros wrote:
-> On 06/04/16 09:09, Felipe Balbi wrote:
-> > 
-> > Hi,
-> > 
-> > Roger Quadros <rogerq@ti.com> writes:
-> >> diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
-> >> index 2ca2cef..6b1930d 100644
-> >> --- a/drivers/usb/core/hcd.c
-> >> +++ b/drivers/usb/core/hcd.c
-> >> @@ -2706,6 +2706,7 @@ int usb_add_hcd(struct usb_hcd *hcd,
-> >>  	int retval;
-> >>  	struct usb_device *rhdev;
-> >>  
-> >> +	hcd->flags = 0;
-> > 
-> > seems like this would make more sense in usb_del_hcd() instead.
-> > 
-> 
-> OK, I'll move it there.
-> 
 
-It depends on Alan's comments, whether only usb_add_hcd/usb_del_hcd
-pair can be called repeat. If Alan acks it, I have no idea for it.
+--gKMricLos+KVdGMg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
--- 
+Hi,
 
-Best Regards,
-Peter Chen
+On Sun, Apr 17, 2016 at 05:29:23PM +0300, Ivaylo Dimitrov wrote:
+> Without that, regulators are left in the mode last set by the bootloader =
+or
+> by the kernel the device was rebooted from. This leads to various problem=
+s,
+> like non-working peripherals.
+>=20
+> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+
+Reviewed-By: Sebastian Reichel <sre@kernel.org>
+
+-- Sebastian
+
+--gKMricLos+KVdGMg
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJXFGyPAAoJENju1/PIO/qaS5MP/1IamRu4v72Z2QKdDpfmCKz9
+dnEar9Mz2XvBPI24XDWZPyh9RUxtKP89onAawzh0TCgSsxzFmRKEqC89ZWwrmSU/
+/436lhnXfLHcwNieXIwlexPQ/qqI7QYt0zVd1DAn1gmbaiyQu6YEgARvgEonJkkf
+tRMINsGwuCn63ZI1LRpuUSYmH0X+gpkZySeVaJeqrvfG79jwVHElHIssQ6kmwx8A
+uAvFk3XtFNoQsG4naIRwxUnGyxC1R/ISfGRrR9Gfqst7rZIbHY0ZuHSACDdtWdhL
+qyfGlFbBiYiAwsQbhPlkgJvTnVN6mKthhqxuqnDVLfKUUsTuZ/QGBBtReP6u0bOx
+Cgk2Yr6gbivHWdgJ3fPXqkVPKqtWNDLThoxs7G5E/psldPCXBZqp6MBDyJVGzPXy
+UF52rBvsEXy+npM7i5dZDmpAA9UsnMeZNq4qjLwJqUiqX2gFa2c7g62xDgzgpILi
+W5w0OQPbS5U+NCkL0ctYXsQSxp5m1WBTA5u5pYO/snmK3awXPOU1Op1+/PI8zOyR
+nAB8VJBp6NkCA1sSgV6lpfwUr5IApeCnxRq8XMOz5I4a4ithvrC3Bck8JRI6reKS
+AREZxC1v+c9BScTOAvCJdJa5yStYQKpvX214z33qnSjpwCxcp0Gk1m748vUHELs9
+a8ijIOQhN/wlBarZykQI
+=GlPE
+-----END PGP SIGNATURE-----
+
+--gKMricLos+KVdGMg--
