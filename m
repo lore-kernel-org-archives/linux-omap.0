@@ -1,158 +1,115 @@
-From: Peter Chen <hzpeterchen@gmail.com>
-Subject: Re: [PATCH v6 06/12] usb: otg: get rid of CONFIG_USB_OTG_FSM in
- favour of CONFIG_USB_OTG
-Date: Mon, 18 Apr 2016 16:05:14 +0800
-Message-ID: <20160418080514.GG4477@shlinux2.ap.freescale.net>
-References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
- <1459865117-7032-7-git-send-email-rogerq@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] omapfb: panel-sharp-ls037v7dw01: fix check of
+ gpio_to_desc() return value
+Date: Mon, 18 Apr 2016 12:20:28 +0300
+Message-ID: <5714A6DC.2@ti.com>
+References: <1458687114-9390-1-git-send-email-vz@mleia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="v3CpLCC9JVM0ReP5SAnWdqaXA3gPiCqUF"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1459865117-7032-7-git-send-email-rogerq@ti.com>
+In-Reply-To: <1458687114-9390-1-git-send-email-vz@mleia.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: stern@rowland.harvard.edu, balbi@kernel.org, gregkh@linuxfoundation.org, peter.chen@freescale.com, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, r.baldyga@samsung.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Vladimir Zapolskiy <vz@mleia.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 05, 2016 at 05:05:11PM +0300, Roger Quadros wrote:
-> Let's use CONFIG_USB_OTG as a single config option to enable
-> USB OTG and the OTG FSM. This makes things a lot less confusing.
-> 
-> Update all users of CONFIG_USB_OTG_FSM to CONFIG_USB_OTG.
-> 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
+--v3CpLCC9JVM0ReP5SAnWdqaXA3gPiCqUF
+Content-Type: multipart/mixed; boundary="6keT5uWhF5Ehs3xaLsqPA0l7SQjJaHbrH"
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Vladimir Zapolskiy <vz@mleia.com>,
+ Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Message-ID: <5714A6DC.2@ti.com>
+Subject: Re: [PATCH] omapfb: panel-sharp-ls037v7dw01: fix check of
+ gpio_to_desc() return value
+References: <1458687114-9390-1-git-send-email-vz@mleia.com>
+In-Reply-To: <1458687114-9390-1-git-send-email-vz@mleia.com>
+
+--6keT5uWhF5Ehs3xaLsqPA0l7SQjJaHbrH
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+
+
+On 23/03/16 00:51, Vladimir Zapolskiy wrote:
+> The change fixes a check of gpio_to_desc() return value, the function
+> returns either a valid pointer to struct gpio_desc or NULL, this makes
+> IS_ERR() check invalid and may lead to a NULL pointer dereference in
+> runtime.
+>=20
+> Signed-off-by: Vladimir Zapolskiy <vz@mleia.com>
 > ---
->  Documentation/usb/chipidea.txt | 2 +-
->  drivers/usb/Makefile           | 1 +
->  drivers/usb/chipidea/Makefile  | 2 +-
->  drivers/usb/chipidea/ci.h      | 2 +-
->  drivers/usb/chipidea/otg_fsm.h | 2 +-
->  drivers/usb/common/Makefile    | 3 ++-
->  drivers/usb/core/Kconfig       | 8 --------
->  drivers/usb/phy/Kconfig        | 2 +-
->  8 files changed, 8 insertions(+), 14 deletions(-)
-> 
-> diff --git a/Documentation/usb/chipidea.txt b/Documentation/usb/chipidea.txt
-> index 678741b..3b1f263 100644
-> --- a/Documentation/usb/chipidea.txt
-> +++ b/Documentation/usb/chipidea.txt
-> @@ -5,7 +5,7 @@ with 2 Freescale i.MX6Q sabre SD boards.
->  
->  1.1 How to enable OTG FSM in menuconfig
->  ---------------------------------------
-> -Select CONFIG_USB_OTG_FSM, rebuild kernel Image and modules.
-> +Select CONFIG_USB_OTG, rebuild kernel Image and modules.
->  If you want to check some internal variables for otg fsm,
->  mount debugfs, there are 2 files which can show otg fsm
->  variables and some controller registers value:
-> diff --git a/drivers/usb/Makefile b/drivers/usb/Makefile
-> index dca7856..16a5b55 100644
-> --- a/drivers/usb/Makefile
-> +++ b/drivers/usb/Makefile
-> @@ -59,5 +59,6 @@ obj-$(CONFIG_USB_RENESAS_USBHS)	+= renesas_usbhs/
->  obj-$(CONFIG_USB_GADGET)	+= gadget/
->  
->  obj-$(CONFIG_USB_COMMON)	+= common/
-> +obj-$(CONFIG_USB_OTG)		+= common/
-
-Why we need to add above line?
-
-Peter
->  
->  obj-$(CONFIG_USBIP_CORE)	+= usbip/
-> diff --git a/drivers/usb/chipidea/Makefile b/drivers/usb/chipidea/Makefile
-> index 518e445..45aa24d 100644
-> --- a/drivers/usb/chipidea/Makefile
-> +++ b/drivers/usb/chipidea/Makefile
-> @@ -3,7 +3,7 @@ obj-$(CONFIG_USB_CHIPIDEA)		+= ci_hdrc.o
->  ci_hdrc-y				:= core.o otg.o debug.o
->  ci_hdrc-$(CONFIG_USB_CHIPIDEA_UDC)	+= udc.o
->  ci_hdrc-$(CONFIG_USB_CHIPIDEA_HOST)	+= host.o
-> -ci_hdrc-$(CONFIG_USB_OTG_FSM)		+= otg_fsm.o
-> +ci_hdrc-$(CONFIG_USB_OTG)		+= otg_fsm.o
->  
->  # Glue/Bridge layers go here
->  
-> diff --git a/drivers/usb/chipidea/ci.h b/drivers/usb/chipidea/ci.h
-> index c523975..1a32b8c 100644
-> --- a/drivers/usb/chipidea/ci.h
-> +++ b/drivers/usb/chipidea/ci.h
-> @@ -406,7 +406,7 @@ static inline u32 hw_test_and_write(struct ci_hdrc *ci, enum ci_hw_regs reg,
->   */
->  static inline bool ci_otg_is_fsm_mode(struct ci_hdrc *ci)
+>  .../fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c    | 12 ++++=
+--------
+>  1 file changed, 4 insertions(+), 8 deletions(-)
+>=20
+> diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls03=
+7v7dw01.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7=
+dw01.c
+> index abfd1f6..1954ec9 100644
+> --- a/drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01=
+=2Ec
+> +++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01=
+=2Ec
+> @@ -200,20 +200,16 @@ static struct omap_dss_driver sharp_ls_ops =3D {
+>  static int sharp_ls_get_gpio(struct device *dev, int gpio, unsigned lo=
+ng flags,
+>  		  char *desc, struct gpio_desc **gpiod)
 >  {
-> -#ifdef CONFIG_USB_OTG_FSM
-> +#ifdef CONFIG_USB_OTG
->  	struct usb_otg_caps *otg_caps = &ci->platdata->ci_otg_caps;
->  
->  	return ci->is_otg && ci->roles[CI_ROLE_HOST] &&
-> diff --git a/drivers/usb/chipidea/otg_fsm.h b/drivers/usb/chipidea/otg_fsm.h
-> index 6366fe3..2d451bb 100644
-> --- a/drivers/usb/chipidea/otg_fsm.h
-> +++ b/drivers/usb/chipidea/otg_fsm.h
-> @@ -64,7 +64,7 @@
->  
->  #define TB_AIDL_BDIS         (20)	/* 4ms ~ 150ms, section 5.2.1 */
->  
-> -#if IS_ENABLED(CONFIG_USB_OTG_FSM)
-> +#if IS_ENABLED(CONFIG_USB_OTG)
->  
->  int ci_hdrc_otg_fsm_init(struct ci_hdrc *ci);
->  int ci_otg_fsm_work(struct ci_hdrc *ci);
-> diff --git a/drivers/usb/common/Makefile b/drivers/usb/common/Makefile
-> index 6bbb3ec..f8f2c88 100644
-> --- a/drivers/usb/common/Makefile
-> +++ b/drivers/usb/common/Makefile
-> @@ -6,5 +6,6 @@ obj-$(CONFIG_USB_COMMON)	  += usb-common.o
->  usb-common-y			  += common.o
->  usb-common-$(CONFIG_USB_LED_TRIG) += led.o
->  
-> -obj-$(CONFIG_USB_OTG_FSM) += usb-otg-fsm.o
->  obj-$(CONFIG_USB_ULPI_BUS)	+= ulpi.o
-> +usbotg-y		:= usb-otg-fsm.o
-> +obj-$(CONFIG_USB_OTG)	+= usbotg.o
-> diff --git a/drivers/usb/core/Kconfig b/drivers/usb/core/Kconfig
-> index dd28010..ae228d0 100644
-> --- a/drivers/usb/core/Kconfig
-> +++ b/drivers/usb/core/Kconfig
-> @@ -75,14 +75,6 @@ config USB_OTG_BLACKLIST_HUB
->  	  and software costs by not supporting external hubs.  So
->  	  are "Embedded Hosts" that don't offer OTG support.
->  
-> -config USB_OTG_FSM
-> -	tristate "USB 2.0 OTG FSM implementation"
-> -	depends on USB && USB_OTG
-> -	select USB_PHY
-> -	help
-> -	  Implements OTG Finite State Machine as specified in On-The-Go
-> -	  and Embedded Host Supplement to the USB Revision 2.0 Specification.
+> -	struct gpio_desc *gd;
+>  	int r;
+> =20
+> -	*gpiod =3D NULL;
 > -
->  config USB_ULPI_BUS
->  	tristate "USB ULPI PHY interface support"
->  	depends on USB_SUPPORT
-> diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
-> index c690474..06794e2 100644
-> --- a/drivers/usb/phy/Kconfig
-> +++ b/drivers/usb/phy/Kconfig
-> @@ -20,7 +20,7 @@ config AB8500_USB
->  
->  config FSL_USB2_OTG
->  	bool "Freescale USB OTG Transceiver Driver"
-> -	depends on USB_EHCI_FSL && USB_FSL_USB2 && USB_OTG_FSM && PM
-> +	depends on USB_EHCI_FSL && USB_FSL_USB2 && USB_OTG && PM
->  	select USB_PHY
->  	help
->  	  Enable this to support Freescale USB OTG transceiver.
-> -- 
-> 2.5.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  	r =3D devm_gpio_request_one(dev, gpio, flags, desc);
+> -	if (r)
+> +	if (r) {
+> +		*gpiod =3D NULL;
+>  		return r =3D=3D -ENOENT ? 0 : r;
+> +	}
+> =20
+> -	gd =3D gpio_to_desc(gpio);
+> -	if (IS_ERR(gd))
+> -		return PTR_ERR(gd) =3D=3D -ENOENT ? 0 : PTR_ERR(gd);
+> +	*gpiod =3D gpio_to_desc(gpio);
+> =20
+> -	*gpiod =3D gd;
+>  	return 0;
+>  }
+> =20
+>=20
 
--- 
+Thanks, queued for 4.6 fixes.
 
-Best Regards,
-Peter Chen
+ Tomi
+
+
+--6keT5uWhF5Ehs3xaLsqPA0l7SQjJaHbrH--
+
+--v3CpLCC9JVM0ReP5SAnWdqaXA3gPiCqUF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJXFKbcAAoJEPo9qoy8lh715L4QAI8a9Z9kDzDvFnc+lBu2YlI4
+PQcaLD2FArTT/+WgMiwCuQpFSIqojh+7HAp+scNt8Sp1CQOIXLv9071mQ9s9gol7
+3FiOlrgysUjPbL8VAq7aza4QTtafENJynHO3xTaEJODqtfhbxUK7OIbHONxla39+
+DCm3M6TP9beRc3wjsYYiytENODM4cnE59VcWPRXXtQQ28v6vkj3dEijM4n5nngEs
+rSr4YCZkjYR4i2oi0wgVw25yAcL4drKYgg//QTGEnp/rPqGYKYx8h8wftFicMMgD
+1TbVSZjJ01w8xIOi0u6MfuK9ZvyQvZCcgvFcuplcK6rwAhGfsQvpI+CHuCOtcBMz
+UZfxWIzYU3Fx9uHjQcXOMmb4eRbd2l9hB5hPeh4uZRlf6kINF9MgkAOIQ7setjJF
+ivy53LBOsCFjUHOmedvLPUSBJA1tp5zds2IxvTHV5DJ2/dOLyhENY25ACW9AQD79
+jXhnDfAx5b6ONTDOq8bwJKNoDYnMc7F76h0mCHr+Cih044IShW55HChdrqa3KESj
+0bA7C5ueOntL77QnM1S84MfLLBJXAiiMCujciKMqOWfa0PayxjSgYH0x1pDJBTPj
+AkSf6j0cv1HBQejBZxDupdDGShfRNLsPvJXCXp1XkrBRQosv3bXFc8MRICBmKcfd
+x3Jnti6yrEIQ9TrUtBq6
+=p0jl
+-----END PGP SIGNATURE-----
+
+--v3CpLCC9JVM0ReP5SAnWdqaXA3gPiCqUF--
