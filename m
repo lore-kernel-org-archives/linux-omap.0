@@ -1,167 +1,65 @@
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: Re: [PATCH v6 00/17] memory: omap-gpmc: mtd: nand: Support GPMC
- NAND on non-OMAP platforms
-Date: Mon, 18 Apr 2016 16:57:55 +0200
-Message-ID: <20160418165755.77d1d661@bbrezillon>
-References: <1460023715-19332-1-git-send-email-rogerq@ti.com>
-	<20160413212500.GD5995@atomide.com>
-	<5710B58C.7050108@ti.com>
-	<20160415120942.3131eac1@bbrezillon>
-	<5710C86A.9060108@ti.com>
-	<20160415135108.63716f06@bbrezillon>
-	<20160415154139.GS5995@atomide.com>
-	<20160415180531.15d790d2@bbrezillon>
-	<20160415161950.GT5995@atomide.com>
-	<20160416105711.5310d2d0@bbrezillon>
-	<5714D3A4.2050405@ti.com>
-	<5714D8AA.9040304@ti.com>
-	<20160418151305.17a42437@bbrezillon>
-	<5714E5AA.5050200@ti.com>
-	<20160418161001.2a1c0bed@bbrezillon>
-	<5714F185.5080103@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH] gpio: omap: fix irq triggering in smart-idle wakeup mode
+Date: Mon, 18 Apr 2016 18:57:43 +0300
+Message-ID: <571503F7.4040304@ti.com>
+References: <1460458351-24187-1-git-send-email-grygorii.strashko@ti.com>
+ <CACRpkdbGcO7i5B9e3dicAEaTTfG7u_owe3hS2u6Sd6tCNXNzBg@mail.gmail.com>
+ <5710B3B9.4090807@ti.com> <571106F3.9070805@oracle.com>
+ <20160415185429.GU5995@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5714F185.5080103@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, computersforpeace@gmail.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20160415185429.GU5995@atomide.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, santosh shilimkar <santosh.shilimkar@oracle.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Santosh Shilimkar <ssantosh@kernel.org>, Sekhar Nori <nsekhar@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 18 Apr 2016 17:39:01 +0300
-Roger Quadros <rogerq@ti.com> wrote:
-
-> On 18/04/16 17:10, Boris Brezillon wrote:
-> > On Mon, 18 Apr 2016 16:48:26 +0300
-> > Roger Quadros <rogerq@ti.com> wrote:
-> > 
-> >> Boris,
-> >>
-> >> On 18/04/16 16:13, Boris Brezillon wrote:
-> >>> Hi Roger,
-> >>>
-> >>> On Mon, 18 Apr 2016 15:52:58 +0300
-> >>> Roger Quadros <rogerq@ti.com> wrote:
-> >>>
-> >>>> On 18/04/16 15:31, Roger Quadros wrote:
-> >>>>> On 16/04/16 11:57, Boris Brezillon wrote:
-> >>>>>> On Fri, 15 Apr 2016 09:19:51 -0700
-> >>>>>> Tony Lindgren <tony@atomide.com> wrote:
-> >>>>>>
-> >>>>>>>
-> >>>>>>>> Or should I just pull this immutable branch in my current nand/next and
-> >>>>>>>> let you pull the same immutable branch in omap-soc. I mean, would this
-> >>>>>>>> prevent conflicts when our branches are merged into linux-next, no
-> >>>>>>>> matter the order.
-> >>>>>>>
-> >>>>>>> Ideally just one or more branches with just minimal changes in
-> >>>>>>> them against -rc1. But you may have other dependencies in
-> >>>>>>> your NAND tree so that may no longer be doable :) Usually if
-> >>>>>>> I merge something that may need to get merged into other
-> >>>>>>> branches, I just apply them into a separate branch against -rc1
-> >>>>>>> to start with, then merge that branch in.
-> >>>>>>
-> >>>>>> Okay, in this case, that's pretty much what I did from the beginning,
-> >>>>>> except the immutable branch was provided by Roger (based on 4.6-rc1).
-> >>>>>> Thanks for this detailed explanation, I'll try to remember that when
-> >>>>>> I'll need to provide an immutable branch for another subsystem.
-> >>>>>>
-> >>>>>> Roger, my request remains, could you check/test my conflict resolution
-> >>>>>> (branch nand/next-with-gpmc-rework)?
-> >>>>>
-> >>>>> I couldn't test that branch yet as nand/next is broken on omap platforms
-> >>>>> (at least on dra7-evm).
-> >>>>>
-> >>>>> The commit where it breaks is:
-> >>>>> a662ef4 mtd: nand: omap2: use mtd_ooblayout_xxx() helpers where appropriate
-> >>>>>
-> >>>>> I'm trying to figure out what went wrong there. Failure log below.
-> >>>>
-> >>>> OK. I was able to fix it when at commit a662ef4 with the below patch.
-> >>>
-> >>> Thanks for debugging that.
-> >>>
-> >>>>
-> >>>> Looks like we need to read exactly the ECC bytes through the ECC engine and not
-> >>>> the entire OOB region.
-> >>>
-> >>> Hm, it looks like there's a bug somewhere else, because I don't see any
-> >>> reason why the controller wouldn't be able to read the full OOB region.
-> >>
-> >> The controller can read the full OOB region but we only want it to read just
-> >> the ECC bytes because that is the way the ELM ECC engine works.
-> > 
-> > Ok, I think I got it: the ECC correction is pipelined with data read,
-> > and the controller expect to have ECC bytes right after the in-band
-> > data, is that correct?
+On 04/15/2016 09:54 PM, Tony Lindgren wrote:
+> * santosh shilimkar <santosh.shilimkar@oracle.com> [160415 08:22]:
+>> On 4/15/2016 2:26 AM, Grygorii Strashko wrote:
+>>>
+>>> Santosh, Tony, do you want me to perform any additional actions regarding this patch?
+>>>
+>> This patch should be run across family of SOCs to make
+>> sure wakeup works on all of those if not done already
 > 
-> That is correct.
+> Also, I'm not sure if we can just drop this code in question.
 > 
-> > 
-> >>
-> >>>>
-> >>>> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> >>>> index e622a1b..46b61d2 100644
-> >>>> --- a/drivers/mtd/nand/omap2.c
-> >>>> +++ b/drivers/mtd/nand/omap2.c
-> >>>> @@ -1547,8 +1547,8 @@ static int omap_read_page_bch(struct mtd_info *mtd, struct nand_chip *chip,
-> >>>>  	chip->read_buf(mtd, buf, mtd->writesize);
-> >>>>  
-> >>>>  	/* Read oob bytes */
-> >>>> -	chip->cmdfunc(mtd, NAND_CMD_RNDOUT, mtd->writesize, -1);
-> >>>> -	chip->read_buf(mtd, chip->oob_poi, mtd->oobsize);
-> >>>> +	chip->cmdfunc(mtd, NAND_CMD_RNDOUT, mtd->writesize + chip->ecc.layout->eccpos[0], -1);
-> >>>
-> >>> The whole point of this series is to get rid of chip->ecc.layout, so
-> >>> we'd rather use the mtd_ooblayout_find_eccregion() instead of
-> >>> chip->ecc.layout->eccpos[0].
-> >>
-> >> We just need the position of the first ECC byte offset.
-> >> Is that the most optimal way to get it?
-> > 
-> > For the BCH case, it seems that ECC bytes always start at offset
-> > BADBLOCK_MARKER_LENGTH, so you can just pass
-> > mtd->writesize + BADBLOCK_MARKER_LENGTH.
-> > 
-> > Let me know if this works, and I'll squash those changes into the
-> > faulty commit (I know this implies a rebase + push -f, but IMO that's
-> > better than breaking bisectability).
-> > 
-> > 
+> After this patch, what function updates the GPIO wkup_en registers
+> depending on enable_irq_wake()/disable_irq_wake()?
 > 
-> So, the below patch works as well. Please feel free to fold it with your patch.
 
-Will do.
+The main purpose of this patch is to *not* modify GPIO wkup_en registers
+depending of enable_irq_wake()/disable_irq_wake() :), instead all
+non wake up IRQs should be masked during suspend.
 
-Thanks,
+The GPIO wkup_en registers should be always in sync with GPIO irq_en when
+GPIO IP is in smart-idle wakeup mode. And this is done now from 
+omap_gpio_unmask_irq/omap_gpio_mask_irq(). See also [1].
 
-Boris
+In general, it is more or less similar to GIC + wakeupgen:
+- during normal work (including cpuidle) GIC irq_en and Wakeupgen wkup_en
+should be in sync always
+- during suspend - only IRQs, marked as wake up sources, should be left
+unmasked.
 
-> 
-> --
-> cheers,
-> -roger
-> 
-> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> index e622a1b..eb85d6b 100644
-> --- a/drivers/mtd/nand/omap2.c
-> +++ b/drivers/mtd/nand/omap2.c
-> @@ -1547,8 +1547,8 @@ static int omap_read_page_bch(struct mtd_info *mtd, struct nand_chip *chip,
->  	chip->read_buf(mtd, buf, mtd->writesize);
->  
->  	/* Read oob bytes */
-> -	chip->cmdfunc(mtd, NAND_CMD_RNDOUT, mtd->writesize, -1);
-> -	chip->read_buf(mtd, chip->oob_poi, mtd->oobsize);
-> +	chip->cmdfunc(mtd, NAND_CMD_RNDOUT, mtd->writesize + BADBLOCK_MARKER_LENGTH, -1);
-> +	chip->read_buf(mtd, chip->oob_poi, chip->ecc.total);
->  
->  	/* Calculate ecc bytes */
->  	chip->ecc.calculate(mtd, buf, ecc_calc);
+Also, I've found old thread [2] where Santosh proposed to use IRQCHIP_MASK_ON_SUSPEND.
+And it was not possible, at that time, but now IRQCHIP_MASK_ON_SUSPEND can be used :),
+because OMAP GPIO driver was switched to use generic irq handler instead of chained, so
+now OMAP GPIO irqs are properly handled by IRQ PM core.  
+[chained irqs (and chained irq handles) are not disabled during suspend/resume and they are
+ not maintained by IRQ PM core as result they can trigger way too early on resume when
+ OMAP GPIO is not ready/powered.]
 
 
+I've tested it on: am57x-evm, am437x-idk-evm, omap4-panda
+
+[1] https://lkml.org/lkml/2016/4/12/676
+[2] https://lkml.org/lkml/2012/8/26/1
+    https://groups.google.com/forum/#!msg/linux.kernel/iXJ5Y568B3Q/hZ39bSlcs0kJ
 
 -- 
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+regards,
+-grygorii
