@@ -1,187 +1,169 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH v2 1/1] drivers: net: cpsw: Prevent NUll pointer
- dereference with two PHYs
-Date: Tue, 19 Apr 2016 17:41:07 +0300
-Message-ID: <57164383.6080103@ti.com>
-References: <1461074186-25535-1-git-send-email-andrew.goodbody@cambrionix.com>
- <1461074186-25535-2-git-send-email-andrew.goodbody@cambrionix.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v6 00/17] memory: omap-gpmc: mtd: nand: Support GPMC NAND
+ on non-OMAP platforms
+Date: Tue, 19 Apr 2016 17:49:49 +0300
+Message-ID: <5716458D.1070903@ti.com>
+References: <1460023715-19332-1-git-send-email-rogerq@ti.com>
+ <20160413212500.GD5995@atomide.com> <5710B58C.7050108@ti.com>
+ <20160415120942.3131eac1@bbrezillon> <5710C86A.9060108@ti.com>
+ <20160415135108.63716f06@bbrezillon> <20160415154139.GS5995@atomide.com>
+ <20160415180531.15d790d2@bbrezillon> <20160415161950.GT5995@atomide.com>
+ <20160416105711.5310d2d0@bbrezillon> <5714D3A4.2050405@ti.com>
+ <5714D8AA.9040304@ti.com> <20160418151305.17a42437@bbrezillon>
+ <5714E5AA.5050200@ti.com> <20160418161001.2a1c0bed@bbrezillon>
+ <5714F185.5080103@ti.com> <20160419152250.6fc3f441@bbrezillon>
+ <57164014.3040603@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1461074186-25535-2-git-send-email-andrew.goodbody@cambrionix.com>
-Sender: netdev-owner@vger.kernel.org
-To: Andrew Goodbody <andrew.goodbody@cambrionix.com>, netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mugunthanvnm@ti.com, tony@atomide.com
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <57164014.3040603-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On 04/19/2016 04:56 PM, Andrew Goodbody wrote:
-> Adding a 2nd PHY to cpsw results in a NULL pointer dereference
-> as below. Fix by maintaining a reference to each PHY node in slave
-> struct instead of a single reference in the priv struct which was
-> overwritten by the 2nd PHY.
-
-David, Is it possible to drop prev version of this patch from linux-next
-- it breaks boot on many TI boards with -next.
-
-
+On 19/04/16 17:26, Roger Quadros wrote:
+> On 19/04/16 16:22, Boris Brezillon wrote:
+>> On Mon, 18 Apr 2016 17:39:01 +0300
+>> Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
+>>
+>>> On 18/04/16 17:10, Boris Brezillon wrote:
+>>>> On Mon, 18 Apr 2016 16:48:26 +0300
+>>>> Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
+>>>>
+>>>>> Boris,
+>>>>>
+>>>>> On 18/04/16 16:13, Boris Brezillon wrote:
+>>>>>> Hi Roger,
+>>>>>>
+>>>>>> On Mon, 18 Apr 2016 15:52:58 +0300
+>>>>>> Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
+>>>>>>
+>>>>>>> On 18/04/16 15:31, Roger Quadros wrote:
+>>>>>>>> On 16/04/16 11:57, Boris Brezillon wrote:
+>>>>>>>>> On Fri, 15 Apr 2016 09:19:51 -0700
+>>>>>>>>> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+>>>>>>>>>
+>>>>>>>>>>
+>>>>>>>>>>> Or should I just pull this immutable branch in my current nand/next and
+>>>>>>>>>>> let you pull the same immutable branch in omap-soc. I mean, would this
+>>>>>>>>>>> prevent conflicts when our branches are merged into linux-next, no
+>>>>>>>>>>> matter the order.
+>>>>>>>>>>
+>>>>>>>>>> Ideally just one or more branches with just minimal changes in
+>>>>>>>>>> them against -rc1. But you may have other dependencies in
+>>>>>>>>>> your NAND tree so that may no longer be doable :) Usually if
+>>>>>>>>>> I merge something that may need to get merged into other
+>>>>>>>>>> branches, I just apply them into a separate branch against -rc1
+>>>>>>>>>> to start with, then merge that branch in.
+>>>>>>>>>
+>>>>>>>>> Okay, in this case, that's pretty much what I did from the beginning,
+>>>>>>>>> except the immutable branch was provided by Roger (based on 4.6-rc1).
+>>>>>>>>> Thanks for this detailed explanation, I'll try to remember that when
+>>>>>>>>> I'll need to provide an immutable branch for another subsystem.
+>>>>>>>>>
+>>>>>>>>> Roger, my request remains, could you check/test my conflict resolution
+>>>>>>>>> (branch nand/next-with-gpmc-rework)?
+>>>>>>>>
+>>>>>>>> I couldn't test that branch yet as nand/next is broken on omap platforms
+>>>>>>>> (at least on dra7-evm).
+>>>>>>>>
+>>>>>>>> The commit where it breaks is:
+>>>>>>>> a662ef4 mtd: nand: omap2: use mtd_ooblayout_xxx() helpers where appropriate
+>>>>>>>>
+>>>>>>>> I'm trying to figure out what went wrong there. Failure log below.
+>>>>>>>
+>>>>>>> OK. I was able to fix it when at commit a662ef4 with the below patch.
+>>>>>>
+>>>>>> Thanks for debugging that.
+>>>>>>
+>>>>>>>
+>>>>>>> Looks like we need to read exactly the ECC bytes through the ECC engine and not
+>>>>>>> the entire OOB region.
+>>>>>>
+>>>>>> Hm, it looks like there's a bug somewhere else, because I don't see any
+>>>>>> reason why the controller wouldn't be able to read the full OOB region.
+>>>>>
+>>>>> The controller can read the full OOB region but we only want it to read just
+>>>>> the ECC bytes because that is the way the ELM ECC engine works.
+>>>>
+>>>> Ok, I think I got it: the ECC correction is pipelined with data read,
+>>>> and the controller expect to have ECC bytes right after the in-band
+>>>> data, is that correct?
+>>>
+>>> That is correct.
+>>>
+>>>>
+>>>>>
+>>>>>>>
+>>>>>>> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+>>>>>>> index e622a1b..46b61d2 100644
+>>>>>>> --- a/drivers/mtd/nand/omap2.c
+>>>>>>> +++ b/drivers/mtd/nand/omap2.c
+>>>>>>> @@ -1547,8 +1547,8 @@ static int omap_read_page_bch(struct mtd_info *mtd, struct nand_chip *chip,
+>>>>>>>  	chip->read_buf(mtd, buf, mtd->writesize);
+>>>>>>>  
+>>>>>>>  	/* Read oob bytes */
+>>>>>>> -	chip->cmdfunc(mtd, NAND_CMD_RNDOUT, mtd->writesize, -1);
+>>>>>>> -	chip->read_buf(mtd, chip->oob_poi, mtd->oobsize);
+>>>>>>> +	chip->cmdfunc(mtd, NAND_CMD_RNDOUT, mtd->writesize + chip->ecc.layout->eccpos[0], -1);
+>>>>>>
+>>>>>> The whole point of this series is to get rid of chip->ecc.layout, so
+>>>>>> we'd rather use the mtd_ooblayout_find_eccregion() instead of
+>>>>>> chip->ecc.layout->eccpos[0].
+>>>>>
+>>>>> We just need the position of the first ECC byte offset.
+>>>>> Is that the most optimal way to get it?
+>>>>
+>>>> For the BCH case, it seems that ECC bytes always start at offset
+>>>> BADBLOCK_MARKER_LENGTH, so you can just pass
+>>>> mtd->writesize + BADBLOCK_MARKER_LENGTH.
+>>>>
+>>>> Let me know if this works, and I'll squash those changes into the
+>>>> faulty commit (I know this implies a rebase + push -f, but IMO that's
+>>>> better than breaking bisectability).
+>>>>
+>>>>
+>>>
+>>> So, the below patch works as well. Please feel free to fold it with your patch.
+>>>
+>>> --
+>>> cheers,
+>>> -roger
+>>>
+>>> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+>>> index e622a1b..eb85d6b 100644
+>>> --- a/drivers/mtd/nand/omap2.c
+>>> +++ b/drivers/mtd/nand/omap2.c
+>>> @@ -1547,8 +1547,8 @@ static int omap_read_page_bch(struct mtd_info *mtd, struct nand_chip *chip,
+>>>  	chip->read_buf(mtd, buf, mtd->writesize);
+>>>  
+>>>  	/* Read oob bytes */
+>>> -	chip->cmdfunc(mtd, NAND_CMD_RNDOUT, mtd->writesize, -1);
+>>> -	chip->read_buf(mtd, chip->oob_poi, mtd->oobsize);
+>>> +	chip->cmdfunc(mtd, NAND_CMD_RNDOUT, mtd->writesize + BADBLOCK_MARKER_LENGTH, -1);
+>>> +	chip->read_buf(mtd, chip->oob_poi, chip->ecc.total);
+>>
+>> Are you sure this patch works? Cause it seems to me that it should be
 > 
-> [   17.870933] Unable to handle kernel NULL pointer dereference at virtual address 00000180
-> [   17.879557] pgd = dc8bc000
-> [   17.882514] [00000180] *pgd=9c882831, *pte=00000000, *ppte=00000000
-> [   17.889213] Internal error: Oops: 17 [#1] ARM
-> [   17.893838] Modules linked in:
-> [   17.897102] CPU: 0 PID: 1657 Comm: connmand Not tainted 4.5.0-ge463dfb-dirty #11
-> [   17.904947] Hardware name: Cambrionix whippet
-> [   17.909576] task: dc859240 ti: dc968000 task.ti: dc968000
-> [   17.915339] PC is at phy_attached_print+0x18/0x8c
-> [   17.920339] LR is at phy_attached_info+0x14/0x18
-> [   17.925247] pc : [<c042baec>]    lr : [<c042bb74>]    psr: 600f0113
-> [   17.925247] sp : dc969cf8  ip : dc969d28  fp : dc969d18
-> [   17.937425] r10: dda7a400  r9 : 00000000  r8 : 00000000
-> [   17.942971] r7 : 00000001  r6 : ddb00480  r5 : ddb8cb34  r4 : 00000000
-> [   17.949898] r3 : c0954cc0  r2 : c09562b0  r1 : 00000000  r0 : 00000000
-> [   17.956829] Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment none
-> [   17.964401] Control: 10c5387d  Table: 9c8bc019  DAC: 00000051
-> [   17.970500] Process connmand (pid: 1657, stack limit = 0xdc968210)
-> [   17.977059] Stack: (0xdc969cf8 to 0xdc96a000)
-
-[...]
-
-> [   18.323956] [<c05e4cb8>] (inet_ioctl) from [<c055f5ac>] (sock_ioctl+0x15c/0x2d8)
-> [   18.331829] [<c055f450>] (sock_ioctl) from [<c010b388>] (do_vfs_ioctl+0x98/0x8d0)
-> [   18.339765]  r7:00008914 r6:dc8ab4c0 r5:dd257ae0 r4:beaeda20
-> [   18.345822] [<c010b2f0>] (do_vfs_ioctl) from [<c010bc34>] (SyS_ioctl+0x74/0x84)
-> [   18.353573]  r10:00000000 r9:00000011 r8:beaeda20 r7:00008914 r6:dc8ab4c0 r5:dc8ab4c0
-> [   18.361924]  r4:00000000
-> [   18.364653] [<c010bbc0>] (SyS_ioctl) from [<c00163e0>] (ret_fast_syscall+0x0/0x3c)
-> [   18.372682]  r9:dc968000 r8:c00165e8 r7:00000036 r6:00000002 r5:00000011 r4:00000000
-> [   18.380960] Code: e92dd810 e24cb010 e24dd010 e59b4004 (e5902180)
-> [   18.387580] ---[ end trace c80529466223f3f3 ]---
-
-^ Could you make it shorter and drop timestamps, pls?
-
+> For my limited test case yes. My test case involves reading an existing ubifs partition
+> and creating a new one and then reading it back using an older kernel.
 > 
-> Signed-off-by: Andrew Goodbody <andrew.goodbody@cambrionix.com>
-> ---
+>>
+>> 	chip->read_buf(mtd, chip->oob_poi + BADBLOCK_MARKER_LENGTH,
+>> 		       chip->ecc.total);
+>>
 > 
-> v2 - Move allocation of memory for priv->slaves to inside cpsw_probe_dt so it
->       has data->slaves initialised first which is needed to calculate size
-> 
->   drivers/net/ethernet/ti/cpsw.c | 30 +++++++++++++++---------------
->   1 file changed, 15 insertions(+), 15 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> index 42fdfd4..e62909c 100644
-> --- a/drivers/net/ethernet/ti/cpsw.c
-> +++ b/drivers/net/ethernet/ti/cpsw.c
-> @@ -349,6 +349,7 @@ struct cpsw_slave {
->   	struct cpsw_slave_data		*data;
->   	struct phy_device		*phy;
->   	struct net_device		*ndev;
-> +	struct device_node		*phy_node;
->   	u32				port_vlan;
->   	u32				open_stat;
->   };
-> @@ -367,7 +368,6 @@ struct cpsw_priv {
->   	spinlock_t			lock;
->   	struct platform_device		*pdev;
->   	struct net_device		*ndev;
-> -	struct device_node		*phy_node;
->   	struct napi_struct		napi_rx;
->   	struct napi_struct		napi_tx;
->   	struct device			*dev;
-> @@ -1148,8 +1148,8 @@ static void cpsw_slave_open(struct cpsw_slave *slave, struct cpsw_priv *priv)
->   		cpsw_ale_add_mcast(priv->ale, priv->ndev->broadcast,
->   				   1 << slave_port, 0, 0, ALE_MCAST_FWD_2);
->   
-> -	if (priv->phy_node)
-> -		slave->phy = of_phy_connect(priv->ndev, priv->phy_node,
-> +	if (slave->phy_node)
-> +		slave->phy = of_phy_connect(priv->ndev, slave->phy_node,
->   				 &cpsw_adjust_link, 0, slave->data->phy_if);
->   	else
->   		slave->phy = phy_connect(priv->ndev, slave->data->phy_id,
-> @@ -1946,7 +1946,7 @@ static int cpsw_probe_dt(struct cpsw_priv *priv,
->   	struct device_node *node = pdev->dev.of_node;
->   	struct device_node *slave_node;
->   	struct cpsw_platform_data *data = &priv->data;
-> -	int i = 0, ret;
-> +	int i, ret;
->   	u32 prop;
->   
->   	if (!node)
-> @@ -1958,6 +1958,14 @@ static int cpsw_probe_dt(struct cpsw_priv *priv,
->   	}
->   	data->slaves = prop;
->   
-> +	priv->slaves = devm_kzalloc(&pdev->dev,
-> +				    sizeof(struct cpsw_slave) * data->slaves,
-> +				    GFP_KERNEL);
-> +	if (!priv->slaves)
-> +		return -ENOMEM;
-> +	for (i = 0; i < data->slaves; i++)
-> +		priv->slaves[i].slave_num = i;
-> +
->   	if (of_property_read_u32(node, "active_slave", &prop)) {
->   		dev_err(&pdev->dev, "Missing active_slave property in the DT.\n");
->   		return -EINVAL;
-> @@ -2023,6 +2031,7 @@ static int cpsw_probe_dt(struct cpsw_priv *priv,
->   	if (ret)
->   		dev_warn(&pdev->dev, "Doesn't have any child node\n");
->   
-> +	i = 0;
->   	for_each_child_of_node(node, slave_node) {
->   		struct cpsw_slave_data *slave_data = data->slave_data + i;
->   		const void *mac_addr = NULL;
-> @@ -2033,7 +2042,8 @@ static int cpsw_probe_dt(struct cpsw_priv *priv,
->   		if (strcmp(slave_node->name, "slave"))
->   			continue;
->   
-> -		priv->phy_node = of_parse_phandle(slave_node, "phy-handle", 0);
-> +		priv->slaves[i].phy_node =
-> +			of_parse_phandle(slave_node, "phy-handle", 0);
+> You are right. Else we'd have wrong OOB data during reads.
 
-i++?
+Strange, but nanddump is showing the correct OOB data with or without this
+change. I'm puzzled.
 
-Ideally, the simplest way is to save phy_node in slave_data, but ...
-(see comment below).
-
-
->   		parp = of_get_property(slave_node, "phy_id", &lenp);
->   		if (of_phy_is_fixed_link(slave_node)) {
->   			struct device_node *phy_node;
-> @@ -2292,16 +2302,6 @@ static int cpsw_probe(struct platform_device *pdev)
->   
->   	memcpy(ndev->dev_addr, priv->mac_addr, ETH_ALEN);
->   
-> -	priv->slaves = devm_kzalloc(&pdev->dev,
-> -				    sizeof(struct cpsw_slave) * data->slaves,
-> -				    GFP_KERNEL);
-> -	if (!priv->slaves) {
-> -		ret = -ENOMEM;
-> -		goto clean_runtime_disable_ret;
-> -	}
-I don't think you can move this out from here - it will break legacy boot :(
-
-
-> -	for (i = 0; i < data->slaves; i++)
-> -		priv->slaves[i].slave_num = i;
-
-Personally, I see only one safe way to do it without big rework -
-do second pass of DT parsing here to fill phy_node field.
-
-
-
-> -
->   	priv->slaves[0].ndev = ndev;
->   	priv->emac_port = 0;
->   
-> 
-
-
--- 
-regards,
--grygorii
+--
+cheers,
+-roger
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
