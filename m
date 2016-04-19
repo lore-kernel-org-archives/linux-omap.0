@@ -1,65 +1,26 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH] Documentation: devicetree: bindings: regulator:
- palmas-pmic.txt
-Date: Tue, 19 Apr 2016 17:14:40 -0500
-Message-ID: <20160419221440.GA26720@rob-hp-laptop>
-References: <1459255363-21101-1-git-send-email-j-keerthy@ti.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v2 1/1] drivers: net: cpsw: Prevent NUll pointer
+ dereference with two PHYs
+Date: Tue, 19 Apr 2016 18:43:39 -0400 (EDT)
+Message-ID: <20160419.184339.1558043853032502121.davem@davemloft.net>
+References: <57165269.40207@ti.com>
+	<20160419131443.7a3b3ef7.drivshin.allworx@gmail.com>
+	<57167C79.20205@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1459255363-21101-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: mark.rutland@arm.com, spatton@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <57167C79.20205@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: grygorii.strashko@ti.com
+Cc: drivshin.allworx@gmail.com, andrew.goodbody@cambrionix.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mugunthanvnm@ti.com, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Mar 29, 2016 at 06:12:43PM +0530, Keerthy wrote:
-> From: Schuyler Patton <spatton@ti.com>
-> 
-> Adding support for the tps659038 pmic so it doesn't generate a warning
-> when running the patch check script to
-> Documentation/devicetree/bindings/regulator/palmas-pmic.txt
-> 
-> Adding a note that the tps659037 device is a OTP spin of the
-> tps659038 pmic and device compatible.
-> 
-> Signed-off-by: Schuyler Patton <spatton@ti.com>
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Date: Tue, 19 Apr 2016 21:44:09 +0300
 
-Applied, thanks.
-
-Rob
-
-> ---
->  Documentation/devicetree/bindings/regulator/palmas-pmic.txt | 8 ++++++++
->  1 file changed, 8 insertions(+)
+> May be you can send revert + your patch 1 (only fix for this issue).
 > 
-> diff --git a/Documentation/devicetree/bindings/regulator/palmas-pmic.txt b/Documentation/devicetree/bindings/regulator/palmas-pmic.txt
-> index 725393c..9987281 100644
-> --- a/Documentation/devicetree/bindings/regulator/palmas-pmic.txt
-> +++ b/Documentation/devicetree/bindings/regulator/palmas-pmic.txt
-> @@ -1,5 +1,12 @@
->  * palmas regulator IP block devicetree bindings
->  
-> +The tps659038 for the AM57x class have OTP spins that
-> +have different part numbers but the same functionality. There
-> +is not a need to add the OTP spins to the palmas driver. The
-> +spin devices should use the tps659038 as it's compatible value.
-> +This is the list of those devices:
-> +tps659037
-> +
->  Required properties:
->  - compatible : Should be from the list
->    ti,twl6035-pmic
-> @@ -8,6 +15,7 @@ Required properties:
->    ti,tps65913-pmic
->    ti,tps65914-pmic
->    ti,tps65917-pmic
-> +  ti,tps659038-pmic
->  and also the generic series names
->    ti,palmas-pmic
->  - interrupt-parent : The parent interrupt controller which is palmas.
-> -- 
-> 1.9.1
-> 
+> Dave, Does that sound good to you?
+
+Sure.
