@@ -1,57 +1,105 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v9 3/7] ASoC: hdmi-codec: Add hdmi-codec for external
- HDMI-encoders
-Date: Tue, 19 Apr 2016 11:54:29 +0100
-Message-ID: <20160419105429.GS3217@sirena.org.uk>
-References: <cover.1459431292.git.jsarha@ti.com>
- <636486b25db48fa13ae640516cdebe7bcfea0d23.1459431292.git.jsarha@ti.com>
- <57160B9F.9090907@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: Runtime warning due to commit 'ARM: OMAP: Catch callers of
+ revision information prior to it being populated' in -next
+Date: Tue, 19 Apr 2016 07:19:45 -0500
+Message-ID: <57162261.4070409@ti.com>
+References: <5715B5EC.2040000@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="WkmTq0Xj5pNQBic9"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <57160B9F.9090907-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, tiwai-l3A5Bk7waGM@public.gmane.org, rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, arnaud.pouliquen-qxv4g6HH51o@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <5715B5EC.2040000@roeck-us.net>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+On 04/18/2016 11:37 PM, Guenter Roeck wrote:
+> Hi,
+> 
 
---WkmTq0Xj5pNQBic9
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
++ linux-omap, linux-arm
 
-On Tue, Apr 19, 2016 at 01:42:39PM +0300, Jyri Sarha wrote:
+> commit 'ARM: OMAP: Catch callers of revision information prior to it
+> being populated' results in a runtime warning on various non-OMAP
+> architectures. I have seen it with the following qemu tests.
+> 
+> arm:vexpress-a9:multi_v7_defconfig:vexpress-v2p-ca9
+> arm:vexpress-a15:multi_v7_defconfig:vexpress-v2p-ca15-tc1
+> arm:xilinx-zynq-a9:multi_v7_defconfig:zynq-zc702
+> arm:xilinx-zynq-a9:multi_v7_defconfig:zynq-zc706
+> arm:xilinx-zynq-a9:multi_v7_defconfig:zynq-zed
+> arm:midway:multi_v7_defconfig:ecx-2000
+> arm:smdkc210:multi_v7_defconfig:exynos4210-smdkv310
+> 
+> It is also reported by kernelci.org in at least one boot test for imx6q-cm-fx6.
 
-> There is now two acks (and a tested-by?) to this patch and reviewed-by
-> to an earlier version (with very small change this this one). I think it
-> would make sense to apply this one now, even if there are no users to
-> the driver just yet. Then all the video side users could (at least in
-> theory) implement the HW specific hdmi audio support with video side
-> patches only.
+Thanks for the report... :(
+> 
+> The warning is as follows.
+> 
+> ------------[ cut here ]------------
+> WARNING: CPU: 0 PID: 1 at arch/arm/mach-omap2/id.c:49 omap_rev+0x3c/0x50
+> Modules linked in:
+> CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.6.0-rc2-next-20160411 #1
+> Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
+> [<c030f970>] (unwind_backtrace) from [<c030b094>] (show_stack+0x10/0x14)
+> [<c030b094>] (show_stack) from [<c0585424>] (dump_stack+0x84/0xa4)
+> [<c0585424>] (dump_stack) from [<c0341774>] (__warn+0xd4/0x100)
+> [<c0341774>] (__warn) from [<c03417c0>] (warn_slowpath_null+0x20/0x28)
+> [<c03417c0>] (warn_slowpath_null) from [<c0324024>] (omap_rev+0x3c/0x50)
+> [<c0324024>] (omap_rev) from [<c1114a18>] (__omap4_sar_ram_init+0x8/0x88)
+> [<c1114a18>] (__omap4_sar_ram_init) from [<c0301e5c>] (do_one_initcall+0x3c/0x16c)
+> [<c0301e5c>] (do_one_initcall) from [<c1100ccc>] (kernel_init_freeable+0x70/0x1ec)
+> [<c1100ccc>] (kernel_init_freeable) from [<c0b495e4>] (kernel_init+0x8/0x110)
+> [<c0b495e4>] (kernel_init) from [<c0307f78>] (ret_from_fork+0x14/0x3c)
+> ---[ end trace cb88537fdc8fa200 ]---
+> 
+> Please have a look.
 
-> What do you think?
+Tony,
+Should we get rid of omap_initcall callers(move them into
+board-generic call path or lower the check not to include default of 0?
 
-I applied it yesterday.
+we have the following users:
+> $ git grep omap_".*"_initcall arch/arm/mach-omap2/
+> arch/arm/mach-omap2/board-n8x0.c:omap_late_initcall(n8x0_late_initcall);
+> arch/arm/mach-omap2/board-rx51-video.c:omap_subsys_initcall(rx51_video_init);
+> arch/arm/mach-omap2/devices.c:omap_postcore_initcall(omap3_l3_init);
+> arch/arm/mach-omap2/devices.c:omap_arch_initcall(omap2_init_devices);
+> arch/arm/mach-omap2/devices.c:omap_postcore_initcall(omap_gpmc_init);
+> arch/arm/mach-omap2/dma.c:omap_arch_initcall(omap2_system_dma_init);
+> arch/arm/mach-omap2/gpio.c:omap_postcore_initcall(omap2_gpio_init);
+> arch/arm/mach-omap2/hdq1w.c:omap_arch_initcall(omap_init_hdq);
+> arch/arm/mach-omap2/i2c.c:omap_subsys_initcall(omap_i2c_cmdline);
+> arch/arm/mach-omap2/id.c:omap_device_initcall(omap_feed_randpool);
+> arch/arm/mach-omap2/mcbsp.c:omap_arch_initcall(omap2_mcbsp_init);
+> arch/arm/mach-omap2/omap2-restart.c:omap_postcore_initcall(omap2xxx_common_look_up_clks_for_reset);
+> arch/arm/mach-omap2/omap4-common.c:omap_arch_initcall(omap4_sram_init);
+> arch/arm/mach-omap2/omap4-common.c:omap_early_initcall(omap4_sar_ram_init);
+^^ warning was generated here
+> arch/arm/mach-omap2/omap_device.c:omap_postcore_initcall(omap_device_init);
+> arch/arm/mach-omap2/omap_device.c:omap_late_initcall_sync(omap_device_late_init);
+> arch/arm/mach-omap2/omap_hwmod.c:omap_postcore_initcall(omap_hwmod_setup_all);
+> arch/arm/mach-omap2/omap_phy_internal.c:omap_early_initcall(omap4430_phy_power_down);
+> arch/arm/mach-omap2/opp3xxx_data.c:omap_device_initcall(omap3_opp_init);
+> arch/arm/mach-omap2/opp4xxx_data.c:omap_device_initcall(omap4_opp_init);
+> arch/arm/mach-omap2/pm-debug.c:omap_arch_initcall(pm_dbg_init);
+> arch/arm/mach-omap2/pm.c:omap_postcore_initcall(omap2_common_pm_init);
+> arch/arm/mach-omap2/pmu.c:omap_subsys_initcall(omap_init_pmu);
+> arch/arm/mach-omap2/serial.c:omap_postcore_initcall(omap_serial_early_init);
+> arch/arm/mach-omap2/smartreflex-class3.c:omap_late_initcall(sr_class3_init);
+> arch/arm/mach-omap2/timer.c:omap_arch_initcall(omap2_dm_timer_init);
+> arch/arm/mach-omap2/wd_timer.c:omap_subsys_initcall(omap_init_wdt);
 
---WkmTq0Xj5pNQBic9
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJXFg5jAAoJECTWi3JdVIfQg9IH/jEA7d1UFAO/vxk0CzmRR541
-recG/2lb7Hm8rLTQE7YsZGAD4NqiY+3pCJqJ28t16sh3583ZhxXgj1/9dt8sREqP
-mFfxOV/Lp1t9MUm2UFbryW9zpAGr7vxwwuifQnpL2isXFI68hOwEPyM6sbg4wjDv
-p9IRNMlY4SGLlTSOl8bob5AsqVb3oQ+OIvPLlv3+A7QHHOml63IXeR4TwCOAES14
-Fg/DLafvzusqdJ3CfJNh+eBrQ66g8GUSTv4KqmwQdb0hBqOal4malqbguU5dCkXH
-TSEW1UYjwGE1V9tKOv19wFaTe0iKsvsAeBghNJ3NFt9aHxBic8+RTwO4NAS6HSY=
-=/Fe+
------END PGP SIGNATURE-----
-
---WkmTq0Xj5pNQBic9--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
+Nishanth Menon
