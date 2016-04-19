@@ -1,105 +1,145 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: Runtime warning due to commit 'ARM: OMAP: Catch callers of
- revision information prior to it being populated' in -next
-Date: Tue, 19 Apr 2016 07:19:45 -0500
-Message-ID: <57162261.4070409@ti.com>
-References: <5715B5EC.2040000@roeck-us.net>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v6 00/17] memory: omap-gpmc: mtd: nand: Support GPMC NAND
+ on non-OMAP platforms
+Date: Tue, 19 Apr 2016 15:46:19 +0300
+Message-ID: <5716289B.4060302@ti.com>
+References: <1460023715-19332-1-git-send-email-rogerq@ti.com>
+ <20160413212500.GD5995@atomide.com> <5710B58C.7050108@ti.com>
+ <20160415120942.3131eac1@bbrezillon> <5710C86A.9060108@ti.com>
+ <20160415135108.63716f06@bbrezillon> <20160415154139.GS5995@atomide.com>
+ <20160415180531.15d790d2@bbrezillon> <20160415161950.GT5995@atomide.com>
+ <20160416105711.5310d2d0@bbrezillon> <5714D3A4.2050405@ti.com>
+ <5714D8AA.9040304@ti.com> <20160418151305.17a42437@bbrezillon>
+ <5714E5AA.5050200@ti.com> <20160418161001.2a1c0bed@bbrezillon>
+ <5714F185.5080103@ti.com> <20160418165755.77d1d661@bbrezillon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5715B5EC.2040000@roeck-us.net>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160418165755.77d1d661@bbrezillon>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Tony Lindgren <tony@atomide.com>, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, computersforpeace@gmail.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 04/18/2016 11:37 PM, Guenter Roeck wrote:
-> Hi,
-> 
+Boris,
 
-+ linux-omap, linux-arm
-
-> commit 'ARM: OMAP: Catch callers of revision information prior to it
-> being populated' results in a runtime warning on various non-OMAP
-> architectures. I have seen it with the following qemu tests.
+On 18/04/16 17:57, Boris Brezillon wrote:
+> On Mon, 18 Apr 2016 17:39:01 +0300
+> Roger Quadros <rogerq@ti.com> wrote:
 > 
-> arm:vexpress-a9:multi_v7_defconfig:vexpress-v2p-ca9
-> arm:vexpress-a15:multi_v7_defconfig:vexpress-v2p-ca15-tc1
-> arm:xilinx-zynq-a9:multi_v7_defconfig:zynq-zc702
-> arm:xilinx-zynq-a9:multi_v7_defconfig:zynq-zc706
-> arm:xilinx-zynq-a9:multi_v7_defconfig:zynq-zed
-> arm:midway:multi_v7_defconfig:ecx-2000
-> arm:smdkc210:multi_v7_defconfig:exynos4210-smdkv310
+>> On 18/04/16 17:10, Boris Brezillon wrote:
+>>> On Mon, 18 Apr 2016 16:48:26 +0300
+>>> Roger Quadros <rogerq@ti.com> wrote:
+>>>
+>>>> Boris,
+>>>>
+>>>> On 18/04/16 16:13, Boris Brezillon wrote:
+>>>>> Hi Roger,
+>>>>>
+>>>>> On Mon, 18 Apr 2016 15:52:58 +0300
+>>>>> Roger Quadros <rogerq@ti.com> wrote:
+>>>>>
+>>>>>> On 18/04/16 15:31, Roger Quadros wrote:
+>>>>>>> On 16/04/16 11:57, Boris Brezillon wrote:
+>>>>>>>> On Fri, 15 Apr 2016 09:19:51 -0700
+>>>>>>>> Tony Lindgren <tony@atomide.com> wrote:
+>>>>>>>>
+>>>>>>>>>
+>>>>>>>>>> Or should I just pull this immutable branch in my current nand/next and
+>>>>>>>>>> let you pull the same immutable branch in omap-soc. I mean, would this
+>>>>>>>>>> prevent conflicts when our branches are merged into linux-next, no
+>>>>>>>>>> matter the order.
+>>>>>>>>>
+>>>>>>>>> Ideally just one or more branches with just minimal changes in
+>>>>>>>>> them against -rc1. But you may have other dependencies in
+>>>>>>>>> your NAND tree so that may no longer be doable :) Usually if
+>>>>>>>>> I merge something that may need to get merged into other
+>>>>>>>>> branches, I just apply them into a separate branch against -rc1
+>>>>>>>>> to start with, then merge that branch in.
+>>>>>>>>
+>>>>>>>> Okay, in this case, that's pretty much what I did from the beginning,
+>>>>>>>> except the immutable branch was provided by Roger (based on 4.6-rc1).
+>>>>>>>> Thanks for this detailed explanation, I'll try to remember that when
+>>>>>>>> I'll need to provide an immutable branch for another subsystem.
+>>>>>>>>
+>>>>>>>> Roger, my request remains, could you check/test my conflict resolution
+>>>>>>>> (branch nand/next-with-gpmc-rework)?
+>>>>>>>
+>>>>>>> I couldn't test that branch yet as nand/next is broken on omap platforms
+>>>>>>> (at least on dra7-evm).
+>>>>>>>
+>>>>>>> The commit where it breaks is:
+>>>>>>> a662ef4 mtd: nand: omap2: use mtd_ooblayout_xxx() helpers where appropriate
+>>>>>>>
+>>>>>>> I'm trying to figure out what went wrong there. Failure log below.
+>>>>>>
+>>>>>> OK. I was able to fix it when at commit a662ef4 with the below patch.
+>>>>>
+>>>>> Thanks for debugging that.
+>>>>>
+>>>>>>
+>>>>>> Looks like we need to read exactly the ECC bytes through the ECC engine and not
+>>>>>> the entire OOB region.
+>>>>>
+>>>>> Hm, it looks like there's a bug somewhere else, because I don't see any
+>>>>> reason why the controller wouldn't be able to read the full OOB region.
+>>>>
+>>>> The controller can read the full OOB region but we only want it to read just
+>>>> the ECC bytes because that is the way the ELM ECC engine works.
+>>>
+>>> Ok, I think I got it: the ECC correction is pipelined with data read,
+>>> and the controller expect to have ECC bytes right after the in-band
+>>> data, is that correct?
+>>
+>> That is correct.
+>>
+>>>
+>>>>
+>>>>>>
+>>>>>> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+>>>>>> index e622a1b..46b61d2 100644
+>>>>>> --- a/drivers/mtd/nand/omap2.c
+>>>>>> +++ b/drivers/mtd/nand/omap2.c
+>>>>>> @@ -1547,8 +1547,8 @@ static int omap_read_page_bch(struct mtd_info *mtd, struct nand_chip *chip,
+>>>>>>  	chip->read_buf(mtd, buf, mtd->writesize);
+>>>>>>  
+>>>>>>  	/* Read oob bytes */
+>>>>>> -	chip->cmdfunc(mtd, NAND_CMD_RNDOUT, mtd->writesize, -1);
+>>>>>> -	chip->read_buf(mtd, chip->oob_poi, mtd->oobsize);
+>>>>>> +	chip->cmdfunc(mtd, NAND_CMD_RNDOUT, mtd->writesize + chip->ecc.layout->eccpos[0], -1);
+>>>>>
+>>>>> The whole point of this series is to get rid of chip->ecc.layout, so
+>>>>> we'd rather use the mtd_ooblayout_find_eccregion() instead of
+>>>>> chip->ecc.layout->eccpos[0].
+>>>>
+>>>> We just need the position of the first ECC byte offset.
+>>>> Is that the most optimal way to get it?
+>>>
+>>> For the BCH case, it seems that ECC bytes always start at offset
+>>> BADBLOCK_MARKER_LENGTH, so you can just pass
+>>> mtd->writesize + BADBLOCK_MARKER_LENGTH.
+>>>
+>>> Let me know if this works, and I'll squash those changes into the
+>>> faulty commit (I know this implies a rebase + push -f, but IMO that's
+>>> better than breaking bisectability).
+>>>
+>>>
+>>
+>> So, the below patch works as well. Please feel free to fold it with your patch.
 > 
-> It is also reported by kernelci.org in at least one boot test for imx6q-cm-fx6.
-
-Thanks for the report... :(
+> Will do.
 > 
-> The warning is as follows.
+> Thanks,
 > 
-> ------------[ cut here ]------------
-> WARNING: CPU: 0 PID: 1 at arch/arm/mach-omap2/id.c:49 omap_rev+0x3c/0x50
-> Modules linked in:
-> CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.6.0-rc2-next-20160411 #1
-> Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
-> [<c030f970>] (unwind_backtrace) from [<c030b094>] (show_stack+0x10/0x14)
-> [<c030b094>] (show_stack) from [<c0585424>] (dump_stack+0x84/0xa4)
-> [<c0585424>] (dump_stack) from [<c0341774>] (__warn+0xd4/0x100)
-> [<c0341774>] (__warn) from [<c03417c0>] (warn_slowpath_null+0x20/0x28)
-> [<c03417c0>] (warn_slowpath_null) from [<c0324024>] (omap_rev+0x3c/0x50)
-> [<c0324024>] (omap_rev) from [<c1114a18>] (__omap4_sar_ram_init+0x8/0x88)
-> [<c1114a18>] (__omap4_sar_ram_init) from [<c0301e5c>] (do_one_initcall+0x3c/0x16c)
-> [<c0301e5c>] (do_one_initcall) from [<c1100ccc>] (kernel_init_freeable+0x70/0x1ec)
-> [<c1100ccc>] (kernel_init_freeable) from [<c0b495e4>] (kernel_init+0x8/0x110)
-> [<c0b495e4>] (kernel_init) from [<c0307f78>] (ret_from_fork+0x14/0x3c)
-> ---[ end trace cb88537fdc8fa200 ]---
-> 
-> Please have a look.
+> Boris
 
-Tony,
-Should we get rid of omap_initcall callers(move them into
-board-generic call path or lower the check not to include default of 0?
+After all the changes we discussed in [1] I was able to test nand/next-with-gpmc-rework
+and it worked fine.
 
-we have the following users:
-> $ git grep omap_".*"_initcall arch/arm/mach-omap2/
-> arch/arm/mach-omap2/board-n8x0.c:omap_late_initcall(n8x0_late_initcall);
-> arch/arm/mach-omap2/board-rx51-video.c:omap_subsys_initcall(rx51_video_init);
-> arch/arm/mach-omap2/devices.c:omap_postcore_initcall(omap3_l3_init);
-> arch/arm/mach-omap2/devices.c:omap_arch_initcall(omap2_init_devices);
-> arch/arm/mach-omap2/devices.c:omap_postcore_initcall(omap_gpmc_init);
-> arch/arm/mach-omap2/dma.c:omap_arch_initcall(omap2_system_dma_init);
-> arch/arm/mach-omap2/gpio.c:omap_postcore_initcall(omap2_gpio_init);
-> arch/arm/mach-omap2/hdq1w.c:omap_arch_initcall(omap_init_hdq);
-> arch/arm/mach-omap2/i2c.c:omap_subsys_initcall(omap_i2c_cmdline);
-> arch/arm/mach-omap2/id.c:omap_device_initcall(omap_feed_randpool);
-> arch/arm/mach-omap2/mcbsp.c:omap_arch_initcall(omap2_mcbsp_init);
-> arch/arm/mach-omap2/omap2-restart.c:omap_postcore_initcall(omap2xxx_common_look_up_clks_for_reset);
-> arch/arm/mach-omap2/omap4-common.c:omap_arch_initcall(omap4_sram_init);
-> arch/arm/mach-omap2/omap4-common.c:omap_early_initcall(omap4_sar_ram_init);
-^^ warning was generated here
-> arch/arm/mach-omap2/omap_device.c:omap_postcore_initcall(omap_device_init);
-> arch/arm/mach-omap2/omap_device.c:omap_late_initcall_sync(omap_device_late_init);
-> arch/arm/mach-omap2/omap_hwmod.c:omap_postcore_initcall(omap_hwmod_setup_all);
-> arch/arm/mach-omap2/omap_phy_internal.c:omap_early_initcall(omap4430_phy_power_down);
-> arch/arm/mach-omap2/opp3xxx_data.c:omap_device_initcall(omap3_opp_init);
-> arch/arm/mach-omap2/opp4xxx_data.c:omap_device_initcall(omap4_opp_init);
-> arch/arm/mach-omap2/pm-debug.c:omap_arch_initcall(pm_dbg_init);
-> arch/arm/mach-omap2/pm.c:omap_postcore_initcall(omap2_common_pm_init);
-> arch/arm/mach-omap2/pmu.c:omap_subsys_initcall(omap_init_pmu);
-> arch/arm/mach-omap2/serial.c:omap_postcore_initcall(omap_serial_early_init);
-> arch/arm/mach-omap2/smartreflex-class3.c:omap_late_initcall(sr_class3_init);
-> arch/arm/mach-omap2/timer.c:omap_arch_initcall(omap2_dm_timer_init);
-> arch/arm/mach-omap2/wd_timer.c:omap_subsys_initcall(omap_init_wdt);
+[1] - http://thread.gmane.org/gmane.comp.hardware.netbook.arm.sunxi/22596/focus=22936
 
--- 
-Regards,
-Nishanth Menon
+I'd be happy to test the branch again after you've incorporated all changes.
+
+Since you are gong to do a push -f anyways, I was wondering if you want to pull in my
+gpmc branch first to avoid the merge conflict. But it is totally up to you.
