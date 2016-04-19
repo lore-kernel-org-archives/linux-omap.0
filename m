@@ -1,32 +1,84 @@
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH] mfd: twl4030-power: Fix driver path in file comment
-Date: Tue, 19 Apr 2016 17:24:26 -0400
-Message-ID: <1461101066-27753-1-git-send-email-javier@osg.samsung.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] dt-bindings: Correct path for ARM GIC documentation
+Date: Tue, 19 Apr 2016 17:14:10 -0500
+Message-ID: <20160419221410.GA26533@rob-hp-laptop>
+References: <1458226077-7179-1-git-send-email-jonathanh@nvidia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1458226077-7179-1-git-send-email-jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The driver's file path in the comment is wrong, use the correct one.
+On Thu, Mar 17, 2016 at 02:47:57PM +0000, Jon Hunter wrote:
+> Commit eb3fcf007fff ("dt-bindings: consolidate interrupt controller
+> bindings") moved the binding documentation for the ARM GIC from
+> arm/gic.txt to interrupt-controller/arm,gic.txt. However, there are
+> still some binding documents referring to the old path. Update these
+> binding documents to use the correct location.
+> 
+> Fixes: eb3fcf007fff ("dt-bindings: consolidate interrupt controller bindings")
+> 
+> Signed-off-by: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Applied, thanks.
 
----
+Rob
 
- drivers/mfd/twl4030-power.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-index 04b539850e72..f832233fd365 100644
---- a/drivers/mfd/twl4030-power.c
-+++ b/drivers/mfd/twl4030-power.c
-@@ -1,5 +1,5 @@
- /*
-- * linux/drivers/i2c/chips/twl4030-power.c
-+ * linux/drivers/mfd/twl4030-power.c
-  *
-  * Handle TWL4030 Power initialization
-  *
--- 
-2.5.5
+> ---
+>  Documentation/devicetree/bindings/arm/omap/crossbar.txt                | 3 ++-
+>  Documentation/devicetree/bindings/arm/ux500/boards.txt                 | 2 +-
+>  .../devicetree/bindings/interrupt-controller/mediatek,sysirq.txt       | 3 +--
+>  3 files changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/arm/omap/crossbar.txt b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+> index a9b28d74d902..bb5727ae004a 100644
+> --- a/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+> +++ b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+> @@ -42,7 +42,8 @@ Examples:
+>  Consumer:
+>  ========
+>  See Documentation/devicetree/bindings/interrupt-controller/interrupts.txt and
+> -Documentation/devicetree/bindings/arm/gic.txt for further details.
+> +Documentation/devicetree/bindings/interrupt-controller/arm,gic.txt for
+> +further details.
+>  
+>  An interrupt consumer on an SoC using crossbar will use:
+>  	interrupts = <GIC_SPI request_number interrupt_level>
+> diff --git a/Documentation/devicetree/bindings/arm/ux500/boards.txt b/Documentation/devicetree/bindings/arm/ux500/boards.txt
+> index b8737a8de718..7334c24625fc 100644
+> --- a/Documentation/devicetree/bindings/arm/ux500/boards.txt
+> +++ b/Documentation/devicetree/bindings/arm/ux500/boards.txt
+> @@ -23,7 +23,7 @@ scu:
+>  	see binding for arm/scu.txt
+>  
+>  interrupt-controller:
+> -	see binding for arm/gic.txt
+> +	see binding for interrupt-controller/arm,gic.txt
+>  
+>  timer:
+>  	see binding for arm/twd.txt
+> diff --git a/Documentation/devicetree/bindings/interrupt-controller/mediatek,sysirq.txt b/Documentation/devicetree/bindings/interrupt-controller/mediatek,sysirq.txt
+> index b8e1674c7837..8cf564d083d2 100644
+> --- a/Documentation/devicetree/bindings/interrupt-controller/mediatek,sysirq.txt
+> +++ b/Documentation/devicetree/bindings/interrupt-controller/mediatek,sysirq.txt
+> @@ -16,8 +16,7 @@ Required properties:
+>  	"mediatek,mt6577-sysirq"
+>  	"mediatek,mt2701-sysirq"
+>  - interrupt-controller : Identifies the node as an interrupt controller
+> -- #interrupt-cells : Use the same format as specified by GIC in
+> -  Documentation/devicetree/bindings/arm/gic.txt
+> +- #interrupt-cells : Use the same format as specified by GIC in arm,gic.txt.
+>  - interrupt-parent: phandle of irq parent for sysirq. The parent must
+>    use the same interrupt-cells format as GIC.
+>  - reg: Physical base address of the intpol registers and length of memory
+> -- 
+> 2.1.4
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
