@@ -1,58 +1,71 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 0/3] ARM: OMAP3: Fix McBSP2/3 hwmod setup for sidetone
-Date: Mon, 18 Apr 2016 16:51:53 -0700
-Message-ID: <20160418235152.GZ5995@atomide.com>
-References: <20160412163750.GR5995@atomide.com>
- <570E3428.5020804@ti.com>
- <20160413152829.GQ5995@atomide.com>
- <570F4804.4050006@ti.com>
- <20160414165514.GL5995@atomide.com>
- <570FF163.1050603@ti.com>
- <20160414203457.GM5995@atomide.com>
- <5710C10A.6040908@ti.com>
- <20160415151651.GP5995@atomide.com>
- <571145F6.2040508@ti.com>
+From: santosh shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: [PATCH] gpio: omap: fix irq triggering in smart-idle wakeup mode
+Date: Mon, 18 Apr 2016 17:01:44 -0700
+Message-ID: <57157568.1080305@oracle.com>
+References: <1460458351-24187-1-git-send-email-grygorii.strashko@ti.com>
+ <CACRpkdbGcO7i5B9e3dicAEaTTfG7u_owe3hS2u6Sd6tCNXNzBg@mail.gmail.com>
+ <5710B3B9.4090807@ti.com> <571106F3.9070805@oracle.com>
+ <20160415185429.GU5995@atomide.com> <571503F7.4040304@ti.com>
+ <20160418233602.GW5995@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <571145F6.2040508@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, jarkko.nikula@bitmer.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20160418233602.GW5995@atomide.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Santosh Shilimkar <ssantosh@kernel.org>, Sekhar Nori <nsekhar@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [160415 12:52]:
-> On 04/15/2016 06:16 PM, Tony Lindgren wrote:
-> >> We can hack this around by adding HWMOD_NO_IDLEST to the sidetone hwmod I
-> >> guess. As the sidetone does not have PRCM level control - it is part of McBSP.
-> > 
-> > Heh if they are using the same register bits for two separate modules,
-> > then that's a bug for sure :) I think the sidetone module only has the
-> > clock gating bit in the ST_SYSCONFIG.
-> 
-> Yes, the sidetone only has clock gating bit in ST_SYSCONFIG, but the hwmod has
-> the prcm section which is identical of the corresponding McBSP hwmod prcm section.
-> 
-> Since we have only one MCBSP2_ICLK and only one bit in PRCM registers for it,
-> this is a bug in the hwmod data for sure. Only the mcbsp hwmod should have
-> prcm section and the sidetone hwmod is not needed IMO:
-> It is a bug to have sidetone enabled when McBSP is not enabled and configured
-> properly. The sidetone can not work w/o proper McBSP configuration.
-> 
-> If we were to keep both hwmods and add new set of pm_runtime calls for the
-> mcbsp.sidetone, it will only increase/decrease the mcbsp_iclk enable count. It
-> must never enable the clock itself since that is a bug in the SW.
-
-OK makes sense. I'd prefer to keep it to match the hardware for the modules.
-
-> > Then all these modules just sit on the L4 interconnet at
-> > separate targets, including the clockdomain.
-> 
-> The McBSPi core and it's sidetone is in the same clock domain as the sidetone
-> is using the McBSPi interface clock. It is kind of a leech ;)
-
-Well they still are able to use the McBSP interface clock independently
-AFAIK :)
-
-Tony
+On 4/18/2016 4:36 PM, Tony Lindgren wrote:
+> * Grygorii Strashko <grygorii.strashko@ti.com> [160418 08:59]:
+>> On 04/15/2016 09:54 PM, Tony Lindgren wrote:
+>>> * santosh shilimkar <santosh.shilimkar@oracle.com> [160415 08:22]:
+>>>> On 4/15/2016 2:26 AM, Grygorii Strashko wrote:
+>>>>>
+>>>>> Santosh, Tony, do you want me to perform any additional actions regarding this patch?
+>>>>>
+>>>> This patch should be run across family of SOCs to make
+>>>> sure wakeup works on all of those if not done already
+>>>
+>>> Also, I'm not sure if we can just drop this code in question.
+>>>
+>>> After this patch, what function updates the GPIO wkup_en registers
+>>> depending on enable_irq_wake()/disable_irq_wake()?
+>>>
+>>
+>> The main purpose of this patch is to *not* modify GPIO wkup_en registers
+>> depending of enable_irq_wake()/disable_irq_wake() :), instead all
+>> non wake up IRQs should be masked during suspend.
+>
+> OK that makes sense.
+>
+>> The GPIO wkup_en registers should be always in sync with GPIO irq_en when
+>> GPIO IP is in smart-idle wakeup mode. And this is done now from
+>> omap_gpio_unmask_irq/omap_gpio_mask_irq(). See also [1].
+>>
+>> In general, it is more or less similar to GIC + wakeupgen:
+>> - during normal work (including cpuidle) GIC irq_en and Wakeupgen wkup_en
+>> should be in sync always
+>> - during suspend - only IRQs, marked as wake up sources, should be left
+>> unmasked.
+>>
+>> Also, I've found old thread [2] where Santosh proposed to use IRQCHIP_MASK_ON_SUSPEND.
+>> And it was not possible, at that time, but now IRQCHIP_MASK_ON_SUSPEND can be used :),
+>> because OMAP GPIO driver was switched to use generic irq handler instead of chained, so
+>> now OMAP GPIO irqs are properly handled by IRQ PM core.
+>> [chained irqs (and chained irq handles) are not disabled during suspend/resume and they are
+>>   not maintained by IRQ PM core as result they can trigger way too early on resume when
+>>   OMAP GPIO is not ready/powered.]
+>
+> OK. For my tests this patch does not change anything. I noticed however
+> that we still have some additional bug somewhere where GPIO wake up
+> events work fine for omap3 PM runtime, but are flakey for suspend.
+>
+>> I've tested it on: am57x-evm, am437x-idk-evm, omap4-panda
+>
+> OK thanks! Based on my tests and the above:
+>
+> Acked-by: Tony Lindgren <tony@atomide.com>
+>
+If all works then consider my ack as well :-)
