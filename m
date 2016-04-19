@@ -1,39 +1,49 @@
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: Re: [PATCH v2 1/1] drivers: net: cpsw: Prevent NUll pointer
- dereference with two PHYs
-Date: Tue, 19 Apr 2016 10:44:15 -0700
-Message-ID: <57166E6F.90905@gmail.com>
-References: <1461074186-25535-1-git-send-email-andrew.goodbody@cambrionix.com>
- <1461074186-25535-2-git-send-email-andrew.goodbody@cambrionix.com>
- <57164383.6080103@ti.com>
- <20160419110140.75e35c3c.drivshin.allworx@gmail.com> <57165269.40207@ti.com>
- <20160419131443.7a3b3ef7.drivshin.allworx@gmail.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH] drivers: net: cpsw: fix wrong regs access in cpsw_ndo_open
+Date: Tue, 19 Apr 2016 21:09:49 +0300
+Message-ID: <1461089389-17508-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160419131443.7a3b3ef7.drivshin.allworx@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S. Miller" <davem@davemloft.net>
-Cc: Andrew Goodbody <andrew.goodbody@cambrionix.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mugunthanvnm@ti.com, tony@atomide.com, andrew@lunn.ch
+To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 19/04/16 10:14, David Rivshin (Allworx) wrote:
->> Ah Ok. There are no user of cpsw_platform_data outside of net/ethernet/ti/,
->> so yes, looks like your patch 1 does exactly what's needed.
-> 
-> Given that the v1 of Andrew's patch is already in Dave's net tree, and 
-> would obviously have many conflicts with mine, how should I proceed? 
-> Since you already requested Dave revert that patch, should I just wait 
-> for that to happen and then resubmit my series? 
-> 
-> Dave, Does that sound good to you? 
+The cpsw_ndo_open() could try to access CPSW registers before
+calling pm_runtime_get_sync(). This will trigger L3 error:
 
-At some point, it would be good for the cpsw driver to be moved to the
-DSA subsystem, a lot of these tiny little details, like how to attach
-the PHY to the internal, external, fixed MDIO bus have been solved
-already using standard DT bindings. This leaves you with the fun part:
-how to program your switch such that it works in response to the
-networking stack sollicitations (bridge, VLAN, ethtool etc.).
+ WARNING: CPU: 0 PID: 21 at drivers/bus/omap_l3_noc.c:147 l3_interrupt_handler+0x220/0x34c()
+ 44000000.ocp:L3 Custom Error: MASTER M2 (64-bit) TARGET L4_FAST (Idle): Data Access in Supervisor mode during Functional access
+
+and CPSW will stop functioning.
+
+Hence, fix it by moving pm_runtime_get_sync() before the first access
+to CPSW registers in cpsw_ndo_open().
+
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+ drivers/net/ethernet/ti/cpsw.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 54bcc38..0fa75a8 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -1244,12 +1244,12 @@ static int cpsw_ndo_open(struct net_device *ndev)
+ 	int i, ret;
+ 	u32 reg;
+ 
++	pm_runtime_get_sync(&priv->pdev->dev);
++
+ 	if (!cpsw_common_res_usage_state(priv))
+ 		cpsw_intr_disable(priv);
+ 	netif_carrier_off(ndev);
+ 
+-	pm_runtime_get_sync(&priv->pdev->dev);
+-
+ 	reg = priv->version;
+ 
+ 	dev_info(priv->dev, "initializing cpsw version %d.%d (%d)\n",
 -- 
-Florian
+2.8.1
