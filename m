@@ -1,71 +1,71 @@
-From: santosh shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH] gpio: omap: fix irq triggering in smart-idle wakeup mode
-Date: Mon, 18 Apr 2016 17:01:44 -0700
-Message-ID: <57157568.1080305@oracle.com>
-References: <1460458351-24187-1-git-send-email-grygorii.strashko@ti.com>
- <CACRpkdbGcO7i5B9e3dicAEaTTfG7u_owe3hS2u6Sd6tCNXNzBg@mail.gmail.com>
- <5710B3B9.4090807@ti.com> <571106F3.9070805@oracle.com>
- <20160415185429.GU5995@atomide.com> <571503F7.4040304@ti.com>
- <20160418233602.GW5995@atomide.com>
+From: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v6 01/12] usb: hcd: Initialize hcd->flags to 0
+Date: Tue, 19 Apr 2016 09:56:22 +0800
+Message-ID: <20160419015622.GH4477@shlinux2.ap.freescale.net>
+References: <20160418022956.GB32090@shlinux2.ap.freescale.net>
+ <Pine.LNX.4.44L0.1604181007240.1775-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20160418233602.GW5995@atomide.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Santosh Shilimkar <ssantosh@kernel.org>, Sekhar Nori <nsekhar@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.1604181007240.1775-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 4/18/2016 4:36 PM, Tony Lindgren wrote:
-> * Grygorii Strashko <grygorii.strashko@ti.com> [160418 08:59]:
->> On 04/15/2016 09:54 PM, Tony Lindgren wrote:
->>> * santosh shilimkar <santosh.shilimkar@oracle.com> [160415 08:22]:
->>>> On 4/15/2016 2:26 AM, Grygorii Strashko wrote:
->>>>>
->>>>> Santosh, Tony, do you want me to perform any additional actions regarding this patch?
->>>>>
->>>> This patch should be run across family of SOCs to make
->>>> sure wakeup works on all of those if not done already
->>>
->>> Also, I'm not sure if we can just drop this code in question.
->>>
->>> After this patch, what function updates the GPIO wkup_en registers
->>> depending on enable_irq_wake()/disable_irq_wake()?
->>>
->>
->> The main purpose of this patch is to *not* modify GPIO wkup_en registers
->> depending of enable_irq_wake()/disable_irq_wake() :), instead all
->> non wake up IRQs should be masked during suspend.
->
-> OK that makes sense.
->
->> The GPIO wkup_en registers should be always in sync with GPIO irq_en when
->> GPIO IP is in smart-idle wakeup mode. And this is done now from
->> omap_gpio_unmask_irq/omap_gpio_mask_irq(). See also [1].
->>
->> In general, it is more or less similar to GIC + wakeupgen:
->> - during normal work (including cpuidle) GIC irq_en and Wakeupgen wkup_en
->> should be in sync always
->> - during suspend - only IRQs, marked as wake up sources, should be left
->> unmasked.
->>
->> Also, I've found old thread [2] where Santosh proposed to use IRQCHIP_MASK_ON_SUSPEND.
->> And it was not possible, at that time, but now IRQCHIP_MASK_ON_SUSPEND can be used :),
->> because OMAP GPIO driver was switched to use generic irq handler instead of chained, so
->> now OMAP GPIO irqs are properly handled by IRQ PM core.
->> [chained irqs (and chained irq handles) are not disabled during suspend/resume and they are
->>   not maintained by IRQ PM core as result they can trigger way too early on resume when
->>   OMAP GPIO is not ready/powered.]
->
-> OK. For my tests this patch does not change anything. I noticed however
-> that we still have some additional bug somewhere where GPIO wake up
-> events work fine for omap3 PM runtime, but are flakey for suspend.
->
->> I've tested it on: am57x-evm, am437x-idk-evm, omap4-panda
->
-> OK thanks! Based on my tests and the above:
->
-> Acked-by: Tony Lindgren <tony@atomide.com>
->
-If all works then consider my ack as well :-)
+On Mon, Apr 18, 2016 at 10:11:29AM -0400, Alan Stern wrote:
+> On Mon, 18 Apr 2016, Peter Chen wrote:
+> 
+> > On Wed, Apr 06, 2016 at 09:32:22AM +0300, Roger Quadros wrote:
+> > > On 06/04/16 09:09, Felipe Balbi wrote:
+> > > > 
+> > > > Hi,
+> > > > 
+> > > > Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> writes:
+> > > >> diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
+> > > >> index 2ca2cef..6b1930d 100644
+> > > >> --- a/drivers/usb/core/hcd.c
+> > > >> +++ b/drivers/usb/core/hcd.c
+> > > >> @@ -2706,6 +2706,7 @@ int usb_add_hcd(struct usb_hcd *hcd,
+> > > >>  	int retval;
+> > > >>  	struct usb_device *rhdev;
+> > > >>  
+> > > >> +	hcd->flags = 0;
+> > > > 
+> > > > seems like this would make more sense in usb_del_hcd() instead.
+> > > > 
+> > > 
+> > > OK, I'll move it there.
+> > > 
+> > 
+> > It depends on Alan's comments, whether only usb_add_hcd/usb_del_hcd
+> > pair can be called repeat. If Alan acks it, I have no idea for it.
+> 
+> Most of the host controller drivers were not written with this in mind,
+> but I think it would be a good thing to allow.  It would speed up the
+> host/device role switches.
+> 
+> This might mean we need to fix up several drivers to make them work 
+> correctly in an OTG environment.  It should be possible to do this.  Is 
+> there any particular reason why it would be difficult for Chipidea?
+> 
+
+I just want to do clean remove at OTG environment, like rmmod, so I did
+this when I worked on chipidea OTG design.
+I am worried if there are some resources dedicated for host device, eg,
+clocks, gpio. etc.
+
+If OTG framework can know well hcd's add and remove, it is ok for chipidea
+just calling usb_add_hcd/usb_del_hcd currently, but I suggested roger
+adding platform hcd_ops as optional parameter in case the platform
+has special requirement for hcd_ops.
+
+-- 
+
+Best Regards,
+Peter Chen
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
