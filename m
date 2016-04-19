@@ -1,95 +1,87 @@
-From: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 05/15] irqchip: Mask the non-type/sense bits when
- translating an IRQ
-Date: Tue, 19 Apr 2016 15:14:07 +0100
-Message-ID: <57163D2F.5020005@nvidia.com>
-References: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com>
- <1458224359-32665-6-git-send-email-jonathanh@nvidia.com>
- <20160409120333.3982c53b@arm.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: Runtime warning due to commit 'ARM: OMAP: Catch callers of
+ revision information prior to it being populated' in -next
+Date: Tue, 19 Apr 2016 09:21:25 -0500
+Message-ID: <57163EE5.9090405@ti.com>
+References: <5715B5EC.2040000@roeck-us.net> <57162261.4070409@ti.com>
+ <20160419141320.GB5995@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160409120333.3982c53b-5wv7dgnIgG8@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>
-Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160419141320.GB5995@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>
 List-Id: linux-omap@vger.kernel.org
 
-
-On 09/04/16 12:03, Marc Zyngier wrote:
-> On Thu, 17 Mar 2016 14:19:09 +0000
-> Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org> wrote:
-> 
->> The firmware parameter that contains the IRQ sense bits may also contain
->> other data. When return the IRQ type, bits outside of these sense bits
->> should be masked. If these bits are not masked and
->> irq_create_fwspec_mapping() is called to map an IRQ, then the comparison
->> of the type returned from irq_domain_translate() will never match
->> that returned by irq_get_trigger_type() (because this function masks the
->> none sense bits) and so we will always call irq_set_irq_type() to program
->> the type even if it was not really necessary.
+On 04/19/2016 09:13 AM, Tony Lindgren wrote:
+> * Nishanth Menon <nm@ti.com> [160419 05:21]:
+>> On 04/18/2016 11:37 PM, Guenter Roeck wrote:
 >>
->> Currently, the downside to this is unnecessarily re-programmming the type
->> but nevertheless this should be avoided.
+>> + linux-omap, linux-arm
 >>
->> The Tegra LIC, TI Crossbar and GIC-V3 irqchips all have client instances
->> (from reviewing the device-tree sources) where bits outside the IRQ sense
->> bits are set, but do not mask these bits. Therefore, ensure these bits
->> are masked for these irqchips.
+>>> commit 'ARM: OMAP: Catch callers of revision information prior to it
+>>> being populated' results in a runtime warning on various non-OMAP
+>>> architectures. I have seen it with the following qemu tests.
+>>>
+>>> arm:vexpress-a9:multi_v7_defconfig:vexpress-v2p-ca9
+>>> arm:vexpress-a15:multi_v7_defconfig:vexpress-v2p-ca15-tc1
+>>> arm:xilinx-zynq-a9:multi_v7_defconfig:zynq-zc702
+>>> arm:xilinx-zynq-a9:multi_v7_defconfig:zynq-zc706
+>>> arm:xilinx-zynq-a9:multi_v7_defconfig:zynq-zed
+>>> arm:midway:multi_v7_defconfig:ecx-2000
+>>> arm:smdkc210:multi_v7_defconfig:exynos4210-smdkv310
+>>>
+>>> It is also reported by kernelci.org in at least one boot test for imx6q-cm-fx6.
+>>
+>> Thanks for the report... :(
 > 
-> For GICv3, this shouldn't be the case. The DT clearly says that the 3rd
-> field should only contain the trigger description. It looks like people
-> have been copying their GICv2 DT and simply slapped the v3 description
-> in the middle, without changing their interrupt specifiers. Duh.
+> Oh crap, sorry about that. I'll revert that commit immediately.
+> 
 
-Hmmm ... I was just double checking on this for the gic-v3 by wading
-through the DTS files, and may be there is no issue here. However,
-looking at the current code it is a bit inconsistent between firmware
-types ...
 
- static int gic_irq_domain_translate(struct irq_domain *d,
-                                     struct irq_fwspec *fwspec,
-                                     unsigned long *hwirq,
-                                     unsigned int *type)
- {
-         if (is_of_node(fwspec->fwnode)) {
-                 if (fwspec->param_count < 3)
-                         return -EINVAL;
+Thanks. Sorry about the same as well..
 
-                 switch (fwspec->param[0]) {
-                 case 0:                 /* SPI */
-                         *hwirq = fwspec->param[1] + 32;
-                         break;
-                 case 1:                 /* PPI */
-                         *hwirq = fwspec->param[1] + 16;
-                         break;
-                 case GIC_IRQ_TYPE_LPI:  /* LPI */
-                         *hwirq = fwspec->param[1];
-                         break;
-                 default:
-                         return -EINVAL;
-                 }
+>>> The warning is as follows.
+>>>
+>>> ------------[ cut here ]------------
+>>> WARNING: CPU: 0 PID: 1 at arch/arm/mach-omap2/id.c:49 omap_rev+0x3c/0x50
+>>> Modules linked in:
+>>> CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.6.0-rc2-next-20160411 #1
+>>> Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
+>>> [<c030f970>] (unwind_backtrace) from [<c030b094>] (show_stack+0x10/0x14)
+>>> [<c030b094>] (show_stack) from [<c0585424>] (dump_stack+0x84/0xa4)
+>>> [<c0585424>] (dump_stack) from [<c0341774>] (__warn+0xd4/0x100)
+>>> [<c0341774>] (__warn) from [<c03417c0>] (warn_slowpath_null+0x20/0x28)
+>>> [<c03417c0>] (warn_slowpath_null) from [<c0324024>] (omap_rev+0x3c/0x50)
+>>> [<c0324024>] (omap_rev) from [<c1114a18>] (__omap4_sar_ram_init+0x8/0x88)
+>>> [<c1114a18>] (__omap4_sar_ram_init) from [<c0301e5c>] (do_one_initcall+0x3c/0x16c)
+>>> [<c0301e5c>] (do_one_initcall) from [<c1100ccc>] (kernel_init_freeable+0x70/0x1ec)
+>>> [<c1100ccc>] (kernel_init_freeable) from [<c0b495e4>] (kernel_init+0x8/0x110)
+>>> [<c0b495e4>] (kernel_init) from [<c0307f78>] (ret_from_fork+0x14/0x3c)
+>>> ---[ end trace cb88537fdc8fa200 ]---
+>>>
+>>> Please have a look.
+>>
+>> Tony,
+>> Should we get rid of omap_initcall callers(move them into
+>> board-generic call path or lower the check not to include default of 0?
+> 
+> Most of those will disappear when we drop the legacy booting support
+> for omap3. I would not touch those before then to avoid churn with
+> the legacy code.
 
-                 *type = fwspec->param[2] & IRQ_TYPE_SENSE_MASK;
-                 return 0;
-         }
+Sounds good to me.
 
-         if (is_fwnode_irqchip(fwspec->fwnode)) {
-                 if(fwspec->param_count != 2)
-                         return -EINVAL;
-
-                 *hwirq = fwspec->param[0];
-                 *type = fwspec->param[1];
-                 return 0;
-         }
-
-         return -EINVAL;
-
-> I guess this patch doesn't hurt though.
-
-Yes, it doesn't but I think I will leave this alone for now, given that
-I can't find a case where this would be a problem.
-
-Cheers
-Jon
+-- 
+Regards,
+Nishanth Menon
