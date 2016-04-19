@@ -1,85 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] omap fixes against v4.6-rc2
-Date: Tue, 19 Apr 2016 12:51:47 -0700
-Message-ID: <20160419195147.GE5973@atomide.com>
-References: <20160408191854.GZ16484@atomide.com>
- <20160419145400.GC5995@atomide.com>
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: Re: [PATCH v6 00/17] memory: omap-gpmc: mtd: nand: Support GPMC
+ NAND on non-OMAP platforms
+Date: Tue, 19 Apr 2016 22:11:29 +0200
+Message-ID: <20160419221129.59b559fb@bbrezillon>
+References: <1460023715-19332-1-git-send-email-rogerq@ti.com>
+	<20160413212500.GD5995@atomide.com>
+	<5710B58C.7050108@ti.com>
+	<20160415120942.3131eac1@bbrezillon>
+	<5710C86A.9060108@ti.com>
+	<20160415135108.63716f06@bbrezillon>
+	<20160415154139.GS5995@atomide.com>
+	<20160415180531.15d790d2@bbrezillon>
+	<20160415161950.GT5995@atomide.com>
+	<20160416105711.5310d2d0@bbrezillon>
+	<5714D3A4.2050405@ti.com>
+	<5714D8AA.9040304@ti.com>
+	<20160418151305.17a42437@bbrezillon>
+	<5714E5AA.5050200@ti.com>
+	<20160418161001.2a1c0bed@bbrezillon>
+	<5714F185.5080103@ti.com>
+	<20160418165755.77d1d661@bbrezillon>
+	<5716289B.4060302@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20160419145400.GC5995@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5716289B.4060302@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, computersforpeace@gmail.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [160419 07:55]:
-> * Tony Lindgren <tony@atomide.com> [160408 12:22]:
-> >       ARM: OMAP: Catch callers of revision information prior to it being populated
+On Tue, 19 Apr 2016 15:46:19 +0300
+Roger Quadros <rogerq@ti.com> wrote:
+
 > 
-> And this one causes bogus runtime warnings with other SoCs
-> as reported by Guenter Roeck. I'll revert this and post
-> an updated pull request shortly.
+> After all the changes we discussed in [1] I was able to test nand/next-with-gpmc-rework
+> and it worked fine.
+> 
+> [1] - http://thread.gmane.org/gmane.comp.hardware.netbook.arm.sunxi/22596/focus=22936
+> 
+> I'd be happy to test the branch again after you've incorporated all changes.
 
-And below is the updated pull request with just the above
-commit reverted.
+Just pushed what's supposed to be my new nand/next into
+nand/next-with-gpmc-rework, can you test it? I'll push it to nand/next
+once I have your confirmation that everything is good.
 
-Regards,
+Thanks,
 
-Tony
+Boris
 
-8< -------------------
-The following changes since commit 9735a22799b9214d17d3c231fe377fc852f042e9:
-
-  Linux 4.6-rc2 (2016-04-03 09:09:40 -0500)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.6/fixes-rc2-v2-signed
-
-for you to fetch changes up to 3d51ae172d759198b2e47e104c31a92d20d17927:
-
-  Revert "ARM: OMAP: Catch callers of revision information prior to it being populated" (2016-04-19 08:01:05 -0700)
-
-----------------------------------------------------------------
-Fixes for omaps against v4.6-rc2, mostly to fix suspend for beagle-x15
-that broke when we added runtime based SoC revision detection earlier.
-
-It seems suspend worked earlier as things were only partially initialized,
-while now we initialize things properly for dra7.
-
-Note that the "ARM: OMAP: Catch callers of revision information prior
-to it being populated" had to be reverted as it caused bogus warnings
-for other SoCs because omap initcalls bail out based on revision being
-set to 0 for other SoCs. These initcalls will mostly just disappear
-when we drop support for omap3 legacy booting.
-
-Also included is a fix for dra7 sys_32k_ck clock source that is not
-enabled on boot making system fall back to using emulated clock.
-
-----------------------------------------------------------------
-Keerthy (1):
-      ARM: dts: dra7: Correct clock tree for sys_32k_ck
-
-Nishanth Menon (3):
-      ARM: OMAP: DRA7: wakeupgen: Skip SAR save for wakeupgen
-      ARM: OMAP: DRA7: Provide proper class to omap2_set_globals_tap
-      ARM: OMAP: Catch callers of revision information prior to it being populated
-
-Tony Lindgren (1):
-      Revert "ARM: OMAP: Catch callers of revision information prior to it being populated"
-
- arch/arm/boot/dts/dra7xx-clocks.dtsi | 18 +++++++++++++++++-
- arch/arm/mach-omap2/io.c             |  3 ++-
- arch/arm/mach-omap2/omap-wakeupgen.c |  7 +++++++
- 3 files changed, 26 insertions(+), 2 deletions(-)
+-- 
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
