@@ -1,56 +1,56 @@
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: Re: [PATCH v6 00/17] memory: omap-gpmc: mtd: nand: Support GPMC
- NAND on non-OMAP platforms
-Date: Tue, 19 Apr 2016 22:11:29 +0200
-Message-ID: <20160419221129.59b559fb@bbrezillon>
-References: <1460023715-19332-1-git-send-email-rogerq@ti.com>
-	<20160413212500.GD5995@atomide.com>
-	<5710B58C.7050108@ti.com>
-	<20160415120942.3131eac1@bbrezillon>
-	<5710C86A.9060108@ti.com>
-	<20160415135108.63716f06@bbrezillon>
-	<20160415154139.GS5995@atomide.com>
-	<20160415180531.15d790d2@bbrezillon>
-	<20160415161950.GT5995@atomide.com>
-	<20160416105711.5310d2d0@bbrezillon>
-	<5714D3A4.2050405@ti.com>
-	<5714D8AA.9040304@ti.com>
-	<20160418151305.17a42437@bbrezillon>
-	<5714E5AA.5050200@ti.com>
-	<20160418161001.2a1c0bed@bbrezillon>
-	<5714F185.5080103@ti.com>
-	<20160418165755.77d1d661@bbrezillon>
-	<5716289B.4060302@ti.com>
+From: Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH v1] ARM: dts: omap3-n900: Specify peripherals LDO
+ regulators initial mode
+Date: Tue, 19 Apr 2016 17:18:33 -0400
+Message-ID: <CABxcv=kT5TM1dtK-GXH+XM-DtWpraReirootKSLddQPz4ft1EA@mail.gmail.com>
+References: <20160417122933.GA8093@earth>
+	<1460903363-2197-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5716289B.4060302@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, computersforpeace@gmail.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1460903363-2197-1-git-send-email-ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 19 Apr 2016 15:46:19 +0300
-Roger Quadros <rogerq@ti.com> wrote:
+Hello Ivaylo,
 
-> 
-> After all the changes we discussed in [1] I was able to test nand/next-with-gpmc-rework
-> and it worked fine.
-> 
-> [1] - http://thread.gmane.org/gmane.comp.hardware.netbook.arm.sunxi/22596/focus=22936
-> 
-> I'd be happy to test the branch again after you've incorporated all changes.
+On Sun, Apr 17, 2016 at 10:29 AM, Ivaylo Dimitrov
+<ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> Without that, regulators are left in the mode last set by the bootloader or
+> by the kernel the device was rebooted from. This leads to various problems,
+> like non-working peripherals.
+>
+> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> ---
+>  arch/arm/boot/dts/omap3-n900.dts | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+> index b3c26a9..d9e2d9c 100644
+> --- a/arch/arm/boot/dts/omap3-n900.dts
+> +++ b/arch/arm/boot/dts/omap3-n900.dts
+> @@ -329,6 +329,7 @@
+>         regulator-name = "V28";
+>         regulator-min-microvolt = <2800000>;
+>         regulator-max-microvolt = <2800000>;
+> +       regulator-initial-mode = <0x0e>; /* RES_STATE_ACTIVE */
 
-Just pushed what's supposed to be my new nand/next into
-nand/next-with-gpmc-rework, can you test it? I'll push it to nand/next
-once I have your confirmation that everything is good.
+As Sebastian said, it would be nice if instead of magic numbers +
+comments, we have defines for the modes by moving the definitions from
+include/linux/i2c/twl.h to include/dt-bindings/regulator/ so they can
+be used by DTS.
 
-Thanks,
+But that can be done as a follow-up though, to avoid adding a
+dependency between the regulator and arm-soc subsystems to get this
+fix applied.
 
-Boris
+Reviewed-by: Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
 
--- 
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+Best regards,
+Javier
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
