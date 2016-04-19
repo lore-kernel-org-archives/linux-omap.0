@@ -1,16 +1,11 @@
-From: "Franklin S Cooper Jr." <fcooper@ti.com>
-Subject: Re: [PATCH v5 6/6] ARM: dts: DRA7: Add dt nodes for PWMSS
-Date: Tue, 19 Apr 2016 11:20:32 -0500
-Message-ID: <57165AD0.7080908@ti.com>
-References: <1457400224-24797-1-git-send-email-fcooper@ti.com>
- <1457400224-24797-7-git-send-email-fcooper@ti.com>
- <20160317151147.GA29802@rob-hp-laptop> <56EAD315.1030307@ti.com>
- <20160411202112.GE5995@atomide.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] rtc: ds1307: Use irq when available for wakeup-source device
+Date: Tue, 19 Apr 2016 11:23:54 -0500
+Message-ID: <1461083034-9227-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160411202112.GE5995@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,65 +15,39 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: mark.rutland@arm.com, paul@pwsan.com, linux@arm.linux.org.uk, vigneshr@ti.com, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, thierry.reding@gmail.com, bcousson@baylibre.com, galak@codeaurora.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Alexandre Belloni <alexandre.belloni@free-electrons.com>, Alessandro Zummo <a.zummo@towertech.it>
+Cc: Nishanth Menon <nm@ti.com>, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Michael Lange <linuxstuff@milaw.biz>
 List-Id: linux-omap@vger.kernel.org
 
+With commit 8bc2a40730ec ("rtc: ds1307: add support for the
+DT property 'wakeup-source'") we lost the ability for rtc irq
+functionality for devices that are actually hooked on a real IRQ
+line and have capability to wakeup as well. This is not an expected
+behavior. So, instead of just not requesting IRQ, skip the IRQ
+requirement only if interrupts are not defined for the device.
 
+Fixes: 8bc2a40730ec ("rtc: ds1307: add support for the DT property 'wakeup-source'")
+Reported-by: Tony Lindgren <tony@atomide.com>
+Cc: Michael Lange <linuxstuff@milaw.biz>
+Cc: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
 
-On 04/11/2016 03:21 PM, Tony Lindgren wrote:
-> * Franklin S Cooper Jr. <fcooper@ti.com> [160317 08:55]:
->>
->>
->> On 03/17/2016 10:11 AM, Rob Herring wrote:
->>> On Mon, Mar 07, 2016 at 07:23:44PM -0600, Franklin S Cooper Jr wrote:
->>>> From: Vignesh R <vigneshr@ti.com>
->>>>
->>>> Add PWMSS device tree nodes for DRA7 SoC family and add documentation
->>>> for dt bindings.
->>>>
->>>> Signed-off-by: Vignesh R <vigneshr@ti.com>
->>>> [fcooper@ti.com: Add eCAP and use updated bindings for PWMSS and ePWM]
->>>> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
->>>> ---
->>>> Version 5 changes:
->>>> Add DT node for eCAP and update eCAP binding documentation
->>>>
->>>> Version 4 changes:
->>>> Updated link to the latest documentation
->>>>
->>>>  .../devicetree/bindings/pwm/pwm-tiecap.txt         |  9 +++
->>>>  .../devicetree/bindings/pwm/pwm-tiehrpwm.txt       |  9 +++
->>>>  .../devicetree/bindings/pwm/pwm-tipwmss.txt        | 15 +++-
->>>>  arch/arm/boot/dts/dra7.dtsi                        | 84 ++++++++++++++++++++++
->>>>  4 files changed, 116 insertions(+), 1 deletion(-)
->>>
->>>> +			ehrpwm1: pwm@48440200 {
->>>> +				compatible = "ti,dra7xx-ehrpwm",
->>>> +					     "ti,am33xx-ehrpwm";
->>>> +				#pwm-cells = <3>;
->>>> +				reg = <0x48440200 0x80>;
->>>> +				clocks = <&ehrpwm1_tbclk>;
->>>> +				clock-names = "tbclk";
->>>> +				status = "disabled";
->>>> +			};
->>>> +
->>>> +			ecap1: ecap@48440100 {
->>> This also is a PWM? Then it should also be pwm@...
->>
->> The enhanced capture module primary purpose is to measure
->> time between external signals which is called capture mode.
->> It also has a PWM mode. So I wouldn't recommend generalizing
->> the entire node to pwm.
-> 
-> So is this patch safe for me to apply now or do we need more
-> changes?
+ drivers/rtc/rtc-ds1307.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-
-No. This patch will change based on changes I will make to handle patch
-1 comments. I will send a new rev.
-> 
-> Regards,
-> 
-> Tony
-> 
+diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
+index b2156ee5bae1..74cd5cd544ee 100644
+--- a/drivers/rtc/rtc-ds1307.c
++++ b/drivers/rtc/rtc-ds1307.c
+@@ -1531,7 +1531,7 @@ read_rtc:
+ 		return PTR_ERR(ds1307->rtc);
+ 	}
+ 
+-	if (ds1307_can_wakeup_device) {
++	if (ds1307_can_wakeup_device && ds1307->client->irq <= 0) {
+ 		/* Disable request for an IRQ */
+ 		want_irq = false;
+ 		dev_info(&client->dev, "'wakeup-source' is set, request for an IRQ is disabled!\n");
+-- 
+2.8.0
