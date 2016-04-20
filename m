@@ -1,27 +1,30 @@
-From: Hannes Frederic Sowa <hannes@stressinduktion.org>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: Regression in next for smsc911x with tigthen lockdep checks
-Date: Wed, 20 Apr 2016 17:22:49 +0200
-Message-ID: <57179EC9.6000505@stressinduktion.org>
+Date: Wed, 20 Apr 2016 08:32:30 -0700
+Message-ID: <20160420153230.GI5995@atomide.com>
 References: <20160420150108.GF5995@atomide.com>
+ <57179EC9.6000505@stressinduktion.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20160420150108.GF5995@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <57179EC9.6000505@stressinduktion.org>
 Sender: netdev-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "David S. Miller" <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Hannes Frederic Sowa <hannes@stressinduktion.org>
+Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Hannes Frederic Sowa <hannes@stressinduktion.org> [160420 08:24]:
+> Hi,
+> 
+> On 20.04.2016 17:01, Tony Lindgren wrote:
+> > Looks like commit fafc4e1ea1a4 ("sock: tigthen lockdep checks for
+> > sock_owned_by_user") in next causes a regression at least for
+> > smsc911x with CONFIG_LOCKDEP. It keeps spamming with the following
+> > message. Any ideas?
+> 
+> Not yet, can you quickly send me your config?
 
-On 20.04.2016 17:01, Tony Lindgren wrote:
-> Looks like commit fafc4e1ea1a4 ("sock: tigthen lockdep checks for
-> sock_owned_by_user") in next causes a regression at least for
-> smsc911x with CONFIG_LOCKDEP. It keeps spamming with the following
-> message. Any ideas?
+It's just the arch/arm/configs/omap2plus_defconfig I'm using.
 
-Not yet, can you quickly send me your config?
-
-Thanks,
-Hannes
+Tony
