@@ -1,98 +1,40 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] ARM: dts: AM57xx/DRA7: Update SoC voltage rail limits to match data sheet
-Date: Wed, 20 Apr 2016 03:18:39 -0500
-Message-ID: <1461140319-32026-1-git-send-email-nm@ti.com>
+From: Andrew Goodbody <andrew.goodbody@cambrionix.com>
+Subject: RE: [PATCH v2 0/1] drivers: net: cpsw: Fix NULL pointer dereference
+ with two slave PHYs
+Date: Wed, 20 Apr 2016 08:49:34 +0000
+Message-ID: <c10cbc575f4d4e15bd27a8018f77baf1@THHSTE15D2BE2.hs20.net>
+References: <1460987606-18125-1-git-send-email-andrew.goodbody@cambrionix.com>
+ <20160419.201550.902520333910307559.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160419.201550.902520333910307559.davem@davemloft.net>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
+To: David Miller <davem@davemloft.net>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>, "grygorii.strashko@ti.com" <grygorii.strashko@ti.com>, "mugunthanvnm@ti.com" <mugunthanvnm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-As per the data sheet starting from SPRUHQ0H (Nov 2015 - Latest[1]),
-VDD_CORE can vary from 0.85v to 1.15v for AVS class0. VDD GPU/DSP
-et.al. can range from 0.85v to 1.25V with AVS class0
+> -----Original Message-----
+> From: Andrew Goodbody <andrew.goodbody@cambrionix.com>
+> Date: Mon, 18 Apr 2016 14:53:25 +0100
+> 
+> > This is a fix for a NULL pointer dereference from cpsw which is
+> > triggered by having two slave PHYs attached to a cpsw network device.
+> > The problem is due to only maintaining a single reference to a PHY
+> > node in the prive data which gets overwritten by the second PHY probe.
+> > So move the PHY node reference to the individual slave data so that there
+> is now one per slave.
+> >
+> > v1 had a problem that data->slaves was used before it had been filled
+> > in
+> 
+> I already applied v1 the other day, so you need to send me a relative patch
+> rather than a whole new one.
+> 
+> Thanks.
 
-Since dynamic voltage scaling is disabled for DRA7/AM57xx SoCs for
-all SoC rails other than MPU, the bootloader is responsible for
-setting up the AVS class0 voltage, however, with wrong voltage machine
-constraints in dtb, regulator framework will lower the voltage below
-the required voltage levels for certain samples in production flow.
-This can cause catastrophic failures which can be pretty hard to
-identify.
+Sorry, I had no notification that this had happened. However I thought that the plan was to revert v1 and go with David Rivshin's patch instead. I'll see if I can create a revert in a little while.
 
-Update board files which don't match required specification.
-
-[1] http://www.ti.com/product/AM5728/datasheet/specifications#SPRT637-7340
-
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-Based on:
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
-omap-for-v4.7/dt     a4240d3af677 ARM: dts: Add support for dra72-evm rev C (SR2.0)
-
- arch/arm/boot/dts/am57xx-beagle-x15.dts | 4 ++--
- arch/arm/boot/dts/dra7-evm.dts          | 4 ++--
- arch/arm/boot/dts/dra72-evm-common.dtsi | 2 +-
- 3 files changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-index 75d04b1bbd1b..779466e18d34 100644
---- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
-+++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-@@ -438,7 +438,7 @@
- 					/* VDD_DSPEVE, VDD_IVA, VDD_GPU */
- 					regulator-name = "smps45";
- 					regulator-min-microvolt = < 850000>;
--					regulator-max-microvolt = <1150000>;
-+					regulator-max-microvolt = <1250000>;
- 					regulator-always-on;
- 					regulator-boot-on;
- 				};
-@@ -447,7 +447,7 @@
- 					/* VDD_CORE */
- 					regulator-name = "smps6";
- 					regulator-min-microvolt = <850000>;
--					regulator-max-microvolt = <1030000>;
-+					regulator-max-microvolt = <1150000>;
- 					regulator-always-on;
- 					regulator-boot-on;
- 				};
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index d272cf140197..e94cbb7dd3c5 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -431,7 +431,7 @@
- 					/* VDD_DSPEVE */
- 					regulator-name = "smps45";
- 					regulator-min-microvolt = < 850000>;
--					regulator-max-microvolt = <1150000>;
-+					regulator-max-microvolt = <1250000>;
- 					regulator-always-on;
- 					regulator-boot-on;
- 				};
-@@ -449,7 +449,7 @@
- 					/* CORE_VDD */
- 					regulator-name = "smps7";
- 					regulator-min-microvolt = <850000>;
--					regulator-max-microvolt = <1060000>;
-+					regulator-max-microvolt = <1150000>;
- 					regulator-always-on;
- 					regulator-boot-on;
- 				};
-diff --git a/arch/arm/boot/dts/dra72-evm-common.dtsi b/arch/arm/boot/dts/dra72-evm-common.dtsi
-index 2c880501ba2e..874bdf1db306 100644
---- a/arch/arm/boot/dts/dra72-evm-common.dtsi
-+++ b/arch/arm/boot/dts/dra72-evm-common.dtsi
-@@ -328,7 +328,7 @@
- 					/* VDD_CORE */
- 					regulator-name = "smps2";
- 					regulator-min-microvolt = <850000>;
--					regulator-max-microvolt = <1060000>;
-+					regulator-max-microvolt = <1150000>;
- 					regulator-boot-on;
- 					regulator-always-on;
- 				};
--- 
-2.8.0
+Andrew
