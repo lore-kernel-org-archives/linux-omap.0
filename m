@@ -1,30 +1,33 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Regression in next for smsc911x with tigthen lockdep checks
-Date: Wed, 20 Apr 2016 08:32:30 -0700
-Message-ID: <20160420153230.GI5995@atomide.com>
-References: <20160420150108.GF5995@atomide.com>
- <57179EC9.6000505@stressinduktion.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v2 1/1] Revert "Prevent NUll pointer dereference with
+ two PHYs on cpsw"
+Date: Wed, 20 Apr 2016 12:02:10 -0400 (EDT)
+Message-ID: <20160420.120210.715003665474880360.davem@davemloft.net>
+References: <1461165291-25043-1-git-send-email-andrew.goodbody@cambrionix.com>
+	<1461165291-25043-2-git-send-email-andrew.goodbody@cambrionix.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <57179EC9.6000505@stressinduktion.org>
-Sender: netdev-owner@vger.kernel.org
-To: Hannes Frederic Sowa <hannes@stressinduktion.org>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1461165291-25043-2-git-send-email-andrew.goodbody@cambrionix.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: andrew.goodbody@cambrionix.com
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mugunthanvnm@ti.com, grygorii.strashko@ti.com, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-* Hannes Frederic Sowa <hannes@stressinduktion.org> [160420 08:24]:
-> Hi,
-> 
-> On 20.04.2016 17:01, Tony Lindgren wrote:
-> > Looks like commit fafc4e1ea1a4 ("sock: tigthen lockdep checks for
-> > sock_owned_by_user") in next causes a regression at least for
-> > smsc911x with CONFIG_LOCKDEP. It keeps spamming with the following
-> > message. Any ideas?
-> 
-> Not yet, can you quickly send me your config?
+From: Andrew Goodbody <andrew.goodbody@cambrionix.com>
+Date: Wed, 20 Apr 2016 16:14:51 +0100
 
-It's just the arch/arm/configs/omap2plus_defconfig I'm using.
+> This reverts commit cfe255600154f0072d4a8695590dbd194dfd1aeb
+> 
+> This can result in a "Unable to handle kernel paging request"
+> during boot. This was due to using an uninitialised struct member,
+> data->slaves.
+> 
+> Signed-off-by: Andrew Goodbody <andrew.goodbody@cambrionix.com>
+> Tested-by: Tony Lindgren <tony@atomide.com>
+> ---
+> 
+> v2 No code change, added signoff and collected tested-by
 
-Tony
+Applied, thanks.
