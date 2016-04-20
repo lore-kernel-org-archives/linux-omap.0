@@ -1,70 +1,61 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] MAINTAINERS: net: add entry for TI Ethernet Switch
- drivers
-Date: Wed, 20 Apr 2016 11:03:27 -0700
-Message-ID: <20160420180327.GJ5995@atomide.com>
-References: <1461151509-2368-1-git-send-email-grygorii.strashko@ti.com>
- <20160420142350.GD5995@atomide.com>
- <5717ABCC.50406@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH v3 1/1] mmc: omap_hsmmc: devm_pinctrl_get returns ERR_PTR upon error
+Date: Thu, 21 Apr 2016 00:28:05 +0200
+Message-ID: <4155990.SfY6i69ddf@wuerfel>
+References: <1461099853-15011-1-git-send-email-afenkart@gmail.com> <CALtMJEA0XaekLgZnOVU4XMPmc61VendSCCV2uKjesxzQRcwR8w@mail.gmail.com> <20160420151337.GK5973@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5717ABCC.50406@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Mugunthan V N <mugunthanvnm@ti.com>, Richard Cochran <richardcochran@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20160420151337.GK5973@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Andreas Fenkart <afenkart@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Grygorii Strashko <grygorii.strashko@ti.com> [160420 09:19]:
-> On 04/20/2016 05:23 PM, Tony Lindgren wrote:
-> > * Grygorii Strashko <grygorii.strashko@ti.com> [160420 04:26]:
-> >> Add record for TI Ethernet Switch Driver CPSW/CPDMA/MDIO HW
-> >> (am33/am43/am57/dr7/davinci) to ensure that related patches
-> >> will go through dedicated linux-omap list.
-> >>
-> >> Also add Mugunthan as maintainer and myself as the reviewer.
-> >>
-> >> Cc: "David S. Miller" <davem@davemloft.net>
-> >> Cc: Mugunthan V N <mugunthanvnm@ti.com>
-> >> Cc: Richard Cochran <richardcochran@gmail.com>
-> >> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> >> ---
-> >>   MAINTAINERS | 8 ++++++++
-> >>   1 file changed, 8 insertions(+)
-> >>
-> >> diff --git a/MAINTAINERS b/MAINTAINERS
-> >> index 1d5b4be..aca864d 100644
-> >> --- a/MAINTAINERS
-> >> +++ b/MAINTAINERS
-> >> @@ -11071,6 +11071,14 @@ S:	Maintained
-> >>   F:	drivers/clk/ti/
-> >>   F:	include/linux/clk/ti.h
-> >>   
-> >> +TI ETHERNET SWITCH DRIVER (CPSW)
-> >> +M:	Mugunthan V N <mugunthanvnm@ti.com>
-> >> +R:	Grygorii Strashko <grygorii.strashko@ti.com>
-> >> +L:	linux-omap@vger.kernel.org
-> >> +S:	Maintained
-> >> +F:	drivers/net/ethernet/ti/cpsw*
-> >> +F:	drivers/net/ethernet/ti/davinci*
-> >> +
-> >>   TI FLASH MEDIA INTERFACE DRIVER
-> >>   M:	Alex Dubov <oakad@yahoo.com>
-> >>   S:	Maintained
-> >> -- 
-> > 
-> > Please add netdev list also there as the primary list:
-> > 
-> > L:	netdev@vger.kernel.org
-> > L:	linux-omap@vger.kernel.org
-> > 
-> > Then we can easily review and ack the patches for Dave to apply.
-> > 
+On Wednesday 20 April 2016 08:13:37 Tony Lindgren wrote:
+> * Andreas Fenkart <afenkart@gmail.com> [160420 04:39]:
+> > 2016-04-20 10:11 GMT+02:00 Dan Carpenter <dan.carpenter@oracle.com>:
+> > > On Tue, Apr 19, 2016 at 03:12:27PM -0700, Arnd Bergmann wrote:
+> > >> On Tuesday 19 April 2016 23:04:13 Andreas Fenkart wrote:
+> > >> > Only the dummy implementation of devm_pinctrl_get returns NULL.
+> > >> > The real implementation returns ERR_PTR. By enforcing pinselect
+> > >> > in Kconfig we can simplify the test to check only for ERR_PTR.
+> > >> > detected/triggered by static code checker.
+> > >>
+> > >> This is not how the interface is meant to work:
+> > >>
+> > >> The dummy devm_pinctrl_get() intentionally returns NULL because IS_ERR()
+> > >> treats that as valid. All other pinctrl functions subsequently ignore
+> > >> that NULL pointer, so the second half of the patch is ok without the
+> > >> first half.
+> > >>
+> > >
+> > > We had that discussion.  The static checker warning triggered the
+> > > discussion but the real reason for this patch is that the
+> > > hardware will not work without PINCTRL.  So instead of compiling an
+> > > unusable kernel we added the select.
+
+Ok, but if that is the case, that the changelog text above should be
+rewritten to explain it (but as Tony explains it was probably a
+misinterpretation).
+
+> > beaglebone needs the workaround, most chips don't. The code discussed,
+> > only gives some feedback to users about an incorrect configuration.
+> > I can drop that part or replace it with a dev_info line, pointing to
+> > "Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt"
 > 
-> I can, but want clarify if it really necessary, because get_maintainer.pl
-> automatically adds netdev@vger.kernel.org:
+> Yes pinctrl is optional for sure. And leaving pinctrl out does not
+> produce an unusable kernel for some boards that do all the pin muxing
+> in the bootloader. Like Andreas says, only some boards need dynamic
+> pin muxing for the wake-up events.
+> 
+> The dev_info change sounds like papering over the issue.. I'm fine
+> with that, but isn't the real problem devm_pinctrl_get prototype?
+> 
+> 
 
-Well it may not be obvious from reading MAINTAINERS file though :)
+I don't see anything wrong with the devm_pinctrl_get prototype other
+than how it frequently confuses driver writers.
 
-Tony
+	Arnd
