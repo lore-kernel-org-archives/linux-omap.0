@@ -1,73 +1,98 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v6 01/12] usb: hcd: Initialize hcd->flags to 0
-Date: Wed, 20 Apr 2016 11:15:30 +0300
-Message-ID: <57173AA2.5080204@ti.com>
-References: <20160418022956.GB32090@shlinux2.ap.freescale.net>
- <Pine.LNX.4.44L0.1604181007240.1775-100000@iolanthe.rowland.org>
- <20160419015622.GH4477@shlinux2.ap.freescale.net>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] ARM: dts: AM57xx/DRA7: Update SoC voltage rail limits to match data sheet
+Date: Wed, 20 Apr 2016 03:18:39 -0500
+Message-ID: <1461140319-32026-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160419015622.GH4477@shlinux2.ap.freescale.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Chen <hzpeterchen@gmail.com>, Alan Stern <stern@rowland.harvard.edu>
-Cc: Felipe Balbi <balbi@kernel.org>, gregkh@linuxfoundation.org, peter.chen@freescale.com, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 19/04/16 04:56, Peter Chen wrote:
-> On Mon, Apr 18, 2016 at 10:11:29AM -0400, Alan Stern wrote:
->> On Mon, 18 Apr 2016, Peter Chen wrote:
->>
->>> On Wed, Apr 06, 2016 at 09:32:22AM +0300, Roger Quadros wrote:
->>>> On 06/04/16 09:09, Felipe Balbi wrote:
->>>>>
->>>>> Hi,
->>>>>
->>>>> Roger Quadros <rogerq@ti.com> writes:
->>>>>> diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
->>>>>> index 2ca2cef..6b1930d 100644
->>>>>> --- a/drivers/usb/core/hcd.c
->>>>>> +++ b/drivers/usb/core/hcd.c
->>>>>> @@ -2706,6 +2706,7 @@ int usb_add_hcd(struct usb_hcd *hcd,
->>>>>>  	int retval;
->>>>>>  	struct usb_device *rhdev;
->>>>>>  
->>>>>> +	hcd->flags = 0;
->>>>>
->>>>> seems like this would make more sense in usb_del_hcd() instead.
->>>>>
->>>>
->>>> OK, I'll move it there.
->>>>
->>>
->>> It depends on Alan's comments, whether only usb_add_hcd/usb_del_hcd
->>> pair can be called repeat. If Alan acks it, I have no idea for it.
->>
->> Most of the host controller drivers were not written with this in mind,
->> but I think it would be a good thing to allow.  It would speed up the
->> host/device role switches.
->>
->> This might mean we need to fix up several drivers to make them work 
->> correctly in an OTG environment.  It should be possible to do this.  Is 
->> there any particular reason why it would be difficult for Chipidea?
->>
-> 
-> I just want to do clean remove at OTG environment, like rmmod, so I did
-> this when I worked on chipidea OTG design.
-> I am worried if there are some resources dedicated for host device, eg,
-> clocks, gpio. etc.
-> 
-> If OTG framework can know well hcd's add and remove, it is ok for chipidea
-> just calling usb_add_hcd/usb_del_hcd currently, but I suggested roger
-> adding platform hcd_ops as optional parameter in case the platform
-> has special requirement for hcd_ops.
-> 
-We have 2 users now, omap + dwc3 and sh + EHCI/OHCI and we didn't seem to
-observe any issues with the usb_add/del_hcd approach.
+As per the data sheet starting from SPRUHQ0H (Nov 2015 - Latest[1]),
+VDD_CORE can vary from 0.85v to 1.15v for AVS class0. VDD GPU/DSP
+et.al. can range from 0.85v to 1.25V with AVS class0
 
-Let's keep things minimal for now. In the future, if users need something more
-we can always extend the framework.
+Since dynamic voltage scaling is disabled for DRA7/AM57xx SoCs for
+all SoC rails other than MPU, the bootloader is responsible for
+setting up the AVS class0 voltage, however, with wrong voltage machine
+constraints in dtb, regulator framework will lower the voltage below
+the required voltage levels for certain samples in production flow.
+This can cause catastrophic failures which can be pretty hard to
+identify.
 
-cheers,
--roger
+Update board files which don't match required specification.
+
+[1] http://www.ti.com/product/AM5728/datasheet/specifications#SPRT637-7340
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+Based on:
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
+omap-for-v4.7/dt     a4240d3af677 ARM: dts: Add support for dra72-evm rev C (SR2.0)
+
+ arch/arm/boot/dts/am57xx-beagle-x15.dts | 4 ++--
+ arch/arm/boot/dts/dra7-evm.dts          | 4 ++--
+ arch/arm/boot/dts/dra72-evm-common.dtsi | 2 +-
+ 3 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+index 75d04b1bbd1b..779466e18d34 100644
+--- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
++++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+@@ -438,7 +438,7 @@
+ 					/* VDD_DSPEVE, VDD_IVA, VDD_GPU */
+ 					regulator-name = "smps45";
+ 					regulator-min-microvolt = < 850000>;
+-					regulator-max-microvolt = <1150000>;
++					regulator-max-microvolt = <1250000>;
+ 					regulator-always-on;
+ 					regulator-boot-on;
+ 				};
+@@ -447,7 +447,7 @@
+ 					/* VDD_CORE */
+ 					regulator-name = "smps6";
+ 					regulator-min-microvolt = <850000>;
+-					regulator-max-microvolt = <1030000>;
++					regulator-max-microvolt = <1150000>;
+ 					regulator-always-on;
+ 					regulator-boot-on;
+ 				};
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index d272cf140197..e94cbb7dd3c5 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -431,7 +431,7 @@
+ 					/* VDD_DSPEVE */
+ 					regulator-name = "smps45";
+ 					regulator-min-microvolt = < 850000>;
+-					regulator-max-microvolt = <1150000>;
++					regulator-max-microvolt = <1250000>;
+ 					regulator-always-on;
+ 					regulator-boot-on;
+ 				};
+@@ -449,7 +449,7 @@
+ 					/* CORE_VDD */
+ 					regulator-name = "smps7";
+ 					regulator-min-microvolt = <850000>;
+-					regulator-max-microvolt = <1060000>;
++					regulator-max-microvolt = <1150000>;
+ 					regulator-always-on;
+ 					regulator-boot-on;
+ 				};
+diff --git a/arch/arm/boot/dts/dra72-evm-common.dtsi b/arch/arm/boot/dts/dra72-evm-common.dtsi
+index 2c880501ba2e..874bdf1db306 100644
+--- a/arch/arm/boot/dts/dra72-evm-common.dtsi
++++ b/arch/arm/boot/dts/dra72-evm-common.dtsi
+@@ -328,7 +328,7 @@
+ 					/* VDD_CORE */
+ 					regulator-name = "smps2";
+ 					regulator-min-microvolt = <850000>;
+-					regulator-max-microvolt = <1060000>;
++					regulator-max-microvolt = <1150000>;
+ 					regulator-boot-on;
+ 					regulator-always-on;
+ 				};
+-- 
+2.8.0
