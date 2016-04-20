@@ -1,7 +1,7 @@
 From: Jon Hunter <jonathanh@nvidia.com>
-Subject: [PATCH V2 05/14] genirq: Look-up trigger type if not specified by caller
-Date: Wed, 20 Apr 2016 12:03:48 +0100
-Message-ID: <1461150237-15580-6-git-send-email-jonathanh@nvidia.com>
+Subject: [PATCH V2 03/14] irqchip: Mask the non-type/sense bits when translating an IRQ
+Date: Wed, 20 Apr 2016 12:03:46 +0100
+Message-ID: <1461150237-15580-4-git-send-email-jonathanh@nvidia.com>
 References: <1461150237-15580-1-git-send-email-jonathanh@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,42 +12,54 @@ To: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, M
 Cc: Kevin Hilman <khilman@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Jon Hunter <jonathanh@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
 
-For some devices the IRQ trigger type for a device is read from
-firmware, such as device-tree. The IRQ trigger type is typically read
-when the mapping for IRQ is created, which is before the IRQ is
-requested. Hence, the IRQ trigger type is programmed when mapping the
-IRQ and not when requesting the IRQ.
+The firmware parameter that contains the IRQ sense bits may also contain
+other data. When return the IRQ type, bits outside of these sense bits
+should be masked. If these bits are not masked and
+irq_create_fwspec_mapping() is called to map an IRQ, then the comparison
+of the type returned from irq_domain_translate() will never match
+that returned by irq_get_trigger_type() (because this function masks the
+none sense bits) and so we will always call irq_set_irq_type() to program
+the type even if it was not really necessary.
 
-Although this works for most cases, in order to support IRQ chips which
-require runtime power management, which may not be accessible prior
-to requesting the IRQ, it is desirable to look-up the IRQ trigger type
-when it is requested. Therefore, if the IRQ trigger type is not
-specified when __setup_irq() is called, look-up the saved IRQ trigger
-type. This will allow us to defer the programming of the trigger type
-from when the IRQ is mapped to when it is actually requested.
+Currently, the downside to this is unnecessarily re-programmming the type
+but nevertheless this should be avoided.
+
+The Tegra LIC and TI Crossbar irqchips all have client instances (from
+reviewing the device-tree sources) where bits outside the IRQ sense bits
+are set, but do not mask these bits. Therefore, ensure these bits are
+masked for these irqchips.
 
 Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
 ---
- kernel/irq/manage.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/irqchip/irq-crossbar.c | 2 +-
+ drivers/irqchip/irq-tegra.c    | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
-index cc1cc641d653..b2a93a37f772 100644
---- a/kernel/irq/manage.c
-+++ b/kernel/irq/manage.c
-@@ -1117,6 +1117,13 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
- 	new->irq = irq;
+diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
+index 75573fa431ba..1eef56a89b1f 100644
+--- a/drivers/irqchip/irq-crossbar.c
++++ b/drivers/irqchip/irq-crossbar.c
+@@ -183,7 +183,7 @@ static int crossbar_domain_translate(struct irq_domain *d,
+ 			return -EINVAL;
  
- 	/*
-+	 * If the trigger type is not specified by the caller,
-+	 * then use the default for this interrupt.
-+	 */
-+	if (!(new->flags & IRQF_TRIGGER_MASK))
-+		new->flags |= irqd_get_trigger_type(&desc->irq_data);
-+
-+	/*
- 	 * Check whether the interrupt nests into another interrupt
- 	 * thread.
- 	 */
+ 		*hwirq = fwspec->param[1];
+-		*type = fwspec->param[2];
++		*type = fwspec->param[2] & IRQ_TYPE_SENSE_MASK;
+ 		return 0;
+ 	}
+ 
+diff --git a/drivers/irqchip/irq-tegra.c b/drivers/irqchip/irq-tegra.c
+index 50be9639e27e..e902f081e16c 100644
+--- a/drivers/irqchip/irq-tegra.c
++++ b/drivers/irqchip/irq-tegra.c
+@@ -235,7 +235,7 @@ static int tegra_ictlr_domain_translate(struct irq_domain *d,
+ 			return -EINVAL;
+ 
+ 		*hwirq = fwspec->param[1];
+-		*type = fwspec->param[2];
++		*type = fwspec->param[2] & IRQ_TYPE_SENSE_MASK;
+ 		return 0;
+ 	}
+ 
 -- 
 2.1.4
