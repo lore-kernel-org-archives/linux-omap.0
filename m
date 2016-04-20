@@ -1,41 +1,27 @@
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 1/2] mfd: twl6040: Disable and unprepare clk32k in twl6040_power() error path
-Date: Wed, 20 Apr 2016 11:16:37 -0400
-Message-ID: <1461165398-12289-1-git-send-email-javier@osg.samsung.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>
+From: Hannes Frederic Sowa <hannes@stressinduktion.org>
+Subject: Re: Regression in next for smsc911x with tigthen lockdep checks
+Date: Wed, 20 Apr 2016 17:22:49 +0200
+Message-ID: <57179EC9.6000505@stressinduktion.org>
+References: <20160420150108.GF5995@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20160420150108.GF5995@atomide.com>
+Sender: netdev-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, "David S. Miller" <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The clk32k clock is prepared and enabled in twl6040_power() but the clock
-is left enabled in case of an error while it should be disable/unprepared.
+Hi,
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
+On 20.04.2016 17:01, Tony Lindgren wrote:
+> Looks like commit fafc4e1ea1a4 ("sock: tigthen lockdep checks for
+> sock_owned_by_user") in next causes a regression at least for
+> smsc911x with CONFIG_LOCKDEP. It keeps spamming with the following
+> message. Any ideas?
 
- drivers/mfd/twl6040.c | 2 ++
- 1 file changed, 2 insertions(+)
+Not yet, can you quickly send me your config?
 
-diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
-index 08a693cd38cc..4de92c16dfb8 100644
---- a/drivers/mfd/twl6040.c
-+++ b/drivers/mfd/twl6040.c
-@@ -300,6 +300,7 @@ int twl6040_power(struct twl6040 *twl6040, int on)
- 			/* use automatic power-up sequence */
- 			ret = twl6040_power_up_automatic(twl6040);
- 			if (ret) {
-+				clk_disable_unprepare(twl6040->clk32k);
- 				twl6040->power_count = 0;
- 				goto out;
- 			}
-@@ -307,6 +308,7 @@ int twl6040_power(struct twl6040 *twl6040, int on)
- 			/* use manual power-up sequence */
- 			ret = twl6040_power_up_manual(twl6040);
- 			if (ret) {
-+				clk_disable_unprepare(twl6040->clk32k);
- 				twl6040->power_count = 0;
- 				goto out;
- 			}
--- 
-2.5.5
+Thanks,
+Hannes
