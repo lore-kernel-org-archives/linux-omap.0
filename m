@@ -1,25 +1,41 @@
-From: Andrew Goodbody <andrew.goodbody@cambrionix.com>
-Subject: [PATCH v2 0/1] Revert "Prevent NUll pointer dereference with two PHYs"
-Date: Wed, 20 Apr 2016 16:14:50 +0100
-Message-ID: <1461165291-25043-1-git-send-email-andrew.goodbody@cambrionix.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mugunthanvnm@ti.com, grygorii.strashko@ti.com, tony@atomide.com, davem@davemloft.net, Andrew Goodbody <andrew.goodbody@cambrionix.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH 2/2] mfd: twl6040: Check clk_prepare_enable() return value in twl6040_power()
+Date: Wed, 20 Apr 2016 11:16:38 -0400
+Message-ID: <1461165398-12289-2-git-send-email-javier@osg.samsung.com>
+References: <1461165398-12289-1-git-send-email-javier@osg.samsung.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1461165398-12289-1-git-send-email-javier@osg.samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Revert this patch as not only did it use an unitialised member of a struct
-but there is also a pre-existing patch that does it better.
+The clk_prepare_enable() function can fail so check the return
+value and propagate the error in case of a failure.
 
-V2 add signoff
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-Andrew Goodbody (1):
-  Revert "Prevent NUll pointer dereference with two PHYs on cpsw"
+---
 
- drivers/net/ethernet/ti/cpsw.c | 31 +++++++++++++++----------------
- 1 file changed, 15 insertions(+), 16 deletions(-)
+ drivers/mfd/twl6040.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
+index 4de92c16dfb8..852d5874aabb 100644
+--- a/drivers/mfd/twl6040.c
++++ b/drivers/mfd/twl6040.c
+@@ -291,7 +291,11 @@ int twl6040_power(struct twl6040 *twl6040, int on)
+ 		if (twl6040->power_count++)
+ 			goto out;
+ 
+-		clk_prepare_enable(twl6040->clk32k);
++		ret = clk_prepare_enable(twl6040->clk32k);
++		if (ret) {
++			twl6040->power_count = 0;
++			goto out;
++		}
+ 
+ 		/* Allow writes to the chip */
+ 		regcache_cache_only(twl6040->regmap, false);
 -- 
-2.5.0
+2.5.5
