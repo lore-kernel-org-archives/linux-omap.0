@@ -1,40 +1,46 @@
-From: Andrew Goodbody <andrew.goodbody@cambrionix.com>
-Subject: RE: [PATCH v2 0/1] drivers: net: cpsw: Fix NULL pointer dereference
- with two slave PHYs
-Date: Wed, 20 Apr 2016 08:49:34 +0000
-Message-ID: <c10cbc575f4d4e15bd27a8018f77baf1@THHSTE15D2BE2.hs20.net>
-References: <1460987606-18125-1-git-send-email-andrew.goodbody@cambrionix.com>
- <20160419.201550.902520333910307559.davem@davemloft.net>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v6 00/17] memory: omap-gpmc: mtd: nand: Support GPMC NAND
+ on non-OMAP platforms
+Date: Wed, 20 Apr 2016 11:58:23 +0300
+Message-ID: <571744AF.5030008@ti.com>
+References: <1460023715-19332-1-git-send-email-rogerq@ti.com>
+ <20160413212500.GD5995@atomide.com> <5710B58C.7050108@ti.com>
+ <20160415120942.3131eac1@bbrezillon> <5710C86A.9060108@ti.com>
+ <20160415135108.63716f06@bbrezillon> <20160415154139.GS5995@atomide.com>
+ <20160415180531.15d790d2@bbrezillon> <20160415161950.GT5995@atomide.com>
+ <20160416105711.5310d2d0@bbrezillon> <5714D3A4.2050405@ti.com>
+ <5714D8AA.9040304@ti.com> <20160418151305.17a42437@bbrezillon>
+ <5714E5AA.5050200@ti.com> <20160418161001.2a1c0bed@bbrezillon>
+ <5714F185.5080103@ti.com> <20160418165755.77d1d661@bbrezillon>
+ <5716289B.4060302@ti.com> <20160419221129.59b559fb@bbrezillon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160419.201550.902520333910307559.davem@davemloft.net>
-Content-Language: en-US
+In-Reply-To: <20160419221129.59b559fb@bbrezillon>
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>, "grygorii.strashko@ti.com" <grygorii.strashko@ti.com>, "mugunthanvnm@ti.com" <mugunthanvnm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Tony Lindgren <tony@atomide.com>, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, computersforpeace@gmail.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Andrew Goodbody <andrew.goodbody@cambrionix.com>
-> Date: Mon, 18 Apr 2016 14:53:25 +0100
+On 19/04/16 23:11, Boris Brezillon wrote:
+> On Tue, 19 Apr 2016 15:46:19 +0300
+> Roger Quadros <rogerq@ti.com> wrote:
 > 
-> > This is a fix for a NULL pointer dereference from cpsw which is
-> > triggered by having two slave PHYs attached to a cpsw network device.
-> > The problem is due to only maintaining a single reference to a PHY
-> > node in the prive data which gets overwritten by the second PHY probe.
-> > So move the PHY node reference to the individual slave data so that there
-> is now one per slave.
-> >
-> > v1 had a problem that data->slaves was used before it had been filled
-> > in
+>>
+>> After all the changes we discussed in [1] I was able to test nand/next-with-gpmc-rework
+>> and it worked fine.
+>>
+>> [1] - http://thread.gmane.org/gmane.comp.hardware.netbook.arm.sunxi/22596/focus=22936
+>>
+>> I'd be happy to test the branch again after you've incorporated all changes.
 > 
-> I already applied v1 the other day, so you need to send me a relative patch
-> rather than a whole new one.
+> Just pushed what's supposed to be my new nand/next into
+> nand/next-with-gpmc-rework, can you test it? I'll push it to nand/next
+> once I have your confirmation that everything is good.
 > 
-> Thanks.
 
-Sorry, I had no notification that this had happened. However I thought that the plan was to revert v1 and go with David Rivshin's patch instead. I'll see if I can create a revert in a little while.
+Tested this on dra7-evm, am437x-gp-evm and omap3-beagle and all seems good. Thanks :).
 
-Andrew
+cheers,
+-roger
