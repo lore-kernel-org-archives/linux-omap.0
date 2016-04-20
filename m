@@ -1,47 +1,41 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH] MAINTAINERS: net: add entry for TI Ethernet Switch drivers
-Date: Wed, 20 Apr 2016 14:25:09 +0300
-Message-ID: <1461151509-2368-1-git-send-email-grygorii.strashko@ti.com>
+From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 0/2] DRA7x: Increase QSPI frequency to 64MHz
+Date: Wed, 20 Apr 2016 17:02:58 +0530
+Message-ID: <1461151980-28139-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, "David S. Miller" <davem@davemloft.net>, Mugunthan V N <mugunthanvnm@ti.com>, Richard Cochran <richardcochran@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add record for TI Ethernet Switch Driver CPSW/CPDMA/MDIO HW
-(am33/am43/am57/dr7/davinci) to ensure that related patches
-will go through dedicated linux-omap list.
 
-Also add Mugunthan as maintainer and myself as the reviewer.
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: Richard Cochran <richardcochran@gmail.com>
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
- MAINTAINERS | 8 ++++++++
- 1 file changed, 8 insertions(+)
+This patch series increases QSPI bus frequency to 64MHz and switch to
+SPI mode 0 in order to increase read/write throughput.
+First patch removes QSPI pinmux from DT as pinmux can only be done in
+U-Boot(see patch commit message for more info). Second patch does the
+dts changes to support 64MHz mode 0 operation.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 1d5b4be..aca864d 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -11071,6 +11071,14 @@ S:	Maintained
- F:	drivers/clk/ti/
- F:	include/linux/clk/ti.h
- 
-+TI ETHERNET SWITCH DRIVER (CPSW)
-+M:	Mugunthan V N <mugunthanvnm@ti.com>
-+R:	Grygorii Strashko <grygorii.strashko@ti.com>
-+L:	linux-omap@vger.kernel.org
-+S:	Maintained
-+F:	drivers/net/ethernet/ti/cpsw*
-+F:	drivers/net/ethernet/ti/davinci*
-+
- TI FLASH MEDIA INTERFACE DRIVER
- M:	Alex Dubov <oakad@yahoo.com>
- S:	Maintained
+
+Tested on DRA74 and DRA72 EVM with U-Boot 2016.05-rc1.
+
+
+Vignesh R (2):
+  ARM: dts: dra7x: Remove QSPI pinmux
+  ARM: dts: dra7x: Support QSPI MODE-0 operation at 64MHz
+
+ Documentation/devicetree/bindings/spi/ti_qspi.txt |  7 +++++++
+ arch/arm/boot/dts/dra7-evm.dts                    | 23 ++---------------------
+ arch/arm/boot/dts/dra72-evm-common.dtsi           | 20 ++------------------
+ 3 files changed, 11 insertions(+), 39 deletions(-)
+
 -- 
 2.8.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
