@@ -1,49 +1,47 @@
-From: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH V2 01/14] irqchip/gic: Don't unnecessarily write the IRQ configuration
-Date: Wed, 20 Apr 2016 12:03:44 +0100
-Message-ID: <1461150237-15580-2-git-send-email-jonathanh@nvidia.com>
-References: <1461150237-15580-1-git-send-email-jonathanh@nvidia.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH] MAINTAINERS: net: add entry for TI Ethernet Switch drivers
+Date: Wed, 20 Apr 2016 14:25:09 +0300
+Message-ID: <1461151509-2368-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1461150237-15580-1-git-send-email-jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, "David S. Miller" <davem@davemloft.net>, Mugunthan V N <mugunthanvnm@ti.com>, Richard Cochran <richardcochran@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-If the interrupt configuration matches the current configuration, then
-don't bother writing the configuration again.
+Add record for TI Ethernet Switch Driver CPSW/CPDMA/MDIO HW
+(am33/am43/am57/dr7/davinci) to ensure that related patches
+will go through dedicated linux-omap list.
 
-Signed-off-by: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Acked-by: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>
+Also add Mugunthan as maintainer and myself as the reviewer.
+
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: Richard Cochran <richardcochran@gmail.com>
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/irqchip/irq-gic-common.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ MAINTAINERS | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/irqchip/irq-gic-common.c b/drivers/irqchip/irq-gic-common.c
-index f174ce0ca361..ffff5a45f1e3 100644
---- a/drivers/irqchip/irq-gic-common.c
-+++ b/drivers/irqchip/irq-gic-common.c
-@@ -50,13 +50,17 @@ int gic_configure_irq(unsigned int irq, unsigned int type,
- 	else if (type & IRQ_TYPE_EDGE_BOTH)
- 		val |= confmask;
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 1d5b4be..aca864d 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -11071,6 +11071,14 @@ S:	Maintained
+ F:	drivers/clk/ti/
+ F:	include/linux/clk/ti.h
  
-+	/* If the current configuration is the same, then we are done */
-+	if (val == oldval)
-+		return 0;
++TI ETHERNET SWITCH DRIVER (CPSW)
++M:	Mugunthan V N <mugunthanvnm@ti.com>
++R:	Grygorii Strashko <grygorii.strashko@ti.com>
++L:	linux-omap@vger.kernel.org
++S:	Maintained
++F:	drivers/net/ethernet/ti/cpsw*
++F:	drivers/net/ethernet/ti/davinci*
 +
- 	/*
- 	 * Write back the new configuration, and possibly re-enable
--	 * the interrupt. If we tried to write a new configuration and failed,
-+	 * the interrupt. If we fail to write a new configuration,
- 	 * return an error.
- 	 */
- 	writel_relaxed(val, base + GIC_DIST_CONFIG + confoff);
--	if (readl_relaxed(base + GIC_DIST_CONFIG + confoff) != val && val != oldval)
-+	if (readl_relaxed(base + GIC_DIST_CONFIG + confoff) != val)
- 		ret = -EINVAL;
- 
- 	if (sync_access)
+ TI FLASH MEDIA INTERFACE DRIVER
+ M:	Alex Dubov <oakad@yahoo.com>
+ S:	Maintained
 -- 
-2.1.4
+2.8.1
