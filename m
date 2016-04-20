@@ -1,96 +1,225 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v6 08/12] usb: hcd: Adapt to OTG core
-Date: Wed, 20 Apr 2016 09:47:38 +0300
-Message-ID: <5717260A.3070601@ti.com>
+Subject: Re: [PATCH v6 09/12] usb: gadget: udc: adapt to OTG core
+Date: Wed, 20 Apr 2016 09:51:06 +0300
+Message-ID: <571726DA.6090402@ti.com>
 References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
- <1459865117-7032-9-git-send-email-rogerq@ti.com>
- <20160418062937.GA4477@shlinux2.ap.freescale.net>
- <20160419081446.GA15789@shlinux2.ap.freescale.net>
+ <1459865117-7032-10-git-send-email-rogerq@ti.com>
+ <20160418065954.GB4477@shlinux2.ap.freescale.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160419081446.GA15789-Fb7DQEYuewWctlrPMvKcciBecyulp+rMXqFh9Ls21Oc@public.gmane.org>
+In-Reply-To: <20160418065954.GB4477-Fb7DQEYuewWctlrPMvKcciBecyulp+rMXqFh9Ls21Oc@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 19/04/16 11:14, Peter Chen wrote:
-> On Mon, Apr 18, 2016 at 02:29:37PM +0800, Peter Chen wrote:
->> On Tue, Apr 05, 2016 at 05:05:13PM +0300, Roger Quadros wrote:
->>> Introduce usb_otg_add/remove_hcd() for use by host
->>> controllers that are part of OTG/dual-role port.
->>>
->>> Non Device tree platforms can use the otg_dev argument
->>> to specify the OTG controller device. If otg_dev is NULL
->>> then the device tree node's otg-controller property is used to
->>> get the otg_dev device.
->>>
->>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
->>> ---
->>>  drivers/usb/core/hcd.c  | 71 +++++++++++++++++++++++++++++++++++++++++++++++++
->>>  include/linux/usb/hcd.h |  4 +++
->>>  2 files changed, 75 insertions(+)
->>>
->>> diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
->>> index 6b1930d..6a80193 100644
->>> --- a/drivers/usb/core/hcd.c
->>> +++ b/drivers/usb/core/hcd.c
->>> @@ -46,6 +46,10 @@
->>>  #include <linux/usb.h>
->>>  #include <linux/usb/hcd.h>
->>>  #include <linux/usb/phy.h>
->>> +#include <linux/usb/otg.h>
->>> +
->>> +#include <linux/of.h>
->>> +#include <linux/of_platform.h>
->>>  
->>>  #include "usb.h"
->>>  
->>> @@ -3013,6 +3017,73 @@ void usb_remove_hcd(struct usb_hcd *hcd)
->>>  }
->>>  EXPORT_SYMBOL_GPL(usb_remove_hcd);
->>>  
->>> +
->>> +static struct otg_hcd_ops otg_hcd_intf = {
->>> +	.add = usb_add_hcd,
->>> +	.remove = usb_remove_hcd,
->>> +	.usb_bus_start_enum = usb_bus_start_enum,
->>> +	.usb_control_msg = usb_control_msg,
->>> +	.usb_hub_find_child = usb_hub_find_child,
->>> +};
->>> +
->>> +/**
->>> + * usb_otg_add_hcd - Register the HCD with OTG core.
->>> + * @hcd: the usb_hcd structure to initialize
->>> + * @irqnum: Interrupt line to allocate
->>> + * @irqflags: Interrupt type flags
->>> + * @otg_dev: OTG controller device manging this HCD
+On 18/04/16 09:59, Peter Chen wrote:
+> On Tue, Apr 05, 2016 at 05:05:14PM +0300, Roger Quadros wrote:
+>> The OTG state machine needs a mechanism to start and
+>> stop the gadget controller. Add usb_gadget_start()
+>> and usb_gadget_stop().
 >>
->> %s/manging/managing
+>> Introduce usb_otg_add_gadget_udc() to allow controller drivers
+>> to register a gadget controller that is part of an OTG instance.
 >>
->>> + *
->>> + * Registers the HCD with OTG core. OTG core will call usb_add_hcd()
->>> + * or usb_remove_hcd() as necessary.
->>> + * If otg_dev is NULL then device tree node is checked for OTG
->>> + * controller device via the otg-controller property.
->>> + */
->>> +int usb_otg_add_hcd(struct usb_hcd *hcd,
->>> +		    unsigned int irqnum, unsigned long irqflags,
->>> +		    struct device *otg_dev)
->>> +{
+>> Register with OTG core when gadget function driver
+>> is available and unregister when function driver is unbound.
 >>
->> Some users may not want to use default otg_hcd_ops, would you please
->> add one more parameter (eg, hcd_ops) for that? If hcd_ops is NULL, just
->> use the default one.
->>
+>> We need to unlock the usb_lock mutexbefore calling
 > 
-> I forgot there is .start_host at otg fsm API when reviewing, so it is
-> ok to have a unified hcd_ops, the user can do platform things at
-> fsm.start_host.
+> ...mutex before...
+
+OK.
 > 
-OK, great :).
+>> usb_otg_register_gadget() in udc_bind_to_driver() and
+>> usb_gadget_remove_driver() else it will cause a circular
+>> locking dependency.
+>>
+>> Ignore softconnect sysfs control when we're in OTG
+>> mode as OTG FSM takes care of gadget softconnect using
+>> the b_bus_req mechanism.
+>>
+>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  drivers/usb/gadget/udc/udc-core.c | 166 +++++++++++++++++++++++++++++++++++---
+>>  include/linux/usb/gadget.h        |   4 +
+>>  2 files changed, 161 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/drivers/usb/gadget/udc/udc-core.c b/drivers/usb/gadget/udc/udc-core.c
+>> index 4151597..9b9702f 100644
+>> --- a/drivers/usb/gadget/udc/udc-core.c
+>> +++ b/drivers/usb/gadget/udc/udc-core.c
+>> @@ -28,6 +28,10 @@
+>>  #include <linux/usb/ch9.h>
+>>  #include <linux/usb/gadget.h>
+>>  #include <linux/usb.h>
+>> +#include <linux/usb/otg.h>
+>> +
+>> +#include <linux/of.h>
+>> +#include <linux/of_platform.h>
+>>  
+>>  /**
+>>   * struct usb_udc - describes one usb device controller
+>> @@ -304,6 +308,7 @@ EXPORT_SYMBOL_GPL(usb_gadget_udc_reset);
+>>   */
+>>  static inline int usb_gadget_udc_start(struct usb_udc *udc)
+>>  {
+>> +	dev_dbg(&udc->dev, "%s\n", __func__);
+>>  	return udc->gadget->ops->udc_start(udc->gadget, udc->driver);
+>>  }
+> 
+> You may delete the debug message next time.
+
+OK for this and all the next comments to remove debug messages.
+
+> 
+>>  
+>> @@ -321,10 +326,81 @@ static inline int usb_gadget_udc_start(struct usb_udc *udc)
+>>   */
+>>  static inline void usb_gadget_udc_stop(struct usb_udc *udc)
+>>  {
+>> +	dev_dbg(&udc->dev, "%s\n", __func__);
+>>  	udc->gadget->ops->udc_stop(udc->gadget);
+>>  }
+> 
+> The same.
+> 
+>>  
+>>  /**
+>> + * usb_gadget_start - start the usb gadget controller and connect to bus
+>> + * @gadget: the gadget device to start
+>> + *
+>> + * This is external API for use by OTG core.
+>> + *
+>> + * Start the usb device controller and connect to bus (enable pull).
+>> + */
+>> +static int usb_gadget_start(struct usb_gadget *gadget)
+>> +{
+>> +	int ret;
+>> +	struct usb_udc *udc = NULL;
+>> +
+>> +	dev_dbg(&gadget->dev, "%s\n", __func__);
+> 
+> The same
+> 
+>> +	mutex_lock(&udc_lock);
+>> +	list_for_each_entry(udc, &udc_list, list)
+>> +		if (udc->gadget == gadget)
+>> +			goto found;
+>> +
+>> +	dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
+>> +		__func__);
+>> +	mutex_unlock(&udc_lock);
+>> +	return -EINVAL;
+>> +
+>> +found:
+>> +	ret = usb_gadget_udc_start(udc);
+>> +	if (ret)
+>> +		dev_err(&udc->dev, "USB Device Controller didn't start: %d\n",
+>> +			ret);
+>> +	else
+>> +		usb_udc_connect_control(udc);
+>> +
+>> +	mutex_unlock(&udc_lock);
+>> +
+>> +	return ret;
+>> +}
+>> +
+>> +/**
+>> + * usb_gadget_stop - disconnect from bus and stop the usb gadget
+>> + * @gadget: The gadget device we want to stop
+>> + *
+>> + * This is external API for use by OTG core.
+>> + *
+>> + * Disconnect from the bus (disable pull) and stop the
+>> + * gadget controller.
+>> + */
+>> +static int usb_gadget_stop(struct usb_gadget *gadget)
+>> +{
+>> +	struct usb_udc *udc = NULL;
+>> +
+>> +	dev_dbg(&gadget->dev, "%s\n", __func__);
+> 
+> The same
+> 	
+>> +	mutex_lock(&udc_lock);
+>> +	list_for_each_entry(udc, &udc_list, list)
+>> +		if (udc->gadget == gadget)
+>> +			goto found;
+>> +
+>> +	dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
+>> +		__func__);
+>> +	mutex_unlock(&udc_lock);
+>> +	return -EINVAL;
+> 
+> The above finding gadget code is the same with usb_gadget_start, can we
+> use one common API to instead of it?
+
+Sure.
+> 
+>> +
+>> +found:
+>> +	usb_gadget_disconnect(udc->gadget);
+>> +	udc->driver->disconnect(udc->gadget);
+>> +	usb_gadget_udc_stop(udc);
+>> +	mutex_unlock(&udc_lock);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +/**
+>>   * usb_udc_release - release the usb_udc struct
+>>   * @dev: the dev member within usb_udc
+>>   *
+>> @@ -486,6 +562,48 @@ int usb_add_gadget_udc(struct device *parent, struct usb_gadget *gadget)
+>>  }
+>>  EXPORT_SYMBOL_GPL(usb_add_gadget_udc);
+>>  
+>> +/**
+>> + * usb_otg_add_gadget_udc - adds a new gadget to the udc class driver list
+>> + * @parent: the parent device to this udc. Usually the controller
+>> + * driver's device.
+>> + * @gadget: the gadget to be added to the list
+>> + * @otg_dev: the OTG controller device
+>> + *
+>> + * If otg_dev is NULL then device tree node is checked
+>> + * for OTG controller via the otg-controller property.
+>> + * Returns zero on success, negative errno otherwise.
+>> + */
+>> +int usb_otg_add_gadget_udc(struct device *parent, struct usb_gadget *gadget,
+>> +			   struct device *otg_dev)
+>> +{
+>> +	if (!otg_dev) {
+>> +		struct device_node *np;
+>> +		struct platform_device *pdev;
+>> +
+>> +		np = of_parse_phandle(parent->of_node, "otg-controller", 0);
+>> +		if (!np) {
+>> +			dev_err(parent,
+>> +				"otg_dev is NULL or no otg-controller property in DT\n");
+>> +			return -EINVAL;
+>> +		}
+>> +
+>> +		pdev = of_find_device_by_node(np);
+>> +		of_node_put(np);
+>> +		if (!pdev) {
+>> +			dev_err(parent, "couldn't get otg-controller device\n");
+>> +			return -ENODEV;
+>> +		}
+>> +
+>> +		gadget->otg_dev = &pdev->dev;
+>> +	} else {
+>> +		gadget->otg_dev = otg_dev;
+>> +	}
+> 
+> The above the code is duplicated with hcd's. Can we do something common
+> at usb-otg.c, eg define an API get_usb_otg_dev(struct usb_gadget *gadget, struct
+> usb_hcd *hcd), in this API we can try to get otg_dev for both gadget and
+> hcd, and we can call it at controller driver during register otg.
+> 
+Good point. I'll address it in v7.
 
 cheers,
 -roger
