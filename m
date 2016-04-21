@@ -1,77 +1,83 @@
-From: "David Rivshin (Allworx)" <drivshin.allworx-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH net v2 3/3] drivers: net: cpsw: use of_phy_connect() in fixed-link case
-Date: Thu, 21 Apr 2016 14:41:06 -0400
-Message-ID: <1461264066-12358-1-git-send-email-drivshin.allworx@gmail.com>
-References: <1461261035-5578-1-git-send-email-drivshin.allworx@gmail.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1461261035-5578-1-git-send-email-drivshin.allworx-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Andrew Goodbody <andrew.goodbody-nYQdZkeIoGZN8Ch2cx6nig@public.gmane.org>, Markus Brunner <systemprogrammierung.brunner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Nicolas Chauvet <kwizart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Nokia N900 retention mode in v4.6, camera buttons fun
+Date: Thu, 21 Apr 2016 23:28:08 +0200
+Message-ID: <20160421212808.GA31979@amd>
+References: <20160407230150.GA16552@amd>
+ <20160407234134.GQ16484@atomide.com>
+ <20160411093023.GC11814@amd>
+ <20160411094130.GA5753@amd>
+ <20160411211026.GH5995@atomide.com>
+ <20160412121658.GA32486@amd>
+ <20160412123013.GA12296@amd>
+ <20160412163055.GP5995@atomide.com>
+ <20160417175539.GA502@amd>
+ <20160421130450.GQ29406@pali>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160421130450.GQ29406@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: sre@kernel.org, Tony Lindgren <tony@atomide.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: David Rivshin <drivshin-5fOYsn7Fw8lBDgjK7y7TUQ@public.gmane.org>
+Hi!
 
-If a fixed-link DT subnode is used, the phy_device was looked up so
-that a PHY ID string could be constructed and passed to phy_connect().
-This is not necessary, as the device_node can be passed directly to
-of_phy_connect() instead. This reuses the same codepath as if the
-phy-handle DT property was used.
+> > CONFIG_HSI breaks power management completely, so power management
+> > with modem will be another topic.  
+> 
+> Sebastian, any idea why power management does not work for HSI?
+> 
+> > > > > In the meantime, I found what is causing the rention mode to break for
+> > > > > me: CONFIG_HSI (aka wireless modem support). With HSI off, it seems to work.
+> > > > > 
+> > > > > I still get problems with the camera button, in config similar to
+> > > > > defconfig.  For some reason, I'm even getting (autorepeating) ^@ on
+> > > > > console. As long as I hold camera button down, I even get it into off
+> > > > > mode for brief period.
+> > > > 
+> > > > Ok, if I turn off CONFIG_KEYBOARD_GPIO, I get it into off
+> > > > mode... once per screen blank, for about a second. (Does CONFIG_KEYBOARD_GPIO also cause
+> > > > problems for you?)
+> > > > 
+> > > > Any idea why it enters off mode only once after each screenblank?
+> > > 
+> > > After disabling CONFIG_PROVE_LOCKING, loading the LCD modules, and
+> > > blanking the screen, my n900 hits off mode just fine about once
+> > > a second. Sounds like you still have some extra devices enabled
+> > > causing it.
+> > 
+> > I checked again... also with vanilla 4.6-rc2 to double check... same effect.
+> > 
+> > Aha, got it... cat-ing /sys/kernel/debug/pm_debug/count breaks the
+> > off mode. If I don't do that (tm), it seems to work way better.
+> 
+> So what is result? Is power management working for CONFIG_KEYBOARD_GPIO?
 
-Signed-off-by: David Rivshin <drivshin-5fOYsn7Fw8lBDgjK7y7TUQ@public.gmane.org>
-Tested-by: Nicolas Chauvet <kwizart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
+camera and unlock button GPIOs seem to break the powermanagement,
+too. I disabled it for now.
 
-Changes since v1 [1]:
-- Rebased (trivial conflict, e5a03bfd modified the deleted snprintf)
-- Added Tested-by from Nicolas Chauvet
+Next hint I got from Sebastian was that I may need to enable power
+management in /sys.
 
-[1] https://patchwork.ozlabs.org/patch/560327/
+pavel@n900:/my/tui/ofone$ cat
+/sys/devices/platform/68000000.ocp/48058000.ssi-controller/power/runtime_status
+active
+pavel@n900:/my/tui/ofone$ cat
+/sys/devices/platform/68000000.ocp/48058000.ssi-controller/power/autosuspend_delay_ms
+cat:
+/sys/devices/platform/68000000.ocp/48058000.ssi-controller/power/autosuspend_delay_ms:
+Input/output error
+root@n900:/my/tui/ofone# cat
+/sys/devices/platform/68000000.ocp/48058000.ssi-controller/power/control
+auto
 
+I could not get it to sleep :-(.
 
- drivers/net/ethernet/ti/cpsw.c | 11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
+Best regards,
+								Pavel
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 3c81413..245f919 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -2038,30 +2038,21 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
- 							"phy-handle", 0);
- 		parp = of_get_property(slave_node, "phy_id", &lenp);
- 		if (slave_data->phy_node) {
- 			dev_dbg(&pdev->dev,
- 				"slave[%d] using phy-handle=\"%s\"\n",
- 				i, slave_data->phy_node->full_name);
- 		} else if (of_phy_is_fixed_link(slave_node)) {
--			struct device_node *phy_node;
--			struct phy_device *phy_dev;
--
- 			/* In the case of a fixed PHY, the DT node associated
- 			 * to the PHY is the Ethernet MAC DT node.
- 			 */
- 			ret = of_phy_register_fixed_link(slave_node);
- 			if (ret)
- 				return ret;
--			phy_node = of_node_get(slave_node);
--			phy_dev = of_phy_find_device(phy_node);
--			if (!phy_dev)
--				return -ENODEV;
--			snprintf(slave_data->phy_id, sizeof(slave_data->phy_id),
--				 PHY_ID_FMT, phy_dev->mdio.bus->id,
--				 phy_dev->mdio.addr);
-+			slave_data->phy_node = of_node_get(slave_node);
- 		} else if (parp) {
- 			u32 phyid;
- 			struct device_node *mdio_node;
- 			struct platform_device *mdio;
- 
- 			if (lenp != (sizeof(__be32) * 2)) {
- 				dev_err(&pdev->dev, "Invalid slave[%d] phy_id property\n", i);
 -- 
-2.5.5
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
