@@ -1,54 +1,36 @@
-From: "J.D. Schroeder" <Linux.HWI@garmin.com>
-Subject: [PATCH] OMAPDSS: HDMI5: Fix AVI infoframe
-Date: Thu, 21 Apr 2016 08:48:40 -0500
-Message-ID: <1461246520-26734-1-git-send-email-Linux.HWI@garmin.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] MAINTAINERS: net: add entry for TI Ethernet Switch
+ drivers
+Date: Thu, 21 Apr 2016 07:33:10 -0700
+Message-ID: <20160421143310.GK5995@atomide.com>
+References: <1461233636-18667-1-git-send-email-grygorii.strashko@ti.com>
+ <5718B6EF.5000207@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, tomi.valkeinen@ti.com, misael.lopez@ti.com
-Cc: "Lodes, Jim" <jim.lodes@garmin.com>, "J.D. Schroeder" <jay.schroeder@garmin.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5718B6EF.5000207@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, Richard Cochran <richardcochran@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: "Lodes, Jim" <jim.lodes@garmin.com>
+* Mugunthan V N <mugunthanvnm@ti.com> [160421 04:19]:
+> On Thursday 21 April 2016 03:43 PM, Grygorii Strashko wrote:
+> > Add record for TI Ethernet Switch Driver CPSW/CPDMA/MDIO HW
+> > (am33/am43/am57/dr7/davinci) to ensure that related patches
+> > will go through dedicated linux-omap list.
+> > 
+> > Also add Mugunthan as maintainer and myself as the reviewer.
+> > 
+> > Cc: "David S. Miller" <davem@davemloft.net>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > Cc: Mugunthan V N <mugunthanvnm@ti.com>
+> > Cc: Richard Cochran <richardcochran@gmail.com>
+> > Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> 
+> Acked-by: Mugunthan V N <mugunthanvnm@ti.com>
 
-The AVI infoframe R0-R3 in the 2nd data byte represents the
-Active Format Aspect Ratio. It is four bits long not two bits.
-This fixes that mask used to extract the bits before writing the
-bits to the hardware registers.
+Looks good to me too thanks:
 
-Signed-off-by: Lodes, Jim <jim.lodes@garmin.com>
-Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
----
- drivers/gpu/drm/omapdrm/dss/hdmi5_core.c          | 2 +-
- drivers/video/fbdev/omap2/omapfb/dss/hdmi5_core.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi5_core.c b/drivers/gpu/drm/omapdrm/dss/hdmi5_core.c
-index d993f78..8ab2093 100644
---- a/drivers/gpu/drm/omapdrm/dss/hdmi5_core.c
-+++ b/drivers/gpu/drm/omapdrm/dss/hdmi5_core.c
-@@ -458,7 +458,7 @@ static void hdmi_core_write_avi_infoframe(struct hdmi_core_data *core,
- 
- 	c = (ptr[1] >> 6) & 0x3;
- 	m = (ptr[1] >> 4) & 0x3;
--	r = (ptr[1] >> 0) & 0x3;
-+	r = (ptr[1] >> 0) & 0xf;
- 
- 	itc = (ptr[2] >> 7) & 0x1;
- 	ec = (ptr[2] >> 4) & 0x7;
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/hdmi5_core.c b/drivers/video/fbdev/omap2/omapfb/dss/hdmi5_core.c
-index f3e4b81..bbfe7e2 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/hdmi5_core.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/hdmi5_core.c
-@@ -442,7 +442,7 @@ static void hdmi_core_write_avi_infoframe(struct hdmi_core_data *core,
- 
- 	c = (ptr[1] >> 6) & 0x3;
- 	m = (ptr[1] >> 4) & 0x3;
--	r = (ptr[1] >> 0) & 0x3;
-+	r = (ptr[1] >> 0) & 0xf;
- 
- 	itc = (ptr[2] >> 7) & 0x1;
- 	ec = (ptr[2] >> 4) & 0x7;
--- 
-1.9.1
+Acked-by: Tony Lindgren <tony@atomide.com>
