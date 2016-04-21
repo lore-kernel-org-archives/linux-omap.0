@@ -1,83 +1,96 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Nokia N900 retention mode in v4.6, camera buttons fun
-Date: Thu, 21 Apr 2016 23:28:08 +0200
-Message-ID: <20160421212808.GA31979@amd>
-References: <20160407230150.GA16552@amd>
- <20160407234134.GQ16484@atomide.com>
- <20160411093023.GC11814@amd>
- <20160411094130.GA5753@amd>
- <20160411211026.GH5995@atomide.com>
- <20160412121658.GA32486@amd>
- <20160412123013.GA12296@amd>
- <20160412163055.GP5995@atomide.com>
- <20160417175539.GA502@amd>
- <20160421130450.GQ29406@pali>
+From: "Kim, Milo" <milo.kim@ti.com>
+Subject: Re: [PATCH 2/7] mfd: lp8788: Use devm_mfd_add_devices and
+ devm_regmap_add_irq_chip
+Date: Fri, 22 Apr 2016 08:15:38 +0900
+Message-ID: <57195F1A.7070506@ti.com>
+References: <1461241558-26983-1-git-send-email-ldewangan@nvidia.com>
+ <1461241558-26983-3-git-send-email-ldewangan@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160421130450.GQ29406@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: sre@kernel.org, Tony Lindgren <tony@atomide.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <1461241558-26983-3-git-send-email-ldewangan@nvidia.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Laxman Dewangan <ldewangan@nvidia.com>, k.kozlowski@samsung.com
+Cc: lee.jones@linaro.org, cw00.choi@samsung.com, sbkim73@samsung.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+Hi Laxman,
 
-> > CONFIG_HSI breaks power management completely, so power management
-> > with modem will be another topic.  
-> 
-> Sebastian, any idea why power management does not work for HSI?
-> 
-> > > > > In the meantime, I found what is causing the rention mode to break for
-> > > > > me: CONFIG_HSI (aka wireless modem support). With HSI off, it seems to work.
-> > > > > 
-> > > > > I still get problems with the camera button, in config similar to
-> > > > > defconfig.  For some reason, I'm even getting (autorepeating) ^@ on
-> > > > > console. As long as I hold camera button down, I even get it into off
-> > > > > mode for brief period.
-> > > > 
-> > > > Ok, if I turn off CONFIG_KEYBOARD_GPIO, I get it into off
-> > > > mode... once per screen blank, for about a second. (Does CONFIG_KEYBOARD_GPIO also cause
-> > > > problems for you?)
-> > > > 
-> > > > Any idea why it enters off mode only once after each screenblank?
-> > > 
-> > > After disabling CONFIG_PROVE_LOCKING, loading the LCD modules, and
-> > > blanking the screen, my n900 hits off mode just fine about once
-> > > a second. Sounds like you still have some extra devices enabled
-> > > causing it.
-> > 
-> > I checked again... also with vanilla 4.6-rc2 to double check... same effect.
-> > 
-> > Aha, got it... cat-ing /sys/kernel/debug/pm_debug/count breaks the
-> > off mode. If I don't do that (tm), it seems to work way better.
-> 
-> So what is result? Is power management working for CONFIG_KEYBOARD_GPIO?
+On 4/21/2016 9:25 PM, Laxman Dewangan wrote:
+> Use devm_mfd_add_devices() for adding MFD child devices and
+> devm_regmap_add_irq_chip() for IRQ chip registration.
 
-camera and unlock button GPIOs seem to break the powermanagement,
-too. I disabled it for now.
+This patch doesn't include the code regarding devm_mfd_add_devices(). 
+Could you check it again? Or am I missing any previous patches?
 
-Next hint I got from Sebastian was that I may need to enable power
-management in /sys.
-
-pavel@n900:/my/tui/ofone$ cat
-/sys/devices/platform/68000000.ocp/48058000.ssi-controller/power/runtime_status
-active
-pavel@n900:/my/tui/ofone$ cat
-/sys/devices/platform/68000000.ocp/48058000.ssi-controller/power/autosuspend_delay_ms
-cat:
-/sys/devices/platform/68000000.ocp/48058000.ssi-controller/power/autosuspend_delay_ms:
-Input/output error
-root@n900:/my/tui/ofone# cat
-/sys/devices/platform/68000000.ocp/48058000.ssi-controller/power/control
-auto
-
-I could not get it to sleep :-(.
+>
+> This reduces the error code path and .remove callback for removing
+> MFD child devices and deleting IRQ chip data.
+>
+> Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
+> CC: Milo Kim <milo.kim@ti.com>
+> ---
+>   drivers/mfd/lp8788-irq.c | 12 +++---------
+>   drivers/mfd/lp8788.c     | 10 ----------
+>   2 files changed, 3 insertions(+), 19 deletions(-)
+>
+> diff --git a/drivers/mfd/lp8788-irq.c b/drivers/mfd/lp8788-irq.c
+> index 792d51b..aacd39f 100644
+> --- a/drivers/mfd/lp8788-irq.c
+> +++ b/drivers/mfd/lp8788-irq.c
+> @@ -175,9 +175,9 @@ int lp8788_irq_init(struct lp8788 *lp, int irq)
+>   	lp->irqdm = irqd->domain;
+>   	mutex_init(&irqd->irq_lock);
+>
+> -	ret = request_threaded_irq(irq, NULL, lp8788_irq_handler,
+> -				IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+> -				"lp8788-irq", irqd);
+> +	ret = devm_request_threaded_irq(lp->dev, irq, NULL, lp8788_irq_handler,
+> +					IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+> +					"lp8788-irq", irqd);
+>   	if (ret) {
+>   		dev_err(lp->dev, "failed to create a thread for IRQ_N\n");
+>   		return ret;
+> @@ -187,9 +187,3 @@ int lp8788_irq_init(struct lp8788 *lp, int irq)
+>
+>   	return 0;
+>   }
+> -
+> -void lp8788_irq_exit(struct lp8788 *lp)
+> -{
+> -	if (lp->irq)
+> -		free_irq(lp->irq, lp->irqdm);
+> -}
+> diff --git a/drivers/mfd/lp8788.c b/drivers/mfd/lp8788.c
+> index acf6165..37fea46 100644
+> --- a/drivers/mfd/lp8788.c
+> +++ b/drivers/mfd/lp8788.c
+> @@ -203,15 +203,6 @@ static int lp8788_probe(struct i2c_client *cl, const struct i2c_device_id *id)
+>   			       ARRAY_SIZE(lp8788_devs), NULL, 0, NULL);
+>   }
+>
+> -static int lp8788_remove(struct i2c_client *cl)
+> -{
+> -	struct lp8788 *lp = i2c_get_clientdata(cl);
+> -
+> -	mfd_remove_devices(lp->dev);
+> -	lp8788_irq_exit(lp);
+> -	return 0;
+> -}
+> -
+>   static const struct i2c_device_id lp8788_ids[] = {
+>   	{"lp8788", 0},
+>   	{ }
+> @@ -223,7 +214,6 @@ static struct i2c_driver lp8788_driver = {
+>   		.name = "lp8788",
+>   	},
+>   	.probe = lp8788_probe,
+> -	.remove = lp8788_remove,
+>   	.id_table = lp8788_ids,
+>   };
+>
+>
 
 Best regards,
-								Pavel
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Milo
