@@ -1,29 +1,100 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [PATCH v3 1/1] mmc: omap_hsmmc: devm_pinctrl_get returns ERR_PTR
- upon error
-Date: Thu, 21 Apr 2016 07:32:12 +0300
-Message-ID: <20160421043211.GS4247@mwanda>
-References: <1461099853-15011-1-git-send-email-afenkart@gmail.com>
- <CALtMJEA0XaekLgZnOVU4XMPmc61VendSCCV2uKjesxzQRcwR8w@mail.gmail.com>
- <20160420151337.GK5973@atomide.com>
- <4155990.SfY6i69ddf@wuerfel>
+From: Jun Li <jun.li@nxp.com>
+Subject: RE: [PATCH v6 09/12] usb: gadget: udc: adapt to OTG core
+Date: Thu, 21 Apr 2016 06:38:16 +0000
+Message-ID: <AM4PR04MB2130ACE0588E64EA723987E3896E0@AM4PR04MB2130.eurprd04.prod.outlook.com>
+References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
+ <1459865117-7032-10-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4155990.SfY6i69ddf@wuerfel>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tony Lindgren <tony@atomide.com>, Andreas Fenkart <afenkart@gmail.com>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1459865117-7032-10-git-send-email-rogerq@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "balbi@kernel.org" <balbi@kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "peter.chen@freescale.com" <peter.chen@freescale.com>
+Cc: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "jun.li@freescale.com" <jun.li@freescale.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Joao.Pinto@synopsys.com" <Joao.Pinto@synopsys.com>, "abrestic@chromium.org" <abrestic@chromium.org>, "r.baldyga@samsung.com" <r.baldyga@samsung.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Apr 21, 2016 at 12:28:05AM +0200, Arnd Bergmann wrote:
-> I don't see anything wrong with the devm_pinctrl_get prototype other
-> than how it frequently confuses driver writers.
+Hi,
 
-Yeah.  It basically works.  There are a bunch of similar APIs where NULL
-vs ERR_PTR is used the same way.
+...
+> 
+>  /**
+> + * usb_gadget_start - start the usb gadget controller and connect to
+> +bus
+> + * @gadget: the gadget device to start
+> + *
+> + * This is external API for use by OTG core.
+> + *
+> + * Start the usb device controller and connect to bus (enable pull).
+> + */
+> +static int usb_gadget_start(struct usb_gadget *gadget) {
+> +	int ret;
+> +	struct usb_udc *udc = NULL;
+> +
+> +	dev_dbg(&gadget->dev, "%s\n", __func__);
+> +	mutex_lock(&udc_lock);
+> +	list_for_each_entry(udc, &udc_list, list)
+> +		if (udc->gadget == gadget)
+> +			goto found;
+> +
+> +	dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
+> +		__func__);
+> +	mutex_unlock(&udc_lock);
+> +	return -EINVAL;
+> +
+> +found:
+> +	ret = usb_gadget_udc_start(udc);
+> +	if (ret)
+> +		dev_err(&udc->dev, "USB Device Controller didn't start: %d\n",
+> +			ret);
+> +	else
+> +		usb_udc_connect_control(udc);
 
-regards,
-dan carpenter
+For drd, it's fine, but for real otg, gadget connect should be done
+by loc_conn() instead of gadget start.
 
+> +
+> +	mutex_unlock(&udc_lock);
+> +
+> +	return ret;
+> +}
+> +
+> +/**
+> + * usb_gadget_stop - disconnect from bus and stop the usb gadget
+> + * @gadget: The gadget device we want to stop
+> + *
+> + * This is external API for use by OTG core.
+> + *
+> + * Disconnect from the bus (disable pull) and stop the
+> + * gadget controller.
+> + */
+> +static int usb_gadget_stop(struct usb_gadget *gadget) {
+> +	struct usb_udc *udc = NULL;
+> +
+> +	dev_dbg(&gadget->dev, "%s\n", __func__);
+> +	mutex_lock(&udc_lock);
+> +	list_for_each_entry(udc, &udc_list, list)
+> +		if (udc->gadget == gadget)
+> +			goto found;
+> +
+> +	dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
+> +		__func__);
+> +	mutex_unlock(&udc_lock);
+> +	return -EINVAL;
+> +
+> +found:
+> +	usb_gadget_disconnect(udc->gadget);
+
+Likewise, gadget disconnect also should be done by loc_conn()
+instead of gadget stop.
+
+> +	udc->driver->disconnect(udc->gadget);
+> +	usb_gadget_udc_stop(udc);
+> +	mutex_unlock(&udc_lock);
+> +
+> +	return 0;
+> +}
+> +
+
+Li Jun
