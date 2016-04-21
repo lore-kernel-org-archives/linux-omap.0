@@ -1,29 +1,62 @@
 From: "J.D. Schroeder" <Linux.HWI@garmin.com>
-Subject: Re: [PATCH] OMAPDSS: HDMI5: Change DDC timings
-Date: Thu, 21 Apr 2016 11:04:23 -0500
-Message-ID: <5718FA07.6080501@garmin.com>
+Subject: [PATCH v2] OMAPDSS: HDMI5: Change DDC timings
+Date: Thu, 21 Apr 2016 12:27:49 -0500
+Message-ID: <1461259669-5194-1-git-send-email-Linux.HWI@garmin.com>
 References: <1461196973-20370-1-git-send-email-Linux.HWI@garmin.com>
- <5718E5F3.2080504@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5718E5F3.2080504@ti.com>
+In-Reply-To: <1461196973-20370-1-git-send-email-Linux.HWI@garmin.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, misael.lopez@ti.com
-Cc: "Lodes, Jim" <jim.lodes@garmin.com>, "J.D. Schroeder" <jay.schroeder@garmin.com>
+To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, tomi.valkeinen@ti.com, misael.lopez@ti.com
+Cc: Jim Lodes <jim.lodes@garmin.com>, "J.D. Schroeder" <jay.schroeder@garmin.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/21/2016 09:38 AM, Tomi Valkeinen wrote:
-> Thanks, makes sense. Did you measure the rise & fall times? Do you get
-> more or less exactly 100kHz with the new times?
+From: Jim Lodes <jim.lodes@garmin.com>
 
-Rise time is around 600 nsec and fall time is around 140 nsec. When the clock frequency is measured we get right at 100 kHz and the rise and fall times are negligible. When the HDMI certification test equipment is attached it is just slightly less than 100 kHz, which is okay. The HDMI specification states less than 100 kHz is acceptable not greater. If a particular system has slower rise and fall times then that should be okay also. This change ensures that we stay below 100 kHz regardless of  the rise and fall times.
+The DDC scl high and low times were set to the minimum values
+from the i2c specification, but the i2c specification takes into
+account the rise time and fall time to calculate the frequency.
+To pass HDMI certification DDC can not exceed 100kHz therefore in
+a system where the rise times and fall times are negligible the high
+and low times for scl need to be 10us.
 
->> Signed-off-by: Lodes, Jim <jim.lodes@garmin.com>
-> 
-> The email format should be
-> 
-> Firstname Lastname <firstname.lastname@foo.bar>
+Signed-off-by: Jim Lodes <jim.lodes@garmin.com>
+Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
+---
+ drivers/gpu/drm/omapdrm/dss/hdmi5_core.c          | 4 ++--
+ drivers/video/fbdev/omap2/omapfb/dss/hdmi5_core.c | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-Yes. I'll fix the email and resubmit.
+diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi5_core.c b/drivers/gpu/drm/omapdrm/dss/hdmi5_core.c
+index 6a39752..d993f78 100644
+--- a/drivers/gpu/drm/omapdrm/dss/hdmi5_core.c
++++ b/drivers/gpu/drm/omapdrm/dss/hdmi5_core.c
+@@ -51,8 +51,8 @@ static void hdmi_core_ddc_init(struct hdmi_core_data *core)
+ {
+ 	void __iomem *base = core->base;
+ 	const unsigned long long iclk = 266000000;	/* DSS L3 ICLK */
+-	const unsigned ss_scl_high = 4000;		/* ns */
+-	const unsigned ss_scl_low = 4700;		/* ns */
++	const unsigned ss_scl_high = 4600;		/* ns */
++	const unsigned ss_scl_low = 5400;		/* ns */
+ 	const unsigned fs_scl_high = 600;		/* ns */
+ 	const unsigned fs_scl_low = 1300;		/* ns */
+ 	const unsigned sda_hold = 1000;			/* ns */
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/hdmi5_core.c b/drivers/video/fbdev/omap2/omapfb/dss/hdmi5_core.c
+index 8ea531d..f3e4b81 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/hdmi5_core.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/hdmi5_core.c
+@@ -51,8 +51,8 @@ static void hdmi_core_ddc_init(struct hdmi_core_data *core)
+ {
+ 	void __iomem *base = core->base;
+ 	const unsigned long long iclk = 266000000;	/* DSS L3 ICLK */
+-	const unsigned ss_scl_high = 4000;		/* ns */
+-	const unsigned ss_scl_low = 4700;		/* ns */
++	const unsigned ss_scl_high = 4600;		/* ns */
++	const unsigned ss_scl_low = 5400;		/* ns */
+ 	const unsigned fs_scl_high = 600;		/* ns */
+ 	const unsigned fs_scl_low = 1300;		/* ns */
+ 	const unsigned sda_hold = 1000;			/* ns */
+-- 
+1.9.1
