@@ -1,7 +1,7 @@
 From: Laxman Dewangan <ldewangan@nvidia.com>
-Subject: [PATCH 2/7] mfd: lp8788: Use devm_mfd_add_devices and devm_regmap_add_irq_chip
-Date: Thu, 21 Apr 2016 17:55:53 +0530
-Message-ID: <1461241558-26983-3-git-send-email-ldewangan@nvidia.com>
+Subject: [PATCH 3/7] mfd: max77686: Use devm_mfd_add_devices and devm_regmap_add_irq_chip
+Date: Thu, 21 Apr 2016 17:55:54 +0530
+Message-ID: <1461241558-26983-4-git-send-email-ldewangan@nvidia.com>
 References: <1461241558-26983-1-git-send-email-ldewangan@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -19,65 +19,69 @@ This reduces the error code path and .remove callback for removing
 MFD child devices and deleting IRQ chip data.
 
 Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
-CC: Milo Kim <milo.kim@ti.com>
+CC: Chanwoo Choi <cw00.choi@samsung.com>
+CC: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 ---
- drivers/mfd/lp8788-irq.c | 12 +++---------
- drivers/mfd/lp8788.c     | 10 ----------
- 2 files changed, 3 insertions(+), 19 deletions(-)
+ drivers/mfd/max77686.c | 31 ++++++++-----------------------
+ 1 file changed, 8 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/mfd/lp8788-irq.c b/drivers/mfd/lp8788-irq.c
-index 792d51b..aacd39f 100644
---- a/drivers/mfd/lp8788-irq.c
-+++ b/drivers/mfd/lp8788-irq.c
-@@ -175,9 +175,9 @@ int lp8788_irq_init(struct lp8788 *lp, int irq)
- 	lp->irqdm = irqd->domain;
- 	mutex_init(&irqd->irq_lock);
+diff --git a/drivers/mfd/max77686.c b/drivers/mfd/max77686.c
+index 7a0457e..7b68ed7 100644
+--- a/drivers/mfd/max77686.c
++++ b/drivers/mfd/max77686.c
+@@ -230,38 +230,24 @@ static int max77686_i2c_probe(struct i2c_client *i2c,
+ 		return -ENODEV;
+ 	}
  
--	ret = request_threaded_irq(irq, NULL, lp8788_irq_handler,
--				IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
--				"lp8788-irq", irqd);
-+	ret = devm_request_threaded_irq(lp->dev, irq, NULL, lp8788_irq_handler,
-+					IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-+					"lp8788-irq", irqd);
- 	if (ret) {
- 		dev_err(lp->dev, "failed to create a thread for IRQ_N\n");
+-	ret = regmap_add_irq_chip(max77686->regmap, max77686->irq,
+-				  IRQF_TRIGGER_FALLING | IRQF_ONESHOT |
+-				  IRQF_SHARED, 0, irq_chip,
+-				  &max77686->irq_data);
++	ret = devm_regmap_add_irq_chip(&i2c->dev, max77686->regmap,
++				       max77686->irq,
++				       IRQF_TRIGGER_FALLING | IRQF_ONESHOT |
++				       IRQF_SHARED, 0, irq_chip,
++				       &max77686->irq_data);
+ 	if (ret < 0) {
+ 		dev_err(&i2c->dev, "failed to add PMIC irq chip: %d\n", ret);
  		return ret;
-@@ -187,9 +187,3 @@ int lp8788_irq_init(struct lp8788 *lp, int irq)
+ 	}
+ 
+-	ret = mfd_add_devices(max77686->dev, -1, cells, n_devs, NULL, 0, NULL);
++	ret = devm_mfd_add_devices(max77686->dev, -1, cells, n_devs, NULL,
++				   0, NULL);
+ 	if (ret < 0) {
+ 		dev_err(&i2c->dev, "failed to add MFD devices: %d\n", ret);
+-		goto err_del_irqc;
++		return ret;
+ 	}
  
  	return 0;
- }
 -
--void lp8788_irq_exit(struct lp8788 *lp)
--{
--	if (lp->irq)
--		free_irq(lp->irq, lp->irqdm);
+-err_del_irqc:
+-	regmap_del_irq_chip(max77686->irq, max77686->irq_data);
+-
+-	return ret;
 -}
-diff --git a/drivers/mfd/lp8788.c b/drivers/mfd/lp8788.c
-index acf6165..37fea46 100644
---- a/drivers/mfd/lp8788.c
-+++ b/drivers/mfd/lp8788.c
-@@ -203,15 +203,6 @@ static int lp8788_probe(struct i2c_client *cl, const struct i2c_device_id *id)
- 			       ARRAY_SIZE(lp8788_devs), NULL, 0, NULL);
+-
+-static int max77686_i2c_remove(struct i2c_client *i2c)
+-{
+-	struct max77686_dev *max77686 = i2c_get_clientdata(i2c);
+-
+-	mfd_remove_devices(max77686->dev);
+-
+-	regmap_del_irq_chip(max77686->irq, max77686->irq_data);
+-
+-	return 0;
  }
  
--static int lp8788_remove(struct i2c_client *cl)
--{
--	struct lp8788 *lp = i2c_get_clientdata(cl);
--
--	mfd_remove_devices(lp->dev);
--	lp8788_irq_exit(lp);
--	return 0;
--}
--
- static const struct i2c_device_id lp8788_ids[] = {
- 	{"lp8788", 0},
- 	{ }
-@@ -223,7 +214,6 @@ static struct i2c_driver lp8788_driver = {
- 		.name = "lp8788",
+ static const struct i2c_device_id max77686_i2c_id[] = {
+@@ -317,7 +303,6 @@ static struct i2c_driver max77686_i2c_driver = {
+ 		   .of_match_table = of_match_ptr(max77686_pmic_dt_match),
  	},
- 	.probe = lp8788_probe,
--	.remove = lp8788_remove,
- 	.id_table = lp8788_ids,
+ 	.probe = max77686_i2c_probe,
+-	.remove = max77686_i2c_remove,
+ 	.id_table = max77686_i2c_id,
  };
  
 -- 
