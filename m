@@ -1,11 +1,11 @@
 From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
 Subject: [PATCH net v2 0/3] drivers: net: cpsw: phy-handle fixes
-Date: Wed, 20 Apr 2016 23:51:31 -0400
-Message-ID: <1461210694-29120-1-git-send-email-drivshin.allworx@gmail.com>
+Date: Thu, 21 Apr 2016 00:00:25 -0400
+Message-ID: <1461211228-30371-1-git-send-email-drivshin.allworx@gmail.com>
 Return-path: <netdev-owner@vger.kernel.org>
 Sender: netdev-owner@vger.kernel.org
 To: netdev@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, David Miller <davem@davemloft.net>, Mugunthan V N <mugunthanvnm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Andrew Goodbody <andrew.goodbody@cambrionix.com>, Markus Brunner <systemprogrammierung.brunner@gmail.com>, Nicolas Chauvet <kwizart@gmail.com>
+Cc: devicetree@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Markus Brunner <systemprogrammierung.brunner@gmail.com>, Nicolas Chauvet <kwizart@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
 From: David Rivshin <drivshin@allworx.com>
