@@ -1,243 +1,54 @@
-From: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
-Date: Fri, 22 Apr 2016 14:05:01 +0800
-Message-ID: <20160422060501.GC29299@shlinux2.ap.freescale.net>
-References: <SG2PR06MB09197595F9D810CF8A22D860D8910@SG2PR06MB0919.apcprd06.prod.outlook.com>
- <570B8268.6090700@ti.com>
- <SG2PR06MB0919398D3CF4944A6EA2754DD8970@SG2PR06MB0919.apcprd06.prod.outlook.com>
- <570F7827.8050707@ti.com>
- <SG2PR06MB09195754753D7FDDAB05D3FDD8970@SG2PR06MB0919.apcprd06.prod.outlook.com>
- <570F7FB3.2040807@ti.com>
- <SG2PR06MB091917060D7951EB304808CFD8680@SG2PR06MB0919.apcprd06.prod.outlook.com>
- <20160419091807.GC15789@shlinux2.ap.freescale.net>
- <TY1PR06MB0928A9A8113F63C1191D9AA3D86D0@TY1PR06MB0928.apcprd06.prod.outlook.com>
- <571729C6.5000200@ti.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH net v2 0/3] drivers: net: cpsw: phy-handle fixes
+Date: Fri, 22 Apr 2016 12:25:29 +0530
+Message-ID: <5719CAE1.40801@ti.com>
+References: <1461261035-5578-1-git-send-email-drivshin.allworx@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <571729C6.5000200-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, "stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org" <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org" <abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, "r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1461261035-5578-1-git-send-email-drivshin.allworx@gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>, netdev@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Markus Brunner <systemprogrammierung.brunner@gmail.com>, Nicolas Chauvet <kwizart@gmail.com>, linux-kernel@vger.kernel.org, Andrew Goodbody <andrew.goodbody@cambrionix.com>, David Miller <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Apr 20, 2016 at 10:03:34AM +0300, Roger Quadros wrote:
-> On 20/04/16 08:08, Yoshihiro Shimoda wrote:
-> > Hi,
-> > 
-> >> From: Peter Chen
-> >> Sent: Tuesday, April 19, 2016 6:18 PM
-> >>
-> >> On Fri, Apr 15, 2016 at 10:03:16AM +0000, Yoshihiro Shimoda wrote:
-> >>> Hi,
-> >>>
-> >>>> From: Yoshihiro Shimoda
-> >>>> Sent: Friday, April 15, 2016 6:59 PM
-> >>>>
-> >>>> Hi,
-> >>>>
-> >>>>> From: Roger Quadros
-> >>>>> Sent: Thursday, April 14, 2016 8:32 PM
-> >>>>>
-> >>>>> On 14/04/16 14:15, Yoshihiro Shimoda wrote:
-> >>>>>> Hi,
-> >>>>>>
-> >>>> < snip >
-> >>>>>>>> @@ -865,7 +867,8 @@ int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
-> >>>>>>>>  	 * we're ready only if we have shared HCD
-> >>>>>>>>  	 * or we don't need shared HCD.
-> >>>>>>>>  	 */
-> >>>>>>>> -	if (otg->shared_hcd.hcd || !otg->primary_hcd.hcd->shared_hcd) {
-> >>>>>>>> +	if (otg->shared_hcd.hcd || (!otg->caps->needs_companion &&
-> >>>>>>>> +				    !otg->primary_hcd.hcd->shared_hcd)) {
-> >>>>>>>>  		otg->host = hcd_to_bus(hcd);
-> >>>>>>>>  		/* FIXME: set bus->otg_port if this is true OTG port with HNP */
-> >>>>>>>>
-> >>>>>>>
-> >>>>>>> These changes look good to me. Thanks.
-> >>>>>>
-> >>>>>> Thank you for the comment.
-> >>>>>> If we change the "needs_companion" place to the otg_config,
-> >>>>>> do we need to add a flag into the otg, instead of otg->caps?
-> >>>>>
-> >>>>> Yes we can add a flag in struct usb_otg.
-> >>>>
-> >>>> Thank you for the comment.
-> >>>>
-> >>>> I made a fixed patch.
-> >>>> So, should I send this patch to ML after you sent v7 patches?
-> >>>> Or, would you apply this patch before you send v7 patches?
-> >>>
-> >>> Oops, I sent this email without my patch...
-> >>>
-> >>> ---
-> >>> Subject: [PATCH] usb: otg: add hcd companion support
-> >>>
-> >>> Since some host controller (e.g. EHCI) needs a companion host controller
-> >>> (e.g. OHCI), this patch adds such a configuration to use it in the OTG
-> >>> core.
-> >>>
-> >>> Signed-off-by: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
-> >>> ---
-> >>>  Documentation/devicetree/bindings/usb/generic.txt |  3 +++
-> >>>  drivers/usb/common/usb-otg.c                      | 17 +++++++++++++----
-> >>>  include/linux/usb/otg.h                           |  7 ++++++-
-> >>>  3 files changed, 22 insertions(+), 5 deletions(-)
-> >>>
-> >>> diff --git a/Documentation/devicetree/bindings/usb/generic.txt b/Documentation/devicetree/bindings/usb/generic.txt
-> >>> index f6866c1..1db1c33 100644
-> >>> --- a/Documentation/devicetree/bindings/usb/generic.txt
-> >>> +++ b/Documentation/devicetree/bindings/usb/generic.txt
-> >>> @@ -27,6 +27,9 @@ Optional properties:
-> >>>   - otg-controller: phandle to otg controller. Host or gadget controllers can
-> >>>  			contain this property to link it to a particular OTG
-> >>>  			controller.
-> >>> + - hcd-needs-companion: must be present if otg controller is dealing with
-> >>> +			EHCI host controller that needs a companion OHCI host
-> >>> +			controller.
-> >>>
-> >>>  This is an attribute to a USB controller such as:
-> >>>
-> >>> diff --git a/drivers/usb/common/usb-otg.c b/drivers/usb/common/usb-otg.c
-> >>> index 41e762a..83c8c96 100644
-> >>> --- a/drivers/usb/common/usb-otg.c
-> >>> +++ b/drivers/usb/common/usb-otg.c
-> >>> @@ -20,6 +20,7 @@
-> >>>  #include <linux/list.h>
-> >>>  #include <linux/of.h>
-> >>>  #include <linux/of_platform.h>
-> >>> +#include <linux/usb/of.h>
-> >>>  #include <linux/usb/otg.h>
-> >>>  #include <linux/usb/gadget.h>
-> >>>  #include <linux/workqueue.h>
-> >>> @@ -600,6 +601,10 @@ struct usb_otg *usb_otg_register(struct device *dev,
-> >>>  	else
-> >>>  		INIT_WORK(&otg->work, usb_otg_work);
-> >>>
-> >>> +	if (of_find_property(dev->of_node, "hcd-needs-companion", NULL) ||
-> >>> +	    config->hcd_needs_companion)	/* needs comanion ? */
-> >>
-> >> %s/comanion/companion
-> > 
-> > Thank you for pointing it out!
-> > 
-> > Roger, would you fix this in your v7 patch set?
+On Thursday 21 April 2016 11:20 PM, David Rivshin (Allworx) wrote:
+> From: David Rivshin <drivshin@allworx.com>
 > 
-> Yes, I'll fix it locally. You don't need to post it again.
+> The first patch fixes a bug that makes dual_emac mode break if
+> either slave uses the phy-handle property in the devicetree.
+> 
+> The second patch fixes some cosmetic problems with error messages,
+> and also makes the binding documentation more explicit.
+> 
+> The third patch cleans up the fixed-link case to work like
+> the now-fixed phy-handle case.
+> 
+> I have tested on the following hardware configurations:
+>  - (EVMSK) dual emac, phy_id property in both slaves
+>  - (EVMSK) dual emac, phy-handle property in both slaves
+>  - (BeagleBoneBlack) single emac, phy_id property
+>  - (custom) single emac, fixed-link subnode
+> 
+> Nicolas Chauvet reported testing on an HP t410 (dm8148).
+> 
+> Markus Brunner reported testing v1 on the following [1]:
+>  - emac0 with phy_id and emac1 with fixed phy
+>  - emac0 with phy-handle and emac1 with fixed phy
+>  - emac0 with fixed phy and emac1 with fixed phy
+> 
 > 
 
-Roger, I am ok with this patch.
+Reviewed-by: Mugunthan V N <mugunthanvnm@ti.com>
 
-Acked-by: Peter Chen <peter.chen-3arQi8VN3Tc@public.gmane.org>
-
-Peter
-> --
-> cheers,
-> -roger
-> 
-> > 
-> >> I have a little puzzled with companion controller and shared hcd, let me
-> >> post a topic for it.
-> > 
-> > I looked at the email thread.
-> > It is very useful information to me! :)
-> > 
-> > Best regards,
-> > Yoshihiro Shimoda
-> > 
-> >> Peter
-> >>
-> >>> +		otg->flags |= OTG_FLAG_HCD_NEEDS_COMPANION;
-> >>> +
-> >>>  	otg->wq = create_singlethread_workqueue("usb_otg");
-> >>>  	if (!otg->wq) {
-> >>>  		dev_err(dev, "otg: %s: can't create workqueue\n",
-> >>> @@ -823,13 +828,15 @@ int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
-> >>>  	/* HCD will be started by OTG fsm when needed */
-> >>>  	mutex_lock(&otg->fsm.lock);
-> >>>  	if (otg->primary_hcd.hcd) {
-> >>> -		/* probably a shared HCD ? */
-> >>> -		if (usb_otg_hcd_is_primary_hcd(hcd)) {
-> >>> +		/* probably a shared HCD or a companion OHCI HCD ? */
-> >>> +		if (!(otg->flags & OTG_FLAG_HCD_NEEDS_COMPANION) &&
-> >>> +		    usb_otg_hcd_is_primary_hcd(hcd)) {
-> >>>  			dev_err(otg_dev, "otg: primary host already registered\n");
-> >>>  			goto err;
-> >>>  		}
-> >>>
-> >>> -		if (hcd->shared_hcd == otg->primary_hcd.hcd) {
-> >>> +		if (otg->flags & OTG_FLAG_HCD_NEEDS_COMPANION ||
-> >>> +		    (hcd->shared_hcd == otg->primary_hcd.hcd)) {
-> >>>  			if (otg->shared_hcd.hcd) {
-> >>>  				dev_err(otg_dev, "otg: shared host already registered\n");
-> >>>  				goto err;
-> >>> @@ -865,7 +872,9 @@ int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
-> >>>  	 * we're ready only if we have shared HCD
-> >>>  	 * or we don't need shared HCD.
-> >>>  	 */
-> >>> -	if (otg->shared_hcd.hcd || !otg->primary_hcd.hcd->shared_hcd) {
-> >>> +	if (otg->shared_hcd.hcd ||
-> >>> +	    (!(otg->flags & OTG_FLAG_HCD_NEEDS_COMPANION) &&
-> >>> +	     !otg->primary_hcd.hcd->shared_hcd)) {
-> >>>  		otg->host = hcd_to_bus(hcd);
-> >>>  		/* FIXME: set bus->otg_port if this is true OTG port with HNP */
-> >>>
-> >>> diff --git a/include/linux/usb/otg.h b/include/linux/usb/otg.h
-> >>> index b094352..6f4ca77 100644
-> >>> --- a/include/linux/usb/otg.h
-> >>> +++ b/include/linux/usb/otg.h
-> >>> @@ -57,7 +57,8 @@ struct otg_hcd {
-> >>>   * @list: list of otg controllers
-> >>>   * @work: otg state machine work
-> >>>   * @wq: otg state machine work queue
-> >>> - * @flags: to track if host/gadget is running
-> >>> + * @flags: to track if host/gadget is running, or to indicate if hcd needs
-> >>> + *	   companion
-> >>>   */
-> >>>  struct usb_otg {
-> >>>  	u8			default_a;
-> >>> @@ -84,6 +85,7 @@ struct usb_otg {
-> >>>  	u32 flags;
-> >>>  #define OTG_FLAG_GADGET_RUNNING (1 << 0)
-> >>>  #define OTG_FLAG_HOST_RUNNING (1 << 1)
-> >>> +#define OTG_FLAG_HCD_NEEDS_COMPANION (1 << 2)
-> >>>  	/* use otg->fsm.lock for serializing access */
-> >>>
-> >>>  /*------------- deprecated interface -----------------------------*/
-> >>> @@ -125,11 +127,14 @@ struct usb_otg_caps {
-> >>>   * @caps: otg capabilities of the controller
-> >>>   * @ops: otg fsm operations
-> >>>   * @otg_work: optional custom otg state machine work function
-> >>> + * @hcd_needs_companion: Indicates if host controller needs a companion
-> >>> + *			 controller
-> >>>   */
-> >>>  struct usb_otg_config {
-> >>>  	struct usb_otg_caps *otg_caps;
-> >>>  	struct otg_fsm_ops *fsm_ops;
-> >>>  	void (*otg_work)(struct work_struct *work);
-> >>> +	bool hcd_needs_companion;
-> >>>  };
-> >>>
-> >>>  extern const char *usb_otg_state_string(enum usb_otg_state state);
-> >>> --
-> >>> 1.9.1
-> >>>
-> >>> --
-> >>> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> >>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>
-> >> --
-> >>
-> >> Best Regards,
-> >> Peter Chen
-
--- 
-
-Best Regards,
-Peter Chen
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards
+Mugunthan V N
