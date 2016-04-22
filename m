@@ -1,89 +1,68 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH net v2 3/3] drivers: net: cpsw: use of_phy_connect() in
- fixed-link case
-Date: Fri, 22 Apr 2016 16:34:08 +0300
-Message-ID: <571A2850.30700@ti.com>
+From: Andrew Goodbody <andrew.goodbody@cambrionix.com>
+Subject: RE: [PATCH net v2 0/3] drivers: net: cpsw: phy-handle fixes
+Date: Fri, 22 Apr 2016 13:44:14 +0000
+Message-ID: <80ea1660b86143fab7a9805749f06bd2@THHSTE15D2BE2.hs20.net>
 References: <1461261035-5578-1-git-send-email-drivshin.allworx@gmail.com>
- <1461264066-12358-1-git-send-email-drivshin.allworx@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1461264066-12358-1-git-send-email-drivshin.allworx-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "David Rivshin (Allworx)" <drivshin.allworx-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, Andrew Goodbody <andrew.goodbody-nYQdZkeIoGZN8Ch2cx6nig@public.gmane.org>, Markus Brunner <systemprogrammierung.brunner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Nicolas Chauvet <kwizart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1461261035-5578-1-git-send-email-drivshin.allworx@gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Miller <davem@davemloft.net>, Mugunthan V N <mugunthanvnm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Markus Brunner <systemprogrammierung.brunner@gmail.com>, Nicolas Chauvet <kwizart@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/21/2016 09:41 PM, David Rivshin (Allworx) wrote:
-> From: David Rivshin <drivshin-5fOYsn7Fw8lBDgjK7y7TUQ@public.gmane.org>
->
-> If a fixed-link DT subnode is used, the phy_device was looked up so
-> that a PHY ID string could be constructed and passed to phy_connect().
-> This is not necessary, as the device_node can be passed directly to
-> of_phy_connect() instead. This reuses the same codepath as if the
-> phy-handle DT property was used.
->
-> Signed-off-by: David Rivshin <drivshin-5fOYsn7Fw8lBDgjK7y7TUQ@public.gmane.org>
-> Tested-by: Nicolas Chauvet <kwizart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
->
-> Changes since v1 [1]:
-> - Rebased (trivial conflict, e5a03bfd modified the deleted snprintf)
-> - Added Tested-by from Nicolas Chauvet
->
-> [1] https://patchwork.ozlabs.org/patch/560327/
->
+> From: David Rivshin <drivshin@allworx.com>
+> 
+> The first patch fixes a bug that makes dual_emac mode break if either slave
+> uses the phy-handle property in the devicetree.
+> 
+> The second patch fixes some cosmetic problems with error messages, and
+> also makes the binding documentation more explicit.
+> 
+> The third patch cleans up the fixed-link case to work like the now-fixed phy-
+> handle case.
+> 
+> I have tested on the following hardware configurations:
+>  - (EVMSK) dual emac, phy_id property in both slaves
+>  - (EVMSK) dual emac, phy-handle property in both slaves
+>  - (BeagleBoneBlack) single emac, phy_id property
+>  - (custom) single emac, fixed-link subnode
+> 
+> Nicolas Chauvet reported testing on an HP t410 (dm8148).
+> 
+> Markus Brunner reported testing v1 on the following [1]:
+>  - emac0 with phy_id and emac1 with fixed phy
+>  - emac0 with phy-handle and emac1 with fixed phy
+>  - emac0 with fixed phy and emac1 with fixed phy
+> 
+> 
+> Changes since v1 [2]:
+> - Rebased
+> - Added Tested-by from Nicolas Chauvet on all patches
+> - Added Acked-by from Rob Herring for the binding change in patch 2 [3]
+> 
+> [1] http://www.spinics.net/lists/netdev/msg357890.html
+> [2] http://www.spinics.net/lists/netdev/msg357772.html
+> [3] http://www.spinics.net/lists/netdev/msg358254.html
+> 
+> David Rivshin (3):
+>   drivers: net: cpsw: fix parsing of phy-handle DT property in dual_emac
+>     config
+>   drivers: net: cpsw: fix error messages when using phy-handle DT
+>     property
+>   drivers: net: cpsw: use of_phy_connect() in fixed-link case
+> 
+>  Documentation/devicetree/bindings/net/cpsw.txt |  4 +--
+>  drivers/net/ethernet/ti/cpsw.c                 | 41 +++++++++++++-------------
+>  drivers/net/ethernet/ti/cpsw.h                 |  1 +
+>  3 files changed, 23 insertions(+), 23 deletions(-)
+> 
+> --
+> 2.5.5
 
-Reviewed-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Tested on hardware with 2 PHYs but not dual_emac mode, DT has phy-handle entries.
 
->
->   drivers/net/ethernet/ti/cpsw.c | 11 +----------
->   1 file changed, 1 insertion(+), 10 deletions(-)
->
-> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> index 3c81413..245f919 100644
-> --- a/drivers/net/ethernet/ti/cpsw.c
-> +++ b/drivers/net/ethernet/ti/cpsw.c
-> @@ -2038,30 +2038,21 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
->   							"phy-handle", 0);
->   		parp = of_get_property(slave_node, "phy_id", &lenp);
->   		if (slave_data->phy_node) {
->   			dev_dbg(&pdev->dev,
->   				"slave[%d] using phy-handle=\"%s\"\n",
->   				i, slave_data->phy_node->full_name);
->   		} else if (of_phy_is_fixed_link(slave_node)) {
-> -			struct device_node *phy_node;
-> -			struct phy_device *phy_dev;
-> -
->   			/* In the case of a fixed PHY, the DT node associated
->   			 * to the PHY is the Ethernet MAC DT node.
->   			 */
->   			ret = of_phy_register_fixed_link(slave_node);
->   			if (ret)
->   				return ret;
-> -			phy_node = of_node_get(slave_node);
-> -			phy_dev = of_phy_find_device(phy_node);
-> -			if (!phy_dev)
-> -				return -ENODEV;
-> -			snprintf(slave_data->phy_id, sizeof(slave_data->phy_id),
-> -				 PHY_ID_FMT, phy_dev->mdio.bus->id,
-> -				 phy_dev->mdio.addr);
-> +			slave_data->phy_node = of_node_get(slave_node);
->   		} else if (parp) {
->   			u32 phyid;
->   			struct device_node *mdio_node;
->   			struct platform_device *mdio;
->
->   			if (lenp != (sizeof(__be32) * 2)) {
->   				dev_err(&pdev->dev, "Invalid slave[%d] phy_id property\n", i);
->
-
-
--- 
-regards,
--grygorii
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tested-by: Andrew Goodbody <andrew.goodbody@cambrionix.com>
