@@ -1,54 +1,107 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH net v2 0/3] drivers: net: cpsw: phy-handle fixes
-Date: Fri, 22 Apr 2016 12:25:29 +0530
-Message-ID: <5719CAE1.40801@ti.com>
-References: <1461261035-5578-1-git-send-email-drivshin.allworx@gmail.com>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: Nokia N900 retention mode in v4.6, camera buttons fun
+Date: Fri, 22 Apr 2016 09:05:11 +0200
+Message-ID: <20160422070511.GW29406@pali>
+References: <20160407234134.GQ16484@atomide.com>
+ <20160411093023.GC11814@amd>
+ <20160411094130.GA5753@amd>
+ <20160411211026.GH5995@atomide.com>
+ <20160412121658.GA32486@amd>
+ <20160412123013.GA12296@amd>
+ <20160412163055.GP5995@atomide.com>
+ <20160417175539.GA502@amd>
+ <20160421130450.GQ29406@pali>
+ <20160421212808.GA31979@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1461261035-5578-1-git-send-email-drivshin.allworx@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>, netdev@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Markus Brunner <systemprogrammierung.brunner@gmail.com>, Nicolas Chauvet <kwizart@gmail.com>, linux-kernel@vger.kernel.org, Andrew Goodbody <andrew.goodbody@cambrionix.com>, David Miller <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160421212808.GA31979@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: sre@kernel.org, Tony Lindgren <tony@atomide.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 21 April 2016 11:20 PM, David Rivshin (Allworx) wrote:
-> From: David Rivshin <drivshin@allworx.com>
-> 
-> The first patch fixes a bug that makes dual_emac mode break if
-> either slave uses the phy-handle property in the devicetree.
-> 
-> The second patch fixes some cosmetic problems with error messages,
-> and also makes the binding documentation more explicit.
-> 
-> The third patch cleans up the fixed-link case to work like
-> the now-fixed phy-handle case.
-> 
-> I have tested on the following hardware configurations:
->  - (EVMSK) dual emac, phy_id property in both slaves
->  - (EVMSK) dual emac, phy-handle property in both slaves
->  - (BeagleBoneBlack) single emac, phy_id property
->  - (custom) single emac, fixed-link subnode
-> 
-> Nicolas Chauvet reported testing on an HP t410 (dm8148).
-> 
-> Markus Brunner reported testing v1 on the following [1]:
->  - emac0 with phy_id and emac1 with fixed phy
->  - emac0 with phy-handle and emac1 with fixed phy
->  - emac0 with fixed phy and emac1 with fixed phy
-> 
-> 
+On Thursday 21 April 2016 23:28:08 Pavel Machek wrote:
+> Hi!
+>=20
+> > > CONFIG_HSI breaks power management completely, so power managemen=
+t
+> > > with modem will be another topic. =20
+> >=20
+> > Sebastian, any idea why power management does not work for HSI?
+> >=20
+> > > > > > In the meantime, I found what is causing the rention mode t=
+o break for
+> > > > > > me: CONFIG_HSI (aka wireless modem support). With HSI off, =
+it seems to work.
+> > > > > >=20
+> > > > > > I still get problems with the camera button, in config simi=
+lar to
+> > > > > > defconfig.  For some reason, I'm even getting (autorepeatin=
+g) ^@ on
+> > > > > > console. As long as I hold camera button down, I even get i=
+t into off
+> > > > > > mode for brief period.
+> > > > >=20
+> > > > > Ok, if I turn off CONFIG_KEYBOARD_GPIO, I get it into off
+> > > > > mode... once per screen blank, for about a second. (Does CONF=
+IG_KEYBOARD_GPIO also cause
+> > > > > problems for you?)
+> > > > >=20
+> > > > > Any idea why it enters off mode only once after each screenbl=
+ank?
+> > > >=20
+> > > > After disabling CONFIG_PROVE_LOCKING, loading the LCD modules, =
+and
+> > > > blanking the screen, my n900 hits off mode just fine about once
+> > > > a second. Sounds like you still have some extra devices enabled
+> > > > causing it.
+> > >=20
+> > > I checked again... also with vanilla 4.6-rc2 to double check... s=
+ame effect.
+> > >=20
+> > > Aha, got it... cat-ing /sys/kernel/debug/pm_debug/count breaks th=
+e
+> > > off mode. If I don't do that (tm), it seems to work way better.
+> >=20
+> > So what is result? Is power management working for CONFIG_KEYBOARD_=
+GPIO?
+>=20
+> camera and unlock button GPIOs seem to break the powermanagement,
+> too. I disabled it for now.
 
-Reviewed-by: Mugunthan V N <mugunthanvnm@ti.com>
+So this sounds like a problem in gpio keyboard driver. Maybe you can
+ping maintainers of that driver?
 
-Regards
-Mugunthan V N
+> Next hint I got from Sebastian was that I may need to enable power
+> management in /sys.
+>=20
+> pavel@n900:/my/tui/ofone$ cat
+> /sys/devices/platform/68000000.ocp/48058000.ssi-controller/power/runt=
+ime_status
+> active
+> pavel@n900:/my/tui/ofone$ cat
+> /sys/devices/platform/68000000.ocp/48058000.ssi-controller/power/auto=
+suspend_delay_ms
+> cat:
+> /sys/devices/platform/68000000.ocp/48058000.ssi-controller/power/auto=
+suspend_delay_ms:
+> Input/output error
+> root@n900:/my/tui/ofone# cat
+> /sys/devices/platform/68000000.ocp/48058000.ssi-controller/power/cont=
+rol
+> auto
+>=20
+> I could not get it to sleep :-(.
+>=20
+> Best regards,
+> 								Pavel
+>=20
+
+Maybe down phonet0 interface and other hsi/ssi interfaces?
+
+--=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
