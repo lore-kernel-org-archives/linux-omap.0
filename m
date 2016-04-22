@@ -1,93 +1,139 @@
-From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH 00/12] mtd: get rid of of_mtd.{c,h} and of_get_nand_xx()
-Date: Fri, 22 Apr 2016 11:14:36 +0200
-Message-ID: <20160422111436.5d698888@bbrezillon>
-References: <1459515272-31011-1-git-send-email-boris.brezillon@free-electrons.com>
-Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
+From: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH V2 06/14] irqdomain: Don't set type when mapping an IRQ
+Date: Fri, 22 Apr 2016 10:34:48 +0100
+Message-ID: <5719F038.20800@arm.com>
+References: <1461150237-15580-1-git-send-email-jonathanh@nvidia.com>
+ <1461150237-15580-7-git-send-email-jonathanh@nvidia.com>
+ <5718F593.40605@nvidia.com> <5719DF5B.9010304@arm.com>
+ <5719E563.3010303@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBB7WW464AKGQER43OX4Y-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-Sender: linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-In-Reply-To: <1459515272-31011-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-List-Post: <https://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <https://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <https://groups.google.com/group/linux-sunxi
-List-Subscribe: <https://groups.google.com/group/linux-sunxi/subscribe>, <mailto:linux-sunxi+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+1076902468213+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <https://groups.google.com/group/linux-sunxi/subscribe>
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wenyou Yang <wenyou.yang-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>, Josh Wu <rainyfeeling-1ViLX0X+lBJBDgjK7y7TUQ@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Richard Weinberger <richard-/L3Ra7n9ekc@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kamal Dasu <kdasu.kdev-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Han Xu <han.xu-3arQi8VN3Tc@public.gmane.org>, Ezequiel Garcia <ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Stefan Agner <stefan-XLVq0VzYD2Y@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nicolas Ferre <nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>, Jean-Christophe Plagniol-Villard <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Thomas Petazzoni <thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>, bcm-kernel-feedback-list-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Chen-Yu Tsai <wens-jdAy2FN1RRM@public.gmane.org>, linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Zhou Wang <wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, Alex Smith <alex.smith-1AXoQHu6uovQT0dZR+AlfA@public.gmane.org>, Harvey Hunt <harvey.hunt-1AXoQHu6uovQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5719E563.3010303-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri,  1 Apr 2016 14:54:20 +0200
-Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org> wrote:
+On 22/04/16 09:48, Jon Hunter wrote:
+> 
+> On 22/04/16 09:22, Marc Zyngier wrote:
+>> Hi Jon,
+>>
+>> On 21/04/16 16:45, Jon Hunter wrote:
+>>>
+>>> On 20/04/16 12:03, Jon Hunter wrote:
+>>>> Some IRQ chips, such as GPIO controllers or secondary level interrupt
+>>>> controllers, may require require additional runtime power management
+>>>> control to ensure they are accessible. For such IRQ chips, it makes sense
+>>>> to enable the IRQ chip when interrupts are requested and disabled them
+>>>> again once all interrupts have been freed.
+>>>>
+>>>> When mapping an IRQ, the IRQ type settings are read and then programmed.
+>>>> The mapping of the IRQ happens before the IRQ is requested and so the
+>>>> programming of the type settings occurs before the IRQ is requested. This
+>>>> is a problem for IRQ chips that require additional power management
+>>>> control because they may not be accessible yet. Therefore, when mapping
+>>>> the IRQ, don't program the type settings, just save them and then program
+>>>> these saved settings when the IRQ is requested (so long as if they are not
+>>>> overridden via the call to request the IRQ).
+>>>>
+>>>> Add a stub function for irq_domain_free_irqs() to avoid any compilation
+>>>> errors when CONFIG_IRQ_DOMAIN_HIERARCHY is not selected.
+>>>>
+>>>> Signed-off-by: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+>>>> ---
+>>>>  include/linux/irqdomain.h |  3 +++
+>>>>  kernel/irq/irqdomain.c    | 17 +++++++++++++----
+>>>>  2 files changed, 16 insertions(+), 4 deletions(-)
+>>>
+>>> [snip]
+>>>  
+>>>> -	/* Set type if specified and different than the current one */
+>>>> -	if (type != IRQ_TYPE_NONE &&
+>>>> -	    type != irq_get_trigger_type(virq))
+>>>> -		irq_set_irq_type(virq, type);
+>>>> +	irq_data = irq_get_irq_data(virq);
+>>>> +	if (!irq_data) {
+>>>> +		if (irq_domain_is_hierarchy(domain))
+>>>> +			irq_domain_free_irqs(virq, 1);
+>>>> +		else
+>>>> +			irq_dispose_mapping(virq);
+>>>> +		return 0;
+>>>> +	}
+>>>> +
+>>>> +	/* Store trigger type */
+>>>> +	irqd_set_trigger_type(irq_data, type);
+>>>> +
+>>>
+>>> I appear to have missed another place for saving the irq type
+>>> which I had change in this version. Next time I will triple
+>>> check! Should have been ...
+>>>
+>>>
+>>> diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
+>>> index 2aed04396210..fc66876d1965 100644
+>>> --- a/include/linux/irqdomain.h
+>>> +++ b/include/linux/irqdomain.h
+>>> @@ -440,6 +440,9 @@ static inline int irq_domain_alloc_irqs(struct irq_domain *domain,
+>>>         return -1;
+>>>  }
+>>>  
+>>> +static inline void irq_domain_free_irqs(unsigned int virq,
+>>> +                                       unsigned int nr_irqs) { }
+>>> +
+>>>  static inline bool irq_domain_is_hierarchy(struct irq_domain *domain)
+>>>  {
+>>>         return false;
+>>> diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
+>>> index 3d6ef5527b71..46ecf5d468b2 100644
+>>> --- a/kernel/irq/irqdomain.c
+>>> +++ b/kernel/irq/irqdomain.c
+>>> @@ -569,6 +569,7 @@ static void of_phandle_args_to_fwspec(struct of_phandle_args *irq_data,
+>>>  unsigned int irq_create_fwspec_mapping(struct irq_fwspec *fwspec)
+>>>  {
+>>>         struct irq_domain *domain;
+>>> +       struct irq_data *irq_data;
+>>>         irq_hw_number_t hwirq;
+>>>         unsigned int type = IRQ_TYPE_NONE;
+>>>         int virq;
+>>> @@ -619,7 +620,11 @@ unsigned int irq_create_fwspec_mapping(struct irq_fwspec *fwspec)
+>>>                  * it now and return the interrupt number.
+>>>                  */
+>>>                 if (IRQ_TYPE_NONE == irq_get_trigger_type(virq)) {
+>>> -                       irq_set_irq_type(virq, type);
+>>> +                       irq_data = irq_get_irq_data(virq);
+>>> +                       if (!irq_data)
+>>> +                               return 0;
+>>
+>> Can you point out in which circumstances irq_data can be NULL? If we can
+>> lookup the interrupt in the domain, it'd better exist somewhere. Or am I
+>> missing something obvious?
+> 
+> To be honest, I was not 100% sure if this could be possible if we find
+> an existing mapping or if there were any paths that could race. So if we
+> can guarantee that it is not NULL here, I can drop this and simplify the
+> change.
 
-> Hello,
-> 
-> of_mtd.{h,c} are providing the of_get_nand_xxx() helpers to help NAND
-> controller drivers parse some generic NAND DT properties.
-> An infrastructure has recently been added to NAND core to automatically
-> parse those properties when nand_scan_ident() is called, thus removing
-> the need for NAND controller drivers to manually parse them.
-> 
-> This series modifies drivers still making use of those helpers to rely
-> on NAND core initialization, and get rid of the of_mtd.{c,h} files by
-> moving the of_get_nand_xx() helpers into nand_base.c.
+No, you're right. It could very well race against irq_dispose_mapping
+(and the disassociate method doesn't provide enough guarantee).
+Unfortunately, most of the irqdomain code still relies on this race not
+happening. How to fix this is still a bit unclear to me.
 
-Applied remaining patches.
+> By the way, is there any sort of reference count for mapping an IRQ so
+> that if irq_create_fwspec_mapping() is called more than once for an IRQ,
+> it is not freed on the first call to irq_dispose_mapping()? I assume
+> there is but could not see where this is handled.
 
-> 
-> Best Regards,
-> 
-> Boris
-> 
-> Boris Brezillon (12):
->   mtd: nand: remove unneeded of_mtd.h inclusions
->   mtd: nand: atmel: rely on generic DT parsing done in nand_scan_ident()
->   mtd: nand: omap2: rely on generic DT parsing done in nand_scan_ident()
->   mtd: nand: brcm: rely on generic DT parsing done in nand_scan_ident()
->   mtd: nand: davinci: rely on generic DT parsing done in
->     nand_scan_ident()
->   mtd: nand: gpmi: rely on generic DT parsing done in nand_scan_ident()
->   mtd: nand: hisi504: rely on generic DT parsing done in
->     nand_scan_ident()
->   mtd: nand: lpc32xx: rely on generic DT parsing done in
->     nand_scan_ident()
->   mtd: nand: mxc: rely on generic DT parsing done in nand_scan_ident()
->   mtd: nand: pxa3xx: rely on generic DT parsing done in
->     nand_scan_ident()
->   mtd: nand: sh_flctl: rely on generic DT parsing done in
->     nand_scan_ident()
->   mtd: nand: move of_get_nand_xxx() helpers into nand_base.c
-> 
->  drivers/memory/omap-gpmc.c             |   7 --
->  drivers/mtd/nand/atmel_nand.c          | 133 +++++++++++++++-------------
->  drivers/mtd/nand/brcmnand/brcmnand.c   |   5 +-
->  drivers/mtd/nand/davinci_nand.c        |  85 +++++++++---------
->  drivers/mtd/nand/gpmi-nand/gpmi-nand.c |  21 +++--
->  drivers/mtd/nand/hisi504_nand.c        |  14 +--
->  drivers/mtd/nand/jz4780_nand.c         |   1 -
->  drivers/mtd/nand/lpc32xx_mlc.c         |   1 -
->  drivers/mtd/nand/lpc32xx_slc.c         |  24 ++---
->  drivers/mtd/nand/mxc_nand.c            |  50 +++++------
->  drivers/mtd/nand/nand_base.c           |  99 ++++++++++++++++++++-
->  drivers/mtd/nand/omap2.c               |   9 +-
->  drivers/mtd/nand/pxa3xx_nand.c         |  28 +++---
->  drivers/mtd/nand/qcom_nandc.c          |   1 -
->  drivers/mtd/nand/sh_flctl.c            |  31 +++----
->  drivers/mtd/nand/sunxi_nand.c          |   1 -
->  drivers/mtd/nand/vf610_nfc.c           |   1 -
->  drivers/of/Makefile                    |   1 -
->  drivers/of/of_mtd.c                    | 155 ---------------------------------
->  include/linux/of_mtd.h                 |  56 ------------
->  20 files changed, 291 insertions(+), 432 deletions(-)
->  delete mode 100644 drivers/of/of_mtd.c
->  delete mode 100644 include/linux/of_mtd.h
-> 
+There is none, unfortunately.
 
+Thanks,
 
-
+	M.
 -- 
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+Jazz is not dead. It just smells funny...
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
