@@ -1,53 +1,196 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 0/3] cpufreq: logging consistency changes
-Date: Fri, 22 Apr 2016 02:40:26 +0200
-Message-ID: <9494257.jKqOmnHCFx@vostro.rjw.lan>
-References: <cover.1459887986.git.joe@perches.com>
+From: Peter Chen <hzpeterchen@gmail.com>
+Subject: Re: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
+Date: Fri, 22 Apr 2016 09:26:46 +0800
+Message-ID: <20160422012646.GA29299@shlinux2.ap.freescale.net>
+References: <1459865117-7032-8-git-send-email-rogerq@ti.com>
+ <SG2PR06MB091922CDE73AE061A79E90E4D8900@SG2PR06MB0919.apcprd06.prod.outlook.com>
+ <57064850.3060405@ti.com>
+ <SG2PR06MB09197595F9D810CF8A22D860D8910@SG2PR06MB0919.apcprd06.prod.outlook.com>
+ <570B8268.6090700@ti.com>
+ <SG2PR06MB0919398D3CF4944A6EA2754DD8970@SG2PR06MB0919.apcprd06.prod.outlook.com>
+ <570F7827.8050707@ti.com>
+ <SG2PR06MB09195754753D7FDDAB05D3FDD8970@SG2PR06MB0919.apcprd06.prod.outlook.com>
+ <570F7FB3.2040807@ti.com>
+ <SG2PR06MB091917060D7951EB304808CFD8680@SG2PR06MB0919.apcprd06.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <cover.1459887986.git.joe@perches.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Viresh Kumar <viresh.kumar@linaro.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Len Brown <lenb@kernel.org>, Kevin Hilman <khilman@kernel.org>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <SG2PR06MB091917060D7951EB304808CFD8680@SG2PR06MB0919.apcprd06.prod.outlook.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
+Cc: Roger Quadros <rogerq@ti.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "balbi@kernel.org" <balbi@kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "peter.chen@freescale.com" <peter.chen@freescale.com>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "jun.li@freescale.com" <jun.li@freescale.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Joao.Pinto@synopsys.com" <Joao.Pinto@synopsys.com>, "abrestic@chromium.org" <abrestic@chromium.org>, "r.baldyga@samsung.com" <r.baldyga@samsung.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday, April 05, 2016 01:28:22 PM Joe Perches wrote:
-> Trivial consistency changes.
+On Fri, Apr 15, 2016 at 10:03:16AM +0000, Yoshihiro Shimoda wrote:
+> Hi,
 > 
-> Joe Perches (3):
->   intel_pstate: Use pr_fmt
->   cpufreq: Convert printk(KERN_<LEVEL> to pr_<level>
->   cpufreq: Use consistent prefixing via pr_fmt
+> > From: Yoshihiro Shimoda
+> > Sent: Friday, April 15, 2016 6:59 PM
+> > 
+> > Hi,
+> > 
+> > > From: Roger Quadros
+> > > Sent: Thursday, April 14, 2016 8:32 PM
+> > >
+> > > On 14/04/16 14:15, Yoshihiro Shimoda wrote:
+> > > > Hi,
+> > > >
+> > < snip >
+> > > >>> @@ -865,7 +867,8 @@ int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
+> > > >>>  	 * we're ready only if we have shared HCD
+> > > >>>  	 * or we don't need shared HCD.
+> > > >>>  	 */
+> > > >>> -	if (otg->shared_hcd.hcd || !otg->primary_hcd.hcd->shared_hcd) {
+> > > >>> +	if (otg->shared_hcd.hcd || (!otg->caps->needs_companion &&
+> > > >>> +				    !otg->primary_hcd.hcd->shared_hcd)) {
+> > > >>>  		otg->host = hcd_to_bus(hcd);
+> > > >>>  		/* FIXME: set bus->otg_port if this is true OTG port with HNP */
+> > > >>>
+> > > >>
+> > > >> These changes look good to me. Thanks.
+> > > >
+> > > > Thank you for the comment.
+> > > > If we change the "needs_companion" place to the otg_config,
+> > > > do we need to add a flag into the otg, instead of otg->caps?
+> > >
+> > > Yes we can add a flag in struct usb_otg.
+> > 
+> > Thank you for the comment.
+> > 
+> > I made a fixed patch.
+> > So, should I send this patch to ML after you sent v7 patches?
+> > Or, would you apply this patch before you send v7 patches?
 > 
->  drivers/cpufreq/acpi-cpufreq.c            | 16 +++---
->  drivers/cpufreq/cpufreq-nforce2.c         | 28 +++++------
->  drivers/cpufreq/e_powersaver.c            | 62 ++++++++++-------------
->  drivers/cpufreq/elanfreq.c                |  4 +-
->  drivers/cpufreq/ia64-acpi-cpufreq.c       | 10 ++--
->  drivers/cpufreq/intel_pstate.c            | 18 ++++---
->  drivers/cpufreq/longhaul.c                | 84 +++++++++++++------------------
->  drivers/cpufreq/loongson2_cpufreq.c       |  7 ++-
->  drivers/cpufreq/maple-cpufreq.c           | 11 ++--
->  drivers/cpufreq/omap-cpufreq.c            |  7 ++-
->  drivers/cpufreq/p4-clockmod.c             | 19 ++-----
->  drivers/cpufreq/pmac32-cpufreq.c          | 14 +++---
->  drivers/cpufreq/pmac64-cpufreq.c          | 47 +++++++++--------
->  drivers/cpufreq/powernow-k6.c             | 16 +++---
->  drivers/cpufreq/powernow-k7.c             | 70 +++++++++++---------------
->  drivers/cpufreq/pxa2xx-cpufreq.c          | 18 +++----
->  drivers/cpufreq/s3c2412-cpufreq.c         | 15 +++---
->  drivers/cpufreq/s3c2440-cpufreq.c         |  6 ++-
->  drivers/cpufreq/s3c24xx-cpufreq-debugfs.c |  4 +-
->  drivers/cpufreq/s3c24xx-cpufreq.c         | 59 +++++++++++-----------
->  drivers/cpufreq/s5pv210-cpufreq.c         | 10 ++--
->  drivers/cpufreq/sc520_freq.c              | 10 ++--
->  drivers/cpufreq/speedstep-centrino.c      |  6 +--
->  drivers/cpufreq/speedstep-ich.c           |  8 +--
->  drivers/cpufreq/speedstep-lib.c           | 11 ++--
->  drivers/cpufreq/speedstep-smi.c           |  7 +--
->  26 files changed, 269 insertions(+), 298 deletions(-)
+> Oops, I sent this email without my patch...
+> 
+> ---
+> Subject: [PATCH] usb: otg: add hcd companion support
+> 
+> Since some host controller (e.g. EHCI) needs a companion host controller
+> (e.g. OHCI), this patch adds such a configuration to use it in the OTG
+> core.
+> 
+> Signed-off-by: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
+> ---
+>  Documentation/devicetree/bindings/usb/generic.txt |  3 +++
+>  drivers/usb/common/usb-otg.c                      | 17 +++++++++++++----
+>  include/linux/usb/otg.h                           |  7 ++++++-
+>  3 files changed, 22 insertions(+), 5 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/usb/generic.txt b/Documentation/devicetree/bindings/usb/generic.txt
+> index f6866c1..1db1c33 100644
+> --- a/Documentation/devicetree/bindings/usb/generic.txt
+> +++ b/Documentation/devicetree/bindings/usb/generic.txt
+> @@ -27,6 +27,9 @@ Optional properties:
+>   - otg-controller: phandle to otg controller. Host or gadget controllers can
+>  			contain this property to link it to a particular OTG
+>  			controller.
+> + - hcd-needs-companion: must be present if otg controller is dealing with
+> +			EHCI host controller that needs a companion OHCI host
+> +			controller.
+>  
+>  This is an attribute to a USB controller such as:
+>  
+> diff --git a/drivers/usb/common/usb-otg.c b/drivers/usb/common/usb-otg.c
+> index 41e762a..83c8c96 100644
+> --- a/drivers/usb/common/usb-otg.c
+> +++ b/drivers/usb/common/usb-otg.c
+> @@ -20,6 +20,7 @@
+>  #include <linux/list.h>
+>  #include <linux/of.h>
+>  #include <linux/of_platform.h>
+> +#include <linux/usb/of.h>
+>  #include <linux/usb/otg.h>
+>  #include <linux/usb/gadget.h>
+>  #include <linux/workqueue.h>
+> @@ -600,6 +601,10 @@ struct usb_otg *usb_otg_register(struct device *dev,
+>  	else
+>  		INIT_WORK(&otg->work, usb_otg_work);
+>  
+> +	if (of_find_property(dev->of_node, "hcd-needs-companion", NULL) ||
+> +	    config->hcd_needs_companion)	/* needs comanion ? */
+> +		otg->flags |= OTG_FLAG_HCD_NEEDS_COMPANION;
+> +
+>  	otg->wq = create_singlethread_workqueue("usb_otg");
+>  	if (!otg->wq) {
+>  		dev_err(dev, "otg: %s: can't create workqueue\n",
+> @@ -823,13 +828,15 @@ int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
+>  	/* HCD will be started by OTG fsm when needed */
+>  	mutex_lock(&otg->fsm.lock);
+>  	if (otg->primary_hcd.hcd) {
+> -		/* probably a shared HCD ? */
+> -		if (usb_otg_hcd_is_primary_hcd(hcd)) {
+> +		/* probably a shared HCD or a companion OHCI HCD ? */
+> +		if (!(otg->flags & OTG_FLAG_HCD_NEEDS_COMPANION) &&
+> +		    usb_otg_hcd_is_primary_hcd(hcd)) {
+>  			dev_err(otg_dev, "otg: primary host already registered\n");
+>  			goto err;
+>  		}
+>  
+> -		if (hcd->shared_hcd == otg->primary_hcd.hcd) {
+> +		if (otg->flags & OTG_FLAG_HCD_NEEDS_COMPANION ||
+> +		    (hcd->shared_hcd == otg->primary_hcd.hcd)) {
+>  			if (otg->shared_hcd.hcd) {
+>  				dev_err(otg_dev, "otg: shared host already registered\n");
+>  				goto err;
+> @@ -865,7 +872,9 @@ int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
+>  	 * we're ready only if we have shared HCD
+>  	 * or we don't need shared HCD.
+>  	 */
+> -	if (otg->shared_hcd.hcd || !otg->primary_hcd.hcd->shared_hcd) {
+> +	if (otg->shared_hcd.hcd ||
+> +	    (!(otg->flags & OTG_FLAG_HCD_NEEDS_COMPANION) &&
+> +	     !otg->primary_hcd.hcd->shared_hcd)) {
+>  		otg->host = hcd_to_bus(hcd);
+>  		/* FIXME: set bus->otg_port if this is true OTG port with HNP */
+>  
+> diff --git a/include/linux/usb/otg.h b/include/linux/usb/otg.h
+> index b094352..6f4ca77 100644
+> --- a/include/linux/usb/otg.h
+> +++ b/include/linux/usb/otg.h
+> @@ -57,7 +57,8 @@ struct otg_hcd {
+>   * @list: list of otg controllers
+>   * @work: otg state machine work
+>   * @wq: otg state machine work queue
+> - * @flags: to track if host/gadget is running
+> + * @flags: to track if host/gadget is running, or to indicate if hcd needs
+> + *	   companion
+>   */
+>  struct usb_otg {
+>  	u8			default_a;
+> @@ -84,6 +85,7 @@ struct usb_otg {
+>  	u32 flags;
+>  #define OTG_FLAG_GADGET_RUNNING (1 << 0)
+>  #define OTG_FLAG_HOST_RUNNING (1 << 1)
+> +#define OTG_FLAG_HCD_NEEDS_COMPANION (1 << 2)
+>  	/* use otg->fsm.lock for serializing access */
+>  
+>  /*------------- deprecated interface -----------------------------*/
+> @@ -125,11 +127,14 @@ struct usb_otg_caps {
+>   * @caps: otg capabilities of the controller
+>   * @ops: otg fsm operations
+>   * @otg_work: optional custom otg state machine work function
+> + * @hcd_needs_companion: Indicates if host controller needs a companion
+> + *			 controller
+>   */
+>  struct usb_otg_config {
+>  	struct usb_otg_caps *otg_caps;
+>  	struct otg_fsm_ops *fsm_ops;
+>  	void (*otg_work)(struct work_struct *work);
+> +	bool hcd_needs_companion;
+>  };
+>  
+>  extern const char *usb_otg_state_string(enum usb_otg_state state);
+> -- 
 
-All [1-3/3] applied, thanks!
+Hi Yoshihiro, the shared_hcd is used for USB3 only [1], this patch may
+not be suitable for supporting companion controller at OTG framework.
+For companion or other USB2 controllers, both primary hcd and shard hcd
+are NULL for HCD core.
 
+[1] http://www.spinics.net/lists/linux-usb/msg139630.html
+-- 
+
+Best Regards,
+Peter Chen
