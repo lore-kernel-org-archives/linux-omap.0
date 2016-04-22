@@ -1,40 +1,40 @@
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH] ARM: omap2plus_defconfig: Fix warning due invalid RXKAD symbol value
-Date: Fri, 22 Apr 2016 13:53:19 -0400
-Message-ID: <1461347599-32440-1-git-send-email-javier@osg.samsung.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@osg.samsung.com>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 2/2] ARM: dts: dra7x: Support QSPI MODE-0 operation at
+ 64MHz
+Date: Fri, 22 Apr 2016 14:33:53 -0500
+Message-ID: <20160422193353.GA15316@rob-hp-laptop>
+References: <1461151980-28139-1-git-send-email-vigneshr@ti.com>
+ <1461151980-28139-3-git-send-email-vigneshr@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1461151980-28139-3-git-send-email-vigneshr-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Commit 648af7fca159 ("rxrpc: Absorb the rxkad security module") changed
-the RXKAD Kconfig symbol from tristate to boolean but the commit didn't
-update the omap2plus_defconfig that was enabling CONFIG_RXKAD as module.
+On Wed, Apr 20, 2016 at 05:03:00PM +0530, Vignesh R wrote:
+> According to Data Manual(SPRS915P) of AM57x, TI QSPI controller on
+> DRA74(rev 1.1+)/DRA72 EVM can support up to 64MHz in MODE-0, whereas
+> MODE-3 is limited to 48MHz. Hence, switch to MODE-0 for better
+> throughput.
+> 
+> Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+> ---
+> 
+> v2: rebased on linux-next 20160419 to include moving to
+> dra72-evm-common.dtsi
+> 
+> 
+>  Documentation/devicetree/bindings/spi/ti_qspi.txt | 7 +++++++
+>  arch/arm/boot/dts/dra7-evm.dts                    | 6 ++----
+>  arch/arm/boot/dts/dra72-evm-common.dtsi           | 6 ++----
+>  3 files changed, 11 insertions(+), 8 deletions(-)
 
-This leads to the following warning when using the omap2plus_defconfig:
-
-arch/arm/configs/omap2plus_defconfig:112:warning: symbol value 'm' invalid for RXKAD
-
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
----
-
- arch/arm/configs/omap2plus_defconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 9edf8a493f07..c48cbd78e08f 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -109,7 +109,7 @@ CONFIG_BT_HCIVHCI=m
- CONFIG_BT_MRVL=m
- CONFIG_BT_MRVL_SDIO=m
- CONFIG_AF_RXRPC=m
--CONFIG_RXKAD=m
-+CONFIG_RXKAD=y
- CONFIG_CFG80211=m
- CONFIG_MAC80211=m
- CONFIG_DEVTMPFS=y
--- 
-2.5.5
+Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
