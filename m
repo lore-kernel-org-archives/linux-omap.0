@@ -1,164 +1,72 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH net v2 2/3] drivers: net: cpsw: fix error messages when
- using phy-handle DT property
-Date: Fri, 22 Apr 2016 16:03:34 +0300
-Message-ID: <571A2126.2060708@ti.com>
-References: <1461261035-5578-1-git-send-email-drivshin.allworx@gmail.com>
- <1461263172-10428-1-git-send-email-drivshin.allworx@gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2 0/3] ARM: OMAP3: Fix McBSP2/3 hwmod setup for sidetone
+Date: Fri, 22 Apr 2016 16:12:55 +0300
+Message-ID: <571A2357.3060006@ti.com>
+References: <20160412163750.GR5995@atomide.com> <570E3428.5020804@ti.com>
+ <20160413152829.GQ5995@atomide.com> <570F4804.4050006@ti.com>
+ <20160414165514.GL5995@atomide.com> <570FF163.1050603@ti.com>
+ <20160414203457.GM5995@atomide.com> <5710C10A.6040908@ti.com>
+ <20160415151651.GP5995@atomide.com> <571145F6.2040508@ti.com>
+ <20160418235152.GZ5995@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1461263172-10428-1-git-send-email-drivshin.allworx@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>, netdev@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>
-Cc: Markus Brunner <systemprogrammierung.brunner@gmail.com>, devicetree@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Nicolas Chauvet <kwizart@gmail.com>, linux-kernel@vger.kernel.org, Andrew Goodbody <andrew.goodbody@cambrionix.com>, David Miller <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160418235152.GZ5995@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, jarkko.nikula@bitmer.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 04/21/2016 09:26 PM, David Rivshin (Allworx) wrote:
-> From: David Rivshin <drivshin@allworx.com>
-> 
-> The phy-handle, phy_id, and fixed-link properties are mutually exclusive,
-> and only one need be specified. However if phy-handle was specified, an
-> error message would complain about the lack of phy_id or fixed-link.
-> 
-> Also, if phy-handle was specified and the subsequent of_phy_connect()
-> failed, the error message still referenced slaved->data->phy_id, which
-> would be empty. Instead, use the name of the device_node as a useful
-> identifier.
-> 
-> Fixes: 9e42f715264f ("drivers: net: cpsw: add phy-handle parsing")
-> Signed-off-by: David Rivshin <drivshin@allworx.com>
-> Acked-by: Rob Herring <robh@kernel.org>
-> Tested-by: Nicolas Chauvet <kwizart@gmail.com>
-> ---
-> If would like this for -stable it should apply cleanly as far back
-> as 4.5. It failes on 4.4 due to some context differences, but can be
-> applied with 'git am -C2'. Or, I can produce a separate patch against
-> linux-4.4.y if preferred.
-> 
-> Changes since v1 [1]:
-> - Rebased (no conflicts)
-> - Added Tested-by from Nicolas Chauvet
-> - Added Acked-by from Rob Herring for the binding change
-> 
-> [1] https://patchwork.ozlabs.org/patch/560324/
-> 
->   Documentation/devicetree/bindings/net/cpsw.txt |  4 ++--
->   drivers/net/ethernet/ti/cpsw.c                 | 17 +++++++++++++----
->   2 files changed, 15 insertions(+), 6 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
-> index 28a4781..3033c0f 100644
-> --- a/Documentation/devicetree/bindings/net/cpsw.txt
-> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
-> @@ -46,16 +46,16 @@ Optional properties:
->   - dual_emac_res_vlan	: Specifies VID to be used to segregate the ports
->   - mac-address		: See ethernet.txt file in the same directory
->   - phy_id		: Specifies slave phy id
+On 04/19/2016 02:51 AM, Tony Lindgren wrote:
+>>> Then all these modules just sit on the L4 interconnet at
+>>> separate targets, including the clockdomain.
+>>
+>> The McBSPi core and it's sidetone is in the same clock domain as the=
+ sidetone
+>> is using the McBSPi interface clock. It is kind of a leech ;)
+>=20
+> Well they still are able to use the McBSP interface clock independent=
+ly
+> AFAIK :)
 
-May be the "phy_id" can be marked as deprecated? (while here)
-The recommended property now is "phy-handle".
+After trying to hunt down documentation (which I'm still in the process=
+):
+Initially the sidetone was designed to be built inside of the MCBSPLP i=
+p found
+in OMAP3, but at some point it has been decided to attach the sidetone =
+from
+the outside and make wire up the connection like it is ended up in OMAP=
+3.
+I have not found reasoning, but if I can guess they wanted to avoid thr=
+ee
+different McBSPLP modules in OMAP3:
+type1: McBSP1,4,5 - MCBSPLP with 128 FIFO
+type2: McBSP2 - MCBSPLP + 1024+256 FIFO + sidetone
+type3: McBSP3 - MCBSPLP + 128 FIFO + sidetone
 
->   - phy-handle		: See ethernet.txt file in the same directory
->   
->   Slave sub-nodes:
->   - fixed-link		: See fixed-link.txt file in the same directory
-> -			  Either the property phy_id, or the sub-node
-> -			  fixed-link can be specified
-> +
-> +Note: Exactly one of phy_id, phy-handle, or fixed-link must be specified.
->   
->   Note: "ti,hwmods" field is used to fetch the base address and irq
->   resources from TI, omap hwmod data base during device registration.
->   Future plan is to migrate hwmod data base contents into device tree
->   blob so that, all the required data will be used from device tree dts
->   file.
->   
-> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> index d69cb3f..3c81413 100644
-> --- a/drivers/net/ethernet/ti/cpsw.c
-> +++ b/drivers/net/ethernet/ti/cpsw.c
-> @@ -1150,16 +1150,19 @@ static void cpsw_slave_open(struct cpsw_slave *slave, struct cpsw_priv *priv)
->   	if (slave->data->phy_node)
->   		slave->phy = of_phy_connect(priv->ndev, slave->data->phy_node,
->   				 &cpsw_adjust_link, 0, slave->data->phy_if);
->   	else
->   		slave->phy = phy_connect(priv->ndev, slave->data->phy_id,
->   				 &cpsw_adjust_link, slave->data->phy_if);
->   	if (IS_ERR(slave->phy)) {
-> -		dev_err(priv->dev, "phy %s not found on slave %d\n",
-> -			slave->data->phy_id, slave->slave_num);
-> +		dev_err(priv->dev, "phy \"%s\" not found on slave %d\n",
-> +			slave->data->phy_node ?
-> +				slave->data->phy_node->full_name :
-> +				slave->data->phy_id,
-> +			slave->slave_num);
+Also the sidetone is never used again in OMAP4/5 so it made the integra=
+tion
+and errata (if any) fixes easier for the upcoming SoCs.
+But it is just a guess.
 
-Unfortunately,  there are some inconsistency between legacy and FDT API :(
-of_phy_connect() will return valid phy_device or NULL, but phy_connect()
-can return valid phy_device or ERR_PTR().
+=46rom the documents it is also clear that McBSPLP.sidetone is using th=
+e
+McBSPLP's ICLK, but what is not explained in the TRM is that there are
+internal clocks going from McBSP to sidetone for the data bus between t=
+hem.
+The iclk is needed so the core can kind of run independently from the c=
+locks
+coming from McBSPLP (for data exchange between the two modules).
+If McBSP is not configured these clocks are not running which renders t=
+he
+sidetone non operational.
 
+I can send a cut down series to fix the current sidetone hwmod (main_cl=
+k and
+prevent it to look at the PRCM bit) plus reworking the pdata callback s=
+o we
+can support both legacy and DT boot.
 
-
->   		slave->phy = NULL;
->   	} else {
->   		phy_attached_info(slave->phy);
->   
->   		phy_start(slave->phy);
->   
->   		/* Configure GMII_SEL register */
-> @@ -2030,15 +2033,19 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
->   		/* This is no slave child node, continue */
->   		if (strcmp(slave_node->name, "slave"))
->   			continue;
->   
->   		slave_data->phy_node = of_parse_phandle(slave_node,
->   							"phy-handle", 0);
->   		parp = of_get_property(slave_node, "phy_id", &lenp);
-> -		if (of_phy_is_fixed_link(slave_node)) {
-> +		if (slave_data->phy_node) {
-> +			dev_dbg(&pdev->dev,
-> +				"slave[%d] using phy-handle=\"%s\"\n",
-> +				i, slave_data->phy_node->full_name);
-> +		} else if (of_phy_is_fixed_link(slave_node)) {
->   			struct device_node *phy_node;
->   			struct phy_device *phy_dev;
->   
->   			/* In the case of a fixed PHY, the DT node associated
->   			 * to the PHY is the Ethernet MAC DT node.
->   			 */
->   			ret = of_phy_register_fixed_link(slave_node);
-> @@ -2067,15 +2074,17 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
->   			if (!mdio) {
->   				dev_err(&pdev->dev, "Missing mdio platform device\n");
->   				return -EINVAL;
->   			}
->   			snprintf(slave_data->phy_id, sizeof(slave_data->phy_id),
->   				 PHY_ID_FMT, mdio->name, phyid);
->   		} else {
-> -			dev_err(&pdev->dev, "No slave[%d] phy_id or fixed-link property\n", i);
-> +			dev_err(&pdev->dev,
-> +				"No slave[%d] phy_id, phy-handle, or fixed-link property\n",
-> +				i);
->   			goto no_phy_slave;
->   		}
->   		slave_data->phy_if = of_get_phy_mode(slave_node);
->   		if (slave_data->phy_if < 0) {
->   			dev_err(&pdev->dev, "Missing or malformed slave[%d] phy-mode property\n",
->   				i);
->   			return slave_data->phy_if;
-> 
-
-
--- 
-regards,
--grygorii
+--=20
+P=E9ter
