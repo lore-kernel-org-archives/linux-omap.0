@@ -1,57 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Nokia N900: Broken lirc ir-rx51 driver
-Date: Fri, 22 Apr 2016 15:21:11 -0700
-Message-ID: <20160422222110.GM5995@atomide.com>
-References: <201601021545.35201@pali>
- <20160102170657.GB12622@atomide.com>
- <20160105101841.GI22661@pali>
- <20160106011249.GH12777@atomide.com>
- <20160422134929.GG29406@pali>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2 0/3] ARM: OMAP3: Fix McBSP2/3 hwmod setup for sidetone
+Date: Fri, 22 Apr 2016 15:24:15 -0700
+Message-ID: <20160422222415.GN5995@atomide.com>
+References: <20160413152829.GQ5995@atomide.com>
+ <570F4804.4050006@ti.com>
+ <20160414165514.GL5995@atomide.com>
+ <570FF163.1050603@ti.com>
+ <20160414203457.GM5995@atomide.com>
+ <5710C10A.6040908@ti.com>
+ <20160415151651.GP5995@atomide.com>
+ <571145F6.2040508@ti.com>
+ <20160418235152.GZ5995@atomide.com>
+ <571A2357.3060006@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160422134929.GG29406@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Pavel Machel <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <571A2357.3060006-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [160422 06:50]:
-> On Tuesday 05 January 2016 17:12:50 Tony Lindgren wrote:
-> > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [160105 02:19]:
-> > > On Saturday 02 January 2016 09:06:57 Tony Lindgren wrote:
-> > > >
-> > > > Yup please take a look at thread "[PATCH 0/3] pwm: omap: Add PW=
-M support
-> > > > using dual-mode timers". Chances are we still need to set up th=
-e dmtimer
-> > > > code to provide also irqchip functions. That way ir-rx51.c can =
-just do
-> > > > request_irq on the selected dmtimer for interrupts.
-> > >=20
-> > > No I see that patch from that thread uses dmtimer.h from plat-oma=
-p. So
-> > > it is really OK?
-> >=20
-> > It's using the header to populate the platform data in mach-omap2 s=
-o
-> > that's fine. But we do not want to directly expose the dmtimer func=
-tions
-> > to device drivers as they are not Linux generic at this point.
->
-> Hi Tony! Is there any progress for ir-rx51 driver? Months ago we were
-> waiting for some omap pwm patches... What is current state?
+* Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [160422 06:15]:
+> 
+> From the documents it is also clear that McBSPLP.sidetone is using the
+> McBSPLP's ICLK, but what is not explained in the TRM is that there are
+> internal clocks going from McBSP to sidetone for the data bus between them.
+> The iclk is needed so the core can kind of run independently from the clocks
+> coming from McBSPLP (for data exchange between the two modules).
+> If McBSP is not configured these clocks are not running which renders the
+> sidetone non operational.
 
-Sorry it will be slow going for this one.. I think we should initially
-just make it use include/linux/platform_data/pwm_omap_dmtimer.h and
-pdata-quirks.c. It seems we need to add few new functions there.
+THe McBSP ick is not coming from McBSP, it's coming from the L4
+interconnect. Both McBSP are just consumers for that same clock.
+AFAIK there is no clock line going from McBSP to the sidetone.
 
-Then once it's working again, we can continue to make it use hrtimer
-for one of the gptimers. Then after that it should be easy to change
-it to use the PWM framework with the pwm_omap_dmtimer.
+> I can send a cut down series to fix the current sidetone hwmod (main_clk and
+> prevent it to look at the PRCM bit) plus reworking the pdata callback so we
+> can support both legacy and DT boot.
 
-Regards,
+OK sounds good to me :)
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
