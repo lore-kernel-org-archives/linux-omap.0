@@ -1,82 +1,64 @@
-From: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH V2 13/14] dt-bindings: arm-gic: Add documentation for
- Tegra210 AGIC
-Date: Fri, 22 Apr 2016 12:22:39 +0100
-Message-ID: <20160422112239.GF10606@leverpostej>
-References: <1461150237-15580-1-git-send-email-jonathanh@nvidia.com>
- <1461150237-15580-14-git-send-email-jonathanh@nvidia.com>
- <20160422100052.GA10606@leverpostej>
- <571A0739.3090502@nvidia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <571A0739.3090502-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: [PATCH V2 4/9] cpufreq: omap: Use generic platdev driver
+Date: Fri, 22 Apr 2016 16:58:42 +0530
+Message-ID: <a9cadb022a3be97ec43983d524a6ab0378829441.1461324267.git.viresh.kumar@linaro.org>
+References: <cover.1461324267.git.viresh.kumar@linaro.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <cover.1461324267.git.viresh.kumar@linaro.org>
+In-Reply-To: <cover.1461324267.git.viresh.kumar@linaro.org>
+References: <cover.1461324267.git.viresh.kumar@linaro.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Rafael Wysocki <rjw@rjwysocki.net>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Viresh Kumar <viresh.kumar@linaro.org>
+Cc: linaro-kernel@lists.linaro.org, linux-pm@vger.kernel.org, geert@linux-m68k.org, Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Apr 22, 2016 at 12:12:57PM +0100, Jon Hunter wrote:
-> 
-> On 22/04/16 11:00, Mark Rutland wrote:
-> > On Wed, Apr 20, 2016 at 12:03:56PM +0100, Jon Hunter wrote:
-> >> The Tegra AGIC interrupt controller is compatible with the ARM GIC-400
-> >> interrupt controller.
-> > 
-> > The cover letter says it _is_ a GIC-400, just used in a slightly unusual
-> > manner (i.e. not directly connected to CPUs).
-> 
-> Correct.
-> 
-> >> The Tegra AGIC requires two clocks, namely the
-> >> "ape" (functional) and "apb2ape" (interface) clocks, to operate. Add
-> >> the compatible string and clock information for the AGIC to the GIC
-> >> device-tree binding documentation.
-> > 
-> > The GIC-400 spec only describes "CLK" (which is what I imagine "ape" is.
-> > There isn't an APB clock described, and the manual seems to show GIC-400
-> > directly connected to AXI rather than APB, so that doesn't seem to even
-> > be the usual "apb_pclk".
-> > 
-> > Is there some wrapper logic around a GIC-400 to giove it an APB
-> > interface? Or am I misudnerstanding the spec?
-> 
-> Looking at the Tegra documentation what we have is ...
-> 
-> APB --> AXI switch --> AGIC (GIC400)
-> 
-> I am not sure how such a switch would typically be modeled in DT but we
-> need the apb clock to interface to the GIC registers. I am not sure if
-> something like simple-pm-bus is appropriate here.
+The cpufreq-dt-platdev driver supports creation of cpufreq-dt platform
+device now, reuse that and remove similar code from platform code.
 
-I think we need some representation of that AXI switch in the DT;
-whether simple-pm-bus is appropriate is another question. We probably
-need a specific compatible string / binding regardless.
+Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+---
+ arch/arm/mach-omap2/pm.c             | 7 ++-----
+ drivers/cpufreq/cpufreq-dt-platdev.c | 5 +++++
+ 2 files changed, 7 insertions(+), 5 deletions(-)
 
-Thanks,
-Mark.
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 58920bc8807b..2f7b11da7d5d 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -277,13 +277,10 @@ static void __init omap4_init_voltages(void)
+ 
+ static inline void omap_init_cpufreq(void)
+ {
+-	struct platform_device_info devinfo = { };
++	struct platform_device_info devinfo = { .name = "omap-cpufreq" };
+ 
+ 	if (!of_have_populated_dt())
+-		devinfo.name = "omap-cpufreq";
+-	else
+-		devinfo.name = "cpufreq-dt";
+-	platform_device_register_full(&devinfo);
++		platform_device_register_full(&devinfo);
+ }
+ 
+ static int __init omap2_common_pm_init(void)
+diff --git a/drivers/cpufreq/cpufreq-dt-platdev.c b/drivers/cpufreq/cpufreq-dt-platdev.c
+index 3843314389c7..4e525f6ec59f 100644
+--- a/drivers/cpufreq/cpufreq-dt-platdev.c
++++ b/drivers/cpufreq/cpufreq-dt-platdev.c
+@@ -28,6 +28,11 @@ static const struct of_device_id machines[] __initconst = {
+ 	{ .compatible = "samsung,exynos5420", },
+ 	{ .compatible = "samsung,exynos5800", },
+ #endif
++
++	{ .compatible = "ti,omap2", },
++	{ .compatible = "ti,omap3", },
++	{ .compatible = "ti,omap4", },
++	{ .compatible = "ti,omap5", },
+ };
+ 
+ static int __init cpufreq_dt_platdev_init(void)
+-- 
+2.7.1.410.g6faf27b
 
-> 
-> >> Signed-off-by: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-> >> ---
-> >>
-> >> I am not sure if it will be popular to add Tegra specific clock names
-> >> to the GIC DT docs. However, in that case, then possibly the only
-> >> alternative is to move the Tegra AGIC driver into its own file and
-> >> expose the GIC APIs for it to use. Then we could add our own DT doc
-> >> for the Tegra AGIC as well (based upon the ARM GIC).
-> > 
-> > The clock-names don't seem right to me, as they sound like provide names
-> > or global clock line names rather than consumer-side names ("clk" and
-> > "apb_pclk").
-> 
-> Yes that would be fine with me.
-
-Ok; if we model the apb_pclk as owned by the AXI switch (which it is),
-then there's no change for the GIC binding, short of the additional
-compatible string as an extension of "arm,gic-400", as we already model
-that clock in the GIC-400 binding.
-
-Thanks,
-Mark.
