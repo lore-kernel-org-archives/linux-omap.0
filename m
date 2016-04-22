@@ -1,75 +1,77 @@
-From: Jon Hunter <jonathanh@nvidia.com>
-Subject: Re: [PATCH V2 13/14] dt-bindings: arm-gic: Add documentation for
- Tegra210 AGIC
-Date: Fri, 22 Apr 2016 15:57:12 +0100
-Message-ID: <571A3BC8.90906@nvidia.com>
-References: <1461150237-15580-1-git-send-email-jonathanh@nvidia.com>
- <1461150237-15580-14-git-send-email-jonathanh@nvidia.com>
- <20160422100052.GA10606@leverpostej> <571A0739.3090502@nvidia.com>
- <20160422112239.GF10606@leverpostej>
+From: Kevin Hilman <khilman@baylibre.com>
+Subject: Re: [GIT PULL] omap fixes against v4.6-rc2
+Date: Fri, 22 Apr 2016 08:38:37 -0700
+Message-ID: <7hinz94ps2.fsf@baylibre.com>
+References: <20160408191854.GZ16484@atomide.com>
+ <20160419145400.GC5995@atomide.com>
+ <20160419195147.GE5973@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160422112239.GF10606@leverpostej>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Kevin Hilman <khilman@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160419195147.GE5973@atomide.com> (Tony Lindgren's message of
+ "Tue, 19 Apr 2016 12:51:47 -0700")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+Tony Lindgren <tony@atomide.com> writes:
 
-On 22/04/16 12:22, Mark Rutland wrote:
-> On Fri, Apr 22, 2016 at 12:12:57PM +0100, Jon Hunter wrote:
->>
->> On 22/04/16 11:00, Mark Rutland wrote:
->>> On Wed, Apr 20, 2016 at 12:03:56PM +0100, Jon Hunter wrote:
->>>> The Tegra AGIC interrupt controller is compatible with the ARM GIC-400
->>>> interrupt controller.
->>>
->>> The cover letter says it _is_ a GIC-400, just used in a slightly unusual
->>> manner (i.e. not directly connected to CPUs).
->>
->> Correct.
->>
->>>> The Tegra AGIC requires two clocks, namely the
->>>> "ape" (functional) and "apb2ape" (interface) clocks, to operate. Add
->>>> the compatible string and clock information for the AGIC to the GIC
->>>> device-tree binding documentation.
->>>
->>> The GIC-400 spec only describes "CLK" (which is what I imagine "ape" is.
->>> There isn't an APB clock described, and the manual seems to show GIC-400
->>> directly connected to AXI rather than APB, so that doesn't seem to even
->>> be the usual "apb_pclk".
->>>
->>> Is there some wrapper logic around a GIC-400 to giove it an APB
->>> interface? Or am I misudnerstanding the spec?
->>
->> Looking at the Tegra documentation what we have is ...
->>
->> APB --> AXI switch --> AGIC (GIC400)
->>
->> I am not sure how such a switch would typically be modeled in DT but we
->> need the apb clock to interface to the GIC registers. I am not sure if
->> something like simple-pm-bus is appropriate here.
-> 
-> I think we need some representation of that AXI switch in the DT;
-> whether simple-pm-bus is appropriate is another question. We probably
-> need a specific compatible string / binding regardless.
+> * Tony Lindgren <tony@atomide.com> [160419 07:55]:
+>> * Tony Lindgren <tony@atomide.com> [160408 12:22]:
+>> >       ARM: OMAP: Catch callers of revision information prior to it being populated
+>> 
+>> And this one causes bogus runtime warnings with other SoCs
+>> as reported by Guenter Roeck. I'll revert this and post
+>> an updated pull request shortly.
+>
+> And below is the updated pull request with just the above
+> commit reverted.
+>
+> Regards,
+>
+> Tony
+>
+> 8< -------------------
+> The following changes since commit 9735a22799b9214d17d3c231fe377fc852f042e9:
+>
+>   Linux 4.6-rc2 (2016-04-03 09:09:40 -0500)
+>
+> are available in the git repository at:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.6/fixes-rc2-v2-signed
+>
+> for you to fetch changes up to 3d51ae172d759198b2e47e104c31a92d20d17927:
+>
+>   Revert "ARM: OMAP: Catch callers of revision information prior to it being populated" (2016-04-19 08:01:05 -0700)
+>
+> ----------------------------------------------------------------
+> Fixes for omaps against v4.6-rc2, mostly to fix suspend for beagle-x15
+> that broke when we added runtime based SoC revision detection earlier.
+>
+> It seems suspend worked earlier as things were only partially initialized,
+> while now we initialize things properly for dra7.
+>
+> Note that the "ARM: OMAP: Catch callers of revision information prior
+> to it being populated" had to be reverted as it caused bogus warnings
+> for other SoCs because omap initcalls bail out based on revision being
+> set to 0 for other SoCs. These initcalls will mostly just disappear
+> when we drop support for omap3 legacy booting.
+>
+> Also included is a fix for dra7 sys_32k_ck clock source that is not
+> enabled on boot making system fall back to using emulated clock.
+>
+> ----------------------------------------------------------------
 
-OK, I will have a look at that.
+Applied to fixes,
 
->>> The clock-names don't seem right to me, as they sound like provide names
->>> or global clock line names rather than consumer-side names ("clk" and
->>> "apb_pclk").
->>
->> Yes that would be fine with me.
-> 
-> Ok; if we model the apb_pclk as owned by the AXI switch (which it is),
-> then there's no change for the GIC binding, short of the additional
-> compatible string as an extension of "arm,gic-400", as we already model
-> that clock in the GIC-400 binding.
-
-Yes that makes sense.
-
-Thanks
-Jon
+Kevin
