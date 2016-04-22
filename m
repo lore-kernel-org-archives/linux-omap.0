@@ -1,7 +1,7 @@
 From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH v6 2/7] pwm: pwm-tiehrpwm: Update dt binding document to use generic node name
-Date: Fri, 22 Apr 2016 11:40:33 -0500
-Message-ID: <1461343238-29274-3-git-send-email-fcooper@ti.com>
+Subject: [PATCH v6 4/7] pwms: pwm-ti*: Get the clock from the PWMSS parent when using old bindings
+Date: Fri, 22 Apr 2016 11:40:35 -0500
+Message-ID: <1461343238-29274-5-git-send-email-fcooper@ti.com>
 References: <1461343238-29274-1-git-send-email-fcooper@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1461343238-29274-1-git-send-email-fcooper@ti.com>
@@ -10,36 +10,68 @@ To: thierry.reding@gmail.com, tony@atomide.com, paul@pwsan.com, t-kristo@ti.com,
 Cc: Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Now that the node name has been changed from ehrpwm to pwm the document
-should show this proper usage. Also change the unit address in the example
-from 0 to the proper physical address value that should be used.
+When using the old eCAP and ePWM bindings for AM335x and AM437x the clock
+can be retrieved from the PWMSS parent. Newer bindings will insure that
+this clock is provided via device tree.
+
+Therefore, update this driver to support the newer and older bindings. In
+the case of the older binding being used give a warning.
 
 Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
-Acked-by: Rob Herring <robh@kernel.org>
 ---
- Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/pwm/pwm-tiecap.c   | 7 +++++++
+ drivers/pwm/pwm-tiehrpwm.c | 7 +++++++
+ 2 files changed, 14 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt b/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
-index 9c100b2..0f9ba50 100644
---- a/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
-+++ b/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
-@@ -15,14 +15,14 @@ Optional properties:
- 
- Example:
- 
--ehrpwm0: ehrpwm@0 { /* EHRPWM on am33xx */
-+ehrpwm0: pwm@48300200 { /* EHRPWM on am33xx */
- 	compatible = "ti,am33xx-ehrpwm";
- 	#pwm-cells = <3>;
- 	reg = <0x48300200 0x100>;
- 	ti,hwmods = "ehrpwm0";
+diff --git a/drivers/pwm/pwm-tiecap.c b/drivers/pwm/pwm-tiecap.c
+index 616af76..a0833c8 100644
+--- a/drivers/pwm/pwm-tiecap.c
++++ b/drivers/pwm/pwm-tiecap.c
+@@ -195,6 +195,7 @@ static const struct pwm_ops ecap_pwm_ops = {
  };
  
--ehrpwm0: ehrpwm@0 { /* EHRPWM on da850 */
-+ehrpwm0: pwm@300000 { /* EHRPWM on da850 */
- 	compatible = "ti,da850-ehrpwm", "ti,am33xx-ehrpwm";
- 	#pwm-cells = <3>;
- 	reg = <0x300000 0x2000>;
+ static const struct of_device_id ecap_of_match[] = {
++	{ .compatible	= "ti,am3352-ecap" },
+ 	{ .compatible	= "ti,am33xx-ecap" },
+ 	{},
+ };
+@@ -213,6 +214,12 @@ static int ecap_pwm_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 
+ 	clk = devm_clk_get(&pdev->dev, "fck");
++
++	if (IS_ERR(clk) && of_device_is_compatible(pdev->dev.of_node, "ti,am33xx-ecap")) {
++		dev_warn(&pdev->dev, "Binding is obsolete.\n");
++		clk = devm_clk_get(pdev->dev.parent, "fck");
++	}
++
+ 	if (IS_ERR(clk)) {
+ 		dev_err(&pdev->dev, "failed to get clock\n");
+ 		return PTR_ERR(clk);
+diff --git a/drivers/pwm/pwm-tiehrpwm.c b/drivers/pwm/pwm-tiehrpwm.c
+index 6a41e66..cee29a2 100644
+--- a/drivers/pwm/pwm-tiehrpwm.c
++++ b/drivers/pwm/pwm-tiehrpwm.c
+@@ -426,6 +426,7 @@ static const struct pwm_ops ehrpwm_pwm_ops = {
+ };
+ 
+ static const struct of_device_id ehrpwm_of_match[] = {
++	{ .compatible	= "ti,am3352-ehrpwm" },
+ 	{ .compatible	= "ti,am33xx-ehrpwm" },
+ 	{},
+ };
+@@ -444,6 +445,12 @@ static int ehrpwm_pwm_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 
+ 	clk = devm_clk_get(&pdev->dev, "fck");
++
++	if (IS_ERR(clk) && of_device_is_compatible(pdev->dev.of_node, "ti,am33xx-ecap")) {
++		dev_warn(&pdev->dev, "Binding is obsolete.\n");
++		clk = devm_clk_get(pdev->dev.parent, "fck");
++	}
++
+ 	if (IS_ERR(clk)) {
+ 		dev_err(&pdev->dev, "failed to get clock\n");
+ 		return PTR_ERR(clk);
 -- 
 2.7.0
