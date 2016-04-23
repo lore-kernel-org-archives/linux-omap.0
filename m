@@ -1,62 +1,42 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v2] pinctrl: pinctrl-single: Fix pcs_parse_bits_in_pinctrl_entry
- to use __ffs than ffs
-Date: Sat, 23 Apr 2016 11:45:34 +0200
-Message-ID: <CACRpkdZa=v1iKZ=eiY11V3qZV9pPqtoi6vHm2Pu4ctWTFiy0TA@mail.gmail.com>
-References: <1460609956-26539-1-git-send-email-j-keerthy@ti.com>
-	<CACRpkdZxY3FNti37HfuwS7KT9K+pA=REr_G=hEQRi-D3=CHUpQ@mail.gmail.com>
-	<20160415152215.GR5995@atomide.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: qemu:beagle no longer booting with omap2plus_defconfig in -next
+Date: Sat, 23 Apr 2016 10:53:06 -0700
+Message-ID: <571BB682.1010806@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20160415152215.GR5995@atomide.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Keerthy <j-keerthy@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, Sekhar Nori <nsekhar@ti.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>
+Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Stephen Rothwell <sfr@canb.auug.org.au>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Roger Quadros <rogerq@ti.com>, Brian Norris <computersforpeace@gmail.com>Boris Brezillon <boris.brezillon@free-electrons.com>, Tony Lindgren <tony@atomide.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Apr 15, 2016 at 5:22 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Linus Walleij <linus.walleij@linaro.org> [160415 02:29]:
->> On Thu, Apr 14, 2016 at 6:59 AM, Keerthy <j-keerthy@ti.com> wrote:
->>
->> > pcs_parse_bits_in_pinctrl_entry uses ffs which gives bit indices
->> > ranging from 1 to MAX. This leads to a corner case where we try to request
->> > the pin number = MAX and fails.
->> >
->> > bit_pos value is being calculted using ffs. pin_num_from_lsb uses
->> > bit_pos value. pins array is populated with:
->> >
->> > pin + pin_num_from_lsb.
->> >
->> > The above is 1 more than usual bit indices as bit_pos uses ffs to compute
->> > first set bit. Hence the last of the pins array is populated with the MAX
->> > value and not MAX - 1 which causes error when we call pin_request.
->> >
->> > mask_pos is rightly calculated as ((pcs->fmask) << (bit_pos - 1))
->> > Consequently val_pos and submask are correct.
->> >
->> > Hence use __ffs which gives (ffs(x) - 1) as the first bit set.
->> >
->> > fixes: 4e7e8017a8 ("pinctrl: pinctrl-single: enhance to configure multiple pins of different modules")
->> > Signed-off-by: Keerthy <j-keerthy@ti.com>
->> > ---
->> >
->> > Changes in v2:
->> >
->> >   * Changed pcs->fshift to use __ffs instead of ffs to be consistent.
->> >
->> > Boot tesed on da850-evm and checked the pinctrl sysfs nodes.
->>
->> Patch applied for fixes with Tony's ACK.
->>
->> Should it also be tagged for stable?
->
-> Probably a good idea, I can see somebody pulling hair out because
-> of this in various product trees.
+Hi,
 
-Ooops sorry I totally missed to add that :(
+since next-20160421, I get the following error and hang when trying to boot
+an omap2plus_defconfig image with qemu, machine 'beagle' and omap3-beagle.dtb.
+multi_v7_defconfig still works, as does machine 'beaglexm' with omap3-beagle-xm.dtb
+and omap2plus_defconfig. This is with Linaro's version of qemu.
 
-Please ask Greg to take it as a selected stable patch.
+nand: timeout while waiting for chip to become ready
 
-Yours,
-Linus Walleij
+The message repeats until the test times out.
+
+Bisect points to "Merge remote-tracking branch 'nand/nand/next'" as the offending
+commit. However, the nand/nand/next branch itself is fine, as is the merge just
+prior to the nand/nand/next merge ("Merge remote-tracking branch 'l2-mtd/master'").
+
+After some digging, I found that reverting commit "mtd: nand: omap2: Implement
+NAND ready using gpiolib" fixes the problem. What I don't know, though, is why
+the problem is only seen with omap2plus_defconfig, but not with multi_v7_defconfig,
+and why it is only seen with beagle/omap3-beagle.dtb but not with
+beaglexm/omap3-beagle-xm.dtb.
+
+The 'rb-gpios' property is only defined in omap3-beagle.dts, but not in
+omap3-beagle-xm.dts, which may be part of the explanation. That still doesn't
+explain, though, why multi_v7_defconfig still works, but not omap2plus_defconfig.
+
+Any ideas, anyone ?
+
+Thanks,
+Guenter
