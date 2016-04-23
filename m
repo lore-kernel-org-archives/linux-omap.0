@@ -1,59 +1,62 @@
-From: Kevin Hilman <khilman@baylibre.com>
-Subject: Re: [GIT PULL] omap fixes for v4.6-rc cycle
-Date: Fri, 22 Apr 2016 17:21:51 -0700
-Message-ID: <7hmvoltbs0.fsf@baylibre.com>
-References: <20160414203619.GR5973@atomide.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v2] pinctrl: pinctrl-single: Fix pcs_parse_bits_in_pinctrl_entry
+ to use __ffs than ffs
+Date: Sat, 23 Apr 2016 11:45:34 +0200
+Message-ID: <CACRpkdZa=v1iKZ=eiY11V3qZV9pPqtoi6vHm2Pu4ctWTFiy0TA@mail.gmail.com>
+References: <1460609956-26539-1-git-send-email-j-keerthy@ti.com>
+	<CACRpkdZxY3FNti37HfuwS7KT9K+pA=REr_G=hEQRi-D3=CHUpQ@mail.gmail.com>
+	<20160415152215.GR5995@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160414203619.GR5973@atomide.com> (Tony Lindgren's message of
- "Thu, 14 Apr 2016 13:36:19 -0700")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20160415152215.GR5995@atomide.com>
+Sender: linux-gpio-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Keerthy <j-keerthy@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Tony Lindgren <tony@atomide.com> writes:
+On Fri, Apr 15, 2016 at 5:22 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Linus Walleij <linus.walleij@linaro.org> [160415 02:29]:
+>> On Thu, Apr 14, 2016 at 6:59 AM, Keerthy <j-keerthy@ti.com> wrote:
+>>
+>> > pcs_parse_bits_in_pinctrl_entry uses ffs which gives bit indices
+>> > ranging from 1 to MAX. This leads to a corner case where we try to request
+>> > the pin number = MAX and fails.
+>> >
+>> > bit_pos value is being calculted using ffs. pin_num_from_lsb uses
+>> > bit_pos value. pins array is populated with:
+>> >
+>> > pin + pin_num_from_lsb.
+>> >
+>> > The above is 1 more than usual bit indices as bit_pos uses ffs to compute
+>> > first set bit. Hence the last of the pins array is populated with the MAX
+>> > value and not MAX - 1 which causes error when we call pin_request.
+>> >
+>> > mask_pos is rightly calculated as ((pcs->fmask) << (bit_pos - 1))
+>> > Consequently val_pos and submask are correct.
+>> >
+>> > Hence use __ffs which gives (ffs(x) - 1) as the first bit set.
+>> >
+>> > fixes: 4e7e8017a8 ("pinctrl: pinctrl-single: enhance to configure multiple pins of different modules")
+>> > Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> > ---
+>> >
+>> > Changes in v2:
+>> >
+>> >   * Changed pcs->fshift to use __ffs instead of ffs to be consistent.
+>> >
+>> > Boot tesed on da850-evm and checked the pinctrl sysfs nodes.
+>>
+>> Patch applied for fixes with Tony's ACK.
+>>
+>> Should it also be tagged for stable?
+>
+> Probably a good idea, I can see somebody pulling hair out because
+> of this in various product trees.
 
-> The following changes since commit 19e831b272e6db5884be085be66e44da975c73a9:
->
->   Merge branch 'fixes-rc2' into omap-for-v4.6/fixes (2016-04-08 09:18:00 -0700)
->
-> are available in the git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.6/fixes-rc3
->
-> for you to fetch changes up to 1560d15861769c23fd981e2d60dc7fd790b21e1e:
->
->   ARM: OMAP3: Fix external abort on 36xx waking from off mode idle (2016-04-14 08:27:30 -0700)
->
-> ----------------------------------------------------------------
-> Fixes for omaps for v4.6-rc cycle:
->
-> - Clockdomain fix for dra7 timer interrupts
->
-> - Two fixes for GPMC EDMA binding, I missed the need for a merge with
->   GPMC changes and EDMA changes
->
-> - Fix beagle-x15 eSATA by dropping misconfigured extcon_usb1
->
-> - Fix occasional external aborts on 36xx with PM that we've been
->   chasing for past few months. It turned out to be duplicate restore
->   of INTC registers that can in some cases cause us to hit erratum 1.106.
->
-> ----------------------------------------------------------------
+Ooops sorry I totally missed to add that :(
 
-Pulled into fixes,
+Please ask Greg to take it as a selected stable patch.
 
-Thanks,
-
-Kevin
+Yours,
+Linus Walleij
