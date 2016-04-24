@@ -1,62 +1,40 @@
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: Re: qemu:beagle no longer booting with omap2plus_defconfig in -next
-Date: Sat, 23 Apr 2016 21:46:17 +0200
-Message-ID: <20160423214617.4d0905d2@bbrezillon>
-References: <571BB682.1010806@roeck-us.net>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH v1] ARM: dts: omap3-n900: Specify peripherals LDO
+ regulators initial mode
+Date: Sun, 24 Apr 2016 12:08:30 +0200
+Message-ID: <20160424100830.GC23015@amd>
+References: <20160417122933.GA8093@earth>
+ <1460903363-2197-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <571BB682.1010806@roeck-us.net>
-Sender: linux-next-owner@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, Stephen Rothwell <sfr@canb.auug.org.au>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Roger Quadros <rogerq@ti.com>, Brian Norris <computersforpeace@gmail.com>, Tony Lindgren <tony@atomide.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1460903363-2197-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: tony@atomide.com, bcousson@baylibre.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, sre@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Guenter,
+On Sun 2016-04-17 17:29:23, Ivaylo Dimitrov wrote:
+> Without that, regulators are left in the mode last set by the bootloader or
+> by the kernel the device was rebooted from. This leads to various problems,
+> like non-working peripherals.
+> 
+> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 
-On Sat, 23 Apr 2016 10:53:06 -0700
-Guenter Roeck <linux@roeck-us.net> wrote:
+Reviewed-by: Pavel Machek <pavel@ucw.cz>
 
-> Hi,
-> 
-> since next-20160421, I get the following error and hang when trying to boot
-> an omap2plus_defconfig image with qemu, machine 'beagle' and omap3-beagle.dtb.
-> multi_v7_defconfig still works, as does machine 'beaglexm' with omap3-beagle-xm.dtb
-> and omap2plus_defconfig. This is with Linaro's version of qemu.
-> 
-> nand: timeout while waiting for chip to become ready
-> 
-> The message repeats until the test times out.
-> 
-> Bisect points to "Merge remote-tracking branch 'nand/nand/next'" as the offending
-> commit. However, the nand/nand/next branch itself is fine, as is the merge just
-> prior to the nand/nand/next merge ("Merge remote-tracking branch 'l2-mtd/master'").
-> 
-> After some digging, I found that reverting commit "mtd: nand: omap2: Implement
-> NAND ready using gpiolib" fixes the problem. What I don't know, though, is why
-> the problem is only seen with omap2plus_defconfig, but not with multi_v7_defconfig,
-> and why it is only seen with beagle/omap3-beagle.dtb but not with
-> beaglexm/omap3-beagle-xm.dtb.
-> 
-> The 'rb-gpios' property is only defined in omap3-beagle.dts, but not in
-> omap3-beagle-xm.dts, which may be part of the explanation. That still doesn't
-> explain, though, why multi_v7_defconfig still works, but not omap2plus_defconfig.
-> 
-> Any ideas, anyone ?
-
-I think you got it right for the DT changes: if rb-gpios is not
-defined, it's working because the implementation fallback to "status
-polling" mode, which is not relying on the new GPIO controller
-implementation.
-I don't know why it's working when using multi_v7_defconfig and not
-with omap2_plus though (maybe a different probe order making
-devm_gpiod_get_optional() return NULL instead of EPROBE_DEFER?).
-
-And the other question I have for Roger is, do you see a reason why the
-rb-gpio mode would not work?
+> --- a/arch/arm/boot/dts/omap3-n900.dts
+> +++ b/arch/arm/boot/dts/omap3-n900.dts
+> @@ -329,6 +329,7 @@
+>  	regulator-name = "V28";
+>  	regulator-min-microvolt = <2800000>;
+>  	regulator-max-microvolt = <2800000>;
+> +	regulator-initial-mode = <0x0e>; /* RES_STATE_ACTIVE */
+>  	regulator-always-on; /* due to battery cover sensor */
+>  };
+>  
 
 -- 
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
