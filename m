@@ -1,35 +1,30 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2] MAINTAINERS: net: add entry for TI Ethernet Switch
- drivers
-Date: Sun, 24 Apr 2016 14:20:17 -0400 (EDT)
-Message-ID: <20160424.142017.1836758709649656249.davem@davemloft.net>
-References: <1461233636-18667-1-git-send-email-grygorii.strashko@ti.com>
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: Re: qemu:beagle no longer booting with omap2plus_defconfig in -next
+Date: Sun, 24 Apr 2016 21:28:31 +0200
+Message-ID: <20160424212831.3c44d72e@bbrezillon>
+References: <571BB682.1010806@roeck-us.net>
+	<20160423214617.4d0905d2@bbrezillon>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1461233636-18667-1-git-send-email-grygorii.strashko@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: grygorii.strashko@ti.com
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, linux-omap@vger.kernel.org, tony@atomide.com, mugunthanvnm@ti.com, richardcochran@gmail.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160423214617.4d0905d2@bbrezillon>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>, Roger Quadros <rogerq@ti.com>
+Cc: "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, Stephen Rothwell <sfr@canb.auug.org.au>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Brian Norris <computersforpeace@gmail.com>, Tony Lindgren <tony@atomide.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Date: Thu, 21 Apr 2016 13:13:56 +0300
-
-> Add record for TI Ethernet Switch Driver CPSW/CPDMA/MDIO HW
-> (am33/am43/am57/dr7/davinci) to ensure that related patches
-> will go through dedicated linux-omap list.
+On Sat, 23 Apr 2016 21:46:17 +0200
+Boris Brezillon <boris.brezillon@free-electrons.com> wrote:
 > 
-> Also add Mugunthan as maintainer and myself as the reviewer.
+> And the other question I have for Roger is, do you see a reason why the
+> rb-gpio mode would not work?
 > 
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Mugunthan V N <mugunthanvnm@ti.com>
-> Cc: Richard Cochran <richardcochran@gmail.com>
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> ---
-> Changes in v2:
->  - added netdev@vger.kernel.org list
 
-Applied, thanks.
+Forget that one, this bug appeared to be caused by partial emulation of
+the GPMC block in qemu.
+
+-- 
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
