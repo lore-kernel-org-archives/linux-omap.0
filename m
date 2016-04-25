@@ -1,73 +1,81 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Applied "spi: return error if kmap'd buffers passed to spi_map_buf()" to the spi tree
-Date: Mon, 25 Apr 2016 18:57:02 +0100
-Message-ID: <E1aukko-0007o3-5w@debutante>
-References: <1461577442-8853-2-git-send-email-vigneshr@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1461577442-8853-2-git-send-email-vigneshr@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Mark Brown <broonie@kernel.org>Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: USB gadgets with configfs hang reboot
+Date: Mon, 25 Apr 2016 22:00:19 +0300
+Message-ID: <571E6943.30305@gmail.com>
+References: <20160115224839.GA19432@atomide.com> <569A1E32.1020502@gmail.com>
+ <57081105.2050206@gmail.com> <87oa97gxkw.fsf@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87oa97gxkw.fsf-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Michal Nazarewicz <mina86-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The patch
+Hi,
 
-   spi: return error if kmap'd buffers passed to spi_map_buf()
+On 18.04.2016 10:55, Felipe Balbi wrote:
+>
+> Hi,
+>
+> Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
+>> Hi,
+>>
+>> On 16.01.2016 12:40, Ivaylo Dimitrov wrote:
+>>> Hi,
+>>>
+>>> On 16.01.2016 00:48, Tony Lindgren wrote:
+>>>> Hi all,
+>>>>
+>>>> Looks like there's some issue with the USB gadgets and configfs.
+>>>>
+>>>> I'm seeing rmmod of the UDC driver cause a warning and then reboot
+>>>> hangs the system. This happens at least with v4.4, and I've reproduced
+>>>> it with dwc3 and musb so it seems to be generic.
+>>>>
+>>>
+>>> Having configfs is not needed, disabling usb gadgets (#
+>>> CONFIG_USB_MUSB_GADGET is not set) seems to solved at least poweroff
+>>> hang issue on N900. Also, g_nokia is not a module in the config I use,
+>>> so I guess the problem is not related whether gadgets are modular or
+>>> not. Unfortunately I was not able to test reboot, as rootfs became
+>>> corrupted after the first poweroff :( . So it looks like my theory that
+>>> onenand corruption on N900 is because poweroff/reboot hangs is wrong.
+>>
+>> (copied from "Re: [PATCH] usb: f_mass_storage: test whether thread is
+>> running before starting another" thread)
+>>
+>> Yet another problem with USB gadget, this time with f_acm - if there is
+>> an open /dev/ttyGSn device, it is impossible to reboot/power down the
+>> device.
+>>
+>> My investigation shown that there is a process(pnatd) that opens
+>> /dev/ttyGSn devices, so gserial_free_port() hangs on
+>> wait_event(port->close_wait, gs_closed(port)); if I do "cd
+>> /sys/bus/platform/drivers/musb-hdrc && echo musb-hdrc.0.auto > unbind".
+>>
+>> Unfortunately I don't have serial debug port connector on my N900, so I
+>> can't capture logs after the reboot command, however, I suspect it hangs
+>> on the same place as with unbind.
+>>
+>> That looks weird, as one would expect that close() is called when the
+>> kernel kills user processes on reboot/powerdown.
+>
+> right, care to enable lockup detection and see if you can get more info
+> out of it ?
+>
 
-has been applied to the spi tree at
+Nothing interesting, besides that screen does not work :(. However, the 
+device boots, I can connect through wifi and reboot still hangs. Also, I 
+don't see that port->close_wait in /proc/lockdep. Is that expected?
 
-   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/spi.git 
+Is there a reason why a process (pnatd in this particular case) doesn't 
+get killed on reboot?
 
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.  
-
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
-
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
-
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
-
-Thanks,
-Mark
-
->From 0569a88f3d1ffed94b15569d53872f16e2351099 Mon Sep 17 00:00:00 2001
-From: Vignesh R <vigneshr@ti.com>
-Date: Mon, 25 Apr 2016 15:14:00 +0530
-Subject: [PATCH] spi: return error if kmap'd buffers passed to spi_map_buf()
-
-Current spi_map_buf() implementation supports creates sg_table for
-vmalloc'd and kmalloc'd buffers. Therefore return error if kmap'd buffer
-(or any other buffer) is passed to spi_map_buf().
-
-Signed-off-by: Vignesh R <vigneshr@ti.com>
-Signed-off-by: Mark Brown <broonie@kernel.org>
----
- drivers/spi/spi.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-index 6c4c050e6b65..a50f880a5036 100644
---- a/drivers/spi/spi.c
-+++ b/drivers/spi/spi.c
-@@ -717,9 +717,11 @@ static int spi_map_buf(struct spi_master *master, struct device *dev,
- 	if (vmalloced_buf) {
- 		desc_len = min_t(int, max_seg_size, PAGE_SIZE);
- 		sgs = DIV_ROUND_UP(len + offset_in_page(buf), desc_len);
--	} else {
-+	} else if (virt_addr_valid(buf)) {
- 		desc_len = min_t(int, max_seg_size, master->max_dma_len);
- 		sgs = DIV_ROUND_UP(len, desc_len);
-+	} else {
-+		return -EINVAL;
- 	}
- 
- 	ret = sg_alloc_table(sgt, sgs, GFP_KERNEL);
--- 
-2.8.0.rc3
+Ivo
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
