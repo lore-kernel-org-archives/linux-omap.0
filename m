@@ -1,30 +1,60 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v6 0/7] ARM: dts: DRA7: Add dt nodes for PWMSS
-Date: Mon, 25 Apr 2016 16:18:02 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1604251610170.22464@utopia.booyaka.com>
-References: <1461343238-29274-1-git-send-email-fcooper@ti.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 1/2] mfd: twl6040: Disable and unprepare clk32k in
+ twl6040_power() error path
+Date: Mon, 25 Apr 2016 17:18:29 +0100
+Message-ID: <20160425161829.GK2713@dell>
+References: <1461165398-12289-1-git-send-email-javier@osg.samsung.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <1461343238-29274-1-git-send-email-fcooper@ti.com>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Franklin S Cooper Jr <fcooper@ti.com>
-Cc: thierry.reding@gmail.com, tony@atomide.com, t-kristo@ti.com, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, robh+dt@kernel.org, devicetree@vger.kernel.org, vigneshr@ti.com, nsekhar@ti.com
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1461165398-12289-1-git-send-email-javier@osg.samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 22 Apr 2016, Franklin S Cooper Jr wrote:
+On Wed, 20 Apr 2016, Javier Martinez Canillas wrote:
 
-> This patch series adds support for PWM for DRA7. The IP is the same as the
-> one present in AM33XX and AM437XX.
-> 
-> However, before doing so remove unnecessary hwmod entries for eCAP, ePWM
-> and eQEP.
+> The clk32k clock is prepared and enabled in twl6040_power() but the c=
+lock
+> is left enabled in case of an error while it should be disable/unprep=
+ared.
+>=20
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> ---
+>=20
+>  drivers/mfd/twl6040.c | 2 ++
+>  1 file changed, 2 insertions(+)
 
-Just took a quick look (nothing indepth).  Looks OK.  
+Applied, thanks.
 
-Once Rob's issues have been addressed, please feel free to add an 
-Acked-by: from me.  Thanks for playing along, Franklin, I think this final 
-product makes the most sense from a device architecture point of view.
+> diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
+> index 08a693cd38cc..4de92c16dfb8 100644
+> --- a/drivers/mfd/twl6040.c
+> +++ b/drivers/mfd/twl6040.c
+> @@ -300,6 +300,7 @@ int twl6040_power(struct twl6040 *twl6040, int on=
+)
+>  			/* use automatic power-up sequence */
+>  			ret =3D twl6040_power_up_automatic(twl6040);
+>  			if (ret) {
+> +				clk_disable_unprepare(twl6040->clk32k);
+>  				twl6040->power_count =3D 0;
+>  				goto out;
+>  			}
+> @@ -307,6 +308,7 @@ int twl6040_power(struct twl6040 *twl6040, int on=
+)
+>  			/* use manual power-up sequence */
+>  			ret =3D twl6040_power_up_manual(twl6040);
+>  			if (ret) {
+> +				clk_disable_unprepare(twl6040->clk32k);
+>  				twl6040->power_count =3D 0;
+>  				goto out;
+>  			}
 
-
-- Paul
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
