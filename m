@@ -1,42 +1,65 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 4/4] ARM: remove duplicate const qualifier
-Date: Mon, 25 Apr 2016 13:38:18 +0200
-Message-ID: <4641918.pNBP5iAK01@wuerfel>
-References: <1461577678-29517-1-git-send-email-eric.engestrom@imgtec.com> <20160425095715.GA2366@piout.net> <20160425103911.GO32731@imgtec.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: AM335x ICE board Linux support
+Date: Mon, 25 Apr 2016 14:59:22 +0300
+Message-ID: <571E069A.20700@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160425103911.GO32731@imgtec.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Eric Engestrom <eric.engestrom@imgtec.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Nicolas Pitre <nicolas.pitre@linaro.org>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Lee Jones <lee.jones@linaro.org>, Roland Stigge <stigge@antcom.de>, Florian Fainelli <f.fainelli@gmail.com>, Russell King <linux@arm.linux.org.uk>, Alexander Shiyan <shc_work@mail.ru>, Kevin Hilman <khilman@kernel.org>, Viresh Kumar <vireshk@kernel.org>, bcm-kernel-feedback-list@broadcom.com, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, spear-devel@list.st.com, Ray Jui <rjui@broadcom.com>, Rajendra Nayak <rnayak@ti.com>, Sekhar Nori <nsekhar@ti.com>, Krzysztof Halasa <khalasa@piap.pl>, Gregory Fong <gregory.0xf0@gmail.com>, linux-omap@vger.kernel.or
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, "Anna, Suman" <s-anna-l0cyMroinI0@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rogerq-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 25 April 2016 11:39:11 Eric Engestrom wrote:
-> On Mon, Apr 25, 2016 at 11:57:15AM +0200, Alexandre Belloni wrote:
-> > Hi,
-> > 
-> > this requires a commit message.
-> 
-> OK? This seems rather pointless in this case (and even more so for the
-> typo fix I sent yesterday), but I guess you have some general rule to
-> enforce. Would this do then?
-> "The second `const` is unnecessary, and is simply ignored by most compilers."
+Hi,
 
-Maybe say you you found it (llvm, sparse, coccinelle?), and why this
-is causing a problem for anyone. If it's just unnecessary but not
-harmful, I'd probably ignore the patch.
+We are working on getting Linux on AM335X Industrial Communication Engine board (ICE) [1].
 
-> > Also, you should think about separating those changes in multiple patches
-> > to ease inclusion in the kernel.
-> 
-> I'll resend patch #4 as multiple patches. What the way proper to convey
-> that *multiple* new patches replace *one* old one? Is it enough to just
-> send those as a reply to this one?
+This board has 2 Ethernet ports and each of them can be used either in RMII mode connected to
+the CPSW Ethernet MAC *or* in MII mode connected to the PRU Ethernet MAC.
 
-That's fine. Having multiple patches here is slightly better than just
-one, but I'd also be fine with just taking the large patch because it
-is an identical trivial change in multiple files.
+The decision about the Ethernet port's mode is made by the user by setting a jumper near the
+Ethernet port before power up. This is a boot time configurable setting and doesn't need to
+change at runtime.
 
-	Arnd
+So 4 configurations are possible:
+    ETH0	ETH1
+    ----	----
+    RMII	RMII
+    RMII	MII
+    MII		RMII	(probably redundant and not needed)
+    MII		MII
+
+Based on the port configuration, software (u-boot or Linux) needs to set the right pinmux,
+set a GPIOs (that controls external Mux), configure an external clock generator
+and enable the right device driver for the respective Ethernet port.
+
+Clock generator needs to be configured because different clock rates are required
+for RMII vs MII mode.
+
+Now question is how all this can be done on u-boot + Linux?
+
+I already have a working solution where I create different DT blobs for the 3 configurations
+and have u-boot detect the mode and load the correct DT blob and also configure the clock.
+
+You can see how the kernel patches look like here [2]
+
+Is this approach acceptable? If not is there any better way to do this? Thanks.
+
+cheers,
+-roger
+
+[1] AM3359 ICE board
+http://www.ti.com/tool/tmdsice3359
+http://processors.wiki.ti.com/index.php/AM335x_Industrial_Communication_Engine_%28ICE%29_EVM_HW_User_Guide
+
+[2] Device tree patches
+https://github.com/rogerq/linux/commit/9a9cf6a15f779fddf91dba2370627aabf19aeff5
+https://github.com/rogerq/linux/commit/c87e8fa5b14f156a91883fd506e9dd8f7ccf95cf
+https://github.com/rogerq/linux/commit/d9cdd25e8c3878292d7f4180af8d3ac42b9645c4
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
