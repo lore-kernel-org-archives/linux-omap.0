@@ -1,51 +1,114 @@
-From: Afzal Mohammed <afzal.mohd.ma@gmail.com>
-Subject: Re: [PATCH] MAINTAINERS: remove Rajendra Nayak
-Date: Mon, 25 Apr 2016 18:41:13 +0530
-Message-ID: <20160425131113.GA3253@afzalpc>
-References: <1461579114-5067-1-git-send-email-eric.engestrom@imgtec.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v6 09/12] usb: gadget: udc: adapt to OTG core
+Date: Mon, 25 Apr 2016 17:04:07 +0300
+Message-ID: <571E23D7.5070501@ti.com>
+References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
+ <1459865117-7032-10-git-send-email-rogerq@ti.com>
+ <AM4PR04MB2130ACE0588E64EA723987E3896E0@AM4PR04MB2130.eurprd04.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1461579114-5067-1-git-send-email-eric.engestrom@imgtec.com>
+In-Reply-To: <AM4PR04MB2130ACE0588E64EA723987E3896E0@AM4PR04MB2130.eurprd04.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Eric Engestrom <eric.engestrom@imgtec.com>
-Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "David S. Miller" <davem@davemloft.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kalle Valo <kvalo@codeaurora.org>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Guenter Roeck <linux@roeck-us.net>, Jiri Slaby <jslaby@suse.com>, Rajendra Nayak <rnayak@codeaurora.org>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
+To: Jun Li <jun.li@nxp.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "balbi@kernel.org" <balbi@kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "peter.chen@freescale.com" <peter.chen@freescale.com>
+Cc: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "jun.li@freescale.com" <jun.li@freescale.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Joao.Pinto@synopsys.com" <Joao.Pinto@synopsys.com>, "abrestic@chromium.org" <abrestic@chromium.org>, "r.baldyga@samsung.com" <r.baldyga@samsung.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-+ Rajendra (in new incarnation), co-maintainer Paul & linux-omap
+On 21/04/16 09:38, Jun Li wrote:
+> Hi,
+> 
+> ...
+>>
+>>  /**
+>> + * usb_gadget_start - start the usb gadget controller and connect to
+>> +bus
+>> + * @gadget: the gadget device to start
+>> + *
+>> + * This is external API for use by OTG core.
+>> + *
+>> + * Start the usb device controller and connect to bus (enable pull).
+>> + */
+>> +static int usb_gadget_start(struct usb_gadget *gadget) {
+>> +	int ret;
+>> +	struct usb_udc *udc = NULL;
+>> +
+>> +	dev_dbg(&gadget->dev, "%s\n", __func__);
+>> +	mutex_lock(&udc_lock);
+>> +	list_for_each_entry(udc, &udc_list, list)
+>> +		if (udc->gadget == gadget)
+>> +			goto found;
+>> +
+>> +	dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
+>> +		__func__);
+>> +	mutex_unlock(&udc_lock);
+>> +	return -EINVAL;
+>> +
+>> +found:
+>> +	ret = usb_gadget_udc_start(udc);
+>> +	if (ret)
+>> +		dev_err(&udc->dev, "USB Device Controller didn't start: %d\n",
+>> +			ret);
+>> +	else
+>> +		usb_udc_connect_control(udc);
+> 
+> For drd, it's fine, but for real otg, gadget connect should be done
+> by loc_conn() instead of gadget start.
 
-Regards
-afzal
+It is upto the OTG state machine to call gadget_start() when it needs to
+connect to the bus (i.e. loc_conn()). I see no point in calling
+gadget start before.
 
-On Mon, Apr 25, 2016 at 11:11:45AM +0100, Eric Engestrom wrote:
+Do you see any issue in doing so?
 
-> I'm guessing he doesn't work there anymore:
-> <rnayak@ti.com>: host cluster5.us.messagelabs.com[216.82.242.147] said:
-> 550 Invalid recipient <rnayak@ti.com> (#5.1.1) (in reply to RCPT TO command)
+cheers,
+-roger
+
 > 
-> Signed-off-by: Eric Engestrom <eric.engestrom@imgtec.com>
-> ---
+>> +
+>> +	mutex_unlock(&udc_lock);
+>> +
+>> +	return ret;
+>> +}
+>> +
+>> +/**
+>> + * usb_gadget_stop - disconnect from bus and stop the usb gadget
+>> + * @gadget: The gadget device we want to stop
+>> + *
+>> + * This is external API for use by OTG core.
+>> + *
+>> + * Disconnect from the bus (disable pull) and stop the
+>> + * gadget controller.
+>> + */
+>> +static int usb_gadget_stop(struct usb_gadget *gadget) {
+>> +	struct usb_udc *udc = NULL;
+>> +
+>> +	dev_dbg(&gadget->dev, "%s\n", __func__);
+>> +	mutex_lock(&udc_lock);
+>> +	list_for_each_entry(udc, &udc_list, list)
+>> +		if (udc->gadget == gadget)
+>> +			goto found;
+>> +
+>> +	dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
+>> +		__func__);
+>> +	mutex_unlock(&udc_lock);
+>> +	return -EINVAL;
+>> +
+>> +found:
+>> +	usb_gadget_disconnect(udc->gadget);
 > 
-> This needs a confirmation from someone at TI
+> Likewise, gadget disconnect also should be done by loc_conn()
+> instead of gadget stop.
 > 
-> ---
->  MAINTAINERS | 1 -
->  1 file changed, 1 deletion(-)
+>> +	udc->driver->disconnect(udc->gadget);
+>> +	usb_gadget_udc_stop(udc);
+>> +	mutex_unlock(&udc_lock);
+>> +
+>> +	return 0;
+>> +}
+>> +
 > 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 1d5b4be..c7d264d 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -7978,7 +7978,6 @@ F:	arch/arm/*omap*/*pm*
->  F:	drivers/cpufreq/omap-cpufreq.c
->  
->  OMAP POWERDOMAIN SOC ADAPTATION LAYER SUPPORT
-> -M:	Rajendra Nayak <rnayak@ti.com>
->  M:	Paul Walmsley <paul@pwsan.com>
->  L:	linux-omap@vger.kernel.org
->  S:	Maintained
-> -- 
-> 2.8.1
+> Li Jun
+> 
