@@ -1,40 +1,51 @@
-From: "J.D. Schroeder" <Linux.HWI@garmin.com>
-Subject: [PATCH] ASoC: omap-pcm: Initialize DMA configuration
-Date: Mon, 25 Apr 2016 11:10:07 -0500
-Message-ID: <1461600607-19582-1-git-send-email-Linux.HWI@garmin.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: Re: [PATCH] mfd: twl4030-power: Fix driver path in file comment
+Date: Mon, 25 Apr 2016 13:00:40 -0400
+Message-ID: <571E4D38.8060508@osg.samsung.com>
+References: <1461101066-27753-1-git-send-email-javier@osg.samsung.com>
+ <20160425140934.GG2713@dell>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160425140934.GG2713@dell>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, peter.ujfalusi@ti.com, lgirdwood@gmail.com, broonie@kernel.org, perex@perex.cz, tiwai@suse.com, jarkko.nikula@bitmer.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
-Cc: Jim Lodes <jim.lodes@garmin.com>, "J.D. Schroeder" <jay.schroeder@garmin.com>
+To: Lee Jones <lee.jones@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Jim Lodes <jim.lodes@garmin.com>
+Hello Lee,
 
-Initialize the dma_slave_config for PCM DMA transfers,
-instead of leaving it uninitialized. Keeps previous data on
-the stack from giving us invalid values in uninitialized
-members of the config structure.
+On 04/25/2016 10:09 AM, Lee Jones wrote:
+> On Tue, 19 Apr 2016, Javier Martinez Canillas wrote:
+> 
+>> The driver's file path in the comment is wrong, use the correct one.
+>>
+>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>>
+>> ---
+>>
+>>  drivers/mfd/twl4030-power.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+>> index 04b539850e72..f832233fd365 100644
+>> --- a/drivers/mfd/twl4030-power.c
+>> +++ b/drivers/mfd/twl4030-power.c
+>> @@ -1,5 +1,5 @@
+>>  /*
+>> - * linux/drivers/i2c/chips/twl4030-power.c
+>> + * linux/drivers/mfd/twl4030-power.c
+> 
+> These have a nasty habit of getting out of date, and since they serve
+> very little purpose, I'd prefer it if you just removed the line
+> completely.
+> 
 
-Signed-off-by: Jim Lodes <jim.lodes@garmin.com>
-Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
----
- sound/soc/omap/omap-pcm.c | 2 ++
- 1 file changed, 2 insertions(+)
+Ok, I'll post a v2 just removing it then.
 
-diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
-index 99381a2..a84f677 100644
---- a/sound/soc/omap/omap-pcm.c
-+++ b/sound/soc/omap/omap-pcm.c
-@@ -82,6 +82,8 @@ static int omap_pcm_hw_params(struct snd_pcm_substream *substream,
- 	struct dma_chan *chan;
- 	int err = 0;
- 
-+	memset(&config, 0x00, sizeof(config));
-+
- 	dma_data = snd_soc_dai_get_dma_data(rtd->cpu_dai, substream);
- 
- 	/* return if this is a bufferless transfer e.g.
+Best regards,
 -- 
-1.9.1
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
