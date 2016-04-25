@@ -1,39 +1,81 @@
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: Re: [PATCH 5/7] mfd: sec: Use devm_mfd_add_devices and
- devm_regmap_add_irq_chip
-Date: Mon, 25 Apr 2016 14:45:04 +0200
-Message-ID: <571E1150.5030306@samsung.com>
-References: <1461241558-26983-1-git-send-email-ldewangan@nvidia.com>
- <1461241558-26983-6-git-send-email-ldewangan@nvidia.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] ARM: dts: dra7xx: Fix compatible string for PCF8575 chip
+Date: Mon, 25 Apr 2016 15:53:54 +0300
+Message-ID: <1461588834-20908-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <1461241558-26983-6-git-send-email-ldewangan@nvidia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Laxman Dewangan <ldewangan@nvidia.com>, lee.jones@linaro.org, milo.kim@ti.com, cw00.choi@samsung.com
-Cc: sbkim73@samsung.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, ben.hutchings-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/21/2016 02:25 PM, Laxman Dewangan wrote:
-> Use devm_mfd_add_devices() for adding MFD child devices and
-> devm_regmap_add_irq_chip() for IRQ chip registration.
-> 
-> This reduces the error code path and .remove callback for removing
-> MFD child devices and deleting IRQ chip data.
-> 
-> Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
-> CC: Sangbeom Kim <sbkim73@samsung.com>
-> CC: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-> CC: linux-samsung-soc@vger.kernel.org
-> ---
->  drivers/mfd/sec-core.c | 20 +++-----------------
->  drivers/mfd/sec-irq.c  | 14 +++++---------
->  2 files changed, 8 insertions(+), 26 deletions(-)
+The boards use a TI variant of the PCF8575 so specify that
+in the compatible string.
 
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/dra7-evm.dts          | 6 +++---
+ arch/arm/boot/dts/dra72-evm-common.dtsi | 4 ++--
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-Tested-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Reviewed-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index d272cf1..4fb0ff4 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -556,7 +556,7 @@
+ 	};
+ 
+ 	pcf_lcd: gpio@20 {
+-		compatible = "nxp,pcf8575";
++		compatible = "ti,pcf8575", "nxp,pcf8575";
+ 		reg = <0x20>;
+ 		gpio-controller;
+ 		#gpio-cells = <2>;
+@@ -567,7 +567,7 @@
+ 	};
+ 
+ 	pcf_gpio_21: gpio@21 {
+-		compatible = "nxp,pcf8575";
++		compatible = "ti,pcf8575", "nxp,pcf8575";
+ 		reg = <0x21>;
+ 		lines-initial-states = <0x1408>;
+ 		gpio-controller;
+@@ -601,7 +601,7 @@
+ 	clock-frequency = <400000>;
+ 
+ 	pcf_hdmi: gpio@26 {
+-		compatible = "nxp,pcf8575";
++		compatible = "ti,pcf8575", "nxp,pcf8575";
+ 		reg = <0x26>;
+ 		gpio-controller;
+ 		#gpio-cells = <2>;
+diff --git a/arch/arm/boot/dts/dra72-evm-common.dtsi b/arch/arm/boot/dts/dra72-evm-common.dtsi
+index 2c88050..90a827d 100644
+--- a/arch/arm/boot/dts/dra72-evm-common.dtsi
++++ b/arch/arm/boot/dts/dra72-evm-common.dtsi
+@@ -408,7 +408,7 @@
+ 	};
+ 
+ 	pcf_gpio_21: gpio@21 {
+-		compatible = "nxp,pcf8575";
++		compatible = "ti,pcf8575", "nxp,pcf8575";
+ 		reg = <0x21>;
+ 		lines-initial-states = <0x1408>;
+ 		gpio-controller;
+@@ -440,7 +440,7 @@
+ 	clock-frequency = <400000>;
+ 
+ 	pcf_hdmi: pcf8575@26 {
+-		compatible = "nxp,pcf8575";
++		compatible = "ti,pcf8575", "nxp,pcf8575";
+ 		reg = <0x26>;
+ 		gpio-controller;
+ 		#gpio-cells = <2>;
+-- 
+2.5.0
 
-Best regards,
-Krzysztof
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
