@@ -1,75 +1,34 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v6 3/7] ARM: dts: am437x/am33xx/da850: Add new ECAP and
- EPWM bindings
-Date: Mon, 25 Apr 2016 08:03:08 -0500
-Message-ID: <20160425130308.GA7802@rob-hp-laptop>
-References: <1461343238-29274-1-git-send-email-fcooper@ti.com>
- <1461343238-29274-4-git-send-email-fcooper@ti.com>
+From: Laxman Dewangan <ldewangan@nvidia.com>
+Subject: Re: [PATCH 0/7] mfd: Use devm_mfd_add_devices and devm_regmap_add_irq_chip
+Date: Mon, 25 Apr 2016 18:22:21 +0530
+Message-ID: <571E1305.6070009@nvidia.com>
+References: <1461241558-26983-1-git-send-email-ldewangan@nvidia.com> <571DF7D9.8050500@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pwm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1461343238-29274-4-git-send-email-fcooper@ti.com>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Franklin S Cooper Jr <fcooper@ti.com>
-Cc: thierry.reding@gmail.com, tony@atomide.com, paul@pwsan.com, t-kristo@ti.com, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, devicetree@vger.kernel.org, vigneshr@ti.com, nsekhar@ti.com
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <571DF7D9.8050500@samsung.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Krzysztof Kozlowski <k.kozlowski@samsung.com>, lee.jones@linaro.org, milo.kim@ti.com, cw00.choi@samsung.com
+Cc: sbkim73@samsung.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Apr 22, 2016 at 11:40:34AM -0500, Franklin S Cooper Jr wrote:
-> Switch to a new ECAP and EPWM bindings that doesn't depend on hwmod to
-> provide the various required clocks.
-> 
-> For AM437 and AM335x, add the required clocks explicitly to DT. The
-> hwmod entries for ECAP and EPWM will be removed and this will prevent
-> anything from breaking.
-> 
-> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
-> ---
->  .../devicetree/bindings/pwm/pwm-tiecap.txt         | 12 +++--
->  .../devicetree/bindings/pwm/pwm-tiehrpwm.txt       | 12 +++--
->  arch/arm/boot/dts/am33xx.dtsi                      | 30 +++++++++---
->  arch/arm/boot/dts/am4372.dtsi                      | 54 ++++++++++++++++++----
->  arch/arm/boot/dts/da850.dtsi                       | 15 ++++--
->  5 files changed, 95 insertions(+), 28 deletions(-)
 
-[...]
+On Monday 25 April 2016 04:26 PM, Krzysztof Kozlowski wrote:
+> On 04/21/2016 02:25 PM, Laxman Dewangan wrote:
+>> This series is an effort to reduce the code in error path and need of
+>> remove callback by using the devm_mfd_add_devices() and
+>> devm_regmap_add_irq_chip() or devm_request_threaded_irq APIs for interrupt
+>> support.
+>>
+>> This is tested with build and comiplation only with arm64 defconfig and enabling
+>> the required MFD CONFIGs.
+> Please compile it also on ARMv7. The changes look trivial but one
+> compilation without testing might not be sufficient.
+Sure. Thank you very much for testing.
 
-> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-> index 12fcde4..e858460 100644
-> --- a/arch/arm/boot/dts/am4372.dtsi
-> +++ b/arch/arm/boot/dts/am4372.dtsi
-> @@ -672,18 +672,26 @@
->  			status = "disabled";
->  
->  			ecap0: ecap@48300100 {
-> -				compatible = "ti,am4372-ecap","ti,am33xx-ecap";
-> +				compatible = "ti,am4372-ecap",
-
-This doesn't appear to be documented.
-
-> +					     "ti,am3352-ecap",
-> +					     "ti,am33xx-ecap";
->  				#pwm-cells = <3>;
->  				reg = <0x48300100 0x80>;
->  				ti,hwmods = "ecap0";
-> +				clocks = <&l4ls_gclk>;
-> +				clock-names = "fck";
->  				status = "disabled";
->  			};
->  
->  			ehrpwm0: pwm@48300200 {
-> -				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
-> +				compatible = "ti,am4372-ehrpwm",
-
-ditto.
-
-> +					     "ti,am3352-ehrpwm",
-> +					     "ti,am33xx-ehrpwm";
->  				#pwm-cells = <3>;
->  				reg = <0x48300200 0x80>;
->  				ti,hwmods = "ehrpwm0";
-> +				clocks = <&ehrpwm0_tbclk>, <&l4ls_gclk>;
-> +				clock-names = "tbclk", "fck";
->  				status = "disabled";
->  			};
->  		};
+I did build test with the ARMv7 for all patches and testing on actual 
+platform with Jetson-TX1 platform + max77620 which have similar change 
+with bind/unbind. This is what I learn from you for testing the remove 
+callback/unbinding without making =m on RTC patches and this really 
+helps me on my lots of testing.
