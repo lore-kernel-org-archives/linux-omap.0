@@ -1,49 +1,42 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] mfd: twl4030-power: Fix driver path in file comment
-Date: Mon, 25 Apr 2016 15:09:34 +0100
-Message-ID: <20160425140934.GG2713@dell>
-References: <1461101066-27753-1-git-send-email-javier@osg.samsung.com>
+From: Nicolas Pitre <nicolas.pitre@linaro.org>
+Subject: Re: [PATCH 4/4] ARM: remove duplicate const qualifier
+Date: Mon, 25 Apr 2016 10:12:16 -0400 (EDT)
+Message-ID: <alpine.LFD.2.20.1604250953200.5091@knanqh.ubzr>
+References: <1461577678-29517-1-git-send-email-eric.engestrom@imgtec.com> <20160425095715.GA2366@piout.net> <20160425103911.GO32731@imgtec.com> <4641918.pNBP5iAK01@wuerfel> <20160425125809.GP32731@imgtec.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1461101066-27753-1-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <20160425125809.GP32731@imgtec.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: Eric Engestrom <eric.engestrom@imgtec.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Lee Jones <lee.jones@linaro.org>, Roland Stigge <stigge@antcom.de>, Florian Fainelli <f.fainelli@gmail.com>, Russell King <linux@arm.linux.org.uk>, Alexander Shiyan <shc_work@mail.ru>, Kevin Hilman <khilman@kernel.org>, Viresh Kumar <vireshk@kernel.org>, bcm-kernel-feedback-list@broadcom.com, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, spear-devel@list.st.com, Ray Jui <rjui@broadcom.com>, Rajendra Nayak <rnayak@ti.com>, Sekhar Nori <nsekhar@ti.com>, Krzysztof Halasa <khalasa@piap.pl>, Gregory Fong <gregory.0xf0@gmail.com>, linux-omap@vger.kernel.org, Paul
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 19 Apr 2016, Javier Martinez Canillas wrote:
+On Mon, 25 Apr 2016, Eric Engestrom wrote:
 
-> The driver's file path in the comment is wrong, use the correct one.
->=20
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
->=20
-> ---
->=20
->  drivers/mfd/twl4030-power.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.=
-c
-> index 04b539850e72..f832233fd365 100644
-> --- a/drivers/mfd/twl4030-power.c
-> +++ b/drivers/mfd/twl4030-power.c
-> @@ -1,5 +1,5 @@
->  /*
-> - * linux/drivers/i2c/chips/twl4030-power.c
-> + * linux/drivers/mfd/twl4030-power.c
+> On Mon, Apr 25, 2016 at 01:38:18PM +0200, Arnd Bergmann wrote:
+> > Maybe say you you found it (llvm, sparse, coccinelle?), and why this
+> > is causing a problem for anyone. If it's just unnecessary but not
+> > harmful, I'd probably ignore the patch.
+> 
+> $ grep -rE '(^|\W)const(\s+\w+)+\s+const\s'
+> 
+> I just happened to notice some unnecessary const in our internal code,
+> so I grep'ed for it in a couple big OSS projects to see how common it
+> was. Since I found only a few, I decided to remove them, but like I said
+> it just gets ignored by all the compilers I know, so there's absolutely
+> no harm in leaving this dead code around.
 
-These have a nasty habit of getting out of date, and since they serve
-very little purpose, I'd prefer it if you just removed the line
-completely.
+Beware.
 
->   * Handle TWL4030 Power initialization
->   *
+I added many of those exactly because gcc did not ignore them when 
+compiling with LTO where the lack of a const qualifier to qualify the 
+actual array content, and not only the reference to that content, 
+generated build errors due to section mismatches from the __initconst 
+annotation.
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
+So this is a NAK from me unless you may confirm that LTO builds are 
+unaffected by your changes.
+
+
+Nicolas
