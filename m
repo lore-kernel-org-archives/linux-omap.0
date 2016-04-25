@@ -1,150 +1,160 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v4.6-rc5
-Date: Mon, 25 Apr 2016 05:10:30 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1604250509550.21733@utopia.booyaka.com>
+From: Eric Engestrom <eric.engestrom@imgtec.com>
+Subject: [PATCH 4/4] ARM: remove duplicate const qualifier
+Date: Mon, 25 Apr 2016 10:47:57 +0100
+Message-ID: <1461577678-29517-4-git-send-email-eric.engestrom@imgtec.com>
+References: <1461577678-29517-1-git-send-email-eric.engestrom@imgtec.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1461577678-29517-1-git-send-email-eric.engestrom@imgtec.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Eric Engestrom <eric.engestrom@imgtec.com>, Nicolas Ferre <nicolas.ferre@atmel.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Russell King <linux@arm.linux.org.uk>, Florian Fainelli <f.fainelli@gmail.com>, Ray Jui <rjui@broadcom.com>, Scott Branden <sbranden@broadcom.com>, Alexander Shiyan <shc_work@mail.ru>, Krzysztof Halasa <khalasa@piap.pl>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Roland Stigge <stigge@antcom.de>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Viresh Kumar <vireshk@kernel.org>, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, Gregory Fong <gregory.0xf0@gmail.com>, Krzysztof Kozlowski <k.kozlowski@samsung.com>Nicolas Pitre <ni>
 List-Id: linux-omap@vger.kernel.org
 
+Signed-off-by: Eric Engestrom <eric.engestrom@imgtec.com>
+---
+ arch/arm/mach-at91/pm.c                 | 2 +-
+ arch/arm/mach-bcm/bcm_kona_smc.c        | 2 +-
+ arch/arm/mach-clps711x/board-autcpu12.c | 2 +-
+ arch/arm/mach-cns3xxx/core.c            | 2 +-
+ arch/arm/mach-davinci/da8xx-dt.c        | 2 +-
+ arch/arm/mach-lpc32xx/phy3250.c         | 2 +-
+ arch/arm/mach-mxs/mach-mxs.c            | 2 +-
+ arch/arm/mach-omap2/prm_common.c        | 2 +-
+ arch/arm/mach-omap2/vc.c                | 2 +-
+ arch/arm/mach-spear/time.c              | 2 +-
+ 10 files changed, 10 insertions(+), 10 deletions(-)
 
-Here are some basic OMAP test results for Linux v4.6-rc5.
-Logs and other details at:
-
-    http://www.pwsan.com/omap/testlogs/test_v4.6-rc5/20160424184502/
-
-
-Test summary
-------------
-
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
-
-Build: uImage+dtb:
-    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/omap4-var-stk-om44,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig_n800_only_a/omap2420-n800,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-sbc-t3517,
-		  omap2plus_defconfig/omap5-uevm,
-		  omap2plus_defconfig/omap5-sbc-t54
-
-Build: zImage:
-    Pass (18/18): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  omap2plus_defconfig_ti81xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
-
-Build warnings from toolchain: uImage:
-    (none)
-
-Build warnings from toolchain: uImage+dtb:
-    (none)
-
-Build warnings from toolchain: zImage:
-    FAIL ( 1/18): multi_v7_defconfig
-
-Boot to userspace:
-    FAIL ( 1/18): 2430sdp
-    skip ( 3/18): 5912osk, 3517evm, 5430es2sbct54
-    Pass (14/18): am335xbonelt, am437xsk, am335xbone, 4430es2panda,
-		  4460pandaes, 4460varsomom, 37xxevm, 3530es3beagle,
-		  3530es31beagle, 3730beaglexm, 3730es12beaglexm,
-		  cmt3517, 5430es2uevm, 2420n800
-
-Kernel warnings during boot to userspace:
-    FAIL ( 2/18): 4430es2panda, cmt3517
-
-PM: chip retention via suspend:
-    FAIL ( 6/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
-		  2430sdp, 5430es2uevm
-    Pass ( 5/11): 4460pandaes, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm
-
-PM: chip retention via dynamic idle:
-    FAIL ( 8/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
-		  3530es3beagle, 3530es31beagle, 2430sdp, 5430es2uevm
-    Pass ( 3/11): 4460pandaes, 3730beaglexm, 3730es12beaglexm
-
-PM: chip off (except CORE, due to errata) via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off (except CORE, due to errata) via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    FAIL ( 2/ 4): 37xxevm, 3530es3beagle
-    Pass ( 2/ 4): 3530es31beagle, 3730es12beaglexm
-
-PM: chip off via dynamic idle:
-    FAIL ( 3/ 4): 37xxevm, 3530es3beagle, 3530es31beagle
-    Pass ( 1/ 4): 3730es12beaglexm
-
-Kernel warnings during PM test:
-    FAIL ( 1/18): 4430es2panda
-
-Obsolete Kconfig symbols:
-    FAIL ( 3/21): omap1_defconfig, omap2plus_defconfig,
-		  multi_v7_defconfig
-
-
-vmlinux object size
-(delta in bytes from test_v4.6-rc4 (c3b46c73264b03000d1e18b22f5caf63332547c9)):
-   text     data      bss    total  kernel
-  +1459        0        0    +1459  omap1_defconfig
-  +1495        0        0    +1495  omap1_defconfig_1510innovator_only
-  +1451        0        0    +1451  omap1_defconfig_5912osk_only
-  +2456        0        0    +2456  multi_v7_defconfig
-  +2347        0        0    +2347  omap2plus_defconfig
-  +2003        0        0    +2003  omap2plus_defconfig_2430sdp_only
-  +2315        0        0    +2315  omap2plus_defconfig_am33xx_only
-  +2311        0        0    +2311  omap2plus_defconfig_am43xx_only
-  +2347        0        0    +2347  omap2plus_defconfig_cpupm
-  +2247        0        0    +2247  omap2plus_defconfig_dra7xx_only
-    +60        0        0      +60  omap2plus_defconfig_n800_multi_omap2xxx
-    +28        0        0      +28  omap2plus_defconfig_n800_only_a
-  +2279        0        0    +2279  omap2plus_defconfig_no_pm
-  +2283        0        0    +2283  omap2plus_defconfig_omap2_4_only
-  +2311        0        0    +2311  omap2plus_defconfig_omap3_4_only
-  +2247        0        0    +2247  omap2plus_defconfig_omap5_only
-  +2215        0        0    +2215  omap2plus_defconfig_ti81xx_only
-    -12        0        0      -12  rmk_omap3430_ldp_allnoconfig
-   +265       -8        0     +257  rmk_omap3430_ldp_oldconfig
-   -220        0     +208      -12  rmk_omap4430_sdp_allnoconfig
-   +409        0        0     +409  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v4.6-rc4 (c3b46c73264b03000d1e18b22f5caf63332547c9))
-  avail  rsrvd   high  freed  board          kconfig
-     4k    -4k      .      .  37xxevm        omap2plus_defconfig
-     4k    -4k      .      .  4460varsomom   omap2plus_defconfig
+diff --git a/arch/arm/mach-at91/pm.c b/arch/arm/mach-at91/pm.c
+index f062701..9ef8604 100644
+--- a/arch/arm/mach-at91/pm.c
++++ b/arch/arm/mach-at91/pm.c
+@@ -318,7 +318,7 @@ static void at91sam9_sdram_standby(void)
+ 		at91_ramc_write(1, AT91_SDRAMC_LPR, saved_lpr1);
+ }
+ 
+-static const struct of_device_id const ramc_ids[] __initconst = {
++static const struct of_device_id ramc_ids[] __initconst = {
+ 	{ .compatible = "atmel,at91rm9200-sdramc", .data = at91rm9200_standby },
+ 	{ .compatible = "atmel,at91sam9260-sdramc", .data = at91sam9_sdram_standby },
+ 	{ .compatible = "atmel,at91sam9g45-ddramc", .data = at91_ddr_standby },
+diff --git a/arch/arm/mach-bcm/bcm_kona_smc.c b/arch/arm/mach-bcm/bcm_kona_smc.c
+index cf3f865..a55a7ec 100644
+--- a/arch/arm/mach-bcm/bcm_kona_smc.c
++++ b/arch/arm/mach-bcm/bcm_kona_smc.c
+@@ -33,7 +33,7 @@ struct bcm_kona_smc_data {
+ 	unsigned result;
+ };
+ 
+-static const struct of_device_id const bcm_kona_smc_ids[] __initconst = {
++static const struct of_device_id bcm_kona_smc_ids[] __initconst = {
+ 	{.compatible = "brcm,kona-smc"},
+ 	{.compatible = "bcm,kona-smc"}, /* deprecated name */
+ 	{},
+diff --git a/arch/arm/mach-clps711x/board-autcpu12.c b/arch/arm/mach-clps711x/board-autcpu12.c
+index ba3d7d1..4fdfd92 100644
+--- a/arch/arm/mach-clps711x/board-autcpu12.c
++++ b/arch/arm/mach-clps711x/board-autcpu12.c
+@@ -160,7 +160,7 @@ static struct platform_device autcpu12_mmgpio_pdev __initdata = {
+ 	},
+ };
+ 
+-static const struct gpio const autcpu12_gpios[] __initconst = {
++static const struct gpio autcpu12_gpios[] __initconst = {
+ 	{ AUTCPU12_DPOT_CS,	GPIOF_OUT_INIT_HIGH,	"DPOT CS" },
+ 	{ AUTCPU12_DPOT_CLK,	GPIOF_OUT_INIT_LOW,	"DPOT CLK" },
+ 	{ AUTCPU12_DPOT_UD,	GPIOF_OUT_INIT_LOW,	"DPOT UD" },
+diff --git a/arch/arm/mach-cns3xxx/core.c b/arch/arm/mach-cns3xxx/core.c
+index 9b1dc22..e17a0e02 100644
+--- a/arch/arm/mach-cns3xxx/core.c
++++ b/arch/arm/mach-cns3xxx/core.c
+@@ -346,7 +346,7 @@ static struct usb_ohci_pdata cns3xxx_usb_ohci_pdata = {
+ 	.power_off	= csn3xxx_usb_power_off,
+ };
+ 
+-static const struct of_dev_auxdata const cns3xxx_auxdata[] __initconst = {
++static const struct of_dev_auxdata cns3xxx_auxdata[] __initconst = {
+ 	{ "intel,usb-ehci", CNS3XXX_USB_BASE, "ehci-platform", &cns3xxx_usb_ehci_pdata },
+ 	{ "intel,usb-ohci", CNS3XXX_USB_OHCI_BASE, "ohci-platform", &cns3xxx_usb_ohci_pdata },
+ 	{ "cavium,cns3420-ahci", CNS3XXX_SATA2_BASE, "ahci", NULL },
+diff --git a/arch/arm/mach-davinci/da8xx-dt.c b/arch/arm/mach-davinci/da8xx-dt.c
+index c4b5808..3d92c93 100644
+--- a/arch/arm/mach-davinci/da8xx-dt.c
++++ b/arch/arm/mach-davinci/da8xx-dt.c
+@@ -20,7 +20,7 @@
+ 
+ #define DA8XX_NUM_UARTS	3
+ 
+-static const struct of_device_id const da8xx_irq_match[] __initconst = {
++static const struct of_device_id da8xx_irq_match[] __initconst = {
+ 	{ .compatible = "ti,cp-intc", .data = cp_intc_of_init, },
+ 	{ }
+ };
+diff --git a/arch/arm/mach-lpc32xx/phy3250.c b/arch/arm/mach-lpc32xx/phy3250.c
+index b2f9e22..1ae7230 100644
+--- a/arch/arm/mach-lpc32xx/phy3250.c
++++ b/arch/arm/mach-lpc32xx/phy3250.c
+@@ -159,7 +159,7 @@ static struct lpc32xx_mlc_platform_data lpc32xx_mlc_data = {
+ 	.dma_filter = pl08x_filter_id,
+ };
+ 
+-static const struct of_dev_auxdata const lpc32xx_auxdata_lookup[] __initconst = {
++static const struct of_dev_auxdata lpc32xx_auxdata_lookup[] __initconst = {
+ 	OF_DEV_AUXDATA("arm,pl022", 0x20084000, "dev:ssp0", NULL),
+ 	OF_DEV_AUXDATA("arm,pl022", 0x2008C000, "dev:ssp1", NULL),
+ 	OF_DEV_AUXDATA("arm,pl110", 0x31040000, "dev:clcd", &lpc32xx_clcd_data),
+diff --git a/arch/arm/mach-mxs/mach-mxs.c b/arch/arm/mach-mxs/mach-mxs.c
+index f1ea470..19eeaec 100644
+--- a/arch/arm/mach-mxs/mach-mxs.c
++++ b/arch/arm/mach-mxs/mach-mxs.c
+@@ -282,7 +282,7 @@ static void __init apx4devkit_init(void)
+ #define TX28_FEC_PHY_RESET	MXS_GPIO_NR(4, 13)
+ #define TX28_FEC_nINT		MXS_GPIO_NR(4, 5)
+ 
+-static const struct gpio const tx28_gpios[] __initconst = {
++static const struct gpio tx28_gpios[] __initconst = {
+ 	{ ENET0_MDC__GPIO_4_0, GPIOF_OUT_INIT_LOW, "GPIO_4_0" },
+ 	{ ENET0_MDIO__GPIO_4_1, GPIOF_OUT_INIT_LOW, "GPIO_4_1" },
+ 	{ ENET0_RX_EN__GPIO_4_2, GPIOF_OUT_INIT_LOW, "GPIO_4_2" },
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+index 5b2f513..f1ca947 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -713,7 +713,7 @@ static struct omap_prcm_init_data scrm_data __initdata = {
+ };
+ #endif
+ 
+-static const struct of_device_id const omap_prcm_dt_match_table[] __initconst = {
++static const struct of_device_id omap_prcm_dt_match_table[] __initconst = {
+ #ifdef CONFIG_SOC_AM33XX
+ 	{ .compatible = "ti,am3-prcm", .data = &am3_prm_data },
+ #endif
+diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+index 2028167f..d76b1e5 100644
+--- a/arch/arm/mach-omap2/vc.c
++++ b/arch/arm/mach-omap2/vc.c
+@@ -559,7 +559,7 @@ struct i2c_init_data {
+ 	u8 hsscll_12;
+ };
+ 
+-static const struct i2c_init_data const omap4_i2c_timing_data[] __initconst = {
++static const struct i2c_init_data omap4_i2c_timing_data[] __initconst = {
+ 	{
+ 		.load = 50,
+ 		.loadbits = 0x3,
+diff --git a/arch/arm/mach-spear/time.c b/arch/arm/mach-spear/time.c
+index 9ccffc1..aaaa678 100644
+--- a/arch/arm/mach-spear/time.c
++++ b/arch/arm/mach-spear/time.c
+@@ -204,7 +204,7 @@ static void __init spear_clockevent_init(int irq)
+ 	setup_irq(irq, &spear_timer_irq);
+ }
+ 
+-static const struct of_device_id const timer_of_match[] __initconst = {
++static const struct of_device_id timer_of_match[] __initconst = {
+ 	{ .compatible = "st,spear-timer", },
+ 	{ },
+ };
+-- 
+2.7.4
