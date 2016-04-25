@@ -1,81 +1,41 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] ARM: dts: dra7xx: Fix compatible string for PCF8575 chip
-Date: Mon, 25 Apr 2016 15:53:54 +0300
-Message-ID: <1461588834-20908-1-git-send-email-rogerq@ti.com>
+From: Eric Engestrom <eric.engestrom@imgtec.com>
+Subject: Re: [PATCH 4/4] ARM: remove duplicate const qualifier
+Date: Mon, 25 Apr 2016 13:58:09 +0100
+Message-ID: <20160425125809.GP32731@imgtec.com>
+References: <1461577678-29517-1-git-send-email-eric.engestrom@imgtec.com>
+ <20160425095715.GA2366@piout.net>
+ <20160425103911.GO32731@imgtec.com>
+ <4641918.pNBP5iAK01@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, ben.hutchings-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4641918.pNBP5iAK01@wuerfel>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Nicolas Pitre <nicolas.pitre@linaro.org>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Lee Jones <lee.jones@linaro.org>, Roland Stigge <stigge@antcom.de>, Florian Fainelli <f.fainelli@gmail.com>, Russell King <linux@arm.linux.org.uk>, Alexander Shiyan <shc_work@mail.ru>, Kevin Hilman <khilman@kernel.org>, Viresh Kumar <vireshk@kernel.org>, bcm-kernel-feedback-list@broadcom.com, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, spear-devel@list.st.com, Ray Jui <rjui@broadcom.com>, Rajendra Nayak <rnayak@ti.com>, Sekhar Nori <nsekhar@ti.com>, Krzysztof Halasa <khalasa@piap.pl>, Gregory Fong <gregory.0xf0@gmail.com>, linux-omap@vger.kernel.o
 List-Id: linux-omap@vger.kernel.org
 
-The boards use a TI variant of the PCF8575 so specify that
-in the compatible string.
+On Mon, Apr 25, 2016 at 01:38:18PM +0200, Arnd Bergmann wrote:
+> Maybe say you you found it (llvm, sparse, coccinelle?), and why this
+> is causing a problem for anyone. If it's just unnecessary but not
+> harmful, I'd probably ignore the patch.
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/dra7-evm.dts          | 6 +++---
- arch/arm/boot/dts/dra72-evm-common.dtsi | 4 ++--
- 2 files changed, 5 insertions(+), 5 deletions(-)
+$ grep -rE '(^|\W)const(\s+\w+)+\s+const\s'
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index d272cf1..4fb0ff4 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -556,7 +556,7 @@
- 	};
- 
- 	pcf_lcd: gpio@20 {
--		compatible = "nxp,pcf8575";
-+		compatible = "ti,pcf8575", "nxp,pcf8575";
- 		reg = <0x20>;
- 		gpio-controller;
- 		#gpio-cells = <2>;
-@@ -567,7 +567,7 @@
- 	};
- 
- 	pcf_gpio_21: gpio@21 {
--		compatible = "nxp,pcf8575";
-+		compatible = "ti,pcf8575", "nxp,pcf8575";
- 		reg = <0x21>;
- 		lines-initial-states = <0x1408>;
- 		gpio-controller;
-@@ -601,7 +601,7 @@
- 	clock-frequency = <400000>;
- 
- 	pcf_hdmi: gpio@26 {
--		compatible = "nxp,pcf8575";
-+		compatible = "ti,pcf8575", "nxp,pcf8575";
- 		reg = <0x26>;
- 		gpio-controller;
- 		#gpio-cells = <2>;
-diff --git a/arch/arm/boot/dts/dra72-evm-common.dtsi b/arch/arm/boot/dts/dra72-evm-common.dtsi
-index 2c88050..90a827d 100644
---- a/arch/arm/boot/dts/dra72-evm-common.dtsi
-+++ b/arch/arm/boot/dts/dra72-evm-common.dtsi
-@@ -408,7 +408,7 @@
- 	};
- 
- 	pcf_gpio_21: gpio@21 {
--		compatible = "nxp,pcf8575";
-+		compatible = "ti,pcf8575", "nxp,pcf8575";
- 		reg = <0x21>;
- 		lines-initial-states = <0x1408>;
- 		gpio-controller;
-@@ -440,7 +440,7 @@
- 	clock-frequency = <400000>;
- 
- 	pcf_hdmi: pcf8575@26 {
--		compatible = "nxp,pcf8575";
-+		compatible = "ti,pcf8575", "nxp,pcf8575";
- 		reg = <0x26>;
- 		gpio-controller;
- 		#gpio-cells = <2>;
--- 
-2.5.0
+I just happened to notice some unnecessary const in our internal code,
+so I grep'ed for it in a couple big OSS projects to see how common it
+was. Since I found only a few, I decided to remove them, but like I said
+it just gets ignored by all the compilers I know, so there's absolutely
+no harm in leaving this dead code around.
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> That's fine. Having multiple patches here is slightly better than just
+> one, but I'd also be fine with just taking the large patch because it
+> is an identical trivial change in multiple files.
+
+So, do you want me to split them up? I'd prefer not having to (slightly
+less work for me :P), but it doesn't really make much of a difference
+either way.
+
+Cheers
