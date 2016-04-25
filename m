@@ -1,41 +1,75 @@
-From: Eric Engestrom <eric.engestrom@imgtec.com>
-Subject: Re: [PATCH 4/4] ARM: remove duplicate const qualifier
-Date: Mon, 25 Apr 2016 13:58:09 +0100
-Message-ID: <20160425125809.GP32731@imgtec.com>
-References: <1461577678-29517-1-git-send-email-eric.engestrom@imgtec.com>
- <20160425095715.GA2366@piout.net>
- <20160425103911.GO32731@imgtec.com>
- <4641918.pNBP5iAK01@wuerfel>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v6 3/7] ARM: dts: am437x/am33xx/da850: Add new ECAP and
+ EPWM bindings
+Date: Mon, 25 Apr 2016 08:03:08 -0500
+Message-ID: <20160425130308.GA7802@rob-hp-laptop>
+References: <1461343238-29274-1-git-send-email-fcooper@ti.com>
+ <1461343238-29274-4-git-send-email-fcooper@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pwm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4641918.pNBP5iAK01@wuerfel>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Nicolas Pitre <nicolas.pitre@linaro.org>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Lee Jones <lee.jones@linaro.org>, Roland Stigge <stigge@antcom.de>, Florian Fainelli <f.fainelli@gmail.com>, Russell King <linux@arm.linux.org.uk>, Alexander Shiyan <shc_work@mail.ru>, Kevin Hilman <khilman@kernel.org>, Viresh Kumar <vireshk@kernel.org>, bcm-kernel-feedback-list@broadcom.com, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, spear-devel@list.st.com, Ray Jui <rjui@broadcom.com>, Rajendra Nayak <rnayak@ti.com>, Sekhar Nori <nsekhar@ti.com>, Krzysztof Halasa <khalasa@piap.pl>, Gregory Fong <gregory.0xf0@gmail.com>, linux-omap@vger.kernel.o
+In-Reply-To: <1461343238-29274-4-git-send-email-fcooper@ti.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Franklin S Cooper Jr <fcooper@ti.com>
+Cc: thierry.reding@gmail.com, tony@atomide.com, paul@pwsan.com, t-kristo@ti.com, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, devicetree@vger.kernel.org, vigneshr@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Apr 25, 2016 at 01:38:18PM +0200, Arnd Bergmann wrote:
-> Maybe say you you found it (llvm, sparse, coccinelle?), and why this
-> is causing a problem for anyone. If it's just unnecessary but not
-> harmful, I'd probably ignore the patch.
+On Fri, Apr 22, 2016 at 11:40:34AM -0500, Franklin S Cooper Jr wrote:
+> Switch to a new ECAP and EPWM bindings that doesn't depend on hwmod to
+> provide the various required clocks.
+> 
+> For AM437 and AM335x, add the required clocks explicitly to DT. The
+> hwmod entries for ECAP and EPWM will be removed and this will prevent
+> anything from breaking.
+> 
+> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+> ---
+>  .../devicetree/bindings/pwm/pwm-tiecap.txt         | 12 +++--
+>  .../devicetree/bindings/pwm/pwm-tiehrpwm.txt       | 12 +++--
+>  arch/arm/boot/dts/am33xx.dtsi                      | 30 +++++++++---
+>  arch/arm/boot/dts/am4372.dtsi                      | 54 ++++++++++++++++++----
+>  arch/arm/boot/dts/da850.dtsi                       | 15 ++++--
+>  5 files changed, 95 insertions(+), 28 deletions(-)
 
-$ grep -rE '(^|\W)const(\s+\w+)+\s+const\s'
+[...]
 
-I just happened to notice some unnecessary const in our internal code,
-so I grep'ed for it in a couple big OSS projects to see how common it
-was. Since I found only a few, I decided to remove them, but like I said
-it just gets ignored by all the compilers I know, so there's absolutely
-no harm in leaving this dead code around.
+> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+> index 12fcde4..e858460 100644
+> --- a/arch/arm/boot/dts/am4372.dtsi
+> +++ b/arch/arm/boot/dts/am4372.dtsi
+> @@ -672,18 +672,26 @@
+>  			status = "disabled";
+>  
+>  			ecap0: ecap@48300100 {
+> -				compatible = "ti,am4372-ecap","ti,am33xx-ecap";
+> +				compatible = "ti,am4372-ecap",
 
+This doesn't appear to be documented.
 
-> That's fine. Having multiple patches here is slightly better than just
-> one, but I'd also be fine with just taking the large patch because it
-> is an identical trivial change in multiple files.
+> +					     "ti,am3352-ecap",
+> +					     "ti,am33xx-ecap";
+>  				#pwm-cells = <3>;
+>  				reg = <0x48300100 0x80>;
+>  				ti,hwmods = "ecap0";
+> +				clocks = <&l4ls_gclk>;
+> +				clock-names = "fck";
+>  				status = "disabled";
+>  			};
+>  
+>  			ehrpwm0: pwm@48300200 {
+> -				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
+> +				compatible = "ti,am4372-ehrpwm",
 
-So, do you want me to split them up? I'd prefer not having to (slightly
-less work for me :P), but it doesn't really make much of a difference
-either way.
+ditto.
 
-Cheers
+> +					     "ti,am3352-ehrpwm",
+> +					     "ti,am33xx-ehrpwm";
+>  				#pwm-cells = <3>;
+>  				reg = <0x48300200 0x80>;
+>  				ti,hwmods = "ehrpwm0";
+> +				clocks = <&ehrpwm0_tbclk>, <&l4ls_gclk>;
+> +				clock-names = "tbclk", "fck";
+>  				status = "disabled";
+>  			};
+>  		};
