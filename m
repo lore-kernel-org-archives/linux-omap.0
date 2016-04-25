@@ -1,51 +1,73 @@
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: Re: [PATCH] mfd: twl4030-power: Fix driver path in file comment
-Date: Mon, 25 Apr 2016 13:00:40 -0400
-Message-ID: <571E4D38.8060508@osg.samsung.com>
-References: <1461101066-27753-1-git-send-email-javier@osg.samsung.com>
- <20160425140934.GG2713@dell>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "spi: return error if kmap'd buffers passed to spi_map_buf()" to the spi tree
+Date: Mon, 25 Apr 2016 18:57:02 +0100
+Message-ID: <E1aukko-0007o3-5w@debutante>
+References: <1461577442-8853-2-git-send-email-vigneshr@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160425140934.GG2713@dell>
+In-Reply-To: <1461577442-8853-2-git-send-email-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: Vignesh R <vigneshr@ti.com>
+Cc: Mark Brown <broonie@kernel.org>Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello Lee,
+The patch
 
-On 04/25/2016 10:09 AM, Lee Jones wrote:
-> On Tue, 19 Apr 2016, Javier Martinez Canillas wrote:
-> 
->> The driver's file path in the comment is wrong, use the correct one.
->>
->> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
->>
->> ---
->>
->>  drivers/mfd/twl4030-power.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
->> index 04b539850e72..f832233fd365 100644
->> --- a/drivers/mfd/twl4030-power.c
->> +++ b/drivers/mfd/twl4030-power.c
->> @@ -1,5 +1,5 @@
->>  /*
->> - * linux/drivers/i2c/chips/twl4030-power.c
->> + * linux/drivers/mfd/twl4030-power.c
-> 
-> These have a nasty habit of getting out of date, and since they serve
-> very little purpose, I'd prefer it if you just removed the line
-> completely.
-> 
+   spi: return error if kmap'd buffers passed to spi_map_buf()
 
-Ok, I'll post a v2 just removing it then.
+has been applied to the spi tree at
 
-Best regards,
+   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/spi.git 
+
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From 0569a88f3d1ffed94b15569d53872f16e2351099 Mon Sep 17 00:00:00 2001
+From: Vignesh R <vigneshr@ti.com>
+Date: Mon, 25 Apr 2016 15:14:00 +0530
+Subject: [PATCH] spi: return error if kmap'd buffers passed to spi_map_buf()
+
+Current spi_map_buf() implementation supports creates sg_table for
+vmalloc'd and kmalloc'd buffers. Therefore return error if kmap'd buffer
+(or any other buffer) is passed to spi_map_buf().
+
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/spi/spi.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+index 6c4c050e6b65..a50f880a5036 100644
+--- a/drivers/spi/spi.c
++++ b/drivers/spi/spi.c
+@@ -717,9 +717,11 @@ static int spi_map_buf(struct spi_master *master, struct device *dev,
+ 	if (vmalloced_buf) {
+ 		desc_len = min_t(int, max_seg_size, PAGE_SIZE);
+ 		sgs = DIV_ROUND_UP(len + offset_in_page(buf), desc_len);
+-	} else {
++	} else if (virt_addr_valid(buf)) {
+ 		desc_len = min_t(int, max_seg_size, master->max_dma_len);
+ 		sgs = DIV_ROUND_UP(len, desc_len);
++	} else {
++		return -EINVAL;
+ 	}
+ 
+ 	ret = sg_alloc_table(sgt, sgs, GFP_KERNEL);
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+2.8.0.rc3
