@@ -1,104 +1,84 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v1] ARM: clocksource: make ARM_GLOBAL_TIMER selectable
-Date: Tue, 26 Apr 2016 22:35:08 +0300
-Message-ID: <571FC2EC.9090605@ti.com>
-References: <1461684532-16848-1-git-send-email-grygorii.strashko@ti.com>
- <20160426160245.GI28464@e106497-lin.cambridge.arm.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH arm 1/1] arm: Use _rcuidle tracepoint to allow use from
+ idle
+Date: Tue, 26 Apr 2016 12:39:50 -0700
+Message-ID: <20160426193949.GP5995@atomide.com>
+References: <1461617335-22372-1-git-send-email-paulmck@linux.vnet.ibm.com>
+ <20160426150031.GP5995@atomide.com>
+ <20160426175214.GJ3715@linux.vnet.ibm.com>
+ <20160426182939.GO5995@atomide.com>
+ <20160426190755.GK3715@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-In-Reply-To: <20160426160245.GI28464-2JSQmVVBSi7ZROr8t4l/smS4ubULX0JqMm0uRHvK7Nw@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-rockchip>,
- <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-rockchip/>
-List-Post: <mailto:linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-rockchip>,
- <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "Linux-rockchip" <linux-rockchip-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Liviu Dudau <liviu.dudau-5wv7dgnIgG8@public.gmane.org>
-Cc: kernel-F5mvAk5X5gdBDgjK7y7TUQ@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, Wei Xu <xuwei5-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, Jesper Nilsson <jesper.nilsson-VrBV9hrLPhE@public.gmane.org>, Florian Fainelli <f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Michal Simek <michal.simek-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-VrBV9hrLPhE@public.gmane.org, linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, bcm-kernel-feedback-list-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Mike Looijmans <mike.looijmans-Oq418RWZeHk@public.gmane.org>, Lars Persson <lars.persson-VrBV9hrLPhE@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Maxime Coquelin <maxime.coquelin-qxv4g6HH51o@public.gmane.org>, Srinivas Kandagatla <srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>J
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160426190755.GK3715@linux.vnet.ibm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: linux-kernel@vger.kernel.org, mingo@kernel.org, Russell King <linux@arm.linux.org.uk>, Steven Rostedt <rostedt@goodmis.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDQvMjYvMjAxNiAwNzowMiBQTSwgTGl2aXUgRHVkYXUgd3JvdGU6Cj4gT24gVHVlLCBBcHIg
-MjYsIDIwMTYgYXQgMDY6Mjg6NTJQTSArMDMwMCwgR3J5Z29yaWkgU3RyYXNoa28gd3JvdGU6Cj4g
-Cj4gSGkgR3J5Z29yaWksCj4gCj4gRmlyc3QgdGltZSBJJ20gc2VlaW5nIHRoaXMgcGF0Y2gsIHNv
-IEkgaGF2ZSBhIGZldyBxdWVzdGlvbnMsIG1vc3RseQo+IHJlbGF0ZWQgdG8gdGhlIGNvbW1pdCBt
-ZXNzYWdlOgoKSG0uIFlvdSBhcmUgaW4gY2MgZm9yIFJGQy4KU3J5LCBmb3Jnb3QgdG8gYWRkIGxp
-bmsgWzFdLgoKPiAKPj4gVGhpcyBwYXRjaCBpbnRlbmRlZCB0byBmaXggZm9sbG93aW5nIGNhc2Vz
-Ogo+PiAtIFNvQy1BIGhhcyBBUk0gR1QsIGRlZmluZXMgRFQgbm9kZSBmb3IgQVJNIEdUIGFuZCBz
-ZWxlY3RzCj4+IEFSTV9HTE9CQUxfVElNRVIgc3RhdGljYWxseSBpbiBLY29uZmlnIGZpbGUuIFNv
-Qy1CIGhhcyBBUk0gR1QgYW5kCj4+IGRlZmluZXMgRFQgbm9kZSBmb3IgQVJNIEdULCBidXQgZG8g
-bm90IHNlbGVjdHMgQVJNX0dMT0JBTF9USU1FUgo+PiBzdGF0aWNhbGx5IGluIEtjb25maWcgZmls
-ZS4gSW4gY2FzZSBvZiBtdWx0aXBsYXRmb3JtIGJ1aWxkIEFSTSBHVCB3aWxsCj4+IGJlIGltcGxp
-Y2l0bHkgZW5hYmxlZCBmb3IgU29DLUIuCj4gCj4gV2VsbCwgU29DLUIgaGFzIHRoZSBHVCAqYW5k
-KiB0aGUgRFQgbm9kZSwgc28gd2hhdCBpcyB0aGUgcHJvYmxlbSB3aXRoCj4gZW5hYmxpbmcgaXQg
-Zm9yIFNvQy1CPyBJZiB0aGVyZSBhcmUgcmVhc29ucyBub3QgdG8gdXNlIHRoZSBHbG9iYWwgVGlt
-ZXIKPiBvbiBTb0MtQiwgc3VyZWx5IGEgYmV0dGVyIG9wdGlvbiB3b3VsZCBiZSB0byBtYXJrIGl0
-IGluIERUIHdpdGggc3RhdHVzID0gImRpc2FibGVkIjsKClRoaXMgd2FzIHJlamVjdGVkIFsyXS4g
-RFQgZGVzY3JpYmVzIEhXIGFuZCBpZiBpdCBpcyBmdW5jdGlvbmFsIHRoZSBzdGF0dXMgPSAiZGlz
-YWJsZWQiCmlzIG5vdCBnb29kIGNob2ljZS4KQVJNIEdUIGNhbid0IGJlIHVzZWQgYXMgY2xvY2tz
-b3VyY2Uvc2NoZWRfY2xvY2svY2xvY2tldmVudCB3aGVuIENQVUZyZXEgb3IKQ1BVSWRsZSBhcmUg
-ZW5hYmxlZCA6KCwgYW5kIHRoaXMgaXMgTGludXggc3BlY2lmaWMgZnVuY3Rpb25hbGl0eSBhbmQK
-bm90IEhXIGRlc2NyaXB0aW9uLiAKCj4gCj4+Cj4+IC0gVGhlcmUgaXMgbm8gd2F5IHRvIGRpc2Fi
-bGUgQVJNIEdUIHdpdGhvdXQgbW9kaWZ5aW5nIEtjb25maWcgZmlsZSwKPj4gb25jZSBBUk1fR0xP
-QkFMX1RJTUVSIGlzIHNlbGVjdGVkIHN0YXRpY2FsbHkgaW4gS2NvbmZpZyBmaWxlLgo+IAo+IFdo
-YXQgYWJvdXQgZGlzYWJsaW5nIHRoZSBEVCBub2RlPwo+IAo+IE5vdCBzdXJlIEkgcHJvcGVybHkg
-dW5kZXJzdGFuZCB0aGUgcHJvYmxlbSB5b3UgYXJlIHRyeWluZyB0byBzb2x2ZSBoZXJlLgoKSSdk
-IGxpa2UgdG8gaGF2ZSB3YXkgdG8gZW5hYmxlL2Rpc2FibGUgQVJNIEdUIHdpdGhvdXQgbW9kaWZ5
-aW5nIEtlcm5lbCBzb3VyY2VzCihLY29uZmlnIHNwZWNpZmljYWxseSkgd2hpY2ggaXMgbm93IGlt
-cG9zc2libGUuCgo+IAo+Pgo+PiBIZW5jZSwgZml4IGFib3ZlIGNhc2UgYnkgZGVmaW5pbmcgYm90
-aCBIQVZFX0FSTV9HTE9CQUxfVElNRVIgYW5kCj4+IEFSTV9HTE9CQUxfVElNRVIgYXMgcmVjb21t
-ZW5kZWQgYnkgJ0FkZGluZyBjb21tb24gZmVhdHVyZXMgYW5kIG1ha2UKPj4gdGhlIHVzYWdlIGNv
-bmZpZ3VyYWJsZScgc2VjdGlvbiBpbiBrY29uZmlnLWxhbmd1YWdlLnR4dC4gQWxsIHBsYWNlcyBp
-bgo+PiBBUk0gZm9sZGVyIHdoZXJlIEFSTV9HTE9CQUxfVElNRVIgd2FzIHVzZWQgbm93IHJlcGxh
-Y2VkIG9uCj4+IEhBVkVfQVJNX0dMT0JBTF9USU1FUi4KPiAKPiBJJ20gT0sgd2l0aCB0aGUgd2F5
-IHlvdSBoYXZlIGNoYW5nZWQgQVJNX0dMT0JBTF9USU1FUiBmcm9tIGEgc3RpY2t5IGNvbmZpZwo+
-IG9wdGlvbiB0byBhIHNlbGVjdGFibGUgb25lLCBidXQgSSB3b3VsZCBsaWtlIG1vcmUgZGV0YWls
-cyBvbiB0aGUgcHJvYmxlbQo+IHRoaXMgd2FzIGNhdXNpbmcgeW91Lgo+IAoKVGhlIHNhbWUgSFcg
-KGJvYXJkKSBjb3VsZCBiZSB1c2VkIHdpdGggUE0gZmVhdHVyZXMgZW5hYmxlZCAocG93ZXIgc2F2
-aW5nKQphbmQgZGlzYWJsZWQgKC1SVCkuIFdpdGhvdXQgdGhpcyBjaGFuZ2UgaXQgd2lsbCByZXF1
-aXJlIHRvIGhhdmUKYW5kIG1haW50YWluIHR3byBicmFuY2hlcywgYnV0IHdpdGggaXQgLSBqdXN0
-IHNlcGFyYXRlIGRlZmNvbmZpZy4KClsxXSBodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9waXBl
-cm1haWwvbGludXgtcm9ja2NoaXAvMjAxNi1GZWJydWFyeS8wMDcxNTkuaHRtbApbMl0gaHR0cDov
-L3d3dy5zcGluaWNzLm5ldC9saXN0cy9kZXZpY2V0cmVlL21zZzEwMjkxOC5odG1sCgo+IAo+Pgo+
-PiBDYzogRGFuaWVsIExlemNhbm8gPGRhbmllbC5sZXpjYW5vQGxpbmFyby5vcmc+Cj4+IENjOiBG
-bG9yaWFuIEZhaW5lbGxpIDxmLmZhaW5lbGxpQGdtYWlsLmNvbT4KPj4gQ2M6IFJ1c3NlbGwgS2lu
-ZyA8bGludXhAYXJtLmxpbnV4Lm9yZy51az4KPj4gQ2M6IFdlaSBYdSA8eHV3ZWk1QGhpc2lsaWNv
-bi5jb20+Cj4+IENjOiBTaGF3biBHdW8gPHNoYXduZ3VvQGtlcm5lbC5vcmc+Cj4+IENjOiBTYXNj
-aGEgSGF1ZXIgPGtlcm5lbEBwZW5ndXRyb25peC5kZT4KPj4gQ2M6IFNyaW5pdmFzIEthbmRhZ2F0
-bGEgPHNyaW5pdmFzLmthbmRhZ2F0bGFAZ21haWwuY29tPgo+PiBDYzogTWF4aW1lIENvcXVlbGlu
-IDxtYXhpbWUuY29xdWVsaW5Ac3QuY29tPgo+PiBDYzogTWFzYWhpcm8gWWFtYWRhIDx5YW1hZGEu
-bWFzYWhpcm9Ac29jaW9uZXh0LmNvbT4KPj4gQ2M6IExpdml1IER1ZGF1IDxsaXZpdS5kdWRhdUBh
-cm0uY29tPgo+PiBDYzogU3VkZWVwIEhvbGxhIDxzdWRlZXAuaG9sbGFAYXJtLmNvbT4KPj4gQ2M6
-IEp1biBOaWUgPGp1bi5uaWVAbGluYXJvLm9yZz4KPj4gQ2M6IE1pY2hhbCBTaW1layA8bWljaGFs
-LnNpbWVrQHhpbGlueC5jb20+Cj4+IENjOiBKZXNwZXIgTmlsc3NvbiA8amVzcGVyLm5pbHNzb25A
-YXhpcy5jb20+Cj4+IENjOiBMYXJzIFBlcnNzb24gPGxhcnMucGVyc3NvbkBheGlzLmNvbT4KPj4g
-Q2M6IE1pa2UgTG9vaWptYW5zIDxtaWtlLmxvb2lqbWFuc0B0b3BpYy5ubD4KPj4gQWNrZWQtYnk6
-IFPDtnJlbiBCcmlua21hbm4gPHNvcmVuLmJyaW5rbWFubkB4aWxpbnguY29tPgo+PiBBY2tlZC1i
-eTogTW9yaXR6IEZpc2NoZXIgPG1vcml0ei5maXNjaGVyQGV0dHVzLmNvbT4KPj4gU2lnbmVkLW9m
-Zi1ieTogR3J5Z29yaWkgU3RyYXNoa28gPGdyeWdvcmlpLnN0cmFzaGtvQHRpLmNvbT4KPj4gLS0t
-Cj4+IENoYW5nZXMgaXMgdjE6Cj4+IC0gdXBkYXRlZCBtYWNoLWFydHBlYwo+PiAtIHJlYmFzZWQg
-b24gdG9wIG9mIHRpcDogdGltZXJzL2NvcmUKPj4gICAgY29tbWl0OiA4NmQzNDczIHRpbWU6IElu
-dHJvZHVjZSBkb19zeXNfc2V0dGltZW9mZGF5NjQoKQo+Pgo+PiAgIGFyY2gvYXJtL21hY2gtYXJ0
-cGVjL0tjb25maWcgICB8IDIgKy0KPj4gICBhcmNoL2FybS9tYWNoLWJjbS9LY29uZmlnICAgICAg
-fCA0ICsrLS0KPj4gICBhcmNoL2FybS9tYWNoLWhpc2kvS2NvbmZpZyAgICAgfCAyICstCj4+ICAg
-YXJjaC9hcm0vbWFjaC1pbXgvS2NvbmZpZyAgICAgIHwgMiArLQo+PiAgIGFyY2gvYXJtL21hY2gt
-cm9ja2NoaXAvS2NvbmZpZyB8IDIgKy0KPj4gICBhcmNoL2FybS9tYWNoLXN0aS9LY29uZmlnICAg
-ICAgfCAyICstCj4+ICAgYXJjaC9hcm0vbWFjaC11bmlwaGllci9LY29uZmlnIHwgMiArLQo+PiAg
-IGFyY2gvYXJtL21hY2gtdmV4cHJlc3MvS2NvbmZpZyB8IDIgKy0KPj4gICBhcmNoL2FybS9tYWNo
-LXp4L0tjb25maWcgICAgICAgfCAyICstCj4+ICAgYXJjaC9hcm0vbWFjaC16eW5xL0tjb25maWcg
-ICAgIHwgMiArLQo+PiAgIGRyaXZlcnMvY2xvY2tzb3VyY2UvS2NvbmZpZyAgICB8IDcgKysrKysr
-LQo+PiAgIDExIGZpbGVzIGNoYW5nZWQsIDE3IGluc2VydGlvbnMoKyksIDEyIGRlbGV0aW9ucygt
-KQo+Pgo+PiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1hcnRwZWMvS2NvbmZpZyBiL2FyY2gv
-YXJtL21hY2gtYXJ0cGVjL0tjb25maWcKPj4gaW5kZXggNmNiZTVhMi4uNmNiY2E3NyAxMDA2NDQK
-Pj4gLS0tIGEvYXJjaC9hcm0vbWFjaC1hcnRwZWMvS2NvbmZpZwo+PiArKysgYi9hcmNoL2FybS9t
-YWNoLWFydHBlYy9LY29uZmlnCj4+IEBAIC05LDcgKzksNyBAQCBjb25maWcgTUFDSF9BUlRQRUM2
-Cj4+ICAgCWRlcGVuZHMgb24gQVJDSF9NVUxUSV9WNwo+PiAgIAlzZWxlY3QgQVJNX0FNQkEKPj4g
-ICAJc2VsZWN0IEFSTV9HSUMKPj4gLQlzZWxlY3QgQVJNX0dMT0JBTF9USU1FUgoKWy4uLl0KCi0t
-IApyZWdhcmRzLAotZ3J5Z29yaWkKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCkxpbnV4LXJvY2tjaGlwIG1haWxpbmcgbGlzdApMaW51eC1yb2NrY2hpcEBs
-aXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlz
-dGluZm8vbGludXgtcm9ja2NoaXAK
+* Paul E. McKenney <paulmck@linux.vnet.ibm.com> [160426 12:08]:
+> On Tue, Apr 26, 2016 at 11:29:39AM -0700, Tony Lindgren wrote:
+> > * Paul E. McKenney <paulmck@linux.vnet.ibm.com> [160426 10:53]:
+> > > Does the following patch help?
+> > 
+> > It just changes the output.. See below.
+> 
+> Ah -- you need both patches.
+
+Oops sorry, I though I had the first one already from next..
+
+> These are on -rcu at:
+> 
+> 501889db6fee (arm: Use _rcuidle tracepoint to allow use from idle)
+> 99cd56ad86d2 (rm: Use more _rcuidle tracepoints to allow use from idle)
+
+With these omap4 is now OK. But omap3 produces yet another warning,
+See below :)
+
+Regards,
+
+Tony
+
+8< ------------------
+===============================
+[ INFO: suspicious RCU usage. ]
+4.6.0-rc5-next-20160426+ #1114 Not tainted
+-------------------------------
+include/trace/events/clk.h:59 suspicious rcu_dereference_check() usage!
+
+other info that might help us debug this:
+
+
+RCU used illegally from idle CPU!
+rcu_scheduler_active = 1, debug_locks = 0
+RCU used illegally from extended quiescent state!
+2 locks held by swapper/0/0:
+ #0:  (&oh->hwmod_key#30){......}, at: [<c0121b40>] omap_hwmod_idle+0x18/0x44
+ #1:  (enable_lock){......}, at: [<c0630998>] clk_enable_lock+0x18/0x124
+
+stack backtrace:
+CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.6.0-rc5-next-20160426+ #1114
+Hardware name: Generic OMAP36xx (Flattened Device Tree)
+[<c0110290>] (unwind_backtrace) from [<c010c3a8>] (show_stack+0x10/0x14)
+[<c010c3a8>] (show_stack) from [<c047fd68>] (dump_stack+0xb0/0xe4)
+[<c047fd68>] (dump_stack) from [<c0631618>] (clk_core_disable+0x17c/0x348)
+[<c0631618>] (clk_core_disable) from [<c0632774>] (clk_disable+0x24/0x30)
+[<c0632774>] (clk_disable) from [<c0120590>] (_disable_clocks+0x18/0x7c)
+[<c0120590>] (_disable_clocks) from [<c0121680>] (_idle+0x12c/0x230)
+[<c0121680>] (_idle) from [<c0121b4c>] (omap_hwmod_idle+0x24/0x44)
+[<c0121b4c>] (omap_hwmod_idle) from [<c0122c24>] (omap_device_idle+0x3c/0x90)
+[<c0122c24>] (omap_device_idle) from [<c052cc00>] (__rpm_callback+0x2c/0x60)
+[<c052cc00>] (__rpm_callback) from [<c052cc54>] (rpm_callback+0x20/0x80)
+[<c052cc54>] (rpm_callback) from [<c052d150>] (rpm_suspend+0x100/0x768)
+[<c052d150>] (rpm_suspend) from [<c052ec58>] (__pm_runtime_suspend+0x64/0x84)
+[<c052ec58>] (__pm_runtime_suspend) from [<c04bf25c>] (omap2_gpio_prepare_for_idle+0x5
+c/0x70)
+[<c04bf25c>] (omap2_gpio_prepare_for_idle) from [<c0125568>] (omap_sram_idle+0x140/0x2
+44)
+[<c0125568>] (omap_sram_idle) from [<c01269dc>] (omap3_enter_idle_bm+0xfc/0x1ec)
+[<c01269dc>] (omap3_enter_idle_bm) from [<c0601bdc>] (cpuidle_enter_state+0x80/0x3d4)
+[<c0601bdc>] (cpuidle_enter_state) from [<c0183b08>] (cpu_startup_entry+0x198/0x3a0)
+[<c0183b08>] (cpu_startup_entry) from [<c0b00c0c>] (start_kernel+0x354/0x3c8)
+[<c0b00c0c>] (start_kernel) from [<8000807c>] (0x8000807c)
