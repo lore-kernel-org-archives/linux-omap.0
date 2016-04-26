@@ -1,199 +1,131 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH net v2 2/3] drivers: net: cpsw: fix error messages when
- using phy-handle DT property
-Date: Tue, 26 Apr 2016 10:50:08 +0300
-Message-ID: <571F1DB0.9060609@ti.com>
-References: <1461261035-5578-1-git-send-email-drivshin.allworx@gmail.com>
- <1461263172-10428-1-git-send-email-drivshin.allworx@gmail.com>
- <571A2126.2060708@ti.com>
- <20160422114545.57b477ad.drivshin.allworx@gmail.com>
- <571E6C14.8060007@ti.com>
- <20160425175542.3654cc33.drivshin.allworx@gmail.com>
+From: Peter Chen <hzpeterchen@gmail.com>
+Subject: Re: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
+Date: Tue, 26 Apr 2016 16:21:07 +0800
+Message-ID: <20160426082106.GE2978@peterchendt>
+References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
+ <1459865117-7032-8-git-send-email-rogerq@ti.com>
+ <AM4PR04MB213045DC3D1C1D67A7D9AF0689630@AM4PR04MB2130.eurprd04.prod.outlook.com>
+ <20160426034711.GC2978@peterchendt>
+ <AM4PR04MB2130124412E09799A2CB01BF89630@AM4PR04MB2130.eurprd04.prod.outlook.com>
+ <20160426062809.GD2978@peterchendt>
+ <AM4PR04MB2130503C9E7C2B984457A61089630@AM4PR04MB2130.eurprd04.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20160425175542.3654cc33.drivshin.allworx@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>, Mugunthan V N <mugunthanvnm@ti.com>
-Cc: Rob Herring <robh+dt@kernel.org>, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, David Miller <davem@davemloft.net>, Andrew Goodbody <andrew.goodbody@cambrionix.com>, Markus Brunner <systemprogrammierung.brunner@gmail.com>, Nicolas Chauvet <kwizart@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <AM4PR04MB2130503C9E7C2B984457A61089630@AM4PR04MB2130.eurprd04.prod.outlook.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jun Li <jun.li@nxp.com>
+Cc: Roger Quadros <rogerq@ti.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "balbi@kernel.org" <balbi@kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "peter.chen@freescale.com" <peter.chen@freescale.com>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "jun.li@freescale.com" <jun.li@freescale.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Joao.Pinto@synopsys.com" <Joao.Pinto@synopsys.com>, "abrestic@chromium.org" <abrestic@chromium.org>, "r.baldyga@samsung.com" <r.baldyga@samsung.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/26/2016 12:55 AM, David Rivshin (Allworx) wrote:
-> On Mon, 25 Apr 2016 22:12:20 +0300
-> Grygorii Strashko <grygorii.strashko@ti.com> wrote:
->
->> On 04/22/2016 06:45 PM, David Rivshin (Allworx) wrote:
->>> On Fri, 22 Apr 2016 16:03:34 +0300
->>> Grygorii Strashko <grygorii.strashko@ti.com> wrote:
->>>
->>>> On 04/21/2016 09:26 PM, David Rivshin (Allworx) wrote:
->>>>> From: David Rivshin <drivshin@allworx.com>
->>>>>
->>>>> The phy-handle, phy_id, and fixed-link properties are mutually exclusive,
->>>>> and only one need be specified. However if phy-handle was specified, an
->>>>> error message would complain about the lack of phy_id or fixed-link.
->>
->> I think, commit message need to be updated.
->> You not only fix log messages - you also fix the issue with
->> of_get_phy_mode(slave_node); which will not be called if phy-handle is used.
->
-> You are correct, and that is probably the more important fix compared
-> to the error messages.
->
-> Because the content is becoming less coherent, what I may do is split
-> this patch into 3 small patches:
-> A) devicetree binding documentation changes
-> B) cpsw_probe_dt changes, with the fixes for of_get_phy_mode() and
->     related error message
-> C) cpsw_slave_open changes, with the fixes for crash if of_phy_connect
->     returns NULL, and related error message
->
-> Does that sound reasonable?
+On Tue, Apr 26, 2016 at 07:00:22AM +0000, Jun Li wrote:
+> Hi
+> 
+> > -----Original Message-----
+> > From: Peter Chen [mailto:hzpeterchen@gmail.com]
+> > Sent: Tuesday, April 26, 2016 2:28 PM
+> > To: Jun Li <jun.li@nxp.com>
+> > Cc: Roger Quadros <rogerq@ti.com>; stern@rowland.harvard.edu;
+> > balbi@kernel.org; gregkh@linuxfoundation.org; peter.chen@freescale.com;
+> > dan.j.williams@intel.com; jun.li@freescale.com;
+> > mathias.nyman@linux.intel.com; tony@atomide.com; Joao.Pinto@synopsys.com;
+> > abrestic@chromium.org; r.baldyga@samsung.com; linux-usb@vger.kernel.org;
+> > linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org
+> > Subject: Re: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
+> > 
+> > On Tue, Apr 26, 2016 at 05:11:36AM +0000, Jun Li wrote:
+> > > Hi
+> > >
+> > > > -----Original Message-----
+> > > > From: Peter Chen [mailto:hzpeterchen@gmail.com]
+> > > > Sent: Tuesday, April 26, 2016 11:47 AM
+> > > > To: Jun Li <jun.li@nxp.com>
+> > > > Cc: Roger Quadros <rogerq@ti.com>; stern@rowland.harvard.edu;
+> > > > balbi@kernel.org; gregkh@linuxfoundation.org;
+> > > > peter.chen@freescale.com; dan.j.williams@intel.com;
+> > > > jun.li@freescale.com; mathias.nyman@linux.intel.com;
+> > > > tony@atomide.com; Joao.Pinto@synopsys.com; abrestic@chromium.org;
+> > > > r.baldyga@samsung.com; linux-usb@vger.kernel.org;
+> > > > linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org
+> > > > Subject: Re: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
+> > > >
+> > > > On Tue, Apr 26, 2016 at 02:07:56AM +0000, Jun Li wrote:
+> > > > > > +struct usb_otg *usb_otg_register(struct device *dev,
+> > > > > > +				 struct usb_otg_config *config) {
+> > > > > > +	struct usb_otg *otg;
+> > > > > > +	struct otg_wait_data *wait;
+> > > > > > +	int ret = 0;
+> > > > > > +
+> > > > > > +	if (!dev || !config || !config->fsm_ops)
+> > > > > > +		return ERR_PTR(-EINVAL);
+> > > > > > +
+> > > > > > +	/* already in list? */
+> > > > > > +	mutex_lock(&otg_list_mutex);
+> > > > > > +	if (usb_otg_get_data(dev)) {
+> > > > > > +		dev_err(dev, "otg: %s: device already in otg list\n",
+> > > > > > +			__func__);
+> > > > > > +		ret = -EINVAL;
+> > > > > > +		goto unlock;
+> > > > > > +	}
+> > > > > > +
+> > > > > > +	/* allocate and add to list */
+> > > > > > +	otg = kzalloc(sizeof(*otg), GFP_KERNEL);
+> > > > > > +	if (!otg) {
+> > > > > > +		ret = -ENOMEM;
+> > > > > > +		goto unlock;
+> > > > > > +	}
+> > > > > > +
+> > > > > > +	otg->dev = dev;
+> > > > > > +	otg->caps = config->otg_caps;
+> > > > > > +
+> > > > > > +	if ((otg->caps->hnp_support || otg->caps->srp_support ||
+> > > > > > +	     otg->caps->adp_support) && !config->otg_work)
+> > > > > > +		dev_info(dev, "otg: limiting to dual-role\n");
+> > > > >
+> > > > > dev_err, this should be an error.
+> > > >
+> > > > The condition may be wrong, but it is an information to show that
+> > > > current OTG is dual-role.
+> > >
+> > > This should not happen in any correct design, I even doubt if we
+> > > should try to continue by "downgrade" it to be duel role, currently
+> > > the only example user is dual role, so doing like this can't be tested
+> > > by real case, this downgrade is not so easy like we image, at least
+> > > for chipidea otg driver, simply replace a queue worker may not work,
+> > > as we have much more difference between the 2 configs.
+> > >
+> > 
+> > Would you show more why chipidea can't work just replace the work item,
+> > and see if anything we still can improve for this framework?
+> 
+> In real OTG, we need enable AVV irq,
 
-Sounds reasonable for me.
-Hope patch 1 from this series could be merged separately.
+Enable and Handling AVV is platform stuff. In this framework, we are
+focus on how otg device manages host and gadget together, and the state
+machine when the related otg event occurs.
 
->
->>
->>
->> slave_data->phy_if = of_get_phy_mode(slave_node);
->> ^ see below
->>>>>
->>>>> Also, if phy-handle was specified and the subsequent of_phy_connect()
->>>>> failed, the error message still referenced slaved->data->phy_id, which
->>>>> would be empty. Instead, use the name of the device_node as a useful
->>>>> identifier.
->>>>>
->>>>> Fixes: 9e42f715264f ("drivers: net: cpsw: add phy-handle parsing")
->>>>> Signed-off-by: David Rivshin <drivshin@allworx.com>
->>>>> Acked-by: Rob Herring <robh@kernel.org>
->>>>> Tested-by: Nicolas Chauvet <kwizart@gmail.com>
->>>>> ---
->>>>> If would like this for -stable it should apply cleanly as far back
->>>>> as 4.5. It failes on 4.4 due to some context differences, but can be
->>>>> applied with 'git am -C2'. Or, I can produce a separate patch against
->>>>> linux-4.4.y if preferred.
->>>>>
->>>>> Changes since v1 [1]:
->>>>> - Rebased (no conflicts)
->>>>> - Added Tested-by from Nicolas Chauvet
->>>>> - Added Acked-by from Rob Herring for the binding change
->>>>>
->>>>> [1] https://patchwork.ozlabs.org/patch/560324/
->>>>>
->>>>>     Documentation/devicetree/bindings/net/cpsw.txt |  4 ++--
->>>>>     drivers/net/ethernet/ti/cpsw.c                 | 17 +++++++++++++----
->>>>>     2 files changed, 15 insertions(+), 6 deletions(-)
->>>>>
->>>>> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
->>>>> index 28a4781..3033c0f 100644
->>>>> --- a/Documentation/devicetree/bindings/net/cpsw.txt
->>>>> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
->>>>> @@ -46,16 +46,16 @@ Optional properties:
->>>>>     - dual_emac_res_vlan	: Specifies VID to be used to segregate the ports
->>>>>     - mac-address		: See ethernet.txt file in the same directory
->>>>>     - phy_id		: Specifies slave phy id
->>>>
->>>> May be the "phy_id" can be marked as deprecated? (while here)
->>>> The recommended property now is "phy-handle".
->>>
->>> I can certainly do that. Perhaps something like this?
->>>    - phy_id		: Specifies slave phy id (deprecated, use phy-handle)
->>>
->>> Rob, would you have any issues with bundling that?
->>>
->>>>
->>>>>     - phy-handle		: See ethernet.txt file in the same directory
->>>>>
->>>>>     Slave sub-nodes:
->>>>>     - fixed-link		: See fixed-link.txt file in the same directory
->>>>> -			  Either the property phy_id, or the sub-node
->>>>> -			  fixed-link can be specified
->>>>> +
->>>>> +Note: Exactly one of phy_id, phy-handle, or fixed-link must be specified.
->>>>>
->>>>>     Note: "ti,hwmods" field is used to fetch the base address and irq
->>>>>     resources from TI, omap hwmod data base during device registration.
->>>>>     Future plan is to migrate hwmod data base contents into device tree
->>>>>     blob so that, all the required data will be used from device tree dts
->>>>>     file.
->>>>>
->>>>> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
->>>>> index d69cb3f..3c81413 100644
->>>>> --- a/drivers/net/ethernet/ti/cpsw.c
->>>>> +++ b/drivers/net/ethernet/ti/cpsw.c
->>>>> @@ -1150,16 +1150,19 @@ static void cpsw_slave_open(struct cpsw_slave *slave, struct cpsw_priv *priv)
->>>>>     	if (slave->data->phy_node)
->>>>>     		slave->phy = of_phy_connect(priv->ndev, slave->data->phy_node,
->>>>>     				 &cpsw_adjust_link, 0, slave->data->phy_if);
->>>>>     	else
->>>>>     		slave->phy = phy_connect(priv->ndev, slave->data->phy_id,
->>>>>     				 &cpsw_adjust_link, slave->data->phy_if);
->>>>>     	if (IS_ERR(slave->phy)) {
->>>>> -		dev_err(priv->dev, "phy %s not found on slave %d\n",
->>>>> -			slave->data->phy_id, slave->slave_num);
->>>>> +		dev_err(priv->dev, "phy \"%s\" not found on slave %d\n",
->>>>> +			slave->data->phy_node ?
->>>>> +				slave->data->phy_node->full_name :
->>>>> +				slave->data->phy_id,
->>>>> +			slave->slave_num);
->>>>
->>>> Unfortunately,  there are some inconsistency between legacy and FDT API :(
->>>> of_phy_connect() will return valid phy_device or NULL, but phy_connect()
->>>> can return valid phy_device or ERR_PTR().
->>>
->>> Good catch, I hadn't noticed that. It looks like that's actually a more
->>> serious (pre-existing) bug: if of_phy_connect() returns NULL, we'd end
->>> up dereferencing it and pagefaulting.
->>>
->>> How about moving the IS_ERR() check into the phy_connect() case like this:
->>> 	if (slave->data->phy_node) {
->>> 		slave->phy = of_phy_connect(priv->ndev, slave->data->phy_node,
->>> 				 &cpsw_adjust_link, 0, slave->data->phy_if);
->>
->> [1]
->>
->>> 	} else {
->>> 		slave->phy = phy_connect(priv->ndev, slave->data->phy_id,
->>> 				 &cpsw_adjust_link, slave->data->phy_if);
->>> 		if (IS_ERR(slave->phy))
->>> 			slave->phy = NULL;
->> [2]
->>> 	}
->>> 	if (!slave->phy) {
->>> 		dev_err(priv->dev, "phy \"%s\" not found on slave %d\n",
->>> 			slave->data->phy_node ?
->>> 				slave->data->phy_node->full_name :
->>> 				slave->data->phy_id,
->>> 			slave->slave_num);
->>> 	} else {
->>>
->>> Since you say the phy_id case is deprecated anyways, I'm not too concerned
->>> about not printing the error code returned by phy_connect() in that case
->>> (especially since it never did so in the past). That lets us still avoid
->>> duplicating the dev_err() itself.
->>
->> I'm not worry too much about duplicating dev_err() - it's always good to know
->> the reason of failure.
->>
->> So, may be for of_phy_connect() [1]:
->>   dev_err(priv->dev, "phy \"%s\" not found on slave %d\n",
->> 	slave->data->phy_node->full_name,
->>   	slave->slave_num);
->>
->> and for phy_connect() [2]:
->>    dev_err(priv->dev, "phy %s not found on slave %d, err %d\n",
->>    	slave->data->phy_id, slave->slave_num, PTR_ERR(slave->phy));
->>
->> Mugunthan, any comments?
->
-> If that's the preference, then I can incorporate that into V3.
->
+> but for duel role, nobody care/handle,
+> there are much more resource required for OTG: timers, hnp polling,
+> otg test device handling... 
 
-Yes, please, if no other comments.
+They are common things for fully OTG fsm, you can move them
+to common code (In fact, hnp polling handling is already common code).
 
+> 
+> with current design, chipidea driver can support real OTG with its own
+> queue worker, or DRD with Roger's drd work item if config is correct.
+> 
+> But improve something to work on a *wrong* config will make it complicated
+> and does not make much sense IMO.
+> 
+
+What does above "config" you mean?
+
+If the configure is fully OTG, you can choose different state machine,
+eg otg_statemachine, if you find it is hard for chipidea to use this
+framework, just list the reason, and see if we can improve.
 
 -- 
-regards,
--grygorii
+Best Regards,
+Peter Chen
