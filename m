@@ -1,101 +1,89 @@
-From: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: USB gadgets with configfs hang reboot
-Date: Tue, 26 Apr 2016 09:22:04 +0300
-Message-ID: <87a8kgrisz.fsf@intel.com>
-References: <20160115224839.GA19432@atomide.com> <569A1E32.1020502@gmail.com> <57081105.2050206@gmail.com> <87oa97gxkw.fsf@intel.com> <571E6943.30305@gmail.com>
+From: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
+Date: Tue, 26 Apr 2016 14:28:09 +0800
+Message-ID: <20160426062809.GD2978@peterchendt>
+References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
+ <1459865117-7032-8-git-send-email-rogerq@ti.com>
+ <AM4PR04MB213045DC3D1C1D67A7D9AF0689630@AM4PR04MB2130.eurprd04.prod.outlook.com>
+ <20160426034711.GC2978@peterchendt>
+ <AM4PR04MB2130124412E09799A2CB01BF89630@AM4PR04MB2130.eurprd04.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <571E6943.30305-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <AM4PR04MB2130124412E09799A2CB01BF89630-WOempg8NbQQzjTQnahXoOs9NdZoXdze2vxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Michal Nazarewicz <mina86-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>
+To: Jun Li <jun.li-3arQi8VN3Tc@public.gmane.org>
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, "stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org" <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org" <abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, "r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+On Tue, Apr 26, 2016 at 05:11:36AM +0000, Jun Li wrote:
+> Hi
+> 
+> > -----Original Message-----
+> > From: Peter Chen [mailto:hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
+> > Sent: Tuesday, April 26, 2016 11:47 AM
+> > To: Jun Li <jun.li-3arQi8VN3Tc@public.gmane.org>
+> > Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>; stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org;
+> > balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org; peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org;
+> > dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org; jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org;
+> > mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org; tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org; Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org;
+> > abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org; r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> > linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Subject: Re: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
+> > 
+> > On Tue, Apr 26, 2016 at 02:07:56AM +0000, Jun Li wrote:
+> > > > +struct usb_otg *usb_otg_register(struct device *dev,
+> > > > +				 struct usb_otg_config *config) {
+> > > > +	struct usb_otg *otg;
+> > > > +	struct otg_wait_data *wait;
+> > > > +	int ret = 0;
+> > > > +
+> > > > +	if (!dev || !config || !config->fsm_ops)
+> > > > +		return ERR_PTR(-EINVAL);
+> > > > +
+> > > > +	/* already in list? */
+> > > > +	mutex_lock(&otg_list_mutex);
+> > > > +	if (usb_otg_get_data(dev)) {
+> > > > +		dev_err(dev, "otg: %s: device already in otg list\n",
+> > > > +			__func__);
+> > > > +		ret = -EINVAL;
+> > > > +		goto unlock;
+> > > > +	}
+> > > > +
+> > > > +	/* allocate and add to list */
+> > > > +	otg = kzalloc(sizeof(*otg), GFP_KERNEL);
+> > > > +	if (!otg) {
+> > > > +		ret = -ENOMEM;
+> > > > +		goto unlock;
+> > > > +	}
+> > > > +
+> > > > +	otg->dev = dev;
+> > > > +	otg->caps = config->otg_caps;
+> > > > +
+> > > > +	if ((otg->caps->hnp_support || otg->caps->srp_support ||
+> > > > +	     otg->caps->adp_support) && !config->otg_work)
+> > > > +		dev_info(dev, "otg: limiting to dual-role\n");
+> > >
+> > > dev_err, this should be an error.
+> > 
+> > The condition may be wrong, but it is an information to show that current
+> > OTG is dual-role.
+> 
+> This should not happen in any correct design, I even doubt if we
+> should try to continue by "downgrade" it to be duel role, currently
+> the only example user is dual role, so doing like this can't be
+> tested by real case, this downgrade is not so easy like we image,
+> at least for chipidea otg driver, simply replace a queue worker may
+> not work, as we have much more difference between the 2 configs.
+> 
 
+Would you show more why chipidea can't work just replace the work item,
+and see if anything we still can improve for this framework?
 
-Hi,
-
-Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
->>>>> Looks like there's some issue with the USB gadgets and configfs.
->>>>>
->>>>> I'm seeing rmmod of the UDC driver cause a warning and then reboot
->>>>> hangs the system. This happens at least with v4.4, and I've reproduced
->>>>> it with dwc3 and musb so it seems to be generic.
->>>>>
->>>>
->>>> Having configfs is not needed, disabling usb gadgets (#
->>>> CONFIG_USB_MUSB_GADGET is not set) seems to solved at least poweroff
->>>> hang issue on N900. Also, g_nokia is not a module in the config I use,
->>>> so I guess the problem is not related whether gadgets are modular or
->>>> not. Unfortunately I was not able to test reboot, as rootfs became
->>>> corrupted after the first poweroff :( . So it looks like my theory that
->>>> onenand corruption on N900 is because poweroff/reboot hangs is wrong.
->>>
->>> (copied from "Re: [PATCH] usb: f_mass_storage: test whether thread is
->>> running before starting another" thread)
->>>
->>> Yet another problem with USB gadget, this time with f_acm - if there is
->>> an open /dev/ttyGSn device, it is impossible to reboot/power down the
->>> device.
->>>
->>> My investigation shown that there is a process(pnatd) that opens
->>> /dev/ttyGSn devices, so gserial_free_port() hangs on
->>> wait_event(port->close_wait, gs_closed(port)); if I do "cd
->>> /sys/bus/platform/drivers/musb-hdrc && echo musb-hdrc.0.auto > unbind".
->>>
->>> Unfortunately I don't have serial debug port connector on my N900, so I
->>> can't capture logs after the reboot command, however, I suspect it hangs
->>> on the same place as with unbind.
->>>
->>> That looks weird, as one would expect that close() is called when the
->>> kernel kills user processes on reboot/powerdown.
->>
->> right, care to enable lockup detection and see if you can get more info
->> out of it ?
->>
->
-> Nothing interesting, besides that screen does not work :(. However, the=20
-> device boots, I can connect through wifi and reboot still hangs. Also, I=
-=20
-> don't see that port->close_wait in /proc/lockdep. Is that expected?
-
-no idea what /proc/lockdep is supposed to show
-
-> Is there a reason why a process (pnatd in this particular case) doesn't=20
-> get killed on reboot?
-
-there might be, and that's probably the bug we're trying to figure
-out. But so far, no idea.
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXHwkMAAoJEIaOsuA1yqRE3pEP/3FrlMhOMaOoSqkvgzVijmcQ
-Exqs2ABMv530UjDnJc9NU5+UAdZTeLYgWrdm5ycyd/RAM5t3/tvCS8A5DxK0fieM
-2us2Ff1Ko2ZTeGAYMkdkiTc9IE1vDO6I5n1w9uWBwChzAZyEU+auhGtNmW25w7gG
-mMqz328mVPgFyXuyfp4Q2XSNNs1TABG1DO+FGVhc7scptSVXRtx1jD5p35OPQjAW
-DzQjuxwUIapxQbBEcTQ9p8XkcZcmO7nIsyFn4XxOziGP4BoyN3068MDXeofQd39f
-MUkaMwnaPWv9nvMwfOgSnMMVpeGsTGulHVHaCWBr4/9cBj9kG0aNhjYYHs9U0t9c
-lj7NDZCHvW3DiyKlGT4o7SZs4UrwrsdC2VIByCtsTgRrwFlXeX0DjKbUm2i43A+g
-e2tddAwjqa6X2K+XHgQ4xjLvUf3XHXFKm5DDIUwMOrNcNAfZcFUQZLEfak+cyMDb
-axk1IyTk4tVbK7RXa43Cfrvz7OYaTjjsIZBvCHzKjXcZ19qvia3d99V+w1T+Jx5Q
-ZXnIsNCilkm5gOEdwj1c1kxpb+UCoICEdsIWB+R1tp3nusLfedn9Dy1r70gYggXt
-VsAozLoTx7PyXGysK2u1t4a5GTbFuJYJVb/UKUOOtdOU/892dBBSUaaCb5UmRDPz
-tqOZlqxO8Am+G+31IVX8
-=wDVt
------END PGP SIGNATURE-----
---=-=-=--
+-- 
+Best Regards,
+Peter Chen
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
