@@ -1,81 +1,67 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: AM335x ICE board Linux support
-Date: Tue, 26 Apr 2016 08:10:46 -0700
-Message-ID: <20160426151046.GQ5995@atomide.com>
-References: <571E069A.20700@ti.com>
- <571F2982.2080702@ti.com>
+From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
+Subject: Re: [PATCH net v2 1/3] drivers: net: cpsw: fix parsing of
+ phy-handle DT property in dual_emac config
+Date: Tue, 26 Apr 2016 11:27:09 -0400
+Message-ID: <20160426112709.1894877b.drivshin.allworx@gmail.com>
+References: <1461261035-5578-1-git-send-email-drivshin.allworx@gmail.com>
+ <1461262794-9562-1-git-send-email-drivshin.allworx@gmail.com>
+ <571A210E.2020607@ti.com>
+ <571E6C7F.10704@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <571F2982.2080702-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, "Anna, Suman" <s-anna-l0cyMroinI0@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <571E6C7F.10704@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, David Miller <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [160426 01:42]:
-> On 25/04/16 14:59, Roger Quadros wrote:
-> > We are working on getting Linux on AM335X Industrial Communication Engine board (ICE) [1].
+On Mon, 25 Apr 2016 22:14:07 +0300
+Grygorii Strashko <grygorii.strashko@ti.com> wrote:
+
+> On 04/22/2016 04:03 PM, Grygorii Strashko wrote:
+> > On 04/21/2016 09:19 PM, David Rivshin (Allworx) wrote:  
+> >> From: David Rivshin <drivshin@allworx.com>
+> >>
+> >> Commit 9e42f715264ff158478fa30eaed847f6e131366b ("drivers: net: cpsw: add
+> >> phy-handle parsing") saved the "phy-handle" phandle into a new cpsw_priv
+> >> field. However, phy connections are per-slave, so the phy_node field 
+> >> should
+> >> be in cpsw_slave_data rather than cpsw_priv.
+> >>
+> >> This would go unnoticed in a single emac configuration. But in dual_emac
+> >> mode, the last "phy-handle" property parsed for either slave would be 
+> >> used
+> >> by both of them, causing them both to refer to the same phy_device.
+> >>
+> >> Fixes: 9e42f715264f ("drivers: net: cpsw: add phy-handle parsing")
+> >> Signed-off-by: David Rivshin <drivshin@allworx.com>
+> >> Tested-by: Nicolas Chauvet <kwizart@gmail.com>
+> >> ---
+> >> I would suggest this for -stable. It should apply cleanly as far back
+> >> as 4.4.
+> >>
+> >> Changes since v1 [1]:
+> >> - Rebased (no conflicts)
+> >> - Added Tested-by from Nicolas Chauvet
+> >>
+> >> [1] https://patchwork.ozlabs.org/patch/560326/  
 > > 
-> > This board has 2 Ethernet ports and each of them can be used either in RMII mode connected to
-> > the CPSW Ethernet MAC *or* in MII mode connected to the PRU Ethernet MAC.
-> > 
-> > The decision about the Ethernet port's mode is made by the user by setting a jumper near the
-> > Ethernet port before power up. This is a boot time configurable setting and doesn't need to
-> > change at runtime.
-> > 
-> > So 4 configurations are possible:
-> >     ETH0	ETH1
-> >     ----	----
-> >     RMII	RMII
-> >     RMII	MII
-> >     MII		RMII	(probably redundant and not needed)
-> >     MII		MII
-> > 
-> > Based on the port configuration, software (u-boot or Linux) needs to set the right pinmux,
-> > set a GPIOs (that controls external Mux), configure an external clock generator
-> > and enable the right device driver for the respective Ethernet port.
-
-Ideally this would be runtime detected..
-
-> > Clock generator needs to be configured because different clock rates are required
-> > for RMII vs MII mode.
-> > 
-> > Now question is how all this can be done on u-boot + Linux?
-> > 
-> > I already have a working solution where I create different DT blobs for the 3 configurations
-> > and have u-boot detect the mode and load the correct DT blob and also configure the clock.
-
-If u-boot can detect the mode, can kernel also detect the mode?
-
-You can have multiple named pinctrl states no problem that you
-could select from based on the detection. Not sure if that solves
-all the configuration issues though.
-
-> > You can see how the kernel patches look like here [2]
-> > 
-> > Is this approach acceptable? If not is there any better way to do this? Thanks.
-
-I guess for now if no runtime detection is possible in the kernel.
-
-Regards,
-
-Tony
-
-> > [1] AM3359 ICE board
-> > http://www.ti.com/tool/tmdsice3359
-> > http://processors.wiki.ti.com/index.php/AM335x_Industrial_Communication_Engine_%28ICE%29_EVM_HW_User_Guide
+> > Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>  
 > 
-> There are 2 ICE board version. v1 and v2. The above wiki link is wrong.
-> We are dealing with the v2 board below
-> http://processors.wiki.ti.com/index.php/AM335x_Industrial_Communication_Engine_EVM_Rev2_1_HW_User_Guide
-> > 
-> > [2] Device tree patches
-> > https://github.com/rogerq/linux/commit/9a9cf6a15f779fddf91dba2370627aabf19aeff5
-> > https://github.com/rogerq/linux/commit/c87e8fa5b14f156a91883fd506e9dd8f7ccf95cf
-> > https://github.com/rogerq/linux/commit/d9cdd25e8c3878292d7f4180af8d3ac42b9645c4
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> In my opinion, it will be good to have this patch merged as part of -rc cycle, since
+> it will fix "NULL pointer dereference" issue with current LKML as reported by Andrew Goodbody.
+
+Dave, 
+If you'd like to take just this first patch while enhancements for patch 2
+are worked out, I'd have no problem with that. I would then just submit the 
+rest of the series separately. If I don't see that you've taken this by the
+time I have a V3 ready I'll include it again, but it will be unchanged and 
+you can still take it separately if you wish. Or I can resubmit this patch
+separately if you prefer.
+
+(FYI, I tried to send this multiple times last night, but gmail has not 
+been my friend lately. I ended up having to trim the CC list substantially
+just to get this out at all; apologies for that. Suggestions for other 
+email providers that are usable for patch submissions are welcome.)
