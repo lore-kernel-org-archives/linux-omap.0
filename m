@@ -1,28 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: omap2plus_defconfig: Fix warning due invalid RXKAD
- symbol value
-Date: Tue, 26 Apr 2016 10:30:28 -0700
-Message-ID: <20160426173027.GK5995@atomide.com>
-References: <1461347599-32440-1-git-send-email-javier@osg.samsung.com>
+Subject: [PATCH] ARM: omap2plus_defconfig: Enable twl6030 USB phy as loadable
+ module
+Date: Tue, 26 Apr 2016 10:32:16 -0700
+Message-ID: <1461691936-2323-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1461347599-32440-1-git-send-email-javier@osg.samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Javier Martinez Canillas <javier@osg.samsung.com> [160422 10:54]:
-> Commit 648af7fca159 ("rxrpc: Absorb the rxkad security module") changed
-> the RXKAD Kconfig symbol from tristate to boolean but the commit didn't
-> update the omap2plus_defconfig that was enabling CONFIG_RXKAD as module.
-> 
-> This leads to the following warning when using the omap2plus_defconfig:
-> 
-> arch/arm/configs/omap2plus_defconfig:112:warning: symbol value 'm' invalid for RXKAD
+This is in use on omap4 boards.
 
-Thanks applying into omap-for-v4.7/defconfig.
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/configs/omap2plus_defconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-Tony
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index c48cbd7..5bd5d36 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -364,6 +364,7 @@ CONFIG_USB_SERIAL_FTDI_SIO=m
+ CONFIG_USB_SERIAL_PL2303=m
+ CONFIG_USB_TEST=m
+ CONFIG_AM335X_PHY_USB=y
++CONFIG_TWL6030_USB=m
+ CONFIG_USB_GADGET=m
+ CONFIG_USB_GADGET_DEBUG=y
+ CONFIG_USB_GADGET_DEBUG_FILES=y
+-- 
+2.8.1
