@@ -1,22 +1,34 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Applied "regulator: tps65917/palmas: Add bypass "On" value" to the regulator tree
-Date: Tue, 26 Apr 2016 19:25:02 +0100
-Message-ID: <E1av7fS-00082z-3t@debutante>
-References: <1461688602-19996-1-git-send-email-nm@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1461688602-19996-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Keerthy <j-keerthy@ti.com>, Mark Brown <broonie@kernel.org>Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.orgKeerthy <j-keerthy@ti.com>
+Subject: Applied "ASoC: omap-pcm: Initialize DMA configuration"
+	to the asoc tree
+Date: Tue, 26 Apr 2016 19:24:53 +0100
+Message-ID: <E1av7fJ-0007w8-AQ@debutante>
+References: <1461600607-19582-1-git-send-email-Linux.HWI@garmin.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1461600607-19582-1-git-send-email-Linux.HWI@garmin.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Jim Lodes <jim.lodes@garmin.com>
+Cc: "J.D. Schroeder" <jay.schroeder@garmin.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, tiwai@suse.com, linux-kernel@vger.kernel.org, lgirdwood@gmail.com, peter.ujfalusi@ti.com, broonie@kernel.org, jarkko.nikula@bitmer.com
 List-Id: linux-omap@vger.kernel.org
 
 The patch
 
-   regulator: tps65917/palmas: Add bypass "On" value
+   ASoC: omap-pcm: Initialize DMA configuration
 
-has been applied to the regulator tree at
+has been applied to the asoc tree at
 
-   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
+   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git 
 
 All being well this means that it will be integrated into the linux-next
 tree (usually sometime in the next 24 hours) and sent to Linus during
@@ -37,66 +49,37 @@ to this mail.
 Thanks,
 Mark
 
->From e0341f1732237777d65bdda7184ea4b11fb31d53 Mon Sep 17 00:00:00 2001
-From: Nishanth Menon <nm@ti.com>
-Date: Tue, 26 Apr 2016 11:36:42 -0500
-Subject: [PATCH] regulator: tps65917/palmas: Add bypass "On" value
+>From 989ff7754a27a1fcc0c3b2794c985b31811871a0 Mon Sep 17 00:00:00 2001
+From: Jim Lodes <jim.lodes@garmin.com>
+Date: Mon, 25 Apr 2016 11:10:07 -0500
+Subject: [PATCH] ASoC: omap-pcm: Initialize DMA configuration
 
-When commit b554e1450658 ("regulator: tps65917/palmas: Add bypass
-ops for LDOs with bypass capability") introduced bypass capability
-to palmas regulator, it went with the assumption that regulator
-regmap helpers just check val against the bypass_mask.
+Initialize the dma_slave_config for PCM DMA transfers,
+instead of leaving it uninitialized. Keeps previous data on
+the stack from giving us invalid values in uninitialized
+members of the config structure.
 
-Unfortunately, this ignored the explicit "on" and "off" values when
-the register value is masked with bypass_mask in commit ca5d1b3524b4
-("regulator: helpers: Modify helpers enabling multi-bit control").
-
-With the recent commit dd1a571daee7 ("regulator: helpers: Ensure
-bypass register field matches ON value"), this issue gets highlighted
-and fails tps65917/palmas based platforms which need regulators/ldos
-that have bypass capability.
-
-Introduce the bypass_on value appropriately for tps65917/palmas
-regulator.
-
-Fixes: b554e1450658 ("regulator: tps65917/palmas: Add bypass ops for LDOs with bypass capability")
-Cc: Keerthy <j-keerthy@ti.com>
-Cc: Mark Brown <broonie@kernel.org>
-Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Jim Lodes <jim.lodes@garmin.com>
+Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
+Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Reviewed-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 Signed-off-by: Mark Brown <broonie@kernel.org>
 ---
- drivers/regulator/palmas-regulator.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ sound/soc/omap/omap-pcm.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
-index 6efc7ee8aea3..c83e06b2cedb 100644
---- a/drivers/regulator/palmas-regulator.c
-+++ b/drivers/regulator/palmas-regulator.c
-@@ -944,6 +944,8 @@ static int palmas_ldo_registration(struct palmas_pmic *pmic,
- 			if (id == PALMAS_REG_LDO9) {
- 				desc->ops = &palmas_ops_ldo9;
- 				desc->bypass_reg = desc->enable_reg;
-+				desc->bypass_val_on =
-+						PALMAS_LDO9_CTRL_LDO_BYPASS_EN;
- 				desc->bypass_mask =
- 						PALMAS_LDO9_CTRL_LDO_BYPASS_EN;
- 			}
-@@ -1055,6 +1057,8 @@ static int tps65917_ldo_registration(struct palmas_pmic *pmic,
- 			    id == TPS65917_REG_LDO2) {
- 				desc->ops = &tps65917_ops_ldo_1_2;
- 				desc->bypass_reg = desc->enable_reg;
-+				desc->bypass_val_on =
-+						TPS65917_LDO1_CTRL_BYPASS_EN;
- 				desc->bypass_mask =
- 						TPS65917_LDO1_CTRL_BYPASS_EN;
- 			}
-@@ -1206,6 +1210,7 @@ static int palmas_smps_registration(struct palmas_pmic *pmic,
- 				desc->enable_mask = SMPS10_BOOST_EN;
- 			desc->bypass_reg = PALMAS_BASE_TO_REG(PALMAS_SMPS_BASE,
- 							    PALMAS_SMPS10_CTRL);
-+			desc->bypass_val_on = SMPS10_BYPASS_EN;
- 			desc->bypass_mask = SMPS10_BYPASS_EN;
- 			desc->min_uV = 3750000;
- 			desc->uV_step = 1250000;
+diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
+index 6bb623a2a4df..eb81b9a2293a 100644
+--- a/sound/soc/omap/omap-pcm.c
++++ b/sound/soc/omap/omap-pcm.c
+@@ -82,6 +82,8 @@ static int omap_pcm_hw_params(struct snd_pcm_substream *substream,
+ 	struct dma_chan *chan;
+ 	int err = 0;
+ 
++	memset(&config, 0x00, sizeof(config));
++
+ 	dma_data = snd_soc_dai_get_dma_data(rtd->cpu_dai, substream);
+ 
+ 	/* return if this is a bufferless transfer e.g.
 -- 
 2.8.0.rc3
