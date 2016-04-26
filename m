@@ -1,8 +1,8 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH arm 1/1] arm: Use _rcuidle tracepoint to allow use from
  idle
-Date: Tue, 26 Apr 2016 14:08:54 -0700
-Message-ID: <20160426210854.GU3715@linux.vnet.ibm.com>
+Date: Tue, 26 Apr 2016 14:12:59 -0700
+Message-ID: <20160426211259.GU5995@atomide.com>
 References: <20160426190755.GK3715@linux.vnet.ibm.com>
  <20160426193949.GP5995@atomide.com>
  <20160426154414.7bb33de4@gandalf.local.home>
@@ -12,41 +12,64 @@ References: <20160426190755.GK3715@linux.vnet.ibm.com>
  <20160426202538.GS5995@atomide.com>
  <20160426204148.GR3715@linux.vnet.ibm.com>
  <20160426204613.GT5995@atomide.com>
- <20160426165217.5b46eea7@gandalf.local.home>
-Reply-To: paulmck@linux.vnet.ibm.com
+ <20160426210407.GT3715@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160426165217.5b46eea7@gandalf.local.home>
+In-Reply-To: <20160426210407.GT3715@linux.vnet.ibm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, mingo@kernel.org, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, Steven Rostedt <rostedt@goodmis.org>, linux-omap@vger.kernel.org, mingo@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 26, 2016 at 04:52:17PM -0400, Steven Rostedt wrote:
-> On Tue, 26 Apr 2016 13:46:15 -0700
-> Tony Lindgren <tony@atomide.com> wrote:
+* Paul E. McKenney <paulmck@linux.vnet.ibm.com> [160426 14:08]:
+> On Tue, Apr 26, 2016 at 01:46:15PM -0700, Tony Lindgren wrote:
+> > * Paul E. McKenney <paulmck@linux.vnet.ibm.com> [160426 13:42]:
+> > > On Tue, Apr 26, 2016 at 01:25:39PM -0700, Tony Lindgren wrote:
+> > > > * Paul E. McKenney <paulmck@linux.vnet.ibm.com> [160426 13:12]:
+> > > > > On Tue, Apr 26, 2016 at 01:06:13PM -0700, Paul E. McKenney wrote:
+> > > > > > On Tue, Apr 26, 2016 at 12:51:59PM -0700, Tony Lindgren wrote:
+> > > > > > > * Steven Rostedt <rostedt@goodmis.org> [160426 12:45]:
+> > > > > > > > *Whack* *Whack* *Whack*!!!
+> > > > > > > > 
+> > > > > > > > Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+> > > > > > > > ---
+> > > > > > > > diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+> > > > > > > > index fb74dc1f7520..4fa43c02d682 100644
+> > > > > > > > --- a/drivers/clk/clk.c
+> > > > > > > > +++ b/drivers/clk/clk.c
+> > > > > > > > @@ -682,12 +682,12 @@ static void clk_core_disable(struct clk_core *core)
+> > > > > > > >  	if (--core->enable_count > 0)
+> > > > > > > >  		return;
+> > > > > > > >  
+> > > > > > > > -	trace_clk_disable(core);
+> > > > > > > > +	trace_clk_disable_rcuidle(core);
+> > > > > > > >  
+> > > > > > > >  	if (core->ops->disable)
+> > > > > > > >  		core->ops->disable(core->hw);
+> > > > > > > >  
+> > > > > > > > -	trace_clk_disable_complete(core);
+> > > > > > > > +	trace_clk_disable_complete_rcuidle(core);
+> > > > > > > >  
+> > > > > > > >  	clk_core_disable(core->parent);
+> > > > > > > >  }
+> > > > > > > 
+> > > > > > > Now the mole shows up here!
+> > > > > > 
+> > > > > > And the patch shows up here!
+> > > > > 
+> > > > > And I bet you will need this one as well...
+> > > > 
+> > > > OK and now the mode is coming back after a short nap during idle:
+> > > 
+> > > Seems a bit unfair to whack it just after a short nap, but here goes!
+> > 
+> > This mode seems pretty hard headed :) Now clk_core_enable:
 > 
-> 
-> > [ INFO: suspicious RCU usage. ]
-> > 4.6.0-rc5-next-20160426+ #1127 Not tainted
-> > -------------------------------
-> > include/trace/events/clk.h:45 suspicious rcu_dereference_check() usage!
-> > 
-> > other info that might help us debug this:
-> > 
-> > 
-> > RCU used illegally from idle CPU!
-> > rcu_scheduler_active = 1, debug_locks = 0
-> > RCU used illegally from extended quiescent state!
-> > 2 locks held by swapper/0/0:
-> >  #0:  (&oh->hwmod_key#30){......}, at: [<c0121afc>] omap_hwmod_enable+0x18/0x44
-> >  #1:  (enable_lock){......}, at: [<c0630684>] clk_enable_lock+0x18/0x124
-> > 
-> 
-> Hah! I knew that mole would show up.
+> Nah, just a lot of heads...
 
-There do seem to be quite a few candidate moles, don't there?
+OK that does it for me. Thanks for all the mole related whacks,
+please feel free to add:
 
-							Thanx, Paul
+Tested-by: Tony Lindgren <tony@atomide.com>
