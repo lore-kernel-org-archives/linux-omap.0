@@ -1,83 +1,44 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] regulator: tps65917/palmas: Add bypass "On" value
-Date: Tue, 26 Apr 2016 11:36:42 -0500
-Message-ID: <1461688602-19996-1-git-send-email-nm@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: USB gadgets with configfs hang reboot
+Date: Tue, 26 Apr 2016 09:49:19 -0700
+Message-ID: <20160426164918.GA5995@atomide.com>
+References: <Pine.LNX.4.44L0.1604261102000.2038-100000@iolanthe.rowland.org>
+ <571F9AD4.8010900@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>
-Cc: Nishanth Menon <nm@ti.com>, Keerthy <j-keerthy@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <571F9AD4.8010900-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Michal Nazarewicz <mina86-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-When commit b554e1450658 ("regulator: tps65917/palmas: Add bypass
-ops for LDOs with bypass capability") introduced bypass capability
-to palmas regulator, it went with the assumption that regulator
-regmap helpers just check val against the bypass_mask.
+* Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [160426 09:46]:
+> 
+> 
+> On 26.04.2016 18:03, Alan Stern wrote:
+> >On Tue, 26 Apr 2016, Felipe Balbi wrote:
+> >
+> >>>Is there a reason why a process (pnatd in this particular case) doesn't
+> >>>get killed on reboot?
+> >>
+> >>there might be, and that's probably the bug we're trying to figure
+> >>out. But so far, no idea.
+> >
+> >One possible reason is that the process is in an uninterruptible wait
+> >inside the kernel, waiting for something that isn't going to happen.
+> 
+> The process waits in poll(&fds, 1u, -1), where fds contains only the fd of
+> /dev/ttyGS2. Nothing suspicious I can see here.
 
-Unfortunately, this ignored the explicit "on" and "off" values when
-the register value is masked with bypass_mask in commit ca5d1b3524b4
-("regulator: helpers: Modify helpers enabling multi-bit control").
+I think the easy way to reproduce this is to start getty or minicom
+on /dev/ttyG* and disconnect the USB cable.
 
-With the recent commit dd1a571daee7 ("regulator: helpers: Ensure
-bypass register field matches ON value"), this issue gets highlighted
-and fails tps65917/palmas based platforms which need regulators/ldos
-that have bypass capability.
+Regards,
 
-Introduce the bypass_on value appropriately for tps65917/palmas
-regulator.
-
-Fixes: b554e1450658 ("regulator: tps65917/palmas: Add bypass ops for LDOs with bypass capability")
-Cc: Keerthy <j-keerthy@ti.com>
-Cc: Mark Brown <broonie@kernel.org>
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-
-Fixes regression in next-20160426 for DRA7 platforms and BeagleBoard-X15
-
-Fail in boot: http://pastebin.ubuntu.com/16065715/
-
- drivers/regulator/palmas-regulator.c | 5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
-index 6efc7ee8aea3..c83e06b2cedb 100644
---- a/drivers/regulator/palmas-regulator.c
-+++ b/drivers/regulator/palmas-regulator.c
-@@ -944,6 +944,8 @@ static int palmas_ldo_registration(struct palmas_pmic *pmic,
- 			if (id == PALMAS_REG_LDO9) {
- 				desc->ops = &palmas_ops_ldo9;
- 				desc->bypass_reg = desc->enable_reg;
-+				desc->bypass_val_on =
-+						PALMAS_LDO9_CTRL_LDO_BYPASS_EN;
- 				desc->bypass_mask =
- 						PALMAS_LDO9_CTRL_LDO_BYPASS_EN;
- 			}
-@@ -1055,6 +1057,8 @@ static int tps65917_ldo_registration(struct palmas_pmic *pmic,
- 			    id == TPS65917_REG_LDO2) {
- 				desc->ops = &tps65917_ops_ldo_1_2;
- 				desc->bypass_reg = desc->enable_reg;
-+				desc->bypass_val_on =
-+						TPS65917_LDO1_CTRL_BYPASS_EN;
- 				desc->bypass_mask =
- 						TPS65917_LDO1_CTRL_BYPASS_EN;
- 			}
-@@ -1206,6 +1210,7 @@ static int palmas_smps_registration(struct palmas_pmic *pmic,
- 				desc->enable_mask = SMPS10_BOOST_EN;
- 			desc->bypass_reg = PALMAS_BASE_TO_REG(PALMAS_SMPS_BASE,
- 							    PALMAS_SMPS10_CTRL);
-+			desc->bypass_val_on = SMPS10_BYPASS_EN;
- 			desc->bypass_mask = SMPS10_BYPASS_EN;
- 			desc->min_uV = 3750000;
- 			desc->uV_step = 1250000;
--- 
-2.8.0
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
