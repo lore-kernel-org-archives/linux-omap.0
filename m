@@ -1,85 +1,56 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Applied "ASoC: omap-pcm: Initialize DMA configuration"
-	to the asoc tree
-Date: Tue, 26 Apr 2016 19:24:53 +0100
-Message-ID: <E1av7fJ-0007w8-AQ@debutante>
-References: <1461600607-19582-1-git-send-email-Linux.HWI@garmin.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH arm 1/1] arm: Use _rcuidle tracepoint to allow use from
+ idle
+Date: Tue, 26 Apr 2016 11:29:39 -0700
+Message-ID: <20160426182939.GO5995@atomide.com>
+References: <1461617335-22372-1-git-send-email-paulmck@linux.vnet.ibm.com>
+ <20160426150031.GP5995@atomide.com>
+ <20160426175214.GJ3715@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1461600607-19582-1-git-send-email-Linux.HWI@garmin.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Jim Lodes <jim.lodes@garmin.com>
-Cc: "J.D. Schroeder" <jay.schroeder@garmin.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, tiwai@suse.com, linux-kernel@vger.kernel.org, lgirdwood@gmail.com, peter.ujfalusi@ti.com, broonie@kernel.org, jarkko.nikula@bitmer.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160426175214.GJ3715@linux.vnet.ibm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: linux-kernel@vger.kernel.org, mingo@kernel.org, Russell King <linux@arm.linux.org.uk>, Steven Rostedt <rostedt@goodmis.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The patch
+* Paul E. McKenney <paulmck@linux.vnet.ibm.com> [160426 10:53]:
+> Does the following patch help?
 
-   ASoC: omap-pcm: Initialize DMA configuration
+It just changes the output.. See below.
 
-has been applied to the asoc tree at
+> It is quite possible that there are quite a few more of these.  If this
+> is the case, then one way to make the kernel list more of them on a
+> given boot is to build with CONFIG_PROVE_RCU_REPEATEDLY=y.
 
-   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git 
+OK
 
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.  
+Regards,
 
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
+Tony
 
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
+8< ------------------
+CPU: Testing write buffer coherency: ok
+CPU0: thread -1, cpu 0, socket 0, mpidr 80000000
 
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
 
-Thanks,
-Mark
+RCU used illegally from idle CPU!
+rcu_scheduler_active = 1, debug_locks = 0
+RCU used illegally from extended quiescent state!
+no locks held by swapper/1/0.
 
->From 989ff7754a27a1fcc0c3b2794c985b31811871a0 Mon Sep 17 00:00:00 2001
-From: Jim Lodes <jim.lodes@garmin.com>
-Date: Mon, 25 Apr 2016 11:10:07 -0500
-Subject: [PATCH] ASoC: omap-pcm: Initialize DMA configuration
-
-Initialize the dma_slave_config for PCM DMA transfers,
-instead of leaving it uninitialized. Keeps previous data on
-the stack from giving us invalid values in uninitialized
-members of the config structure.
-
-Signed-off-by: Jim Lodes <jim.lodes@garmin.com>
-Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
-Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Reviewed-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Signed-off-by: Mark Brown <broonie@kernel.org>
----
- sound/soc/omap/omap-pcm.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
-index 6bb623a2a4df..eb81b9a2293a 100644
---- a/sound/soc/omap/omap-pcm.c
-+++ b/sound/soc/omap/omap-pcm.c
-@@ -82,6 +82,8 @@ static int omap_pcm_hw_params(struct snd_pcm_substream *substream,
- 	struct dma_chan *chan;
- 	int err = 0;
- 
-+	memset(&config, 0x00, sizeof(config));
-+
- 	dma_data = snd_soc_dai_get_dma_data(rtd->cpu_dai, substream);
- 
- 	/* return if this is a bufferless transfer e.g.
--- 
-2.8.0.rc3
+stack backtrace:
+CPU: 1 PID: 0 Comm: swapper/1 Not tainted 4.6.0-rc5-next-20160426+ #1113
+Hardware name: Generic OMAP4 (Flattened Device Tree)
+[<c0110290>] (unwind_backtrace) from [<c010c3a8>] (show_stack+0x10/0x14)
+[<c010c3a8>] (show_stack) from [<c047ff88>] (dump_stack+0xb0/0xe4)
+[<c047ff88>] (dump_stack) from [<c012c014>] (pwrdm_set_next_pwrst+0x100/0x1d4)
+[<c012c014>] (pwrdm_set_next_pwrst) from [<c0126120>] (omap4_enter_lowpower+0xc8/0x230)
+[<c0126120>] (omap4_enter_lowpower) from [<c0126c24>] (omap_enter_idle_coupled+0x6c/0x254)
+[<c0126c24>] (omap_enter_idle_coupled) from [<c0601dfc>] (cpuidle_enter_state+0x80/0x3d4)
+[<c0601dfc>] (cpuidle_enter_state) from [<c0603d30>] (cpuidle_enter_state_coupled+0x348/0x390)
+[<c0603d30>] (cpuidle_enter_state_coupled) from [<c0183d34>] (cpu_startup_entry+0x198/0x3a0)
+[<c0183d34>] (cpu_startup_entry) from [<8010162c>] (0x8010162c)
+hw-breakpoint: Failed to enable monitor mode on CPU 0.
