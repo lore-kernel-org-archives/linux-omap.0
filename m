@@ -1,40 +1,43 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: USB gadgets with configfs hang reboot
-Date: Tue, 26 Apr 2016 19:44:04 +0300
-Message-ID: <571F9AD4.8010900@gmail.com>
-References: <Pine.LNX.4.44L0.1604261102000.2038-100000@iolanthe.rowland.org>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: AM57xx/DRA7: Update SoC voltage rail limits to
+ match data sheet
+Date: Tue, 26 Apr 2016 10:03:01 -0700
+Message-ID: <20160426170300.GC5995@atomide.com>
+References: <1461140319-32026-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44L0.1604261102000.2038-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Michal Nazarewicz <mina86-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1461140319-32026-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+* Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [160420 01:20]:
+> As per the data sheet starting from SPRUHQ0H (Nov 2015 - Latest[1]),
+> VDD_CORE can vary from 0.85v to 1.15v for AVS class0. VDD GPU/DSP
+> et.al. can range from 0.85v to 1.25V with AVS class0
+> 
+> Since dynamic voltage scaling is disabled for DRA7/AM57xx SoCs for
+> all SoC rails other than MPU, the bootloader is responsible for
+> setting up the AVS class0 voltage, however, with wrong voltage machine
+> constraints in dtb, regulator framework will lower the voltage below
+> the required voltage levels for certain samples in production flow.
+> This can cause catastrophic failures which can be pretty hard to
+> identify.
+> 
+> Update board files which don't match required specification.
+> 
+> [1] http://www.ti.com/product/AM5728/datasheet/specifications#SPRT637-7340
 
+Applying into omap-for-v4.7/dt thanks. This does not apply to
+v4.6-rc, so assuming this is not an urgent fix.
 
-On 26.04.2016 18:03, Alan Stern wrote:
-> On Tue, 26 Apr 2016, Felipe Balbi wrote:
->
->>> Is there a reason why a process (pnatd in this particular case) doesn't
->>> get killed on reboot?
->>
->> there might be, and that's probably the bug we're trying to figure
->> out. But so far, no idea.
->
-> One possible reason is that the process is in an uninterruptible wait
-> inside the kernel, waiting for something that isn't going to happen.
->
-> Alan Stern
->
+Regards,
 
-The process waits in poll(&fds, 1u, -1), where fds contains only the fd 
-of /dev/ttyGS2. Nothing suspicious I can see here.
-
-Ivo
+Tony
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
