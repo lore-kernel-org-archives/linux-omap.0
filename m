@@ -1,95 +1,97 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+From: Steven Rostedt <rostedt@goodmis.org>
 Subject: Re: [PATCH arm 1/1] arm: Use _rcuidle tracepoint to allow use from
  idle
-Date: Tue, 26 Apr 2016 12:42:15 -0700
-Message-ID: <20160426194215.GL3715@linux.vnet.ibm.com>
+Date: Tue, 26 Apr 2016 15:44:14 -0400
+Message-ID: <20160426154414.7bb33de4@gandalf.local.home>
 References: <1461617335-22372-1-git-send-email-paulmck@linux.vnet.ibm.com>
- <20160426150031.GP5995@atomide.com>
- <20160426175214.GJ3715@linux.vnet.ibm.com>
- <20160426182939.GO5995@atomide.com>
- <20160426151725.657ae70c@gandalf.local.home>
-Reply-To: paulmck@linux.vnet.ibm.com
+	<20160426150031.GP5995@atomide.com>
+	<20160426175214.GJ3715@linux.vnet.ibm.com>
+	<20160426182939.GO5995@atomide.com>
+	<20160426190755.GK3715@linux.vnet.ibm.com>
+	<20160426193949.GP5995@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160426151725.657ae70c@gandalf.local.home>
+In-Reply-To: <20160426193949.GP5995@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, mingo@kernel.org, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, linux-kernel@vger.kernel.org, mingo@kernel.org, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 26, 2016 at 03:17:25PM -0400, Steven Rostedt wrote:
-> On Tue, 26 Apr 2016 11:29:39 -0700
-> Tony Lindgren <tony@atomide.com> wrote:
+On Tue, 26 Apr 2016 12:39:50 -0700
+Tony Lindgren <tony@atomide.com> wrote:
+
+
+> With these omap4 is now OK. But omap3 produces yet another warning,
+> See below :)
 > 
-> > * Paul E. McKenney <paulmck@linux.vnet.ibm.com> [160426 10:53]:
-> > > Does the following patch help?  
-> > 
-> > It just changes the output.. See below.
-> > 
-> > > It is quite possible that there are quite a few more of these.  If this
-> > > is the case, then one way to make the kernel list more of them on a
-> > > given boot is to build with CONFIG_PROVE_RCU_REPEATEDLY=y.  
-> > 
-> > OK
-> > 
-> > Regards,
-> > 
-> > Tony
-> > 
-> > 8< ------------------
-> > CPU: Testing write buffer coherency: ok
-> > CPU0: thread -1, cpu 0, socket 0, mpidr 80000000
-> > 
-> > 
-> > RCU used illegally from idle CPU!
-> > rcu_scheduler_active = 1, debug_locks = 0
-> > RCU used illegally from extended quiescent state!
-> > no locks held by swapper/1/0.
-> > 
-> > stack backtrace:
-> > CPU: 1 PID: 0 Comm: swapper/1 Not tainted 4.6.0-rc5-next-20160426+ #1113
-> > Hardware name: Generic OMAP4 (Flattened Device Tree)
-> > [<c0110290>] (unwind_backtrace) from [<c010c3a8>] (show_stack+0x10/0x14)
-> > [<c010c3a8>] (show_stack) from [<c047ff88>] (dump_stack+0xb0/0xe4)
-> > [<c047ff88>] (dump_stack) from [<c012c014>] (pwrdm_set_next_pwrst+0x100/0x1d4)
-> > [<c012c014>] (pwrdm_set_next_pwrst) from [<c0126120>] (omap4_enter_lowpower+0xc8/0x230)
-> > [<c0126120>] (omap4_enter_lowpower) from [<c0126c24>] (omap_enter_idle_coupled+0x6c/0x254)
-> > [<c0126c24>] (omap_enter_idle_coupled) from [<c0601dfc>] (cpuidle_enter_state+0x80/0x3d4)
-> > [<c0601dfc>] (cpuidle_enter_state) from [<c0603d30>] (cpuidle_enter_state_coupled+0x348/0x390)
-> > [<c0603d30>] (cpuidle_enter_state_coupled) from [<c0183d34>] (cpu_startup_entry+0x198/0x3a0)
-> > [<c0183d34>] (cpu_startup_entry) from [<8010162c>] (0x8010162c)
-> > hw-breakpoint: Failed to enable monitor mode on CPU 0.
+> Regards,
 > 
-> Time to play "Whack-a-Mole"(TM)
-
-Indeed!  ;-)
-
-> Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
-
-Given the similarity with the following:
-
-	http://lkml.kernel.org/g/20160425171239.GE3874@linux.vnet.ibm.com
-
-May I apply your Reviewed-by?
-
-							Thanx, Paul
-
-> ---
-> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-> index 78af6d8cf2e2..12b66b5bcc55 100644
-> --- a/arch/arm/mach-omap2/powerdomain.c
-> +++ b/arch/arm/mach-omap2/powerdomain.c
-> @@ -523,8 +523,8 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+> Tony
 > 
->  	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
->  		/* Trace the pwrdm desired target state */
-> -		trace_power_domain_target(pwrdm->name, pwrst,
-> -					  smp_processor_id());
-> +		trace_power_domain_target_rcuidle(pwrdm->name, pwrst,
-> +						  smp_processor_id());
->  		/* Program the pwrdm desired target state */
->  		ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
->  	}
+> 8< ------------------
+> ===============================
+> [ INFO: suspicious RCU usage. ]
+> 4.6.0-rc5-next-20160426+ #1114 Not tainted
+> -------------------------------
+> include/trace/events/clk.h:59 suspicious rcu_dereference_check() usage!
 > 
+> other info that might help us debug this:
+> 
+> 
+> RCU used illegally from idle CPU!
+> rcu_scheduler_active = 1, debug_locks = 0
+> RCU used illegally from extended quiescent state!
+> 2 locks held by swapper/0/0:
+>  #0:  (&oh->hwmod_key#30){......}, at: [<c0121b40>] omap_hwmod_idle+0x18/0x44
+>  #1:  (enable_lock){......}, at: [<c0630998>] clk_enable_lock+0x18/0x124
+> 
+> stack backtrace:
+> CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.6.0-rc5-next-20160426+ #1114
+> Hardware name: Generic OMAP36xx (Flattened Device Tree)
+> [<c0110290>] (unwind_backtrace) from [<c010c3a8>] (show_stack+0x10/0x14)
+> [<c010c3a8>] (show_stack) from [<c047fd68>] (dump_stack+0xb0/0xe4)
+> [<c047fd68>] (dump_stack) from [<c0631618>] (clk_core_disable+0x17c/0x348)
+> [<c0631618>] (clk_core_disable) from [<c0632774>] (clk_disable+0x24/0x30)
+> [<c0632774>] (clk_disable) from [<c0120590>] (_disable_clocks+0x18/0x7c)
+> [<c0120590>] (_disable_clocks) from [<c0121680>] (_idle+0x12c/0x230)
+> [<c0121680>] (_idle) from [<c0121b4c>] (omap_hwmod_idle+0x24/0x44)
+> [<c0121b4c>] (omap_hwmod_idle) from [<c0122c24>] (omap_device_idle+0x3c/0x90)
+> [<c0122c24>] (omap_device_idle) from [<c052cc00>] (__rpm_callback+0x2c/0x60)
+> [<c052cc00>] (__rpm_callback) from [<c052cc54>] (rpm_callback+0x20/0x80)
+> [<c052cc54>] (rpm_callback) from [<c052d150>] (rpm_suspend+0x100/0x768)
+> [<c052d150>] (rpm_suspend) from [<c052ec58>] (__pm_runtime_suspend+0x64/0x84)
+> [<c052ec58>] (__pm_runtime_suspend) from [<c04bf25c>] (omap2_gpio_prepare_for_idle+0x5
+> c/0x70)
+> [<c04bf25c>] (omap2_gpio_prepare_for_idle) from [<c0125568>] (omap_sram_idle+0x140/0x2
+> 44)
+> [<c0125568>] (omap_sram_idle) from [<c01269dc>] (omap3_enter_idle_bm+0xfc/0x1ec)
+> [<c01269dc>] (omap3_enter_idle_bm) from [<c0601bdc>] (cpuidle_enter_state+0x80/0x3d4)
+> [<c0601bdc>] (cpuidle_enter_state) from [<c0183b08>] (cpu_startup_entry+0x198/0x3a0)
+> [<c0183b08>] (cpu_startup_entry) from [<c0b00c0c>] (start_kernel+0x354/0x3c8)
+> [<c0b00c0c>] (start_kernel) from [<8000807c>] (0x8000807c)
+
+*Whack* *Whack* *Whack*!!!
+
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+---
+diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+index fb74dc1f7520..4fa43c02d682 100644
+--- a/drivers/clk/clk.c
++++ b/drivers/clk/clk.c
+@@ -682,12 +682,12 @@ static void clk_core_disable(struct clk_core *core)
+ 	if (--core->enable_count > 0)
+ 		return;
+ 
+-	trace_clk_disable(core);
++	trace_clk_disable_rcuidle(core);
+ 
+ 	if (core->ops->disable)
+ 		core->ops->disable(core->hw);
+ 
+-	trace_clk_disable_complete(core);
++	trace_clk_disable_complete_rcuidle(core);
+ 
+ 	clk_core_disable(core->parent);
+ }
