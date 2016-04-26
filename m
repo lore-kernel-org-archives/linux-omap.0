@@ -1,78 +1,40 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] gpio: omap: fix irq triggering in smart-idle wakeup mode
-Date: Tue, 26 Apr 2016 15:58:18 +0200
-Message-ID: <CACRpkdavUOR-CQVOgxLBRXhkDozpuuQQm3pj0xNUP5ZSti9M-Q@mail.gmail.com>
-References: <1460458351-24187-1-git-send-email-grygorii.strashko@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v6 0/7] ARM: dts: DRA7: Add dt nodes for PWMSS
+Date: Tue, 26 Apr 2016 14:27:40 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1604261426540.24457@utopia.booyaka.com>
+References: <1461343238-29274-1-git-send-email-fcooper@ti.com> <alpine.DEB.2.02.1604251610170.22464@utopia.booyaka.com> <571F6B7F.8090008@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1460458351-24187-1-git-send-email-grygorii.strashko@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Santosh Shilimkar <ssantosh@kernel.org>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Roger Quadros <rogerq@ti.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <571F6B7F.8090008@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: "Franklin S Cooper Jr." <fcooper@ti.com>
+Cc: thierry.reding@gmail.com, tony@atomide.com, t-kristo@ti.com, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, robh+dt@kernel.org, devicetree@vger.kernel.org, vigneshr@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 12, 2016 at 12:52 PM, Grygorii Strashko
-<grygorii.strashko@ti.com> wrote:
+On Tue, 26 Apr 2016, Franklin S Cooper Jr. wrote:
 
-> Now GPIO IRQ loss is observed on dra7-evm after suspend/resume cycle
-> in the following case:
->   extcon_usb1(id_irq) ->  pcf8575.gpio1 -> omapgpio6.gpio11 -> gic
->
-> the extcon_usb1 is wake up source and it enables IRQ wake up for
-> id_irq by calling enable/disable_irq_wake() during suspend/resume
-> which, in turn, causes execution of omap_gpio_wake_enable(). And
-> omap_gpio_wake_enable() will set/clear corresponding bit in
-> GPIO_IRQWAKEN_x register.
->
-> omapgpio6 configuration after boot - wakeup is enabled for GPIO IRQs
-> by default from  omap_gpio_irq_type:
-> GPIO_IRQSTATUS_SET_0    | 0x00000400
-> GPIO_IRQSTATUS_CLR_0    | 0x00000400
-> GPIO_IRQWAKEN_0         | 0x00000400
-> GPIO_RISINGDETECT       | 0x00000000
-> GPIO_FALLINGDETECT      | 0x00000400
->
-> omapgpio6 configuration after after suspend/resume cycle:
-> GPIO_IRQSTATUS_SET_0    | 0x00000400
-> GPIO_IRQSTATUS_CLR_0    | 0x00000400
-> GPIO_IRQWAKEN_0         | 0x00000000 <---
-> GPIO_RISINGDETECT       | 0x00000000
-> GPIO_FALLINGDETECT      | 0x00000400
->
-> As result, system will start to lose interrupts from pcf8575 GPIO
-> expander, because when OMAP GPIO IP is in smart-idle wakeup mode, there
-> is no guarantee that transition(s) on input non wake up GPIO pin will
-> trigger asynchronous wake-up request to PRCM and then IRQ generation.
-> IRQ will be generated when GPIO is in active mode - for example, some
-> time after accessing GPIO bank registers IRQs will be generated
-> normally, but issue will happen again once PRCM will put GPIO in low
-> power smart-idle wakeup mode.
->
-> Note 1. Issue is not reproduced if debounce clk is enabled for GPIO
-> bank.
->
-> Note 2. Issue hardly reproducible if GPIO pins group contains both
-> wakeup/non-wakeup gpios - for example, it will be hard to reproduce
-> issue with pin2 if GPIO_IRQWAKEN_0=0x1 GPIO_IRQSTATUS_SET_0=0x3
-> GPIO_FALLINGDETECT = 0x3 (TRM "Power Saving by Grouping the Edge/Level
-> Detection").
->
-> Note 3. There nothing common bitween System wake up and OMAP GPIO bank
-> IP wake up logic - the last one defines how the GPIO bank ON-IDLE-ON
-> transition will happen inside SoC under control of PRCM.
->
-> Hence, fix the problem by removing omap_set_gpio_wakeup() function
-> completely and so keeping always in sync GPIO IRQ mask/unmask
-> (IRQSTATUS_SET) and wake up enable (GPIO_IRQWAKEN) bits; and adding
-> IRQCHIP_MASK_ON_SUSPEND flag in OMAP GPIO irqchip. That way non wakeup
-> GPIO IRQs will be properly masked/unmask by IRQ PM core during
-> suspend/resume cycle.
->
-> Cc: Roger Quadros <rogerq@ti.com>
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> 
+> 
+> On 04/25/2016 11:18 AM, Paul Walmsley wrote:
+> > On Fri, 22 Apr 2016, Franklin S Cooper Jr wrote:
+> > 
+> >> This patch series adds support for PWM for DRA7. The IP is the same as the
+> >> one present in AM33XX and AM437XX.
+> >>
+> >> However, before doing so remove unnecessary hwmod entries for eCAP, ePWM
+> >> and eQEP.
+> > 
+> > Just took a quick look (nothing indepth).  Looks OK.  
+> > 
+> > Once Rob's issues have been addressed, please feel free to add an 
+> > Acked-by: from me.  Thanks for playing along, Franklin, I think this final 
+> > product makes the most sense from a device architecture point of view.
+> 
+> 
+> Thanks Paul. Just to be clear I can add your Acked-by to all 7 patches?
 
-Patch applied with the arrived ACKs
+I'd suggest just adding it to the ones that are hwmod-related in either 
+the commit message or the code.
 
-Yours,
-Linus Walleij
+- Paul
