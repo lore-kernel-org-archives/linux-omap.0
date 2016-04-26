@@ -1,131 +1,77 @@
-From: Peter Chen <hzpeterchen@gmail.com>
-Subject: Re: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
-Date: Tue, 26 Apr 2016 16:21:07 +0800
-Message-ID: <20160426082106.GE2978@peterchendt>
-References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
- <1459865117-7032-8-git-send-email-rogerq@ti.com>
- <AM4PR04MB213045DC3D1C1D67A7D9AF0689630@AM4PR04MB2130.eurprd04.prod.outlook.com>
- <20160426034711.GC2978@peterchendt>
- <AM4PR04MB2130124412E09799A2CB01BF89630@AM4PR04MB2130.eurprd04.prod.outlook.com>
- <20160426062809.GD2978@peterchendt>
- <AM4PR04MB2130503C9E7C2B984457A61089630@AM4PR04MB2130.eurprd04.prod.outlook.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: AM335x ICE board Linux support
+Date: Tue, 26 Apr 2016 11:40:34 +0300
+Message-ID: <571F2982.2080702@ti.com>
+References: <571E069A.20700@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AM4PR04MB2130503C9E7C2B984457A61089630@AM4PR04MB2130.eurprd04.prod.outlook.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jun Li <jun.li@nxp.com>
-Cc: Roger Quadros <rogerq@ti.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "balbi@kernel.org" <balbi@kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "peter.chen@freescale.com" <peter.chen@freescale.com>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "jun.li@freescale.com" <jun.li@freescale.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Joao.Pinto@synopsys.com" <Joao.Pinto@synopsys.com>, "abrestic@chromium.org" <abrestic@chromium.org>, "r.baldyga@samsung.com" <r.baldyga@samsung.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <571E069A.20700-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, "Anna, Suman" <s-anna-l0cyMroinI0@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 26, 2016 at 07:00:22AM +0000, Jun Li wrote:
-> Hi
-> 
-> > -----Original Message-----
-> > From: Peter Chen [mailto:hzpeterchen@gmail.com]
-> > Sent: Tuesday, April 26, 2016 2:28 PM
-> > To: Jun Li <jun.li@nxp.com>
-> > Cc: Roger Quadros <rogerq@ti.com>; stern@rowland.harvard.edu;
-> > balbi@kernel.org; gregkh@linuxfoundation.org; peter.chen@freescale.com;
-> > dan.j.williams@intel.com; jun.li@freescale.com;
-> > mathias.nyman@linux.intel.com; tony@atomide.com; Joao.Pinto@synopsys.com;
-> > abrestic@chromium.org; r.baldyga@samsung.com; linux-usb@vger.kernel.org;
-> > linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org
-> > Subject: Re: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
-> > 
-> > On Tue, Apr 26, 2016 at 05:11:36AM +0000, Jun Li wrote:
-> > > Hi
-> > >
-> > > > -----Original Message-----
-> > > > From: Peter Chen [mailto:hzpeterchen@gmail.com]
-> > > > Sent: Tuesday, April 26, 2016 11:47 AM
-> > > > To: Jun Li <jun.li@nxp.com>
-> > > > Cc: Roger Quadros <rogerq@ti.com>; stern@rowland.harvard.edu;
-> > > > balbi@kernel.org; gregkh@linuxfoundation.org;
-> > > > peter.chen@freescale.com; dan.j.williams@intel.com;
-> > > > jun.li@freescale.com; mathias.nyman@linux.intel.com;
-> > > > tony@atomide.com; Joao.Pinto@synopsys.com; abrestic@chromium.org;
-> > > > r.baldyga@samsung.com; linux-usb@vger.kernel.org;
-> > > > linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org
-> > > > Subject: Re: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
-> > > >
-> > > > On Tue, Apr 26, 2016 at 02:07:56AM +0000, Jun Li wrote:
-> > > > > > +struct usb_otg *usb_otg_register(struct device *dev,
-> > > > > > +				 struct usb_otg_config *config) {
-> > > > > > +	struct usb_otg *otg;
-> > > > > > +	struct otg_wait_data *wait;
-> > > > > > +	int ret = 0;
-> > > > > > +
-> > > > > > +	if (!dev || !config || !config->fsm_ops)
-> > > > > > +		return ERR_PTR(-EINVAL);
-> > > > > > +
-> > > > > > +	/* already in list? */
-> > > > > > +	mutex_lock(&otg_list_mutex);
-> > > > > > +	if (usb_otg_get_data(dev)) {
-> > > > > > +		dev_err(dev, "otg: %s: device already in otg list\n",
-> > > > > > +			__func__);
-> > > > > > +		ret = -EINVAL;
-> > > > > > +		goto unlock;
-> > > > > > +	}
-> > > > > > +
-> > > > > > +	/* allocate and add to list */
-> > > > > > +	otg = kzalloc(sizeof(*otg), GFP_KERNEL);
-> > > > > > +	if (!otg) {
-> > > > > > +		ret = -ENOMEM;
-> > > > > > +		goto unlock;
-> > > > > > +	}
-> > > > > > +
-> > > > > > +	otg->dev = dev;
-> > > > > > +	otg->caps = config->otg_caps;
-> > > > > > +
-> > > > > > +	if ((otg->caps->hnp_support || otg->caps->srp_support ||
-> > > > > > +	     otg->caps->adp_support) && !config->otg_work)
-> > > > > > +		dev_info(dev, "otg: limiting to dual-role\n");
-> > > > >
-> > > > > dev_err, this should be an error.
-> > > >
-> > > > The condition may be wrong, but it is an information to show that
-> > > > current OTG is dual-role.
-> > >
-> > > This should not happen in any correct design, I even doubt if we
-> > > should try to continue by "downgrade" it to be duel role, currently
-> > > the only example user is dual role, so doing like this can't be tested
-> > > by real case, this downgrade is not so easy like we image, at least
-> > > for chipidea otg driver, simply replace a queue worker may not work,
-> > > as we have much more difference between the 2 configs.
-> > >
-> > 
-> > Would you show more why chipidea can't work just replace the work item,
-> > and see if anything we still can improve for this framework?
-> 
-> In real OTG, we need enable AVV irq,
++Rob
 
-Enable and Handling AVV is platform stuff. In this framework, we are
-focus on how otg device manages host and gadget together, and the state
-machine when the related otg event occurs.
-
-> but for duel role, nobody care/handle,
-> there are much more resource required for OTG: timers, hnp polling,
-> otg test device handling... 
-
-They are common things for fully OTG fsm, you can move them
-to common code (In fact, hnp polling handling is already common code).
-
+On 25/04/16 14:59, Roger Quadros wrote:
+> Hi,
 > 
-> with current design, chipidea driver can support real OTG with its own
-> queue worker, or DRD with Roger's drd work item if config is correct.
+> We are working on getting Linux on AM335X Industrial Communication Engine board (ICE) [1].
 > 
-> But improve something to work on a *wrong* config will make it complicated
-> and does not make much sense IMO.
+> This board has 2 Ethernet ports and each of them can be used either in RMII mode connected to
+> the CPSW Ethernet MAC *or* in MII mode connected to the PRU Ethernet MAC.
+> 
+> The decision about the Ethernet port's mode is made by the user by setting a jumper near the
+> Ethernet port before power up. This is a boot time configurable setting and doesn't need to
+> change at runtime.
+> 
+> So 4 configurations are possible:
+>     ETH0	ETH1
+>     ----	----
+>     RMII	RMII
+>     RMII	MII
+>     MII		RMII	(probably redundant and not needed)
+>     MII		MII
+> 
+> Based on the port configuration, software (u-boot or Linux) needs to set the right pinmux,
+> set a GPIOs (that controls external Mux), configure an external clock generator
+> and enable the right device driver for the respective Ethernet port.
+> 
+> Clock generator needs to be configured because different clock rates are required
+> for RMII vs MII mode.
+> 
+> Now question is how all this can be done on u-boot + Linux?
+> 
+> I already have a working solution where I create different DT blobs for the 3 configurations
+> and have u-boot detect the mode and load the correct DT blob and also configure the clock.
+> 
+> You can see how the kernel patches look like here [2]
+> 
+> Is this approach acceptable? If not is there any better way to do this? Thanks.
+> 
+> cheers,
+> -roger
+> 
+> [1] AM3359 ICE board
+> http://www.ti.com/tool/tmdsice3359
+> http://processors.wiki.ti.com/index.php/AM335x_Industrial_Communication_Engine_%28ICE%29_EVM_HW_User_Guide
+
+There are 2 ICE board version. v1 and v2. The above wiki link is wrong.
+We are dealing with the v2 board below
+http://processors.wiki.ti.com/index.php/AM335x_Industrial_Communication_Engine_EVM_Rev2_1_HW_User_Guide
+> 
+> [2] Device tree patches
+> https://github.com/rogerq/linux/commit/9a9cf6a15f779fddf91dba2370627aabf19aeff5
+> https://github.com/rogerq/linux/commit/c87e8fa5b14f156a91883fd506e9dd8f7ccf95cf
+> https://github.com/rogerq/linux/commit/d9cdd25e8c3878292d7f4180af8d3ac42b9645c4
+> 
 > 
 
-What does above "config" you mean?
-
-If the configure is fully OTG, you can choose different state machine,
-eg otg_statemachine, if you find it is hard for chipidea to use this
-framework, just list the reason, and see if we can improve.
-
--- 
-Best Regards,
-Peter Chen
+cheers,
+-roger
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
