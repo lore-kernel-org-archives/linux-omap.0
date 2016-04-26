@@ -1,48 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH arm 1/1] arm: Use _rcuidle tracepoint to allow use from
- idle
-Date: Tue, 26 Apr 2016 14:36:30 -0700
-Message-ID: <20160426213630.GV5995@atomide.com>
-References: <20160426154414.7bb33de4@gandalf.local.home>
- <20160426195158.GR5995@atomide.com>
- <20160426200613.GO3715@linux.vnet.ibm.com>
- <20160426201134.GA29779@linux.vnet.ibm.com>
- <20160426202538.GS5995@atomide.com>
- <20160426204148.GR3715@linux.vnet.ibm.com>
- <20160426204613.GT5995@atomide.com>
- <20160426210407.GT3715@linux.vnet.ibm.com>
- <20160426211259.GU5995@atomide.com>
- <20160426212630.GV3715@linux.vnet.ibm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160426212630.GV3715@linux.vnet.ibm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, Steven Rostedt <rostedt@goodmis.org>, linux-omap@vger.kernel.org, mingo@kernel.org, linux-arm-kernel@lists.infradead.org
+From: Franklin S Cooper Jr <fcooper@ti.com>
+Subject: [PATCH v7 0/9] ARM: dts: DRA7: Add dt nodes for PWMSS
+Date: Tue, 26 Apr 2016 17:36:40 -0500
+Message-ID: <1461710209-6563-1-git-send-email-fcooper@ti.com>
+Return-path: <linux-pwm-owner@vger.kernel.org>
+Sender: linux-pwm-owner@vger.kernel.org
+To: thierry.reding@gmail.com, robh+dt@kernel.org, tony@atomide.com, paul@pwsan.com, t-kristo@ti.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, vigneshr@ti.com, nsekhar@ti.com
+Cc: Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Paul E. McKenney <paulmck@linux.vnet.ibm.com> [160426 14:27]:
-> Done!  These are at -rcu:
-> 
-> 6eeec2b4a50c (arm: Use _rcuidle tracepoint to allow use from idle)
-> 0efee3da3b29 (arm: Use more _rcuidle tracepoints to allow use from idle)
-> b6cdf6d22f52 (arm: Additional _rcuidle tracepoints to allow use from idle)
-> 70da6fb7275b (arm: Whack another event-trace-from-idle mole)
-> 019db9102c6c (arm: Whack yet another event-trace-from-idle mole)
-> ebcd2861ae27 (arm: Whack an expected event-trace-from-idle mole)
-> 
-> So how would you like these handled?  I would be happy to send a fresh
-> patch series or git pull request if you would like to send them up your
-> tree, or I can send them up my usual path.  Just let me know!
+This patch series adds support for PWM for DRA7. The IP is the same as the
+one present in AM33XX and AM437XX.
 
-Probably best to keep them in your rcu tree, at least I'm not seeing
-any conflicts with my for-next with these.
+However, before doing so remove unnecessary hwmod entries for eCAP, ePWM
+and eQEP.
 
-> And I would guess that other hardware and other configurations will
-> cause other moles to pop their heads up, but you never know.
+The following are the biggest changes from v6 to v7:
+* Several patches to document previously undocumented bindings. 
+* Fix minor issues in binding documents.
 
-Heh yeah I'm sure we'll see some more :)
+The following are the biggest changes from v5 to v6:
+* Created two new bindings to allow ECAP and PWM to grab their functional
+clock from DT rather than depending on PWMSS parent.
+* Pull in a couple of patches from the "Correct PWM bindings" series. This
+makes it a bit easier to understand.
 
-Tony
+>From the two patchsets a handful of patches have already been pulled in by
+maintainers and have already made it to linux-next. Therefore, this
+patch series is built ontop of the latest linux-next.
+
+Tested on:
+AM335x, AM437x and X15 + lcd w/backlight
+
+Franklin S Cooper Jr (8):
+  clk: ti: am335x/am4372: Add tbclk to pwm node
+  ARM: dts: am437x: Add missing compatibles to PWM binding documents
+  pwm: pwm-tiehrpwm: Update dt binding document to use generic node name
+  pwm: pwm-tiecap: Update dt binding document to use proper unit address
+  ARM: dts: am437x/am33xx/da850: Add new ECAP and EPWM bindings
+  pwms: pwm-ti*: Get the clock from the PWMSS parent when using old
+    bindings
+  ARM: dts: am437x/am33xx: Remove hwmod entries for ECAP and EPWM nodes
+  ARM: AM335x/AM437x: hwmod: Remove eQEP, ePWM and eCAP hwmod entries
+
+Vignesh R (1):
+  ARM: dts: DRA7: Add dt nodes for PWMSS
+
+ .../devicetree/bindings/pwm/pwm-tiecap.txt         | 36 +++++++--
+ .../devicetree/bindings/pwm/pwm-tiehrpwm.txt       | 36 +++++++--
+ .../devicetree/bindings/pwm/pwm-tipwmss.txt        | 33 +++++++-
+ arch/arm/boot/dts/am33xx.dtsi                      | 36 ++++++---
+ arch/arm/boot/dts/am4372.dtsi                      | 63 ++++++++++-----
+ arch/arm/boot/dts/da850.dtsi                       | 15 ++--
+ arch/arm/boot/dts/dra7.dtsi                        | 90 ++++++++++++++++++++++
+ .../mach-omap2/omap_hwmod_33xx_43xx_common_data.h  | 18 -----
+ .../omap_hwmod_33xx_43xx_interconnect_data.c       | 64 ---------------
+ .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 84 --------------------
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |  9 ---
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c         | 54 -------------
+ drivers/clk/ti/clk-33xx.c                          |  3 +
+ drivers/clk/ti/clk-43xx.c                          |  6 ++
+ drivers/pwm/pwm-tiecap.c                           |  7 ++
+ drivers/pwm/pwm-tiehrpwm.c                         |  7 ++
+ 16 files changed, 279 insertions(+), 282 deletions(-)
+
+-- 
+2.7.0
