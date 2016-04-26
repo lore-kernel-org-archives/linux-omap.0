@@ -1,46 +1,70 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 2/2] ARM: dts: dra7x: Support QSPI MODE-0 operation at
- 64MHz
-Date: Tue, 26 Apr 2016 10:52:41 -0700
-Message-ID: <20160426175241.GL5995@atomide.com>
-References: <1461151980-28139-1-git-send-email-vigneshr@ti.com>
- <1461151980-28139-3-git-send-email-vigneshr@ti.com>
- <20160422193353.GA15316@rob-hp-laptop>
+From: "J.D. Schroeder" <Linux.HWI@garmin.com>
+Subject: [PATCH 1/3] DRA7: Fix clock data for gmac_gmii_ref_clk_div
+Date: Tue, 26 Apr 2016 12:54:27 -0500
+Message-ID: <1461693269-19436-2-git-send-email-Linux.HWI@garmin.com>
+References: <1461693269-19436-1-git-send-email-Linux.HWI@garmin.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160422193353.GA15316@rob-hp-laptop>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1461693269-19436-1-git-send-email-Linux.HWI@garmin.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: "J.D. Schroeder" <jay.schroeder@garmin.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [160422 12:35]:
-> On Wed, Apr 20, 2016 at 05:03:00PM +0530, Vignesh R wrote:
-> > According to Data Manual(SPRS915P) of AM57x, TI QSPI controller on
-> > DRA74(rev 1.1+)/DRA72 EVM can support up to 64MHz in MODE-0, whereas
-> > MODE-3 is limited to 48MHz. Hence, switch to MODE-0 for better
-> > throughput.
-> > 
-> > Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-> > ---
-> > 
-> > v2: rebased on linux-next 20160419 to include moving to
-> > dra72-evm-common.dtsi
-> > 
-> > 
-> >  Documentation/devicetree/bindings/spi/ti_qspi.txt | 7 +++++++
-> >  arch/arm/boot/dts/dra7-evm.dts                    | 6 ++----
-> >  arch/arm/boot/dts/dra72-evm-common.dtsi           | 6 ++----
-> >  3 files changed, 11 insertions(+), 8 deletions(-)
-> 
-> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: "J.D. Schroeder" <jay.schroeder@garmin.com>
 
-Applying both into omap-for-v4.7/dt thanks.
+This commit fixes the clock data inside the DRA7xx clocks device tree
+structure for the gmac_gmii_ref_clk_div clock. This clock is actually
+the GMAC_MAIN_CLK and has nothing to do with the register at address
+0x4a0093d0. If CLKSEL_REF bit 24 inside of CM_GMAC_GMAC_CLKCTRL, is
+set to 1 in order to use the GMAC_RMII_CLK instead of the
+GMAC_RMII_HS_CLK, the kernel generates a clock divider warning:
+    WARNING: CPU: 0 PID: 0 at drivers/clk/clk-divider.c:129 clk_divider_recalc_rate+0xa8/0xe0()
+    gmac_gmii_ref_clk_div: Zero divisor and CLK_DIVIDER_ALLOW_ZERO not set
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+By properly configuring the gmac_gmii_ref_clk_div (GMAC_MAIN_CLK) to
+have the parent of dpll_gmac_m2_ck always divided by 2 the warning is
+resolved and the clock tree is fixed up.
+
+Additionally, a new clock called rmii_50mhz_clk_mux is defined that
+does utilize CM_GMAC_GMAC_CLKCTRL[24] CLKSEL_REF to configure the
+source clock for the RMII_50MHZ_CLK.
+
+Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
+Reviewed-by: Trenton Andres <trenton.andres@garmin.com>
+---
+ arch/arm/boot/dts/dra7xx-clocks.dtsi | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+index d0bae06..9d1a583 100644
+--- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
++++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+@@ -1710,13 +1710,20 @@
+ 		reg = <0x0c00>;
+ 	};
+ 
+-	gmac_gmii_ref_clk_div: gmac_gmii_ref_clk_div {
++	rmii_50mhz_clk_mux: rmii_50mhz_clk_mux {
+ 		#clock-cells = <0>;
+-		compatible = "ti,divider-clock";
+-		clocks = <&dpll_gmac_m2_ck>;
++		compatible = "ti,mux-clock";
++		clocks = <&dpll_gmac_h11x2_ck>, <&rmii_clk_ck>;
+ 		ti,bit-shift = <24>;
+ 		reg = <0x13d0>;
+-		ti,dividers = <2>;
++	};
++
++	gmac_gmii_ref_clk_div: gmac_gmii_ref_clk_div {
++		#clock-cells = <0>;
++		compatible = "fixed-factor-clock";
++		clocks = <&dpll_gmac_m2_ck>;
++		clock-mult = <1>;
++		clock-div = <2>;
+ 	};
+ 
+ 	gmac_rft_clk_mux: gmac_rft_clk_mux {
+-- 
+1.9.1
