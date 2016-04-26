@@ -1,49 +1,43 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: AM57xx/DRA7: Update SoC voltage rail limits to
- match data sheet
-Date: Tue, 26 Apr 2016 12:05:21 -0500
-Message-ID: <571F9FD1.2020404@ti.com>
-References: <1461140319-32026-1-git-send-email-nm@ti.com>
- <20160426170300.GC5995@atomide.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH 0/4] OMAP Mailbox legacy platform device support removal
+Date: Tue, 26 Apr 2016 12:06:42 -0500
+Message-ID: <571FA022.9010207@ti.com>
+References: <1459964260-43054-1-git-send-email-s-anna@ti.com>
+ <CABb+yY3bsVu9DNwhdCNyan1RH-REjmCWqXP2jvMqpYd-kQaa=g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160426170300.GC5995-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CABb+yY3bsVu9DNwhdCNyan1RH-REjmCWqXP2jvMqpYd-kQaa=g@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jassi Brar <jassisinghbrar@gmail.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/26/2016 12:03 PM, Tony Lindgren wrote:
-> * Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [160420 01:20]:
->> As per the data sheet starting from SPRUHQ0H (Nov 2015 - Latest[1]),
->> VDD_CORE can vary from 0.85v to 1.15v for AVS class0. VDD GPU/DSP
->> et.al. can range from 0.85v to 1.25V with AVS class0
+On 04/25/2016 11:55 PM, Jassi Brar wrote:
+> On Wed, Apr 6, 2016 at 6:37 PM, Suman Anna <s-anna@ti.com> wrote:
+>> Hi Jassi,
 >>
->> Since dynamic voltage scaling is disabled for DRA7/AM57xx SoCs for
->> all SoC rails other than MPU, the bootloader is responsible for
->> setting up the AVS class0 voltage, however, with wrong voltage machine
->> constraints in dtb, regulator framework will lower the voltage below
->> the required voltage levels for certain samples in production flow.
->> This can cause catastrophic failures which can be pretty hard to
->> identify.
+>> This series cleans up the OMAP Mailbox driver dropping the
+>> support for legacy non-DT platform devices. The infrastructure
+>> for creating any such devices has all been cleaned up from the
+>> mach-omap2 layers.
 >>
->> Update board files which don't match required specification.
+>> The removal from the driver is accomplished in patch 1, while the
+>> remaining patches do some minor checkpatch fixes.
 >>
->> [1] http://www.ti.com/product/AM5728/datasheet/specifications#SPRT637-7340
+>> Patches baselined on 4.6-rc2.
+>>
+> Applied this and the next patchset, with a trivial cleanup
 > 
-> Applying into omap-for-v4.7/dt thanks. This does not apply to
-> v4.6-rc, so assuming this is not an urgent fix.
+> - #define MBOX_INTR_CFG_TYPE1            (0)
+> - #define MBOX_INTR_CFG_TYPE2            (1)
+> + #define MBOX_INTR_CFG_TYPE1            0
+> + #define MBOX_INTR_CFG_TYPE2            1
+> 
+> Thanks.
 
-Thanks. Yep, it is not an emergency regression fix since most of the
-platforms out in the field are not impacted.
+Thanks Jassi.
 
-
--- 
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards
+Suman
