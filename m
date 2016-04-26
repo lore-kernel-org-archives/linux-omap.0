@@ -1,257 +1,283 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/2] ARM: OMAP2+: Add more functions to pwm pdata for ir-rx51
-Date: Tue, 26 Apr 2016 16:51:48 -0700
-Message-ID: <1461714709-10455-2-git-send-email-tony@atomide.com>
+Subject: [PATCH 2/2] [media] ir-rx51: Fix build after multiarch changes broke it
+Date: Tue, 26 Apr 2016 16:51:49 -0700
+Message-ID: <1461714709-10455-3-git-send-email-tony@atomide.com>
 References: <1461714709-10455-1-git-send-email-tony@atomide.com>
 Return-path: <linux-media-owner@vger.kernel.org>
 In-Reply-To: <1461714709-10455-1-git-send-email-tony@atomide.com>
 Sender: linux-media-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Pavel Machel <pavel@ucw.cz>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, Neil Armstrong <narmstrong@baylibre.com>, linux-media@vger.kernel.org, Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Pavel Machel <pavel@ucw.cz>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Neil Armstrong <narmstrong@baylibre.com>, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Before we start removing omap3 legacy booting support, let's make n900
-DT booting behave the same way for ir-rx51 as the legacy booting does.
+The ir-rx51 driver for n900 has been disabled since the multiarch
+changes as plat include directory no longer is SoC specific.
 
-For now, we need to pass pdata to the ir-rx51 driver. This means that
-the n900 tree can move to using DT based booting without having to carry
-all the legacy platform data with it when it gets dropped from the mainline
-tree.
+Let's fix it with minimal changes to pass the dmtimer calls in
+pdata. Then the following changes can be done while things can
+be tested to be working for each change:
 
-Note that the ir-rx51 driver is currently disabled because of the
-dependency to !ARCH_MULTIPLATFORM. This will get sorted out later
-with the help of drivers/pwm/pwm-omap-dmtimer.c. But first we need
-to add chained IRQ support to dmtimer code to avoid introducing new
-custom frameworks.
+1. Change the non-pwm dmtimer to use just hrtimer if possible
 
-So let's just pass the necessary dmtimer functions to ir-rx51 so we
-can get it working in the following patch.
+2. Change the pwm dmtimer to use Linux PWM API with the new
+   drivers/pwm/pwm-omap-dmtimer.c and remove the direct calls
+   to dmtimer functions
 
+3. Parse configuration from device tree and drop the pdata
+
+Note compilation of this depends on the previous patch
+"ARM: OMAP2+: Add more functions to pwm pdata for ir-rx51".
+
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 Cc: Neil Armstrong <narmstrong@baylibre.com>
+Cc: linux-media@vger.kernel.org
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-rx51-peripherals.c   | 35 ++++++++++++++++++++++++--
- arch/arm/mach-omap2/pdata-quirks.c             | 33 +++++++++++++++++++++++-
- include/linux/platform_data/media/ir-rx51.h    |  1 +
- include/linux/platform_data/pwm_omap_dmtimer.h | 21 ++++++++++++++++
- 4 files changed, 87 insertions(+), 3 deletions(-)
+ drivers/media/rc/Kconfig   |  2 +-
+ drivers/media/rc/ir-rx51.c | 99 +++++++++++++++++++++++++---------------------
+ 2 files changed, 54 insertions(+), 47 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index da174c0..4c35ffd 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -30,6 +30,8 @@
- #include <linux/platform_data/spi-omap2-mcspi.h>
- #include <linux/platform_data/mtd-onenand-omap2.h>
+
+Can you guys please test this still works? I've only been able
+to test that it compiles/loads/unloads as my n900 in in a rack.
+
+
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index bd4d685..370e16e 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -336,7 +336,7 @@ config IR_TTUSBIR
  
-+#include <plat/dmtimer.h>
-+
- #include <asm/system_info.h>
+ config IR_RX51
+ 	tristate "Nokia N900 IR transmitter diode"
+-	depends on OMAP_DM_TIMER && ARCH_OMAP2PLUS && LIRC && !ARCH_MULTIPLATFORM
++	depends on OMAP_DM_TIMER && PWM_OMAP_DMTIMER && ARCH_OMAP2PLUS && LIRC
+ 	---help---
+ 	   Say Y or M here if you want to enable support for the IR
+ 	   transmitter diode built in the Nokia N900 (RX51) device.
+diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+index 4e1711a..da839c3 100644
+--- a/drivers/media/rc/ir-rx51.c
++++ b/drivers/media/rc/ir-rx51.c
+@@ -19,6 +19,7 @@
+  *
+  */
  
- #include "common.h"
-@@ -47,9 +49,8 @@
++#include <linux/clk.h>
+ #include <linux/module.h>
+ #include <linux/interrupt.h>
+ #include <linux/uaccess.h>
+@@ -26,11 +27,9 @@
+ #include <linux/sched.h>
+ #include <linux/wait.h>
  
- #include <video/omap-panel-data.h>
- 
--#if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
+-#include <plat/dmtimer.h>
+-#include <plat/clock.h>
+-
+ #include <media/lirc.h>
+ #include <media/lirc_dev.h>
 +#include <linux/platform_data/pwm_omap_dmtimer.h>
  #include <linux/platform_data/media/ir-rx51.h>
--#endif
  
- #include "mux.h"
- #include "omap-pm.h"
-@@ -1212,10 +1213,40 @@ static void __init rx51_init_tsc2005(void)
- 				gpio_to_irq(RX51_TSC2005_IRQ_GPIO);
- }
+ #define LIRC_RX51_DRIVER_FEATURES (LIRC_CAN_SET_SEND_DUTY_CYCLE |	\
+@@ -44,8 +43,9 @@
+ #define TIMER_MAX_VALUE 0xffffffff
  
-+#if IS_ENABLED(CONFIG_OMAP_DM_TIMER)
-+static struct pwm_omap_dmtimer_pdata pwm_dmtimer_pdata = {
-+	.request_by_node = omap_dm_timer_request_by_node,
-+	.request_specific = omap_dm_timer_request_specific,
-+	.request = omap_dm_timer_request,
-+	.set_source = omap_dm_timer_set_source,
-+	.get_irq = omap_dm_timer_get_irq,
-+	.set_int_enable = omap_dm_timer_set_int_enable,
-+	.set_int_disable = omap_dm_timer_set_int_disable,
-+	.free = omap_dm_timer_free,
-+	.enable = omap_dm_timer_enable,
-+	.disable = omap_dm_timer_disable,
-+	.get_fclk = omap_dm_timer_get_fclk,
-+	.start = omap_dm_timer_start,
-+	.stop = omap_dm_timer_stop,
-+	.set_load = omap_dm_timer_set_load,
-+	.set_match = omap_dm_timer_set_match,
-+	.set_pwm = omap_dm_timer_set_pwm,
-+	.set_prescaler = omap_dm_timer_set_prescaler,
-+	.read_counter = omap_dm_timer_read_counter,
-+	.write_counter = omap_dm_timer_write_counter,
-+	.read_status = omap_dm_timer_read_status,
-+	.write_status = omap_dm_timer_write_status,
-+};
-+#endif
-+
- #if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
- static struct lirc_rx51_platform_data rx51_lirc_data = {
- 	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
- 	.pwm_timer = 9, /* Use GPT 9 for CIR */
-+#if IS_ENABLED(CONFIG_OMAP_DM_TIMER)
-+	.dmtimer = &pwm_dmtimer_pdata,
-+#endif
-+
- };
- 
- static struct platform_device rx51_lirc_device = {
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index cfaf45f..b36f0bd 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -25,6 +25,7 @@
- #include <linux/platform_data/iommu-omap.h>
- #include <linux/platform_data/wkup_m3.h>
- #include <linux/platform_data/pwm_omap_dmtimer.h>
-+#include <linux/platform_data/media/ir-rx51.h>
- #include <plat/dmtimer.h>
- 
- #include "common.h"
-@@ -32,6 +33,7 @@
- #include "dss-common.h"
- #include "control.h"
- #include "omap_device.h"
-+#include "omap-pm.h"
- #include "omap-secure.h"
- #include "soc.h"
- #include "hsmmc.h"
-@@ -271,6 +273,8 @@ static struct platform_device omap3_rom_rng_device = {
- 	},
- };
- 
-+static struct platform_device rx51_lirc_device;
-+
- static void __init nokia_n900_legacy_init(void)
- {
- 	hsmmc2_internal_input_clk();
-@@ -291,6 +295,8 @@ static void __init nokia_n900_legacy_init(void)
- 		platform_device_register(&omap3_rom_rng_device);
- 
- 	}
-+
-+	platform_device_register(&rx51_lirc_device);
- }
- 
- static void __init omap3_tao3530_legacy_init(void)
-@@ -458,8 +464,14 @@ void omap_auxdata_legacy_init(struct device *dev)
- 
- /* Dual mode timer PWM callbacks platdata */
- #if IS_ENABLED(CONFIG_OMAP_DM_TIMER)
--struct pwm_omap_dmtimer_pdata pwm_dmtimer_pdata = {
-+static struct pwm_omap_dmtimer_pdata pwm_dmtimer_pdata = {
- 	.request_by_node = omap_dm_timer_request_by_node,
-+	.request_specific = omap_dm_timer_request_specific,
-+	.request = omap_dm_timer_request,
-+	.set_source = omap_dm_timer_set_source,
-+	.get_irq = omap_dm_timer_get_irq,
-+	.set_int_enable = omap_dm_timer_set_int_enable,
-+	.set_int_disable = omap_dm_timer_set_int_disable,
- 	.free = omap_dm_timer_free,
- 	.enable = omap_dm_timer_enable,
- 	.disable = omap_dm_timer_disable,
-@@ -470,10 +482,29 @@ struct pwm_omap_dmtimer_pdata pwm_dmtimer_pdata = {
- 	.set_match = omap_dm_timer_set_match,
- 	.set_pwm = omap_dm_timer_set_pwm,
- 	.set_prescaler = omap_dm_timer_set_prescaler,
-+	.read_counter = omap_dm_timer_read_counter,
- 	.write_counter = omap_dm_timer_write_counter,
-+	.read_status = omap_dm_timer_read_status,
-+	.write_status = omap_dm_timer_write_status,
- };
- #endif
- 
-+static struct lirc_rx51_platform_data __maybe_unused rx51_lirc_data = {
-+	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
-+	.pwm_timer = 9, /* Use GPT 9 for CIR */
-+#if IS_ENABLED(CONFIG_OMAP_DM_TIMER)
-+	.dmtimer = &pwm_dmtimer_pdata,
-+#endif
-+};
-+
-+static struct platform_device rx51_lirc_device = {
-+	.name           = "lirc_rx51",
-+	.id             = -1,
-+	.dev            = {
-+		.platform_data = &rx51_lirc_data,
-+	},
-+};
-+
- /*
-  * Few boards still need auxdata populated before we populate
-  * the dev entries in of_platform_populate().
-diff --git a/include/linux/platform_data/media/ir-rx51.h b/include/linux/platform_data/media/ir-rx51.h
-index 104aa89..3038120 100644
---- a/include/linux/platform_data/media/ir-rx51.h
-+++ b/include/linux/platform_data/media/ir-rx51.h
-@@ -5,6 +5,7 @@ struct lirc_rx51_platform_data {
- 	int pwm_timer;
- 
- 	int(*set_max_mpu_wakeup_lat)(struct device *dev, long t);
+ struct lirc_rx51 {
+-	struct omap_dm_timer *pwm_timer;
+-	struct omap_dm_timer *pulse_timer;
++	pwm_omap_dmtimer *pwm_timer;
++	pwm_omap_dmtimer *pulse_timer;
 +	struct pwm_omap_dmtimer_pdata *dmtimer;
- };
+ 	struct device	     *dev;
+ 	struct lirc_rx51_platform_data *pdata;
+ 	wait_queue_head_t     wqueue;
+@@ -63,14 +63,14 @@ struct lirc_rx51 {
  
- #endif
-diff --git a/include/linux/platform_data/pwm_omap_dmtimer.h b/include/linux/platform_data/pwm_omap_dmtimer.h
-index 5938421..e7d521e 100644
---- a/include/linux/platform_data/pwm_omap_dmtimer.h
-+++ b/include/linux/platform_data/pwm_omap_dmtimer.h
-@@ -35,6 +35,16 @@
- #ifndef __PWM_OMAP_DMTIMER_PDATA_H
- #define __PWM_OMAP_DMTIMER_PDATA_H
+ static void lirc_rx51_on(struct lirc_rx51 *lirc_rx51)
+ {
+-	omap_dm_timer_set_pwm(lirc_rx51->pwm_timer, 0, 1,
+-			      OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE);
++	lirc_rx51->dmtimer->set_pwm(lirc_rx51->pwm_timer, 0, 1,
++				PWM_OMAP_DMTIMER_TRIGGER_OVERFLOW_AND_COMPARE);
+ }
  
-+/* clock sources */
-+#define PWM_OMAP_DMTIMER_SRC_SYS_CLK			0x00
-+#define PWM_OMAP_DMTIMER_SRC_32_KHZ			0x01
-+#define PWM_OMAP_DMTIMER_SRC_EXT_CLK			0x02
+ static void lirc_rx51_off(struct lirc_rx51 *lirc_rx51)
+ {
+-	omap_dm_timer_set_pwm(lirc_rx51->pwm_timer, 0, 1,
+-			      OMAP_TIMER_TRIGGER_NONE);
++	lirc_rx51->dmtimer->set_pwm(lirc_rx51->pwm_timer, 0, 1,
++				    PWM_OMAP_DMTIMER_TRIGGER_NONE);
+ }
+ 
+ static int init_timing_params(struct lirc_rx51 *lirc_rx51)
+@@ -79,12 +79,12 @@ static int init_timing_params(struct lirc_rx51 *lirc_rx51)
+ 
+ 	load = -(lirc_rx51->fclk_khz * 1000 / lirc_rx51->freq);
+ 	match = -(lirc_rx51->duty_cycle * -load / 100);
+-	omap_dm_timer_set_load(lirc_rx51->pwm_timer, 1, load);
+-	omap_dm_timer_set_match(lirc_rx51->pwm_timer, 1, match);
+-	omap_dm_timer_write_counter(lirc_rx51->pwm_timer, TIMER_MAX_VALUE - 2);
+-	omap_dm_timer_start(lirc_rx51->pwm_timer);
+-	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
+-	omap_dm_timer_start(lirc_rx51->pulse_timer);
++	lirc_rx51->dmtimer->set_load(lirc_rx51->pwm_timer, 1, load);
++	lirc_rx51->dmtimer->set_match(lirc_rx51->pwm_timer, 1, match);
++	lirc_rx51->dmtimer->write_counter(lirc_rx51->pwm_timer, TIMER_MAX_VALUE - 2);
++	lirc_rx51->dmtimer->start(lirc_rx51->pwm_timer);
++	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer, 0);
++	lirc_rx51->dmtimer->start(lirc_rx51->pulse_timer);
+ 
+ 	lirc_rx51->match = 0;
+ 
+@@ -100,15 +100,15 @@ static int pulse_timer_set_timeout(struct lirc_rx51 *lirc_rx51, int usec)
+ 	BUG_ON(usec < 0);
+ 
+ 	if (lirc_rx51->match == 0)
+-		counter = omap_dm_timer_read_counter(lirc_rx51->pulse_timer);
++		counter = lirc_rx51->dmtimer->read_counter(lirc_rx51->pulse_timer);
+ 	else
+ 		counter = lirc_rx51->match;
+ 
+ 	counter += (u32)(lirc_rx51->fclk_khz * usec / (1000));
+-	omap_dm_timer_set_match(lirc_rx51->pulse_timer, 1, counter);
+-	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer,
+-				     OMAP_TIMER_INT_MATCH);
+-	if (tics_after(omap_dm_timer_read_counter(lirc_rx51->pulse_timer),
++	lirc_rx51->dmtimer->set_match(lirc_rx51->pulse_timer, 1, counter);
++	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer,
++					   PWM_OMAP_DMTIMER_INT_MATCH);
++	if (tics_after(lirc_rx51->dmtimer->read_counter(lirc_rx51->pulse_timer),
+ 		       counter)) {
+ 		return 1;
+ 	}
+@@ -120,18 +120,18 @@ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
+ 	unsigned int retval;
+ 	struct lirc_rx51 *lirc_rx51 = ptr;
+ 
+-	retval = omap_dm_timer_read_status(lirc_rx51->pulse_timer);
++	retval = lirc_rx51->dmtimer->read_status(lirc_rx51->pulse_timer);
+ 	if (!retval)
+ 		return IRQ_NONE;
+ 
+-	if (retval & ~OMAP_TIMER_INT_MATCH)
++	if (retval & ~PWM_OMAP_DMTIMER_INT_MATCH)
+ 		dev_err_ratelimited(lirc_rx51->dev,
+ 				": Unexpected interrupt source: %x\n", retval);
+ 
+-	omap_dm_timer_write_status(lirc_rx51->pulse_timer,
+-				OMAP_TIMER_INT_MATCH	|
+-				OMAP_TIMER_INT_OVERFLOW	|
+-				OMAP_TIMER_INT_CAPTURE);
++	lirc_rx51->dmtimer->write_status(lirc_rx51->pulse_timer,
++					 PWM_OMAP_DMTIMER_INT_MATCH |
++					 PWM_OMAP_DMTIMER_INT_OVERFLOW |
++					 PWM_OMAP_DMTIMER_INT_CAPTURE);
+ 	if (lirc_rx51->wbuf_index < 0) {
+ 		dev_err_ratelimited(lirc_rx51->dev,
+ 				": BUG wbuf_index has value of %i\n",
+@@ -165,9 +165,9 @@ end:
+ 	/* Stop TX here */
+ 	lirc_rx51_off(lirc_rx51);
+ 	lirc_rx51->wbuf_index = -1;
+-	omap_dm_timer_stop(lirc_rx51->pwm_timer);
+-	omap_dm_timer_stop(lirc_rx51->pulse_timer);
+-	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
++	lirc_rx51->dmtimer->stop(lirc_rx51->pwm_timer);
++	lirc_rx51->dmtimer->stop(lirc_rx51->pulse_timer);
++	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer, 0);
+ 	wake_up_interruptible(&lirc_rx51->wqueue);
+ 
+ 	return IRQ_HANDLED;
+@@ -178,28 +178,29 @@ static int lirc_rx51_init_port(struct lirc_rx51 *lirc_rx51)
+ 	struct clk *clk_fclk;
+ 	int retval, pwm_timer = lirc_rx51->pwm_timer_num;
+ 
+-	lirc_rx51->pwm_timer = omap_dm_timer_request_specific(pwm_timer);
++	lirc_rx51->pwm_timer = lirc_rx51->dmtimer->request_specific(pwm_timer);
+ 	if (lirc_rx51->pwm_timer == NULL) {
+ 		dev_err(lirc_rx51->dev, ": Error requesting GPT%d timer\n",
+ 			pwm_timer);
+ 		return -EBUSY;
+ 	}
+ 
+-	lirc_rx51->pulse_timer = omap_dm_timer_request();
++	lirc_rx51->pulse_timer = lirc_rx51->dmtimer->request();
+ 	if (lirc_rx51->pulse_timer == NULL) {
+ 		dev_err(lirc_rx51->dev, ": Error requesting pulse timer\n");
+ 		retval = -EBUSY;
+ 		goto err1;
+ 	}
+ 
+-	omap_dm_timer_set_source(lirc_rx51->pwm_timer, OMAP_TIMER_SRC_SYS_CLK);
+-	omap_dm_timer_set_source(lirc_rx51->pulse_timer,
+-				OMAP_TIMER_SRC_SYS_CLK);
++	lirc_rx51->dmtimer->set_source(lirc_rx51->pwm_timer,
++				       PWM_OMAP_DMTIMER_SRC_SYS_CLK);
++	lirc_rx51->dmtimer->set_source(lirc_rx51->pulse_timer,
++				       PWM_OMAP_DMTIMER_SRC_SYS_CLK);
+ 
+-	omap_dm_timer_enable(lirc_rx51->pwm_timer);
+-	omap_dm_timer_enable(lirc_rx51->pulse_timer);
++	lirc_rx51->dmtimer->enable(lirc_rx51->pwm_timer);
++	lirc_rx51->dmtimer->enable(lirc_rx51->pulse_timer);
+ 
+-	lirc_rx51->irq_num = omap_dm_timer_get_irq(lirc_rx51->pulse_timer);
++	lirc_rx51->irq_num = lirc_rx51->dmtimer->get_irq(lirc_rx51->pulse_timer);
+ 	retval = request_irq(lirc_rx51->irq_num, lirc_rx51_interrupt_handler,
+ 			     IRQF_SHARED, "lirc_pulse_timer", lirc_rx51);
+ 	if (retval) {
+@@ -207,28 +208,28 @@ static int lirc_rx51_init_port(struct lirc_rx51 *lirc_rx51)
+ 		goto err2;
+ 	}
+ 
+-	clk_fclk = omap_dm_timer_get_fclk(lirc_rx51->pwm_timer);
+-	lirc_rx51->fclk_khz = clk_fclk->rate / 1000;
++	clk_fclk = lirc_rx51->dmtimer->get_fclk(lirc_rx51->pwm_timer);
++	lirc_rx51->fclk_khz = clk_get_rate(clk_fclk) / 1000;
+ 
+ 	return 0;
+ 
+ err2:
+-	omap_dm_timer_free(lirc_rx51->pulse_timer);
++	lirc_rx51->dmtimer->free(lirc_rx51->pulse_timer);
+ err1:
+-	omap_dm_timer_free(lirc_rx51->pwm_timer);
++	lirc_rx51->dmtimer->free(lirc_rx51->pwm_timer);
+ 
+ 	return retval;
+ }
+ 
+ static int lirc_rx51_free_port(struct lirc_rx51 *lirc_rx51)
+ {
+-	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
++	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer, 0);
+ 	free_irq(lirc_rx51->irq_num, lirc_rx51);
+ 	lirc_rx51_off(lirc_rx51);
+-	omap_dm_timer_disable(lirc_rx51->pwm_timer);
+-	omap_dm_timer_disable(lirc_rx51->pulse_timer);
+-	omap_dm_timer_free(lirc_rx51->pwm_timer);
+-	omap_dm_timer_free(lirc_rx51->pulse_timer);
++	lirc_rx51->dmtimer->disable(lirc_rx51->pwm_timer);
++	lirc_rx51->dmtimer->disable(lirc_rx51->pulse_timer);
++	lirc_rx51->dmtimer->free(lirc_rx51->pwm_timer);
++	lirc_rx51->dmtimer->free(lirc_rx51->pulse_timer);
+ 	lirc_rx51->wbuf_index = -1;
+ 
+ 	return 0;
+@@ -446,7 +447,13 @@ static int lirc_rx51_probe(struct platform_device *dev)
+ {
+ 	lirc_rx51_driver.features = LIRC_RX51_DRIVER_FEATURES;
+ 	lirc_rx51.pdata = dev->dev.platform_data;
++	if (!lirc_rx51.pdata->dmtimer) {
++		dev_err(&dev->dev, "no dmtimer?\n");
++		return -ENODEV;
++	}
 +
-+/* timer interrupt enable bits */
-+#define PWM_OMAP_DMTIMER_INT_CAPTURE			(1 << 2)
-+#define PWM_OMAP_DMTIMER_INT_OVERFLOW			(1 << 1)
-+#define PWM_OMAP_DMTIMER_INT_MATCH			(1 << 0)
-+
- /* trigger types */
- #define PWM_OMAP_DMTIMER_TRIGGER_NONE			0x00
- #define PWM_OMAP_DMTIMER_TRIGGER_OVERFLOW		0x01
-@@ -45,15 +55,23 @@ typedef struct omap_dm_timer pwm_omap_dmtimer;
- 
- struct pwm_omap_dmtimer_pdata {
- 	pwm_omap_dmtimer *(*request_by_node)(struct device_node *np);
-+	pwm_omap_dmtimer *(*request_specific)(int timer_id);
-+	pwm_omap_dmtimer *(*request)(void);
-+
- 	int	(*free)(pwm_omap_dmtimer *timer);
- 
- 	void	(*enable)(pwm_omap_dmtimer *timer);
- 	void	(*disable)(pwm_omap_dmtimer *timer);
- 
-+	int	(*get_irq)(pwm_omap_dmtimer *timer);
-+	int	(*set_int_enable)(pwm_omap_dmtimer *timer, unsigned int value);
-+	int	(*set_int_disable)(pwm_omap_dmtimer *timer, u32 mask);
-+
- 	struct clk *(*get_fclk)(pwm_omap_dmtimer *timer);
- 
- 	int	(*start)(pwm_omap_dmtimer *timer);
- 	int	(*stop)(pwm_omap_dmtimer *timer);
-+	int	(*set_source)(pwm_omap_dmtimer *timer, int source);
- 
- 	int	(*set_load)(pwm_omap_dmtimer *timer, int autoreload,
- 			unsigned int value);
-@@ -63,7 +81,10 @@ struct pwm_omap_dmtimer_pdata {
- 			int toggle, int trigger);
- 	int	(*set_prescaler)(pwm_omap_dmtimer *timer, int prescaler);
- 
-+	unsigned int (*read_counter)(pwm_omap_dmtimer *timer);
- 	int	(*write_counter)(pwm_omap_dmtimer *timer, unsigned int value);
-+	unsigned int (*read_status)(pwm_omap_dmtimer *timer);
-+	int	(*write_status)(pwm_omap_dmtimer *timer, unsigned int value);
- };
- 
- #endif /* __PWM_OMAP_DMTIMER_PDATA_H */
+ 	lirc_rx51.pwm_timer_num = lirc_rx51.pdata->pwm_timer;
++	lirc_rx51.dmtimer = lirc_rx51.pdata->dmtimer;
+ 	lirc_rx51.dev = &dev->dev;
+ 	lirc_rx51_driver.dev = &dev->dev;
+ 	lirc_rx51_driver.minor = lirc_register_driver(&lirc_rx51_driver);
 -- 
 2.8.1
