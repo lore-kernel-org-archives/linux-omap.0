@@ -1,45 +1,33 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+From: Steven Rostedt <rostedt@goodmis.org>
 Subject: Re: [PATCH arm 1/1] arm: Use _rcuidle tracepoint to allow use from
  idle
-Date: Tue, 26 Apr 2016 12:07:55 -0700
-Message-ID: <20160426190755.GK3715@linux.vnet.ibm.com>
+Date: Tue, 26 Apr 2016 15:17:25 -0400
+Message-ID: <20160426151725.657ae70c@gandalf.local.home>
 References: <1461617335-22372-1-git-send-email-paulmck@linux.vnet.ibm.com>
- <20160426150031.GP5995@atomide.com>
- <20160426175214.GJ3715@linux.vnet.ibm.com>
- <20160426182939.GO5995@atomide.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+	<20160426150031.GP5995@atomide.com>
+	<20160426175214.GJ3715@linux.vnet.ibm.com>
+	<20160426182939.GO5995@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
 In-Reply-To: <20160426182939.GO5995@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, mingo@kernel.org, Russell King <linux@arm.linux.org.uk>, Steven Rostedt <rostedt@goodmis.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, linux-kernel@vger.kernel.org, mingo@kernel.org, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 26, 2016 at 11:29:39AM -0700, Tony Lindgren wrote:
+On Tue, 26 Apr 2016 11:29:39 -0700
+Tony Lindgren <tony@atomide.com> wrote:
+
 > * Paul E. McKenney <paulmck@linux.vnet.ibm.com> [160426 10:53]:
-> > Does the following patch help?
+> > Does the following patch help?  
 > 
 > It just changes the output.. See below.
-
-Ah -- you need both patches.
-
-These are on -rcu at:
-
-501889db6fee (arm: Use _rcuidle tracepoint to allow use from idle)
-99cd56ad86d2 (rm: Use more _rcuidle tracepoints to allow use from idle)
-
-And -rcu may be found at:
-
-	git://git.kernel.org/pub/scm/linux/kernel/git/paulmck/linux-rcu.git
-
-							Thanx, Paul
-
+> 
 > > It is quite possible that there are quite a few more of these.  If this
 > > is the case, then one way to make the kernel list more of them on a
-> > given boot is to build with CONFIG_PROVE_RCU_REPEATEDLY=y.
+> > given boot is to build with CONFIG_PROVE_RCU_REPEATEDLY=y.  
 > 
 > OK
 > 
@@ -70,4 +58,23 @@ And -rcu may be found at:
 > [<c0603d30>] (cpuidle_enter_state_coupled) from [<c0183d34>] (cpu_startup_entry+0x198/0x3a0)
 > [<c0183d34>] (cpu_startup_entry) from [<8010162c>] (0x8010162c)
 > hw-breakpoint: Failed to enable monitor mode on CPU 0.
-> 
+
+Time to play "Whack-a-Mole"(TM)
+
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+---
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 78af6d8cf2e2..12b66b5bcc55 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -523,8 +523,8 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+ 
+ 	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
+ 		/* Trace the pwrdm desired target state */
+-		trace_power_domain_target(pwrdm->name, pwrst,
+-					  smp_processor_id());
++		trace_power_domain_target_rcuidle(pwrdm->name, pwrst,
++						  smp_processor_id());
+ 		/* Program the pwrdm desired target state */
+ 		ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
+ 	}
