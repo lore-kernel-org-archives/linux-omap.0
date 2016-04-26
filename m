@@ -1,8 +1,8 @@
 From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH v7 3/9] pwm: pwm-tiehrpwm: Update dt binding document to use
- generic node name
-Date: Tue, 26 Apr 2016 17:36:43 -0500
-Message-ID: <1461710209-6563-4-git-send-email-fcooper@ti.com>
+Subject: [PATCH v7 4/9] pwm: pwm-tiecap: Update dt binding document to use
+ proper unit address
+Date: Tue, 26 Apr 2016 17:36:44 -0500
+Message-ID: <1461710209-6563-5-git-send-email-fcooper@ti.com>
 References: <1461710209-6563-1-git-send-email-fcooper@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,44 +22,41 @@ To: thierry.reding@gmail.com, robh+dt@kernel.org, tony@atomide.com, paul@pwsan.c
 Cc: Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Now that the node name has been changed from ehrpwm to pwm the document
-should show this proper usage. Also change the unit address in the example
-from 0 to the proper physical address value that should be used.
+Replace unit address from 0 to the proper physical address.
 
 Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
-Acked-by: Rob Herring <robh@kernel.org>
 ---
- Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt | 6 +++---
+ Documentation/devicetree/bindings/pwm/pwm-tiecap.txt | 6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt b/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
-index 99b544f..cbc538b 100644
---- a/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
-+++ b/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
+diff --git a/Documentation/devicetree/bindings/pwm/pwm-tiecap.txt b/Documentation/devicetree/bindings/pwm/pwm-tiecap.txt
+index 788da6c..1b7eec5 100644
+--- a/Documentation/devicetree/bindings/pwm/pwm-tiecap.txt
++++ b/Documentation/devicetree/bindings/pwm/pwm-tiecap.txt
 @@ -16,21 +16,21 @@ Optional properties:
  
  Example:
  
--ehrpwm0: ehrpwm@0 { /* EHRPWM on am33xx */
-+ehrpwm0: pwm@48300200 { /* EHRPWM on am33xx */
- 	compatible = "ti,am33xx-ehrpwm";
+-ecap0: ecap@0 { /* ECAP on am33xx */
++ecap0: ecap@48300100 { /* ECAP on am33xx */
+ 	compatible = "ti,am33xx-ecap";
  	#pwm-cells = <3>;
- 	reg = <0x48300200 0x100>;
- 	ti,hwmods = "ehrpwm0";
+ 	reg = <0x48300100 0x80>;
+ 	ti,hwmods = "ecap0";
  };
  
--ehrpwm0: ehrpwm@0 { /* EHRPWM on am4372 */
-+ehrpwm0: pwm@48300200 { /* EHRPWM on am4372 */
- 	compatible = "ti,am4372-ehrpwm", "ti,am33xx-ehrpwm";
+-ecap0: ecap@0 { /* ECAP on am4372 */
++ecap0: ecap@48300100 { /* ECAP on am4372 */
+ 	compatible = "ti,am4372-ecap", "ti,am33xx-ecap";
  	#pwm-cells = <3>;
- 	reg = <0x48300200 0x80>;
- 	ti,hwmods = "ehrpwm0";
+ 	reg = <0x48300100 0x80>;
+ 	ti,hwmods = "ecap0";
  };
  
--ehrpwm0: ehrpwm@0 { /* EHRPWM on da850 */
-+ehrpwm0: pwm@1f00000 { /* EHRPWM on da850 */
- 	compatible = "ti,da850-ehrpwm", "ti,am33xx-ehrpwm";
+-ecap0: ecap@0 { /* ECAP on da850 */
++ecap0: ecap@1f06000 { /* ECAP on da850 */
+ 	compatible = "ti,da850-ecap", "ti,am33xx-ecap";
  	#pwm-cells = <3>;
- 	reg = <0x300000 0x2000>;
+ 	reg = <0x306000 0x80>;
 -- 
 2.7.0
