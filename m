@@ -1,44 +1,43 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: USB gadgets with configfs hang reboot
-Date: Tue, 26 Apr 2016 09:49:19 -0700
-Message-ID: <20160426164918.GA5995@atomide.com>
-References: <Pine.LNX.4.44L0.1604261102000.2038-100000@iolanthe.rowland.org>
- <571F9AD4.8010900@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] ARM: dts: omap5-board-common: fix ldo1_reg and
+ ldo4_reg ranges
+Date: Tue, 26 Apr 2016 09:56:22 -0700
+Message-ID: <20160426165622.GB5995@atomide.com>
+References: <1460973967-25077-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <571F9AD4.8010900-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Michal Nazarewicz <mina86-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1460973967-25077-1-git-send-email-tomi.valkeinen@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [160426 09:46]:
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [160418 03:07]:
+> ldo4_reg is connected to DSS, and should always be 1.8V. However the
+> The dts defines a range of 1.5V-1.8V, which requires somethings to set
+> the actual voltage at runtime. Currently we set the voltage in omapdss
+> driver.
 > 
-> 
-> On 26.04.2016 18:03, Alan Stern wrote:
-> >On Tue, 26 Apr 2016, Felipe Balbi wrote:
-> >
-> >>>Is there a reason why a process (pnatd in this particular case) doesn't
-> >>>get killed on reboot?
-> >>
-> >>there might be, and that's probably the bug we're trying to figure
-> >>out. But so far, no idea.
-> >
-> >One possible reason is that the process is in an uninterruptible wait
-> >inside the kernel, waiting for something that isn't going to happen.
-> 
-> The process waits in poll(&fds, 1u, -1), where fds contains only the fd of
-> /dev/ttyGS2. Nothing suspicious I can see here.
+> As the voltage must always be 1.8V, let's just define the range to 1.8V
+> so that the driver doesn't need to deal with the voltage. In fact, the
+> driver should not touch the voltage, except in the cases where the
+> voltage needs to be changed at runtime.
 
-I think the easy way to reproduce this is to start getty or minicom
-on /dev/ttyG* and disconnect the USB cable.
+Thanks applying both into omap-for-v4.6/fixes-rc5. Feel free to merge
+commit 5607959a4d5b54dcc9a3572bdbf967dfda88ae66 into your DSS tree
+too for v4.7 in case it gets too late for these fixes for v4.6-rc.
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
