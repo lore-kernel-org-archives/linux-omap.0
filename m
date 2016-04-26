@@ -1,54 +1,39 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [PATCH] ASoC: omap-pcm: Initialize DMA
-	configuration
-Date: Tue, 26 Apr 2016 16:01:56 +0300
-Message-ID: <20160426130156.GA15388@bitmer.com>
-References: <1461600607-19582-1-git-send-email-Linux.HWI@garmin.com>
+From: "Franklin S Cooper Jr." <fcooper@ti.com>
+Subject: Re: [PATCH v6 0/7] ARM: dts: DRA7: Add dt nodes for PWMSS
+Date: Tue, 26 Apr 2016 08:22:07 -0500
+Message-ID: <571F6B7F.8090008@ti.com>
+References: <1461343238-29274-1-git-send-email-fcooper@ti.com>
+ <alpine.DEB.2.02.1604251610170.22464@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <1461600607-19582-1-git-send-email-Linux.HWI@garmin.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: "J.D. Schroeder" <Linux.HWI@garmin.com>
-Cc: alsa-devel@alsa-project.org, "J.D. Schroeder" <jay.schroeder@garmin.com>, lgirdwood@gmail.com, linux-kernel@vger.kernel.org, tiwai@suse.com, peter.ujfalusi@ti.com, Jim Lodes <jim.lodes@garmin.com>, broonie@kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1604251610170.22464@utopia.booyaka.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: thierry.reding@gmail.com, tony@atomide.com, t-kristo@ti.com, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, robh+dt@kernel.org, devicetree@vger.kernel.org, vigneshr@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Apr 25, 2016 at 11:10:07AM -0500, J.D. Schroeder wrote:
-> From: Jim Lodes <jim.lodes@garmin.com>
-> 
-> Initialize the dma_slave_config for PCM DMA transfers,
-> instead of leaving it uninitialized. Keeps previous data on
-> the stack from giving us invalid values in uninitialized
-> members of the config structure.
-> 
-> Signed-off-by: Jim Lodes <jim.lodes@garmin.com>
-> Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
-> ---
->  sound/soc/omap/omap-pcm.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
-> index 99381a2..a84f677 100644
-> --- a/sound/soc/omap/omap-pcm.c
-> +++ b/sound/soc/omap/omap-pcm.c
-> @@ -82,6 +82,8 @@ static int omap_pcm_hw_params(struct snd_pcm_substream *substream,
->  	struct dma_chan *chan;
->  	int err = 0;
->  
-> +	memset(&config, 0x00, sizeof(config));
 
-Based on a894bd7fb539 ("ASoC: generic-dmaengine-pcm: Clear slave_config
-memory")
 
-Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Reviewed-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+On 04/25/2016 11:18 AM, Paul Walmsley wrote:
+> On Fri, 22 Apr 2016, Franklin S Cooper Jr wrote:
+> 
+>> This patch series adds support for PWM for DRA7. The IP is the same as the
+>> one present in AM33XX and AM437XX.
+>>
+>> However, before doing so remove unnecessary hwmod entries for eCAP, ePWM
+>> and eQEP.
+> 
+> Just took a quick look (nothing indepth).  Looks OK.  
+> 
+> Once Rob's issues have been addressed, please feel free to add an 
+> Acked-by: from me.  Thanks for playing along, Franklin, I think this final 
+> product makes the most sense from a device architecture point of view.
+
+
+Thanks Paul. Just to be clear I can add your Acked-by to all 7 patches?
+> 
+> 
+> - Paul
+> 
