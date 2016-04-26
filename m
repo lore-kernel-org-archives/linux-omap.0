@@ -1,35 +1,25 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v1] ARM: dts: omap3-n900: Specify peripherals LDO
- regulators initial mode
-Date: Tue, 26 Apr 2016 10:14:39 -0700
-Message-ID: <20160426171439.GF5995@atomide.com>
-References: <20160417122933.GA8093@earth>
- <1460903363-2197-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160424100830.GC23015@amd>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 3/5] ARM: dts: omap5: fix range of permitted wakeup
+ pinmux registers
+Date: Tue, 26 Apr 2016 10:23:41 -0700
+Message-ID: <20160426172341.GG5995@atomide.com>
+References: <cover.1461003660.git.hns@goldelico.com>
+ <df4871d061d698cbee340000a2665ed3b4e44738.1461003660.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160424100830.GC23015@amd>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+In-Reply-To: <df4871d061d698cbee340000a2665ed3b4e44738.1461003660.git.hns@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, ldewangan@nvidia.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, marek@goldelico.com, kernel@pyra-handheld.com, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> [160424 03:09]:
-> On Sun 2016-04-17 17:29:23, Ivaylo Dimitrov wrote:
-> > Without that, regulators are left in the mode last set by the bootloader or
-> > by the kernel the device was rebooted from. This leads to various problems,
-> > like non-working peripherals.
-> > 
-> > Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> 
-> Reviewed-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+* H. Nikolaus Schaller <hns@goldelico.com> [160418 11:23]:
+> otherwise we can't define gpio1_wk14
 
-Thanks applying into omap-for-v4.6/fixes-rc5.
+Applying this one into omap-for-v4.6/fixes-rc5 thanks.
+
+Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
