@@ -1,86 +1,93 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH v2 4/5] ARM: dts: omap5: describe control for ckobuffer
-Date: Wed, 27 Apr 2016 16:35:01 +0200
-Message-ID: <40536322-073F-48BD-9D07-32B9A9F07AF2@goldelico.com>
-References: <cover.1461003660.git.hns@goldelico.com> <a5fb89737594a656318896a8e43814c21ca992eb.1461003660.git.hns@goldelico.com> <20160426172710.GI5995@atomide.com> <70572DA1-BEB4-4681-BA6C-2E1C9002D730@goldelico.com> <5720B107.4000907@ti.com> <A90F1BFC-A834-4EC0-81F9-2C8222AAA010@goldelico.com> <5720C85B.9010701@ti.com> <ce9a7840-e86f-0d0c-3ed6-a571eec6659d@ti.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <ce9a7840-e86f-0d0c-3ed6-a571eec6659d@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, Laxman Dewangan <ldewangan@nvidia.com>, linux-omap <linux-omap@vger.kernel.org>, devicetree@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Marek Belisko <marek@goldelico.com>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
+From: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH V2 13/14] dt-bindings: arm-gic: Add documentation for
+ Tegra210 AGIC
+Date: Wed, 27 Apr 2016 16:34:53 +0100
+Message-ID: <5720DC1D.1080802@nvidia.com>
+References: <1461150237-15580-1-git-send-email-jonathanh@nvidia.com>
+ <1461150237-15580-14-git-send-email-jonathanh@nvidia.com>
+ <20160422100052.GA10606@leverpostej> <571A0739.3090502@nvidia.com>
+ <20160422112239.GF10606@leverpostej>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160422112239.GF10606@leverpostej>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-HI,
 
-> Am 27.04.2016 um 16:23 schrieb Peter Ujfalusi <peter.ujfalusi@ti.com>:
+On 22/04/16 12:22, Mark Rutland wrote:
+
+[snip]
+
+>>>> I am not sure if it will be popular to add Tegra specific clock names
+>>>> to the GIC DT docs. However, in that case, then possibly the only
+>>>> alternative is to move the Tegra AGIC driver into its own file and
+>>>> expose the GIC APIs for it to use. Then we could add our own DT doc
+>>>> for the Tegra AGIC as well (based upon the ARM GIC).
+>>>
+>>> The clock-names don't seem right to me, as they sound like provide names
+>>> or global clock line names rather than consumer-side names ("clk" and
+>>> "apb_pclk").
+>>
+>> Yes that would be fine with me.
 > 
-> On 04/27/2016 05:10 PM, Tero Kristo wrote:
->> On 27/04/16 16:10, H. Nikolaus Schaller wrote:
->>> 
->>>> Am 27.04.2016 um 14:31 schrieb Tero Kristo <t-kristo@ti.com>:
->>>> 
->>>> On 27/04/16 09:04, H. Nikolaus Schaller wrote:
->>>>> 
->>>>>> Am 26.04.2016 um 19:27 schrieb Tony Lindgren <tony@atomide.com>:
->>>>>> 
->>>>>> Tero,
->>>>>> 
->>>>>> * H. Nikolaus Schaller <hns@goldelico.com> [160418 11:23]:
->>>>>>> OMAP5 has a register to control if the ckobuffer is enabled
->>>>>>> and defines the polarity. ckobuffer is required to drive a twl6040
->>>>>>> with the system clock. Hence, add the pinctrl,single to the
->>>>>>> OMAP5 SoC description so that omap5-board-common can
->>>>>>> set up the ckobuffer as required.
->>>>>> 
->>>>>> Is this really a mux or should it be a mux clock?
->>>>> 
->>>>> It is a pinmux setting for the clock out buffer to choose what signal
->>>>> (and polarity) is presented on the fref_xtal_clk pad.
->>>>> 
->>>>> The register is part of the CTRL_MODULE_WKUP.
->>>>> The clock signal is the xtal master clock of the whole SoC.
->>>>> 
->>>>> Although there is a bit to choose an alternate clock, there is no
->>>>> alternate in the OMAP5 silicon.
->>>>> 
->>>>> Therefore I would say it is about padconf and not clock or clock mux
->>>>> related.
->>>>> 
->>>>> It just happens to be a clock signal which can be routed to this
->>>>> pad.
->>>> 
->>>> The two could very well be implemented as clock nodes, a mux and a gate.
->>>> This would describe the hardware functionality better imo, if the
->>>> assumptions made here are correct. Implementing the control as pinctrl
->>>> hacks looks rather weird to me.
->>> 
->>> Why do you consider it a "pinctrl hack"? IMHO it is not a hack, but 100%
->>> proper use of pinctrl.
->> 
->> It is just the level of abstraction we are talking about here. If it is a
->> clock we are controlling, we should rather control it as a clock (higher level
->> abstraction), not a pin.
-> 
-> I second this. I think it is better to have a simple gate clock and handle
-> only CONTROL_CKOBUFFER:CKOBUFFER_CLK_EN (bit 28) only as the other bits does
-> not have real use.
-> 
-> Then we can add clk API support for this. On most OMAP4 devices the clock is
-> always on,
+> Ok; if we model the apb_pclk as owned by the AXI switch (which it is),
+> then there's no change for the GIC binding, short of the additional
+> compatible string as an extension of "arm,gic-400", as we already model
+> that clock in the GIC-400 binding.
 
-this is why I am raising the question if we really want to control it on the omap5 or just 
-turn it on for all omap5 boards like the omap4 appears to do... I.e. if turning the pin on
-as a pinctrl is IMHO sufficient for all practical purposes.
+I have been re-working this based upon the feedback received. In the GIC
+driver we have the following definitions ...
 
-> so the board DTS file need to provide a dummy clock, or we can make
-> the high precision clock also as optional (on panda both OMAP4 and twl6040
-> uses the same reference clock).
+ IRQCHIP_DECLARE(gic_400, "arm,gic-400", gic_of_init);
+ IRQCHIP_DECLARE(arm11mp_gic, "arm,arm11mp-gic", gic_of_init);
+ IRQCHIP_DECLARE(arm1176jzf_dc_gic, "arm,arm1176jzf-devchip-gic", gic_of_init);
+ IRQCHIP_DECLARE(cortex_a15_gic, "arm,cortex-a15-gic", gic_of_init);
+ IRQCHIP_DECLARE(cortex_a9_gic, "arm,cortex-a9-gic", gic_of_init);
+ IRQCHIP_DECLARE(cortex_a7_gic, "arm,cortex-a7-gic", gic_of_init);
+ IRQCHIP_DECLARE(msm_8660_qgic, "qcom,msm-8660-qgic", gic_of_init);
+ IRQCHIP_DECLARE(msm_qgic2, "qcom,msm-qgic2", gic_of_init);
+ IRQCHIP_DECLARE(pl390, "arm,pl390", gic_of_init);
 
-Hm. It looks as if implementing this (and clock gating) is beyond my experiences.
-But I am happy to test a proposal on our omap5 board.
 
-BR and thanks,
-Nikolaus
+If I have something like the following in my dts ...
+
+	agic: interrupt-controller@702f9000 {
+		compatible = "nvidia,tegra210-agic", "arm,gic-400";
+		...
+	};
+
+The problem with this is that it tries to register the interrupt controller
+early during of_irq_init() before the platform driver has chance to
+initialise it. To avoid this I got rid of the "nvidia,tegra210-agic" string
+and added the following for the platform driver ...
+
+static const struct of_device_id gic_match[] = {
+       { .compatible = "arm,arm11mp-gic-pm",    .data = &arm11mp_gic_data   },
+       { .compatible = "arm,cortex-a15-gic-pm", .data = &cortexa15_gic_data },
+       { .compatible = "arm,cortex-a9-gic-pm",  .data = &cortexa9_gic_data  },
+       { .compatible = "arm,gic400-pm",         .data = &gic400_data        },
+       { .compatible = "arm,pl390-pm",          .data = &pl390_data         },
+       {},
+};
+
+It is not ideal as now we have a *-pm variant of each compatible string :-(
+
+Another option would be to add some code in gic_of_init() to check for the
+presence of a "clocks" node in the DT binding and bail out of the early 
+initialisation if found but may be that is a bit of a hack.
+
+Mark, what are your thoughts on this?
+
+Cheers
+Jon
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
