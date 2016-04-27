@@ -1,104 +1,86 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v6 11/12] usb: core: hub: Notify OTG fsm when A device
- sets b_hnp_enable
-Date: Wed, 27 Apr 2016 17:35:15 +0300
-Message-ID: <5720CE23.7050305@ti.com>
-References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
- <1459865117-7032-12-git-send-email-rogerq@ti.com>
- <20160418070842.GC4477@shlinux2.ap.freescale.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH v2 4/5] ARM: dts: omap5: describe control for ckobuffer
+Date: Wed, 27 Apr 2016 16:35:01 +0200
+Message-ID: <40536322-073F-48BD-9D07-32B9A9F07AF2@goldelico.com>
+References: <cover.1461003660.git.hns@goldelico.com> <a5fb89737594a656318896a8e43814c21ca992eb.1461003660.git.hns@goldelico.com> <20160426172710.GI5995@atomide.com> <70572DA1-BEB4-4681-BA6C-2E1C9002D730@goldelico.com> <5720B107.4000907@ti.com> <A90F1BFC-A834-4EC0-81F9-2C8222AAA010@goldelico.com> <5720C85B.9010701@ti.com> <ce9a7840-e86f-0d0c-3ed6-a571eec6659d@ti.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160418070842.GC4477@shlinux2.ap.freescale.net>
+In-Reply-To: <ce9a7840-e86f-0d0c-3ed6-a571eec6659d@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Chen <hzpeterchen@gmail.com>
-Cc: stern@rowland.harvard.edu, balbi@kernel.org, gregkh@linuxfoundation.org, peter.chen@freescale.com, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, r.baldyga@samsung.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, Laxman Dewangan <ldewangan@nvidia.com>, linux-omap <linux-omap@vger.kernel.org>, devicetree@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Marek Belisko <marek@goldelico.com>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 18/04/16 10:08, Peter Chen wrote:
-> On Tue, Apr 05, 2016 at 05:05:16PM +0300, Roger Quadros wrote:
->> This is the a_set_b_hnp_enable flag in the OTG state machine
->> diagram and must be set when the A-Host has successfully set
->> the b_hnp_enable feature of the OTG-B-Peripheral attached to it.
->>
->> When this bit changes we kick our OTG FSM to make note of the
->> change and act accordingly.
-> 
-> Since we have still not added fsm.a_set_b_hnp_en in OTG FSM, and this
-> patch set is mainly for DRD, would you please move out this patch from
-> this set?
+HI,
 
-Sure.
-
-cheers,
--roger
-
+> Am 27.04.2016 um 16:23 schrieb Peter Ujfalusi <peter.ujfalusi@ti.com>:
 > 
->>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->>  drivers/usb/core/hub.c | 17 +++++++++++++++--
->>  1 file changed, 15 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
->> index 38cc4ba..27e3b4c 100644
->> --- a/drivers/usb/core/hub.c
->> +++ b/drivers/usb/core/hub.c
->> @@ -2273,6 +2273,7 @@ static int usb_enumerate_device_otg(struct usb_device *udev)
->>  			&& udev->parent == udev->bus->root_hub) {
->>  		struct usb_otg_descriptor	*desc = NULL;
->>  		struct usb_bus			*bus = udev->bus;
->> +		struct usb_hcd			*hcd = bus_to_hcd(bus);
->>  		unsigned			port1 = udev->portnum;
->>  
->>  		/* descriptor may appear anywhere in config */
->> @@ -2302,6 +2303,9 @@ static int usb_enumerate_device_otg(struct usb_device *udev)
->>  				dev_err(&udev->dev, "can't set HNP mode: %d\n",
->>  									err);
->>  				bus->b_hnp_enable = 0;
->> +			} else {
->> +				/* notify OTG fsm about a_set_b_hnp_enable */
->> +				usb_otg_kick_fsm(hcd->otg_dev);
->>  			}
->>  		} else if (desc->bLength == sizeof
->>  				(struct usb_otg_descriptor)) {
->> @@ -2312,10 +2316,14 @@ static int usb_enumerate_device_otg(struct usb_device *udev)
->>  				USB_DEVICE_A_ALT_HNP_SUPPORT,
->>  				0, NULL, 0,
->>  				USB_CTRL_SET_TIMEOUT);
->> -			if (err < 0)
->> +			if (err < 0) {
->>  				dev_err(&udev->dev,
->>  					"set a_alt_hnp_support failed: %d\n",
->>  					err);
->> +			} else {
->> +				/* notify OTG fsm about a_set_b_hnp_enable */
->> +				usb_otg_kick_fsm(hcd->otg_dev);
->> +			}
->>  		}
->>  	}
->>  #endif
->> @@ -4355,8 +4363,13 @@ hub_port_init(struct usb_hub *hub, struct usb_device *udev, int port1,
->>  	 */
->>  	if (!hdev->parent) {
->>  		delay = HUB_ROOT_RESET_TIME;
->> -		if (port1 == hdev->bus->otg_port)
->> +		if (port1 == hdev->bus->otg_port) {
->>  			hdev->bus->b_hnp_enable = 0;
->> +#ifdef CONFIG_USB_OTG
->> +			/* notify OTG fsm about a_set_b_hnp_enable change */
->> +			usb_otg_kick_fsm(hcd->otg_dev);
->> +#endif
->> +		}
->>  	}
->>  
->>  	/* Some low speed devices have problems with the quick delay, so */
->> -- 
->> 2.5.0
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> On 04/27/2016 05:10 PM, Tero Kristo wrote:
+>> On 27/04/16 16:10, H. Nikolaus Schaller wrote:
+>>> 
+>>>> Am 27.04.2016 um 14:31 schrieb Tero Kristo <t-kristo@ti.com>:
+>>>> 
+>>>> On 27/04/16 09:04, H. Nikolaus Schaller wrote:
+>>>>> 
+>>>>>> Am 26.04.2016 um 19:27 schrieb Tony Lindgren <tony@atomide.com>:
+>>>>>> 
+>>>>>> Tero,
+>>>>>> 
+>>>>>> * H. Nikolaus Schaller <hns@goldelico.com> [160418 11:23]:
+>>>>>>> OMAP5 has a register to control if the ckobuffer is enabled
+>>>>>>> and defines the polarity. ckobuffer is required to drive a twl6040
+>>>>>>> with the system clock. Hence, add the pinctrl,single to the
+>>>>>>> OMAP5 SoC description so that omap5-board-common can
+>>>>>>> set up the ckobuffer as required.
+>>>>>> 
+>>>>>> Is this really a mux or should it be a mux clock?
+>>>>> 
+>>>>> It is a pinmux setting for the clock out buffer to choose what signal
+>>>>> (and polarity) is presented on the fref_xtal_clk pad.
+>>>>> 
+>>>>> The register is part of the CTRL_MODULE_WKUP.
+>>>>> The clock signal is the xtal master clock of the whole SoC.
+>>>>> 
+>>>>> Although there is a bit to choose an alternate clock, there is no
+>>>>> alternate in the OMAP5 silicon.
+>>>>> 
+>>>>> Therefore I would say it is about padconf and not clock or clock mux
+>>>>> related.
+>>>>> 
+>>>>> It just happens to be a clock signal which can be routed to this
+>>>>> pad.
+>>>> 
+>>>> The two could very well be implemented as clock nodes, a mux and a gate.
+>>>> This would describe the hardware functionality better imo, if the
+>>>> assumptions made here are correct. Implementing the control as pinctrl
+>>>> hacks looks rather weird to me.
+>>> 
+>>> Why do you consider it a "pinctrl hack"? IMHO it is not a hack, but 100%
+>>> proper use of pinctrl.
+>> 
+>> It is just the level of abstraction we are talking about here. If it is a
+>> clock we are controlling, we should rather control it as a clock (higher level
+>> abstraction), not a pin.
 > 
+> I second this. I think it is better to have a simple gate clock and handle
+> only CONTROL_CKOBUFFER:CKOBUFFER_CLK_EN (bit 28) only as the other bits does
+> not have real use.
+> 
+> Then we can add clk API support for this. On most OMAP4 devices the clock is
+> always on,
+
+this is why I am raising the question if we really want to control it on the omap5 or just 
+turn it on for all omap5 boards like the omap4 appears to do... I.e. if turning the pin on
+as a pinctrl is IMHO sufficient for all practical purposes.
+
+> so the board DTS file need to provide a dummy clock, or we can make
+> the high precision clock also as optional (on panda both OMAP4 and twl6040
+> uses the same reference clock).
+
+Hm. It looks as if implementing this (and clock gating) is beyond my experiences.
+But I am happy to test a proposal on our omap5 board.
+
+BR and thanks,
+Nikolaus
