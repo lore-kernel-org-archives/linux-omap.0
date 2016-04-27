@@ -1,273 +1,79 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 2/2] [media] ir-rx51: Fix build after multiarch changes
- broke it
-Date: Wed, 27 Apr 2016 13:18:04 +0200
-Message-ID: <20160427111804.GB31097@amd>
-References: <1461714709-10455-1-git-send-email-tony@atomide.com>
- <1461714709-10455-3-git-send-email-tony@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 1/3] DRA7: Fix clock data for gmac_gmii_ref_clk_div
+Date: Wed, 27 Apr 2016 14:21:03 +0300
+Message-ID: <5720A09F.2060701@ti.com>
+References: <1461693269-19436-1-git-send-email-Linux.HWI@garmin.com>
+ <1461693269-19436-2-git-send-email-Linux.HWI@garmin.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1461714709-10455-3-git-send-email-tony@atomide.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, pali.rohar@gmail.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Neil Armstrong <narmstrong@baylibre.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1461693269-19436-2-git-send-email-Linux.HWI@garmin.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "J.D. Schroeder" <Linux.HWI@garmin.com>, linux-kernel@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: "J.D. Schroeder" <jay.schroeder@garmin.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+On 26/04/16 20:54, J.D. Schroeder wrote:
+> From: "J.D. Schroeder" <jay.schroeder@garmin.com>
+>
+> This commit fixes the clock data inside the DRA7xx clocks device tree
+> structure for the gmac_gmii_ref_clk_div clock. This clock is actually
+> the GMAC_MAIN_CLK and has nothing to do with the register at address
+> 0x4a0093d0. If CLKSEL_REF bit 24 inside of CM_GMAC_GMAC_CLKCTRL, is
+> set to 1 in order to use the GMAC_RMII_CLK instead of the
+> GMAC_RMII_HS_CLK, the kernel generates a clock divider warning:
+>      WARNING: CPU: 0 PID: 0 at drivers/clk/clk-divider.c:129 clk_divider_recalc_rate+0xa8/0xe0()
+>      gmac_gmii_ref_clk_div: Zero divisor and CLK_DIVIDER_ALLOW_ZERO not set
+>
+> By properly configuring the gmac_gmii_ref_clk_div (GMAC_MAIN_CLK) to
+> have the parent of dpll_gmac_m2_ck always divided by 2 the warning is
+> resolved and the clock tree is fixed up.
+>
+> Additionally, a new clock called rmii_50mhz_clk_mux is defined that
+> does utilize CM_GMAC_GMAC_CLKCTRL[24] CLKSEL_REF to configure the
+> source clock for the RMII_50MHZ_CLK.
+>
+> Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
+> Reviewed-by: Trenton Andres <trenton.andres@garmin.com>
 
-> 
-> Can you guys please test this still works? I've only been able
-> to test that it compiles/loads/unloads as my n900 in in a rack.
-> 
+Looks like something weird happened with the clock data conversion tool 
+with this specific clock. Seems to be the only buggy instance in our 
+clock data across SoCs. Good catch.
 
-I guess Pali (To:) is the right person to test this? My n900 is in my
-pocket, but I've never used this functionality before (and would have
-to set up the userspace support).
+Acked-by: Tero Kristo <t-kristo@ti.com>
 
-Best regards,
-								Pavel
-								
-> 
-> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-> index bd4d685..370e16e 100644
-> --- a/drivers/media/rc/Kconfig
-> +++ b/drivers/media/rc/Kconfig
-> @@ -336,7 +336,7 @@ config IR_TTUSBIR
->  
->  config IR_RX51
->  	tristate "Nokia N900 IR transmitter diode"
-> -	depends on OMAP_DM_TIMER && ARCH_OMAP2PLUS && LIRC && !ARCH_MULTIPLATFORM
-> +	depends on OMAP_DM_TIMER && PWM_OMAP_DMTIMER && ARCH_OMAP2PLUS && LIRC
->  	---help---
->  	   Say Y or M here if you want to enable support for the IR
->  	   transmitter diode built in the Nokia N900 (RX51) device.
-> diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-> index 4e1711a..da839c3 100644
-> --- a/drivers/media/rc/ir-rx51.c
-> +++ b/drivers/media/rc/ir-rx51.c
-> @@ -19,6 +19,7 @@
->   *
->   */
->  
-> +#include <linux/clk.h>
->  #include <linux/module.h>
->  #include <linux/interrupt.h>
->  #include <linux/uaccess.h>
-> @@ -26,11 +27,9 @@
->  #include <linux/sched.h>
->  #include <linux/wait.h>
->  
-> -#include <plat/dmtimer.h>
-> -#include <plat/clock.h>
-> -
->  #include <media/lirc.h>
->  #include <media/lirc_dev.h>
-> +#include <linux/platform_data/pwm_omap_dmtimer.h>
->  #include <linux/platform_data/media/ir-rx51.h>
->  
->  #define LIRC_RX51_DRIVER_FEATURES (LIRC_CAN_SET_SEND_DUTY_CYCLE |	\
-> @@ -44,8 +43,9 @@
->  #define TIMER_MAX_VALUE 0xffffffff
->  
->  struct lirc_rx51 {
-> -	struct omap_dm_timer *pwm_timer;
-> -	struct omap_dm_timer *pulse_timer;
-> +	pwm_omap_dmtimer *pwm_timer;
-> +	pwm_omap_dmtimer *pulse_timer;
-> +	struct pwm_omap_dmtimer_pdata *dmtimer;
->  	struct device	     *dev;
->  	struct lirc_rx51_platform_data *pdata;
->  	wait_queue_head_t     wqueue;
-> @@ -63,14 +63,14 @@ struct lirc_rx51 {
->  
->  static void lirc_rx51_on(struct lirc_rx51 *lirc_rx51)
->  {
-> -	omap_dm_timer_set_pwm(lirc_rx51->pwm_timer, 0, 1,
-> -			      OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE);
-> +	lirc_rx51->dmtimer->set_pwm(lirc_rx51->pwm_timer, 0, 1,
-> +				PWM_OMAP_DMTIMER_TRIGGER_OVERFLOW_AND_COMPARE);
->  }
->  
->  static void lirc_rx51_off(struct lirc_rx51 *lirc_rx51)
->  {
-> -	omap_dm_timer_set_pwm(lirc_rx51->pwm_timer, 0, 1,
-> -			      OMAP_TIMER_TRIGGER_NONE);
-> +	lirc_rx51->dmtimer->set_pwm(lirc_rx51->pwm_timer, 0, 1,
-> +				    PWM_OMAP_DMTIMER_TRIGGER_NONE);
->  }
->  
->  static int init_timing_params(struct lirc_rx51 *lirc_rx51)
-> @@ -79,12 +79,12 @@ static int init_timing_params(struct lirc_rx51 *lirc_rx51)
->  
->  	load = -(lirc_rx51->fclk_khz * 1000 / lirc_rx51->freq);
->  	match = -(lirc_rx51->duty_cycle * -load / 100);
-> -	omap_dm_timer_set_load(lirc_rx51->pwm_timer, 1, load);
-> -	omap_dm_timer_set_match(lirc_rx51->pwm_timer, 1, match);
-> -	omap_dm_timer_write_counter(lirc_rx51->pwm_timer, TIMER_MAX_VALUE - 2);
-> -	omap_dm_timer_start(lirc_rx51->pwm_timer);
-> -	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
-> -	omap_dm_timer_start(lirc_rx51->pulse_timer);
-> +	lirc_rx51->dmtimer->set_load(lirc_rx51->pwm_timer, 1, load);
-> +	lirc_rx51->dmtimer->set_match(lirc_rx51->pwm_timer, 1, match);
-> +	lirc_rx51->dmtimer->write_counter(lirc_rx51->pwm_timer, TIMER_MAX_VALUE - 2);
-> +	lirc_rx51->dmtimer->start(lirc_rx51->pwm_timer);
-> +	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer, 0);
-> +	lirc_rx51->dmtimer->start(lirc_rx51->pulse_timer);
->  
->  	lirc_rx51->match = 0;
->  
-> @@ -100,15 +100,15 @@ static int pulse_timer_set_timeout(struct lirc_rx51 *lirc_rx51, int usec)
->  	BUG_ON(usec < 0);
->  
->  	if (lirc_rx51->match == 0)
-> -		counter = omap_dm_timer_read_counter(lirc_rx51->pulse_timer);
-> +		counter = lirc_rx51->dmtimer->read_counter(lirc_rx51->pulse_timer);
->  	else
->  		counter = lirc_rx51->match;
->  
->  	counter += (u32)(lirc_rx51->fclk_khz * usec / (1000));
-> -	omap_dm_timer_set_match(lirc_rx51->pulse_timer, 1, counter);
-> -	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer,
-> -				     OMAP_TIMER_INT_MATCH);
-> -	if (tics_after(omap_dm_timer_read_counter(lirc_rx51->pulse_timer),
-> +	lirc_rx51->dmtimer->set_match(lirc_rx51->pulse_timer, 1, counter);
-> +	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer,
-> +					   PWM_OMAP_DMTIMER_INT_MATCH);
-> +	if (tics_after(lirc_rx51->dmtimer->read_counter(lirc_rx51->pulse_timer),
->  		       counter)) {
->  		return 1;
->  	}
-> @@ -120,18 +120,18 @@ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
->  	unsigned int retval;
->  	struct lirc_rx51 *lirc_rx51 = ptr;
->  
-> -	retval = omap_dm_timer_read_status(lirc_rx51->pulse_timer);
-> +	retval = lirc_rx51->dmtimer->read_status(lirc_rx51->pulse_timer);
->  	if (!retval)
->  		return IRQ_NONE;
->  
-> -	if (retval & ~OMAP_TIMER_INT_MATCH)
-> +	if (retval & ~PWM_OMAP_DMTIMER_INT_MATCH)
->  		dev_err_ratelimited(lirc_rx51->dev,
->  				": Unexpected interrupt source: %x\n", retval);
->  
-> -	omap_dm_timer_write_status(lirc_rx51->pulse_timer,
-> -				OMAP_TIMER_INT_MATCH	|
-> -				OMAP_TIMER_INT_OVERFLOW	|
-> -				OMAP_TIMER_INT_CAPTURE);
-> +	lirc_rx51->dmtimer->write_status(lirc_rx51->pulse_timer,
-> +					 PWM_OMAP_DMTIMER_INT_MATCH |
-> +					 PWM_OMAP_DMTIMER_INT_OVERFLOW |
-> +					 PWM_OMAP_DMTIMER_INT_CAPTURE);
->  	if (lirc_rx51->wbuf_index < 0) {
->  		dev_err_ratelimited(lirc_rx51->dev,
->  				": BUG wbuf_index has value of %i\n",
-> @@ -165,9 +165,9 @@ end:
->  	/* Stop TX here */
->  	lirc_rx51_off(lirc_rx51);
->  	lirc_rx51->wbuf_index = -1;
-> -	omap_dm_timer_stop(lirc_rx51->pwm_timer);
-> -	omap_dm_timer_stop(lirc_rx51->pulse_timer);
-> -	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
-> +	lirc_rx51->dmtimer->stop(lirc_rx51->pwm_timer);
-> +	lirc_rx51->dmtimer->stop(lirc_rx51->pulse_timer);
-> +	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer, 0);
->  	wake_up_interruptible(&lirc_rx51->wqueue);
->  
->  	return IRQ_HANDLED;
-> @@ -178,28 +178,29 @@ static int lirc_rx51_init_port(struct lirc_rx51 *lirc_rx51)
->  	struct clk *clk_fclk;
->  	int retval, pwm_timer = lirc_rx51->pwm_timer_num;
->  
-> -	lirc_rx51->pwm_timer = omap_dm_timer_request_specific(pwm_timer);
-> +	lirc_rx51->pwm_timer = lirc_rx51->dmtimer->request_specific(pwm_timer);
->  	if (lirc_rx51->pwm_timer == NULL) {
->  		dev_err(lirc_rx51->dev, ": Error requesting GPT%d timer\n",
->  			pwm_timer);
->  		return -EBUSY;
->  	}
->  
-> -	lirc_rx51->pulse_timer = omap_dm_timer_request();
-> +	lirc_rx51->pulse_timer = lirc_rx51->dmtimer->request();
->  	if (lirc_rx51->pulse_timer == NULL) {
->  		dev_err(lirc_rx51->dev, ": Error requesting pulse timer\n");
->  		retval = -EBUSY;
->  		goto err1;
->  	}
->  
-> -	omap_dm_timer_set_source(lirc_rx51->pwm_timer, OMAP_TIMER_SRC_SYS_CLK);
-> -	omap_dm_timer_set_source(lirc_rx51->pulse_timer,
-> -				OMAP_TIMER_SRC_SYS_CLK);
-> +	lirc_rx51->dmtimer->set_source(lirc_rx51->pwm_timer,
-> +				       PWM_OMAP_DMTIMER_SRC_SYS_CLK);
-> +	lirc_rx51->dmtimer->set_source(lirc_rx51->pulse_timer,
-> +				       PWM_OMAP_DMTIMER_SRC_SYS_CLK);
->  
-> -	omap_dm_timer_enable(lirc_rx51->pwm_timer);
-> -	omap_dm_timer_enable(lirc_rx51->pulse_timer);
-> +	lirc_rx51->dmtimer->enable(lirc_rx51->pwm_timer);
-> +	lirc_rx51->dmtimer->enable(lirc_rx51->pulse_timer);
->  
-> -	lirc_rx51->irq_num = omap_dm_timer_get_irq(lirc_rx51->pulse_timer);
-> +	lirc_rx51->irq_num = lirc_rx51->dmtimer->get_irq(lirc_rx51->pulse_timer);
->  	retval = request_irq(lirc_rx51->irq_num, lirc_rx51_interrupt_handler,
->  			     IRQF_SHARED, "lirc_pulse_timer", lirc_rx51);
->  	if (retval) {
-> @@ -207,28 +208,28 @@ static int lirc_rx51_init_port(struct lirc_rx51 *lirc_rx51)
->  		goto err2;
->  	}
->  
-> -	clk_fclk = omap_dm_timer_get_fclk(lirc_rx51->pwm_timer);
-> -	lirc_rx51->fclk_khz = clk_fclk->rate / 1000;
-> +	clk_fclk = lirc_rx51->dmtimer->get_fclk(lirc_rx51->pwm_timer);
-> +	lirc_rx51->fclk_khz = clk_get_rate(clk_fclk) / 1000;
->  
->  	return 0;
->  
->  err2:
-> -	omap_dm_timer_free(lirc_rx51->pulse_timer);
-> +	lirc_rx51->dmtimer->free(lirc_rx51->pulse_timer);
->  err1:
-> -	omap_dm_timer_free(lirc_rx51->pwm_timer);
-> +	lirc_rx51->dmtimer->free(lirc_rx51->pwm_timer);
->  
->  	return retval;
->  }
->  
->  static int lirc_rx51_free_port(struct lirc_rx51 *lirc_rx51)
->  {
-> -	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
-> +	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer, 0);
->  	free_irq(lirc_rx51->irq_num, lirc_rx51);
->  	lirc_rx51_off(lirc_rx51);
-> -	omap_dm_timer_disable(lirc_rx51->pwm_timer);
-> -	omap_dm_timer_disable(lirc_rx51->pulse_timer);
-> -	omap_dm_timer_free(lirc_rx51->pwm_timer);
-> -	omap_dm_timer_free(lirc_rx51->pulse_timer);
-> +	lirc_rx51->dmtimer->disable(lirc_rx51->pwm_timer);
-> +	lirc_rx51->dmtimer->disable(lirc_rx51->pulse_timer);
-> +	lirc_rx51->dmtimer->free(lirc_rx51->pwm_timer);
-> +	lirc_rx51->dmtimer->free(lirc_rx51->pulse_timer);
->  	lirc_rx51->wbuf_index = -1;
->  
->  	return 0;
-> @@ -446,7 +447,13 @@ static int lirc_rx51_probe(struct platform_device *dev)
->  {
->  	lirc_rx51_driver.features = LIRC_RX51_DRIVER_FEATURES;
->  	lirc_rx51.pdata = dev->dev.platform_data;
-> +	if (!lirc_rx51.pdata->dmtimer) {
-> +		dev_err(&dev->dev, "no dmtimer?\n");
-> +		return -ENODEV;
-> +	}
+> ---
+>   arch/arm/boot/dts/dra7xx-clocks.dtsi | 15 +++++++++++----
+>   1 file changed, 11 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> index d0bae06..9d1a583 100644
+> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> @@ -1710,13 +1710,20 @@
+>   		reg = <0x0c00>;
+>   	};
+>
+> -	gmac_gmii_ref_clk_div: gmac_gmii_ref_clk_div {
+> +	rmii_50mhz_clk_mux: rmii_50mhz_clk_mux {
+>   		#clock-cells = <0>;
+> -		compatible = "ti,divider-clock";
+> -		clocks = <&dpll_gmac_m2_ck>;
+> +		compatible = "ti,mux-clock";
+> +		clocks = <&dpll_gmac_h11x2_ck>, <&rmii_clk_ck>;
+>   		ti,bit-shift = <24>;
+>   		reg = <0x13d0>;
+> -		ti,dividers = <2>;
+> +	};
 > +
->  	lirc_rx51.pwm_timer_num = lirc_rx51.pdata->pwm_timer;
-> +	lirc_rx51.dmtimer = lirc_rx51.pdata->dmtimer;
->  	lirc_rx51.dev = &dev->dev;
->  	lirc_rx51_driver.dev = &dev->dev;
->  	lirc_rx51_driver.minor = lirc_register_driver(&lirc_rx51_driver);
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+> +	gmac_gmii_ref_clk_div: gmac_gmii_ref_clk_div {
+> +		#clock-cells = <0>;
+> +		compatible = "fixed-factor-clock";
+> +		clocks = <&dpll_gmac_m2_ck>;
+> +		clock-mult = <1>;
+> +		clock-div = <2>;
+>   	};
+>
+>   	gmac_rft_clk_mux: gmac_rft_clk_mux {
+>
