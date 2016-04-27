@@ -1,376 +1,273 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
-Date: Wed, 27 Apr 2016 14:15:44 +0300
-Message-ID: <57209F60.7060408@ti.com>
-References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
- <1459865117-7032-8-git-send-email-rogerq@ti.com>
- <AM4PR04MB213045DC3D1C1D67A7D9AF0689630@AM4PR04MB2130.eurprd04.prod.outlook.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 2/2] [media] ir-rx51: Fix build after multiarch changes
+ broke it
+Date: Wed, 27 Apr 2016 13:18:04 +0200
+Message-ID: <20160427111804.GB31097@amd>
+References: <1461714709-10455-1-git-send-email-tony@atomide.com>
+ <1461714709-10455-3-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AM4PR04MB213045DC3D1C1D67A7D9AF0689630@AM4PR04MB2130.eurprd04.prod.outlook.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jun Li <jun.li@nxp.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "balbi@kernel.org" <balbi@kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "peter.chen@freescale.com" <peter.chen@freescale.com>
-Cc: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "jun.li@freescale.com" <jun.li@freescale.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Joao.Pinto@synopsys.com" <Joao.Pinto@synopsys.com>, "abrestic@chromium.org" <abrestic@chromium.org>, "r.baldyga@samsung.com" <r.baldyga@samsung.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-media-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1461714709-10455-3-git-send-email-tony@atomide.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, pali.rohar@gmail.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Neil Armstrong <narmstrong@baylibre.com>, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Jun,
-
-On 26/04/16 05:07, Jun Li wrote:
-> Hi Roger
-> 
->> -----Original Message-----
->> From: Roger Quadros [mailto:rogerq@ti.com]
->> Sent: Tuesday, April 05, 2016 10:05 PM
->> To: stern@rowland.harvard.edu; balbi@kernel.org;
->> gregkh@linuxfoundation.org; peter.chen@freescale.com
->> Cc: dan.j.williams@intel.com; jun.li@freescale.com;
->> mathias.nyman@linux.intel.com; tony@atomide.com; Joao.Pinto@synopsys.com;
->> abrestic@chromium.org; r.baldyga@samsung.com; linux-usb@vger.kernel.org;
->> linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org; Roger Quadros
->> <rogerq@ti.com>
->> Subject: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
->>
->> It provides APIs for the following tasks
->>
->> - Registering an OTG/dual-role capable controller
->> - Registering Host and Gadget controllers to OTG core
->> - Providing inputs to and kicking the OTG state machine
->>
->> Provide a dual-role device (DRD) state machine.
->> DRD mode is a reduced functionality OTG mode. In this mode we don't
->> support SRP, HNP and dynamic role-swap.
->>
->> In DRD operation, the controller mode (Host or Peripheral) is decided
->> based on the ID pin status. Once a cable plug (Type-A or Type-B) is
->> attached the controller selects the state and doesn't change till the
->> cable in unplugged and a different cable type is inserted.
->>
->> As we don't need most of the complex OTG states and OTG timers we
->> implement a lean DRD state machine in usb-otg.c.
->> The DRD state machine is only interested in 2 hardware inputs 'id' and
->> 'b_sess_vld'.
->>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
-> 
-> ...
-> 
->> +/**
->> + * Register pending host/gadget and remove entry from wait list  */
->> +static void usb_otg_flush_wait(struct device *otg_dev) {
->> +	struct otg_wait_data *wait;
->> +	struct otg_hcd *host;
->> +	struct otg_gcd *gadget;
->> +
->> +	mutex_lock(&wait_list_mutex);
->> +
->> +	wait = usb_otg_get_wait(otg_dev);
->> +	if (!wait)
->> +		goto done;
->> +
->> +	dev_dbg(otg_dev, "otg: registering pending host/gadget\n");
->> +	gadget = &wait->gcd;
->> +	if (gadget)
-> 
-> If (gadget->gadget)
-
-good catch :)
-I'll probably rename the local variables
-host to hcd
-gadget to gcd.
+Hi!
 
 > 
->> +		usb_otg_register_gadget(gadget->gadget, gadget->ops);
->> +
->> +	host = &wait->primary_hcd;
->> +	if (host->hcd)
->> +		usb_otg_register_hcd(host->hcd, host->irqnum, host->irqflags,
->> +				     host->ops);
->> +
->> +	host = &wait->shared_hcd;
->> +	if (host->hcd)
->> +		usb_otg_register_hcd(host->hcd, host->irqnum, host->irqflags,
->> +				     host->ops);
->> +
->> +	list_del(&wait->list);
->> +	kfree(wait);
->> +
->> +done:
->> +	mutex_unlock(&wait_list_mutex);
->> +}
->> +
->> +/**
->> + * Check if the OTG device is in our OTG list and return
->> + * usb_otg data, else NULL.
->> + *
->> + * otg_list_mutex must be held.
->> + */
->> +static struct usb_otg *usb_otg_get_data(struct device *otg_dev) {
->> +	struct usb_otg *otg;
->> +
->> +	if (!otg_dev)
->> +		return NULL;
->> +
->> +	list_for_each_entry(otg, &otg_list, list) {
->> +		if (otg->dev == otg_dev)
->> +			return otg;
->> +	}
->> +
->> +	return NULL;
->> +}
+> Can you guys please test this still works? I've only been able
+> to test that it compiles/loads/unloads as my n900 in in a rack.
 > 
-> Could you export it to be a public API, we may need access usb_otg
-> in common host driver for handling of enumeration of otg test device.
 
-We can always do that later. As of now nobody is using it so let's keep it private.
-> 
-> ...
-> 
->> +/**
->> + * Called when entering a DRD state.
->> + * fsm->lock must be held.
->> + */
->> +static void drd_set_state(struct otg_fsm *fsm, enum usb_otg_state
->> +new_state) {
->> +	struct usb_otg *otg = container_of(fsm, struct usb_otg, fsm);
->> +
->> +	if (otg->state == new_state)
->> +		return;
->> +
->> +	fsm->state_changed = 1;
->> +	dev_dbg(otg->dev, "otg: set state: %s\n",
->> +		usb_otg_state_string(new_state));
->> +	switch (new_state) {
->> +	case OTG_STATE_B_IDLE:
->> +		drd_set_protocol(fsm, PROTO_UNDEF);
->> +		otg_drv_vbus(otg, 0);
->> +		break;
->> +	case OTG_STATE_B_PERIPHERAL:
->> +		drd_set_protocol(fsm, PROTO_GADGET);
->> +		otg_drv_vbus(otg, 0);
->> +		break;
->> +	case OTG_STATE_A_HOST:
->> +		drd_set_protocol(fsm, PROTO_HOST);
->> +		otg_drv_vbus(otg, 1);
->> +		break;
->> +	case OTG_STATE_UNDEFINED:
->> +	case OTG_STATE_B_SRP_INIT:
->> +	case OTG_STATE_B_WAIT_ACON:
->> +	case OTG_STATE_B_HOST:
->> +	case OTG_STATE_A_IDLE:
->> +	case OTG_STATE_A_WAIT_VRISE:
->> +	case OTG_STATE_A_WAIT_BCON:
->> +	case OTG_STATE_A_SUSPEND:
->> +	case OTG_STATE_A_PERIPHERAL:
->> +	case OTG_STATE_A_WAIT_VFALL:
->> +	case OTG_STATE_A_VBUS_ERR:
-> 
-> Remove above unused states.
+I guess Pali (To:) is the right person to test this? My n900 is in my
+pocket, but I've never used this functionality before (and would have
+to set up the userspace support).
 
-OK.
+Best regards,
+								Pavel
+								
 > 
->> +	default:
->> +		dev_warn(otg->dev, "%s: otg: invalid state: %s\n",
->> +			 __func__, usb_otg_state_string(new_state));
->> +		break;
->> +	}
->> +
->> +	otg->state = new_state;
->> +}
->> +
->> +/**
->> + * DRD state change judgement
->> + *
->> + * For DRD we're only interested in some of the OTG states
->> + * i.e. OTG_STATE_B_IDLE: both peripheral and host are stopped
->> + *	OTG_STATE_B_PERIPHERAL: peripheral active
->> + *	OTG_STATE_A_HOST: host active
->> + * we're only interested in the following inputs
->> + *	fsm->id, fsm->b_sess_vld
->> + */
->> +int drd_statemachine(struct usb_otg *otg) {
->> +	struct otg_fsm *fsm = &otg->fsm;
->> +	enum usb_otg_state state;
->> +	int ret;
->> +
->> +	mutex_lock(&fsm->lock);
->> +
->> +	fsm->state_changed = 0;
->> +	state = otg->state;
->> +
->> +	switch (state) {
->> +	case OTG_STATE_UNDEFINED:
->> +		if (!fsm->id)
->> +			drd_set_state(fsm, OTG_STATE_A_HOST);
->> +		else if (fsm->id && fsm->b_sess_vld)
->> +			drd_set_state(fsm, OTG_STATE_B_PERIPHERAL);
->> +		else
->> +			drd_set_state(fsm, OTG_STATE_B_IDLE);
->> +		break;
->> +	case OTG_STATE_B_IDLE:
->> +		if (!fsm->id)
->> +			drd_set_state(fsm, OTG_STATE_A_HOST);
->> +		else if (fsm->b_sess_vld)
->> +			drd_set_state(fsm, OTG_STATE_B_PERIPHERAL);
->> +		break;
->> +	case OTG_STATE_B_PERIPHERAL:
->> +		if (!fsm->id)
->> +			drd_set_state(fsm, OTG_STATE_A_HOST);
->> +		else if (!fsm->b_sess_vld)
->> +			drd_set_state(fsm, OTG_STATE_B_IDLE);
->> +		break;
->> +	case OTG_STATE_A_HOST:
->> +		if (fsm->id && fsm->b_sess_vld)
->> +			drd_set_state(fsm, OTG_STATE_B_PERIPHERAL);
->> +		else if (fsm->id && !fsm->b_sess_vld)
->> +			drd_set_state(fsm, OTG_STATE_B_IDLE);
->> +		break;
->> +
->> +	/* invalid states for DRD */
->> +	case OTG_STATE_B_SRP_INIT:
->> +	case OTG_STATE_B_WAIT_ACON:
->> +	case OTG_STATE_B_HOST:
->> +	case OTG_STATE_A_IDLE:
->> +	case OTG_STATE_A_WAIT_VRISE:
->> +	case OTG_STATE_A_WAIT_BCON:
->> +	case OTG_STATE_A_SUSPEND:
->> +	case OTG_STATE_A_PERIPHERAL:
->> +	case OTG_STATE_A_WAIT_VFALL:
->> +	case OTG_STATE_A_VBUS_ERR:
-> 
-> Remove above unused states and add a default:
+> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+> index bd4d685..370e16e 100644
+> --- a/drivers/media/rc/Kconfig
+> +++ b/drivers/media/rc/Kconfig
+> @@ -336,7 +336,7 @@ config IR_TTUSBIR
+>  
+>  config IR_RX51
+>  	tristate "Nokia N900 IR transmitter diode"
+> -	depends on OMAP_DM_TIMER && ARCH_OMAP2PLUS && LIRC && !ARCH_MULTIPLATFORM
+> +	depends on OMAP_DM_TIMER && PWM_OMAP_DMTIMER && ARCH_OMAP2PLUS && LIRC
+>  	---help---
+>  	   Say Y or M here if you want to enable support for the IR
+>  	   transmitter diode built in the Nokia N900 (RX51) device.
+> diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+> index 4e1711a..da839c3 100644
+> --- a/drivers/media/rc/ir-rx51.c
+> +++ b/drivers/media/rc/ir-rx51.c
+> @@ -19,6 +19,7 @@
+>   *
+>   */
+>  
+> +#include <linux/clk.h>
+>  #include <linux/module.h>
+>  #include <linux/interrupt.h>
+>  #include <linux/uaccess.h>
+> @@ -26,11 +27,9 @@
+>  #include <linux/sched.h>
+>  #include <linux/wait.h>
+>  
+> -#include <plat/dmtimer.h>
+> -#include <plat/clock.h>
+> -
+>  #include <media/lirc.h>
+>  #include <media/lirc_dev.h>
+> +#include <linux/platform_data/pwm_omap_dmtimer.h>
+>  #include <linux/platform_data/media/ir-rx51.h>
+>  
+>  #define LIRC_RX51_DRIVER_FEATURES (LIRC_CAN_SET_SEND_DUTY_CYCLE |	\
+> @@ -44,8 +43,9 @@
+>  #define TIMER_MAX_VALUE 0xffffffff
+>  
+>  struct lirc_rx51 {
+> -	struct omap_dm_timer *pwm_timer;
+> -	struct omap_dm_timer *pulse_timer;
+> +	pwm_omap_dmtimer *pwm_timer;
+> +	pwm_omap_dmtimer *pulse_timer;
+> +	struct pwm_omap_dmtimer_pdata *dmtimer;
+>  	struct device	     *dev;
+>  	struct lirc_rx51_platform_data *pdata;
+>  	wait_queue_head_t     wqueue;
+> @@ -63,14 +63,14 @@ struct lirc_rx51 {
+>  
+>  static void lirc_rx51_on(struct lirc_rx51 *lirc_rx51)
+>  {
+> -	omap_dm_timer_set_pwm(lirc_rx51->pwm_timer, 0, 1,
+> -			      OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE);
+> +	lirc_rx51->dmtimer->set_pwm(lirc_rx51->pwm_timer, 0, 1,
+> +				PWM_OMAP_DMTIMER_TRIGGER_OVERFLOW_AND_COMPARE);
+>  }
+>  
+>  static void lirc_rx51_off(struct lirc_rx51 *lirc_rx51)
+>  {
+> -	omap_dm_timer_set_pwm(lirc_rx51->pwm_timer, 0, 1,
+> -			      OMAP_TIMER_TRIGGER_NONE);
+> +	lirc_rx51->dmtimer->set_pwm(lirc_rx51->pwm_timer, 0, 1,
+> +				    PWM_OMAP_DMTIMER_TRIGGER_NONE);
+>  }
+>  
+>  static int init_timing_params(struct lirc_rx51 *lirc_rx51)
+> @@ -79,12 +79,12 @@ static int init_timing_params(struct lirc_rx51 *lirc_rx51)
+>  
+>  	load = -(lirc_rx51->fclk_khz * 1000 / lirc_rx51->freq);
+>  	match = -(lirc_rx51->duty_cycle * -load / 100);
+> -	omap_dm_timer_set_load(lirc_rx51->pwm_timer, 1, load);
+> -	omap_dm_timer_set_match(lirc_rx51->pwm_timer, 1, match);
+> -	omap_dm_timer_write_counter(lirc_rx51->pwm_timer, TIMER_MAX_VALUE - 2);
+> -	omap_dm_timer_start(lirc_rx51->pwm_timer);
+> -	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
+> -	omap_dm_timer_start(lirc_rx51->pulse_timer);
+> +	lirc_rx51->dmtimer->set_load(lirc_rx51->pwm_timer, 1, load);
+> +	lirc_rx51->dmtimer->set_match(lirc_rx51->pwm_timer, 1, match);
+> +	lirc_rx51->dmtimer->write_counter(lirc_rx51->pwm_timer, TIMER_MAX_VALUE - 2);
+> +	lirc_rx51->dmtimer->start(lirc_rx51->pwm_timer);
+> +	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer, 0);
+> +	lirc_rx51->dmtimer->start(lirc_rx51->pulse_timer);
+>  
+>  	lirc_rx51->match = 0;
+>  
+> @@ -100,15 +100,15 @@ static int pulse_timer_set_timeout(struct lirc_rx51 *lirc_rx51, int usec)
+>  	BUG_ON(usec < 0);
+>  
+>  	if (lirc_rx51->match == 0)
+> -		counter = omap_dm_timer_read_counter(lirc_rx51->pulse_timer);
+> +		counter = lirc_rx51->dmtimer->read_counter(lirc_rx51->pulse_timer);
+>  	else
+>  		counter = lirc_rx51->match;
+>  
+>  	counter += (u32)(lirc_rx51->fclk_khz * usec / (1000));
+> -	omap_dm_timer_set_match(lirc_rx51->pulse_timer, 1, counter);
+> -	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer,
+> -				     OMAP_TIMER_INT_MATCH);
+> -	if (tics_after(omap_dm_timer_read_counter(lirc_rx51->pulse_timer),
+> +	lirc_rx51->dmtimer->set_match(lirc_rx51->pulse_timer, 1, counter);
+> +	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer,
+> +					   PWM_OMAP_DMTIMER_INT_MATCH);
+> +	if (tics_after(lirc_rx51->dmtimer->read_counter(lirc_rx51->pulse_timer),
+>  		       counter)) {
+>  		return 1;
+>  	}
+> @@ -120,18 +120,18 @@ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
+>  	unsigned int retval;
+>  	struct lirc_rx51 *lirc_rx51 = ptr;
+>  
+> -	retval = omap_dm_timer_read_status(lirc_rx51->pulse_timer);
+> +	retval = lirc_rx51->dmtimer->read_status(lirc_rx51->pulse_timer);
+>  	if (!retval)
+>  		return IRQ_NONE;
+>  
+> -	if (retval & ~OMAP_TIMER_INT_MATCH)
+> +	if (retval & ~PWM_OMAP_DMTIMER_INT_MATCH)
+>  		dev_err_ratelimited(lirc_rx51->dev,
+>  				": Unexpected interrupt source: %x\n", retval);
+>  
+> -	omap_dm_timer_write_status(lirc_rx51->pulse_timer,
+> -				OMAP_TIMER_INT_MATCH	|
+> -				OMAP_TIMER_INT_OVERFLOW	|
+> -				OMAP_TIMER_INT_CAPTURE);
+> +	lirc_rx51->dmtimer->write_status(lirc_rx51->pulse_timer,
+> +					 PWM_OMAP_DMTIMER_INT_MATCH |
+> +					 PWM_OMAP_DMTIMER_INT_OVERFLOW |
+> +					 PWM_OMAP_DMTIMER_INT_CAPTURE);
+>  	if (lirc_rx51->wbuf_index < 0) {
+>  		dev_err_ratelimited(lirc_rx51->dev,
+>  				": BUG wbuf_index has value of %i\n",
+> @@ -165,9 +165,9 @@ end:
+>  	/* Stop TX here */
+>  	lirc_rx51_off(lirc_rx51);
+>  	lirc_rx51->wbuf_index = -1;
+> -	omap_dm_timer_stop(lirc_rx51->pwm_timer);
+> -	omap_dm_timer_stop(lirc_rx51->pulse_timer);
+> -	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
+> +	lirc_rx51->dmtimer->stop(lirc_rx51->pwm_timer);
+> +	lirc_rx51->dmtimer->stop(lirc_rx51->pulse_timer);
+> +	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer, 0);
+>  	wake_up_interruptible(&lirc_rx51->wqueue);
+>  
+>  	return IRQ_HANDLED;
+> @@ -178,28 +178,29 @@ static int lirc_rx51_init_port(struct lirc_rx51 *lirc_rx51)
+>  	struct clk *clk_fclk;
+>  	int retval, pwm_timer = lirc_rx51->pwm_timer_num;
+>  
+> -	lirc_rx51->pwm_timer = omap_dm_timer_request_specific(pwm_timer);
+> +	lirc_rx51->pwm_timer = lirc_rx51->dmtimer->request_specific(pwm_timer);
+>  	if (lirc_rx51->pwm_timer == NULL) {
+>  		dev_err(lirc_rx51->dev, ": Error requesting GPT%d timer\n",
+>  			pwm_timer);
+>  		return -EBUSY;
+>  	}
+>  
+> -	lirc_rx51->pulse_timer = omap_dm_timer_request();
+> +	lirc_rx51->pulse_timer = lirc_rx51->dmtimer->request();
+>  	if (lirc_rx51->pulse_timer == NULL) {
+>  		dev_err(lirc_rx51->dev, ": Error requesting pulse timer\n");
+>  		retval = -EBUSY;
+>  		goto err1;
+>  	}
+>  
+> -	omap_dm_timer_set_source(lirc_rx51->pwm_timer, OMAP_TIMER_SRC_SYS_CLK);
+> -	omap_dm_timer_set_source(lirc_rx51->pulse_timer,
+> -				OMAP_TIMER_SRC_SYS_CLK);
+> +	lirc_rx51->dmtimer->set_source(lirc_rx51->pwm_timer,
+> +				       PWM_OMAP_DMTIMER_SRC_SYS_CLK);
+> +	lirc_rx51->dmtimer->set_source(lirc_rx51->pulse_timer,
+> +				       PWM_OMAP_DMTIMER_SRC_SYS_CLK);
+>  
+> -	omap_dm_timer_enable(lirc_rx51->pwm_timer);
+> -	omap_dm_timer_enable(lirc_rx51->pulse_timer);
+> +	lirc_rx51->dmtimer->enable(lirc_rx51->pwm_timer);
+> +	lirc_rx51->dmtimer->enable(lirc_rx51->pulse_timer);
+>  
+> -	lirc_rx51->irq_num = omap_dm_timer_get_irq(lirc_rx51->pulse_timer);
+> +	lirc_rx51->irq_num = lirc_rx51->dmtimer->get_irq(lirc_rx51->pulse_timer);
+>  	retval = request_irq(lirc_rx51->irq_num, lirc_rx51_interrupt_handler,
+>  			     IRQF_SHARED, "lirc_pulse_timer", lirc_rx51);
+>  	if (retval) {
+> @@ -207,28 +208,28 @@ static int lirc_rx51_init_port(struct lirc_rx51 *lirc_rx51)
+>  		goto err2;
+>  	}
+>  
+> -	clk_fclk = omap_dm_timer_get_fclk(lirc_rx51->pwm_timer);
+> -	lirc_rx51->fclk_khz = clk_fclk->rate / 1000;
+> +	clk_fclk = lirc_rx51->dmtimer->get_fclk(lirc_rx51->pwm_timer);
+> +	lirc_rx51->fclk_khz = clk_get_rate(clk_fclk) / 1000;
+>  
+>  	return 0;
+>  
+>  err2:
+> -	omap_dm_timer_free(lirc_rx51->pulse_timer);
+> +	lirc_rx51->dmtimer->free(lirc_rx51->pulse_timer);
+>  err1:
+> -	omap_dm_timer_free(lirc_rx51->pwm_timer);
+> +	lirc_rx51->dmtimer->free(lirc_rx51->pwm_timer);
+>  
+>  	return retval;
+>  }
+>  
+>  static int lirc_rx51_free_port(struct lirc_rx51 *lirc_rx51)
+>  {
+> -	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
+> +	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer, 0);
+>  	free_irq(lirc_rx51->irq_num, lirc_rx51);
+>  	lirc_rx51_off(lirc_rx51);
+> -	omap_dm_timer_disable(lirc_rx51->pwm_timer);
+> -	omap_dm_timer_disable(lirc_rx51->pulse_timer);
+> -	omap_dm_timer_free(lirc_rx51->pwm_timer);
+> -	omap_dm_timer_free(lirc_rx51->pulse_timer);
+> +	lirc_rx51->dmtimer->disable(lirc_rx51->pwm_timer);
+> +	lirc_rx51->dmtimer->disable(lirc_rx51->pulse_timer);
+> +	lirc_rx51->dmtimer->free(lirc_rx51->pwm_timer);
+> +	lirc_rx51->dmtimer->free(lirc_rx51->pulse_timer);
+>  	lirc_rx51->wbuf_index = -1;
+>  
+>  	return 0;
+> @@ -446,7 +447,13 @@ static int lirc_rx51_probe(struct platform_device *dev)
+>  {
+>  	lirc_rx51_driver.features = LIRC_RX51_DRIVER_FEATURES;
+>  	lirc_rx51.pdata = dev->dev.platform_data;
+> +	if (!lirc_rx51.pdata->dmtimer) {
+> +		dev_err(&dev->dev, "no dmtimer?\n");
+> +		return -ENODEV;
+> +	}
+> +
+>  	lirc_rx51.pwm_timer_num = lirc_rx51.pdata->pwm_timer;
+> +	lirc_rx51.dmtimer = lirc_rx51.pdata->dmtimer;
+>  	lirc_rx51.dev = &dev->dev;
+>  	lirc_rx51_driver.dev = &dev->dev;
+>  	lirc_rx51_driver.minor = lirc_register_driver(&lirc_rx51_driver);
 
-OK.
-> 
->> +		dev_err(otg->dev, "%s: otg: invalid usb-drd state: %s\n",
->> +			__func__, usb_otg_state_string(state));
->> +		drd_set_state(fsm, OTG_STATE_UNDEFINED);
->> +	break;
->> +	}
->> +
->> +	ret = fsm->state_changed;
->> +	mutex_unlock(&fsm->lock);
->> +	dev_dbg(otg->dev, "otg: quit statemachine, changed %d\n",
->> +		fsm->state_changed);
->> +
->> +	return ret;
->> +}
->> +EXPORT_SYMBOL_GPL(drd_statemachine);
->> +
->> +/**
->> + * OTG FSM/DRD work function
-> 
-> DRD work function
-
-Yes.
-> 
->> + */
->> +static void usb_otg_work(struct work_struct *work) {
-> 
-> usb_drd_work() name is better as it's only for drd.
-
-Agreed.
-> 
->> +	struct usb_otg *otg = container_of(work, struct usb_otg, work);
->> +
->> +	pm_runtime_get_sync(otg->dev);
->> +	drd_statemachine(otg);
->> +	pm_runtime_put_sync(otg->dev);
->> +}
->> +
->> +/**
->> + * usb_otg_register() - Register the OTG/dual-role device to OTG core
->> + * @dev: OTG/dual-role controller device.
->> + * @config: OTG configuration.
->> + *
->> + * Registers the OTG/dual-role controller device with the USB OTG core.
->> + *
->> + * Return: struct usb_otg * if success, ERR_PTR() if error.
->> + */
->> +struct usb_otg *usb_otg_register(struct device *dev,
->> +				 struct usb_otg_config *config)
->> +{
->> +	struct usb_otg *otg;
->> +	struct otg_wait_data *wait;
->> +	int ret = 0;
->> +
->> +	if (!dev || !config || !config->fsm_ops)
->> +		return ERR_PTR(-EINVAL);
->> +
->> +	/* already in list? */
->> +	mutex_lock(&otg_list_mutex);
->> +	if (usb_otg_get_data(dev)) {
->> +		dev_err(dev, "otg: %s: device already in otg list\n",
->> +			__func__);
->> +		ret = -EINVAL;
->> +		goto unlock;
->> +	}
->> +
->> +	/* allocate and add to list */
->> +	otg = kzalloc(sizeof(*otg), GFP_KERNEL);
->> +	if (!otg) {
->> +		ret = -ENOMEM;
->> +		goto unlock;
->> +	}
->> +
->> +	otg->dev = dev;
->> +	otg->caps = config->otg_caps;
->> +
->> +	if ((otg->caps->hnp_support || otg->caps->srp_support ||
->> +	     otg->caps->adp_support) && !config->otg_work)
->> +		dev_info(dev, "otg: limiting to dual-role\n");
-> 
-> dev_err, this should be an error.
-
-Yes, I'll update it to like so.
-
-		dev_err(dev, "otg: otg_work function must be provided for OTG\n");
-		return -EINVAL;
-
-cheers,
--roger
-> 
->> +
->> +	if (config->otg_work)	/* custom otg_work ? */
->> +		INIT_WORK(&otg->work, config->otg_work);
->> +	else
->> +		INIT_WORK(&otg->work, usb_otg_work);
->> +
->> +	otg->wq = create_singlethread_workqueue("usb_otg");
->> +	if (!otg->wq) {
->> +		dev_err(dev, "otg: %s: can't create workqueue\n",
->> +			__func__);
->> +		ret = -ENOMEM;
->> +		goto err_wq;
->> +	}
->> +
->> +	/* set otg ops */
->> +	otg->fsm.ops = config->fsm_ops;
->> +
->> +	mutex_init(&otg->fsm.lock);
->> +
->> +	list_add_tail(&otg->list, &otg_list);
->> +	mutex_unlock(&otg_list_mutex);
->> +
->> +	/* were we in wait list? */
->> +	mutex_lock(&wait_list_mutex);
->> +	wait = usb_otg_get_wait(dev);
->> +	mutex_unlock(&wait_list_mutex);
->> +	if (wait) {
->> +		/* register pending host/gadget and flush from list */
->> +		usb_otg_flush_wait(dev);
->> +	}
->> +
->> +	return otg;
->> +
->> +err_wq:
->> +	kfree(otg);
->> +unlock:
->> +	mutex_unlock(&otg_list_mutex);
->> +	return ERR_PTR(ret);
->> +}
->> +EXPORT_SYMBOL_GPL(usb_otg_register);
->> +
-> 
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
