@@ -1,43 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v7 0/9] ARM: dts: DRA7: Add dt nodes for PWMSS
-Date: Wed, 27 Apr 2016 12:32:07 -0700
-Message-ID: <20160427193207.GB5995@atomide.com>
-References: <1461710209-6563-1-git-send-email-fcooper@ti.com>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/3] ARM: DRA7x: dts: Fix the 32kHz clock calculation
+Date: Wed, 27 Apr 2016 22:47:39 +0300
+Message-ID: <5721175B.8030904@ti.com>
+References: <1461693269-19436-1-git-send-email-Linux.HWI@garmin.com>
+ <1461693269-19436-3-git-send-email-Linux.HWI@garmin.com>
+ <5720A51E.2000900@ti.com> <5720C77A.3020708@garmin.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1461710209-6563-1-git-send-email-fcooper@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Franklin S Cooper Jr <fcooper@ti.com>
-Cc: thierry.reding@gmail.com, robh+dt@kernel.org, paul@pwsan.com, t-kristo@ti.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, vigneshr@ti.com, nsekhar@ti.com
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5720C77A.3020708-UF6BFNFdnjXQT0dZR+AlfA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "J.D. Schroeder" <Linux.HWI-UF6BFNFdnjXQT0dZR+AlfA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: "J.D. Schroeder" <jay.schroeder-UF6BFNFdnjXQT0dZR+AlfA@public.gmane.org>, "J, Keerthy" <j-keerthy-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-* Franklin S Cooper Jr <fcooper@ti.com> [160426 15:38]:
+On 27/04/16 17:06, J.D. Schroeder wrote:
+> On 04/27/2016 06:40 AM, Tero Kristo wrote:
+>> On 26/04/16 20:54, J.D. Schroeder wrote:
+>>> This commit fixes the 32kHz clock (sys_32k_ck) calculation to be
+>>> correctly based on the SYS_CLK1 (sys_clkin1) frequency. Based on the
+>>> TRM CTRL_CORE_BOOTSTRAP[9:8] SPEEDSELECT, set by the SYSBOOT[9:8]
+>>> board jumpers according to the SYS_CLK1 frequency, the frequency of
+>>> the 32kHz FUNC_32K_CLK is set to SYS_CLK1/610. The following
+>>> sys_32k_ck frequencies get used for different SYS_CLK1 frequencies:
+>>>           0b00: Unknown  -> 32768 Hz crystal from CLKIN_32K pin
+>>>           0b01: 20   MHz -> 32787 Hz clock (SYS_CLK1/610)
+>>>           0b10: 27   MHz -> 44262 Hz clock (SYS_CLK1/610)
+>>>           0b11: 19.2 MHz -> 31475 Hz clock (SYS_CLK1/610)
+>>
+>> A patch doing the same thing is already in mainline, see:
+>>
+>> commit eea08802f586acd6aef377d1b4a541821013cc0b
+>> Author: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+>> Date:   Mon Apr 4 11:07:15 2016 +0530
+>>
+>>      ARM: dts: dra7: Correct clock tree for sys_32k_ck
+>>
+>> So, this one can be ignored.
 >
->  .../devicetree/bindings/pwm/pwm-tiecap.txt         | 36 +++++++--
->  .../devicetree/bindings/pwm/pwm-tiehrpwm.txt       | 36 +++++++--
->  .../devicetree/bindings/pwm/pwm-tipwmss.txt        | 33 +++++++-
->  arch/arm/boot/dts/am33xx.dtsi                      | 36 ++++++---
->  arch/arm/boot/dts/am4372.dtsi                      | 63 ++++++++++-----
->  arch/arm/boot/dts/da850.dtsi                       | 15 ++--
->  arch/arm/boot/dts/dra7.dtsi                        | 90 ++++++++++++++++++++++
->  .../mach-omap2/omap_hwmod_33xx_43xx_common_data.h  | 18 -----
->  .../omap_hwmod_33xx_43xx_interconnect_data.c       | 64 ---------------
->  .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 84 --------------------
->  arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |  9 ---
->  arch/arm/mach-omap2/omap_hwmod_43xx_data.c         | 54 -------------
->  drivers/clk/ti/clk-33xx.c                          |  3 +
->  drivers/clk/ti/clk-43xx.c                          |  6 ++
->  drivers/pwm/pwm-tiecap.c                           |  7 ++
->  drivers/pwm/pwm-tiehrpwm.c                         |  7 ++
->  16 files changed, 279 insertions(+), 282 deletions(-)
+> My change had no issue when applying to the tip of master and I'm not seeing
+> that SHA1 in mainline. Are you saying it is in another repo ready to be sent
+> to mainline for the next release cycle?
+>
 
-Thierry, do you want to pick the driver changes or ack them
-and then I can queue the rest if no more comments?
+The patch is merged already in 4.6-rc3.
 
-Regards,
+Which repo / version are you using as baseline?
 
-Tony
+-Tero
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
