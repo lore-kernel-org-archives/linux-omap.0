@@ -1,146 +1,82 @@
-From: Peter Chen <hzpeterchen@gmail.com>
-Subject: Re: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
-Date: Wed, 27 Apr 2016 11:15:09 +0800
-Message-ID: <20160427031509.GA22637@shlinux2.ap.freescale.net>
-References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
- <1459865117-7032-8-git-send-email-rogerq@ti.com>
- <AM4PR04MB213045DC3D1C1D67A7D9AF0689630@AM4PR04MB2130.eurprd04.prod.outlook.com>
- <20160426034711.GC2978@peterchendt>
- <AM4PR04MB2130124412E09799A2CB01BF89630@AM4PR04MB2130.eurprd04.prod.outlook.com>
- <20160426062809.GD2978@peterchendt>
- <AM4PR04MB2130503C9E7C2B984457A61089630@AM4PR04MB2130.eurprd04.prod.outlook.com>
- <20160426082106.GE2978@peterchendt>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2] OMAPDSS: HDMI5: Change DDC timings
+Date: Wed, 27 Apr 2016 08:55:05 +0300
+Message-ID: <57205439.3010303@ti.com>
+References: <1461196973-20370-1-git-send-email-Linux.HWI@garmin.com>
+ <1461259669-5194-1-git-send-email-Linux.HWI@garmin.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="vQJDRJ9xgnGmTNv488hk8E89wJlGnMsls"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160426082106.GE2978@peterchendt>
+In-Reply-To: <1461259669-5194-1-git-send-email-Linux.HWI@garmin.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jun Li <jun.li@nxp.com>, Roger Quadros <rogerq@ti.com>
-Cc: "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "balbi@kernel.org" <balbi@kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "peter.chen@freescale.com" <peter.chen@freescale.com>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "jun.li@freescale.com" <jun.li@freescale.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Joao.Pinto@synopsys.com" <Joao.Pinto@synopsys.com>, "abrestic@chromium.org" <abrestic@chromium.org>, "r.baldyga@samsung.com" <r.baldyga@samsung.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "J.D. Schroeder" <Linux.HWI@garmin.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, misael.lopez@ti.com, Jim Lodes <jim.lodes@garmin.com>, "J.D. Schroeder" <jay.schroeder@garmin.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 26, 2016 at 04:21:07PM +0800, Peter Chen wrote:
-> On Tue, Apr 26, 2016 at 07:00:22AM +0000, Jun Li wrote:
-> > Hi
-> > 
-> > > -----Original Message-----
-> > > From: Peter Chen [mailto:hzpeterchen@gmail.com]
-> > > Sent: Tuesday, April 26, 2016 2:28 PM
-> > > To: Jun Li <jun.li@nxp.com>
-> > > Cc: Roger Quadros <rogerq@ti.com>; stern@rowland.harvard.edu;
-> > > balbi@kernel.org; gregkh@linuxfoundation.org; peter.chen@freescale.com;
-> > > dan.j.williams@intel.com; jun.li@freescale.com;
-> > > mathias.nyman@linux.intel.com; tony@atomide.com; Joao.Pinto@synopsys.com;
-> > > abrestic@chromium.org; r.baldyga@samsung.com; linux-usb@vger.kernel.org;
-> > > linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org
-> > > Subject: Re: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
-> > > 
-> > > On Tue, Apr 26, 2016 at 05:11:36AM +0000, Jun Li wrote:
-> > > > Hi
-> > > >
-> > > > > -----Original Message-----
-> > > > > From: Peter Chen [mailto:hzpeterchen@gmail.com]
-> > > > > Sent: Tuesday, April 26, 2016 11:47 AM
-> > > > > To: Jun Li <jun.li@nxp.com>
-> > > > > Cc: Roger Quadros <rogerq@ti.com>; stern@rowland.harvard.edu;
-> > > > > balbi@kernel.org; gregkh@linuxfoundation.org;
-> > > > > peter.chen@freescale.com; dan.j.williams@intel.com;
-> > > > > jun.li@freescale.com; mathias.nyman@linux.intel.com;
-> > > > > tony@atomide.com; Joao.Pinto@synopsys.com; abrestic@chromium.org;
-> > > > > r.baldyga@samsung.com; linux-usb@vger.kernel.org;
-> > > > > linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org
-> > > > > Subject: Re: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
-> > > > >
-> > > > > On Tue, Apr 26, 2016 at 02:07:56AM +0000, Jun Li wrote:
-> > > > > > > +struct usb_otg *usb_otg_register(struct device *dev,
-> > > > > > > +				 struct usb_otg_config *config) {
-> > > > > > > +	struct usb_otg *otg;
-> > > > > > > +	struct otg_wait_data *wait;
-> > > > > > > +	int ret = 0;
-> > > > > > > +
-> > > > > > > +	if (!dev || !config || !config->fsm_ops)
-> > > > > > > +		return ERR_PTR(-EINVAL);
-> > > > > > > +
-> > > > > > > +	/* already in list? */
-> > > > > > > +	mutex_lock(&otg_list_mutex);
-> > > > > > > +	if (usb_otg_get_data(dev)) {
-> > > > > > > +		dev_err(dev, "otg: %s: device already in otg list\n",
-> > > > > > > +			__func__);
-> > > > > > > +		ret = -EINVAL;
-> > > > > > > +		goto unlock;
-> > > > > > > +	}
-> > > > > > > +
-> > > > > > > +	/* allocate and add to list */
-> > > > > > > +	otg = kzalloc(sizeof(*otg), GFP_KERNEL);
-> > > > > > > +	if (!otg) {
-> > > > > > > +		ret = -ENOMEM;
-> > > > > > > +		goto unlock;
-> > > > > > > +	}
-> > > > > > > +
-> > > > > > > +	otg->dev = dev;
-> > > > > > > +	otg->caps = config->otg_caps;
-> > > > > > > +
-> > > > > > > +	if ((otg->caps->hnp_support || otg->caps->srp_support ||
-> > > > > > > +	     otg->caps->adp_support) && !config->otg_work)
-> > > > > > > +		dev_info(dev, "otg: limiting to dual-role\n");
-> > > > > >
-> > > > > > dev_err, this should be an error.
-> > > > >
-> > > > > The condition may be wrong, but it is an information to show that
-> > > > > current OTG is dual-role.
-> > > >
-> > > > This should not happen in any correct design, I even doubt if we
-> > > > should try to continue by "downgrade" it to be duel role, currently
-> > > > the only example user is dual role, so doing like this can't be tested
-> > > > by real case, this downgrade is not so easy like we image, at least
-> > > > for chipidea otg driver, simply replace a queue worker may not work,
-> > > > as we have much more difference between the 2 configs.
-> > > >
-> > > 
-> > > Would you show more why chipidea can't work just replace the work item,
-> > > and see if anything we still can improve for this framework?
-> > 
-> > In real OTG, we need enable AVV irq,
-> 
-> Enable and Handling AVV is platform stuff. In this framework, we are
-> focus on how otg device manages host and gadget together, and the state
-> machine when the related otg event occurs.
-> 
-> > but for duel role, nobody care/handle,
-> > there are much more resource required for OTG: timers, hnp polling,
-> > otg test device handling... 
-> 
-> They are common things for fully OTG fsm, you can move them
-> to common code (In fact, hnp polling handling is already common code).
-> 
-> > 
-> > with current design, chipidea driver can support real OTG with its own
-> > queue worker, or DRD with Roger's drd work item if config is correct.
-> > 
-> > But improve something to work on a *wrong* config will make it complicated
-> > and does not make much sense IMO.
-> > 
-> 
-> What does above "config" you mean?
-> 
-> If the configure is fully OTG, you can choose different state machine,
-> eg otg_statemachine, if you find it is hard for chipidea to use this
-> framework, just list the reason, and see if we can improve.
-> 
+--vQJDRJ9xgnGmTNv488hk8E89wJlGnMsls
+Content-Type: multipart/mixed; boundary="EV0Et3NakTlT1buS2rRFJpBUd86uVWTAH"
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: "J.D. Schroeder" <Linux.HWI@garmin.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+ linux-fbdev@vger.kernel.org, misael.lopez@ti.com,
+ Jim Lodes <jim.lodes@garmin.com>, "J.D. Schroeder" <jay.schroeder@garmin.com>
+Message-ID: <57205439.3010303@ti.com>
+Subject: Re: [PATCH v2] OMAPDSS: HDMI5: Change DDC timings
+References: <1461196973-20370-1-git-send-email-Linux.HWI@garmin.com>
+ <1461259669-5194-1-git-send-email-Linux.HWI@garmin.com>
+In-Reply-To: <1461259669-5194-1-git-send-email-Linux.HWI@garmin.com>
 
-Roger, after discussing with Jun off line, we think usb_otg_register
-should return -ENOTSUPP if platform is OTG capabilities (HNP || SRP ||
-ADP), since this patch set does not cover fully otg features, the users
-should not be confused when try to implement fully otg using this
-framework.
+--EV0Et3NakTlT1buS2rRFJpBUd86uVWTAH
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Later, after your patch set is merged, we can add fully OTG features
-using this framework, and remove this check.
+On 21/04/16 20:27, J.D. Schroeder wrote:
+> From: Jim Lodes <jim.lodes@garmin.com>
+>=20
+> The DDC scl high and low times were set to the minimum values
+> from the i2c specification, but the i2c specification takes into
+> account the rise time and fall time to calculate the frequency.
+> To pass HDMI certification DDC can not exceed 100kHz therefore in
+> a system where the rise times and fall times are negligible the high
+> and low times for scl need to be 10us.
+>=20
+> Signed-off-by: Jim Lodes <jim.lodes@garmin.com>
+> Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
+> ---
+>  drivers/gpu/drm/omapdrm/dss/hdmi5_core.c          | 4 ++--
+>  drivers/video/fbdev/omap2/omapfb/dss/hdmi5_core.c | 4 ++--
+>  2 files changed, 4 insertions(+), 4 deletions(-)
 
-What's your opinion?
+Thanks! Queuing this for 4.7.
 
--- 
+ Tomi
 
-Best Regards,
-Peter Chen
+
+--EV0Et3NakTlT1buS2rRFJpBUd86uVWTAH--
+
+--vQJDRJ9xgnGmTNv488hk8E89wJlGnMsls
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJXIFQ5AAoJEPo9qoy8lh71kkAQAIzgmaUzSgxeCr5E4TSagWbj
+HXSlzP33OQY2jUCIi5pYRDeqQBsxQXppq8/7VG/n1R37zu9xKV1fQONwdP9qoLcv
+ZMXChren4PztQWn6SWapoFpWrRUP/eVGk6LiIgyuCKPYorN2s6ZFuY7Nj2LnQ17r
+p0t5M2Kx21pWtNwiF58IrPbcJof4ajmGwnIz+5iXUeO5tNT+QNqhNavI2z9Ddo2x
+HVWqcUQjHCfuxwb5pj0h2trgVmPxgsBzTGUzqPogXEkyNjKcwy5ezcQqVi2whYYF
+uCc9oGGJYVATZbpVF8Wk3y5kXEusqJYhNp1nuCbzultvgcJahUruyrbI23XTR0Kd
+/cK5Sx9kOu1j1TEGyQbFUJfHWsoDiYHGxXFw/8hMugmEs6wvvTMyX+EelN8zijtw
+ITzN4xsVbfLbSEyJQBIOunUISkAjr0AOrBrEtotAgbh+xxb8QRSZFPqO/nnrnouC
+bBx2RHipXiqXvTua534lS+SMSyLTXMJDi5n8s/J7C3to8qQ4dLn5Qm9fjbqyl1BK
+PYKlr06/VAGWiBTzPL1AYXVFezN30Wy52E5072vkXjRsac6lbF+qzv+ZgPtEP729
+VXTDuRyGNxtvdojYuxzEr1sk7Lii/bujXQK3ICFLhaQL6FlhcpNtrB7neKgwKheS
+wQCbvcaJY3OdtBz/YatP
+=AMEe
+-----END PGP SIGNATURE-----
+
+--vQJDRJ9xgnGmTNv488hk8E89wJlGnMsls--
