@@ -1,72 +1,124 @@
-From: Jun Li <jun.li@nxp.com>
-Subject: RE: [PATCH v6 08/12] usb: hcd: Adapt to OTG core
-Date: Wed, 27 Apr 2016 12:49:54 +0000
-Message-ID: <AM4PR04MB21301FB7EE62E9ACF14230C289640@AM4PR04MB2130.eurprd04.prod.outlook.com>
-References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
- <1459865117-7032-9-git-send-email-rogerq@ti.com>
- <AM4PR04MB2130FA0DCDDE4A81F8F54F4E89640@AM4PR04MB2130.eurprd04.prod.outlook.com>
- <57209BE2.7030300@ti.com> <57209E71.5070709@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH v2 4/5] ARM: dts: omap5: describe control for ckobuffer
+Date: Wed, 27 Apr 2016 15:10:03 +0200
+Message-ID: <A90F1BFC-A834-4EC0-81F9-2C8222AAA010@goldelico.com>
+References: <cover.1461003660.git.hns@goldelico.com> <a5fb89737594a656318896a8e43814c21ca992eb.1461003660.git.hns@goldelico.com> <20160426172710.GI5995@atomide.com> <70572DA1-BEB4-4681-BA6C-2E1C9002D730@goldelico.com> <5720B107.4000907@ti.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <57209E71.5070709@ti.com>
-Content-Language: en-US
+In-Reply-To: <5720B107.4000907@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "balbi@kernel.org" <balbi@kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "peter.chen@freescale.com" <peter.chen@freescale.com>
-Cc: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "jun.li@freescale.com" <jun.li@freescale.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Joao.Pinto@synopsys.com" <Joao.Pinto@synopsys.com>, "abrestic@chromium.org" <abrestic@chromium.org>, "r.baldyga@samsung.com" <r.baldyga@samsung.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tero Kristo <t-kristo@ti.com>, "Ujfalusi, Peter" <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, Laxman Dewangan <ldewangan@nvidia.com>, linux-omap <linux-omap@vger.kernel.org>, devicetree@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Marek Belisko <marek@goldelico.com>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi
-> -----Original Message-----
-> From: Roger Quadros [mailto:rogerq@ti.com]
-> Sent: Wednesday, April 27, 2016 7:12 PM
-> To: Jun Li <jun.li@nxp.com>; stern@rowland.harvard.edu; balbi@kernel.org;
-> gregkh@linuxfoundation.org; peter.chen@freescale.com
-> Cc: dan.j.williams@intel.com; jun.li@freescale.com;
-> mathias.nyman@linux.intel.com; tony@atomide.com; Joao.Pinto@synopsys.com;
-> abrestic@chromium.org; r.baldyga@samsung.com; linux-usb@vger.kernel.org;
-> linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH v6 08/12] usb: hcd: Adapt to OTG core
-> 
-> On 27/04/16 14:00, Roger Quadros wrote:
-> > On 27/04/16 13:16, Jun Li wrote:
-> >> Hi
-> >>
-> >>>
-> >>> +
-> >>> +static struct otg_hcd_ops otg_hcd_intf = {
-> >>> +	.add = usb_add_hcd,
-> >>> +	.remove = usb_remove_hcd,
-> >>> +	.usb_bus_start_enum = usb_bus_start_enum,
-> >>
-> >> Build break if CONFIG_USB_OTG is not enabled:
-> >>
-> >> drivers/built-in.o:(.data+0x1db30): undefined reference to
-> `usb_bus_start_enum'
-> >> Makefile:948: recipe for target 'vmlinux' failed
-> >> make: *** [vmlinux] Error 1
-> 
-> I couldn't get this error. Could you please send me your .config? Thanks.
 
-imx_v6_v7_defconfig
+> Am 27.04.2016 um 14:31 schrieb Tero Kristo <t-kristo@ti.com>:
+> 
+> On 27/04/16 09:04, H. Nikolaus Schaller wrote:
+>> 
+>>> Am 26.04.2016 um 19:27 schrieb Tony Lindgren <tony@atomide.com>:
+>>> 
+>>> Tero,
+>>> 
+>>> * H. Nikolaus Schaller <hns@goldelico.com> [160418 11:23]:
+>>>> OMAP5 has a register to control if the ckobuffer is enabled
+>>>> and defines the polarity. ckobuffer is required to drive a twl6040
+>>>> with the system clock. Hence, add the pinctrl,single to the
+>>>> OMAP5 SoC description so that omap5-board-common can
+>>>> set up the ckobuffer as required.
+>>> 
+>>> Is this really a mux or should it be a mux clock?
+>> 
+>> It is a pinmux setting for the clock out buffer to choose what signal
+>> (and polarity) is presented on the fref_xtal_clk pad.
+>> 
+>> The register is part of the CTRL_MODULE_WKUP.
+>> The clock signal is the xtal master clock of the whole SoC.
+>> 
+>> Although there is a bit to choose an alternate clock, there is no
+>> alternate in the OMAP5 silicon.
+>> 
+>> Therefore I would say it is about padconf and not clock or clock mux
+>> related.
+>> 
+>> It just happens to be a clock signal which can be routed to this
+>> pad.
+> 
+> The two could very well be implemented as clock nodes, a mux and a gate. This would describe the hardware functionality better imo, if the assumptions made here are correct. Implementing the control as pinctrl hacks looks rather weird to me.
+
+Why do you consider it a "pinctrl hack"? IMHO it is not a hack, but 100% proper use of pinctrl.
+
+The control register for the clock output buffer is part of the CTRL_MODULE_WKUP, which includes the well known pin controls of gpio1_wk but also this ckobuffer control. So it is grouped with these in a single control register block of the SoC. See "19.6.5.1 CTRL_MODULE_WKUP_PAD" of the TRM.
+
+And IMHO, the naming "buffer" indicates that it controls the pad buffer (like all pinmux) and not the clock.
+
+Yes, of course if can be described differently, as you propose. And one might argue that the twl6040 might want to request its master clock input (19.2 MHz) which could turn on the buffer on demand.
+
+The question it raises to me are:
+* isn't it "overkill" to describe a static pinmux register setup (it does not need to be turned on/off during operation) as mux (without function in OMAP5 SoC) + gate?
+* does it require new driver code to correctly write to the control register?
+* does it work if the twl6040 is hooked up differently?
 
 > 
-> cheers,
-> -roger
-> >
-> > Thanks. Will fix it.
-> >
-> > cheers,
-> > -roger
-> >
-> >>
-> >>> +	.usb_control_msg = usb_control_msg,
-> >>> +	.usb_hub_find_child = usb_hub_find_child, };
-> >>> +
-> >>
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-usb"
-> > in the body of a message to majordomo@vger.kernel.org More majordomo
-> > info at  http://vger.kernel.org/majordomo-info.html
-> >
+> I could not find any documentation related to the ckobuffer usage though,
+
+On the EVM it is the FREF_XTAL_OUT (Ball L33) which goes as signal H_SYSCLK through a jumper (R87) and then as signal P_SYSCLK to the MCLK (Ball K7) of the twl6040.
+
+Description of FREF_XTAL_OUT is in section 3.3.1 of the TRM. 
+
+> maybe Peter can provide some insight?
+> I think you spent some considerable time bringing up twl6040 a few years back...
+
+Yes, that would certainly help to decide how to proceed.
+
+> 
+
+> 
+> -Tero
+
+BR and thanks,
+NIkolaus
+
+> 
+>> 
+>> BR,
+>> Nikolaus
+>> 
+>>> 
+>>> Regards,
+>>> 
+>>> Tony
+>>> 
+>>>> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+>>>> ---
+>>>> arch/arm/boot/dts/omap5.dtsi | 10 ++++++++++
+>>>> 1 file changed, 10 insertions(+)
+>>>> 
+>>>> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+>>>> index 120b6b8..1d9050f 100644
+>>>> --- a/arch/arm/boot/dts/omap5.dtsi
+>>>> +++ b/arch/arm/boot/dts/omap5.dtsi
+>>>> @@ -277,6 +277,16 @@
+>>>> 				pinctrl-single,register-width = <16>;
+>>>> 				pinctrl-single,function-mask = <0x7fff>;
+>>>> 			};
+>>>> +
+>>>> +			omap5_control_ckobuffer: pinmux@cdb4 {
+>>>> +				compatible = "ti,omap5-padconf",
+>>>> +					     "pinctrl-single";
+>>>> +				reg = <0xcdb4 4>;
+>>>> +				#address-cells = <1>;
+>>>> +				#size-cells = <0>;
+>>>> +				pinctrl-single,register-width = <32>;
+>>>> +				pinctrl-single,function-mask = <0xf0000000>;
+>>>> +			};
+>>>> 		};
+>>>> 
+>>>> 		ocmcram: ocmcram@40300000 {
+>>>> --
+>>>> 2.7.3
+>>>> 
+>> 
+> 
