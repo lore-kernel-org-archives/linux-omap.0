@@ -1,41 +1,174 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v1] ARM: clocksource: make ARM_GLOBAL_TIMER selectable
-Date: Wed, 27 Apr 2016 11:41:10 +0100
-Message-ID: <20160427104110.GU5783@n2100.arm.linux.org.uk>
-References: <1461684532-16848-1-git-send-email-grygorii.strashko@ti.com>
- <20160426160245.GI28464@e106497-lin.cambridge.arm.com>
- <571FC2EC.9090605@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
+Date: Wed, 27 Apr 2016 13:59:44 +0300
+Message-ID: <57209BA0.6040508@ti.com>
+References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
+ <1459865117-7032-8-git-send-email-rogerq@ti.com>
+ <AM4PR04MB213045DC3D1C1D67A7D9AF0689630@AM4PR04MB2130.eurprd04.prod.outlook.com>
+ <20160426034711.GC2978@peterchendt>
+ <AM4PR04MB2130124412E09799A2CB01BF89630@AM4PR04MB2130.eurprd04.prod.outlook.com>
+ <20160426062809.GD2978@peterchendt>
+ <AM4PR04MB2130503C9E7C2B984457A61089630@AM4PR04MB2130.eurprd04.prod.outlook.com>
+ <20160426082106.GE2978@peterchendt>
+ <20160427031509.GA22637@shlinux2.ap.freescale.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <571FC2EC.9090605@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Liviu Dudau <liviu.dudau@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, bcm-kernel-feedback-list@broadcom.com, linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org, kernel@stlinux.com, linux-arm-kernel@axis.com, Florian Fainelli <f.fainelli@gmail.com>, Wei Xu <xuwei5@hisilicon.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Srinivas Kandagatla <srinivas.kandagatla@gmail.com>, Maxime Coquelin <maxime.coquelin@st.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Sudeep Holla <sudeep.holla@arm.com>, Jun Nie <jun.nie@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Jesper Nilsson <jesper.nilsson@axis.com>, Lars Persson <lar>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160427031509.GA22637-Fb7DQEYuewWctlrPMvKcciBecyulp+rMXqFh9Ls21Oc@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jun Li <jun.li-3arQi8VN3Tc@public.gmane.org>
+Cc: "stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org" <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org" <abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, "r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 26, 2016 at 10:35:08PM +0300, Grygorii Strashko wrote:
-> On 04/26/2016 07:02 PM, Liviu Dudau wrote:
-> > Well, SoC-B has the GT *and* the DT node, so what is the problem with
-> > enabling it for SoC-B? If there are reasons not to use the Global Timer
-> > on SoC-B, surely a better option would be to mark it in DT with status = "disabled";
+Hi,
+
+On 27/04/16 06:15, Peter Chen wrote:
+> On Tue, Apr 26, 2016 at 04:21:07PM +0800, Peter Chen wrote:
+>> On Tue, Apr 26, 2016 at 07:00:22AM +0000, Jun Li wrote:
+>>> Hi
+>>>
+>>>> -----Original Message-----
+>>>> From: Peter Chen [mailto:hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
+>>>> Sent: Tuesday, April 26, 2016 2:28 PM
+>>>> To: Jun Li <jun.li-3arQi8VN3Tc@public.gmane.org>
+>>>> Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>; stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org;
+>>>> balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org; peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org;
+>>>> dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org; jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org;
+>>>> mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org; tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org; Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org;
+>>>> abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org; r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+>>>> linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>>> Subject: Re: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
+>>>>
+>>>> On Tue, Apr 26, 2016 at 05:11:36AM +0000, Jun Li wrote:
+>>>>> Hi
+>>>>>
+>>>>>> -----Original Message-----
+>>>>>> From: Peter Chen [mailto:hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
+>>>>>> Sent: Tuesday, April 26, 2016 11:47 AM
+>>>>>> To: Jun Li <jun.li-3arQi8VN3Tc@public.gmane.org>
+>>>>>> Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>; stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org;
+>>>>>> balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org;
+>>>>>> peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org; dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org;
+>>>>>> jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org; mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org;
+>>>>>> tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org; Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org; abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org;
+>>>>>> r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+>>>>>> linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>>>>> Subject: Re: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
+>>>>>>
+>>>>>> On Tue, Apr 26, 2016 at 02:07:56AM +0000, Jun Li wrote:
+>>>>>>>> +struct usb_otg *usb_otg_register(struct device *dev,
+>>>>>>>> +				 struct usb_otg_config *config) {
+>>>>>>>> +	struct usb_otg *otg;
+>>>>>>>> +	struct otg_wait_data *wait;
+>>>>>>>> +	int ret = 0;
+>>>>>>>> +
+>>>>>>>> +	if (!dev || !config || !config->fsm_ops)
+>>>>>>>> +		return ERR_PTR(-EINVAL);
+>>>>>>>> +
+>>>>>>>> +	/* already in list? */
+>>>>>>>> +	mutex_lock(&otg_list_mutex);
+>>>>>>>> +	if (usb_otg_get_data(dev)) {
+>>>>>>>> +		dev_err(dev, "otg: %s: device already in otg list\n",
+>>>>>>>> +			__func__);
+>>>>>>>> +		ret = -EINVAL;
+>>>>>>>> +		goto unlock;
+>>>>>>>> +	}
+>>>>>>>> +
+>>>>>>>> +	/* allocate and add to list */
+>>>>>>>> +	otg = kzalloc(sizeof(*otg), GFP_KERNEL);
+>>>>>>>> +	if (!otg) {
+>>>>>>>> +		ret = -ENOMEM;
+>>>>>>>> +		goto unlock;
+>>>>>>>> +	}
+>>>>>>>> +
+>>>>>>>> +	otg->dev = dev;
+>>>>>>>> +	otg->caps = config->otg_caps;
+>>>>>>>> +
+>>>>>>>> +	if ((otg->caps->hnp_support || otg->caps->srp_support ||
+>>>>>>>> +	     otg->caps->adp_support) && !config->otg_work)
+>>>>>>>> +		dev_info(dev, "otg: limiting to dual-role\n");
+>>>>>>>
+>>>>>>> dev_err, this should be an error.
+>>>>>>
+>>>>>> The condition may be wrong, but it is an information to show that
+>>>>>> current OTG is dual-role.
+>>>>>
+>>>>> This should not happen in any correct design, I even doubt if we
+>>>>> should try to continue by "downgrade" it to be duel role, currently
+>>>>> the only example user is dual role, so doing like this can't be tested
+>>>>> by real case, this downgrade is not so easy like we image, at least
+>>>>> for chipidea otg driver, simply replace a queue worker may not work,
+>>>>> as we have much more difference between the 2 configs.
+>>>>>
+>>>>
+>>>> Would you show more why chipidea can't work just replace the work item,
+>>>> and see if anything we still can improve for this framework?
+>>>
+>>> In real OTG, we need enable AVV irq,
+>>
+>> Enable and Handling AVV is platform stuff. In this framework, we are
+>> focus on how otg device manages host and gadget together, and the state
+>> machine when the related otg event occurs.
+>>
+>>> but for duel role, nobody care/handle,
+>>> there are much more resource required for OTG: timers, hnp polling,
+>>> otg test device handling... 
+>>
+>> They are common things for fully OTG fsm, you can move them
+>> to common code (In fact, hnp polling handling is already common code).
+>>
+>>>
+>>> with current design, chipidea driver can support real OTG with its own
+>>> queue worker, or DRD with Roger's drd work item if config is correct.
+>>>
+>>> But improve something to work on a *wrong* config will make it complicated
+>>> and does not make much sense IMO.
+>>>
+>>
+>> What does above "config" you mean?
+>>
+>> If the configure is fully OTG, you can choose different state machine,
+>> eg otg_statemachine, if you find it is hard for chipidea to use this
+>> framework, just list the reason, and see if we can improve.
+>>
 > 
-> This was rejected [2]. DT describes HW and if it is functional the status = "disabled"
-> is not good choice.
-> ARM GT can't be used as clocksource/sched_clock/clockevent when CPUFreq or
-> CPUIdle are enabled :(, and this is Linux specific functionality and
-> not HW description. 
+> Roger, after discussing with Jun off line, we think usb_otg_register
+> should return -ENOTSUPP if platform is OTG capabilities (HNP || SRP ||
+> ADP), since this patch set does not cover fully otg features, the users
 
-Sorry, but we don't want to have to disable drivers in the kernel just
-because one platform has a problem (consider the single zImage case
-where it may be required that the global timer is enabled for some
-platform to boot - it becomes mandatory in single zImage at that point.)
+But this series isn't preventing full otg implementation. You can
+still do that via config->otg_work.
 
-Maybe a linux-specific property is needed here - "linux,low-power-unstable"
-or something like that?
+I can modify the following condition to return -ENOTSUPP instead of
+defaulting to dual-role
 
--- 
-RMK's Patch system: http://www.arm.linux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+struct usb_otg *usb_otg_register(...)
+{
+...
+        if ((otg->caps->hnp_support || otg->caps->srp_support ||
+             otg->caps->adp_support) && !config->otg_work) {
+		dev_err(dev, "otg: otg_work must be provided for OTG support\n");
+		return -ENOTSUPP;
+	}
+...
+}
+
+Is this sufficient?
+
+> should not be confused when try to implement fully otg using this
+> framework.
+> 
+> Later, after your patch set is merged, we can add fully OTG features
+> using this framework, and remove this check.
+> 
+> What's your opinion?
+> 
+
+--
+cheers,
+-roger
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
