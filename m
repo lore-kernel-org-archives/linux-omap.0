@@ -1,93 +1,50 @@
-From: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V2 13/14] dt-bindings: arm-gic: Add documentation for
- Tegra210 AGIC
-Date: Wed, 27 Apr 2016 16:34:53 +0100
-Message-ID: <5720DC1D.1080802@nvidia.com>
-References: <1461150237-15580-1-git-send-email-jonathanh@nvidia.com>
- <1461150237-15580-14-git-send-email-jonathanh@nvidia.com>
- <20160422100052.GA10606@leverpostej> <571A0739.3090502@nvidia.com>
- <20160422112239.GF10606@leverpostej>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v1] ARM: clocksource: make ARM_GLOBAL_TIMER selectable
+Date: Wed, 27 Apr 2016 09:24:52 -0700
+Message-ID: <20160427162452.GY5995@atomide.com>
+References: <1461684532-16848-1-git-send-email-grygorii.strashko@ti.com>
+ <20160426160245.GI28464@e106497-lin.cambridge.arm.com>
+ <571FC2EC.9090605@ti.com>
+ <20160427104110.GU5783@n2100.arm.linux.org.uk>
+ <5720BF19.6040600@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160422112239.GF10606@leverpostej>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5720BF19.6040600@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Liviu Dudau <liviu.dudau@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, bcm-kernel-feedback-list@broadcom.com, linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org, kernel@stlinux.com, linux-arm-kernel@axis.com, Florian Fainelli <f.fainelli@gmail.com>, Wei Xu <xuwei5@hisilicon.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Srinivas Kandagatla <srinivas.kandagatla@gmail.com>, Maxime Coquelin <maxime.coquelin@st.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Sudeep Holla <sudeep.holla@arm.com>, Jun Nie <jun.nie@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Jesper Nilsson <jesper.nilsson@axis.com>
 List-Id: linux-omap@vger.kernel.org
 
-
-On 22/04/16 12:22, Mark Rutland wrote:
-
-[snip]
-
->>>> I am not sure if it will be popular to add Tegra specific clock names
->>>> to the GIC DT docs. However, in that case, then possibly the only
->>>> alternative is to move the Tegra AGIC driver into its own file and
->>>> expose the GIC APIs for it to use. Then we could add our own DT doc
->>>> for the Tegra AGIC as well (based upon the ARM GIC).
->>>
->>> The clock-names don't seem right to me, as they sound like provide names
->>> or global clock line names rather than consumer-side names ("clk" and
->>> "apb_pclk").
->>
->> Yes that would be fine with me.
+* Grygorii Strashko <grygorii.strashko@ti.com> [160427 06:32]:
+> Hi Russell,
 > 
-> Ok; if we model the apb_pclk as owned by the AXI switch (which it is),
-> then there's no change for the GIC binding, short of the additional
-> compatible string as an extension of "arm,gic-400", as we already model
-> that clock in the GIC-400 binding.
+> On 04/27/2016 01:41 PM, Russell King - ARM Linux wrote:
+> > On Tue, Apr 26, 2016 at 10:35:08PM +0300, Grygorii Strashko wrote:
+> >> On 04/26/2016 07:02 PM, Liviu Dudau wrote:
+> >>> Well, SoC-B has the GT *and* the DT node, so what is the problem with
+> >>> enabling it for SoC-B? If there are reasons not to use the Global Timer
+> >>> on SoC-B, surely a better option would be to mark it in DT with status = "disabled";
+> >>
+> >> This was rejected [2]. DT describes HW and if it is functional the status = "disabled"
+> >> is not good choice.
+> >> ARM GT can't be used as clocksource/sched_clock/clockevent when CPUFreq or
+> >> CPUIdle are enabled :(, and this is Linux specific functionality and
+> >> not HW description.
+> > 
+> > Sorry, but we don't want to have to disable drivers in the kernel just
+> > because one platform has a problem (consider the single zImage case
+> > where it may be required that the global timer is enabled for some
+> > platform to boot - it becomes mandatory in single zImage at that point.)
+> 
+> Sorry, but this patch doesn't disable anything. It provides possibility
+> to do a custom build with disabled ARM GT driver without Kernel code modification -
+> in my case RT-kernel and non-RT Kernel should run on same HW and 
+> RT kernel should use ARM GT as clocksource/sched_clock, but 
+> non-RT Kernel shouldn't.
 
-I have been re-working this based upon the feedback received. In the GIC
-driver we have the following definitions ...
+How about a kernel cmdline option for both local timers to disable
+the selected timer(s)?
 
- IRQCHIP_DECLARE(gic_400, "arm,gic-400", gic_of_init);
- IRQCHIP_DECLARE(arm11mp_gic, "arm,arm11mp-gic", gic_of_init);
- IRQCHIP_DECLARE(arm1176jzf_dc_gic, "arm,arm1176jzf-devchip-gic", gic_of_init);
- IRQCHIP_DECLARE(cortex_a15_gic, "arm,cortex-a15-gic", gic_of_init);
- IRQCHIP_DECLARE(cortex_a9_gic, "arm,cortex-a9-gic", gic_of_init);
- IRQCHIP_DECLARE(cortex_a7_gic, "arm,cortex-a7-gic", gic_of_init);
- IRQCHIP_DECLARE(msm_8660_qgic, "qcom,msm-8660-qgic", gic_of_init);
- IRQCHIP_DECLARE(msm_qgic2, "qcom,msm-qgic2", gic_of_init);
- IRQCHIP_DECLARE(pl390, "arm,pl390", gic_of_init);
-
-
-If I have something like the following in my dts ...
-
-	agic: interrupt-controller@702f9000 {
-		compatible = "nvidia,tegra210-agic", "arm,gic-400";
-		...
-	};
-
-The problem with this is that it tries to register the interrupt controller
-early during of_irq_init() before the platform driver has chance to
-initialise it. To avoid this I got rid of the "nvidia,tegra210-agic" string
-and added the following for the platform driver ...
-
-static const struct of_device_id gic_match[] = {
-       { .compatible = "arm,arm11mp-gic-pm",    .data = &arm11mp_gic_data   },
-       { .compatible = "arm,cortex-a15-gic-pm", .data = &cortexa15_gic_data },
-       { .compatible = "arm,cortex-a9-gic-pm",  .data = &cortexa9_gic_data  },
-       { .compatible = "arm,gic400-pm",         .data = &gic400_data        },
-       { .compatible = "arm,pl390-pm",          .data = &pl390_data         },
-       {},
-};
-
-It is not ideal as now we have a *-pm variant of each compatible string :-(
-
-Another option would be to add some code in gic_of_init() to check for the
-presence of a "clocks" node in the DT binding and bail out of the early 
-initialisation if found but may be that is a bit of a hack.
-
-Mark, what are your thoughts on this?
-
-Cheers
-Jon
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
