@@ -1,65 +1,94 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] usb: dwc3: omap: get rid of dma_status
-Date: Wed, 27 Apr 2016 14:34:28 +0300
-Message-ID: <5720A3C4.6030506@ti.com>
-References: <1460384305-21256-1-git-send-email-rogerq@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 2/3] ARM: DRA7x: dts: Fix the 32kHz clock calculation
+Date: Wed, 27 Apr 2016 14:40:14 +0300
+Message-ID: <5720A51E.2000900@ti.com>
+References: <1461693269-19436-1-git-send-email-Linux.HWI@garmin.com>
+ <1461693269-19436-3-git-send-email-Linux.HWI@garmin.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1460384305-21256-1-git-send-email-rogerq@ti.com>
+In-Reply-To: <1461693269-19436-3-git-send-email-Linux.HWI@garmin.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@kernel.org
-Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: "J.D. Schroeder" <Linux.HWI@garmin.com>, linux-kernel@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: "J.D. Schroeder" <jay.schroeder@garmin.com>, "J, Keerthy" <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Felipe,
+On 26/04/16 20:54, J.D. Schroeder wrote:
+> From: "J.D. Schroeder" <jay.schroeder@garmin.com>
+>
+> This commit fixes the 32kHz clock (sys_32k_ck) calculation to be
+> correctly based on the SYS_CLK1 (sys_clkin1) frequency. Based on the
+> TRM CTRL_CORE_BOOTSTRAP[9:8] SPEEDSELECT, set by the SYSBOOT[9:8]
+> board jumpers according to the SYS_CLK1 frequency, the frequency of
+> the 32kHz FUNC_32K_CLK is set to SYS_CLK1/610. The following
+> sys_32k_ck frequencies get used for different SYS_CLK1 frequencies:
+>          0b00: Unknown  -> 32768 Hz crystal from CLKIN_32K pin
+>          0b01: 20   MHz -> 32787 Hz clock (SYS_CLK1/610)
+>          0b10: 27   MHz -> 44262 Hz clock (SYS_CLK1/610)
+>          0b11: 19.2 MHz -> 31475 Hz clock (SYS_CLK1/610)
+>
+> Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
+> Reviewed-by: Ben McCauley <ben.mccauley@garmin.com>
 
-On 11/04/16 17:18, Roger Quadros wrote:
-> dma_status bit flag is set but never really used
-> so get rid of it.
-> 
-> Reported-by: Felipe Balbi <balbi@kernel.org>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
+A patch doing the same thing is already in mainline, see:
 
-Gentle ping on this one for -next. Thanks.
+commit eea08802f586acd6aef377d1b4a541821013cc0b
+Author: Keerthy <j-keerthy@ti.com>
+Date:   Mon Apr 4 11:07:15 2016 +0530
 
-cheers,
--roger
+     ARM: dts: dra7: Correct clock tree for sys_32k_ck
+
+So, this one can be ignored.
+
+-Tero
 
 > ---
->  drivers/usb/dwc3/dwc3-omap.c | 6 ------
->  1 file changed, 6 deletions(-)
-> 
-> diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-> index 55da2c7..890b8a6 100644
-> --- a/drivers/usb/dwc3/dwc3-omap.c
-> +++ b/drivers/usb/dwc3/dwc3-omap.c
-> @@ -126,8 +126,6 @@ struct dwc3_omap {
->  	u32			debug_offset;
->  	u32			irq0_offset;
->  
-> -	u32			dma_status:1;
+>   arch/arm/boot/dts/dra7xx-clocks.dtsi | 28 ++++++++++++++++++++++------
+>   1 file changed, 22 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> index 9d1a583..a514fc3 100644
+> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> @@ -98,12 +98,6 @@
+>   		clock-frequency = <32768>;
+>   	};
+>
+> -	sys_32k_ck: sys_32k_ck {
+> -		#clock-cells = <0>;
+> -		compatible = "fixed-clock";
+> -		clock-frequency = <32768>;
+> -	};
 > -
->  	struct extcon_dev	*edev;
->  	struct notifier_block	vbus_nb;
->  	struct notifier_block	id_nb;
-> @@ -277,9 +275,6 @@ static irqreturn_t dwc3_omap_interrupt(int irq, void *_omap)
->  
->  	reg = dwc3_omap_read_irqmisc_status(omap);
->  
-> -	if (reg & USBOTGSS_IRQMISC_DMADISABLECLR)
-> -		omap->dma_status = false;
-> -
->  	dwc3_omap_write_irqmisc_status(omap, reg);
->  
->  	reg = dwc3_omap_read_irq0_status(omap);
-> @@ -504,7 +499,6 @@ static int dwc3_omap_probe(struct platform_device *pdev)
->  
->  	/* check the DMA Status */
->  	reg = dwc3_omap_readl(omap->base, USBOTGSS_SYSCONFIG);
-> -	omap->dma_status = !!(reg & USBOTGSS_SYSCONFIG_DMADISABLE);
->  
->  	ret = devm_request_irq(dev, omap->irq, dwc3_omap_interrupt, 0,
->  			"dwc3-omap", omap);
-> 
+>   	virt_12000000_ck: virt_12000000_ck {
+>   		#clock-cells = <0>;
+>   		compatible = "fixed-clock";
+> @@ -2177,4 +2171,26 @@
+>   		ti,bit-shift = <22>;
+>   		reg = <0x0558>;
+>   	};
+> +
+> +	sys_32kin: sys_32kin {
+> +		#clock-cells = <0>;
+> +		compatible = "fixed-clock";
+> +		clock-frequency = <32768>;
+> +	};
+> +
+> +	sys_clkin1_32k_div: sys_clkin1_32k_div {
+> +		#clock-cells = <0>;
+> +		compatible = "fixed-factor-clock";
+> +		clocks = <&sys_clkin1>;
+> +		clock-mult = <1>;
+> +		clock-div = <610>;
+> +	};
+> +
+> +	sys_32k_ck: sys_32k_ck {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,mux-clock";
+> +		clocks = <&sys_32kin>, <&sys_clkin1_32k_div>, <&sys_clkin1_32k_div>, <&sys_clkin1_32k_div>;
+> +		ti,bit-shift = <8>;
+> +		reg = <0x06c4>;
+> +	};
+>   };
+>
