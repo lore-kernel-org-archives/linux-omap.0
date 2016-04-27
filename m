@@ -1,86 +1,80 @@
-From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: Re: [PATCH v2 4/5] ARM: dts: omap5: describe control for ckobuffer
-Date: Wed, 27 Apr 2016 08:04:43 +0200
-Message-ID: <70572DA1-BEB4-4681-BA6C-2E1C9002D730@goldelico.com>
-References: <cover.1461003660.git.hns@goldelico.com> <a5fb89737594a656318896a8e43814c21ca992eb.1461003660.git.hns@goldelico.com> <20160426172710.GI5995@atomide.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160426172710.GI5995-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 1/2] ARM: OMAP2+: n900 needs MMC slot names for legacy
+ user space
+Date: Wed, 27 Apr 2016 10:48:36 +0200
+Message-ID: <CAPDyKFokkpF_-yxE+G2_nvC2q3uHkMCxZJHYU7y4KRRDWfvPTQ@mail.gmail.com>
+References: <1461714383-9956-1-git-send-email-tony@atomide.com>
+	<1461714383-9956-2-git-send-email-tony@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1461714383-9956-2-git-send-email-tony@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Pavel Machel <pavel@ucw.cz>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, Kishon Vijay Abraham I <kishon@ti.com>, linux-mmc <linux-mmc@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+On 27 April 2016 at 01:46, Tony Lindgren <tony@atomide.com> wrote:
+> Let's pass the slot names in pdata like the legacy code does.
+> Once we have a generic DT binding for the slot names we can
+> switch to that.
 
-> Am 26.04.2016 um 19:27 schrieb Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>:
-> 
-> Tero,
-> 
-> * H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> [160418 11:23]:
->> OMAP5 has a register to control if the ckobuffer is enabled
->> and defines the polarity. ckobuffer is required to drive a twl6040
->> with the system clock. Hence, add the pinctrl,single to the
->> OMAP5 SoC description so that omap5-board-common can
->> set up the ckobuffer as required.
-> 
-> Is this really a mux or should it be a mux clock?
+I am not sure we ever will get a DT binding accepted for the slot
+name. It seem far from being a HW description. :-)
 
-It is a pinmux setting for the clock out buffer to choose what signal
-(and polarity) is presented on the fref_xtal_clk pad.
+Instead, the long term and proper solution, is to enable userspace to
+be able to use UUID/PARTID instead.
 
-The register is part of the CTRL_MODULE_WKUP.
-The clock signal is the xtal master clock of the whole SoC.
+Until that happens, I guess this will have to do.
 
-Although there is a bit to choose an alternate clock, there is no
-alternate in the OMAP5 silicon.
+Kind regards
+Uffe
 
-Therefore I would say it is about padconf and not clock or clock mux
-related.
-
-It just happens to be a clock signal which can be routed to this
-pad.
-
-BR,
-Nikolaus
-
-> 
-> Regards,
-> 
-> Tony
-> 
->> Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
->> ---
->> arch/arm/boot/dts/omap5.dtsi | 10 ++++++++++
->> 1 file changed, 10 insertions(+)
->> 
->> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
->> index 120b6b8..1d9050f 100644
->> --- a/arch/arm/boot/dts/omap5.dtsi
->> +++ b/arch/arm/boot/dts/omap5.dtsi
->> @@ -277,6 +277,16 @@
->> 				pinctrl-single,register-width = <16>;
->> 				pinctrl-single,function-mask = <0x7fff>;
->> 			};
->> +
->> +			omap5_control_ckobuffer: pinmux@cdb4 {
->> +				compatible = "ti,omap5-padconf",
->> +					     "pinctrl-single";
->> +				reg = <0xcdb4 4>;
->> +				#address-cells = <1>;
->> +				#size-cells = <0>;
->> +				pinctrl-single,register-width = <32>;
->> +				pinctrl-single,function-mask = <0xf0000000>;
->> +			};
->> 		};
->> 
->> 		ocmcram: ocmcram@40300000 {
->> -- 
->> 2.7.3
->> 
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/mach-omap2/pdata-quirks.c | 7 +++++++
+>  1 file changed, 7 insertions(+)
+>
+> diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+> index a935d28..cfaf45f 100644
+> --- a/arch/arm/mach-omap2/pdata-quirks.c
+> +++ b/arch/arm/mach-omap2/pdata-quirks.c
+> @@ -21,6 +21,7 @@
+>  #include <linux/regulator/fixed.h>
+>
+>  #include <linux/platform_data/pinctrl-single.h>
+> +#include <linux/platform_data/hsmmc-omap.h>
+>  #include <linux/platform_data/iommu-omap.h>
+>  #include <linux/platform_data/wkup_m3.h>
+>  #include <linux/platform_data/pwm_omap_dmtimer.h>
+> @@ -35,6 +36,8 @@
+>  #include "soc.h"
+>  #include "hsmmc.h"
+>
+> +static struct __maybe_unused omap_hsmmc_platform_data mmc_pdata[2];
+> +
+>  struct pdata_init {
+>         const char *compatible;
+>         void (*fn)(void);
+> @@ -271,6 +274,8 @@ static struct platform_device omap3_rom_rng_device = {
+>  static void __init nokia_n900_legacy_init(void)
+>  {
+>         hsmmc2_internal_input_clk();
+> +       mmc_pdata[0].name = "external";
+> +       mmc_pdata[1].name = "internal";
+>
+>         if (omap_type() == OMAP2_DEVICE_TYPE_SEC) {
+>                 if (IS_ENABLED(CONFIG_ARM_ERRATA_430973)) {
+> @@ -497,6 +502,8 @@ static struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
+>         OF_DEV_AUXDATA("ti,omap3-padconf", 0x48002a00, "48002a00.pinmux", &pcs_pdata),
+>         OF_DEV_AUXDATA("ti,omap2-iommu", 0x5d000000, "5d000000.mmu",
+>                        &omap3_iommu_pdata),
+> +       OF_DEV_AUXDATA("ti,omap3-hsmmc", 0x4809c000, "4809c000.mmc", &mmc_pdata[0]),
+> +       OF_DEV_AUXDATA("ti,omap3-hsmmc", 0x480b4000, "480b4000.mmc", &mmc_pdata[1]),
+>         /* Only on am3517 */
+>         OF_DEV_AUXDATA("ti,davinci_mdio", 0x5c030000, "davinci_mdio.0", NULL),
+>         OF_DEV_AUXDATA("ti,am3517-emac", 0x5c000000, "davinci_emac.0",
+> --
+> 2.8.1
+>
