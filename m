@@ -1,94 +1,54 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 2/3] ARM: DRA7x: dts: Fix the 32kHz clock calculation
-Date: Wed, 27 Apr 2016 14:40:14 +0300
-Message-ID: <5720A51E.2000900@ti.com>
+Subject: Re: [PATCH 3/3] ARM: DRA7x: dts: Update the OSC_32K_CLK frequency
+Date: Wed, 27 Apr 2016 14:49:15 +0300
+Message-ID: <5720A73B.6050408@ti.com>
 References: <1461693269-19436-1-git-send-email-Linux.HWI@garmin.com>
- <1461693269-19436-3-git-send-email-Linux.HWI@garmin.com>
+ <1461693269-19436-4-git-send-email-Linux.HWI@garmin.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1461693269-19436-3-git-send-email-Linux.HWI@garmin.com>
+In-Reply-To: <1461693269-19436-4-git-send-email-Linux.HWI@garmin.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "J.D. Schroeder" <Linux.HWI@garmin.com>, linux-kernel@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: "J.D. Schroeder" <jay.schroeder@garmin.com>, "J, Keerthy" <j-keerthy@ti.com>
+Cc: "J.D. Schroeder" <jay.schroeder@garmin.com>
 List-Id: linux-omap@vger.kernel.org
 
 On 26/04/16 20:54, J.D. Schroeder wrote:
 > From: "J.D. Schroeder" <jay.schroeder@garmin.com>
 >
-> This commit fixes the 32kHz clock (sys_32k_ck) calculation to be
-> correctly based on the SYS_CLK1 (sys_clkin1) frequency. Based on the
-> TRM CTRL_CORE_BOOTSTRAP[9:8] SPEEDSELECT, set by the SYSBOOT[9:8]
-> board jumpers according to the SYS_CLK1 frequency, the frequency of
-> the 32kHz FUNC_32K_CLK is set to SYS_CLK1/610. The following
-> sys_32k_ck frequencies get used for different SYS_CLK1 frequencies:
->          0b00: Unknown  -> 32768 Hz crystal from CLKIN_32K pin
->          0b01: 20   MHz -> 32787 Hz clock (SYS_CLK1/610)
->          0b10: 27   MHz -> 44262 Hz clock (SYS_CLK1/610)
->          0b11: 19.2 MHz -> 31475 Hz clock (SYS_CLK1/610)
->
-> Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
-> Reviewed-by: Ben McCauley <ben.mccauley@garmin.com>
+> This commit updates the OSC_32K_CLK (secure_32k_clk_src_ck) frequency
+> from the precise 32kHz frequency (i.e., 32.768 kHz) to the more
+> accurate frequency of ~34.6 kHz. Actual measured frequencies of the
+> clock vary from board to board anywhere from 34.4 kHz up to 34.8 kHz.
 
-A patch doing the same thing is already in mainline, see:
+Uhm, if you have a board specific, accurate value for this clock, you 
+should update it in the board file itself. This definition is going to 
+be used across all the DRA7 / AM57xx boards, which can very likely have 
+different crystal accuracies.
 
-commit eea08802f586acd6aef377d1b4a541821013cc0b
-Author: Keerthy <j-keerthy@ti.com>
-Date:   Mon Apr 4 11:07:15 2016 +0530
-
-     ARM: dts: dra7: Correct clock tree for sys_32k_ck
-
-So, this one can be ignored.
+So, NAK.
 
 -Tero
 
+>
+> Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
+> Reviewed-by: Trenton Andres <trenton.andres@garmin.com>
 > ---
->   arch/arm/boot/dts/dra7xx-clocks.dtsi | 28 ++++++++++++++++++++++------
->   1 file changed, 22 insertions(+), 6 deletions(-)
+>   arch/arm/boot/dts/dra7xx-clocks.dtsi | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
 >
 > diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-> index 9d1a583..a514fc3 100644
+> index a514fc3..4501140 100644
 > --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
 > +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-> @@ -98,12 +98,6 @@
->   		clock-frequency = <32768>;
->   	};
->
-> -	sys_32k_ck: sys_32k_ck {
-> -		#clock-cells = <0>;
-> -		compatible = "fixed-clock";
-> -		clock-frequency = <32768>;
-> -	};
-> -
->   	virt_12000000_ck: virt_12000000_ck {
+> @@ -95,7 +95,7 @@
+>   	secure_32k_clk_src_ck: secure_32k_clk_src_ck {
 >   		#clock-cells = <0>;
 >   		compatible = "fixed-clock";
-> @@ -2177,4 +2171,26 @@
->   		ti,bit-shift = <22>;
->   		reg = <0x0558>;
+> -		clock-frequency = <32768>;
+> +		clock-frequency = <34600>; /* approximate frequency */
 >   	};
-> +
-> +	sys_32kin: sys_32kin {
-> +		#clock-cells = <0>;
-> +		compatible = "fixed-clock";
-> +		clock-frequency = <32768>;
-> +	};
-> +
-> +	sys_clkin1_32k_div: sys_clkin1_32k_div {
-> +		#clock-cells = <0>;
-> +		compatible = "fixed-factor-clock";
-> +		clocks = <&sys_clkin1>;
-> +		clock-mult = <1>;
-> +		clock-div = <610>;
-> +	};
-> +
-> +	sys_32k_ck: sys_32k_ck {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,mux-clock";
-> +		clocks = <&sys_32kin>, <&sys_clkin1_32k_div>, <&sys_clkin1_32k_div>, <&sys_clkin1_32k_div>;
-> +		ti,bit-shift = <8>;
-> +		reg = <0x06c4>;
-> +	};
->   };
+>
+>   	virt_12000000_ck: virt_12000000_ck {
 >
