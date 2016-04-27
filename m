@@ -1,68 +1,72 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH v7 1/9] clk: ti: am335x/am4372: Add tbclk to pwm node
-Date: Wed, 27 Apr 2016 15:48:30 +0300
-Message-ID: <5720B51E.6050106@ti.com>
-References: <1461710209-6563-1-git-send-email-fcooper@ti.com>
- <1461710209-6563-2-git-send-email-fcooper@ti.com>
+From: Jun Li <jun.li@nxp.com>
+Subject: RE: [PATCH v6 08/12] usb: hcd: Adapt to OTG core
+Date: Wed, 27 Apr 2016 12:49:54 +0000
+Message-ID: <AM4PR04MB21301FB7EE62E9ACF14230C289640@AM4PR04MB2130.eurprd04.prod.outlook.com>
+References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
+ <1459865117-7032-9-git-send-email-rogerq@ti.com>
+ <AM4PR04MB2130FA0DCDDE4A81F8F54F4E89640@AM4PR04MB2130.eurprd04.prod.outlook.com>
+ <57209BE2.7030300@ti.com> <57209E71.5070709@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1461710209-6563-2-git-send-email-fcooper@ti.com>
+In-Reply-To: <57209E71.5070709@ti.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Franklin S Cooper Jr <fcooper@ti.com>, thierry.reding@gmail.com, robh+dt@kernel.org, tony@atomide.com, paul@pwsan.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, vigneshr@ti.com, nsekhar@ti.com
+To: Roger Quadros <rogerq@ti.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "balbi@kernel.org" <balbi@kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "peter.chen@freescale.com" <peter.chen@freescale.com>
+Cc: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "jun.li@freescale.com" <jun.li@freescale.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Joao.Pinto@synopsys.com" <Joao.Pinto@synopsys.com>, "abrestic@chromium.org" <abrestic@chromium.org>, "r.baldyga@samsung.com" <r.baldyga@samsung.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 27/04/16 01:36, Franklin S Cooper Jr wrote:
-> Add tblck to the pwm nodes. This insures that the ehrpwm driver has access
-> to the time-based clk.
->
-> Do not remove similar entries for ehrpwm node. Later patches will switch
-> from using ehrpwm node name to pwm. But to maintain ABI compatibility we
-> shouldn't remove the old entries.
->
-> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
-> Acked-by: Stephen Boyd <sboyd@codeaurora.org>
+Hi
+> -----Original Message-----
+> From: Roger Quadros [mailto:rogerq@ti.com]
+> Sent: Wednesday, April 27, 2016 7:12 PM
+> To: Jun Li <jun.li@nxp.com>; stern@rowland.harvard.edu; balbi@kernel.org;
+> gregkh@linuxfoundation.org; peter.chen@freescale.com
+> Cc: dan.j.williams@intel.com; jun.li@freescale.com;
+> mathias.nyman@linux.intel.com; tony@atomide.com; Joao.Pinto@synopsys.com;
+> abrestic@chromium.org; r.baldyga@samsung.com; linux-usb@vger.kernel.org;
+> linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH v6 08/12] usb: hcd: Adapt to OTG core
+> 
+> On 27/04/16 14:00, Roger Quadros wrote:
+> > On 27/04/16 13:16, Jun Li wrote:
+> >> Hi
+> >>
+> >>>
+> >>> +
+> >>> +static struct otg_hcd_ops otg_hcd_intf = {
+> >>> +	.add = usb_add_hcd,
+> >>> +	.remove = usb_remove_hcd,
+> >>> +	.usb_bus_start_enum = usb_bus_start_enum,
+> >>
+> >> Build break if CONFIG_USB_OTG is not enabled:
+> >>
+> >> drivers/built-in.o:(.data+0x1db30): undefined reference to
+> `usb_bus_start_enum'
+> >> Makefile:948: recipe for target 'vmlinux' failed
+> >> make: *** [vmlinux] Error 1
+> 
+> I couldn't get this error. Could you please send me your .config? Thanks.
 
-I don't like adding new clock aliases to the list as I am trying to get 
-rid of them, but in this case we can't avoid it I believe. Thus,
+imx_v6_v7_defconfig
 
-Acked-by: Tero Kristo <t-kristo@ti.com>
-
-> ---
->   drivers/clk/ti/clk-33xx.c | 3 +++
->   drivers/clk/ti/clk-43xx.c | 6 ++++++
->   2 files changed, 9 insertions(+)
->
-> diff --git a/drivers/clk/ti/clk-33xx.c b/drivers/clk/ti/clk-33xx.c
-> index ef2ec64..0e47d95 100644
-> --- a/drivers/clk/ti/clk-33xx.c
-> +++ b/drivers/clk/ti/clk-33xx.c
-> @@ -108,6 +108,9 @@ static struct ti_dt_clk am33xx_clks[] = {
->   	DT_CLK("48300200.ehrpwm", "tbclk", "ehrpwm0_tbclk"),
->   	DT_CLK("48302200.ehrpwm", "tbclk", "ehrpwm1_tbclk"),
->   	DT_CLK("48304200.ehrpwm", "tbclk", "ehrpwm2_tbclk"),
-> +	DT_CLK("48300200.pwm", "tbclk", "ehrpwm0_tbclk"),
-> +	DT_CLK("48302200.pwm", "tbclk", "ehrpwm1_tbclk"),
-> +	DT_CLK("48304200.pwm", "tbclk", "ehrpwm2_tbclk"),
->   	{ .node_name = NULL },
->   };
->
-> diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
-> index 097fc90..7255aa8 100644
-> --- a/drivers/clk/ti/clk-43xx.c
-> +++ b/drivers/clk/ti/clk-43xx.c
-> @@ -115,6 +115,12 @@ static struct ti_dt_clk am43xx_clks[] = {
->   	DT_CLK("48306200.ehrpwm", "tbclk", "ehrpwm3_tbclk"),
->   	DT_CLK("48308200.ehrpwm", "tbclk", "ehrpwm4_tbclk"),
->   	DT_CLK("4830a200.ehrpwm", "tbclk", "ehrpwm5_tbclk"),
-> +	DT_CLK("48300200.pwm", "tbclk", "ehrpwm0_tbclk"),
-> +	DT_CLK("48302200.pwm", "tbclk", "ehrpwm1_tbclk"),
-> +	DT_CLK("48304200.pwm", "tbclk", "ehrpwm2_tbclk"),
-> +	DT_CLK("48306200.pwm", "tbclk", "ehrpwm3_tbclk"),
-> +	DT_CLK("48308200.pwm", "tbclk", "ehrpwm4_tbclk"),
-> +	DT_CLK("4830a200.pwm", "tbclk", "ehrpwm5_tbclk"),
->   	{ .node_name = NULL },
->   };
->
->
+> 
+> cheers,
+> -roger
+> >
+> > Thanks. Will fix it.
+> >
+> > cheers,
+> > -roger
+> >
+> >>
+> >>> +	.usb_control_msg = usb_control_msg,
+> >>> +	.usb_hub_find_child = usb_hub_find_child, };
+> >>> +
+> >>
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-usb"
+> > in the body of a message to majordomo@vger.kernel.org More majordomo
+> > info at  http://vger.kernel.org/majordomo-info.html
+> >
