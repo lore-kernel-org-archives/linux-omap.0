@@ -1,37 +1,41 @@
-From: Jun Li <jun.li@nxp.com>
-Subject: RE: [PATCH v6 08/12] usb: hcd: Adapt to OTG core
-Date: Wed, 27 Apr 2016 10:16:33 +0000
-Message-ID: <AM4PR04MB2130FA0DCDDE4A81F8F54F4E89640@AM4PR04MB2130.eurprd04.prod.outlook.com>
-References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
- <1459865117-7032-9-git-send-email-rogerq@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v1] ARM: clocksource: make ARM_GLOBAL_TIMER selectable
+Date: Wed, 27 Apr 2016 11:41:10 +0100
+Message-ID: <20160427104110.GU5783@n2100.arm.linux.org.uk>
+References: <1461684532-16848-1-git-send-email-grygorii.strashko@ti.com>
+ <20160426160245.GI28464@e106497-lin.cambridge.arm.com>
+ <571FC2EC.9090605@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1459865117-7032-9-git-send-email-rogerq@ti.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <571FC2EC.9090605@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "balbi@kernel.org" <balbi@kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "peter.chen@freescale.com" <peter.chen@freescale.com>
-Cc: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "jun.li@freescale.com" <jun.li@freescale.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Joao.Pinto@synopsys.com" <Joao.Pinto@synopsys.com>, "abrestic@chromium.org" <abrestic@chromium.org>, "r.baldyga@samsung.com" <r.baldyga@samsung.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Liviu Dudau <liviu.dudau@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, bcm-kernel-feedback-list@broadcom.com, linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org, kernel@stlinux.com, linux-arm-kernel@axis.com, Florian Fainelli <f.fainelli@gmail.com>, Wei Xu <xuwei5@hisilicon.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Srinivas Kandagatla <srinivas.kandagatla@gmail.com>, Maxime Coquelin <maxime.coquelin@st.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Sudeep Holla <sudeep.holla@arm.com>, Jun Nie <jun.nie@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Jesper Nilsson <jesper.nilsson@axis.com>, Lars Persson <lar>
 List-Id: linux-omap@vger.kernel.org
 
-Hi
-
+On Tue, Apr 26, 2016 at 10:35:08PM +0300, Grygorii Strashko wrote:
+> On 04/26/2016 07:02 PM, Liviu Dudau wrote:
+> > Well, SoC-B has the GT *and* the DT node, so what is the problem with
+> > enabling it for SoC-B? If there are reasons not to use the Global Timer
+> > on SoC-B, surely a better option would be to mark it in DT with status = "disabled";
 > 
-> +
-> +static struct otg_hcd_ops otg_hcd_intf = {
-> +	.add = usb_add_hcd,
-> +	.remove = usb_remove_hcd,
-> +	.usb_bus_start_enum = usb_bus_start_enum,
+> This was rejected [2]. DT describes HW and if it is functional the status = "disabled"
+> is not good choice.
+> ARM GT can't be used as clocksource/sched_clock/clockevent when CPUFreq or
+> CPUIdle are enabled :(, and this is Linux specific functionality and
+> not HW description. 
 
-Build break if CONFIG_USB_OTG is not enabled:
+Sorry, but we don't want to have to disable drivers in the kernel just
+because one platform has a problem (consider the single zImage case
+where it may be required that the global timer is enabled for some
+platform to boot - it becomes mandatory in single zImage at that point.)
 
-drivers/built-in.o:(.data+0x1db30): undefined reference to `usb_bus_start_enum'
-Makefile:948: recipe for target 'vmlinux' failed
-make: *** [vmlinux] Error 1
+Maybe a linux-specific property is needed here - "linux,low-power-unstable"
+or something like that?
 
-Li Jun
- 
-> +	.usb_control_msg = usb_control_msg,
-> +	.usb_hub_find_child = usb_hub_find_child, };
-> +
+-- 
+RMK's Patch system: http://www.arm.linux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
