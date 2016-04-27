@@ -1,115 +1,43 @@
-From: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-Subject: Re: [PATCH V2 13/14] dt-bindings: arm-gic: Add documentation for
- Tegra210 AGIC
-Date: Wed, 27 Apr 2016 20:02:51 +0200
-Message-ID: <CAMuHMdVbDrD2_yun14iSPYx=Wn93g=g535L=mHwGX=4bF-1tSg@mail.gmail.com>
-References: <1461150237-15580-1-git-send-email-jonathanh@nvidia.com>
-	<1461150237-15580-14-git-send-email-jonathanh@nvidia.com>
-	<20160422100052.GA10606@leverpostej>
-	<571A0739.3090502@nvidia.com>
-	<20160422112239.GF10606@leverpostej>
-	<5720DC1D.1080802@nvidia.com>
-	<20160427173810.GC7359@leverpostej>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v7 0/9] ARM: dts: DRA7: Add dt nodes for PWMSS
+Date: Wed, 27 Apr 2016 12:32:07 -0700
+Message-ID: <20160427193207.GB5995@atomide.com>
+References: <1461710209-6563-1-git-send-email-fcooper@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160427173810.GC7359@leverpostej>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1461710209-6563-1-git-send-email-fcooper@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Franklin S Cooper Jr <fcooper@ti.com>
+Cc: thierry.reding@gmail.com, robh+dt@kernel.org, paul@pwsan.com, t-kristo@ti.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, vigneshr@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Apr 27, 2016 at 7:38 PM, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org> wrote:
-> On Wed, Apr 27, 2016 at 04:34:53PM +0100, Jon Hunter wrote:
->> On 22/04/16 12:22, Mark Rutland wrote:
->> [snip]
->>
->> >>>> I am not sure if it will be popular to add Tegra specific clock names
->> >>>> to the GIC DT docs. However, in that case, then possibly the only
->> >>>> alternative is to move the Tegra AGIC driver into its own file and
->> >>>> expose the GIC APIs for it to use. Then we could add our own DT doc
->> >>>> for the Tegra AGIC as well (based upon the ARM GIC).
->> >>>
->> >>> The clock-names don't seem right to me, as they sound like provide names
->> >>> or global clock line names rather than consumer-side names ("clk" and
->> >>> "apb_pclk").
->> >>
->> >> Yes that would be fine with me.
->> >
->> > Ok; if we model the apb_pclk as owned by the AXI switch (which it is),
->> > then there's no change for the GIC binding, short of the additional
->> > compatible string as an extension of "arm,gic-400", as we already model
->> > that clock in the GIC-400 binding.
->>
->> I have been re-working this based upon the feedback received. In the GIC
->> driver we have the following definitions ...
->>
->>  IRQCHIP_DECLARE(gic_400, "arm,gic-400", gic_of_init);
->>  IRQCHIP_DECLARE(arm11mp_gic, "arm,arm11mp-gic", gic_of_init);
->>  IRQCHIP_DECLARE(arm1176jzf_dc_gic, "arm,arm1176jzf-devchip-gic", gic_of_init);
->>  IRQCHIP_DECLARE(cortex_a15_gic, "arm,cortex-a15-gic", gic_of_init);
->>  IRQCHIP_DECLARE(cortex_a9_gic, "arm,cortex-a9-gic", gic_of_init);
->>  IRQCHIP_DECLARE(cortex_a7_gic, "arm,cortex-a7-gic", gic_of_init);
->>  IRQCHIP_DECLARE(msm_8660_qgic, "qcom,msm-8660-qgic", gic_of_init);
->>  IRQCHIP_DECLARE(msm_qgic2, "qcom,msm-qgic2", gic_of_init);
->>  IRQCHIP_DECLARE(pl390, "arm,pl390", gic_of_init);
->>
->>
->> If I have something like the following in my dts ...
->>
->>       agic: interrupt-controller@702f9000 {
->>               compatible = "nvidia,tegra210-agic", "arm,gic-400";
->>               ...
->>       };
->>
->> The problem with this is that it tries to register the interrupt controller
->> early during of_irq_init() before the platform driver has chance to
->> initialise it.
+Hi,
+
+* Franklin S Cooper Jr <fcooper@ti.com> [160426 15:38]:
 >
-> Probe order strikes again...
->
->> To avoid this I got rid of the "nvidia,tegra210-agic" string and added
->> the following for the platform driver ...
->>
->> static const struct of_device_id gic_match[] = {
->>        { .compatible = "arm,arm11mp-gic-pm",    .data = &arm11mp_gic_data   },
->>        { .compatible = "arm,cortex-a15-gic-pm", .data = &cortexa15_gic_data },
->>        { .compatible = "arm,cortex-a9-gic-pm",  .data = &cortexa9_gic_data  },
->>        { .compatible = "arm,gic400-pm",         .data = &gic400_data        },
->>        { .compatible = "arm,pl390-pm",          .data = &pl390_data         },
->>        {},
->> };
->>
->> It is not ideal as now we have a *-pm variant of each compatible string :-(
->
-> Yeah, that's a non-starter. :(
->
->> Another option would be to add some code in gic_of_init() to check for the
->> presence of a "clocks" node in the DT binding and bail out of the early
->> initialisation if found but may be that is a bit of a hack.
+>  .../devicetree/bindings/pwm/pwm-tiecap.txt         | 36 +++++++--
+>  .../devicetree/bindings/pwm/pwm-tiehrpwm.txt       | 36 +++++++--
+>  .../devicetree/bindings/pwm/pwm-tipwmss.txt        | 33 +++++++-
+>  arch/arm/boot/dts/am33xx.dtsi                      | 36 ++++++---
+>  arch/arm/boot/dts/am4372.dtsi                      | 63 ++++++++++-----
+>  arch/arm/boot/dts/da850.dtsi                       | 15 ++--
+>  arch/arm/boot/dts/dra7.dtsi                        | 90 ++++++++++++++++++++++
+>  .../mach-omap2/omap_hwmod_33xx_43xx_common_data.h  | 18 -----
+>  .../omap_hwmod_33xx_43xx_interconnect_data.c       | 64 ---------------
+>  .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 84 --------------------
+>  arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |  9 ---
+>  arch/arm/mach-omap2/omap_hwmod_43xx_data.c         | 54 -------------
+>  drivers/clk/ti/clk-33xx.c                          |  3 +
+>  drivers/clk/ti/clk-43xx.c                          |  6 ++
+>  drivers/pwm/pwm-tiecap.c                           |  7 ++
+>  drivers/pwm/pwm-tiehrpwm.c                         |  7 ++
+>  16 files changed, 279 insertions(+), 282 deletions(-)
 
-Or the presence of a power-domains property...
+Thierry, do you want to pick the driver changes or ack them
+and then I can queue the rest if no more comments?
 
-> I fear that someone may validly have a clocks property in their root GIC
-> node, at which point things would fall apart. I was under the impression
-> this was the case for some Renesas boards (though I didn't find an
-> example in tree).
+Regards,
 
-We don't have the GIC clocks in the GIC nodes yet, as there's no suitable
-mechanism (e.g. CLK_ENABLE_HAND_OFF) in upstream yet to prevent them
-from being disabled ("unused" clocks are disabled).
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
