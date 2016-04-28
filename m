@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 04/10] usb: musb: Remove unnecessary shutdown function
-Date: Thu, 28 Apr 2016 10:33:14 -0700
-Message-ID: <1461864800-29979-5-git-send-email-tony@atomide.com>
+Subject: [PATCH 07/10] usb: musb: Manage USB phy from PM runtime calls
+Date: Thu, 28 Apr 2016 10:33:17 -0700
+Message-ID: <1461864800-29979-8-git-send-email-tony@atomide.com>
 References: <1461864800-29979-1-git-send-email-tony@atomide.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1461864800-29979-1-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
@@ -10,85 +10,104 @@ To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
 Cc: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-We have remove() already calling shutdown(), so let's drop it
-and move the code to remove().
+This simplifies things and allows idling both MUSB and PHY
+when nothing is configured.
+
+Let's also warn if PHY is not configured.
 
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/usb/musb/musb_core.c | 39 ++++++++++++++-------------------------
- 1 file changed, 14 insertions(+), 25 deletions(-)
+ drivers/usb/musb/omap2430.c | 35 +++++++++++++++++++++--------------
+ 1 file changed, 21 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 5fa6187..d7af8ed 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -1090,29 +1090,6 @@ void musb_stop(struct musb *musb)
- 	musb_platform_try_idle(musb, 0);
- }
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index a2a158f..b274923 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -395,6 +395,7 @@ static int omap2430_musb_init(struct musb *musb)
+ 		return PTR_ERR(musb->phy);
+ 	}
+ 	musb->isr = omap2430_musb_interrupt;
++	phy_init(musb->phy);
  
--static void musb_shutdown(struct platform_device *pdev)
--{
--	struct musb	*musb = dev_to_musb(&pdev->dev);
--	unsigned long	flags;
--
--	pm_runtime_get_sync(musb->controller);
--
--	musb_host_cleanup(musb);
--	musb_gadget_cleanup(musb);
--
--	spin_lock_irqsave(&musb->lock, flags);
--	musb_platform_disable(musb);
--	musb_generic_disable(musb);
--	spin_unlock_irqrestore(&musb->lock, flags);
--
--	musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
--	musb_platform_exit(musb);
--
--	pm_runtime_put(musb->controller);
--	/* FIXME power down */
--}
--
--
- /*-------------------------------------------------------------------------*/
+ 	/*
+ 	 * Enable runtime PM for musb parent (this driver). We can't
+@@ -431,8 +432,6 @@ static int omap2430_musb_init(struct musb *musb)
+ 	if (glue->status != MUSB_UNKNOWN)
+ 		omap_musb_set_mailbox(glue);
  
- /*
-@@ -2312,6 +2289,7 @@ static int musb_remove(struct platform_device *pdev)
+-	phy_init(musb->phy);
+-	phy_power_on(musb->phy);
+ 	pm_runtime_put(glue->dev);
+ 	return 0;
+ 
+@@ -491,11 +490,17 @@ static void omap2430_musb_disable(struct musb *musb)
+ 
+ static int omap2430_musb_exit(struct musb *musb)
  {
- 	struct device	*dev = &pdev->dev;
- 	struct musb	*musb = dev_to_musb(dev);
-+	unsigned long	flags;
+-	del_timer_sync(&musb_idle_timer);
++	struct device *dev = musb->controller;
++	struct omap2430_glue *glue = dev_get_drvdata(dev->parent);
  
- 	/* this gets called on rmmod.
- 	 *  - Host mode: host may still be active
-@@ -2319,7 +2297,19 @@ static int musb_remove(struct platform_device *pdev)
- 	 *  - OTG mode: both roles are deactivated (or never-activated)
- 	 */
- 	musb_exit_debugfs(musb);
--	musb_shutdown(pdev);
++	del_timer_sync(&musb_idle_timer);
++	pm_runtime_get_sync(glue->dev);
+ 	omap2430_low_level_exit(musb);
+-	phy_power_off(musb->phy);
++	pm_runtime_put_sync_suspend(glue->dev);
++	pm_runtime_disable(glue->dev);
+ 	phy_exit(musb->phy);
++	musb->phy = NULL;
++	cancel_work_sync(&glue->omap_musb_mailbox_work);
+ 
+ 	return 0;
+ }
+@@ -661,11 +666,7 @@ static int omap2430_remove(struct platform_device *pdev)
+ {
+ 	struct omap2430_glue		*glue = platform_get_drvdata(pdev);
+ 
+-	pm_runtime_get_sync(glue->dev);
+-	cancel_work_sync(&glue->omap_musb_mailbox_work);
+ 	platform_device_unregister(glue->musb);
+-	pm_runtime_put_sync(glue->dev);
+-	pm_runtime_disable(glue->dev);
+ 
+ 	return 0;
+ }
+@@ -677,12 +678,15 @@ static int omap2430_runtime_suspend(struct device *dev)
+ 	struct omap2430_glue		*glue = dev_get_drvdata(dev);
+ 	struct musb			*musb = glue_to_musb(glue);
+ 
+-	if (musb) {
+-		musb->context.otg_interfsel = musb_readl(musb->mregs,
+-				OTG_INTERFSEL);
++	if (WARN_ON(!musb))
++		return 0;
+ 
+-		omap2430_low_level_exit(musb);
+-	}
++	musb->context.otg_interfsel = musb_readl(musb->mregs,
++						 OTG_INTERFSEL);
 +
-+	pm_runtime_get_sync(musb->controller);
-+	musb_host_cleanup(musb);
-+	musb_gadget_cleanup(musb);
-+	spin_lock_irqsave(&musb->lock, flags);
-+	musb_platform_disable(musb);
-+	musb_generic_disable(musb);
-+	spin_unlock_irqrestore(&musb->lock, flags);
-+	musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
-+	musb_platform_exit(musb);
-+	pm_runtime_put(musb->controller);
-+	/* FIXME power down */
++	omap2430_low_level_exit(musb);
++	if (!WARN_ON(!musb->phy))
++		phy_power_off(musb->phy);
+ 
+ 	return 0;
+ }
+@@ -692,9 +696,12 @@ static int omap2430_runtime_resume(struct device *dev)
+ 	struct omap2430_glue		*glue = dev_get_drvdata(dev);
+ 	struct musb			*musb = glue_to_musb(glue);
+ 
+-	if (!musb)
++	if (WARN_ON(!musb))
+ 		return -EPROBE_DEFER;
+ 
++	if (!WARN_ON(!musb->phy))
++		phy_power_on(musb->phy);
 +
- 	musb_phy_callback = NULL;
- 
- 	if (musb->dma_controller)
-@@ -2612,7 +2602,6 @@ static struct platform_driver musb_driver = {
- 	},
- 	.probe		= musb_probe,
- 	.remove		= musb_remove,
--	.shutdown	= musb_shutdown,
- };
- 
- module_platform_driver(musb_driver);
+ 	omap2430_low_level_init(musb);
+ 	musb_writel(musb->mregs, OTG_INTERFSEL,
+ 		    musb->context.otg_interfsel);
 -- 
 2.8.1
 
