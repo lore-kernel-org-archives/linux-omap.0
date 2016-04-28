@@ -1,36 +1,52 @@
-From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH net v3 4/5] dt: cpsw: phy-handle, phy_id, and fixed-link
- are mutually exclusive
-Date: Thu, 28 Apr 2016 15:43:28 +0530
-Message-ID: <5721E248.6040106@ti.com>
-References: <1461805808-4102-1-git-send-email-drivshin.allworx@gmail.com>
- <1461807767-4563-1-git-send-email-drivshin.allworx@gmail.com>
+From: Laxman Dewangan <ldewangan@nvidia.com>
+Subject: Re: [PATCH 3/7] mfd: max77686: Use devm_mfd_add_devices and devm_regmap_add_irq_chip
+Date: Thu, 28 Apr 2016 15:32:42 +0530
+Message-ID: <5721DFC2.4070301@nvidia.com>
+References: <1461241558-26983-1-git-send-email-ldewangan@nvidia.com> <1461241558-26983-4-git-send-email-ldewangan@nvidia.com> <571DF7FD.8020209@samsung.com> <20160428090102.GM4892@dell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1461807767-4563-1-git-send-email-drivshin.allworx-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "David Rivshin (Allworx)" <drivshin.allworx-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Andrew Goodbody <andrew.goodbody-nYQdZkeIoGZN8Ch2cx6nig@public.gmane.org>, Markus Brunner <systemprogrammierung.brunner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Nicolas Chauvet <kwizart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160428090102.GM4892@dell>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>, Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: milo.kim@ti.com, cw00.choi@samsung.com, sbkim73@samsung.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 28 April 2016 07:12 AM, David Rivshin (Allworx) wrote:
-> From: David Rivshin <drivshin-5fOYsn7Fw8lBDgjK7y7TUQ@public.gmane.org>
-> 
-> The phy-handle, phy_id, and fixed-link properties are mutually exclusive,
-> and only one need be specified. Make this clear in the binding doc.
-> 
-> Also mark the phy_id property as deprecated, as phy-handle should be
-> used instead.
-> 
-> Signed-off-by: David Rivshin <drivshin-5fOYsn7Fw8lBDgjK7y7TUQ@public.gmane.org>
 
-Reviewed-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+On Thursday 28 April 2016 02:31 PM, Lee Jones wrote:
+> On Mon, 25 Apr 2016, Krzysztof Kozlowski wrote:
+>
+>> On 04/21/2016 02:25 PM, Laxman Dewangan wrote:
+>>> Use devm_mfd_add_devices() for adding MFD child devices and
+>>> devm_regmap_add_irq_chip() for IRQ chip registration.
+>>>
+>>> This reduces the error code path and .remove callback for removing
+>>> MFD child devices and deleting IRQ chip data.
+>>>
+>>> Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
+>>> CC: Chanwoo Choi <cw00.choi@samsung.com>
+>>> CC: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+>>> ---
+>>>   drivers/mfd/max77686.c | 31 ++++++++-----------------------
+>>>   1 file changed, 8 insertions(+), 23 deletions(-)
+>> Switching existing code to devm-like interface doesn't bring huge
+>> benefits but looks okay and I'm fine with it:
+> This is pretty much my view, but it get's Laxman's patch count up. ;)
 
-Regards
-Mugunthan V N
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yaah. :-)
+
+There is some other motivation of doing this:
+* I got the review comment about the resource leak and sequencing in my 
+max77620. It was silly mistake done by me  and it causes recycle of 
+patch. To avoid this in future, devm_ was better option.
+* Spent lots of time on unbinding test during my RTC patch. Although fix 
+was not related to the devm_ but gave the impression that something we 
+are doing on probe. devm_ looks straight forward.
+- Some of code quality tools suggest to avoid goto statement. Only 
+possible if we dont have any code in error path i.e. return from any place.
+- If we have devm_ apis for few resource and some does not support then 
+difficult to use them as this affect the sequence of deallocation. 
+Existing devm_ can be used effectively only if we have all resource 
+allocation using devm_.
+- Reducing code size always better.
