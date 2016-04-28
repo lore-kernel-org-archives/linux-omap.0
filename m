@@ -1,172 +1,242 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
-Date: Thu, 28 Apr 2016 11:01:16 +0300
-Message-ID: <5721C34C.8000504@ti.com>
-References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
- <1459865117-7032-8-git-send-email-rogerq@ti.com>
- <AM4PR04MB213045DC3D1C1D67A7D9AF0689630@AM4PR04MB2130.eurprd04.prod.outlook.com>
- <20160426034711.GC2978@peterchendt>
- <AM4PR04MB2130124412E09799A2CB01BF89630@AM4PR04MB2130.eurprd04.prod.outlook.com>
- <20160426062809.GD2978@peterchendt>
- <AM4PR04MB2130503C9E7C2B984457A61089630@AM4PR04MB2130.eurprd04.prod.outlook.com>
- <20160426082106.GE2978@peterchendt>
- <20160427031509.GA22637@shlinux2.ap.freescale.net> <57209BA0.6040508@ti.com>
- <20160428015409.GA12199@shlinux2.ap.freescale.net>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH v2 4/5] ARM: dts: omap5: describe control for ckobuffer
+Date: Thu, 28 Apr 2016 11:03:32 +0300
+Message-ID: <5721C3D4.7040401@ti.com>
+References: <cover.1461003660.git.hns@goldelico.com>
+ <a5fb89737594a656318896a8e43814c21ca992eb.1461003660.git.hns@goldelico.com>
+ <20160426172710.GI5995@atomide.com>
+ <70572DA1-BEB4-4681-BA6C-2E1C9002D730@goldelico.com>
+ <5720B107.4000907@ti.com>
+ <A90F1BFC-A834-4EC0-81F9-2C8222AAA010@goldelico.com>
+ <5720C85B.9010701@ti.com> <ce9a7840-e86f-0d0c-3ed6-a571eec6659d@ti.com>
+ <40536322-073F-48BD-9D07-32B9A9F07AF2@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160428015409.GA12199-Fb7DQEYuewWctlrPMvKcciBecyulp+rMXqFh9Ls21Oc@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Jun Li <jun.li-3arQi8VN3Tc@public.gmane.org>, "stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org" <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org" <abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, "r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <40536322-073F-48BD-9D07-32B9A9F07AF2@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, Laxman Dewangan <ldewangan@nvidia.com>, linux-omap <linux-omap@vger.kernel.org>, devicetree@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Marek Belisko <marek@goldelico.com>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 28/04/16 04:54, Peter Chen wrote:
-> On Wed, Apr 27, 2016 at 01:59:44PM +0300, Roger Quadros wrote:
->> Hi,
+On 27/04/16 17:35, H. Nikolaus Schaller wrote:
+> HI,
+>
+>> Am 27.04.2016 um 16:23 schrieb Peter Ujfalusi <peter.ujfalusi@ti.com>:
 >>
->> On 27/04/16 06:15, Peter Chen wrote:
->>> On Tue, Apr 26, 2016 at 04:21:07PM +0800, Peter Chen wrote:
->>>> On Tue, Apr 26, 2016 at 07:00:22AM +0000, Jun Li wrote:
->>>>> Hi
+>> On 04/27/2016 05:10 PM, Tero Kristo wrote:
+>>> On 27/04/16 16:10, H. Nikolaus Schaller wrote:
+>>>>
+>>>>> Am 27.04.2016 um 14:31 schrieb Tero Kristo <t-kristo@ti.com>:
 >>>>>
->>>>>> -----Original Message-----
->>>>>> From: Peter Chen [mailto:hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
->>>>>> Sent: Tuesday, April 26, 2016 2:28 PM
->>>>>> To: Jun Li <jun.li-3arQi8VN3Tc@public.gmane.org>
->>>>>> Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>; stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org;
->>>>>> balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org; peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org;
->>>>>> dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org; jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org;
->>>>>> mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org; tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org; Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org;
->>>>>> abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org; r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
->>>>>> linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>>>> Subject: Re: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
+>>>>> On 27/04/16 09:04, H. Nikolaus Schaller wrote:
 >>>>>>
->>>>>> On Tue, Apr 26, 2016 at 05:11:36AM +0000, Jun Li wrote:
->>>>>>> Hi
+>>>>>>> Am 26.04.2016 um 19:27 schrieb Tony Lindgren <tony@atomide.com>:
 >>>>>>>
->>>>>>>> -----Original Message-----
->>>>>>>> From: Peter Chen [mailto:hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
->>>>>>>> Sent: Tuesday, April 26, 2016 11:47 AM
->>>>>>>> To: Jun Li <jun.li-3arQi8VN3Tc@public.gmane.org>
->>>>>>>> Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>; stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org;
->>>>>>>> balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org;
->>>>>>>> peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org; dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org;
->>>>>>>> jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org; mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org;
->>>>>>>> tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org; Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org; abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org;
->>>>>>>> r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
->>>>>>>> linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>>>>>> Subject: Re: [PATCH v6 07/12] usb: otg: add OTG/dual-role core
->>>>>>>>
->>>>>>>> On Tue, Apr 26, 2016 at 02:07:56AM +0000, Jun Li wrote:
->>>>>>>>>> +struct usb_otg *usb_otg_register(struct device *dev,
->>>>>>>>>> +				 struct usb_otg_config *config) {
->>>>>>>>>> +	struct usb_otg *otg;
->>>>>>>>>> +	struct otg_wait_data *wait;
->>>>>>>>>> +	int ret = 0;
->>>>>>>>>> +
->>>>>>>>>> +	if (!dev || !config || !config->fsm_ops)
->>>>>>>>>> +		return ERR_PTR(-EINVAL);
->>>>>>>>>> +
->>>>>>>>>> +	/* already in list? */
->>>>>>>>>> +	mutex_lock(&otg_list_mutex);
->>>>>>>>>> +	if (usb_otg_get_data(dev)) {
->>>>>>>>>> +		dev_err(dev, "otg: %s: device already in otg list\n",
->>>>>>>>>> +			__func__);
->>>>>>>>>> +		ret = -EINVAL;
->>>>>>>>>> +		goto unlock;
->>>>>>>>>> +	}
->>>>>>>>>> +
->>>>>>>>>> +	/* allocate and add to list */
->>>>>>>>>> +	otg = kzalloc(sizeof(*otg), GFP_KERNEL);
->>>>>>>>>> +	if (!otg) {
->>>>>>>>>> +		ret = -ENOMEM;
->>>>>>>>>> +		goto unlock;
->>>>>>>>>> +	}
->>>>>>>>>> +
->>>>>>>>>> +	otg->dev = dev;
->>>>>>>>>> +	otg->caps = config->otg_caps;
->>>>>>>>>> +
->>>>>>>>>> +	if ((otg->caps->hnp_support || otg->caps->srp_support ||
->>>>>>>>>> +	     otg->caps->adp_support) && !config->otg_work)
->>>>>>>>>> +		dev_info(dev, "otg: limiting to dual-role\n");
->>>>>>>>>
->>>>>>>>> dev_err, this should be an error.
->>>>>>>>
->>>>>>>> The condition may be wrong, but it is an information to show that
->>>>>>>> current OTG is dual-role.
+>>>>>>> Tero,
 >>>>>>>
->>>>>>> This should not happen in any correct design, I even doubt if we
->>>>>>> should try to continue by "downgrade" it to be duel role, currently
->>>>>>> the only example user is dual role, so doing like this can't be tested
->>>>>>> by real case, this downgrade is not so easy like we image, at least
->>>>>>> for chipidea otg driver, simply replace a queue worker may not work,
->>>>>>> as we have much more difference between the 2 configs.
+>>>>>>> * H. Nikolaus Schaller <hns@goldelico.com> [160418 11:23]:
+>>>>>>>> OMAP5 has a register to control if the ckobuffer is enabled
+>>>>>>>> and defines the polarity. ckobuffer is required to drive a twl6040
+>>>>>>>> with the system clock. Hence, add the pinctrl,single to the
+>>>>>>>> OMAP5 SoC description so that omap5-board-common can
+>>>>>>>> set up the ckobuffer as required.
 >>>>>>>
+>>>>>>> Is this really a mux or should it be a mux clock?
 >>>>>>
->>>>>> Would you show more why chipidea can't work just replace the work item,
->>>>>> and see if anything we still can improve for this framework?
+>>>>>> It is a pinmux setting for the clock out buffer to choose what signal
+>>>>>> (and polarity) is presented on the fref_xtal_clk pad.
+>>>>>>
+>>>>>> The register is part of the CTRL_MODULE_WKUP.
+>>>>>> The clock signal is the xtal master clock of the whole SoC.
+>>>>>>
+>>>>>> Although there is a bit to choose an alternate clock, there is no
+>>>>>> alternate in the OMAP5 silicon.
+>>>>>>
+>>>>>> Therefore I would say it is about padconf and not clock or clock mux
+>>>>>> related.
+>>>>>>
+>>>>>> It just happens to be a clock signal which can be routed to this
+>>>>>> pad.
 >>>>>
->>>>> In real OTG, we need enable AVV irq,
+>>>>> The two could very well be implemented as clock nodes, a mux and a gate.
+>>>>> This would describe the hardware functionality better imo, if the
+>>>>> assumptions made here are correct. Implementing the control as pinctrl
+>>>>> hacks looks rather weird to me.
 >>>>
->>>> Enable and Handling AVV is platform stuff. In this framework, we are
->>>> focus on how otg device manages host and gadget together, and the state
->>>> machine when the related otg event occurs.
->>>>
->>>>> but for duel role, nobody care/handle,
->>>>> there are much more resource required for OTG: timers, hnp polling,
->>>>> otg test device handling... 
->>>>
->>>> They are common things for fully OTG fsm, you can move them
->>>> to common code (In fact, hnp polling handling is already common code).
->>>>
->>>>>
->>>>> with current design, chipidea driver can support real OTG with its own
->>>>> queue worker, or DRD with Roger's drd work item if config is correct.
->>>>>
->>>>> But improve something to work on a *wrong* config will make it complicated
->>>>> and does not make much sense IMO.
->>>>>
->>>>
->>>> What does above "config" you mean?
->>>>
->>>> If the configure is fully OTG, you can choose different state machine,
->>>> eg otg_statemachine, if you find it is hard for chipidea to use this
->>>> framework, just list the reason, and see if we can improve.
->>>>
+>>>> Why do you consider it a "pinctrl hack"? IMHO it is not a hack, but 100%
+>>>> proper use of pinctrl.
 >>>
->>> Roger, after discussing with Jun off line, we think usb_otg_register
->>> should return -ENOTSUPP if platform is OTG capabilities (HNP || SRP ||
->>> ADP), since this patch set does not cover fully otg features, the users
+>>> It is just the level of abstraction we are talking about here. If it is a
+>>> clock we are controlling, we should rather control it as a clock (higher level
+>>> abstraction), not a pin.
 >>
->> But this series isn't preventing full otg implementation. You can
->> still do that via config->otg_work.
+>> I second this. I think it is better to have a simple gate clock and handle
+>> only CONTROL_CKOBUFFER:CKOBUFFER_CLK_EN (bit 28) only as the other bits does
+>> not have real use.
 >>
->> I can modify the following condition to return -ENOTSUPP instead of
->> defaulting to dual-role
->>
->> struct usb_otg *usb_otg_register(...)
->> {
->> ...
->>         if ((otg->caps->hnp_support || otg->caps->srp_support ||
->>              otg->caps->adp_support) && !config->otg_work) {
->> 		dev_err(dev, "otg: otg_work must be provided for OTG support\n");
->> 		return -ENOTSUPP;
->> 	}
->> ...
->> }
->>
-> 
-> According to Jun, this framework still needs to improve (maybe small) even
-> using user work item for fully OTG, so the first step is let the drd
-> work well:)
-> 
-Agreed. Until one OTG implementation is tested we can't really say it works :).
+>> Then we can add clk API support for this. On most OMAP4 devices the clock is
+>> always on,
+>
+> this is why I am raising the question if we really want to control it on the omap5 or just
+> turn it on for all omap5 boards like the omap4 appears to do... I.e. if turning the pin on
+> as a pinctrl is IMHO sufficient for all practical purposes.
+>
+>> so the board DTS file need to provide a dummy clock, or we can make
+>> the high precision clock also as optional (on panda both OMAP4 and twl6040
+>> uses the same reference clock).
+>
+> Hm. It looks as if implementing this (and clock gating) is beyond my experiences.
+> But I am happy to test a proposal on our omap5 board.
+>
+> BR and thanks,
+> Nikolaus
 
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+See the inline patch, this implements the fref_xtal_ck. I had to add 
+some kernel code also to cope with the new SCM area, but the same area 
+can now be accessed via syscon also if needed.
+
+From: Tero Kristo <t-kristo@ti.com>
+Date: Thu, 28 Apr 2016 11:00:57 +0300
+Subject: [PATCH] ARM: omap5: add support for fref_xtal_ck
+
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+  arch/arm/boot/dts/omap5.dtsi           | 22 ++++++++++++++++++++++
+  arch/arm/boot/dts/omap54xx-clocks.dtsi | 10 ++++++++++
+  arch/arm/mach-omap2/control.c          | 20 ++++++++++++++++----
+  include/linux/clk/ti.h                 |  1 +
+  4 files changed, 49 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 38805eb..bdc6528 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -277,6 +277,28 @@
+  				pinctrl-single,register-width = <16>;
+  				pinctrl-single,function-mask = <0x7fff>;
+  			};
++
++			omap5_scm_wkup_pad_conf: omap5_scm_wkup_pad_conf@cda0 {
++				compatible = "ti,omap5-scm-wkup-pad-conf",
++					     "simple-bus";
++				reg = <0xcda0 0x60>;
++				#address-cells = <1>;
++				#size-cells = <1>;
++				ranges = <0 0xcda0 0x60>;
++
++				scm_wkup_pad_conf: scm_conf@0 {
++					compatible = "syscon", "simple-bus";
++					reg = <0x0 0x60>;
++					#address-cells = <1>;
++					#size-cells = <1>;
++					ranges = <0 0x0 0x60>;
++
++					scm_wkup_pad_conf_clocks: clocks@0 {
++						#address-cells = <1>;
++						#size-cells = <0>;
++					};
++				};
++			};
+  		};
+
+  		ocmcram: ocmcram@40300000 {
+diff --git a/arch/arm/boot/dts/omap54xx-clocks.dtsi 
+b/arch/arm/boot/dts/omap54xx-clocks.dtsi
+index 83b425f..f970dac 100644
+--- a/arch/arm/boot/dts/omap54xx-clocks.dtsi
++++ b/arch/arm/boot/dts/omap54xx-clocks.dtsi
+@@ -1388,3 +1388,13 @@
+  		reg = <0x021c>;
+  	};
+  };
++
++&scm_wkup_pad_conf_clocks {
++	fref_xtal_ck: fref_xtal_ck {
++		#clocks-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&sys_clkin>;
++		ti,bit-shift = <28>;
++		reg = <0x14>;
++	};
++};
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index 1662071..5956641 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -623,6 +623,7 @@ void __init omap3_ctrl_init(void)
+
+  struct control_init_data {
+  	int index;
++	void __iomem *mem;
+  	s16 offset;
+  };
+
+@@ -635,6 +636,10 @@ static const struct control_init_data 
+omap2_ctrl_data = {
+  	.offset = -OMAP2_CONTROL_GENERAL,
+  };
+
++static const struct control_init_data ctrl_aux_data = {
++	.index = TI_CLKM_CTRL_AUX,
++};
++
+  static const struct of_device_id omap_scrm_dt_match_table[] = {
+  	{ .compatible = "ti,am3-scm", .data = &ctrl_data },
+  	{ .compatible = "ti,am4-scm", .data = &ctrl_data },
+@@ -644,6 +649,7 @@ static const struct of_device_id 
+omap_scrm_dt_match_table[] = {
+  	{ .compatible = "ti,dm816-scrm", .data = &ctrl_data },
+  	{ .compatible = "ti,omap4-scm-core", .data = &ctrl_data },
+  	{ .compatible = "ti,omap5-scm-core", .data = &ctrl_data },
++	{ .compatible = "ti,omap5-scm-wkup-pad-conf", .data = &ctrl_aux_data },
+  	{ .compatible = "ti,dra7-scm-core", .data = &ctrl_data },
+  	{ }
+  };
+@@ -660,15 +666,21 @@ int __init omap2_control_base_init(void)
+  	struct device_node *np;
+  	const struct of_device_id *match;
+  	struct control_init_data *data;
++	void __iomem *mem;
+
+  	for_each_matching_node_and_match(np, omap_scrm_dt_match_table, &match) {
+  		data = (struct control_init_data *)match->data;
+
+-		omap2_ctrl_base = of_iomap(np, 0);
+-		if (!omap2_ctrl_base)
++		mem = of_iomap(np, 0);
++		if (!mem)
+  			return -ENOMEM;
+
+-		omap2_ctrl_offset = data->offset;
++		if (data->index == TI_CLKM_CTRL) {
++			omap2_ctrl_base = mem;
++			omap2_ctrl_offset = data->offset;
++		}
++
++		data->mem = mem;
+  	}
+
+  	return 0;
+@@ -713,7 +725,7 @@ int __init omap_control_init(void)
+  		} else {
+  			/* No scm_conf found, direct access */
+  			ret = omap2_clk_provider_init(np, data->index, NULL,
+-						      omap2_ctrl_base);
++						      data->mem);
+  			if (ret)
+  				return ret;
+  		}
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index dc5164a..be25aa8 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -195,6 +195,7 @@ enum {
+  	TI_CLKM_PRM,
+  	TI_CLKM_SCRM,
+  	TI_CLKM_CTRL,
++	TI_CLKM_CTRL_AUX,
+  	TI_CLKM_PLLSS,
+  	CLK_MAX_MEMMAPS
+  };
