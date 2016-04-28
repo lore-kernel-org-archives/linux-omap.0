@@ -1,175 +1,260 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v6 09/12] usb: gadget: udc: adapt to OTG core
-Date: Thu, 28 Apr 2016 15:22:34 +0300
-Message-ID: <5722008A.3020902@ti.com>
-References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
- <1459865117-7032-10-git-send-email-rogerq@ti.com>
- <AM4PR04MB2130ACE0588E64EA723987E3896E0@AM4PR04MB2130.eurprd04.prod.outlook.com>
- <571E23D7.5070501@ti.com>
- <AM4PR04MB2130B0F024C0B275514020DE89630@AM4PR04MB2130.eurprd04.prod.outlook.com>
- <5720A106.1030702@ti.com> <5721DDE5.7060708@ti.com>
- <AM4PR04MB213098D1AD7E63D227AD23B289650@AM4PR04MB2130.eurprd04.prod.outlook.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH v2 4/5] ARM: dts: omap5: describe control for ckobuffer
+Date: Thu, 28 Apr 2016 16:23:41 +0300
+Message-ID: <57220EDD.7080903@ti.com>
+References: <cover.1461003660.git.hns@goldelico.com>
+ <a5fb89737594a656318896a8e43814c21ca992eb.1461003660.git.hns@goldelico.com>
+ <20160426172710.GI5995@atomide.com>
+ <70572DA1-BEB4-4681-BA6C-2E1C9002D730@goldelico.com>
+ <5720B107.4000907@ti.com>
+ <A90F1BFC-A834-4EC0-81F9-2C8222AAA010@goldelico.com>
+ <5720C85B.9010701@ti.com> <ce9a7840-e86f-0d0c-3ed6-a571eec6659d@ti.com>
+ <40536322-073F-48BD-9D07-32B9A9F07AF2@goldelico.com>
+ <5721C3D4.7040401@ti.com>
+ <2A9D82CD-9ACA-49F6-9D2B-9EACFC517914@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AM4PR04MB213098D1AD7E63D227AD23B289650@AM4PR04MB2130.eurprd04.prod.outlook.com>
+In-Reply-To: <2A9D82CD-9ACA-49F6-9D2B-9EACFC517914@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jun Li <jun.li@nxp.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "balbi@kernel.org" <balbi@kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "peter.chen@freescale.com" <peter.chen@freescale.com>
-Cc: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "jun.li@freescale.com" <jun.li@freescale.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Joao.Pinto@synopsys.com" <Joao.Pinto@synopsys.com>, "abrestic@chromium.org" <abrestic@chromium.org>, "r.baldyga@samsung.com" <r.baldyga@samsung.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, Laxman Dewangan <ldewangan@nvidia.com>, linux-omap <linux-omap@vger.kernel.org>, devicetree@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Marek Belisko <marek@goldelico.com>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 28/04/16 13:23, Jun Li wrote:
-> Hi
->=20
->> -----Original Message-----
->> From: Roger Quadros [mailto:rogerq@ti.com]
->> Sent: Thursday, April 28, 2016 5:55 PM
->> To: Jun Li <jun.li@nxp.com>; stern@rowland.harvard.edu; balbi@kernel=
-=2Eorg;
->> gregkh@linuxfoundation.org; peter.chen@freescale.com
->> Cc: dan.j.williams@intel.com; jun.li@freescale.com;
->> mathias.nyman@linux.intel.com; tony@atomide.com; Joao.Pinto@synopsys=
-=2Ecom;
->> abrestic@chromium.org; r.baldyga@samsung.com; linux-usb@vger.kernel.=
-org;
->> linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org
->> Subject: Re: [PATCH v6 09/12] usb: gadget: udc: adapt to OTG core
+On 28/04/16 12:12, H. Nikolaus Schaller wrote:
+> Hi Tero,
+>
+>> Am 28.04.2016 um 10:03 schrieb Tero Kristo <t-kristo@ti.com>:
 >>
->> Hi,
->>
->> On 27/04/16 14:22, Roger Quadros wrote:
->>> On 26/04/16 03:07, Jun Li wrote:
->>>> Hi
+>> On 27/04/16 17:35, H. Nikolaus Schaller wrote:
+>>> HI,
+>>>
+>>>> Am 27.04.2016 um 16:23 schrieb Peter Ujfalusi <peter.ujfalusi@ti.com>:
 >>>>
->>>>> -----Original Message-----
->>>>> From: Roger Quadros [mailto:rogerq@ti.com]
->>>>> Sent: Monday, April 25, 2016 10:04 PM
->>>>> To: Jun Li <jun.li@nxp.com>; stern@rowland.harvard.edu;
->>>>> balbi@kernel.org; gregkh@linuxfoundation.org;
->>>>> peter.chen@freescale.com
->>>>> Cc: dan.j.williams@intel.com; jun.li@freescale.com;
->>>>> mathias.nyman@linux.intel.com; tony@atomide.com;
->>>>> Joao.Pinto@synopsys.com; abrestic@chromium.org;
->>>>> r.baldyga@samsung.com; linux-usb@vger.kernel.org;
->>>>> linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org
->>>>> Subject: Re: [PATCH v6 09/12] usb: gadget: udc: adapt to OTG core
->>>>>
->>>>> Hi,
->>>>>
->>>>> On 21/04/16 09:38, Jun Li wrote:
->>>>>> Hi,
+>>>> On 04/27/2016 05:10 PM, Tero Kristo wrote:
+>>>>> On 27/04/16 16:10, H. Nikolaus Schaller wrote:
 >>>>>>
->>>>>> ...
+>>>>>>> Am 27.04.2016 um 14:31 schrieb Tero Kristo <t-kristo@ti.com>:
 >>>>>>>
->>>>>>>  /**
->>>>>>> + * usb_gadget_start - start the usb gadget controller and conn=
-ect
->>>>>>> +to bus
->>>>>>> + * @gadget: the gadget device to start
->>>>>>> + *
->>>>>>> + * This is external API for use by OTG core.
->>>>>>> + *
->>>>>>> + * Start the usb device controller and connect to bus (enable =
-pull).
->>>>>>> + */
->>>>>>> +static int usb_gadget_start(struct usb_gadget *gadget) {
->>>>>>> +	int ret;
->>>>>>> +	struct usb_udc *udc =3D NULL;
->>>>>>> +
->>>>>>> +	dev_dbg(&gadget->dev, "%s\n", __func__);
->>>>>>> +	mutex_lock(&udc_lock);
->>>>>>> +	list_for_each_entry(udc, &udc_list, list)
->>>>>>> +		if (udc->gadget =3D=3D gadget)
->>>>>>> +			goto found;
->>>>>>> +
->>>>>>> +	dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
->>>>>>> +		__func__);
->>>>>>> +	mutex_unlock(&udc_lock);
->>>>>>> +	return -EINVAL;
->>>>>>> +
->>>>>>> +found:
->>>>>>> +	ret =3D usb_gadget_udc_start(udc);
->>>>>>> +	if (ret)
->>>>>>> +		dev_err(&udc->dev, "USB Device Controller didn't
->> start: %d\n",
->>>>>>> +			ret);
->>>>>>> +	else
->>>>>>> +		usb_udc_connect_control(udc);
+>>>>>>> On 27/04/16 09:04, H. Nikolaus Schaller wrote:
+>>>>>>>>
+>>>>>>>>> Am 26.04.2016 um 19:27 schrieb Tony Lindgren <tony@atomide.com>:
+>>>>>>>>>
+>>>>>>>>> Tero,
+>>>>>>>>>
+>>>>>>>>> * H. Nikolaus Schaller <hns@goldelico.com> [160418 11:23]:
+>>>>>>>>>> OMAP5 has a register to control if the ckobuffer is enabled
+>>>>>>>>>> and defines the polarity. ckobuffer is required to drive a twl6040
+>>>>>>>>>> with the system clock. Hence, add the pinctrl,single to the
+>>>>>>>>>> OMAP5 SoC description so that omap5-board-common can
+>>>>>>>>>> set up the ckobuffer as required.
+>>>>>>>>>
+>>>>>>>>> Is this really a mux or should it be a mux clock?
+>>>>>>>>
+>>>>>>>> It is a pinmux setting for the clock out buffer to choose what signal
+>>>>>>>> (and polarity) is presented on the fref_xtal_clk pad.
+>>>>>>>>
+>>>>>>>> The register is part of the CTRL_MODULE_WKUP.
+>>>>>>>> The clock signal is the xtal master clock of the whole SoC.
+>>>>>>>>
+>>>>>>>> Although there is a bit to choose an alternate clock, there is no
+>>>>>>>> alternate in the OMAP5 silicon.
+>>>>>>>>
+>>>>>>>> Therefore I would say it is about padconf and not clock or clock mux
+>>>>>>>> related.
+>>>>>>>>
+>>>>>>>> It just happens to be a clock signal which can be routed to this
+>>>>>>>> pad.
+>>>>>>>
+>>>>>>> The two could very well be implemented as clock nodes, a mux and a gate.
+>>>>>>> This would describe the hardware functionality better imo, if the
+>>>>>>> assumptions made here are correct. Implementing the control as pinctrl
+>>>>>>> hacks looks rather weird to me.
 >>>>>>
->>>>>> For drd, it's fine, but for real otg, gadget connect should be d=
-one
->>>>>> by
->>>>>> loc_conn() instead of gadget start.
+>>>>>> Why do you consider it a "pinctrl hack"? IMHO it is not a hack, but 100%
+>>>>>> proper use of pinctrl.
 >>>>>
->>>>> It is upto the OTG state machine to call gadget_start() when it
->>>>> needs to connect to the bus (i.e. loc_conn()). I see no point in
->>>>> calling gadget start before.
->>>>>
->>>>> Do you see any issue in doing so?
+>>>>> It is just the level of abstraction we are talking about here. If it is a
+>>>>> clock we are controlling, we should rather control it as a clock (higher level
+>>>>> abstraction), not a pin.
 >>>>
->>>> This is what OTG state machine does:
->>>> case OTG_STATE_B_PERIPHERAL:
->>>>      otg_chrg_vbus(otg, 0);
->>>>      otg_loc_sof(otg, 0);
->>>>      otg_set_protocol(fsm, PROTO_GADGET);
->>>>      otg_loc_conn(otg, 1);
->>>>      break;
+>>>> I second this. I think it is better to have a simple gate clock and handle
+>>>> only CONTROL_CKOBUFFER:CKOBUFFER_CLK_EN (bit 28) only as the other bits does
+>>>> not have real use.
+>>>>
+>>>> Then we can add clk API support for this. On most OMAP4 devices the clock is
+>>>> always on,
+>>>
+>>> this is why I am raising the question if we really want to control it on the omap5 or just
+>>> turn it on for all omap5 boards like the omap4 appears to do... I.e. if turning the pin on
+>>> as a pinctrl is IMHO sufficient for all practical purposes.
+>>>
+>>>> so the board DTS file need to provide a dummy clock, or we can make
+>>>> the high precision clock also as optional (on panda both OMAP4 and twl6040
+>>>> uses the same reference clock).
+>>>
+>>> Hm. It looks as if implementing this (and clock gating) is beyond my experiences.
+>>> But I am happy to test a proposal on our omap5 board.
+>>>
+>>> BR and thanks,
+>>> Nikolaus
 >>
->> On second thoughts, after seen the OTG state machine.
->> otg_set_protocol(fsm, PROTO_GADGET); is always followed by
->> otg_loc_conn(otg, 1); And whenever protocol changes to anything othe=
-r the
->> PROTO_GADGET, we use otg_loc_conn(otg, 0);
+>> See the inline patch, this implements the fref_xtal_ck. I had to add some kernel code also to cope with the new SCM area, but the same area can now be accessed via syscon also if needed.
+>
+> Looks interesting, although quite complex to enable a single SoC pad at boot time...
+
+Yea it gives plenty of other things for you also. syscon, integration 
+with clock framework, etc.
+
+>
+> Will asap study how it works and test. And of course report results.
+
+Thanks, Tero.
+
+>
+> Thanks and BR,
+> Nikolaus
+>
 >>
->> So otg_loc_conn seems redundant. Can we just get rid of it?
+>> From: Tero Kristo <t-kristo@ti.com>
+>> Date: Thu, 28 Apr 2016 11:00:57 +0300
+>> Subject: [PATCH] ARM: omap5: add support for fref_xtal_ck
 >>
->> usb_gadget_start() implies that gadget controller starts up and enab=
-les
->> pull.
->> usb_gadget_stop() implies that gadget controller disables pull and s=
-tops.
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> ---
+>> arch/arm/boot/dts/omap5.dtsi           | 22 ++++++++++++++++++++++
+>> arch/arm/boot/dts/omap54xx-clocks.dtsi | 10 ++++++++++
+>> arch/arm/mach-omap2/control.c          | 20 ++++++++++++++++----
+>> include/linux/clk/ti.h                 |  1 +
+>> 4 files changed, 49 insertions(+), 4 deletions(-)
 >>
+>> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+>> index 38805eb..bdc6528 100644
+>> --- a/arch/arm/boot/dts/omap5.dtsi
+>> +++ b/arch/arm/boot/dts/omap5.dtsi
+>> @@ -277,6 +277,28 @@
+>> 				pinctrl-single,register-width = <16>;
+>> 				pinctrl-single,function-mask = <0x7fff>;
+>> 			};
+>> +
+>> +			omap5_scm_wkup_pad_conf: omap5_scm_wkup_pad_conf@cda0 {
+>> +				compatible = "ti,omap5-scm-wkup-pad-conf",
+>> +					     "simple-bus";
+>> +				reg = <0xcda0 0x60>;
+>> +				#address-cells = <1>;
+>> +				#size-cells = <1>;
+>> +				ranges = <0 0xcda0 0x60>;
+>> +
+>> +				scm_wkup_pad_conf: scm_conf@0 {
+>> +					compatible = "syscon", "simple-bus";
+>> +					reg = <0x0 0x60>;
+>> +					#address-cells = <1>;
+>> +					#size-cells = <1>;
+>> +					ranges = <0 0x0 0x60>;
+>> +
+>> +					scm_wkup_pad_conf_clocks: clocks@0 {
+>> +						#address-cells = <1>;
+>> +						#size-cells = <0>;
+>> +					};
+>> +				};
+>> +			};
+>> 		};
 >>
->> Can you please explain why just these 2 APIs are not sufficient for =
-full
->> OTG?
+>> 		ocmcram: ocmcram@40300000 {
+>> diff --git a/arch/arm/boot/dts/omap54xx-clocks.dtsi b/arch/arm/boot/dts/omap54xx-clocks.dtsi
+>> index 83b425f..f970dac 100644
+>> --- a/arch/arm/boot/dts/omap54xx-clocks.dtsi
+>> +++ b/arch/arm/boot/dts/omap54xx-clocks.dtsi
+>> @@ -1388,3 +1388,13 @@
+>> 		reg = <0x021c>;
+>> 	};
+>> };
+>> +
+>> +&scm_wkup_pad_conf_clocks {
+>> +	fref_xtal_ck: fref_xtal_ck {
+>> +		#clocks-cells = <0>;
+>> +		compatible = "ti,gate-clock";
+>> +		clocks = <&sys_clkin>;
+>> +		ti,bit-shift = <28>;
+>> +		reg = <0x14>;
+>> +	};
+>> +};
+>> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+>> index 1662071..5956641 100644
+>> --- a/arch/arm/mach-omap2/control.c
+>> +++ b/arch/arm/mach-omap2/control.c
+>> @@ -623,6 +623,7 @@ void __init omap3_ctrl_init(void)
 >>
->> Do we want anything to happen between gadget controller start/stop a=
-nd
->> pull on/off?
->=20
-> "loc_conn" is a standard output parameter in OTG spec, it deserves
-> a separate api, yes, current implementation of OTG state machine code
-> seems allow you to combine the 2 things into one, but don't do that,
-> because they do not always happen together, e.g. for peripheral only
-> B device (also a part OTG spec: section 7.3), will be fixed in gadget
-> mode, but it will do gadget connect and disconnect in its diff states=
-,
-> so, to make the framework common, let's keep them separated.
-
-I'm sorry but I didn't understand your comment about "it will do gadget
-connect and disconnect in its diff states"
-
-I am reading the OTG v2.0 specification and loc_conn is always true whe=
-n
-b_peripheral or a_peripheral is true and false otherwise.
-
-loc_conn is just an internal state variable and it corresponds to our g=
-adget_start/stop() state.
-
-As per 7.4.2.3
-"loc_conn
-The =93local connect=94 (loc_conn) variable is TRUE when the local devi=
-ce has signaled that it is connected to
-the bus. This variable is FALSE when the local device has signaled that=
- it is disconnected from the bus"
-
-Can you please point me in the specification if there is any place wher=
-e loc_conn
-is false and b_peripheral/a_peripheral is true?
-
-cheers,
--roger
+>> struct control_init_data {
+>> 	int index;
+>> +	void __iomem *mem;
+>> 	s16 offset;
+>> };
+>>
+>> @@ -635,6 +636,10 @@ static const struct control_init_data omap2_ctrl_data = {
+>> 	.offset = -OMAP2_CONTROL_GENERAL,
+>> };
+>>
+>> +static const struct control_init_data ctrl_aux_data = {
+>> +	.index = TI_CLKM_CTRL_AUX,
+>> +};
+>> +
+>> static const struct of_device_id omap_scrm_dt_match_table[] = {
+>> 	{ .compatible = "ti,am3-scm", .data = &ctrl_data },
+>> 	{ .compatible = "ti,am4-scm", .data = &ctrl_data },
+>> @@ -644,6 +649,7 @@ static const struct of_device_id omap_scrm_dt_match_table[] = {
+>> 	{ .compatible = "ti,dm816-scrm", .data = &ctrl_data },
+>> 	{ .compatible = "ti,omap4-scm-core", .data = &ctrl_data },
+>> 	{ .compatible = "ti,omap5-scm-core", .data = &ctrl_data },
+>> +	{ .compatible = "ti,omap5-scm-wkup-pad-conf", .data = &ctrl_aux_data },
+>> 	{ .compatible = "ti,dra7-scm-core", .data = &ctrl_data },
+>> 	{ }
+>> };
+>> @@ -660,15 +666,21 @@ int __init omap2_control_base_init(void)
+>> 	struct device_node *np;
+>> 	const struct of_device_id *match;
+>> 	struct control_init_data *data;
+>> +	void __iomem *mem;
+>>
+>> 	for_each_matching_node_and_match(np, omap_scrm_dt_match_table, &match) {
+>> 		data = (struct control_init_data *)match->data;
+>>
+>> -		omap2_ctrl_base = of_iomap(np, 0);
+>> -		if (!omap2_ctrl_base)
+>> +		mem = of_iomap(np, 0);
+>> +		if (!mem)
+>> 			return -ENOMEM;
+>>
+>> -		omap2_ctrl_offset = data->offset;
+>> +		if (data->index == TI_CLKM_CTRL) {
+>> +			omap2_ctrl_base = mem;
+>> +			omap2_ctrl_offset = data->offset;
+>> +		}
+>> +
+>> +		data->mem = mem;
+>> 	}
+>>
+>> 	return 0;
+>> @@ -713,7 +725,7 @@ int __init omap_control_init(void)
+>> 		} else {
+>> 			/* No scm_conf found, direct access */
+>> 			ret = omap2_clk_provider_init(np, data->index, NULL,
+>> -						      omap2_ctrl_base);
+>> +						      data->mem);
+>> 			if (ret)
+>> 				return ret;
+>> 		}
+>> diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+>> index dc5164a..be25aa8 100644
+>> --- a/include/linux/clk/ti.h
+>> +++ b/include/linux/clk/ti.h
+>> @@ -195,6 +195,7 @@ enum {
+>> 	TI_CLKM_PRM,
+>> 	TI_CLKM_SCRM,
+>> 	TI_CLKM_CTRL,
+>> +	TI_CLKM_CTRL_AUX,
+>> 	TI_CLKM_PLLSS,
+>> 	CLK_MAX_MEMMAPS
+>> };
+>
