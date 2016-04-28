@@ -1,96 +1,212 @@
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: Re: [PATCH 3/7] mfd: max77686: Use devm_mfd_add_devices and
- devm_regmap_add_irq_chip
-Date: Thu, 28 Apr 2016 12:39:36 +0200
-Message-ID: <5721E868.6090003@samsung.com>
-References: <1461241558-26983-1-git-send-email-ldewangan@nvidia.com>
- <1461241558-26983-4-git-send-email-ldewangan@nvidia.com>
- <571DF7FD.8020209@samsung.com> <20160428090102.GM4892@dell>
- <5721DFC2.4070301@nvidia.com>
+From: Jun Li <jun.li@nxp.com>
+Subject: RE: [PATCH v6 09/12] usb: gadget: udc: adapt to OTG core
+Date: Thu, 28 Apr 2016 10:23:18 +0000
+Message-ID: <AM4PR04MB213098D1AD7E63D227AD23B289650@AM4PR04MB2130.eurprd04.prod.outlook.com>
+References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
+ <1459865117-7032-10-git-send-email-rogerq@ti.com>
+ <AM4PR04MB2130ACE0588E64EA723987E3896E0@AM4PR04MB2130.eurprd04.prod.outlook.com>
+ <571E23D7.5070501@ti.com>
+ <AM4PR04MB2130B0F024C0B275514020DE89630@AM4PR04MB2130.eurprd04.prod.outlook.com>
+ <5720A106.1030702@ti.com> <5721DDE5.7060708@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <5721DFC2.4070301@nvidia.com>
+In-Reply-To: <5721DDE5.7060708@ti.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Laxman Dewangan <ldewangan@nvidia.com>, Lee Jones <lee.jones@linaro.org>
-Cc: milo.kim@ti.com, cw00.choi@samsung.com, sbkim73@samsung.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "balbi@kernel.org" <balbi@kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "peter.chen@freescale.com" <peter.chen@freescale.com>
+Cc: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "jun.li@freescale.com" <jun.li@freescale.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Joao.Pinto@synopsys.com" <Joao.Pinto@synopsys.com>, "abrestic@chromium.org" <abrestic@chromium.org>, "r.baldyga@samsung.com" <r.baldyga@samsung.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/28/2016 12:02 PM, Laxman Dewangan wrote:
+Hi
+
+> -----Original Message-----
+> From: Roger Quadros [mailto:rogerq@ti.com]
+> Sent: Thursday, April 28, 2016 5:55 PM
+> To: Jun Li <jun.li@nxp.com>; stern@rowland.harvard.edu; balbi@kernel.org;
+> gregkh@linuxfoundation.org; peter.chen@freescale.com
+> Cc: dan.j.williams@intel.com; jun.li@freescale.com;
+> mathias.nyman@linux.intel.com; tony@atomide.com; Joao.Pinto@synopsys.com;
+> abrestic@chromium.org; r.baldyga@samsung.com; linux-usb@vger.kernel.org;
+> linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH v6 09/12] usb: gadget: udc: adapt to OTG core
 > 
-> On Thursday 28 April 2016 02:31 PM, Lee Jones wrote:
->> On Mon, 25 Apr 2016, Krzysztof Kozlowski wrote:
->>
->>> On 04/21/2016 02:25 PM, Laxman Dewangan wrote:
->>>> Use devm_mfd_add_devices() for adding MFD child devices and
->>>> devm_regmap_add_irq_chip() for IRQ chip registration.
->>>>
->>>> This reduces the error code path and .remove callback for removing
->>>> MFD child devices and deleting IRQ chip data.
->>>>
->>>> Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
->>>> CC: Chanwoo Choi <cw00.choi@samsung.com>
->>>> CC: Krzysztof Kozlowski <k.kozlowski@samsung.com>
->>>> ---
->>>>   drivers/mfd/max77686.c | 31 ++++++++-----------------------
->>>>   1 file changed, 8 insertions(+), 23 deletions(-)
->>> Switching existing code to devm-like interface doesn't bring huge
->>> benefits but looks okay and I'm fine with it:
->> This is pretty much my view, but it get's Laxman's patch count up. ;)
+> Hi,
 > 
-> Yaah. :-)
+> On 27/04/16 14:22, Roger Quadros wrote:
+> > On 26/04/16 03:07, Jun Li wrote:
+> >> Hi
+> >>
+> >>> -----Original Message-----
+> >>> From: Roger Quadros [mailto:rogerq@ti.com]
+> >>> Sent: Monday, April 25, 2016 10:04 PM
+> >>> To: Jun Li <jun.li@nxp.com>; stern@rowland.harvard.edu;
+> >>> balbi@kernel.org; gregkh@linuxfoundation.org;
+> >>> peter.chen@freescale.com
+> >>> Cc: dan.j.williams@intel.com; jun.li@freescale.com;
+> >>> mathias.nyman@linux.intel.com; tony@atomide.com;
+> >>> Joao.Pinto@synopsys.com; abrestic@chromium.org;
+> >>> r.baldyga@samsung.com; linux-usb@vger.kernel.org;
+> >>> linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org
+> >>> Subject: Re: [PATCH v6 09/12] usb: gadget: udc: adapt to OTG core
+> >>>
+> >>> Hi,
+> >>>
+> >>> On 21/04/16 09:38, Jun Li wrote:
+> >>>> Hi,
+> >>>>
+> >>>> ...
+> >>>>>
+> >>>>>  /**
+> >>>>> + * usb_gadget_start - start the usb gadget controller and connect
+> >>>>> +to bus
+> >>>>> + * @gadget: the gadget device to start
+> >>>>> + *
+> >>>>> + * This is external API for use by OTG core.
+> >>>>> + *
+> >>>>> + * Start the usb device controller and connect to bus (enable pull).
+> >>>>> + */
+> >>>>> +static int usb_gadget_start(struct usb_gadget *gadget) {
+> >>>>> +	int ret;
+> >>>>> +	struct usb_udc *udc = NULL;
+> >>>>> +
+> >>>>> +	dev_dbg(&gadget->dev, "%s\n", __func__);
+> >>>>> +	mutex_lock(&udc_lock);
+> >>>>> +	list_for_each_entry(udc, &udc_list, list)
+> >>>>> +		if (udc->gadget == gadget)
+> >>>>> +			goto found;
+> >>>>> +
+> >>>>> +	dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
+> >>>>> +		__func__);
+> >>>>> +	mutex_unlock(&udc_lock);
+> >>>>> +	return -EINVAL;
+> >>>>> +
+> >>>>> +found:
+> >>>>> +	ret = usb_gadget_udc_start(udc);
+> >>>>> +	if (ret)
+> >>>>> +		dev_err(&udc->dev, "USB Device Controller didn't
+> start: %d\n",
+> >>>>> +			ret);
+> >>>>> +	else
+> >>>>> +		usb_udc_connect_control(udc);
+> >>>>
+> >>>> For drd, it's fine, but for real otg, gadget connect should be done
+> >>>> by
+> >>>> loc_conn() instead of gadget start.
+> >>>
+> >>> It is upto the OTG state machine to call gadget_start() when it
+> >>> needs to connect to the bus (i.e. loc_conn()). I see no point in
+> >>> calling gadget start before.
+> >>>
+> >>> Do you see any issue in doing so?
+> >>
+> >> This is what OTG state machine does:
+> >> case OTG_STATE_B_PERIPHERAL:
+> >>      otg_chrg_vbus(otg, 0);
+> >>      otg_loc_sof(otg, 0);
+> >>      otg_set_protocol(fsm, PROTO_GADGET);
+> >>      otg_loc_conn(otg, 1);
+> >>      break;
+> 
+> On second thoughts, after seen the OTG state machine.
+> otg_set_protocol(fsm, PROTO_GADGET); is always followed by
+> otg_loc_conn(otg, 1); And whenever protocol changes to anything other the
+> PROTO_GADGET, we use otg_loc_conn(otg, 0);
+> 
+> So otg_loc_conn seems redundant. Can we just get rid of it?
+> 
+> usb_gadget_start() implies that gadget controller starts up and enables
+> pull.
+> usb_gadget_stop() implies that gadget controller disables pull and stops.
+> 
+> 
+> Can you please explain why just these 2 APIs are not sufficient for full
+> OTG?
+> 
+> Do we want anything to happen between gadget controller start/stop and
+> pull on/off?
 
+"loc_conn" is a standard output parameter in OTG spec, it deserves
+a separate api, yes, current implementation of OTG state machine code
+seems allow you to combine the 2 things into one, but don't do that,
+because they do not always happen together, e.g. for peripheral only
+B device (also a part OTG spec: section 7.3), will be fixed in gadget
+mode, but it will do gadget connect and disconnect in its diff states,
+so, to make the framework common, let's keep them separated.
 
-
-The patch was applied so discussion seems useful only for future work. I
-don't agree with some of your motivation.
-
-> There is some other motivation of doing this:
-> * I got the review comment about the resource leak and sequencing in my
-> max77620. It was silly mistake done by me  and it causes recycle of
-> patch. To avoid this in future, devm_ was better option.
-
-This is new code. You made error in new code... this is not an argument
-to change something in existing well tested code.
-
-> * Spent lots of time on unbinding test during my RTC patch. Although fix
-> was not related to the devm_ but gave the impression that something we
-> are doing on probe. devm_ looks straight forward.
-
-Nope, the opposite. Usage of devm-like interface hides the order of
-cleaning up. With explicit clean it is easy to spot the reverse work of
-probe and to find the differences (like when the code is not in the
-exact reverse order).
-
-> - Some of code quality tools suggest to avoid goto statement. Only
-> possible if we dont have any code in error path i.e. return from any place.
-
-The 'goto' with one exit point is a part of kernel coding style. Of
-course lack of error paths is easier to read... usually.
-
-> - If we have devm_ apis for few resource and some does not support then
-> difficult to use them as this affect the sequence of deallocation.
-> Existing devm_ can be used effectively only if we have all resource
-> allocation using devm_.
-
-Ekhm? I don't understand.
-
-> - Reducing code size always better.
-
-Usually... but (again) introducing such questionable improvements for
-existing code which was well tested and is working fine:
-1. May introduce bugs. Code is already working, error path maybe was or
-was not tested. At least it was reviewed. Your change may break this.
-
-2. Is unnecessary code churn. If there are no clear benefits (and for me
-in case of max77686 there are no benefits) you just used mine and
-maintainer's time.
-
-
-This is even different kind of change than improvements for defensive
-coding (like adding 'consts'). Here, the code does not necessarily
-improve. Error paths and order of cleanup are hidden.
-
-Best regards,
-Krzysztof
+Li Jun 
+    
+> 
+> cheers,
+> -roger
+> 
+> >>
+> >> You intend to abstract something common in this api when start
+> >> gadget, which should be called by otg_set_protocol(fsm,
+> >> PROTO_GADGET); and drd_set_protocol(fsm, PROTO_GADGET); right?
+> >>
+> >> So you may move usb_udc_connect_control(IMO usb_gadget_connect() is
+> >> better)out of usb_gadget_start(), then for drd:
+> >>
+> >> case OTG_STATE_B_PERIPHERAL:
+> >>      drd_set_protocol(fsm, PROTO_GADGET);
+> >>      otg_drv_vbus(otg, 0);
+> >>      usb_gadget_connect();
+> >
+> > OK. I understand now. I'll implement your suggestion. Thanks.
+> >
+> > cheers,
+> > -roger
+> >
+> >>>>
+> >>>>> +
+> >>>>> +	mutex_unlock(&udc_lock);
+> >>>>> +
+> >>>>> +	return ret;
+> >>>>> +}
+> >>>>> +
+> >>>>> +/**
+> >>>>> + * usb_gadget_stop - disconnect from bus and stop the usb gadget
+> >>>>> + * @gadget: The gadget device we want to stop
+> >>>>> + *
+> >>>>> + * This is external API for use by OTG core.
+> >>>>> + *
+> >>>>> + * Disconnect from the bus (disable pull) and stop the
+> >>>>> + * gadget controller.
+> >>>>> + */
+> >>>>> +static int usb_gadget_stop(struct usb_gadget *gadget) {
+> >>>>> +	struct usb_udc *udc = NULL;
+> >>>>> +
+> >>>>> +	dev_dbg(&gadget->dev, "%s\n", __func__);
+> >>>>> +	mutex_lock(&udc_lock);
+> >>>>> +	list_for_each_entry(udc, &udc_list, list)
+> >>>>> +		if (udc->gadget == gadget)
+> >>>>> +			goto found;
+> >>>>> +
+> >>>>> +	dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
+> >>>>> +		__func__);
+> >>>>> +	mutex_unlock(&udc_lock);
+> >>>>> +	return -EINVAL;
+> >>>>> +
+> >>>>> +found:
+> >>>>> +	usb_gadget_disconnect(udc->gadget);
+> >>>>
+> >>>> Likewise, gadget disconnect also should be done by loc_conn()
+> >>>> instead of gadget stop.
+> >>>>
+> >>>>> +	udc->driver->disconnect(udc->gadget);
+> >>>>> +	usb_gadget_udc_stop(udc);
+> >>>>> +	mutex_unlock(&udc_lock);
+> >>>>> +
+> >>>>> +	return 0;
+> >>>>> +}
+> >>>>> +
+> >>>>
+> >>>> Li Jun
+> >>>>
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-usb"
+> > in the body of a message to majordomo@vger.kernel.org More majordomo
+> > info at  http://vger.kernel.org/majordomo-info.html
+> >
