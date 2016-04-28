@@ -1,40 +1,35 @@
-From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH RESEND 3/4] ARM: dts: am57xx-beagle-x15: Include the commercial grade thresholds
-Date: Thu, 28 Apr 2016 15:35:48 +0530
-Message-ID: <1461837949-11116-4-git-send-email-j-keerthy@ti.com>
-References: <1461837949-11116-1-git-send-email-j-keerthy@ti.com>
+From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH net v3 4/5] dt: cpsw: phy-handle, phy_id, and fixed-link
+ are mutually exclusive
+Date: Thu, 28 Apr 2016 15:43:28 +0530
+Message-ID: <5721E248.6040106@ti.com>
+References: <1461805808-4102-1-git-send-email-drivshin.allworx@gmail.com>
+ <1461807767-4563-1-git-send-email-drivshin.allworx@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1461837949-11116-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1461807767-4563-1-git-send-email-drivshin.allworx-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, j-keerthy-l0cyMroinI0@public.gmane.org
+To: "David Rivshin (Allworx)" <drivshin.allworx-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Andrew Goodbody <andrew.goodbody-nYQdZkeIoGZN8Ch2cx6nig@public.gmane.org>, Markus Brunner <systemprogrammierung.brunner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Nicolas Chauvet <kwizart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-am57xx-beagle-x15 have commercial grade samples whose
-thermal thresholds lower than dra7. Hence correcting the same.
+On Thursday 28 April 2016 07:12 AM, David Rivshin (Allworx) wrote:
+> From: David Rivshin <drivshin-5fOYsn7Fw8lBDgjK7y7TUQ@public.gmane.org>
+> 
+> The phy-handle, phy_id, and fixed-link properties are mutually exclusive,
+> and only one need be specified. Make this clear in the binding doc.
+> 
+> Also mark the phy_id property as deprecated, as phy-handle should be
+> used instead.
+> 
+> Signed-off-by: David Rivshin <drivshin-5fOYsn7Fw8lBDgjK7y7TUQ@public.gmane.org>
 
-Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/am57xx-beagle-x15.dts | 1 +
- 1 file changed, 1 insertion(+)
+Reviewed-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
 
-diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-index f0a0efb..f6904f6 100644
---- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
-+++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-@@ -8,6 +8,7 @@
- /dts-v1/;
- 
- #include "dra74x.dtsi"
-+#include "am57xx-commercial-grade.dtsi"
- #include <dt-bindings/gpio/gpio.h>
- #include <dt-bindings/interrupt-controller/irq.h>
- 
--- 
-1.9.1
-
+Regards
+Mugunthan V N
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
