@@ -1,58 +1,91 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] [media] ir-rx51: Fix build after multiarch changes
- broke it
-Date: Thu, 28 Apr 2016 13:55:57 -0700
-Message-ID: <20160428205557.GH5995@atomide.com>
-References: <1461714709-10455-1-git-send-email-tony@atomide.com>
- <1461714709-10455-3-git-send-email-tony@atomide.com>
- <572266AF.9020601@gmail.com>
- <20160428202248.GG5995@atomide.com>
- <572275DB.8090300@gmail.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v7 2/9] ARM: dts: am437x: Add missing compatibles to PWM
+ binding documents
+Date: Thu, 28 Apr 2016 16:07:16 -0500
+Message-ID: <20160428210716.GA12508@rob-hp-laptop>
+References: <1461710209-6563-1-git-send-email-fcooper@ti.com>
+ <1461710209-6563-3-git-send-email-fcooper@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-media-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pwm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <572275DB.8090300@gmail.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Pavel Machel <pavel@ucw.cz>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Neil Armstrong <narmstrong@baylibre.com>, linux-media@vger.kernel.org
+In-Reply-To: <1461710209-6563-3-git-send-email-fcooper@ti.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Franklin S Cooper Jr <fcooper@ti.com>
+Cc: thierry.reding@gmail.com, tony@atomide.com, paul@pwsan.com, t-kristo@ti.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, vigneshr@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160428 13:44]:
-> =D0=A5=D0=B8,
->=20
-> On 28.04.2016 23:22, Tony Lindgren wrote:
-> >* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160428 12:39]:
-> >>On 27.04.2016 02:51, Tony Lindgren wrote:
-> >>
-> >>omap_dm_timer_request_specific always fails with message "Please us=
-e
-> >>omap_dm_timer_request_by_cap/node()" with DT boot.
-> >>
-> >>I hacked the code to use omap_dm_timer_request_by_cap(OMAP_TIMER_HA=
-S_PWM)
-> >>and it seems to use the correct timer (IR LED blinks, checked with =
-the
-> >>camera of Samsung S4 mini), but it doesn't actually control either =
-of the TV
-> >>sets here. The same SW(pierogi) controls them when device is booted=
- to stock
-> >>kernel. However, this seems another problem not related to the patc=
-h.
-> >
-> >OK thanks for testing, I'll apply the pdata patch then.
-> >
-> >I assume you'll post a separate fix for the request_by_cap
-> >driver change?
-> >
->=20
-> Well, it was a hack, it just happens that the first matched timer is =
-GPT9, I
-> think we should aim for a proper solution (request_by_node()).
->=20
-> Shall I prepare a patch that gets the timer from the DT?
+On Tue, Apr 26, 2016 at 05:36:42PM -0500, Franklin S Cooper Jr wrote:
+> There are several SOC specific compatibles for ECAP, EHRPWM and PWMMS
+> that are in use but aren't properly documented. Therefore, fix this
+> by adding the compatibles to the appropriate binding documents.
+> 
+> While at it make minor corrections to the binding document.
+> 
+> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+> ---
+>  .../devicetree/bindings/pwm/pwm-tiecap.txt          | 12 ++++++++++--
+>  .../devicetree/bindings/pwm/pwm-tiehrpwm.txt        | 12 ++++++++++--
+>  .../devicetree/bindings/pwm/pwm-tipwmss.txt         | 21 +++++++++++++++++++--
+>  3 files changed, 39 insertions(+), 6 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/pwm/pwm-tiecap.txt b/Documentation/devicetree/bindings/pwm/pwm-tiecap.txt
+> index fb81179..788da6c 100644
+> --- a/Documentation/devicetree/bindings/pwm/pwm-tiecap.txt
+> +++ b/Documentation/devicetree/bindings/pwm/pwm-tiecap.txt
+> @@ -2,8 +2,9 @@ TI SOC ECAP based APWM controller
+>  
+>  Required properties:
+>  - compatible: Must be "ti,<soc>-ecap".
+> -  for am33xx - compatible = "ti,am33xx-ecap";
+> -  for da850  - compatible = "ti,da850-ecap", "ti,am33xx-ecap";
+> +  for am33xx  - compatible = "ti,am33xx-ecap";
+> +  for am4372  - compatible = "ti,am4372-ecap", "ti,am33xx-ecap";
+> +  for da850   - compatible = "ti,da850-ecap", "ti,am33xx-ecap";
+>  - #pwm-cells: should be 3. See pwm.txt in this directory for a description of
+>    the cells format. The PWM channel index ranges from 0 to 4. The only third
+>    cell flag supported by this binding is PWM_POLARITY_INVERTED.
+> @@ -22,6 +23,13 @@ ecap0: ecap@0 { /* ECAP on am33xx */
+>  	ti,hwmods = "ecap0";
+>  };
+>  
+> +ecap0: ecap@0 { /* ECAP on am4372 */
 
-Sounds good to me!
+The unit address is wrong.
 
-Tony
+> +	compatible = "ti,am4372-ecap", "ti,am33xx-ecap";
+> +	#pwm-cells = <3>;
+> +	reg = <0x48300100 0x80>;
+> +	ti,hwmods = "ecap0";
+> +};
+> +
+>  ecap0: ecap@0 { /* ECAP on da850 */
+>  	compatible = "ti,da850-ecap", "ti,am33xx-ecap";
+>  	#pwm-cells = <3>;
+> diff --git a/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt b/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
+> index 9c100b2..99b544f 100644
+> --- a/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
+> +++ b/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
+> @@ -2,8 +2,9 @@ TI SOC EHRPWM based PWM controller
+>  
+>  Required properties:
+>  - compatible: Must be "ti,<soc>-ehrpwm".
+> -  for am33xx - compatible = "ti,am33xx-ehrpwm";
+> -  for da850  - compatible = "ti,da850-ehrpwm", "ti,am33xx-ehrpwm";
+> +  for am33xx  - compatible = "ti,am33xx-ehrpwm";
+> +  for am4372  - compatible = "ti,am4372-ehrpwm", "ti,am33xx-ehrpwm";
+> +  for da850   - compatible = "ti,da850-ehrpwm", "ti,am33xx-ehrpwm";
+>  - #pwm-cells: should be 3. See pwm.txt in this directory for a description of
+>    the cells format. The only third cell flag supported by this binding is
+>    PWM_POLARITY_INVERTED.
+> @@ -22,6 +23,13 @@ ehrpwm0: ehrpwm@0 { /* EHRPWM on am33xx */
+>  	ti,hwmods = "ehrpwm0";
+>  };
+>  
+> +ehrpwm0: ehrpwm@0 { /* EHRPWM on am4372 */
+
+ditto
+
+Otherwise,
+
+Acked-by: Rob Herring <robh@kernel.org>
