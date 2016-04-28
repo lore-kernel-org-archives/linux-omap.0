@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 03/10] usb: musb: Fix PM runtime handling for connected cable
-Date: Thu, 28 Apr 2016 10:33:13 -0700
-Message-ID: <1461864800-29979-4-git-send-email-tony@atomide.com>
+Subject: [PATCH 02/10] usb: musb: Fix idling after host mode by increasing autosuspend delay
+Date: Thu, 28 Apr 2016 10:33:12 -0700
+Message-ID: <1461864800-29979-3-git-send-email-tony@atomide.com>
 References: <1461864800-29979-1-git-send-email-tony@atomide.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1461864800-29979-1-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
@@ -10,78 +10,32 @@ To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
 Cc: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-We may have drivers loaded but no configured gadgets
-and MUSB may be in host mode. If gadgets are configured
-during host mode, PM runtime will get confused.
+Looks like at least 2430 glue won't idle reliably with the 200 ms
+autosuspend delay. This causes deeper idle states being blocked for
+the whole SoC when disconnecting OTG A cable.
 
-Disconnect PM runtime from gadget state, and do it only
-based on the cable.
+Increasing the delay to 500 ms seems to idle both MUSB and the PHY
+reliably. This is probably because of time needed by the hardware
+based negotiation between MUSB and the PHY.
 
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/usb/musb/omap2430.c | 20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ drivers/usb/musb/musb_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index c84e0322..9d3645f 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -259,6 +259,13 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
- 	struct musb_hdrc_platform_data *pdata = dev_get_platdata(dev);
- 	struct omap_musb_board_data *data = pdata->board_data;
- 	struct usb_otg *otg = musb->xceiv->otg;
-+	bool cable_connected;
-+
-+	cable_connected = ((glue->status & MUSB_ID_GROUND) ||
-+			   (glue->status & MUSB_VBUS_VALID));
-+
-+	if (cable_connected)
-+		pm_runtime_get_sync(dev);
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 39fd958..5fa6187 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -2030,7 +2030,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
  
- 	switch (glue->status) {
- 	case MUSB_ID_GROUND:
-@@ -268,7 +275,6 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
- 		musb->xceiv->otg->state = OTG_STATE_A_IDLE;
- 		musb->xceiv->last_event = USB_EVENT_ID;
- 		if (musb->gadget_driver) {
--			pm_runtime_get_sync(dev);
- 			omap_control_usb_set_mode(glue->control_otghs,
- 				USB_MODE_HOST);
- 			omap2430_musb_set_vbus(musb, 1);
-@@ -281,8 +287,6 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
- 		otg->default_a = false;
- 		musb->xceiv->otg->state = OTG_STATE_B_IDLE;
- 		musb->xceiv->last_event = USB_EVENT_VBUS;
--		if (musb->gadget_driver)
--			pm_runtime_get_sync(dev);
- 		omap_control_usb_set_mode(glue->control_otghs, USB_MODE_DEVICE);
- 		break;
+ 	/* We need musb_read/write functions initialized for PM */
+ 	pm_runtime_use_autosuspend(musb->controller);
+-	pm_runtime_set_autosuspend_delay(musb->controller, 200);
++	pm_runtime_set_autosuspend_delay(musb->controller, 500);
+ 	pm_runtime_enable(musb->controller);
  
-@@ -291,11 +295,8 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
- 		dev_dbg(dev, "VBUS Disconnect\n");
- 
- 		musb->xceiv->last_event = USB_EVENT_NONE;
--		if (musb->gadget_driver) {
-+		if (musb->gadget_driver)
- 			omap2430_musb_set_vbus(musb, 0);
--			pm_runtime_mark_last_busy(dev);
--			pm_runtime_put_autosuspend(dev);
--		}
- 
- 		if (data->interface_type == MUSB_INTERFACE_UTMI)
- 			otg_set_vbus(musb->xceiv->otg, 0);
-@@ -307,6 +308,11 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
- 		dev_dbg(dev, "ID float\n");
- 	}
- 
-+	if (!cable_connected) {
-+		pm_runtime_mark_last_busy(dev);
-+		pm_runtime_put_autosuspend(dev);
-+	}
-+
- 	atomic_notifier_call_chain(&musb->xceiv->notifier,
- 			musb->xceiv->last_event, NULL);
- }
+ 	/* The musb_platform_init() call:
 -- 
 2.8.1
 
