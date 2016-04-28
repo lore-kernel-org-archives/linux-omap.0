@@ -1,39 +1,22 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] Fix ir-rx51 by using PWM pdata
-Date: Thu, 28 Apr 2016 14:27:49 -0700
-Message-ID: <20160428212748.GI5995@atomide.com>
-References: <1461714709-10455-1-git-send-email-tony@atomide.com>
- <57227E63.4040907@gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net v3 0/5] drivers: net: cpsw: phy-handle fixes
+Date: Thu, 28 Apr 2016 17:27:46 -0400 (EDT)
+Message-ID: <20160428.172746.2157727902791049608.davem@davemloft.net>
+References: <1461805808-4102-1-git-send-email-drivshin.allworx@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <57227E63.4040907@gmail.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Pavel Machel <pavel@ucw.cz>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, linux-media@vger.kernel.org, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Neil Armstrong <narmstrong@baylibre.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1461805808-4102-1-git-send-email-drivshin.allworx@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: drivshin.allworx@gmail.com
+Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, mugunthanvnm@ti.com, grygorii.strashko@ti.com, andrew.goodbody@cambrionix.com, systemprogrammierung.brunner@gmail.com, kwizart@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160428 14:21]:
-> 
-> I didn't test legacy boot, as I don't really see any value of doing it now
-> the end of the legacy boot is near, the driver does not function correctly,
-> however the patchset at least allows for the driver to be build and we have
-> something to improve on. And I am going to send a patch that fixes the
-> problem with omap_dm_timer_request_specific(). So, for both patches, you may
-> add:
-> 
-> Tested-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
+Date: Wed, 27 Apr 2016 21:10:03 -0400
 
-OK thanks.
+> This series fixes a number of related issues around using phy-handle
+> properties in cpsw emac nodes.
 
-Mauro, do the driver changes look OK to you?
-
-If so, I could queue the driver too for v4.7 because of the
-dependency with your ack. Or I can provide you an immutable
-branch with just the pdata changes against v4.6-rc1 if you
-prefer that.
-
-Regards,
-
-Tony
+Series applied, thanks.
