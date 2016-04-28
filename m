@@ -1,11 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/3] omap soc changes for v4.7 merge window
-Date: Thu, 28 Apr 2016 10:25:07 -0700
-Message-ID: <14088.604579638$1461864378@news.gmane.org>
+Subject: [GIT PULL 3/3] omap device tree changes for v4.7 merge window, part 2
+Date: Thu, 28 Apr 2016 10:25:09 -0700
+Message-ID: <2942.604389$1461864388@news.gmane.org>
+References: <pull-1461856674-976179>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1461856674-976179>
+In-Reply-To: <pull-1461856674-976179>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,76 +22,87 @@ To: arm@kernel.org
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit f55532a0c0b8bb6148f4e07853b876ef73bc69ca:
+The following changes since commit a4240d3af6771339c3557afe261a8a89573980a9:
 
-  Linux 4.6-rc1 (2016-03-26 16:03:24 -0700)
+  ARM: dts: Add support for dra72-evm rev C (SR2.0) (2016-04-14 13:43:10 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.7/soc-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.7/dt-signed
 
-for you to fetch changes up to 22292b91ee1a72ce744a2bd1b0f490ffc766f0dd:
+for you to fetch changes up to 5b6042237dc85b7e2dc26806957ebf95d205e864:
 
-  Merge tag 'for-v4.7/omap-hwmod-a' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v4.7/soc (2016-04-22 15:15:33 -0700)
-
-----------------------------------------------------------------
-SoC related changes for omaps for v4.7 merge window:
-
-- Remove now unnecessary multi vs single SoC compile time optimizations
-  as we are now using multiarch
-
-- Configure dra7 powerdomains
-
-- Clarify why omap-wakeupgen does not need to handle FROZEN transitions
-
-- Add dra7 module configuration for MaASP, PWMSS and timer 12
-
-- Add RTC module configuration unlock and lock functions
-
-- Fix hwmod idle state sanity check sequence
+  ARM: dts: am57xx-idk: Include Industrial grade  thermal thresholds (2016-04-28 08:08:48 -0700)
 
 ----------------------------------------------------------------
-Anna-Maria Gleixner (1):
-      ARM: OMAP2+: wakeupgen: Add comment for unhandled FROZEN transitions
+Part two of device tree changes for omaps for v4.7 merge window:
 
-Jonas Rabenstein (1):
-      ARM: OMAP2+: remove redundant multiplatform checks
+- Fix few typos for address-cells and interrupt-names
 
-Keerthy (1):
-      ARM: DRA7: clockdomain: Implement timer workaround for errata i874
+- Update dra7 voltage rail limits
 
-Lokesh Vutla (4):
-      ARM: OMAP2+: hwmod: Fix updating of sysconfig register
-      ARM: OMAP2+: hwmod: RTC: Add lock and unlock functions
-      ARM: DRA7: RTC: Add lock and unlock functions
-      ARM: AMx3xx: RTC: Add lock and unlock functions
+- Update compatible string for pcf8575 for both nxp and ti prefix
 
-Nishanth Menon (3):
-      ARM: OMAP: DRA7: powerdomain data: Erratum i892 workaround: Disable core INA
-      ARM: OMAP: DRA7: powerdomain data: Fix "ON" state for memories
-      ARM: OMAP: DRA7: powerdomain data: Remove wrong OSWR capability
+- Add omap5 configuration for gpadc
 
-Peter Ujfalusi (1):
-      ARM: DRA7: hwmod: Add data for McASP1/2/4/5/6/7/8
+- Update dra7 for qspi to remove pinmux as it needs to be done by
+  the bootloader in isolation. Also update the qspi for 64MHz
+  frequency.
 
-Suman Anna (2):
-      ARM: DRA7: hwmod: Add data for GPTimer 12
-      ARM: OMAP2+: hwmod: fix _idle() hwmod state sanity check sequence
+- Add support for Baltos ir2110 and ir3220
 
-Tony Lindgren (1):
-      Merge tag 'for-v4.7/omap-hwmod-a' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v4.7/soc
+- Add industrial and commercial grade thermal thresholds for am57xx
 
-Vignesh R (1):
-      ARM: OMAP2+: DRA7: Add hwmod entries for PWMSS
+----------------------------------------------------------------
+Geert Uytterhoeven (3):
+      ARM: dts: omap5-board-common: DT spelling s/interrupt-name/interrupt-names/
+      ARM: dts: omap5-cm-t54: DT spelling s/interrupt-name/interrupt-names/
+      ARM: dts: OMAP36xx: : DT spelling s/#address-cell/#address-cells/
 
- arch/arm/mach-omap2/Makefile                       |   2 +-
- arch/arm/mach-omap2/clockdomains7xx_data.c         |   2 +-
- arch/arm/mach-omap2/omap-wakeupgen.c               |   5 +
- arch/arm/mach-omap2/omap_hwmod.c                   |  20 +-
- arch/arm/mach-omap2/omap_hwmod.h                   |   2 +
- .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |   2 +
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c          | 364 ++++++++++++++++++++-
- arch/arm/mach-omap2/omap_hwmod_reset.c             |  65 ++++
- arch/arm/mach-omap2/powerdomains7xx_data.c         |  82 ++---
- arch/arm/mach-omap2/soc.h                          | 140 ++------
- 10 files changed, 510 insertions(+), 174 deletions(-)
+H. Nikolaus Schaller (2):
+      ARM: dts: twl6030: describe gpadc
+      ARM: dts: omap5-board-common: describe gpadc for Palmas
+
+Keerthy (4):
+      ARM: dts: am57xx: Introduce commercial grade thermal thresholds
+      ARM: dts: am57xx: Introduce industrial grade thermal thresholds
+      ARM: dts: am57xx-beagle-x15: Include the commercial grade thresholds
+      ARM: dts: am57xx-idk: Include Industrial grade  thermal thresholds
+
+Nishanth Menon (1):
+      ARM: dts: AM57xx/DRA7: Update SoC voltage rail limits to match data sheet
+
+Roger Quadros (1):
+      ARM: dts: dra7xx: Fix compatible string for PCF8575 chip
+
+Vignesh R (2):
+      ARM: dts: dra7x: Remove QSPI pinmux
+      ARM: dts: dra7x: Support QSPI MODE-0 operation at 64MHz
+
+Yegor Yefremov (3):
+      ARM: dts: split am335x-baltos-ir5221 into dts and dtsi files
+      ARM: dts: add DTS for Baltos IR3220
+      ARM: dts: add DTS for Baltos IR2110
+
+ Documentation/devicetree/bindings/spi/ti_qspi.txt |   7 +
+ arch/arm/boot/dts/Makefile                        |   2 +
+ arch/arm/boot/dts/am335x-baltos-ir2110.dts        |  71 ++++
+ arch/arm/boot/dts/am335x-baltos-ir3220.dts        | 119 +++++++
+ arch/arm/boot/dts/am335x-baltos-ir5221.dts        | 387 +-------------------
+ arch/arm/boot/dts/am335x-baltos.dtsi              | 408 ++++++++++++++++++++++
+ arch/arm/boot/dts/am57xx-beagle-x15.dts           |   5 +-
+ arch/arm/boot/dts/am57xx-commercial-grade.dtsi    |  23 ++
+ arch/arm/boot/dts/am57xx-idk-common.dtsi          |   2 +
+ arch/arm/boot/dts/am57xx-industrial-grade.dtsi    |  23 ++
+ arch/arm/boot/dts/dra7-evm.dts                    |  33 +-
+ arch/arm/boot/dts/dra72-evm-common.dtsi           |  26 +-
+ arch/arm/boot/dts/omap36xx.dtsi                   |   2 +-
+ arch/arm/boot/dts/omap5-board-common.dtsi         |  12 +-
+ arch/arm/boot/dts/omap5-cm-t54.dts                |   2 +-
+ arch/arm/boot/dts/twl6030.dtsi                    |   6 +
+ 16 files changed, 690 insertions(+), 438 deletions(-)
+ create mode 100644 arch/arm/boot/dts/am335x-baltos-ir2110.dts
+ create mode 100644 arch/arm/boot/dts/am335x-baltos-ir3220.dts
+ create mode 100644 arch/arm/boot/dts/am335x-baltos.dtsi
+ create mode 100644 arch/arm/boot/dts/am57xx-commercial-grade.dtsi
+ create mode 100644 arch/arm/boot/dts/am57xx-industrial-grade.dtsi
