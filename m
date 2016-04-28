@@ -1,41 +1,45 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 02/10] usb: musb: Fix idling after host mode by increasing autosuspend delay
-Date: Thu, 28 Apr 2016 10:33:12 -0700
-Message-ID: <1461864800-29979-3-git-send-email-tony@atomide.com>
-References: <1461864800-29979-1-git-send-email-tony@atomide.com>
+Subject: [PATCH 00/10] Get MUSB PM runtime working again
+Date: Thu, 28 Apr 2016 10:33:10 -0700
+Message-ID: <1461864800-29979-1-git-send-email-tony@atomide.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1461864800-29979-1-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
 Cc: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Looks like at least 2430 glue won't idle reliably with the 200 ms
-autosuspend delay. This causes deeper idle states being blocked for
-the whole SoC when disconnecting OTG A cable.
+Hi all,
 
-Increasing the delay to 500 ms seems to idle both MUSB and the PHY
-reliably. This is probably because of time needed by the hardware
-based negotiation between MUSB and the PHY.
+Here's a series of fixes to get MUSB PM runtime working again.
 
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- drivers/usb/musb/musb_core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I can now test PM runtime with the 2430 glue layer with this set,
+so adding PM runtime support for other glue layers should be
+possible.
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 39fd958..5fa6187 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -2030,7 +2030,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
- 
- 	/* We need musb_read/write functions initialized for PM */
- 	pm_runtime_use_autosuspend(musb->controller);
--	pm_runtime_set_autosuspend_delay(musb->controller, 200);
-+	pm_runtime_set_autosuspend_delay(musb->controller, 500);
- 	pm_runtime_enable(musb->controller);
- 
- 	/* The musb_platform_init() call:
+Regards,
+
+Tony
+
+
+Tony Lindgren (10):
+  usb: phy: Fix initial state for twl6030
+  usb: musb: Fix idling after host mode by increasing autosuspend delay
+  usb: musb: Fix PM runtime handling for connected cable
+  usb: musb: Remove unnecessary shutdown function
+  usb: musb: Fix PM runtime autosuspend
+  usb: musb: Split PM runtime between wrapper IP and musb core
+  usb: musb: Manage USB phy from PM runtime calls
+  usb: musb: Remove try_idle for 2430 glue layer
+  usb: musb: Fix PM runtime with delayed work
+  usb: musb: Remove pm_runtime_set_irq_safe
+
+ drivers/usb/musb/musb_core.c      |  67 ++++++----------
+ drivers/usb/musb/musb_core.h      |   1 +
+ drivers/usb/musb/musb_gadget.c    |  26 +++++--
+ drivers/usb/musb/omap2430.c       | 155 +++++++++-----------------------------
+ drivers/usb/phy/phy-twl6030-usb.c |  17 ++++-
+ 5 files changed, 93 insertions(+), 173 deletions(-)
+
 -- 
 2.8.1
 
