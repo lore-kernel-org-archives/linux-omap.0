@@ -1,55 +1,69 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v1] ARM: clocksource: make ARM_GLOBAL_TIMER selectable
-Date: Wed, 27 Apr 2016 22:06:41 +0100
-Message-ID: <20160427210641.GV5783@n2100.arm.linux.org.uk>
-References: <1461684532-16848-1-git-send-email-grygorii.strashko@ti.com>
- <20160426160245.GI28464@e106497-lin.cambridge.arm.com>
- <571FC2EC.9090605@ti.com>
- <20160427104110.GU5783@n2100.arm.linux.org.uk>
- <5720BF19.6040600@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
+Subject: [PATCH net v3 0/5] drivers: net: cpsw: phy-handle fixes
+Date: Wed, 27 Apr 2016 21:10:03 -0400
+Message-ID: <1461805808-4102-1-git-send-email-drivshin.allworx@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5720BF19.6040600@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Liviu Dudau <liviu.dudau@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, bcm-kernel-feedback-list@broadcom.com, linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org, kernel@stlinux.com, linux-arm-kernel@axis.com, Florian Fainelli <f.fainelli@gmail.com>, Wei Xu <xuwei5@hisilicon.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Srinivas Kandagatla <srinivas.kandagatla@gmail.com>, Maxime Coquelin <maxime.coquelin@st.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Sudeep Holla <sudeep.holla@arm.com>, Jun Nie <jun.nie@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Jesper Nilsson <jesper.nilsson@axis.com>, Lars Persson <lar>
+To: netdev@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, David Miller <davem@davemloft.net>, Mugunthan V N <mugunthanvnm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Andrew Goodbody <andrew.goodbody@cambrionix.com>, Markus Brunner <systemprogrammierung.brunner@gmail.com>, Nicolas Chauvet <kwizart@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Apr 27, 2016 at 04:31:05PM +0300, Grygorii Strashko wrote:
-> Sorry, but this patch doesn't disable anything. It provides possibility
-> to do a custom build with disabled ARM GT driver without Kernel code
-> modification - in my case RT-kernel and non-RT Kernel should run on same
-> HW and RT kernel should use ARM GT as clocksource/sched_clock, but 
-> non-RT Kernel shouldn't.
-> 
-> I think RT can't be part of single zImage - it make no sense.
-> 
-> > 
-> > Maybe a linux-specific property is needed here - "linux,low-power-unstable"
-> > or something like that?
-> > 
-> 
-> I've tried smth. like this [1]
-> 
-> And it is not "unstable", it's will just stop in C3 (CPUIdle) and there no possibility 
-> (at least I've not found how to do this) to adjust Freq in case of CPUFreq.
-> [above is about clocksource/sched_clock]
-> 
-> [1] http://lists.infradead.org/pipermail/linux-arm-kernel/2015-November/386858.html
+From: David Rivshin <drivshin@allworx.com>
 
-Don't think I'm going to follow URLs - I don't use a desktop mail
-client, and as I'm several days behind with email, I don't have time
-to go looking through a crappy pipermail web archive at the moment
-either.
+This series fixes a number of related issues around using phy-handle
+properties in cpsw emac nodes.
 
-Anyway, why can't we use the priority system for clocksources?  If
-ARM GT is problematical, we need a way to register it with a lower
-priority than the preferred time keeping source.  That's exactly
-what the clocksource priority field is for.
+Patch 1 fixes a bug if more than one slave is used, and either
+slave uses the phy-handle property in the devicetree.
+
+Patch 2 fixes a NULL pointer dereference which can occur if a
+phy-handle property is used and of_phy_connect() return NULL,
+such as with a bad devicetree.
+
+Patch 3 fixes an issue where the phy-mode property would be ignored
+if a phy-handle property was used. This also fixes a bogus error
+message that would be emitted.
+
+Patch 4 fixes makes the binding documentation more explicit that
+exactly one PHY property should be used, and also marks phy_id as
+deprecated.
+
+Patch 5 cleans up the fixed-link case to work like the now-fixed
+phy-handle case.
+
+I have tested on the following hardware configurations:
+ - (EVMSK) dual emac, phy_id property in both slaves
+ - (EVMSK) dual emac, phy-handle property in both slaves
+ - (EVMSK) a bad phy-handle property pointing to &mmc1
+ - (EVMSK) phy_id property with incorrect PHY address
+ - (BeagleBoneBlack) single emac, phy_id property
+ - (custom) single emac, fixed-link subnode
+
+Andrew Goodbody reported testing v2 on a board that doesn't use
+dual_emac mode, but with 2 PHYs using phy-handle properties [1].
+
+Nicolas Chauvet reported testing v2 on an HP t410 (dm8148).
+
+Markus Brunner reported testing v1 on the following [2]:
+ - emac0 with phy_id and emac1 with fixed phy
+ - emac0 with phy-handle and emac1 with fixed phy
+ - emac0 with fixed phy and emac1 with fixed phy
+
+[1] https://lkml.org/lkml/2016/4/22/537
+[2] http://www.spinics.net/lists/netdev/msg357890.html
+
+David Rivshin (5):
+  drivers: net: cpsw: fix parsing of phy-handle DT property in dual_emac
+    config
+  drivers: net: cpsw: fix segfault in case of bad phy-handle
+  drivers: net: cpsw: don't ignore phy-mode if phy-handle is used
+  dt: cpsw: phy-handle, phy_id, and fixed-link are mutually exclusive
+  drivers: net: cpsw: use of_phy_connect() in fixed-link case
+
+ Documentation/devicetree/bindings/net/cpsw.txt |  6 +--
+ drivers/net/ethernet/ti/cpsw.c                 | 69 ++++++++++++++------------
+ drivers/net/ethernet/ti/cpsw.h                 |  1 +
+ 3 files changed, 41 insertions(+), 35 deletions(-)
 
 -- 
-RMK's Patch system: http://www.arm.linux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+2.5.5
