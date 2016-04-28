@@ -1,102 +1,53 @@
-From: "Franklin S Cooper Jr." <fcooper@ti.com>
-Subject: Re: [PATCH v7 2/9] ARM: dts: am437x: Add missing compatibles to PWM
- binding documents
-Date: Thu, 28 Apr 2016 16:11:59 -0500
-Message-ID: <57227C9F.6080705@ti.com>
-References: <1461710209-6563-1-git-send-email-fcooper@ti.com>
- <1461710209-6563-3-git-send-email-fcooper@ti.com>
- <20160428210716.GA12508@rob-hp-laptop>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: Re: [PATCH 0/2] Fix ir-rx51 by using PWM pdata
+Date: Fri, 29 Apr 2016 00:19:31 +0300
+Message-ID: <57227E63.4040907@gmail.com>
+References: <1461714709-10455-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <20160428210716.GA12508@rob-hp-laptop>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: thierry.reding@gmail.com, tony@atomide.com, paul@pwsan.com, t-kristo@ti.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, vigneshr@ti.com, nsekhar@ti.com
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1461714709-10455-1-git-send-email-tony@atomide.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Pavel Machel <pavel@ucw.cz>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, linux-media@vger.kernel.org, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Neil Armstrong <narmstrong@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
-Rob,
-On 04/28/2016 04:07 PM, Rob Herring wrote:
-> On Tue, Apr 26, 2016 at 05:36:42PM -0500, Franklin S Cooper Jr wrote:
->> There are several SOC specific compatibles for ECAP, EHRPWM and PWMMS
->> that are in use but aren't properly documented. Therefore, fix this
->> by adding the compatibles to the appropriate binding documents.
->>
->> While at it make minor corrections to the binding document.
->>
->> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
->> ---
->>  .../devicetree/bindings/pwm/pwm-tiecap.txt          | 12 ++++++++++--
->>  .../devicetree/bindings/pwm/pwm-tiehrpwm.txt        | 12 ++++++++++--
->>  .../devicetree/bindings/pwm/pwm-tipwmss.txt         | 21 +++++++++++++++++++--
->>  3 files changed, 39 insertions(+), 6 deletions(-)
->>
->> diff --git a/Documentation/devicetree/bindings/pwm/pwm-tiecap.txt b/Documentation/devicetree/bindings/pwm/pwm-tiecap.txt
->> index fb81179..788da6c 100644
->> --- a/Documentation/devicetree/bindings/pwm/pwm-tiecap.txt
->> +++ b/Documentation/devicetree/bindings/pwm/pwm-tiecap.txt
->> @@ -2,8 +2,9 @@ TI SOC ECAP based APWM controller
->>  
->>  Required properties:
->>  - compatible: Must be "ti,<soc>-ecap".
->> -  for am33xx - compatible = "ti,am33xx-ecap";
->> -  for da850  - compatible = "ti,da850-ecap", "ti,am33xx-ecap";
->> +  for am33xx  - compatible = "ti,am33xx-ecap";
->> +  for am4372  - compatible = "ti,am4372-ecap", "ti,am33xx-ecap";
->> +  for da850   - compatible = "ti,da850-ecap", "ti,am33xx-ecap";
->>  - #pwm-cells: should be 3. See pwm.txt in this directory for a description of
->>    the cells format. The PWM channel index ranges from 0 to 4. The only third
->>    cell flag supported by this binding is PWM_POLARITY_INVERTED.
->> @@ -22,6 +23,13 @@ ecap0: ecap@0 { /* ECAP on am33xx */
->>  	ti,hwmods = "ecap0";
->>  };
->>  
->> +ecap0: ecap@0 { /* ECAP on am4372 */
-> 
-> The unit address is wrong.
-> 
->> +	compatible = "ti,am4372-ecap", "ti,am33xx-ecap";
->> +	#pwm-cells = <3>;
->> +	reg = <0x48300100 0x80>;
->> +	ti,hwmods = "ecap0";
->> +};
->> +
->>  ecap0: ecap@0 { /* ECAP on da850 */
->>  	compatible = "ti,da850-ecap", "ti,am33xx-ecap";
->>  	#pwm-cells = <3>;
->> diff --git a/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt b/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
->> index 9c100b2..99b544f 100644
->> --- a/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
->> +++ b/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
->> @@ -2,8 +2,9 @@ TI SOC EHRPWM based PWM controller
->>  
->>  Required properties:
->>  - compatible: Must be "ti,<soc>-ehrpwm".
->> -  for am33xx - compatible = "ti,am33xx-ehrpwm";
->> -  for da850  - compatible = "ti,da850-ehrpwm", "ti,am33xx-ehrpwm";
->> +  for am33xx  - compatible = "ti,am33xx-ehrpwm";
->> +  for am4372  - compatible = "ti,am4372-ehrpwm", "ti,am33xx-ehrpwm";
->> +  for da850   - compatible = "ti,da850-ehrpwm", "ti,am33xx-ehrpwm";
->>  - #pwm-cells: should be 3. See pwm.txt in this directory for a description of
->>    the cells format. The only third cell flag supported by this binding is
->>    PWM_POLARITY_INVERTED.
->> @@ -22,6 +23,13 @@ ehrpwm0: ehrpwm@0 { /* EHRPWM on am33xx */
->>  	ti,hwmods = "ehrpwm0";
->>  };
->>  
->> +ehrpwm0: ehrpwm@0 { /* EHRPWM on am4372 */
-> 
-> ditto
-> 
-> Otherwise,
-> 
-> Acked-by: Rob Herring <robh@kernel.org>
-> 
+On 27.04.2016 02:51, Tony Lindgren wrote:
+> Hi all,
+>
+> Here are minimal fixes to get ir-rx51 going again. Then further
+> fixes can be done as noted in the second patch.
+>
+> Regards,
+>
+> Tony
+>
+>
+> Tony Lindgren (2):
+>    ARM: OMAP2+: Add more functions to pwm pdata for ir-rx51
+>    [media] ir-rx51: Fix build after multiarch changes broke it
+>
+>   arch/arm/mach-omap2/board-rx51-peripherals.c   | 35 ++++++++-
+>   arch/arm/mach-omap2/pdata-quirks.c             | 33 ++++++++-
+>   drivers/media/rc/Kconfig                       |  2 +-
+>   drivers/media/rc/ir-rx51.c                     | 99 ++++++++++++++------------
+>   include/linux/platform_data/media/ir-rx51.h    |  1 +
+>   include/linux/platform_data/pwm_omap_dmtimer.h | 21 ++++++
+>   6 files changed, 141 insertions(+), 50 deletions(-)
+>
+
+I didn't test legacy boot, as I don't really see any value of doing it 
+now the end of the legacy boot is near, the driver does not function 
+correctly, however the patchset at least allows for the driver to be 
+build and we have something to improve on. And I am going to send a 
+patch that fixes the problem with omap_dm_timer_request_specific(). So, 
+for both patches, you may add:
+
+Tested-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 
 
-Yes, the unit address is wrong but it is wrong in several places. I
-added it like that to match what the other bindings are doing. However,
-patches 3 and 4 fixes these unit address problems for all the bindings
-all together to make things clear.
+Thanks,
+Ivo
