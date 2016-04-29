@@ -1,54 +1,31 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: AM335x ICE board Linux support
-Date: Fri, 29 Apr 2016 08:31:59 -0700
-Message-ID: <20160429153158.GJ5995@atomide.com>
-References: <571E069A.20700@ti.com>
- <571F2982.2080702@ti.com>
- <20160426151046.GQ5995@atomide.com>
- <572332B2.6010203@ti.com>
+Subject: Re: [PATCH v3 1/7] ARM: OMAP3: hwmod data: Fix McBSP2/3 sidetone data
+Date: Fri, 29 Apr 2016 08:34:30 -0700
+Message-ID: <20160429153430.GK5995@atomide.com>
+References: <1461927202-17677-1-git-send-email-peter.ujfalusi@ti.com>
+ <1461927202-17677-2-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <572332B2.6010203-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1461927202-17677-2-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, "Anna, Suman" <s-anna-l0cyMroinI0@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [160429 03:10]:
-> On 26/04/16 18:10, Tony Lindgren wrote:
-> > I guess for now if no runtime detection is possible in the kernel.
-> 
-> There are 2 ways to detect them mode
-> 1) Enabe GPIO rising edge detect interrupt and reset the Ethernet PHY
-> 2) read a PHY register over MDIO bus
-> 
-> I'm not very sure where this can be done in the kernel.
+* Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [160429 03:55]:
+> The McBSPLP's sidetone main clock is the McBSPLP's ICLK, not FCLK as the
+> sidetone only receives the ICLK from the main McBSP module.
+> Since the McBSP and sidetone is using the very same clock from PRCM level
+> the sidetone must not have the prcm section to check the clock status since
+> the sidetone is only used when McBSP is already configured.
+> If two separate hwmods looking at the same bit and they would use
+> pm_runtime in nested way (as it must happen with McBSP and it's ST module)
+> the hwmod would warn, because the idlest will not match what it is expected
+> after enable/disable of the clocks.
 
-We already have some PHY detection over MDIO detection in place,
-so that's probably the most generic solution.
-
-> Even if there is some place to do the detection, how do we go about reconfiguring the
-> device tree?
-
-You may not need to, you can have several named pin states:
-
-pinctrl-names = "default", "phy-foo", "phy-bar";
-pinctrl-0 = <&cpsw_default>;
-pinctrl-1 = <&cpsw_phy_foo>;
-pinctrl-2 = <&cpsw_phy_bar>;
-...
-
-Then have the common pins in cpsw_default, and manually enable
-the other pinctrl groups based on the detection. We already
-have that going on in am335x-bone-common.dtsi with the &mac
-entry for cpsw.
-
-But maybe you have other detection issues too beyond setting
-the pins?
-
-Regards,
+Thanks for looking into it, this looks right to me.
 
 Tony
 --
