@@ -1,47 +1,34 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: camera application for testing (was Re: v4l subdevs without big device)
-Date: Sat, 30 Apr 2016 00:20:58 +0200
-Message-ID: <201604300020.58559@pali>
-References: <20160428084546.GA9957@amd> <57230DE7.3020701@xs4all.nl> <20160429221359.GA29297@amd>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: Re: camera application for testing (was Re: v4l subdevs without big
+ device)
+Date: Sat, 30 Apr 2016 01:47:57 +0300
+Message-ID: <5723E49D.1030104@gmail.com>
+References: <20160428084546.GA9957@amd> <57230DE7.3020701@xs4all.nl>
+ <20160429221359.GA29297@amd> <201604300020.58559@pali>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2627769.sBt2jLFUQT";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160429221359.GA29297@amd>
+In-Reply-To: <201604300020.58559@pali>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, sakari.ailus@iki.fi, tuukkat76@gmail.com, mchehab@osg.samsung.com, linux-media@vger.kernel.org
+To: =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, Pavel Machek <pavel@ucw.cz>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, sakari.ailus@iki.fi, tuukkat76@gmail.com, mchehab@osg.samsung.com, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---nextPart2627769.sBt2jLFUQT
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Saturday 30 April 2016 00:13:59 Pavel Machek wrote:
-> Any other application I should look at? Thanks,
+On 30.04.2016 01:20, Pali Roh=C3=A1r wrote:
+> On Saturday 30 April 2016 00:13:59 Pavel Machek wrote:
+>> Any other application I should look at? Thanks,
+>
+> Maybe camera-ui, which is part of CSSU?
+>
+> https://github.com/community-ssu/camera-ui
+>
 
-Maybe camera-ui, which is part of CSSU?
+This is based on gdigicam, are you sure it is compatible with recent=20
+kernel/userspace? Also, iirc gdigicam needs omap3camd working, but we=20
+still don't have the needed compat layer.
 
-https://github.com/community-ssu/camera-ui
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart2627769.sBt2jLFUQT
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlcj3koACgkQi/DJPQPkQ1LmywCdFuFxjj21GRwOuZAlhV471OrS
-knsAn3Veyc0bg6xtXG0r/VgRClJQ5IE9
-=vd9f
------END PGP SIGNATURE-----
-
---nextPart2627769.sBt2jLFUQT--
+Ivo
