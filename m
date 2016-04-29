@@ -1,34 +1,111 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v3 1/7] ARM: OMAP3: hwmod data: Fix McBSP2/3 sidetone data
-Date: Fri, 29 Apr 2016 08:34:30 -0700
-Message-ID: <20160429153430.GK5995@atomide.com>
-References: <1461927202-17677-1-git-send-email-peter.ujfalusi@ti.com>
- <1461927202-17677-2-git-send-email-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 03/10] usb: musb: Fix PM runtime handling for connected
+ cable
+Date: Fri, 29 Apr 2016 08:52:49 -0700
+Message-ID: <20160429155249.GL5995@atomide.com>
+References: <1461864800-29979-1-git-send-email-tony@atomide.com>
+ <1461864800-29979-4-git-send-email-tony@atomide.com>
+ <57224E1F.7040707@cogentembedded.com>
+ <20160428180741.GF5995@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1461927202-17677-2-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
+In-Reply-To: <20160428180741.GF5995-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [160429 03:55]:
-> The McBSPLP's sidetone main clock is the McBSPLP's ICLK, not FCLK as the
-> sidetone only receives the ICLK from the main McBSP module.
-> Since the McBSP and sidetone is using the very same clock from PRCM level
-> the sidetone must not have the prcm section to check the clock status since
-> the sidetone is only used when McBSP is already configured.
-> If two separate hwmods looking at the same bit and they would use
-> pm_runtime in nested way (as it must happen with McBSP and it's ST module)
-> the hwmod would warn, because the idlest will not match what it is expected
-> after enable/disable of the clocks.
+* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [160428 11:09]:
+> * Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org> [160428 10:55]:
+> > >+	cable_connected = ((glue->status & MUSB_ID_GROUND) ||
+> > >+			   (glue->status & MUSB_VBUS_VALID));
+> > 
+> > 	cable_connected = glue->status & (MUSB_ID_GROUND |
+> > 					MUSB_VBUS_VALID);
+> 
+> Thanks, actually that's an enumeration so needs fixing.
 
-Thanks for looking into it, this looks right to me.
+Here's an updated version of this patch.
+
+Regards,
 
 Tony
+
+8< ------------------
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Date: Fri, 29 Apr 2016 08:12:55 -0700
+Subject: [PATCH] usb: musb: Fix PM runtime handling for connected cable
+
+We may have drivers loaded but no configured gadgets
+and MUSB may be in host mode. If gadgets are configured
+during host mode, PM runtime will get confused.
+
+Disconnect PM runtime from gadget state, and do it only
+based on the cable.
+
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -259,6 +259,13 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
+ 	struct musb_hdrc_platform_data *pdata = dev_get_platdata(dev);
+ 	struct omap_musb_board_data *data = pdata->board_data;
+ 	struct usb_otg *otg = musb->xceiv->otg;
++	bool cable_connected;
++
++	cable_connected = ((glue->status == MUSB_ID_GROUND) ||
++			   (glue->status == MUSB_VBUS_VALID));
++
++	if (cable_connected)
++		pm_runtime_get_sync(dev);
+ 
+ 	switch (glue->status) {
+ 	case MUSB_ID_GROUND:
+@@ -268,7 +275,6 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
+ 		musb->xceiv->otg->state = OTG_STATE_A_IDLE;
+ 		musb->xceiv->last_event = USB_EVENT_ID;
+ 		if (musb->gadget_driver) {
+-			pm_runtime_get_sync(dev);
+ 			omap_control_usb_set_mode(glue->control_otghs,
+ 				USB_MODE_HOST);
+ 			omap2430_musb_set_vbus(musb, 1);
+@@ -281,8 +287,6 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
+ 		otg->default_a = false;
+ 		musb->xceiv->otg->state = OTG_STATE_B_IDLE;
+ 		musb->xceiv->last_event = USB_EVENT_VBUS;
+-		if (musb->gadget_driver)
+-			pm_runtime_get_sync(dev);
+ 		omap_control_usb_set_mode(glue->control_otghs, USB_MODE_DEVICE);
+ 		break;
+ 
+@@ -291,11 +295,8 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
+ 		dev_dbg(dev, "VBUS Disconnect\n");
+ 
+ 		musb->xceiv->last_event = USB_EVENT_NONE;
+-		if (musb->gadget_driver) {
++		if (musb->gadget_driver)
+ 			omap2430_musb_set_vbus(musb, 0);
+-			pm_runtime_mark_last_busy(dev);
+-			pm_runtime_put_autosuspend(dev);
+-		}
+ 
+ 		if (data->interface_type == MUSB_INTERFACE_UTMI)
+ 			otg_set_vbus(musb->xceiv->otg, 0);
+@@ -307,6 +308,11 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
+ 		dev_dbg(dev, "ID float\n");
+ 	}
+ 
++	if (!cable_connected) {
++		pm_runtime_mark_last_busy(dev);
++		pm_runtime_put_autosuspend(dev);
++	}
++
+ 	atomic_notifier_call_chain(&musb->xceiv->notifier,
+ 			musb->xceiv->last_event, NULL);
+ }
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
