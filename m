@@ -1,58 +1,73 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: v4l subdevs without big device was Re:
- drivers/media/i2c/adp1653.c: does not show as /dev/video* or v4l-subdev*
-Date: Fri, 29 Apr 2016 14:23:04 +0300
-Message-ID: <20160429112304.GJ32125@valkosipuli.retiisi.org.uk>
-References: <20160428084546.GA9957@amd>
- <20160429071525.GA4823@amd>
- <57230DE7.3020701@xs4all.nl>
- <20160429075649.GG32125@valkosipuli.retiisi.org.uk>
- <20160429095002.GA22743@amd>
- <20160429105944.GH32125@valkosipuli.retiisi.org.uk>
- <20160429110546.GU12528@pali>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v3 5/7] ASoc: omap-mcbsp: Rename omap_mcbsp_sysfs_remove() to
+ omap_mcbsp_cleanup()
+Date: Fri, 29 Apr 2016 13:53:20 +0300
+Message-ID: <1461927202-17677-6-git-send-email-peter.ujfalusi@ti.com>
+References: <1461927202-17677-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160429110546.GU12528@pali>
-Sender: linux-media-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Hans Verkuil <hverkuil@xs4all.nl>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, tuukkat76@gmail.com, mchehab@osg.samsung.com, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1461927202-17677-1-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com, jarkko.nikula@bitmer.com, paul@pwsan.com, lgirdwood@gmail.com, broonie@kernel.org
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Apr 29, 2016 at 01:05:46PM +0200, Pali Roh=E1r wrote:
-> On Friday 29 April 2016 13:59:44 Sakari Ailus wrote:
-> > > pavel@amd:/data/l/linux-n900$ git fetch
-> > > git://git.retiisi.org.uk/~sailus/linux.git leds-as3645a:leds-as36=
-45a
-> > > fatal: unable to connect to git.retiisi.org.uk:
-> > > git.retiisi.org.uk: Name or service not known
-> > >=20
-> > > pavel@amd:/data/l/linux-n900$ git fetch
-> > > git://salottisipuli.retiisi.org.uk/~sailus/linux.git
-> > > leds-as3645a:leds-as3645a
-> > > remote: Counting objects: 132, done.
-> > > remote: Compressing objects: 100% (46/46), done.
-> > > remote: Total 132 (delta 111), reused 107 (delta 86)
-> > > Receiving objects: 100% (132/132), 22.80 KiB | 0 bytes/s, done.
-> > > Resolving deltas: 100% (111/111), completed with 34 local objects=
-=2E
-> > > From git://salottisipuli.retiisi.org.uk/~sailus/linux
-> > >  * [new branch]      leds-as3645a -> leds-as3645a
-> >=20
-> > Yeah, that works, too. git alias has been added some three weeks ag=
-o so
-> > there seem to be something strange going on with DNS.
->=20
-> Maybe update SOA record?
+The function will do more then removing the sysfs files in the future.
 
-The host has been added before that. It looks like the slaves are perfo=
-rming
-the zone transfer nicely but for some reason they don't seem to correct=
-ly
-respond when the newly added name is queried.
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ sound/soc/omap/mcbsp.c      | 2 +-
+ sound/soc/omap/mcbsp.h      | 2 +-
+ sound/soc/omap/omap-mcbsp.c | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
---=20
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
+index 4a16e778966b..ace73b97769f 100644
+--- a/sound/soc/omap/mcbsp.c
++++ b/sound/soc/omap/mcbsp.c
+@@ -1088,7 +1088,7 @@ err_thres:
+ 	return ret;
+ }
+ 
+-void omap_mcbsp_sysfs_remove(struct omap_mcbsp *mcbsp)
++void omap_mcbsp_cleanup(struct omap_mcbsp *mcbsp)
+ {
+ 	if (mcbsp->pdata->buffer_size)
+ 		sysfs_remove_group(&mcbsp->dev->kobj, &additional_attr_group);
+diff --git a/sound/soc/omap/mcbsp.h b/sound/soc/omap/mcbsp.h
+index 96d1b086bcf8..ce6cbbf923a4 100644
+--- a/sound/soc/omap/mcbsp.h
++++ b/sound/soc/omap/mcbsp.h
+@@ -349,6 +349,6 @@ int omap_st_disable(struct omap_mcbsp *mcbsp);
+ int omap_st_is_enabled(struct omap_mcbsp *mcbsp);
+ 
+ int omap_mcbsp_init(struct platform_device *pdev);
+-void omap_mcbsp_sysfs_remove(struct omap_mcbsp *mcbsp);
++void omap_mcbsp_cleanup(struct omap_mcbsp *mcbsp);
+ 
+ #endif /* __ASOC_MCBSP_H */
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index fd99d89de6a8..db07debb4a9c 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -832,7 +832,7 @@ static int asoc_mcbsp_remove(struct platform_device *pdev)
+ 	if (mcbsp->pdata->ops && mcbsp->pdata->ops->free)
+ 		mcbsp->pdata->ops->free(mcbsp->id);
+ 
+-	omap_mcbsp_sysfs_remove(mcbsp);
++	omap_mcbsp_cleanup(mcbsp);
+ 
+ 	clk_put(mcbsp->fclk);
+ 
+-- 
+2.8.1
