@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 6/7] ASoC: omap-mcbsp: sidetone: Use the new callback for iclk handling
-Date: Fri, 29 Apr 2016 13:53:21 +0300
-Message-ID: <1461927202-17677-7-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 7/7] ARM: OMAP2+: McBSP: Remove the old iclk allow/deny idle code
+Date: Fri, 29 Apr 2016 13:53:22 +0300
+Message-ID: <1461927202-17677-8-git-send-email-peter.ujfalusi@ti.com>
 References: <1461927202-17677-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,105 +12,70 @@ To: tony@atomide.com, jarkko.nikula@bitmer.com, paul@pwsan.com, lgirdwood@gmail.
 Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
-The McBSP sidetone (in OMAP3 McBSP2 and 3 module) is working with the
-module's interface clock. When the sidetone is enabled the iclk must not
-idle because it will result in choppy sidetone.
-Switch to use the new callback for handling the iclk allow/deny idle
-configuration.
-For this the driver needs to get the module's ick clock and pass the clk
-pointer to the callback.
-In DT boot, the pdata-quirk is going to set up the callback for the driver
-so save it if it is set in the pdata of the device.
+The new pdata callback (force_ick_on) is now used by the driver and the old
+callback related code can be removed.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- sound/soc/omap/mcbsp.c      | 19 ++++++++++++++-----
- sound/soc/omap/mcbsp.h      |  1 +
- sound/soc/omap/omap-mcbsp.c |  3 +++
- 3 files changed, 18 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/mcbsp.c                 | 18 ------------------
+ include/linux/platform_data/asoc-ti-mcbsp.h |  1 -
+ 2 files changed, 19 deletions(-)
 
-diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
-index ace73b97769f..76ce33199bf9 100644
---- a/sound/soc/omap/mcbsp.c
-+++ b/sound/soc/omap/mcbsp.c
-@@ -257,8 +257,8 @@ static void omap_st_on(struct omap_mcbsp *mcbsp)
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index edf4f41c0135..fc04be74e064 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -34,20 +34,6 @@
+ #include "cm3xxx.h"
+ #include "cm-regbits-34xx.h"
+ 
+-static struct clk *mcbsp_iclks[5];
+-
+-static int omap3_enable_st_clock(unsigned int id, bool enable)
+-{
+-	/*
+-	 * Sidetone uses McBSP ICLK - which must not idle when sidetones
+-	 * are enabled or sidetones start sounding ugly.
+-	 */
+-	if (enable)
+-		return omap2_clk_deny_idle(mcbsp_iclks[id]);
+-	else
+-		return omap2_clk_allow_idle(mcbsp_iclks[id]);
+-}
+-
+ static int omap3_mcbsp_force_ick_on(struct clk *clk, bool force_on)
  {
- 	unsigned int w;
+ 	if (!clk)
+@@ -75,7 +61,6 @@ static int __init omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
+ 	struct omap_hwmod *oh_device[2];
+ 	struct omap_mcbsp_platform_data *pdata = NULL;
+ 	struct platform_device *pdev;
+-	char clk_name[11];
  
--	if (mcbsp->pdata->enable_st_clock)
--		mcbsp->pdata->enable_st_clock(mcbsp->id, 1);
-+	if (mcbsp->pdata->force_ick_on)
-+		mcbsp->pdata->force_ick_on(mcbsp->st_data->mcbsp_iclk, true);
+ 	sscanf(oh->name, "mcbsp%d", &id);
  
- 	/* Disable Sidetone clock auto-gating for normal operation */
- 	w = MCBSP_ST_READ(mcbsp, SYSCONFIG);
-@@ -287,8 +287,8 @@ static void omap_st_off(struct omap_mcbsp *mcbsp)
- 	w = MCBSP_ST_READ(mcbsp, SYSCONFIG);
- 	MCBSP_ST_WRITE(mcbsp, SYSCONFIG, w | ST_AUTOIDLE);
+@@ -116,10 +101,7 @@ static int __init omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
+ 	if (oh->dev_attr) {
+ 		oh_device[1] = omap_hwmod_lookup((
+ 		(struct omap_mcbsp_dev_attr *)(oh->dev_attr))->sidetone);
+-		pdata->enable_st_clock = omap3_enable_st_clock;
+ 		pdata->force_ick_on = omap3_mcbsp_force_ick_on;
+-		sprintf(clk_name, "mcbsp%d_ick", id);
+-		mcbsp_iclks[id] = clk_get(NULL, clk_name);
+ 		count++;
+ 	}
+ 	pdev = omap_device_build_ss(name, id, oh_device, count, pdata,
+diff --git a/include/linux/platform_data/asoc-ti-mcbsp.h b/include/linux/platform_data/asoc-ti-mcbsp.h
+index 5530971abf4d..e684543254f3 100644
+--- a/include/linux/platform_data/asoc-ti-mcbsp.h
++++ b/include/linux/platform_data/asoc-ti-mcbsp.h
+@@ -44,7 +44,6 @@ struct omap_mcbsp_platform_data {
+ 	/* McBSP platform and instance specific features */
+ 	bool has_wakeup; /* Wakeup capability */
+ 	bool has_ccr; /* Transceiver has configuration control registers */
+-	int (*enable_st_clock)(unsigned int, bool);
+ 	int (*force_ick_on)(struct clk *clk, bool force_on);
+ };
  
--	if (mcbsp->pdata->enable_st_clock)
--		mcbsp->pdata->enable_st_clock(mcbsp->id, 0);
-+	if (mcbsp->pdata->force_ick_on)
-+		mcbsp->pdata->force_ick_on(mcbsp->st_data->mcbsp_iclk, false);
- }
- 
- static void omap_st_fir_write(struct omap_mcbsp *mcbsp, s16 *fir)
-@@ -946,6 +946,13 @@ static int omap_st_add(struct omap_mcbsp *mcbsp, struct resource *res)
- 	if (!st_data)
- 		return -ENOMEM;
- 
-+	st_data->mcbsp_iclk = clk_get(mcbsp->dev, "ick");
-+	if (IS_ERR(st_data->mcbsp_iclk)) {
-+		dev_warn(mcbsp->dev,
-+			 "Failed to get ick, sidetone might be broken\n");
-+		st_data->mcbsp_iclk = NULL;
-+	}
-+
- 	st_data->io_base_st = devm_ioremap(mcbsp->dev, res->start,
- 					   resource_size(res));
- 	if (!st_data->io_base_st)
-@@ -1093,6 +1100,8 @@ void omap_mcbsp_cleanup(struct omap_mcbsp *mcbsp)
- 	if (mcbsp->pdata->buffer_size)
- 		sysfs_remove_group(&mcbsp->dev->kobj, &additional_attr_group);
- 
--	if (mcbsp->st_data)
-+	if (mcbsp->st_data) {
- 		sysfs_remove_group(&mcbsp->dev->kobj, &sidetone_attr_group);
-+		clk_put(mcbsp->st_data->mcbsp_iclk);
-+	}
- }
-diff --git a/sound/soc/omap/mcbsp.h b/sound/soc/omap/mcbsp.h
-index ce6cbbf923a4..61e93b1c185d 100644
---- a/sound/soc/omap/mcbsp.h
-+++ b/sound/soc/omap/mcbsp.h
-@@ -280,6 +280,7 @@ struct omap_mcbsp_reg_cfg {
- 
- struct omap_mcbsp_st_data {
- 	void __iomem *io_base_st;
-+	struct clk *mcbsp_iclk;
- 	bool running;
- 	bool enabled;
- 	s16 taps[128];	/* Sidetone filter coefficients */
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index db07debb4a9c..d018e966e533 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -788,6 +788,7 @@ static int asoc_mcbsp_probe(struct platform_device *pdev)
- 	match = of_match_device(omap_mcbsp_of_match, &pdev->dev);
- 	if (match) {
- 		struct device_node *node = pdev->dev.of_node;
-+		struct omap_mcbsp_platform_data *pdata_quirk = pdata;
- 		int buffer_size;
- 
- 		pdata = devm_kzalloc(&pdev->dev,
-@@ -799,6 +800,8 @@ static int asoc_mcbsp_probe(struct platform_device *pdev)
- 		memcpy(pdata, match->data, sizeof(*pdata));
- 		if (!of_property_read_u32(node, "ti,buffer-size", &buffer_size))
- 			pdata->buffer_size = buffer_size;
-+		if (pdata_quirk)
-+			pdata->force_ick_on = pdata_quirk->force_ick_on;
- 	} else if (!pdata) {
- 		dev_err(&pdev->dev, "missing platform data.\n");
- 		return -EINVAL;
 -- 
 2.8.1
