@@ -1,13 +1,13 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] media: omap3isp: Use dma_request_chan() to requesting DMA channel
-Date: Fri, 29 Apr 2016 16:04:45 +0300
-Message-ID: <1461935085-28561-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH] mmc: omap_hsmmc:  Use dma_request_chan() for requesting DMA channel
+Date: Fri, 29 Apr 2016 16:06:18 +0300
+Message-ID: <1461935178-28617-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-media-owner@vger.kernel.org>
-Sender: linux-media-owner@vger.kernel.org
-To: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ulf.hansson@linaro.org, kishon@ti.com
+Cc: tony@atomide.com, rogerq@ti.com, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 With the new dma_request_chan() the client driver does not need to look for
@@ -16,60 +16,95 @@ By switching to the new API the driver can now support deferred probing
 against DMA.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/media/platform/omap3isp/isphist.c | 27 +++++++++------------------
- 1 file changed, 9 insertions(+), 18 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c | 50 +++++++++----------------------------------
+ 1 file changed, 10 insertions(+), 40 deletions(-)
 
-diff --git a/drivers/media/platform/omap3isp/isphist.c b/drivers/media/platform/omap3isp/isphist.c
-index 7138b043a4aa..e163e3d92517 100644
---- a/drivers/media/platform/omap3isp/isphist.c
-+++ b/drivers/media/platform/omap3isp/isphist.c
-@@ -18,7 +18,6 @@
- #include <linux/delay.h>
- #include <linux/device.h>
- #include <linux/dmaengine.h>
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index e9d75c6dd516..06a167292820 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -32,7 +32,6 @@
+ #include <linux/of_irq.h>
+ #include <linux/of_gpio.h>
+ #include <linux/of_device.h>
 -#include <linux/omap-dmaengine.h>
- #include <linux/slab.h>
- #include <linux/uaccess.h>
+ #include <linux/mmc/host.h>
+ #include <linux/mmc/core.h>
+ #include <linux/mmc/mmc.h>
+@@ -1989,8 +1988,6 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+ 	struct resource *res;
+ 	int ret, irq;
+ 	const struct of_device_id *match;
+-	dma_cap_mask_t mask;
+-	unsigned tx_req, rx_req;
+ 	const struct omap_mmc_of_data *data;
+ 	void __iomem *base;
  
-@@ -486,27 +485,19 @@ int omap3isp_hist_init(struct isp_device *isp)
- 	hist->isp = isp;
+@@ -2120,44 +2117,17 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
  
- 	if (HIST_CONFIG_DMA) {
--		struct platform_device *pdev = to_platform_device(isp->dev);
--		struct resource *res;
--		unsigned int sig = 0;
--		dma_cap_mask_t mask;
+ 	omap_hsmmc_conf_bus_power(host);
+ 
+-	if (!pdev->dev.of_node) {
+-		res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
+-		if (!res) {
+-			dev_err(mmc_dev(host->mmc), "cannot get DMA TX channel\n");
+-			ret = -ENXIO;
+-			goto err_irq;
+-		}
+-		tx_req = res->start;
 -
--		dma_cap_zero(mask);
--		dma_cap_set(DMA_SLAVE, mask);
+-		res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
+-		if (!res) {
+-			dev_err(mmc_dev(host->mmc), "cannot get DMA RX channel\n");
+-			ret = -ENXIO;
+-			goto err_irq;
+-		}
+-		rx_req = res->start;
+-	}
 -
--		res = platform_get_resource_byname(pdev, IORESOURCE_DMA,
--						   "hist");
--		if (res)
--			sig = res->start;
+-	dma_cap_zero(mask);
+-	dma_cap_set(DMA_SLAVE, mask);
 -
--		hist->dma_ch = dma_request_slave_channel_compat(mask,
--				omap_dma_filter_fn, &sig, isp->dev, "hist");
--		if (!hist->dma_ch)
-+		hist->dma_ch = dma_request_chan(isp->dev, "hist");
-+		if (IS_ERR(hist->dma_ch)) {
-+			ret = PTR_ERR(hist->dma_ch);
-+			if (ret == -EPROBE_DEFER)
-+				return ret;
-+
-+			hist->dma_ch = NULL;
- 			dev_warn(isp->dev,
- 				 "hist: DMA channel request failed, using PIO\n");
--		else
-+		} else {
- 			dev_dbg(isp->dev, "hist: using DMA channel %s\n",
- 				dma_chan_name(hist->dma_ch));
-+		}
+-	host->rx_chan =
+-		dma_request_slave_channel_compat(mask, omap_dma_filter_fn,
+-						 &rx_req, &pdev->dev, "rx");
+-
+-	if (!host->rx_chan) {
+-		dev_err(mmc_dev(host->mmc), "unable to obtain RX DMA engine channel\n");
+-		ret = -ENXIO;
++	host->rx_chan = dma_request_chan(&pdev->dev, "rx");
++	if (IS_ERR(host->rx_chan)) {
++		dev_err(mmc_dev(host->mmc), "RX DMA channel request failed\n");
++		ret = PTR_ERR(host->rx_chan);
+ 		goto err_irq;
  	}
  
- 	hist->ops = &hist_ops;
+-	host->tx_chan =
+-		dma_request_slave_channel_compat(mask, omap_dma_filter_fn,
+-						 &tx_req, &pdev->dev, "tx");
+-
+-	if (!host->tx_chan) {
+-		dev_err(mmc_dev(host->mmc), "unable to obtain TX DMA engine channel\n");
+-		ret = -ENXIO;
++	host->tx_chan = dma_request_chan(&pdev->dev, "tx");
++	if (IS_ERR(host->tx_chan)) {
++		dev_err(mmc_dev(host->mmc), "TX DMA channel request failed\n");
++		ret = PTR_ERR(host->tx_chan);
+ 		goto err_irq;
+ 	}
+ 
+@@ -2215,9 +2185,9 @@ err_slot_name:
+ 	mmc_remove_host(mmc);
+ err_irq:
+ 	device_init_wakeup(&pdev->dev, false);
+-	if (host->tx_chan)
++	if (!IS_ERR_OR_NULL(host->tx_chan))
+ 		dma_release_channel(host->tx_chan);
+-	if (host->rx_chan)
++	if (!IS_ERR_OR_NULL(host->rx_chan))
+ 		dma_release_channel(host->rx_chan);
+ 	pm_runtime_dont_use_autosuspend(host->dev);
+ 	pm_runtime_put_sync(host->dev);
 -- 
 2.8.1
