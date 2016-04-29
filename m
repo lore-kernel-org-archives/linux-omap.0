@@ -1,111 +1,73 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 03/10] usb: musb: Fix PM runtime handling for connected
- cable
-Date: Fri, 29 Apr 2016 08:52:49 -0700
-Message-ID: <20160429155249.GL5995@atomide.com>
-References: <1461864800-29979-1-git-send-email-tony@atomide.com>
- <1461864800-29979-4-git-send-email-tony@atomide.com>
- <57224E1F.7040707@cogentembedded.com>
- <20160428180741.GF5995@atomide.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: Nokia N900 retention mode in v4.6, camera buttons fun
+Date: Fri, 29 Apr 2016 22:06:00 +0200
+Message-ID: <20160429200559.GA16598@earth>
+References: <20160407230150.GA16552@amd>
+ <20160407234134.GQ16484@atomide.com>
+ <20160411093023.GC11814@amd>
+ <20160411094130.GA5753@amd>
+ <20160411211026.GH5995@atomide.com>
+ <20160412121658.GA32486@amd>
+ <20160412123013.GA12296@amd>
+ <20160412163055.GP5995@atomide.com>
+ <20160417175539.GA502@amd>
+ <20160421130450.GQ29406@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="cWoXeonUoKmBZSoM"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160428180741.GF5995-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20160421130450.GQ29406@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Tony Lindgren <tony@atomide.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [160428 11:09]:
-> * Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org> [160428 10:55]:
-> > >+	cable_connected = ((glue->status & MUSB_ID_GROUND) ||
-> > >+			   (glue->status & MUSB_VBUS_VALID));
-> > 
-> > 	cable_connected = glue->status & (MUSB_ID_GROUND |
-> > 					MUSB_VBUS_VALID);
-> 
-> Thanks, actually that's an enumeration so needs fixing.
 
-Here's an updated version of this patch.
+--cWoXeonUoKmBZSoM
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
+Hi,
 
-Tony
+On Thu, Apr 21, 2016 at 03:04:50PM +0200, Pali Roh=E1r wrote:
+> > CONFIG_HSI breaks power management completely, so power management
+> > with modem will be another topic. =20
+>=20
+> Sebastian, any idea why power management does not work for HSI?
 
-8< ------------------
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Date: Fri, 29 Apr 2016 08:12:55 -0700
-Subject: [PATCH] usb: musb: Fix PM runtime handling for connected cable
+I wasn't aware, that pm_runtime_irq_safe() basically breaks runtime
+PM until Tony's fix for musb (even though it's logical when thinking
+about it). Currently omap-ssi and omap-ssi-port make use of
+pm_runtime_irq_safe().
 
-We may have drivers loaded but no configured gadgets
-and MUSB may be in host mode. If gadgets are configured
-during host mode, PM runtime will get confused.
+Since pm_runtime_get_sync/pm_runtime_put_sync is called from
+tasklets in omap-ssi (and omap-ssi-port) it cannot be simply
+removed. So fixing PM for the ssi controller requires reworking
+the driver in a non trivial way.
 
-Disconnect PM runtime from gadget state, and do it only
-based on the cable.
+-- Sebastian
 
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+--cWoXeonUoKmBZSoM
+Content-Type: application/pgp-signature; name="signature.asc"
 
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -259,6 +259,13 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
- 	struct musb_hdrc_platform_data *pdata = dev_get_platdata(dev);
- 	struct omap_musb_board_data *data = pdata->board_data;
- 	struct usb_otg *otg = musb->xceiv->otg;
-+	bool cable_connected;
-+
-+	cable_connected = ((glue->status == MUSB_ID_GROUND) ||
-+			   (glue->status == MUSB_VBUS_VALID));
-+
-+	if (cable_connected)
-+		pm_runtime_get_sync(dev);
- 
- 	switch (glue->status) {
- 	case MUSB_ID_GROUND:
-@@ -268,7 +275,6 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
- 		musb->xceiv->otg->state = OTG_STATE_A_IDLE;
- 		musb->xceiv->last_event = USB_EVENT_ID;
- 		if (musb->gadget_driver) {
--			pm_runtime_get_sync(dev);
- 			omap_control_usb_set_mode(glue->control_otghs,
- 				USB_MODE_HOST);
- 			omap2430_musb_set_vbus(musb, 1);
-@@ -281,8 +287,6 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
- 		otg->default_a = false;
- 		musb->xceiv->otg->state = OTG_STATE_B_IDLE;
- 		musb->xceiv->last_event = USB_EVENT_VBUS;
--		if (musb->gadget_driver)
--			pm_runtime_get_sync(dev);
- 		omap_control_usb_set_mode(glue->control_otghs, USB_MODE_DEVICE);
- 		break;
- 
-@@ -291,11 +295,8 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
- 		dev_dbg(dev, "VBUS Disconnect\n");
- 
- 		musb->xceiv->last_event = USB_EVENT_NONE;
--		if (musb->gadget_driver) {
-+		if (musb->gadget_driver)
- 			omap2430_musb_set_vbus(musb, 0);
--			pm_runtime_mark_last_busy(dev);
--			pm_runtime_put_autosuspend(dev);
--		}
- 
- 		if (data->interface_type == MUSB_INTERFACE_UTMI)
- 			otg_set_vbus(musb->xceiv->otg, 0);
-@@ -307,6 +308,11 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
- 		dev_dbg(dev, "ID float\n");
- 	}
- 
-+	if (!cable_connected) {
-+		pm_runtime_mark_last_busy(dev);
-+		pm_runtime_put_autosuspend(dev);
-+	}
-+
- 	atomic_notifier_call_chain(&musb->xceiv->notifier,
- 			musb->xceiv->last_event, NULL);
- }
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJXI76lAAoJENju1/PIO/qa+k4QAJMQkRwZti+elYFLGSXiIYdJ
+4N5m0aI30BMU3SH4QQGdY4x1N7iAO759Pm6VEY7kWrqqL7YiQSqdohrZQt75vP26
+KPAyuoJZoZV5aHb5DsJkuLW2M8PL3CMHHZpnUyvyDRMgtonKjLWBQrKW5sSjOuyh
+4F6+KYXzE3uU2/6uHf0bSkliOg92khPqAe26JeiKH4MPuuS5wUpOOGcGWOeKrbqy
+kKdx5t271+KBnfYCZazAKi+R/UdSQeIpuvTxlLTwW/FvKC9mk76mbmuH26+hRvOT
+vb/IJkBhEuD4N+fh1D3geKdQuwGdYYE7UanJWbD6fGLgJO5aAvn/nOXgFySgndvU
+RKK4k5CYALXS3OcGGaWT5/Y2BvEII/wBAEGJvh+8T5CI0Jl8FkUXO/v+MU7oG7ez
++BupAfBAZPTLCebAF7h00YGfMYF88DDtem8C1/S7fQWTs1XLo6XSJGodiLwAdy2H
+D87tf+RJBZ5R1ZPjIl7H4Eo5OLXNZmNdP4o6PlYl5X5QRZ1XBhpenlN/61cV0IEq
+5M0tZZJocS1BgUH9CQLcAuTyXkN9NcTPQLh56/ic0VR9GNSFbc8YMSB1sR7YJAVy
+iOXJnY1UPdQdUgBtDk1WGRZzHafRrVNADQhAkSYiUJ06tc2JFprV4MBm25vivbzW
+LCZB/zpY2yHuJCKLFlc/
+=bTOK
+-----END PGP SIGNATURE-----
+
+--cWoXeonUoKmBZSoM--
