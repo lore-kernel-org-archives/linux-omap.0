@@ -1,128 +1,97 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: v4l subdevs without big device was Re:
- drivers/media/i2c/adp1653.c: does not show as /dev/video* or v4l-subdev*
-Date: Fri, 29 Apr 2016 11:50:02 +0200
-Message-ID: <20160429095002.GA22743@amd>
-References: <20160428084546.GA9957@amd>
- <20160429071525.GA4823@amd>
- <57230DE7.3020701@xs4all.nl>
- <20160429075649.GG32125@valkosipuli.retiisi.org.uk>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: AM335x ICE board Linux support
+Date: Fri, 29 Apr 2016 13:08:50 +0300
+Message-ID: <572332B2.6010203@ti.com>
+References: <571E069A.20700@ti.com> <571F2982.2080702@ti.com>
+ <20160426151046.GQ5995@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160429075649.GG32125@valkosipuli.retiisi.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, tuukkat76@gmail.com, mchehab@osg.samsung.com, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160426151046.GQ5995-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, "Anna, Suman" <s-anna-l0cyMroinI0@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+Hi Tony,
 
-> > > adp1653 registers itself as a subdev, but there's no device that
-> > > register it as its part.
-> > >=20
-> > > (ad5820 driver seems to have the same problem).
-> > >=20
-> > > Is there example "dummy" device I could use, for sole purpose of
-> > > having these devices appear in /dev? They are on i2c, so both can=
- work
-> > > on their own.
-> >=20
-> > Ah, interesting. This was discussed a little bit during the Media S=
-ummit
-> > a few weeks back:
-> >=20
-> > http://linuxtv.org/news.php?entry=3D2016-04-20.mchehab
-> >=20
-> > See section 5:
-> >=20
-> > "5. DT Bindings for flash & lens controllers
-> >=20
-> > There are drivers that create their MC topology using the device tr=
-ee information,
-> > which works great for entities that transport data, but how to dete=
-ct entities
-> > that don=E2=80=99t transport data such as flash devices, focusers, =
-etc.? How can those be
-> > deduced using the device tree?
-> >=20
-> > Sensor DT node add phandle to focus controller: add generic v4l bin=
-ding properties
-> > to reference such devices."
-> >=20
-> > This wasn't a problem with the original N900 since that didn't use =
-DT AFAIK and
-> > these devices were loaded explicitly through board code.
+On 26/04/16 18:10, Tony Lindgren wrote:
+> * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [160426 01:42]:
+>> On 25/04/16 14:59, Roger Quadros wrote:
+>>> We are working on getting Linux on AM335X Industrial Communication Engine board (ICE) [1].
+>>>
+>>> This board has 2 Ethernet ports and each of them can be used either in RMII mode connected to
+>>> the CPSW Ethernet MAC *or* in MII mode connected to the PRU Ethernet MAC.
+>>>
+>>> The decision about the Ethernet port's mode is made by the user by setting a jumper near the
+>>> Ethernet port before power up. This is a boot time configurable setting and doesn't need to
+>>> change at runtime.
+>>>
+>>> So 4 configurations are possible:
+>>>     ETH0	ETH1
+>>>     ----	----
+>>>     RMII	RMII
+>>>     RMII	MII
+>>>     MII		RMII	(probably redundant and not needed)
+>>>     MII		MII
+>>>
+>>> Based on the port configuration, software (u-boot or Linux) needs to set the right pinmux,
+>>> set a GPIOs (that controls external Mux), configure an external clock generator
+>>> and enable the right device driver for the respective Ethernet port.
+> 
+> Ideally this would be runtime detected..
+> 
+>>> Clock generator needs to be configured because different clock rates are required
+>>> for RMII vs MII mode.
+>>>
+>>> Now question is how all this can be done on u-boot + Linux?
+>>>
+>>> I already have a working solution where I create different DT blobs for the 3 configurations
+>>> and have u-boot detect the mode and load the correct DT blob and also configure the clock.
+> 
+> If u-boot can detect the mode, can kernel also detect the mode?
+> 
+> You can have multiple named pinctrl states no problem that you
+> could select from based on the detection. Not sure if that solves
+> all the configuration issues though.
+> 
+>>> You can see how the kernel patches look like here [2]
+>>>
+>>> Is this approach acceptable? If not is there any better way to do this? Thanks.
+> 
+> I guess for now if no runtime detection is possible in the kernel.
 
-> > But now you run into the same problem that I have.
+There are 2 ways to detect them mode
+1) Enabe GPIO rising edge detect interrupt and reset the Ethernet PHY
+2) read a PHY register over MDIO bus
 
-Actually... being able to do board-code solution for testing for now
-would be nice...
+I'm not very sure where this can be done in the kernel.
 
-> >=20
-> > The solution is that sensor devices have to provide phandles to tho=
-se controller
-> > devices. And to do that you need to define bindings which is always=
- the hard part.
-> >=20
-> > Look in Documentation/devicetree/bindings/media/video-interfaces.tx=
-t, section
-> > "Optional endpoint properties".
-> >=20
-> > Something like:
-> >=20
-> > controllers: an array of phandles to controller devices associated =
-with this
-> > endpoint such as flash and lens controllers.
-> >=20
-> > Warning: I'm no DT expert, so this is just a first attempt.
-> >=20
-> > Platform drivers (omap3isp) will have to add these controller devic=
-es to the list
-> > of subdevs to load asynchronously.
->=20
-> I seem to have patches I haven't had time to push back then:
->=20
-> <URL:http://salottisipuli.retiisi.org.uk/cgi-bin/gitweb.cgi?p=3D~sail=
-us/linux.git;a=3Dshortlog;h=3Drefs/heads/leds-as3645a>
->
+Even if there is some place to do the detection, how do we go about reconfiguring the
+device tree?
 
-That gitweb is a bit confused about its own address, but I figured it
-out. Let me check...
+cheers,
+-roger
 
-pavel@amd:/data/l/linux-n900$ git fetch
-git://git.retiisi.org.uk/~sailus/linux.git leds-as3645a:leds-as3645a
-fatal: unable to connect to git.retiisi.org.uk:
-git.retiisi.org.uk: Name or service not known
-
-pavel@amd:/data/l/linux-n900$ git fetch
-git://salottisipuli.retiisi.org.uk/~sailus/linux.git
-leds-as3645a:leds-as3645a
-remote: Counting objects: 132, done.
-remote: Compressing objects: 100% (46/46), done.
-remote: Total 132 (delta 111), reused 107 (delta 86)
-Receiving objects: 100% (132/132), 22.80 KiB | 0 bytes/s, done.
-Resolving deltas: 100% (111/111), completed with 34 local objects.
-=46rom git://salottisipuli.retiisi.org.uk/~sailus/linux
- * [new branch]      leds-as3645a -> leds-as3645a
-=20
-
-> This seems to be mostly in line with what has been discussed in the m=
-eeting,
-> except that the patches add a device specific property. Please ignore=
- the
-> led patches in that tree for now (i.e. four patches on the top are th=
-e
-> relevant ones here).
->=20
-
-I'm currently trying to apply them to v4.6, but am getting rather ugly
-rejects :-(.
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
-/blog.html
+> 
+> Regards,
+> 
+> Tony
+> 
+>>> [1] AM3359 ICE board
+>>> http://www.ti.com/tool/tmdsice3359
+>>> http://processors.wiki.ti.com/index.php/AM335x_Industrial_Communication_Engine_%28ICE%29_EVM_HW_User_Guide
+>>
+>> There are 2 ICE board version. v1 and v2. The above wiki link is wrong.
+>> We are dealing with the v2 board below
+>> http://processors.wiki.ti.com/index.php/AM335x_Industrial_Communication_Engine_EVM_Rev2_1_HW_User_Guide
+>>>
+>>> [2] Device tree patches
+>>> https://github.com/rogerq/linux/commit/9a9cf6a15f779fddf91dba2370627aabf19aeff5
+>>> https://github.com/rogerq/linux/commit/c87e8fa5b14f156a91883fd506e9dd8f7ccf95cf
+>>> https://github.com/rogerq/linux/commit/d9cdd25e8c3878292d7f4180af8d3ac42b9645c4
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
