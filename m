@@ -1,13 +1,13 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] crypto: omap-sham: Use dma_request_chan() for requesting DMA channel
-Date: Fri, 29 Apr 2016 16:03:41 +0300
-Message-ID: <1461935021-28506-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH] media: omap3isp: Use dma_request_chan() to requesting DMA channel
+Date: Fri, 29 Apr 2016 16:04:45 +0300
+Message-ID: <1461935085-28561-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-crypto-owner@vger.kernel.org>
-Sender: linux-crypto-owner@vger.kernel.org
-To: herbert@gondor.apana.org.au, davem@davemloft.net
-Cc: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com, lokeshvutla@ti.com
+Return-path: <linux-media-owner@vger.kernel.org>
+Sender: linux-media-owner@vger.kernel.org
+To: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 With the new dma_request_chan() the client driver does not need to look for
@@ -16,90 +16,60 @@ By switching to the new API the driver can now support deferred probing
 against DMA.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-CC: Herbert Xu <herbert@gondor.apana.org.au>
-CC: David S. Miller <davem@davemloft.net>
-CC: Lokesh Vutla <lokeshvutla@ti.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/crypto/omap-sham.c | 25 ++++++++-----------------
- 1 file changed, 8 insertions(+), 17 deletions(-)
+ drivers/media/platform/omap3isp/isphist.c | 27 +++++++++------------------
+ 1 file changed, 9 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
-index 48adb2a0903e..6eefaa2fe58f 100644
---- a/drivers/crypto/omap-sham.c
-+++ b/drivers/crypto/omap-sham.c
-@@ -29,7 +29,6 @@
- #include <linux/scatterlist.h>
- #include <linux/dma-mapping.h>
+diff --git a/drivers/media/platform/omap3isp/isphist.c b/drivers/media/platform/omap3isp/isphist.c
+index 7138b043a4aa..e163e3d92517 100644
+--- a/drivers/media/platform/omap3isp/isphist.c
++++ b/drivers/media/platform/omap3isp/isphist.c
+@@ -18,7 +18,6 @@
+ #include <linux/delay.h>
+ #include <linux/device.h>
  #include <linux/dmaengine.h>
--#include <linux/omap-dma.h>
- #include <linux/pm_runtime.h>
- #include <linux/of.h>
- #include <linux/of_device.h>
-@@ -219,7 +218,6 @@ struct omap_sham_dev {
- 	int			irq;
- 	spinlock_t		lock;
- 	int			err;
--	unsigned int		dma;
- 	struct dma_chan		*dma_lch;
- 	struct tasklet_struct	done_task;
- 	u8			polling_mode;
-@@ -1842,7 +1840,6 @@ static int omap_sham_get_res_of(struct omap_sham_dev *dd,
- 		goto err;
- 	}
+-#include <linux/omap-dmaengine.h>
+ #include <linux/slab.h>
+ #include <linux/uaccess.h>
  
--	dd->dma = -1; /* Dummy value that's unused */
- 	dd->pdata = match->data;
+@@ -486,27 +485,19 @@ int omap3isp_hist_init(struct isp_device *isp)
+ 	hist->isp = isp;
  
- err:
-@@ -1884,15 +1881,6 @@ static int omap_sham_get_res_pdev(struct omap_sham_dev *dd,
- 		goto err;
- 	}
- 
--	/* Get the DMA */
--	r = platform_get_resource(pdev, IORESOURCE_DMA, 0);
--	if (!r) {
--		dev_err(dev, "no DMA resource info\n");
--		err = -ENODEV;
--		goto err;
--	}
--	dd->dma = r->start;
+ 	if (HIST_CONFIG_DMA) {
+-		struct platform_device *pdev = to_platform_device(isp->dev);
+-		struct resource *res;
+-		unsigned int sig = 0;
+-		dma_cap_mask_t mask;
 -
- 	/* Only OMAP2/3 can be non-DT */
- 	dd->pdata = &omap_sham_pdata_omap2;
- 
-@@ -1946,9 +1934,12 @@ static int omap_sham_probe(struct platform_device *pdev)
- 	dma_cap_zero(mask);
- 	dma_cap_set(DMA_SLAVE, mask);
- 
--	dd->dma_lch = dma_request_slave_channel_compat(mask, omap_dma_filter_fn,
--						       &dd->dma, dev, "rx");
--	if (!dd->dma_lch) {
-+	dd->dma_lch = dma_request_chan(dev, "rx");
-+	if (IS_ERR(dd->dma_lch)) {
-+		err = PTR_ERR(dd->dma_lch);
-+		if (err == -EPROBE_DEFER)
-+			goto data_err;
+-		dma_cap_zero(mask);
+-		dma_cap_set(DMA_SLAVE, mask);
+-
+-		res = platform_get_resource_byname(pdev, IORESOURCE_DMA,
+-						   "hist");
+-		if (res)
+-			sig = res->start;
+-
+-		hist->dma_ch = dma_request_slave_channel_compat(mask,
+-				omap_dma_filter_fn, &sig, isp->dev, "hist");
+-		if (!hist->dma_ch)
++		hist->dma_ch = dma_request_chan(isp->dev, "hist");
++		if (IS_ERR(hist->dma_ch)) {
++			ret = PTR_ERR(hist->dma_ch);
++			if (ret == -EPROBE_DEFER)
++				return ret;
 +
- 		dd->polling_mode = 1;
- 		dev_dbg(dev, "using polling mode instead of dma\n");
++			hist->dma_ch = NULL;
+ 			dev_warn(isp->dev,
+ 				 "hist: DMA channel request failed, using PIO\n");
+-		else
++		} else {
+ 			dev_dbg(isp->dev, "hist: using DMA channel %s\n",
+ 				dma_chan_name(hist->dma_ch));
++		}
  	}
-@@ -1995,7 +1986,7 @@ err_algs:
- 					&dd->pdata->algs_info[i].algs_list[j]);
- err_pm:
- 	pm_runtime_disable(dev);
--	if (dd->dma_lch)
-+	if (dd->polling_mode)
- 		dma_release_channel(dd->dma_lch);
- data_err:
- 	dev_err(dev, "initialization failed.\n");
-@@ -2021,7 +2012,7 @@ static int omap_sham_remove(struct platform_device *pdev)
- 	tasklet_kill(&dd->done_task);
- 	pm_runtime_disable(&pdev->dev);
  
--	if (dd->dma_lch)
-+	if (!dd->polling_mode)
- 		dma_release_channel(dd->dma_lch);
- 
- 	return 0;
+ 	hist->ops = &hist_ops;
 -- 
 2.8.1
