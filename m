@@ -1,83 +1,74 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: Nokia N900 retention mode in v4.6, camera buttons fun
-Date: Sun, 1 May 2016 17:48:56 +0200
-Message-ID: <20160501154855.GA24970@earth>
-References: <20160411093023.GC11814@amd>
- <20160411094130.GA5753@amd>
- <20160411211026.GH5995@atomide.com>
- <20160412121658.GA32486@amd>
- <20160412123013.GA12296@amd>
- <20160412163055.GP5995@atomide.com>
- <20160417175539.GA502@amd>
- <20160421130450.GQ29406@pali>
- <20160429200559.GA16598@earth>
- <20160501085236.GA14243@amd>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: camera application for testing (was Re: v4l subdevs without big
+ device)
+Date: Sun, 1 May 2016 21:21:31 +0200
+Message-ID: <20160501192131.GH14243@amd>
+References: <20160428084546.GA9957@amd>
+ <20160429071525.GA4823@amd>
+ <57230DE7.3020701@xs4all.nl>
+ <20160429221359.GA29297@amd>
+ <20160501140831.GH26360@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="G4iJoqBmSsgzjUCe"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160501085236.GA14243@amd>
+In-Reply-To: <20160501140831.GH26360@valkosipuli.retiisi.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Tony Lindgren <tony@atomide.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, tuukkat76@gmail.com, mchehab@osg.samsung.com, linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
 List-Id: linux-omap@vger.kernel.org
 
+Hi!
+> > 
+> > What is reasonable camera application for testing?
+> > 
+> > N900 looks like a low-end digital camera. I have now have the hardware
+> > working (can set focus to X cm using command line), but that's not
+> > going to be useful for taking photos.
+> 
+> I guess you already knew about omap3camd; it's proprietary but from purely
+> practical point of view it'd be an option to support taking photos on the
+> N900. That would not be extensible any way, the best possible functionality
+> is limited what the daemon implements.
+> 
+> I'm just mentioning the option of implementing wrapper for the omap3camd so
+> that it can work with upsteam APIs, I don't propose that however.
 
---G4iJoqBmSsgzjUCe
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I knew it existed, but I'd prefer not to touch proprietary code.
 
-Hi,
+> > In particular, who is going to do computation neccessary for
+> > autofocus, whitebalance and exposure/gain?
+> 
+> I think libv4l itself has algorithms to control at least some of these. It
+> relies on the image data so the CPU time consumption will be high.
+> 
+> AFAIR Laurent has also worked on implementing some algorithms that use the
+> histogram and some of the statistics. Add him to cc list.
 
-On Sun, May 01, 2016 at 10:52:36AM +0200, Pavel Machek wrote:
-> On Fri 2016-04-29 22:06:00, Sebastian Reichel wrote:
-> > On Thu, Apr 21, 2016 at 03:04:50PM +0200, Pali Roh=E1r wrote:
-> > > > CONFIG_HSI breaks power management completely, so power management
-> > > > with modem will be another topic. =20
-> > >=20
-> > > Sebastian, any idea why power management does not work for HSI?
-> >=20
-> > I wasn't aware, that pm_runtime_irq_safe() basically breaks runtime
-> > PM until Tony's fix for musb (even though it's logical when thinking
-> > about it). Currently omap-ssi and omap-ssi-port make use of
-> > pm_runtime_irq_safe().
-> >=20
-> > Since pm_runtime_get_sync/pm_runtime_put_sync is called from
-> > tasklets in omap-ssi (and omap-ssi-port) it cannot be simply
-> > removed. So fixing PM for the ssi controller requires reworking
-> > the driver in a non trivial way.
->=20
-> I see latest series, and it also talks about frequency scaling. But I
-> guess it is not going to fix this issue?
+Aha, good, let me know.
 
-No, this is independent of the runtime PM problems. I also worked
-on runtime PM/idling yesterday and pm_runtime_irq_safe is the main
-culprit for breaking it (not the only one, though). It's not yet
-finished though
+> > There's http://fcam.garage.maemo.org/gettingStarted.html that should
+> > work on maemo, but a) it is not in Debian, b) it has non-trivial
+> > dependencies and c) will be a lot of fun to get working...
+> > 
+> > (and d), will not be too useful, anyway, due to 1sec shutter lag:
+> 
+> I believe this will be shorter nowadays. I don't remember the exact
+> technical solution which the text below refers to but I'm pretty sure it'll
+> be better with the current upstream. API-wise, there's work to be done there
+> (to port FCAM to upsteram APIs) but it's a possibility.
 
--- Sebastian
+I took a look at fcam-dev in the meantime... and it does not look too
+bad. It is quite n900-specific -- it needs hardware support for
+histograms and sharpness maps -- but it should not be too hard to
+modify.
 
---G4iJoqBmSsgzjUCe
-Content-Type: application/pgp-signature; name="signature.asc"
+Relying on hardware support without having fallback software
+implementation feels wrong, but... it should actually be ok as I
+already have the hardware...
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJXJiVjAAoJENju1/PIO/qa5vEP/1IXm7Zk/jvOFiAupC5AfOJa
-3pXIadicgzj2WEiSt8W6sUM82JLRVYmOCxjvBHn5JufjwXPcHWCU0WmyQH2F7dLs
-rRIzy4ZgI83eB3s0oSyY3Q/EirSdVLaxDrJIQYG4mXwL2z3zo20SC26BLtKW0k6w
-VDvcu37xuVQbR8AOhiG/FjKicuTcA/hWwQQlqPzf8WjlHhDifPFt09EiSxPGd4aB
-7Q2+Kfy9ebxp2Mxo3A/nUmYQFKXLnxbXZ8+t2MsFLMhuq5micBVMJNLoFWi+sBKl
-nWV6URf89fAJrt+AfpBb5KiWUyOZqa0CW1wYFf25RA4BSQy5UsCMAFlEBt5Mp4D9
-5pgDuLIH8uzE25Z1cVR/6m6LzRf0si3jsmOx2A9R26LoF1BSUFuLuJhgj3XaxyXX
-EY9LZajY3oNFr7oufAwHBm8Gq2lx3yjEeMGgbrElBmxFoTPrAxvmej4vapeXXuZZ
-YP6FR89/RODofSB0vVK5hqrhLEEe2fMSV76oWFXitrlxLpbWOz+Gj5UTXoKvEXCG
-hZngNfxLQ93Tu94fMhKcWiVrbgSOLUKF+VCfzBjI33TpklQMjOtW/7qmmn+LqlgG
-ajmLzXmtdLmP3iXQJqBpKqUSWAwvfgib+1PYWqzqPSjZqdRB4rDV169Xma8Vl+kt
-14k5cHn3bBtr73fQpchY
-=eLV8
------END PGP SIGNATURE-----
-
---G4iJoqBmSsgzjUCe--
+(Is there accepted "upstream" for it?)
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
