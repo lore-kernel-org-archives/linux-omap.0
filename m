@@ -1,102 +1,60 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v7 02/14] usb: otg-fsm: Prevent build warning "VDBG" redefined
-Date: Mon, 2 May 2016 15:18:45 +0300
-Message-ID: <1462191537-10314-3-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v7 06/14] usb: gadget.h: Add OTG to gadget interface
+Date: Mon, 2 May 2016 15:18:49 +0300
+Message-ID: <1462191537-10314-7-git-send-email-rogerq@ti.com>
 References: <1462191537-10314-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1462191537-10314-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: peter.chen@freescale.com
-Cc: stern@rowland.harvard.edu, balbi@kernel.org, gregkh@linuxfoundation.org, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, yoshihiro.shimoda.uh@renesas.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1462191537-10314-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org
+Cc: stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-If usb/otg-fsm.h and usb/composite.h are included together
-then it results in the build warning [1].
+The OTG core will use struct otg_gadget_ops to
+start/stop the gadget controller.
 
-Prevent that by defining VDBG locally.
+The main purpose of this interface is to avoid directly
+calling usb_gadget_start/stop() from the OTG core as they
+wouldn't be defined in the built-in symbol table if
+CONFIG_USB_GADGET is m.
 
-Also get rid of MPC_LOC which doesn't seem to be used
-by anyone.
-
-[1] - warning fixed by this patch:
-
-In file included from drivers/usb/dwc3/core.h:33,
-   from drivers/usb/dwc3/ep0.c:33:
-   include/linux/usb/otg-fsm.h:30:1: warning: "VDBG" redefined
-   In file included from drivers/usb/dwc3/ep0.c:31:
-   include/linux/usb/composite.h:615:1: warning: this is the location
-   of the previous definition
-
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Reviewed-by: Peter Chen <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
 ---
- drivers/usb/common/usb-otg-fsm.c |  7 +++++++
- drivers/usb/phy/phy-fsl-usb.c    |  7 +++++++
- include/linux/usb/otg-fsm.h      | 15 ---------------
- 3 files changed, 14 insertions(+), 15 deletions(-)
+ include/linux/usb/gadget.h | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
-index 9059b7d..015cf41 100644
---- a/drivers/usb/common/usb-otg-fsm.c
-+++ b/drivers/usb/common/usb-otg-fsm.c
-@@ -30,6 +30,13 @@
- #include <linux/usb/otg.h>
- #include <linux/usb/otg-fsm.h>
+diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
+index 5d4e151..8c0ae64 100644
+--- a/include/linux/usb/gadget.h
++++ b/include/linux/usb/gadget.h
+@@ -1100,6 +1100,20 @@ struct usb_gadget_driver {
+ };
  
-+#ifdef VERBOSE
-+#define VDBG(fmt, args...) pr_debug("[%s]  " fmt , \
-+				 __func__, ## args)
-+#else
-+#define VDBG(stuff...)	do {} while (0)
-+#endif
+ 
++/*-------------------------------------------------------------------------*/
 +
- /* Change USB protocol when there is a protocol change */
- static int otg_set_protocol(struct otg_fsm *fsm, int protocol)
- {
-diff --git a/drivers/usb/phy/phy-fsl-usb.c b/drivers/usb/phy/phy-fsl-usb.c
-index 94eb292..dd8a1ad 100644
---- a/drivers/usb/phy/phy-fsl-usb.c
-+++ b/drivers/usb/phy/phy-fsl-usb.c
-@@ -44,6 +44,13 @@
++/**
++ * struct otg_gadget_ops - Interface between OTG core and gadget
++ *
++ * Provided by the gadget core to allow the OTG core to start/stop the gadget
++ *
++ * @start: function to start the gadget
++ * @stop: function to stop the gadget
++ */
++struct otg_gadget_ops {
++	int (*start)(struct usb_gadget *gadget);
++	int (*stop)(struct usb_gadget *gadget);
++};
  
- #include "phy-fsl-usb.h"
+ /*-------------------------------------------------------------------------*/
  
-+#ifdef VERBOSE
-+#define VDBG(fmt, args...) pr_debug("[%s]  " fmt , \
-+				 __func__, ## args)
-+#else
-+#define VDBG(stuff...)	do {} while (0)
-+#endif
-+
- #define DRIVER_VERSION "Rev. 1.55"
- #define DRIVER_AUTHOR "Jerry Huang/Li Yang"
- #define DRIVER_DESC "Freescale USB OTG Transceiver Driver"
-diff --git a/include/linux/usb/otg-fsm.h b/include/linux/usb/otg-fsm.h
-index 7a03505..a0a8f87 100644
---- a/include/linux/usb/otg-fsm.h
-+++ b/include/linux/usb/otg-fsm.h
-@@ -21,21 +21,6 @@
- #include <linux/mutex.h>
- #include <linux/errno.h>
- 
--#undef VERBOSE
--
--#ifdef VERBOSE
--#define VDBG(fmt, args...) pr_debug("[%s]  " fmt , \
--				 __func__, ## args)
--#else
--#define VDBG(stuff...)	do {} while (0)
--#endif
--
--#ifdef VERBOSE
--#define MPC_LOC printk("Current Location [%s]:[%d]\n", __FILE__, __LINE__)
--#else
--#define MPC_LOC do {} while (0)
--#endif
--
- #define PROTO_UNDEF	(0)
- #define PROTO_HOST	(1)
- #define PROTO_GADGET	(2)
 -- 
 2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
