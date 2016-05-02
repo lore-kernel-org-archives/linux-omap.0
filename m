@@ -1,49 +1,28 @@
-From: Niklas Cassel <niklas.cassel@axis.com>
-Subject: [PATCH] PCI: dra7xx: program outbound atu with correct address
-Date: Mon, 2 May 2016 16:54:40 +0200
-Message-ID: <1462200880-30129-1-git-send-email-niklass@axis.com>
+From: "J.D. Schroeder" <Linux.HWI@garmin.com>
+Subject: [PATCH v2 0/3] AM57/DRA7 Clock Tree DTSI Fix-ups
+Date: Mon, 2 May 2016 12:12:00 -0500
+Message-ID: <1462209123-7332-1-git-send-email-Linux.HWI@garmin.com>
+References: <20160427171658.GA5995@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: kishon@ti.com, bhelgaas@google.com, jszhang@marvell.com
-Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Niklas Cassel <niklass@axis.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160427171658.GA5995@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, t-kristo@ti.com, bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: jay.schroeder@garmin.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Niklas Cassel <niklas.cassel@axis.com>
+This series of patches fixes several discrepancies between the
+AM57/DRA7 clock tree description and the actual hardware behavior and
+frequencies. With these changes a more complete picture of the clock
+tree is represented for a few of the clocks and their resulting
+frequencies.
 
-commit 1488aefa37a4 ("PCI: designware: Move Root Complex
-setup code to dw_pcie_setup_rc()") broke dra7xx
-by moving code from dw_pcie_host_init to dw_pcie_setup_rc.
-
-Fix this by doing the cpu to bus calculation before calling
-dw_pcie_setup_rc.
-
-Fixes: 1488aefa37a4 ("PCI: designware: Move Root Complex setup code to dw_pcie_setup_rc()")
-Signed-off-by: Niklas Cassel <niklas.cassel@axis.com>
----
- drivers/pci/host/pci-dra7xx.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-index 2ca3a1f..f441130 100644
---- a/drivers/pci/host/pci-dra7xx.c
-+++ b/drivers/pci/host/pci-dra7xx.c
-@@ -142,13 +142,13 @@ static void dra7xx_pcie_enable_interrupts(struct pcie_port *pp)
- 
- static void dra7xx_pcie_host_init(struct pcie_port *pp)
- {
--	dw_pcie_setup_rc(pp);
--
- 	pp->io_base &= DRA7XX_CPU_TO_BUS_ADDR;
- 	pp->mem_base &= DRA7XX_CPU_TO_BUS_ADDR;
- 	pp->cfg0_base &= DRA7XX_CPU_TO_BUS_ADDR;
- 	pp->cfg1_base &= DRA7XX_CPU_TO_BUS_ADDR;
- 
-+	dw_pcie_setup_rc(pp);
-+
- 	dra7xx_pcie_establish_link(pp);
- 	if (IS_ENABLED(CONFIG_PCI_MSI))
- 		dw_pcie_msi_init(pp);
--- 
-2.1.4
+v2 Changes:
+* Rebased on linux-next as requested by Tony Lindgren
+* Eliminated previous patch 2 as another change fixing the same thing
+  was merged in eea08802f586acd6aef377d1b4a541821013cc0b
+* Added to the commit message in patch 2 to clarify the source of the
+  clock being internal to the processor
+* Added a new patch 3 to fix a new warning introduced by
+  eea08802f586acd6aef377d1b4a541821013cc0b
