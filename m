@@ -1,201 +1,235 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Applied "spi: davinci: Use dma_request_chan() for requesting DMA channel" to the spi tree
-Date: Mon, 02 May 2016 12:04:04 +0100
-Message-ID: <E1axBe0-0001mJ-5g@debutante>
-References: <1448891145-10766-12-git-send-email-peter.ujfalusi@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1448891145-10766-12-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Mark Brown <broonie@kernel.org>, vinod.koul@intel.com, arnd@arndb.de, andy.shevchenko@gmail.com, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, nsekhar@ti.com, linux-spi@vger.kernel.org
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v7 00/14] USB OTG/dual-role framework
+Date: Mon, 2 May 2016 15:18:43 +0300
+Message-ID: <1462191537-10314-1-git-send-email-rogerq@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org
+Cc: stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The patch
+Hi,
 
-   spi: davinci: Use dma_request_chan() for requesting DMA channel
+This series centralizes OTG/Dual-role functionality in the kernel.
+As of now I've got Dual-role functionality working pretty reliably on
+dra7-evm and am437x-gp-evm.
 
-has been applied to the spi tree at
+DWC3 controller and platform related patches will be sent separately.
 
-   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/spi.git 
+Series is based on v4.6-rc1 and depends on first 2 patches of [1]
+[1] - OTG fsm cleanup - https://lkml.org/lkml/2016/3/30/186
 
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.  
+Why?:
+----
 
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
+Currently there is no central location where OTG/dual-role functionality is
+implemented in the Linux USB stack and every USB controller driver is
+doing their own thing for OTG/dual-role. We can benefit from code-reuse
+and simplicity by adding the OTG/dual-role core driver.
 
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
+Newer OTG cores support standard host interface (e.g. xHCI) so
+host and gadget functionality are no longer closely knit like older
+cores. There needs to be a way to co-ordinate the operation of the
+host and gadget controllers in dual-role mode. i.e. to stop and start them
+from a central location. This central location should be the
+USB OTG/dual-role core.
 
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
+Host and gadget controllers might be sharing resources and can't
+be always running. One has to be stopped for the other to run.
+This couldn't be done till now but can be done from the OTG core.
 
-Thanks,
-Mark
+What?:
+-----
 
->From fe5fd2540947a6c584e70f1249007dd636e62d78 Mon Sep 17 00:00:00 2001
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Date: Fri, 29 Apr 2016 16:10:22 +0300
-Subject: [PATCH] spi: davinci: Use dma_request_chan() for requesting DMA
- channel
+The OTG/dual-role core consists of a set of APIs that allow
+registration of OTG controller device and OTG capable host and gadget
+controllers.
 
-With the new dma_request_chan() the client driver does not need to look for
-the DMA resource and it does not need to pass filter_fn anymore.
-By switching to the new API the driver can now support deferred probing
-against DMA.
+- The OTG controller driver can provide the OTG capabilities and the
+Finite State Machine work function via 'struct usb_otg_config'
+at the time of registration i.e. usb_otg_register();
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Mark Brown <broonie@kernel.org>
----
- drivers/spi/spi-davinci.c | 76 +++++++++++++++--------------------------------
- 1 file changed, 24 insertions(+), 52 deletions(-)
+	struct usb_otg *usb_otg_register(struct device *dev,
+        	                         struct usb_otg_config *config);
+	int usb_otg_unregister(struct device *dev);
+	/**
+	 * struct usb_otg_config - otg controller configuration
+	 * @caps: otg capabilities of the controller
+	 * @ops: otg fsm operations
+	 * @otg_work: optional custom otg state machine work function
+	 */
+	struct usb_otg_config {
+	        struct usb_otg_caps *otg_caps;
+	        struct otg_fsm_ops *fsm_ops;
+	        void (*otg_work)(struct work_struct *work);
+	};
 
-diff --git a/drivers/spi/spi-davinci.c b/drivers/spi/spi-davinci.c
-index fddb7a3be322..d36c11b73a35 100644
---- a/drivers/spi/spi-davinci.c
-+++ b/drivers/spi/spi-davinci.c
-@@ -23,7 +23,6 @@
- #include <linux/clk.h>
- #include <linux/dmaengine.h>
- #include <linux/dma-mapping.h>
--#include <linux/edma.h>
- #include <linux/of.h>
- #include <linux/of_device.h>
- #include <linux/of_gpio.h>
-@@ -33,8 +32,6 @@
- 
- #include <linux/platform_data/spi-davinci.h>
- 
--#define SPI_NO_RESOURCE		((resource_size_t)-1)
--
- #define CS_DEFAULT	0xFF
- 
- #define SPIFMT_PHASE_MASK	BIT(16)
-@@ -130,8 +127,6 @@ struct davinci_spi {
- 
- 	struct dma_chan		*dma_rx;
- 	struct dma_chan		*dma_tx;
--	int			dma_rx_chnum;
--	int			dma_tx_chnum;
- 
- 	struct davinci_spi_platform_data pdata;
- 
-@@ -797,35 +792,19 @@ static irqreturn_t davinci_spi_irq(s32 irq, void *data)
- 
- static int davinci_spi_request_dma(struct davinci_spi *dspi)
- {
--	dma_cap_mask_t mask;
- 	struct device *sdev = dspi->bitbang.master->dev.parent;
--	int r;
--
--	dma_cap_zero(mask);
--	dma_cap_set(DMA_SLAVE, mask);
- 
--	dspi->dma_rx = dma_request_channel(mask, edma_filter_fn,
--					   &dspi->dma_rx_chnum);
--	if (!dspi->dma_rx) {
--		dev_err(sdev, "request RX DMA channel failed\n");
--		r = -ENODEV;
--		goto rx_dma_failed;
--	}
-+	dspi->dma_rx = dma_request_chan(sdev, "rx");
-+	if (IS_ERR(dspi->dma_rx))
-+		return PTR_ERR(dspi->dma_rx);
- 
--	dspi->dma_tx = dma_request_channel(mask, edma_filter_fn,
--					   &dspi->dma_tx_chnum);
--	if (!dspi->dma_tx) {
--		dev_err(sdev, "request TX DMA channel failed\n");
--		r = -ENODEV;
--		goto tx_dma_failed;
-+	dspi->dma_tx = dma_request_chan(sdev, "tx");
-+	if (IS_ERR(dspi->dma_tx)) {
-+		dma_release_channel(dspi->dma_rx);
-+		return PTR_ERR(dspi->dma_tx);
- 	}
- 
- 	return 0;
--
--tx_dma_failed:
--	dma_release_channel(dspi->dma_rx);
--rx_dma_failed:
--	return r;
- }
- 
- #if defined(CONFIG_OF)
-@@ -936,8 +915,6 @@ static int davinci_spi_probe(struct platform_device *pdev)
- 	struct davinci_spi *dspi;
- 	struct davinci_spi_platform_data *pdata;
- 	struct resource *r;
--	resource_size_t dma_rx_chan = SPI_NO_RESOURCE;
--	resource_size_t	dma_tx_chan = SPI_NO_RESOURCE;
- 	int ret = 0;
- 	u32 spipc0;
- 
-@@ -1044,27 +1021,15 @@ static int davinci_spi_probe(struct platform_device *pdev)
- 		}
- 	}
- 
--	r = platform_get_resource(pdev, IORESOURCE_DMA, 0);
--	if (r)
--		dma_rx_chan = r->start;
--	r = platform_get_resource(pdev, IORESOURCE_DMA, 1);
--	if (r)
--		dma_tx_chan = r->start;
--
- 	dspi->bitbang.txrx_bufs = davinci_spi_bufs;
--	if (dma_rx_chan != SPI_NO_RESOURCE &&
--	    dma_tx_chan != SPI_NO_RESOURCE) {
--		dspi->dma_rx_chnum = dma_rx_chan;
--		dspi->dma_tx_chnum = dma_tx_chan;
--
--		ret = davinci_spi_request_dma(dspi);
--		if (ret)
--			goto free_clk;
--
--		dev_info(&pdev->dev, "DMA: supported\n");
--		dev_info(&pdev->dev, "DMA: RX channel: %pa, TX channel: %pa, event queue: %d\n",
--				&dma_rx_chan, &dma_tx_chan,
--				pdata->dma_event_q);
-+
-+	ret = davinci_spi_request_dma(dspi);
-+	if (ret == -EPROBE_DEFER) {
-+		goto free_clk;
-+	} else if (ret) {
-+		dev_info(&pdev->dev, "DMA is not supported (%d)\n", ret);
-+		dspi->dma_rx = NULL;
-+		dspi->dma_tx = NULL;
- 	}
- 
- 	dspi->get_rx = davinci_spi_rx_buf_u8;
-@@ -1102,8 +1067,10 @@ static int davinci_spi_probe(struct platform_device *pdev)
- 	return ret;
- 
- free_dma:
--	dma_release_channel(dspi->dma_rx);
--	dma_release_channel(dspi->dma_tx);
-+	if (dspi->dma_rx) {
-+		dma_release_channel(dspi->dma_rx);
-+		dma_release_channel(dspi->dma_tx);
-+	}
- free_clk:
- 	clk_disable_unprepare(dspi->clk);
- free_master:
-@@ -1134,6 +1101,11 @@ static int davinci_spi_remove(struct platform_device *pdev)
- 	clk_disable_unprepare(dspi->clk);
- 	spi_master_put(master);
- 
-+	if (dspi->dma_rx) {
-+		dma_release_channel(dspi->dma_rx);
-+		dma_release_channel(dspi->dma_tx);
-+	}
-+
- 	return 0;
- }
- 
+The dual-role state machine is built-into the OTG core so nothing
+special needs to be provided if only dual-role functionality is desired.
+The low level OTG controller driver ops are povided via
+'struct otg_fsm_ops *fsm_ops' in the 'struct usb_otg_config'.
+
+After registration, the OTG core waits for host, gadget controller
+and the gadget function driver to be registered. Once all resources are
+available it instantiates the Finite State Machine (FSM).
+The host/gadget controllers are started/stopped according to the FSM.
+
+- Host and gadget controllers that are a part of OTG/dual-role port must
+use the OTG core provided APIs to add/remove the host/gadget.
+i.e. hosts must use usb_otg_add_hcd() usb_otg_remove_hcd(),,
+gadgets must use usb_otg_add_gadget_udc() usb_del_gadget_udc().
+This ensures that the host and gadget controllers are not started till
+the state machine is ready and the right bus conditions are met.
+It also allows the host and gadget controllers to provide the OTG
+controller device to link them together. For Device tree boots
+the related OTG controller is automatically picked up via the
+'otg-controller' property in the Host/Gadget controller nodes.
+
+	int usb_otg_add_hcd(struct usb_hcd *hcd,
+			    unsigned int irqnum, unsigned long irqflags,
+			    struct device *otg_dev);
+	void usb_otg_remove_hcd(struct usb_hcd *hcd);
+
+	int usb_otg_add_gadget_udc(struct device *parent,
+				   struct usb_gadget *gadget,
+				   struct device *otg_dev);
+	usb_del_gadget_udc() must be used for removal.
+
+
+- During the lifetime of the FSM, the OTG controller driver can provide
+inputs event changes using usb_otg_sync_inputs(). The OTG core will
+then schedule the FSM work function (or internal dual-role state machine)
+to update the FSM state. The FSM then calls the OTG controller
+operations (fsm_ops) as necessary.
+	void usb_otg_sync_inputs(struct usb_otg *otg);
+
+- The following 2 functions are provided as helpers for use by the
+OTG controller driver to start/stop the host/gadget controllers.
+	int usb_otg_start_host(struct usb_otg *otg, int on);
+	int usb_otg_start_gadget(struct usb_otg *otg, int on);
+
+- The following function is provided for use by the USB host stack
+to sync OTG related events to the OTG state machine.
+e.g. change in host_bus->b_hnp_enable, gadget->b_hnp_enable
+	int usb_otg_kick_fsm(struct device *otg_device);
+
+Changelog:
+---------
+v7:
+- added dual-role support for host controllers requiring a companion
+controller. e.g. EHCI + OHCI.
+- added of_usb_get_otg() to get the OTG controller device
+from the USB controller's device node.
+- addressed review comments.
+
+v6:
+- added otg specific APIs for host/gadget registration. behaviour of
+original host/gadget API remains unchanged. Platform devices can now
+pass the otg device explicitly while registering host/gadget.
+- moved hcd specific operations from struct otg_fsm to struct hcd_ops.
+- made struct usb_otg mandatory for all otg related APIs.
+- allow otg controller to provide it's own otg_work function so that
+it can implement it's own state machine.
+- removed otg fsm and timers from usb-otg.c. Only dual-role state machine
+is implemented.
+- vbus is controlled in the dual-role state machine.
+- PM runtime is used around drd_statemachine().
+- added otg_dev to xhci platform data to allow platform code to specify
+the otg controller tied to the xhci host controller.
+
+v5: Internal version. Not sent to mailing list
+
+v4:
+- Added DT support for tying otg-controller to host and gadget
+ controllers. For DT we no longer have the constraint that
+ OTG controller needs to be parent of host and gadget. They can be
+ tied together using the "otg-controller" property.
+- Relax the requirement for DT case that otg controller must register
+ before host/gadget. We maintain a wait list of host/gadget devices
+ waiting on the otg controller.
+- Use a single struct usb_otg for otg data.
+- Don't override host/gadget start/stop APIs. Let the controller
+ drivers do what they want as they know best. Helper API is provided
+ for controller start/stop that controller driver can use.
+- Introduce struct usb_otg_config to pass the otg capabilities,
+ otg ops and otg timer timeouts during otg controller registration.
+- rebased on Greg's usb.git/usb-next
+
+v3:
+- all otg related definations now in otg.h
+- single kernel config USB_OTG to enable OTG core and FSM.
+- resolved symbol dependency issues.
+- use dev_vdbg instead of VDBG() in usb-otg-fsm.c
+- rebased on v4.2-rc1
+
+v2:
+- Use add/remove_hcd() instead of start/stop_hcd() to enable/disable
+ the host controller
+- added dual-role-device (DRD) state machine which is a much simpler
+ mode of operation when compared to OTG. Here we don't support fancy
+ OTG features like HNP, SRP, on the fly role-swap. The mode of operation
+ is determined based on ID pin (cable type) and the role doesn't change
+ till the cable type changes.
+
+--
+cheers,
+-roger
+
+Roger Quadros (13):
+  usb: hcd: Initialize hcd->flags to 0
+  usb: otg-fsm: Prevent build warning "VDBG" redefined
+  usb: hcd.h: Add OTG to HCD interface
+  usb: otg-fsm: use usb_otg wherever possible
+  usb: otg-fsm: move host controller operations into usb_otg->hcd_ops
+  usb: gadget.h: Add OTG to gadget interface
+  usb: otg: get rid of CONFIG_USB_OTG_FSM in favour of CONFIG_USB_OTG
+  usb: otg: add OTG/dual-role core
+  usb: of: add an API to get OTG device from USB controller node
+  usb: otg: use dev_dbg() instead of VDBG()
+  usb: hcd: Adapt to OTG core
+  usb: gadget: udc: adapt to OTG core
+  usb: host: xhci-plat: Add otg device to platform data
+
+Yoshihiro Shimoda (1):
+  usb: otg: add hcd companion support
+
+ Documentation/devicetree/bindings/usb/generic.txt  |    6 +
+ Documentation/usb/chipidea.txt                     |    2 +-
+ drivers/usb/chipidea/Makefile                      |    2 +-
+ drivers/usb/chipidea/ci.h                          |    3 +-
+ drivers/usb/chipidea/core.c                        |   14 +-
+ drivers/usb/chipidea/debug.c                       |    2 +-
+ drivers/usb/chipidea/otg_fsm.c                     |  176 ++--
+ drivers/usb/chipidea/otg_fsm.h                     |    2 +-
+ drivers/usb/chipidea/udc.c                         |   17 +-
+ drivers/usb/common/Makefile                        |    3 +-
+ drivers/usb/common/common.c                        |   27 +
+ drivers/usb/common/usb-otg-fsm.c                   |  203 ++--
+ drivers/usb/common/usb-otg.c                       | 1054 ++++++++++++++++++++
+ .../usb/{chipidea/otg_fsm.h => common/usb-otg.h}   |   61 +-
+ drivers/usb/core/Kconfig                           |   10 +-
+ drivers/usb/core/hcd.c                             |   56 ++
+ drivers/usb/gadget/udc/udc-core.c                  |  161 ++-
+ drivers/usb/host/xhci-plat.c                       |   35 +-
+ drivers/usb/phy/Kconfig                            |    2 +-
+ drivers/usb/phy/phy-fsl-usb.c                      |  155 +--
+ drivers/usb/phy/phy-fsl-usb.h                      |    3 +-
+ include/linux/usb/gadget.h                         |   20 +
+ include/linux/usb/hcd.h                            |   29 +
+ include/linux/usb/of.h                             |    9 +
+ include/linux/usb/otg-fsm.h                        |  154 +--
+ include/linux/usb/otg.h                            |  264 ++++-
+ include/linux/usb/xhci_pdriver.h                   |    3 +
+ 27 files changed, 1989 insertions(+), 484 deletions(-)
+ create mode 100644 drivers/usb/common/usb-otg.c
+ copy drivers/usb/{chipidea/otg_fsm.h => common/usb-otg.h} (63%)
+
 -- 
-2.8.1
+2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
