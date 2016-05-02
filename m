@@ -1,72 +1,87 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: Nokia N900 retention mode in v4.6, camera buttons fun
-Date: Mon, 2 May 2016 22:12:17 +0200
-Message-ID: <20160502201216.GA19211@earth>
-References: <20160411094130.GA5753@amd>
- <20160411211026.GH5995@atomide.com>
- <20160412121658.GA32486@amd>
- <20160412123013.GA12296@amd>
- <20160412163055.GP5995@atomide.com>
- <20160417175539.GA502@amd>
- <20160421130450.GQ29406@pali>
- <20160429200559.GA16598@earth>
- <20160501085236.GA14243@amd>
- <20160501154855.GA24970@earth>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] PCI: dra7xx: program outbound atu with correct address
+Date: Mon, 2 May 2016 16:09:33 -0500
+Message-ID: <20160502210933.GM24851@localhost>
+References: <1462200880-30129-1-git-send-email-niklass@axis.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="k+w/mQv8wyuph6w0"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160501154855.GA24970@earth>
+In-Reply-To: <1462200880-30129-1-git-send-email-niklass@axis.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Tony Lindgren <tony@atomide.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Niklas Cassel <niklas.cassel@axis.com>
+Cc: kishon@ti.com, bhelgaas@google.com, jszhang@marvell.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Niklas Cassel <niklass@axis.com>
 List-Id: linux-omap@vger.kernel.org
 
+On Mon, May 02, 2016 at 04:54:40PM +0200, Niklas Cassel wrote:
+> From: Niklas Cassel <niklas.cassel@axis.com>
+> 
+> commit 1488aefa37a4 ("PCI: designware: Move Root Complex
+> setup code to dw_pcie_setup_rc()") broke dra7xx
+> by moving code from dw_pcie_host_init to dw_pcie_setup_rc.
+> 
+> Fix this by doing the cpu to bus calculation before calling
+> dw_pcie_setup_rc.
+> 
+> Fixes: 1488aefa37a4 ("PCI: designware: Move Root Complex setup code to dw_pcie_setup_rc()")
+> Signed-off-by: Niklas Cassel <niklas.cassel@axis.com>
+> ---
+>  drivers/pci/host/pci-dra7xx.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
+> index 2ca3a1f..f441130 100644
+> --- a/drivers/pci/host/pci-dra7xx.c
+> +++ b/drivers/pci/host/pci-dra7xx.c
+> @@ -142,13 +142,13 @@ static void dra7xx_pcie_enable_interrupts(struct pcie_port *pp)
+>  
+>  static void dra7xx_pcie_host_init(struct pcie_port *pp)
+>  {
+> -	dw_pcie_setup_rc(pp);
+> -
+>  	pp->io_base &= DRA7XX_CPU_TO_BUS_ADDR;
+>  	pp->mem_base &= DRA7XX_CPU_TO_BUS_ADDR;
+>  	pp->cfg0_base &= DRA7XX_CPU_TO_BUS_ADDR;
+>  	pp->cfg1_base &= DRA7XX_CPU_TO_BUS_ADDR;
+>  
+> +	dw_pcie_setup_rc(pp);
 
---k+w/mQv8wyuph6w0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This looks correct to me.  Prior to 1488aefa37a4, we had this path,
+which applied the dra7xx mem_base adjustment before programming the
+outbound ATU:
 
-Hi Pavel,
+  dra7xx_add_pcie_port
+    dw_pcie_host_init
+      pp->mem_base = pp->mem->start                 # <-- set pp->mem_base
+      ops->host_init
+      dra7xx_pcie_host_init                         # .host_init
+        dw_pcie_setup_rc
+        pp->mem_base &= DRA7XX_CPU_TO_BUS_ADDR      # <-- update pp->mem_base
+      dw_pcie_prog_outbound_atu(pp->mem_base)       # <-- use pp->mem_base
 
-On Sun, May 01, 2016 at 05:48:56PM +0200, Sebastian Reichel wrote:
-> > I see latest series, and it also talks about frequency scaling.
-> > But I guess it is not going to fix this issue?
->=20
-> No, this is independent of the runtime PM problems. I also worked
-> on runtime PM/idling yesterday and pm_runtime_irq_safe is the main
-> culprit for breaking it (not the only one, though). It's not yet
-> finished though
+After 1488aefa37a4, we have this:
 
-I will be on vacation for a week starting tomorrow. If you want to
-play around with my intermediate SSI PM status, you can try this branch:
+  dra7xx_add_pcie_port
+    dw_pcie_host_init
+      pp->mem_base = pp->mem->start                 # <-- set pp->mem_base
+      ops->host_init
+      dra7xx_pcie_host_init                         # .host_init
+        dw_pcie_setup_rc
+          dw_pcie_prog_outbound_atu(pp->mem_base)   # <-- use pp->mem_base
+        pp->mem_base &= DRA7XX_CPU_TO_BUS_ADDR      # <-- update pp->mem_base
 
-https://git.kernel.org/cgit/linux/kernel/git/sre/linux-hsi.git/log/?h=3Drun=
-time-pm-fixes
+So the dra7xx update is applied after we've already used it.
 
--- Sebastian
+If you agree, Kishon, I'll fold Niklas's fix into Jisheng's patch so
+there's no bisection hole for dra7xx.
 
---k+w/mQv8wyuph6w0
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJXJ7ScAAoJENju1/PIO/qadf0P/0hQkJoA90n1GtSkE1n4B4Gm
-VPMCtOZ3n0tC0t0v6Oc7g6xfAxQ9GBzyl2ubCR1meDztIC6bgvdXsFWI+g6TwUSR
-L6Ju7Zmtgy9G7hR6QMtugyUDQFs8Qf94IAyZIKz0G/Zk5kTPtNDF3vCBx/5z+aIq
-b6B4n5g/WYTqlk5+pAG1UhBaUqBWgYbUA11x6ObtRpX5/BxBuxkOypD1bv33bAr2
-ZgajDOdY9KarTbVxlGygRl+iAM2qh5cSWLCfsbOnrbnRueEMDGdZnl0i5kf4cCPw
-e00Og8lbc5CdaCL9tda38CerJpclnv36kGAS4SHgh1D9CpFh4EP4TQu/P4EKomaH
-eYiJDKcOxU4BiE9laqs/P9+HGKgFlgZ9QJ8BJT/qFo2sRTD7CpPuJJkGaD7+wcsu
-pQchkrSuPQQHfCOwZb8gOWapE6PLuZMvtEVyktac3WLVulObOzFYsMgK2kZ7qCWr
-TflyTdSeIEG902fiHQo9N3pKb4VqES3iWWm7uRyIqQq+ZPEiQX7AbASVhaLR+W7D
-TVPHOPSg88XYFewqaVEtw929MfAeV0H2w54ailOwe8wrqSK7lPdx3f1sv4Kbv1oI
-iwJ839EZHhZVQtR4xVoO7Fbi93KmgXDkOBQakUdaee3tTA4j8vPjx3P9hV9980Sk
-jt2orxd3ct+GXqLhCVKY
-=xye5
------END PGP SIGNATURE-----
-
---k+w/mQv8wyuph6w0--
+>  	dra7xx_pcie_establish_link(pp);
+>  	if (IS_ENABLED(CONFIG_PCI_MSI))
+>  		dw_pcie_msi_init(pp);
+> -- 
+> 2.1.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
