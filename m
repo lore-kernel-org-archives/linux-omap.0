@@ -1,118 +1,109 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v7 12/14] usb: hcd: Adapt to OTG core
-Date: Mon, 2 May 2016 15:18:55 +0300
-Message-ID: <1462191537-10314-13-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v7 07/14] usb: otg: get rid of CONFIG_USB_OTG_FSM in favour of CONFIG_USB_OTG
+Date: Mon, 2 May 2016 15:18:50 +0300
+Message-ID: <1462191537-10314-8-git-send-email-rogerq@ti.com>
 References: <1462191537-10314-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1462191537-10314-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: peter.chen@freescale.com
-Cc: stern@rowland.harvard.edu, balbi@kernel.org, gregkh@linuxfoundation.org, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, yoshihiro.shimoda.uh@renesas.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1462191537-10314-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org
+Cc: stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Introduce usb_otg_add/remove_hcd() for use by host
-controllers that are part of OTG/dual-role port.
+Let's use CONFIG_USB_OTG as a single config option to enable
+USB OTG and the OTG FSM. This makes things a lot less confusing.
 
-Non Device tree platforms can use the otg_dev argument
-to specify the OTG controller device. If otg_dev is NULL
-then the device tree node's otg-controller property is used to
-get the otg_dev device.
+Update all users of CONFIG_USB_OTG_FSM to CONFIG_USB_OTG.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/core/hcd.c  | 55 +++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/usb/hcd.h |  4 ++++
- 2 files changed, 59 insertions(+)
+ Documentation/usb/chipidea.txt | 2 +-
+ drivers/usb/chipidea/Makefile  | 2 +-
+ drivers/usb/chipidea/ci.h      | 2 +-
+ drivers/usb/chipidea/otg_fsm.h | 2 +-
+ drivers/usb/common/Makefile    | 3 ++-
+ drivers/usb/core/Kconfig       | 8 --------
+ drivers/usb/phy/Kconfig        | 2 +-
+ 7 files changed, 7 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
-index 9484539..cfc8232 100644
---- a/drivers/usb/core/hcd.c
-+++ b/drivers/usb/core/hcd.c
-@@ -46,6 +46,11 @@
- #include <linux/usb.h>
- #include <linux/usb/hcd.h>
- #include <linux/usb/phy.h>
-+#include <linux/usb/otg.h>
-+#include <linux/usb/of.h>
-+
-+#include <linux/of.h>
-+#include <linux/of_platform.h>
+diff --git a/Documentation/usb/chipidea.txt b/Documentation/usb/chipidea.txt
+index 678741b..3b1f263 100644
+--- a/Documentation/usb/chipidea.txt
++++ b/Documentation/usb/chipidea.txt
+@@ -5,7 +5,7 @@ with 2 Freescale i.MX6Q sabre SD boards.
  
- #include "usb.h"
+ 1.1 How to enable OTG FSM in menuconfig
+ ---------------------------------------
+-Select CONFIG_USB_OTG_FSM, rebuild kernel Image and modules.
++Select CONFIG_USB_OTG, rebuild kernel Image and modules.
+ If you want to check some internal variables for otg fsm,
+ mount debugfs, there are 2 files which can show otg fsm
+ variables and some controller registers value:
+diff --git a/drivers/usb/chipidea/Makefile b/drivers/usb/chipidea/Makefile
+index 518e445..45aa24d 100644
+--- a/drivers/usb/chipidea/Makefile
++++ b/drivers/usb/chipidea/Makefile
+@@ -3,7 +3,7 @@ obj-$(CONFIG_USB_CHIPIDEA)		+= ci_hdrc.o
+ ci_hdrc-y				:= core.o otg.o debug.o
+ ci_hdrc-$(CONFIG_USB_CHIPIDEA_UDC)	+= udc.o
+ ci_hdrc-$(CONFIG_USB_CHIPIDEA_HOST)	+= host.o
+-ci_hdrc-$(CONFIG_USB_OTG_FSM)		+= otg_fsm.o
++ci_hdrc-$(CONFIG_USB_OTG)		+= otg_fsm.o
  
-@@ -3013,6 +3018,56 @@ void usb_remove_hcd(struct usb_hcd *hcd)
- }
- EXPORT_SYMBOL_GPL(usb_remove_hcd);
+ # Glue/Bridge layers go here
  
-+static struct otg_hcd_ops otg_hcd_intf = {
-+	.add = usb_add_hcd,
-+	.remove = usb_remove_hcd,
-+	.usb_bus_start_enum = usb_bus_start_enum,
-+	.usb_control_msg = usb_control_msg,
-+	.usb_hub_find_child = usb_hub_find_child,
-+};
-+
-+/**
-+ * usb_otg_add_hcd - Register the HCD with OTG core.
-+ * @hcd: the usb_hcd structure to initialize
-+ * @irqnum: Interrupt line to allocate
-+ * @irqflags: Interrupt type flags
-+ * @otg_dev: OTG controller device managing this HCD
-+ *
-+ * Registers the HCD with OTG core. OTG core will call usb_add_hcd()
-+ * or usb_remove_hcd() as necessary.
-+ * If otg_dev is NULL then device tree node is checked for OTG
-+ * controller device via the otg-controller property.
-+ */
-+int usb_otg_add_hcd(struct usb_hcd *hcd,
-+		    unsigned int irqnum, unsigned long irqflags,
-+		    struct device *otg_dev)
-+{
-+	struct device *dev = hcd->self.controller;
-+
-+	if (!otg_dev) {
-+		hcd->otg_dev = of_usb_get_otg(dev->of_node);
-+		if (!hcd->otg_dev)
-+			return -ENODEV;
-+	} else {
-+		hcd->otg_dev = otg_dev;
-+	}
-+
-+	return usb_otg_register_hcd(hcd, irqnum, irqflags, &otg_hcd_intf);
-+}
-+EXPORT_SYMBOL_GPL(usb_otg_add_hcd);
-+
-+/**
-+ * usb_otg_remove_hcd - Unregister the HCD with OTG core.
-+ * @hcd: the usb_hcd structure to remove
-+ *
-+ * Unregisters the HCD from the OTG core.
-+ */
-+void usb_otg_remove_hcd(struct usb_hcd *hcd)
-+{
-+	usb_otg_unregister_hcd(hcd);
-+}
-+EXPORT_SYMBOL_GPL(usb_otg_remove_hcd);
-+
- void
- usb_hcd_platform_shutdown(struct platform_device *dev)
+diff --git a/drivers/usb/chipidea/ci.h b/drivers/usb/chipidea/ci.h
+index c523975..1a32b8c 100644
+--- a/drivers/usb/chipidea/ci.h
++++ b/drivers/usb/chipidea/ci.h
+@@ -406,7 +406,7 @@ static inline u32 hw_test_and_write(struct ci_hdrc *ci, enum ci_hw_regs reg,
+  */
+ static inline bool ci_otg_is_fsm_mode(struct ci_hdrc *ci)
  {
-diff --git a/include/linux/usb/hcd.h b/include/linux/usb/hcd.h
-index 2017cd4..adcf2e7 100644
---- a/include/linux/usb/hcd.h
-+++ b/include/linux/usb/hcd.h
-@@ -472,6 +472,10 @@ extern int usb_hcd_is_primary_hcd(struct usb_hcd *hcd);
- extern int usb_add_hcd(struct usb_hcd *hcd,
- 		unsigned int irqnum, unsigned long irqflags);
- extern void usb_remove_hcd(struct usb_hcd *hcd);
-+extern int usb_otg_add_hcd(struct usb_hcd *hcd,
-+			   unsigned int irqnum, unsigned long irqflags,
-+			   struct device *otg_dev);
-+extern void usb_otg_remove_hcd(struct usb_hcd *hcd);
- extern int usb_hcd_find_raw_port_number(struct usb_hcd *hcd, int port1);
+-#ifdef CONFIG_USB_OTG_FSM
++#ifdef CONFIG_USB_OTG
+ 	struct usb_otg_caps *otg_caps = &ci->platdata->ci_otg_caps;
  
- struct platform_device;
--- 
-2.7.4
+ 	return ci->is_otg && ci->roles[CI_ROLE_HOST] &&
+diff --git a/drivers/usb/chipidea/otg_fsm.h b/drivers/usb/chipidea/otg_fsm.h
+index 6366fe3..2d451bb 100644
+--- a/drivers/usb/chipidea/otg_fsm.h
++++ b/drivers/usb/chipidea/otg_fsm.h
+@@ -64,7 +64,7 @@
+ 
+ #define TB_AIDL_BDIS         (20)	/* 4ms ~ 150ms, section 5.2.1 */
+ 
+-#if IS_ENABLED(CONFIG_USB_OTG_FSM)
++#if IS_ENABLED(CONFIG_USB_OTG)
+ 
+ int ci_hdrc_otg_fsm_init(struct ci_hdrc *ci);
+ int ci_otg_fsm_work(struct ci_hdrc *ci);
+diff --git a/drivers/usb/common/Makefile b/drivers/usb/common/Makefile
+index 6bbb3ec..f8f2c88 100644
+--- a/drivers/usb/common/Makefile
++++ b/drivers/usb/common/Makefile
+@@ -6,5 +6,6 @@ obj-$(CONFIG_USB_COMMON)	  += usb-common.o
+ usb-common-y			  += common.o
+ usb-common-$(CONFIG_USB_LED_TRIG) += led.o
+ 
+-obj-$(CONFIG_USB_OTG_FSM) += usb-otg-fsm.o
+ obj-$(CONFIG_USB_ULPI_BUS)	+= ulpi.o
++usbotg-y		:= usb-otg-fsm.o
++obj-$(CONFIG_USB_OTG)	+= usbotg.o
+diff --git a/drivers/usb/core/Kconfig b/drivers/usb/core/Kconfig
+index dd28010..ae228d0 100644
+--- a/drivers/usb/core/Kconfig
++++ b/drivers/usb/core/Kconfig
+@@ -75,14 +75,6 @@ config USB_OTG_BLACKLIST_HUB
+ 	  and software costs by not supporting external hubs.  So
+ 	  are "Embedded Hosts" that don't offer OTG support.
+ 
+-config USB_OTG_FSM
+-	tristate "USB 2.0 OTG FSM implementation"
+-	depends on USB && USB_OTG
+-	select USB_PHY
+-	help
+-	  Implements OTG Finite State Machine as specified in On-The-Go
+-	  and Embedded Host Supplement to the USB Revision 2.0 Specification.
