@@ -1,87 +1,149 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH] PCI: dra7xx: program outbound atu with correct address
-Date: Mon, 2 May 2016 16:09:33 -0500
-Message-ID: <20160502210933.GM24851@localhost>
-References: <1462200880-30129-1-git-send-email-niklass@axis.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v4.6-rc6
+Date: Tue, 3 May 2016 02:24:22 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1605030223440.22468@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1462200880-30129-1-git-send-email-niklass@axis.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Niklas Cassel <niklas.cassel@axis.com>
-Cc: kishon@ti.com, bhelgaas@google.com, jszhang@marvell.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Niklas Cassel <niklass@axis.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, May 02, 2016 at 04:54:40PM +0200, Niklas Cassel wrote:
-> From: Niklas Cassel <niklas.cassel@axis.com>
-> 
-> commit 1488aefa37a4 ("PCI: designware: Move Root Complex
-> setup code to dw_pcie_setup_rc()") broke dra7xx
-> by moving code from dw_pcie_host_init to dw_pcie_setup_rc.
-> 
-> Fix this by doing the cpu to bus calculation before calling
-> dw_pcie_setup_rc.
-> 
-> Fixes: 1488aefa37a4 ("PCI: designware: Move Root Complex setup code to dw_pcie_setup_rc()")
-> Signed-off-by: Niklas Cassel <niklas.cassel@axis.com>
-> ---
->  drivers/pci/host/pci-dra7xx.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-> index 2ca3a1f..f441130 100644
-> --- a/drivers/pci/host/pci-dra7xx.c
-> +++ b/drivers/pci/host/pci-dra7xx.c
-> @@ -142,13 +142,13 @@ static void dra7xx_pcie_enable_interrupts(struct pcie_port *pp)
->  
->  static void dra7xx_pcie_host_init(struct pcie_port *pp)
->  {
-> -	dw_pcie_setup_rc(pp);
-> -
->  	pp->io_base &= DRA7XX_CPU_TO_BUS_ADDR;
->  	pp->mem_base &= DRA7XX_CPU_TO_BUS_ADDR;
->  	pp->cfg0_base &= DRA7XX_CPU_TO_BUS_ADDR;
->  	pp->cfg1_base &= DRA7XX_CPU_TO_BUS_ADDR;
->  
-> +	dw_pcie_setup_rc(pp);
 
-This looks correct to me.  Prior to 1488aefa37a4, we had this path,
-which applied the dra7xx mem_base adjustment before programming the
-outbound ATU:
+Here are some basic OMAP test results for Linux v4.6-rc6.
+Logs and other details at:
 
-  dra7xx_add_pcie_port
-    dw_pcie_host_init
-      pp->mem_base = pp->mem->start                 # <-- set pp->mem_base
-      ops->host_init
-      dra7xx_pcie_host_init                         # .host_init
-        dw_pcie_setup_rc
-        pp->mem_base &= DRA7XX_CPU_TO_BUS_ADDR      # <-- update pp->mem_base
-      dw_pcie_prog_outbound_atu(pp->mem_base)       # <-- use pp->mem_base
+    http://www.pwsan.com/omap/testlogs/test_v4.6-rc6/20160502170254/
 
-After 1488aefa37a4, we have this:
 
-  dra7xx_add_pcie_port
-    dw_pcie_host_init
-      pp->mem_base = pp->mem->start                 # <-- set pp->mem_base
-      ops->host_init
-      dra7xx_pcie_host_init                         # .host_init
-        dw_pcie_setup_rc
-          dw_pcie_prog_outbound_atu(pp->mem_base)   # <-- use pp->mem_base
-        pp->mem_base &= DRA7XX_CPU_TO_BUS_ADDR      # <-- update pp->mem_base
+Test summary
+------------
 
-So the dra7xx update is applied after we've already used it.
+Build: uImage:
+    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only
 
-If you agree, Kishon, I'll fold Niklas's fix into Jisheng's patch so
-there's no bisection hole for dra7xx.
+Build: uImage+dtb:
+    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es,
+		  omap2plus_defconfig/omap4-var-stk-om44,
+		  omap2plus_defconfig/omap3-evm-37xx,
+		  omap2plus_defconfig_n800_only_a/omap2420-n800,
+		  omap2plus_defconfig/omap2430-sdp,
+		  omap2plus_defconfig/am3517-evm,
+		  omap2plus_defconfig/omap3-beagle,
+		  omap2plus_defconfig/omap3-beagle-xm,
+		  omap2plus_defconfig/omap3-sbc-t3517,
+		  omap2plus_defconfig/omap5-uevm,
+		  omap2plus_defconfig/omap5-sbc-t54
 
->  	dra7xx_pcie_establish_link(pp);
->  	if (IS_ENABLED(CONFIG_PCI_MSI))
->  		dw_pcie_msi_init(pp);
-> -- 
-> 2.1.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Build: zImage:
+    Pass (18/18): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_omap5_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  omap2plus_defconfig_am43xx_only,
+		  omap2plus_defconfig_ti81xx_only,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap4430_sdp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
+
+Build warnings from toolchain: uImage:
+    (none)
+
+Build warnings from toolchain: uImage+dtb:
+    (none)
+
+Build warnings from toolchain: zImage:
+    FAIL ( 1/18): multi_v7_defconfig
+
+Boot to userspace:
+    FAIL ( 1/18): 2430sdp
+    skip ( 3/18): 5912osk, 3517evm, 5430es2sbct54
+    Pass (14/18): am335xbonelt, am437xsk, am335xbone, 4430es2panda,
+		  4460pandaes, 4460varsomom, 37xxevm, 3530es3beagle,
+		  3530es31beagle, 3730beaglexm, 3730es12beaglexm,
+		  cmt3517, 5430es2uevm, 2420n800
+
+Kernel warnings during boot to userspace:
+    FAIL ( 2/18): 4430es2panda, cmt3517
+
+PM: chip retention via suspend:
+    FAIL ( 6/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
+		  2430sdp, 5430es2uevm
+    Pass ( 5/11): 4460pandaes, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm
+
+PM: chip retention via dynamic idle:
+    FAIL ( 8/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
+		  3530es3beagle, 3530es31beagle, 2430sdp, 5430es2uevm
+    Pass ( 3/11): 4460pandaes, 3730beaglexm, 3730es12beaglexm
+
+PM: chip off (except CORE, due to errata) via suspend:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off (except CORE, due to errata) via dynamic idle:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    FAIL ( 2/ 4): 37xxevm, 3530es3beagle
+    Pass ( 2/ 4): 3530es31beagle, 3730es12beaglexm
+
+PM: chip off via dynamic idle:
+    FAIL ( 3/ 4): 37xxevm, 3530es3beagle, 3530es31beagle
+    Pass ( 1/ 4): 3730es12beaglexm
+
+Kernel warnings during PM test:
+    FAIL ( 1/18): 4430es2panda
+
+Obsolete Kconfig symbols:
+    FAIL ( 3/21): omap1_defconfig, omap2plus_defconfig,
+		  multi_v7_defconfig
+
+
+vmlinux object size
+(delta in bytes from test_v4.6-rc5 (02da2d72174c61988eb4456b53f405e3ebdebce4)):
+   text     data      bss    total  kernel
+    +88        0        0      +88  omap1_defconfig
+    +56        0        0      +56  omap1_defconfig_1510innovator_only
+    +88        0        0      +88  omap1_defconfig_5912osk_only
+   +168        0        0     +168  multi_v7_defconfig
+   +268        0        0     +268  omap2plus_defconfig
+   +360      +32        0     +392  omap2plus_defconfig_2430sdp_only
+   +208        0        0     +208  omap2plus_defconfig_am33xx_only
+   +204        0        0     +204  omap2plus_defconfig_am43xx_only
+   +268    +4096        0    +4364  omap2plus_defconfig_cpupm
+   +268        0        0     +268  omap2plus_defconfig_dra7xx_only
+   +192      +64        0     +256  omap2plus_defconfig_n800_multi_omap2xxx
+   +160        0        0     +160  omap2plus_defconfig_n800_only_a
+   +260        0        0     +260  omap2plus_defconfig_no_pm
+   +268        0        0     +268  omap2plus_defconfig_omap2_4_only
+   +268        0        0     +268  omap2plus_defconfig_omap3_4_only
+   +268        0        0     +268  omap2plus_defconfig_omap5_only
+   +208        0        0     +208  omap2plus_defconfig_ti81xx_only
+    -24        0      +24        0  rmk_omap3430_ldp_allnoconfig
+   +128       +8        0     +136  rmk_omap3430_ldp_oldconfig
+      0        0      +16      +16  rmk_omap4430_sdp_allnoconfig
+   +128        0        0     +128  rmk_omap4430_sdp_oldconfig
+
+Boot-time memory difference
+(delta in bytes from test_v4.6-rc5 (02da2d72174c61988eb4456b53f405e3ebdebce4))
+  avail  rsrvd   high  freed  board          kconfig
+  (no differences)
