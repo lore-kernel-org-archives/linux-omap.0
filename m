@@ -1,121 +1,59 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH] mmc: omap_hsmmc: Use dma_request_chan() for requesting
- DMA channel
-Date: Tue, 3 May 2016 10:49:10 +0200
-Message-ID: <CAPDyKFqOc2c7uM6QeecYcrfO0rXF6eJqX5eJCx-XEEq=B9Dtiw@mail.gmail.com>
-References: <1461935178-28617-1-git-send-email-peter.ujfalusi@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1461935178-28617-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Kishon <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+From: Caesar Wang <wxt@rock-chips.com>
+Subject: [PATCH v2 0/5] Thermal: Support for hardware-tracked trip points
+Date: Tue,  3 May 2016 17:33:28 +0800
+Message-ID: <1462268013-14992-1-git-send-email-wxt@rock-chips.com>
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: edubezval@gmail.com
+Cc: Heiko Stuebner <heiko@sntech.de>, dianders@chromium.org, briannorris@google.com, smbarber@google.com, linux-rockchip@lists.infradead.org, cf@rock-chips.com, huangtao@rock-chips.com, dmitry.torokhov@gmail.com, Caesar Wang <wxt@rock-chips.com>, linux-arm-kernel@lists.infradead.org, Keerthy <j-keerthy@ti.com>, linux-doc@vger.kernel.org, Ni Wade <wni@nvidia.com>, linux-pm@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org, Durgadoss R <durgadoss.r@intel.com>, Andy Champ <andycham@amazon.com>, Javi Merino <javi.merino@arm.com>, Leo Yan <leo.yan@linaro.org>, Laxman Dewangan <ldewangan@nvidia.com>, Zhang Rui <rui.zhang@intel.com>, linux-omap@vger.kernel.org, Sascha Hauer <s.hauer@pengutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-On 29 April 2016 at 15:06, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
-> With the new dma_request_chan() the client driver does not need to look for
-> the DMA resource and it does not need to pass filter_fn anymore.
-> By switching to the new API the driver can now support deferred probing
-> against DMA.
->
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+The history patches come from Mikko and Sascha.
+http://thread.gmane.org/gmane.linux.power-management.general/59451
 
-Thanks, applied for next!
+Now, I pick them up to continue upstream.
+Nevermind!
 
-Kind regards
-Uffe
+This series history patches:
+v1: https://lkml.org/lkml/2016/4/24/227
 
-> ---
->  drivers/mmc/host/omap_hsmmc.c | 50 +++++++++----------------------------------
->  1 file changed, 10 insertions(+), 40 deletions(-)
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index e9d75c6dd516..06a167292820 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -32,7 +32,6 @@
->  #include <linux/of_irq.h>
->  #include <linux/of_gpio.h>
->  #include <linux/of_device.h>
-> -#include <linux/omap-dmaengine.h>
->  #include <linux/mmc/host.h>
->  #include <linux/mmc/core.h>
->  #include <linux/mmc/mmc.h>
-> @@ -1989,8 +1988,6 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
->         struct resource *res;
->         int ret, irq;
->         const struct of_device_id *match;
-> -       dma_cap_mask_t mask;
-> -       unsigned tx_req, rx_req;
->         const struct omap_mmc_of_data *data;
->         void __iomem *base;
->
-> @@ -2120,44 +2117,17 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
->
->         omap_hsmmc_conf_bus_power(host);
->
-> -       if (!pdev->dev.of_node) {
-> -               res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
-> -               if (!res) {
-> -                       dev_err(mmc_dev(host->mmc), "cannot get DMA TX channel\n");
-> -                       ret = -ENXIO;
-> -                       goto err_irq;
-> -               }
-> -               tx_req = res->start;
-> -
-> -               res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
-> -               if (!res) {
-> -                       dev_err(mmc_dev(host->mmc), "cannot get DMA RX channel\n");
-> -                       ret = -ENXIO;
-> -                       goto err_irq;
-> -               }
-> -               rx_req = res->start;
-> -       }
-> -
-> -       dma_cap_zero(mask);
-> -       dma_cap_set(DMA_SLAVE, mask);
-> -
-> -       host->rx_chan =
-> -               dma_request_slave_channel_compat(mask, omap_dma_filter_fn,
-> -                                                &rx_req, &pdev->dev, "rx");
-> -
-> -       if (!host->rx_chan) {
-> -               dev_err(mmc_dev(host->mmc), "unable to obtain RX DMA engine channel\n");
-> -               ret = -ENXIO;
-> +       host->rx_chan = dma_request_chan(&pdev->dev, "rx");
-> +       if (IS_ERR(host->rx_chan)) {
-> +               dev_err(mmc_dev(host->mmc), "RX DMA channel request failed\n");
-> +               ret = PTR_ERR(host->rx_chan);
->                 goto err_irq;
->         }
->
-> -       host->tx_chan =
-> -               dma_request_slave_channel_compat(mask, omap_dma_filter_fn,
-> -                                                &tx_req, &pdev->dev, "tx");
-> -
-> -       if (!host->tx_chan) {
-> -               dev_err(mmc_dev(host->mmc), "unable to obtain TX DMA engine channel\n");
-> -               ret = -ENXIO;
-> +       host->tx_chan = dma_request_chan(&pdev->dev, "tx");
-> +       if (IS_ERR(host->tx_chan)) {
-> +               dev_err(mmc_dev(host->mmc), "TX DMA channel request failed\n");
-> +               ret = PTR_ERR(host->tx_chan);
->                 goto err_irq;
->         }
->
-> @@ -2215,9 +2185,9 @@ err_slot_name:
->         mmc_remove_host(mmc);
->  err_irq:
->         device_init_wakeup(&pdev->dev, false);
-> -       if (host->tx_chan)
-> +       if (!IS_ERR_OR_NULL(host->tx_chan))
->                 dma_release_channel(host->tx_chan);
-> -       if (host->rx_chan)
-> +       if (!IS_ERR_OR_NULL(host->rx_chan))
->                 dma_release_channel(host->rx_chan);
->         pm_runtime_dont_use_autosuspend(host->dev);
->         pm_runtime_put_sync(host->dev);
-> --
-> 2.8.1
->
+This series adds support for hardware trip points. It picks up earlier
+work from Mikko Perttunen. Mikko implemented hardware trip points as part
+of the device tree support. It was suggested back then to move the
+functionality to the thermal core instead of putting more code into the
+device tree support. This series does exactly that.
+
+This series patches rebase the conflicts.
+Note that the hardware-tracked trip points are very well tested currently.
+
+Verified and tested on https://github.com/Caesar-github/rockchip/tree/wip/fixes-thermal-0503
+That's based on linux-kernel 20160502.
+.Linux version 4.6.0-rc6-next-20160502-08922-g860ed34 (wxt@nb)
+
+
+Changes in v2:
+- update the sysfs-api.txt for set_trips
+- add the commit in patch[v2 2/5].
+- Update the commit for patch[v2 4/5].
+
+Caesar Wang (1):
+  thermal: rockchip: add the set_trips function
+
+Sascha Hauer (4):
+  thermal: Add support for hardware-tracked trip points
+  thermal: of: implement .set_trips for device tree thermal zones
+  thermal: streamline get_trend callbacks
+  thermal: bang-bang governor: act on lower trip boundary
+
+ Documentation/thermal/sysfs-api.txt                |  7 +++
+ drivers/thermal/gov_bang_bang.c                    |  2 +-
+ drivers/thermal/of-thermal.c                       | 23 +++++-----
+ drivers/thermal/rockchip_thermal.c                 | 39 ++++++++++++++++
+ drivers/thermal/thermal_core.c                     | 52 ++++++++++++++++++++++
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 25 ++++-------
+ include/linux/thermal.h                            |  9 +++-
+ 7 files changed, 128 insertions(+), 29 deletions(-)
+
+-- 
+1.9.1
+
