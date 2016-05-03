@@ -1,56 +1,75 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 00/10] Get MUSB PM runtime working again
-Date: Tue, 3 May 2016 09:25:28 -0700
-Message-ID: <20160503162528.GM5995@atomide.com>
-References: <1461864800-29979-1-git-send-email-tony@atomide.com>
- <5725A31D.8020508@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 2/3] ARM: DRA7x: dts: Update the OSC_32K_CLK frequency
+Date: Tue, 3 May 2016 09:43:23 -0700
+Message-ID: <20160503164323.GN5995@atomide.com>
+References: <20160427171658.GA5995@atomide.com>
+ <1462209123-7332-1-git-send-email-Linux.HWI@garmin.com>
+ <1462209123-7332-3-git-send-email-Linux.HWI@garmin.com>
+ <57285E66.2000708@ti.com>
+ <5728A81F.4050906@garmin.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5725A31D.8020508-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <5728A81F.4050906@garmin.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "J.D. Schroeder" <Linux.HWI@garmin.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, bcousson@baylibre.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jay.schroeder@garmin.com, Matthijs van Duin <matthijsvanduin@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [160430 23:34]:
+* J.D. Schroeder <Linux.HWI@garmin.com> [160503 06:32]:
+> On 05/03/2016 03:16 AM, Tero Kristo wrote:
+> > On 02/05/16 20:12, J.D. Schroeder wrote:
+> >> From: "J.D. Schroeder" <jay.schroeder@garmin.com>
+> >>
+> >> This commit updates the OSC_32K_CLK (secure_32k_clk_src_ck) frequency
+> >> from the precise 32kHz frequency (i.e., 32.768 kHz) to a more
+> >> accurate frequency of ~34.6 kHz. Actual measured frequencies of the
+> >> clock vary from processor to processor anywhere from 34.4 kHz up to
+> >> 34.8 kHz. Note that the ~34 kHz frequency clock is generated
+> >> internally by the processor, not an input to the processor. This
+> >> change makes it more clear that the consumer of the
+> >> secure_32k_clk_src_ck will not get a precise 32.768 kHz frequency
+> >> output.
+> >>
+> >> Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
+> >> Reviewed-by: Trenton Andres <trenton.andres@garmin.com>
+> >> ---
+> >>   arch/arm/boot/dts/dra7xx-clocks.dtsi | 2 +-
+> >>   1 file changed, 1 insertion(+), 1 deletion(-)
+> >>
+> >> diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> >> b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> >> index 3f0c61d..f7ec976 100644
+> >> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> >> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> >> @@ -95,7 +95,7 @@
+> >>       secure_32k_clk_src_ck: secure_32k_clk_src_ck {
+> >>           #clock-cells = <0>;
+> >>           compatible = "fixed-clock";
+> >> -        clock-frequency = <32768>;
+> >> +        clock-frequency = <34600>; /* approximate frequency */
+> >>       };
+> >>
+> >>       sys_clk32_crystal_ck: sys_clk32_crystal_ck {
+> >>
+> > 
+> > I still don't agree with this patch. The actual frequency can drift much more,
+> > you are just seeing this number at your setup.
 > 
-> Unfortunately that makes my n900 unbootable with USB cable detached, see the
-> attached file (at [  152.121673]) when there is USB cable. I guess we're
-> missing a couple of pm_runtime_get()/put() calls.
+> Yes, it can drift significantly from processor to processor. Do you agree that
+> this frequency is closer to what can be expected than 32768 Hz?
+> 
+> Like I said, I would have renamed the clock also but I opted to go the less
+> obtrusive route while still helping others that might think they can
+> reasonably use this clock in their design as a 32768 Hz clock source. Perhaps
+> my comment and selection of the approximate frequency is not the best (I'm
+> open for suggestions). However, I do think this change is an improvement and
+> clarifying change to what is currently present in the clock description.
 
-OK so it seems. I did some brief testing with n900 too, but never
-hit this so far. Care to email me the kernel .config you're using
-so I can try to reproduce it here?
-
-> [  152.121673] Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa0ab001
-...
-
-> [  152.403594] [<c0401dc4>] (musb_default_readb) from [<c0402ce8>] (musb_ulpi_write+0x34/0xf8)
-> [  152.409454] [<c0402ce8>] (musb_ulpi_write) from [<bf2471f8>] (isp1704_charger_probe+0x15c/0x4e0 [isp1704_charger])
-> [  152.421325] [<bf2471f8>] (isp1704_charger_probe [isp1704_charger]) from [<c03a4578>] (platform_drv_probe+0x58/0xa0)
-> [  152.433624] [<c03a4578>] (platform_drv_probe) from [<c03a2d64>] (driver_probe_device+0x120/0x2b0)
-> [  152.440093] [<c03a2d64>] (driver_probe_device) from [<c03a2f74>] (__driver_attach+0x80/0xa4)
-> [  152.446624] [<c03a2f74>] (__driver_attach) from [<c03a14d4>] (bus_for_each_dev+0x50/0x88)
-> [  152.453155] [<c03a14d4>] (bus_for_each_dev) from [<c03a2444>] (bus_add_driver+0xc4/0x1e4)
-> [  152.459716] [<c03a2444>] (bus_add_driver) from [<c03a37e4>] (driver_register+0x9c/0xe0)
-> [  152.466247] [<c03a37e4>] (driver_register) from [<c0101668>] (do_one_initcall+0xf8/0x1c4)
-> [  152.472839] [<c0101668>] (do_one_initcall) from [<c019b6e8>] (do_init_module+0x54/0x1ac)
-> [  152.479400] [<c019b6e8>] (do_init_module) from [<c017904c>] (load_module+0x185c/0x1b14)
-> [  152.485961] [<c017904c>] (load_module) from [<c0179444>] (SyS_init_module+0x140/0x158)
-> [  152.492553] [<c0179444>] (SyS_init_module) from [<c0107160>] (ret_fast_syscall+0x0/0x3c)
-
-Yeah looks like a case of missing PM runtime get/put.
-
-Also, I'm aware of some remaining phy-twl4030-usb issues with
-having cable plugged in on the boot. Will send patches for those
-after the MUSB core issues are out of the way.
+Does a fixed divider calculation of input * (32768 / 0x27e6) make sense
+here too as pointed out earlier by Matthijs for the ti81xx?
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
