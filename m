@@ -1,75 +1,91 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/6] HSI: omap_ssi: built omap_ssi and omap_ssi_port into
- one module
-Date: Tue, 3 May 2016 10:32:39 -0700
-Message-ID: <20160503173239.GO5995@atomide.com>
-References: <1461982153-19139-1-git-send-email-sre@kernel.org>
- <1461982153-19139-6-git-send-email-sre@kernel.org>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 2/3] ARM: DRA7x: dts: Update the OSC_32K_CLK frequency
+Date: Tue, 3 May 2016 20:32:44 +0300
+Message-ID: <5728E0BC.3080509@ti.com>
+References: <20160427171658.GA5995@atomide.com>
+ <1462209123-7332-1-git-send-email-Linux.HWI@garmin.com>
+ <1462209123-7332-3-git-send-email-Linux.HWI@garmin.com>
+ <57285E66.2000708@ti.com> <5728A81F.4050906@garmin.com>
+ <20160503164323.GN5995@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1461982153-19139-6-git-send-email-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160503164323.GN5995-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "J.D. Schroeder" <Linux.HWI-UF6BFNFdnjXQT0dZR+AlfA@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, jay.schroeder-UF6BFNFdnjXQT0dZR+AlfA@public.gmane.org, Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@kernel.org> [160429 19:11]:
-> Merge omap_ssi and omap_ssi_port into one module. This
-> fixes problems with module cycle dependencies introduced
-> by future patches.
+On 03/05/16 19:43, Tony Lindgren wrote:
+> * J.D. Schroeder <Linux.HWI-UF6BFNFdnjXQT0dZR+AlfA@public.gmane.org> [160503 06:32]:
+>> On 05/03/2016 03:16 AM, Tero Kristo wrote:
+>>> On 02/05/16 20:12, J.D. Schroeder wrote:
+>>>> From: "J.D. Schroeder" <jay.schroeder-UF6BFNFdnjXQT0dZR+AlfA@public.gmane.org>
+>>>>
+>>>> This commit updates the OSC_32K_CLK (secure_32k_clk_src_ck) frequency
+>>>> from the precise 32kHz frequency (i.e., 32.768 kHz) to a more
+>>>> accurate frequency of ~34.6 kHz. Actual measured frequencies of the
+>>>> clock vary from processor to processor anywhere from 34.4 kHz up to
+>>>> 34.8 kHz. Note that the ~34 kHz frequency clock is generated
+>>>> internally by the processor, not an input to the processor. This
+>>>> change makes it more clear that the consumer of the
+>>>> secure_32k_clk_src_ck will not get a precise 32.768 kHz frequency
+>>>> output.
+>>>>
+>>>> Signed-off-by: J.D. Schroeder <jay.schroeder-UF6BFNFdnjXQT0dZR+AlfA@public.gmane.org>
+>>>> Reviewed-by: Trenton Andres <trenton.andres-UF6BFNFdnjXQT0dZR+AlfA@public.gmane.org>
+>>>> ---
+>>>>    arch/arm/boot/dts/dra7xx-clocks.dtsi | 2 +-
+>>>>    1 file changed, 1 insertion(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi
+>>>> b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+>>>> index 3f0c61d..f7ec976 100644
+>>>> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
+>>>> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+>>>> @@ -95,7 +95,7 @@
+>>>>        secure_32k_clk_src_ck: secure_32k_clk_src_ck {
+>>>>            #clock-cells = <0>;
+>>>>            compatible = "fixed-clock";
+>>>> -        clock-frequency = <32768>;
+>>>> +        clock-frequency = <34600>; /* approximate frequency */
+>>>>        };
+>>>>
+>>>>        sys_clk32_crystal_ck: sys_clk32_crystal_ck {
+>>>>
+>>>
+>>> I still don't agree with this patch. The actual frequency can drift much more,
+>>> you are just seeing this number at your setup.
+>>
+>> Yes, it can drift significantly from processor to processor. Do you agree that
+>> this frequency is closer to what can be expected than 32768 Hz?
+>>
+>> Like I said, I would have renamed the clock also but I opted to go the less
+>> obtrusive route while still helping others that might think they can
+>> reasonably use this clock in their design as a 32768 Hz clock source. Perhaps
+>> my comment and selection of the approximate frequency is not the best (I'm
+>> open for suggestions). However, I do think this change is an improvement and
+>> clarifying change to what is currently present in the clock description.
+>
+> Does a fixed divider calculation of input * (32768 / 0x27e6) make sense
+> here too as pointed out earlier by Matthijs for the ti81xx?
 
-Can you please check against the hardware for the split?
-For reference, below is what I dumped out from dm3730 for
-the modules on the L4 interconnect:
+Not really, the hardware setup for this clock is not like that. Also, as 
+it is security related, this is kind of sensitive area to discuss 
+publicly. Personally I would not recommend using this clock for any 
+timing sensitive applications. May I ask why you are interested in the 
+exact clock rate of this clock anyway?
 
-0x48000000 + 0x40000 + 0x18000 = 0x48058000, size 0x1000, parent with sysc
- 0x48000000 + 0x40000 + 0x19000 = 0x48059000, size 0x1000, gdd
- 0x48000000 + 0x40000 + 0x1a000 = 0x4805a000, size 0x1000, ssi_port1
- 0x48000000 + 0x40000 + 0x1b000 = 0x4805b000, size 0x1000, ssi_port2
+-Tero
 
-0x48000000 + 0x40000 + 0x1c000 = 0x4805c000, size 0x1000, target agent
+>
+> Regards,
+>
+> Tony
+>
 
-So the parent target module at 0x48058000 controls everything
-with the sysc register. The gdd, ssi_port1 and ssi_port2 are
-children of the parent target module at 0x48058000 and should
-not have any sysc related registers.
-
-Can you please check if gdd, ssi_port1 and ssi_port2 have any
-sysc related registers too? :) If they do, then they too can
-idle on their own but most likely still depend on the parent
-module.
-
-The target agent above is a separate module with the
-interconnect related registers, no need to do anything with
-that AFAIK.
-
-I believe this is the same for 34xx too but have not dumped it
-out of the hardware. I can do that if the above does not match
-what you're seeing.
-
-If we want to have separate driver modules, you can do this:
-
-1. Have the parent target module at 0x4805800 do PM runtime
-   calls, they then propagate to the hwmod code properly for
-   the ti,hwmods = "ssi" entry. This module can be minimal,
-   and can also have child devices within it's first 0x1000
-   sized range if needed.
-
-2. Have the parent target module probe the child device
-   drivers as needed with of_platform_populate() at the end
-   of it's probe. The children can't be pm_runtime_irq_safe
-   as it permanently blocks the idling of the parent.
-
-3. Have the the parent target module at 0x4805800 implement
-   PM runtime for it's children by registering
-   struct dev_pm_ops for them.
-
-If you really want to have them all as a single module then
-that should work too as long as there's only one set of sysc
-related registers.
-
-Regards,
-
-Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
