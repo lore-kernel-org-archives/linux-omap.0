@@ -1,68 +1,53 @@
-From: "J.D. Schroeder" <Linux.HWI@garmin.com>
-Subject: Re: [PATCH v2 2/3] ARM: DRA7x: dts: Update the OSC_32K_CLK frequency
-Date: Tue, 3 May 2016 08:31:11 -0500
-Message-ID: <5728A81F.4050906@garmin.com>
-References: <20160427171658.GA5995@atomide.com>
- <1462209123-7332-1-git-send-email-Linux.HWI@garmin.com>
- <1462209123-7332-3-git-send-email-Linux.HWI@garmin.com>
- <57285E66.2000708@ti.com>
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: (v4.4/v4.5)-stable-queue build and qemu failures
+ (arm:allmodconfig, arm:pxa_defconfig, arm:omap2plus_defconfig)
+Date: Tue, 3 May 2016 08:35:13 -0500
+Message-ID: <CAHCN7xJ0vS9GHWmg__z5SQtHKfdCDGKD6m0_=zewbY65Jyf9PA@mail.gmail.com>
+References: <20160429201914.GA27596@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <57285E66.2000708@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: jay.schroeder@garmin.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20160429201914.GA27596@roeck-us.net>
+Sender: stable-owner@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: stable@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 05/03/2016 03:16 AM, Tero Kristo wrote:
-> On 02/05/16 20:12, J.D. Schroeder wrote:
->> From: "J.D. Schroeder" <jay.schroeder@garmin.com>
->>
->> This commit updates the OSC_32K_CLK (secure_32k_clk_src_ck) frequency
->> from the precise 32kHz frequency (i.e., 32.768 kHz) to a more
->> accurate frequency of ~34.6 kHz. Actual measured frequencies of the
->> clock vary from processor to processor anywhere from 34.4 kHz up to
->> 34.8 kHz. Note that the ~34 kHz frequency clock is generated
->> internally by the processor, not an input to the processor. This
->> change makes it more clear that the consumer of the
->> secure_32k_clk_src_ck will not get a precise 32.768 kHz frequency
->> output.
->>
->> Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
->> Reviewed-by: Trenton Andres <trenton.andres@garmin.com>
->> ---
->>   arch/arm/boot/dts/dra7xx-clocks.dtsi | 2 +-
->>   1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi
->> b/arch/arm/boot/dts/dra7xx-clocks.dtsi
->> index 3f0c61d..f7ec976 100644
->> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
->> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
->> @@ -95,7 +95,7 @@
->>       secure_32k_clk_src_ck: secure_32k_clk_src_ck {
->>           #clock-cells = <0>;
->>           compatible = "fixed-clock";
->> -        clock-frequency = <32768>;
->> +        clock-frequency = <34600>; /* approximate frequency */
->>       };
->>
->>       sys_clk32_crystal_ck: sys_clk32_crystal_ck {
->>
-> 
-> I still don't agree with this patch. The actual frequency can drift much more,
-> you are just seeing this number at your setup.
+On Fri, Apr 29, 2016 at 3:19 PM, Guenter Roeck <linux@roeck-us.net> wrote:
+> v4.4 (arm:allmodconfig):
+>
+> drivers/mtd/nand/pxa3xx_nand.c: In function 'alloc_nand_resource':
+> drivers/mtd/nand/pxa3xx_nand.c:1753:7: error: 'np' undeclared
+>
+> v4.5 (arm:allmodconfig, arm:pxa_defconfig):
+>
+> drivers/dma/pxa_dma.c: In function 'pxad_probe':
+> drivers/dma/pxa_dma.c:1421:24: error: 'struct mmp_dma_platdata' has no member named 'nb_requestors'
+>
+> There is also a qemu runtime failure with omap2plus_defconfig in v4.4.
+>
+> [    2.412322] omap_i2c 48070000.i2c: bus 0 rev3.3 at 2600 kHz
+> [    2.417541] omap_i2c 48060000.i2c: bus 2 rev3.3 at 100 kHz
+> [    2.429443]
+> [    2.429534] =====================================
+> [    2.429718] [ BUG: bad unlock balance detected! ]
+> [    2.429962] 4.4.8-00025-gcd58757 #1 Not tainted
+> [    2.430145] -------------------------------------
+> [    2.430328] kworker/u2:0/6 is trying to release lock (&rdev->mutex) at:
+> [    2.430694] [<c03b40e4>] regulator_set_voltage+0x40/0x54
+> [    2.430877] but there are no more locks to release!
+>
 
-Yes, it can drift significantly from processor to processor. Do you agree that
-this frequency is closer to what can be expected than 32768 Hz?
+I am also seeing this in 4.4.8 on an DM3730.  I didn't see it in
+4.4.3.  I can also help bisect if it helps.
+-adam
 
-Like I said, I would have renamed the clock also but I opted to go the less
-obtrusive route while still helping others that might think they can
-reasonably use this clock in their design as a 32768 Hz clock source. Perhaps
-my comment and selection of the approximate frequency is not the best (I'm
-open for suggestions). However, I do think this change is an improvement and
-clarifying change to what is currently present in the clock description.
-
--JD
+> See logs at http://kerneltests.org/builders for details.
+> Please let me know if I need to bisect.
+>
+> Thanks,
+> Guenter
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
