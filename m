@@ -1,57 +1,117 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH v2 2/3] ARM: DRA7x: dts: Update the OSC_32K_CLK frequency
-Date: Tue, 3 May 2016 11:16:38 +0300
-Message-ID: <57285E66.2000708@ti.com>
-References: <20160427171658.GA5995@atomide.com>
- <1462209123-7332-1-git-send-email-Linux.HWI@garmin.com>
- <1462209123-7332-3-git-send-email-Linux.HWI@garmin.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH] mmc: omap: Use dma_request_chan() for requesting DMA channel
+Date: Tue, 3 May 2016 10:46:29 +0200
+Message-ID: <CAPDyKFqTsJ3gcDGVWpbmQ4rzM8TQK7km3NTT=d0D9Dt7ydUafg@mail.gmail.com>
+References: <1461935197-28664-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1462209123-7332-3-git-send-email-Linux.HWI@garmin.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "J.D. Schroeder" <Linux.HWI@garmin.com>, linux-kernel@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: jay.schroeder@garmin.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1461935197-28664-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Kishon <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 02/05/16 20:12, J.D. Schroeder wrote:
-> From: "J.D. Schroeder" <jay.schroeder@garmin.com>
+On 29 April 2016 at 15:06, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+> With the new dma_request_chan() the client driver does not need to look for
+> the DMA resource and it does not need to pass filter_fn anymore.
+> By switching to the new API the driver can now support deferred probing
+> against DMA.
 >
-> This commit updates the OSC_32K_CLK (secure_32k_clk_src_ck) frequency
-> from the precise 32kHz frequency (i.e., 32.768 kHz) to a more
-> accurate frequency of ~34.6 kHz. Actual measured frequencies of the
-> clock vary from processor to processor anywhere from 34.4 kHz up to
-> 34.8 kHz. Note that the ~34 kHz frequency clock is generated
-> internally by the processor, not an input to the processor. This
-> change makes it more clear that the consumer of the
-> secure_32k_clk_src_ck will not get a precise 32.768 kHz frequency
-> output.
->
-> Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
-> Reviewed-by: Trenton Andres <trenton.andres@garmin.com>
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> CC: Ulf Hansson <ulf.hansson@linaro.org>
+> CC: Jarkko Nikula <jarkko.nikula@bitmer.com>
 > ---
->   arch/arm/boot/dts/dra7xx-clocks.dtsi | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/mmc/host/omap.c | 45 ++++++++++++++++++++++-----------------------
+>  1 file changed, 22 insertions(+), 23 deletions(-)
 >
-> diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-> index 3f0c61d..f7ec976 100644
-> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-> @@ -95,7 +95,7 @@
->   	secure_32k_clk_src_ck: secure_32k_clk_src_ck {
->   		#clock-cells = <0>;
->   		compatible = "fixed-clock";
-> -		clock-frequency = <32768>;
-> +		clock-frequency = <34600>; /* approximate frequency */
->   	};
+> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+> index b9958a123594..a8d9228657b2 100644
+> --- a/drivers/mmc/host/omap.c
+> +++ b/drivers/mmc/host/omap.c
+> @@ -23,7 +23,6 @@
+>  #include <linux/spinlock.h>
+>  #include <linux/timer.h>
+>  #include <linux/of.h>
+> -#include <linux/omap-dma.h>
+>  #include <linux/mmc/host.h>
+>  #include <linux/mmc/card.h>
+>  #include <linux/mmc/mmc.h>
+> @@ -1321,8 +1320,6 @@ static int mmc_omap_probe(struct platform_device *pdev)
+>         struct omap_mmc_platform_data *pdata = pdev->dev.platform_data;
+>         struct mmc_omap_host *host = NULL;
+>         struct resource *res;
+> -       dma_cap_mask_t mask;
+> -       unsigned sig = 0;
+>         int i, ret = 0;
+>         int irq;
 >
->   	sys_clk32_crystal_ck: sys_clk32_crystal_ck {
+> @@ -1382,29 +1379,31 @@ static int mmc_omap_probe(struct platform_device *pdev)
+>                 goto err_free_iclk;
+>         }
+>
+> -       dma_cap_zero(mask);
+> -       dma_cap_set(DMA_SLAVE, mask);
+> -
+>         host->dma_tx_burst = -1;
+>         host->dma_rx_burst = -1;
+>
+> -       res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
+> -       if (res)
+> -               sig = res->start;
+> -       host->dma_tx = dma_request_slave_channel_compat(mask,
+> -                               omap_dma_filter_fn, &sig, &pdev->dev, "tx");
+> -       if (!host->dma_tx)
+> -               dev_warn(host->dev, "unable to obtain TX DMA engine channel %u\n",
+> -                       sig);
+> -
+> -       res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
+> -       if (res)
+> -               sig = res->start;
+> -       host->dma_rx = dma_request_slave_channel_compat(mask,
+> -                               omap_dma_filter_fn, &sig, &pdev->dev, "rx");
+> -       if (!host->dma_rx)
+> -               dev_warn(host->dev, "unable to obtain RX DMA engine channel %u\n",
+> -                       sig);
+> +       host->dma_tx = dma_request_chan(&pdev->dev, "tx");
+> +       if (IS_ERR(host->dma_tx)) {
+> +               ret = PTR_ERR(host->dma_tx);
+> +               if (ret == -EPROBE_DEFER)
+> +                       goto err_free_iclk;
+> +
+> +               host->dma_tx = NULL;
+
+Instead of setting this to NULL, let's keep its value and later check
+it with IS_ERR() when needed.
+
+> +               dev_warn(host->dev, "TX DMA channel request failed\n");
+> +       }
+> +
+> +       host->dma_rx = dma_request_chan(&pdev->dev, "rx");
+> +       if (IS_ERR(host->dma_rx)) {
+> +               ret = PTR_ERR(host->dma_rx);
+> +               if (ret == -EPROBE_DEFER) {
+> +                       dma_release_channel(host->dma_tx);
+
+host->dma_tx can be NULL here, so this isn't safe.
+
+> +                       clk_put(host->fclk);
+> +                       goto err_free_iclk;
+> +               }
+> +
+> +               host->dma_rx = NULL;
+
+Instead of setting this to NULL, let's keep its value and later check
+it with IS_ERR() when needed.
+
+> +               dev_warn(host->dev, "RX DMA channel request failed\n");
+> +       }
+>
+>         ret = request_irq(host->irq, mmc_omap_irq, 0, DRIVER_NAME, host);
+>         if (ret)
+> --
+> 2.8.1
 >
 
-I still don't agree with this patch. The actual frequency can drift much 
-more, you are just seeing this number at your setup. There is some 
-internal discussion going on in TI about this, but I can't share any 
-data on this yet.
-
--Tero
+Kind regards
+Uffe
