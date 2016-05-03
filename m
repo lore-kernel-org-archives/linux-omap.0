@@ -1,75 +1,99 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 2/3] ARM: DRA7x: dts: Update the OSC_32K_CLK frequency
-Date: Tue, 3 May 2016 09:43:23 -0700
-Message-ID: <20160503164323.GN5995@atomide.com>
-References: <20160427171658.GA5995@atomide.com>
- <1462209123-7332-1-git-send-email-Linux.HWI@garmin.com>
- <1462209123-7332-3-git-send-email-Linux.HWI@garmin.com>
- <57285E66.2000708@ti.com>
- <5728A81F.4050906@garmin.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] PCI: dra7xx: program outbound atu with correct address
+Date: Tue, 3 May 2016 11:50:59 -0500
+Message-ID: <20160503165059.GB30040@localhost>
+References: <1462200880-30129-1-git-send-email-niklass@axis.com>
+ <20160502210933.GM24851@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5728A81F.4050906@garmin.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "J.D. Schroeder" <Linux.HWI@garmin.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, bcousson@baylibre.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jay.schroeder@garmin.com, Matthijs van Duin <matthijsvanduin@gmail.com>
+In-Reply-To: <20160502210933.GM24851@localhost>
+Sender: linux-pci-owner@vger.kernel.org
+To: Niklas Cassel <niklas.cassel@axis.com>
+Cc: kishon@ti.com, bhelgaas@google.com, jszhang@marvell.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Niklas Cassel <niklass@axis.com>
 List-Id: linux-omap@vger.kernel.org
 
-* J.D. Schroeder <Linux.HWI@garmin.com> [160503 06:32]:
-> On 05/03/2016 03:16 AM, Tero Kristo wrote:
-> > On 02/05/16 20:12, J.D. Schroeder wrote:
-> >> From: "J.D. Schroeder" <jay.schroeder@garmin.com>
-> >>
-> >> This commit updates the OSC_32K_CLK (secure_32k_clk_src_ck) frequency
-> >> from the precise 32kHz frequency (i.e., 32.768 kHz) to a more
-> >> accurate frequency of ~34.6 kHz. Actual measured frequencies of the
-> >> clock vary from processor to processor anywhere from 34.4 kHz up to
-> >> 34.8 kHz. Note that the ~34 kHz frequency clock is generated
-> >> internally by the processor, not an input to the processor. This
-> >> change makes it more clear that the consumer of the
-> >> secure_32k_clk_src_ck will not get a precise 32.768 kHz frequency
-> >> output.
-> >>
-> >> Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
-> >> Reviewed-by: Trenton Andres <trenton.andres@garmin.com>
-> >> ---
-> >>   arch/arm/boot/dts/dra7xx-clocks.dtsi | 2 +-
-> >>   1 file changed, 1 insertion(+), 1 deletion(-)
-> >>
-> >> diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-> >> b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-> >> index 3f0c61d..f7ec976 100644
-> >> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-> >> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-> >> @@ -95,7 +95,7 @@
-> >>       secure_32k_clk_src_ck: secure_32k_clk_src_ck {
-> >>           #clock-cells = <0>;
-> >>           compatible = "fixed-clock";
-> >> -        clock-frequency = <32768>;
-> >> +        clock-frequency = <34600>; /* approximate frequency */
-> >>       };
-> >>
-> >>       sys_clk32_crystal_ck: sys_clk32_crystal_ck {
-> >>
+On Mon, May 02, 2016 at 04:09:33PM -0500, Bjorn Helgaas wrote:
+> On Mon, May 02, 2016 at 04:54:40PM +0200, Niklas Cassel wrote:
+> > From: Niklas Cassel <niklas.cassel@axis.com>
 > > 
-> > I still don't agree with this patch. The actual frequency can drift much more,
-> > you are just seeing this number at your setup.
+> > commit 1488aefa37a4 ("PCI: designware: Move Root Complex
+> > setup code to dw_pcie_setup_rc()") broke dra7xx
+> > by moving code from dw_pcie_host_init to dw_pcie_setup_rc.
+> > 
+> > Fix this by doing the cpu to bus calculation before calling
+> > dw_pcie_setup_rc.
+> > 
+> > Fixes: 1488aefa37a4 ("PCI: designware: Move Root Complex setup code to dw_pcie_setup_rc()")
+> > Signed-off-by: Niklas Cassel <niklas.cassel@axis.com>
+> > ---
+> >  drivers/pci/host/pci-dra7xx.c | 4 ++--
+> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
+> > index 2ca3a1f..f441130 100644
+> > --- a/drivers/pci/host/pci-dra7xx.c
+> > +++ b/drivers/pci/host/pci-dra7xx.c
+> > @@ -142,13 +142,13 @@ static void dra7xx_pcie_enable_interrupts(struct pcie_port *pp)
+> >  
+> >  static void dra7xx_pcie_host_init(struct pcie_port *pp)
+> >  {
+> > -	dw_pcie_setup_rc(pp);
+> > -
+> >  	pp->io_base &= DRA7XX_CPU_TO_BUS_ADDR;
+> >  	pp->mem_base &= DRA7XX_CPU_TO_BUS_ADDR;
+> >  	pp->cfg0_base &= DRA7XX_CPU_TO_BUS_ADDR;
+> >  	pp->cfg1_base &= DRA7XX_CPU_TO_BUS_ADDR;
+> >  
+> > +	dw_pcie_setup_rc(pp);
 > 
-> Yes, it can drift significantly from processor to processor. Do you agree that
-> this frequency is closer to what can be expected than 32768 Hz?
+> This looks correct to me.  Prior to 1488aefa37a4, we had this path,
+> which applied the dra7xx mem_base adjustment before programming the
+> outbound ATU:
 > 
-> Like I said, I would have renamed the clock also but I opted to go the less
-> obtrusive route while still helping others that might think they can
-> reasonably use this clock in their design as a 32768 Hz clock source. Perhaps
-> my comment and selection of the approximate frequency is not the best (I'm
-> open for suggestions). However, I do think this change is an improvement and
-> clarifying change to what is currently present in the clock description.
+>   dra7xx_add_pcie_port
+>     dw_pcie_host_init
+>       pp->mem_base = pp->mem->start                 # <-- set pp->mem_base
+>       ops->host_init
+>       dra7xx_pcie_host_init                         # .host_init
+>         dw_pcie_setup_rc
+>         pp->mem_base &= DRA7XX_CPU_TO_BUS_ADDR      # <-- update pp->mem_base
+>       dw_pcie_prog_outbound_atu(pp->mem_base)       # <-- use pp->mem_base
+> 
+> After 1488aefa37a4, we have this:
+> 
+>   dra7xx_add_pcie_port
+>     dw_pcie_host_init
+>       pp->mem_base = pp->mem->start                 # <-- set pp->mem_base
+>       ops->host_init
+>       dra7xx_pcie_host_init                         # .host_init
+>         dw_pcie_setup_rc
+>           dw_pcie_prog_outbound_atu(pp->mem_base)   # <-- use pp->mem_base
+>         pp->mem_base &= DRA7XX_CPU_TO_BUS_ADDR      # <-- update pp->mem_base
+> 
+> So the dra7xx update is applied after we've already used it.
+> 
+> If you agree, Kishon, I'll fold Niklas's fix into Jisheng's patch so
+> there's no bisection hole for dra7xx.
 
-Does a fixed divider calculation of input * (32768 / 0x27e6) make sense
-here too as pointed out earlier by Matthijs for the ti81xx?
+I merged this (folded into Jisheng's patch on the pci/host-designware
+branch, and included in my "next" branch).
 
-Regards,
+Please let me know if it works for you, Niklas, or if you see any
+problems.
 
-Tony
+> >  	dra7xx_pcie_establish_link(pp);
+> >  	if (IS_ENABLED(CONFIG_PCI_MSI))
+> >  		dw_pcie_msi_init(pp);
+> > -- 
+> > 2.1.4
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
