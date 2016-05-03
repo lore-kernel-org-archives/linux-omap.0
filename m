@@ -1,169 +1,71 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v6 09/12] usb: gadget: udc: adapt to OTG core
-Date: Tue, 3 May 2016 18:44:46 +0300
-Message-ID: <5728C76E.9010405@ti.com>
-References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
- <1459865117-7032-10-git-send-email-rogerq@ti.com>
- <AM4PR04MB2130ACE0588E64EA723987E3896E0@AM4PR04MB2130.eurprd04.prod.outlook.com>
- <571E23D7.5070501@ti.com>
- <AM4PR04MB2130B0F024C0B275514020DE89630@AM4PR04MB2130.eurprd04.prod.outlook.com>
- <5720A106.1030702@ti.com> <5721DDE5.7060708@ti.com>
- <AM4PR04MB213098D1AD7E63D227AD23B289650@AM4PR04MB2130.eurprd04.prod.outlook.com>
- <5722008A.3020902@ti.com>
- <AM4PR04MB213005276AC61A0BF5AF89BD897A0@AM4PR04MB2130.eurprd04.prod.outlook.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AM4PR04MB213005276AC61A0BF5AF89BD897A0@AM4PR04MB2130.eurprd04.prod.outlook.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jun Li <jun.li@nxp.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "balbi@kernel.org" <balbi@kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "peter.chen@freescale.com" <peter.chen@freescale.com>
-Cc: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "jun.li@freescale.com" <jun.li@freescale.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Joao.Pinto@synopsys.com" <Joao.Pinto@synopsys.com>, "abrestic@chromium.org" <abrestic@chromium.org>, "r.baldyga@samsung.com" <r.baldyga@samsung.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+From: Franklin S Cooper Jr <fcooper@ti.com>
+Subject: [PATCH v8 0/9] ARM: dts: DRA7: Add dt nodes for PWMSS
+Date: Tue,  3 May 2016 10:56:46 -0500
+Message-ID: <1462291015-1919-1-git-send-email-fcooper@ti.com>
+Return-path: <linux-clk-owner@vger.kernel.org>
+Sender: linux-clk-owner@vger.kernel.org
+To: thierry.reding@gmail.com, robh+dt@kernel.org, tony@atomide.com, linux@arm.linux.org.uk, paul@pwsan.com, t-kristo@ti.com, mturquette@baylibre.com, sboyd@codeaurora.org, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, vigneshr@ti.com, nsekhar@ti.com
+Cc: Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+This patch series adds support for PWM for DRA7. The IP is the same as the
+one present in AM33XX and AM437XX.
 
-On 03/05/16 10:06, Jun Li wrote:
-> Hi
-> 
->>>>>>>>>  /**
->>>>>>>>> + * usb_gadget_start - start the usb gadget controller and
->>>>>>>>> +connect to bus
->>>>>>>>> + * @gadget: the gadget device to start
->>>>>>>>> + *
->>>>>>>>> + * This is external API for use by OTG core.
->>>>>>>>> + *
->>>>>>>>> + * Start the usb device controller and connect to bus (enable
->> pull).
->>>>>>>>> + */
->>>>>>>>> +static int usb_gadget_start(struct usb_gadget *gadget) {
->>>>>>>>> +	int ret;
->>>>>>>>> +	struct usb_udc *udc = NULL;
->>>>>>>>> +
->>>>>>>>> +	dev_dbg(&gadget->dev, "%s\n", __func__);
->>>>>>>>> +	mutex_lock(&udc_lock);
->>>>>>>>> +	list_for_each_entry(udc, &udc_list, list)
->>>>>>>>> +		if (udc->gadget == gadget)
->>>>>>>>> +			goto found;
->>>>>>>>> +
->>>>>>>>> +	dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
->>>>>>>>> +		__func__);
->>>>>>>>> +	mutex_unlock(&udc_lock);
->>>>>>>>> +	return -EINVAL;
->>>>>>>>> +
->>>>>>>>> +found:
->>>>>>>>> +	ret = usb_gadget_udc_start(udc);
->>>>>>>>> +	if (ret)
->>>>>>>>> +		dev_err(&udc->dev, "USB Device Controller didn't
->>>> start: %d\n",
->>>>>>>>> +			ret);
->>>>>>>>> +	else
->>>>>>>>> +		usb_udc_connect_control(udc);
->>>>>>>>
->>>>>>>> For drd, it's fine, but for real otg, gadget connect should be
->>>>>>>> done by
->>>>>>>> loc_conn() instead of gadget start.
->>>>>>>
->>>>>>> It is upto the OTG state machine to call gadget_start() when it
->>>>>>> needs to connect to the bus (i.e. loc_conn()). I see no point in
->>>>>>> calling gadget start before.
->>>>>>>
->>>>>>> Do you see any issue in doing so?
->>>>>>
->>>>>> This is what OTG state machine does:
->>>>>> case OTG_STATE_B_PERIPHERAL:
->>>>>>      otg_chrg_vbus(otg, 0);
->>>>>>      otg_loc_sof(otg, 0);
->>>>>>      otg_set_protocol(fsm, PROTO_GADGET);
->>>>>>      otg_loc_conn(otg, 1);
->>>>>>      break;
->>>>
->>>> On second thoughts, after seen the OTG state machine.
->>>> otg_set_protocol(fsm, PROTO_GADGET); is always followed by
->>>> otg_loc_conn(otg, 1); And whenever protocol changes to anything other
->>>> the PROTO_GADGET, we use otg_loc_conn(otg, 0);
->>>>
->>>> So otg_loc_conn seems redundant. Can we just get rid of it?
->>>>
->>>> usb_gadget_start() implies that gadget controller starts up and
->>>> enables pull.
->>>> usb_gadget_stop() implies that gadget controller disables pull and
->> stops.
->>>>
->>>>
->>>> Can you please explain why just these 2 APIs are not sufficient for
->>>> full OTG?
->>>>
->>>> Do we want anything to happen between gadget controller start/stop
->>>> and pull on/off?
->>>
->>> "loc_conn" is a standard output parameter in OTG spec, it deserves a
->>> separate api, yes, current implementation of OTG state machine code
->>> seems allow you to combine the 2 things into one, but don't do that,
->>> because they do not always happen together, e.g. for peripheral only B
->>> device (also a part OTG spec: section 7.3), will be fixed in gadget
->>> mode, but it will do gadget connect and disconnect in its diff states,
->>> so, to make the framework common, let's keep them separated.
->>
->> I'm sorry but I didn't understand your comment about "it will do gadget
->> connect and disconnect in its diff states"
-> 
-> Gadget connect means loc_conn(1).
-> 
->>
->> I am reading the OTG v2.0 specification and loc_conn is always true when
->> b_peripheral or a_peripheral is true and false otherwise.
-> 
-> If you only talk about these 2 states, yes, loc_conn is ture.
-> 
->>
->> loc_conn is just an internal state variable and it corresponds to our
->> gadget_start/stop() state.
-> 
-> It's not an internal variable, there are OTG state machine
-> parameters tables(table 7-x) in OTG spec which have clear lists
-> which are "internal variable", which are "input", which are "output"...
-> 
-> Those APIs are driven directly from OTG spec, easily understood so
-> code reader can know what's those APIs for. For real OTG, I don't
-> see the benefit if get rid of it.
+However, before doing so remove unnecessary hwmod entries for eCAP, ePWM
+and eQEP.
 
-OK, no issues if we don't get rid of it. But I am still in favor of
-doing a connect in usb_gadget_start(), because
+The following are the biggest changes from v7 to v8:
+Insure DT unit address matches reg property address
 
-1) If we split connect/disconnect() and usb_gadget_start/stop() then there is
-additional overhead of keeping track whether connect was called or not during
-usb_gadget_stop(). Plus we need to take care that users don't call connect/disconnect
-outside of start/stop. It is just complicating things.
+The following are the biggest changes from v6 to v7:
+* Several patches to document previously undocumented bindings.
+* Fix minor issues in binding documents.
 
-2) for many controllers there is no difference between run/stop and
-connect/disconnect. i.e. a single register bit controls both.
+The following are the biggest changes from v5 to v6:
+* Created two new bindings to allow ECAP and PWM to grab their functional
+clock from DT rather than depending on PWMSS parent.
+* Pull in a couple of patches from the "Correct PWM bindings" series. This
+makes it a bit easier to understand.
 
-3) it fits well with the OTG specification. OTG specification says
-that loc_conn *variable* must be true *after* the device has signalled a connect.
-So OTG state machine can safely set loc_conn variable to true after doing
-otg_set_protocol(fsm, PROTO_GADGET); and set it to false otherwise.
+>From the two patchsets a handful of patches have already been pulled in by
+maintainers and have already made it to linux-next. Therefore, this
+patch series is built ontop of the latest linux-next.
 
-Note, OTG specification does not say to take any action based on loc_conn.
-It is just a connect indicator variable. So we might have to fix this in the
-OTG state machine.
+Tested on:
+AM335x, AM437x and X15 + lcd w/backlight
 
-My suggestion is to keep it simple for now. Try the OTG implementation,
-and later if we find issues then extend it as required.
+Franklin S Cooper Jr (8):
+  clk: ti: am335x/am4372: Add tbclk to pwm node
+  ARM: dts: am437x: Add missing compatibles to PWM binding documents
+  pwm: pwm-tiehrpwm: Update dt binding document to use generic node name
+  pwm: pwm-tiecap: Update dt binding document to use proper unit address
+  ARM: dts: am437x/am33xx/da850: Add new ECAP and EPWM bindings
+  pwms: pwm-ti*: Get the clock from the PWMSS parent when using old
+    bindings
+  ARM: dts: am437x/am33xx: Remove hwmod entries for ECAP and EPWM nodes
+  ARM: AM335x/AM437x: hwmod: Remove eQEP, ePWM and eCAP hwmod entries
 
-cheers,
--roger
+Vignesh R (1):
+  ARM: dts: DRA7: Add dt nodes for PWMSS
 
-> 
->>
->> As per 7.4.2.3
->> "loc_conn
->> The "local connect" (loc_conn) variable is TRUE when the local device has
->> signaled that it is connected to the bus. This variable is FALSE when the
->> local device has signaled that it is disconnected from the bus"
->>
->> Can you please point me in the specification if there is any place where
->> loc_conn is false and b_peripheral/a_peripheral is true?
->>
->> cheers,
->> -roger
+ .../devicetree/bindings/pwm/pwm-tiecap.txt         | 38 ++++++---
+ .../devicetree/bindings/pwm/pwm-tiehrpwm.txt       | 38 ++++++---
+ .../devicetree/bindings/pwm/pwm-tipwmss.txt        | 33 +++++++-
+ arch/arm/boot/dts/am33xx.dtsi                      | 36 ++++++---
+ arch/arm/boot/dts/am4372.dtsi                      | 63 ++++++++++-----
+ arch/arm/boot/dts/da850.dtsi                       | 15 ++--
+ arch/arm/boot/dts/dra7.dtsi                        | 90 ++++++++++++++++++++++
+ .../mach-omap2/omap_hwmod_33xx_43xx_common_data.h  | 18 -----
+ .../omap_hwmod_33xx_43xx_interconnect_data.c       | 64 ---------------
+ .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 84 --------------------
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |  9 ---
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c         | 54 -------------
+ drivers/clk/ti/clk-33xx.c                          |  3 +
+ drivers/clk/ti/clk-43xx.c                          |  6 ++
+ drivers/pwm/pwm-tiecap.c                           |  7 ++
+ drivers/pwm/pwm-tiehrpwm.c                         |  7 ++
+ 16 files changed, 281 insertions(+), 284 deletions(-)
+
+-- 
+2.7.0
+
