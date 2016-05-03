@@ -1,42 +1,28 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Bunch of serial warnings in next at least with omap-serial
-Date: Tue, 3 May 2016 14:58:21 -0700
-Message-ID: <20160503215821.GR5995@atomide.com>
-References: <20160503203930.GQ5995@atomide.com>
- <572911BF.8000803@hurleysoftware.com>
+From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Subject: [PATCH 0/2] musb_host: TX DMA cleanup after Tony's patches to the MUSB host driver
+Date: Wed, 04 May 2016 01:49:06 +0300
+Message-ID: <6373243.fXzdouumn8@wasted.cogentembedded.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <572911BF.8000803@hurleysoftware.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Peter Hurley <peter@hurleysoftware.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: b-liu-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Hurley <peter@hurleysoftware.com> [160503 14:03]:
-> Hi Tony,
-> 
-> On 05/03/2016 01:39 PM, Tony Lindgren wrote:
-> > Hi Peter,
-> > 
-> > Looks like probably commit 4047b37122d1 ("serial: core: Prevent unsafe
-> > uart port access, part 1") in Linux next causes tons of warnings with at
-> > least omap-serial. It does not revert cleanly I have not tested with that
-> > reverted. Any ideas? Dmesg output of the errors below.
-> 
-> Thanks for the report.
-> Patch below should fix that.
+Hello.
 
-Yes thanks that fixes it:
+   Here's 2 patches against the 'next' branch of Felipe's 'usb.git' repo. Tony
+Lindgren's patches from the last year didn't seem complete, so trying to clean
+up the TX DMA patch...
 
-Tested-by: Tony Lindgren <tony@atomide.com>
+[1/2] musb_host: move DMA engine check from musb_tx_dma_set_mode_cppi_tusb() to its caller
+[2/2] musb_host: make musb_tx_dma_set_mode_*() *void*
+
+MBR  ,Sergei
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
