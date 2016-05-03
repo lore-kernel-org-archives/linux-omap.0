@@ -1,47 +1,139 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH v2 0/3] AM57/DRA7 Clock Tree DTSI Fix-ups
-Date: Tue, 3 May 2016 09:50:04 +0530
-Message-ID: <572826F4.3080500@ti.com>
-References: <20160427171658.GA5995@atomide.com>
- <1462209123-7332-1-git-send-email-Linux.HWI@garmin.com>
+From: Jun Li <jun.li@nxp.com>
+Subject: RE: [PATCH v6 09/12] usb: gadget: udc: adapt to OTG core
+Date: Tue, 3 May 2016 07:06:09 +0000
+Message-ID: <AM4PR04MB213005276AC61A0BF5AF89BD897A0@AM4PR04MB2130.eurprd04.prod.outlook.com>
+References: <1459865117-7032-1-git-send-email-rogerq@ti.com>
+ <1459865117-7032-10-git-send-email-rogerq@ti.com>
+ <AM4PR04MB2130ACE0588E64EA723987E3896E0@AM4PR04MB2130.eurprd04.prod.outlook.com>
+ <571E23D7.5070501@ti.com>
+ <AM4PR04MB2130B0F024C0B275514020DE89630@AM4PR04MB2130.eurprd04.prod.outlook.com>
+ <5720A106.1030702@ti.com> <5721DDE5.7060708@ti.com>
+ <AM4PR04MB213098D1AD7E63D227AD23B289650@AM4PR04MB2130.eurprd04.prod.outlook.com>
+ <5722008A.3020902@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1462209123-7332-1-git-send-email-Linux.HWI@garmin.com>
+In-Reply-To: <5722008A.3020902@ti.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "J.D. Schroeder" <Linux.HWI@garmin.com>, linux-kernel@vger.kernel.org, t-kristo@ti.com, bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: jay.schroeder@garmin.com
+To: Roger Quadros <rogerq@ti.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "balbi@kernel.org" <balbi@kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "peter.chen@freescale.com" <peter.chen@freescale.com>
+Cc: "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "jun.li@freescale.com" <jun.li@freescale.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Joao.Pinto@synopsys.com" <Joao.Pinto@synopsys.com>, "abrestic@chromium.org" <abrestic@chromium.org>, "r.baldyga@samsung.com" <r.baldyga@samsung.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi
 
+> >>>>>>>  /**
+> >>>>>>> + * usb_gadget_start - start the usb gadget controller and
+> >>>>>>> +connect to bus
+> >>>>>>> + * @gadget: the gadget device to start
+> >>>>>>> + *
+> >>>>>>> + * This is external API for use by OTG core.
+> >>>>>>> + *
+> >>>>>>> + * Start the usb device controller and connect to bus (enable
+> pull).
+> >>>>>>> + */
+> >>>>>>> +static int usb_gadget_start(struct usb_gadget *gadget) {
+> >>>>>>> +	int ret;
+> >>>>>>> +	struct usb_udc *udc = NULL;
+> >>>>>>> +
+> >>>>>>> +	dev_dbg(&gadget->dev, "%s\n", __func__);
+> >>>>>>> +	mutex_lock(&udc_lock);
+> >>>>>>> +	list_for_each_entry(udc, &udc_list, list)
+> >>>>>>> +		if (udc->gadget == gadget)
+> >>>>>>> +			goto found;
+> >>>>>>> +
+> >>>>>>> +	dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
+> >>>>>>> +		__func__);
+> >>>>>>> +	mutex_unlock(&udc_lock);
+> >>>>>>> +	return -EINVAL;
+> >>>>>>> +
+> >>>>>>> +found:
+> >>>>>>> +	ret = usb_gadget_udc_start(udc);
+> >>>>>>> +	if (ret)
+> >>>>>>> +		dev_err(&udc->dev, "USB Device Controller didn't
+> >> start: %d\n",
+> >>>>>>> +			ret);
+> >>>>>>> +	else
+> >>>>>>> +		usb_udc_connect_control(udc);
+> >>>>>>
+> >>>>>> For drd, it's fine, but for real otg, gadget connect should be
+> >>>>>> done by
+> >>>>>> loc_conn() instead of gadget start.
+> >>>>>
+> >>>>> It is upto the OTG state machine to call gadget_start() when it
+> >>>>> needs to connect to the bus (i.e. loc_conn()). I see no point in
+> >>>>> calling gadget start before.
+> >>>>>
+> >>>>> Do you see any issue in doing so?
+> >>>>
+> >>>> This is what OTG state machine does:
+> >>>> case OTG_STATE_B_PERIPHERAL:
+> >>>>      otg_chrg_vbus(otg, 0);
+> >>>>      otg_loc_sof(otg, 0);
+> >>>>      otg_set_protocol(fsm, PROTO_GADGET);
+> >>>>      otg_loc_conn(otg, 1);
+> >>>>      break;
+> >>
+> >> On second thoughts, after seen the OTG state machine.
+> >> otg_set_protocol(fsm, PROTO_GADGET); is always followed by
+> >> otg_loc_conn(otg, 1); And whenever protocol changes to anything other
+> >> the PROTO_GADGET, we use otg_loc_conn(otg, 0);
+> >>
+> >> So otg_loc_conn seems redundant. Can we just get rid of it?
+> >>
+> >> usb_gadget_start() implies that gadget controller starts up and
+> >> enables pull.
+> >> usb_gadget_stop() implies that gadget controller disables pull and
+> stops.
+> >>
+> >>
+> >> Can you please explain why just these 2 APIs are not sufficient for
+> >> full OTG?
+> >>
+> >> Do we want anything to happen between gadget controller start/stop
+> >> and pull on/off?
+> >
+> > "loc_conn" is a standard output parameter in OTG spec, it deserves a
+> > separate api, yes, current implementation of OTG state machine code
+> > seems allow you to combine the 2 things into one, but don't do that,
+> > because they do not always happen together, e.g. for peripheral only B
+> > device (also a part OTG spec: section 7.3), will be fixed in gadget
+> > mode, but it will do gadget connect and disconnect in its diff states,
+> > so, to make the framework common, let's keep them separated.
+> 
+> I'm sorry but I didn't understand your comment about "it will do gadget
+> connect and disconnect in its diff states"
 
-On Monday 02 May 2016 10:42 PM, J.D. Schroeder wrote:
-> This series of patches fixes several discrepancies between the
-> AM57/DRA7 clock tree description and the actual hardware behavior and
-> frequencies. With these changes a more complete picture of the clock
-> tree is represented for a few of the clocks and their resulting
-> frequencies.
-
-Tested on my DRA74-evm.
-
-Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
-
-Thanks and regards,
-Lokesh
+Gadget connect means loc_conn(1).
 
 > 
-> v2 Changes:
-> * Rebased on linux-next as requested by Tony Lindgren
-> * Eliminated previous patch 2 as another change fixing the same thing
->   was merged in eea08802f586acd6aef377d1b4a541821013cc0b
-> * Added to the commit message in patch 2 to clarify the source of the
->   clock being internal to the processor
-> * Added a new patch 3 to fix a new warning introduced by
->   eea08802f586acd6aef377d1b4a541821013cc0b
+> I am reading the OTG v2.0 specification and loc_conn is always true when
+> b_peripheral or a_peripheral is true and false otherwise.
+
+If you only talk about these 2 states, yes, loc_conn is ture.
+
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> loc_conn is just an internal state variable and it corresponds to our
+> gadget_start/stop() state.
+
+It's not an internal variable, there are OTG state machine
+parameters tables(table 7-x) in OTG spec which have clear lists
+which are "internal variable", which are "input", which are "output"...
+
+Those APIs are driven directly from OTG spec, easily understood so
+code reader can know what's those APIs for. For real OTG, I don't
+see the benefit if get rid of it.
+
 > 
+> As per 7.4.2.3
+> "loc_conn
+> The "local connect" (loc_conn) variable is TRUE when the local device has
+> signaled that it is connected to the bus. This variable is FALSE when the
+> local device has signaled that it is disconnected from the bus"
+> 
+> Can you please point me in the specification if there is any place where
+> loc_conn is false and b_peripheral/a_peripheral is true?
+> 
+> cheers,
+> -roger
