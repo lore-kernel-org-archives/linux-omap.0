@@ -1,81 +1,107 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] mmc: omap: Use dma_request_chan() for requesting DMA
- channel
-Date: Wed, 4 May 2016 06:59:54 +0300
-Message-ID: <8797d828-eb71-c747-f63a-e77762c51d82@ti.com>
-References: <1461935197-28664-1-git-send-email-peter.ujfalusi@ti.com>
- <CAPDyKFqTsJ3gcDGVWpbmQ4rzM8TQK7km3NTT=d0D9Dt7ydUafg@mail.gmail.com>
- <a7e34ffa-19d4-48fb-8d13-a151fbafd842@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH] PCI: dra7xx: program outbound atu with correct address
+Date: Wed, 4 May 2016 10:44:09 +0530
+Message-ID: <57298521.1090300@ti.com>
+References: <1462200880-30129-1-git-send-email-niklass@axis.com>
+ <20160502210933.GM24851@localhost> <20160503165059.GB30040@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <a7e34ffa-19d4-48fb-8d13-a151fbafd842@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Kishon <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160503165059.GB30040@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>, Niklas Cassel <niklas.cassel@axis.com>
+Cc: bhelgaas@google.com, jszhang@marvell.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Niklas Cassel <niklass@axis.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 05/03/2016 11:00 PM, Peter Ujfalusi wrote:
->>> @@ -1382,29 +1379,31 @@ static int mmc_omap_probe(struct platform_d=
-evice *pdev)
->>>                 goto err_free_iclk;
->>>         }
+
+
+On Tuesday 03 May 2016 10:20 PM, Bjorn Helgaas wrote:
+> On Mon, May 02, 2016 at 04:09:33PM -0500, Bjorn Helgaas wrote:
+>> On Mon, May 02, 2016 at 04:54:40PM +0200, Niklas Cassel wrote:
+>>> From: Niklas Cassel <niklas.cassel@axis.com>
 >>>
->>> -       dma_cap_zero(mask);
->>> -       dma_cap_set(DMA_SLAVE, mask);
->>> -
->>>         host->dma_tx_burst =3D -1;
->>>         host->dma_rx_burst =3D -1;
+>>> commit 1488aefa37a4 ("PCI: designware: Move Root Complex
+>>> setup code to dw_pcie_setup_rc()") broke dra7xx
+>>> by moving code from dw_pcie_host_init to dw_pcie_setup_rc.
 >>>
->>> -       res =3D platform_get_resource_byname(pdev, IORESOURCE_DMA, =
-"tx");
->>> -       if (res)
->>> -               sig =3D res->start;
->>> -       host->dma_tx =3D dma_request_slave_channel_compat(mask,
->>> -                               omap_dma_filter_fn, &sig, &pdev->de=
-v, "tx");
->>> -       if (!host->dma_tx)
->>> -               dev_warn(host->dev, "unable to obtain TX DMA engine=
- channel %u\n",
->>> -                       sig);
+>>> Fix this by doing the cpu to bus calculation before calling
+>>> dw_pcie_setup_rc.
+>>>
+>>> Fixes: 1488aefa37a4 ("PCI: designware: Move Root Complex setup code to dw_pcie_setup_rc()")
+>>> Signed-off-by: Niklas Cassel <niklas.cassel@axis.com>
+>>> ---
+>>>  drivers/pci/host/pci-dra7xx.c | 4 ++--
+>>>  1 file changed, 2 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
+>>> index 2ca3a1f..f441130 100644
+>>> --- a/drivers/pci/host/pci-dra7xx.c
+>>> +++ b/drivers/pci/host/pci-dra7xx.c
+>>> @@ -142,13 +142,13 @@ static void dra7xx_pcie_enable_interrupts(struct pcie_port *pp)
+>>>  
+>>>  static void dra7xx_pcie_host_init(struct pcie_port *pp)
+>>>  {
+>>> -	dw_pcie_setup_rc(pp);
 >>> -
->>> -       res =3D platform_get_resource_byname(pdev, IORESOURCE_DMA, =
-"rx");
->>> -       if (res)
->>> -               sig =3D res->start;
->>> -       host->dma_rx =3D dma_request_slave_channel_compat(mask,
->>> -                               omap_dma_filter_fn, &sig, &pdev->de=
-v, "rx");
->>> -       if (!host->dma_rx)
->>> -               dev_warn(host->dev, "unable to obtain RX DMA engine=
- channel %u\n",
->>> -                       sig);
->>> +       host->dma_tx =3D dma_request_chan(&pdev->dev, "tx");
->>> +       if (IS_ERR(host->dma_tx)) {
->>> +               ret =3D PTR_ERR(host->dma_tx);
->>> +               if (ret =3D=3D -EPROBE_DEFER)
->>> +                       goto err_free_iclk;
->=20
-> and one clk_put(host->fclk) is missing from here.
->=20
->>> +
->>> +               host->dma_tx =3D NULL;
+>>>  	pp->io_base &= DRA7XX_CPU_TO_BUS_ADDR;
+>>>  	pp->mem_base &= DRA7XX_CPU_TO_BUS_ADDR;
+>>>  	pp->cfg0_base &= DRA7XX_CPU_TO_BUS_ADDR;
+>>>  	pp->cfg1_base &= DRA7XX_CPU_TO_BUS_ADDR;
+>>>  
+>>> +	dw_pcie_setup_rc(pp);
 >>
->> Instead of setting this to NULL, let's keep its value and later chec=
-k
->> it with IS_ERR() when needed.
->=20
-> I thought about it, but decided against without need to have changes =
-in other
-> places in the driver.
+>> This looks correct to me.  Prior to 1488aefa37a4, we had this path,
+>> which applied the dra7xx mem_base adjustment before programming the
+>> outbound ATU:
+>>
+>>   dra7xx_add_pcie_port
+>>     dw_pcie_host_init
+>>       pp->mem_base = pp->mem->start                 # <-- set pp->mem_base
+>>       ops->host_init
+>>       dra7xx_pcie_host_init                         # .host_init
+>>         dw_pcie_setup_rc
+>>         pp->mem_base &= DRA7XX_CPU_TO_BUS_ADDR      # <-- update pp->mem_base
+>>       dw_pcie_prog_outbound_atu(pp->mem_base)       # <-- use pp->mem_base
+>>
+>> After 1488aefa37a4, we have this:
+>>
+>>   dra7xx_add_pcie_port
+>>     dw_pcie_host_init
+>>       pp->mem_base = pp->mem->start                 # <-- set pp->mem_base
+>>       ops->host_init
+>>       dra7xx_pcie_host_init                         # .host_init
+>>         dw_pcie_setup_rc
+>>           dw_pcie_prog_outbound_atu(pp->mem_base)   # <-- use pp->mem_base
+>>         pp->mem_base &= DRA7XX_CPU_TO_BUS_ADDR      # <-- update pp->mem_base
+>>
+>> So the dra7xx update is applied after we've already used it.
+>>
+>> If you agree, Kishon, I'll fold Niklas's fix into Jisheng's patch so
+>> there's no bisection hole for dra7xx.
+> 
+> I merged this (folded into Jisheng's patch on the pci/host-designware
+> branch, and included in my "next" branch).
+> 
+> Please let me know if it works for you, Niklas, or if you see any
+> problems.
 
-This sentence does not make too much sense ;) Let's try it again:
-So, I have considered to use PTR_ERR in the driver for the DMA channel,=
- but I
-wanted to avoid too broad changes in the driver. Keeping the ERR_PTR wo=
-uld
-bring no runtime benefit since we only care if we have channel or not.
+I did a basic ping test with a broadcom ethernet card and it worked fine.
 
---=20
-P=C3=A9ter
+Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
+
+> 
+>>>  	dra7xx_pcie_establish_link(pp);
+>>>  	if (IS_ENABLED(CONFIG_PCI_MSI))
+>>>  		dw_pcie_msi_init(pp);
+>>> -- 
+>>> 2.1.4
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
