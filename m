@@ -1,62 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap legacy boot vs dt boot fixes for v4.7 merge window
-Date: Wed, 4 May 2016 10:31:53 -0700
-Message-ID: <20160504173153.GT5995@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] ARM: dts: dra7: Add gpmc dma channel
+Date: Wed,  4 May 2016 12:43:55 -0500
+Message-ID: <1462383835-10839-1-git-send-email-fcooper@ti.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit f55532a0c0b8bb6148f4e07853b876ef73bc69ca:
+Add dma channel information to the gpmc.
 
-  Linux 4.6-rc1 (2016-03-26 16:03:24 -0700)
+Signed-off-by: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+---
+This patch is based on top of linux-next where EDMA support for DRA7 has
+been added.
 
-are available in the git repository at:
+ arch/arm/boot/dts/dra7.dtsi | 2 ++
+ 1 file changed, 2 insertions(+)
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.7/legacy-signed
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index e007401..3a8f397 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1451,6 +1451,8 @@
+ 			ti,hwmods = "gpmc";
+ 			reg = <0x50000000 0x37c>;      /* device IO registers */
+ 			interrupts = <GIC_SPI 15 IRQ_TYPE_LEVEL_HIGH>;
++			dmas = <&edma_xbar 4 0>;
++			dma-names = "rxtx";
+ 			gpmc,num-cs = <8>;
+ 			gpmc,num-waitpins = <2>;
+ 			#address-cells = <2>;
+-- 
+2.7.0
 
-for you to fetch changes up to 10c1f7d32bf451d4309850c15ab1fdadccf92620:
-
-  ARM: OMAP2+: n900 needs MMC slot names for legacy user space (2016-04-28 14:26:33 -0700)
-
-----------------------------------------------------------------
-Legacy booting vs device tree booting fixes for omaps for
-v4.7 merge window. These are not considered urgent fixes enough
-for the v4.6-rc cycle, but we need them in v4.7 in order to drop
-the last remaining board-*.c files for omap3 for v4.8 merge window.
-
-On Nokia N900, we need to pass the MMC slot names for the legacy
-user space to work. Let's do that using auxdata as the driver is
-setting up things already with the pdata for legacy booting. Then
-we can later on discuss if we may want to have some generic binding
-describing where the MMC slots are on the device.
-
-N900 also has had the ir-rx51 device driver unusable with multiarch
-for a long time. Let's pass the dmtimer data in pdata for the driver
-to get it going again. Then once things are working, we can eventually
-change the driver to use just hrtimer and PWM framework. The driver
-changes will be queued separately.
-
-----------------------------------------------------------------
-Tony Lindgren (2):
-      ARM: OMAP2+: Add more functions to pwm pdata for ir-rx51
-      ARM: OMAP2+: n900 needs MMC slot names for legacy user space
-
- arch/arm/mach-omap2/board-rx51-peripherals.c   | 35 ++++++++++++++++++++--
- arch/arm/mach-omap2/pdata-quirks.c             | 40 +++++++++++++++++++++++++-
- include/linux/platform_data/media/ir-rx51.h    |  1 +
- include/linux/platform_data/pwm_omap_dmtimer.h | 21 ++++++++++++++
- 4 files changed, 94 insertions(+), 3 deletions(-)
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
