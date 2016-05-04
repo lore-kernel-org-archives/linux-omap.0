@@ -1,108 +1,105 @@
-From: Jon Hunter <jonathanh@nvidia.com>
-Subject: [PATCH V3 04/17] irqdomain: Fix handling of type settings for existing mappings
-Date: Wed, 4 May 2016 17:25:17 +0100
-Message-ID: <1462379130-11742-5-git-send-email-jonathanh@nvidia.com>
-References: <1462379130-11742-1-git-send-email-jonathanh@nvidia.com>
+From: Antonio Quartulli <a@unstable.cc>
+Subject: Re: [PATCH net-next 4/5] treewide: replace dev->trans_start update
+ with helper
+Date: Thu, 5 May 2016 01:20:42 +0800
+Message-ID: <20160504172042.GH11201@prodigo.lan>
+References: <1462285862-30946-1-git-send-email-fw@strlen.de>
+ <1462285994-31983-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1462379130-11742-1-git-send-email-jonathanh@nvidia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>
-Cc: Kevin Hilman <khilman@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Jon Hunter <jonathanh@nvidia.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="hEk4XxIzAisM6naS"
+Return-path: <linux-can-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1462285994-31983-1-git-send-email-fw@strlen.de>
+Sender: linux-can-owner@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, user-mode-linux-devel@lists.sourceforge.net, linux-xtensa@linux-xtensa.org, linux1394-devel@lists.sourceforge.net, linux-rdma@vger.kernel.org, MPT-FusionLinux.pdl@broadcom.com, linux-scsi@vger.kernel.org, linux-can@vger.kernel.org, linux-parisc@vger.kernel.org, linux-omap@vger.kernel.org, linux-hams@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, b.a.t.m.a.n@lists.open-mesh.org, linux-bluetooth@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-When mapping an IRQ, it is possible that a mapping for the IRQ already
-exists. If mapping does exist then there are the following issues with
-regard to the handling of the IRQ type settings ...
-1. If the domain is part of a hierarchy, then:
-   a. We do not check that the type settings for the existing mapping
-      match those of the new mapping.
-   b. We do not check to see if the type settings have been programmed
-      yet (and they might not have been) and so we may never set the
-      type.
-2. If the domain is NOT part of a hierarchy, we will overwrite the
-   current type settings programmed if they are different from the
-   previous mapping. Please note that irq_create_mapping()
-   calls irq_find_mapping() to check if a mapping already exists.
 
-Although, it may be unlikely that the type settings for a shared
-interrupt would not match, nonetheless we should check for this.
-Therefore, to fix this check if a mapping exists (regardless of whether
-the domain is part of a hierarchy or not) and if it does then:
-1. Return the IRQ number if the type settings match or are not
-   specified.
-2. Program the type settings and return the IRQ number if the type
-   settings have not been programmed yet.
-3. Otherwise if the type setting do not match, then print a warning
-   and don't return the IRQ number.
+--hEk4XxIzAisM6naS
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Furthermore, add a warning if the type return by irq_domain_translate()
-has bits outside the sense mask set and then clear these bits. If these
-bits are not cleared then this will cause the comparision of the type
-settings for an existing mapping to fail with that of the new mapping
-even if the sense bit themselves match. The reason being is that the
-existing type settings are read by calling irq_get_trigger_type() which
-will clear any bits outside the sense mask. This will allow us to detect
-irqchips that are not correctly clearing these bits and fix them.
+On Tue, May 03, 2016 at 04:33:13PM +0200, Florian Westphal wrote:
+> Replace all trans_start updates with netif_trans_update helper.
+> change was done via spatch:
+>=20
+> struct net_device *d;
+> @@
+> - d->trans_start =3D jiffies
+> + netif_trans_update(d)
+>=20
+> Compile tested only.
+>=20
+> Cc: user-mode-linux-devel@lists.sourceforge.net
+> Cc: linux-xtensa@linux-xtensa.org
+> Cc: linux1394-devel@lists.sourceforge.net
+> Cc: linux-rdma@vger.kernel.org
+> Cc: netdev@vger.kernel.org
+> Cc: MPT-FusionLinux.pdl@broadcom.com
+> Cc: linux-scsi@vger.kernel.org
+> Cc: linux-can@vger.kernel.org
+> Cc: linux-parisc@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-hams@vger.kernel.org
+> Cc: linux-usb@vger.kernel.org
+> Cc: linux-wireless@vger.kernel.org
+> Cc: linux-s390@vger.kernel.org
+> Cc: devel@driverdev.osuosl.org
+> Cc: b.a.t.m.a.n@lists.open-mesh.org
+> Cc: linux-bluetooth@vger.kernel.org
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
 
-Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
-Reviewed-by: Marc Zyngier <marc.zyngier@arm.com>
----
- kernel/irq/irqdomain.c | 37 ++++++++++++++++++++++++++++++++-----
- 1 file changed, 32 insertions(+), 5 deletions(-)
+[...]
 
-diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
-index e564e16f2530..d68371213fc9 100644
---- a/kernel/irq/irqdomain.c
-+++ b/kernel/irq/irqdomain.c
-@@ -587,15 +587,42 @@ unsigned int irq_create_fwspec_mapping(struct irq_fwspec *fwspec)
- 	if (irq_domain_translate(domain, fwspec, &hwirq, &type))
- 		return 0;
- 
--	if (irq_domain_is_hierarchy(domain)) {
-+	/*
-+	 * WARN if the irqchip returns a type with bits
-+	 * outside the sense mask set and clear these bits.
-+	 */
-+	if (WARN_ON(type & ~IRQ_TYPE_SENSE_MASK))
-+		type &= IRQ_TYPE_SENSE_MASK;
-+
-+	/*
-+	 * If we've already configured this interrupt,
-+	 * don't do it again, or hell will break loose.
-+	 */
-+	virq = irq_find_mapping(domain, hwirq);
-+	if (virq) {
- 		/*
--		 * If we've already configured this interrupt,
--		 * don't do it again, or hell will break loose.
-+		 * If the trigger type is not specified or matches the
-+		 * current trigger type then we are done so return the
-+		 * interrupt number.
- 		 */
--		virq = irq_find_mapping(domain, hwirq);
--		if (virq)
-+		if (type == IRQ_TYPE_NONE || type == irq_get_trigger_type(virq))
- 			return virq;
- 
-+		/*
-+		 * If the trigger type has not been set yet, then set
-+		 * it now and return the interrupt number.
-+		 */
-+		if (irq_get_trigger_type(virq) == IRQ_TYPE_NONE) {
-+			irq_set_irq_type(virq, type);
-+			return virq;
-+		}
-+
-+		pr_warn("type mismatch, failed to map hwirq-%lu for %s!\n",
-+			hwirq, of_node_full_name(to_of_node(fwspec->fwnode)));
-+		return 0;
-+	}
-+
-+	if (irq_domain_is_hierarchy(domain)) {
- 		virq = irq_domain_alloc_irqs(domain, 1, NUMA_NO_NODE, fwspec);
- 		if (virq <= 0)
- 			return 0;
--- 
-2.1.4
+>  net/batman-adv/soft-interface.c                        | 2 +-
+
+[...]
+
+> diff --git a/net/batman-adv/soft-interface.c b/net/batman-adv/soft-interf=
+ace.c
+> index 0710379..bae1397 100644
+> --- a/net/batman-adv/soft-interface.c
+> +++ b/net/batman-adv/soft-interface.c
+> @@ -208,7 +208,7 @@ static int batadv_interface_tx(struct sk_buff *skb,
+>  	if (atomic_read(&bat_priv->mesh_state) !=3D BATADV_MESH_ACTIVE)
+>  		goto dropped;
+> =20
+> -	soft_iface->trans_start =3D jiffies;
+> +	netif_trans_update(soft_iface);
+>  	vid =3D batadv_get_vid(skb, 0);
+>  	ethhdr =3D eth_hdr(skb);
+> =20
+
+
+Acked-by: Antonio Quartulli <a@unstable.cc>
+
+--=20
+Antonio Quartulli
+
+--hEk4XxIzAisM6naS
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJXKi9qAAoJEJ4aZjxxc6bKdy0QAKpnm2haE6oZ01LtxQu1VfKB
+Qer6rc7it+otFT8jIMkZ3Be9sL2++PZyMSivw0YZRQBHwv4vsauG8HeXUmnFGS9r
+rTGv5P9Z0R1TrDTlZBXH0Pui6GIWlyKkxpRqqVu4q/xHmWH8Y2yLUXi/0BA5xB6L
+3EPPoN/WyiCdZ/NGY8WJbuyF3H+UD0s8/YXLWbOGdzxZ4UgAJp5WPVr1QdvZ4Cl7
+kqnB2g/KvHc6ruY9viT21FDjEdWvxTZlKYGbLJAQNyuM1IunThZQ/fOM82Rdtnj6
+u46FixCz2AbHVnBZht+ODlnrypKj3jBdEXu1/YclguwBHzSnwdF2M7Wswpx38VZN
+zkArU7t5LIZfiGqNpwXL0A7jovBRqI6FDJrynTKqJFjNTA/IZHwzZcWErXXp/4En
+xD/9GPLK/Lr1dUY7vteYvIjzTq3YUfPsiRsMvdyhHlDU/KJWYPrJIjotjJgXCdcT
+sLyCSGpSATmyZGhQW6BEkr3rm3y1fSOxQSD2Jmyv6sBXwaGSBpQzSalTgezUQjKm
+GpARsJONS/PpV0PbIt660Of7OikWXgDOTR6z2Oe8tPt55D+UKoUHlfQU83dPm6m1
+VW+3QZx2xue3jH05I8BeX6SKBVrtQfRh1nVi6xhkWgHaVahuh9BLgcPh2copDt/3
+UB23coo6jv90cnkJg5FC
+=6q9+
+-----END PGP SIGNATURE-----
+
+--hEk4XxIzAisM6naS--
