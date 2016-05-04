@@ -1,121 +1,71 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v2] mmc: omap: Use dma_request_chan() for requesting DMA channel
-Date: Wed, 4 May 2016 13:14:14 +0200
-Message-ID: <CAPDyKFr9G6hjEy0B-xdjzoVUPycL4JocOZ90reQUT4r0TWvrNQ@mail.gmail.com>
-References: <1462350188-16248-1-git-send-email-peter.ujfalusi@ti.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH net-next 4/5] treewide: replace dev->trans_start update
+ with helper
+Date: Wed, 4 May 2016 17:03:01 +0530
+Message-ID: <5729DDED.6030106@ti.com>
+References: <1462285862-30946-1-git-send-email-fw@strlen.de>
+ <1462285994-31983-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1462350188-16248-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Kishon <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <1462285994-31983-1-git-send-email-fw@strlen.de>
+Sender: linux-can-owner@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org
+Cc: user-mode-linux-devel@lists.sourceforge.net, linux-xtensa@linux-xtensa.org, linux1394-devel@lists.sourceforge.net, linux-rdma@vger.kernel.org, MPT-FusionLinux.pdl@broadcom.com, linux-scsi@vger.kernel.org, linux-can@vger.kernel.org, linux-parisc@vger.kernel.org, linux-omap@vger.kernel.org, linux-hams@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, b.a.t.m.a.n@lists.open-mesh.org, linux-bluetooth@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 4 May 2016 at 10:23, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
-> With the new dma_request_chan() the client driver does not need to look for
-> the DMA resource and it does not need to pass filter_fn anymore.
-> By switching to the new API the driver can now support deferred probing
-> against DMA.
->
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> CC: Ulf Hansson <ulf.hansson@linaro.org>
-> CC: Jarkko Nikula <jarkko.nikula@bitmer.com>
-
-Thanks, applied for next!
-
-Kind regards
-Uffe
-
+On Tuesday 03 May 2016 08:03 PM, Florian Westphal wrote:
+> Replace all trans_start updates with netif_trans_update helper.
+> change was done via spatch:
+> 
+> struct net_device *d;
+> @@
+> - d->trans_start = jiffies
+> + netif_trans_update(d)
+> 
+> Compile tested only.
+> 
+> Cc: user-mode-linux-devel@lists.sourceforge.net
+> Cc: linux-xtensa@linux-xtensa.org
+> Cc: linux1394-devel@lists.sourceforge.net
+> Cc: linux-rdma@vger.kernel.org
+> Cc: netdev@vger.kernel.org
+> Cc: MPT-FusionLinux.pdl@broadcom.com
+> Cc: linux-scsi@vger.kernel.org
+> Cc: linux-can@vger.kernel.org
+> Cc: linux-parisc@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-hams@vger.kernel.org
+> Cc: linux-usb@vger.kernel.org
+> Cc: linux-wireless@vger.kernel.org
+> Cc: linux-s390@vger.kernel.org
+> Cc: devel@driverdev.osuosl.org
+> Cc: b.a.t.m.a.n@lists.open-mesh.org
+> Cc: linux-bluetooth@vger.kernel.org
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 > ---
-> Hi,
->
-> Changes since v1:
-> - clk_put(host->fclk); added when deferred probing is required for tx channel
-> - Check host->dma_tx before trying to release the channel
->
-> Regards,
-> Peter
->
->  drivers/mmc/host/omap.c | 48 +++++++++++++++++++++++++-----------------------
->  1 file changed, 25 insertions(+), 23 deletions(-)
->
-> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-> index b9958a123594..f23d65eb070d 100644
-> --- a/drivers/mmc/host/omap.c
-> +++ b/drivers/mmc/host/omap.c
-> @@ -23,7 +23,6 @@
->  #include <linux/spinlock.h>
->  #include <linux/timer.h>
->  #include <linux/of.h>
-> -#include <linux/omap-dma.h>
->  #include <linux/mmc/host.h>
->  #include <linux/mmc/card.h>
->  #include <linux/mmc/mmc.h>
-> @@ -1321,8 +1320,6 @@ static int mmc_omap_probe(struct platform_device *pdev)
->         struct omap_mmc_platform_data *pdata = pdev->dev.platform_data;
->         struct mmc_omap_host *host = NULL;
->         struct resource *res;
-> -       dma_cap_mask_t mask;
-> -       unsigned sig = 0;
->         int i, ret = 0;
->         int irq;
->
-> @@ -1382,29 +1379,34 @@ static int mmc_omap_probe(struct platform_device *pdev)
->                 goto err_free_iclk;
->         }
->
-> -       dma_cap_zero(mask);
-> -       dma_cap_set(DMA_SLAVE, mask);
-> -
->         host->dma_tx_burst = -1;
->         host->dma_rx_burst = -1;
->
-> -       res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
-> -       if (res)
-> -               sig = res->start;
-> -       host->dma_tx = dma_request_slave_channel_compat(mask,
-> -                               omap_dma_filter_fn, &sig, &pdev->dev, "tx");
-> -       if (!host->dma_tx)
-> -               dev_warn(host->dev, "unable to obtain TX DMA engine channel %u\n",
-> -                       sig);
-> -
-> -       res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
-> -       if (res)
-> -               sig = res->start;
-> -       host->dma_rx = dma_request_slave_channel_compat(mask,
-> -                               omap_dma_filter_fn, &sig, &pdev->dev, "rx");
-> -       if (!host->dma_rx)
-> -               dev_warn(host->dev, "unable to obtain RX DMA engine channel %u\n",
-> -                       sig);
-> +       host->dma_tx = dma_request_chan(&pdev->dev, "tx");
-> +       if (IS_ERR(host->dma_tx)) {
-> +               ret = PTR_ERR(host->dma_tx);
-> +               if (ret == -EPROBE_DEFER) {
-> +                       clk_put(host->fclk);
-> +                       goto err_free_iclk;
-> +               }
-> +
-> +               host->dma_tx = NULL;
-> +               dev_warn(host->dev, "TX DMA channel request failed\n");
-> +       }
-> +
-> +       host->dma_rx = dma_request_chan(&pdev->dev, "rx");
-> +       if (IS_ERR(host->dma_rx)) {
-> +               ret = PTR_ERR(host->dma_rx);
-> +               if (ret == -EPROBE_DEFER) {
-> +                       if (host->dma_tx)
-> +                               dma_release_channel(host->dma_tx);
-> +                       clk_put(host->fclk);
-> +                       goto err_free_iclk;
-> +               }
-> +
-> +               host->dma_rx = NULL;
-> +               dev_warn(host->dev, "RX DMA channel request failed\n");
-> +       }
->
->         ret = request_irq(host->irq, mmc_omap_irq, 0, DRIVER_NAME, host);
->         if (ret)
-> --
-> 2.8.1
->
+
+snip...
+
+
+> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+> index 0fa75a8..3d4662d 100644
+> --- a/drivers/net/ethernet/ti/cpsw.c
+> +++ b/drivers/net/ethernet/ti/cpsw.c
+> @@ -1381,7 +1381,7 @@ static netdev_tx_t cpsw_ndo_start_xmit(struct sk_buff *skb,
+>  	struct cpsw_priv *priv = netdev_priv(ndev);
+>  	int ret;
+>  
+> -	ndev->trans_start = jiffies;
+> +	netif_trans_update(ndev);
+>  
+>  	if (skb_padto(skb, CPSW_MIN_PACKET_SIZE)) {
+>  		cpsw_err(priv, tx_err, "packet pad failed\n");
+
+for cpsw
+
+Acked-by: Mugunthan V N <mugunthanvnm@ti.com>
+
+Regards
+Mugunthan V N
