@@ -1,63 +1,66 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v8 4/9] pwm: pwm-tiecap: Update dt binding document to
- use proper unit address
-Date: Wed, 4 May 2016 08:47:03 -0500
-Message-ID: <20160504134703.GA4194@rob-hp-laptop>
-References: <1462291015-1919-1-git-send-email-fcooper@ti.com>
- <1462291015-1919-5-git-send-email-fcooper@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v7 10/14] usb: otg: add hcd companion support
+Date: Wed, 4 May 2016 16:47:18 +0300
+Message-ID: <5729FD66.4020704@ti.com>
+References: <1462191537-10314-1-git-send-email-rogerq@ti.com>
+ <1462191537-10314-11-git-send-email-rogerq@ti.com>
+ <20160504131700.GA20184@rob-hp-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1462291015-1919-5-git-send-email-fcooper@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Franklin S Cooper Jr <fcooper@ti.com>
-Cc: thierry.reding@gmail.com, tony@atomide.com, linux@arm.linux.org.uk, paul@pwsan.com, t-kristo@ti.com, mturquette@baylibre.com, sboyd@codeaurora.org, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, vigneshr@ti.com, nsekhar@ti.com
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160504131700.GA20184@rob-hp-laptop>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, May 03, 2016 at 10:56:50AM -0500, Franklin S Cooper Jr wrote:
-> Replace unit address from 0 to the proper physical address. Also insure
-> that the unit address matches the reg property address.
+On 04/05/16 16:17, Rob Herring wrote:
+> On Mon, May 02, 2016 at 03:18:53PM +0300, Roger Quadros wrote:
+>> From: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
+>>
+>> Since some host controller (e.g. EHCI) needs a companion host controller
+>> (e.g. OHCI), this patch adds such a configuration to use it in the OTG
+>> core.
+>>
+>> Signed-off-by: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
+>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  Documentation/devicetree/bindings/usb/generic.txt |  3 +++
+>>  drivers/usb/common/usb-otg.c                      | 32 ++++++++++++++++-------
+>>  include/linux/usb/otg.h                           |  7 ++++-
+>>  3 files changed, 32 insertions(+), 10 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/usb/generic.txt b/Documentation/devicetree/bindings/usb/generic.txt
+>> index f6866c1..1db1c33 100644
+>> --- a/Documentation/devicetree/bindings/usb/generic.txt
+>> +++ b/Documentation/devicetree/bindings/usb/generic.txt
+>> @@ -27,6 +27,9 @@ Optional properties:
+>>   - otg-controller: phandle to otg controller. Host or gadget controllers can
+>>  			contain this property to link it to a particular OTG
+>>  			controller.
+>> + - hcd-needs-companion: must be present if otg controller is dealing with
+>> +			EHCI host controller that needs a companion OHCI host
+>> +			controller.
 > 
-> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
-> ---
->  Documentation/devicetree/bindings/pwm/pwm-tiecap.txt | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
+> Don't you need to have a link to the companion controller node?
 
-Acked-by: Rob Herring <robh@kernel.org>
+primary and companion controllers are totally independent of each other
+e.g. EHCI and OHCI. They are enabled by separate Kconfig options and
+the system can operate with either or both of them enabled.
+
+At the OTG layer we don't have information as to whether we should be waiting
+for both of them to register or not and hence need this "hcd-needs-companion" flag.
 
 > 
-> diff --git a/Documentation/devicetree/bindings/pwm/pwm-tiecap.txt b/Documentation/devicetree/bindings/pwm/pwm-tiecap.txt
-> index 788da6c..0d47354 100644
-> --- a/Documentation/devicetree/bindings/pwm/pwm-tiecap.txt
-> +++ b/Documentation/devicetree/bindings/pwm/pwm-tiecap.txt
-> @@ -16,22 +16,22 @@ Optional properties:
->  
->  Example:
->  
-> -ecap0: ecap@0 { /* ECAP on am33xx */
-> +ecap0: ecap@48300100 { /* ECAP on am33xx */
->  	compatible = "ti,am33xx-ecap";
->  	#pwm-cells = <3>;
->  	reg = <0x48300100 0x80>;
->  	ti,hwmods = "ecap0";
->  };
->  
-> -ecap0: ecap@0 { /* ECAP on am4372 */
-> +ecap0: ecap@48300100 { /* ECAP on am4372 */
->  	compatible = "ti,am4372-ecap", "ti,am33xx-ecap";
->  	#pwm-cells = <3>;
->  	reg = <0x48300100 0x80>;
->  	ti,hwmods = "ecap0";
->  };
->  
-> -ecap0: ecap@0 { /* ECAP on da850 */
-> +ecap0: ecap@1f06000 { /* ECAP on da850 */
->  	compatible = "ti,da850-ecap", "ti,am33xx-ecap";
->  	#pwm-cells = <3>;
-> -	reg = <0x306000 0x80>;
-> +	reg = <0x1f06000 0x80>;
->  };
-> -- 
-> 2.7.0
-> 
+>>  
+>>  This is an attribute to a USB controller such as:
+>>  
+
+--
+cheers,
+-roger
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
