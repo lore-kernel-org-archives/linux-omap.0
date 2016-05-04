@@ -1,7 +1,7 @@
 From: Jon Hunter <jonathanh@nvidia.com>
-Subject: [PATCH V3 09/17] irqchip/gic: Don't initialise chip if mapping IO space fails
-Date: Wed, 4 May 2016 17:25:22 +0100
-Message-ID: <1462379130-11742-10-git-send-email-jonathanh@nvidia.com>
+Subject: [PATCH V3 07/17] genirq: Ensure IRQ descriptor is valid when setting-up the IRQ
+Date: Wed, 4 May 2016 17:25:20 +0100
+Message-ID: <1462379130-11742-8-git-send-email-jonathanh@nvidia.com>
 References: <1462379130-11742-1-git-send-email-jonathanh@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,36 +12,32 @@ To: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, M
 Cc: Kevin Hilman <khilman@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Jon Hunter <jonathanh@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
 
-If we fail to map the address space for the GIC distributor or CPU
-interface, then don't attempt to initialise the chip, just WARN and
-return.
+In the function, setup_irq(), we don't check that the descriptor
+returned from irq_to_desc() is valid before we start using it. For
+example chip_bus_lock() called from setup_irq(), assumes that the
+descriptor pointer is valid and doesn't check before dereferencing it.
+
+In many other functions including setup/free_percpu_irq() we do check
+that the descriptor returned is not NULL and therefore add the same test
+to setup_irq() to ensure the descriptor returned is valid.
 
 Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
-Acked-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- drivers/irqchip/irq-gic.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ kernel/irq/manage.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index 095bb5b5c3f2..16f632dcc2ad 100644
---- a/drivers/irqchip/irq-gic.c
-+++ b/drivers/irqchip/irq-gic.c
-@@ -1200,10 +1200,14 @@ gic_of_init(struct device_node *node, struct device_node *parent)
- 		return -ENODEV;
+diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
+index b2a93a37f772..eaedeb74b49d 100644
+--- a/kernel/irq/manage.c
++++ b/kernel/irq/manage.c
+@@ -1414,7 +1414,7 @@ int setup_irq(unsigned int irq, struct irqaction *act)
+ 	int retval;
+ 	struct irq_desc *desc = irq_to_desc(irq);
  
- 	dist_base = of_iomap(node, 0);
--	WARN(!dist_base, "unable to map gic dist registers\n");
-+	if (WARN(!dist_base, "unable to map gic dist registers\n"))
-+		return -ENOMEM;
- 
- 	cpu_base = of_iomap(node, 1);
--	WARN(!cpu_base, "unable to map gic cpu registers\n");
-+	if (WARN(!cpu_base, "unable to map gic cpu registers\n")) {
-+		iounmap(dist_base);
-+		return -ENOMEM;
-+	}
- 
- 	/*
- 	 * Disable split EOI/Deactivate if either HYP is not available
+-	if (WARN_ON(irq_settings_is_per_cpu_devid(desc)))
++	if (!desc || WARN_ON(irq_settings_is_per_cpu_devid(desc)))
+ 		return -EINVAL;
+ 	chip_bus_lock(desc);
+ 	retval = __setup_irq(irq, desc, act);
 -- 
 2.1.4
