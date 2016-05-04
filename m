@@ -1,59 +1,62 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: omap5-igep0050: Correct hdmi regulator
-Date: Wed, 4 May 2016 10:26:35 -0700
-Message-ID: <20160504172634.GS5995@atomide.com>
-References: <1461925297-9734-1-git-send-email-peter.ujfalusi@ti.com>
- <6ee9d67a-e907-715a-f3f5-d90a470314c3@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap legacy boot vs dt boot fixes for v4.7 merge window
+Date: Wed, 4 May 2016 10:31:53 -0700
+Message-ID: <20160504173153.GT5995@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <6ee9d67a-e907-715a-f3f5-d90a470314c3-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+The following changes since commit f55532a0c0b8bb6148f4e07853b876ef73bc69ca:
 
-Adding Nishanth to Cc.
+  Linux 4.6-rc1 (2016-03-26 16:03:24 -0700)
 
-* Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [160429 05:15]:
-> ldo7_reg, obviously ;)
-> 
-> > 	status = "okay";
-> > 	regulator-min-microvolt = <1800000>;
-> > 	regulator-max-microvolt = <1800000>;
-> > };
+are available in the git repository at:
 
-It really seems to be ldo7, otherwise there's no HDMI output. I don't
-have the schematics either.
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.7/legacy-signed
 
-But it seems we have at least two other regressions in Linux next that
-prevent me from testing this properly:
+for you to fetch changes up to 10c1f7d32bf451d4309850c15ab1fdadccf92620:
 
-1. On igepv5, I get this for the MMC regulator
+  ARM: OMAP2+: n900 needs MMC slot names for legacy user space (2016-04-28 14:26:33 -0700)
 
-ldo9: bypassed regulator has no supply!
-ldo9: failed to get the current voltage(-517)
-palmas-pmic 48070000.i2c:palmas@48:palmas_pmic: failed to register 48070000.i2c:palmar
+----------------------------------------------------------------
+Legacy booting vs device tree booting fixes for omaps for
+v4.7 merge window. These are not considered urgent fixes enough
+for the v4.6-rc cycle, but we need them in v4.7 in order to drop
+the last remaining board-*.c files for omap3 for v4.8 merge window.
 
-I'm pretty sure it really is using the ldo9 for MMC just like
-omap5-uevm.. Nishanth suggested it may use something else, but
-why would it as ldo9 has a nice voltage range?
+On Nokia N900, we need to pass the MMC slot names for the legacy
+user space to work. Let's do that using auxdata as the driver is
+setting up things already with the pdata for legacy booting. Then
+we can later on discuss if we may want to have some generic binding
+describing where the MMC slots are on the device.
 
-2. On both omap5-uevm and igepv5, NFSroot hangs
+N900 also has had the ir-rx51 device driver unusable with multiarch
+for a long time. Let's pass the dmtimer data in pdata for the driver
+to get it going again. Then once things are working, we can eventually
+change the driver to use just hrtimer and PWM framework. The driver
+changes will be queued separately.
 
-It seems that NFSroot boots to the point where PM runtime now
-just shuts down some regulator affecting the USB connected
-smsc Ethernet adapter?
+----------------------------------------------------------------
+Tony Lindgren (2):
+      ARM: OMAP2+: Add more functions to pwm pdata for ir-rx51
+      ARM: OMAP2+: n900 needs MMC slot names for legacy user space
 
-Regards,
-
-Tony
-
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ arch/arm/mach-omap2/board-rx51-peripherals.c   | 35 ++++++++++++++++++++--
+ arch/arm/mach-omap2/pdata-quirks.c             | 40 +++++++++++++++++++++++++-
+ include/linux/platform_data/media/ir-rx51.h    |  1 +
+ include/linux/platform_data/pwm_omap_dmtimer.h | 21 ++++++++++++++
+ 4 files changed, 94 insertions(+), 3 deletions(-)
