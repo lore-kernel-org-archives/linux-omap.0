@@ -1,7 +1,7 @@
 From: Jon Hunter <jonathanh@nvidia.com>
-Subject: [PATCH V3 06/17] irqdomain: Don't set type when mapping an IRQ
-Date: Wed, 4 May 2016 17:25:19 +0100
-Message-ID: <1462379130-11742-7-git-send-email-jonathanh@nvidia.com>
+Subject: [PATCH V3 02/17] irqchip/gic: WARN if setting the interrupt type for a PPI fails
+Date: Wed, 4 May 2016 17:25:15 +0100
+Message-ID: <1462379130-11742-3-git-send-email-jonathanh@nvidia.com>
 References: <1462379130-11742-1-git-send-email-jonathanh@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,91 +12,56 @@ To: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, M
 Cc: Kevin Hilman <khilman@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Jon Hunter <jonathanh@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
 
-Some IRQ chips, such as GPIO controllers or secondary level interrupt
-controllers, may require require additional runtime power management
-control to ensure they are accessible. For such IRQ chips, it makes sense
-to enable the IRQ chip when interrupts are requested and disabled them
-again once all interrupts have been freed.
+Setting the interrupt type for private peripheral interrupts (PPIs) may
+not be supported by a given GIC because it is IMPLEMENTATION DEFINED
+whether this is allowed. There is no way to know if setting the type is
+supported for a given GIC and so the value written is read back to
+verify it matches the desired configuration. If it does not match then
+an error is return.
 
-When mapping an IRQ, the IRQ type settings are read and then programmed.
-The mapping of the IRQ happens before the IRQ is requested and so the
-programming of the type settings occurs before the IRQ is requested. This
-is a problem for IRQ chips that require additional power management
-control because they may not be accessible yet. Therefore, when mapping
-the IRQ, don't program the type settings, just save them and then program
-these saved settings when the IRQ is requested (so long as if they are not
-overridden via the call to request the IRQ).
+There are cases where the interrupt configuration read from firmware
+(such as a device-tree blob), has been incorrect and hence
+gic_configure_irq() has returned an error. This error has gone
+undetected because the error code returned was ignored but the interrupt
+still worked fine because the configuration for the interrupt could not
+be overwritten.
 
-Add a stub function for irq_domain_free_irqs() to avoid any compilation
-errors when CONFIG_IRQ_DOMAIN_HIERARCHY is not selected.
+Given that this has done undetected and that failing to set the
+configuration for a PPI may not be a catastrophic, don't return an error
+but WARN if we fail to configure a PPI. This will allows us to fix up
+any places in the kernel where we should be checking the return status
+and maintain backward compatibility with firmware images that may have
+incorrect PPI configurations.
 
 Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Acked-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- include/linux/irqdomain.h |  3 +++
- kernel/irq/irqdomain.c    | 23 ++++++++++++++++++-----
- 2 files changed, 21 insertions(+), 5 deletions(-)
+ drivers/irqchip/irq-gic-common.c | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
-index 2aed04396210..fc66876d1965 100644
---- a/include/linux/irqdomain.h
-+++ b/include/linux/irqdomain.h
-@@ -440,6 +440,9 @@ static inline int irq_domain_alloc_irqs(struct irq_domain *domain,
- 	return -1;
- }
+diff --git a/drivers/irqchip/irq-gic-common.c b/drivers/irqchip/irq-gic-common.c
+index ffff5a45f1e3..9fa92a17225c 100644
+--- a/drivers/irqchip/irq-gic-common.c
++++ b/drivers/irqchip/irq-gic-common.c
+@@ -56,12 +56,15 @@ int gic_configure_irq(unsigned int irq, unsigned int type,
  
-+static inline void irq_domain_free_irqs(unsigned int virq,
-+					unsigned int nr_irqs) { }
-+
- static inline bool irq_domain_is_hierarchy(struct irq_domain *domain)
- {
- 	return false;
-diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
-index d68371213fc9..bbf5b9b8ac3d 100644
---- a/kernel/irq/irqdomain.c
-+++ b/kernel/irq/irqdomain.c
-@@ -564,6 +564,7 @@ static void of_phandle_args_to_fwspec(struct of_phandle_args *irq_data,
- unsigned int irq_create_fwspec_mapping(struct irq_fwspec *fwspec)
- {
- 	struct irq_domain *domain;
-+	struct irq_data *irq_data;
- 	irq_hw_number_t hwirq;
- 	unsigned int type = IRQ_TYPE_NONE;
- 	int virq;
-@@ -613,7 +614,11 @@ unsigned int irq_create_fwspec_mapping(struct irq_fwspec *fwspec)
- 		 * it now and return the interrupt number.
- 		 */
- 		if (irq_get_trigger_type(virq) == IRQ_TYPE_NONE) {
--			irq_set_irq_type(virq, type);
-+			irq_data = irq_get_irq_data(virq);
-+			if (!irq_data)
-+				return 0;
-+
-+			irqd_set_trigger_type(irq_data, type);
- 			return virq;
- 		}
+ 	/*
+ 	 * Write back the new configuration, and possibly re-enable
+-	 * the interrupt. If we fail to write a new configuration,
+-	 * return an error.
++	 * the interrupt. WARN if we fail to write a new configuration
++	 * and return an error if we failed to write the configuration
++	 * for an SPI. If we fail to write the configuration for a PPI
++	 * this is most likely because the GIC does not allow us to set
++	 * the configuration and so it is not a catastrophic failure.
+ 	 */
+ 	writel_relaxed(val, base + GIC_DIST_CONFIG + confoff);
+-	if (readl_relaxed(base + GIC_DIST_CONFIG + confoff) != val)
+-		ret = -EINVAL;
++	if (WARN_ON(readl_relaxed(base + GIC_DIST_CONFIG + confoff) != val))
++		ret = irq < 32 ? 0 : -EINVAL;
  
-@@ -633,10 +638,18 @@ unsigned int irq_create_fwspec_mapping(struct irq_fwspec *fwspec)
- 			return virq;
- 	}
- 
--	/* Set type if specified and different than the current one */
--	if (type != IRQ_TYPE_NONE &&
--	    type != irq_get_trigger_type(virq))
--		irq_set_irq_type(virq, type);
-+	irq_data = irq_get_irq_data(virq);
-+	if (!irq_data) {
-+		if (irq_domain_is_hierarchy(domain))
-+			irq_domain_free_irqs(virq, 1);
-+		else
-+			irq_dispose_mapping(virq);
-+		return 0;
-+	}
-+
-+	/* Store trigger type */
-+	irqd_set_trigger_type(irq_data, type);
-+
- 	return virq;
- }
- EXPORT_SYMBOL_GPL(irq_create_fwspec_mapping);
+ 	if (sync_access)
+ 		sync_access();
 -- 
 2.1.4
