@@ -1,7 +1,7 @@
-From: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Peter Chen <hzpeterchen@gmail.com>
 Subject: Re: [PATCH v6 09/12] usb: gadget: udc: adapt to OTG core
-Date: Wed, 4 May 2016 09:47:05 +0800
-Message-ID: <20160504014705.GC31013@shlinux2.ap.freescale.net>
+Date: Wed, 4 May 2016 11:35:23 +0800
+Message-ID: <20160504033523.GD31013@shlinux2.ap.freescale.net>
 References: <1459865117-7032-10-git-send-email-rogerq@ti.com>
  <AM4PR04MB2130ACE0588E64EA723987E3896E0@AM4PR04MB2130.eurprd04.prod.outlook.com>
  <571E23D7.5070501@ti.com>
@@ -14,12 +14,12 @@ References: <1459865117-7032-10-git-send-email-rogerq@ti.com>
  <5728C76E.9010405@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5728C76E.9010405-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Jun Li <jun.li-3arQi8VN3Tc@public.gmane.org>, "stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org" <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org" <abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, "r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5728C76E.9010405@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Jun Li <jun.li@nxp.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "balbi@kernel.org" <balbi@kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "peter.chen@freescale.com" <peter.chen@freescale.com>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "jun.li@freescale.com" <jun.li@freescale.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Joao.Pinto@synopsys.com" <Joao.Pinto@synopsys.com>, "abrestic@chromium.org" <abrestic@chromium.org>, "r.baldyga@samsung.com" <r.baldyga@samsung.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
 On Tue, May 03, 2016 at 06:44:46PM +0300, Roger Quadros wrote:
@@ -154,20 +154,41 @@ On Tue, May 03, 2016 at 06:44:46PM +0300, Roger Quadros wrote:
 > and later if we find issues then extend it as required.
 > 
 
-I agree with you, roger.
+Just talked with Jun, he is worried if loc_conn != pullup_dp at some
+situations. So, how about only calling start gadget at usb_start_gadget,
+and pullup_dp at drd_set_state (see below).
 
-loc_conn action is only needed for peripheral, we can't do real !loc_conn
-at host mode. Besides, loc_conn is the output, we need to set/clear it after
-state has changed, and current gadget framework already takes well for
-connection and disconnection state, so it is better to delete loc_conn
-action at otg_fsm->ops, and only keeps it as indicator for OTG FSM
-reference.
+
+static void drd_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
+{
+	struct usb_otg *otg = container_of(fsm, struct usb_otg, fsm);
+
+	if (otg->state == new_state)
+		return;
+
+	fsm->state_changed = 1;
+	dev_dbg(otg->dev, "otg: set state: %s\n",
+		usb_otg_state_string(new_state));
+	switch (new_state) {
+	case OTG_STATE_B_IDLE:
++		usb_udc_vbus_handler(gadget, false);
+		drd_set_protocol(fsm, PROTO_UNDEF);
+		otg_drv_vbus(otg, 0);
+		break;
+	case OTG_STATE_B_PERIPHERAL:
+		drd_set_protocol(fsm, PROTO_GADGET);
++		usb_udc_vbus_handler(gadget, true);
+		otg_drv_vbus(otg, 0);
+		break;
+	......
+	};
+	
+}
+
+When the OTG FSM is added to this framework, it can keep usb_fsm->ops->loc_conn,
+and using the current FSM.
 
 -- 
 
 Best Regards,
 Peter Chen
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
