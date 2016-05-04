@@ -1,65 +1,45 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v7 10/14] usb: otg: add hcd companion support
-Date: Wed, 4 May 2016 16:47:18 +0300
-Message-ID: <5729FD66.4020704@ti.com>
-References: <1462191537-10314-1-git-send-email-rogerq@ti.com>
- <1462191537-10314-11-git-send-email-rogerq@ti.com>
- <20160504131700.GA20184@rob-hp-laptop>
+From: Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 2/3] ARM: DRA7x: dts: Update the OSC_32K_CLK frequency
+Date: Wed, 4 May 2016 16:09:40 +0200
+Message-ID: <CAALWOA_4bqWo-izirjQUKb-YjiyBJwAdek_z60kjnEnj74Er7w@mail.gmail.com>
+References: <20160427171658.GA5995@atomide.com> <1462209123-7332-1-git-send-email-Linux.HWI@garmin.com>
+ <1462209123-7332-3-git-send-email-Linux.HWI@garmin.com> <57285E66.2000708@ti.com>
+ <5728A81F.4050906@garmin.com> <20160503164323.GN5995@atomide.com> <5728E0BC.3080509@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160504131700.GA20184@rob-hp-laptop>
+In-Reply-To: <5728E0BC.3080509-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "J.D. Schroeder" <Linux.HWI-UF6BFNFdnjXQT0dZR+AlfA@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, jay.schroeder-UF6BFNFdnjXQT0dZR+AlfA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 04/05/16 16:17, Rob Herring wrote:
-> On Mon, May 02, 2016 at 03:18:53PM +0300, Roger Quadros wrote:
->> From: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
->>
->> Since some host controller (e.g. EHCI) needs a companion host controller
->> (e.g. OHCI), this patch adds such a configuration to use it in the OTG
->> core.
->>
->> Signed-off-by: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
->> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
->> ---
->>  Documentation/devicetree/bindings/usb/generic.txt |  3 +++
->>  drivers/usb/common/usb-otg.c                      | 32 ++++++++++++++++-------
->>  include/linux/usb/otg.h                           |  7 ++++-
->>  3 files changed, 32 insertions(+), 10 deletions(-)
->>
->> diff --git a/Documentation/devicetree/bindings/usb/generic.txt b/Documentation/devicetree/bindings/usb/generic.txt
->> index f6866c1..1db1c33 100644
->> --- a/Documentation/devicetree/bindings/usb/generic.txt
->> +++ b/Documentation/devicetree/bindings/usb/generic.txt
->> @@ -27,6 +27,9 @@ Optional properties:
->>   - otg-controller: phandle to otg controller. Host or gadget controllers can
->>  			contain this property to link it to a particular OTG
->>  			controller.
->> + - hcd-needs-companion: must be present if otg controller is dealing with
->> +			EHCI host controller that needs a companion OHCI host
->> +			controller.
-> 
-> Don't you need to have a link to the companion controller node?
+On 3 May 2016 at 18:43, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+> Does a fixed divider calculation of input * (32768 / 27e6) make sense
+> here too as pointed out earlier by Matthijs for the ti81xx?
 
-primary and companion controllers are totally independent of each other
-e.g. EHCI and OHCI. They are enabled by separate Kconfig options and
-the system can operate with either or both of them enabled.
+That was an actual fractional divider, i.e. the output clock would be
+exactly that ratio of the input clock, which would therefore yield
+32768 Hz if the default crystal is used for the main osc.
 
-At the OTG layer we don't have information as to whether we should be waiting
-for both of them to register or not and hence need this "hcd-needs-companion" flag.
+It makes no sense to use it to describe a wobbly RC osc.
 
-> 
->>  
->>  This is an attribute to a USB controller such as:
->>  
 
---
-cheers,
--roger
+On 3 May 2016 at 19:32, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org> wrote:
+> Also, as it is security related, this is kind of sensitive area to discuss publicly.
+
+Don't be silly. The only sense in which this clock is "security
+related" is because it's used for the secure watchdog, and the reason
+to use it despite its inaccuracy is completely obvious: an internal rc
+osc can't be easily manipulated by an external attacker. I see no
+reason to act all cloak-and-dagger about this.
+
+(This seems to be a general theme to conceal "security related" things
+from public documentation. If I were an HS customer I'd actually be
+concerned about such behaviour since it would seem to indicate a lack
+of confidence in one's security architecture.)
+
+Matthijs
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
