@@ -1,76 +1,41 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: dts: omap5-igep0050: Correct hdmi regulator
-Date: Wed, 4 May 2016 13:01:33 -0500
-Message-ID: <572A38FD.9050801@ti.com>
-References: <1461925297-9734-1-git-send-email-peter.ujfalusi@ti.com>
- <6ee9d67a-e907-715a-f3f5-d90a470314c3@ti.com>
- <20160504172634.GS5995@atomide.com>
+From: Ben Hutchings <ben.hutchings-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: dra7xx: Fix compatible string for PCF8575 chip
+Date: Wed, 04 May 2016 19:23:23 +0100
+Message-ID: <1462386203.2360.12.camel@codethink.co.uk>
+References: <1461588834-20908-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160504172634.GS5995@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1461588834-20908-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 05/04/2016 12:26 PM, Tony Lindgren wrote:
-> Hi,
+On Mon, 2016-04-25 at 15:53 +0300, Roger Quadros wrote:
+> The boards use a TI variant of the PCF8575 so specify that
+> in the compatible string.
 > 
-> Adding Nishanth to Cc.
-> 
-> * Peter Ujfalusi <peter.ujfalusi@ti.com> [160429 05:15]:
->> ldo7_reg, obviously ;)
->>
->>> 	status = "okay";
->>> 	regulator-min-microvolt = <1800000>;
->>> 	regulator-max-microvolt = <1800000>;
->>> };
-> 
-> It really seems to be ldo7, otherwise there's no HDMI output. I don't
-> have the schematics either.
-> 
-> But it seems we have at least two other regressions in Linux next that
-> prevent me from testing this properly:
-> 
-> 1. On igepv5, I get this for the MMC regulator
-> 
-> ldo9: bypassed regulator has no supply!
-> ldo9: failed to get the current voltage(-517)
-> palmas-pmic 48070000.i2c:palmas@48:palmas_pmic: failed to register 48070000.i2c:palmar
-> 
-> I'm pretty sure it really is using the ldo9 for MMC just like
-> omap5-uevm.. Nishanth suggested it may use something else, but
-> why would it as ldo9 has a nice voltage range?
-> 
-> 2. On both omap5-uevm and igepv5, NFSroot hangs
-> 
-> It seems that NFSroot boots to the point where PM runtime now
-> just shuts down some regulator affecting the USB connected
-> smsc Ethernet adapter?
-> 
-> Regards,
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+[...]
 
-This one is interesting..
-BayLibre uEVM:
-https://storage.kernelci.org/next/next-20160504/arm-omap2plus_defconfig/lab-baylibre-seattle/boot-omap5-uevm_rootfs:mmc.txt
+1. This compatible string is still not documented (AFAIK).
+2. As I understand it, TI is a second source for this NXP-designed chip,
+i.e. it manufactures chips with identical logic (not clones) under
+license.  They should not be distinguishable in software.
+3. For the same reason, there is no guarantee that the board
+manufacturer won't populate boards with PCF8575 chips from the other
+source in future.
 
-My uEVM:
-https://github.com/nmenon/kernel-test-logs/blob/next-20160504/omap2plus_defconfig/omap5-evm.txt
-
-Mine boots, but BayLibre one does not. So, that got me started
-thinking it was bootloader... but then I realize it could be SDCard
-since they are dual voltage. U-boot starting v2013.07-rc1 included
-code that would set to bypass or program voltage for LDO9 based on
-card voltage needed. It is possible (since my card seems to need 3.0v,
-not 3.3v), that bypass to VCC_3v3_SDIO was never needed - but the
-cards that Baylibre board could probably be setup in bypass.
-
-I will send in a patch assuming (without access to igev5 schematics -
-based on how it seems to be booting), that sdio path.
-
+Ben.
 
 -- 
-Regards,
-Nishanth Menon
+Ben Hutchings
+Software Developer, Codethink Ltd.
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
