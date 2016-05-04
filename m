@@ -1,7 +1,7 @@
 From: Jon Hunter <jonathanh@nvidia.com>
-Subject: [PATCH V3 14/17] irqchip/gic: Add helper function for configuring a GIC via device-tree
-Date: Wed, 4 May 2016 17:25:27 +0100
-Message-ID: <1462379130-11742-15-git-send-email-jonathanh@nvidia.com>
+Subject: [PATCH V3 12/17] irqchip/gic: Pass GIC pointer to save/restore functions
+Date: Wed, 4 May 2016 17:25:25 +0100
+Message-ID: <1462379130-11742-13-git-send-email-jonathanh@nvidia.com>
 References: <1462379130-11742-1-git-send-email-jonathanh@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,76 +12,233 @@ To: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, M
 Cc: Kevin Hilman <khilman@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Jon Hunter <jonathanh@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
 
-Move the code that configures a GIC via device-tree into it's own
-function. This will allow us to re-use this function when adding a
-platform driver to support GICs that require power-management.
+Instead of passing the GIC index to the save/restore functions pass a
+pointer to the GIC chip data. This will allow these save/restore
+functions to be re-used by a platform driver where the GIC chip data
+structure is allocated dynamically and so there is no applicable index
+for identifying the GIC.
 
 Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Acked-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- drivers/irqchip/irq-gic.c | 37 +++++++++++++++++++++++++------------
- 1 file changed, 25 insertions(+), 12 deletions(-)
+ drivers/irqchip/irq-gic.c | 74 +++++++++++++++++++++++++----------------------
+ 1 file changed, 39 insertions(+), 35 deletions(-)
 
 diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index a10274926690..2fc5018d6eb9 100644
+index 82931aa68868..30666f349649 100644
 --- a/drivers/irqchip/irq-gic.c
 +++ b/drivers/irqchip/irq-gic.c
-@@ -1194,6 +1194,28 @@ static bool gic_check_eoimode(struct device_node *node, void __iomem **base)
- 	return true;
+@@ -518,34 +518,35 @@ int gic_cpu_if_down(unsigned int gic_nr)
+  * this function, no interrupts will be delivered by the GIC, and another
+  * platform-specific wakeup source must be enabled.
+  */
+-static void gic_dist_save(unsigned int gic_nr)
++static void gic_dist_save(struct gic_chip_data *gic)
+ {
+ 	unsigned int gic_irqs;
+ 	void __iomem *dist_base;
+ 	int i;
+ 
+-	BUG_ON(gic_nr >= CONFIG_ARM_GIC_MAX_NR);
++	if (WARN_ON(!gic))
++		return;
+ 
+-	gic_irqs = gic_data[gic_nr].gic_irqs;
+-	dist_base = gic_data_dist_base(&gic_data[gic_nr]);
++	gic_irqs = gic->gic_irqs;
++	dist_base = gic_data_dist_base(gic);
+ 
+ 	if (!dist_base)
+ 		return;
+ 
+ 	for (i = 0; i < DIV_ROUND_UP(gic_irqs, 16); i++)
+-		gic_data[gic_nr].saved_spi_conf[i] =
++		gic->saved_spi_conf[i] =
+ 			readl_relaxed(dist_base + GIC_DIST_CONFIG + i * 4);
+ 
+ 	for (i = 0; i < DIV_ROUND_UP(gic_irqs, 4); i++)
+-		gic_data[gic_nr].saved_spi_target[i] =
++		gic->saved_spi_target[i] =
+ 			readl_relaxed(dist_base + GIC_DIST_TARGET + i * 4);
+ 
+ 	for (i = 0; i < DIV_ROUND_UP(gic_irqs, 32); i++)
+-		gic_data[gic_nr].saved_spi_enable[i] =
++		gic->saved_spi_enable[i] =
+ 			readl_relaxed(dist_base + GIC_DIST_ENABLE_SET + i * 4);
+ 
+ 	for (i = 0; i < DIV_ROUND_UP(gic_irqs, 32); i++)
+-		gic_data[gic_nr].saved_spi_active[i] =
++		gic->saved_spi_active[i] =
+ 			readl_relaxed(dist_base + GIC_DIST_ACTIVE_SET + i * 4);
  }
  
-+static int gic_of_setup(struct device_node *node, void __iomem **dist_base,
-+			void __iomem **cpu_base, u32 *percpu_offset)
-+{
-+	if (!node || !dist_base || !cpu_base || !percpu_offset)
-+		return -EINVAL;
-+
-+	*dist_base = of_iomap(node, 0);
-+	if (WARN(!*dist_base, "unable to map gic dist registers\n"))
-+		return -ENOMEM;
-+
-+	*cpu_base = of_iomap(node, 1);
-+	if (WARN(!*cpu_base, "unable to map gic cpu registers\n")) {
-+		iounmap(*dist_base);
-+		return -ENOMEM;
-+	}
-+
-+	if (of_property_read_u32(node, "cpu-offset", percpu_offset))
-+		*percpu_offset = 0;
-+
-+	return 0;
-+}
-+
- int __init
- gic_of_init(struct device_node *node, struct device_node *parent)
+@@ -556,16 +557,17 @@ static void gic_dist_save(unsigned int gic_nr)
+  * handled normally, but any edge interrupts that occured will not be seen by
+  * the GIC and need to be handled by the platform-specific wakeup source.
+  */
+-static void gic_dist_restore(unsigned int gic_nr)
++static void gic_dist_restore(struct gic_chip_data *gic)
  {
-@@ -1214,15 +1236,9 @@ gic_of_init(struct device_node *node, struct device_node *parent)
- 	    of_property_read_bool(node, "power-domains"))
- 		return 0;
+ 	unsigned int gic_irqs;
+ 	unsigned int i;
+ 	void __iomem *dist_base;
  
--	dist_base = of_iomap(node, 0);
--	if (WARN(!dist_base, "unable to map gic dist registers\n"))
--		return -ENOMEM;
--
--	cpu_base = of_iomap(node, 1);
--	if (WARN(!cpu_base, "unable to map gic cpu registers\n")) {
--		iounmap(dist_base);
--		return -ENOMEM;
--	}
-+	ret = gic_of_setup(node, &dist_base, &cpu_base, &percpu_offset);
-+	if (ret)
-+		return ret;
+-	BUG_ON(gic_nr >= CONFIG_ARM_GIC_MAX_NR);
++	if (WARN_ON(!gic))
++		return;
  
- 	/*
- 	 * Disable split EOI/Deactivate if either HYP is not available
-@@ -1231,9 +1247,6 @@ gic_of_init(struct device_node *node, struct device_node *parent)
- 	if (gic_cnt == 0 && !gic_check_eoimode(node, &cpu_base))
- 		static_key_slow_dec(&supports_deactivate);
+-	gic_irqs = gic_data[gic_nr].gic_irqs;
+-	dist_base = gic_data_dist_base(&gic_data[gic_nr]);
++	gic_irqs = gic->gic_irqs;
++	dist_base = gic_data_dist_base(gic);
  
--	if (of_property_read_u32(node, "cpu-offset", &percpu_offset))
--		percpu_offset = 0;
--
- 	ret = __gic_init_bases(gic_cnt, -1, dist_base, cpu_base, percpu_offset,
- 			 &node->fwnode);
- 	if (ret) {
+ 	if (!dist_base)
+ 		return;
+@@ -573,7 +575,7 @@ static void gic_dist_restore(unsigned int gic_nr)
+ 	writel_relaxed(GICD_DISABLE, dist_base + GIC_DIST_CTRL);
+ 
+ 	for (i = 0; i < DIV_ROUND_UP(gic_irqs, 16); i++)
+-		writel_relaxed(gic_data[gic_nr].saved_spi_conf[i],
++		writel_relaxed(gic->saved_spi_conf[i],
+ 			dist_base + GIC_DIST_CONFIG + i * 4);
+ 
+ 	for (i = 0; i < DIV_ROUND_UP(gic_irqs, 4); i++)
+@@ -581,85 +583,87 @@ static void gic_dist_restore(unsigned int gic_nr)
+ 			dist_base + GIC_DIST_PRI + i * 4);
+ 
+ 	for (i = 0; i < DIV_ROUND_UP(gic_irqs, 4); i++)
+-		writel_relaxed(gic_data[gic_nr].saved_spi_target[i],
++		writel_relaxed(gic->saved_spi_target[i],
+ 			dist_base + GIC_DIST_TARGET + i * 4);
+ 
+ 	for (i = 0; i < DIV_ROUND_UP(gic_irqs, 32); i++) {
+ 		writel_relaxed(GICD_INT_EN_CLR_X32,
+ 			dist_base + GIC_DIST_ENABLE_CLEAR + i * 4);
+-		writel_relaxed(gic_data[gic_nr].saved_spi_enable[i],
++		writel_relaxed(gic->saved_spi_enable[i],
+ 			dist_base + GIC_DIST_ENABLE_SET + i * 4);
+ 	}
+ 
+ 	for (i = 0; i < DIV_ROUND_UP(gic_irqs, 32); i++) {
+ 		writel_relaxed(GICD_INT_EN_CLR_X32,
+ 			dist_base + GIC_DIST_ACTIVE_CLEAR + i * 4);
+-		writel_relaxed(gic_data[gic_nr].saved_spi_active[i],
++		writel_relaxed(gic->saved_spi_active[i],
+ 			dist_base + GIC_DIST_ACTIVE_SET + i * 4);
+ 	}
+ 
+ 	writel_relaxed(GICD_ENABLE, dist_base + GIC_DIST_CTRL);
+ }
+ 
+-static void gic_cpu_save(unsigned int gic_nr)
++static void gic_cpu_save(struct gic_chip_data *gic)
+ {
+ 	int i;
+ 	u32 *ptr;
+ 	void __iomem *dist_base;
+ 	void __iomem *cpu_base;
+ 
+-	BUG_ON(gic_nr >= CONFIG_ARM_GIC_MAX_NR);
++	if (WARN_ON(!gic))
++		return;
+ 
+-	dist_base = gic_data_dist_base(&gic_data[gic_nr]);
+-	cpu_base = gic_data_cpu_base(&gic_data[gic_nr]);
++	dist_base = gic_data_dist_base(gic);
++	cpu_base = gic_data_cpu_base(gic);
+ 
+ 	if (!dist_base || !cpu_base)
+ 		return;
+ 
+-	ptr = raw_cpu_ptr(gic_data[gic_nr].saved_ppi_enable);
++	ptr = raw_cpu_ptr(gic->saved_ppi_enable);
+ 	for (i = 0; i < DIV_ROUND_UP(32, 32); i++)
+ 		ptr[i] = readl_relaxed(dist_base + GIC_DIST_ENABLE_SET + i * 4);
+ 
+-	ptr = raw_cpu_ptr(gic_data[gic_nr].saved_ppi_active);
++	ptr = raw_cpu_ptr(gic->saved_ppi_active);
+ 	for (i = 0; i < DIV_ROUND_UP(32, 32); i++)
+ 		ptr[i] = readl_relaxed(dist_base + GIC_DIST_ACTIVE_SET + i * 4);
+ 
+-	ptr = raw_cpu_ptr(gic_data[gic_nr].saved_ppi_conf);
++	ptr = raw_cpu_ptr(gic->saved_ppi_conf);
+ 	for (i = 0; i < DIV_ROUND_UP(32, 16); i++)
+ 		ptr[i] = readl_relaxed(dist_base + GIC_DIST_CONFIG + i * 4);
+ 
+ }
+ 
+-static void gic_cpu_restore(unsigned int gic_nr)
++static void gic_cpu_restore(struct gic_chip_data *gic)
+ {
+ 	int i;
+ 	u32 *ptr;
+ 	void __iomem *dist_base;
+ 	void __iomem *cpu_base;
+ 
+-	BUG_ON(gic_nr >= CONFIG_ARM_GIC_MAX_NR);
++	if (WARN_ON(!gic))
++		return;
+ 
+-	dist_base = gic_data_dist_base(&gic_data[gic_nr]);
+-	cpu_base = gic_data_cpu_base(&gic_data[gic_nr]);
++	dist_base = gic_data_dist_base(gic);
++	cpu_base = gic_data_cpu_base(gic);
+ 
+ 	if (!dist_base || !cpu_base)
+ 		return;
+ 
+-	ptr = raw_cpu_ptr(gic_data[gic_nr].saved_ppi_enable);
++	ptr = raw_cpu_ptr(gic->saved_ppi_enable);
+ 	for (i = 0; i < DIV_ROUND_UP(32, 32); i++) {
+ 		writel_relaxed(GICD_INT_EN_CLR_X32,
+ 			       dist_base + GIC_DIST_ENABLE_CLEAR + i * 4);
+ 		writel_relaxed(ptr[i], dist_base + GIC_DIST_ENABLE_SET + i * 4);
+ 	}
+ 
+-	ptr = raw_cpu_ptr(gic_data[gic_nr].saved_ppi_active);
++	ptr = raw_cpu_ptr(gic->saved_ppi_active);
+ 	for (i = 0; i < DIV_ROUND_UP(32, 32); i++) {
+ 		writel_relaxed(GICD_INT_EN_CLR_X32,
+ 			       dist_base + GIC_DIST_ACTIVE_CLEAR + i * 4);
+ 		writel_relaxed(ptr[i], dist_base + GIC_DIST_ACTIVE_SET + i * 4);
+ 	}
+ 
+-	ptr = raw_cpu_ptr(gic_data[gic_nr].saved_ppi_conf);
++	ptr = raw_cpu_ptr(gic->saved_ppi_conf);
+ 	for (i = 0; i < DIV_ROUND_UP(32, 16); i++)
+ 		writel_relaxed(ptr[i], dist_base + GIC_DIST_CONFIG + i * 4);
+ 
+@@ -668,7 +672,7 @@ static void gic_cpu_restore(unsigned int gic_nr)
+ 					dist_base + GIC_DIST_PRI + i * 4);
+ 
+ 	writel_relaxed(GICC_INT_PRI_THRESHOLD, cpu_base + GIC_CPU_PRIMASK);
+-	gic_cpu_if_up(&gic_data[gic_nr]);
++	gic_cpu_if_up(gic);
+ }
+ 
+ static int gic_notifier(struct notifier_block *self, unsigned long cmd,	void *v)
+@@ -683,18 +687,18 @@ static int gic_notifier(struct notifier_block *self, unsigned long cmd,	void *v)
+ #endif
+ 		switch (cmd) {
+ 		case CPU_PM_ENTER:
+-			gic_cpu_save(i);
++			gic_cpu_save(&gic_data[i]);
+ 			break;
+ 		case CPU_PM_ENTER_FAILED:
+ 		case CPU_PM_EXIT:
+-			gic_cpu_restore(i);
++			gic_cpu_restore(&gic_data[i]);
+ 			break;
+ 		case CPU_CLUSTER_PM_ENTER:
+-			gic_dist_save(i);
++			gic_dist_save(&gic_data[i]);
+ 			break;
+ 		case CPU_CLUSTER_PM_ENTER_FAILED:
+ 		case CPU_CLUSTER_PM_EXIT:
+-			gic_dist_restore(i);
++			gic_dist_restore(&gic_data[i]);
+ 			break;
+ 		}
+ 	}
 -- 
 2.1.4
