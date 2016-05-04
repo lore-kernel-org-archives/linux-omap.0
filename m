@@ -1,7 +1,7 @@
 From: Jon Hunter <jonathanh@nvidia.com>
-Subject: [PATCH V3 10/17] irqchip/gic: Remove static irq_chip definition for eoimode1
-Date: Wed, 4 May 2016 17:25:23 +0100
-Message-ID: <1462379130-11742-11-git-send-email-jonathanh@nvidia.com>
+Subject: [PATCH V3 11/17] irqchip/gic: Return an error if GIC initialisation fails
+Date: Wed, 4 May 2016 17:25:24 +0100
+Message-ID: <1462379130-11742-12-git-send-email-jonathanh@nvidia.com>
 References: <1462379130-11742-1-git-send-email-jonathanh@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,58 +12,165 @@ To: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, M
 Cc: Kevin Hilman <khilman@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Jon Hunter <jonathanh@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
 
-There are only 3 differences (not including the name) in the definitions
-of the gic_chip and gic_eoimode1_chip structures. Instead of statically
-defining the gic_eoimode1_chip structure, remove it and populate the
-eoimode1 functions dynamically for the appropriate GIC irqchips.
+If the GIC initialisation fails, then currently we do not return an error
+or clean-up afterwards. Although for root controllers, this failure may be
+fatal anyway, for secondary controllers, it may not be fatal and so return
+an error on failure and clean-up.
+
+For non-banked GIC controllers, make sure that we free any memory
+allocated if we fail to initialise the IRQ domain. Please note that
+free_percpu() only frees memory if the pointer passed to it is not NULL
+and so it is unnecessary to check if both pointers are valid or not.
 
 Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
-Acked-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- drivers/irqchip/irq-gic.c | 22 ++++++----------------
- 1 file changed, 6 insertions(+), 16 deletions(-)
+ drivers/irqchip/irq-gic.c | 59 +++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 42 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index 16f632dcc2ad..13a0d77e8ae9 100644
+index 13a0d77e8ae9..82931aa68868 100644
 --- a/drivers/irqchip/irq-gic.c
 +++ b/drivers/irqchip/irq-gic.c
-@@ -391,20 +391,6 @@ static struct irq_chip gic_chip = {
- 				  IRQCHIP_MASK_ON_SUSPEND,
+@@ -998,13 +998,13 @@ static const struct irq_domain_ops gic_irq_domain_ops = {
+ 	.unmap = gic_irq_domain_unmap,
  };
  
--static struct irq_chip gic_eoimode1_chip = {
--	.name			= "GICv2",
--	.irq_mask		= gic_eoimode1_mask_irq,
--	.irq_unmask		= gic_unmask_irq,
--	.irq_eoi		= gic_eoimode1_eoi_irq,
--	.irq_set_type		= gic_set_type,
--	.irq_get_irqchip_state	= gic_irq_get_irqchip_state,
--	.irq_set_irqchip_state	= gic_irq_set_irqchip_state,
--	.irq_set_vcpu_affinity	= gic_irq_set_vcpu_affinity,
--	.flags			= IRQCHIP_SET_TYPE_MASKED |
--				  IRQCHIP_SKIP_SET_WAKE |
--				  IRQCHIP_MASK_ON_SUSPEND,
--};
--
- void __init gic_cascade_irq(unsigned int gic_nr, unsigned int irq)
+-static void __init __gic_init_bases(unsigned int gic_nr, int irq_start,
++static int __init __gic_init_bases(unsigned int gic_nr, int irq_start,
+ 			   void __iomem *dist_base, void __iomem *cpu_base,
+ 			   u32 percpu_offset, struct fwnode_handle *handle)
  {
- 	BUG_ON(gic_nr >= CONFIG_ARM_GIC_MAX_NR);
-@@ -1025,10 +1011,14 @@ static void __init __gic_init_bases(unsigned int gic_nr, int irq_start,
- 	gic = &gic_data[gic_nr];
+ 	irq_hw_number_t hwirq_base;
+ 	struct gic_chip_data *gic;
+-	int gic_irqs, irq_base, i;
++	int gic_irqs, irq_base, i, ret;
  
- 	/* Initialize irq_chip */
-+	gic->chip = gic_chip;
-+
- 	if (static_key_true(&supports_deactivate) && gic_nr == 0) {
--		gic->chip = gic_eoimode1_chip;
-+		gic->chip.irq_mask = gic_eoimode1_mask_irq;
-+		gic->chip.irq_eoi = gic_eoimode1_eoi_irq;
-+		gic->chip.irq_set_vcpu_affinity = gic_irq_set_vcpu_affinity;
-+		gic->chip.name = "GICv2";
+ 	BUG_ON(gic_nr >= CONFIG_ARM_GIC_MAX_NR);
+ 
+@@ -1017,7 +1017,7 @@ static void __init __gic_init_bases(unsigned int gic_nr, int irq_start,
+ 		gic->chip.irq_mask = gic_eoimode1_mask_irq;
+ 		gic->chip.irq_eoi = gic_eoimode1_eoi_irq;
+ 		gic->chip.irq_set_vcpu_affinity = gic_irq_set_vcpu_affinity;
+-		gic->chip.name = "GICv2";
++		gic->chip.name = kasprintf(GFP_KERNEL, "GICv2");
  	} else {
--		gic->chip = gic_chip;
  		gic->chip.name = kasprintf(GFP_KERNEL, "GIC-%d", gic_nr);
  	}
+@@ -1027,17 +1027,16 @@ static void __init __gic_init_bases(unsigned int gic_nr, int irq_start,
+ 		gic->chip.irq_set_affinity = gic_set_affinity;
+ #endif
+ 
+-#ifdef CONFIG_GIC_NON_BANKED
+-	if (percpu_offset) { /* Frankein-GIC without banked registers... */
++	if (IS_ENABLED(CONFIG_GIC_NON_BANKED) && percpu_offset) {
++		/* Frankein-GIC without banked registers... */
+ 		unsigned int cpu;
+ 
+ 		gic->dist_base.percpu_base = alloc_percpu(void __iomem *);
+ 		gic->cpu_base.percpu_base = alloc_percpu(void __iomem *);
+ 		if (WARN_ON(!gic->dist_base.percpu_base ||
+ 			    !gic->cpu_base.percpu_base)) {
+-			free_percpu(gic->dist_base.percpu_base);
+-			free_percpu(gic->cpu_base.percpu_base);
+-			return;
++			ret = -ENOMEM;
++			goto error;
+ 		}
+ 
+ 		for_each_possible_cpu(cpu) {
+@@ -1049,9 +1048,8 @@ static void __init __gic_init_bases(unsigned int gic_nr, int irq_start,
+ 		}
+ 
+ 		gic_set_base_accessor(gic, gic_get_percpu_base);
+-	} else
+-#endif
+-	{			/* Normal, sane GIC... */
++	} else {
++		/* Normal, sane GIC... */
+ 		WARN(percpu_offset,
+ 		     "GIC_NON_BANKED not enabled, ignoring %08x offset!",
+ 		     percpu_offset);
+@@ -1101,8 +1099,10 @@ static void __init __gic_init_bases(unsigned int gic_nr, int irq_start,
+ 					hwirq_base, &gic_irq_domain_ops, gic);
+ 	}
+ 
+-	if (WARN_ON(!gic->domain))
+-		return;
++	if (WARN_ON(!gic->domain)) {
++		ret = -ENODEV;
++		goto error;
++	}
+ 
+ 	if (gic_nr == 0) {
+ 		/*
+@@ -1124,6 +1124,18 @@ static void __init __gic_init_bases(unsigned int gic_nr, int irq_start,
+ 	gic_dist_init(gic);
+ 	gic_cpu_init(gic);
+ 	gic_pm_init(gic);
++
++	return 0;
++
++error:
++	if (IS_ENABLED(CONFIG_GIC_NON_BANKED) && percpu_offset) {
++		free_percpu(gic->dist_base.percpu_base);
++		free_percpu(gic->cpu_base.percpu_base);
++	}
++
++	kfree(gic->chip.name);
++
++	return ret;
+ }
+ 
+ void __init gic_init(unsigned int gic_nr, int irq_start,
+@@ -1184,7 +1196,7 @@ gic_of_init(struct device_node *node, struct device_node *parent)
+ 	void __iomem *cpu_base;
+ 	void __iomem *dist_base;
+ 	u32 percpu_offset;
+-	int irq;
++	int irq, ret;
+ 
+ 	if (WARN_ON(!node))
+ 		return -ENODEV;
+@@ -1209,8 +1221,14 @@ gic_of_init(struct device_node *node, struct device_node *parent)
+ 	if (of_property_read_u32(node, "cpu-offset", &percpu_offset))
+ 		percpu_offset = 0;
+ 
+-	__gic_init_bases(gic_cnt, -1, dist_base, cpu_base, percpu_offset,
++	ret = __gic_init_bases(gic_cnt, -1, dist_base, cpu_base, percpu_offset,
+ 			 &node->fwnode);
++	if (ret) {
++		iounmap(dist_base);
++		iounmap(cpu_base);
++		return ret;
++	}
++
+ 	if (!gic_cnt)
+ 		gic_init_physaddr(node);
+ 
+@@ -1299,7 +1317,7 @@ static int __init gic_v2_acpi_init(struct acpi_subtable_header *header,
+ 	struct acpi_madt_generic_distributor *dist;
+ 	void __iomem *cpu_base, *dist_base;
+ 	struct fwnode_handle *domain_handle;
+-	int count;
++	int count, ret;
+ 
+ 	/* Collect CPU base addresses */
+ 	count = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_INTERRUPT,
+@@ -1342,7 +1360,14 @@ static int __init gic_v2_acpi_init(struct acpi_subtable_header *header,
+ 		return -ENOMEM;
+ 	}
+ 
+-	__gic_init_bases(0, -1, dist_base, cpu_base, 0, domain_handle);
++	ret = __gic_init_bases(0, -1, dist_base, cpu_base, 0, domain_handle);
++	if (ret) {
++		pr_err("Failed to initialise GIC\n");
++		irq_domain_free_fwnode(domain_handle);
++		iounmap(cpu_base);
++		iounmap(dist_base);
++		return ret;
++	}
+ 
+ 	acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, domain_handle);
  
 -- 
 2.1.4
