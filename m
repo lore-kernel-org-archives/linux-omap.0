@@ -1,71 +1,36 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH net-next 4/5] treewide: replace dev->trans_start update
- with helper
-Date: Wed, 4 May 2016 17:03:01 +0530
-Message-ID: <5729DDED.6030106@ti.com>
-References: <1462285862-30946-1-git-send-email-fw@strlen.de>
- <1462285994-31983-1-git-send-email-fw@strlen.de>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v7 09/14] usb: of: add an API to get OTG device from USB
+ controller node
+Date: Wed, 4 May 2016 08:15:30 -0500
+Message-ID: <20160504131530.GA16204@rob-hp-laptop>
+References: <1462191537-10314-1-git-send-email-rogerq@ti.com>
+ <1462191537-10314-10-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <1462285994-31983-1-git-send-email-fw@strlen.de>
-Sender: linux-can-owner@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org
-Cc: user-mode-linux-devel@lists.sourceforge.net, linux-xtensa@linux-xtensa.org, linux1394-devel@lists.sourceforge.net, linux-rdma@vger.kernel.org, MPT-FusionLinux.pdl@broadcom.com, linux-scsi@vger.kernel.org, linux-can@vger.kernel.org, linux-parisc@vger.kernel.org, linux-omap@vger.kernel.org, linux-hams@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, b.a.t.m.a.n@lists.open-mesh.org, linux-bluetooth@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1462191537-10314-10-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 03 May 2016 08:03 PM, Florian Westphal wrote:
-> Replace all trans_start updates with netif_trans_update helper.
-> change was done via spatch:
+On Mon, May 02, 2016 at 03:18:52PM +0300, Roger Quadros wrote:
+> The OTG controller and the USB controller an be linked via the
+> 'otg-controller' property in the USB controller's device node.
 > 
-> struct net_device *d;
-> @@
-> - d->trans_start = jiffies
-> + netif_trans_update(d)
+> of_usb_get_otg() can be used to get the OTG controller device
+> from the USB controller's device node.
 > 
-> Compile tested only.
-> 
-> Cc: user-mode-linux-devel@lists.sourceforge.net
-> Cc: linux-xtensa@linux-xtensa.org
-> Cc: linux1394-devel@lists.sourceforge.net
-> Cc: linux-rdma@vger.kernel.org
-> Cc: netdev@vger.kernel.org
-> Cc: MPT-FusionLinux.pdl@broadcom.com
-> Cc: linux-scsi@vger.kernel.org
-> Cc: linux-can@vger.kernel.org
-> Cc: linux-parisc@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-hams@vger.kernel.org
-> Cc: linux-usb@vger.kernel.org
-> Cc: linux-wireless@vger.kernel.org
-> Cc: linux-s390@vger.kernel.org
-> Cc: devel@driverdev.osuosl.org
-> Cc: b.a.t.m.a.n@lists.open-mesh.org
-> Cc: linux-bluetooth@vger.kernel.org
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 > ---
+>  Documentation/devicetree/bindings/usb/generic.txt |  3 +++
+>  drivers/usb/common/common.c                       | 27 +++++++++++++++++++++++
+>  include/linux/usb/of.h                            |  9 ++++++++
+>  3 files changed, 39 insertions(+)
 
-snip...
-
-
-> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> index 0fa75a8..3d4662d 100644
-> --- a/drivers/net/ethernet/ti/cpsw.c
-> +++ b/drivers/net/ethernet/ti/cpsw.c
-> @@ -1381,7 +1381,7 @@ static netdev_tx_t cpsw_ndo_start_xmit(struct sk_buff *skb,
->  	struct cpsw_priv *priv = netdev_priv(ndev);
->  	int ret;
->  
-> -	ndev->trans_start = jiffies;
-> +	netif_trans_update(ndev);
->  
->  	if (skb_padto(skb, CPSW_MIN_PACKET_SIZE)) {
->  		cpsw_err(priv, tx_err, "packet pad failed\n");
-
-for cpsw
-
-Acked-by: Mugunthan V N <mugunthanvnm@ti.com>
-
-Regards
-Mugunthan V N
+Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
