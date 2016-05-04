@@ -1,60 +1,76 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] non urgent auxdata fix for v4.7 merge window
-Date: Wed, 4 May 2016 10:53:07 -0700
-Message-ID: <20160504175306.GU5995@atomide.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: dts: omap5-igep0050: Correct hdmi regulator
+Date: Wed, 4 May 2016 13:01:33 -0500
+Message-ID: <572A38FD.9050801@ti.com>
+References: <1461925297-9734-1-git-send-email-peter.ujfalusi@ti.com>
+ <6ee9d67a-e907-715a-f3f5-d90a470314c3@ti.com>
+ <20160504172634.GS5995@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160504172634.GS5995@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit f55532a0c0b8bb6148f4e07853b876ef73bc69ca:
+On 05/04/2016 12:26 PM, Tony Lindgren wrote:
+> Hi,
+> 
+> Adding Nishanth to Cc.
+> 
+> * Peter Ujfalusi <peter.ujfalusi@ti.com> [160429 05:15]:
+>> ldo7_reg, obviously ;)
+>>
+>>> 	status = "okay";
+>>> 	regulator-min-microvolt = <1800000>;
+>>> 	regulator-max-microvolt = <1800000>;
+>>> };
+> 
+> It really seems to be ldo7, otherwise there's no HDMI output. I don't
+> have the schematics either.
+> 
+> But it seems we have at least two other regressions in Linux next that
+> prevent me from testing this properly:
+> 
+> 1. On igepv5, I get this for the MMC regulator
+> 
+> ldo9: bypassed regulator has no supply!
+> ldo9: failed to get the current voltage(-517)
+> palmas-pmic 48070000.i2c:palmas@48:palmas_pmic: failed to register 48070000.i2c:palmar
+> 
+> I'm pretty sure it really is using the ldo9 for MMC just like
+> omap5-uevm.. Nishanth suggested it may use something else, but
+> why would it as ldo9 has a nice voltage range?
+> 
+> 2. On both omap5-uevm and igepv5, NFSroot hangs
+> 
+> It seems that NFSroot boots to the point where PM runtime now
+> just shuts down some regulator affecting the USB connected
+> smsc Ethernet adapter?
+> 
+> Regards,
 
-  Linux 4.6-rc1 (2016-03-26 16:03:24 -0700)
+This one is interesting..
+BayLibre uEVM:
+https://storage.kernelci.org/next/next-20160504/arm-omap2plus_defconfig/lab-baylibre-seattle/boot-omap5-uevm_rootfs:mmc.txt
 
-are available in the git repository at:
+My uEVM:
+https://github.com/nmenon/kernel-test-logs/blob/next-20160504/omap2plus_defconfig/omap5-evm.txt
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.7/auxdata-signed
+Mine boots, but BayLibre one does not. So, that got me started
+thinking it was bootloader... but then I realize it could be SDCard
+since they are dual voltage. U-boot starting v2013.07-rc1 included
+code that would set to bypass or program voltage for LDO9 based on
+card voltage needed. It is possible (since my card seems to need 3.0v,
+not 3.3v), that bypass to VCC_3v3_SDIO was never needed - but the
+cards that Baylibre board could probably be setup in bypass.
 
-for you to fetch changes up to d4f414e559caf36d811213e56b56e9b6957caab1:
+I will send in a patch assuming (without access to igev5 schematics -
+based on how it seems to be booting), that sdio path.
 
-  ARM: OMAP2+: Simplify auxdata by using the generic match (2016-04-15 08:47:07 -0700)
 
-----------------------------------------------------------------
-Device tree auxdata handling fix that allows a match based on the
-compatible string if no exact match based on the IO address is found.
-
-This leaves out the need to patch auxdata for each driver when adding
-new SoCs. And it also reprotedly fixes the issue of passing auxdata
-to a child if the parent instantiates the child from DT as discussed
-in the "[PATCH] of/platform: Allow secondary compatible match in
-of_dev_lookup" mailing list thread.
-
-As a minimal use case, let's also convert omap pinctrl auxdatato
-use a generic match.
-
-There is no need to get this in to the v4.6-rc cycle and it can wait
-for v4.7 merge window. Note that these changes have now been sitting
-in Linux next for about two weeks so far as I wanted to make sure no
-new issues are popping up.
-
-----------------------------------------------------------------
-Tony Lindgren (2):
-      of/platform: Allow secondary compatible match in of_dev_lookup
-      ARM: OMAP2+: Simplify auxdata by using the generic match
-
- arch/arm/mach-omap2/pdata-quirks.c | 17 ++---------------
- drivers/of/platform.c              | 28 +++++++++++++++++++++++-----
- 2 files changed, 25 insertions(+), 20 deletions(-)
+-- 
+Regards,
+Nishanth Menon
