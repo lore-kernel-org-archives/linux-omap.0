@@ -1,139 +1,60 @@
-From: Jon Hunter <jonathanh@nvidia.com>
-Subject: Re: [PATCH V3 02/17] irqchip/gic: WARN if setting the interrupt type
- for a PPI fails
-Date: Thu, 5 May 2016 15:41:07 +0100
-Message-ID: <572B5B82.4040902@nvidia.com>
-References: <1462379130-11742-1-git-send-email-jonathanh@nvidia.com>
- <1462379130-11742-3-git-send-email-jonathanh@nvidia.com>
- <572B3731.80602@arm.com> <572B48FE.20707@nvidia.com>
- <20160505144025.50c02f3d@arm.com>
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 02/10] usb: musb: Fix idling after host mode by
+ increasing autosuspend delay
+Date: Thu, 5 May 2016 10:02:48 -0500
+Message-ID: <20160505150159.GA25950@uda0271908>
+References: <1461864800-29979-1-git-send-email-tony@atomide.com>
+ <1461864800-29979-3-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160505144025.50c02f3d@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Kevin Hilman <khilman@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1461864800-29979-3-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
-On 05/05/16 14:40, Marc Zyngier wrote:
-> On Thu, 5 May 2016 14:22:06 +0100
-> Jon Hunter <jonathanh@nvidia.com> wrote:
+On Thu, Apr 28, 2016 at 10:33:12AM -0700, Tony Lindgren wrote:
+> Looks like at least 2430 glue won't idle reliably with the 200 ms
+> autosuspend delay. This causes deeper idle states being blocked for
+> the whole SoC when disconnecting OTG A cable.
 > 
->> Hi Marc,
->>
->> On 05/05/16 13:06, Marc Zyngier wrote:
->>> Hi Jon,
->>>
->>> On 04/05/16 17:25, Jon Hunter wrote:
->>>> Setting the interrupt type for private peripheral interrupts (PPIs) may
->>>> not be supported by a given GIC because it is IMPLEMENTATION DEFINED
->>>> whether this is allowed. There is no way to know if setting the type is
->>>> supported for a given GIC and so the value written is read back to
->>>> verify it matches the desired configuration. If it does not match then
->>>> an error is return.
->>>>
->>>> There are cases where the interrupt configuration read from firmware
->>>> (such as a device-tree blob), has been incorrect and hence
->>>> gic_configure_irq() has returned an error. This error has gone
->>>> undetected because the error code returned was ignored but the interrupt
->>>> still worked fine because the configuration for the interrupt could not
->>>> be overwritten.
->>>>
->>>> Given that this has done undetected and that failing to set the
->>>> configuration for a PPI may not be a catastrophic, don't return an error
->>>> but WARN if we fail to configure a PPI. This will allows us to fix up
->>>> any places in the kernel where we should be checking the return status
->>>> and maintain backward compatibility with firmware images that may have
->>>> incorrect PPI configurations.
->>>>
->>>> Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
->>>> Acked-by: Marc Zyngier <marc.zyngier@arm.com>
->>>> ---
->>>>  drivers/irqchip/irq-gic-common.c | 11 +++++++----
->>>>  1 file changed, 7 insertions(+), 4 deletions(-)
->>>>
->>>> diff --git a/drivers/irqchip/irq-gic-common.c b/drivers/irqchip/irq-gic-common.c
->>>> index ffff5a45f1e3..9fa92a17225c 100644
->>>> --- a/drivers/irqchip/irq-gic-common.c
->>>> +++ b/drivers/irqchip/irq-gic-common.c
->>>> @@ -56,12 +56,15 @@ int gic_configure_irq(unsigned int irq, unsigned int type,
->>>>  
->>>>  	/*
->>>>  	 * Write back the new configuration, and possibly re-enable
->>>> -	 * the interrupt. If we fail to write a new configuration,
->>>> -	 * return an error.
->>>> +	 * the interrupt. WARN if we fail to write a new configuration
->>>> +	 * and return an error if we failed to write the configuration
->>>> +	 * for an SPI. If we fail to write the configuration for a PPI
->>>> +	 * this is most likely because the GIC does not allow us to set
->>>> +	 * the configuration and so it is not a catastrophic failure.
->>>>  	 */
->>>>  	writel_relaxed(val, base + GIC_DIST_CONFIG + confoff);
->>>> -	if (readl_relaxed(base + GIC_DIST_CONFIG + confoff) != val)
->>>> -		ret = -EINVAL;
->>>> +	if (WARN_ON(readl_relaxed(base + GIC_DIST_CONFIG + confoff) != val))
->>>> +		ret = irq < 32 ? 0 : -EINVAL;
->>>>  
->>>>  	if (sync_access)
->>>>  		sync_access();
->>>>
->>>
->>> I'm going to slightly backpedal on that one:
->>>
->>> When running in non-secure mode, you can reconfigure secure interrupts
->>
->> Do you mean 'cannot'?
-> 
-> Yes, sorry.
-> 
->>> (for obvious reasons). But you don't know which mode you're running in
->>> either. A typical example is the arch timer, which requests both secure
->>> and non-secure interrupts, because we cannot know which side of the CPU
->>> we're running on. In the non-secure case, we end-up with a splat that
->>> is rather undeserved.
->>
->> Yes seems sensible.
->>
->>> So I'm tempted to tone down the splat in the PPI case like this:
->>>
->>> diff --git a/drivers/irqchip/irq-gic-common.c b/drivers/irqchip/irq-gic-common.c
->>> index 083c303..1605e42 100644
->>> --- a/drivers/irqchip/irq-gic-common.c
->>> +++ b/drivers/irqchip/irq-gic-common.c
->>> @@ -63,8 +63,17 @@ int gic_configure_irq(unsigned int irq, unsigned int type,
->>>  	 * the configuration and so it is not a catastrophic failure.
->>>  	 */
->>>  	writel_relaxed(val, base + GIC_DIST_CONFIG + confoff);
->>> -	if (WARN_ON(readl_relaxed(base + GIC_DIST_CONFIG + confoff) != val))
->>> -		ret = irq < 32 ? 0 : -EINVAL;
->>> +	oldval = readl_relaxed(base + GIC_DIST_CONFIG + confoff);
->>> +	if (oldval != val) {
->>> +		if (irq < 32) {
->>> +			pr_warn("GIC: PPI%d is either secure or misconfigured\n",
->>> +				irq - 16);
->>> +			ret = 0;
->>> +		} else {
->>> +			WARN_ON(1);
->>> +			ret = -EINVAL;
->>> +		}
->>> +	}
->>>  
->>>  	if (sync_access)
->>>  		sync_access();
->>>
->>> Thoughts?
->>
->> That is fine with me. Do you want me to re-spin or do you want to apply
->> your change on top? However, before I re-spin would like to get your
->> thoughts on patches 13-17.
-> 
-> I can squash this into your own patch if you're OK with it. I'll reply
-> to your other patches shortly, as I have a number of comments there.
+> Increasing the delay to 500 ms seems to idle both MUSB and the PHY
+> reliably. This is probably because of time needed by the hardware
+> based negotiation between MUSB and the PHY.
 
-Yes that is fine with me.
+Unless we know other glues also have the same issue, this change
+affects other glues, right? Can we just increase it for 2430 only?
 
-Cheers
-Jon
+Regards,
+-Bin.
+
+> 
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> ---
+>  drivers/usb/musb/musb_core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+> index 39fd958..5fa6187 100644
+> --- a/drivers/usb/musb/musb_core.c
+> +++ b/drivers/usb/musb/musb_core.c
+> @@ -2030,7 +2030,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+>  
+>  	/* We need musb_read/write functions initialized for PM */
+>  	pm_runtime_use_autosuspend(musb->controller);
+> -	pm_runtime_set_autosuspend_delay(musb->controller, 200);
+> +	pm_runtime_set_autosuspend_delay(musb->controller, 500);
+>  	pm_runtime_enable(musb->controller);
+>  
+>  	/* The musb_platform_init() call:
+> -- 
+> 2.8.1
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
