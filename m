@@ -1,60 +1,56 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 02/10] usb: musb: Fix idling after host mode by
- increasing autosuspend delay
-Date: Thu, 5 May 2016 10:02:48 -0500
-Message-ID: <20160505150159.GA25950@uda0271908>
-References: <1461864800-29979-1-git-send-email-tony@atomide.com>
- <1461864800-29979-3-git-send-email-tony@atomide.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 3/3] regulator: lp873x: Add support for lp873x PMIC
+ regulators
+Date: Thu, 5 May 2016 16:38:20 +0100
+Message-ID: <20160505153820.GF6292@sirena.org.uk>
+References: <1462425040-18566-1-git-send-email-j-keerthy@ti.com>
+ <1462425040-18566-4-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="TUvp6TiFcfhGC84w"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1461864800-29979-3-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1462425040-18566-4-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: lgirdwood@gmail.com, lee.jones@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
 
-On Thu, Apr 28, 2016 at 10:33:12AM -0700, Tony Lindgren wrote:
-> Looks like at least 2430 glue won't idle reliably with the 200 ms
-> autosuspend delay. This causes deeper idle states being blocked for
-> the whole SoC when disconnecting OTG A cable.
-> 
-> Increasing the delay to 500 ms seems to idle both MUSB and the PHY
-> reliably. This is probably because of time needed by the hardware
-> based negotiation between MUSB and the PHY.
+--TUvp6TiFcfhGC84w
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Unless we know other glues also have the same issue, this change
-affects other glues, right? Can we just increase it for 2430 only?
+On Thu, May 05, 2016 at 10:40:40AM +0530, Keerthy wrote:
 
-Regards,
--Bin.
+> +static const struct of_device_id of_lp873x_match_tbl[] = {
+> +	{ .compatible = "ti,lp8733-regulators",},
+> +	{ .compatible = "ti,lp8732-regulators",},
+> +	{ .compatible = "ti,lp873x-regulators",},
+> +	{},
+> +};
 
-> 
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> ---
->  drivers/usb/musb/musb_core.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> index 39fd958..5fa6187 100644
-> --- a/drivers/usb/musb/musb_core.c
-> +++ b/drivers/usb/musb/musb_core.c
-> @@ -2030,7 +2030,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
->  
->  	/* We need musb_read/write functions initialized for PM */
->  	pm_runtime_use_autosuspend(musb->controller);
-> -	pm_runtime_set_autosuspend_delay(musb->controller, 200);
-> +	pm_runtime_set_autosuspend_delay(musb->controller, 500);
->  	pm_runtime_enable(musb->controller);
->  
->  	/* The musb_platform_init() call:
-> -- 
-> 2.8.1
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+There should be no need for compatible strings here, we already know
+what device this is from the parent.  The way we split drivers up for
+Linux is something that's internal to Linux and shouldn't be in the
+device tree.  If we do have explicit compatible strings then they should
+(as always) be specific to a device, no wildcards.
+
+Otherwise this looks sensible.
+
+--TUvp6TiFcfhGC84w
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJXK2jrAAoJECTWi3JdVIfQBSkH/RfOIGws1Q8B/TA6uqaCRx/7
+sRc1M3AN20HLiRG4PnjT2yWutkvJBnLdYHfEft0nFLdpqQWAlOtWVeidgq9Pj42z
+CWlOq2xqa9LVwFfaQuh53j8ksYCiIHsQp2omoIwVAPoadOBPCVz5+aNCLGdTImKK
+5Xizcm7lrqzg/35kxsnJqUv7uriakaoKXD7k3QP/DtWMF0Ta5fTF49iPsbw4DoZT
+T0kDhbDNRhvpBY4akO6lYfuMecQc1Cgxby9oWsIraiNSBKJrBgzkzdFvqD3JX/0V
+IkppxNTF4H0qJ5ts5FnQMV5rKzTX8MMKoMkYma03YTe5K9XgaBNE19AheFoMT2M=
+=1t3+
+-----END PGP SIGNATURE-----
+
+--TUvp6TiFcfhGC84w--
