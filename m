@@ -1,111 +1,153 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: omap5-board-common: Describe the voltage supply
- mapping accurately
-Date: Thu, 5 May 2016 14:00:29 -0500
-Message-ID: <572B984D.10203@ti.com>
-References: <1462389618-28860-1-git-send-email-nm@ti.com>
- <572A528C.4090302@ti.com> <20160505183611.GA5995@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] ARM: dts: Fix uart wakeirq on omap5 by removing WAKEUP_EN for
+ omaps
+Date: Thu,  5 May 2016 12:01:29 -0700
+Message-ID: <1462474889-22800-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160505183611.GA5995-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 05/05/2016 01:36 PM, Tony Lindgren wrote:
-> * Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [160504 12:52]:
->> On 05/04/2016 02:20 PM, Nishanth Menon wrote:
->> [...]
->>
->>> @@ -551,6 +590,8 @@
->>>  
->>>  				ldo9_reg: ldo9 {
->>>  					/* VCC_DV_SDIO: vdds_sdcard */
->>> +					vin-supply = <&vmmcsdio_fixed>;
->>> +
->>
->> There is an extra white space here, and vmmcsd_fixed is the regulator
->> to be used, looks like vmmcsdio_fixed should ideally been vwlan_fixed
->> or something.. the actual rail to LDO9_IN was called vmmc_3v3_SDIO..
->>
->> Sorry for the confusion. Unfortunately, I can not recreate the fail on
->> my board, but this sounded like the closest fix I can think of.
-> 
-> Looks like arch/arm/boot/dts/tegra114-dalmore.dts has entries like
-> this instead for the PMIC:
-> 
-> ldo9-in-supply = <&palmas_smps9_reg>:
-> ...
-> 
-> Doing simlar changes for omap5-board-common.dtsi seems to fix the
-> issues for me:
-> 
-> LDO3: supplied by vdds_1v8_main
-> LDO4: supplied by vdds_1v8_main
-> ldo4: Bringing 0uV into 1800000-1800000uV
-> LDO5: supplied by vsys_cobra
-> LDO6: supplied by vdds_1v8_main
-> LDO7: supplied by vsys_cobra
-> ldo7: Bringing 0uV into 2000000-2000000uV
-> LDO8: supplied by vsys_cobra
-> LDO9: supplied by vmmcsd_fixed
-> 
-> See also the patch below too, and please check I got things right
-> based on your earlier patch :)
+The padconf register WAKEUP_EN is now handled in a generic way using
+Linux wakeirqs where pinctrl-single toggles the WAKEUP_EN bit when
+a wakeirq is enabled or disabled.
 
+At least omap5 gets confused if the WAKEUP_EN bit is set and the pin
+is not claimed as a wakeirq. The end result is that wakeirqs don't
+work properly as there is nothing handling the wakeirq.
 
-> 
-> Now I'm wondering if the x15 related vin-supply changes are actually all
-> ignored? It seems that "vin" is only automatically configured for the
-> fixed-regulator? Maybe regulator-palmas should be updated to use the
+So let's just remove the WAKEUP_EN usage from dts files.
 
-ok /me goes duh!!!! ofcourse! Sorry about not catching it..
-hmm.. maybe we messed up am572x-idk as well.. I can quickly fix that
-up as well
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/boot/dts/omap3-evm-37xx.dts      | 2 +-
+ arch/arm/boot/dts/omap3-n900.dts          | 4 ++--
+ arch/arm/boot/dts/omap3-n950-n9.dtsi      | 6 +++---
+ arch/arm/boot/dts/omap3-zoom3.dts         | 6 +++---
+ arch/arm/boot/dts/omap5-board-common.dtsi | 2 +-
+ 5 files changed, 10 insertions(+), 10 deletions(-)
 
-> "vin-supply" if configured to avoid confusion?
-regulator-palmas using vin-supply is more sensible, but i am not sure
-about the argument
-for this originally was -> +Mark, Keerthy and Lakshman for feedback.
-
-[...]
-> +			smps123-in-supply = <&vsys_cobra>;
-> +			smps45-in-supply = <&vsys_cobra>;
-> +			smps6-in-supply = <&vsys_cobra>;
-> +			smps7-in-supply = <&vsys_cobra>;
-> +			smps8-in-supply = <&vsys_cobra>;
-> +			smps9-in-supply = <&vsys_cobra>;
-> +			smps10_out2-in-supply = <&vsys_cobra>;
-> +			smps10_out1-in-supply = <&vsys_cobra>;
-> +			ldo1-in-supply = <&vsys_cobra>;
-> +			ldo2-in-supply = <&vsys_cobra>;
-> +			ldo3-in-supply = <&vdds_1v8_main>;
-> +			ldo4-in-supply = <&vdds_1v8_main>;
-> +			ldo5-in-supply = <&vsys_cobra>;
-> +			ldo6-in-supply = <&vdds_1v8_main>;
-> +			ldo7-in-supply = <&vsys_cobra>;
-> +			ldo8-in-supply = <&vsys_cobra>;
-> +			ldo9-in-supply = <&vmmcsd_fixed>;
-> +			ldousb-in-supply = <&vsys_cobra>;
-ldoln is vsys_cobra as well.. I missed that.
-
-Others look good. we should probably get this merged to fix the
-regression.
-
-> +
->  			regulators {
->  				smps123_reg: smps123 {
->  					/* VDD_OPP_MPU */
-> 
-
-
+diff --git a/arch/arm/boot/dts/omap3-evm-37xx.dts b/arch/arm/boot/dts/omap3-evm-37xx.dts
+index cd11c56..792a876 100644
+--- a/arch/arm/boot/dts/omap3-evm-37xx.dts
++++ b/arch/arm/boot/dts/omap3-evm-37xx.dts
+@@ -85,7 +85,7 @@
+ 			OMAP3_CORE1_IOPAD(0x2158, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_clk.sdmmc2_clk */
+ 			OMAP3_CORE1_IOPAD(0x215a, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_cmd.sdmmc2_cmd */
+ 			OMAP3_CORE1_IOPAD(0x215c, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat0.sdmmc2_dat0 */
+-			OMAP3_CORE1_IOPAD(0x215e, WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_dat1.sdmmc2_dat1 */
++			OMAP3_CORE1_IOPAD(0x215e, PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_dat1.sdmmc2_dat1 */
+ 			OMAP3_CORE1_IOPAD(0x2160, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat2.sdmmc2_dat2 */
+ 			OMAP3_CORE1_IOPAD(0x2162, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat3.sdmmc2_dat3 */
+ 		>;
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+index d9e2d9c..2b74a81 100644
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -288,7 +288,7 @@
+ 		pinctrl-single,pins = <
+ 			OMAP3_CORE1_IOPAD(0x2180, PIN_INPUT_PULLUP | MUX_MODE1)	/* ssi1_rdy_tx */
+ 			OMAP3_CORE1_IOPAD(0x217e, PIN_OUTPUT | MUX_MODE1)		/* ssi1_flag_tx */
+-			OMAP3_CORE1_IOPAD(0x2182, PIN_INPUT | WAKEUP_EN | MUX_MODE4) /* ssi1_wake_tx (cawake) */
++			OMAP3_CORE1_IOPAD(0x2182, PIN_INPUT | MUX_MODE4)		/* ssi1_wake_tx (cawake) */
+ 			OMAP3_CORE1_IOPAD(0x217c, PIN_OUTPUT | MUX_MODE1)		/* ssi1_dat_tx */
+ 			OMAP3_CORE1_IOPAD(0x2184, PIN_INPUT | MUX_MODE1)		/* ssi1_dat_rx */
+ 			OMAP3_CORE1_IOPAD(0x2186, PIN_INPUT | MUX_MODE1)		/* ssi1_flag_rx */
+@@ -300,7 +300,7 @@
+ 	modem_pins: pinmux_modem {
+ 		pinctrl-single,pins = <
+ 			OMAP3_CORE1_IOPAD(0x20dc, PIN_OUTPUT | MUX_MODE4)		/* gpio 70 => cmt_apeslpx */
+-			OMAP3_CORE1_IOPAD(0x20e0, PIN_INPUT | WAKEUP_EN | MUX_MODE4) /* gpio 72 => ape_rst_rq */
++			OMAP3_CORE1_IOPAD(0x20e0, PIN_INPUT | MUX_MODE4)		/* gpio 72 => ape_rst_rq */
+ 			OMAP3_CORE1_IOPAD(0x20e2, PIN_OUTPUT | MUX_MODE4)		/* gpio 73 => cmt_rst_rq */
+ 			OMAP3_CORE1_IOPAD(0x20e4, PIN_OUTPUT | MUX_MODE4)		/* gpio 74 => cmt_en */
+ 			OMAP3_CORE1_IOPAD(0x20e6, PIN_OUTPUT | MUX_MODE4)		/* gpio 75 => cmt_rst */
+diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+index a00ca76..927b17f 100644
+--- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
++++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+@@ -97,7 +97,7 @@
+ 			OMAP3_CORE1_IOPAD(0x217c, PIN_OUTPUT | MUX_MODE1)            /* ssi1_dat_tx */
+ 			OMAP3_CORE1_IOPAD(0x217e, PIN_OUTPUT | MUX_MODE1)            /* ssi1_flag_tx */
+ 			OMAP3_CORE1_IOPAD(0x2180, PIN_INPUT_PULLUP | MUX_MODE1)      /* ssi1_rdy_tx */
+-			OMAP3_CORE1_IOPAD(0x2182, PIN_INPUT | WAKEUP_EN | MUX_MODE4) /* ssi1_wake_tx (cawake) */
++			OMAP3_CORE1_IOPAD(0x2182, PIN_INPUT | MUX_MODE4)	/* ssi1_wake_tx (cawake) */
+ 			OMAP3_CORE1_IOPAD(0x2184, PIN_INPUT | MUX_MODE1)             /* ssi1_dat_rx */
+ 			OMAP3_CORE1_IOPAD(0x2186, PIN_INPUT | MUX_MODE1)             /* ssi1_flag_rx */
+ 			OMAP3_CORE1_IOPAD(0x2188, PIN_OUTPUT | MUX_MODE1)            /* ssi1_rdy_rx */
+@@ -110,7 +110,7 @@
+ 			OMAP3_CORE1_IOPAD(0x217c, PIN_OUTPUT | MUX_MODE7)            /* ssi1_dat_tx */
+ 			OMAP3_CORE1_IOPAD(0x217e, PIN_OUTPUT | MUX_MODE7)            /* ssi1_flag_tx */
+ 			OMAP3_CORE1_IOPAD(0x2180, PIN_INPUT_PULLDOWN | MUX_MODE7)    /* ssi1_rdy_tx */
+-			OMAP3_CORE1_IOPAD(0x2182, PIN_INPUT | WAKEUP_EN | MUX_MODE4) /* ssi1_wake_tx (cawake) */
++			OMAP3_CORE1_IOPAD(0x2182, PIN_INPUT | MUX_MODE4)	/* ssi1_wake_tx (cawake) */
+ 			OMAP3_CORE1_IOPAD(0x2184, PIN_INPUT | MUX_MODE7)             /* ssi1_dat_rx */
+ 			OMAP3_CORE1_IOPAD(0x2186, PIN_INPUT | MUX_MODE7)             /* ssi1_flag_rx */
+ 			OMAP3_CORE1_IOPAD(0x2188, PIN_OUTPUT | MUX_MODE4)            /* ssi1_rdy_rx */
+@@ -120,7 +120,7 @@
+ 
+ 	modem_pins1: pinmux_modem_core1_pins {
+ 		pinctrl-single,pins = <
+-			OMAP3_CORE1_IOPAD(0x207a, PIN_INPUT | WAKEUP_EN | MUX_MODE4) /* gpio_34 (ape_rst_rq) */
++			OMAP3_CORE1_IOPAD(0x207a, PIN_INPUT | MUX_MODE4)	/* gpio_34 (ape_rst_rq) */
+ 			OMAP3_CORE1_IOPAD(0x2100, PIN_OUTPUT | MUX_MODE4)            /* gpio_88 (cmt_rst_rq) */
+ 			OMAP3_CORE1_IOPAD(0x210a, PIN_OUTPUT | MUX_MODE4)            /* gpio_93 (cmt_apeslpx) */
+ 		>;
+diff --git a/arch/arm/boot/dts/omap3-zoom3.dts b/arch/arm/boot/dts/omap3-zoom3.dts
+index acb5f3c..75d4dfb 100644
+--- a/arch/arm/boot/dts/omap3-zoom3.dts
++++ b/arch/arm/boot/dts/omap3-zoom3.dts
+@@ -98,7 +98,7 @@
+ 		pinctrl-single,pins = <
+                         OMAP3_CORE1_IOPAD(0x2174, PIN_INPUT_PULLUP | MUX_MODE0)	/* uart2_cts.uart2_cts */
+                         OMAP3_CORE1_IOPAD(0x2176, PIN_OUTPUT | MUX_MODE0)		/* uart2_rts.uart2_rts */
+-                        OMAP3_CORE1_IOPAD(0x217a, WAKEUP_EN | PIN_INPUT | MUX_MODE0) /* uart2_rx.uart2_rx */
++                        OMAP3_CORE1_IOPAD(0x217a, PIN_INPUT | MUX_MODE0)		/* uart2_rx.uart2_rx */
+                         OMAP3_CORE1_IOPAD(0x2178, PIN_OUTPUT | MUX_MODE0)		/* uart2_tx.uart2_tx */
+ 		>;
+ 	};
+@@ -107,7 +107,7 @@
+ 		pinctrl-single,pins = <
+                         OMAP3_CORE1_IOPAD(0x219a, PIN_INPUT_PULLDOWN | MUX_MODE0)	/* uart3_cts_rctx.uart3_cts_rctx */
+                         OMAP3_CORE1_IOPAD(0x219c, PIN_OUTPUT | MUX_MODE0)		/* uart3_rts_sd.uart3_rts_sd */
+-                        OMAP3_CORE1_IOPAD(0x219e, WAKEUP_EN | PIN_INPUT | MUX_MODE0) /* uart3_rx_irrx.uart3_rx_irrx */
++                        OMAP3_CORE1_IOPAD(0x219e, PIN_INPUT | MUX_MODE0)		/* uart3_rx_irrx.uart3_rx_irrx */
+                         OMAP3_CORE1_IOPAD(0x21a0, PIN_OUTPUT | MUX_MODE0)		/* uart3_tx_irtx.uart3_tx_irtx */
+ 		>;
+ 	};
+@@ -125,7 +125,7 @@
+ 		pinctrl-single,pins = <
+ 			OMAP3630_CORE2_IOPAD(0x25d8, PIN_INPUT_PULLUP | MUX_MODE2)	/* etk_clk.sdmmc3_clk */
+ 			OMAP3630_CORE2_IOPAD(0x25e4, PIN_INPUT_PULLUP | MUX_MODE2)	/* etk_d4.sdmmc3_dat0 */
+-			OMAP3630_CORE2_IOPAD(0x25e6, WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE2) /* etk_d5.sdmmc3_dat1 */
++			OMAP3630_CORE2_IOPAD(0x25e6, PIN_INPUT_PULLUP | MUX_MODE2)	/* etk_d5.sdmmc3_dat1 */
+ 			OMAP3630_CORE2_IOPAD(0x25e8, PIN_INPUT_PULLUP | MUX_MODE2)	/* etk_d6.sdmmc3_dat2 */
+ 			OMAP3630_CORE2_IOPAD(0x25e2, PIN_INPUT_PULLUP | MUX_MODE2)	/* etk_d3.sdmmc3_dat3 */
+ 		>;
+diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
+index 23b1d7c..4bc22d2 100644
+--- a/arch/arm/boot/dts/omap5-board-common.dtsi
++++ b/arch/arm/boot/dts/omap5-board-common.dtsi
+@@ -332,7 +332,7 @@
+ 
+ 	wlcore_irq_pin: pinmux_wlcore_irq_pin {
+ 		pinctrl-single,pins = <
+-			OMAP5_IOPAD(0x40, WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE6)	/* llia_wakereqin.gpio1_wk14 */
++			OMAP5_IOPAD(0x40, PIN_INPUT_PULLUP | MUX_MODE6)	/* llia_wakereqin.gpio1_wk14 */
+ 		>;
+ 	};
+ };
 -- 
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.8.1
