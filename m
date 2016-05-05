@@ -1,82 +1,71 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: AM335x ICE board Linux support
-Date: Thu, 5 May 2016 10:06:12 -0700
-Message-ID: <20160505170612.GY5995@atomide.com>
-References: <571E069A.20700@ti.com>
- <571F2982.2080702@ti.com>
- <20160426151046.GQ5995@atomide.com>
- <572332B2.6010203@ti.com>
- <20160429153158.GJ5995@atomide.com>
- <57270E8E.2040704@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2] Fix ir-rx51 by using PWM pdata
+Date: Thu, 5 May 2016 10:11:19 -0700
+Message-ID: <20160505171119.GZ5995@atomide.com>
+References: <1461714709-10455-1-git-send-email-tony@atomide.com>
+ <57227E63.4040907@gmail.com>
+ <20160428212748.GI5995@atomide.com>
+ <5724F0CB.6060807@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-media-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <57270E8E.2040704-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, "Anna, Suman" <s-anna-l0cyMroinI0@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5724F0CB.6060807@gmail.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Pavel Machel <pavel@ucw.cz>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, linux-media@vger.kernel.org, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Neil Armstrong <narmstrong@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [160502 01:25]:
-> On 29/04/16 18:31, Tony Lindgren wrote:
-> > * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [160429 03:10]:
-> >> On 26/04/16 18:10, Tony Lindgren wrote:
-> >>> I guess for now if no runtime detection is possible in the kernel.
+* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160430 10:53]:
+> Hi,
+> 
+> On 29.04.2016 00:27, Tony Lindgren wrote:
+> >* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160428 14:21]:
 > >>
-> >> There are 2 ways to detect them mode
-> >> 1) Enabe GPIO rising edge detect interrupt and reset the Ethernet PHY
-> >> 2) read a PHY register over MDIO bus
+> >>I didn't test legacy boot, as I don't really see any value of doing it now
+> >>the end of the legacy boot is near, the driver does not function correctly,
+> >>however the patchset at least allows for the driver to be build and we have
+> >>something to improve on. And I am going to send a patch that fixes the
+> >>problem with omap_dm_timer_request_specific(). So, for both patches, you may
+> >>add:
 > >>
-> >> I'm not very sure where this can be done in the kernel.
-> > 
-> > We already have some PHY detection over MDIO detection in place,
-> > so that's probably the most generic solution.
-> 
-> Sorry, I didn't get you.
-> Based on the PHY node we need to switch the MAC driver.
-> i.e. either CPSW or PRUeth.
-> The PHY driver remains the same in both modes.
+> >>Tested-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+> >
+> >OK thanks.
+> >
+> >Mauro, do the driver changes look OK to you?
+> >
+> >If so, I could queue the driver too for v4.7 because of the
+> >dependency with your ack. Or I can provide you an immutable
+> >branch with just the pdata changes against v4.6-rc1 if you
+> >prefer that.
+> >
 
-OK
+Mauro, I've applied the pdata patch only into my omap-for-v4.7/legacy branch.
+Feel free to merge immutable commit against v4.6-rc1 which is 8453c5cafd32
+("ARM: OMAP2+: Add more functions to pwm pdata for ir-rx51") to your tree
+also for v4.7 if you decide to apply the ir-rx51 driver changes. Else we need
+to wait for v4.7-rc1 :)
 
-> >> Even if there is some place to do the detection, how do we go about reconfiguring the
-> >> device tree?
-> > 
-> > You may not need to, you can have several named pin states:
-> > 
-> > pinctrl-names = "default", "phy-foo", "phy-bar";
-> > pinctrl-0 = <&cpsw_default>;
-> > pinctrl-1 = <&cpsw_phy_foo>;
-> > pinctrl-2 = <&cpsw_phy_bar>;
-> > ...
-> > 
-> > Then have the common pins in cpsw_default, and manually enable
-> > the other pinctrl groups based on the detection. We already
-> > have that going on in am335x-bone-common.dtsi with the &mac
-> > entry for cpsw.
+> In the meanwhile I was able to make the driver functional (on top of the
+> $subject series) - for that purpose I had to fix dmtimer.c - it turns out
+> that PM runtime get()/put() is called in almost every function exported by
+> dmtimer, which in turn slows down IR transmission to 4-5s instead of 0.5s. I
+> also replaced GPT9 dmtimer with PWM framework API (pwm-omap-dmtimer needs a
+> patch) and implemented some DT support.
 > 
-> Probably I'm looking at the wrong place but in am353x-bone-common.dtsi
-> I only see "default" and "sleep" pins.
-> 
-> > 
-> > But maybe you have other detection issues too beyond setting
-> > the pins?
-> 
-> It is not only about the pinmux but using an entirely different MAC driver.
-> So we need to enable/disable different MAC drivers.
-> 
-> It gets even trickier if one port is assigned to one MAC driver and the other
-> one to another MAC driver. The pinmux now has to be port specific and the
-> cpsw driver has to be updated to support port specific pinmux. As of now
-> it handles only one pinmux group for both its ports.
+> Now, how shall I proceed with those - wait for the $subject series to be
+> accepted or post the patches now?
 
-OK I guess up to you to figure out what makes most sense here.
+Best to do incremental patches on what was posted to avoid confusion.
+
+> Tony, I was unable to find the tree on kernel.org your patches are in. Which
+> tree to use to base my patches on?
+
+The pdata changes are in Linux next with omap-for-v4.7/legacy, the driver
+changes I have not committed into any upstream going tree. Seems like
+Mauro can take it after merging in commit 8453c5cafd32.
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
