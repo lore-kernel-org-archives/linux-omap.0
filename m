@@ -1,56 +1,55 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 3/3] regulator: lp873x: Add support for lp873x PMIC
- regulators
-Date: Thu, 5 May 2016 16:38:20 +0100
-Message-ID: <20160505153820.GF6292@sirena.org.uk>
-References: <1462425040-18566-1-git-send-email-j-keerthy@ti.com>
- <1462425040-18566-4-git-send-email-j-keerthy@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 02/10] usb: musb: Fix idling after host mode by
+ increasing autosuspend delay
+Date: Thu, 5 May 2016 10:04:39 -0700
+Message-ID: <20160505170439.GX5995@atomide.com>
+References: <1461864800-29979-1-git-send-email-tony@atomide.com>
+ <1461864800-29979-3-git-send-email-tony@atomide.com>
+ <20160505150159.GA25950@uda0271908>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="TUvp6TiFcfhGC84w"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1462425040-18566-4-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: lgirdwood@gmail.com, lee.jones@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
+In-Reply-To: <20160505150159.GA25950@uda0271908>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+* Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [160505 08:04]:
+> Hi,
+> 
+> On Thu, Apr 28, 2016 at 10:33:12AM -0700, Tony Lindgren wrote:
+> > Looks like at least 2430 glue won't idle reliably with the 200 ms
+> > autosuspend delay. This causes deeper idle states being blocked for
+> > the whole SoC when disconnecting OTG A cable.
+> > 
+> > Increasing the delay to 500 ms seems to idle both MUSB and the PHY
+> > reliably. This is probably because of time needed by the hardware
+> > based negotiation between MUSB and the PHY.
+> 
+> Unless we know other glues also have the same issue, this change
+> affects other glues, right? Can we just increase it for 2430 only?
 
---TUvp6TiFcfhGC84w
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Well it's hard to say with no PM working with other glue layers right
+now. I would not be suprised if similar issue exists with other phys
+too talking with musb.
 
-On Thu, May 05, 2016 at 10:40:40AM +0530, Keerthy wrote:
+Does the current 200 ms autosuspend timeout relate to anything real
+other than what I found out with my measurements?
 
-> +static const struct of_device_id of_lp873x_match_tbl[] = {
-> +	{ .compatible = "ti,lp8733-regulators",},
-> +	{ .compatible = "ti,lp8732-regulators",},
-> +	{ .compatible = "ti,lp873x-regulators",},
-> +	{},
-> +};
+If there's no other data available for the 200 ms timeout, I suggest
+we just set it to 500 ms and add comments there that at least 2430
+glue needs that. If things are not idling properly for the whole
+SoC because musb, the power consumption will be way worse than any
+power savings between 200 and 500 ms :)
 
-There should be no need for compatible strings here, we already know
-what device this is from the parent.  The way we split drivers up for
-Linux is something that's internal to Linux and shouldn't be in the
-device tree.  If we do have explicit compatible strings then they should
-(as always) be specific to a device, no wildcards.
+BTW, I noticed 300 ms did not make a difference there, and 500 ms
+seems to work so far.
 
-Otherwise this looks sensible.
+Regards,
 
---TUvp6TiFcfhGC84w
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJXK2jrAAoJECTWi3JdVIfQBSkH/RfOIGws1Q8B/TA6uqaCRx/7
-sRc1M3AN20HLiRG4PnjT2yWutkvJBnLdYHfEft0nFLdpqQWAlOtWVeidgq9Pj42z
-CWlOq2xqa9LVwFfaQuh53j8ksYCiIHsQp2omoIwVAPoadOBPCVz5+aNCLGdTImKK
-5Xizcm7lrqzg/35kxsnJqUv7uriakaoKXD7k3QP/DtWMF0Ta5fTF49iPsbw4DoZT
-T0kDhbDNRhvpBY4akO6lYfuMecQc1Cgxby9oWsIraiNSBKJrBgzkzdFvqD3JX/0V
-IkppxNTF4H0qJ5ts5FnQMV5rKzTX8MMKoMkYma03YTe5K9XgaBNE19AheFoMT2M=
-=1t3+
------END PGP SIGNATURE-----
-
---TUvp6TiFcfhGC84w--
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
