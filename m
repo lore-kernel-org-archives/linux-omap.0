@@ -1,67 +1,111 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: dts: Fix igepv5 audiopwon-gpio
-Date: Thu,  5 May 2016 11:56:21 -0700
-Message-ID: <1462474581-13865-1-git-send-email-tony@atomide.com>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: omap5-board-common: Describe the voltage supply
+ mapping accurately
+Date: Thu, 5 May 2016 14:00:29 -0500
+Message-ID: <572B984D.10203@ti.com>
+References: <1462389618-28860-1-git-send-email-nm@ti.com>
+ <572A528C.4090302@ti.com> <20160505183611.GA5995@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: =?UTF-8?q?Agust=C3=AD=20Fontquerni?= <af@iseebcn.com>, Enric Balletbo i Serra <eballetbo@iseebcn.com>, Eduard Gavin <egavin@iseebcn.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160505183611.GA5995-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-UGxheWluZyBhdWRpbyB3b3JrcyBvbiBvbWFwNS11ZXZtLCBidXQgcHJvZHVjZXMgYW4gIlVuaGFu
-ZGxlZCBmYXVsdDoKaW1wcmVjaXNlIGV4dGVybmFsIGFib3J0ICgweDE0MDYpIGF0IDB4MDAwMDAw
-MDAiIGVycm9yIG9uIGlnZXB2NS4KCkxvb2tzIGxpa2UgdGhlIHR3bDYwNDAgYXVkcHdyb24gR1BJ
-TyBwaW4gaXMgZGlmZmVyZW50IGZvciB0aGVzZQpib2FyZHMuIExldCdzIGZpeCB0aGUgaXNzdWUg
-YnkgY29uZmlndXJpbmcgdGhlIGF1ZHB3cm9uIGluIHRoZQpib2FyZCBzcGVjaWZpYyBkdHMgZmls
-ZS4KCkNjOiBBZ3VzdMOtIEZvbnRxdWVybmkgPGFmQGlzZWViY24uY29tPgpDYzogRWR1YXJkIEdh
-dmluIDxlZ2F2aW5AaXNlZWJjbi5jb20+CkNjOiBFbnJpYyBCYWxsZXRibyBpIFNlcnJhIDxlYmFs
-bGV0Ym9AaXNlZWJjbi5jb20+CkNjOiBQZXRlciBVamZhbHVzaSA8cGV0ZXIudWpmYWx1c2lAdGku
-Y29tPgpTaWduZWQtb2ZmLWJ5OiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPgotLS0K
-IGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LWJvYXJkLWNvbW1vbi5kdHNpIHwgIDMgKystCiBhcmNo
-L2FybS9ib290L2R0cy9vbWFwNS1pZ2VwMDA1MC5kdHMgICAgICB8IDEwICsrKysrKysrKysKIGFy
-Y2gvYXJtL2Jvb3QvZHRzL29tYXA1LXVldm0uZHRzICAgICAgICAgIHwgMTAgKysrKysrKysrKwog
-MyBmaWxlcyBjaGFuZ2VkLCAyMiBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pCgpkaWZmIC0t
-Z2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtYm9hcmQtY29tbW9uLmR0c2kgYi9hcmNoL2Fy
-bS9ib290L2R0cy9vbWFwNS1ib2FyZC1jb21tb24uZHRzaQppbmRleCAyZWVhMjZjLi4yM2IxZDdj
-IDEwMDY0NAotLS0gYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNS1ib2FyZC1jb21tb24uZHRzaQor
-KysgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNS1ib2FyZC1jb21tb24uZHRzaQpAQCAtNjQyLDcg
-KzY0Miw4IEBACiAJCXBpbmN0cmwtMCA9IDwmdHdsNjA0MF9waW5zPjsKIAogCQlpbnRlcnJ1cHRz
-ID0gPEdJQ19TUEkgMTE5IElSUV9UWVBFX05PTkU+OyAvKiBJUlFfU1lTXzJOIGNhc2NhZGVkIHRv
-IGdpYyAqLwotCQl0aSxhdWRwd3Jvbi1ncGlvID0gPCZncGlvNSAxMyBHUElPX0FDVElWRV9ISUdI
-PjsgIC8qIGdwaW8gbGluZSAxNDEgKi8KKworCQkvKiBhdWRwd3JvbiBncGlvIGRlZmluZWQgaW4g
-dGhlIGJvYXJkIHNwZWNpZmljIGR0cyAqLwogCiAJCXZpby1zdXBwbHkgPSA8JnNtcHM3X3JlZz47
-CiAJCXYydjEtc3VwcGx5ID0gPCZzbXBzOV9yZWc+OwpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9v
-dC9kdHMvb21hcDUtaWdlcDAwNTAuZHRzIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtaWdlcDAw
-NTAuZHRzCmluZGV4IDcyZmY2YTQuLjY3M2NkZmEgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL2Jvb3Qv
-ZHRzL29tYXA1LWlnZXAwMDUwLmR0cworKysgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNS1pZ2Vw
-MDA1MC5kdHMKQEAgLTU4LDMgKzU4LDEzIEBACiAJCTwmZ3BpbzcgMyAwPjsJCS8qIDE5NSwgU0RB
-ICovCiB9OwogCismdHdsNjA0MCB7CisJdGksYXVkcHdyb24tZ3BpbyA9IDwmZ3BpbzUgMTYgR1BJ
-T19BQ1RJVkVfSElHSD47ICAvKiBncGlvIGxpbmUgMTQ0ICovCit9OworCismdHdsNjA0MF9waW5z
-IHsKKwlwaW5jdHJsLXNpbmdsZSxwaW5zID0gPAorCQlPTUFQNV9JT1BBRCgweDFjNCwgUElOX09V
-VFBVVCB8IE1VWF9NT0RFNikJLyogbWNzcGkxX3NvbWkuZ3BpbzVfMTQ0ICovCisJCU9NQVA1X0lP
-UEFEKDB4MWNhLCBQSU5fT1VUUFVUIHwgTVVYX01PREU2KQkvKiBwZXJzbGltYnVzMl9jbG9jay5n
-cGlvNV8xNDUgKi8KKwk+OworfTsKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1
-LXVldm0uZHRzIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMKaW5kZXggNjBiM2Zi
-Yi4uYTUxZTYwNSAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMK
-KysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMKQEAgLTUxLDMgKzUxLDEzIEBA
-CiAJCTwmZ3BpbzkgMSBHUElPX0FDVElWRV9ISUdIPiwJLyogVENBNjQyNEEgUDAwLCBMUyBPRSAq
-LwogCQk8JmdwaW83IDEgR1BJT19BQ1RJVkVfSElHSD47CS8qIEdQSU8gMTkzLCBIUEQgKi8KIH07
-CisKKyZ0d2w2MDQwIHsKKwl0aSxhdWRwd3Jvbi1ncGlvID0gPCZncGlvNSAxMyBHUElPX0FDVElW
-RV9ISUdIPjsgIC8qIGdwaW8gbGluZSAxNDEgKi8KK307CisKKyZ0d2w2MDQwX3BpbnMgeworCXBp
-bmN0cmwtc2luZ2xlLHBpbnMgPSA8CisJCU9NQVA1X0lPUEFEKDB4MWJlLCBQSU5fT1VUUFVUIHwg
-TVVYX01PREU2KQkvKiBtY3NwaTFfc29taS5ncGlvNV8xNDEgKi8KKwk+OworfTsKLS0gCjIuOC4x
-CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgt
-YXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQu
-b3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJt
-LWtlcm5lbAo=
+On 05/05/2016 01:36 PM, Tony Lindgren wrote:
+> * Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [160504 12:52]:
+>> On 05/04/2016 02:20 PM, Nishanth Menon wrote:
+>> [...]
+>>
+>>> @@ -551,6 +590,8 @@
+>>>  
+>>>  				ldo9_reg: ldo9 {
+>>>  					/* VCC_DV_SDIO: vdds_sdcard */
+>>> +					vin-supply = <&vmmcsdio_fixed>;
+>>> +
+>>
+>> There is an extra white space here, and vmmcsd_fixed is the regulator
+>> to be used, looks like vmmcsdio_fixed should ideally been vwlan_fixed
+>> or something.. the actual rail to LDO9_IN was called vmmc_3v3_SDIO..
+>>
+>> Sorry for the confusion. Unfortunately, I can not recreate the fail on
+>> my board, but this sounded like the closest fix I can think of.
+> 
+> Looks like arch/arm/boot/dts/tegra114-dalmore.dts has entries like
+> this instead for the PMIC:
+> 
+> ldo9-in-supply = <&palmas_smps9_reg>:
+> ...
+> 
+> Doing simlar changes for omap5-board-common.dtsi seems to fix the
+> issues for me:
+> 
+> LDO3: supplied by vdds_1v8_main
+> LDO4: supplied by vdds_1v8_main
+> ldo4: Bringing 0uV into 1800000-1800000uV
+> LDO5: supplied by vsys_cobra
+> LDO6: supplied by vdds_1v8_main
+> LDO7: supplied by vsys_cobra
+> ldo7: Bringing 0uV into 2000000-2000000uV
+> LDO8: supplied by vsys_cobra
+> LDO9: supplied by vmmcsd_fixed
+> 
+> See also the patch below too, and please check I got things right
+> based on your earlier patch :)
+
+
+> 
+> Now I'm wondering if the x15 related vin-supply changes are actually all
+> ignored? It seems that "vin" is only automatically configured for the
+> fixed-regulator? Maybe regulator-palmas should be updated to use the
+
+ok /me goes duh!!!! ofcourse! Sorry about not catching it..
+hmm.. maybe we messed up am572x-idk as well.. I can quickly fix that
+up as well
+
+> "vin-supply" if configured to avoid confusion?
+regulator-palmas using vin-supply is more sensible, but i am not sure
+about the argument
+for this originally was -> +Mark, Keerthy and Lakshman for feedback.
+
+[...]
+> +			smps123-in-supply = <&vsys_cobra>;
+> +			smps45-in-supply = <&vsys_cobra>;
+> +			smps6-in-supply = <&vsys_cobra>;
+> +			smps7-in-supply = <&vsys_cobra>;
+> +			smps8-in-supply = <&vsys_cobra>;
+> +			smps9-in-supply = <&vsys_cobra>;
+> +			smps10_out2-in-supply = <&vsys_cobra>;
+> +			smps10_out1-in-supply = <&vsys_cobra>;
+> +			ldo1-in-supply = <&vsys_cobra>;
+> +			ldo2-in-supply = <&vsys_cobra>;
+> +			ldo3-in-supply = <&vdds_1v8_main>;
+> +			ldo4-in-supply = <&vdds_1v8_main>;
+> +			ldo5-in-supply = <&vsys_cobra>;
+> +			ldo6-in-supply = <&vdds_1v8_main>;
+> +			ldo7-in-supply = <&vsys_cobra>;
+> +			ldo8-in-supply = <&vsys_cobra>;
+> +			ldo9-in-supply = <&vmmcsd_fixed>;
+> +			ldousb-in-supply = <&vsys_cobra>;
+ldoln is vsys_cobra as well.. I missed that.
+
+Others look good. we should probably get this merged to fix the
+regression.
+
+> +
+>  			regulators {
+>  				smps123_reg: smps123 {
+>  					/* VDD_OPP_MPU */
+> 
+
+
+-- 
+Regards,
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
