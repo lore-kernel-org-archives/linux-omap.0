@@ -1,153 +1,111 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: dts: Fix uart wakeirq on omap5 by removing WAKEUP_EN for
- omaps
-Date: Thu,  5 May 2016 12:01:29 -0700
-Message-ID: <1462474889-22800-1-git-send-email-tony@atomide.com>
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 04/10] usb: musb: Remove unnecessary shutdown function
+Date: Thu, 5 May 2016 14:20:45 -0500
+Message-ID: <20160505192030.GB25950@uda0271908>
+References: <1461864800-29979-1-git-send-email-tony@atomide.com>
+ <1461864800-29979-5-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1461864800-29979-5-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The padconf register WAKEUP_EN is now handled in a generic way using
-Linux wakeirqs where pinctrl-single toggles the WAKEUP_EN bit when
-a wakeirq is enabled or disabled.
+Hi,
 
-At least omap5 gets confused if the WAKEUP_EN bit is set and the pin
-is not claimed as a wakeirq. The end result is that wakeirqs don't
-work properly as there is nothing handling the wakeirq.
+On Thu, Apr 28, 2016 at 10:33:14AM -0700, Tony Lindgren wrote:
+> We have remove() already calling shutdown(), so let's drop it
+> and move the code to remove().
+> 
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> ---
+>  drivers/usb/musb/musb_core.c | 39 ++++++++++++++-------------------------
+>  1 file changed, 14 insertions(+), 25 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+> index 5fa6187..d7af8ed 100644
+> --- a/drivers/usb/musb/musb_core.c
+> +++ b/drivers/usb/musb/musb_core.c
+> @@ -1090,29 +1090,6 @@ void musb_stop(struct musb *musb)
+>  	musb_platform_try_idle(musb, 0);
+>  }
+>  
+> -static void musb_shutdown(struct platform_device *pdev)
+> -{
+> -	struct musb	*musb = dev_to_musb(&pdev->dev);
+> -	unsigned long	flags;
+> -
+> -	pm_runtime_get_sync(musb->controller);
+> -
+> -	musb_host_cleanup(musb);
+> -	musb_gadget_cleanup(musb);
+> -
+> -	spin_lock_irqsave(&musb->lock, flags);
+> -	musb_platform_disable(musb);
+> -	musb_generic_disable(musb);
+> -	spin_unlock_irqrestore(&musb->lock, flags);
+> -
+> -	musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
+> -	musb_platform_exit(musb);
+> -
+> -	pm_runtime_put(musb->controller);
+> -	/* FIXME power down */
+> -}
+> -
+> -
+>  /*-------------------------------------------------------------------------*/
+>  
+>  /*
+> @@ -2312,6 +2289,7 @@ static int musb_remove(struct platform_device *pdev)
+>  {
+>  	struct device	*dev = &pdev->dev;
+>  	struct musb	*musb = dev_to_musb(dev);
+> +	unsigned long	flags;
+>  
+>  	/* this gets called on rmmod.
+>  	 *  - Host mode: host may still be active
+> @@ -2319,7 +2297,19 @@ static int musb_remove(struct platform_device *pdev)
+>  	 *  - OTG mode: both roles are deactivated (or never-activated)
+>  	 */
+>  	musb_exit_debugfs(musb);
+> -	musb_shutdown(pdev);
+> +
+> +	pm_runtime_get_sync(musb->controller);
+> +	musb_host_cleanup(musb);
+> +	musb_gadget_cleanup(musb);
+> +	spin_lock_irqsave(&musb->lock, flags);
+> +	musb_platform_disable(musb);
+> +	musb_generic_disable(musb);
+> +	spin_unlock_irqrestore(&musb->lock, flags);
+> +	musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
+> +	musb_platform_exit(musb);
+> +	pm_runtime_put(musb->controller);
+> +	/* FIXME power down */
 
-So let's just remove the WAKEUP_EN usage from dts files.
+Do we know what to be fixed? If not, I think we can drop this FIXME.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/boot/dts/omap3-evm-37xx.dts      | 2 +-
- arch/arm/boot/dts/omap3-n900.dts          | 4 ++--
- arch/arm/boot/dts/omap3-n950-n9.dtsi      | 6 +++---
- arch/arm/boot/dts/omap3-zoom3.dts         | 6 +++---
- arch/arm/boot/dts/omap5-board-common.dtsi | 2 +-
- 5 files changed, 10 insertions(+), 10 deletions(-)
+Regards,
+-Bin.
 
-diff --git a/arch/arm/boot/dts/omap3-evm-37xx.dts b/arch/arm/boot/dts/omap3-evm-37xx.dts
-index cd11c56..792a876 100644
---- a/arch/arm/boot/dts/omap3-evm-37xx.dts
-+++ b/arch/arm/boot/dts/omap3-evm-37xx.dts
-@@ -85,7 +85,7 @@
- 			OMAP3_CORE1_IOPAD(0x2158, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_clk.sdmmc2_clk */
- 			OMAP3_CORE1_IOPAD(0x215a, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_cmd.sdmmc2_cmd */
- 			OMAP3_CORE1_IOPAD(0x215c, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat0.sdmmc2_dat0 */
--			OMAP3_CORE1_IOPAD(0x215e, WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_dat1.sdmmc2_dat1 */
-+			OMAP3_CORE1_IOPAD(0x215e, PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_dat1.sdmmc2_dat1 */
- 			OMAP3_CORE1_IOPAD(0x2160, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat2.sdmmc2_dat2 */
- 			OMAP3_CORE1_IOPAD(0x2162, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat3.sdmmc2_dat3 */
- 		>;
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index d9e2d9c..2b74a81 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -288,7 +288,7 @@
- 		pinctrl-single,pins = <
- 			OMAP3_CORE1_IOPAD(0x2180, PIN_INPUT_PULLUP | MUX_MODE1)	/* ssi1_rdy_tx */
- 			OMAP3_CORE1_IOPAD(0x217e, PIN_OUTPUT | MUX_MODE1)		/* ssi1_flag_tx */
--			OMAP3_CORE1_IOPAD(0x2182, PIN_INPUT | WAKEUP_EN | MUX_MODE4) /* ssi1_wake_tx (cawake) */
-+			OMAP3_CORE1_IOPAD(0x2182, PIN_INPUT | MUX_MODE4)		/* ssi1_wake_tx (cawake) */
- 			OMAP3_CORE1_IOPAD(0x217c, PIN_OUTPUT | MUX_MODE1)		/* ssi1_dat_tx */
- 			OMAP3_CORE1_IOPAD(0x2184, PIN_INPUT | MUX_MODE1)		/* ssi1_dat_rx */
- 			OMAP3_CORE1_IOPAD(0x2186, PIN_INPUT | MUX_MODE1)		/* ssi1_flag_rx */
-@@ -300,7 +300,7 @@
- 	modem_pins: pinmux_modem {
- 		pinctrl-single,pins = <
- 			OMAP3_CORE1_IOPAD(0x20dc, PIN_OUTPUT | MUX_MODE4)		/* gpio 70 => cmt_apeslpx */
--			OMAP3_CORE1_IOPAD(0x20e0, PIN_INPUT | WAKEUP_EN | MUX_MODE4) /* gpio 72 => ape_rst_rq */
-+			OMAP3_CORE1_IOPAD(0x20e0, PIN_INPUT | MUX_MODE4)		/* gpio 72 => ape_rst_rq */
- 			OMAP3_CORE1_IOPAD(0x20e2, PIN_OUTPUT | MUX_MODE4)		/* gpio 73 => cmt_rst_rq */
- 			OMAP3_CORE1_IOPAD(0x20e4, PIN_OUTPUT | MUX_MODE4)		/* gpio 74 => cmt_en */
- 			OMAP3_CORE1_IOPAD(0x20e6, PIN_OUTPUT | MUX_MODE4)		/* gpio 75 => cmt_rst */
-diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-index a00ca76..927b17f 100644
---- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-+++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-@@ -97,7 +97,7 @@
- 			OMAP3_CORE1_IOPAD(0x217c, PIN_OUTPUT | MUX_MODE1)            /* ssi1_dat_tx */
- 			OMAP3_CORE1_IOPAD(0x217e, PIN_OUTPUT | MUX_MODE1)            /* ssi1_flag_tx */
- 			OMAP3_CORE1_IOPAD(0x2180, PIN_INPUT_PULLUP | MUX_MODE1)      /* ssi1_rdy_tx */
--			OMAP3_CORE1_IOPAD(0x2182, PIN_INPUT | WAKEUP_EN | MUX_MODE4) /* ssi1_wake_tx (cawake) */
-+			OMAP3_CORE1_IOPAD(0x2182, PIN_INPUT | MUX_MODE4)	/* ssi1_wake_tx (cawake) */
- 			OMAP3_CORE1_IOPAD(0x2184, PIN_INPUT | MUX_MODE1)             /* ssi1_dat_rx */
- 			OMAP3_CORE1_IOPAD(0x2186, PIN_INPUT | MUX_MODE1)             /* ssi1_flag_rx */
- 			OMAP3_CORE1_IOPAD(0x2188, PIN_OUTPUT | MUX_MODE1)            /* ssi1_rdy_rx */
-@@ -110,7 +110,7 @@
- 			OMAP3_CORE1_IOPAD(0x217c, PIN_OUTPUT | MUX_MODE7)            /* ssi1_dat_tx */
- 			OMAP3_CORE1_IOPAD(0x217e, PIN_OUTPUT | MUX_MODE7)            /* ssi1_flag_tx */
- 			OMAP3_CORE1_IOPAD(0x2180, PIN_INPUT_PULLDOWN | MUX_MODE7)    /* ssi1_rdy_tx */
--			OMAP3_CORE1_IOPAD(0x2182, PIN_INPUT | WAKEUP_EN | MUX_MODE4) /* ssi1_wake_tx (cawake) */
-+			OMAP3_CORE1_IOPAD(0x2182, PIN_INPUT | MUX_MODE4)	/* ssi1_wake_tx (cawake) */
- 			OMAP3_CORE1_IOPAD(0x2184, PIN_INPUT | MUX_MODE7)             /* ssi1_dat_rx */
- 			OMAP3_CORE1_IOPAD(0x2186, PIN_INPUT | MUX_MODE7)             /* ssi1_flag_rx */
- 			OMAP3_CORE1_IOPAD(0x2188, PIN_OUTPUT | MUX_MODE4)            /* ssi1_rdy_rx */
-@@ -120,7 +120,7 @@
- 
- 	modem_pins1: pinmux_modem_core1_pins {
- 		pinctrl-single,pins = <
--			OMAP3_CORE1_IOPAD(0x207a, PIN_INPUT | WAKEUP_EN | MUX_MODE4) /* gpio_34 (ape_rst_rq) */
-+			OMAP3_CORE1_IOPAD(0x207a, PIN_INPUT | MUX_MODE4)	/* gpio_34 (ape_rst_rq) */
- 			OMAP3_CORE1_IOPAD(0x2100, PIN_OUTPUT | MUX_MODE4)            /* gpio_88 (cmt_rst_rq) */
- 			OMAP3_CORE1_IOPAD(0x210a, PIN_OUTPUT | MUX_MODE4)            /* gpio_93 (cmt_apeslpx) */
- 		>;
-diff --git a/arch/arm/boot/dts/omap3-zoom3.dts b/arch/arm/boot/dts/omap3-zoom3.dts
-index acb5f3c..75d4dfb 100644
---- a/arch/arm/boot/dts/omap3-zoom3.dts
-+++ b/arch/arm/boot/dts/omap3-zoom3.dts
-@@ -98,7 +98,7 @@
- 		pinctrl-single,pins = <
-                         OMAP3_CORE1_IOPAD(0x2174, PIN_INPUT_PULLUP | MUX_MODE0)	/* uart2_cts.uart2_cts */
-                         OMAP3_CORE1_IOPAD(0x2176, PIN_OUTPUT | MUX_MODE0)		/* uart2_rts.uart2_rts */
--                        OMAP3_CORE1_IOPAD(0x217a, WAKEUP_EN | PIN_INPUT | MUX_MODE0) /* uart2_rx.uart2_rx */
-+                        OMAP3_CORE1_IOPAD(0x217a, PIN_INPUT | MUX_MODE0)		/* uart2_rx.uart2_rx */
-                         OMAP3_CORE1_IOPAD(0x2178, PIN_OUTPUT | MUX_MODE0)		/* uart2_tx.uart2_tx */
- 		>;
- 	};
-@@ -107,7 +107,7 @@
- 		pinctrl-single,pins = <
-                         OMAP3_CORE1_IOPAD(0x219a, PIN_INPUT_PULLDOWN | MUX_MODE0)	/* uart3_cts_rctx.uart3_cts_rctx */
-                         OMAP3_CORE1_IOPAD(0x219c, PIN_OUTPUT | MUX_MODE0)		/* uart3_rts_sd.uart3_rts_sd */
--                        OMAP3_CORE1_IOPAD(0x219e, WAKEUP_EN | PIN_INPUT | MUX_MODE0) /* uart3_rx_irrx.uart3_rx_irrx */
-+                        OMAP3_CORE1_IOPAD(0x219e, PIN_INPUT | MUX_MODE0)		/* uart3_rx_irrx.uart3_rx_irrx */
-                         OMAP3_CORE1_IOPAD(0x21a0, PIN_OUTPUT | MUX_MODE0)		/* uart3_tx_irtx.uart3_tx_irtx */
- 		>;
- 	};
-@@ -125,7 +125,7 @@
- 		pinctrl-single,pins = <
- 			OMAP3630_CORE2_IOPAD(0x25d8, PIN_INPUT_PULLUP | MUX_MODE2)	/* etk_clk.sdmmc3_clk */
- 			OMAP3630_CORE2_IOPAD(0x25e4, PIN_INPUT_PULLUP | MUX_MODE2)	/* etk_d4.sdmmc3_dat0 */
--			OMAP3630_CORE2_IOPAD(0x25e6, WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE2) /* etk_d5.sdmmc3_dat1 */
-+			OMAP3630_CORE2_IOPAD(0x25e6, PIN_INPUT_PULLUP | MUX_MODE2)	/* etk_d5.sdmmc3_dat1 */
- 			OMAP3630_CORE2_IOPAD(0x25e8, PIN_INPUT_PULLUP | MUX_MODE2)	/* etk_d6.sdmmc3_dat2 */
- 			OMAP3630_CORE2_IOPAD(0x25e2, PIN_INPUT_PULLUP | MUX_MODE2)	/* etk_d3.sdmmc3_dat3 */
- 		>;
-diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
-index 23b1d7c..4bc22d2 100644
---- a/arch/arm/boot/dts/omap5-board-common.dtsi
-+++ b/arch/arm/boot/dts/omap5-board-common.dtsi
-@@ -332,7 +332,7 @@
- 
- 	wlcore_irq_pin: pinmux_wlcore_irq_pin {
- 		pinctrl-single,pins = <
--			OMAP5_IOPAD(0x40, WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE6)	/* llia_wakereqin.gpio1_wk14 */
-+			OMAP5_IOPAD(0x40, PIN_INPUT_PULLUP | MUX_MODE6)	/* llia_wakereqin.gpio1_wk14 */
- 		>;
- 	};
- };
--- 
-2.8.1
+> +
+>  	musb_phy_callback = NULL;
+>  
+>  	if (musb->dma_controller)
+> @@ -2612,7 +2602,6 @@ static struct platform_driver musb_driver = {
+>  	},
+>  	.probe		= musb_probe,
+>  	.remove		= musb_remove,
+> -	.shutdown	= musb_shutdown,
+>  };
+>  
+>  module_platform_driver(musb_driver);
+> -- 
+> 2.8.1
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
