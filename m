@@ -1,57 +1,75 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 3/3] regulator: lp873x: Add support for lp873x PMIC
- regulators
-Date: Fri, 6 May 2016 13:02:06 +0100
-Message-ID: <20160506120206.GO6292@sirena.org.uk>
-References: <1462425040-18566-1-git-send-email-j-keerthy@ti.com>
- <1462425040-18566-4-git-send-email-j-keerthy@ti.com>
- <20160505153820.GF6292@sirena.org.uk>
- <572C20EC.7000706@ti.com>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: USB gadgets with configfs hang reboot
+Date: Fri, 6 May 2016 14:32:35 +0200
+Message-ID: <20160506123235.GN12528@pali>
+References: <20160115224839.GA19432@atomide.com>
+ <569A1E32.1020502@gmail.com>
+ <57081105.2050206@gmail.com>
+ <571486A1.2060006@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="FJOUHINv8uyEJFmS"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <572C20EC.7000706-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
-Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org
+In-Reply-To: <571486A1.2060006-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Michal Nazarewicz <mina86-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Monday 18 April 2016 10:02:57 Ivaylo Dimitrov wrote:
+>=20
+>=20
+> On  8.04.2016 23:13, Ivaylo Dimitrov wrote:
+> >Hi,
+> >
+> >On 16.01.2016 12:40, Ivaylo Dimitrov wrote:
+> >>Hi,
+> >>
+> >>On 16.01.2016 00:48, Tony Lindgren wrote:
+> >>>Hi all,
+> >>>
+> >>>Looks like there's some issue with the USB gadgets and configfs.
+> >>>
+> ...
+> >
+> >(copied from "Re: [PATCH] usb: f_mass_storage: test whether thread i=
+s
+> >running before starting another" thread)
+> >
+> >Yet another problem with USB gadget, this time with f_acm - if there=
+ is
+> >an open /dev/ttyGSn device, it is impossible to reboot/power down th=
+e
+> >device.
+> >
+> >My investigation shown that there is a process(pnatd) that opens
+> >/dev/ttyGSn devices, so gserial_free_port() hangs on
+> >wait_event(port->close_wait, gs_closed(port)); if I do "cd
+> >/sys/bus/platform/drivers/musb-hdrc && echo musb-hdrc.0.auto > unbin=
+d".
+> >
+> >Unfortunately I don't have serial debug port connector on my N900, s=
+o I
+> >can't capture logs after the reboot command, however, I suspect it h=
+angs
+> >on the same place as with unbind.
+> >
+> >That looks weird, as one would expect that close() is called when th=
+e
+> >kernel kills user processes on reboot/powerdown.
+> >
+> >Ivo
+>=20
+>=20
+> Anyone?
 
---FJOUHINv8uyEJFmS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+PING?
 
-On Fri, May 06, 2016 at 10:13:24AM +0530, Keerthy wrote:
-
-> I am using of_platform_populate function in the mfd driver to create
-> platform devices for the child nodes, in my case regulators.
-
-> of_platform_populate in turn calls on to of_platform_bus_create which
-> mandates compatible properties. It quietly skips device creation if there
-> are no compatible properties.
-
-You shouldn't be using that, you should just have a table of subdevices
-in the MFD.
-
---FJOUHINv8uyEJFmS
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJXLIe8AAoJECTWi3JdVIfQnYgH/0zkEQttYknwp7FqjTE3Cj5+
-omdo8zs00wgBBIFUxzAJWol9/8nW31Iq81LQyNYZkbnCpy07uh13+v7Hikpxum6G
-mqmCAbTdCTtq/MkKIwLmQ160PfRf0O4oSJoJVfeq+RXdvvyXiFs5/of76LJQj1hB
-1kK5j4M3n4im34DNuUTThrvTZxJwP7hecIpH1nZxucS8Ivlorew40IuZYVHD/DHy
-lS6b8ndEP65hsNXqGWkJKYEx/AV8dPvJ1Ao21Vh1sS1F8HH7BSFFrHMtvdAH2Q9u
-PwhnHCvO5uxrsE6UutkGHKyRTzWBEApsgTIt6Es/qCpRzsMlzU8bdI51biN8fCM=
-=8Ta2
------END PGP SIGNATURE-----
-
---FJOUHINv8uyEJFmS--
+--=20
+Pali Roh=C3=A1r
+pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
