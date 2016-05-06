@@ -1,10 +1,10 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Applied "regulator: tps65917/palmas: Simplify multiple dereference of match->of_node" to the regulator tree
-Date: Fri, 06 May 2016 18:18:52 +0100
-Message-ID: <E1ayjOu-0006rR-IJ@debutante>
-References: <1462494592-27909-5-git-send-email-nm@ti.com>
+Subject: Applied "regulator: tps65917/palmas: Simplify multiple dereference of pdata->reg_init[idx]" to the regulator tree
+Date: Fri, 06 May 2016 18:18:58 +0100
+Message-ID: <E1ayjP0-0006tL-E4@debutante>
+References: <1462494592-27909-3-git-send-email-nm@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1462494592-27909-5-git-send-email-nm@ti.com>
+In-Reply-To: <1462494592-27909-3-git-send-email-nm@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Nishanth Menon <nm@ti.com>
 Cc: Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.orgMark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Keerthy <j-keerthy@ti.com>, Stephen Warren <swarren@nvidia.com>, Laxman Dewangan <ldewangan@nvidia.com>
@@ -12,7 +12,7 @@ List-Id: linux-omap@vger.kernel.org
 
 The patch
 
-   regulator: tps65917/palmas: Simplify multiple dereference of match->of_node
+   regulator: tps65917/palmas: Simplify multiple dereference of pdata->reg_init[idx]
 
 has been applied to the regulator tree at
 
@@ -37,74 +37,76 @@ to this mail.
 Thanks,
 Mark
 
->From 6c7d614fa22d32d038b5a6e88d71acb2711e7035 Mon Sep 17 00:00:00 2001
+>From 1b42443db670dde5e3cb4261f77b29010b163fc6 Mon Sep 17 00:00:00 2001
 From: Nishanth Menon <nm@ti.com>
-Date: Thu, 5 May 2016 19:29:52 -0500
+Date: Thu, 5 May 2016 19:29:50 -0500
 Subject: [PATCH] regulator: tps65917/palmas: Simplify multiple dereference of
- match->of_node
+ pdata->reg_init[idx]
 
-Just dereference match->of_node once instead of using match->of_node.
+Converting dt to platform data logic involves picking up information
+that is unique per regulator, however we can improve readability of
+the code by allocating and referencing pdata->reg_init[idx] once in
+the loop.
+
+While at it, use sizeof(*pointer) when allocating pointer. This allows
+for structure name changes with minimal code change.
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Mark Brown <broonie@kernel.org>
 ---
- drivers/regulator/palmas-regulator.c | 19 ++++++++-----------
- 1 file changed, 8 insertions(+), 11 deletions(-)
+ drivers/regulator/palmas-regulator.c | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
-index faa389be7ca3..f11d41dad9c1 100644
+index 41b4e94a8d7d..3b9206224cd1 100644
 --- a/drivers/regulator/palmas-regulator.c
 +++ b/drivers/regulator/palmas-regulator.c
-@@ -1493,10 +1493,12 @@ static int palmas_dt_to_pdata(struct device *dev,
+@@ -1492,19 +1492,19 @@ static void palmas_dt_to_pdata(struct device *dev,
+ 
  	for (idx = 0; idx < ddata->max_reg; idx++) {
  		static struct of_regulator_match *match;
- 		struct palmas_reg_init *rinit;
-+		struct device_node *np;
++		struct palmas_reg_init *rinit;
  
  		match = &ddata->palmas_matches[idx];
-+		np = match->of_node;
  
--		if (!match->init_data || !match->of_node)
-+		if (!match->init_data || !np)
+ 		if (!match->init_data || !match->of_node)
  			continue;
  
- 		rinit = devm_kzalloc(dev, sizeof(*rinit), GFP_KERNEL);
-@@ -1506,11 +1508,8 @@ static int palmas_dt_to_pdata(struct device *dev,
++		rinit = devm_kzalloc(dev, sizeof(*rinit), GFP_KERNEL);
  		pdata->reg_data[idx] = match->init_data;
- 		pdata->reg_init[idx] = rinit;
++		pdata->reg_init[idx] = rinit;
  
--		rinit->warm_reset = of_property_read_bool(match->of_node,
--							  "ti,warm-reset");
+-		pdata->reg_init[idx] = devm_kzalloc(dev,
+-				sizeof(struct palmas_reg_init), GFP_KERNEL);
 -
--		ret = of_property_read_u32(match->of_node, "ti,roof-floor",
--					   &prop);
-+		rinit->warm_reset = of_property_read_bool(np, "ti,warm-reset");
-+		ret = of_property_read_u32(np, "ti,roof-floor", &prop);
- 		/* EINVAL: Property not found */
- 		if (ret != -EINVAL) {
- 			int econtrol;
-@@ -1539,19 +1538,17 @@ static int palmas_dt_to_pdata(struct device *dev,
- 			rinit->roof_floor = econtrol;
+-		pdata->reg_init[idx]->warm_reset =
+-			of_property_read_bool(match->of_node, "ti,warm-reset");
++		rinit->warm_reset = of_property_read_bool(match->of_node,
++							  "ti,warm-reset");
+ 
+ 		ret = of_property_read_u32(match->of_node, "ti,roof-floor",
+ 					   &prop);
+@@ -1533,18 +1533,17 @@ static void palmas_dt_to_pdata(struct device *dev,
+ 					break;
+ 				}
+ 			}
+-			pdata->reg_init[idx]->roof_floor = econtrol;
++			rinit->roof_floor = econtrol;
  		}
  
--		ret = of_property_read_u32(match->of_node, "ti,mode-sleep",
--					   &prop);
-+		ret = of_property_read_u32(np, "ti,mode-sleep", &prop);
+ 		ret = of_property_read_u32(match->of_node, "ti,mode-sleep",
+ 					   &prop);
  		if (!ret)
- 			rinit->mode_sleep = prop;
+-			pdata->reg_init[idx]->mode_sleep = prop;
++			rinit->mode_sleep = prop;
  
--		ret = of_property_read_bool(match->of_node, "ti,smps-range");
-+		ret = of_property_read_bool(np, "ti,smps-range");
+ 		ret = of_property_read_bool(match->of_node, "ti,smps-range");
  		if (ret)
- 			rinit->vsel = PALMAS_SMPS12_VOLTAGE_RANGE;
+-			pdata->reg_init[idx]->vsel =
+-				PALMAS_SMPS12_VOLTAGE_RANGE;
++			rinit->vsel = PALMAS_SMPS12_VOLTAGE_RANGE;
  
  		if (idx == PALMAS_REG_LDO8)
  			pdata->enable_ldo8_tracking = of_property_read_bool(
--						match->of_node,
--						"ti,enable-ldo8-tracking");
-+						np, "ti,enable-ldo8-tracking");
- 	}
- 
- 	pdata->ldo6_vibrator = of_property_read_bool(node, "ti,ldo6-vibrator");
 -- 
 2.8.1
