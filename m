@@ -1,34 +1,60 @@
-From: Laxman Dewangan <ldewangan@nvidia.com>
-Subject: Re: [PATCH 0/4] regulator: tps65917/palmas: Cleanups and bugfixes
-Date: Fri, 6 May 2016 12:44:23 +0530
-Message-ID: <572C444F.9070304@nvidia.com>
-References: <1462494592-27909-1-git-send-email-nm@ti.com>
+From: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH V2 13/14] dt-bindings: arm-gic: Add documentation for
+ Tegra210 AGIC
+Date: Fri, 6 May 2016 09:32:38 +0100
+Message-ID: <572C56A6.7020408@nvidia.com>
+References: <1461150237-15580-1-git-send-email-jonathanh@nvidia.com>
+ <1461150237-15580-14-git-send-email-jonathanh@nvidia.com>
+ <20160422100052.GA10606@leverpostej> <571A0739.3090502@nvidia.com>
+ <20160422112239.GF10606@leverpostej> <5720DC1D.1080802@nvidia.com>
+ <20160427173810.GC7359@leverpostej> <5721C597.1010105@nvidia.com>
+ <20160428095525.GB21145@leverpostej>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1462494592-27909-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Keerthy <j-keerthy@ti.com>, Stephen Warren <swarren@nvidia.com>
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160428095525.GB21145@leverpostej>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Nishanth,
+Hi Mark,
 
-On Friday 06 May 2016 05:59 AM, Nishanth Menon wrote:
-> While attempting to try and get each of the regulator nodes of palmas
-> to be capable of using vin-supply, I noticed a few cleanups and
-> associated bug fixes.
->
-> The series is based on next-20160504 and is split up to aid
-> readability of the patch.
->
-> Tested on OMAP5-uevm and DRA7 platform.
->
+On 28/04/16 10:55, Mark Rutland wrote:
 
-When you are here, can you implement the dt parsing with the new method 
-from regulator framework.
-Regulator FW calls callback to parse customized DT property, just need 
-to pass the node and pointer when registering.
+[...]
 
-This will helps lots in cleanups and readability.
+> The "nvidia,tegra210-agic" string can be taken as describing any
+> Tegra-210 specific integration quirks, though I agree that's also not
+> fantastic for extending PM support beyond Tegra 210 and variants
+> thereof.
+> 
+> So maybe the best approach is bailing out in the presence of clocks
+> and/or power domains after all, on the assumption that nothing today has
+> those properties, though I fear we may have problems with that later
+> down the line if/when people describe those for the root GIC to describe
+> those must be hogged, even if not explicitly managed.
+
+On further testing, by bailing out in the presence of clocks and/or
+power-domains, the problem I now see is that although the primary gic-400
+has been registered, we still try to probe it again later as it matches
+the platform driver. One way to avoid this would be ...
+
+diff --git a/drivers/of/irq.c b/drivers/of/irq.c
+index e7bfc175b8e1..631da7ad0dbf 100644
+--- a/drivers/of/irq.c
++++ b/drivers/of/irq.c
+@@ -556,6 +556,8 @@ void __init of_irq_init(const struct of_device_id *matches)
+                         * its children can get processed in a subsequent pass.
+                         */
+                        list_add_tail(&desc->list, &intc_parent_list);
++
++                       of_node_set_flag(desc->dev, OF_POPULATED);
+                }
+
+If this is not appropriate then I guess I will just need to use
+"tegra210-agic" for the compatibility flag.
+
+Cheers
+Jon
