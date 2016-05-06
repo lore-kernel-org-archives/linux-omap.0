@@ -1,33 +1,39 @@
-From: Enric Balletbo i Serra <enric.balletbo@collabora.com>
-Subject: [PATCH 1/2] ARM: dts: igep00x0: Add SD card-detect.
-Date: Fri,  6 May 2016 23:02:33 +0200
-Message-ID: <1462568554-7868-1-git-send-email-enric.balletbo@collabora.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@dowhile0.org>, Tony Lindgren <tony@atomide.com>, Ladislav Michl <ladis@linux-mips.org>
+From: Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH 1/2] ARM: dts: igep00x0: Add SD card-detect.
+Date: Fri, 6 May 2016 17:07:21 -0400
+Message-ID: <CABxcv=nZ1hjVGnNG65eKDrxAYFBcavML+GjxXtfTcVO5N83xkA@mail.gmail.com>
+References: <1462568554-7868-1-git-send-email-enric.balletbo@collabora.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1462568554-7868-1-git-send-email-enric.balletbo-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Enric Balletbo i Serra <enric.balletbo-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+Cc: Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Fix SD card remove/insert detection by adding the correct card-detect
-pin. All IGEP OMAP3 based boards use the same card-detect pin.
+Hello Enric,
 
-Signed-off-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
-Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
----
- arch/arm/boot/dts/omap3-igep.dtsi | 1 +
- 1 file changed, 1 insertion(+)
+On Fri, May 6, 2016 at 5:02 PM, Enric Balletbo i Serra
+<enric.balletbo-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org> wrote:
+> Fix SD card remove/insert detection by adding the correct card-detect
+> pin. All IGEP OMAP3 based boards use the same card-detect pin.
+>
+> Signed-off-by: Enric Balletbo i Serra <enric.balletbo-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+> Signed-off-by: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
 
-diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
-index 41f5d38..f4f2ce4 100644
---- a/arch/arm/boot/dts/omap3-igep.dtsi
-+++ b/arch/arm/boot/dts/omap3-igep.dtsi
-@@ -188,6 +188,7 @@
- 	vmmc-supply = <&vmmc1>;
- 	vmmc_aux-supply = <&vsim>;
- 	bus-width = <4>;
-+	cd-gpios = <&twl_gpio 0 GPIO_ACTIVE_LOW>;
- };
- 
- &mmc3 {
--- 
-2.1.0
+Shouldn't his be Suggested-by: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org> instead?
+
+Or if the patch was originally from Ladis, then he should remain the
+author with your S-o-B after his.
+
+Patch looks good to me though.
+
+Reviewed-by: Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
+
+Best regards,
+Javier
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
