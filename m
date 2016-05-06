@@ -1,67 +1,59 @@
-From: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 3/3] regulator: lp873x: Add support for lp873x PMIC
- regulators
-Date: Fri, 6 May 2016 10:13:24 +0530
-Message-ID: <572C20EC.7000706@ti.com>
-References: <1462425040-18566-1-git-send-email-j-keerthy@ti.com>
- <1462425040-18566-4-git-send-email-j-keerthy@ti.com>
- <20160505153820.GF6292@sirena.org.uk>
+From: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 02/10] usb: musb: Fix idling after host mode by increasing autosuspend delay
+Date: Fri, 06 May 2016 09:45:52 +0300
+Message-ID: <87k2j7it0f.fsf@intel.com>
+References: <1461864800-29979-1-git-send-email-tony@atomide.com> <1461864800-29979-3-git-send-email-tony@atomide.com> <20160505150159.GA25950@uda0271908> <20160505170439.GX5995@atomide.com> <20160505174742.GF22575@uda0271908>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160505153820.GF6292-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Cc: lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160505174742.GF22575@uda0271908>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mark,
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
 
-On Thursday 05 May 2016 09:08 PM, Mark Brown wrote:
-> On Thu, May 05, 2016 at 10:40:40AM +0530, Keerthy wrote:
+Hi,
+
+Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> writes:
+>> Does the current 200 ms autosuspend timeout relate to anything real
+>> other than what I found out with my measurements?
 >
->> +static const struct of_device_id of_lp873x_match_tbl[] = {
->> +	{ .compatible = "ti,lp8733-regulators",},
->> +	{ .compatible = "ti,lp8732-regulators",},
->> +	{ .compatible = "ti,lp873x-regulators",},
->> +	{},
->> +};
->
-> There should be no need for compatible strings here, we already know
-> what device this is from the parent.  The way we split drivers up for
-> Linux is something that's internal to Linux and shouldn't be in the
-> device tree.  If we do have explicit compatible strings then they should
-> (as always) be specific to a device, no wildcards.
+> Not sure, I didn't checkk where the 200ms comes from.
 
-Thanks for the review.
+It was an arbitrary number from when runtime PM was first added by
+Hema. I don't think it has any esoteric meaning ;-)
 
-I am using of_platform_populate function in the mfd driver to create 
-platform devices for the child nodes, in my case regulators.
+=2D-=20
+balbi
 
-of_platform_populate in turn calls on to of_platform_bus_create which 
-mandates compatible properties. It quietly skips device creation if 
-there are no compatible properties.
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
 
-When i enabled a debug print, i see this:
-skipping /ocp/i2c@48070000/lp8732@61/regulators, no compatible prop
-Hence i kept the compatible properties.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-The driver supports two variants of LP873x family:
-
-1) LP8732
-2) LP8733
-
-I will knock off the ti,lp873x-regulators compatible which is more 
-generic/wildcard entry.
-
-Let me know if this approach is fine.
-
->
-> Otherwise this looks sensible.
->
+iQIcBAEBAgAGBQJXLD2gAAoJEIaOsuA1yqREA6kP/1brMIfKdimusoWykF1Hpt7N
+1cnjUO6kDpmT7I/xjrLVFfl6+sajsK/Df/DPICDv4LNGX6uDYaKKYLWKtwHlRWv/
+E8o6G9ideJ5x2RTQRrhdeY/G+S6Rx3HMXlFLMixosMnm69bVA5c8PzgHe1e21/VS
+0BVVpOylceWmoLC3iCQMOi3ooHHhnDws8b0KIXKARr9evSbKT2IdP2sXR+kb1S6o
+G+d/k+U89I3n2dQQMlFBm/vnrMDv3csiD8vpqeB2h/qR+BJDHXaz4+ztJOBImmdT
+tnXCOMS9qqM6v4YjOJRTwyhZjmVSdQIiFPA/hN03VJlbm+AbqcrtVuP2o4cI4rG1
+a/OqruE+uvDiyQlvtGW7KPOjcQf8ZgQm6s3eTB+E4x0NTpYMT7pI1MIVVwuQjtlb
+ngRN2d59yQQxmzn2FubnKSy7D9VMlI92zOXSNQH7yX0r+1xeRzA9qxhWrI4msj26
+3Vo5+A3iOaPDNjnaVXG9RKCVLGQYNe0eGV0XzLuOkRLxjBUP99xp6+pDXINk9tLi
+utiCs6cofe6LGcvKoHYpUMv2mzRuYcsbanwMwVcmFu/MiclxMdEBEyG3Gn0g8Lvl
+erWNU+a4ib9cQbOiHiCkd0GHJgA7gPRTU/KGcQ9cO1MjIbWHG75xqSMTrhW5YFZ3
+LKwYPdWGqF2zgjtXTI+/
+=W0+y
+-----END PGP SIGNATURE-----
+--=-=-=--
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
