@@ -1,175 +1,97 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] ARM: dts: am57xx-idk-common: Fix input supply names
-Date: Thu, 5 May 2016 19:05:25 -0500
-Message-ID: <1462493125-27832-1-git-send-email-nm@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 1/4] regulator: tps65917/palmas: Simplify multiple dereference of ddata->palmas_matches[idx]
+Date: Thu, 5 May 2016 19:29:49 -0500
+Message-ID: <1462494592-27909-2-git-send-email-nm@ti.com>
+References: <1462494592-27909-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1462494592-27909-1-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Keerthy <j-keerthy@ti.com>, Stephen Warren <swarren@nvidia.com>, Laxman Dewangan <ldewangan@nvidia.com>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Palmas Regulator is an exception and does not follow the standard
-"vin-supply" common definitions for all regulators, as a result of this,
-the input supplies are not reported to regulator framework, with the
-obvious result of not being appropriately mapped. Fix the same.
+Converting dt to platform data logic involves picking up information
+that is unique per regulator, however we can improve readability of
+the code by dereferencing ddata->palmas_matches[idx] once in the loop.
 
-Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+While at it fix reuse of generic palmas_matches common variable
+while reporting error for a specific regulator (which may be from
+65917/palmas list).
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
+ drivers/regulator/palmas-regulator.c | 27 ++++++++++++++-------------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
 
-Based on next-20160504
-Log: http://pastebin.ubuntu.com/16248817/
-
- arch/arm/boot/dts/am57xx-idk-common.dtsi | 32 +++++++++++++++++---------------
- 1 file changed, 17 insertions(+), 15 deletions(-)
-
-diff --git a/arch/arm/boot/dts/am57xx-idk-common.dtsi b/arch/arm/boot/dts/am57xx-idk-common.dtsi
-index b01a5948cdd0..65ab31118140 100644
---- a/arch/arm/boot/dts/am57xx-idk-common.dtsi
-+++ b/arch/arm/boot/dts/am57xx-idk-common.dtsi
-@@ -60,10 +60,26 @@
+diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
+index c83e06b2cedb..41b4e94a8d7d 100644
+--- a/drivers/regulator/palmas-regulator.c
++++ b/drivers/regulator/palmas-regulator.c
+@@ -1491,21 +1491,23 @@ static void palmas_dt_to_pdata(struct device *dev,
+ 	}
  
- 		tps659038_pmic {
- 			compatible = "ti,tps659038-pmic";
+ 	for (idx = 0; idx < ddata->max_reg; idx++) {
+-		if (!ddata->palmas_matches[idx].init_data ||
+-		    !ddata->palmas_matches[idx].of_node)
++		static struct of_regulator_match *match;
 +
-+			smps12-in-supply = <&vmain>;
-+			smps3-in-supply = <&vmain>;
-+			smps45-in-supply = <&vmain>;
-+			smps6-in-supply = <&vmain>;
-+			smps7-in-supply = <&vmain>;
-+			smps8-in-supply = <&vmain>;
-+			smps9-in-supply = <&vmain>;
-+			ldo1-in-supply = <&vmain>;
-+			ldo2-in-supply = <&vmain>;
-+			ldo3-in-supply = <&vmain>;
-+			ldo4-in-supply = <&vmain>;
-+			ldo9-in-supply = <&vmain>;
-+			ldoln-in-supply = <&vmain>;
-+			ldousb-in-supply = <&vmain>;
-+			ldortc-in-supply = <&vmain>;
++		match = &ddata->palmas_matches[idx];
 +
- 			regulators {
- 				smps12_reg: smps12 {
- 					/* VDD_MPU */
--					vin-supply = <&vmain>;
- 					regulator-name = "smps12";
- 					regulator-min-microvolt = <850000>;
- 					regulator-max-microvolt = <1250000>;
-@@ -73,7 +89,6 @@
++		if (!match->init_data || !match->of_node)
+ 			continue;
  
- 				smps3_reg: smps3 {
- 					/* VDD_DDR EMIF1 EMIF2 */
--					vin-supply = <&vmain>;
- 					regulator-name = "smps3";
- 					regulator-min-microvolt = <1350000>;
- 					regulator-max-microvolt = <1350000>;
-@@ -84,7 +99,6 @@
- 				smps45_reg: smps45 {
- 					/* VDD_DSPEVE on AM572 */
- 					/* VDD_IVA + VDD_DSP on AM571 */
--					vin-supply = <&vmain>;
- 					regulator-name = "smps45";
- 					regulator-min-microvolt = <850000>;
- 					regulator-max-microvolt = <1250000>;
-@@ -94,7 +108,6 @@
+-		pdata->reg_data[idx] = ddata->palmas_matches[idx].init_data;
++		pdata->reg_data[idx] = match->init_data;
  
- 				smps6_reg: smps6 {
- 					/* VDD_GPU */
--					vin-supply = <&vmain>;
- 					regulator-name = "smps6";
- 					regulator-min-microvolt = <850000>;
- 					regulator-max-microvolt = <1250000>;
-@@ -104,7 +117,6 @@
+ 		pdata->reg_init[idx] = devm_kzalloc(dev,
+ 				sizeof(struct palmas_reg_init), GFP_KERNEL);
  
- 				smps7_reg: smps7 {
- 					/* VDD_CORE */
--					vin-supply = <&vmain>;
- 					regulator-name = "smps7";
- 					regulator-min-microvolt = <850000>;
- 					regulator-max-microvolt = <1150000>;
-@@ -115,13 +127,11 @@
- 				smps8_reg: smps8 {
- 					/* 5728 - VDD_IVAHD */
- 					/* 5718 - N.C. test point */
--					vin-supply = <&vmain>;
- 					regulator-name = "smps8";
- 				};
+ 		pdata->reg_init[idx]->warm_reset =
+-			of_property_read_bool(ddata->palmas_matches[idx].of_node,
+-					      "ti,warm-reset");
++			of_property_read_bool(match->of_node, "ti,warm-reset");
  
- 				smps9_reg: smps9 {
- 					/* VDD_3_3D */
--					vin-supply = <&vmain>;
- 					regulator-name = "smps9";
- 					regulator-min-microvolt = <3300000>;
- 					regulator-max-microvolt = <3300000>;
-@@ -132,7 +142,6 @@
- 				ldo1_reg: ldo1 {
- 					/* VDDSHV8 - VSDMMC  */
- 					/* NOTE: on rev 1.3a, data supply */
--					vin-supply = <&vmain>;
- 					regulator-name = "ldo1";
- 					regulator-min-microvolt = <1800000>;
- 					regulator-max-microvolt = <3300000>;
-@@ -142,7 +151,6 @@
+-		ret = of_property_read_u32(ddata->palmas_matches[idx].of_node,
+-					   "ti,roof-floor", &prop);
++		ret = of_property_read_u32(match->of_node, "ti,roof-floor",
++					   &prop);
+ 		/* EINVAL: Property not found */
+ 		if (ret != -EINVAL) {
+ 			int econtrol;
+@@ -1527,27 +1529,26 @@ static void palmas_dt_to_pdata(struct device *dev,
+ 					WARN_ON(1);
+ 					dev_warn(dev,
+ 						 "%s: Invalid roof-floor option: %u\n",
+-					     palmas_matches[idx].name, prop);
++						 match->name, prop);
+ 					break;
+ 				}
+ 			}
+ 			pdata->reg_init[idx]->roof_floor = econtrol;
+ 		}
  
- 				ldo2_reg: ldo2 {
- 					/* VDDSH18V */
--					vin-supply = <&vmain>;
- 					regulator-name = "ldo2";
- 					regulator-min-microvolt = <1800000>;
- 					regulator-max-microvolt = <1800000>;
-@@ -152,7 +160,6 @@
+-		ret = of_property_read_u32(ddata->palmas_matches[idx].of_node,
+-					   "ti,mode-sleep", &prop);
++		ret = of_property_read_u32(match->of_node, "ti,mode-sleep",
++					   &prop);
+ 		if (!ret)
+ 			pdata->reg_init[idx]->mode_sleep = prop;
  
- 				ldo3_reg: ldo3 {
- 					/* R1.3a 572x V1_8PHY_LDO3: USB, SATA */
--					vin-supply = <&vmain>;
- 					regulator-name = "ldo3";
- 					regulator-min-microvolt = <1800000>;
- 					regulator-max-microvolt = <1800000>;
-@@ -162,7 +169,6 @@
+-		ret = of_property_read_bool(ddata->palmas_matches[idx].of_node,
+-					    "ti,smps-range");
++		ret = of_property_read_bool(match->of_node, "ti,smps-range");
+ 		if (ret)
+ 			pdata->reg_init[idx]->vsel =
+ 				PALMAS_SMPS12_VOLTAGE_RANGE;
  
- 				ldo4_reg: ldo4 {
- 					/* R1.3a 572x V1_8PHY_LDO4: PCIE, HDMI*/
--					vin-supply = <&vmain>;
- 					regulator-name = "ldo4";
- 					regulator-min-microvolt = <1800000>;
- 					regulator-max-microvolt = <1800000>;
-@@ -174,7 +180,6 @@
+ 		if (idx == PALMAS_REG_LDO8)
+ 			pdata->enable_ldo8_tracking = of_property_read_bool(
+-						ddata->palmas_matches[idx].of_node,
++						match->of_node,
+ 						"ti,enable-ldo8-tracking");
+ 	}
  
- 				ldo9_reg: ldo9 {
- 					/* VDD_RTC  */
--					vin-supply = <&vmain>;
- 					regulator-name = "ldo9";
- 					regulator-min-microvolt = <840000>;
- 					regulator-max-microvolt = <1160000>;
-@@ -184,7 +189,6 @@
- 
- 				ldoln_reg: ldoln {
- 					/* VDDA_1V8_PLL */
--					vin-supply = <&vmain>;
- 					regulator-name = "ldoln";
- 					regulator-min-microvolt = <1800000>;
- 					regulator-max-microvolt = <1800000>;
-@@ -194,7 +198,6 @@
- 
- 				ldousb_reg: ldousb {
- 					/* VDDA_3V_USB: VDDA_USBHS33 */
--					vin-supply = <&vmain>;
- 					regulator-name = "ldousb";
- 					regulator-min-microvolt = <3300000>;
- 					regulator-max-microvolt = <3300000>;
-@@ -205,7 +208,6 @@
- 				ldortc_reg: ldortc {
- 					/* VDDA_RTC  */
- 					vin-supply = <&vmain>;
--					regulator-name = "ldortc";
- 					regulator-min-microvolt = <1800000>;
- 					regulator-max-microvolt = <1800000>;
- 					regulator-always-on;
 -- 
 2.8.0
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
