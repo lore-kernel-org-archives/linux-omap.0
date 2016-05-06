@@ -1,60 +1,95 @@
-From: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V2 13/14] dt-bindings: arm-gic: Add documentation for
- Tegra210 AGIC
-Date: Fri, 6 May 2016 09:32:38 +0100
-Message-ID: <572C56A6.7020408@nvidia.com>
-References: <1461150237-15580-1-git-send-email-jonathanh@nvidia.com>
- <1461150237-15580-14-git-send-email-jonathanh@nvidia.com>
- <20160422100052.GA10606@leverpostej> <571A0739.3090502@nvidia.com>
- <20160422112239.GF10606@leverpostej> <5720DC1D.1080802@nvidia.com>
- <20160427173810.GC7359@leverpostej> <5721C597.1010105@nvidia.com>
- <20160428095525.GB21145@leverpostej>
+From: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v7 11/14] usb: otg: use dev_dbg() instead of VDBG()
+Date: Fri, 6 May 2016 17:04:25 +0800
+Message-ID: <20160506090425.GD32359@shlinux2.ap.freescale.net>
+References: <1462191537-10314-1-git-send-email-rogerq@ti.com>
+ <1462191537-10314-12-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160428095525.GB21145@leverpostej>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1462191537-10314-12-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mark,
-
-On 28/04/16 10:55, Mark Rutland wrote:
-
-[...]
-
-> The "nvidia,tegra210-agic" string can be taken as describing any
-> Tegra-210 specific integration quirks, though I agree that's also not
-> fantastic for extending PM support beyond Tegra 210 and variants
-> thereof.
+On Mon, May 02, 2016 at 03:18:54PM +0300, Roger Quadros wrote:
+> Now that we have a device reference in struct usb_otg
+> let's use dev_dbg() for debug messages.
 > 
-> So maybe the best approach is bailing out in the presence of clocks
-> and/or power domains after all, on the assumption that nothing today has
-> those properties, though I fear we may have problems with that later
-> down the line if/when people describe those for the root GIC to describe
-> those must be hogged, even if not explicitly managed.
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/usb/common/usb-otg-fsm.c | 19 +++++++------------
+>  1 file changed, 7 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
+> index 2986b66..e6e58c2 100644
+> --- a/drivers/usb/common/usb-otg-fsm.c
+> +++ b/drivers/usb/common/usb-otg-fsm.c
+> @@ -30,13 +30,6 @@
+>  #include <linux/usb/otg.h>
+>  #include <linux/usb/otg-fsm.h>
+>  
+> -#ifdef VERBOSE
+> -#define VDBG(fmt, args...) pr_debug("[%s]  " fmt , \
+> -				 __func__, ## args)
+> -#else
+> -#define VDBG(stuff...)	do {} while (0)
+> -#endif
+> -
+>  /* Change USB protocol when there is a protocol change */
+>  static int otg_set_protocol(struct otg_fsm *fsm, int protocol)
+>  {
+> @@ -44,8 +37,9 @@ static int otg_set_protocol(struct otg_fsm *fsm, int protocol)
+>  	int ret = 0;
+>  
+>  	if (fsm->protocol != protocol) {
+> -		VDBG("Changing role fsm->protocol= %d; new protocol= %d\n",
+> -			fsm->protocol, protocol);
+> +		dev_vdbg(otg->dev,
+> +			 "Changing role fsm->protocol= %d; new protocol= %d\n",
+> +			 fsm->protocol, protocol);
+>  		/* stop old protocol */
+>  		if (fsm->protocol == PROTO_HOST)
+>  			ret = otg_start_host(otg, 0);
+> @@ -226,7 +220,7 @@ static int otg_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
+>  
+>  	if (otg->state == new_state)
+>  		return 0;
+> -	VDBG("Set state: %s\n", usb_otg_state_string(new_state));
+> +	dev_vdbg(otg->dev, "Set state: %s\n", usb_otg_state_string(new_state));
+>  	otg_leave_state(fsm, otg->state);
+>  	switch (new_state) {
+>  	case OTG_STATE_B_IDLE:
+> @@ -358,7 +352,7 @@ int otg_statemachine(struct usb_otg *otg)
+>  
+>  	switch (state) {
+>  	case OTG_STATE_UNDEFINED:
+> -		VDBG("fsm->id = %d\n", fsm->id);
+> +		dev_vdbg(otg->dev, "fsm->id = %d\n", fsm->id);
+>  		if (fsm->id)
+>  			otg_set_state(fsm, OTG_STATE_B_IDLE);
+>  		else
+> @@ -466,7 +460,8 @@ int otg_statemachine(struct usb_otg *otg)
+>  	}
+>  	mutex_unlock(&fsm->lock);
+>  
+> -	VDBG("quit statemachine, changed = %d\n", fsm->state_changed);
+> +	dev_vdbg(otg->dev, "quit statemachine, changed = %d\n",
+> +		 fsm->state_changed);
+>  	return fsm->state_changed;
+>  }
+>  EXPORT_SYMBOL_GPL(otg_statemachine);
+> -- 
 
-On further testing, by bailing out in the presence of clocks and/or
-power-domains, the problem I now see is that although the primary gic-400
-has been registered, we still try to probe it again later as it matches
-the platform driver. One way to avoid this would be ...
+Could you squash patch 2 with this one?
 
-diff --git a/drivers/of/irq.c b/drivers/of/irq.c
-index e7bfc175b8e1..631da7ad0dbf 100644
---- a/drivers/of/irq.c
-+++ b/drivers/of/irq.c
-@@ -556,6 +556,8 @@ void __init of_irq_init(const struct of_device_id *matches)
-                         * its children can get processed in a subsequent pass.
-                         */
-                        list_add_tail(&desc->list, &intc_parent_list);
-+
-+                       of_node_set_flag(desc->dev, OF_POPULATED);
-                }
+-- 
 
-If this is not appropriate then I guess I will just need to use
-"tegra210-agic" for the compatibility flag.
-
-Cheers
-Jon
+Best Regards,
+Peter Chen
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
