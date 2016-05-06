@@ -1,7 +1,7 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 1/4] regulator: tps65917/palmas: Simplify multiple dereference of ddata->palmas_matches[idx]
-Date: Thu, 5 May 2016 19:29:49 -0500
-Message-ID: <1462494592-27909-2-git-send-email-nm@ti.com>
+Subject: [PATCH 3/4] regulator: tps65917/palmas: Handle possible memory allocation failure
+Date: Thu, 5 May 2016 19:29:51 -0500
+Message-ID: <1462494592-27909-4-git-send-email-nm@ti.com>
 References: <1462494592-27909-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,86 +12,82 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Keerthy <j-keerthy@ti.com>, Stephen Warren <swarren@nvidia.com>, Laxman Dewangan <ldewangan@nvidia.com>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Converting dt to platform data logic involves picking up information
-that is unique per regulator, however we can improve readability of
-the code by dereferencing ddata->palmas_matches[idx] once in the loop.
-
-While at it fix reuse of generic palmas_matches common variable
-while reporting error for a specific regulator (which may be from
-65917/palmas list).
+Stop the palmas regulator driver from imagining that the allocations
+will always succeed. Since regulator dt nodes are optional in nature and
+can be described in downstream drivers via platform data, continue to
+maintain code flow as prior when of node is not found.
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- drivers/regulator/palmas-regulator.c | 27 ++++++++++++++-------------
- 1 file changed, 14 insertions(+), 13 deletions(-)
+ drivers/regulator/palmas-regulator.c | 21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
-index c83e06b2cedb..41b4e94a8d7d 100644
+index 3b9206224cd1..faa389be7ca3 100644
 --- a/drivers/regulator/palmas-regulator.c
 +++ b/drivers/regulator/palmas-regulator.c
-@@ -1491,21 +1491,23 @@ static void palmas_dt_to_pdata(struct device *dev,
+@@ -1467,10 +1467,10 @@ static struct palmas_pmic_driver_data tps65917_ddata = {
+ 	.ldo_register = tps65917_ldo_registration,
+ };
+ 
+-static void palmas_dt_to_pdata(struct device *dev,
+-			       struct device_node *node,
+-			       struct palmas_pmic_platform_data *pdata,
+-			       struct palmas_pmic_driver_data *ddata)
++static int palmas_dt_to_pdata(struct device *dev,
++			      struct device_node *node,
++			      struct palmas_pmic_platform_data *pdata,
++			      struct palmas_pmic_driver_data *ddata)
+ {
+ 	struct device_node *regulators;
+ 	u32 prop;
+@@ -1479,7 +1479,7 @@ static void palmas_dt_to_pdata(struct device *dev,
+ 	regulators = of_get_child_by_name(node, "regulators");
+ 	if (!regulators) {
+ 		dev_info(dev, "regulator node not found\n");
+-		return;
++		return 0;
+ 	}
+ 
+ 	ret = of_regulator_match(dev, regulators, ddata->palmas_matches,
+@@ -1487,7 +1487,7 @@ static void palmas_dt_to_pdata(struct device *dev,
+ 	of_node_put(regulators);
+ 	if (ret < 0) {
+ 		dev_err(dev, "Error parsing regulator init data: %d\n", ret);
+-		return;
++		return 0;
  	}
  
  	for (idx = 0; idx < ddata->max_reg; idx++) {
--		if (!ddata->palmas_matches[idx].init_data ||
--		    !ddata->palmas_matches[idx].of_node)
-+		static struct of_regulator_match *match;
-+
-+		match = &ddata->palmas_matches[idx];
-+
-+		if (!match->init_data || !match->of_node)
+@@ -1500,6 +1500,9 @@ static void palmas_dt_to_pdata(struct device *dev,
  			continue;
  
--		pdata->reg_data[idx] = ddata->palmas_matches[idx].init_data;
-+		pdata->reg_data[idx] = match->init_data;
+ 		rinit = devm_kzalloc(dev, sizeof(*rinit), GFP_KERNEL);
++		if (!rinit)
++			return -ENOMEM;
++
+ 		pdata->reg_data[idx] = match->init_data;
+ 		pdata->reg_init[idx] = rinit;
  
- 		pdata->reg_init[idx] = devm_kzalloc(dev,
- 				sizeof(struct palmas_reg_init), GFP_KERNEL);
- 
- 		pdata->reg_init[idx]->warm_reset =
--			of_property_read_bool(ddata->palmas_matches[idx].of_node,
--					      "ti,warm-reset");
-+			of_property_read_bool(match->of_node, "ti,warm-reset");
- 
--		ret = of_property_read_u32(ddata->palmas_matches[idx].of_node,
--					   "ti,roof-floor", &prop);
-+		ret = of_property_read_u32(match->of_node, "ti,roof-floor",
-+					   &prop);
- 		/* EINVAL: Property not found */
- 		if (ret != -EINVAL) {
- 			int econtrol;
-@@ -1527,27 +1529,26 @@ static void palmas_dt_to_pdata(struct device *dev,
- 					WARN_ON(1);
- 					dev_warn(dev,
- 						 "%s: Invalid roof-floor option: %u\n",
--					     palmas_matches[idx].name, prop);
-+						 match->name, prop);
- 					break;
- 				}
- 			}
- 			pdata->reg_init[idx]->roof_floor = econtrol;
- 		}
- 
--		ret = of_property_read_u32(ddata->palmas_matches[idx].of_node,
--					   "ti,mode-sleep", &prop);
-+		ret = of_property_read_u32(match->of_node, "ti,mode-sleep",
-+					   &prop);
- 		if (!ret)
- 			pdata->reg_init[idx]->mode_sleep = prop;
- 
--		ret = of_property_read_bool(ddata->palmas_matches[idx].of_node,
--					    "ti,smps-range");
-+		ret = of_property_read_bool(match->of_node, "ti,smps-range");
- 		if (ret)
- 			pdata->reg_init[idx]->vsel =
- 				PALMAS_SMPS12_VOLTAGE_RANGE;
- 
- 		if (idx == PALMAS_REG_LDO8)
- 			pdata->enable_ldo8_tracking = of_property_read_bool(
--						ddata->palmas_matches[idx].of_node,
-+						match->of_node,
- 						"ti,enable-ldo8-tracking");
+@@ -1552,6 +1555,8 @@ static void palmas_dt_to_pdata(struct device *dev,
  	}
  
+ 	pdata->ldo6_vibrator = of_property_read_bool(node, "ti,ldo6-vibrator");
++
++	return 0;
+ }
+ 
+ static const struct of_device_id of_palmas_match_tbl[] = {
+@@ -1633,7 +1638,9 @@ static int palmas_regulators_probe(struct platform_device *pdev)
+ 	platform_set_drvdata(pdev, pmic);
+ 	pmic->palmas->pmic_ddata = driver_data;
+ 
+-	palmas_dt_to_pdata(&pdev->dev, node, pdata, driver_data);
++	ret = palmas_dt_to_pdata(&pdev->dev, node, pdata, driver_data);
++	if (ret)
++		return ret;
+ 
+ 	ret = palmas_smps_read(palmas, PALMAS_SMPS_CTRL, &reg);
+ 	if (ret)
 -- 
 2.8.0
