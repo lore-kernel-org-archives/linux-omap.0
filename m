@@ -1,54 +1,49 @@
-From: "R, Vignesh" <vigneshr@ti.com>
-Subject: Re: [PATCH] Input: ti_am335x_tsc - Mark IRQ as wakeup capable
-Date: Fri, 6 May 2016 21:20:23 +0530
-Message-ID: <572CBD3F.9010204@ti.com>
-References: <1462529801-8986-1-git-send-email-vigneshr@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 0/4] regulator: tps65917/palmas: Cleanups and bugfixes
+Date: Fri, 6 May 2016 18:14:53 +0100
+Message-ID: <20160506171453.GX6292@sirena.org.uk>
+References: <1462494592-27909-1-git-send-email-nm@ti.com>
+ <572C444F.9070304@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="+2xxXFcoH1/fp7Az"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1462529801-8986-1-git-send-email-vigneshr@ti.com>
+Content-Disposition: inline
+In-Reply-To: <572C444F.9070304@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Dave Gerlach <d-gerlach@ti.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Laxman Dewangan <ldewangan@nvidia.com>
+Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Keerthy <j-keerthy@ti.com>, Stephen Warren <swarren@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
 
 
+--+2xxXFcoH1/fp7Az
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On 5/6/2016 3:46 PM, Vignesh R wrote:
-> On AM335x, ti_am335x_tsc can wake up the system from suspend, mark the
-> IRQ as wakeup capable, so that device irq is not disabled during system
-> suspend.
-> 
-> Signed-off-by: Vignesh R <vigneshr@ti.com>
-> ---
->  drivers/input/touchscreen/ti_am335x_tsc.c | 7 +++++++
->  1 file changed, 7 insertions(+)
-> 
-> diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
-> index 8b3f15ca7725..423f275ffab8 100644
-> --- a/drivers/input/touchscreen/ti_am335x_tsc.c
-> +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
-> @@ -27,6 +27,7 @@
->  #include <linux/of.h>
->  #include <linux/of_device.h>
->  #include <linux/sort.h>
-> +#include <linux/pm_wakeirq.h>
->  
->  #include <linux/mfd/ti_am335x_tscadc.h>
->  
-> @@ -432,6 +433,12 @@ static int titsc_probe(struct platform_device *pdev)
->  		goto err_free_mem;
->  	}
->  
-> +	if (device_may_wakeup(tscadc_dev->dev)) {
-> +		err = dev_pm_set_wake_irq(tscadc_dev->dev, ts_dev->irq);
-> +		if (err)
-> +			dev_err(&pdev->dev, "irq wake enable failed.\n");
-> +	}
-> +
+On Fri, May 06, 2016 at 12:44:23PM +0530, Laxman Dewangan wrote:
 
-I forgot dev_pm_clear_wake_irq() here. Will repost, sorry for the noise.
+> When you are here, can you implement the dt parsing with the new method from
+> regulator framework.
+> Regulator FW calls callback to parse customized DT property, just need to
+> pass the node and pointer when registering.
 
-Regards
-Vignesh
+> This will helps lots in cleanups and readability.
+
+Yes, please.
+
+--+2xxXFcoH1/fp7Az
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJXLNEMAAoJECTWi3JdVIfQGYsH/Rzv3ZaqVVdfrWRAruW/wNZi
+Xnt9DqlTpyJMItoYAEzl7YsuzQlU2ZwtapYAnLVaCQaIE1KbYid5cIRSNMAiP6gi
+h2GFtgp8m6E7dbwiQ8SibbZNDFVpGOLuPgK9ecCW920trdwsc19nTMrACd4IGjSr
+qgjbVkkVjNEffDez/0PaPxJG3kilUusJyJZp7ZS8QYBtzN8prRldXXe1hsYjI318
+vLQKW/+pi76A+Y3A+tcQfy0oIhcaJxisTkN5jrh4+/EYx0/H3fDXu+XDXHzbpD6/
+38wW643yYVHZktNIMwQpt/rZZQmnYPUeo3y2G91IUw/wF2kIfkZhgNN0MGdYUTg=
+=gOvU
+-----END PGP SIGNATURE-----
+
+--+2xxXFcoH1/fp7Az--
