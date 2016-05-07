@@ -1,75 +1,77 @@
-From: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-Subject: Re: [PATCH V2 13/14] dt-bindings: arm-gic: Add documentation for
- Tegra210 AGIC
-Date: Sat, 7 May 2016 16:10:54 +0200
-Message-ID: <CAMuHMdX+egbNPP4QQ2R28GbyVkg9qBrwYfUy8EE0PdB6od+LBg@mail.gmail.com>
-References: <1461150237-15580-1-git-send-email-jonathanh@nvidia.com>
-	<1461150237-15580-14-git-send-email-jonathanh@nvidia.com>
-	<20160422100052.GA10606@leverpostej>
-	<571A0739.3090502@nvidia.com>
-	<20160422112239.GF10606@leverpostej>
-	<5720DC1D.1080802@nvidia.com>
-	<20160427173810.GC7359@leverpostej>
-	<5721C597.1010105@nvidia.com>
-	<20160428095525.GB21145@leverpostej>
-	<572C56A6.7020408@nvidia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 2/7] pwm: omap-dmtimer: Allow for setting dmtimer clock source
+Date: Sat,  7 May 2016 18:21:43 +0300
+Message-ID: <1462634508-24961-3-git-send-email-ivo.g.dimitrov.75@gmail.com>
+References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <572C56A6.7020408-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pwm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Jon,
+OMAP GP timers can have different input clocks that allow different PWM
+frequencies. However, there is no other way of setting the clock source but
+through clocks or clock-names properties of the timer itself. This limits
+PWM functionality to only the frequencies allowed by the particular clock
+source. Allowing setting the clock source by PWM rather than by timer
+allows different PWMs to have different ranges by not hard-wiring the clock
+source to the timer.
 
-On Fri, May 6, 2016 at 10:32 AM, Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org> wrote:
->> The "nvidia,tegra210-agic" string can be taken as describing any
->> Tegra-210 specific integration quirks, though I agree that's also not
->> fantastic for extending PM support beyond Tegra 210 and variants
->> thereof.
->>
->> So maybe the best approach is bailing out in the presence of clocks
->> and/or power domains after all, on the assumption that nothing today has
->> those properties, though I fear we may have problems with that later
->> down the line if/when people describe those for the root GIC to describe
->> those must be hogged, even if not explicitly managed.
->
-> On further testing, by bailing out in the presence of clocks and/or
-> power-domains, the problem I now see is that although the primary gic-400
-> has been registered, we still try to probe it again later as it matches
-> the platform driver. One way to avoid this would be ...
->
-> diff --git a/drivers/of/irq.c b/drivers/of/irq.c
-> index e7bfc175b8e1..631da7ad0dbf 100644
-> --- a/drivers/of/irq.c
-> +++ b/drivers/of/irq.c
-> @@ -556,6 +556,8 @@ void __init of_irq_init(const struct of_device_id *matches)
->                          * its children can get processed in a subsequent pass.
->                          */
->                         list_add_tail(&desc->list, &intc_parent_list);
-> +
-> +                       of_node_set_flag(desc->dev, OF_POPULATED);
->                 }
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt |  4 ++++
+ drivers/pwm/pwm-omap-dmtimer.c                             | 12 +++++++-----
+ 2 files changed, 11 insertions(+), 5 deletions(-)
 
-That sounds like the right thing to do to me...
+diff --git a/Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt b/Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt
+index 5befb53..2e53324 100644
+--- a/Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt
++++ b/Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt
+@@ -9,6 +9,10 @@ Required properties:
+ 
+ Optional properties:
+ - ti,prescaler: Should be a value between 0 and 7, see the timers datasheet
++- ti,clock-source: Set dmtimer parent clock, values between 0 and 2:
++  - 0x00 - high-frequency system clock (timer_sys_ck)
++  - 0x01 - 32-kHz always-on clock (timer_32k_ck)
++  - 0x02 - external clock (timer_ext_ck, OMAP2 only)
+ 
+ Example:
+ 	pwm9: dmtimer-pwm@9 {
+diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
+index b7e6ecb..95964c6 100644
+--- a/drivers/pwm/pwm-omap-dmtimer.c
++++ b/drivers/pwm/pwm-omap-dmtimer.c
+@@ -245,7 +245,7 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
+ 	struct pwm_omap_dmtimer_chip *omap;
+ 	struct pwm_omap_dmtimer_pdata *pdata;
+ 	pwm_omap_dmtimer *dm_timer;
+-	u32 prescaler;
++	u32 v;
+ 	int status;
+ 
+ 	pdata = dev_get_platdata(&pdev->dev);
+@@ -306,10 +306,12 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
+ 	if (pm_runtime_active(&omap->dm_timer_pdev->dev))
+ 		omap->pdata->stop(omap->dm_timer);
+ 
+-	/* setup dmtimer prescaler */
+-	if (!of_property_read_u32(pdev->dev.of_node, "ti,prescaler",
+-				&prescaler))
+-		omap->pdata->set_prescaler(omap->dm_timer, prescaler);
++	if (!of_property_read_u32(pdev->dev.of_node, "ti,prescaler", &v))
++		omap->pdata->set_prescaler(omap->dm_timer, v);
++
++	/* setup dmtimer clock source */
++	if (!of_property_read_u32(pdev->dev.of_node, "ti,clock-source", &v))
++		omap->pdata->set_source(omap->dm_timer, v);
+ 
+ 	omap->chip.dev = &pdev->dev;
+ 	omap->chip.ops = &pwm_omap_dmtimer_ops;
+-- 
+1.9.1
 
-> If this is not appropriate then I guess I will just need to use
-> "tegra210-agic" for the compatibility flag.
-
-As I want this for plain gic-400, I'd be unhappy ;-)
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
