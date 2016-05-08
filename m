@@ -1,71 +1,102 @@
-From: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V2 13/14] dt-bindings: arm-gic: Add documentation for
- Tegra210 AGIC
-Date: Sun, 8 May 2016 13:25:14 +0100
-Message-ID: <572F302A.6010506@nvidia.com>
-References: <1461150237-15580-1-git-send-email-jonathanh@nvidia.com>
- <1461150237-15580-14-git-send-email-jonathanh@nvidia.com>
- <20160422100052.GA10606@leverpostej> <571A0739.3090502@nvidia.com>
- <20160422112239.GF10606@leverpostej> <5720DC1D.1080802@nvidia.com>
- <20160427173810.GC7359@leverpostej> <5721C597.1010105@nvidia.com>
- <20160428095525.GB21145@leverpostej> <572C56A6.7020408@nvidia.com>
- <CAMuHMdX+egbNPP4QQ2R28GbyVkg9qBrwYfUy8EE0PdB6od+LBg@mail.gmail.com>
+From: Al Viro <viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
+Subject: Re: NFSroot hangs with bad unlock balance in Linux next
+Date: Sun, 8 May 2016 15:16:29 +0100
+Message-ID: <20160508141629.GF2694@ZenIV.linux.org.uk>
+References: <20160505220344.GE5995@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAMuHMdX+egbNPP4QQ2R28GbyVkg9qBrwYfUy8EE0PdB6od+LBg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160505220344.GE5995-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, Anna Schumaker <anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Geert,
-
-On 07/05/16 15:10, Geert Uytterhoeven wrote:
-> Hi Jon,
+On Thu, May 05, 2016 at 03:03:44PM -0700, Tony Lindgren wrote:
+> Hi,
 > 
-> On Fri, May 6, 2016 at 10:32 AM, Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org> wrote:
->>> The "nvidia,tegra210-agic" string can be taken as describing any
->>> Tegra-210 specific integration quirks, though I agree that's also not
->>> fantastic for extending PM support beyond Tegra 210 and variants
->>> thereof.
->>>
->>> So maybe the best approach is bailing out in the presence of clocks
->>> and/or power domains after all, on the assumption that nothing today has
->>> those properties, though I fear we may have problems with that later
->>> down the line if/when people describe those for the root GIC to describe
->>> those must be hogged, even if not explicitly managed.
->>
->> On further testing, by bailing out in the presence of clocks and/or
->> power-domains, the problem I now see is that although the primary gic-400
->> has been registered, we still try to probe it again later as it matches
->> the platform driver. One way to avoid this would be ...
->>
->> diff --git a/drivers/of/irq.c b/drivers/of/irq.c
->> index e7bfc175b8e1..631da7ad0dbf 100644
->> --- a/drivers/of/irq.c
->> +++ b/drivers/of/irq.c
->> @@ -556,6 +556,8 @@ void __init of_irq_init(const struct of_device_id *matches)
->>                          * its children can get processed in a subsequent pass.
->>                          */
->>                         list_add_tail(&desc->list, &intc_parent_list);
->> +
->> +                       of_node_set_flag(desc->dev, OF_POPULATED);
->>                 }
+> Looks like Linux next with NFSroot hangs for me at some point booting
+> into init. Then after a while it produces "BUG: bad unlock balance
+> detected!".
 > 
-> That sounds like the right thing to do to me...
-
-OK. The more I think about this, it does seem silly to create a device
-and pdata for a device that has already been instantiated.
-
->> If this is not appropriate then I guess I will just need to use
->> "tegra210-agic" for the compatibility flag.
+> This happens at least with omap5-uevm and igepv5. Not sure yet if it
+> also happens on other boards, the ones I'm seeing it happen both have
+> USB Ethernet controller. They usually hang after the system starts
+> being idle some tens of seconds into booting.
 > 
-> As I want this for plain gic-400, I'd be unhappy ;-)
+> I tried to bisect it down with no luck. I do have the following
+> trace, does that provide any clues?
 
-No problem. However, there is more work that would be needed to get this
-to work for root controllers which I think that you want.
+> kworker/0:2/112 is trying to release lock (&nfsi->rmdir_sem) at:
+> [<c03a7f98>] nfs_async_unlink_release+0x20/0x68
+> but there are no more locks to release!
 
-Cheers
-Jon
+Very strange.  We grab that rwsem at the entry into nfs_call_unlink()
+and then either release it there and return or call nfs_do_call_unlink().
+Which arranges for eventual call of nfs_async_unlink_release() (via
+->rpc_release); nfs_async_unlink_release() releases the rwsem.  Nobody else
+releases it (on the read side, that is).
+
+The only kinda-sorta possibility I see here is that the inode we are
+unlocking in that nfs_async_unlink_release() is not the one we'd locked
+in nfs_call_unlink() that has lead to it.  That really shouldn't happen,
+though...  Just to verify whether that's what we are hitting, could you
+try to reproduce that thing with the patch below on top of -next and see
+if it triggers any of those WARN_ON?
+
+diff --git a/fs/nfs/unlink.c b/fs/nfs/unlink.c
+index d367b06..dbbb4c9 100644
+--- a/fs/nfs/unlink.c
++++ b/fs/nfs/unlink.c
+@@ -64,6 +64,10 @@ static void nfs_async_unlink_release(void *calldata)
+ 	struct dentry *dentry = data->dentry;
+ 	struct super_block *sb = dentry->d_sb;
+ 
++	if (WARN_ON(data->parent != dentry->d_parent) ||
++	    WARN_ON(data->parent_inode != dentry->d_parent->d_inode)) {
++		printk(KERN_ERR "WTF2[%pd4]", dentry);
++	}
+ 	up_read(&NFS_I(d_inode(dentry->d_parent))->rmdir_sem);
+ 	d_lookup_done(dentry);
+ 	nfs_free_unlinkdata(data);
+@@ -114,7 +118,8 @@ static void nfs_do_call_unlink(struct nfs_unlinkdata *data)
+ 
+ static int nfs_call_unlink(struct dentry *dentry, struct nfs_unlinkdata *data)
+ {
+-	struct inode *dir = d_inode(dentry->d_parent);
++	struct dentry *parent = dentry->d_parent;
++	struct inode *dir = d_inode(parent);
+ 	struct dentry *alias;
+ 
+ 	down_read(&NFS_I(dir)->rmdir_sem);
+@@ -152,6 +157,12 @@ static int nfs_call_unlink(struct dentry *dentry, struct nfs_unlinkdata *data)
+ 		return ret;
+ 	}
+ 	data->dentry = alias;
++	data->parent = parent;
++	data->parent_inode = dir;
++	if (WARN_ON(parent != alias->d_parent) ||
++	    WARN_ON(dir != parent->d_inode)) {
++		printk(KERN_ERR "WTF1[%pd4]", alias);
++	}
+ 	nfs_do_call_unlink(data);
+ 	return 1;
+ }
+diff --git a/include/linux/nfs_xdr.h b/include/linux/nfs_xdr.h
+index ee8491d..b01a7f1 100644
+--- a/include/linux/nfs_xdr.h
++++ b/include/linux/nfs_xdr.h
+@@ -1471,6 +1471,8 @@ struct nfs_unlinkdata {
+ 	struct nfs_removeargs args;
+ 	struct nfs_removeres res;
+ 	struct dentry *dentry;
++	struct dentry *parent;
++	struct inode *parent_inode;
+ 	wait_queue_head_t wq;
+ 	struct rpc_cred	*cred;
+ 	struct nfs_fattr dir_attr;
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
