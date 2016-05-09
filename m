@@ -1,57 +1,111 @@
-From: Al Viro <viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
-Subject: Re: NFSroot hangs with bad unlock balance in Linux next
-Date: Mon, 9 May 2016 08:32:35 +0100
-Message-ID: <20160509073235.GI2694@ZenIV.linux.org.uk>
-References: <20160505220344.GE5995@atomide.com>
- <20160508141629.GF2694@ZenIV.linux.org.uk>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] ARM: dts: omap5-igep0050: Correct hdmi regulator
+Date: Mon, 9 May 2016 11:25:53 +0300
+Message-ID: <a6969765-d07d-6d0e-36df-b78b485d9644@ti.com>
+References: <1461925297-9734-1-git-send-email-peter.ujfalusi@ti.com>
+ <6ee9d67a-e907-715a-f3f5-d90a470314c3@ti.com>
+ <20160504172634.GS5995@atomide.com> <572A38FD.9050801@ti.com>
+ <20160505184609.GB5995@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160508141629.GF2694-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, Anna Schumaker <anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-net-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160505184609.GB5995@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Enric Balletbo i Serra <eballetbo@iseebcn.com>, =?UTF-8?Q?Agust=c3=ad_Fontquerni?= <af@iseebcn.com>, Eduard Gavin <egavin@iseebcn.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, May 08, 2016 at 03:16:29PM +0100, Al Viro wrote:
+Adding Tomi,
 
-> Very strange.  We grab that rwsem at the entry into nfs_call_unlink()
-> and then either release it there and return or call nfs_do_call_unlink().
-> Which arranges for eventual call of nfs_async_unlink_release() (via
-> ->rpc_release); nfs_async_unlink_release() releases the rwsem.  Nobody else
-> releases it (on the read side, that is).
-> 
-> The only kinda-sorta possibility I see here is that the inode we are
-> unlocking in that nfs_async_unlink_release() is not the one we'd locked
-> in nfs_call_unlink() that has lead to it.  That really shouldn't happen,
-> though...  Just to verify whether that's what we are hitting, could you
-> try to reproduce that thing with the patch below on top of -next and see
-> if it triggers any of those WARN_ON?
+On 05/05/16 21:46, Tony Lindgren wrote:
+> * Nishanth Menon <nm@ti.com> [160504 11:03]:
+>> On 05/04/2016 12:26 PM, Tony Lindgren wrote:
+>>> Hi,
+>>>
+>>> Adding Nishanth to Cc.
+>>>
+>>> * Peter Ujfalusi <peter.ujfalusi@ti.com> [160429 05:15]:
+>>>> ldo7_reg, obviously ;)
+>>>>
+>>>>> 	status =3D "okay";
+>>>>> 	regulator-min-microvolt =3D <1800000>;
+>>>>> 	regulator-max-microvolt =3D <1800000>;
+>>>>> };
+>>>
+>>> It really seems to be ldo7, otherwise there's no HDMI output. I don=
+'t
+>>> have the schematics either.
+>>>
+>>> But it seems we have at least two other regressions in Linux next t=
+hat
+>>> prevent me from testing this properly:
+>>>
+>>> 1. On igepv5, I get this for the MMC regulator
+>>>
+>>> ldo9: bypassed regulator has no supply!
+>>> ldo9: failed to get the current voltage(-517)
+>>> palmas-pmic 48070000.i2c:palmas@48:palmas_pmic: failed to register =
+48070000.i2c:palmar
+>=20
+> The patch I posted fixes this. Then for the HDMI see below.
+> I've kept it at 2V like we have in omap5-board-common.dtsi,
+> I wonder if it really should be 1.8V though for ldo7 in this
+> case?
 
-D'oh...  Lockdep warnings are easy to trigger (and, AFAICS, bogus).
-up_read/down_read in fs/nfs/unlink.c should be replaced with
-up_read_non_owner/down_read_non_owner, lest the lockdep gets confused.
-Hangs are different - I've no idea what's triggering those.  I've seen
-something similar on that -next, but not on work.lookups.
+AFAIK the VDDA for the HDMI needs to be 1.8V along with other VDDAs for=
+ DSS
+(vdda_dsiporta, vdda_dsiportc and vdda_hdmi).
 
-The joy of bisecting -next...  <a couple of hours later>
-9317bb69824ec8d078b0b786b6971aedb0af3d4f is the first bad commit
-commit 9317bb69824ec8d078b0b786b6971aedb0af3d4f
-Author: Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Date:   Mon Apr 25 10:39:32 2016 -0700
+Tomi: what do you think?
 
-    net: SOCKWQ_ASYNC_NOSPACE optimizations
+According to the OMAP5 data manual the vdda_hdmi can be in 1.5V or 1.8V=
+ mode,
+2V is not mentioned in the recommended operating conditions table.
 
-Reverting changes to sk_set_bit/sk_clear_bit gets rid of the hangs.  Plain
-revert gives a conflict, since there had been additional change in
-"net: SOCKWQ_ASYNC_WAITDATA optimizations"; removing both fixed the hangs.
+Just to note: on omap5-uevm the ldo7 is connected to VPP1 of OMAP5 (eFu=
+se
+power supply), which does require 2V.
 
-Note that hangs appear without any fs/nfs/unlink.c modifications being
-there.  When the hang happens it affects NFS traffic; ssh session still
-works fine until it steps on a filesystem operation on NFS (i.e. you
-can use builtins, access procfs, etc.)
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> Regards,
+>=20
+> Tony
+> 8< -----------------
+> From: Tony Lindgren <tony@atomide.com>
+> Date: Thu, 5 May 2016 11:29:23 -0700
+> Subject: [PATCH] ARM: dts: Fix ldo7 source for HDMI on igepv5
+>=20
+> Fix ldo7 source for HDMI on igepv5.
+>=20
+> Suggested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+>=20
+> diff --git a/arch/arm/boot/dts/omap5-igep0050.dts b/arch/arm/boot/dts=
+/omap5-igep0050.dts
+> index 46ecb1d..72ff6a4 100644
+> --- a/arch/arm/boot/dts/omap5-igep0050.dts
+> +++ b/arch/arm/boot/dts/omap5-igep0050.dts
+> @@ -35,6 +35,12 @@
+>  	};
+>  };
+> =20
+> +&ldo7_reg {
+> +	status =3D "okay";
+> +	regulator-min-microvolt =3D <2000000>;
+> +	regulator-max-microvolt =3D <2000000>;
+
+If we are not changing the default voltage set in the common dtsi file =
+we only
+need to status =3D "okay"
+
+> +};
+> +
+>  &omap5_pmx_core {
+>  	i2c4_pins: pinmux_i2c4_pins {
+>  		pinctrl-single,pins =3D <
+>=20
+
+
+--=20
+P=E9ter
