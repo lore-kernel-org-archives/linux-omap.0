@@ -1,62 +1,168 @@
-From: Eric Dumazet <edumazet@google.com>
-Subject: Re: NFSroot hangs with bad unlock balance in Linux next
-Date: Mon, 9 May 2016 07:14:41 -0700
-Message-ID: <CANn89iK5H-SokYE1r+OO3sPmQ1vpGqYGbE4x1QLn44wdyvH0cw@mail.gmail.com>
-References: <20160505220344.GE5995@atomide.com>
-	<20160508141629.GF2694@ZenIV.linux.org.uk>
-	<20160509073235.GI2694@ZenIV.linux.org.uk>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH] mfd: omap-usb-tll: fix scheduling while atomic BUG
+Date: Mon, 9 May 2016 15:29:18 +0100
+Message-ID: <20160509142918.GK8324@dell>
+References: <1462782517-5471-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20160509073235.GI2694@ZenIV.linux.org.uk>
-Sender: netdev-owner@vger.kernel.org
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Christoph Hellwig <hch@lst.de>, Trond Myklebust <trond.myklebust@primarydata.com>, Anna Schumaker <anna.schumaker@netapp.com>, linux-nfs@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev <netdev@vger.kernel.org>, Jiri Pirko <jiri@resnulli.us>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1462782517-5471-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, hns@goldelico.com, mturquette@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, May 9, 2016 at 12:32 AM, Al Viro <viro@zeniv.linux.org.uk> wrote:
-> On Sun, May 08, 2016 at 03:16:29PM +0100, Al Viro wrote:
->
->> Very strange.  We grab that rwsem at the entry into nfs_call_unlink()
->> and then either release it there and return or call nfs_do_call_unlink().
->> Which arranges for eventual call of nfs_async_unlink_release() (via
->> ->rpc_release); nfs_async_unlink_release() releases the rwsem.  Nobody else
->> releases it (on the read side, that is).
->>
->> The only kinda-sorta possibility I see here is that the inode we are
->> unlocking in that nfs_async_unlink_release() is not the one we'd locked
->> in nfs_call_unlink() that has lead to it.  That really shouldn't happen,
->> though...  Just to verify whether that's what we are hitting, could you
->> try to reproduce that thing with the patch below on top of -next and see
->> if it triggers any of those WARN_ON?
->
-> D'oh...  Lockdep warnings are easy to trigger (and, AFAICS, bogus).
-> up_read/down_read in fs/nfs/unlink.c should be replaced with
-> up_read_non_owner/down_read_non_owner, lest the lockdep gets confused.
-> Hangs are different - I've no idea what's triggering those.  I've seen
-> something similar on that -next, but not on work.lookups.
->
-> The joy of bisecting -next...  <a couple of hours later>
-> 9317bb69824ec8d078b0b786b6971aedb0af3d4f is the first bad commit
-> commit 9317bb69824ec8d078b0b786b6971aedb0af3d4f
-> Author: Eric Dumazet <edumazet@google.com>
-> Date:   Mon Apr 25 10:39:32 2016 -0700
->
->     net: SOCKWQ_ASYNC_NOSPACE optimizations
->
-> Reverting changes to sk_set_bit/sk_clear_bit gets rid of the hangs.  Plain
-> revert gives a conflict, since there had been additional change in
-> "net: SOCKWQ_ASYNC_WAITDATA optimizations"; removing both fixed the hangs.
->
-> Note that hangs appear without any fs/nfs/unlink.c modifications being
-> there.  When the hang happens it affects NFS traffic; ssh session still
-> works fine until it steps on a filesystem operation on NFS (i.e. you
-> can use builtins, access procfs, etc.)
+On Mon, 09 May 2016, Roger Quadros wrote:
 
-Yeah, the issue was reported last week (
-http://www.spinics.net/lists/netdev/msg375777.html ),
-and I could not convince myself to add a new sock flag,  like
-SOCK_FASYNC_STICKY.
+> We shouldn't be calling clk_prepare_enable()/clk_prepare_disable()
+> in an atomic context.
+>=20
+> Fixes the following issue:
+>=20
+> [    5.830970] ehci-omap: OMAP-EHCI Host Controller driver
+> [    5.830974] driver_register 'ehci-omap'
+> [    5.895849] driver_register 'wl1271_sdio'
+> [    5.896870] BUG: scheduling while atomic: udevd/994/0x00000002
+> [    5.896876] 4 locks held by udevd/994:
+> [    5.896904]  #0:  (&dev->mutex){......}, at: [<c049597c>] __driver=
+_attach+0x60/0xac
+> [    5.896923]  #1:  (&dev->mutex){......}, at: [<c049598c>] __driver=
+_attach+0x70/0xac
+> [    5.896946]  #2:  (tll_lock){+.+...}, at: [<c04c2630>] omap_tll_en=
+able+0x2c/0xd0
+> [    5.896966]  #3:  (prepare_lock){+.+...}, at: [<c05ce9c8>] clk_pre=
+pare_lock+0x48/0xe0
+> [    5.897042] Modules linked in: wlcore_sdio(+) ehci_omap(+) dwc3_om=
+ap snd_soc_ts3a225e leds_is31fl319x bq27xxx_battery_i2c tsc2007 bq27xxx=
+_battery bq2429x_charger ina2xx tca8418_keypad as5013 leds_tca6507 twl6=
+040_vibra gpio_twl6040 bmp085_i2c(+) palmas_gpadc usb3503 palmas_pwrbut=
+ton bmg160_i2c(+) bmp085 bma150(+) bmg160_core bmp280 input_polldev snd=
+_soc_omap_mcbsp snd_soc_omap_mcpdm snd_soc_omap snd_pcm_dmaengine
+> [    5.897048] Preemption disabled at:[<  (null)>]   (null)
+> [    5.897051]
+> [    5.897059] CPU: 0 PID: 994 Comm: udevd Not tainted 4.6.0-rc5-letu=
+x+ #233
+> [    5.897062] Hardware name: Generic OMAP5 (Flattened Device Tree)
+> [    5.897076] [<c010e714>] (unwind_backtrace) from [<c010af34>] (sho=
+w_stack+0x10/0x14)
+> [    5.897087] [<c010af34>] (show_stack) from [<c040aa7c>] (dump_stac=
+k+0x88/0xc0)
+> [    5.897099] [<c040aa7c>] (dump_stack) from [<c020c558>] (__schedul=
+e_bug+0xac/0xd0)
+> [    5.897111] [<c020c558>] (__schedule_bug) from [<c06f3d44>] (__sch=
+edule+0x88/0x7e4)
+> [    5.897120] [<c06f3d44>] (__schedule) from [<c06f46d8>] (schedule+=
+0x9c/0xc0)
+> [    5.897129] [<c06f46d8>] (schedule) from [<c06f4904>] (schedule_pr=
+eempt_disabled+0x14/0x20)
+> [    5.897140] [<c06f4904>] (schedule_preempt_disabled) from [<c06f64=
+e4>] (mutex_lock_nested+0x258/0x43c)
+> [    5.897150] [<c06f64e4>] (mutex_lock_nested) from [<c05ce9c8>] (cl=
+k_prepare_lock+0x48/0xe0)
+> [    5.897160] [<c05ce9c8>] (clk_prepare_lock) from [<c05d0e7c>] (clk=
+_prepare+0x10/0x28)
+> [    5.897169] [<c05d0e7c>] (clk_prepare) from [<c04c2668>] (omap_tll=
+_enable+0x64/0xd0)
+> [    5.897180] [<c04c2668>] (omap_tll_enable) from [<c04c1728>] (usbh=
+s_runtime_resume+0x18/0x17c)
+> [    5.897192] [<c04c1728>] (usbhs_runtime_resume) from [<c049d404>] =
+(pm_generic_runtime_resume+0x2c/0x40)
+> [    5.897202] [<c049d404>] (pm_generic_runtime_resume) from [<c049f1=
+80>] (__rpm_callback+0x38/0x68)
+> [    5.897210] [<c049f180>] (__rpm_callback) from [<c049f220>] (rpm_c=
+allback+0x70/0x88)
+> [    5.897218] [<c049f220>] (rpm_callback) from [<c04a0a00>] (rpm_res=
+ume+0x4ec/0x7ec)
+> [    5.897227] [<c04a0a00>] (rpm_resume) from [<c04a0f48>] (__pm_runt=
+ime_resume+0x4c/0x64)
+> [    5.897236] [<c04a0f48>] (__pm_runtime_resume) from [<c04958dc>] (=
+driver_probe_device+0x30/0x70)
+> [    5.897246] [<c04958dc>] (driver_probe_device) from [<c04959a4>] (=
+__driver_attach+0x88/0xac)
+> [    5.897256] [<c04959a4>] (__driver_attach) from [<c04940f8>] (bus_=
+for_each_dev+0x50/0x84)
+> [    5.897267] [<c04940f8>] (bus_for_each_dev) from [<c0494e40>] (bus=
+_add_driver+0xcc/0x1e4)
+> [    5.897276] [<c0494e40>] (bus_add_driver) from [<c0496914>] (drive=
+r_register+0xac/0xf4)
+> [    5.897286] [<c0496914>] (driver_register) from [<c01018e0>] (do_o=
+ne_initcall+0x100/0x1b8)
+> [    5.897296] [<c01018e0>] (do_one_initcall) from [<c01c7a54>] (do_i=
+nit_module+0x58/0x1c0)
+> [    5.897304] [<c01c7a54>] (do_init_module) from [<c01c8a3c>] (SyS_f=
+init_module+0x88/0x90)
+> [    5.897313] [<c01c8a3c>] (SyS_finit_module) from [<c0107120>] (ret=
+_fast_syscall+0x0/0x1c)
+> [    5.912697] ------------[ cut here ]------------
+> [    5.912711] WARNING: CPU: 0 PID: 994 at kernel/sched/core.c:2996 _=
+raw_spin_unlock+0x28/0x58
+> [    5.912717] DEBUG_LOCKS_WARN_ON(val > preempt_count())
+>=20
+> Cc: <stable@vger.kernel.org>
+> Reported-by: H. Nikolaus Schaller <hns@goldelico.com>
+> Tested-by: H. Nikolaus Schaller <hns@goldelico.com>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  drivers/mfd/omap-usb-tll.c | 13 +++++++++----
+>  1 file changed, 9 insertions(+), 4 deletions(-)
 
-(Just in case NFS would ever call sock_fasync() with an empty
-fasync_list, and SOCK_FASYNC would be cleared again.
+Applied, thanks.
+
+> diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
+> index b7b3e8e..c30290f 100644
+> --- a/drivers/mfd/omap-usb-tll.c
+> +++ b/drivers/mfd/omap-usb-tll.c
+> @@ -269,6 +269,8 @@ static int usbtll_omap_probe(struct platform_devi=
+ce *pdev)
+> =20
+>  		if (IS_ERR(tll->ch_clk[i]))
+>  			dev_dbg(dev, "can't get clock : %s\n", clkname);
+> +		else
+> +			clk_prepare(tll->ch_clk[i]);
+>  	}
+> =20
+>  	pm_runtime_put_sync(dev);
+> @@ -301,9 +303,12 @@ static int usbtll_omap_remove(struct platform_de=
+vice *pdev)
+>  	tll_dev =3D NULL;
+>  	spin_unlock(&tll_lock);
+> =20
+> -	for (i =3D 0; i < tll->nch; i++)
+> -		if (!IS_ERR(tll->ch_clk[i]))
+> +	for (i =3D 0; i < tll->nch; i++) {
+> +		if (!IS_ERR(tll->ch_clk[i])) {
+> +			clk_unprepare(tll->ch_clk[i]);
+>  			clk_put(tll->ch_clk[i]);
+> +		}
+> +	}
+> =20
+>  	pm_runtime_disable(&pdev->dev);
+>  	return 0;
+> @@ -420,7 +425,7 @@ int omap_tll_enable(struct usbhs_omap_platform_da=
+ta *pdata)
+>  			if (IS_ERR(tll->ch_clk[i]))
+>  				continue;
+> =20
+> -			r =3D clk_prepare_enable(tll->ch_clk[i]);
+> +			r =3D clk_enable(tll->ch_clk[i]);
+>  			if (r) {
+>  				dev_err(tll_dev,
+>  				 "Error enabling ch %d clock: %d\n", i, r);
+> @@ -448,7 +453,7 @@ int omap_tll_disable(struct usbhs_omap_platform_d=
+ata *pdata)
+>  	for (i =3D 0; i < tll->nch; i++) {
+>  		if (omap_usb_mode_needs_tll(pdata->port_mode[i])) {
+>  			if (!IS_ERR(tll->ch_clk[i]))
+> -				clk_disable_unprepare(tll->ch_clk[i]);
+> +				clk_disable(tll->ch_clk[i]);
+>  		}
+>  	}
+> =20
+
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
