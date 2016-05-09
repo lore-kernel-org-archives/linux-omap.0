@@ -1,168 +1,45 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] mfd: omap-usb-tll: fix scheduling while atomic BUG
-Date: Mon, 9 May 2016 15:29:18 +0100
-Message-ID: <20160509142918.GK8324@dell>
-References: <1462782517-5471-1-git-send-email-rogerq@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] omap legacy boot vs dt boot fixes for v4.7 merge window
+Date: Mon, 09 May 2016 16:41:46 +0200
+Message-ID: <4944500.vQ12ELNkJC@wuerfel>
+References: <20160504173153.GT5995@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1462782517-5471-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, hns@goldelico.com, mturquette@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160504173153.GT5995@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 09 May 2016, Roger Quadros wrote:
+On Wednesday 04 May 2016 10:31:53 Tony Lindgren wrote:
+> Legacy booting vs device tree booting fixes for omaps for
+> v4.7 merge window. These are not considered urgent fixes enough
+> for the v4.6-rc cycle, but we need them in v4.7 in order to drop
+> the last remaining board-*.c files for omap3 for v4.8 merge window.
+> 
+> On Nokia N900, we need to pass the MMC slot names for the legacy
+> user space to work. Let's do that using auxdata as the driver is
+> setting up things already with the pdata for legacy booting. Then
+> we can later on discuss if we may want to have some generic binding
+> describing where the MMC slots are on the device.
+> 
+> N900 also has had the ir-rx51 device driver unusable with multiarch
+> for a long time. Let's pass the dmtimer data in pdata for the driver
+> to get it going again. Then once things are working, we can eventually
+> change the driver to use just hrtimer and PWM framework. The driver
+> changes will be queued separately.
+> 
 
-> We shouldn't be calling clk_prepare_enable()/clk_prepare_disable()
-> in an atomic context.
->=20
-> Fixes the following issue:
->=20
-> [    5.830970] ehci-omap: OMAP-EHCI Host Controller driver
-> [    5.830974] driver_register 'ehci-omap'
-> [    5.895849] driver_register 'wl1271_sdio'
-> [    5.896870] BUG: scheduling while atomic: udevd/994/0x00000002
-> [    5.896876] 4 locks held by udevd/994:
-> [    5.896904]  #0:  (&dev->mutex){......}, at: [<c049597c>] __driver=
-_attach+0x60/0xac
-> [    5.896923]  #1:  (&dev->mutex){......}, at: [<c049598c>] __driver=
-_attach+0x70/0xac
-> [    5.896946]  #2:  (tll_lock){+.+...}, at: [<c04c2630>] omap_tll_en=
-able+0x2c/0xd0
-> [    5.896966]  #3:  (prepare_lock){+.+...}, at: [<c05ce9c8>] clk_pre=
-pare_lock+0x48/0xe0
-> [    5.897042] Modules linked in: wlcore_sdio(+) ehci_omap(+) dwc3_om=
-ap snd_soc_ts3a225e leds_is31fl319x bq27xxx_battery_i2c tsc2007 bq27xxx=
-_battery bq2429x_charger ina2xx tca8418_keypad as5013 leds_tca6507 twl6=
-040_vibra gpio_twl6040 bmp085_i2c(+) palmas_gpadc usb3503 palmas_pwrbut=
-ton bmg160_i2c(+) bmp085 bma150(+) bmg160_core bmp280 input_polldev snd=
-_soc_omap_mcbsp snd_soc_omap_mcpdm snd_soc_omap snd_pcm_dmaengine
-> [    5.897048] Preemption disabled at:[<  (null)>]   (null)
-> [    5.897051]
-> [    5.897059] CPU: 0 PID: 994 Comm: udevd Not tainted 4.6.0-rc5-letu=
-x+ #233
-> [    5.897062] Hardware name: Generic OMAP5 (Flattened Device Tree)
-> [    5.897076] [<c010e714>] (unwind_backtrace) from [<c010af34>] (sho=
-w_stack+0x10/0x14)
-> [    5.897087] [<c010af34>] (show_stack) from [<c040aa7c>] (dump_stac=
-k+0x88/0xc0)
-> [    5.897099] [<c040aa7c>] (dump_stack) from [<c020c558>] (__schedul=
-e_bug+0xac/0xd0)
-> [    5.897111] [<c020c558>] (__schedule_bug) from [<c06f3d44>] (__sch=
-edule+0x88/0x7e4)
-> [    5.897120] [<c06f3d44>] (__schedule) from [<c06f46d8>] (schedule+=
-0x9c/0xc0)
-> [    5.897129] [<c06f46d8>] (schedule) from [<c06f4904>] (schedule_pr=
-eempt_disabled+0x14/0x20)
-> [    5.897140] [<c06f4904>] (schedule_preempt_disabled) from [<c06f64=
-e4>] (mutex_lock_nested+0x258/0x43c)
-> [    5.897150] [<c06f64e4>] (mutex_lock_nested) from [<c05ce9c8>] (cl=
-k_prepare_lock+0x48/0xe0)
-> [    5.897160] [<c05ce9c8>] (clk_prepare_lock) from [<c05d0e7c>] (clk=
-_prepare+0x10/0x28)
-> [    5.897169] [<c05d0e7c>] (clk_prepare) from [<c04c2668>] (omap_tll=
-_enable+0x64/0xd0)
-> [    5.897180] [<c04c2668>] (omap_tll_enable) from [<c04c1728>] (usbh=
-s_runtime_resume+0x18/0x17c)
-> [    5.897192] [<c04c1728>] (usbhs_runtime_resume) from [<c049d404>] =
-(pm_generic_runtime_resume+0x2c/0x40)
-> [    5.897202] [<c049d404>] (pm_generic_runtime_resume) from [<c049f1=
-80>] (__rpm_callback+0x38/0x68)
-> [    5.897210] [<c049f180>] (__rpm_callback) from [<c049f220>] (rpm_c=
-allback+0x70/0x88)
-> [    5.897218] [<c049f220>] (rpm_callback) from [<c04a0a00>] (rpm_res=
-ume+0x4ec/0x7ec)
-> [    5.897227] [<c04a0a00>] (rpm_resume) from [<c04a0f48>] (__pm_runt=
-ime_resume+0x4c/0x64)
-> [    5.897236] [<c04a0f48>] (__pm_runtime_resume) from [<c04958dc>] (=
-driver_probe_device+0x30/0x70)
-> [    5.897246] [<c04958dc>] (driver_probe_device) from [<c04959a4>] (=
-__driver_attach+0x88/0xac)
-> [    5.897256] [<c04959a4>] (__driver_attach) from [<c04940f8>] (bus_=
-for_each_dev+0x50/0x84)
-> [    5.897267] [<c04940f8>] (bus_for_each_dev) from [<c0494e40>] (bus=
-_add_driver+0xcc/0x1e4)
-> [    5.897276] [<c0494e40>] (bus_add_driver) from [<c0496914>] (drive=
-r_register+0xac/0xf4)
-> [    5.897286] [<c0496914>] (driver_register) from [<c01018e0>] (do_o=
-ne_initcall+0x100/0x1b8)
-> [    5.897296] [<c01018e0>] (do_one_initcall) from [<c01c7a54>] (do_i=
-nit_module+0x58/0x1c0)
-> [    5.897304] [<c01c7a54>] (do_init_module) from [<c01c8a3c>] (SyS_f=
-init_module+0x88/0x90)
-> [    5.897313] [<c01c8a3c>] (SyS_finit_module) from [<c0107120>] (ret=
-_fast_syscall+0x0/0x1c)
-> [    5.912697] ------------[ cut here ]------------
-> [    5.912711] WARNING: CPU: 0 PID: 994 at kernel/sched/core.c:2996 _=
-raw_spin_unlock+0x28/0x58
-> [    5.912717] DEBUG_LOCKS_WARN_ON(val > preempt_count())
->=20
-> Cc: <stable@vger.kernel.org>
-> Reported-by: H. Nikolaus Schaller <hns@goldelico.com>
-> Tested-by: H. Nikolaus Schaller <hns@goldelico.com>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  drivers/mfd/omap-usb-tll.c | 13 +++++++++----
->  1 file changed, 9 insertions(+), 4 deletions(-)
+Good plan, merged it into next/fixes-non-critical, thanks!
 
-Applied, thanks.
-
-> diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
-> index b7b3e8e..c30290f 100644
-> --- a/drivers/mfd/omap-usb-tll.c
-> +++ b/drivers/mfd/omap-usb-tll.c
-> @@ -269,6 +269,8 @@ static int usbtll_omap_probe(struct platform_devi=
-ce *pdev)
-> =20
->  		if (IS_ERR(tll->ch_clk[i]))
->  			dev_dbg(dev, "can't get clock : %s\n", clkname);
-> +		else
-> +			clk_prepare(tll->ch_clk[i]);
->  	}
-> =20
->  	pm_runtime_put_sync(dev);
-> @@ -301,9 +303,12 @@ static int usbtll_omap_remove(struct platform_de=
-vice *pdev)
->  	tll_dev =3D NULL;
->  	spin_unlock(&tll_lock);
-> =20
-> -	for (i =3D 0; i < tll->nch; i++)
-> -		if (!IS_ERR(tll->ch_clk[i]))
-> +	for (i =3D 0; i < tll->nch; i++) {
-> +		if (!IS_ERR(tll->ch_clk[i])) {
-> +			clk_unprepare(tll->ch_clk[i]);
->  			clk_put(tll->ch_clk[i]);
-> +		}
-> +	}
-> =20
->  	pm_runtime_disable(&pdev->dev);
->  	return 0;
-> @@ -420,7 +425,7 @@ int omap_tll_enable(struct usbhs_omap_platform_da=
-ta *pdata)
->  			if (IS_ERR(tll->ch_clk[i]))
->  				continue;
-> =20
-> -			r =3D clk_prepare_enable(tll->ch_clk[i]);
-> +			r =3D clk_enable(tll->ch_clk[i]);
->  			if (r) {
->  				dev_err(tll_dev,
->  				 "Error enabling ch %d clock: %d\n", i, r);
-> @@ -448,7 +453,7 @@ int omap_tll_disable(struct usbhs_omap_platform_d=
-ata *pdata)
->  	for (i =3D 0; i < tll->nch; i++) {
->  		if (omap_usb_mode_needs_tll(pdata->port_mode[i])) {
->  			if (!IS_ERR(tll->ch_clk[i]))
-> -				clk_disable_unprepare(tll->ch_clk[i]);
-> +				clk_disable(tll->ch_clk[i]);
->  		}
->  	}
-> =20
-
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
+	Arnd
