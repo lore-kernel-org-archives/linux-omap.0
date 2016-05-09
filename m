@@ -1,8 +1,7 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 4/6] ARM: OMAP2+: pm34xx: Convert to use generic sram driver
- for idle code
-Date: Mon, 9 May 2016 16:49:24 -0500
-Message-ID: <1462830566-28708-5-git-send-email-d-gerlach@ti.com>
+Subject: [PATCH 6/6] ARM: OMAP2+: sram: remove legacy OMAP3 code
+Date: Mon, 9 May 2016 16:49:26 -0500
+Message-ID: <1462830566-28708-7-git-send-email-d-gerlach@ti.com>
 References: <1462830566-28708-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,146 +21,83 @@ To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Change to use the generic SRAM driver and genalloc framework to allocate
-SRAM space for low-level ASM PM code instead of omap specific SRAM
-allocator.
+Now that we have converted OMAP3 PM code to use generic sram driver we
+no longer need to provide OMAP3 specific SRAM code for the omap SRAM
+API.
 
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 ---
- arch/arm/mach-omap2/pm34xx.c | 82 +++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 81 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/pm34xx.c | 16 ----------------
+ arch/arm/mach-omap2/sram.c   | 23 -----------------------
+ 2 files changed, 39 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index d44e0e2f1106..5ebbf5c30c6e 100644
+index 5ebbf5c30c6e..22d4c8742f99 100644
 --- a/arch/arm/mach-omap2/pm34xx.c
 +++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -24,17 +24,21 @@
- #include <linux/module.h>
- #include <linux/list.h>
- #include <linux/err.h>
-+#include <linux/genalloc.h>
- #include <linux/gpio.h>
- #include <linux/clk.h>
- #include <linux/delay.h>
- #include <linux/slab.h>
-+#include <linux/of.h>
- #include <linux/omap-dma.h>
- #include <linux/omap-gpmc.h>
- #include <linux/platform_data/gpio-omap.h>
-+#include <linux/sizes.h>
- 
- #include <trace/events/power.h>
- 
- #include <asm/fncpy.h>
-+#include <asm/proc-fns.h>
- #include <asm/suspend.h>
- #include <asm/system_misc.h>
- 
-@@ -68,6 +72,9 @@ static LIST_HEAD(pwrst_list);
- 
- static int (*_omap_save_secure_sram)(u32 *addr);
- void (*omap3_do_wfi_sram)(void);
-+static struct gen_pool *sram_pool;
-+static phys_addr_t ocmcram_location;
-+static phys_addr_t secure_ocmcram_location;
- 
- static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
- static struct powerdomain *core_pwrdm, *per_pwrdm;
-@@ -179,6 +186,71 @@ static void omap34xx_save_context(u32 *save)
- 	*save++ = val;
+@@ -502,22 +502,6 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ 	return omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
  }
  
-+/*
-+ * Push functions to SRAM
-+ *
-+ * The minimum set of functions is pushed to SRAM for execution:
-+ * - omap3_do_wfi for erratum i581 WA,
-+ * - save_secure_ram_context for security extensions.
-+ */
-+static int omap3_prepare_push_sram_idle(void)
-+{
-+	struct device_node *np;
-+
-+	np = of_find_compatible_node(NULL, NULL, "ti,omap3-mpu");
-+	if (!np) {
-+		pr_warn("PM: %s: Unable to find device node for mpu\n",
-+			__func__);
-+		return -ENODEV;
-+	}
-+
-+	sram_pool = of_gen_pool_get(np, "sram", 0);
-+
-+	if (!sram_pool) {
-+		pr_warn("PM: %s: Unable to get sram pool for ocmcram\n",
-+			__func__);
-+		return -ENODEV;
-+	}
-+
-+	ocmcram_location = gen_pool_alloc(sram_pool, omap3_do_wfi_sz);
-+	if (!ocmcram_location) {
-+		pr_warn("PM: %s: Unable to allocate memory from ocmcram for omap3_do_wfi_sz.\n",
-+			__func__);
-+		return -EINVAL;
-+	}
-+
-+	if (omap_type() != OMAP2_DEVICE_TYPE_GP) {
-+		secure_ocmcram_location =
-+				gen_pool_alloc(sram_pool,
-+					       save_secure_ram_context_sz);
-+		if (!secure_ocmcram_location) {
-+			pr_warn("PM: %s: Unable to allocate memory from ocmcram for save_secure_ram_context.\n",
-+				__func__);
-+			return -EINVAL;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int omap3_push_sram_idle(void)
-+{
-+	omap3_do_wfi_sram = fncpy((void *)ocmcram_location,
-+				  &omap3_do_wfi,
-+				  omap3_do_wfi_sz);
-+
-+	return 0;
-+}
-+
-+static int omap3_push_sram_secure_idle(void)
-+{
-+	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
-+		_omap_save_secure_sram = fncpy((void *)secure_ocmcram_location,
-+					       &save_secure_ram_context,
-+					       save_secure_ram_context_sz);
-+	return 0;
-+}
-+
- static int omap34xx_do_sram_idle(unsigned long save_state)
+-/*
+- * Push functions to SRAM
+- *
+- * The minimum set of functions is pushed to SRAM for execution:
+- * - omap3_do_wfi for erratum i581 WA,
+- * - save_secure_ram_context for security extensions.
+- */
+-void omap_push_sram_idle(void)
+-{
+-	omap3_do_wfi_sram = omap_sram_push(omap3_do_wfi, omap3_do_wfi_sz);
+-
+-	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
+-		_omap_save_secure_sram = omap_sram_push(save_secure_ram_context,
+-				save_secure_ram_context_sz);
+-}
+-
+ static void __init pm_errata_configure(void)
  {
- 	omap34xx_cpu_suspend(save_state);
-@@ -281,7 +353,8 @@ void omap_sram_idle(void)
- 	    pwrdm_read_prev_pwrst(core_pwrdm) == PWRDM_POWER_OFF) {
- 		omap3_core_restore_context();
- 		omap3_cm_restore_context();
--		omap3_sram_restore_context();
-+		omap3_push_sram_idle();
-+		omap3_push_sram_secure_idle();
- 		omap2_sms_restore_context();
- 	} else {
- 		/*
-@@ -517,6 +590,13 @@ int __init omap3_pm_init(void)
- 	per_clkdm = clkdm_lookup("per_clkdm");
- 	wkup_clkdm = clkdm_lookup("wkup_clkdm");
+ 	if (cpu_is_omap3630()) {
+diff --git a/arch/arm/mach-omap2/sram.c b/arch/arm/mach-omap2/sram.c
+index 83d0e61f49e6..7881304b5205 100644
+--- a/arch/arm/mach-omap2/sram.c
++++ b/arch/arm/mach-omap2/sram.c
+@@ -209,27 +209,6 @@ static inline int omap243x_sram_init(void)
+ }
+ #endif
  
-+	ret = omap3_prepare_push_sram_idle();
-+	if (ret)
-+		goto err3;
-+
-+	omap3_push_sram_idle();
-+	omap3_push_sram_secure_idle();
-+
- 	omap_common_suspend_init(omap3_pm_suspend);
+-#ifdef CONFIG_ARCH_OMAP3
+-
+-void omap3_sram_restore_context(void)
+-{
+-	omap_sram_reset();
+-
+-	omap_push_sram_idle();
+-}
+-
+-static inline int omap34xx_sram_init(void)
+-{
+-	omap3_sram_restore_context();
+-	return 0;
+-}
+-#else
+-static inline int omap34xx_sram_init(void)
+-{
+-	return 0;
+-}
+-#endif /* CONFIG_ARCH_OMAP3 */
+-
+ int __init omap_sram_init(void)
+ {
+ 	omap_detect_sram();
+@@ -239,8 +218,6 @@ int __init omap_sram_init(void)
+ 		omap242x_sram_init();
+ 	else if (cpu_is_omap2430())
+ 		omap243x_sram_init();
+-	else if (cpu_is_omap34xx())
+-		omap34xx_sram_init();
  
- 	arm_pm_idle = omap3_pm_idle;
+ 	return 0;
+ }
 -- 
 2.7.3
