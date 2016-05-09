@@ -1,109 +1,87 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: NFSroot hangs with bad unlock balance in Linux next
-Date: Mon, 9 May 2016 08:21:38 -0700
-Message-ID: <20160509152138.GG5995@atomide.com>
-References: <20160505220344.GE5995@atomide.com>
- <20160508141629.GF2694@ZenIV.linux.org.uk>
- <20160509073235.GI2694@ZenIV.linux.org.uk>
- <CANn89iK5H-SokYE1r+OO3sPmQ1vpGqYGbE4x1QLn44wdyvH0cw@mail.gmail.com>
- <20160509151219.GF5995@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [Kernel] [PATCH v2 4/5] ARM: dts: omap5: describe control for
+ ckobuffer
+Date: Mon, 9 May 2016 18:28:12 +0300
+Message-ID: <6c0e639c-31b9-b8af-85d6-187d3706595b@ti.com>
+References: <cover.1461003660.git.hns@goldelico.com>
+ <a5fb89737594a656318896a8e43814c21ca992eb.1461003660.git.hns@goldelico.com>
+ <20160426172710.GI5995@atomide.com>
+ <70572DA1-BEB4-4681-BA6C-2E1C9002D730@goldelico.com>
+ <5720B107.4000907@ti.com>
+ <A90F1BFC-A834-4EC0-81F9-2C8222AAA010@goldelico.com>
+ <5720C85B.9010701@ti.com> <ce9a7840-e86f-0d0c-3ed6-a571eec6659d@ti.com>
+ <40536322-073F-48BD-9D07-32B9A9F07AF2@goldelico.com>
+ <5721C3D4.7040401@ti.com>
+ <2A9D82CD-9ACA-49F6-9D2B-9EACFC517914@goldelico.com>
+ <57220EDD.7080903@ti.com>
+ <F2BCD4BA-E4E4-43F4-B65C-B625ED3B2D13@goldelico.com>
+ <573079F5.7050507@ti.com> <145c9917-6a85-292b-c3c9-cf85ceb26f21@ti.com>
+ <f66cd508-fe53-af58-bda5-822c8213cf7d@ti.com>
+ <71c88d52-3737-6edb-52af-0b0f4a74efb2@ti.com>
+ <3973330a-8a73-89fa-8e09-383407d0eaf9@ti.com> <57309A08.10704@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160509151219.GF5995@atomide.com>
-Sender: netdev-owner@vger.kernel.org
-To: Eric Dumazet <edumazet@google.com>
-Cc: linux-nfs@vger.kernel.org, Jiri Pirko <jiri@resnulli.us>, netdev <netdev@vger.kernel.org>, Trond Myklebust <trond.myklebust@primarydata.com>, Christoph Hellwig <hch@lst.de>, Al Viro <viro@zeniv.linux.org.uk>, linux-omap@vger.kernel.org, Anna Schumaker <anna.schumaker@netapp.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <57309A08.10704-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Discussions about the Letux Kernel <letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [160509 08:15]:
-> * Eric Dumazet <edumazet@google.com> [160509 07:16]:
-> > On Mon, May 9, 2016 at 12:32 AM, Al Viro <viro@zeniv.linux.org.uk> wrote:
-> > > On Sun, May 08, 2016 at 03:16:29PM +0100, Al Viro wrote:
-> > >
-> > >> Very strange.  We grab that rwsem at the entry into nfs_call_unlink()
-> > >> and then either release it there and return or call nfs_do_call_unlink().
-> > >> Which arranges for eventual call of nfs_async_unlink_release() (via
-> > >> ->rpc_release); nfs_async_unlink_release() releases the rwsem.  Nobody else
-> > >> releases it (on the read side, that is).
-> > >>
-> > >> The only kinda-sorta possibility I see here is that the inode we are
-> > >> unlocking in that nfs_async_unlink_release() is not the one we'd locked
-> > >> in nfs_call_unlink() that has lead to it.  That really shouldn't happen,
-> > >> though...  Just to verify whether that's what we are hitting, could you
-> > >> try to reproduce that thing with the patch below on top of -next and see
-> > >> if it triggers any of those WARN_ON?
-> 
-> Thanks no warnings with that patch though.
-> 
-> > > D'oh...  Lockdep warnings are easy to trigger (and, AFAICS, bogus).
-> > > up_read/down_read in fs/nfs/unlink.c should be replaced with
-> > > up_read_non_owner/down_read_non_owner, lest the lockdep gets confused.
-> > > Hangs are different - I've no idea what's triggering those.  I've seen
-> > > something similar on that -next, but not on work.lookups.
-> > >
-> > > The joy of bisecting -next...  <a couple of hours later>
-> > > 9317bb69824ec8d078b0b786b6971aedb0af3d4f is the first bad commit
-> > > commit 9317bb69824ec8d078b0b786b6971aedb0af3d4f
-> > > Author: Eric Dumazet <edumazet@google.com>
-> > > Date:   Mon Apr 25 10:39:32 2016 -0700
-> > >
-> > >     net: SOCKWQ_ASYNC_NOSPACE optimizations
-> > >
-> > > Reverting changes to sk_set_bit/sk_clear_bit gets rid of the hangs.  Plain
-> > > revert gives a conflict, since there had been additional change in
-> > > "net: SOCKWQ_ASYNC_WAITDATA optimizations"; removing both fixed the hangs.
-> > >
-> > > Note that hangs appear without any fs/nfs/unlink.c modifications being
-> > > there.  When the hang happens it affects NFS traffic; ssh session still
-> > > works fine until it steps on a filesystem operation on NFS (i.e. you
-> > > can use builtins, access procfs, etc.)
-> > 
-> > Yeah, the issue was reported last week (
-> > http://www.spinics.net/lists/netdev/msg375777.html ),
-> > and I could not convince myself to add a new sock flag,  like
-> > SOCK_FASYNC_STICKY.
-> > 
-> > (Just in case NFS would ever call sock_fasync() with an empty
-> > fasync_list, and SOCK_FASYNC would be cleared again.
-> 
-> Yeah applying the test patch from the url above makes things work
-> for me again.
+On 05/09/2016 05:09 PM, Tero Kristo wrote:
+>>> Applying Tero's alone makes the board not to boot, so something the=
+re... I can
+>>> not see anything even with low-level debugging enabled :( I can not=
+ debug it
+>>> further today, will look at this tomorrow.
+>>
+>> The crash is in arch/arm/mach-omap2/control.c:omap_control_init()
+>>
+>> the syscon_node_to_regmap() returns with error for the new
+>> omap5_scm_wkup_pad_conf node. The other syscon was OK, but becasue o=
+f the
+>> return PTR_ERR(syscon) the board will not boot...
+>>
+>> Tero: any idea?
+>=20
+> I can check this tomorrow at my end.
 
-Looks like with both patches applied I still also get this eventually:
+Aargh, I think I know why, I have placed the omap5_scm_wkup_pad_conf no=
+de to a
+wrong place. The inline patch did not applied so I did it by hand...
+I can boot test it tomorrow.
 
-=====================================
-[ BUG: bad unlock balance detected! ]
-4.6.0-rc7-next-20160509+ #1264 Not tainted
--------------------------------------
-kworker/0:1/18 is trying to release lock (&nfsi->rmdir_sem) at:
-[<c03a894c>] nfs_async_unlink_release+0x3c/0xc0
-but there are no more locks to release!
+>=20
+> -Tero
+>=20
+>>
+>>>> In any case I have attached the 3 patches I have for this, includi=
+ng Tero's
+>>>> ported to linux-next.
+>>>>
+>>>> Patch 3 might need to be done per board probably, but this should =
+be good for
+>>>> testing.
+>>>>
+>>>>
+>>>>
+>>>> _______________________________________________
+>>>> Kernel mailing list
+>>>> Kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org
+>>>> http://pyra-handheld.com/cgi-bin/mailman/listinfo/kernel
+>>>>
+>>>
+>>>
+>>
+>>
+>=20
 
-               other info that might help us debug this:
-2 locks held by kworker/0:1/18:
- #0:  ("nfsiod"){.+.+..}, at: [<c015473c>] process_one_work+0x120/0x6bc
- #1:  ((&task->u.tk_work)#2){+.+...}, at: [<c015473c>] process_one_work+0x120/0x6bc
 
-               stack backtrace:
-CPU: 0 PID: 18 Comm: kworker/0:1 Not tainted 4.6.0-rc7-next-20160509+ #1264
-Hardware name: Generic OMAP5 (Flattened Device Tree)
-Workqueue: nfsiod rpc_async_release
-[<c0110318>] (unwind_backtrace) from [<c010c3bc>] (show_stack+0x10/0x14)
-[<c010c3bc>] (show_stack) from [<c0481da8>] (dump_stack+0xb0/0xe4)
-[<c0481da8>] (dump_stack) from [<c018d090>] (print_unlock_imbalance_bug+0xb0/0xe0)
-[<c018d090>] (print_unlock_imbalance_bug) from [<c0190e9c>] (lock_release+0x2ec/0x4c0)
-[<c0190e9c>] (lock_release) from [<c018a4b8>] (up_read+0x18/0x58)
-[<c018a4b8>] (up_read) from [<c03a894c>] (nfs_async_unlink_release+0x3c/0xc0)
-[<c03a894c>] (nfs_async_unlink_release) from [<c07860e0>] (rpc_free_task+0x24/0x44)
-[<c07860e0>] (rpc_free_task) from [<c0154804>] (process_one_work+0x1e8/0x6bc)
-[<c0154804>] (process_one_work) from [<c0154e1c>] (worker_thread+0x144/0x4e8)
-[<c0154e1c>] (worker_thread) from [<c015acd4>] (kthread+0xdc/0xf8)
-[<c015acd4>] (kthread) from [<c01078f0>] (ret_from_fork+0x14/0x24)
-
-After the warning, NFSroot keeps working with Eric's patch.
-
-Regards,
-
-Tony
+--=20
+P=C3=A9ter
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
