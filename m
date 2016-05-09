@@ -1,103 +1,93 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 6/6] ARM: OMAP2+: sram: remove legacy OMAP3 code
-Date: Mon, 9 May 2016 16:49:26 -0500
-Message-ID: <1462830566-28708-7-git-send-email-d-gerlach@ti.com>
-References: <1462830566-28708-1-git-send-email-d-gerlach@ti.com>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: Re: [PATCH 4/7] [media] ir-rx51: add DT support to driver
+Date: Tue, 10 May 2016 01:06:18 +0300
+Message-ID: <573109DA.9040602@gmail.com>
+References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <1462634508-24961-5-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160509200657.GA3379@rob-hp-laptop> <5730F8BA.5000402@gmail.com>
+ <CAL_JsqJPZS1ne_xAuBFtCc5L1HKFJf0LDUJ7CRSFXhc3adkTfA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1462830566-28708-1-git-send-email-d-gerlach@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Dave Gerlach <d-gerlach@ti.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <CAL_JsqJPZS1ne_xAuBFtCc5L1HKFJf0LDUJ7CRSFXhc3adkTfA@mail.gmail.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Thierry Reding <thierry.reding@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux PWM List <linux-pwm@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, Sebastian Reichel <sre@kernel.org>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Now that we have converted OMAP3 PM code to use generic sram driver we
-no longer need to provide OMAP3 specific SRAM code for the omap SRAM
-API.
 
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
----
- arch/arm/mach-omap2/pm34xx.c | 16 ----------------
- arch/arm/mach-omap2/sram.c   | 23 -----------------------
- 2 files changed, 39 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 5ebbf5c30c6e..22d4c8742f99 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -502,22 +502,6 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
- 	return omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
- }
- 
--/*
-- * Push functions to SRAM
-- *
-- * The minimum set of functions is pushed to SRAM for execution:
-- * - omap3_do_wfi for erratum i581 WA,
-- * - save_secure_ram_context for security extensions.
-- */
--void omap_push_sram_idle(void)
--{
--	omap3_do_wfi_sram = omap_sram_push(omap3_do_wfi, omap3_do_wfi_sz);
--
--	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
--		_omap_save_secure_sram = omap_sram_push(save_secure_ram_context,
--				save_secure_ram_context_sz);
--}
--
- static void __init pm_errata_configure(void)
- {
- 	if (cpu_is_omap3630()) {
-diff --git a/arch/arm/mach-omap2/sram.c b/arch/arm/mach-omap2/sram.c
-index 83d0e61f49e6..7881304b5205 100644
---- a/arch/arm/mach-omap2/sram.c
-+++ b/arch/arm/mach-omap2/sram.c
-@@ -209,27 +209,6 @@ static inline int omap243x_sram_init(void)
- }
- #endif
- 
--#ifdef CONFIG_ARCH_OMAP3
--
--void omap3_sram_restore_context(void)
--{
--	omap_sram_reset();
--
--	omap_push_sram_idle();
--}
--
--static inline int omap34xx_sram_init(void)
--{
--	omap3_sram_restore_context();
--	return 0;
--}
--#else
--static inline int omap34xx_sram_init(void)
--{
--	return 0;
--}
--#endif /* CONFIG_ARCH_OMAP3 */
--
- int __init omap_sram_init(void)
- {
- 	omap_detect_sram();
-@@ -239,8 +218,6 @@ int __init omap_sram_init(void)
- 		omap242x_sram_init();
- 	else if (cpu_is_omap2430())
- 		omap243x_sram_init();
--	else if (cpu_is_omap34xx())
--		omap34xx_sram_init();
- 
- 	return 0;
- }
--- 
-2.7.3
+On 10.05.2016 00:07, Rob Herring wrote:
+> On Mon, May 9, 2016 at 3:53 PM, Ivaylo Dimitrov
+> <ivo.g.dimitrov.75@gmail.com> wrote:
+>> Hi,
+>>
+>> On  9.05.2016 23:06, Rob Herring wrote:
+>>>
+>>> On Sat, May 07, 2016 at 06:21:45PM +0300, Ivaylo Dimitrov wrote:
+>>>>
+>>>> With the upcoming removal of legacy boot, lets add support to one of the
+>>>> last N900 drivers remaining without it. As the driver still uses omap
+>>>> dmtimer, add auxdata as well.
+>>>>
+>>>> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+>>>> ---
+>>>>    .../devicetree/bindings/media/nokia,lirc-rx51         | 19
+>>>> +++++++++++++++++++
+>>>>    arch/arm/mach-omap2/pdata-quirks.c                    |  6 +-----
+>>>>    drivers/media/rc/ir-rx51.c                            | 11 ++++++++++-
+>>>>    3 files changed, 30 insertions(+), 6 deletions(-)
+>>>>    create mode 100644
+>>>> Documentation/devicetree/bindings/media/nokia,lirc-rx51
+>>>>
+>>>> diff --git a/Documentation/devicetree/bindings/media/nokia,lirc-rx51
+>>>> b/Documentation/devicetree/bindings/media/nokia,lirc-rx51
+>>>> new file mode 100644
+>>>> index 0000000..5b3081e
+>>>> --- /dev/null
+>>>> +++ b/Documentation/devicetree/bindings/media/nokia,lirc-rx51
+>>>> @@ -0,0 +1,19 @@
+>>>> +Device-Tree bindings for LIRC TX driver for Nokia N900(RX51)
+>>>> +
+>>>> +Required properties:
+>>>> +       - compatible: should be "nokia,lirc-rx51".
+>>>
+>>>
+>>> lirc is a Linux term. Also, nokia,rx51-... would be conventional
+>>> ordering.
+>>>
+>>
+>> I used the driver name ("lirc_rx51") to not bring confusion. Also, it
+>> registers itself through lirc_register_driver() call, so having lirc in its
+>> name somehow makes sense.
+>>
+>> I am not very good in inventing names, the best compatible I can think of is
+>> "nokia,rx51-ir". Is that ok?
+>
+> Sure, but...
+>
+>>> Is this anything more than a PWM LED?
+>>>
+>>
+>> It is an IR LED connected through a driver to McSPI2_SIMO pin of OMAP3,
+>> which pin can be configured as PWM or GPIO(there are other configurations,
+>> but they don't make sense). In theory it could be used for various things
+>> (like uni-directional serial TX, or stuff like that), but in practice it
+>> allows N900 to be act as an IR remote controller. I guess that fits in
+>> "nothing more than a PWM LED", more or less.
+>
+> There's already a pwm-led binding that can be used. Though there may
+> be missing consumer IR to LED subsystem support in the kernel. You
+> could list both compatibles, use the rx51 IR driver now, and then move
+> to pwm-led driver in the future.
+>
+
+I looked at the pwm-leds (and related) code and couldn't see how it will 
+do the job of controlling IR TX LED as a remote controller. So yeah, it 
+seems CIR support in LEDS subsystem is non existent.
+
+Could you elaborate on "list both compatibles", I don't really 
+understand what I should do.
+
+Ivo
