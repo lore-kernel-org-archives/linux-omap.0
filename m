@@ -1,75 +1,45 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: NFSroot hangs with bad unlock balance in Linux next
-Date: Mon, 9 May 2016 12:40:54 -0700
-Message-ID: <20160509194054.GI5995@atomide.com>
-References: <20160505220344.GE5995@atomide.com>
- <20160508141629.GF2694@ZenIV.linux.org.uk>
- <20160509073235.GI2694@ZenIV.linux.org.uk>
- <CANn89iK5H-SokYE1r+OO3sPmQ1vpGqYGbE4x1QLn44wdyvH0cw@mail.gmail.com>
- <20160509151219.GF5995@atomide.com>
- <20160509152138.GG5995@atomide.com>
- <20160509153932.GJ2694@ZenIV.linux.org.uk>
+Subject: Re: [PATCH] ARM: dts: Fix igepv5 audiopwon-gpio
+Date: Mon, 9 May 2016 12:42:59 -0700
+Message-ID: <20160509194258.GJ5995@atomide.com>
+References: <1462474581-13865-1-git-send-email-tony@atomide.com>
+ <1b37fbdd-67f0-e9e3-d442-bdc0bd74397b@ti.com>
+ <57304CB3.5010601@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20160509153932.GJ2694@ZenIV.linux.org.uk>
-Sender: netdev-owner@vger.kernel.org
-To: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Eric Dumazet <edumazet@google.com>, linux-nfs@vger.kernel.org, Jiri Pirko <jiri@resnulli.us>, netdev <netdev@vger.kernel.org>, Trond Myklebust <trond.myklebust@primarydata.com>, Christoph Hellwig <hch@lst.de>, linux-omap@vger.kernel.org, Anna Schumaker <anna.schumaker@netapp.com>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <57304CB3.5010601@collabora.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+Cc: =?utf-8?Q?Agust=C3=AD?= Fontquerni <af@iseebcn.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Eduard Gavin <egavin@iseebcn.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Al Viro <viro@ZenIV.linux.org.uk> [160509 08:41]:
-> On Mon, May 09, 2016 at 08:21:38AM -0700, Tony Lindgren wrote:
-> 
-> > Looks like with both patches applied I still also get this eventually:
-> > 
-> > =====================================
-> > [ BUG: bad unlock balance detected! ]
-> > 4.6.0-rc7-next-20160509+ #1264 Not tainted
-> > -------------------------------------
-> 
-> Lockdep warnings are noise.  To make them STFU try the following incremental;
-> I'll fold it into #work.lookups and #for-next.  Note that it will do nothing
-> to hangs - those are completely unrelated and you need Eric's patch to deal
-> with them.
-
-OK yeah that helps thanks:
-
-Tested-by: Tony Lindgren <tony@atomide.com>
-
-> diff --git a/fs/nfs/unlink.c b/fs/nfs/unlink.c
-> index d367b06..1868246 100644
-> --- a/fs/nfs/unlink.c
-> +++ b/fs/nfs/unlink.c
-> @@ -64,7 +64,7 @@ static void nfs_async_unlink_release(void *calldata)
->  	struct dentry *dentry = data->dentry;
->  	struct super_block *sb = dentry->d_sb;
->  
-> -	up_read(&NFS_I(d_inode(dentry->d_parent))->rmdir_sem);
-> +	up_read_non_owner(&NFS_I(d_inode(dentry->d_parent))->rmdir_sem);
->  	d_lookup_done(dentry);
->  	nfs_free_unlinkdata(data);
->  	dput(dentry);
-> @@ -117,10 +117,10 @@ static int nfs_call_unlink(struct dentry *dentry, struct nfs_unlinkdata *data)
->  	struct inode *dir = d_inode(dentry->d_parent);
->  	struct dentry *alias;
->  
-> -	down_read(&NFS_I(dir)->rmdir_sem);
-> +	down_read_non_owner(&NFS_I(dir)->rmdir_sem);
->  	alias = d_alloc_parallel(dentry->d_parent, &data->args.name, &data->wq);
->  	if (IS_ERR(alias)) {
-> -		up_read(&NFS_I(dir)->rmdir_sem);
-> +		up_read_non_owner(&NFS_I(dir)->rmdir_sem);
->  		return 0;
->  	}
->  	if (!d_in_lookup(alias)) {
-> @@ -142,7 +142,7 @@ static int nfs_call_unlink(struct dentry *dentry, struct nfs_unlinkdata *data)
->  			ret = 0;
->  		spin_unlock(&alias->d_lock);
->  		dput(alias);
-> -		up_read(&NFS_I(dir)->rmdir_sem);
-> +		up_read_non_owner(&NFS_I(dir)->rmdir_sem);
->  		/*
->  		 * If we'd displaced old cached devname, free it.  At that
->  		 * point dentry is definitely not a root, so we won't need
+KiBFbnJpYyBCYWxsZXRibyBpIFNlcnJhIDxlbnJpYy5iYWxsZXRib0Bjb2xsYWJvcmEuY29tPiBb
+MTYwNTA5IDAxOjQxXToKPiAKPiAKPiBPbiAwOS8wNS8xNiAxMDozNCwgUGV0ZXIgVWpmYWx1c2kg
+d3JvdGU6Cj4gPiBPbiAwNS8wNS8xNiAyMTo1NiwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiA+PiBQ
+bGF5aW5nIGF1ZGlvIHdvcmtzIG9uIG9tYXA1LXVldm0sIGJ1dCBwcm9kdWNlcyBhbiAiVW5oYW5k
+bGVkIGZhdWx0Ogo+ID4+IGltcHJlY2lzZSBleHRlcm5hbCBhYm9ydCAoMHgxNDA2KSBhdCAweDAw
+MDAwMDAwIiBlcnJvciBvbiBpZ2VwdjUuCj4gPj4KPiA+PiBMb29rcyBsaWtlIHRoZSB0d2w2MDQw
+IGF1ZHB3cm9uIEdQSU8gcGluIGlzIGRpZmZlcmVudCBmb3IgdGhlc2UKPiA+PiBib2FyZHMuIExl
+dCdzIGZpeCB0aGUgaXNzdWUgYnkgY29uZmlndXJpbmcgdGhlIGF1ZHB3cm9uIGluIHRoZQo+ID4+
+IGJvYXJkIHNwZWNpZmljIGR0cyBmaWxlLgo+ID4+Cj4gPj4gQ2M6IEFndXN0w60gRm9udHF1ZXJu
+aSA8YWZAaXNlZWJjbi5jb20+Cj4gPj4gQ2M6IEVkdWFyZCBHYXZpbiA8ZWdhdmluQGlzZWViY24u
+Y29tPgo+ID4+IENjOiBFbnJpYyBCYWxsZXRibyBpIFNlcnJhIDxlYmFsbGV0Ym9AaXNlZWJjbi5j
+b20+Cj4gCj4gCj4gSGV5LCBjYW4geW91IGNoYW5nZSB0aGUgZW1haWwgYWRkcmVzcyBmb3IgdGhp
+cyBvbmUKPiAKPiBDYzogRW5yaWMgQmFsbGV0Ym8gaSBTZXJyYSA8ZWJhbGxldGJvQGdtYWlsLmNv
+bT4KCk9LLiBNYXliZSB5b3UgZ3V5cyBzaG91bGQgc2VuZCBhIHBhdGNoIGZvciBNQUlOVEFJTkVS
+UyBlbnRyeQpmb3IgdGhpcyBib2FyZCBzbyBpdCdzIGVhc2llciB0byBmaWd1cmUgb3V0IHdobyB0
+byBzZW5kIHRoZQplbWFpbHMgdG8/CgpSZWdhcmRzLAoKVG9ueQoKX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxp
+c3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZy
+YWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
