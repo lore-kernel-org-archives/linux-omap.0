@@ -1,7 +1,8 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 2/6] ARM: dts: omap3: Add ocmcram node
-Date: Mon, 9 May 2016 16:49:22 -0500
-Message-ID: <1462830566-28708-3-git-send-email-d-gerlach@ti.com>
+Subject: [PATCH 3/6] ARM: dts: omap3-n900: Add secure reserved region to
+ ocmcram node
+Date: Mon, 9 May 2016 16:49:23 -0500
+Message-ID: <1462830566-28708-4-git-send-email-d-gerlach@ti.com>
 References: <1462830566-28708-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,42 +22,29 @@ To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add an ocmcram node to omap3 dtsi using the mmio-sram driver to
-represent the 64kb of SRAM available on omap3 and it's derivatives.
+Platforms with secure silicon, like omap3-n900, need to mark off a
+section of the ocmcram as reserved because it is used by secure
+software.
 
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 ---
- arch/arm/boot/dts/omap3.dtsi | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ arch/arm/boot/dts/omap3-n900.dts | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index b41d07e8e765..a267616c3c68 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -59,6 +59,7 @@
- 		mpu {
- 			compatible = "ti,omap3-mpu";
- 			ti,hwmods = "mpu";
-+			sram = <&ocmcram>;
- 		};
- 
- 		iva: iva {
-@@ -153,6 +154,16 @@
- 			};
- 		};
- 
-+		ocmcram: ocmcram@40200000 {
-+			compatible = "mmio-sram";
-+			reg = <0x40200000 0x10000>; /* 64k */
-+			memory-exec-nocache;
-+			ranges = <0x0 0x40200000 0x10000>;
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+index b3c26a96a726..448452a76c23 100644
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -1004,3 +1004,10 @@
+ &ssi_port2 {
+ 	status = "disabled";
+ };
 +
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+		};
-+
- 		aes: aes@480c5000 {
- 			compatible = "ti,omap3-aes";
- 			ti,hwmods = "aes";
++&ocmcram {
++	sram-hs@0 {
++		compatible = "ti,secure-ram";
++		reg = <0x0 0xC000>;
++	};
++};
 -- 
 2.7.3
