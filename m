@@ -1,61 +1,75 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 5/7] ARM: OMAP: dmtimer: Do not call PM runtime functions
- when not needed.
-Date: Mon, 9 May 2016 12:36:24 -0700
-Message-ID: <20160509193624.GH5995@atomide.com>
-References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <1462634508-24961-6-git-send-email-ivo.g.dimitrov.75@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: NFSroot hangs with bad unlock balance in Linux next
+Date: Mon, 9 May 2016 12:40:54 -0700
+Message-ID: <20160509194054.GI5995@atomide.com>
+References: <20160505220344.GE5995@atomide.com>
+ <20160508141629.GF2694@ZenIV.linux.org.uk>
+ <20160509073235.GI2694@ZenIV.linux.org.uk>
+ <CANn89iK5H-SokYE1r+OO3sPmQ1vpGqYGbE4x1QLn44wdyvH0cw@mail.gmail.com>
+ <20160509151219.GF5995@atomide.com>
+ <20160509152138.GG5995@atomide.com>
+ <20160509153932.GJ2694@ZenIV.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1462634508-24961-6-git-send-email-ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pwm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+In-Reply-To: <20160509153932.GJ2694@ZenIV.linux.org.uk>
+Sender: netdev-owner@vger.kernel.org
+To: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Eric Dumazet <edumazet@google.com>, linux-nfs@vger.kernel.org, Jiri Pirko <jiri@resnulli.us>, netdev <netdev@vger.kernel.org>, Trond Myklebust <trond.myklebust@primarydata.com>, Christoph Hellwig <hch@lst.de>, linux-omap@vger.kernel.org, Anna Schumaker <anna.schumaker@netapp.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [160507 08:24]:
-> once omap_dm_timer_start() is called, which calls omap_dm_timer_enable()
-> and thus pm_runtime_get_sync(), it doesn't make sense to call PM runtime
-> functions again before omap_dm_timer_stop is called(). Otherwise PM runtime
-> functions called in omap_dm_timer_enable/disable lead to long and unneeded
-> delays.
+* Al Viro <viro@ZenIV.linux.org.uk> [160509 08:41]:
+> On Mon, May 09, 2016 at 08:21:38AM -0700, Tony Lindgren wrote:
 > 
-> Fix that by implementing an "enabled" counter, so the PM runtime functions
-> get called only when really needed.
+> > Looks like with both patches applied I still also get this eventually:
+> > 
+> > =====================================
+> > [ BUG: bad unlock balance detected! ]
+> > 4.6.0-rc7-next-20160509+ #1264 Not tainted
+> > -------------------------------------
 > 
-> Without that patch Nokia N900 IR TX driver (ir-rx51) does not function.
+> Lockdep warnings are noise.  To make them STFU try the following incremental;
+> I'll fold it into #work.lookups and #for-next.  Note that it will do nothing
+> to hangs - those are completely unrelated and you need Eric's patch to deal
+> with them.
 
-We should use pm_runtime for the refcounting though and call PM runtime
-unconditionally. Can you try to follow the standard PM runtime usage
-like this:
+OK yeah that helps thanks:
 
-init:
-pm_runtime_use_autosuspend(&timer->pdev->dev);
-pm_runtime_set_autosuspend_delay(&timer->pdev->dev, 200);
-pm_runtime_enable(&timer->pdev->dev);
-...
-enable:
-pm_runtime_get_sync(&timer->pdev->dev);
-...
-disable:
-pm_runtime_mark_last_busy(&timer->pdev->dev);
-pm_runtime_put_autosuspend(&timer->pdev->dev);
-...
-exit:
-pm_runtime_dont_use_autosuspend(&timer->pdev->dev);
-pm_runtime_put_sync(&timer->pdev->dev);
-pm_runtime_disable(&timer->pdev->dev);
+Tested-by: Tony Lindgren <tony@atomide.com>
 
-No idea what the timeout should be, maybe less than 200 ms. Also we need
-to test that off idle still works with timer1, that might need special
-handling.
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/fs/nfs/unlink.c b/fs/nfs/unlink.c
+> index d367b06..1868246 100644
+> --- a/fs/nfs/unlink.c
+> +++ b/fs/nfs/unlink.c
+> @@ -64,7 +64,7 @@ static void nfs_async_unlink_release(void *calldata)
+>  	struct dentry *dentry = data->dentry;
+>  	struct super_block *sb = dentry->d_sb;
+>  
+> -	up_read(&NFS_I(d_inode(dentry->d_parent))->rmdir_sem);
+> +	up_read_non_owner(&NFS_I(d_inode(dentry->d_parent))->rmdir_sem);
+>  	d_lookup_done(dentry);
+>  	nfs_free_unlinkdata(data);
+>  	dput(dentry);
+> @@ -117,10 +117,10 @@ static int nfs_call_unlink(struct dentry *dentry, struct nfs_unlinkdata *data)
+>  	struct inode *dir = d_inode(dentry->d_parent);
+>  	struct dentry *alias;
+>  
+> -	down_read(&NFS_I(dir)->rmdir_sem);
+> +	down_read_non_owner(&NFS_I(dir)->rmdir_sem);
+>  	alias = d_alloc_parallel(dentry->d_parent, &data->args.name, &data->wq);
+>  	if (IS_ERR(alias)) {
+> -		up_read(&NFS_I(dir)->rmdir_sem);
+> +		up_read_non_owner(&NFS_I(dir)->rmdir_sem);
+>  		return 0;
+>  	}
+>  	if (!d_in_lookup(alias)) {
+> @@ -142,7 +142,7 @@ static int nfs_call_unlink(struct dentry *dentry, struct nfs_unlinkdata *data)
+>  			ret = 0;
+>  		spin_unlock(&alias->d_lock);
+>  		dput(alias);
+> -		up_read(&NFS_I(dir)->rmdir_sem);
+> +		up_read_non_owner(&NFS_I(dir)->rmdir_sem);
+>  		/*
+>  		 * If we'd displaced old cached devname, free it.  At that
+>  		 * point dentry is definitely not a root, so we won't need
