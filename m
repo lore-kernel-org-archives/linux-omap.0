@@ -1,87 +1,80 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] ARM: dts: omap5-igep0050: Correct hdmi regulator
-Date: Mon, 9 May 2016 11:34:38 +0300
-Message-ID: <57304B9E.50201@ti.com>
-References: <1461925297-9734-1-git-send-email-peter.ujfalusi@ti.com>
- <6ee9d67a-e907-715a-f3f5-d90a470314c3@ti.com>
- <20160504172634.GS5995@atomide.com> <572A38FD.9050801@ti.com>
- <20160505184609.GB5995@atomide.com>
- <a6969765-d07d-6d0e-36df-b78b485d9644@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] ARM: dts: Fix igepv5 audiopwon-gpio
+Date: Mon, 9 May 2016 11:31:58 +0300
+Message-ID: <ab6e5775-949b-f83a-fc13-1c643181ec2b@ti.com>
+References: <1462474581-13865-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="TW65cEVHpwqomBoVaBrJow58ljupqTp5V"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <a6969765-d07d-6d0e-36df-b78b485d9644@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Enric Balletbo i Serra <eballetbo@iseebcn.com>, =?UTF-8?Q?Agust=c3=ad_Fontquerni?= <af@iseebcn.com>, Eduard Gavin <egavin@iseebcn.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1462474581-13865-1-git-send-email-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: =?UTF-8?Q?Agust=c3=ad_Fontquerni?= <af@iseebcn.com>, Enric Balletbo i Serra <eballetbo@iseebcn.com>, Eduard Gavin <egavin@iseebcn.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---TW65cEVHpwqomBoVaBrJow58ljupqTp5V
-Content-Type: multipart/mixed; boundary="1OHtDBFS51bdo30A8xKbMUoR984bOu26J"
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>,
- Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
- Enric Balletbo i Serra <eballetbo@iseebcn.com>,
- =?UTF-8?Q?Agust=c3=ad_Fontquerni?= <af@iseebcn.com>,
- Eduard Gavin <egavin@iseebcn.com>
-Message-ID: <57304B9E.50201@ti.com>
-Subject: Re: [PATCH] ARM: dts: omap5-igep0050: Correct hdmi regulator
-References: <1461925297-9734-1-git-send-email-peter.ujfalusi@ti.com>
- <6ee9d67a-e907-715a-f3f5-d90a470314c3@ti.com>
- <20160504172634.GS5995@atomide.com> <572A38FD.9050801@ti.com>
- <20160505184609.GB5995@atomide.com>
- <a6969765-d07d-6d0e-36df-b78b485d9644@ti.com>
-In-Reply-To: <a6969765-d07d-6d0e-36df-b78b485d9644@ti.com>
-
---1OHtDBFS51bdo30A8xKbMUoR984bOu26J
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-
-On 09/05/16 11:25, Peter Ujfalusi wrote:
-
-> Tomi: what do you think?
->=20
-> According to the OMAP5 data manual the vdda_hdmi can be in 1.5V or 1.8V=
- mode,
-> 2V is not mentioned in the recommended operating conditions table.
-
-I thought vdda_hdmi should always be 1.8V, but you're right, on omap5
-1.5V is allowed according to DM. On later SoCs it's only 1.8V. I suggest
-we use 1.8V on all boards, as that's what's known to work.
-
-2V is definitely wrong.
-
- Tomi
-
-
---1OHtDBFS51bdo30A8xKbMUoR984bOu26J--
-
---TW65cEVHpwqomBoVaBrJow58ljupqTp5V
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJXMEueAAoJEPo9qoy8lh71rPcP/i5UGj0rRYIVd9cyTQxmKm+m
-0W0yJmPl3332DfCc9M8GXI2RVQCCLjgqLSeWR4+okPyUjGSJgDwSWYXc2yCWK2/6
-j4TPFWnvgZHO+FsnIbw1Skj7c/Y526JHGXb/EUPTgeHZF7ngeJo9z8U8fAnkQXar
-jeQVDV11LLMD09IOVb/BzyQiipHYKifPaDmAP3zJ99lemXMZjZGJ4n28fS1T8oCZ
-nMY2utWKhXjgdzB2bO88TYsyMhC5LQvDS4Q/stlMLr+9L75BTchj8vsigj8eMpKr
-/qExsIFdKY/l8WAv5MTvfffU0KsXEznG3sdINpveaSlUqdXxLUOk8hsZ2Evx+GLB
-VwM259PTb4ORIaG8beMdKZ9NIIWwwsCZiPYr/2tbnzWIL8eYDXtiAJr+D+b9TDaC
-pJg2a+KMnIZFV+x5hqpYi06V+ueThOxTYb3uHjtgNHTcpdktH4DDv/Owsn3v5o4L
-Cik8Vbau0HcefMuvsDXMjImZtjhihGYi26MuoV8UlpM2g4pbkEOG33/y42keoRjP
-QJomE5EEiO4BS8gHbhaBs1gOvrtUteCLBrhoVmwUpS9dfunMHT8f4pHCykVMKbed
-hD20IeOormkRT3lI+Ug1hUwcEbDlzhtbmuhc8/PwGetosd9kJS5yYbgFXQpGGy3B
-vKo6HiMCYamqmb+QK6Nv
-=b75O
------END PGP SIGNATURE-----
-
---TW65cEVHpwqomBoVaBrJow58ljupqTp5V--
+T24gMDUvMDUvMTYgMjE6NTYsIFRvbnkgTGluZGdyZW4gd3JvdGU6Cj4gUGxheWluZyBhdWRpbyB3
+b3JrcyBvbiBvbWFwNS11ZXZtLCBidXQgcHJvZHVjZXMgYW4gIlVuaGFuZGxlZCBmYXVsdDoKPiBp
+bXByZWNpc2UgZXh0ZXJuYWwgYWJvcnQgKDB4MTQwNikgYXQgMHgwMDAwMDAwMCIgZXJyb3Igb24g
+aWdlcHY1LgoKSSBhc3N1bWUgdGhpcyBpcyBjb21pbmcgZnJvbSB0aGUgTWNQRE0gZHJpdmVyLi4u
+IElmIHRoZSBjbG9jayBpcyBtaXNzaW5nIGZyb20KdGhlIHR3bDYwNDAgdGhlIElQIGlzIG5vdCBh
+Y2Nlc3NpYmxlLgpJIGRvIGhhdmUgYSBkcml2ZXIgdXBzdHJlYW0gdG8gcmVwcmVzZW50IHRoZSB0
+d2w2MDQwIGNsb2NrIHRvIGJlIHVzZWQgYnkgdGhlCk1jUERNLCBidXQgZGlkIG5vdCBoYWQgdGlt
+ZSB0byBkbyB0aGUgd29yayBmb3IgaW50ZWdyYXRpbmcgdGhhdCBpbnRvIHRoZSBjbG9jawp0cmVl
+LiBTaW5jZSBpdCBpcyBleHRlcm5hbCBjbG9jayBhbmQgd2UgbmVlZCBpMmMgY29tbWFuZHMgdG8g
+Y29uZmlndXJlIHRoaW5ncwppbiB0d2w2MDQwLCBJJ20gc3RpbGwgbm90IHN1cmUgaG93IHBtX3J1
+bnRpbWUgd291bGQgbGlrZSB0aGlzLi4uCgo+IExvb2tzIGxpa2UgdGhlIHR3bDYwNDAgYXVkcHdy
+b24gR1BJTyBwaW4gaXMgZGlmZmVyZW50IGZvciB0aGVzZQo+IGJvYXJkcy4gTGV0J3MgZml4IHRo
+ZSBpc3N1ZSBieSBjb25maWd1cmluZyB0aGUgYXVkcHdyb24gaW4gdGhlCj4gYm9hcmQgc3BlY2lm
+aWMgZHRzIGZpbGUuCgpBY2tlZC1ieTogUGV0ZXIgVWpmYWx1c2kgPHBldGVyLnVqZmxhdXNpQHRp
+IGNvbT4KCgo+IENjOiBBZ3VzdMOtIEZvbnRxdWVybmkgPGFmQGlzZWViY24uY29tPgo+IENjOiBF
+ZHVhcmQgR2F2aW4gPGVnYXZpbkBpc2VlYmNuLmNvbT4KPiBDYzogRW5yaWMgQmFsbGV0Ym8gaSBT
+ZXJyYSA8ZWJhbGxldGJvQGlzZWViY24uY29tPgo+IENjOiBQZXRlciBVamZhbHVzaSA8cGV0ZXIu
+dWpmYWx1c2lAdGkuY29tPgo+IFNpZ25lZC1vZmYtYnk6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRv
+bWlkZS5jb20+Cj4gLS0tCj4gIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LWJvYXJkLWNvbW1vbi5k
+dHNpIHwgIDMgKystCj4gIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LWlnZXAwMDUwLmR0cyAgICAg
+IHwgMTAgKysrKysrKysrKwo+ICBhcmNoL2FybS9ib290L2R0cy9vbWFwNS11ZXZtLmR0cyAgICAg
+ICAgICB8IDEwICsrKysrKysrKysKPiAgMyBmaWxlcyBjaGFuZ2VkLCAyMiBpbnNlcnRpb25zKCsp
+LCAxIGRlbGV0aW9uKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1
+LWJvYXJkLWNvbW1vbi5kdHNpIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtYm9hcmQtY29tbW9u
+LmR0c2kKPiBpbmRleCAyZWVhMjZjLi4yM2IxZDdjIDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL2Jv
+b3QvZHRzL29tYXA1LWJvYXJkLWNvbW1vbi5kdHNpCj4gKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMv
+b21hcDUtYm9hcmQtY29tbW9uLmR0c2kKPiBAQCAtNjQyLDcgKzY0Miw4IEBACj4gIAkJcGluY3Ry
+bC0wID0gPCZ0d2w2MDQwX3BpbnM+Owo+ICAKPiAgCQlpbnRlcnJ1cHRzID0gPEdJQ19TUEkgMTE5
+IElSUV9UWVBFX05PTkU+OyAvKiBJUlFfU1lTXzJOIGNhc2NhZGVkIHRvIGdpYyAqLwo+IC0JCXRp
+LGF1ZHB3cm9uLWdwaW8gPSA8JmdwaW81IDEzIEdQSU9fQUNUSVZFX0hJR0g+OyAgLyogZ3BpbyBs
+aW5lIDE0MSAqLwo+ICsKPiArCQkvKiBhdWRwd3JvbiBncGlvIGRlZmluZWQgaW4gdGhlIGJvYXJk
+IHNwZWNpZmljIGR0cyAqLwo+ICAKPiAgCQl2aW8tc3VwcGx5ID0gPCZzbXBzN19yZWc+Owo+ICAJ
+CXYydjEtc3VwcGx5ID0gPCZzbXBzOV9yZWc+Owo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290
+L2R0cy9vbWFwNS1pZ2VwMDA1MC5kdHMgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNS1pZ2VwMDA1
+MC5kdHMKPiBpbmRleCA3MmZmNmE0Li42NzNjZGZhIDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL2Jv
+b3QvZHRzL29tYXA1LWlnZXAwMDUwLmR0cwo+ICsrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1
+LWlnZXAwMDUwLmR0cwo+IEBAIC01OCwzICs1OCwxMyBAQAo+ICAJCTwmZ3BpbzcgMyAwPjsJCS8q
+IDE5NSwgU0RBICovCj4gIH07Cj4gIAo+ICsmdHdsNjA0MCB7Cj4gKwl0aSxhdWRwd3Jvbi1ncGlv
+ID0gPCZncGlvNSAxNiBHUElPX0FDVElWRV9ISUdIPjsgIC8qIGdwaW8gbGluZSAxNDQgKi8KPiAr
+fTsKPiArCj4gKyZ0d2w2MDQwX3BpbnMgewo+ICsJcGluY3RybC1zaW5nbGUscGlucyA9IDwKPiAr
+CQlPTUFQNV9JT1BBRCgweDFjNCwgUElOX09VVFBVVCB8IE1VWF9NT0RFNikJLyogbWNzcGkxX3Nv
+bWkuZ3BpbzVfMTQ0ICovCj4gKwkJT01BUDVfSU9QQUQoMHgxY2EsIFBJTl9PVVRQVVQgfCBNVVhf
+TU9ERTYpCS8qIHBlcnNsaW1idXMyX2Nsb2NrLmdwaW81XzE0NSAqLwo+ICsJPjsKPiArfTsKPiBk
+aWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMgYi9hcmNoL2FybS9i
+b290L2R0cy9vbWFwNS11ZXZtLmR0cwo+IGluZGV4IDYwYjNmYmIuLmE1MWU2MDUgMTAwNjQ0Cj4g
+LS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMKPiArKysgYi9hcmNoL2FybS9i
+b290L2R0cy9vbWFwNS11ZXZtLmR0cwo+IEBAIC01MSwzICs1MSwxMyBAQAo+ICAJCTwmZ3Bpbzkg
+MSBHUElPX0FDVElWRV9ISUdIPiwJLyogVENBNjQyNEEgUDAwLCBMUyBPRSAqLwo+ICAJCTwmZ3Bp
+bzcgMSBHUElPX0FDVElWRV9ISUdIPjsJLyogR1BJTyAxOTMsIEhQRCAqLwo+ICB9Owo+ICsKPiAr
+JnR3bDYwNDAgewo+ICsJdGksYXVkcHdyb24tZ3BpbyA9IDwmZ3BpbzUgMTMgR1BJT19BQ1RJVkVf
+SElHSD47ICAvKiBncGlvIGxpbmUgMTQxICovCj4gK307Cj4gKwo+ICsmdHdsNjA0MF9waW5zIHsK
+PiArCXBpbmN0cmwtc2luZ2xlLHBpbnMgPSA8Cj4gKwkJT01BUDVfSU9QQUQoMHgxYmUsIFBJTl9P
+VVRQVVQgfCBNVVhfTU9ERTYpCS8qIG1jc3BpMV9zb21pLmdwaW81XzE0MSAqLwo+ICsJPjsKPiAr
+fTsKPiAKCgotLSAKUMOpdGVyCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVs
+QGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
