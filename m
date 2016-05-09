@@ -1,74 +1,87 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ARM: dts: Fix igepv5 audiopwon-gpio
-Date: Mon, 9 May 2016 11:34:42 +0300
-Message-ID: <1b37fbdd-67f0-e9e3-d442-bdc0bd74397b@ti.com>
-References: <1462474581-13865-1-git-send-email-tony@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] ARM: dts: omap5-igep0050: Correct hdmi regulator
+Date: Mon, 9 May 2016 11:34:38 +0300
+Message-ID: <57304B9E.50201@ti.com>
+References: <1461925297-9734-1-git-send-email-peter.ujfalusi@ti.com>
+ <6ee9d67a-e907-715a-f3f5-d90a470314c3@ti.com>
+ <20160504172634.GS5995@atomide.com> <572A38FD.9050801@ti.com>
+ <20160505184609.GB5995@atomide.com>
+ <a6969765-d07d-6d0e-36df-b78b485d9644@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1462474581-13865-1-git-send-email-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: =?UTF-8?Q?Agust=c3=ad_Fontquerni?= <af@iseebcn.com>, Enric Balletbo i Serra <eballetbo@iseebcn.com>, Eduard Gavin <egavin@iseebcn.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="TW65cEVHpwqomBoVaBrJow58ljupqTp5V"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <a6969765-d07d-6d0e-36df-b78b485d9644@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Enric Balletbo i Serra <eballetbo@iseebcn.com>, =?UTF-8?Q?Agust=c3=ad_Fontquerni?= <af@iseebcn.com>, Eduard Gavin <egavin@iseebcn.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDUvMDUvMTYgMjE6NTYsIFRvbnkgTGluZGdyZW4gd3JvdGU6Cj4gUGxheWluZyBhdWRpbyB3
-b3JrcyBvbiBvbWFwNS11ZXZtLCBidXQgcHJvZHVjZXMgYW4gIlVuaGFuZGxlZCBmYXVsdDoKPiBp
-bXByZWNpc2UgZXh0ZXJuYWwgYWJvcnQgKDB4MTQwNikgYXQgMHgwMDAwMDAwMCIgZXJyb3Igb24g
-aWdlcHY1Lgo+IAo+IExvb2tzIGxpa2UgdGhlIHR3bDYwNDAgYXVkcHdyb24gR1BJTyBwaW4gaXMg
-ZGlmZmVyZW50IGZvciB0aGVzZQo+IGJvYXJkcy4gTGV0J3MgZml4IHRoZSBpc3N1ZSBieSBjb25m
-aWd1cmluZyB0aGUgYXVkcHdyb24gaW4gdGhlCj4gYm9hcmQgc3BlY2lmaWMgZHRzIGZpbGUuCj4g
-Cj4gQ2M6IEFndXN0w60gRm9udHF1ZXJuaSA8YWZAaXNlZWJjbi5jb20+Cj4gQ2M6IEVkdWFyZCBH
-YXZpbiA8ZWdhdmluQGlzZWViY24uY29tPgo+IENjOiBFbnJpYyBCYWxsZXRibyBpIFNlcnJhIDxl
-YmFsbGV0Ym9AaXNlZWJjbi5jb20+Cj4gQ2M6IFBldGVyIFVqZmFsdXNpIDxwZXRlci51amZhbHVz
-aUB0aS5jb20+Cj4gU2lnbmVkLW9mZi1ieTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNv
-bT4KPiAtLS0KPiAgYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtYm9hcmQtY29tbW9uLmR0c2kgfCAg
-MyArKy0KPiAgYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtaWdlcDAwNTAuZHRzICAgICAgfCAxMCAr
-KysrKysrKysrCj4gIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LXVldm0uZHRzICAgICAgICAgIHwg
-MTAgKysrKysrKysrKwo+ICAzIGZpbGVzIGNoYW5nZWQsIDIyIGluc2VydGlvbnMoKyksIDEgZGVs
-ZXRpb24oLSkKPiAKPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtYm9hcmQt
-Y29tbW9uLmR0c2kgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNS1ib2FyZC1jb21tb24uZHRzaQo+
-IGluZGV4IDJlZWEyNmMuLjIzYjFkN2MgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMv
-b21hcDUtYm9hcmQtY29tbW9uLmR0c2kKPiArKysgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNS1i
-b2FyZC1jb21tb24uZHRzaQo+IEBAIC02NDIsNyArNjQyLDggQEAKPiAgCQlwaW5jdHJsLTAgPSA8
-JnR3bDYwNDBfcGlucz47Cj4gIAo+ICAJCWludGVycnVwdHMgPSA8R0lDX1NQSSAxMTkgSVJRX1RZ
-UEVfTk9ORT47IC8qIElSUV9TWVNfMk4gY2FzY2FkZWQgdG8gZ2ljICovCj4gLQkJdGksYXVkcHdy
-b24tZ3BpbyA9IDwmZ3BpbzUgMTMgR1BJT19BQ1RJVkVfSElHSD47ICAvKiBncGlvIGxpbmUgMTQx
-ICovCj4gKwo+ICsJCS8qIGF1ZHB3cm9uIGdwaW8gZGVmaW5lZCBpbiB0aGUgYm9hcmQgc3BlY2lm
-aWMgZHRzICovCj4gIAo+ICAJCXZpby1zdXBwbHkgPSA8JnNtcHM3X3JlZz47Cj4gIAkJdjJ2MS1z
-dXBwbHkgPSA8JnNtcHM5X3JlZz47Cj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29t
-YXA1LWlnZXAwMDUwLmR0cyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LWlnZXAwMDUwLmR0cwo+
-IGluZGV4IDcyZmY2YTQuLjY3M2NkZmEgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMv
-b21hcDUtaWdlcDAwNTAuZHRzCj4gKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtaWdlcDAw
-NTAuZHRzCj4gQEAgLTU4LDMgKzU4LDEzIEBACj4gIAkJPCZncGlvNyAzIDA+OwkJLyogMTk1LCBT
-REEgKi8KPiAgfTsKPiAgCj4gKyZ0d2w2MDQwIHsKPiArCXRpLGF1ZHB3cm9uLWdwaW8gPSA8Jmdw
-aW81IDE2IEdQSU9fQUNUSVZFX0hJR0g+OyAgLyogZ3BpbyBsaW5lIDE0NCAqLwoKQlRXOiBob3cg
-ZG8geW91IGtub3cgdGhhdCBncGlvMTQ0IGlzIHVzZWQgYXMgYXVkcHdyb24gR1BJTyBvbiBpZ2Vw
-djU/Cgo+ICt9Owo+ICsKPiArJnR3bDYwNDBfcGlucyB7Cj4gKwlwaW5jdHJsLXNpbmdsZSxwaW5z
-ID0gPAo+ICsJCU9NQVA1X0lPUEFEKDB4MWM0LCBQSU5fT1VUUFVUIHwgTVVYX01PREU2KQkvKiBt
-Y3NwaTFfc29taS5ncGlvNV8xNDQgKi8KPiArCQlPTUFQNV9JT1BBRCgweDFjYSwgUElOX09VVFBV
-VCB8IE1VWF9NT0RFNikJLyogcGVyc2xpbWJ1czJfY2xvY2suZ3BpbzVfMTQ1ICovCgpXaGF0IGRv
-ZXMgdGhlIGdwaW8xNDUgaXMgdXNlZCBmb3I/Cgo+ICsJPjsKPiArfTsKPiBkaWZmIC0tZ2l0IGEv
-YXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMgYi9hcmNoL2FybS9ib290L2R0cy9vbWFw
-NS11ZXZtLmR0cwo+IGluZGV4IDYwYjNmYmIuLmE1MWU2MDUgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9h
-cm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMKPiArKysgYi9hcmNoL2FybS9ib290L2R0cy9vbWFw
-NS11ZXZtLmR0cwo+IEBAIC01MSwzICs1MSwxMyBAQAo+ICAJCTwmZ3BpbzkgMSBHUElPX0FDVElW
-RV9ISUdIPiwJLyogVENBNjQyNEEgUDAwLCBMUyBPRSAqLwo+ICAJCTwmZ3BpbzcgMSBHUElPX0FD
-VElWRV9ISUdIPjsJLyogR1BJTyAxOTMsIEhQRCAqLwo+ICB9Owo+ICsKPiArJnR3bDYwNDAgewo+
-ICsJdGksYXVkcHdyb24tZ3BpbyA9IDwmZ3BpbzUgMTMgR1BJT19BQ1RJVkVfSElHSD47ICAvKiBn
-cGlvIGxpbmUgMTQxICovCj4gK307Cj4gKwo+ICsmdHdsNjA0MF9waW5zIHsKPiArCXBpbmN0cmwt
-c2luZ2xlLHBpbnMgPSA8Cj4gKwkJT01BUDVfSU9QQUQoMHgxYmUsIFBJTl9PVVRQVVQgfCBNVVhf
-TU9ERTYpCS8qIG1jc3BpMV9zb21pLmdwaW81XzE0MSAqLwo+ICsJPjsKPiArfTsKPiAKCgotLSAK
-UMOpdGVyCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwps
-aW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJh
-ZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51
-eC1hcm0ta2VybmVsCg==
+--TW65cEVHpwqomBoVaBrJow58ljupqTp5V
+Content-Type: multipart/mixed; boundary="1OHtDBFS51bdo30A8xKbMUoR984bOu26J"
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>,
+ Nishanth Menon <nm@ti.com>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+ Enric Balletbo i Serra <eballetbo@iseebcn.com>,
+ =?UTF-8?Q?Agust=c3=ad_Fontquerni?= <af@iseebcn.com>,
+ Eduard Gavin <egavin@iseebcn.com>
+Message-ID: <57304B9E.50201@ti.com>
+Subject: Re: [PATCH] ARM: dts: omap5-igep0050: Correct hdmi regulator
+References: <1461925297-9734-1-git-send-email-peter.ujfalusi@ti.com>
+ <6ee9d67a-e907-715a-f3f5-d90a470314c3@ti.com>
+ <20160504172634.GS5995@atomide.com> <572A38FD.9050801@ti.com>
+ <20160505184609.GB5995@atomide.com>
+ <a6969765-d07d-6d0e-36df-b78b485d9644@ti.com>
+In-Reply-To: <a6969765-d07d-6d0e-36df-b78b485d9644@ti.com>
+
+--1OHtDBFS51bdo30A8xKbMUoR984bOu26J
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+
+On 09/05/16 11:25, Peter Ujfalusi wrote:
+
+> Tomi: what do you think?
+>=20
+> According to the OMAP5 data manual the vdda_hdmi can be in 1.5V or 1.8V=
+ mode,
+> 2V is not mentioned in the recommended operating conditions table.
+
+I thought vdda_hdmi should always be 1.8V, but you're right, on omap5
+1.5V is allowed according to DM. On later SoCs it's only 1.8V. I suggest
+we use 1.8V on all boards, as that's what's known to work.
+
+2V is definitely wrong.
+
+ Tomi
+
+
+--1OHtDBFS51bdo30A8xKbMUoR984bOu26J--
+
+--TW65cEVHpwqomBoVaBrJow58ljupqTp5V
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJXMEueAAoJEPo9qoy8lh71rPcP/i5UGj0rRYIVd9cyTQxmKm+m
+0W0yJmPl3332DfCc9M8GXI2RVQCCLjgqLSeWR4+okPyUjGSJgDwSWYXc2yCWK2/6
+j4TPFWnvgZHO+FsnIbw1Skj7c/Y526JHGXb/EUPTgeHZF7ngeJo9z8U8fAnkQXar
+jeQVDV11LLMD09IOVb/BzyQiipHYKifPaDmAP3zJ99lemXMZjZGJ4n28fS1T8oCZ
+nMY2utWKhXjgdzB2bO88TYsyMhC5LQvDS4Q/stlMLr+9L75BTchj8vsigj8eMpKr
+/qExsIFdKY/l8WAv5MTvfffU0KsXEznG3sdINpveaSlUqdXxLUOk8hsZ2Evx+GLB
+VwM259PTb4ORIaG8beMdKZ9NIIWwwsCZiPYr/2tbnzWIL8eYDXtiAJr+D+b9TDaC
+pJg2a+KMnIZFV+x5hqpYi06V+ueThOxTYb3uHjtgNHTcpdktH4DDv/Owsn3v5o4L
+Cik8Vbau0HcefMuvsDXMjImZtjhihGYi26MuoV8UlpM2g4pbkEOG33/y42keoRjP
+QJomE5EEiO4BS8gHbhaBs1gOvrtUteCLBrhoVmwUpS9dfunMHT8f4pHCykVMKbed
+hD20IeOormkRT3lI+Ug1hUwcEbDlzhtbmuhc8/PwGetosd9kJS5yYbgFXQpGGy3B
+vKo6HiMCYamqmb+QK6Nv
+=b75O
+-----END PGP SIGNATURE-----
+
+--TW65cEVHpwqomBoVaBrJow58ljupqTp5V--
