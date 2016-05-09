@@ -1,14 +1,12 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [RFC PATCH 2/3] lib: devres: Add exec and exec_nocache versions of
- devm_ioremap
-Date: Mon, 9 May 2016 16:41:50 -0500
-Message-ID: <1462830111-28172-3-git-send-email-d-gerlach@ti.com>
-References: <1462830111-28172-1-git-send-email-d-gerlach@ti.com>
+Subject: [PATCH 0/6] ARM: OMAP3: Convert OMAP3 PM code to use generic sram
+ driver
+Date: Mon, 9 May 2016 16:49:20 -0500
+Message-ID: <1462830566-28708-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1462830111-28172-1-git-send-email-d-gerlach@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,106 +16,47 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Nishanth Menon <nm@ti.com>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Russ Dill <Russ.Dill@ti.com>, Shawn Guo <shawnguo@kernel.org>
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Russ Dill <russ.dill@ti.com>
+Hi,
+This series adds support for OMAP3 platforms to use the generic SRAM driver
+at drivers/misc/sram.c. It depends on the patches sent here [1], which were
+sent as an RFC so if that series does not get accepted we will need to find
+a different method of marking SRAM region as executable so this series will
+need to change slightly.
 
-Now that there are _exec and _exec_nocache versions of ioremap, add devm
-support for them.
+The idea of this series is to add the ocmcram nodes to the DT files before
+converting the pm34xx to use the genalloc API allocate space for the
+sleep34xx.S code so that we do not break PM. After we do the conversion
+we can drop the legacy mach-omap2 SRAM code for OMAP3 as we no longer will
+have any dependency on it.
 
-Signed-off-by: Russ Dill <Russ.Dill@ti.com>
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
----
- include/linux/io.h |  5 +++++
- lib/devres.c       | 58 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 63 insertions(+)
+Tested suspend and off-mode on omap3-beaglexm and omap3-n900, cpuidle works
+fine as well.
 
-diff --git a/include/linux/io.h b/include/linux/io.h
-index e2c8419278c1..1c0442e5d72c 100644
---- a/include/linux/io.h
-+++ b/include/linux/io.h
-@@ -79,6 +79,11 @@ void __iomem *devm_ioremap_nocache(struct device *dev, resource_size_t offset,
- 				   resource_size_t size);
- void __iomem *devm_ioremap_wc(struct device *dev, resource_size_t offset,
- 				   resource_size_t size);
-+void __iomem *devm_ioremap_exec(struct device *dev, resource_size_t offset,
-+				unsigned long size);
-+void __iomem *devm_ioremap_exec_nocache(struct device *dev,
-+					resource_size_t offset,
-+					unsigned long size);
- void devm_iounmap(struct device *dev, void __iomem *addr);
- int check_signature(const volatile void __iomem *io_addr,
- 			const unsigned char *signature, int length);
-diff --git a/lib/devres.c b/lib/devres.c
-index cb1464c411a2..1181a739fd49 100644
---- a/lib/devres.c
-+++ b/lib/devres.c
-@@ -100,6 +100,64 @@ void __iomem *devm_ioremap_wc(struct device *dev, resource_size_t offset,
- EXPORT_SYMBOL(devm_ioremap_wc);
- 
- /**
-+ * devm_ioremap_exec - Managed ioremap_exec()
-+ * @dev: Generic device to remap IO address for
-+ * @offset: BUS offset to map
-+ * @size: Size of map
-+ *
-+ * Managed ioremap_exec().  Map is automatically unmapped on driver detach.
-+ */
-+void __iomem *devm_ioremap_exec(struct device *dev, resource_size_t offset,
-+				unsigned long size)
-+{
-+	void __iomem **ptr, *addr;
-+
-+	ptr = devres_alloc(devm_ioremap_release, sizeof(*ptr), GFP_KERNEL);
-+	if (!ptr)
-+		return NULL;
-+
-+	addr = ioremap_exec(offset, size);
-+	if (addr) {
-+		*ptr = addr;
-+		devres_add(dev, ptr);
-+	} else
-+		devres_free(ptr);
-+
-+	return addr;
-+}
-+EXPORT_SYMBOL(devm_ioremap_exec);
-+
-+/**
-+ * devm_ioremap_exec_nocache - Managed ioremap_exec_nocache()
-+ * @dev: Generic device to remap IO address for
-+ * @offset: BUS offset to map
-+ * @size: Size of map
-+ *
-+ * Managed ioremap_exec_nocache().  Map is automatically unmapped on driver
-+ * detach.
-+ */
-+void __iomem *devm_ioremap_exec_nocache(struct device *dev,
-+					resource_size_t offset,
-+					unsigned long size)
-+{
-+	void __iomem **ptr, *addr;
-+
-+	ptr = devres_alloc(devm_ioremap_release, sizeof(*ptr), GFP_KERNEL);
-+	if (!ptr)
-+		return NULL;
-+
-+	addr = ioremap_exec_nocache(offset, size);
-+	if (addr) {
-+		*ptr = addr;
-+		devres_add(dev, ptr);
-+	} else
-+		devres_free(ptr);
-+
-+	return addr;
-+}
-+EXPORT_SYMBOL(devm_ioremap_exec_nocache);
-+
-+/**
-  * devm_iounmap - Managed iounmap()
-  * @dev: Generic device to unmap for
-  * @addr: Address to unmap
+Regards,
+Dave
+
+[1] http://lkml.iu.edu/hypermail/linux/kernel/1605.1/01069.html
+
+Dave Gerlach (6):
+  Documentation: sram: ti: Add TI SRAM bindings
+  ARM: dts: omap3: Add ocmcram node
+  ARM: dts: omap3-n900: Add secure reserved region to ocmcram node
+  ARM: OMAP2+: pm34xx: Convert to use generic sram driver for idle code
+  ARM: OMAP2+: Remove legacy sram init code for omap3 platforms
+  ARM: OMAP2+: sram: remove legacy OMAP3 code
+
+ Documentation/devicetree/bindings/sram/ti-sram.txt | 47 +++++++++++
+ arch/arm/boot/dts/omap3-n900.dts                   |  7 ++
+ arch/arm/boot/dts/omap3.dtsi                       | 11 +++
+ arch/arm/mach-omap2/pdata-quirks.c                 |  3 +-
+ arch/arm/mach-omap2/pm34xx.c                       | 98 ++++++++++++++++++----
+ arch/arm/mach-omap2/sram.c                         | 23 -----
+ 6 files changed, 147 insertions(+), 42 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/sram/ti-sram.txt
+
 -- 
 2.7.3
