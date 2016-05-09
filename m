@@ -1,78 +1,86 @@
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Subject: Re: NFSroot hangs with bad unlock balance in Linux next
-Date: Mon, 9 May 2016 16:39:33 +0100
-Message-ID: <20160509153932.GJ2694@ZenIV.linux.org.uk>
-References: <20160505220344.GE5995@atomide.com>
- <20160508141629.GF2694@ZenIV.linux.org.uk>
- <20160509073235.GI2694@ZenIV.linux.org.uk>
- <CANn89iK5H-SokYE1r+OO3sPmQ1vpGqYGbE4x1QLn44wdyvH0cw@mail.gmail.com>
- <20160509151219.GF5995@atomide.com>
- <20160509152138.GG5995@atomide.com>
+From: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH V3 06/17] irqdomain: Don't set type when mapping an IRQ
+Date: Mon, 9 May 2016 16:44:56 +0100
+Message-ID: <5730B078.8090908@nvidia.com>
+References: <1462379130-11742-1-git-send-email-jonathanh@nvidia.com>
+ <1462379130-11742-7-git-send-email-jonathanh@nvidia.com>
+ <5730813B.7060206@arm.com> <57308D0D.4080800@nvidia.com>
+ <5730A867.9070504@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20160509152138.GG5995@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-nfs@vger.kernel.org, Jiri Pirko <jiri@resnulli.us>, netdev <netdev@vger.kernel.org>, Trond Myklebust <trond.myklebust@primarydata.com>, Anna Schumaker <anna.schumaker@netapp.com>, Eric Dumazet <edumazet@google.com>, linux-omap@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5730A867.9070504-5wv7dgnIgG8@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, May 09, 2016 at 08:21:38AM -0700, Tony Lindgren wrote:
 
-> Looks like with both patches applied I still also get this eventually:
+On 09/05/16 16:10, Marc Zyngier wrote:
+> On 09/05/16 14:13, Jon Hunter wrote:
+>> On 09/05/16 13:23, Marc Zyngier wrote:
+
+[snip]
+
+>>> This patch have the effect of making misconfigured PPIs absolutely
+>>> obvious. I still need to wrap my head around the root cause, but here's
+>>> the findings I have so far:
+>>>
+>>> - kvmtool generates a DT with the wrong trigger information (edge
+>>> instead of level) for the timer.
+>>> - with this patch applied, "cyclictest -S" reliably locks up when run in
+>>> a guest (missing a timer interrupt, goodbye CPU).
+>>> - Either fixing kvmtool or reverting that patch makes it work reliably
+>>> again.
+>>>
+>>> My gut feeling is that until that patch, the failing irq_set_irq_type()
+>>> wasn't affecting the kernel's view of the trigger (it was still treated
+>>> as level). With this patch, the kernel now trusts whatever is coming
+>>> from the firmware, and the misconfiguration becomes obvious. And just
+>>> grepping through the DT files for arm and arm64 sends makes me thing
+>>> "Holly effin' crap!".
+>>>
+>>> I'm not saying that we shouldn't perform this change though. But it is
+>>> quite obvious that it is going to break an awful lot of existing code
+>>> and platforms. I'm also cooking a small patch for the arch timer (which
+>>> seems to be described in DT with a fairly high level of brokenness), so
+>>> that we can mop-up most of the brain damage.
+>>
+>> Hmmm ... yes I see. I wonder if we should make the setting of the type
+>> here dependent upon PM being enabled for an irqchip? We could check to
+>> see if the .parent_device is populated and if so only then save the type
+>> and otherwise just set it as we do today.
 > 
-> =====================================
-> [ BUG: bad unlock balance detected! ]
-> 4.6.0-rc7-next-20160509+ #1264 Not tainted
-> -------------------------------------
+> I don't really like the idea of having multiple code paths for the same thing.
+> This is very error prone, and likely to bitrot pretty quickly.
 
-Lockdep warnings are noise.  To make them STFU try the following incremental;
-I'll fold it into #work.lookups and #for-next.  Note that it will do nothing
-to hangs - those are completely unrelated and you need Eric's patch to deal
-with them.
+True. However, we really need this change for irqchips and runtime-pm.
+So to confirm what are you suggesting we do? We could add a WARN around
+irq_set_irq_type() in irq_create_fwspec_mapping() for v4.7 and see how
+many complaints we get :-)
 
-diff --git a/fs/nfs/unlink.c b/fs/nfs/unlink.c
-index d367b06..1868246 100644
---- a/fs/nfs/unlink.c
-+++ b/fs/nfs/unlink.c
-@@ -64,7 +64,7 @@ static void nfs_async_unlink_release(void *calldata)
- 	struct dentry *dentry = data->dentry;
- 	struct super_block *sb = dentry->d_sb;
- 
--	up_read(&NFS_I(d_inode(dentry->d_parent))->rmdir_sem);
-+	up_read_non_owner(&NFS_I(d_inode(dentry->d_parent))->rmdir_sem);
- 	d_lookup_done(dentry);
- 	nfs_free_unlinkdata(data);
- 	dput(dentry);
-@@ -117,10 +117,10 @@ static int nfs_call_unlink(struct dentry *dentry, struct nfs_unlinkdata *data)
- 	struct inode *dir = d_inode(dentry->d_parent);
- 	struct dentry *alias;
- 
--	down_read(&NFS_I(dir)->rmdir_sem);
-+	down_read_non_owner(&NFS_I(dir)->rmdir_sem);
- 	alias = d_alloc_parallel(dentry->d_parent, &data->args.name, &data->wq);
- 	if (IS_ERR(alias)) {
--		up_read(&NFS_I(dir)->rmdir_sem);
-+		up_read_non_owner(&NFS_I(dir)->rmdir_sem);
- 		return 0;
- 	}
- 	if (!d_in_lookup(alias)) {
-@@ -142,7 +142,7 @@ static int nfs_call_unlink(struct dentry *dentry, struct nfs_unlinkdata *data)
- 			ret = 0;
- 		spin_unlock(&alias->d_lock);
- 		dput(alias);
--		up_read(&NFS_I(dir)->rmdir_sem);
-+		up_read_non_owner(&NFS_I(dir)->rmdir_sem);
- 		/*
- 		 * If we'd displaced old cached devname, free it.  At that
- 		 * point dentry is definitely not a root, so we won't need
+>> We could add a WARN to the existing irq_set_irq_type() or may be just a
+>> pr_warn() if a WARN is too verbose so people can fix up any issues.
+>>
+>> I am also wondering if patch 4/17 "iqdomain: Fix handling of type
+>> settings for existing mappings" could generate a lot of reports
+>> interrupts failing due to bad firmware? I wonder if I should tone this
+>> patch down to a warning message as well as opposed to a complete failure.
+> 
+> We'll see. We can always tone it down a notch, should it prove to be too noisy...
+> So far, I haven't seen it firing. On the other hand, I get the following stuff
+> on my APM board:
+> 
+> [    0.000000] GIC: PPI0 is either secure or misconfigured
+> [    0.000000] GIC: PPI13 is either secure or misconfigured
+> [    0.000000] arm_arch_timer: WARNING: Invalid trigger for IRQ1, assuming level low
+> [    0.000000] arm_arch_timer: WARNING: Please fix your firmware
+> [    0.000000] arm_arch_timer: WARNING: Invalid trigger for IRQ2, assuming level low
+> [    0.000000] arm_arch_timer: WARNING: Please fix your firmware
+> 
+> Pretty awesome...
+
+Indeed.
+
+Jon
