@@ -1,102 +1,46 @@
-From: Al Viro <viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
-Subject: Re: NFSroot hangs with bad unlock balance in Linux next
-Date: Sun, 8 May 2016 15:16:29 +0100
-Message-ID: <20160508141629.GF2694@ZenIV.linux.org.uk>
-References: <20160505220344.GE5995@atomide.com>
+From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: dra7xx: Fix compatible string for PCF8575 chip
+Date: Mon, 9 May 2016 08:49:29 +0200
+Message-ID: <573032F9.50604@linutronix.de>
+References: <1461588834-20908-1-git-send-email-rogerq@ti.com>
+ <1462386203.2360.12.camel@codethink.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160505220344.GE5995-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, Anna Schumaker <anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1462386203.2360.12.camel-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ben Hutchings <ben.hutchings-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 05, 2016 at 03:03:44PM -0700, Tony Lindgren wrote:
-> Hi,
+On 05/04/2016 08:23 PM, Ben Hutchings wrote:
+> On Mon, 2016-04-25 at 15:53 +0300, Roger Quadros wrote:
+>> The boards use a TI variant of the PCF8575 so specify that
+>> in the compatible string.
+>>
+>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> [...]
 > 
-> Looks like Linux next with NFSroot hangs for me at some point booting
-> into init. Then after a while it produces "BUG: bad unlock balance
-> detected!".
+> 1. This compatible string is still not documented (AFAIK).
+> 2. As I understand it, TI is a second source for this NXP-designed chip,
+> i.e. it manufactures chips with identical logic (not clones) under
+> license.  They should not be distinguishable in software.
+
+Mistakes don't happen on purpose.
+
+> 3. For the same reason, there is no guarantee that the board
+> manufacturer won't populate boards with PCF8575 chips from the other
+> source in future.
+
+If it is a redesign it is likely that they replace more than just one
+part.
+
 > 
-> This happens at least with omap5-uevm and igepv5. Not sure yet if it
-> also happens on other boards, the ones I'm seeing it happen both have
-> USB Ethernet controller. They usually hang after the system starts
-> being idle some tens of seconds into booting.
+> Ben.
 > 
-> I tried to bisect it down with no luck. I do have the following
-> trace, does that provide any clues?
-
-> kworker/0:2/112 is trying to release lock (&nfsi->rmdir_sem) at:
-> [<c03a7f98>] nfs_async_unlink_release+0x20/0x68
-> but there are no more locks to release!
-
-Very strange.  We grab that rwsem at the entry into nfs_call_unlink()
-and then either release it there and return or call nfs_do_call_unlink().
-Which arranges for eventual call of nfs_async_unlink_release() (via
-->rpc_release); nfs_async_unlink_release() releases the rwsem.  Nobody else
-releases it (on the read side, that is).
-
-The only kinda-sorta possibility I see here is that the inode we are
-unlocking in that nfs_async_unlink_release() is not the one we'd locked
-in nfs_call_unlink() that has lead to it.  That really shouldn't happen,
-though...  Just to verify whether that's what we are hitting, could you
-try to reproduce that thing with the patch below on top of -next and see
-if it triggers any of those WARN_ON?
-
-diff --git a/fs/nfs/unlink.c b/fs/nfs/unlink.c
-index d367b06..dbbb4c9 100644
---- a/fs/nfs/unlink.c
-+++ b/fs/nfs/unlink.c
-@@ -64,6 +64,10 @@ static void nfs_async_unlink_release(void *calldata)
- 	struct dentry *dentry = data->dentry;
- 	struct super_block *sb = dentry->d_sb;
- 
-+	if (WARN_ON(data->parent != dentry->d_parent) ||
-+	    WARN_ON(data->parent_inode != dentry->d_parent->d_inode)) {
-+		printk(KERN_ERR "WTF2[%pd4]", dentry);
-+	}
- 	up_read(&NFS_I(d_inode(dentry->d_parent))->rmdir_sem);
- 	d_lookup_done(dentry);
- 	nfs_free_unlinkdata(data);
-@@ -114,7 +118,8 @@ static void nfs_do_call_unlink(struct nfs_unlinkdata *data)
- 
- static int nfs_call_unlink(struct dentry *dentry, struct nfs_unlinkdata *data)
- {
--	struct inode *dir = d_inode(dentry->d_parent);
-+	struct dentry *parent = dentry->d_parent;
-+	struct inode *dir = d_inode(parent);
- 	struct dentry *alias;
- 
- 	down_read(&NFS_I(dir)->rmdir_sem);
-@@ -152,6 +157,12 @@ static int nfs_call_unlink(struct dentry *dentry, struct nfs_unlinkdata *data)
- 		return ret;
- 	}
- 	data->dentry = alias;
-+	data->parent = parent;
-+	data->parent_inode = dir;
-+	if (WARN_ON(parent != alias->d_parent) ||
-+	    WARN_ON(dir != parent->d_inode)) {
-+		printk(KERN_ERR "WTF1[%pd4]", alias);
-+	}
- 	nfs_do_call_unlink(data);
- 	return 1;
- }
-diff --git a/include/linux/nfs_xdr.h b/include/linux/nfs_xdr.h
-index ee8491d..b01a7f1 100644
---- a/include/linux/nfs_xdr.h
-+++ b/include/linux/nfs_xdr.h
-@@ -1471,6 +1471,8 @@ struct nfs_unlinkdata {
- 	struct nfs_removeargs args;
- 	struct nfs_removeres res;
- 	struct dentry *dentry;
-+	struct dentry *parent;
-+	struct inode *parent_inode;
- 	wait_queue_head_t wq;
- 	struct rpc_cred	*cred;
- 	struct nfs_fattr dir_attr;
+Sebastian
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
