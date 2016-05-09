@@ -1,8 +1,8 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 Subject: Re: [Kernel] [PATCH v2 4/5] ARM: dts: omap5: describe control for
  ckobuffer
-Date: Mon, 9 May 2016 16:52:44 +0300
-Message-ID: <3973330a-8a73-89fa-8e09-383407d0eaf9@ti.com>
+Date: Mon, 9 May 2016 17:09:12 +0300
+Message-ID: <57309A08.10704@ti.com>
 References: <cover.1461003660.git.hns@goldelico.com>
  <a5fb89737594a656318896a8e43814c21ca992eb.1461003660.git.hns@goldelico.com>
  <20160426172710.GI5995@atomide.com>
@@ -18,76 +18,74 @@ References: <cover.1461003660.git.hns@goldelico.com>
  <573079F5.7050507@ti.com> <145c9917-6a85-292b-c3c9-cf85ceb26f21@ti.com>
  <f66cd508-fe53-af58-bda5-822c8213cf7d@ti.com>
  <71c88d52-3737-6edb-52af-0b0f4a74efb2@ti.com>
+ <3973330a-8a73-89fa-8e09-383407d0eaf9@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <71c88d52-3737-6edb-52af-0b0f4a74efb2@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Russell King <linux@arm.linux.org.uk>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, kernel@pyra-handheld.com, LKML <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Laxman Dewangan <ldewangan@nvidia.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, Marek Belisko <marek@goldelico.com>, linux-omap <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <3973330a-8a73-89fa-8e09-383407d0eaf9-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Discussions about the Letux Kernel <letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 05/09/16 15:46, Peter Ujfalusi wrote:
-> On 05/09/16 15:32, Peter Ujfalusi wrote:
->> On 05/09/16 15:10, Peter Ujfalusi wrote:
->>
->>>>> finally I found some time to apply your patches. Sorry for the lo=
-ng time.
->>>>>
->>>>> Unfortunately, it does not work. Neither on omap5evm nor on our o=
-map5 hardware.
->>>>> I get no sound on the twl6040 - just white noise (which can be co=
-ntrolled in
->>>>> level through
->>>>> amixer so it is created on the digital input side of the twl6040)=
-=2E
->>>>>
->>>>> So I think your patch is missing a detail compared to my simple s=
-olution.
->>>>
->>>> Did you implement anything on the audio driver side? The audio dri=
-ver must
->>>> enable the clock implemented by this patch.
+On 09/05/16 16:52, Peter Ujfalusi wrote:
+> On 05/09/16 15:46, Peter Ujfalusi wrote:
+>> On 05/09/16 15:32, Peter Ujfalusi wrote:
+>>> On 05/09/16 15:10, Peter Ujfalusi wrote:
 >>>
->>> I did, can test it in 10 minutes or so...
+>>>>>> finally I found some time to apply your patches. Sorry for the long time.
+>>>>>>
+>>>>>> Unfortunately, it does not work. Neither on omap5evm nor on our omap5 hardware.
+>>>>>> I get no sound on the twl6040 - just white noise (which can be controlled in
+>>>>>> level through
+>>>>>> amixer so it is created on the digital input side of the twl6040).
+>>>>>>
+>>>>>> So I think your patch is missing a detail compared to my simple solution.
+>>>>>
+>>>>> Did you implement anything on the audio driver side? The audio driver must
+>>>>> enable the clock implemented by this patch.
+>>>>
+>>>> I did, can test it in 10 minutes or so...
+>>>
+>>> might work, but linux-next is not booting on omap5-uevm :o I don't know why...
 >>
->> might work, but linux-next is not booting on omap5-uevm :o I don't k=
-now why...
->=20
-> Applying Tero's alone makes the board not to boot, so something there=
-=2E.. I can
-> not see anything even with low-level debugging enabled :( I can not d=
-ebug it
-> further today, will look at this tomorrow.
+>> Applying Tero's alone makes the board not to boot, so something there... I can
+>> not see anything even with low-level debugging enabled :( I can not debug it
+>> further today, will look at this tomorrow.
+>
+> The crash is in arch/arm/mach-omap2/control.c:omap_control_init()
+>
+> the syscon_node_to_regmap() returns with error for the new
+> omap5_scm_wkup_pad_conf node. The other syscon was OK, but becasue of the
+> return PTR_ERR(syscon) the board will not boot...
+>
+> Tero: any idea?
 
-The crash is in arch/arm/mach-omap2/control.c:omap_control_init()
+I can check this tomorrow at my end.
 
-the syscon_node_to_regmap() returns with error for the new
-omap5_scm_wkup_pad_conf node. The other syscon was OK, but becasue of t=
-he
-return PTR_ERR(syscon) the board will not boot...
+-Tero
 
-Tero: any idea?
-
->> In any case I have attached the 3 patches I have for this, including=
- Tero's
->> ported to linux-next.
+>
+>>> In any case I have attached the 3 patches I have for this, including Tero's
+>>> ported to linux-next.
+>>>
+>>> Patch 3 might need to be done per board probably, but this should be good for
+>>> testing.
+>>>
+>>>
+>>>
+>>> _______________________________________________
+>>> Kernel mailing list
+>>> Kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org
+>>> http://pyra-handheld.com/cgi-bin/mailman/listinfo/kernel
+>>>
 >>
->> Patch 3 might need to be done per board probably, but this should be=
- good for
->> testing.
 >>
->>
->>
->> _______________________________________________
->> Kernel mailing list
->> Kernel@pyra-handheld.com
->> http://pyra-handheld.com/cgi-bin/mailman/listinfo/kernel
->>
->=20
->=20
+>
+>
 
-
---=20
-P=C3=A9ter
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
