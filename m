@@ -1,8 +1,8 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 3/6] ARM: dts: omap3-n900: Add secure reserved region to
- ocmcram node
-Date: Mon, 9 May 2016 16:49:23 -0500
-Message-ID: <1462830566-28708-4-git-send-email-d-gerlach@ti.com>
+Subject: [PATCH 5/6] ARM: OMAP2+: Remove legacy sram init code for omap3
+ platforms
+Date: Mon, 9 May 2016 16:49:25 -0500
+Message-ID: <1462830566-28708-6-git-send-email-d-gerlach@ti.com>
 References: <1462830566-28708-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,29 +22,28 @@ To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Platforms with secure silicon, like omap3-n900, need to mark off a
-section of the ocmcram as reserved because it is used by secure
-software.
+Remove omap3 platforms from using legacy sram init code in mach-omap2 as
+the platforms will now use the generic mmio-sram driver like other omap
+platforms already do.
 
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 ---
- arch/arm/boot/dts/omap3-n900.dts | 7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/arm/mach-omap2/pdata-quirks.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index b3c26a96a726..448452a76c23 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -1004,3 +1004,10 @@
- &ssi_port2 {
- 	status = "disabled";
- };
-+
-+&ocmcram {
-+	sram-hs@0 {
-+		compatible = "ti,secure-ram";
-+		reg = <0x0 0xC000>;
-+	};
-+};
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index a935d28443da..1a5b8afdb2e3 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -579,8 +579,7 @@ void __init pdata_quirks_init(const struct of_device_id *omap_dt_match_table)
+ 	 * We still need this for omap2420 and omap3 PM to work, others are
+ 	 * using drivers/misc/sram.c already.
+ 	 */
+-	if (of_machine_is_compatible("ti,omap2420") ||
+-	    of_machine_is_compatible("ti,omap3"))
++	if (of_machine_is_compatible("ti,omap2420"))
+ 		omap_sdrc_init(NULL, NULL);
+ 
+ 	pdata_quirks_check(auxdata_quirks);
 -- 
 2.7.3
