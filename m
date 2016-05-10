@@ -1,14 +1,13 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 03/23] drm: omapdrm: dss: reset dsi module during
- initialization
-Date: Tue, 10 May 2016 15:07:06 +0300
-Message-ID: <5731CEEA.4070506@ti.com>
+Subject: Re: [PATCH 04/23] drm: omapdrm: add DSI mapping
+Date: Tue, 10 May 2016 15:08:21 +0300
+Message-ID: <5731CF35.2070307@ti.com>
 References: <1457455195-1938-1-git-send-email-sre@kernel.org>
- <1457455195-1938-4-git-send-email-sre@kernel.org>
+ <1457455195-1938-5-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1695948504=="
+Content-Type: multipart/mixed; boundary="===============1457648276=="
 Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1457455195-1938-4-git-send-email-sre@kernel.org>
+In-Reply-To: <1457455195-1938-5-git-send-email-sre@kernel.org>
 List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
 List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
@@ -22,108 +21,62 @@ To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Aaro K
 Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---===============1695948504==
+--===============1457648276==
 Content-Type: multipart/signed; micalg=pgp-sha256;
 	protocol="application/pgp-signature";
-	boundary="KTaa39t7Pvc4VkIODHg4McQSXbPD0TKfT"
+	boundary="iItC1SNbLL6MUrtPe4X1Rtklmu35oNTHL"
 
---KTaa39t7Pvc4VkIODHg4McQSXbPD0TKfT
-Content-Type: multipart/mixed; boundary="d6LsvHDEnlP3JebfR9xwXMw8VnH8x6JIf"
+--iItC1SNbLL6MUrtPe4X1Rtklmu35oNTHL
+Content-Type: multipart/mixed; boundary="bWUc4itUpFpeVJW9SovWwqcC4OspN8Ddw"
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>,
  Aaro Koskinen <aaro.koskinen@iki.fi>
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
  David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org,
  dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Message-ID: <5731CEEA.4070506@ti.com>
-Subject: Re: [PATCH 03/23] drm: omapdrm: dss: reset dsi module during
- initialization
+Message-ID: <5731CF35.2070307@ti.com>
+Subject: Re: [PATCH 04/23] drm: omapdrm: add DSI mapping
 References: <1457455195-1938-1-git-send-email-sre@kernel.org>
- <1457455195-1938-4-git-send-email-sre@kernel.org>
-In-Reply-To: <1457455195-1938-4-git-send-email-sre@kernel.org>
+ <1457455195-1938-5-git-send-email-sre@kernel.org>
+In-Reply-To: <1457455195-1938-5-git-send-email-sre@kernel.org>
 
---d6LsvHDEnlP3JebfR9xwXMw8VnH8x6JIf
+--bWUc4itUpFpeVJW9SovWwqcC4OspN8Ddw
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-
-
 On 08/03/16 18:39, Sebastian Reichel wrote:
-> From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> This sets proper connector type for DSI connected panels.
 >=20
-> The Nokia N950's bootloader leaves the DSI module
-> in a non-working state. Work around this by resetting
-> the DSI module before using it.
->=20
-> Signed-off-By: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Reviewed-By: Sebastian Reichel <sre@kernel.org>
-> Tested-By: Sebastian Reichel <sre@kernel.org>
+> Signed-off-By: Sebastian Reichel <sre@kernel.org>
 > ---
->  drivers/gpu/drm/omapdrm/dss/dsi.c | 24 ++++++++++++++++++++++++
->  1 file changed, 24 insertions(+)
+>  drivers/gpu/drm/omapdrm/omap_drv.c | 2 ++
+>  1 file changed, 2 insertions(+)
 >=20
-> diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdr=
-m/dss/dsi.c
-> index 43be4b2a7b05..363a61e6aca7 100644
-> --- a/drivers/gpu/drm/omapdrm/dss/dsi.c
-> +++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
-> @@ -5274,6 +5274,28 @@ static int dsi_init_pll_data(struct platform_dev=
-ice *dsidev)
->  	return 0;
->  }
-> =20
-> +static int _dsi_wait_reset(struct platform_device *dsidev)
-> +{
-> +	int t =3D 0;
-> +
-> +	while (REG_GET(dsidev, DSI_SYSSTATUS, 0, 0) =3D=3D 0) {
-> +		 if (++t > 5) {
-> +		DSSERR("soft reset failed\n");
-> +			return -ENODEV;
-> +		 }
-> +		 udelay(1);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int _dsi_reset(struct platform_device *dsidev)
-> +{
-> +	/* Soft reset */
-> +	dsi_write_reg(dsidev, DSI_SYSCONFIG, 0x2);
-> +	return _dsi_wait_reset(dsidev);
-> +}
-> +
->  /* DSI1 HW IP initialisation */
->  static int dsi_bind(struct device *dev, struct device *master, void *d=
-ata)
->  {
-> @@ -5432,6 +5454,8 @@ static int dsi_bind(struct device *dev, struct de=
-vice *master, void *data)
->  	if (r)
->  		goto err_runtime_get;
-> =20
-> +	_dsi_reset(dsidev);
-> +
->  	rev =3D dsi_read_reg(dsidev, DSI_REVISION);
->  	dev_dbg(&dsidev->dev, "OMAP DSI rev %d.%d\n",
->  	       FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
+> diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapd=
+rm/omap_drv.c
+> index dfafdb602ad2..a3ff35f5f6cd 100644
+> --- a/drivers/gpu/drm/omapdrm/omap_drv.c
+> +++ b/drivers/gpu/drm/omapdrm/omap_drv.c
+> @@ -215,6 +215,8 @@ static int get_connector_type(struct omap_dss_devic=
+e *dssdev)
+>  		return DRM_MODE_CONNECTOR_HDMIA;
+>  	case OMAP_DISPLAY_TYPE_DVI:
+>  		return DRM_MODE_CONNECTOR_DVID;
+> +	case OMAP_DISPLAY_TYPE_DSI:
+> +		return DRM_MODE_CONNECTOR_DSI;
+>  	default:
+>  		return DRM_MODE_CONNECTOR_Unknown;
+>  	}
 >=20
 
-This is good as a prototype, but unfortunately we're not supposed to
-reset the IP from the driver. I haven't followed if there's a proper
-reset framework yet available, but if not, I think we should do the
-reset at the platform code at boot time.
-
-Which actually makes me wonder... We should be doing that reset already
-there, in mach-omap2/display.c. I wonder why that's not working...
+Thanks, I've picked this up for 4.8.
 
  Tomi
 
 
---d6LsvHDEnlP3JebfR9xwXMw8VnH8x6JIf--
+--bWUc4itUpFpeVJW9SovWwqcC4OspN8Ddw--
 
---KTaa39t7Pvc4VkIODHg4McQSXbPD0TKfT
+--iItC1SNbLL6MUrtPe4X1Rtklmu35oNTHL
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -131,24 +84,24 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJXMc7rAAoJEPo9qoy8lh71wsAQAKZq23qthgRGkYaLkryDXPgT
-H789J2g6nqEfQOrPKZ4E02XwmI3MFQbARO7ie7/NsP7PNenB68rhpeU17281994S
-nf0grb0QKjdse2mfSkDn5GRqKrBOMIctshrwABm01+7ysRHUok0oleIybrSpbNkv
-aqjo5NWxC+4V22UMUybf6IX1IqKIntsKcYuOe4A9sz1MyMhr3PPgeJXjk4+FXd2R
-/Jmn8Uk0EbhjxvRoe4y76xUYuJcb9VXc+1/cxwiXgOq2fAwtaviJw7Dcj50W75I3
-qhDkaYQXSeObwlJQJc34EgdvrJRlaMqiUlsHaJIkzOlw0vlNVx/JEa1e5YpxlaKI
-9Ysj+coGXPui6gUlW/rw0tyedbkOGy0RO6lFt+sr3h/QL4m1kW8qlTvTMJhQMrJL
-MOyeQgTmi7kBH8QFXK6mDRcTfdZrcWMb4ez5isYNgEZACEvU4d6tySL43gk5uSze
-7zPi8WmQr9yZrS7Ifg2dWUc3mZkVvP7yk61/xkl+yL9OUdk3S51eo7vU9xiVFxc/
-UoI81nWLhPLNcL5wgHYigPOhN8RTxe9SEwik2t+sgbQb4RwYH2c1o0UUHXFRob6M
-FR1SnFHJfaAkAutiALtMLMhRCdhR8M4MbE7LrWrf9ZxpsTQmwkby95tn+CI1kTv7
-9kFaoybLIkOVjj1QRfXZ
-=HlO5
+iQIcBAEBCAAGBQJXMc81AAoJEPo9qoy8lh71he4P/2da/OgN/oS3SbCkR6xUP2lH
+YmjmI/Rp9CTTxUqAdwGq40gwzRBjB5wYdpBoXoYOPHNb02lnhnH2sGCa420WdHlX
+EAHJkpUIAjnTkT8yMDsJiy802j4NSjFpETO1KBHcjgWtzG/qOUD8FnbVFP394Wo3
+9qZ+g6/AtRHkRaLFf+vTwKpJNulNcD/N/E/RgPIf7V3gdyJ0w7+Vj6wtFUQbc/2J
+UMdOU3MiSf1+y3fuPcEpdhBQwEA7Gf3V0sbsdEU+yEc9mYFjAW7DuaKUQh50gjHO
++3c33k97C3BneUpz3H7xIOOnHl2BAJ3gqmquF2iV07DMRGjd40ObL5wBUTDkjDMv
+7WTYczL8vbCOm2FozXl5q+SHU5J7+sqKKagOIK1yLUK+THaYn5wVa+LOTYIaddu7
+arRc2g04uUpK/8Urtgyq0sLi2gq2DgA5zpbqdoMKCxe6yb67SMJDmWxThShKyuO+
+Wg9xRqQ7uY/2EJD7sFwo5jS2kLyTP2ms/TBx/KJwKShllDvUrdK+SJ/i+ZoY+d7V
+H/LRfw5KAa1Q7T/8LPs4xr+QpXoHMJM2aM1MX87CpsrnghLKdfIN1TWTYUxGA3I+
+8jyA8+iFntfiw31EW3+fSys1Fm+aZ381NylDb0+99W3PEZfvdtVHKyp8chQkhDX8
+TDfSt390yObHbHL1F/kk
+=2WEt
 -----END PGP SIGNATURE-----
 
---KTaa39t7Pvc4VkIODHg4McQSXbPD0TKfT--
+--iItC1SNbLL6MUrtPe4X1Rtklmu35oNTHL--
 
---===============1695948504==
+--===============1457648276==
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
@@ -158,4 +111,4 @@ X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
 IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
 dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
 
---===============1695948504==--
+--===============1457648276==--
