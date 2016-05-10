@@ -1,93 +1,69 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+From: Sebastian Reichel <sre@kernel.org>
 Subject: Re: [PATCH 4/7] [media] ir-rx51: add DT support to driver
-Date: Tue, 10 May 2016 01:06:18 +0300
-Message-ID: <573109DA.9040602@gmail.com>
+Date: Tue, 10 May 2016 04:18:27 +0200
+Message-ID: <20160510021826.GE1129@earth>
 References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
  <1462634508-24961-5-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160509200657.GA3379@rob-hp-laptop> <5730F8BA.5000402@gmail.com>
+ <20160509200657.GA3379@rob-hp-laptop>
+ <5730F8BA.5000402@gmail.com>
  <CAL_JsqJPZS1ne_xAuBFtCc5L1HKFJf0LDUJ7CRSFXhc3adkTfA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="ZInfyf7laFu/Kiw7"
+Return-path: <linux-pwm-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <CAL_JsqJPZS1ne_xAuBFtCc5L1HKFJf0LDUJ7CRSFXhc3adkTfA@mail.gmail.com>
-Sender: linux-media-owner@vger.kernel.org
+Sender: linux-pwm-owner@vger.kernel.org
 To: Rob Herring <robh@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Thierry Reding <thierry.reding@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux PWM List <linux-pwm@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, Sebastian Reichel <sre@kernel.org>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Thierry Reding <thierry.reding@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux PWM List <linux-pwm@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
 
+--ZInfyf7laFu/Kiw7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On 10.05.2016 00:07, Rob Herring wrote:
-> On Mon, May 9, 2016 at 3:53 PM, Ivaylo Dimitrov
-> <ivo.g.dimitrov.75@gmail.com> wrote:
->> Hi,
->>
->> On  9.05.2016 23:06, Rob Herring wrote:
->>>
->>> On Sat, May 07, 2016 at 06:21:45PM +0300, Ivaylo Dimitrov wrote:
->>>>
->>>> With the upcoming removal of legacy boot, lets add support to one of the
->>>> last N900 drivers remaining without it. As the driver still uses omap
->>>> dmtimer, add auxdata as well.
->>>>
->>>> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
->>>> ---
->>>>    .../devicetree/bindings/media/nokia,lirc-rx51         | 19
->>>> +++++++++++++++++++
->>>>    arch/arm/mach-omap2/pdata-quirks.c                    |  6 +-----
->>>>    drivers/media/rc/ir-rx51.c                            | 11 ++++++++++-
->>>>    3 files changed, 30 insertions(+), 6 deletions(-)
->>>>    create mode 100644
->>>> Documentation/devicetree/bindings/media/nokia,lirc-rx51
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/media/nokia,lirc-rx51
->>>> b/Documentation/devicetree/bindings/media/nokia,lirc-rx51
->>>> new file mode 100644
->>>> index 0000000..5b3081e
->>>> --- /dev/null
->>>> +++ b/Documentation/devicetree/bindings/media/nokia,lirc-rx51
->>>> @@ -0,0 +1,19 @@
->>>> +Device-Tree bindings for LIRC TX driver for Nokia N900(RX51)
->>>> +
->>>> +Required properties:
->>>> +       - compatible: should be "nokia,lirc-rx51".
->>>
->>>
->>> lirc is a Linux term. Also, nokia,rx51-... would be conventional
->>> ordering.
->>>
->>
->> I used the driver name ("lirc_rx51") to not bring confusion. Also, it
->> registers itself through lirc_register_driver() call, so having lirc in its
->> name somehow makes sense.
->>
->> I am not very good in inventing names, the best compatible I can think of is
->> "nokia,rx51-ir". Is that ok?
->
-> Sure, but...
->
->>> Is this anything more than a PWM LED?
->>>
->>
->> It is an IR LED connected through a driver to McSPI2_SIMO pin of OMAP3,
->> which pin can be configured as PWM or GPIO(there are other configurations,
->> but they don't make sense). In theory it could be used for various things
->> (like uni-directional serial TX, or stuff like that), but in practice it
->> allows N900 to be act as an IR remote controller. I guess that fits in
->> "nothing more than a PWM LED", more or less.
->
-> There's already a pwm-led binding that can be used. Though there may
-> be missing consumer IR to LED subsystem support in the kernel. You
-> could list both compatibles, use the rx51 IR driver now, and then move
-> to pwm-led driver in the future.
->
+Hi,
 
-I looked at the pwm-leds (and related) code and couldn't see how it will 
-do the job of controlling IR TX LED as a remote controller. So yeah, it 
-seems CIR support in LEDS subsystem is non existent.
+On Mon, May 09, 2016 at 04:07:35PM -0500, Rob Herring wrote:
+> There's already a pwm-led binding that can be used. Though there
+> may be missing consumer IR to LED subsystem support in the kernel.
+> You could list both compatibles, use the rx51 IR driver now, and
+> then move to pwm-led driver in the future.
 
-Could you elaborate on "list both compatibles", I don't really 
-understand what I should do.
+Well from a purely HW point of view it's a PWM connected led. The
+usage is completely different though. Usually PWM is used to control
+the LED's brightness via the duty cycle (basic concept: enabling led
+only 50% of time reduces brightness to 50%).
 
-Ivo
+In the IR led's case the aim is generating a specific serial pattern
+instead. For this task it uses a dmtimer in PWM mode and a second
+one to reconfigure the pwm timer.
+
+I don't know about a good name, but rx51 should be replaced with
+n900 in the compatible string. So maybe "nokia,n900-infrared-diode".
+
+-- Sebastian
+
+--ZInfyf7laFu/Kiw7
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJXMUTwAAoJENju1/PIO/qa77EQAKot0fwGiJ6h6yBcLzxrGfkB
+v7Iscq+mL9pFfOx09N7HouBsT55nSp2rwhn8Zf+pqWU1gCo+G6P/HbPt63az8ec0
+lVbW7dHySUGPLN0tsTizHGljyUKtI4x4+R3hfhKe+rUhNjx7fGjNF7OsU2XxmDwl
+0keHNIHs0q+KHjrwcUnRsTIGt6AsbwjNfRfmpCVxWPoqT0iwO7NOmUE1P2NSG0dW
+dwGhomBvfapfc+YVnivm4W0hKP2OGJfaykExkbfU8NVJXM2rsh50OskIETp4XNqi
++PbCrCGRcC4+FOaY4lZ+THjuT5fdGn5a/6UJhpqpWsFOi9BUG6DiSjQdL/4+IpE7
+Zn/PCIe/dJdteudbOBx7Rcru9gWTQSgvK1PytxgtLTYEqcisvhSG3+aJpjsMqDOE
+8rZ9sWvZI9zYqtVJeBp1xebqMZ0bRhBjUM+zGT7s7h0DphWANjOrsJoGFktph5UY
+QiKIyLXbZ6GoRUMM62TA76r3Kb79S+wJ5g9GMz7uOkKge7DV2VHtaWkLroq6qzNE
+/xyFs0ZkC3xuSFaaHeyu6SPQgVi0XUbFBTRI+DweBUPs0ONJj35JuF89rwWW8Uc7
+UeYBrlkk9OwbBzeefBKmQlBmp+J5R3c/kIEepDLTLoKV31GFN4PMAFZS0BrXEQcj
+v0d7Qc/MIskTuTWJsbFE
+=6DvW
+-----END PGP SIGNATURE-----
+
+--ZInfyf7laFu/Kiw7--
