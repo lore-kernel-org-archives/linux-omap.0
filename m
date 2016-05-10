@@ -1,13 +1,13 @@
 From: Felipe Balbi <balbi@kernel.org>
-Subject: Re: [PATCH v7 3/5] usb: dwc3: omap: Don't set POWERPRESENT
-Date: Tue, 10 May 2016 13:04:33 +0300
-Message-ID: <874ma6i5zi.fsf@linux.intel.com>
-References: <1462873919-20532-1-git-send-email-rogerq@ti.com> <1462873919-20532-4-git-send-email-rogerq@ti.com> <87futqi6gs.fsf@linux.intel.com> <5731B118.1010705@ti.com>
+Subject: Re: [PATCH v7 4/5] usb: dwc3: omap: Pass VBUS and ID events transparently
+Date: Tue, 10 May 2016 13:05:13 +0300
+Message-ID: <871t5ai5ye.fsf@linux.intel.com>
+References: <1462873919-20532-1-git-send-email-rogerq@ti.com> <1462873919-20532-5-git-send-email-rogerq@ti.com> <87d1oui6eh.fsf@linux.intel.com> <5731B155.6010109@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; boundary="=-=-=";
 	micalg=pgp-sha256; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5731B118.1010705@ti.com>
+In-Reply-To: <5731B155.6010109@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>
 Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
@@ -21,39 +21,30 @@ Content-Transfer-Encoding: quoted-printable
 Hi,
 
 Roger Quadros <rogerq@ti.com> writes:
-> On 10/05/16 12:54, Felipe Balbi wrote:
+> On 10/05/16 12:55, Felipe Balbi wrote:
 >>=20
 >> Hi,
 >>=20
 >> Roger Quadros <rogerq@ti.com> writes:
->>> TRM [1] recommends that POWERPRESENT bit must not be
->>> set and left at it's default value of 0.
+>>> Don't make any decisions regarding VBUS session based on ID
+>>> status. That is best left to the OTG core.
 >>>
->>> [1] OMAP542x TRM - http://www.ti.com/lit/pdf/swpu249
->>> Section 23.11.4.5.1 Mailbox VBUS/ID Management
+>>> Pass ID and VBUS events independent of each other so that OTG
+>>> core knows exactly what to do.
 >>>
->>> "Because PIPE powerpresent has a different meaning in host and in devic=
-e mode,
->>> and because of the redundancy with the UTMI signals, the controller ORes
->>> together the appropriate PIPE and UTMI inputs to create its internal
->>> VBUS status. For that reason, it is recommended to leave field
->>> USBOTGSS_UTMI_OTG_STATUS[9] POWERPRESENT at its default value (=3D0), a=
-nd only to
->>> fill in the USB2 VBUS status fields in the same register."
+>>> This makes dual-role with extcon work with OTG irq on OMAP platforms.
 >>>
 >>> Signed-off-by: Roger Quadros <rogerq@ti.com>
 >>=20
->> to make sure we avoid regressions, do you mind sharing on which
->> platforms you tested this patch ?
+>> I have a feeling this will regress OMAP5432 uEVM. Did you test with that
+>> board ?
 >>=20
-> I tested this on omap5-uevm and dra7-evm.
-> My am437x board stopped working so couldn't test on that one.
+>
+> Yes. Any specific test case you would like me to test?
+> For now I'm just doing enumeration with g_zero.
 
-would you have a colleague or perhaps an automated test-farm which could
-run the test for you ? :-)
-
-I can take the patch, no problem, but if there are any regressions don't
-blame me :-)
+IIRC OMAP5 uEVM didn't have separate VBUS and ID GPIOs. How are you
+handling that case ?
 
 =2D-=20
 balbi
@@ -64,18 +55,18 @@ Content-Type: application/pgp-signature; name="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJXMbIxAAoJEIaOsuA1yqRE+4QP/3CxMQo9HtsYMHj+uxrzfAQj
-o6H75+ByqRL36COwrQAmp1HVd+74netyNkRo11dqMEwfou6Z4BIAnDB8Nr9wSCdD
-wkUCVBe52gxhvGqt9uKi+JvUZoBprMRm3kY4L+WNGLqzW6UOzNMY77S+HRDfCNE0
-X6s4XhoFvIX3tj3IJXBVl3U9aznPnfqZYw9ZfUuHs/Ep8z2yecwlLQsKEPpNRQID
-w/EvihPejdgkgZ4md0uTDBgDPHFh+tGkRP4ao7Jba4TfNZ6ex4GY+5Olk1FDk1Oy
-h18e3dWyTWKEgqG+N3AsA/f6wb72In1Qe2J4c3AJTFEtxcWNpl0IHIvp5rWrxN9z
-7wjwBI3iiCRD77kDQ0SMOSIBbOHtXmlLmD164I7uRMEaE8IoSx37Ni1FRSIGK/ss
-D69OdOUwbtmPeKD0fh2LJ5TLhel1/E/9ALqVE1UIbdsMlFwkZ9ejqe4F3NTULFjU
-OYMbOeBNLbzlyjPRgR3ufUdC+rGZyWqVHk30zRHG6IPFRUyq10+0RgzE19qLuoj8
-Fz3GDHDUvfChPi9VDJ4UhJpJhgNG/+hlzTSKrowHJp5HCXs1uClxsyUwkQAb1djr
-DDzO0TCxuWyBAEuzmVDWct4mqs4Q4FmFfJEgi3mK0j0Ofp8CgofNrsmKyYBJrgtG
-WKfAMnY3ZtWMA5zDRbGB
-=JL9k
+iQIcBAEBCAAGBQJXMbJZAAoJEIaOsuA1yqREMF4P/RbsFxnGXsFt8fflHl+gV9wd
+YXgZ0/T6Jg2oYyRE9FUhmPqb7hb/+Jj6jwwAEW+kJb9Qc1AlaVj9WkM1HfKQ8NOv
+gNb3h6ZHKMK2zNrQ0GavI0fHsEsuu9CkYte1TzBCxaWdNMJR8bV1oquETox0gKRK
+JHJdt7d4lx2rEmCwH7ldV0yF802oThxXN3M+l9WQPSiD2BoRtf9TnJgHuHGerXY+
+mWpb1/6e+EzekZt1iOrJD85i6VrpVkxkAtkAHetqZPsNUZRpYF2ju26GAXsyx8zh
+MGUdvOS0ZROuhFoWzz6GjcYYuxr+9VDuEk7VSLZ+Z92rkVWQEGTbeobF7JT0fqJH
+zX4ym2gdcqgI0rWbFRZQQwp97mGURvcWxZOxJznplvH6NlJMgFao6+bO+sxAjM3o
+RtZLrjj6VY91ShY9M5mXL0fTaCYfkHBd3ANz0KmUUcT2ATJr5FZ0/WInTfaHjfiZ
+fQ4lf6PiRJtc+C6JicaBHoAT3WFb/ZRlEctXva54M25O9XDI9l1NKWAuIrxNXNik
+ZiVXwNltFDMSfOJEkEcpRQdsQjCkzFg8W1eUHuAv6hRBG00PrH2WJHylYw3xF1Ht
+tQraXNIPEMtq9YLqB56huv67M2xWvU3SiHOCmfzOSGtG8d5yU6u1KIOMgQhIBieI
+6jhg6vmR13KOZqIDkph9
+=ad47
 -----END PGP SIGNATURE-----
 --=-=-=--
