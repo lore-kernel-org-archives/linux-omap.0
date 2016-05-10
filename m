@@ -1,126 +1,75 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 18/23] drm: omapdrm: panel-dsi-cm: use threaded irq handler
-Date: Tue, 10 May 2016 15:19:43 +0300
-Message-ID: <5731D1DF.5050304@ti.com>
-References: <1457455195-1938-1-git-send-email-sre@kernel.org>
- <1457455195-1938-19-git-send-email-sre@kernel.org>
+From: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH V3 06/17] irqdomain: Don't set type when mapping an IRQ
+Date: Tue, 10 May 2016 13:20:51 +0100
+Message-ID: <5731D223.2080503@arm.com>
+References: <1462379130-11742-1-git-send-email-jonathanh@nvidia.com>
+ <1462379130-11742-7-git-send-email-jonathanh@nvidia.com>
+ <5730813B.7060206@arm.com> <57308D0D.4080800@nvidia.com>
+ <5730A867.9070504@arm.com> <5730B078.8090908@nvidia.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0699767336=="
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1457455195-1938-19-git-send-email-sre@kernel.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5730B078.8090908-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---===============0699767336==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="mgai4hqmfwWVnXgveQbaohIMX6o8F9fnL"
+On 09/05/16 16:44, Jon Hunter wrote:
+> 
+> On 09/05/16 16:10, Marc Zyngier wrote:
+>> On 09/05/16 14:13, Jon Hunter wrote:
+>>> On 09/05/16 13:23, Marc Zyngier wrote:
+> 
+> [snip]
+> 
+>>>> This patch have the effect of making misconfigured PPIs absolutely
+>>>> obvious. I still need to wrap my head around the root cause, but here's
+>>>> the findings I have so far:
+>>>>
+>>>> - kvmtool generates a DT with the wrong trigger information (edge
+>>>> instead of level) for the timer.
+>>>> - with this patch applied, "cyclictest -S" reliably locks up when run in
+>>>> a guest (missing a timer interrupt, goodbye CPU).
+>>>> - Either fixing kvmtool or reverting that patch makes it work reliably
+>>>> again.
+>>>>
+>>>> My gut feeling is that until that patch, the failing irq_set_irq_type()
+>>>> wasn't affecting the kernel's view of the trigger (it was still treated
+>>>> as level). With this patch, the kernel now trusts whatever is coming
+>>>> from the firmware, and the misconfiguration becomes obvious. And just
+>>>> grepping through the DT files for arm and arm64 sends makes me thing
+>>>> "Holly effin' crap!".
+>>>>
+>>>> I'm not saying that we shouldn't perform this change though. But it is
+>>>> quite obvious that it is going to break an awful lot of existing code
+>>>> and platforms. I'm also cooking a small patch for the arch timer (which
+>>>> seems to be described in DT with a fairly high level of brokenness), so
+>>>> that we can mop-up most of the brain damage.
+>>>
+>>> Hmmm ... yes I see. I wonder if we should make the setting of the type
+>>> here dependent upon PM being enabled for an irqchip? We could check to
+>>> see if the .parent_device is populated and if so only then save the type
+>>> and otherwise just set it as we do today.
+>>
+>> I don't really like the idea of having multiple code paths for the same thing.
+>> This is very error prone, and likely to bitrot pretty quickly.
+> 
+> True. However, we really need this change for irqchips and runtime-pm.
+> So to confirm what are you suggesting we do? We could add a WARN around
+> irq_set_irq_type() in irq_create_fwspec_mapping() for v4.7 and see how
+> many complaints we get :-)
 
---mgai4hqmfwWVnXgveQbaohIMX6o8F9fnL
-Content-Type: multipart/mixed; boundary="oS8JJt7XGolHAA3axq8W4GsWnADXwrDQd"
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>,
- Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
- David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org,
- dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Message-ID: <5731D1DF.5050304@ti.com>
-Subject: Re: [PATCH 18/23] drm: omapdrm: panel-dsi-cm: use threaded irq
- handler
-References: <1457455195-1938-1-git-send-email-sre@kernel.org>
- <1457455195-1938-19-git-send-email-sre@kernel.org>
-In-Reply-To: <1457455195-1938-19-git-send-email-sre@kernel.org>
+Let's add a pr_warn(), and see how noisy this becomes. We may have to
+remove it if it becomes too loud though.
 
---oS8JJt7XGolHAA3axq8W4GsWnADXwrDQd
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Thanks,
 
-
-On 08/03/16 18:39, Sebastian Reichel wrote:
-> Use threaded irq handler for the tearing effect gpio,
-> since it updates the display content, which requires
-> too much time for a fastpath irq.
->=20
-> Signed-off-by: Sebastian Reichel <sre@kernel.org>
-> ---
->  drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
->=20
-> diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/=
-gpu/drm/omapdrm/displays/panel-dsi-cm.c
-> index 768e92d1ec8b..8316b6c2d8aa 100644
-> --- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-> +++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-> @@ -1317,9 +1317,9 @@ static int dsicm_probe(struct platform_device *pd=
-ev)
->  			return r;
->  		}
-> =20
-> -		r =3D devm_request_irq(dev, gpio_to_irq(ddata->ext_te_gpio),
-> -				dsicm_te_isr,
-> -				IRQF_TRIGGER_RISING,
-> +		r =3D devm_request_threaded_irq(dev, gpio_to_irq(ddata->ext_te_gpio)=
-,
-> +				NULL, dsicm_te_isr,
-> +				IRQF_TRIGGER_RISING | IRQF_ONESHOT,
->  				"taal vsync", ddata);
-> =20
->  		if (r) {
->=20
-
-I don't have a problem with moving to threaded irq, but it does make me
-wonder, what's happening there that's taking so much time? I think it
-should be just writing the configs to the registers and starting the
-transfer.
-
- Tomi
-
-
---oS8JJt7XGolHAA3axq8W4GsWnADXwrDQd--
-
---mgai4hqmfwWVnXgveQbaohIMX6o8F9fnL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJXMdHfAAoJEPo9qoy8lh71B0MP/1t0lya9iY/+RchJYF5YbAds
-Xp9Iqnp+9xTMoFXZ2F7bhHph5qFo7nJPk7mnxqB3i5Gv0kb+boWg3Ie+mJzySY7U
-XL0YKUr5l+FMky851ZaCpgVU8/yBD2TE0YwG0m+5wfMTPYvP3ZTtiZGrlmWnMChO
-tHTRU0NljW3imOvIT60iR4rezAmGmzzMopsZIeqtiWh9uBukbGAvIEHidZQBmmoR
-zPNivakq4WDK2fQ1ygkOEImoSIP6mtXRedU0A/hfsDRRNEhSebJ2hzd3zODlwPZV
-A2GnOrInVrbfi3VYiHAGf+L2+qMEBjAez63G5S7Egc4427iTITxomLXEsK1MU2iT
-5kQgXYfPZxpTuyFonVDjfurU7pEuKVB5Q2NWHzx7fFilMXDZWSOJNj593ywq6MQW
-1C8qN+zj/E3D0g90bqHRvEEW5Y6cmbscoedPYe/PzuLb42huvkzEG0HZYA6qJW15
-kuRVolnUBkNIb6jkTThzgUBYg2STYfbhUb96VtYOv33pPefJWishsbU8os5CQnjr
-vyMOwa93JI2sFTT5BaRYir8CGfErOr9RCfknkD89Wv+2PopVivkBBL1ROT/leot4
-NuaoHYd6rua62Q+xpbsgS4REJS3p3ritzQMvMJedpKw7t9M9VwWyR7A5qlpX55QE
-40fvqk1u0siV3EbYffbL
-=oiep
------END PGP SIGNATURE-----
-
---mgai4hqmfwWVnXgveQbaohIMX6o8F9fnL--
-
---===============0699767336==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
-
---===============0699767336==--
+	M.
+-- 
+Jazz is not dead. It just smells funny...
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
