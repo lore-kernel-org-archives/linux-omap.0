@@ -1,7 +1,7 @@
 From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/2] ARM: dts: dra7: Add ti,secure-ram node to ocmcram1 node
-Date: Tue, 10 May 2016 14:49:42 -0500
-Message-ID: <1462909782-14639-3-git-send-email-d-gerlach@ti.com>
+Subject: [PATCH 1/2] ARM: dts: dra7: Add ocmcram nodes
+Date: Tue, 10 May 2016 14:49:41 -0500
+Message-ID: <1462909782-14639-2-git-send-email-d-gerlach@ti.com>
 References: <1462909782-14639-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,47 +12,63 @@ To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-om
 Cc: Andreas Dannenberg <dannenberg-l0cyMroinI0@public.gmane.org>, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Secure variants of DRA7xx and AM57xx SoCs may need to reserve a region
-of the SRAM for use by secure software. To account for this, add a child
-node to the ocmcram1 node that will act as a placeholder at the start
-of the SRAM for the reserved region of memory that may be required
-by secure services. The node is added with size 0 so that by default
-parts will have the full space available but the bootloader or board dts
-file is able to resize the node as needed depending on how much reserved
-space is needed, if any, so end users of the ocmcram1 region on HS parts
-must be aware that a smaller amount of SRAM than expected may be available.
+Add all ocmcram nodes to dra7.dtsi using the generic mmio-sram driver.
+DRA7xx and AM57xx families of SoCs can contain three ocmcram regions of
+SRAM, one of 512kb and also an optional two additional of 1Mb each. Mark
+the two additional 1MB regions of SRAM as disabled as only ocmcmram1 is
+on all variants of the SoCs, then depending on which specific variant
+is in use the ocmcram2 and ocmcram3 nodes can be enabled in the board
+dts file if the data manual for that part number indicates the ocmcram
+region is available.
 
 Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/dra7.dtsi | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ arch/arm/boot/dts/dra7.dtsi | 32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
 
 diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index fd6f74856bd3..f46a265ce315 100644
+index 13ac88279427..fd6f74856bd3 100644
 --- a/arch/arm/boot/dts/dra7.dtsi
 +++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -292,6 +292,21 @@
- 			ranges = <0x0 0x40300000 0x80000>;
- 			#address-cells = <1>;
- 			#size-cells = <1>;
-+			/*
-+			 * This is a placeholder for an optional reserved
-+			 * region for use by secure software. The size
-+			 * of this region is not known until runtime so it
-+			 * is set as zero to either be updated to reserve
-+			 * space or left unchanged to leave all SRAM for use.
-+			 * On HS parts that that require the reserved region
-+			 * either the bootloader can update the size to
-+			 * the required amount or the node can be overridden
-+			 * from the board dts file for the secure platform.
-+			 */
-+			sram-hs@0 {
-+				compatible = "ti,secure-ram";
-+				reg = <0x0 0x0>;
-+			};
+@@ -286,6 +286,38 @@
+ 			};
  		};
  
- 		/*
++		ocmcram1: ocmcram@40300000 {
++			compatible = "mmio-sram";
++			reg = <0x40300000 0x80000>;
++			ranges = <0x0 0x40300000 0x80000>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++		};
++
++		/*
++		 * NOTE: ocmcram2 and ocmcram3 are not available on all
++		 * DRA7xx and AM57xx variants. Confirm availability in
++		 * the data manual for the exact part number in use
++		 * before enabling these nodes in the board dts file.
++		 */
++		ocmcram2: ocmcram@40400000 {
++			status = "disabled";
++			compatible = "mmio-sram";
++			reg = <0x40400000 0x100000>;
++			ranges = <0x0 0x40400000 0x100000>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++		};
++
++		ocmcram3: ocmcram@40500000 {
++			status = "disabled";
++			compatible = "mmio-sram";
++			reg = <0x40500000 0x100000>;
++			ranges = <0x0 0x40500000 0x100000>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++		};
++
+ 		bandgap: bandgap@4a0021e0 {
+ 			reg = <0x4a0021e0 0xc
+ 				0x4a00232c 0xc
 -- 
 2.7.3
 
