@@ -1,57 +1,37 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v7 3/5] usb: dwc3: omap: Don't set POWERPRESENT
-Date: Tue, 10 May 2016 13:24:44 +0300
-Message-ID: <5731B6EC.5000006@ti.com>
-References: <1462873919-20532-1-git-send-email-rogerq@ti.com>
- <1462873919-20532-4-git-send-email-rogerq@ti.com>
- <87futqi6gs.fsf@linux.intel.com> <5731B118.1010705@ti.com>
- <874ma6i5zi.fsf@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <874ma6i5zi.fsf@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@kernel.org>, b-liu@ti.com
-Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Nicolas Chauvet <kwizart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] rtc: rename so the tps6586x-rtc module can be autoloaded at boot
+Date: Tue, 10 May 2016 12:26:42 +0200
+Message-ID: <1462876002-6462-1-git-send-email-kwizart@gmail.com>
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nicolas Chauvet <kwizart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+This module is loaded by the related mfd driver which has
+the needed MODULE_DEVICE_TABLE(i2c,...).
 
-On 10/05/16 13:04, Felipe Balbi wrote:
-> 
-> Hi,
-> 
-> Roger Quadros <rogerq@ti.com> writes:
->> On 10/05/16 12:54, Felipe Balbi wrote:
->>>
->>> Hi,
->>>
->>> Roger Quadros <rogerq@ti.com> writes:
->>>> TRM [1] recommends that POWERPRESENT bit must not be
->>>> set and left at it's default value of 0.
->>>>
->>>> [1] OMAP542x TRM - http://www.ti.com/lit/pdf/swpu249
->>>> Section 23.11.4.5.1 Mailbox VBUS/ID Management
->>>>
->>>> "Because PIPE powerpresent has a different meaning in host and in device mode,
->>>> and because of the redundancy with the UTMI signals, the controller ORes
->>>> together the appropriate PIPE and UTMI inputs to create its internal
->>>> VBUS status. For that reason, it is recommended to leave field
->>>> USBOTGSS_UTMI_OTG_STATUS[9] POWERPRESENT at its default value (=0), and only to
->>>> fill in the USB2 VBUS status fields in the same register."
->>>>
->>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>
->>> to make sure we avoid regressions, do you mind sharing on which
->>> platforms you tested this patch ?
->>>
->> I tested this on omap5-uevm and dra7-evm.
->> My am437x board stopped working so couldn't test on that one.
-> 
-> would you have a colleague or perhaps an automated test-farm which could
-> run the test for you ? :-)
+This patch fix the modalias when the rtc driver is built
+as a module, so the right name is used.
+Everything operates correctly when this module is builtin.
 
-Bin, do you mind testing this and giving your blessings please?
+Signed-off-by: Nicolas Chauvet <kwizart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ drivers/rtc/rtc-tps6586x.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-cheers,
--roger
+diff --git a/drivers/rtc/rtc-tps6586x.c b/drivers/rtc/rtc-tps6586x.c
+index e404faa..a3418a8 100644
+--- a/drivers/rtc/rtc-tps6586x.c
++++ b/drivers/rtc/rtc-tps6586x.c
+@@ -344,7 +344,7 @@ static struct platform_driver tps6586x_rtc_driver = {
+ };
+ module_platform_driver(tps6586x_rtc_driver);
+ 
+-MODULE_ALIAS("platform:rtc-tps6586x");
++MODULE_ALIAS("platform:tps6586x-rtc");
+ MODULE_DESCRIPTION("TI TPS6586x RTC driver");
+ MODULE_AUTHOR("Laxman dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>");
+ MODULE_LICENSE("GPL v2");
+-- 
+2.4.11
