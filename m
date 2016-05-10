@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
 Subject: Re: [PATCH v7 3/5] usb: dwc3: omap: Don't set POWERPRESENT
-Date: Tue, 10 May 2016 13:23:41 +0300
-Message-ID: <5731B6AD.9070108@ti.com>
+Date: Tue, 10 May 2016 13:24:44 +0300
+Message-ID: <5731B6EC.5000006@ti.com>
 References: <1462873919-20532-1-git-send-email-rogerq@ti.com>
  <1462873919-20532-4-git-send-email-rogerq@ti.com>
  <87futqi6gs.fsf@linux.intel.com> <5731B118.1010705@ti.com>
@@ -12,9 +12,10 @@ Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <874ma6i5zi.fsf@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@kernel.org>
-Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Felipe Balbi <balbi@kernel.org>, b-liu@ti.com
+Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+
 
 On 10/05/16 13:04, Felipe Balbi wrote:
 > 
@@ -49,11 +50,8 @@ On 10/05/16 13:04, Felipe Balbi wrote:
 > 
 > would you have a colleague or perhaps an automated test-farm which could
 > run the test for you ? :-)
-> 
-> I can take the patch, no problem, but if there are any regressions don't
-> blame me :-)
-> 
-Don't worry, blame is on the TRM then :).
+
+Bin, do you mind testing this and giving your blessings please?
 
 cheers,
 -roger
