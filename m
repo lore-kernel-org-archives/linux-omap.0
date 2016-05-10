@@ -1,15 +1,16 @@
 From: Felipe Balbi <balbi@kernel.org>
-Subject: Re: [PATCH v7 5/5] usb: dwc3: core: cleanup IRQ resources
-Date: Tue, 10 May 2016 13:03:24 +0300
-Message-ID: <877ff2i61f.fsf@linux.intel.com>
-References: <1462873919-20532-1-git-send-email-rogerq@ti.com> <1462873919-20532-6-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH v7 3/5] usb: dwc3: omap: Don't set POWERPRESENT
+Date: Tue, 10 May 2016 13:04:33 +0300
+Message-ID: <874ma6i5zi.fsf@linux.intel.com>
+References: <1462873919-20532-1-git-send-email-rogerq@ti.com> <1462873919-20532-4-git-send-email-rogerq@ti.com> <87futqi6gs.fsf@linux.intel.com> <5731B118.1010705@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; boundary="=-=-=";
 	micalg=pgp-sha256; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1462873919-20532-6-git-send-email-rogerq@ti.com>
+In-Reply-To: <5731B118.1010705@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 --=-=-=
@@ -20,106 +21,39 @@ Content-Transfer-Encoding: quoted-printable
 Hi,
 
 Roger Quadros <rogerq@ti.com> writes:
-> Implementations might use different IRQs for
-> host, gadget and OTG so use named interrupt resources
-> to allow Device tree to specify the 3 interrupts.
->
-> Following are the interrupt names
->
-> Peripheral Interrupt - peripheral
-> HOST Interrupt - host
-> OTG Interrupt - otg
->
-> We still maintain backward compatibility for a single named
-> interrupt for all 3 interrupts (e.g. for dwc3-pci) and
-> single unnamed interrupt for all 3 interrupts (e.g. old DT).
+> On 10/05/16 12:54, Felipe Balbi wrote:
+>>=20
+>> Hi,
+>>=20
+>> Roger Quadros <rogerq@ti.com> writes:
+>>> TRM [1] recommends that POWERPRESENT bit must not be
+>>> set and left at it's default value of 0.
+>>>
+>>> [1] OMAP542x TRM - http://www.ti.com/lit/pdf/swpu249
+>>> Section 23.11.4.5.1 Mailbox VBUS/ID Management
+>>>
+>>> "Because PIPE powerpresent has a different meaning in host and in devic=
+e mode,
+>>> and because of the redundancy with the UTMI signals, the controller ORes
+>>> together the appropriate PIPE and UTMI inputs to create its internal
+>>> VBUS status. For that reason, it is recommended to leave field
+>>> USBOTGSS_UTMI_OTG_STATUS[9] POWERPRESENT at its default value (=3D0), a=
+nd only to
+>>> fill in the USB2 VBUS status fields in the same register."
+>>>
+>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>=20
+>> to make sure we avoid regressions, do you mind sharing on which
+>> platforms you tested this patch ?
+>>=20
+> I tested this on omap5-uevm and dra7-evm.
+> My am437x board stopped working so couldn't test on that one.
 
-cool :-)
+would you have a colleague or perhaps an automated test-farm which could
+run the test for you ? :-)
 
-> @@ -748,6 +750,20 @@ static int dwc3_core_init_mode(struct dwc3 *dwc)
->  		}
->  		break;
->  	case USB_DR_MODE_OTG:
-> +		dwc->otg_irq =3D platform_get_irq_byname(dwc3_pdev, "otg");
-> +		if (dwc->otg_irq <=3D 0) {
-> +			dwc->otg_irq =3D platform_get_irq_byname(dwc3_pdev,
-> +							       "dwc_usb3");
-> +			if (dwc->otg_irq <=3D 0) {
-> +				res =3D platform_get_resource(dwc3_pdev,
-> +							    IORESOURCE_IRQ, 0);
-> +				if (!res) {
-> +					dev_err(dwc->dev, "missing otg IRQ\n");
-> +					return -ENODEV;
-> +				}
-> +				dwc->otg_irq =3D res->start;
-> +			}
-> +		}
-
-I suppose this part can be removed and added only when OTG is
-supported. Then dwc3_otg_init() (or whatever) can do this.
-
-> diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
-> index 186a886..2e20892 100644
-> --- a/drivers/usb/dwc3/core.h
-> +++ b/drivers/usb/dwc3/core.h
-> @@ -716,6 +716,8 @@ struct dwc3_scratchpad_array {
->   * @maximum_speed: maximum speed requested (mainly for testing purposes)
->   * @revision: revision register contents
->   * @dr_mode: requested mode of operation
-> + * @gadget_irq: IRQ number for Peripheral IRQs
-> + * @otg_irq: IRQ number for OTG IRQs
->   * @usb2_phy: pointer to USB2 PHY
->   * @usb3_phy: pointer to USB3 PHY
->   * @usb2_generic_phy: pointer to USB2 PHY
-> @@ -817,6 +819,9 @@ struct dwc3 {
->=20=20
->  	enum usb_dr_mode	dr_mode;
->=20=20
-> +	int			gadget_irq;
-> +	int			otg_irq;
-
-while at that, let's add host_irq too and do proper changes to dwc3/host.c
-
-> diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-> index c3b0d01..8db8d13 100644
-> --- a/drivers/usb/dwc3/gadget.c
-> +++ b/drivers/usb/dwc3/gadget.c
-> @@ -1605,7 +1605,7 @@ static int dwc3_gadget_start(struct usb_gadget *g,
->  	int			irq;
->  	u32			reg;
->=20=20
-> -	irq =3D platform_get_irq(to_platform_device(dwc->dev), 0);
-> +	irq =3D dwc->gadget_irq;
->  	ret =3D request_threaded_irq(irq, dwc3_interrupt, dwc3_thread_interrupt,
->  			IRQF_SHARED, "dwc3", dwc->ev_buf);
->  	if (ret) {
-> @@ -2781,6 +2781,23 @@ static irqreturn_t dwc3_interrupt(int irq, void *_=
-evt)
->  int dwc3_gadget_init(struct dwc3 *dwc)
->  {
->  	int					ret;
-> +	struct resource *res;
-> +	struct platform_device *dwc3_pdev =3D to_platform_device(dwc->dev);
-> +
-> +	dwc->gadget_irq =3D platform_get_irq_byname(dwc3_pdev, "peripheral");
-> +	if (dwc->gadget_irq <=3D 0) {
-> +		dwc->gadget_irq =3D platform_get_irq_byname(dwc3_pdev,
-> +							  "dwc_usb3");
-> +		if (dwc->gadget_irq <=3D 0) {
-> +			res =3D platform_get_resource(dwc3_pdev, IORESOURCE_IRQ,
-> +						    0);
-> +			if (!res) {
-> +				dev_err(dwc->dev, "missing peripheral IRQ\n");
-> +				return -ENODEV;
-> +			}
-> +			dwc->gadget_irq =3D res->start;
-> +		}
-> +	}
->=20=20
->  	dwc->ctrl_req =3D dma_alloc_coherent(dwc->dev, sizeof(*dwc->ctrl_req),
->  			&dwc->ctrl_req_addr, GFP_KERNEL);
-
-you're regressing dwc3_gadget_stop().
+I can take the patch, no problem, but if there are any regressions don't
+blame me :-)
 
 =2D-=20
 balbi
@@ -130,18 +64,18 @@ Content-Type: application/pgp-signature; name="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJXMbHsAAoJEIaOsuA1yqREIs0P/RnyqV6j55EB+cg+4F+iJEAE
-k8/lGzGVbG4a5uHBz3WAKS6+ipnoYHVlsCSAfRcTEtiwbmHFuTzcBT6y6A0P98d2
-bYFiKv1ty0qTy9MoJFaY/gUhY2LrRLeqmwfIS3uxmJEfkSWpFnUEJ7os+pr/daYO
-oIIkUlhjml6P6LbVWFGlhK09+AyO02ttN5O+WBxj0x+nRBlw0M9HjwuRuKfuBsCb
-4K5o7B1hVEtxQdeMftAA1ro1Hacyusf/4n3/H7hvZCDeEM+76fB9t4QTS72UbETA
-HRPJZKaFlTVntHW+5p+/S+ARlBB3NDZhDZytAAb0OiaB5LYiCGEnohB0qwLt/9Af
-6sMs7MdzFjatpeYoIUw+zRKWW4ZW4waBp4syCrxZoI3t72nOWnn11iRsIsqvjnja
-D9KOS5uFNgUAnQNRKaO94XUftyuoAJCeDWorYnJQkhV5fo1STeR9qaA9sCabvM2L
-eVRAVVL8fMYiZzzkv8htqRK9EfNWo/IaICtLz1QHfnpnL5+IC/tzuYciHinCv+9K
-R1D8DIUy51xg1rRtwfcnciSpAOAcFHI43V1qfLqfzTid98pg+CoGrlc31hb1DMIh
-QyNM/1JpVhZpGFameduJXDEsofuuKV/FZC47cSNpSQ3z/uutuJzmoYOD3HlRn9HT
-r7mACukXW/26U4JYzndv
-=Omgj
+iQIcBAEBCAAGBQJXMbIxAAoJEIaOsuA1yqRE+4QP/3CxMQo9HtsYMHj+uxrzfAQj
+o6H75+ByqRL36COwrQAmp1HVd+74netyNkRo11dqMEwfou6Z4BIAnDB8Nr9wSCdD
+wkUCVBe52gxhvGqt9uKi+JvUZoBprMRm3kY4L+WNGLqzW6UOzNMY77S+HRDfCNE0
+X6s4XhoFvIX3tj3IJXBVl3U9aznPnfqZYw9ZfUuHs/Ep8z2yecwlLQsKEPpNRQID
+w/EvihPejdgkgZ4md0uTDBgDPHFh+tGkRP4ao7Jba4TfNZ6ex4GY+5Olk1FDk1Oy
+h18e3dWyTWKEgqG+N3AsA/f6wb72In1Qe2J4c3AJTFEtxcWNpl0IHIvp5rWrxN9z
+7wjwBI3iiCRD77kDQ0SMOSIBbOHtXmlLmD164I7uRMEaE8IoSx37Ni1FRSIGK/ss
+D69OdOUwbtmPeKD0fh2LJ5TLhel1/E/9ALqVE1UIbdsMlFwkZ9ejqe4F3NTULFjU
+OYMbOeBNLbzlyjPRgR3ufUdC+rGZyWqVHk30zRHG6IPFRUyq10+0RgzE19qLuoj8
+Fz3GDHDUvfChPi9VDJ4UhJpJhgNG/+hlzTSKrowHJp5HCXs1uClxsyUwkQAb1djr
+DDzO0TCxuWyBAEuzmVDWct4mqs4Q4FmFfJEgi3mK0j0Ofp8CgofNrsmKyYBJrgtG
+WKfAMnY3ZtWMA5zDRbGB
+=JL9k
 -----END PGP SIGNATURE-----
 --=-=-=--
