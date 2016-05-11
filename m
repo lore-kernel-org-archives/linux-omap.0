@@ -1,98 +1,61 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v7 1/5] usb: dwc3: omap: use request_threaded_irq()
-Date: Wed, 11 May 2016 16:52:34 +0300
-Message-ID: <57333922.1010003@ti.com>
-References: <1462873919-20532-1-git-send-email-rogerq@ti.com>
- <1462873919-20532-2-git-send-email-rogerq@ti.com>
- <87a8jyi6ad.fsf@linux.intel.com> <5731B235.80505@ti.com>
- <87y47igr1g.fsf@linux.intel.com> <5732EA85.6050601@ti.com>
- <87y47hexja.fsf@linux.intel.com> <57331B85.2000003@ti.com>
- <87r3d8g44i.fsf@linux.intel.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v7 10/14] usb: otg: add hcd companion support
+Date: Wed, 11 May 2016 08:54:26 -0500
+Message-ID: <20160511135426.GA25762@rob-hp-laptop>
+References: <1462191537-10314-1-git-send-email-rogerq@ti.com>
+ <1462191537-10314-11-git-send-email-rogerq@ti.com>
+ <20160504131700.GA20184@rob-hp-laptop>
+ <5729FD66.4020704@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87r3d8g44i.fsf@linux.intel.com>
+Content-Disposition: inline
+In-Reply-To: <5729FD66.4020704@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@kernel.org>
-Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: peter.chen@freescale.com, stern@rowland.harvard.edu, balbi@kernel.org, gregkh@linuxfoundation.org, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, yoshihiro.shimoda.uh@renesas.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11/05/16 15:39, Felipe Balbi wrote:
+On Wed, May 04, 2016 at 04:47:18PM +0300, Roger Quadros wrote:
+> On 04/05/16 16:17, Rob Herring wrote:
+> > On Mon, May 02, 2016 at 03:18:53PM +0300, Roger Quadros wrote:
+> >> From: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
+> >>
+> >> Since some host controller (e.g. EHCI) needs a companion host controller
+> >> (e.g. OHCI), this patch adds such a configuration to use it in the OTG
+> >> core.
+> >>
+> >> Signed-off-by: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
+> >> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> >> ---
+> >>  Documentation/devicetree/bindings/usb/generic.txt |  3 +++
+> >>  drivers/usb/common/usb-otg.c                      | 32 ++++++++++++++++-------
+> >>  include/linux/usb/otg.h                           |  7 ++++-
+> >>  3 files changed, 32 insertions(+), 10 deletions(-)
+> >>
+> >> diff --git a/Documentation/devicetree/bindings/usb/generic.txt b/Documentation/devicetree/bindings/usb/generic.txt
+> >> index f6866c1..1db1c33 100644
+> >> --- a/Documentation/devicetree/bindings/usb/generic.txt
+> >> +++ b/Documentation/devicetree/bindings/usb/generic.txt
+> >> @@ -27,6 +27,9 @@ Optional properties:
+> >>   - otg-controller: phandle to otg controller. Host or gadget controllers can
+> >>  			contain this property to link it to a particular OTG
+> >>  			controller.
+> >> + - hcd-needs-companion: must be present if otg controller is dealing with
+> >> +			EHCI host controller that needs a companion OHCI host
+> >> +			controller.
+> > 
+> > Don't you need to have a link to the companion controller node?
 > 
-> Hi,
+> primary and companion controllers are totally independent of each other
+> e.g. EHCI and OHCI. They are enabled by separate Kconfig options and
+> the system can operate with either or both of them enabled.
 > 
-> Roger Quadros <rogerq@ti.com> writes:
->>>>> static irqreturn_t dwc3_omap_threaded_interrupt(int irq, void *_omap)
->>>>> {
->>>>>         struct dwc3_omap *omap = _omap;
->>>>>         u32 reg;
->>>>>
->>>>>         spin_lock(&omap->lock);
->>>>
->>>> Do we really need a spin_lock for the dwc3-omap driver?
->>>> Currently we won't be doing anything other than just
->>>> clearing the irqstatus and re-enabling the interrupts.
->>>
->>> well, if there's no possibility of races, then no. But only testing will
->>> say for sure, I guess. I didn't really go through the entire thing just
->>> to a write a quick little template :-p
->>>
->> OK. Another hurdle I have is that how do I mask/unmask the interrupts?
->> I do not see any masking bits, only enable/disable bits.
->>
->> I don't think we can use the enable/disable bits to mask as we'd loose
->> events while the event is disabled.
-> 
-> I'm pretty sure your TRM discusses the usage of IRQSTATUS_RAW*
-> registers, doesn't it ? :-)
+> At the OTG layer we don't have information as to whether we should be waiting
+> for both of them to register or not and hence need this "hcd-needs-companion" flag.
 
-It does and also says that it is mostly for debug. But I don't mind using it
-if it solves our problem :).
+What I mean is if you have 2 EHCI controllers with 2 companion 
+controllers, don't you need to know which companion goes with which EHCI 
+controller? Just like you do for the otg-controller property.
 
-> 
-> Those registers should be modified by HW even when interrupts are
-> disabled/masked. Note that, the IRQSTATUS_SET* and IRQSTATUS_CLR*
-> registers act more like mask/unmask than enable/disable considering we
-> can still read IRQ status using *RAW* registers.
-> 
-> See if below works fine for OMAP5, AM4 and AM5 SoCs:
-> 
-> diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-> index af264493bbae..ece2f25ad2c3 100644
-> --- a/drivers/usb/dwc3/dwc3-omap.c
-> +++ b/drivers/usb/dwc3/dwc3-omap.c
-> @@ -165,20 +165,20 @@ static void dwc3_omap_write_utmi_ctrl(struct dwc3_omap *omap, u32 value)
->  
->  static u32 dwc3_omap_read_irq0_status(struct dwc3_omap *omap)
->  {
-> -	return dwc3_omap_readl(omap->base, USBOTGSS_IRQSTATUS_0 -
-> +	return dwc3_omap_readl(omap->base, USBOTGSS_IRQSTATUS_RAW_0 -
->  						omap->irq0_offset);
->  }
->  
->  static void dwc3_omap_write_irq0_status(struct dwc3_omap *omap, u32 value)
->  {
-> -	dwc3_omap_writel(omap->base, USBOTGSS_IRQSTATUS_0 -
-> +	dwc3_omap_writel(omap->base, USBOTGSS_IRQSTATUS_RAW_0 -
->  						omap->irq0_offset, value);
-
-We shouldn't write to RAW here as it will trigger a software IRQ instead of
-clearing the event.
->  
->  }
->  
->  static u32 dwc3_omap_read_irqmisc_status(struct dwc3_omap *omap)
->  {
-> -	return dwc3_omap_readl(omap->base, USBOTGSS_IRQSTATUS_MISC +
-> +	return dwc3_omap_readl(omap->base, USBOTGSS_IRQSTATUS_RAW_MISC +
->  						omap->irqmisc_offset);
->  }
->  
-> 
-
-The rest is fine. It seemed to work on omap5. I'll do more tests though.
-Thanks for the hint :)
-
-cheers,
--roger
+Rob
