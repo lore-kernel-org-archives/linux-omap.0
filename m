@@ -1,52 +1,54 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 3/8] mfd: tps65218: Use mfd_add_devices instead of of_platform_populate
-Date: Wed, 11 May 2016 11:18:06 +0530
-Message-ID: <1462945691-904-4-git-send-email-j-keerthy@ti.com>
-References: <1462945691-904-1-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 0/8] regulator: tps65218: Clean ups
+Date: Wed, 11 May 2016 11:18:03 +0530
+Message-ID: <1462945691-904-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1462945691-904-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: broonie@kernel.org, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, lee.jones@linaro.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nikita@compulab.co.il, nm@ti.com, j-keerthy@ti.com
+Cc: nm@ti.com, devicetree@vger.kernel.org, nikita@compulab.co.il, j-keerthy@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-mfd_add_devices enables parsing device tree nodes without compatibles
-for child nodes. Replace of_platform_populate with mfd_add_devices.
+The series cleans up mainly the regulator driver and implements
+the device tree parsing using the regulator framework. Removes
+all the redundant compatibles for the individual regulators.
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- drivers/mfd/tps65218.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+One of the patch removes redundant read wrapper and makes
+use of regmap_read wherever necessary.
 
-diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
-index f20a531..b8b3a58 100644
---- a/drivers/mfd/tps65218.c
-+++ b/drivers/mfd/tps65218.c
-@@ -33,6 +33,10 @@
- 
- #define TPS65218_PASSWORD_REGS_UNLOCK   0x7D
- 
-+static const struct mfd_cell tps65218_cells[] = {
-+	{ .name = "tps65218-regulator", },
-+};
-+
- /**
-  * tps65218_reg_write: Write a single tps65218 register.
-  *
-@@ -236,8 +240,10 @@ static int tps65218_probe(struct i2c_client *client,
- 	if (ret < 0)
- 		return ret;
- 
--	ret = of_platform_populate(client->dev.of_node, NULL, NULL,
--				   &client->dev);
-+	ret = mfd_add_devices(tps->dev, PLATFORM_DEVID_AUTO, tps65218_cells,
-+			      ARRAY_SIZE(tps65218_cells), NULL, 0,
-+			      regmap_irq_get_domain(tps->irq_data));
-+
- 	if (ret < 0)
- 		goto err_irq;
- 
+The series is checked for all the regulator registrations on
+am437x-gp-evm and am437x-sk-evm.
+
+Keerthy (8):
+  mfd: tps65218: Remove redundant read wrapper
+  Documentation: regulator: tps65218: Updates according to changes with
+    parsing
+  mfd: tps65218: Use mfd_add_devices instead of of_platform_populate
+  regulator: tps65218: Remove all the compatibles
+  ARM: dts: AM437X-GP-EVM: Remove redundant regulator compatibles
+  ARM: dts: AM437X-SK-EVM: Remove redundant regulator compatibles
+  ARM: dts: AM437X-CM-T43: Remove redundant regulator compatibles
+  ARM: dts: AM43X-EPOS-EVM: Remove redundant regulator compatibles
+
+ .../devicetree/bindings/regulator/tps65218.txt     |  88 +++++++++++---
+ arch/arm/boot/dts/am437x-cm-t43.dts                |   6 -
+ arch/arm/boot/dts/am437x-gp-evm.dts                |   6 -
+ arch/arm/boot/dts/am437x-sk-evm.dts                |   5 -
+ arch/arm/boot/dts/am43x-epos-evm.dts               |   7 --
+ drivers/mfd/tps65218.c                             |  24 ++--
+ drivers/regulator/tps65218-regulator.c             | 134 ++++++++-------------
+ include/linux/mfd/tps65218.h                       |   2 -
+ 8 files changed, 127 insertions(+), 145 deletions(-)
+
 -- 
 1.9.1
