@@ -1,68 +1,67 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v8 3/5] usb: dwc3: omap: Don't set POWERPRESENT
-Date: Wed, 11 May 2016 17:36:44 +0300
-Message-ID: <1462977406-22806-4-git-send-email-rogerq@ti.com>
-References: <1462977406-22806-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH v8 0/5] dwc3: omap: fixes and dual-role preparation
+Date: Wed, 11 May 2016 17:36:41 +0300
+Message-ID: <1462977406-22806-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1462977406-22806-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: balbi@kernel.org
 Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-TRM [1] recommends that POWERPRESENT bit must not be
-set and left at it's default value of 0.
+Hi Felipe,
 
-[1] OMAP542x TRM - http://www.ti.com/lit/pdf/swpu249
-Section 23.11.4.5.1 Mailbox VBUS/ID Management
+I've removed the patches that add dual role support. These are just
+some fixes can go in before any actual dual role support.
 
-"Because PIPE powerpresent has a different meaning in host and in device mode,
-and because of the redundancy with the UTMI signals, the controller ORes
-together the appropriate PIPE and UTMI inputs to create its internal
-VBUS status. For that reason, it is recommended to leave field
-USBOTGSS_UTMI_OTG_STATUS[9] POWERPRESENT at its default value (=0), and only to
-fill in the USB2 VBUS status fields in the same register."
+About the OTG software mailbox, I tried checking internally in TI but
+nobody was aware of any constraints. The events can be set as they are
+obtained from the PMIC OTG comparators. My gut feeling is that we didn't have
+VBUS and ID events working properly back then and so resulting
+in a hackish software OTG mailbox implementation.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- drivers/usb/dwc3/dwc3-omap.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+I tested this on omap5-uevm, dra7-evm and am572x-evm and didn't
+observe any regressions.
 
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index b58546c..dd55e08 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -234,8 +234,7 @@ static void dwc3_omap_set_mailbox(struct dwc3_omap *omap,
- 		val &= ~(USBOTGSS_UTMI_OTG_CTRL_IDDIG
- 				| USBOTGSS_UTMI_OTG_CTRL_VBUSVALID
- 				| USBOTGSS_UTMI_OTG_CTRL_SESSEND);
--		val |= USBOTGSS_UTMI_OTG_CTRL_SESSVALID
--				| USBOTGSS_UTMI_OTG_CTRL_POWERPRESENT;
-+		val |= USBOTGSS_UTMI_OTG_CTRL_SESSVALID;
- 		dwc3_omap_write_utmi_ctrl(omap, val);
- 		break;
- 
-@@ -244,8 +243,7 @@ static void dwc3_omap_set_mailbox(struct dwc3_omap *omap,
- 		val &= ~USBOTGSS_UTMI_OTG_CTRL_SESSEND;
- 		val |= USBOTGSS_UTMI_OTG_CTRL_IDDIG
- 				| USBOTGSS_UTMI_OTG_CTRL_VBUSVALID
--				| USBOTGSS_UTMI_OTG_CTRL_SESSVALID
--				| USBOTGSS_UTMI_OTG_CTRL_POWERPRESENT;
-+				| USBOTGSS_UTMI_OTG_CTRL_SESSVALID;
- 		dwc3_omap_write_utmi_ctrl(omap, val);
- 		break;
- 
-@@ -256,8 +254,7 @@ static void dwc3_omap_set_mailbox(struct dwc3_omap *omap,
- 	case OMAP_DWC3_VBUS_OFF:
- 		val = dwc3_omap_read_utmi_ctrl(omap);
- 		val &= ~(USBOTGSS_UTMI_OTG_CTRL_SESSVALID
--				| USBOTGSS_UTMI_OTG_CTRL_VBUSVALID
--				| USBOTGSS_UTMI_OTG_CTRL_POWERPRESENT);
-+				| USBOTGSS_UTMI_OTG_CTRL_VBUSVALID);
- 		val |= USBOTGSS_UTMI_OTG_CTRL_SESSEND
- 				| USBOTGSS_UTMI_OTG_CTRL_IDDIG;
- 		dwc3_omap_write_utmi_ctrl(omap, val);
+Based on balbi/next commit 2a58f9c12bb360f38fb39e470bb5ff94014356e6.
+
+v8:
+- implement proper top and bottom half irq handler for dwc3-omap.
+- remove otg_irq code, this can come later with dual-role support.
+- use dwc3->gadget_irq while free_irq() in dwc3_gadget_stop().
+
+v7:
+- remove patches adding dual-role support.
+- split out shared irq conversion from threaded irq conversion patch.
+- added a new patch about not touching POWERPRESENT bit.
+
+v6:
+- use just otg irq to get otg events and don't depend on extcon at all.
+- follow OTG flow in TRM strictly.
+- use tracepoints instead of dev_dbg().
+- match IRQ flags in dwc3_omap and core.c for shared otg interrupt.
+
+v5: Internal revision. Not sent to mailing list.
+
+v4: first version that was reviewed.
+
+cheers,
+-roger
+
+Roger Quadros (5):
+  usb: dwc3: omap: use request_threaded_irq()
+  usb: dwc3: omap: Mark the interrupt handler as shared
+  usb: dwc3: omap: Don't set POWERPRESENT
+  usb: dwc3: omap: Pass VBUS and ID events transparently
+  usb: dwc3: core: cleanup IRQ resources
+
+ drivers/usb/dwc3/core.c      | 10 ---------
+ drivers/usb/dwc3/core.h      |  3 +++
+ drivers/usb/dwc3/dwc3-omap.c | 53 ++++++++++++++++++++++++++++----------------
+ drivers/usb/dwc3/gadget.c    | 23 +++++++++++++++----
+ drivers/usb/dwc3/host.c      | 19 ++++++++++++++++
+ 5 files changed, 75 insertions(+), 33 deletions(-)
+
 -- 
 2.7.4
