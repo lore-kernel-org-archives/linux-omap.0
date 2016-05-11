@@ -1,113 +1,153 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v7 1/5] usb: dwc3: omap: use request_threaded_irq()
-Date: Wed, 11 May 2016 11:17:09 +0300
-Message-ID: <5732EA85.6050601@ti.com>
-References: <1462873919-20532-1-git-send-email-rogerq@ti.com>
- <1462873919-20532-2-git-send-email-rogerq@ti.com>
- <87a8jyi6ad.fsf@linux.intel.com> <5731B235.80505@ti.com>
- <87y47igr1g.fsf@linux.intel.com>
+From: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v7 07/14] usb: otg: get rid of CONFIG_USB_OTG_FSM in
+ favour of CONFIG_USB_OTG
+Date: Wed, 11 May 2016 16:21:35 +0800
+Message-ID: <20160511082135.GD16910@shlinux2.ap.freescale.net>
+References: <1462191537-10314-1-git-send-email-rogerq@ti.com>
+ <1462191537-10314-8-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <87y47igr1g.fsf-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1462191537-10314-8-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Felipe,
+On Mon, May 02, 2016 at 03:18:50PM +0300, Roger Quadros wrote:
+> Let's use CONFIG_USB_OTG as a single config option to enable
+> USB OTG and the OTG FSM. This makes things a lot less confusing.
+> 
+> Update all users of CONFIG_USB_OTG_FSM to CONFIG_USB_OTG.
+> 
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 
-On 10/05/16 13:12, Felipe Balbi wrote:
-> 
-> Hi,
-> 
-> Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> writes:
->>>> @@ -497,8 +503,8 @@ static int dwc3_omap_probe(struct platform_device *pdev)
->>>>  	/* check the DMA Status */
->>>>  	reg = dwc3_omap_readl(omap->base, USBOTGSS_SYSCONFIG);
->>>>  
->>>> -	ret = devm_request_irq(dev, omap->irq, dwc3_omap_interrupt, 0,
->>>> -			"dwc3-omap", omap);
->>>> +	ret = devm_request_threaded_irq(dev, omap->irq, dwc3_omap_interrupt,
->>>> +					NULL, 0, "dwc3-omap", omap);
->>>
->>> if you're using threaded_irq, it's better to have a NULL top half and
->>> valid bottom half.
->>
->> But in this case we don't need a bottom half as there is nothing to do :).
->>
->>>
->>> In fact, since this will be shared, you could do a proper preparation
->>> and on top half check if $this device generated the IRQ and
->>> conditionally schedule the bottom half. Don't forget to mask device's
->>> interrupts from top half so you can run without IRQF_ONESHOT.
->>>
->>
->> Why do this at all if there is nothing to do in the bottom half?
-> 
-> oh, but there is :-)
-> 
-> The whole idea of threaded IRQs is that you spend as little time as
-> possible on top half and the (strong) recommendation is that you *only*
-> check if $this device generated the interrupt. Note that "checking if
-> $this device generated the interrupt" will be mandatory as soon as you
-> mark the IRQ line as shared ;-)
-> 
-> So here's how this should look like:
-> 
-> static irqreturn_t dwc3_omap_interrupt(int irq, void *_omap)
-> {
->         struct dwc3_omap *omap = _omap;
->         u32 reg;
-> 
->         reg = readl(IRQSTATUS)
->         if (reg) {
->                 mask_interrupts(omap);
->         	return IRQ_WAKE_THREAD;
->         }
-> 
-> 	return IRQ_HANDLED;
+Acked-by: Peter Chen <peter.chen-3arQi8VN3Tc@public.gmane.org>
 
-This should be IRQ_NONE right?
+> ---
+>  Documentation/usb/chipidea.txt | 2 +-
 
-> }
-> 
-> static irqreturn_t dwc3_omap_threaded_interrupt(int irq, void *_omap)
-> {
->         struct dwc3_omap *omap = _omap;
->         u32 reg;
-> 
->         spin_lock(&omap->lock);
+I have updated this file, so you will meet a conflict if you
+rebase with newest usb-next tree.
 
-Do we really need a spin_lock for the dwc3-omap driver?
-Currently we won't be doing anything other than just
-clearing the irqstatus and re-enabling the interrupts.
+>  drivers/usb/chipidea/Makefile  | 2 +-
+>  drivers/usb/chipidea/ci.h      | 2 +-
+>  drivers/usb/chipidea/otg_fsm.h | 2 +-
+>  drivers/usb/common/Makefile    | 3 ++-
+>  drivers/usb/core/Kconfig       | 8 --------
+>  drivers/usb/phy/Kconfig        | 2 +-
+>  7 files changed, 7 insertions(+), 14 deletions(-)
+> 
+> diff --git a/Documentation/usb/chipidea.txt b/Documentation/usb/chipidea.txt
+> index 678741b..3b1f263 100644
+> --- a/Documentation/usb/chipidea.txt
+> +++ b/Documentation/usb/chipidea.txt
+> @@ -5,7 +5,7 @@ with 2 Freescale i.MX6Q sabre SD boards.
+>  
+>  1.1 How to enable OTG FSM in menuconfig
+>  ---------------------------------------
+> -Select CONFIG_USB_OTG_FSM, rebuild kernel Image and modules.
+> +Select CONFIG_USB_OTG, rebuild kernel Image and modules.
+>  If you want to check some internal variables for otg fsm,
+>  mount debugfs, there are 2 files which can show otg fsm
+>  variables and some controller registers value:
+> diff --git a/drivers/usb/chipidea/Makefile b/drivers/usb/chipidea/Makefile
+> index 518e445..45aa24d 100644
+> --- a/drivers/usb/chipidea/Makefile
+> +++ b/drivers/usb/chipidea/Makefile
+> @@ -3,7 +3,7 @@ obj-$(CONFIG_USB_CHIPIDEA)		+= ci_hdrc.o
+>  ci_hdrc-y				:= core.o otg.o debug.o
+>  ci_hdrc-$(CONFIG_USB_CHIPIDEA_UDC)	+= udc.o
+>  ci_hdrc-$(CONFIG_USB_CHIPIDEA_HOST)	+= host.o
+> -ci_hdrc-$(CONFIG_USB_OTG_FSM)		+= otg_fsm.o
+> +ci_hdrc-$(CONFIG_USB_OTG)		+= otg_fsm.o
+>  
+>  # Glue/Bridge layers go here
+>  
+> diff --git a/drivers/usb/chipidea/ci.h b/drivers/usb/chipidea/ci.h
+> index c523975..1a32b8c 100644
+> --- a/drivers/usb/chipidea/ci.h
+> +++ b/drivers/usb/chipidea/ci.h
+> @@ -406,7 +406,7 @@ static inline u32 hw_test_and_write(struct ci_hdrc *ci, enum ci_hw_regs reg,
+>   */
+>  static inline bool ci_otg_is_fsm_mode(struct ci_hdrc *ci)
+>  {
+> -#ifdef CONFIG_USB_OTG_FSM
+> +#ifdef CONFIG_USB_OTG
+>  	struct usb_otg_caps *otg_caps = &ci->platdata->ci_otg_caps;
+>  
+>  	return ci->is_otg && ci->roles[CI_ROLE_HOST] &&
+> diff --git a/drivers/usb/chipidea/otg_fsm.h b/drivers/usb/chipidea/otg_fsm.h
+> index 6366fe3..2d451bb 100644
+> --- a/drivers/usb/chipidea/otg_fsm.h
+> +++ b/drivers/usb/chipidea/otg_fsm.h
+> @@ -64,7 +64,7 @@
+>  
+>  #define TB_AIDL_BDIS         (20)	/* 4ms ~ 150ms, section 5.2.1 */
+>  
+> -#if IS_ENABLED(CONFIG_USB_OTG_FSM)
+> +#if IS_ENABLED(CONFIG_USB_OTG)
+>  
+>  int ci_hdrc_otg_fsm_init(struct ci_hdrc *ci);
+>  int ci_otg_fsm_work(struct ci_hdrc *ci);
+> diff --git a/drivers/usb/common/Makefile b/drivers/usb/common/Makefile
+> index 6bbb3ec..f8f2c88 100644
+> --- a/drivers/usb/common/Makefile
+> +++ b/drivers/usb/common/Makefile
+> @@ -6,5 +6,6 @@ obj-$(CONFIG_USB_COMMON)	  += usb-common.o
+>  usb-common-y			  += common.o
+>  usb-common-$(CONFIG_USB_LED_TRIG) += led.o
+>  
+> -obj-$(CONFIG_USB_OTG_FSM) += usb-otg-fsm.o
+>  obj-$(CONFIG_USB_ULPI_BUS)	+= ulpi.o
+> +usbotg-y		:= usb-otg-fsm.o
+> +obj-$(CONFIG_USB_OTG)	+= usbotg.o
+> diff --git a/drivers/usb/core/Kconfig b/drivers/usb/core/Kconfig
+> index dd28010..ae228d0 100644
+> --- a/drivers/usb/core/Kconfig
+> +++ b/drivers/usb/core/Kconfig
+> @@ -75,14 +75,6 @@ config USB_OTG_BLACKLIST_HUB
+>  	  and software costs by not supporting external hubs.  So
+>  	  are "Embedded Hosts" that don't offer OTG support.
+>  
+> -config USB_OTG_FSM
+> -	tristate "USB 2.0 OTG FSM implementation"
+> -	depends on USB && USB_OTG
+> -	select USB_PHY
+> -	help
+> -	  Implements OTG Finite State Machine as specified in On-The-Go
+> -	  and Embedded Host Supplement to the USB Revision 2.0 Specification.
+> -
+>  config USB_ULPI_BUS
+>  	tristate "USB ULPI PHY interface support"
+>  	depends on USB_SUPPORT
+> diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
+> index c690474..06794e2 100644
+> --- a/drivers/usb/phy/Kconfig
+> +++ b/drivers/usb/phy/Kconfig
+> @@ -20,7 +20,7 @@ config AB8500_USB
+>  
+>  config FSL_USB2_OTG
+>  	bool "Freescale USB OTG Transceiver Driver"
+> -	depends on USB_EHCI_FSL && USB_FSL_USB2 && USB_OTG_FSM && PM
+> +	depends on USB_EHCI_FSL && USB_FSL_USB2 && USB_OTG && PM
+>  	select USB_PHY
+>  	help
+>  	  Enable this to support Freescale USB OTG transceiver.
+> -- 
+> 2.7.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+-- 
 
->         reg = readl(IRQSTATUS);
-> 
->         if (reg & BIT0)
->         	handle_bit_0(omap);
-> 
-> 	if (reg & BIT1)
->         	handle_bit_1(omap);
-> 
-> 	unmask_interrupts(omap);
-> 	spin_unlock(&omap->lock);
-> 
-> 	return IRQ_HANDLED;
-> }
-> 
-> this will *always* behave well with RT and non-RT kernels. It also
-> allows for the user to change priorities on these interrupt handlers if
-> necessary.
-> 
-
+Best Regards,
+Peter Chen
 --
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
