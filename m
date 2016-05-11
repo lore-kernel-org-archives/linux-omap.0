@@ -1,48 +1,56 @@
-From: Jon Hunter <jonathanh@nvidia.com>
-Subject: Re: [PATCH V2 13/14] dt-bindings: arm-gic: Add documentation for
- Tegra210 AGIC
-Date: Wed, 11 May 2016 20:49:31 +0100
-Message-ID: <57338CCB.2080805@nvidia.com>
-References: <20160427173810.GC7359@leverpostej> <5721C597.1010105@nvidia.com>
- <20160428095525.GB21145@leverpostej> <572C56A6.7020408@nvidia.com>
- <CAMuHMdX+egbNPP4QQ2R28GbyVkg9qBrwYfUy8EE0PdB6od+LBg@mail.gmail.com>
- <CAL_Jsq+HSH7e1T9y47nHV_x5NvZ-52cfDEKKFkr16ax671FxSw@mail.gmail.com>
- <573358F9.6000108@nvidia.com> <57335AD3.7070109@nvidia.com>
- <CAL_Jsq+ZhwUOSfQG-8V9xgxiXBj2j3Q6k48d=BWtWK9pEHH_MQ@mail.gmail.com>
- <57336397.4000401@nvidia.com> <20160511172823.GC18829@leverpostej>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 00/10] Get MUSB PM runtime working again
+Date: Wed, 11 May 2016 16:03:29 -0700
+Message-ID: <20160511230329.GN5995@atomide.com>
+References: <1461864800-29979-1-git-send-email-tony@atomide.com>
+ <5725A31D.8020508@gmail.com>
+ <20160503162528.GM5995@atomide.com>
+ <5728E334.3090000@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160511172823.GC18829@leverpostej>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Kevin Hilman <khilman@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5728E334.3090000-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-
-On 11/05/16 18:28, Mark Rutland wrote:
-> On Wed, May 11, 2016 at 05:53:43PM +0100, Jon Hunter wrote:
->> Hi Rob, Mark,
->>
->> On 11/05/16 17:30, Rob Herring wrote:
->>> A platform driver for just gic-400 is wrong IMO until we have platform
->>> drivers for all interrupt controllers.
->>
->> Yes, that is fine with me, but can we decide on whether the platform
->> driver should match "tegra210-agic" or the early driver should bail-out
->> if clocks/power-domains are present?
->>
->> I am fine with either, but I think that Rob prefers the tegra210-agic
->> compat string and Mark prefers to bail-out of the early driver if
->> clocks/power-domains are present.
+* Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [160503 10:46]:
+> On  3.05.2016 19:25, Tony Lindgren wrote:
+> >* Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [160430 23:34]:
+> >>
+> >>Unfortunately that makes my n900 unbootable with USB cable detached, see the
+> >>attached file (at [  152.121673]) when there is USB cable. I guess we're
+> >>missing a couple of pm_runtime_get()/put() calls.
+> >
+> >OK so it seems. I did some brief testing with n900 too, but never
+> >hit this so far. Care to email me the kernel .config you're using
+> >so I can try to reproduce it here?
+> >
 > 
-> If anything, I wasn't too keen on bailing out becuase of those
-> properties, as I mentioned for the case of a root interrupt controller.
+> .config is attached. There is stuff in it still to be upstreamed, just
+> ignore it :). Or, you may pull
+> https://github.com/freemangordon/linux-n900/commits/v4.6-rc4-n900-camera,
+> apply the $subject series on top of it and build rx51_defconfig. There
+> shouldn't be any patches touching USB.
 > 
-> I am happy to match the "tegra210-agic" string specifically.
+> Does bqXXX and isp1707_charger modules got loaded when you tested it? Or
+> those were built-in? or not built at all? As it seems the problem arises
+> when those try to touch USB ULPI.
 
-Thanks guys. I will stick with tegra210-agic for now.
+OK managed to track this issue down. It's related to built-in musb
+where a -EPROBE_DEFER causes musb to reinit. And then PM runtime got
+confused about the musb glue layer parent use count. And then doing
+a modprobe isp1704_charger caused a problem with the ulpi read/write.
 
-Cheers
-Jon
+Will repost the whole series after some more testing and clean-up.
+
+Regards,
+
+Tony
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
