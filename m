@@ -1,132 +1,69 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 2/8] Documentation: regulator: tps65218: Update examples
-Date: Wed, 11 May 2016 11:18:05 +0530
-Message-ID: <1462945691-904-3-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 6/8] ARM: dts: AM437X-SK-EVM: Remove redundant regulator compatibles
+Date: Wed, 11 May 2016 11:18:09 +0530
+Message-ID: <1462945691-904-7-git-send-email-j-keerthy@ti.com>
 References: <1462945691-904-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1462945691-904-1-git-send-email-j-keerthy@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: broonie@kernel.org, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, lee.jones@linaro.org
-Cc: nm@ti.com, devicetree@vger.kernel.org, nikita@compulab.co.il, j-keerthy@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nikita@compulab.co.il, nm@ti.com, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-This updates the device tree according to the preferred way of parsing
-the nodes using the regulator framework.
+With the device tree parsing using the regulator framework
+there is a no longer a need for separate compatibles for
+individual regulator nodes. Hence removing them all.
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
- .../devicetree/bindings/regulator/tps65218.txt     | 87 ++++++++++++++++++----
- 1 file changed, 71 insertions(+), 16 deletions(-)
+ arch/arm/boot/dts/am437x-sk-evm.dts | 5 -----
+ 1 file changed, 5 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/regulator/tps65218.txt b/Documentation/devicetree/bindings/regulator/tps65218.txt
-index fccc1d2..8d3d919 100644
---- a/Documentation/devicetree/bindings/regulator/tps65218.txt
-+++ b/Documentation/devicetree/bindings/regulator/tps65218.txt
-@@ -1,23 +1,78 @@
- TPS65218 family of regulators
+diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am437x-sk-evm.dts
+index d82dd6e..1b404fd 100644
+--- a/arch/arm/boot/dts/am437x-sk-evm.dts
++++ b/arch/arm/boot/dts/am437x-sk-evm.dts
+@@ -428,7 +428,6 @@
+ 		#interrupt-cells = <2>;
  
- Required properties:
--For tps65218 regulators/LDOs
--- compatible:
--  - "ti,tps65218-dcdc1" for DCDC1
--  - "ti,tps65218-dcdc2" for DCDC2
--  - "ti,tps65218-dcdc3" for DCDC3
--  - "ti,tps65218-dcdc4" for DCDC4
--  - "ti,tps65218-dcdc5" for DCDC5
--  - "ti,tps65218-dcdc6" for DCDC6
--  - "ti,tps65218-ldo1" for LDO1
--
--Optional properties:
--- Any optional property defined in bindings/regulator/regulator.txt
-+- compatible: "ti,tps65218"
-+- reg: I2C slave address
-+- list of regulators provided by this controller, must be named
-+  after their hardware counterparts: dcdc[1-6] and ldo1
-+- This is the list of child nodes that specify the regulator
-+  initialization data for defined regulators. Not all regulators for the given
-+  device need to be present. The definition for each of these nodes is defined
-+  using the standard binding for regulators found at
-+  Documentation/devicetree/bindings/regulator/regulator.txt.
-+
-+  The valid names for regulators are:
-+  tps65217: regulator-dcdc1, regulator-dcdc2, regulator-dcdc3, regulator-dcdc4,
-+  regulator-dcdc5, regulator-dcdc6, regulator-ldo1, regulator-ls3
-+  Each regulator is defined using the standard binding for regulators.
+ 		dcdc1: regulator-dcdc1 {
+-			compatible = "ti,tps65218-dcdc1";
+ 			/* VDD_CORE limits min of OPP50 and max of OPP100 */
+ 			regulator-name = "vdd_core";
+ 			regulator-min-microvolt = <912000>;
+@@ -438,7 +437,6 @@
+ 		};
  
- Example:
-+tps65218: tps65218@24 {
-+	reg = <0x24>;
-+	compatible = "ti,tps65218";
-+	interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* NMIn */
-+	interrupt-controller;
-+	#interrupt-cells = <2>;
-+
-+	dcdc1: regulator-dcdc1 {
-+		regulator-name = "vdd_core";
-+		regulator-min-microvolt = <912000>;
-+		regulator-max-microvolt = <1144000>;
-+		regulator-boot-on;
-+		regulator-always-on;
-+	};
-+
-+	dcdc2: regulator-dcdc2 {
-+		regulator-name = "vdd_mpu";
-+		regulator-min-microvolt = <912000>;
-+		regulator-max-microvolt = <1378000>;
-+		regulator-boot-on;
-+		regulator-always-on;
-+	};
-+
-+	dcdc3: regulator-dcdc3 {
-+		regulator-name = "vdcdc3";
-+		regulator-min-microvolt = <1500000>;
-+		regulator-max-microvolt = <1500000>;
-+		regulator-boot-on;
-+		regulator-always-on;
-+	};
-+
-+	dcdc5: regulator-dcdc5 {
-+		regulator-name = "v1_0bat";
-+		regulator-min-microvolt = <1000000>;
-+		regulator-max-microvolt = <1000000>;
-+		regulator-boot-on;
-+		regulator-always-on;
-+	};
-+
-+	dcdc6: regulator-dcdc6 {
-+		regulator-name = "v1_8bat";
-+		regulator-min-microvolt = <1800000>;
-+		regulator-max-microvolt = <1800000>;
-+		regulator-boot-on;
-+		regulator-always-on;
-+	};
-+
-+	ldo1: regulator-ldo1 {
-+		regulator-min-microvolt = <1800000>;
-+		regulator-max-microvolt = <1800000>;
-+		regulator-boot-on;
-+		regulator-always-on;
-+	};
+ 		dcdc2: regulator-dcdc2 {
+-			compatible = "ti,tps65218-dcdc2";
+ 			/* VDD_MPU limits min of OPP50 and max of OPP_NITRO */
+ 			regulator-name = "vdd_mpu";
+ 			regulator-min-microvolt = <912000>;
+@@ -448,7 +446,6 @@
+ 		};
  
--	xyz: regulator@0 {
--		compatible = "ti,tps65218-dcdc1";
--		regulator-min-microvolt  = <1000000>;
--		regulator-max-microvolt  = <3000000>;
-+	ls3: regulator-ls3 {
-+		regulator-min-microvolt = <100000>;
-+		regulator-max-microvolt = <1000000>;
- 	};
-+};
+ 		dcdc3: regulator-dcdc3 {
+-			compatible = "ti,tps65218-dcdc3";
+ 			regulator-name = "vdds_ddr";
+ 			regulator-min-microvolt = <1500000>;
+ 			regulator-max-microvolt = <1500000>;
+@@ -457,7 +454,6 @@
+ 		};
+ 
+ 		dcdc4: regulator-dcdc4 {
+-			compatible = "ti,tps65218-dcdc4";
+ 			regulator-name = "v3_3d";
+ 			regulator-min-microvolt = <3300000>;
+ 			regulator-max-microvolt = <3300000>;
+@@ -466,7 +462,6 @@
+ 		};
+ 
+ 		ldo1: regulator-ldo1 {
+-			compatible = "ti,tps65218-ldo1";
+ 			regulator-name = "v1_8d";
+ 			regulator-min-microvolt = <1800000>;
+ 			regulator-max-microvolt = <1800000>;
 -- 
 1.9.1
