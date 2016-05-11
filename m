@@ -1,77 +1,104 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 5/8] ARM: dts: AM437X-GP-EVM: Remove redundant regulator compatibles
-Date: Wed, 11 May 2016 11:18:08 +0530
-Message-ID: <1462945691-904-6-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 1/8] mfd: tps65218: Remove redundant read wrapper
+Date: Wed, 11 May 2016 11:18:04 +0530
+Message-ID: <1462945691-904-2-git-send-email-j-keerthy@ti.com>
 References: <1462945691-904-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1462945691-904-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: broonie@kernel.org, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, lee.jones@linaro.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nikita@compulab.co.il, nm@ti.com, j-keerthy@ti.com
+Cc: nm@ti.com, devicetree@vger.kernel.org, nikita@compulab.co.il, j-keerthy@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-With the device tree parsing using the regulator framework
-there is a no longer a need for separate compatibles for
-individual regulator nodes. Hence removing them all.
+Currently read directly calls the repmap read function. Hence
+remove the redundant wrapper and use regmap read wherever
+needed.
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
- arch/arm/boot/dts/am437x-gp-evm.dts | 6 ------
- 1 file changed, 6 deletions(-)
+ drivers/mfd/tps65218.c                 | 16 +---------------
+ drivers/regulator/tps65218-regulator.c |  3 ++-
+ include/linux/mfd/tps65218.h           |  2 --
+ 3 files changed, 3 insertions(+), 18 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index 8889be1..67329e0 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -513,7 +513,6 @@
- 		#interrupt-cells = <2>;
+diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
+index 80b9dc3..f20a531 100644
+--- a/drivers/mfd/tps65218.c
++++ b/drivers/mfd/tps65218.c
+@@ -34,20 +34,6 @@
+ #define TPS65218_PASSWORD_REGS_UNLOCK   0x7D
  
- 		dcdc1: regulator-dcdc1 {
--			compatible = "ti,tps65218-dcdc1";
- 			regulator-name = "vdd_core";
- 			regulator-min-microvolt = <912000>;
- 			regulator-max-microvolt = <1144000>;
-@@ -522,7 +521,6 @@
- 		};
+ /**
+- * tps65218_reg_read: Read a single tps65218 register.
+- *
+- * @tps: Device to read from.
+- * @reg: Register to read.
+- * @val: Contians the value
+- */
+-int tps65218_reg_read(struct tps65218 *tps, unsigned int reg,
+-			unsigned int *val)
+-{
+-	return regmap_read(tps->regmap, reg, val);
+-}
+-EXPORT_SYMBOL_GPL(tps65218_reg_read);
+-
+-/**
+  * tps65218_reg_write: Write a single tps65218 register.
+  *
+  * @tps65218: Device to write to.
+@@ -93,7 +79,7 @@ static int tps65218_update_bits(struct tps65218 *tps, unsigned int reg,
+ 	int ret;
+ 	unsigned int data;
  
- 		dcdc2: regulator-dcdc2 {
--			compatible = "ti,tps65218-dcdc2";
- 			regulator-name = "vdd_mpu";
- 			regulator-min-microvolt = <912000>;
- 			regulator-max-microvolt = <1378000>;
-@@ -531,7 +529,6 @@
- 		};
+-	ret = tps65218_reg_read(tps, reg, &data);
++	ret = regmap_read(tps->regmap, reg, &data);
+ 	if (ret) {
+ 		dev_err(tps->dev, "Read from reg 0x%x failed\n", reg);
+ 		return ret;
+diff --git a/drivers/regulator/tps65218-regulator.c b/drivers/regulator/tps65218-regulator.c
+index a5e5634..679ab2f 100644
+--- a/drivers/regulator/tps65218-regulator.c
++++ b/drivers/regulator/tps65218-regulator.c
+@@ -22,6 +22,7 @@
+ #include <linux/err.h>
+ #include <linux/platform_device.h>
+ #include <linux/of_device.h>
++#include <linux/regmap.h>
+ #include <linux/regulator/of_regulator.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/machine.h>
+@@ -224,7 +225,7 @@ static int tps65218_pmic_get_current_limit(struct regulator_dev *dev)
+ 	unsigned int index;
+ 	struct tps65218 *tps = rdev_get_drvdata(dev);
  
- 		dcdc3: regulator-dcdc3 {
--			compatible = "ti,tps65218-dcdc3";
- 			regulator-name = "vdcdc3";
- 			regulator-min-microvolt = <1500000>;
- 			regulator-max-microvolt = <1500000>;
-@@ -539,7 +536,6 @@
- 			regulator-always-on;
- 		};
- 		dcdc5: regulator-dcdc5 {
--			compatible = "ti,tps65218-dcdc5";
- 			regulator-name = "v1_0bat";
- 			regulator-min-microvolt = <1000000>;
- 			regulator-max-microvolt = <1000000>;
-@@ -548,7 +544,6 @@
- 		};
+-	retval = tps65218_reg_read(tps, dev->desc->csel_reg, &index);
++	retval = regmap_read(tps->regmap, dev->desc->csel_reg, &index);
+ 	if (retval < 0)
+ 		return retval;
  
- 		dcdc6: regulator-dcdc6 {
--			compatible = "ti,tps65218-dcdc6";
- 			regulator-name = "v1_8bat";
- 			regulator-min-microvolt = <1800000>;
- 			regulator-max-microvolt = <1800000>;
-@@ -557,7 +552,6 @@
- 		};
+diff --git a/include/linux/mfd/tps65218.h b/include/linux/mfd/tps65218.h
+index d58f3b5..7c9241f 100644
+--- a/include/linux/mfd/tps65218.h
++++ b/include/linux/mfd/tps65218.h
+@@ -276,8 +276,6 @@ struct tps65218 {
+ 	struct regmap *regmap;
+ };
  
- 		ldo1: regulator-ldo1 {
--			compatible = "ti,tps65218-ldo1";
- 			regulator-min-microvolt = <1800000>;
- 			regulator-max-microvolt = <1800000>;
- 			regulator-boot-on;
+-int tps65218_reg_read(struct tps65218 *tps, unsigned int reg,
+-					unsigned int *val);
+ int tps65218_reg_write(struct tps65218 *tps, unsigned int reg,
+ 			unsigned int val, unsigned int level);
+ int tps65218_set_bits(struct tps65218 *tps, unsigned int reg,
 -- 
 1.9.1
