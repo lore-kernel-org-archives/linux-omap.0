@@ -1,118 +1,113 @@
-From: Peter Chen <hzpeterchen@gmail.com>
-Subject: Re: [PATCH v7 02/14] usb: otg-fsm: Prevent build warning "VDBG"
- redefined
-Date: Wed, 11 May 2016 16:17:09 +0800
-Message-ID: <20160511081709.GC16910@shlinux2.ap.freescale.net>
-References: <1462191537-10314-1-git-send-email-rogerq@ti.com>
- <1462191537-10314-3-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v7 1/5] usb: dwc3: omap: use request_threaded_irq()
+Date: Wed, 11 May 2016 11:17:09 +0300
+Message-ID: <5732EA85.6050601@ti.com>
+References: <1462873919-20532-1-git-send-email-rogerq@ti.com>
+ <1462873919-20532-2-git-send-email-rogerq@ti.com>
+ <87a8jyi6ad.fsf@linux.intel.com> <5731B235.80505@ti.com>
+ <87y47igr1g.fsf@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1462191537-10314-3-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: peter.chen@freescale.com, stern@rowland.harvard.edu, balbi@kernel.org, gregkh@linuxfoundation.org, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, yoshihiro.shimoda.uh@renesas.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87y47igr1g.fsf-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, May 02, 2016 at 03:18:45PM +0300, Roger Quadros wrote:
-> If usb/otg-fsm.h and usb/composite.h are included together
-> then it results in the build warning [1].
-> 
-> Prevent that by defining VDBG locally.
-> 
-> Also get rid of MPC_LOC which doesn't seem to be used
-> by anyone.
-> 
-> [1] - warning fixed by this patch:
-> 
-> In file included from drivers/usb/dwc3/core.h:33,
->    from drivers/usb/dwc3/ep0.c:33:
->    include/linux/usb/otg-fsm.h:30:1: warning: "VDBG" redefined
->    In file included from drivers/usb/dwc3/ep0.c:31:
->    include/linux/usb/composite.h:615:1: warning: this is the location
->    of the previous definition
-> 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
+Felipe,
 
-Acked-by: Peter Chen <peter.chen@nxp.com>
-> ---
->  drivers/usb/common/usb-otg-fsm.c |  7 +++++++
->  drivers/usb/phy/phy-fsl-usb.c    |  7 +++++++
->  include/linux/usb/otg-fsm.h      | 15 ---------------
->  3 files changed, 14 insertions(+), 15 deletions(-)
+On 10/05/16 13:12, Felipe Balbi wrote:
 > 
-> diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
-> index 9059b7d..015cf41 100644
-> --- a/drivers/usb/common/usb-otg-fsm.c
-> +++ b/drivers/usb/common/usb-otg-fsm.c
-> @@ -30,6 +30,13 @@
->  #include <linux/usb/otg.h>
->  #include <linux/usb/otg-fsm.h>
->  
-> +#ifdef VERBOSE
-> +#define VDBG(fmt, args...) pr_debug("[%s]  " fmt , \
-> +				 __func__, ## args)
-> +#else
-> +#define VDBG(stuff...)	do {} while (0)
-> +#endif
-> +
->  /* Change USB protocol when there is a protocol change */
->  static int otg_set_protocol(struct otg_fsm *fsm, int protocol)
->  {
-> diff --git a/drivers/usb/phy/phy-fsl-usb.c b/drivers/usb/phy/phy-fsl-usb.c
-> index 94eb292..dd8a1ad 100644
-> --- a/drivers/usb/phy/phy-fsl-usb.c
-> +++ b/drivers/usb/phy/phy-fsl-usb.c
-> @@ -44,6 +44,13 @@
->  
->  #include "phy-fsl-usb.h"
->  
-> +#ifdef VERBOSE
-> +#define VDBG(fmt, args...) pr_debug("[%s]  " fmt , \
-> +				 __func__, ## args)
-> +#else
-> +#define VDBG(stuff...)	do {} while (0)
-> +#endif
-> +
->  #define DRIVER_VERSION "Rev. 1.55"
->  #define DRIVER_AUTHOR "Jerry Huang/Li Yang"
->  #define DRIVER_DESC "Freescale USB OTG Transceiver Driver"
-> diff --git a/include/linux/usb/otg-fsm.h b/include/linux/usb/otg-fsm.h
-> index 7a03505..a0a8f87 100644
-> --- a/include/linux/usb/otg-fsm.h
-> +++ b/include/linux/usb/otg-fsm.h
-> @@ -21,21 +21,6 @@
->  #include <linux/mutex.h>
->  #include <linux/errno.h>
->  
-> -#undef VERBOSE
-> -
-> -#ifdef VERBOSE
-> -#define VDBG(fmt, args...) pr_debug("[%s]  " fmt , \
-> -				 __func__, ## args)
-> -#else
-> -#define VDBG(stuff...)	do {} while (0)
-> -#endif
-> -
-> -#ifdef VERBOSE
-> -#define MPC_LOC printk("Current Location [%s]:[%d]\n", __FILE__, __LINE__)
-> -#else
-> -#define MPC_LOC do {} while (0)
-> -#endif
-> -
->  #define PROTO_UNDEF	(0)
->  #define PROTO_HOST	(1)
->  #define PROTO_GADGET	(2)
-> -- 
-> 2.7.4
+> Hi,
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> writes:
+>>>> @@ -497,8 +503,8 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+>>>>  	/* check the DMA Status */
+>>>>  	reg = dwc3_omap_readl(omap->base, USBOTGSS_SYSCONFIG);
+>>>>  
+>>>> -	ret = devm_request_irq(dev, omap->irq, dwc3_omap_interrupt, 0,
+>>>> -			"dwc3-omap", omap);
+>>>> +	ret = devm_request_threaded_irq(dev, omap->irq, dwc3_omap_interrupt,
+>>>> +					NULL, 0, "dwc3-omap", omap);
+>>>
+>>> if you're using threaded_irq, it's better to have a NULL top half and
+>>> valid bottom half.
+>>
+>> But in this case we don't need a bottom half as there is nothing to do :).
+>>
+>>>
+>>> In fact, since this will be shared, you could do a proper preparation
+>>> and on top half check if $this device generated the IRQ and
+>>> conditionally schedule the bottom half. Don't forget to mask device's
+>>> interrupts from top half so you can run without IRQF_ONESHOT.
+>>>
+>>
+>> Why do this at all if there is nothing to do in the bottom half?
+> 
+> oh, but there is :-)
+> 
+> The whole idea of threaded IRQs is that you spend as little time as
+> possible on top half and the (strong) recommendation is that you *only*
+> check if $this device generated the interrupt. Note that "checking if
+> $this device generated the interrupt" will be mandatory as soon as you
+> mark the IRQ line as shared ;-)
+> 
+> So here's how this should look like:
+> 
+> static irqreturn_t dwc3_omap_interrupt(int irq, void *_omap)
+> {
+>         struct dwc3_omap *omap = _omap;
+>         u32 reg;
+> 
+>         reg = readl(IRQSTATUS)
+>         if (reg) {
+>                 mask_interrupts(omap);
+>         	return IRQ_WAKE_THREAD;
+>         }
+> 
+> 	return IRQ_HANDLED;
 
--- 
+This should be IRQ_NONE right?
 
-Best Regards,
-Peter Chen
+> }
+> 
+> static irqreturn_t dwc3_omap_threaded_interrupt(int irq, void *_omap)
+> {
+>         struct dwc3_omap *omap = _omap;
+>         u32 reg;
+> 
+>         spin_lock(&omap->lock);
+
+Do we really need a spin_lock for the dwc3-omap driver?
+Currently we won't be doing anything other than just
+clearing the irqstatus and re-enabling the interrupts.
+
+
+>         reg = readl(IRQSTATUS);
+> 
+>         if (reg & BIT0)
+>         	handle_bit_0(omap);
+> 
+> 	if (reg & BIT1)
+>         	handle_bit_1(omap);
+> 
+> 	unmask_interrupts(omap);
+> 	spin_unlock(&omap->lock);
+> 
+> 	return IRQ_HANDLED;
+> }
+> 
+> this will *always* behave well with RT and non-RT kernels. It also
+> allows for the user to change priorities on these interrupt handlers if
+> necessary.
+> 
+
+--
+cheers,
+-roger
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
