@@ -1,107 +1,41 @@
-From: Felipe Balbi <balbi@kernel.org>
-Subject: Re: [PATCH v7 1/5] usb: dwc3: omap: use request_threaded_irq()
-Date: Wed, 11 May 2016 15:39:57 +0300
-Message-ID: <87r3d8g44i.fsf@linux.intel.com>
-References: <1462873919-20532-1-git-send-email-rogerq@ti.com> <1462873919-20532-2-git-send-email-rogerq@ti.com> <87a8jyi6ad.fsf@linux.intel.com> <5731B235.80505@ti.com> <87y47igr1g.fsf@linux.intel.com> <5732EA85.6050601@ti.com> <87y47hexja.fsf@linux.intel.com> <57331B85.2000003@ti.com>
+From: Andreas Dannenberg <dannenberg-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/2] ARM: dts: dra7: Add ocmcram nodes
+Date: Wed, 11 May 2016 08:07:41 -0500
+Message-ID: <20160511130741.GR20461@borg.dal.design.ti.com>
+References: <1462909782-14639-1-git-send-email-d-gerlach@ti.com>
+ <1462909782-14639-2-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha256; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <57331B85.2000003@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1462909782-14639-2-git-send-email-d-gerlach-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+On Tue, May 10, 2016 at 02:49:41PM -0500, Dave Gerlach wrote:
+> Add all ocmcram nodes to dra7.dtsi using the generic mmio-sram driver.
+> DRA7xx and AM57xx families of SoCs can contain three ocmcram regions of
+> SRAM, one of 512kb and also an optional two additional of 1Mb each. Mark
+> the two additional 1MB regions of SRAM as disabled as only ocmcmram1 is
+> on all variants of the SoCs, then depending on which specific variant
+> is in use the ocmcram2 and ocmcram3 nodes can be enabled in the board
+> dts file if the data manual for that part number indicates the ocmcram
+> region is available.
+> 
+> Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+
+Reviewed-by: Andreas Dannenberg <dannenberg-l0cyMroinI0@public.gmane.org>
 
 
-Hi,
+Regards,
 
-Roger Quadros <rogerq@ti.com> writes:
->>>> static irqreturn_t dwc3_omap_threaded_interrupt(int irq, void *_omap)
->>>> {
->>>>         struct dwc3_omap *omap =3D _omap;
->>>>         u32 reg;
->>>>
->>>>         spin_lock(&omap->lock);
->>>
->>> Do we really need a spin_lock for the dwc3-omap driver?
->>> Currently we won't be doing anything other than just
->>> clearing the irqstatus and re-enabling the interrupts.
->>=20
->> well, if there's no possibility of races, then no. But only testing will
->> say for sure, I guess. I didn't really go through the entire thing just
->> to a write a quick little template :-p
->>=20
-> OK. Another hurdle I have is that how do I mask/unmask the interrupts?
-> I do not see any masking bits, only enable/disable bits.
->
-> I don't think we can use the enable/disable bits to mask as we'd loose
-> events while the event is disabled.
+--
+Andreas Dannenberg
+Texas Instruments Inc
 
-I'm pretty sure your TRM discusses the usage of IRQSTATUS_RAW*
-registers, doesn't it ? :-)
-
-Those registers should be modified by HW even when interrupts are
-disabled/masked. Note that, the IRQSTATUS_SET* and IRQSTATUS_CLR*
-registers act more like mask/unmask than enable/disable considering we
-can still read IRQ status using *RAW* registers.
-
-See if below works fine for OMAP5, AM4 and AM5 SoCs:
-
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index af264493bbae..ece2f25ad2c3 100644
-=2D-- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -165,20 +165,20 @@ static void dwc3_omap_write_utmi_ctrl(struct dwc3_oma=
-p *omap, u32 value)
-=20
- static u32 dwc3_omap_read_irq0_status(struct dwc3_omap *omap)
- {
-=2D	return dwc3_omap_readl(omap->base, USBOTGSS_IRQSTATUS_0 -
-+	return dwc3_omap_readl(omap->base, USBOTGSS_IRQSTATUS_RAW_0 -
- 						omap->irq0_offset);
- }
-=20
- static void dwc3_omap_write_irq0_status(struct dwc3_omap *omap, u32 value)
- {
-=2D	dwc3_omap_writel(omap->base, USBOTGSS_IRQSTATUS_0 -
-+	dwc3_omap_writel(omap->base, USBOTGSS_IRQSTATUS_RAW_0 -
- 						omap->irq0_offset, value);
-=20
- }
-=20
- static u32 dwc3_omap_read_irqmisc_status(struct dwc3_omap *omap)
- {
-=2D	return dwc3_omap_readl(omap->base, USBOTGSS_IRQSTATUS_MISC +
-+	return dwc3_omap_readl(omap->base, USBOTGSS_IRQSTATUS_RAW_MISC +
- 						omap->irqmisc_offset);
- }
-=20
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJXMygdAAoJEIaOsuA1yqREzgIQAIYNeWBlgNYOKmTquI3s8Qw5
-jv9Z5RnY2eOMm1AOAVcLv97CPC8itEErnqllXFO0JT/4aUwfHKDHnp3jutasCyWj
-wM5fTtoRpcAefiaWGMwbuJw/WutP+N9AsAeXHxWY3B6yRwwzwvwOgj0oR96h7AMu
-sdRuBttvsawqdhB9KP7cbTwH9ohh+59SkJZ3bz+huQrdWJDsXzj6yNikdY4S2/J9
-dNGrCe6UAf6UH2YB285bqjrGBaB6RJmDHFE7fX302Uzm95CjNSJly7njAxNFDZ4w
-6ujAAwNQCpMjBd9ObYMXRSmxII64FzwUcpGpVRd4vHi3QvGVZFgOP2bhmgvu3EF7
-mDUxbqt3xC3q/YvtBsDkRhY/dFjsv4o5eDRB7LagCVsbbWtHzcG4gIU4ixXGsN9d
-8AZMKjlrH11Zn2Cu4DEwX4ziwIct1dOpPump+Nhj47b1mkG6hYlrHJmXZhpo7PbC
-XhsvL2lfsxm7KaZIgsJCo1bXLSSk12rj8xPzhvbiIEqlUa6Nw9/kayxjOUre/zr/
-Gn+s+lS07//6YasGrMi2AvFDHWkiSjuMcXdxzHdSWiIUTLNuO9yfSukZbHFEYYWo
-0BFS4tKSolZE3cWnAVvDx/694ya0v+D1e3npjF/ml+Ya0zyQXWiIum6DdxK2P20y
-1GPM8BuGjA4xQBF29KSW
-=N4E6
------END PGP SIGNATURE-----
---=-=-=--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
