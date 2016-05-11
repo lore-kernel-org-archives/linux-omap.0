@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v8 1/5] usb: dwc3: omap: use request_threaded_irq()
-Date: Wed, 11 May 2016 17:36:42 +0300
-Message-ID: <1462977406-22806-2-git-send-email-rogerq@ti.com>
+Subject: [PATCH v8 5/5] usb: dwc3: core: cleanup IRQ resources
+Date: Wed, 11 May 2016 17:36:46 +0300
+Message-ID: <1462977406-22806-6-git-send-email-rogerq@ti.com>
 References: <1462977406-22806-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,95 +12,154 @@ To: balbi@kernel.org
 Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-We intend to share this interrupt with the OTG driver an to ensure
-that irqflags match for the shared interrupt handlers we use
-request_threaded_irq()
+Implementations might use different IRQs for
+host, gadget and OTG so use named interrupt resources
+to allow Device tree to specify the 3 interrupts.
 
-If we don't use request_treaded_irq() then forced threaded irq will
-set IRQF_ONESHOT and this won't match with the OTG IRQ handler's
-IRQ flags.
+Following are the interrupt names
 
-NOTE: OTG IRQ handler is yet to be added. This is a preparatory step.
+Peripheral Interrupt - peripheral
+HOST Interrupt - host
+OTG Interrupt - otg
+
+We still maintain backward compatibility for a single named
+interrupt for all 3 interrupts (e.g. for dwc3-pci) and
+single unnamed interrupt for all 3 interrupts (e.g. old DT).
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/usb/dwc3/dwc3-omap.c | 32 ++++++++++++++++++++++++++------
- 1 file changed, 26 insertions(+), 6 deletions(-)
+ drivers/usb/dwc3/core.c   | 10 ----------
+ drivers/usb/dwc3/core.h   |  3 +++
+ drivers/usb/dwc3/gadget.c | 23 +++++++++++++++++++----
+ drivers/usb/dwc3/host.c   | 19 +++++++++++++++++++
+ 4 files changed, 41 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index 59ea35f..7d49da1 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -165,7 +165,7 @@ static void dwc3_omap_write_utmi_ctrl(struct dwc3_omap *omap, u32 value)
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index c050a88..4e8b154 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -814,16 +814,6 @@ static int dwc3_probe(struct platform_device *pdev)
+ 	dwc->mem = mem;
+ 	dwc->dev = dev;
  
- static u32 dwc3_omap_read_irq0_status(struct dwc3_omap *omap)
- {
--	return dwc3_omap_readl(omap->base, USBOTGSS_IRQSTATUS_0 -
-+	return dwc3_omap_readl(omap->base, USBOTGSS_IRQSTATUS_RAW_0 -
- 						omap->irq0_offset);
- }
+-	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+-	if (!res) {
+-		dev_err(dev, "missing IRQ\n");
+-		return -ENODEV;
+-	}
+-	dwc->xhci_resources[1].start = res->start;
+-	dwc->xhci_resources[1].end = res->end;
+-	dwc->xhci_resources[1].flags = res->flags;
+-	dwc->xhci_resources[1].name = res->name;
+-
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!res) {
+ 		dev_err(dev, "missing memory resource\n");
+diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+index 186a886..ab0d615 100644
+--- a/drivers/usb/dwc3/core.h
++++ b/drivers/usb/dwc3/core.h
+@@ -716,6 +716,7 @@ struct dwc3_scratchpad_array {
+  * @maximum_speed: maximum speed requested (mainly for testing purposes)
+  * @revision: revision register contents
+  * @dr_mode: requested mode of operation
++ * @gadget_irq: IRQ number for Peripheral IRQs
+  * @usb2_phy: pointer to USB2 PHY
+  * @usb3_phy: pointer to USB3 PHY
+  * @usb2_generic_phy: pointer to USB2 PHY
+@@ -817,6 +818,8 @@ struct dwc3 {
  
-@@ -178,7 +178,7 @@ static void dwc3_omap_write_irq0_status(struct dwc3_omap *omap, u32 value)
+ 	enum usb_dr_mode	dr_mode;
  
- static u32 dwc3_omap_read_irqmisc_status(struct dwc3_omap *omap)
- {
--	return dwc3_omap_readl(omap->base, USBOTGSS_IRQSTATUS_MISC +
-+	return dwc3_omap_readl(omap->base, USBOTGSS_IRQSTATUS_RAW_MISC +
- 						omap->irqmisc_offset);
- }
- 
-@@ -268,19 +268,38 @@ static void dwc3_omap_set_mailbox(struct dwc3_omap *omap,
- 	}
- }
- 
-+static void dwc3_omap_enable_irqs(struct dwc3_omap *omap);
-+static void dwc3_omap_disable_irqs(struct dwc3_omap *omap);
++	int			gadget_irq;
 +
- static irqreturn_t dwc3_omap_interrupt(int irq, void *_omap)
- {
- 	struct dwc3_omap	*omap = _omap;
-+
-+	if (dwc3_omap_read_irqmisc_status(omap) ||
-+	    dwc3_omap_read_irq0_status(omap)) {
-+		/* mask irqs */
-+		dwc3_omap_disable_irqs(omap);
-+		return IRQ_WAKE_THREAD;
-+	}
-+
-+	return IRQ_NONE;
-+}
-+
-+static irqreturn_t dwc3_omap_interrupt_thread(int irq, void *_omap)
-+{
-+	struct dwc3_omap	*omap = _omap;
+ 	/* used for suspend/resume */
+ 	u32			dcfg;
+ 	u32			gctl;
+diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+index c3b0d01..f493c32 100644
+--- a/drivers/usb/dwc3/gadget.c
++++ b/drivers/usb/dwc3/gadget.c
+@@ -1605,7 +1605,7 @@ static int dwc3_gadget_start(struct usb_gadget *g,
+ 	int			irq;
  	u32			reg;
  
-+	/* clear irq status flags */
- 	reg = dwc3_omap_read_irqmisc_status(omap);
--
- 	dwc3_omap_write_irqmisc_status(omap, reg);
- 
- 	reg = dwc3_omap_read_irq0_status(omap);
--
- 	dwc3_omap_write_irq0_status(omap, reg);
- 
-+	/* unmask irqs */
-+	dwc3_omap_enable_irqs(omap);
-+
- 	return IRQ_HANDLED;
- }
- 
-@@ -497,8 +516,9 @@ static int dwc3_omap_probe(struct platform_device *pdev)
- 	/* check the DMA Status */
- 	reg = dwc3_omap_readl(omap->base, USBOTGSS_SYSCONFIG);
- 
--	ret = devm_request_irq(dev, omap->irq, dwc3_omap_interrupt, 0,
--			"dwc3-omap", omap);
-+	ret = devm_request_threaded_irq(dev, omap->irq, dwc3_omap_interrupt,
-+					dwc3_omap_interrupt_thread, 0,
-+					"dwc3-omap", omap);
+-	irq = platform_get_irq(to_platform_device(dwc->dev), 0);
++	irq = dwc->gadget_irq;
+ 	ret = request_threaded_irq(irq, dwc3_interrupt, dwc3_thread_interrupt,
+ 			IRQF_SHARED, "dwc3", dwc->ev_buf);
  	if (ret) {
- 		dev_err(dev, "failed to request IRQ #%d --> %d\n",
- 				omap->irq, ret);
+@@ -1728,7 +1728,6 @@ static int dwc3_gadget_stop(struct usb_gadget *g)
+ {
+ 	struct dwc3		*dwc = gadget_to_dwc(g);
+ 	unsigned long		flags;
+-	int			irq;
+ 
+ 	spin_lock_irqsave(&dwc->lock, flags);
+ 
+@@ -1740,8 +1739,7 @@ static int dwc3_gadget_stop(struct usb_gadget *g)
+ 
+ 	spin_unlock_irqrestore(&dwc->lock, flags);
+ 
+-	irq = platform_get_irq(to_platform_device(dwc->dev), 0);
+-	free_irq(irq, dwc->ev_buf);
++	free_irq(dwc->gadget_irq, dwc->ev_buf);
+ 
+ 	return 0;
+ }
+@@ -2781,6 +2779,23 @@ static irqreturn_t dwc3_interrupt(int irq, void *_evt)
+ int dwc3_gadget_init(struct dwc3 *dwc)
+ {
+ 	int					ret;
++	struct resource *res;
++	struct platform_device *dwc3_pdev = to_platform_device(dwc->dev);
++
++	dwc->gadget_irq = platform_get_irq_byname(dwc3_pdev, "peripheral");
++	if (dwc->gadget_irq <= 0) {
++		dwc->gadget_irq = platform_get_irq_byname(dwc3_pdev,
++							  "dwc_usb3");
++		if (dwc->gadget_irq <= 0) {
++			res = platform_get_resource(dwc3_pdev, IORESOURCE_IRQ,
++						    0);
++			if (!res) {
++				dev_err(dwc->dev, "missing peripheral IRQ\n");
++				return -ENODEV;
++			}
++			dwc->gadget_irq = res->start;
++		}
++	}
+ 
+ 	dwc->ctrl_req = dma_alloc_coherent(dwc->dev, sizeof(*dwc->ctrl_req),
+ 			&dwc->ctrl_req_addr, GFP_KERNEL);
+diff --git a/drivers/usb/dwc3/host.c b/drivers/usb/dwc3/host.c
+index c679f63..f2b60a4 100644
+--- a/drivers/usb/dwc3/host.c
++++ b/drivers/usb/dwc3/host.c
+@@ -25,6 +25,25 @@ int dwc3_host_init(struct dwc3 *dwc)
+ 	struct platform_device	*xhci;
+ 	struct usb_xhci_pdata	pdata;
+ 	int			ret;
++	struct resource		*res;
++	struct platform_device	*dwc3_pdev = to_platform_device(dwc->dev);
++
++	res = platform_get_resource_byname(dwc3_pdev, IORESOURCE_IRQ, "host");
++	if (!res) {
++		res = platform_get_resource_byname(dwc3_pdev, IORESOURCE_IRQ,
++						   "dwc_usb3");
++		if (!res) {
++			res = platform_get_resource(dwc3_pdev, IORESOURCE_IRQ,
++						    0);
++			if (!res)
++				return -ENOMEM;
++		}
++	}
++
++	dwc->xhci_resources[1].start = res->start;
++	dwc->xhci_resources[1].end = res->end;
++	dwc->xhci_resources[1].flags = res->flags;
++	dwc->xhci_resources[1].name = res->name;
+ 
+ 	xhci = platform_device_alloc("xhci-hcd", PLATFORM_DEVID_AUTO);
+ 	if (!xhci) {
 -- 
 2.7.4
