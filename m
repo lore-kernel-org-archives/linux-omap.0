@@ -1,8 +1,8 @@
-From: Jon Hunter <jonathanh@nvidia.com>
+From: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH V2 13/14] dt-bindings: arm-gic: Add documentation for
  Tegra210 AGIC
-Date: Wed, 11 May 2016 17:10:59 +0100
-Message-ID: <57335993.2010809@nvidia.com>
+Date: Wed, 11 May 2016 17:16:19 +0100
+Message-ID: <57335AD3.7070109@nvidia.com>
 References: <1461150237-15580-1-git-send-email-jonathanh@nvidia.com>
  <1461150237-15580-14-git-send-email-jonathanh@nvidia.com>
  <20160422100052.GA10606@leverpostej> <571A0739.3090502@nvidia.com>
@@ -15,11 +15,11 @@ References: <1461150237-15580-1-git-send-email-jonathanh@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <573358F9.6000108@nvidia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh+dt@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Kevin Hilman <khilman@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <573358F9.6000108-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
 
@@ -27,10 +27,10 @@ On 11/05/16 17:08, Jon Hunter wrote:
 > Hi Rob,
 > 
 > On 11/05/16 16:51, Rob Herring wrote:
->> On Sat, May 7, 2016 at 9:10 AM, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
+>> On Sat, May 7, 2016 at 9:10 AM, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org> wrote:
 >>> Hi Jon,
 >>>
->>> On Fri, May 6, 2016 at 10:32 AM, Jon Hunter <jonathanh@nvidia.com> wrote:
+>>> On Fri, May 6, 2016 at 10:32 AM, Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org> wrote:
 >>>>> The "nvidia,tegra210-agic" string can be taken as describing any
 >>>>> Tegra-210 specific integration quirks, though I agree that's also not
 >>>>> fantastic for extending PM support beyond Tegra 210 and variants
@@ -75,8 +75,28 @@ On 11/05/16 17:08, Jon Hunter wrote:
 > 
 > The driver would still have to decide whether to hand-off and to do that
 > it would need to return an error from the early driver [0].
+> 
+>>>> If this is not appropriate then I guess I will just need to use
+>>>> "tegra210-agic" for the compatibility flag.
+>>>
+>>> As I want this for plain gic-400, I'd be unhappy ;-)
+>>
+>> IMO, the plain gic-400 should not have these dependencies and you
+>> should use SoC specific compatible strings should you need to deal
+>> with this problem.
+> 
+> It is fine for my case, but it does mean I cannot say ...
+> 
+> 	compatible = "tegra210-agic", "gic-400";
+> 
+> ... because this will always match the early driver (unless we do
+> something like I have suggested above). So I would have ...
 
-I mean, the "early driver would still have to decide whether to hand-off
-..."
+Sorry this is wrong. The above will always match the early driver.
+
+The problem with the above compatibility string is that, if the platform
+driver matches "gic-400" then it will try to probe all gic-400s even if
+they have been initialised early and this is definitely not what we
+want. This could be solved by setting the OF_POPULATED flag.
 
 Jon
