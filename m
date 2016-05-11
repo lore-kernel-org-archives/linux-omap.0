@@ -1,67 +1,37 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v8 0/5] dwc3: omap: fixes and dual-role preparation
-Date: Wed, 11 May 2016 17:36:41 +0300
-Message-ID: <1462977406-22806-1-git-send-email-rogerq@ti.com>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: [PATCH v7 10/14] usb: otg: add hcd companion support
+Date: Wed, 11 May 2016 10:47:20 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1605111043030.1882-100000@iolanthe.rowland.org>
+References: <57333DFF.3090609@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@kernel.org
-Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <57333DFF.3090609-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Felipe,
+On Wed, 11 May 2016, Roger Quadros wrote:
 
-I've removed the patches that add dual role support. These are just
-some fixes can go in before any actual dual role support.
+> > What I mean is if you have 2 EHCI controllers with 2 companion 
+> > controllers, don't you need to know which companion goes with which EHCI 
+> > controller? Just like you do for the otg-controller property.
+> > 
+> 
+> That is a very good point. I'm not very sure and it seems that current code won't work
+> with multiple EHCI + companion instances.
+> 
+> Alan, does USB core even know which EHCI and OHCI are linked to the same port
+> or the handoff is software transparent?
 
-About the OTG software mailbox, I tried checking internally in TI but
-nobody was aware of any constraints. The events can be set as they are
-obtained from the PMIC OTG comparators. My gut feeling is that we didn't have
-VBUS and ID events working properly back then and so resulting
-in a hackish software OTG mailbox implementation.
+The core knows.  It doesn't use the information for a whole lot of 
+things, but it does use it in a couple of places.  Search for 
+"companion" in core/hcd-pci.c and you'll see.
 
-I tested this on omap5-uevm, dra7-evm and am572x-evm and didn't
-observe any regressions.
+Alan Stern
 
-Based on balbi/next commit 2a58f9c12bb360f38fb39e470bb5ff94014356e6.
-
-v8:
-- implement proper top and bottom half irq handler for dwc3-omap.
-- remove otg_irq code, this can come later with dual-role support.
-- use dwc3->gadget_irq while free_irq() in dwc3_gadget_stop().
-
-v7:
-- remove patches adding dual-role support.
-- split out shared irq conversion from threaded irq conversion patch.
-- added a new patch about not touching POWERPRESENT bit.
-
-v6:
-- use just otg irq to get otg events and don't depend on extcon at all.
-- follow OTG flow in TRM strictly.
-- use tracepoints instead of dev_dbg().
-- match IRQ flags in dwc3_omap and core.c for shared otg interrupt.
-
-v5: Internal revision. Not sent to mailing list.
-
-v4: first version that was reviewed.
-
-cheers,
--roger
-
-Roger Quadros (5):
-  usb: dwc3: omap: use request_threaded_irq()
-  usb: dwc3: omap: Mark the interrupt handler as shared
-  usb: dwc3: omap: Don't set POWERPRESENT
-  usb: dwc3: omap: Pass VBUS and ID events transparently
-  usb: dwc3: core: cleanup IRQ resources
-
- drivers/usb/dwc3/core.c      | 10 ---------
- drivers/usb/dwc3/core.h      |  3 +++
- drivers/usb/dwc3/dwc3-omap.c | 53 ++++++++++++++++++++++++++++----------------
- drivers/usb/dwc3/gadget.c    | 23 +++++++++++++++----
- drivers/usb/dwc3/host.c      | 19 ++++++++++++++++
- 5 files changed, 75 insertions(+), 33 deletions(-)
-
--- 
-2.7.4
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
