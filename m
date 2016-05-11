@@ -1,76 +1,46 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v7 10/14] usb: otg: add hcd companion support
-Date: Wed, 11 May 2016 17:13:19 +0300
-Message-ID: <57333DFF.3090609@ti.com>
-References: <1462191537-10314-1-git-send-email-rogerq@ti.com>
- <1462191537-10314-11-git-send-email-rogerq@ti.com>
- <20160504131700.GA20184@rob-hp-laptop> <5729FD66.4020704@ti.com>
- <20160511135426.GA25762@rob-hp-laptop>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 4/7] [media] ir-rx51: add DT support to driver
+Date: Wed, 11 May 2016 09:14:29 -0500
+Message-ID: <20160511141429.GA5894@rob-hp-laptop>
+References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <1462634508-24961-5-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160509200657.GA3379@rob-hp-laptop>
+ <5730F8BA.5000402@gmail.com>
+ <CAL_JsqJPZS1ne_xAuBFtCc5L1HKFJf0LDUJ7CRSFXhc3adkTfA@mail.gmail.com>
+ <20160510021826.GE1129@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160511135426.GA25762@rob-hp-laptop>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org
-Cc: peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pwm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160510021826.GE1129@earth>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Thierry Reding <thierry.reding@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux PWM List <linux-pwm@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 11/05/16 16:54, Rob Herring wrote:
-> On Wed, May 04, 2016 at 04:47:18PM +0300, Roger Quadros wrote:
->> On 04/05/16 16:17, Rob Herring wrote:
->>> On Mon, May 02, 2016 at 03:18:53PM +0300, Roger Quadros wrote:
->>>> From: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
->>>>
->>>> Since some host controller (e.g. EHCI) needs a companion host controller
->>>> (e.g. OHCI), this patch adds such a configuration to use it in the OTG
->>>> core.
->>>>
->>>> Signed-off-by: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
->>>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
->>>> ---
->>>>  Documentation/devicetree/bindings/usb/generic.txt |  3 +++
->>>>  drivers/usb/common/usb-otg.c                      | 32 ++++++++++++++++-------
->>>>  include/linux/usb/otg.h                           |  7 ++++-
->>>>  3 files changed, 32 insertions(+), 10 deletions(-)
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/usb/generic.txt b/Documentation/devicetree/bindings/usb/generic.txt
->>>> index f6866c1..1db1c33 100644
->>>> --- a/Documentation/devicetree/bindings/usb/generic.txt
->>>> +++ b/Documentation/devicetree/bindings/usb/generic.txt
->>>> @@ -27,6 +27,9 @@ Optional properties:
->>>>   - otg-controller: phandle to otg controller. Host or gadget controllers can
->>>>  			contain this property to link it to a particular OTG
->>>>  			controller.
->>>> + - hcd-needs-companion: must be present if otg controller is dealing with
->>>> +			EHCI host controller that needs a companion OHCI host
->>>> +			controller.
->>>
->>> Don't you need to have a link to the companion controller node?
->>
->> primary and companion controllers are totally independent of each other
->> e.g. EHCI and OHCI. They are enabled by separate Kconfig options and
->> the system can operate with either or both of them enabled.
->>
->> At the OTG layer we don't have information as to whether we should be waiting
->> for both of them to register or not and hence need this "hcd-needs-companion" flag.
+On Tue, May 10, 2016 at 04:18:27AM +0200, Sebastian Reichel wrote:
+> Hi,
 > 
-> What I mean is if you have 2 EHCI controllers with 2 companion 
-> controllers, don't you need to know which companion goes with which EHCI 
-> controller? Just like you do for the otg-controller property.
+> On Mon, May 09, 2016 at 04:07:35PM -0500, Rob Herring wrote:
+> > There's already a pwm-led binding that can be used. Though there
+> > may be missing consumer IR to LED subsystem support in the kernel.
+> > You could list both compatibles, use the rx51 IR driver now, and
+> > then move to pwm-led driver in the future.
 > 
+> Well from a purely HW point of view it's a PWM connected led. The
+> usage is completely different though. Usually PWM is used to control
+> the LED's brightness via the duty cycle (basic concept: enabling led
+> only 50% of time reduces brightness to 50%).
+> 
+> In the IR led's case the aim is generating a specific serial pattern
+> instead. For this task it uses a dmtimer in PWM mode and a second
+> one to reconfigure the pwm timer.
 
-That is a very good point. I'm not very sure and it seems that current code won't work
-with multiple EHCI + companion instances.
+In that case, it will probably never be a generic driver.
 
-Alan, does USB core even know which EHCI and OHCI are linked to the same port
-or the handoff is software transparent?
+> I don't know about a good name, but rx51 should be replaced with
+> n900 in the compatible string. So maybe "nokia,n900-infrared-diode".
 
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+That's fine, but the shorter '-ir' was too.
+
+Rob
