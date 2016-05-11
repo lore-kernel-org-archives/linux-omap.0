@@ -1,11 +1,13 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 0/8] regulator: tps65218: Clean ups
-Date: Wed, 11 May 2016 11:18:03 +0530
-Message-ID: <1462945691-904-1-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 2/8] Documentation: regulator: tps65218: Update examples
+Date: Wed, 11 May 2016 11:18:05 +0530
+Message-ID: <1462945691-904-3-git-send-email-j-keerthy@ti.com>
+References: <1462945691-904-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1462945691-904-1-git-send-email-j-keerthy@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,36 +21,112 @@ To: broonie@kernel.org, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.c
 Cc: nm@ti.com, devicetree@vger.kernel.org, nikita@compulab.co.il, j-keerthy@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The series cleans up mainly the regulator driver and implements
-the device tree parsing using the regulator framework. Removes
-all the redundant compatibles for the individual regulators.
+This updates the device tree according to the preferred way of parsing
+the nodes using the regulator framework.
 
-One of the patch removes redundant read wrapper and makes
-use of regmap_read wherever necessary.
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
+ .../devicetree/bindings/regulator/tps65218.txt     | 87 ++++++++++++++++++----
+ 1 file changed, 71 insertions(+), 16 deletions(-)
 
-The series is checked for all the regulator registrations on
-am437x-gp-evm and am437x-sk-evm.
-
-Keerthy (8):
-  mfd: tps65218: Remove redundant read wrapper
-  Documentation: regulator: tps65218: Updates according to changes with
-    parsing
-  mfd: tps65218: Use mfd_add_devices instead of of_platform_populate
-  regulator: tps65218: Remove all the compatibles
-  ARM: dts: AM437X-GP-EVM: Remove redundant regulator compatibles
-  ARM: dts: AM437X-SK-EVM: Remove redundant regulator compatibles
-  ARM: dts: AM437X-CM-T43: Remove redundant regulator compatibles
-  ARM: dts: AM43X-EPOS-EVM: Remove redundant regulator compatibles
-
- .../devicetree/bindings/regulator/tps65218.txt     |  88 +++++++++++---
- arch/arm/boot/dts/am437x-cm-t43.dts                |   6 -
- arch/arm/boot/dts/am437x-gp-evm.dts                |   6 -
- arch/arm/boot/dts/am437x-sk-evm.dts                |   5 -
- arch/arm/boot/dts/am43x-epos-evm.dts               |   7 --
- drivers/mfd/tps65218.c                             |  24 ++--
- drivers/regulator/tps65218-regulator.c             | 134 ++++++++-------------
- include/linux/mfd/tps65218.h                       |   2 -
- 8 files changed, 127 insertions(+), 145 deletions(-)
-
+diff --git a/Documentation/devicetree/bindings/regulator/tps65218.txt b/Documentation/devicetree/bindings/regulator/tps65218.txt
+index fccc1d2..8d3d919 100644
+--- a/Documentation/devicetree/bindings/regulator/tps65218.txt
++++ b/Documentation/devicetree/bindings/regulator/tps65218.txt
+@@ -1,23 +1,78 @@
+ TPS65218 family of regulators
+ 
+ Required properties:
+-For tps65218 regulators/LDOs
+-- compatible:
+-  - "ti,tps65218-dcdc1" for DCDC1
+-  - "ti,tps65218-dcdc2" for DCDC2
+-  - "ti,tps65218-dcdc3" for DCDC3
+-  - "ti,tps65218-dcdc4" for DCDC4
+-  - "ti,tps65218-dcdc5" for DCDC5
+-  - "ti,tps65218-dcdc6" for DCDC6
+-  - "ti,tps65218-ldo1" for LDO1
+-
+-Optional properties:
+-- Any optional property defined in bindings/regulator/regulator.txt
++- compatible: "ti,tps65218"
++- reg: I2C slave address
++- list of regulators provided by this controller, must be named
++  after their hardware counterparts: dcdc[1-6] and ldo1
++- This is the list of child nodes that specify the regulator
++  initialization data for defined regulators. Not all regulators for the given
++  device need to be present. The definition for each of these nodes is defined
++  using the standard binding for regulators found at
++  Documentation/devicetree/bindings/regulator/regulator.txt.
++
++  The valid names for regulators are:
++  tps65217: regulator-dcdc1, regulator-dcdc2, regulator-dcdc3, regulator-dcdc4,
++  regulator-dcdc5, regulator-dcdc6, regulator-ldo1, regulator-ls3
++  Each regulator is defined using the standard binding for regulators.
+ 
+ Example:
++tps65218: tps65218@24 {
++	reg = <0x24>;
++	compatible = "ti,tps65218";
++	interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* NMIn */
++	interrupt-controller;
++	#interrupt-cells = <2>;
++
++	dcdc1: regulator-dcdc1 {
++		regulator-name = "vdd_core";
++		regulator-min-microvolt = <912000>;
++		regulator-max-microvolt = <1144000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
++	dcdc2: regulator-dcdc2 {
++		regulator-name = "vdd_mpu";
++		regulator-min-microvolt = <912000>;
++		regulator-max-microvolt = <1378000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
++	dcdc3: regulator-dcdc3 {
++		regulator-name = "vdcdc3";
++		regulator-min-microvolt = <1500000>;
++		regulator-max-microvolt = <1500000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
++	dcdc5: regulator-dcdc5 {
++		regulator-name = "v1_0bat";
++		regulator-min-microvolt = <1000000>;
++		regulator-max-microvolt = <1000000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
++	dcdc6: regulator-dcdc6 {
++		regulator-name = "v1_8bat";
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <1800000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
++	ldo1: regulator-ldo1 {
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <1800000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
+ 
+-	xyz: regulator@0 {
+-		compatible = "ti,tps65218-dcdc1";
+-		regulator-min-microvolt  = <1000000>;
+-		regulator-max-microvolt  = <3000000>;
++	ls3: regulator-ls3 {
++		regulator-min-microvolt = <100000>;
++		regulator-max-microvolt = <1000000>;
+ 	};
++};
 -- 
 1.9.1
