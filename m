@@ -1,153 +1,107 @@
-From: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v7 07/14] usb: otg: get rid of CONFIG_USB_OTG_FSM in
- favour of CONFIG_USB_OTG
-Date: Wed, 11 May 2016 16:21:35 +0800
-Message-ID: <20160511082135.GD16910@shlinux2.ap.freescale.net>
+From: Peter Chen <hzpeterchen@gmail.com>
+Subject: Re: [PATCH v7 08/14] usb: otg: add OTG/dual-role core
+Date: Wed, 11 May 2016 16:34:21 +0800
+Message-ID: <20160511083421.GE16910@shlinux2.ap.freescale.net>
 References: <1462191537-10314-1-git-send-email-rogerq@ti.com>
- <1462191537-10314-8-git-send-email-rogerq@ti.com>
+ <1462191537-10314-9-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1462191537-10314-8-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1462191537-10314-9-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: peter.chen@freescale.com, stern@rowland.harvard.edu, balbi@kernel.org, gregkh@linuxfoundation.org, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, yoshihiro.shimoda.uh@renesas.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, May 02, 2016 at 03:18:50PM +0300, Roger Quadros wrote:
-> Let's use CONFIG_USB_OTG as a single config option to enable
-> USB OTG and the OTG FSM. This makes things a lot less confusing.
-> 
-> Update all users of CONFIG_USB_OTG_FSM to CONFIG_USB_OTG.
-> 
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+On Mon, May 02, 2016 at 03:18:51PM +0300, Roger Quadros wrote:
+> +
+> +	if (config->otg_work)	/* custom otg_work ? */
+> +		INIT_WORK(&otg->work, config->otg_work);
+> +	else
+> +		INIT_WORK(&otg->work, usb_drd_work);
+> +
+> +	otg->wq = create_singlethread_workqueue("usb_otg");
 
-Acked-by: Peter Chen <peter.chen-3arQi8VN3Tc@public.gmane.org>
+Using create_freezable_workqueue like I suggested before.
 
-> ---
->  Documentation/usb/chipidea.txt | 2 +-
+> + */
+> +
+> +#ifndef __DRIVERS_USB_COMMON_USB_OTG_H
+> +#define __DRIVERS_USB_COMMON_USB_OTG_H
+> +
+> +/*
+> + *  A-DEVICE timing constants
+> + */
+> +
+> +/* Wait for VBUS Rise  */
+> +#define TA_WAIT_VRISE        (100)	/* a_wait_vrise: section 7.1.2
+> +					 * a_wait_vrise_tmr: section 7.4.5.1
+> +					 * TA_VBUS_RISE <= 100ms, section 4.4
+> +					 * Table 4-1: Electrical Characteristics
+> +					 * ->DC Electrical Timing
+> +					 */
+> +/* Wait for VBUS Fall  */
+> +#define TA_WAIT_VFALL        (1000)	/* a_wait_vfall: section 7.1.7
+> +					 * a_wait_vfall_tmr: section: 7.4.5.2
+> +					 */
+> +/* Wait for B-Connect */
+> +#define TA_WAIT_BCON         (10000)	/* a_wait_bcon: section 7.1.3
+> +					 * TA_WAIT_BCON: should be between 1100
+> +					 * and 30000 ms, section 5.5, Table 5-1
+> +					 */
+> +/* A-Idle to B-Disconnect */
+> +#define TA_AIDL_BDIS         (5000)	/* a_suspend min 200 ms, section 5.2.1
+> +					 * TA_AIDL_BDIS: section 5.5, Table 5-1
+> +					 */
+> +/* B-Idle to A-Disconnect */
+> +#define TA_BIDL_ADIS         (500)	/* TA_BIDL_ADIS: section 5.2.1
+> +					 * 500ms is used for B switch to host
+> +					 * for safe
+> +					 */
+> +
+> +/*
+> + * B-device timing constants
+> + */
+> +
+> +/* Data-Line Pulse Time*/
+> +#define TB_DATA_PLS          (10)	/* b_srp_init,continue 5~10ms
+> +					 * section:5.1.3
+> +					 */
+> +/* SRP Fail Time  */
+> +#define TB_SRP_FAIL          (6000)	/* b_srp_init,fail time 5~6s
+> +					 * section:5.1.6
+> +					 */
+> +/* A-SE0 to B-Reset  */
+> +#define TB_ASE0_BRST         (155)	/* minimum 155 ms, section:5.3.1 */
+> +/* SE0 Time Before SRP */
+> +#define TB_SE0_SRP           (1000)	/* b_idle,minimum 1s, section:5.1.2 */
+> +/* SSEND time before SRP */
+> +#define TB_SSEND_SRP         (1500)	/* minimum 1.5 sec, section:5.1.2 */
+> +
+> +#define TB_SESS_VLD          (1000)
 
-I have updated this file, so you will meet a conflict if you
-rebase with newest usb-next tree.
+Seems you agree to remove above definitions.
 
->  drivers/usb/chipidea/Makefile  | 2 +-
->  drivers/usb/chipidea/ci.h      | 2 +-
->  drivers/usb/chipidea/otg_fsm.h | 2 +-
->  drivers/usb/common/Makefile    | 3 ++-
->  drivers/usb/core/Kconfig       | 8 --------
->  drivers/usb/phy/Kconfig        | 2 +-
->  7 files changed, 7 insertions(+), 14 deletions(-)
-> 
-> diff --git a/Documentation/usb/chipidea.txt b/Documentation/usb/chipidea.txt
-> index 678741b..3b1f263 100644
-> --- a/Documentation/usb/chipidea.txt
-> +++ b/Documentation/usb/chipidea.txt
-> @@ -5,7 +5,7 @@ with 2 Freescale i.MX6Q sabre SD boards.
 >  
->  1.1 How to enable OTG FSM in menuconfig
->  ---------------------------------------
-> -Select CONFIG_USB_OTG_FSM, rebuild kernel Image and modules.
-> +Select CONFIG_USB_OTG, rebuild kernel Image and modules.
->  If you want to check some internal variables for otg fsm,
->  mount debugfs, there are 2 files which can show otg fsm
->  variables and some controller registers value:
-> diff --git a/drivers/usb/chipidea/Makefile b/drivers/usb/chipidea/Makefile
-> index 518e445..45aa24d 100644
-> --- a/drivers/usb/chipidea/Makefile
-> +++ b/drivers/usb/chipidea/Makefile
-> @@ -3,7 +3,7 @@ obj-$(CONFIG_USB_CHIPIDEA)		+= ci_hdrc.o
->  ci_hdrc-y				:= core.o otg.o debug.o
->  ci_hdrc-$(CONFIG_USB_CHIPIDEA_UDC)	+= udc.o
->  ci_hdrc-$(CONFIG_USB_CHIPIDEA_HOST)	+= host.o
-> -ci_hdrc-$(CONFIG_USB_OTG_FSM)		+= otg_fsm.o
-> +ci_hdrc-$(CONFIG_USB_OTG)		+= otg_fsm.o
+>  	/* Current usb protocol used: 0:undefine; 1:host; 2:client */
+> diff --git a/include/linux/usb/otg.h b/include/linux/usb/otg.h
+> index 85b8fb5..b094352 100644
+> --- a/include/linux/usb/otg.h
+> +++ b/include/linux/usb/otg.h
+> @@ -10,10 +10,55 @@
+>  #define __LINUX_USB_OTG_H
 >  
->  # Glue/Bridge layers go here
->  
-> diff --git a/drivers/usb/chipidea/ci.h b/drivers/usb/chipidea/ci.h
-> index c523975..1a32b8c 100644
-> --- a/drivers/usb/chipidea/ci.h
-> +++ b/drivers/usb/chipidea/ci.h
-> @@ -406,7 +406,7 @@ static inline u32 hw_test_and_write(struct ci_hdrc *ci, enum ci_hw_regs reg,
->   */
->  static inline bool ci_otg_is_fsm_mode(struct ci_hdrc *ci)
->  {
-> -#ifdef CONFIG_USB_OTG_FSM
-> +#ifdef CONFIG_USB_OTG
->  	struct usb_otg_caps *otg_caps = &ci->platdata->ci_otg_caps;
->  
->  	return ci->is_otg && ci->roles[CI_ROLE_HOST] &&
-> diff --git a/drivers/usb/chipidea/otg_fsm.h b/drivers/usb/chipidea/otg_fsm.h
-> index 6366fe3..2d451bb 100644
-> --- a/drivers/usb/chipidea/otg_fsm.h
-> +++ b/drivers/usb/chipidea/otg_fsm.h
-> @@ -64,7 +64,7 @@
->  
->  #define TB_AIDL_BDIS         (20)	/* 4ms ~ 150ms, section 5.2.1 */
->  
-> -#if IS_ENABLED(CONFIG_USB_OTG_FSM)
-> +#if IS_ENABLED(CONFIG_USB_OTG)
->  
->  int ci_hdrc_otg_fsm_init(struct ci_hdrc *ci);
->  int ci_otg_fsm_work(struct ci_hdrc *ci);
-> diff --git a/drivers/usb/common/Makefile b/drivers/usb/common/Makefile
-> index 6bbb3ec..f8f2c88 100644
-> --- a/drivers/usb/common/Makefile
-> +++ b/drivers/usb/common/Makefile
-> @@ -6,5 +6,6 @@ obj-$(CONFIG_USB_COMMON)	  += usb-common.o
->  usb-common-y			  += common.o
->  usb-common-$(CONFIG_USB_LED_TRIG) += led.o
->  
-> -obj-$(CONFIG_USB_OTG_FSM) += usb-otg-fsm.o
->  obj-$(CONFIG_USB_ULPI_BUS)	+= ulpi.o
-> +usbotg-y		:= usb-otg-fsm.o
-> +obj-$(CONFIG_USB_OTG)	+= usbotg.o
-> diff --git a/drivers/usb/core/Kconfig b/drivers/usb/core/Kconfig
-> index dd28010..ae228d0 100644
-> --- a/drivers/usb/core/Kconfig
-> +++ b/drivers/usb/core/Kconfig
-> @@ -75,14 +75,6 @@ config USB_OTG_BLACKLIST_HUB
->  	  and software costs by not supporting external hubs.  So
->  	  are "Embedded Hosts" that don't offer OTG support.
->  
-> -config USB_OTG_FSM
-> -	tristate "USB 2.0 OTG FSM implementation"
-> -	depends on USB && USB_OTG
-> -	select USB_PHY
-> -	help
-> -	  Implements OTG Finite State Machine as specified in On-The-Go
-> -	  and Embedded Host Supplement to the USB Revision 2.0 Specification.
-> -
->  config USB_ULPI_BUS
->  	tristate "USB ULPI PHY interface support"
->  	depends on USB_SUPPORT
-> diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
-> index c690474..06794e2 100644
-> --- a/drivers/usb/phy/Kconfig
-> +++ b/drivers/usb/phy/Kconfig
-> @@ -20,7 +20,7 @@ config AB8500_USB
->  
->  config FSL_USB2_OTG
->  	bool "Freescale USB OTG Transceiver Driver"
-> -	depends on USB_EHCI_FSL && USB_FSL_USB2 && USB_OTG_FSM && PM
-> +	depends on USB_EHCI_FSL && USB_FSL_USB2 && USB_OTG && PM
->  	select USB_PHY
->  	help
->  	  Enable this to support Freescale USB OTG transceiver.
-> -- 
-> 2.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  #include <linux/phy/phy.h>
+> -#include <linux/usb/phy.h>
+> -#include <linux/usb/otg-fsm.h>
+> +#include <linux/device.h>
+> +#include <linux/hrtimer.h>
+> +#include <linux/ktime.h>
+
+Above two headers are not needed
 
 -- 
 
 Best Regards,
 Peter Chen
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
