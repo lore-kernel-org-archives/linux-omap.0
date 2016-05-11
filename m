@@ -1,138 +1,127 @@
-From: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v7 12/14] usb: hcd: Adapt to OTG core
-Date: Wed, 11 May 2016 16:57:18 +0800
-Message-ID: <20160511085718.GJ16910@shlinux2.ap.freescale.net>
+From: Peter Chen <hzpeterchen@gmail.com>
+Subject: Re: [PATCH v7 14/14] usb: host: xhci-plat: Add otg device to
+ platform data
+Date: Wed, 11 May 2016 17:00:27 +0800
+Message-ID: <20160511090027.GK16910@shlinux2.ap.freescale.net>
 References: <1462191537-10314-1-git-send-email-rogerq@ti.com>
- <1462191537-10314-13-git-send-email-rogerq@ti.com>
+ <1462191537-10314-15-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1462191537-10314-13-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1462191537-10314-15-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: peter.chen@freescale.com, stern@rowland.harvard.edu, balbi@kernel.org, gregkh@linuxfoundation.org, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, yoshihiro.shimoda.uh@renesas.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, May 02, 2016 at 03:18:55PM +0300, Roger Quadros wrote:
-> Introduce usb_otg_add/remove_hcd() for use by host
-> controllers that are part of OTG/dual-role port.
+On Mon, May 02, 2016 at 03:18:57PM +0300, Roger Quadros wrote:
+> Host controllers that are part of an OTG/dual-role instance
+> need to somehow pass the OTG controller device information
+> to the HCD core.
 > 
-> Non Device tree platforms can use the otg_dev argument
-> to specify the OTG controller device. If otg_dev is NULL
-> then the device tree node's otg-controller property is used to
-> get the otg_dev device.
+> We use platform data to pass the OTG controller device.
 > 
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-
-Acked-by: Peter Chen <peter.chen-3arQi8VN3Tc@public.gmane.org>
-
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 > ---
->  drivers/usb/core/hcd.c  | 55 +++++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/usb/hcd.h |  4 ++++
->  2 files changed, 59 insertions(+)
+>  drivers/usb/host/xhci-plat.c     | 35 ++++++++++++++++++++++++++++-------
+>  include/linux/usb/xhci_pdriver.h |  3 +++
+>  2 files changed, 31 insertions(+), 7 deletions(-)
 > 
-> diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
-> index 9484539..cfc8232 100644
-> --- a/drivers/usb/core/hcd.c
-> +++ b/drivers/usb/core/hcd.c
-> @@ -46,6 +46,11 @@
->  #include <linux/usb.h>
->  #include <linux/usb/hcd.h>
->  #include <linux/usb/phy.h>
-> +#include <linux/usb/otg.h>
-> +#include <linux/usb/of.h>
+> diff --git a/drivers/usb/host/xhci-plat.c b/drivers/usb/host/xhci-plat.c
+> index 5c15e9b..84ebe18 100644
+> --- a/drivers/usb/host/xhci-plat.c
+> +++ b/drivers/usb/host/xhci-plat.c
+> @@ -230,11 +230,20 @@ static int xhci_plat_probe(struct platform_device *pdev)
+>  			goto put_usb3_hcd;
+>  	}
+>  
+> -	ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
+> +	if (pdata && pdata->otg_dev)
+> +		ret = usb_otg_add_hcd(hcd, irq, IRQF_SHARED, pdata->otg_dev);
+> +	else
+> +		ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
 > +
-> +#include <linux/of.h>
-> +#include <linux/of_platform.h>
+>  	if (ret)
+>  		goto disable_usb_phy;
 >  
->  #include "usb.h"
+> -	ret = usb_add_hcd(xhci->shared_hcd, irq, IRQF_SHARED);
+> +	if (pdata && pdata->otg_dev)
+> +		ret = usb_otg_add_hcd(xhci->shared_hcd, irq, IRQF_SHARED,
+> +				      pdata->otg_dev);
+> +	else
+> +		ret = usb_add_hcd(xhci->shared_hcd, irq, IRQF_SHARED);
+> +
+>  	if (ret)
+>  		goto dealloc_usb2_hcd;
 >  
-> @@ -3013,6 +3018,56 @@ void usb_remove_hcd(struct usb_hcd *hcd)
+> @@ -242,7 +251,10 @@ static int xhci_plat_probe(struct platform_device *pdev)
+>  
+>  
+>  dealloc_usb2_hcd:
+> -	usb_remove_hcd(hcd);
+> +	if (pdata && pdata->otg_dev)
+> +		usb_otg_remove_hcd(hcd);
+> +	else
+> +		usb_remove_hcd(hcd);
+>  
+>  disable_usb_phy:
+>  	usb_phy_shutdown(hcd->usb_phy);
+> @@ -260,16 +272,25 @@ put_hcd:
+>  	return ret;
 >  }
->  EXPORT_SYMBOL_GPL(usb_remove_hcd);
 >  
-> +static struct otg_hcd_ops otg_hcd_intf = {
-> +	.add = usb_add_hcd,
-> +	.remove = usb_remove_hcd,
-> +	.usb_bus_start_enum = usb_bus_start_enum,
-> +	.usb_control_msg = usb_control_msg,
-> +	.usb_hub_find_child = usb_hub_find_child,
-> +};
-> +
-> +/**
-> + * usb_otg_add_hcd - Register the HCD with OTG core.
-> + * @hcd: the usb_hcd structure to initialize
-> + * @irqnum: Interrupt line to allocate
-> + * @irqflags: Interrupt type flags
-> + * @otg_dev: OTG controller device managing this HCD
-> + *
-> + * Registers the HCD with OTG core. OTG core will call usb_add_hcd()
-> + * or usb_remove_hcd() as necessary.
-> + * If otg_dev is NULL then device tree node is checked for OTG
-> + * controller device via the otg-controller property.
-> + */
-> +int usb_otg_add_hcd(struct usb_hcd *hcd,
-> +		    unsigned int irqnum, unsigned long irqflags,
-> +		    struct device *otg_dev)
-> +{
-> +	struct device *dev = hcd->self.controller;
-> +
-> +	if (!otg_dev) {
-> +		hcd->otg_dev = of_usb_get_otg(dev->of_node);
-> +		if (!hcd->otg_dev)
-> +			return -ENODEV;
-> +	} else {
-> +		hcd->otg_dev = otg_dev;
-> +	}
-> +
-> +	return usb_otg_register_hcd(hcd, irqnum, irqflags, &otg_hcd_intf);
-> +}
-> +EXPORT_SYMBOL_GPL(usb_otg_add_hcd);
-> +
-> +/**
-> + * usb_otg_remove_hcd - Unregister the HCD with OTG core.
-> + * @hcd: the usb_hcd structure to remove
-> + *
-> + * Unregisters the HCD from the OTG core.
-> + */
-> +void usb_otg_remove_hcd(struct usb_hcd *hcd)
-> +{
-> +	usb_otg_unregister_hcd(hcd);
-> +}
-> +EXPORT_SYMBOL_GPL(usb_otg_remove_hcd);
-> +
->  void
->  usb_hcd_platform_shutdown(struct platform_device *dev)
+> -static int xhci_plat_remove(struct platform_device *dev)
+> +static int xhci_plat_remove(struct platform_device *pdev)
 >  {
-> diff --git a/include/linux/usb/hcd.h b/include/linux/usb/hcd.h
-> index 2017cd4..adcf2e7 100644
-> --- a/include/linux/usb/hcd.h
-> +++ b/include/linux/usb/hcd.h
-> @@ -472,6 +472,10 @@ extern int usb_hcd_is_primary_hcd(struct usb_hcd *hcd);
->  extern int usb_add_hcd(struct usb_hcd *hcd,
->  		unsigned int irqnum, unsigned long irqflags);
->  extern void usb_remove_hcd(struct usb_hcd *hcd);
-> +extern int usb_otg_add_hcd(struct usb_hcd *hcd,
-> +			   unsigned int irqnum, unsigned long irqflags,
-> +			   struct device *otg_dev);
-> +extern void usb_otg_remove_hcd(struct usb_hcd *hcd);
->  extern int usb_hcd_find_raw_port_number(struct usb_hcd *hcd, int port1);
+> -	struct usb_hcd	*hcd = platform_get_drvdata(dev);
+> +	struct usb_hcd	*hcd = platform_get_drvdata(pdev);
+>  	struct xhci_hcd	*xhci = hcd_to_xhci(hcd);
+>  	struct clk *clk = xhci->clk;
+> +	struct usb_xhci_pdata *pdata = dev_get_platdata(&pdev->dev);
+> +
+> +	if (pdata && pdata->otg_dev)
+> +		usb_otg_remove_hcd(xhci->shared_hcd);
+> +	else
+> +		usb_remove_hcd(xhci->shared_hcd);
 >  
->  struct platform_device;
+> -	usb_remove_hcd(xhci->shared_hcd);
+>  	usb_phy_shutdown(hcd->usb_phy);
+>  
+> -	usb_remove_hcd(hcd);
+> +	if (pdata && pdata->otg_dev)
+> +		usb_otg_remove_hcd(hcd);
+> +	else
+> +		usb_remove_hcd(hcd);
+> +
+>  	usb_put_hcd(xhci->shared_hcd);
+>  
+>  	if (!IS_ERR(clk))
+> diff --git a/include/linux/usb/xhci_pdriver.h b/include/linux/usb/xhci_pdriver.h
+> index 376654b..5c68b83 100644
+> --- a/include/linux/usb/xhci_pdriver.h
+> +++ b/include/linux/usb/xhci_pdriver.h
+> @@ -18,10 +18,13 @@
+>   *
+>   * @usb3_lpm_capable:	determines if this xhci platform supports USB3
+>   *			LPM capability
+> + * @otg_dev:		OTG controller device. Only requied if part of
+> + *			OTG/dual-role.
+>   *
+>   */
+>  struct usb_xhci_pdata {
+>  	unsigned	usb3_lpm_capable:1;
+> +	struct device	*otg_dev;
+>  };
+>  
+>  #endif /* __USB_CORE_XHCI_PDRIVER_H */
 > -- 
 > 2.7.4
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Reviewed-by: Peter Chen <peter.chen@nxp.com>
 
 -- 
 
 Best Regards,
 Peter Chen
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
