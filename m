@@ -1,41 +1,95 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: OMAP5 / DRA7: Introduce workaround for 801819
-Date: Thu, 12 May 2016 14:19:49 -0500
-Message-ID: <5734D755.3040406@ti.com>
-References: <1438876464-15424-1-git-send-email-nm@ti.com>
- <20160512171244.GT5995@atomide.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH net-next 4/5] treewide: replace dev->trans_start update
+ with helper
+Date: Thu, 12 May 2016 15:40:46 -0400
+Message-ID: <20118955-8739-b79a-e20e-96302e8b41bf@redhat.com>
+References: <1462285862-30946-1-git-send-email-fw@strlen.de>
+ <1462285994-31983-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160512171244.GT5995@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Richard Woodruff <r-woodruff2@ti.com>, Brad Griffis <bgriffis@ti.com>, Catalin Marinas <catalin.marinas@arm.com>, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="MxOQ9rEvBghhBiQvcDah4SfXu2ff5Ef0r"
+Return-path: <linux-parisc-owner@vger.kernel.org>
+In-Reply-To: <1462285994-31983-1-git-send-email-fw@strlen.de>
+Sender: linux-parisc-owner@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org
+Cc: user-mode-linux-devel@lists.sourceforge.net, linux-xtensa@linux-xtensa.org, linux1394-devel@lists.sourceforge.net, linux-rdma@vger.kernel.org, mpt-fusionlinux.pdl@broadcom.com, linux-scsi@vger.kernel.org, linux-can@vger.kernel.org, linux-parisc@vger.kernel.org, linux-omap@vger.kernel.org, linux-hams@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, b.a.t.m.a.n@lists.open-mesh.org, linux-bluetooth@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 05/12/2016 12:12 PM, Tony Lindgren wrote:
-> * Nishanth Menon <nm@ti.com> [150806 08:57]:
->> Add workaround for Cortex-A15 ARM erratum 801819 which says in summary
->> that "A livelock can occur in the L2 cache arbitration that might
->> prevent a snoop from completing. Under certain conditions this can
->> cause the system to deadlock. "
-> 
-> Thanks for the late reminder, this has totally fallen through the
-> cracks. Applying into omap-for-v4.7/fixes. Once merged to mainline,
-> it can be requested for stable if needed.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--MxOQ9rEvBghhBiQvcDah4SfXu2ff5Ef0r
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Thanks for digging this out.
+On 05/03/2016 10:33 AM, Florian Westphal wrote:
+> Replace all trans_start updates with netif_trans_update helper.
+> change was done via spatch:
+>=20
+> struct net_device *d;
+> @@
+> - d->trans_start =3D jiffies
+> + netif_trans_update(d)
+>=20
+> Compile tested only.
+>=20
+> Cc: user-mode-linux-devel@lists.sourceforge.net
+> Cc: linux-xtensa@linux-xtensa.org
+> Cc: linux1394-devel@lists.sourceforge.net
+> Cc: linux-rdma@vger.kernel.org
+> Cc: netdev@vger.kernel.org
+> Cc: MPT-FusionLinux.pdl@broadcom.com
+> Cc: linux-scsi@vger.kernel.org
+> Cc: linux-can@vger.kernel.org
+> Cc: linux-parisc@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-hams@vger.kernel.org
+> Cc: linux-usb@vger.kernel.org
+> Cc: linux-wireless@vger.kernel.org
+> Cc: linux-s390@vger.kernel.org
+> Cc: devel@driverdev.osuosl.org
+> Cc: b.a.t.m.a.n@lists.open-mesh.org
+> Cc: linux-bluetooth@vger.kernel.org
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  Checkpatch complains about whitespace damage, but
+>  this extra whitespace already exists before this patch.
+>=20
+>  drivers/infiniband/hw/nes/nes_nic.c                    | 2 +-
+>  drivers/infiniband/ulp/ipoib/ipoib_cm.c                | 2 +-
+>  drivers/infiniband/ulp/ipoib/ipoib_ib.c                | 2 +-
+
+For InfiniBand bits,
+
+Acked-by: Doug Ledford <dledford@redhat.com>
+
+--=20
+Doug Ledford <dledford@redhat.com>
+              GPG KeyID: 0E572FDD
 
 
--- 
-Regards,
-Nishanth Menon
+
+--MxOQ9rEvBghhBiQvcDah4SfXu2ff5Ef0r
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJXNNw+AAoJELgmozMOVy/dVQcP/1RZvmqQVJpZMtptIm8OpoPW
+4QrFlnjv+KorYVaF1Hg7+0X6yfCF53ofTKRAg4zaYiASZw4AJWYzslxA9b0OvpPS
+TzMjJrbWm27+W2pH8ZivFepys9afxW5o/qb7CFYyOPOEml495zReUvTqt/nSh7jG
+8nTdwO4xH5kY4P82bDn18Lyqd/8cS7yFl1OAK88eqq+y9JgveiIsO2PlsrtFENtX
++RyadCAluEUdfe6CZjMjUptBptIi6hfoMqmXXu4vcFs48mqbVf4QubFp5f+4wJa2
+KScILHNil3156j3TY3lpG1ukf2SfF0UYDYxco5tZlZ3O7nB3Xteif94gvvUiszyO
+IfGn3/wblQs6tRSHjMRNYiTVeYkyh0eXbdbha/7bkBG58mEjYFnrjtRuBMD2Ogmm
+uz6MhyD6Ez7mKKVBc3ooQ6SYpcwb4surHEGm36a2Utnb/vftxyPYpA75neZbSGZO
+X828tsNcxB9K8FUCEcP/Xasc5xE6kPtpwu5TIbJ7itYLs4yRoZbsmcI5UrhjqERp
+YAAiI07vifFHyFLUnfAOefjXxQOFJdQHtMphlnjfYiKXSpJsAhT2LIJpepgbovCc
+/268dPol/ul7WUbLu2P4zlnnIEQgABW6NKFMAg/N/b4XQ08VkeKv82yJ9aLuyG2J
+0QbOFyrXnR/I1OYFeDAU
+=2VMH
+-----END PGP SIGNATURE-----
+
+--MxOQ9rEvBghhBiQvcDah4SfXu2ff5Ef0r--
