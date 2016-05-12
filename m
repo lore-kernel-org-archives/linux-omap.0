@@ -1,71 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: omap5-igep0050: Correct hdmi regulator
-Date: Thu, 12 May 2016 13:26:57 -0700
-Message-ID: <20160512202656.GU5995@atomide.com>
-References: <20160504172634.GS5995@atomide.com>
- <572A38FD.9050801@ti.com>
- <20160505184609.GB5995@atomide.com>
- <2822D1C2B9B19F4A8261F756A13373F801BEF7B4@DFLE11.ent.ti.com>
- <CAPjucKb+4vd8Ar3MATCuTx+9R36PeB0hbvwDaAD1KTZFCiVJEA@mail.gmail.com>
- <2822D1C2B9B19F4A8261F756A13373F801BF86D2@DFLE11.ent.ti.com>
- <2822D1C2B9B19F4A8261F756A13373F801BF8703@DFLE11.ent.ti.com>
- <CAPjucKb2PLSZcD3YZ9xQk1F62ugFaGAkBBqMp5GmoWFd0H8Vfg@mail.gmail.com>
- <20160512165755.GR5995@atomide.com>
- <5734D733.9060400@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH RESEND 0/4] arm: dts: am57xx: Correct the thermal
+ thresholds
+Date: Thu, 12 May 2016 13:35:06 -0700
+Message-ID: <20160512203505.GV5995@atomide.com>
+References: <1461837949-11116-1-git-send-email-j-keerthy@ti.com>
+ <57316262.80003@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5734D733.9060400@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Eduard Gavin <egavin@iseebcn.com>, Enric Balletbo i Serra <eballetbo@iseebcn.com>, =?utf-8?Q?Agust=C3=AD?= Fontquerni <af@iseebcn.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+In-Reply-To: <57316262.80003-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
+Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm@ti.com> [160512 12:21]:
-> On 05/12/2016 11:57 AM, Tony Lindgren wrote:
-> > + * LDO7 is used for HDMI: VDDA_DSIPORTA - ball AA33, VDDA_DSIPORTC - ball AE33
-> > + * VDDA_HDMI - ball AN25. LDO4 is: VPP1 - ball AD9.
-> 
-> We should set ldo4_reg as 2v as well (default in omap5-board-common is
-> 1.8v). VPP1 should be 2v to prevent efuse from being messed up.
+Hi,
 
-Oh OK, here's the patch updated for ldo4.
+* Keerthy <a0393675-l0cyMroinI0@public.gmane.org> [160509 21:25]:
+> Tony,
+> 
+> On Thursday 28 April 2016 03:35 PM, Keerthy wrote:
+> >Noticed that earlier post had a wrong list name hence resending the
+> >series.
+> >
+> >Currently all the am57xx versions are wrongly re-using the dra7  thermal
+> >threholds. Introduing the correct thermal thresholds based on industrial
+> >or commercial grade silicon present on the individual boards.
+> >
+> >Tested on AM57XX-BEAGLE-X15 (Commercial) and AM572X-IDK(Industrial)
+> >for the trip_point node sysfs temperatures.
+> >
+> 
+> A Gentle ping on this series.
+
+I already have these in Linux next for v4.7 merge window:
+
+5b6042237dc8 ("ARM: dts: am57xx-idk: Include Industrial grade  thermal thresholds")
+266e62f97539 ("ARM: dts: am57xx-beagle-x15: Include the commercial grade thresholds")
+cf9b7d5e9cfd ("ARM: dts: am57xx: Introduce industrial grade thermal thresholds")
+286db0a516e0 ("ARM: dts: am57xx: Introduce commercial grade thermal thresholds")
+
+Care to check if those are OK? If fixes are needed, please post an
+incremental patch against current Linux next.
+
+Regards,
 
 Tony
-
-8< --------------------
-From: Tony Lindgren <tony@atomide.com>
-Date: Thu, 12 May 2016 09:51:51 -0700
-Subject: [PATCH] ARM: dts: Fix ldo7 source for HDMI on igepv5
-
-Fix ldo7 source for HDMI on igepv5.
-
-Suggested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/boot/dts/omap5-igep0050.dts
-+++ b/arch/arm/boot/dts/omap5-igep0050.dts
-@@ -35,6 +35,22 @@
- 	};
- };
- 
-+/* LDO4 is VPP1 - ball AD9 */
-+&ldo4_reg {
-+	regulator-min-microvolt = <2000000>;
-+	regulator-max-microvolt = <2000000>;
-+};
-+
-+/*
-+ * LDO7 is used for HDMI: VDDA_DSIPORTA - ball AA33, VDDA_DSIPORTC - ball AE33,
-+ * VDDA_HDMI - ball AN25
-+ */
-+&ldo7_reg {
-+	status = "okay";
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+};
-+
- &omap5_pmx_core {
- 	i2c4_pins: pinmux_i2c4_pins {
- 		pinctrl-single,pins = <
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
