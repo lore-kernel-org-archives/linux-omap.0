@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 06/15] usb: musb: Use delayed for musb_gadget_pullup
-Date: Wed, 11 May 2016 17:53:07 -0700
-Message-ID: <1463014396-4095-7-git-send-email-tony@atomide.com>
+Subject: [PATCH 04/15] usb: musb: Split PM runtime between wrapper IP and musb core
+Date: Wed, 11 May 2016 17:53:05 -0700
+Message-ID: <1463014396-4095-5-git-send-email-tony@atomide.com>
 References: <1463014396-4095-1-git-send-email-tony@atomide.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1463014396-4095-1-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
@@ -10,84 +10,129 @@ To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
 Cc: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-We have MUSB setting pm_runtime_irq_safe with the following
-commits:
+Let's not tinker with the PM runtime of musb core from the omap2430
+wrapper. This allows us to initialize PM runtime for musb core later
+on instead of doing it in stages. And omap2430 wrapper has no need
+to for accessing musb core at this point.
 
-30a70b026b4c ("usb: musb: fix obex in g_nokia.ko causing kernel panic")
-3e43a0725637 ("usb: musb: core: add pm_runtime_irq_safe()")
-
-Let's fix things to use delayed work so we can remove the
-pm_runtime_irq_safe.
-
-Note that we may want to set this up in a generic way in the
-gadget framework eventually.
+Note that this does not remove all the PM runtime calls from the
+glue layer, those will get removed in a later patch.
 
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/usb/musb/musb_core.h   |  1 +
- drivers/usb/musb/musb_gadget.c | 24 ++++++++++++++++++------
- 2 files changed, 19 insertions(+), 6 deletions(-)
+ drivers/usb/musb/musb_core.c | 39 +++++++++++++++++----------------------
+ drivers/usb/musb/omap2430.c  | 10 ----------
+ 2 files changed, 17 insertions(+), 32 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index b6afe9e..2947384 100644
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -312,6 +312,7 @@ struct musb {
- 	struct work_struct	irq_work;
- 	struct delayed_work	deassert_reset_work;
- 	struct delayed_work	finish_resume_work;
-+	struct delayed_work	gadget_work;
- 	u16			hwvers;
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 89c270a..23888d5 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -2005,17 +2005,6 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+ 	musb_readl = musb_default_readl;
+ 	musb_writel = musb_default_writel;
  
- 	u16			intrrxe;
-diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-index 7ecc893..af2a3a7 100644
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -1656,6 +1656,20 @@ static int musb_gadget_vbus_draw(struct usb_gadget *gadget, unsigned mA)
- 	return usb_phy_set_power(musb->xceiv, mA);
- }
- 
-+static void musb_gadget_work(struct work_struct *work)
-+{
-+	struct musb *musb;
-+	unsigned long flags;
-+
-+	musb = container_of(work, struct musb, gadget_work.work);
-+	pm_runtime_get_sync(musb->controller);
-+	spin_lock_irqsave(&musb->lock, flags);
-+	musb_pullup(musb, musb->softconnect);
-+	spin_unlock_irqrestore(&musb->lock, flags);
-+	pm_runtime_mark_last_busy(musb->controller);
-+	pm_runtime_put_autosuspend(musb->controller);
-+}
-+
- static int musb_gadget_pullup(struct usb_gadget *gadget, int is_on)
- {
- 	struct musb	*musb = gadget_to_musb(gadget);
-@@ -1663,20 +1677,16 @@ static int musb_gadget_pullup(struct usb_gadget *gadget, int is_on)
- 
- 	is_on = !!is_on;
- 
--	pm_runtime_get_sync(musb->controller);
+-	/*
+-	 * We need musb_read/write functions initialized for PM.
+-	 * Note that at least 2430 glue needs autosuspend delay
+-	 * somewhere above 300 ms for the hardware to idle properly
+-	 * after disconnecting the cable in host mode. Let's use
+-	 * 500 ms for some margin.
+-	 */
+-	pm_runtime_use_autosuspend(musb->controller);
+-	pm_runtime_set_autosuspend_delay(musb->controller, 500);
+-	pm_runtime_enable(musb->controller);
 -
- 	/* NOTE: this assumes we are sensing vbus; we'd rather
- 	 * not pullup unless the B-session is active.
+ 	/* The musb_platform_init() call:
+ 	 *   - adjusts musb->mregs
+ 	 *   - sets the musb->isr
+@@ -2117,6 +2106,16 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+ 	if (musb->ops->phy_callback)
+ 		musb_phy_callback = musb->ops->phy_callback;
+ 
++	/*
++	 * We need musb_read/write functions initialized for PM.
++	 * Note that at least 2430 glue needs autosuspend delay
++	 * somewhere above 300 ms for the hardware to idle properly
++	 * after disconnecting the cable in host mode. Let's use
++	 * 500 ms for some margin.
++	 */
++	pm_runtime_use_autosuspend(musb->controller);
++	pm_runtime_set_autosuspend_delay(musb->controller, 500);
++	pm_runtime_enable(musb->controller);
+ 	pm_runtime_get_sync(musb->controller);
+ 
+ 	status = usb_phy_init(musb->xceiv);
+@@ -2251,6 +2250,7 @@ fail2_5:
+ err_usb_phy_init:
+ 	pm_runtime_dont_use_autosuspend(musb->controller);
+ 	pm_runtime_put_sync(musb->controller);
++	pm_runtime_disable(musb->controller);
+ 
+ fail2:
+ 	if (musb->irq_wake)
+@@ -2258,7 +2258,6 @@ fail2:
+ 	musb_platform_exit(musb);
+ 
+ fail1:
+-	pm_runtime_disable(musb->controller);
+ 	dev_err(musb->controller,
+ 		"musb_init_controller failed with status %d\n", status);
+ 
+@@ -2306,6 +2305,9 @@ static int musb_remove(struct platform_device *pdev)
  	 */
- 	spin_lock_irqsave(&musb->lock, flags);
- 	if (is_on != musb->softconnect) {
- 		musb->softconnect = is_on;
--		musb_pullup(musb, is_on);
-+		schedule_delayed_work(&musb->gadget_work, 0);
- 	}
+ 	musb_exit_debugfs(musb);
+ 
++	cancel_work_sync(&musb->irq_work);
++	cancel_delayed_work_sync(&musb->finish_resume_work);
++	cancel_delayed_work_sync(&musb->deassert_reset_work);
+ 	pm_runtime_get_sync(musb->controller);
+ 	musb_host_cleanup(musb);
+ 	musb_gadget_cleanup(musb);
+@@ -2314,21 +2316,14 @@ static int musb_remove(struct platform_device *pdev)
+ 	musb_generic_disable(musb);
  	spin_unlock_irqrestore(&musb->lock, flags);
- 
--	pm_runtime_put(musb->controller);
+ 	musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
++	pm_runtime_dont_use_autosuspend(musb->controller);
++	pm_runtime_put_sync(musb->controller);
++	pm_runtime_disable(musb->controller);
+ 	musb_platform_exit(musb);
 -
+ 	musb_phy_callback = NULL;
+-
+ 	if (musb->dma_controller)
+ 		musb_dma_controller_destroy(musb->dma_controller);
+-
+ 	usb_phy_shutdown(musb->xceiv);
+-
+-	cancel_work_sync(&musb->irq_work);
+-	cancel_delayed_work_sync(&musb->finish_resume_work);
+-	cancel_delayed_work_sync(&musb->deassert_reset_work);
+-	pm_runtime_dont_use_autosuspend(musb->controller);
+-	pm_runtime_put_sync(musb->controller);
+-	pm_runtime_disable(musb->controller);
+ 	musb_free(musb);
+ 	device_init_wakeup(dev, 0);
  	return 0;
- }
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 07363d2..3ce94bf 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -400,13 +400,6 @@ static int omap2430_musb_init(struct musb *musb)
+ 	if (status < 0)
+ 		goto err1;
  
-@@ -1845,7 +1855,7 @@ int musb_gadget_setup(struct musb *musb)
- #elif IS_ENABLED(CONFIG_USB_MUSB_GADGET)
- 	musb->g.is_otg = 0;
- #endif
+-	status = pm_runtime_get_sync(dev);
+-	if (status < 0) {
+-		dev_err(dev, "pm_runtime_get_sync FAILED %d\n", status);
+-		pm_runtime_put_sync(glue->dev);
+-		goto err1;
+-	}
+-
+ 	l = musb_readl(musb->mregs, OTG_INTERFSEL);
+ 
+ 	if (data->interface_type == MUSB_INTERFACE_UTMI) {
+@@ -434,9 +427,6 @@ static int omap2430_musb_init(struct musb *musb)
+ 
+ 	phy_init(musb->phy);
+ 	phy_power_on(musb->phy);
