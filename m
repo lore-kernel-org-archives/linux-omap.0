@@ -1,36 +1,50 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: RE: [PATCH v7 10/14] usb: otg: add hcd companion support
-Date: Thu, 12 May 2016 14:16:38 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1605121413060.5957-100000@netrider.rowland.org>
-References: <SG2PR06MB09194AB523C3ABDB425285C7D8730@SG2PR06MB0919.apcprd06.prod.outlook.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH] ARM: OMAP2+: AM43XX: Enable fixes for Cortex-A9 errata
+Date: Thu, 12 May 2016 13:20:52 -0500
+Message-ID: <1463077252-13078-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <SG2PR06MB09194AB523C3ABDB425285C7D8730@SG2PR06MB0919.apcprd06.prod.outlook.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
-Cc: Roger Quadros <rogerq@ti.com>, Rob Herring <robh@kernel.org>, "peter.chen@freescale.com" <peter.chen@freescale.com>, "balbi@kernel.org" <balbi@kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "jun.li@freescale.com" <jun.li@freescale.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Joao.Pinto@synopsys.com" <Joao.Pinto@synopsys.com>, "abrestic@chromium.org" <abrestic@chromium.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 12 May 2016, Yoshihiro Shimoda wrote:
+This patch explicitly enables the fixes for the below errata applicable
+for AM43x Socs as was done for OMAP4.
 
-> > > Alan, does USB core even know which EHCI and OHCI are linked to the same port
-> > > or the handoff is software transparent?
-> > 
-> > The core knows.  It doesn't use the information for a whole lot of
-> > things, but it does use it in a couple of places.  Search for
-> > "companion" in core/hcd-pci.c and you'll see.
-> 
-> Thank you for the information. I didn't know this code.
-> If my understanding is correct, the core/hcd-pci.c code will not be used by non-PCI devices.
-> In other words, nobody sets "hcd->self.hs_companion" if we use such a device.
+754322: Faulty MMU translations following ASID switch
 
-That's right.
+775420: A data cache maintenance operation which aborts,
+        followed by an ISB, without any DSB in-between,
+        might lead to deadlock
 
-> So, I will try to add such a code if needed.
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+---
+ arch/arm/mach-omap2/Kconfig | 2 ++
+ 1 file changed, 2 insertions(+)
 
-The main thing to watch out for is during system resume.  The EHCI
-controller must not be resumed until all of its companion controllers
-have been resumed.
-
-Alan Stern
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 0517f0c1581a..f9deed2e6ef5 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -67,6 +67,8 @@ config SOC_AM43XX
+ 	select HAVE_ARM_SCU
+ 	select GENERIC_CLOCKEVENTS_BROADCAST
+ 	select HAVE_ARM_TWD
++	select ARM_ERRATA_754322
++	select ARM_ERRATA_775420
+ 
+ config SOC_DRA7XX
+ 	bool "TI DRA7XX"
+-- 
+2.7.3
