@@ -1,48 +1,28 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH RESEND 0/4] arm: dts: am57xx: Correct the thermal
- thresholds
-Date: Thu, 12 May 2016 13:35:06 -0700
-Message-ID: <20160512203505.GV5995@atomide.com>
-References: <1461837949-11116-1-git-send-email-j-keerthy@ti.com>
- <57316262.80003@ti.com>
+Subject: Re: [PATCH] ARM: dts: dra7: Add gpmc dma channel
+Date: Thu, 12 May 2016 13:44:58 -0700
+Message-ID: <20160512204458.GX5995@atomide.com>
+References: <1462383835-10839-1-git-send-email-fcooper@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <57316262.80003-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1462383835-10839-1-git-send-email-fcooper-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
-Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
+To: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-* Keerthy <a0393675-l0cyMroinI0@public.gmane.org> [160509 21:25]:
-> Tony,
+* Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org> [160504 10:45]:
+> Add dma channel information to the gpmc.
 > 
-> On Thursday 28 April 2016 03:35 PM, Keerthy wrote:
-> >Noticed that earlier post had a wrong list name hence resending the
-> >series.
-> >
-> >Currently all the am57xx versions are wrongly re-using the dra7  thermal
-> >threholds. Introduing the correct thermal thresholds based on industrial
-> >or commercial grade silicon present on the individual boards.
-> >
-> >Tested on AM57XX-BEAGLE-X15 (Commercial) and AM572X-IDK(Industrial)
-> >for the trip_point node sysfs temperatures.
-> >
-> 
-> A Gentle ping on this series.
+> Signed-off-by: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+> ---
+> This patch is based on top of linux-next where EDMA support for DRA7 has
+> been added.
 
-I already have these in Linux next for v4.7 merge window:
-
-5b6042237dc8 ("ARM: dts: am57xx-idk: Include Industrial grade  thermal thresholds")
-266e62f97539 ("ARM: dts: am57xx-beagle-x15: Include the commercial grade thresholds")
-cf9b7d5e9cfd ("ARM: dts: am57xx: Introduce industrial grade thermal thresholds")
-286db0a516e0 ("ARM: dts: am57xx: Introduce commercial grade thermal thresholds")
-
-Care to check if those are OK? If fixes are needed, please post an
-incremental patch against current Linux next.
+Thanks applying into omap-for-v4.7/dt as a fix for the merge window.
 
 Regards,
 
