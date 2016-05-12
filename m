@@ -1,66 +1,202 @@
-From: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
-Subject: RE: [PATCH v7 10/14] usb: otg: add hcd companion support
-Date: Thu, 12 May 2016 04:00:29 +0000
-Message-ID: <SG2PR06MB09194AB523C3ABDB425285C7D8730@SG2PR06MB0919.apcprd06.prod.outlook.com>
-References: <57333DFF.3090609@ti.com>
- <Pine.LNX.4.44L0.1605111043030.1882-100000@iolanthe.rowland.org>
+From: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v7 05/14] usb: otg-fsm: move host controller operations
+ into usb_otg->hcd_ops
+Date: Thu, 12 May 2016 16:18:43 +0800
+Message-ID: <20160512081843.GA23083@shlinux2.ap.freescale.net>
+References: <1462191537-10314-1-git-send-email-rogerq@ti.com>
+ <1462191537-10314-6-git-send-email-rogerq@ti.com>
+ <20160511061001.GA16910@shlinux2.ap.freescale.net>
+ <5733113D.2030009@ti.com>
+ <5733265E.2040105@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44L0.1605111043030.1882-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Content-Language: ja-JP
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org" <abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5733265E.2040105-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-> From: Alan Stern
-> Sent: Wednesday, May 11, 2016 11:47 PM
+On Wed, May 11, 2016 at 03:32:30PM +0300, Roger Quadros wrote:
+> Peter,
 > 
-> On Wed, 11 May 2016, Roger Quadros wrote:
+> On 11/05/16 14:02, Roger Quadros wrote:
+> > On 11/05/16 09:10, Peter Chen wrote:
+> >> On Mon, May 02, 2016 at 03:18:48PM +0300, Roger Quadros wrote:
+> >>> This is to prevent missing symbol build error if OTG is
+> >>> enabled (built-in) and HCD core (CONFIG_USB) is module.
+> >>>
+> >>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> >>> Acked-by: Peter Chen <peter.chen-3arQi8VN3Tc@public.gmane.org>
+> >>> ---
+> >>>  drivers/usb/chipidea/otg_fsm.c   |  7 +++++++
+> >>>  drivers/usb/common/usb-otg-fsm.c | 15 +++++++++++----
+> >>>  drivers/usb/phy/phy-fsl-usb.c    |  7 +++++++
+> >>>  include/linux/usb/otg.h          |  2 ++
+> >>>  4 files changed, 27 insertions(+), 4 deletions(-)
+> >>>
+> >>> diff --git a/drivers/usb/chipidea/otg_fsm.c b/drivers/usb/chipidea/otg_fsm.c
+> >>> index 1c0c750..2d8d659 100644
+> >>> --- a/drivers/usb/chipidea/otg_fsm.c
+> >>> +++ b/drivers/usb/chipidea/otg_fsm.c
+> >>> @@ -582,6 +582,12 @@ static struct otg_fsm_ops ci_otg_ops = {
+> >>>  	.start_gadget = ci_otg_start_gadget,
+> >>>  };
+> >>>  
+> >>> +static struct otg_hcd_ops ci_hcd_ops = {
+> >>> +	.usb_bus_start_enum = usb_bus_start_enum,
+> >>> +	.usb_control_msg = usb_control_msg,
+> >>> +	.usb_hub_find_child = usb_hub_find_child,
+> >>> +};
+> >>> +
+> >>
+> >> Is it possible have default otg_hcd_ops during OTG register to
+> >> avoid define it at every dual-role driver?
+> > 
+> > Yes, I'll do that.
 > 
-> > > What I mean is if you have 2 EHCI controllers with 2 companion
-> > > controllers, don't you need to know which companion goes with which EHCI
-> > > controller? Just like you do for the otg-controller property.
-> > >
-> >
-> > That is a very good point. I'm not very sure and it seems that current code won't work
-> > with multiple EHCI + companion instances.
-
-I may misunderstand this topic, but if I use the following environment, it works correctly.
-
-< My environment >
-- an otg controller: Sets hcd-needs-companion.
-- ehci0 and ohci0 and a function: They connect to the otg controller using "otg-controller" property.
-- ehci1 and ohci1: No "otg-controller" property.
-- ehci2 and ohci2: No "otg-controller" property.
-
-In this environment, all hosts works correctly.
-Also I think if we have 2 otg controlelrs, it should be work because otg_dev instance differs.
-Or, does this topic assume an otg controller handles 2 EHCI controllers?
-I'm not sure such environment actually exists.
-
-> > Alan, does USB core even know which EHCI and OHCI are linked to the same port
-> > or the handoff is software transparent?
+> Every OTG driver doesn't need to do this as this is provided by
+> hcd.c during usb_otg_add_hcd().
 > 
-> The core knows.  It doesn't use the information for a whole lot of
-> things, but it does use it in a couple of places.  Search for
-> "companion" in core/hcd-pci.c and you'll see.
+> So proper fix is that chipidea driver must use usb_otg_add_hcd().
+> 
 
-Thank you for the information. I didn't know this code.
-If my understanding is correct, the core/hcd-pci.c code will not be used by non-PCI devices.
-In other words, nobody sets "hcd->self.hs_companion" if we use such a device.
-So, I will try to add such a code if needed.
+But the chipidea is not ready to merge with framework that this patch
+set introduces. So, as a solution, we need this patch, and can remove
+the redundant information after the OTG driver uses this framework?
 
-Best regards,
-Yoshihiro Shimoda
+Peter
+> cheers,
+> -roger
+> 
+> > 
+> >>>  int ci_otg_fsm_work(struct ci_hdrc *ci)
+> >>>  {
+> >>>  	/*
+> >>> @@ -804,6 +810,7 @@ int ci_hdrc_otg_fsm_init(struct ci_hdrc *ci)
+> >>>  	ci->otg.fsm.id = hw_read_otgsc(ci, OTGSC_ID) ? 1 : 0;
+> >>>  	ci->otg.state = OTG_STATE_UNDEFINED;
+> >>>  	ci->otg.fsm.ops = &ci_otg_ops;
+> >>> +	ci->otg.hcd_ops = &ci_hcd_ops;
+> >>>  	ci->gadget.hnp_polling_support = 1;
+> >>>  	ci->otg.fsm.host_req_flag = devm_kzalloc(ci->dev, 1, GFP_KERNEL);
+> >>>  	if (!ci->otg.fsm.host_req_flag)
+> >>> diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
+> >>> index 4bfc6a5..2986b66 100644
+> >>> --- a/drivers/usb/common/usb-otg-fsm.c
+> >>> +++ b/drivers/usb/common/usb-otg-fsm.c
+> >>> @@ -141,11 +141,16 @@ static void otg_hnp_polling_work(struct work_struct *work)
+> >>>  	enum usb_otg_state state = otg->state;
+> >>>  	u8 flag;
+> >>>  	int retval;
+> >>> +	struct otg_hcd_ops *hcd_ops = otg->hcd_ops;
+> >>>  
+> >>>  	if (state != OTG_STATE_A_HOST && state != OTG_STATE_B_HOST)
+> >>>  		return;
+> >>>  
+> >>> -	udev = usb_hub_find_child(otg->host->root_hub, 1);
+> >>> +	if (!hcd_ops || !hcd_ops->usb_control_msg ||
+> >>> +	    !hcd_ops->usb_hub_find_child)
+> >>> +		return;
+> >>> +
+> >>> +	udev = hcd_ops->usb_hub_find_child(otg->host->root_hub, 1);
+> >>>  	if (!udev) {
+> >>>  		dev_err(otg->host->controller,
+> >>>  			"no usb dev connected, can't start HNP polling\n");
+> >>> @@ -154,7 +159,7 @@ static void otg_hnp_polling_work(struct work_struct *work)
+> >>>  
+> >>>  	*fsm->host_req_flag = 0;
+> >>>  	/* Get host request flag from connected USB device */
+> >>> -	retval = usb_control_msg(udev,
+> >>> +	retval = hcd_ops->usb_control_msg(udev,
+> >>>  				usb_rcvctrlpipe(udev, 0),
+> >>>  				USB_REQ_GET_STATUS,
+> >>>  				USB_DIR_IN | USB_RECIP_DEVICE,
+> >>> @@ -183,7 +188,7 @@ static void otg_hnp_polling_work(struct work_struct *work)
+> >>>  	if (state == OTG_STATE_A_HOST) {
+> >>>  		/* Set b_hnp_enable */
+> >>>  		if (!otg->host->b_hnp_enable) {
+> >>> -			retval = usb_control_msg(udev,
+> >>> +			retval = hcd_ops->usb_control_msg(udev,
+> >>>  					usb_sndctrlpipe(udev, 0),
+> >>>  					USB_REQ_SET_FEATURE, 0,
+> >>>  					USB_DEVICE_B_HNP_ENABLE,
+> >>> @@ -262,7 +267,9 @@ static int otg_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
+> >>>  		otg_loc_conn(otg, 0);
+> >>>  		otg_loc_sof(otg, 1);
+> >>>  		otg_set_protocol(fsm, PROTO_HOST);
+> >>> -		usb_bus_start_enum(otg->host, otg->host->otg_port);
+> >>> +		if (otg->hcd_ops && otg->hcd_ops->usb_bus_start_enum)
+> >>> +			otg->hcd_ops->usb_bus_start_enum(otg->host,
+> >>> +							 otg->host->otg_port);
+> >>>  		otg_start_hnp_polling(fsm);
+> >>>  		break;
+> >>>  	case OTG_STATE_A_IDLE:
+> >>> diff --git a/drivers/usb/phy/phy-fsl-usb.c b/drivers/usb/phy/phy-fsl-usb.c
+> >>> index 587a187..9dbd9f0 100644
+> >>> --- a/drivers/usb/phy/phy-fsl-usb.c
+> >>> +++ b/drivers/usb/phy/phy-fsl-usb.c
+> >>> @@ -792,6 +792,12 @@ static struct otg_fsm_ops fsl_otg_ops = {
+> >>>  	.start_gadget = fsl_otg_start_gadget,
+> >>>  };
+> >>>  
+> >>> +static struct otg_hcd_ops fsl_hcd_ops = {
+> >>> +	.usb_bus_start_enum = usb_bus_start_enum,
+> >>> +	.usb_control_msg = usb_control_msg,
+> >>> +	.usb_hub_find_child = usb_hub_find_child,
+> >>> +};
+> >>> +
+> >>>  /* Initialize the global variable fsl_otg_dev and request IRQ for OTG */
+> >>>  static int fsl_otg_conf(struct platform_device *pdev)
+> >>>  {
+> >>> @@ -820,6 +826,7 @@ static int fsl_otg_conf(struct platform_device *pdev)
+> >>>  
+> >>>  	/* Set OTG state machine operations */
+> >>>  	fsl_otg_tc->otg.fsm.ops = &fsl_otg_ops;
+> >>> +	fsl_otg_tc->otg.hcd_ops = &fsl_hcd_ops;
+> >>>  
+> >>>  	/* initialize the otg structure */
+> >>>  	fsl_otg_tc->phy.label = DRIVER_DESC;
+> >>> diff --git a/include/linux/usb/otg.h b/include/linux/usb/otg.h
+> >>> index e8a14dc..85b8fb5 100644
+> >>> --- a/include/linux/usb/otg.h
+> >>> +++ b/include/linux/usb/otg.h
+> >>> @@ -12,6 +12,7 @@
+> >>>  #include <linux/phy/phy.h>
+> >>>  #include <linux/usb/phy.h>
+> >>>  #include <linux/usb/otg-fsm.h>
+> >>> +#include <linux/usb/hcd.h>
+> >>>  
+> >>>  struct usb_otg {
+> >>>  	u8			default_a;
+> >>> @@ -24,6 +25,7 @@ struct usb_otg {
+> >>>  
+> >>>  	enum usb_otg_state	state;
+> >>>  	struct otg_fsm fsm;
+> >>> +	struct otg_hcd_ops	*hcd_ops;
+> >>>  
+> >>>  	/* bind/unbind the host controller */
+> >>>  	int	(*set_host)(struct usb_otg *otg, struct usb_bus *host);
+> >>> -- 
+> >>> 2.7.4
+> >>>
+> >>> --
+> >>> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> >>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> >>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
 
-> Alan Stern
+-- 
 
+Best Regards,
+Peter Chen
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
