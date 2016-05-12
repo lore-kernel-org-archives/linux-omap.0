@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 09/15] usb: musb: Remove try_idle for 2430 glue layer
-Date: Wed, 11 May 2016 17:53:10 -0700
-Message-ID: <1463014396-4095-10-git-send-email-tony@atomide.com>
+Subject: [PATCH 10/15] usb: musb: Don't set d+ high before enable for 2430 glue layer
+Date: Wed, 11 May 2016 17:53:11 -0700
+Message-ID: <1463014396-4095-11-git-send-email-tony@atomide.com>
 References: <1463014396-4095-1-git-send-email-tony@atomide.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1463014396-4095-1-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
@@ -10,133 +10,32 @@ To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
 Cc: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-This is no longer needed with PM runtime at least for 2430 glue.
-We can now rely only on PM runtime and cable detection.
+At least 2430 glue layer pulls d+ high on start up even if there are
+no gadgets configured. This is bad at least for anything using a separate
+battery charger chip as it can confuse the charger detection.
 
-The other glue layers can probably remove try_idle too, but that
-needs to be tested for each platform before doing it.
+Let's fix the issue by getting rid of omap2430_musb_set_mode() and only
+write session bit in omap2430_musb_enable().
 
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/usb/musb/omap2430.c | 91 ---------------------------------------------
- 1 file changed, 91 deletions(-)
+ drivers/usb/musb/omap2430.c | 14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index eb0f332..79e4cd7 100644
+index 79e4cd7..958ae6a 100644
 --- a/drivers/usb/musb/omap2430.c
 +++ b/drivers/usb/musb/omap2430.c
-@@ -57,92 +57,6 @@ struct omap2430_glue {
+@@ -122,16 +122,6 @@ static void omap2430_musb_set_vbus(struct musb *musb, int is_on)
+ 		musb_readb(musb->mregs, MUSB_DEVCTL));
+ }
  
- static struct omap2430_glue	*_glue;
- 
--static struct timer_list musb_idle_timer;
--
--static void musb_do_idle(unsigned long _musb)
+-static int omap2430_musb_set_mode(struct musb *musb, u8 musb_mode)
 -{
--	struct musb	*musb = (void *)_musb;
--	unsigned long	flags;
--	u8	power;
--	u8	devctl;
+-	u8	devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
 -
--	spin_lock_irqsave(&musb->lock, flags);
+-	devctl |= MUSB_DEVCTL_SESSION;
+-	musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
 -
--	switch (musb->xceiv->otg->state) {
--	case OTG_STATE_A_WAIT_BCON:
--
--		devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
--		if (devctl & MUSB_DEVCTL_BDEVICE) {
--			musb->xceiv->otg->state = OTG_STATE_B_IDLE;
--			MUSB_DEV_MODE(musb);
--		} else {
--			musb->xceiv->otg->state = OTG_STATE_A_IDLE;
--			MUSB_HST_MODE(musb);
--		}
--		break;
--	case OTG_STATE_A_SUSPEND:
--		/* finish RESUME signaling? */
--		if (musb->port1_status & MUSB_PORT_STAT_RESUME) {
--			power = musb_readb(musb->mregs, MUSB_POWER);
--			power &= ~MUSB_POWER_RESUME;
--			dev_dbg(musb->controller, "root port resume stopped, power %02x\n", power);
--			musb_writeb(musb->mregs, MUSB_POWER, power);
--			musb->is_active = 1;
--			musb->port1_status &= ~(USB_PORT_STAT_SUSPEND
--						| MUSB_PORT_STAT_RESUME);
--			musb->port1_status |= USB_PORT_STAT_C_SUSPEND << 16;
--			usb_hcd_poll_rh_status(musb->hcd);
--			/* NOTE: it might really be A_WAIT_BCON ... */
--			musb->xceiv->otg->state = OTG_STATE_A_HOST;
--		}
--		break;
--	case OTG_STATE_A_HOST:
--		devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
--		if (devctl &  MUSB_DEVCTL_BDEVICE)
--			musb->xceiv->otg->state = OTG_STATE_B_IDLE;
--		else
--			musb->xceiv->otg->state = OTG_STATE_A_WAIT_BCON;
--	default:
--		break;
--	}
--	spin_unlock_irqrestore(&musb->lock, flags);
+-	return 0;
 -}
--
--
--static void omap2430_musb_try_idle(struct musb *musb, unsigned long timeout)
--{
--	unsigned long		default_timeout = jiffies + msecs_to_jiffies(3);
--	static unsigned long	last_timer;
--
--	if (timeout == 0)
--		timeout = default_timeout;
--
--	/* Never idle if active, or when VBUS timeout is not set as host */
--	if (musb->is_active || ((musb->a_wait_bcon == 0)
--			&& (musb->xceiv->otg->state == OTG_STATE_A_WAIT_BCON))) {
--		dev_dbg(musb->controller, "%s active, deleting timer\n",
--			usb_otg_state_string(musb->xceiv->otg->state));
--		del_timer(&musb_idle_timer);
--		last_timer = jiffies;
--		return;
--	}
--
--	if (time_after(last_timer, timeout)) {
--		if (!timer_pending(&musb_idle_timer))
--			last_timer = timeout;
--		else {
--			dev_dbg(musb->controller, "Longer idle timer already pending, ignoring\n");
--			return;
--		}
--	}
--	last_timer = timeout;
--
--	dev_dbg(musb->controller, "%s inactive, for idle timer for %lu ms\n",
--		usb_otg_state_string(musb->xceiv->otg->state),
--		(unsigned long)jiffies_to_msecs(timeout - jiffies));
--	mod_timer(&musb_idle_timer, timeout);
--}
--
- static void omap2430_musb_set_vbus(struct musb *musb, int is_on)
- {
- 	struct usb_otg	*otg = musb->xceiv->otg;
-@@ -467,8 +381,6 @@ static int omap2430_musb_init(struct musb *musb)
- 			musb_readl(musb->mregs, OTG_INTERFSEL),
- 			musb_readl(musb->mregs, OTG_SIMENABLE));
- 
--	setup_timer(&musb_idle_timer, musb_do_idle, (unsigned long) musb);
--
- 	if (glue->status != MUSB_UNKNOWN)
- 		omap_musb_set_mailbox(glue);
- 
-@@ -543,7 +455,6 @@ static int omap2430_musb_exit(struct musb *musb)
- 	struct device *dev = musb->controller;
- 	struct omap2430_glue *glue = dev_get_drvdata(dev->parent);
- 
--	del_timer_sync(&musb_idle_timer);
- 	omap2430_low_level_exit(musb);
- 	phy_exit(musb->phy);
- 	musb->phy = NULL;
-@@ -562,8 +473,6 @@ static const struct musb_platform_ops omap2430_ops = {
- 	.exit		= omap2430_musb_exit,
- 
- 	.set_mode	= omap2430_musb_set_mode,
--	.try_idle	= omap2430_musb_try_idle,
