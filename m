@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 14/15] usb: musb: Use normal module_init for 2430 glue
-Date: Wed, 11 May 2016 17:53:15 -0700
-Message-ID: <1463014396-4095-15-git-send-email-tony@atomide.com>
+Subject: [PATCH 11/15] usb: musb: Return error value from musb_mailbox
+Date: Wed, 11 May 2016 17:53:12 -0700
+Message-ID: <1463014396-4095-12-git-send-email-tony@atomide.com>
 References: <1463014396-4095-1-git-send-email-tony@atomide.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1463014396-4095-1-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
@@ -10,30 +10,211 @@ To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
 Cc: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-There's no longer any need for custom initcall level for
-musb.
+At least on n900 we have phy-twl4030-usb only generating cable
+interrupts, and then have a separate USB PHY.
+
+In order for musb to know the real cable status, we need to
+clear any cached state until musb is ready. Otherwise the cable
+status interrupts will get just ignored if the status does
+not change from the initial state.
+
+To do this, let's add a return value to musb_mailbox(), and
+reset cached linkstat to MUSB_UNKNOWN on error. Sorry to cause
+a bit of churn here, I should have added that already last time
+patching musb_mailbox().
 
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/usb/musb/omap2430.c | 14 ++------------
- 1 file changed, 2 insertions(+), 12 deletions(-)
+ drivers/phy/phy-twl4030-usb.c     | 14 ++++++++++----
+ drivers/usb/musb/musb_core.c      |  7 ++++---
+ drivers/usb/musb/musb_core.h      |  2 +-
+ drivers/usb/musb/omap2430.c       |  8 +++++---
+ drivers/usb/phy/phy-twl6030-usb.c | 12 +++++++++---
+ include/linux/usb/musb.h          |  5 +++--
+ 6 files changed, 32 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 97bd365..ab0f0f0 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -672,18 +672,8 @@ static struct platform_driver omap2430_driver = {
- 	},
+diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
+index 6b6af6c..d9b10a3 100644
+--- a/drivers/phy/phy-twl4030-usb.c
++++ b/drivers/phy/phy-twl4030-usb.c
+@@ -463,7 +463,8 @@ static int twl4030_phy_power_on(struct phy *phy)
+ 	twl4030_usb_set_mode(twl, twl->usb_mode);
+ 	if (twl->usb_mode == T2_USB_MODE_ULPI)
+ 		twl4030_i2c_access(twl, 0);
+-	schedule_delayed_work(&twl->id_workaround_work, 0);
++	twl->linkstat = MUSB_UNKNOWN;
++	schedule_delayed_work(&twl->id_workaround_work, HZ);
+ 
+ 	return 0;
+ }
+@@ -537,6 +538,7 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
+ 	struct twl4030_usb *twl = _twl;
+ 	enum musb_vbus_id_status status;
+ 	bool status_changed = false;
++	int err;
+ 
+ 	status = twl4030_usb_linkstat(twl);
+ 
+@@ -567,7 +569,9 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
+ 			pm_runtime_mark_last_busy(twl->dev);
+ 			pm_runtime_put_autosuspend(twl->dev);
+ 		}
+-		musb_mailbox(status);
++		err = musb_mailbox(status);
++		if (err)
++			twl->linkstat = MUSB_UNKNOWN;
+ 	}
+ 
+ 	/* don't schedule during sleep - irq works right then */
+@@ -595,7 +599,8 @@ static int twl4030_phy_init(struct phy *phy)
+ 	struct twl4030_usb *twl = phy_get_drvdata(phy);
+ 
+ 	pm_runtime_get_sync(twl->dev);
+-	schedule_delayed_work(&twl->id_workaround_work, 0);
++	twl->linkstat = MUSB_UNKNOWN;
++	schedule_delayed_work(&twl->id_workaround_work, HZ);
+ 	pm_runtime_mark_last_busy(twl->dev);
+ 	pm_runtime_put_autosuspend(twl->dev);
+ 
+@@ -763,7 +768,8 @@ static int twl4030_usb_remove(struct platform_device *pdev)
+ 	if (cable_present(twl->linkstat))
+ 		pm_runtime_put_noidle(twl->dev);
+ 	pm_runtime_mark_last_busy(twl->dev);
+-	pm_runtime_put_sync_suspend(twl->dev);
++	pm_runtime_dont_use_autosuspend(&pdev->dev);
++	pm_runtime_put_sync(twl->dev);
+ 	pm_runtime_disable(twl->dev);
+ 
+ 	/* autogate 60MHz ULPI clock,
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 23888d5..6469eff 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -1679,7 +1679,7 @@ EXPORT_SYMBOL_GPL(musb_dma_completion);
+ #define use_dma			0
+ #endif
+ 
+-static void (*musb_phy_callback)(enum musb_vbus_id_status status);
++static int (*musb_phy_callback)(enum musb_vbus_id_status status);
+ 
+ /*
+  * musb_mailbox - optional phy notifier function
+@@ -1688,11 +1688,12 @@ static void (*musb_phy_callback)(enum musb_vbus_id_status status);
+  * Optionally gets called from the USB PHY. Note that the USB PHY must be
+  * disabled at the point the phy_callback is registered or unregistered.
+  */
+-void musb_mailbox(enum musb_vbus_id_status status)
++int musb_mailbox(enum musb_vbus_id_status status)
+ {
+ 	if (musb_phy_callback)
+-		musb_phy_callback(status);
++		return musb_phy_callback(status);
+ 
++	return -ENODEV;
+ };
+ EXPORT_SYMBOL_GPL(musb_mailbox);
+ 
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index 2947384..b55a776 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -215,7 +215,7 @@ struct musb_platform_ops {
+ 				dma_addr_t *dma_addr, u32 *len);
+ 	void	(*pre_root_reset_end)(struct musb *musb);
+ 	void	(*post_root_reset_end)(struct musb *musb);
+-	void	(*phy_callback)(enum musb_vbus_id_status status);
++	int	(*phy_callback)(enum musb_vbus_id_status status);
  };
  
-+module_platform_driver(omap2430_driver);
+ /*
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 958ae6a..0b8b5c6 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -180,22 +180,24 @@ static void omap2430_set_power(struct musb *musb, bool enabled, bool cable)
+ 	}
+ }
+ 
+-static void omap2430_musb_mailbox(enum musb_vbus_id_status status)
++static int omap2430_musb_mailbox(enum musb_vbus_id_status status)
+ {
+ 	struct omap2430_glue	*glue = _glue;
+ 
+ 	if (!glue) {
+ 		pr_err("%s: musb core is not yet initialized\n", __func__);
+-		return;
++		return -EPROBE_DEFER;
+ 	}
+ 	glue->status = status;
+ 
+ 	if (!glue_to_musb(glue)) {
+ 		pr_err("%s: musb core is not yet ready\n", __func__);
+-		return;
++		return -EPROBE_DEFER;
+ 	}
+ 
+ 	schedule_work(&glue->omap_musb_mailbox_work);
 +
- MODULE_DESCRIPTION("OMAP2PLUS MUSB Glue Layer");
- MODULE_AUTHOR("Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>");
- MODULE_LICENSE("GPL v2");
--
--static int __init omap2430_init(void)
--{
--	return platform_driver_register(&omap2430_driver);
--}
--subsys_initcall(omap2430_init);
++	return 0;
+ }
+ 
+ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
+diff --git a/drivers/usb/phy/phy-twl6030-usb.c b/drivers/usb/phy/phy-twl6030-usb.c
+index 24e2b3c..c66a447 100644
+--- a/drivers/usb/phy/phy-twl6030-usb.c
++++ b/drivers/usb/phy/phy-twl6030-usb.c
+@@ -227,12 +227,16 @@ static irqreturn_t twl6030_usb_irq(int irq, void *_twl)
+ 			twl->asleep = 1;
+ 			status = MUSB_VBUS_VALID;
+ 			twl->linkstat = status;
+-			musb_mailbox(status);
++			ret = musb_mailbox(status);
++			if (ret)
++				twl->linkstat = MUSB_UNKNOWN;
+ 		} else {
+ 			if (twl->linkstat != MUSB_UNKNOWN) {
+ 				status = MUSB_VBUS_OFF;
+ 				twl->linkstat = status;
+-				musb_mailbox(status);
++				ret = musb_mailbox(status);
++				if (ret)
++					twl->linkstat = MUSB_UNKNOWN;
+ 				if (twl->asleep) {
+ 					regulator_disable(twl->usb3v3);
+ 					twl->asleep = 0;
+@@ -264,7 +268,9 @@ static irqreturn_t twl6030_usbotg_irq(int irq, void *_twl)
+ 		twl6030_writeb(twl, TWL_MODULE_USB, 0x10, USB_ID_INT_EN_HI_SET);
+ 		status = MUSB_ID_GROUND;
+ 		twl->linkstat = status;
+-		musb_mailbox(status);
++		ret = musb_mailbox(status);
++		if (ret)
++			twl->linkstat = MUSB_UNKNOWN;
+ 	} else  {
+ 		twl6030_writeb(twl, TWL_MODULE_USB, 0x10, USB_ID_INT_EN_HI_CLR);
+ 		twl6030_writeb(twl, TWL_MODULE_USB, 0x1, USB_ID_INT_EN_HI_SET);
+diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
+index 0b3da40..d315c89 100644
+--- a/include/linux/usb/musb.h
++++ b/include/linux/usb/musb.h
+@@ -142,10 +142,11 @@ enum musb_vbus_id_status {
+ };
+ 
+ #if IS_ENABLED(CONFIG_USB_MUSB_HDRC)
+-void musb_mailbox(enum musb_vbus_id_status status);
++int musb_mailbox(enum musb_vbus_id_status status);
+ #else
+-static inline void musb_mailbox(enum musb_vbus_id_status status)
++static inline int musb_mailbox(enum musb_vbus_id_status status)
+ {
++	return 0;
+ }
+ #endif
+ 
+-- 
+2.8.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
