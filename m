@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 12/15] usb: musb: Remove extra PM runtime calls from 2430 glue layer
-Date: Wed, 11 May 2016 17:53:13 -0700
-Message-ID: <1463014396-4095-13-git-send-email-tony@atomide.com>
+Subject: [PATCH 07/15] usb: musb: Handle cable status better for 2430 glue layer
+Date: Wed, 11 May 2016 17:53:08 -0700
+Message-ID: <1463014396-4095-8-git-send-email-tony@atomide.com>
 References: <1463014396-4095-1-git-send-email-tony@atomide.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1463014396-4095-1-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
@@ -10,85 +10,168 @@ To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
 Cc: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-With PM runtime behaving, these are all now unnecessary.
-Doing pm_runtime_get(musb->controller) will keep the parent
-glue layer also active.
+We may have drivers loaded but no configured gadgets and MUSB may be in
+host mode. If gadgets are configured during host mode, PM runtime will
+get confused.
+
+Disable PM runtime from gadget state, and do it based on the cable
+and last state.
+
+Note that we may get multiple cable events, so we need to keep track
+of the power state.
 
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/usb/musb/omap2430.c | 28 ++++------------------------
- 1 file changed, 4 insertions(+), 24 deletions(-)
+ drivers/usb/musb/omap2430.c | 68 +++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 60 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 0b8b5c6..97bd365 100644
+index 3ce94bf..02d40bc 100644
 --- a/drivers/usb/musb/omap2430.c
 +++ b/drivers/usb/musb/omap2430.c
-@@ -268,13 +268,8 @@ static void omap_musb_mailbox_work(struct work_struct *mailbox_work)
+@@ -49,6 +49,9 @@ struct omap2430_glue {
+ 	enum musb_vbus_id_status status;
+ 	struct work_struct	omap_musb_mailbox_work;
+ 	struct device		*control_otghs;
++	bool			cable_connected;
++	bool			enabled;
++	bool			powered;
+ };
+ #define glue_to_musb(g)		platform_get_drvdata(g->musb)
+ 
+@@ -234,6 +237,45 @@ static inline void omap2430_low_level_init(struct musb *musb)
+ 	musb_writel(musb->mregs, OTG_FORCESTDBY, l);
+ }
+ 
++/*
++ * We can get multiple cable events so we need to keep track
++ * of the power state. Only keep power enabled if USB cable is
++ * connected and a gadget is started.
++ */
++static void omap2430_set_power(struct musb *musb, bool enabled, bool cable)
++{
++	struct device *dev = musb->controller;
++	struct omap2430_glue *glue = dev_get_drvdata(dev->parent);
++	bool power_up;
++	int res;
++
++	if (glue->enabled != enabled)
++		glue->enabled = enabled;
++
++	if (glue->cable_connected != cable)
++		glue->cable_connected = cable;
++
++	power_up = glue->enabled && glue->cable_connected;
++	if (power_up == glue->powered) {
++		dev_warn(musb->controller, "power state already %i\n",
++			 power_up);
++		return;
++	}
++
++	glue->powered = power_up;
++
++	if (power_up) {
++		res = pm_runtime_get_sync(musb->controller);
++		if (res < 0) {
++			dev_err(musb->controller, "could not enable: %i", res);
++			glue->powered = false;
++		}
++	} else {
++		pm_runtime_mark_last_busy(musb->controller);
++		pm_runtime_put_autosuspend(musb->controller);
++	}
++}
++
+ static void omap2430_musb_mailbox(enum musb_vbus_id_status status)
  {
- 	struct omap2430_glue *glue = container_of(mailbox_work,
- 				struct omap2430_glue, omap_musb_mailbox_work);
--	struct musb *musb = glue_to_musb(glue);
--	struct device *dev = musb->controller;
+ 	struct omap2430_glue	*glue = _glue;
+@@ -259,6 +301,13 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
+ 	struct musb_hdrc_platform_data *pdata = dev_get_platdata(dev);
+ 	struct omap_musb_board_data *data = pdata->board_data;
+ 	struct usb_otg *otg = musb->xceiv->otg;
++	bool cable_connected;
++
++	cable_connected = ((glue->status == MUSB_ID_GROUND) ||
++			   (glue->status == MUSB_VBUS_VALID));
++
++	if (cable_connected)
++		omap2430_set_power(musb, glue->enabled, cable_connected);
  
--	pm_runtime_get_sync(dev);
- 	omap_musb_set_mailbox(glue);
--	pm_runtime_mark_last_busy(dev);
--	pm_runtime_put_autosuspend(dev);
- }
+ 	switch (glue->status) {
+ 	case MUSB_ID_GROUND:
+@@ -268,7 +317,6 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
+ 		musb->xceiv->otg->state = OTG_STATE_A_IDLE;
+ 		musb->xceiv->last_event = USB_EVENT_ID;
+ 		if (musb->gadget_driver) {
+-			pm_runtime_get_sync(dev);
+ 			omap_control_usb_set_mode(glue->control_otghs,
+ 				USB_MODE_HOST);
+ 			omap2430_musb_set_vbus(musb, 1);
+@@ -281,8 +329,6 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
+ 		otg->default_a = false;
+ 		musb->xceiv->otg->state = OTG_STATE_B_IDLE;
+ 		musb->xceiv->last_event = USB_EVENT_VBUS;
+-		if (musb->gadget_driver)
+-			pm_runtime_get_sync(dev);
+ 		omap_control_usb_set_mode(glue->control_otghs, USB_MODE_DEVICE);
+ 		break;
  
- static irqreturn_t omap2430_musb_interrupt(int irq, void *__hci)
-@@ -343,16 +338,6 @@ static int omap2430_musb_init(struct musb *musb)
- 	musb->isr = omap2430_musb_interrupt;
- 	phy_init(musb->phy);
+@@ -291,11 +337,8 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
+ 		dev_dbg(dev, "VBUS Disconnect\n");
  
--	/*
--	 * Enable runtime PM for musb parent (this driver). We can't
--	 * do it earlier as struct musb is not yet allocated and we
--	 * need to touch the musb registers for runtime PM.
--	 */
--	pm_runtime_enable(glue->dev);
--	status = pm_runtime_get_sync(glue->dev);
--	if (status < 0)
--		goto err1;
--
- 	l = musb_readl(musb->mregs, OTG_INTERFSEL);
+ 		musb->xceiv->last_event = USB_EVENT_NONE;
+-		if (musb->gadget_driver) {
++		if (musb->gadget_driver)
+ 			omap2430_musb_set_vbus(musb, 0);
+-			pm_runtime_mark_last_busy(dev);
+-			pm_runtime_put_autosuspend(dev);
+-		}
  
- 	if (data->interface_type == MUSB_INTERFACE_UTMI) {
-@@ -376,11 +361,7 @@ static int omap2430_musb_init(struct musb *musb)
- 	if (glue->status != MUSB_UNKNOWN)
- 		omap_musb_set_mailbox(glue);
- 
--	pm_runtime_put(glue->dev);
- 	return 0;
--
--err1:
--	return status;
- }
- 
- static void omap2430_musb_enable(struct musb *musb)
-@@ -591,11 +572,9 @@ static int omap2430_probe(struct platform_device *pdev)
- 		goto err2;
+ 		if (data->interface_type == MUSB_INTERFACE_UTMI)
+ 			otg_set_vbus(musb->xceiv->otg, 0);
+@@ -307,6 +350,9 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
+ 		dev_dbg(dev, "ID float\n");
  	}
  
--	/*
--	 * Note that we cannot enable PM runtime yet for this
--	 * driver as we need struct musb initialized first.
--	 * See omap2430_musb_init above.
--	 */
-+	pm_runtime_enable(glue->dev);
-+	pm_runtime_use_autosuspend(glue->dev);
-+	pm_runtime_set_autosuspend_delay(glue->dev, 500);
++	if (!glue->cable_connected)
++		omap2430_set_power(musb, glue->enabled, cable_connected);
++
+ 	atomic_notifier_call_chain(&musb->xceiv->notifier,
+ 			musb->xceiv->last_event, NULL);
+ }
+@@ -443,6 +489,8 @@ static void omap2430_musb_enable(struct musb *musb)
+ 	struct musb_hdrc_platform_data *pdata = dev_get_platdata(dev);
+ 	struct omap_musb_board_data *data = pdata->board_data;
  
- 	ret = platform_device_add(musb);
- 	if (ret) {
-@@ -621,6 +600,7 @@ static int omap2430_remove(struct platform_device *pdev)
++	omap2430_set_power(musb, true, glue->cable_connected);
++
+ 	switch (glue->status) {
+ 
+ 	case MUSB_ID_GROUND:
+@@ -481,6 +529,8 @@ static void omap2430_musb_disable(struct musb *musb)
+ 	if (glue->status != MUSB_UNKNOWN)
+ 		omap_control_usb_set_mode(glue->control_otghs,
+ 			USB_MODE_DISCONNECT);
++
++	omap2430_set_power(musb, false, glue->cable_connected);
+ }
+ 
+ static int omap2430_musb_exit(struct musb *musb)
+@@ -653,11 +703,13 @@ err0:
+ 
+ static int omap2430_remove(struct platform_device *pdev)
+ {
+-	struct omap2430_glue		*glue = platform_get_drvdata(pdev);
++	struct omap2430_glue *glue = platform_get_drvdata(pdev);
++	struct musb *musb = glue_to_musb(glue);
+ 
+ 	pm_runtime_get_sync(glue->dev);
+ 	cancel_work_sync(&glue->omap_musb_mailbox_work);
  	platform_device_unregister(glue->musb);
- 	omap2430_set_power(musb, false, false);
++	omap2430_set_power(musb, false, false);
  	pm_runtime_put_sync(glue->dev);
-+	pm_runtime_dont_use_autosuspend(glue->dev);
  	pm_runtime_disable(glue->dev);
  
- 	return 0;
 -- 
 2.8.1
 
