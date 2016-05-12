@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 01/15] usb: musb: Fix idling after host mode by increasing autosuspend delay
-Date: Wed, 11 May 2016 17:53:02 -0700
-Message-ID: <1463014396-4095-2-git-send-email-tony@atomide.com>
+Subject: [PATCH 06/15] usb: musb: Use delayed for musb_gadget_pullup
+Date: Wed, 11 May 2016 17:53:07 -0700
+Message-ID: <1463014396-4095-7-git-send-email-tony@atomide.com>
 References: <1463014396-4095-1-git-send-email-tony@atomide.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1463014396-4095-1-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
@@ -10,45 +10,84 @@ To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
 Cc: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Looks like at least 2430 glue won't idle reliably with the 200 ms
-autosuspend delay. This causes deeper idle states being blocked for
-the whole SoC when disconnecting OTG A cable.
+We have MUSB setting pm_runtime_irq_safe with the following
+commits:
 
-Increasing the delay to 500 ms seems to idle both MUSB and the PHY
-reliably. This is probably because of time needed by the hardware
-based negotiation between MUSB and the PHY.
+30a70b026b4c ("usb: musb: fix obex in g_nokia.ko causing kernel panic")
+3e43a0725637 ("usb: musb: core: add pm_runtime_irq_safe()")
+
+Let's fix things to use delayed work so we can remove the
+pm_runtime_irq_safe.
+
+Note that we may want to set this up in a generic way in the
+gadget framework eventually.
 
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/usb/musb/musb_core.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ drivers/usb/musb/musb_core.h   |  1 +
+ drivers/usb/musb/musb_gadget.c | 24 ++++++++++++++++++------
+ 2 files changed, 19 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 39fd958..460176c 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -2028,9 +2028,15 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
- 	musb_readl = musb_default_readl;
- 	musb_writel = musb_default_writel;
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index b6afe9e..2947384 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -312,6 +312,7 @@ struct musb {
+ 	struct work_struct	irq_work;
+ 	struct delayed_work	deassert_reset_work;
+ 	struct delayed_work	finish_resume_work;
++	struct delayed_work	gadget_work;
+ 	u16			hwvers;
  
--	/* We need musb_read/write functions initialized for PM */
-+	/*
-+	 * We need musb_read/write functions initialized for PM.
-+	 * Note that at least 2430 glue needs autosuspend delay
-+	 * somewhere above 300 ms for the hardware to idle properly
-+	 * after disconnecting the cable in host mode. Let's use
-+	 * 500 ms for some margin.
-+	 */
- 	pm_runtime_use_autosuspend(musb->controller);
--	pm_runtime_set_autosuspend_delay(musb->controller, 200);
-+	pm_runtime_set_autosuspend_delay(musb->controller, 500);
- 	pm_runtime_enable(musb->controller);
+ 	u16			intrrxe;
+diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+index 7ecc893..af2a3a7 100644
+--- a/drivers/usb/musb/musb_gadget.c
++++ b/drivers/usb/musb/musb_gadget.c
+@@ -1656,6 +1656,20 @@ static int musb_gadget_vbus_draw(struct usb_gadget *gadget, unsigned mA)
+ 	return usb_phy_set_power(musb->xceiv, mA);
+ }
  
- 	/* The musb_platform_init() call:
--- 
-2.8.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
++static void musb_gadget_work(struct work_struct *work)
++{
++	struct musb *musb;
++	unsigned long flags;
++
++	musb = container_of(work, struct musb, gadget_work.work);
++	pm_runtime_get_sync(musb->controller);
++	spin_lock_irqsave(&musb->lock, flags);
++	musb_pullup(musb, musb->softconnect);
++	spin_unlock_irqrestore(&musb->lock, flags);
++	pm_runtime_mark_last_busy(musb->controller);
++	pm_runtime_put_autosuspend(musb->controller);
++}
++
+ static int musb_gadget_pullup(struct usb_gadget *gadget, int is_on)
+ {
+ 	struct musb	*musb = gadget_to_musb(gadget);
+@@ -1663,20 +1677,16 @@ static int musb_gadget_pullup(struct usb_gadget *gadget, int is_on)
+ 
+ 	is_on = !!is_on;
+ 
+-	pm_runtime_get_sync(musb->controller);
+-
+ 	/* NOTE: this assumes we are sensing vbus; we'd rather
+ 	 * not pullup unless the B-session is active.
+ 	 */
+ 	spin_lock_irqsave(&musb->lock, flags);
+ 	if (is_on != musb->softconnect) {
+ 		musb->softconnect = is_on;
+-		musb_pullup(musb, is_on);
++		schedule_delayed_work(&musb->gadget_work, 0);
+ 	}
+ 	spin_unlock_irqrestore(&musb->lock, flags);
+ 
+-	pm_runtime_put(musb->controller);
+-
+ 	return 0;
+ }
+ 
+@@ -1845,7 +1855,7 @@ int musb_gadget_setup(struct musb *musb)
+ #elif IS_ENABLED(CONFIG_USB_MUSB_GADGET)
+ 	musb->g.is_otg = 0;
+ #endif
