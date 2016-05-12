@@ -1,111 +1,49 @@
-From: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 1/3] Documentation: mfd: LP873X: Add information for
- the mfd and regulator drivers
-Date: Thu, 12 May 2016 14:21:40 +0100
-Message-ID: <20160512132140.GC1433@dell.open.watershed.co.uk>
-References: <1462853079-10708-1-git-send-email-j-keerthy@ti.com>
- <1462853079-10708-2-git-send-email-j-keerthy@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC PATCH 0/3] Add ioremap_exec and extend drivers/misc/sram.c
+Date: Thu, 12 May 2016 09:30:34 -0700
+Message-ID: <20160512163033.GP5995@atomide.com>
+References: <1462830111-28172-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1462853079-10708-2-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Cc: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org
+In-Reply-To: <1462830111-28172-1-git-send-email-d-gerlach@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Russ Dill <russ.dill@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Arnd Bergmann <arnd@arndb.de>, Shawn Guo <shawnguo@kernel.org>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Russell King <linux@arm.linux.org.uk>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 10 May 2016, Keerthy wrote:
+* Dave Gerlach <d-gerlach@ti.com> [160509 14:44]:
+> Hi,
+> There are several instances when one would want to execute out of on-chip
+> SRAM, such as PM code on ARM platforms, so once again revisiting this
+> series to allow that. Seems that having a solution for allowing SRAM to be
+> mapped as executable will help clean up PM code on several ARM platforms and
+> also open the door for others like TI AM335x and AM437x. This was first sent
+> here [1] but this is rebased and updated for v4.6-rc.
+> 
+> Many platforms have migrated to using the generic SRAM driver at
+> drivers/misc/sram.c but it doesn't seem like there is a clean solution
+> for the common problem of needing to map executable pages.
+> 
+> Currently I see several platforms (at-91, imx6, socfpga) taking the
+> address allocated by the genpool given by the SRAM driver and then calling
+> __arm_ioremap_exec on it again to get a new address that can be executed.
+> This doesn't seem like the cleanest solution, but maybe it works for code
+> that is under mach-xxx but what about code that migrates outside into the
+> drivers layer? Do any other architectures have a requirement for this?
+> 
+> I've converted omap3 PM code to use the generic SRAM driver which I'll send
+> in a series right after this one, and AM335x and AM437x can both make use of
+> this series as well and even go as far as to move a chunk of the PM
+> code into drivers (needs to be updated but sent long ago here [2]), but
+> that will be blocked if we don't have a generic way to ioremap memory as
+> exec, or at least a way to do it from drivers/.
+> 
+> If we don't want to go down this path, is there a better idea for how to
+> call ioremap_exec from drivers/ that we can all agree on?
 
-> Add information for the mfd and regulator drivers.
->=20
-> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-> ---
->  Documentation/devicetree/bindings/mfd/lp873x.txt | 55 ++++++++++++++=
-++++++++++
->  1 file changed, 55 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/mfd/lp873x.txt
->=20
-> diff --git a/Documentation/devicetree/bindings/mfd/lp873x.txt b/Docum=
-entation/devicetree/bindings/mfd/lp873x.txt
-> new file mode 100644
-> index 0000000..3ef5ea0
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/mfd/lp873x.txt
-> @@ -0,0 +1,55 @@
-> +TI LP3943 MFD driver
-> +
-> +Required properties:
-> +  - compatible: "ti,lp8732", "ti,lp8733"
-> +  - reg: I2C slave address.
-> +
-> +For the lp873x regulator properties please refer to:
-> +Documentation/devicetree/bindings/regulator/lp873x.txt
+Looks to me that this should allow moving the current SRAM code
+into drivers. So feel free to add:
 
-This is a Linuxism.  Use ../bindings/.. instead.
-
-> +Example:
-> +
-> +lp8733: lp8733@60 {
-
-lp8733 is not a device 'type'.  What does it do?
-
-Looks like a 'pmic' to me.
-
-> +	compatible =3D "ti,lp8733";
-> +	reg =3D <0x60>;
-> +
-> +	regulators {
-> +		lp8733_buck0: buck0 {
-> +			regulator-name =3D "lp8733-buck0";
-> +			regulator-min-microvolt =3D <800000>;
-> +			regulator-max-microvolt =3D <1400000>;
-> +			regulator-min-microamp =3D <1500000>;
-> +			regulator-max-microamp =3D <4000000>;
-> +			regulator-ramp-delay =3D <10000>;
-> +			regulator-always-on;
-> +			regulator-boot-on;
-> +		};
-> +
-> +		lp8733_buck1: buck1 {
-> +			regulator-name =3D "lp8733-buck1";
-> +			regulator-min-microvolt =3D <800000>;
-> +			regulator-max-microvolt =3D <1400000>;
-> +			regulator-min-microamp =3D <1500000>;
-> +			regulator-max-microamp =3D <4000000>;
-> +			regulator-ramp-delay =3D <10000>;
-> +			regulator-boot-on;
-> +			regulator-always-on;
-> +		};
-> +
-> +		lp8733_ldo0: ldo0 {
-> +			regulator-name =3D "lp8733-ldo0";
-> +			regulator-min-microvolt =3D <800000>;
-> +			regulator-max-microvolt =3D <3000000>;
-> +			regulator-boot-on;
-> +			regulator-always-on;
-> +		};
-> +
-> +		lp8733_ldo1: ldo1 {
-> +			regulator-name =3D "lp8733-ldo1";
-> +			regulator-min-microvolt =3D <800000>;
-> +			regulator-max-microvolt =3D <3000000>;
-> +			regulator-always-on;
-> +			regulator-boot-on;
-> +		};
-> +	};
-> +};
-
-I'm failing to see how this is an MFD?
-
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Tony Lindgren <tony@atomide.com>
