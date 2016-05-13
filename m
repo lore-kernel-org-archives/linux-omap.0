@@ -1,237 +1,129 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v8 00/14] USB OTG/dual-role framework
-Date: Fri, 13 May 2016 13:03:14 +0300
-Message-ID: <1463133808-10630-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH v8 07/14] usb: otg: get rid of CONFIG_USB_OTG_FSM in favour of CONFIG_USB_OTG
+Date: Fri, 13 May 2016 13:03:21 +0300
+Message-ID: <1463133808-10630-8-git-send-email-rogerq@ti.com>
+References: <1463133808-10630-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1463133808-10630-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: peter.chen@freescale.com
 Cc: balbi@kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Let's use CONFIG_USB_OTG as a single config option to enable
+USB OTG and the OTG FSM. This makes things a lot less confusing.
 
-This series centralizes OTG/Dual-role functionality in the kernel.
-As of now I've got Dual-role functionality working pretty reliably on
-dra7-evm and am437x-gp-evm.
-NOTE: my am437x-gp-evm broke so I couldn't test v8 on it.
-But the changes since v7 are trivial and shouldn't impact am437x-gp-evm.
+Update all users of CONFIG_USB_OTG_FSM to CONFIG_USB_OTG.
 
-DWC3 controller and platform related patches will be sent separately.
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+Acked-by: Peter Chen <peter.chen@nxp.com>
+---
+ Documentation/usb/chipidea.txt | 2 +-
+ drivers/usb/chipidea/Makefile  | 2 +-
+ drivers/usb/chipidea/ci.h      | 2 +-
+ drivers/usb/chipidea/otg_fsm.h | 2 +-
+ drivers/usb/common/Makefile    | 3 ++-
+ drivers/usb/core/Kconfig       | 8 --------
+ drivers/usb/phy/Kconfig        | 2 +-
+ 7 files changed, 7 insertions(+), 14 deletions(-)
 
-Series is based on v4.6-rc1 and depends on first 2 patches of [1]
-[1] - OTG fsm cleanup - https://lkml.org/lkml/2016/3/30/186
-
-Why?:
-----
-
-Currently there is no central location where OTG/dual-role functionality is
-implemented in the Linux USB stack and every USB controller driver is
-doing their own thing for OTG/dual-role. We can benefit from code-reuse
-and simplicity by adding the OTG/dual-role core driver.
-
-Newer OTG cores support standard host interface (e.g. xHCI) so
-host and gadget functionality are no longer closely knit like older
-cores. There needs to be a way to co-ordinate the operation of the
-host and gadget controllers in dual-role mode. i.e. to stop and start them
-from a central location. This central location should be the
-USB OTG/dual-role core.
-
-Host and gadget controllers might be sharing resources and can't
-be always running. One has to be stopped for the other to run.
-This couldn't be done till now but can be done from the OTG core.
-
-What?:
------
-
-The OTG/dual-role core consists of a set of APIs that allow
-registration of OTG controller device and OTG capable host and gadget
-controllers.
-
-- The OTG controller driver can provide the OTG capabilities and the
-Finite State Machine work function via 'struct usb_otg_config'
-at the time of registration i.e. usb_otg_register();
-
-	struct usb_otg *usb_otg_register(struct device *dev,
-        	                         struct usb_otg_config *config);
-	int usb_otg_unregister(struct device *dev);
-	/**
-	 * struct usb_otg_config - otg controller configuration
-	 * @caps: otg capabilities of the controller
-	 * @ops: otg fsm operations
-	 * @otg_work: optional custom otg state machine work function
-	 */
-	struct usb_otg_config {
-	        struct usb_otg_caps *otg_caps;
-	        struct otg_fsm_ops *fsm_ops;
-	        void (*otg_work)(struct work_struct *work);
-	};
-
-The dual-role state machine is built-into the OTG core so nothing
-special needs to be provided if only dual-role functionality is desired.
-The low level OTG controller driver ops are povided via
-'struct otg_fsm_ops *fsm_ops' in the 'struct usb_otg_config'.
-
-After registration, the OTG core waits for host, gadget controller
-and the gadget function driver to be registered. Once all resources are
-available it instantiates the Finite State Machine (FSM).
-The host/gadget controllers are started/stopped according to the FSM.
-
-- Host and gadget controllers that are a part of OTG/dual-role port must
-use the OTG core provided APIs to add/remove the host/gadget.
-i.e. hosts must use usb_otg_add_hcd() usb_otg_remove_hcd(),,
-gadgets must use usb_otg_add_gadget_udc() usb_del_gadget_udc().
-This ensures that the host and gadget controllers are not started till
-the state machine is ready and the right bus conditions are met.
-It also allows the host and gadget controllers to provide the OTG
-controller device to link them together. For Device tree boots
-the related OTG controller is automatically picked up via the
-'otg-controller' property in the Host/Gadget controller nodes.
-
-	int usb_otg_add_hcd(struct usb_hcd *hcd,
-			    unsigned int irqnum, unsigned long irqflags,
-			    struct device *otg_dev);
-	void usb_otg_remove_hcd(struct usb_hcd *hcd);
-
-	int usb_otg_add_gadget_udc(struct device *parent,
-				   struct usb_gadget *gadget,
-				   struct device *otg_dev);
-	usb_del_gadget_udc() must be used for removal.
-
-
-- During the lifetime of the FSM, the OTG controller driver can provide
-inputs event changes using usb_otg_sync_inputs(). The OTG core will
-then schedule the FSM work function (or internal dual-role state machine)
-to update the FSM state. The FSM then calls the OTG controller
-operations (fsm_ops) as necessary.
-	void usb_otg_sync_inputs(struct usb_otg *otg);
-
-- The following 2 functions are provided as helpers for use by the
-OTG controller driver to start/stop the host/gadget controllers.
-	int usb_otg_start_host(struct usb_otg *otg, int on);
-	int usb_otg_start_gadget(struct usb_otg *otg, int on);
-
-- The following function is provided for use by the USB host stack
-to sync OTG related events to the OTG state machine.
-e.g. change in host_bus->b_hnp_enable, gadget->b_hnp_enable
-	int usb_otg_kick_fsm(struct device *otg_device);
-
-Changelog:
----------
-v8:
-- split out start/stop gadget and connect/disconnect operations.
-- make CONFIG_OTG dpend on CONFIG_USB_GADGET as well apart from CONFIG_USB
-- use create_freezable_workqueue() for OTG work as per Peter's suggestion.
-- remove usb-otg.h as we're not initializing any OTG timers.
-- don't include unnecessary headers in usb-otg.c (i.e. hrtimer.h & ktime.h)
-
-v7:
-- added dual-role support for host controllers requiring a companion
-controller. e.g. EHCI + OHCI.
-- added of_usb_get_otg() to get the OTG controller device
-from the USB controller's device node.
-- addressed review comments.
-
-v6:
-- added otg specific APIs for host/gadget registration. behaviour of
-original host/gadget API remains unchanged. Platform devices can now
-pass the otg device explicitly while registering host/gadget.
-- moved hcd specific operations from struct otg_fsm to struct hcd_ops.
-- made struct usb_otg mandatory for all otg related APIs.
-- allow otg controller to provide it's own otg_work function so that
-it can implement it's own state machine.
-- removed otg fsm and timers from usb-otg.c. Only dual-role state machine
-is implemented.
-- vbus is controlled in the dual-role state machine.
-- PM runtime is used around drd_statemachine().
-- added otg_dev to xhci platform data to allow platform code to specify
-the otg controller tied to the xhci host controller.
-
-v5: Internal version. Not sent to mailing list
-
-v4:
-- Added DT support for tying otg-controller to host and gadget
- controllers. For DT we no longer have the constraint that
- OTG controller needs to be parent of host and gadget. They can be
- tied together using the "otg-controller" property.
-- Relax the requirement for DT case that otg controller must register
- before host/gadget. We maintain a wait list of host/gadget devices
- waiting on the otg controller.
-- Use a single struct usb_otg for otg data.
-- Don't override host/gadget start/stop APIs. Let the controller
- drivers do what they want as they know best. Helper API is provided
- for controller start/stop that controller driver can use.
-- Introduce struct usb_otg_config to pass the otg capabilities,
- otg ops and otg timer timeouts during otg controller registration.
-- rebased on Greg's usb.git/usb-next
-
-v3:
-- all otg related definations now in otg.h
-- single kernel config USB_OTG to enable OTG core and FSM.
-- resolved symbol dependency issues.
-- use dev_vdbg instead of VDBG() in usb-otg-fsm.c
-- rebased on v4.2-rc1
-
-v2:
-- Use add/remove_hcd() instead of start/stop_hcd() to enable/disable
- the host controller
-- added dual-role-device (DRD) state machine which is a much simpler
- mode of operation when compared to OTG. Here we don't support fancy
- OTG features like HNP, SRP, on the fly role-swap. The mode of operation
- is determined based on ID pin (cable type) and the role doesn't change
- till the cable type changes.
-
---
-cheers,
--roger
-
-Roger Quadros (13):
-  usb: hcd: Initialize hcd->flags to 0
-  usb: otg-fsm: Prevent build warning "VDBG" redefined
-  usb: hcd.h: Add OTG to HCD interface
-  usb: otg-fsm: use usb_otg wherever possible
-  usb: otg-fsm: move host controller operations into usb_otg->hcd_ops
-  usb: gadget.h: Add OTG to gadget interface
-  usb: otg: get rid of CONFIG_USB_OTG_FSM in favour of CONFIG_USB_OTG
-  usb: otg: add OTG/dual-role core
-  usb: of: add an API to get OTG device from USB controller node
-  usb: otg: use dev_dbg() instead of VDBG()
-  usb: hcd: Adapt to OTG core
-  usb: gadget: udc: adapt to OTG core
-  usb: host: xhci-plat: Add otg device to platform data
-
-Yoshihiro Shimoda (1):
-  usb: otg: add hcd companion support
-
- Documentation/devicetree/bindings/usb/generic.txt |    6 +
- Documentation/usb/chipidea.txt                    |    2 +-
- drivers/usb/chipidea/Makefile                     |    2 +-
- drivers/usb/chipidea/ci.h                         |    3 +-
- drivers/usb/chipidea/core.c                       |   14 +-
- drivers/usb/chipidea/debug.c                      |    2 +-
- drivers/usb/chipidea/otg_fsm.c                    |  176 ++--
- drivers/usb/chipidea/otg_fsm.h                    |    2 +-
- drivers/usb/chipidea/udc.c                        |   17 +-
- drivers/usb/common/Makefile                       |    3 +-
- drivers/usb/common/common.c                       |   27 +
- drivers/usb/common/usb-otg-fsm.c                  |  203 ++--
- drivers/usb/common/usb-otg.c                      | 1056 +++++++++++++++++++++
- drivers/usb/core/Kconfig                          |   12 +-
- drivers/usb/core/hcd.c                            |   56 ++
- drivers/usb/gadget/udc/udc-core.c                 |  194 +++-
- drivers/usb/host/xhci-plat.c                      |   35 +-
- drivers/usb/phy/Kconfig                           |    2 +-
- drivers/usb/phy/phy-fsl-usb.c                     |  155 +--
- drivers/usb/phy/phy-fsl-usb.h                     |    3 +-
- include/linux/usb/gadget.h                        |   22 +
- include/linux/usb/hcd.h                           |   29 +
- include/linux/usb/of.h                            |    9 +
- include/linux/usb/otg-fsm.h                       |  154 +--
- include/linux/usb/otg.h                           |  264 +++++-
- include/linux/usb/xhci_pdriver.h                  |    3 +
- 26 files changed, 2013 insertions(+), 438 deletions(-)
- create mode 100644 drivers/usb/common/usb-otg.c
-
+diff --git a/Documentation/usb/chipidea.txt b/Documentation/usb/chipidea.txt
+index 678741b..3b1f263 100644
+--- a/Documentation/usb/chipidea.txt
++++ b/Documentation/usb/chipidea.txt
+@@ -5,7 +5,7 @@ with 2 Freescale i.MX6Q sabre SD boards.
+ 
+ 1.1 How to enable OTG FSM in menuconfig
+ ---------------------------------------
+-Select CONFIG_USB_OTG_FSM, rebuild kernel Image and modules.
++Select CONFIG_USB_OTG, rebuild kernel Image and modules.
+ If you want to check some internal variables for otg fsm,
+ mount debugfs, there are 2 files which can show otg fsm
+ variables and some controller registers value:
+diff --git a/drivers/usb/chipidea/Makefile b/drivers/usb/chipidea/Makefile
+index 518e445..45aa24d 100644
+--- a/drivers/usb/chipidea/Makefile
++++ b/drivers/usb/chipidea/Makefile
+@@ -3,7 +3,7 @@ obj-$(CONFIG_USB_CHIPIDEA)		+= ci_hdrc.o
+ ci_hdrc-y				:= core.o otg.o debug.o
+ ci_hdrc-$(CONFIG_USB_CHIPIDEA_UDC)	+= udc.o
+ ci_hdrc-$(CONFIG_USB_CHIPIDEA_HOST)	+= host.o
+-ci_hdrc-$(CONFIG_USB_OTG_FSM)		+= otg_fsm.o
++ci_hdrc-$(CONFIG_USB_OTG)		+= otg_fsm.o
+ 
+ # Glue/Bridge layers go here
+ 
+diff --git a/drivers/usb/chipidea/ci.h b/drivers/usb/chipidea/ci.h
+index c523975..1a32b8c 100644
+--- a/drivers/usb/chipidea/ci.h
++++ b/drivers/usb/chipidea/ci.h
+@@ -406,7 +406,7 @@ static inline u32 hw_test_and_write(struct ci_hdrc *ci, enum ci_hw_regs reg,
+  */
+ static inline bool ci_otg_is_fsm_mode(struct ci_hdrc *ci)
+ {
+-#ifdef CONFIG_USB_OTG_FSM
++#ifdef CONFIG_USB_OTG
+ 	struct usb_otg_caps *otg_caps = &ci->platdata->ci_otg_caps;
+ 
+ 	return ci->is_otg && ci->roles[CI_ROLE_HOST] &&
+diff --git a/drivers/usb/chipidea/otg_fsm.h b/drivers/usb/chipidea/otg_fsm.h
+index 6366fe3..2d451bb 100644
+--- a/drivers/usb/chipidea/otg_fsm.h
++++ b/drivers/usb/chipidea/otg_fsm.h
+@@ -64,7 +64,7 @@
+ 
+ #define TB_AIDL_BDIS         (20)	/* 4ms ~ 150ms, section 5.2.1 */
+ 
+-#if IS_ENABLED(CONFIG_USB_OTG_FSM)
++#if IS_ENABLED(CONFIG_USB_OTG)
+ 
+ int ci_hdrc_otg_fsm_init(struct ci_hdrc *ci);
+ int ci_otg_fsm_work(struct ci_hdrc *ci);
+diff --git a/drivers/usb/common/Makefile b/drivers/usb/common/Makefile
+index 6bbb3ec..f8f2c88 100644
+--- a/drivers/usb/common/Makefile
++++ b/drivers/usb/common/Makefile
+@@ -6,5 +6,6 @@ obj-$(CONFIG_USB_COMMON)	  += usb-common.o
+ usb-common-y			  += common.o
+ usb-common-$(CONFIG_USB_LED_TRIG) += led.o
+ 
+-obj-$(CONFIG_USB_OTG_FSM) += usb-otg-fsm.o
+ obj-$(CONFIG_USB_ULPI_BUS)	+= ulpi.o
++usbotg-y		:= usb-otg-fsm.o
++obj-$(CONFIG_USB_OTG)	+= usbotg.o
+diff --git a/drivers/usb/core/Kconfig b/drivers/usb/core/Kconfig
+index dd28010..ae228d0 100644
+--- a/drivers/usb/core/Kconfig
++++ b/drivers/usb/core/Kconfig
+@@ -75,14 +75,6 @@ config USB_OTG_BLACKLIST_HUB
+ 	  and software costs by not supporting external hubs.  So
+ 	  are "Embedded Hosts" that don't offer OTG support.
+ 
+-config USB_OTG_FSM
+-	tristate "USB 2.0 OTG FSM implementation"
+-	depends on USB && USB_OTG
+-	select USB_PHY
+-	help
+-	  Implements OTG Finite State Machine as specified in On-The-Go
+-	  and Embedded Host Supplement to the USB Revision 2.0 Specification.
+-
+ config USB_ULPI_BUS
+ 	tristate "USB ULPI PHY interface support"
+ 	depends on USB_SUPPORT
+diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
+index c690474..06794e2 100644
+--- a/drivers/usb/phy/Kconfig
++++ b/drivers/usb/phy/Kconfig
+@@ -20,7 +20,7 @@ config AB8500_USB
+ 
+ config FSL_USB2_OTG
+ 	bool "Freescale USB OTG Transceiver Driver"
+-	depends on USB_EHCI_FSL && USB_FSL_USB2 && USB_OTG_FSM && PM
++	depends on USB_EHCI_FSL && USB_FSL_USB2 && USB_OTG && PM
+ 	select USB_PHY
+ 	help
+ 	  Enable this to support Freescale USB OTG transceiver.
 -- 
 2.7.4
