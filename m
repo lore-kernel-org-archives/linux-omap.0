@@ -1,58 +1,73 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv2 00/28] ARM: OMAP2+: hwmod module clock type support
-Date: Fri, 13 May 2016 13:58:44 +0300
-Message-ID: <5735B364.9000504@ti.com>
-References: <1460632097-25727-1-git-send-email-t-kristo@ti.com>
- <20160512233935.GN3492@codeaurora.org>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v3 0/7] ARM/ASoC: OMAP3: Fix McBSP2/3
+	sidetone support
+Date: Fri, 13 May 2016 14:45:34 +0300
+Message-ID: <f7af7b30-563a-0048-9696-6ad0125d8f68@ti.com>
+References: <1461927202-17677-1-git-send-email-peter.ujfalusi@ti.com>
+ <69ff65ee-e5d1-09fb-fd91-8d7b4d8fdda4@ti.com>
+ <20160512164201.GQ5995@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <20160512233935.GN3492@codeaurora.org>
-Sender: linux-clk-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: tony@atomide.com, paul@pwsan.com, mturquette@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-clk@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20160512164201.GQ5995@atomide.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, paul@pwsan.com, alsa-devel@alsa-project.org, lgirdwood@gmail.com, linux-kernel@vger.kernel.org, t-kristo@ti.com, broonie@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, jarkko.nikula@bitmer.com
 List-Id: linux-omap@vger.kernel.org
 
-On 13/05/16 02:39, Stephen Boyd wrote:
-> On 04/14, Tero Kristo wrote:
->> Hi,
+On 05/12/16 19:42, Tony Lindgren wrote:
+> * Peter Ujfalusi <peter.ujfalusi@ti.com> [160511 01:46]:
+>> Tony, Paul,
 >>
->> v2 contains following changes in comparison to v1:
+>> On 04/29/16 13:53, Peter Ujfalusi wrote:
+>>> Hi,
+>>>
+>>> Based on the ongoing discussion on v2 (ARM: OMAP3: Fix McBSP2/3 hwmod s=
+etup for
+>>> sidetone) I have dropped the removal of the sidetone hwmod and only cor=
+rected
+>>> it. The series now includes all related changes needed to have correct =
+sidetone
+>>> support whenever we boot in legacy or in DT mode.
+>>>
+>>> This time the ASoC part have dependency on earlier patches so they can =
+not be
+>>> applied separately.
 >>
->> - Patch ordering changed a bit, clk/ti, mach-omap2, dts patches are now
->>    mostly grouped together, with the exception of the introduction of
->>    clock helper API, which is needed by everything else. Please note
->>    that the ordering must be preserved between mach-omap2/clk-driver/dts
->>    to avoid boot problems.
->> - Dropped hwmod data removal patches for now, this allows booting with
->>    either new or old DTS data.
->> - Fixed a typo in the hwmod clock driver timeout handling, the comparison
->>    for timeout against ktime_us_delta was wrong causing too short
->>    timeouts, this was apparent with cpuidle enabled on OMAP4
->> - Added patch #6 to fetch hwmod main clock based on the hwmod name itself,
->>    if found, ignore main_clk / clkctrl setup for the hwmod
->> - Added patch #7 to fix issue in omap2 timer caused by patch #6, with
->>    dynamic parsing of main clock, the hwmod must be setup before attempting
->>    to access main_clk.
->
-> What's the general design goal of this series? This cover letter
-> is more like a change and test log instead of an overall argument
-> for why the series should be merged so I'm left to piecing
-> together the commit text from the 28 different patches. I suspect
-> it's to get rid of DT_CLK macros and do something with hwmod in a
-> more generic way, but that's all I got.
+>> How should we proceed from here? I don't want to start designing the ST
+>> separation infrastructure which would be based on this series, but if th=
+ere
+>> are outstanding issues found on this, I would need to go back to the dra=
+wing
+>> board.
+>> The separation will be mostly new code and code shuffle in ASoC, but for
+>> legacy I will need to build up something in arch as well, so I would nee=
+d at
+>> least one release cycle to start with things.
+> =
 
-Sorry I think this was lost someone along the series, and looking back I 
-did not explain it that well at any point either.
+> Well looks like we have all the acks, so I can apply these. We have
+> not heard from Paul on this for a while, so let's wait few days for
+> that.
+> =
 
-The major motivation of this series is to get rid of the hwmod database 
-from kernel eventually, Tony is working on an interconnect driver which 
-will provide most of the other functionality currently done by hwmod, 
-but he is going to depend on the clkctrl part being done with this 
-series. Another important aspect of the series is that hwmod clkctrl is 
-now done with proper clock nodes, which provides multiple benefits like 
-usecounting, better debugging capabilities, better hierarchy support etc.
+> Meanwhile, Mark wanted to fix the subject for one of the patches, care
+> to repost that at least? Or the whole series with acks, could be a
+> pull request too against v4.6-rc1 :)
 
--Tero
+Thanks, I'll wait for couple of days for Paul to review and I will prepare =
+v4
+and a pull request.
 
+-- =
+
+P=E9ter
