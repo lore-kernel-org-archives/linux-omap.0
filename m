@@ -1,51 +1,91 @@
-From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 0/2] mfd: lp873x: Add lp873x PMIC support
-Date: Fri, 13 May 2016 09:18:08 +0530
-Message-ID: <1463111290-12377-1-git-send-email-j-keerthy@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v3 1/2] Documentation: mfd: LP873X: Add information for the mfd and regulator drivers
+Date: Fri, 13 May 2016 09:18:09 +0530
+Message-ID: <1463111290-12377-2-git-send-email-j-keerthy@ti.com>
+References: <1463111290-12377-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, j-keerthy-l0cyMroinI0@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1463111290-12377-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: broonie@kernel.org, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, lee.jones@linaro.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The LP873X chip is a power management IC for Portable Navigation Systems
-    and Tablet Computing devices. It contains the following components:
+Add information for the mfd and regulator drivers.
 
-     - Regulators.
-     - Configurable General Purpose Output Signals(GPO).
+Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
 
-PMIC interacts with the main processor through i2c. PMIC has
-couple of LDOs(Linear Regulators), couple of BUCKs (Step-Down DC-DC
-Converter Cores) and GPOs(General Purpose Output Signals). At this
-time only the regulator functionality is made available.
+Changes in v3:
 
-The regulator patch is already queued:
-http://marc.info/?l=linux-kernel&m=146298767110771&w=2
+  * Changed the example node lable to pmic from lp8733.
 
-Hence posting the remaining patches of the series with
-the comments fixed on mfd driver. 
-
-Keerthy (2):
-  Documentation: mfd: LP873X: Add information for the mfd and regulator
-    drivers
-  mfd: lp873x: Add lp873x PMIC support
-
- Documentation/devicetree/bindings/mfd/lp873x.txt |  55 +++++
- drivers/mfd/Kconfig                              |  14 ++
- drivers/mfd/Makefile                             |   2 +
- drivers/mfd/lp873x.c                             |  96 +++++++++
- include/linux/mfd/lp873x.h                       | 264 +++++++++++++++++++++++
- 5 files changed, 431 insertions(+)
+ Documentation/devicetree/bindings/mfd/lp873x.txt | 55 ++++++++++++++++++++++++
+ 1 file changed, 55 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/mfd/lp873x.txt
- create mode 100644 drivers/mfd/lp873x.c
- create mode 100644 include/linux/mfd/lp873x.h
 
+diff --git a/Documentation/devicetree/bindings/mfd/lp873x.txt b/Documentation/devicetree/bindings/mfd/lp873x.txt
+new file mode 100644
+index 0000000..8f3ef0d
+--- /dev/null
++++ b/Documentation/devicetree/bindings/mfd/lp873x.txt
+@@ -0,0 +1,55 @@
++TI LP3943 MFD driver
++
++Required properties:
++  - compatible: "ti,lp8732", "ti,lp8733"
++  - reg: I2C slave address.
++
++For the lp873x regulator properties please refer to:
++../bindings/regulator/lp873x.txt
++
++Example:
++
++pmic: lp8733@60 {
++	compatible = "ti,lp8733";
++	reg = <0x60>;
++
++	regulators {
++		lp8733_buck0: buck0 {
++			regulator-name = "lp8733-buck0";
++			regulator-min-microvolt = <800000>;
++			regulator-max-microvolt = <1400000>;
++			regulator-min-microamp = <1500000>;
++			regulator-max-microamp = <4000000>;
++			regulator-ramp-delay = <10000>;
++			regulator-always-on;
++			regulator-boot-on;
++		};
++
++		lp8733_buck1: buck1 {
++			regulator-name = "lp8733-buck1";
++			regulator-min-microvolt = <800000>;
++			regulator-max-microvolt = <1400000>;
++			regulator-min-microamp = <1500000>;
++			regulator-max-microamp = <4000000>;
++			regulator-ramp-delay = <10000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		lp8733_ldo0: ldo0 {
++			regulator-name = "lp8733-ldo0";
++			regulator-min-microvolt = <800000>;
++			regulator-max-microvolt = <3000000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		lp8733_ldo1: ldo1 {
++			regulator-name = "lp8733-ldo1";
++			regulator-min-microvolt = <800000>;
++			regulator-max-microvolt = <3000000>;
++			regulator-always-on;
++			regulator-boot-on;
++		};
++	};
++};
 -- 
 1.9.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
