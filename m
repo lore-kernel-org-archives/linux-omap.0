@@ -1,46 +1,51 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCHv2 00/28] ARM: OMAP2+: hwmod module clock type support
-Date: Thu, 12 May 2016 16:39:35 -0700
-Message-ID: <20160512233935.GN3492@codeaurora.org>
-References: <1460632097-25727-1-git-send-email-t-kristo@ti.com>
+From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 0/2] mfd: lp873x: Add lp873x PMIC support
+Date: Fri, 13 May 2016 09:18:08 +0530
+Message-ID: <1463111290-12377-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1460632097-25727-1-git-send-email-t-kristo@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: tony@atomide.com, paul@pwsan.com, mturquette@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-clk@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, j-keerthy-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 04/14, Tero Kristo wrote:
-> Hi,
-> 
-> v2 contains following changes in comparison to v1:
-> 
-> - Patch ordering changed a bit, clk/ti, mach-omap2, dts patches are now
->   mostly grouped together, with the exception of the introduction of
->   clock helper API, which is needed by everything else. Please note
->   that the ordering must be preserved between mach-omap2/clk-driver/dts
->   to avoid boot problems.
-> - Dropped hwmod data removal patches for now, this allows booting with
->   either new or old DTS data.
-> - Fixed a typo in the hwmod clock driver timeout handling, the comparison
->   for timeout against ktime_us_delta was wrong causing too short
->   timeouts, this was apparent with cpuidle enabled on OMAP4
-> - Added patch #6 to fetch hwmod main clock based on the hwmod name itself,
->   if found, ignore main_clk / clkctrl setup for the hwmod
-> - Added patch #7 to fix issue in omap2 timer caused by patch #6, with
->   dynamic parsing of main clock, the hwmod must be setup before attempting
->   to access main_clk.
+The LP873X chip is a power management IC for Portable Navigation Systems
+    and Tablet Computing devices. It contains the following components:
 
-What's the general design goal of this series? This cover letter
-is more like a change and test log instead of an overall argument
-for why the series should be merged so I'm left to piecing
-together the commit text from the 28 different patches. I suspect
-it's to get rid of DT_CLK macros and do something with hwmod in a
-more generic way, but that's all I got.
+     - Regulators.
+     - Configurable General Purpose Output Signals(GPO).
+
+PMIC interacts with the main processor through i2c. PMIC has
+couple of LDOs(Linear Regulators), couple of BUCKs (Step-Down DC-DC
+Converter Cores) and GPOs(General Purpose Output Signals). At this
+time only the regulator functionality is made available.
+
+The regulator patch is already queued:
+http://marc.info/?l=linux-kernel&m=146298767110771&w=2
+
+Hence posting the remaining patches of the series with
+the comments fixed on mfd driver. 
+
+Keerthy (2):
+  Documentation: mfd: LP873X: Add information for the mfd and regulator
+    drivers
+  mfd: lp873x: Add lp873x PMIC support
+
+ Documentation/devicetree/bindings/mfd/lp873x.txt |  55 +++++
+ drivers/mfd/Kconfig                              |  14 ++
+ drivers/mfd/Makefile                             |   2 +
+ drivers/mfd/lp873x.c                             |  96 +++++++++
+ include/linux/mfd/lp873x.h                       | 264 +++++++++++++++++++++++
+ 5 files changed, 431 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/mfd/lp873x.txt
+ create mode 100644 drivers/mfd/lp873x.c
+ create mode 100644 include/linux/mfd/lp873x.h
 
 -- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
