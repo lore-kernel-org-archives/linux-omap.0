@@ -1,73 +1,66 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v3 0/7] ARM/ASoC: OMAP3: Fix McBSP2/3
-	sidetone support
-Date: Fri, 13 May 2016 14:45:34 +0300
-Message-ID: <f7af7b30-563a-0048-9696-6ad0125d8f68@ti.com>
-References: <1461927202-17677-1-git-send-email-peter.ujfalusi@ti.com>
- <69ff65ee-e5d1-09fb-fd91-8d7b4d8fdda4@ti.com>
- <20160512164201.GQ5995@atomide.com>
+From: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+Subject: Re: [PATCH 2/2] ARM: dts: igep0020: Add SD card write-protect pin.
+Date: Fri, 13 May 2016 14:37:18 +0200
+Message-ID: <20160513123718.GA2841@localhost.localdomain>
+References: <1462568554-7868-1-git-send-email-enric.balletbo@collabora.com>
+ <1462568554-7868-2-git-send-email-enric.balletbo@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20160512164201.GQ5995@atomide.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, paul@pwsan.com, alsa-devel@alsa-project.org, lgirdwood@gmail.com, linux-kernel@vger.kernel.org, t-kristo@ti.com, broonie@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, jarkko.nikula@bitmer.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1462568554-7868-2-git-send-email-enric.balletbo-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Enric Balletbo i Serra <enric.balletbo-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 05/12/16 19:42, Tony Lindgren wrote:
-> * Peter Ujfalusi <peter.ujfalusi@ti.com> [160511 01:46]:
->> Tony, Paul,
->>
->> On 04/29/16 13:53, Peter Ujfalusi wrote:
->>> Hi,
->>>
->>> Based on the ongoing discussion on v2 (ARM: OMAP3: Fix McBSP2/3 hwmod s=
-etup for
->>> sidetone) I have dropped the removal of the sidetone hwmod and only cor=
-rected
->>> it. The series now includes all related changes needed to have correct =
-sidetone
->>> support whenever we boot in legacy or in DT mode.
->>>
->>> This time the ASoC part have dependency on earlier patches so they can =
-not be
->>> applied separately.
->>
->> How should we proceed from here? I don't want to start designing the ST
->> separation infrastructure which would be based on this series, but if th=
-ere
->> are outstanding issues found on this, I would need to go back to the dra=
-wing
->> board.
->> The separation will be mostly new code and code shuffle in ASoC, but for
->> legacy I will need to build up something in arch as well, so I would nee=
-d at
->> least one release cycle to start with things.
-> =
+Hi Enric!
 
-> Well looks like we have all the acks, so I can apply these. We have
-> not heard from Paul on this for a while, so let's wait few days for
-> that.
-> =
+On Fri, May 06, 2016 at 11:02:34PM +0200, Enric Balletbo i Serra wrote:
+> A host device that supports write protection should refuse to write to
+> an SD card that is designated read-only when write-protect is set. This
+> is an optional feature of the SD specification.
 
-> Meanwhile, Mark wanted to fix the subject for one of the patches, care
-> to repost that at least? Or the whole series with acks, could be a
-> pull request too against v4.6-rc1 :)
+Does it ever work on any IGEPv2? I have similar patch in my repo and there
+is no difference when enabling write protection on SD card. Also schemantics
+shows GPIO29 constantly pulled up with a resistor. Is there any board
+revision with working WP? I'm just curious as patch is of course correct.
 
-Thanks, I'll wait for couple of days for Paul to review and I will prepare =
-v4
-and a pull request.
+Best regards,
+	ladis
 
--- =
-
-P=E9ter
+> Signed-off-by: Enric Balletbo i Serra <enric.balletbo-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+> ---
+>  arch/arm/boot/dts/omap3-igep0020-common.dtsi | 11 +++++++++++
+>  1 file changed, 11 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/omap3-igep0020-common.dtsi b/arch/arm/boot/dts/omap3-igep0020-common.dtsi
+> index d6f839c..b697106 100644
+> --- a/arch/arm/boot/dts/omap3-igep0020-common.dtsi
+> +++ b/arch/arm/boot/dts/omap3-igep0020-common.dtsi
+> @@ -194,6 +194,12 @@
+>  			OMAP3630_CORE2_IOPAD(0x25f8, PIN_OUTPUT | MUX_MODE4) /* etk_d14.gpio_28 */
+>  		>;
+>  	};
+> +
+> +	mmc1_wp_pins: pinmux_mmc1_cd_pins {
+> +		pinctrl-single,pins = <
+> +			OMAP3630_CORE2_IOPAD(0x25fa, PIN_INPUT | MUX_MODE4)   /* etk_d15.gpio_29 */
+> +		>;
+> +	};
+>  };
+>  
+>  &i2c3 {
+> @@ -250,3 +256,8 @@
+>  		};
+>  	};
+>  };
+> +
+> +&mmc1 {
+> +	pinctrl-0 = <&mmc1_pins &mmc1_wp_pins>;
+> +	wp-gpios = <&gpio1 29 GPIO_ACTIVE_LOW>;	/* gpio_29 */
+> +};
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
