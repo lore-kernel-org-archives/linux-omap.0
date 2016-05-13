@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v8 13/14] usb: gadget: udc: adapt to OTG core
-Date: Fri, 13 May 2016 13:03:27 +0300
-Message-ID: <1463133808-10630-14-git-send-email-rogerq@ti.com>
+Subject: [PATCH v8 10/14] usb: otg: add hcd companion support
+Date: Fri, 13 May 2016 13:03:24 +0300
+Message-ID: <1463133808-10630-11-git-send-email-rogerq@ti.com>
 References: <1463133808-10630-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,304 +12,162 @@ To: peter.chen@freescale.com
 Cc: balbi@kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The OTG state machine needs a mechanism to start and
-stop the gadget controller as well as connect/disconnect
-from the bus. Add usb_gadget_start(), usb_gadget_stop()
-and usb_gadget_connect_control().
+From: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
 
-Introduce usb_otg_add_gadget_udc() to allow controller drivers
-to register a gadget controller that is part of an OTG instance.
+Since some host controller (e.g. EHCI) needs a companion host controller
+(e.g. OHCI), this patch adds such a configuration to use it in the OTG
+core.
 
-Register with OTG core when gadget function driver
-is available and unregister when function driver is unbound.
-
-We need to unlock the usb_lock mutex before calling
-usb_otg_register_gadget() in udc_bind_to_driver() and
-usb_gadget_remove_driver() else it will cause a circular
-locking dependency.
-
-Ignore softconnect sysfs control when we're in OTG
-mode as OTG FSM takes care of gadget softconnect using
-the b_bus_req mechanism.
-
+Signed-off-by: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
+Acked-by: Peter Chen <peter.chen@nxp.com>
 ---
- drivers/usb/gadget/udc/udc-core.c | 194 ++++++++++++++++++++++++++++++++++++--
- include/linux/usb/gadget.h        |   4 +
- 2 files changed, 189 insertions(+), 9 deletions(-)
+ Documentation/devicetree/bindings/usb/generic.txt |  3 +++
+ drivers/usb/common/usb-otg.c                      | 32 ++++++++++++++++-------
+ include/linux/usb/otg.h                           |  7 ++++-
+ 3 files changed, 32 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/usb/gadget/udc/udc-core.c b/drivers/usb/gadget/udc/udc-core.c
-index 4151597..21c85ef 100644
---- a/drivers/usb/gadget/udc/udc-core.c
-+++ b/drivers/usb/gadget/udc/udc-core.c
-@@ -28,6 +28,11 @@
- #include <linux/usb/ch9.h>
- #include <linux/usb/gadget.h>
- #include <linux/usb.h>
-+#include <linux/usb/otg.h>
+diff --git a/Documentation/devicetree/bindings/usb/generic.txt b/Documentation/devicetree/bindings/usb/generic.txt
+index f6866c1..1db1c33 100644
+--- a/Documentation/devicetree/bindings/usb/generic.txt
++++ b/Documentation/devicetree/bindings/usb/generic.txt
+@@ -27,6 +27,9 @@ Optional properties:
+  - otg-controller: phandle to otg controller. Host or gadget controllers can
+ 			contain this property to link it to a particular OTG
+ 			controller.
++ - hcd-needs-companion: must be present if otg controller is dealing with
++			EHCI host controller that needs a companion OHCI host
++			controller.
+ 
+ This is an attribute to a USB controller such as:
+ 
+diff --git a/drivers/usb/common/usb-otg.c b/drivers/usb/common/usb-otg.c
+index 64be6df..8a2a0d4 100644
+--- a/drivers/usb/common/usb-otg.c
++++ b/drivers/usb/common/usb-otg.c
+@@ -18,6 +18,7 @@
+ #include <linux/list.h>
+ #include <linux/of.h>
+ #include <linux/of_platform.h>
 +#include <linux/usb/of.h>
-+
-+#include <linux/of.h>
-+#include <linux/of_platform.h>
+ #include <linux/usb/otg.h>
+ #include <linux/usb/gadget.h>
+ #include <linux/workqueue.h>
+@@ -584,6 +585,10 @@ struct usb_otg *usb_otg_register(struct device *dev,
+ 	else
+ 		INIT_WORK(&otg->work, usb_drd_work);
  
- /**
-  * struct usb_udc - describes one usb device controller
-@@ -325,6 +330,119 @@ static inline void usb_gadget_udc_stop(struct usb_udc *udc)
- }
++	if (of_find_property(dev->of_node, "hcd-needs-companion", NULL) ||
++	    config->hcd_needs_companion)	/* needs companion ? */
++		otg->flags |= OTG_FLAG_HCD_NEEDS_COMPANION;
++
+ 	otg->wq = create_freezable_workqueue("usb_otg");
+ 	if (!otg->wq) {
+ 		dev_err(dev, "otg: %s: can't create workqueue\n",
+@@ -807,15 +812,18 @@ int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
+ 	/* HCD will be started by OTG fsm when needed */
+ 	mutex_lock(&otg->fsm.lock);
+ 	if (otg->primary_hcd.hcd) {
+-		/* probably a shared HCD ? */
+-		if (usb_otg_hcd_is_primary_hcd(hcd)) {
++		/* probably a shared HCD or a companion OHCI HCD ? */
++		if (!(otg->flags & OTG_FLAG_HCD_NEEDS_COMPANION) &&
++		    usb_otg_hcd_is_primary_hcd(hcd)) {
+ 			dev_err(otg_dev, "otg: primary host already registered\n");
+ 			goto err;
+ 		}
  
- /**
-+ * usb_gadget_to_udc - get the UDC owning the gadget
-+ *
-+ * udc_lock must be held.
-+ * Returs NULL if UDC is not found.
-+ */
-+static struct usb_udc *usb_gadget_to_udc(struct usb_gadget *gadget)
-+{
-+	struct usb_udc *udc;
-+
-+	list_for_each_entry(udc, &udc_list, list)
-+		if (udc->gadget == gadget)
-+			return udc;
-+
-+	return NULL;
-+}
-+
-+/**
-+ * usb_gadget_start - start the usb gadget controller
-+ * @gadget: the gadget device to start
-+ *
-+ * This is external API for use by OTG core.
-+ *
-+ * Start the usb device controller. Does not connect to the bus.
-+ */
-+static int usb_gadget_start(struct usb_gadget *gadget)
-+{
-+	int ret;
-+	struct usb_udc *udc;
-+
-+	mutex_lock(&udc_lock);
-+	udc = usb_gadget_to_udc(gadget);
-+	if (!udc) {
-+		dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
-+			__func__);
-+		mutex_unlock(&udc_lock);
-+		return -EINVAL;
-+	}
-+
-+	ret = usb_gadget_udc_start(udc);
-+	if (ret)
-+		dev_err(&udc->dev, "USB Device Controller didn't start: %d\n",
-+			ret);
-+
-+	mutex_unlock(&udc_lock);
-+
-+	return ret;
-+}
-+
-+/**
-+ * usb_gadget_stop - stop the usb gadget controller
-+ * @gadget: the gadget device we want to stop
-+ *
-+ * This is external API for use by OTG core.
-+ *
-+ * Stop the gadget controller. Does not disconnect from the bus.
-+ * Caller must ensure that gadget has disconnected from the bus
-+ * before calling usb_gadget_stop().
-+ */
-+static int usb_gadget_stop(struct usb_gadget *gadget)
-+{
-+	struct usb_udc *udc;
-+
-+	mutex_lock(&udc_lock);
-+	udc = usb_gadget_to_udc(gadget);
-+	if (!udc) {
-+		dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
-+			__func__);
-+		mutex_unlock(&udc_lock);
-+		return -EINVAL;
-+	}
-+
-+	if (gadget->connected) {
-+		dev_err(gadget->dev.parent,
-+			"%s: called while still connected\n", __func__);
-+		mutex_unlock(&udc_lock);
-+		return -EINVAL;
-+	}
-+
-+	usb_gadget_udc_stop(udc);
-+	mutex_unlock(&udc_lock);
-+
-+	return 0;
-+}
-+
-+static int usb_gadget_connect_control(struct usb_gadget *gadget, bool connect)
-+{
-+	struct usb_udc *udc;
-+
-+	mutex_lock(&udc_lock);
-+	udc = usb_gadget_to_udc(gadget);
-+	if (!udc) {
-+		dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
-+			__func__);
-+		mutex_unlock(&udc_lock);
-+		return -EINVAL;
-+	}
-+
-+	if (connect) {
-+		if (!gadget->connected)
-+			usb_gadget_connect(udc->gadget);
-+	} else {
-+		if (gadget->connected) {
-+			usb_gadget_disconnect(udc->gadget);
-+			udc->driver->disconnect(udc->gadget);
-+		}
-+	}
-+
-+	mutex_unlock(&udc_lock);
-+
-+	return 0;
-+}
-+
-+/**
-  * usb_udc_release - release the usb_udc struct
-  * @dev: the dev member within usb_udc
-  *
-@@ -486,6 +604,33 @@ int usb_add_gadget_udc(struct device *parent, struct usb_gadget *gadget)
- }
- EXPORT_SYMBOL_GPL(usb_add_gadget_udc);
+-		if (hcd->shared_hcd == otg->primary_hcd.hcd) {
++		if (otg->flags & OTG_FLAG_HCD_NEEDS_COMPANION ||
++		    (hcd->shared_hcd == otg->primary_hcd.hcd)) {
+ 			if (otg->shared_hcd.hcd) {
+-				dev_err(otg_dev, "otg: shared host already registered\n");
++				dev_err(otg_dev,
++					"otg: shared/companion host already registered\n");
+ 				goto err;
+ 			}
  
-+/**
-+ * usb_otg_add_gadget_udc - adds a new gadget to the udc class driver list
-+ * @parent: the parent device to this udc. Usually the controller
-+ * driver's device.
-+ * @gadget: the gadget to be added to the list
-+ * @otg_dev: the OTG controller device
-+ *
-+ * If otg_dev is NULL then device tree node is checked
-+ * for OTG controller via the otg-controller property.
-+ * Returns zero on success, negative errno otherwise.
-+ */
-+int usb_otg_add_gadget_udc(struct device *parent, struct usb_gadget *gadget,
-+			   struct device *otg_dev)
-+{
-+	if (!otg_dev) {
-+		gadget->otg_dev = of_usb_get_otg(parent->of_node);
-+		if (!gadget->otg_dev)
-+			return -ENODEV;
-+	} else {
-+		gadget->otg_dev = otg_dev;
-+	}
-+
-+	return usb_add_gadget_udc_release(parent, gadget, NULL);
-+}
-+EXPORT_SYMBOL_GPL(usb_otg_add_gadget_udc);
-+
-+/* udc_lock must be held */
- static void usb_gadget_remove_driver(struct usb_udc *udc)
- {
- 	dev_dbg(&udc->dev, "unregistering UDC driver [%s]\n",
-@@ -493,10 +638,18 @@ static void usb_gadget_remove_driver(struct usb_udc *udc)
+@@ -823,10 +831,12 @@ int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
+ 			otg->shared_hcd.irqnum = irqnum;
+ 			otg->shared_hcd.irqflags = irqflags;
+ 			otg->shared_hcd.ops = ops;
+-			dev_info(otg_dev, "otg: shared host %s registered\n",
++			dev_info(otg_dev,
++				 "otg: shared/companion host %s registered\n",
+ 				 dev_name(hcd->self.controller));
+ 		} else {
+-			dev_err(otg_dev, "otg: invalid shared host %s\n",
++			dev_err(otg_dev,
++				"otg: invalid shared/companion host %s\n",
+ 				dev_name(hcd->self.controller));
+ 			goto err;
+ 		}
+@@ -849,14 +859,17 @@ int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
+ 	 * we're ready only if we have shared HCD
+ 	 * or we don't need shared HCD.
+ 	 */
+-	if (otg->shared_hcd.hcd || !otg->primary_hcd.hcd->shared_hcd) {
++	if (otg->shared_hcd.hcd ||
++	    (!(otg->flags & OTG_FLAG_HCD_NEEDS_COMPANION) &&
++	     !otg->primary_hcd.hcd->shared_hcd)) {
+ 		otg->host = hcd_to_bus(hcd);
+ 		/* FIXME: set bus->otg_port if this is true OTG port with HNP */
  
- 	kobject_uevent(&udc->dev.kobj, KOBJ_CHANGE);
- 
--	usb_gadget_disconnect(udc->gadget);
--	udc->driver->disconnect(udc->gadget);
-+	/* If OTG, the otg core ensures UDC is stopped on unregister */
-+	if (udc->gadget->otg_dev) {
-+		mutex_unlock(&udc_lock);
-+		usb_otg_unregister_gadget(udc->gadget);
-+		mutex_lock(&udc_lock);
-+	} else {
-+		usb_gadget_disconnect(udc->gadget);
-+		udc->driver->disconnect(udc->gadget);
-+		usb_gadget_udc_stop(udc);
-+	}
-+
- 	udc->driver->unbind(udc->gadget);
--	usb_gadget_udc_stop(udc);
- 
- 	udc->driver = NULL;
- 	udc->dev.driver = NULL;
-@@ -530,6 +683,8 @@ void usb_del_gadget_udc(struct usb_gadget *gadget)
- 	}
- 	mutex_unlock(&udc_lock);
- 
-+	mutex_unlock(&udc_lock);
-+
- 	kobject_uevent(&udc->dev.kobj, KOBJ_REMOVE);
- 	flush_work(&gadget->work);
- 	device_unregister(&udc->dev);
-@@ -539,6 +694,13 @@ EXPORT_SYMBOL_GPL(usb_del_gadget_udc);
- 
- /* ------------------------------------------------------------------------- */
- 
-+struct otg_gadget_ops otg_gadget_intf = {
-+	.start = usb_gadget_start,
-+	.stop = usb_gadget_stop,
-+	.connect_control = usb_gadget_connect_control,
-+};
-+
-+/* udc_lock must be held */
- static int udc_bind_to_driver(struct usb_udc *udc, struct usb_gadget_driver *driver)
- {
- 	int ret;
-@@ -553,12 +715,20 @@ static int udc_bind_to_driver(struct usb_udc *udc, struct usb_gadget_driver *dri
- 	ret = driver->bind(udc->gadget, driver);
- 	if (ret)
- 		goto err1;
--	ret = usb_gadget_udc_start(udc);
--	if (ret) {
--		driver->unbind(udc->gadget);
--		goto err1;
-+
-+	/* If OTG, the otg core starts the UDC when needed */
-+	if (udc->gadget->otg_dev) {
-+		mutex_unlock(&udc_lock);
-+		usb_otg_register_gadget(udc->gadget, &otg_gadget_intf);
-+		mutex_lock(&udc_lock);
-+	} else {
-+		ret = usb_gadget_udc_start(udc);
-+		if (ret) {
-+			driver->unbind(udc->gadget);
-+			goto err1;
-+		}
-+		usb_udc_connect_control(udc);
- 	}
--	usb_udc_connect_control(udc);
- 
- 	kobject_uevent(&udc->dev.kobj, KOBJ_CHANGE);
- 	return 0;
-@@ -660,9 +830,15 @@ static ssize_t usb_udc_softconn_store(struct device *dev,
- 		return -EOPNOTSUPP;
+ 		/* start FSM */
+ 		usb_otg_start_fsm(otg);
+ 	} else {
+-		dev_dbg(otg_dev, "otg: can't start till shared host registers\n");
++		dev_dbg(otg_dev,
++			"otg: can't start till shared/companion host registers\n");
  	}
  
-+	/* In OTG mode we don't support softconnect, but b_bus_req */
-+	if (udc->gadget->otg_dev) {
-+		dev_err(dev, "soft-connect not supported in OTG mode\n");
-+		return -EOPNOTSUPP;
-+	}
-+
- 	if (sysfs_streq(buf, "connect")) {
- 		usb_gadget_udc_start(udc);
--		usb_gadget_connect(udc->gadget);
-+		usb_udc_connect_control(udc);
- 	} else if (sysfs_streq(buf, "disconnect")) {
- 		usb_gadget_disconnect(udc->gadget);
- 		udc->driver->disconnect(udc->gadget);
-diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
-index 3ecfddd..79d654f 100644
---- a/include/linux/usb/gadget.h
-+++ b/include/linux/usb/gadget.h
-@@ -1162,6 +1162,10 @@ extern int usb_add_gadget_udc(struct device *parent, struct usb_gadget *gadget);
- extern void usb_del_gadget_udc(struct usb_gadget *gadget);
- extern char *usb_get_gadget_udc_name(void);
+ 	mutex_unlock(&otg->fsm.lock);
+@@ -907,7 +920,8 @@ int usb_otg_unregister_hcd(struct usb_hcd *hcd)
+ 			 dev_name(hcd_dev));
+ 	} else if (hcd == otg->shared_hcd.hcd) {
+ 		otg->shared_hcd.hcd = NULL;
+-		dev_info(otg_dev, "otg: shared host %s unregistered\n",
++		dev_info(otg_dev,
++			 "otg: shared/companion host %s unregistered\n",
+ 			 dev_name(hcd_dev));
+ 	} else {
+ 		dev_err(otg_dev, "otg: host %s wasn't registered with otg\n",
+diff --git a/include/linux/usb/otg.h b/include/linux/usb/otg.h
+index b094352..6f4ca77 100644
+--- a/include/linux/usb/otg.h
++++ b/include/linux/usb/otg.h
+@@ -57,7 +57,8 @@ struct otg_hcd {
+  * @list: list of otg controllers
+  * @work: otg state machine work
+  * @wq: otg state machine work queue
+- * @flags: to track if host/gadget is running
++ * @flags: to track if host/gadget is running, or to indicate if hcd needs
++ *	   companion
+  */
+ struct usb_otg {
+ 	u8			default_a;
+@@ -84,6 +85,7 @@ struct usb_otg {
+ 	u32 flags;
+ #define OTG_FLAG_GADGET_RUNNING (1 << 0)
+ #define OTG_FLAG_HOST_RUNNING (1 << 1)
++#define OTG_FLAG_HCD_NEEDS_COMPANION (1 << 2)
+ 	/* use otg->fsm.lock for serializing access */
  
-+extern int usb_otg_add_gadget_udc(struct device *parent,
-+				  struct usb_gadget *gadget,
-+				  struct device *otg_dev);
-+
- /*-------------------------------------------------------------------------*/
+ /*------------- deprecated interface -----------------------------*/
+@@ -125,11 +127,14 @@ struct usb_otg_caps {
+  * @caps: otg capabilities of the controller
+  * @ops: otg fsm operations
+  * @otg_work: optional custom otg state machine work function
++ * @hcd_needs_companion: Indicates if host controller needs a companion
++ *			 controller
+  */
+ struct usb_otg_config {
+ 	struct usb_otg_caps *otg_caps;
+ 	struct otg_fsm_ops *fsm_ops;
+ 	void (*otg_work)(struct work_struct *work);
++	bool hcd_needs_companion;
+ };
  
- /* utility to simplify dealing with string descriptors */
+ extern const char *usb_otg_state_string(enum usb_otg_state state);
 -- 
 2.7.4
