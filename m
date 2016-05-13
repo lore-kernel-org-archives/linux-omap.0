@@ -1,81 +1,96 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 07/15] usb: musb: Handle cable status better for 2430
- glue layer
-Date: Fri, 13 May 2016 13:58:30 -0700
-Message-ID: <20160513205829.GD5995@atomide.com>
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 10/15] usb: musb: Don't set d+ high before enable for
+ 2430 glue layer
+Date: Fri, 13 May 2016 16:03:34 -0500
+Message-ID: <20160513210334.GC1665@uda0271908>
 References: <1463014396-4095-1-git-send-email-tony@atomide.com>
- <1463014396-4095-8-git-send-email-tony@atomide.com>
- <20160512013303.GO5995@atomide.com>
- <20160513195631.GB1665@uda0271908>
- <20160513200902.GB5995@atomide.com>
- <20160513202155.GA31180@uda0271908>
- <20160513202426.GB31180@uda0271908>
- <20160513203330.GC5995@atomide.com>
- <20160513204146.GC31180@uda0271908>
+ <1463014396-4095-11-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160513204146.GC31180@uda0271908>
+In-Reply-To: <1463014396-4095-11-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [160513 13:43]:
-> Hi,
+Hi,
+
+On Wed, May 11, 2016 at 05:53:11PM -0700, Tony Lindgren wrote:
+> At least 2430 glue layer pulls d+ high on start up even if there are
+> no gadgets configured. This is bad at least for anything using a separate
+> battery charger chip as it can confuse the charger detection.
 > 
-> On Fri, May 13, 2016 at 01:33:30PM -0700, Tony Lindgren wrote:
-> > * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [160513 13:26]:
-> > > On Fri, May 13, 2016 at 03:21:55PM -0500, Bin Liu wrote:
-> > > > On Fri, May 13, 2016 at 01:09:02PM -0700, Tony Lindgren wrote:
-> > > > > * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [160513 12:58]:
-> > > > > > On Wed, May 11, 2016 at 06:33:04PM -0700, Tony Lindgren wrote:
-> > > > > > > --- a/drivers/usb/musb/omap2430.c
-> > > > > > > +++ b/drivers/usb/musb/omap2430.c
-> > > > > > > @@ -49,6 +49,9 @@ struct omap2430_glue {
-> > > > > > >  	enum musb_vbus_id_status status;
-> > > > > > >  	struct work_struct	omap_musb_mailbox_work;
-> > > > > > >  	struct device		*control_otghs;
-> > > > > > > +	bool			cable_connected;
-> > > > > > > +	bool			enabled;
-> > > > > > > +	bool			powered;
-> > > > > > 
-> > > > > > This variable is only used within omap2430_set_power(), so it can be
-> > > > > > local within that function to save a few bytes.
-> > > > > 
-> > > > > Well it needs to be static as we keep things powered only if
-> > > > > glue is enabled and cable is connected.
-> > > > 
-> > > > I think it does not have to static in omap2430_glue, how about in the
-> > > 
-> > > I meant in omap2430_set_power().
-> > > 
-> > > > very beginning of omap2430_set_power(),
-> > > > 
-> > > > 	bool powered = glue->enabled && glue->cable_connected;
-> > > > 
-> > > > before changing glue->enabled and glue->cable_connected, then this
-> > > > local powered variable is equivalent to glue->powered.
-> > 
-> > Hmm but pm_runtime_get_sync() can fail too. I was seeing -EACCES
-> > there while chasing various PM runtime issues. That can happen for
-> > example if the parent and child PM runtime use counts get out of sync
-> > like happened in the -EPROBE_DEFER case. Now we at least know if
-> > something goes wrong with the "could not enable" error.
+> Let's fix the issue by getting rid of omap2430_musb_set_mode() and only
+
+By doing so, you lost the feature of switching mode from sysfs, I am not
+sure if there is anyone using it though, still, it is a regression.
+
+> write session bit in omap2430_musb_enable().
+
+I don't think session bit needs to be set in _enable(), musb_start() in
+core takes care of this bit.
+
 > 
-> Well, cannot think of why this variable could cause this problem. But
-> anyway, please ignore my comments, it is only about 4 bytes.
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> ---
+>  drivers/usb/musb/omap2430.c | 14 +++-----------
+>  1 file changed, 3 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> index 79e4cd7..958ae6a 100644
+> --- a/drivers/usb/musb/omap2430.c
+> +++ b/drivers/usb/musb/omap2430.c
+> @@ -122,16 +122,6 @@ static void omap2430_musb_set_vbus(struct musb *musb, int is_on)
+>  		musb_readb(musb->mregs, MUSB_DEVCTL));
+>  }
+>  
+> -static int omap2430_musb_set_mode(struct musb *musb, u8 musb_mode)
+> -{
+> -	u8	devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
+> -
+> -	devctl |= MUSB_DEVCTL_SESSION;
+> -	musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
 
-It's because we currently need to keep track of powered in addition
-to cable_connected and enabled. Otherwise we don't get get warnings
-related to PM runtime issues.
+In stead of removing it, session bit should only be set when musb_mode
+== MUSB_HOST, will this fix the D+ pullup problem?
 
-And if we use static bool powered in omap2430_set_power(), it won't
-be specific to the glue layer driver instance :)
+> -
+> -	return 0;
+> -}
+> -
+>  static inline void omap2430_low_level_exit(struct musb *musb)
+>  {
+>  	u32 l;
+> @@ -428,6 +418,9 @@ static void omap2430_musb_enable(struct musb *musb)
+>  
+>  	case MUSB_VBUS_VALID:
+>  		omap_control_usb_set_mode(glue->control_otghs, USB_MODE_DEVICE);
+> +		devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
+> +		devctl |= MUSB_DEVCTL_SESSION;
+> +		musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
 
-Tony
+session bit is only set for host mode, VBUS_VALID is not a signal for
+host mode. So you don't have to set the bit here.
 
+>  		break;
+>  
+>  	default:
+> @@ -472,7 +465,6 @@ static const struct musb_platform_ops omap2430_ops = {
+>  	.init		= omap2430_musb_init,
+>  	.exit		= omap2430_musb_exit,
+>  
+> -	.set_mode	= omap2430_musb_set_mode,
+>  	.set_vbus	= omap2430_musb_set_vbus,
+>  
+>  	.enable		= omap2430_musb_enable,
+> -- 
+> 2.8.1
+> 
 
+Regards,
+-Bin.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
