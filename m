@@ -1,52 +1,218 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v8 10/14] usb: otg: add hcd companion support
-Date: Fri, 13 May 2016 13:13:19 -0500
-Message-ID: <CAL_JsqL+=Kx+1YLe4PpJ8Y9Ng0j0S_miVx5LALR4JFzdQvgY+w@mail.gmail.com>
-References: <1463133808-10630-1-git-send-email-rogerq@ti.com> <1463133808-10630-11-git-send-email-rogerq@ti.com>
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 07/15] usb: musb: Handle cable status better for 2430
+ glue layer
+Date: Fri, 13 May 2016 14:57:00 -0500
+Message-ID: <20160513195631.GB1665@uda0271908>
+References: <1463014396-4095-1-git-send-email-tony@atomide.com>
+ <1463014396-4095-8-git-send-email-tony@atomide.com>
+ <20160512013303.GO5995@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1463133808-10630-11-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160512013303.GO5995-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Peter Chen <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mathias Nyman <mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, Li Jun <jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, "Shimoda, Yoshihiro" <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Linux USB List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, May 13, 2016 at 5:03 AM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
-> From: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
->
-> Since some host controller (e.g. EHCI) needs a companion host controller
-> (e.g. OHCI), this patch adds such a configuration to use it in the OTG
-> core.
->
-> Signed-off-by: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> Acked-by: Peter Chen <peter.chen-3arQi8VN3Tc@public.gmane.org>
-> ---
->  Documentation/devicetree/bindings/usb/generic.txt |  3 +++
->  drivers/usb/common/usb-otg.c                      | 32 ++++++++++++++++-------
->  include/linux/usb/otg.h                           |  7 ++++-
->  3 files changed, 32 insertions(+), 10 deletions(-)
->
-> diff --git a/Documentation/devicetree/bindings/usb/generic.txt b/Documentation/devicetree/bindings/usb/generic.txt
-> index f6866c1..1db1c33 100644
-> --- a/Documentation/devicetree/bindings/usb/generic.txt
-> +++ b/Documentation/devicetree/bindings/usb/generic.txt
-> @@ -27,6 +27,9 @@ Optional properties:
->   - otg-controller: phandle to otg controller. Host or gadget controllers can
->                         contain this property to link it to a particular OTG
->                         controller.
-> + - hcd-needs-companion: must be present if otg controller is dealing with
-> +                       EHCI host controller that needs a companion OHCI host
-> +                       controller.
+Hi,
 
-I thought the conclusion was this is not needed?
+On Wed, May 11, 2016 at 06:33:04PM -0700, Tony Lindgren wrote:
+> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [160511 17:56]:
+> > We may have drivers loaded but no configured gadgets and MUSB may be in
+> > host mode. If gadgets are configured during host mode, PM runtime will
+> > get confused.
+> ...
+> 
+> > @@ -307,6 +350,9 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
+> >  		dev_dbg(dev, "ID float\n");
+> >  	}
+> >  
+> > +	if (!glue->cable_connected)
+> > +		omap2430_set_power(musb, glue->enabled, cable_connected);
+> > +
+> 
+> Oops sorry I messed up while cleaning up. This should be just cable_connected
+> here instead of glue->cable_connected. Otherwise we won't idle on cable
+> unplug as we're always using the cached value instead of the current
+> value.
+> 
+> Updated patch below.
+> 
+> Regards,
+> 
+> Tony
+> 
+> 8< -----------------
+> From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Date: Mon, 9 May 2016 07:50:57 -0700
+> Subject: [PATCH] usb: musb: Handle cable status better for 2430 glue layer
+> 
+> We may have drivers loaded but no configured gadgets and MUSB may be in
+> host mode. If gadgets are configured during host mode, PM runtime will
+> get confused.
+> 
+> Disable PM runtime from gadget state, and do it based on the cable
+> and last state.
+> 
+> Note that we may get multiple cable events, so we need to keep track
+> of the power state.
+> 
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> 
+> --- a/drivers/usb/musb/omap2430.c
+> +++ b/drivers/usb/musb/omap2430.c
+> @@ -49,6 +49,9 @@ struct omap2430_glue {
+>  	enum musb_vbus_id_status status;
+>  	struct work_struct	omap_musb_mailbox_work;
+>  	struct device		*control_otghs;
+> +	bool			cable_connected;
+> +	bool			enabled;
+> +	bool			powered;
 
-One thing that is not clear here is otg-controller is a host or device
-property while hcd-needs-companion is an OTG controller property.
-These lists should be separated.
+This variable is only used within omap2430_set_power(), so it can be
+local within that function to save a few bytes.
 
-Rob
+Regards,
+-Bin.
+
+>  };
+>  #define glue_to_musb(g)		platform_get_drvdata(g->musb)
+>  
+> @@ -234,6 +237,45 @@ static inline void omap2430_low_level_init(struct musb *musb)
+>  	musb_writel(musb->mregs, OTG_FORCESTDBY, l);
+>  }
+>  
+> +/*
+> + * We can get multiple cable events so we need to keep track
+> + * of the power state. Only keep power enabled if USB cable is
+> + * connected and a gadget is started.
+> + */
+> +static void omap2430_set_power(struct musb *musb, bool enabled, bool cable)
+> +{
+> +	struct device *dev = musb->controller;
+> +	struct omap2430_glue *glue = dev_get_drvdata(dev->parent);
+> +	bool power_up;
+> +	int res;
+> +
+> +	if (glue->enabled != enabled)
+> +		glue->enabled = enabled;
+> +
+> +	if (glue->cable_connected != cable)
+> +		glue->cable_connected = cable;
+> +
+> +	power_up = glue->enabled && glue->cable_connected;
+> +	if (power_up == glue->powered) {
+> +		dev_warn(musb->controller, "power state already %i\n",
+> +			 power_up);
+> +		return;
+> +	}
+> +
+> +	glue->powered = power_up;
+> +
+> +	if (power_up) {
+> +		res = pm_runtime_get_sync(musb->controller);
+> +		if (res < 0) {
+> +			dev_err(musb->controller, "could not enable: %i", res);
+> +			glue->powered = false;
+> +		}
+> +	} else {
+> +		pm_runtime_mark_last_busy(musb->controller);
+> +		pm_runtime_put_autosuspend(musb->controller);
+> +	}
+> +}
+> +
+>  static void omap2430_musb_mailbox(enum musb_vbus_id_status status)
+>  {
+>  	struct omap2430_glue	*glue = _glue;
+> @@ -259,6 +301,13 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
+>  	struct musb_hdrc_platform_data *pdata = dev_get_platdata(dev);
+>  	struct omap_musb_board_data *data = pdata->board_data;
+>  	struct usb_otg *otg = musb->xceiv->otg;
+> +	bool cable_connected;
+> +
+> +	cable_connected = ((glue->status == MUSB_ID_GROUND) ||
+> +			   (glue->status == MUSB_VBUS_VALID));
+> +
+> +	if (cable_connected)
+> +		omap2430_set_power(musb, glue->enabled, cable_connected);
+>  
+>  	switch (glue->status) {
+>  	case MUSB_ID_GROUND:
+> @@ -268,7 +317,6 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
+>  		musb->xceiv->otg->state = OTG_STATE_A_IDLE;
+>  		musb->xceiv->last_event = USB_EVENT_ID;
+>  		if (musb->gadget_driver) {
+> -			pm_runtime_get_sync(dev);
+>  			omap_control_usb_set_mode(glue->control_otghs,
+>  				USB_MODE_HOST);
+>  			omap2430_musb_set_vbus(musb, 1);
+> @@ -281,8 +329,6 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
+>  		otg->default_a = false;
+>  		musb->xceiv->otg->state = OTG_STATE_B_IDLE;
+>  		musb->xceiv->last_event = USB_EVENT_VBUS;
+> -		if (musb->gadget_driver)
+> -			pm_runtime_get_sync(dev);
+>  		omap_control_usb_set_mode(glue->control_otghs, USB_MODE_DEVICE);
+>  		break;
+>  
+> @@ -291,11 +337,8 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
+>  		dev_dbg(dev, "VBUS Disconnect\n");
+>  
+>  		musb->xceiv->last_event = USB_EVENT_NONE;
+> -		if (musb->gadget_driver) {
+> +		if (musb->gadget_driver)
+>  			omap2430_musb_set_vbus(musb, 0);
+> -			pm_runtime_mark_last_busy(dev);
+> -			pm_runtime_put_autosuspend(dev);
+> -		}
+>  
+>  		if (data->interface_type == MUSB_INTERFACE_UTMI)
+>  			otg_set_vbus(musb->xceiv->otg, 0);
+> @@ -307,6 +350,9 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
+>  		dev_dbg(dev, "ID float\n");
+>  	}
+>  
+> +	if (!cable_connected)
+> +		omap2430_set_power(musb, glue->enabled, cable_connected);
+> +
+>  	atomic_notifier_call_chain(&musb->xceiv->notifier,
+>  			musb->xceiv->last_event, NULL);
+>  }
+> @@ -443,6 +489,8 @@ static void omap2430_musb_enable(struct musb *musb)
+>  	struct musb_hdrc_platform_data *pdata = dev_get_platdata(dev);
+>  	struct omap_musb_board_data *data = pdata->board_data;
+>  
+> +	omap2430_set_power(musb, true, glue->cable_connected);
+> +
+>  	switch (glue->status) {
+>  
+>  	case MUSB_ID_GROUND:
+> @@ -481,6 +529,8 @@ static void omap2430_musb_disable(struct musb *musb)
+>  	if (glue->status != MUSB_UNKNOWN)
+>  		omap_control_usb_set_mode(glue->control_otghs,
+>  			USB_MODE_DISCONNECT);
+> +
+> +	omap2430_set_power(musb, false, glue->cable_connected);
+>  }
+>  
+>  static int omap2430_musb_exit(struct musb *musb)
+> @@ -653,11 +703,13 @@ err0:
+>  
+>  static int omap2430_remove(struct platform_device *pdev)
+>  {
+> -	struct omap2430_glue		*glue = platform_get_drvdata(pdev);
+> +	struct omap2430_glue *glue = platform_get_drvdata(pdev);
+> +	struct musb *musb = glue_to_musb(glue);
+>  
+>  	pm_runtime_get_sync(glue->dev);
+>  	cancel_work_sync(&glue->omap_musb_mailbox_work);
+>  	platform_device_unregister(glue->musb);
+> +	omap2430_set_power(musb, false, false);
+>  	pm_runtime_put_sync(glue->dev);
+>  	pm_runtime_disable(glue->dev);
+>  
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
