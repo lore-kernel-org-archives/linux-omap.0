@@ -1,62 +1,52 @@
-From: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH RESEND 0/4] arm: dts: am57xx: Correct the thermal
- thresholds
-Date: Fri, 13 May 2016 10:49:20 +0530
-Message-ID: <573563D8.7020503@ti.com>
-References: <1461837949-11116-1-git-send-email-j-keerthy@ti.com>
- <57316262.80003@ti.com> <20160512203505.GV5995@atomide.com>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: Re: [PATCH 4/7] [media] ir-rx51: add DT support to driver
+Date: Fri, 13 May 2016 09:15:38 +0300
+Message-ID: <5735710A.6060404@gmail.com>
+References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <1462634508-24961-5-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160509200657.GA3379@rob-hp-laptop> <5730F8BA.5000402@gmail.com>
+ <CAL_JsqJPZS1ne_xAuBFtCc5L1HKFJf0LDUJ7CRSFXhc3adkTfA@mail.gmail.com>
+ <20160510021826.GE1129@earth> <20160511141429.GA5894@rob-hp-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160512203505.GV5995-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <20160511141429.GA5894@rob-hp-laptop>
+Sender: linux-media-owner@vger.kernel.org
+To: Rob Herring <robh@kernel.org>, Sebastian Reichel <sre@kernel.org>
+Cc: Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Thierry Reding <thierry.reding@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux PWM List <linux-pwm@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
-
-On Friday 13 May 2016 02:05 AM, Tony Lindgren wrote:
-> Hi,
->
-> * Keerthy <a0393675-l0cyMroinI0@public.gmane.org> [160509 21:25]:
->> Tony,
+On 11.05.2016 17:14, Rob Herring wrote:
+> On Tue, May 10, 2016 at 04:18:27AM +0200, Sebastian Reichel wrote:
+>> Hi,
 >>
->> On Thursday 28 April 2016 03:35 PM, Keerthy wrote:
->>> Noticed that earlier post had a wrong list name hence resending the
->>> series.
->>>
->>> Currently all the am57xx versions are wrongly re-using the dra7  thermal
->>> threholds. Introduing the correct thermal thresholds based on industrial
->>> or commercial grade silicon present on the individual boards.
->>>
->>> Tested on AM57XX-BEAGLE-X15 (Commercial) and AM572X-IDK(Industrial)
->>> for the trip_point node sysfs temperatures.
->>>
+>> On Mon, May 09, 2016 at 04:07:35PM -0500, Rob Herring wrote:
+>>> There's already a pwm-led binding that can be used. Though there
+>>> may be missing consumer IR to LED subsystem support in the kernel.
+>>> You could list both compatibles, use the rx51 IR driver now, and
+>>> then move to pwm-led driver in the future.
 >>
->> A Gentle ping on this series.
+>> Well from a purely HW point of view it's a PWM connected led. The
+>> usage is completely different though. Usually PWM is used to control
+>> the LED's brightness via the duty cycle (basic concept: enabling led
+>> only 50% of time reduces brightness to 50%).
+>>
+>> In the IR led's case the aim is generating a specific serial pattern
+>> instead. For this task it uses a dmtimer in PWM mode and a second
+>> one to reconfigure the pwm timer.
 >
-> I already have these in Linux next for v4.7 merge window:
+> In that case, it will probably never be a generic driver.
 >
-> 5b6042237dc8 ("ARM: dts: am57xx-idk: Include Industrial grade  thermal thresholds")
-> 266e62f97539 ("ARM: dts: am57xx-beagle-x15: Include the commercial grade thresholds")
-> cf9b7d5e9cfd ("ARM: dts: am57xx: Introduce industrial grade thermal thresholds")
-> 286db0a516e0 ("ARM: dts: am57xx: Introduce commercial grade thermal thresholds")
+>> I don't know about a good name, but rx51 should be replaced with
+>> n900 in the compatible string. So maybe "nokia,n900-infrared-diode".
 >
-> Care to check if those are OK? If fixes are needed, please post an
-> incremental patch against current Linux next.
+> That's fine, but the shorter '-ir' was too.
+>
 
-Thanks Tony. Those 4 commits are fine.
+I prefer the shorter "nokia,n900-ir", will resend the series with it 
+used, unless someone has concerns about it.
 
-Regards,
-Keerthy
->
-> Regards,
->
-> Tony
->
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ivo
