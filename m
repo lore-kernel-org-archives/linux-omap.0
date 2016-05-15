@@ -1,32 +1,38 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 0/2] mfd: twl-core: Fine-tuning for add_numbered_child()
-Date: Sun, 15 May 2016 20:11:15 +0200
-Message-ID: <05b7db2a-437a-60ac-d289-71d2150e7f5f@users.sourceforge.net>
-References: <566ABCD9.1060404@users.sourceforge.net>
- <5682D228.7070902@users.sourceforge.net> <20160111082922.GB14104@x1>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Can not play audio with screen off
+Date: Sun, 15 May 2016 21:31:06 +0200
+Message-ID: <20160515193106.GA18685@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <20160111082922.GB14104@x1>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 15 May 2016 19:55:30 +0200
+Hi!
 
-A few update suggestions were taken into account
-from static source code analysis.
+I'm playing some more with N900, this time I'd like to use it as a
+alarm clock...
 
-Markus Elfring (2):
-  Return directly after a failed platform_device_alloc() in add_numbered_child()
-  Refactoring for add_numbered_child()
+And now I realized I can not, because system performance is so
+horrible with screen off that mpg123 + pulseaudio skips horribly. This
+is without tweaking serial parameters, so CPU is definitely not going
+into the idle/off modes.
 
- drivers/mfd/twl-core.c | 24 +++++++++++-------------
- 1 file changed, 11 insertions(+), 13 deletions(-)
+Loading CPU fixes the issue (I used cat /dev/zero > /dev/null).
 
+Hmm. And it seems to work better if I ssh in and launch mpg123
+remotely. Weird.
+
+Kernel 4.5-rc0. Will try on different ones.
+
+Any ideas? Is there interface to tell kernel that better performance
+is needed for a while?
+
+Thanks,
+
+									Pavel
 -- 
-2.8.2
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
