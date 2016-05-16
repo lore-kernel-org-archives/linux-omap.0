@@ -1,57 +1,57 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH] ARM: DRA7: hwmod: Remove QSPI address space entry from hwmod
-Date: Mon, 16 May 2016 10:55:03 +0530
-Message-ID: <1463376303-22267-1-git-send-email-vigneshr@ti.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 1/2] mfd: twl-core: Return directly after a failed
+ platform_device_alloc() in add_numbered_child()
+Date: Mon, 16 May 2016 08:26:11 +0200
+Message-ID: <3c168185-ec2d-f1f7-fe70-8a230b884ed2@users.sourceforge.net>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <5682D228.7070902@users.sourceforge.net> <20160111082922.GB14104@x1>
+ <05b7db2a-437a-60ac-d289-71d2150e7f5f@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vignesh R <vigneshr@ti.com>
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <05b7db2a-437a-60ac-d289-71d2150e7f5f@users.sourceforge.net>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
 List-Id: linux-omap@vger.kernel.org
 
-QSPI address space information is passed from device tree. Therefore
-remove legacy way of passing address space via hwmod data.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sun, 15 May 2016 19:20:28 +0200
 
-Signed-off-by: Vignesh R <vigneshr@ti.com>
+The platform_device_put() function was called in one case by the
+add_numbered_child() function during error handling even if the passed
+variable "pdev" contained a null pointer.
+
+* Change an error message.
+
+* Return directly in this case.
+
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 10 ----------
- 1 file changed, 10 deletions(-)
+ drivers/mfd/twl-core.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index d0e7e5259ec3..fac0a2044da4 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -3410,21 +3410,11 @@ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pciess2 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index 831696e..dc34e69 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -623,9 +623,10 @@ add_numbered_child(unsigned mod_no, const char *name, int num,
  
--static struct omap_hwmod_addr_space dra7xx_qspi_addrs[] = {
--	{
--		.pa_start	= 0x4b300000,
--		.pa_end		= 0x4b30007f,
--		.flags		= ADDR_TYPE_RT
--	},
--	{ }
--};
--
- /* l3_main_1 -> qspi */
- static struct omap_hwmod_ocp_if dra7xx_l3_main_1__qspi = {
- 	.master		= &dra7xx_l3_main_1_hwmod,
- 	.slave		= &dra7xx_qspi_hwmod,
- 	.clk		= "l3_iclk_div",
--	.addr		= dra7xx_qspi_addrs,
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
+ 	pdev = platform_device_alloc(name, num);
+ 	if (!pdev) {
+-		dev_dbg(&twl->client->dev, "can't alloc dev\n");
+-		status = -ENOMEM;
+-		goto err;
++		dev_err(&twl->client->dev,
++			"Allocation failed for device: %s\n",
++			name);
++		return ERR_PTR(-ENOMEM);
+ 	}
  
+ 	pdev->dev.parent = &twl->client->dev;
 -- 
 2.8.2
+
