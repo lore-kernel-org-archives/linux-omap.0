@@ -1,136 +1,146 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v7 10/14] usb: otg: add hcd companion support
-Date: Mon, 16 May 2016 11:35:51 +0300
-Message-ID: <57398667.3010201@ti.com>
-References: <57333DFF.3090609@ti.com>
- <Pine.LNX.4.44L0.1605111043030.1882-100000@iolanthe.rowland.org>
- <SG2PR06MB09194AB523C3ABDB425285C7D8730@SG2PR06MB0919.apcprd06.prod.outlook.com>
- <57343FFC.9090105@ti.com> <57344D7B.3050005@ti.com>
- <SG2PR06MB091923EEBAA67EC1D1E48B6DD8730@SG2PR06MB0919.apcprd06.prod.outlook.com>
- <5734737C.6070003@ti.com> <20160516021350.GA24609@shlinux2.ap.freescale.net>
- <57397E57.8060903@ti.com> <20160516081326.GC24609@shlinux2.ap.freescale.net>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v8 08/14] usb: otg: add OTG/dual-role core
+Date: Mon, 16 May 2016 12:00:06 +0300
+Message-ID: <57398C16.5050805@ti.com>
+References: <1463133808-10630-1-git-send-email-rogerq@ti.com>
+ <1463133808-10630-9-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160516081326.GC24609-Fb7DQEYuewWctlrPMvKcciBecyulp+rMXqFh9Ls21Oc@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org" <abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1463133808-10630-9-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: peter.chen@freescale.com
+Cc: balbi@kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 16/05/16 11:13, Peter Chen wrote:
-> On Mon, May 16, 2016 at 11:01:27AM +0300, Roger Quadros wrote:
->> On 16/05/16 05:13, Peter Chen wrote:
->>> On Thu, May 12, 2016 at 03:13:48PM +0300, Roger Quadros wrote:
->>>> Hi,
->>>>
->>>> On 12/05/16 13:31, Yoshihiro Shimoda wrote:
->>>>> Hi,
->>>>>
->>>>>> From: Roger Quadros
->>>>>> Sent: Thursday, May 12, 2016 6:32 PM
->>>>>>
->>>>>> Hi,
->>>>>>
->>>>>> On 12/05/16 11:34, Roger Quadros wrote:
->>>>>>> On 12/05/16 07:00, Yoshihiro Shimoda wrote:
->>>>>>>> Hi,
->>>>>>>>
->>>>>>>>> From: Alan Stern
->>>>>>>>> Sent: Wednesday, May 11, 2016 11:47 PM
->>>>>>>>>
->>>>>>>>> On Wed, 11 May 2016, Roger Quadros wrote:
->>>>>>>>>
->>>>>>>>>>> What I mean is if you have 2 EHCI controllers with 2 companion
->>>>>>>>>>> controllers, don't you need to know which companion goes with which EHCI
->>>>>>>>>>> controller? Just like you do for the otg-controller property.
->>>>>>>>>>>
->>>>>>>>>>
->>>>>>>>>> That is a very good point. I'm not very sure and it seems that current code won't work
->>>>>>>>>> with multiple EHCI + companion instances.
->>>>>>>>
->>>>>>>> I may misunderstand this topic, but if I use the following environment, it works correctly.
->>>>>>>>
->>>>>>>> < My environment >
->>>>>>>> - an otg controller: Sets hcd-needs-companion.
->>>>>>>> - ehci0 and ohci0 and a function: They connect to the otg controller using "otg-controller" property.
->>>>>>>> - ehci1 and ohci1: No "otg-controller" property.
->>>>>>>> - ehci2 and ohci2: No "otg-controller" property.
->>>>>>>>
->>>>>>>> In this environment, all hosts works correctly.
->>>>>>>> Also I think if we have 2 otg controlelrs, it should be work because otg_dev instance differs.
->>>>>>>
->>>>>>> The topic is about more than one otg controllers and how to tie the right ehci and ohci
->>>>>>> to the correct otg_dev instance especially in cases where we can't depend on probe order.
->>>>>>>
->>>>>>>> Or, does this topic assume an otg controller handles 2 EHCI controllers?
->>>>>>>> I'm not sure such environment actually exists.
->>>>>>>
->>>>>>> No it is not about that.
->>>>>
->>>>> Thank you for the reply. I understood it.
->>>>>
->>>>>>>>>> Alan, does USB core even know which EHCI and OHCI are linked to the same port
->>>>>>>>>> or the handoff is software transparent?
->>>>>>>>>
->>>>>>>>> The core knows.  It doesn't use the information for a whole lot of
->>>>>>>>> things, but it does use it in a couple of places.  Search for
->>>>>>>>> "companion" in core/hcd-pci.c and you'll see.
->>>>>>>>
->>>>>>>> Thank you for the information. I didn't know this code.
->>>>>>>> If my understanding is correct, the core/hcd-pci.c code will not be used by non-PCI devices.
->>>>>>>
->>>>>>> That is correct.
->>>>>>>
->>>>>>>> In other words, nobody sets "hcd->self.hs_companion" if we use such a device.
->>>>>>>> So, I will try to add such a code if needed.
->>>>>>>
->>>>>>> I think OTG core would have to rely on USB core in providing the right companion device,
->>>>>>> just like we rely on it for the primary vs shared HCD case.
->>>>>>>
->>>>>>
->>>>>> OK, it is not so simple.
->>>>>>
->>>>>> EHCI and companion port handoff is really meant to be software transparent.
->>>>>>
->>>>>> non-PCI devices really don't have knowledge of which OHCI instance is companion to the EHCI.
->>>>>> With device tree we could provide this mapping but for non-device tree case we can't do
->>>>>> anything.
->>>>>>
->>>>>> So my suggestion would be to keep dual role implementation limited to one instance for
->>>>>> EHCI + companion case for non-DT.
->>>>>> For PCI case I don't see how dual role can be implemented. I don't think we have any
->>>>>> dual-role PCI cards.
->>>>>
->>>>> R-Car Gen2 SoCs (r8a779[0134] / arm32) has USB 2.0 host controllers via PCI bus and
->>>>> one high speed function controller via AXI bus.
->>>>> One of channel can be used as host or function.
->>>>>
->>>>>> For DT case we could have a DT binding to tie the EHCI and companion and use that
->>>>>> in the OTG framework.
->>>>
->>>> After looking at the code it seems we don't need this special binding as we are already
->>>> linking the EHCI controller and companion controller to the single otg controller instance
->>>> using the otg-controller property.
->>>>
+On 13/05/16 13:03, Roger Quadros wrote:
+> It provides APIs for the following tasks
 > 
-> [...]
->>>
->>> Then, how you know this EHCI + companion controller special case during otg adds
->>> hcd, it needs special handling, right?
->>
->> We know the special case by using the hcd_needs_companion flag.
->>
+> - Registering an OTG/dual-role capable controller
+> - Registering Host and Gadget controllers to OTG core
+> - Providing inputs to and kicking the OTG state machine
 > 
-> You had said "we don't need this..", ok, yes, we do need it.
+> Provide a dual-role device (DRD) state machine.
+> DRD mode is a reduced functionality OTG mode. In this mode
+> we don't support SRP, HNP and dynamic role-swap.
 > 
-I'm sorry for the confusion. What I meant by "we don't need this special binding" was that
-we don't need additional binding to link the HCD and companion HCD.
+> In DRD operation, the controller mode (Host or Peripheral)
+> is decided based on the ID pin status. Once a cable plug (Type-A
+> or Type-B) is attached the controller selects the state
+> and doesn't change till the cable in unplugged and a different
+> cable type is inserted.
+> 
+> As we don't need most of the complex OTG states and OTG timers
+> we implement a lean DRD state machine in usb-otg.c.
+> The DRD state machine is only interested in 2 hardware inputs
+> 'id' and 'b_sess_vld'.
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  drivers/usb/common/Makefile  |    2 +-
+>  drivers/usb/common/usb-otg.c | 1042 ++++++++++++++++++++++++++++++++++++++++++
+>  drivers/usb/core/Kconfig     |    4 +-
+>  include/linux/usb/gadget.h   |    2 +
+>  include/linux/usb/hcd.h      |    1 +
+>  include/linux/usb/otg-fsm.h  |    7 +
+>  include/linux/usb/otg.h      |  154 ++++++-
+>  7 files changed, 1206 insertions(+), 6 deletions(-)
+>  create mode 100644 drivers/usb/common/usb-otg.c
 
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+This patch causes the following build issues when CONFIG_USB_GADGET=m, CONFIG_USB=m,
+CONFIG_USB_COMMON=m and CONFIG_USB_OTG=y
+
+ERROR: "usb_otg_register_gadget" [drivers/usb/gadget/udc/udc-core.ko] undefined!
+ERROR: "usb_otg_unregister_gadget" [drivers/usb/gadget/udc/udc-core.ko] undefined!
+ERROR: "usb_otg_register_hcd" [drivers/usb/core/usbcore.ko] undefined!
+ERROR: "usb_otg_unregister_hcd" [drivers/usb/core/usbcore.ko] undefined!
+ERROR: "otg_statemachine" [drivers/usb/chipidea/ci_hdrc.ko] undefined!
+scripts/Makefile.modpost:91: recipe for target '__modpost' failed
+make[1]: *** [__modpost] Error 1
+Makefile:1141: recipe for target 'modules' failed
+make: *** [modules] Error 2
+make: *** Waiting for unfinished jobs....
+
+drivers/built-in.o: In function `drd_set_state':
+usb-otg.c:(.text+0x2b4242): undefined reference to `usb_otg_state_string'
+drivers/built-in.o: In function `drd_statemachine':
+(.text+0x2b4b4c): undefined reference to `usb_otg_state_string'
+Makefile:937: recipe for target 'vmlinux' failed
+
+I'll fix it up with the following diff.
+
+diff --git a/drivers/usb/Makefile b/drivers/usb/Makefile
+index dca7856..16a5b55 100644
+--- a/drivers/usb/Makefile
++++ b/drivers/usb/Makefile
+@@ -59,5 +59,6 @@ obj-$(CONFIG_USB_RENESAS_USBHS)	+= renesas_usbhs/
+ obj-$(CONFIG_USB_GADGET)	+= gadget/
+ 
+ obj-$(CONFIG_USB_COMMON)	+= common/
++obj-$(CONFIG_USB_OTG)		+= common/
+ 
+ obj-$(CONFIG_USBIP_CORE)	+= usbip/
+diff --git a/drivers/usb/common/usb-otg.c b/drivers/usb/common/usb-otg.c
+index 77048aa..17e449e 100644
+--- a/drivers/usb/common/usb-otg.c
++++ b/drivers/usb/common/usb-otg.c
+@@ -56,6 +56,30 @@ static int usb_otg_hcd_is_primary_hcd(struct usb_hcd *hcd)
+ 	return hcd == hcd->primary_hcd;
+ }
+ 
++static const char *otg_state_string(enum usb_otg_state state)
++{
++	static const char *const names[] = {
++		[OTG_STATE_A_IDLE] = "a_idle",
++		[OTG_STATE_A_WAIT_VRISE] = "a_wait_vrise",
++		[OTG_STATE_A_WAIT_BCON] = "a_wait_bcon",
++		[OTG_STATE_A_HOST] = "a_host",
++		[OTG_STATE_A_SUSPEND] = "a_suspend",
++		[OTG_STATE_A_PERIPHERAL] = "a_peripheral",
++		[OTG_STATE_A_WAIT_VFALL] = "a_wait_vfall",
++		[OTG_STATE_A_VBUS_ERR] = "a_vbus_err",
++		[OTG_STATE_B_IDLE] = "b_idle",
++		[OTG_STATE_B_SRP_INIT] = "b_srp_init",
++		[OTG_STATE_B_PERIPHERAL] = "b_peripheral",
++		[OTG_STATE_B_WAIT_ACON] = "b_wait_acon",
++		[OTG_STATE_B_HOST] = "b_host",
++	};
++
++	if (state < 0 || state >= ARRAY_SIZE(names))
++		return "UNDEFINED";
++
++	return names[state];
++}
++
+ /**
+  * Check if the OTG device is in our wait list and return
+  * otg_wait_data, else NULL.
+@@ -433,7 +457,7 @@ static void drd_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
+ 
+ 	fsm->state_changed = 1;
+ 	dev_dbg(otg->dev, "otg: set state: %s\n",
+-		usb_otg_state_string(new_state));
++		otg_state_string(new_state));
+ 	switch (new_state) {
+ 	case OTG_STATE_B_IDLE:
+ 		drd_set_protocol(fsm, PROTO_UNDEF);
+@@ -449,7 +473,7 @@ static void drd_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
+ 		break;
+ 	default:
+ 		dev_warn(otg->dev, "%s: otg: invalid state: %s\n",
+-			 __func__, usb_otg_state_string(new_state));
++			 __func__, otg_state_string(new_state));
+ 		break;
+ 	}
+ 
+@@ -507,7 +531,7 @@ int drd_statemachine(struct usb_otg *otg)
+ 
+ 	default:
+ 		dev_err(otg->dev, "%s: otg: invalid usb-drd state: %s\n",
+-			__func__, usb_otg_state_string(state));
++			__func__, otg_state_string(state));
+ 		break;
+ 	}
+ 
