@@ -1,23 +1,34 @@
 From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: [PATCH v2 omap 4/6] arm: Add _rcuidle suffix to allow rpm_idle() use from idle
-Date: Mon, 16 May 2016 11:50:06 -0700
-Message-ID: <1463424608-20237-4-git-send-email-paulmck@linux.vnet.ibm.com>
+Subject: [PATCH v2 omap 6/6] arm: Use _rcuidle suffix to allow
+ clk_core_enable() to used from idle
+Date: Mon, 16 May 2016 11:50:08 -0700
+Message-ID: <1463424608-20237-6-git-send-email-paulmck@linux.vnet.ibm.com>
 References: <20160516184844.GA20144@linux.vnet.ibm.com>
-Return-path: <linux-pm-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20160516184844.GA20144@linux.vnet.ibm.com>
-Sender: linux-pm-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-clk@vger.kernel.org
-Cc: tony@atomide.com, mingo@kernel.org, linux@roeck-us.net, rostedt@goodmis.org, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Russell King <linux@arm.linux.org.uk>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Russell King <linux@arm.linux.org.uk>, tony@atomide.com, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, rostedt@goodmis.org, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, mingo@kernel.org, linux@roeck-us.net
 List-Id: linux-omap@vger.kernel.org
 
-This commit appends a few _rcuidle suffixes to fix the following
-RCU-used-from-idle bug:
+This commit fixes the RCU use-from-idle bug corresponding the following
+splat:
 
-> ===============================
 > [ INFO: suspicious RCU usage. ]
-> 4.6.0-rc5-next-20160426+ #1116 Not tainted
+> 4.6.0-rc5-next-20160426+ #1127 Not tainted
 > -------------------------------
-> include/trace/events/rpm.h:95 suspicious rcu_dereference_check() usage!
+> include/trace/events/clk.h:45 suspicious rcu_dereference_check() usage!
 >
 > other info that might help us debug this:
 >
@@ -25,70 +36,65 @@ RCU-used-from-idle bug:
 > RCU used illegally from idle CPU!
 > rcu_scheduler_active = 1, debug_locks = 0
 > RCU used illegally from extended quiescent state!
-> 1 lock held by swapper/0/0:
->  #0:  (&(&dev->power.lock)->rlock){-.-...}, at: [<c052cc2c>] __rpm_callback+0x58/0x60
+> 2 locks held by swapper/0/0:
+>  #0:  (&oh->hwmod_key#30){......}, at: [<c0121afc>] omap_hwmod_enable+0x18/0x44
+>  #1:  (enable_lock){......}, at: [<c0630684>] clk_enable_lock+0x18/0x124
 >
 > stack backtrace:
-> CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.6.0-rc5-next-20160426+ #1116
+> CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.6.0-rc5-next-20160426+ #1127
 > Hardware name: Generic OMAP36xx (Flattened Device Tree)
 > [<c0110290>] (unwind_backtrace) from [<c010c3a8>] (show_stack+0x10/0x14)
 > [<c010c3a8>] (show_stack) from [<c047fd68>] (dump_stack+0xb0/0xe4)
-> [<c047fd68>] (dump_stack) from [<c052d5d0>] (rpm_suspend+0x580/0x768)
-> [<c052d5d0>] (rpm_suspend) from [<c052ec58>] (__pm_runtime_suspend+0x64/0x84)
-> [<c052ec58>] (__pm_runtime_suspend) from [<c04bf25c>] (omap2_gpio_prepare_for_idle+0x5c/0x70)
-> [<c04bf25c>] (omap2_gpio_prepare_for_idle) from [<c0125568>] (omap_sram_idle+0x140/0x244)
-> [<c0125568>] (omap_sram_idle) from [<c01269dc>] (omap3_enter_idle_bm+0xfc/0x1ec)
-> [<c01269dc>] (omap3_enter_idle_bm) from [<c0601bdc>] (cpuidle_enter_state+0x80/0x3d4)
-> [<c0601bdc>] (cpuidle_enter_state) from [<c0183b08>] (cpu_startup_entry+0x198/0x3a0)
+> [<c047fd68>] (dump_stack) from [<c06315c0>] (clk_core_enable+0x1e0/0x36c)
+> [<c06315c0>] (clk_core_enable) from [<c0632298>] (clk_enable+0x1c/0x38)
+> [<c0632298>] (clk_enable) from [<c01204e0>] (_enable_clocks+0x18/0x7c)
+> [<c01204e0>] (_enable_clocks) from [<c012137c>] (_enable+0x114/0x2ec)
+> [<c012137c>] (_enable) from [<c0121b08>] (omap_hwmod_enable+0x24/0x44)
+> [<c0121b08>] (omap_hwmod_enable) from [<c0122ad0>] (omap_device_enable+0x3c/0x90)
+> [<c0122ad0>] (omap_device_enable) from [<c0122b34>] (_od_runtime_resume+0x10/0x38)
+> [<c0122b34>] (_od_runtime_resume) from [<c052cc00>] (__rpm_callback+0x2c/0x60)
+> [<c052cc00>] (__rpm_callback) from [<c052cc54>] (rpm_callback+0x20/0x80)
+> [<c052cc54>] (rpm_callback) from [<c052df7c>] (rpm_resume+0x3d0/0x6f0)
+> [<c052df7c>] (rpm_resume) from [<c052e2e8>] (__pm_runtime_resume+0x4c/0x64)
+> [<c052e2e8>] (__pm_runtime_resume) from [<c04bf2c4>] (omap2_gpio_resume_after_idle+0x54/0x68)
+> [<c04bf2c4>] (omap2_gpio_resume_after_idle) from [<c01269dc>] (omap3_enter_idle_bm+0xfc/0x1ec)
+> [<c01269dc>] (omap3_enter_idle_bm) from [<c0601888>] (cpuidle_enter_state+0x80/0x3d4)
+> [<c0601888>] (cpuidle_enter_state) from [<c0183b08>] (cpu_startup_entry+0x198/0x3a0)
 > [<c0183b08>] (cpu_startup_entry) from [<c0b00c0c>] (start_kernel+0x354/0x3c8)
 > [<c0b00c0c>] (start_kernel) from [<8000807c>] (0x8000807c)
-
-In the immortal words of Steven Rostedt, "*Whack* *Whack* *Whack*!!!"
 
 Reported-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Tested-by: Tony Lindgren <tony@atomide.com>
 Cc: Russell King <linux@arm.linux.org.uk>
-WhACKED-by: Steven Rostedt <rostedt@goodmis.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Michael Turquette <mturquette@baylibre.com>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
 Cc: <linux-omap@vger.kernel.org>
 Cc: <linux-arm-kernel@lists.infradead.org>
-Cc: <linux-pm@vger.kernel.org>
+Cc: <linux-clk@vger.kernel.org>
 ---
- drivers/base/power/runtime.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/clk/clk.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
-index ad115568ce58..e4c2b8fdeff3 100644
---- a/drivers/base/power/runtime.c
-+++ b/drivers/base/power/runtime.c
-@@ -301,7 +301,7 @@ static int rpm_idle(struct device *dev, int rpmflags)
- 	int (*callback)(struct device *);
- 	int retval;
+diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+index 4fa43c02d682..ec83f404c1d2 100644
+--- a/drivers/clk/clk.c
++++ b/drivers/clk/clk.c
+@@ -735,12 +735,12 @@ static int clk_core_enable(struct clk_core *core)
+ 		if (ret)
+ 			return ret;
  
--	trace_rpm_idle(dev, rpmflags);
-+	trace_rpm_idle_rcuidle(dev, rpmflags);
- 	retval = rpm_check_suspend_allowed(dev);
- 	if (retval < 0)
- 		;	/* Conditions are wrong. */
-@@ -337,7 +337,7 @@ static int rpm_idle(struct device *dev, int rpmflags)
- 			dev->power.request_pending = true;
- 			queue_work(pm_wq, &dev->power.work);
- 		}
--		trace_rpm_return_int(dev, _THIS_IP_, 0);
-+		trace_rpm_return_int_rcuidle(dev, _THIS_IP_, 0);
- 		return 0;
- 	}
+-		trace_clk_enable(core);
++		trace_clk_enable_rcuidle(core);
  
-@@ -352,7 +352,7 @@ static int rpm_idle(struct device *dev, int rpmflags)
- 	wake_up_all(&dev->power.wait_queue);
+ 		if (core->ops->enable)
+ 			ret = core->ops->enable(core->hw);
  
-  out:
--	trace_rpm_return_int(dev, _THIS_IP_, retval);
-+	trace_rpm_return_int_rcuidle(dev, _THIS_IP_, retval);
- 	return retval ? retval : rpm_suspend(dev, rpmflags | RPM_AUTO);
- }
+-		trace_clk_enable_complete(core);
++		trace_clk_enable_complete_rcuidle(core);
  
+ 		if (ret) {
+ 			clk_core_disable(core->parent);
 -- 
 2.5.2
-
