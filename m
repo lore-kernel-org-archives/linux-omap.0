@@ -1,100 +1,32 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] [request for stable 3.14 inclusion] ARM: OMAP3: Fix booting
- with thumb2 kernel
-Date: Mon, 16 May 2016 09:45:30 -0700
-Message-ID: <20160516164529.GM5995@atomide.com>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: [PATCH omap v2 0/6] Fix OMAP uses of RCU from idle loop
+Date: Mon, 16 May 2016 11:48:44 -0700
+Message-ID: <20160516184844.GA20144@linux.vnet.ibm.com>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-clk-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: stable-owner@vger.kernel.org
-To: stable@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@baylibre.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-clk@vger.kernel.org
+Cc: tony@atomide.com, mingo@kernel.org, linux@roeck-us.net, rostedt@goodmis.org
 List-Id: linux-omap@vger.kernel.org
 
-Commit d8a50941c91a68da202aaa96a3dacd471ea9c693 upstream.
+Hello!
 
-We get a NULL pointer dereference on omap3 for thumb2 compiled kernels:
+The following series fixes a number of uses of RCU from the idle loop.
+These are all due to tracing, so the fix is simply to append _rcuidle
+to the event-tracing call.
 
-Internal error: Oops: 80000005 [#1] SMP THUMB2
-...
-[<c046497b>] (_raw_spin_unlock_irqrestore) from [<c0024375>]
-(omap3_enter_idle_bm+0xc5/0x178)
-[<c0024375>] (omap3_enter_idle_bm) from [<c0374e63>]
-(cpuidle_enter_state+0x77/0x27c)
-[<c0374e63>] (cpuidle_enter_state) from [<c00627f1>]
-(cpu_startup_entry+0x155/0x23c)
-[<c00627f1>] (cpu_startup_entry) from [<c06b9a47>]
-(start_kernel+0x32f/0x338)
-[<c06b9a47>] (start_kernel) from [<8000807f>] (0x8000807f)
+Changes since v1: Fix commit-log subjects and add maintainers on CC.
 
-The power management related assembly on omaps needs to interact with
-ARM mode bootrom code, so we need to keep most of the related assembly
-in ARM mode.
+							Thanx, Paul
 
-Turns out this error is because of missing ENDPROC for assembly code
-as suggested by Stephen Boyd <sboyd@codeaurora.org>. Let's fix the
-problem by adding ENDPROC in two places to sleep34xx.S.
+------------------------------------------------------------------------
 
-Let's also remove the now duplicate custom code for mode switching.
-This has been unnecessary since commit 6ebbf2ce437b ("ARM: convert
-all "mov.* pc, reg" to "bx reg" for ARMv6+").
+ arch/arm/kernel/smp.c             |    2 +-
+ arch/arm/mach-omap2/powerdomain.c |    9 +++++----
+ drivers/base/power/runtime.c      |   14 +++++++-------
+ drivers/clk/clk.c                 |    8 ++++----
+ 4 files changed, 17 insertions(+), 16 deletions(-)
 
-And let's also remove the comments about local variables, they are
-now just confusing after the ENDPROC.
-
-The reason why ENDPROC makes a difference is it sets .type and then
-the compiler knows what to do with the thumb bit as explained at:
-
-https://wiki.ubuntu.com/ARM/Thumb2PortingHowto
-
-Reported-by: Kevin Hilman <khilman@kernel.org>
-Tested-by: Kevin Hilman <khilman@linaro.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
-
-Without this we have omap3 boards failing the automated
-tests at kernelci.org for v3.14 stable as reported by Kevin Hilman.
-The tests are failing because of the CONFIG_THUMB2_KERNEL=y being
-used.
-
-
---- a/arch/arm/mach-omap2/sleep34xx.S
-+++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -203,23 +203,8 @@ save_context_wfi:
- 	 */
- 	ldr	r1, kernel_flush
- 	blx	r1
--	/*
--	 * The kernel doesn't interwork: v7_flush_dcache_all in particluar will
--	 * always return in Thumb state when CONFIG_THUMB2_KERNEL is enabled.
--	 * This sequence switches back to ARM.  Note that .align may insert a
--	 * nop: bx pc needs to be word-aligned in order to work.
--	 */
-- THUMB(	.thumb		)
-- THUMB(	.align		)
-- THUMB(	bx	pc	)
-- THUMB(	nop		)
--	.arm
--
- 	b	omap3_do_wfi
--
--/*
-- * Local variables
-- */
-+ENDPROC(omap34xx_cpu_suspend)
- omap3_do_wfi_sram_addr:
- 	.word omap3_do_wfi_sram
- kernel_flush:
-@@ -364,10 +349,7 @@ exit_nonoff_modes:
-  * ===================================
-  */
- 	ldmfd	sp!, {r4 - r11, pc}	@ restore regs and return
--
--/*
-- * Local variables
-- */
-+ENDPROC(omap3_do_wfi)
- sdrc_power:
- 	.word	SDRC_POWER_V
- cm_idlest1_core:
