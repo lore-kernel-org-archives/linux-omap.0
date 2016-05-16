@@ -1,66 +1,100 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 10/15] usb: musb: Don't set d+ high before enable for
- 2430 glue layer
-Date: Mon, 16 May 2016 08:45:59 -0700
-Message-ID: <20160516154559.GL5995@atomide.com>
-References: <1463014396-4095-1-git-send-email-tony@atomide.com>
- <1463014396-4095-11-git-send-email-tony@atomide.com>
- <20160513210334.GC1665@uda0271908>
- <99ff5bff-e2f4-3137-2854-81d7b4b14bce@cogentembedded.com>
- <20160516141512.GA8256@uda0271908>
- <20160516145757.GI5995@atomide.com>
- <20160516152223.GA11092@uda0271908>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] [request for stable 3.14 inclusion] ARM: OMAP3: Fix booting
+ with thumb2 kernel
+Date: Mon, 16 May 2016 09:45:30 -0700
+Message-ID: <20160516164529.GM5995@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160516152223.GA11092@uda0271908>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: stable-owner@vger.kernel.org
+To: stable@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [160516 08:24]:
-> Hi,
-> 
-> On Mon, May 16, 2016 at 07:57:57AM -0700, Tony Lindgren wrote:
-> > * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [160516 07:17]:
-> > > Hi,
-> > > 
-> > > On Sat, May 14, 2016 at 04:30:32PM +0300, Sergei Shtylyov wrote:
-> > > > On 5/14/2016 12:03 AM, Bin Liu wrote:
-> > > > 
-> > > > >>At least 2430 glue layer pulls d+ high on start up even if there are
-> > > > >>no gadgets configured. This is bad at least for anything using a separate
-> > > > >>battery charger chip as it can confuse the charger detection.
-> > > > >>
-> > > > >>Let's fix the issue by getting rid of omap2430_musb_set_mode() and only
-> > > > >
-> > > > >By doing so, you lost the feature of switching mode from sysfs, I am not
-> > > > >sure if there is anyone using it though, still, it is a regression.
-> > > > 
-> > > >    BTW, set_mode() implemented in the OMAP glue always seemed bogus to me.
-> > > > Instead of forcing host/gadget/OTG modes, it sets the Session bit...
-> > > 
-> > > Setting the session bit here seems to be okay. Other glues rely
-> > > otg_timer() instead.
-> > 
-> > Looks like host mode starts just fine without writing to session bit
-> > for 2430 glue. Let's just remove it, I'll send an updated patch shortly.
-> 
-> So setting host mode in sysfs also works without writting to session
-> bit? If so, yeah, we can remove it.
+Commit d8a50941c91a68da202aaa96a3dacd471ea9c693 upstream.
 
-Testing with USB-B cable with ID floating, host mode is not starting
-for me with or without omap2430_musb_set_mode. Things work just fine
-using USB-A cable with ID grounded. So yeah, this code seems bogus as
-Sergei pointed out.
+We get a NULL pointer dereference on omap3 for thumb2 compiled kernels:
 
-Regards,
+Internal error: Oops: 80000005 [#1] SMP THUMB2
+...
+[<c046497b>] (_raw_spin_unlock_irqrestore) from [<c0024375>]
+(omap3_enter_idle_bm+0xc5/0x178)
+[<c0024375>] (omap3_enter_idle_bm) from [<c0374e63>]
+(cpuidle_enter_state+0x77/0x27c)
+[<c0374e63>] (cpuidle_enter_state) from [<c00627f1>]
+(cpu_startup_entry+0x155/0x23c)
+[<c00627f1>] (cpu_startup_entry) from [<c06b9a47>]
+(start_kernel+0x32f/0x338)
+[<c06b9a47>] (start_kernel) from [<8000807f>] (0x8000807f)
 
-Tony
+The power management related assembly on omaps needs to interact with
+ARM mode bootrom code, so we need to keep most of the related assembly
+in ARM mode.
+
+Turns out this error is because of missing ENDPROC for assembly code
+as suggested by Stephen Boyd <sboyd@codeaurora.org>. Let's fix the
+problem by adding ENDPROC in two places to sleep34xx.S.
+
+Let's also remove the now duplicate custom code for mode switching.
+This has been unnecessary since commit 6ebbf2ce437b ("ARM: convert
+all "mov.* pc, reg" to "bx reg" for ARMv6+").
+
+And let's also remove the comments about local variables, they are
+now just confusing after the ENDPROC.
+
+The reason why ENDPROC makes a difference is it sets .type and then
+the compiler knows what to do with the thumb bit as explained at:
+
+https://wiki.ubuntu.com/ARM/Thumb2PortingHowto
+
+Reported-by: Kevin Hilman <khilman@kernel.org>
+Tested-by: Kevin Hilman <khilman@linaro.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+
+Without this we have omap3 boards failing the automated
+tests at kernelci.org for v3.14 stable as reported by Kevin Hilman.
+The tests are failing because of the CONFIG_THUMB2_KERNEL=y being
+used.
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--- a/arch/arm/mach-omap2/sleep34xx.S
++++ b/arch/arm/mach-omap2/sleep34xx.S
+@@ -203,23 +203,8 @@ save_context_wfi:
+ 	 */
+ 	ldr	r1, kernel_flush
+ 	blx	r1
+-	/*
+-	 * The kernel doesn't interwork: v7_flush_dcache_all in particluar will
+-	 * always return in Thumb state when CONFIG_THUMB2_KERNEL is enabled.
+-	 * This sequence switches back to ARM.  Note that .align may insert a
+-	 * nop: bx pc needs to be word-aligned in order to work.
+-	 */
+- THUMB(	.thumb		)
+- THUMB(	.align		)
+- THUMB(	bx	pc	)
+- THUMB(	nop		)
+-	.arm
+-
+ 	b	omap3_do_wfi
+-
+-/*
+- * Local variables
+- */
++ENDPROC(omap34xx_cpu_suspend)
+ omap3_do_wfi_sram_addr:
+ 	.word omap3_do_wfi_sram
+ kernel_flush:
+@@ -364,10 +349,7 @@ exit_nonoff_modes:
+  * ===================================
+  */
+ 	ldmfd	sp!, {r4 - r11, pc}	@ restore regs and return
+-
+-/*
+- * Local variables
+- */
++ENDPROC(omap3_do_wfi)
+ sdrc_power:
+ 	.word	SDRC_POWER_V
+ cm_idlest1_core:
