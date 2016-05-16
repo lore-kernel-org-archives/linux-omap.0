@@ -1,45 +1,34 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: Can not play audio with screen off
-Date: Mon, 16 May 2016 09:22:46 -0500
-Message-ID: <5739D7B6.7060102@ti.com>
-References: <20160515193106.GA18685@amd>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 2/8] Documentation: regulator: tps65218: Update examples
+Date: Mon, 16 May 2016 09:48:47 -0500
+Message-ID: <20160516144847.GA26659@rob-hp-laptop>
+References: <1462945691-904-1-git-send-email-j-keerthy@ti.com>
+ <1462945691-904-3-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160515193106.GA18685@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1462945691-904-3-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 05/15/2016 02:31 PM, Pavel Machek wrote:
-> Hi!
+On Wed, May 11, 2016 at 11:18:05AM +0530, Keerthy wrote:
+> This updates the device tree according to the preferred way of parsing
+> the nodes using the regulator framework.
 > 
-> I'm playing some more with N900, this time I'd like to use it as a
-> alarm clock...
-> 
-> And now I realized I can not, because system performance is so
-> horrible with screen off that mpg123 + pulseaudio skips horribly. This
-> is without tweaking serial parameters, so CPU is definitely not going
-> into the idle/off modes.
-> 
-> Loading CPU fixes the issue (I used cat /dev/zero > /dev/null).
-> 
-> Hmm. And it seems to work better if I ssh in and launch mpg123
-> remotely. Weird.
-> 
-> Kernel 4.5-rc0. Will try on different ones.
-> 
-> Any ideas? Is there interface to tell kernel that better performance
-> is needed for a while?
-> 
+> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+> ---
+>  .../devicetree/bindings/regulator/tps65218.txt     | 87 ++++++++++++++++++----
+>  1 file changed, 71 insertions(+), 16 deletions(-)
 
-pm_qos cpu_dma_latency? Drivers will have to be properly instrumented
-with appropriate latency values -> this will control the depth in C
-states that the system will attempt. NOTE: it is a dual edged sword,
-bad configurations can result in none of the C-states being entered.
+It wasn't exactly clear that the compatible string "added" here is 
+already used, so it looked like you were breaking compatibility at 
+first. Otherwise,
 
-
--- 
-Regards,
-Nishanth Menon
+Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
