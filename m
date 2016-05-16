@@ -1,50 +1,74 @@
 From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: [PATCH v2 0/6] ir-rx51 driver fixes
-Date: Mon, 16 May 2016 22:34:08 +0300
-Message-ID: <1463427254-7728-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-Return-path: <linux-pwm-owner@vger.kernel.org>
-Sender: linux-pwm-owner@vger.kernel.org
+Subject: [PATCH v2 2/6] pwm: omap-dmtimer: Allow for setting dmtimer clock source
+Date: Mon, 16 May 2016 22:34:10 +0300
+Message-ID: <1463427254-7728-3-git-send-email-ivo.g.dimitrov.75@gmail.com>
+References: <1463427254-7728-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1463427254-7728-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: robh+dt@kernel.org, mark.rutland@arm.com, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, thierry.reding@gmail.com, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, mchehab@osg.samsung.com
 Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, sre@kernel.org, pali.rohar@gmail.com, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-ir-rx51 is a driver for Nokia N900 IR transmitter. The current series
-fixes the remaining problems in the driver:
+OMAP GP timers can have different input clocks that allow different PWM
+frequencies. However, there is no other way of setting the clock source but
+through clocks or clock-names properties of the timer itself. This limits
+PWM functionality to only the frequencies allowed by the particular clock
+source. Allowing setting the clock source by PWM rather than by timer
+allows different PWMs to have different ranges by not hard-wiring the clock
+source to the timer.
 
- - replace GP timer 9 with PWM framework usage
- - replace pulse width timer dmtimer usage with hrtimer
- - add DT support to the driver
- - add driver to the board DTS
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Acked-by: Rob Herring <robh@kernel.org>
+---
+ Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt |  4 ++++
+ drivers/pwm/pwm-omap-dmtimer.c                             | 12 +++++++-----
+ 2 files changed, 11 insertions(+), 5 deletions(-)
 
-Pathe 2 is needed so the driver to function correctly, without it PWM
-refuses to set the needed carrier frequency.
-
-Changes compared to v1:
- - removed [PATCH 5/7] ARM: OMAP: dmtimer: Do not call PM runtime
-   functions when not needed.
- - DT compatible string changed to "nokia,n900-ir"
-
-Ivaylo Dimitrov (5):
-  pwm: omap-dmtimer: Allow for setting dmtimer clock source
-  ir-rx51: use PWM framework instead of OMAP dmtimer
-  ir-rx51: add DT support to driver
-  ir-rx51: use hrtimer instead of dmtimer
-  ARM: dts: n900: enable lirc-rx51 driver
-
-Tony Lindgren (1):
-  ir-rx51: Fix build after multiarch changes broke it
-
- .../devicetree/bindings/media/nokia,n900-ir        |  20 ++
- .../devicetree/bindings/pwm/pwm-omap-dmtimer.txt   |   4 +
- arch/arm/boot/dts/omap3-n900.dts                   |  12 ++
- arch/arm/mach-omap2/board-rx51-peripherals.c       |   5 -
- arch/arm/mach-omap2/pdata-quirks.c                 |  10 +-
- drivers/media/rc/Kconfig                           |   2 +-
- drivers/media/rc/ir-rx51.c                         | 229 +++++++--------------
- drivers/pwm/pwm-omap-dmtimer.c                     |  12 +-
- include/linux/platform_data/media/ir-rx51.h        |   3 -
- 9 files changed, 123 insertions(+), 174 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/nokia,n900-ir
-
+diff --git a/Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt b/Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt
+index 5befb53..2e53324 100644
+--- a/Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt
++++ b/Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt
+@@ -9,6 +9,10 @@ Required properties:
+ 
+ Optional properties:
+ - ti,prescaler: Should be a value between 0 and 7, see the timers datasheet
++- ti,clock-source: Set dmtimer parent clock, values between 0 and 2:
++  - 0x00 - high-frequency system clock (timer_sys_ck)
++  - 0x01 - 32-kHz always-on clock (timer_32k_ck)
++  - 0x02 - external clock (timer_ext_ck, OMAP2 only)
+ 
+ Example:
+ 	pwm9: dmtimer-pwm@9 {
+diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
+index b7e6ecb..95964c6 100644
+--- a/drivers/pwm/pwm-omap-dmtimer.c
++++ b/drivers/pwm/pwm-omap-dmtimer.c
+@@ -245,7 +245,7 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
+ 	struct pwm_omap_dmtimer_chip *omap;
+ 	struct pwm_omap_dmtimer_pdata *pdata;
+ 	pwm_omap_dmtimer *dm_timer;
+-	u32 prescaler;
++	u32 v;
+ 	int status;
+ 
+ 	pdata = dev_get_platdata(&pdev->dev);
+@@ -306,10 +306,12 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
+ 	if (pm_runtime_active(&omap->dm_timer_pdev->dev))
+ 		omap->pdata->stop(omap->dm_timer);
+ 
+-	/* setup dmtimer prescaler */
+-	if (!of_property_read_u32(pdev->dev.of_node, "ti,prescaler",
+-				&prescaler))
+-		omap->pdata->set_prescaler(omap->dm_timer, prescaler);
++	if (!of_property_read_u32(pdev->dev.of_node, "ti,prescaler", &v))
++		omap->pdata->set_prescaler(omap->dm_timer, v);
++
++	/* setup dmtimer clock source */
++	if (!of_property_read_u32(pdev->dev.of_node, "ti,clock-source", &v))
++		omap->pdata->set_source(omap->dm_timer, v);
+ 
+ 	omap->chip.dev = &pdev->dev;
+ 	omap->chip.ops = &pwm_omap_dmtimer_ops;
 -- 
 1.9.1
