@@ -1,72 +1,77 @@
-From: Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [PATCH 1/2] mfd: twl-core: Return directly after a failed
- platform_device_alloc() in add_numbered_child()
-Date: Mon, 16 May 2016 08:51:59 +0200 (CEST)
-Message-ID: <alpine.DEB.2.02.1605160845050.2060@localhost6.localdomain6>
-References: <566ABCD9.1060404@users.sourceforge.net> <5682D228.7070902@users.sourceforge.net> <20160111082922.GB14104@x1> <05b7db2a-437a-60ac-d289-71d2150e7f5f@users.sourceforge.net> <3c168185-ec2d-f1f7-fe70-8a230b884ed2@users.sourceforge.net>
+From: Peter Chen <hzpeterchen@gmail.com>
+Subject: Re: [PATCH v8 13/14] usb: gadget: udc: adapt to OTG core
+Date: Mon, 16 May 2016 15:02:49 +0800
+Message-ID: <20160516070249.GB24609@shlinux2.ap.freescale.net>
+References: <1463133808-10630-1-git-send-email-rogerq@ti.com>
+ <1463133808-10630-14-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3c168185-ec2d-f1f7-fe70-8a230b884ed2@users.sourceforge.net>
+Content-Disposition: inline
+In-Reply-To: <1463133808-10630-14-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: peter.chen@freescale.com, balbi@kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On Fri, May 13, 2016 at 01:03:27PM +0300, Roger Quadros wrote:
+> +
+> +static int usb_gadget_connect_control(struct usb_gadget *gadget, bool connect)
+> +{
+> +	struct usb_udc *udc;
+> +
+> +	mutex_lock(&udc_lock);
+> +	udc = usb_gadget_to_udc(gadget);
+> +	if (!udc) {
+> +		dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
+> +			__func__);
+> +		mutex_unlock(&udc_lock);
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (connect) {
+> +		if (!gadget->connected)
+> +			usb_gadget_connect(udc->gadget);
+> +	} else {
+> +		if (gadget->connected) {
+> +			usb_gadget_disconnect(udc->gadget);
+> +			udc->driver->disconnect(udc->gadget);
+> +		}
+> +	}
+> +
+> +	mutex_unlock(&udc_lock);
+> +
+> +	return 0;
+> +}
+> +
 
+Since this is called for vbus interrupt, why not using
+usb_udc_vbus_handler directly, and call udc->driver->disconnect
+at usb_gadget_stop.
 
-On Mon, 16 May 2016, SF Markus Elfring wrote:
-
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Sun, 15 May 2016 19:20:28 +0200
-> 
-> The platform_device_put() function was called in one case by the
-> add_numbered_child() function during error handling even if the passed
-> variable "pdev" contained a null pointer.
-> 
-> * Change an error message.
-
-Why?  Is dev_err needed?  Doesn't it already print out the device name?
-
-In any case, the only source of failure is failure of a kzalloc in 
-platform_device_alloc, which means that a complete backtrace would be 
-generated, so it is not clear that any message is needed at all.
-
-julia
-
-> 
-> * Return directly in this case.
-> 
-> This issue was detected by using the Coccinelle software.
-> 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->  drivers/mfd/twl-core.c | 7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-> index 831696e..dc34e69 100644
-> --- a/drivers/mfd/twl-core.c
-> +++ b/drivers/mfd/twl-core.c
-> @@ -623,9 +623,10 @@ add_numbered_child(unsigned mod_no, const char *name, int num,
->  
->  	pdev = platform_device_alloc(name, num);
->  	if (!pdev) {
-> -		dev_dbg(&twl->client->dev, "can't alloc dev\n");
-> -		status = -ENOMEM;
-> -		goto err;
-> +		dev_err(&twl->client->dev,
-> +			"Allocation failed for device: %s\n",
-> +			name);
-> +		return ERR_PTR(-ENOMEM);
+>  	return 0;
+> @@ -660,9 +830,15 @@ static ssize_t usb_udc_softconn_store(struct device *dev,
+>  		return -EOPNOTSUPP;
 >  	}
 >  
->  	pdev->dev.parent = &twl->client->dev;
-> -- 
-> 2.8.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> +	/* In OTG mode we don't support softconnect, but b_bus_req */
+> +	if (udc->gadget->otg_dev) {
+> +		dev_err(dev, "soft-connect not supported in OTG mode\n");
+> +		return -EOPNOTSUPP;
+> +	}
+> +
+
+The soft-connect can be supported at dual-role mode currently, we can
+use b_bus_req entry once it is implemented later.
+
+>  	if (sysfs_streq(buf, "connect")) {
+>  		usb_gadget_udc_start(udc);
+> -		usb_gadget_connect(udc->gadget);
+> +		usb_udc_connect_control(udc);
+
+This line seems to be not related with this patch.
+
+-- 
+
+Best Regards,
+Peter Chen
