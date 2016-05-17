@@ -1,106 +1,26 @@
-From: Marcus Folkesson <marcus.folkesson@gmail.com>
-Subject: Re: [PATCH] support for AD5820 camera auto-focus coil
-Date: Tue, 17 May 2016 20:33:40 +0200
-Message-ID: <20160517183340.GA10358@gmail.com>
-References: <20160517181927.GA28741@amd>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Marek Belisko <marek@goldelico.com>
+Subject: [PATCH 0/5] ARM: dts: omap3-gta04: Various updates
+Date: Tue, 17 May 2016 21:48:46 +0200
+Message-ID: <1463514531-7235-1-git-send-email-marek@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160517181927.GA28741@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com, sakari.ailus@iki.fi
+To: bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@armlinux.org.uk
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, hns@goldelico.com, Marek Belisko <marek@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Pavel,
+Add various improvements for gta04 device (wifi, backlight, irq lines for sensors)
 
-On Tue, May 17, 2016 at 08:19:27PM +0200, Pavel Machek wrote:
-> +static int ad5820_set_ctrl(struct v4l2_ctrl *ctrl)
-> +{
-> +	struct ad5820_device *coil =
-> +		container_of(ctrl->handler, struct ad5820_device, ctrls);
-> +	u32 code;
-> +	int r = 0;
-> +
-> +	switch (ctrl->id) {
-> +	case V4L2_CID_FOCUS_ABSOLUTE:
-> +		coil->focus_absolute = ctrl->val;
-> +		return ad5820_update_hw(coil);
-> +
-> +	case V4L2_CID_FOCUS_AD5820_RAMP_TIME:
-> +		code = RAMP_US_TO_CODE(ctrl->val);
-> +		ctrl->val = CODE_TO_RAMP_US(code);
-> +		coil->focus_ramp_time = ctrl->val;
-> +		break;
-> +
-> +	case V4L2_CID_FOCUS_AD5820_RAMP_MODE:
-> +		coil->focus_ramp_mode = ctrl->val;
-> +		break;
-> +	}
-> +
-> +	return r;
+H. Nikolaus Schaller (4):
+  ARM: dts: omap3-gta04: Define and use bma180 irq pin
+  ARM: dta: omap3-gta04: Define and use itg3200  irq pin
+  ARM: dta: omap3-gta04: Define and use hmc5843 irq pin
+  ARM: dts: omap3-gat04: Fix wifi handling
 
-Just return 0 instead, r is not used.
+Marek Belisko (1):
+  ARM: dts: omap3-gta04: Add backlight support
 
-> +static int ad5820_registered(struct v4l2_subdev *subdev)
-> +{
-> +	static const int CHECK_VALUE = 0x3FF0;
+ arch/arm/boot/dts/omap3-gta04.dtsi | 60 ++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 57 insertions(+), 3 deletions(-)
 
-CHECK_VALUE is not used?
-
-> +static int ad5820_probe(struct i2c_client *client,
-> +			const struct i2c_device_id *devid)
-> +{
-> +	struct ad5820_device *coil;
-> +	int ret = 0;
-> +
-> +	coil = kzalloc(sizeof(*coil), GFP_KERNEL);
-> +	if (coil == NULL)
-> +		return -ENOMEM;
-> +
-> +	mutex_init(&coil->power_lock);
-> +
-> +	v4l2_i2c_subdev_init(&coil->subdev, client, &ad5820_ops);
-> +	coil->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +	coil->subdev.internal_ops = &ad5820_internal_ops;
-> +	strcpy(coil->subdev.name, "ad5820 focus");
-> +
-> +	ret = media_entity_pads_init(&coil->subdev.entity, 0, NULL);
-> +	if (ret < 0) {
-> +		kfree(coil);
-> +		return ret;
-> +	}
-> +
-> +	ret = v4l2_async_register_subdev(&coil->subdev);
-> +	if (ret < 0)
-
-Do we need to call media_entity_cleanup() here?
-
-> +static int __init ad5820_init(void)
-> +{
-> +	int rval;
-> +
-> +	rval = i2c_add_driver(&ad5820_i2c_driver);
-> +	if (rval)
-> +		printk(KERN_INFO "%s: failed registering " AD5820_NAME "\n",
-> +		       __func__);
-> +
-> +	return rval;
-> +}
-> +
-> +static void __exit ad5820_exit(void)
-> +{
-> +	i2c_del_driver(&ad5820_i2c_driver);
-> +}
-> +
-> +
-> +module_init(ad5820_init);
-> +module_exit(ad5820_exit);
-
-
-Use module_i2c_driver() instead.
-
-
-Cheers
-Marcus Folkesson
+-- 
+2.5.0
