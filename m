@@ -1,99 +1,170 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH v2 2/3] mfd: lp873x: Add lp873x PMIC support
-Date: Tue, 17 May 2016 13:37:52 +0530
-Message-ID: <573AD158.8030103@ti.com>
-References: <1462853079-10708-1-git-send-email-j-keerthy@ti.com>
- <1462853079-10708-3-git-send-email-j-keerthy@ti.com>
- <20160512131846.GB1433@dell.open.watershed.co.uk> <57350E17.3000209@ti.com>
- <20160517080130.GG17238@dell> <573AD088.9090600@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v8 13/14] usb: gadget: udc: adapt to OTG core
+Date: Tue, 17 May 2016 11:08:56 +0300
+Message-ID: <573AD198.6030307@ti.com>
+References: <1463133808-10630-1-git-send-email-rogerq@ti.com>
+ <1463133808-10630-14-git-send-email-rogerq@ti.com>
+ <20160516070249.GB24609@shlinux2.ap.freescale.net> <57398451.2060103@ti.com>
+ <20160516092323.GD24609@shlinux2.ap.freescale.net> <57399839.90706@ti.com>
+ <AM4PR04MB2130E149700361CBA3F6863389480@AM4PR04MB2130.eurprd04.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <573AD088.9090600@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Keerthy <j-keerthy@ti.com>, broonie@kernel.org, lgirdwood@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <AM4PR04MB2130E149700361CBA3F6863389480-WOempg8NbQQzjTQnahXoOs9NdZoXdze2vxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jun Li <jun.li-3arQi8VN3Tc@public.gmane.org>, Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org" <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, "jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "grygorii.strashko-l0cyMroinI0@public.gmane.org" <grygorii.strashko-l0cyMroinI0@public.gmane.org>, "yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org" <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, "robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "nsekhar-l0cyMroinI0@public.gmane.org" <nsekhar-l0cyMroinI0@public.gmane.org>, "b-liu-l0cyMroinI0@public.gmane.org" <b-liu-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel@vg>
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On Tuesday 17 May 2016 01:34 PM, Keerthy wrote:
->
->
-> On Tuesday 17 May 2016 01:31 PM, Lee Jones wrote:
->> On Fri, 13 May 2016, Keerthy wrote:
->>> On Thursday 12 May 2016 06:48 PM, Lee Jones wrote:
->>>> On Tue, 10 May 2016, Keerthy wrote:
+On 17/05/16 10:38, Jun Li wrote:
+> Hi
+> 
+>> -----Original Message-----
+>> From: Roger Quadros [mailto:rogerq-l0cyMroinI0@public.gmane.org]
+>> Sent: Monday, May 16, 2016 5:52 PM
+>> To: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>> Cc: peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org; balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org;
+>> gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org; dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org;
+>> mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org; Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org;
+>> sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org; jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org;
+>> grygorii.strashko-l0cyMroinI0@public.gmane.org; yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org;
+>> robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; nsekhar-l0cyMroinI0@public.gmane.org; b-liu-l0cyMroinI0@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+>> linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+>> devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Subject: Re: [PATCH v8 13/14] usb: gadget: udc: adapt to OTG core
+>>
+>> On 16/05/16 12:23, Peter Chen wrote:
+>>> On Mon, May 16, 2016 at 11:26:57AM +0300, Roger Quadros wrote:
+>>>> Hi,
 >>>>
->>>>> The LP873X chip is a power management IC for Portable Navigation
->>>>> Systems
->>>>>      and Tablet Computing devices. It contains the following
->>>>> components:
+>>>> On 16/05/16 10:02, Peter Chen wrote:
+>>>>> On Fri, May 13, 2016 at 01:03:27PM +0300, Roger Quadros wrote:
+>>>>>> +
+>>>>>> +static int usb_gadget_connect_control(struct usb_gadget *gadget,
+>>>>>> +bool connect) {
+>>>>>> +	struct usb_udc *udc;
+>>>>>> +
+>>>>>> +	mutex_lock(&udc_lock);
+>>>>>> +	udc = usb_gadget_to_udc(gadget);
+>>>>>> +	if (!udc) {
+>>>>>> +		dev_err(gadget->dev.parent, "%s: gadget not
+>> registered.\n",
+>>>>>> +			__func__);
+>>>>>> +		mutex_unlock(&udc_lock);
+>>>>>> +		return -EINVAL;
+>>>>>> +	}
+>>>>>> +
+>>>>>> +	if (connect) {
+>>>>>> +		if (!gadget->connected)
+>>>>>> +			usb_gadget_connect(udc->gadget);
+>>>>>> +	} else {
+>>>>>> +		if (gadget->connected) {
+>>>>>> +			usb_gadget_disconnect(udc->gadget);
+>>>>>> +			udc->driver->disconnect(udc->gadget);
+>>>>>> +		}
+>>>>>> +	}
+>>>>>> +
+>>>>>> +	mutex_unlock(&udc_lock);
+>>>>>> +
+>>>>>> +	return 0;
+>>>>>> +}
+>>>>>> +
 >>>>>
->>>>>       - Regulators.
->>>>>       - Configurable General Purpose Output Signals(GPO).
->>>>>
->>>>> PMIC interacts with the main processor through i2c. PMIC has
->>>>> couple of LDOs(Linear Regulators), couple of BUCKs (Step-Down DC-DC
->>>>> Converter Cores) and GPOs(General Purpose Output Signals). At this
->>>>> time only the regulator functionality is made available.
->>>>>
->>>>> Signed-off-by: Keerthy <j-keerthy@ti.com>
->>>>> ---
->>>>>
->>>>> Changes in v2:
->>>>>
->>>>>    * Used mfd_add_devices instead of of_pltaform_populate.
+>>>>> Since this is called for vbus interrupt, why not using
+>>>>> usb_udc_vbus_handler directly, and call udc->driver->disconnect at
+>>>>> usb_gadget_stop.
 >>>>
->>>> Didn't see this conversation, but of_platform_populate () is usually
->>>> okay?
+>>>> We can't assume that this is always called for vbus interrupt so I
+>>>> decided not to call usb_udc_vbus_handler.
+>>>>
+>>>> udc->vbus is really pointless for us. We keep vbus states in our
+>>>> state machine and leave udc->vbus as ture always.
+>>>>
+>>>> Why do you want to move udc->driver->disconnect() to stop?
+>>>> If USB controller disconnected from bus then the gadget driver must
+>>>> be notified about the disconnect immediately. The controller may or
+>>>> may not be stopped by the core.
+>>>>
 >>>
->>> https://lkml.org/lkml/2016/5/6/244.
+>>> Then, would you give some comments when this API will be used?
+>>> I was assumed it is only used for drd state machine.
 >>
->> Did Mark tell you why you shouldn't be using it?
->
-> "You shouldn't be using that, you should just have a table of subdevices
-> in the MFD"
->
-> I inferred not to use of_platform_populate and make use of
-> mfd_add_devices instead.
->
-> Please correct me if am wrong.
+>> drd_state machine didn't even need this API in the first place :).
+>> You guys wanted me to separate out start/stop and connect/disconnect for
+>> full OTG case.
+>> Won't full OTG state machine want to use this API? If not what would it
+>> use?
+> 
+> Instead create those new interfaces/symbol here and there just aim to
+> address build problems in diff configures, Could we only allow meaningful
+> combination of those 3 drivers configures?
+> 
+> Hcd=y, gadget=y, otg=y or
+> Hcd=m, gadget=m, otg=m
 
-To answer why, Here is what Mark told:
+This is still a limitation.
 
-https://lkml.org/lkml/2016/5/6/7
+It is perfectly fine to have
+hcd=m, gadget=y
+or
+hcd=y, gadget=m
 
+cheers,
+-roger
 
->
+> 
+> Li Jun
+> 
 >>
->>>>>   drivers/mfd/Kconfig        |  15 +++
->>>>>   drivers/mfd/Makefile       |   2 +
->>>>>   drivers/mfd/lp873x.c       |  98 +++++++++++++++++
->>>>>   include/linux/mfd/lp873x.h | 265
->>>>> +++++++++++++++++++++++++++++++++++++++++++++
->>>>>   4 files changed, 380 insertions(+)
->>>>>   create mode 100644 drivers/mfd/lp873x.c
->>>>>   create mode 100644 include/linux/mfd/lp873x.h
+>> cheers,
+>> -roger
 >>
->> [...]
->>
->>>>> +/**
->>>>> + * struct lp873x - state holder for the lp873x driver
->>>>> + * Device data may be used to access the LP873X chip
->>>>> + */
->>>>> +struct lp873x {
->>>>> +    struct device *dev;
->>>>> +    unsigned long id;
->>>>> +    u8 rev;
->>>>> +    struct mutex lp873_lock;    /* lock guarding the data
->>>>> structure */
->>>>> +    struct regmap *regmap;
->>>>
->>>> Are all of these used in >1 driver?
 >>>
->>> Apart from id and rev all are used.
->>
->> Then why are id and rev in there?
->>
+>>>>>
+>>>>>>  	return 0;
+>>>>>> @@ -660,9 +830,15 @@ static ssize_t usb_udc_softconn_store(struct
+>> device *dev,
+>>>>>>  		return -EOPNOTSUPP;
+>>>>>>  	}
+>>>>>>
+>>>>>> +	/* In OTG mode we don't support softconnect, but b_bus_req */
+>>>>>> +	if (udc->gadget->otg_dev) {
+>>>>>> +		dev_err(dev, "soft-connect not supported in OTG mode\n");
+>>>>>> +		return -EOPNOTSUPP;
+>>>>>> +	}
+>>>>>> +
+>>>>>
+>>>>> The soft-connect can be supported at dual-role mode currently, we
+>>>>> can use b_bus_req entry once it is implemented later.
+>>>>
+>>>> Soft-connect should be done via sysfs handling within the OTG core.
+>>>> This can be added later. I don't want anything outside the OTG core
+>>>> to handle soft-connect behaviour as it will be hard to keep things in
+>>>> sync.
+>>>>
+>>>> I can update the comment to something like this.
+>>>>
+>>>> /* In OTG/dual-role mode, soft-connect should be handled by OTG core
+>>>> */
+>>>
+>>> Ok, let's Felipe decide it.
+>>>
+>>>>
+>>>>>
+>>>>>>  	if (sysfs_streq(buf, "connect")) {
+>>>>>>  		usb_gadget_udc_start(udc);
+>>>>>> -		usb_gadget_connect(udc->gadget);
+>>>>>> +		usb_udc_connect_control(udc);
+>>>>>
+>>>>> This line seems to be not related with this patch.
+>>>>>
+>>>> Right. I'll remove it.
+>>>>
+>>>> cheers,
+>>>> -roger
+>>>
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
