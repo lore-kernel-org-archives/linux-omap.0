@@ -1,38 +1,52 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH 2/8] Documentation: regulator: tps65218: Update examples
-Date: Tue, 17 May 2016 08:52:06 +0530
-Message-ID: <573A8E5E.2080809@ti.com>
-References: <1462945691-904-1-git-send-email-j-keerthy@ti.com>
- <1462945691-904-3-git-send-email-j-keerthy@ti.com>
- <20160516144847.GA26659@rob-hp-laptop>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: mfd: twl-core: Return directly after a failed
+ platform_device_alloc() in add_numbered_child()
+Date: Tue, 17 May 2016 07:00:59 +0100
+Message-ID: <20160517060059.GB17238@dell>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <5682D228.7070902@users.sourceforge.net>
+ <20160111082922.GB14104@x1>
+ <05b7db2a-437a-60ac-d289-71d2150e7f5f@users.sourceforge.net>
+ <3c168185-ec2d-f1f7-fe70-8a230b884ed2@users.sourceforge.net>
+ <alpine.DEB.2.02.1605160845050.2060@localhost6.localdomain6>
+ <9f94708f-6433-5227-78ee-52fbfb30fdaf@users.sourceforge.net>
+ <alpine.DEB.2.02.1605161006350.2060@localhost6.localdomain6>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160516144847.GA26659@rob-hp-laptop>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1605161006350.2060@localhost6.localdomain6>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>, Keerthy <j-keerthy@ti.com>
-Cc: broonie@kernel.org, tony@atomide.com, mark.rutland@arm.com, lee.jones@linaro.org, nm@ti.com, devicetree@vger.kernel.org, nikita@compulab.co.il, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Julia Lawall <julia.lawall@lip6.fr>
+Cc: SF Markus Elfring <elfring@users.sourceforge.net>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On Mon, 16 May 2016, Julia Lawall wrote:
 
+> On Mon, 16 May 2016, SF Markus Elfring wrote:
+>=20
+> > >> * Change an error message.
+> > >=20
+> > > Why?  Is dev_err needed?
+> >=20
+> > I interpreted Lee's response in this way.
+> > https://lkml.org/lkml/2016/1/11/104
+>=20
+> OK.  He didn't ask for the message to be changed though.  It's a bit=20
+> unfortunate that it now takes up multiple lines.  And I believe it al=
+so=20
+> prints redundant information.  Perhaps he will have some further thou=
+ghts=20
+> on the matter.
 
-On Monday 16 May 2016 08:18 PM, Rob Herring wrote:
-> On Wed, May 11, 2016 at 11:18:05AM +0530, Keerthy wrote:
->> This updates the device tree according to the preferred way of parsing
->> the nodes using the regulator framework.
->>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->> ---
->>   .../devicetree/bindings/regulator/tps65218.txt     | 87 ++++++++++++++++++----
->>   1 file changed, 71 insertions(+), 16 deletions(-)
->
-> It wasn't exactly clear that the compatible string "added" here is
-> already used, so it looked like you were breaking compatibility at
-> first. Otherwise,
->
-> Acked-by: Rob Herring <robh@kernel.org>
+Yes, Julia is right.  We normally don't print anything for OOM
+errors since Linux reports on them already.
 
-Thanks Rob.
+Please remove the print altogether.
 
->
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
