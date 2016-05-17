@@ -1,51 +1,39 @@
-From: Marek Belisko <marek@goldelico.com>
-Subject: [PATCH 4/5] ARM: dta: omap3-gta04: Define and use hmc5843 irq pin
-Date: Tue, 17 May 2016 21:48:50 +0200
-Message-ID: <1463514531-7235-5-git-send-email-marek@goldelico.com>
-References: <1463514531-7235-1-git-send-email-marek@goldelico.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1463514531-7235-1-git-send-email-marek@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@armlinux.org.uk
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, hns@goldelico.com
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv2 00/15] Get MUSB PM runtime working again
+Date: Tue, 17 May 2016 16:16:01 -0500
+Message-ID: <20160517211541.GA30701@uda0271908>
+References: <1463014396-4095-1-git-send-email-tony@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1463014396-4095-1-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Hi Tony,
 
-Define pinmux and usage if irq pin.
+On Wed, May 11, 2016 at 05:53:01PM -0700, Tony Lindgren wrote:
+> Hi all,
+> 
+> Here's the whole series reposted with a bunch of additional changes.
+> It seems to now properly work with with multiple phy cable status
+> events, and should work for Ivaylo on n900 too.
+> 
+> Please re-review and re-test.
 
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
----
- arch/arm/boot/dts/omap3-gta04.dtsi | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+While trying to test this patch set, I just found that commit 56f487c (PM
+/ Runtime: Update last_busy in rpm_resume) breaks dsps glue (TI am335x
+device). Do you have an am335x board with has otg port on it to take a
+look at this problem? The only board I know of which has an otg port is
+TI am335x GP evm.
 
-diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 094e5e1..55b6b88 100644
---- a/arch/arm/boot/dts/omap3-gta04.dtsi
-+++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -262,6 +262,12 @@
- 			OMAP3_CORE1_IOPAD(0x20b8, PIN_INPUT_PULLUP | MUX_MODE4) /* gpio56 */
- 		>;
- 	};
-+
-+	hmc5843_pins: pinmux_hmc5843_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x2134, PIN_INPUT_PULLUP | MUX_MODE4) /* gpio112 */
-+		>;
-+	};
- };
- 
- &omap3_pmx_core2 {
-@@ -389,6 +395,10 @@
- 	hmc5843@1e {
- 		compatible = "honeywell,hmc5883l";
- 		reg = <0x1e>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&hmc5843_pins>;
-+		interrupt-parent = <&gpio4>;
-+		interrupts = <16 IRQ_TYPE_EDGE_FALLING>;	/* gpio112 */
- 	};
- 
- 	/* touchscreen */
--- 
-2.5.0
+Regards,
+-Bin.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
