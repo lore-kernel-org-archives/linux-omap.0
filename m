@@ -1,86 +1,78 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH v2 2/3] mfd: lp873x: Add lp873x PMIC support
-Date: Tue, 17 May 2016 13:34:24 +0530
-Message-ID: <573AD088.9090600@ti.com>
-References: <1462853079-10708-1-git-send-email-j-keerthy@ti.com>
- <1462853079-10708-3-git-send-email-j-keerthy@ti.com>
- <20160512131846.GB1433@dell.open.watershed.co.uk> <57350E17.3000209@ti.com>
- <20160517080130.GG17238@dell>
+From: Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 2/2] ARM: dts: igep0020: Add SD card write-protect pin.
+Date: Tue, 17 May 2016 10:06:22 +0200
+Message-ID: <CAFqH_535Zd8etbAjrSq_fj73p9cJFzqOqbcbH3UcnpfjNy7efw@mail.gmail.com>
+References: <1462568554-7868-1-git-send-email-enric.balletbo@collabora.com>
+	<1462568554-7868-2-git-send-email-enric.balletbo@collabora.com>
+	<20160513123718.GA2841@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160517080130.GG17238@dell>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Keerthy <j-keerthy@ti.com>, broonie@kernel.org, lgirdwood@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160513123718.GA2841-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+Cc: Enric Balletbo i Serra <enric.balletbo-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi Ladislav,
 
+2016-05-13 14:37 GMT+02:00 Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>:
+> Hi Enric!
+>
+> On Fri, May 06, 2016 at 11:02:34PM +0200, Enric Balletbo i Serra wrote:
+>> A host device that supports write protection should refuse to write to
+>> an SD card that is designated read-only when write-protect is set. This
+>> is an optional feature of the SD specification.
+>
+> Does it ever work on any IGEPv2? I have similar patch in my repo and there
+> is no difference when enabling write protection on SD card. Also schemantics
+> shows GPIO29 constantly pulled up with a resistor. Is there any board
+> revision with working WP? I'm just curious as patch is of course correct.
+>
 
-On Tuesday 17 May 2016 01:31 PM, Lee Jones wrote:
-> On Fri, 13 May 2016, Keerthy wrote:
->> On Thursday 12 May 2016 06:48 PM, Lee Jones wrote:
->>> On Tue, 10 May 2016, Keerthy wrote:
->>>
->>>> The LP873X chip is a power management IC for Portable Navigation Systems
->>>>      and Tablet Computing devices. It contains the following components:
->>>>
->>>>       - Regulators.
->>>>       - Configurable General Purpose Output Signals(GPO).
->>>>
->>>> PMIC interacts with the main processor through i2c. PMIC has
->>>> couple of LDOs(Linear Regulators), couple of BUCKs (Step-Down DC-DC
->>>> Converter Cores) and GPOs(General Purpose Output Signals). At this
->>>> time only the regulator functionality is made available.
->>>>
->>>> Signed-off-by: Keerthy <j-keerthy@ti.com>
->>>> ---
->>>>
->>>> Changes in v2:
->>>>
->>>>    * Used mfd_add_devices instead of of_pltaform_populate.
->>>
->>> Didn't see this conversation, but of_platform_populate () is usually
->>> okay?
+Note that the microSD formats do not support a write protection
+switch, a host device that supports write protection should refuse to
+write to an SD card that is designated read-only in this way, which is
+an optional feature of the SD specification. As far as I know there is
+only a use case for the IGEPv2, the TP close to the SD card can be
+used as a write-protection switch, this is not an usual use case and
+of course, this needs some wiring, but it's a feature used by someone.
+
+> Best regards,
+>         ladis
+>
+>> Signed-off-by: Enric Balletbo i Serra <enric.balletbo-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+>> ---
+>>  arch/arm/boot/dts/omap3-igep0020-common.dtsi | 11 +++++++++++
+>>  1 file changed, 11 insertions(+)
 >>
->> https://lkml.org/lkml/2016/5/6/244.
->
-> Did Mark tell you why you shouldn't be using it?
-
-"You shouldn't be using that, you should just have a table of subdevices
-in the MFD"
-
-I inferred not to use of_platform_populate and make use of 
-mfd_add_devices instead.
-
-Please correct me if am wrong.
-
->
->>>>   drivers/mfd/Kconfig        |  15 +++
->>>>   drivers/mfd/Makefile       |   2 +
->>>>   drivers/mfd/lp873x.c       |  98 +++++++++++++++++
->>>>   include/linux/mfd/lp873x.h | 265 +++++++++++++++++++++++++++++++++++++++++++++
->>>>   4 files changed, 380 insertions(+)
->>>>   create mode 100644 drivers/mfd/lp873x.c
->>>>   create mode 100644 include/linux/mfd/lp873x.h
->
-> [...]
->
->>>> +/**
->>>> + * struct lp873x - state holder for the lp873x driver
->>>> + * Device data may be used to access the LP873X chip
->>>> + */
->>>> +struct lp873x {
->>>> +	struct device *dev;
->>>> +	unsigned long id;
->>>> +	u8 rev;
->>>> +	struct mutex lp873_lock;	/* lock guarding the data structure */
->>>> +	struct regmap *regmap;
->>>
->>> Are all of these used in >1 driver?
+>> diff --git a/arch/arm/boot/dts/omap3-igep0020-common.dtsi b/arch/arm/boot/dts/omap3-igep0020-common.dtsi
+>> index d6f839c..b697106 100644
+>> --- a/arch/arm/boot/dts/omap3-igep0020-common.dtsi
+>> +++ b/arch/arm/boot/dts/omap3-igep0020-common.dtsi
+>> @@ -194,6 +194,12 @@
+>>                       OMAP3630_CORE2_IOPAD(0x25f8, PIN_OUTPUT | MUX_MODE4) /* etk_d14.gpio_28 */
+>>               >;
+>>       };
+>> +
+>> +     mmc1_wp_pins: pinmux_mmc1_cd_pins {
+>> +             pinctrl-single,pins = <
+>> +                     OMAP3630_CORE2_IOPAD(0x25fa, PIN_INPUT | MUX_MODE4)   /* etk_d15.gpio_29 */
+>> +             >;
+>> +     };
+>>  };
 >>
->> Apart from id and rev all are used.
->
-> Then why are id and rev in there?
->
+>>  &i2c3 {
+>> @@ -250,3 +256,8 @@
+>>               };
+>>       };
+>>  };
+>> +
+>> +&mmc1 {
+>> +     pinctrl-0 = <&mmc1_pins &mmc1_wp_pins>;
+>> +     wp-gpios = <&gpio1 29 GPIO_ACTIVE_LOW>; /* gpio_29 */
+>> +};
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
