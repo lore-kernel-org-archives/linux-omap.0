@@ -1,64 +1,72 @@
-From: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: [PATCH 5/5] ARM: dts: omap3-gat04: Fix wifi handling
-Date: Tue, 17 May 2016 21:48:51 +0200
-Message-ID: <1463514531-7235-6-git-send-email-marek@goldelico.com>
+From: Marek Belisko <marek@goldelico.com>
+Subject: [PATCH 1/5] ARM: dts: omap3-gta04: Add backlight support
+Date: Tue, 17 May 2016 21:48:47 +0200
+Message-ID: <1463514531-7235-2-git-send-email-marek@goldelico.com>
 References: <1463514531-7235-1-git-send-email-marek@goldelico.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1463514531-7235-1-git-send-email-marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1463514531-7235-1-git-send-email-marek@goldelico.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@armlinux.org.uk
+Cc: devicetree@vger.kernel.org, hns@goldelico.com, linux-kernel@vger.kernel.org, Marek Belisko <marek@goldelico.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Define pwm backlight node which is using dmtimer pwm.
 
-Without that change wifi card isn't probed because pwrseq is necessary for
-libertas chip.
-
-Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Signed-off-by: Marek Belisko <marek@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 55b6b88..6349257 100644
+index ab9fb8f..cef8b23 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -155,6 +155,11 @@
- 			};
+@@ -100,6 +100,22 @@
  		};
  	};
-+
-+	wifi_pwrseq: wifi_pwrseq {
-+		compatible = "mmc-pwrseq-simple";
-+		reset-gpios = <&tca6507 0 GPIO_ACTIVE_LOW>;	/* W2CBW003 reset through tca6507 */
-+	};
- };
  
- &omap3_pmx_core {
-@@ -354,8 +359,8 @@
- 		interrupts = <24 IRQ_TYPE_EDGE_FALLING>; /* GPIO_56 */
++	backlight {
++		compatible = "pwm-backlight";
++		pwms = <&pwm11 0 2000000 0>;
++		pwm-names = "backlight";
++		brightness-levels = <0 11 20 30 40 50 60 70 80 90 100>;
++		default-brightness-level = <9>;	/* => 90 */
++		pinctrl-names = "default";
++		pinctrl-0 = <&backlight_pins>;
++	};
++
++	pwm11: dmtimer-pwm@11 {
++		compatible = "ti,omap-dmtimer-pwm";
++		ti,timers = <&timer11>;
++		#pwm-cells = <3>;
++	};
++
+ 	hsusb2_phy: hsusb2_phy {
+ 		compatible = "usb-nop-xceiv";
+ 		reset-gpios = <&gpio6 14 GPIO_ACTIVE_LOW>;
+@@ -190,6 +206,12 @@
+ 		>;
  	};
  
--	/* leds */
--	tca6507@45 {
-+	/* leds + gpios */
-+	tca6507: tca6507@45 {
- 		compatible = "ti,tca6507";
- 		#address-cells = <1>;
- 		#size-cells = <0>;
-@@ -446,6 +451,7 @@
- 	bus-width = <4>;
- 	ti,non-removable;
- 	cap-power-off-card;
-+	mmc-pwrseq = <&wifi_pwrseq>;
- };
- 
- &mmc3 {
++	backlight_pins: backlight_pins_pimnux {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x20ba, MUX_MODE3)		/* gpt11/gpio57 */
++		>;
++	};
++
+ 	dss_dpi_pins: pinmux_dss_dpi_pins {
+                pinctrl-single,pins = <
+ 			OMAP3_CORE1_IOPAD(0x20d4, PIN_OUTPUT | MUX_MODE0)   /* dss_pclk.dss_pclk */
 -- 
 2.5.0
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
