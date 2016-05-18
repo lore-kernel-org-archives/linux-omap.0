@@ -1,187 +1,244 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v8 08/14] usb: otg: add OTG/dual-role core
-Date: Wed, 18 May 2016 15:59:54 +0300
-Message-ID: <573C674A.7080302@ti.com>
+Subject: Re: [PATCH v8 13/14] usb: gadget: udc: adapt to OTG core
+Date: Wed, 18 May 2016 16:43:59 +0300
+Message-ID: <573C719F.5010107@ti.com>
 References: <1463133808-10630-1-git-send-email-rogerq@ti.com>
- <1463133808-10630-9-git-send-email-rogerq@ti.com> <57398C16.5050805@ti.com>
- <CAL411-qb0dHQrn+AarSApCq6L=toKPRerLKDcx_H+5WDWu_VDg@mail.gmail.com>
+ <1463133808-10630-14-git-send-email-rogerq@ti.com>
+ <20160516070249.GB24609@shlinux2.ap.freescale.net> <57398451.2060103@ti.com>
+ <20160516092323.GD24609@shlinux2.ap.freescale.net> <57399839.90706@ti.com>
+ <AM4PR04MB2130E149700361CBA3F6863389480@AM4PR04MB2130.eurprd04.prod.outlook.com>
+ <573AD198.6030307@ti.com>
+ <AM4PR04MB2130EF68F7ADD64607C6CD4389480@AM4PR04MB2130.eurprd04.prod.outlook.com>
+ <573C6347.6080705@ti.com>
+ <AM4PR04MB2130145869480748D06FE6E589490@AM4PR04MB2130.eurprd04.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAL411-qb0dHQrn+AarSApCq6L=toKPRerLKDcx_H+5WDWu_VDg@mail.gmail.com>
+In-Reply-To: <AM4PR04MB2130145869480748D06FE6E589490@AM4PR04MB2130.eurprd04.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Chen <hzpeterchen@gmail.com>
-Cc: Peter Chen <peter.chen@freescale.com>, balbi@kernel.org, tony@atomide.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, devicetree@vger.kernel.org
+To: Jun Li <jun.li@nxp.com>, Peter Chen <hzpeterchen@gmail.com>
+Cc: "peter.chen@freescale.com" <peter.chen@freescale.com>, "balbi@kernel.org" <balbi@kernel.org>, "tony@atomide.com" <tony@atomide.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "Joao.Pinto@synopsys.com" <Joao.Pinto@synopsys.com>, "sergei.shtylyov@cogentembedded.com" <sergei.shtylyov@cogentembedded.com>, "jun.li@freescale.com" <jun.li@freescale.com>, "grygorii.strashko@ti.com" <grygorii.strashko@ti.com>, "yoshihiro.shimoda.uh@renesas.com" <yoshihiro.shimoda.uh@renesas.com>, "robh@kernel.org" <robh@kernel.org>, "nsekhar@ti.com" <nsekhar@ti.com>, "b-liu@ti.com" <b-liu@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vg>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Peter,
+On 18/05/16 16:12, Jun Li wrote:
+> Hi
+> 
+>> -----Original Message-----
+>> From: Roger Quadros [mailto:rogerq@ti.com]
+>> Sent: Wednesday, May 18, 2016 8:43 PM
+>> To: Jun Li <jun.li@nxp.com>; Peter Chen <hzpeterchen@gmail.com>
+>> Cc: peter.chen@freescale.com; balbi@kernel.org; tony@atomide.com;
+>> gregkh@linuxfoundation.org; dan.j.williams@intel.com;
+>> mathias.nyman@linux.intel.com; Joao.Pinto@synopsys.com;
+>> sergei.shtylyov@cogentembedded.com; jun.li@freescale.com;
+>> grygorii.strashko@ti.com; yoshihiro.shimoda.uh@renesas.com;
+>> robh@kernel.org; nsekhar@ti.com; b-liu@ti.com; linux-usb@vger.kernel.org;
+>> linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org;
+>> devicetree@vger.kernel.org
+>> Subject: Re: [PATCH v8 13/14] usb: gadget: udc: adapt to OTG core
+>>
+>> On 17/05/16 11:28, Jun Li wrote:
+>>> Hi Roger,
+>>>
+>>>> -----Original Message-----
+>>>> From: Roger Quadros [mailto:rogerq@ti.com]
+>>>> Sent: Tuesday, May 17, 2016 4:09 PM
+>>>> To: Jun Li <jun.li@nxp.com>; Peter Chen <hzpeterchen@gmail.com>
+>>>> Cc: peter.chen@freescale.com; balbi@kernel.org; tony@atomide.com;
+>>>> gregkh@linuxfoundation.org; dan.j.williams@intel.com;
+>>>> mathias.nyman@linux.intel.com; Joao.Pinto@synopsys.com;
+>>>> sergei.shtylyov@cogentembedded.com; jun.li@freescale.com;
+>>>> grygorii.strashko@ti.com; yoshihiro.shimoda.uh@renesas.com;
+>>>> robh@kernel.org; nsekhar@ti.com; b-liu@ti.com;
+>>>> linux-usb@vger.kernel.org; linux-omap@vger.kernel.org;
+>>>> linux-kernel@vger.kernel.org; devicetree@vger.kernel.org
+>>>> Subject: Re: [PATCH v8 13/14] usb: gadget: udc: adapt to OTG core
+>>>>
+>>>> On 17/05/16 10:38, Jun Li wrote:
+>>>>> Hi
+>>>>>
+>>>>>> -----Original Message-----
+>>>>>> From: Roger Quadros [mailto:rogerq@ti.com]
+>>>>>> Sent: Monday, May 16, 2016 5:52 PM
+>>>>>> To: Peter Chen <hzpeterchen@gmail.com>
+>>>>>> Cc: peter.chen@freescale.com; balbi@kernel.org; tony@atomide.com;
+>>>>>> gregkh@linuxfoundation.org; dan.j.williams@intel.com;
+>>>>>> mathias.nyman@linux.intel.com; Joao.Pinto@synopsys.com;
+>>>>>> sergei.shtylyov@cogentembedded.com; jun.li@freescale.com;
+>>>>>> grygorii.strashko@ti.com; yoshihiro.shimoda.uh@renesas.com;
+>>>>>> robh@kernel.org; nsekhar@ti.com; b-liu@ti.com;
+>>>>>> linux-usb@vger.kernel.org; linux-omap@vger.kernel.org;
+>>>>>> linux-kernel@vger.kernel.org; devicetree@vger.kernel.org
+>>>>>> Subject: Re: [PATCH v8 13/14] usb: gadget: udc: adapt to OTG core
+>>>>>>
+>>>>>> On 16/05/16 12:23, Peter Chen wrote:
+>>>>>>> On Mon, May 16, 2016 at 11:26:57AM +0300, Roger Quadros wrote:
+>>>>>>>> Hi,
+>>>>>>>>
+>>>>>>>> On 16/05/16 10:02, Peter Chen wrote:
+>>>>>>>>> On Fri, May 13, 2016 at 01:03:27PM +0300, Roger Quadros wrote:
+>>>>>>>>>> +
+>>>>>>>>>> +static int usb_gadget_connect_control(struct usb_gadget
+>>>>>>>>>> +*gadget, bool connect) {
+>>>>>>>>>> +	struct usb_udc *udc;
+>>>>>>>>>> +
+>>>>>>>>>> +	mutex_lock(&udc_lock);
+>>>>>>>>>> +	udc = usb_gadget_to_udc(gadget);
+>>>>>>>>>> +	if (!udc) {
+>>>>>>>>>> +		dev_err(gadget->dev.parent, "%s: gadget not
+>>>>>> registered.\n",
+>>>>>>>>>> +			__func__);
+>>>>>>>>>> +		mutex_unlock(&udc_lock);
+>>>>>>>>>> +		return -EINVAL;
+>>>>>>>>>> +	}
+>>>>>>>>>> +
+>>>>>>>>>> +	if (connect) {
+>>>>>>>>>> +		if (!gadget->connected)
+>>>>>>>>>> +			usb_gadget_connect(udc->gadget);
+>>>>>>>>>> +	} else {
+>>>>>>>>>> +		if (gadget->connected) {
+>>>>>>>>>> +			usb_gadget_disconnect(udc->gadget);
+>>>>>>>>>> +			udc->driver->disconnect(udc->gadget);
+>>>>>>>>>> +		}
+>>>>>>>>>> +	}
+>>>>>>>>>> +
+>>>>>>>>>> +	mutex_unlock(&udc_lock);
+>>>>>>>>>> +
+>>>>>>>>>> +	return 0;
+>>>>>>>>>> +}
+>>>>>>>>>> +
+>>>>>>>>>
+>>>>>>>>> Since this is called for vbus interrupt, why not using
+>>>>>>>>> usb_udc_vbus_handler directly, and call udc->driver->disconnect
+>>>>>>>>> at usb_gadget_stop.
+>>>>>>>>
+>>>>>>>> We can't assume that this is always called for vbus interrupt so
+>>>>>>>> I decided not to call usb_udc_vbus_handler.
+>>>>>>>>
+>>>>>>>> udc->vbus is really pointless for us. We keep vbus states in our
+>>>>>>>> state machine and leave udc->vbus as ture always.
+>>>>>>>>
+>>>>>>>> Why do you want to move udc->driver->disconnect() to stop?
+>>>>>>>> If USB controller disconnected from bus then the gadget driver
+>>>>>>>> must be notified about the disconnect immediately. The controller
+>>>>>>>> may or may not be stopped by the core.
+>>>>>>>>
+>>>>>>>
+>>>>>>> Then, would you give some comments when this API will be used?
+>>>>>>> I was assumed it is only used for drd state machine.
+>>>>>>
+>>>>>> drd_state machine didn't even need this API in the first place :).
+>>>>>> You guys wanted me to separate out start/stop and
+>>>>>> connect/disconnect for full OTG case.
+>>>>>> Won't full OTG state machine want to use this API? If not what
+>>>>>> would it use?
+>>>>>
+>>>>> Instead create those new interfaces/symbol here and there just aim
+>>>>> to address build problems in diff configures, Could we only allow
+>>>>> meaningful combination of those 3 drivers configures?
+>>>>>
+>>>>> Hcd=y, gadget=y, otg=y or
+>>>>> Hcd=m, gadget=m, otg=m
+>>>>
+>>>> This is still a limitation.
+>>>>
+>>>> It is perfectly fine to have
+>>>> hcd=m, gadget=y
+>>>> or
+>>>> hcd=y, gadget=m
+>>>
+>>> I agree it makes sense to have above configs in non-otg case, that is,
+>>> the 'y' driver can work without 'm' driver loaded.
+>>>
+>>> But,
+>>> in otg enabled(y/m) case, the otherwise config of my list can't make
+>>> any sense from my point view. That is: some driver is built-in, but it
+>>> can't work at all if another 'm' driver is not loaded,
+>>>
+>>> in another words, the otg driver has to be 'm' if its dependent driver
+>>> is 'm', correct?
+>>
+>> If both host and gadget are 'm' then otg can be 'm', but if either host or
+>> gadget is built in then we have no choice but to make otg as built-in.
+>>
+>> I didn't want to have complex Kconfig so decided to have otg as built-in
+>> only.
+>> What do you want me to change in existing code? and why?
+> 
+> Remove those stuff which only for pass diff driver config
+> Like every controller driver need a duplicated
+> 
+> static struct otg_hcd_ops ci_hcd_ops = {
+>     ...
+> }
 
-On 18/05/16 10:45, Peter Chen wrote:
-> 
-> 
-> On Mon, May 16, 2016 at 5:00 PM, Roger Quadros <rogerq@ti.com <mailto:rogerq@ti.com>> wrote:
-> 
->     On 13/05/16 13:03, Roger Quadros wrote:
->     > It provides APIs for the following tasks
->     >
->     > - Registering an OTG/dual-role capable controller
->     > - Registering Host and Gadget controllers to OTG core
->     > - Providing inputs to and kicking the OTG state machine
->     >
->     > Provide a dual-role device (DRD) state machine.
->     > DRD mode is a reduced functionality OTG mode. In this mode
->     > we don't support SRP, HNP and dynamic role-swap.
->     >
->     > In DRD operation, the controller mode (Host or Peripheral)
->     > is decided based on the ID pin status. Once a cable plug (Type-A
->     > or Type-B) is attached the controller selects the state
->     > and doesn't change till the cable in unplugged and a different
->     > cable type is inserted.
->     >
->     > As we don't need most of the complex OTG states and OTG timers
->     > we implement a lean DRD state machine in usb-otg.c.
->     > The DRD state machine is only interested in 2 hardware inputs
->     > 'id' and 'b_sess_vld'.
->     >
->     > Signed-off-by: Roger Quadros <rogerq@ti.com <mailto:rogerq@ti.com>>
->     > ---
->     >  drivers/usb/common/Makefile  |    2 +-
->     >  drivers/usb/common/usb-otg.c | 1042 ++++++++++++++++++++++++++++++++++++++++++
->     >  drivers/usb/core/Kconfig     |    4 +-
->     >  include/linux/usb/gadget.h   |    2 +
->     >  include/linux/usb/hcd.h      |    1 +
->     >  include/linux/usb/otg-fsm.h  |    7 +
->     >  include/linux/usb/otg.h      |  154 ++++++-
->     >  7 files changed, 1206 insertions(+), 6 deletions(-)
->     >  create mode 100644 drivers/usb/common/usb-otg.c
-> 
-> 
->     This patch causes the following build issues when CONFIG_USB_GADGET=m, CONFIG_USB=m,
->     CONFIG_USB_COMMON=m and CONFIG_USB_OTG=y
-> 
->     ERROR: "usb_otg_register_gadget" [drivers/usb/gadget/udc/udc-core.ko] undefined!
->     ERROR: "usb_otg_unregister_gadget" [drivers/usb/gadget/udc/udc-core.ko] undefined!
->     ERROR: "usb_otg_register_hcd" [drivers/usb/core/usbcore.ko] undefined!
->     ERROR: "usb_otg_unregister_hcd" [drivers/usb/core/usbcore.ko] undefined!
->     ERROR: "otg_statemachine" [drivers/usb/chipidea/ci_hdrc.ko] undefined!
->     scripts/Makefile.modpost:91: recipe for target '__modpost' failed
->     make[1]: *** [__modpost] Error 1
->     Makefile:1141: recipe for target 'modules' failed
->     make: *** [modules] Error 2
->     make: *** Waiting for unfinished jobs....
-> 
->     drivers/built-in.o: In function `drd_set_state':
->     usb-otg.c:(.text+0x2b4242): undefined reference to `usb_otg_state_string'
->     drivers/built-in.o: In function `drd_statemachine':
->     (.text+0x2b4b4c): undefined reference to `usb_otg_state_string'
->     Makefile:937: recipe for target 'vmlinux' failed
-> 
->     I'll fix it up with the following diff.
-> 
->     diff --git a/drivers/usb/Makefile b/drivers/usb/Makefile
->     index dca7856..16a5b55 100644
->     --- a/drivers/usb/Makefile
->     +++ b/drivers/usb/Makefile
->     @@ -59,5 +59,6 @@ obj-$(CONFIG_USB_RENESAS_USBHS)       += renesas_usbhs/
->      obj-$(CONFIG_USB_GADGET)       += gadget/
-> 
->      obj-$(CONFIG_USB_COMMON)       += common/
->     +obj-$(CONFIG_USB_OTG)          += common/
-> 
->      obj-$(CONFIG_USBIP_CORE)       += usbip/
->     diff --git a/drivers/usb/common/usb-otg.c b/drivers/usb/common/usb-otg.c
->     index 77048aa..17e449e 100644
->     --- a/drivers/usb/common/usb-otg.c
->     +++ b/drivers/usb/common/usb-otg.c
->     @@ -56,6 +56,30 @@ static int usb_otg_hcd_is_primary_hcd(struct usb_hcd *hcd)
->             return hcd == hcd->primary_hcd;
->      }
-> 
->     +static const char *otg_state_string(enum usb_otg_state state)
->     +{
->     +       static const char *const names[] = {
->     +               [OTG_STATE_A_IDLE] = "a_idle",
->     +               [OTG_STATE_A_WAIT_VRISE] = "a_wait_vrise",
->     +               [OTG_STATE_A_WAIT_BCON] = "a_wait_bcon",
->     +               [OTG_STATE_A_HOST] = "a_host",
->     +               [OTG_STATE_A_SUSPEND] = "a_suspend",
->     +               [OTG_STATE_A_PERIPHERAL] = "a_peripheral",
->     +               [OTG_STATE_A_WAIT_VFALL] = "a_wait_vfall",
->     +               [OTG_STATE_A_VBUS_ERR] = "a_vbus_err",
->     +               [OTG_STATE_B_IDLE] = "b_idle",
->     +               [OTG_STATE_B_SRP_INIT] = "b_srp_init",
->     +               [OTG_STATE_B_PERIPHERAL] = "b_peripheral",
->     +               [OTG_STATE_B_WAIT_ACON] = "b_wait_acon",
->     +               [OTG_STATE_B_HOST] = "b_host",
->     +       };
->     +
->     +       if (state < 0 || state >= ARRAY_SIZE(names))
->     +               return "UNDEFINED";
->     +
->     +       return names[state];
->     +}
->     +
-> 
-> 
-> 
-> From my point, make another copy for otg stuff is not a good way,
-> could we make folder under usb/ named otg for dedicated otg stuffs,
-> in that case, build otg stuffs can not depend on USB_COMMON.
+This is an exception only. Every controller driver doesn't need to implement
+hcd_ops. It is implemented in the hcd core.
 
-OK. I can try that. I'll delete otg_state_string from usb-common.c and
-move it into usb/otg/usb-otg.c
+> 
+> And here is another example, for gadget connect, otg driver can
+> directly call to usb_udc_vbus_handler() in drd state machine,
+> but you create another interface:
+> 
+> .connect_control = usb_gadget_connect_control,
+> 
+> If the symbol is defined in one driver which is 'm', another driver
+> reference it should be 'm' as well, then there is no this kind of problem
+> as my understanding.
 
-I'll also move usb-otg-fsm.c to usb/otg/.
+That is fine as long as all are 'm'. but how do you solve the case
+when Gadget is built in and host is 'm'? OTG has to be built-in and
+you will need an hcd to gadget interface.
+
+Do you have any ideas to solve that case?
 
 cheers,
 -roger
 
-> 
-> Peter
->  
-> 
->      /**
->       * Check if the OTG device is in our wait list and return
->       * otg_wait_data, else NULL.
->     @@ -433,7 +457,7 @@ static void drd_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
-> 
->             fsm->state_changed = 1;
->             dev_dbg(otg->dev, "otg: set state: %s\n",
->     -               usb_otg_state_string(new_state));
->     +               otg_state_string(new_state));
->             switch (new_state) {
->             case OTG_STATE_B_IDLE:
->                     drd_set_protocol(fsm, PROTO_UNDEF);
->     @@ -449,7 +473,7 @@ static void drd_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
->                     break;
->             default:
->                     dev_warn(otg->dev, "%s: otg: invalid state: %s\n",
->     -                        __func__, usb_otg_state_string(new_state));
->     +                        __func__, otg_state_string(new_state));
->                     break;
->             }
-> 
->     @@ -507,7 +531,7 @@ int drd_statemachine(struct usb_otg *otg)
-> 
->             default:
->                     dev_err(otg->dev, "%s: otg: invalid usb-drd state: %s\n",
->     -                       __func__, usb_otg_state_string(state));
->     +                       __func__, otg_state_string(state));
->                     break;
->             }
-> 
->     --
->     cheers,
->     -roger
->     --
->     To unsubscribe from this list: send the line "unsubscribe linux-usb" in
->     the body of a message to majordomo@vger.kernel.org <mailto:majordomo@vger.kernel.org>
->     More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-> 
-> 
-> -- 
-> BR,
-> Peter Chen
+>>>>>>
+>>>>>>>
+>>>>>>>>>
+>>>>>>>>>>  	return 0;
+>>>>>>>>>> @@ -660,9 +830,15 @@ static ssize_t
+>>>>>>>>>> usb_udc_softconn_store(struct
+>>>>>> device *dev,
+>>>>>>>>>>  		return -EOPNOTSUPP;
+>>>>>>>>>>  	}
+>>>>>>>>>>
+>>>>>>>>>> +	/* In OTG mode we don't support softconnect, but b_bus_req */
+>>>>>>>>>> +	if (udc->gadget->otg_dev) {
+>>>>>>>>>> +		dev_err(dev, "soft-connect not supported in OTG mode\n");
+>>>>>>>>>> +		return -EOPNOTSUPP;
+>>>>>>>>>> +	}
+>>>>>>>>>> +
+>>>>>>>>>
+>>>>>>>>> The soft-connect can be supported at dual-role mode currently,
+>>>>>>>>> we can use b_bus_req entry once it is implemented later.
+>>>>>>>>
+>>>>>>>> Soft-connect should be done via sysfs handling within the OTG core.
+>>>>>>>> This can be added later. I don't want anything outside the OTG
+>>>>>>>> core to handle soft-connect behaviour as it will be hard to keep
+>>>>>>>> things in sync.
+>>>>>>>>
+>>>>>>>> I can update the comment to something like this.
+>>>>>>>>
+>>>>>>>> /* In OTG/dual-role mode, soft-connect should be handled by OTG
+>>>>>>>> core */
+>>>>>>>
+>>>>>>> Ok, let's Felipe decide it.
+>>>>>>>
+>>>>>>>>
+>>>>>>>>>
+>>>>>>>>>>  	if (sysfs_streq(buf, "connect")) {
+>>>>>>>>>>  		usb_gadget_udc_start(udc);
+>>>>>>>>>> -		usb_gadget_connect(udc->gadget);
+>>>>>>>>>> +		usb_udc_connect_control(udc);
+>>>>>>>>>
+>>>>>>>>> This line seems to be not related with this patch.
+>>>>>>>>>
+>>>>>>>> Right. I'll remove it.
+>>>>>>>>
+>>>>>>>> cheers,
+>>>>>>>> -roger
+>>>>>>>
