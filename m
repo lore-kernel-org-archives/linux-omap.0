@@ -1,50 +1,66 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: 4.5-rc0 regression: GPRS breaks after very short while
-Date: Wed, 18 May 2016 22:12:51 +0200
-Message-ID: <20160518201251.GA22015@amd>
-References: <20160518074924.GA20652@amd>
- <20160518141624.GA8025@earth>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCH 1/3] asm-generic: io: Add exec versions of ioremap
+Date: Wed, 18 May 2016 22:25:03 +0200
+Message-ID: <3861017.ZJOlWYvEFT@wuerfel>
+References: <1462830111-28172-1-git-send-email-d-gerlach@ti.com>
+ <573C7844.5030107@ti.com> <20160518175102.GX5783@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160518141624.GA8025@earth>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160518175102.GX5783@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Nishanth Menon <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Russ Dill <russ.dill@ti.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-omap@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+On Wednesday 18 May 2016 18:51:02 Russell King - ARM Linux wrote:
+> On Wed, May 18, 2016 at 09:12:20AM -0500, Dave Gerlach wrote:
+> > Ok thank you for the pointer. I agree, the memremap API looks like a better
+> > fit for this. I think it likely makes the most sense to still add these
+> > ioremap_exec and ioremap_exec_nocache and then call them through the
+> > memremap API based on new flags. This will fit into the current use model
+> > for memremap as it currently uses all of the other ioremap calls internally,
+> > and doing it how I just described will let this code evolve along with
+> > memremap.
+> 
+> I would _really_ prefer not to do that.  Why?  Because IO memory does
+> not have the required properties to be executable.  IO memory is normally
+> memory which has side effects - and by side effects, I mean reading it
+> can provoke hardware to perform some action.  You don't want to be
+> executing from such memory.
+> 
+> So, in my mind, ioremap_exec makes absolutely no sense, and having it
+> gives people a new interface to abuse - and abuse they will.
 
-> On Wed, May 18, 2016 at 09:49:24AM +0200, Pavel Machek wrote:
-> > I was afraid another GSM chip desoldered itself in N900, but no, it
-> > seems to be software this time.
-> > 
-> > In 4.4, GPRS is rock solid, can survive overnight ping.
-> > 
-> > In 4.5-rc0 and v4.6, modem fails when I use gprs for like a
-> > minute. Phone is not usable.
-> 
-> I only send three modem related changes for v4.5:
-> 
-> https://git.kernel.org/cgit/linux/kernel/git/sre/linux-hsi.git/commit/?h=hsi-for-4.5&id=525e1abc6b5a7d8bd9006de1da6e99722305ea2b
-> HSI: omap_ssi: fix handling ida_simple_get result
-> 
-> https://git.kernel.org/cgit/linux/kernel/git/sre/linux-hsi.git/commit/?h=hsi-for-4.5&id=6bf6ded3008a407ccab5ad72eb59ab71b97cc290
-> HSI: omap_ssi_port: fix handling of_get_named_gpio result
-> 
-> https://git.kernel.org/cgit/linux/kernel/git/sre/linux-hsi.git/commit/?h=hsi-for-4.5&id=403c5c0650816375527a6feecfb255d9b494dda3
-> HSI: Remove struct hsi_client private fields from kernel-doc
-> 
-> The last one only changes a comment, so not relevant, the other
-> two fix error handling during initialization and are most likely
-> also not the problem. Can you try to bisect the problem?
+Agreed, calling it ioremap when it is really memremap makes no sense.
 
-It will not be fun, but I guess it is doable. But before I start it
-would be good to know -- does it work for you?
+I also see another problem in the asm-generic portion:
 
-Thanks and best regards,
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
++#ifndef ARCH_HAS_IOREMAP_EXEC
++#define ioremap_exec ioremap
++#define ioremap_exec_nocache ioremap_nocache
++#endif
+
+The ARM version of ioremap_exec() that gets added in this patch is cached
+(like memremap()), but then the asm-generic version is not? This is
+even more confusing, it should at least do roughly the same thing across
+architectures.
+
+There should also be some documentation about what the expected behavior is, e.g.:
+
+- is memremap_exec() by default cached or not? (I assume it would
+  be like memremap())
+- If we have an interface that does explicit uncached executable mapping,
+  what about architectures on which this is not possible? Should they
+  fall back to cached or non-executable, or cause a link error?  
+
+	Arnd
