@@ -1,57 +1,67 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 09/14] ARM: dts: omap4-var-som-om44: Add pdmclk binding for
- audio
-Date: Wed, 18 May 2016 16:46:31 +0300
-Message-ID: <1463579196-5484-10-git-send-email-peter.ujfalusi@ti.com>
-References: <1463579196-5484-1-git-send-email-peter.ujfalusi@ti.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [RFC PATCH 1/3] asm-generic: io: Add exec versions of ioremap
+Date: Wed, 18 May 2016 09:12:20 -0500
+Message-ID: <573C7844.5030107@ti.com>
+References: <1462830111-28172-1-git-send-email-d-gerlach@ti.com>
+ <1462830111-28172-2-git-send-email-d-gerlach@ti.com>
+ <20160512163759.GW5783@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1463579196-5484-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: mturquette@baylibre.com, sboyd@codeaurora.org, tony@atomide.com, lee.jones@linaro.org, robh+dt@kernel.org, lgirdwood@gmail.com, broonie@kernel.org
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160512163759.GW5783@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Russ Dill <russ.dill@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Arnd Bergmann <arnd@arndb.de>, Shawn Guo <shawnguo@kernel.org>, Tony Lindgren <tony@atomide.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The twl6040 codec is generating the pdmclk, which is used by the McPDM as
-functional clock.
+Hi,
+On 05/12/2016 11:37 AM, Russell King - ARM Linux wrote:
+> On Mon, May 09, 2016 at 04:41:49PM -0500, Dave Gerlach wrote:
+>> diff --git a/arch/arm/mm/ioremap.c b/arch/arm/mm/ioremap.c
+>> index 66a978d05958..c6eef3c98074 100644
+>> --- a/arch/arm/mm/ioremap.c
+>> +++ b/arch/arm/mm/ioremap.c
+>> @@ -400,6 +400,20 @@ EXPORT_SYMBOL(ioremap_wc);
+>>    * clocks that would affect normal memory for example. Please see
+>>    * CONFIG_GENERIC_ALLOCATOR for allocating external memory.
+>>    */
+>> +void __iomem *ioremap_exec(resource_size_t res_cookie, size_t size)
+>> +{
+>> +	return arch_ioremap_caller(res_cookie, size, MT_MEMORY_RWX,
+>> +				   __builtin_return_address(0));
+>> +}
+>> +EXPORT_SYMBOL(ioremap_exec);
+>> +
+>> +void __iomem *ioremap_exec_nocache(resource_size_t res_cookie, size_t size)
+>> +{
+>> +	return arch_ioremap_caller(res_cookie, size, MT_MEMORY_RWX_NONCACHED,
+>> +				   __builtin_return_address(0));
+>> +}
+>> +EXPORT_SYMBOL(ioremap_exec_nocache);
+>
+> I think these should be called memremap_exec() and similar.  Please
+> see the description of memremap() in kernel/memremap.c.  If you're
+> going to be executing code, the region must not have I/O side effects
+> and according to the new definition of memremap() vs ioremap(), the
+> memremap() interfaces fit better.
+>
+> Please also get these reviewed by Dan Williams who provided the
+> memremap() API.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- arch/arm/boot/dts/omap4-var-som-om44.dtsi | 5 +++++
- 1 file changed, 5 insertions(+)
+Ok thank you for the pointer. I agree, the memremap API looks like a 
+better fit for this. I think it likely makes the most sense to still add 
+these ioremap_exec and ioremap_exec_nocache and then call them through 
+the memremap API based on new flags. This will fit into the current use 
+model for memremap as it currently uses all of the other ioremap calls 
+internally, and doing it how I just described will let this code evolve 
+along with memremap.
 
-diff --git a/arch/arm/boot/dts/omap4-var-som-om44.dtsi b/arch/arm/boot/dts/omap4-var-som-om44.dtsi
-index a17997f4e9aa..873cfc87260c 100644
---- a/arch/arm/boot/dts/omap4-var-som-om44.dtsi
-+++ b/arch/arm/boot/dts/omap4-var-som-om44.dtsi
-@@ -189,6 +189,7 @@
- 
- 	twl6040: twl@4b {
- 		compatible = "ti,twl6040";
-+		#clock-cells = <0>;
- 		reg = <0x4b>;
- 
- 		pinctrl-names = "default";
-@@ -252,6 +253,10 @@
- &mcpdm {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&mcpdm_pins>;
-+
-+	clocks = <&twl6040>;
-+	clock-names = "pdmclk";
-+
- 	status = "okay";
- };
- 
--- 
-2.8.2
+I will put v2 together this way and send it out.
+
+Regards,
+Dave
+
+>
+> Thanks.
+>
