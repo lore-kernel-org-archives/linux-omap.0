@@ -1,49 +1,101 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 02/14] clk: twl6040: Register the clock as of_clk_provider
-Date: Wed, 18 May 2016 16:46:24 +0300
-Message-ID: <1463579196-5484-3-git-send-email-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 13/14] ASoC: omap-mcpdm: Support for suspend resume
+Date: Wed, 18 May 2016 16:46:35 +0300
+Message-ID: <1463579196-5484-14-git-send-email-peter.ujfalusi@ti.com>
 References: <1463579196-5484-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1463579196-5484-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: mturquette@baylibre.com, sboyd@codeaurora.org, tony@atomide.com, lee.jones@linaro.org, robh+dt@kernel.org, lgirdwood@gmail.com, broonie@kernel.org
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1463579196-5484-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: t-kristo-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-In order ot be able to use the pdmclk clock via DT it need to be registered
-as of_clk_provide.
-Since the twl6040 clock driver does not have it's own DT node, use the
-parent's node for registering.
+Implement ASoC's suspend and resume callbacks.
+Since McPDM does not use pcm_trigger for start and stop of the stream due
+to strict sequencing needs with the twl6040, the callbacks will stop and
+restart the McPDM in case the board suspended during audio activity.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 ---
- drivers/clk/clk-twl6040.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ sound/soc/omap/omap-mcpdm.c | 46 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
 
-diff --git a/drivers/clk/clk-twl6040.c b/drivers/clk/clk-twl6040.c
-index e167e0bbaff5..6a2dbe6a1627 100644
---- a/drivers/clk/clk-twl6040.c
-+++ b/drivers/clk/clk-twl6040.c
-@@ -95,7 +95,8 @@ static int twl6040_clk_probe(struct platform_device *pdev)
+diff --git a/sound/soc/omap/omap-mcpdm.c b/sound/soc/omap/omap-mcpdm.c
+index 11bd07cdce22..74d6e6fdcfd0 100644
+--- a/sound/soc/omap/omap-mcpdm.c
++++ b/sound/soc/omap/omap-mcpdm.c
+@@ -66,6 +66,9 @@ struct omap_mcpdm {
+ 	/* McPDM needs to be restarted due to runtime reconfiguration */
+ 	bool restart;
  
- 	platform_set_drvdata(pdev, clkdata);
++	/* pm state for suspend/resume handling */
++	int pm_active_count;
++
+ 	struct snd_dmaengine_dai_dma_data dma_data[2];
+ };
  
--	return 0;
-+	return of_clk_add_provider(pdev->dev.parent->of_node,
-+				   of_clk_src_simple_get, clkdata->clk);
+@@ -422,12 +425,55 @@ static int omap_mcpdm_remove(struct snd_soc_dai *dai)
+ 	return 0;
  }
  
- static struct platform_driver twl6040_clk_driver = {
++#ifdef CONFIG_PM_SLEEP
++static int omap_mcpdm_suspend(struct snd_soc_dai *dai)
++{
++	struct omap_mcpdm *mcpdm = snd_soc_dai_get_drvdata(dai);
++
++	if (dai->active) {
++		omap_mcpdm_stop(mcpdm);
++		omap_mcpdm_close_streams(mcpdm);
++	}
++
++	mcpdm->pm_active_count = 0;
++	while (pm_runtime_active(mcpdm->dev)) {
++		pm_runtime_put_sync(mcpdm->dev);
++		mcpdm->pm_active_count++;
++	}
++
++	return 0;
++}
++
++static int omap_mcpdm_resume(struct snd_soc_dai *dai)
++{
++	struct omap_mcpdm *mcpdm = snd_soc_dai_get_drvdata(dai);
++
++	if (mcpdm->pm_active_count) {
++		while (mcpdm->pm_active_count--)
++			pm_runtime_get_sync(mcpdm->dev);
++
++		if (dai->active) {
++			omap_mcpdm_open_streams(mcpdm);
++			omap_mcpdm_start(mcpdm);
++		}
++	}
++
++
++	return 0;
++}
++#else
++#define omap_mcpdm_suspend NULL
++#define omap_mcpdm_resume NULL
++#endif
++
+ #define OMAP_MCPDM_RATES	(SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000)
+ #define OMAP_MCPDM_FORMATS	SNDRV_PCM_FMTBIT_S32_LE
+ 
+ static struct snd_soc_dai_driver omap_mcpdm_dai = {
+ 	.probe = omap_mcpdm_probe,
+ 	.remove = omap_mcpdm_remove,
++	.suspend = omap_mcpdm_suspend,
++	.resume = omap_mcpdm_resume,
+ 	.probe_order = SND_SOC_COMP_ORDER_LATE,
+ 	.remove_order = SND_SOC_COMP_ORDER_EARLY,
+ 	.playback = {
 -- 
 2.8.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
