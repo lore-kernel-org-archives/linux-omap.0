@@ -1,52 +1,72 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 0/8] ARM: dts: Add operating-points-v2 tables for TI platforms
-Date: Wed, 18 May 2016 18:36:25 -0500
-Message-ID: <cover.1463606963.git.d-gerlach@ti.com>
+From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 1/8] ARM: dts: am335x: Update MPU regulator range for TI boards
+Date: Wed, 18 May 2016 18:36:26 -0500
+Message-ID: <8df50393ed0b2caf3f29408ad378ea16d94464db.1463606963.git.d-gerlach@ti.com>
+References: <cover.1463606963.git.d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>
-Cc: Viresh Kumar <viresh.kumar@linaro.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Nishanth Menon <nm@ti.com>, Yegor Yefremov <yegorslists@googlemail.com>, Dave Gerlach <d-gerlach@ti.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1463606963.git.d-gerlach-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-This series adds operating-points-v2 tables for am335x, am437x, dra7xx,
-and am57xx based platforms along with some support patches so that we
-can enable more OPPs for the CPU on these platforms.
+Now that we are moving to OPPv2 bindings and able to add 1GHz OPP for
+MPU, let's update the max MPU voltage range to align with the maximum
+possible value allowed in the operating-points table, which is max
+target voltage of 132500 uV + 2%.
 
-These patches rely on the ti-cpufreq series sent here [1] and provide
-opp-supported-hw data for each OPP so that only the appropriate OPPs
-for a specific piece of silicon get enabled.
+Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 2 +-
+ arch/arm/boot/dts/am335x-evm.dts          | 2 +-
+ arch/arm/boot/dts/am335x-evmsk.dts        | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-Regards,
-Dave
-
-[1] https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1147940.html
-
-Dave Gerlach (8):
-  ARM: dts: am335x: Update MPU regulator range for TI boards
-  ARM: dts: am33xx: Move to operating-points-v2 table and ti-cpufreq
-    driver
-  ARM: dts: am335x-boneblack: Enable 1GHz OPP for cpu
-  ARM: dts: am4372: Add operating-points-v2 table
-  ARM: dts: am437x-gp-evm: Hook dcdc2 as the cpu0-supply
-  ARM: dts: dra7: Add dt node for the syscon control module wkup
-  ARM: dts: dra7: Move cpus node to parent dts for dra74x and dra72x
-  ARM: dts: dra7: Move to operating-points-v2 table
-
- arch/arm/boot/dts/am335x-bone-common.dtsi |  2 +-
- arch/arm/boot/dts/am335x-boneblack.dts    | 11 ++++
- arch/arm/boot/dts/am335x-evm.dts          |  2 +-
- arch/arm/boot/dts/am335x-evmsk.dts        |  2 +-
- arch/arm/boot/dts/am33xx.dtsi             | 88 ++++++++++++++++++++++++++-----
- arch/arm/boot/dts/am4372.dtsi             | 39 ++++++++++++++
- arch/arm/boot/dts/am437x-gp-evm.dts       |  4 ++
- arch/arm/boot/dts/dra7.dtsi               | 48 +++++++++++++++++
- arch/arm/boot/dts/dra72x.dtsi             | 16 ------
- arch/arm/boot/dts/dra74x.dtsi             | 25 +--------
- 10 files changed, 181 insertions(+), 56 deletions(-)
-
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 0cc150b87b86..13133f3587b8 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -318,7 +318,7 @@
+ 			/* VDD_MPU voltage limits 0.95V - 1.26V with +/-4% tolerance */
+ 			regulator-name = "vdd_mpu";
+ 			regulator-min-microvolt = <925000>;
+-			regulator-max-microvolt = <1325000>;
++			regulator-max-microvolt = <1351500>;
+ 			regulator-boot-on;
+ 			regulator-always-on;
+ 		};
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index 516673bb023d..5d28712ad253 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -640,7 +640,7 @@
+ 			/* VDD_MPU voltage limits 0.95V - 1.26V with +/-4% tolerance */
+ 			regulator-name = "vdd_mpu";
+ 			regulator-min-microvolt = <912500>;
+-			regulator-max-microvolt = <1312500>;
++			regulator-max-microvolt = <1351500>;
+ 			regulator-boot-on;
+ 			regulator-always-on;
+ 		};
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index 282fe1b37095..09308d66645b 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -560,7 +560,7 @@
+ 			/* VDD_MPU voltage limits 0.95V - 1.26V with +/-4% tolerance */
+ 			regulator-name = "vdd_mpu";
+ 			regulator-min-microvolt = <912500>;
+-			regulator-max-microvolt = <1312500>;
++			regulator-max-microvolt = <1351500>;
+ 			regulator-boot-on;
+ 			regulator-always-on;
+ 		};
 -- 
 2.7.3
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
