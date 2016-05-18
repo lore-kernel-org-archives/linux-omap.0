@@ -1,7 +1,7 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 2/8] ARM: dts: am33xx: Move to operating-points-v2 table and ti-cpufreq driver
-Date: Wed, 18 May 2016 18:36:27 -0500
-Message-ID: <f30e0313514cdbb9c3b0a83bbb96f05f2e179775.1463606963.git.d-gerlach@ti.com>
+Subject: [PATCH 3/8] ARM: dts: am335x-boneblack: Enable 1GHz OPP for cpu
+Date: Wed, 18 May 2016 18:36:28 -0500
+Message-ID: <f093008d2e4c0754c1790a606b3568b892d054ee.1463606963.git.d-gerlach@ti.com>
 References: <cover.1463606963.git.d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,127 +12,38 @@ To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@v
 Cc: Viresh Kumar <viresh.kumar@linaro.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Nishanth Menon <nm@ti.com>, Yegor Yefremov <yegorslists@googlemail.com>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Drop the operating-points table present in am33xx.dtsi and add an
-operating-points-v2 table with all OPPs available for all silicon
-revisions along with necessary data for use by ti-cpufreq to selectively
-enable the appropriate OPPs at runtime. Also, drop the voltage-tolerance
-value and provide voltages for each OPP using the <target min max>
-format instead.
-
-Information from AM335x Data Manual, SPRS717i, Revised December 2015,
-Table 5-7.
+Although all PG2.0 silicon may not support 1GHz OPP for the MPU, older
+Beaglebone Blacks may have PG2.0 silicon populated and these particular
+parts are guaranteed to support the OPP, so enable it for PG2.0 on
+am335x-boneblack only.
 
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 ---
- arch/arm/boot/dts/am33xx.dtsi | 88 ++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 75 insertions(+), 13 deletions(-)
+ arch/arm/boot/dts/am335x-boneblack.dts | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 52be48bbd2dd..df1106f89ff2 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -45,19 +45,9 @@
- 			device_type = "cpu";
- 			reg = <0>;
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index 55c0e954b146..ca721670bd91 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -33,6 +33,17 @@
+ 	status = "okay";
+ };
  
--			/*
--			 * To consider voltage drop between PMIC and SoC,
--			 * tolerance value is reduced to 2% from 4% and
--			 * voltage value is increased as a precaution.
--			 */
--			operating-points = <
--				/* kHz    uV */
--				720000  1285000
--				600000  1225000
--				500000  1125000
--				275000  1125000
--			>;
--			voltage-tolerance = <2>; /* 2 percentage */
-+			operating-points-v2 = <&cpu0_opp_table>;
-+			ti,syscon-efuse = <&scm_conf 0x7fc 0x1fff 0>;
-+			ti,syscon-rev = <&scm_conf 0x600>;
- 
- 			clocks = <&dpll_mpu_ck>;
- 			clock-names = "cpu";
-@@ -66,6 +56,78 @@
- 		};
- 	};
- 
-+	cpu0_opp_table: opp_table0 {
-+		compatible = "operating-points-v2";
-+
-+		/*
-+		 * The three following nodes are marked with opp-suspend
-+		 * because the can not be enabled simultaneously on a
-+		 * single SoC.
-+		 */
-+		opp50@300000000 {
-+			opp-hz = /bits/ 64 <300000000>;
-+			opp-microvolt = <950000 931000 969000>;
-+			opp-supported-hw = <0x06 0x0010>;
-+			opp-suspend;
-+		};
-+
-+		opp100@275000000 {
-+			opp-hz = /bits/ 64 <275000000>;
-+			opp-microvolt = <1100000 1078000 1122000>;
-+			opp-supported-hw = <0x01 0x00FF>;
-+			opp-suspend;
-+		};
-+
-+		opp100@300000000 {
-+			opp-hz = /bits/ 64 <300000000>;
-+			opp-microvolt = <1100000 1078000 1122000>;
-+			opp-supported-hw = <0x06 0x0020>;
-+			opp-suspend;
-+		};
-+
-+		opp100@500000000 {
-+			opp-hz = /bits/ 64 <500000000>;
-+			opp-microvolt = <1100000 1078000 1122000>;
-+			opp-supported-hw = <0x01 0xFFFF>;
-+		};
-+
-+		opp100@600000000 {
-+			opp-hz = /bits/ 64 <600000000>;
-+			opp-microvolt = <1100000 1078000 1122000>;
-+			opp-supported-hw = <0x06 0x0040>;
-+		};
-+
-+		opp120@600000000 {
-+			opp-hz = /bits/ 64 <600000000>;
-+			opp-microvolt = <1200000 1176000 1224000>;
-+			opp-supported-hw = <0x01 0xFFFF>;
-+		};
-+
-+		opp120@720000000 {
-+			opp-hz = /bits/ 64 <720000000>;
-+			opp-microvolt = <1200000 1176000 1224000>;
-+			opp-supported-hw = <0x06 0x0080>;
-+		};
-+
-+		oppturbo@720000000 {
-+			opp-hz = /bits/ 64 <720000000>;
-+			opp-microvolt = <1260000 1234800 1285200>;
-+			opp-supported-hw = <0x01 0xFFFF>;
-+		};
-+
-+		oppturbo@800000000 {
-+			opp-hz = /bits/ 64 <800000000>;
-+			opp-microvolt = <1260000 1234800 1285200>;
-+			opp-supported-hw = <0x06 0x0100>;
-+		};
-+
-+		oppnitro@1000000000 {
-+			opp-hz = /bits/ 64 <1000000000>;
-+			opp-microvolt = <1325000 1298500 1351500>;
-+			opp-supported-hw = <0x04 0x0200>;
-+		};
++&cpu0_opp_table {
++	/*
++	 * All PG 2.0 silicon may not support 1GHz but some of the early
++	 * BeagleBone Blacks have PG 2.0 silicon which is guaranteed
++	 * to support 1GHz OPP so enable it for PG 2.0 on this board.
++	 */
++	oppnitro@1000000000 {
++		opp-supported-hw = <0x06 0x0100>;
 +	};
++};
 +
- 	pmu {
- 		compatible = "arm,cortex-a8-pmu";
- 		interrupts = <3>;
+ &am33xx_pinmux {
+ 	nxp_hdmi_bonelt_pins: nxp_hdmi_bonelt_pins {
+ 		pinctrl-single,pins = <
 -- 
 2.7.3
 
