@@ -1,30 +1,94 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH 14/14] ASoC: omap-mcpdm: Add support for pdmclk clock
- handling
-Date: Wed, 18 May 2016 18:31:41 -0500
-Message-ID: <20160518233141.GA10395@rob-hp-laptop>
-References: <1463579196-5484-1-git-send-email-peter.ujfalusi@ti.com>
- <1463579196-5484-15-git-send-email-peter.ujfalusi@ti.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH 8/8] ARM: dts: dra7: Move to operating-points-v2 table
+Date: Wed, 18 May 2016 18:36:33 -0500
+Message-ID: <20af92f75bf0f707458dd021719cce3a70d768d5.1463606963.git.d-gerlach@ti.com>
+References: <cover.1463606963.git.d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1463579196-5484-15-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: mturquette@baylibre.com, sboyd@codeaurora.org, tony@atomide.com, lee.jones@linaro.org, lgirdwood@gmail.com, broonie@kernel.org, t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, alsa-devel@alsa-project.org
+Content-Type: text/plain
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <cover.1463606963.git.d-gerlach@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Nishanth Menon <nm@ti.com>, Yegor Yefremov <yegorslists@googlemail.com>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, May 18, 2016 at 04:46:36PM +0300, Peter Ujfalusi wrote:
-> McPDM module receives it's functional clock from external source. This
-> clock is the pdmclk provided by the twl6040 audio IC. If the clock is not
-> available all register accesses to McPDM fails and the module is not
-> operational.
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
->  Documentation/devicetree/bindings/sound/omap-mcpdm.txt | 10 ++++++++++
->  sound/soc/omap/omap-mcpdm.c                            | 17 +++++++++++++++++
->  2 files changed, 27 insertions(+)
+Add an operating-points-v2 table with all OPPs available for all silicon
+revisions along with necessary data for use by ti-opp driver to selectively
+enable the appropriate OPPs at runtime and handle voltage transitions
 
-Acked-by: Rob Herring <robh@kernel.org>
+As we now need to define voltage ranges for each OPP, we define the
+minimum and maximum voltage to match the ranges possible for AVS class0
+voltage as defined by the DRA7/AM57 Data Manual, with the exception of
+using a range for OPP_OD based on historical data to ensure that SoCs
+from older lots still continue to boot, even though more optimal voltages
+are now the standard. Once an AVS Class0 driver is in place it will be
+possible for these OPP voltages to be adjusted to any voltage within the
+provided range.
+
+Information from SPRS953, Revised December 2015.
+
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+---
+ arch/arm/boot/dts/dra7.dtsi   | 26 +++++++++++++++++++++-----
+ arch/arm/boot/dts/dra74x.dtsi |  1 +
+ 2 files changed, 22 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 104b62657163..0d74f8a15937 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -82,11 +82,9 @@
+ 			compatible = "arm,cortex-a15";
+ 			reg = <0>;
+ 
+-			operating-points = <
+-				/* kHz    uV */
+-				1000000	1060000
+-				1176000	1160000
+-				>;
++			operating-points-v2 = <&cpu0_opp_table>;
++			ti,syscon-efuse = <&scm_wkup 0x20c 0xf80000 19>;
++			ti,syscon-rev = <&scm_wkup 0x204>;
+ 
+ 			clocks = <&dpll_mpu_ck>;
+ 			clock-names = "cpu";
+@@ -100,6 +98,24 @@
+ 		};
+ 	};
+ 
++	cpu0_opp_table: opp_table0 {
++		compatible = "operating-points-v2";
++		opp-shared;
++
++		opp_nom@1000000000 {
++			opp-hz = /bits/ 64 <1000000000>;
++			opp-microvolt = <1060000 850000 1150000>;
++			opp-supported-hw = <0xFF 0x01>;
++			opp-suspend;
++		};
++
++		opp_od@1176000000 {
++			opp-hz = /bits/ 64 <1176000000>;
++			opp-microvolt = <1160000 885000 1160000>;
++			opp-supported-hw = <0xFF 0x02>;
++		};
++	};
++
+ 	/*
+ 	 * The soc node represents the soc top level view. It is used for IPs
+ 	 * that are not memory mapped in the MPU view or for the MPU itself.
+diff --git a/arch/arm/boot/dts/dra74x.dtsi b/arch/arm/boot/dts/dra74x.dtsi
+index 0c31db3a8919..0a8a5eee5dd0 100644
+--- a/arch/arm/boot/dts/dra74x.dtsi
++++ b/arch/arm/boot/dts/dra74x.dtsi
+@@ -17,6 +17,7 @@
+ 			device_type = "cpu";
+ 			compatible = "arm,cortex-a15";
+ 			reg = <1>;
++			operating-points-v2 = <&cpu0_opp_table>;
+ 		};
+ 	};
+ 
+-- 
+2.7.3
+
