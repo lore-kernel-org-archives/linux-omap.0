@@ -1,64 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCH 2/3] mmc: host: omap_hsmmc: Enable ADMA2
-Date: Wed, 18 May 2016 12:30:28 -0700
-Message-ID: <20160518193028.GT5995@atomide.com>
-References: <1463561115-31798-1-git-send-email-kishon@ti.com>
- <1463561115-31798-3-git-send-email-kishon@ti.com>
- <b66f678a-be74-d5f7-f2ef-93b5c9f29b92@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: 4.5-rc0 regression: GPRS breaks after very short while
+Date: Wed, 18 May 2016 22:12:51 +0200
+Message-ID: <20160518201251.GA22015@amd>
+References: <20160518074924.GA20652@amd>
+ <20160518141624.GA8025@earth>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <b66f678a-be74-d5f7-f2ef-93b5c9f29b92@ti.com>
+In-Reply-To: <20160518141624.GA8025@earth>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, afenkart@gmail.com, ulf.hansson@linaro.org, linux@armlinux.org.uk, rogerq@ti.com, bcousson@baylibre.com, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, nsekhar@ti.com
+To: Sebastian Reichel <sre@kernel.org>
+Cc: pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [160518 03:26]:
-> On 05/18/16 11:45, Kishon Vijay Abraham I wrote:
-> > omap hsmmc host controller has ADMA2 feature. Enable it here
-> > for better read and write throughput. Add a new dt binding
-> > "ti,use_adma" to enable ADMA2.
+Hi!
+
+> On Wed, May 18, 2016 at 09:49:24AM +0200, Pavel Machek wrote:
+> > I was afraid another GSM chip desoldered itself in N900, but no, it
+> > seems to be software this time.
 > > 
-> > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> > ---
-> >  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    1 +
-> >  drivers/mmc/host/omap_hsmmc.c                      |  320 ++++++++++++++++----
-> >  include/linux/platform_data/hsmmc-omap.h           |    1 +
-> >  3 files changed, 256 insertions(+), 66 deletions(-)
+> > In 4.4, GPRS is rock solid, can survive overnight ping.
 > > 
-> > diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> > index 74166a0..eb5ceec2 100644
-> > --- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> > +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> > @@ -28,6 +28,7 @@ specifier is required.
-> >  dma-names: List of DMA request names. These strings correspond
-> >  1:1 with the DMA specifiers listed in dmas. The string naming is
-> >  to be "rx" and "tx" for RX and TX DMA requests, respectively.
-> > +ti,use_adma: enable adma2 feature
+> > In 4.5-rc0 and v4.6, modem fails when I use gprs for like a
+> > minute. Phone is not usable.
 > 
-> Do we have use case when you want to fall back to generic DMA instead of aDMA2?
+> I only send three modem related changes for v4.5:
+> 
+> https://git.kernel.org/cgit/linux/kernel/git/sre/linux-hsi.git/commit/?h=hsi-for-4.5&id=525e1abc6b5a7d8bd9006de1da6e99722305ea2b
+> HSI: omap_ssi: fix handling ida_simple_get result
+> 
+> https://git.kernel.org/cgit/linux/kernel/git/sre/linux-hsi.git/commit/?h=hsi-for-4.5&id=6bf6ded3008a407ccab5ad72eb59ab71b97cc290
+> HSI: omap_ssi_port: fix handling of_get_named_gpio result
+> 
+> https://git.kernel.org/cgit/linux/kernel/git/sre/linux-hsi.git/commit/?h=hsi-for-4.5&id=403c5c0650816375527a6feecfb255d9b494dda3
+> HSI: Remove struct hsi_client private fields from kernel-doc
+> 
+> The last one only changes a comment, so not relevant, the other
+> two fix error handling during initialization and are most likely
+> also not the problem. Can you try to bisect the problem?
 
-Yes my guess is that PM runtime breaks with these currently..
+It will not be fun, but I guess it is doable. But before I start it
+would be good to know -- does it work for you?
 
-> IMHO if the driver supports aDMA2, it is going to use it instead of the
-> generic s/eDMA.
-> What I mean is:
-> the driver implements the aDMA2 support.
-> if the IP has support for aDMA2, then it is going to use it, otherwise it will
-> use the generic DMA.
-
-Ideally the adma support would be a separate loadable module,
-similar how the cppi41dma is a child of the OTG controller.
-
-That way the systems wanting to use adma can just specify it
-in the binding, and adma PM runtime support can be added later
-on.
-
-Of course this won't work if the adma registers are sprinkled
-within the MMC controller registers..
-
-Regards,
-
-Tony
+Thanks and best regards,
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
