@@ -1,77 +1,92 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv2 00/15] Get MUSB PM runtime working again
-Date: Tue, 17 May 2016 17:05:02 -0500
-Message-ID: <20160517220502.GA24963@uda0271908>
-References: <1463014396-4095-1-git-send-email-tony@atomide.com>
- <20160517211541.GA30701@uda0271908>
- <20160517215403.GP5995@atomide.com>
+From: Peter Chen <hzpeterchen@gmail.com>
+Subject: Re: [PATCH v8 13/14] usb: gadget: udc: adapt to OTG core
+Date: Wed, 18 May 2016 11:18:30 +0800
+Message-ID: <20160518031829.GA4244@shlinux2.ap.freescale.net>
+References: <1463133808-10630-1-git-send-email-rogerq@ti.com>
+ <1463133808-10630-14-git-send-email-rogerq@ti.com>
+ <20160516070249.GB24609@shlinux2.ap.freescale.net>
+ <57398451.2060103@ti.com>
+ <20160516092323.GD24609@shlinux2.ap.freescale.net>
+ <57399839.90706@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160517215403.GP5995-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <57399839.90706@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: peter.chen@freescale.com, balbi@kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, May 17, 2016 at 02:54:04PM -0700, Tony Lindgren wrote:
-> * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [160517 14:17]:
-> > Hi Tony,
+On Mon, May 16, 2016 at 12:51:53PM +0300, Roger Quadros wrote:
+> On 16/05/16 12:23, Peter Chen wrote:
+> > On Mon, May 16, 2016 at 11:26:57AM +0300, Roger Quadros wrote:
+> >> Hi,
+> >>
+> >> On 16/05/16 10:02, Peter Chen wrote:
+> >>> On Fri, May 13, 2016 at 01:03:27PM +0300, Roger Quadros wrote:
+> >>>> +
+> >>>> +static int usb_gadget_connect_control(struct usb_gadget *gadget, bool connect)
+> >>>> +{
+> >>>> +	struct usb_udc *udc;
+> >>>> +
+> >>>> +	mutex_lock(&udc_lock);
+> >>>> +	udc = usb_gadget_to_udc(gadget);
+> >>>> +	if (!udc) {
+> >>>> +		dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
+> >>>> +			__func__);
+> >>>> +		mutex_unlock(&udc_lock);
+> >>>> +		return -EINVAL;
+> >>>> +	}
+> >>>> +
+> >>>> +	if (connect) {
+> >>>> +		if (!gadget->connected)
+> >>>> +			usb_gadget_connect(udc->gadget);
+> >>>> +	} else {
+> >>>> +		if (gadget->connected) {
+> >>>> +			usb_gadget_disconnect(udc->gadget);
+> >>>> +			udc->driver->disconnect(udc->gadget);
+> >>>> +		}
+> >>>> +	}
+> >>>> +
+> >>>> +	mutex_unlock(&udc_lock);
+> >>>> +
+> >>>> +	return 0;
+> >>>> +}
+> >>>> +
+> >>>
+> >>> Since this is called for vbus interrupt, why not using
+> >>> usb_udc_vbus_handler directly, and call udc->driver->disconnect
+> >>> at usb_gadget_stop.
+> >>
+> >> We can't assume that this is always called for vbus interrupt so
+> >> I decided not to call usb_udc_vbus_handler.
+> >>
+> >> udc->vbus is really pointless for us. We keep vbus states in our
+> >> state machine and leave udc->vbus as ture always.
+> >>
+> >> Why do you want to move udc->driver->disconnect() to stop?
+> >> If USB controller disconnected from bus then the gadget driver
+> >> must be notified about the disconnect immediately. The controller
+> >> may or may not be stopped by the core.
+> >>
 > > 
-> > On Wed, May 11, 2016 at 05:53:01PM -0700, Tony Lindgren wrote:
-> > > Hi all,
-> > > 
-> > > Here's the whole series reposted with a bunch of additional changes.
-> > > It seems to now properly work with with multiple phy cable status
-> > > events, and should work for Ivaylo on n900 too.
-> > > 
-> > > Please re-review and re-test.
-> > 
-> > While trying to test this patch set, I just found that commit 56f487c (PM
-> > / Runtime: Update last_busy in rpm_resume) breaks dsps glue (TI am335x
-> > device). Do you have an am335x board with has otg port on it to take a
-> > look at this problem? The only board I know of which has an otg port is
-> > TI am335x GP evm.
+> > Then, would you give some comments when this API will be used?
+> > I was assumed it is only used for drd state machine.
 > 
-> Hmm sure I can take a lok. Chances are that just doing a change for
-
-Ok, thanks.
-
-> s/pm_runtime_put/pm_runtime_put_sync/ will fix it. I'm wondering why
-> it breaks though as dsps glue does not use autosuspend? It could also
-
-I am not familiar with pm-runtime framework, but I thought dsps glue
-does use autosuspend.
-
-> be a case where the parent and child PM runtime use counts get out
-> of sync?
+> drd_state machine didn't even need this API in the first place :).
+> You guys wanted me to separate out start/stop and connect/disconnect for full OTG case.
+> Won't full OTG state machine want to use this API? If not what would it use?
 > 
-> BTW, I did give my series a quick try here on j5eco-evm and that behaved
-> for peripheral and host enumeration. It's pretty much the same setup as
-> on am335x I believe.
 
-Does j5eco-evm have a otg port? The case which is broken on mine is
+Oh, I meant only drd and fully otg state machine needs it. I am
+wondering if we need have a new API to do it. Two questions:
 
-- boot the board;
-- modprobe g-zero;
-- plug in a usb deivce with A-cable to the otg port;
+- Except for vbus interrupt, any chances this API will be used at
+current logic?
+- When this API is called but without a coming gadget->stop?
 
-It generates drvvbus interrupt (0x100) and connect interrupt (0x10), but
-then session bit is gone and vbus has no power, so enum failed.
+-- 
 
-I tried to enable some dynamic-debug log, but was unable to see any
-glue. I will try to enable musb reg access log tomorrow to see if I can
-find anything.
-
-Regards,
--Bin.
-
-> 
-> Regards,
-> 
-> Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best Regards,
+Peter Chen
