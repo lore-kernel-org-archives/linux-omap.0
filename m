@@ -1,39 +1,30 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: [RFC PATCH 1/3] asm-generic: io: Add exec versions of ioremap
-Date: Wed, 18 May 2016 21:57:59 +0100
-Message-ID: <20160518205758.GY5783@n2100.arm.linux.org.uk>
-References: <1462830111-28172-1-git-send-email-d-gerlach@ti.com>
- <573C7844.5030107@ti.com>
- <20160518175102.GX5783@n2100.arm.linux.org.uk>
- <3861017.ZJOlWYvEFT@wuerfel>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 05/14] mfd: twl6040: Register child device for
+ twl6040-pdmclk
+Date: Wed, 18 May 2016 18:30:30 -0500
+Message-ID: <20160518233030.GA9813@rob-hp-laptop>
+References: <1463579196-5484-1-git-send-email-peter.ujfalusi@ti.com>
+ <1463579196-5484-6-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-clk-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <3861017.ZJOlWYvEFT@wuerfel>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Dave Gerlach <d-gerlach@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Russ Dill <russ.dill@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Shawn Guo <shawnguo@kernel.org>, Tony Lindgren <tony@atomide.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Nishanth Menon <nm@ti.com>
+In-Reply-To: <1463579196-5484-6-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: mturquette@baylibre.com, sboyd@codeaurora.org, tony@atomide.com, lee.jones@linaro.org, lgirdwood@gmail.com, broonie@kernel.org, t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, May 18, 2016 at 10:25:03PM +0200, Arnd Bergmann wrote:
-> The ARM version of ioremap_exec() that gets added in this patch is cached
-> (like memremap()), but then the asm-generic version is not? This is
-> even more confusing, it should at least do roughly the same thing across
-> architectures.
+On Wed, May 18, 2016 at 04:46:27PM +0300, Peter Ujfalusi wrote:
+> The McPDM in OMAP4/5 is using the pdmclk from twl6040 as functional clock.
+> The twl6040-pdmclk driver provides a clock which can be used to make sure
+> that the pdmclk is active when the McPDM is in use.
 > 
-> There should also be some documentation about what the expected behavior is, e.g.:
-> 
-> - is memremap_exec() by default cached or not? (I assume it would
->   be like memremap())
-> - If we have an interface that does explicit uncached executable mapping,
->   what about architectures on which this is not possible? Should they
->   fall back to cached or non-executable, or cause a link error?  
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+>  Documentation/devicetree/bindings/mfd/twl6040.txt | 1 +
+>  drivers/mfd/twl6040.c                             | 5 +++++
+>  include/linux/mfd/twl6040.h                       | 2 +-
+>  3 files changed, 7 insertions(+), 1 deletion(-)
 
-Another important point is whether atomic instructions / kernel locks
-can be located within the mapped memory.
-
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Acked-by: Rob Herring <robh@kernel.org>
