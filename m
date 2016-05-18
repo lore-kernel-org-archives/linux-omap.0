@@ -1,120 +1,41 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] support for AD5820 camera auto-focus coil
-Date: Wed, 18 May 2016 10:30:48 +0200
-Message-ID: <20160518083048.GA30870@amd>
-References: <20160517181927.GA28741@amd>
- <20160517183340.GA10358@gmail.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [RFC PATCH 0/3] dra7/omap4/omap5: Enable ADMA2
+Date: Wed, 18 May 2016 14:15:12 +0530
+Message-ID: <1463561115-31798-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160517183340.GA10358@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Marcus Folkesson <marcus.folkesson@gmail.com>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com, sakari.ailus@iki.fi
+To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, afenkart@gmail.com, ulf.hansson@linaro.org, linux@armlinux.org.uk, tony@atomide.com
+Cc: rogerq@ti.com, peter.ujfalusi@ti.com, bcousson@baylibre.com, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+Add ADMA2 support in omap hsmmc driver. It's not added as
+a dma engine since ADMA2 is only implemented in HSMMC.
 
-...
-> Use module_i2c_driver() instead.
+Though this doesn't improve the throughput with high speed
+cards, around 25% improvement is seen with HS200 card.
 
-Thanks for all the comments, I've fixed it up like this, will post new
-version soon.
+HS200 support is not yet added in OMAP HSMMC since
+it has dependency with IODelay driver which is not yet
+upstreamed.
 
-Best regards,
-								Pavel
+Tested MMC1 and MMC2 in DRA7 (dra72-evm, dra7-evm) and OMAP5
+(omap5-uevm).
+Also tested having rootfs in MMC1 in DRA7, OMAP5, OMAP4 and OMAP3.
 
-commit 97a793fb20be29e7ed217c007e8bf857f9854968
-Author: Pavel <pavel@ucw.cz>
-Date:   Wed May 18 10:22:06 2016 +0200
+Kishon Vijay Abraham I (3):
+  mmc: host: omap_hsmmc: remove *use_dma* member
+  mmc: host: omap_hsmmc: Enable ADMA2
+  ARM: dts: dra7/omap4/omap5: Enable ADMA2
 
-    Cleanups, as suggested by Marcus Folkesson
-
-diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
-index b71cc11..7725829 100644
---- a/drivers/media/i2c/ad5820.c
-+++ b/drivers/media/i2c/ad5820.c
-@@ -147,7 +147,6 @@ static int ad5820_set_ctrl(struct v4l2_ctrl *ctrl)
- 	struct ad5820_device *coil =
- 		container_of(ctrl->handler, struct ad5820_device, ctrls);
- 	u32 code;
--	int r = 0;
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_FOCUS_ABSOLUTE:
-@@ -165,7 +164,7 @@ static int ad5820_set_ctrl(struct v4l2_ctrl *ctrl)
- 		break;
- 	}
- 
--	return r;
-+	return 0;
- }
- 
- static const struct v4l2_ctrl_ops ad5820_ctrl_ops = {
-@@ -245,8 +244,6 @@ static int ad5820_init_controls(struct ad5820_device *coil)
-  */
- static int ad5820_registered(struct v4l2_subdev *subdev)
- {
--	static const int CHECK_VALUE = 0x3FF0;
--
- 	struct ad5820_device *coil = to_ad5820_device(subdev);
- 	struct i2c_client *client = v4l2_get_subdevdata(subdev);
- 
-@@ -364,16 +361,19 @@ static int ad5820_probe(struct i2c_client *client,
- 	strcpy(coil->subdev.name, "ad5820 focus");
- 
- 	ret = media_entity_pads_init(&coil->subdev.entity, 0, NULL);
--	if (ret < 0) {
--		kfree(coil);
--		return ret;
--	}
-+	if (ret < 0)
-+		goto free;
- 
- 	ret = v4l2_async_register_subdev(&coil->subdev);
- 	if (ret < 0)
--		kfree(coil);
-+		goto cleanup;
- 
- 	return ret;
-+cleanup:
-+	media_entity_cleanup(&coil->subdev.entity);
-+free:
-+	kfree(coil);
-+	return ret;
- }
- 
- static int __exit ad5820_remove(struct i2c_client *client)
-@@ -409,26 +409,7 @@ static struct i2c_driver ad5820_i2c_driver = {
- 	.id_table	= ad5820_id_table,
- };
- 
--static int __init ad5820_init(void)
--{
--	int rval;
--
--	rval = i2c_add_driver(&ad5820_i2c_driver);
--	if (rval)
--		printk(KERN_INFO "%s: failed registering " AD5820_NAME "\n",
--		       __func__);
--
--	return rval;
--}
--
--static void __exit ad5820_exit(void)
--{
--	i2c_del_driver(&ad5820_i2c_driver);
--}
--
--
--module_init(ad5820_init);
--module_exit(ad5820_exit);
-+module_i2c_driver(ad5820_i2c_driver);
- 
- MODULE_AUTHOR("Tuukka Toivonen");
- MODULE_DESCRIPTION("AD5820 camera lens driver");
+ .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    1 +
+ arch/arm/boot/dts/dra7.dtsi                        |    4 +
+ arch/arm/boot/dts/omap4.dtsi                       |    2 +
+ arch/arm/boot/dts/omap5.dtsi                       |    4 +
+ drivers/mmc/host/omap_hsmmc.c                      |  332 +++++++++++++++-----
+ include/linux/platform_data/hsmmc-omap.h           |    1 +
+ 6 files changed, 269 insertions(+), 75 deletions(-)
 
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+1.7.9.5
