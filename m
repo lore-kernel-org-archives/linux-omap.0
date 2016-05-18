@@ -1,40 +1,61 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: [RFC PATCH 1/3] asm-generic: io: Add exec versions of ioremap
-Date: Wed, 18 May 2016 18:51:02 +0100
-Message-ID: <20160518175102.GX5783@n2100.arm.linux.org.uk>
-References: <1462830111-28172-1-git-send-email-d-gerlach@ti.com>
- <1462830111-28172-2-git-send-email-d-gerlach@ti.com>
- <20160512163759.GW5783@n2100.arm.linux.org.uk>
- <573C7844.5030107@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCHv2 00/15] Get MUSB PM runtime working again
+Date: Wed, 18 May 2016 11:07:37 -0700
+Message-ID: <20160518180737.GQ5995@atomide.com>
+References: <1463014396-4095-1-git-send-email-tony@atomide.com>
+ <20160517211541.GA30701@uda0271908>
+ <20160517215403.GP5995@atomide.com>
+ <20160517220502.GA24963@uda0271908>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <573C7844.5030107@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Russ Dill <russ.dill@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Arnd Bergmann <arnd@arndb.de>, Shawn Guo <shawnguo@kernel.org>, Tony Lindgren <tony@atomide.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Nishanth Menon <nm@ti.com>
+In-Reply-To: <20160517220502.GA24963@uda0271908>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, May 18, 2016 at 09:12:20AM -0500, Dave Gerlach wrote:
-> Ok thank you for the pointer. I agree, the memremap API looks like a better
-> fit for this. I think it likely makes the most sense to still add these
-> ioremap_exec and ioremap_exec_nocache and then call them through the
-> memremap API based on new flags. This will fit into the current use model
-> for memremap as it currently uses all of the other ioremap calls internally,
-> and doing it how I just described will let this code evolve along with
-> memremap.
+* Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [160517 15:06]:
+> On Tue, May 17, 2016 at 02:54:04PM -0700, Tony Lindgren wrote:
+> 
+> > s/pm_runtime_put/pm_runtime_put_sync/ will fix it. I'm wondering why
+> > it breaks though as dsps glue does not use autosuspend? It could also
+> 
+> I am not familiar with pm-runtime framework, but I thought dsps glue
+> does use autosuspend.
+> 
+> > be a case where the parent and child PM runtime use counts get out
+> > of sync?
+> > 
+> > BTW, I did give my series a quick try here on j5eco-evm and that behaved
+> > for peripheral and host enumeration. It's pretty much the same setup as
+> > on am335x I believe.
+> 
+> Does j5eco-evm have a otg port?
 
-I would _really_ prefer not to do that.  Why?  Because IO memory does
-not have the required properties to be executable.  IO memory is normally
-memory which has side effects - and by side effects, I mean reading it
-can provoke hardware to perform some action.  You don't want to be
-executing from such memory.
+Yes it has a mini-AB port and usb0_id is wired.
 
-So, in my mind, ioremap_exec makes absolutely no sense, and having it
-gives people a new interface to abuse - and abuse they will.
+> The case which is broken on mine is
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+> - boot the board;
+> - modprobe g-zero;
+> - plug in a usb deivce with A-cable to the otg port;
+> 
+> It generates drvvbus interrupt (0x100) and connect interrupt (0x10), but
+> then session bit is gone and vbus has no power, so enum failed.
+
+Is this with or without the $subject series?
+
+> I tried to enable some dynamic-debug log, but was unable to see any
+> glue. I will try to enable musb reg access log tomorrow to see if I can
+> find anything.
+
+OK, I'm looking at implementing proper PM runtime for dsps.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
