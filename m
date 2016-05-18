@@ -1,7 +1,7 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 7/8] ARM: dts: dra7: Move cpus node to parent dts for dra74x and dra72x
-Date: Wed, 18 May 2016 18:36:32 -0500
-Message-ID: <282afe5e02c165dfd6d5de7d7480a8854cfe16a8.1463606963.git.d-gerlach@ti.com>
+Subject: [PATCH 2/8] ARM: dts: am33xx: Move to operating-points-v2 table and ti-cpufreq driver
+Date: Wed, 18 May 2016 18:36:27 -0500
+Message-ID: <f30e0313514cdbb9c3b0a83bbb96f05f2e179775.1463606963.git.d-gerlach@ti.com>
 References: <cover.1463606963.git.d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,117 +12,127 @@ To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@v
 Cc: Viresh Kumar <viresh.kumar@linaro.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Nishanth Menon <nm@ti.com>, Yegor Yefremov <yegorslists@googlemail.com>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Nearly all of the information in the cpus node, especially for cpu0, is
-the same between dra74x and dra72x so move the common information to
-the parent dra7.dtsi to avoid duplication of data.
+Drop the operating-points table present in am33xx.dtsi and add an
+operating-points-v2 table with all OPPs available for all silicon
+revisions along with necessary data for use by ti-cpufreq to selectively
+enable the appropriate OPPs at runtime. Also, drop the voltage-tolerance
+value and provide voltages for each OPP using the <target min max>
+format instead.
+
+Information from AM335x Data Manual, SPRS717i, Revised December 2015,
+Table 5-7.
 
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi   | 27 +++++++++++++++++++++++++++
- arch/arm/boot/dts/dra72x.dtsi | 16 ----------------
- arch/arm/boot/dts/dra74x.dtsi | 24 ------------------------
- 3 files changed, 27 insertions(+), 40 deletions(-)
+ arch/arm/boot/dts/am33xx.dtsi | 88 ++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 75 insertions(+), 13 deletions(-)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 406f6ff21d7f..104b62657163 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -73,6 +73,33 @@
- 		interrupt-parent = <&gic>;
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 52be48bbd2dd..df1106f89ff2 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -45,19 +45,9 @@
+ 			device_type = "cpu";
+ 			reg = <0>;
+ 
+-			/*
+-			 * To consider voltage drop between PMIC and SoC,
+-			 * tolerance value is reduced to 2% from 4% and
+-			 * voltage value is increased as a precaution.
+-			 */
+-			operating-points = <
+-				/* kHz    uV */
+-				720000  1285000
+-				600000  1225000
+-				500000  1125000
+-				275000  1125000
+-			>;
+-			voltage-tolerance = <2>; /* 2 percentage */
++			operating-points-v2 = <&cpu0_opp_table>;
++			ti,syscon-efuse = <&scm_conf 0x7fc 0x1fff 0>;
++			ti,syscon-rev = <&scm_conf 0x600>;
+ 
+ 			clocks = <&dpll_mpu_ck>;
+ 			clock-names = "cpu";
+@@ -66,6 +56,78 @@
+ 		};
  	};
  
-+	cpus {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
++	cpu0_opp_table: opp_table0 {
++		compatible = "operating-points-v2";
 +
-+		cpu0: cpu@0 {
-+			device_type = "cpu";
-+			compatible = "arm,cortex-a15";
-+			reg = <0>;
++		/*
++		 * The three following nodes are marked with opp-suspend
++		 * because the can not be enabled simultaneously on a
++		 * single SoC.
++		 */
++		opp50@300000000 {
++			opp-hz = /bits/ 64 <300000000>;
++			opp-microvolt = <950000 931000 969000>;
++			opp-supported-hw = <0x06 0x0010>;
++			opp-suspend;
++		};
 +
-+			operating-points = <
-+				/* kHz    uV */
-+				1000000	1060000
-+				1176000	1160000
-+				>;
++		opp100@275000000 {
++			opp-hz = /bits/ 64 <275000000>;
++			opp-microvolt = <1100000 1078000 1122000>;
++			opp-supported-hw = <0x01 0x00FF>;
++			opp-suspend;
++		};
 +
-+			clocks = <&dpll_mpu_ck>;
-+			clock-names = "cpu";
++		opp100@300000000 {
++			opp-hz = /bits/ 64 <300000000>;
++			opp-microvolt = <1100000 1078000 1122000>;
++			opp-supported-hw = <0x06 0x0020>;
++			opp-suspend;
++		};
 +
-+			clock-latency = <300000>; /* From omap-cpufreq driver */
++		opp100@500000000 {
++			opp-hz = /bits/ 64 <500000000>;
++			opp-microvolt = <1100000 1078000 1122000>;
++			opp-supported-hw = <0x01 0xFFFF>;
++		};
 +
-+			/* cooling options */
-+			cooling-min-level = <0>;
-+			cooling-max-level = <2>;
-+			#cooling-cells = <2>; /* min followed by max */
++		opp100@600000000 {
++			opp-hz = /bits/ 64 <600000000>;
++			opp-microvolt = <1100000 1078000 1122000>;
++			opp-supported-hw = <0x06 0x0040>;
++		};
++
++		opp120@600000000 {
++			opp-hz = /bits/ 64 <600000000>;
++			opp-microvolt = <1200000 1176000 1224000>;
++			opp-supported-hw = <0x01 0xFFFF>;
++		};
++
++		opp120@720000000 {
++			opp-hz = /bits/ 64 <720000000>;
++			opp-microvolt = <1200000 1176000 1224000>;
++			opp-supported-hw = <0x06 0x0080>;
++		};
++
++		oppturbo@720000000 {
++			opp-hz = /bits/ 64 <720000000>;
++			opp-microvolt = <1260000 1234800 1285200>;
++			opp-supported-hw = <0x01 0xFFFF>;
++		};
++
++		oppturbo@800000000 {
++			opp-hz = /bits/ 64 <800000000>;
++			opp-microvolt = <1260000 1234800 1285200>;
++			opp-supported-hw = <0x06 0x0100>;
++		};
++
++		oppnitro@1000000000 {
++			opp-hz = /bits/ 64 <1000000000>;
++			opp-microvolt = <1325000 1298500 1351500>;
++			opp-supported-hw = <0x04 0x0200>;
 +		};
 +	};
 +
- 	/*
- 	 * The soc node represents the soc top level view. It is used for IPs
- 	 * that are not memory mapped in the MPU view or for the MPU itself.
-diff --git a/arch/arm/boot/dts/dra72x.dtsi b/arch/arm/boot/dts/dra72x.dtsi
-index 70a217050a4c..67107605fb4c 100644
---- a/arch/arm/boot/dts/dra72x.dtsi
-+++ b/arch/arm/boot/dts/dra72x.dtsi
-@@ -12,22 +12,6 @@
- / {
- 	compatible = "ti,dra722", "ti,dra72", "ti,dra7";
- 
--	cpus {
--		#address-cells = <1>;
--		#size-cells = <0>;
--
--		cpu0: cpu@0 {
--			device_type = "cpu";
--			compatible = "arm,cortex-a15";
--			reg = <0>;
--
--			/* cooling options */
--			cooling-min-level = <0>;
--			cooling-max-level = <2>;
--			#cooling-cells = <2>; /* min followed by max */
--		};
--	};
--
  	pmu {
- 		compatible = "arm,cortex-a15-pmu";
- 		interrupt-parent = <&wakeupgen>;
-diff --git a/arch/arm/boot/dts/dra74x.dtsi b/arch/arm/boot/dts/dra74x.dtsi
-index 4220eeffc65a..0c31db3a8919 100644
---- a/arch/arm/boot/dts/dra74x.dtsi
-+++ b/arch/arm/boot/dts/dra74x.dtsi
-@@ -13,30 +13,6 @@
- 	compatible = "ti,dra742", "ti,dra74", "ti,dra7";
- 
- 	cpus {
--		#address-cells = <1>;
--		#size-cells = <0>;
--
--		cpu0: cpu@0 {
--			device_type = "cpu";
--			compatible = "arm,cortex-a15";
--			reg = <0>;
--
--			operating-points = <
--				/* kHz    uV */
--				1000000	1060000
--				1176000	1160000
--				>;
--
--			clocks = <&dpll_mpu_ck>;
--			clock-names = "cpu";
--
--			clock-latency = <300000>; /* From omap-cpufreq driver */
--
--			/* cooling options */
--			cooling-min-level = <0>;
--			cooling-max-level = <2>;
--			#cooling-cells = <2>; /* min followed by max */
--		};
- 		cpu@1 {
- 			device_type = "cpu";
- 			compatible = "arm,cortex-a15";
+ 		compatible = "arm,cortex-a8-pmu";
+ 		interrupts = <3>;
 -- 
 2.7.3
 
