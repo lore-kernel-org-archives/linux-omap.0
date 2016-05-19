@@ -1,59 +1,54 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [RFC PATCH 2/2] ARM: dts: am335x-icev2: Add rotary-encoder node
-Date: Thu, 19 May 2016 14:34:01 +0530
-Message-ID: <1463648641-6931-3-git-send-email-vigneshr@ti.com>
-References: <1463648641-6931-1-git-send-email-vigneshr@ti.com>
+From: Martinez Kristofer <kristofer.s.martinez@gmail.com>
+Subject: Re: [PATCH 2/2] ARM: dts: am335x-icev2: Add DT node for TI PCA9536
+Date: Thu, 19 May 2016 17:58:36 +0800
+Message-ID: <CABtop_EjYF+8i4=GTLWyKGO3CMm9o3Qgv104ZrOJYyExAwDuoA@mail.gmail.com>
+References: <1463640450-16762-1-git-send-email-vigneshr@ti.com> <1463640450-16762-3-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1463648641-6931-1-git-send-email-vigneshr@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, Moritz Fischer <moritz.fischer@ettus.com>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Vignesh R <vigneshr@ti.com>, Arnd Bergmann <arnd@arndb.de>, Jonathan Corbet <corbet@lwn.net>, Sylvain Rochet <sylvain.rochet@finsecur.com>, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-doc@vger.kernel.org, Johan Hovold <johan@kernel.org>, Timo Teras <timo.teras@iki.fi>, Masanari Iida <standby24x7@gmail.com>, devicetree@vger.kernel.org, S Twiss <stwiss.opensource@diasemi.com>, Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>, Uwe Kleine-Konig <u.kleine-koenig@pengutronix.de>, Clifton Barnes <clifton.a.barnes@gmail.com>, Geert Uytterhoeven <geert@linux-m68k.org>, linux-omap@vger.kernel.org, Guido Martinez <guido@vanguardiasur.com.ar>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1463640450-16762-3-git-send-email-vigneshr@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Pawel Moll <pawel.moll@arm.com>, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-AM335x ICE board has a rotary-encoder connected to PCA9536 I2C GPIO
-expander. Add DT entry for the same.
+On Thu, May 19, 2016 at 2:47 PM, Vignesh R <vigneshr@ti.com> wrote:
+> AM335x ICE board has a TI PCA9536 chip connected to I2C0 at address
+> 0x41. Add DT entry for the same.
+>
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> ---
+>  arch/arm/boot/dts/am335x-icev2.dts | 7 +++++++
+>  1 file changed, 7 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/am335x-icev2.dts b/arch/arm/boot/dts/am335x-icev2.dts
+> index e271013e78a6..7d8b8fefdf08 100644
+> --- a/arch/arm/boot/dts/am335x-icev2.dts
+> +++ b/arch/arm/boot/dts/am335x-icev2.dts
+> @@ -206,6 +206,13 @@
+>                 gpio-controller;
+>                 #gpio-cells = <2>;
+>         };
+> +
+> +       pca9536: gpio@41 {
+> +               compatible = "ti,pca9536";
+> +               reg = <0x41>;
+> +               gpio-controller;
+> +               #gpio-cells = <2>;
+> +       };
+>  };
+>
+>  #include "tps65910.dtsi"
 
-Signed-off-by: Vignesh R <vigneshr@ti.com>
----
+Acked-by: Kristofer Martinez <Kristofer.S.Martinez@gmail.com>
 
-depends on patches to Add TI PCA9536 node posted to linux-gpio:
-http://www.spinics.net/lists/arm-kernel/msg505194.html
+M.K.
 
- arch/arm/boot/dts/am335x-icev2.dts | 11 +++++++++++
- 1 file changed, 11 insertions(+)
-
-diff --git a/arch/arm/boot/dts/am335x-icev2.dts b/arch/arm/boot/dts/am335x-icev2.dts
-index 7d8b8fefdf08..672dccbf203d 100644
---- a/arch/arm/boot/dts/am335x-icev2.dts
-+++ b/arch/arm/boot/dts/am335x-icev2.dts
-@@ -139,6 +139,17 @@
- 			default-state = "off";
- 		};
- 	};
-+
-+	rotary-in0 {
-+		compatible = "rotary-encoder";
-+		gpios = <&pca9536 3 GPIO_ACTIVE_HIGH>,
-+			<&pca9536 2 GPIO_ACTIVE_HIGH>,
-+			<&pca9536 1 GPIO_ACTIVE_HIGH>,
-+			<&pca9536 0 GPIO_ACTIVE_HIGH>;
-+		linux,axis = <0>; /* ABS_X */
-+		rotary-encoder,steps = <10>;
-+		rotary-encoder,absolute-encoder;
-+	};
- };
- 
- &am33xx_pinmux {
--- 
-2.8.2
+> --
+> 2.8.2
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
