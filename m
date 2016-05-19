@@ -1,131 +1,246 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: Regression: next-20160518: Clk? on BeagleBoard-X15
-Date: Thu, 19 May 2016 20:35:29 +0300
-Message-ID: <573DF961.4070705@ti.com>
-References: <573DDFE6.8010209@ti.com> <20160519165719.GW5995@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCHv2 00/15] Get MUSB PM runtime working again
+Date: Thu, 19 May 2016 10:50:58 -0700
+Message-ID: <20160519175057.GX5995@atomide.com>
+References: <1463014396-4095-1-git-send-email-tony@atomide.com>
+ <20160517211541.GA30701@uda0271908>
+ <20160517215403.GP5995@atomide.com>
+ <20160517220502.GA24963@uda0271908>
+ <20160518180737.GQ5995@atomide.com>
+ <20160518181020.GB7522@uda0271908>
+ <20160519152601.GV5995@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8203202971330313068=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160519165719.GW5995@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Rhyland Klein <rklein@nvidia.com>, Rob Herring <robh@kernel.org>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160519152601.GV5995-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---===============8203202971330313068==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="eqkpjxLErPOENM0gJB1h6874JXrjcIJmP"
+* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [160519 08:28]:
+> +static void dsps_musb_set_power(struct musb *musb, bool enabled)
+> +{
+> +	struct dsps_glue *glue = dev_get_drvdata(musb->controller->parent);
+> +	int err;
+> +
+> +	if (enabled == glue->powered) {
+> +		dev_warn(musb->controller, "Power already %i\n",
+> +			 glue->powered);
+> +		return;
+> +	}
+> +
+> +	if (glue->powered) {
 
---eqkpjxLErPOENM0gJB1h6874JXrjcIJmP
-Content-Type: multipart/mixed; boundary="6gQDmo2SNI1mAVjFfMOStMQfAOJCKocmA"
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>,
- Rhyland Klein <rklein@nvidia.com>, Rob Herring <robh@kernel.org>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap <linux-omap@vger.kernel.org>,
- linux-arm-kernel@lists.infradead.org
-Message-ID: <573DF961.4070705@ti.com>
-Subject: Re: Regression: next-20160518: Clk? on BeagleBoard-X15
-References: <573DDFE6.8010209@ti.com> <20160519165719.GW5995@atomide.com>
-In-Reply-To: <20160519165719.GW5995@atomide.com>
+Heh this should be enabled not glue->powered here :) And enumeration
+fails in peripheral mode if cable is connected on start up, that
+needs more handling for the interrupt. Updated patch below.
 
---6gQDmo2SNI1mAVjFfMOStMQfAOJCKocmA
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Then this set_power should probably become something more generic
+like:
 
-On 19/05/16 19:57, Tony Lindgren wrote:
-> * Nishanth Menon <nm@ti.com> [160519 08:48]:
->> I have'nt bisected yet, but the platform seems to have booted on
->> next-20160517
->> https://github.com/nmenon/kernel-test-logs/blob/next-20160517/omap2plu=
-s_defconfig/am57xx-evm.txt
->>
->> https://github.com/nmenon/kernel-test-logs/blob/next-20160518/omap2plu=
-s_defconfig/am57xx-evm.txt
->=20
-> Seems to be commit ac78f9bdcf38 ("drivers/of: Fix depth when
-> unflattening devicetree").
->=20
-> Rob, you need to start playing golf or something between -rc6 and
-> the end of the merge window or something :)
+void musb_set_cable_connected(struct musb *musb, bool connected);
 
-I'm not sure if it's related, but I'm seeing this on omap4 panda, next-20=
-160519:
+That way the glue layers can call it after making sense of the
+cable state.
 
-[    0.000000] Unable to handle kernel paging request at virtual address =
-af6ec820
-=2E..
-[    0.000000] [<c071ced4>] (unflatten_dt_nodes) from [<c071d5a4>] (__unf=
-latten_device_tree+0xe8/0x254)
-[    0.000000]  r10:c0de3140 r9:ef6b44a4 r8:c15b77c0 r7:00000000 r6:cffee=
-000 r5:00038358
-[    0.000000]  r4:c0de00c0
-[    0.000000] [<c071d4bc>] (__unflatten_device_tree) from [<c0c4a050>] (=
-unflatten_device_tree+0x28/0x40)
-[    0.000000]  r9:0000000c r8:c0d07ca8 r7:c159f4f4 r6:c0d520f8 r5:c0c598=
-4c r4:c0c491a0
-[    0.000000] [<c0c4a028>] (unflatten_device_tree) from [<c0c04754>] (se=
-tup_arch+0x770/0xbb4)
-[    0.000000]  r5:c0c5984c r4:c0d02908
-[    0.000000] [<c0c03fe4>] (setup_arch) from [<c0c009c8>] (start_kernel+=
-0x50/0x3c4)
-[    0.000000]  r10:00000000 r9:412fc09a r8:8000406a r7:c0d02900 r6:c0c5b=
-a44 r5:c0d029ac
-[    0.000000]  r4:c0de3214
-[    0.000000] [<c0c00978>] (start_kernel) from [<8000807c>] (0x8000807c)=
+Tony
 
-[    0.000000]  r10:00000000 r9:412fc09a r8:8000406a r7:c0d07de8 r6:c0c5b=
-a44 r5:c0d029ac
-[    0.000000]  r4:c0de3214
+8< ---------------
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Date: Thu, 19 May 2016 09:53:26 -0700
+Subject: [PATCH] usb: musb: Add PM runtime support for dsps glue for PIO mode
 
- Tomi
+This gets basic PM runtime working for dsps glue layer uwing
+PIO mode.
 
+For now, we must keep polling enabled as typically at least
+one of the controllers has ID pin tied down. Later on we can
+add support for remuxing USB data lines to GPIO mode to leave
+out the polling where possible.
 
---6gQDmo2SNI1mAVjFfMOStMQfAOJCKocmA--
+Note that this shuts down the device currently only with
+CONFIG_MUSB_PIO_ONLY=y as cppi41 is a child of musb_am335x.c
+and needs PM runtime fixed up first.
 
---eqkpjxLErPOENM0gJB1h6874JXrjcIJmP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJXPflhAAoJEPo9qoy8lh71R2IQAJmSJ0hEh3Q19AdgHulfBX/+
-/yRUtVDZDDuVTKEoquzUX1DW30XM4WJyoU4YG96FW5vBagGONElFCdFopBHOsA2p
-9qFkwo4075UiW6AJqZuRYm4mEPGAs+L+NdSpac1G6HR/Z0TA27FgIupiqrW+2YZo
-ojTT/a0tUxWtnSgvkZOrTqC5CHY3HQCfLPuyj0O00NZ7a+1vnrFdnqTmPr3B+3yz
-4/ScmvhO60rKSK85srtLYPUYjEh1KT8Uk7BpdFY/DQaWSkmDsfw4I5mJ8aFPlRe2
-u8YcNSEHOu0TQJ3VNMsluvXke0XcxC4nz0Tw6zOuVmoSDkTVkc103otrHed0+exK
-yGSyCAol4CUtI6McMuJ+oe3n2WYaviuvlU6dgBBFfxGTrpoZUELflEMIWy2tk+8G
-JcMg5DdSzjDsBKshkfq6p1vxSj59drbE9zHkvoy/wOFaOYLNkdgzzK2QQr4zhvgD
-ZRjGYpmrAYXyqgDxPg2jlA8grKajjLM5nchSTqCqhS6sMbkT7JhXCsGCAa8U+FEg
-sLt07rp2pelugzjz2+Fq0AiJGJ7OsZlHOcmm66u3ptKPp8xPUbX/gEPqlkqgPhao
-xqCHTbjvcNHP5RvQB8LeCwBw0ekwx5/5aky5oAEaFQYlnlo2adhfoiWdzhYpFNkS
-h+MiHGOI7RegYAQ4Yw6n
-=g3Yj
------END PGP SIGNATURE-----
-
---eqkpjxLErPOENM0gJB1h6874JXrjcIJmP--
-
-
---===============8203202971330313068==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============8203202971330313068==--
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -103,6 +103,7 @@ struct dsps_musb_wrapper {
+ 	u32		usb_mask;
+ 	u32		usb_bitmap;
+ 	unsigned	drvvbus:5;
++	unsigned	connected:5;
+ 
+ 	unsigned	txep_shift:5;
+ 	u32		txep_mask;
+@@ -144,6 +145,7 @@ struct dsps_glue {
+ 	const struct dsps_musb_wrapper *wrp; /* wrapper register offsets */
+ 	struct timer_list timer;	/* otg_workaround timer */
+ 	unsigned long last_timer;    /* last timer data for each instance */
++	bool powered;
+ 	bool sw_babble_enabled;
+ 
+ 	struct dsps_context context;
+@@ -250,6 +252,35 @@ static void dsps_musb_disable(struct musb *musb)
+ 	dsps_writeb(musb->mregs, MUSB_DEVCTL, 0);
+ }
+ 
++static void dsps_musb_set_power(struct musb *musb, bool enable)
++{
++	struct dsps_glue *glue = dev_get_drvdata(musb->controller->parent);
++	int err;
++
++	if (enable == glue->powered) {
++		dev_warn(musb->controller, "Power already %i\n",
++			 glue->powered);
++		return;
++	}
++
++	if (enable) {
++		dev_dbg(musb->controller, "Enabling power\n");
++		err = pm_runtime_get_sync(musb->controller);
++		if (err < 0) {
++			dev_err(musb->controller,
++				"Could not pm_runtime_get: %i\n",
++				err);
++			return;
++		}
++		glue->powered = true;
++	} else {
++		dev_dbg(musb->controller, "Disabling power\n");
++		pm_runtime_mark_last_busy(musb->controller);
++		pm_runtime_put_autosuspend(musb->controller);
++		glue->powered = false;
++	}
++}
++
+ static void otg_timer(unsigned long _musb)
+ {
+ 	struct musb *musb = (void *)_musb;
+@@ -260,6 +291,11 @@ static void otg_timer(unsigned long _musb)
+ 	u8 devctl;
+ 	unsigned long flags;
+ 	int skip_session = 0;
++	int err;
++
++	err = pm_runtime_get_sync(dev);
++	if (err < 0)
++		dev_err(dev, "Poll could not pm_runtime_get: %i\n", err);
+ 
+ 	/*
+ 	 * We poll because DSPS IP's won't expose several OTG-critical
+@@ -287,6 +323,7 @@ static void otg_timer(unsigned long _musb)
+ 		}
+ 		if (!(devctl & MUSB_DEVCTL_SESSION) && !skip_session)
+ 			dsps_writeb(mregs, MUSB_DEVCTL, MUSB_DEVCTL_SESSION);
++		dsps_musb_set_power(musb, false);
+ 		mod_timer(&glue->timer, jiffies +
+ 				msecs_to_jiffies(wrp->poll_timeout));
+ 		break;
+@@ -294,11 +331,18 @@ static void otg_timer(unsigned long _musb)
+ 		musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
+ 		dsps_writel(musb->ctrl_base, wrp->coreintr_set,
+ 			    MUSB_INTR_VBUSERROR << wrp->usb_shift);
++		dsps_musb_set_power(musb, false);
++		break;
++	case OTG_STATE_UNDEFINED:
+ 		break;
+ 	default:
++		dsps_musb_set_power(musb, true);
+ 		break;
+ 	}
+ 	spin_unlock_irqrestore(&musb->lock, flags);
++
++	pm_runtime_mark_last_busy(dev);
++	pm_runtime_put_autosuspend(dev);
+ }
+ 
+ static irqreturn_t dsps_interrupt(int irq, void *hci)
+@@ -362,7 +406,6 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
+ 			MUSB_HST_MODE(musb);
+ 			musb->xceiv->otg->default_a = 1;
+ 			musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
+-			del_timer(&glue->timer);
+ 		} else {
+ 			musb->is_active = 0;
+ 			MUSB_DEV_MODE(musb);
+@@ -379,12 +422,18 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
+ 		ret = IRQ_HANDLED;
+ 	}
+ 
++	if (usbintr & ((1 << wrp->connected) << wrp->usb_shift)) {
++		mod_timer(&glue->timer, jiffies +
++			  msecs_to_jiffies(wrp->poll_timeout));
++	}
++
+ 	if (musb->int_tx || musb->int_rx || musb->int_usb)
+ 		ret |= musb_interrupt(musb);
+ 
+-	/* Poll for ID change in OTG port mode */
+-	if (musb->xceiv->otg->state == OTG_STATE_B_IDLE &&
+-			musb->port_mode == MUSB_PORT_MODE_DUAL_ROLE)
++	/* Poll for ID change and device connect */
++	if (musb->xceiv->otg->state == OTG_STATE_A_IDLE ||
++	    musb->xceiv->otg->state == OTG_STATE_A_WAIT_BCON ||
++	    musb->xceiv->otg->state == OTG_STATE_B_IDLE)
+ 		mod_timer(&glue->timer, jiffies +
+ 				msecs_to_jiffies(wrp->poll_timeout));
+ out:
+@@ -498,6 +547,7 @@ static int dsps_musb_exit(struct musb *musb)
+ 	phy_power_off(musb->phy);
+ 	phy_exit(musb->phy);
+ 	debugfs_remove_recursive(glue->dbgfs_root);
++	dsps_musb_set_power(musb, false);
+ 
+ 	return 0;
+ }
+@@ -808,6 +858,8 @@ static int dsps_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, glue);
+ 	pm_runtime_enable(&pdev->dev);
++	pm_runtime_use_autosuspend(&pdev->dev);
++	pm_runtime_set_autosuspend_delay(&pdev->dev, 500);
+ 
+ 	ret = pm_runtime_get_sync(&pdev->dev);
+ 	if (ret < 0) {
+@@ -819,11 +871,15 @@ static int dsps_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		goto err3;
+ 
++	pm_runtime_mark_last_busy(&pdev->dev);
++	pm_runtime_put_autosuspend(&pdev->dev);
++
+ 	return 0;
+ 
+ err3:
+-	pm_runtime_put(&pdev->dev);
++	pm_runtime_put_sync(&pdev->dev);
+ err2:
++	pm_runtime_dont_use_autosuspend(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+ 	return ret;
+ }
+@@ -835,7 +891,8 @@ static int dsps_remove(struct platform_device *pdev)
+ 	platform_device_unregister(glue->musb);
+ 
+ 	/* disable usbss clocks */
+-	pm_runtime_put(&pdev->dev);
++	pm_runtime_dont_use_autosuspend(&pdev->dev);
++	pm_runtime_put_sync(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+ 
+ 	return 0;
+@@ -863,6 +920,7 @@ static const struct dsps_musb_wrapper am33xx_driver_data = {
+ 	.usb_mask		= 0x1ff,
+ 	.usb_bitmap		= (0x1ff << 0),
+ 	.drvvbus		= 8,
++	.connected		= 4,
+ 	.txep_shift		= 0,
+ 	.txep_mask		= 0xffff,
+ 	.txep_bitmap		= (0xffff << 0),
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
