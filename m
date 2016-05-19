@@ -1,182 +1,76 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v8 13/14] usb: gadget: udc: adapt to OTG core
-Date: Thu, 19 May 2016 10:32:44 +0300
-Message-ID: <573D6C1C.4090600@ti.com>
-References: <1463133808-10630-1-git-send-email-rogerq@ti.com>
- <1463133808-10630-14-git-send-email-rogerq@ti.com>
- <20160516070249.GB24609@shlinux2.ap.freescale.net> <57398451.2060103@ti.com>
- <20160516092323.GD24609@shlinux2.ap.freescale.net> <57399839.90706@ti.com>
- <AM4PR04MB2130E149700361CBA3F6863389480@AM4PR04MB2130.eurprd04.prod.outlook.com>
- <573AD198.6030307@ti.com>
- <AM4PR04MB2130EF68F7ADD64607C6CD4389480@AM4PR04MB2130.eurprd04.prod.outlook.com>
- <573C6347.6080705@ti.com>
- <AM4PR04MB2130145869480748D06FE6E589490@AM4PR04MB2130.eurprd04.prod.outlook.com>
- <573C719F.5010107@ti.com>
- <AM4PR04MB2130926F9AE8EBFC0D19447689490@AM4PR04MB2130.eurprd04.prod.outlook.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [RFC PATCH 2/3] mmc: host: omap_hsmmc: Enable ADMA2
+Date: Thu, 19 May 2016 11:02:43 +0300
+Message-ID: <2d328902-d59e-4497-38fa-5bc3ec98180f@ti.com>
+References: <1463561115-31798-1-git-send-email-kishon@ti.com>
+ <1463561115-31798-3-git-send-email-kishon@ti.com>
+ <b66f678a-be74-d5f7-f2ef-93b5c9f29b92@ti.com> <573D57DA.20900@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AM4PR04MB2130926F9AE8EBFC0D19447689490-WOempg8NbQQzjTQnahXoOs9NdZoXdze2vxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jun Li <jun.li-3arQi8VN3Tc@public.gmane.org>, Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org" <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, "jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "grygorii.strashko-l0cyMroinI0@public.gmane.org" <grygorii.strashko-l0cyMroinI0@public.gmane.org>, "yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org" <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, "robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "nsekhar-l0cyMroinI0@public.gmane.org" <nsekhar-l0cyMroinI0@public.gmane.org>, "b-liu-l0cyMroinI0@public.gmane.org" <b-liu-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel@vg>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <573D57DA.20900@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, afenkart@gmail.com, ulf.hansson@linaro.org, linux@armlinux.org.uk, tony@atomide.com
+Cc: rogerq@ti.com, bcousson@baylibre.com, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 18/05/16 17:46, Jun Li wrote:
-> 
-> 
->>>>
->>>> I didn't want to have complex Kconfig so decided to have otg as
->>>> built-in only.
->>>> What do you want me to change in existing code? and why?
+On 05/19/2016 09:06 AM, Kishon Vijay Abraham I wrote:
+> Hi Peter,
+>=20
+> On Wednesday 18 May 2016 03:54 PM, Peter Ujfalusi wrote:
+>> On 05/18/16 11:45, Kishon Vijay Abraham I wrote:
+>>> omap hsmmc host controller has ADMA2 feature. Enable it here
+>>> for better read and write throughput. Add a new dt binding
+>>> "ti,use_adma" to enable ADMA2.
 >>>
->>> Remove those stuff which only for pass diff driver config Like every
->>> controller driver need a duplicated
+>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>> ---
+>>>  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    1 +
+>>>  drivers/mmc/host/omap_hsmmc.c                      |  320 ++++++++=
+++++++++----
+>>>  include/linux/platform_data/hsmmc-omap.h           |    1 +
+>>>  3 files changed, 256 insertions(+), 66 deletions(-)
 >>>
->>> static struct otg_hcd_ops ci_hcd_ops = {
->>>     ...
->>> }
+>>> diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.tx=
+t b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+>>> index 74166a0..eb5ceec2 100644
+>>> --- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+>>> +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+>>> @@ -28,6 +28,7 @@ specifier is required.
+>>>  dma-names: List of DMA request names. These strings correspond
+>>>  1:1 with the DMA specifiers listed in dmas. The string naming is
+>>>  to be "rx" and "tx" for RX and TX DMA requests, respectively.
+>>> +ti,use_adma: enable adma2 feature
 >>
->> This is an exception only. Every controller driver doesn't need to
->> implement hcd_ops. It is implemented in the hcd core.
->>
->>>
->>> And here is another example, for gadget connect, otg driver can
->>> directly call to usb_udc_vbus_handler() in drd state machine, but you
->>> create another interface:
->>>
->>> .connect_control = usb_gadget_connect_control,
->>>
->>> If the symbol is defined in one driver which is 'm', another driver
->>> reference it should be 'm' as well, then there is no this kind of
->>> problem as my understanding.
->>
->> That is fine as long as all are 'm'. but how do you solve the case when
->> Gadget is built in and host is 'm'? OTG has to be built-in and you will
->> need an hcd to gadget interface.
-> 
-> Hcd to gadget interface? Or you want to say otg to host interface?
+>> Do we have use case when you want to fall back to generic DMA instea=
+d of aDMA2?
+>> IMHO if the driver supports aDMA2, it is going to use it instead of =
+the
+>> generic s/eDMA.
+>> What I mean is:
+>> the driver implements the aDMA2 support.
+>> if the IP has support for aDMA2, then it is going to use it, otherwi=
+se it will
+>> use the generic DMA.
+>=20
+> hmm.. how will the driver know if the IP has support for aDMA2. Using=
+ dt
+> binding is one way. Using MMCHS_HL_HWINFO is another way but then the=
+ register
+> offsets in omap_hsmmc driver has to be modified for omap4+.
 
-Sorry, I meant to say host to otg interface.
+I remember Felipe saying that MMCHS_HL_HWINFO is not reliable for some =
+reason?
+But in any case it would be better IMHO if we query the HW for Master D=
+MA
+support and if it is available we will use it.
 
-> 
-> I think hcd and gadget are independent each other, now
-> 
-> Hcd --> otg; and gadget --> otg, (hcd and gadget use otg's symbol)
+If it is really the case that MMCHS_HL_HWINFO is not reliable, then pro=
+bably
+have a flag for the MMC/SD phandle saying that ti,master_dma_supported =
+to
+indicate that it is capable has ADMA support also.
 
-It is actually a circular dependency for both.
- hcd <--> otg and gadget <--> otg
-
-hcd -> otg for usb_otg_register/unregister_hcd
-otg -> hcd for usb_add/remove_hcd, usb_bus_start_enum, usb_control_msg, usb_hub_find_child
-
-gadget -> otg for usb_otg_register/unregister_gadget
-otg -> gadget for usb_gadget_start/stop, usb_udc_vbus_handler
-
-Now consider what will happen if I get rid of the otg_hcd and otg_gadget interfaces.
-'y' means built-in, 'm' means module.
-
-1) hcd 'y', gadget 'y'
-otg has to be 'y' for proper build.
-
-2) hcd 'm', gadget 'm'
-otg has to be 'm' for proper build.
-
-3) hcd 'y', gadget 'm'
-Build will fail always.
-If otg is 'y', otg build will fail due to dependency on gadget.
-If otg is 'm', hcd build will fail due to dependency on otg.
-
-4) hcd 'm', gadget 'y'
-Build will fail always.
-If otg is 'y', otg build will fail due to dependency on hcd.
-If otg is 'm', gadget build will fails due to dependency on otg.
-
-So I solve this problem by adding the otg_hcd_ops and otg_gadget_ops
-to remove otg->hcd and otg->gadget dependency.
-
-Now we can address 3) and 4) like so
-
-3) hcd 'y', gadget 'm'
-otg has to be 'y' for proper build.
-
-4) hcd 'm', gadget 'y'
-otg has to be 'y' for proper build.
-
-> 
-> If you directly call to usb_udc_vbus_handler() in drd state machine
-> 
-> Then:
-> 
-> Hcd --> otg; and gadget <--> otg, (gadget and otg will refer to symbol of each other)
-
-It's not so easy. We are again creating a circular dependency and all
-build configurations don't work like I pointed above.
-
-The only optimization I could do is make CONFIG_OTG tristate and
-allow it to be built as 'm' if both hcd and gadget are 'm'.
-i.e. case (2).
-
-cheers,
--roger
-
->>
->> Do you have any ideas to solve that case?
->>
->> cheers,
->> -roger
->>
->>>>>>>>
->>>>>>>>>
->>>>>>>>>>>
->>>>>>>>>>>>  	return 0;
->>>>>>>>>>>> @@ -660,9 +830,15 @@ static ssize_t
->>>>>>>>>>>> usb_udc_softconn_store(struct
->>>>>>>> device *dev,
->>>>>>>>>>>>  		return -EOPNOTSUPP;
->>>>>>>>>>>>  	}
->>>>>>>>>>>>
->>>>>>>>>>>> +	/* In OTG mode we don't support softconnect, but
->> b_bus_req */
->>>>>>>>>>>> +	if (udc->gadget->otg_dev) {
->>>>>>>>>>>> +		dev_err(dev, "soft-connect not supported in OTG
->> mode\n");
->>>>>>>>>>>> +		return -EOPNOTSUPP;
->>>>>>>>>>>> +	}
->>>>>>>>>>>> +
->>>>>>>>>>>
->>>>>>>>>>> The soft-connect can be supported at dual-role mode currently,
->>>>>>>>>>> we can use b_bus_req entry once it is implemented later.
->>>>>>>>>>
->>>>>>>>>> Soft-connect should be done via sysfs handling within the OTG
->> core.
->>>>>>>>>> This can be added later. I don't want anything outside the OTG
->>>>>>>>>> core to handle soft-connect behaviour as it will be hard to
->>>>>>>>>> keep things in sync.
->>>>>>>>>>
->>>>>>>>>> I can update the comment to something like this.
->>>>>>>>>>
->>>>>>>>>> /* In OTG/dual-role mode, soft-connect should be handled by OTG
->>>>>>>>>> core */
->>>>>>>>>
->>>>>>>>> Ok, let's Felipe decide it.
->>>>>>>>>
->>>>>>>>>>
->>>>>>>>>>>
->>>>>>>>>>>>  	if (sysfs_streq(buf, "connect")) {
->>>>>>>>>>>>  		usb_gadget_udc_start(udc);
->>>>>>>>>>>> -		usb_gadget_connect(udc->gadget);
->>>>>>>>>>>> +		usb_udc_connect_control(udc);
->>>>>>>>>>>
->>>>>>>>>>> This line seems to be not related with this patch.
->>>>>>>>>>>
->>>>>>>>>> Right. I'll remove it.
->>>>>>>>>>
->>>>>>>>>> cheers,
->>>>>>>>>> -roger
->>>>>>>>>
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+P=E9ter
