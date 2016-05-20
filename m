@@ -1,47 +1,68 @@
 From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH 0/4] regulator: tps65917/palmas: Cleanups and bugfixes
-Date: Fri, 20 May 2016 10:01:02 +0530
-Message-ID: <573E9306.5050908@ti.com>
-References: <1462494592-27909-1-git-send-email-nm@ti.com>
- <572C444F.9070304@nvidia.com> <20160506171453.GX6292@sirena.org.uk>
- <572CEA22.2090300@ti.com>
+Subject: Re: [PATCH] thermal: ti-soc-thermal: Add set_emul_temp hook
+Date: Fri, 20 May 2016 11:28:40 +0530
+Message-ID: <573EA790.8020006@ti.com>
+References: <1462880530-13935-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <572CEA22.2090300@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Mark Brown <broonie@kernel.org>, Laxman Dewangan <ldewangan@nvidia.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Keerthy <j-keerthy@ti.com>, Stephen Warren <swarren@nvidia.com>, Lee Jones <lee.jones@linaro.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1462880530-13935-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>, edubezval@gmail.com, rui.zhang@intel.com
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, nm@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-+ Lee Jones
 
-On Saturday 07 May 2016 12:31 AM, Nishanth Menon wrote:
-> On 05/06/2016 12:14 PM, Mark Brown wrote:
->> On Fri, May 06, 2016 at 12:44:23PM +0530, Laxman Dewangan wrote:
->>
->>> When you are here, can you implement the dt parsing with the new method from
->>> regulator framework.
->>> Regulator FW calls callback to parse customized DT property, just need to
->>> pass the node and pointer when registering.
->>
->>> This will helps lots in cleanups and readability.
->>
->> Yes, please.
->>
-> yeah, the driver has started showing it's age, it will be good to do a
-> refactor.
 
-Laxman,
+On Tuesday 10 May 2016 05:12 PM, Keerthy wrote:
+> Setting the emulation temperature helps reproduce critical
+> temperature scenarios without risking the actual hardware at
+> extreme temperatures. Adding __ti_thermal_set_emul_temp as
+> the set_emul_temp hook.
 
-I got the dt parsing with new method from regulator framework part, But
-by new method do you also want to remove the dt compatible of regulators 
-and let only the mfd compatible stay?
+A gentle ping on this.
 
-replace of_platform_populate with mfd_add_devices so that linux handles 
-the drivers split up and not the device tree?
-
-Regards,
-Keerthy
+>
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>
+> Tested the emulation temperature feature on DRA72-EVM.
+>
+>   drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 15 +++++++++++++++
+>   1 file changed, 15 insertions(+)
+>
+> diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+> index b213a12..e6f7025 100644
+> --- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+> +++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+> @@ -278,6 +278,20 @@ static int ti_thermal_get_trend(struct thermal_zone_device *thermal,
+>   	return 0;
+>   }
+>
+> +static int __ti_thermal_set_emul_temp(void *p, int temp)
+> +{
+> +	struct ti_thermal_data *data = p;
+> +	struct thermal_zone_device *tz;
+> +
+> +	tz = data->ti_thermal;
+> +
+> +	mutex_lock(&tz->lock);
+> +	tz->emul_temperature = temp;
+> +	mutex_unlock(&tz->lock);
+> +
+> +	return 0;
+> +}
+> +
+>   /* Get critical temperature callback functions for thermal zone */
+>   static int ti_thermal_get_crit_temp(struct thermal_zone_device *thermal,
+>   				    int *temp)
+> @@ -289,6 +303,7 @@ static int ti_thermal_get_crit_temp(struct thermal_zone_device *thermal,
+>   static const struct thermal_zone_of_device_ops ti_of_thermal_ops = {
+>   	.get_temp = __ti_thermal_get_temp,
+>   	.get_trend = __ti_thermal_get_trend,
+> +	.set_emul_temp = __ti_thermal_set_emul_temp,
+>   };
+>
+>   static struct thermal_zone_device_ops ti_thermal_ops = {
 >
