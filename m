@@ -1,62 +1,155 @@
-From: Laxman Dewangan <ldewangan@nvidia.com>
-Subject: Re: [PATCH 0/4] regulator: tps65917/palmas: Cleanups and bugfixes
-Date: Fri, 20 May 2016 11:46:56 +0530
-Message-ID: <573EABD8.7040206@nvidia.com>
-References: <1462494592-27909-1-git-send-email-nm@ti.com> <572C444F.9070304@nvidia.com> <20160506171453.GX6292@sirena.org.uk> <572CEA22.2090300@ti.com> <573E9306.5050908@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v8 13/14] usb: gadget: udc: adapt to OTG core
+Date: Fri, 20 May 2016 10:26:03 +0300
+Message-ID: <573EBC0B.7030204@ti.com>
+References: <1463133808-10630-1-git-send-email-rogerq@ti.com>
+ <1463133808-10630-14-git-send-email-rogerq@ti.com>
+ <20160516070249.GB24609@shlinux2.ap.freescale.net> <57398451.2060103@ti.com>
+ <20160516092323.GD24609@shlinux2.ap.freescale.net> <57399839.90706@ti.com>
+ <20160518031829.GA4244@shlinux2.ap.freescale.net> <573C63D7.9050200@ti.com>
+ <20160520013931.GA10896@shlinux2>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <573E9306.5050908@ti.com>
+In-Reply-To: <20160520013931.GA10896@shlinux2>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <a0393675@ti.com>, Nishanth Menon <nm@ti.com>, Mark Brown <broonie@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Keerthy <j-keerthy@ti.com>, Stephen Warren <swarren@nvidia.com>, Lee Jones <lee.jones@linaro.org>
+To: Peter Chen <hzpeterchen@gmail.com>
+Cc: peter.chen@freescale.com, balbi@kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Peter,
 
-On Friday 20 May 2016 10:01 AM, Keerthy wrote:
-> + Lee Jones
->
-> On Saturday 07 May 2016 12:31 AM, Nishanth Menon wrote:
->> On 05/06/2016 12:14 PM, Mark Brown wrote:
->>> On Fri, May 06, 2016 at 12:44:23PM +0530, Laxman Dewangan wrote:
+On 20/05/16 04:39, Peter Chen wrote:
+> On Wed, May 18, 2016 at 03:45:11PM +0300, Roger Quadros wrote:
+>> On 18/05/16 06:18, Peter Chen wrote:
+>>> On Mon, May 16, 2016 at 12:51:53PM +0300, Roger Quadros wrote:
+>>>> On 16/05/16 12:23, Peter Chen wrote:
+>>>>> On Mon, May 16, 2016 at 11:26:57AM +0300, Roger Quadros wrote:
+>>>>>> Hi,
+>>>>>>
+>>>>>> On 16/05/16 10:02, Peter Chen wrote:
+>>>>>>> On Fri, May 13, 2016 at 01:03:27PM +0300, Roger Quadros wrote:
+>>>>>>>> +
+>>>>>>>> +static int usb_gadget_connect_control(struct usb_gadget *gadget, bool connect)
+>>>>>>>> +{
+>>>>>>>> +	struct usb_udc *udc;
+>>>>>>>> +
+>>>>>>>> +	mutex_lock(&udc_lock);
+>>>>>>>> +	udc = usb_gadget_to_udc(gadget);
+>>>>>>>> +	if (!udc) {
+>>>>>>>> +		dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
+>>>>>>>> +			__func__);
+>>>>>>>> +		mutex_unlock(&udc_lock);
+>>>>>>>> +		return -EINVAL;
+>>>>>>>> +	}
+>>>>>>>> +
+>>>>>>>> +	if (connect) {
+>>>>>>>> +		if (!gadget->connected)
+>>>>>>>> +			usb_gadget_connect(udc->gadget);
+>>>>>>>> +	} else {
+>>>>>>>> +		if (gadget->connected) {
+>>>>>>>> +			usb_gadget_disconnect(udc->gadget);
+>>>>>>>> +			udc->driver->disconnect(udc->gadget);
+>>>>>>>> +		}
+>>>>>>>> +	}
+>>>>>>>> +
+>>>>>>>> +	mutex_unlock(&udc_lock);
+>>>>>>>> +
+>>>>>>>> +	return 0;
+>>>>>>>> +}
+>>>>>>>> +
+>>>>>>>
+>>>>>>> Since this is called for vbus interrupt, why not using
+>>>>>>> usb_udc_vbus_handler directly, and call udc->driver->disconnect
+>>>>>>> at usb_gadget_stop.
+>>>>>>
+>>>>>> We can't assume that this is always called for vbus interrupt so
+>>>>>> I decided not to call usb_udc_vbus_handler.
+>>>>>>
+>>>>>> udc->vbus is really pointless for us. We keep vbus states in our
+>>>>>> state machine and leave udc->vbus as ture always.
+>>>>>>
+>>>>>> Why do you want to move udc->driver->disconnect() to stop?
+>>>>>> If USB controller disconnected from bus then the gadget driver
+>>>>>> must be notified about the disconnect immediately. The controller
+>>>>>> may or may not be stopped by the core.
+>>>>>>
+>>>>>
+>>>>> Then, would you give some comments when this API will be used?
+>>>>> I was assumed it is only used for drd state machine.
+>>>>
+>>>> drd_state machine didn't even need this API in the first place :).
+>>>> You guys wanted me to separate out start/stop and connect/disconnect for full OTG case.
+>>>> Won't full OTG state machine want to use this API? If not what would it use?
+>>>>
 >>>
->>>> When you are here, can you implement the dt parsing with the new 
->>>> method from
->>>> regulator framework.
->>>> Regulator FW calls callback to parse customized DT property, just 
->>>> need to
->>>> pass the node and pointer when registering.
+>>> Oh, I meant only drd and fully otg state machine needs it. I am
+>>> wondering if we need have a new API to do it. Two questions:
+>>
+>> OK.
 >>>
->>>> This will helps lots in cleanups and readability.
+>>> - Except for vbus interrupt, any chances this API will be used at
+>>> current logic?
+>>
+>> I don't think so. But we can't assume caller behaviour for any API.
+>>
+>>> - When this API is called but without a coming gadget->stop?
 >>>
->>> Yes, please.
->>>
->> yeah, the driver has started showing it's age, it will be good to do a
->> refactor.
->
-> Laxman,
->
-> I got the dt parsing with new method from regulator framework part, But
-> by new method do you also want to remove the dt compatible of 
-> regulators and let only the mfd compatible stay?
->
-> replace of_platform_populate with mfd_add_devices so that linux 
-> handles the drivers split up and not the device tree?
->
+>> Never for DRD case. But we want to catch wrong users.
+>>
+> 
+> In future, otg_start_gadget will be used for both DRD and fully OTG FSM.
+> There is no otg_loc_conn at current DRD FSM, but there is
+> otg_loc_conn at current OTG FSM, see below.
+> 
+> DRD FSM:
+> 	case OTG_STATE_B_IDLE:
+> 		drd_set_protocol(fsm, PROTO_UNDEF);
+> 		otg_drv_vbus(otg, 0);
+> 		break;
+> 	case OTG_STATE_B_PERIPHERAL:
+> 		drd_set_protocol(fsm, PROTO_GADGET);
+> 		otg_drv_vbus(otg, 0);
+> 		break;
+> 
+> OTG FSM:
+> 	case OTG_STATE_B_IDLE:
+> 		otg_drv_vbus(otg, 0);
+> 		otg_chrg_vbus(otg, 0);
+> 		otg_loc_conn(otg, 0);
+> 		otg_loc_sof(otg, 0);
+> 		/*
+> 		 * Driver is responsible for starting ADP probing
+> 		 * if ADP sensing times out.
+> 		 */
+> 		otg_start_adp_sns(otg);
+> 		otg_set_protocol(fsm, PROTO_UNDEF);
+> 		otg_add_timer(otg, B_SE0_SRP);
+> 		break;
+> 	case OTG_STATE_B_PERIPHERAL:
+> 		otg_chrg_vbus(otg, 0);
+> 		otg_loc_sof(otg, 0);
+> 		otg_set_protocol(fsm, PROTO_GADGET);
+> 		otg_loc_conn(otg, 1);
+> 		break;
+> 
+> My original suggestion is to have an API to do pull dp and this API
+> will be used at both DRD and OTG FSM, and called at otg_loc_conn.
 
-The DT binding of child devices of the palmas are like that each sub 
-node has compatible.
-So I dont think we can change this to avoid regression.
+The API is usb_gadget_connect_control();
 
-However, if we make the child devices independent of the parent devices 
-then it will be very useful to use across different PMIC if they have 
-same IP.
-Currently, child devices are very much tightly coupled with parent 
-devices for the register access and global structure member accces.
+> The (de)initialize is the same for both two FSMs, it both includes
+> init peripheral mode and pull up dp, and can be done by drd_set_protocol(fsm, PROTO_GADGET)
+> otg_loc_conn(otg, 1);
+> 
+> What do you think?
+> 
 
-This is exactly what we did for the max77686 RTC driver which is used by 
-max77686, max77802 and max77620.
+I think loc_conn is a bit confusing to drd users. Another issue I see is that 
+DRD controller drivers will need to explicitly pass .loc_conn ops via the otg_fsm_ops.
+This is an additional step and totally unnecessary as it can be automatically done
+via direct DRD -> UDC-core call.
 
-There is two mfd core driver, max77686 and max77620 and uses same RTC 
-driver rtc-max77686.c
+cheers,
+-roger
