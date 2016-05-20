@@ -1,112 +1,340 @@
-From: "Matwey V. Kornilov" <matwey-TTlVxmypnbovJsYlp49lxw@public.gmane.org>
-Subject: Re: [OOPS] cppi41_dma_channel_program: Unable to handle kernel NULL
- pointer dereference
-Date: Fri, 20 May 2016 16:32:06 +0300
-Message-ID: <CAJs94EZjWi0KGn_siyXNGvjO2DTh2aXtYqKzy7Km7mA_bYTeKg@mail.gmail.com>
-References: <1463750386-6259-1-git-send-email-matwey@sai.msu.ru>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [RFC PATCH 1/2] Input: rotary-encoder- Add support for absolute
+ encoder
+Date: Fri, 20 May 2016 09:34:04 -0700
+Message-ID: <20160520163404.GC14951@dtor-ws>
+References: <1463648641-6931-1-git-send-email-vigneshr@ti.com>
+ <1463648641-6931-2-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1463750386-6259-1-git-send-email-matwey-TTlVxmypnbovJsYlp49lxw@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1463648641-6931-2-git-send-email-vigneshr@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>, Guido Martinez <guido@vanguardiasur.com.ar>, linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Masanari Iida <standby24x7@gmail.com>, Jonathan Corbet <corbet@lwn.net>, Timo Teras <timo.teras@iki.fi>, Geert Uytterhoeven <geert@linux-m68k.org>, Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>, linux-input@vger.kernel.org, devicetree@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Sylvain Rochet <sylvain.rochet@finsecur.com>, Uwe Kleine-Konig <u.kleine-koenig@pengutronix.de>, Johan Hovold <johan@kernel.org>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Moritz Fischer <moritz.fischer@ettus.com>, linux-kernel@vger.kernel.org, S Twiss <stwiss.opensource@diasemi.com>, Clifton Barnes <clifton.a.barnes@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-2016-05-20 16:19 GMT+03:00  <matwey-TTlVxmypnbovJsYlp49lxw@public.gmane.org>:
-> Hello,
->
-> I am running 4.6-rc3 on BealgeBone Black and when I try to interract with pwc webcam attached to usb port the following kernel panic happening.
+On Thu, May 19, 2016 at 02:34:00PM +0530, Vignesh R wrote:
+> There are rotary-encoders where GPIO lines reflect the actual position
+> of the rotary encoder dial. For example, if dial points to 9, then four
+> GPIO lines connected to the rotary encoder will read HLLH(1001b = 9).
+> Add support for such rotary-encoder.
+> The driver relies on rotary-encoder,absolute-encoder DT property to
+> detect such encoders.
+> Since, GPIO IRQs are not necessary to work with
+> such encoders, optional polling mode support is added using
+> input_poll_dev skeleton. This is can be used by enabling
+> CONFIG_INPUT_GPIO_ROTARY_ENCODER_POLL_MODE_SUPPORT.
 
-Please note, that the same is happening with 4.6.0 release.
+Does this really belong to a rotary encoder and not a new driver that
+simply translates gpio-encoded value into ABS* event?
 
->
-> Please also find used kernel config here:
-> http://kernel.opensuse.org/cgit/kernel-source/plain/config/armv7hl/default?id=43f1ed415e2227af11856fc120821c791d51494d
->
-> [ 4587.746169] Unable to handle kernel NULL pointer dereference at virtual address 00000000
-> [ 4587.754333] pgd = c0204000
-> [ 4587.757055] [00000000] *pgd=00000000
-> [ 4587.760667] Internal error: Oops: 17 [#1] PREEMPT SMP ARM
-> [ 4587.766095] Modules linked in: af_packet bridge stp llc nls_iso8859_1 nls_cp437 vfat fat snd_usb_audio snd_usbmidi_lib snd_hwdep snd_rawmidi snd_seq_device snd_pcm snd_timer snd soundcore pwc videobuf2_vmalloc videobuf2_memops videobuf2_v4l2 videobuf2_core videodev media smsc musb_dsps musb_hdrc udc_core davinci_mdio phy_am335x usbcore phy_am335x_control phy_generic cppi41 usb_common wkup_m3_rproc remoteproc virtio_ring virtio pps_gpio ti_cpsw pps_core cpsw_ale cpsw_common omap_aes davinci_cpdma omap_sham crypto_engine omap_rng omap_mailbox musb_am335x omap_wdt at24 nvmem_core leds_gpio cpufreq_dt mmc_block tps65217_regulator omap_hsmmc omap_dma mmc_core tps65217 sg
-> [ 4587.825879] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.6.0-rc3-2.gcfd5095-default #1
-> [ 4587.833745] Hardware name: Generic AM33XX (Flattened Device Tree)
-> [ 4587.839867] task: c15081c0 ti: c1500000 task.ti: c1500000
-> [ 4587.845453] PC is at cppi41_dma_channel_program+0x20/0x2f0 [musb_hdrc]
-> [ 4587.852063] LR is at musb_host_rx+0xc54/0xdd4 [musb_hdrc]
-> [ 4587.857490] pc : [<bf29f210>]    lr : [<bf297570>]    psr: 000e0193
-> [ 4587.857490] sp : c1501c48  ip : c1501cb8  fp : c1501cb4
-> [ 4587.869021] r10: 9b8443c0  r9 : d92baf48  r8 : e0c72c10
-> [ 4587.874270] r7 : 00000000  r6 : 000003c0  r5 : d9c8e900  r4 : d92ba010
-> [ 4587.880827] r3 : 9b8443c0  r2 : 00000000  r1 : 000003c0  r0 : 00000000
-> [ 4587.887385] Flags: nzcv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-> [ 4587.894815] Control: 10c5387d  Table: 9b4fc019  DAC: 00000055
-> [ 4587.900587] Process swapper/0 (pid: 0, stack limit = 0xc1500220)
-> [ 4587.906621] Stack: (0xc1501c48 to 0xc1502000)
-> [ 4587.911002] 1c40:                   00000001 00000000 c1501ca4 c1501c60 df926740 c1501c68
-> [ 4587.919221] 1c60: c03efed0 c0344ec8 8065dcc6 00000000 c153c490 df926740 df926740 20000193
-> [ 4587.927440] 1c80: 00000000 df926740 c1504920 d92ba010 d9c8e900 000003c0 00000000 e0c72c10
-> [ 4587.935659] 1ca0: d92baf48 bf2a55cc c1501d2c c1501cb8 bf297570 bf29f1fc 000003c0 df926740
-> [ 4587.943877] 1cc0: c1501cf4 c1501cd0 c038ffac c038fef0 00000000 9b8443c0 00000c40 d92ba308
-> [ 4587.952096] 1ce0: d9dcc000 bf2a55c4 db50f800 0000000e 00000000 bf2a4838 e0c72c10 db50f814
-> [ 4587.960315] 1d00: c1501d44 d9dcc3bc d92baf48 d92baf48 d92ba010 d92ba010 e0c72c10 00000000
-> [ 4587.968533] 1d20: c1501d3c c1501d30 bf28ffb4 bf296928 c1501d94 c1501d40 bf29eb10 bf28ff28
-> [ 4587.976751] 1d40: c0392284 c0391db8 c1501d8c c1501d58 c03abc14 c0392274 c03e77e8 00000000
-> [ 4587.984970] 1d60: c03c73f0 db4f9bf0 db4f9bec d9dcc3bc 00000000 d92baf48 bf2a5348 d92ba010
-> [ 4587.993188] 1d80: 200e0193 00000000 c1501de4 c1501d98 bf29ec1c bf29e990 c1501dc4 c1501da8
-> [ 4588.001406] 1da0: c03ac91c c0c39b04 d9c8e900 00000002 00000002 000003c0 c03e4a18 00000000
-> [ 4588.009625] 1dc0: db30ac10 00000000 00000001 00000080 00000004 000000a0 c1501e1c c1501de8
-> [ 4588.017843] 1de0: bf16ff38 bf29eb68 c150d8c0 c03e4a18 c1501e3c d9d4fd80 db40b2a0 db40b250
-> [ 4588.026062] 1e00: 00000001 000000b8 00000000 c1500020 c1501e6c c1501e20 c03c7260 bf16fe48
-> [ 4588.034281] 1e20: 0000042c 00000000 00000000 c162b1a4 c162b1c0 db40b240 c15035ac 00000000
-> [ 4588.042499] 1e40: c1501e7c db40b240 db40b2a0 db40b250 00000001 db02e000 c150361c 00000000
-> [ 4588.050718] 1e60: c1501e8c c1501e70 c03c74a0 c03c71a8 db40b240 db40b2a0 db40b250 00000001
-> [ 4588.058936] 1e80: c1501eac c1501e90 c03cabf0 c03c7464 c143b77c 00000000 00000000 00000001
-> [ 4588.067154] 1ea0: c1501ebc c1501eb0 c03c676c c03cab40 c1501ee4 c1501ec0 c03c6abc c03c6744
-> [ 4588.075373] 1ec0: c16f981c 600e0013 ffffffff c1501f34 c162b9a0 c150361c c1501efc c1501ee8
-> [ 4588.083592] 1ee0: c0301770 c03c6a5c c0315568 600e0013 c1501f5c c1501f00 c0c3a280 c0301738
-> [ 4588.091810] 1f00: 00000001 00000000 00000000 c032c5c0 c1500000 c1503614 00000000 c15035ac
-> [ 4588.100029] 1f20: c162b9a0 c150361c 00000000 c1501f5c c1501f60 c1501f50 c0315560 c0315568
-> [ 4588.108247] 1f40: 600e0013 ffffffff c03d5acc c03acc04 c1501f6c c1501f60 c03acc04 c0315524
-> [ 4588.116466] 1f60: c1501f94 c1501f70 c03acf24 c03acbe0 00000002 c162ad8b c143d988 c1501f70
-> [ 4588.124685] 1f80: c0c35e64 c1503500 c1501fac c1501f98 c0c33f18 c03acc24 c163f040 00000001
-> [ 4588.132904] 1fa0: c1501ff4 c1501fb0 c1300db8 c0c33e90 ffffffff ffffffff 00000000 c1300714
-> [ 4588.141122] 1fc0: 00000000 c13b4a28 00000000 c163f5d4 c1503588 c13b4a24 c150973c 80204059
-> [ 4588.149340] 1fe0: 413fc082 00000000 00000000 c1501ff8 8020807c c13009c0 00000000 00000000
-> [ 4588.157705] [<bf29f210>] (cppi41_dma_channel_program [musb_hdrc]) from [<bf297570>] (musb_host_rx+0xc54/0xdd4 [musb_hdrc])
-> [ 4588.168901] [<bf297570>] (musb_host_rx [musb_hdrc]) from [<bf28ffb4>] (musb_dma_completion+0x98/0x9c [musb_hdrc])
-> [ 4588.179310] [<bf28ffb4>] (musb_dma_completion [musb_hdrc]) from [<bf29eb10>] (cppi41_trans_done+0x18c/0x1d8 [musb_hdrc])
-> [ 4588.190329] [<bf29eb10>] (cppi41_trans_done [musb_hdrc]) from [<bf29ec1c>] (cppi41_dma_callback+0xc0/0x288 [musb_hdrc])
-> [ 4588.201224] [<bf29ec1c>] (cppi41_dma_callback [musb_hdrc]) from [<bf16ff38>] (cppi41_irq+0xfc/0x198 [cppi41])
-> [ 4588.211214] [<bf16ff38>] (cppi41_irq [cppi41]) from [<c03c7260>] (handle_irq_event_percpu+0xc4/0x2bc)
-> [ 4588.220486] [<c03c7260>] (handle_irq_event_percpu) from [<c03c74a0>] (handle_irq_event+0x48/0x70)
-> [ 4588.229410] [<c03c74a0>] (handle_irq_event) from [<c03cabf0>] (handle_level_irq+0xbc/0x150)
-> [ 4588.237807] [<c03cabf0>] (handle_level_irq) from [<c03c676c>] (generic_handle_irq+0x34/0x48)
-> [ 4588.246290] [<c03c676c>] (generic_handle_irq) from [<c03c6abc>] (__handle_domain_irq+0x6c/0xc8)
-> [ 4588.255038] [<c03c6abc>] (__handle_domain_irq) from [<c0301770>] (omap_intc_handle_irq+0x44/0xa8)
-> [ 4588.263965] [<c0301770>] (omap_intc_handle_irq) from [<c0c3a280>] (__irq_svc+0x40/0x74)
-> [ 4588.272006] Exception stack(0xc1501f00 to 0xc1501f48)
-> [ 4588.277085] 1f00: 00000001 00000000 00000000 c032c5c0 c1500000 c1503614 00000000 c15035ac
-> [ 4588.285304] 1f20: c162b9a0 c150361c 00000000 c1501f5c c1501f60 c1501f50 c0315560 c0315568
-> [ 4588.293518] 1f40: 600e0013 ffffffff
-> [ 4588.297035] [<c0c3a280>] (__irq_svc) from [<c0315568>] (arch_cpu_idle+0x50/0x54)
-> [ 4588.304485] [<c0315568>] (arch_cpu_idle) from [<c03acc04>] (default_idle_call+0x30/0x44)
-> [ 4588.312623] [<c03acc04>] (default_idle_call) from [<c03acf24>] (cpu_startup_entry+0x30c/0x370)
-> [ 4588.321292] [<c03acf24>] (cpu_startup_entry) from [<c0c33f18>] (rest_init+0x94/0x98)
-> [ 4588.329082] [<c0c33f18>] (rest_init) from [<c1300db8>] (start_kernel+0x404/0x410)
-> [ 4588.336606] Code: e52de004 e8bd4000 e1a06001 e1a0a003 (e5904000)
-> [ 4588.349648] ---[ end trace 603f1cfffd4f1ec2 ]---
-> [ 4588.354298] Kernel panic - not syncing: Fatal exception in interrupt
-> [ 4588.360689] Rebooting in 90 seconds..
-
-
+> 
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> ---
+>  .../devicetree/bindings/input/rotary-encoder.txt   |   4 +
+>  Documentation/input/rotary-encoder.txt             |   9 ++
+>  drivers/input/misc/Kconfig                         |  11 ++
+>  drivers/input/misc/rotary_encoder.c                | 165 ++++++++++++++++-----
+>  4 files changed, 155 insertions(+), 34 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/input/rotary-encoder.txt b/Documentation/devicetree/bindings/input/rotary-encoder.txt
+> index 6c9f0c8a846c..9c928dbd1500 100644
+> --- a/Documentation/devicetree/bindings/input/rotary-encoder.txt
+> +++ b/Documentation/devicetree/bindings/input/rotary-encoder.txt
+> @@ -12,6 +12,10 @@ Optional properties:
+>  - rotary-encoder,relative-axis: register a relative axis rather than an
+>    absolute one. Relative axis will only generate +1/-1 events on the input
+>    device, hence no steps need to be passed.
+> +- rotary-encoder,absolute-encoder: support encoders where GPIO lines
+> +  reflect the actual position of the rotary encoder dial. For example,
+> +  if dial points to 9, then four GPIO lines read HLLH(1001b = 9).
+> +  In this case, rotary-encoder,steps-per-period needed not be defined.
+>  - rotary-encoder,rollover: Automatic rollove when the rotary value becomes
+>    greater than the specified steps or smaller than 0. For absolute axis only.
+>  - rotary-encoder,steps-per-period: Number of steps (stable states) per period.
+> diff --git a/Documentation/input/rotary-encoder.txt b/Documentation/input/rotary-encoder.txt
+> index 46a74f0c551a..dc76092f5618 100644
+> --- a/Documentation/input/rotary-encoder.txt
+> +++ b/Documentation/input/rotary-encoder.txt
+> @@ -36,6 +36,15 @@ The phase diagram of these two outputs look like this:
+>                  |<>|
+>  	          one step (quarter-period mode)
+>  
+> +
+> +In some encoders, the value pointed by rotary encoders switch is directly
+> +reflected by status of the GPIOs connecting rotary encoder to CPU. For
+> +example, if rotary encoder dial points to 9, then the four GPIOs
+> +conncting rotary encoder will read HLLH(1001b = 9). Such encoders are
+> +supported by defining devictree binding "rotary-encoder,absolute-encoder".
+> +These encoders are also supported without need for event(IRQ) generation
+> +using Input subsytem's polling mode support.
+> +
+>  For more information, please see
+>  	https://en.wikipedia.org/wiki/Rotary_encoder
+>  
+> diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
+> index 1f2337abcf2f..81805f9a534c 100644
+> --- a/drivers/input/misc/Kconfig
+> +++ b/drivers/input/misc/Kconfig
+> @@ -566,6 +566,17 @@ config INPUT_GPIO_ROTARY_ENCODER
+>  	  To compile this driver as a module, choose M here: the
+>  	  module will be called rotary_encoder.
+>  
+> +config INPUT_GPIO_ROTARY_ENCODER_POLL_MODE_SUPPORT
+> +	bool "Polling mode support for rotary encoder"
+> +	depends on INPUT_GPIO_ROTARY_ENCODER
+> +	select INPUT_POLLDEV
+> +	help
+> +	  Say Y here to enable polling mode support for rotary encoders
+> +	  connected to GPIO lines that do have interrupt capability and
+> +	  report rotary encoder position as absolute value over GPIO
+> +	  lines. Check file: Documentation/input/rotary-encoder.txt for
+> +	  more information.
+> +
+>  config INPUT_RB532_BUTTON
+>  	tristate "Mikrotik Routerboard 532 button interface"
+>  	depends on MIKROTIK_RB532
+> diff --git a/drivers/input/misc/rotary_encoder.c b/drivers/input/misc/rotary_encoder.c
+> index c7fc8d4fb080..8f60289fb6cd 100644
+> --- a/drivers/input/misc/rotary_encoder.c
+> +++ b/drivers/input/misc/rotary_encoder.c
+> @@ -25,24 +25,29 @@
+>  #include <linux/of.h>
+>  #include <linux/pm.h>
+>  #include <linux/property.h>
+> +#include <linux/input-polldev.h>
+>  
+>  #define DRV_NAME "rotary-encoder"
+>  
+>  struct rotary_encoder {
+>  	struct input_dev *input;
+> -
+> +#ifdef CONFIG_INPUT_GPIO_ROTARY_ENCODER_POLL_MODE_SUPPORT
+> +	struct input_polled_dev *poll_dev;
+> +#endif
+>  	struct mutex access_mutex;
+>  
+>  	u32 steps;
+>  	u32 axis;
+>  	bool relative_axis;
+>  	bool rollover;
+> +	bool absolute_encoder;
+>  
+>  	unsigned int pos;
+>  
+>  	struct gpio_descs *gpios;
+> +	struct device *dev;
+>  
+> -	unsigned int *irq;
+> +	int *irq;
+>  
+>  	bool armed;
+>  	signed char dir;	/* 1 - clockwise, -1 - CCW */
+> @@ -67,6 +72,21 @@ static unsigned int rotary_encoder_get_state(struct rotary_encoder *encoder)
+>  	return ret & 3;
+>  }
+>  
+> +static unsigned int rotary_encoder_get_gpios_state(struct rotary_encoder
+> +						   *encoder)
+> +{
+> +	int i;
+> +	unsigned int ret = 0;
+> +
+> +	for (i = 0; i < encoder->gpios->ndescs; ++i) {
+> +		int val = gpiod_get_value_cansleep(encoder->gpios->desc[i]);
+> +
+> +		ret = ret << 1 | val;
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+>  static void rotary_encoder_report_event(struct rotary_encoder *encoder)
+>  {
+>  	if (encoder->relative_axis) {
+> @@ -178,6 +198,72 @@ out:
+>  	return IRQ_HANDLED;
+>  }
+>  
+> +static void rotary_encoder_setup_input_params(struct rotary_encoder  *encoder)
+> +{
+> +	struct input_dev *input = encoder->input;
+> +	struct platform_device *pdev = to_platform_device(encoder->dev);
+> +
+> +	input->name = pdev->name;
+> +	input->id.bustype = BUS_HOST;
+> +	input->dev.parent = encoder->dev;
+> +
+> +	if (encoder->relative_axis)
+> +		input_set_capability(input, EV_REL, encoder->axis);
+> +	else
+> +		input_set_abs_params(input,
+> +				     encoder->axis, 0, encoder->steps, 0, 1);
+> +}
+> +
+> +static irqreturn_t rotary_absolute_encoder_irq(int irq, void *dev_id)
+> +{
+> +	struct rotary_encoder *encoder = dev_id;
+> +	unsigned int state;
+> +
+> +	mutex_lock(&encoder->access_mutex);
+> +
+> +	state = rotary_encoder_get_gpios_state(encoder);
+> +	if (state != encoder->last_stable) {
+> +		input_report_abs(encoder->input, encoder->axis, state);
+> +		input_sync(encoder->input);
+> +		encoder->last_stable = state;
+> +	}
+> +
+> +	mutex_lock(&encoder->access_mutex);
+> +
+> +	return IRQ_HANDLED;
+> +}
+> +
+> +#ifdef CONFIG_INPUT_GPIO_ROTARY_ENCODER_POLL_MODE_SUPPORT
+> +static void rotary_encoder_poll_gpios(struct input_polled_dev *poll_dev)
+> +{
+> +	struct rotary_encoder *encoder = poll_dev->private;
+> +	unsigned int state = rotary_encoder_get_gpios_state(encoder);
+> +
+> +	if (state != encoder->last_stable) {
+> +		input_report_abs(encoder->input, encoder->axis, state);
+> +		input_sync(encoder->input);
+> +		encoder->last_stable = state;
+> +	}
+> +}
+> +
+> +static int rotary_encoder_register_poll_device(struct rotary_encoder
+> +		*encoder)
+> +{
+> +	struct input_polled_dev *poll_dev =
+> +		devm_input_allocate_polled_device(encoder->dev);
+> +
+> +	if (!poll_dev)
+> +		return -ENOMEM;
+> +	poll_dev->private = encoder;
+> +	poll_dev->poll = rotary_encoder_poll_gpios;
+> +	encoder->input = poll_dev->input;
+> +	rotary_encoder_setup_input_params(encoder);
+> +	encoder->poll_dev = poll_dev;
+> +
+> +	return input_register_polled_device(poll_dev);
+> +}
+> +#endif
+> +
+>  static int rotary_encoder_probe(struct platform_device *pdev)
+>  {
+>  	struct device *dev = &pdev->dev;
+> @@ -227,38 +313,32 @@ static int rotary_encoder_probe(struct platform_device *pdev)
+>  		return -EINVAL;
+>  	}
+>  
+> -	input = devm_input_allocate_device(dev);
+> -	if (!input)
+> -		return -ENOMEM;
+> -
+> -	encoder->input = input;
+> -
+> -	input->name = pdev->name;
+> -	input->id.bustype = BUS_HOST;
+> -	input->dev.parent = dev;
+> -
+> -	if (encoder->relative_axis)
+> -		input_set_capability(input, EV_REL, encoder->axis);
+> -	else
+> -		input_set_abs_params(input,
+> -				     encoder->axis, 0, encoder->steps, 0, 1);
+> -
+> -	switch (steps_per_period >> (encoder->gpios->ndescs - 2)) {
+> -	case 4:
+> -		handler = &rotary_encoder_quarter_period_irq;
+> -		encoder->last_stable = rotary_encoder_get_state(encoder);
+> -		break;
+> -	case 2:
+> -		handler = &rotary_encoder_half_period_irq;
+> -		encoder->last_stable = rotary_encoder_get_state(encoder);
+> -		break;
+> -	case 1:
+> -		handler = &rotary_encoder_irq;
+> -		break;
+> -	default:
+> -		dev_err(dev, "'%d' is not a valid steps-per-period value\n",
+> -			steps_per_period);
+> -		return -EINVAL;
+> +	encoder->dev = dev;
+> +	encoder->absolute_encoder =
+> +		device_property_read_bool(dev,
+> +					  "rotary-encoder,absolute-encoder");
+> +	if (encoder->absolute_encoder) {
+> +		handler = rotary_absolute_encoder_irq;
+> +	} else {
+> +		switch (steps_per_period >> (encoder->gpios->ndescs - 2)) {
+> +		case 4:
+> +			handler = &rotary_encoder_quarter_period_irq;
+> +			encoder->last_stable =
+> +				rotary_encoder_get_state(encoder);
+> +			break;
+> +		case 2:
+> +			handler = &rotary_encoder_half_period_irq;
+> +			encoder->last_stable =
+> +				rotary_encoder_get_state(encoder);
+> +			break;
+> +		case 1:
+> +			handler = &rotary_encoder_irq;
+> +			break;
+> +		default:
+> +			dev_err(dev, "'%d' is not a valid steps-per-period value\n",
+> +				steps_per_period);
+> +			return -EINVAL;
+> +		}
+>  	}
+>  
+>  	encoder->irq =
+> @@ -271,6 +351,18 @@ static int rotary_encoder_probe(struct platform_device *pdev)
+>  	for (i = 0; i < encoder->gpios->ndescs; ++i) {
+>  		encoder->irq[i] = gpiod_to_irq(encoder->gpios->desc[i]);
+>  
+> +#ifdef CONFIG_INPUT_GPIO_ROTARY_ENCODER_POLL_MODE_SUPPORT
+> +		if (encoder->irq[i] < 0 && encoder->absolute_encoder) {
+> +			dev_info(dev, "Using poll mode\n");
+> +			err = rotary_encoder_register_poll_device(encoder);
+> +			if (err) {
+> +				dev_err(dev, "failed to register poll dev\n");
+> +				return err;
+> +			}
+> +			platform_set_drvdata(pdev, encoder);
+> +			return 0;
+> +		}
+> +#endif
+>  		err = devm_request_threaded_irq(dev, encoder->irq[i],
+>  				NULL, handler,
+>  				IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING |
+> @@ -283,6 +375,11 @@ static int rotary_encoder_probe(struct platform_device *pdev)
+>  		}
+>  	}
+>  
+> +	input = devm_input_allocate_device(dev);
+> +	if (!input)
+> +		return -ENOMEM;
+> +	encoder->input = input;
+> +	rotary_encoder_setup_input_params(encoder);
+>  	err = input_register_device(input);
+>  	if (err) {
+>  		dev_err(dev, "failed to register input device\n");
+> -- 
+> 2.8.2
+> 
 
 -- 
-With best regards,
-Matwey V. Kornilov.
-Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
-119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Dmitry
