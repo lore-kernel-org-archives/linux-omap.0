@@ -1,49 +1,57 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: Regression: next-20160518: Clk? on BeagleBoard-X15
-Date: Fri, 20 May 2016 14:43:05 -0500
-Message-ID: <573F68C9.2060404@ti.com>
-References: <573DDFE6.8010209@ti.com> <20160519165719.GW5995@atomide.com>
- <CAL_Jsq+ORQ5PP80_HbH16+SaHFLdrefcVGFzsvgLYiiwtq9PuQ@mail.gmail.com>
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Subject: Re: [OOPS] cppi41_dma_channel_program: Unable to handle kernel NULL
+ pointer dereference
+Date: Fri, 20 May 2016 15:10:19 -0500
+Message-ID: <20160520201019.GA3432@uda0271908>
+References: <1463750386-6259-1-git-send-email-matwey@sai.msu.ru>
+ <CAJs94EZjWi0KGn_siyXNGvjO2DTh2aXtYqKzy7Km7mA_bYTeKg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAL_Jsq+ORQ5PP80_HbH16+SaHFLdrefcVGFzsvgLYiiwtq9PuQ@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rob Herring <robh@kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Rhyland Klein <rklein@nvidia.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAJs94EZjWi0KGn_siyXNGvjO2DTh2aXtYqKzy7Km7mA_bYTeKg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Matwey V. Kornilov" <matwey-TTlVxmypnbovJsYlp49lxw@public.gmane.org>
+Cc: Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 05/19/2016 12:35 PM, Rob Herring wrote:
-> On Thu, May 19, 2016 at 11:57 AM, Tony Lindgren <tony@atomide.com> wrote:
->> * Nishanth Menon <nm@ti.com> [160519 08:48]:
->>> I have'nt bisected yet, but the platform seems to have booted on
->>> next-20160517
->>> https://github.com/nmenon/kernel-test-logs/blob/next-20160517/omap2plus_defconfig/am57xx-evm.txt
->>>
->>> https://github.com/nmenon/kernel-test-logs/blob/next-20160518/omap2plus_defconfig/am57xx-evm.txt
->>
->> Seems to be commit ac78f9bdcf38 ("drivers/of: Fix depth when
->> unflattening devicetree").
->>
->> Rob, you need to start playing golf or something between -rc6 and
->> the end of the merge window or something :)
+Hi,
+
+On Fri, May 20, 2016 at 04:32:06PM +0300, Matwey V. Kornilov wrote:
+> 2016-05-20 16:19 GMT+03:00  <matwey-TTlVxmypnbovJsYlp49lxw@public.gmane.org>:
+> > Hello,
+> >
+> > I am running 4.6-rc3 on BealgeBone Black and when I try to interract
+> > with pwc webcam attached to usb port the following kernel panic
+> > happening.
 > 
-> It seems the fix for one board broke more... It is fixed in my tree now.
+> Please note, that the same is happening with 4.6.0 release.
 
-Thanks. Looks good today on my test lists:
-https://github.com/nmenon/kernel-test-logs/tree/next-20160520
+Please apply the following patch and reproduce the oops, I'd like to
+check if the oops is caused by NULL of hw_ep->in_qh.
 
-
-
--- 
 Regards,
-Nishanth Menon
+-Bin.
+
+---8<-------
+diff --git a/drivers/usb/musb/musb_cppi41.c b/drivers/usb/musb/musb_cppi41.c
+index e499b86..3492c6e 100644
+--- a/drivers/usb/musb/musb_cppi41.c
++++ b/drivers/usb/musb/musb_cppi41.c
+@@ -489,8 +489,11 @@ static int cppi41_dma_channel_program(struct dma_channel *channel,
+        if (is_host_active(cppi41_channel->controller->musb)) {
+                if (cppi41_channel->is_tx)
+                        hb_mult = cppi41_channel->hw_ep->out_qh->hb_mult;
+-               else
++               else {
++                       if (!cppi41_channel->hw_ep->in_qh)
++                               dev_err(NULL, "->in_qh is NULL\n");
+                        hb_mult = cppi41_channel->hw_ep->in_qh->hb_mult;
++               }
+        }
+ 
+        channel->status = MUSB_DMA_STATUS_BUSY;
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
