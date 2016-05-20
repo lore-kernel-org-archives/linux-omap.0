@@ -1,65 +1,47 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: 4.5-rc0 regression: GPRS breaks after very short while
-Date: Fri, 20 May 2016 06:12:59 +0200
-Message-ID: <20160520041258.GB22076@earth>
-References: <20160518074924.GA20652@amd>
- <20160518141624.GA8025@earth>
- <20160518201251.GA22015@amd>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH 0/4] regulator: tps65917/palmas: Cleanups and bugfixes
+Date: Fri, 20 May 2016 10:01:02 +0530
+Message-ID: <573E9306.5050908@ti.com>
+References: <1462494592-27909-1-git-send-email-nm@ti.com>
+ <572C444F.9070304@nvidia.com> <20160506171453.GX6292@sirena.org.uk>
+ <572CEA22.2090300@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="MGYHOYXEY6WxJCY8"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160518201251.GA22015@amd>
+In-Reply-To: <572CEA22.2090300@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
+To: Nishanth Menon <nm@ti.com>, Mark Brown <broonie@kernel.org>, Laxman Dewangan <ldewangan@nvidia.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Keerthy <j-keerthy@ti.com>, Stephen Warren <swarren@nvidia.com>, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
++ Lee Jones
 
---MGYHOYXEY6WxJCY8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Saturday 07 May 2016 12:31 AM, Nishanth Menon wrote:
+> On 05/06/2016 12:14 PM, Mark Brown wrote:
+>> On Fri, May 06, 2016 at 12:44:23PM +0530, Laxman Dewangan wrote:
+>>
+>>> When you are here, can you implement the dt parsing with the new method from
+>>> regulator framework.
+>>> Regulator FW calls callback to parse customized DT property, just need to
+>>> pass the node and pointer when registering.
+>>
+>>> This will helps lots in cleanups and readability.
+>>
+>> Yes, please.
+>>
+> yeah, the driver has started showing it's age, it will be good to do a
+> refactor.
 
-Hi,
+Laxman,
 
-On Wed, May 18, 2016 at 10:12:51PM +0200, Pavel Machek wrote:
-> > The last one only changes a comment, so not relevant, the other
-> > two fix error handling during initialization and are most likely
-> > also not the problem. Can you try to bisect the problem?
->=20
-> It will not be fun, but I guess it is doable. But before I start it
-> would be good to know -- does it work for you?
+I got the dt parsing with new method from regulator framework part, But
+by new method do you also want to remove the dt compatible of regulators 
+and let only the mfd compatible stay?
 
-I currently don't have a second SIM card with network access for my
-dev phone, so I usually only test without gprs connection. As a
-result I don't really know if longer data connection would work.
+replace of_platform_populate with mfd_add_devices so that linux handles 
+the drivers split up and not the device tree?
 
-Also I'm quite busy until next weekend with other stuff. If you did
-not find anything until then, I will do some testing/debugging.
-
--- Sebastian
-
---MGYHOYXEY6WxJCY8
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJXPo7IAAoJENju1/PIO/qaJFkP/RU/ORzboXBp4FrDV7bBbrNg
-hycXkd0cxQ1CJeO+hK1Bd8URxLchBbJ2zjRm6uJOwCiG1Q7FYjSKilTZbbiRbdWT
-JoC0T6kk/vFwONPzRq2JHp1JESVLiUQIyDBqkEGIlV62kwAcs6gjVjZJtFlKEm31
-QgI8SMkphXqq32DnySW1EUuYabygeK1pYC3s6Ygh2nakmS+NARU8y7DVDazXTg70
-69XRXQ7lwbpzrYyMLueD+Lw5+l6Zvf2xJqPVqDSvlty3euXyWwkMShyfhAHHellf
-KPhNlyuu53/5TIK7htQSVXsuWB6MzOU/3gbP1QuyhHCg+7AIiNDEUdjq5y813o8f
-zU66h5L2fZFBC2Cp4q5qW7Wbr4fIJB/cKpLIbhpMrzIAoH67N3P4QhGt0aEdzTIG
-Pd61Tu8O857aVmtMlBAdZDcXWPrtWzilnjxQALFvFfDr8UNkTxVSQIJZCJUIwlft
-PG0L11M9w/FIAc6Gmc26+EHXEnyGls23N/5Kv2zlaCvSlA9xC5PGJqgq0Tq/Abn6
-GViZEGp5tCCJF9SIrvi/13o5Wf4k2DaMLfgtIsrKCBzvNKrMwxE/DvsAsakemD0r
-4bqUC+mb9cFbpX//rncqtQBcKOrZsbvlEQ0aTAVmIAGin8XQ5JCfGhH+3Hn70mo0
-sunm+NHzuPDWyFAS6FUw
-=CcmG
------END PGP SIGNATURE-----
-
---MGYHOYXEY6WxJCY8--
+Regards,
+Keerthy
+>
