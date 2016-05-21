@@ -1,7 +1,7 @@
 From: Andrea Gelmini <andrea.gelmini@gelma.net>
-Subject: [PATCH 0105/1529] Fix typo
-Date: Sat, 21 May 2016 13:50:13 +0200
-Message-ID: <20160521115013.4816-1-andrea.gelmini@gelma.net>
+Subject: [PATCH 0106/1529] Fix typo
+Date: Sat, 21 May 2016 13:50:19 +0200
+Message-ID: <20160521115019.4865-1-andrea.gelmini@gelma.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -21,30 +21,21 @@ List-Id: linux-omap@vger.kernel.org
 
 Signed-off-by: Andrea Gelmini <andrea.gelmini@gelma.net>
 ---
- arch/arm/mach-omap2/mux34xx.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/omap4-common.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/mux34xx.c b/arch/arm/mach-omap2/mux34xx.c
-index be271f1..393e687 100644
---- a/arch/arm/mach-omap2/mux34xx.c
-+++ b/arch/arm/mach-omap2/mux34xx.c
-@@ -1266,7 +1266,7 @@ static struct omap_ball __initdata omap3_cus_ball[] = {
- #endif
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index 949696b..fb6fe26 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -61,7 +61,7 @@ static phys_addr_t dram_sync_paddr;
+ static u32 dram_sync_size;
  
  /*
-- * Signals different on CBB package comapared to superset
-+ * Signals different on CBB package compared to superset
-  */
- #if defined(CONFIG_OMAP_MUX) && defined(CONFIG_OMAP_PACKAGE_CBB)
- static struct omap_mux __initdata omap3_cbb_subset[] = {
-@@ -1597,7 +1597,7 @@ static struct omap_ball __initdata omap3_cbb_ball[] = {
- #endif
- 
- /*
-- * Signals different on 36XX CBP package comapared to 34XX CBC package
-+ * Signals different on 36XX CBP package compared to 34XX CBC package
-  */
- #if defined(CONFIG_OMAP_MUX) && defined(CONFIG_OMAP_PACKAGE_CBP)
- static struct omap_mux __initdata omap36xx_cbp_subset[] = {
+- * The OMAP4 bus structure contains asynchrnous bridges which can buffer
++ * The OMAP4 bus structure contains asynchronous bridges which can buffer
+  * data writes from the MPU. These asynchronous bridges can be found on
+  * paths between the MPU to EMIF, and the MPU to L3 interconnects.
+  *
 -- 
 2.8.2.534.g1f66975
