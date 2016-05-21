@@ -1,143 +1,170 @@
 From: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH v8 13/14] usb: gadget: udc: adapt to OTG core
-Date: Sat, 21 May 2016 10:29:40 +0800
-Message-ID: <20160521022940.GA15088@shlinux2>
-References: <20160516092323.GD24609@shlinux2.ap.freescale.net>
+Date: Sat, 21 May 2016 10:44:47 +0800
+Message-ID: <20160521024447.GB15088@shlinux2>
+References: <1463133808-10630-1-git-send-email-rogerq@ti.com>
+ <1463133808-10630-14-git-send-email-rogerq@ti.com>
+ <20160516070249.GB24609@shlinux2.ap.freescale.net>
+ <57398451.2060103@ti.com>
+ <20160516092323.GD24609@shlinux2.ap.freescale.net>
  <57399839.90706@ti.com>
- <AM4PR04MB2130E149700361CBA3F6863389480@AM4PR04MB2130.eurprd04.prod.outlook.com>
- <573AD198.6030307@ti.com>
- <AM4PR04MB2130EF68F7ADD64607C6CD4389480@AM4PR04MB2130.eurprd04.prod.outlook.com>
- <573C6347.6080705@ti.com>
- <AM4PR04MB2130145869480748D06FE6E589490@AM4PR04MB2130.eurprd04.prod.outlook.com>
- <573C719F.5010107@ti.com>
- <AM4PR04MB2130926F9AE8EBFC0D19447689490@AM4PR04MB2130.eurprd04.prod.outlook.com>
- <573D6C1C.4090600@ti.com>
+ <20160518031829.GA4244@shlinux2.ap.freescale.net>
+ <573C63D7.9050200@ti.com>
+ <20160520013931.GA10896@shlinux2>
+ <573EBC0B.7030204@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <573D6C1C.4090600-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <573EBC0B.7030204-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Jun Li <jun.li-3arQi8VN3Tc@public.gmane.org>, "peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org" <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, "jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "grygorii.strashko-l0cyMroinI0@public.gmane.org" <grygorii.strashko-l0cyMroinI0@public.gmane.org>, "yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org" <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, "robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "nsekhar-l0cyMroinI0@public.gmane.org" <nsekhar-l0cyMroinI0@public.gmane.org>, "b-liu-l0cyMroinI0@public.gmane.org" <b-liu-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel-fy+rA21nqHI@public.gmane.org
+Cc: peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 19, 2016 at 10:32:44AM +0300, Roger Quadros wrote:
-> On 18/05/16 17:46, Jun Li wrote:
-> > 
-> > 
+On Fri, May 20, 2016 at 10:26:03AM +0300, Roger Quadros wrote:
+> Peter,
+> 
+> On 20/05/16 04:39, Peter Chen wrote:
+> > On Wed, May 18, 2016 at 03:45:11PM +0300, Roger Quadros wrote:
+> >> On 18/05/16 06:18, Peter Chen wrote:
+> >>> On Mon, May 16, 2016 at 12:51:53PM +0300, Roger Quadros wrote:
+> >>>> On 16/05/16 12:23, Peter Chen wrote:
+> >>>>> On Mon, May 16, 2016 at 11:26:57AM +0300, Roger Quadros wrote:
+> >>>>>> Hi,
+> >>>>>>
+> >>>>>> On 16/05/16 10:02, Peter Chen wrote:
+> >>>>>>> On Fri, May 13, 2016 at 01:03:27PM +0300, Roger Quadros wrote:
+> >>>>>>>> +
+> >>>>>>>> +static int usb_gadget_connect_control(struct usb_gadget *gadget, bool connect)
+> >>>>>>>> +{
+> >>>>>>>> +	struct usb_udc *udc;
+> >>>>>>>> +
+> >>>>>>>> +	mutex_lock(&udc_lock);
+> >>>>>>>> +	udc = usb_gadget_to_udc(gadget);
+> >>>>>>>> +	if (!udc) {
+> >>>>>>>> +		dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
+> >>>>>>>> +			__func__);
+> >>>>>>>> +		mutex_unlock(&udc_lock);
+> >>>>>>>> +		return -EINVAL;
+> >>>>>>>> +	}
+> >>>>>>>> +
+> >>>>>>>> +	if (connect) {
+> >>>>>>>> +		if (!gadget->connected)
+> >>>>>>>> +			usb_gadget_connect(udc->gadget);
+> >>>>>>>> +	} else {
+> >>>>>>>> +		if (gadget->connected) {
+> >>>>>>>> +			usb_gadget_disconnect(udc->gadget);
+> >>>>>>>> +			udc->driver->disconnect(udc->gadget);
+> >>>>>>>> +		}
+> >>>>>>>> +	}
+> >>>>>>>> +
+> >>>>>>>> +	mutex_unlock(&udc_lock);
+> >>>>>>>> +
+> >>>>>>>> +	return 0;
+> >>>>>>>> +}
+> >>>>>>>> +
+> >>>>>>>
+> >>>>>>> Since this is called for vbus interrupt, why not using
+> >>>>>>> usb_udc_vbus_handler directly, and call udc->driver->disconnect
+> >>>>>>> at usb_gadget_stop.
+> >>>>>>
+> >>>>>> We can't assume that this is always called for vbus interrupt so
+> >>>>>> I decided not to call usb_udc_vbus_handler.
+> >>>>>>
+> >>>>>> udc->vbus is really pointless for us. We keep vbus states in our
+> >>>>>> state machine and leave udc->vbus as ture always.
+> >>>>>>
+> >>>>>> Why do you want to move udc->driver->disconnect() to stop?
+> >>>>>> If USB controller disconnected from bus then the gadget driver
+> >>>>>> must be notified about the disconnect immediately. The controller
+> >>>>>> may or may not be stopped by the core.
+> >>>>>>
+> >>>>>
+> >>>>> Then, would you give some comments when this API will be used?
+> >>>>> I was assumed it is only used for drd state machine.
 > >>>>
-> >>>> I didn't want to have complex Kconfig so decided to have otg as
-> >>>> built-in only.
-> >>>> What do you want me to change in existing code? and why?
+> >>>> drd_state machine didn't even need this API in the first place :).
+> >>>> You guys wanted me to separate out start/stop and connect/disconnect for full OTG case.
+> >>>> Won't full OTG state machine want to use this API? If not what would it use?
+> >>>>
 > >>>
-> >>> Remove those stuff which only for pass diff driver config Like every
-> >>> controller driver need a duplicated
-> >>>
-> >>> static struct otg_hcd_ops ci_hcd_ops = {
-> >>>     ...
-> >>> }
+> >>> Oh, I meant only drd and fully otg state machine needs it. I am
+> >>> wondering if we need have a new API to do it. Two questions:
 > >>
-> >> This is an exception only. Every controller driver doesn't need to
-> >> implement hcd_ops. It is implemented in the hcd core.
+> >> OK.
+> >>>
+> >>> - Except for vbus interrupt, any chances this API will be used at
+> >>> current logic?
 > >>
-> >>>
-> >>> And here is another example, for gadget connect, otg driver can
-> >>> directly call to usb_udc_vbus_handler() in drd state machine, but you
-> >>> create another interface:
-> >>>
-> >>> .connect_control = usb_gadget_connect_control,
-> >>>
-> >>> If the symbol is defined in one driver which is 'm', another driver
-> >>> reference it should be 'm' as well, then there is no this kind of
-> >>> problem as my understanding.
+> >> I don't think so. But we can't assume caller behaviour for any API.
 > >>
-> >> That is fine as long as all are 'm'. but how do you solve the case when
-> >> Gadget is built in and host is 'm'? OTG has to be built-in and you will
-> >> need an hcd to gadget interface.
+> >>> - When this API is called but without a coming gadget->stop?
+> >>>
+> >> Never for DRD case. But we want to catch wrong users.
+> >>
 > > 
-> > Hcd to gadget interface? Or you want to say otg to host interface?
-> 
-> Sorry, I meant to say host to otg interface.
-> 
+> > In future, otg_start_gadget will be used for both DRD and fully OTG FSM.
+> > There is no otg_loc_conn at current DRD FSM, but there is
+> > otg_loc_conn at current OTG FSM, see below.
 > > 
-> > I think hcd and gadget are independent each other, now
+> > DRD FSM:
+> > 	case OTG_STATE_B_IDLE:
+> > 		drd_set_protocol(fsm, PROTO_UNDEF);
+> > 		otg_drv_vbus(otg, 0);
+> > 		break;
+> > 	case OTG_STATE_B_PERIPHERAL:
+> > 		drd_set_protocol(fsm, PROTO_GADGET);
+> > 		otg_drv_vbus(otg, 0);
+> > 		break;
 > > 
-> > Hcd --> otg; and gadget --> otg, (hcd and gadget use otg's symbol)
+> > OTG FSM:
+> > 	case OTG_STATE_B_IDLE:
+> > 		otg_drv_vbus(otg, 0);
+> > 		otg_chrg_vbus(otg, 0);
+> > 		otg_loc_conn(otg, 0);
+> > 		otg_loc_sof(otg, 0);
+> > 		/*
+> > 		 * Driver is responsible for starting ADP probing
+> > 		 * if ADP sensing times out.
+> > 		 */
+> > 		otg_start_adp_sns(otg);
+> > 		otg_set_protocol(fsm, PROTO_UNDEF);
+> > 		otg_add_timer(otg, B_SE0_SRP);
+> > 		break;
+> > 	case OTG_STATE_B_PERIPHERAL:
+> > 		otg_chrg_vbus(otg, 0);
+> > 		otg_loc_sof(otg, 0);
+> > 		otg_set_protocol(fsm, PROTO_GADGET);
+> > 		otg_loc_conn(otg, 1);
+> > 		break;
+> > 
+> > My original suggestion is to have an API to do pull dp and this API
+> > will be used at both DRD and OTG FSM, and called at otg_loc_conn.
 > 
-> It is actually a circular dependency for both.
->  hcd <--> otg and gadget <--> otg
+> The API is usb_gadget_connect_control();
 > 
-> hcd -> otg for usb_otg_register/unregister_hcd
-> otg -> hcd for usb_add/remove_hcd, usb_bus_start_enum, usb_control_msg, usb_hub_find_child
+> > The (de)initialize is the same for both two FSMs, it both includes
+> > init peripheral mode and pull up dp, and can be done by drd_set_protocol(fsm, PROTO_GADGET)
+> > otg_loc_conn(otg, 1);
+> > 
+> > What do you think?
+> > 
 > 
-> gadget -> otg for usb_otg_register/unregister_gadget
-> otg -> gadget for usb_gadget_start/stop, usb_udc_vbus_handler
-> 
-> Now consider what will happen if I get rid of the otg_hcd and otg_gadget interfaces.
-> 'y' means built-in, 'm' means module.
-> 
-> 1) hcd 'y', gadget 'y'
-> otg has to be 'y' for proper build.
-> 
-> 2) hcd 'm', gadget 'm'
-> otg has to be 'm' for proper build.
-> 
-> 3) hcd 'y', gadget 'm'
-> Build will fail always.
-> If otg is 'y', otg build will fail due to dependency on gadget.
-> If otg is 'm', hcd build will fail due to dependency on otg.
-> 
-> 4) hcd 'm', gadget 'y'
-> Build will fail always.
-> If otg is 'y', otg build will fail due to dependency on hcd.
-> If otg is 'm', gadget build will fails due to dependency on otg.
-> 
-> So I solve this problem by adding the otg_hcd_ops and otg_gadget_ops
-> to remove otg->hcd and otg->gadget dependency.
-> 
-> Now we can address 3) and 4) like so
-> 
-> 3) hcd 'y', gadget 'm'
-> otg has to be 'y' for proper build.
-> 
-> 4) hcd 'm', gadget 'y'
-> otg has to be 'y' for proper build.
+> I think loc_conn is a bit confusing to drd users. Another issue I see is that 
+> DRD controller drivers will need to explicitly pass .loc_conn ops via the otg_fsm_ops.
+> This is an additional step and totally unnecessary as it can be automatically done
+> via direct DRD -> UDC-core call.
 > 
 
-How about this:
-Moving usb_otg_register/unregister_hcd to host driver to remove
-dependency hcd->otg. And moving usb_otg_get_data to common.c.
+If you are stick to that, let's follow your way if Felipe agree with it
+too, although it lets the DRD state machine look different with OTG's.
 
-Delete the wait queue at usb-otg.c, and if calling usb_otg_get_data
-returns NULL, the host/device driver's probe return -EPROBE_DEFER.
-When the otg driver is probed successfully, the host/device will be
-re-probed again, and usb_otg_register_hcd will be called again.
-
-And let OTG depends on HCD && GADGET, and delete otg_hcd_ops and
-otg_gadget_ops. Below build dependency issues can be fixed.
-What do you think?
-
-> 1) hcd 'y', gadget 'y'
-> otg has to be 'y' for proper build.
-> 
-> 2) hcd 'm', gadget 'm'
-> otg has to be 'm' for proper build.
-> 
-> 3) hcd 'y', gadget 'm'
-> Build will fail always.
-> If otg is 'y', otg build will fail due to dependency on gadget.
-> If otg is 'm', hcd build will fail due to dependency on otg.
-> 
-> 4) hcd 'm', gadget 'y'
-> Build will fail always.
-> If otg is 'y', otg build will fail due to dependency on hcd.
-> If otg is 'm', gadget build will fails due to dependency on otg.
 -- 
 
 Best Regards,
 Peter Chen
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
