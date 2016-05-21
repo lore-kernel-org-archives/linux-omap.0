@@ -1,7 +1,7 @@
 From: Andrea Gelmini <andrea.gelmini@gelma.net>
-Subject: [PATCH 0102/1529] Fix typo
-Date: Sat, 21 May 2016 13:49:48 +0200
-Message-ID: <20160521114948.4664-1-andrea.gelmini@gelma.net>
+Subject: [PATCH 0105/1529] Fix typo
+Date: Sat, 21 May 2016 13:50:13 +0200
+Message-ID: <20160521115013.4816-1-andrea.gelmini@gelma.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -21,21 +21,30 @@ List-Id: linux-omap@vger.kernel.org
 
 Signed-off-by: Andrea Gelmini <andrea.gelmini@gelma.net>
 ---
- arch/arm/mach-omap1/ams-delta-fiq.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-omap2/mux34xx.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/ams-delta-fiq.c b/arch/arm/mach-omap1/ams-delta-fiq.c
-index d1f1209..acd6bf0 100644
---- a/arch/arm/mach-omap1/ams-delta-fiq.c
-+++ b/arch/arm/mach-omap1/ams-delta-fiq.c
-@@ -136,7 +136,7 @@ void __init ams_delta_init_fiq(void)
- 		fiq_buffer[i] = 0;
+diff --git a/arch/arm/mach-omap2/mux34xx.c b/arch/arm/mach-omap2/mux34xx.c
+index be271f1..393e687 100644
+--- a/arch/arm/mach-omap2/mux34xx.c
++++ b/arch/arm/mach-omap2/mux34xx.c
+@@ -1266,7 +1266,7 @@ static struct omap_ball __initdata omap3_cus_ball[] = {
+ #endif
  
- 	/*
--	 * FIQ mode r9 always points to the fiq_buffer, becauses the FIQ isr
-+	 * FIQ mode r9 always points to the fiq_buffer, because the FIQ isr
- 	 * will run in an unpredictable context. The fiq_buffer is the FIQ isr's
- 	 * only means of communication with the IRQ level and other kernel
- 	 * context code.
+ /*
+- * Signals different on CBB package comapared to superset
++ * Signals different on CBB package compared to superset
+  */
+ #if defined(CONFIG_OMAP_MUX) && defined(CONFIG_OMAP_PACKAGE_CBB)
+ static struct omap_mux __initdata omap3_cbb_subset[] = {
+@@ -1597,7 +1597,7 @@ static struct omap_ball __initdata omap3_cbb_ball[] = {
+ #endif
+ 
+ /*
+- * Signals different on 36XX CBP package comapared to 34XX CBC package
++ * Signals different on 36XX CBP package compared to 34XX CBC package
+  */
+ #if defined(CONFIG_OMAP_MUX) && defined(CONFIG_OMAP_PACKAGE_CBP)
+ static struct omap_mux __initdata omap36xx_cbp_subset[] = {
 -- 
 2.8.2.534.g1f66975
