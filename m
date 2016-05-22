@@ -1,97 +1,86 @@
-From: "Matwey V. Kornilov" <matwey-TTlVxmypnbovJsYlp49lxw@public.gmane.org>
-Subject: Re: [OOPS] cppi41_dma_channel_program: Unable to handle kernel NULL
- pointer dereference
-Date: Sat, 21 May 2016 22:04:48 +0300
-Message-ID: <CAJs94EaxaQ4U9T48Lz-jox4VkS-ThDQ3DkSB+1SvnFzMXM_+FA@mail.gmail.com>
-References: <1463750386-6259-1-git-send-email-matwey@sai.msu.ru>
- <CAJs94EZjWi0KGn_siyXNGvjO2DTh2aXtYqKzy7Km7mA_bYTeKg@mail.gmail.com>
- <20160520201019.GA3432@uda0271908> <CAJs94EZSwJ=sJv6NtR6RNdiugiSQQpam-TFRTn0uZZJ4MLsr5g@mail.gmail.com>
- <CAJs94EY3BfQjkk+0hKR5WfKggvmtgV0yz77awiX8Lt_pLYs3ug@mail.gmail.com>
- <CAJs94EZm3aV23x3hGHLpM4dAC+C9rH-ro3JbWU=se_QWv9jRmw@mail.gmail.com>
- <20160520211236.GB3432@uda0271908> <CAJs94Eb6tfJHV7YeAA0UATF2A5oNrCDTSqTAdHbacmrm4Qw=8w@mail.gmail.com>
- <CADYTM3bcTWSBf9HXKpsud6i--_04tsKZX1J3p9_6TqL1gp9YnA@mail.gmail.com> <CAJs94EYePeENwsHD--E6cGVP22-nfYcy_yTK-V2Hc1wWYb04vw@mail.gmail.com>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+Subject: Re: [RFC PATCH 1/2] Input: rotary-encoder- Add support for absolute
+ encoder
+Date: Sun, 22 May 2016 12:26:06 +0200
+Message-ID: <20160522102606.GB23704@pengutronix.de>
+References: <1463648641-6931-1-git-send-email-vigneshr@ti.com>
+ <1463648641-6931-2-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJs94EYePeENwsHD--E6cGVP22-nfYcy_yTK-V2Hc1wWYb04vw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bin Liu <binmlist-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1463648641-6931-2-git-send-email-vigneshr@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Jonathan Corbet <corbet@lwn.net>, Johan Hovold <johan@kernel.org>, Sylvain Rochet <sylvain.rochet@finsecur.com>, Masanari Iida <standby24x7@gmail.com>, Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>, S Twiss <stwiss.opensource@diasemi.com>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Moritz Fischer <moritz.fischer@ettus.com>, Arnd Bergmann <arnd@arndb.de>, Geert Uytterhoeven <geert@linux-m68k.org>, Timo Teras <timo.teras@iki.fi>, Guido Martinez <guido@vanguardiasur.com.ar>, Clifton Barnes <clifton.a.barnes@gmail.com>, linux-input@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-2016-05-21 20:50 GMT+03:00 Matwey V. Kornilov <matwey-TTlVxmypnbovJsYlp49lxw@public.gmane.org>:
-> 2016-05-21 6:13 GMT+03:00 Bin Liu <binmlist-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
->> Hi,
->>
->> On Fri, May 20, 2016 at 4:20 PM, Matwey V. Kornilov <matwey-TTlVxmypnbovJsYlp49lxw@public.gmane.org> wrote:
->>> 2016-05-21 0:12 GMT+03:00 Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>:
->>>> Hi,
->>>>
->>>> On Sat, May 21, 2016 at 12:05:06AM +0300, Matwey V. Kornilov wrote:
->>>>> By the way, is it ok that function musb_rx_dma_iso_cppi41 uses
->>>>> hw_ep->tx_channel? I would suppose that it should use rx_channel
->>>>> instead.
->>>>
->>>> I just got here, and am wondering the same. But the question is why just
->>>> your case hit the problem. I will try to look at it more next week.
->>>>
->>>> I had an impression the linux-usb@ has a discussion before about
->>>> rx/tx-channel messing up, will have to look it up.
->>>>
->>>
->>> Thank you.
->>> If you need additional info, I can use kgdb with this issue.
->>
->> After reviewed the code, it must be hw_ep->rx_channel instead. It is likely a
->> bug caused by commit 069a3fd (usb: musb: Remove ifdefs for musb_host_rx
->> in musb_host.c part1). Please test with the following patch.
->>
->
-> I've just tested this patch. Indeed, it helps to avoid kernel panic.
-> Now, I can interact with my webcam and watch video-stream in  xawtv.
-> It would be great if the patch could become a part of 4.6.x stable tree.
->
+Hello,
 
-Hm, the following string appeared one time during my testing:
+On Thu, May 19, 2016 at 02:34:00PM +0530, Vignesh R wrote:
+> There are rotary-encoders where GPIO lines reflect the actual positio=
+n
+> of the rotary encoder dial. For example, if dial points to 9, then fo=
+ur
+> GPIO lines connected to the rotary encoder will read HLLH(1001b =3D 9=
+).
+> Add support for such rotary-encoder.
+> The driver relies on rotary-encoder,absolute-encoder DT property to
+> detect such encoders.
+> Since, GPIO IRQs are not necessary to work with
+> such encoders, optional polling mode support is added using
 
-[  867.017179] musb_host_rx 1925: RX14 dma busy, csr 2020
+I don't understand this. It's necessary in the same way as with the
+already supported devices. I.e. you want to trigger an irq when the
+encoder is moved and then check for it's position in the handler.
 
->> Regards,
->> -Bin.
->>
->> -----8<---------
->> diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
->> index 2f8ad7f..9b2553c 100644
->> --- a/drivers/usb/musb/musb_host.c
->> +++ b/drivers/usb/musb/musb_host.c
->> @@ -1551,7 +1551,7 @@ static int musb_rx_dma_iso_cppi41(struct
->> dma_controller *dma,
->>                                   struct urb *urb,
->>                                   size_t len)
->>  {
->> -       struct dma_channel *channel = hw_ep->tx_channel;
->> +       struct dma_channel *channel = hw_ep->rx_channel;
->>         void __iomem *epio = hw_ep->regs;
->>         dma_addr_t *buf;
->>         u32 length, res;
->>
->
->
->
-> --
-> With best regards,
-> Matwey V. Kornilov.
-> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
-> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+> diff --git a/Documentation/devicetree/bindings/input/rotary-encoder.t=
+xt b/Documentation/devicetree/bindings/input/rotary-encoder.txt
+> index 6c9f0c8a846c..9c928dbd1500 100644
+> --- a/Documentation/devicetree/bindings/input/rotary-encoder.txt
+> +++ b/Documentation/devicetree/bindings/input/rotary-encoder.txt
+> @@ -12,6 +12,10 @@ Optional properties:
+>  - rotary-encoder,relative-axis: register a relative axis rather than=
+ an
+>    absolute one. Relative axis will only generate +1/-1 events on the=
+ input
+>    device, hence no steps need to be passed.
+> +- rotary-encoder,absolute-encoder: support encoders where GPIO lines
+> +  reflect the actual position of the rotary encoder dial. For exampl=
+e,
+> +  if dial points to 9, then four GPIO lines read HLLH(1001b =3D 9).
+> +  In this case, rotary-encoder,steps-per-period needed not be define=
+d.
 
+IMHO this is wrong, I'd formalize this device as:
 
+	{
+		compatible =3D "rotary-encoder";
+		gpios =3D <&gpio 19 1>, <&gpio 20 0>, <...>, <...>;
+		rotary-encoder,encoding =3D "binary";
+		rotary-encoder,steps =3D <16>;
+		rotary-encoder,steps-per-period =3D <16>;
+		rotary-encoder,rollover;
+	}
 
--- 
-With best regards,
-Matwey V. Kornilov.
-Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
-119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+and support this with a v4 of
+
+	http://thread.gmane.org/gmane.linux.kernel.input/48892
+
+=2E
+
+Best regards
+Uwe
+
+--=20
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
+    |
+Industrial Linux Solutions                 | http://www.pengutronix.de/=
+  |
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
