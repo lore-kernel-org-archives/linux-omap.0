@@ -1,80 +1,82 @@
-From: Felipe Balbi <balbi@kernel.org>
-Subject: Re: [RFC PATCH 2/3] mmc: host: omap_hsmmc: Enable ADMA2
-Date: Mon, 23 May 2016 10:18:54 +0300
-Message-ID: <874m9pgs2p.fsf@linux.intel.com>
-References: <1463561115-31798-1-git-send-email-kishon@ti.com> <1463561115-31798-3-git-send-email-kishon@ti.com> <b66f678a-be74-d5f7-f2ef-93b5c9f29b92@ti.com> <20160518193028.GT5995@atomide.com> <0d463add-9fa5-a768-2ba6-34c4126c7817@ti.com> <20160519145745.GU5995@atomide.com> <87shxdlws6.fsf@linux.intel.com> <5742A189.4060803@ti.com>
+From: Caesar Wang <caesar.upstream@gmail.com>
+Subject: Re: [PATCH v2 0/5] Thermal: Support for hardware-tracked trip points
+Date: Mon, 23 May 2016 15:32:39 +0800
+Message-ID: <5742B217.4080405@gmail.com>
+References: <1462268013-14992-1-git-send-email-wxt@rock-chips.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5742A189.4060803@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, afenkart@gmail.com, ulf.hansson@linaro.org, linux@armlinux.org.uk, rogerq@ti.com, bcousson@baylibre.com, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, nsekhar@ti.com
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1462268013-14992-1-git-send-email-wxt@rock-chips.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: edubezval@gmail.com, Zhang Rui <rui.zhang@intel.com>
+Cc: Caesar Wang <wxt@rock-chips.com>, Heiko Stuebner <heiko@sntech.de>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Laxman Dewangan <ldewangan@nvidia.com>, smbarber@google.com, Durgadoss R <durgadoss.r@intel.com>, Jonathan Corbet <corbet@lwn.net>, linux-rockchip@lists.infradead.org, briannorris@google.com, Andy Champ <andycham@amazon.com>, huangtao@rock-chips.com, linux-pm@vger.kernel.org, Sascha Hauer <s.hauer@pengutronix.de>, Javi Merino <javi.merino@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ni Wade <wni@nvidia.com>, Keerthy <j-keerthy@ti.com>, dmitry.torokhov@gmail.com, dianders@chromium.org, Leo Yan <leo.yan@linaro.org>, cf@rock-chips.com
 List-Id: linux-omap@vger.kernel.org
 
+Hello Eduardo & 'Zhang Rui'
 
-Hi Kishon,
+Do we have the chance to merge this series patches for next kernel?
+I had picked them up in my github, and tested for a period of time with=
+=20
+rockchip inside kernel.
 
-Kishon Vijay Abraham I <kishon@ti.com> writes:
-> Hi Felipe,
+Let me know if someone have some suggestions or against opinios.
+Thanks,
+
+-Caesar
+On 2016=E5=B9=B405=E6=9C=8803=E6=97=A5 17:33, Caesar Wang wrote:
+> The history patches come from Mikko and Sascha.
+> http://thread.gmane.org/gmane.linux.power-management.general/59451
 >
-> On Friday 20 May 2016 12:06 AM, Felipe Balbi wrote:
->> 
->> Hi,
->> 
->> Tony Lindgren <tony@atomide.com> writes:
->>> * Peter Ujfalusi <peter.ujfalusi@ti.com> [160519 01:10]:
->>>> On 05/18/2016 10:30 PM, Tony Lindgren wrote:
->>>>> Ideally the adma support would be a separate loadable module,
->>>>> similar how the cppi41dma is a child of the OTG controller.
->>>>
->>>> The Master DMA is part of the hsmmc IP block. If the same ADMA module is
->>>> present on other IPs it might be beneficial to have a helper library to handle
->>>> it (allocating the descriptor pool, wrinting, updating descriptors, etc).
->>>
->>> OK. Yeah if it's part of the MMC controller it makes no sense to
->>> separate it. So then the conecrns are using alternate DMA
->>> implementations and keeping PM runtime working :)
->>>
->>> BTW, Felipe mentioned that the best thing to do in the long run would
->>> be to set up sdhci-omap.c operating in ADMA mode.
->>>
->>> Felipe, care to summarize what you had in mind?
->> 
->> yeah, just write a new sdhci-omap.c to start moving away from
->> omap-hsmmc.c, just like it was done for 8250-omap.
->> 
->> At the beginning, it could be just the bare minimum to get it working
->> and slowly move over stuff like pm runtime, dmaengine, PIO. Move more
->> platforms over to that driver and, eventually, get rid of omap-hsmmc.c
->> altogether.
->> 
->> That way, development can be focussed on generic layers (SDHCI) to which
->> OMAP MMC controller is compliant (apart from the VERSION register
->> quirk).
+> Now, I pick them up to continue upstream.
+> Nevermind!
 >
-> About an year back, when I tried using SDHCI for OMAP I ran into
-> issues and was not able to get it working. IIRC SDHCI_PRESENT_STATE
-> (or OMAP_HSMMC_PSTATE) was not showing the correct state for card
-> present and is unable to raise an interrupt when a card is inserted. I
-> didn't debug this further.
+> This series history patches:
+> v1: https://lkml.org/lkml/2016/4/24/227
+>
+> This series adds support for hardware trip points. It picks up earlie=
+r
+> work from Mikko Perttunen. Mikko implemented hardware trip points as =
+part
+> of the device tree support. It was suggested back then to move the
+> functionality to the thermal core instead of putting more code into t=
+he
+> device tree support. This series does exactly that.
+>
+> This series patches rebase the conflicts.
+> Note that the hardware-tracked trip points are very well tested curre=
+ntly.
+>
+> Verified and tested on https://github.com/Caesar-github/rockchip/tree=
+/wip/fixes-thermal-0503
+> That's based on linux-kernel 20160502.
+> .Linux version 4.6.0-rc6-next-20160502-08922-g860ed34 (wxt@nb)
+>
+>
+> Changes in v2:
+> - update the sysfs-api.txt for set_trips
+> - add the commit in patch[v2 2/5].
+> - Update the commit for patch[v2 4/5].
+>
+> Caesar Wang (1):
+>    thermal: rockchip: add the set_trips function
+>
+> Sascha Hauer (4):
+>    thermal: Add support for hardware-tracked trip points
+>    thermal: of: implement .set_trips for device tree thermal zones
+>    thermal: streamline get_trend callbacks
+>    thermal: bang-bang governor: act on lower trip boundary
+>
+>   Documentation/thermal/sysfs-api.txt                |  7 +++
+>   drivers/thermal/gov_bang_bang.c                    |  2 +-
+>   drivers/thermal/of-thermal.c                       | 23 +++++-----
+>   drivers/thermal/rockchip_thermal.c                 | 39 +++++++++++=
++++++
+>   drivers/thermal/thermal_core.c                     | 52 +++++++++++=
++++++++++++
+>   drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 25 ++++-------
+>   include/linux/thermal.h                            |  9 +++-
+>   7 files changed, 128 insertions(+), 29 deletions(-)
+>
 
-I'd say this is a bug in hsmmc. I remember seeing some bits in some
-TI-specific register (before SDHCI address space starts) which can be
-used to keep parts of SDHCI powered on exactly so normal WP and CD pins
-work as expected.
-
-In any case, adding support for GPIO-based card detect to generic SDHCI
-shouldn't be too difficult :-)
-
-> It also kept me wondering why gpio interrupt was always used for card
-> detect instead of using mmci_sdcd line of the controller.
-
-Probably a really, really old bug which nobody ever debugged properly ;-)
-
-ps: you don't need that ADMA2 DT property, btw. There's a bit in another
-register which you can check if $this controller was configured with
-ADMA2 support or not. IIRC, OMAP5's TRM describes them.
-
--- 
-balbi
