@@ -1,179 +1,152 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v8 08/14] usb: otg: add OTG/dual-role core
-Date: Mon, 23 May 2016 13:06:01 +0300
-Message-ID: <5742D609.6040203@ti.com>
-References: <1463133808-10630-1-git-send-email-rogerq@ti.com>
- <1463133808-10630-9-git-send-email-rogerq@ti.com> <57398C16.5050805@ti.com>
- <CAL411-qb0dHQrn+AarSApCq6L=toKPRerLKDcx_H+5WDWu_VDg@mail.gmail.com>
- <573C674A.7080302@ti.com> <573ECB74.8060502@ti.com> <573ED68B.60907@ti.com>
- <20160520095310.GA5467@shlinux2>
+Subject: Re: [PATCH v8 13/14] usb: gadget: udc: adapt to OTG core
+Date: Mon, 23 May 2016 13:11:48 +0300
+Message-ID: <5742D764.2010507@ti.com>
+References: <57399839.90706@ti.com>
+ <AM4PR04MB2130E149700361CBA3F6863389480@AM4PR04MB2130.eurprd04.prod.outlook.com>
+ <573AD198.6030307@ti.com>
+ <AM4PR04MB2130EF68F7ADD64607C6CD4389480@AM4PR04MB2130.eurprd04.prod.outlook.com>
+ <573C6347.6080705@ti.com>
+ <AM4PR04MB2130145869480748D06FE6E589490@AM4PR04MB2130.eurprd04.prod.outlook.com>
+ <573C719F.5010107@ti.com>
+ <AM4PR04MB2130926F9AE8EBFC0D19447689490@AM4PR04MB2130.eurprd04.prod.outlook.com>
+ <573D6C1C.4090600@ti.com> <20160521022940.GA15088@shlinux2>
+ <20160523032149.GA20438@shlinux2>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160520095310.GA5467@shlinux2>
+In-Reply-To: <20160523032149.GA20438@shlinux2>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Peter Chen <hzpeterchen@gmail.com>
-Cc: Peter Chen <peter.chen@freescale.com>, balbi@kernel.org, tony@atomide.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, devicetree@vger.kernel.org
+Cc: Jun Li <jun.li@nxp.com>, "peter.chen@freescale.com" <peter.chen@freescale.com>, "balbi@kernel.org" <balbi@kernel.org>, "tony@atomide.com" <tony@atomide.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "Joao.Pinto@synopsys.com" <Joao.Pinto@synopsys.com>, "sergei.shtylyov@cogentembedded.com" <sergei.shtylyov@cogentembedded.com>, "jun.li@freescale.com" <jun.li@freescale.com>, "grygorii.strashko@ti.com" <grygorii.strashko@ti.com>, "yoshihiro.shimoda.uh@renesas.com" <yoshihiro.shimoda.uh@renesas.com>, "robh@kernel.org" <robh@kernel.org>, "nsekhar@ti.com" <nsekhar@ti.com>, "b-liu@ti.com" <b-liu@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.ke
 List-Id: linux-omap@vger.kernel.org
 
-On 20/05/16 12:53, Peter Chen wrote:
-> On Fri, May 20, 2016 at 12:19:07PM +0300, Roger Quadros wrote:
->> On 20/05/16 11:31, Roger Quadros wrote:
->>> On 18/05/16 15:59, Roger Quadros wrote:
->>>> Hi Peter,
+On 23/05/16 06:21, Peter Chen wrote:
+> On Sat, May 21, 2016 at 10:29:40AM +0800, Peter Chen wrote:
+>> On Thu, May 19, 2016 at 10:32:44AM +0300, Roger Quadros wrote:
+>>> On 18/05/16 17:46, Jun Li wrote:
 >>>>
->>>> On 18/05/16 10:45, Peter Chen wrote:
->>>>>
->>>>>
->>>>> On Mon, May 16, 2016 at 5:00 PM, Roger Quadros <rogerq@ti.com <mailto:rogerq@ti.com>> wrote:
->>>>>
->>>>>     On 13/05/16 13:03, Roger Quadros wrote:
->>>>>     > It provides APIs for the following tasks
->>>>>     >
->>>>>     > - Registering an OTG/dual-role capable controller
->>>>>     > - Registering Host and Gadget controllers to OTG core
->>>>>     > - Providing inputs to and kicking the OTG state machine
->>>>>     >
->>>>>     > Provide a dual-role device (DRD) state machine.
->>>>>     > DRD mode is a reduced functionality OTG mode. In this mode
->>>>>     > we don't support SRP, HNP and dynamic role-swap.
->>>>>     >
->>>>>     > In DRD operation, the controller mode (Host or Peripheral)
->>>>>     > is decided based on the ID pin status. Once a cable plug (Type-A
->>>>>     > or Type-B) is attached the controller selects the state
->>>>>     > and doesn't change till the cable in unplugged and a different
->>>>>     > cable type is inserted.
->>>>>     >
->>>>>     > As we don't need most of the complex OTG states and OTG timers
->>>>>     > we implement a lean DRD state machine in usb-otg.c.
->>>>>     > The DRD state machine is only interested in 2 hardware inputs
->>>>>     > 'id' and 'b_sess_vld'.
->>>>>     >
->>>>>     > Signed-off-by: Roger Quadros <rogerq@ti.com <mailto:rogerq@ti.com>>
->>>>>     > ---
->>>>>     >  drivers/usb/common/Makefile  |    2 +-
->>>>>     >  drivers/usb/common/usb-otg.c | 1042 ++++++++++++++++++++++++++++++++++++++++++
->>>>>     >  drivers/usb/core/Kconfig     |    4 +-
->>>>>     >  include/linux/usb/gadget.h   |    2 +
->>>>>     >  include/linux/usb/hcd.h      |    1 +
->>>>>     >  include/linux/usb/otg-fsm.h  |    7 +
->>>>>     >  include/linux/usb/otg.h      |  154 ++++++-
->>>>>     >  7 files changed, 1206 insertions(+), 6 deletions(-)
->>>>>     >  create mode 100644 drivers/usb/common/usb-otg.c
->>>>>
->>>>>
->>>>>     This patch causes the following build issues when CONFIG_USB_GADGET=m, CONFIG_USB=m,
->>>>>     CONFIG_USB_COMMON=m and CONFIG_USB_OTG=y
->>>>>
->>>>>     ERROR: "usb_otg_register_gadget" [drivers/usb/gadget/udc/udc-core.ko] undefined!
->>>>>     ERROR: "usb_otg_unregister_gadget" [drivers/usb/gadget/udc/udc-core.ko] undefined!
->>>>>     ERROR: "usb_otg_register_hcd" [drivers/usb/core/usbcore.ko] undefined!
->>>>>     ERROR: "usb_otg_unregister_hcd" [drivers/usb/core/usbcore.ko] undefined!
->>>>>     ERROR: "otg_statemachine" [drivers/usb/chipidea/ci_hdrc.ko] undefined!
->>>>>     scripts/Makefile.modpost:91: recipe for target '__modpost' failed
->>>>>     make[1]: *** [__modpost] Error 1
->>>>>     Makefile:1141: recipe for target 'modules' failed
->>>>>     make: *** [modules] Error 2
->>>>>     make: *** Waiting for unfinished jobs....
->>>>>
->>>>>     drivers/built-in.o: In function `drd_set_state':
->>>>>     usb-otg.c:(.text+0x2b4242): undefined reference to `usb_otg_state_string'
->>>>>     drivers/built-in.o: In function `drd_statemachine':
->>>>>     (.text+0x2b4b4c): undefined reference to `usb_otg_state_string'
->>>>>     Makefile:937: recipe for target 'vmlinux' failed
->>>>>
->>>>>     I'll fix it up with the following diff.
->>>>>
->>>>>     diff --git a/drivers/usb/Makefile b/drivers/usb/Makefile
->>>>>     index dca7856..16a5b55 100644
->>>>>     --- a/drivers/usb/Makefile
->>>>>     +++ b/drivers/usb/Makefile
->>>>>     @@ -59,5 +59,6 @@ obj-$(CONFIG_USB_RENESAS_USBHS)       += renesas_usbhs/
->>>>>      obj-$(CONFIG_USB_GADGET)       += gadget/
->>>>>
->>>>>      obj-$(CONFIG_USB_COMMON)       += common/
->>>>>     +obj-$(CONFIG_USB_OTG)          += common/
->>>>>
->>>>>      obj-$(CONFIG_USBIP_CORE)       += usbip/
->>>>>     diff --git a/drivers/usb/common/usb-otg.c b/drivers/usb/common/usb-otg.c
->>>>>     index 77048aa..17e449e 100644
->>>>>     --- a/drivers/usb/common/usb-otg.c
->>>>>     +++ b/drivers/usb/common/usb-otg.c
->>>>>     @@ -56,6 +56,30 @@ static int usb_otg_hcd_is_primary_hcd(struct usb_hcd *hcd)
->>>>>             return hcd == hcd->primary_hcd;
->>>>>      }
->>>>>
->>>>>     +static const char *otg_state_string(enum usb_otg_state state)
->>>>>     +{
->>>>>     +       static const char *const names[] = {
->>>>>     +               [OTG_STATE_A_IDLE] = "a_idle",
->>>>>     +               [OTG_STATE_A_WAIT_VRISE] = "a_wait_vrise",
->>>>>     +               [OTG_STATE_A_WAIT_BCON] = "a_wait_bcon",
->>>>>     +               [OTG_STATE_A_HOST] = "a_host",
->>>>>     +               [OTG_STATE_A_SUSPEND] = "a_suspend",
->>>>>     +               [OTG_STATE_A_PERIPHERAL] = "a_peripheral",
->>>>>     +               [OTG_STATE_A_WAIT_VFALL] = "a_wait_vfall",
->>>>>     +               [OTG_STATE_A_VBUS_ERR] = "a_vbus_err",
->>>>>     +               [OTG_STATE_B_IDLE] = "b_idle",
->>>>>     +               [OTG_STATE_B_SRP_INIT] = "b_srp_init",
->>>>>     +               [OTG_STATE_B_PERIPHERAL] = "b_peripheral",
->>>>>     +               [OTG_STATE_B_WAIT_ACON] = "b_wait_acon",
->>>>>     +               [OTG_STATE_B_HOST] = "b_host",
->>>>>     +       };
->>>>>     +
->>>>>     +       if (state < 0 || state >= ARRAY_SIZE(names))
->>>>>     +               return "UNDEFINED";
->>>>>     +
->>>>>     +       return names[state];
->>>>>     +}
->>>>>     +
->>>>>
->>>>>
->>>>>
->>>>> From my point, make another copy for otg stuff is not a good way,
->>>>> could we make folder under usb/ named otg for dedicated otg stuffs,
->>>>> in that case, build otg stuffs can not depend on USB_COMMON.
 >>>>
->>>> OK. I can try that. I'll delete otg_state_string from usb-common.c and
->>>> move it into usb/otg/usb-otg.c
+>>>>>>>
+>>>>>>> I didn't want to have complex Kconfig so decided to have otg as
+>>>>>>> built-in only.
+>>>>>>> What do you want me to change in existing code? and why?
+>>>>>>
+>>>>>> Remove those stuff which only for pass diff driver config Like every
+>>>>>> controller driver need a duplicated
+>>>>>>
+>>>>>> static struct otg_hcd_ops ci_hcd_ops = {
+>>>>>>     ...
+>>>>>> }
+>>>>>
+>>>>> This is an exception only. Every controller driver doesn't need to
+>>>>> implement hcd_ops. It is implemented in the hcd core.
+>>>>>
+>>>>>>
+>>>>>> And here is another example, for gadget connect, otg driver can
+>>>>>> directly call to usb_udc_vbus_handler() in drd state machine, but you
+>>>>>> create another interface:
+>>>>>>
+>>>>>> .connect_control = usb_gadget_connect_control,
+>>>>>>
+>>>>>> If the symbol is defined in one driver which is 'm', another driver
+>>>>>> reference it should be 'm' as well, then there is no this kind of
+>>>>>> problem as my understanding.
+>>>>>
+>>>>> That is fine as long as all are 'm'. but how do you solve the case when
+>>>>> Gadget is built in and host is 'm'? OTG has to be built-in and you will
+>>>>> need an hcd to gadget interface.
 >>>>
->>>> I'll also move usb-otg-fsm.c to usb/otg/.
+>>>> Hcd to gadget interface? Or you want to say otg to host interface?
 >>>
->>> But we can't delete usb_otg_state_string() from usb-common.c. That is used at a
->>> number of places whether OTG is enabled or not. 
+>>> Sorry, I meant to say host to otg interface.
 >>>
->>> One option is to make usb-common built in when otg is enabled. What do you say?
+>>>>
+>>>> I think hcd and gadget are independent each other, now
+>>>>
+>>>> Hcd --> otg; and gadget --> otg, (hcd and gadget use otg's symbol)
+>>>
+>>> It is actually a circular dependency for both.
+>>>  hcd <--> otg and gadget <--> otg
+>>>
+>>> hcd -> otg for usb_otg_register/unregister_hcd
+>>> otg -> hcd for usb_add/remove_hcd, usb_bus_start_enum, usb_control_msg, usb_hub_find_child
+>>>
+>>> gadget -> otg for usb_otg_register/unregister_gadget
+>>> otg -> gadget for usb_gadget_start/stop, usb_udc_vbus_handler
+>>>
+>>> Now consider what will happen if I get rid of the otg_hcd and otg_gadget interfaces.
+>>> 'y' means built-in, 'm' means module.
+>>>
+>>> 1) hcd 'y', gadget 'y'
+>>> otg has to be 'y' for proper build.
+>>>
+>>> 2) hcd 'm', gadget 'm'
+>>> otg has to be 'm' for proper build.
+>>>
+>>> 3) hcd 'y', gadget 'm'
+>>> Build will fail always.
+>>> If otg is 'y', otg build will fail due to dependency on gadget.
+>>> If otg is 'm', hcd build will fail due to dependency on otg.
+>>>
+>>> 4) hcd 'm', gadget 'y'
+>>> Build will fail always.
+>>> If otg is 'y', otg build will fail due to dependency on hcd.
+>>> If otg is 'm', gadget build will fails due to dependency on otg.
+>>>
+>>> So I solve this problem by adding the otg_hcd_ops and otg_gadget_ops
+>>> to remove otg->hcd and otg->gadget dependency.
+>>>
+>>> Now we can address 3) and 4) like so
+>>>
+>>> 3) hcd 'y', gadget 'm'
+>>> otg has to be 'y' for proper build.
+>>>
+>>> 4) hcd 'm', gadget 'y'
+>>> otg has to be 'y' for proper build.
 >>>
 >>
->> This should also get solved if we make USB_OTG tristate so that it is same as
->> USB_COMMON.
+>> How about this:
+>> Moving usb_otg_register/unregister_hcd to host driver to remove
+>> dependency hcd->otg. And moving usb_otg_get_data to common.c.
 >>
->> However I haven't had success in making Kconfig behave like this.
+>> Delete the wait queue at usb-otg.c, and if calling usb_otg_get_data
+>> returns NULL, the host/device driver's probe return -EPROBE_DEFER.
+>> When the otg driver is probed successfully, the host/device will be
+>> re-probed again, and usb_otg_register_hcd will be called again.
 >>
->> USB_OTG = y if USB == y && GADGET = m
->> USB_OTG = y if USB == m && GADGET = y
+>> And let OTG depends on HCD && GADGET, and delete otg_hcd_ops and
+>> otg_gadget_ops. Below build dependency issues can be fixed.
+>> What do you think?
 >>
->> Is there any Kconfig trickery to get this behaviour?
+>>> 1) hcd 'y', gadget 'y'
+>>> otg has to be 'y' for proper build.
+>>>
+>>> 2) hcd 'm', gadget 'm'
+>>> otg has to be 'm' for proper build.
+>>>
+>>> 3) hcd 'y', gadget 'm'
+>>> Build will fail always.
+>>> If otg is 'y', otg build will fail due to dependency on gadget.
+>>> If otg is 'm', hcd build will fail due to dependency on otg.
+>>>
+>>> 4) hcd 'm', gadget 'y'
+>>> Build will fail always.
+>>> If otg is 'y', otg build will fail due to dependency on hcd.
+>>> If otg is 'm', gadget build will fails due to dependency on otg.
+>> -- 
 >>
 > 
-> Unless let the USB_OTG works like USB_COMMON which is selected by GADGET
-> or HCD. In fact, HCD and Gadget code uses USB OTG symbol directly in
-> this framework, it seems like HCD and Gadget depends on OTG, but not
-> otherwise.
-
-Not necessarily for build. We have dummy otg functions if USB_OTG is not defined,
-and we have checks in place if OTG drivers use OTG related functions while
-USB_OTG is not enabled.
-
+> After thinking more, my suggestion can't work. How about moving
+> CONFIG_USB_OTG out of CONFIG_USB, in that case, CONFIG_USB_OTG
+> can only be built in.
 > 
-> If we want OTG to depend on HCD && GADGET, we need not to use OTG symbol
-> at HCD and GADGET, and the OTG can use HCD and GADGET symbol directly.
-> 
+I tried this but it still doesn't resolve 3 and 4. I.e.
+it can't be automatically set to 'y' when either of hcd/gadget is 'y'
+and the other is 'm'.
 
-We can't use select as we don't want USB_OTG enabled when only one of HCD or GADGET
-is enabled. We also want users to be able to disable USB_OTG when both HCD and
-GADGET are enabled.
+I think some kconfig trickery can be done to get what we want.
 
 cheers,
 -roger
