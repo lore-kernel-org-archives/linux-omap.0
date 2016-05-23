@@ -1,80 +1,92 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: [PATCHv3] support for AD5820 camera auto-focus coil
-Date: Mon, 23 May 2016 09:41:32 +0200
-Message-ID: <20160523074132.GD29844@pali>
-References: <20160517181927.GA28741@amd> <20160521054336.GA27123@amd>
- <573FFF51.1000004@gmail.com> <20160521105607.GA20071@amd>
- <574049EF.2090208@gmail.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [RFC PATCH 2/3] mmc: host: omap_hsmmc: Enable ADMA2
+Date: Mon, 23 May 2016 13:30:18 +0530
+Message-ID: <5742B892.2070904@ti.com>
+References: <1463561115-31798-1-git-send-email-kishon@ti.com>
+ <1463561115-31798-3-git-send-email-kishon@ti.com>
+ <b66f678a-be74-d5f7-f2ef-93b5c9f29b92@ti.com>
+ <20160518193028.GT5995@atomide.com>
+ <0d463add-9fa5-a768-2ba6-34c4126c7817@ti.com>
+ <20160519145745.GU5995@atomide.com> <87shxdlws6.fsf@linux.intel.com>
+ <5742A189.4060803@ti.com> <874m9pgs2p.fsf@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <574049EF.2090208@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-media@vger.kernel.org, khilman@kernel.org, tony@atomide.com, mchehab@osg.samsung.com, aaro.koskinen@iki.fi, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, sakari.ailus@iki.fi, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <874m9pgs2p.fsf@linux.intel.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Felipe Balbi <balbi@kernel.org>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, afenkart@gmail.com, ulf.hansson@linaro.org, linux@armlinux.org.uk, rogerq@ti.com, bcousson@baylibre.com, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-T24gU2F0dXJkYXkgMjEgTWF5IDIwMTYgMTQ6NDM6NDMgSXZheWxvIERpbWl0cm92IHdyb3RlOgo+
-ID5kaWZmIC0tZ2l0IGEvaW5jbHVkZS9tZWRpYS9hZDU4MjAuaCBiL2luY2x1ZGUvbWVkaWEvYWQ1
-ODIwLmgKPiA+bmV3IGZpbGUgbW9kZSAxMDA2NDQKPiA+aW5kZXggMDAwMDAwMC4uZjVhMTU2NQo+
-ID4tLS0gL2Rldi9udWxsCj4gPisrKyBiL2luY2x1ZGUvbWVkaWEvYWQ1ODIwLmgKPiA+QEAgLTAs
-MCArMSw3MCBAQAo+ID4rLyoKPiA+KyAqIGluY2x1ZGUvbWVkaWEvYWQ1ODIwLmgKPiA+KyAqCj4g
-PisgKiBDb3B5cmlnaHQgKEMpIDIwMDggTm9raWEgQ29ycG9yYXRpb24KPiA+KyAqIENvcHlyaWdo
-dCAoQykgMjAwNyBUZXhhcyBJbnN0cnVtZW50cwo+ID4rICoKPiA+KyAqIENvbnRhY3Q6IFR1dWtr
-YSBUb2l2b25lbiA8dHV1a2thLm8udG9pdm9uZW5Abm9raWEuY29tPgo+ID4rICogICAgICAgICAg
-U2FrYXJpIEFpbHVzIDxzYWthcmkuYWlsdXNAbm9raWEuY29tPgo+ID4rICoKPiA+KyAqIEJhc2Vk
-IG9uIGFmX2Q4OC5jIGJ5IFRleGFzIEluc3RydW1lbnRzLgo+ID4rICoKPiA+KyAqIFRoaXMgcHJv
-Z3JhbSBpcyBmcmVlIHNvZnR3YXJlOyB5b3UgY2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IKPiA+
-KyAqIG1vZGlmeSBpdCB1bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBM
-aWNlbnNlCj4gPisgKiB2ZXJzaW9uIDIgYXMgcHVibGlzaGVkIGJ5IHRoZSBGcmVlIFNvZnR3YXJl
-IEZvdW5kYXRpb24uCj4gPisgKgo+ID4rICogVGhpcyBwcm9ncmFtIGlzIGRpc3RyaWJ1dGVkIGlu
-IHRoZSBob3BlIHRoYXQgaXQgd2lsbCBiZSB1c2VmdWwsIGJ1dAo+ID4rICogV0lUSE9VVCBBTlkg
-V0FSUkFOVFk7IHdpdGhvdXQgZXZlbiB0aGUgaW1wbGllZCB3YXJyYW50eSBvZgo+ID4rICogTUVS
-Q0hBTlRBQklMSVRZIG9yIEZJVE5FU1MgRk9SIEEgUEFSVElDVUxBUiBQVVJQT1NFLiAgU2VlIHRo
-ZSBHTlUKPiA+KyAqIEdlbmVyYWwgUHVibGljIExpY2Vuc2UgZm9yIG1vcmUgZGV0YWlscy4KPiA+
-KyAqCj4gPisgKiBZb3Ugc2hvdWxkIGhhdmUgcmVjZWl2ZWQgYSBjb3B5IG9mIHRoZSBHTlUgR2Vu
-ZXJhbCBQdWJsaWMgTGljZW5zZQo+ID4rICogYWxvbmcgd2l0aCB0aGlzIHByb2dyYW07IGlmIG5v
-dCwgd3JpdGUgdG8gdGhlIEZyZWUgU29mdHdhcmUKPiA+KyAqIEZvdW5kYXRpb24sIEluYy4sIDUx
-IEZyYW5rbGluIFN0LCBGaWZ0aCBGbG9vciwgQm9zdG9uLCBNQQo+ID4rICogMDIxMTAtMTMwMSBV
-U0EKPiA+KyAqLwo+ID4rCj4gPisjaWZuZGVmIEFENTgyMF9ICj4gPisjZGVmaW5lIEFENTgyMF9I
-Cj4gPisKPiA+KyNpbmNsdWRlIDxsaW51eC9pMmMuaD4KPiA+KyNpbmNsdWRlIDxsaW51eC9tdXRl
-eC5oPgo+ID4rI2luY2x1ZGUgPGxpbnV4L3ZpZGVvZGV2Mi5oPgo+ID4rCj4gPisjaW5jbHVkZSA8
-bWVkaWEvdjRsMi1jdHJscy5oPgo+ID4rI2luY2x1ZGUgPG1lZGlhL3Y0bDItc3ViZGV2Lmg+Cj4g
-PisKPiA+K3N0cnVjdCByZWd1bGF0b3I7Cj4gPisKPiA+KyNkZWZpbmUgQUQ1ODIwX05BTUUJCSJh
-ZDU4MjAiCj4gPisjZGVmaW5lIEFENTgyMF9JMkNfQUREUgkJKDB4MTggPj4gMSkKCk1heWJlIHdy
-aXRlIEkyQyBhZGRyZXNzIGlzIG1vcmUgcmVhZGFibGUgZm9ybT8gV2hhdCBpcyByZWFzb24gc3Vj
-aApiaXQgc2hpZnQgZm9ybWF0PwoKPiA+Ky8qIFJlZ2lzdGVyIGRlZmluaXRpb25zICovCj4gPisj
-ZGVmaW5lIEFENTgyMF9QT1dFUl9ET1dOCQkoMSA8PCAxNSkKPiA+KyNkZWZpbmUgQUQ1ODIwX0RB
-Q19TSElGVAkJNAo+IAo+IERvIHRob3NlIGRlZmluZXMgcmVhbGx5IGJlbG9uZyBoZXJlPyBJc24n
-dCBpdCBiZXR0ZXIgaWYgdGhleSBhcmUgbW92ZWQgdG8KPiBhZDU4MjAuYz8KCkZvciBtZSBpdCBs
-b29rcyBsaWtlIHRoaXMgaXMgcHJpdmF0ZSBmb3IgYWQ1ODIwLmMuCgo+ID4rI2RlZmluZSBBRDU4
-MjBfUkFNUF9NT0RFX0xJTkVBUgkJKDAgPDwgMykKPiA+KyNkZWZpbmUgQUQ1ODIwX1JBTVBfTU9E
-RV82NF8xNgkJKDEgPDwgMykKPiA+Kwo+ID4rc3RydWN0IGFkNTgyMF9wbGF0Zm9ybV9kYXRhIHsK
-PiA+KwlpbnQgKCpzZXRfeHNodXRkb3duKShzdHJ1Y3QgdjRsMl9zdWJkZXYgKnN1YmRldiwgaW50
-IHNldCk7Cj4gPit9OwoKVGhpcyBpcyBmb3IgbGVnYWN5IGJvYXJkIGNvZGUgc3VwcG9ydCByaWdo
-dD8gV2UgbmVlZCBEVCBzdXBwb3J0IGZvciBOOTAwCmFzIGxlZ2FjeSBib2FyZCBjb2RlIGlzIGdv
-aW5nIHRvIGJlIGRlbGV0ZWQuCgo+ID4rI2RlZmluZSB0b19hZDU4MjBfZGV2aWNlKHNkKQljb250
-YWluZXJfb2Yoc2QsIHN0cnVjdCBhZDU4MjBfZGV2aWNlLCBzdWJkZXYpCj4gPisKPiA+K3N0cnVj
-dCBhZDU4MjBfZGV2aWNlIHsKPiA+KwlzdHJ1Y3QgdjRsMl9zdWJkZXYgc3ViZGV2Owo+ID4rCXN0
-cnVjdCBhZDU4MjBfcGxhdGZvcm1fZGF0YSAqcGxhdGZvcm1fZGF0YTsKPiA+KwlzdHJ1Y3QgcmVn
-dWxhdG9yICp2YW5hOwo+ID4rCj4gPisJc3RydWN0IHY0bDJfY3RybF9oYW5kbGVyIGN0cmxzOwo+
-ID4rCXUzMiBmb2N1c19hYnNvbHV0ZTsKPiA+Kwl1MzIgZm9jdXNfcmFtcF90aW1lOwo+ID4rCXUz
-MiBmb2N1c19yYW1wX21vZGU7Cj4gPisKPiA+KwlzdHJ1Y3QgbXV0ZXggcG93ZXJfbG9jazsKPiA+
-KwlpbnQgcG93ZXJfY291bnQ7Cj4gPisKPiA+KwlpbnQgc3RhbmRieSA6IDE7Cj4gPit9Owo+ID4r
-Cj4gCj4gVGhlIHNhbWUgZm9yIHN0cnVjdCBhZDU4MjBfZGV2aWNlLCBpcyBpdCByZWFsbHkgcGFy
-dCBvZiB0aGUgcHVibGljIEFQST8KClllcywgdGhpcyBpcyBhbHNvIHByaXZhdGUgZm9yIGFkNTgy
-MC5jCgo+ID4rI2VuZGlmIC8qIEFENTgyMF9IICovCj4gPgo+ID4KPiA+CgotLSAKUGFsaSBSb2jD
-oXIKcGFsaS5yb2hhckBnbWFpbC5jb20KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1r
-ZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+Hi Felipe,
+
+On Monday 23 May 2016 12:48 PM, Felipe Balbi wrote:
+> 
+> Hi Kishon,
+> 
+> Kishon Vijay Abraham I <kishon@ti.com> writes:
+>> Hi Felipe,
+>>
+>> On Friday 20 May 2016 12:06 AM, Felipe Balbi wrote:
+>>>
+>>> Hi,
+>>>
+>>> Tony Lindgren <tony@atomide.com> writes:
+>>>> * Peter Ujfalusi <peter.ujfalusi@ti.com> [160519 01:10]:
+>>>>> On 05/18/2016 10:30 PM, Tony Lindgren wrote:
+>>>>>> Ideally the adma support would be a separate loadable module,
+>>>>>> similar how the cppi41dma is a child of the OTG controller.
+>>>>>
+>>>>> The Master DMA is part of the hsmmc IP block. If the same ADMA module is
+>>>>> present on other IPs it might be beneficial to have a helper library to handle
+>>>>> it (allocating the descriptor pool, wrinting, updating descriptors, etc).
+>>>>
+>>>> OK. Yeah if it's part of the MMC controller it makes no sense to
+>>>> separate it. So then the conecrns are using alternate DMA
+>>>> implementations and keeping PM runtime working :)
+>>>>
+>>>> BTW, Felipe mentioned that the best thing to do in the long run would
+>>>> be to set up sdhci-omap.c operating in ADMA mode.
+>>>>
+>>>> Felipe, care to summarize what you had in mind?
+>>>
+>>> yeah, just write a new sdhci-omap.c to start moving away from
+>>> omap-hsmmc.c, just like it was done for 8250-omap.
+>>>
+>>> At the beginning, it could be just the bare minimum to get it working
+>>> and slowly move over stuff like pm runtime, dmaengine, PIO. Move more
+>>> platforms over to that driver and, eventually, get rid of omap-hsmmc.c
+>>> altogether.
+>>>
+>>> That way, development can be focussed on generic layers (SDHCI) to which
+>>> OMAP MMC controller is compliant (apart from the VERSION register
+>>> quirk).
+>>
+>> About an year back, when I tried using SDHCI for OMAP I ran into
+>> issues and was not able to get it working. IIRC SDHCI_PRESENT_STATE
+>> (or OMAP_HSMMC_PSTATE) was not showing the correct state for card
+>> present and is unable to raise an interrupt when a card is inserted. I
+>> didn't debug this further.
+> 
+> I'd say this is a bug in hsmmc. I remember seeing some bits in some
+> TI-specific register (before SDHCI address space starts) which can be
+> used to keep parts of SDHCI powered on exactly so normal WP and CD pins
+> work as expected.
+> 
+> In any case, adding support for GPIO-based card detect to generic SDHCI
+> shouldn't be too difficult :-)
+> 
+>> It also kept me wondering why gpio interrupt was always used for card
+>> detect instead of using mmci_sdcd line of the controller.
+> 
+> Probably a really, really old bug which nobody ever debugged properly ;-)
+> 
+> ps: you don't need that ADMA2 DT property, btw. There's a bit in another
+> register which you can check if $this controller was configured with
+> ADMA2 support or not. IIRC, OMAP5's TRM describes them.
+
+hmm yeah.. Should be the MADMA_EN in MMCHS_HL_HWINFO.
+
+Thanks
+Kishon
