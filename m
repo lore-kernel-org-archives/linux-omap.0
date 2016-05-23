@@ -1,137 +1,72 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: Re: [RFC PATCH 1/2] Input: rotary-encoder- Add support for absolute
- encoder
-Date: Mon, 23 May 2016 15:18:08 +0200
-Message-ID: <20160523131808.GN23704@pengutronix.de>
-References: <1463648641-6931-1-git-send-email-vigneshr@ti.com>
- <1463648641-6931-2-git-send-email-vigneshr@ti.com>
- <20160522102606.GB23704@pengutronix.de>
- <5742E710.9@ti.com>
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Subject: Re: [OOPS] cppi41_dma_channel_program: Unable to handle kernel NULL
+ pointer dereference
+Date: Mon, 23 May 2016 08:35:22 -0500
+Message-ID: <20160523133522.GA3942@uda0271908>
+References: <1463750386-6259-1-git-send-email-matwey@sai.msu.ru>
+ <CAJs94EZjWi0KGn_siyXNGvjO2DTh2aXtYqKzy7Km7mA_bYTeKg@mail.gmail.com>
+ <20160520201019.GA3432@uda0271908>
+ <CAJs94EZSwJ=sJv6NtR6RNdiugiSQQpam-TFRTn0uZZJ4MLsr5g@mail.gmail.com>
+ <CAJs94EY3BfQjkk+0hKR5WfKggvmtgV0yz77awiX8Lt_pLYs3ug@mail.gmail.com>
+ <CAJs94EZm3aV23x3hGHLpM4dAC+C9rH-ro3JbWU=se_QWv9jRmw@mail.gmail.com>
+ <20160520211236.GB3432@uda0271908>
+ <CAJs94Eb6tfJHV7YeAA0UATF2A5oNrCDTSqTAdHbacmrm4Qw=8w@mail.gmail.com>
+ <CADYTM3bcTWSBf9HXKpsud6i--_04tsKZX1J3p9_6TqL1gp9YnA@mail.gmail.com>
+ <CAJs94EYePeENwsHD--E6cGVP22-nfYcy_yTK-V2Hc1wWYb04vw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5742E710.9-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "R, Vignesh" <vigneshr-l0cyMroinI0@public.gmane.org>
-Cc: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sylvain Rochet <sylvain.rochet-ETtyaVkrhkNWk0Htik3J/w@public.gmane.org>, Masanari Iida <standby24x7-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ezequiel Garcia <ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org>, S Twiss <stwiss.opensource-WBD+wuPFNBhBDgjK7y7TUQ@public.gmane.org>, Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Moritz Fischer <moritz.fischer-+aYTwkv1SeIAvxtiuMwx3w@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Timo Teras <timo.teras-X3B1VOXEql0@public.gmane.org>, Clifton Barnes <clifton.a.barnes-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap@>
+In-Reply-To: <CAJs94EYePeENwsHD--E6cGVP22-nfYcy_yTK-V2Hc1wWYb04vw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Matwey V. Kornilov" <matwey-TTlVxmypnbovJsYlp49lxw@public.gmane.org>
+Cc: Bin Liu <binmlist-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+Hi,
 
-On Mon, May 23, 2016 at 04:48:40PM +0530, R, Vignesh wrote:
-> On 5/22/2016 3:56 PM, Uwe Kleine-K=F6nig wrote:
-> > Hello,
-> >=20
-> > On Thu, May 19, 2016 at 02:34:00PM +0530, Vignesh R wrote:
-> >> There are rotary-encoders where GPIO lines reflect the actual posi=
-tion
-> >> of the rotary encoder dial. For example, if dial points to 9, then=
- four
-> >> GPIO lines connected to the rotary encoder will read HLLH(1001b =3D=
- 9).
-> >> Add support for such rotary-encoder.
-> >> The driver relies on rotary-encoder,absolute-encoder DT property t=
-o
-> >> detect such encoders.
-> >> Since, GPIO IRQs are not necessary to work with
-> >> such encoders, optional polling mode support is added using
-> >=20
-> > I don't understand this. It's necessary in the same way as with the
-> > already supported devices. I.e. you want to trigger an irq when the
-> > encoder is moved and then check for it's position in the handler.
-> >=20
->=20
-> Unlike already supported device, there is no need to count steps or
-> determine the direction of rotation. Hence, IRQ is not a requirement,
-> periodically polling the gpio lines is more than sufficient. With
-> absolute encoder, you are able to determine the current position at a=
-ny
-> time just by looking at the gpio inputs.
-
-The timing might not be that critical, but there is no reason to operat=
-e
-this device without irqs, is there?
-
-> Suppose we poll device at t=3D0ms and see gpio values are LLLH(1), if=
- we
-> again poll device at t=3D500ms(which is what input_poll_dev helps to =
-do)
-> and see that gpio values is LLHH(3), then we know that rotary encoder
-> has changed to 3. This can be done w/o IRQ for absolute encoders.
->=20
-> >> diff --git a/Documentation/devicetree/bindings/input/rotary-encode=
-r.txt b/Documentation/devicetree/bindings/input/rotary-encoder.txt
-> >> index 6c9f0c8a846c..9c928dbd1500 100644
-> >> --- a/Documentation/devicetree/bindings/input/rotary-encoder.txt
-> >> +++ b/Documentation/devicetree/bindings/input/rotary-encoder.txt
-> >> @@ -12,6 +12,10 @@ Optional properties:
-> >>  - rotary-encoder,relative-axis: register a relative axis rather t=
-han an
-> >>    absolute one. Relative axis will only generate +1/-1 events on =
-the input
-> >>    device, hence no steps need to be passed.
-> >> +- rotary-encoder,absolute-encoder: support encoders where GPIO li=
-nes
-> >> +  reflect the actual position of the rotary encoder dial. For exa=
-mple,
-> >> +  if dial points to 9, then four GPIO lines read HLLH(1001b =3D 9=
-).
-> >> +  In this case, rotary-encoder,steps-per-period needed not be def=
-ined.
-> >=20
-> > IMHO this is wrong, I'd formalize this device as:
-> >=20
-> > 	{
-> > 		compatible =3D "rotary-encoder";
-> > 		gpios =3D <&gpio 19 1>, <&gpio 20 0>, <...>, <...>;
-> > 		rotary-encoder,encoding =3D "binary";
-> > 		rotary-encoder,steps =3D <16>;
-> > 		rotary-encoder,steps-per-period =3D <16>;
->=20
-> The above bindings essential means quarter_period device. I would not
-> like to bother with all the logic in rotary_encoder_quarter_period_ir=
-q()
-> when we can know encoder->pos by directly reading state of gpio lines=
-=2E
-
-OK, we have code that is more complex than it needs to be for your
-device. But your device is a special case of the supported devices, so
-I'd say don't bother that there is more logic in the driver than you
-need and be lucky.
-
-> > 		rotary-encoder,rollover;
-> > 	}
-> >=20
-> > and support this with a v4 of
-> >=20
-> > 	http://thread.gmane.org/gmane.linux.kernel.input/48892
-> >=20
+On Sat, May 21, 2016 at 08:50:32PM +0300, Matwey V. Kornilov wrote:
+> 2016-05-21 6:13 GMT+03:00 Bin Liu <binmlist-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
+> > Hi,
 > >
->=20
-> IMHO, there needs to be separate IRQ handler for absolute encoders so
-> that the driver logic is greatly simplified.
+> > On Fri, May 20, 2016 at 4:20 PM, Matwey V. Kornilov <matwey-TTlVxmypnbovJsYlp49lxw@public.gmane.org> wrote:
+> >> 2016-05-21 0:12 GMT+03:00 Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>:
+> >>> Hi,
+> >>>
+> >>> On Sat, May 21, 2016 at 12:05:06AM +0300, Matwey V. Kornilov wrote:
+> >>>> By the way, is it ok that function musb_rx_dma_iso_cppi41 uses
+> >>>> hw_ep->tx_channel? I would suppose that it should use rx_channel
+> >>>> instead.
+> >>>
+> >>> I just got here, and am wondering the same. But the question is why just
+> >>> your case hit the problem. I will try to look at it more next week.
+> >>>
+> >>> I had an impression the linux-usb@ has a discussion before about
+> >>> rx/tx-channel messing up, will have to look it up.
+> >>>
+> >>
+> >> Thank you.
+> >> If you need additional info, I can use kgdb with this issue.
+> >
+> > After reviewed the code, it must be hw_ep->rx_channel instead. It is likely a
+> > bug caused by commit 069a3fd (usb: musb: Remove ifdefs for musb_host_rx
+> > in musb_host.c part1). Please test with the following patch.
+> >
+> 
+> I've just tested this patch. Indeed, it helps to avoid kernel panic.
 
-As above, the added complexity can handle your case just fine. So just
-use it.
+Thanks for testing it.
 
-One thing I see to improve is to make use of the additional GPIOs, but
-this is orthogonal to the different encoding and the question if pollin=
-g
-is enough here.
+> Now, I can interact with my webcam and watch video-stream in  xawtv.
+> It would be great if the patch could become a part of 4.6.x stable tree.
 
-Best regards
-Uwe
+Sure.
 
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
-    |
-Industrial Linux Solutions                 | http://www.pengutronix.de/=
-  |
+Would you mind to add your Reported-by in the patch?
+
+Regards,
+-Bin.
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
