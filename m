@@ -1,138 +1,109 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCHv3] support for AD5820 camera auto-focus coil
-Date: Tue, 24 May 2016 22:20:59 +0200
-Message-ID: <20160524202059.GB18536@amd>
-References: <20160517181927.GA28741@amd>
- <20160521054336.GA27123@amd>
- <573FFF51.1000004@gmail.com>
- <20160521105607.GA20071@amd>
- <574049EF.2090208@gmail.com>
- <20160524090433.GA1277@amd>
- <57441BF8.60606@gmail.com>
+From: "Robert P. J. Day" <rpjday-L09J2beyid0N/H6P543EQg@public.gmane.org>
+Subject: [PATCH] ARM: Correct misspelling, "emda3" -> "edma3".
+Date: Tue, 24 May 2016 17:20:28 -0400 (EDT)
+Message-ID: <alpine.LFD.2.20.1605241716520.14369@Device-040570>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <57441BF8.60606@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com, sakari.ailus@iki.fi
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
 
-> >>devm_regulator_get()?
-> >
-> >I'd rather avoid devm_ here. Driver is simple enough to allow it.
-> >
-> 
-> Now thinking about it, what would happen here if regulator_get() returns
-> -EPROBE_DEFER? Wouldn't it be better to move regulator_get to the probe()
-> function, something like:
+Reported-by: Adam J Allison <adamj.allison-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Robert P. J. Day <rpjday-L09J2beyid0N/H6P543EQg@public.gmane.org>
 
-Ok, I can do it.
+---
 
-Oh, and don't try to complain about newlines before returns. It looks
-better this way.
+diff --git a/Documentation/devicetree/bindings/dma/ti-edma.txt b/Documentation/devicetree/bindings/dma/ti-edma.txt
+index 079b42a..18090e7 100644
+--- a/Documentation/devicetree/bindings/dma/ti-edma.txt
++++ b/Documentation/devicetree/bindings/dma/ti-edma.txt
+@@ -15,7 +15,7 @@ Required properties:
+ - reg:		Memory map of eDMA CC
+ - reg-names:	"edma3_cc"
+ - interrupts:	Interrupt lines for CCINT, MPERR and CCERRINT.
+-- interrupt-names: "edma3_ccint", "emda3_mperr" and "edma3_ccerrint"
++- interrupt-names: "edma3_ccint", "edma3_mperr" and "edma3_ccerrint"
+ - ti,tptcs:	List of TPTCs associated with the eDMA in the following form:
+ 		<&tptc_phandle TC_priority_number>. The highest priority is 0.
 
-> static int ad5820_probe(struct i2c_client *client,
-> 			const struct i2c_device_id *devid)
-> {
-> 	struct ad5820_device *coil;
-> 	int ret = 0;
-> 
-> 	coil = devm_kzalloc(sizeof(*coil), GFP_KERNEL);
-> 	if (coil == NULL)
-> 		return -ENOMEM;
-> 
-> 	coil->vana = devm_regulator_get(&client->dev, NULL);
-> 	if (IS_ERR(coil->vana)) {
-> 		ret = PTR_ERR(coil->vana);
-> 		if (ret != -EPROBE_DEFER)
-> 			dev_err(&client->dev, "could not get regulator for vana\n");
-> 		return ret;
-> 	}
-> 
-> 	mutex_init(&coil->power_lock);
-> ...
-> 
-> with the appropriate changes to remove() because of the devm API
-> 			usage.
+@@ -48,7 +48,7 @@ edma: edma@49000000 {
+ 	reg =	<0x49000000 0x10000>;
+ 	reg-names = "edma3_cc";
+ 	interrupts = <12 13 14>;
+-	interrupt-names = "edma3_ccint", "emda3_mperr", "edma3_ccerrint";
++	interrupt-names = "edma3_ccint", "edma3_mperr", "edma3_ccerrint";
+ 	dma-requests = <64>;
+ 	#dma-cells = <2>;
 
-Something like this?
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 52be48b..03521ea 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -187,7 +187,7 @@
+ 			reg =	<0x49000000 0x10000>;
+ 			reg-names = "edma3_cc";
+ 			interrupts = <12 13 14>;
+-			interrupt-names = "edma3_ccint", "emda3_mperr",
++			interrupt-names = "edma3_ccint", "edma3_mperr",
+ 					  "edma3_ccerrint";
+ 			dma-requests = <64>;
+ 			#dma-cells = <2>;
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index 12fcde4..27557b0 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -199,7 +199,7 @@
+ 			interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>,
+ 				     <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>,
+ 				     <GIC_SPI 14 IRQ_TYPE_LEVEL_HIGH>;
+-			interrupt-names = "edma3_ccint", "emda3_mperr",
++			interrupt-names = "edma3_ccint", "edma3_mperr",
+ 					  "edma3_ccerrint";
+ 			dma-requests = <64>;
+ 			#dma-cells = <2>;
+diff --git a/arch/arm/boot/dts/dm814x.dtsi b/arch/arm/boot/dts/dm814x.dtsi
+index d4537dc..a6e0aebc 100644
+--- a/arch/arm/boot/dts/dm814x.dtsi
++++ b/arch/arm/boot/dts/dm814x.dtsi
+@@ -448,7 +448,7 @@
+ 			reg =	<0x49000000 0x10000>;
+ 			reg-names = "edma3_cc";
+ 			interrupts = <12 13 14>;
+-			interrupt-names = "edma3_ccint", "emda3_mperr",
++			interrupt-names = "edma3_ccint", "edma3_mperr",
+ 					  "edma3_ccerrint";
+ 			dma-requests = <64>;
+ 			#dma-cells = <2>;
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index e007401..95c8424 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -341,7 +341,7 @@
+ 			interrupts = <GIC_SPI 361 IRQ_TYPE_LEVEL_HIGH>,
+ 				     <GIC_SPI 360 IRQ_TYPE_LEVEL_HIGH>,
+ 				     <GIC_SPI 359 IRQ_TYPE_LEVEL_HIGH>;
+-			interrupt-names = "edma3_ccint", "emda3_mperr",
++			interrupt-names = "edma3_ccint", "edma3_mperr",
+ 					  "edma3_ccerrint";
+ 			dma-requests = <64>;
+ 			#dma-cells = <2>;
 
-diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
-index f956bd3..f871366 100644
---- a/drivers/media/i2c/ad5820.c
-+++ b/drivers/media/i2c/ad5820.c
-@@ -8,7 +8,7 @@
-  * Copyright (C) 2016 Pavel Machek <pavel@ucw.cz>
-  *
-  * Contact: Tuukka Toivonen
-- *          Sakari Ailus
-+ *	    Sakari Ailus
-  *
-  * Based on af_d88.c by Texas Instruments.
-  *
-@@ -263,13 +263,6 @@ static int ad5820_init_controls(struct ad5820_device *coil)
- static int ad5820_registered(struct v4l2_subdev *subdev)
- {
- 	struct ad5820_device *coil = to_ad5820_device(subdev);
--	struct i2c_client *client = v4l2_get_subdevdata(subdev);
--
--	coil->vana = regulator_get(&client->dev, "VANA");
--	if (IS_ERR(coil->vana)) {
--		dev_err(&client->dev, "could not get regulator for vana\n");
--		return -ENODEV;
--	}
- 
- 	return ad5820_init_controls(coil);
- }
-@@ -367,10 +360,18 @@ static int ad5820_probe(struct i2c_client *client,
- 	struct ad5820_device *coil;
- 	int ret = 0;
- 
--	coil = kzalloc(sizeof(*coil), GFP_KERNEL);
-+	coil = devm_kzalloc(sizeof(*coil), GFP_KERNEL);
- 	if (!coil)
- 		return -ENOMEM;
- 
-+	coil->vana = devm_regulator_get(&client->dev, NULL);
-+	if (IS_ERR(coil->vana)) {
-+		ret = PTR_ERR(coil->vana);
-+		if (ret != -EPROBE_DEFER)
-+			dev_err(&client->dev, "could not get regulator for vana\n");
-+		return ret;
-+	}
-+	
- 	mutex_init(&coil->power_lock);
- 
- 	v4l2_i2c_subdev_init(&coil->subdev, client, &ad5820_ops);
-@@ -390,10 +391,6 @@ static int ad5820_probe(struct i2c_client *client,
- 
- cleanup:
- 	media_entity_cleanup(&coil->subdev.entity);
--
--free:
--	kfree(coil);
--
- 	return ret;
- }
- 
-@@ -405,11 +402,6 @@ static int __exit ad5820_remove(struct i2c_client *client)
- 	v4l2_device_unregister_subdev(&coil->subdev);
- 	v4l2_ctrl_handler_free(&coil->ctrls);
- 	media_entity_cleanup(&coil->subdev.entity);
--	if (coil->vana)
--		regulator_put(coil->vana);
--
--	kfree(coil);
--
- 	return 0;
- }
- 
-
+rday
 
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+
+========================================================================
+Robert P. J. Day                                 Ottawa, Ontario, CANADA
+                        http://crashcourse.ca
+
+Twitter:                                       http://twitter.com/rpjday
+LinkedIn:                               http://ca.linkedin.com/in/rpjday
+========================================================================
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
