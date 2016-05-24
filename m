@@ -1,75 +1,138 @@
-From: Misael Lopez Cruz <misael.lopez-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] ARM: dts: dra72-evm: Rename 3.3V regulator tag
-Date: Tue, 24 May 2016 15:00:40 -0500
-Message-ID: <1464120040-28776-1-git-send-email-misael.lopez@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCHv3] support for AD5820 camera auto-focus coil
+Date: Tue, 24 May 2016 22:20:59 +0200
+Message-ID: <20160524202059.GB18536@amd>
+References: <20160517181927.GA28741@amd>
+ <20160521054336.GA27123@amd>
+ <573FFF51.1000004@gmail.com>
+ <20160521105607.GA20071@amd>
+ <574049EF.2090208@gmail.com>
+ <20160524090433.GA1277@amd>
+ <57441BF8.60606@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Misael Lopez Cruz <misael.lopez-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <57441BF8.60606@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com, sakari.ailus@iki.fi
 List-Id: linux-omap@vger.kernel.org
 
-Rename the tag of the 3.3 V regulator used in the DRA72 EVM in
-order to have a consistent tag name with the DRA7 EVM.  This
-is useful when the regulator needs to be referenced in common
-dtsi files (i.e. for common companion boards like JAMR3 [1]).
+Hi!
 
-[1] http://www.ti.com.cn/cn/lit/ug/sprui52/sprui52.pdf
+> >>devm_regulator_get()?
+> >
+> >I'd rather avoid devm_ here. Driver is simple enough to allow it.
+> >
+> 
+> Now thinking about it, what would happen here if regulator_get() returns
+> -EPROBE_DEFER? Wouldn't it be better to move regulator_get to the probe()
+> function, something like:
 
-Signed-off-by: Misael Lopez Cruz <misael.lopez-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/dra72-evm-common.dtsi |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+Ok, I can do it.
 
-diff --git a/arch/arm/boot/dts/dra72-evm-common.dtsi b/arch/arm/boot/dts/dra72-evm-common.dtsi
-index 093538e..9d3cf50 100644
---- a/arch/arm/boot/dts/dra72-evm-common.dtsi
-+++ b/arch/arm/boot/dts/dra72-evm-common.dtsi
-@@ -18,7 +18,7 @@
- 		display0 = &hdmi0;
- 	};
+Oh, and don't try to complain about newlines before returns. It looks
+better this way.
+
+> static int ad5820_probe(struct i2c_client *client,
+> 			const struct i2c_device_id *devid)
+> {
+> 	struct ad5820_device *coil;
+> 	int ret = 0;
+> 
+> 	coil = devm_kzalloc(sizeof(*coil), GFP_KERNEL);
+> 	if (coil == NULL)
+> 		return -ENOMEM;
+> 
+> 	coil->vana = devm_regulator_get(&client->dev, NULL);
+> 	if (IS_ERR(coil->vana)) {
+> 		ret = PTR_ERR(coil->vana);
+> 		if (ret != -EPROBE_DEFER)
+> 			dev_err(&client->dev, "could not get regulator for vana\n");
+> 		return ret;
+> 	}
+> 
+> 	mutex_init(&coil->power_lock);
+> ...
+> 
+> with the appropriate changes to remove() because of the devm API
+> 			usage.
+
+Something like this?
+
+diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
+index f956bd3..f871366 100644
+--- a/drivers/media/i2c/ad5820.c
++++ b/drivers/media/i2c/ad5820.c
+@@ -8,7 +8,7 @@
+  * Copyright (C) 2016 Pavel Machek <pavel@ucw.cz>
+  *
+  * Contact: Tuukka Toivonen
+- *          Sakari Ailus
++ *	    Sakari Ailus
+  *
+  * Based on af_d88.c by Texas Instruments.
+  *
+@@ -263,13 +263,6 @@ static int ad5820_init_controls(struct ad5820_device *coil)
+ static int ad5820_registered(struct v4l2_subdev *subdev)
+ {
+ 	struct ad5820_device *coil = to_ad5820_device(subdev);
+-	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+-
+-	coil->vana = regulator_get(&client->dev, "VANA");
+-	if (IS_ERR(coil->vana)) {
+-		dev_err(&client->dev, "could not get regulator for vana\n");
+-		return -ENODEV;
+-	}
  
--	evm_3v3: fixedregulator-evm_3v3 {
-+	evm_3v3_sw: fixedregulator-evm_3v3 {
- 		compatible = "regulator-fixed";
- 		regulator-name = "evm_3v3";
- 		regulator-min-microvolt = <3300000>;
-@@ -29,7 +29,7 @@
- 		/* TPS77018DBVT */
- 		compatible = "regulator-fixed";
- 		regulator-name = "aic_dvdd";
--		vin-supply = <&evm_3v3>;
-+		vin-supply = <&evm_3v3_sw>;
- 		regulator-min-microvolt = <1800000>;
- 		regulator-max-microvolt = <1800000>;
- 	};
-@@ -414,9 +414,9 @@
- 		status = "okay";
+ 	return ad5820_init_controls(coil);
+ }
+@@ -367,10 +360,18 @@ static int ad5820_probe(struct i2c_client *client,
+ 	struct ad5820_device *coil;
+ 	int ret = 0;
  
- 		/* Regulators */
--		AVDD-supply = <&evm_3v3>;
--		IOVDD-supply = <&evm_3v3>;
--		DRVDD-supply = <&evm_3v3>;
-+		AVDD-supply = <&evm_3v3_sw>;
-+		IOVDD-supply = <&evm_3v3_sw>;
-+		DRVDD-supply = <&evm_3v3_sw>;
- 		DVDD-supply = <&aic_dvdd>;
- 	};
- };
-@@ -597,7 +597,7 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&mmc2_pins_default>;
+-	coil = kzalloc(sizeof(*coil), GFP_KERNEL);
++	coil = devm_kzalloc(sizeof(*coil), GFP_KERNEL);
+ 	if (!coil)
+ 		return -ENOMEM;
  
--	vmmc-supply = <&evm_3v3>;
-+	vmmc-supply = <&evm_3v3_sw>;
- 	bus-width = <8>;
- 	ti,non-removable;
- 	max-frequency = <192000000>;
++	coil->vana = devm_regulator_get(&client->dev, NULL);
++	if (IS_ERR(coil->vana)) {
++		ret = PTR_ERR(coil->vana);
++		if (ret != -EPROBE_DEFER)
++			dev_err(&client->dev, "could not get regulator for vana\n");
++		return ret;
++	}
++	
+ 	mutex_init(&coil->power_lock);
+ 
+ 	v4l2_i2c_subdev_init(&coil->subdev, client, &ad5820_ops);
+@@ -390,10 +391,6 @@ static int ad5820_probe(struct i2c_client *client,
+ 
+ cleanup:
+ 	media_entity_cleanup(&coil->subdev.entity);
+-
+-free:
+-	kfree(coil);
+-
+ 	return ret;
+ }
+ 
+@@ -405,11 +402,6 @@ static int __exit ad5820_remove(struct i2c_client *client)
+ 	v4l2_device_unregister_subdev(&coil->subdev);
+ 	v4l2_ctrl_handler_free(&coil->ctrls);
+ 	media_entity_cleanup(&coil->subdev.entity);
+-	if (coil->vana)
+-		regulator_put(coil->vana);
+-
+-	kfree(coil);
+-
+ 	return 0;
+ }
+ 
+
+
 -- 
-1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
