@@ -1,46 +1,52 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH] ARM: OMAP2+: Select OMAP_INTERCONNECT for SOC_AM43XX
-Date: Tue, 24 May 2016 11:12:29 -0500
-Message-ID: <4af329be31b140a7cd71351cf8f2d2006194e42b.1464105749.git.d-gerlach@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Can not play audio with screen off
+Date: Tue, 24 May 2016 21:49:03 +0200
+Message-ID: <20160524194544.GA18011@amd>
+References: <20160515193106.GA18685@amd>
+ <5739D7B6.7060102@ti.com>
+ <20160516150650.GA14639@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Dave Gerlach <d-gerlach@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160516150650.GA14639@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-AM43XX SoCs make use of the omap_l3_noc driver so explicitly select
-OMAP_INTERCONNECT in the Kconfig for SOC_AM43XX to ensure it always gets
-enabled for AM43XX only builds.
+Hi!
 
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
----
-Based on next-20160524.
+> > > I'm playing some more with N900, this time I'd like to use it as a
+> > > alarm clock...
+> > > 
+> > > And now I realized I can not, because system performance is so
+> > > horrible with screen off that mpg123 + pulseaudio skips horribly. This
+> > > is without tweaking serial parameters, so CPU is definitely not going
+> > > into the idle/off modes.
+> > > 
+> > > Loading CPU fixes the issue (I used cat /dev/zero > /dev/null).
+> > > 
+> > > Hmm. And it seems to work better if I ssh in and launch mpg123
+> > > remotely. Weird.
+> > > 
+> > > Kernel 4.5-rc0. Will try on different ones.
+> > > 
+> > > Any ideas? Is there interface to tell kernel that better performance
+> > > is needed for a while?
+> 
+> > pm_qos cpu_dma_latency? Drivers will have to be properly instrumented
+> > with appropriate latency values -> this will control the depth in C
+> > states that the system will attempt. NOTE: it is a dual edged sword,
+> > bad configurations can result in none of the C-states being entered.
+> 
+> Ok, so far it looks like artefact of -rc0 kernel. Lets see if it
+> reappers...
 
- arch/arm/mach-omap2/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+Hmm. So it happens in vanilla 4.4, too... let me see if it happens in
+v4.6.
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 415a0bd0cda6..efbc4649a3c5 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -69,6 +69,7 @@ config SOC_AM43XX
- 	select HAVE_ARM_TWD
- 	select ARM_ERRATA_754322
- 	select ARM_ERRATA_775420
-+	select OMAP_INTERCONNECT
- 
- config SOC_DRA7XX
- 	bool "TI DRA7XX"
+									Pavel
 -- 
-2.7.3
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
