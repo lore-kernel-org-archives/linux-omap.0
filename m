@@ -1,63 +1,73 @@
 From: Ravikumar Kattekola <rk@ti.com>
-Subject: [PATCH 2/2] dts: dra7: Add device tree node for i2c6
-Date: Wed, 25 May 2016 18:23:41 +0530
-Message-ID: <20160525125341.10044-3-rk@ti.com>
+Subject: [PATCH 1/2] arm: dra7: Add hwmod entry for i2c6
+Date: Wed, 25 May 2016 18:23:40 +0530
+Message-ID: <20160525125341.10044-2-rk@ti.com>
 References: <20160525125341.10044-1-rk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20160525125341.10044-1-rk@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: paul@pwsan.com, tony@atomide.com, linux@armlinux.org.uk, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-DRA72x devices have an extra i2c controller instance - i2c6
-Adding device description for the same.
+dra72x device has i2c6 controller.
+Adding hwmod definition for the same.
 
-Reference : DRA72x_SR1.0 TRM [ SPRUHP2Q ]
+Reference DRA72x TRM [ SPRUHP2Q ]
 
 Signed-off-by: Ravikumar Kattekola <rk@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 3a8f397..84729a1 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -27,6 +27,7 @@
- 		i2c2 = &i2c3;
- 		i2c3 = &i2c4;
- 		i2c4 = &i2c5;
-+		i2c5 = &i2c6;
- 		serial0 = &uart1;
- 		serial1 = &uart2;
- 		serial2 = &uart3;
-@@ -929,6 +930,16 @@
- 			status = "disabled";
- 		};
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index d0e7e525..b84c0f7 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -1127,6 +1127,20 @@ static struct omap_hwmod dra7xx_i2c5_hwmod = {
+ 	.dev_attr	= &i2c_dev_attr,
+ };
  
-+		i2c6: i2c@48458000 {
-+			compatible = "ti,omap4-i2c";
-+			reg = <0x48458000 0x100>;
-+			interrupts = <GIC_SPI 402 IRQ_TYPE_LEVEL_HIGH>;
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			ti,hwmods = "i2c6";
-+			status = "disabled";
-+		};
++/* i2c6 */
++static struct omap_hwmod dra7xx_i2c6_hwmod = {
++	.name		= "i2c6",
++	.class		= &dra7xx_i2c_hwmod_class,
++	.clkdm_name	= "l4per2_clkdm",
++	.flags		= HWMOD_16BIT_REG | HWMOD_SET_DEFAULT_CLOCKACT,
++	.main_clk	= "func_96m_fclk",
++	.prcm = {
++		.omap4 = {
++		},
++	},
++	.dev_attr	= &i2c_dev_attr,
++};
 +
- 		mmc1: mmc@4809c000 {
- 			compatible = "ti,omap4-hsmmc";
- 			reg = <0x4809c000 0x400>;
+ /*
+  * 'mailbox' class
+  *
+@@ -3186,6 +3200,14 @@ static struct omap_hwmod_ocp_if dra7xx_l4_per1__i2c5 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++/* l4_per2 -> i2c6 */
++static struct omap_hwmod_ocp_if dra7xx_l4_per2__i2c6 = {
++	.master		= &dra7xx_l4_per2_hwmod,
++	.slave		= &dra7xx_i2c6_hwmod,
++	.clk		= "l3_iclk_div",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ /* l4_cfg -> mailbox1 */
+ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__mailbox1 = {
+ 	.master		= &dra7xx_l4_cfg_hwmod,
+@@ -3857,6 +3879,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+ 	&dra7xx_l4_per1__i2c3,
+ 	&dra7xx_l4_per1__i2c4,
+ 	&dra7xx_l4_per1__i2c5,
++	&dra7xx_l4_per2__i2c6,
+ 	&dra7xx_l4_cfg__mailbox1,
+ 	&dra7xx_l4_per3__mailbox2,
+ 	&dra7xx_l4_per3__mailbox3,
 -- 
 2.8.2.396.g5fe494c
