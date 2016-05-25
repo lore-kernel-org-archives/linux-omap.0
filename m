@@ -1,210 +1,77 @@
-From: Jun Li <jun.li-3arQi8VN3Tc@public.gmane.org>
-Subject: RE: [PATCH v8 08/14] usb: otg: add OTG/dual-role core
-Date: Wed, 25 May 2016 03:19:30 +0000
-Message-ID: <AM4PR04MB21300F71EFFD3BF73871A85389400@AM4PR04MB2130.eurprd04.prod.outlook.com>
-References: <1463133808-10630-1-git-send-email-rogerq@ti.com>
- <1463133808-10630-9-git-send-email-rogerq@ti.com> <574422CA.8080002@ti.com>
- <20160525024427.GA31142@shlinux2>
+From: Caesar Wang <wxt-TNX95d0MmH7DzftRWevZcw@public.gmane.org>
+Subject: [PATCH v3 0/5] Thermal: Support for hardware-tracked trip points
+Date: Wed, 25 May 2016 11:47:44 +0800
+Message-ID: <1464148069-26254-1-git-send-email-wxt@rock-chips.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160525024427.GA31142@shlinux2>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: "peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org" <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, "jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "grygorii.strashko-l0cyMroinI0@public.gmane.org" <grygorii.strashko-l0cyMroinI0@public.gmane.org>, "yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org" <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, "robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "nsekhar-l0cyMroinI0@public.gmane.org" <nsekhar-l0cyMroinI0@public.gmane.org>, "b-liu-l0cyMroinI0@public.gmane.org" <b-liu-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel@vg>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-rockchip>,
+ <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-rockchip/>
+List-Post: <mailto:linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-rockchip>,
+ <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "Linux-rockchip" <linux-rockchip-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Heiko Stuebner <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, smbarber-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, briannorris-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andy Champ <andycham-vV1OtcyAfmbQT0dZR+AlfA@public.gmane.org>, Caesar Wang <wxt-TNX95d0MmH7DzftRWevZcw@public.gmane.org>, huangtao-TNX95d0MmH7DzftRWevZcw@public.gmane.org, Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, javi.merino-5wv7dgnIgG8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Ni Wade <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, peter-p08lbbvQ7EI@public.gmane.org, dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, Leo Yan <leo.yan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, cf-TNX95d0MmH7DzftRWevZcw@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+The history patches come from Mikko and Sascha.
+    http://thread.gmane.org/gmane.linux.power-management.general/59451
+
+Now, I pick them up to continue upstream.
+Nevermind!
+
+This series history patches:
+v2: https://lkml.org/lkml/2016/5/3/220
+v1: https://lkml.org/lkml/2016/4/24/227
+
+This series adds support for hardware trip points. It picks up earlier
+work from Mikko Perttunen. Mikko implemented hardware trip points as part
+of the device tree support. It was suggested back then to move the
+functionality to the thermal core instead of putting more code into the
+device tree support. This series does exactly that.
+
+This series patches rebase the conflicts.
+Note that the hardware-tracked trip points are very well tested currently.
+
+Verified and tested on https://github.com/Caesar-github/rockchip/tree/wip/fixes-thermal-0525
+That's based on linux-kernel 20160524.
 
 
-> -----Original Message-----
-> From: Peter Chen [mailto:hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
-> Sent: Wednesday, May 25, 2016 10:44 AM
-> To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> Cc: peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org; balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org;
-> gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org; dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org;
-> mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org; Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org;
-> sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org; jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org;
-> grygorii.strashko-l0cyMroinI0@public.gmane.org; yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org;
-> robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; nsekhar-l0cyMroinI0@public.gmane.org; b-liu-l0cyMroinI0@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH v8 08/14] usb: otg: add OTG/dual-role core
-> 
-> On Tue, May 24, 2016 at 12:45:46PM +0300, Roger Quadros wrote:
-> > Hi Peter,
-> >
-> > I have one question here. Please see below.
-> >
-> > On 13/05/16 13:03, Roger Quadros wrote:
-> > > It provides APIs for the following tasks
-> > >
-> > > - Registering an OTG/dual-role capable controller
-> > > - Registering Host and Gadget controllers to OTG core
-> > > - Providing inputs to and kicking the OTG state machine
-> > >
-> > > Provide a dual-role device (DRD) state machine.
-> > > DRD mode is a reduced functionality OTG mode. In this mode we don't
-> > > support SRP, HNP and dynamic role-swap.
-> > >
-> > > In DRD operation, the controller mode (Host or Peripheral) is
-> > > decided based on the ID pin status. Once a cable plug (Type-A or
-> > > Type-B) is attached the controller selects the state and doesn't
-> > > change till the cable in unplugged and a different cable type is
-> > > inserted.
-> > >
-> > > As we don't need most of the complex OTG states and OTG timers we
-> > > implement a lean DRD state machine in usb-otg.c.
-> > > The DRD state machine is only interested in 2 hardware inputs 'id'
-> > > and 'b_sess_vld'.
-> > >
-> > > Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> > > ---
-> > >  drivers/usb/common/Makefile  |    2 +-
-> > >  drivers/usb/common/usb-otg.c | 1042
-> ++++++++++++++++++++++++++++++++++++++++++
-> > >  drivers/usb/core/Kconfig     |    4 +-
-> > >  include/linux/usb/gadget.h   |    2 +
-> > >  include/linux/usb/hcd.h      |    1 +
-> > >  include/linux/usb/otg-fsm.h  |    7 +
-> > >  include/linux/usb/otg.h      |  154 ++++++-
-> > >  7 files changed, 1206 insertions(+), 6 deletions(-)  create mode
-> > > 100644 drivers/usb/common/usb-otg.c
-> > >
-> >
-> > <snip>
-> >
-> > > +
-> > > +/**
-> > > + * usb_otg_register() - Register the OTG/dual-role device to OTG
-> > > +core
-> > > + * @dev: OTG/dual-role controller device.
-> > > + * @config: OTG configuration.
-> > > + *
-> > > + * Registers the OTG/dual-role controller device with the USB OTG
-> core.
-> > > + *
-> > > + * Return: struct usb_otg * if success, ERR_PTR() if error.
-> > > + */
-> > > +struct usb_otg *usb_otg_register(struct device *dev,
-> > > +				 struct usb_otg_config *config) {
-> > > +	struct usb_otg *otg;
-> > > +	struct otg_wait_data *wait;
-> > > +	int ret = 0;
-> > > +
-> > > +	if (!dev || !config || !config->fsm_ops)
-> > > +		return ERR_PTR(-EINVAL);
-> > > +
-> > > +	/* already in list? */
-> > > +	mutex_lock(&otg_list_mutex);
-> > > +	if (usb_otg_get_data(dev)) {
-> > > +		dev_err(dev, "otg: %s: device already in otg list\n",
-> > > +			__func__);
-> > > +		ret = -EINVAL;
-> > > +		goto unlock;
-> > > +	}
-> > > +
-> > > +	/* allocate and add to list */
-> > > +	otg = kzalloc(sizeof(*otg), GFP_KERNEL);
-> > > +	if (!otg) {
-> > > +		ret = -ENOMEM;
-> > > +		goto unlock;
-> > > +	}
-> > > +
-> > > +	otg->dev = dev;
-> > > +	otg->caps = config->otg_caps;
-> >
-> > Here, we should be checking if user needs to disable any OTG features.
-> > So,
-> >
-> > 	if (dev->of_node)
-> > 		of_usb_update_otg_caps(dev->of_node, &otg->caps);
-> >
-> > Do you agree?
-> > This means we need to change otg->caps from 'struct usb_otg_caps *caps;'
-> > to 'struct usb_otg_caps caps;' so that we can modify the local copy
-> > instead of the one passed by the OTG controller.
-> 
-> Why can't modify the one from OTG controller directly?
+Changes in v3:
+- as Javi comments on https://patchwork.kernel.org/patch/9001281/.
+- add the lock for preventing the called from multi placce
+- add the note for pre_low/high_trip.
+- as the Javi comments on https://patchwork.kernel.org/patch/9001311/.
+- add the select if they set the option for devicetree.
+- Add the peter's ACK.
 
-Yes, if user wants to disable any OTG features, this should have been
-done in 'config->otg_caps', if not, 'config->otg_caps' from controller
-driver is invalid and making no sense.
+Changes in v2:
+- update the sysfs-api.txt for set_trips.
+- add the commit in patch[v2 2/5].
+- Update the commit for patch[v2 4/5].
 
-> 
-> >
-> > We can also move of_usb_update_otg_caps() to otg.h.
-> >
-> > We will also need to modify the udc-core code so that it sets
-> > gadget->otg_caps to the modified otg_caps from the OTG core. This will
-> > ensure that the right OTG descriptors are sent.
-> >
-> > So we will have to introduce an API.
-> >
-> > struct usb_otg_caps *usb_otg_get_otg_caps(struct device *otg_dev)
-> >
-> > And in udc-core.c,
-> >
-> > static int udc_bind_to_driver(struct usb_udc *udc, struct
-> > usb_gadget_driver *driver) { ..
-> >         ret = driver->bind(udc->gadget, driver);
-> >         if (ret)
-> >                 goto err1;
-> >
-> >         /* If OTG, the otg core starts the UDC when needed */
-> >         if (udc->gadget->otg_dev) {
-> > +		udc->gadget->is_otg = true;
-> 
-> gadget->is_otg is only set to true if fully OTG is supported and it
-> needs to send OTG descriptors at this case. DRD devices should not send
-> OTG descriptors.
-> 
-> > +		udc->gadget->otg_caps = usb_otg_get_otg_caps(udc->gadget-
-> >otg_dev);
-> 
-> Getting otg capabilities should be prior to driver->bind since
-> usb_otg_descriptor_init is called at that. Besides, Gadget driver may be
-> probed before otg driver is registered
-> 
-> I am wonder if we can implement defer probe for gadget/udc/host driver if
-> otg driver is not probed, in that case, some designs can be simpler like
-> wait list in otg driver.
+Caesar Wang (1):
+  thermal: rockchip: add the set_trips function
 
-I even don't see much benefit of this kind of random order of OTG/HCD/GADGET
-registration, anyway OTG register can be done firstly.
-HCD and GADGET are both separated drivers, but OTG is newly added
-and what we need is just a registration in controller driver.
-  
-> 
-> >                 mutex_unlock(&udc_lock);
-> >                 usb_otg_register_gadget(udc->gadget, &otg_gadget_intf);
-> >                 mutex_lock(&udc_lock);
-> >         } else {
-> >                 ret = usb_gadget_udc_start(udc);
-> >                 if (ret) {
-> >                         driver->unbind(udc->gadget);
-> >                         goto err1;
-> >                 }
-> >                 usb_udc_connect_control(udc);
-> >         }
-> > ..
-> > }
-> >
-> > What do you say?
-> >
-> > regards,
-> > -roger
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-usb"
-> > in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo
-> > info at  http://vger.kernel.org/majordomo-info.html
-> 
-> --
-> 
-> Best Regards,
-> Peter Chen
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sascha Hauer (4):
+  thermal: Add support for hardware-tracked trip points
+  thermal: of: implement .set_trips for device tree thermal zones
+  thermal: streamline get_trend callbacks
+  thermal: bang-bang governor: act on lower trip boundary
+
+ Documentation/thermal/sysfs-api.txt                |  7 +++
+ drivers/thermal/gov_bang_bang.c                    |  2 +-
+ drivers/thermal/of-thermal.c                       | 30 ++++++++-----
+ drivers/thermal/rockchip_thermal.c                 | 39 ++++++++++++++++
+ drivers/thermal/thermal_core.c                     | 52 ++++++++++++++++++++++
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 25 ++++-------
+ include/linux/thermal.h                            | 13 +++++-
+ 7 files changed, 139 insertions(+), 29 deletions(-)
+
+-- 
+1.9.1
