@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v4 5/7] ASoC: omap-mcbsp: Rename omap_mcbsp_sysfs_remove() to omap_mcbsp_cleanup()
-Date: Wed, 25 May 2016 17:20:59 +0300
-Message-ID: <1464186061-28639-6-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v4 7/7] ARM: OMAP2+: McBSP: Remove the old iclk allow/deny idle code
+Date: Wed, 25 May 2016 17:21:01 +0300
+Message-ID: <1464186061-28639-8-git-send-email-peter.ujfalusi@ti.com>
 References: <1464186061-28639-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,53 +12,70 @@ To: tony@atomide.com, jarkko.nikula@bitmer.com, paul@pwsan.com, lgirdwood@gmail.
 Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
-The function will do more then removing the sysfs files in the future.
+The new pdata callback (force_ick_on) is now used by the driver and the old
+callback related code can be removed.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Acked-by: Mark Brown <broonie@kernel.org>
 ---
- sound/soc/omap/mcbsp.c      | 2 +-
- sound/soc/omap/mcbsp.h      | 2 +-
- sound/soc/omap/omap-mcbsp.c | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/mcbsp.c                 | 18 ------------------
+ include/linux/platform_data/asoc-ti-mcbsp.h |  1 -
+ 2 files changed, 19 deletions(-)
 
-diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
-index c7563e230c7d..75cd1761d383 100644
---- a/sound/soc/omap/mcbsp.c
-+++ b/sound/soc/omap/mcbsp.c
-@@ -1080,7 +1080,7 @@ err_thres:
- 	return ret;
- }
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index edf4f41c0135..fc04be74e064 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -34,20 +34,6 @@
+ #include "cm3xxx.h"
+ #include "cm-regbits-34xx.h"
  
--void omap_mcbsp_sysfs_remove(struct omap_mcbsp *mcbsp)
-+void omap_mcbsp_cleanup(struct omap_mcbsp *mcbsp)
+-static struct clk *mcbsp_iclks[5];
+-
+-static int omap3_enable_st_clock(unsigned int id, bool enable)
+-{
+-	/*
+-	 * Sidetone uses McBSP ICLK - which must not idle when sidetones
+-	 * are enabled or sidetones start sounding ugly.
+-	 */
+-	if (enable)
+-		return omap2_clk_deny_idle(mcbsp_iclks[id]);
+-	else
+-		return omap2_clk_allow_idle(mcbsp_iclks[id]);
+-}
+-
+ static int omap3_mcbsp_force_ick_on(struct clk *clk, bool force_on)
  {
- 	if (mcbsp->pdata->buffer_size)
- 		sysfs_remove_group(&mcbsp->dev->kobj, &additional_attr_group);
-diff --git a/sound/soc/omap/mcbsp.h b/sound/soc/omap/mcbsp.h
-index 96d1b086bcf8..ce6cbbf923a4 100644
---- a/sound/soc/omap/mcbsp.h
-+++ b/sound/soc/omap/mcbsp.h
-@@ -349,6 +349,6 @@ int omap_st_disable(struct omap_mcbsp *mcbsp);
- int omap_st_is_enabled(struct omap_mcbsp *mcbsp);
+ 	if (!clk)
+@@ -75,7 +61,6 @@ static int __init omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
+ 	struct omap_hwmod *oh_device[2];
+ 	struct omap_mcbsp_platform_data *pdata = NULL;
+ 	struct platform_device *pdev;
+-	char clk_name[11];
  
- int omap_mcbsp_init(struct platform_device *pdev);
--void omap_mcbsp_sysfs_remove(struct omap_mcbsp *mcbsp);
-+void omap_mcbsp_cleanup(struct omap_mcbsp *mcbsp);
+ 	sscanf(oh->name, "mcbsp%d", &id);
  
- #endif /* __ASOC_MCBSP_H */
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index fd99d89de6a8..db07debb4a9c 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -832,7 +832,7 @@ static int asoc_mcbsp_remove(struct platform_device *pdev)
- 	if (mcbsp->pdata->ops && mcbsp->pdata->ops->free)
- 		mcbsp->pdata->ops->free(mcbsp->id);
- 
--	omap_mcbsp_sysfs_remove(mcbsp);
-+	omap_mcbsp_cleanup(mcbsp);
- 
- 	clk_put(mcbsp->fclk);
+@@ -116,10 +101,7 @@ static int __init omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
+ 	if (oh->dev_attr) {
+ 		oh_device[1] = omap_hwmod_lookup((
+ 		(struct omap_mcbsp_dev_attr *)(oh->dev_attr))->sidetone);
+-		pdata->enable_st_clock = omap3_enable_st_clock;
+ 		pdata->force_ick_on = omap3_mcbsp_force_ick_on;
+-		sprintf(clk_name, "mcbsp%d_ick", id);
+-		mcbsp_iclks[id] = clk_get(NULL, clk_name);
+ 		count++;
+ 	}
+ 	pdev = omap_device_build_ss(name, id, oh_device, count, pdata,
+diff --git a/include/linux/platform_data/asoc-ti-mcbsp.h b/include/linux/platform_data/asoc-ti-mcbsp.h
+index 5530971abf4d..e684543254f3 100644
+--- a/include/linux/platform_data/asoc-ti-mcbsp.h
++++ b/include/linux/platform_data/asoc-ti-mcbsp.h
+@@ -44,7 +44,6 @@ struct omap_mcbsp_platform_data {
+ 	/* McBSP platform and instance specific features */
+ 	bool has_wakeup; /* Wakeup capability */
+ 	bool has_ccr; /* Transceiver has configuration control registers */
+-	int (*enable_st_clock)(unsigned int, bool);
+ 	int (*force_ick_on)(struct clk *clk, bool force_on);
+ };
  
 -- 
 2.8.2
