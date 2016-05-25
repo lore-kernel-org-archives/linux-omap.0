@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v4 2/7] ARM: dts: omap3: Add clocks to McBSP nodes
-Date: Wed, 25 May 2016 17:20:56 +0300
-Message-ID: <1464186061-28639-3-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v4 3/7] ARM: OMAP3: McBSP: New callback for McBSP2/3 ICLK idle configuration
+Date: Wed, 25 May 2016 17:20:57 +0300
+Message-ID: <1464186061-28639-4-git-send-email-peter.ujfalusi@ti.com>
 References: <1464186061-28639-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,63 +12,59 @@ To: tony@atomide.com, jarkko.nikula@bitmer.com, paul@pwsan.com, lgirdwood@gmail.
 Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
-Add clock properties to the McBSP nodes. McBSP2 and 3 need to have ick also
-since the Sidetone block of these modules are operating using the McBSP
-interface clock.
+McBSP2/3 module's sidetone module operates using the module's ICLK clock.
+When the Sidetone is in use the interface clock of the module must not
+idle. The new callback expects to receive the *clk of the module's ick and
+not the id number of the McBSP. This will allow us more cleanups and going
+to simplify the ICLK handling.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/omap3.dtsi | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ arch/arm/mach-omap2/mcbsp.c                 | 12 ++++++++++++
+ include/linux/platform_data/asoc-ti-mcbsp.h |  1 +
+ 2 files changed, 13 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index 9fbda38528dc..4c3c471d2a83 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -493,6 +493,8 @@
- 			dmas = <&sdma 31>,
- 			       <&sdma 32>;
- 			dma-names = "tx", "rx";
-+			clocks = <&mcbsp1_fck>;
-+			clock-names = "fck";
- 			status = "disabled";
- 		};
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index b4ac3af1160c..959cb4cb1062 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -48,6 +48,17 @@ static int omap3_enable_st_clock(unsigned int id, bool enable)
+ 		return omap2_clk_allow_idle(mcbsp_iclks[id]);
+ }
  
-@@ -511,6 +513,8 @@
- 			dmas = <&sdma 33>,
- 			       <&sdma 34>;
- 			dma-names = "tx", "rx";
-+			clocks = <&mcbsp2_fck>, <&mcbsp2_ick>;
-+			clock-names = "fck", "ick";
- 			status = "disabled";
- 		};
++static int omap3_mcbsp_force_ick_on(struct clk *clk, bool force_on)
++{
++	if (!clk)
++		return 0;
++
++	if (force_on)
++		return omap2_clk_deny_idle(clk);
++	else
++		return omap2_clk_allow_idle(clk);
++}
++
+ static int __init omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
+ {
+ 	int id, count = 1;
+@@ -97,6 +108,7 @@ static int __init omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
+ 		oh_device[1] = omap_hwmod_lookup((
+ 		(struct omap_mcbsp_dev_attr *)(oh->dev_attr))->sidetone);
+ 		pdata->enable_st_clock = omap3_enable_st_clock;
++		pdata->force_ick_on = omap3_mcbsp_force_ick_on;
+ 		sprintf(clk_name, "mcbsp%d_ick", id);
+ 		mcbsp_iclks[id] = clk_get(NULL, clk_name);
+ 		count++;
+diff --git a/include/linux/platform_data/asoc-ti-mcbsp.h b/include/linux/platform_data/asoc-ti-mcbsp.h
+index 3c73c045f8da..73e5e832fa23 100644
+--- a/include/linux/platform_data/asoc-ti-mcbsp.h
++++ b/include/linux/platform_data/asoc-ti-mcbsp.h
+@@ -45,6 +45,7 @@ struct omap_mcbsp_platform_data {
+ 	bool has_wakeup; /* Wakeup capability */
+ 	bool has_ccr; /* Transceiver has configuration control registers */
+ 	int (*enable_st_clock)(unsigned int, bool);
++	int (*force_ick_on)(struct clk *clk, bool force_on);
+ };
  
-@@ -529,6 +533,8 @@
- 			dmas = <&sdma 17>,
- 			       <&sdma 18>;
- 			dma-names = "tx", "rx";
-+			clocks = <&mcbsp3_fck>, <&mcbsp3_ick>;
-+			clock-names = "fck", "ick";
- 			status = "disabled";
- 		};
- 
-@@ -545,6 +551,8 @@
- 			dmas = <&sdma 19>,
- 			       <&sdma 20>;
- 			dma-names = "tx", "rx";
-+			clocks = <&mcbsp4_fck>;
-+			clock-names = "fck";
- 			status = "disabled";
- 		};
- 
-@@ -561,6 +569,8 @@
- 			dmas = <&sdma 21>,
- 			       <&sdma 22>;
- 			dma-names = "tx", "rx";
-+			clocks = <&mcbsp5_fck>;
-+			clock-names = "fck";
- 			status = "disabled";
- 		};
- 
+ /**
 -- 
 2.8.2
