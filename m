@@ -1,74 +1,61 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v4 2/7] ARM: dts: omap3: Add clocks to McBSP nodes
-Date: Wed, 25 May 2016 17:15:51 +0300
-Message-ID: <1464185756-28401-3-git-send-email-peter.ujfalusi@ti.com>
-References: <1464185756-28401-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v4 0/7] ARM/ASoC: OMAP3: Fix McBSP2/3 sidetone support
+Date: Wed, 25 May 2016 17:20:54 +0300
+Message-ID: <1464186061-28639-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1464185756-28401-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, jarkko.nikula@bitmer.com, paul@pwsan.com, lgirdwood@gmail.com, broonie@kernel.org
 Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
-Add clock properties to the McBSP nodes. McBSP2 and 3 need to have ick also
-since the Sidetone block of these modules are operating using the McBSP
-interface clock.
+Hi,
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Changes since v3:
+- Rebased on next-20160525 [1] to apply cleanly
+- Fixed subject line for patch5
+- Added Mark's acked-by to the ASoC patches
+
+[1] "ASoC: omap-mcbsp: Enable/disable sidetone block auto clock
+gating for omap3" is gone missing from linux-next - it was in next-20160517 and
+I'm not sure when it got dropped.
+
+Tony: since Paul did not replied to the series, I'm sending the v4 now, I hope
+he will have time to look at this.
+
+Commit message from v3:
+
+Based on the ongoing discussion on v2 (ARM: OMAP3: Fix McBSP2/3 hwmod setup for
+sidetone) I have dropped the removal of the sidetone hwmod and only corrected
+it. The series now includes all related changes needed to have correct sidetone
+support whenever we boot in legacy or in DT mode.
+
+This time the ASoC part have dependency on earlier patches so they can not be
+applied separately.
+
+Regards,
+Peter
 ---
- arch/arm/boot/dts/omap3.dtsi | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+Peter Ujfalusi (7):
+  ARM: OMAP3: hwmod data: Fix McBSP2/3 sidetone data
+  ARM: dts: omap3: Add clocks to McBSP nodes
+  ARM: OMAP3: McBSP: New callback for McBSP2/3 ICLK idle configuration
+  ARM: OMAP3: pdata-quirks: Add support for McBSP2/3 sidetone handling
+  ASoC: omap-mcbsp: Rename omap_mcbsp_sysfs_remove() to
+    omap_mcbsp_cleanup()
+  ASoC: omap-mcbsp: sidetone: Use the new callback for iclk handling
+  ARM: OMAP2+: McBSP: Remove the old iclk allow/deny idle code
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index 9fbda38528dc..4c3c471d2a83 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -493,6 +493,8 @@
- 			dmas = <&sdma 31>,
- 			       <&sdma 32>;
- 			dma-names = "tx", "rx";
-+			clocks = <&mcbsp1_fck>;
-+			clock-names = "fck";
- 			status = "disabled";
- 		};
- 
-@@ -511,6 +513,8 @@
- 			dmas = <&sdma 33>,
- 			       <&sdma 34>;
- 			dma-names = "tx", "rx";
-+			clocks = <&mcbsp2_fck>, <&mcbsp2_ick>;
-+			clock-names = "fck", "ick";
- 			status = "disabled";
- 		};
- 
-@@ -529,6 +533,8 @@
- 			dmas = <&sdma 17>,
- 			       <&sdma 18>;
- 			dma-names = "tx", "rx";
-+			clocks = <&mcbsp3_fck>, <&mcbsp3_ick>;
-+			clock-names = "fck", "ick";
- 			status = "disabled";
- 		};
- 
-@@ -545,6 +551,8 @@
- 			dmas = <&sdma 19>,
- 			       <&sdma 20>;
- 			dma-names = "tx", "rx";
-+			clocks = <&mcbsp4_fck>;
-+			clock-names = "fck";
- 			status = "disabled";
- 		};
- 
-@@ -561,6 +569,8 @@
- 			dmas = <&sdma 21>,
- 			       <&sdma 22>;
- 			dma-names = "tx", "rx";
-+			clocks = <&mcbsp5_fck>;
-+			clock-names = "fck";
- 			status = "disabled";
- 		};
- 
+ arch/arm/boot/dts/omap3.dtsi                | 10 ++++++++++
+ arch/arm/mach-omap2/mcbsp.c                 | 31 ++++++++++++++++-------------
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c  | 24 ++++------------------
+ arch/arm/mach-omap2/pdata-quirks.c          | 18 +++++++++++++++++
+ include/linux/platform_data/asoc-ti-mcbsp.h |  4 +++-
+ sound/soc/omap/mcbsp.c                      | 21 +++++++++++++------
+ sound/soc/omap/mcbsp.h                      |  3 ++-
+ sound/soc/omap/omap-mcbsp.c                 |  5 ++++-
+ 8 files changed, 73 insertions(+), 43 deletions(-)
+
 -- 
 2.8.2
