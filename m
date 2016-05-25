@@ -1,73 +1,48 @@
 From: Ravikumar Kattekola <rk@ti.com>
-Subject: [PATCH 1/2] arm: dra7: Add hwmod entry for i2c6
-Date: Wed, 25 May 2016 18:23:40 +0530
-Message-ID: <20160525125341.10044-2-rk@ti.com>
-References: <20160525125341.10044-1-rk@ti.com>
+Subject: [RFC 0/1] i2c: omap: Add support for switching to slave mode
+Date: Wed, 25 May 2016 19:41:18 +0530
+Message-ID: <20160525141119.14486-1-rk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160525125341.10044-1-rk@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: paul@pwsan.com, tony@atomide.com, linux@armlinux.org.uk, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Sender: linux-i2c-owner@vger.kernel.org
+To: tony@atomide.com, wsa@the-dreams.de, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-dra72x device has i2c6 controller.
-Adding hwmod definition for the same.
+I2C controller on most of the omap devices has both master and slave
+capability but the i2c framework has been missing support for registering
+a bus in slave mode for long.
+Recently the i2c slave support has been added to i2c framework, the following
+patch adds the required support for omap_i2c driver to register a controller
+as a slave device and be deriven by an external/internal master.
 
-Reference DRA72x TRM [ SPRUHP2Q ]
+The slave interface requires us to add following mandatory events
 
-Signed-off-by: Ravikumar Kattekola <rk@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+1. I2C_SLAVE_WRITE_REQUESTED
+2. I2C_SLAVE_READ_REQUESTED
+3. I2C_SLAVE_WRITE_RECEIVED
+4. I2C_SLAVE_READ_PROCESSED
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index d0e7e525..b84c0f7 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -1127,6 +1127,20 @@ static struct omap_hwmod dra7xx_i2c5_hwmod = {
- 	.dev_attr	= &i2c_dev_attr,
- };
- 
-+/* i2c6 */
-+static struct omap_hwmod dra7xx_i2c6_hwmod = {
-+	.name		= "i2c6",
-+	.class		= &dra7xx_i2c_hwmod_class,
-+	.clkdm_name	= "l4per2_clkdm",
-+	.flags		= HWMOD_16BIT_REG | HWMOD_SET_DEFAULT_CLOCKACT,
-+	.main_clk	= "func_96m_fclk",
-+	.prcm = {
-+		.omap4 = {
-+		},
-+	},
-+	.dev_attr	= &i2c_dev_attr,
-+};
-+
- /*
-  * 'mailbox' class
-  *
-@@ -3186,6 +3200,14 @@ static struct omap_hwmod_ocp_if dra7xx_l4_per1__i2c5 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* l4_per2 -> i2c6 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per2__i2c6 = {
-+	.master		= &dra7xx_l4_per2_hwmod,
-+	.slave		= &dra7xx_i2c6_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* l4_cfg -> mailbox1 */
- static struct omap_hwmod_ocp_if dra7xx_l4_cfg__mailbox1 = {
- 	.master		= &dra7xx_l4_cfg_hwmod,
-@@ -3857,6 +3879,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
- 	&dra7xx_l4_per1__i2c3,
- 	&dra7xx_l4_per1__i2c4,
- 	&dra7xx_l4_per1__i2c5,
-+	&dra7xx_l4_per2__i2c6,
- 	&dra7xx_l4_cfg__mailbox1,
- 	&dra7xx_l4_per3__mailbox2,
- 	&dra7xx_l4_per3__mailbox3,
+and 
+
+5. I2C_SLAVE_STOP
+
+The omap i2c controller (at least on dra7x devices)
+doesn't have  start/stop (STT/STP) support for slave mode
+so event  #5 is not implemented in the driver.
+
+Refer to Documentation/i2c/slave-interface for more info on 
+i2c-slave-interface and Documentation/i2c/slave-eeprom-backend for 
+sample backend driver.
+
+Tested on:
+DRA75x EVM Rev G3 and DRA72x EVM Rev B1 connected over i2c3 using DCAN2 lines [JP3]
+
+Ravikumar Kattekola (1):
+  drivers: i2c: omap: Add slave support
+
+ drivers/i2c/busses/i2c-omap.c | 144 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 144 insertions(+)
+
 -- 
 2.8.2.396.g5fe494c
