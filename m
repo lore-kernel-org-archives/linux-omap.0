@@ -1,70 +1,70 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v4 0/7] ARM/ASoC: OMAP3: Fix McBSP2/3 sidetone support
-Date: Wed, 25 May 2016 17:15:49 +0300
-Message-ID: <1464185756-28401-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v4 3/7] ARM: OMAP3: McBSP: New callback for McBSP2/3 ICLK idle configuration
+Date: Wed, 25 May 2016 17:15:52 +0300
+Message-ID: <1464185756-28401-4-git-send-email-peter.ujfalusi@ti.com>
+References: <1464185756-28401-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1464185756-28401-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, jarkko.nikula@bitmer.com, paul@pwsan.com, lgirdwood@gmail.com, broonie@kernel.org
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+McBSP2/3 module's sidetone module operates using the module's ICLK clock.
+When the Sidetone is in use the interface clock of the module must not
+idle. The new callback expects to receive the *clk of the module's ick and
+not the id number of the McBSP. This will allow us more cleanups and going
+to simplify the ICLK handling.
 
-Changes since v3:
-- Rebased on next-20160525 [1] to apply cleanly
-- Fixed subject line for patch5
-- Added Mark's acked-by to the ASoC patches
-
-[1] "ASoC: omap-mcbsp: Enable/disable sidetone block auto clock
-gating for omap3" is gone missing from linux-next - it was in next-20160517 and
-I'm not sure when it got dropped.
-
-Tony: since Paul did not replied to the series, I'm sending the v4 now, I hope
-he will have time to look at this.
-
-Commit message from v3:
-
-Based on the ongoing discussion on v2 (ARM: OMAP3: Fix McBSP2/3 hwmod setup for
-sidetone) I have dropped the removal of the sidetone hwmod and only corrected
-it. The series now includes all related changes needed to have correct sidetone
-support whenever we boot in legacy or in DT mode.
-
-This time the ASoC part have dependency on earlier patches so they can not be
-applied separately.
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-Peter Ujfalusi (7):
-  ARM: OMAP3: hwmod data: Fix McBSP2/3 sidetone data
-  ARM: dts: omap3: Add clocks to McBSP nodes
-  ARM: OMAP3: McBSP: New callback for McBSP2/3 ICLK idle configuration
-  ARM: OMAP3: pdata-quirks: Add support for McBSP2/3 sidetone handling
-  ASoC: omap-mcbsp: Rename omap_mcbsp_sysfs_remove() to
-    omap_mcbsp_cleanup()
-  ASoC: omap-mcbsp: sidetone: Use the new callback for iclk handling
-  ARM: OMAP2+: McBSP: Remove the old iclk allow/deny idle code
+ arch/arm/mach-omap2/mcbsp.c                 | 12 ++++++++++++
+ include/linux/platform_data/asoc-ti-mcbsp.h |  1 +
+ 2 files changed, 13 insertions(+)
 
- arch/arm/boot/dts/omap3.dtsi                | 10 ++++++++++
- arch/arm/mach-omap2/mcbsp.c                 | 31 ++++++++++++++++-------------
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c  | 24 ++++------------------
- arch/arm/mach-omap2/pdata-quirks.c          | 18 +++++++++++++++++
- include/linux/platform_data/asoc-ti-mcbsp.h |  4 +++-
- sound/soc/omap/mcbsp.c                      | 21 +++++++++++++------
- sound/soc/omap/mcbsp.h                      |  3 ++-
- sound/soc/omap/omap-mcbsp.c                 |  5 ++++-
- 8 files changed, 73 insertions(+), 43 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index b4ac3af1160c..959cb4cb1062 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -48,6 +48,17 @@ static int omap3_enable_st_clock(unsigned int id, bool enable)
+ 		return omap2_clk_allow_idle(mcbsp_iclks[id]);
+ }
+ 
++static int omap3_mcbsp_force_ick_on(struct clk *clk, bool force_on)
++{
++	if (!clk)
++		return 0;
++
++	if (force_on)
++		return omap2_clk_deny_idle(clk);
++	else
++		return omap2_clk_allow_idle(clk);
++}
++
+ static int __init omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
+ {
+ 	int id, count = 1;
+@@ -97,6 +108,7 @@ static int __init omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
+ 		oh_device[1] = omap_hwmod_lookup((
+ 		(struct omap_mcbsp_dev_attr *)(oh->dev_attr))->sidetone);
+ 		pdata->enable_st_clock = omap3_enable_st_clock;
++		pdata->force_ick_on = omap3_mcbsp_force_ick_on;
+ 		sprintf(clk_name, "mcbsp%d_ick", id);
+ 		mcbsp_iclks[id] = clk_get(NULL, clk_name);
+ 		count++;
+diff --git a/include/linux/platform_data/asoc-ti-mcbsp.h b/include/linux/platform_data/asoc-ti-mcbsp.h
+index 3c73c045f8da..73e5e832fa23 100644
+--- a/include/linux/platform_data/asoc-ti-mcbsp.h
++++ b/include/linux/platform_data/asoc-ti-mcbsp.h
+@@ -45,6 +45,7 @@ struct omap_mcbsp_platform_data {
+ 	bool has_wakeup; /* Wakeup capability */
+ 	bool has_ccr; /* Transceiver has configuration control registers */
+ 	int (*enable_st_clock)(unsigned int, bool);
++	int (*force_ick_on)(struct clk *clk, bool force_on);
+ };
+ 
+ /**
 -- 
 2.8.2
