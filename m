@@ -1,97 +1,71 @@
 From: Vignesh R <vigneshr@ti.com>
 Subject: Re: [RFC PATCH 1/2] Input: rotary-encoder- Add support for absolute
  encoder
-Date: Wed, 25 May 2016 14:14:12 +0530
-Message-ID: <574565DC.4010502@ti.com>
+Date: Wed, 25 May 2016 14:14:29 +0530
+Message-ID: <574565ED.3060205@ti.com>
 References: <1463648641-6931-1-git-send-email-vigneshr@ti.com>
  <1463648641-6931-2-git-send-email-vigneshr@ti.com>
- <20160522102606.GB23704@pengutronix.de> <5742E710.9@ti.com>
- <20160523131808.GN23704@pengutronix.de> <5743E206.2050602@ti.com>
- <20160524082040.GR23704@pengutronix.de>
+ <20160520163404.GC14951@dtor-ws> <5742CB03.8010805@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20160524082040.GR23704@pengutronix.de>
-Sender: linux-doc-owner@vger.kernel.org
-To: =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Jonathan Corbet <corbet@lwn.net>, Johan Hovold <johan@kernel.org>, Sylvain Rochet <sylvain.rochet@finsecur.com>, Masanari Iida <standby24x7@gmail.com>, Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>, S Twiss <stwiss.opensource@diasemi.com>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Moritz Fischer <moritz.fischer@ettus.com>, Arnd Bergmann <arnd@arndb.de>, Geert Uytterhoeven <geert@linux-m68k.org>, Timo Teras <timo.teras@iki.fi>, Clifton Barnes <clifton.a.barnes@gmail.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <5742CB03.8010805@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>, Guido Martinez <guido@vanguardiasur.com.ar>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Masanari Iida <standby24x7@gmail.com>, Jonathan Corbet <corbet@lwn.net>, Timo Teras <timo.teras@iki.fi>, Geert Uytterhoeven <geert@linux-m68k.org>, Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Sylvain Rochet <sylvain.rochet@finsecur.com>, Uwe Kleine-Konig <u.kleine-koenig@pengutronix.de>, Johan Hovold <johan@kernel.org>, Rob Herring <robh+dt@kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Moritz Fischer <moritz.fischer@ettus.com>linu
 List-Id: linux-omap@vger.kernel.org
 
+Hi Dmitry,
 
-
-On 05/24/2016 01:50 PM, Uwe Kleine-K=F6nig wrote:
-> Hello,
->=20
-> On Tue, May 24, 2016 at 10:39:26AM +0530, Vignesh R wrote:
->> On 05/23/2016 06:48 PM, Uwe Kleine-K=F6nig wrote:
->>> On Mon, May 23, 2016 at 04:48:40PM +0530, R, Vignesh wrote:
->>>> On 5/22/2016 3:56 PM, Uwe Kleine-K=F6nig wrote:
->>>>> On Thu, May 19, 2016 at 02:34:00PM +0530, Vignesh R wrote:
-[...]
->>>
->>> OK, we have code that is more complex than it needs to be for your
->>> device. But your device is a special case of the supported devices,=
- so
->>> I'd say don't bother that there is more logic in the driver than yo=
-u
->>> need and be lucky.
+On 05/23/2016 02:48 PM, R, Vignesh wrote:
+> 
+> 
+> On 5/20/2016 10:04 PM, Dmitry Torokhov wrote:
+>> On Thu, May 19, 2016 at 02:34:00PM +0530, Vignesh R wrote:
+>>> There are rotary-encoders where GPIO lines reflect the actual position
+>>> of the rotary encoder dial. For example, if dial points to 9, then four
+>>> GPIO lines connected to the rotary encoder will read HLLH(1001b = 9).
+>>> Add support for such rotary-encoder.
+>>> The driver relies on rotary-encoder,absolute-encoder DT property to
+>>> detect such encoders.
+>>> Since, GPIO IRQs are not necessary to work with
+>>> such encoders, optional polling mode support is added using
+>>> input_poll_dev skeleton. This is can be used by enabling
+>>> CONFIG_INPUT_GPIO_ROTARY_ENCODER_POLL_MODE_SUPPORT.
 >>
->> More complexity is just a overhead. Since, encoder can be turned at =
-a
->> rate faster than handling of IRQs (rotary_encoder_quarter_period_irq=
-()
->> is threaded IRQ hence, priority is not close to real time), some sta=
-tes
->=20
-> This problem isn't unique to your hardware. An "ordinary" encoder wit=
-h
-> just two GPIOs and more than one period can be rotated faster than
-> 1/irq_latency, too.
-
-But my hardware should not be affected by this problem. The whole point
-of absolute encoder is to overcome the difficulty of software keeping
-track of steps, one can read the gpios state anytime and find out what
-value is the encoder pointing to.
-
-> There are two things that can be done:
->=20
->  - undo the conversion to threaded irqs; or
->  - read out the gpios in the fast handler and only delay decoding and
->    reporting of the event
->=20
-> Both approaches have their disadvantages.
->=20
-
-And both cannot guarantee that an event is not missed (on a loaded
-system) and all of the state logic goes for a toss. For binary encoding
-multiple IRQs(thats why incremental encoders are usually gray coded)
-will fire at same time and handling all of the them is a considerable
-overhead, there is good chance that some events are missed.
-
->> can be missed. rotary_encoder_quarter_period_irq() is not robust in =
-this
->> case, reading gpios directly is more suitable option. I see similar
->> views expressed in previously[1]
+>> Does this really belong to a rotary encoder and not a new driver that
+>> simply translates gpio-encoded value into ABS* event?
 >>
->> [1]http://lists.infradead.org/pipermail/linux-arm-kernel/2015-Decemb=
-er/391196.html
->=20
-> IMHO the right thing to do is to improve
-> rotary_encoder_quarter_period_irq (and also the other handlers for fu=
-ll
-> and half period mode) to make use of additional GPIOs.=20
+> 
+> Currently rotary encoder driver only supports incremental/step counting
+> rotary devices. However, the device that is there on am335x-ice is an
+> absolute encoder but, IMO, nevertheless a kind of rotary encoder. The
+> only difference is that there is no need to count steps and the absolute
+> position value is always available as binary encoded state of connected
+> GPIOs.
+> The hardware on am335x-ice is a mechanical rotary encoder switch
+> connected over 4 GPIOs. It is same as binary encoder described at [1]
+> (except there are 4 GPIO lines), so this lead me to add support in
+> rotary-encoder.
+> 
+> [1]https://en.wikipedia.org/wiki/Rotary_encoder#Standard_binary_encoding
+> 
 
-I doubt there exists any incremental encoder with more than 2
-gpios(except for the extra reference GPIO or Z signal). So modifying
-full/half period handlers maybe unnecessary.
+Could you please comment on how would you like to support above
+described encoder: As a new driver or with existing driver with new
+compatible/mode setting via DT or as suggest by Uwe in another reply?
+IMHO, supporting using existing driver with new mode/compatible string
+looks a better option as the hardware is a kind of rotary-encoder.
 
-> This way all types of devices benefit and more code is shared.
-
-Sorry.. but IMHO, there is little code sharing and more complexity. So,
-I will leave it to the maintainer to decide whats the best approach her=
-e.
-
---=20
+-- 
 Regards
 Vignesh
