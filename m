@@ -1,83 +1,171 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH] ARM: omap2: am437x: rollback to use
- omap3_gptimer_timer_init()
-Date: Wed, 25 May 2016 15:23:58 +0530
-Message-ID: <57457636.3010409@ti.com>
-References: <1460457775-23850-1-git-send-email-grygorii.strashko@ti.com>
- <20160412160448.GN5995@atomide.com> <570D3EC8.7090807@ti.com>
- <20160412184250.GT5995@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v8 08/14] usb: otg: add OTG/dual-role core
+Date: Wed, 25 May 2016 15:21:39 +0300
+Message-ID: <574598D3.5090405@ti.com>
+References: <1463133808-10630-1-git-send-email-rogerq@ti.com>
+ <1463133808-10630-9-git-send-email-rogerq@ti.com> <574422CA.8080002@ti.com>
+ <20160525024427.GA31142@shlinux2>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160412184250.GT5995@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Felipe Balbi <balbi@kernel.org>, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160525024427.GA31142@shlinux2>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Chen <hzpeterchen@gmail.com>
+Cc: peter.chen@freescale.com, balbi@kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On Wednesday 13 April 2016 12:12 AM, Tony Lindgren wrote:
-> * Grygorii Strashko <grygorii.strashko@ti.com> [160412 11:31]:
->> On 04/12/2016 07:04 PM, Tony Lindgren wrote:
->>> * Grygorii Strashko <grygorii.strashko@ti.com> [160412 03:44]:
->>>> The commit 55ee7017ee31 ("arm: omap2: board-generic: use
->>>> omap4_local_timer_init for AM437x") unintentionally changes the
->>>> clocksource devices for AM437x from OMAP GP Timer to SyncTimer32K.
->>>>
->>>> Unfortunately, the SyncTimer32K is starving from frequency deviation
->>>> as mentioned in commit 5b5c01359152 ("ARM: OMAP2+: AM43x: Use gptimer
->>>> as clocksource") and, as reported by Franklin [1], even its monotonic
->>>> nature is under question (most probably there is a HW issue, but it's
->>>> still under investigation).
->>>>
->>>> Taking into account above facts It's reasonable to rollback to the use
->>>> of omap3_gptimer_timer_init().
+On 25/05/16 05:44, Peter Chen wrote:
+> On Tue, May 24, 2016 at 12:45:46PM +0300, Roger Quadros wrote:
+>> Hi Peter,
+>>
+>> I have one question here. Please see below.
+>>
+>> On 13/05/16 13:03, Roger Quadros wrote:
+>>> It provides APIs for the following tasks
 >>>
->>> I thought only the ePOS EVM does not have the 32k clock available?
->>> Maybe this is the the old sync timer autocorrection drift issue?
+>>> - Registering an OTG/dual-role capable controller
+>>> - Registering Host and Gadget controllers to OTG core
+>>> - Providing inputs to and kicking the OTG state machine
+>>>
+>>> Provide a dual-role device (DRD) state machine.
+>>> DRD mode is a reduced functionality OTG mode. In this mode
+>>> we don't support SRP, HNP and dynamic role-swap.
+>>>
+>>> In DRD operation, the controller mode (Host or Peripheral)
+>>> is decided based on the ID pin status. Once a cable plug (Type-A
+>>> or Type-B) is attached the controller selects the state
+>>> and doesn't change till the cable in unplugged and a different
+>>> cable type is inserted.
+>>>
+>>> As we don't need most of the complex OTG states and OTG timers
+>>> we implement a lean DRD state machine in usb-otg.c.
+>>> The DRD state machine is only interested in 2 hardware inputs
+>>> 'id' and 'b_sess_vld'.
+>>>
+>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>> ---
+>>>  drivers/usb/common/Makefile  |    2 +-
+>>>  drivers/usb/common/usb-otg.c | 1042 ++++++++++++++++++++++++++++++++++++++++++
+>>>  drivers/usb/core/Kconfig     |    4 +-
+>>>  include/linux/usb/gadget.h   |    2 +
+>>>  include/linux/usb/hcd.h      |    1 +
+>>>  include/linux/usb/otg-fsm.h  |    7 +
+>>>  include/linux/usb/otg.h      |  154 ++++++-
+>>>  7 files changed, 1206 insertions(+), 6 deletions(-)
+>>>  create mode 100644 drivers/usb/common/usb-otg.c
 >>>
 >>
->> May be, as i mentioned in [1] it could be errata same as for Watchdog
->> Advisory 22 (or OMAP_TIMER_ERRATA_I103_I767).
+>> <snip>
 >>
->> But as per commit 5b5c01359152 ("ARM: OMAP2+: AM43x: Use gptimer
->> as clocksource") there is no reason to use SyncTimer32K as
->> clocksource any way (not only on epos):
+>>> +
+>>> +/**
+>>> + * usb_otg_register() - Register the OTG/dual-role device to OTG core
+>>> + * @dev: OTG/dual-role controller device.
+>>> + * @config: OTG configuration.
+>>> + *
+>>> + * Registers the OTG/dual-role controller device with the USB OTG core.
+>>> + *
+>>> + * Return: struct usb_otg * if success, ERR_PTR() if error.
+>>> + */
+>>> +struct usb_otg *usb_otg_register(struct device *dev,
+>>> +				 struct usb_otg_config *config)
+>>> +{
+>>> +	struct usb_otg *otg;
+>>> +	struct otg_wait_data *wait;
+>>> +	int ret = 0;
+>>> +
+>>> +	if (!dev || !config || !config->fsm_ops)
+>>> +		return ERR_PTR(-EINVAL);
+>>> +
+>>> +	/* already in list? */
+>>> +	mutex_lock(&otg_list_mutex);
+>>> +	if (usb_otg_get_data(dev)) {
+>>> +		dev_err(dev, "otg: %s: device already in otg list\n",
+>>> +			__func__);
+>>> +		ret = -EINVAL;
+>>> +		goto unlock;
+>>> +	}
+>>> +
+>>> +	/* allocate and add to list */
+>>> +	otg = kzalloc(sizeof(*otg), GFP_KERNEL);
+>>> +	if (!otg) {
+>>> +		ret = -ENOMEM;
+>>> +		goto unlock;
+>>> +	}
+>>> +
+>>> +	otg->dev = dev;
+>>> +	otg->caps = config->otg_caps;
 >>
->> commit 5b5c01359152f3ddaa1aa0e5d1141bc2b29ba2c5
->> Author: Rajendra Nayak <rnayak@ti.com>
->> Date:   Fri Feb 7 15:51:26 2014 +0530
+>> Here, we should be checking if user needs to disable any OTG features. So,
 >>
->>     ARM: OMAP2+: AM43x: Use gptimer as clocksource
->>     
->>     The SyncTimer in AM43x is clocked using the following two sources:
->>     1) An inaccuarte 32k clock (CLK_32KHZ) derived from PER DPLL, causing system
->>        time to go slowly (~10% deviation).
->> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>> 	if (dev->of_node)
+>> 		of_usb_update_otg_caps(dev->of_node, &otg->caps);
+>>
+>> Do you agree?
+>> This means we need to change otg->caps from 'struct usb_otg_caps *caps;'
+>> to 'struct usb_otg_caps caps;' so that we can modify the local copy instead
+>> of the one passed by the OTG controller.
+> 
+> Why can't modify the one from OTG controller directly?
+> 
 
-I don't think this statement is right. If clock from PER DPLL is
-inaccurate then all the IPs which uses PER DPLL are in danger. It is the
-On-Chip 32K RC Osc clock that is not an accurate clock-source as per the
-design/spec.
+There are 2 things.
+1) OTG features supported by hardware. This is the controller's config->otg_caps
+2) OTG features needed by system designer. This can be a subset of (1).
+This needs to be maintained in the OTG core, based on config->otg_caps and
+device tree disable flags.
 
->>     2) external 32KHz RTC clock, which may not always be available on board like
->>        in the case of ePOS EVM
+So we can't use OTG controller config->otg_caps directly.
 
-Also this 32KHz RTC clock is not enabled by default and is handled by RTC.
+>>
+>> We can also move of_usb_update_otg_caps() to otg.h.
+>>
+>> We will also need to modify the udc-core code so that it sets gadget->otg_caps
+>> to the modified otg_caps from the OTG core. This will ensure that the right
+>> OTG descriptors are sent.
+>>
+>> So we will have to introduce an API.
+>>
+>> struct usb_otg_caps *usb_otg_get_otg_caps(struct device *otg_dev)
+>>
+>> And in udc-core.c,
+>>
+>> static int udc_bind_to_driver(struct usb_udc *udc, struct usb_gadget_driver *driver)
+>> {
+>> ..
+>>         ret = driver->bind(udc->gadget, driver);
+>>         if (ret)
+>>                 goto err1;
+>>
+>>         /* If OTG, the otg core starts the UDC when needed */
+>>         if (udc->gadget->otg_dev) {
+>> +		udc->gadget->is_otg = true;
+> 
+> gadget->is_otg is only set to true if fully OTG is supported and it
+> needs to send OTG descriptors at this case. DRD devices should not send OTG
+> descriptors.
 
-IMO, it is better to change the clock source of sync timer to
-CLK_32KHz(like it is done in case of am43x-epos). Or do you have any
-other reason to shift to gptimer?
+Agreed.
 
-Thanks and regards,
-Lokesh
+> 
+>> +		udc->gadget->otg_caps = usb_otg_get_otg_caps(udc->gadget->otg_dev);
+> 
+> Getting otg capabilities should be prior to driver->bind since
+> usb_otg_descriptor_init is called at that. Besides, Gadget driver
+
+Correct.
+
+> may be probed before otg driver is registered
+
+udc_bind_to_driver gets called only when both, udc driver and function driver
+are available. Defer probing will have to be done in usb_add_gadget_udc_release().
+
+> 
+> I am wonder if we can implement defer probe for gadget/udc/host driver
+> if otg driver is not probed, in that case, some designs can be simpler
+> like wait list in otg driver.
+
+Agree with you on that. Should I work on implementing -EPROBE_DEFER for
+hcd.c and udc-core.c if hcd/udc is meant for otg and OTG controller is not
+yet probed?
