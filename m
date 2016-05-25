@@ -1,117 +1,97 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v4 6/7] ASoC: omap-mcbsp: sidetone: Use the new callback for iclk handling
-Date: Wed, 25 May 2016 17:21:00 +0300
-Message-ID: <1464186061-28639-7-git-send-email-peter.ujfalusi@ti.com>
-References: <1464186061-28639-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v4 0/7] ARM/ASoC: OMAP3: Fix McBSP2/3 sidetone support
+Date: Wed, 25 May 2016 17:37:36 +0300
+Message-ID: <a709475e-03b5-69ef-01d4-ef3919d2b4e3@ti.com>
+References: <1464185756-28401-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1464186061-28639-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1464185756-28401-1-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: tony@atomide.com, jarkko.nikula@bitmer.com, paul@pwsan.com, lgirdwood@gmail.com, broonie@kernel.org
-Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The McBSP sidetone (in OMAP3 McBSP2 and 3 module) is working with the
-module's interface clock. When the sidetone is enabled the iclk must not
-idle because it will result in choppy sidetone.
-Switch to use the new callback for handling the iclk allow/deny idle
-configuration.
-For this the driver needs to get the module's ick clock and pass the clk
-pointer to the callback.
-In DT boot, the pdata-quirk is going to set up the callback for the driver
-so save it if it is set in the pdata of the device.
+Hi,
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Acked-by: Mark Brown <broonie@kernel.org>
----
- sound/soc/omap/mcbsp.c      | 19 ++++++++++++++-----
- sound/soc/omap/mcbsp.h      |  1 +
- sound/soc/omap/omap-mcbsp.c |  3 +++
- 3 files changed, 18 insertions(+), 5 deletions(-)
+my git send-email got interrupted by my ISP :o
+The complete series should be up by now.
 
-diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
-index 75cd1761d383..5c3fdfe4c6b9 100644
---- a/sound/soc/omap/mcbsp.c
-+++ b/sound/soc/omap/mcbsp.c
-@@ -257,8 +257,8 @@ static void omap_st_on(struct omap_mcbsp *mcbsp)
- {
- 	unsigned int w;
- 
--	if (mcbsp->pdata->enable_st_clock)
--		mcbsp->pdata->enable_st_clock(mcbsp->id, 1);
-+	if (mcbsp->pdata->force_ick_on)
-+		mcbsp->pdata->force_ick_on(mcbsp->st_data->mcbsp_iclk, true);
- 
- 	/* Enable McBSP Sidetone */
- 	w = MCBSP_READ(mcbsp, SSELCR);
-@@ -279,8 +279,8 @@ static void omap_st_off(struct omap_mcbsp *mcbsp)
- 	w = MCBSP_READ(mcbsp, SSELCR);
- 	MCBSP_WRITE(mcbsp, SSELCR, w & ~(SIDETONEEN));
- 
--	if (mcbsp->pdata->enable_st_clock)
--		mcbsp->pdata->enable_st_clock(mcbsp->id, 0);
-+	if (mcbsp->pdata->force_ick_on)
-+		mcbsp->pdata->force_ick_on(mcbsp->st_data->mcbsp_iclk, false);
- }
- 
- static void omap_st_fir_write(struct omap_mcbsp *mcbsp, s16 *fir)
-@@ -938,6 +938,13 @@ static int omap_st_add(struct omap_mcbsp *mcbsp, struct resource *res)
- 	if (!st_data)
- 		return -ENOMEM;
- 
-+	st_data->mcbsp_iclk = clk_get(mcbsp->dev, "ick");
-+	if (IS_ERR(st_data->mcbsp_iclk)) {
-+		dev_warn(mcbsp->dev,
-+			 "Failed to get ick, sidetone might be broken\n");
-+		st_data->mcbsp_iclk = NULL;
-+	}
-+
- 	st_data->io_base_st = devm_ioremap(mcbsp->dev, res->start,
- 					   resource_size(res));
- 	if (!st_data->io_base_st)
-@@ -1085,6 +1092,8 @@ void omap_mcbsp_cleanup(struct omap_mcbsp *mcbsp)
- 	if (mcbsp->pdata->buffer_size)
- 		sysfs_remove_group(&mcbsp->dev->kobj, &additional_attr_group);
- 
--	if (mcbsp->st_data)
-+	if (mcbsp->st_data) {
- 		sysfs_remove_group(&mcbsp->dev->kobj, &sidetone_attr_group);
-+		clk_put(mcbsp->st_data->mcbsp_iclk);
-+	}
- }
-diff --git a/sound/soc/omap/mcbsp.h b/sound/soc/omap/mcbsp.h
-index ce6cbbf923a4..61e93b1c185d 100644
---- a/sound/soc/omap/mcbsp.h
-+++ b/sound/soc/omap/mcbsp.h
-@@ -280,6 +280,7 @@ struct omap_mcbsp_reg_cfg {
- 
- struct omap_mcbsp_st_data {
- 	void __iomem *io_base_st;
-+	struct clk *mcbsp_iclk;
- 	bool running;
- 	bool enabled;
- 	s16 taps[128];	/* Sidetone filter coefficients */
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index db07debb4a9c..d018e966e533 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -788,6 +788,7 @@ static int asoc_mcbsp_probe(struct platform_device *pdev)
- 	match = of_match_device(omap_mcbsp_of_match, &pdev->dev);
- 	if (match) {
- 		struct device_node *node = pdev->dev.of_node;
-+		struct omap_mcbsp_platform_data *pdata_quirk = pdata;
- 		int buffer_size;
- 
- 		pdata = devm_kzalloc(&pdev->dev,
-@@ -799,6 +800,8 @@ static int asoc_mcbsp_probe(struct platform_device *pdev)
- 		memcpy(pdata, match->data, sizeof(*pdata));
- 		if (!of_property_read_u32(node, "ti,buffer-size", &buffer_size))
- 			pdata->buffer_size = buffer_size;
-+		if (pdata_quirk)
-+			pdata->force_ick_on = pdata_quirk->force_ick_on;
- 	} else if (!pdata) {
- 		dev_err(&pdev->dev, "missing platform data.\n");
- 		return -EINVAL;
--- 
-2.8.2
+Sorry about it.
+
+-- =
+
+P=E9ter
+
+On 05/25/2016 05:15 PM, Peter Ujfalusi wrote:
+> Hi,
+> =
+
+> Changes since v3:
+> - Rebased on next-20160525 [1] to apply cleanly
+> - Fixed subject line for patch5
+> - Added Mark's acked-by to the ASoC patches
+> =
+
+> [1] "ASoC: omap-mcbsp: Enable/disable sidetone block auto clock
+> gating for omap3" is gone missing from linux-next - it was in next-201605=
+17 and
+> I'm not sure when it got dropped.
+> =
+
+> Tony: since Paul did not replied to the series, I'm sending the v4 now, I=
+ hope
+> he will have time to look at this.
+> =
+
+> Commit message from v3:
+> =
+
+> Based on the ongoing discussion on v2 (ARM: OMAP3: Fix McBSP2/3 hwmod set=
+up for
+> sidetone) I have dropped the removal of the sidetone hwmod and only corre=
+cted
+> it. The series now includes all related changes needed to have correct si=
+detone
+> support whenever we boot in legacy or in DT mode.
+> =
+
+> This time the ASoC part have dependency on earlier patches so they can no=
+t be
+> applied separately.
+> =
+
+> Regards,
+> Peter
+> ---
+> Peter Ujfalusi (7):
+>   ARM: OMAP3: hwmod data: Fix McBSP2/3 sidetone data
+>   ARM: dts: omap3: Add clocks to McBSP nodes
+>   ARM: OMAP3: McBSP: New callback for McBSP2/3 ICLK idle configuration
+>   ARM: OMAP3: pdata-quirks: Add support for McBSP2/3 sidetone handling
+>   ASoC: omap-mcbsp: Rename omap_mcbsp_sysfs_remove() to
+>     omap_mcbsp_cleanup()
+>   ASoC: omap-mcbsp: sidetone: Use the new callback for iclk handling
+>   ARM: OMAP2+: McBSP: Remove the old iclk allow/deny idle code
+> =
+
+>  arch/arm/boot/dts/omap3.dtsi                | 10 ++++++++++
+>  arch/arm/mach-omap2/mcbsp.c                 | 31 ++++++++++++++++-------=
+------
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c  | 24 ++++------------------
+>  arch/arm/mach-omap2/pdata-quirks.c          | 18 +++++++++++++++++
+>  include/linux/platform_data/asoc-ti-mcbsp.h |  4 +++-
+>  sound/soc/omap/mcbsp.c                      | 21 +++++++++++++------
+>  sound/soc/omap/mcbsp.h                      |  3 ++-
+>  sound/soc/omap/omap-mcbsp.c                 |  5 ++++-
+>  8 files changed, 73 insertions(+), 43 deletions(-)
+> =
