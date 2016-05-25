@@ -1,138 +1,97 @@
-From: Caesar Wang <wxt@rock-chips.com>
-Subject: [PATCH v3 3/5] thermal: streamline get_trend callbacks
-Date: Wed, 25 May 2016 11:47:47 +0800
-Message-ID: <1464148069-26254-4-git-send-email-wxt@rock-chips.com>
-References: <1464148069-26254-1-git-send-email-wxt@rock-chips.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1464148069-26254-1-git-send-email-wxt@rock-chips.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: edubezval@gmail.com, linux-pm@vger.kernel.org
-Cc: Heiko Stuebner <heiko@sntech.de>, dianders@chromium.org, briannorris@google.com, smbarber@google.com, linux-rockchip@lists.infradead.org, cf@rock-chips.com, huangtao@rock-chips.com, dmitry.torokhov@gmail.com, javi.merino@arm.com, peter@piie.net, Sascha Hauer <s.hauer@pengutronix.de>, Caesar Wang <wxt@rock-chips.com>, Zhang Rui <rui.zhang@intel.com>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [RFC PATCH 1/2] Input: rotary-encoder- Add support for absolute
+ encoder
+Date: Wed, 25 May 2016 14:14:12 +0530
+Message-ID: <574565DC.4010502@ti.com>
+References: <1463648641-6931-1-git-send-email-vigneshr@ti.com>
+ <1463648641-6931-2-git-send-email-vigneshr@ti.com>
+ <20160522102606.GB23704@pengutronix.de> <5742E710.9@ti.com>
+ <20160523131808.GN23704@pengutronix.de> <5743E206.2050602@ti.com>
+ <20160524082040.GR23704@pengutronix.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20160524082040.GR23704@pengutronix.de>
+Sender: linux-doc-owner@vger.kernel.org
+To: =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <u.kleine-koenig@pengutronix.de>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Jonathan Corbet <corbet@lwn.net>, Johan Hovold <johan@kernel.org>, Sylvain Rochet <sylvain.rochet@finsecur.com>, Masanari Iida <standby24x7@gmail.com>, Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>, S Twiss <stwiss.opensource@diasemi.com>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Moritz Fischer <moritz.fischer@ettus.com>, Arnd Bergmann <arnd@arndb.de>, Geert Uytterhoeven <geert@linux-m68k.org>, Timo Teras <timo.teras@iki.fi>, Clifton Barnes <clifton.a.barnes@gmail.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@>
 List-Id: linux-omap@vger.kernel.org
 
-From: Sascha Hauer <s.hauer@pengutronix.de>
 
-The .get_trend callback in struct thermal_zone_device_ops has
-the prototype:
-        int (*get_trend) (struct thermal_zone_device *, int,
-                          enum thermal_trend *);
-whereas the .get_trend callback in struct thermal_zone_of_device_ops
-has:
-        int (*get_trend)(void *, long *);
 
-Streamline both prototypes and add the trip argument to the OF callback
-aswell and use enum thermal_trend * instead of an integer pointer.
+On 05/24/2016 01:50 PM, Uwe Kleine-K=F6nig wrote:
+> Hello,
+>=20
+> On Tue, May 24, 2016 at 10:39:26AM +0530, Vignesh R wrote:
+>> On 05/23/2016 06:48 PM, Uwe Kleine-K=F6nig wrote:
+>>> On Mon, May 23, 2016 at 04:48:40PM +0530, R, Vignesh wrote:
+>>>> On 5/22/2016 3:56 PM, Uwe Kleine-K=F6nig wrote:
+>>>>> On Thu, May 19, 2016 at 02:34:00PM +0530, Vignesh R wrote:
+[...]
+>>>
+>>> OK, we have code that is more complex than it needs to be for your
+>>> device. But your device is a special case of the supported devices,=
+ so
+>>> I'd say don't bother that there is more logic in the driver than yo=
+u
+>>> need and be lucky.
+>>
+>> More complexity is just a overhead. Since, encoder can be turned at =
+a
+>> rate faster than handling of IRQs (rotary_encoder_quarter_period_irq=
+()
+>> is threaded IRQ hence, priority is not close to real time), some sta=
+tes
+>=20
+> This problem isn't unique to your hardware. An "ordinary" encoder wit=
+h
+> just two GPIOs and more than one period can be rotated faster than
+> 1/irq_latency, too.
 
-While the OF prototype may be the better one, this should be decided at
-framework level and not on OF level.
+But my hardware should not be affected by this problem. The whole point
+of absolute encoder is to overcome the difficulty of software keeping
+track of steps, one can read the gpios state anytime and find out what
+value is the encoder pointing to.
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-Signed-off-by: Caesar Wang <wxt@rock-chips.com>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Eduardo Valentin <edubezval@gmail.com>
-Cc: linux-pm@vger.kernel.org
----
+> There are two things that can be done:
+>=20
+>  - undo the conversion to threaded irqs; or
+>  - read out the gpios in the fast handler and only delay decoding and
+>    reporting of the event
+>=20
+> Both approaches have their disadvantages.
+>=20
 
-Changes in v3: None
-Changes in v2: None
+And both cannot guarantee that an event is not missed (on a loaded
+system) and all of the state logic goes for a toss. For binary encoding
+multiple IRQs(thats why incremental encoders are usually gray coded)
+will fire at same time and handling all of the them is a considerable
+overhead, there is good chance that some events are missed.
 
- drivers/thermal/of-thermal.c                       | 11 +---------
- drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 25 +++++++---------------
- include/linux/thermal.h                            |  2 +-
- 3 files changed, 10 insertions(+), 28 deletions(-)
+>> can be missed. rotary_encoder_quarter_period_irq() is not robust in =
+this
+>> case, reading gpios directly is more suitable option. I see similar
+>> views expressed in previously[1]
+>>
+>> [1]http://lists.infradead.org/pipermail/linux-arm-kernel/2015-Decemb=
+er/391196.html
+>=20
+> IMHO the right thing to do is to improve
+> rotary_encoder_quarter_period_irq (and also the other handlers for fu=
+ll
+> and half period mode) to make use of additional GPIOs.=20
 
-diff --git a/drivers/thermal/of-thermal.c b/drivers/thermal/of-thermal.c
-index 2d2a06f..ba72c35 100644
---- a/drivers/thermal/of-thermal.c
-+++ b/drivers/thermal/of-thermal.c
-@@ -202,24 +202,15 @@ static int of_thermal_get_trend(struct thermal_zone_device *tz, int trip,
- 				enum thermal_trend *trend)
- {
- 	struct __thermal_zone *data = tz->devdata;
--	long dev_trend;
- 	int r;
- 
- 	if (!data->ops->get_trend)
- 		return -EINVAL;
- 
--	r = data->ops->get_trend(data->sensor_data, &dev_trend);
-+	r = data->ops->get_trend(data->sensor_data, trip, trend);
- 	if (r)
- 		return r;
- 
--	/* TODO: These intervals might have some thresholds, but in core code */
--	if (dev_trend > 0)
--		*trend = THERMAL_TREND_RAISING;
--	else if (dev_trend < 0)
--		*trend = THERMAL_TREND_DROPPING;
--	else
--		*trend = THERMAL_TREND_STABLE;
--
- 	return 0;
- }
- 
-diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-index 15c0a9a..4a6757c 100644
---- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-+++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-@@ -239,7 +239,7 @@ static int ti_thermal_get_trip_temp(struct thermal_zone_device *thermal,
- 	return 0;
- }
- 
--static int __ti_thermal_get_trend(void *p, long *trend)
-+static int __ti_thermal_get_trend(void *p, int trip, enum thermal_trend *trend)
- {
- 	struct ti_thermal_data *data = p;
- 	struct ti_bandgap *bgp;
-@@ -252,22 +252,6 @@ static int __ti_thermal_get_trend(void *p, long *trend)
- 	if (ret)
- 		return ret;
- 
--	*trend = tr;
--
--	return 0;
--}
--
--/* Get the temperature trend callback functions for thermal zone */
--static int ti_thermal_get_trend(struct thermal_zone_device *thermal,
--				int trip, enum thermal_trend *trend)
--{
--	int ret;
--	long tr;
--
--	ret = __ti_thermal_get_trend(thermal->devdata, &tr);
--	if (ret)
--		return ret;
--
- 	if (tr > 0)
- 		*trend = THERMAL_TREND_RAISING;
- 	else if (tr < 0)
-@@ -278,6 +262,13 @@ static int ti_thermal_get_trend(struct thermal_zone_device *thermal,
- 	return 0;
- }
- 
-+/* Get the temperature trend callback functions for thermal zone */
-+static int ti_thermal_get_trend(struct thermal_zone_device *thermal,
-+				int trip, enum thermal_trend *trend)
-+{
-+	return __ti_thermal_get_trend(thermal->devdata, trip, trend);
-+}
-+
- /* Get critical temperature callback functions for thermal zone */
- static int ti_thermal_get_crit_temp(struct thermal_zone_device *thermal,
- 				    int *temp)
-diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index f68da05..669093c 100644
---- a/include/linux/thermal.h
-+++ b/include/linux/thermal.h
-@@ -348,7 +348,7 @@ struct thermal_genl_event {
-  */
- struct thermal_zone_of_device_ops {
- 	int (*get_temp)(void *, int *);
--	int (*get_trend)(void *, long *);
-+	int (*get_trend)(void *, int, enum thermal_trend *);
- 	int (*set_trips)(void *, int, int);
- 	int (*set_emul_temp)(void *, int);
- 	int (*set_trip_temp)(void *, int, int);
--- 
-1.9.1
+I doubt there exists any incremental encoder with more than 2
+gpios(except for the extra reference GPIO or Z signal). So modifying
+full/half period handlers maybe unnecessary.
+
+> This way all types of devices benefit and more code is shared.
+
+Sorry.. but IMHO, there is little code sharing and more complexity. So,
+I will leave it to the maintainer to decide whats the best approach her=
+e.
+
+--=20
+Regards
+Vignesh
