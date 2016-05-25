@@ -1,97 +1,49 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v4 0/7] ARM/ASoC: OMAP3: Fix McBSP2/3 sidetone support
-Date: Wed, 25 May 2016 17:37:36 +0300
-Message-ID: <a709475e-03b5-69ef-01d4-ef3919d2b4e3@ti.com>
-References: <1464185756-28401-1-git-send-email-peter.ujfalusi@ti.com>
+From: Jun Li <jun.li@nxp.com>
+Subject: RE: [PATCH v8 08/14] usb: otg: add OTG/dual-role core
+Date: Wed, 25 May 2016 14:44:32 +0000
+Message-ID: <AM4PR04MB213028144706EC69A066EAEE89400@AM4PR04MB2130.eurprd04.prod.outlook.com>
+References: <1463133808-10630-1-git-send-email-rogerq@ti.com>
+ <1463133808-10630-9-git-send-email-rogerq@ti.com> <574422CA.8080002@ti.com>
+ <20160525024427.GA31142@shlinux2> <574598D3.5090405@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1464185756-28401-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com, jarkko.nikula@bitmer.com, paul@pwsan.com, lgirdwood@gmail.com, broonie@kernel.org
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <574598D3.5090405@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, Peter Chen <hzpeterchen@gmail.com>
+Cc: "peter.chen@freescale.com" <peter.chen@freescale.com>, "balbi@kernel.org" <balbi@kernel.org>, "tony@atomide.com" <tony@atomide.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "Joao.Pinto@synopsys.com" <Joao.Pinto@synopsys.com>, "sergei.shtylyov@cogentembedded.com" <sergei.shtylyov@cogentembedded.com>, "jun.li@freescale.com" <jun.li@freescale.com>, "grygorii.strashko@ti.com" <grygorii.strashko@ti.com>, "yoshihiro.shimoda.uh@renesas.com" <yoshihiro.shimoda.uh@renesas.com>, "robh@kernel.org" <robh@kernel.org>, "nsekhar@ti.com" <nsekhar@ti.com>, "b-liu@ti.com" <b-liu@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vg>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Roger
 
-my git send-email got interrupted by my ISP :o
-The complete series should be up by now.
+> >>
+> >> Here, we should be checking if user needs to disable any OTG
+> >> features. So,
+> >>
+> >> 	if (dev->of_node)
+> >> 		of_usb_update_otg_caps(dev->of_node, &otg->caps);
+> >>
+> >> Do you agree?
+> >> This means we need to change otg->caps from 'struct usb_otg_caps
+> *caps;'
+> >> to 'struct usb_otg_caps caps;' so that we can modify the local copy
+> >> instead of the one passed by the OTG controller.
+> >
+> > Why can't modify the one from OTG controller directly?
+> >
+> 
+> There are 2 things.
+> 1) OTG features supported by hardware. This is the controller's config-
+> >otg_caps
+> 2) OTG features needed by system designer. This can be a subset of (1).
 
-Sorry about it.
+Let's make things simple, we only need this subnet, which can be set
+by controller driver in config->otg_caps before pass (its address)
+to OTG core.
 
--- =
+So controller driver should get the capability of HW(+SW) and user config
+by whatever approach, then set its config->otg_caps.
 
-P=E9ter
-
-On 05/25/2016 05:15 PM, Peter Ujfalusi wrote:
-> Hi,
-> =
-
-> Changes since v3:
-> - Rebased on next-20160525 [1] to apply cleanly
-> - Fixed subject line for patch5
-> - Added Mark's acked-by to the ASoC patches
-> =
-
-> [1] "ASoC: omap-mcbsp: Enable/disable sidetone block auto clock
-> gating for omap3" is gone missing from linux-next - it was in next-201605=
-17 and
-> I'm not sure when it got dropped.
-> =
-
-> Tony: since Paul did not replied to the series, I'm sending the v4 now, I=
- hope
-> he will have time to look at this.
-> =
-
-> Commit message from v3:
-> =
-
-> Based on the ongoing discussion on v2 (ARM: OMAP3: Fix McBSP2/3 hwmod set=
-up for
-> sidetone) I have dropped the removal of the sidetone hwmod and only corre=
-cted
-> it. The series now includes all related changes needed to have correct si=
-detone
-> support whenever we boot in legacy or in DT mode.
-> =
-
-> This time the ASoC part have dependency on earlier patches so they can no=
-t be
-> applied separately.
-> =
-
-> Regards,
-> Peter
-> ---
-> Peter Ujfalusi (7):
->   ARM: OMAP3: hwmod data: Fix McBSP2/3 sidetone data
->   ARM: dts: omap3: Add clocks to McBSP nodes
->   ARM: OMAP3: McBSP: New callback for McBSP2/3 ICLK idle configuration
->   ARM: OMAP3: pdata-quirks: Add support for McBSP2/3 sidetone handling
->   ASoC: omap-mcbsp: Rename omap_mcbsp_sysfs_remove() to
->     omap_mcbsp_cleanup()
->   ASoC: omap-mcbsp: sidetone: Use the new callback for iclk handling
->   ARM: OMAP2+: McBSP: Remove the old iclk allow/deny idle code
-> =
-
->  arch/arm/boot/dts/omap3.dtsi                | 10 ++++++++++
->  arch/arm/mach-omap2/mcbsp.c                 | 31 ++++++++++++++++-------=
-------
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c  | 24 ++++------------------
->  arch/arm/mach-omap2/pdata-quirks.c          | 18 +++++++++++++++++
->  include/linux/platform_data/asoc-ti-mcbsp.h |  4 +++-
->  sound/soc/omap/mcbsp.c                      | 21 +++++++++++++------
->  sound/soc/omap/mcbsp.h                      |  3 ++-
->  sound/soc/omap/omap-mcbsp.c                 |  5 ++++-
->  8 files changed, 73 insertions(+), 43 deletions(-)
-> =
+Li Jun
