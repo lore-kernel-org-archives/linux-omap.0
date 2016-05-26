@@ -1,52 +1,28 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 0/2] arm: dra7: Add i2c6 instance hwmod and dt entries
-Date: Thu, 26 May 2016 08:47:57 +0300
-Message-ID: <57468E0D.2060504@ti.com>
-References: <20160525125341.10044-1-rk@ti.com> <5745CE4E.3020903@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 2/2] ARM: dts: am335x-icev2: Add DT node for TI PCA9536
+Date: Thu, 26 May 2016 10:40:43 +0200
+Message-ID: <CACRpkdbRt4Vi=kzs_gZDkR14KBmFsKKZawbT25PW0sMpuX7LkQ@mail.gmail.com>
+References: <1463640450-16762-1-git-send-email-vigneshr@ti.com>
+	<1463640450-16762-3-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5745CE4E.3020903@ti.com>
+In-Reply-To: <1463640450-16762-3-git-send-email-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Ravikumar Kattekola <rk@ti.com>, paul@pwsan.com, tony@atomide.com, linux@armlinux.org.uk, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: Felipe Balbi <balbi@kernel.org>
+To: Vignesh R <vigneshr@ti.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 25/05/16 19:09, Nishanth Menon wrote:
-> On 05/25/2016 07:53 AM, Ravikumar Kattekola wrote:
->> DRA72x devices have a sixth i2c ocntroller instance.
->> Following patches add the required hwmod structure and
->> device tree nodes.
->>
->> Reference doc: DRA72x TRM [ SPRUHP2Q ]
->>
->> Tested on :
->> DRA72x Rev B EVM
->>
->> Ravikumar Kattekola (2):
->>    arm: dra7: Add hwmod entry for i2c6
->>    dts: dra7: Add device tree node for i2c6
->>
->>   arch/arm/boot/dts/dra7.dtsi               | 11 +++++++++++
->>   arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 23 +++++++++++++++++++++++
->>   2 files changed, 34 insertions(+)
->>
-> NAK. reasoning:
-> a) i2c6 is a custom IP integration with completely non-standard
-> dependencies with cross device dependencies for pretty much a specific
-> usecase -> usage is pretty much limited for generic support - the
-> decision is NOT to support this instance in Linux kernel - internal
-> discussion forwarded to developer.
-> b) the patches themselves are wrong -> it applies to DRA72x not
-> generic DRA7x platform
-> c) patches themselves are in the wrong format (wrong subject line etc).
-> d) patches don't handle the SoC internal device dependencies either ->
-> in short will not function in a generic solution for all variations of
-> platforms.
+On Thu, May 19, 2016 at 8:47 AM, Vignesh R <vigneshr@ti.com> wrote:
+
+> AM335x ICE board has a TI PCA9536 chip connected to I2C0 at address
+> 0x41. Add DT entry for the same.
 >
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
 
-Yes please drop this, attempting to support it in upstream is just going 
-to cause unnecessary pain.
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 
--Tero
+Pls take this through the ARM SoC TI git tree.
+
+Yours,
+Linus Walleij
