@@ -1,28 +1,74 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 1/2] gpio: pca953x: Add support for TI PCA9536
-Date: Thu, 26 May 2016 10:42:44 +0200
-Message-ID: <CACRpkdbTC6R4Yevdo-GC+EVyrAw_v3wzSA89gUfKSkv50CskOg@mail.gmail.com>
-References: <1463640450-16762-1-git-send-email-vigneshr@ti.com>
-	<1463640450-16762-2-git-send-email-vigneshr@ti.com>
+From: Manish Badarkhe <badarkhe.manish@gmail.com>
+Subject: Re: [RFC 1/1] drivers: i2c: omap: Add slave support
+Date: Thu, 26 May 2016 21:37:21 +0530
+Message-ID: <CAKDJKT4Ws3XusYJTkojjeMvwxc2R9BRYpmn6HwGOH_8QF+pe0A@mail.gmail.com>
+References: <20160525141119.14486-1-rk@ti.com>
+	<20160525141119.14486-2-rk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1463640450-16762-2-git-send-email-vigneshr@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160525141119.14486-2-rk@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ravikumar Kattekola <rk@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, wsa@the-dreams.de, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 19, 2016 at 8:47 AM, Vignesh R <vigneshr@ti.com> wrote:
+Hi Ravikumar
 
-> TI PCA9536 is 4-Bit I2C GPIO expander without interrupt support[1].
-> Add support for the same.
->
-> [1] TRM: http://www.ti.com/lit/ds/symlink/pca9536.pdf
->
-> Signed-off-by: Vignesh R <vigneshr@ti.com>
+Some sanity comments, just good to have.
 
-Patch applied with Rob's ACK.
+> +#ifdef CONFIG_I2C_SLAVE
+> +static int omap_i2c_slave_irq(struct omap_i2c_dev *omap)
+> +{
+> +       u16 stat_raw;
+> +       u16 stat;
+> +       u16 bits;
+> +       u8 value;
+> +
+> +       stat_raw = omap_i2c_read_reg(omap, OMAP_I2C_IP_V2_IRQSTATUS_RAW);
+> +       bits = omap_i2c_read_reg(omap, OMAP_I2C_IE_REG);
+> +       stat_raw &= bits;
+> +
+> +       if (stat_raw & OMAP_I2C_STAT_AAS) {
+> +               omap_i2c_ack_stat(omap, OMAP_I2C_STAT_AAS);
+> +               stat_raw &= ~OMAP_I2C_STAT_AAS;
+> +       }
+> +
+> +out:
+> +       return 0;
+> +}
+> +#endif
 
-Yours,
-Linus Walleij
+This function always return 0.
+
+> +#ifdef CONFIG_I2C_SLAVE
+> +static int omap_i2c_reg_slave(struct i2c_client *slave)
+> +{
+> +       struct omap_i2c_dev *omap = i2c_get_adapdata(slave->adapter);
+> +       u16 reg;
+> +       int ret = 0;
+> +       /* Enable necessary interrupts */
+> +       omap_i2c_write_reg(omap, OMAP_I2C_IE_REG, omap->iestate);
+> +
+> +       return 0;
+> +
+> +}
+
+Better to return "ret" here as already been initialized to 0
+
+> +
+> +static int omap_i2c_unreg_slave(struct i2c_client *slave)
+> +{
+> +       struct omap_i2c_dev *omap = i2c_get_adapdata(slave->adapter);
+> +       u16 reg;
+> +
+> +       pm_runtime_put(omap->dev);
+> +       return 0;
+> +}
+> +#endif
+
+This function always return 0
+
+
+Regards
+Manish Badarkhe
