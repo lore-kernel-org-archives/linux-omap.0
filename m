@@ -1,36 +1,45 @@
-From: "Andrew F. Davis" <afd@ti.com>
-Subject: [PATCH 1/2] ARM: dts: am437x-idk-evm: Mark MAC as having only one PHY
-Date: Fri, 27 May 2016 13:17:42 -0500
-Message-ID: <20160527181743.8401-1-afd@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 14/14] ASoC: omap-mcpdm: Add support for pdmclk clock
+ handling
+Date: Fri, 27 May 2016 21:31:40 +0100
+Message-ID: <20160527203140.GD29837@sirena.org.uk>
+References: <1463579196-5484-1-git-send-email-peter.ujfalusi@ti.com>
+ <1463579196-5484-15-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, "Andrew F . Davis" <afd@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="at6+YcpfzWZg/htY"
+Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1463579196-5484-15-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: mturquette@baylibre.com, sboyd@codeaurora.org, tony@atomide.com, lee.jones@linaro.org, robh+dt@kernel.org, lgirdwood@gmail.com, t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
-Currently am4372.dtsi declares the MAC controller to have two
-slave ports, on this board we only use one, so set the slave
-count to one. This eliminates a console error message when
-the non-existent PHY is not detected.
 
-Signed-off-by: Andrew F. Davis <afd@ti.com>
----
- arch/arm/boot/dts/am437x-idk-evm.dts | 1 +
- 1 file changed, 1 insertion(+)
+--at6+YcpfzWZg/htY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/arch/arm/boot/dts/am437x-idk-evm.dts b/arch/arm/boot/dts/am437x-idk-evm.dts
-index 76dcfc6..12a6951 100644
---- a/arch/arm/boot/dts/am437x-idk-evm.dts
-+++ b/arch/arm/boot/dts/am437x-idk-evm.dts
-@@ -382,6 +382,7 @@
- };
- 
- &mac {
-+	slaves = <1>;
- 	pinctrl-names = "default", "sleep";
- 	pinctrl-0 = <&cpsw_default>;
- 	pinctrl-1 = <&cpsw_sleep>;
--- 
-2.8.3
+On Wed, May 18, 2016 at 04:46:36PM +0300, Peter Ujfalusi wrote:
+
+> +	clk_prepare_enable(mcpdm->pdmclk);
+
+Should really check the return value here.
+
+--at6+YcpfzWZg/htY
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJXSK6nAAoJECTWi3JdVIfQgLgH/1n87ZBxKwq4fE9xWWzz7VSe
+g/1vKGI7TcRkGSrC3jnotjQV/Nn8p3HYm19VBxdiQyR6gBRduGi5KFq1S9G6cimk
+ZF2a7er96t8SeCHplP7obU3slnpuAitBRrUnDQJ7Xb+ZGJJjyeDoETFV7XHYMglX
+/PTce4gJkxtTG7WSaru49540J4nU7YKtwOsOY8pmyC2eRxMekfO9HPq92565Y3bT
+hYpjb4HzBgcfL3OID5OWScBVJBZ4lZx/A69wb7lxeR+DWc+uu2XStqojQ1tSpDMv
+4/4Tw0xJ8aXDjQZqr6D6e0gu7jOBp2rOt4kmSJTCKetPrxf+ROcSEjB/IYc3ff0=
+=IO6m
+-----END PGP SIGNATURE-----
+
+--at6+YcpfzWZg/htY--
