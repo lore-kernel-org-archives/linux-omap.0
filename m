@@ -1,13 +1,13 @@
 From: Caesar Wang <wxt-TNX95d0MmH7DzftRWevZcw@public.gmane.org>
-Subject: [PATCH v4 2/4] thermal: streamline get_trend callbacks
-Date: Fri, 27 May 2016 16:23:26 +0800
-Message-ID: <1464337408-7123-3-git-send-email-wxt@rock-chips.com>
-References: <1464337408-7123-1-git-send-email-wxt@rock-chips.com>
+Subject: [RESEND PATCH v4 3/5] thermal: streamline get_trend callbacks
+Date: Fri, 27 May 2016 16:36:46 +0800
+Message-ID: <1464338208-8105-4-git-send-email-wxt@rock-chips.com>
+References: <1464338208-8105-1-git-send-email-wxt@rock-chips.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-In-Reply-To: <1464337408-7123-1-git-send-email-wxt-TNX95d0MmH7DzftRWevZcw@public.gmane.org>
+In-Reply-To: <1464338208-8105-1-git-send-email-wxt-TNX95d0MmH7DzftRWevZcw@public.gmane.org>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-rockchip>,
  <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-rockchip/>
