@@ -1,45 +1,138 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 14/14] ASoC: omap-mcpdm: Add support for pdmclk clock
- handling
-Date: Fri, 27 May 2016 21:31:40 +0100
-Message-ID: <20160527203140.GD29837@sirena.org.uk>
-References: <1463579196-5484-1-git-send-email-peter.ujfalusi@ti.com>
- <1463579196-5484-15-git-send-email-peter.ujfalusi@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCHv4] support for AD5820 camera auto-focus coil
+Date: Fri, 27 May 2016 22:33:11 +0200
+Message-ID: <20160527203311.GA13282@amd>
+References: <20160517181927.GA28741@amd>
+ <20160521054336.GA27123@amd>
+ <573FFF51.1000004@gmail.com>
+ <20160521105607.GA20071@amd>
+ <574049EF.2090208@gmail.com>
+ <20160524090433.GA1277@amd>
+ <20160524091746.GA14536@amd>
+ <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="at6+YcpfzWZg/htY"
-Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1463579196-5484-15-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: mturquette@baylibre.com, sboyd@codeaurora.org, tony@atomide.com, lee.jones@linaro.org, robh+dt@kernel.org, lgirdwood@gmail.com, t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, alsa-devel@alsa-project.org
+In-Reply-To: <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com
 List-Id: linux-omap@vger.kernel.org
 
+Hi!
 
---at6+YcpfzWZg/htY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> > + * Contact: Tuukka Toivonen
+> > + *          Sakari Ailus
+> 
+> Could you put the e-mail addresses back, please?
+> 
+> Tuukka's e-mail is tuukkat76 at gmail.com .
 
-On Wed, May 18, 2016 at 04:46:36PM +0300, Peter Ujfalusi wrote:
+Ok.
 
-> +	clk_prepare_enable(mcpdm->pdmclk);
+> > +#include <linux/module.h>
+> > +#include <linux/errno.h>
+> > +#include <linux/i2c.h>
+> > +#include <linux/kernel.h>
+> > +#include <linux/regulator/consumer.h>
+> 
+> Alphabetical order would be nice. The same below.
 
-Should really check the return value here.
+I was afraid you'd ask. Ok.
 
---at6+YcpfzWZg/htY
-Content-Type: application/pgp-signature; name="signature.asc"
+> > +/**
+> > + * @brief I2C write using i2c_transfer().
+> > + * @param coil - the driver data structure
+> > + * @param data - register value to be written
+> 
+> This does not look entirely right. But you could just remove the entire
+> comment. It's useless.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Ok.
+> > +	int ret = 0;
+> > +
+> > +	/*
+> > +	 * Go to standby first as real power off my be denied by the hardware
+> > +	 * (single power line control for both coil and sensor).
+> > +	 */
+> > +	if (standby) {
+> > +		coil->standby = 1;
+> > +		ret = ad5820_update_hw(coil);
+> > +	}
+> > +
+> > +	ret |= regulator_disable(coil->vana);
+> 
+> This is actually an error code and you shouldn't use or to combine two error
+> codes. The result will make no sense.
+> 
+> It might be the driver did this in the past but it should not be done. The
+> right thing, as elsewhere, is to assign the value to ret and check it. The
+> assigment in declaration may be dropped as well.
 
-iQEcBAEBCAAGBQJXSK6nAAoJECTWi3JdVIfQgLgH/1n87ZBxKwq4fE9xWWzz7VSe
-g/1vKGI7TcRkGSrC3jnotjQV/Nn8p3HYm19VBxdiQyR6gBRduGi5KFq1S9G6cimk
-ZF2a7er96t8SeCHplP7obU3slnpuAitBRrUnDQJ7Xb+ZGJJjyeDoETFV7XHYMglX
-/PTce4gJkxtTG7WSaru49540J4nU7YKtwOsOY8pmyC2eRxMekfO9HPq92565Y3bT
-hYpjb4HzBgcfL3OID5OWScBVJBZ4lZx/A69wb7lxeR+DWc+uu2XStqojQ1tSpDMv
-4/4Tw0xJ8aXDjQZqr6D6e0gu7jOBp2rOt4kmSJTCKetPrxf+ROcSEjB/IYc3ff0=
-=IO6m
------END PGP SIGNATURE-----
+Yeah, its broken. Let me fix it. 
 
---at6+YcpfzWZg/htY--
+> I think this happens in a few places in the driver.
+
+Actually this was the only place left.
+
+
+> > +	struct ad5820_device *coil = to_ad5820_device(subdev);
+> > +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+> > +
+> > +	coil->vana = regulator_get(&client->dev, "VANA");
+> 
+> Is there a reason not to acquire this in probe instead?
+
+Yeah, new version will do that (already done, Dmitry was faster).
+
+> > +	if (IS_ERR(coil->vana)) {
+> > +		dev_err(&client->dev, "could not get regulator for vana\n");
+> > +		return -ENODEV;
+> 
+> I wonder if -EPROBE_DEFER might be the right error code here.
+
+..and should handle PROBE_DEFER, too.
+
+> > +static int ad5820_probe(struct i2c_client *client,
+> > +			const struct i2c_device_id *devid)
+> > +{
+> > +	struct ad5820_device *coil;
+> > +	int ret = 0;
+> 
+> No need to assign ret here.
+
+Ok.
+
+> > +
+> > +	coil = kzalloc(sizeof(*coil), GFP_KERNEL);
+> 
+> You could use devm_kzalloc() here and drop kfree() below and in _remove().
+> 
+> The driver might be actually older than the devm_*() functions. Not sure. At
+> least they were not widely used back then. :-)
+
+Already done, Dmitry was faster.
+
+> > +static int __exit ad5820_remove(struct i2c_client *client)
+> > +{
+> > +	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
+> > +	struct ad5820_device *coil = to_ad5820_device(subdev);
+> > +
+> > +	v4l2_device_unregister_subdev(&coil->subdev);
+> > +	v4l2_ctrl_handler_free(&coil->ctrls);
+> > +	media_entity_cleanup(&coil->subdev.entity);
+> > +	if (coil->vana)
+> > +		regulator_put(coil->vana);
+> 
+> mutex_destroy(&coil->power_lock);
+> 
+> Here. And in probe() error paths as well.
+
+Ok. Can do, altrough it is pretty much a NOP in the error paths.
+
+Thanks,
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
