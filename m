@@ -1,82 +1,63 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [RESEND PATCH] gpio: pcf857x: restore the initial line state of all pcf lines
-Date: Fri, 27 May 2016 12:05:29 +0530
-Message-ID: <1464330929-10910-1-git-send-email-kishon@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: linus.walleij@linaro.org, gnurou@gmail.com, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: nsekhar@ti.com, kishon@ti.com
+From: Caesar Wang <wxt@rock-chips.com>
+Subject: [PATCH v4 0/4] Thermal: Support for hardware-tracked trip points
+Date: Fri, 27 May 2016 16:23:24 +0800
+Message-ID: <1464337408-7123-1-git-send-email-wxt@rock-chips.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: edubezval@gmail.com, linux-pm@vger.kernel.org
+Cc: Heiko Stuebner <heiko@sntech.de>, dianders@chromium.org, briannorris@google.com, smbarber@google.com, linux-rockchip@lists.infradead.org, cf@rock-chips.com, huangtao@rock-chips.com, dmitry.torokhov@gmail.com, javi.merino@arm.com, peter@piie.net, Caesar Wang <wxt@rock-chips.com>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Zhang Rui <rui.zhang@intel.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The reset values for all the PCF lines are high and hence on
-shutdown we should drive all the lines high in order to
-bring it to the reset state.
+The history patches come from Mikko and Sascha.
+    http://thread.gmane.org/gmane.linux.power-management.general/59451
 
-This is actually required since PCF doesn't have a reset
-line and even after warm reset (by invoking "reboot" in
-prompt) the PCF lines maintains it's previous programmed
-state. This becomes a problem if the boards are designed to
-work with the default initial state.
+Now, I pick them up to continue upstream.
+Nevermind!
 
-DRA7XX_evm uses PCF8575 and one of the PCF output lines
-feeds to MMC/SD VDD and this line should be driven high in order
-for the MMC/SD to be detected.  This line is modelled as
-regulator and the hsmmc driver takes care of enabling and
-disabling it. In the case of 'reboot', during shutdown path
-as part of it's cleanup process the hsmmc driver disables
-this regulator. This makes MMC *boot* not functional.
+This series history patches:
+v3: https://lkml.org/lkml/2016/5/24/797
+v2: https://lkml.org/lkml/2016/5/3/220
+v1: https://lkml.org/lkml/2016/4/24/227
 
-Fix it by driving all the pcf lines high.
+This series adds support for hardware trip points. It picks up earlier
+work from Mikko Perttunen. Mikko implemented hardware trip points as part
+of the device tree support. It was suggested back then to move the
+functionality to the thermal core instead of putting more code into the
+device tree support. This series does exactly that.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
----
-This patch was sent long back [1].
-But there was a concern that contention might occur if the
-PCF shutdown handler is invoked before the shutdown handler
-of the PCF's consumers. In that case PCF shutdown handler can't
-drive all the pcf lines high without knowing if the PCF
-consumers are still active.
+This series patches rebase the conflicts.
+Note that the hardware-tracked trip points are very well tested currently.
 
-However commit 52cdbdd4985 ("driver core: correct device's
-shutdown order") will make sure shutdown handler of PCF's
-consumers are invoked before invoking the shutdown
-handler of PCF. So it should be safe to merge this now.
+Verified and tested on https://github.com/Caesar-github/rockchip/tree/wip/fixes-thermal-0525
+That's based on linux-kernel 20160524.
 
-[1] -> https://patchwork.ozlabs.org/patch/420382/
 
- drivers/gpio/gpio-pcf857x.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+Changes in v4:
+- as the Javi comments, %s/implemnets/implements.
 
-diff --git a/drivers/gpio/gpio-pcf857x.c b/drivers/gpio/gpio-pcf857x.c
-index 169c09a..d168410 100644
---- a/drivers/gpio/gpio-pcf857x.c
-+++ b/drivers/gpio/gpio-pcf857x.c
-@@ -440,6 +440,14 @@ static int pcf857x_remove(struct i2c_client *client)
- 	return status;
- }
- 
-+static void pcf857x_shutdown(struct i2c_client *client)
-+{
-+	struct pcf857x *gpio = i2c_get_clientdata(client);
-+
-+	/* Drive all the I/O lines high */
-+	gpio->write(gpio->client, BIT(gpio->chip.ngpio) - 1);
-+}
-+
- static struct i2c_driver pcf857x_driver = {
- 	.driver = {
- 		.name	= "pcf857x",
-@@ -447,6 +455,7 @@ static struct i2c_driver pcf857x_driver = {
- 	},
- 	.probe	= pcf857x_probe,
- 	.remove	= pcf857x_remove,
-+	.shutdown = pcf857x_shutdown,
- 	.id_table = pcf857x_id,
- };
- 
+Changes in v3:
+- as the Javi comments on https://patchwork.kernel.org/patch/9001311/.
+- add the select if they set the option for devicetree.
+- Add the peter's ACK.
+
+Changes in v2:
+- add the commit in patch[v2 2/5].
+- Update the commit for patch[v2 4/5].
+
+Caesar Wang (1):
+  thermal: rockchip: add the set_trips function
+
+Sascha Hauer (3):
+  thermal: of: implement .set_trips for device tree thermal zones
+  thermal: streamline get_trend callbacks
+  thermal: bang-bang governor: act on lower trip boundary
+
+ drivers/thermal/gov_bang_bang.c                    |  2 +-
+ drivers/thermal/of-thermal.c                       | 30 +++++++++++------
+ drivers/thermal/rockchip_thermal.c                 | 39 ++++++++++++++++++++++
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 25 +++++---------
+ include/linux/thermal.h                            |  6 +++-
+ 5 files changed, 73 insertions(+), 29 deletions(-)
+
 -- 
-1.7.9.5
-
+1.9.1
