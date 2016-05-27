@@ -1,65 +1,82 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [GIT PULL arm] Use _rcuidle tracepoints to allow tracing from
- idle
-Date: Thu, 26 May 2016 09:27:27 -0700
-Message-ID: <20160526162727.GA21784@linux.vnet.ibm.com>
-References: <20160526162606.GA20023@linux.vnet.ibm.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [RESEND PATCH] gpio: pcf857x: restore the initial line state of all pcf lines
+Date: Fri, 27 May 2016 12:05:29 +0530
+Message-ID: <1464330929-10910-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160526162606.GA20023@linux.vnet.ibm.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: mingo@kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-clk@vger.kernel.org, linux@roeck-us.net, tony@atomide.com, linux@arm.linux.org.uk, rostedt@goodmis.org, rjw@rjwysocki.net, pavel@ucw.cz, mturquette@baylibre.com, sboyd@codeaurora.org
+Content-Type: text/plain
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: linus.walleij@linaro.org, gnurou@gmail.com, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 26, 2016 at 09:26:06AM -0700, Paul E. McKenney wrote:
-> Hello, Ingo,
-> 
-> This series changes a number of event tracepoints to their _rcuidle() form
-> to allow use from idle without lockdep-RCU complaints, a straightforward
-> modification that has been successfully applied many times.  These splats
-> were found in testing by Guenter Roeck and Tony Lindgren, who have
-> both successfully tested the full series.  Tony asked that I carry these
-> in -rcu:
-> 
-> 	http://lkml.kernel.org/g/20160426213630.GV5995@atomide.com
-> 
-> These have been posted to LKML, CCing relevant maintainers, who have
-> not objected to the proposed changes:
-> 
-> 	http://lkml.kernel.org/g/20160516184844.GA20144@linux.vnet.ibm.com
-> 
-> These maintainers are also CCed on this pull request.
-> 
-> They have also been subjected to 0day Test Robot and -next testing.
+The reset values for all the PCF lines are high and hence on
+shutdown we should drive all the lines high in order to
+bring it to the reset state.
 
-And this time actually including the pull request...  :-/
+This is actually required since PCF doesn't have a reset
+line and even after warm reset (by invoking "reboot" in
+prompt) the PCF lines maintains it's previous programmed
+state. This becomes a problem if the boards are designed to
+work with the default initial state.
 
-							Thanx, Paul
+DRA7XX_evm uses PCF8575 and one of the PCF output lines
+feeds to MMC/SD VDD and this line should be driven high in order
+for the MMC/SD to be detected.  This line is modelled as
+regulator and the hsmmc driver takes care of enabling and
+disabling it. In the case of 'reboot', during shutdown path
+as part of it's cleanup process the hsmmc driver disables
+this regulator. This makes MMC *boot* not functional.
 
-These changes are available in the git repository at:
+Fix it by driving all the pcf lines high.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/paulmck/linux-rcu.git for-mingo
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+---
+This patch was sent long back [1].
+But there was a concern that contention might occur if the
+PCF shutdown handler is invoked before the shutdown handler
+of the PCF's consumers. In that case PCF shutdown handler can't
+drive all the pcf lines high without knowing if the PCF
+consumers are still active.
 
-for you to fetch changes up to e7c38dda94b23965a3eb46ef4656bb8cb921933d:
+However commit 52cdbdd4985 ("driver core: correct device's
+shutdown order") will make sure shutdown handler of PCF's
+consumers are invoked before invoking the shutdown
+handler of PCF. So it should be safe to merge this now.
 
-  arm: Use _rcuidle suffix to allow clk_core_enable() to used from idle (2016-05-18 11:55:29 -0700)
+[1] -> https://patchwork.ozlabs.org/patch/420382/
 
-----------------------------------------------------------------
-Paul E. McKenney (6):
-      arm: Use _rcuidle tracepoint to allow use from idle
-      arm: Use _rcuidle for suspend/resume tracepoints
-      arm: Add _rcuidle tracepoints to allow clk_core_disable() use from idle
-      arm: Add _rcuidle suffix to allow rpm_idle() use from idle
-      arm: Add _rcuidle suffix to allow rpm_resume() to be called from idle
-      arm: Use _rcuidle suffix to allow clk_core_enable() to used from idle
+ drivers/gpio/gpio-pcf857x.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
- arch/arm/kernel/smp.c             |  2 +-
- arch/arm/mach-omap2/powerdomain.c |  9 +++++----
- drivers/base/power/runtime.c      | 14 +++++++-------
- drivers/clk/clk.c                 |  8 ++++----
- 4 files changed, 17 insertions(+), 16 deletions(-)
+diff --git a/drivers/gpio/gpio-pcf857x.c b/drivers/gpio/gpio-pcf857x.c
+index 169c09a..d168410 100644
+--- a/drivers/gpio/gpio-pcf857x.c
++++ b/drivers/gpio/gpio-pcf857x.c
+@@ -440,6 +440,14 @@ static int pcf857x_remove(struct i2c_client *client)
+ 	return status;
+ }
+ 
++static void pcf857x_shutdown(struct i2c_client *client)
++{
++	struct pcf857x *gpio = i2c_get_clientdata(client);
++
++	/* Drive all the I/O lines high */
++	gpio->write(gpio->client, BIT(gpio->chip.ngpio) - 1);
++}
++
+ static struct i2c_driver pcf857x_driver = {
+ 	.driver = {
+ 		.name	= "pcf857x",
+@@ -447,6 +455,7 @@ static struct i2c_driver pcf857x_driver = {
+ 	},
+ 	.probe	= pcf857x_probe,
+ 	.remove	= pcf857x_remove,
++	.shutdown = pcf857x_shutdown,
+ 	.id_table = pcf857x_id,
+ };
+ 
+-- 
+1.7.9.5
 
