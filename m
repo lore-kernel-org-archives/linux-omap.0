@@ -1,61 +1,84 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Nokia N900 retention mode in v4.6, camera buttons fun
-Date: Sat, 28 May 2016 13:09:35 +0200
-Message-ID: <20160528110935.GB21182@amd>
-References: <20160411211026.GH5995@atomide.com>
- <20160412121658.GA32486@amd>
- <20160412123013.GA12296@amd>
- <20160412163055.GP5995@atomide.com>
- <20160417175539.GA502@amd>
- <20160421130450.GQ29406@pali>
- <20160429200559.GA16598@earth>
- <20160501085236.GA14243@amd>
- <20160501154855.GA24970@earth>
- <20160502201216.GA19211@earth>
+From: "Matwey V. Kornilov" <matwey-TTlVxmypnbovJsYlp49lxw@public.gmane.org>
+Subject: Re: [OOPS] cppi41_dma_channel_program: Unable to handle kernel NULL
+ pointer dereference
+Date: Sat, 28 May 2016 16:33:49 +0300
+Message-ID: <CAJs94EZSn28F_NhtoZ07BfwYswB8S+LOZa=YhJJhQpC4E77sAQ@mail.gmail.com>
+References: <CAJs94EZjWi0KGn_siyXNGvjO2DTh2aXtYqKzy7Km7mA_bYTeKg@mail.gmail.com>
+ <20160520201019.GA3432@uda0271908> <CAJs94EZSwJ=sJv6NtR6RNdiugiSQQpam-TFRTn0uZZJ4MLsr5g@mail.gmail.com>
+ <CAJs94EY3BfQjkk+0hKR5WfKggvmtgV0yz77awiX8Lt_pLYs3ug@mail.gmail.com>
+ <CAJs94EZm3aV23x3hGHLpM4dAC+C9rH-ro3JbWU=se_QWv9jRmw@mail.gmail.com>
+ <20160520211236.GB3432@uda0271908> <CAJs94Eb6tfJHV7YeAA0UATF2A5oNrCDTSqTAdHbacmrm4Qw=8w@mail.gmail.com>
+ <CADYTM3bcTWSBf9HXKpsud6i--_04tsKZX1J3p9_6TqL1gp9YnA@mail.gmail.com>
+ <CAJs94EYePeENwsHD--E6cGVP22-nfYcy_yTK-V2Hc1wWYb04vw@mail.gmail.com>
+ <CAJs94EaxaQ4U9T48Lz-jox4VkS-ThDQ3DkSB+1SvnFzMXM_+FA@mail.gmail.com> <20160523133642.GB3942@uda0271908>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160502201216.GA19211@earth>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Tony Lindgren <tony@atomide.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160523133642.GB3942@uda0271908>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, "Matwey V. Kornilov" <matwey-TTlVxmypnbovJsYlp49lxw@public.gmane.org>, Bin Liu <binmlist-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon 2016-05-02 22:12:17, Sebastian Reichel wrote:
-> Hi Pavel,
-> 
-> On Sun, May 01, 2016 at 05:48:56PM +0200, Sebastian Reichel wrote:
-> > > I see latest series, and it also talks about frequency scaling.
-> > > But I guess it is not going to fix this issue?
-> > 
-> > No, this is independent of the runtime PM problems. I also worked
-> > on runtime PM/idling yesterday and pm_runtime_irq_safe is the main
-> > culprit for breaking it (not the only one, though). It's not yet
-> > finished though
-> 
-> I will be on vacation for a week starting tomorrow. If you want to
-> play around with my intermediate SSI PM status, you can try this branch:
-> 
-> https://git.kernel.org/cgit/linux/kernel/git/sre/linux-hsi.git/log/?h=runtime-pm-fixes
+2016-05-23 16:36 GMT+03:00 Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>:
+> Hi,
+>
+> On Sat, May 21, 2016 at 10:04:48PM +0300, Matwey V. Kornilov wrote:
+>> 2016-05-21 20:50 GMT+03:00 Matwey V. Kornilov <matwey-TTlVxmypnbovJsYlp49lxw@public.gmane.org>:
+>> > 2016-05-21 6:13 GMT+03:00 Bin Liu <binmlist-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
+>> >> Hi,
+>> >>
+>> >> On Fri, May 20, 2016 at 4:20 PM, Matwey V. Kornilov <matwey-TTlVxmypnbovJsYlp49lxw@public.gmane.org> wrote:
+>> >>> 2016-05-21 0:12 GMT+03:00 Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>:
+>> >>>> Hi,
+>> >>>>
+>> >>>> On Sat, May 21, 2016 at 12:05:06AM +0300, Matwey V. Kornilov wrote:
+>> >>>>> By the way, is it ok that function musb_rx_dma_iso_cppi41 uses
+>> >>>>> hw_ep->tx_channel? I would suppose that it should use rx_channel
+>> >>>>> instead.
+>> >>>>
+>> >>>> I just got here, and am wondering the same. But the question is why just
+>> >>>> your case hit the problem. I will try to look at it more next week.
+>> >>>>
+>> >>>> I had an impression the linux-usb@ has a discussion before about
+>> >>>> rx/tx-channel messing up, will have to look it up.
+>> >>>>
+>> >>>
+>> >>> Thank you.
+>> >>> If you need additional info, I can use kgdb with this issue.
+>> >>
+>> >> After reviewed the code, it must be hw_ep->rx_channel instead. It is likely a
+>> >> bug caused by commit 069a3fd (usb: musb: Remove ifdefs for musb_host_rx
+>> >> in musb_host.c part1). Please test with the following patch.
+>> >>
+>> >
+>> > I've just tested this patch. Indeed, it helps to avoid kernel panic.
+>> > Now, I can interact with my webcam and watch video-stream in  xawtv.
+>> > It would be great if the patch could become a part of 4.6.x stable tree.
+>> >
+>>
+>> Hm, the following string appeared one time during my testing:
+>>
+>> [  867.017179] musb_host_rx 1925: RX14 dma busy, csr 2020
+>
+> This seems to be a different issue. Does your webcam still functional
+> after the log shows up?
+>
 
-Ok, I did:
+I've just checked. Yes, it does. I can still obtain relevant snapshots
+from the webcam.
 
-pavel@amd:/data/l/linux-n900$ git pull
-git://git.kernel.org/pub/scm/linux/kernel/git/sre/linux-hsi.git
-runtime-pm-fixes
-remote: Counting objects: 65, done.
-remote: Compressing objects: 100% (25/25), done.
-remote: Total 65 (delta 51), reused 54 (delta 40)
-Unpacking objects: 100% (65/65), done.
+> Regards,
+> -Bin.
+>
 
-And yes, now the LED goes off (so far with modem enabled but not
-used). Thanks!
 
-(You can have my Tested-by: when you submit them, or something :-) )
 
-Best regards,
-									Pavel
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+With best regards,
+Matwey V. Kornilov.
+Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
