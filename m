@@ -1,138 +1,75 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: dma_declare_coherent_memory fails for RAM allocated memory
-Date: Sun, 29 May 2016 17:56:02 +0300
-Message-ID: <574B0302.3010809@gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v5 0/7] ARM/ASoC: OMAP3: Fix McBSP2/3 sidetone
+	support
+Date: Mon, 30 May 2016 11:23:43 +0300
+Message-ID: <20160530082350.24285-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: LKML <linux-kernel@vger.kernel.org>, brian.starkey@arm.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, sebastian Reichel <sre@kernel.org>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, Tony Lindgren <tony@atomide.com>
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: tony@atomide.com, jarkko.nikula@bitmer.com, paul@pwsan.com, lgirdwood@gmail.com, broonie@kernel.org
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-When trying to declare and use DT reserved memory region on ARM (OMAP3), 
-dma_declare_coherent_memory() fails in memremap(). This is from today's 
-master:
+Changes since v4:
+- Moved DTS patch as the first in the series
+- rebased on top of 4.7-rc1
 
-------------[ cut here ]------------
-WARNING: CPU: 0 PID: 1 at kernel/memremap.c:111 memremap+0x118/0x194
-memremap attempted on ram 0x8f800000 size: 0x700000
-Modules linked in:
-CPU: 0 PID: 1 Comm: swapper Not tainted 4.6.0+ #15
-Hardware name: Nokia RX-51 board
-[<c010bc30>] (unwind_backtrace) from [<c0109f70>] (show_stack+0x10/0x14)
-[<c0109f70>] (show_stack) from [<c0126d80>] (__warn+0xcc/0xf8)
-[<c0126d80>] (__warn) from [<c0126e40>] (warn_slowpath_fmt+0x34/0x44)
-[<c0126e40>] (warn_slowpath_fmt) from [<c019c8d4>] (memremap+0x118/0x194)
-[<c019c8d4>] (memremap) from [<c03b88fc>] 
-(dma_init_coherent_memory+0x48/0x104)
-[<c03b88fc>] (dma_init_coherent_memory) from [<c03b89e4>] 
-(dma_declare_coherent_memory+0x2c/0x68)
-[<c03b89e4>] (dma_declare_coherent_memory) from [<c0115c0c>] 
-(rmem_omapfb_device_init+0x34/0x64)
-[<c0115c0c>] (rmem_omapfb_device_init) from [<c045b0f8>] 
-(of_reserved_mem_device_init+0x94/0xd8)
-[<c045b0f8>] (of_reserved_mem_device_init) from [<c080aaf8>] 
-(omapdss_init_of+0xe4/0x154)
-[<c080aaf8>] (omapdss_init_of) from [<c08033f4>] 
-(customize_machine+0x20/0x44)
-[<c08033f4>] (customize_machine) from [<c01016b8>] 
-(do_one_initcall+0xac/0x158)
-[<c01016b8>] (do_one_initcall) from [<c0800d64>] 
-(kernel_init_freeable+0xf8/0x1c8)
-[<c0800d64>] (kernel_init_freeable) from [<c05519dc>] 
-(kernel_init+0x8/0x110)
-[<c05519dc>] (kernel_init) from [<c0107258>] (ret_from_fork+0x14/0x3c)
----[ end trace 73a8c076df72166b ]---
-omapfb: dma_declare_coherent_memory failed
+Changes since v3:
+- Rebased on next-20160525 [1] to apply cleanly
+- Fixed subject line for patch5
+- Added Mark's acked-by to the ASoC patches
 
+[1] "ASoC: omap-mcbsp: Enable/disable sidetone block auto clock
+gating for omap3" is gone missing from linux-next - it was in next-20160517 and
+I'm not sure when it got dropped.
 
-The failing code looks like:
-.
-.
-.
-static int rmem_omapfb_device_init(struct reserved_mem *rmem, struct 
-device *dev)
-{
-	int dma;
+Tony: since Paul did not replied to the series, I'm sending the v4 now, I hope
+he will have time to look at this.
 
-	if (rmem->priv)
-		return 0;
+Commit message from v3:
 
-	dma = dma_declare_coherent_memory(&omap_fb_device.dev, rmem->base,
-					  rmem->base, rmem->size,
-					  DMA_MEMORY_MAP |
-					  DMA_MEMORY_EXCLUSIVE);
-	if (!(dma & DMA_MEMORY_MAP)) {
-			pr_err("omapfb: dma_declare_coherent_memory failed\n");
-			return -ENOMEM;
-	}
-	else
-		rmem->priv = omap_fb_device.dev.dma_mem;
+Based on the ongoing discussion on v2 (ARM: OMAP3: Fix McBSP2/3 hwmod setup for
+sidetone) I have dropped the removal of the sidetone hwmod and only corrected
+it. The series now includes all related changes needed to have correct sidetone
+support whenever we boot in legacy or in DT mode.
 
-	return 0;
-}
+This time the ASoC part have dependency on earlier patches so they can not be
+applied separately.
 
-static void rmem_omapfb_device_release(struct reserved_mem *rmem,
-				       struct device *dev)
-{
-	dma_release_declared_memory(&omap_fb_device.dev);
-}
+Regards,
+Peter
+---
+Peter Ujfalusi (7):
+  ARM: dts: omap3: Add clocks to McBSP nodes
+  ARM: OMAP3: hwmod data: Fix McBSP2/3 sidetone data
+  ARM: OMAP3: McBSP: New callback for McBSP2/3 ICLK idle configuration
+  ARM: OMAP3: pdata-quirks: Add support for McBSP2/3 sidetone handling
+  ASoC: omap-mcbsp: Rename omap_mcbsp_sysfs_remove() to
+    omap_mcbsp_cleanup()
+  ASoC: omap-mcbsp: sidetone: Use the new callback for iclk handling
+  ARM: OMAP2+: McBSP: Remove the old iclk allow/deny idle code
 
-static const struct reserved_mem_ops rmem_omapfb_ops = {
-	.device_init    = rmem_omapfb_device_init,
-	.device_release = rmem_omapfb_device_release,
-};
+ arch/arm/boot/dts/omap3.dtsi                | 10 ++++++++++
+ arch/arm/mach-omap2/mcbsp.c                 | 31 ++++++++++++++++-------------
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c  | 24 ++++------------------
+ arch/arm/mach-omap2/pdata-quirks.c          | 18 +++++++++++++++++
+ include/linux/platform_data/asoc-ti-mcbsp.h |  4 +++-
+ sound/soc/omap/mcbsp.c                      | 21 +++++++++++++------
+ sound/soc/omap/mcbsp.h                      |  3 ++-
+ sound/soc/omap/omap-mcbsp.c                 |  5 ++++-
+ 8 files changed, 73 insertions(+), 43 deletions(-)
 
-static int __init rmem_omapfb_setup(struct reserved_mem *rmem)
-{
-	rmem->ops = &rmem_omapfb_ops;
-	pr_info("omapfb: reserved %d bytes at %pa\n", rmem->size, &rmem->base);
-
-	return 0;
-}
-
-RESERVEDMEM_OF_DECLARE(dss, "ti,omapfb-memsize", rmem_omapfb_setup);
-
-
-It turns out that dma_init_coherent_memory calls memremap with 
-MEMREMAP_WC flag, which is disallowed for RAM IIUC.
-
-I quickly hacked some code to fix the issue, but as memremap API is 
-relatively new(esp to me), I wonder if this is the correct way to go:
-
-diff --git a/drivers/base/dma-coherent.c b/drivers/base/dma-coherent.c
-index bdf28f7..04b1687 100644
---- a/drivers/base/dma-coherent.c
-+++ b/drivers/base/dma-coherent.c
-@@ -5,6 +5,7 @@
-  #include <linux/io.h>
-  #include <linux/slab.h>
-  #include <linux/kernel.h>
-+#include <linux/memblock.h>
-  #include <linux/module.h>
-  #include <linux/dma-mapping.h>
-
-@@ -32,8 +33,12 @@ static bool dma_init_coherent_memory(
-         if (!size)
-                 goto out;
-
--       if (flags & DMA_MEMORY_MAP)
--               mem_base = memremap(phys_addr, size, MEMREMAP_WC);
-+       if (flags & DMA_MEMORY_MAP) {
-+               unsigned long map_type = memblock_is_map_memory(phys_addr) ?
-+                                                MEMREMAP_WB : MEMREMAP_WC;
-+
-+               mem_base = memremap(phys_addr, size, map_type);
-+       }
-         else
-                 mem_base = ioremap(phys_addr, size);
-         if (!mem_base)
-
-Does the above code looks sane? How to fix the problem if not?
-
-Thanks,
-Ivo
+-- 
+2.8.3
