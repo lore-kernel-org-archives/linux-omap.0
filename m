@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v1 02/14] clk: twl6040: Register the clock as of_clk_provider
-Date: Mon, 30 May 2016 11:55:10 +0300
-Message-ID: <20160530085522.30398-3-peter.ujfalusi@ti.com>
+Subject: [PATCH v1 06/14] ARM: dts: omap5-board-common: Add pdmclk binding for audio
+Date: Mon, 30 May 2016 11:55:14 +0300
+Message-ID: <20160530085522.30398-7-peter.ujfalusi@ti.com>
 References: <20160530085522.30398-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,29 +12,36 @@ To: mturquette@baylibre.com, sboyd@codeaurora.org, tony@atomide.com, lee.jones@l
 Cc: t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
-In order ot be able to use the pdmclk clock via DT it need to be registered
-as of_clk_provide.
-Since the twl6040 clock driver does not have it's own DT node, use the
-parent's node for registering.
+The twl6040 codec is generating the pdmclk, which is used by the McPDM as
+functional clock.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/clk/clk-twl6040.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/omap5-board-common.dtsi | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/clk/clk-twl6040.c b/drivers/clk/clk-twl6040.c
-index e167e0bbaff5..6a2dbe6a1627 100644
---- a/drivers/clk/clk-twl6040.c
-+++ b/drivers/clk/clk-twl6040.c
-@@ -95,7 +95,8 @@ static int twl6040_clk_probe(struct platform_device *pdev)
+diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
+index 19efaa079797..63d0352d068d 100644
+--- a/arch/arm/boot/dts/omap5-board-common.dtsi
++++ b/arch/arm/boot/dts/omap5-board-common.dtsi
+@@ -637,6 +637,7 @@
  
- 	platform_set_drvdata(pdev, clkdata);
+ 	twl6040: twl@4b {
+ 		compatible = "ti,twl6040";
++		#clock-cells = <0>;
+ 		reg = <0x4b>;
  
--	return 0;
-+	return of_clk_add_provider(pdev->dev.parent->of_node,
-+				   of_clk_src_simple_get, clkdata->clk);
- }
+ 		pinctrl-names = "default";
+@@ -658,6 +659,10 @@
+ &mcpdm {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&mcpdm_pins>;
++
++	clocks = <&twl6040>;
++	clock-names = "pdmclk";
++
+ 	status = "okay";
+ };
  
- static struct platform_driver twl6040_clk_driver = {
 -- 
 2.8.3
