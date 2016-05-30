@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 12/26] omapfb: connector-analog-tv: Support only Composite type in legacy boot
-Date: Mon, 30 May 2016 14:42:44 +0300
-Message-ID: <20160530114258.30879-13-peter.ujfalusi@ti.com>
+Subject: [PATCH 16/26] drm/omap: Remove reference to pdata->default_device
+Date: Mon, 30 May 2016 14:42:48 +0300
+Message-ID: <20160530114258.30879-17-peter.ujfalusi@ti.com>
 References: <20160530114258.30879-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,55 +12,26 @@ To: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, robdclark@gmail.com, airlied@l
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com, jsarha@ti.com, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-In legacy mode (non DT mode) support only composite connector type. The
-only user for this is rx51, using composite type.
-Dropping the connector_type selection via pdata will allow cleanups in
-omapdss (drm vs fbdev).
+The default_device is no longer used, it is a leftower from legacy. The
+else if (pdata->default_device) is always going to be false.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c | 8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ drivers/gpu/drm/omapdrm/dss/core.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c b/drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c
-index 8511c648a15c..d963b4a9cfc0 100644
---- a/drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c
-+++ b/drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c
-@@ -25,7 +25,6 @@ struct panel_drv_data {
+diff --git a/drivers/gpu/drm/omapdrm/dss/core.c b/drivers/gpu/drm/omapdrm/dss/core.c
+index 7e4e5bebabbe..9cf22b30023f 100644
+--- a/drivers/gpu/drm/omapdrm/dss/core.c
++++ b/drivers/gpu/drm/omapdrm/dss/core.c
+@@ -196,8 +196,6 @@ static int __init omap_dss_probe(struct platform_device *pdev)
+ 		core.default_display_name = def_disp_name;
+ 	else if (pdata->default_display_name)
+ 		core.default_display_name = pdata->default_display_name;
+-	else if (pdata->default_device)
+-		core.default_display_name = pdata->default_device->name;
  
- 	struct omap_video_timings timings;
+ 	return 0;
  
--	enum omap_dss_venc_type connector_type;
- 	bool invert_polarity;
- };
- 
-@@ -45,10 +44,6 @@ static const struct omap_video_timings tvc_pal_timings = {
- 
- static const struct of_device_id tvc_of_match[];
- 
--struct tvc_of_data {
--	enum omap_dss_venc_type connector_type;
--};
--
- #define to_panel_data(x) container_of(x, struct panel_drv_data, dssdev)
- 
- static int tvc_connect(struct omap_dss_device *dssdev)
-@@ -99,7 +94,7 @@ static int tvc_enable(struct omap_dss_device *dssdev)
- 	in->ops.atv->set_timings(in, &ddata->timings);
- 
- 	if (!ddata->dev->of_node) {
--		in->ops.atv->set_type(in, ddata->connector_type);
-+		in->ops.atv->set_type(in, OMAP_DSS_VENC_TYPE_COMPOSITE);
- 
- 		in->ops.atv->invert_vid_out_polarity(in,
- 			ddata->invert_polarity);
-@@ -207,7 +202,6 @@ static int tvc_probe_pdata(struct platform_device *pdev)
- 
- 	ddata->in = in;
- 
--	ddata->connector_type = pdata->connector_type;
- 	ddata->invert_polarity = pdata->invert_polarity;
- 
- 	dssdev = &ddata->dssdev;
 -- 
 2.8.3
