@@ -1,262 +1,122 @@
-From: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v8 00/14] USB OTG/dual-role framework
-Date: Mon, 30 May 2016 17:29:44 +0800
-Message-ID: <20160530092944.GA27513@shlinux2>
-References: <1463133808-10630-1-git-send-email-rogerq@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 01/26] omapfb: panel-tpo-td028ttec1: Remove legacy boot support
+Date: Mon, 30 May 2016 14:42:33 +0300
+Message-ID: <20160530114258.30879-2-peter.ujfalusi@ti.com>
+References: <20160530114258.30879-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1463133808-10630-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160530114258.30879-1-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, robdclark@gmail.com, airlied@linux.ie, tony@atomide.com
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com, jsarha@ti.com, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, May 13, 2016 at 01:03:14PM +0300, Roger Quadros wrote:
-> Hi,
-> 
-> This series centralizes OTG/Dual-role functionality in the kernel.
-> As of now I've got Dual-role functionality working pretty reliably on
-> dra7-evm and am437x-gp-evm.
-> NOTE: my am437x-gp-evm broke so I couldn't test v8 on it.
-> But the changes since v7 are trivial and shouldn't impact am437x-gp-evm.
-> 
-> DWC3 controller and platform related patches will be sent separately.
-> 
-> Series is based on v4.6-rc1 and depends on first 2 patches of [1]
-> [1] - OTG fsm cleanup - https://lkml.org/lkml/2016/3/30/186
-> 
-> Why?:
-> ----
-> 
-> Currently there is no central location where OTG/dual-role functionality is
-> implemented in the Linux USB stack and every USB controller driver is
-> doing their own thing for OTG/dual-role. We can benefit from code-reuse
-> and simplicity by adding the OTG/dual-role core driver.
-> 
-> Newer OTG cores support standard host interface (e.g. xHCI) so
-> host and gadget functionality are no longer closely knit like older
-> cores. There needs to be a way to co-ordinate the operation of the
-> host and gadget controllers in dual-role mode. i.e. to stop and start them
-> from a central location. This central location should be the
-> USB OTG/dual-role core.
-> 
-> Host and gadget controllers might be sharing resources and can't
-> be always running. One has to be stopped for the other to run.
-> This couldn't be done till now but can be done from the OTG core.
-> 
-> What?:
-> -----
-> 
-> The OTG/dual-role core consists of a set of APIs that allow
-> registration of OTG controller device and OTG capable host and gadget
-> controllers.
-> 
-> - The OTG controller driver can provide the OTG capabilities and the
-> Finite State Machine work function via 'struct usb_otg_config'
-> at the time of registration i.e. usb_otg_register();
-> 
-> 	struct usb_otg *usb_otg_register(struct device *dev,
->         	                         struct usb_otg_config *config);
-> 	int usb_otg_unregister(struct device *dev);
-> 	/**
-> 	 * struct usb_otg_config - otg controller configuration
-> 	 * @caps: otg capabilities of the controller
-> 	 * @ops: otg fsm operations
-> 	 * @otg_work: optional custom otg state machine work function
-> 	 */
-> 	struct usb_otg_config {
-> 	        struct usb_otg_caps *otg_caps;
-> 	        struct otg_fsm_ops *fsm_ops;
-> 	        void (*otg_work)(struct work_struct *work);
-> 	};
-> 
-> The dual-role state machine is built-into the OTG core so nothing
-> special needs to be provided if only dual-role functionality is desired.
-> The low level OTG controller driver ops are povided via
-> 'struct otg_fsm_ops *fsm_ops' in the 'struct usb_otg_config'.
-> 
-> After registration, the OTG core waits for host, gadget controller
-> and the gadget function driver to be registered. Once all resources are
-> available it instantiates the Finite State Machine (FSM).
-> The host/gadget controllers are started/stopped according to the FSM.
-> 
-> - Host and gadget controllers that are a part of OTG/dual-role port must
-> use the OTG core provided APIs to add/remove the host/gadget.
-> i.e. hosts must use usb_otg_add_hcd() usb_otg_remove_hcd(),,
-> gadgets must use usb_otg_add_gadget_udc() usb_del_gadget_udc().
-> This ensures that the host and gadget controllers are not started till
-> the state machine is ready and the right bus conditions are met.
-> It also allows the host and gadget controllers to provide the OTG
-> controller device to link them together. For Device tree boots
-> the related OTG controller is automatically picked up via the
-> 'otg-controller' property in the Host/Gadget controller nodes.
-> 
-> 	int usb_otg_add_hcd(struct usb_hcd *hcd,
-> 			    unsigned int irqnum, unsigned long irqflags,
-> 			    struct device *otg_dev);
-> 	void usb_otg_remove_hcd(struct usb_hcd *hcd);
-> 
-> 	int usb_otg_add_gadget_udc(struct device *parent,
-> 				   struct usb_gadget *gadget,
-> 				   struct device *otg_dev);
-> 	usb_del_gadget_udc() must be used for removal.
-> 
-> 
-> - During the lifetime of the FSM, the OTG controller driver can provide
-> inputs event changes using usb_otg_sync_inputs(). The OTG core will
-> then schedule the FSM work function (or internal dual-role state machine)
-> to update the FSM state. The FSM then calls the OTG controller
-> operations (fsm_ops) as necessary.
-> 	void usb_otg_sync_inputs(struct usb_otg *otg);
-> 
-> - The following 2 functions are provided as helpers for use by the
-> OTG controller driver to start/stop the host/gadget controllers.
-> 	int usb_otg_start_host(struct usb_otg *otg, int on);
-> 	int usb_otg_start_gadget(struct usb_otg *otg, int on);
-> 
-> - The following function is provided for use by the USB host stack
-> to sync OTG related events to the OTG state machine.
-> e.g. change in host_bus->b_hnp_enable, gadget->b_hnp_enable
-> 	int usb_otg_kick_fsm(struct device *otg_device);
-> 
-> Changelog:
-> ---------
-> v8:
-> - split out start/stop gadget and connect/disconnect operations.
-> - make CONFIG_OTG dpend on CONFIG_USB_GADGET as well apart from CONFIG_USB
-> - use create_freezable_workqueue() for OTG work as per Peter's suggestion.
-> - remove usb-otg.h as we're not initializing any OTG timers.
-> - don't include unnecessary headers in usb-otg.c (i.e. hrtimer.h & ktime.h)
-> 
+The panel is not used by any legacy board files so the legacy (pdata) boot
+support can be dropped.
 
-Since you have agreed to move CONFIG_USB_OTG out of HCD, I suggest you
-can have a folder to put current OTG and OTG_FSM stuffs under the root
-of usb folder, it can benefit the user who wants to add their dual-role
-switch driver or OTG driver. What do you think?
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ .../omap2/omapfb/displays/panel-tpo-td028ttec1.c   | 43 +++-------------------
+ include/video/omap-panel-data.h                    | 13 -------
+ 2 files changed, 6 insertions(+), 50 deletions(-)
 
-Peter
-> v7:
-> - added dual-role support for host controllers requiring a companion
-> controller. e.g. EHCI + OHCI.
-> - added of_usb_get_otg() to get the OTG controller device
-> from the USB controller's device node.
-> - addressed review comments.
-> 
-> v6:
-> - added otg specific APIs for host/gadget registration. behaviour of
-> original host/gadget API remains unchanged. Platform devices can now
-> pass the otg device explicitly while registering host/gadget.
-> - moved hcd specific operations from struct otg_fsm to struct hcd_ops.
-> - made struct usb_otg mandatory for all otg related APIs.
-> - allow otg controller to provide it's own otg_work function so that
-> it can implement it's own state machine.
-> - removed otg fsm and timers from usb-otg.c. Only dual-role state machine
-> is implemented.
-> - vbus is controlled in the dual-role state machine.
-> - PM runtime is used around drd_statemachine().
-> - added otg_dev to xhci platform data to allow platform code to specify
-> the otg controller tied to the xhci host controller.
-> 
-> v5: Internal version. Not sent to mailing list
-> 
-> v4:
-> - Added DT support for tying otg-controller to host and gadget
->  controllers. For DT we no longer have the constraint that
->  OTG controller needs to be parent of host and gadget. They can be
->  tied together using the "otg-controller" property.
-> - Relax the requirement for DT case that otg controller must register
->  before host/gadget. We maintain a wait list of host/gadget devices
->  waiting on the otg controller.
-> - Use a single struct usb_otg for otg data.
-> - Don't override host/gadget start/stop APIs. Let the controller
->  drivers do what they want as they know best. Helper API is provided
->  for controller start/stop that controller driver can use.
-> - Introduce struct usb_otg_config to pass the otg capabilities,
->  otg ops and otg timer timeouts during otg controller registration.
-> - rebased on Greg's usb.git/usb-next
-> 
-> v3:
-> - all otg related definations now in otg.h
-> - single kernel config USB_OTG to enable OTG core and FSM.
-> - resolved symbol dependency issues.
-> - use dev_vdbg instead of VDBG() in usb-otg-fsm.c
-> - rebased on v4.2-rc1
-> 
-> v2:
-> - Use add/remove_hcd() instead of start/stop_hcd() to enable/disable
->  the host controller
-> - added dual-role-device (DRD) state machine which is a much simpler
->  mode of operation when compared to OTG. Here we don't support fancy
->  OTG features like HNP, SRP, on the fly role-swap. The mode of operation
->  is determined based on ID pin (cable type) and the role doesn't change
->  till the cable type changes.
-> 
-> --
-> cheers,
-> -roger
-> 
-> Roger Quadros (13):
->   usb: hcd: Initialize hcd->flags to 0
->   usb: otg-fsm: Prevent build warning "VDBG" redefined
->   usb: hcd.h: Add OTG to HCD interface
->   usb: otg-fsm: use usb_otg wherever possible
->   usb: otg-fsm: move host controller operations into usb_otg->hcd_ops
->   usb: gadget.h: Add OTG to gadget interface
->   usb: otg: get rid of CONFIG_USB_OTG_FSM in favour of CONFIG_USB_OTG
->   usb: otg: add OTG/dual-role core
->   usb: of: add an API to get OTG device from USB controller node
->   usb: otg: use dev_dbg() instead of VDBG()
->   usb: hcd: Adapt to OTG core
->   usb: gadget: udc: adapt to OTG core
->   usb: host: xhci-plat: Add otg device to platform data
-> 
-> Yoshihiro Shimoda (1):
->   usb: otg: add hcd companion support
-> 
->  Documentation/devicetree/bindings/usb/generic.txt |    6 +
->  Documentation/usb/chipidea.txt                    |    2 +-
->  drivers/usb/chipidea/Makefile                     |    2 +-
->  drivers/usb/chipidea/ci.h                         |    3 +-
->  drivers/usb/chipidea/core.c                       |   14 +-
->  drivers/usb/chipidea/debug.c                      |    2 +-
->  drivers/usb/chipidea/otg_fsm.c                    |  176 ++--
->  drivers/usb/chipidea/otg_fsm.h                    |    2 +-
->  drivers/usb/chipidea/udc.c                        |   17 +-
->  drivers/usb/common/Makefile                       |    3 +-
->  drivers/usb/common/common.c                       |   27 +
->  drivers/usb/common/usb-otg-fsm.c                  |  203 ++--
->  drivers/usb/common/usb-otg.c                      | 1056 +++++++++++++++++++++
->  drivers/usb/core/Kconfig                          |   12 +-
->  drivers/usb/core/hcd.c                            |   56 ++
->  drivers/usb/gadget/udc/udc-core.c                 |  194 +++-
->  drivers/usb/host/xhci-plat.c                      |   35 +-
->  drivers/usb/phy/Kconfig                           |    2 +-
->  drivers/usb/phy/phy-fsl-usb.c                     |  155 +--
->  drivers/usb/phy/phy-fsl-usb.h                     |    3 +-
->  include/linux/usb/gadget.h                        |   22 +
->  include/linux/usb/hcd.h                           |   29 +
->  include/linux/usb/of.h                            |    9 +
->  include/linux/usb/otg-fsm.h                       |  154 +--
->  include/linux/usb/otg.h                           |  264 +++++-
->  include/linux/usb/xhci_pdriver.h                  |    3 +
->  26 files changed, 2013 insertions(+), 438 deletions(-)
->  create mode 100644 drivers/usb/common/usb-otg.c
-> 
-> -- 
-> 2.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c
+index 4d657f3ab679..f4dc023868ae 100644
+--- a/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c
++++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c
+@@ -29,7 +29,6 @@
+ #include <linux/spi/spi.h>
+ #include <linux/gpio.h>
+ #include <video/omapdss.h>
+-#include <video/omap-panel-data.h>
+ 
+ struct panel_drv_data {
+ 	struct omap_dss_device dssdev;
+@@ -365,31 +364,6 @@ static struct omap_dss_driver td028ttec1_ops = {
+ 	.check_timings	= td028ttec1_panel_check_timings,
+ };
+ 
+-static int td028ttec1_panel_probe_pdata(struct spi_device *spi)
+-{
+-	const struct panel_tpo_td028ttec1_platform_data *pdata;
+-	struct panel_drv_data *ddata = dev_get_drvdata(&spi->dev);
+-	struct omap_dss_device *dssdev, *in;
+-
+-	pdata = dev_get_platdata(&spi->dev);
+-
+-	in = omap_dss_find_output(pdata->source);
+-	if (in == NULL) {
+-		dev_err(&spi->dev, "failed to find video source '%s'\n",
+-				pdata->source);
+-		return -EPROBE_DEFER;
+-	}
+-
+-	ddata->in = in;
+-
+-	ddata->data_lines = pdata->data_lines;
+-
+-	dssdev = &ddata->dssdev;
+-	dssdev->name = pdata->name;
+-
+-	return 0;
+-}
+-
+ static int td028ttec1_probe_of(struct spi_device *spi)
+ {
+ 	struct device_node *node = spi->dev.of_node;
+@@ -415,6 +389,9 @@ static int td028ttec1_panel_probe(struct spi_device *spi)
+ 
+ 	dev_dbg(&spi->dev, "%s\n", __func__);
+ 
++	if (!spi->dev.of_node)
++		return -ENODEV;
++
+ 	spi->bits_per_word = 9;
+ 	spi->mode = SPI_MODE_3;
+ 
+@@ -432,17 +409,9 @@ static int td028ttec1_panel_probe(struct spi_device *spi)
+ 
+ 	ddata->spi_dev = spi;
+ 
+-	if (dev_get_platdata(&spi->dev)) {
+-		r = td028ttec1_panel_probe_pdata(spi);
+-		if (r)
+-			return r;
+-	} else if (spi->dev.of_node) {
+-		r = td028ttec1_probe_of(spi);
+-		if (r)
+-			return r;
+-	} else {
+-		return -ENODEV;
+-	}
++	r = td028ttec1_probe_of(spi);
++	if (r)
++		return r;
+ 
+ 	ddata->videomode = td028ttec1_panel_timings;
+ 
+diff --git a/include/video/omap-panel-data.h b/include/video/omap-panel-data.h
+index 56830d1dc762..fbdaa4c3ae96 100644
+--- a/include/video/omap-panel-data.h
++++ b/include/video/omap-panel-data.h
+@@ -223,17 +223,4 @@ struct panel_nec_nl8048hl11_platform_data {
+ 	int qvga_gpio;
+ };
+ 
+-/**
+- * panel-tpo-td028ttec1 platform data
+- * @name: name for display entity
+- * @source: name of the display entity used as a video source
+- * @data_lines: number of DPI datalines
+- */
+-struct panel_tpo_td028ttec1_platform_data {
+-	const char *name;
+-	const char *source;
+-
+-	int data_lines;
+-};
+-
+ #endif /* __OMAP_PANEL_DATA_H */
 -- 
-
-Best Regards,
-Peter Chen
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.8.3
