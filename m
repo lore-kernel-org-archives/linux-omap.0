@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 06/26] omapfb: panel-dsi-cm: Remove legacy boot support
-Date: Mon, 30 May 2016 14:42:38 +0300
-Message-ID: <20160530114258.30879-7-peter.ujfalusi@ti.com>
+Subject: [PATCH 02/26] omapfb: panel-nec-nl8048hl11: Remove legacy boot support
+Date: Mon, 30 May 2016 14:42:34 +0300
+Message-ID: <20160530114258.30879-3-peter.ujfalusi@ti.com>
 References: <20160530114258.30879-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -17,53 +17,46 @@ support can be dropped.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- .../fbdev/omap2/omapfb/displays/panel-dsi-cm.c     | 52 +++-------------------
- include/video/omap-panel-data.h                    | 27 -----------
- 2 files changed, 6 insertions(+), 73 deletions(-)
+ .../omap2/omapfb/displays/panel-nec-nl8048hl11.c   | 45 +++-------------------
+ include/video/omap-panel-data.h                    | 18 ---------
+ 2 files changed, 6 insertions(+), 57 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
-index 3414c2609320..a4eac6962b76 100644
---- a/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
-+++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
-@@ -26,7 +26,6 @@
+diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c
+index 8a928c9a2fc9..3852cea3c947 100644
+--- a/drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c
++++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c
+@@ -19,7 +19,6 @@
  #include <linux/of_gpio.h>
  
  #include <video/omapdss.h>
 -#include <video/omap-panel-data.h>
- #include <video/mipi_display.h>
  
- /* DSI Virtual channel. Hardcoded for now. */
-@@ -1127,40 +1126,6 @@ static struct omap_dss_driver dsicm_ops = {
- 	.memory_read	= dsicm_memory_read,
+ struct panel_drv_data {
+ 	struct omap_dss_device	dssdev;
+@@ -233,33 +232,6 @@ static struct omap_dss_driver nec_8048_ops = {
  };
  
--static int dsicm_probe_pdata(struct platform_device *pdev)
+ 
+-static int nec_8048_probe_pdata(struct spi_device *spi)
 -{
--	const struct panel_dsicm_platform_data *pdata;
--	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
+-	const struct panel_nec_nl8048hl11_platform_data *pdata;
+-	struct panel_drv_data *ddata = dev_get_drvdata(&spi->dev);
 -	struct omap_dss_device *dssdev, *in;
 -
--	pdata = dev_get_platdata(&pdev->dev);
+-	pdata = dev_get_platdata(&spi->dev);
+-
+-	ddata->qvga_gpio = pdata->qvga_gpio;
+-	ddata->res_gpio = pdata->res_gpio;
 -
 -	in = omap_dss_find_output(pdata->source);
 -	if (in == NULL) {
--		dev_err(&pdev->dev, "failed to find video source\n");
+-		dev_err(&spi->dev, "failed to find video source '%s'\n",
+-				pdata->source);
 -		return -EPROBE_DEFER;
 -	}
 -	ddata->in = in;
 -
--	ddata->reset_gpio = pdata->reset_gpio;
--
--	if (pdata->use_ext_te)
--		ddata->ext_te_gpio = pdata->ext_te_gpio;
--	else
--		ddata->ext_te_gpio = -1;
--
--	ddata->ulps_timeout = pdata->ulps_timeout;
--
--	ddata->use_dsi_backlight = pdata->use_dsi_backlight;
--
--	ddata->pin_config = pdata->pin_config;
+-	ddata->data_lines = pdata->data_lines;
 -
 -	dssdev = &ddata->dssdev;
 -	dssdev->name = pdata->name;
@@ -71,77 +64,66 @@ index 3414c2609320..a4eac6962b76 100644
 -	return 0;
 -}
 -
- static int dsicm_probe_of(struct platform_device *pdev)
+ static int nec_8048_probe_of(struct spi_device *spi)
  {
- 	struct device_node *node = pdev->dev.of_node;
-@@ -1207,6 +1172,9 @@ static int dsicm_probe(struct platform_device *pdev)
+ 	struct device_node *node = spi->dev.of_node;
+@@ -296,6 +268,9 @@ static int nec_8048_probe(struct spi_device *spi)
  
- 	dev_dbg(dev, "probe\n");
+ 	dev_dbg(&spi->dev, "%s\n", __func__);
  
-+	if (!pdev->dev.of_node)
++	if (!spi->dev.of_node)
 +		return -ENODEV;
 +
- 	ddata = devm_kzalloc(dev, sizeof(*ddata), GFP_KERNEL);
- 	if (!ddata)
- 		return -ENOMEM;
-@@ -1214,17 +1182,9 @@ static int dsicm_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, ddata);
- 	ddata->pdev = pdev;
+ 	spi->mode = SPI_MODE_0;
+ 	spi->bits_per_word = 32;
  
--	if (dev_get_platdata(dev)) {
--		r = dsicm_probe_pdata(pdev);
+@@ -315,17 +290,9 @@ static int nec_8048_probe(struct spi_device *spi)
+ 
+ 	ddata->spi = spi;
+ 
+-	if (dev_get_platdata(&spi->dev)) {
+-		r = nec_8048_probe_pdata(spi);
 -		if (r)
 -			return r;
--	} else if (pdev->dev.of_node) {
--		r = dsicm_probe_of(pdev);
+-	} else if (spi->dev.of_node) {
+-		r = nec_8048_probe_of(spi);
 -		if (r)
 -			return r;
 -	} else {
 -		return -ENODEV;
 -	}
-+	r = dsicm_probe_of(pdev);
++	r = nec_8048_probe_of(spi);
 +	if (r)
 +		return r;
  
- 	ddata->timings.x_res = 864;
- 	ddata->timings.y_res = 480;
+ 	if (gpio_is_valid(ddata->qvga_gpio)) {
+ 		r = devm_gpio_request_one(&spi->dev, ddata->qvga_gpio,
 diff --git a/include/video/omap-panel-data.h b/include/video/omap-panel-data.h
-index 74486bcc754e..e7b0e889d6d0 100644
+index fbdaa4c3ae96..a0c95cd1ed11 100644
 --- a/include/video/omap-panel-data.h
 +++ b/include/video/omap-panel-data.h
-@@ -105,33 +105,6 @@ struct panel_dpi_platform_data {
+@@ -205,22 +205,4 @@ struct panel_tpo_td043mtea1_platform_data {
+ 	int nreset_gpio;
  };
  
- /**
-- * panel_dsicm platform data
+-/**
+- * panel-nec-nl8048hl11 platform data
 - * @name: name for this display entity
 - * @source: name of the display entity used as a video source
-- * @reset_gpio: gpio to reset the panel (or -1)
-- * @use_ext_te: use external TE GPIO
-- * @ext_te_gpio: external TE GPIO
-- * @ulps_timeout: time to wait before entering ULPS, 0 = disabled (ms)
-- * @use_dsi_backlight: true if panel uses DSI command to control backlight
-- * @pin_config: DSI pin configuration
+- * @data_lines: number of DPI datalines
+- * @res_gpio: reset signal
+- * @qvga_gpio: selection for resolution(QVGA/WVGA)
 - */
--struct panel_dsicm_platform_data {
+-struct panel_nec_nl8048hl11_platform_data {
 -	const char *name;
 -	const char *source;
 -
--	int reset_gpio;
+-	int data_lines;
 -
--	bool use_ext_te;
--	int ext_te_gpio;
--
--	unsigned ulps_timeout;
--
--	bool use_dsi_backlight;
--
--	struct omap_dsi_pin_config pin_config;
+-	int res_gpio;
+-	int qvga_gpio;
 -};
 -
--/**
-  * panel_acx565akm platform data
-  * @name: name for this display entity
-  * @source: name of the display entity used as a video source
+ #endif /* __OMAP_PANEL_DATA_H */
 -- 
 2.8.3
