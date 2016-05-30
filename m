@@ -1,75 +1,73 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v5 0/7] ARM/ASoC: OMAP3: Fix McBSP2/3 sidetone
-	support
-Date: Mon, 30 May 2016 11:23:43 +0300
-Message-ID: <20160530082350.24285-1-peter.ujfalusi@ti.com>
+Subject: [PATCH v5 2/7] ARM: OMAP3: hwmod data: Fix McBSP2/3 sidetone data
+Date: Mon, 30 May 2016 11:23:45 +0300
+Message-ID: <20160530082350.24285-3-peter.ujfalusi@ti.com>
+References: <20160530082350.24285-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160530082350.24285-1-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, jarkko.nikula@bitmer.com, paul@pwsan.com, lgirdwood@gmail.com, broonie@kernel.org
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+The McBSPLP's sidetone main clock is the McBSPLP's ICLK, not FCLK as the
+sidetone only receives the ICLK from the main McBSP module.
+Since the McBSP and sidetone is using the very same clock from PRCM level
+the sidetone must not have the prcm section to check the clock status since
+the sidetone is only used when McBSP is already configured.
+If two separate hwmods looking at the same bit and they would use
+pm_runtime in nested way (as it must happen with McBSP and it's ST module)
+the hwmod would warn, because the idlest will not match what it is expected
+after enable/disable of the clocks.
 
-Changes since v4:
-- Moved DTS patch as the first in the series
-- rebased on top of 4.7-rc1
-
-Changes since v3:
-- Rebased on next-20160525 [1] to apply cleanly
-- Fixed subject line for patch5
-- Added Mark's acked-by to the ASoC patches
-
-[1] "ASoC: omap-mcbsp: Enable/disable sidetone block auto clock
-gating for omap3" is gone missing from linux-next - it was in next-20160517 and
-I'm not sure when it got dropped.
-
-Tony: since Paul did not replied to the series, I'm sending the v4 now, I hope
-he will have time to look at this.
-
-Commit message from v3:
-
-Based on the ongoing discussion on v2 (ARM: OMAP3: Fix McBSP2/3 hwmod setup for
-sidetone) I have dropped the removal of the sidetone hwmod and only corrected
-it. The series now includes all related changes needed to have correct sidetone
-support whenever we boot in legacy or in DT mode.
-
-This time the ASoC part have dependency on earlier patches so they can not be
-applied separately.
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-Peter Ujfalusi (7):
-  ARM: dts: omap3: Add clocks to McBSP nodes
-  ARM: OMAP3: hwmod data: Fix McBSP2/3 sidetone data
-  ARM: OMAP3: McBSP: New callback for McBSP2/3 ICLK idle configuration
-  ARM: OMAP3: pdata-quirks: Add support for McBSP2/3 sidetone handling
-  ASoC: omap-mcbsp: Rename omap_mcbsp_sysfs_remove() to
-    omap_mcbsp_cleanup()
-  ASoC: omap-mcbsp: sidetone: Use the new callback for iclk handling
-  ARM: OMAP2+: McBSP: Remove the old iclk allow/deny idle code
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 24 ++++--------------------
+ 1 file changed, 4 insertions(+), 20 deletions(-)
 
- arch/arm/boot/dts/omap3.dtsi                | 10 ++++++++++
- arch/arm/mach-omap2/mcbsp.c                 | 31 ++++++++++++++++-------------
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c  | 24 ++++------------------
- arch/arm/mach-omap2/pdata-quirks.c          | 18 +++++++++++++++++
- include/linux/platform_data/asoc-ti-mcbsp.h |  4 +++-
- sound/soc/omap/mcbsp.c                      | 21 +++++++++++++------
- sound/soc/omap/mcbsp.h                      |  3 ++-
- sound/soc/omap/omap-mcbsp.c                 |  5 ++++-
- 8 files changed, 73 insertions(+), 43 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 9869a75c5d96..d72ee6185d5e 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -1322,16 +1322,8 @@ static struct omap_hwmod omap3xxx_mcbsp2_sidetone_hwmod = {
+ 	.name		= "mcbsp2_sidetone",
+ 	.class		= &omap3xxx_mcbsp_sidetone_hwmod_class,
+ 	.mpu_irqs	= omap3xxx_mcbsp2_sidetone_irqs,
+-	.main_clk	= "mcbsp2_fck",
+-	.prcm		= {
+-		.omap2 = {
+-			.prcm_reg_id = 1,
+-			 .module_bit = OMAP3430_EN_MCBSP2_SHIFT,
+-			.module_offs = OMAP3430_PER_MOD,
+-			.idlest_reg_id = 1,
+-			.idlest_idle_bit = OMAP3430_ST_MCBSP2_SHIFT,
+-		},
+-	},
++	.main_clk	= "mcbsp2_ick",
++	.flags		= HWMOD_NO_IDLEST,
+ };
+ 
+ /* mcbsp3_sidetone */
+@@ -1344,16 +1336,8 @@ static struct omap_hwmod omap3xxx_mcbsp3_sidetone_hwmod = {
+ 	.name		= "mcbsp3_sidetone",
+ 	.class		= &omap3xxx_mcbsp_sidetone_hwmod_class,
+ 	.mpu_irqs	= omap3xxx_mcbsp3_sidetone_irqs,
+-	.main_clk	= "mcbsp3_fck",
+-	.prcm		= {
+-		.omap2 = {
+-			.prcm_reg_id = 1,
+-			.module_bit = OMAP3430_EN_MCBSP3_SHIFT,
+-			.module_offs = OMAP3430_PER_MOD,
+-			.idlest_reg_id = 1,
+-			.idlest_idle_bit = OMAP3430_ST_MCBSP3_SHIFT,
+-		},
+-	},
++	.main_clk	= "mcbsp3_ick",
++	.flags		= HWMOD_NO_IDLEST,
+ };
+ 
+ /* SR common */
 -- 
 2.8.3
