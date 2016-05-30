@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 08/26] omapfb: connector-dvi: Remove legacy boot support
-Date: Mon, 30 May 2016 14:42:40 +0300
-Message-ID: <20160530114258.30879-9-peter.ujfalusi@ti.com>
+Subject: [PATCH 06/26] omapfb: panel-dsi-cm: Remove legacy boot support
+Date: Mon, 30 May 2016 14:42:38 +0300
+Message-ID: <20160530114258.30879-7-peter.ujfalusi@ti.com>
 References: <20160530114258.30879-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -17,59 +17,53 @@ support can be dropped.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- .../fbdev/omap2/omapfb/displays/connector-dvi.c    | 58 +++-------------------
- include/video/omap-panel-data.h                    | 12 -----
- 2 files changed, 6 insertions(+), 64 deletions(-)
+ .../fbdev/omap2/omapfb/displays/panel-dsi-cm.c     | 52 +++-------------------
+ include/video/omap-panel-data.h                    | 27 -----------
+ 2 files changed, 6 insertions(+), 73 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c b/drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c
-index d811e6dcaef7..f2abbec7602a 100644
---- a/drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c
-+++ b/drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c
-@@ -17,7 +17,6 @@
- #include <drm/drm_edid.h>
+diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
+index 3414c2609320..a4eac6962b76 100644
+--- a/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
++++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
+@@ -26,7 +26,6 @@
+ #include <linux/of_gpio.h>
  
  #include <video/omapdss.h>
 -#include <video/omap-panel-data.h>
+ #include <video/mipi_display.h>
  
- static const struct omap_video_timings dvic_default_timings = {
- 	.x_res		= 640,
-@@ -236,46 +235,6 @@ static struct omap_dss_driver dvic_driver = {
- 	.detect		= dvic_detect,
+ /* DSI Virtual channel. Hardcoded for now. */
+@@ -1127,40 +1126,6 @@ static struct omap_dss_driver dsicm_ops = {
+ 	.memory_read	= dsicm_memory_read,
  };
  
--static int dvic_probe_pdata(struct platform_device *pdev)
+-static int dsicm_probe_pdata(struct platform_device *pdev)
 -{
+-	const struct panel_dsicm_platform_data *pdata;
 -	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
--	struct connector_dvi_platform_data *pdata;
--	struct omap_dss_device *in, *dssdev;
--	int i2c_bus_num;
+-	struct omap_dss_device *dssdev, *in;
 -
 -	pdata = dev_get_platdata(&pdev->dev);
--	i2c_bus_num = pdata->i2c_bus_num;
--
--	if (i2c_bus_num != -1) {
--		struct i2c_adapter *adapter;
--
--		adapter = i2c_get_adapter(i2c_bus_num);
--		if (!adapter) {
--			dev_err(&pdev->dev,
--					"Failed to get I2C adapter, bus %d\n",
--					i2c_bus_num);
--			return -EPROBE_DEFER;
--		}
--
--		ddata->i2c_adapter = adapter;
--	}
 -
 -	in = omap_dss_find_output(pdata->source);
 -	if (in == NULL) {
--		i2c_put_adapter(ddata->i2c_adapter);
--
--		dev_err(&pdev->dev, "Failed to find video source\n");
+-		dev_err(&pdev->dev, "failed to find video source\n");
 -		return -EPROBE_DEFER;
 -	}
--
 -	ddata->in = in;
+-
+-	ddata->reset_gpio = pdata->reset_gpio;
+-
+-	if (pdata->use_ext_te)
+-		ddata->ext_te_gpio = pdata->ext_te_gpio;
+-	else
+-		ddata->ext_te_gpio = -1;
+-
+-	ddata->ulps_timeout = pdata->ulps_timeout;
+-
+-	ddata->use_dsi_backlight = pdata->use_dsi_backlight;
+-
+-	ddata->pin_config = pdata->pin_config;
 -
 -	dssdev = &ddata->dssdev;
 -	dssdev->name = pdata->name;
@@ -77,60 +71,76 @@ index d811e6dcaef7..f2abbec7602a 100644
 -	return 0;
 -}
 -
- static int dvic_probe_of(struct platform_device *pdev)
+ static int dsicm_probe_of(struct platform_device *pdev)
  {
- 	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
-@@ -313,23 +272,18 @@ static int dvic_probe(struct platform_device *pdev)
- 	struct omap_dss_device *dssdev;
- 	int r;
+ 	struct device_node *node = pdev->dev.of_node;
+@@ -1207,6 +1172,9 @@ static int dsicm_probe(struct platform_device *pdev)
+ 
+ 	dev_dbg(dev, "probe\n");
  
 +	if (!pdev->dev.of_node)
 +		return -ENODEV;
 +
- 	ddata = devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
+ 	ddata = devm_kzalloc(dev, sizeof(*ddata), GFP_KERNEL);
  	if (!ddata)
  		return -ENOMEM;
- 
+@@ -1214,17 +1182,9 @@ static int dsicm_probe(struct platform_device *pdev)
  	platform_set_drvdata(pdev, ddata);
+ 	ddata->pdev = pdev;
  
--	if (dev_get_platdata(&pdev->dev)) {
--		r = dvic_probe_pdata(pdev);
+-	if (dev_get_platdata(dev)) {
+-		r = dsicm_probe_pdata(pdev);
 -		if (r)
 -			return r;
 -	} else if (pdev->dev.of_node) {
--		r = dvic_probe_of(pdev);
+-		r = dsicm_probe_of(pdev);
 -		if (r)
 -			return r;
 -	} else {
 -		return -ENODEV;
 -	}
-+	r = dvic_probe_of(pdev);
++	r = dsicm_probe_of(pdev);
 +	if (r)
 +		return r;
  
- 	ddata->timings = dvic_default_timings;
- 
+ 	ddata->timings.x_res = 864;
+ 	ddata->timings.y_res = 480;
 diff --git a/include/video/omap-panel-data.h b/include/video/omap-panel-data.h
-index c0836b118f67..4d0b8832ae11 100644
+index 74486bcc754e..e7b0e889d6d0 100644
 --- a/include/video/omap-panel-data.h
 +++ b/include/video/omap-panel-data.h
-@@ -47,18 +47,6 @@ struct encoder_tfp410_platform_data {
- 
+@@ -105,33 +105,6 @@ struct panel_dpi_platform_data {
+ };
  
  /**
-- * connector_dvi platform data
+- * panel_dsicm platform data
 - * @name: name for this display entity
 - * @source: name of the display entity used as a video source
-- * @i2c_bus_num: i2c bus number to be used for reading EDID
+- * @reset_gpio: gpio to reset the panel (or -1)
+- * @use_ext_te: use external TE GPIO
+- * @ext_te_gpio: external TE GPIO
+- * @ulps_timeout: time to wait before entering ULPS, 0 = disabled (ms)
+- * @use_dsi_backlight: true if panel uses DSI command to control backlight
+- * @pin_config: DSI pin configuration
 - */
--struct connector_dvi_platform_data {
+-struct panel_dsicm_platform_data {
 -	const char *name;
 -	const char *source;
--	int i2c_bus_num;
+-
+-	int reset_gpio;
+-
+-	bool use_ext_te;
+-	int ext_te_gpio;
+-
+-	unsigned ulps_timeout;
+-
+-	bool use_dsi_backlight;
+-
+-	struct omap_dsi_pin_config pin_config;
 -};
 -
 -/**
-  * connector_atv platform data
+  * panel_acx565akm platform data
   * @name: name for this display entity
   * @source: name of the display entity used as a video source
 -- 
