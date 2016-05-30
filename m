@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 03/26] omapfb: panel-tpo-td043mtea1: Remove legacy boot support
-Date: Mon, 30 May 2016 14:42:35 +0300
-Message-ID: <20160530114258.30879-4-peter.ujfalusi@ti.com>
+Subject: [PATCH 04/26] omapfb: panel-sharp-ls037v7dw01: Remove legacy boot support
+Date: Mon, 30 May 2016 14:42:36 +0300
+Message-ID: <20160530114258.30879-5-peter.ujfalusi@ti.com>
 References: <20160530114258.30879-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -17,42 +17,58 @@ support can be dropped.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- .../omap2/omapfb/displays/panel-tpo-td043mtea1.c   | 44 +++-------------------
- include/video/omap-panel-data.h                    | 16 --------
- 2 files changed, 6 insertions(+), 54 deletions(-)
+ .../omapfb/displays/panel-sharp-ls037v7dw01.c      | 81 ++--------------------
+ include/video/omap-panel-data.h                    | 24 -------
+ 2 files changed, 6 insertions(+), 99 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c
-index 68e3b68a2920..f49e60da5bd3 100644
---- a/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c
-+++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c
-@@ -20,7 +20,6 @@
- #include <linux/of_gpio.h>
- 
+diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c
+index 1954ec913ce5..a1e590155a26 100644
+--- a/drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c
++++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c
+@@ -18,7 +18,6 @@
+ #include <linux/slab.h>
+ #include <linux/regulator/consumer.h>
  #include <video/omapdss.h>
 -#include <video/omap-panel-data.h>
  
- #define TPO_R02_MODE(x)		((x) & 7)
- #define TPO_R02_MODE_800x480	7
-@@ -465,32 +464,6 @@ static struct omap_dss_driver tpo_td043_ops = {
+ struct panel_drv_data {
+ 	struct omap_dss_device dssdev;
+@@ -197,69 +196,6 @@ static struct omap_dss_driver sharp_ls_ops = {
+ 	.get_resolution	= omapdss_default_get_resolution,
  };
  
- 
--static int tpo_td043_probe_pdata(struct spi_device *spi)
+-static int sharp_ls_get_gpio(struct device *dev, int gpio, unsigned long flags,
+-		  char *desc, struct gpio_desc **gpiod)
 -{
--	const struct panel_tpo_td043mtea1_platform_data *pdata;
--	struct panel_drv_data *ddata = dev_get_drvdata(&spi->dev);
+-	int r;
+-
+-	r = devm_gpio_request_one(dev, gpio, flags, desc);
+-	if (r) {
+-		*gpiod = NULL;
+-		return r == -ENOENT ? 0 : r;
+-	}
+-
+-	*gpiod = gpio_to_desc(gpio);
+-
+-	return 0;
+-}
+-
+-static int sharp_ls_probe_pdata(struct platform_device *pdev)
+-{
+-	const struct panel_sharp_ls037v7dw01_platform_data *pdata;
+-	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
 -	struct omap_dss_device *dssdev, *in;
+-	int r;
 -
--	pdata = dev_get_platdata(&spi->dev);
--
--	ddata->nreset_gpio = pdata->nreset_gpio;
+-	pdata = dev_get_platdata(&pdev->dev);
 -
 -	in = omap_dss_find_output(pdata->source);
 -	if (in == NULL) {
--		dev_err(&spi->dev, "failed to find video source '%s'\n",
+-		dev_err(&pdev->dev, "failed to find video source '%s'\n",
 -				pdata->source);
 -		return -EPROBE_DEFER;
 -	}
+-
 -	ddata->in = in;
 -
 -	ddata->data_lines = pdata->data_lines;
@@ -60,65 +76,93 @@ index 68e3b68a2920..f49e60da5bd3 100644
 -	dssdev = &ddata->dssdev;
 -	dssdev->name = pdata->name;
 -
+-	r = sharp_ls_get_gpio(&pdev->dev, pdata->mo_gpio, GPIOF_OUT_INIT_LOW,
+-		"lcd MO", &ddata->mo_gpio);
+-	if (r)
+-		return r;
+-	r = sharp_ls_get_gpio(&pdev->dev, pdata->lr_gpio, GPIOF_OUT_INIT_HIGH,
+-		"lcd LR", &ddata->lr_gpio);
+-	if (r)
+-		return r;
+-	r = sharp_ls_get_gpio(&pdev->dev, pdata->ud_gpio, GPIOF_OUT_INIT_HIGH,
+-		"lcd UD", &ddata->ud_gpio);
+-	if (r)
+-		return r;
+-	r = sharp_ls_get_gpio(&pdev->dev, pdata->resb_gpio, GPIOF_OUT_INIT_LOW,
+-		"lcd RESB", &ddata->resb_gpio);
+-	if (r)
+-		return r;
+-	r = sharp_ls_get_gpio(&pdev->dev, pdata->ini_gpio, GPIOF_OUT_INIT_LOW,
+-		"lcd INI", &ddata->ini_gpio);
+-	if (r)
+-		return r;
+-
 -	return 0;
 -}
 -
- static int tpo_td043_probe_of(struct spi_device *spi)
+ static  int sharp_ls_get_gpio_of(struct device *dev, int index, int val,
+ 	const char *desc, struct gpio_desc **gpiod)
  {
- 	struct device_node *node = spi->dev.of_node;
-@@ -524,6 +497,9 @@ static int tpo_td043_probe(struct spi_device *spi)
+@@ -330,23 +266,18 @@ static int sharp_ls_probe(struct platform_device *pdev)
+ 	struct omap_dss_device *dssdev;
+ 	int r;
  
- 	dev_dbg(&spi->dev, "%s\n", __func__);
- 
-+	if (!spi->dev.of_node)
++	if (!pdev->dev.of_node)
 +		return -ENODEV;
 +
- 	spi->bits_per_word = 16;
- 	spi->mode = SPI_MODE_0;
+ 	ddata = devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
+ 	if (ddata == NULL)
+ 		return -ENOMEM;
  
-@@ -541,17 +517,9 @@ static int tpo_td043_probe(struct spi_device *spi)
+ 	platform_set_drvdata(pdev, ddata);
  
- 	ddata->spi = spi;
- 
--	if (dev_get_platdata(&spi->dev)) {
--		r = tpo_td043_probe_pdata(spi);
+-	if (dev_get_platdata(&pdev->dev)) {
+-		r = sharp_ls_probe_pdata(pdev);
 -		if (r)
 -			return r;
--	} else if (spi->dev.of_node) {
--		r = tpo_td043_probe_of(spi);
+-	} else if (pdev->dev.of_node) {
+-		r = sharp_ls_probe_of(pdev);
 -		if (r)
 -			return r;
 -	} else {
 -		return -ENODEV;
 -	}
-+	r = tpo_td043_probe_of(spi);
++	r = sharp_ls_probe_of(pdev);
 +	if (r)
 +		return r;
  
- 	ddata->mode = TPO_R02_MODE_800x480;
- 	memcpy(ddata->gamma, tpo_td043_def_gamma, sizeof(ddata->gamma));
+ 	ddata->videomode = sharp_ls_timings;
+ 
 diff --git a/include/video/omap-panel-data.h b/include/video/omap-panel-data.h
-index a0c95cd1ed11..34ee7509752f 100644
+index 34ee7509752f..085b4171eb25 100644
 --- a/include/video/omap-panel-data.h
 +++ b/include/video/omap-panel-data.h
-@@ -189,20 +189,4 @@ struct panel_sharp_ls037v7dw01_platform_data {
- 	int ud_gpio;
+@@ -165,28 +165,4 @@ struct panel_lb035q02_platform_data {
+ 	int enable_gpio;
  };
  
 -/**
-- * panel-tpo-td043mtea1 platform data
+- * panel_sharp_ls037v7dw01 platform data
 - * @name: name for this display entity
 - * @source: name of the display entity used as a video source
 - * @data_lines: number of DPI datalines
-- * @nreset_gpio: reset signal
+- * @resb_gpio: reset signal GPIO
+- * @ini_gpio: power on control GPIO
+- * @mo_gpio: selection for resolution(VGA/QVGA) GPIO
+- * @lr_gpio: selection for horizontal scanning direction GPIO
+- * @ud_gpio: selection for vertical scanning direction GPIO
 - */
--struct panel_tpo_td043mtea1_platform_data {
+-struct panel_sharp_ls037v7dw01_platform_data {
 -	const char *name;
 -	const char *source;
 -
 -	int data_lines;
 -
--	int nreset_gpio;
+-	int resb_gpio;
+-	int ini_gpio;
+-	int mo_gpio;
+-	int lr_gpio;
+-	int ud_gpio;
 -};
 -
  #endif /* __OMAP_PANEL_DATA_H */
