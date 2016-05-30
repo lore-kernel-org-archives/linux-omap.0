@@ -1,51 +1,164 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v1 01/14] clk: twl6040: Correct clk_ops
-Date: Mon, 30 May 2016 11:55:09 +0300
-Message-ID: <20160530085522.30398-2-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v1 03/14] clk: twl6040: Rename the driver and use consistent names in the code
+Date: Mon, 30 May 2016 11:55:11 +0300
+Message-ID: <20160530085522.30398-4-peter.ujfalusi@ti.com>
 References: <20160530085522.30398-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160530085522.30398-1-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: t-kristo-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160530085522.30398-1-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: mturquette@baylibre.com, sboyd@codeaurora.org, tony@atomide.com, lee.jones@linaro.org, robh+dt@kernel.org, lgirdwood@gmail.com, broonie@kernel.org
+Cc: t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
-Since the drover only supports prepare callbacks, the use of is_enabled is
-not correct, it should be handling is_prepared.
+The driver is to provide the functional clock to OMAP4/5 McPDM. The clock
+is named as pdmclk in the documentations so change the function names,
+structure names and variables to align with this.
+At the same time rename the driver from "twl6040-clk" to "twl6040-pdmclk".
+This can be done w/o regression since the clock driver is not in use at
+the moment, the MFD core driver is not even registering the device for it.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/clk/clk-twl6040.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/clk/clk-twl6040.c | 77 +++++++++++++++++++++++++++--------------------
+ 1 file changed, 45 insertions(+), 32 deletions(-)
 
 diff --git a/drivers/clk/clk-twl6040.c b/drivers/clk/clk-twl6040.c
-index 697c66757400..e167e0bbaff5 100644
+index 6a2dbe6a1627..c98b1ec76f54 100644
 --- a/drivers/clk/clk-twl6040.c
 +++ b/drivers/clk/clk-twl6040.c
-@@ -34,7 +34,7 @@ struct twl6040_clk {
+@@ -26,60 +26,73 @@
+ #include <linux/mfd/twl6040.h>
+ #include <linux/clk-provider.h>
+ 
+-struct twl6040_clk {
++struct twl6040_pdmclk {
+ 	struct twl6040 *twl6040;
+ 	struct device *dev;
+-	struct clk_hw mcpdm_fclk;
++	struct clk_hw pdmclk_hw;
+ 	struct clk *clk;
  	int enabled;
  };
  
--static int twl6040_bitclk_is_enabled(struct clk_hw *hw)
-+static int twl6040_bitclk_is_prepared(struct clk_hw *hw)
+-static int twl6040_bitclk_is_prepared(struct clk_hw *hw)
++static int twl6040_pdmclk_is_prepared(struct clk_hw *hw)
  {
- 	struct twl6040_clk *twl6040_clk = container_of(hw, struct twl6040_clk,
- 						       mcpdm_fclk);
-@@ -66,7 +66,7 @@ static void twl6040_bitclk_unprepare(struct clk_hw *hw)
+-	struct twl6040_clk *twl6040_clk = container_of(hw, struct twl6040_clk,
+-						       mcpdm_fclk);
+-	return twl6040_clk->enabled;
++	struct twl6040_pdmclk *pdmclk = container_of(hw, struct twl6040_pdmclk,
++						     pdmclk_hw);
++
++	return pdmclk->enabled;
  }
  
- static const struct clk_ops twl6040_mcpdm_ops = {
--	.is_enabled = twl6040_bitclk_is_enabled,
-+	.is_prepared = twl6040_bitclk_is_prepared,
- 	.prepare = twl6040_bitclk_prepare,
- 	.unprepare = twl6040_bitclk_unprepare,
+-static int twl6040_bitclk_prepare(struct clk_hw *hw)
++static int twl6040_pdmclk_prepare(struct clk_hw *hw)
+ {
+-	struct twl6040_clk *twl6040_clk = container_of(hw, struct twl6040_clk,
+-						       mcpdm_fclk);
++	struct twl6040_pdmclk *pdmclk = container_of(hw, struct twl6040_pdmclk,
++						     pdmclk_hw);
+ 	int ret;
+ 
+-	ret = twl6040_power(twl6040_clk->twl6040, 1);
++	ret = twl6040_power(pdmclk->twl6040, 1);
+ 	if (!ret)
+-		twl6040_clk->enabled = 1;
++		pdmclk->enabled = 1;
+ 
+ 	return ret;
+ }
+ 
+-static void twl6040_bitclk_unprepare(struct clk_hw *hw)
++static void twl6040_pdmclk_unprepare(struct clk_hw *hw)
+ {
+-	struct twl6040_clk *twl6040_clk = container_of(hw, struct twl6040_clk,
+-						       mcpdm_fclk);
++	struct twl6040_pdmclk *pdmclk = container_of(hw, struct twl6040_pdmclk,
++						     pdmclk_hw);
+ 	int ret;
+ 
+-	ret = twl6040_power(twl6040_clk->twl6040, 0);
++	ret = twl6040_power(pdmclk->twl6040, 0);
+ 	if (!ret)
+-		twl6040_clk->enabled = 0;
++		pdmclk->enabled = 0;
++
++}
++
++static unsigned long twl6040_pdmclk_recalc_rate(struct clk_hw *hw,
++						unsigned long parent_rate)
++{
++	struct twl6040_pdmclk *pdmclk = container_of(hw, struct twl6040_pdmclk,
++						     pdmclk_hw);
++
++	return twl6040_get_sysclk(pdmclk->twl6040);
+ }
+ 
+-static const struct clk_ops twl6040_mcpdm_ops = {
+-	.is_prepared = twl6040_bitclk_is_prepared,
+-	.prepare = twl6040_bitclk_prepare,
+-	.unprepare = twl6040_bitclk_unprepare,
++static const struct clk_ops twl6040_pdmclk_ops = {
++	.is_prepared = twl6040_pdmclk_is_prepared,
++	.prepare = twl6040_pdmclk_prepare,
++	.unprepare = twl6040_pdmclk_unprepare,
++	.recalc_rate = twl6040_pdmclk_recalc_rate,
  };
+ 
+-static struct clk_init_data wm831x_clkout_init = {
+-	.name = "mcpdm_fclk",
+-	.ops = &twl6040_mcpdm_ops,
++static struct clk_init_data twl6040_pdmclk_init = {
++	.name = "pdmclk",
++	.ops = &twl6040_pdmclk_ops,
++	.flags = CLK_GET_RATE_NOCACHE,
+ };
+ 
+-static int twl6040_clk_probe(struct platform_device *pdev)
++static int twl6040_pdmclk_probe(struct platform_device *pdev)
+ {
+ 	struct twl6040 *twl6040 = dev_get_drvdata(pdev->dev.parent);
+-	struct twl6040_clk *clkdata;
++	struct twl6040_pdmclk *clkdata;
+ 
+ 	clkdata = devm_kzalloc(&pdev->dev, sizeof(*clkdata), GFP_KERNEL);
+ 	if (!clkdata)
+@@ -88,8 +101,8 @@ static int twl6040_clk_probe(struct platform_device *pdev)
+ 	clkdata->dev = &pdev->dev;
+ 	clkdata->twl6040 = twl6040;
+ 
+-	clkdata->mcpdm_fclk.init = &wm831x_clkout_init;
+-	clkdata->clk = devm_clk_register(&pdev->dev, &clkdata->mcpdm_fclk);
++	clkdata->pdmclk_hw.init = &twl6040_pdmclk_init;
++	clkdata->clk = devm_clk_register(&pdev->dev, &clkdata->pdmclk_hw);
+ 	if (IS_ERR(clkdata->clk))
+ 		return PTR_ERR(clkdata->clk);
+ 
+@@ -99,16 +112,16 @@ static int twl6040_clk_probe(struct platform_device *pdev)
+ 				   of_clk_src_simple_get, clkdata->clk);
+ }
+ 
+-static struct platform_driver twl6040_clk_driver = {
++static struct platform_driver twl6040_pdmclk_driver = {
+ 	.driver = {
+-		.name = "twl6040-clk",
++		.name = "twl6040-pdmclk",
+ 	},
+-	.probe = twl6040_clk_probe,
++	.probe = twl6040_pdmclk_probe,
+ };
+ 
+-module_platform_driver(twl6040_clk_driver);
++module_platform_driver(twl6040_pdmclk_driver);
+ 
+ MODULE_DESCRIPTION("TWL6040 clock driver for McPDM functional clock");
+ MODULE_AUTHOR("Peter Ujfalusi <peter.ujfalusi@ti.com>");
+-MODULE_ALIAS("platform:twl6040-clk");
++MODULE_ALIAS("platform:twl6040-pdmclk");
+ MODULE_LICENSE("GPL");
 -- 
 2.8.3
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
