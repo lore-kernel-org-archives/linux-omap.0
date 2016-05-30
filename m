@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v5 4/7] ARM: OMAP3: pdata-quirks: Add support for McBSP2/3 sidetone handling
-Date: Mon, 30 May 2016 11:23:47 +0300
-Message-ID: <20160530082350.24285-5-peter.ujfalusi@ti.com>
+Subject: [PATCH v5 7/7] ARM: OMAP2+: McBSP: Remove the old iclk allow/deny idle code
+Date: Mon, 30 May 2016 11:23:50 +0300
+Message-ID: <20160530082350.24285-8-peter.ujfalusi@ti.com>
 References: <20160530082350.24285-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,99 +12,70 @@ To: tony@atomide.com, jarkko.nikula@bitmer.com, paul@pwsan.com, lgirdwood@gmail.
 Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
-McBSP2/3 module's sidetone module operates using the module's ICLK clock.
-When the Sidetone is in use the interface clock of the module must not
-idle. To prevent the iclk idling the driver expects to have pdata callback
-to call. With this patch the callback is going to be set up for DT boot
-also.
+The new pdata callback (force_ick_on) is now used by the driver and the old
+callback related code can be removed.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/mach-omap2/mcbsp.c                 |  9 +++++++++
- arch/arm/mach-omap2/pdata-quirks.c          | 18 ++++++++++++++++++
- include/linux/platform_data/asoc-ti-mcbsp.h |  2 ++
- 3 files changed, 29 insertions(+)
+ arch/arm/mach-omap2/mcbsp.c                 | 18 ------------------
+ include/linux/platform_data/asoc-ti-mcbsp.h |  1 -
+ 2 files changed, 19 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-index 959cb4cb1062..edf4f41c0135 100644
+index edf4f41c0135..fc04be74e064 100644
 --- a/arch/arm/mach-omap2/mcbsp.c
 +++ b/arch/arm/mach-omap2/mcbsp.c
-@@ -59,6 +59,15 @@ static int omap3_mcbsp_force_ick_on(struct clk *clk, bool force_on)
- 		return omap2_clk_allow_idle(clk);
- }
+@@ -34,20 +34,6 @@
+ #include "cm3xxx.h"
+ #include "cm-regbits-34xx.h"
  
-+void __init omap3_mcbsp_init_pdata_callback(
-+					struct omap_mcbsp_platform_data *pdata)
-+{
-+	if (!pdata)
-+		return;
-+
-+	pdata->force_ick_on = omap3_mcbsp_force_ick_on;
-+}
-+
- static int __init omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
+-static struct clk *mcbsp_iclks[5];
+-
+-static int omap3_enable_st_clock(unsigned int id, bool enable)
+-{
+-	/*
+-	 * Sidetone uses McBSP ICLK - which must not idle when sidetones
+-	 * are enabled or sidetones start sounding ugly.
+-	 */
+-	if (enable)
+-		return omap2_clk_deny_idle(mcbsp_iclks[id]);
+-	else
+-		return omap2_clk_allow_idle(mcbsp_iclks[id]);
+-}
+-
+ static int omap3_mcbsp_force_ick_on(struct clk *clk, bool force_on)
  {
- 	int id, count = 1;
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 6571ad959908..ab2b2b2b90e5 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -26,6 +26,7 @@
- #include <linux/platform_data/wkup_m3.h>
- #include <linux/platform_data/pwm_omap_dmtimer.h>
- #include <linux/platform_data/media/ir-rx51.h>
-+#include <linux/platform_data/asoc-ti-mcbsp.h>
- #include <plat/dmtimer.h>
+ 	if (!clk)
+@@ -75,7 +61,6 @@ static int __init omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
+ 	struct omap_hwmod *oh_device[2];
+ 	struct omap_mcbsp_platform_data *pdata = NULL;
+ 	struct platform_device *pdev;
+-	char clk_name[11];
  
- #include "common.h"
-@@ -505,6 +506,16 @@ static struct platform_device __maybe_unused rx51_lirc_device = {
- 	},
- };
+ 	sscanf(oh->name, "mcbsp%d", &id);
  
-+#if IS_ENABLED(CONFIG_SND_OMAP_SOC_MCBSP)
-+static struct omap_mcbsp_platform_data mcbsp_pdata;
-+static void __init omap3_mcbsp_init(void)
-+{
-+	omap3_mcbsp_init_pdata_callback(&mcbsp_pdata);
-+}
-+#else
-+static void __init omap3_mcbsp_init(void) {}
-+#endif
-+
- /*
-  * Few boards still need auxdata populated before we populate
-  * the dev entries in of_platform_populate().
-@@ -536,6 +547,11 @@ static struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
- 	OF_DEV_AUXDATA("ti,davinci_mdio", 0x5c030000, "davinci_mdio.0", NULL),
- 	OF_DEV_AUXDATA("ti,am3517-emac", 0x5c000000, "davinci_emac.0",
- 		       &am35xx_emac_pdata),
-+	/* McBSP modules with sidetone core */
-+#if IS_ENABLED(CONFIG_SND_OMAP_SOC_MCBSP)
-+	OF_DEV_AUXDATA("ti,omap3-mcbsp", 0x49022000, "49022000.mcbsp", &mcbsp_pdata),
-+	OF_DEV_AUXDATA("ti,omap3-mcbsp", 0x49024000, "49024000.mcbsp", &mcbsp_pdata),
-+#endif
- #endif
- #ifdef CONFIG_SOC_AM33XX
- 	OF_DEV_AUXDATA("ti,am3352-wkup-m3", 0x44d00000, "44d00000.wkup_m3",
-@@ -608,6 +624,8 @@ void __init pdata_quirks_init(const struct of_device_id *omap_dt_match_table)
- 	    of_machine_is_compatible("ti,omap3"))
- 		omap_sdrc_init(NULL, NULL);
- 
-+	if (of_machine_is_compatible("ti,omap3"))
-+		omap3_mcbsp_init();
- 	pdata_quirks_check(auxdata_quirks);
- 	of_platform_populate(NULL, omap_dt_match_table,
- 			     omap_auxdata_lookup, NULL);
+@@ -116,10 +101,7 @@ static int __init omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
+ 	if (oh->dev_attr) {
+ 		oh_device[1] = omap_hwmod_lookup((
+ 		(struct omap_mcbsp_dev_attr *)(oh->dev_attr))->sidetone);
+-		pdata->enable_st_clock = omap3_enable_st_clock;
+ 		pdata->force_ick_on = omap3_mcbsp_force_ick_on;
+-		sprintf(clk_name, "mcbsp%d_ick", id);
+-		mcbsp_iclks[id] = clk_get(NULL, clk_name);
+ 		count++;
+ 	}
+ 	pdev = omap_device_build_ss(name, id, oh_device, count, pdata,
 diff --git a/include/linux/platform_data/asoc-ti-mcbsp.h b/include/linux/platform_data/asoc-ti-mcbsp.h
-index 73e5e832fa23..5530971abf4d 100644
+index 5530971abf4d..e684543254f3 100644
 --- a/include/linux/platform_data/asoc-ti-mcbsp.h
 +++ b/include/linux/platform_data/asoc-ti-mcbsp.h
-@@ -56,4 +56,6 @@ struct omap_mcbsp_dev_attr {
- 	const char *sidetone;
+@@ -44,7 +44,6 @@ struct omap_mcbsp_platform_data {
+ 	/* McBSP platform and instance specific features */
+ 	bool has_wakeup; /* Wakeup capability */
+ 	bool has_ccr; /* Transceiver has configuration control registers */
+-	int (*enable_st_clock)(unsigned int, bool);
+ 	int (*force_ick_on)(struct clk *clk, bool force_on);
  };
  
-+void omap3_mcbsp_init_pdata_callback(struct omap_mcbsp_platform_data *pdata);
-+
- #endif
 -- 
 2.8.3
