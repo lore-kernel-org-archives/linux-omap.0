@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v1 06/14] ARM: dts: omap5-board-common: Add pdmclk binding for audio
-Date: Mon, 30 May 2016 11:55:14 +0300
-Message-ID: <20160530085522.30398-7-peter.ujfalusi@ti.com>
+Subject: [PATCH v1 04/14] mfd: twl6040: The chip does not support bulk access
+Date: Mon, 30 May 2016 11:55:12 +0300
+Message-ID: <20160530085522.30398-5-peter.ujfalusi@ti.com>
 References: <20160530085522.30398-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,36 +12,26 @@ To: mturquette@baylibre.com, sboyd@codeaurora.org, tony@atomide.com, lee.jones@l
 Cc: t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
-The twl6040 codec is generating the pdmclk, which is used by the McPDM as
-functional clock.
+Bulk access is not working with twl6040, we need to use single register
+access. Bulk access would happen when we try to sync the regcache after
+power on.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/omap5-board-common.dtsi | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/mfd/twl6040.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
-index 19efaa079797..63d0352d068d 100644
---- a/arch/arm/boot/dts/omap5-board-common.dtsi
-+++ b/arch/arm/boot/dts/omap5-board-common.dtsi
-@@ -637,6 +637,7 @@
+diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
+index f3dcf3a85e84..2596546553aa 100644
+--- a/drivers/mfd/twl6040.c
++++ b/drivers/mfd/twl6040.c
+@@ -608,6 +608,7 @@ static const struct regmap_config twl6040_regmap_config = {
+ 	.writeable_reg = twl6040_writeable_reg,
  
- 	twl6040: twl@4b {
- 		compatible = "ti,twl6040";
-+		#clock-cells = <0>;
- 		reg = <0x4b>;
- 
- 		pinctrl-names = "default";
-@@ -658,6 +659,10 @@
- &mcpdm {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&mcpdm_pins>;
-+
-+	clocks = <&twl6040>;
-+	clock-names = "pdmclk";
-+
- 	status = "okay";
+ 	.cache_type = REGCACHE_RBTREE,
++	.use_single_rw = true,
  };
  
+ static const struct regmap_irq twl6040_irqs[] = {
 -- 
 2.8.3
