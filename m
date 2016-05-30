@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 17/26] omapfb: Remove reference to pdata->default_device
-Date: Mon, 30 May 2016 14:42:49 +0300
-Message-ID: <20160530114258.30879-18-peter.ujfalusi@ti.com>
+Subject: [PATCH 15/26] ARM/video: omap2: Move omap_display_init declaration to mach-omap2/display.h
+Date: Mon, 30 May 2016 14:42:47 +0300
+Message-ID: <20160530114258.30879-16-peter.ujfalusi@ti.com>
 References: <20160530114258.30879-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,26 +12,70 @@ To: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, robdclark@gmail.com, airlied@l
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com, jsarha@ti.com, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-The default_device is no longer used, it is a leftower from legacy. The
-else if (pdata->default_device) is always going to be false.
+The omap_display_init() is implemented in the mach-omap2/display.c so the
+declaration should have been there as well.
+Change the board files to include display.h to avoid build breakage at the
+same time.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/video/fbdev/omap2/omapfb/dss/core.c | 2 --
- 1 file changed, 2 deletions(-)
+ arch/arm/mach-omap2/board-ldp.c        | 1 +
+ arch/arm/mach-omap2/board-rx51-video.c | 1 +
+ arch/arm/mach-omap2/display.h          | 5 +++++
+ include/video/omapdss.h                | 3 ---
+ 4 files changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/core.c b/drivers/video/fbdev/omap2/omapfb/dss/core.c
-index 5a87179b7312..b9de21d3ff09 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/core.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/core.c
-@@ -208,8 +208,6 @@ static int __init omap_dss_probe(struct platform_device *pdev)
- 		core.default_display_name = def_disp_name;
- 	else if (pdata->default_display_name)
- 		core.default_display_name = pdata->default_display_name;
--	else if (pdata->default_device)
--		core.default_display_name = pdata->default_device->name;
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index d9c3ffc39329..f364a1b779f0 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -47,6 +47,7 @@
+ #include "hsmmc.h"
+ #include "control.h"
+ #include "common-board-devices.h"
++#include "display.h"
  
- 	register_pm_notifier(&omap_dss_pm_notif_block);
+ #define LDP_SMSC911X_CS		1
+ #define LDP_SMSC911X_GPIO	152
+diff --git a/arch/arm/mach-omap2/board-rx51-video.c b/arch/arm/mach-omap2/board-rx51-video.c
+index b76f84245ad9..9866ec06a395 100644
+--- a/arch/arm/mach-omap2/board-rx51-video.c
++++ b/arch/arm/mach-omap2/board-rx51-video.c
+@@ -22,6 +22,7 @@
  
+ #include "soc.h"
+ #include "board-rx51.h"
++#include "display.h"
+ 
+ #include "mux.h"
+ 
+diff --git a/arch/arm/mach-omap2/display.h b/arch/arm/mach-omap2/display.h
+index 7375854b16c7..78f253005279 100644
+--- a/arch/arm/mach-omap2/display.h
++++ b/arch/arm/mach-omap2/display.h
+@@ -33,4 +33,9 @@ int omap_init_vout(void);
+ 
+ struct device_node * __init omapdss_find_dss_of_node(void);
+ 
++struct omap_dss_board_info;
++
++/* Init with the board info */
++int omap_display_init(struct omap_dss_board_info *board_data);
++
+ #endif
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 8e14ad7327c9..0c7ae93ebd76 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -330,9 +330,6 @@ struct omap_dss_board_info {
+ 	enum omapdss_version version;
+ };
+ 
+-/* Init with the board info */
+-extern int omap_display_init(struct omap_dss_board_info *board_data);
+-
+ struct omap_video_timings {
+ 	/* Unit: pixels */
+ 	u16 x_res;
 -- 
 2.8.3
