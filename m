@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 14/26] omapdss: omap-panel-data.h: Remove connector_type from atv pdata
-Date: Mon, 30 May 2016 14:42:46 +0300
-Message-ID: <20160530114258.30879-15-peter.ujfalusi@ti.com>
+Subject: [PATCH 07/26] omapfb: connector-hdmi: Remove legacy boot support
+Date: Mon, 30 May 2016 14:42:39 +0300
+Message-ID: <20160530114258.30879-8-peter.ujfalusi@ti.com>
 References: <20160530114258.30879-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,41 +12,109 @@ To: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, robdclark@gmail.com, airlied@l
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com, jsarha@ti.com, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-The driver only supports composite connection when booted in legacy mode
-so the omap_dss_venc_type can be dropped from the pdata.
-At the same time the video/omapdss.h include can be removed as it is no
-longer needed.
+The panel is not used by any legacy board files so the legacy (pdata) boot
+support can be dropped.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- include/video/omap-panel-data.h | 3 ---
- 1 file changed, 3 deletions(-)
+ .../fbdev/omap2/omapfb/displays/connector-hdmi.c   | 42 ++++------------------
+ include/video/omap-panel-data.h                    | 10 ------
+ 2 files changed, 6 insertions(+), 46 deletions(-)
 
+diff --git a/drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c b/drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c
+index 6ee4129bc0c0..231b8588a59f 100644
+--- a/drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c
++++ b/drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c
+@@ -18,7 +18,6 @@
+ #include <drm/drm_edid.h>
+ 
+ #include <video/omapdss.h>
+-#include <video/omap-panel-data.h>
+ 
+ static const struct omap_video_timings hdmic_default_timings = {
+ 	.x_res		= 640,
+@@ -206,30 +205,6 @@ static struct omap_dss_driver hdmic_driver = {
+ 	.set_hdmi_infoframe	= hdmic_set_infoframe,
+ };
+ 
+-static int hdmic_probe_pdata(struct platform_device *pdev)
+-{
+-	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
+-	struct connector_hdmi_platform_data *pdata;
+-	struct omap_dss_device *in, *dssdev;
+-
+-	pdata = dev_get_platdata(&pdev->dev);
+-
+-	ddata->hpd_gpio = -ENODEV;
+-
+-	in = omap_dss_find_output(pdata->source);
+-	if (in == NULL) {
+-		dev_err(&pdev->dev, "Failed to find video source\n");
+-		return -EPROBE_DEFER;
+-	}
+-
+-	ddata->in = in;
+-
+-	dssdev = &ddata->dssdev;
+-	dssdev->name = pdata->name;
+-
+-	return 0;
+-}
+-
+ static int hdmic_probe_of(struct platform_device *pdev)
+ {
+ 	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
+@@ -261,6 +236,9 @@ static int hdmic_probe(struct platform_device *pdev)
+ 	struct omap_dss_device *dssdev;
+ 	int r;
+ 
++	if (!pdev->dev.of_node)
++		return -ENODEV;
++
+ 	ddata = devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
+ 	if (!ddata)
+ 		return -ENOMEM;
+@@ -268,17 +246,9 @@ static int hdmic_probe(struct platform_device *pdev)
+ 	platform_set_drvdata(pdev, ddata);
+ 	ddata->dev = &pdev->dev;
+ 
+-	if (dev_get_platdata(&pdev->dev)) {
+-		r = hdmic_probe_pdata(pdev);
+-		if (r)
+-			return r;
+-	} else if (pdev->dev.of_node) {
+-		r = hdmic_probe_of(pdev);
+-		if (r)
+-			return r;
+-	} else {
+-		return -ENODEV;
+-	}
++	r = hdmic_probe_of(pdev);
++	if (r)
++		return r;
+ 
+ 	if (gpio_is_valid(ddata->hpd_gpio)) {
+ 		r = devm_gpio_request_one(&pdev->dev, ddata->hpd_gpio,
 diff --git a/include/video/omap-panel-data.h b/include/video/omap-panel-data.h
-index 7b4fadf82cd5..e7003ee6e063 100644
+index e7b0e889d6d0..c0836b118f67 100644
 --- a/include/video/omap-panel-data.h
 +++ b/include/video/omap-panel-data.h
-@@ -27,21 +27,18 @@
- #ifndef __OMAP_PANEL_DATA_H
- #define __OMAP_PANEL_DATA_H
- 
--#include <video/omapdss.h>
- #include <video/display_timing.h>
+@@ -59,16 +59,6 @@ struct connector_dvi_platform_data {
+ };
  
  /**
+- * connector_hdmi platform data
+- * @name: name for this display entity
+- * @source: name of the display entity used as a video source
+- */
+-struct connector_hdmi_platform_data {
+-	const char *name;
+-	const char *source;
+-};
+-
+-/**
   * connector_atv platform data
   * @name: name for this display entity
   * @source: name of the display entity used as a video source
-- * @connector_type: composite/svideo
-  * @invert_polarity: invert signal polarity
-  */
- struct connector_atv_platform_data {
- 	const char *name;
- 	const char *source;
- 
--	enum omap_dss_venc_type connector_type;
- 	bool invert_polarity;
- };
- 
 -- 
 2.8.3
