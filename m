@@ -1,48 +1,44 @@
-From: Belisko Marek <marek.belisko@gmail.com>
-Subject: Re: [PATCH 0/5] ARM: dts: omap3-gta04: Various updates
-Date: Tue, 31 May 2016 08:48:44 +0200
-Message-ID: <CAAfyv37NE1eogrSRCuRY-9V30FtD3u7oeFWMJk=xNX1hFJ9O-w@mail.gmail.com>
-References: <1463514531-7235-1-git-send-email-marek@goldelico.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RESEND PATCH] gpio: pcf857x: restore the initial line state of
+ all pcf lines
+Date: Tue, 31 May 2016 10:40:34 +0200
+Message-ID: <CACRpkdYLzZ3PeQDoje+_9GE9a_FaVWeRNhPP5fu+q2ixXj7Sew@mail.gmail.com>
+References: <1464330929-10910-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1463514531-7235-1-git-send-email-marek@goldelico.com>
+In-Reply-To: <1464330929-10910-1-git-send-email-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux@armlinux.org.uk
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, LKML <linux-kernel@vger.kernel.org>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Ping? Any objections? Thanks.
+On Fri, May 27, 2016 at 8:35 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
 
-On Tue, May 17, 2016 at 9:48 PM, Marek Belisko <marek@goldelico.com> wrote:
-> Add various improvements for gta04 device (wifi, backlight, irq lines for sensors)
+> The reset values for all the PCF lines are high and hence on
+> shutdown we should drive all the lines high in order to
+> bring it to the reset state.
 >
-> H. Nikolaus Schaller (4):
->   ARM: dts: omap3-gta04: Define and use bma180 irq pin
->   ARM: dta: omap3-gta04: Define and use itg3200  irq pin
->   ARM: dta: omap3-gta04: Define and use hmc5843 irq pin
->   ARM: dts: omap3-gat04: Fix wifi handling
+> This is actually required since PCF doesn't have a reset
+> line and even after warm reset (by invoking "reboot" in
+> prompt) the PCF lines maintains it's previous programmed
+> state. This becomes a problem if the boards are designed to
+> work with the default initial state.
 >
-> Marek Belisko (1):
->   ARM: dts: omap3-gta04: Add backlight support
+> DRA7XX_evm uses PCF8575 and one of the PCF output lines
+> feeds to MMC/SD VDD and this line should be driven high in order
+> for the MMC/SD to be detected.  This line is modelled as
+> regulator and the hsmmc driver takes care of enabling and
+> disabling it. In the case of 'reboot', during shutdown path
+> as part of it's cleanup process the hsmmc driver disables
+> this regulator. This makes MMC *boot* not functional.
 >
->  arch/arm/boot/dts/omap3-gta04.dtsi | 60 ++++++++++++++++++++++++++++++++++++--
->  1 file changed, 57 insertions(+), 3 deletions(-)
+> Fix it by driving all the pcf lines high.
 >
-> --
-> 2.5.0
->
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 
-Marek
+Patch applied.
 
--- 
-as simple and primitive as possible
--------------------------------------------------
-Marek Belisko - OPEN-NANDRA
-Freelance Developer
-
-Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
-Tel: +421 915 052 184
-skype: marekwhite
-twitter: #opennandra
-web: http://open-nandra.com
+Yours,
+Linus Walleij
