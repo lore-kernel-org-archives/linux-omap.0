@@ -1,40 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] pinctrl: single: Fix missing flush of posted write for a wakeirq
-Date: Tue, 31 May 2016 14:17:06 -0700
-Message-ID: <1464729426-11187-1-git-send-email-tony@atomide.com>
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Haojian Zhuang <haojian.zhuang@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCHv5] support for AD5820 camera auto-focus coil
+Date: Wed, 1 Jun 2016 00:22:22 +0300
+Message-ID: <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
+References: <20160517181927.GA28741@amd>
+ <20160521054336.GA27123@amd>
+ <573FFF51.1000004@gmail.com>
+ <20160521105607.GA20071@amd>
+ <574049EF.2090208@gmail.com>
+ <20160524090433.GA1277@amd>
+ <20160524091746.GA14536@amd>
+ <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
+ <20160527205140.GA26767@amd>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160527205140.GA26767@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-With many repeated suspend resume cycles, the pin specific wakeirq
-may not always work on omaps. This is because the write to enable the
-pin interrupt may not have reached the device over the interconnect
-before suspend happens.
+Hi Pavel,
 
-Let's fix the issue with a flush of posted write with a readback.
+On Fri, May 27, 2016 at 10:51:40PM +0200, Pavel Machek wrote:
+> 
+> This adds support for AD5820 autofocus coil, found for example in
+> Nokia N900 smartphone.
+> 
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-Reported-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/pinctrl/pinctrl-single.c | 3 +++
- 1 file changed, 3 insertions(+)
+The patch looks good to me but then I came to think of a question I've
+missed so far: is there DT documentation somewhere for the properties used
+by the driver? I might put that to a separate patch, and cc the relevant
+list.
 
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-index cf9bafa..bfdf720 100644
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -1580,6 +1580,9 @@ static inline void pcs_irq_set(struct pcs_soc_data *pcs_soc,
- 		else
- 			mask &= ~soc_mask;
- 		pcs->write(mask, pcswi->reg);
-+
-+		/* flush posted write */
-+		mask = pcs->read(pcswi->reg);
- 		raw_spin_unlock(&pcs->lock);
- 	}
- 
+Whether we decide to have the module in DT or not is orthogonal to this.
+
 -- 
-2.8.1
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
