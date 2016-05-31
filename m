@@ -1,34 +1,26 @@
-From: Sandhya Bankar <bankarsandhya512@gmail.com>
-Subject: [PATCH] usb: phy-omap-otg: Space required after that ','.
-Date: Tue, 31 May 2016 08:59:44 -0400
-Message-ID: <20160531125944.GA19123@sandhya>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/5] ARM: dts: omap3-gta04: Various updates
+Date: Tue, 31 May 2016 11:19:04 -0700
+Message-ID: <20160531181903.GB5995@atomide.com>
+References: <1463514531-7235-1-git-send-email-marek@goldelico.com>
+ <CAAfyv37NE1eogrSRCuRY-9V30FtD3u7oeFWMJk=xNX1hFJ9O-w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <CAAfyv37NE1eogrSRCuRY-9V30FtD3u7oeFWMJk=xNX1hFJ9O-w@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@kernel.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Belisko Marek <marek.belisko@gmail.com>
+Cc: Benoit Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux@armlinux.org.uk, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, LKML <linux-kernel@vger.kernel.org>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-Space required after that ','.
+* Belisko Marek <marek.belisko@gmail.com> [160530 23:50]:
+> Ping? Any objections? Thanks.
 
-Signed-off-by: Sandhya Bankar <bankarsandhya512@gmail.com>
----
- drivers/usb/phy/phy-omap-otg.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Looks OK to me, with v4.7-rc1 out I'll start applying patches
+again once the pending fixes are out of the way. So it will be
+few more days, probably around -rc2 time.
 
-diff --git a/drivers/usb/phy/phy-omap-otg.c b/drivers/usb/phy/phy-omap-otg.c
-index c4bf2de..6f6d2a7 100644
---- a/drivers/usb/phy/phy-omap-otg.c
-+++ b/drivers/usb/phy/phy-omap-otg.c
-@@ -148,7 +148,7 @@ static int omap_otg_remove(struct platform_device *pdev)
- 	struct otg_device *otg_dev = platform_get_drvdata(pdev);
- 	struct extcon_dev *edev = otg_dev->extcon;
- 
--	extcon_unregister_notifier(edev, EXTCON_USB_HOST,&otg_dev->id_nb);
-+	extcon_unregister_notifier(edev, EXTCON_USB_HOST, &otg_dev->id_nb);
- 	extcon_unregister_notifier(edev, EXTCON_USB, &otg_dev->vbus_nb);
- 
- 	return 0;
--- 
-1.8.3.4
+Regards,
+
+Tony
