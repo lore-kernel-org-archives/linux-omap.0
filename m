@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 28/28] ARM: dts: AM43xx: Add node for RNG
-Date: Wed, 1 Jun 2016 12:06:46 +0300
-Message-ID: <1464772006-11254-9-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 23/28] ARM: dts: DRA7: Add DT node for DES IP
+Date: Wed, 1 Jun 2016 12:06:41 +0300
+Message-ID: <1464772006-11254-4-git-send-email-t-kristo@ti.com>
 References: <1464771389-10640-1-git-send-email-t-kristo@ti.com>
  <1464772006-11254-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
@@ -13,32 +13,36 @@ To: linux-omap@vger.kernel.org, linux-crypto@vger.kernel.org, herbert@gondor.apa
 Cc: linux-arm-kernel@lists.infradead.org, lokeshvutla@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Lokesh Vutla <lokeshvutla@ti.com>
+From: Joel Fernandes <joelf@ti.com>
 
-Adding DT node for hardware random number generator.
+DRA7xx SoCs have a DES3DES IP. Add DT data for the same.
 
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+Signed-off-by: Joel Fernandes <joelf@ti.com>
 ---
- arch/arm/boot/dts/am4372.dtsi | 7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/arm/boot/dts/dra7.dtsi | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index 12fcde4..a44ee94 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -843,6 +843,13 @@
- 			dma-names = "tx", "rx";
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index e007401..959f99b 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1743,6 +1743,17 @@
+ 				clock-names = "fck", "sys_clk";
+ 			};
  		};
- 
-+		rng: rng@48310000 {
-+			compatible = "ti,omap4-rng";
-+			ti,hwmods = "rng";
-+			reg = <0x48310000 0x2000>;
-+			interrupts = <GIC_SPI 111 IRQ_TYPE_LEVEL_HIGH>;
-+		};
 +
- 		mcasp0: mcasp@48038000 {
- 			compatible = "ti,am33xx-mcasp-audio";
- 			ti,hwmods = "mcasp0";
++		des: des@480a5000 {
++			compatible = "ti,omap4-des";
++			ti,hwmods = "des";
++			reg = <0x480a5000 0xa0>;
++			interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL_HIGH>;
++			dmas = <&sdma_xbar 117>, <&sdma_xbar 116>;
++			dma-names = "tx", "rx";
++			clocks = <&l3_iclk_div>;
++			clock-names = "fck";
++		};
+ 	};
+ 
+ 	thermal_zones: thermal-zones {
 -- 
 1.9.1
