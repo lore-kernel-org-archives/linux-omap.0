@@ -1,8 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 3/5] ARM: OMAP5: control: add support for control module wkup
- pad config
-Date: Wed, 1 Jun 2016 20:35:24 +0300
-Message-ID: <1464802526-16372-4-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 4/5] ARM: dts: omap5: add fref_xtal_ck support
+Date: Wed, 1 Jun 2016 20:35:25 +0300
+Message-ID: <1464802526-16372-5-git-send-email-t-kristo@ti.com>
 References: <1464802526-16372-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,36 +21,44 @@ To: linux-omap@vger.kernel.org, tony@atomide.com, peter.ujfalusi@ti.com
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Match the new compatible string in the control module driver. The base
-infra maps the required syscon ranges and clock registers if available.
+The clock is directly sourced from sys_clkin, and provides an external
+output clock for (typically) TWL6040 chip.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/control.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ arch/arm/boot/dts/omap54xx-clocks.dtsi | 10 ++++++++++
+ drivers/clk/ti/clk-54xx.c              |  1 +
+ 2 files changed, 11 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index 50875d0..5956641 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -636,6 +636,10 @@ static const struct control_init_data omap2_ctrl_data = {
- 	.offset = -OMAP2_CONTROL_GENERAL,
+diff --git a/arch/arm/boot/dts/omap54xx-clocks.dtsi b/arch/arm/boot/dts/omap54xx-clocks.dtsi
+index 4899c23..a8153b4 100644
+--- a/arch/arm/boot/dts/omap54xx-clocks.dtsi
++++ b/arch/arm/boot/dts/omap54xx-clocks.dtsi
+@@ -1388,3 +1388,13 @@
+ 		reg = <0x021c>;
+ 	};
+ };
++
++&scm_wkup_pad_conf_clocks {
++	fref_xtal_ck: fref_xtal_ck {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&sys_clkin>;
++		ti,bit-shift = <28>;
++		reg = <0x14>;
++	};
++};
+diff --git a/drivers/clk/ti/clk-54xx.c b/drivers/clk/ti/clk-54xx.c
+index 294bc03..20f6985 100644
+--- a/drivers/clk/ti/clk-54xx.c
++++ b/drivers/clk/ti/clk-54xx.c
+@@ -222,6 +222,7 @@ static struct ti_dt_clk omap54xx_clks[] = {
+ 	DT_CLK("4013a000.timer", "timer_sys_ck", "dss_syc_gfclk_div"),
+ 	DT_CLK("4013c000.timer", "timer_sys_ck", "dss_syc_gfclk_div"),
+ 	DT_CLK("4013e000.timer", "timer_sys_ck", "dss_syc_gfclk_div"),
++	DT_CLK(NULL, "fref_xtal_ck", "fref_xtal_ck"),
+ 	{ .node_name = NULL },
  };
  
-+static const struct control_init_data ctrl_aux_data = {
-+	.index = TI_CLKM_CTRL_AUX,
-+};
-+
- static const struct of_device_id omap_scrm_dt_match_table[] = {
- 	{ .compatible = "ti,am3-scm", .data = &ctrl_data },
- 	{ .compatible = "ti,am4-scm", .data = &ctrl_data },
-@@ -645,6 +649,7 @@ static const struct of_device_id omap_scrm_dt_match_table[] = {
- 	{ .compatible = "ti,dm816-scrm", .data = &ctrl_data },
- 	{ .compatible = "ti,omap4-scm-core", .data = &ctrl_data },
- 	{ .compatible = "ti,omap5-scm-core", .data = &ctrl_data },
-+	{ .compatible = "ti,omap5-scm-wkup-pad-conf", .data = &ctrl_aux_data },
- 	{ .compatible = "ti,dra7-scm-core", .data = &ctrl_data },
- 	{ }
- };
 -- 
 1.9.1
