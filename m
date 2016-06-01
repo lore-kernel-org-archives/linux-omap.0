@@ -1,10 +1,10 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: dts: Fix omap5 SDIO dat1 interrupt
-Date: Wed,  1 Jun 2016 09:21:52 -0700
-Message-ID: <1464798112-8793-1-git-send-email-tony@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH 0/5] ARM: OMAP5: add support for fref-xtal-clk
+Date: Wed, 1 Jun 2016 20:35:21 +0300
+Message-ID: <1464802526-16372-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -15,29 +15,37 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Enric Balletbo Serra <eballetbo@gmail.com>, =?UTF-8?q?Agust=C3=AD=20Fontquerni?= <af@iseebcn.com>, Eduard Gavin <egavin@iseebcn.com>, linux-arm-kernel@lists.infradead.org, Uri Mashiach <uri.mashiach@compulab.co.il>
+To: linux-omap@vger.kernel.org, tony@atomide.com, peter.ujfalusi@ti.com
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-VGhlIFNESU8gd2FrZWlycSBpcyB3cm9uZywgaXQgbmVlZHMgdG8gYmUgU0RJTyBkYXQxIGxpbmUs
-IG5vdCBkYXQwLgpPdGhlcndpc2UgdGhlIHN5c3RlbSB3b24ndCB3YWtlIHRvIFNESU8gaW50ZXJy
-dXB0cyBmcm9tIGlkbGUgc3RhdGVzLgoKVGhpcyBtYWtlcyB0aGUgd2wxMnh4IGJlaGF2ZSBiZXR0
-ZXIgb24gaWdlcHY1LCBvdGhlcndpc2Ugd2UgbWF5IGhhdmUgaGFyZAp0aW1lIGNvbm5lY3Rpbmcg
-dG8gYW4gYWNjZXNzIHBvaW50LgoKQW5kIG9tYXA1LXVldm0gb3Igd2wxOHh4IHN0aWxsIHNlZW1z
-IHRvIGhhdmUgc29tZSBvdGhlciBpc3N1ZXMgcmVtYWluaW5nLgoKQ2M6IEFndXN0w60gRm9udHF1
-ZXJuaSA8YWZAaXNlZWJjbi5jb20+CkNjOiBFZHVhcmQgR2F2aW4gPGVnYXZpbkBpc2VlYmNuLmNv
-bT4KQ2M6IEVucmljIEJhbGxldGJvIFNlcnJhIDxlYmFsbGV0Ym9AZ21haWwuY29tPgpDYzogVXJp
-IE1hc2hpYWNoIDx1cmkubWFzaGlhY2hAY29tcHVsYWIuY28uaWw+ClNpZ25lZC1vZmYtYnk6IFRv
-bnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvb21h
-cDUtYm9hcmQtY29tbW9uLmR0c2kgfCAyICstCiAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24o
-KyksIDEgZGVsZXRpb24oLSkKCi0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LWJvYXJkLWNv
-bW1vbi5kdHNpCisrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LWJvYXJkLWNvbW1vbi5kdHNp
-CkBAIC0zNTcsNyArMzU3LDcgQEAKIAlwaW5jdHJsLW5hbWVzID0gImRlZmF1bHQiOwogCXBpbmN0
-cmwtMCA9IDwmbW1jM19waW5zICZ3bGNvcmVfaXJxX3Bpbj47CiAJaW50ZXJydXB0cy1leHRlbmRl
-ZCA9IDwmZ2ljIEdJQ19TUEkgOTQgSVJRX1RZUEVfTEVWRUxfSElHSAotCQkJICAgICAgICZvbWFw
-NV9wbXhfY29yZSAweDE2OD47CisJCQkgICAgICAgJm9tYXA1X3BteF9jb3JlIDB4MTZhPjsKIAog
-CSNhZGRyZXNzLWNlbGxzID0gPDE+OwogCSNzaXplLWNlbGxzID0gPDA+OwotLSAKMi44LjEKCgpf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0t
-a2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcK
-aHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2Vy
-bmVsCg==
+Hi,
+
+fref_xtal_clk is a clock going out from omap5 chip, sourced directly
+from the system oscillator. fref_xtal_clk can be used to provide a
+high frequency clock to some external component, in omap5 setups,
+typically twl6040 audio chip.
+
+Testing done (number of boards on the test farm are currently out of order):
+
+am335x-evm      : BOOT FAIL!
+am335x-evmsk    : boot
+am37x-evm       : boot
+am437x-sk       : boot
+am43x-epos-evm  : boot
+am437x-gp-evm   : boot
+am57xx-evm      : boot
+omap3-beagle-xm : boot
+am335x-boneblack: boot
+am335x-bone     : boot
+dra72x-evm      : boot
+dra7xx-evm      : boot
+omap5-uevm      : boot
+
+On omap5, also verified that the new clock node appears under debugfs.
+
+am335x-evm failure is due to inability to mount NFS rootfs on the board
+in question the boot goes fine until that. There are some issues with
+the u-boot installed on this board currently.
+
+-Tero
