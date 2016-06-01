@@ -1,77 +1,53 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 23/27] omapdss: hdmi audio: Make header file independent of
- video/omapdss.h
-Date: Wed, 1 Jun 2016 11:35:45 +0300
-Message-ID: <20160601083549.10549-24-peter.ujfalusi@ti.com>
-References: <20160601083549.10549-1-peter.ujfalusi@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH 04/28] crypto: omap: do not call dmaengine_terminate_all
+Date: Wed, 1 Jun 2016 11:56:05 +0300
+Message-ID: <1464771389-10640-5-git-send-email-t-kristo@ti.com>
+References: <1464771389-10640-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20160601083549.10549-1-peter.ujfalusi@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, robdclark@gmail.com, airlied@linux.ie, tony@atomide.com
-Cc: linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Liam Girdwood <liam.r.girdwood@linux.intel.com>, Mark Brown <broonie@kernel.org>, jsarha@ti.com, linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Content-Type: text/plain
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <1464771389-10640-1-git-send-email-t-kristo@ti.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-crypto@vger.kernel.org, herbert@gondor.apana.org.au, davem@davemloft.net, tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org, lokeshvutla@ti.com, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Q2xlYW4gdXAgdGhlIGhlYWRlciBmaWxlcyByZWdhcmRpbmcgdG8gaGRtaSBhdWRpbyBzbyB0aGUg
-b21hcC1oZG1pLWF1ZGlvLmgKZmlsZSB3aWxsIG9ubHkgbmVlZCB0byBpbmNsdWRlIHRoZSBwbGF0
-Zm9ybV9kYXRhL29tYXBkc3MuaCBmaWxlLgoKU2lnbmVkLW9mZi1ieTogUGV0ZXIgVWpmYWx1c2kg
-PHBldGVyLnVqZmFsdXNpQHRpLmNvbT4KQ0M6IE1hcmsgQnJvd24gPGJyb29uaWVAa2VybmVsLm9y
-Zz4KQ0M6IEp5cmkgU2FyaGEgPGpzYXJoYUB0aS5jb20+CkNDOiBMaWFtIEdpcmR3b29kIDxsaWFt
-LnIuZ2lyZHdvb2RAbGludXguaW50ZWwuY29tPgotLS0KIGRyaXZlcnMvZ3B1L2RybS9vbWFwZHJt
-L2Rzcy9oZG1pLmggICAgICAgICAgfCAxICsKIGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21h
-cGZiL2Rzcy9oZG1pLmggfCAxICsKIGluY2x1ZGUvc291bmQvb21hcC1oZG1pLWF1ZGlvLmggICAg
-ICAgICAgICAgfCA5ICsrKysrKystLQogaW5jbHVkZS92aWRlby9vbWFwZHNzLmggICAgICAgICAg
-ICAgICAgICAgICB8IDUgLS0tLS0KIHNvdW5kL3NvYy9vbWFwL29tYXAtaGRtaS1hdWRpby5jICAg
-ICAgICAgICAgfCAxIC0KIDUgZmlsZXMgY2hhbmdlZCwgOSBpbnNlcnRpb25zKCspLCA4IGRlbGV0
-aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9oZG1pLmgg
-Yi9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvaGRtaS5oCmluZGV4IDUzNjE2YjAyYjYxMy4u
-YzMyYTIxYTI2MDU0IDEwMDY0NAotLS0gYS9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvaGRt
-aS5oCisrKyBiL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9oZG1pLmgKQEAgLTI0LDYgKzI0
-LDcgQEAKICNpbmNsdWRlIDxsaW51eC9wbGF0Zm9ybV9kZXZpY2UuaD4KICNpbmNsdWRlIDxsaW51
-eC9oZG1pLmg+CiAjaW5jbHVkZSA8dmlkZW8vb21hcGRzcy5oPgorI2luY2x1ZGUgPHNvdW5kL29t
-YXAtaGRtaS1hdWRpby5oPgogCiAjaW5jbHVkZSAiZHNzLmgiCiAKZGlmZiAtLWdpdCBhL2RyaXZl
-cnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9oZG1pLmggYi9kcml2ZXJzL3ZpZGVvL2Zi
-ZGV2L29tYXAyL29tYXBmYi9kc3MvaGRtaS5oCmluZGV4IDUzNjE2YjAyYjYxMy4uYzMyYTIxYTI2
-MDU0IDEwMDY0NAotLS0gYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kc3MvaGRt
-aS5oCisrKyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9oZG1pLmgKQEAg
-LTI0LDYgKzI0LDcgQEAKICNpbmNsdWRlIDxsaW51eC9wbGF0Zm9ybV9kZXZpY2UuaD4KICNpbmNs
-dWRlIDxsaW51eC9oZG1pLmg+CiAjaW5jbHVkZSA8dmlkZW8vb21hcGRzcy5oPgorI2luY2x1ZGUg
-PHNvdW5kL29tYXAtaGRtaS1hdWRpby5oPgogCiAjaW5jbHVkZSAiZHNzLmgiCiAKZGlmZiAtLWdp
-dCBhL2luY2x1ZGUvc291bmQvb21hcC1oZG1pLWF1ZGlvLmggYi9pbmNsdWRlL3NvdW5kL29tYXAt
-aGRtaS1hdWRpby5oCmluZGV4IGFmZGI0MTY4OThlMC4uMWRmMmZmNjFhNGRkIDEwMDY0NAotLS0g
-YS9pbmNsdWRlL3NvdW5kL29tYXAtaGRtaS1hdWRpby5oCisrKyBiL2luY2x1ZGUvc291bmQvb21h
-cC1oZG1pLWF1ZGlvLmgKQEAgLTE2LDExICsxNiwxNiBAQAogICoKICAqLwogCi0jaW5jbHVkZSA8
-dmlkZW8vb21hcGRzcy5oPgotCiAjaWZuZGVmIF9fT01BUF9IRE1JX0FVRElPX0hfXwogI2RlZmlu
-ZSBfX09NQVBfSERNSV9BVURJT19IX18KIAorI2luY2x1ZGUgPGxpbnV4L3BsYXRmb3JtX2RhdGEv
-b21hcGRzcy5oPgorCitzdHJ1Y3Qgb21hcF9kc3NfYXVkaW8geworCXN0cnVjdCBzbmRfYWVzX2ll
-Yzk1OCAqaWVjOworCXN0cnVjdCBzbmRfY2VhXzg2MV9hdWRfaWYgKmNlYTsKK307CisKIHN0cnVj
-dCBvbWFwX2hkbWlfYXVkaW9fb3BzIHsKIAlpbnQgKCphdWRpb19zdGFydHVwKShzdHJ1Y3QgZGV2
-aWNlICpkZXYsCiAJCQkgICAgIHZvaWQgKCphYm9ydF9jYikoc3RydWN0IGRldmljZSAqZGV2KSk7
-CmRpZmYgLS1naXQgYS9pbmNsdWRlL3ZpZGVvL29tYXBkc3MuaCBiL2luY2x1ZGUvdmlkZW8vb21h
-cGRzcy5oCmluZGV4IDUzYWRhNzBjZjIzYy4uYjI1ZTJlYWI0YjQ4IDEwMDY0NAotLS0gYS9pbmNs
-dWRlL3ZpZGVvL29tYXBkc3MuaAorKysgYi9pbmNsdWRlL3ZpZGVvL29tYXBkc3MuaApAQCAtMTY4
-LDExICsxNjgsNiBAQCBlbnVtIG9tYXBfZHNzX2Rpc3BsYXlfc3RhdGUgewogCU9NQVBfRFNTX0RJ
-U1BMQVlfQUNUSVZFLAogfTsKIAotc3RydWN0IG9tYXBfZHNzX2F1ZGlvIHsKLQlzdHJ1Y3Qgc25k
-X2Flc19pZWM5NTggKmllYzsKLQlzdHJ1Y3Qgc25kX2NlYV84NjFfYXVkX2lmICpjZWE7Ci19Owot
-CiBlbnVtIG9tYXBfZHNzX3JvdGF0aW9uX3R5cGUgewogCU9NQVBfRFNTX1JPVF9ETUEJPSAxIDw8
-IDAsCiAJT01BUF9EU1NfUk9UX1ZSRkIJPSAxIDw8IDEsCmRpZmYgLS1naXQgYS9zb3VuZC9zb2Mv
-b21hcC9vbWFwLWhkbWktYXVkaW8uYyBiL3NvdW5kL3NvYy9vbWFwL29tYXAtaGRtaS1hdWRpby5j
-CmluZGV4IDY0NDI1ZDM1Mjk2Mi4uODg4MTMzZjllNjVkIDEwMDY0NAotLS0gYS9zb3VuZC9zb2Mv
-b21hcC9vbWFwLWhkbWktYXVkaW8uYworKysgYi9zb3VuZC9zb2Mvb21hcC9vbWFwLWhkbWktYXVk
-aW8uYwpAQCAtMjgsNyArMjgsNiBAQAogI2luY2x1ZGUgPHNvdW5kL2Fzb3VuZGVmLmg+CiAjaW5j
-bHVkZSA8c291bmQvb21hcC1wY20uaD4KICNpbmNsdWRlIDxzb3VuZC9vbWFwLWhkbWktYXVkaW8u
-aD4KLSNpbmNsdWRlIDx2aWRlby9vbWFwZHNzLmg+CiAKICNkZWZpbmUgRFJWX05BTUUgIm9tYXAt
-aGRtaS1hdWRpbyIKIAotLSAKMi44LjMKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZy
-ZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2RyaS1kZXZlbAo=
+From: Lokesh Vutla <lokeshvutla@ti.com>
+
+The extra call to dmaengine_terminate_all is not needed, as the DMA
+is not running at this point. This improves performance slightly.
+
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ drivers/crypto/omap-aes.c  | 2 --
+ drivers/crypto/omap-sham.c | 1 -
+ 2 files changed, 3 deletions(-)
+
+diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
+index 4a0e6a5..8178632 100644
+--- a/drivers/crypto/omap-aes.c
++++ b/drivers/crypto/omap-aes.c
+@@ -528,8 +528,6 @@ static int omap_aes_crypt_dma_stop(struct omap_aes_dev *dd)
+ 
+ 	omap_aes_dma_stop(dd);
+ 
+-	dmaengine_terminate_all(dd->dma_lch_in);
+-	dmaengine_terminate_all(dd->dma_lch_out);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
+index 71eac5c..287bc43 100644
+--- a/drivers/crypto/omap-sham.c
++++ b/drivers/crypto/omap-sham.c
+@@ -805,7 +805,6 @@ static int omap_sham_update_dma_stop(struct omap_sham_dev *dd)
+ {
+ 	struct omap_sham_reqctx *ctx = ahash_request_ctx(dd->req);
+ 
+-	dmaengine_terminate_all(dd->dma_lch);
+ 
+ 	if (ctx->flags & BIT(FLAGS_SG)) {
+ 		dma_unmap_sg(dd->dev, ctx->sg, 1, DMA_TO_DEVICE);
+-- 
+1.9.1
