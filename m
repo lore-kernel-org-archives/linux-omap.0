@@ -1,50 +1,63 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCHv5] support for AD5820 camera auto-focus coil
-Date: Tue, 31 May 2016 23:34:37 +0200
-Message-ID: <20160531213437.GA28397@amd>
-References: <20160517181927.GA28741@amd>
- <20160521054336.GA27123@amd>
- <573FFF51.1000004@gmail.com>
- <20160521105607.GA20071@amd>
- <574049EF.2090208@gmail.com>
- <20160524090433.GA1277@amd>
- <20160524091746.GA14536@amd>
- <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd>
- <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v2] thermal: ti-soc-thermal: Add set_emul_temp hook
+Date: Wed, 1 Jun 2016 09:29:10 +0530
+Message-ID: <1464753550-2529-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com
+Content-Type: text/plain
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: rui.zhang@intel.com, edubezval@gmail.com
+Cc: t-kristo@ti.com, j-keerthy@ti.com, nm@ti.com, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed 2016-06-01 00:22:22, Sakari Ailus wrote:
-> Hi Pavel,
-> 
-> On Fri, May 27, 2016 at 10:51:40PM +0200, Pavel Machek wrote:
-> > 
-> > This adds support for AD5820 autofocus coil, found for example in
-> > Nokia N900 smartphone.
-> > 
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> 
-> The patch looks good to me but then I came to think of a question I've
-> missed so far: is there DT documentation somewhere for the properties used
-> by the driver? I might put that to a separate patch, and cc the relevant
-> list.
+Setting the emulation temperature helps reproduce critical
+temperature scenarios without risking the actual hardware at
+extreme temperatures. Adding __ti_thermal_set_emul_temp as
+the set_emul_temp hook.
 
-Well, it does not use any dt properties. So there's not really much to
-discuss with dt people...
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
 
-Maybe "ad5820" needs to go to list of simple i2c drivers somewhere,
-but...
+Changes in v2:
 
-Best regards,
-									Pavel
+  * Rebased on top of:
+git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal sysfs_locking
+
+Tested on DRA7/DRA72 baords.
+
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+index 15c0a9a..8d069ee 100644
+--- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
++++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+@@ -278,6 +278,17 @@ static int ti_thermal_get_trend(struct thermal_zone_device *thermal,
+ 	return 0;
+ }
+ 
++static int __ti_thermal_set_emul_temp(void *p, int temp)
++{
++	struct ti_thermal_data *data = p;
++	struct thermal_zone_device *tz;
++
++	tz = data->ti_thermal;
++	tz->emul_temperature = temp;
++
++	return 0;
++}
++
+ /* Get critical temperature callback functions for thermal zone */
+ static int ti_thermal_get_crit_temp(struct thermal_zone_device *thermal,
+ 				    int *temp)
+@@ -289,6 +300,7 @@ static int ti_thermal_get_crit_temp(struct thermal_zone_device *thermal,
+ static const struct thermal_zone_of_device_ops ti_of_thermal_ops = {
+ 	.get_temp = __ti_thermal_get_temp,
+ 	.get_trend = __ti_thermal_get_trend,
++	.set_emul_temp = __ti_thermal_set_emul_temp,
+ };
+ 
+ static struct thermal_zone_device_ops ti_thermal_ops = {
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+1.9.1
+
