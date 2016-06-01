@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 07/27] omapfb: connector-hdmi: Remove legacy boot support
-Date: Wed, 1 Jun 2016 11:35:29 +0300
-Message-ID: <20160601083549.10549-8-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 05/27] omapfb: panel-lgphilips-lb035q02: Remove legacy boot support
+Date: Wed, 1 Jun 2016 11:35:27 +0300
+Message-ID: <20160601083549.10549-6-peter.ujfalusi@ti.com>
 References: <20160601083549.10549-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -17,104 +17,124 @@ support can be dropped.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- .../fbdev/omap2/omapfb/displays/connector-hdmi.c   | 42 ++++------------------
- include/video/omap-panel-data.h                    | 10 ------
- 2 files changed, 6 insertions(+), 46 deletions(-)
+ .../omapfb/displays/panel-lgphilips-lb035q02.c     | 56 +++-------------------
+ include/video/omap-panel-data.h                    | 18 -------
+ 2 files changed, 6 insertions(+), 68 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c b/drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c
-index 6ee4129bc0c0..231b8588a59f 100644
---- a/drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c
-+++ b/drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c
-@@ -18,7 +18,6 @@
- #include <drm/drm_edid.h>
+diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c
+index 18eb60e9c9ec..6d5207c7b22c 100644
+--- a/drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c
++++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c
+@@ -17,7 +17,6 @@
+ #include <linux/gpio.h>
  
  #include <video/omapdss.h>
 -#include <video/omap-panel-data.h>
  
- static const struct omap_video_timings hdmic_default_timings = {
- 	.x_res		= 640,
-@@ -206,30 +205,6 @@ static struct omap_dss_driver hdmic_driver = {
- 	.set_hdmi_infoframe	= hdmic_set_infoframe,
+ static struct omap_video_timings lb035q02_timings = {
+ 	.x_res = 320,
+@@ -240,44 +239,6 @@ static struct omap_dss_driver lb035q02_ops = {
+ 	.get_resolution	= omapdss_default_get_resolution,
  };
  
--static int hdmic_probe_pdata(struct platform_device *pdev)
+-static int lb035q02_probe_pdata(struct spi_device *spi)
 -{
--	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
--	struct connector_hdmi_platform_data *pdata;
--	struct omap_dss_device *in, *dssdev;
+-	const struct panel_lb035q02_platform_data *pdata;
+-	struct panel_drv_data *ddata = dev_get_drvdata(&spi->dev);
+-	struct omap_dss_device *dssdev, *in;
+-	int r;
 -
--	pdata = dev_get_platdata(&pdev->dev);
--
--	ddata->hpd_gpio = -ENODEV;
+-	pdata = dev_get_platdata(&spi->dev);
 -
 -	in = omap_dss_find_output(pdata->source);
 -	if (in == NULL) {
--		dev_err(&pdev->dev, "Failed to find video source\n");
+-		dev_err(&spi->dev, "failed to find video source '%s'\n",
+-				pdata->source);
 -		return -EPROBE_DEFER;
 -	}
 -
 -	ddata->in = in;
 -
+-	ddata->data_lines = pdata->data_lines;
+-
 -	dssdev = &ddata->dssdev;
 -	dssdev->name = pdata->name;
 -
+-	r = devm_gpio_request_one(&spi->dev, pdata->enable_gpio,
+-					GPIOF_OUT_INIT_LOW, "panel enable");
+-	if (r)
+-		goto err_gpio;
+-
+-	ddata->enable_gpio = gpio_to_desc(pdata->enable_gpio);
+-
+-	ddata->backlight_gpio = pdata->backlight_gpio;
+-
 -	return 0;
+-err_gpio:
+-	omap_dss_put_device(ddata->in);
+-	return r;
 -}
 -
- static int hdmic_probe_of(struct platform_device *pdev)
+ static int lb035q02_probe_of(struct spi_device *spi)
  {
- 	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
-@@ -261,6 +236,9 @@ static int hdmic_probe(struct platform_device *pdev)
+ 	struct device_node *node = spi->dev.of_node;
+@@ -312,6 +273,9 @@ static int lb035q02_panel_spi_probe(struct spi_device *spi)
  	struct omap_dss_device *dssdev;
  	int r;
  
-+	if (!pdev->dev.of_node)
++	if (!spi->dev.of_node)
 +		return -ENODEV;
 +
- 	ddata = devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
- 	if (!ddata)
+ 	ddata = devm_kzalloc(&spi->dev, sizeof(*ddata), GFP_KERNEL);
+ 	if (ddata == NULL)
  		return -ENOMEM;
-@@ -268,17 +246,9 @@ static int hdmic_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, ddata);
- 	ddata->dev = &pdev->dev;
+@@ -320,17 +284,9 @@ static int lb035q02_panel_spi_probe(struct spi_device *spi)
  
--	if (dev_get_platdata(&pdev->dev)) {
--		r = hdmic_probe_pdata(pdev);
+ 	ddata->spi = spi;
+ 
+-	if (dev_get_platdata(&spi->dev)) {
+-		r = lb035q02_probe_pdata(spi);
 -		if (r)
 -			return r;
--	} else if (pdev->dev.of_node) {
--		r = hdmic_probe_of(pdev);
+-	} else if (spi->dev.of_node) {
+-		r = lb035q02_probe_of(spi);
 -		if (r)
 -			return r;
 -	} else {
 -		return -ENODEV;
 -	}
-+	r = hdmic_probe_of(pdev);
++	r = lb035q02_probe_of(spi);
 +	if (r)
 +		return r;
  
- 	if (gpio_is_valid(ddata->hpd_gpio)) {
- 		r = devm_gpio_request_one(&pdev->dev, ddata->hpd_gpio,
+ 	if (gpio_is_valid(ddata->backlight_gpio)) {
+ 		r = devm_gpio_request_one(&spi->dev, ddata->backlight_gpio,
 diff --git a/include/video/omap-panel-data.h b/include/video/omap-panel-data.h
-index e7b0e889d6d0..c0836b118f67 100644
+index 085b4171eb25..74486bcc754e 100644
 --- a/include/video/omap-panel-data.h
 +++ b/include/video/omap-panel-data.h
-@@ -59,16 +59,6 @@ struct connector_dvi_platform_data {
+@@ -147,22 +147,4 @@ struct panel_acx565akm_platform_data {
+ 	int datapairs;
  };
  
- /**
-- * connector_hdmi platform data
+-/**
+- * panel_lb035q02 platform data
 - * @name: name for this display entity
 - * @source: name of the display entity used as a video source
+- * @data_lines: number of DPI datalines
+- * @backlight_gpio: gpio to enable/disable the backlight (or -1)
+- * @enable_gpio: gpio to enable/disable the panel (or -1)
 - */
--struct connector_hdmi_platform_data {
+-struct panel_lb035q02_platform_data {
 -	const char *name;
 -	const char *source;
+-
+-	int data_lines;
+-
+-	int backlight_gpio;
+-	int enable_gpio;
 -};
 -
--/**
-  * connector_atv platform data
-  * @name: name for this display entity
-  * @source: name of the display entity used as a video source
+ #endif /* __OMAP_PANEL_DATA_H */
 -- 
 2.8.3
