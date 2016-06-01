@@ -1,58 +1,43 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCHv5] support for AD5820 camera auto-focus coil
-Date: Wed, 1 Jun 2016 18:24:39 +0300
-Message-ID: <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
-References: <20160521054336.GA27123@amd>
- <573FFF51.1000004@gmail.com>
- <20160521105607.GA20071@amd>
- <574049EF.2090208@gmail.com>
- <20160524090433.GA1277@amd>
- <20160524091746.GA14536@amd>
- <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd>
- <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
- <20160531213437.GA28397@amd>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] ARM: dts: Fix omap5 SDIO dat1 interrupt
+Date: Wed,  1 Jun 2016 09:21:52 -0700
+Message-ID: <1464798112-8793-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160531213437.GA28397@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Enric Balletbo Serra <eballetbo@gmail.com>, =?UTF-8?q?Agust=C3=AD=20Fontquerni?= <af@iseebcn.com>, Eduard Gavin <egavin@iseebcn.com>, linux-arm-kernel@lists.infradead.org, Uri Mashiach <uri.mashiach@compulab.co.il>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Pavel,
-
-On Tue, May 31, 2016 at 11:34:37PM +0200, Pavel Machek wrote:
-> On Wed 2016-06-01 00:22:22, Sakari Ailus wrote:
-> > Hi Pavel,
-> > 
-> > On Fri, May 27, 2016 at 10:51:40PM +0200, Pavel Machek wrote:
-> > > 
-> > > This adds support for AD5820 autofocus coil, found for example in
-> > > Nokia N900 smartphone.
-> > > 
-> > > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> > 
-> > The patch looks good to me but then I came to think of a question I've
-> > missed so far: is there DT documentation somewhere for the properties used
-> > by the driver? I might put that to a separate patch, and cc the relevant
-> > list.
-> 
-> Well, it does not use any dt properties. So there's not really much to
-> discuss with dt people...
-> 
-> Maybe "ad5820" needs to go to list of simple i2c drivers somewhere,
-> but...
-
-It's an I2C device and it does use a regulator. Not a lot, though, these are
-both quite basic stuff. This should still be documented as the people who
-write the DT bindings (in general) aren't expected to read driver code as
-well. That's at least my understanding.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+VGhlIFNESU8gd2FrZWlycSBpcyB3cm9uZywgaXQgbmVlZHMgdG8gYmUgU0RJTyBkYXQxIGxpbmUs
+IG5vdCBkYXQwLgpPdGhlcndpc2UgdGhlIHN5c3RlbSB3b24ndCB3YWtlIHRvIFNESU8gaW50ZXJy
+dXB0cyBmcm9tIGlkbGUgc3RhdGVzLgoKVGhpcyBtYWtlcyB0aGUgd2wxMnh4IGJlaGF2ZSBiZXR0
+ZXIgb24gaWdlcHY1LCBvdGhlcndpc2Ugd2UgbWF5IGhhdmUgaGFyZAp0aW1lIGNvbm5lY3Rpbmcg
+dG8gYW4gYWNjZXNzIHBvaW50LgoKQW5kIG9tYXA1LXVldm0gb3Igd2wxOHh4IHN0aWxsIHNlZW1z
+IHRvIGhhdmUgc29tZSBvdGhlciBpc3N1ZXMgcmVtYWluaW5nLgoKQ2M6IEFndXN0w60gRm9udHF1
+ZXJuaSA8YWZAaXNlZWJjbi5jb20+CkNjOiBFZHVhcmQgR2F2aW4gPGVnYXZpbkBpc2VlYmNuLmNv
+bT4KQ2M6IEVucmljIEJhbGxldGJvIFNlcnJhIDxlYmFsbGV0Ym9AZ21haWwuY29tPgpDYzogVXJp
+IE1hc2hpYWNoIDx1cmkubWFzaGlhY2hAY29tcHVsYWIuY28uaWw+ClNpZ25lZC1vZmYtYnk6IFRv
+bnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvb21h
+cDUtYm9hcmQtY29tbW9uLmR0c2kgfCAyICstCiAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24o
+KyksIDEgZGVsZXRpb24oLSkKCi0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LWJvYXJkLWNv
+bW1vbi5kdHNpCisrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LWJvYXJkLWNvbW1vbi5kdHNp
+CkBAIC0zNTcsNyArMzU3LDcgQEAKIAlwaW5jdHJsLW5hbWVzID0gImRlZmF1bHQiOwogCXBpbmN0
+cmwtMCA9IDwmbW1jM19waW5zICZ3bGNvcmVfaXJxX3Bpbj47CiAJaW50ZXJydXB0cy1leHRlbmRl
+ZCA9IDwmZ2ljIEdJQ19TUEkgOTQgSVJRX1RZUEVfTEVWRUxfSElHSAotCQkJICAgICAgICZvbWFw
+NV9wbXhfY29yZSAweDE2OD47CisJCQkgICAgICAgJm9tYXA1X3BteF9jb3JlIDB4MTZhPjsKIAog
+CSNhZGRyZXNzLWNlbGxzID0gPDE+OwogCSNzaXplLWNlbGxzID0gPDA+OwotLSAKMi44LjEKCgpf
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0t
+a2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcK
+aHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2Vy
+bmVsCg==
