@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 17/27] ARM/video: omap2: Move omap_display_init declaration to mach-omap2/display.h
-Date: Wed, 1 Jun 2016 11:35:39 +0300
-Message-ID: <20160601083549.10549-18-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 13/27] drm/omap: connector-analog-tv: Support only Composite type in legacy boot
+Date: Wed, 1 Jun 2016 11:35:35 +0300
+Message-ID: <20160601083549.10549-14-peter.ujfalusi@ti.com>
 References: <20160601083549.10549-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,70 +12,55 @@ To: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, robdclark@gmail.com, airlied@l
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com, jsarha@ti.com, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-The omap_display_init() is implemented in the mach-omap2/display.c so the
-declaration should have been there as well.
-Change the board files to include display.h to avoid build breakage at the
-same time.
+In legacy mode (non DT mode) support only composite connector type. The
+only user for this is rx51, using composite type.
+Dropping the connector_type selection via pdata will allow cleanups in
+omapdss (drm vs fbdev).
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/mach-omap2/board-ldp.c        | 1 +
- arch/arm/mach-omap2/board-rx51-video.c | 1 +
- arch/arm/mach-omap2/display.h          | 5 +++++
- include/video/omapdss.h                | 3 ---
- 4 files changed, 7 insertions(+), 3 deletions(-)
+ drivers/gpu/drm/omapdrm/displays/connector-analog-tv.c | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index d9c3ffc39329..f364a1b779f0 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -47,6 +47,7 @@
- #include "hsmmc.h"
- #include "control.h"
- #include "common-board-devices.h"
-+#include "display.h"
+diff --git a/drivers/gpu/drm/omapdrm/displays/connector-analog-tv.c b/drivers/gpu/drm/omapdrm/displays/connector-analog-tv.c
+index 8511c648a15c..d963b4a9cfc0 100644
+--- a/drivers/gpu/drm/omapdrm/displays/connector-analog-tv.c
++++ b/drivers/gpu/drm/omapdrm/displays/connector-analog-tv.c
+@@ -25,7 +25,6 @@ struct panel_drv_data {
  
- #define LDP_SMSC911X_CS		1
- #define LDP_SMSC911X_GPIO	152
-diff --git a/arch/arm/mach-omap2/board-rx51-video.c b/arch/arm/mach-omap2/board-rx51-video.c
-index b76f84245ad9..9866ec06a395 100644
---- a/arch/arm/mach-omap2/board-rx51-video.c
-+++ b/arch/arm/mach-omap2/board-rx51-video.c
-@@ -22,6 +22,7 @@
+ 	struct omap_video_timings timings;
  
- #include "soc.h"
- #include "board-rx51.h"
-+#include "display.h"
- 
- #include "mux.h"
- 
-diff --git a/arch/arm/mach-omap2/display.h b/arch/arm/mach-omap2/display.h
-index 7375854b16c7..78f253005279 100644
---- a/arch/arm/mach-omap2/display.h
-+++ b/arch/arm/mach-omap2/display.h
-@@ -33,4 +33,9 @@ int omap_init_vout(void);
- 
- struct device_node * __init omapdss_find_dss_of_node(void);
- 
-+struct omap_dss_board_info;
-+
-+/* Init with the board info */
-+int omap_display_init(struct omap_dss_board_info *board_data);
-+
- #endif
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index 8e14ad7327c9..0c7ae93ebd76 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -330,9 +330,6 @@ struct omap_dss_board_info {
- 	enum omapdss_version version;
+-	enum omap_dss_venc_type connector_type;
+ 	bool invert_polarity;
  };
  
--/* Init with the board info */
--extern int omap_display_init(struct omap_dss_board_info *board_data);
+@@ -45,10 +44,6 @@ static const struct omap_video_timings tvc_pal_timings = {
+ 
+ static const struct of_device_id tvc_of_match[];
+ 
+-struct tvc_of_data {
+-	enum omap_dss_venc_type connector_type;
+-};
 -
- struct omap_video_timings {
- 	/* Unit: pixels */
- 	u16 x_res;
+ #define to_panel_data(x) container_of(x, struct panel_drv_data, dssdev)
+ 
+ static int tvc_connect(struct omap_dss_device *dssdev)
+@@ -99,7 +94,7 @@ static int tvc_enable(struct omap_dss_device *dssdev)
+ 	in->ops.atv->set_timings(in, &ddata->timings);
+ 
+ 	if (!ddata->dev->of_node) {
+-		in->ops.atv->set_type(in, ddata->connector_type);
++		in->ops.atv->set_type(in, OMAP_DSS_VENC_TYPE_COMPOSITE);
+ 
+ 		in->ops.atv->invert_vid_out_polarity(in,
+ 			ddata->invert_polarity);
+@@ -207,7 +202,6 @@ static int tvc_probe_pdata(struct platform_device *pdev)
+ 
+ 	ddata->in = in;
+ 
+-	ddata->connector_type = pdata->connector_type;
+ 	ddata->invert_polarity = pdata->invert_polarity;
+ 
+ 	dssdev = &ddata->dssdev;
 -- 
 2.8.3
