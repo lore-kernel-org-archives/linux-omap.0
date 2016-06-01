@@ -1,70 +1,129 @@
-From: Felipe Balbi <balbi@kernel.org>
-Subject: Re: [PATCH v9 5/5] usb: dwc3: core: cleanup IRQ resources
-Date: Wed, 01 Jun 2016 11:06:44 +0300
-Message-ID: <8737oxl4dn.fsf@linux.intel.com>
-References: <1462977406-22806-1-git-send-email-rogerq@ti.com> <1462977406-22806-6-git-send-email-rogerq@ti.com> <574E92E8.5080201@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 02/27] omapfb: panel-nec-nl8048hl11: Remove legacy boot support
+Date: Wed, 1 Jun 2016 11:35:24 +0300
+Message-ID: <20160601083549.10549-3-peter.ujfalusi@ti.com>
+References: <20160601083549.10549-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha256; protocol="application/pgp-signature"
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <574E92E8.5080201@ti.com>
+In-Reply-To: <20160601083549.10549-1-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, rogerq@ti.com
+To: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, robdclark@gmail.com, airlied@linux.ie, tony@atomide.com
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com, jsarha@ti.com, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+The panel is not used by any legacy board files so the legacy (pdata) boot
+support can be dropped.
 
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ .../omap2/omapfb/displays/panel-nec-nl8048hl11.c   | 45 +++-------------------
+ include/video/omap-panel-data.h                    | 18 ---------
+ 2 files changed, 6 insertions(+), 57 deletions(-)
 
-Hi,
-
-Roger Quadros <rogerq@ti.com> writes:
-> Implementations might use different IRQs for
-> host, gadget and OTG so use named interrupt resources
-> to allow Device tree to specify the 3 interrupts.
->
-> Following are the interrupt names
->
-> Peripheral Interrupt - peripheral
-> HOST Interrupt - host
-> OTG Interrupt - otg
->
-> We still maintain backward compatibility for a single named
-> interrupt for all 3 interrupts (e.g. for dwc3-pci) and
-> single unnamed interrupt for all 3 interrupts (e.g. old DT).
->
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
-> v9: rebased on top of balbi/testing/next
-
-breaks dwc3:
-
-[  222.776504] dwc3 dwc3.0.auto: failed to request irq #-6 --> -22
-
-please test
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJXTpeVAAoJEIaOsuA1yqRERp4P/i1FnVjsACPMZ+ewF5Qs5TxL
-nN5Upz4UuR3CrDiroebztj29Fe1jin0R3anZ5+dd8xWjf3tJBkHPDdb/1sbF/jZ0
-7D3qqk8Jmpby4j6ZNIDu1C8yWNAr1R6FHV6oXg6iZxZ2LcDLrsCQ2L3DO1FtfuAP
-DkTOOk+mGIUNsgccmUGvQepfz2HL1IoY8apdcH3u3jq7zIo3bUAfWAy/9JymwuAB
-cgW3NucOw1fo9tBhDXyMg6GUvNyApyOpDT6yjsryi6nTz03ETEqqDJ5fBVHbT8lh
-VKPZQGOnVz98RYxSMiTANNaMRbdTkRSqyrYGLWsiDgXLyRiGZiY8z6Pr2ibQVVBq
-PdhTB5UNiVvYjQApXiEo/8tsFSv52u/8CQ/1YJWS33lK5sdq08xIIJ6XLp+jwxyv
-dAKNhOoPnEpwvGS7aIFUvrIFP13EOm3t0/cXLW44O6szwbhnO+x+opuVGNIyDXU3
-zzkesvzFrZ+aVquSDXNcAST383ZsCEZNLU9ScEVCINqpki/IV+JKdE6V507TqE02
-sV/pWRhXIAdfQwLcIJMdGLTbVIOoyvP5uaqSzEsDKYxOuEsHaiFwl9fiyhF4DFRt
-uzJQhlS/sb+zGC9Xk77lg+x7n3ox955LkgWHf3fS+8cvOs8balvV0GW67vXbPUq7
-MXjBdPRo7bSrEZsWNTA7
-=9Ge9
------END PGP SIGNATURE-----
---=-=-=--
+diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c
+index 8a928c9a2fc9..3852cea3c947 100644
+--- a/drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c
++++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c
+@@ -19,7 +19,6 @@
+ #include <linux/of_gpio.h>
+ 
+ #include <video/omapdss.h>
+-#include <video/omap-panel-data.h>
+ 
+ struct panel_drv_data {
+ 	struct omap_dss_device	dssdev;
+@@ -233,33 +232,6 @@ static struct omap_dss_driver nec_8048_ops = {
+ };
+ 
+ 
+-static int nec_8048_probe_pdata(struct spi_device *spi)
+-{
+-	const struct panel_nec_nl8048hl11_platform_data *pdata;
+-	struct panel_drv_data *ddata = dev_get_drvdata(&spi->dev);
+-	struct omap_dss_device *dssdev, *in;
+-
+-	pdata = dev_get_platdata(&spi->dev);
+-
+-	ddata->qvga_gpio = pdata->qvga_gpio;
+-	ddata->res_gpio = pdata->res_gpio;
+-
+-	in = omap_dss_find_output(pdata->source);
+-	if (in == NULL) {
+-		dev_err(&spi->dev, "failed to find video source '%s'\n",
+-				pdata->source);
+-		return -EPROBE_DEFER;
+-	}
+-	ddata->in = in;
+-
+-	ddata->data_lines = pdata->data_lines;
+-
+-	dssdev = &ddata->dssdev;
+-	dssdev->name = pdata->name;
+-
+-	return 0;
+-}
+-
+ static int nec_8048_probe_of(struct spi_device *spi)
+ {
+ 	struct device_node *node = spi->dev.of_node;
+@@ -296,6 +268,9 @@ static int nec_8048_probe(struct spi_device *spi)
+ 
+ 	dev_dbg(&spi->dev, "%s\n", __func__);
+ 
++	if (!spi->dev.of_node)
++		return -ENODEV;
++
+ 	spi->mode = SPI_MODE_0;
+ 	spi->bits_per_word = 32;
+ 
+@@ -315,17 +290,9 @@ static int nec_8048_probe(struct spi_device *spi)
+ 
+ 	ddata->spi = spi;
+ 
+-	if (dev_get_platdata(&spi->dev)) {
+-		r = nec_8048_probe_pdata(spi);
+-		if (r)
+-			return r;
+-	} else if (spi->dev.of_node) {
+-		r = nec_8048_probe_of(spi);
+-		if (r)
+-			return r;
+-	} else {
+-		return -ENODEV;
+-	}
++	r = nec_8048_probe_of(spi);
++	if (r)
++		return r;
+ 
+ 	if (gpio_is_valid(ddata->qvga_gpio)) {
+ 		r = devm_gpio_request_one(&spi->dev, ddata->qvga_gpio,
+diff --git a/include/video/omap-panel-data.h b/include/video/omap-panel-data.h
+index fbdaa4c3ae96..a0c95cd1ed11 100644
+--- a/include/video/omap-panel-data.h
++++ b/include/video/omap-panel-data.h
+@@ -205,22 +205,4 @@ struct panel_tpo_td043mtea1_platform_data {
+ 	int nreset_gpio;
+ };
+ 
+-/**
+- * panel-nec-nl8048hl11 platform data
+- * @name: name for this display entity
+- * @source: name of the display entity used as a video source
+- * @data_lines: number of DPI datalines
+- * @res_gpio: reset signal
+- * @qvga_gpio: selection for resolution(QVGA/WVGA)
+- */
+-struct panel_nec_nl8048hl11_platform_data {
+-	const char *name;
+-	const char *source;
+-
+-	int data_lines;
+-
+-	int res_gpio;
+-	int qvga_gpio;
+-};
+-
+ #endif /* __OMAP_PANEL_DATA_H */
+-- 
+2.8.3
