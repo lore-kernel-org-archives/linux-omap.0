@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 18/27] drm/omap: Remove reference to pdata->default_device
-Date: Wed, 1 Jun 2016 11:35:40 +0300
-Message-ID: <20160601083549.10549-19-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 19/27] omapfb: Remove reference to pdata->default_device
+Date: Wed, 1 Jun 2016 11:35:41 +0300
+Message-ID: <20160601083549.10549-20-peter.ujfalusi@ti.com>
 References: <20160601083549.10549-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -17,21 +17,21 @@ else if (pdata->default_device) is always going to be false.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/gpu/drm/omapdrm/dss/core.c | 2 --
+ drivers/video/fbdev/omap2/omapfb/dss/core.c | 2 --
  1 file changed, 2 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/dss/core.c b/drivers/gpu/drm/omapdrm/dss/core.c
-index 7e4e5bebabbe..9cf22b30023f 100644
---- a/drivers/gpu/drm/omapdrm/dss/core.c
-+++ b/drivers/gpu/drm/omapdrm/dss/core.c
-@@ -196,8 +196,6 @@ static int __init omap_dss_probe(struct platform_device *pdev)
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/core.c b/drivers/video/fbdev/omap2/omapfb/dss/core.c
+index 5a87179b7312..b9de21d3ff09 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/core.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/core.c
+@@ -208,8 +208,6 @@ static int __init omap_dss_probe(struct platform_device *pdev)
  		core.default_display_name = def_disp_name;
  	else if (pdata->default_display_name)
  		core.default_display_name = pdata->default_display_name;
 -	else if (pdata->default_device)
 -		core.default_display_name = pdata->default_device->name;
  
- 	return 0;
+ 	register_pm_notifier(&omap_dss_pm_notif_block);
  
 -- 
 2.8.3
