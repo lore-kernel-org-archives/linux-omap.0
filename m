@@ -1,65 +1,80 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 26/27] [media] omap_vout: Switch to use the video/omapfb_dss.h header file
-Date: Wed, 1 Jun 2016 11:35:48 +0300
-Message-ID: <20160601083549.10549-27-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 01/27] omapfb: panel-tpo-td028ttec1: Remove legacy boot
+ support
+Date: Wed, 1 Jun 2016 11:35:23 +0300
+Message-ID: <20160601083549.10549-2-peter.ujfalusi@ti.com>
 References: <20160601083549.10549-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 In-Reply-To: <20160601083549.10549-1-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, robdclark@gmail.com, airlied@linux.ie, tony@atomide.com
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com, jsarha@ti.com, dri-devel@lists.freedesktop.org
+Cc: linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, jsarha@ti.com, linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com
 List-Id: linux-omap@vger.kernel.org
 
-The omap_vout is only supported with omapfb. Switch the driver to use the
-correct header file.
-
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- drivers/media/platform/omap/omap_vout.c    | 2 +-
- drivers/media/platform/omap/omap_voutdef.h | 2 +-
- drivers/media/platform/omap/omap_voutlib.c | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
-index 70c28d19ea04..22cf60991df6 100644
---- a/drivers/media/platform/omap/omap_vout.c
-+++ b/drivers/media/platform/omap/omap_vout.c
-@@ -45,7 +45,7 @@
- #include <media/v4l2-ioctl.h>
- 
- #include <video/omapvrfb.h>
--#include <video/omapdss.h>
-+#include <video/omapfb_dss.h>
- 
- #include "omap_voutlib.h"
- #include "omap_voutdef.h"
-diff --git a/drivers/media/platform/omap/omap_voutdef.h b/drivers/media/platform/omap/omap_voutdef.h
-index 9ccfe1f475a4..94b5d65afb19 100644
---- a/drivers/media/platform/omap/omap_voutdef.h
-+++ b/drivers/media/platform/omap/omap_voutdef.h
-@@ -11,7 +11,7 @@
- #ifndef OMAP_VOUTDEF_H
- #define OMAP_VOUTDEF_H
- 
--#include <video/omapdss.h>
-+#include <video/omapfb_dss.h>
- #include <video/omapvrfb.h>
- 
- #define YUYV_BPP        2
-diff --git a/drivers/media/platform/omap/omap_voutlib.c b/drivers/media/platform/omap/omap_voutlib.c
-index 80b0d88f125c..58a25fdf0cce 100644
---- a/drivers/media/platform/omap/omap_voutlib.c
-+++ b/drivers/media/platform/omap/omap_voutlib.c
-@@ -26,7 +26,7 @@
- 
- #include <linux/dma-mapping.h>
- 
--#include <video/omapdss.h>
-+#include <video/omapfb_dss.h>
- 
- #include "omap_voutlib.h"
- 
--- 
-2.8.3
+VGhlIHBhbmVsIGlzIG5vdCB1c2VkIGJ5IGFueSBsZWdhY3kgYm9hcmQgZmlsZXMgc28gdGhlIGxl
+Z2FjeSAocGRhdGEpIGJvb3QKc3VwcG9ydCBjYW4gYmUgZHJvcHBlZC4KClNpZ25lZC1vZmYtYnk6
+IFBldGVyIFVqZmFsdXNpIDxwZXRlci51amZhbHVzaUB0aS5jb20+Ci0tLQogLi4uL29tYXAyL29t
+YXBmYi9kaXNwbGF5cy9wYW5lbC10cG8tdGQwMjh0dGVjMS5jICAgfCA0MyArKystLS0tLS0tLS0t
+LS0tLS0tLS0tCiBpbmNsdWRlL3ZpZGVvL29tYXAtcGFuZWwtZGF0YS5oICAgICAgICAgICAgICAg
+ICAgICB8IDEzIC0tLS0tLS0KIDIgZmlsZXMgY2hhbmdlZCwgNiBpbnNlcnRpb25zKCspLCA1MCBk
+ZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBm
+Yi9kaXNwbGF5cy9wYW5lbC10cG8tdGQwMjh0dGVjMS5jIGIvZHJpdmVycy92aWRlby9mYmRldi9v
+bWFwMi9vbWFwZmIvZGlzcGxheXMvcGFuZWwtdHBvLXRkMDI4dHRlYzEuYwppbmRleCA0ZDY1N2Yz
+YWI2NzkuLmY0ZGMwMjM4NjhhZSAxMDA2NDQKLS0tIGEvZHJpdmVycy92aWRlby9mYmRldi9vbWFw
+Mi9vbWFwZmIvZGlzcGxheXMvcGFuZWwtdHBvLXRkMDI4dHRlYzEuYworKysgYi9kcml2ZXJzL3Zp
+ZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kaXNwbGF5cy9wYW5lbC10cG8tdGQwMjh0dGVjMS5jCkBA
+IC0yOSw3ICsyOSw2IEBACiAjaW5jbHVkZSA8bGludXgvc3BpL3NwaS5oPgogI2luY2x1ZGUgPGxp
+bnV4L2dwaW8uaD4KICNpbmNsdWRlIDx2aWRlby9vbWFwZHNzLmg+Ci0jaW5jbHVkZSA8dmlkZW8v
+b21hcC1wYW5lbC1kYXRhLmg+CiAKIHN0cnVjdCBwYW5lbF9kcnZfZGF0YSB7CiAJc3RydWN0IG9t
+YXBfZHNzX2RldmljZSBkc3NkZXY7CkBAIC0zNjUsMzEgKzM2NCw2IEBAIHN0YXRpYyBzdHJ1Y3Qg
+b21hcF9kc3NfZHJpdmVyIHRkMDI4dHRlYzFfb3BzID0gewogCS5jaGVja190aW1pbmdzCT0gdGQw
+Mjh0dGVjMV9wYW5lbF9jaGVja190aW1pbmdzLAogfTsKIAotc3RhdGljIGludCB0ZDAyOHR0ZWMx
+X3BhbmVsX3Byb2JlX3BkYXRhKHN0cnVjdCBzcGlfZGV2aWNlICpzcGkpCi17Ci0JY29uc3Qgc3Ry
+dWN0IHBhbmVsX3Rwb190ZDAyOHR0ZWMxX3BsYXRmb3JtX2RhdGEgKnBkYXRhOwotCXN0cnVjdCBw
+YW5lbF9kcnZfZGF0YSAqZGRhdGEgPSBkZXZfZ2V0X2RydmRhdGEoJnNwaS0+ZGV2KTsKLQlzdHJ1
+Y3Qgb21hcF9kc3NfZGV2aWNlICpkc3NkZXYsICppbjsKLQotCXBkYXRhID0gZGV2X2dldF9wbGF0
+ZGF0YSgmc3BpLT5kZXYpOwotCi0JaW4gPSBvbWFwX2Rzc19maW5kX291dHB1dChwZGF0YS0+c291
+cmNlKTsKLQlpZiAoaW4gPT0gTlVMTCkgewotCQlkZXZfZXJyKCZzcGktPmRldiwgImZhaWxlZCB0
+byBmaW5kIHZpZGVvIHNvdXJjZSAnJXMnXG4iLAotCQkJCXBkYXRhLT5zb3VyY2UpOwotCQlyZXR1
+cm4gLUVQUk9CRV9ERUZFUjsKLQl9Ci0KLQlkZGF0YS0+aW4gPSBpbjsKLQotCWRkYXRhLT5kYXRh
+X2xpbmVzID0gcGRhdGEtPmRhdGFfbGluZXM7Ci0KLQlkc3NkZXYgPSAmZGRhdGEtPmRzc2RldjsK
+LQlkc3NkZXYtPm5hbWUgPSBwZGF0YS0+bmFtZTsKLQotCXJldHVybiAwOwotfQotCiBzdGF0aWMg
+aW50IHRkMDI4dHRlYzFfcHJvYmVfb2Yoc3RydWN0IHNwaV9kZXZpY2UgKnNwaSkKIHsKIAlzdHJ1
+Y3QgZGV2aWNlX25vZGUgKm5vZGUgPSBzcGktPmRldi5vZl9ub2RlOwpAQCAtNDE1LDYgKzM4OSw5
+IEBAIHN0YXRpYyBpbnQgdGQwMjh0dGVjMV9wYW5lbF9wcm9iZShzdHJ1Y3Qgc3BpX2RldmljZSAq
+c3BpKQogCiAJZGV2X2RiZygmc3BpLT5kZXYsICIlc1xuIiwgX19mdW5jX18pOwogCisJaWYgKCFz
+cGktPmRldi5vZl9ub2RlKQorCQlyZXR1cm4gLUVOT0RFVjsKKwogCXNwaS0+Yml0c19wZXJfd29y
+ZCA9IDk7CiAJc3BpLT5tb2RlID0gU1BJX01PREVfMzsKIApAQCAtNDMyLDE3ICs0MDksOSBAQCBz
+dGF0aWMgaW50IHRkMDI4dHRlYzFfcGFuZWxfcHJvYmUoc3RydWN0IHNwaV9kZXZpY2UgKnNwaSkK
+IAogCWRkYXRhLT5zcGlfZGV2ID0gc3BpOwogCi0JaWYgKGRldl9nZXRfcGxhdGRhdGEoJnNwaS0+
+ZGV2KSkgewotCQlyID0gdGQwMjh0dGVjMV9wYW5lbF9wcm9iZV9wZGF0YShzcGkpOwotCQlpZiAo
+cikKLQkJCXJldHVybiByOwotCX0gZWxzZSBpZiAoc3BpLT5kZXYub2Zfbm9kZSkgewotCQlyID0g
+dGQwMjh0dGVjMV9wcm9iZV9vZihzcGkpOwotCQlpZiAocikKLQkJCXJldHVybiByOwotCX0gZWxz
+ZSB7Ci0JCXJldHVybiAtRU5PREVWOwotCX0KKwlyID0gdGQwMjh0dGVjMV9wcm9iZV9vZihzcGkp
+OworCWlmIChyKQorCQlyZXR1cm4gcjsKIAogCWRkYXRhLT52aWRlb21vZGUgPSB0ZDAyOHR0ZWMx
+X3BhbmVsX3RpbWluZ3M7CiAKZGlmZiAtLWdpdCBhL2luY2x1ZGUvdmlkZW8vb21hcC1wYW5lbC1k
+YXRhLmggYi9pbmNsdWRlL3ZpZGVvL29tYXAtcGFuZWwtZGF0YS5oCmluZGV4IDU2ODMwZDFkYzc2
+Mi4uZmJkYWE0YzNhZTk2IDEwMDY0NAotLS0gYS9pbmNsdWRlL3ZpZGVvL29tYXAtcGFuZWwtZGF0
+YS5oCisrKyBiL2luY2x1ZGUvdmlkZW8vb21hcC1wYW5lbC1kYXRhLmgKQEAgLTIyMywxNyArMjIz
+LDQgQEAgc3RydWN0IHBhbmVsX25lY19ubDgwNDhobDExX3BsYXRmb3JtX2RhdGEgewogCWludCBx
+dmdhX2dwaW87CiB9OwogCi0vKioKLSAqIHBhbmVsLXRwby10ZDAyOHR0ZWMxIHBsYXRmb3JtIGRh
+dGEKLSAqIEBuYW1lOiBuYW1lIGZvciBkaXNwbGF5IGVudGl0eQotICogQHNvdXJjZTogbmFtZSBv
+ZiB0aGUgZGlzcGxheSBlbnRpdHkgdXNlZCBhcyBhIHZpZGVvIHNvdXJjZQotICogQGRhdGFfbGlu
+ZXM6IG51bWJlciBvZiBEUEkgZGF0YWxpbmVzCi0gKi8KLXN0cnVjdCBwYW5lbF90cG9fdGQwMjh0
+dGVjMV9wbGF0Zm9ybV9kYXRhIHsKLQljb25zdCBjaGFyICpuYW1lOwotCWNvbnN0IGNoYXIgKnNv
+dXJjZTsKLQotCWludCBkYXRhX2xpbmVzOwotfTsKLQogI2VuZGlmIC8qIF9fT01BUF9QQU5FTF9E
+QVRBX0ggKi8KLS0gCjIuOC4zCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVz
+a3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9k
+cmktZGV2ZWwK
