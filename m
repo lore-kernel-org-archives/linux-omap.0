@@ -1,33 +1,43 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] pinctrl: single: Fix missing flush of posted write for a wakeirq
-Date: Thu, 2 Jun 2016 14:27:33 +0200
-Message-ID: <CACRpkdZUJU90S1Qsqx=8uk33tsXfnpsViJGr_ysgZcmRBH9KHA@mail.gmail.com>
-References: <1464729426-11187-1-git-send-email-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1464729426-11187-1-git-send-email-tony@atomide.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Haojian Zhuang <haojian.zhuang@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [PATCH] net: ethernet: ti: cpsw: fix rx-usecs interrupt pacing consistency
+Date: Thu,  2 Jun 2016 16:14:52 +0300
+Message-ID: <1464873292-17011-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, mugunthanvnm@ti.com
+Cc: grygorii.strashko@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, May 31, 2016 at 11:17 PM, Tony Lindgren <tony@atomide.com> wrote:
+The rx-usecs shouldn't be changed while interface down/up.
+Currently, for instance, if it's set to 100us, after interface
+down/up it's 500us. It's a hidden bug that can lead to lavish
+interrupt pacing time increasing while "down/up" up to max value.
 
-> With many repeated suspend resume cycles, the pin specific wakeirq
-> may not always work on omaps. This is because the write to enable the
-> pin interrupt may not have reached the device over the interconnect
-> before suspend happens.
->
-> Let's fix the issue with a flush of posted write with a readback.
->
-> Reported-by: Nishanth Menon <nm@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+Steps to reproduce:
+- set rx-usecs to be 100us
+- down/up interface
+- read new unexpected rx-usecs
 
-Patch applied.
+Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+---
 
-Is it a regression that needs to be sent to fixes and tagged
-for stable?
+Based on ti-linux-4.4.y
 
-Yours,
-Linus Walleij
+ drivers/net/ethernet/ti/cpsw.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 7b44587..9919cb3 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -1352,7 +1352,7 @@ static int cpsw_ndo_open(struct net_device *ndev)
+ 	if (priv->coal_intvl != 0) {
+ 		struct ethtool_coalesce coal;
+ 
+-		coal.rx_coalesce_usecs = (priv->coal_intvl << 4);
++		coal.rx_coalesce_usecs = priv->coal_intvl;
+ 		cpsw_set_coalesce(ndev, &coal);
+ 	}
+ 
+-- 
+1.9.1
