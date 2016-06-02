@@ -1,59 +1,84 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: am335x-boneblack: add i2c1 DT entry
-Date: Thu, 2 Jun 2016 10:56:35 -0700
-Message-ID: <20160602175635.GG5995@atomide.com>
-References: <1464853310-8738-1-git-send-email-yong.b.li@intel.com>
- <CAOCHtYib9YxckneM-j0Gk1YE=MnvAwAhvDjEDEuFJbH6W3EcWA@mail.gmail.com>
- <20160602173932.GF5995@atomide.com>
- <CAOCHtYiWYrwSidHnKv4siFT-wU=tt5-YeDTwbM022ZTxdPFYYA@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCHv5] support for AD5820 camera auto-focus coil
+Date: Thu, 2 Jun 2016 21:27:37 +0200
+Message-ID: <20160602192737.GA7984@amd>
+References: <574049EF.2090208@gmail.com>
+ <20160524090433.GA1277@amd>
+ <20160524091746.GA14536@amd>
+ <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
+ <20160527205140.GA26767@amd>
+ <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
+ <20160531213437.GA28397@amd>
+ <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
+ <20160601220840.GA21946@amd>
+ <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAOCHtYiWYrwSidHnKv4siFT-wU=tt5-YeDTwbM022ZTxdPFYYA@mail.gmail.com>
+In-Reply-To: <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Robert Nelson <robertcnelson@gmail.com>
-Cc: Yong Li <yong.b.li@intel.com>, Benoit Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux kernel <linux-kernel@vger.kernel.org>, sdliyong@gmail.com
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-* Robert Nelson <robertcnelson@gmail.com> [160602 10:48]:
-> On Thu, Jun 2, 2016 at 12:39 PM, Tony Lindgren <tony@atomide.com> wrote:
-> >
-> > * Robert Nelson <robertcnelson@gmail.com> [160602 10:39]:
-> > > On Thu, Jun 2, 2016 at 2:41 AM, Yong Li <yong.b.li@intel.com> wrote:
-> > >
-> > > > From: Yong Li <sdliyong@gmail.com>
-> > > >
-> > > > Without this patch, I2C-1 is missing on beaglebone black boards
-> > > >
-> > > > Signed-off-by: Yong Li <sdliyong@gmail.com>
-> > > > ---
-> > > >  arch/arm/boot/dts/am335x-boneblack.dts | 15 +++++++++++++++
-> > > >  1 file changed, 15 insertions(+)
-> > > >
-> > >
-> > >
-> > > This is also 'common' for the white/green, if your really going to push
-> > > this, please add it to:
-> > >
-> > > am335x-bone-common.dtsi
-> >
-> > But isn't this exposed on the cape pins? So the use can be
-> > whatever for these pins?
+On Thu 2016-06-02 10:45:45, Sakari Ailus wrote:
+> On Thu, Jun 02, 2016 at 12:08:40AM +0200, Pavel Machek wrote:
+> > On Wed 2016-06-01 18:24:39, Sakari Ailus wrote:
+> > > Hi Pavel,
+> > 
+> > > > Well, it does not use any dt properties. So there's not really much to
+> > > > discuss with dt people...
+> > > > 
+> > > > Maybe "ad5820" needs to go to list of simple i2c drivers somewhere,
+> > > > but...
+> > > 
+> > > It's an I2C device and it does use a regulator. Not a lot, though, these are
+> > > both quite basic stuff. This should still be documented as the people who
+> > > write the DT bindings (in general) aren't expected to read driver code as
+> > > well. That's at least my understanding.
+> > 
+> > Yep, you are right, I forgot about the regulator. Something like this?
+> > 
+> > Thanks,
+> > 									Pavel
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/i2c/ad5820.txt b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+> > new file mode 100644
+> > index 0000000..87c98f1
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
 > 
-> That is correct, "i2c1" is on the cape connector, with no primary
-> function defined.
-> 
-> Currently on mainline, the board and cape eeprom i2c bus's are enabled.
-> 
-> i2c0 = board eeprom
-> i2c2 = 'cape' eeprom
-> 
-> personally, nak by me to add i2c1 by default, should use overlay's to enable it.
+> I might use the compatible string as such as a part of the file name. Up to
+> you.
 
-Yes sounds like the best we can do is define it but set it with
-status = "disabled" for now.
+Sorry, can't do that, for consistency with other ad* files in the directory.
 
-Regards,
+> > @@ -0,0 +1,20 @@
+> > +* Analog Devices AD5820 autofocus coil
+> > +
+> > +Required Properties:
+> > +
+> > +  - compatible: Must contain "adi,ad5820"
+> > +
+> > +  - reg: I2C slave address
+> > +
+> > +  - VANA-supply: supply of voltage for VANA pin
+> > +
+> > +Example:
+> > +
+> > +       /* D/A converter for auto-focus */
+> 
+> There is definitely D/A conversion happening there but I'm not sure I'd
+> characterise the device as such. They're typically called "voice coil
+> drivers", perhaps because the devices are similar to a parts of a
+> loudspeaker.
 
-Tony
+Well, I'm pretty sure I did not invent that comment, but I can drop
+it.
+
+Best regards,
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
