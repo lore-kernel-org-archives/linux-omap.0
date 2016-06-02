@@ -1,40 +1,50 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH] device tree description for AD5820 camera auto-focus coil
-Date: Fri, 3 Jun 2016 00:27:46 +0300
-Message-ID: <20160602212746.GT26360@valkosipuli.retiisi.org.uk>
-References: <20160524090433.GA1277@amd>
- <20160524091746.GA14536@amd>
- <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd>
- <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
- <20160531213437.GA28397@amd>
- <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
- <20160601220840.GA21946@amd>
- <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
- <20160602193027.GB7984@amd>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [PATCH] net: ethernet: ti: cpsw: remove unused priv lock
+Date: Fri,  3 Jun 2016 01:37:08 +0300
+Message-ID: <1464907028-19622-1-git-send-email-ivan.khoronzhuk@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160602193027.GB7984@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org
+To: mugunthanvnm@ti.com, linux-kernel@vger.kernel.org
+Cc: grygorii.strashko@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 02, 2016 at 09:30:27PM +0200, Pavel Machek wrote:
-> 
-> Add documentation for ad5820 device tree binding.
-> 
-> Signed-off-by: Pavel Machek <pavel@denx.de>
+There is no reason in this lock. At least for now.
 
-Thanks, Pavel!!
+Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+---
 
-Can I pick the two patches (this one + the driver) or would you like to send
-a pull request? In the latter case you can add:
+Based on master
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+ drivers/net/ethernet/ti/cpsw.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 9919cb3..8d1d373 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -365,7 +365,6 @@ static inline void slave_write(struct cpsw_slave *slave, u32 val, u32 offset)
+ }
+ 
+ struct cpsw_priv {
+-	spinlock_t			lock;
+ 	struct platform_device		*pdev;
+ 	struct net_device		*ndev;
+ 	struct napi_struct		napi_rx;
+@@ -2413,7 +2412,6 @@ static int cpsw_probe_dual_emac(struct platform_device *pdev,
+ 	}
+ 
+ 	priv_sl2 = netdev_priv(ndev);
+-	spin_lock_init(&priv_sl2->lock);
+ 	priv_sl2->data = *data;
+ 	priv_sl2->pdev = pdev;
+ 	priv_sl2->ndev = ndev;
+@@ -2533,7 +2531,6 @@ static int cpsw_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, ndev);
+ 	priv = netdev_priv(ndev);
+-	spin_lock_init(&priv->lock);
+ 	priv->pdev = pdev;
+ 	priv->ndev = ndev;
+ 	priv->dev  = &ndev->dev;
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+1.9.1
