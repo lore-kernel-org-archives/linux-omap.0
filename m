@@ -1,108 +1,161 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v8 13/14] usb: gadget: udc: adapt to OTG core
-Date: Thu, 2 Jun 2016 14:07:52 +0300
-Message-ID: <57501388.9000107@ti.com>
-References: <1463133808-10630-1-git-send-email-rogerq@ti.com>
- <1463133808-10630-14-git-send-email-rogerq@ti.com>
- <20160601073804.GC15045@shlinux2>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH v9 5/5] usb: dwc3: core: cleanup IRQ resources
+Date: Thu, 2 Jun 2016 14:52:45 +0300
+Message-ID: <57501E0D.4010007@ti.com>
+References: <1462977406-22806-1-git-send-email-rogerq@ti.com>
+ <1462977406-22806-6-git-send-email-rogerq@ti.com> <574E92E8.5080201@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160601073804.GC15045@shlinux2>
+In-Reply-To: <574E92E8.5080201@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Chen <hzpeterchen@gmail.com>
-Cc: peter.chen@freescale.com, balbi@kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, balbi@kernel.org
+Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 01/06/16 10:38, Peter Chen wrote:
-> On Fri, May 13, 2016 at 01:03:27PM +0300, Roger Quadros wrote:
->> @@ -530,6 +683,8 @@ void usb_del_gadget_udc(struct usb_gadget *gadget)
->>  	}
->>  	mutex_unlock(&udc_lock);
->>  
->> +	mutex_unlock(&udc_lock);
->> +
-> 
-> Here, you have one more mutex_unlock.
+On 06/01/2016 10:46 AM, Roger Quadros wrote:
+> Implementations might use different IRQs for
+> host, gadget and OTG so use named interrupt resources
+> to allow Device tree to specify the 3 interrupts.
+>
+> Following are the interrupt names
+>
+> Peripheral Interrupt - peripheral
+> HOST Interrupt - host
+> OTG Interrupt - otg
 
-Will fix it. Thanks.
+or "dwc_usb3"??
 
->>  	kobject_uevent(&udc->dev.kobj, KOBJ_REMOVE);
->>  	flush_work(&gadget->work);
->>  	device_unregister(&udc->dev);
->> @@ -539,6 +694,13 @@ EXPORT_SYMBOL_GPL(usb_del_gadget_udc);
->>  
->>  /* ------------------------------------------------------------------------- */
->>  
->> +struct otg_gadget_ops otg_gadget_intf = {
->> +	.start = usb_gadget_start,
->> +	.stop = usb_gadget_stop,
->> +	.connect_control = usb_gadget_connect_control,
->> +};
->> +
->> +/* udc_lock must be held */
->>  static int udc_bind_to_driver(struct usb_udc *udc, struct usb_gadget_driver *driver)
->>  {
->>  	int ret;
->> @@ -553,12 +715,20 @@ static int udc_bind_to_driver(struct usb_udc *udc, struct usb_gadget_driver *dri
->>  	ret = driver->bind(udc->gadget, driver);
->>  	if (ret)
->>  		goto err1;
->> -	ret = usb_gadget_udc_start(udc);
->> -	if (ret) {
->> -		driver->unbind(udc->gadget);
->> -		goto err1;
->> +
->> +	/* If OTG, the otg core starts the UDC when needed */
->> +	if (udc->gadget->otg_dev) {
->> +		mutex_unlock(&udc_lock);
->> +		usb_otg_register_gadget(udc->gadget, &otg_gadget_intf);
->> +		mutex_lock(&udc_lock);
->> +	} else {
->> +		ret = usb_gadget_udc_start(udc);
->> +		if (ret) {
->> +			driver->unbind(udc->gadget);
->> +			goto err1;
->> +		}
->> +		usb_udc_connect_control(udc);
->>  	}
->> -	usb_udc_connect_control(udc);
->>  
->>  	kobject_uevent(&udc->dev.kobj, KOBJ_CHANGE);
->>  	return 0;
->> @@ -660,9 +830,15 @@ static ssize_t usb_udc_softconn_store(struct device *dev,
->>  		return -EOPNOTSUPP;
->>  	}
->>  
->> +	/* In OTG mode we don't support softconnect, but b_bus_req */
->> +	if (udc->gadget->otg_dev) {
->> +		dev_err(dev, "soft-connect not supported in OTG mode\n");
->> +		return -EOPNOTSUPP;
->> +	}
->> +
->>  	if (sysfs_streq(buf, "connect")) {
->>  		usb_gadget_udc_start(udc);
->> -		usb_gadget_connect(udc->gadget);
->> +		usb_udc_connect_control(udc);
->>  	} else if (sysfs_streq(buf, "disconnect")) {
->>  		usb_gadget_disconnect(udc->gadget);
->>  		udc->driver->disconnect(udc->gadget);
->> diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
->> index 3ecfddd..79d654f 100644
->> --- a/include/linux/usb/gadget.h
->> +++ b/include/linux/usb/gadget.h
->> @@ -1162,6 +1162,10 @@ extern int usb_add_gadget_udc(struct device *parent, struct usb_gadget *gadget);
->>  extern void usb_del_gadget_udc(struct usb_gadget *gadget);
->>  extern char *usb_get_gadget_udc_name(void);
->>  
->> +extern int usb_otg_add_gadget_udc(struct device *parent,
->> +				  struct usb_gadget *gadget,
->> +				  struct device *otg_dev);
->> +
->>  /*-------------------------------------------------------------------------*/
->>  
->>  /* utility to simplify dealing with string descriptors */
->> -- 
->> 2.7.4
->>
+>
+> We still maintain backward compatibility for a single named
+> interrupt for all 3 interrupts (e.g. for dwc3-pci) and
+> single unnamed interrupt for all 3 interrupts (e.g. old DT).
+
+bindings
+
+>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+> v9: rebased on top of balbi/testing/next
+>
+>   drivers/usb/dwc3/core.c   | 10 ----------
+>   drivers/usb/dwc3/gadget.c | 20 ++++++++++++++++++--
+>   drivers/usb/dwc3/host.c   | 19 +++++++++++++++++++
+>   3 files changed, 37 insertions(+), 12 deletions(-)
+>
+> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+> index 9c4e1d8d..5cedf3d 100644
+> --- a/drivers/usb/dwc3/core.c
+> +++ b/drivers/usb/dwc3/core.c
+> @@ -843,16 +843,6 @@ static int dwc3_probe(struct platform_device *pdev)
+>   	dwc->mem = mem;
+>   	dwc->dev = dev;
+>
+> -	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+> -	if (!res) {
+> -		dev_err(dev, "missing IRQ\n");
+> -		return -ENODEV;
+> -	}
+> -	dwc->xhci_resources[1].start = res->start;
+> -	dwc->xhci_resources[1].end = res->end;
+> -	dwc->xhci_resources[1].flags = res->flags;
+> -	dwc->xhci_resources[1].name = res->name;
+> -
+>   	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>   	if (!res) {
+>   		dev_err(dev, "missing memory resource\n");
+> diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+> index c37168d..c18c72f 100644
+> --- a/drivers/usb/dwc3/gadget.c
+> +++ b/drivers/usb/dwc3/gadget.c
+> @@ -1726,7 +1726,7 @@ static int dwc3_gadget_start(struct usb_gadget *g,
+>   	int			ret = 0;
+>   	int			irq;
+>
+> -	irq = platform_get_irq(to_platform_device(dwc->dev), 0);
+> +	irq = dwc->irq_gadget;
+>   	ret = request_threaded_irq(irq, dwc3_interrupt, dwc3_thread_interrupt,
+>   			IRQF_SHARED, "dwc3", dwc->ev_buf);
+>   	if (ret) {
+> @@ -1734,7 +1734,6 @@ static int dwc3_gadget_start(struct usb_gadget *g,
+>   				irq, ret);
+>   		goto err0;
+>   	}
+> -	dwc->irq_gadget = irq;
+>
+>   	spin_lock_irqsave(&dwc->lock, flags);
+>   	if (dwc->gadget_driver) {
+> @@ -2853,6 +2852,23 @@ static irqreturn_t dwc3_interrupt(int irq, void *_evt)
+>   int dwc3_gadget_init(struct dwc3 *dwc)
+>   {
+>   	int					ret;
+> +	struct resource *res;
+> +	struct platform_device *dwc3_pdev = to_platform_device(dwc->dev);
+> +
+> +	dwc->irq_gadget = platform_get_irq_byname(dwc3_pdev, "peripheral");
+> +	if (dwc->irq_gadget <= 0) {
+
+Is it expected to get -EPROBE_DEFER here?
+
+> +		dwc->irq_gadget = platform_get_irq_byname(dwc3_pdev,
+> +							  "dwc_usb3");
+> +		if (dwc->irq_gadget <= 0) {
+> +			res = platform_get_resource(dwc3_pdev, IORESOURCE_IRQ,
+> +						    0);
+
+It's better to use platform_get_irq().
+
+> +			if (!res) {
+> +				dev_err(dwc->dev, "missing peripheral IRQ\n");
+> +				return -ENODEV;
+> +			}
+> +			dwc->irq_gadget = res->start;
+> +		}
+> +	}
+>
+>   	dwc->ctrl_req = dma_alloc_coherent(dwc->dev, sizeof(*dwc->ctrl_req),
+>   			&dwc->ctrl_req_addr, GFP_KERNEL);
+> diff --git a/drivers/usb/dwc3/host.c b/drivers/usb/dwc3/host.c
+> index c679f63..f2b60a4 100644
+> --- a/drivers/usb/dwc3/host.c
+> +++ b/drivers/usb/dwc3/host.c
+> @@ -25,6 +25,25 @@ int dwc3_host_init(struct dwc3 *dwc)
+>   	struct platform_device	*xhci;
+>   	struct usb_xhci_pdata	pdata;
+>   	int			ret;
+> +	struct resource		*res;
+> +	struct platform_device	*dwc3_pdev = to_platform_device(dwc->dev);
+> +
+> +	res = platform_get_resource_byname(dwc3_pdev, IORESOURCE_IRQ, "host");
+> +	if (!res) {
+> +		res = platform_get_resource_byname(dwc3_pdev, IORESOURCE_IRQ,
+> +						   "dwc_usb3");
+> +		if (!res) {
+> +			res = platform_get_resource(dwc3_pdev, IORESOURCE_IRQ,
+> +						    0);
+> +			if (!res)
+
+> +				return -ENOMEM;
+> +		}
+> +	}
+
+Is it expected to have more than one IRQ here?
+
+if not - it will better to use platform_get_irq[_byname]().
+
+
+> +
+> +	dwc->xhci_resources[1].start = res->start;
+> +	dwc->xhci_resources[1].end = res->end;
+> +	dwc->xhci_resources[1].flags = res->flags;
+> +	dwc->xhci_resources[1].name = res->name;
+>
+>   	xhci = platform_device_alloc("xhci-hcd", PLATFORM_DEVID_AUTO);
+>   	if (!xhci) {
+>
+
+
+-- 
+regards,
+-grygorii
