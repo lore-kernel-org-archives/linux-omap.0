@@ -1,71 +1,88 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 0/5] ARM: OMAP5: add support for fref-xtal-clk
-Date: Thu, 2 Jun 2016 09:59:54 +0300
-Message-ID: <80bb7d87-28a7-7817-3b62-21271a752e16@ti.com>
-References: <1464802526-16372-1-git-send-email-t-kristo@ti.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCHv5] support for AD5820 camera auto-focus coil
+Date: Thu, 2 Jun 2016 10:45:45 +0300
+Message-ID: <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
+References: <20160521105607.GA20071@amd>
+ <574049EF.2090208@gmail.com>
+ <20160524090433.GA1277@amd>
+ <20160524091746.GA14536@amd>
+ <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
+ <20160527205140.GA26767@amd>
+ <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
+ <20160531213437.GA28397@amd>
+ <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
+ <20160601220840.GA21946@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1464802526-16372-1-git-send-email-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-media-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160601220840.GA21946@amd>
+Sender: linux-media-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-On 06/01/16 20:35, Tero Kristo wrote:
-> Hi,
-> =
+On Thu, Jun 02, 2016 at 12:08:40AM +0200, Pavel Machek wrote:
+> On Wed 2016-06-01 18:24:39, Sakari Ailus wrote:
+> > Hi Pavel,
+> 
+> > > Well, it does not use any dt properties. So there's not really much to
+> > > discuss with dt people...
+> > > 
+> > > Maybe "ad5820" needs to go to list of simple i2c drivers somewhere,
+> > > but...
+> > 
+> > It's an I2C device and it does use a regulator. Not a lot, though, these are
+> > both quite basic stuff. This should still be documented as the people who
+> > write the DT bindings (in general) aren't expected to read driver code as
+> > well. That's at least my understanding.
+> 
+> Yep, you are right, I forgot about the regulator. Something like this?
+> 
+> Thanks,
+> 									Pavel
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ad5820.txt b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+> new file mode 100644
+> index 0000000..87c98f1
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
 
-> fref_xtal_clk is a clock going out from omap5 chip, sourced directly
-> from the system oscillator. fref_xtal_clk can be used to provide a
-> high frequency clock to some external component, in omap5 setups,
-> typically twl6040 audio chip.
-> =
+I might use the compatible string as such as a part of the file name. Up to
+you.
 
-> Testing done (number of boards on the test farm are currently out of orde=
-r):
-> =
+> @@ -0,0 +1,20 @@
+> +* Analog Devices AD5820 autofocus coil
+> +
+> +Required Properties:
+> +
+> +  - compatible: Must contain "adi,ad5820"
+> +
+> +  - reg: I2C slave address
+> +
+> +  - VANA-supply: supply of voltage for VANA pin
+> +
+> +Example:
+> +
+> +       /* D/A converter for auto-focus */
 
-> am335x-evm      : BOOT FAIL!
-> am335x-evmsk    : boot
-> am37x-evm       : boot
-> am437x-sk       : boot
-> am43x-epos-evm  : boot
-> am437x-gp-evm   : boot
-> am57xx-evm      : boot
-> omap3-beagle-xm : boot
-> am335x-boneblack: boot
-> am335x-bone     : boot
-> dra72x-evm      : boot
-> dra7xx-evm      : boot
-> omap5-uevm      : boot
-> =
+There is definitely D/A conversion happening there but I'm not sure I'd
+characterise the device as such. They're typically called "voice coil
+drivers", perhaps because the devices are similar to a parts of a
+loudspeaker.
 
-> On omap5, also verified that the new clock node appears under debugfs.
-> =
+> +       ad5820: dac@0c {
+> +               compatible = "adi,ad5820";
+> +               reg = <0x0c>;
+> +
+> +               VANA-supply = <&vaux4>;
+> +       };
+> +
+> 
+> 
 
-> am335x-evm failure is due to inability to mount NFS rootfs on the board
-> in question the boot goes fine until that. There are some issues with
-> the u-boot installed on this board currently.
+-- 
+Kind regards,
 
-With the [1] patch applied to twl6040 I have verified that the HPPLL is
-working fine with this series on omap5-uevm. This is so great!
-
-Thanks Tero,
-
-Tested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-
-[1] https://patchwork.kernel.org/patch/9067911/
-
--- =
-
-P=E9ter
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
