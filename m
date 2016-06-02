@@ -1,57 +1,48 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH] net: ethernet: ti: cpsw: fix rx-usecs interrupt pacing
- consistency
-Date: Thu, 2 Jun 2016 16:30:00 +0300
-Message-ID: <575034D8.4040500@linaro.org>
-References: <1464873292-17011-1-git-send-email-ivan.khoronzhuk@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] pinctrl: single: Fix missing flush of posted write for a
+ wakeirq
+Date: Thu, 2 Jun 2016 08:19:53 -0700
+Message-ID: <20160602151953.GD5995@atomide.com>
+References: <1464729426-11187-1-git-send-email-tony@atomide.com>
+ <CACRpkdZUJU90S1Qsqx=8uk33tsXfnpsViJGr_ysgZcmRBH9KHA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1464873292-17011-1-git-send-email-ivan.khoronzhuk@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, mugunthanvnm@ti.com
-Cc: grygorii.strashko@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CACRpkdZUJU90S1Qsqx=8uk33tsXfnpsViJGr_ysgZcmRBH9KHA@mail.gmail.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Haojian Zhuang <haojian.zhuang@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 02.06.16 16:14, Ivan Khoronzhuk wrote:
-> The rx-usecs shouldn't be changed while interface down/up.
-> Currently, for instance, if it's set to 100us, after interface
-> down/up it's 500us. It's a hidden bug that can lead to lavish
-> interrupt pacing time increasing while "down/up" up to max value.
->
-> Steps to reproduce:
-> - set rx-usecs to be 100us
-> - down/up interface
-> - read new unexpected rx-usecs
->
-> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-> ---
->
-> Based on ti-linux-4.4.y
-Please ignore this line, it's added by mistake.
-The patch is based on master.
+* Linus Walleij <linus.walleij@linaro.org> [160602 05:29]:
+> On Tue, May 31, 2016 at 11:17 PM, Tony Lindgren <tony@atomide.com> wrote:
+> 
+> > With many repeated suspend resume cycles, the pin specific wakeirq
+> > may not always work on omaps. This is because the write to enable the
+> > pin interrupt may not have reached the device over the interconnect
+> > before suspend happens.
+> >
+> > Let's fix the issue with a flush of posted write with a readback.
+> >
+> > Reported-by: Nishanth Menon <nm@ti.com>
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> 
+> Patch applied.
 
+Thanks.
 
->
->   drivers/net/ethernet/ti/cpsw.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> index 7b44587..9919cb3 100644
-> --- a/drivers/net/ethernet/ti/cpsw.c
-> +++ b/drivers/net/ethernet/ti/cpsw.c
-> @@ -1352,7 +1352,7 @@ static int cpsw_ndo_open(struct net_device *ndev)
->   	if (priv->coal_intvl != 0) {
->   		struct ethtool_coalesce coal;
->
-> -		coal.rx_coalesce_usecs = (priv->coal_intvl << 4);
-> +		coal.rx_coalesce_usecs = priv->coal_intvl;
->   		cpsw_set_coalesce(ndev, &coal);
->   	}
->
->
+> Is it a regression that needs to be sent to fixes and tagged
+> for stable?
 
--- 
+It fixes wake from suspend in repeated cases, so at least
+Android users would appreciate it in the stable trees.
+
+Although the Android users are using vendor tree, it's still
+one fix less to carry them.
+
+So yeah, I'd vote yes for stable tag on this one.
+
 Regards,
-Ivan Khoronzhuk
+
+Tony
