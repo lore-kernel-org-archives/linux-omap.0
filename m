@@ -1,114 +1,194 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2 00/27] fb/drm: omapdss: Clean up the headers and
- separate the two stack
-Date: Fri, 3 Jun 2016 13:51:13 +0300
-Message-ID: <57516121.1010201@ti.com>
-References: <20160601083549.10549-1-peter.ujfalusi@ti.com>
- <575025DB.9020800@ti.com> <20160602152305.GE5995@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v3 00/27] fb/drm: omapdss: Clean up the headers and separate the two stack
+Date: Fri, 3 Jun 2016 13:52:54 +0300
+Message-ID: <20160603105321.7980-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1127620223=="
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20160602152305.GE5995@atomide.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, jsarha@ti.com, laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org, plagnioj@jcrosoft.com
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, robdclark@gmail.com, airlied@linux.ie, tony@atomide.com
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com, jsarha@ti.com, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
---===============1127620223==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="s2jFiFGqGm7AKUWT9wbxtmgFA6ndTs9jk"
+Hi,
 
---s2jFiFGqGm7AKUWT9wbxtmgFA6ndTs9jk
-Content-Type: multipart/mixed; boundary="d0OcjsfXcGfsDMvO3HO29k1pRuO5hcMdH"
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@TI.COM>
-Cc: plagnioj@jcrosoft.com, robdclark@gmail.com, airlied@linux.ie,
- linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org,
- linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
- jsarha@TI.COM, dri-devel@lists.freedesktop.org
-Message-ID: <57516121.1010201@ti.com>
-Subject: Re: [PATCH v2 00/27] fb/drm: omapdss: Clean up the headers and
- separate the two stack
-References: <20160601083549.10549-1-peter.ujfalusi@ti.com>
- <575025DB.9020800@ti.com> <20160602152305.GE5995@atomide.com>
-In-Reply-To: <20160602152305.GE5995@atomide.com>
+Changes since v2:
+- Collected the patches (4 of them) at the beginning which touches mach-omap2
+- Smaller changes in the moved patches to make sure they compile.
 
---d0OcjsfXcGfsDMvO3HO29k1pRuO5hcMdH
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Changes since v1:
+- patches (2) added to remove the inclusion of video/omap-panel-data.h when it
+  is not needed
+- Transitional patch to create the video/omapfb_dss.h has been changed to copy
+  the content of the omapdss.h in one step.
 
+I have prepared two branches on top of v4.7-rc1:
+[1] https://github.com/omap-audio/linux-audio.git peter/for-4.8_omapdss_part1
 
+containing:
+  ARM: OMAP: rx51-video: Do not set TV connector_type
+  ARM/video: omap2: Move omap_display_init declaration to
+    mach-omap2/display.h
+  video/platform_data: omapdss: Create new header file for platform data
+  ARM: OMAP2: Use the platform_data header for omapdss
 
-On 02/06/16 18:23, Tony Lindgren wrote:
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [160602 05:28]:
->>
->> Tony, can you have a look at the arch/arm parts here and give your ack=
+[2] https://github.com/omap-audio/linux-audio.git peter/for-4.8_omapdss_part2
 
->> if they're fine? They should be quite small and display specific, so I=
+containing the whole set, including part1.
 
->> don't see much chance for conflict there.
->=20
-> Looks good to me, but these are going to conflict with the board-*.c
-> removal patches. And those we want to have easily revertable in case
-> of issues.
->=20
-> Peter, can you do an immutable minimal branch of just the pdata
-> changes affecting the board-*.c files? That way both Tomi and I
-> can merge that in.
+Only patches in part1 branch are touching arch/arm/mach-omap2/ files.
 
-I wonder how minimal it can be, as I think most of the patches are
-needed for pdata changes. Well, Peter can tell better.
+omapfb is deprecated. It will not receive new features, only bug fixes. On the.
+other hand omapdrm is in active development and the fact that both
+implementation (omapfb and omapdrm) is using the same header file
+(video/omapdss.h) makes implementing new features or doing bigger clean ups in
+omapdrm harder and hared as the change should not break omapfb.
 
-What board changes do you expect for the next merge window? If it's just
-"git rm boardfile.c", that should be an easy conflict to resolve, right?
+To overcome this issue we need to separate the two implementation. This is the
+aim of this series:
+Create platform_data header for omapdss,
+clean up the header usage and dependencies,
+new header file for omapfb stack (video/omapfb_dss.h)
+local omapdss.h header file for omapdrm.
 
- Tomi
+Regards,
+Peter
+---
+Peter Ujfalusi (27):
+  ARM: OMAP: rx51-video: Do not set TV connector_type
+  ARM/video: omap2: Move omap_display_init declaration to
+    mach-omap2/display.h
+  video/platform_data: omapdss: Create new header file for platform data
+  ARM: OMAP2: Use the platform_data header for omapdss
+  omapfb: panel-tpo-td028ttec1: Remove legacy boot support
+  omapfb: panel-nec-nl8048hl11: Remove legacy boot support
+  omapfb: panel-tpo-td043mtea1: Remove legacy boot support
+  omapfb: panel-sharp-ls037v7dw01: Remove legacy boot support
+  omapfb: panel-lgphilips-lb035q02: Remove legacy boot support
+  omapfb: panel-dsi-cm: Remove legacy boot support
+  omapfb: connector-hdmi: Remove legacy boot support
+  omapfb: connector-dvi: Remove legacy boot support
+  omapfb: encoder-tfp410: Remove legacy boot support
+  omapfb: encoder-tpd12s015: No need to include video/omap-panle-data.h
+  drm/omap: displays: Do not include video/omap-panel-data.h if not
+    needed
+  omapdss: omap-panel-data.h: Remove struct omap_dss_device declaration
+  drm/omap: connector-analog-tv: Support only Composite type in legacy
+    boot
+  omapfb: connector-analog-tv: Support only Composite type in legacy
+    boot
+  omapdss: omap-panel-data.h: Remove connector_type from atv pdata
+  drm/omap: Remove reference to pdata->default_device
+  omapfb: Remove reference to pdata->default_device
+  platform_data: omapdss: Remove unused members from omap_dss_board_info
+  omapdss: hdmi audio: Make header file independent of video/omapdss.h
+  drm/omap: Do not include video/omapdss.h directly in drivers
+  omapfb: Create new header file for omapfb DSS implementation
+  [media] omap_vout: Switch to use the video/omapfb_dss.h header file
+  drm/omap: Remove the video/omapdss.h and move it's content to local
+    header file
 
+ arch/arm/mach-omap2/board-ldp.c                    |   3 +-
+ arch/arm/mach-omap2/board-rx51-video.c             |   4 +-
+ arch/arm/mach-omap2/display.c                      |   2 +-
+ arch/arm/mach-omap2/display.h                      |   5 +
+ arch/arm/mach-omap2/dss-common.c                   |   2 +-
+ .../gpu/drm/omapdrm/displays/connector-analog-tv.c |  11 +-
+ drivers/gpu/drm/omapdrm/displays/connector-dvi.c   |   4 +-
+ drivers/gpu/drm/omapdrm/displays/connector-hdmi.c  |   4 +-
+ drivers/gpu/drm/omapdrm/displays/encoder-opa362.c  |   2 +-
+ drivers/gpu/drm/omapdrm/displays/encoder-tfp410.c  |   3 +-
+ .../gpu/drm/omapdrm/displays/encoder-tpd12s015.c   |   3 +-
+ drivers/gpu/drm/omapdrm/displays/panel-dpi.c       |   3 +-
+ drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c    |   4 +-
+ .../omapdrm/displays/panel-lgphilips-lb035q02.c    |   3 +-
+ .../drm/omapdrm/displays/panel-nec-nl8048hl11.c    |   2 +-
+ .../drm/omapdrm/displays/panel-sharp-ls037v7dw01.c |   3 +-
+ .../drm/omapdrm/displays/panel-sony-acx565akm.c    |   3 +-
+ .../drm/omapdrm/displays/panel-tpo-td028ttec1.c    |   3 +-
+ .../drm/omapdrm/displays/panel-tpo-td043mtea1.c    |   2 +-
+ drivers/gpu/drm/omapdrm/dss/core.c                 |   5 +-
+ drivers/gpu/drm/omapdrm/dss/dispc.c                |   3 +-
+ drivers/gpu/drm/omapdrm/dss/dispc_coefs.c          |   2 +-
+ drivers/gpu/drm/omapdrm/dss/display.c              |   2 +-
+ drivers/gpu/drm/omapdrm/dss/dpi.c                  |   3 +-
+ drivers/gpu/drm/omapdrm/dss/dsi.c                  |   2 +-
+ drivers/gpu/drm/omapdrm/dss/dss-of.c               |   3 +-
+ drivers/gpu/drm/omapdrm/dss/dss.c                  |   3 +-
+ drivers/gpu/drm/omapdrm/dss/dss_features.c         |   3 +-
+ drivers/gpu/drm/omapdrm/dss/hdmi.h                 |   3 +-
+ drivers/gpu/drm/omapdrm/dss/hdmi4.c                |   2 +-
+ drivers/gpu/drm/omapdrm/dss/hdmi5.c                |   2 +-
+ drivers/gpu/drm/omapdrm/dss/hdmi_common.c          |   2 +-
+ drivers/gpu/drm/omapdrm/dss/hdmi_phy.c             |   2 +-
+ drivers/gpu/drm/omapdrm/dss/hdmi_pll.c             |   3 +-
+ drivers/gpu/drm/omapdrm/dss/hdmi_wp.c              |   2 +-
+ drivers/gpu/drm/omapdrm/dss/omapdss.h              | 866 ++++++++++++++++++++-
+ drivers/gpu/drm/omapdrm/dss/output.c               |   3 +-
+ drivers/gpu/drm/omapdrm/dss/pll.c                  |   3 +-
+ drivers/gpu/drm/omapdrm/dss/rfbi.c                 |   2 +-
+ drivers/gpu/drm/omapdrm/dss/sdi.c                  |   2 +-
+ drivers/gpu/drm/omapdrm/dss/venc.c                 |   3 +-
+ drivers/gpu/drm/omapdrm/dss/video-pll.c            |   3 +-
+ drivers/gpu/drm/omapdrm/omap_drv.h                 |   1 -
+ drivers/media/platform/omap/omap_vout.c            |   2 +-
+ drivers/media/platform/omap/omap_voutdef.h         |   2 +-
+ drivers/media/platform/omap/omap_voutlib.c         |   2 +-
+ .../omap2/omapfb/displays/connector-analog-tv.c    |  10 +-
+ .../fbdev/omap2/omapfb/displays/connector-dvi.c    |  60 +-
+ .../fbdev/omap2/omapfb/displays/connector-hdmi.c   |  44 +-
+ .../fbdev/omap2/omapfb/displays/encoder-opa362.c   |   2 +-
+ .../fbdev/omap2/omapfb/displays/encoder-tfp410.c   |  46 +-
+ .../omap2/omapfb/displays/encoder-tpd12s015.c      |   3 +-
+ .../video/fbdev/omap2/omapfb/displays/panel-dpi.c  |   2 +-
+ .../fbdev/omap2/omapfb/displays/panel-dsi-cm.c     |  54 +-
+ .../omapfb/displays/panel-lgphilips-lb035q02.c     |  58 +-
+ .../omap2/omapfb/displays/panel-nec-nl8048hl11.c   |  47 +-
+ .../omapfb/displays/panel-sharp-ls037v7dw01.c      |  83 +-
+ .../omap2/omapfb/displays/panel-sony-acx565akm.c   |   2 +-
+ .../omap2/omapfb/displays/panel-tpo-td028ttec1.c   |  45 +-
+ .../omap2/omapfb/displays/panel-tpo-td043mtea1.c   |  46 +-
+ drivers/video/fbdev/omap2/omapfb/dss/apply.c       |   2 +-
+ drivers/video/fbdev/omap2/omapfb/dss/core.c        |   4 +-
+ .../video/fbdev/omap2/omapfb/dss/dispc-compat.c    |   2 +-
+ drivers/video/fbdev/omap2/omapfb/dss/dispc.c       |   2 +-
+ drivers/video/fbdev/omap2/omapfb/dss/dispc_coefs.c |   2 +-
+ .../video/fbdev/omap2/omapfb/dss/display-sysfs.c   |   2 +-
+ drivers/video/fbdev/omap2/omapfb/dss/display.c     |   2 +-
+ drivers/video/fbdev/omap2/omapfb/dss/dpi.c         |   2 +-
+ drivers/video/fbdev/omap2/omapfb/dss/dsi.c         |   2 +-
+ drivers/video/fbdev/omap2/omapfb/dss/dss-of.c      |   2 +-
+ drivers/video/fbdev/omap2/omapfb/dss/dss.c         |   2 +-
+ .../video/fbdev/omap2/omapfb/dss/dss_features.c    |   2 +-
+ drivers/video/fbdev/omap2/omapfb/dss/hdmi.h        |   3 +-
+ drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c       |   2 +-
+ drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c       |   2 +-
+ drivers/video/fbdev/omap2/omapfb/dss/hdmi_common.c |   2 +-
+ drivers/video/fbdev/omap2/omapfb/dss/hdmi_phy.c    |   2 +-
+ drivers/video/fbdev/omap2/omapfb/dss/hdmi_pll.c    |   2 +-
+ drivers/video/fbdev/omap2/omapfb/dss/hdmi_wp.c     |   2 +-
+ .../video/fbdev/omap2/omapfb/dss/manager-sysfs.c   |   2 +-
+ drivers/video/fbdev/omap2/omapfb/dss/manager.c     |   2 +-
+ drivers/video/fbdev/omap2/omapfb/dss/output.c      |   2 +-
+ .../video/fbdev/omap2/omapfb/dss/overlay-sysfs.c   |   2 +-
+ drivers/video/fbdev/omap2/omapfb/dss/overlay.c     |   2 +-
+ drivers/video/fbdev/omap2/omapfb/dss/pll.c         |   2 +-
+ drivers/video/fbdev/omap2/omapfb/dss/rfbi.c        |   2 +-
+ drivers/video/fbdev/omap2/omapfb/dss/sdi.c         |   2 +-
+ drivers/video/fbdev/omap2/omapfb/dss/venc.c        |   2 +-
+ drivers/video/fbdev/omap2/omapfb/dss/video-pll.c   |   2 +-
+ drivers/video/fbdev/omap2/omapfb/omapfb-ioctl.c    |   2 +-
+ drivers/video/fbdev/omap2/omapfb/omapfb-main.c     |   2 +-
+ drivers/video/fbdev/omap2/omapfb/omapfb-sysfs.c    |   2 +-
+ drivers/video/fbdev/omap2/omapfb/omapfb.h          |   2 +-
+ include/linux/platform_data/omapdss.h              |  37 +
+ include/sound/omap-hdmi-audio.h                    |   9 +-
+ include/video/omap-panel-data.h                    | 157 ----
+ include/video/{omapdss.h => omapfb_dss.h}          |  60 +-
+ sound/soc/omap/omap-hdmi-audio.c                   |   1 -
+ 98 files changed, 1081 insertions(+), 751 deletions(-)
+ create mode 100644 include/linux/platform_data/omapdss.h
+ rename include/video/{omapdss.h => omapfb_dss.h} (93%)
 
---d0OcjsfXcGfsDMvO3HO29k1pRuO5hcMdH--
-
---s2jFiFGqGm7AKUWT9wbxtmgFA6ndTs9jk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJXUWEhAAoJEPo9qoy8lh715f8P/3kMSuKE6v0cdYFqVSAQY17O
-dc1bDBPiXlgkTAMqMhGysB0W/fWOCnrhV/aI4zF098ozuTByoDontVqIE7nU1wIj
-kvBGDezZoCpR9id26WkgTeeG6agiSBqoShDsvYnpPEIA/2eDBwo+ObOceoP5Aat7
-7cYiiS3wIL2iw7bzF855xowg+qFO3VwDUE6AHS4O8uOygCBnLT6Le17nPBswtq+k
-CprbElS4tlhGGOK4SBaoA8Hm/ZDAa5Sc4gHDIR72L4wBdkXm11Dnpn/NxBSZXgCY
-lyFfXyr9TAcL8Hyr0Tpnp2j0e5NMN8LWS+9U5obqAzRVHYUrm75xtxI2UYHmNxnM
-l99NffjRWxc2rNr8sfwFFw742mlFq9pVxAYRreA6vGK648uuhPpVFJwAXllNJE3p
-Th84rkSdkcPYWBHiuNsRAIs399mcoeFrxpoP+Uspalf6ztEfmzdIcXubSoEy39Vx
-GiEc0L9+Ii379ER1+Fu0mHjLNuMDw8j4ETuDqBCLnsQtaiTcTFVFET+9vOb947Qw
-cKM/lgwes2gGZ3XDCoR95iWmjIl2eBbjzNY6NpWN+VP7GtmIkdB0sepE8AXDpRGT
-ikIXSk4GcuAH1HbnDQTnWunBXkOP1oOSgP5HC4mmMtsJbzKhj4j3YjKZjAFYaziA
-Hb8pBILggREUGp/E7+uh
-=s0P9
------END PGP SIGNATURE-----
-
---s2jFiFGqGm7AKUWT9wbxtmgFA6ndTs9jk--
-
---===============1127620223==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
-
---===============1127620223==--
+-- 
+2.8.3
