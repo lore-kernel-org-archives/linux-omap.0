@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 12/27] omapfb: connector-dvi: Remove legacy boot support
-Date: Fri, 3 Jun 2016 14:03:14 +0300
-Message-ID: <20160603110329.9953-13-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 07/27] omapfb: panel-tpo-td043mtea1: Remove legacy boot support
+Date: Fri, 3 Jun 2016 14:03:09 +0300
+Message-ID: <20160603110329.9953-8-peter.ujfalusi@ti.com>
 References: <20160603110329.9953-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -17,59 +17,45 @@ support can be dropped.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- .../fbdev/omap2/omapfb/displays/connector-dvi.c    | 58 +++-------------------
- include/video/omap-panel-data.h                    | 12 -----
- 2 files changed, 6 insertions(+), 64 deletions(-)
+ .../omap2/omapfb/displays/panel-tpo-td043mtea1.c   | 44 +++-------------------
+ include/video/omap-panel-data.h                    | 16 --------
+ 2 files changed, 6 insertions(+), 54 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c b/drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c
-index d811e6dcaef7..f2abbec7602a 100644
---- a/drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c
-+++ b/drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c
-@@ -17,7 +17,6 @@
- #include <drm/drm_edid.h>
+diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c
+index 68e3b68a2920..f49e60da5bd3 100644
+--- a/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c
++++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c
+@@ -20,7 +20,6 @@
+ #include <linux/of_gpio.h>
  
  #include <video/omapdss.h>
 -#include <video/omap-panel-data.h>
  
- static const struct omap_video_timings dvic_default_timings = {
- 	.x_res		= 640,
-@@ -236,46 +235,6 @@ static struct omap_dss_driver dvic_driver = {
- 	.detect		= dvic_detect,
+ #define TPO_R02_MODE(x)		((x) & 7)
+ #define TPO_R02_MODE_800x480	7
+@@ -465,32 +464,6 @@ static struct omap_dss_driver tpo_td043_ops = {
  };
  
--static int dvic_probe_pdata(struct platform_device *pdev)
+ 
+-static int tpo_td043_probe_pdata(struct spi_device *spi)
 -{
--	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
--	struct connector_dvi_platform_data *pdata;
--	struct omap_dss_device *in, *dssdev;
--	int i2c_bus_num;
+-	const struct panel_tpo_td043mtea1_platform_data *pdata;
+-	struct panel_drv_data *ddata = dev_get_drvdata(&spi->dev);
+-	struct omap_dss_device *dssdev, *in;
 -
--	pdata = dev_get_platdata(&pdev->dev);
--	i2c_bus_num = pdata->i2c_bus_num;
+-	pdata = dev_get_platdata(&spi->dev);
 -
--	if (i2c_bus_num != -1) {
--		struct i2c_adapter *adapter;
--
--		adapter = i2c_get_adapter(i2c_bus_num);
--		if (!adapter) {
--			dev_err(&pdev->dev,
--					"Failed to get I2C adapter, bus %d\n",
--					i2c_bus_num);
--			return -EPROBE_DEFER;
--		}
--
--		ddata->i2c_adapter = adapter;
--	}
+-	ddata->nreset_gpio = pdata->nreset_gpio;
 -
 -	in = omap_dss_find_output(pdata->source);
 -	if (in == NULL) {
--		i2c_put_adapter(ddata->i2c_adapter);
--
--		dev_err(&pdev->dev, "Failed to find video source\n");
+-		dev_err(&spi->dev, "failed to find video source '%s'\n",
+-				pdata->source);
 -		return -EPROBE_DEFER;
 -	}
--
 -	ddata->in = in;
+-
+-	ddata->data_lines = pdata->data_lines;
 -
 -	dssdev = &ddata->dssdev;
 -	dssdev->name = pdata->name;
@@ -77,61 +63,64 @@ index d811e6dcaef7..f2abbec7602a 100644
 -	return 0;
 -}
 -
- static int dvic_probe_of(struct platform_device *pdev)
+ static int tpo_td043_probe_of(struct spi_device *spi)
  {
- 	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
-@@ -313,23 +272,18 @@ static int dvic_probe(struct platform_device *pdev)
- 	struct omap_dss_device *dssdev;
- 	int r;
+ 	struct device_node *node = spi->dev.of_node;
+@@ -524,6 +497,9 @@ static int tpo_td043_probe(struct spi_device *spi)
  
-+	if (!pdev->dev.of_node)
+ 	dev_dbg(&spi->dev, "%s\n", __func__);
+ 
++	if (!spi->dev.of_node)
 +		return -ENODEV;
 +
- 	ddata = devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
- 	if (!ddata)
- 		return -ENOMEM;
+ 	spi->bits_per_word = 16;
+ 	spi->mode = SPI_MODE_0;
  
- 	platform_set_drvdata(pdev, ddata);
+@@ -541,17 +517,9 @@ static int tpo_td043_probe(struct spi_device *spi)
  
--	if (dev_get_platdata(&pdev->dev)) {
--		r = dvic_probe_pdata(pdev);
+ 	ddata->spi = spi;
+ 
+-	if (dev_get_platdata(&spi->dev)) {
+-		r = tpo_td043_probe_pdata(spi);
 -		if (r)
 -			return r;
--	} else if (pdev->dev.of_node) {
--		r = dvic_probe_of(pdev);
+-	} else if (spi->dev.of_node) {
+-		r = tpo_td043_probe_of(spi);
 -		if (r)
 -			return r;
 -	} else {
 -		return -ENODEV;
 -	}
-+	r = dvic_probe_of(pdev);
++	r = tpo_td043_probe_of(spi);
 +	if (r)
 +		return r;
  
- 	ddata->timings = dvic_default_timings;
- 
+ 	ddata->mode = TPO_R02_MODE_800x480;
+ 	memcpy(ddata->gamma, tpo_td043_def_gamma, sizeof(ddata->gamma));
 diff --git a/include/video/omap-panel-data.h b/include/video/omap-panel-data.h
-index c0836b118f67..4d0b8832ae11 100644
+index a0c95cd1ed11..34ee7509752f 100644
 --- a/include/video/omap-panel-data.h
 +++ b/include/video/omap-panel-data.h
-@@ -47,18 +47,6 @@ struct encoder_tfp410_platform_data {
+@@ -189,20 +189,4 @@ struct panel_sharp_ls037v7dw01_platform_data {
+ 	int ud_gpio;
+ };
  
- 
- /**
-- * connector_dvi platform data
+-/**
+- * panel-tpo-td043mtea1 platform data
 - * @name: name for this display entity
 - * @source: name of the display entity used as a video source
-- * @i2c_bus_num: i2c bus number to be used for reading EDID
+- * @data_lines: number of DPI datalines
+- * @nreset_gpio: reset signal
 - */
--struct connector_dvi_platform_data {
+-struct panel_tpo_td043mtea1_platform_data {
 -	const char *name;
 -	const char *source;
--	int i2c_bus_num;
+-
+-	int data_lines;
+-
+-	int nreset_gpio;
 -};
 -
--/**
-  * connector_atv platform data
-  * @name: name for this display entity
-  * @source: name of the display entity used as a video source
+ #endif /* __OMAP_PANEL_DATA_H */
 -- 
 2.8.3
