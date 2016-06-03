@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 19/27] omapdss: omap-panel-data.h: Remove connector_type from atv pdata
-Date: Fri, 3 Jun 2016 13:53:13 +0300
-Message-ID: <20160603105321.7980-20-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 20/27] drm/omap: Remove reference to pdata->default_device
+Date: Fri, 3 Jun 2016 13:53:14 +0300
+Message-ID: <20160603105321.7980-21-peter.ujfalusi@ti.com>
 References: <20160603105321.7980-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,41 +12,26 @@ To: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, robdclark@gmail.com, airlied@l
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com, jsarha@ti.com, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-The driver only supports composite connection when booted in legacy mode
-so the omap_dss_venc_type can be dropped from the pdata.
-At the same time the video/omapdss.h include can be removed as it is no
-longer needed.
+The default_device is no longer used, it is a leftower from legacy. The
+else if (pdata->default_device) is always going to be false.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- include/video/omap-panel-data.h | 3 ---
- 1 file changed, 3 deletions(-)
+ drivers/gpu/drm/omapdrm/dss/core.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/include/video/omap-panel-data.h b/include/video/omap-panel-data.h
-index 7b4fadf82cd5..e7003ee6e063 100644
---- a/include/video/omap-panel-data.h
-+++ b/include/video/omap-panel-data.h
-@@ -27,21 +27,18 @@
- #ifndef __OMAP_PANEL_DATA_H
- #define __OMAP_PANEL_DATA_H
+diff --git a/drivers/gpu/drm/omapdrm/dss/core.c b/drivers/gpu/drm/omapdrm/dss/core.c
+index 7e4e5bebabbe..9cf22b30023f 100644
+--- a/drivers/gpu/drm/omapdrm/dss/core.c
++++ b/drivers/gpu/drm/omapdrm/dss/core.c
+@@ -196,8 +196,6 @@ static int __init omap_dss_probe(struct platform_device *pdev)
+ 		core.default_display_name = def_disp_name;
+ 	else if (pdata->default_display_name)
+ 		core.default_display_name = pdata->default_display_name;
+-	else if (pdata->default_device)
+-		core.default_display_name = pdata->default_device->name;
  
--#include <video/omapdss.h>
- #include <video/display_timing.h>
- 
- /**
-  * connector_atv platform data
-  * @name: name for this display entity
-  * @source: name of the display entity used as a video source
-- * @connector_type: composite/svideo
-  * @invert_polarity: invert signal polarity
-  */
- struct connector_atv_platform_data {
- 	const char *name;
- 	const char *source;
- 
--	enum omap_dss_venc_type connector_type;
- 	bool invert_polarity;
- };
+ 	return 0;
  
 -- 
 2.8.3
