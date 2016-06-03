@@ -1,35 +1,63 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 14/27] omapfb: encoder-tpd12s015: No need to include video/omap-panle-data.h
-Date: Fri, 3 Jun 2016 14:03:16 +0300
-Message-ID: <20160603110329.9953-15-peter.ujfalusi@ti.com>
-References: <20160603110329.9953-1-peter.ujfalusi@ti.com>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH 3/8] mfd: tps65218: Use mfd_add_devices instead of
+ of_platform_populate
+Date: Fri, 3 Jun 2016 16:38:57 +0530
+Message-ID: <57516549.6040102@ti.com>
+References: <1462945691-904-1-git-send-email-j-keerthy@ti.com>
+ <1462945691-904-4-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160603110329.9953-1-peter.ujfalusi@ti.com>
+In-Reply-To: <1462945691-904-4-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, robdclark@gmail.com, airlied@linux.ie, tony@atomide.com
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com, jsarha@ti.com, dri-devel@lists.freedesktop.org
+To: Keerthy <j-keerthy@ti.com>, broonie@kernel.org, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, lee.jones@linaro.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nikita@compulab.co.il, nm@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The driver does not support legacy (pdata) based probing.
+Hi Lee Jones,
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c | 1 -
- 1 file changed, 1 deletion(-)
+On Wednesday 11 May 2016 11:18 AM, Keerthy wrote:
+> mfd_add_devices enables parsing device tree nodes without compatibles
+> for child nodes. Replace of_platform_populate with mfd_add_devices.
+>
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c b/drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c
-index 677e2545fcbe..7939157af957 100644
---- a/drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c
-+++ b/drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c
-@@ -17,7 +17,6 @@
- #include <linux/gpio/consumer.h>
- 
- #include <video/omapdss.h>
--#include <video/omap-panel-data.h>
- 
- struct panel_drv_data {
- 	struct omap_dss_device dssdev;
--- 
-2.8.3
+A gentle ping on this patch.
+
+Regards,
+Keerthy
+
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>   drivers/mfd/tps65218.c | 10 ++++++++--
+>   1 file changed, 8 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
+> index f20a531..b8b3a58 100644
+> --- a/drivers/mfd/tps65218.c
+> +++ b/drivers/mfd/tps65218.c
+> @@ -33,6 +33,10 @@
+>
+>   #define TPS65218_PASSWORD_REGS_UNLOCK   0x7D
+>
+> +static const struct mfd_cell tps65218_cells[] = {
+> +	{ .name = "tps65218-regulator", },
+> +};
+> +
+>   /**
+>    * tps65218_reg_write: Write a single tps65218 register.
+>    *
+> @@ -236,8 +240,10 @@ static int tps65218_probe(struct i2c_client *client,
+>   	if (ret < 0)
+>   		return ret;
+>
+> -	ret = of_platform_populate(client->dev.of_node, NULL, NULL,
+> -				   &client->dev);
+> +	ret = mfd_add_devices(tps->dev, PLATFORM_DEVID_AUTO, tps65218_cells,
+> +			      ARRAY_SIZE(tps65218_cells), NULL, 0,
+> +			      regmap_irq_get_domain(tps->irq_data));
+> +
+>   	if (ret < 0)
+>   		goto err_irq;
+>
+>
