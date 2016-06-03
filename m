@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 17/27] drm/omap: connector-analog-tv: Support only Composite type in legacy boot
-Date: Fri, 3 Jun 2016 14:03:19 +0300
-Message-ID: <20160603110329.9953-18-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 15/27] drm/omap: displays: Do not include video/omap-panel-data.h if not needed
+Date: Fri, 3 Jun 2016 14:03:17 +0300
+Message-ID: <20160603110329.9953-16-peter.ujfalusi@ti.com>
 References: <20160603110329.9953-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,55 +12,65 @@ To: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, robdclark@gmail.com, airlied@l
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com, jsarha@ti.com, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-In legacy mode (non DT mode) support only composite connector type. The
-only user for this is rx51, using composite type.
-Dropping the connector_type selection via pdata will allow cleanups in
-omapdss (drm vs fbdev).
+Some panel/encoder/connector driver includes omap-panel-data.h but they
+do not need it. Remove the inclusion of video/omap-panel-data.h from these
+drivers.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/gpu/drm/omapdrm/displays/connector-analog-tv.c | 8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ drivers/gpu/drm/omapdrm/displays/encoder-tfp410.c           | 1 -
+ drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c        | 1 -
+ drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c             | 1 -
+ drivers/gpu/drm/omapdrm/displays/panel-lgphilips-lb035q02.c | 1 -
+ 4 files changed, 4 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/displays/connector-analog-tv.c b/drivers/gpu/drm/omapdrm/displays/connector-analog-tv.c
-index 8511c648a15c..d963b4a9cfc0 100644
---- a/drivers/gpu/drm/omapdrm/displays/connector-analog-tv.c
-+++ b/drivers/gpu/drm/omapdrm/displays/connector-analog-tv.c
-@@ -25,7 +25,6 @@ struct panel_drv_data {
+diff --git a/drivers/gpu/drm/omapdrm/displays/encoder-tfp410.c b/drivers/gpu/drm/omapdrm/displays/encoder-tfp410.c
+index 2fd5602880a7..6b7d4fc3ac12 100644
+--- a/drivers/gpu/drm/omapdrm/displays/encoder-tfp410.c
++++ b/drivers/gpu/drm/omapdrm/displays/encoder-tfp410.c
+@@ -16,7 +16,6 @@
+ #include <linux/of_gpio.h>
  
- 	struct omap_video_timings timings;
+ #include <video/omapdss.h>
+-#include <video/omap-panel-data.h>
  
--	enum omap_dss_venc_type connector_type;
- 	bool invert_polarity;
- };
+ struct panel_drv_data {
+ 	struct omap_dss_device dssdev;
+diff --git a/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c b/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
+index 916a89978387..f4f23f5cfe3e 100644
+--- a/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
++++ b/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
+@@ -17,7 +17,6 @@
+ #include <linux/gpio/consumer.h>
  
-@@ -45,10 +44,6 @@ static const struct omap_video_timings tvc_pal_timings = {
+ #include <video/omapdss.h>
+-#include <video/omap-panel-data.h>
  
- static const struct of_device_id tvc_of_match[];
+ struct panel_drv_data {
+ 	struct omap_dss_device dssdev;
+diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+index 36485c2137ce..6dcb75f6f0c5 100644
+--- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
++++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+@@ -26,7 +26,6 @@
+ #include <linux/of_gpio.h>
  
--struct tvc_of_data {
--	enum omap_dss_venc_type connector_type;
--};
--
- #define to_panel_data(x) container_of(x, struct panel_drv_data, dssdev)
+ #include <video/omapdss.h>
+-#include <video/omap-panel-data.h>
+ #include <video/mipi_display.h>
  
- static int tvc_connect(struct omap_dss_device *dssdev)
-@@ -99,7 +94,7 @@ static int tvc_enable(struct omap_dss_device *dssdev)
- 	in->ops.atv->set_timings(in, &ddata->timings);
+ /* DSI Virtual channel. Hardcoded for now. */
+diff --git a/drivers/gpu/drm/omapdrm/displays/panel-lgphilips-lb035q02.c b/drivers/gpu/drm/omapdrm/displays/panel-lgphilips-lb035q02.c
+index 458f77bc473d..1bd682864217 100644
+--- a/drivers/gpu/drm/omapdrm/displays/panel-lgphilips-lb035q02.c
++++ b/drivers/gpu/drm/omapdrm/displays/panel-lgphilips-lb035q02.c
+@@ -17,7 +17,6 @@
+ #include <linux/gpio.h>
  
- 	if (!ddata->dev->of_node) {
--		in->ops.atv->set_type(in, ddata->connector_type);
-+		in->ops.atv->set_type(in, OMAP_DSS_VENC_TYPE_COMPOSITE);
+ #include <video/omapdss.h>
+-#include <video/omap-panel-data.h>
  
- 		in->ops.atv->invert_vid_out_polarity(in,
- 			ddata->invert_polarity);
-@@ -207,7 +202,6 @@ static int tvc_probe_pdata(struct platform_device *pdev)
- 
- 	ddata->in = in;
- 
--	ddata->connector_type = pdata->connector_type;
- 	ddata->invert_polarity = pdata->invert_polarity;
- 
- 	dssdev = &ddata->dssdev;
+ static struct omap_video_timings lb035q02_timings = {
+ 	.x_res = 320,
 -- 
 2.8.3
