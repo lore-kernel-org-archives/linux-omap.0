@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 20/27] drm/omap: Remove reference to pdata->default_device
-Date: Fri, 3 Jun 2016 13:53:14 +0300
-Message-ID: <20160603105321.7980-21-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 15/27] drm/omap: displays: Do not include video/omap-panel-data.h if not needed
+Date: Fri, 3 Jun 2016 13:53:09 +0300
+Message-ID: <20160603105321.7980-16-peter.ujfalusi@ti.com>
 References: <20160603105321.7980-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,26 +12,65 @@ To: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, robdclark@gmail.com, airlied@l
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com, jsarha@ti.com, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-The default_device is no longer used, it is a leftower from legacy. The
-else if (pdata->default_device) is always going to be false.
+Some panel/encoder/connector driver includes omap-panel-data.h but they
+do not need it. Remove the inclusion of video/omap-panel-data.h from these
+drivers.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/gpu/drm/omapdrm/dss/core.c | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/gpu/drm/omapdrm/displays/encoder-tfp410.c           | 1 -
+ drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c        | 1 -
+ drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c             | 1 -
+ drivers/gpu/drm/omapdrm/displays/panel-lgphilips-lb035q02.c | 1 -
+ 4 files changed, 4 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/dss/core.c b/drivers/gpu/drm/omapdrm/dss/core.c
-index 7e4e5bebabbe..9cf22b30023f 100644
---- a/drivers/gpu/drm/omapdrm/dss/core.c
-+++ b/drivers/gpu/drm/omapdrm/dss/core.c
-@@ -196,8 +196,6 @@ static int __init omap_dss_probe(struct platform_device *pdev)
- 		core.default_display_name = def_disp_name;
- 	else if (pdata->default_display_name)
- 		core.default_display_name = pdata->default_display_name;
--	else if (pdata->default_device)
--		core.default_display_name = pdata->default_device->name;
+diff --git a/drivers/gpu/drm/omapdrm/displays/encoder-tfp410.c b/drivers/gpu/drm/omapdrm/displays/encoder-tfp410.c
+index 2fd5602880a7..6b7d4fc3ac12 100644
+--- a/drivers/gpu/drm/omapdrm/displays/encoder-tfp410.c
++++ b/drivers/gpu/drm/omapdrm/displays/encoder-tfp410.c
+@@ -16,7 +16,6 @@
+ #include <linux/of_gpio.h>
  
- 	return 0;
+ #include <video/omapdss.h>
+-#include <video/omap-panel-data.h>
  
+ struct panel_drv_data {
+ 	struct omap_dss_device dssdev;
+diff --git a/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c b/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
+index 916a89978387..f4f23f5cfe3e 100644
+--- a/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
++++ b/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
+@@ -17,7 +17,6 @@
+ #include <linux/gpio/consumer.h>
+ 
+ #include <video/omapdss.h>
+-#include <video/omap-panel-data.h>
+ 
+ struct panel_drv_data {
+ 	struct omap_dss_device dssdev;
+diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+index 36485c2137ce..6dcb75f6f0c5 100644
+--- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
++++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+@@ -26,7 +26,6 @@
+ #include <linux/of_gpio.h>
+ 
+ #include <video/omapdss.h>
+-#include <video/omap-panel-data.h>
+ #include <video/mipi_display.h>
+ 
+ /* DSI Virtual channel. Hardcoded for now. */
+diff --git a/drivers/gpu/drm/omapdrm/displays/panel-lgphilips-lb035q02.c b/drivers/gpu/drm/omapdrm/displays/panel-lgphilips-lb035q02.c
+index 458f77bc473d..1bd682864217 100644
+--- a/drivers/gpu/drm/omapdrm/displays/panel-lgphilips-lb035q02.c
++++ b/drivers/gpu/drm/omapdrm/displays/panel-lgphilips-lb035q02.c
+@@ -17,7 +17,6 @@
+ #include <linux/gpio.h>
+ 
+ #include <video/omapdss.h>
+-#include <video/omap-panel-data.h>
+ 
+ static struct omap_video_timings lb035q02_timings = {
+ 	.x_res = 320,
 -- 
 2.8.3
