@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 08/27] omapfb: panel-sharp-ls037v7dw01: Remove legacy boot support
-Date: Fri, 3 Jun 2016 13:53:02 +0300
-Message-ID: <20160603105321.7980-9-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 06/27] omapfb: panel-nec-nl8048hl11: Remove legacy boot support
+Date: Fri, 3 Jun 2016 13:53:00 +0300
+Message-ID: <20160603105321.7980-7-peter.ujfalusi@ti.com>
 References: <20160603105321.7980-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -17,58 +17,43 @@ support can be dropped.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- .../omapfb/displays/panel-sharp-ls037v7dw01.c      | 81 ++--------------------
- include/video/omap-panel-data.h                    | 24 -------
- 2 files changed, 6 insertions(+), 99 deletions(-)
+ .../omap2/omapfb/displays/panel-nec-nl8048hl11.c   | 45 +++-------------------
+ include/video/omap-panel-data.h                    | 18 ---------
+ 2 files changed, 6 insertions(+), 57 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c
-index 1954ec913ce5..a1e590155a26 100644
---- a/drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c
-+++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-sharp-ls037v7dw01.c
-@@ -18,7 +18,6 @@
- #include <linux/slab.h>
- #include <linux/regulator/consumer.h>
+diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c
+index 8a928c9a2fc9..3852cea3c947 100644
+--- a/drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c
++++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c
+@@ -19,7 +19,6 @@
+ #include <linux/of_gpio.h>
+ 
  #include <video/omapdss.h>
 -#include <video/omap-panel-data.h>
  
  struct panel_drv_data {
- 	struct omap_dss_device dssdev;
-@@ -197,69 +196,6 @@ static struct omap_dss_driver sharp_ls_ops = {
- 	.get_resolution	= omapdss_default_get_resolution,
+ 	struct omap_dss_device	dssdev;
+@@ -233,33 +232,6 @@ static struct omap_dss_driver nec_8048_ops = {
  };
  
--static int sharp_ls_get_gpio(struct device *dev, int gpio, unsigned long flags,
--		  char *desc, struct gpio_desc **gpiod)
+ 
+-static int nec_8048_probe_pdata(struct spi_device *spi)
 -{
--	int r;
--
--	r = devm_gpio_request_one(dev, gpio, flags, desc);
--	if (r) {
--		*gpiod = NULL;
--		return r == -ENOENT ? 0 : r;
--	}
--
--	*gpiod = gpio_to_desc(gpio);
--
--	return 0;
--}
--
--static int sharp_ls_probe_pdata(struct platform_device *pdev)
--{
--	const struct panel_sharp_ls037v7dw01_platform_data *pdata;
--	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
+-	const struct panel_nec_nl8048hl11_platform_data *pdata;
+-	struct panel_drv_data *ddata = dev_get_drvdata(&spi->dev);
 -	struct omap_dss_device *dssdev, *in;
--	int r;
 -
--	pdata = dev_get_platdata(&pdev->dev);
+-	pdata = dev_get_platdata(&spi->dev);
+-
+-	ddata->qvga_gpio = pdata->qvga_gpio;
+-	ddata->res_gpio = pdata->res_gpio;
 -
 -	in = omap_dss_find_output(pdata->source);
 -	if (in == NULL) {
--		dev_err(&pdev->dev, "failed to find video source '%s'\n",
+-		dev_err(&spi->dev, "failed to find video source '%s'\n",
 -				pdata->source);
 -		return -EPROBE_DEFER;
 -	}
--
 -	ddata->in = in;
 -
 -	ddata->data_lines = pdata->data_lines;
@@ -76,93 +61,67 @@ index 1954ec913ce5..a1e590155a26 100644
 -	dssdev = &ddata->dssdev;
 -	dssdev->name = pdata->name;
 -
--	r = sharp_ls_get_gpio(&pdev->dev, pdata->mo_gpio, GPIOF_OUT_INIT_LOW,
--		"lcd MO", &ddata->mo_gpio);
--	if (r)
--		return r;
--	r = sharp_ls_get_gpio(&pdev->dev, pdata->lr_gpio, GPIOF_OUT_INIT_HIGH,
--		"lcd LR", &ddata->lr_gpio);
--	if (r)
--		return r;
--	r = sharp_ls_get_gpio(&pdev->dev, pdata->ud_gpio, GPIOF_OUT_INIT_HIGH,
--		"lcd UD", &ddata->ud_gpio);
--	if (r)
--		return r;
--	r = sharp_ls_get_gpio(&pdev->dev, pdata->resb_gpio, GPIOF_OUT_INIT_LOW,
--		"lcd RESB", &ddata->resb_gpio);
--	if (r)
--		return r;
--	r = sharp_ls_get_gpio(&pdev->dev, pdata->ini_gpio, GPIOF_OUT_INIT_LOW,
--		"lcd INI", &ddata->ini_gpio);
--	if (r)
--		return r;
--
 -	return 0;
 -}
 -
- static  int sharp_ls_get_gpio_of(struct device *dev, int index, int val,
- 	const char *desc, struct gpio_desc **gpiod)
+ static int nec_8048_probe_of(struct spi_device *spi)
  {
-@@ -330,23 +266,18 @@ static int sharp_ls_probe(struct platform_device *pdev)
- 	struct omap_dss_device *dssdev;
- 	int r;
+ 	struct device_node *node = spi->dev.of_node;
+@@ -296,6 +268,9 @@ static int nec_8048_probe(struct spi_device *spi)
  
-+	if (!pdev->dev.of_node)
+ 	dev_dbg(&spi->dev, "%s\n", __func__);
+ 
++	if (!spi->dev.of_node)
 +		return -ENODEV;
 +
- 	ddata = devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
- 	if (ddata == NULL)
- 		return -ENOMEM;
+ 	spi->mode = SPI_MODE_0;
+ 	spi->bits_per_word = 32;
  
- 	platform_set_drvdata(pdev, ddata);
+@@ -315,17 +290,9 @@ static int nec_8048_probe(struct spi_device *spi)
  
--	if (dev_get_platdata(&pdev->dev)) {
--		r = sharp_ls_probe_pdata(pdev);
+ 	ddata->spi = spi;
+ 
+-	if (dev_get_platdata(&spi->dev)) {
+-		r = nec_8048_probe_pdata(spi);
 -		if (r)
 -			return r;
--	} else if (pdev->dev.of_node) {
--		r = sharp_ls_probe_of(pdev);
+-	} else if (spi->dev.of_node) {
+-		r = nec_8048_probe_of(spi);
 -		if (r)
 -			return r;
 -	} else {
 -		return -ENODEV;
 -	}
-+	r = sharp_ls_probe_of(pdev);
++	r = nec_8048_probe_of(spi);
 +	if (r)
 +		return r;
  
- 	ddata->videomode = sharp_ls_timings;
- 
+ 	if (gpio_is_valid(ddata->qvga_gpio)) {
+ 		r = devm_gpio_request_one(&spi->dev, ddata->qvga_gpio,
 diff --git a/include/video/omap-panel-data.h b/include/video/omap-panel-data.h
-index 34ee7509752f..085b4171eb25 100644
+index fbdaa4c3ae96..a0c95cd1ed11 100644
 --- a/include/video/omap-panel-data.h
 +++ b/include/video/omap-panel-data.h
-@@ -165,28 +165,4 @@ struct panel_lb035q02_platform_data {
- 	int enable_gpio;
+@@ -205,22 +205,4 @@ struct panel_tpo_td043mtea1_platform_data {
+ 	int nreset_gpio;
  };
  
 -/**
-- * panel_sharp_ls037v7dw01 platform data
+- * panel-nec-nl8048hl11 platform data
 - * @name: name for this display entity
 - * @source: name of the display entity used as a video source
 - * @data_lines: number of DPI datalines
-- * @resb_gpio: reset signal GPIO
-- * @ini_gpio: power on control GPIO
-- * @mo_gpio: selection for resolution(VGA/QVGA) GPIO
-- * @lr_gpio: selection for horizontal scanning direction GPIO
-- * @ud_gpio: selection for vertical scanning direction GPIO
+- * @res_gpio: reset signal
+- * @qvga_gpio: selection for resolution(QVGA/WVGA)
 - */
--struct panel_sharp_ls037v7dw01_platform_data {
+-struct panel_nec_nl8048hl11_platform_data {
 -	const char *name;
 -	const char *source;
 -
 -	int data_lines;
 -
--	int resb_gpio;
--	int ini_gpio;
--	int mo_gpio;
--	int lr_gpio;
--	int ud_gpio;
+-	int res_gpio;
+-	int qvga_gpio;
 -};
 -
  #endif /* __OMAP_PANEL_DATA_H */
