@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 01/27] ARM: OMAP: rx51-video: Do not set TV connector_type
-Date: Fri, 3 Jun 2016 13:52:55 +0300
-Message-ID: <20160603105321.7980-2-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 04/27] ARM: OMAP2: Use the platform_data header for omapdss
+Date: Fri, 3 Jun 2016 13:52:58 +0300
+Message-ID: <20160603105321.7980-5-peter.ujfalusi@ti.com>
 References: <20160603105321.7980-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,26 +12,68 @@ To: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, robdclark@gmail.com, airlied@l
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com, jsarha@ti.com, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-OMAP_DSS_VENC_TYPE_COMPOSITE is 0. There is no need to explicitly set the
-connector_type.
-This change is needed for the omapdss header cleanup.
+Instead of the full omapdss internal header, include only the platform_data
+header.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/mach-omap2/board-rx51-video.c | 1 -
- 1 file changed, 1 deletion(-)
+ arch/arm/mach-omap2/board-ldp.c        | 2 +-
+ arch/arm/mach-omap2/board-rx51-video.c | 2 +-
+ arch/arm/mach-omap2/display.c          | 2 +-
+ arch/arm/mach-omap2/dss-common.c       | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index f364a1b779f0..390795b334c3 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -39,7 +39,7 @@
+ #include "gpmc.h"
+ #include "gpmc-smsc911x.h"
+ 
+-#include <video/omapdss.h>
++#include <linux/platform_data/omapdss.h>
+ #include <video/omap-panel-data.h>
+ 
+ #include "board-flash.h"
 diff --git a/arch/arm/mach-omap2/board-rx51-video.c b/arch/arm/mach-omap2/board-rx51-video.c
-index 9cfebc5c7455..b76f84245ad9 100644
+index 9866ec06a395..180c6aa633bd 100644
 --- a/arch/arm/mach-omap2/board-rx51-video.c
 +++ b/arch/arm/mach-omap2/board-rx51-video.c
-@@ -32,7 +32,6 @@
- static struct connector_atv_platform_data rx51_tv_pdata = {
- 	.name = "tv",
- 	.source = "venc.0",
--	.connector_type = OMAP_DSS_VENC_TYPE_COMPOSITE,
- 	.invert_polarity = false,
- };
+@@ -15,7 +15,7 @@
+ #include <linux/spi/spi.h>
+ #include <linux/mm.h>
+ #include <asm/mach-types.h>
+-#include <video/omapdss.h>
++#include <linux/platform_data/omapdss.h>
+ #include <video/omap-panel-data.h>
  
+ #include <linux/platform_data/spi-omap2-mcspi.h>
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index 6ab13d18c636..70b3eaf085e4 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -29,7 +29,7 @@
+ #include <linux/mfd/syscon.h>
+ #include <linux/regmap.h>
+ 
+-#include <video/omapdss.h>
++#include <linux/platform_data/omapdss.h>
+ #include "omap_hwmod.h"
+ #include "omap_device.h"
+ #include "omap-pm.h"
+diff --git a/arch/arm/mach-omap2/dss-common.c b/arch/arm/mach-omap2/dss-common.c
+index ea2be0f5953b..1d583bc0b1a9 100644
+--- a/arch/arm/mach-omap2/dss-common.c
++++ b/arch/arm/mach-omap2/dss-common.c
+@@ -27,7 +27,7 @@
+ #include <linux/gpio.h>
+ #include <linux/platform_device.h>
+ 
+-#include <video/omapdss.h>
++#include <linux/platform_data/omapdss.h>
+ #include <video/omap-panel-data.h>
+ 
+ #include "soc.h"
 -- 
 2.8.3
