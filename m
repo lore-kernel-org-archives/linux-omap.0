@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 04/27] ARM: OMAP2: Use the platform_data header for omapdss
-Date: Fri, 3 Jun 2016 14:03:06 +0300
-Message-ID: <20160603110329.9953-5-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 05/27] omapfb: panel-tpo-td028ttec1: Remove legacy boot support
+Date: Fri, 3 Jun 2016 14:03:07 +0300
+Message-ID: <20160603110329.9953-6-peter.ujfalusi@ti.com>
 References: <20160603110329.9953-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,68 +12,111 @@ To: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, robdclark@gmail.com, airlied@l
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com, jsarha@ti.com, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-Instead of the full omapdss internal header, include only the platform_data
-header.
+The panel is not used by any legacy board files so the legacy (pdata) boot
+support can be dropped.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/mach-omap2/board-ldp.c        | 2 +-
- arch/arm/mach-omap2/board-rx51-video.c | 2 +-
- arch/arm/mach-omap2/display.c          | 2 +-
- arch/arm/mach-omap2/dss-common.c       | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ .../omap2/omapfb/displays/panel-tpo-td028ttec1.c   | 43 +++-------------------
+ include/video/omap-panel-data.h                    | 13 -------
+ 2 files changed, 6 insertions(+), 50 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index f364a1b779f0..390795b334c3 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -39,7 +39,7 @@
- #include "gpmc.h"
- #include "gpmc-smsc911x.h"
- 
--#include <video/omapdss.h>
-+#include <linux/platform_data/omapdss.h>
- #include <video/omap-panel-data.h>
- 
- #include "board-flash.h"
-diff --git a/arch/arm/mach-omap2/board-rx51-video.c b/arch/arm/mach-omap2/board-rx51-video.c
-index 9866ec06a395..180c6aa633bd 100644
---- a/arch/arm/mach-omap2/board-rx51-video.c
-+++ b/arch/arm/mach-omap2/board-rx51-video.c
-@@ -15,7 +15,7 @@
+diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c
+index 4d657f3ab679..f4dc023868ae 100644
+--- a/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c
++++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c
+@@ -29,7 +29,6 @@
  #include <linux/spi/spi.h>
- #include <linux/mm.h>
- #include <asm/mach-types.h>
--#include <video/omapdss.h>
-+#include <linux/platform_data/omapdss.h>
- #include <video/omap-panel-data.h>
- 
- #include <linux/platform_data/spi-omap2-mcspi.h>
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index 6ab13d18c636..70b3eaf085e4 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -29,7 +29,7 @@
- #include <linux/mfd/syscon.h>
- #include <linux/regmap.h>
- 
--#include <video/omapdss.h>
-+#include <linux/platform_data/omapdss.h>
- #include "omap_hwmod.h"
- #include "omap_device.h"
- #include "omap-pm.h"
-diff --git a/arch/arm/mach-omap2/dss-common.c b/arch/arm/mach-omap2/dss-common.c
-index ea2be0f5953b..1d583bc0b1a9 100644
---- a/arch/arm/mach-omap2/dss-common.c
-+++ b/arch/arm/mach-omap2/dss-common.c
-@@ -27,7 +27,7 @@
  #include <linux/gpio.h>
- #include <linux/platform_device.h>
+ #include <video/omapdss.h>
+-#include <video/omap-panel-data.h>
  
--#include <video/omapdss.h>
-+#include <linux/platform_data/omapdss.h>
- #include <video/omap-panel-data.h>
+ struct panel_drv_data {
+ 	struct omap_dss_device dssdev;
+@@ -365,31 +364,6 @@ static struct omap_dss_driver td028ttec1_ops = {
+ 	.check_timings	= td028ttec1_panel_check_timings,
+ };
  
- #include "soc.h"
+-static int td028ttec1_panel_probe_pdata(struct spi_device *spi)
+-{
+-	const struct panel_tpo_td028ttec1_platform_data *pdata;
+-	struct panel_drv_data *ddata = dev_get_drvdata(&spi->dev);
+-	struct omap_dss_device *dssdev, *in;
+-
+-	pdata = dev_get_platdata(&spi->dev);
+-
+-	in = omap_dss_find_output(pdata->source);
+-	if (in == NULL) {
+-		dev_err(&spi->dev, "failed to find video source '%s'\n",
+-				pdata->source);
+-		return -EPROBE_DEFER;
+-	}
+-
+-	ddata->in = in;
+-
+-	ddata->data_lines = pdata->data_lines;
+-
+-	dssdev = &ddata->dssdev;
+-	dssdev->name = pdata->name;
+-
+-	return 0;
+-}
+-
+ static int td028ttec1_probe_of(struct spi_device *spi)
+ {
+ 	struct device_node *node = spi->dev.of_node;
+@@ -415,6 +389,9 @@ static int td028ttec1_panel_probe(struct spi_device *spi)
+ 
+ 	dev_dbg(&spi->dev, "%s\n", __func__);
+ 
++	if (!spi->dev.of_node)
++		return -ENODEV;
++
+ 	spi->bits_per_word = 9;
+ 	spi->mode = SPI_MODE_3;
+ 
+@@ -432,17 +409,9 @@ static int td028ttec1_panel_probe(struct spi_device *spi)
+ 
+ 	ddata->spi_dev = spi;
+ 
+-	if (dev_get_platdata(&spi->dev)) {
+-		r = td028ttec1_panel_probe_pdata(spi);
+-		if (r)
+-			return r;
+-	} else if (spi->dev.of_node) {
+-		r = td028ttec1_probe_of(spi);
+-		if (r)
+-			return r;
+-	} else {
+-		return -ENODEV;
+-	}
++	r = td028ttec1_probe_of(spi);
++	if (r)
++		return r;
+ 
+ 	ddata->videomode = td028ttec1_panel_timings;
+ 
+diff --git a/include/video/omap-panel-data.h b/include/video/omap-panel-data.h
+index 56830d1dc762..fbdaa4c3ae96 100644
+--- a/include/video/omap-panel-data.h
++++ b/include/video/omap-panel-data.h
+@@ -223,17 +223,4 @@ struct panel_nec_nl8048hl11_platform_data {
+ 	int qvga_gpio;
+ };
+ 
+-/**
+- * panel-tpo-td028ttec1 platform data
+- * @name: name for display entity
+- * @source: name of the display entity used as a video source
+- * @data_lines: number of DPI datalines
+- */
+-struct panel_tpo_td028ttec1_platform_data {
+-	const char *name;
+-	const char *source;
+-
+-	int data_lines;
+-};
+-
+ #endif /* __OMAP_PANEL_DATA_H */
 -- 
 2.8.3
