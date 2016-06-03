@@ -1,195 +1,73 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH] net: ethernet: ti: cpsw: remove rx_descs property
-Date: Fri,  3 Jun 2016 01:43:40 +0300
-Message-ID: <1464907420-19694-1-git-send-email-ivan.khoronzhuk@linaro.org>
+From: "Li, Yong B" <yong.b.li@intel.com>
+Subject: RE: [PATCH] ARM: dts: am335x-boneblack: add i2c1 DT entry
+Date: Fri, 3 Jun 2016 05:46:50 +0000
+Message-ID: <BCE6BEBCDDF4B84E891D2320CBF96F1D3F9FB1EC@SHSMSX101.ccr.corp.intel.com>
+References: <1464853310-8738-1-git-send-email-yong.b.li@intel.com>
+ <CAOCHtYib9YxckneM-j0Gk1YE=MnvAwAhvDjEDEuFJbH6W3EcWA@mail.gmail.com>
+ <20160602173932.GF5995@atomide.com>
+ <CAOCHtYiWYrwSidHnKv4siFT-wU=tt5-YeDTwbM022ZTxdPFYYA@mail.gmail.com>
+ <20160602175635.GG5995@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160602175635.GG5995@atomide.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: mugunthanvnm@ti.com, linux-kernel@vger.kernel.org
-Cc: grygorii.strashko@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, devicetree@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+To: Tony Lindgren <tony@atomide.com>, Robert Nelson <robertcnelson@gmail.com>
+Cc: Benoit Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux kernel <linux-kernel@vger.kernel.org>, "sdliyong@gmail.com" <sdliyong@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-There is no reason to hold s/w dependent parameter in device tree.
-Even more, there is no reason in this parameter because davinici_cpdma
-driver splits pool of descriptors equally between tx and rx channels.
-That is, if number of descriptors 256, 128 of them are for rx
-channels. While receiving, the descriptor is freed to the pool and
-then allocated with new skb. And if in DT the "rx_descs" is set to
-64, then 128 - 64 = 64 descriptors are always in the pool and cannot
-be used, for tx, for instance. It's not correct resource usage,
-better to set it to half of pool, then the rx pool can be used in
-full. It will not have any impact on performance, as anyway, the
-"redundant" descriptors were unused.
+Hi Tony,
 
-Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
----
+I can submit a V2 version about the "disabled", or just drop this patch?
 
-Based on master
+Thanks,
+Yong
+-----Original Message-----
+From: Tony Lindgren [mailto:tony@atomide.com] 
+Sent: Friday, June 3, 2016 1:57 AM
+To: Robert Nelson <robertcnelson@gmail.com>
+Cc: Li, Yong B <yong.b.li@intel.com>; Benoit Cousson <bcousson@baylibre.com>; Rob Herring <robh+dt@kernel.org>; Pawel Moll <pawel.moll@arm.com>; Mark Rutland <mark.rutland@arm.com>; Ian Campbell <ijc+devicetree@hellion.org.uk>; Kumar Gala <galak@codeaurora.org>; Russell King <linux@arm.linux.org.uk>; linux-omap@vger.kernel.org; devicetree <devicetree@vger.kernel.org>; linux-arm-kernel@lists.infradead.org; linux kernel <linux-kernel@vger.kernel.org>; sdliyong@gmail.com
+Subject: Re: [PATCH] ARM: dts: am335x-boneblack: add i2c1 DT entry
 
- Documentation/devicetree/bindings/net/cpsw.txt |  3 ---
- arch/arm/boot/dts/am33xx.dtsi                  |  1 -
- arch/arm/boot/dts/am4372.dtsi                  |  1 -
- arch/arm/boot/dts/dm814x.dtsi                  |  1 -
- arch/arm/boot/dts/dra7.dtsi                    |  1 -
- drivers/net/ethernet/ti/cpsw.c                 | 13 +++----------
- drivers/net/ethernet/ti/cpsw.h                 |  1 -
- drivers/net/ethernet/ti/davinci_cpdma.c        |  6 ++++++
- drivers/net/ethernet/ti/davinci_cpdma.h        |  1 +
- 9 files changed, 10 insertions(+), 18 deletions(-)
+* Robert Nelson <robertcnelson@gmail.com> [160602 10:48]:
+> On Thu, Jun 2, 2016 at 12:39 PM, Tony Lindgren <tony@atomide.com> wrote:
+> >
+> > * Robert Nelson <robertcnelson@gmail.com> [160602 10:39]:
+> > > On Thu, Jun 2, 2016 at 2:41 AM, Yong Li <yong.b.li@intel.com> wrote:
+> > >
+> > > > From: Yong Li <sdliyong@gmail.com>
+> > > >
+> > > > Without this patch, I2C-1 is missing on beaglebone black boards
+> > > >
+> > > > Signed-off-by: Yong Li <sdliyong@gmail.com>
+> > > > ---
+> > > >  arch/arm/boot/dts/am335x-boneblack.dts | 15 +++++++++++++++
+> > > >  1 file changed, 15 insertions(+)
+> > > >
+> > >
+> > >
+> > > This is also 'common' for the white/green, if your really going to 
+> > > push this, please add it to:
+> > >
+> > > am335x-bone-common.dtsi
+> >
+> > But isn't this exposed on the cape pins? So the use can be whatever 
+> > for these pins?
+> 
+> That is correct, "i2c1" is on the cape connector, with no primary 
+> function defined.
+> 
+> Currently on mainline, the board and cape eeprom i2c bus's are enabled.
+> 
+> i2c0 = board eeprom
+> i2c2 = 'cape' eeprom
+> 
+> personally, nak by me to add i2c1 by default, should use overlay's to enable it.
 
-diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
-index 0ae0649..5fe6239 100644
---- a/Documentation/devicetree/bindings/net/cpsw.txt
-+++ b/Documentation/devicetree/bindings/net/cpsw.txt
-@@ -15,7 +15,6 @@ Required properties:
- - cpdma_channels 	: Specifies number of channels in CPDMA
- - ale_entries		: Specifies No of entries ALE can hold
- - bd_ram_size		: Specifies internal descriptor RAM size
--- rx_descs		: Specifies number of Rx descriptors
- - mac_control		: Specifies Default MAC control register content
- 			  for the specific platform
- - slaves		: Specifies number for slaves
-@@ -70,7 +69,6 @@ Examples:
- 		ale_entries = <1024>;
- 		bd_ram_size = <0x2000>;
- 		no_bd_ram = <0>;
--		rx_descs = <64>;
- 		mac_control = <0x20>;
- 		slaves = <2>;
- 		active_slave = <0>;
-@@ -99,7 +97,6 @@ Examples:
- 		ale_entries = <1024>;
- 		bd_ram_size = <0x2000>;
- 		no_bd_ram = <0>;
--		rx_descs = <64>;
- 		mac_control = <0x20>;
- 		slaves = <2>;
- 		active_slave = <0>;
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 52be48b..702126f 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -766,7 +766,6 @@
- 			ale_entries = <1024>;
- 			bd_ram_size = <0x2000>;
- 			no_bd_ram = <0>;
--			rx_descs = <64>;
- 			mac_control = <0x20>;
- 			slaves = <2>;
- 			active_slave = <0>;
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index 12fcde4..a10fa7f 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -626,7 +626,6 @@
- 			ale_entries = <1024>;
- 			bd_ram_size = <0x2000>;
- 			no_bd_ram = <0>;
--			rx_descs = <64>;
- 			mac_control = <0x20>;
- 			slaves = <2>;
- 			active_slave = <0>;
-diff --git a/arch/arm/boot/dts/dm814x.dtsi b/arch/arm/boot/dts/dm814x.dtsi
-index d4537dc..f23cae0c 100644
---- a/arch/arm/boot/dts/dm814x.dtsi
-+++ b/arch/arm/boot/dts/dm814x.dtsi
-@@ -509,7 +509,6 @@
- 			ale_entries = <1024>;
- 			bd_ram_size = <0x2000>;
- 			no_bd_ram = <0>;
--			rx_descs = <64>;
- 			mac_control = <0x20>;
- 			slaves = <2>;
- 			active_slave = <0>;
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index e007401..b7ddc64 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1626,7 +1626,6 @@
- 			ale_entries = <1024>;
- 			bd_ram_size = <0x2000>;
- 			no_bd_ram = <0>;
--			rx_descs = <64>;
- 			mac_control = <0x20>;
- 			slaves = <2>;
- 			active_slave = <0>;
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 4b08a2f..635be3e 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -1277,6 +1277,7 @@ static int cpsw_ndo_open(struct net_device *ndev)
- 				  ALE_ALL_PORTS, ALE_ALL_PORTS, 0, 0);
- 
- 	if (!cpsw_common_res_usage_state(priv)) {
-+		int buf_num;
- 		struct cpsw_priv *priv_sl0 = cpsw_get_slave_priv(priv, 0);
- 
- 		/* setup tx dma to fixed prio and zero offset */
-@@ -1305,10 +1306,8 @@ static int cpsw_ndo_open(struct net_device *ndev)
- 			enable_irq(priv->irqs_table[0]);
- 		}
- 
--		if (WARN_ON(!priv->data.rx_descs))
--			priv->data.rx_descs = 128;
--
--		for (i = 0; i < priv->data.rx_descs; i++) {
-+		buf_num = cpdma_chan_get_buf_num(priv->dma) / 2;
-+		for (i = 0; i < buf_num; i++) {
- 			struct sk_buff *skb;
- 
- 			ret = -ENOMEM;
-@@ -1999,12 +1998,6 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
- 	}
- 	data->bd_ram_size = prop;
- 
--	if (of_property_read_u32(node, "rx_descs", &prop)) {
--		dev_err(&pdev->dev, "Missing rx_descs property in the DT.\n");
--		return -EINVAL;
--	}
--	data->rx_descs = prop;
--
- 	if (of_property_read_u32(node, "mac_control", &prop)) {
- 		dev_err(&pdev->dev, "Missing mac_control property in the DT.\n");
- 		return -EINVAL;
-diff --git a/drivers/net/ethernet/ti/cpsw.h b/drivers/net/ethernet/ti/cpsw.h
-index e50afd1..16b54c6 100644
---- a/drivers/net/ethernet/ti/cpsw.h
-+++ b/drivers/net/ethernet/ti/cpsw.h
-@@ -35,7 +35,6 @@ struct cpsw_platform_data {
- 	u32	cpts_clock_shift; /* convert input clock ticks to nanoseconds */
- 	u32	ale_entries;	/* ale table size */
- 	u32	bd_ram_size;  /*buffer descriptor ram size */
--	u32	rx_descs;	/* Number of Rx Descriptios */
- 	u32	mac_control;	/* Mac control register */
- 	u16	default_vlan;	/* Def VLAN for ALE lookup in VLAN aware mode*/
- 	bool	dual_emac;	/* Enable Dual EMAC mode */
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-index 18bf3a8..395647c 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.c
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-@@ -543,6 +543,12 @@ struct cpdma_chan *cpdma_chan_create(struct cpdma_ctlr *ctlr, int chan_num,
- }
- EXPORT_SYMBOL_GPL(cpdma_chan_create);
- 
-+int cpdma_chan_get_buf_num(struct cpdma_ctlr *ctlr)
-+{
-+	return ctlr->pool->num_desc;
-+}
-+EXPORT_SYMBOL_GPL(cpdma_chan_get_buf_num);
-+
- int cpdma_chan_destroy(struct cpdma_chan *chan)
- {
- 	struct cpdma_ctlr *ctlr;
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.h b/drivers/net/ethernet/ti/davinci_cpdma.h
-index 86dee48..f059856 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.h
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.h
-@@ -81,6 +81,7 @@ int cpdma_ctlr_dump(struct cpdma_ctlr *ctlr);
- 
- struct cpdma_chan *cpdma_chan_create(struct cpdma_ctlr *ctlr, int chan_num,
- 				     cpdma_handler_fn handler);
-+int cpdma_chan_get_buf_num(struct cpdma_ctlr *ctlr);
- int cpdma_chan_destroy(struct cpdma_chan *chan);
- int cpdma_chan_start(struct cpdma_chan *chan);
- int cpdma_chan_stop(struct cpdma_chan *chan);
--- 
-1.9.1
+Yes sounds like the best we can do is define it but set it with status = "disabled" for now.
+
+Regards,
+
+Tony
