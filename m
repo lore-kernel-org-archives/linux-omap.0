@@ -1,73 +1,47 @@
-From: "Li, Yong B" <yong.b.li@intel.com>
-Subject: RE: [PATCH] ARM: dts: am335x-boneblack: add i2c1 DT entry
-Date: Fri, 3 Jun 2016 05:46:50 +0000
-Message-ID: <BCE6BEBCDDF4B84E891D2320CBF96F1D3F9FB1EC@SHSMSX101.ccr.corp.intel.com>
-References: <1464853310-8738-1-git-send-email-yong.b.li@intel.com>
- <CAOCHtYib9YxckneM-j0Gk1YE=MnvAwAhvDjEDEuFJbH6W3EcWA@mail.gmail.com>
- <20160602173932.GF5995@atomide.com>
- <CAOCHtYiWYrwSidHnKv4siFT-wU=tt5-YeDTwbM022ZTxdPFYYA@mail.gmail.com>
- <20160602175635.GG5995@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] device tree description for AD5820 camera auto-focus coil
+Date: Fri, 3 Jun 2016 08:19:29 +0200
+Message-ID: <20160603061929.GA3601@amd>
+References: <20160524091746.GA14536@amd>
+ <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
+ <20160527205140.GA26767@amd>
+ <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
+ <20160531213437.GA28397@amd>
+ <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
+ <20160601220840.GA21946@amd>
+ <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
+ <20160602193027.GB7984@amd>
+ <20160602212746.GT26360@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160602175635.GG5995@atomide.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20160602212746.GT26360@valkosipuli.retiisi.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Robert Nelson <robertcnelson@gmail.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux kernel <linux-kernel@vger.kernel.org>, "sdliyong@gmail.com" <sdliyong@gmail.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
-
-I can submit a V2 version about the "disabled", or just drop this patch?
-
-Thanks,
-Yong
------Original Message-----
-From: Tony Lindgren [mailto:tony@atomide.com] 
-Sent: Friday, June 3, 2016 1:57 AM
-To: Robert Nelson <robertcnelson@gmail.com>
-Cc: Li, Yong B <yong.b.li@intel.com>; Benoit Cousson <bcousson@baylibre.com>; Rob Herring <robh+dt@kernel.org>; Pawel Moll <pawel.moll@arm.com>; Mark Rutland <mark.rutland@arm.com>; Ian Campbell <ijc+devicetree@hellion.org.uk>; Kumar Gala <galak@codeaurora.org>; Russell King <linux@arm.linux.org.uk>; linux-omap@vger.kernel.org; devicetree <devicetree@vger.kernel.org>; linux-arm-kernel@lists.infradead.org; linux kernel <linux-kernel@vger.kernel.org>; sdliyong@gmail.com
-Subject: Re: [PATCH] ARM: dts: am335x-boneblack: add i2c1 DT entry
-
-* Robert Nelson <robertcnelson@gmail.com> [160602 10:48]:
-> On Thu, Jun 2, 2016 at 12:39 PM, Tony Lindgren <tony@atomide.com> wrote:
-> >
-> > * Robert Nelson <robertcnelson@gmail.com> [160602 10:39]:
-> > > On Thu, Jun 2, 2016 at 2:41 AM, Yong Li <yong.b.li@intel.com> wrote:
-> > >
-> > > > From: Yong Li <sdliyong@gmail.com>
-> > > >
-> > > > Without this patch, I2C-1 is missing on beaglebone black boards
-> > > >
-> > > > Signed-off-by: Yong Li <sdliyong@gmail.com>
-> > > > ---
-> > > >  arch/arm/boot/dts/am335x-boneblack.dts | 15 +++++++++++++++
-> > > >  1 file changed, 15 insertions(+)
-> > > >
-> > >
-> > >
-> > > This is also 'common' for the white/green, if your really going to 
-> > > push this, please add it to:
-> > >
-> > > am335x-bone-common.dtsi
-> >
-> > But isn't this exposed on the cape pins? So the use can be whatever 
-> > for these pins?
+On Fri 2016-06-03 00:27:46, Sakari Ailus wrote:
+> On Thu, Jun 02, 2016 at 09:30:27PM +0200, Pavel Machek wrote:
+> > 
+> > Add documentation for ad5820 device tree binding.
+> > 
+> > Signed-off-by: Pavel Machek <pavel@denx.de>
 > 
-> That is correct, "i2c1" is on the cape connector, with no primary 
-> function defined.
+> Thanks, Pavel!!
 > 
-> Currently on mainline, the board and cape eeprom i2c bus's are enabled.
+> Can I pick the two patches (this one + the driver) or would you like to send
+> a pull request? In the latter case you can add:
+
+Yes please, pick up the two patches.
+
+Best regards,
+									Pavel
+
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > 
-> i2c0 = board eeprom
-> i2c2 = 'cape' eeprom
-> 
-> personally, nak by me to add i2c1 by default, should use overlay's to enable it.
 
-Yes sounds like the best we can do is define it but set it with status = "disabled" for now.
-
-Regards,
-
-Tony
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
