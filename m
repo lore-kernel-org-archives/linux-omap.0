@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 21/27] omapfb: Remove reference to pdata->default_device
-Date: Fri, 3 Jun 2016 13:53:15 +0300
-Message-ID: <20160603105321.7980-22-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 22/27] platform_data: omapdss: Remove unused members from omap_dss_board_info
+Date: Fri, 3 Jun 2016 13:53:16 +0300
+Message-ID: <20160603105321.7980-23-peter.ujfalusi@ti.com>
 References: <20160603105321.7980-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,26 +12,31 @@ To: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, robdclark@gmail.com, airlied@l
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com, jsarha@ti.com, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-The default_device is no longer used, it is a leftower from legacy. The
-else if (pdata->default_device) is always going to be false.
+The num_devices, **devices and *default_device is leftover from the past.
+They can be removed as they are no used.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/video/fbdev/omap2/omapfb/dss/core.c | 2 --
- 1 file changed, 2 deletions(-)
+ include/linux/platform_data/omapdss.h | 5 -----
+ 1 file changed, 5 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/core.c b/drivers/video/fbdev/omap2/omapfb/dss/core.c
-index 5a87179b7312..b9de21d3ff09 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/core.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/core.c
-@@ -208,8 +208,6 @@ static int __init omap_dss_probe(struct platform_device *pdev)
- 		core.default_display_name = def_disp_name;
- 	else if (pdata->default_display_name)
- 		core.default_display_name = pdata->default_display_name;
--	else if (pdata->default_device)
--		core.default_display_name = pdata->default_device->name;
+diff --git a/include/linux/platform_data/omapdss.h b/include/linux/platform_data/omapdss.h
+index dbb875abc44a..679177929045 100644
+--- a/include/linux/platform_data/omapdss.h
++++ b/include/linux/platform_data/omapdss.h
+@@ -25,13 +25,8 @@ enum omapdss_version {
+ 	OMAPDSS_VER_DRA7xx,
+ };
  
- 	register_pm_notifier(&omap_dss_pm_notif_block);
- 
+-struct omap_dss_device;
+-
+ /* Board specific data */
+ struct omap_dss_board_info {
+-	int num_devices;
+-	struct omap_dss_device **devices;
+-	struct omap_dss_device *default_device;
+ 	const char *default_display_name;
+ 	int (*dsi_enable_pads)(int dsi_id, unsigned int lane_mask);
+ 	void (*dsi_disable_pads)(int dsi_id, unsigned int lane_mask);
 -- 
 2.8.3
