@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 15/27] drm/omap: displays: Do not include video/omap-panel-data.h if not needed
-Date: Fri, 3 Jun 2016 13:53:09 +0300
-Message-ID: <20160603105321.7980-16-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 12/27] omapfb: connector-dvi: Remove legacy boot support
+Date: Fri, 3 Jun 2016 13:53:06 +0300
+Message-ID: <20160603105321.7980-13-peter.ujfalusi@ti.com>
 References: <20160603105321.7980-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,65 +12,126 @@ To: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, robdclark@gmail.com, airlied@l
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com, jsarha@ti.com, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-Some panel/encoder/connector driver includes omap-panel-data.h but they
-do not need it. Remove the inclusion of video/omap-panel-data.h from these
-drivers.
+The panel is not used by any legacy board files so the legacy (pdata) boot
+support can be dropped.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/gpu/drm/omapdrm/displays/encoder-tfp410.c           | 1 -
- drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c        | 1 -
- drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c             | 1 -
- drivers/gpu/drm/omapdrm/displays/panel-lgphilips-lb035q02.c | 1 -
- 4 files changed, 4 deletions(-)
+ .../fbdev/omap2/omapfb/displays/connector-dvi.c    | 58 +++-------------------
+ include/video/omap-panel-data.h                    | 12 -----
+ 2 files changed, 6 insertions(+), 64 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/displays/encoder-tfp410.c b/drivers/gpu/drm/omapdrm/displays/encoder-tfp410.c
-index 2fd5602880a7..6b7d4fc3ac12 100644
---- a/drivers/gpu/drm/omapdrm/displays/encoder-tfp410.c
-+++ b/drivers/gpu/drm/omapdrm/displays/encoder-tfp410.c
-@@ -16,7 +16,6 @@
- #include <linux/of_gpio.h>
- 
- #include <video/omapdss.h>
--#include <video/omap-panel-data.h>
- 
- struct panel_drv_data {
- 	struct omap_dss_device dssdev;
-diff --git a/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c b/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
-index 916a89978387..f4f23f5cfe3e 100644
---- a/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
-+++ b/drivers/gpu/drm/omapdrm/displays/encoder-tpd12s015.c
+diff --git a/drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c b/drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c
+index d811e6dcaef7..f2abbec7602a 100644
+--- a/drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c
++++ b/drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c
 @@ -17,7 +17,6 @@
- #include <linux/gpio/consumer.h>
+ #include <drm/drm_edid.h>
  
  #include <video/omapdss.h>
 -#include <video/omap-panel-data.h>
  
- struct panel_drv_data {
- 	struct omap_dss_device dssdev;
-diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-index 36485c2137ce..6dcb75f6f0c5 100644
---- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-+++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-@@ -26,7 +26,6 @@
- #include <linux/of_gpio.h>
+ static const struct omap_video_timings dvic_default_timings = {
+ 	.x_res		= 640,
+@@ -236,46 +235,6 @@ static struct omap_dss_driver dvic_driver = {
+ 	.detect		= dvic_detect,
+ };
  
- #include <video/omapdss.h>
--#include <video/omap-panel-data.h>
- #include <video/mipi_display.h>
+-static int dvic_probe_pdata(struct platform_device *pdev)
+-{
+-	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
+-	struct connector_dvi_platform_data *pdata;
+-	struct omap_dss_device *in, *dssdev;
+-	int i2c_bus_num;
+-
+-	pdata = dev_get_platdata(&pdev->dev);
+-	i2c_bus_num = pdata->i2c_bus_num;
+-
+-	if (i2c_bus_num != -1) {
+-		struct i2c_adapter *adapter;
+-
+-		adapter = i2c_get_adapter(i2c_bus_num);
+-		if (!adapter) {
+-			dev_err(&pdev->dev,
+-					"Failed to get I2C adapter, bus %d\n",
+-					i2c_bus_num);
+-			return -EPROBE_DEFER;
+-		}
+-
+-		ddata->i2c_adapter = adapter;
+-	}
+-
+-	in = omap_dss_find_output(pdata->source);
+-	if (in == NULL) {
+-		i2c_put_adapter(ddata->i2c_adapter);
+-
+-		dev_err(&pdev->dev, "Failed to find video source\n");
+-		return -EPROBE_DEFER;
+-	}
+-
+-	ddata->in = in;
+-
+-	dssdev = &ddata->dssdev;
+-	dssdev->name = pdata->name;
+-
+-	return 0;
+-}
+-
+ static int dvic_probe_of(struct platform_device *pdev)
+ {
+ 	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
+@@ -313,23 +272,18 @@ static int dvic_probe(struct platform_device *pdev)
+ 	struct omap_dss_device *dssdev;
+ 	int r;
  
- /* DSI Virtual channel. Hardcoded for now. */
-diff --git a/drivers/gpu/drm/omapdrm/displays/panel-lgphilips-lb035q02.c b/drivers/gpu/drm/omapdrm/displays/panel-lgphilips-lb035q02.c
-index 458f77bc473d..1bd682864217 100644
---- a/drivers/gpu/drm/omapdrm/displays/panel-lgphilips-lb035q02.c
-+++ b/drivers/gpu/drm/omapdrm/displays/panel-lgphilips-lb035q02.c
-@@ -17,7 +17,6 @@
- #include <linux/gpio.h>
++	if (!pdev->dev.of_node)
++		return -ENODEV;
++
+ 	ddata = devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
+ 	if (!ddata)
+ 		return -ENOMEM;
  
- #include <video/omapdss.h>
--#include <video/omap-panel-data.h>
+ 	platform_set_drvdata(pdev, ddata);
  
- static struct omap_video_timings lb035q02_timings = {
- 	.x_res = 320,
+-	if (dev_get_platdata(&pdev->dev)) {
+-		r = dvic_probe_pdata(pdev);
+-		if (r)
+-			return r;
+-	} else if (pdev->dev.of_node) {
+-		r = dvic_probe_of(pdev);
+-		if (r)
+-			return r;
+-	} else {
+-		return -ENODEV;
+-	}
++	r = dvic_probe_of(pdev);
++	if (r)
++		return r;
+ 
+ 	ddata->timings = dvic_default_timings;
+ 
+diff --git a/include/video/omap-panel-data.h b/include/video/omap-panel-data.h
+index c0836b118f67..4d0b8832ae11 100644
+--- a/include/video/omap-panel-data.h
++++ b/include/video/omap-panel-data.h
+@@ -47,18 +47,6 @@ struct encoder_tfp410_platform_data {
+ 
+ 
+ /**
+- * connector_dvi platform data
+- * @name: name for this display entity
+- * @source: name of the display entity used as a video source
+- * @i2c_bus_num: i2c bus number to be used for reading EDID
+- */
+-struct connector_dvi_platform_data {
+-	const char *name;
+-	const char *source;
+-	int i2c_bus_num;
+-};
+-
+-/**
+  * connector_atv platform data
+  * @name: name for this display entity
+  * @source: name of the display entity used as a video source
 -- 
 2.8.3
