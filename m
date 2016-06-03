@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 22/27] platform_data: omapdss: Remove unused members from omap_dss_board_info
-Date: Fri, 3 Jun 2016 13:53:16 +0300
-Message-ID: <20160603105321.7980-23-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 23/27] omapdss: hdmi audio: Make header file independent of video/omapdss.h
+Date: Fri, 3 Jun 2016 13:53:17 +0300
+Message-ID: <20160603105321.7980-24-peter.ujfalusi@ti.com>
 References: <20160603105321.7980-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,31 +12,95 @@ To: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, robdclark@gmail.com, airlied@l
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com, jsarha@ti.com, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-The num_devices, **devices and *default_device is leftover from the past.
-They can be removed as they are no used.
+Clean up the header files regarding to hdmi audio so the omap-hdmi-audio.h
+file will only need to include the platform_data/omapdss.h file.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+CC: Mark Brown <broonie@kernel.org>
+CC: Jyri Sarha <jsarha@ti.com>
+CC: Liam Girdwood <liam.r.girdwood@linux.intel.com>
 ---
- include/linux/platform_data/omapdss.h | 5 -----
- 1 file changed, 5 deletions(-)
+ drivers/gpu/drm/omapdrm/dss/hdmi.h          | 1 +
+ drivers/video/fbdev/omap2/omapfb/dss/hdmi.h | 1 +
+ include/sound/omap-hdmi-audio.h             | 9 +++++++--
+ include/video/omapdss.h                     | 5 -----
+ sound/soc/omap/omap-hdmi-audio.c            | 1 -
+ 5 files changed, 9 insertions(+), 8 deletions(-)
 
-diff --git a/include/linux/platform_data/omapdss.h b/include/linux/platform_data/omapdss.h
-index dbb875abc44a..679177929045 100644
---- a/include/linux/platform_data/omapdss.h
-+++ b/include/linux/platform_data/omapdss.h
-@@ -25,13 +25,8 @@ enum omapdss_version {
- 	OMAPDSS_VER_DRA7xx,
+diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi.h b/drivers/gpu/drm/omapdrm/dss/hdmi.h
+index 53616b02b613..c32a21a26054 100644
+--- a/drivers/gpu/drm/omapdrm/dss/hdmi.h
++++ b/drivers/gpu/drm/omapdrm/dss/hdmi.h
+@@ -24,6 +24,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/hdmi.h>
+ #include <video/omapdss.h>
++#include <sound/omap-hdmi-audio.h>
+ 
+ #include "dss.h"
+ 
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/hdmi.h b/drivers/video/fbdev/omap2/omapfb/dss/hdmi.h
+index 53616b02b613..c32a21a26054 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/hdmi.h
++++ b/drivers/video/fbdev/omap2/omapfb/dss/hdmi.h
+@@ -24,6 +24,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/hdmi.h>
+ #include <video/omapdss.h>
++#include <sound/omap-hdmi-audio.h>
+ 
+ #include "dss.h"
+ 
+diff --git a/include/sound/omap-hdmi-audio.h b/include/sound/omap-hdmi-audio.h
+index afdb416898e0..1df2ff61a4dd 100644
+--- a/include/sound/omap-hdmi-audio.h
++++ b/include/sound/omap-hdmi-audio.h
+@@ -16,11 +16,16 @@
+  *
+  */
+ 
+-#include <video/omapdss.h>
+-
+ #ifndef __OMAP_HDMI_AUDIO_H__
+ #define __OMAP_HDMI_AUDIO_H__
+ 
++#include <linux/platform_data/omapdss.h>
++
++struct omap_dss_audio {
++	struct snd_aes_iec958 *iec;
++	struct snd_cea_861_aud_if *cea;
++};
++
+ struct omap_hdmi_audio_ops {
+ 	int (*audio_startup)(struct device *dev,
+ 			     void (*abort_cb)(struct device *dev));
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 53ada70cf23c..b25e2eab4b48 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -168,11 +168,6 @@ enum omap_dss_display_state {
+ 	OMAP_DSS_DISPLAY_ACTIVE,
  };
  
--struct omap_dss_device;
+-struct omap_dss_audio {
+-	struct snd_aes_iec958 *iec;
+-	struct snd_cea_861_aud_if *cea;
+-};
 -
- /* Board specific data */
- struct omap_dss_board_info {
--	int num_devices;
--	struct omap_dss_device **devices;
--	struct omap_dss_device *default_device;
- 	const char *default_display_name;
- 	int (*dsi_enable_pads)(int dsi_id, unsigned int lane_mask);
- 	void (*dsi_disable_pads)(int dsi_id, unsigned int lane_mask);
+ enum omap_dss_rotation_type {
+ 	OMAP_DSS_ROT_DMA	= 1 << 0,
+ 	OMAP_DSS_ROT_VRFB	= 1 << 1,
+diff --git a/sound/soc/omap/omap-hdmi-audio.c b/sound/soc/omap/omap-hdmi-audio.c
+index 64425d352962..888133f9e65d 100644
+--- a/sound/soc/omap/omap-hdmi-audio.c
++++ b/sound/soc/omap/omap-hdmi-audio.c
+@@ -28,7 +28,6 @@
+ #include <sound/asoundef.h>
+ #include <sound/omap-pcm.h>
+ #include <sound/omap-hdmi-audio.h>
+-#include <video/omapdss.h>
+ 
+ #define DRV_NAME "omap-hdmi-audio"
+ 
 -- 
 2.8.3
