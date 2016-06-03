@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 06/27] omapfb: panel-nec-nl8048hl11: Remove legacy boot support
-Date: Fri, 3 Jun 2016 14:03:08 +0300
-Message-ID: <20160603110329.9953-7-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 03/27] video/platform_data: omapdss: Create new header file for platform data
+Date: Fri, 3 Jun 2016 14:03:05 +0300
+Message-ID: <20160603110329.9953-4-peter.ujfalusi@ti.com>
 References: <20160603110329.9953-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,118 +12,108 @@ To: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, robdclark@gmail.com, airlied@l
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com, jsarha@ti.com, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-The panel is not used by any legacy board files so the legacy (pdata) boot
-support can be dropped.
+Create a new header file for platform data used by omapdss.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- .../omap2/omapfb/displays/panel-nec-nl8048hl11.c   | 45 +++-------------------
- include/video/omap-panel-data.h                    | 18 ---------
- 2 files changed, 6 insertions(+), 57 deletions(-)
+ include/linux/platform_data/omapdss.h | 42 +++++++++++++++++++++++++++++++++++
+ include/video/omapdss.h               | 28 +----------------------
+ 2 files changed, 43 insertions(+), 27 deletions(-)
+ create mode 100644 include/linux/platform_data/omapdss.h
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c
-index 8a928c9a2fc9..3852cea3c947 100644
---- a/drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c
-+++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c
-@@ -19,7 +19,6 @@
- #include <linux/of_gpio.h>
- 
- #include <video/omapdss.h>
--#include <video/omap-panel-data.h>
- 
- struct panel_drv_data {
- 	struct omap_dss_device	dssdev;
-@@ -233,33 +232,6 @@ static struct omap_dss_driver nec_8048_ops = {
- };
- 
- 
--static int nec_8048_probe_pdata(struct spi_device *spi)
--{
--	const struct panel_nec_nl8048hl11_platform_data *pdata;
--	struct panel_drv_data *ddata = dev_get_drvdata(&spi->dev);
--	struct omap_dss_device *dssdev, *in;
--
--	pdata = dev_get_platdata(&spi->dev);
--
--	ddata->qvga_gpio = pdata->qvga_gpio;
--	ddata->res_gpio = pdata->res_gpio;
--
--	in = omap_dss_find_output(pdata->source);
--	if (in == NULL) {
--		dev_err(&spi->dev, "failed to find video source '%s'\n",
--				pdata->source);
--		return -EPROBE_DEFER;
--	}
--	ddata->in = in;
--
--	ddata->data_lines = pdata->data_lines;
--
--	dssdev = &ddata->dssdev;
--	dssdev->name = pdata->name;
--
--	return 0;
--}
--
- static int nec_8048_probe_of(struct spi_device *spi)
- {
- 	struct device_node *node = spi->dev.of_node;
-@@ -296,6 +268,9 @@ static int nec_8048_probe(struct spi_device *spi)
- 
- 	dev_dbg(&spi->dev, "%s\n", __func__);
- 
-+	if (!spi->dev.of_node)
-+		return -ENODEV;
+diff --git a/include/linux/platform_data/omapdss.h b/include/linux/platform_data/omapdss.h
+new file mode 100644
+index 000000000000..dbb875abc44a
+--- /dev/null
++++ b/include/linux/platform_data/omapdss.h
+@@ -0,0 +1,42 @@
++/*
++ * Copyright (C) 2016 Texas Instruments, Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
 +
- 	spi->mode = SPI_MODE_0;
- 	spi->bits_per_word = 32;
++#ifndef __OMAPDSS_PDATA_H
++#define __OMAPDSS_PDATA_H
++
++enum omapdss_version {
++	OMAPDSS_VER_UNKNOWN = 0,
++	OMAPDSS_VER_OMAP24xx,
++	OMAPDSS_VER_OMAP34xx_ES1,	/* OMAP3430 ES1.0, 2.0 */
++	OMAPDSS_VER_OMAP34xx_ES3,	/* OMAP3430 ES3.0+ */
++	OMAPDSS_VER_OMAP3630,
++	OMAPDSS_VER_AM35xx,
++	OMAPDSS_VER_OMAP4430_ES1,	/* OMAP4430 ES1.0 */
++	OMAPDSS_VER_OMAP4430_ES2,	/* OMAP4430 ES2.0, 2.1, 2.2 */
++	OMAPDSS_VER_OMAP4,		/* All other OMAP4s */
++	OMAPDSS_VER_OMAP5,
++	OMAPDSS_VER_AM43xx,
++	OMAPDSS_VER_DRA7xx,
++};
++
++struct omap_dss_device;
++
++/* Board specific data */
++struct omap_dss_board_info {
++	int num_devices;
++	struct omap_dss_device **devices;
++	struct omap_dss_device *default_device;
++	const char *default_display_name;
++	int (*dsi_enable_pads)(int dsi_id, unsigned int lane_mask);
++	void (*dsi_disable_pads)(int dsi_id, unsigned int lane_mask);
++	int (*set_min_bus_tput)(struct device *dev, unsigned long r);
++	enum omapdss_version version;
++};
++
++#endif /* __OMAPDSS_PDATA_H */
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 0c7ae93ebd76..53ada70cf23c 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -22,6 +22,7 @@
+ #include <linux/kobject.h>
+ #include <linux/device.h>
+ #include <linux/interrupt.h>
++#include <linux/platform_data/omapdss.h>
  
-@@ -315,17 +290,9 @@ static int nec_8048_probe(struct spi_device *spi)
+ #include <video/videomode.h>
  
- 	ddata->spi = spi;
- 
--	if (dev_get_platdata(&spi->dev)) {
--		r = nec_8048_probe_pdata(spi);
--		if (r)
--			return r;
--	} else if (spi->dev.of_node) {
--		r = nec_8048_probe_of(spi);
--		if (r)
--			return r;
--	} else {
--		return -ENODEV;
--	}
-+	r = nec_8048_probe_of(spi);
-+	if (r)
-+		return r;
- 
- 	if (gpio_is_valid(ddata->qvga_gpio)) {
- 		r = devm_gpio_request_one(&spi->dev, ddata->qvga_gpio,
-diff --git a/include/video/omap-panel-data.h b/include/video/omap-panel-data.h
-index fbdaa4c3ae96..a0c95cd1ed11 100644
---- a/include/video/omap-panel-data.h
-+++ b/include/video/omap-panel-data.h
-@@ -205,22 +205,4 @@ struct panel_tpo_td043mtea1_platform_data {
- 	int nreset_gpio;
+@@ -303,33 +304,6 @@ struct omap_dss_dsi_config {
+ 	enum omap_dss_dsi_trans_mode trans_mode;
  };
  
--/**
-- * panel-nec-nl8048hl11 platform data
-- * @name: name for this display entity
-- * @source: name of the display entity used as a video source
-- * @data_lines: number of DPI datalines
-- * @res_gpio: reset signal
-- * @qvga_gpio: selection for resolution(QVGA/WVGA)
-- */
--struct panel_nec_nl8048hl11_platform_data {
--	const char *name;
--	const char *source;
--
--	int data_lines;
--
--	int res_gpio;
--	int qvga_gpio;
+-enum omapdss_version {
+-	OMAPDSS_VER_UNKNOWN = 0,
+-	OMAPDSS_VER_OMAP24xx,
+-	OMAPDSS_VER_OMAP34xx_ES1,	/* OMAP3430 ES1.0, 2.0 */
+-	OMAPDSS_VER_OMAP34xx_ES3,	/* OMAP3430 ES3.0+ */
+-	OMAPDSS_VER_OMAP3630,
+-	OMAPDSS_VER_AM35xx,
+-	OMAPDSS_VER_OMAP4430_ES1,	/* OMAP4430 ES1.0 */
+-	OMAPDSS_VER_OMAP4430_ES2,	/* OMAP4430 ES2.0, 2.1, 2.2 */
+-	OMAPDSS_VER_OMAP4,		/* All other OMAP4s */
+-	OMAPDSS_VER_OMAP5,
+-	OMAPDSS_VER_AM43xx,
+-	OMAPDSS_VER_DRA7xx,
 -};
 -
- #endif /* __OMAP_PANEL_DATA_H */
+-/* Board specific data */
+-struct omap_dss_board_info {
+-	int num_devices;
+-	struct omap_dss_device **devices;
+-	struct omap_dss_device *default_device;
+-	const char *default_display_name;
+-	int (*dsi_enable_pads)(int dsi_id, unsigned lane_mask);
+-	void (*dsi_disable_pads)(int dsi_id, unsigned lane_mask);
+-	int (*set_min_bus_tput)(struct device *dev, unsigned long r);
+-	enum omapdss_version version;
+-};
+-
+ struct omap_video_timings {
+ 	/* Unit: pixels */
+ 	u16 x_res;
 -- 
 2.8.3
