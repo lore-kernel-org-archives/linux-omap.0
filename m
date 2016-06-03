@@ -1,63 +1,147 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH 3/8] mfd: tps65218: Use mfd_add_devices instead of
- of_platform_populate
-Date: Fri, 3 Jun 2016 16:38:57 +0530
-Message-ID: <57516549.6040102@ti.com>
-References: <1462945691-904-1-git-send-email-j-keerthy@ti.com>
- <1462945691-904-4-git-send-email-j-keerthy@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v3 10/27] omapfb: panel-dsi-cm: Remove legacy boot support
+Date: Fri, 3 Jun 2016 14:03:12 +0300
+Message-ID: <20160603110329.9953-11-peter.ujfalusi@ti.com>
+References: <20160603110329.9953-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1462945691-904-4-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <20160603110329.9953-1-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>, broonie@kernel.org, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, lee.jones@linaro.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nikita@compulab.co.il, nm@ti.com
+To: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, robdclark@gmail.com, airlied@linux.ie, tony@atomide.com
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com, jsarha@ti.com, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Lee Jones,
+The panel is not used by any legacy board files so the legacy (pdata) boot
+support can be dropped.
 
-On Wednesday 11 May 2016 11:18 AM, Keerthy wrote:
-> mfd_add_devices enables parsing device tree nodes without compatibles
-> for child nodes. Replace of_platform_populate with mfd_add_devices.
->
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ .../fbdev/omap2/omapfb/displays/panel-dsi-cm.c     | 52 +++-------------------
+ include/video/omap-panel-data.h                    | 27 -----------
+ 2 files changed, 6 insertions(+), 73 deletions(-)
 
-A gentle ping on this patch.
-
-Regards,
-Keerthy
-
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
->   drivers/mfd/tps65218.c | 10 ++++++++--
->   1 file changed, 8 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
-> index f20a531..b8b3a58 100644
-> --- a/drivers/mfd/tps65218.c
-> +++ b/drivers/mfd/tps65218.c
-> @@ -33,6 +33,10 @@
->
->   #define TPS65218_PASSWORD_REGS_UNLOCK   0x7D
->
-> +static const struct mfd_cell tps65218_cells[] = {
-> +	{ .name = "tps65218-regulator", },
-> +};
-> +
->   /**
->    * tps65218_reg_write: Write a single tps65218 register.
->    *
-> @@ -236,8 +240,10 @@ static int tps65218_probe(struct i2c_client *client,
->   	if (ret < 0)
->   		return ret;
->
-> -	ret = of_platform_populate(client->dev.of_node, NULL, NULL,
-> -				   &client->dev);
-> +	ret = mfd_add_devices(tps->dev, PLATFORM_DEVID_AUTO, tps65218_cells,
-> +			      ARRAY_SIZE(tps65218_cells), NULL, 0,
-> +			      regmap_irq_get_domain(tps->irq_data));
-> +
->   	if (ret < 0)
->   		goto err_irq;
->
->
+diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
+index 3414c2609320..a4eac6962b76 100644
+--- a/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
++++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
+@@ -26,7 +26,6 @@
+ #include <linux/of_gpio.h>
+ 
+ #include <video/omapdss.h>
+-#include <video/omap-panel-data.h>
+ #include <video/mipi_display.h>
+ 
+ /* DSI Virtual channel. Hardcoded for now. */
+@@ -1127,40 +1126,6 @@ static struct omap_dss_driver dsicm_ops = {
+ 	.memory_read	= dsicm_memory_read,
+ };
+ 
+-static int dsicm_probe_pdata(struct platform_device *pdev)
+-{
+-	const struct panel_dsicm_platform_data *pdata;
+-	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
+-	struct omap_dss_device *dssdev, *in;
+-
+-	pdata = dev_get_platdata(&pdev->dev);
+-
+-	in = omap_dss_find_output(pdata->source);
+-	if (in == NULL) {
+-		dev_err(&pdev->dev, "failed to find video source\n");
+-		return -EPROBE_DEFER;
+-	}
+-	ddata->in = in;
+-
+-	ddata->reset_gpio = pdata->reset_gpio;
+-
+-	if (pdata->use_ext_te)
+-		ddata->ext_te_gpio = pdata->ext_te_gpio;
+-	else
+-		ddata->ext_te_gpio = -1;
+-
+-	ddata->ulps_timeout = pdata->ulps_timeout;
+-
+-	ddata->use_dsi_backlight = pdata->use_dsi_backlight;
+-
+-	ddata->pin_config = pdata->pin_config;
+-
+-	dssdev = &ddata->dssdev;
+-	dssdev->name = pdata->name;
+-
+-	return 0;
+-}
+-
+ static int dsicm_probe_of(struct platform_device *pdev)
+ {
+ 	struct device_node *node = pdev->dev.of_node;
+@@ -1207,6 +1172,9 @@ static int dsicm_probe(struct platform_device *pdev)
+ 
+ 	dev_dbg(dev, "probe\n");
+ 
++	if (!pdev->dev.of_node)
++		return -ENODEV;
++
+ 	ddata = devm_kzalloc(dev, sizeof(*ddata), GFP_KERNEL);
+ 	if (!ddata)
+ 		return -ENOMEM;
+@@ -1214,17 +1182,9 @@ static int dsicm_probe(struct platform_device *pdev)
+ 	platform_set_drvdata(pdev, ddata);
+ 	ddata->pdev = pdev;
+ 
+-	if (dev_get_platdata(dev)) {
+-		r = dsicm_probe_pdata(pdev);
+-		if (r)
+-			return r;
+-	} else if (pdev->dev.of_node) {
+-		r = dsicm_probe_of(pdev);
+-		if (r)
+-			return r;
+-	} else {
+-		return -ENODEV;
+-	}
++	r = dsicm_probe_of(pdev);
++	if (r)
++		return r;
+ 
+ 	ddata->timings.x_res = 864;
+ 	ddata->timings.y_res = 480;
+diff --git a/include/video/omap-panel-data.h b/include/video/omap-panel-data.h
+index 74486bcc754e..e7b0e889d6d0 100644
+--- a/include/video/omap-panel-data.h
++++ b/include/video/omap-panel-data.h
+@@ -105,33 +105,6 @@ struct panel_dpi_platform_data {
+ };
+ 
+ /**
+- * panel_dsicm platform data
+- * @name: name for this display entity
+- * @source: name of the display entity used as a video source
+- * @reset_gpio: gpio to reset the panel (or -1)
+- * @use_ext_te: use external TE GPIO
+- * @ext_te_gpio: external TE GPIO
+- * @ulps_timeout: time to wait before entering ULPS, 0 = disabled (ms)
+- * @use_dsi_backlight: true if panel uses DSI command to control backlight
+- * @pin_config: DSI pin configuration
+- */
+-struct panel_dsicm_platform_data {
+-	const char *name;
+-	const char *source;
+-
+-	int reset_gpio;
+-
+-	bool use_ext_te;
+-	int ext_te_gpio;
+-
+-	unsigned ulps_timeout;
+-
+-	bool use_dsi_backlight;
+-
+-	struct omap_dsi_pin_config pin_config;
+-};
+-
+-/**
+  * panel_acx565akm platform data
+  * @name: name for this display entity
+  * @source: name of the display entity used as a video source
+-- 
+2.8.3
