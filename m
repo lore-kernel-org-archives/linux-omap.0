@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 06/27] omapfb: panel-nec-nl8048hl11: Remove legacy boot support
-Date: Fri, 3 Jun 2016 13:53:00 +0300
-Message-ID: <20160603105321.7980-7-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 11/27] omapfb: connector-hdmi: Remove legacy boot support
+Date: Fri, 3 Jun 2016 13:53:05 +0300
+Message-ID: <20160603105321.7980-12-peter.ujfalusi@ti.com>
 References: <20160603105321.7980-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -17,46 +17,43 @@ support can be dropped.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- .../omap2/omapfb/displays/panel-nec-nl8048hl11.c   | 45 +++-------------------
- include/video/omap-panel-data.h                    | 18 ---------
- 2 files changed, 6 insertions(+), 57 deletions(-)
+ .../fbdev/omap2/omapfb/displays/connector-hdmi.c   | 42 ++++------------------
+ include/video/omap-panel-data.h                    | 10 ------
+ 2 files changed, 6 insertions(+), 46 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c
-index 8a928c9a2fc9..3852cea3c947 100644
---- a/drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c
-+++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-nec-nl8048hl11.c
-@@ -19,7 +19,6 @@
- #include <linux/of_gpio.h>
+diff --git a/drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c b/drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c
+index 6ee4129bc0c0..231b8588a59f 100644
+--- a/drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c
++++ b/drivers/video/fbdev/omap2/omapfb/displays/connector-hdmi.c
+@@ -18,7 +18,6 @@
+ #include <drm/drm_edid.h>
  
  #include <video/omapdss.h>
 -#include <video/omap-panel-data.h>
  
- struct panel_drv_data {
- 	struct omap_dss_device	dssdev;
-@@ -233,33 +232,6 @@ static struct omap_dss_driver nec_8048_ops = {
+ static const struct omap_video_timings hdmic_default_timings = {
+ 	.x_res		= 640,
+@@ -206,30 +205,6 @@ static struct omap_dss_driver hdmic_driver = {
+ 	.set_hdmi_infoframe	= hdmic_set_infoframe,
  };
  
- 
--static int nec_8048_probe_pdata(struct spi_device *spi)
+-static int hdmic_probe_pdata(struct platform_device *pdev)
 -{
--	const struct panel_nec_nl8048hl11_platform_data *pdata;
--	struct panel_drv_data *ddata = dev_get_drvdata(&spi->dev);
--	struct omap_dss_device *dssdev, *in;
+-	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
+-	struct connector_hdmi_platform_data *pdata;
+-	struct omap_dss_device *in, *dssdev;
 -
--	pdata = dev_get_platdata(&spi->dev);
+-	pdata = dev_get_platdata(&pdev->dev);
 -
--	ddata->qvga_gpio = pdata->qvga_gpio;
--	ddata->res_gpio = pdata->res_gpio;
+-	ddata->hpd_gpio = -ENODEV;
 -
 -	in = omap_dss_find_output(pdata->source);
 -	if (in == NULL) {
--		dev_err(&spi->dev, "failed to find video source '%s'\n",
--				pdata->source);
+-		dev_err(&pdev->dev, "Failed to find video source\n");
 -		return -EPROBE_DEFER;
 -	}
--	ddata->in = in;
 -
--	ddata->data_lines = pdata->data_lines;
+-	ddata->in = in;
 -
 -	dssdev = &ddata->dssdev;
 -	dssdev->name = pdata->name;
@@ -64,66 +61,60 @@ index 8a928c9a2fc9..3852cea3c947 100644
 -	return 0;
 -}
 -
- static int nec_8048_probe_of(struct spi_device *spi)
+ static int hdmic_probe_of(struct platform_device *pdev)
  {
- 	struct device_node *node = spi->dev.of_node;
-@@ -296,6 +268,9 @@ static int nec_8048_probe(struct spi_device *spi)
+ 	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
+@@ -261,6 +236,9 @@ static int hdmic_probe(struct platform_device *pdev)
+ 	struct omap_dss_device *dssdev;
+ 	int r;
  
- 	dev_dbg(&spi->dev, "%s\n", __func__);
- 
-+	if (!spi->dev.of_node)
++	if (!pdev->dev.of_node)
 +		return -ENODEV;
 +
- 	spi->mode = SPI_MODE_0;
- 	spi->bits_per_word = 32;
+ 	ddata = devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
+ 	if (!ddata)
+ 		return -ENOMEM;
+@@ -268,17 +246,9 @@ static int hdmic_probe(struct platform_device *pdev)
+ 	platform_set_drvdata(pdev, ddata);
+ 	ddata->dev = &pdev->dev;
  
-@@ -315,17 +290,9 @@ static int nec_8048_probe(struct spi_device *spi)
- 
- 	ddata->spi = spi;
- 
--	if (dev_get_platdata(&spi->dev)) {
--		r = nec_8048_probe_pdata(spi);
+-	if (dev_get_platdata(&pdev->dev)) {
+-		r = hdmic_probe_pdata(pdev);
 -		if (r)
 -			return r;
--	} else if (spi->dev.of_node) {
--		r = nec_8048_probe_of(spi);
+-	} else if (pdev->dev.of_node) {
+-		r = hdmic_probe_of(pdev);
 -		if (r)
 -			return r;
 -	} else {
 -		return -ENODEV;
 -	}
-+	r = nec_8048_probe_of(spi);
++	r = hdmic_probe_of(pdev);
 +	if (r)
 +		return r;
  
- 	if (gpio_is_valid(ddata->qvga_gpio)) {
- 		r = devm_gpio_request_one(&spi->dev, ddata->qvga_gpio,
+ 	if (gpio_is_valid(ddata->hpd_gpio)) {
+ 		r = devm_gpio_request_one(&pdev->dev, ddata->hpd_gpio,
 diff --git a/include/video/omap-panel-data.h b/include/video/omap-panel-data.h
-index fbdaa4c3ae96..a0c95cd1ed11 100644
+index e7b0e889d6d0..c0836b118f67 100644
 --- a/include/video/omap-panel-data.h
 +++ b/include/video/omap-panel-data.h
-@@ -205,22 +205,4 @@ struct panel_tpo_td043mtea1_platform_data {
- 	int nreset_gpio;
+@@ -59,16 +59,6 @@ struct connector_dvi_platform_data {
  };
  
--/**
-- * panel-nec-nl8048hl11 platform data
+ /**
+- * connector_hdmi platform data
 - * @name: name for this display entity
 - * @source: name of the display entity used as a video source
-- * @data_lines: number of DPI datalines
-- * @res_gpio: reset signal
-- * @qvga_gpio: selection for resolution(QVGA/WVGA)
 - */
--struct panel_nec_nl8048hl11_platform_data {
+-struct connector_hdmi_platform_data {
 -	const char *name;
 -	const char *source;
--
--	int data_lines;
--
--	int res_gpio;
--	int qvga_gpio;
 -};
 -
- #endif /* __OMAP_PANEL_DATA_H */
+-/**
+  * connector_atv platform data
+  * @name: name for this display entity
+  * @source: name of the display entity used as a video source
 -- 
 2.8.3
