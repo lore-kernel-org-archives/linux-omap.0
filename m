@@ -1,80 +1,57 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 02/28] crypto: omap-sham: Don't idle/start SHA device
- between Encrypt operations
-Date: Tue, 7 Jun 2016 14:52:36 +0300
-Message-ID: <5756B584.2000900@ti.com>
-References: <1464771389-10640-1-git-send-email-t-kristo@ti.com>
- <1464771389-10640-3-git-send-email-t-kristo@ti.com> <574EB091.6040001@ti.com>
- <574F69D8.1010809@ti.com> <20160607100837.GA30875@gondor.apana.org.au>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] ARM: Keystone: Introduce Kconfig option to compile in
+ typical Keystone features
+Date: Tue, 7 Jun 2016 13:04:12 +0100
+Message-ID: <20160607120412.GU7510@sirena.org.uk>
+References: <1464816714-3900-1-git-send-email-nm@ti.com>
+ <574F6674.3010100@ti.com>
+ <20160607042853.GA22406@atomide.com>
+ <10295246.2MDnqWQbb8@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <20160607100837.GA30875@gondor.apana.org.au>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Herbert Xu <herbert@gondor.apana.org.au>, Dave Gerlach <d-gerlach@ti.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap@vger.kernel.org, linux-crypto@vger.kernel.org, davem@davemloft.net, tony@atomide.com, linux-arm-kernel@lists.infradead.org, lokeshvutla@ti.com
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="FfX2iGK5t5ehHnsE"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <10295246.2MDnqWQbb8@wuerfel>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, linux-arm-kernel@lists.infradead.org, Russell King <linux@armlinux.org.uk>, Santosh Shilimkar <ssantosh@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, Bill Mills <wmills@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/06/16 13:08, Herbert Xu wrote:
-> On Wed, Jun 01, 2016 at 06:03:52PM -0500, Dave Gerlach wrote:
->> On 06/01/2016 04:53 AM, Grygorii Strashko wrote:
->>> On 06/01/2016 11:56 AM, Tero Kristo wrote:
->>>> From: Lokesh Vutla <lokeshvutla@ti.com>
->>>>
->>>> Calling runtime PM API for every block causes serious perf hit to
->>>> crypto operations that are done on a long buffer.
->>>> As crypto is performed on a page boundary, encrypting large buffers can
->>>> cause a series of crypto operations divided by page. The runtime PM API
->>>> is also called those many times.
->>>>
->>>> We call runtime_pm_get_sync only at beginning on the session (cra_init)
->>>> and runtime_pm_put at the end. This result in upto a 50% speedup.
->>>> This doesn't make the driver to keep the system awake as runtime get/put
->>>> is only called during a crypto session which completes usually quickly.
->>>>
->>>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
->>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->>>> ---
->>>>   drivers/crypto/omap-sham.c | 27 +++++++++++++++++----------
->>>>   1 file changed, 17 insertions(+), 10 deletions(-)
->>>>
->>>> diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
->>>> index 6eefaa2..bd0258f 100644
->>>> --- a/drivers/crypto/omap-sham.c
->>>> +++ b/drivers/crypto/omap-sham.c
->>>> @@ -360,14 +360,6 @@ static void omap_sham_copy_ready_hash(struct
->>>> ahash_request *req)
->>>>
->>>>   static int omap_sham_hw_init(struct omap_sham_dev *dd)
->>>>   {
->>>> -    int err;
->>>> -
->>>> -    err = pm_runtime_get_sync(dd->dev);
->>>> -    if (err < 0) {
->>>> -        dev_err(dd->dev, "failed to get sync: %d\n", err);
->>>> -        return err;
->>>> -    }
->>>> -
->>
->> Would it be worth it to investigate a pm_runtime autosuspend
->> approach rather than knocking runtime PM out here completely? I am
->> not clear if the overhead is coming from the pm_runtime calls
->> themselves or the actual idling of the IP, but if it's the idling of
->> the IP causing the slowdown, with a large enough autosuspend_delay
->> we don't actually sleep between each block but after a long enough
->> period of idle time we would actually suspend.
->
-> Indeed, I think this patch is bogus.  cra_init is associated
-> with the tfm object which is usually long-lived.  So doing power
-> management there makes no sense.
->
-> Cheers,
->
 
-I can investigate this further, but I believe this patch itself gave a 
-noticeable performance boost.
+--FfX2iGK5t5ehHnsE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This is an optimization anyway, and not critical for functionality.
+On Tue, Jun 07, 2016 at 10:09:46AM +0200, Arnd Bergmann wrote:
 
--Tero
+Please start new threads for things like this - there's no obvious
+relevance to me in either the subject or even the first couple of pages
+of the message so it very nearly got deleted unread.  It's very common
+to get copied on irrelevant stuff so things with no obvious motivation.
+
+> REGULATOR_FIXED_VOLTAGE is needed by a lot of platforms that usually
+> don't select it, so it might be good to add a 'default y' to its Kconfig
+> symbol, or we could add 'select REGULATOR_FIXED_VOLTAGE if REGULATOR'
+> to all platforms that need it. The driver is about 1.5KB in size, compared
+> to about 50KB for the regulator core.
+
+The platforms should do this - I wouldn't say it's *that* common,
+especially not as a build time dependency with things moving to DT.
+
+--FfX2iGK5t5ehHnsE
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJXVrg6AAoJECTWi3JdVIfQ6H0H/124OpuozX7YZtRUusdR141P
+zZXBNNoNLis5MTsn6Fb2L1NnGpDVojHWxgr05H7lEmXNddDHxlPG36RWsmNeWRvY
+3mi9+d19VBJD3doMjEQMt5xIBvaMLcGmZHSNG0dhf7enAj3WeGzfeyOCFu5/L88V
+Nqkhr22bpGUzACka5KdKHv/mdAGQmeK/w4gP8cpgnbnqxvrjUAziJv1m9Fk+dyEG
+bj5aQmpzbs1xD/vjClBKNsYlr+oZ5egq7DLzMdQ76kTjNLlLxmilRqF3OZdP9gzs
+nznQT7LSfqsL6If3oibPZCO34ifA3Hp15u31UGF65HTSu3TkBn4PoS3rruD6H84=
+=vr6b
+-----END PGP SIGNATURE-----
+
+--FfX2iGK5t5ehHnsE--
