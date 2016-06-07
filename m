@@ -1,71 +1,59 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: [PATCH] clk: ti: fapll: fix address space warnings
-Date: Tue, 7 Jun 2016 17:13:26 +0100
-Message-ID: <20160607161326.GZ5783@n2100.arm.linux.org.uk>
-References: <1465308337-18047-1-git-send-email-ben.dooks@codethink.co.uk>
+From: Robert Nelson <robertcnelson@gmail.com>
+Subject: Re: [PATCH] ARM: dts: am335x-boneblack: add i2c1 DT entry
+Date: Tue, 7 Jun 2016 12:14:57 -0500
+Message-ID: <CAOCHtYhBSS+D-BQH28FO+RxyzvDg-yeX+6nvLu11G3TNkF7ELg@mail.gmail.com>
+References: <1464853310-8738-1-git-send-email-yong.b.li@intel.com>
+ <CAOCHtYib9YxckneM-j0Gk1YE=MnvAwAhvDjEDEuFJbH6W3EcWA@mail.gmail.com>
+ <20160602173932.GF5995@atomide.com> <CAOCHtYiWYrwSidHnKv4siFT-wU=tt5-YeDTwbM022ZTxdPFYYA@mail.gmail.com>
+ <20160602175635.GG5995@atomide.com> <BCE6BEBCDDF4B84E891D2320CBF96F1D3F9FB1EC@SHSMSX101.ccr.corp.intel.com>
+ <20160607060004.GD22406@atomide.com> <BCE6BEBCDDF4B84E891D2320CBF96F1D3F9FD673@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1465308337-18047-1-git-send-email-ben.dooks@codethink.co.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ben Dooks <ben.dooks@codethink.co.uk>
-Cc: linux-kernel@lists.codethink.co.uk, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <BCE6BEBCDDF4B84E891D2320CBF96F1D3F9FD673@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Li, Yong B" <yong.b.li@intel.com>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux kernel <linux-kernel@vger.kernel.org>, "sdliyong@gmail.com" <sdliyong@gmail.com>, Pantelis Antoniou <pantelis.antoniou@konsulko.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jun 07, 2016 at 03:05:37PM +0100, Ben Dooks wrote:
-> Fix the following warnings from casting "void __iomem *" pointers
-> to u32 when using sparse:
-> 
-> drivers/clk/ti/fapll.c:583:13: warning: cast removes address space of expression
-> drivers/clk/ti/fapll.c:623:21: warning: cast removes address space of expression
+On Tue, Jun 7, 2016 at 1:14 AM, Li, Yong B <yong.b.li@intel.com> wrote:
+> Thanks Tony.
+>
+> I checked the DTS/overlays using linux-yocto-4.1 kernel(Ostro OS). It seems to me that the kernel/u-boot do not include the latest overlay support patch. And I also tested the latest Debian 8.4 using BBB boards, the I2C1 does not work too. This patch is the simplest solution for I2C1/I2C2 in linux-yocto-4.1.
 
-As a note of general principle, adding __force to casts is not the correct
-way to solve these sparse warnings.
+ps, your patch is also broken, you didn't even mux the pins, so i2c1
+doesn't work for you anyways. ;)
 
-__force is supposed to be used in places which know that the cast is 100%
-legitimate - in other words, architecture code removing the __iomem-ness
-of the pointer so it can be dereferenced.  Sprinking the code with __force
-to shut these warnings up doesn't actually help the cause.
+pinctrl-0 = <&i2c2_pins>; -> pinctrl-0 = <&i2c1_pins>;
 
-> diff --git a/drivers/clk/ti/fapll.c b/drivers/clk/ti/fapll.c
-> index 66a0d0e..d765f4a 100644
-> --- a/drivers/clk/ti/fapll.c
-> +++ b/drivers/clk/ti/fapll.c
-> @@ -43,14 +43,14 @@
->  #define to_synth(_hw)		container_of(_hw, struct fapll_synth, hw)
->  
->  /* The bypass bit is inverted on the ddr_pll.. */
-> -#define fapll_is_ddr_pll(va)	(((u32)(va) & 0xffff) == 0x0440)
-> +#define fapll_is_ddr_pll(va)	(((u32 __force)(va) & 0xffff) == 0x0440)
+Option 1:
 
-This should be a cast to unsigned long, not u32.
+With the latest BBB image's, we utilize "cape_universal", thus you can
+enable I2C1 via:
 
->  
->  /*
->   * The audio_pll_clk1 input is hard wired to the 27MHz bypass clock,
->   * and the audio_pll_clk1 synthesizer is hardwared to 32KiHz output.
->   */
-> -#define is_ddr_pll_clk1(va)	(((u32)(va) & 0xffff) == 0x044c)
-> -#define is_audio_pll_clk1(va)	(((u32)(va) & 0xffff) == 0x04a8)
-> +#define is_ddr_pll_clk1(va)	(((u32 __force)(va) & 0xffff) == 0x044c)
-> +#define is_audio_pll_clk1(va)	(((u32 __force)(va) & 0xffff) == 0x04a8)
+root@beaglebone:~# config-pin -l P9.17
+default gpio gpio_pu gpio_pd spi i2c pwm
 
-Ditto.
+root@beaglebone:~# config-pin -l P9.18
+default gpio gpio_pu gpio_pd spi i2c pwm
 
-A cast from an __iomem pointer to unsigned long is permitted - no need
-to use __force.
+root@beaglebone:~# config-pin P9.17 i2c
+
+root@beaglebone:~# config-pin P9.18 i2c
+
+Option 2, for the BB-I2C1 overlay:
+
+add
+
+cape_enable=bone_capemgr.enable_partno=BB-I2C1
+
+Option 3, wait for Pantelis's solution... ;)
+
+http://comments.gmane.org/gmane.linux.kernel/2234662
+
+Regards,
 
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Robert Nelson
+https://rcn-ee.com/
