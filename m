@@ -1,65 +1,110 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: [PATCHv2] device tree description for AD5820 camera auto-focus coil
-Date: Tue, 7 Jun 2016 09:10:04 +0200
-Message-ID: <20160607071003.GA11796@amd>
-References: <20160524090433.GA1277@amd>
- <20160524091746.GA14536@amd>
- <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd>
- <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
- <20160531213437.GA28397@amd>
- <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
- <20160601220840.GA21946@amd>
- <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
- <20160602193027.GB7984@amd>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] ARM: Keystone: Introduce Kconfig option to compile in
+ typical Keystone features
+Date: Tue, 07 Jun 2016 10:09:46 +0200
+Message-ID: <10295246.2MDnqWQbb8@wuerfel>
+References: <1464816714-3900-1-git-send-email-nm@ti.com>
+ <574F6674.3010100@ti.com> <20160607042853.GA22406@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160602193027.GB7984@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160607042853.GA22406@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, "broonie@kernel.org" <broonie@kernel.org>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, Bill Mills <wmills@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+On Monday, June 6, 2016 9:28:54 PM CEST Tony Lindgren wrote:
+> * Nishanth Menon <nm@ti.com> [160601 15:51]:
+> > On 06/01/2016 05:31 PM, Arnd Bergmann wrote:
+> > > On Wednesday, June 1, 2016 4:31:54 PM CEST Nishanth Menon wrote:
+> > >>
+> > >> Hence the "KEYSTONE_TYPICAL" option is designed similar to commit 8d9166b519fd
+> > >> ("omap2/3/4: Add Kconfig option to compile in typical omap features")
+> > >> that can be enabled for most boards keystone platforms
+> > >> without needing to rediscover these in defconfig all over again -
+> > >> examples include multi_v7_defconfig base and optimizations done on top
+> > >> of them for keystone platform.
+> > > 
+> > > I'd rather remove the option for OMAP as well, it doesn't really fit in with
+> > > how we do things for other platforms, and selecting a lot of other Kconfig
+> > > symbols tends to cause circular dependencies.
+> > 
+> > Hmm, fair enough -> adding Tony as well if he sees an problem with
+> > dropping ARCH_OMAP2PLUS_TYPICAL.
+> 
+> Yes there's a problem. Removing that is going to make all the custom
+> .config files unbootable almost certainly. Just search around on
+> issues related to not having REGULATOR_FIXED_VOLTAGE selected.
+> 
+> I agree we should not force select things though. And the I2C selection
+> at least is wrong, we can have PMICs that are not on I2C bus.
+> 
+> Anybody got better ideas what we should do to make the configuration
+> options more intuitive?
 
-Add documentation for ad5820 device tree binding.
+Let's have a look at what we actually select:
 
-Signed-off-by: Pavel Machek <pavel@denx.de>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Rob Herring <robh@kernel.org>
+config ARCH_OMAP2PLUS_TYPICAL
+        bool "Typical OMAP configuration"
+        default y
+        select AEABI
+        select HIGHMEM
+        select I2C
+        select I2C_OMAP
+        select MENELAUS if ARCH_OMAP2
+        select NEON if CPU_V7
+        select PM
+        select REGULATOR
+        select REGULATOR_FIXED_VOLTAGE
+        select TWL4030_CORE if ARCH_OMAP3 || ARCH_OMAP4
+        select TWL4030_POWER if ARCH_OMAP3 || ARCH_OMAP4
+        select VFP
+        help
+          Compile a kernel suitable for booting most boards
 
----
+A lot of these options are typical for all ARMv7 machines: AEABI, I2C, NEON,
+PM, REGULATOR and VFP are things that we probably want to default to enabled
+whenever we build a MULTI_V7 kernel, some also for V5 or V6, we just
+need to come up with a good way to do that while (probably for most of
+them) still allowing them to be disabled with CONFIG_EXPERT. I would
+feel more comfortable with having an ARCH_MULTIPLATFORM_TYPICAL
+Kconfig symbol than with the ARCH_OMAP2PLUS_TYPICAL one that ends up
+turning things on unconditionally whenever you add ARCH_OMAP2PLUS
+to some other configuration.
 
-v2: Fixed nit in example, added acks.
+For I2C_OMAP, MENELAUS and TWL4030, we could just add a
+'default ARCH_OMAP3 || ARCH_OMAP4' or whatever is appropriate for
+each of them. I assume we want to handle TWL6040 the same way, though
+we currently don't do that. MENELAUS seems to be only needed for
+omap2420-n8x0.
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ad5820.txt b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
-new file mode 100644
-index 0000000..fb70ca5
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
-@@ -0,0 +1,19 @@
-+* Analog Devices AD5820 autofocus coil
-+
-+Required Properties:
-+
-+  - compatible: Must contain "adi,ad5820"
-+
-+  - reg: I2C slave address
-+
-+  - VANA-supply: supply of voltage for VANA pin
-+
-+Example:
-+
-+       ad5820: coil@c {
-+               compatible = "adi,ad5820";
-+               reg = <0x0c>;
-+
-+               VANA-supply = <&vaux4>;
-+       };
-+
+REGULATOR_FIXED_VOLTAGE is needed by a lot of platforms that usually
+don't select it, so it might be good to add a 'default y' to its Kconfig
+symbol, or we could add 'select REGULATOR_FIXED_VOLTAGE if REGULATOR'
+to all platforms that need it. The driver is about 1.5KB in size, compared
+to about 50KB for the regulator core.
 
+HIGHMEM is a bit odd here, because there are a couple of boards that
+really really want it to access all of their memory, while most other
+boards (anything with <=768MB RAM) are better off not enabling it,
+so I can't see a good strategy for when to enable it or not across
+multiplatform builds. If we wanted to apply crude heuristics, we could
+make it default-enabled for SMP configurations, and default-disabled
+for UP, or we could default-enable it for ARMv7VE (Cortex-A7/A15/A17,
+Krait-400, PJ4B-MP) and default-disable for ARMv7 (Cortex-A5/A8/A9,
+Scorpion, Krait, PJ4, PJ4B) and older. This would get us the right
+setting in most cases, but it would also be rather confusing as it gets
+flipped based on options that it doesn't really have anything to
+do with in the strict sense.
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+	Arnd
