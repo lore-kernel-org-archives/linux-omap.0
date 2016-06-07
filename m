@@ -1,110 +1,38 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] ARM: Keystone: Introduce Kconfig option to compile in
- typical Keystone features
-Date: Tue, 07 Jun 2016 10:09:46 +0200
-Message-ID: <10295246.2MDnqWQbb8@wuerfel>
-References: <1464816714-3900-1-git-send-email-nm@ti.com>
- <574F6674.3010100@ti.com> <20160607042853.GA22406@atomide.com>
+From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 0/2] spi: Add DMA support for ti-qspi
+Date: Tue, 7 Jun 2016 13:48:08 +0530
+Message-ID: <20160607081810.6640-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160607042853.GA22406@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, "broonie@kernel.org" <broonie@kernel.org>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, Bill Mills <wmills@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Monday, June 6, 2016 9:28:54 PM CEST Tony Lindgren wrote:
-> * Nishanth Menon <nm@ti.com> [160601 15:51]:
-> > On 06/01/2016 05:31 PM, Arnd Bergmann wrote:
-> > > On Wednesday, June 1, 2016 4:31:54 PM CEST Nishanth Menon wrote:
-> > >>
-> > >> Hence the "KEYSTONE_TYPICAL" option is designed similar to commit 8d9166b519fd
-> > >> ("omap2/3/4: Add Kconfig option to compile in typical omap features")
-> > >> that can be enabled for most boards keystone platforms
-> > >> without needing to rediscover these in defconfig all over again -
-> > >> examples include multi_v7_defconfig base and optimizations done on top
-> > >> of them for keystone platform.
-> > > 
-> > > I'd rather remove the option for OMAP as well, it doesn't really fit in with
-> > > how we do things for other platforms, and selecting a lot of other Kconfig
-> > > symbols tends to cause circular dependencies.
-> > 
-> > Hmm, fair enough -> adding Tony as well if he sees an problem with
-> > dropping ARCH_OMAP2PLUS_TYPICAL.
-> 
-> Yes there's a problem. Removing that is going to make all the custom
-> .config files unbootable almost certainly. Just search around on
-> issues related to not having REGULATOR_FIXED_VOLTAGE selected.
-> 
-> I agree we should not force select things though. And the I2C selection
-> at least is wrong, we can have PMICs that are not on I2C bus.
-> 
-> Anybody got better ideas what we should do to make the configuration
-> options more intuitive?
 
-Let's have a look at what we actually select:
+This series adds support for DMA during QSPI flash read using memory
+mapped mode.
 
-config ARCH_OMAP2PLUS_TYPICAL
-        bool "Typical OMAP configuration"
-        default y
-        select AEABI
-        select HIGHMEM
-        select I2C
-        select I2C_OMAP
-        select MENELAUS if ARCH_OMAP2
-        select NEON if CPU_V7
-        select PM
-        select REGULATOR
-        select REGULATOR_FIXED_VOLTAGE
-        select TWL4030_CORE if ARCH_OMAP3 || ARCH_OMAP4
-        select TWL4030_POWER if ARCH_OMAP3 || ARCH_OMAP4
-        select VFP
-        help
-          Compile a kernel suitable for booting most boards
+Tested on DRA74 EVM, DRA72 EVM and AM437x SK on linux-next.
 
-A lot of these options are typical for all ARMv7 machines: AEABI, I2C, NEON,
-PM, REGULATOR and VFP are things that we probably want to default to enabled
-whenever we build a MULTI_V7 kernel, some also for V5 or V6, we just
-need to come up with a good way to do that while (probably for most of
-them) still allowing them to be disabled with CONFIG_EXPERT. I would
-feel more comfortable with having an ARCH_MULTIPLATFORM_TYPICAL
-Kconfig symbol than with the ARCH_OMAP2PLUS_TYPICAL one that ends up
-turning things on unconditionally whenever you add ARCH_OMAP2PLUS
-to some other configuration.
+v2: https://lkml.org/lkml/2016/4/25/187
+v1: https://lkml.org/lkml/2016/4/4/855
 
-For I2C_OMAP, MENELAUS and TWL4030, we could just add a
-'default ARCH_OMAP3 || ARCH_OMAP4' or whatever is appropriate for
-each of them. I assume we want to handle TWL6040 the same way, though
-we currently don't do that. MENELAUS seems to be only needed for
-omap2420-n8x0.
 
-REGULATOR_FIXED_VOLTAGE is needed by a lot of platforms that usually
-don't select it, so it might be good to add a 'default y' to its Kconfig
-symbol, or we could add 'select REGULATOR_FIXED_VOLTAGE if REGULATOR'
-to all platforms that need it. The driver is about 1.5KB in size, compared
-to about 50KB for the regulator core.
+Vignesh R (2):
+  spi: Add DMA support for spi_flash_read()
+  spi: spi-ti-qspi: Add DMA support for QSPI mmap read
 
-HIGHMEM is a bit odd here, because there are a couple of boards that
-really really want it to access all of their memory, while most other
-boards (anything with <=768MB RAM) are better off not enabling it,
-so I can't see a good strategy for when to enable it or not across
-multiplatform builds. If we wanted to apply crude heuristics, we could
-make it default-enabled for SMP configurations, and default-disabled
-for UP, or we could default-enable it for ARMv7VE (Cortex-A7/A15/A17,
-Krait-400, PJ4B-MP) and default-disable for ARMv7 (Cortex-A5/A8/A9,
-Scorpion, Krait, PJ4, PJ4B) and older. This would get us the right
-setting in most cases, but it would also be rather confusing as it gets
-flipped based on options that it doesn't really have anything to
-do with in the strict sense.
+ drivers/spi/spi-ti-qspi.c | 189 ++++++++++++++++++++++++++++++++++++++++++----
+ drivers/spi/spi.c         |  14 ++++
+ include/linux/spi/spi.h   |   4 +
+ 3 files changed, 194 insertions(+), 13 deletions(-)
 
-	Arnd
+-- 
+2.8.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
