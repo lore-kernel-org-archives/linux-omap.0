@@ -1,116 +1,65 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] ARM: dts: DRA74x: fix DSS PLL2 addresses
-Date: Tue, 7 Jun 2016 09:31:38 +0300
-Message-ID: <57566A4A.4020102@ti.com>
-References: <1463739213-31540-1-git-send-email-tomi.valkeinen@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: [PATCHv2] device tree description for AD5820 camera auto-focus coil
+Date: Tue, 7 Jun 2016 09:10:04 +0200
+Message-ID: <20160607071003.GA11796@amd>
+References: <20160524090433.GA1277@amd>
+ <20160524091746.GA14536@amd>
+ <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
+ <20160527205140.GA26767@amd>
+ <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
+ <20160531213437.GA28397@amd>
+ <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
+ <20160601220840.GA21946@amd>
+ <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
+ <20160602193027.GB7984@amd>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8727722595271376404=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1463739213-31540-1-git-send-email-tomi.valkeinen@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160602193027.GB7984@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---===============8727722595271376404==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="JU4VBHbP4WD1pkN3vbvti95nG2gSbdJhS"
 
---JU4VBHbP4WD1pkN3vbvti95nG2gSbdJhS
-Content-Type: multipart/mixed; boundary="Gjp6k4DxWxbXIkHf5Gh2SiqL4MPmV32s9"
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Message-ID: <57566A4A.4020102@ti.com>
-Subject: Re: [PATCH] ARM: dts: DRA74x: fix DSS PLL2 addresses
-References: <1463739213-31540-1-git-send-email-tomi.valkeinen@ti.com>
-In-Reply-To: <1463739213-31540-1-git-send-email-tomi.valkeinen@ti.com>
+Add documentation for ad5820 device tree binding.
 
---Gjp6k4DxWxbXIkHf5Gh2SiqL4MPmV32s9
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Pavel Machek <pavel@denx.de>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Rob Herring <robh@kernel.org>
 
-Hi Tony,
+---
 
-On 20/05/16 13:13, Tomi Valkeinen wrote:
-> DSS's 'pll2_clkctrl' and 'pll2' have wrong addresses in the dra74x.dtsi=
+v2: Fixed nit in example, added acks.
 
-> file. Video PLL2 has not been used so wrong addresses went unnoticed.
->=20
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> ---
->  arch/arm/boot/dts/dra74x.dtsi | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->=20
-> diff --git a/arch/arm/boot/dts/dra74x.dtsi b/arch/arm/boot/dts/dra74x.d=
-tsi
-> index 4220eeffc65a..5e06020f450b 100644
-> --- a/arch/arm/boot/dts/dra74x.dtsi
-> +++ b/arch/arm/boot/dts/dra74x.dtsi
-> @@ -107,8 +107,8 @@
->  	reg =3D <0x58000000 0x80>,
->  	      <0x58004054 0x4>,
->  	      <0x58004300 0x20>,
-> -	      <0x58005054 0x4>,
-> -	      <0x58005300 0x20>;
-> +	      <0x58009054 0x4>,
-> +	      <0x58009300 0x20>;
->  	reg-names =3D "dss", "pll1_clkctrl", "pll1",
->  		    "pll2_clkctrl", "pll2";
-> =20
->=20
-
-Ping on this.
-
- Tomi
+diff --git a/Documentation/devicetree/bindings/media/i2c/ad5820.txt b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+new file mode 100644
+index 0000000..fb70ca5
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+@@ -0,0 +1,19 @@
++* Analog Devices AD5820 autofocus coil
++
++Required Properties:
++
++  - compatible: Must contain "adi,ad5820"
++
++  - reg: I2C slave address
++
++  - VANA-supply: supply of voltage for VANA pin
++
++Example:
++
++       ad5820: coil@c {
++               compatible = "adi,ad5820";
++               reg = <0x0c>;
++
++               VANA-supply = <&vaux4>;
++       };
++
 
 
---Gjp6k4DxWxbXIkHf5Gh2SiqL4MPmV32s9--
-
---JU4VBHbP4WD1pkN3vbvti95nG2gSbdJhS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJXVmpLAAoJEPo9qoy8lh71F5oP/3p2DHfBdlow8XxxO2gUxRrL
-H4P8n+6hTbw49YWllzkpWNijhtPLsbgZyEuaa18c/abHw12myz4zbTgUYY5tbmOE
-CDu/oJd/g2Acusn62WZLaVfKC/t9E0kg4fqFTFqxQ3Wwq4SWKFBOEvlqjkX6Xcao
-6B547sVSdEJKEz1xYkVct57JSgsMVHEurip7osjHadr4AOpct7bazbADJSP7aWoW
-2eYLYvA8E7X3hkcQ2ehskAMhU63vZKDF2gCUZ/30f4ZYCEh0mfp7tg2p5UzYoLYX
-JkRPV3OQDP3O3fTpnhyN/kmrVxYEPST/rWVgt/hEuZbhkmf/HYDNoSODuJRhffEy
-8eN5Ro6TtOnygqcfwnljaEFnFBnYxIOmWse8M9DYuWMOFamgZgdObE3LfSv+nHPF
-7iMf2GXPMHTobWnNlp8AwAks/bAzhKaCeVejSPCfs8ae5GVEdjNX65bvh37AkbtZ
-8TPYkZtOfx7f03fOG/e9QOY9lNe0g/8/i64Mon8vkBR1MRfUoggh3k4FPqHs80uO
-GXp2mE4ye/PbWcFBaKI5O4l5B6qZ9Uh2ageJc52plg0XOFyOAnV6qIfP0Wi3dsqf
-PgA6LwLPmkJe/0lb41LhWdflKKAM6LKd2AGbQxmZ14gyLxFocN0Dx6OhBYgSgjLw
-oKCF8ri1CedQ/anBvUNz
-=oXTN
------END PGP SIGNATURE-----
-
---JU4VBHbP4WD1pkN3vbvti95nG2gSbdJhS--
-
-
---===============8727722595271376404==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============8727722595271376404==--
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
