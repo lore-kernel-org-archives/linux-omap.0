@@ -1,48 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: Keystone: Introduce Kconfig option to compile in
- typical Keystone features
-Date: Mon, 6 Jun 2016 21:28:54 -0700
-Message-ID: <20160607042853.GA22406@atomide.com>
-References: <1464816714-3900-1-git-send-email-nm@ti.com>
- <3593753.UuDg5ybrvm@wuerfel>
- <574F6674.3010100@ti.com>
+Subject: Re: [PATCH v2 00/27] fb/drm: omapdss: Clean up the headers and
+ separate the two stack
+Date: Mon, 6 Jun 2016 22:51:16 -0700
+Message-ID: <20160607055116.GB22406@atomide.com>
+References: <20160601083549.10549-1-peter.ujfalusi@ti.com>
+ <575025DB.9020800@ti.com>
+ <20160602152305.GE5995@atomide.com>
+ <57516121.1010201@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <574F6674.3010100@ti.com>
+In-Reply-To: <57516121.1010201@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Russell King <linux@armlinux.org.uk>, Santosh Shilimkar <ssantosh@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, Bill Mills <wmills@ti.com>, linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, plagnioj@jcrosoft.com, robdclark@gmail.com, airlied@linux.ie, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com, jsarha@ti.com, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm@ti.com> [160601 15:51]:
-> On 06/01/2016 05:31 PM, Arnd Bergmann wrote:
-> > On Wednesday, June 1, 2016 4:31:54 PM CEST Nishanth Menon wrote:
-> >>
-> >> Hence the "KEYSTONE_TYPICAL" option is designed similar to commit 8d9166b519fd
-> >> ("omap2/3/4: Add Kconfig option to compile in typical omap features")
-> >> that can be enabled for most boards keystone platforms
-> >> without needing to rediscover these in defconfig all over again -
-> >> examples include multi_v7_defconfig base and optimizations done on top
-> >> of them for keystone platform.
-> > 
-> > I'd rather remove the option for OMAP as well, it doesn't really fit in with
-> > how we do things for other platforms, and selecting a lot of other Kconfig
-> > symbols tends to cause circular dependencies.
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [160603 03:53]:
 > 
-> Hmm, fair enough -> adding Tony as well if he sees an problem with
-> dropping ARCH_OMAP2PLUS_TYPICAL.
+> 
+> On 02/06/16 18:23, Tony Lindgren wrote:
+> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [160602 05:28]:
+> >>
+> >> Tony, can you have a look at the arch/arm parts here and give your ack
+> >> if they're fine? They should be quite small and display specific, so I
+> >> don't see much chance for conflict there.
+> > 
+> > Looks good to me, but these are going to conflict with the board-*.c
+> > removal patches. And those we want to have easily revertable in case
+> > of issues.
+> > 
+> > Peter, can you do an immutable minimal branch of just the pdata
+> > changes affecting the board-*.c files? That way both Tomi and I
+> > can merge that in.
+> 
+> I wonder how minimal it can be, as I think most of the patches are
+> needed for pdata changes. Well, Peter can tell better.
 
-Yes there's a problem. Removing that is going to make all the custom
-.config files unbootable almost certainly. Just search around on
-issues related to not having REGULATOR_FIXED_VOLTAGE selected.
+Looks like Peter's new series deals with it just fine.
 
-I agree we should not force select things though. And the I2C selection
-at least is wrong, we can have PMICs that are not on I2C bus.
+> What board changes do you expect for the next merge window? If it's just
+> "git rm boardfile.c", that should be an easy conflict to resolve, right?
 
-Anybody got better ideas what we should do to make the configuration
-options more intuitive?
+Trivial but no need to create these merge conflicts here.
 
 Regards,
 
