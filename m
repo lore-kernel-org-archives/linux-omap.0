@@ -1,57 +1,94 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] dmaengine: edma: Use early completion for intermediate paRAM set in slave_sg
-Date: Tue, 7 Jun 2016 11:19:44 +0300
-Message-ID: <20160607081944.21447-1-peter.ujfalusi@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH] ARM: DRA7: hwmod: remove DSS addresses from hwmod
+Date: Tue, 7 Jun 2016 11:32:02 +0300
+Message-ID: <1465288322-12118-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: vinod.koul@intel.com, dan.j.williams@intel.com
-Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, tony@atomide.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The driver limits the physical number of paRAM slots to be used by channels.
-If the transfer needs more slots (more SGs) then the transfer is broken up
-to smaller chunks. When the chunk is finished the driver will rewrite the
-physical slots and continues the transfer. This set up time can take some
-time and we might miss DMA events. If the intermediate set completion is
-using early completion (the interrupt will happen when the last slot is
-issued to the TPTC and not when the transfer is finished by the TPTC) we
-will have a bit more time to update the paRAM slots and less likely to have
-missed events.
+The addresses for DSS are provided in the DT data, so they can be
+removed from the hwmod.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/dma/edma.c | 15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 31 -------------------------------
+ 1 file changed, 31 deletions(-)
 
-diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index 8181ed131386..7c76b558cf82 100644
---- a/drivers/dma/edma.c
-+++ b/drivers/dma/edma.c
-@@ -1114,14 +1114,17 @@ static struct dma_async_tx_descriptor *edma_prep_slave_sg(
- 		edesc->absync = ret;
- 		edesc->residue += sg_dma_len(sg);
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index d0e7e5259ec3..5f40290ad5dd 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -2905,58 +2905,27 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__tptc1 = {
+ 	.user		= OCP_USER_MPU,
+ };
  
--		/* If this is the last in a current SG set of transactions,
--		   enable interrupts so that next set is processed */
--		if (!((i+1) % MAX_NR_SG))
--			edesc->pset[i].param.opt |= TCINTEN;
+-static struct omap_hwmod_addr_space dra7xx_dss_addrs[] = {
+-	{
+-		.name		= "family",
+-		.pa_start	= 0x58000000,
+-		.pa_end		= 0x5800007f,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-};
 -
--		/* If this is the last set, enable completion interrupt flag */
- 		if (i == sg_len - 1)
-+			/* Enable completion interrupt */
- 			edesc->pset[i].param.opt |= TCINTEN;
-+		else if (!((i+1) % MAX_NR_SG))
-+			/*
-+			 * Enable early completion interrupt for the
-+			 * intermediateset. In this case the driver will be
-+			 * notified when the paRAM set is submitted to TC. This
-+			 * will allow more time to set up the next set of slots.
-+			 */
-+			edesc->pset[i].param.opt |= (TCINTEN | TCCMODE);
- 	}
- 	edesc->residue_stat = edesc->residue;
+ /* l3_main_1 -> dss */
+ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__dss = {
+ 	.master		= &dra7xx_l3_main_1_hwmod,
+ 	.slave		= &dra7xx_dss_hwmod,
+ 	.clk		= "l3_iclk_div",
+-	.addr		= dra7xx_dss_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-static struct omap_hwmod_addr_space dra7xx_dss_dispc_addrs[] = {
+-	{
+-		.name		= "dispc",
+-		.pa_start	= 0x58001000,
+-		.pa_end		= 0x58001fff,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-};
+-
+ /* l3_main_1 -> dispc */
+ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__dispc = {
+ 	.master		= &dra7xx_l3_main_1_hwmod,
+ 	.slave		= &dra7xx_dss_dispc_hwmod,
+ 	.clk		= "l3_iclk_div",
+-	.addr		= dra7xx_dss_dispc_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-static struct omap_hwmod_addr_space dra7xx_dss_hdmi_addrs[] = {
+-	{
+-		.name		= "hdmi_wp",
+-		.pa_start	= 0x58040000,
+-		.pa_end		= 0x580400ff,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+ /* l3_main_1 -> dispc */
+ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__hdmi = {
+ 	.master		= &dra7xx_l3_main_1_hwmod,
+ 	.slave		= &dra7xx_dss_hdmi_hwmod,
+ 	.clk		= "l3_iclk_div",
+-	.addr		= dra7xx_dss_hdmi_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
  
 -- 
-2.8.3
+2.5.0
