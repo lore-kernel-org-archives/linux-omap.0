@@ -1,202 +1,80 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v9 5/5] usb: dwc3: core: cleanup IRQ resources
-Date: Tue, 7 Jun 2016 14:49:59 +0300
-Message-ID: <5756B4E7.5000007@ti.com>
-References: <1462977406-22806-1-git-send-email-rogerq@ti.com>
- <1462977406-22806-6-git-send-email-rogerq@ti.com> <574E92E8.5080201@ti.com>
- <57501E0D.4010007@ti.com> <57569543.4090007@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 02/28] crypto: omap-sham: Don't idle/start SHA device
+ between Encrypt operations
+Date: Tue, 7 Jun 2016 14:52:36 +0300
+Message-ID: <5756B584.2000900@ti.com>
+References: <1464771389-10640-1-git-send-email-t-kristo@ti.com>
+ <1464771389-10640-3-git-send-email-t-kristo@ti.com> <574EB091.6040001@ti.com>
+ <574F69D8.1010809@ti.com> <20160607100837.GA30875@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <57569543.4090007-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <20160607100837.GA30875@gondor.apana.org.au>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Herbert Xu <herbert@gondor.apana.org.au>, Dave Gerlach <d-gerlach@ti.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap@vger.kernel.org, linux-crypto@vger.kernel.org, davem@davemloft.net, tony@atomide.com, linux-arm-kernel@lists.infradead.org, lokeshvutla@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 06/07/2016 12:34 PM, Roger Quadros wrote:
-> On 02/06/16 14:52, Grygorii Strashko wrote:
->> On 06/01/2016 10:46 AM, Roger Quadros wrote:
->>> Implementations might use different IRQs for
->>> host, gadget and OTG so use named interrupt resources
->>> to allow Device tree to specify the 3 interrupts.
->>>
->>> Following are the interrupt names
->>>
->>> Peripheral Interrupt - peripheral
->>> HOST Interrupt - host
->>> OTG Interrupt - otg
+On 07/06/16 13:08, Herbert Xu wrote:
+> On Wed, Jun 01, 2016 at 06:03:52PM -0500, Dave Gerlach wrote:
+>> On 06/01/2016 04:53 AM, Grygorii Strashko wrote:
+>>> On 06/01/2016 11:56 AM, Tero Kristo wrote:
+>>>> From: Lokesh Vutla <lokeshvutla@ti.com>
+>>>>
+>>>> Calling runtime PM API for every block causes serious perf hit to
+>>>> crypto operations that are done on a long buffer.
+>>>> As crypto is performed on a page boundary, encrypting large buffers can
+>>>> cause a series of crypto operations divided by page. The runtime PM API
+>>>> is also called those many times.
+>>>>
+>>>> We call runtime_pm_get_sync only at beginning on the session (cra_init)
+>>>> and runtime_pm_put at the end. This result in upto a 50% speedup.
+>>>> This doesn't make the driver to keep the system awake as runtime get/put
+>>>> is only called during a crypto session which completes usually quickly.
+>>>>
+>>>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+>>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>>>> ---
+>>>>   drivers/crypto/omap-sham.c | 27 +++++++++++++++++----------
+>>>>   1 file changed, 17 insertions(+), 10 deletions(-)
+>>>>
+>>>> diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
+>>>> index 6eefaa2..bd0258f 100644
+>>>> --- a/drivers/crypto/omap-sham.c
+>>>> +++ b/drivers/crypto/omap-sham.c
+>>>> @@ -360,14 +360,6 @@ static void omap_sham_copy_ready_hash(struct
+>>>> ahash_request *req)
+>>>>
+>>>>   static int omap_sham_hw_init(struct omap_sham_dev *dd)
+>>>>   {
+>>>> -    int err;
+>>>> -
+>>>> -    err = pm_runtime_get_sync(dd->dev);
+>>>> -    if (err < 0) {
+>>>> -        dev_err(dd->dev, "failed to get sync: %d\n", err);
+>>>> -        return err;
+>>>> -    }
+>>>> -
 >>
->> or "dwc_usb3"??
-> 
-> That is for backward compatibility only. I could explicitly
-> mention it in the next line.
+>> Would it be worth it to investigate a pm_runtime autosuspend
+>> approach rather than knocking runtime PM out here completely? I am
+>> not clear if the overhead is coming from the pm_runtime calls
+>> themselves or the actual idling of the IP, but if it's the idling of
+>> the IP causing the slowdown, with a large enough autosuspend_delay
+>> we don't actually sleep between each block but after a long enough
+>> period of idle time we would actually suspend.
+>
+> Indeed, I think this patch is bogus.  cra_init is associated
+> with the tfm object which is usually long-lived.  So doing power
+> management there makes no sense.
+>
+> Cheers,
+>
 
-yes pls, this confuses.
- Also I don't see how "otg" irq name is used in code.
+I can investigate this further, but I believe this patch itself gave a 
+noticeable performance boost.
 
-> 
->>
->>>
->>> We still maintain backward compatibility for a single named
->>> interrupt for all 3 interrupts (e.g. for dwc3-pci) and
->>> single unnamed interrupt for all 3 interrupts (e.g. old DT).
->>
->> bindings
-> 
-> OK.
->>
->>>
->>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
->>> ---
->>> v9: rebased on top of balbi/testing/next
->>>
->>>    drivers/usb/dwc3/core.c   | 10 ----------
->>>    drivers/usb/dwc3/gadget.c | 20 ++++++++++++++++++--
->>>    drivers/usb/dwc3/host.c   | 19 +++++++++++++++++++
->>>    3 files changed, 37 insertions(+), 12 deletions(-)
->>>
->>> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
->>> index 9c4e1d8d..5cedf3d 100644
->>> --- a/drivers/usb/dwc3/core.c
->>> +++ b/drivers/usb/dwc3/core.c
->>> @@ -843,16 +843,6 @@ static int dwc3_probe(struct platform_device *pdev)
->>>        dwc->mem = mem;
->>>        dwc->dev = dev;
->>>
->>> -    res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
->>> -    if (!res) {
->>> -        dev_err(dev, "missing IRQ\n");
->>> -        return -ENODEV;
->>> -    }
->>> -    dwc->xhci_resources[1].start = res->start;
->>> -    dwc->xhci_resources[1].end = res->end;
->>> -    dwc->xhci_resources[1].flags = res->flags;
->>> -    dwc->xhci_resources[1].name = res->name;
->>> -
->>>        res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->>>        if (!res) {
->>>            dev_err(dev, "missing memory resource\n");
->>> diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
->>> index c37168d..c18c72f 100644
->>> --- a/drivers/usb/dwc3/gadget.c
->>> +++ b/drivers/usb/dwc3/gadget.c
->>> @@ -1726,7 +1726,7 @@ static int dwc3_gadget_start(struct usb_gadget *g,
->>>        int            ret = 0;
->>>        int            irq;
->>>
->>> -    irq = platform_get_irq(to_platform_device(dwc->dev), 0);
->>> +    irq = dwc->irq_gadget;
->>>        ret = request_threaded_irq(irq, dwc3_interrupt, dwc3_thread_interrupt,
->>>                IRQF_SHARED, "dwc3", dwc->ev_buf);
->>>        if (ret) {
->>> @@ -1734,7 +1734,6 @@ static int dwc3_gadget_start(struct usb_gadget *g,
->>>                    irq, ret);
->>>            goto err0;
->>>        }
->>> -    dwc->irq_gadget = irq;
->>>
->>>        spin_lock_irqsave(&dwc->lock, flags);
->>>        if (dwc->gadget_driver) {
->>> @@ -2853,6 +2852,23 @@ static irqreturn_t dwc3_interrupt(int irq, void *_evt)
->>>    int dwc3_gadget_init(struct dwc3 *dwc)
->>>    {
->>>        int                    ret;
->>> +    struct resource *res;
->>> +    struct platform_device *dwc3_pdev = to_platform_device(dwc->dev);
->>> +
->>> +    dwc->irq_gadget = platform_get_irq_byname(dwc3_pdev, "peripheral");
->>> +    if (dwc->irq_gadget <= 0) {
->>
->> Is it expected to get -EPROBE_DEFER here?
-> 
-> Probably not as we don't have any chance of deferring probe here. We've already
-> probed successfully and are just turning on the gadget mode here.
+This is an optimization anyway, and not critical for functionality.
 
-In general, you can't say that you've been probed successfully if not all resources are ready,
-and irq is a resource :)
-It's expected that all resources will be requested in probe, but here you are trying to get
-resource outside of probe. As result, it will be perfectly possible to get -EPROBE_DEFER here
-if on some HW GPIO IRQ will be used as peripheral, or host or otg irq (for example), because 
-GPIO IRQ controller might not be ready at the moment when IRQ resource is requested.
-
-> 
->>
->>> +        dwc->irq_gadget = platform_get_irq_byname(dwc3_pdev,
->>> +                              "dwc_usb3");
->>> +        if (dwc->irq_gadget <= 0) {
->>> +            res = platform_get_resource(dwc3_pdev, IORESOURCE_IRQ,
->>> +                            0);
->>
->> It's better to use platform_get_irq().
-> 
-> OK.
->>
->>> +            if (!res) {
->>> +                dev_err(dwc->dev, "missing peripheral IRQ\n");
->>> +                return -ENODEV;
->>> +            }
->>> +            dwc->irq_gadget = res->start;
->>> +        }
->>> +    }
->>>
->>>        dwc->ctrl_req = dma_alloc_coherent(dwc->dev, sizeof(*dwc->ctrl_req),
->>>                &dwc->ctrl_req_addr, GFP_KERNEL);
->>> diff --git a/drivers/usb/dwc3/host.c b/drivers/usb/dwc3/host.c
->>> index c679f63..f2b60a4 100644
->>> --- a/drivers/usb/dwc3/host.c
->>> +++ b/drivers/usb/dwc3/host.c
->>> @@ -25,6 +25,25 @@ int dwc3_host_init(struct dwc3 *dwc)
->>>        struct platform_device    *xhci;
->>>        struct usb_xhci_pdata    pdata;
->>>        int            ret;
->>> +    struct resource        *res;
->>> +    struct platform_device    *dwc3_pdev = to_platform_device(dwc->dev);
->>> +
->>> +    res = platform_get_resource_byname(dwc3_pdev, IORESOURCE_IRQ, "host");
->>> +    if (!res) {
->>> +        res = platform_get_resource_byname(dwc3_pdev, IORESOURCE_IRQ,
->>> +                           "dwc_usb3");
->>> +        if (!res) {
->>> +            res = platform_get_resource(dwc3_pdev, IORESOURCE_IRQ,
->>> +                            0);
->>> +            if (!res)
->>
->>> +                return -ENOMEM;
->>> +        }
->>> +    }
->>
->> Is it expected to have more than one IRQ here?
-> 
-> No.
->>
->> if not - it will better to use platform_get_irq[_byname]().
-> 
-> OK.
->>
->>
->>> +
->>> +    dwc->xhci_resources[1].start = res->start;
->>> +    dwc->xhci_resources[1].end = res->end;
->>> +    dwc->xhci_resources[1].flags = res->flags;
->>> +    dwc->xhci_resources[1].name = res->name;
->>>
->>>        xhci = platform_device_alloc("xhci-hcd", PLATFORM_DEVID_AUTO);
->>>        if (!xhci) {
->>>
->>
->>
-> 
-> cheers,
-> -roger
-> 
-
-
--- 
-regards,
--grygorii
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Tero
