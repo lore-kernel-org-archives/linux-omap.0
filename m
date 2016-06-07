@@ -1,179 +1,106 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v9 5/5] usb: dwc3: core: cleanup IRQ resources
-Date: Tue, 7 Jun 2016 12:34:59 +0300
-Message-ID: <57569543.4090007@ti.com>
-References: <1462977406-22806-1-git-send-email-rogerq@ti.com>
- <1462977406-22806-6-git-send-email-rogerq@ti.com> <574E92E8.5080201@ti.com>
- <57501E0D.4010007@ti.com>
+From: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [balbi-usb:testing/next 64/67] phy-generic.c:undefined reference to `usb_gadget_vbus_connect'
+Date: Tue, 07 Jun 2016 12:36:13 +0300
+Message-ID: <87wpm1basy.fsf@linux.intel.com>
+References: <201606062026.EQTlXIDR%fengguang.wu@intel.com> <87bn3ecwbz.fsf@linux.intel.com> <878tyicva6.fsf@linux.intel.com> <20160607015405.GB17095@shlinux2>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <57501E0D.4010007@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, balbi@kernel.org
-Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha256; protocol="application/pgp-signature"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160607015405.GB17095@shlinux2>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: kbuild test robot <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Peter Chen <Peter.Chen-3arQi8VN3Tc@public.gmane.org>, John Youn <johnyoun-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Mathias Nyman <mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, kbuild-all-JC7UmRfGjtg@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 02/06/16 14:52, Grygorii Strashko wrote:
-> On 06/01/2016 10:46 AM, Roger Quadros wrote:
->> Implementations might use different IRQs for
->> host, gadget and OTG so use named interrupt resources
->> to allow Device tree to specify the 3 interrupts.
->>
->> Following are the interrupt names
->>
->> Peripheral Interrupt - peripheral
->> HOST Interrupt - host
->> OTG Interrupt - otg
-> 
-> or "dwc_usb3"??
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-That is for backward compatibility only. I could explicitly
-mention it in the next line.
 
-> 
->>
->> We still maintain backward compatibility for a single named
->> interrupt for all 3 interrupts (e.g. for dwc3-pci) and
->> single unnamed interrupt for all 3 interrupts (e.g. old DT).
-> 
-> bindings
+Hi,
 
-OK.
-> 
->>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->> v9: rebased on top of balbi/testing/next
->>
->>   drivers/usb/dwc3/core.c   | 10 ----------
->>   drivers/usb/dwc3/gadget.c | 20 ++++++++++++++++++--
->>   drivers/usb/dwc3/host.c   | 19 +++++++++++++++++++
->>   3 files changed, 37 insertions(+), 12 deletions(-)
->>
->> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
->> index 9c4e1d8d..5cedf3d 100644
->> --- a/drivers/usb/dwc3/core.c
->> +++ b/drivers/usb/dwc3/core.c
->> @@ -843,16 +843,6 @@ static int dwc3_probe(struct platform_device *pdev)
->>       dwc->mem = mem;
->>       dwc->dev = dev;
->>
->> -    res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
->> -    if (!res) {
->> -        dev_err(dev, "missing IRQ\n");
->> -        return -ENODEV;
->> -    }
->> -    dwc->xhci_resources[1].start = res->start;
->> -    dwc->xhci_resources[1].end = res->end;
->> -    dwc->xhci_resources[1].flags = res->flags;
->> -    dwc->xhci_resources[1].name = res->name;
->> -
->>       res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->>       if (!res) {
->>           dev_err(dev, "missing memory resource\n");
->> diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
->> index c37168d..c18c72f 100644
->> --- a/drivers/usb/dwc3/gadget.c
->> +++ b/drivers/usb/dwc3/gadget.c
->> @@ -1726,7 +1726,7 @@ static int dwc3_gadget_start(struct usb_gadget *g,
->>       int            ret = 0;
->>       int            irq;
->>
->> -    irq = platform_get_irq(to_platform_device(dwc->dev), 0);
->> +    irq = dwc->irq_gadget;
->>       ret = request_threaded_irq(irq, dwc3_interrupt, dwc3_thread_interrupt,
->>               IRQF_SHARED, "dwc3", dwc->ev_buf);
->>       if (ret) {
->> @@ -1734,7 +1734,6 @@ static int dwc3_gadget_start(struct usb_gadget *g,
->>                   irq, ret);
->>           goto err0;
->>       }
->> -    dwc->irq_gadget = irq;
->>
->>       spin_lock_irqsave(&dwc->lock, flags);
->>       if (dwc->gadget_driver) {
->> @@ -2853,6 +2852,23 @@ static irqreturn_t dwc3_interrupt(int irq, void *_evt)
->>   int dwc3_gadget_init(struct dwc3 *dwc)
->>   {
->>       int                    ret;
->> +    struct resource *res;
->> +    struct platform_device *dwc3_pdev = to_platform_device(dwc->dev);
->> +
->> +    dwc->irq_gadget = platform_get_irq_byname(dwc3_pdev, "peripheral");
->> +    if (dwc->irq_gadget <= 0) {
-> 
-> Is it expected to get -EPROBE_DEFER here?
+Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
+> On Mon, Jun 06, 2016 at 04:16:17PM +0300, Felipe Balbi wrote:
+>>=20
+>> Hi,
+>>=20
+>> Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> writes:
+>> > [ Unknown signature status ]
+>> >
+>> > Hi,
+>> >
+>> > kbuild test robot <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> writes:
+>> >> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git=
+ testing/next
+>> >> head:   89fe2b5ab11cdf6a67d4492d893e70e330aa7060
+>> >> commit: 231b31ca34485552fe27e67dc6d30d06079c7648 [64/67] usb: gadget:=
+ move gadget API functions to udc-core
+>> >> config: x86_64-randconfig-s1-06061834 (attached as .config)
+>> >> compiler: gcc-6 (Debian 6.1.1-1) 6.1.1 20160430
+>> >> reproduce:
+>> >>         git checkout 231b31ca34485552fe27e67dc6d30d06079c7648
+>> >>         # save the attached .config to linux build tree
+>> >>         make ARCH=3Dx86_64=20
+>> >>
+>> >> All errors (new ones prefixed by >>):
+>> >>
+>> >>    drivers/built-in.o: In function `nop_set_peripheral':
+>> >>>> phy-generic.c:(.text+0x14423f): undefined reference to `usb_gadget_=
+vbus_connect'
+>> >>    drivers/built-in.o: In function `nop_gpio_vbus_thread':
+>> >>>> phy-generic.c:(.text+0x144742): undefined reference to `usb_gadget_=
+vbus_disconnect'
+>> >
+>> > oh yeah, I have to fix this. I'll do it now.
+>>=20
+>> In order to fix this, I'll have to add something like below:
+>>=20
+>> diff --git a/drivers/usb/chipidea/Kconfig b/drivers/usb/chipidea/Kconfig
+>> index 3644a3500b70..bd67e4ac4b61 100644
+>> --- a/drivers/usb/chipidea/Kconfig
+>> +++ b/drivers/usb/chipidea/Kconfig
+>> @@ -19,6 +19,7 @@ config USB_CHIPIDEA_OF
+>>  config USB_CHIPIDEA_PCI
+>>  	tristate
+>>  	depends on PCI
+>> +	depends on USB_GADGET=3Dy || USB_GADGET=3DNOP_USB_XCEIV
+>>  	depends on NOP_USB_XCEIV
+>>  	default USB_CHIPIDEA
+>
+> Hi Felipe,
+>
+> It causes any drivers which use symbols from gadget.h needs to build
+> USB_GADGET even it only wants to be host function. Any significant
+> benefits after moving it to udc-core.c?
 
-Probably not as we don't have any chance of deferring probe here. We've already
-probed successfully and are just turning on the gadget mode here.
+why is a host-only function calling into the gadget API?
 
-> 
->> +        dwc->irq_gadget = platform_get_irq_byname(dwc3_pdev,
->> +                              "dwc_usb3");
->> +        if (dwc->irq_gadget <= 0) {
->> +            res = platform_get_resource(dwc3_pdev, IORESOURCE_IRQ,
->> +                            0);
-> 
-> It's better to use platform_get_irq().
+=2D-=20
+balbi
 
-OK.
-> 
->> +            if (!res) {
->> +                dev_err(dwc->dev, "missing peripheral IRQ\n");
->> +                return -ENODEV;
->> +            }
->> +            dwc->irq_gadget = res->start;
->> +        }
->> +    }
->>
->>       dwc->ctrl_req = dma_alloc_coherent(dwc->dev, sizeof(*dwc->ctrl_req),
->>               &dwc->ctrl_req_addr, GFP_KERNEL);
->> diff --git a/drivers/usb/dwc3/host.c b/drivers/usb/dwc3/host.c
->> index c679f63..f2b60a4 100644
->> --- a/drivers/usb/dwc3/host.c
->> +++ b/drivers/usb/dwc3/host.c
->> @@ -25,6 +25,25 @@ int dwc3_host_init(struct dwc3 *dwc)
->>       struct platform_device    *xhci;
->>       struct usb_xhci_pdata    pdata;
->>       int            ret;
->> +    struct resource        *res;
->> +    struct platform_device    *dwc3_pdev = to_platform_device(dwc->dev);
->> +
->> +    res = platform_get_resource_byname(dwc3_pdev, IORESOURCE_IRQ, "host");
->> +    if (!res) {
->> +        res = platform_get_resource_byname(dwc3_pdev, IORESOURCE_IRQ,
->> +                           "dwc_usb3");
->> +        if (!res) {
->> +            res = platform_get_resource(dwc3_pdev, IORESOURCE_IRQ,
->> +                            0);
->> +            if (!res)
-> 
->> +                return -ENOMEM;
->> +        }
->> +    }
-> 
-> Is it expected to have more than one IRQ here?
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
 
-No.
-> 
-> if not - it will better to use platform_get_irq[_byname]().
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-OK.
-> 
-> 
->> +
->> +    dwc->xhci_resources[1].start = res->start;
->> +    dwc->xhci_resources[1].end = res->end;
->> +    dwc->xhci_resources[1].flags = res->flags;
->> +    dwc->xhci_resources[1].name = res->name;
->>
->>       xhci = platform_device_alloc("xhci-hcd", PLATFORM_DEVID_AUTO);
->>       if (!xhci) {
->>
-> 
-> 
-
-cheers,
--roger
+iQIcBAEBCAAGBQJXVpWNAAoJEIaOsuA1yqRErigQAKPPXseDdLiX6cXa/9utcpgB
+UaKM0QEu+7OwFsdh5rk8c7lhKlQqXigb7eEeQ54FDtB0UvOpx2QUHRE1sWWW3a7z
+WS+hIefdJNwkZ1EzV226PqKLfh/EDg5sa2F0WMa/GHCWScvStv9LOHiDi1pIdZUt
+AFSp0SB5bJ47cfqvKJGcyz9X4eb8e/cyaeWcqWOgTBMkbVNFvzLZIDoY3GStnw5f
+4Yj+iV/N3SEMOic/kihJXnU/TRrHjXQmUVSm8ySpPKxEX6tLfMuiMRGDjJfMYV35
+BWHXeYw9ccMppirt/976oqgzhABCvxtpgJ8J9qaOzrDhtfnbrF9pTG/AVO1gdMAr
+Zzta5XOQEuTqZqnU3muNba2/izClLHtFpaGm/GWQxfXZhAcCH4O0xI6Tml71zt1u
+cHx4jJVTq2P2h+2yMiIypfoEH8KEfqHCINdwMQt/PvI5STrWq2CXQ4+/AWcLaicd
++Uik4wPUwLThqsCyzEUNMGYEqwy/KOuSQkN2AMhv5UMp/wUPK8WjWGiBAinBc9TY
+RGHDo6cQcpSqbX5BKtDTnKfa/EVHjFRRsytEVJZiz9GdrkKPatK6Aw4sNzP0CsNS
+SzGR1xw0Wkx+VgS232ZeO8HSojbMMvI7Iy7xWTOpBW5S4bHwKr8G1OjnYcg5EAI3
+i11gzyO6TNBuiDe3tzby
+=zTd+
+-----END PGP SIGNATURE-----
+--=-=-=--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
