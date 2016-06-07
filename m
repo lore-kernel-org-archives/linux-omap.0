@@ -1,86 +1,62 @@
-From: Felipe Balbi <balbi@kernel.org>
-Subject: Re: [PATCH v9 5/5] usb: dwc3: core: cleanup IRQ resources
-Date: Tue, 07 Jun 2016 16:09:14 +0300
-Message-ID: <877fe1b0xx.fsf@linux.intel.com>
-References: <1462977406-22806-1-git-send-email-rogerq@ti.com> <1462977406-22806-6-git-send-email-rogerq@ti.com> <574E92E8.5080201@ti.com> <57501E0D.4010007@ti.com> <57569543.4090007@ti.com> <5756B4E7.5000007@ti.com> <5756C1B8.1040207@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [GIT PULL] foundation for omapdrm header clean-up series for 4.8
+Date: Tue, 7 Jun 2016 16:39:35 +0300
+Message-ID: <75826112-0e0e-c49f-c29f-6ac059267026@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha256; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5756C1B8.1040207@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Hi Tony, Tomi
 
+as you have requested I have created the immutable branch containing th=
+e
+mach-omap2 touching patches only from the omapdss header cleanup.
 
-Hi,
+As I have mentioned in the v3 cover letter I have the other branch
+containing the whole series:
+https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1158006.ht=
+ml
 
-(guys, please make sure to break lines at 80-columns)
+--=20
+P=C3=A9ter
 
-Roger Quadros <rogerq@ti.com> writes:
->>>>> @@ -2853,6 +2852,23 @@ static irqreturn_t dwc3_interrupt(int irq, voi=
-d *_evt)
->>>>>    int dwc3_gadget_init(struct dwc3 *dwc)
->>>>>    {
->>>>>        int                    ret;
->>>>> +    struct resource *res;
->>>>> +    struct platform_device *dwc3_pdev =3D to_platform_device(dwc->de=
-v);
->>>>> +
->>>>> +    dwc->irq_gadget =3D platform_get_irq_byname(dwc3_pdev, "peripher=
-al");
->>>>> +    if (dwc->irq_gadget <=3D 0) {
->>>>
->>>> Is it expected to get -EPROBE_DEFER here?
->>>
->>> Probably not as we don't have any chance of deferring probe here. We've=
- already
->>> probed successfully and are just turning on the gadget mode here.
->>=20
->> In general, you can't say that you've been probed successfully if not
->> all resources are ready, and irq is a resource :) It's expected that
->> all resources will be requested in probe, but here you are trying to
->> get resource outside of probe. As result, it will be perfectly
->> possible to get -EPROBE_DEFER here if on some HW GPIO IRQ will be
->> used as peripheral, or host or otg irq (for example), because GPIO
->> IRQ controller might not be ready at the moment when IRQ resource is
->> requested.
->
-> I agree with you.
->
-> Felipe, are you ok with moving the IRQ resource obtaining code to probe?
+The following changes since commit 1a695a905c18548062509178b98bc91e6751=
+0864:
 
-You mean that probe() would setup all gadget_irq, otg_irq and host_irq
-while the other pieces (otg.c, gadget.c and host.c) only use it?
+  Linux 4.7-rc1 (2016-05-29 09:29:24 -0700)
 
-yeah, that should be fine. No problems.
+are available in the git repository at:
 
-=2D-=20
-balbi
+  https://github.com/omap-audio/linux-audio.git peter/for-4.8_omapdss_p=
+art1
 
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
+for you to fetch changes up to f8e0db9722e069f48f58e191948e85f6254879db=
+:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+  ARM: OMAP2: Use the platform_data header for omapdss (2016-06-03 16:0=
+1:01 +0300)
 
-iQIcBAEBCAAGBQJXVsd6AAoJEIaOsuA1yqRE160QAKRZ2EoRdfvQE+CtF8toJx8y
-G0TXqhSDeyAXR1sVKHRxWcJyeM0iYzxh/xm5/+raxB90lPdqGM1thP3ewUAzVO6j
-IQAyXXGjT9SvjzO/Rp8nHPYccowm8MRMBCSyJ5E/wdHgGHlPI6k7VFFeb3dwG31Q
-YxMEZMYp0eG/UY1qiZoJLcGnYY8JvxZUmeXT/GhXhj7zvLFDweGrmixz529gIF/P
-qJ4FHjGCoLVHUe8bHy1EWWBfw9SJL/WXMnNbWtVBUBW82K21orj7GTnfsP0AsO73
-daRiw4M10+Rps0oL4dcy/VKvxe3Umanz+XY+1fUOuWxr5gzb1sik7V2ErZMO8D9A
-iPMV4ZDARwFK6Vsq+2rtygS6TypbgYHCfXj2SuGCLHWjBMDVrsvSpWybYgkIrwGy
-WwdvWB2JLS4ED6Qa6VUJqUZa/CPI1lL9X9TWcYC085KRjQ1sDe+LlfQZr+yZXw5V
-sdaeAzP//smrFTO9QQY7BCNUiaJ8qtksdhIXSn+ZQ3ZvpQrYtsXfx9Hhqft5CHXT
-XwoZhQyD8rIUfcWG9Vj2YTN/lUWP7xD8TS3kdgPOW1CzybOT3qTXwZfnmBQdgKN/
-slkUKq9OxL0rv5XkzweQHvn6jFA4Df9Y5PZfvITrQyeuxlguyoZqnFfjh0szEKc4
-vNb3dTwR8kbNV8eamZSy
-=3LFO
------END PGP SIGNATURE-----
---=-=-=--
+----------------------------------------------------------------
+Peter Ujfalusi (4):
+      ARM: OMAP: rx51-video: Do not set TV connector_type
+      ARM/video: omap2: Move omap_display_init declaration to mach-omap=
+2/display.h
+      video/platform_data: omapdss: Create new header file for platform=
+ data
+      ARM: OMAP2: Use the platform_data header for omapdss
+
+ arch/arm/mach-omap2/board-ldp.c        |  3 ++-
+ arch/arm/mach-omap2/board-rx51-video.c |  4 ++--
+ arch/arm/mach-omap2/display.c          |  2 +-
+ arch/arm/mach-omap2/display.h          |  5 ++++
+ arch/arm/mach-omap2/dss-common.c       |  2 +-
+ include/linux/platform_data/omapdss.h  | 42 ++++++++++++++++++++++++++=
++++++++
+ include/video/omapdss.h                | 31 +-----------------------
+ 7 files changed, 54 insertions(+), 35 deletions(-)
+ create mode 100644 include/linux/platform_data/omapdss.h
