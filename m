@@ -1,143 +1,150 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: Nokia N900: musb is in wrong state after boot
-Date: Tue, 7 Jun 2016 14:50:44 +0200
-Message-ID: <20160607125044.GI29844@pali>
-References: <201601091616.04193@pali>
- <3690314.8jDXSUDcRZ@saturn>
- <20160121192113.GM19432@atomide.com>
- <201601231357.32629@pali>
- <20160529103824.GM29844@pali>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160529103824.GM29844@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: joerg Reisenweber <joerg@openmoko.org>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>
+From: Caesar Wang <wxt@rock-chips.com>
+Subject: [PATCH v5.1 3/5] thermal: streamline get_trend callbacks
+Date: Tue,  7 Jun 2016 21:01:39 +0800
+Message-ID: <1465304499-14284-1-git-send-email-wxt@rock-chips.com>
+References: <1465213489-14898-1-git-send-email-wxt@rock-chips.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1465213489-14898-1-git-send-email-wxt@rock-chips.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: edubezval@gmail.com, linux-pm@vger.kernel.org
+Cc: heiko@sntech.de, j-keerthy@ti.com, s.hauer@pengutronix.de, linux-omap@vger.kernel.org, rui.zhang@intel.com, javi.merino@arm.com, peter@piie.net, dmitry.torokhov@gmail.com, huangtao@rock-chips.com, cf@rock-chips.com, linux-rockchip@lists.infradead.org, smbarber@google.com, briannorris@google.com, dianders@chromium.org, Caesar Wang <wxt@rock-chips.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sunday 29 May 2016 12:38:24 Pali Roh=C3=A1r wrote:
-> > From fd67b58e3538c0732750ecad915cde736da099dc Mon Sep 17 00:00:00 2=
-001
-> > From: =3D?UTF-8?q?Pali=3D20Roh=3DC3=3DA1r?=3D <pali.rohar@gmail.com=
->
-> > Date: Sat, 9 Jan 2016 16:57:59 +0100
-> > Subject: [PATCH] musb: debugfs: Add support in testmode for forcing=
- host mode
-> >  together with speed
-> >=20
-> > ---
-> >  drivers/usb/musb/musb_debugfs.c |   44 +++++++++++++++++++++++++--=
-------------
-> >  1 file changed, 28 insertions(+), 16 deletions(-)
-> >=20
-> > diff --git a/drivers/usb/musb/musb_debugfs.c b/drivers/usb/musb/mus=
-b_debugfs.c
-> > index 9b22d94..62c13a2 100644
-> > --- a/drivers/usb/musb/musb_debugfs.c
-> > +++ b/drivers/usb/musb/musb_debugfs.c
-> > @@ -147,28 +147,34 @@ static int musb_test_mode_show(struct seq_fil=
-e *s, void *unused)
-> > =20
-> >  	test =3D musb_readb(musb->mregs, MUSB_TESTMODE);
-> > =20
-> > -	if (test & MUSB_TEST_FORCE_HOST)
-> > +	if (test & (MUSB_TEST_FORCE_HOST | MUSB_TEST_FORCE_FS))
-> > +		seq_printf(s, "force host full-speed\n");
-> > +
-> > +	else if (test & (MUSB_TEST_FORCE_HOST | MUSB_TEST_FORCE_HS))
-> > +		seq_printf(s, "force host high-speed\n");
-> > +
-> > +	else if (test & MUSB_TEST_FORCE_HOST)
-> >  		seq_printf(s, "force host\n");
-> > =20
-> > -	if (test & MUSB_TEST_FIFO_ACCESS)
-> > +	else if (test & MUSB_TEST_FIFO_ACCESS)
-> >  		seq_printf(s, "fifo access\n");
-> > =20
-> > -	if (test & MUSB_TEST_FORCE_FS)
-> > +	else if (test & MUSB_TEST_FORCE_FS)
-> >  		seq_printf(s, "force full-speed\n");
-> > =20
-> > -	if (test & MUSB_TEST_FORCE_HS)
-> > +	else if (test & MUSB_TEST_FORCE_HS)
-> >  		seq_printf(s, "force high-speed\n");
-> > =20
-> > -	if (test & MUSB_TEST_PACKET)
-> > +	else if (test & MUSB_TEST_PACKET)
-> >  		seq_printf(s, "test packet\n");
-> > =20
-> > -	if (test & MUSB_TEST_K)
-> > +	else if (test & MUSB_TEST_K)
-> >  		seq_printf(s, "test K\n");
-> > =20
-> > -	if (test & MUSB_TEST_J)
-> > +	else if (test & MUSB_TEST_J)
-> >  		seq_printf(s, "test J\n");
-> > =20
-> > -	if (test & MUSB_TEST_SE0_NAK)
-> > +	else if (test & MUSB_TEST_SE0_NAK)
-> >  		seq_printf(s, "test SE0 NAK\n");
-> > =20
-> >  	return 0;
-> > @@ -206,30 +212,36 @@ static ssize_t musb_test_mode_write(struct fi=
-le *file,
-> >  	if (copy_from_user(buf, ubuf, min_t(size_t, sizeof(buf) - 1, coun=
-t)))
-> >  		return -EFAULT;
-> > =20
-> > -	if (strstarts(buf, "force host"))
-> > +	if (strstarts(buf, "force host full-speed"))
-> > +		test =3D MUSB_TEST_FORCE_HOST | MUSB_TEST_FORCE_FS;
-> > +
-> > +	else if (strstarts(buf, "force host high-speed"))
-> > +		test =3D MUSB_TEST_FORCE_HOST | MUSB_TEST_FORCE_HS;
-> > +
-> > +	else if (strstarts(buf, "force host"))
-> >  		test =3D MUSB_TEST_FORCE_HOST;
-> > =20
-> > -	if (strstarts(buf, "fifo access"))
-> > +	else if (strstarts(buf, "fifo access"))
-> >  		test =3D MUSB_TEST_FIFO_ACCESS;
-> > =20
-> > -	if (strstarts(buf, "force full-speed"))
-> > +	else if (strstarts(buf, "force full-speed"))
-> >  		test =3D MUSB_TEST_FORCE_FS;
-> > =20
-> > -	if (strstarts(buf, "force high-speed"))
-> > +	else if (strstarts(buf, "force high-speed"))
-> >  		test =3D MUSB_TEST_FORCE_HS;
-> > =20
-> > -	if (strstarts(buf, "test packet")) {
-> > +	else if (strstarts(buf, "test packet")) {
-> >  		test =3D MUSB_TEST_PACKET;
-> >  		musb_load_testpacket(musb);
-> >  	}
-> > =20
-> > -	if (strstarts(buf, "test K"))
-> > +	else if (strstarts(buf, "test K"))
-> >  		test =3D MUSB_TEST_K;
-> > =20
-> > -	if (strstarts(buf, "test J"))
-> > +	else if (strstarts(buf, "test J"))
-> >  		test =3D MUSB_TEST_J;
-> > =20
-> > -	if (strstarts(buf, "test SE0 NAK"))
-> > +	else if (strstarts(buf, "test SE0 NAK"))
-> >  		test =3D MUSB_TEST_SE0_NAK;
-> > =20
-> >  	musb_writeb(musb->mregs, MUSB_TESTMODE, test);
-> > --=20
-> > 1.7.9.5
-> >=20
->=20
-> Tony, what do you think about that patch?
->=20
+From: Sascha Hauer <s.hauer@pengutronix.de>
 
-Tony, PING
+The .get_trend callback in struct thermal_zone_device_ops has
+the prototype:
+        int (*get_trend) (struct thermal_zone_device *, int,
+                          enum thermal_trend *);
+whereas the .get_trend callback in struct thermal_zone_of_device_ops
+has:
+        int (*get_trend)(void *, long *);
 
---=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Streamline both prototypes and add the trip argument to the OF callback
+aswell and use enum thermal_trend * instead of an integer pointer.
+
+While the OF prototype may be the better one, this should be decided at
+framework level and not on OF level.
+
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Caesar Wang <wxt@rock-chips.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Eduardo Valentin <edubezval@gmail.com>
+Cc: linux-pm@vger.kernel.org
+Reviewed-by: Keerthy <j-keerthy@ti.com>
+
+---
+
+Changes in v5.1:
+- As the Keerthy comments, change the get_trend for of_thermal.c
+- Add the Kee's Reviewed-by, I can remove it if you object it.
+- I'm assumed that the Eduardo will apply it. I can do it if Eduardo wants
+  me to resend them.
+
+Changes in v5: None
+Changes in v4: None
+Changes in v3: None
+Changes in v2: None
+
+ drivers/thermal/of-thermal.c                       | 16 +-------------
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 25 +++++++---------------
+ include/linux/thermal.h                            |  2 +-
+ 3 files changed, 10 insertions(+), 33 deletions(-)
+
+diff --git a/drivers/thermal/of-thermal.c b/drivers/thermal/of-thermal.c
+index 2d2a06f..20822ab 100644
+--- a/drivers/thermal/of-thermal.c
++++ b/drivers/thermal/of-thermal.c
+@@ -202,25 +202,11 @@ static int of_thermal_get_trend(struct thermal_zone_device *tz, int trip,
+ 				enum thermal_trend *trend)
+ {
+ 	struct __thermal_zone *data = tz->devdata;
+-	long dev_trend;
+-	int r;
+ 
+ 	if (!data->ops->get_trend)
+ 		return -EINVAL;
+ 
+-	r = data->ops->get_trend(data->sensor_data, &dev_trend);
+-	if (r)
+-		return r;
+-
+-	/* TODO: These intervals might have some thresholds, but in core code */
+-	if (dev_trend > 0)
+-		*trend = THERMAL_TREND_RAISING;
+-	else if (dev_trend < 0)
+-		*trend = THERMAL_TREND_DROPPING;
+-	else
+-		*trend = THERMAL_TREND_STABLE;
+-
+-	return 0;
++	return data->ops->get_trend(data->sensor_data, trip, trend);
+ }
+ 
+ static int of_thermal_bind(struct thermal_zone_device *thermal,
+diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+index 15c0a9a..4a6757c 100644
+--- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
++++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+@@ -239,7 +239,7 @@ static int ti_thermal_get_trip_temp(struct thermal_zone_device *thermal,
+ 	return 0;
+ }
+ 
+-static int __ti_thermal_get_trend(void *p, long *trend)
++static int __ti_thermal_get_trend(void *p, int trip, enum thermal_trend *trend)
+ {
+ 	struct ti_thermal_data *data = p;
+ 	struct ti_bandgap *bgp;
+@@ -252,22 +252,6 @@ static int __ti_thermal_get_trend(void *p, long *trend)
+ 	if (ret)
+ 		return ret;
+ 
+-	*trend = tr;
+-
+-	return 0;
+-}
+-
+-/* Get the temperature trend callback functions for thermal zone */
+-static int ti_thermal_get_trend(struct thermal_zone_device *thermal,
+-				int trip, enum thermal_trend *trend)
+-{
+-	int ret;
+-	long tr;
+-
+-	ret = __ti_thermal_get_trend(thermal->devdata, &tr);
+-	if (ret)
+-		return ret;
+-
+ 	if (tr > 0)
+ 		*trend = THERMAL_TREND_RAISING;
+ 	else if (tr < 0)
+@@ -278,6 +262,13 @@ static int ti_thermal_get_trend(struct thermal_zone_device *thermal,
+ 	return 0;
+ }
+ 
++/* Get the temperature trend callback functions for thermal zone */
++static int ti_thermal_get_trend(struct thermal_zone_device *thermal,
++				int trip, enum thermal_trend *trend)
++{
++	return __ti_thermal_get_trend(thermal->devdata, trip, trend);
++}
++
+ /* Get critical temperature callback functions for thermal zone */
+ static int ti_thermal_get_crit_temp(struct thermal_zone_device *thermal,
+ 				    int *temp)
+diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+index 2440b8d..d3ce3a5 100644
+--- a/include/linux/thermal.h
++++ b/include/linux/thermal.h
+@@ -352,7 +352,7 @@ struct thermal_genl_event {
+  */
+ struct thermal_zone_of_device_ops {
+ 	int (*get_temp)(void *, int *);
+-	int (*get_trend)(void *, long *);
++	int (*get_trend)(void *, int, enum thermal_trend *);
+ 	int (*set_trips)(void *, int, int);
+ 	int (*set_emul_temp)(void *, int);
+ 	int (*set_trip_temp)(void *, int, int);
+-- 
+1.9.1
+
