@@ -1,94 +1,53 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH] ARM: DRA7: hwmod: remove DSS addresses from hwmod
-Date: Tue, 7 Jun 2016 11:32:02 +0300
-Message-ID: <1465288322-12118-1-git-send-email-tomi.valkeinen@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] mfd: twl6040: Handle mclk used for HPPLL and optional
+ internal clock source
+Date: Tue, 7 Jun 2016 11:54:57 +0300
+Message-ID: <7d5e3117-a014-0107-bf75-775401834e02@ti.com>
+References: <1462965209-6955-1-git-send-email-peter.ujfalusi@ti.com>
+ <20160516150231.GA5527@rob-hp-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160516150231.GA5527@rob-hp-laptop>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The addresses for DSS are provided in the DT data, so they can be
-removed from the hwmod.
+Lee,
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 31 -------------------------------
- 1 file changed, 31 deletions(-)
+On 05/16/16 18:02, Rob Herring wrote:
+> On Wed, May 11, 2016 at 02:13:29PM +0300, Peter Ujfalusi wrote:
+>> On some boards, like omap5-uevm the MCLK is gated by default and in =
+order
+>> to be able to use the High performance modes of twl6040 it need to b=
+e
+>> enabled by SW.
+>> Add support for handling the MCLK source clock via CCF.
+>> At the same time lover the print priority of the notification that t=
+he 32K
+>> clock is not proveded so it is not going to be handled by the driver=
+=2E
+>>
+>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  Documentation/devicetree/bindings/mfd/twl6040.txt |  4 +--
+>=20
+> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index d0e7e5259ec3..5f40290ad5dd 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -2905,58 +2905,27 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__tptc1 = {
- 	.user		= OCP_USER_MPU,
- };
- 
--static struct omap_hwmod_addr_space dra7xx_dss_addrs[] = {
--	{
--		.name		= "family",
--		.pa_start	= 0x58000000,
--		.pa_end		= 0x5800007f,
--		.flags		= ADDR_TYPE_RT
--	},
--};
--
- /* l3_main_1 -> dss */
- static struct omap_hwmod_ocp_if dra7xx_l3_main_1__dss = {
- 	.master		= &dra7xx_l3_main_1_hwmod,
- 	.slave		= &dra7xx_dss_hwmod,
- 	.clk		= "l3_iclk_div",
--	.addr		= dra7xx_dss_addrs,
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
--static struct omap_hwmod_addr_space dra7xx_dss_dispc_addrs[] = {
--	{
--		.name		= "dispc",
--		.pa_start	= 0x58001000,
--		.pa_end		= 0x58001fff,
--		.flags		= ADDR_TYPE_RT
--	},
--};
--
- /* l3_main_1 -> dispc */
- static struct omap_hwmod_ocp_if dra7xx_l3_main_1__dispc = {
- 	.master		= &dra7xx_l3_main_1_hwmod,
- 	.slave		= &dra7xx_dss_dispc_hwmod,
- 	.clk		= "l3_iclk_div",
--	.addr		= dra7xx_dss_dispc_addrs,
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
--static struct omap_hwmod_addr_space dra7xx_dss_hdmi_addrs[] = {
--	{
--		.name		= "hdmi_wp",
--		.pa_start	= 0x58040000,
--		.pa_end		= 0x580400ff,
--		.flags		= ADDR_TYPE_RT
--	},
--	{ }
--};
--
- /* l3_main_1 -> dispc */
- static struct omap_hwmod_ocp_if dra7xx_l3_main_1__hdmi = {
- 	.master		= &dra7xx_l3_main_1_hwmod,
- 	.slave		= &dra7xx_dss_hdmi_hwmod,
- 	.clk		= "l3_iclk_div",
--	.addr		= dra7xx_dss_hdmi_addrs,
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
--- 
-2.5.0
+Can you take a look at this patch if it is OK to pick?
+
+>>  drivers/mfd/twl6040.c                             | 34 ++++++++++++=
++++++------
+>>  include/linux/mfd/twl6040.h                       |  3 +-
+>>  3 files changed, 29 insertions(+), 12 deletions(-)
+
+
+Thanks,
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
