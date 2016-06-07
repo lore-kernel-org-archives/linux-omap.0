@@ -1,170 +1,116 @@
-From: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v5 3/5] thermal: streamline get_trend callbacks
-Date: Tue, 7 Jun 2016 11:44:46 +0530
-Message-ID: <57566656.4010002@ti.com>
-References: <1465213489-14898-1-git-send-email-wxt@rock-chips.com>
- <1465213489-14898-4-git-send-email-wxt@rock-chips.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] ARM: dts: DRA74x: fix DSS PLL2 addresses
+Date: Tue, 7 Jun 2016 09:31:38 +0300
+Message-ID: <57566A4A.4020102@ti.com>
+References: <1463739213-31540-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-In-Reply-To: <1465213489-14898-4-git-send-email-wxt-TNX95d0MmH7DzftRWevZcw@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-rockchip>,
- <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-rockchip/>
-List-Post: <mailto:linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-rockchip>,
- <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "Linux-rockchip" <linux-rockchip-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Caesar Wang <wxt-TNX95d0MmH7DzftRWevZcw@public.gmane.org>, edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: huangtao-TNX95d0MmH7DzftRWevZcw@public.gmane.org, javi.merino-5wv7dgnIgG8@public.gmane.org, Heiko Stuebner <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, peter-p08lbbvQ7EI@public.gmane.org, dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, smbarber-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, cf-TNX95d0MmH7DzftRWevZcw@public.gmane.org, briannorris-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/mixed; boundary="===============8727722595271376404=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1463739213-31540-1-git-send-email-tomi.valkeinen@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+--===============8727722595271376404==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="JU4VBHbP4WD1pkN3vbvti95nG2gSbdJhS"
 
+--JU4VBHbP4WD1pkN3vbvti95nG2gSbdJhS
+Content-Type: multipart/mixed; boundary="Gjp6k4DxWxbXIkHf5Gh2SiqL4MPmV32s9"
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Message-ID: <57566A4A.4020102@ti.com>
+Subject: Re: [PATCH] ARM: dts: DRA74x: fix DSS PLL2 addresses
+References: <1463739213-31540-1-git-send-email-tomi.valkeinen@ti.com>
+In-Reply-To: <1463739213-31540-1-git-send-email-tomi.valkeinen@ti.com>
 
-On Monday 06 June 2016 05:14 PM, Caesar Wang wrote:
-> From: Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
->
-> The .get_trend callback in struct thermal_zone_device_ops has
-> the prototype:
->          int (*get_trend) (struct thermal_zone_device *, int,
->                            enum thermal_trend *);
-> whereas the .get_trend callback in struct thermal_zone_of_device_ops
-> has:
->          int (*get_trend)(void *, long *);
->
-> Streamline both prototypes and add the trip argument to the OF callback
-> aswell and use enum thermal_trend * instead of an integer pointer.
->
-> While the OF prototype may be the better one, this should be decided at
-> framework level and not on OF level.
+--Gjp6k4DxWxbXIkHf5Gh2SiqL4MPmV32s9
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Tested this patch on omap5-uevm using emulation feature and saw that
-cooling state was getting updated correctly w.r.t trip point tempereatures.
+Hi Tony,
 
-A minor comment below apart from that.
+On 20/05/16 13:13, Tomi Valkeinen wrote:
+> DSS's 'pll2_clkctrl' and 'pll2' have wrong addresses in the dra74x.dtsi=
 
-Reviewed-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-
->
-> Signed-off-by: Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-> Signed-off-by: Caesar Wang <wxt-TNX95d0MmH7DzftRWevZcw@public.gmane.org>
-> Cc: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: Eduardo Valentin <edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> file. Video PLL2 has not been used so wrong addresses went unnoticed.
+>=20
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 > ---
->
-> Changes in v5: None
-> Changes in v4: None
-> Changes in v3: None
-> Changes in v2: None
->
->   drivers/thermal/of-thermal.c                       | 11 +---------
->   drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 25 +++++++---------------
->   include/linux/thermal.h                            |  2 +-
->   3 files changed, 10 insertions(+), 28 deletions(-)
->
-> diff --git a/drivers/thermal/of-thermal.c b/drivers/thermal/of-thermal.c
-> index 2d2a06f..ba72c35 100644
-> --- a/drivers/thermal/of-thermal.c
-> +++ b/drivers/thermal/of-thermal.c
-> @@ -202,24 +202,15 @@ static int of_thermal_get_trend(struct thermal_zone_device *tz, int trip,
->   				enum thermal_trend *trend)
->   {
->   	struct __thermal_zone *data = tz->devdata;
-> -	long dev_trend;
->   	int r;
+>  arch/arm/boot/dts/dra74x.dtsi | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/arch/arm/boot/dts/dra74x.dtsi b/arch/arm/boot/dts/dra74x.d=
+tsi
+> index 4220eeffc65a..5e06020f450b 100644
+> --- a/arch/arm/boot/dts/dra74x.dtsi
+> +++ b/arch/arm/boot/dts/dra74x.dtsi
+> @@ -107,8 +107,8 @@
+>  	reg =3D <0x58000000 0x80>,
+>  	      <0x58004054 0x4>,
+>  	      <0x58004300 0x20>,
+> -	      <0x58005054 0x4>,
+> -	      <0x58005300 0x20>;
+> +	      <0x58009054 0x4>,
+> +	      <0x58009300 0x20>;
+>  	reg-names =3D "dss", "pll1_clkctrl", "pll1",
+>  		    "pll2_clkctrl", "pll2";
+> =20
+>=20
 
-	int r = 0;
+Ping on this.
 
->
->   	if (!data->ops->get_trend)
->   		return -EINVAL;
->
-> -	r = data->ops->get_trend(data->sensor_data, &dev_trend);
-> +	r = data->ops->get_trend(data->sensor_data, trip, trend);
->   	if (r)
->   		return r;
+ Tomi
 
-no need of this if check just
-	
-	return r;
 
->
-> -	/* TODO: These intervals might have some thresholds, but in core code */
-> -	if (dev_trend > 0)
-> -		*trend = THERMAL_TREND_RAISING;
-> -	else if (dev_trend < 0)
-> -		*trend = THERMAL_TREND_DROPPING;
-> -	else
-> -		*trend = THERMAL_TREND_STABLE;
-> -
->   	return 0;
->   }
->
-> diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> index 15c0a9a..4a6757c 100644
-> --- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> +++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> @@ -239,7 +239,7 @@ static int ti_thermal_get_trip_temp(struct thermal_zone_device *thermal,
->   	return 0;
->   }
->
-> -static int __ti_thermal_get_trend(void *p, long *trend)
-> +static int __ti_thermal_get_trend(void *p, int trip, enum thermal_trend *trend)
->   {
->   	struct ti_thermal_data *data = p;
->   	struct ti_bandgap *bgp;
-> @@ -252,22 +252,6 @@ static int __ti_thermal_get_trend(void *p, long *trend)
->   	if (ret)
->   		return ret;
->
-> -	*trend = tr;
-> -
-> -	return 0;
-> -}
-> -
-> -/* Get the temperature trend callback functions for thermal zone */
-> -static int ti_thermal_get_trend(struct thermal_zone_device *thermal,
-> -				int trip, enum thermal_trend *trend)
-> -{
-> -	int ret;
-> -	long tr;
-> -
-> -	ret = __ti_thermal_get_trend(thermal->devdata, &tr);
-> -	if (ret)
-> -		return ret;
-> -
->   	if (tr > 0)
->   		*trend = THERMAL_TREND_RAISING;
->   	else if (tr < 0)
-> @@ -278,6 +262,13 @@ static int ti_thermal_get_trend(struct thermal_zone_device *thermal,
->   	return 0;
->   }
->
-> +/* Get the temperature trend callback functions for thermal zone */
-> +static int ti_thermal_get_trend(struct thermal_zone_device *thermal,
-> +				int trip, enum thermal_trend *trend)
-> +{
-> +	return __ti_thermal_get_trend(thermal->devdata, trip, trend);
-> +}
-> +
->   /* Get critical temperature callback functions for thermal zone */
->   static int ti_thermal_get_crit_temp(struct thermal_zone_device *thermal,
->   				    int *temp)
-> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-> index 2440b8d..d3ce3a5 100644
-> --- a/include/linux/thermal.h
-> +++ b/include/linux/thermal.h
-> @@ -352,7 +352,7 @@ struct thermal_genl_event {
->    */
->   struct thermal_zone_of_device_ops {
->   	int (*get_temp)(void *, int *);
-> -	int (*get_trend)(void *, long *);
-> +	int (*get_trend)(void *, int, enum thermal_trend *);
->   	int (*set_trips)(void *, int, int);
->   	int (*set_emul_temp)(void *, int);
->   	int (*set_trip_temp)(void *, int, int);
->
+--Gjp6k4DxWxbXIkHf5Gh2SiqL4MPmV32s9--
+
+--JU4VBHbP4WD1pkN3vbvti95nG2gSbdJhS
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJXVmpLAAoJEPo9qoy8lh71F5oP/3p2DHfBdlow8XxxO2gUxRrL
+H4P8n+6hTbw49YWllzkpWNijhtPLsbgZyEuaa18c/abHw12myz4zbTgUYY5tbmOE
+CDu/oJd/g2Acusn62WZLaVfKC/t9E0kg4fqFTFqxQ3Wwq4SWKFBOEvlqjkX6Xcao
+6B547sVSdEJKEz1xYkVct57JSgsMVHEurip7osjHadr4AOpct7bazbADJSP7aWoW
+2eYLYvA8E7X3hkcQ2ehskAMhU63vZKDF2gCUZ/30f4ZYCEh0mfp7tg2p5UzYoLYX
+JkRPV3OQDP3O3fTpnhyN/kmrVxYEPST/rWVgt/hEuZbhkmf/HYDNoSODuJRhffEy
+8eN5Ro6TtOnygqcfwnljaEFnFBnYxIOmWse8M9DYuWMOFamgZgdObE3LfSv+nHPF
+7iMf2GXPMHTobWnNlp8AwAks/bAzhKaCeVejSPCfs8ae5GVEdjNX65bvh37AkbtZ
+8TPYkZtOfx7f03fOG/e9QOY9lNe0g/8/i64Mon8vkBR1MRfUoggh3k4FPqHs80uO
+GXp2mE4ye/PbWcFBaKI5O4l5B6qZ9Uh2ageJc52plg0XOFyOAnV6qIfP0Wi3dsqf
+PgA6LwLPmkJe/0lb41LhWdflKKAM6LKd2AGbQxmZ14gyLxFocN0Dx6OhBYgSgjLw
+oKCF8ri1CedQ/anBvUNz
+=oXTN
+-----END PGP SIGNATURE-----
+
+--JU4VBHbP4WD1pkN3vbvti95nG2gSbdJhS--
+
+
+--===============8727722595271376404==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============8727722595271376404==--
