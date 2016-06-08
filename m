@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v9 09/14] usb: of: add an API to get OTG device from USB controller node
-Date: Wed, 8 Jun 2016 12:03:41 +0300
-Message-ID: <1465376626-30122-10-git-send-email-rogerq@ti.com>
+Subject: [PATCH v9 11/14] usb: otg: use dev_dbg() instead of VDBG()
+Date: Wed, 8 Jun 2016 12:03:43 +0300
+Message-ID: <1465376626-30122-12-git-send-email-rogerq@ti.com>
 References: <1465376626-30122-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,92 +12,72 @@ To: peter.chen@freescale.com
 Cc: balbi@kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The OTG controller and the USB controller can be linked via the
-'otg-controller' property in the USB controller's device node.
-
-of_usb_get_otg() can be used to get the OTG controller device
-from the USB controller's device node.
+Now that we have a device reference in struct usb_otg
+let's use dev_dbg() for debug messages.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 Acked-by: Peter Chen <peter.chen@nxp.com>
-Acked-by: Rob Herring <robh@kernel.org>
 ---
- Documentation/devicetree/bindings/usb/generic.txt |  3 +++
- drivers/usb/common/common.c                       | 27 +++++++++++++++++++++++
- include/linux/usb/of.h                            |  9 ++++++++
- 3 files changed, 39 insertions(+)
+ drivers/usb/common/usb-otg-fsm.c | 19 +++++++------------
+ 1 file changed, 7 insertions(+), 12 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/usb/generic.txt b/Documentation/devicetree/bindings/usb/generic.txt
-index bba8257..f6866c1 100644
---- a/Documentation/devicetree/bindings/usb/generic.txt
-+++ b/Documentation/devicetree/bindings/usb/generic.txt
-@@ -24,6 +24,9 @@ Optional properties:
- 			optional for OTG device.
-  - adp-disable: tells OTG controllers we want to disable OTG ADP, ADP is
- 			optional for OTG device.
-+ - otg-controller: phandle to otg controller. Host or gadget controllers can
-+			contain this property to link it to a particular OTG
-+			controller.
+diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
+index 482d4c9..e6e58c2 100644
+--- a/drivers/usb/common/usb-otg-fsm.c
++++ b/drivers/usb/common/usb-otg-fsm.c
+@@ -30,13 +30,6 @@
+ #include <linux/usb/otg.h>
+ #include <linux/usb/otg-fsm.h>
  
- This is an attribute to a USB controller such as:
+-#ifdef VERBOSE
+-#define VDBG(fmt, args...) pr_debug("[%s]  " fmt, \
+-				 __func__, ## args)
+-#else
+-#define VDBG(stuff...)	do {} while (0)
+-#endif
+-
+ /* Change USB protocol when there is a protocol change */
+ static int otg_set_protocol(struct otg_fsm *fsm, int protocol)
+ {
+@@ -44,8 +37,9 @@ static int otg_set_protocol(struct otg_fsm *fsm, int protocol)
+ 	int ret = 0;
  
-diff --git a/drivers/usb/common/common.c b/drivers/usb/common/common.c
-index e3d0161..d7ec471 100644
---- a/drivers/usb/common/common.c
-+++ b/drivers/usb/common/common.c
-@@ -238,6 +238,33 @@ int of_usb_update_otg_caps(struct device_node *np,
+ 	if (fsm->protocol != protocol) {
+-		VDBG("Changing role fsm->protocol= %d; new protocol= %d\n",
+-			fsm->protocol, protocol);
++		dev_vdbg(otg->dev,
++			 "Changing role fsm->protocol= %d; new protocol= %d\n",
++			 fsm->protocol, protocol);
+ 		/* stop old protocol */
+ 		if (fsm->protocol == PROTO_HOST)
+ 			ret = otg_start_host(otg, 0);
+@@ -226,7 +220,7 @@ static int otg_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
+ 
+ 	if (otg->state == new_state)
+ 		return 0;
+-	VDBG("Set state: %s\n", usb_otg_state_string(new_state));
++	dev_vdbg(otg->dev, "Set state: %s\n", usb_otg_state_string(new_state));
+ 	otg_leave_state(fsm, otg->state);
+ 	switch (new_state) {
+ 	case OTG_STATE_B_IDLE:
+@@ -358,7 +352,7 @@ int otg_statemachine(struct usb_otg *otg)
+ 
+ 	switch (state) {
+ 	case OTG_STATE_UNDEFINED:
+-		VDBG("fsm->id = %d\n", fsm->id);
++		dev_vdbg(otg->dev, "fsm->id = %d\n", fsm->id);
+ 		if (fsm->id)
+ 			otg_set_state(fsm, OTG_STATE_B_IDLE);
+ 		else
+@@ -466,7 +460,8 @@ int otg_statemachine(struct usb_otg *otg)
+ 	}
+ 	mutex_unlock(&fsm->lock);
+ 
+-	VDBG("quit statemachine, changed = %d\n", fsm->state_changed);
++	dev_vdbg(otg->dev, "quit statemachine, changed = %d\n",
++		 fsm->state_changed);
+ 	return fsm->state_changed;
  }
- EXPORT_SYMBOL_GPL(of_usb_update_otg_caps);
- 
-+#ifdef CONFIG_USB_OTG
-+/**
-+ * of_usb_get_otg - get the OTG controller linked to the USB controller
-+ * @np: Pointer to the device_node of the USB controller
-+ * @otg_caps: Pointer to the target usb_otg_caps to be set
-+ *
-+ * Returns the OTG controller device or NULL on error.
-+ */
-+struct device *of_usb_get_otg(struct device_node *np)
-+{
-+	struct device_node *otg_np;
-+	struct platform_device *pdev;
-+
-+	otg_np = of_parse_phandle(np, "otg-controller", 0);
-+	if (!otg_np)
-+		return NULL;
-+
-+	pdev = of_find_device_by_node(otg_np);
-+	of_node_put(otg_np);
-+	if (!pdev)
-+		return NULL;
-+
-+	return &pdev->dev;
-+}
-+EXPORT_SYMBOL_GPL(of_usb_get_otg);
-+#endif
-+
- #endif
- 
- MODULE_LICENSE("GPL");
-diff --git a/include/linux/usb/of.h b/include/linux/usb/of.h
-index de3237f..499a4e8 100644
---- a/include/linux/usb/of.h
-+++ b/include/linux/usb/of.h
-@@ -40,6 +40,15 @@ static inline struct device_node *usb_of_get_child_node
- }
- #endif
- 
-+#if IS_ENABLED(CONFIG_OF) && IS_ENABLED(CONFIG_USB_OTG)
-+struct device *of_usb_get_otg(struct device_node *np);
-+#else
-+static inline struct device *of_usb_get_otg(struct device_node *np)
-+{
-+	return NULL;
-+}
-+#endif
-+
- #if IS_ENABLED(CONFIG_OF) && IS_ENABLED(CONFIG_USB_SUPPORT)
- enum usb_phy_interface of_usb_get_phy_mode(struct device_node *np);
- #else
+ EXPORT_SYMBOL_GPL(otg_statemachine);
 -- 
 2.7.4
