@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v9 11/14] usb: otg: use dev_dbg() instead of VDBG()
-Date: Wed, 8 Jun 2016 12:03:43 +0300
-Message-ID: <1465376626-30122-12-git-send-email-rogerq@ti.com>
+Subject: [PATCH v9 14/14] usb: host: xhci-plat: Add otg device to platform data
+Date: Wed, 8 Jun 2016 12:03:46 +0300
+Message-ID: <1465376626-30122-15-git-send-email-rogerq@ti.com>
 References: <1465376626-30122-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,72 +12,105 @@ To: peter.chen@freescale.com
 Cc: balbi@kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Now that we have a device reference in struct usb_otg
-let's use dev_dbg() for debug messages.
+Host controllers that are part of an OTG/dual-role instance
+need to somehow pass the OTG controller device information
+to the HCD core.
+
+We use platform data to pass the OTG controller device.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
-Acked-by: Peter Chen <peter.chen@nxp.com>
+Reviewed-by: Peter Chen <peter.chen@nxp.com>
 ---
- drivers/usb/common/usb-otg-fsm.c | 19 +++++++------------
- 1 file changed, 7 insertions(+), 12 deletions(-)
+ drivers/usb/host/xhci-plat.c     | 35 ++++++++++++++++++++++++++++-------
+ include/linux/usb/xhci_pdriver.h |  3 +++
+ 2 files changed, 31 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
-index 482d4c9..e6e58c2 100644
---- a/drivers/usb/common/usb-otg-fsm.c
-+++ b/drivers/usb/common/usb-otg-fsm.c
-@@ -30,13 +30,6 @@
- #include <linux/usb/otg.h>
- #include <linux/usb/otg-fsm.h>
- 
--#ifdef VERBOSE
--#define VDBG(fmt, args...) pr_debug("[%s]  " fmt, \
--				 __func__, ## args)
--#else
--#define VDBG(stuff...)	do {} while (0)
--#endif
--
- /* Change USB protocol when there is a protocol change */
- static int otg_set_protocol(struct otg_fsm *fsm, int protocol)
- {
-@@ -44,8 +37,9 @@ static int otg_set_protocol(struct otg_fsm *fsm, int protocol)
- 	int ret = 0;
- 
- 	if (fsm->protocol != protocol) {
--		VDBG("Changing role fsm->protocol= %d; new protocol= %d\n",
--			fsm->protocol, protocol);
-+		dev_vdbg(otg->dev,
-+			 "Changing role fsm->protocol= %d; new protocol= %d\n",
-+			 fsm->protocol, protocol);
- 		/* stop old protocol */
- 		if (fsm->protocol == PROTO_HOST)
- 			ret = otg_start_host(otg, 0);
-@@ -226,7 +220,7 @@ static int otg_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
- 
- 	if (otg->state == new_state)
- 		return 0;
--	VDBG("Set state: %s\n", usb_otg_state_string(new_state));
-+	dev_vdbg(otg->dev, "Set state: %s\n", usb_otg_state_string(new_state));
- 	otg_leave_state(fsm, otg->state);
- 	switch (new_state) {
- 	case OTG_STATE_B_IDLE:
-@@ -358,7 +352,7 @@ int otg_statemachine(struct usb_otg *otg)
- 
- 	switch (state) {
- 	case OTG_STATE_UNDEFINED:
--		VDBG("fsm->id = %d\n", fsm->id);
-+		dev_vdbg(otg->dev, "fsm->id = %d\n", fsm->id);
- 		if (fsm->id)
- 			otg_set_state(fsm, OTG_STATE_B_IDLE);
- 		else
-@@ -466,7 +460,8 @@ int otg_statemachine(struct usb_otg *otg)
+diff --git a/drivers/usb/host/xhci-plat.c b/drivers/usb/host/xhci-plat.c
+index 676ea45..24d030a 100644
+--- a/drivers/usb/host/xhci-plat.c
++++ b/drivers/usb/host/xhci-plat.c
+@@ -239,11 +239,20 @@ static int xhci_plat_probe(struct platform_device *pdev)
+ 			goto put_usb3_hcd;
  	}
- 	mutex_unlock(&fsm->lock);
  
--	VDBG("quit statemachine, changed = %d\n", fsm->state_changed);
-+	dev_vdbg(otg->dev, "quit statemachine, changed = %d\n",
-+		 fsm->state_changed);
- 	return fsm->state_changed;
+-	ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
++	if (pdata && pdata->otg_dev)
++		ret = usb_otg_add_hcd(hcd, irq, IRQF_SHARED, pdata->otg_dev);
++	else
++		ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
++
+ 	if (ret)
+ 		goto disable_usb_phy;
+ 
+-	ret = usb_add_hcd(xhci->shared_hcd, irq, IRQF_SHARED);
++	if (pdata && pdata->otg_dev)
++		ret = usb_otg_add_hcd(xhci->shared_hcd, irq, IRQF_SHARED,
++				      pdata->otg_dev);
++	else
++		ret = usb_add_hcd(xhci->shared_hcd, irq, IRQF_SHARED);
++
+ 	if (ret)
+ 		goto dealloc_usb2_hcd;
+ 
+@@ -251,7 +260,10 @@ static int xhci_plat_probe(struct platform_device *pdev)
+ 
+ 
+ dealloc_usb2_hcd:
+-	usb_remove_hcd(hcd);
++	if (pdata && pdata->otg_dev)
++		usb_otg_remove_hcd(hcd);
++	else
++		usb_remove_hcd(hcd);
+ 
+ disable_usb_phy:
+ 	usb_phy_shutdown(hcd->usb_phy);
+@@ -269,16 +281,25 @@ put_hcd:
+ 	return ret;
  }
- EXPORT_SYMBOL_GPL(otg_statemachine);
+ 
+-static int xhci_plat_remove(struct platform_device *dev)
++static int xhci_plat_remove(struct platform_device *pdev)
+ {
+-	struct usb_hcd	*hcd = platform_get_drvdata(dev);
++	struct usb_hcd	*hcd = platform_get_drvdata(pdev);
+ 	struct xhci_hcd	*xhci = hcd_to_xhci(hcd);
+ 	struct clk *clk = xhci->clk;
++	struct usb_xhci_pdata *pdata = dev_get_platdata(&pdev->dev);
++
++	if (pdata && pdata->otg_dev)
++		usb_otg_remove_hcd(xhci->shared_hcd);
++	else
++		usb_remove_hcd(xhci->shared_hcd);
+ 
+-	usb_remove_hcd(xhci->shared_hcd);
+ 	usb_phy_shutdown(hcd->usb_phy);
+ 
+-	usb_remove_hcd(hcd);
++	if (pdata && pdata->otg_dev)
++		usb_otg_remove_hcd(hcd);
++	else
++		usb_remove_hcd(hcd);
++
+ 	usb_put_hcd(xhci->shared_hcd);
+ 
+ 	if (!IS_ERR(clk))
+diff --git a/include/linux/usb/xhci_pdriver.h b/include/linux/usb/xhci_pdriver.h
+index 376654b..5c68b83 100644
+--- a/include/linux/usb/xhci_pdriver.h
++++ b/include/linux/usb/xhci_pdriver.h
+@@ -18,10 +18,13 @@
+  *
+  * @usb3_lpm_capable:	determines if this xhci platform supports USB3
+  *			LPM capability
++ * @otg_dev:		OTG controller device. Only requied if part of
++ *			OTG/dual-role.
+  *
+  */
+ struct usb_xhci_pdata {
+ 	unsigned	usb3_lpm_capable:1;
++	struct device	*otg_dev;
+ };
+ 
+ #endif /* __USB_CORE_XHCI_PDRIVER_H */
 -- 
 2.7.4
