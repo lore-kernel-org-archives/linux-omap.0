@@ -1,63 +1,102 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 3/8] mfd: tps65218: Use mfd_add_devices instead of
- of_platform_populate
-Date: Wed, 8 Jun 2016 16:50:25 +0100
-Message-ID: <20160608155025.GB14888@dell>
-References: <1462945691-904-1-git-send-email-j-keerthy@ti.com>
- <1462945691-904-4-git-send-email-j-keerthy@ti.com>
+Subject: Re: [PATCH v3 1/2] Documentation: mfd: LP873X: Add information for
+ the mfd and regulator drivers
+Date: Wed, 8 Jun 2016 16:51:36 +0100
+Message-ID: <20160608155136.GC14888@dell>
+References: <1463111290-12377-1-git-send-email-j-keerthy@ti.com>
+ <1463111290-12377-2-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1462945691-904-4-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <1463111290-12377-2-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Keerthy <j-keerthy@ti.com>
-Cc: broonie@kernel.org, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nikita@compulab.co.il, nm@ti.com
+Cc: broonie@kernel.org, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 11 May 2016, Keerthy wrote:
+On Fri, 13 May 2016, Keerthy wrote:
 
-> mfd_add_devices enables parsing device tree nodes without compatibles
-> for child nodes. Replace of_platform_populate with mfd_add_devices.
+> Add information for the mfd and regulator drivers.
 >=20
+> Acked-by: Rob Herring <robh@kernel.org>
 > Signed-off-by: Keerthy <j-keerthy@ti.com>
 > ---
->  drivers/mfd/tps65218.c | 10 ++++++++--
->  1 file changed, 8 insertions(+), 2 deletions(-)
 >=20
-> diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
-> index f20a531..b8b3a58 100644
-> --- a/drivers/mfd/tps65218.c
-> +++ b/drivers/mfd/tps65218.c
-> @@ -33,6 +33,10 @@
-> =20
->  #define TPS65218_PASSWORD_REGS_UNLOCK   0x7D
-> =20
-> +static const struct mfd_cell tps65218_cells[] =3D {
-> +	{ .name =3D "tps65218-regulator", },
-> +};
-
-What other devices does the TPS65218 consist of?
-
->  /**
->   * tps65218_reg_write: Write a single tps65218 register.
->   *
-> @@ -236,8 +240,10 @@ static int tps65218_probe(struct i2c_client *cli=
-ent,
->  	if (ret < 0)
->  		return ret;
-> =20
-> -	ret =3D of_platform_populate(client->dev.of_node, NULL, NULL,
-> -				   &client->dev);
-> +	ret =3D mfd_add_devices(tps->dev, PLATFORM_DEVID_AUTO, tps65218_cel=
-ls,
-> +			      ARRAY_SIZE(tps65218_cells), NULL, 0,
-> +			      regmap_irq_get_domain(tps->irq_data));
+> Changes in v3:
+>=20
+>   * Changed the example node lable to pmic from lp8733.
+>=20
+>  Documentation/devicetree/bindings/mfd/lp873x.txt | 55 ++++++++++++++=
+++++++++++
+>  1 file changed, 55 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/mfd/lp873x.txt
+>=20
+> diff --git a/Documentation/devicetree/bindings/mfd/lp873x.txt b/Docum=
+entation/devicetree/bindings/mfd/lp873x.txt
+> new file mode 100644
+> index 0000000..8f3ef0d
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/mfd/lp873x.txt
+> @@ -0,0 +1,55 @@
+> +TI LP3943 MFD driver
 > +
->  	if (ret < 0)
->  		goto err_irq;
-> =20
+> +Required properties:
+> +  - compatible: "ti,lp8732", "ti,lp8733"
+> +  - reg: I2C slave address.
+> +
+> +For the lp873x regulator properties please refer to:
+> +../bindings/regulator/lp873x.txt
+
+What else does the LP3943 consist of apart from regulators?
+
+> +Example:
+> +
+> +pmic: lp8733@60 {
+> +	compatible =3D "ti,lp8733";
+> +	reg =3D <0x60>;
+> +
+> +	regulators {
+> +		lp8733_buck0: buck0 {
+> +			regulator-name =3D "lp8733-buck0";
+> +			regulator-min-microvolt =3D <800000>;
+> +			regulator-max-microvolt =3D <1400000>;
+> +			regulator-min-microamp =3D <1500000>;
+> +			regulator-max-microamp =3D <4000000>;
+> +			regulator-ramp-delay =3D <10000>;
+> +			regulator-always-on;
+> +			regulator-boot-on;
+> +		};
+> +
+> +		lp8733_buck1: buck1 {
+> +			regulator-name =3D "lp8733-buck1";
+> +			regulator-min-microvolt =3D <800000>;
+> +			regulator-max-microvolt =3D <1400000>;
+> +			regulator-min-microamp =3D <1500000>;
+> +			regulator-max-microamp =3D <4000000>;
+> +			regulator-ramp-delay =3D <10000>;
+> +			regulator-boot-on;
+> +			regulator-always-on;
+> +		};
+> +
+> +		lp8733_ldo0: ldo0 {
+> +			regulator-name =3D "lp8733-ldo0";
+> +			regulator-min-microvolt =3D <800000>;
+> +			regulator-max-microvolt =3D <3000000>;
+> +			regulator-boot-on;
+> +			regulator-always-on;
+> +		};
+> +
+> +		lp8733_ldo1: ldo1 {
+> +			regulator-name =3D "lp8733-ldo1";
+> +			regulator-min-microvolt =3D <800000>;
+> +			regulator-max-microvolt =3D <3000000>;
+> +			regulator-always-on;
+> +			regulator-boot-on;
+> +		};
+> +	};
+> +};
 
 --=20
 Lee Jones
