@@ -1,135 +1,118 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v9 01/14] usb: hcd: Initialize hcd->flags to 0
-Date: Wed, 8 Jun 2016 12:03:33 +0300
-Message-ID: <1465376626-30122-2-git-send-email-rogerq@ti.com>
-References: <1465376626-30122-1-git-send-email-rogerq@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "spi: Add DMA support for spi_flash_read()" to the spi tree
+Date: Wed, 08 Jun 2016 10:25:40 +0100
+Message-ID: <E1bAZk4-00074D-C8@debutante>
+References: <1461577442-8853-3-git-send-email-vigneshr@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1465376626-30122-1-git-send-email-rogerq@ti.com>
+In-Reply-To: <1461577442-8853-3-git-send-email-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: peter.chen@freescale.com
-Cc: balbi@kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: Vignesh R <vigneshr@ti.com>
+Cc: Mark Brown <broonie@kernel.org>Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-When using the OTG/drd library we can call hcd_add/remove
-consecutively without calling usb_put_hcd/usb_create_hcd in between
-so hcd->flags can be stale.
+The patch
 
-If the HC dies due to whatever reason then without this
-patch we get the below error on next hcd_add.
+   spi: Add DMA support for spi_flash_read()
 
-[   91.494257] xhci-hcd xhci-hcd.0.auto: HC died; cleaning up
-[   91.502068] hub 3-0:1.0: state 0 ports 1 chg 0000 evt 0000
-[   91.510240] xhci-hcd xhci-hcd.0.auto: xHCI Host Controller
-[   91.516940] xhci-hcd xhci-hcd.0.auto: new USB bus registered, assigned bus number 4
-[   91.529745] usb usb4: We don't know the algorithms for LPM for this host, disabling LPM.
-[   91.540637] usb usb4: New USB device found, idVendor=1d6b, idProduct=0003
-[   91.757865] irq 254: nobody cared (try booting with the "irqpoll" option)
-[   91.757880] CPU: 0 PID: 68 Comm: kworker/u2:2 Not tainted 4.1.4-00828-g1f0ed8c-dirty #44
-[   91.757885] Hardware name: Generic AM43 (Flattened Device Tree)
-[   91.757914] Workqueue: usb_otg usb_otg_work
-[   91.757921] Backtrace:
-[   91.757954] [<c0012af0>] (dump_backtrace) from [<c0012c8c>] (show_stack+0x18/0x1c)
-[   91.757972]  r6:c089d4a4 r5:ffffffff r4:00000000 r3:ee440000
-[   91.757991] [<c0012c74>] (show_stack) from [<c05f7c14>] (dump_stack+0x84/0xd0)
-[   91.758008] [<c05f7b90>] (dump_stack) from [<c0084b30>] (__report_bad_irq+0x28/0xc8)
-[   91.758024]  r7:00000000 r6:000000fe r5:00000000 r4:ee514c40
-[   91.758037] [<c0084b08>] (__report_bad_irq) from [<c00850b0>] (note_interrupt+0x24c/0x2ac)
-[   91.758052]  r6:000000fe r5:00000000 r4:ee514c40 r3:00000000
-[   91.758065] [<c0084e64>] (note_interrupt) from [<c00828fc>] (handle_irq_event_percpu+0xb0/0x158)
-[   91.758085]  r10:ee514c40 r9:c08ce49a r8:000000fe r7:00000000 r6:00000000 r5:00000000
-[   91.758094]  r4:00000000 r3:00000000
-[   91.758105] [<c008284c>] (handle_irq_event_percpu) from [<c00829e8>] (handle_irq_event+0x44/0x64)
-[   91.758126]  r10:00000001 r9:ee441ab0 r8:ee441bb8 r7:c0858b4c r6:ed174280 r5:ee514ca0
-[   91.758132]  r4:ee514c40
-[   91.758144] [<c00829a4>] (handle_irq_event) from [<c0085970>] (handle_fasteoi_irq+0x100/0x1bc)
-[   91.758159]  r6:c085dba0 r5:ee514ca0 r4:ee514c40 r3:00000000
-[   91.758171] [<c0085870>] (handle_fasteoi_irq) from [<c0082058>] (generic_handle_irq+0x28/0x38)
-[   91.758186]  r7:c0853d40 r6:c0858b4c r5:000000fe r4:000000fe
-[   91.758197] [<c0082030>] (generic_handle_irq) from [<c00821c0>] (__handle_domain_irq+0x98/0x12c)
-[   91.758207]  r4:c0853d40 r3:00000100
-[   91.758219] [<c0082128>] (__handle_domain_irq) from [<c00094e0>] (gic_handle_irq+0x28/0x68)
-[   91.758239]  r10:00000001 r9:ee441bb8 r8:fa240100 r7:c0858d70 r6:ee441ab0 r5:000000b8
-[   91.758245]  r4:fa24010c
-[   91.758264] [<c00094b8>] (gic_handle_irq) from [<c05fd540>] (__irq_svc+0x40/0x74)
-[   91.758271] Exception stack(0xee441ab0 to 0xee441af8)
-[   91.758280] 1aa0:                                     00000000 c08d2980 ee441ac0 00000000
-[   91.758292] 1ac0: 00000008 00000089 c0858b4c c0858080 00000000 ee441bb8 00000001 ee441b3c
-[   91.758301] 1ae0: 00000101 ee441af8 c02fc418 c0046a1c 20000113 ffffffff
-[   91.758321]  r8:00000000 r7:ee441ae4 r6:ffffffff r5:20000113 r4:c0046a1c r3:c02fc418
-[   91.758347] [<c00469a0>] (__do_softirq) from [<c0046eac>] (irq_exit+0xb8/0x104)
-[   91.758367]  r10:00000001 r9:ee441bb8 r8:00000000 r7:c0853d40 r6:c0858b4c r5:00000089
-[   91.758373]  r4:00000000
-[   91.758386] [<c0046df4>] (irq_exit) from [<c00821c8>] (__handle_domain_irq+0xa0/0x12c)
-[   91.758395]  r4:00000000 r3:00000100
-[   91.758406] [<c0082128>] (__handle_domain_irq) from [<c00094e0>] (gic_handle_irq+0x28/0x68)
-[   91.758426]  r10:c08e3510 r9:20000013 r8:fa240100 r7:c0858d70 r6:ee441bb8 r5:00000039
-[   91.758433]  r4:fa24010c
-[   91.758445] [<c00094b8>] (gic_handle_irq) from [<c05fd540>] (__irq_svc+0x40/0x74)
-[   91.758450] Exception stack(0xee441bb8 to 0xee441c00)
-[   91.758457] 1ba0:                                                       00000000 00000001
-[   91.758468] 1bc0: 00000000 ee440000 c08e2524 0000004d 00000274 00000000 00000000 20000013
-[   91.758479] 1be0: c08e3510 ee441c4c ee441b60 ee441c00 c03acfec c0080d4c 60000013 ffffffff
-[   91.758499]  r8:00000000 r7:ee441bec r6:ffffffff r5:60000013 r4:c0080d4c r3:c03acfec
-[   91.758524] [<c0080950>] (console_unlock) from [<c0081670>] (vprintk_emit+0x20c/0x500)
-[   91.758544]  r10:ee441cc0 r9:c08d3550 r8:c08e3ea0 r7:00000000 r6:00000001 r5:0000003d
-[   91.758551]  r4:c08d3550
-[   91.758573] [<c0081464>] (vprintk_emit) from [<c03f6f70>] (dev_vprintk_emit+0x104/0x1ac)
-[   91.758593]  r10:ee441d8c r9:0000000e r8:c07951e0 r7:00000006 r6:ee441cc0 r5:0000000d
-[   91.758599]  r4:ee731068
-[   91.758612] [<c03f6e6c>] (dev_vprintk_emit) from [<c03f7040>] (dev_printk_emit+0x28/0x30)
-[   91.758632]  r10:00000001 r9:ee5f8410 r8:ee731000 r7:ed429000 r6:00000006 r5:ee441dc0
-[   91.758638]  r4:ee731068
-[   91.758651] [<c03f701c>] (dev_printk_emit) from [<c03f7098>] (__dev_printk+0x50/0x70)
-[   91.758660]  r3:bf2268cc r2:c07951e0
-[   91.758673] [<c03f7048>] (__dev_printk) from [<c03f70f4>] (_dev_info+0x3c/0x48)
-[   91.758686]  r6:00000000 r5:ee731068 r4:ee731000
-[   91.758790] [<c03f70bc>] (_dev_info) from [<bf20ec3c>] (usb_new_device+0x11c/0x518 [usbcore])
-[   91.758804]  r3:00000003 r2:00001d6b r1:bf225bc4
-[   91.758881] [<bf20eb20>] (usb_new_device [usbcore]) from [<bf213560>] (usb_otg_add_hcd+0x514/0x7f8 [usbcore])
-[   91.758903]  r10:00000001 r9:ee5f8410 r8:ee731000 r7:000000fe r6:ed4290c8 r5:00000000
-[   91.758909]  r4:ed429000
-[   91.758957] [<bf21304c>] (usb_otg_add_hcd [usbcore]) from [<c047a238>] (usb_otg_start_host+0xb8/0xf8)
-[   91.758978]  r10:00000000 r9:00000002 r8:00000000 r7:ee02b000 r6:ee452808 r5:ee452808
-[   91.758985]  r4:ee452808
-[   91.758997] [<c047a180>] (usb_otg_start_host) from [<c047a020>] (drd_set_protocol+0xac/0xd8)
-[   91.759007]  r4:00000001 r3:c047a180
-[   91.759018] [<c0479f74>] (drd_set_protocol) from [<c047a2ec>] (drd_set_state+0x74/0x98)
-[   91.759027]  r5:ee452808 r4:00000009
-[   91.759039] [<c047a278>] (drd_set_state) from [<c047a3dc>] (usb_otg_work+0xcc/0x154)
-[   91.759054]  r6:ee452808 r5:ee4528b8 r4:ee452968 r3:00000000
-[   91.759072] [<c047a310>] (usb_otg_work) from [<c005754c>] (process_one_work+0x128/0x340)
-[   91.759087]  r6:ee02ac00 r5:ee452968 r4:ee42b900 r3:c047a310
-[   91.759100] [<c0057424>] (process_one_work) from [<c00578f8>] (worker_thread+0x158/0x49c)
-[   91.759120]  r10:ee42b900 r9:00000002 r8:ee02ac00 r7:00000088 r6:ee42b918 r5:ee02ac00
-[   91.759127]  r4:ee02ac14
-[   91.759145] [<c00577a0>] (worker_thread) from [<c005cc40>] (kthread+0xdc/0xf8)
-[   91.759165]  r10:00000000 r9:00000000 r8:00000000 r7:c00577a0 r6:ee42b900 r5:ee429940
-[   91.759174]  r4:00000000 r3:00000000
-[   91.759190] [<c005cb64>] (kthread) from [<c000fc08>] (ret_from_fork+0x14/0x2c)
-[   91.759206]  r7:00000000 r6:00000000 r5:c005cb64 r4:ee429940
-[   91.759209] handlers:
-[   91.759255] [<bf211b5c>] usb_hcd_irq [usbcore]
-[   91.759260] Disabling IRQ #254
+has been applied to the spi tree at
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
-Reviewed-by: Peter Chen <peter.chen@nxp.com>
+   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/spi.git 
+
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From 12107f2fcc1dd832ebe0b8a61da2145eaea8730d Mon Sep 17 00:00:00 2001
+From: Vignesh R <vigneshr@ti.com>
+Date: Tue, 7 Jun 2016 13:48:09 +0530
+Subject: [PATCH] spi: Add DMA support for spi_flash_read()
+
+Few SPI devices provide accelerated read interfaces to read from
+SPI-NOR flash devices. These hardwares also support DMA to transfer data
+from flash to memory either via mem-to-mem DMA or dedicated slave DMA
+channels. Hence, add support for DMA in order to improve throughput and
+reduce CPU load.
+Use spi_map_buf() to get sg table for the buffer and pass it to SPI
+driver.
+
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+Signed-off-by: Mark Brown <broonie@kernel.org>
 ---
- drivers/usb/core/hcd.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/spi/spi.c       | 14 ++++++++++++++
+ include/linux/spi/spi.h |  4 ++++
+ 2 files changed, 18 insertions(+)
 
-diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
-index 34b837a..ae6c76d 100644
---- a/drivers/usb/core/hcd.c
-+++ b/drivers/usb/core/hcd.c
-@@ -3021,6 +3021,7 @@ void usb_remove_hcd(struct usb_hcd *hcd)
+diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+index 77e6e45951f4..da2cbe205654 100644
+--- a/drivers/spi/spi.c
++++ b/drivers/spi/spi.c
+@@ -2725,6 +2725,7 @@ int spi_flash_read(struct spi_device *spi,
+ 
+ {
+ 	struct spi_master *master = spi->master;
++	struct device *rx_dev = NULL;
+ 	int ret;
+ 
+ 	if ((msg->opcode_nbits == SPI_NBITS_DUAL ||
+@@ -2750,9 +2751,22 @@ int spi_flash_read(struct spi_device *spi,
+ 			return ret;
+ 		}
  	}
++
+ 	mutex_lock(&master->bus_lock_mutex);
++	if (master->dma_rx) {
++		rx_dev = master->dma_rx->device->dev;
++		ret = spi_map_buf(master, rx_dev, &msg->rx_sg,
++				  msg->buf, msg->len,
++				  DMA_FROM_DEVICE);
++		if (!ret)
++			msg->cur_msg_mapped = true;
++	}
+ 	ret = master->spi_flash_read(spi, msg);
++	if (msg->cur_msg_mapped)
++		spi_unmap_buf(master, rx_dev, &msg->rx_sg,
++			      DMA_FROM_DEVICE);
+ 	mutex_unlock(&master->bus_lock_mutex);
++
+ 	if (master->auto_runtime_pm)
+ 		pm_runtime_put(master->dev.parent);
  
- 	usb_put_invalidate_rhdev(hcd);
-+	hcd->flags = 0;
- }
- EXPORT_SYMBOL_GPL(usb_remove_hcd);
+diff --git a/include/linux/spi/spi.h b/include/linux/spi/spi.h
+index 1f03483f61e5..7b53af4ba5f8 100644
+--- a/include/linux/spi/spi.h
++++ b/include/linux/spi/spi.h
+@@ -1143,6 +1143,8 @@ static inline ssize_t spi_w8r16be(struct spi_device *spi, u8 cmd)
+  * @opcode_nbits: number of lines to send opcode
+  * @addr_nbits: number of lines to send address
+  * @data_nbits: number of lines for data
++ * @rx_sg: Scatterlist for receive data read from flash
++ * @cur_msg_mapped: message has been mapped for DMA
+  */
+ struct spi_flash_read_message {
+ 	void *buf;
+@@ -1155,6 +1157,8 @@ struct spi_flash_read_message {
+ 	u8 opcode_nbits;
+ 	u8 addr_nbits;
+ 	u8 data_nbits;
++	struct sg_table rx_sg;
++	bool cur_msg_mapped;
+ };
  
+ /* SPI core interface for flash read support */
 -- 
-2.7.4
+2.8.1
