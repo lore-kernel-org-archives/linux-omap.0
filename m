@@ -1,83 +1,64 @@
-From: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [balbi-usb:testing/next 64/67] phy-generic.c:undefined reference to `usb_gadget_vbus_connect'
-Date: Wed, 08 Jun 2016 13:32:29 +0300
-Message-ID: <87bn3c9dj6.fsf@linux.intel.com>
-References: <201606062026.EQTlXIDR%fengguang.wu@intel.com> <87bn3ecwbz.fsf@linux.intel.com> <878tyicva6.fsf@linux.intel.com> <20160607015405.GB17095@shlinux2> <87wpm1basy.fsf@linux.intel.com> <20160607095008.GC17095@shlinux2> <87inxlb8nm.fsf@linux.intel.com> <20160608031732.GA5309@shlinux2> <87shwo9fge.fsf@linux.intel.com> <20160608101428.GA7653@shlinux2>
+From: joerg Reisenweber <joerg-4Bgg8jF3iZdg9hUCZPvPmw@public.gmane.org>
+Subject: Re: Nokia N900: musb is in wrong state after boot
+Date: Wed, 08 Jun 2016 12:20:45 +0200
+Message-ID: <4684873.SkgQPQ65qP@saturn>
+References: <201601091616.04193@pali> <20160608095321.GH22406@atomide.com> <87h9d49exz.fsf@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha256; protocol="application/pgp-signature"
+Content-Type: multipart/signed; boundary="nextPart3703601.eBue3Ziqxy"; micalg="pgp-sha1"; protocol="application/pgp-signature"
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160608101428.GA7653@shlinux2>
+In-Reply-To: <87h9d49exz.fsf-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: kbuild test robot <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Peter Chen <Peter.Chen-3arQi8VN3Tc@public.gmane.org>, John Youn <johnyoun-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Mathias Nyman <mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, kbuild-all-JC7UmRfGjtg@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+
+--nextPart3703601.eBue3Ziqxy
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
+
+On Wed 08 June 2016 13:02:00 Felipe Balbi wrote:
+> Hi,
+> 
+> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
+> > Yeah I don't know, AFAIK we don't have a generic way to
+> > force MUSB to change mode without ID pin. If you have figured
+> #define MUSB_TEST_FORCE_HOST	0x80
+> 
+> Can someone confirm on MUSB's docs (and actual running system) that this
+> does what's supposed to do?
 
 
-Hi,
 
-Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
->> > Would you consider only keeps vbus and pull dp API at gadget.h, and mo=
-ve
->> > out others gadget APIs which is dedicated for gadget function?
->>=20
->> no, sorry :-) All these drivers depend on the gadget API to work. For
->> host-only builds, they'll still work because of the stub implemented in
->> gadget.h.
->
-> Do you want these drivers to add dependency on GADGET at Kconfig
-> or not? If you want, we don't need stub at gadget.h since the gadget
+(disclaimer: all IIRC) Alas it doesn't, at least for the MentorGraphics MUSB 
+in OMAP3.  
+We use MUSB_TEST_FORCE_HOST in the H-E-N N900 hostmode hack 
+(http://talk.maemo.org/showthread.php?p=696115) and it's really just a test 
+thing that doesn't support full hostmode as we know it. 
 
-just look at what the patch does:
+There is definitely no other way to force the state machine in MUSB core into 
+hostmode, than the "ID pin grounded" message from PHY via ULPI bus up to the 
+MUSB, whether it's real or *sw-triggered by a command to PHY*.
+Shame on the MUSB core design for this.
 
-if USB_GADGET=3Dm, then NOP must be m too. if USB_GADGET=3Dy, then NOP can
-be y or m.
 
-> will be built if these driver is built. I assume you don't want, then
-> that's ok, we don't need to change anything on Kconfig to fix build
-> issue.
+/jOERG
 
-There was, anyway, a bug in my original patch in that it didn't provide
-stubs for cases were USB_GADGET=3Dn. That bug is now fixed, I'll still
-wait a couple days for any 0-day build problems.
-
->> Also, did you test the version I've apended to previous email? I noticed
->> that had one extra mistake which I correct in the version below:
->>=20
->
-> Sorry, I did not try since I still have some questions for solution:)
-
-heh. You're not even willing to try a patch, rather than complaining
-about pointless stuff all day. Thanks
-
-=2D-=20
-balbi
-
---=-=-=
+--nextPart3703601.eBue3Ziqxy
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-iQIcBAEBCAAGBQJXV/Q9AAoJEIaOsuA1yqREKOsP/Rp0xgGIhNnby24oyod/t6yZ
-K6ExRnwc6HGqbIL3dQu7zFfqQz6AfnoQwPEpFNydaBh8gTDpcto+/5vKQPrKaXHa
-Sr6VlAFMsT35hhktUlvW2JPRuXzCBLoMiEybR22FO2/GQixGw6mphvQcfxPyQvzn
-oZGa4YTlJfRrwxBthtanP+6LWV7A5rvpUq5qYI7ExXk7Qt/1GV69ElSVm71a14XP
-TKYikEKnhJcQsv5ZCL7QXSWDiNqJ9sd9JX3LP5Msw+sct3x4Fx7bfOxHEXqyy42S
-BeL+wEKJP81nmPf07Axm6mqu9miB0HViAS0SVan63isedtUZ4/ai8QXo55j/vD+o
-Dm9N5WFqqV3zBv6xMy+UPsIXG/cZsLf4KZ3n57yIHbFxqaYhWsncXY2LYte7KPTl
-ofpEYq10erwQAgLCA6DHr7rDGPh9KU3FQejnr9ZM+ia0eCAnX5C5u7sj8uTknJH/
-icbqlJsPRO++CqYfu1YGBOyN0UjHQhS0gdr3zSwVQuT8p1Pq2OYLB3XBqnx5MbfL
-6hJwrzOuB5b2D/R0JAw13szB4mPvLAguO2XTKKF9lDfAQDMCCNjUJlG492qM/m6n
-8FM6yWVMQ4KPHdxam9kEuOYsHmFoxVdD9z6cbEaJS4/ikIpPLU0UmD4OtbcCnqFI
-E/Ytb9FD3Ku8/agQhZf7
-=I7RE
+iEYEABECAAYFAldX8YQACgkQ7Xtwhpk1UgwqzwCgoCvpp0/4vVQOXX17uYDHVDlM
+BUEAnjOK3BBfk4Q9oC1DKDba6eMk1sHA
+=nfAr
 -----END PGP SIGNATURE-----
---=-=-=--
+
+--nextPart3703601.eBue3Ziqxy--
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
