@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v9 14/14] usb: host: xhci-plat: Add otg device to platform data
-Date: Wed, 8 Jun 2016 12:03:46 +0300
-Message-ID: <1465376626-30122-15-git-send-email-rogerq@ti.com>
+Subject: [PATCH v9 02/14] usb: otg-fsm: Prevent build warning "VDBG" redefined
+Date: Wed, 8 Jun 2016 12:03:34 +0300
+Message-ID: <1465376626-30122-3-git-send-email-rogerq@ti.com>
 References: <1465376626-30122-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,105 +12,92 @@ To: peter.chen@freescale.com
 Cc: balbi@kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Host controllers that are part of an OTG/dual-role instance
-need to somehow pass the OTG controller device information
-to the HCD core.
+If usb/otg-fsm.h and usb/composite.h are included together
+then it results in the build warning [1].
 
-We use platform data to pass the OTG controller device.
+Prevent that by defining VDBG locally.
+
+Also get rid of MPC_LOC which doesn't seem to be used
+by anyone.
+
+[1] - warning fixed by this patch:
+
+In file included from drivers/usb/dwc3/core.h:33,
+   from drivers/usb/dwc3/ep0.c:33:
+   include/linux/usb/otg-fsm.h:30:1: warning: "VDBG" redefined
+   In file included from drivers/usb/dwc3/ep0.c:31:
+   include/linux/usb/composite.h:615:1: warning: this is the location
+   of the previous definition
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
-Reviewed-by: Peter Chen <peter.chen@nxp.com>
+Acked-by: Peter Chen <peter.chen@nxp.com>
 ---
- drivers/usb/host/xhci-plat.c     | 35 ++++++++++++++++++++++++++++-------
- include/linux/usb/xhci_pdriver.h |  3 +++
- 2 files changed, 31 insertions(+), 7 deletions(-)
+ drivers/usb/common/usb-otg-fsm.c |  7 +++++++
+ drivers/usb/phy/phy-fsl-usb.c    |  7 +++++++
+ include/linux/usb/otg-fsm.h      | 15 ---------------
+ 3 files changed, 14 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/usb/host/xhci-plat.c b/drivers/usb/host/xhci-plat.c
-index 676ea45..24d030a 100644
---- a/drivers/usb/host/xhci-plat.c
-+++ b/drivers/usb/host/xhci-plat.c
-@@ -239,11 +239,20 @@ static int xhci_plat_probe(struct platform_device *pdev)
- 			goto put_usb3_hcd;
- 	}
+diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
+index 9059b7d..199dee0 100644
+--- a/drivers/usb/common/usb-otg-fsm.c
++++ b/drivers/usb/common/usb-otg-fsm.c
+@@ -30,6 +30,13 @@
+ #include <linux/usb/otg.h>
+ #include <linux/usb/otg-fsm.h>
  
--	ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
-+	if (pdata && pdata->otg_dev)
-+		ret = usb_otg_add_hcd(hcd, irq, IRQF_SHARED, pdata->otg_dev);
-+	else
-+		ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
++#ifdef VERBOSE
++#define VDBG(fmt, args...) pr_debug("[%s]  " fmt, \
++				 __func__, ## args)
++#else
++#define VDBG(stuff...)	do {} while (0)
++#endif
 +
- 	if (ret)
- 		goto disable_usb_phy;
- 
--	ret = usb_add_hcd(xhci->shared_hcd, irq, IRQF_SHARED);
-+	if (pdata && pdata->otg_dev)
-+		ret = usb_otg_add_hcd(xhci->shared_hcd, irq, IRQF_SHARED,
-+				      pdata->otg_dev);
-+	else
-+		ret = usb_add_hcd(xhci->shared_hcd, irq, IRQF_SHARED);
-+
- 	if (ret)
- 		goto dealloc_usb2_hcd;
- 
-@@ -251,7 +260,10 @@ static int xhci_plat_probe(struct platform_device *pdev)
- 
- 
- dealloc_usb2_hcd:
--	usb_remove_hcd(hcd);
-+	if (pdata && pdata->otg_dev)
-+		usb_otg_remove_hcd(hcd);
-+	else
-+		usb_remove_hcd(hcd);
- 
- disable_usb_phy:
- 	usb_phy_shutdown(hcd->usb_phy);
-@@ -269,16 +281,25 @@ put_hcd:
- 	return ret;
- }
- 
--static int xhci_plat_remove(struct platform_device *dev)
-+static int xhci_plat_remove(struct platform_device *pdev)
+ /* Change USB protocol when there is a protocol change */
+ static int otg_set_protocol(struct otg_fsm *fsm, int protocol)
  {
--	struct usb_hcd	*hcd = platform_get_drvdata(dev);
-+	struct usb_hcd	*hcd = platform_get_drvdata(pdev);
- 	struct xhci_hcd	*xhci = hcd_to_xhci(hcd);
- 	struct clk *clk = xhci->clk;
-+	struct usb_xhci_pdata *pdata = dev_get_platdata(&pdev->dev);
+diff --git a/drivers/usb/phy/phy-fsl-usb.c b/drivers/usb/phy/phy-fsl-usb.c
+index 94eb292..a8784ec 100644
+--- a/drivers/usb/phy/phy-fsl-usb.c
++++ b/drivers/usb/phy/phy-fsl-usb.c
+@@ -44,6 +44,13 @@
+ 
+ #include "phy-fsl-usb.h"
+ 
++#ifdef VERBOSE
++#define VDBG(fmt, args...) pr_debug("[%s]  " fmt, \
++				 __func__, ## args)
++#else
++#define VDBG(stuff...)	do {} while (0)
++#endif
 +
-+	if (pdata && pdata->otg_dev)
-+		usb_otg_remove_hcd(xhci->shared_hcd);
-+	else
-+		usb_remove_hcd(xhci->shared_hcd);
+ #define DRIVER_VERSION "Rev. 1.55"
+ #define DRIVER_AUTHOR "Jerry Huang/Li Yang"
+ #define DRIVER_DESC "Freescale USB OTG Transceiver Driver"
+diff --git a/include/linux/usb/otg-fsm.h b/include/linux/usb/otg-fsm.h
+index 7a03505..a0a8f87 100644
+--- a/include/linux/usb/otg-fsm.h
++++ b/include/linux/usb/otg-fsm.h
+@@ -21,21 +21,6 @@
+ #include <linux/mutex.h>
+ #include <linux/errno.h>
  
--	usb_remove_hcd(xhci->shared_hcd);
- 	usb_phy_shutdown(hcd->usb_phy);
- 
--	usb_remove_hcd(hcd);
-+	if (pdata && pdata->otg_dev)
-+		usb_otg_remove_hcd(hcd);
-+	else
-+		usb_remove_hcd(hcd);
-+
- 	usb_put_hcd(xhci->shared_hcd);
- 
- 	if (!IS_ERR(clk))
-diff --git a/include/linux/usb/xhci_pdriver.h b/include/linux/usb/xhci_pdriver.h
-index 376654b..5c68b83 100644
---- a/include/linux/usb/xhci_pdriver.h
-+++ b/include/linux/usb/xhci_pdriver.h
-@@ -18,10 +18,13 @@
-  *
-  * @usb3_lpm_capable:	determines if this xhci platform supports USB3
-  *			LPM capability
-+ * @otg_dev:		OTG controller device. Only requied if part of
-+ *			OTG/dual-role.
-  *
-  */
- struct usb_xhci_pdata {
- 	unsigned	usb3_lpm_capable:1;
-+	struct device	*otg_dev;
- };
- 
- #endif /* __USB_CORE_XHCI_PDRIVER_H */
+-#undef VERBOSE
+-
+-#ifdef VERBOSE
+-#define VDBG(fmt, args...) pr_debug("[%s]  " fmt , \
+-				 __func__, ## args)
+-#else
+-#define VDBG(stuff...)	do {} while (0)
+-#endif
+-
+-#ifdef VERBOSE
+-#define MPC_LOC printk("Current Location [%s]:[%d]\n", __FILE__, __LINE__)
+-#else
+-#define MPC_LOC do {} while (0)
+-#endif
+-
+ #define PROTO_UNDEF	(0)
+ #define PROTO_HOST	(1)
+ #define PROTO_GADGET	(2)
 -- 
 2.7.4
