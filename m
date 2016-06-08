@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v9 06/14] usb: gadget.h: Add OTG to gadget interface
-Date: Wed, 8 Jun 2016 12:03:38 +0300
-Message-ID: <1465376626-30122-7-git-send-email-rogerq@ti.com>
+Subject: [PATCH v9 05/14] usb: otg-fsm: move host controller operations into usb_otg->hcd_ops
+Date: Wed, 8 Jun 2016 12:03:37 +0300
+Message-ID: <1465376626-30122-6-git-send-email-rogerq@ti.com>
 References: <1465376626-30122-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,45 +12,138 @@ To: peter.chen@freescale.com
 Cc: balbi@kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The OTG core will use struct otg_gadget_ops to
-start/stop the gadget controller.
-
-The main purpose of this interface is to avoid directly
-calling usb_gadget_start/stop() from the OTG core as they
-wouldn't be defined in the built-in symbol table if
-CONFIG_USB_GADGET is m.
+This is to prevent missing symbol build error if OTG is
+enabled (built-in) and HCD core (CONFIG_USB) is module.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
+Acked-by: Peter Chen <peter.chen@nxp.com>
 ---
- include/linux/usb/gadget.h | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ drivers/usb/chipidea/otg_fsm.c   |  7 +++++++
+ drivers/usb/common/usb-otg-fsm.c | 15 +++++++++++----
+ drivers/usb/phy/phy-fsl-usb.c    |  7 +++++++
+ include/linux/usb/otg.h          |  2 ++
+ 4 files changed, 27 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
-index 457651b..51e3bde 100644
---- a/include/linux/usb/gadget.h
-+++ b/include/linux/usb/gadget.h
-@@ -1100,6 +1100,22 @@ struct usb_gadget_driver {
+diff --git a/drivers/usb/chipidea/otg_fsm.c b/drivers/usb/chipidea/otg_fsm.c
+index 1c0c750..2d8d659 100644
+--- a/drivers/usb/chipidea/otg_fsm.c
++++ b/drivers/usb/chipidea/otg_fsm.c
+@@ -582,6 +582,12 @@ static struct otg_fsm_ops ci_otg_ops = {
+ 	.start_gadget = ci_otg_start_gadget,
  };
  
- 
-+/*-------------------------------------------------------------------------*/
-+
-+/**
-+ * struct otg_gadget_ops - Interface between OTG core and gadget
-+ *
-+ * Provided by the gadget core to allow the OTG core to start/stop the gadget
-+ *
-+ * @start: function to start the gadget
-+ * @stop: function to stop the gadget
-+ * @connect_control: function to connect/disconnect from the bus
-+ */
-+struct otg_gadget_ops {
-+	int (*start)(struct usb_gadget *gadget);
-+	int (*stop)(struct usb_gadget *gadget);
-+	int (*connect_control)(struct usb_gadget *gadget, bool connect);
++static struct otg_hcd_ops ci_hcd_ops = {
++	.usb_bus_start_enum = usb_bus_start_enum,
++	.usb_control_msg = usb_control_msg,
++	.usb_hub_find_child = usb_hub_find_child,
 +};
++
+ int ci_otg_fsm_work(struct ci_hdrc *ci)
+ {
+ 	/*
+@@ -804,6 +810,7 @@ int ci_hdrc_otg_fsm_init(struct ci_hdrc *ci)
+ 	ci->otg.fsm.id = hw_read_otgsc(ci, OTGSC_ID) ? 1 : 0;
+ 	ci->otg.state = OTG_STATE_UNDEFINED;
+ 	ci->otg.fsm.ops = &ci_otg_ops;
++	ci->otg.hcd_ops = &ci_hcd_ops;
+ 	ci->gadget.hnp_polling_support = 1;
+ 	ci->otg.fsm.host_req_flag = devm_kzalloc(ci->dev, 1, GFP_KERNEL);
+ 	if (!ci->otg.fsm.host_req_flag)
+diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
+index 610b5bd6..482d4c9 100644
+--- a/drivers/usb/common/usb-otg-fsm.c
++++ b/drivers/usb/common/usb-otg-fsm.c
+@@ -141,11 +141,16 @@ static void otg_hnp_polling_work(struct work_struct *work)
+ 	enum usb_otg_state state = otg->state;
+ 	u8 flag;
+ 	int retval;
++	struct otg_hcd_ops *hcd_ops = otg->hcd_ops;
  
- /*-------------------------------------------------------------------------*/
+ 	if (state != OTG_STATE_A_HOST && state != OTG_STATE_B_HOST)
+ 		return;
  
+-	udev = usb_hub_find_child(otg->host->root_hub, 1);
++	if (!hcd_ops || !hcd_ops->usb_control_msg ||
++	    !hcd_ops->usb_hub_find_child)
++		return;
++
++	udev = hcd_ops->usb_hub_find_child(otg->host->root_hub, 1);
+ 	if (!udev) {
+ 		dev_err(otg->host->controller,
+ 			"no usb dev connected, can't start HNP polling\n");
+@@ -154,7 +159,7 @@ static void otg_hnp_polling_work(struct work_struct *work)
+ 
+ 	*fsm->host_req_flag = 0;
+ 	/* Get host request flag from connected USB device */
+-	retval = usb_control_msg(udev,
++	retval = hcd_ops->usb_control_msg(udev,
+ 				usb_rcvctrlpipe(udev, 0),
+ 				USB_REQ_GET_STATUS,
+ 				USB_DIR_IN | USB_RECIP_DEVICE,
+@@ -183,7 +188,7 @@ static void otg_hnp_polling_work(struct work_struct *work)
+ 	if (state == OTG_STATE_A_HOST) {
+ 		/* Set b_hnp_enable */
+ 		if (!otg->host->b_hnp_enable) {
+-			retval = usb_control_msg(udev,
++			retval = hcd_ops->usb_control_msg(udev,
+ 					usb_sndctrlpipe(udev, 0),
+ 					USB_REQ_SET_FEATURE, 0,
+ 					USB_DEVICE_B_HNP_ENABLE,
+@@ -262,7 +267,9 @@ static int otg_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
+ 		otg_loc_conn(otg, 0);
+ 		otg_loc_sof(otg, 1);
+ 		otg_set_protocol(fsm, PROTO_HOST);
+-		usb_bus_start_enum(otg->host, otg->host->otg_port);
++		if (otg->hcd_ops && otg->hcd_ops->usb_bus_start_enum)
++			otg->hcd_ops->usb_bus_start_enum(otg->host,
++							 otg->host->otg_port);
+ 		otg_start_hnp_polling(fsm);
+ 		break;
+ 	case OTG_STATE_A_IDLE:
+diff --git a/drivers/usb/phy/phy-fsl-usb.c b/drivers/usb/phy/phy-fsl-usb.c
+index 3ffa4c6..011d36e 100644
+--- a/drivers/usb/phy/phy-fsl-usb.c
++++ b/drivers/usb/phy/phy-fsl-usb.c
+@@ -792,6 +792,12 @@ static struct otg_fsm_ops fsl_otg_ops = {
+ 	.start_gadget = fsl_otg_start_gadget,
+ };
+ 
++static struct otg_hcd_ops fsl_hcd_ops = {
++	.usb_bus_start_enum = usb_bus_start_enum,
++	.usb_control_msg = usb_control_msg,
++	.usb_hub_find_child = usb_hub_find_child,
++};
++
+ /* Initialize the global variable fsl_otg_dev and request IRQ for OTG */
+ static int fsl_otg_conf(struct platform_device *pdev)
+ {
+@@ -820,6 +826,7 @@ static int fsl_otg_conf(struct platform_device *pdev)
+ 
+ 	/* Set OTG state machine operations */
+ 	fsl_otg_tc->otg.fsm.ops = &fsl_otg_ops;
++	fsl_otg_tc->otg.hcd_ops = &fsl_hcd_ops;
+ 
+ 	/* initialize the otg structure */
+ 	fsl_otg_tc->phy.label = DRIVER_DESC;
+diff --git a/include/linux/usb/otg.h b/include/linux/usb/otg.h
+index e8a14dc..85b8fb5 100644
+--- a/include/linux/usb/otg.h
++++ b/include/linux/usb/otg.h
+@@ -12,6 +12,7 @@
+ #include <linux/phy/phy.h>
+ #include <linux/usb/phy.h>
+ #include <linux/usb/otg-fsm.h>
++#include <linux/usb/hcd.h>
+ 
+ struct usb_otg {
+ 	u8			default_a;
+@@ -24,6 +25,7 @@ struct usb_otg {
+ 
+ 	enum usb_otg_state	state;
+ 	struct otg_fsm fsm;
++	struct otg_hcd_ops	*hcd_ops;
+ 
+ 	/* bind/unbind the host controller */
+ 	int	(*set_host)(struct usb_otg *otg, struct usb_bus *host);
 -- 
 2.7.4
