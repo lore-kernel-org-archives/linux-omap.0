@@ -1,99 +1,64 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 2/2] mfd: twl-core: Refactoring for add_numbered_child()
-Date: Wed, 8 Jun 2016 12:14:42 +0100
-Message-ID: <20160608111442.GB14888@dell>
-References: <566ABCD9.1060404@users.sourceforge.net>
- <5682D228.7070902@users.sourceforge.net>
- <20160111082922.GB14104@x1>
- <05b7db2a-437a-60ac-d289-71d2150e7f5f@users.sourceforge.net>
- <de3598c4-f85a-6807-303a-55ee0ac707f2@users.sourceforge.net>
+From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH v9 03/14] usb: hcd.h: Add OTG to HCD interface
+Date: Wed, 8 Jun 2016 14:39:07 +0300
+Message-ID: <5bc321c0-fb36-7a4a-d054-ee73b12822d4@cogentembedded.com>
+References: <1465376626-30122-1-git-send-email-rogerq@ti.com>
+ <1465376626-30122-4-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <de3598c4-f85a-6807-303a-55ee0ac707f2@users.sourceforge.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1465376626-30122-4-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org
+Cc: balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 16 May 2016, SF Markus Elfring wrote:
+Hello.
 
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Sun, 15 May 2016 19:50:55 +0200
->=20
-> Adjust jump targets according to the Linux coding style convention.
-> Another check for the variable "status" can be omitted then at the en=
-d.
->=20
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+On 6/8/2016 12:03 PM, Roger Quadros wrote:
+
+> The OTG core will use struct otg_hcd_ops to interface
+> with the HCD controller.
+
+    Host controller driver (HCD) controller? Maybe just HC? :-)
+
+> The main purpose of this interface is to avoid directly
+> calling HCD APIs from the OTG core as they
+> wouldn't be defined in the built-in symbol table if
+> CONFIG_USB is m.
+>
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> Acked-by: Peter Chen <peter.chen-3arQi8VN3Tc@public.gmane.org>
 > ---
->  drivers/mfd/twl-core.c | 19 +++++++++----------
->  1 file changed, 9 insertions(+), 10 deletions(-)
->=20
-> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-> index dc34e69..3e4f4e4 100644
-> --- a/drivers/mfd/twl-core.c
-> +++ b/drivers/mfd/twl-core.c
-> @@ -635,7 +635,7 @@ add_numbered_child(unsigned mod_no, const char *n=
-ame, int num,
->  		status =3D platform_device_add_data(pdev, pdata, pdata_len);
->  		if (status < 0) {
->  			dev_dbg(&pdev->dev, "can't add platform_data\n");
-> -			goto err;
-> +			goto put_device;
->  		}
->  	}
-> =20
-> @@ -648,21 +648,20 @@ add_numbered_child(unsigned mod_no, const char =
-*name, int num,
->  		status =3D platform_device_add_resources(pdev, r, irq1 ? 2 : 1);
->  		if (status < 0) {
->  			dev_dbg(&pdev->dev, "can't add irqs\n");
-> -			goto err;
-> +			goto put_device;
->  		}
->  	}
-> =20
->  	status =3D platform_device_add(pdev);
-> -	if (status =3D=3D 0)
-> -		device_init_wakeup(&pdev->dev, can_wakeup);
-> +	if (status)
-> +		goto put_device;
-> =20
-> -err:
-> -	if (status < 0) {
-> -		platform_device_put(pdev);
-> -		dev_err(&twl->client->dev, "can't add %s dev\n", name);
-> -		return ERR_PTR(status);
-> -	}
-> +	device_init_wakeup(&pdev->dev, can_wakeup);
+>  include/linux/usb/hcd.h | 24 ++++++++++++++++++++++++
+>  1 file changed, 24 insertions(+)
+>
+> diff --git a/include/linux/usb/hcd.h b/include/linux/usb/hcd.h
+> index 66fc137..7914bed 100644
+> --- a/include/linux/usb/hcd.h
+> +++ b/include/linux/usb/hcd.h
+> @@ -400,6 +400,30 @@ struct hc_driver {
+>
+>  };
+>
+> +/**
+> + * struct otg_hcd_ops - Interface between OTG core and HCD
+> + *
+> + * Provided by the HCD core to allow the OTG core to interface with the HCD
+> + *
+> + * @add: function to add the HCD
+> + * @remove: function to remove the HCD
+> + * @usb_bus_start_enum: function to immediately start bus enumeration
+> + * @usb_control_msg: function to build and send of a control urb
 
-Nit: Place a '\n' here.
+    That "of" is not needed. And it's URB.
 
->  	return &pdev->dev;
+[...]
 
-Nit: Place a '\n' here.
+MBR, Sergei
 
-> +put_device:
-> +	platform_device_put(pdev);
-> +	dev_err(&twl->client->dev, "can't add %s dev\n", name);
-
-Nit: "failed to add device %s\n"
-
-> +	return ERR_PTR(status);
->  }
-> =20
->  static inline struct device *add_child(unsigned mod_no, const char *=
-name,
-
-Once you've fixed those, please re-submit with my:
-
-Acked-by: Lee Jones <lee.jones@linaro.org>
-
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
