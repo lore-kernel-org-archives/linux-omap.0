@@ -1,139 +1,64 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Applied "spi: Add DMA support for spi_flash_read()" to the spi tree
-Date: Wed, 08 Jun 2016 11:00:32 +0100
-Message-ID: <E1bAaHo-0007l5-CR@debutante>
-References: <20160608064832.18496-2-vigneshr@ti.com>
+From: Felipe Balbi <felipe.balbi@linux.intel.com>
+Subject: Re: Nokia N900: musb is in wrong state after boot
+Date: Wed, 08 Jun 2016 13:02:00 +0300
+Message-ID: <87h9d49exz.fsf@linux.intel.com>
+References: <201601091616.04193@pali> <3690314.8jDXSUDcRZ@saturn> <20160121192113.GM19432@atomide.com> <201601231357.32629@pali> <20160529103824.GM29844@pali> <20160607125044.GI29844@pali> <20160608095321.GH22406@atomide.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha256; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160608064832.18496-2-vigneshr@ti.com>
+In-Reply-To: <20160608095321.GH22406@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Mark Brown <broonie@kernel.org>Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Pali =?utf-8?Q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Cc: joerg Reisenweber <joerg@openmoko.org>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The patch
+--=-=-=
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-   spi: Add DMA support for spi_flash_read()
 
-has been applied to the spi tree at
+Hi,
 
-   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/spi.git 
+Tony Lindgren <tony@atomide.com> writes:
+> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [160607 05:53]:
+>> > Tony, what do you think about that patch?
+>> >=20
+>>=20
+>> Tony, PING
+>
+> Yeah I don't know, AFAIK we don't have a generic way to
+> force MUSB to change mode without ID pin. If you have figured
+> something generic for that which does not actually tinker with
+> the PHY registers directly, that should be the generic
+> musb_set_mode() that we've been wondering about for years.
 
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.  
+#define MUSB_TEST_FORCE_HOST	0x80
 
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
+Can someone confirm on MUSB's docs (and actual running system) that this
+does what's supposed to do?
 
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
+=2D-=20
+balbi
 
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Thanks,
-Mark
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
->From f4502dd1da9b060a49d539eb754ff86cb97b89f0 Mon Sep 17 00:00:00 2001
-From: Vignesh R <vigneshr@ti.com>
-Date: Wed, 8 Jun 2016 12:18:31 +0530
-Subject: [PATCH] spi: Add DMA support for spi_flash_read()
-
-Few SPI devices provide accelerated read interfaces to read from
-SPI-NOR flash devices. These hardwares also support DMA to transfer data
-from flash to memory either via mem-to-mem DMA or dedicated slave DMA
-channels. Hence, add support for DMA in order to improve throughput and
-reduce CPU load.
-Use spi_map_buf() to get sg table for the buffer and pass it to SPI
-driver.
-
-Signed-off-by: Vignesh R <vigneshr@ti.com>
-Signed-off-by: Mark Brown <broonie@kernel.org>
----
- drivers/spi/spi.c       | 28 ++++++++++++++++++++++++++++
- include/linux/spi/spi.h |  4 ++++
- 2 files changed, 32 insertions(+)
-
-diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-index 77e6e45951f4..c9a8d544e467 100644
---- a/drivers/spi/spi.c
-+++ b/drivers/spi/spi.c
-@@ -849,6 +849,20 @@ static int __spi_unmap_msg(struct spi_master *master, struct spi_message *msg)
- 	return 0;
- }
- #else /* !CONFIG_HAS_DMA */
-+static inline int spi_map_buf(struct spi_master *master,
-+			      struct device *dev, struct sg_table *sgt,
-+			      void *buf, size_t len,
-+			      enum dma_data_direction dir)
-+{
-+	return -EINVAL;
-+}
-+
-+static inline void spi_unmap_buf(struct spi_master *master,
-+				 struct device *dev, struct sg_table *sgt,
-+				 enum dma_data_direction dir)
-+{
-+}
-+
- static inline int __spi_map_msg(struct spi_master *master,
- 				struct spi_message *msg)
- {
-@@ -2725,6 +2739,7 @@ int spi_flash_read(struct spi_device *spi,
- 
- {
- 	struct spi_master *master = spi->master;
-+	struct device *rx_dev = NULL;
- 	int ret;
- 
- 	if ((msg->opcode_nbits == SPI_NBITS_DUAL ||
-@@ -2750,9 +2765,22 @@ int spi_flash_read(struct spi_device *spi,
- 			return ret;
- 		}
- 	}
-+
- 	mutex_lock(&master->bus_lock_mutex);
-+	if (master->dma_rx) {
-+		rx_dev = master->dma_rx->device->dev;
-+		ret = spi_map_buf(master, rx_dev, &msg->rx_sg,
-+				  msg->buf, msg->len,
-+				  DMA_FROM_DEVICE);
-+		if (!ret)
-+			msg->cur_msg_mapped = true;
-+	}
- 	ret = master->spi_flash_read(spi, msg);
-+	if (msg->cur_msg_mapped)
-+		spi_unmap_buf(master, rx_dev, &msg->rx_sg,
-+			      DMA_FROM_DEVICE);
- 	mutex_unlock(&master->bus_lock_mutex);
-+
- 	if (master->auto_runtime_pm)
- 		pm_runtime_put(master->dev.parent);
- 
-diff --git a/include/linux/spi/spi.h b/include/linux/spi/spi.h
-index 1f03483f61e5..7b53af4ba5f8 100644
---- a/include/linux/spi/spi.h
-+++ b/include/linux/spi/spi.h
-@@ -1143,6 +1143,8 @@ static inline ssize_t spi_w8r16be(struct spi_device *spi, u8 cmd)
-  * @opcode_nbits: number of lines to send opcode
-  * @addr_nbits: number of lines to send address
-  * @data_nbits: number of lines for data
-+ * @rx_sg: Scatterlist for receive data read from flash
-+ * @cur_msg_mapped: message has been mapped for DMA
-  */
- struct spi_flash_read_message {
- 	void *buf;
-@@ -1155,6 +1157,8 @@ struct spi_flash_read_message {
- 	u8 opcode_nbits;
- 	u8 addr_nbits;
- 	u8 data_nbits;
-+	struct sg_table rx_sg;
-+	bool cur_msg_mapped;
- };
- 
- /* SPI core interface for flash read support */
--- 
-2.8.1
+iQIcBAEBCAAGBQJXV+0YAAoJEIaOsuA1yqREhwIP/0S8l2dT6pq85lWYM9jvqKx2
+MzZSL1e/MJZZDQZ54iPLdIijRnogkv97TL7CIY/wkS2gcetpPdjvAVXYoV0IPay2
+XYpLzyjRqs+LrIfIXefFjhCa++QLMHQjUj0I6n38VNwpbScqcKOzrJapM+Ep4s7S
+rqd4wvRxUkVKy8ZFPS5D0Qd8cb0aFf9o9108Zy/KKIyp2gC7lJHuxd36Q6qRJPEt
+jXjIgbVWNGYI6dhRVK/jqI7uUp5RqfkZycIfxpmhWb8t0LskPMt4v6oTGlTcFgai
+TSJayDjCOMbpr6Y7x4dNyBgKMiqZaWpXbBPiMk0f/Gb4Gym910wIedCur97qEXaF
+UzyHDXVYT6FWb/24AJoQcVilZHRLUyxUgZ2mehQXkWzPhdciZze2sqJwyKpfCfAd
+sEMD2AkHTOUwW8RMrxo2iXdrEhCJTq/XFq9CnCOnlijn2EZed5G/xT+q7QfhnKlh
+QO17A9p9afNMHPsWaljks1MLAQBA81u5UXyuSPWMQsO1yuShIkPx/O7D4d4KO4cA
+T69xLCVi0LviaurQ7Z5VX1rfBCcxKSFZFcSArjVk2ynOkHu9yGHFZIB0grYn5G9u
+SO8nGYJ/ryKSYNY8+GRmmP9c5A9MdgoKZZOjqbJLVPC1NZQMvdrD6jDMKuOr3KXV
+1uPaAudjFq+VHlqpZsqm
+=wqm2
+-----END PGP SIGNATURE-----
+--=-=-=--
