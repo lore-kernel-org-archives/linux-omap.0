@@ -1,65 +1,99 @@
-From: joerg Reisenweber <joerg-4Bgg8jF3iZdg9hUCZPvPmw@public.gmane.org>
-Subject: Re: Nokia N900: musb is in wrong state after boot
-Date: Wed, 08 Jun 2016 12:20:45 +0200
-Message-ID: <4684873.SkgQPQ65qP@saturn>
-References: <201601091616.04193@pali> <20160608095321.GH22406@atomide.com> <87h9d49exz.fsf@linux.intel.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 2/2] mfd: twl-core: Refactoring for add_numbered_child()
+Date: Wed, 8 Jun 2016 12:14:42 +0100
+Message-ID: <20160608111442.GB14888@dell>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <5682D228.7070902@users.sourceforge.net>
+ <20160111082922.GB14104@x1>
+ <05b7db2a-437a-60ac-d289-71d2150e7f5f@users.sourceforge.net>
+ <de3598c4-f85a-6807-303a-55ee0ac707f2@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart3703601.eBue3Ziqxy"; micalg="pgp-sha1"; protocol="application/pgp-signature"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <87h9d49exz.fsf-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <de3598c4-f85a-6807-303a-55ee0ac707f2@users.sourceforge.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
 List-Id: linux-omap@vger.kernel.org
 
+On Mon, 16 May 2016, SF Markus Elfring wrote:
 
---nextPart3703601.eBue3Ziqxy
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Sun, 15 May 2016 19:50:55 +0200
+>=20
+> Adjust jump targets according to the Linux coding style convention.
+> Another check for the variable "status" can be omitted then at the en=
+d.
+>=20
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> ---
+>  drivers/mfd/twl-core.c | 19 +++++++++----------
+>  1 file changed, 9 insertions(+), 10 deletions(-)
+>=20
+> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+> index dc34e69..3e4f4e4 100644
+> --- a/drivers/mfd/twl-core.c
+> +++ b/drivers/mfd/twl-core.c
+> @@ -635,7 +635,7 @@ add_numbered_child(unsigned mod_no, const char *n=
+ame, int num,
+>  		status =3D platform_device_add_data(pdev, pdata, pdata_len);
+>  		if (status < 0) {
+>  			dev_dbg(&pdev->dev, "can't add platform_data\n");
+> -			goto err;
+> +			goto put_device;
+>  		}
+>  	}
+> =20
+> @@ -648,21 +648,20 @@ add_numbered_child(unsigned mod_no, const char =
+*name, int num,
+>  		status =3D platform_device_add_resources(pdev, r, irq1 ? 2 : 1);
+>  		if (status < 0) {
+>  			dev_dbg(&pdev->dev, "can't add irqs\n");
+> -			goto err;
+> +			goto put_device;
+>  		}
+>  	}
+> =20
+>  	status =3D platform_device_add(pdev);
+> -	if (status =3D=3D 0)
+> -		device_init_wakeup(&pdev->dev, can_wakeup);
+> +	if (status)
+> +		goto put_device;
+> =20
+> -err:
+> -	if (status < 0) {
+> -		platform_device_put(pdev);
+> -		dev_err(&twl->client->dev, "can't add %s dev\n", name);
+> -		return ERR_PTR(status);
+> -	}
+> +	device_init_wakeup(&pdev->dev, can_wakeup);
 
-On Wed 08 June 2016 13:02:00 Felipe Balbi wrote:
-> Hi,
-> 
-> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
-> > Yeah I don't know, AFAIK we don't have a generic way to
-> > force MUSB to change mode without ID pin. If you have figured
-> #define MUSB_TEST_FORCE_HOST	0x80
-> 
-> Can someone confirm on MUSB's docs (and actual running system) that this
-> does what's supposed to do?
+Nit: Place a '\n' here.
 
+>  	return &pdev->dev;
 
+Nit: Place a '\n' here.
 
-(disclaimer: all IIRC) Alas it doesn't, at least for the MentorGraphics MUSB 
-in OMAP3.  
-We use MUSB_TEST_FORCE_HOST in the H-E-N N900 hostmode hack 
-(http://talk.maemo.org/showthread.php?p=696115) and it's really just a test 
-thing that doesn't support full hostmode as we know it. 
+> +put_device:
+> +	platform_device_put(pdev);
+> +	dev_err(&twl->client->dev, "can't add %s dev\n", name);
 
-There is definitely no other way to force the state machine in MUSB core into 
-hostmode, than the "ID pin grounded" message from PHY via ULPI bus up to the 
-MUSB, whether it's real or *sw-triggered by a command to PHY*.
-Shame on the MUSB core design for this.
+Nit: "failed to add device %s\n"
 
+> +	return ERR_PTR(status);
+>  }
+> =20
+>  static inline struct device *add_child(unsigned mod_no, const char *=
+name,
 
-/jOERG
+Once you've fixed those, please re-submit with my:
 
---nextPart3703601.eBue3Ziqxy
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-Content-Transfer-Encoding: 7Bit
+Acked-by: Lee Jones <lee.jones@linaro.org>
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iEYEABECAAYFAldX8YQACgkQ7Xtwhpk1UgwqzwCgoCvpp0/4vVQOXX17uYDHVDlM
-BUEAnjOK3BBfk4Q9oC1DKDba6eMk1sHA
-=nfAr
------END PGP SIGNATURE-----
-
---nextPart3703601.eBue3Ziqxy--
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
