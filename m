@@ -1,79 +1,66 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [GIT PULL arm] Use _rcuidle tracepoints to allow tracing from
- idle
-Date: Wed, 8 Jun 2016 08:16:04 -0700
-Message-ID: <20160608151604.GA4104@linux.vnet.ibm.com>
-References: <20160526162606.GA20023@linux.vnet.ibm.com>
- <20160526162727.GA21784@linux.vnet.ibm.com>
- <20160608133350.GA18357@gmail.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 3/8] mfd: tps65218: Use mfd_add_devices instead of
+ of_platform_populate
+Date: Wed, 8 Jun 2016 16:50:25 +0100
+Message-ID: <20160608155025.GB14888@dell>
+References: <1462945691-904-1-git-send-email-j-keerthy@ti.com>
+ <1462945691-904-4-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160608133350.GA18357@gmail.com>
+In-Reply-To: <1462945691-904-4-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@kernel.org>
-Cc: Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-clk@vger.kernel.org, linux@roeck-us.net, tony@atomide.com, linux@arm.linux.org.uk, rostedt@goodmis.org, rjw@rjwysocki.net, pavel@ucw.cz, mturquette@baylibre.com, sboyd@codeaurora.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: broonie@kernel.org, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nikita@compulab.co.il, nm@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jun 08, 2016 at 03:33:50PM +0200, Ingo Molnar wrote:
-> 
-> * Paul E. McKenney <paulmck@linux.vnet.ibm.com> wrote:
-> 
-> > On Thu, May 26, 2016 at 09:26:06AM -0700, Paul E. McKenney wrote:
-> > > Hello, Ingo,
-> > > 
-> > > This series changes a number of event tracepoints to their _rcuidle() form
-> > > to allow use from idle without lockdep-RCU complaints, a straightforward
-> > > modification that has been successfully applied many times.  These splats
-> > > were found in testing by Guenter Roeck and Tony Lindgren, who have
-> > > both successfully tested the full series.  Tony asked that I carry these
-> > > in -rcu:
-> > > 
-> > > 	http://lkml.kernel.org/g/20160426213630.GV5995@atomide.com
-> > > 
-> > > These have been posted to LKML, CCing relevant maintainers, who have
-> > > not objected to the proposed changes:
-> > > 
-> > > 	http://lkml.kernel.org/g/20160516184844.GA20144@linux.vnet.ibm.com
-> > > 
-> > > These maintainers are also CCed on this pull request.
-> > > 
-> > > They have also been subjected to 0day Test Robot and -next testing.
-> > 
-> > And this time actually including the pull request...  :-/
-> > 
-> > 							Thanx, Paul
-> > 
-> > These changes are available in the git repository at:
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/paulmck/linux-rcu.git for-mingo
-> > 
-> > for you to fetch changes up to e7c38dda94b23965a3eb46ef4656bb8cb921933d:
-> > 
-> >   arm: Use _rcuidle suffix to allow clk_core_enable() to used from idle (2016-05-18 11:55:29 -0700)
-> > 
-> > ----------------------------------------------------------------
-> > Paul E. McKenney (6):
-> >       arm: Use _rcuidle tracepoint to allow use from idle
-> >       arm: Use _rcuidle for suspend/resume tracepoints
-> >       arm: Add _rcuidle tracepoints to allow clk_core_disable() use from idle
-> >       arm: Add _rcuidle suffix to allow rpm_idle() use from idle
-> >       arm: Add _rcuidle suffix to allow rpm_resume() to be called from idle
-> >       arm: Use _rcuidle suffix to allow clk_core_enable() to used from idle
-> > 
-> >  arch/arm/kernel/smp.c             |  2 +-
-> >  arch/arm/mach-omap2/powerdomain.c |  9 +++++----
-> >  drivers/base/power/runtime.c      | 14 +++++++-------
-> >  drivers/clk/clk.c                 |  8 ++++----
-> >  4 files changed, 17 insertions(+), 16 deletions(-)
-> 
-> Just wondering, wouldn't it be better for Russell to pull/apply, as it appears to 
-> be a mostly ARM patch-set?
+On Wed, 11 May 2016, Keerthy wrote:
 
-Fair enough -- I can always repost the patches to their respective
-maintainers if you are in any way uncomfortable taking them.  The patches
-do not depend on each other.
+> mfd_add_devices enables parsing device tree nodes without compatibles
+> for child nodes. Replace of_platform_populate with mfd_add_devices.
+>=20
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>  drivers/mfd/tps65218.c | 10 ++++++++--
+>  1 file changed, 8 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
+> index f20a531..b8b3a58 100644
+> --- a/drivers/mfd/tps65218.c
+> +++ b/drivers/mfd/tps65218.c
+> @@ -33,6 +33,10 @@
+> =20
+>  #define TPS65218_PASSWORD_REGS_UNLOCK   0x7D
+> =20
+> +static const struct mfd_cell tps65218_cells[] =3D {
+> +	{ .name =3D "tps65218-regulator", },
+> +};
 
-							Thanx, Paul
+What other devices does the TPS65218 consist of?
+
+>  /**
+>   * tps65218_reg_write: Write a single tps65218 register.
+>   *
+> @@ -236,8 +240,10 @@ static int tps65218_probe(struct i2c_client *cli=
+ent,
+>  	if (ret < 0)
+>  		return ret;
+> =20
+> -	ret =3D of_platform_populate(client->dev.of_node, NULL, NULL,
+> -				   &client->dev);
+> +	ret =3D mfd_add_devices(tps->dev, PLATFORM_DEVID_AUTO, tps65218_cel=
+ls,
+> +			      ARRAY_SIZE(tps65218_cells), NULL, 0,
+> +			      regmap_irq_get_domain(tps->irq_data));
+> +
+>  	if (ret < 0)
+>  		goto err_irq;
+> =20
+
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
