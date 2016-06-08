@@ -1,43 +1,32 @@
-From: Ben Dooks <ben.dooks@codethink.co.uk>
-Subject: [PATCH] mfd: omap-usb-tll: fix include of omap-usb.h
-Date: Wed,  8 Jun 2016 19:06:20 +0100
-Message-ID: <1465409180-18634-1-git-send-email-ben.dooks@codethink.co.uk>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@lists.codethink.co.uk
-Cc: Ben Dooks <ben.dooks@codethink.co.uk>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v2 2/2] Documentation: DT: cpsw: remove rx_descs property
+Date: Wed, 8 Jun 2016 15:11:38 -0500
+Message-ID: <20160608201138.GA17007@rob-hp-laptop>
+References: <1465307976-12235-1-git-send-email-ivan.khoronzhuk@linaro.org>
+ <1465307976-12235-3-git-send-email-ivan.khoronzhuk@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1465307976-12235-3-git-send-email-ivan.khoronzhuk@linaro.org>
+Sender: netdev-owner@vger.kernel.org
+To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Cc: mugunthanvnm@ti.com, linux-kernel@vger.kernel.org, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Fix the warnings about the following functions not being
-declared by including omap-usb.h which declares them:
+On Tue, Jun 07, 2016 at 04:59:36PM +0300, Ivan Khoronzhuk wrote:
+> There is no reason to hold s/w dependent parameter in device tree.
+> Even more, there is no reason in this parameter because davinici_cpdma
+> driver splits pool of descriptors equally between tx and rx channels
+> anyway.
+> 
+> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> ---
+>  Documentation/devicetree/bindings/net/cpsw.txt | 1 -
+>  arch/arm/boot/dts/am33xx.dtsi                  | 1 -
+>  arch/arm/boot/dts/am4372.dtsi                  | 1 -
+>  arch/arm/boot/dts/dm814x.dtsi                  | 1 -
+>  arch/arm/boot/dts/dra7.dtsi                    | 1 -
+>  5 files changed, 5 deletions(-)
 
-drivers/mfd/omap-usb-tll.c:333:5: warning: symbol 'omap_tll_init' was not declared. Should it be static?
-drivers/mfd/omap-usb-tll.c:408:5: warning: symbol 'omap_tll_enable' was not declared. Should it be static?
-drivers/mfd/omap-usb-tll.c:442:5: warning: symbol 'omap_tll_disable' was not declared. Should it be static?
-
-Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
----
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org
----
- drivers/mfd/omap-usb-tll.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
-index c30290f..1aa74c4 100644
---- a/drivers/mfd/omap-usb-tll.c
-+++ b/drivers/mfd/omap-usb-tll.c
-@@ -30,6 +30,8 @@
- #include <linux/platform_data/usb-omap.h>
- #include <linux/of.h>
- 
-+#include "omap-usb.h"
-+
- #define USBTLL_DRIVER_NAME	"usbhs_tll"
- 
- /* TLL Register Set */
--- 
-2.8.1
+Acked-by: Rob Herring <robh@kernel.org>
