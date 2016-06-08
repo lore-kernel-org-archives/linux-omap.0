@@ -1,92 +1,45 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH v2 0/2] net: ethernet: ti: cpsw: delete rx_descs property
-Date: Wed, 8 Jun 2016 17:06:08 +0300
-Message-ID: <57582650.5010409@linaro.org>
-References: <1465307976-12235-1-git-send-email-ivan.khoronzhuk@linaro.org>
- <5756E7A8.6090703@ti.com> <57582535.5020608@linaro.org>
+From: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v9 11/14] usb: otg: use dev_dbg() instead of VDBG()
+Date: Wed, 08 Jun 2016 08:10:40 -0700
+Message-ID: <1465398640.25087.50.camel@perches.com>
+References: <1465376626-30122-1-git-send-email-rogerq@ti.com>
+	 <1465376626-30122-12-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <57582535.5020608@linaro.org>
-Sender: netdev-owner@vger.kernel.org
-To: Schuyler Patton <spatton@ti.com>, mugunthanvnm@ti.com, linux-kernel@vger.kernel.org
-Cc: grygorii.strashko@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, devicetree@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1465376626-30122-12-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org
+Cc: balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On Wed, 2016-06-08 at 12:03 +0300, Roger Quadros wrote:
+> Now that we have a device reference in struct usb_otg
+> let's use dev_dbg() for debug messages.
 
+dev_vdbg vs dev_dbg
 
-On 08.06.16 17:01, Ivan Khoronzhuk wrote:
-> Hi Schuyer,
->
-> On 07.06.16 18:26, Schuyler Patton wrote:
->> Hi,
->>
->> On 06/07/2016 08:59 AM, Ivan Khoronzhuk wrote:
->>> There is no reason in rx_descs property because davinici_cpdma
->>> driver splits pool of descriptors equally between tx and rx channels.
->>> So, this patch series makes driver to use available number of
->>> descriptors for rx channels.
->>
->> I agree with the idea of consolidating how the descriptors are defined because of
->> the two variable components, number and size of the pool can be confusing to
->> end users. I would like to request to change how it is being proposed here.
->>
->> I think the number of descriptors should be left in the device tree source file as
->> is and remove the BD size variable and have the driver calculate the size of the
->> pool necessary to support the descriptor request. From an user perspective it is
->> easier I think to be able to list the number of descriptors necessary vs. the size
->> of the pool.
->>
->> Since the patch series points out how it is used so in the driver so to make that
->> consistent is perhaps change rx_descs to total_descs.
->>
->> Regards,
->> Schuyler
->
-> The DT entry for cpsw doesn't have property for size of the pool.
-> It contains only BD ram size, if you mean this. The size of the pool is
-> software decision. Current version of DT entry contain only rx desc number.
-> That is not correct, as it depends on the size of the descriptor, which is also
-> h/w parameter. The DT entry has to describe only h/w part and shouldn't contain
-> driver implementation details, and I'm looking on it from this perspective.
->
-> Besides, rx_descs describes only rx number of descriptors, that are taken from
-> the same pool as tx descriptors, and setting rx desc to some new value doesn't
-> mean that rest of them are freed for tx. Also, I'm going to send series that
-> adds multi channel support to the driver, and in this case, splitting of the
-> pool will be more sophisticated than now, after what setting those parameters
-> for user (he should do this via device tree) can be even more confusing. But,
-should -> shouldn't
+The patch subject and commit message don't match the code changes.
 
-> as it's supposed, it's software decision that shouldn't leak to the DT.
->
->
->>>
->>> Based on master branch
->>>
->>> Since v1:
->>> - separate device tree and driver patches
->>> - return number of rx buffers from cpdma driver
->>>
->>> Ivan Khoronzhuk (2):
->>>    net: ethernet: ti: cpsw: remove rx_descs property
->>>    Documentation: DT: cpsw: remove rx_descs property
->>>
->>>   Documentation/devicetree/bindings/net/cpsw.txt |  1 -
->>>   arch/arm/boot/dts/am33xx.dtsi                  |  1 -
->>>   arch/arm/boot/dts/am4372.dtsi                  |  1 -
->>>   arch/arm/boot/dts/dm814x.dtsi                  |  1 -
->>>   arch/arm/boot/dts/dra7.dtsi                    |  1 -
->>>   drivers/net/ethernet/ti/cpsw.c                 | 13 +++----------
->>>   drivers/net/ethernet/ti/cpsw.h                 |  1 -
->>>   drivers/net/ethernet/ti/davinci_cpdma.c        |  6 ++++++
->>>   drivers/net/ethernet/ti/davinci_cpdma.h        |  1 +
->>>   9 files changed, 10 insertions(+), 16 deletions(-)
->>>
->>
->
+> diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/us=
+b-otg-fsm.c
+[]
+> @@ -44,8 +37,9 @@ static int otg_set_protocol(struct otg_fsm *fsm, in=
+t protocol)
+> =A0	int ret =3D 0;
+> =A0
+> =A0	if (fsm->protocol !=3D protocol) {
+> -		VDBG("Changing role fsm->protocol=3D %d; new protocol=3D %d\n",
+> -			fsm->protocol, protocol);
+> +		dev_vdbg(otg->dev,
+> +			=A0"Changing role fsm->protocol=3D %d; new protocol=3D %d\n",
+> +			=A0fsm->protocol, protocol);
 
--- 
-Regards,
-Ivan Khoronzhuk
+etc...
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
