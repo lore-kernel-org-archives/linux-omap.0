@@ -1,41 +1,59 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH v3 2/2] spi: spi-ti-qspi: Add DMA support for QSPI mmap
- read
-Date: Wed, 8 Jun 2016 12:23:42 +0530
-Message-ID: <5757C0F6.20906@ti.com>
-References: <20160607081810.6640-1-vigneshr@ti.com>
- <20160607081810.6640-3-vigneshr@ti.com>
- <1d3484c6-6f9e-847c-3e22-9b1726700a37@ti.com>
+From: "Li, Yong B" <yong.b.li@intel.com>
+Subject: RE: [PATCH] ARM: dts: am335x-boneblack: add i2c1 DT entry
+Date: Wed, 8 Jun 2016 07:11:03 +0000
+Message-ID: <BCE6BEBCDDF4B84E891D2320CBF96F1D3FA02917@SHSMSX101.ccr.corp.intel.com>
+References: <1464853310-8738-1-git-send-email-yong.b.li@intel.com>
+ <CAOCHtYib9YxckneM-j0Gk1YE=MnvAwAhvDjEDEuFJbH6W3EcWA@mail.gmail.com>
+ <20160602173932.GF5995@atomide.com>
+ <CAOCHtYiWYrwSidHnKv4siFT-wU=tt5-YeDTwbM022ZTxdPFYYA@mail.gmail.com>
+ <20160602175635.GG5995@atomide.com>
+ <BCE6BEBCDDF4B84E891D2320CBF96F1D3F9FB1EC@SHSMSX101.ccr.corp.intel.com>
+ <20160607060004.GD22406@atomide.com>
+ <BCE6BEBCDDF4B84E891D2320CBF96F1D3F9FD673@SHSMSX101.ccr.corp.intel.com>
+ <CAOCHtYhBSS+D-BQH28FO+RxyzvDg-yeX+6nvLu11G3TNkF7ELg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1d3484c6-6f9e-847c-3e22-9b1726700a37@ti.com>
+In-Reply-To: <CAOCHtYhBSS+D-BQH28FO+RxyzvDg-yeX+6nvLu11G3TNkF7ELg@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>
-Cc: linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Robert Nelson <robertcnelson@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux kernel <linux-kernel@vger.kernel.org>, "sdliyong@gmail.com" <sdliyong@gmail.com>, Pantelis Antoniou <pantelis.antoniou@konsulko.com>
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On Tuesday 07 June 2016 02:47 PM, Peter Ujfalusi wrote:
-[...]
->> @@ -637,6 +770,33 @@ static int ti_qspi_probe(struct platform_device *pdev)
->>  	if (ret)
->>  		goto free_master;
->>  
->> +	dma_cap_zero(mask);
->> +	dma_cap_set(DMA_MEMCPY, mask);
->> +
->> +	qspi->rx_chan = dma_request_channel(mask, NULL, NULL);
-> 
-> dma_request_channel is deprecated, please use the:
-> dma_request_chan_by_mask()
-> 
-
-Updated to use dma_request_chan_by_mask() in v4, Thanks.
-
-
--- 
-Regards
-Vignesh
+VGhhbmtzIFJvYmVydCENCg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZyb206IFJvYmVy
+dCBOZWxzb24gW21haWx0bzpyb2JlcnRjbmVsc29uQGdtYWlsLmNvbV0gDQpTZW50OiBXZWRuZXNk
+YXksIEp1bmUgOCwgMjAxNiAxOjE1IEFNDQpUbzogTGksIFlvbmcgQiA8eW9uZy5iLmxpQGludGVs
+LmNvbT4NCkNjOiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPjsgQmVub2l0IENvdXNz
+b24gPGJjb3Vzc29uQGJheWxpYnJlLmNvbT47IFJvYiBIZXJyaW5nIDxyb2JoK2R0QGtlcm5lbC5v
+cmc+OyBQYXdlbCBNb2xsIDxwYXdlbC5tb2xsQGFybS5jb20+OyBNYXJrIFJ1dGxhbmQgPG1hcmsu
+cnV0bGFuZEBhcm0uY29tPjsgSWFuIENhbXBiZWxsIDxpamMrZGV2aWNldHJlZUBoZWxsaW9uLm9y
+Zy51az47IEt1bWFyIEdhbGEgPGdhbGFrQGNvZGVhdXJvcmEub3JnPjsgUnVzc2VsbCBLaW5nIDxs
+aW51eEBhcm0ubGludXgub3JnLnVrPjsgbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmc7IGRldmlj
+ZXRyZWUgPGRldmljZXRyZWVAdmdlci5rZXJuZWwub3JnPjsgbGludXgtYXJtLWtlcm5lbEBsaXN0
+cy5pbmZyYWRlYWQub3JnOyBsaW51eCBrZXJuZWwgPGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5v
+cmc+OyBzZGxpeW9uZ0BnbWFpbC5jb207IFBhbnRlbGlzIEFudG9uaW91IDxwYW50ZWxpcy5hbnRv
+bmlvdUBrb25zdWxrby5jb20+DQpTdWJqZWN0OiBSZTogW1BBVENIXSBBUk06IGR0czogYW0zMzV4
+LWJvbmVibGFjazogYWRkIGkyYzEgRFQgZW50cnkNCg0KT24gVHVlLCBKdW4gNywgMjAxNiBhdCAx
+OjE0IEFNLCBMaSwgWW9uZyBCIDx5b25nLmIubGlAaW50ZWwuY29tPiB3cm90ZToNCj4gVGhhbmtz
+IFRvbnkuDQo+DQo+IEkgY2hlY2tlZCB0aGUgRFRTL292ZXJsYXlzIHVzaW5nIGxpbnV4LXlvY3Rv
+LTQuMSBrZXJuZWwoT3N0cm8gT1MpLiBJdCBzZWVtcyB0byBtZSB0aGF0IHRoZSBrZXJuZWwvdS1i
+b290IGRvIG5vdCBpbmNsdWRlIHRoZSBsYXRlc3Qgb3ZlcmxheSBzdXBwb3J0IHBhdGNoLiBBbmQg
+SSBhbHNvIHRlc3RlZCB0aGUgbGF0ZXN0IERlYmlhbiA4LjQgdXNpbmcgQkJCIGJvYXJkcywgdGhl
+IEkyQzEgZG9lcyBub3Qgd29yayB0b28uIFRoaXMgcGF0Y2ggaXMgdGhlIHNpbXBsZXN0IHNvbHV0
+aW9uIGZvciBJMkMxL0kyQzIgaW4gbGludXgteW9jdG8tNC4xLg0KDQpwcywgeW91ciBwYXRjaCBp
+cyBhbHNvIGJyb2tlbiwgeW91IGRpZG4ndCBldmVuIG11eCB0aGUgcGlucywgc28gaTJjMSBkb2Vz
+bid0IHdvcmsgZm9yIHlvdSBhbnl3YXlzLiA7KQ0KDQpwaW5jdHJsLTAgPSA8JmkyYzJfcGlucz47
+IC0+IHBpbmN0cmwtMCA9IDwmaTJjMV9waW5zPjsNCg0KT3B0aW9uIDE6DQoNCldpdGggdGhlIGxh
+dGVzdCBCQkIgaW1hZ2Uncywgd2UgdXRpbGl6ZSAiY2FwZV91bml2ZXJzYWwiLCB0aHVzIHlvdSBj
+YW4gZW5hYmxlIEkyQzEgdmlhOg0KDQpyb290QGJlYWdsZWJvbmU6fiMgY29uZmlnLXBpbiAtbCBQ
+OS4xNw0KZGVmYXVsdCBncGlvIGdwaW9fcHUgZ3Bpb19wZCBzcGkgaTJjIHB3bQ0KDQpyb290QGJl
+YWdsZWJvbmU6fiMgY29uZmlnLXBpbiAtbCBQOS4xOA0KZGVmYXVsdCBncGlvIGdwaW9fcHUgZ3Bp
+b19wZCBzcGkgaTJjIHB3bQ0KDQpyb290QGJlYWdsZWJvbmU6fiMgY29uZmlnLXBpbiBQOS4xNyBp
+MmMNCg0Kcm9vdEBiZWFnbGVib25lOn4jIGNvbmZpZy1waW4gUDkuMTggaTJjDQoNCk9wdGlvbiAy
+LCBmb3IgdGhlIEJCLUkyQzEgb3ZlcmxheToNCg0KYWRkDQoNCmNhcGVfZW5hYmxlPWJvbmVfY2Fw
+ZW1nci5lbmFibGVfcGFydG5vPUJCLUkyQzENCg0KT3B0aW9uIDMsIHdhaXQgZm9yIFBhbnRlbGlz
+J3Mgc29sdXRpb24uLi4gOykNCg0KaHR0cDovL2NvbW1lbnRzLmdtYW5lLm9yZy9nbWFuZS5saW51
+eC5rZXJuZWwvMjIzNDY2Mg0KDQpSZWdhcmRzLA0KDQotLQ0KUm9iZXJ0IE5lbHNvbg0KaHR0cHM6
+Ly9yY24tZWUuY29tLw0K
