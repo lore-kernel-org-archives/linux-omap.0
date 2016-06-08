@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v9 07/14] usb: otg: get rid of CONFIG_USB_OTG_FSM in favour of CONFIG_USB_OTG
-Date: Wed, 8 Jun 2016 12:03:39 +0300
-Message-ID: <1465376626-30122-8-git-send-email-rogerq@ti.com>
+Subject: [PATCH v9 01/14] usb: hcd: Initialize hcd->flags to 0
+Date: Wed, 8 Jun 2016 12:03:33 +0300
+Message-ID: <1465376626-30122-2-git-send-email-rogerq@ti.com>
 References: <1465376626-30122-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,118 +12,124 @@ To: peter.chen@freescale.com
 Cc: balbi@kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Let's use CONFIG_USB_OTG as a single config option to enable
-USB OTG and the OTG FSM. This makes things a lot less confusing.
+When using the OTG/drd library we can call hcd_add/remove
+consecutively without calling usb_put_hcd/usb_create_hcd in between
+so hcd->flags can be stale.
 
-Update all users of CONFIG_USB_OTG_FSM to CONFIG_USB_OTG.
+If the HC dies due to whatever reason then without this
+patch we get the below error on next hcd_add.
+
+[   91.494257] xhci-hcd xhci-hcd.0.auto: HC died; cleaning up
+[   91.502068] hub 3-0:1.0: state 0 ports 1 chg 0000 evt 0000
+[   91.510240] xhci-hcd xhci-hcd.0.auto: xHCI Host Controller
+[   91.516940] xhci-hcd xhci-hcd.0.auto: new USB bus registered, assigned bus number 4
+[   91.529745] usb usb4: We don't know the algorithms for LPM for this host, disabling LPM.
+[   91.540637] usb usb4: New USB device found, idVendor=1d6b, idProduct=0003
+[   91.757865] irq 254: nobody cared (try booting with the "irqpoll" option)
+[   91.757880] CPU: 0 PID: 68 Comm: kworker/u2:2 Not tainted 4.1.4-00828-g1f0ed8c-dirty #44
+[   91.757885] Hardware name: Generic AM43 (Flattened Device Tree)
+[   91.757914] Workqueue: usb_otg usb_otg_work
+[   91.757921] Backtrace:
+[   91.757954] [<c0012af0>] (dump_backtrace) from [<c0012c8c>] (show_stack+0x18/0x1c)
+[   91.757972]  r6:c089d4a4 r5:ffffffff r4:00000000 r3:ee440000
+[   91.757991] [<c0012c74>] (show_stack) from [<c05f7c14>] (dump_stack+0x84/0xd0)
+[   91.758008] [<c05f7b90>] (dump_stack) from [<c0084b30>] (__report_bad_irq+0x28/0xc8)
+[   91.758024]  r7:00000000 r6:000000fe r5:00000000 r4:ee514c40
+[   91.758037] [<c0084b08>] (__report_bad_irq) from [<c00850b0>] (note_interrupt+0x24c/0x2ac)
+[   91.758052]  r6:000000fe r5:00000000 r4:ee514c40 r3:00000000
+[   91.758065] [<c0084e64>] (note_interrupt) from [<c00828fc>] (handle_irq_event_percpu+0xb0/0x158)
+[   91.758085]  r10:ee514c40 r9:c08ce49a r8:000000fe r7:00000000 r6:00000000 r5:00000000
+[   91.758094]  r4:00000000 r3:00000000
+[   91.758105] [<c008284c>] (handle_irq_event_percpu) from [<c00829e8>] (handle_irq_event+0x44/0x64)
+[   91.758126]  r10:00000001 r9:ee441ab0 r8:ee441bb8 r7:c0858b4c r6:ed174280 r5:ee514ca0
+[   91.758132]  r4:ee514c40
+[   91.758144] [<c00829a4>] (handle_irq_event) from [<c0085970>] (handle_fasteoi_irq+0x100/0x1bc)
+[   91.758159]  r6:c085dba0 r5:ee514ca0 r4:ee514c40 r3:00000000
+[   91.758171] [<c0085870>] (handle_fasteoi_irq) from [<c0082058>] (generic_handle_irq+0x28/0x38)
+[   91.758186]  r7:c0853d40 r6:c0858b4c r5:000000fe r4:000000fe
+[   91.758197] [<c0082030>] (generic_handle_irq) from [<c00821c0>] (__handle_domain_irq+0x98/0x12c)
+[   91.758207]  r4:c0853d40 r3:00000100
+[   91.758219] [<c0082128>] (__handle_domain_irq) from [<c00094e0>] (gic_handle_irq+0x28/0x68)
+[   91.758239]  r10:00000001 r9:ee441bb8 r8:fa240100 r7:c0858d70 r6:ee441ab0 r5:000000b8
+[   91.758245]  r4:fa24010c
+[   91.758264] [<c00094b8>] (gic_handle_irq) from [<c05fd540>] (__irq_svc+0x40/0x74)
+[   91.758271] Exception stack(0xee441ab0 to 0xee441af8)
+[   91.758280] 1aa0:                                     00000000 c08d2980 ee441ac0 00000000
+[   91.758292] 1ac0: 00000008 00000089 c0858b4c c0858080 00000000 ee441bb8 00000001 ee441b3c
+[   91.758301] 1ae0: 00000101 ee441af8 c02fc418 c0046a1c 20000113 ffffffff
+[   91.758321]  r8:00000000 r7:ee441ae4 r6:ffffffff r5:20000113 r4:c0046a1c r3:c02fc418
+[   91.758347] [<c00469a0>] (__do_softirq) from [<c0046eac>] (irq_exit+0xb8/0x104)
+[   91.758367]  r10:00000001 r9:ee441bb8 r8:00000000 r7:c0853d40 r6:c0858b4c r5:00000089
+[   91.758373]  r4:00000000
+[   91.758386] [<c0046df4>] (irq_exit) from [<c00821c8>] (__handle_domain_irq+0xa0/0x12c)
+[   91.758395]  r4:00000000 r3:00000100
+[   91.758406] [<c0082128>] (__handle_domain_irq) from [<c00094e0>] (gic_handle_irq+0x28/0x68)
+[   91.758426]  r10:c08e3510 r9:20000013 r8:fa240100 r7:c0858d70 r6:ee441bb8 r5:00000039
+[   91.758433]  r4:fa24010c
+[   91.758445] [<c00094b8>] (gic_handle_irq) from [<c05fd540>] (__irq_svc+0x40/0x74)
+[   91.758450] Exception stack(0xee441bb8 to 0xee441c00)
+[   91.758457] 1ba0:                                                       00000000 00000001
+[   91.758468] 1bc0: 00000000 ee440000 c08e2524 0000004d 00000274 00000000 00000000 20000013
+[   91.758479] 1be0: c08e3510 ee441c4c ee441b60 ee441c00 c03acfec c0080d4c 60000013 ffffffff
+[   91.758499]  r8:00000000 r7:ee441bec r6:ffffffff r5:60000013 r4:c0080d4c r3:c03acfec
+[   91.758524] [<c0080950>] (console_unlock) from [<c0081670>] (vprintk_emit+0x20c/0x500)
+[   91.758544]  r10:ee441cc0 r9:c08d3550 r8:c08e3ea0 r7:00000000 r6:00000001 r5:0000003d
+[   91.758551]  r4:c08d3550
+[   91.758573] [<c0081464>] (vprintk_emit) from [<c03f6f70>] (dev_vprintk_emit+0x104/0x1ac)
+[   91.758593]  r10:ee441d8c r9:0000000e r8:c07951e0 r7:00000006 r6:ee441cc0 r5:0000000d
+[   91.758599]  r4:ee731068
+[   91.758612] [<c03f6e6c>] (dev_vprintk_emit) from [<c03f7040>] (dev_printk_emit+0x28/0x30)
+[   91.758632]  r10:00000001 r9:ee5f8410 r8:ee731000 r7:ed429000 r6:00000006 r5:ee441dc0
+[   91.758638]  r4:ee731068
+[   91.758651] [<c03f701c>] (dev_printk_emit) from [<c03f7098>] (__dev_printk+0x50/0x70)
+[   91.758660]  r3:bf2268cc r2:c07951e0
+[   91.758673] [<c03f7048>] (__dev_printk) from [<c03f70f4>] (_dev_info+0x3c/0x48)
+[   91.758686]  r6:00000000 r5:ee731068 r4:ee731000
+[   91.758790] [<c03f70bc>] (_dev_info) from [<bf20ec3c>] (usb_new_device+0x11c/0x518 [usbcore])
+[   91.758804]  r3:00000003 r2:00001d6b r1:bf225bc4
+[   91.758881] [<bf20eb20>] (usb_new_device [usbcore]) from [<bf213560>] (usb_otg_add_hcd+0x514/0x7f8 [usbcore])
+[   91.758903]  r10:00000001 r9:ee5f8410 r8:ee731000 r7:000000fe r6:ed4290c8 r5:00000000
+[   91.758909]  r4:ed429000
+[   91.758957] [<bf21304c>] (usb_otg_add_hcd [usbcore]) from [<c047a238>] (usb_otg_start_host+0xb8/0xf8)
+[   91.758978]  r10:00000000 r9:00000002 r8:00000000 r7:ee02b000 r6:ee452808 r5:ee452808
+[   91.758985]  r4:ee452808
+[   91.758997] [<c047a180>] (usb_otg_start_host) from [<c047a020>] (drd_set_protocol+0xac/0xd8)
+[   91.759007]  r4:00000001 r3:c047a180
+[   91.759018] [<c0479f74>] (drd_set_protocol) from [<c047a2ec>] (drd_set_state+0x74/0x98)
+[   91.759027]  r5:ee452808 r4:00000009
+[   91.759039] [<c047a278>] (drd_set_state) from [<c047a3dc>] (usb_otg_work+0xcc/0x154)
+[   91.759054]  r6:ee452808 r5:ee4528b8 r4:ee452968 r3:00000000
+[   91.759072] [<c047a310>] (usb_otg_work) from [<c005754c>] (process_one_work+0x128/0x340)
+[   91.759087]  r6:ee02ac00 r5:ee452968 r4:ee42b900 r3:c047a310
+[   91.759100] [<c0057424>] (process_one_work) from [<c00578f8>] (worker_thread+0x158/0x49c)
+[   91.759120]  r10:ee42b900 r9:00000002 r8:ee02ac00 r7:00000088 r6:ee42b918 r5:ee02ac00
+[   91.759127]  r4:ee02ac14
+[   91.759145] [<c00577a0>] (worker_thread) from [<c005cc40>] (kthread+0xdc/0xf8)
+[   91.759165]  r10:00000000 r9:00000000 r8:00000000 r7:c00577a0 r6:ee42b900 r5:ee429940
+[   91.759174]  r4:00000000 r3:00000000
+[   91.759190] [<c005cb64>] (kthread) from [<c000fc08>] (ret_from_fork+0x14/0x2c)
+[   91.759206]  r7:00000000 r6:00000000 r5:c005cb64 r4:ee429940
+[   91.759209] handlers:
+[   91.759255] [<bf211b5c>] usb_hcd_irq [usbcore]
+[   91.759260] Disabling IRQ #254
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
-Acked-by: Peter Chen <peter.chen@nxp.com>
+Reviewed-by: Peter Chen <peter.chen@nxp.com>
 ---
- Documentation/usb/chipidea.txt | 2 +-
- drivers/usb/chipidea/Makefile  | 2 +-
- drivers/usb/chipidea/ci.h      | 2 +-
- drivers/usb/chipidea/otg_fsm.h | 2 +-
- drivers/usb/common/Makefile    | 3 ++-
- drivers/usb/core/Kconfig       | 8 --------
- drivers/usb/phy/Kconfig        | 2 +-
- 7 files changed, 7 insertions(+), 14 deletions(-)
+ drivers/usb/core/hcd.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/Documentation/usb/chipidea.txt b/Documentation/usb/chipidea.txt
-index edf7cdf..580d157 100644
---- a/Documentation/usb/chipidea.txt
-+++ b/Documentation/usb/chipidea.txt
-@@ -5,7 +5,7 @@ with 2 Freescale i.MX6Q sabre SD boards.
+diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
+index 34b837a..ae6c76d 100644
+--- a/drivers/usb/core/hcd.c
++++ b/drivers/usb/core/hcd.c
+@@ -3021,6 +3021,7 @@ void usb_remove_hcd(struct usb_hcd *hcd)
+ 	}
  
- 1.1 How to enable OTG FSM
- ---------------------------------------
--1.1.1 Select CONFIG_USB_OTG_FSM in menuconfig, rebuild kernel
-+1.1.1 Select CONFIG_USB_OTG in menuconfig, rebuild kernel
- Image and modules. If you want to check some internal
- variables for otg fsm, mount debugfs, there are 2 files
- which can show otg fsm variables and some controller registers value:
-diff --git a/drivers/usb/chipidea/Makefile b/drivers/usb/chipidea/Makefile
-index 518e445..45aa24d 100644
---- a/drivers/usb/chipidea/Makefile
-+++ b/drivers/usb/chipidea/Makefile
-@@ -3,7 +3,7 @@ obj-$(CONFIG_USB_CHIPIDEA)		+= ci_hdrc.o
- ci_hdrc-y				:= core.o otg.o debug.o
- ci_hdrc-$(CONFIG_USB_CHIPIDEA_UDC)	+= udc.o
- ci_hdrc-$(CONFIG_USB_CHIPIDEA_HOST)	+= host.o
--ci_hdrc-$(CONFIG_USB_OTG_FSM)		+= otg_fsm.o
-+ci_hdrc-$(CONFIG_USB_OTG)		+= otg_fsm.o
+ 	usb_put_invalidate_rhdev(hcd);
++	hcd->flags = 0;
+ }
+ EXPORT_SYMBOL_GPL(usb_remove_hcd);
  
- # Glue/Bridge layers go here
- 
-diff --git a/drivers/usb/chipidea/ci.h b/drivers/usb/chipidea/ci.h
-index c523975..1a32b8c 100644
---- a/drivers/usb/chipidea/ci.h
-+++ b/drivers/usb/chipidea/ci.h
-@@ -406,7 +406,7 @@ static inline u32 hw_test_and_write(struct ci_hdrc *ci, enum ci_hw_regs reg,
-  */
- static inline bool ci_otg_is_fsm_mode(struct ci_hdrc *ci)
- {
--#ifdef CONFIG_USB_OTG_FSM
-+#ifdef CONFIG_USB_OTG
- 	struct usb_otg_caps *otg_caps = &ci->platdata->ci_otg_caps;
- 
- 	return ci->is_otg && ci->roles[CI_ROLE_HOST] &&
-diff --git a/drivers/usb/chipidea/otg_fsm.h b/drivers/usb/chipidea/otg_fsm.h
-index 6366fe3..2d451bb 100644
---- a/drivers/usb/chipidea/otg_fsm.h
-+++ b/drivers/usb/chipidea/otg_fsm.h
-@@ -64,7 +64,7 @@
- 
- #define TB_AIDL_BDIS         (20)	/* 4ms ~ 150ms, section 5.2.1 */
- 
--#if IS_ENABLED(CONFIG_USB_OTG_FSM)
-+#if IS_ENABLED(CONFIG_USB_OTG)
- 
- int ci_hdrc_otg_fsm_init(struct ci_hdrc *ci);
- int ci_otg_fsm_work(struct ci_hdrc *ci);
-diff --git a/drivers/usb/common/Makefile b/drivers/usb/common/Makefile
-index 6bbb3ec..f8f2c88 100644
---- a/drivers/usb/common/Makefile
-+++ b/drivers/usb/common/Makefile
-@@ -6,5 +6,6 @@ obj-$(CONFIG_USB_COMMON)	  += usb-common.o
- usb-common-y			  += common.o
- usb-common-$(CONFIG_USB_LED_TRIG) += led.o
- 
--obj-$(CONFIG_USB_OTG_FSM) += usb-otg-fsm.o
- obj-$(CONFIG_USB_ULPI_BUS)	+= ulpi.o
-+usbotg-y		:= usb-otg-fsm.o
-+obj-$(CONFIG_USB_OTG)	+= usbotg.o
-diff --git a/drivers/usb/core/Kconfig b/drivers/usb/core/Kconfig
-index dd28010..ae228d0 100644
---- a/drivers/usb/core/Kconfig
-+++ b/drivers/usb/core/Kconfig
-@@ -75,14 +75,6 @@ config USB_OTG_BLACKLIST_HUB
- 	  and software costs by not supporting external hubs.  So
- 	  are "Embedded Hosts" that don't offer OTG support.
- 
--config USB_OTG_FSM
--	tristate "USB 2.0 OTG FSM implementation"
--	depends on USB && USB_OTG
--	select USB_PHY
--	help
--	  Implements OTG Finite State Machine as specified in On-The-Go
--	  and Embedded Host Supplement to the USB Revision 2.0 Specification.
--
- config USB_ULPI_BUS
- 	tristate "USB ULPI PHY interface support"
- 	depends on USB_SUPPORT
-diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
-index c690474..06794e2 100644
---- a/drivers/usb/phy/Kconfig
-+++ b/drivers/usb/phy/Kconfig
-@@ -20,7 +20,7 @@ config AB8500_USB
- 
- config FSL_USB2_OTG
- 	bool "Freescale USB OTG Transceiver Driver"
--	depends on USB_EHCI_FSL && USB_FSL_USB2 && USB_OTG_FSM && PM
-+	depends on USB_EHCI_FSL && USB_FSL_USB2 && USB_OTG && PM
- 	select USB_PHY
- 	help
- 	  Enable this to support Freescale USB OTG transceiver.
 -- 
 2.7.4
