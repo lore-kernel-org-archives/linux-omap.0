@@ -1,47 +1,35 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2: Enable Errata 430973 for OMAP3
-Date: Thu, 9 Jun 2016 01:03:38 -0700
-Message-ID: <20160609080337.GO22406@atomide.com>
-References: <1463700017-18527-1-git-send-email-nm@ti.com>
- <20160609071512.GK22406@atomide.com>
- <20160609075734.GA8595@earth>
+From: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
+Subject: RE: [PATCH v9 00/14] USB OTG/dual-role framework
+Date: Thu, 9 Jun 2016 10:13:17 +0000
+Message-ID: <SG2PR06MB09199D3603C45571DAD47F27D85F0@SG2PR06MB0919.apcprd06.prod.outlook.com>
+References: <1465376626-30122-1-git-send-email-rogerq@ti.com>
+ <CAL411-owotvsJVEnbFh5g8yK7YEPnnpBhYx9_tRf6NQET38L+A@mail.gmail.com>
+ <57591B2D.7080403@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160609075734.GA8595@earth>
+In-Reply-To: <57591B2D.7080403@ti.com>
+Content-Language: ja-JP
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Nishanth Menon <nm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: "balbi@kernel.org" <balbi@kernel.org>, "tony@atomide.com" <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "Joao.Pinto@synopsys.com" <Joao.Pinto@synopsys.com>, "sergei.shtylyov@cogentembedded.com" <sergei.shtylyov@cogentembedded.com>, "jun.li@freescale.com" <jun.li@freescale.com>, "grygorii.strashko@ti.com" <grygorii.strashko@ti.com>, "robh@kernel.org" <robh@kernel.org>, "nsekhar@ti.com" <nsekhar@ti.com>, "b-liu@ti.com" <b-liu@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Peter Chen <hzpeterchen@gmail.com>, Peter Chen <peter.chen@freescale.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@kernel.org> [160609 01:00]:
-> Hi,
-> 
-> On Thu, Jun 09, 2016 at 12:15:13AM -0700, Tony Lindgren wrote:
-> > * Nishanth Menon <nm@ti.com> [160519 16:23]:
-> > > Enable Erratum 430973 similar to commit 5c86c5339c56 ("ARM:
-> > > omap2plus_defconfig: Enable ARM erratum 430973 for omap3") - Since
-> > > multiple defconfigs can exist from various points of view (multi_v7,
-> > > omap2plus etc.. it is always better to enable the erratum from the
-> > > Kconfig selection point of view so that downstream kernels dont have
-> > > to rediscover this all over again.
-> > 
-> > This should safe to select now. Note that proc-v7.S still does not
-> > do anything with multiarch to configure it. So the bootloader still
-> > needs to enable it, or it needs to be done in the machine init like
-> > n900 does.
-> 
-> mh I totally forgot about 430973. I still think [0] is the
-> better solution. IIRC I never uploaded them to Russel's
-> patchsystem, though :(
-> 
-> [0] http://comments.gmane.org/gmane.linux.kernel/2002603
-
-Sure makes sense to me. Meanwhile, Nishanth's patch prevents
-hitting the same issue over and over.
-
-Regards,
-
-Tony
+SGkgUm9nZXIsDQoNCj4gRnJvbTogUm9nZXIgUXVhZHJvcw0KPiBTZW50OiBUaHVyc2RheSwgSnVu
+ZSAwOSwgMjAxNiA0OjMxIFBNDQo+IA0KPiBQZXRlciAmIFlvc2hpaGlybywNCj4gDQo+IE9uIDA5
+LzA2LzE2IDA4OjI3LCBQZXRlciBDaGVuIHdyb3RlOg0KPiA+IE9uIFdlZCwgSnVuIDgsIDIwMTYg
+YXQgNTowMyBQTSwgUm9nZXIgUXVhZHJvcyA8cm9nZXJxQHRpLmNvbT4gd3JvdGU6DQo+ID4+IEhp
+LA0KPiA+Pg0KPiA+PiBUaGlzIHNlcmllcyBjZW50cmFsaXplcyBPVEcvRHVhbC1yb2xlIGZ1bmN0
+aW9uYWxpdHkgaW4gdGhlIGtlcm5lbC4NCj4gPj4gQXMgb2Ygbm93IEkndmUgZ290IER1YWwtcm9s
+ZSBmdW5jdGlvbmFsaXR5IHdvcmtpbmcgcHJldHR5IHJlbGlhYmx5IG9uDQo+ID4+IGRyYTctZXZt
+IGFuZCBhbTQzN3gtZ3AtZXZtLg0KPiA+Pg0KPiA+PiBEV0MzIGNvbnRyb2xsZXIgYW5kIFRJIHBs
+YXRmb3JtIHJlbGF0ZWQgcGF0Y2hlcyB3aWxsIGJlIHNlbnQgc2VwYXJhdGVseS4NCj4gPj4NCj4g
+Pj4gU2VyaWVzIGlzIGJhc2VkIG9uIHY0LjctcmMxLg0KPiA+Pg0KPiA+DQo+ID4gUm9nZXIsIEkg
+d2lsbCB3YWl0IHlvdXIgZHdjMyBhbmQgVEkgcGF0Y2ggc2V0IHNpbmNlIG9uZSBmcmFtZXdvcmsg
+bmVlZHMNCj4gPiBvbmUgdXNlciBhdCBsZWFzdCwgdGhhbmtzLg0KPiANCj4gU3VyZSBJIHdpbGwg
+cG9zdCB0aGUgZHdjMyBwYXRjaC4NCj4gDQo+IFlvc2hpaGlybywNCj4gDQo+IGNvdWxkIHlvdSBw
+bGVhc2UgcG9zdCB0aGUgcGxhdGZvcm0gc2lkZSBwYXRjaGVzIGZvciB5b3VyIHBsYXRmb3JtDQo+
+IHRoYXQgZW5hYmxlcyBkdWFsLXJvbGUgdXNpbmcgdGhpcyBmcmFtZXdvcms/IFRoYW5rcy4NCg0K
+U3VyZS4gSSB3aWxsIGRvIHRoYXQuDQoNCkJlc3QgcmVnYXJkcywNCllvc2hpaGlybyBTaGltb2Rh
+DQoNCj4gLS0NCj4gY2hlZXJzLA0KPiAtcm9nZXINCg==
