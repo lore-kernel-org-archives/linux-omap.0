@@ -1,54 +1,59 @@
-From: Bin Liu <b-liu@ti.com>
+From: joerg Reisenweber <joerg-4Bgg8jF3iZdg9hUCZPvPmw@public.gmane.org>
 Subject: Re: Nokia N900: musb is in wrong state after boot
-Date: Thu, 9 Jun 2016 16:09:48 -0500
-Message-ID: <20160609210920.GD2167@uda0271908>
-References: <201601091616.04193@pali>
- <3690314.8jDXSUDcRZ@saturn>
- <20160121192113.GM19432@atomide.com>
- <201601231357.32629@pali>
- <20160529103824.GM29844@pali>
- <20160607125044.GI29844@pali>
- <20160608095321.GH22406@atomide.com>
- <87h9d49exz.fsf@linux.intel.com>
+Date: Thu, 09 Jun 2016 23:25:57 +0200
+Message-ID: <2981817.IalgiMo2nt@saturn>
+References: <201601091616.04193@pali> <20160529103824.GM29844@pali> <20160609205856.GC2167@uda0271908>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <87h9d49exz.fsf@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@linux.intel.com>
-Cc: Tony Lindgren <tony@atomide.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, joerg Reisenweber <joerg@openmoko.org>, Felipe Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>
+Content-Type: multipart/signed; boundary="nextPart2859883.aqbkaVg23F"; micalg="pgp-sha1"; protocol="application/pgp-signature"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160609205856.GC2167@uda0271908>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Cc: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
 
-On Wed, Jun 08, 2016 at 01:02:00PM +0300, Felipe Balbi wrote:
->=20
-> Hi,
->=20
-> Tony Lindgren <tony@atomide.com> writes:
-> > * Pali Roh=E1r <pali.rohar@gmail.com> [160607 05:53]:
-> >> > Tony, what do you think about that patch?
-> >> >=20
-> >>=20
-> >> Tony, PING
-> >
-> > Yeah I don't know, AFAIK we don't have a generic way to
-> > force MUSB to change mode without ID pin. If you have figured
-> > something generic for that which does not actually tinker with
-> > the PHY registers directly, that should be the generic
-> > musb_set_mode() that we've been wondering about for years.
->=20
-> #define MUSB_TEST_FORCE_HOST	0x80
->=20
-> Can someone confirm on MUSB's docs (and actual running system) that t=
-his
-> does what's supposed to do?
+--nextPart2859883.aqbkaVg23F
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
 
-I don't know what to expect while setting this bit. I am never able to =
-get musb
-to enumerate anything or does anything which a host suppose to do.
+On Thu 09 June 2016 15:58:56 Bin Liu wrote:
+> But I am not sure how this will fix n900 host mode problem, since
+> testmode is not used in normal operation.
 
-Regards,
--Bin.
+Please see http://talk.maemo.org/showthread.php?p=3D685367 and=20
+http://maemo.org/packages/view/hostmode-gui/ which indeed is _no_ norma=
+l=20
+hostmode but an implementation of a workaround that exploits the force =
+host=20
+test mode (among others)
+
+/jOERG
+=2D-=20
+()  ascii ribbon campaign
+/\ =20
+against html e-mail - against proprietary attachments
+http://www.georgedillon.com/web/html_email_is_evil.shtml         =20
+http://www.nonhtmlmail.org/campaign.html
+http://www.georgedillon.com/web/html_email_is_evil_still.shtml   =20
+http://www.gerstbach.at/2004/ascii/ (German)
+
+--nextPart2859883.aqbkaVg23F
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iEYEABECAAYFAldZ3ukACgkQ7Xtwhpk1UgwV+ACfS8Ubyz5clYpRAMit2GudRxcC
+oqwAoIU2wh25mRZQEEC+bXO5l3FhXUgg
+=4ic9
+-----END PGP SIGNATURE-----
+
+--nextPart2859883.aqbkaVg23F--
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
