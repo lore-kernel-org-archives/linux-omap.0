@@ -1,137 +1,276 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH v2 0/2] net: ethernet: ti: cpsw: delete rx_descs property
-Date: Thu, 9 Jun 2016 03:03:02 +0300
-Message-ID: <5758B236.5000401@linaro.org>
-References: <1465307976-12235-1-git-send-email-ivan.khoronzhuk@linaro.org>
- <5756E7A8.6090703@ti.com> <57582535.5020608@linaro.org>
- <57582650.5010409@linaro.org> <5758A625.3090707@ti.com>
+From: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v9 00/14] USB OTG/dual-role framework
+Date: Thu, 9 Jun 2016 13:27:25 +0800
+Message-ID: <CAL411-owotvsJVEnbFh5g8yK7YEPnnpBhYx9_tRf6NQET38L+A@mail.gmail.com>
+References: <1465376626-30122-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5758A625.3090707@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Schuyler Patton <spatton@ti.com>, mugunthanvnm@ti.com, linux-kernel@vger.kernel.org
-Cc: grygorii.strashko@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, devicetree@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1465376626-30122-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: Peter Chen <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 09.06.16 02:11, Schuyler Patton wrote:
+On Wed, Jun 8, 2016 at 5:03 PM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
+> Hi,
 >
+> This series centralizes OTG/Dual-role functionality in the kernel.
+> As of now I've got Dual-role functionality working pretty reliably on
+> dra7-evm and am437x-gp-evm.
 >
-> On 06/08/2016 09:06 AM, Ivan Khoronzhuk wrote:
->>
->>
->> On 08.06.16 17:01, Ivan Khoronzhuk wrote:
->>> Hi Schuyer,
->>>
->>> On 07.06.16 18:26, Schuyler Patton wrote:
->>>> Hi,
->>>>
->>>> On 06/07/2016 08:59 AM, Ivan Khoronzhuk wrote:
->>>>> There is no reason in rx_descs property because davinici_cpdma
->>>>> driver splits pool of descriptors equally between tx and rx channels.
->>>>> So, this patch series makes driver to use available number of
->>>>> descriptors for rx channels.
->>>>
->>>> I agree with the idea of consolidating how the descriptors are defined because of
->>>> the two variable components, number and size of the pool can be confusing to
->>>> end users. I would like to request to change how it is being proposed here.
->>>>
->>>> I think the number of descriptors should be left in the device tree source file as
->>>> is and remove the BD size variable and have the driver calculate the size of the
->>>> pool necessary to support the descriptor request. From an user perspective it is
->>>> easier I think to be able to list the number of descriptors necessary vs. the size
->>>> of the pool.
->>>>
->>>> Since the patch series points out how it is used so in the driver so to make that
->>>> consistent is perhaps change rx_descs to total_descs.
->>>>
->>>> Regards,
->>>> Schuyler
->>>
->>> The DT entry for cpsw doesn't have property for size of the pool.
->>> It contains only BD ram size, if you mean this. The size of the pool is
->>> software decision. Current version of DT entry contain only rx desc number.
->>> That is not correct, as it depends on the size of the descriptor, which is also
->>> h/w parameter. The DT entry has to describe only h/w part and shouldn't contain
->>> driver implementation details, and I'm looking on it from this perspective.
->>>
->>> Besides, rx_descs describes only rx number of descriptors, that are taken from
->>> the same pool as tx descriptors, and setting rx desc to some new value doesn't
->>> mean that rest of them are freed for tx. Also, I'm going to send series that
->>> adds multi channel support to the driver, and in this case, splitting of the
->>> pool will be more sophisticated than now, after what setting those parameters
->>> for user (he should do this via device tree) can be even more confusing. But,
->> should -> shouldn't
->>
->>> as it's supposed, it's software decision that shouldn't leak to the DT.
+> DWC3 controller and TI platform related patches will be sent separately.
 >
-> If this rx-desc field is removed how will the number of descriptors be set?
->
-> This field has been used to increase the number of descriptors so high
-> volume short packets are not dropped due to descriptor exhaustion. The current
-> default number of 64 rx descriptors is too low for gigabit networks. Some users
-> have a strong requirement for zero loss of UDP packets setting this field to a
-> larger number and setting the descriptors off-chip was a means to solve
-> the problem.
-The current implementation of cpdma driver splits descs num on 2 parts equally.
-Total number = 256, then 128 reserved for rx and 128 for tx, but setting this to
-64, simply limits usage of reserved rx descriptors to 64, so that:
-64 rx descs, 128 tx descs and 64 are always present in the pool but cannot be used,
-(as new rx descriptor is allocated only after previous was freed).
-That means, 64 rx descs are unused. In case of rx descriptor exhaustion, an user can
-set rx_descs to 128, for instance, in this case all descriptors will be in use, but then question,
-why intentionally limit number of rx descs, anyway rest 64 descs cannot be used for other
-purposes. In case of this patch, all rx descs are in use, and no need to correct number
-of rx descs anymore, use all of them....and it doesn't have impact on performance, as
-anyway, bunch of rx descs were simply limited by DT and unused. So, probably, there is no
-reason to worry about that.
-
-PS:
-It doesn't concern this patch, but, which PPS makes rx descs to be exhausted?...
-(In this case "desc_alloc_fail" counter contains some value for rx channel,
-and can be read with "ethtool -S eth0". Also, the user will be WARNed ON by the driver)
-
-it's interesting to test it, I'm worrying about, because in case of multichannel,
-the pool is split between all channels... they are throughput limited, but
-anyway, it's good to correlate the number of descs with throughput assigned to
-a channel, if possible. That has to be possible, if setting to 128 helps, then
-has to be value between 64 and 128 to make handling of rx packets fast enough.
-After what, can be calculated correlation between number of rx descs and throughput
-split between channels....
-
->
->>>
->>>
->>>>>
->>>>> Based on master branch
->>>>>
->>>>> Since v1:
->>>>> - separate device tree and driver patches
->>>>> - return number of rx buffers from cpdma driver
->>>>>
->>>>> Ivan Khoronzhuk (2):
->>>>>    net: ethernet: ti: cpsw: remove rx_descs property
->>>>>    Documentation: DT: cpsw: remove rx_descs property
->>>>>
->>>>>   Documentation/devicetree/bindings/net/cpsw.txt |  1 -
->>>>>   arch/arm/boot/dts/am33xx.dtsi                  |  1 -
->>>>>   arch/arm/boot/dts/am4372.dtsi                  |  1 -
->>>>>   arch/arm/boot/dts/dm814x.dtsi                  |  1 -
->>>>>   arch/arm/boot/dts/dra7.dtsi                    |  1 -
->>>>>   drivers/net/ethernet/ti/cpsw.c                 | 13 +++----------
->>>>>   drivers/net/ethernet/ti/cpsw.h                 |  1 -
->>>>>   drivers/net/ethernet/ti/davinci_cpdma.c        |  6 ++++++
->>>>>   drivers/net/ethernet/ti/davinci_cpdma.h        |  1 +
->>>>>   9 files changed, 10 insertions(+), 16 deletions(-)
->>>>>
->>>>
->>>
->>
+> Series is based on v4.7-rc1.
 >
 
--- 
-Regards,
-Ivan Khoronzhuk
+Roger, I will wait your dwc3 and TI patch set since one framework needs
+one user at least, thanks.
+
+Peter
+> Why?:
+> ----
+>
+> Currently there is no central location where OTG/dual-role functionality is
+> implemented in the Linux USB stack and every USB controller driver is
+> doing their own thing for OTG/dual-role. We can benefit from code-reuse
+> and simplicity by adding the OTG/dual-role core driver.
+>
+> Newer OTG cores support standard host interface (e.g. xHCI) so
+> host and gadget functionality are no longer closely knit like older
+> cores. There needs to be a way to co-ordinate the operation of the
+> host and gadget controllers in dual-role mode. i.e. to stop and start them
+> from a central location. This central location should be the
+> USB OTG/dual-role core.
+>
+> Host and gadget controllers might be sharing resources and can't
+> be always running. One has to be stopped for the other to run.
+> This couldn't be done till now but can be done from the OTG core.
+>
+> What?:
+> -----
+>
+> The OTG/dual-role core consists of a set of APIs that allow
+> registration of OTG controller device and OTG capable host and gadget
+> controllers.
+>
+> - The OTG controller driver can provide the OTG capabilities and the
+> Finite State Machine work function via 'struct usb_otg_config'
+> at the time of registration i.e. usb_otg_register();
+>
+>         struct usb_otg *usb_otg_register(struct device *dev,
+>                                          struct usb_otg_config *config);
+>         int usb_otg_unregister(struct device *dev);
+>         /**
+>          * struct usb_otg_config - otg controller configuration
+>          * @caps: otg capabilities of the controller
+>          * @ops: otg fsm operations
+>          * @otg_work: optional custom otg state machine work function
+>          */
+>         struct usb_otg_config {
+>                 struct usb_otg_caps *otg_caps;
+>                 struct otg_fsm_ops *fsm_ops;
+>                 void (*otg_work)(struct work_struct *work);
+>         };
+>
+> The dual-role state machine is built-into the OTG core so nothing
+> special needs to be provided if only dual-role functionality is desired.
+> The low level OTG controller driver ops are povided via
+> 'struct otg_fsm_ops *fsm_ops' in the 'struct usb_otg_config'.
+>
+> After registration, the OTG core waits for host, gadget controller
+> and the gadget function driver to be registered. Once all resources are
+> available it instantiates the Finite State Machine (FSM).
+> The host/gadget controllers are started/stopped according to the FSM.
+>
+> - Host and gadget controllers that are a part of OTG/dual-role port must
+> use the OTG core provided APIs to add/remove the host/gadget.
+> i.e. hosts must use usb_otg_add_hcd() usb_otg_remove_hcd(),,
+> gadgets must use usb_otg_add_gadget_udc() usb_del_gadget_udc().
+> This ensures that the host and gadget controllers are not started till
+> the state machine is ready and the right bus conditions are met.
+> It also allows the host and gadget controllers to provide the OTG
+> controller device to link them together. For Device tree boots
+> the related OTG controller is automatically picked up via the
+> 'otg-controller' property in the Host/Gadget controller nodes.
+>
+>         int usb_otg_add_hcd(struct usb_hcd *hcd,
+>                             unsigned int irqnum, unsigned long irqflags,
+>                             struct device *otg_dev);
+>         void usb_otg_remove_hcd(struct usb_hcd *hcd);
+>
+>         int usb_otg_add_gadget_udc(struct device *parent,
+>                                    struct usb_gadget *gadget,
+>                                    struct device *otg_dev);
+>         usb_del_gadget_udc() must be used for removal.
+>
+>
+> - During the lifetime of the FSM, the OTG controller driver can provide
+> inputs event changes using usb_otg_sync_inputs(). The OTG core will
+> then schedule the FSM work function (or internal dual-role state machine)
+> to update the FSM state. The FSM then calls the OTG controller
+> operations (fsm_ops) as necessary.
+>         void usb_otg_sync_inputs(struct usb_otg *otg);
+>
+> - The following 2 functions are provided as helpers for use by the
+> OTG controller driver to start/stop the host/gadget controllers.
+>         int usb_otg_start_host(struct usb_otg *otg, int on);
+>         int usb_otg_start_gadget(struct usb_otg *otg, int on);
+>
+> - The following function is provided for use by the USB host stack
+> to sync OTG related events to the OTG state machine.
+> e.g. change in host_bus->b_hnp_enable, gadget->b_hnp_enable
+>         int usb_otg_kick_fsm(struct device *otg_device);
+>
+> - The following function is provided for use by the USB gadget stack
+> to notify OTG/DRD about gadget function driver being ready/not-ready
+>         int usb_otg_gadget_ready(struct usb_gadget *gadget, bool ready)
+>
+> Changelog:
+> ---------
+> v9:
+> - In the DT bindings, clearly indicate which properties are for OTG controller
+> and which ones are for host/device controllers
+> - Removed host/gadget wait list from otg core. Use defer probing if host/gadget
+> registers before dual-role/otg controller.
+> - move gadget registering to otg core from udc_bind_to_driver()/usb_gadget_remove_driver()
+> to usb_add_gadget_udc_release()/usb_del_gadget_udc(). This means that we need
+> an additional mechanism to know when the gadget function driver registers.
+> So we add usb_otg_gadget_ready() API to allow gadget to notify otg core about
+> ready/not-ready function driver.
+> - update otg->caps based on capabilities provided by the controller and the
+> device tree overrides.
+> - in usb_drd_work() we must keep calling the drd_statemachine() as long as
+> there is a state change.
+> - updated kconfig so that usbotg can be a module when both host and gadget
+> are modules.
+> - rebased on v4.7-rc1
+>
+> v8:
+> - split out start/stop gadget and connect/disconnect operations.
+> - make CONFIG_OTG dpend on CONFIG_USB_GADGET as well apart from CONFIG_USB
+> - use create_freezable_workqueue() for OTG work as per Peter's suggestion.
+> - remove usb-otg.h as we're not initializing any OTG timers.
+> - don't include unnecessary headers in usb-otg.c (i.e. hrtimer.h & ktime.h)
+>
+> v7:
+> - added dual-role support for host controllers requiring a companion
+> controller. e.g. EHCI + OHCI.
+> - added of_usb_get_otg() to get the OTG controller device
+> from the USB controller's device node.
+> - addressed review comments.
+>
+> v6:
+> - added otg specific APIs for host/gadget registration. behaviour of
+> original host/gadget API remains unchanged. Platform devices can now
+> pass the otg device explicitly while registering host/gadget.
+> - moved hcd specific operations from struct otg_fsm to struct hcd_ops.
+> - made struct usb_otg mandatory for all otg related APIs.
+> - allow otg controller to provide it's own otg_work function so that
+> it can implement it's own state machine.
+> - removed otg fsm and timers from usb-otg.c. Only dual-role state machine
+> is implemented.
+> - vbus is controlled in the dual-role state machine.
+> - PM runtime is used around drd_statemachine().
+> - added otg_dev to xhci platform data to allow platform code to specify
+> the otg controller tied to the xhci host controller.
+>
+> v5: Internal version. Not sent to mailing list
+>
+> v4:
+> - Added DT support for tying otg-controller to host and gadget
+>  controllers. For DT we no longer have the constraint that
+>  OTG controller needs to be parent of host and gadget. They can be
+>  tied together using the "otg-controller" property.
+> - Relax the requirement for DT case that otg controller must register
+>  before host/gadget. We maintain a wait list of host/gadget devices
+>  waiting on the otg controller.
+> - Use a single struct usb_otg for otg data.
+> - Don't override host/gadget start/stop APIs. Let the controller
+>  drivers do what they want as they know best. Helper API is provided
+>  for controller start/stop that controller driver can use.
+> - Introduce struct usb_otg_config to pass the otg capabilities,
+>  otg ops and otg timer timeouts during otg controller registration.
+> - rebased on Greg's usb.git/usb-next
+>
+> v3:
+> - all otg related definations now in otg.h
+> - single kernel config USB_OTG to enable OTG core and FSM.
+> - resolved symbol dependency issues.
+> - use dev_vdbg instead of VDBG() in usb-otg-fsm.c
+> - rebased on v4.2-rc1
+>
+> v2:
+> - Use add/remove_hcd() instead of start/stop_hcd() to enable/disable
+>  the host controller
+> - added dual-role-device (DRD) state machine which is a much simpler
+>  mode of operation when compared to OTG. Here we don't support fancy
+>  OTG features like HNP, SRP, on the fly role-swap. The mode of operation
+>  is determined based on ID pin (cable type) and the role doesn't change
+>  till the cable type changes.
+>
+> --
+> cheers,
+> -roger
+>
+> Roger Quadros (13):
+>   usb: hcd: Initialize hcd->flags to 0
+>   usb: otg-fsm: Prevent build warning "VDBG" redefined
+>   usb: hcd.h: Add OTG to HCD interface
+>   usb: otg-fsm: use usb_otg wherever possible
+>   usb: otg-fsm: move host controller operations into usb_otg->hcd_ops
+>   usb: gadget.h: Add OTG to gadget interface
+>   usb: otg: get rid of CONFIG_USB_OTG_FSM in favour of CONFIG_USB_OTG
+>   usb: otg: add OTG/dual-role core
+>   usb: of: add an API to get OTG device from USB controller node
+>   usb: otg: use dev_dbg() instead of VDBG()
+>   usb: hcd: Adapt to OTG core
+>   usb: gadget: udc: adapt to OTG core
+>   usb: host: xhci-plat: Add otg device to platform data
+>
+> Yoshihiro Shimoda (1):
+>   usb: otg: add hcd companion support
+>
+>  Documentation/devicetree/bindings/usb/generic.txt |   6 +
+>  Documentation/usb/chipidea.txt                    |   2 +-
+>  drivers/usb/Kconfig                               |  18 +
+>  drivers/usb/Makefile                              |   1 +
+>  drivers/usb/chipidea/Makefile                     |   2 +-
+>  drivers/usb/chipidea/ci.h                         |   3 +-
+>  drivers/usb/chipidea/core.c                       |  14 +-
+>  drivers/usb/chipidea/debug.c                      |   2 +-
+>  drivers/usb/chipidea/otg_fsm.c                    | 176 ++---
+>  drivers/usb/chipidea/otg_fsm.h                    |   2 +-
+>  drivers/usb/chipidea/udc.c                        |  17 +-
+>  drivers/usb/common/Makefile                       |   5 +-
+>  drivers/usb/common/common.c                       |  27 +
+>  drivers/usb/common/usb-otg-fsm.c                  | 203 +++---
+>  drivers/usb/common/usb-otg.c                      | 846 ++++++++++++++++++++++
+>  drivers/usb/core/Kconfig                          |  22 -
+>  drivers/usb/core/hcd.c                            |  56 ++
+>  drivers/usb/gadget/Kconfig                        |   1 +
+>  drivers/usb/gadget/udc/udc-core.c                 | 202 +++++-
+>  drivers/usb/host/xhci-plat.c                      |  35 +-
+>  drivers/usb/phy/Kconfig                           |   2 +-
+>  drivers/usb/phy/phy-fsl-usb.c                     | 155 ++--
+>  drivers/usb/phy/phy-fsl-usb.h                     |   3 +-
+>  include/linux/usb/gadget.h                        |  22 +
+>  include/linux/usb/hcd.h                           |  29 +
+>  include/linux/usb/of.h                            |   9 +
+>  include/linux/usb/otg-fsm.h                       | 154 +---
+>  include/linux/usb/otg.h                           | 293 +++++++-
+>  include/linux/usb/xhci_pdriver.h                  |   3 +
+>  29 files changed, 1848 insertions(+), 462 deletions(-)
+>  create mode 100644 drivers/usb/common/usb-otg.c
+>
+> --
+> 2.7.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
