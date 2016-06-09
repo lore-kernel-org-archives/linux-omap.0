@@ -1,94 +1,84 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v10 11/14] usb: otg: use dev_dbg() instead of VDBG()
-Date: Thu, 9 Jun 2016 10:55:05 +0300
-Message-ID: <575920D9.7080905@ti.com>
-References: <1465376626-30122-1-git-send-email-rogerq@ti.com>
- <1465376626-30122-12-git-send-email-rogerq@ti.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH] ARM: OMAP2: Enable Errata 430973 for OMAP3
+Date: Thu, 9 Jun 2016 09:57:34 +0200
+Message-ID: <20160609075734.GA8595@earth>
+References: <1463700017-18527-1-git-send-email-nm@ti.com>
+ <20160609071512.GK22406@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1465376626-30122-12-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-Cc: balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="X1bOJ3K7DJ5YkBrT"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160609071512.GK22406@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Now that we have a device reference in struct usb_otg
-let's use dev_vdbg() for debug messages instead of VDBG().
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Acked-by: Peter Chen <peter.chen-3arQi8VN3Tc@public.gmane.org>
----
-v10:
-- in the commit message say dev_vdbg() instead of dev_dbg()
+--X1bOJ3K7DJ5YkBrT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
- drivers/usb/common/usb-otg-fsm.c | 19 +++++++------------
- 1 file changed, 7 insertions(+), 12 deletions(-)
+Hi,
 
-diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
-index 482d4c9..e6e58c2 100644
---- a/drivers/usb/common/usb-otg-fsm.c
-+++ b/drivers/usb/common/usb-otg-fsm.c
-@@ -30,13 +30,6 @@
- #include <linux/usb/otg.h>
- #include <linux/usb/otg-fsm.h>
- 
--#ifdef VERBOSE
--#define VDBG(fmt, args...) pr_debug("[%s]  " fmt, \
--				 __func__, ## args)
--#else
--#define VDBG(stuff...)	do {} while (0)
--#endif
--
- /* Change USB protocol when there is a protocol change */
- static int otg_set_protocol(struct otg_fsm *fsm, int protocol)
- {
-@@ -44,8 +37,9 @@ static int otg_set_protocol(struct otg_fsm *fsm, int protocol)
- 	int ret = 0;
- 
- 	if (fsm->protocol != protocol) {
--		VDBG("Changing role fsm->protocol= %d; new protocol= %d\n",
--			fsm->protocol, protocol);
-+		dev_vdbg(otg->dev,
-+			 "Changing role fsm->protocol= %d; new protocol= %d\n",
-+			 fsm->protocol, protocol);
- 		/* stop old protocol */
- 		if (fsm->protocol == PROTO_HOST)
- 			ret = otg_start_host(otg, 0);
-@@ -226,7 +220,7 @@ static int otg_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
- 
- 	if (otg->state == new_state)
- 		return 0;
--	VDBG("Set state: %s\n", usb_otg_state_string(new_state));
-+	dev_vdbg(otg->dev, "Set state: %s\n", usb_otg_state_string(new_state));
- 	otg_leave_state(fsm, otg->state);
- 	switch (new_state) {
- 	case OTG_STATE_B_IDLE:
-@@ -358,7 +352,7 @@ int otg_statemachine(struct usb_otg *otg)
- 
- 	switch (state) {
- 	case OTG_STATE_UNDEFINED:
--		VDBG("fsm->id = %d\n", fsm->id);
-+		dev_vdbg(otg->dev, "fsm->id = %d\n", fsm->id);
- 		if (fsm->id)
- 			otg_set_state(fsm, OTG_STATE_B_IDLE);
- 		else
-@@ -466,7 +460,8 @@ int otg_statemachine(struct usb_otg *otg)
- 	}
- 	mutex_unlock(&fsm->lock);
- 
--	VDBG("quit statemachine, changed = %d\n", fsm->state_changed);
-+	dev_vdbg(otg->dev, "quit statemachine, changed = %d\n",
-+		 fsm->state_changed);
- 	return fsm->state_changed;
- }
- EXPORT_SYMBOL_GPL(otg_statemachine);
--- 
-2.7.4
+On Thu, Jun 09, 2016 at 12:15:13AM -0700, Tony Lindgren wrote:
+> * Nishanth Menon <nm@ti.com> [160519 16:23]:
+> > Enable Erratum 430973 similar to commit 5c86c5339c56 ("ARM:
+> > omap2plus_defconfig: Enable ARM erratum 430973 for omap3") - Since
+> > multiple defconfigs can exist from various points of view (multi_v7,
+> > omap2plus etc.. it is always better to enable the erratum from the
+> > Kconfig selection point of view so that downstream kernels dont have
+> > to rediscover this all over again.
+>=20
+> This should safe to select now. Note that proc-v7.S still does not
+> do anything with multiarch to configure it. So the bootloader still
+> needs to enable it, or it needs to be done in the machine init like
+> n900 does.
 
+mh I totally forgot about 430973. I still think [0] is the
+better solution. IIRC I never uploaded them to Russel's
+patchsystem, though :(
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[0] http://comments.gmane.org/gmane.linux.kernel/2002603
+
+> So applying into omap-for-v4.7/fixes as it can solve some mysterious
+> app crashers with armhf at least.
+
+Only on N900 though:
+
+$ git grep ARM_ERRATA_430973
+arch/arm/Kconfig:config ARM_ERRATA_430973
+arch/arm/configs/axm55xx_defconfig:CONFIG_ARM_ERRATA_430973=3Dy
+arch/arm/configs/omap2plus_defconfig:CONFIG_ARM_ERRATA_430973=3Dy
+arch/arm/mach-omap2/board-rx51.c:#ifdef CONFIG_ARM_ERRATA_430973
+arch/arm/mach-omap2/pdata-quirks.c: if (IS_ENABLED(CONFIG_ARM_ERRATA_430973=
+)) {
+arch/arm/mm/proc-v7.S:#if defined(CONFIG_ARM_ERRATA_430973) && !defined(CON=
+FIG_ARCH_MULTIPLATFORM)
+
+-- Sebastian
+
+--X1bOJ3K7DJ5YkBrT
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJXWSFsAAoJENju1/PIO/qaZykP/0jOpMigWbGQphR+VQ7QXp9m
++nWAc0d3DsR7jYOkpXpBQP4TzpiYbqu6AXWeXyDiEYRbxxwyR3VMGsB10GNhDKR8
+jKxsxDTtLpj86Hk8ZuOIbHJPkb/dK+QS4wp250N+89s/ZvgsmM5xbeH/FKYSEmvg
+csIdyfVh5D19Z0H8EYGfGADzBEDxV5uwveC4qFf82ndDaIgxnVF6dgBs+5oI3aC0
+6Sl3QNUX/5iaGnLll3TaRqLnfJS8/nVqYAMA10gO7ZPyEnVaGxluCPLpLvV6D3ui
+Z+cnuJy8duo6t13IR42ZDBiRsqDWTtJWMHr1GWhZmQB9pefHOTtH1tdQMEySOz1i
+fWDYx/95cBSoSCtBwJTfPBddnBOSd79c3pGSgUh8b0cOQSy+Abg8DchyKD+DUKMb
+cAYo9fj+9VhoAbspkBtrPpcvbF34r7w3+CGa/sOmRbkjvBNIJTZUl2gbrbPT/Y0Y
+grRWBZd40LFeLuzcdPf1A7PdBz8ivIUtVa1SXHQelD7sQ2CjQA1BshZ+4ZiNKHMw
+pgdqaJH53rb29hucgYV44VeppnCOh5jqHDWOabPvPMWjOS2o93yCPJWrm4/TUWxx
+L/6aLR/bqHfmoMWQmm/ZBIf/H1Zm+3ROKKtfyz+lzXnTOcFD7Yd9VCo+PAuSUrrC
+WUARLGCgN2tlxg4I/ZEh
+=2u/+
+-----END PGP SIGNATURE-----
+
+--X1bOJ3K7DJ5YkBrT--
