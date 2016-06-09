@@ -1,48 +1,74 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v9 11/14] usb: otg: use dev_dbg() instead of VDBG()
-Date: Thu, 9 Jun 2016 10:25:39 +0300
-Message-ID: <575919F3.7020807@ti.com>
+Subject: Re: [PATCH v9 12/14] usb: hcd: Adapt to OTG core
+Date: Thu, 9 Jun 2016 10:27:40 +0300
+Message-ID: <57591A6C.4050304@ti.com>
 References: <1465376626-30122-1-git-send-email-rogerq@ti.com>
- <1465376626-30122-12-git-send-email-rogerq@ti.com>
- <1465398640.25087.50.camel@perches.com>
+ <1465376626-30122-13-git-send-email-rogerq@ti.com>
+ <22442eeb-e927-d7ac-52c6-3aebd2106837@cogentembedded.com>
+ <57580A2D.8060308@ti.com>
+ <21edbb67-8219-14ac-5c33-cabfd62d5fa1@cogentembedded.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1465398640.25087.50.camel-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <21edbb67-8219-14ac-5c33-cabfd62d5fa1-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org
-Cc: balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org
+Cc: balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/06/16 18:10, Joe Perches wrote:
-> On Wed, 2016-06-08 at 12:03 +0300, Roger Quadros wrote:
->> Now that we have a device reference in struct usb_otg
->> let's use dev_dbg() for debug messages.
+On 08/06/16 15:11, Sergei Shtylyov wrote:
+> On 6/8/2016 3:06 PM, Roger Quadros wrote:
 > 
-> dev_vdbg vs dev_dbg
+>>>> Introduce usb_otg_add/remove_hcd() for use by host
+>>>> controllers that are part of OTG/dual-role port.
+>>>>
+>>>> Non Device tree platforms can use the otg_dev argument
+>>>> to specify the OTG controller device. If otg_dev is NULL
+>>>> then the device tree node's otg-controller property is used to
+>>>> get the otg_dev device.
+>>>>
+>>>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>>>> Acked-by: Peter Chen <peter.chen-3arQi8VN3Tc@public.gmane.org>
+>>>> ---
+>>>>  drivers/usb/core/hcd.c  | 55 +++++++++++++++++++++++++++++++++++++++++++++++++
+>>>>  include/linux/usb/hcd.h |  4 ++++
+>>>>  2 files changed, 59 insertions(+)
+>>>>
+>>>> diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
+>>>> index ae6c76d..c6f4155 100644
+>>>> --- a/drivers/usb/core/hcd.c
+>>>> +++ b/drivers/usb/core/hcd.c
+>>> [...]
+>>>> @@ -3025,6 +3030,56 @@ void usb_remove_hcd(struct usb_hcd *hcd)
+>>>>  }
+>>>>  EXPORT_SYMBOL_GPL(usb_remove_hcd);
+>>>>
+>>>> +static struct otg_hcd_ops otg_hcd_intf = {
+>>>> +    .add = usb_add_hcd,
+>>>> +    .remove = usb_remove_hcd,
+>>>> +    .usb_bus_start_enum = usb_bus_start_enum,
+>>>> +    .usb_control_msg = usb_control_msg,
+>>>> +    .usb_hub_find_child = usb_hub_find_child,
+>>>> +};
+>>>> +
+>>>> +/**
+>>>> + * usb_otg_add_hcd - Register the HCD with OTG core.
+>>>> + * @hcd: the usb_hcd structure to initialize
+>>>> + * @irqnum: Interrupt line to allocate
+>>>> + * @irqflags: Interrupt type flags
+>>>> + * @otg_dev: OTG controller device managing this HCD
+>>>
+>>>    Device managing a driver? That's interesting. :-)
+>>
+>> Well it is the OTG controller instance really.
+>> How else do you want me to write it?
 > 
-> The patch subject and commit message don't match the code changes.
+>   Just HC again? Or maybe HCI (HC interface)?
 
-Indeed. Will fix it. Thanks.
+In my entire series HCD has always meant Host Controller Device.
+I think I'll leave it the way it is.
 
-> 
->> diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
-> []
->> @@ -44,8 +37,9 @@ static int otg_set_protocol(struct otg_fsm *fsm, int protocol)
->>  	int ret = 0;
->>  
->>  	if (fsm->protocol != protocol) {
->> -		VDBG("Changing role fsm->protocol= %d; new protocol= %d\n",
->> -			fsm->protocol, protocol);
->> +		dev_vdbg(otg->dev,
->> +			 "Changing role fsm->protocol= %d; new protocol= %d\n",
->> +			 fsm->protocol, protocol);
-> 
-> etc...
-> 
-
---
 cheers,
 -roger
 --
