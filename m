@@ -1,7 +1,7 @@
 From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH 2/6] ARM: multi_v7_defconfig: Enable OMAP GPMC
-Date: Thu,  9 Jun 2016 12:02:53 -0500
-Message-ID: <1465491777-20033-3-git-send-email-fcooper@ti.com>
+Subject: [PATCH 5/6] memory: omap-gpmc: Enable omap-gpmc by default when dependency is met
+Date: Thu,  9 Jun 2016 12:02:56 -0500
+Message-ID: <1465491777-20033-6-git-send-email-fcooper@ti.com>
 References: <1465491777-20033-1-git-send-email-fcooper@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1465491777-20033-1-git-send-email-fcooper@ti.com>
@@ -10,26 +10,27 @@ To: tony@atomide.com, boris.brezillon@free-electrons.com, computersforpeace@gmai
 Cc: Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-OMAP_GPMC will soon not be forcibly enabled by ARCH_OMAP2PLUS. It needs
-to be manually selected by the config. Enable it by default so features
-like NAND boot will work.
+When dependencies are met enable OMAP GPMC by default. Later patches will
+prevent OMAP GPMC from being automatically selected by mach-omap2 Kconfig.
+Therefore, this will sure after that change the current behavior is still
+maintained when dependencies are met.
 
 Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
 ---
- arch/arm/configs/multi_v7_defconfig | 1 +
+ drivers/memory/Kconfig | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
-index 8f85756..782d963 100644
---- a/arch/arm/configs/multi_v7_defconfig
-+++ b/arch/arm/configs/multi_v7_defconfig
-@@ -181,6 +181,7 @@ CONFIG_CMA_SIZE_MBYTES=64
- CONFIG_OMAP_OCP2SCP=y
- CONFIG_SIMPLE_PM_BUS=y
- CONFIG_SUNXI_RSB=m
-+CONFIG_OMAP_GPMC=y
- CONFIG_MTD=y
- CONFIG_MTD_CMDLINE_PARTS=y
- CONFIG_MTD_BLOCK=y
+diff --git a/drivers/memory/Kconfig b/drivers/memory/Kconfig
+index 81ddb17..56a1c66 100644
+--- a/drivers/memory/Kconfig
++++ b/drivers/memory/Kconfig
+@@ -51,6 +51,7 @@ config TI_EMIF
+ 
+ config OMAP_GPMC
+ 	bool
++	default y
+ 	select GPIOLIB
+ 	help
+ 	  This driver is for the General Purpose Memory Controller (GPMC)
 -- 
 2.7.0
