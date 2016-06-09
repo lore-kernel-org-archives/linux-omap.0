@@ -1,7 +1,7 @@
 From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH 5/6] memory: omap-gpmc: Enable omap-gpmc by default when dependency is met
-Date: Thu,  9 Jun 2016 12:02:56 -0500
-Message-ID: <1465491777-20033-6-git-send-email-fcooper@ti.com>
+Subject: [PATCH 4/6] mtd: nand: Add OMAP_GPMC as a dependency to MTD_NAND_OMAP2
+Date: Thu,  9 Jun 2016 12:02:55 -0500
+Message-ID: <1465491777-20033-5-git-send-email-fcooper@ti.com>
 References: <1465491777-20033-1-git-send-email-fcooper@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1465491777-20033-1-git-send-email-fcooper@ti.com>
@@ -10,27 +10,26 @@ To: tony@atomide.com, boris.brezillon@free-electrons.com, computersforpeace@gmai
 Cc: Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-When dependencies are met enable OMAP GPMC by default. Later patches will
-prevent OMAP GPMC from being automatically selected by mach-omap2 Kconfig.
-Therefore, this will sure after that change the current behavior is still
-maintained when dependencies are met.
+OMAP 2 NAND depends on the GPMC driver. Therefore, insure that the OMAP
+GPMC config is selected before enabling the OMAP 2 NAND driver.
 
 Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
 ---
- drivers/memory/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/mtd/nand/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/memory/Kconfig b/drivers/memory/Kconfig
-index 81ddb17..56a1c66 100644
---- a/drivers/memory/Kconfig
-+++ b/drivers/memory/Kconfig
-@@ -51,6 +51,7 @@ config TI_EMIF
+diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
+index f05e0e9..e24404f 100644
+--- a/drivers/mtd/nand/Kconfig
++++ b/drivers/mtd/nand/Kconfig
+@@ -89,7 +89,7 @@ config MTD_NAND_AMS_DELTA
  
- config OMAP_GPMC
- 	bool
-+	default y
- 	select GPIOLIB
+ config MTD_NAND_OMAP2
+ 	tristate "NAND Flash device on OMAP2, OMAP3 and OMAP4"
+-	depends on ARCH_OMAP2PLUS
++	depends on ARCH_OMAP2PLUS && OMAP_GPMC
  	help
- 	  This driver is for the General Purpose Memory Controller (GPMC)
+           Support for NAND flash on Texas Instruments OMAP2, OMAP3 and OMAP4
+ 	  platforms.
 -- 
 2.7.0
