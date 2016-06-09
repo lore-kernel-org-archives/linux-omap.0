@@ -1,40 +1,73 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v9 03/14] usb: hcd.h: Add OTG to HCD interface
-Date: Thu, 9 Jun 2016 10:31:42 +0300
-Message-ID: <57591B5E.3050602@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v10 03/14] usb: hcd.h: Add OTG to HCD interface
+Date: Thu, 9 Jun 2016 10:51:11 +0300
+Message-ID: <57591FEF.4010507@ti.com>
 References: <1465376626-30122-1-git-send-email-rogerq@ti.com>
  <1465376626-30122-4-git-send-email-rogerq@ti.com>
- <5bc321c0-fb36-7a4a-d054-ee73b12822d4@cogentembedded.com>
- <575809E9.7010409@ti.com>
- <f5f068ae-c46a-5bad-45e1-f0f9cb5f8592@cogentembedded.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <f5f068ae-c46a-5bad-45e1-f0f9cb5f8592-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org
-Cc: balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1465376626-30122-4-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: peter.chen@freescale.com, sergei.shtylyov@cogentembedded.com
+Cc: balbi@kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 08/06/16 15:10, Sergei Shtylyov wrote:
-> On 6/8/2016 3:04 PM, Roger Quadros wrote:
-> 
->>>> The OTG core will use struct otg_hcd_ops to interface
->>>> with the HCD controller.
->>>
->>>    Host controller driver (HCD) controller? Maybe just HC? :-)
->>
->> OK.
-> 
->    OTOH, my googling has shown that HCD may stand for both HC driver and HC device... The host controller device sounds a bit tautological however...
+The OTG core will use struct otg_hcd_ops to interface
+with the HCD (Host Controller Device).
 
-Yeah I always meant it to be Host Controller Device :).
+The main purpose of this interface is to avoid directly
+calling HCD APIs from the OTG core as they
+wouldn't be defined in the built-in symbol table if
+CONFIG_USB is m.
 
---
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+Acked-by: Peter Chen <peter.chen@nxp.com>
+---
+v10:
+- clarify HCD abbreviation in commit message.
+- Fix comment
+	- remove unnecessary "of" in comment
+	- use URB instead of urb.
+
+ include/linux/usb/hcd.h | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
+
+diff --git a/include/linux/usb/hcd.h b/include/linux/usb/hcd.h
+index 66fc137..7729c1f 100644
+--- a/include/linux/usb/hcd.h
++++ b/include/linux/usb/hcd.h
+@@ -400,6 +400,30 @@ struct hc_driver {
+ 
+ };
+ 
++/**
++ * struct otg_hcd_ops - Interface between OTG core and HCD
++ *
++ * Provided by the HCD core to allow the OTG core to interface with the HCD
++ *
++ * @add: function to add the HCD
++ * @remove: function to remove the HCD
++ * @usb_bus_start_enum: function to immediately start bus enumeration
++ * @usb_control_msg: function to build and send a control URB
++ * @usb_hub_find_child: function to get pointer to the child device
++ */
++struct otg_hcd_ops {
++	int (*add)(struct usb_hcd *hcd,
++		   unsigned int irqnum, unsigned long irqflags);
++	void (*remove)(struct usb_hcd *hcd);
++	int (*usb_bus_start_enum)(struct usb_bus *bus, unsigned int port_num);
++	int (*usb_control_msg)(struct usb_device *dev, unsigned int pipe,
++			       __u8 request, __u8 requesttype, __u16 value,
++			       __u16 index, void *data, __u16 size,
++			       int timeout);
++	struct usb_device * (*usb_hub_find_child)(struct usb_device *hdev,
++						  int port1);
++};
++
+ static inline int hcd_giveback_urb_in_bh(struct usb_hcd *hcd)
+ {
+ 	return hcd->driver->flags & HCD_BH;
+-- 
+2.7.4
