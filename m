@@ -1,73 +1,51 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v9 08/14] usb: otg: add OTG/dual-role core
-Date: Thu, 9 Jun 2016 10:24:44 +0300
-Message-ID: <575919BC.8080003@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v9 11/14] usb: otg: use dev_dbg() instead of VDBG()
+Date: Thu, 9 Jun 2016 10:25:39 +0300
+Message-ID: <575919F3.7020807@ti.com>
 References: <1465376626-30122-1-git-send-email-rogerq@ti.com>
- <1465376626-30122-9-git-send-email-rogerq@ti.com>
- <20160608095336.GA4444@shlinux2> <5757EF7A.20604@ti.com>
- <20160608124204.GB10029@shlinux2>
+ <1465376626-30122-12-git-send-email-rogerq@ti.com>
+ <1465398640.25087.50.camel@perches.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160608124204.GB10029@shlinux2>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Chen <hzpeterchen@gmail.com>
-Cc: peter.chen@freescale.com, balbi@kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1465398640.25087.50.camel-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org
+Cc: balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/06/16 15:42, Peter Chen wrote:
-> On Wed, Jun 08, 2016 at 01:12:10PM +0300, Roger Quadros wrote:
->> Hi,
->>
->> On 08/06/16 12:53, Peter Chen wrote:
->>> On Wed, Jun 08, 2016 at 12:03:40PM +0300, Roger Quadros wrote:
->>>> +int usb_otg_unregister(struct device *dev)
->>>> +{
->>>> +	struct usb_otg *otg;
->>>> +
->>>> +	mutex_lock(&otg_list_mutex);
->>>> +	otg = usb_otg_get_data(dev);
->>>> +	if (!otg) {
->>>> +		dev_err(dev, "otg: %s: device not in otg list\n",
->>>> +			__func__);
->>>> +		mutex_unlock(&otg_list_mutex);
->>>> +		return -EINVAL;
->>>> +	}
->>>> +
->>>> +	/* prevent unregister till both host & gadget have unregistered */
->>>> +	if (otg->host || otg->gadget) {
->>>> +		dev_err(dev, "otg: %s: host/gadget still registered\n",
->>>> +			__func__);
->>>
->>> You need to call mutex_unlock here
->>
->> Indeed. good catch.
->>>
->>>> +
->>>> +int usb_otg_gadget_ready(struct usb_gadget *gadget, bool ready)
->>>> +{
->>>
->>> What this API is for? Why need it in this version?
->>
->> we moved gadget to otg registration from udc_bind_to_driver() to usb_add_gadget_udc_release().
->> This means there is a window when gadget function driver (e.g. g_zero) is not loaded.
->> We don't want to start the gadget controller in that window.
->>
->> usb_otg_gadget_ready() is used by gadget core to notify the otg core when the function driver
->> is ready or not-ready.
->>
+On 08/06/16 18:10, Joe Perches wrote:
+> On Wed, 2016-06-08 at 12:03 +0300, Roger Quadros wrote:
+>> Now that we have a device reference in struct usb_otg
+>> let's use dev_dbg() for debug messages.
 > 
-> Why you need to move this from gadget's probe to udc's probe? Currently,
-> the sequence of gadget and udc's probe is random, but udc_bind_to_driver
-> is called when udc is ready.
+> dev_vdbg vs dev_dbg
 > 
-Because we need to support -EPROBE_DEFER at udc probe.
-At udc_bind_to_driver there is no scope for -EPROBE_DEFER.
+> The patch subject and commit message don't match the code changes.
 
-Another issue is that we need to register with otg and have otg->caps available
-before driver->bind() is called in udc_bind_to_driver(). Else gadget function
-will not have the correct OTG descriptor.
+Indeed. Will fix it. Thanks.
 
+> 
+>> diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
+> []
+>> @@ -44,8 +37,9 @@ static int otg_set_protocol(struct otg_fsm *fsm, int protocol)
+>>  	int ret = 0;
+>>  
+>>  	if (fsm->protocol != protocol) {
+>> -		VDBG("Changing role fsm->protocol= %d; new protocol= %d\n",
+>> -			fsm->protocol, protocol);
+>> +		dev_vdbg(otg->dev,
+>> +			 "Changing role fsm->protocol= %d; new protocol= %d\n",
+>> +			 fsm->protocol, protocol);
+> 
+> etc...
+> 
+
+--
 cheers,
 -roger
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
