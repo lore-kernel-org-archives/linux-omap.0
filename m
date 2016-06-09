@@ -1,44 +1,47 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] foundation for omapdrm header clean-up series for 4.8
-Date: Thu, 9 Jun 2016 00:59:58 -0700
-Message-ID: <20160609075957.GN22406@atomide.com>
-References: <75826112-0e0e-c49f-c29f-6ac059267026@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2: Enable Errata 430973 for OMAP3
+Date: Thu, 9 Jun 2016 01:03:38 -0700
+Message-ID: <20160609080337.GO22406@atomide.com>
+References: <1463700017-18527-1-git-send-email-nm@ti.com>
+ <20160609071512.GK22406@atomide.com>
+ <20160609075734.GA8595@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <75826112-0e0e-c49f-c29f-6ac059267026@ti.com>
+In-Reply-To: <20160609075734.GA8595@earth>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Nishanth Menon <nm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [160607 06:41]:
-> Hi Tony, Tomi
->=20
-> as you have requested I have created the immutable branch containing =
-the
-> mach-omap2 touching patches only from the omapdss header cleanup.
->=20
-> As I have mentioned in the v3 cover letter I have the other branch
-> containing the whole series:
-> https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1158006.=
-html
->=20
-> --=20
-> P=C3=A9ter
->=20
-> The following changes since commit 1a695a905c18548062509178b98bc91e67=
-510864:
->=20
->   Linux 4.7-rc1 (2016-05-29 09:29:24 -0700)
->=20
-> are available in the git repository at:
->=20
->   https://github.com/omap-audio/linux-audio.git peter/for-4.8_omapdss=
-_part1
+* Sebastian Reichel <sre@kernel.org> [160609 01:00]:
+> Hi,
+> 
+> On Thu, Jun 09, 2016 at 12:15:13AM -0700, Tony Lindgren wrote:
+> > * Nishanth Menon <nm@ti.com> [160519 16:23]:
+> > > Enable Erratum 430973 similar to commit 5c86c5339c56 ("ARM:
+> > > omap2plus_defconfig: Enable ARM erratum 430973 for omap3") - Since
+> > > multiple defconfigs can exist from various points of view (multi_v7,
+> > > omap2plus etc.. it is always better to enable the erratum from the
+> > > Kconfig selection point of view so that downstream kernels dont have
+> > > to rediscover this all over again.
+> > 
+> > This should safe to select now. Note that proc-v7.S still does not
+> > do anything with multiarch to configure it. So the bootloader still
+> > needs to enable it, or it needs to be done in the machine init like
+> > n900 does.
+> 
+> mh I totally forgot about 430973. I still think [0] is the
+> better solution. IIRC I never uploaded them to Russel's
+> patchsystem, though :(
+> 
+> [0] http://comments.gmane.org/gmane.linux.kernel/2002603
 
-Pulling into omap-for-v4.8/soc thanks.
+Sure makes sense to me. Meanwhile, Nishanth's patch prevents
+hitting the same issue over and over.
+
+Regards,
 
 Tony
