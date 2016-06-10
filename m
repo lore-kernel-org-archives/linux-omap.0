@@ -1,71 +1,126 @@
 From: Thierry Reding <thierry.reding@gmail.com>
-Subject: Re: [PATCH v8 5/9] ARM: dts: am437x/am33xx/da850: Add new ECAP and
- EPWM bindings
-Date: Fri, 10 Jun 2016 14:40:22 +0200
-Message-ID: <20160610124022.GD27142@ulmo.ba.sec>
+Subject: Re: [PATCH v8 6/9] pwms: pwm-ti*: Get the clock from the PWMSS
+ parent when using old bindings
+Date: Fri, 10 Jun 2016 14:48:10 +0200
+Message-ID: <20160610124810.GE27142@ulmo.ba.sec>
 References: <1462291015-1919-1-git-send-email-fcooper@ti.com>
- <1462291015-1919-6-git-send-email-fcooper@ti.com>
- <20160610103423.GT22406@atomide.com>
- <20160610120142.GK22406@atomide.com>
+ <1462291015-1919-7-git-send-email-fcooper@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="qGV0fN9tzfkG3CxV"
-Return-path: <linux-pwm-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="ZRyEpB+iJ+qUx0kp"
+Return-path: <linux-clk-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160610120142.GK22406@atomide.com>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Franklin S Cooper Jr <fcooper@ti.com>, robh+dt@kernel.org, linux@arm.linux.org.uk, paul@pwsan.com, t-kristo@ti.com, mturquette@baylibre.com, sboyd@codeaurora.org, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, vigneshr@ti.com, nsekhar@ti.com
+In-Reply-To: <1462291015-1919-7-git-send-email-fcooper@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Franklin S Cooper Jr <fcooper@ti.com>
+Cc: robh+dt@kernel.org, tony@atomide.com, linux@arm.linux.org.uk, paul@pwsan.com, t-kristo@ti.com, mturquette@baylibre.com, sboyd@codeaurora.org, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, vigneshr@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
 
---qGV0fN9tzfkG3CxV
+--ZRyEpB+iJ+qUx0kp
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jun 10, 2016 at 05:01:43AM -0700, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [160610 03:37]:
-> > * Franklin S Cooper Jr <fcooper@ti.com> [160503 08:58]:
-> > > Switch to a new ECAP and EPWM bindings that doesn't depend on hwmod to
-> > > provide the various required clocks.
-> > >=20
-> > > For AM437 and AM335x, add the required clocks explicitly to DT. The
-> > > hwmod entries for ECAP and EPWM will be removed and this will prevent
-> > > anything from breaking.
-> >=20
-> > I've applying the first patch into omap-for-v4.8/soc, the rest into
-> > omap-for-v4.8/dt. Note that this patch did not apply against d850.dtsi
-> > so please resend that change as a separate patch to the davinci
-> > maintainer.
+On Tue, May 03, 2016 at 10:56:52AM -0500, Franklin S Cooper Jr wrote:
+> When using the old eCAP and ePWM bindings for AM335x and AM437x the clock
+> can be retrieved from the PWMSS parent. Newer bindings will insure that
+> this clock is provided via device tree.
 >=20
-> And I did not apply patch "pwms: pwm-ti*: Get the clock from the PWMSS
-> parent when using old bindings", Thierry should take that one.
+> Therefore, update this driver to support the newer and older bindings. In
+> the case of the older binding being used give a warning.
+>=20
+> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+> ---
+>  drivers/pwm/pwm-tiecap.c   | 7 +++++++
+>  drivers/pwm/pwm-tiehrpwm.c | 7 +++++++
+>  2 files changed, 14 insertions(+)
+>=20
+> diff --git a/drivers/pwm/pwm-tiecap.c b/drivers/pwm/pwm-tiecap.c
+> index 616af76..a0833c8 100644
+> --- a/drivers/pwm/pwm-tiecap.c
+> +++ b/drivers/pwm/pwm-tiecap.c
+> @@ -195,6 +195,7 @@ static const struct pwm_ops ecap_pwm_ops =3D {
+>  };
+> =20
+>  static const struct of_device_id ecap_of_match[] =3D {
+> +	{ .compatible	=3D "ti,am3352-ecap" },
+>  	{ .compatible	=3D "ti,am33xx-ecap" },
+>  	{},
+>  };
+> @@ -213,6 +214,12 @@ static int ecap_pwm_probe(struct platform_device *pd=
+ev)
+>  		return -ENOMEM;
+> =20
+>  	clk =3D devm_clk_get(&pdev->dev, "fck");
+> +
+> +	if (IS_ERR(clk) && of_device_is_compatible(pdev->dev.of_node, "ti,am33x=
+x-ecap")) {
+> +		dev_warn(&pdev->dev, "Binding is obsolete.\n");
+> +		clk =3D devm_clk_get(pdev->dev.parent, "fck");
+> +	}
 
-Tony, did you take patches 3 and 4 already? It's fine if yo have, just
-wanted to know whether I should pick those up as well.
+I rewrote this slightly for readability:
+
+	struct device_node *np =3D pdev->dev.of_node;
+
+	if (IS_ERR(clk)) {
+		if (of_device_is_compatible(np, "ti,am33xx-ecap")) {
+			...
+		}
+	}
+
+>  	if (IS_ERR(clk)) {
+>  		dev_err(&pdev->dev, "failed to get clock\n");
+>  		return PTR_ERR(clk);
+> diff --git a/drivers/pwm/pwm-tiehrpwm.c b/drivers/pwm/pwm-tiehrpwm.c
+> index 6a41e66..cee29a2 100644
+> --- a/drivers/pwm/pwm-tiehrpwm.c
+> +++ b/drivers/pwm/pwm-tiehrpwm.c
+> @@ -426,6 +426,7 @@ static const struct pwm_ops ehrpwm_pwm_ops =3D {
+>  };
+> =20
+>  static const struct of_device_id ehrpwm_of_match[] =3D {
+> +	{ .compatible	=3D "ti,am3352-ehrpwm" },
+>  	{ .compatible	=3D "ti,am33xx-ehrpwm" },
+>  	{},
+>  };
+> @@ -444,6 +445,12 @@ static int ehrpwm_pwm_probe(struct platform_device *=
+pdev)
+>  		return -ENOMEM;
+> =20
+>  	clk =3D devm_clk_get(&pdev->dev, "fck");
+> +
+> +	if (IS_ERR(clk) && of_device_is_compatible(pdev->dev.of_node, "ti,am33x=
+x-ecap")) {
+> +		dev_warn(&pdev->dev, "Binding is obsolete.\n");
+> +		clk =3D devm_clk_get(pdev->dev.parent, "fck");
+> +	}
+> +
+
+Same here.
 
 Thierry
 
---qGV0fN9tzfkG3CxV
+--ZRyEpB+iJ+qUx0kp
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJXWrU2AAoJEN0jrNd/PrOhI98P/RJHBVbPrFfmvqn+7CJqbC1H
-NKQmnRGbkPhxRbMqFffArWza4wQjEZjfaJTIG6taAroxy3YGcU+MiIiQW5iNn9nF
-070sfVXS1t3CHA0MPBue8Bwa7h5ts7Rxq9hvbXskjAgvPnFMBJ0Jjs4ByFOboc/G
-A1LkwOGMEbHuvmCwGABfcKHiR7yNykFAOGnYwuNcVLxUBx4X/tLn+dW0lzYgoVZ8
-Ezxzrb1gMOhKWlDisigSx2jl0KpzuttUhPKQwB+/QVH9q78q217iBh29AA2IZwc5
-kLS8YqpW7/kpV1C6b1L5vtyiweDozsv8kpMJ0Hm7chgiXgmJvyMFpMubBB5KP2nq
-W4Hj6EAM1HxHtx+jU6om+DLQkGMBfcpJFzWrzUcGhvtrxz3ShWsPhTIT3nkbDwaR
-mZQBtlpUxXXoB27kkBO4kTV+T5LaLmE67oGJ+9GUmCdlnMVLNciweXdWyu6zi8MP
-9f62X357uinNppFjWRWce6PhsKIV/nQjmxW9HINBvJtzQ8FLi24D9vNSqA2uOQkw
-ImZpf90n9gzig/m6jEnus/bziRR1k5smtR1BtY1OqFl5YjXKCO4lHU+0aZO5GlD3
-dgVIUam/GI7VoH9Q+cMLWam/M6Bf7HjGA2KGpinwxLZ4FaoPC6AYSjGKYjYrBEDe
-CkGmEJmNU35ys3YLr+ht
-=4NxK
+iQIcBAABCAAGBQJXWrcKAAoJEN0jrNd/PrOhv04QAI0lubozNnqPJ+XipFlWkkQZ
+hC5AIPHcpsuwcLgDL4qGMlhX2nrwT0lcLfH4P7rbMszbVpAuTB9QfEqGynApT2+I
+xPXeQeXne/HsK4kBdujR8Iuxr2ZEOvY1xPnMljajYWfm9QTg3YPT/Y7RbhOBnMSK
+mzgjIp7aPxunfM+H0kqA5k+YdPXc2ch/YSfy2pXKIAi33kBaoDNWExWDezUqpZLD
+jvsJK1bJqEPeRf98EcRwibiDh22rJy4KcTjLA+Vy/3CzagO3Z+MwI6OLoQ9KThi8
+YeJ6Zm2XAcCpxJaq0UJEvJFVkbpkvpTWr5pR80IppqMmfVufd7XGIl8+sAaeK7rJ
+M4Ov/ZMtL5NCJ9fSkXj30ZZ3aJ35/PSOc+Hm+t1Vh+oLVAWqof7s0lmhK/f9Z+E1
+/amTWLxKBhTrMLfm3/bEUaDQZwcDTMvC1yQgGqeDF9C/DBKC++52KAJttbq3Arxj
+se0jGT670xB5l03HBp4JGgxJaobeRBBirdRiU2dMdN7dURWJJDwUAnguCgn6FnIX
+nzECwy2AN9CJ/gWsxsr0SYc2UdhTBl45bEFLOydhjJb+oNsi5sYt4Av4vxRTxIv3
+lAOrKixXvejOfswgYbJ7Xktt9cU4sxaMKJiXQwM/0PMuty0l1iuwLxhGhpxS0L7k
+goD2BqJed+O3MGya6hEw
+=1nT8
 -----END PGP SIGNATURE-----
 
---qGV0fN9tzfkG3CxV--
+--ZRyEpB+iJ+qUx0kp--
