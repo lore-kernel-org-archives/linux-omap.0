@@ -1,67 +1,132 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v9 13/14] usb: gadget: udc: adapt to OTG core
-Date: Fri, 10 Jun 2016 10:06:24 +0300
-Message-ID: <575A66F0.4090307@ti.com>
-References: <1465376626-30122-1-git-send-email-rogerq@ti.com>
- <1465376626-30122-14-git-send-email-rogerq@ti.com>
- <SG2PR06MB09198DD132E005FFD4F4CAEED85F0@SG2PR06MB0919.apcprd06.prod.outlook.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v9 5/5] usb: dwc3: core: cleanup IRQ resources
+Date: Fri, 10 Jun 2016 10:56:50 +0300
+Message-ID: <575A72C2.2020908@ti.com>
+References: <1462977406-22806-1-git-send-email-rogerq@ti.com>
+ <1462977406-22806-6-git-send-email-rogerq@ti.com> <574E92E8.5080201@ti.com>
+ <57501E0D.4010007@ti.com> <57569543.4090007@ti.com> <5756B4E7.5000007@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <SG2PR06MB09198DD132E005FFD4F4CAEED85F0-ESzmfEwOt/zNQ8RBPPB5A20DtJ1/0DrXvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, "peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
-Cc: "balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org" <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, "jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "grygorii.strashko-l0cyMroinI0@public.gmane.org" <grygorii.strashko-l0cyMroinI0@public.gmane.org>, "robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "nsekhar-l0cyMroinI0@public.gmane.org" <nsekhar-l0cyMroinI0@public.gmane.org>, "b-liu-l0cyMroinI0@public.gmane.org" <b-liu-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5756B4E7.5000007@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, balbi@kernel.org
+Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Yoshihiro,
-
-On 09/06/16 13:49, Yoshihiro Shimoda wrote:
-> Hi Roger,
+On 07/06/16 14:49, Grygorii Strashko wrote:
+> On 06/07/2016 12:34 PM, Roger Quadros wrote:
+>> On 02/06/16 14:52, Grygorii Strashko wrote:
+>>> On 06/01/2016 10:46 AM, Roger Quadros wrote:
+>>>> Implementations might use different IRQs for
+>>>> host, gadget and OTG so use named interrupt resources
+>>>> to allow Device tree to specify the 3 interrupts.
+>>>>
+>>>> Following are the interrupt names
+>>>>
+>>>> Peripheral Interrupt - peripheral
+>>>> HOST Interrupt - host
+>>>> OTG Interrupt - otg
+>>>
+>>> or "dwc_usb3"??
+>>
+>> That is for backward compatibility only. I could explicitly
+>> mention it in the next line.
 > 
->> From: Roger Quadros
->> Sent: Wednesday, June 08, 2016 6:04 PM
->>
->> The OTG state machine needs a mechanism to start and
->> stop the gadget controller as well as connect/disconnect
->> from the bus. Add usb_gadget_start(), usb_gadget_stop()
->> and usb_gadget_connect_control().
->>
->> Introduce usb_otg_add_gadget_udc() to allow controller drivers
->> to register a gadget controller that is part of an OTG instance.
->>
->> Register with OTG core when UDC is added in usb_add_gadget_udc_release()
->> and unregister on usb_del_gadget_udc().
->>
->> Notify the OTG core when gadget function driver is available on
->> udc_bind_to_driver() and when it is removed in usb_gadget_remove_driver().
->>
->> We need to unlock the usb_lock mutex before calling
->> usb_otg_register_gadget() else it will cause a circular
->> locking dependency.
->>
->> Ignore softconnect sysfs control when we're in OTG
->> mode as OTG FSM should care of gadget softconnect using
->> the b_bus_req mechanism.
->>
->> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
->> ---
->>  drivers/usb/gadget/udc/udc-core.c | 202 ++++++++++++++++++++++++++++++++++++--
->>  include/linux/usb/gadget.h        |   4 +
->>  2 files changed, 196 insertions(+), 10 deletions(-)
+> yes pls, this confuses.
+>  Also I don't see how "otg" irq name is used in code.
 > 
-> I tried to apply this patch on the Felipe's usb.git / testing/next branch,
-> but I couldn't apply because the udc-core.c was renamed to core.c.
-> https://git.kernel.org/cgit/linux/kernel/git/balbi/usb.git/commit/?h=testing/next&id=a22b539c7082b6a3046b3a9cebb356a047a2d81d
+>>
+>>>
+>>>>
+>>>> We still maintain backward compatibility for a single named
+>>>> interrupt for all 3 interrupts (e.g. for dwc3-pci) and
+>>>> single unnamed interrupt for all 3 interrupts (e.g. old DT).
+>>>
+>>> bindings
+>>
+>> OK.
+>>>
+>>>>
+>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>> ---
+>>>> v9: rebased on top of balbi/testing/next
+>>>>
+>>>>    drivers/usb/dwc3/core.c   | 10 ----------
+>>>>    drivers/usb/dwc3/gadget.c | 20 ++++++++++++++++++--
+>>>>    drivers/usb/dwc3/host.c   | 19 +++++++++++++++++++
+>>>>    3 files changed, 37 insertions(+), 12 deletions(-)
+>>>>
+>>>> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+>>>> index 9c4e1d8d..5cedf3d 100644
+>>>> --- a/drivers/usb/dwc3/core.c
+>>>> +++ b/drivers/usb/dwc3/core.c
+>>>> @@ -843,16 +843,6 @@ static int dwc3_probe(struct platform_device *pdev)
+>>>>        dwc->mem = mem;
+>>>>        dwc->dev = dev;
+>>>>
+>>>> -    res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+>>>> -    if (!res) {
+>>>> -        dev_err(dev, "missing IRQ\n");
+>>>> -        return -ENODEV;
+>>>> -    }
+>>>> -    dwc->xhci_resources[1].start = res->start;
+>>>> -    dwc->xhci_resources[1].end = res->end;
+>>>> -    dwc->xhci_resources[1].flags = res->flags;
+>>>> -    dwc->xhci_resources[1].name = res->name;
+>>>> -
+>>>>        res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>>>>        if (!res) {
+>>>>            dev_err(dev, "missing memory resource\n");
+>>>> diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+>>>> index c37168d..c18c72f 100644
+>>>> --- a/drivers/usb/dwc3/gadget.c
+>>>> +++ b/drivers/usb/dwc3/gadget.c
+>>>> @@ -1726,7 +1726,7 @@ static int dwc3_gadget_start(struct usb_gadget *g,
+>>>>        int            ret = 0;
+>>>>        int            irq;
+>>>>
+>>>> -    irq = platform_get_irq(to_platform_device(dwc->dev), 0);
+>>>> +    irq = dwc->irq_gadget;
+>>>>        ret = request_threaded_irq(irq, dwc3_interrupt, dwc3_thread_interrupt,
+>>>>                IRQF_SHARED, "dwc3", dwc->ev_buf);
+>>>>        if (ret) {
+>>>> @@ -1734,7 +1734,6 @@ static int dwc3_gadget_start(struct usb_gadget *g,
+>>>>                    irq, ret);
+>>>>            goto err0;
+>>>>        }
+>>>> -    dwc->irq_gadget = irq;
+>>>>
+>>>>        spin_lock_irqsave(&dwc->lock, flags);
+>>>>        if (dwc->gadget_driver) {
+>>>> @@ -2853,6 +2852,23 @@ static irqreturn_t dwc3_interrupt(int irq, void *_evt)
+>>>>    int dwc3_gadget_init(struct dwc3 *dwc)
+>>>>    {
+>>>>        int                    ret;
+>>>> +    struct resource *res;
+>>>> +    struct platform_device *dwc3_pdev = to_platform_device(dwc->dev);
+>>>> +
+>>>> +    dwc->irq_gadget = platform_get_irq_byname(dwc3_pdev, "peripheral");
+>>>> +    if (dwc->irq_gadget <= 0) {
+>>>
+>>> Is it expected to get -EPROBE_DEFER here?
+>>
+>> Probably not as we don't have any chance of deferring probe here. We've already
+>> probed successfully and are just turning on the gadget mode here.
 > 
-> I guess this patch needs rebase for that.
 
-OK. I'll respin the whole series on Felipe's usb.git /testing/next.
+I was mistaken here.
 
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+dwc3_gadget_init() and dwc3_host_init() get called during dwc3_core_init_mode() which is
+in fact called during probe().
+
+So I'll add take care -EPROBE_DEFER in the next revision.
+
+> In general, you can't say that you've been probed successfully if not all resources are ready,
+> and irq is a resource :)
+> It's expected that all resources will be requested in probe, but here you are trying to get
+> resource outside of probe. As result, it will be perfectly possible to get -EPROBE_DEFER here
+> if on some HW GPIO IRQ will be used as peripheral, or host or otg irq (for example), because 
+> GPIO IRQ controller might not be ready at the moment when IRQ resource is requested.
+> 
