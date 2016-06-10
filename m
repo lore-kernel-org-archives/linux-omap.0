@@ -1,66 +1,47 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v7 0/4] usb: dwc3: dual-role support
-Date: Fri, 10 Jun 2016 16:26:09 +0300
-Message-ID: <575ABFF1.1040503@ti.com>
-References: <1465564650-27516-1-git-send-email-rogerq@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 0/3] ARM: OMAP: DRA7: Update to latest TRM and cleanup
+Date: Fri, 10 Jun 2016 09:18:16 -0500
+Message-ID: <CAGo_u6okpNGkfYno02nCfEsryki5drrhfwnZUj=ycghh62qoTg@mail.gmail.com>
+References: <1464096940-27145-1-git-send-email-nm@ti.com> <20160610093359.GQ22406@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1465564650-27516-1-git-send-email-rogerq@ti.com>
+In-Reply-To: <20160610093359.GQ22406@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@kernel.org
-Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: lkml <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 10/06/16 16:17, Roger Quadros wrote:
+On Fri, Jun 10, 2016 at 4:34 AM, Tony Lindgren <tony@atomide.com> wrote:
 > Hi,
-> 
-> This series adds dual role support to dwc3 controller driver.
-> Series depends on the OTG/dual-role framework [1].
-> 
-> [1] - http://thread.gmane.org/gmane.linux.usb.general/143568
-> 
-> Patches are based on Felipe's balbi/usb.git testing/next
+>
+> * Nishanth Menon <nm@ti.com> [160524 06:37]:
+>> Hi,
+>>
+>> Here are the final(hopefully) pending patches for DRA7 based on recent
+>> TRM updates. Updates include removing retention support on L3init and
+>> L4per as per latest SoC updates.
+>>
+>> Test Log: X15 (no modules): http://pastebin.ubuntu.com/16655027/
+>>
+>> Latest TRM (rev F): http://www.ti.com/lit/pdf/spruhz6 (public on May 18)
+>>
+>> Nishanth Menon (3):
+>>   ARM: OMAP: DRA7: powerdomain data: Set L3init and L4per to ON
+>>   ARM: OMAP: DRA7: powerdomain data: Remove unused pwrsts_logic_ret
+>>   ARM: OMAP: DRA7: powerdomain data: Remove unused pwrsts_mem_ret
+>>
+>>  arch/arm/mach-omap2/powerdomains7xx_data.c | 76 +-----------------------------
+>>  1 file changed, 2 insertions(+), 74 deletions(-)
+>
+> Can these wait until v4.8 merge window, are this needed as fixes to
+> avoid hardware problems?
 
-This patch is also a pre-requisite for this series.
-http://article.gmane.org/gmane.linux.kernel/2240761
+Yes - at least patch #1 is a h/w "limitation" and can result in non
+functional SoC after a duration of operation. the patches #2/3 are
+code shrinkage to remove unused data.
 
-> 
-> Changelog:
-> 
-> v7:
-> - rebased to v4.7-rc1 + balbi/usb.git testing/next
-> - cleaned up otg irq resource code
-> 
-> v6:
-> - use just otg irq to get otg events and don't depend on extcon at all.
-> - follow OTG flow in TRM strictly.
-> - use tracepoints instead of dev_dbg().
-> - match IRQ flags in dwc3_omap and core.c for shared otg interrupt.
-> 
-> v5: Internal revision. Not sent to mailing list.
-> 
-> v4: first version that was reviewed.
-> 
-> cheers,
-> -roger
-> 
-> 
-> Roger Quadros (4):
->   usb: dwc3: core.h: add some register definitions
->   usb: dwc3: add dual-role support
->   ARM: dts: dra7*-evm: Enable dual-role for usb1
->   ARM: dts: am43xx: Enable dual-role on USB1
-> 
->  arch/arm/boot/dts/am437x-gp-evm.dts     |   5 +-
->  arch/arm/boot/dts/am437x-sk-evm.dts     |   5 +-
->  arch/arm/boot/dts/am43x-epos-evm.dts    |   5 +-
->  arch/arm/boot/dts/dra7-evm.dts          |   5 +-
->  arch/arm/boot/dts/dra72-evm-common.dtsi |   5 +-
->  drivers/usb/dwc3/core.c                 | 546 +++++++++++++++++++++++++++++++-
->  drivers/usb/dwc3/core.h                 | 114 ++++++-
->  drivers/usb/dwc3/gadget.c               |   6 +-
->  drivers/usb/dwc3/host.c                 |   2 +
->  9 files changed, 677 insertions(+), 16 deletions(-)
-> 
+-- 
+---
+Regards,
+Nishanth Menon
