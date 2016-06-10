@@ -1,36 +1,39 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 2/2] ARM: dts: am335x-icev2: Add DT node for TI PCA9536
-Date: Fri, 10 Jun 2016 04:09:25 -0700
-Message-ID: <20160610110925.GY22406@atomide.com>
-References: <1463640450-16762-1-git-send-email-vigneshr@ti.com>
- <1463640450-16762-3-git-send-email-vigneshr@ti.com>
- <CACRpkdbRt4Vi=kzs_gZDkR14KBmFsKKZawbT25PW0sMpuX7LkQ@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0108/1529] Fix typo
+Date: Fri, 10 Jun 2016 04:18:55 -0700
+Message-ID: <20160610111855.GZ22406@atomide.com>
+References: <20160521115032.4966-1-andrea.gelmini@gelma.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <CACRpkdbRt4Vi=kzs_gZDkR14KBmFsKKZawbT25PW0sMpuX7LkQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <20160521115032.4966-1-andrea.gelmini@gelma.net>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Andrea Gelmini <andrea.gelmini@gelma.net>
+Cc: linux-omap@vger.kernel.org, trivial@kernel.org, linux@armlinux.org.uk, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> [160526 01:42]:
-> On Thu, May 19, 2016 at 8:47 AM, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org> wrote:
-> 
-> > AM335x ICE board has a TI PCA9536 chip connected to I2C0 at address
-> > 0x41. Add DT entry for the same.
-> >
-> > Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-> 
-> Acked-by: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> 
-> Pls take this through the ARM SoC TI git tree.
+* Andrea Gelmini <andrea.gelmini@gelma.net> [160521 04:52]:
+> --- a/arch/arm/mach-omap2/sdrc.h
+> +++ b/arch/arm/mach-omap2/sdrc.h
+> @@ -175,8 +175,8 @@ u32 omap2xxx_sdrc_reprogram(u32 level, u32 force);
+>   * don't adjust it down as your clock period increases the refresh interval
+>   * will not be met. Setting all parameters for complete worst case may work,
+>   * but may cut memory performance by 2x. Due to errata the DLLs need to be
+> - * unlocked and their value needs run time calibration.	A dynamic call is
+> - * need for that as no single right value exists acorss production samples.
+> + * unlocked and their value needs run time calibration. A dynamic call is
+> + * need for that as no single right value exists across production samples.
 
-Applying this patch into omap-for-v4.8/dt thanks.
+Applying patches 102 - 108 into omap-for-v4.8/soc thanks.
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
