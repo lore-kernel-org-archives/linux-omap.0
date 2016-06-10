@@ -1,112 +1,42 @@
-From: Felipe Balbi <balbi@kernel.org>
-Subject: Re: [PATCH v9 5/5] usb: dwc3: core: cleanup IRQ resources
-Date: Fri, 10 Jun 2016 12:18:37 +0300
-Message-ID: <87bn39766q.fsf@linux.intel.com>
-References: <1462977406-22806-1-git-send-email-rogerq@ti.com> <1462977406-22806-6-git-send-email-rogerq@ti.com> <574E92E8.5080201@ti.com> <57501E0D.4010007@ti.com> <575A7407.1090403@ti.com> <575A748A.4060009@ti.com> <87k2hx78yv.fsf@linux.intel.com> <575A7B0C.40103@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/3] ARM: OMAP: DRA7: Update to latest TRM and cleanup
+Date: Fri, 10 Jun 2016 02:34:00 -0700
+Message-ID: <20160610093359.GQ22406@atomide.com>
+References: <1464096940-27145-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha256; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <575A7B0C.40103@ti.com>
+Content-Disposition: inline
+In-Reply-To: <1464096940-27145-1-git-send-email-nm@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
 
 Hi,
 
-Roger Quadros <rogerq@ti.com> writes:
-> On 10/06/16 11:18, Felipe Balbi wrote:
->>=20
->> Hi,
->>=20
->> Roger Quadros <rogerq@ti.com> writes:
->>>> 	dwc->xhci_resource[1] =3D *res;
->>>
->>> Probably not as we don't want to change parent/child members.
->>=20
->> oh, you had already replied. Sorry. This is correct
->>=20
-> np :).
->
-> So what i'll do is get the irq via platform_get_irq() and friends
-> and if it was a success use platform_get_resource() and friends
-> to get struct resource and just edit the relevant parts for the
-> XHCI irq resource.
->
-> Sounds OK?
->
-> something like this.
->
-> +	int			ret, irq;
-> +	struct resource		*res;
-> +	struct platform_device	*dwc3_pdev =3D to_platform_device(dwc->dev);
-> +
-> +	irq =3D platform_get_irq_byname(dwc3_pdev, "host");
-> +	if (irq =3D=3D -EPROBE_DEFER)
-> +		return irq;
-> +
-> +	if (irq <=3D 0) {
-> +		irq =3D platform_get_irq_byname(dwc3_pdev, "dwc_usb3");
-> +		if (irq =3D=3D -EPROBE_DEFER)
-> +			return irq;
-> +
-> +		if (irq <=3D 0) {
-> +			irq =3D platform_get_irq(dwc3_pdev, 0);
-> +			if (irq <=3D 0) {
-> +				if (irq !=3D -EPROBE_DEFER) {
-> +					dev_err(dwc->dev,
-> +						"missing host IRQ\n");
-> +				}
-> +				return irq;
-> +			} else {
-> +				res =3D platform_get_resource(dwc3_pdev,
-> +							    IORESOURCE_IRQ, 0);
-> +			}
-> +		} else {
-> +			res =3D platform_get_resource_byname(dwc3_pdev,
-> +							   IORESOURCE_IRQ,
-> +							   "dwc_usb3");
-> +		}
-> +
-> +	} else {
-> +		res =3D platform_get_resource_byname(dwc3_pdev, IORESOURCE_IRQ,
-> +						   "host");
-> +	}
-> +
-> +	dwc->xhci_resources[1].start =3D irq;
-> +	dwc->xhci_resources[1].end =3D irq;
-> +	dwc->xhci_resources[1].flags =3D res->flags;
-> +	dwc->xhci_resources[1].name =3D res->name;
+* Nishanth Menon <nm@ti.com> [160524 06:37]:
+> Hi,
+> 
+> Here are the final(hopefully) pending patches for DRA7 based on recent
+> TRM updates. Updates include removing retention support on L3init and
+> L4per as per latest SoC updates.
+> 
+> Test Log: X15 (no modules): http://pastebin.ubuntu.com/16655027/
+> 
+> Latest TRM (rev F): http://www.ti.com/lit/pdf/spruhz6 (public on May 18)
+> 
+> Nishanth Menon (3):
+>   ARM: OMAP: DRA7: powerdomain data: Set L3init and L4per to ON
+>   ARM: OMAP: DRA7: powerdomain data: Remove unused pwrsts_logic_ret
+>   ARM: OMAP: DRA7: powerdomain data: Remove unused pwrsts_mem_ret
+> 
+>  arch/arm/mach-omap2/powerdomains7xx_data.c | 76 +-----------------------------
+>  1 file changed, 2 insertions(+), 74 deletions(-)
 
-looks okay to me.
+Can these wait until v4.8 merge window, are this needed as fixes to
+avoid hardware problems?
 
-=2D-=20
-balbi
+Regards,
 
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJXWoXtAAoJEIaOsuA1yqREUo4P/0f6Jlwy8RF876Nx2pVpAeGB
-+cO8KEU6lO7LMXEQn2zNlrd0Rm7N6YCuTXalvv7ZSxW6HLFO+xWm/e819jtqnkJC
-qdWrKMblb7IHSJsOr3y7LzAadwUTjzO/7bRwCjTZ/S5B2FTDa73pkpjvnooxpJgR
-RQ2RaCmJ5JyXmMGQhBeruOF/PoDLwvSoHHAAtLRM0BMFVXuwQqjl7VdKhuenCzzc
-fCfGyNWA4uKkWxQ+rrQesgAjUzOzaVIuOQS6No7HudjDnuDxa76/ZOA6ErRUUM1T
-8cxjJmdSoskujF1dgCPMWzusBu858zmsgHeOXZw8dqhj36KNQm1Xd8NoeJTsxJ3m
-xvchmAGqSOeDPnydny8Vs5GWsCuUyLmr2khCxZq3d1LKH8RB29AdiABoQfUGW3uY
-mQzKt+5vb5ItoqEPxp1lfS6CZJZHKQCzzPS2/XvavOBvgaY0VyVUyKG/oqG6KLdf
-vRGwysmeq18dTDQy/l+12jjAUYGWZoYvctiQ+mAYzfYkT+xQPtlRD5BETfuAf/Nm
-uFflWMaktQaBO+9jowwf4UvUj3Kd4kOodd253Q720pfanWORkpsG0Xj4fFv9J634
-JR8ZM35OztciOmrlbVf0CrEUaJulF253OR/WxV0IgpJzWuaPAH6Ncp0kP/0DCJR4
-GimSZvnDCCu2Qu1qsDLl
-=s0T8
------END PGP SIGNATURE-----
---=-=-=--
+Tony
