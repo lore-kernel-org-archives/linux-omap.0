@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v10 12/14] usb: hcd: Adapt to OTG core
-Date: Fri, 10 Jun 2016 16:07:21 +0300
-Message-ID: <1465564043-27163-13-git-send-email-rogerq@ti.com>
+Subject: [PATCH v10 10/14] usb: otg: add hcd companion support
+Date: Fri, 10 Jun 2016 16:07:19 +0300
+Message-ID: <1465564043-27163-11-git-send-email-rogerq@ti.com>
 References: <1465564043-27163-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,108 +12,155 @@ To: peter.chen@freescale.com
 Cc: balbi@kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, joe@perches.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Introduce usb_otg_add/remove_hcd() for use by host
-controllers that are part of OTG/dual-role port.
+From: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
 
-Non device tree platforms can use the otg_dev argument
-to specify the OTG controller device. If otg_dev is NULL
-then the device tree node's otg-controller property is used to
-get the otg_dev device.
+Since some host controller (e.g. EHCI) needs a companion host controller
+(e.g. OHCI), this patch adds such a configuration to use it in the OTG
+core.
 
+Signed-off-by: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 Acked-by: Peter Chen <peter.chen@nxp.com>
+Acked-by: Rob Herring <robh@kernel.org>
 ---
- drivers/usb/core/hcd.c  | 55 +++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/usb/hcd.h |  4 ++++
- 2 files changed, 59 insertions(+)
+ Documentation/devicetree/bindings/usb/generic.txt |  3 +++
+ drivers/usb/common/usb-otg.c                      | 31 ++++++++++++++++-------
+ include/linux/usb/otg.h                           |  7 ++++-
+ 3 files changed, 31 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
-index ae6c76d..c6f4155 100644
---- a/drivers/usb/core/hcd.c
-+++ b/drivers/usb/core/hcd.c
-@@ -46,6 +46,11 @@
- #include <linux/usb.h>
- #include <linux/usb/hcd.h>
- #include <linux/usb/phy.h>
-+#include <linux/usb/otg.h>
-+#include <linux/usb/of.h>
-+
-+#include <linux/of.h>
-+#include <linux/of_platform.h>
+diff --git a/Documentation/devicetree/bindings/usb/generic.txt b/Documentation/devicetree/bindings/usb/generic.txt
+index f6866c1..1db1c33 100644
+--- a/Documentation/devicetree/bindings/usb/generic.txt
++++ b/Documentation/devicetree/bindings/usb/generic.txt
+@@ -27,6 +27,9 @@ Optional properties:
+  - otg-controller: phandle to otg controller. Host or gadget controllers can
+ 			contain this property to link it to a particular OTG
+ 			controller.
++ - hcd-needs-companion: must be present if otg controller is dealing with
++			EHCI host controller that needs a companion OHCI host
++			controller.
  
- #include "usb.h"
+ This is an attribute to a USB controller such as:
  
-@@ -3025,6 +3030,56 @@ void usb_remove_hcd(struct usb_hcd *hcd)
- }
- EXPORT_SYMBOL_GPL(usb_remove_hcd);
+diff --git a/drivers/usb/common/usb-otg.c b/drivers/usb/common/usb-otg.c
+index 4185954..c663f4a 100644
+--- a/drivers/usb/common/usb-otg.c
++++ b/drivers/usb/common/usb-otg.c
+@@ -402,6 +402,10 @@ struct usb_otg *usb_otg_register(struct device *dev,
+ 	else
+ 		INIT_WORK(&otg->work, usb_drd_work);
  
-+static struct otg_hcd_ops otg_hcd_intf = {
-+	.add = usb_add_hcd,
-+	.remove = usb_remove_hcd,
-+	.usb_bus_start_enum = usb_bus_start_enum,
-+	.usb_control_msg = usb_control_msg,
-+	.usb_hub_find_child = usb_hub_find_child,
-+};
++	if (of_find_property(dev->of_node, "hcd-needs-companion", NULL) ||
++	    config->hcd_needs_companion)	/* needs companion ? */
++		otg->flags |= OTG_FLAG_HCD_NEEDS_COMPANION;
 +
-+/**
-+ * usb_otg_add_hcd - Register the HCD with OTG core.
-+ * @hcd: the usb_hcd structure to initialize
-+ * @irqnum: Interrupt line to allocate
-+ * @irqflags: Interrupt type flags
-+ * @otg_dev: OTG controller device managing this HCD
-+ *
-+ * Registers the HCD with OTG core. OTG core will call usb_add_hcd()
-+ * or usb_remove_hcd() as necessary.
-+ * If otg_dev is NULL then device tree node is checked for OTG
-+ * controller device via the otg-controller property.
-+ */
-+int usb_otg_add_hcd(struct usb_hcd *hcd,
-+		    unsigned int irqnum, unsigned long irqflags,
-+		    struct device *otg_dev)
-+{
-+	struct device *dev = hcd->self.controller;
-+
-+	if (!otg_dev) {
-+		hcd->otg_dev = of_usb_get_otg(dev->of_node);
-+		if (!hcd->otg_dev)
-+			return -ENODEV;
-+	} else {
-+		hcd->otg_dev = otg_dev;
-+	}
-+
-+	return usb_otg_register_hcd(hcd, irqnum, irqflags, &otg_hcd_intf);
-+}
-+EXPORT_SYMBOL_GPL(usb_otg_add_hcd);
-+
-+/**
-+ * usb_otg_remove_hcd - Unregister the HCD with OTG core.
-+ * @hcd: the usb_hcd structure to remove
-+ *
-+ * Unregisters the HCD from the OTG core.
-+ */
-+void usb_otg_remove_hcd(struct usb_hcd *hcd)
-+{
-+	usb_otg_unregister_hcd(hcd);
-+}
-+EXPORT_SYMBOL_GPL(usb_otg_remove_hcd);
-+
- void
- usb_hcd_platform_shutdown(struct platform_device *dev)
- {
-diff --git a/include/linux/usb/hcd.h b/include/linux/usb/hcd.h
-index 36bd54f..0c70282 100644
---- a/include/linux/usb/hcd.h
-+++ b/include/linux/usb/hcd.h
-@@ -473,6 +473,10 @@ extern int usb_hcd_is_primary_hcd(struct usb_hcd *hcd);
- extern int usb_add_hcd(struct usb_hcd *hcd,
- 		unsigned int irqnum, unsigned long irqflags);
- extern void usb_remove_hcd(struct usb_hcd *hcd);
-+extern int usb_otg_add_hcd(struct usb_hcd *hcd,
-+			   unsigned int irqnum, unsigned long irqflags,
-+			   struct device *otg_dev);
-+extern void usb_otg_remove_hcd(struct usb_hcd *hcd);
- extern int usb_hcd_find_raw_port_number(struct usb_hcd *hcd, int port1);
+ 	otg->wq = create_freezable_workqueue("usb_otg");
+ 	if (!otg->wq) {
+ 		dev_err(dev, "otg: %s: can't create workqueue\n",
+@@ -626,15 +630,18 @@ int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
+ 	/* HCD will be started by OTG fsm when needed */
+ 	mutex_lock(&otg->fsm.lock);
+ 	if (otg->primary_hcd.hcd) {
+-		/* probably a shared HCD ? */
+-		if (usb_otg_hcd_is_primary_hcd(hcd)) {
++		/* probably a shared HCD or a companion OHCI HCD ? */
++		if (!(otg->flags & OTG_FLAG_HCD_NEEDS_COMPANION) &&
++		    usb_otg_hcd_is_primary_hcd(hcd)) {
+ 			dev_err(otg_dev, "otg: primary host already registered\n");
+ 			goto err;
+ 		}
  
- struct platform_device;
+-		if (hcd->shared_hcd == otg->primary_hcd.hcd) {
++		if (otg->flags & OTG_FLAG_HCD_NEEDS_COMPANION ||
++		    (hcd->shared_hcd == otg->primary_hcd.hcd)) {
+ 			if (otg->shared_hcd.hcd) {
+-				dev_err(otg_dev, "otg: shared host already registered\n");
++				dev_err(otg_dev,
++					"otg: shared/companion host already registered\n");
+ 				goto err;
+ 			}
+ 
+@@ -642,10 +649,12 @@ int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
+ 			otg->shared_hcd.irqnum = irqnum;
+ 			otg->shared_hcd.irqflags = irqflags;
+ 			otg->shared_hcd.ops = ops;
+-			dev_info(otg_dev, "otg: shared host %s registered\n",
++			dev_info(otg_dev,
++				 "otg: shared/companion host %s registered\n",
+ 				 dev_name(hcd->self.controller));
+ 		} else {
+-			dev_err(otg_dev, "otg: invalid shared host %s\n",
++			dev_err(otg_dev,
++				"otg: invalid shared/companion host %s\n",
+ 				dev_name(hcd->self.controller));
+ 			goto err;
+ 		}
+@@ -668,14 +677,17 @@ int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
+ 	 * we're ready only if we have shared HCD
+ 	 * or we don't need shared HCD.
+ 	 */
+-	if (otg->shared_hcd.hcd || !otg->primary_hcd.hcd->shared_hcd) {
++	if (otg->shared_hcd.hcd ||
++	    (!(otg->flags & OTG_FLAG_HCD_NEEDS_COMPANION) &&
++	     !otg->primary_hcd.hcd->shared_hcd)) {
+ 		otg->host = hcd_to_bus(hcd);
+ 		/* FIXME: set bus->otg_port if this is true OTG port with HNP */
+ 
+ 		/* start FSM */
+ 		usb_otg_start_fsm(otg);
+ 	} else {
+-		dev_dbg(otg_dev, "otg: can't start till shared host registers\n");
++		dev_dbg(otg_dev,
++			"otg: can't start till shared/companion host registers\n");
+ 	}
+ 
+ 	mutex_unlock(&otg->fsm.lock);
+@@ -723,7 +735,8 @@ int usb_otg_unregister_hcd(struct usb_hcd *hcd)
+ 			 dev_name(hcd_dev));
+ 	} else if (hcd == otg->shared_hcd.hcd) {
+ 		otg->shared_hcd.hcd = NULL;
+-		dev_info(otg_dev, "otg: shared host %s unregistered\n",
++		dev_info(otg_dev,
++			 "otg: shared/companion host %s unregistered\n",
+ 			 dev_name(hcd_dev));
+ 	} else {
+ 		mutex_unlock(&otg->fsm.lock);
+diff --git a/include/linux/usb/otg.h b/include/linux/usb/otg.h
+index 2175fb7..61d524e 100644
+--- a/include/linux/usb/otg.h
++++ b/include/linux/usb/otg.h
+@@ -69,7 +69,8 @@ struct usb_otg_caps {
+  * @list: list of OTG controllers
+  * @work: OTG state machine work
+  * @wq: OTG state machine work queue
+- * @flags: to track if host/gadget is running
++ * @flags: to track if host/gadget is running, or to indicate if hcd needs
++ *	   companion
+  */
+ struct usb_otg {
+ 	u8			default_a;
+@@ -97,6 +98,7 @@ struct usb_otg {
+ 	u32 flags;
+ #define OTG_FLAG_GADGET_RUNNING (1 << 0)
+ #define OTG_FLAG_HOST_RUNNING (1 << 1)
++#define OTG_FLAG_HCD_NEEDS_COMPANION (1 << 2)
+ 	/* use otg->fsm.lock for serializing access */
+ 
+ /*------------- deprecated interface -----------------------------*/
+@@ -123,11 +125,14 @@ struct usb_otg {
+  * @caps: OTG capabilities of the controller
+  * @ops: OTG FSM operations
+  * @otg_work: optional custom OTG state machine work function
++ * @hcd_needs_companion: Indicates if host controller needs a companion
++ *			 controller
+  */
+ struct usb_otg_config {
+ 	struct usb_otg_caps *otg_caps;
+ 	struct otg_fsm_ops *fsm_ops;
+ 	void (*otg_work)(struct work_struct *work);
++	bool hcd_needs_companion;
+ };
+ 
+ extern const char *usb_otg_state_string(enum usb_otg_state state);
 -- 
 2.7.4
