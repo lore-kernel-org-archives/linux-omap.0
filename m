@@ -1,47 +1,49 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 0/3] ARM: OMAP: DRA7: Update to latest TRM and cleanup
-Date: Fri, 10 Jun 2016 09:18:16 -0500
-Message-ID: <CAGo_u6okpNGkfYno02nCfEsryki5drrhfwnZUj=ycghh62qoTg@mail.gmail.com>
-References: <1464096940-27145-1-git-send-email-nm@ti.com> <20160610093359.GQ22406@atomide.com>
+Subject: Re: [PATCH 0/8] ARM: dts: Add operating-points-v2 tables for TI
+ platforms
+Date: Fri, 10 Jun 2016 09:50:08 -0500
+Message-ID: <575AD3A0.1050203@ti.com>
+References: <cover.1463606963.git.d-gerlach@ti.com>
+ <20160519044744.GE32001@vireshk-i7> <20160610110414.GX22406@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160610093359.GQ22406@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: lkml <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20160610110414.GX22406@atomide.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Dave Gerlach <d-gerlach@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Yegor Yefremov <yegorslists@googlemail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jun 10, 2016 at 4:34 AM, Tony Lindgren <tony@atomide.com> wrote:
-> Hi,
->
-> * Nishanth Menon <nm@ti.com> [160524 06:37]:
->> Hi,
+On 06/10/2016 06:04 AM, Tony Lindgren wrote:
+> * Viresh Kumar <viresh.kumar@linaro.org> [160518 21:49]:
+>> On 18-05-16, 18:36, Dave Gerlach wrote:
+>>> Hi,
+>>> This series adds operating-points-v2 tables for am335x, am437x, dra7xx,
+>>> and am57xx based platforms along with some support patches so that we
+>>> can enable more OPPs for the CPU on these platforms.
+>>>
+>>> These patches rely on the ti-cpufreq series sent here [1] and provide
+>>> opp-supported-hw data for each OPP so that only the appropriate OPPs
+>>> for a specific piece of silicon get enabled.
 >>
->> Here are the final(hopefully) pending patches for DRA7 based on recent
->> TRM updates. Updates include removing retention support on L3init and
->> L4per as per latest SoC updates.
->>
->> Test Log: X15 (no modules): http://pastebin.ubuntu.com/16655027/
->>
->> Latest TRM (rev F): http://www.ti.com/lit/pdf/spruhz6 (public on May 18)
->>
->> Nishanth Menon (3):
->>   ARM: OMAP: DRA7: powerdomain data: Set L3init and L4per to ON
->>   ARM: OMAP: DRA7: powerdomain data: Remove unused pwrsts_logic_ret
->>   ARM: OMAP: DRA7: powerdomain data: Remove unused pwrsts_mem_ret
->>
->>  arch/arm/mach-omap2/powerdomains7xx_data.c | 76 +-----------------------------
->>  1 file changed, 2 insertions(+), 74 deletions(-)
->
-> Can these wait until v4.8 merge window, are this needed as fixes to
-> avoid hardware problems?
+>> Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+> 
+> Applying all the dts changes into omap-for-v4.8/dt thanks.
+> 
+> Tony
+> 
+Viresh, are we ready with the cpufreq series?
 
-Yes - at least patch #1 is a h/w "limitation" and can result in non
-functional SoC after a duration of operation. the patches #2/3 are
-code shrinkage to remove unused data.
+https://patchwork.kernel.org/patch/9122961/
+https://patchwork.kernel.org/patch/9122921/
+
+Also current series: https://patchwork.kernel.org/patch/9123071/
+Seems to have comments pending.
+
+Dave is on vacation for another week or so, doubt he can respond in
+time -> Should we wait on this series till we get the cpufreq support in?
 
 -- 
----
 Regards,
 Nishanth Menon
