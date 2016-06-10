@@ -1,71 +1,38 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v10 08/14] usb: otg: add OTG/dual-role core
-Date: Fri, 10 Jun 2016 10:04:29 +0300
-Message-ID: <575A667D.4090007@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v10 11/14] usb: otg: use dev_dbg() instead of VDBG()
+Date: Fri, 10 Jun 2016 10:05:15 +0300
+Message-ID: <575A66AB.8000204@ti.com>
 References: <1465376626-30122-1-git-send-email-rogerq@ti.com>
- <1465376626-30122-9-git-send-email-rogerq@ti.com> <57592060.6060801@ti.com>
- <2522343c-422f-79e1-af40-eb953bde42f6@cogentembedded.com>
+ <1465376626-30122-12-git-send-email-rogerq@ti.com> <575920D9.7080905@ti.com>
+ <1465487024.25087.72.camel@perches.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2522343c-422f-79e1-af40-eb953bde42f6@cogentembedded.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, peter.chen@freescale.com
-Cc: balbi@kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1465487024.25087.72.camel-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org
+Cc: balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Sergei,
-
-On 09/06/16 15:34, Sergei Shtylyov wrote:
-> On 6/9/2016 10:53 AM, Roger Quadros wrote:
-> 
->> It provides APIs for the following tasks
+On 09/06/16 18:43, Joe Perches wrote:
+> On Thu, 2016-06-09 at 10:55 +0300, Roger Quadros wrote:
+>> Now that we have a device reference in struct usb_otg
+>> let's use dev_vdbg() for debug messages instead of VDBG().
 >>
->> - Registering an OTG/dual-role capable controller
->> - Registering Host and Gadget controllers to OTG core
->> - Providing inputs to and kicking the OTG state machine
->>
->> Provide a dual-role device (DRD) state machine.
->> DRD mode is a reduced functionality OTG mode. In this mode
->> we don't support SRP, HNP and dynamic role-swap.
->>
->> In DRD operation, the controller mode (Host or Peripheral)
->> is decided based on the ID pin status. Once a cable plug (Type-A
->> or Type-B) is attached the controller selects the state
->> and doesn't change till the cable in unplugged and a different
->> cable type is inserted.
->>
->> As we don't need most of the complex OTG states and OTG timers
->> we implement a lean DRD state machine in usb-otg.c.
->> The DRD state machine is only interested in 2 hardware inputs
->> 'id' and 'b_sess_vld'.
->>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>> Acked-by: Peter Chen <peter.chen-3arQi8VN3Tc@public.gmane.org>
+>> ---
+>> v10:
+>> - in the commit message say dev_vdbg() instead of dev_dbg()
 > 
-> [...]
+> 50% - partial credit, see: patch/email subject.
 > 
->> diff --git a/drivers/usb/common/usb-otg.c b/drivers/usb/common/usb-otg.c
->> new file mode 100644
->> index 0000000..baebe5c
->> --- /dev/null
->> +++ b/drivers/usb/common/usb-otg.c
->> @@ -0,0 +1,833 @@
-> [...]
->> +/**
->> + * Change USB protocol when there is a protocol change.
->> + * fsm->lock must be held.
->> + */
-> 
->    If you're using the kernel-doc comment, please follow the rules.
-> 
+Oops. Will fix. :)
 
-All your comments are valid and I'll fix the issues.
-
-<snip>
-
-> [...]
-> 
->    Phew, that was a long patch... normally I don't review the patches that are such big. :-)
-
-Thanks for the patience and review :)
+cheers,
+-roger
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
