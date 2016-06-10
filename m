@@ -1,83 +1,360 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v10 11/14] usb: otg: use dev_vdbg() instead of VDBG()
-Date: Fri, 10 Jun 2016 16:07:20 +0300
-Message-ID: <1465564043-27163-12-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v10 13/14] usb: gadget: udc: adapt to OTG core
+Date: Fri, 10 Jun 2016 16:07:22 +0300
+Message-ID: <1465564043-27163-14-git-send-email-rogerq@ti.com>
 References: <1465564043-27163-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1465564043-27163-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: peter.chen@freescale.com
-Cc: balbi@kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, joe@perches.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1465564043-27163-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org
+Cc: balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Now that we have a device reference in struct usb_otg
-let's use dev_vdbg() for debug messages instead of VDBG().
+The OTG state machine needs a mechanism to start and
+stop the gadget controller as well as connect/disconnect
+from the bus. Add usb_gadget_start(), usb_gadget_stop()
+and usb_gadget_connect_control().
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
-Acked-by: Peter Chen <peter.chen@nxp.com>
+Introduce usb_otg_add_gadget_udc() to allow controller drivers
+to register a gadget controller that is part of an OTG instance.
+
+Register with OTG core when UDC is added in usb_add_gadget_udc_release()
+and unregister on usb_del_gadget_udc().
+
+Notify the OTG core when gadget function driver is available on
+udc_bind_to_driver() and when it is removed in usb_gadget_remove_driver().
+
+We need to unlock the usb_lock mutex before calling
+usb_otg_register_gadget() else it will cause a circular
+locking dependency.
+
+Ignore softconnect sysfs control when we're in OTG
+mode as OTG FSM should care of gadget softconnect using
+the b_bus_req mechanism.
+
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/common/usb-otg-fsm.c | 19 +++++++------------
- 1 file changed, 7 insertions(+), 12 deletions(-)
+ drivers/usb/gadget/udc/core.c | 202 +++++++++++++++++++++++++++++++++++++++---
+ include/linux/usb/gadget.h    |   4 +
+ 2 files changed, 196 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
-index 482d4c9..e6e58c2 100644
---- a/drivers/usb/common/usb-otg-fsm.c
-+++ b/drivers/usb/common/usb-otg-fsm.c
-@@ -30,13 +30,6 @@
- #include <linux/usb/otg.h>
- #include <linux/usb/otg-fsm.h>
+diff --git a/drivers/usb/gadget/udc/core.c b/drivers/usb/gadget/udc/core.c
+index 42756d7..9d8a1d0 100644
+--- a/drivers/usb/gadget/udc/core.c
++++ b/drivers/usb/gadget/udc/core.c
+@@ -28,6 +28,11 @@
+ #include <linux/usb/ch9.h>
+ #include <linux/usb/gadget.h>
+ #include <linux/usb.h>
++#include <linux/usb/otg.h>
++#include <linux/usb/of.h>
++
++#include <linux/of.h>
++#include <linux/of_platform.h>
  
--#ifdef VERBOSE
--#define VDBG(fmt, args...) pr_debug("[%s]  " fmt, \
--				 __func__, ## args)
--#else
--#define VDBG(stuff...)	do {} while (0)
--#endif
--
- /* Change USB protocol when there is a protocol change */
- static int otg_set_protocol(struct otg_fsm *fsm, int protocol)
- {
-@@ -44,8 +37,9 @@ static int otg_set_protocol(struct otg_fsm *fsm, int protocol)
- 	int ret = 0;
+ #include "trace.h"
  
- 	if (fsm->protocol != protocol) {
--		VDBG("Changing role fsm->protocol= %d; new protocol= %d\n",
--			fsm->protocol, protocol);
-+		dev_vdbg(otg->dev,
-+			 "Changing role fsm->protocol= %d; new protocol= %d\n",
-+			 fsm->protocol, protocol);
- 		/* stop old protocol */
- 		if (fsm->protocol == PROTO_HOST)
- 			ret = otg_start_host(otg, 0);
-@@ -226,7 +220,7 @@ static int otg_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
- 
- 	if (otg->state == new_state)
- 		return 0;
--	VDBG("Set state: %s\n", usb_otg_state_string(new_state));
-+	dev_vdbg(otg->dev, "Set state: %s\n", usb_otg_state_string(new_state));
- 	otg_leave_state(fsm, otg->state);
- 	switch (new_state) {
- 	case OTG_STATE_B_IDLE:
-@@ -358,7 +352,7 @@ int otg_statemachine(struct usb_otg *otg)
- 
- 	switch (state) {
- 	case OTG_STATE_UNDEFINED:
--		VDBG("fsm->id = %d\n", fsm->id);
-+		dev_vdbg(otg->dev, "fsm->id = %d\n", fsm->id);
- 		if (fsm->id)
- 			otg_set_state(fsm, OTG_STATE_B_IDLE);
- 		else
-@@ -466,7 +460,8 @@ int otg_statemachine(struct usb_otg *otg)
- 	}
- 	mutex_unlock(&fsm->lock);
- 
--	VDBG("quit statemachine, changed = %d\n", fsm->state_changed);
-+	dev_vdbg(otg->dev, "quit statemachine, changed = %d\n",
-+		 fsm->state_changed);
- 	return fsm->state_changed;
+@@ -1060,6 +1065,113 @@ static inline void usb_gadget_udc_stop(struct usb_udc *udc)
  }
- EXPORT_SYMBOL_GPL(otg_statemachine);
+ 
+ /**
++ * usb_gadget_to_udc - get the UDC owning the gadget
++ *
++ * udc_lock must be held.
++ * Returs NULL if UDC is not found.
++ */
++static struct usb_udc *usb_gadget_to_udc(struct usb_gadget *gadget)
++{
++	struct usb_udc *udc;
++
++	list_for_each_entry(udc, &udc_list, list)
++		if (udc->gadget == gadget)
++			return udc;
++
++	return NULL;
++}
++
++/**
++ * usb_gadget_start - start the usb gadget controller
++ * @gadget: the gadget device to start
++ *
++ * This is external API for use by OTG core.
++ *
++ * Start the usb device controller. Does not connect to the bus.
++ */
++static int usb_gadget_start(struct usb_gadget *gadget)
++{
++	int ret;
++	struct usb_udc *udc;
++
++	mutex_lock(&udc_lock);
++	udc = usb_gadget_to_udc(gadget);
++	if (!udc) {
++		dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
++			__func__);
++		mutex_unlock(&udc_lock);
++		return -EINVAL;
++	}
++
++	ret = usb_gadget_udc_start(udc);
++	if (ret)
++		dev_err(&udc->dev, "USB Device Controller didn't start: %d\n",
++			ret);
++
++	mutex_unlock(&udc_lock);
++
++	return ret;
++}
++
++/**
++ * usb_gadget_stop - stop the usb gadget controller
++ * @gadget: the gadget device we want to stop
++ *
++ * This is external API for use by OTG core.
++ *
++ * Stop the gadget controller. Does not disconnect from the bus.
++ * Caller must ensure that gadget has disconnected from the bus
++ * before calling usb_gadget_stop().
++ */
++static int usb_gadget_stop(struct usb_gadget *gadget)
++{
++	struct usb_udc *udc;
++
++	mutex_lock(&udc_lock);
++	udc = usb_gadget_to_udc(gadget);
++	if (!udc) {
++		dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
++			__func__);
++		mutex_unlock(&udc_lock);
++		return -EINVAL;
++	}
++
++	if (gadget->connected)
++		dev_dbg(gadget->dev.parent,
++			"%s: called while still connected\n", __func__);
++
++	usb_gadget_udc_stop(udc);
++	mutex_unlock(&udc_lock);
++
++	return 0;
++}
++
++static int usb_gadget_connect_control(struct usb_gadget *gadget, bool connect)
++{
++	struct usb_udc *udc;
++
++	mutex_lock(&udc_lock);
++	udc = usb_gadget_to_udc(gadget);
++	if (!udc) {
++		dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
++			__func__);
++		mutex_unlock(&udc_lock);
++		return -EINVAL;
++	}
++
++	if (connect) {
++		usb_gadget_connect(udc->gadget);
++	} else {
++		usb_gadget_disconnect(udc->gadget);
++		udc->driver->disconnect(udc->gadget);
++	}
++
++	mutex_unlock(&udc_lock);
++
++	return 0;
++}
++
++/**
+  * usb_udc_release - release the usb_udc struct
+  * @dev: the dev member within usb_udc
+  *
+@@ -1082,6 +1194,12 @@ static void usb_udc_nop_release(struct device *dev)
+ 	dev_vdbg(dev, "%s\n", __func__);
+ }
+ 
++struct otg_gadget_ops otg_gadget_intf = {
++	.start = usb_gadget_start,
++	.stop = usb_gadget_stop,
++	.connect_control = usb_gadget_connect_control,
++};
++
+ /**
+  * usb_add_gadget_udc_release - adds a new gadget to the udc class driver list
+  * @parent: the parent device to this udc. Usually the controller driver's
+@@ -1137,6 +1255,14 @@ int usb_add_gadget_udc_release(struct device *parent, struct usb_gadget *gadget,
+ 	usb_gadget_set_state(gadget, USB_STATE_NOTATTACHED);
+ 	udc->vbus = true;
+ 
++	if (gadget->otg_dev) {
++		mutex_unlock(&udc_lock);
++		ret = usb_otg_register_gadget(gadget, &otg_gadget_intf);
++		mutex_lock(&udc_lock);
++		if (ret)
++			goto err5;
++	}
++
+ 	/* pick up one of pending gadget drivers */
+ 	list_for_each_entry(driver, &gadget_driver_pending_list, pending) {
+ 		if (!driver->udc_name || strcmp(driver->udc_name,
+@@ -1145,7 +1271,7 @@ int usb_add_gadget_udc_release(struct device *parent, struct usb_gadget *gadget,
+ 			if (ret != -EPROBE_DEFER)
+ 				list_del(&driver->pending);
+ 			if (ret)
+-				goto err4;
++				goto err5;
+ 			break;
+ 		}
+ 	}
+@@ -1154,6 +1280,8 @@ int usb_add_gadget_udc_release(struct device *parent, struct usb_gadget *gadget,
+ 
+ 	return 0;
+ 
++err5:
++	device_del(&udc->dev);
+ err4:
+ 	list_del(&udc->list);
+ 	mutex_unlock(&udc_lock);
+@@ -1215,6 +1343,33 @@ int usb_add_gadget_udc(struct device *parent, struct usb_gadget *gadget)
+ }
+ EXPORT_SYMBOL_GPL(usb_add_gadget_udc);
+ 
++/**
++ * usb_otg_add_gadget_udc - adds a new gadget to the udc class driver list
++ * @parent: the parent device to this udc. Usually the controller
++ * driver's device.
++ * @gadget: the gadget to be added to the list
++ * @otg_dev: the OTG controller device
++ *
++ * If otg_dev is NULL then device tree node is checked
++ * for OTG controller via the otg-controller property.
++ * Returns zero on success, negative errno otherwise.
++ */
++int usb_otg_add_gadget_udc(struct device *parent, struct usb_gadget *gadget,
++			   struct device *otg_dev)
++{
++	if (!otg_dev) {
++		gadget->otg_dev = of_usb_get_otg(parent->of_node);
++		if (!gadget->otg_dev)
++			return -ENODEV;
++	} else {
++		gadget->otg_dev = otg_dev;
++	}
++
++	return usb_add_gadget_udc_release(parent, gadget, NULL);
++}
++EXPORT_SYMBOL_GPL(usb_otg_add_gadget_udc);
++
++/* udc_lock must be held */
+ static void usb_gadget_remove_driver(struct usb_udc *udc)
+ {
+ 	dev_dbg(&udc->dev, "unregistering UDC driver [%s]\n",
+@@ -1222,10 +1377,18 @@ static void usb_gadget_remove_driver(struct usb_udc *udc)
+ 
+ 	kobject_uevent(&udc->dev.kobj, KOBJ_CHANGE);
+ 
+-	usb_gadget_disconnect(udc->gadget);
+-	udc->driver->disconnect(udc->gadget);
++	/* If OTG/dual-role, the otg core manages UDC start/stop */
++	if (udc->gadget->otg_dev) {
++		mutex_unlock(&udc_lock);
++		usb_otg_gadget_ready(udc->gadget, false);
++		mutex_lock(&udc_lock);
++	} else {
++		usb_gadget_disconnect(udc->gadget);
++		udc->driver->disconnect(udc->gadget);
++		usb_gadget_udc_stop(udc);
++	}
++
+ 	udc->driver->unbind(udc->gadget);
+-	usb_gadget_udc_stop(udc);
+ 
+ 	udc->driver = NULL;
+ 	udc->dev.driver = NULL;
+@@ -1259,6 +1422,9 @@ void usb_del_gadget_udc(struct usb_gadget *gadget)
+ 	}
+ 	mutex_unlock(&udc_lock);
+ 
++	if (gadget->otg_dev)
++		usb_otg_unregister_gadget(gadget);
++
+ 	kobject_uevent(&udc->dev.kobj, KOBJ_REMOVE);
+ 	flush_work(&gadget->work);
+ 	device_unregister(&udc->dev);
+@@ -1268,6 +1434,7 @@ EXPORT_SYMBOL_GPL(usb_del_gadget_udc);
+ 
+ /* ------------------------------------------------------------------------- */
+ 
++/* udc_lock must be held */
+ static int udc_bind_to_driver(struct usb_udc *udc, struct usb_gadget_driver *driver)
+ {
+ 	int ret;
+@@ -1282,17 +1449,26 @@ static int udc_bind_to_driver(struct usb_udc *udc, struct usb_gadget_driver *dri
+ 	ret = driver->bind(udc->gadget, driver);
+ 	if (ret)
+ 		goto err1;
+-	ret = usb_gadget_udc_start(udc);
+-	if (ret) {
+-		driver->unbind(udc->gadget);
+-		goto err1;
++
++	/* If OTG/dual-role, the otg core manages UDC start/stop */
++	if (udc->gadget->otg_dev) {
++		mutex_unlock(&udc_lock);
++		usb_otg_gadget_ready(udc->gadget, true);
++		mutex_lock(&udc_lock);
++	} else {
++		ret = usb_gadget_udc_start(udc);
++		if (ret) {
++			mutex_unlock(&udc_lock);
++			driver->unbind(udc->gadget);
++			goto err1;
++		}
++		usb_udc_connect_control(udc);
+ 	}
+-	usb_udc_connect_control(udc);
+ 
+ 	kobject_uevent(&udc->dev.kobj, KOBJ_CHANGE);
+ 	return 0;
+ err1:
+-	if (ret != -EISNAM)
++	if ((ret != -EISNAM) && (ret != -EPROBE_DEFER))
+ 		dev_err(&udc->dev, "failed to start %s: %d\n",
+ 			udc->driver->function, ret);
+ 	udc->driver = NULL;
+@@ -1389,6 +1565,12 @@ static ssize_t usb_udc_softconn_store(struct device *dev,
+ 		return -EOPNOTSUPP;
+ 	}
+ 
++	/* In OTG/dual-role mode, soft-connect should be handled by OTG core */
++	if (udc->gadget->otg_dev) {
++		dev_err(dev, "soft-connect not supported in OTG mode\n");
++		return -EOPNOTSUPP;
++	}
++
+ 	if (sysfs_streq(buf, "connect")) {
+ 		usb_gadget_udc_start(udc);
+ 		usb_gadget_connect(udc->gadget);
+diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
+index 1d74fb8..8c6880d 100644
+--- a/include/linux/usb/gadget.h
++++ b/include/linux/usb/gadget.h
+@@ -701,6 +701,10 @@ extern int usb_add_gadget_udc(struct device *parent, struct usb_gadget *gadget);
+ extern void usb_del_gadget_udc(struct usb_gadget *gadget);
+ extern char *usb_get_gadget_udc_name(void);
+ 
++extern int usb_otg_add_gadget_udc(struct device *parent,
++				  struct usb_gadget *gadget,
++				  struct device *otg_dev);
++
+ /*-------------------------------------------------------------------------*/
+ 
+ /* utility to simplify dealing with string descriptors */
 -- 
 2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
