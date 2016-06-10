@@ -1,108 +1,66 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH v10 5/5] usb: dwc3: core: cleanup IRQ resources
-Date: Fri, 10 Jun 2016 15:22:30 +0300
-Message-ID: <42bc2e3b-9282-4bbd-d9ed-237ea4367ea4@cogentembedded.com>
-References: <1462977406-22806-1-git-send-email-rogerq@ti.com>
- <1462977406-22806-6-git-send-email-rogerq@ti.com> <574E92E8.5080201@ti.com>
- <575A8EB0.1050706@ti.com>
- <c59b5dcf-87ff-df86-897c-8c7a9f4beb20@cogentembedded.com>
- <575AA5F8.90305@ti.com>
- <e44f4111-e53e-724b-925f-b9b58fb33c4a@cogentembedded.com>
- <575AA897.1060407@ti.com>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [PATCH v3 3/3] pwm: pwm-tiehrpwm: Update dt binding document to
+ use generic node name
+Date: Fri, 10 Jun 2016 14:37:57 +0200
+Message-ID: <20160610123757.GC27142@ulmo.ba.sec>
+References: <1458263723-25770-1-git-send-email-fcooper@ti.com>
+ <1458263723-25770-4-git-send-email-fcooper@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <575AA897.1060407@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, balbi@kernel.org, grygorii.strashko@ti.com
-Cc: tony@atomide.com, Joao.Pinto@synopsys.com, peter.chen@freescale.com, jun.li@freescale.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="KDt/GgjP6HVcx58l"
+Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1458263723-25770-4-git-send-email-fcooper@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Franklin S Cooper Jr <fcooper@ti.com>
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, t-kristo@ti.com, mturquette@baylibre.com, sboyd@codeaurora.org, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 6/10/2016 2:46 PM, Roger Quadros wrote:
 
->>>>> Implementations might use different IRQs for
->>>>> host, gadget so use named interrupt resources
->>>>> to allow device tree to specify the interrupts.
->>>>>
->>>>> Following are the interrupt names
->>>>>
->>>>> Peripheral Interrupt - peripheral
->>>>> HOST Interrupt - host
->>>>>
->>>>> Maintain backward compatibility for a single named
->>>>> interrupt ("dwc3_usb3") for all interrupts as well as
->>>>> unnamed interrupt at index 0 for all interrupts.
->>>>>
->>>>> As platform_get_irq_() variants are used, tackle
->>>>
->>>>    platform_get_irq().
->>>
->>> OK.
->>>>
->>>>> the -EPROBE_DEFER case as well.
->>>>>
->>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>>> ---
->>>>> v10:
->>>>> - don't mention otg irq since we are not using it yet
->>>>> - use platform_get_irq() and friends and check -EPROBE_DEFER case.
->>>>>
->>>>>  drivers/usb/dwc3/core.c   | 22 ++++++++--------------
->>>>>  drivers/usb/dwc3/gadget.c | 29 ++++++++++++++++++++++++++---
->>>>>  drivers/usb/dwc3/host.c   | 41 ++++++++++++++++++++++++++++++++++++++++-
->>>>>  3 files changed, 74 insertions(+), 18 deletions(-)
->>>>>
->>>>> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
->>>>> index 8fceeb1..131e7eb 100644
->>>>> --- a/drivers/usb/dwc3/core.c
->>>>> +++ b/drivers/usb/dwc3/core.c
->>>> [...]
->>>>> diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
->>>>> index 0f6fb8e..774a0d8 100644
->>>>> --- a/drivers/usb/dwc3/gadget.c
->>>>> +++ b/drivers/usb/dwc3/gadget.c
->>>> [...]
->>>>> @@ -2866,7 +2865,31 @@ static irqreturn_t dwc3_interrupt(int irq, void *_evt)
->>>>>   */
->>>>>  int dwc3_gadget_init(struct dwc3 *dwc)
->>>>>  {
->>>>> -    int                    ret;
->>>>> +    int ret, irq;
->>>>> +    struct platform_device *dwc3_pdev = to_platform_device(dwc->dev);
->>>>> +
->>>>> +    irq = platform_get_irq_byname(dwc3_pdev, "peripheral");
->>>>> +    if (irq == -EPROBE_DEFER)
->>>>> +        return irq;
->>>>> +
->>>>> +    if (irq <= 0) {
->>>>> +        irq = platform_get_irq_byname(dwc3_pdev, "dwc_usb3");
->>>>> +        if (irq == -EPROBE_DEFER)
->>>>> +            return irq;
->>>>> +
->>>>> +        if (irq <= 0) {
->>>>> +            irq = platform_get_irq(dwc3_pdev, 0);
->>>>> +            if (irq <= 0) {
->>>>> +                if (irq != -EPROBE_DEFER) {
->>>>> +                    dev_err(dwc->dev,
->>>>> +                        "missing peripheral IRQ\n");
->>>>> +                }
->>>>> +                return irq;
->>>>
->>>>    Iff irq == 0, you'll return success despite IRQ was "invalid". Was that intended?
->>>
->>> good catch. It wasn't intended. I guess i'll return -EINVAL then?
+--KDt/GgjP6HVcx58l
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-[...]
+On Thu, Mar 17, 2016 at 08:15:23PM -0500, Franklin S Cooper Jr wrote:
+> Now that the node name has been changed from ehrpwm to pwm the document
+> should show this proper usage. Also change the unit address in the example
+> from 0 to the proper physical address value that should be used.
+>=20
+> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+> ---
+> Version 3 changes:
+> N/A
+>=20
+> Version 2 changes:
+> Changed the unit address for da850 to match the value in the reg property.
+>=20
+>  Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 
->>    I'd just consider 0 a valid IRQ, that's simpler. FYI, I've submitted to Greg KH a patch fixing platform_get_irq[_byname]() to not return 0 on failure. No reaction so far...
->
-> Maybe till your patch is in we can't really differentiate if it is error or not
-> so it is safer to consider it as error IMO.
+Applied, thanks.
 
-    Returning -EINVAL is fine then.
+Thierry
 
-> cheers,
-> -roger
+--KDt/GgjP6HVcx58l
+Content-Type: application/pgp-signature; name="signature.asc"
 
-MBR, Sergei
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJXWrSjAAoJEN0jrNd/PrOhltEP/2Sj6ewFRIuy/jeWy82CsRdZ
+l8rHNHpSm/mTHupAuDlLLkkEZVV1rxUkAnHRjUSCP7McirTHvL9KwOb52KOIzBBM
+ODOJrJJQxZOGLgZkb2jKA6bAhHs8t1ziob8gTFMjZ4hQfJbwdNav5oWK9OhJMCBI
+rmPWKcwlQMeE2PM1YdiSqfcfZQnBRSvhSZkX1PfXl0mSAKMke0LSWUyZwtKK38af
+yhk9iRoB2c9j+tyKjnZzjQt33bygUIF80mpwbkKFaOTKxQ9xb3hY8qfTvYZ9gRaQ
+hQJQvZQ7BHTY0zQTLz6AFkdTh5UDBpz0HmoaUXRhivGdrVh0wGXoSBcOOj3vfUj4
+4jl3PioIYufjjsXVk0hFYorrbNd1QI247cBH948N4vcdFYyB2fnL/+JdOTtPGbsy
+mZ+O7dP0JntU231yjEyiJRbuZ+gTPBbQ+M+HGUwq0HsB0901MJ/LJG9Ly7O82Vdv
+J/PQ85KhY1snpCplGG966XfiM8k2HnJeTGyOUEZbmysO30SCr1LnRMGXiEuqmWKI
+tP14X42iQ1/iwLEIlwJ/zj5J9ivkuK8fyoZInYt9zcYnaanBeXnRuLgyR2iJl+aP
+BNnXJtiox9krY5e5ndOdztT7DnjzWv6OQRM3cTP69YFp0EwQjy34D5RhNJHJ/4m9
+k1qRDz7wLlCRr/JpLkam
+=2+ii
+-----END PGP SIGNATURE-----
+
+--KDt/GgjP6HVcx58l--
