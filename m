@@ -1,24 +1,94 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 7/7] ARM: dts: n900: enable lirc-rx51 driver
-Date: Fri, 10 Jun 2016 03:20:00 -0700
-Message-ID: <20160610101959.GR22406@atomide.com>
-References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <1462634508-24961-8-git-send-email-ivo.g.dimitrov.75@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: [PATCH v4 22/44] video: dma-mapping: Use unsigned long for dma_attrs
+Date: Fri, 10 Jun 2016 12:11:39 +0200
+Message-ID: <1465553521-27303-23-git-send-email-k.kozlowski@samsung.com>
+References: <1465553521-27303-1-git-send-email-k.kozlowski@samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1462634508-24961-8-git-send-email-ivo.g.dimitrov.75@gmail.com>
+In-reply-to: <1465553521-27303-1-git-send-email-k.kozlowski@samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, thierry.reding@gmail.com, bcousson@baylibre.com, linux@arm.linux.org.uk, mchehab@osg.samsung.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, sre@kernel.org, pali.rohar@gmail.com
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: hch@infradead.org, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Oleg Nesterov <oleg@redhat.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160507 08:24]:
-> Add the needed DT data to enable IR TX driver
+Split out subsystem specific changes for easier reviews. This will be
+squashed with main commit.
 
-Applying this patch into omap-for-v4.8/dt thanks.
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+---
+ drivers/video/fbdev/omap2/omapfb/omapfb-main.c | 12 ++++++------
+ drivers/video/fbdev/omap2/omapfb/omapfb.h      |  3 +--
+ 2 files changed, 7 insertions(+), 8 deletions(-)
 
-Regards,
-
-Tony
+diff --git a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c b/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
+index d3af01c94a58..59172a2185c0 100644
+--- a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
++++ b/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
+@@ -1332,7 +1332,7 @@ static void omapfb_free_fbmem(struct fb_info *fbi)
+ 	}
+ 
+ 	dma_free_attrs(fbdev->dev, rg->size, rg->token, rg->dma_handle,
+-			&rg->attrs);
++			rg->attrs);
+ 
+ 	rg->token = NULL;
+ 	rg->vaddr = NULL;
+@@ -1370,7 +1370,7 @@ static int omapfb_alloc_fbmem(struct fb_info *fbi, unsigned long size,
+ 	struct omapfb2_device *fbdev = ofbi->fbdev;
+ 	struct omapfb2_mem_region *rg;
+ 	void *token;
+-	DEFINE_DMA_ATTRS(attrs);
++	unsigned long attrs;
+ 	dma_addr_t dma_handle;
+ 	int r;
+ 
+@@ -1386,15 +1386,15 @@ static int omapfb_alloc_fbmem(struct fb_info *fbi, unsigned long size,
+ 
+ 	size = PAGE_ALIGN(size);
+ 
+-	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
++	attrs = DMA_ATTR_WRITE_COMBINE;
+ 
+ 	if (ofbi->rotation_type == OMAP_DSS_ROT_VRFB)
+-		dma_set_attr(DMA_ATTR_NO_KERNEL_MAPPING, &attrs);
++		attrs |= DMA_ATTR_NO_KERNEL_MAPPING;
+ 
+ 	DBG("allocating %lu bytes for fb %d\n", size, ofbi->id);
+ 
+ 	token = dma_alloc_attrs(fbdev->dev, size, &dma_handle,
+-			GFP_KERNEL, &attrs);
++			GFP_KERNEL, attrs);
+ 
+ 	if (token == NULL) {
+ 		dev_err(fbdev->dev, "failed to allocate framebuffer\n");
+@@ -1408,7 +1408,7 @@ static int omapfb_alloc_fbmem(struct fb_info *fbi, unsigned long size,
+ 		r = omap_vrfb_request_ctx(&rg->vrfb);
+ 		if (r) {
+ 			dma_free_attrs(fbdev->dev, size, token, dma_handle,
+-					&attrs);
++					attrs);
+ 			dev_err(fbdev->dev, "vrfb create ctx failed\n");
+ 			return r;
+ 		}
+diff --git a/drivers/video/fbdev/omap2/omapfb/omapfb.h b/drivers/video/fbdev/omap2/omapfb/omapfb.h
+index 623cd872a367..8aaa2f643820 100644
+--- a/drivers/video/fbdev/omap2/omapfb/omapfb.h
++++ b/drivers/video/fbdev/omap2/omapfb/omapfb.h
+@@ -28,7 +28,6 @@
+ #endif
+ 
+ #include <linux/rwsem.h>
+-#include <linux/dma-attrs.h>
+ #include <linux/dma-mapping.h>
+ 
+ #include <video/omapdss.h>
+@@ -51,7 +50,7 @@ extern bool omapfb_debug;
+ 
+ struct omapfb2_mem_region {
+ 	int             id;
+-	struct dma_attrs attrs;
++	unsigned long	attrs;
+ 	void		*token;
+ 	dma_addr_t	dma_handle;
+ 	u32		paddr;
+-- 
+1.9.1
