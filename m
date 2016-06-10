@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v10 09/14] usb: of: add an API to get OTG device from USB controller node
-Date: Fri, 10 Jun 2016 16:07:18 +0300
-Message-ID: <1465564043-27163-10-git-send-email-rogerq@ti.com>
+Subject: [PATCH v10 03/14] usb: hcd.h: Add OTG to HCD interface
+Date: Fri, 10 Jun 2016 16:07:12 +0300
+Message-ID: <1465564043-27163-4-git-send-email-rogerq@ti.com>
 References: <1465564043-27163-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,92 +12,54 @@ To: peter.chen@freescale.com
 Cc: balbi@kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, joe@perches.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The OTG controller and the USB controller can be linked via the
-'otg-controller' property in the USB controller's device node.
+The OTG core will use struct otg_hcd_ops to interface
+with the HCD (Host Controller Driver).
 
-of_usb_get_otg() can be used to get the OTG controller device
-from the USB controller's device node.
+The main purpose of this interface is to avoid directly
+calling HCD APIs from the OTG core as they
+wouldn't be defined in the built-in symbol table if
+CONFIG_USB is m.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 Acked-by: Peter Chen <peter.chen@nxp.com>
-Acked-by: Rob Herring <robh@kernel.org>
 ---
- Documentation/devicetree/bindings/usb/generic.txt |  3 +++
- drivers/usb/common/common.c                       | 27 +++++++++++++++++++++++
- include/linux/usb/of.h                            |  9 ++++++++
- 3 files changed, 39 insertions(+)
+ include/linux/usb/hcd.h | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/usb/generic.txt b/Documentation/devicetree/bindings/usb/generic.txt
-index bba8257..f6866c1 100644
---- a/Documentation/devicetree/bindings/usb/generic.txt
-+++ b/Documentation/devicetree/bindings/usb/generic.txt
-@@ -24,6 +24,9 @@ Optional properties:
- 			optional for OTG device.
-  - adp-disable: tells OTG controllers we want to disable OTG ADP, ADP is
- 			optional for OTG device.
-+ - otg-controller: phandle to otg controller. Host or gadget controllers can
-+			contain this property to link it to a particular OTG
-+			controller.
+diff --git a/include/linux/usb/hcd.h b/include/linux/usb/hcd.h
+index 66fc137..7729c1f 100644
+--- a/include/linux/usb/hcd.h
++++ b/include/linux/usb/hcd.h
+@@ -400,6 +400,30 @@ struct hc_driver {
  
- This is an attribute to a USB controller such as:
+ };
  
-diff --git a/drivers/usb/common/common.c b/drivers/usb/common/common.c
-index e3d0161..d7ec471 100644
---- a/drivers/usb/common/common.c
-+++ b/drivers/usb/common/common.c
-@@ -238,6 +238,33 @@ int of_usb_update_otg_caps(struct device_node *np,
- }
- EXPORT_SYMBOL_GPL(of_usb_update_otg_caps);
- 
-+#ifdef CONFIG_USB_OTG
 +/**
-+ * of_usb_get_otg - get the OTG controller linked to the USB controller
-+ * @np: Pointer to the device_node of the USB controller
-+ * @otg_caps: Pointer to the target usb_otg_caps to be set
++ * struct otg_hcd_ops - Interface between OTG core and HCD
 + *
-+ * Returns the OTG controller device or NULL on error.
++ * Provided by the HCD core to allow the OTG core to interface with the HCD
++ *
++ * @add: function to add the HCD
++ * @remove: function to remove the HCD
++ * @usb_bus_start_enum: function to immediately start bus enumeration
++ * @usb_control_msg: function to build and send a control URB
++ * @usb_hub_find_child: function to get pointer to the child device
 + */
-+struct device *of_usb_get_otg(struct device_node *np)
-+{
-+	struct device_node *otg_np;
-+	struct platform_device *pdev;
++struct otg_hcd_ops {
++	int (*add)(struct usb_hcd *hcd,
++		   unsigned int irqnum, unsigned long irqflags);
++	void (*remove)(struct usb_hcd *hcd);
++	int (*usb_bus_start_enum)(struct usb_bus *bus, unsigned int port_num);
++	int (*usb_control_msg)(struct usb_device *dev, unsigned int pipe,
++			       __u8 request, __u8 requesttype, __u16 value,
++			       __u16 index, void *data, __u16 size,
++			       int timeout);
++	struct usb_device * (*usb_hub_find_child)(struct usb_device *hdev,
++						  int port1);
++};
 +
-+	otg_np = of_parse_phandle(np, "otg-controller", 0);
-+	if (!otg_np)
-+		return NULL;
-+
-+	pdev = of_find_device_by_node(otg_np);
-+	of_node_put(otg_np);
-+	if (!pdev)
-+		return NULL;
-+
-+	return &pdev->dev;
-+}
-+EXPORT_SYMBOL_GPL(of_usb_get_otg);
-+#endif
-+
- #endif
- 
- MODULE_LICENSE("GPL");
-diff --git a/include/linux/usb/of.h b/include/linux/usb/of.h
-index de3237f..499a4e8 100644
---- a/include/linux/usb/of.h
-+++ b/include/linux/usb/of.h
-@@ -40,6 +40,15 @@ static inline struct device_node *usb_of_get_child_node
- }
- #endif
- 
-+#if IS_ENABLED(CONFIG_OF) && IS_ENABLED(CONFIG_USB_OTG)
-+struct device *of_usb_get_otg(struct device_node *np);
-+#else
-+static inline struct device *of_usb_get_otg(struct device_node *np)
-+{
-+	return NULL;
-+}
-+#endif
-+
- #if IS_ENABLED(CONFIG_OF) && IS_ENABLED(CONFIG_USB_SUPPORT)
- enum usb_phy_interface of_usb_get_phy_mode(struct device_node *np);
- #else
+ static inline int hcd_giveback_urb_in_bh(struct usb_hcd *hcd)
+ {
+ 	return hcd->driver->flags & HCD_BH;
 -- 
 2.7.4
