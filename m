@@ -1,32 +1,78 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/5] ARM: dts: omap3-gta04: Various updates
-Date: Fri, 10 Jun 2016 03:53:06 -0700
-Message-ID: <20160610105306.GW22406@atomide.com>
-References: <1463514531-7235-1-git-send-email-marek@goldelico.com>
- <CAAfyv37NE1eogrSRCuRY-9V30FtD3u7oeFWMJk=xNX1hFJ9O-w@mail.gmail.com>
- <20160531181903.GB5995@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v10 08/14] usb: otg: add OTG/dual-role core
+Date: Fri, 10 Jun 2016 13:54:52 +0300
+Message-ID: <575A9C7C.7020902@ti.com>
+References: <1465376626-30122-1-git-send-email-rogerq@ti.com>
+ <1465376626-30122-9-git-send-email-rogerq@ti.com> <57592060.6060801@ti.com>
+ <2522343c-422f-79e1-af40-eb953bde42f6@cogentembedded.com>
+ <575A9430.6070508@ti.com>
+ <a559997c-2107-1850-1b22-c4532350d665@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160531181903.GB5995-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Belisko Marek <marek.belisko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org" <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Dr. H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <a559997c-2107-1850-1b22-c4532350d665@cogentembedded.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, peter.chen@freescale.com
+Cc: balbi@kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [160531 11:22]:
-> * Belisko Marek <marek.belisko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [160530 23:50]:
-> > Ping? Any objections? Thanks.
+On 10/06/16 13:44, Sergei Shtylyov wrote:
+> On 6/10/2016 1:19 PM, Roger Quadros wrote:
 > 
-> Looks OK to me, with v4.7-rc1 out I'll start applying patches
-> again once the pending fixes are out of the way. So it will be
-> few more days, probably around -rc2 time.
+>>>> It provides APIs for the following tasks
+>>>>
+>>>> - Registering an OTG/dual-role capable controller
+>>>> - Registering Host and Gadget controllers to OTG core
+>>>> - Providing inputs to and kicking the OTG state machine
+>>>>
+>>>> Provide a dual-role device (DRD) state machine.
+>>>> DRD mode is a reduced functionality OTG mode. In this mode
+>>>> we don't support SRP, HNP and dynamic role-swap.
+>>>>
+>>>> In DRD operation, the controller mode (Host or Peripheral)
+>>>> is decided based on the ID pin status. Once a cable plug (Type-A
+>>>> or Type-B) is attached the controller selects the state
+>>>> and doesn't change till the cable in unplugged and a different
+>>>> cable type is inserted.
+>>>>
+>>>> As we don't need most of the complex OTG states and OTG timers
+>>>> we implement a lean DRD state machine in usb-otg.c.
+>>>> The DRD state machine is only interested in 2 hardware inputs
+>>>> 'id' and 'b_sess_vld'.
+>>>>
+>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>
+>>
+>> <snip>
+>>
+>>> [...]
+>>>> +/**
+>>>> + * usb_otg_register_gadget - Register the gadget controller to OTG core
+>>>> + * @gadget:    gadget controller
+>>>
+>>>    We call that USB device controller (UDC). I'm not sure what you meant here...
+>>>    And what about the 2nd arg, 'ops'?
+>>
+>> There are 2 data structures representing the Device controller.
+>>
+>> struct usb_gadget - represents a usb slave device
+>> struct usb_udc -struct usb_udc - describes one usb device controller
+>>
+>> usb_udc is for private use only. usb_otg_register_gadget() takes struct usb_gadget
+>> as argument.
+>>
+>> Do you want me to refer to struct usb_gadget as UDC?
+> 
+>    No.
+> 
+>> What is wrong with calling it gadget controller?
+> 
+>    It's not a controller, it's a piece of software AFAIU. Or is my English just too weak? :-)
 
-Applying all into omap-for-v4.8/dt finally thanks.
+Everything at this point is a piece of software :).
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+struct usb_gadget, represents the gadget controller device not the driver (or software).
+
+struct usb_gadget_driver represents the gadget function driver.
+struct usb_gadget_ops represents the UDC driver ops.
