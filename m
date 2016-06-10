@@ -1,57 +1,60 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v7 3/4] ARM: dts: dra7*-evm: Enable dual-role for usb1
-Date: Fri, 10 Jun 2016 16:17:29 +0300
-Message-ID: <1465564650-27516-4-git-send-email-rogerq@ti.com>
-References: <1465564650-27516-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH v7 0/4] usb: dwc3: dual-role support
+Date: Fri, 10 Jun 2016 16:17:26 +0300
+Message-ID: <1465564650-27516-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1465564650-27516-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: balbi@kernel.org
 Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Now that we have dual-role support working at USB core,
-enable dual-role support for usb1 controller.
+Hi,
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/dra7-evm.dts          | 5 ++++-
- arch/arm/boot/dts/dra72-evm-common.dtsi | 5 ++++-
- 2 files changed, 8 insertions(+), 2 deletions(-)
+This series adds dual role support to dwc3 controller driver.
+Series depends on the OTG/dual-role framework [1].
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index bafcfac..75a4065 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -731,7 +731,10 @@
- };
- 
- &usb1 {
--	dr_mode = "peripheral";
-+	dr_mode = "otg";
-+	hnp-disable;
-+	srp-disable;
-+	adp-disable;
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&usb1_pins>;
- };
-diff --git a/arch/arm/boot/dts/dra72-evm-common.dtsi b/arch/arm/boot/dts/dra72-evm-common.dtsi
-index 093538e..24ad2ff 100644
---- a/arch/arm/boot/dts/dra72-evm-common.dtsi
-+++ b/arch/arm/boot/dts/dra72-evm-common.dtsi
-@@ -571,7 +571,10 @@
- };
- 
- &usb2 {
--	dr_mode = "host";
-+	dr_mode = "otg";
-+	hnp-disable;
-+	srp-disable;
-+	adp-disable;
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&usb2_pins>;
- };
+[1] - http://thread.gmane.org/gmane.linux.usb.general/143568
+
+Patches are based on Felipe's balbi/usb.git testing/next
+
+Changelog:
+
+v7:
+- rebased to v4.7-rc1 + balbi/usb.git testing/next
+- cleaned up otg irq resource code
+
+v6:
+- use just otg irq to get otg events and don't depend on extcon at all.
+- follow OTG flow in TRM strictly.
+- use tracepoints instead of dev_dbg().
+- match IRQ flags in dwc3_omap and core.c for shared otg interrupt.
+
+v5: Internal revision. Not sent to mailing list.
+
+v4: first version that was reviewed.
+
+cheers,
+-roger
+
+
+Roger Quadros (4):
+  usb: dwc3: core.h: add some register definitions
+  usb: dwc3: add dual-role support
+  ARM: dts: dra7*-evm: Enable dual-role for usb1
+  ARM: dts: am43xx: Enable dual-role on USB1
+
+ arch/arm/boot/dts/am437x-gp-evm.dts     |   5 +-
+ arch/arm/boot/dts/am437x-sk-evm.dts     |   5 +-
+ arch/arm/boot/dts/am43x-epos-evm.dts    |   5 +-
+ arch/arm/boot/dts/dra7-evm.dts          |   5 +-
+ arch/arm/boot/dts/dra72-evm-common.dtsi |   5 +-
+ drivers/usb/dwc3/core.c                 | 546 +++++++++++++++++++++++++++++++-
+ drivers/usb/dwc3/core.h                 | 114 ++++++-
+ drivers/usb/dwc3/gadget.c               |   6 +-
+ drivers/usb/dwc3/host.c                 |   2 +
+ 9 files changed, 677 insertions(+), 16 deletions(-)
+
 -- 
 2.7.4
