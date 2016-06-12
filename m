@@ -1,90 +1,111 @@
-From: Peter Chen <hzpeterchen@gmail.com>
-Subject: Re: [PATCH v9 08/14] usb: otg: add OTG/dual-role core
-Date: Sun, 12 Jun 2016 18:56:27 +0800
-Message-ID: <20160612105627.GA32615@shlinux2>
-References: <1465376626-30122-1-git-send-email-rogerq@ti.com>
- <1465376626-30122-9-git-send-email-rogerq@ti.com>
- <20160608095336.GA4444@shlinux2>
- <5757EF7A.20604@ti.com>
- <20160608124204.GB10029@shlinux2>
- <575919BC.8080003@ti.com>
- <20160612062617.GC22054@shlinux2>
+From: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
+Subject: Re: [PATCH] userspace API definitions for auto-focus coil
+Date: Sun, 12 Jun 2016 14:22:53 +0300
+Message-ID: <20160612112253.GD26360@valkosipuli.retiisi.org.uk>
+References: <20160531213437.GA28397@amd>
+ <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
+ <20160601220840.GA21946@amd>
+ <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
+ <20160602193027.GB7984@amd>
+ <20160602212746.GT26360@valkosipuli.retiisi.org.uk>
+ <20160605190716.GA11321@amd>
+ <575512E5.5030000@gmail.com>
+ <20160611220654.GC26360@valkosipuli.retiisi.org.uk>
+ <20160612084811.GA27446@amd>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160612062617.GC22054@shlinux2>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: peter.chen@freescale.com, balbi@kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+In-Reply-To: <20160612084811.GA27446@amd>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, aaro.koskinen-X3B1VOXEql0@public.gmane.org, patrikbachan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Jun 12, 2016 at 02:26:17PM +0800, Peter Chen wrote:
-> On Thu, Jun 09, 2016 at 10:24:44AM +0300, Roger Quadros wrote:
-> > On 08/06/16 15:42, Peter Chen wrote:
-> > > On Wed, Jun 08, 2016 at 01:12:10PM +0300, Roger Quadros wrote:
-> > >> Hi,
-> > >>
-> > >> On 08/06/16 12:53, Peter Chen wrote:
-> > >>> On Wed, Jun 08, 2016 at 12:03:40PM +0300, Roger Quadros wrote:
-> > >>>> +int usb_otg_unregister(struct device *dev)
-> > >>>> +{
-> > >>>> +	struct usb_otg *otg;
-> > >>>> +
-> > >>>> +	mutex_lock(&otg_list_mutex);
-> > >>>> +	otg = usb_otg_get_data(dev);
-> > >>>> +	if (!otg) {
-> > >>>> +		dev_err(dev, "otg: %s: device not in otg list\n",
-> > >>>> +			__func__);
-> > >>>> +		mutex_unlock(&otg_list_mutex);
-> > >>>> +		return -EINVAL;
-> > >>>> +	}
-> > >>>> +
-> > >>>> +	/* prevent unregister till both host & gadget have unregistered */
-> > >>>> +	if (otg->host || otg->gadget) {
-> > >>>> +		dev_err(dev, "otg: %s: host/gadget still registered\n",
-> > >>>> +			__func__);
-> > >>>
-> > >>> You need to call mutex_unlock here
-> > >>
-> > >> Indeed. good catch.
-> > >>>
-> > >>>> +
-> > >>>> +int usb_otg_gadget_ready(struct usb_gadget *gadget, bool ready)
-> > >>>> +{
-> > >>>
-> > >>> What this API is for? Why need it in this version?
-> > >>
-> > >> we moved gadget to otg registration from udc_bind_to_driver() to usb_add_gadget_udc_release().
-> > >> This means there is a window when gadget function driver (e.g. g_zero) is not loaded.
-> > >> We don't want to start the gadget controller in that window.
-> > >>
-> > >> usb_otg_gadget_ready() is used by gadget core to notify the otg core when the function driver
-> > >> is ready or not-ready.
-> > >>
-> > > 
-> > > Why you need to move this from gadget's probe to udc's probe? Currently,
-> > > the sequence of gadget and udc's probe is random, but udc_bind_to_driver
-> > > is called when udc is ready.
-> > > 
-> > Because we need to support -EPROBE_DEFER at udc probe.
-> > At udc_bind_to_driver there is no scope for -EPROBE_DEFER.
-> > 
-> 
-> Why udc_bind_to_driver can't return -EPROBE_DEFER if register to OTG is
-> failed?
-> 
-> > Another issue is that we need to register with otg and have otg->caps available
-> > before driver->bind() is called in udc_bind_to_driver(). Else gadget function
-> > will not have the correct OTG descriptor.
-> > 
-> 
-> You can do register before calling driver->bind.
-> 
+Hi Pavel,
 
-Please skip my comments, I understand your changes now.
+On Sun, Jun 12, 2016 at 10:48:11AM +0200, Pavel Machek wrote:
+> Hi!
+> 
+> > > >Add userspace API definitions.
+> > > >
+> > > >Signed-off-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+> > > >
+> > > >diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> > > >index b6a357a..23011cc 100644
+> > > >--- a/include/uapi/linux/v4l2-controls.h
+> > > >+++ b/include/uapi/linux/v4l2-controls.h
+> > > >@@ -974,4 +975,9 @@ enum v4l2_detect_md_mode {
+> > > >  #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
+> > > >  #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
+> > > >
+> > > >+/* Control IDs specific to the AD5820 driver as defined by V4L2 */
+> > > >+#define V4L2_CID_FOCUS_AD5820_BASE 	(V4L2_CTRL_CLASS_CAMERA | 0x10af)
+> > 
+> > Please check V4L2_CID_USER_*_BASE. That's how custom controls are handled
+> > nowadays.
+> 
+> So something like this?
+> 
+> Thanks,
+> 									Pavel
+> 
+> diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
+> index 2efa5dc1..b04b471 100644
+> --- a/drivers/media/i2c/ad5820.c
+> +++ b/drivers/media/i2c/ad5820.c
+> @@ -40,6 +40,11 @@
+>  #define AD5820_RAMP_MODE_LINEAR		(0 << 3)
+>  #define AD5820_RAMP_MODE_64_16		(1 << 3)
+>  
+> +/* Control IDs specific to the AD5820 driver as defined by V4L2 */
+> +#define V4L2_CID_FOCUS_AD5820_RAMP_TIME		(V4L2_CID_USER_AD5820_BASE+0)
+> +#define V4L2_CID_FOCUS_AD5820_RAMP_MODE		(V4L2_CID_FOCUS_AD5820_BASE+1)
+> +
+> +
+
+We could still define these in a header file that can be included by the
+user space. Please use V4L2_CID_AD5820 prefix.
+
+A separate header file should be used, e.g. include/uapi/linux/ad5820.h.
+
+>  #define CODE_TO_RAMP_US(s)	((s) == 0 ? 0 : (1 << ((s) - 1)) * 50)
+>  #define RAMP_US_TO_CODE(c)	fls(((c) + ((c)>>1)) / 50)
+>  
+> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> index 23011cc..4b24546 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -181,6 +181,10 @@ enum v4l2_colorfx {
+>   * We reserve 16 controls for this driver. */
+>  #define V4L2_CID_USER_TC358743_BASE		(V4L2_CID_USER_BASE + 0x1080)
+>  
+> +/* The base for the ad5820 driver controls.
+> + * We reserve 16 controls for this driver. */
+> +#define V4L2_CID_USER_AD5820_BASE		(V4L2_CID_USER_BASE + 0x1090)
+> +
+>  /* MPEG-class control IDs */
+>  /* The MPEG controls are applicable to all codec controls
+>   * and the 'MPEG' part of the define is historical */
+> @@ -986,9 +990,4 @@ enum v4l2_detect_md_mode {
+>  #define V4L2_CID_MODE_SENSITIVITY		(V4L2_CID_MODE_CLASS_BASE+6)
+>  #define V4L2_CID_MODE_OPSYSCLOCK		(V4L2_CID_MODE_CLASS_BASE+7)
+>  
+> -/* Control IDs specific to the AD5820 driver as defined by V4L2 */
+> -#define V4L2_CID_FOCUS_AD5820_BASE 		(V4L2_CTRL_CLASS_CAMERA | 0x10af)
+> -#define V4L2_CID_FOCUS_AD5820_RAMP_TIME		(V4L2_CID_FOCUS_AD5820_BASE+0)
+> -#define V4L2_CID_FOCUS_AD5820_RAMP_MODE		(V4L2_CID_FOCUS_AD5820_BASE+1)
+> -
+>  #endif
+> 
+> 
 
 -- 
+Kind regards,
 
-Best Regards,
-Peter Chen
+Sakari Ailus
+e-mail: sakari.ailus-X3B1VOXEql0@public.gmane.org	XMPP: sailus-PCDdDYkjdNMDXYZnReoRVg@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
