@@ -1,7 +1,7 @@
 From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: [PATCH] userspace API definitions for auto-focus coil
-Date: Sun, 12 Jun 2016 09:54:17 +0200
-Message-ID: <20160612075416.GA1160@amd>
+Date: Sun, 12 Jun 2016 10:48:11 +0200
+Message-ID: <20160612084811.GA27446@amd>
 References: <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
  <20160531213437.GA28397@amd>
  <20160601152439.GQ26360@valkosipuli.retiisi.org.uk>
@@ -14,16 +14,24 @@ References: <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
  <20160611220654.GC26360@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
 In-Reply-To: <20160611220654.GC26360@valkosipuli.retiisi.org.uk>
-Sender: linux-media-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Sakari Ailus <sakari.ailus@iki.fi>
 Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 Hi!
 
+> > >Add userspace API definitions.
+> > >
+> > >Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> > >
+> > >diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> > >index b6a357a..23011cc 100644
+> > >--- a/include/uapi/linux/v4l2-controls.h
+> > >+++ b/include/uapi/linux/v4l2-controls.h
 > > >@@ -974,4 +975,9 @@ enum v4l2_detect_md_mode {
 > > >  #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
 > > >  #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
@@ -34,40 +42,54 @@ Hi!
 > Please check V4L2_CID_USER_*_BASE. That's how custom controls are handled
 > nowadays.
 
-Let me see...
+So something like this?
 
-> Now that I think about this, the original implementation in N900 very likely
-> did not use either of the two controls; the device driver was still written
-> to provide access to full capabilities of the chip. And that one had no
-> continuous AF.
-
-I'm not sure about the original implementation, but fcam-dev library
-(which is our best chance for usable camera) does use both:
-
-pavel@duo:~/g/fcam-dev$ grep -ri RAMP_TIME .
-./.svn/pristine/05/0574680922f59e07bd49e16a951d69421690a323.svn-base:
-int val = ioctlSet(V4L2_CID_FOCUS_AD5820_RAMP_TIME,
-1000000.0f/diopterRateToTickRate(speed));
-./src/N900/Lens.cpp:    int val =
-ioctlSet(V4L2_CID_FOCUS_AD5820_RAMP_TIME,
-1000000.0f/diopterRateToTickRate(speed));
-pavel@duo:~/g/fcam-dev$ grep -ri RAMP_MODE .
-./.svn/pristine/05/0574680922f59e07bd49e16a951d69421690a323.svn-base:
-ioctlSet(V4L2_CID_FOCUS_AD5820_RAMP_MODE, 0);
-./src/N900/Lens.cpp:    ioctlSet(V4L2_CID_FOCUS_AD5820_RAMP_MODE, 0);
-pavel@duo:~/g/fcam-dev$
-
-> I might as well drop the two controls, up to you. If someone ever needs them
-> they can always be reintroduced. I'd be happy to get a new patch, the
-> current driver patch does not compile (just tried) as the definitions of
-> these controls are missing.
-
-I'd prefer to keep the controls, as we have userspace using them. I
-got it to compile but have yet to get it to work (subdevs split, so it
-needs some modifications).
-
-Best regards,
+Thanks,
 									Pavel
+
+diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
+index 2efa5dc1..b04b471 100644
+--- a/drivers/media/i2c/ad5820.c
++++ b/drivers/media/i2c/ad5820.c
+@@ -40,6 +40,11 @@
+ #define AD5820_RAMP_MODE_LINEAR		(0 << 3)
+ #define AD5820_RAMP_MODE_64_16		(1 << 3)
+ 
++/* Control IDs specific to the AD5820 driver as defined by V4L2 */
++#define V4L2_CID_FOCUS_AD5820_RAMP_TIME		(V4L2_CID_USER_AD5820_BASE+0)
++#define V4L2_CID_FOCUS_AD5820_RAMP_MODE		(V4L2_CID_FOCUS_AD5820_BASE+1)
++
++
+ #define CODE_TO_RAMP_US(s)	((s) == 0 ? 0 : (1 << ((s) - 1)) * 50)
+ #define RAMP_US_TO_CODE(c)	fls(((c) + ((c)>>1)) / 50)
+ 
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 23011cc..4b24546 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -181,6 +181,10 @@ enum v4l2_colorfx {
+  * We reserve 16 controls for this driver. */
+ #define V4L2_CID_USER_TC358743_BASE		(V4L2_CID_USER_BASE + 0x1080)
+ 
++/* The base for the ad5820 driver controls.
++ * We reserve 16 controls for this driver. */
++#define V4L2_CID_USER_AD5820_BASE		(V4L2_CID_USER_BASE + 0x1090)
++
+ /* MPEG-class control IDs */
+ /* The MPEG controls are applicable to all codec controls
+  * and the 'MPEG' part of the define is historical */
+@@ -986,9 +990,4 @@ enum v4l2_detect_md_mode {
+ #define V4L2_CID_MODE_SENSITIVITY		(V4L2_CID_MODE_CLASS_BASE+6)
+ #define V4L2_CID_MODE_OPSYSCLOCK		(V4L2_CID_MODE_CLASS_BASE+7)
+ 
+-/* Control IDs specific to the AD5820 driver as defined by V4L2 */
+-#define V4L2_CID_FOCUS_AD5820_BASE 		(V4L2_CTRL_CLASS_CAMERA | 0x10af)
+-#define V4L2_CID_FOCUS_AD5820_RAMP_TIME		(V4L2_CID_FOCUS_AD5820_BASE+0)
+-#define V4L2_CID_FOCUS_AD5820_RAMP_MODE		(V4L2_CID_FOCUS_AD5820_BASE+1)
+-
+ #endif
+
+
 -- 
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
