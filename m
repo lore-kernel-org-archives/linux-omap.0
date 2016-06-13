@@ -1,111 +1,146 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [RESEND PATCHv2 01/28] clk: ti: add ti_clk_get helper API
-Date: Mon, 13 Jun 2016 22:04:35 +0300
-Message-ID: <1465844702-12200-2-git-send-email-t-kristo@ti.com>
+Subject: [RESEND PATCHv2 11/28] clk: ti: am33xx: transition to usage of ti_clk_get
+Date: Mon, 13 Jun 2016 22:04:45 +0300
+Message-ID: <1465844702-12200-12-git-send-email-t-kristo@ti.com>
 References: <1465844702-12200-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-clk-owner@vger.kernel.org>
 In-Reply-To: <1465844702-12200-1-git-send-email-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-clk-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, tony@atomide.com
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The API can be used to fetch directly DT clocks based on name. Using
-this new API allows getting rid of most of the DT_CLK() entries under
-drivers/clk/ti.
+Cleanup any unnecessary DT_CLK() alias entries from the AM33xx clock file.
+Also, use ti_clk_get where necessary.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/clk.c   | 35 +++++++++++++++++++++++++++++------
- include/linux/clk/ti.h |  2 ++
- 2 files changed, 31 insertions(+), 6 deletions(-)
+ drivers/clk/ti/clk-33xx.c | 92 ++++-------------------------------------------
+ 1 file changed, 7 insertions(+), 85 deletions(-)
 
-diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-index 5fcf247..3dcf97e 100644
---- a/drivers/clk/ti/clk.c
-+++ b/drivers/clk/ti/clk.c
-@@ -68,6 +68,33 @@ static u32 clk_memmap_readl(void __iomem *reg)
- }
+diff --git a/drivers/clk/ti/clk-33xx.c b/drivers/clk/ti/clk-33xx.c
+index ef2ec64..43847bc 100644
+--- a/drivers/clk/ti/clk-33xx.c
++++ b/drivers/clk/ti/clk-33xx.c
+@@ -23,88 +23,10 @@
+ #include "clock.h"
  
- /**
-+ * ti_clk_get - lookup a TI clock handle
-+ * @name: clock to find
-+ *
-+ * Searches for a TI clock handle. Will first attempt to search for a
-+ * clock based on a DT node name, but if this fails, will revert to
-+ * looking up a clock alias. Returns the pointer to the clock handle,
-+ * or ERR_PTR in failure.
-+ */
-+struct clk *ti_clk_get(const char *name)
-+{
-+	struct of_phandle_args clkspec;
-+	struct device_node *node;
-+	struct clk *clk;
-+
-+	if (of_have_populated_dt()) {
-+		node = of_find_node_by_name(NULL, name);
-+		clkspec.np = node;
-+		clk = of_clk_get_from_provider(&clkspec);
-+
-+		if (!IS_ERR(clk))
-+			return clk;
-+	}
-+
-+	return clk_get(NULL, name);
-+}
-+
-+/**
-  * ti_clk_setup_ll_ops - setup low level clock operations
-  * @ops: low level clock ops descriptor
-  *
-@@ -102,14 +129,10 @@ int ti_clk_setup_ll_ops(struct ti_clk_ll_ops *ops)
- void __init ti_dt_clocks_register(struct ti_dt_clk oclks[])
- {
- 	struct ti_dt_clk *c;
--	struct device_node *node;
- 	struct clk *clk;
--	struct of_phandle_args clkspec;
+ static struct ti_dt_clk am33xx_clks[] = {
+-	DT_CLK(NULL, "clk_32768_ck", "clk_32768_ck"),
+-	DT_CLK(NULL, "clk_rc32k_ck", "clk_rc32k_ck"),
+-	DT_CLK(NULL, "virt_19200000_ck", "virt_19200000_ck"),
+-	DT_CLK(NULL, "virt_24000000_ck", "virt_24000000_ck"),
+-	DT_CLK(NULL, "virt_25000000_ck", "virt_25000000_ck"),
+-	DT_CLK(NULL, "virt_26000000_ck", "virt_26000000_ck"),
+-	DT_CLK(NULL, "sys_clkin_ck", "sys_clkin_ck"),
+-	DT_CLK(NULL, "tclkin_ck", "tclkin_ck"),
+-	DT_CLK(NULL, "dpll_core_ck", "dpll_core_ck"),
+-	DT_CLK(NULL, "dpll_core_x2_ck", "dpll_core_x2_ck"),
+-	DT_CLK(NULL, "dpll_core_m4_ck", "dpll_core_m4_ck"),
+-	DT_CLK(NULL, "dpll_core_m5_ck", "dpll_core_m5_ck"),
+-	DT_CLK(NULL, "dpll_core_m6_ck", "dpll_core_m6_ck"),
+-	DT_CLK(NULL, "dpll_mpu_ck", "dpll_mpu_ck"),
+-	DT_CLK(NULL, "dpll_mpu_m2_ck", "dpll_mpu_m2_ck"),
+-	DT_CLK(NULL, "dpll_ddr_ck", "dpll_ddr_ck"),
+-	DT_CLK(NULL, "dpll_ddr_m2_ck", "dpll_ddr_m2_ck"),
+-	DT_CLK(NULL, "dpll_ddr_m2_div2_ck", "dpll_ddr_m2_div2_ck"),
+-	DT_CLK(NULL, "dpll_disp_ck", "dpll_disp_ck"),
+-	DT_CLK(NULL, "dpll_disp_m2_ck", "dpll_disp_m2_ck"),
+-	DT_CLK(NULL, "dpll_per_ck", "dpll_per_ck"),
+-	DT_CLK(NULL, "dpll_per_m2_ck", "dpll_per_m2_ck"),
+-	DT_CLK(NULL, "dpll_per_m2_div4_wkupdm_ck", "dpll_per_m2_div4_wkupdm_ck"),
+-	DT_CLK(NULL, "dpll_per_m2_div4_ck", "dpll_per_m2_div4_ck"),
+-	DT_CLK(NULL, "adc_tsc_fck", "adc_tsc_fck"),
+-	DT_CLK(NULL, "cefuse_fck", "cefuse_fck"),
+-	DT_CLK(NULL, "clkdiv32k_ck", "clkdiv32k_ck"),
+-	DT_CLK(NULL, "clkdiv32k_ick", "clkdiv32k_ick"),
+-	DT_CLK(NULL, "dcan0_fck", "dcan0_fck"),
+-	DT_CLK("481cc000.d_can", NULL, "dcan0_fck"),
+-	DT_CLK(NULL, "dcan1_fck", "dcan1_fck"),
+-	DT_CLK("481d0000.d_can", NULL, "dcan1_fck"),
+-	DT_CLK(NULL, "pruss_ocp_gclk", "pruss_ocp_gclk"),
+-	DT_CLK(NULL, "mcasp0_fck", "mcasp0_fck"),
+-	DT_CLK(NULL, "mcasp1_fck", "mcasp1_fck"),
+-	DT_CLK(NULL, "mmu_fck", "mmu_fck"),
+-	DT_CLK(NULL, "smartreflex0_fck", "smartreflex0_fck"),
+-	DT_CLK(NULL, "smartreflex1_fck", "smartreflex1_fck"),
+-	DT_CLK(NULL, "sha0_fck", "sha0_fck"),
+-	DT_CLK(NULL, "aes0_fck", "aes0_fck"),
+-	DT_CLK(NULL, "rng_fck", "rng_fck"),
+-	DT_CLK(NULL, "timer1_fck", "timer1_fck"),
+-	DT_CLK(NULL, "timer2_fck", "timer2_fck"),
+-	DT_CLK(NULL, "timer3_fck", "timer3_fck"),
+-	DT_CLK(NULL, "timer4_fck", "timer4_fck"),
+-	DT_CLK(NULL, "timer5_fck", "timer5_fck"),
+-	DT_CLK(NULL, "timer6_fck", "timer6_fck"),
+-	DT_CLK(NULL, "timer7_fck", "timer7_fck"),
+-	DT_CLK(NULL, "usbotg_fck", "usbotg_fck"),
+-	DT_CLK(NULL, "ieee5000_fck", "ieee5000_fck"),
+-	DT_CLK(NULL, "wdt1_fck", "wdt1_fck"),
+-	DT_CLK(NULL, "l4_rtc_gclk", "l4_rtc_gclk"),
+-	DT_CLK(NULL, "l3_gclk", "l3_gclk"),
+-	DT_CLK(NULL, "dpll_core_m4_div2_ck", "dpll_core_m4_div2_ck"),
+-	DT_CLK(NULL, "l4hs_gclk", "l4hs_gclk"),
+-	DT_CLK(NULL, "l3s_gclk", "l3s_gclk"),
+-	DT_CLK(NULL, "l4fw_gclk", "l4fw_gclk"),
+-	DT_CLK(NULL, "l4ls_gclk", "l4ls_gclk"),
+-	DT_CLK(NULL, "clk_24mhz", "clk_24mhz"),
+-	DT_CLK(NULL, "sysclk_div_ck", "sysclk_div_ck"),
+-	DT_CLK(NULL, "cpsw_125mhz_gclk", "cpsw_125mhz_gclk"),
+-	DT_CLK(NULL, "cpsw_cpts_rft_clk", "cpsw_cpts_rft_clk"),
+-	DT_CLK(NULL, "gpio0_dbclk_mux_ck", "gpio0_dbclk_mux_ck"),
+-	DT_CLK(NULL, "gpio0_dbclk", "gpio0_dbclk"),
+-	DT_CLK(NULL, "gpio1_dbclk", "gpio1_dbclk"),
+-	DT_CLK(NULL, "gpio2_dbclk", "gpio2_dbclk"),
+-	DT_CLK(NULL, "gpio3_dbclk", "gpio3_dbclk"),
+-	DT_CLK(NULL, "lcd_gclk", "lcd_gclk"),
+-	DT_CLK(NULL, "mmc_clk", "mmc_clk"),
+-	DT_CLK(NULL, "gfx_fclk_clksel_ck", "gfx_fclk_clksel_ck"),
+-	DT_CLK(NULL, "gfx_fck_div_ck", "gfx_fck_div_ck"),
+-	DT_CLK(NULL, "sysclkout_pre_ck", "sysclkout_pre_ck"),
+-	DT_CLK(NULL, "clkout2_div_ck", "clkout2_div_ck"),
+ 	DT_CLK(NULL, "timer_32k_ck", "clkdiv32k_ick"),
+ 	DT_CLK(NULL, "timer_sys_ck", "sys_clkin_ck"),
+-	DT_CLK(NULL, "dbg_sysclk_ck", "dbg_sysclk_ck"),
+-	DT_CLK(NULL, "dbg_clka_ck", "dbg_clka_ck"),
+-	DT_CLK(NULL, "stm_pmd_clock_mux_ck", "stm_pmd_clock_mux_ck"),
+-	DT_CLK(NULL, "trace_pmd_clk_mux_ck", "trace_pmd_clk_mux_ck"),
+-	DT_CLK(NULL, "stm_clk_div_ck", "stm_clk_div_ck"),
+-	DT_CLK(NULL, "trace_clk_div_ck", "trace_clk_div_ck"),
+-	DT_CLK(NULL, "clkout2_ck", "clkout2_ck"),
++	DT_CLK("481cc000.d_can", NULL, "dcan0_fck"),
++	DT_CLK("481d0000.d_can", NULL, "dcan1_fck"),
+ 	DT_CLK("48300200.ehrpwm", "tbclk", "ehrpwm0_tbclk"),
+ 	DT_CLK("48302200.ehrpwm", "tbclk", "ehrpwm1_tbclk"),
+ 	DT_CLK("48304200.ehrpwm", "tbclk", "ehrpwm2_tbclk"),
+@@ -142,11 +64,11 @@ int __init am33xx_dt_clk_init(void)
+ 	 *    oscillator clock.
+ 	 */
  
- 	for (c = oclks; c->node_name != NULL; c++) {
--		node = of_find_node_by_name(NULL, c->node_name);
--		clkspec.np = node;
--		clk = of_clk_get_from_provider(&clkspec);
-+		clk = ti_clk_get(c->node_name);
+-	clk1 = clk_get_sys(NULL, "sys_clkin_ck");
+-	clk2 = clk_get_sys(NULL, "timer3_fck");
++	clk1 = ti_clk_get("sys_clkin_ck");
++	clk2 = ti_clk_get("timer3_fck");
+ 	clk_set_parent(clk2, clk1);
  
- 		if (!IS_ERR(clk)) {
- 			c->lk.clk = clk;
-@@ -446,7 +469,7 @@ void omap2_clk_enable_init_clocks(const char **clk_names, u8 num_clocks)
- 	int i;
+-	clk2 = clk_get_sys(NULL, "timer6_fck");
++	clk2 = ti_clk_get("timer6_fck");
+ 	clk_set_parent(clk2, clk1);
+ 	/*
+ 	 * The On-Chip 32K RC Osc clock is not an accurate clock-source as per
+@@ -155,8 +77,8 @@ int __init am33xx_dt_clk_init(void)
+ 	 * not expected by any use-case, so change WDT1 clock source to PRCM
+ 	 * 32KHz clock.
+ 	 */
+-	clk1 = clk_get_sys(NULL, "wdt1_fck");
+-	clk2 = clk_get_sys(NULL, "clkdiv32k_ick");
++	clk1 = ti_clk_get("wdt1_fck");
++	clk2 = ti_clk_get("clkdiv32k_ick");
+ 	clk_set_parent(clk1, clk2);
  
- 	for (i = 0; i < num_clocks; i++) {
--		init_clk = clk_get(NULL, clk_names[i]);
-+		init_clk = ti_clk_get(clk_names[i]);
- 		if (WARN(IS_ERR(init_clk), "could not find init clock %s\n",
- 			 clk_names[i]))
- 			continue;
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 6110fe0..331b81b 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -294,6 +294,8 @@ struct ti_clk_features {
- void ti_clk_setup_features(struct ti_clk_features *features);
- const struct ti_clk_features *ti_clk_get_features(void);
- 
-+struct clk *ti_clk_get(const char *name);
-+
- extern const struct clk_hw_omap_ops clkhwops_omap2xxx_dpll;
- 
- #ifdef CONFIG_ATAGS
+ 	return 0;
 -- 
 1.9.1
+
