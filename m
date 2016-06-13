@@ -1,71 +1,27 @@
-From: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v10 13/14] usb: gadget: udc: adapt to OTG core
-Date: Sun, 12 Jun 2016 19:36:56 +0800
-Message-ID: <20160612113655.GC32615@shlinux2>
-References: <1465564043-27163-1-git-send-email-rogerq@ti.com>
- <1465564043-27163-14-git-send-email-rogerq@ti.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] net: ethernet: ti: cpsw: use destroy ctlr to destroy
+ channels
+Date: Sun, 12 Jun 2016 22:01:35 -0400 (EDT)
+Message-ID: <20160612.220135.2211381636490955858.davem@davemloft.net>
+References: <1465596714-26697-1-git-send-email-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1465564043-27163-14-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1465596714-26697-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ivan.khoronzhuk@linaro.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mugunthanvnm@ti.com, grygorii.strashko@ti.com, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jun 10, 2016 at 04:07:22PM +0300, Roger Quadros wrote:
->  
-> +/**
-> + * usb_otg_add_gadget_udc - adds a new gadget to the udc class driver list
-> + * @parent: the parent device to this udc. Usually the controller
-> + * driver's device.
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Date: Sat, 11 Jun 2016 01:11:54 +0300
 
-It seems it should be udc device
+> There is no reason to destroy channels that are destroyed while
+> cpdma_ctlr destroy. In this case no need to remember how much
+> channels where created and destroy them by one, as cpdma_ctlr
+> destroys all of them.
+> 
+> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 
-> +/* udc_lock must be held */
->  static int udc_bind_to_driver(struct usb_udc *udc, struct usb_gadget_driver *driver)
->  {
->  	int ret;
-> @@ -1282,17 +1449,26 @@ static int udc_bind_to_driver(struct usb_udc *udc, struct usb_gadget_driver *dri
->  	ret = driver->bind(udc->gadget, driver);
->  	if (ret)
->  		goto err1;
-> -	ret = usb_gadget_udc_start(udc);
-> -	if (ret) {
-> -		driver->unbind(udc->gadget);
-> -		goto err1;
-> +
-> +	/* If OTG/dual-role, the otg core manages UDC start/stop */
-> +	if (udc->gadget->otg_dev) {
-> +		mutex_unlock(&udc_lock);
-> +		usb_otg_gadget_ready(udc->gadget, true);
-> +		mutex_lock(&udc_lock);
-> +	} else {
-> +		ret = usb_gadget_udc_start(udc);
-> +		if (ret) {
-> +			mutex_unlock(&udc_lock);
-> +			driver->unbind(udc->gadget);
-> +			goto err1;
-> +		}
-> +		usb_udc_connect_control(udc);
->  	}
-> -	usb_udc_connect_control(udc);
->  
->  	kobject_uevent(&udc->dev.kobj, KOBJ_CHANGE);
->  	return 0;
->  err1:
-> -	if (ret != -EISNAM)
-> +	if ((ret != -EISNAM) && (ret != -EPROBE_DEFER))
-
-It seems it will not introduce -EPROBE_DEFER with your changes
-in udc_bind_to_driver
-
--- 
-
-Best Regards,
-Peter Chen
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied.
