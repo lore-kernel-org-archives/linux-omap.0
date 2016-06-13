@@ -1,47 +1,52 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: Re: [PATCH 5/7] ARM: OMAP: dmtimer: Do not call PM runtime functions
- when not needed.
-Date: Mon, 13 Jun 2016 21:58:39 +0300
-Message-ID: <575F025F.7000101@gmail.com>
-References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <1462634508-24961-6-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160509193624.GH5995@atomide.com> <5730F840.3050807@gmail.com>
- <20160610102225.GS22406@atomide.com> <575B2F48.4090707@gmail.com>
- <20160613071057.GQ22406@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [RESEND PATCHv2 00/28] clk: ti: hwmod clock type support
+Date: Mon, 13 Jun 2016 22:04:34 +0300
+Message-ID: <1465844702-12200-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160613071057.GQ22406@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, thierry.reding@gmail.com, bcousson@baylibre.com, linux@arm.linux.org.uk, mchehab@osg.samsung.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, sre@kernel.org, pali.rohar@gmail.com
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-On 13.06.2016 10:10, Tony Lindgren wrote:
-> * Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160610 14:23]:
->>
->> On 10.06.2016 13:22, Tony Lindgren wrote:
->>>
->>> OK. And I just applied the related dts changes. Please repost the driver
->>> changes and DT binding doc with Rob's ack to the driver maintainers to
->>> apply.
->>>
->>
->> Already did, see https://lkml.org/lkml/2016/5/16/429
->>
->> Shall I do anything else?
->
-> Probably good idea to repost just the driver changes to the
-> subsystem maintainers. With v4.7 out any pre v4.7 patchsets
-> easily get forgotten.
->
+Resending the series as it didn't get that much attention last time.
+This has just been rebased on top of 4.7-rc1, no other changes.
 
-Sorry for the maybe stupid question, but does this mean that I should 
-send separate patches instead of series? Or the series without what 
-you've already applied?
+This series adds support for hwmod module clocks, which are currently
+directly handled by hwmod core. This addresses following issues:
 
-Thanks,
-Ivo
+ * one step closer of removing hwmod core / data from kernel
+ * unblock Tony's interconnect driver work (this is also required
+   for removing hwmod codebase)
+ * add proper clock support for the hardware modules currently handled
+   by hwmod core; use counting for clocks, ability to share clocks
+   between multiple modules, etc.
+ * add helper clock APIs for removing most of the clock aliases under
+   drivers/clk/ti/clk-xyz.c files
+
+Test branch available:
+tree: https://github.com/t-kristo/linux-pm.git
+branch: 4.7-rc1-hwmod-clks
+
+Testing done:
+
+boot: am335x-evm, am335x-evmsk, am3517-evm, am37x-evm, am437x-sk,
+am437x-gp-evm, am57xx-evm, omap3-beagle-xm, am335x-boneblack, am335x-bone,
+dra7xx-evm, omap3-n900, omap5-uevm, omap4-panda, omap3430-sdp,
+omap4-sdp-es23plus
+
+suspend-resume: omap3-beagle, omap4-panda-es
+
+-Tero
