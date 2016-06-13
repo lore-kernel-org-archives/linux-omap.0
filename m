@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [RESEND PATCHv2 21/28] clk: ti: am33xx: fix timer3/6 init time setup for module clocks
-Date: Mon, 13 Jun 2016 22:04:55 +0300
-Message-ID: <1465844702-12200-22-git-send-email-t-kristo@ti.com>
+Subject: [RESEND PATCHv2 03/28] ARM: OMAP2+: omap_device: create clock alias purely from DT data
+Date: Mon, 13 Jun 2016 22:04:37 +0300
+Message-ID: <1465844702-12200-4-git-send-email-t-kristo@ti.com>
 References: <1465844702-12200-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,35 +12,42 @@ To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org,
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-timer*_fck are going to be renamed as timer*_mod_ck:s. Fix the init
-time configuration of timer3/timer6 to take this into account, and
-lookup for the module clock in case the lookup for fck fails.
+This avoids the need to add most of the clock aliases under
+drivers/clk/ti/clk-xyz.c files.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/clk-33xx.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/arm/mach-omap2/omap_device.c | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/clk/ti/clk-33xx.c b/drivers/clk/ti/clk-33xx.c
-index 43847bc..2343a22 100644
---- a/drivers/clk/ti/clk-33xx.c
-+++ b/drivers/clk/ti/clk-33xx.c
-@@ -66,9 +66,15 @@ int __init am33xx_dt_clk_init(void)
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+index f7ff3b9..b32d7c8 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -63,7 +63,22 @@ static void _add_clkdev(struct omap_device *od, const char *clk_alias,
+ 		return;
+ 	}
  
- 	clk1 = ti_clk_get("sys_clkin_ck");
- 	clk2 = ti_clk_get("timer3_fck");
-+	if (IS_ERR(clk2))
-+		clk2 = ti_clk_get("timer3_mod_ck");
+-	rc = clk_add_alias(clk_alias, dev_name(&od->pdev->dev), clk_name, NULL);
++	r = clk_get_sys(NULL, clk_name);
 +
- 	clk_set_parent(clk2, clk1);
- 
- 	clk2 = ti_clk_get("timer6_fck");
-+	if (IS_ERR(clk2))
-+		clk2 = ti_clk_get("timer6_mod_ck");
++	if (IS_ERR(r) && of_have_populated_dt()) {
++		struct of_phandle_args clkspec;
 +
- 	clk_set_parent(clk2, clk1);
- 	/*
- 	 * The On-Chip 32K RC Osc clock is not an accurate clock-source as per
++		clkspec.np = of_find_node_by_name(NULL, clk_name);
++
++		r = of_clk_get_from_provider(&clkspec);
++
++		rc = clk_register_clkdev(r, clk_alias,
++					 dev_name(&od->pdev->dev));
++	} else {
++		rc = clk_add_alias(clk_alias, dev_name(&od->pdev->dev),
++				   clk_name, NULL);
++	}
++
+ 	if (rc) {
+ 		if (rc == -ENODEV || rc == -ENOMEM)
+ 			dev_err(&od->pdev->dev,
 -- 
 1.9.1
 
