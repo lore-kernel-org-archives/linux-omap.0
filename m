@@ -1,84 +1,36 @@
-From: Jun Li <jun.li-3arQi8VN3Tc@public.gmane.org>
-Subject: RE: [PATCH v10 09/14] usb: of: add an API to get OTG device from USB
- controller node
-Date: Mon, 13 Jun 2016 08:13:59 +0000
-Message-ID: <AM4PR04MB213007B012120B6FF67F869689530@AM4PR04MB2130.eurprd04.prod.outlook.com>
-References: <1465564043-27163-1-git-send-email-rogerq@ti.com>
- <1465564043-27163-10-git-send-email-rogerq@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH v4 4/7] arm: use the new LED disk activity trigger
+Date: Mon, 13 Jun 2016 13:42:16 +0530
+Message-ID: <575E6AE0.3040907@ti.com>
+References: <20160610060021.12382-1-linz@li-pro.net>
+ <20160610060021.12382-4-linz@li-pro.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1465564043-27163-10-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, "peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
-Cc: "balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org" <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, "jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "grygorii.strashko-l0cyMroinI0@public.gmane.org" <grygorii.strashko-l0cyMroinI0@public.gmane.org>, "yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org" <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, "robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "nsekhar-l0cyMroinI0@public.gmane.org" <nsekhar-l0cyMroinI0@public.gmane.org>, "b-liu-l0cyMroinI0@public.gmane.org" <b-liu-l0cyMroinI0@public.gmane.org>, "joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org" <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160610060021.12382-4-linz@li-pro.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephan Linz <linz@li-pro.net>, linux-leds@vger.kernel.org, linux-ide@vger.kernel.org
+Cc: =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@armlinux.org.uk>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Gregory Clement <gregory.clement@free-electrons.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Kevin Hilman <khilman@kernel.org>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi
-
-> diff --git a/drivers/usb/common/common.c b/drivers/usb/common/common.c
-> index e3d0161..d7ec471 100644
-> --- a/drivers/usb/common/common.c
-> +++ b/drivers/usb/common/common.c
-> @@ -238,6 +238,33 @@ int of_usb_update_otg_caps(struct device_node *np,  }
-> EXPORT_SYMBOL_GPL(of_usb_update_otg_caps);
+On Friday 10 June 2016 11:29 AM, Stephan Linz wrote:
+> - dts: rename 'ide-disk' to 'disk-activity'
+> - platform: rename 'ide-disk' to 'disk-activity'
+> - defconfig: rename 'LEDS_TRIGGER_IDE_DISK' to 'LEDS_TRIGGER_DISK'
 > 
-> +#ifdef CONFIG_USB_OTG
-> +/**
-> + * of_usb_get_otg - get the OTG controller linked to the USB controller
-> + * @np: Pointer to the device_node of the USB controller
-> + * @otg_caps: Pointer to the target usb_otg_caps to be set
+> Signed-off-by: Stephan Linz <linz@li-pro.net>
+> ---
+>  arch/arm/boot/dts/am57xx-beagle-x15.dts  | 2 +-
+>  arch/arm/boot/dts/kirkwood-ns2lite.dts   | 2 +-
+>  arch/arm/boot/dts/kirkwood-topkick.dts   | 2 +-
+>  arch/arm/configs/collie_defconfig        | 2 +-
+>  arch/arm/configs/ixp4xx_defconfig        | 2 +-
+>  arch/arm/mach-davinci/board-dm644x-evm.c | 2 +-
 
-Remove otg_caps.
+For the mach-davinci change:
 
-Li Jun
+Acked-by: Sekhar Nori <nsekhar@ti.com>
 
-> + *
-> + * Returns the OTG controller device or NULL on error.
-> + */
-> +struct device *of_usb_get_otg(struct device_node *np) {
-> +	struct device_node *otg_np;
-> +	struct platform_device *pdev;
-> +
-> +	otg_np = of_parse_phandle(np, "otg-controller", 0);
-> +	if (!otg_np)
-> +		return NULL;
-> +
-> +	pdev = of_find_device_by_node(otg_np);
-> +	of_node_put(otg_np);
-> +	if (!pdev)
-> +		return NULL;
-> +
-> +	return &pdev->dev;
-> +}
-> +EXPORT_SYMBOL_GPL(of_usb_get_otg);
-> +#endif
-> +
->  #endif
-> 
->  MODULE_LICENSE("GPL");
-> diff --git a/include/linux/usb/of.h b/include/linux/usb/of.h index
-> de3237f..499a4e8 100644
-> --- a/include/linux/usb/of.h
-> +++ b/include/linux/usb/of.h
-> @@ -40,6 +40,15 @@ static inline struct device_node
-> *usb_of_get_child_node  }  #endif
-> 
-> +#if IS_ENABLED(CONFIG_OF) && IS_ENABLED(CONFIG_USB_OTG) struct device
-> +*of_usb_get_otg(struct device_node *np); #else static inline struct
-> +device *of_usb_get_otg(struct device_node *np) {
-> +	return NULL;
-> +}
-> +#endif
-> +
->  #if IS_ENABLED(CONFIG_OF) && IS_ENABLED(CONFIG_USB_SUPPORT)  enum
-> usb_phy_interface of_usb_get_phy_mode(struct device_node *np);  #else
-> --
-> 2.7.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Sekhar
