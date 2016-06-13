@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [RESEND PATCHv2 22/28] dt-bindings: clk: ti: Document module clock type
-Date: Mon, 13 Jun 2016 22:04:56 +0300
-Message-ID: <1465844702-12200-23-git-send-email-t-kristo@ti.com>
+Subject: [RESEND PATCHv2 06/28] ARM: OMAP2+: hwmod: fetch main_clk based on hwmod name
+Date: Mon, 13 Jun 2016 22:04:40 +0300
+Message-ID: <1465844702-12200-7-git-send-email-t-kristo@ti.com>
 References: <1465844702-12200-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,82 +12,112 @@ To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org,
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Document the new TI module clock type, which is intended to replace the
-internal clock control handling within omap_hwmod. Module clock is
-effectively a gate clock controlling both interface and functional
-clocks for a single hardware IP block.
+With the transition to hwmod module clocks, all hwmods will have
+their main clocks named <hwmod_name>_mod_ck. Use this info to
+fetch main_clk, and use it if found.
+
+Also, if a main_clk is found based on the hwmod name, disable
+the direct PRCM modulemode access from hwmod.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- .../devicetree/bindings/clock/ti/module.txt        | 59 ++++++++++++++++++++++
- 1 file changed, 59 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/clock/ti/module.txt
+ arch/arm/mach-omap2/omap_hwmod.c | 49 ++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 44 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/clock/ti/module.txt b/Documentation/devicetree/bindings/clock/ti/module.txt
-new file mode 100644
-index 0000000..0329667
---- /dev/null
-+++ b/Documentation/devicetree/bindings/clock/ti/module.txt
-@@ -0,0 +1,59 @@
-+Binding for Texas Instruments module clock.
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 0ea869c..0c85f91 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -200,6 +200,7 @@ struct omap_hwmod_soc_ops {
+ 	int (*init_clkdm)(struct omap_hwmod *oh);
+ 	void (*update_context_lost)(struct omap_hwmod *oh);
+ 	int (*get_context_lost)(struct omap_hwmod *oh);
++	int (*disable_direct_prcm)(struct omap_hwmod *oh);
+ };
+ 
+ /* soc_ops: adapts the omap_hwmod code to the currently-booted SoC */
+@@ -776,17 +777,34 @@ static int _del_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
+  * @oh: struct omap_hwmod *
+  *
+  * Called from _init_clocks().  Populates the @oh _clk (main
+- * functional clock pointer) if a main_clk is present.  Returns 0 on
+- * success or -EINVAL on error.
++ * functional clock pointer) if a clock matching the hwmod name is found,
++ * or a main_clk is present.  Returns 0 on success or -EINVAL on error.
+  */
+ static int _init_main_clk(struct omap_hwmod *oh)
+ {
+ 	int ret = 0;
++	char name[32];
++	static int max_len;
++	struct clk *clk;
+ 
+-	if (!oh->main_clk)
+-		return 0;
++	strcpy(name, oh->name);
++	strcat(name, "_mod_ck");
 +
-+Binding status: Unstable - ABI compatibility may be broken in the future
++	if (strlen(name) > max_len)
++		max_len = strlen(name);
 +
-+This binding uses the common clock binding[1]. This clock is
-+quite much similar to the basic gate-clock [2], however, internally
-+it controls an OMAP module clock, which effectively handles
-+both interface and functional clocks for a single module. In some
-+cases, support for mux clock [3] is composited to the same clock node,
-+currently only needed for proper support of timer module clocks.
++	clk = ti_clk_get(name);
++	if (!IS_ERR(clk)) {
++		oh->_clk = clk;
++		soc_ops.disable_direct_prcm(oh);
++		oh->main_clk = kstrdup(name, GFP_KERNEL);
++	} else {
++		if (!oh->main_clk)
++			return 0;
 +
-+[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
-+[2] Documentation/devicetree/bindings/clock/ti/gate.txt
-+[3] Documentation/devicetree/bindings/clock/ti/mux.txt
++		oh->_clk = ti_clk_get(oh->main_clk);
++	}
+ 
+-	oh->_clk = ti_clk_get(oh->main_clk);
+ 	if (IS_ERR(oh->_clk)) {
+ 		pr_warn("omap_hwmod: %s: cannot clk_get main_clk %s\n",
+ 			oh->name, oh->main_clk);
+@@ -3091,6 +3109,25 @@ static int _omap4_is_hardreset_asserted(struct omap_hwmod *oh,
+ }
+ 
+ /**
++ * _omap4_disable_direct_prcm - disable direct PRCM control for hwmod
++ * @oh: struct omap_hwmod * to disable control for
++ *
++ * Disables direct PRCM clkctrl done by hwmod core. Instead, the hwmod
++ * will be using its main_clk to enable/disable the module. Returns
++ * 0 if successful.
++ */
++static int _omap4_disable_direct_prcm(struct omap_hwmod *oh)
++{
++	if (!oh)
++		return -EINVAL;
 +
-+Required properties:
-+- compatible : shall be one of:
-+  "ti,omap4-mod-clock" - basic module clock, no gating supported
-+  "ti,omap4-hw-mod-clock" - module clock with hardware gating support
-+  "ti,omap4-sw-mod-clock" - module clock with software forced gating support
-+  "ti,omap4-sw-no-idlest-mod-clock" - module clock with software forced gating
-+				      support, misses idlest
-+  "ti,omap4-mux-mod-clock" - composite clock with mux and module clocks, no
-+			     gating supported
-+  "ti,omap4-hw-mux-mod-clock" - composite clock with mux and module clocks,
-+				with hardware gating
-+  "ti,omap4-sw-mux-mod-clock" - composite clock with mux and module clocks,
-+				with software forced gating
++	oh->prcm.omap4.clkctrl_offs = 0;
++	oh->prcm.omap4.modulemode = 0;
 +
-+- #clock-cells : from common clock binding; shall be set to 0
-+- clocks : link to phandle of parent clock(s)
-+- reg : offset for register controlling adjustable gate and optional mux
++	return 0;
++}
 +
-+Optional properties:
-+- ti,bit-shift : bit shift for programming the clock mux, only needed for
-+		 the nodes of the mux variant
-+
-+Examples:
-+	timer6_mod_ck: timer6_mod_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mux-mod-clock";
-+		reg = <0x0570>;
-+		clocks = <&syc_clk_div_ck>, <&sys_32k_ck>;
-+		ti,bit-shift = <24>;
-+	};
-+
-+	i2c1_mod_ck: i2c1_mod_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x14a0>;
-+		clocks = <&func_96m_fclk>;
-+	};
-+
-+	hsi_mod_ck: hsi_mod_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-hw-mod-clock";
-+		reg = <0x1338>;
-+		clocks = <&hsi_fck>;
-+	};
++/**
+  * _am33xx_deassert_hardreset - call AM33XX PRM hardreset fn with hwmod args
+  * @oh: struct omap_hwmod * to deassert hardreset
+  * @ohri: hardreset line data
+@@ -3913,6 +3950,7 @@ void __init omap_hwmod_init(void)
+ 		soc_ops.init_clkdm = _init_clkdm;
+ 		soc_ops.update_context_lost = _omap4_update_context_lost;
+ 		soc_ops.get_context_lost = _omap4_get_context_lost;
++		soc_ops.disable_direct_prcm = _omap4_disable_direct_prcm;
+ 	} else if (cpu_is_ti814x() || cpu_is_ti816x() || soc_is_am33xx() ||
+ 		   soc_is_am43xx()) {
+ 		soc_ops.enable_module = _omap4_enable_module;
+@@ -3922,6 +3960,7 @@ void __init omap_hwmod_init(void)
+ 		soc_ops.deassert_hardreset = _am33xx_deassert_hardreset;
+ 		soc_ops.is_hardreset_asserted = _omap4_is_hardreset_asserted;
+ 		soc_ops.init_clkdm = _init_clkdm;
++		soc_ops.disable_direct_prcm = _omap4_disable_direct_prcm;
+ 	} else {
+ 		WARN(1, "omap_hwmod: unknown SoC type\n");
+ 	}
 -- 
 1.9.1
 
