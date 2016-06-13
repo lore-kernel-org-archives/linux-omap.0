@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [RESEND PATCHv2 05/28] ARM: OMAP2+: clock: use the new ti_clk_get for fetching clocks
-Date: Mon, 13 Jun 2016 22:04:39 +0300
-Message-ID: <1465844702-12200-6-git-send-email-t-kristo@ti.com>
+Subject: [RESEND PATCHv2 10/28] clk: ti: omap2: transition to usage of ti_clk_get
+Date: Mon, 13 Jun 2016 22:04:44 +0300
+Message-ID: <1465844702-12200-11-git-send-email-t-kristo@ti.com>
 References: <1465844702-12200-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,200 +12,223 @@ To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org,
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Use the new ti_clk_get API instead of common implementation, to get rid
-of most of the DT_CLK() aliases under drivers/clk/ti.
+Cleanup any unnecessary DT_CLK() alias entries from OMAP2 clock file.
+Also, use ti_clk_get where necessary.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c | 2 +-
- arch/arm/mach-omap2/clock.c                  | 6 +++---
- arch/arm/mach-omap2/io.c                     | 2 +-
- arch/arm/mach-omap2/mcbsp.c                  | 2 +-
- arch/arm/mach-omap2/omap2-restart.c          | 5 +++--
- arch/arm/mach-omap2/pm.c                     | 2 +-
- arch/arm/mach-omap2/pm24xx.c                 | 4 ++--
- arch/arm/mach-omap2/timer.c                  | 7 ++++---
- arch/arm/mach-omap2/voltage.c                | 3 ++-
- 9 files changed, 18 insertions(+), 15 deletions(-)
+ drivers/clk/ti/clk-2xxx.c | 151 ++--------------------------------------------
+ 1 file changed, 4 insertions(+), 147 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-index b64d717..2a9739e 100644
---- a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-@@ -200,7 +200,7 @@ void omap2xxx_clkt_vps_late_init(void)
- {
- 	struct clk *c;
+diff --git a/drivers/clk/ti/clk-2xxx.c b/drivers/clk/ti/clk-2xxx.c
+index 657c4fe..0b9d7fa 100644
+--- a/drivers/clk/ti/clk-2xxx.c
++++ b/drivers/clk/ti/clk-2xxx.c
+@@ -22,126 +22,22 @@
+ #include "clock.h"
  
--	c = clk_get(NULL, "sys_ck");
-+	c = ti_clk_get("sys_ck");
- 	if (IS_ERR(c)) {
- 		WARN(1, "could not locate sys_ck\n");
- 	} else {
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index d058125..50fbff0 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -151,15 +151,15 @@ void __init omap2_clk_print_new_rates(const char *hfclkin_ck_name,
- 	struct clk *hfclkin_ck, *core_ck, *mpu_ck;
- 	unsigned long hfclkin_rate;
+ static struct ti_dt_clk omap2xxx_clks[] = {
+-	DT_CLK(NULL, "func_32k_ck", "func_32k_ck"),
+-	DT_CLK(NULL, "secure_32k_ck", "secure_32k_ck"),
+-	DT_CLK(NULL, "virt_12m_ck", "virt_12m_ck"),
+-	DT_CLK(NULL, "virt_13m_ck", "virt_13m_ck"),
+-	DT_CLK(NULL, "virt_19200000_ck", "virt_19200000_ck"),
+-	DT_CLK(NULL, "virt_26m_ck", "virt_26m_ck"),
+-	DT_CLK(NULL, "aplls_clkin_ck", "aplls_clkin_ck"),
+-	DT_CLK(NULL, "aplls_clkin_x2_ck", "aplls_clkin_x2_ck"),
+-	DT_CLK(NULL, "osc_ck", "osc_ck"),
+-	DT_CLK(NULL, "sys_ck", "sys_ck"),
+-	DT_CLK(NULL, "alt_ck", "alt_ck"),
+-	DT_CLK(NULL, "mcbsp_clks", "mcbsp_clks"),
+-	DT_CLK(NULL, "dpll_ck", "dpll_ck"),
+-	DT_CLK(NULL, "apll96_ck", "apll96_ck"),
+-	DT_CLK(NULL, "apll54_ck", "apll54_ck"),
+-	DT_CLK(NULL, "func_54m_ck", "func_54m_ck"),
+-	DT_CLK(NULL, "core_ck", "core_ck"),
+-	DT_CLK(NULL, "func_96m_ck", "func_96m_ck"),
+-	DT_CLK(NULL, "func_48m_ck", "func_48m_ck"),
+-	DT_CLK(NULL, "func_12m_ck", "func_12m_ck"),
+-	DT_CLK(NULL, "sys_clkout_src", "sys_clkout_src"),
+-	DT_CLK(NULL, "sys_clkout", "sys_clkout"),
+-	DT_CLK(NULL, "emul_ck", "emul_ck"),
+-	DT_CLK(NULL, "mpu_ck", "mpu_ck"),
+-	DT_CLK(NULL, "dsp_fck", "dsp_fck"),
+-	DT_CLK(NULL, "gfx_3d_fck", "gfx_3d_fck"),
+-	DT_CLK(NULL, "gfx_2d_fck", "gfx_2d_fck"),
+-	DT_CLK(NULL, "gfx_ick", "gfx_ick"),
+ 	DT_CLK("omapdss_dss", "ick", "dss_ick"),
+-	DT_CLK(NULL, "dss_ick", "dss_ick"),
+-	DT_CLK(NULL, "dss1_fck", "dss1_fck"),
+-	DT_CLK(NULL, "dss2_fck", "dss2_fck"),
+-	DT_CLK(NULL, "dss_54m_fck", "dss_54m_fck"),
+-	DT_CLK(NULL, "core_l3_ck", "core_l3_ck"),
+ 	DT_CLK(NULL, "ssi_fck", "ssi_ssr_sst_fck"),
+-	DT_CLK(NULL, "usb_l4_ick", "usb_l4_ick"),
+-	DT_CLK(NULL, "l4_ck", "l4_ck"),
+-	DT_CLK(NULL, "ssi_l4_ick", "ssi_l4_ick"),
+-	DT_CLK(NULL, "gpt1_ick", "gpt1_ick"),
+-	DT_CLK(NULL, "gpt1_fck", "gpt1_fck"),
+-	DT_CLK(NULL, "gpt2_ick", "gpt2_ick"),
+-	DT_CLK(NULL, "gpt2_fck", "gpt2_fck"),
+-	DT_CLK(NULL, "gpt3_ick", "gpt3_ick"),
+-	DT_CLK(NULL, "gpt3_fck", "gpt3_fck"),
+-	DT_CLK(NULL, "gpt4_ick", "gpt4_ick"),
+-	DT_CLK(NULL, "gpt4_fck", "gpt4_fck"),
+-	DT_CLK(NULL, "gpt5_ick", "gpt5_ick"),
+-	DT_CLK(NULL, "gpt5_fck", "gpt5_fck"),
+-	DT_CLK(NULL, "gpt6_ick", "gpt6_ick"),
+-	DT_CLK(NULL, "gpt6_fck", "gpt6_fck"),
+-	DT_CLK(NULL, "gpt7_ick", "gpt7_ick"),
+-	DT_CLK(NULL, "gpt7_fck", "gpt7_fck"),
+-	DT_CLK(NULL, "gpt8_ick", "gpt8_ick"),
+-	DT_CLK(NULL, "gpt8_fck", "gpt8_fck"),
+-	DT_CLK(NULL, "gpt9_ick", "gpt9_ick"),
+-	DT_CLK(NULL, "gpt9_fck", "gpt9_fck"),
+-	DT_CLK(NULL, "gpt10_ick", "gpt10_ick"),
+-	DT_CLK(NULL, "gpt10_fck", "gpt10_fck"),
+-	DT_CLK(NULL, "gpt11_ick", "gpt11_ick"),
+-	DT_CLK(NULL, "gpt11_fck", "gpt11_fck"),
+-	DT_CLK(NULL, "gpt12_ick", "gpt12_ick"),
+-	DT_CLK(NULL, "gpt12_fck", "gpt12_fck"),
+ 	DT_CLK("omap-mcbsp.1", "ick", "mcbsp1_ick"),
+-	DT_CLK(NULL, "mcbsp1_ick", "mcbsp1_ick"),
+-	DT_CLK(NULL, "mcbsp1_fck", "mcbsp1_fck"),
+ 	DT_CLK("omap-mcbsp.2", "ick", "mcbsp2_ick"),
+-	DT_CLK(NULL, "mcbsp2_ick", "mcbsp2_ick"),
+-	DT_CLK(NULL, "mcbsp2_fck", "mcbsp2_fck"),
+ 	DT_CLK("omap2_mcspi.1", "ick", "mcspi1_ick"),
+-	DT_CLK(NULL, "mcspi1_ick", "mcspi1_ick"),
+-	DT_CLK(NULL, "mcspi1_fck", "mcspi1_fck"),
+ 	DT_CLK("omap2_mcspi.2", "ick", "mcspi2_ick"),
+-	DT_CLK(NULL, "mcspi2_ick", "mcspi2_ick"),
+-	DT_CLK(NULL, "mcspi2_fck", "mcspi2_fck"),
+-	DT_CLK(NULL, "uart1_ick", "uart1_ick"),
+-	DT_CLK(NULL, "uart1_fck", "uart1_fck"),
+-	DT_CLK(NULL, "uart2_ick", "uart2_ick"),
+-	DT_CLK(NULL, "uart2_fck", "uart2_fck"),
+-	DT_CLK(NULL, "uart3_ick", "uart3_ick"),
+-	DT_CLK(NULL, "uart3_fck", "uart3_fck"),
+-	DT_CLK(NULL, "gpios_ick", "gpios_ick"),
+-	DT_CLK(NULL, "gpios_fck", "gpios_fck"),
+ 	DT_CLK("omap_wdt", "ick", "mpu_wdt_ick"),
+-	DT_CLK(NULL, "mpu_wdt_ick", "mpu_wdt_ick"),
+-	DT_CLK(NULL, "mpu_wdt_fck", "mpu_wdt_fck"),
+-	DT_CLK(NULL, "sync_32k_ick", "sync_32k_ick"),
+-	DT_CLK(NULL, "wdt1_ick", "wdt1_ick"),
+-	DT_CLK(NULL, "omapctrl_ick", "omapctrl_ick"),
+ 	DT_CLK("omap24xxcam", "fck", "cam_fck"),
+-	DT_CLK(NULL, "cam_fck", "cam_fck"),
+ 	DT_CLK("omap24xxcam", "ick", "cam_ick"),
+-	DT_CLK(NULL, "cam_ick", "cam_ick"),
+-	DT_CLK(NULL, "mailboxes_ick", "mailboxes_ick"),
+-	DT_CLK(NULL, "wdt4_ick", "wdt4_ick"),
+-	DT_CLK(NULL, "wdt4_fck", "wdt4_fck"),
+-	DT_CLK(NULL, "mspro_ick", "mspro_ick"),
+-	DT_CLK(NULL, "mspro_fck", "mspro_fck"),
+-	DT_CLK(NULL, "fac_ick", "fac_ick"),
+-	DT_CLK(NULL, "fac_fck", "fac_fck"),
+ 	DT_CLK("omap_hdq.0", "ick", "hdq_ick"),
+-	DT_CLK(NULL, "hdq_ick", "hdq_ick"),
+ 	DT_CLK("omap_hdq.0", "fck", "hdq_fck"),
+-	DT_CLK(NULL, "hdq_fck", "hdq_fck"),
+ 	DT_CLK("omap_i2c.1", "ick", "i2c1_ick"),
+-	DT_CLK(NULL, "i2c1_ick", "i2c1_ick"),
+ 	DT_CLK("omap_i2c.2", "ick", "i2c2_ick"),
+-	DT_CLK(NULL, "i2c2_ick", "i2c2_ick"),
+-	DT_CLK(NULL, "gpmc_fck", "gpmc_fck"),
+-	DT_CLK(NULL, "sdma_fck", "sdma_fck"),
+-	DT_CLK(NULL, "sdma_ick", "sdma_ick"),
+-	DT_CLK(NULL, "sdrc_ick", "sdrc_ick"),
+-	DT_CLK(NULL, "des_ick", "des_ick"),
+ 	DT_CLK("omap-sham", "ick", "sha_ick"),
+-	DT_CLK(NULL, "sha_ick", "sha_ick"),
+ 	DT_CLK("omap_rng", "ick", "rng_ick"),
+-	DT_CLK(NULL, "rng_ick", "rng_ick"),
+ 	DT_CLK("omap-aes", "ick", "aes_ick"),
+-	DT_CLK(NULL, "aes_ick", "aes_ick"),
+-	DT_CLK(NULL, "pka_ick", "pka_ick"),
+-	DT_CLK(NULL, "usb_fck", "usb_fck"),
+ 	DT_CLK(NULL, "timer_32k_ck", "func_32k_ck"),
+ 	DT_CLK(NULL, "timer_sys_ck", "sys_ck"),
+ 	DT_CLK(NULL, "timer_ext_ck", "alt_ck"),
+@@ -149,62 +45,23 @@ static struct ti_dt_clk omap2xxx_clks[] = {
+ };
  
--	mpu_ck = clk_get(NULL, mpu_ck_name);
-+	mpu_ck = ti_clk_get(mpu_ck_name);
- 	if (WARN(IS_ERR(mpu_ck), "clock: failed to get %s.\n", mpu_ck_name))
- 		return;
+ static struct ti_dt_clk omap2420_clks[] = {
+-	DT_CLK(NULL, "sys_clkout2_src", "sys_clkout2_src"),
+-	DT_CLK(NULL, "sys_clkout2", "sys_clkout2"),
+-	DT_CLK(NULL, "dsp_ick", "dsp_ick"),
+-	DT_CLK(NULL, "iva1_ifck", "iva1_ifck"),
+-	DT_CLK(NULL, "iva1_mpu_int_ifck", "iva1_mpu_int_ifck"),
+-	DT_CLK(NULL, "wdt3_ick", "wdt3_ick"),
+-	DT_CLK(NULL, "wdt3_fck", "wdt3_fck"),
+ 	DT_CLK("mmci-omap.0", "ick", "mmc_ick"),
+-	DT_CLK(NULL, "mmc_ick", "mmc_ick"),
+ 	DT_CLK("mmci-omap.0", "fck", "mmc_fck"),
+-	DT_CLK(NULL, "mmc_fck", "mmc_fck"),
+-	DT_CLK(NULL, "eac_ick", "eac_ick"),
+-	DT_CLK(NULL, "eac_fck", "eac_fck"),
+-	DT_CLK(NULL, "i2c1_fck", "i2c1_fck"),
+-	DT_CLK(NULL, "i2c2_fck", "i2c2_fck"),
+-	DT_CLK(NULL, "vlynq_ick", "vlynq_ick"),
+-	DT_CLK(NULL, "vlynq_fck", "vlynq_fck"),
+ 	DT_CLK("musb-hdrc", "fck", "osc_ck"),
+ 	{ .node_name = NULL },
+ };
  
--	core_ck = clk_get(NULL, core_ck_name);
-+	core_ck = ti_clk_get(core_ck_name);
- 	if (WARN(IS_ERR(core_ck), "clock: failed to get %s.\n", core_ck_name))
- 		return;
+ static struct ti_dt_clk omap2430_clks[] = {
+ 	DT_CLK("twl", "fck", "osc_ck"),
+-	DT_CLK(NULL, "iva2_1_ick", "iva2_1_ick"),
+-	DT_CLK(NULL, "mdm_ick", "mdm_ick"),
+-	DT_CLK(NULL, "mdm_osc_ck", "mdm_osc_ck"),
+ 	DT_CLK("omap-mcbsp.3", "ick", "mcbsp3_ick"),
+-	DT_CLK(NULL, "mcbsp3_ick", "mcbsp3_ick"),
+-	DT_CLK(NULL, "mcbsp3_fck", "mcbsp3_fck"),
+ 	DT_CLK("omap-mcbsp.4", "ick", "mcbsp4_ick"),
+-	DT_CLK(NULL, "mcbsp4_ick", "mcbsp4_ick"),
+-	DT_CLK(NULL, "mcbsp4_fck", "mcbsp4_fck"),
+ 	DT_CLK("omap-mcbsp.5", "ick", "mcbsp5_ick"),
+-	DT_CLK(NULL, "mcbsp5_ick", "mcbsp5_ick"),
+-	DT_CLK(NULL, "mcbsp5_fck", "mcbsp5_fck"),
+ 	DT_CLK("omap2_mcspi.3", "ick", "mcspi3_ick"),
+-	DT_CLK(NULL, "mcspi3_ick", "mcspi3_ick"),
+-	DT_CLK(NULL, "mcspi3_fck", "mcspi3_fck"),
+-	DT_CLK(NULL, "icr_ick", "icr_ick"),
+-	DT_CLK(NULL, "i2chs1_fck", "i2chs1_fck"),
+-	DT_CLK(NULL, "i2chs2_fck", "i2chs2_fck"),
+ 	DT_CLK("musb-omap2430", "ick", "usbhs_ick"),
+-	DT_CLK(NULL, "usbhs_ick", "usbhs_ick"),
+ 	DT_CLK("omap_hsmmc.0", "ick", "mmchs1_ick"),
+-	DT_CLK(NULL, "mmchs1_ick", "mmchs1_ick"),
+-	DT_CLK(NULL, "mmchs1_fck", "mmchs1_fck"),
+ 	DT_CLK("omap_hsmmc.1", "ick", "mmchs2_ick"),
+-	DT_CLK(NULL, "mmchs2_ick", "mmchs2_ick"),
+-	DT_CLK(NULL, "mmchs2_fck", "mmchs2_fck"),
+-	DT_CLK(NULL, "gpio5_ick", "gpio5_ick"),
+-	DT_CLK(NULL, "gpio5_fck", "gpio5_fck"),
+-	DT_CLK(NULL, "mdm_intc_ick", "mdm_intc_ick"),
+ 	DT_CLK("omap_hsmmc.0", "mmchsdb_fck", "mmchsdb1_fck"),
+-	DT_CLK(NULL, "mmchsdb1_fck", "mmchsdb1_fck"),
+ 	DT_CLK("omap_hsmmc.1", "mmchsdb_fck", "mmchsdb2_fck"),
+-	DT_CLK(NULL, "mmchsdb2_fck", "mmchsdb2_fck"),
+ 	{ .node_name = NULL },
+ };
  
--	hfclkin_ck = clk_get(NULL, hfclkin_ck_name);
-+	hfclkin_ck = ti_clk_get(hfclkin_ck_name);
- 	if (WARN(IS_ERR(hfclkin_ck), "Failed to get %s.\n", hfclkin_ck_name))
- 		return;
+@@ -239,10 +96,10 @@ static int __init omap2xxx_dt_clk_init(int soc_type)
+ 				     ARRAY_SIZE(enable_init_clks));
  
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 49de4dd..6142aa3 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -390,7 +390,7 @@ static int __init _omap2_init_reprogram_sdrc(void)
- 	if (!cpu_is_omap34xx())
- 		return 0;
+ 	pr_info("Clocking rate (Crystal/DPLL/MPU): %ld.%01ld/%ld/%ld MHz\n",
+-		(clk_get_rate(clk_get_sys(NULL, "sys_ck")) / 1000000),
+-		(clk_get_rate(clk_get_sys(NULL, "sys_ck")) / 100000) % 10,
+-		(clk_get_rate(clk_get_sys(NULL, "dpll_ck")) / 1000000),
+-		(clk_get_rate(clk_get_sys(NULL, "mpu_ck")) / 1000000));
++		(clk_get_rate(ti_clk_get("sys_ck")) / 1000000),
++		(clk_get_rate(ti_clk_get("sys_ck")) / 100000) % 10,
++		(clk_get_rate(ti_clk_get("dpll_ck")) / 1000000),
++		(clk_get_rate(ti_clk_get("mpu_ck")) / 1000000));
  
--	dpll3_m2_ck = clk_get(NULL, "dpll3_m2_ck");
-+	dpll3_m2_ck = ti_clk_get("dpll3_m2_ck");
- 	if (IS_ERR(dpll3_m2_ck))
- 		return -EINVAL;
- 
-diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-index b4ac3af..8098546 100644
---- a/arch/arm/mach-omap2/mcbsp.c
-+++ b/arch/arm/mach-omap2/mcbsp.c
-@@ -98,7 +98,7 @@ static int __init omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
- 		(struct omap_mcbsp_dev_attr *)(oh->dev_attr))->sidetone);
- 		pdata->enable_st_clock = omap3_enable_st_clock;
- 		sprintf(clk_name, "mcbsp%d_ick", id);
--		mcbsp_iclks[id] = clk_get(NULL, clk_name);
-+		mcbsp_iclks[id] = ti_clk_get(clk_name);
- 		count++;
- 	}
- 	pdev = omap_device_build_ss(name, id, oh_device, count, pdata,
-diff --git a/arch/arm/mach-omap2/omap2-restart.c b/arch/arm/mach-omap2/omap2-restart.c
-index 497269d..0540495 100644
---- a/arch/arm/mach-omap2/omap2-restart.c
-+++ b/arch/arm/mach-omap2/omap2-restart.c
-@@ -12,6 +12,7 @@
- #include <linux/init.h>
- #include <linux/clk.h>
- #include <linux/io.h>
-+#include <linux/clk/ti.h>
- 
- #include "soc.h"
- #include "common.h"
-@@ -52,11 +53,11 @@ void omap2xxx_restart(enum reboot_mode mode, const char *cmd)
-  */
- static int __init omap2xxx_common_look_up_clks_for_reset(void)
- {
--	reset_virt_prcm_set_ck = clk_get(NULL, "virt_prcm_set");
-+	reset_virt_prcm_set_ck = ti_clk_get("virt_prcm_set");
- 	if (IS_ERR(reset_virt_prcm_set_ck))
- 		return -EINVAL;
- 
--	reset_sys_ck = clk_get(NULL, "sys_ck");
-+	reset_sys_ck = ti_clk_get("sys_ck");
- 	if (IS_ERR(reset_sys_ck))
- 		return -EINVAL;
- 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 2f7b11d..37c80f5 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -164,7 +164,7 @@ static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
- 		goto exit;
- 	}
- 
--	clk =  clk_get(NULL, clk_name);
-+	clk =  ti_clk_get(clk_name);
- 	if (IS_ERR(clk)) {
- 		pr_err("%s: unable to get clk %s\n", __func__, clk_name);
- 		goto exit;
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index 2a1a418..f74a46f 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -286,14 +286,14 @@ int __init omap2_pm_init(void)
- 		pr_err("PM: gfx_clkdm not found\n");
- 
- 
--	osc_ck = clk_get(NULL, "osc_ck");
-+	osc_ck = ti_clk_get("osc_ck");
- 	if (IS_ERR(osc_ck)) {
- 		printk(KERN_ERR "could not get osc_ck\n");
- 		return -ENODEV;
- 	}
- 
- 	if (cpu_is_omap242x()) {
--		emul_ck = clk_get(NULL, "emul_ck");
-+		emul_ck = ti_clk_get("emul_ck");
- 		if (IS_ERR(emul_ck)) {
- 			printk(KERN_ERR "could not get emul_ck\n");
- 			clk_put(osc_ck);
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 5b385bb..08e08db 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -42,6 +42,7 @@
- #include <linux/platform_device.h>
- #include <linux/platform_data/dmtimer-omap.h>
- #include <linux/sched_clock.h>
-+#include <linux/clk/ti.h>
- 
- #include <asm/mach/time.h>
- #include <asm/smp_twd.h>
-@@ -290,11 +291,11 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
- 		return -ENXIO;
- 
- 	/* After the dmtimer is using hwmod these clocks won't be needed */
--	timer->fclk = clk_get(NULL, omap_hwmod_get_main_clk(oh));
-+	timer->fclk = ti_clk_get(omap_hwmod_get_main_clk(oh));
- 	if (IS_ERR(timer->fclk))
- 		return PTR_ERR(timer->fclk);
- 
--	src = clk_get(NULL, fck_source);
-+	src = ti_clk_get(fck_source);
- 	if (IS_ERR(src))
- 		return PTR_ERR(src);
- 
-@@ -556,7 +557,7 @@ static void __init realtime_counter_init(void)
- 		pr_err("%s: ioremap failed\n", __func__);
- 		return;
- 	}
--	sys_clk = clk_get(NULL, "sys_clkin");
-+	sys_clk = ti_clk_get("sys_clkin");
- 	if (IS_ERR(sys_clk)) {
- 		pr_err("%s: failed to get system clock handle\n", __func__);
- 		iounmap(base);
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index cba8cad..68d2852 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -26,6 +26,7 @@
- #include <linux/debugfs.h>
- #include <linux/slab.h>
- #include <linux/clk.h>
-+#include <linux/clk/ti.h>
- 
- #include "common.h"
- 
-@@ -246,7 +247,7 @@ int __init omap_voltage_late_init(void)
- 		if (!voltdm->scalable)
- 			continue;
- 
--		sys_ck = clk_get(NULL, voltdm->sys_clk.name);
-+		sys_ck = ti_clk_get(voltdm->sys_clk.name);
- 		if (IS_ERR(sys_ck)) {
- 			pr_warn("%s: Could not get sys clk.\n", __func__);
- 			return -EINVAL;
+ 	return 0;
+ }
 -- 
 1.9.1
 
