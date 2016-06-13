@@ -1,69 +1,47 @@
 From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: Re: [PATCH 0/7] ir-rx51 driver fixes
-Date: Mon, 13 Jun 2016 21:48:34 +0300
-Message-ID: <575F0002.4060809@gmail.com>
+Subject: Re: [PATCH 5/7] ARM: OMAP: dmtimer: Do not call PM runtime functions
+ when not needed.
+Date: Mon, 13 Jun 2016 21:58:39 +0300
+Message-ID: <575F025F.7000101@gmail.com>
 References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <201606132017.38629@pali>
+ <1462634508-24961-6-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160509193624.GH5995@atomide.com> <5730F840.3050807@gmail.com>
+ <20160610102225.GS22406@atomide.com> <575B2F48.4090707@gmail.com>
+ <20160613071057.GQ22406@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <201606132017.38629@pali>
-Sender: linux-media-owner@vger.kernel.org
-To: =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, tony@atomide.com
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, thierry.reding@gmail.com, bcousson@baylibre.com, linux@arm.linux.org.uk, mchehab@osg.samsung.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, sre@kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160613071057.GQ22406@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, thierry.reding@gmail.com, bcousson@baylibre.com, linux@arm.linux.org.uk, mchehab@osg.samsung.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, sre@kernel.org, pali.rohar@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-On 13.06.2016 21:17, Pali Roh=C3=A1r wrote:
-> On Saturday 07 May 2016 17:21:41 Ivaylo Dimitrov wrote:
->> ir-rx51 is a driver for Nokia N900 IR transmitter. The current serie=
-s
->> fixes the remaining problems in the driver:
+On 13.06.2016 10:10, Tony Lindgren wrote:
+> * Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160610 14:23]:
 >>
->>   - replace GP timer 9 with PWM framework usage
->>   - replace pulse width timer dmtimer usage with hrtimer
->>   - add DT support to the driver
->>   - add driver to the board DTS
+>> On 10.06.2016 13:22, Tony Lindgren wrote:
+>>>
+>>> OK. And I just applied the related dts changes. Please repost the driver
+>>> changes and DT binding doc with Rob's ack to the driver maintainers to
+>>> apply.
+>>>
 >>
->> Pathes 2 and 5 are needed so the driver to function correctly,
->> without those PWM either refuses to set the needed carrier frequency
->> (patch 2) or there are such a delays in the PWM framework, code that
->> transmission duration raises to ~5s instead of half a second.
+>> Already did, see https://lkml.org/lkml/2016/5/16/429
 >>
->> Ivaylo Dimitrov (6):
->>    pwm: omap-dmtimer: Allow for setting dmtimer clock source
->>    [media] ir-rx51: use PWM framework instead of OMAP dmtimer
->>    [media] ir-rx51: add DT support to driver
->>    ARM: OMAP: dmtimer: Do not call PM runtime functions when not
->> needed. [media] ir-rx51: use hrtimer instead of dmtimer
->>    ARM: dts: n900: enable lirc-rx51 driver
->>
->> Tony Lindgren (1):
->>    ir-rx51: Fix build after multiarch changes broke it
->>
->>   .../devicetree/bindings/media/nokia,lirc-rx51      |  19 ++
->>   .../devicetree/bindings/pwm/pwm-omap-dmtimer.txt   |   4 +
->>   arch/arm/boot/dts/omap3-n900.dts                   |  12 ++
->>   arch/arm/mach-omap2/board-rx51-peripherals.c       |   5 -
->>   arch/arm/mach-omap2/pdata-quirks.c                 |  10 +-
->>   arch/arm/plat-omap/dmtimer.c                       |   9 +-
->>   arch/arm/plat-omap/include/plat/dmtimer.h          |   1 +
->>   drivers/media/rc/Kconfig                           |   2 +-
->>   drivers/media/rc/ir-rx51.c                         | 229
->> +++++++-------------- drivers/pwm/pwm-omap-dmtimer.c
->>      |  12 +- include/linux/platform_data/media/ir-rx51.h        |
->> 3 -
->>   11 files changed, 131 insertions(+), 175 deletions(-)
->>   create mode 100644
->> Documentation/devicetree/bindings/media/nokia,lirc-rx51
+>> Shall I do anything else?
 >
-> Patch series looks good, you can add my Acked-by.
+> Probably good idea to repost just the driver changes to the
+> subsystem maintainers. With v4.7 out any pre v4.7 patchsets
+> easily get forgotten.
 >
 
-There is a newer series, please look at https://lkml.org/lkml/2016/5/16=
-/429
+Sorry for the maybe stupid question, but does this mean that I should 
+send separate patches instead of series? Or the series without what 
+you've already applied?
 
+Thanks,
 Ivo
