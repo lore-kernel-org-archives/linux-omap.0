@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [RESEND PATCHv2 19/28] clk: ti: remove un-used definitions from public clk_hw_omap struct
-Date: Mon, 13 Jun 2016 22:04:53 +0300
-Message-ID: <1465844702-12200-20-git-send-email-t-kristo@ti.com>
+Subject: [RESEND PATCHv2 20/28] clk: ti: mux: export mux clock APIs locally
+Date: Mon, 13 Jun 2016 22:04:54 +0300
+Message-ID: <1465844702-12200-21-git-send-email-t-kristo@ti.com>
 References: <1465844702-12200-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,36 +12,51 @@ To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org,
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Clksel support has been deprecated a while back, so remove these from
-the struct also.
+get_parent and set_parent are going to be required by the support of
+module clocks, so export these locally.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- include/linux/clk/ti.h | 4 ----
- 1 file changed, 4 deletions(-)
+ drivers/clk/ti/clock.h | 3 +++
+ drivers/clk/ti/mux.c   | 4 ++--
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 331b81b..0269208 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -129,8 +129,6 @@ struct clk_hw_omap_ops {
-  * @enable_bit: bitshift to write to enable/disable the clock (see @enable_reg)
-  * @flags: see "struct clk.flags possibilities" above
-  * @clksel_reg: for clksel clks, register va containing src/divisor select
-- * @clksel_mask: bitmask in @clksel_reg for the src/divisor selector
-- * @clksel: for clksel clks, pointer to struct clksel for this clock
-  * @dpll_data: for DPLLs, pointer to struct dpll_data for this clock
-  * @clkdm_name: clockdomain name that this clock is contained in
-  * @clkdm: pointer to struct clockdomain, resolved from @clkdm_name at runtime
-@@ -145,8 +143,6 @@ struct clk_hw_omap {
- 	u8			enable_bit;
- 	u8			flags;
- 	void __iomem		*clksel_reg;
--	u32			clksel_mask;
--	const struct clksel	*clksel;
- 	struct dpll_data	*dpll_data;
- 	const char		*clkdm_name;
- 	struct clockdomain	*clkdm;
+diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
+index 90f3f47..7eca8a1 100644
+--- a/drivers/clk/ti/clock.h
++++ b/drivers/clk/ti/clock.h
+@@ -224,6 +224,9 @@ extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_wait;
+ extern const struct clk_ops ti_clk_divider_ops;
+ extern const struct clk_ops ti_clk_mux_ops;
+ 
++u8 ti_clk_mux_get_parent(struct clk_hw *hw);
++int ti_clk_mux_set_parent(struct clk_hw *hw, u8 index);
++
+ int omap2_clkops_enable_clkdm(struct clk_hw *hw);
+ void omap2_clkops_disable_clkdm(struct clk_hw *hw);
+ 
+diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
+index 44777ab..57ff471 100644
+--- a/drivers/clk/ti/mux.c
++++ b/drivers/clk/ti/mux.c
+@@ -26,7 +26,7 @@
+ #undef pr_fmt
+ #define pr_fmt(fmt) "%s: " fmt, __func__
+ 
+-static u8 ti_clk_mux_get_parent(struct clk_hw *hw)
++u8 ti_clk_mux_get_parent(struct clk_hw *hw)
+ {
+ 	struct clk_mux *mux = to_clk_mux(hw);
+ 	int num_parents = clk_hw_get_num_parents(hw);
+@@ -63,7 +63,7 @@ static u8 ti_clk_mux_get_parent(struct clk_hw *hw)
+ 	return val;
+ }
+ 
+-static int ti_clk_mux_set_parent(struct clk_hw *hw, u8 index)
++int ti_clk_mux_set_parent(struct clk_hw *hw, u8 index)
+ {
+ 	struct clk_mux *mux = to_clk_mux(hw);
+ 	u32 val;
 -- 
 1.9.1
 
