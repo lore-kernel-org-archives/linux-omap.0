@@ -1,48 +1,47 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [RESEND PATCHv2 02/28] clk: ti: dpll: use ti_clk_get to fetch
- ref/bypass clocks
-Date: Mon, 13 Jun 2016 22:04:36 +0300
-Message-ID: <1465844702-12200-3-git-send-email-t-kristo@ti.com>
+Subject: [RESEND PATCHv2 19/28] clk: ti: remove un-used definitions from public clk_hw_omap struct
+Date: Mon, 13 Jun 2016 22:04:53 +0300
+Message-ID: <1465844702-12200-20-git-send-email-t-kristo@ti.com>
 References: <1465844702-12200-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-clk-owner@vger.kernel.org>
 In-Reply-To: <1465844702-12200-1-git-send-email-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-clk-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, tony@atomide.com
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This allows getting rid of the DT_CLK() aliases under drivers/clk/ti.
+Clksel support has been deprecated a while back, so remove these from
+the struct also.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/dpll.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/clk/ti.h | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
-index 9fc8754..39ba010 100644
---- a/drivers/clk/ti/dpll.c
-+++ b/drivers/clk/ti/dpll.c
-@@ -220,8 +220,8 @@ struct clk *ti_clk_register_dpll(struct ti_clk *setup)
- 	if (dpll->num_parents < 2)
- 		return ERR_PTR(-EINVAL);
- 
--	clk_ref = clk_get_sys(NULL, dpll->parents[0]);
--	clk_bypass = clk_get_sys(NULL, dpll->parents[1]);
-+	clk_ref = ti_clk_get(dpll->parents[0]);
-+	clk_bypass = ti_clk_get(dpll->parents[1]);
- 
- 	if (IS_ERR_OR_NULL(clk_ref) || IS_ERR_OR_NULL(clk_bypass))
- 		return ERR_PTR(-EAGAIN);
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index 331b81b..0269208 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -129,8 +129,6 @@ struct clk_hw_omap_ops {
+  * @enable_bit: bitshift to write to enable/disable the clock (see @enable_reg)
+  * @flags: see "struct clk.flags possibilities" above
+  * @clksel_reg: for clksel clks, register va containing src/divisor select
+- * @clksel_mask: bitmask in @clksel_reg for the src/divisor selector
+- * @clksel: for clksel clks, pointer to struct clksel for this clock
+  * @dpll_data: for DPLLs, pointer to struct dpll_data for this clock
+  * @clkdm_name: clockdomain name that this clock is contained in
+  * @clkdm: pointer to struct clockdomain, resolved from @clkdm_name at runtime
+@@ -145,8 +143,6 @@ struct clk_hw_omap {
+ 	u8			enable_bit;
+ 	u8			flags;
+ 	void __iomem		*clksel_reg;
+-	u32			clksel_mask;
+-	const struct clksel	*clksel;
+ 	struct dpll_data	*dpll_data;
+ 	const char		*clkdm_name;
+ 	struct clockdomain	*clkdm;
 -- 
 1.9.1
+
