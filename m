@@ -1,36 +1,41 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v7 2/4] usb: dwc3: add dual-role support
-Date: Mon, 13 Jun 2016 10:09:21 +0300
-Message-ID: <575E5C21.8040103@ti.com>
-References: <1465564650-27516-1-git-send-email-rogerq@ti.com>
- <1465564650-27516-3-git-send-email-rogerq@ti.com>
- <20160612091137.GE22054@shlinux2>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 5/7] ARM: OMAP: dmtimer: Do not call PM runtime functions
+ when not needed.
+Date: Mon, 13 Jun 2016 00:10:57 -0700
+Message-ID: <20160613071057.GQ22406@atomide.com>
+References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <1462634508-24961-6-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160509193624.GH5995@atomide.com>
+ <5730F840.3050807@gmail.com>
+ <20160610102225.GS22406@atomide.com>
+ <575B2F48.4090707@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160612091137.GE22054@shlinux2>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Chen <hzpeterchen@gmail.com>
-Cc: balbi@kernel.org, tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pwm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <575B2F48.4090707@gmail.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, thierry.reding@gmail.com, bcousson@baylibre.com, linux@arm.linux.org.uk, mchehab@osg.samsung.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, sre@kernel.org, pali.rohar@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-Peter,
-
-On 12/06/16 12:11, Peter Chen wrote:
-> On Fri, Jun 10, 2016 at 04:17:28PM +0300, Roger Quadros wrote:
->> Register with the USB OTG/DRD core. Since we don't support
->> OTG yet we just work as a dual-role device even
->> if device tree says "otg".
->>
->> Get ID and VBUS information from the OTG controller
->> and kick the OTG state machine.
->>
+* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160610 14:23]:
 > 
-> Hi Roger,
+> On 10.06.2016 13:22, Tony Lindgren wrote:
+> > 
+> > OK. And I just applied the related dts changes. Please repost the driver
+> > changes and DT binding doc with Rob's ack to the driver maintainers to
+> > apply.
+> > 
 > 
-> I can't apply it after rebase usb-next rc1 and felipe's testing/next.
-> How to apply it?
+> Already did, see https://lkml.org/lkml/2016/5/16/429
+> 
+> Shall I do anything else?
 
-You just need to apply the series on Felipe's testing/next + this one patch
-http://article.gmane.org/gmane.linux.kernel/2240761
+Probably good idea to repost just the driver changes to the
+subsystem maintainers. With v4.7 out any pre v4.7 patchsets
+easily get forgotten.
+
+Regards,
+
+Tony
