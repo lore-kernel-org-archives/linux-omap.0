@@ -1,7 +1,7 @@
 From: Marcin Niestroj <m.niestroj@grinn-global.com>
-Subject: [PATCH v2 1/5] mfd: tps65217: Add support for IRQs
-Date: Tue, 14 Jun 2016 15:29:23 +0200
-Message-ID: <20160614132927.3309-2-m.niestroj@grinn-global.com>
+Subject: [PATCH v2 5/5] Input: Add tps65217 power button driver
+Date: Tue, 14 Jun 2016 15:29:27 +0200
+Message-ID: <20160614132927.3309-6-m.niestroj@grinn-global.com>
 References: <20160614132927.3309-1-m.niestroj@grinn-global.com>
 Return-path: <linux-pm-owner@vger.kernel.org>
 In-Reply-To: <20160614132927.3309-1-m.niestroj@grinn-global.com>
@@ -10,299 +10,216 @@ To: Lee Jones <lee.jones@linaro.org>
 Cc: Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-input@vger.kernel.org, devicetree@vger.kernel.org, Marcin Niestroj <m.niestroj@grinn-global.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add support for handling IRQs: power button, AC and USB power state
-changes. Mask and interrupt bits are shared within one register, which
-prevents us to use regmap_irq implementation. New irq_domain is created in
-order to add interrupt handling for each tps65217's subsystem. IRQ
-resources have been added for charger subsystem to be able to notify about
-AC and USB state changes.
+This driver enables us to use tps65217's power button as KEY_POWER on
+am335x boards (directly connected button in chiliboard, accessible pin
+via expansion header in beaglebone). This patch has been tested with
+chiliboard.
 
 Signed-off-by: Marcin Niestroj <m.niestroj@grinn-global.com>
 ---
- drivers/mfd/Kconfig          |   1 +
- drivers/mfd/tps65217.c       | 182 ++++++++++++++++++++++++++++++++++++++++++-
- include/linux/mfd/tps65217.h |  11 +++
- 3 files changed, 192 insertions(+), 2 deletions(-)
+depends on patches 1-4 in series
 
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index 1bcf601..f8c9580 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -1200,6 +1200,7 @@ config MFD_TPS65217
- 	depends on I2C
- 	select MFD_CORE
- 	select REGMAP_I2C
-+	select IRQ_DOMAIN
- 	help
- 	  If you say yes here you get support for the TPS65217 series of
- 	  Power Management / White LED chips.
-diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
-index 049a6fc..d49f94e 100644
---- a/drivers/mfd/tps65217.c
-+++ b/drivers/mfd/tps65217.c
-@@ -23,6 +23,9 @@
- #include <linux/i2c.h>
- #include <linux/slab.h>
- #include <linux/regmap.h>
+ .../bindings/input/tps65217-pwrbutton.txt          |  17 +++
+ drivers/input/misc/Kconfig                         |  10 ++
+ drivers/input/misc/Makefile                        |   1 +
+ drivers/input/misc/tps65217-pwrbutton.c            | 131 +++++++++++++++++++++
+ 4 files changed, 159 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/input/tps65217-pwrbutton.txt
+ create mode 100644 drivers/input/misc/tps65217-pwrbutton.c
+
+diff --git a/Documentation/devicetree/bindings/input/tps65217-pwrbutton.txt b/Documentation/devicetree/bindings/input/tps65217-pwrbutton.txt
+new file mode 100644
+index 0000000..d5f5cce
+--- /dev/null
++++ b/Documentation/devicetree/bindings/input/tps65217-pwrbutton.txt
+@@ -0,0 +1,17 @@
++Texas Instruments TPS65217 power button
++
++This module is part of the TPS65217. For more details about the whole
++chip see Documentation/devicetree/bindings/regulator/tps65217.txt.
++
++This module provides a simple power button event via an Interrupt.
++
++Required properties:
++- compatible: should be "ti,tps65217-pwrbutton"
++
++Example:
++
++&tps {
++	tps65217-pwrbutton {
++		compatible = "ti,tps65217-pwrbutton";
++	};
++};
+diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
+index 1f2337a..2649400 100644
+--- a/drivers/input/misc/Kconfig
++++ b/drivers/input/misc/Kconfig
+@@ -438,6 +438,16 @@ config INPUT_RETU_PWRBUTTON
+ 	  To compile this driver as a module, choose M here. The module will
+ 	  be called retu-pwrbutton.
+ 
++config INPUT_TPS65217_PWRBUTTON
++	tristate "TPS65217 Power button driver"
++	depends on MFD_TPS65217
++	help
++	  Say Y here if you want to enable power button reporting for
++	  the TPS65217 Power Management IC device.
++
++	  To compile this driver as a module, choose M here. The module will
++	  be called tps65217-pwrbutton.
++
+ config INPUT_TPS65218_PWRBUTTON
+ 	tristate "TPS65218 Power button driver"
+ 	depends on MFD_TPS65218
+diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
+index 0357a08..651cafc 100644
+--- a/drivers/input/misc/Makefile
++++ b/drivers/input/misc/Makefile
+@@ -65,6 +65,7 @@ obj-$(CONFIG_INPUT_SGI_BTNS)		+= sgi_btns.o
+ obj-$(CONFIG_INPUT_SIRFSOC_ONKEY)	+= sirfsoc-onkey.o
+ obj-$(CONFIG_INPUT_SOC_BUTTON_ARRAY)	+= soc_button_array.o
+ obj-$(CONFIG_INPUT_SPARCSPKR)		+= sparcspkr.o
++obj-$(CONFIG_INPUT_TPS65217_PWRBUTTON)	+= tps65217-pwrbutton.o
+ obj-$(CONFIG_INPUT_TPS65218_PWRBUTTON)	+= tps65218-pwrbutton.o
+ obj-$(CONFIG_INPUT_TWL4030_PWRBUTTON)	+= twl4030-pwrbutton.o
+ obj-$(CONFIG_INPUT_TWL4030_VIBRA)	+= twl4030-vibra.o
+diff --git a/drivers/input/misc/tps65217-pwrbutton.c b/drivers/input/misc/tps65217-pwrbutton.c
+new file mode 100644
+index 0000000..50372bf
+--- /dev/null
++++ b/drivers/input/misc/tps65217-pwrbutton.c
+@@ -0,0 +1,131 @@
++/*
++ * Texas Instruments' TPS65217 Power Button Input Driver
++ *
++ * Copyright (C) 2016 Grinn - http://www.grinn-global.com/
++ * Author: Marcin Niestroj <m.niestroj@grinn-global.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/init.h>
++#include <linux/input.h>
 +#include <linux/interrupt.h>
-+#include <linux/irq.h>
-+#include <linux/irqdomain.h>
- #include <linux/err.h>
- #include <linux/of.h>
- #include <linux/of_device.h>
-@@ -30,7 +33,81 @@
- #include <linux/mfd/core.h>
- #include <linux/mfd/tps65217.h>
- 
--static const struct mfd_cell tps65217s[] = {
-+static struct resource charger_resources[] = {
-+	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_AC, "AC"),
-+	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_USB, "USB"),
++#include <linux/kernel.h>
++#include <linux/mfd/tps65217.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++
++struct tps65217_pwrbutton {
++	struct device *dev;
++	struct tps65217 *tps;
++	struct input_dev *idev;
 +};
 +
-+struct tps65217_irq {
-+	int mask;
-+	int interrupt;
-+};
-+
-+static const struct tps65217_irq tps65217_irqs[] = {
-+	[TPS65217_IRQ_PB] = {
-+		.mask = TPS65217_INT_PBM,
-+		.interrupt = TPS65217_INT_PBI,
-+	},
-+	[TPS65217_IRQ_AC] = {
-+		.mask = TPS65217_INT_ACM,
-+		.interrupt = TPS65217_INT_ACI,
-+	},
-+	[TPS65217_IRQ_USB] = {
-+		.mask = TPS65217_INT_USBM,
-+		.interrupt = TPS65217_INT_USBI,
-+	},
-+};
-+
-+static void tps65217_irq_lock(struct irq_data *data)
++static irqreturn_t tps65217_pb_irq(int irq, void *data)
 +{
-+	struct tps65217 *tps = irq_data_get_irq_chip_data(data);
++	struct tps65217_pwrbutton *pwr = data;
++	unsigned int reg;
++	int error;
 +
-+	mutex_lock(&tps->irq_lock);
-+}
-+
-+static void tps65217_irq_sync_unlock(struct irq_data *data)
-+{
-+	struct tps65217 *tps = irq_data_get_irq_chip_data(data);
-+	int ret;
-+
-+	ret = tps65217_reg_write(tps, TPS65217_REG_INT, tps->irq_mask,
-+				TPS65217_PROTECT_NONE);
-+	if (ret != 0)
-+		dev_err(tps->dev, "Failed to sync IRQ masks\n");
-+
-+	mutex_unlock(&tps->irq_lock);
-+}
-+
-+static const inline struct tps65217_irq *
-+irq_to_tps65217_irq(struct tps65217 *tps, struct irq_data *data)
-+{
-+	return &tps65217_irqs[data->hwirq];
-+}
-+
-+static void tps65217_irq_enable(struct irq_data *data)
-+{
-+	struct tps65217 *tps = irq_data_get_irq_chip_data(data);
-+	const struct tps65217_irq *irq_data = irq_to_tps65217_irq(tps, data);
-+
-+	tps->irq_mask &= ~irq_data->mask;
-+}
-+
-+static void tps65217_irq_disable(struct irq_data *data)
-+{
-+	struct tps65217 *tps = irq_data_get_irq_chip_data(data);
-+	const struct tps65217_irq *irq_data = irq_to_tps65217_irq(tps, data);
-+
-+	tps->irq_mask |= irq_data->mask;
-+}
-+
-+static struct irq_chip tps65217_irq_chip = {
-+	.irq_bus_lock		= tps65217_irq_lock,
-+	.irq_bus_sync_unlock	= tps65217_irq_sync_unlock,
-+	.irq_disable		= tps65217_irq_disable,
-+	.irq_enable		= tps65217_irq_enable,
-+};
-+
-+static struct mfd_cell tps65217s[] = {
- 	{
- 		.name = "tps65217-pmic",
- 		.of_compatible = "ti,tps65217-pmic",
-@@ -41,10 +118,89 @@ static const struct mfd_cell tps65217s[] = {
- 	},
- 	{
- 		.name = "tps65217-charger",
-+		.num_resources = ARRAY_SIZE(charger_resources),
-+		.resources = charger_resources,
- 		.of_compatible = "ti,tps65217-charger",
- 	},
- };
- 
-+static irqreturn_t tps65217_irq_thread(int irq, void *data)
-+{
-+	struct tps65217 *tps = data;
-+	unsigned int status;
-+	bool handled = false;
-+	int i;
-+	int ret;
-+
-+	ret = tps65217_reg_read(tps, TPS65217_REG_INT, &status);
-+	if (ret < 0) {
-+		dev_err(tps->dev, "Failed to read IRQ status: %d\n",
-+			ret);
-+		return IRQ_NONE;
++	error = tps65217_reg_read(pwr->tps, TPS65217_REG_STATUS, &reg);
++	if (error) {
++		dev_err(pwr->dev, "can't read register: %d\n", error);
++		goto out;
 +	}
 +
-+	for (i = 0; i < ARRAY_SIZE(tps65217_irqs); i++) {
-+		if (status & tps65217_irqs[i].interrupt) {
-+			handle_nested_irq(irq_find_mapping(tps->irq_domain, i));
-+			handled = true;
-+		}
-+	}
-+
-+	if (handled)
-+		return IRQ_HANDLED;
-+	else
-+		return IRQ_NONE;
-+}
-+
-+static int tps65217_irq_map(struct irq_domain *h, unsigned int virq,
-+			irq_hw_number_t hw)
-+{
-+	struct tps65217 *tps = h->host_data;
-+
-+	irq_set_chip_data(virq, tps);
-+	irq_set_chip_and_handler(virq, &tps65217_irq_chip, handle_edge_irq);
-+	irq_set_nested_thread(virq, 1);
-+	irq_set_noprobe(virq);
-+
-+	return 0;
-+}
-+
-+static const struct irq_domain_ops tps65217_irq_domain_ops = {
-+	.map = tps65217_irq_map,
-+};
-+
-+static int tps65217_irq_init(struct tps65217 *tps, int irq)
-+{
-+	int ret;
-+
-+	mutex_init(&tps->irq_lock);
-+
-+	/* Mask all interrupt sources */
-+	tps->irq_mask = (TPS65217_INT_RESERVEDM | TPS65217_INT_PBM
-+			| TPS65217_INT_ACM | TPS65217_INT_USBM);
-+	tps65217_reg_write(tps, TPS65217_REG_INT, tps->irq_mask,
-+			TPS65217_PROTECT_NONE);
-+
-+	tps->irq_domain = irq_domain_add_linear(tps->dev->of_node,
-+		TPS65217_NUM_IRQ, &tps65217_irq_domain_ops, tps);
-+	if (!tps->irq_domain) {
-+		dev_err(tps->dev, "Could not create IRQ domain\n");
-+		return -ENOMEM;
-+	}
-+
-+	ret = devm_request_threaded_irq(tps->dev, irq, NULL,
-+					tps65217_irq_thread,
-+					IRQF_TRIGGER_RISING | IRQF_ONESHOT,
-+					"tps65217-irq", tps);
-+	if (ret) {
-+		dev_err(tps->dev, "Failed to request IRQ %d: %d\n",
-+			irq, ret);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
- /**
-  * tps65217_reg_read: Read a single tps65217 register.
-  *
-@@ -149,11 +305,22 @@ int tps65217_clear_bits(struct tps65217 *tps, unsigned int reg,
- }
- EXPORT_SYMBOL_GPL(tps65217_clear_bits);
- 
-+static bool tps65217_volatile_reg(struct device *dev, unsigned int reg)
-+{
-+	switch (reg) {
-+	case TPS65217_REG_INT:
-+		return true;
-+	default:
-+		return false;
-+	}
-+}
-+
- static const struct regmap_config tps65217_regmap_config = {
- 	.reg_bits = 8,
- 	.val_bits = 8,
- 
- 	.max_register = TPS65217_REG_MAX,
-+	.volatile_reg = tps65217_volatile_reg,
- };
- 
- static const struct of_device_id tps65217_of_match[] = {
-@@ -205,8 +372,19 @@ static int tps65217_probe(struct i2c_client *client,
- 		return ret;
- 	}
- 
-+	if (client->irq) {
-+		tps65217_irq_init(tps, client->irq);
++	if (reg & TPS65217_STATUS_PB) {
++		input_report_key(pwr->idev, KEY_POWER, 1);
++		pm_wakeup_event(pwr->dev, 0);
 +	} else {
-+		int i;
-+
-+		/* Don't tell children about IRQ resources which won't fire */
-+		for (i = 0; i < ARRAY_SIZE(tps65217s); i++)
-+			tps65217s[i].num_resources = 0;
++		input_report_key(pwr->idev, KEY_POWER, 0);
 +	}
 +
- 	ret = devm_mfd_add_devices(tps->dev, -1, tps65217s,
--				   ARRAY_SIZE(tps65217s), NULL, 0, NULL);
-+				   ARRAY_SIZE(tps65217s), NULL, 0,
-+				   tps->irq_domain);
- 	if (ret < 0) {
- 		dev_err(tps->dev, "mfd_add_devices failed: %d\n", ret);
- 		return ret;
-diff --git a/include/linux/mfd/tps65217.h b/include/linux/mfd/tps65217.h
-index ac7fba4..f80a5d3 100644
---- a/include/linux/mfd/tps65217.h
-+++ b/include/linux/mfd/tps65217.h
-@@ -73,6 +73,7 @@
- #define TPS65217_PPATH_AC_CURRENT_MASK	0x0C
- #define TPS65217_PPATH_USB_CURRENT_MASK	0x03
- 
-+#define TPS65217_INT_RESERVEDM		BIT(7)
- #define TPS65217_INT_PBM		BIT(6)
- #define TPS65217_INT_ACM		BIT(5)
- #define TPS65217_INT_USBM		BIT(4)
-@@ -233,6 +234,13 @@ struct tps65217_bl_pdata {
- 	int dft_brightness;
- };
- 
-+enum tps65217_irqs {
-+	TPS65217_IRQ_PB,
-+	TPS65217_IRQ_AC,
-+	TPS65217_IRQ_USB,
-+	TPS65217_NUM_IRQ
-+};
++	input_sync(pwr->idev);
 +
- /**
-  * struct tps65217_board - packages regulator init data
-  * @tps65217_regulator_data: regulator initialization values
-@@ -257,6 +265,9 @@ struct tps65217 {
- 	unsigned long id;
- 	struct regulator_desc desc[TPS65217_NUM_REGULATOR];
- 	struct regmap *regmap;
-+	struct irq_domain *irq_domain;
-+	struct mutex irq_lock;
-+	u8 irq_mask;
- };
- 
- static inline struct tps65217 *dev_to_tps65217(struct device *dev)
++out:
++	return IRQ_HANDLED;
++}
++
++static int tps65217_pb_probe(struct platform_device *pdev)
++{
++	struct tps65217 *tps = dev_get_drvdata(pdev->dev.parent);
++	struct device *dev = &pdev->dev;
++	struct tps65217_pwrbutton *pwr;
++	struct input_dev *idev;
++	int error;
++	int irq;
++
++	pwr = devm_kzalloc(dev, sizeof(*pwr), GFP_KERNEL);
++	if (!pwr)
++		return -ENOMEM;
++
++	idev = devm_input_allocate_device(dev);
++	if (!idev)
++		return -ENOMEM;
++
++	idev->name = "tps65217_pwrbutton";
++	idev->phys = "tps65217_pwrbutton/input0";
++	idev->dev.parent = dev;
++	idev->id.bustype = BUS_I2C;
++
++	input_set_capability(idev, EV_KEY, KEY_POWER);
++
++	pwr->tps = tps;
++	pwr->dev = dev;
++	pwr->idev = idev;
++	platform_set_drvdata(pdev, pwr);
++	device_init_wakeup(dev, true);
++
++	irq = platform_get_irq_byname(pdev, "PB");
++	if (irq < 0) {
++		dev_err(dev, "No IRQ resource!\n");
++		return -EINVAL;
++	}
++
++	error = devm_request_threaded_irq(dev, irq, NULL, tps65217_pb_irq,
++					IRQF_TRIGGER_RISING |
++					IRQF_TRIGGER_FALLING |
++					IRQF_ONESHOT,
++					"tps65217-pwrbutton", pwr);
++	if (error) {
++		dev_err(dev, "failed to request IRQ #%d: %d\n",
++			irq, error);
++		return error;
++	}
++
++	error = input_register_device(idev);
++	if (error) {
++		dev_err(dev, "Can't register power button: %d\n", error);
++		return error;
++	}
++
++	return 0;
++}
++
++static const struct of_device_id tps65217_pb_match[] = {
++	{ .compatible = "ti,tps65217-pwrbutton" },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, tps65217_pb_match);
++
++static struct platform_driver tps65217_pb_driver = {
++	.probe	= tps65217_pb_probe,
++	.driver	= {
++		.name	= "tps65217-pwrbutton",
++		.of_match_table = tps65217_pb_match,
++	},
++};
++module_platform_driver(tps65217_pb_driver);
++
++MODULE_DESCRIPTION("TPS65217 Power Button");
++MODULE_LICENSE("GPL v2");
++MODULE_AUTHOR("Marcin Niestroj <m.niestroj@grinn-global.com>");
 -- 
 2.8.3
 
