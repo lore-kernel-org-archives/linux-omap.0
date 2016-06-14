@@ -1,124 +1,87 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v10 14/14] usb: host: xhci-plat: Add otg device to
- platform data
-Date: Tue, 14 Jun 2016 11:18:51 +0300
-Message-ID: <575FBDEB.3050004@ti.com>
-References: <1465564043-27163-1-git-send-email-rogerq@ti.com>
- <1465564043-27163-15-git-send-email-rogerq@ti.com>
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
+	<u.kleine-koenig@pengutronix.de>
+Subject: [PATCH] gpio: omap: make gpio numbering deterministical by using of aliases
+Date: Tue, 14 Jun 2016 12:03:24 +0200
+Message-ID: <1465898604-16294-1-git-send-email-u.kleine-koenig@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1465564043-27163-15-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: mathias.nyman@linux.intel.com
-Cc: peter.chen@freescale.com, balbi@kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, joe@perches.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-Mathias,
+Traditionally the n-th gpio device probed by the omap gpio driver got
+the gpio number range [n*32 .. n*32+31].
+When order of the devices probed by the driver changes (which can happe=
+n
+already now when some devices have a pinctrl and so the first probe
+attempt returns -ENODEV) the numbering changes.
 
-On 10/06/16 16:07, Roger Quadros wrote:
-> Host controllers that are part of an OTG/dual-role instance
-> need to somehow pass the OTG controller device information
-> to the HCD core.
-> 
-> We use platform data to pass the OTG controller device.
-> 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> Reviewed-by: Peter Chen <peter.chen@nxp.com>
-> ---
->  drivers/usb/host/xhci-plat.c     | 35 ++++++++++++++++++++++++++++-------
->  include/linux/usb/xhci_pdriver.h |  3 +++
->  2 files changed, 31 insertions(+), 7 deletions(-)
+To ensure a deterministical numbering use of_alias_get_id to determine
+the number base for a given device. If no respective alias exists fall
+back to the traditional numbering.
 
-Any comments on this one?
+=46or the unusual case where only a part of the gpio devices have a
+matching alias some of them might fail to probe. But if none of them ha=
+s
+an alias or all, there is no conflict which should be good enough to
+maintain backward compatibility.
 
-> 
-> diff --git a/drivers/usb/host/xhci-plat.c b/drivers/usb/host/xhci-plat.c
-> index 676ea45..24d030a 100644
-> --- a/drivers/usb/host/xhci-plat.c
-> +++ b/drivers/usb/host/xhci-plat.c
-> @@ -239,11 +239,20 @@ static int xhci_plat_probe(struct platform_device *pdev)
->  			goto put_usb3_hcd;
->  	}
->  
-> -	ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
-> +	if (pdata && pdata->otg_dev)
-> +		ret = usb_otg_add_hcd(hcd, irq, IRQF_SHARED, pdata->otg_dev);
-> +	else
-> +		ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
-> +
->  	if (ret)
->  		goto disable_usb_phy;
->  
-> -	ret = usb_add_hcd(xhci->shared_hcd, irq, IRQF_SHARED);
-> +	if (pdata && pdata->otg_dev)
-> +		ret = usb_otg_add_hcd(xhci->shared_hcd, irq, IRQF_SHARED,
-> +				      pdata->otg_dev);
-> +	else
-> +		ret = usb_add_hcd(xhci->shared_hcd, irq, IRQF_SHARED);
-> +
->  	if (ret)
->  		goto dealloc_usb2_hcd;
->  
-> @@ -251,7 +260,10 @@ static int xhci_plat_probe(struct platform_device *pdev)
->  
->  
->  dealloc_usb2_hcd:
-> -	usb_remove_hcd(hcd);
-> +	if (pdata && pdata->otg_dev)
-> +		usb_otg_remove_hcd(hcd);
-> +	else
-> +		usb_remove_hcd(hcd);
->  
->  disable_usb_phy:
->  	usb_phy_shutdown(hcd->usb_phy);
-> @@ -269,16 +281,25 @@ put_hcd:
->  	return ret;
->  }
->  
-> -static int xhci_plat_remove(struct platform_device *dev)
-> +static int xhci_plat_remove(struct platform_device *pdev)
->  {
-> -	struct usb_hcd	*hcd = platform_get_drvdata(dev);
-> +	struct usb_hcd	*hcd = platform_get_drvdata(pdev);
->  	struct xhci_hcd	*xhci = hcd_to_xhci(hcd);
->  	struct clk *clk = xhci->clk;
-> +	struct usb_xhci_pdata *pdata = dev_get_platdata(&pdev->dev);
-> +
-> +	if (pdata && pdata->otg_dev)
-> +		usb_otg_remove_hcd(xhci->shared_hcd);
-> +	else
-> +		usb_remove_hcd(xhci->shared_hcd);
->  
-> -	usb_remove_hcd(xhci->shared_hcd);
->  	usb_phy_shutdown(hcd->usb_phy);
->  
-> -	usb_remove_hcd(hcd);
-> +	if (pdata && pdata->otg_dev)
-> +		usb_otg_remove_hcd(hcd);
-> +	else
-> +		usb_remove_hcd(hcd);
-> +
->  	usb_put_hcd(xhci->shared_hcd);
->  
->  	if (!IS_ERR(clk))
-> diff --git a/include/linux/usb/xhci_pdriver.h b/include/linux/usb/xhci_pdriver.h
-> index 376654b..5c68b83 100644
-> --- a/include/linux/usb/xhci_pdriver.h
-> +++ b/include/linux/usb/xhci_pdriver.h
-> @@ -18,10 +18,13 @@
->   *
->   * @usb3_lpm_capable:	determines if this xhci platform supports USB3
->   *			LPM capability
-> + * @otg_dev:		OTG controller device. Only requied if part of
-> + *			OTG/dual-role.
->   *
->   */
->  struct usb_xhci_pdata {
->  	unsigned	usb3_lpm_capable:1;
-> +	struct device	*otg_dev;
->  };
->  
->  #endif /* __USB_CORE_XHCI_PDRIVER_H */
-> 
+Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
+---
+Hello,
+
+if you're happy with this patch I can follow up and add the respective
+aliases to the device trees.
+
+Best regards
+Uwe
+
+ drivers/gpio/gpio-omap.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index b98ede78c9d8..6814245a54aa 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1034,6 +1034,7 @@ static int omap_gpio_chip_init(struct gpio_bank *=
+bank, struct irq_chip *irqc)
+ 	static int gpio;
+ 	int irq_base =3D 0;
+ 	int ret;
++	int gpio_alias_id;
+=20
+ 	/*
+ 	 * REVISIT eventually switch from OMAP-specific gpio structs
+@@ -1056,6 +1057,17 @@ static int omap_gpio_chip_init(struct gpio_bank =
+*bank, struct irq_chip *irqc)
+ 		bank->chip.label =3D "gpio";
+ 		bank->chip.base =3D gpio;
+ 	}
++
++	/*
++	 * Traditionally the base is given out in first-come-first-serve orde=
+r.
++	 * This might shuffle the numbering of gpios if the probe order chang=
+es.
++	 * So make the base deterministical if the device tree specifies alia=
+s
++	 * ids.
++	 */
++	gpio_alias_id =3D of_alias_get_id(bank->chip.of_node, "gpio");
++	if (gpio_alias_id >=3D 0)
++		bank->chip.base =3D bank->width * gpio_alias_id;
++
+ 	bank->chip.ngpio =3D bank->width;
+=20
+ 	ret =3D gpiochip_add_data(&bank->chip, bank);
+--=20
+2.8.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-gpio" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
