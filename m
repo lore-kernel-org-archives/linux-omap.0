@@ -1,53 +1,60 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [RESEND PATCHv2 08/28] ARM: OMAP2+: clockdomain: add usecounting
- support to autoidle APIs
-Date: Tue, 14 Jun 2016 09:31:14 +0300
-Message-ID: <575FA4B2.70408@ti.com>
-References: <1465844702-12200-1-git-send-email-t-kristo@ti.com>
- <1465844702-12200-9-git-send-email-t-kristo@ti.com> <575F4257.3010108@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 5/7] ARM: OMAP: dmtimer: Do not call PM runtime functions
+ when not needed.
+Date: Tue, 14 Jun 2016 00:53:56 -0700
+Message-ID: <20160614075356.GU22406@atomide.com>
+References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <1462634508-24961-6-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160509193624.GH5995@atomide.com>
+ <5730F840.3050807@gmail.com>
+ <20160610102225.GS22406@atomide.com>
+ <575B2F48.4090707@gmail.com>
+ <20160613071057.GQ22406@atomide.com>
+ <575F025F.7000101@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <575F4257.3010108@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <575F025F.7000101-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pwm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 14/06/16 02:31, Nishanth Menon wrote:
-> On 06/13/2016 02:04 PM, Tero Kristo wrote:
-> [..]
->> diff --git a/arch/arm/mach-omap2/omap_hwmod.c
-> b/arch/arm/mach-omap2/omap_hwmod.c
->> index 0c85f91..635a563 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->
-> [...]
->
->> @@ -2177,14 +2173,10 @@ static int _enable(struct omap_hwmod *oh)
->>
->>   	r = (soc_ops.wait_target_ready) ? soc_ops.wait_target_ready(oh) :
->>   		-EINVAL;
->> -	if (!r) {
->> -		/*
->> -		 * Set the clockdomain to HW_AUTO only if the target is ready,
->> -		 * assuming that the previous state was HW_AUTO
->> -		 */
->> -		if (oh->clkdm && hwsup)
->> -			clkdm_allow_idle(oh->clkdm);
->> +	if (oh->clkdm)
->> +		clkdm_allow_idle(oh->clkdm);
->
-> Should'nt this be under if (!r) ?
+* Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [160613 12:01]:
+> Hi,
+> 
+> On 13.06.2016 10:10, Tony Lindgren wrote:
+> > * Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [160610 14:23]:
+> > > 
+> > > On 10.06.2016 13:22, Tony Lindgren wrote:
+> > > > 
+> > > > OK. And I just applied the related dts changes. Please repost the driver
+> > > > changes and DT binding doc with Rob's ack to the driver maintainers to
+> > > > apply.
+> > > > 
+> > > 
+> > > Already did, see https://lkml.org/lkml/2016/5/16/429
+> > > 
+> > > Shall I do anything else?
+> > 
+> > Probably good idea to repost just the driver changes to the
+> > subsystem maintainers. With v4.7 out any pre v4.7 patchsets
+> > easily get forgotten.
+> > 
+> 
+> Sorry for the maybe stupid question, but does this mean that I should send
+> separate patches instead of series? Or the series without what you've
+> already applied?
 
-No, we must call clkdm_allow_idle() always, otherwise the clockdomain is 
-left in force wakeup state for all eternity, which is wrong, and 
-prevents any further transitions on the clockdomain. (Most likely the 
-failed transition on the hwmod itself is going to prevent idle on the 
-clockdomain though, but its better to keep at least the clockdomain 
-state sane.)
+Always leave out the patches that have been already applied.
+Otherwise people will get confused. Just mention it in the
+cover letter saying "patch xyz has been already applied into
+foo tree, these patches are safe to apply separately into bar
+tree" or something similar :)
 
--Tero
-
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
