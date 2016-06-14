@@ -1,58 +1,98 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [PATCH v10 03/14] usb: hcd.h: Add OTG to HCD interface
-Date: Tue, 14 Jun 2016 10:21:59 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1606141018530.1574-100000@iolanthe.rowland.org>
-References: <575FBD8D.7090700@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH] gpio: omap: make gpio numbering deterministical by using
+ of aliases
+Date: Tue, 14 Jun 2016 18:10:56 +0300
+Message-ID: <57601E80.1060003@ti.com>
+References: <1465898604-16294-1-git-send-email-u.kleine-koenig@pengutronix.de>
+ <575FE7F0.6090200@ti.com> <20160614120152.GW26768@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <575FBD8D.7090700-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20160614120152.GW26768@pengutronix.de>
+Sender: linux-gpio-owner@vger.kernel.org
+To: =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <u.kleine-koenig@pengutronix.de>
+Cc: Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 14 Jun 2016, Roger Quadros wrote:
+On 06/14/2016 03:01 PM, Uwe Kleine-K=F6nig wrote:
+> Hello Grygorii,
+>=20
+> On Tue, Jun 14, 2016 at 02:18:08PM +0300, Grygorii Strashko wrote:
+>> On 06/14/2016 01:03 PM, Uwe Kleine-K=F6nig wrote:
+>>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>>> index b98ede78c9d8..6814245a54aa 100644
+>>> --- a/drivers/gpio/gpio-omap.c
+>>> +++ b/drivers/gpio/gpio-omap.c
+>>> @@ -1034,6 +1034,7 @@ static int omap_gpio_chip_init(struct gpio_ba=
+nk *bank, struct irq_chip *irqc)
+>>>    	static int gpio;
+>>>    	int irq_base =3D 0;
+>>>    	int ret;
+>>> +	int gpio_alias_id;
+>>>   =20
+>>>    	/*
+>>>    	 * REVISIT eventually switch from OMAP-specific gpio structs
+>>> @@ -1056,6 +1057,17 @@ static int omap_gpio_chip_init(struct gpio_b=
+ank *bank, struct irq_chip *irqc)
+>>>    		bank->chip.label =3D "gpio";
+>>>    		bank->chip.base =3D gpio;
+>>
+>> I think, the gpio base correction should be done here
+>=20
+> What is the upside of doing it here? It has the downside that it need=
+s
+> one more indention level. The only difference I see is that it doesn'=
+t
+> apply for mpuio devices then and wonder if that is relevant.
 
-> +Alan
-> 
-> On 10/06/16 16:07, Roger Quadros wrote:
-> > The OTG core will use struct otg_hcd_ops to interface
-> > with the HCD (Host Controller Driver).
-> > 
-> > The main purpose of this interface is to avoid directly
-> > calling HCD APIs from the OTG core as they
-> > wouldn't be defined in the built-in symbol table if
-> > CONFIG_USB is m.
-> > 
-> > Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> > Acked-by: Peter Chen <peter.chen-3arQi8VN3Tc@public.gmane.org>
-> > ---
-> >  include/linux/usb/hcd.h | 24 ++++++++++++++++++++++++
-> >  1 file changed, 24 insertions(+)
-> > 
-> > diff --git a/include/linux/usb/hcd.h b/include/linux/usb/hcd.h
-> > index 66fc137..7729c1f 100644
-> > --- a/include/linux/usb/hcd.h
-> > +++ b/include/linux/usb/hcd.h
-> > @@ -400,6 +400,30 @@ struct hc_driver {
-> >  
-> >  };
-> >  
-> > +/**
-> > + * struct otg_hcd_ops - Interface between OTG core and HCD
-> > + *
-> > + * Provided by the HCD core to allow the OTG core to interface with the HCD
+Personally, I prefer not ti touch mpuio code unless really required.
 
-Add:  * in case the OTG core is built-in and the HCD core is built as a module.
+>  =20
+>>>    	}
+>>> +
+>>> +	/*
+>>> +	 * Traditionally the base is given out in first-come-first-serve =
+order.
+>>> +	 * This might shuffle the numbering of gpios if the probe order c=
+hanges.
+>>> +	 * So make the base deterministical if the device tree specifies =
+alias
+>>> +	 * ids.
+>>> +	 */
+>>> +	gpio_alias_id =3D of_alias_get_id(bank->chip.of_node, "gpio");
+>>> +	if (gpio_alias_id >=3D 0)
+>>> +		bank->chip.base =3D bank->width * gpio_alias_id;
+>>> +
+>>
+>> Unfortunately, this driver is still used by non-DT platforms, so abo=
+ve code will
+>>   break build if !OF && !OF_GPIO
+>=20
+> Without CONFIG_OF of_alias_get_id still exists and returns -ENOSYS wh=
+ich
+> should make the added code a nop. Does your compiler agree with you t=
+hat
+> my patch breaks building the driver?
 
-Otherwise, for patches 1, 3, and 12:
+make ARCH=3Darm omap1_defconfig
+make ARCH=3Darm ./drivers/gpio/gpio-omap.o
 
-Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
 
-Alan Stern
+drivers/gpio/gpio-omap.c: In function 'omap_gpio_chip_init':
+drivers/gpio/gpio-omap.c:1066:44: error: 'struct gpio_chip' has no memb=
+er named 'of_node'
+  gpio_alias_id =3D of_alias_get_id(bank->chip.of_node, "gpio");
+                                            ^
+make[1]: *** [drivers/gpio/gpio-omap.o] Error 1
+make: *** [drivers/gpio/gpio-omap.o] Error 2
 
+
+--=20
+regards,
+-grygorii
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-gpio" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
