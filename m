@@ -1,76 +1,67 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] rtc: omap: Support ext_wakeup configuration
-Date: Wed, 15 Jun 2016 03:56:33 -0700
-Message-ID: <20160615105632.GX22406@atomide.com>
-References: <1459785403-1725-1-git-send-email-m.niestroj@grinn-global.com>
- <20160404224046.GA17042@atomide.com>
- <57078A89.3080809@ti.com>
- <20160408151408.GS16484@atomide.com>
- <5707E764.7050204@ti.com>
- <570D2F79.9040202@grinn-global.com>
- <57111AF4.6070505@ti.com>
- <fe6ab23a-5f0d-a317-14d9-f538c3ad4052@grinn-global.com>
- <20160426153948.GR5995@atomide.com>
- <65595642-33fb-368b-f47f-8e62b885c0a2@grinn-global.com>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP2+: Drop legacy board file for n900
+Date: Wed, 15 Jun 2016 12:55:52 +0200
+Message-ID: <20160615105552.GN29844@pali>
+References: <1465987689-14812-1-git-send-email-tony@atomide.com>
+ <1465987689-14812-2-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <65595642-33fb-368b-f47f-8e62b885c0a2-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-Cc: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1465987689-14812-2-git-send-email-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman <khilman@baylibre.com>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Russell King <rmk+kernel@armlinux.org.uk>, Pavel Machek <pavel@ucw.cz>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org> [160615 01:40]:
-> Hi,
-> 
-> Sorry for such delay in response. Please see my comments/questions on
-> using pinctrl below.
-> 
-> On 26.04.2016 17:39, Tony Lindgren wrote:
-> > * Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org> [160426 00:40]:
-> > > In below code we check reg resource size in order to know if we
-> > > should update RTC_PMIC or it is pinctrl responsibility. It's a little
-> > > hack, but we make sure, that every device with not modified device-tree
-> > > will work as previously. If we want to add support for ext_wakeup, we
-> > > just change reg resouce size in device-tree in order to not overlap
-> > > requested memory regions in rtc-omap and pinctrl.
-> > > 
-> > > I used am335x-chilisom instead of dra7 and updated
-> > > pinctrl-single,funcion-mask so the EXT_WAKEUP_STATUS is always cleared
-> > > after boot.
-> > > 
-> > > So the question now is: is this acceptable? Do we want to continue with
-> > > this approach?
-> > 
-> > Well the concern I have here is that we not use pinctrl-single
-> > as a separate driver if any of the registers are shared with
-> > the RTC driver. If the registers are shared, the pinctrl
-> > functionality should be implemented in the RTC driver.
-> 
-> We can use pinctrl generic params for:
->  * enable wakeup inputs - with 'input-enable'
->  * input debounce enable/configuration - with 'input-debounce'
-> 
-> However I don't see any generic way for setting wakeup input polarity.
-> So I guess we should add some driver specific devicetree binding to
-> handle hat. I also didn't find any other driver that implements it.
-> 
-> In case of pinctrl-single we have just written custom register values to
-> set polarity.
-> 
-> So the question is: how should we proceed? Is pinctrl still and option?
-> If yes, what is your idea about configuring input polarity?
-
-At least I don't have any better ideas. You can define the values
-in the driver specific binding, I'd use something like GPIO_ACTIVE_LOW
-even though it's a broken GPIO and broken interrupt :)
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gV2VkbmVzZGF5IDE1IEp1bmUgMjAxNiAwMzo0ODowOCBUb255IExpbmRncmVuIHdyb3RlOgo+
+IExldCdzIGRyb3AgdGhlIGxhc3QgdHdvIHJlbWFpbmluZyBvbWFwMyBsZWdhY3kgYm9vdCBib2Fy
+ZCBmaWxlcy4KPiBMZXQncyBvbmx5IHVzZSB0aGUgZGV2aWNlIHRyZWUgYmFzZWQgYm9vdGluZyBr
+bm93biB0byB3b3JrIGZvcgo+IHRoZXNlIHR3byBib2FyZHMuCj4gCj4gV2Ugc3RpbGwgaGF2ZSB0
+d28gb21hcDMgYm9hcmRzIGJvb3RpbmcgaW4gbGVnYWN5IG1vZGUgaW4gYWRkaXRpb24KPiB0byBk
+ZXZpY2UgdHJlZSBiYXNlZCBib290aW5nLiBBbGwgdGhlIG90aGVyIHRlbiBvciBzbyBvbWFwMisg
+U29Dcwo+IGhhdmUgYmVlbiBib290aW5nIHVzaW5nIGRldmljZSB0cmVlIG1vZGUgb25seSBmb3Ig
+eWVhcnMgbm93LiBUaGlzCj4gaGFzIGFsbG93ZWQgdXMgdG8gZ2V0IHJpZCBvZiBxdWl0ZSBhIGJp
+dCBvZiBhcmNoL2FybS9tYWNoLW9tYXAyCj4gcmVsYXRlZCBwbGF0Zm9ybSBpbml0IGNvZGUgaW4g
+ZmF2b3Igb2YgZHRzIGFuZCBkcml2ZXIgY2hhbmdlcy4KPiAKPiBQcmV0dHkgbXVjaCB0aGUgb25s
+eSByZW1haW5pbmcga25vd24gdXNlcnMgZm9yIG9tYXAzIGxlZ2FjeSBib290Cj4gYm9hcmQgZmls
+ZXMgYXJlIEtldmluJ3MgYW5kIFJ1c3NlbGwncyBib290IHRlc3Qgc3lzdGVtcywgYW5kIE45MDAK
+PiBrZXJuZWwgdHJlZSBtYWludGFpbmVkIGJ5IFBhbGkgYW5kIEl2YXlsby4gQW5kIGFsbCBvZiB0
+aGVtIGFyZQo+IGFsc28gc3VwcG9ydGluZyB0aGUgZGV2aWNlIHRyZWUgYmFzZWQgYm9vdGluZy4g
+VGhlIGxlZ2FjeSBib290aW5nCj4gbW9kZSBoYXMgYmVlbiBrZXB0IGFyb3VuZCBtb3N0bHkgdG8g
+dmVyaWZ5IGFnYWluc3QgcmVncmVzc2lvbnMuCj4gCj4gQXMgdGhlcmUgaXMgc3RpbGwgYSBzbGlt
+IGNoYW5jZSBvZiBwb3NzaWJsZSBvdGhlciB1c2VzIG9mIHRoZQo+IG1haW5saW5lIGtlcm5lbCBm
+b3IgdGhlc2UgYm9hcmRzLCBsZXQncyBqdXN0IGRyb3AgdGhlIGJvYXJkCj4gZmlsZXMgZm9yIHY0
+LjgsIGFuZCBsZXQncyBub3QgdG91Y2ggdGhlIHJlbGF0ZWQgcGxhdGZvcm0gaW5pdAo+IGNvZGUg
+dW50aWwgYXJvdW5kIHY0LjkgdGltZSBpZiBubyBpc3N1ZXMgYXJlIGZvdW5kLiBUaGlzIG1ha2Vz
+Cj4gaXQgdHJpdmlhbCBmb3IgdXMgdG8gYWRkIGJhY2sgdGhlIGJvYXJkIGZpbGVzIHdpdGggYSBz
+aW1wbGUgcmV2ZXJ0Lgo+IAo+IFNpZ25lZC1vZmYtYnk6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRv
+bWlkZS5jb20+Cj4gLS0tCj4gIGFyY2gvYXJtL21hY2gtb21hcDIvS2NvbmZpZyAgICAgICAgICAg
+ICAgICAgIHwgICAgNiAtCj4gIGFyY2gvYXJtL21hY2gtb21hcDIvTWFrZWZpbGUgICAgICAgICAg
+ICAgICAgIHwgICAgMyAtCj4gIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtcng1MS1wZXJpcGhl
+cmFscy5jIHwgMTMxNyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+ICBhcmNoL2FybS9tYWNo
+LW9tYXAyL2JvYXJkLXJ4NTEtdmlkZW8uYyAgICAgICB8ICAgNjcgLS0KPiAgYXJjaC9hcm0vbWFj
+aC1vbWFwMi9ib2FyZC1yeDUxLmMgICAgICAgICAgICAgfCAgMTQxIC0tLQo+ICBhcmNoL2FybS9t
+YWNoLW9tYXAyL2JvYXJkLXJ4NTEuaCAgICAgICAgICAgICB8ICAgMTEgLQo+ICA2IGZpbGVzIGNo
+YW5nZWQsIDE1NDUgZGVsZXRpb25zKC0pCj4gIGRlbGV0ZSBtb2RlIDEwMDY0NCBhcmNoL2FybS9t
+YWNoLW9tYXAyL2JvYXJkLXJ4NTEtcGVyaXBoZXJhbHMuYwo+ICBkZWxldGUgbW9kZSAxMDA2NDQg
+YXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1yeDUxLXZpZGVvLmMKPiAgZGVsZXRlIG1vZGUgMTAw
+NjQ0IGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtcng1MS5jCj4gIGRlbGV0ZSBtb2RlIDEwMDY0
+NCBhcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLXJ4NTEuaAoKSGkhIEkganVzdCBxdWlja2x5IGxv
+b2tlZCBhdCBOOTAwIHN0YXR1cyBtYXRyaXggaHR0cHM6Ly9lbGludXgub3JnL045MDAKYW5kIHRo
+ZXJlIGlzIHN0aWxsIG9uZSB0aGluZyBub3QgZmluaXNoZWQgaW4gRFQ6IEl0IGlzIHNsb3QtbmFt
+ZSBmb3IKb21hcF9oc21tYyBkcml2ZXIuIFNvIHN3aXRjaCBmcm9tIGxlZ2FjeSBib2FyZCBjb2Rl
+IHRvIERUIGlzIHJlZ3Jlc3Npb24uCgotLSAKUGFsaSBSb2jDoXIKcGFsaS5yb2hhckBnbWFpbC5j
+b20KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4
+LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFk
+Lm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFy
+bS1rZXJuZWwK
