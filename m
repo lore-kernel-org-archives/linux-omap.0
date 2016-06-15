@@ -1,60 +1,47 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH 06/15] drivers: net: davinci_mdio: do pm runtime initialization later in probe
-Date: Wed, 15 Jun 2016 14:55:54 +0300
-Message-ID: <20160615115603.4897-7-grygorii.strashko@ti.com>
-References: <20160615115603.4897-1-grygorii.strashko@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP2+: Drop legacy board file for n900
+Date: Wed, 15 Jun 2016 05:05:57 -0700
+Message-ID: <20160615120556.GZ22406@atomide.com>
+References: <1465987689-14812-1-git-send-email-tony@atomide.com>
+ <1465987689-14812-2-git-send-email-tony@atomide.com>
+ <20160615105552.GN29844@pali> <20160615110201.GY22406@atomide.com>
+ <20160615114936.GO29844@pali>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160615115603.4897-1-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, Mugunthan V N <mugunthanvnm@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20160615114936.GO29844@pali>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman <khilman@baylibre.com>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Russell King <rmk+kernel@armlinux.org.uk>, Pavel Machek <pavel@ucw.cz>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Do PM runtime initialization later in probe - this allows to simplify
-error handling a bit.
-
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
- drivers/net/ethernet/ti/davinci_mdio.c | 15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
-index 4e7c9b9..2e19dd1 100644
---- a/drivers/net/ethernet/ti/davinci_mdio.c
-+++ b/drivers/net/ethernet/ti/davinci_mdio.c
-@@ -356,14 +356,10 @@ static int davinci_mdio_probe(struct platform_device *pdev)
- 	data->bus->parent	= dev;
- 	data->bus->priv		= data;
- 
--	pm_runtime_enable(&pdev->dev);
--	pm_runtime_get_sync(&pdev->dev);
- 	data->clk = devm_clk_get(dev, "fck");
- 	if (IS_ERR(data->clk)) {
- 		dev_err(dev, "failed to get device clock\n");
--		ret = PTR_ERR(data->clk);
--		data->clk = NULL;
--		goto bail_out;
-+		return PTR_ERR(data->clk);
- 	}
- 
- 	dev_set_drvdata(dev, data);
-@@ -372,10 +368,11 @@ static int davinci_mdio_probe(struct platform_device *pdev)
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	data->regs = devm_ioremap_resource(dev, res);
--	if (IS_ERR(data->regs)) {
--		ret = PTR_ERR(data->regs);
--		goto bail_out;
--	}
-+	if (IS_ERR(data->regs))
-+		return PTR_ERR(data->regs);
-+
-+	pm_runtime_enable(&pdev->dev);
-+	pm_runtime_get_sync(&pdev->dev);
- 
- 	/* register the mii bus
- 	 * Create PHYs from DT only in case if PHY child nodes are explicitly
--- 
-2.8.4
+KiBQYWxpIFJvaMOhciA8cGFsaS5yb2hhckBnbWFpbC5jb20+IFsxNjA2MTUgMDQ6NTJdOgo+IE9u
+IFdlZG5lc2RheSAxNSBKdW5lIDIwMTYgMDQ6MDI6MDIgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiA+
+IEhpLAo+ID4gCj4gPiAqIFBhbGkgUm9ow6FyIDxwYWxpLnJvaGFyQGdtYWlsLmNvbT4gWzE2MDYx
+NSAwMzo1OF06Cj4gPiA+IEhpISBJIGp1c3QgcXVpY2tseSBsb29rZWQgYXQgTjkwMCBzdGF0dXMg
+bWF0cml4IGh0dHBzOi8vZWxpbnV4Lm9yZy9OOTAwCj4gPiA+IGFuZCB0aGVyZSBpcyBzdGlsbCBv
+bmUgdGhpbmcgbm90IGZpbmlzaGVkIGluIERUOiBJdCBpcyBzbG90LW5hbWUgZm9yCj4gPiA+IG9t
+YXBfaHNtbWMgZHJpdmVyLiBTbyBzd2l0Y2ggZnJvbSBsZWdhY3kgYm9hcmQgY29kZSB0byBEVCBp
+cyByZWdyZXNzaW9uLgo+ID4gCj4gPiBUaGF0J3MgZml4ZWQgd2l0aCB0aGUgZm9sbG93aW5nIGlu
+IHY0LjctcmMgc2VyaWVzOgo+ID4gCj4gPiBkYjg2M2Q4OTY2ODEgKCJtbWM6IG9tYXBfaHNtbWM6
+IENoZWNrIGlmIE1NQyBzbG90IG5hbWUgaXMgcGFzc2VkIGluIHBkYXRhIikKPiA+IDEwYzFmN2Qz
+MmJmNCAoIkFSTTogT01BUDIrOiBuOTAwIG5lZWRzIE1NQyBzbG90IG5hbWVzIGZvciBsZWdhY3kg
+dXNlciBzcGFjZSIpCj4gCj4gR3JlYXQhIFNvcnJ5LCBidXQgbm93IHdpa2kgaXMgbm90IGZ1bGx5
+IHVwZGF0ZWQgd2l0aCBsYXN0IGNoYW5nZXMgYW5kIEkKPiBkbyBub3QgaGF2ZSBpbiBteSBtaW5k
+IHdoYXQgd2FzIGZpbmlzaGVkL21lcmdlZCBhbmQgd2hhdCBub3QuIEl0IGlzCj4gZ29pbmcgaGFy
+ZCBmb3IgbWUgdG8gdHJhY2sgZXZlcnl0aGluZy4KCk9LIHdlbGwgbWF5YmUgdGFrZSBvbmUgbW9y
+ZSBsb29rIGFuZCB0aGVuIGFjayBpZiBubyBtb3JlIGlzc3Vlcy4KCkNoZWVycywKClRvbnkKCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1r
+ZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpo
+dHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJu
+ZWwK
