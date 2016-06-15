@@ -1,43 +1,71 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP2+: Drop legacy board file for n900
-Date: Wed, 15 Jun 2016 13:49:36 +0200
-Message-ID: <20160615114936.GO29844@pali>
-References: <1465987689-14812-1-git-send-email-tony@atomide.com>
- <1465987689-14812-2-git-send-email-tony@atomide.com>
- <20160615105552.GN29844@pali> <20160615110201.GY22406@atomide.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH 00/15] drivers: net: cpsw: improve runtime pm
+Date: Wed, 15 Jun 2016 14:55:48 +0300
+Message-ID: <20160615115603.4897-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20160615110201.GY22406@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman <khilman@baylibre.com>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Russell King <rmk+kernel@armlinux.org.uk>, Pavel Machek <pavel@ucw.cz>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, Mugunthan V N <mugunthanvnm@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gV2VkbmVzZGF5IDE1IEp1bmUgMjAxNiAwNDowMjowMiBUb255IExpbmRncmVuIHdyb3RlOgo+
-IEhpLAo+IAo+ICogUGFsaSBSb2jDoXIgPHBhbGkucm9oYXJAZ21haWwuY29tPiBbMTYwNjE1IDAz
-OjU4XToKPiA+IEhpISBJIGp1c3QgcXVpY2tseSBsb29rZWQgYXQgTjkwMCBzdGF0dXMgbWF0cml4
-IGh0dHBzOi8vZWxpbnV4Lm9yZy9OOTAwCj4gPiBhbmQgdGhlcmUgaXMgc3RpbGwgb25lIHRoaW5n
-IG5vdCBmaW5pc2hlZCBpbiBEVDogSXQgaXMgc2xvdC1uYW1lIGZvcgo+ID4gb21hcF9oc21tYyBk
-cml2ZXIuIFNvIHN3aXRjaCBmcm9tIGxlZ2FjeSBib2FyZCBjb2RlIHRvIERUIGlzIHJlZ3Jlc3Np
-b24uCj4gCj4gVGhhdCdzIGZpeGVkIHdpdGggdGhlIGZvbGxvd2luZyBpbiB2NC43LXJjIHNlcmll
-czoKPiAKPiBkYjg2M2Q4OTY2ODEgKCJtbWM6IG9tYXBfaHNtbWM6IENoZWNrIGlmIE1NQyBzbG90
-IG5hbWUgaXMgcGFzc2VkIGluIHBkYXRhIikKPiAxMGMxZjdkMzJiZjQgKCJBUk06IE9NQVAyKzog
-bjkwMCBuZWVkcyBNTUMgc2xvdCBuYW1lcyBmb3IgbGVnYWN5IHVzZXIgc3BhY2UiKQoKR3JlYXQh
-IFNvcnJ5LCBidXQgbm93IHdpa2kgaXMgbm90IGZ1bGx5IHVwZGF0ZWQgd2l0aCBsYXN0IGNoYW5n
-ZXMgYW5kIEkKZG8gbm90IGhhdmUgaW4gbXkgbWluZCB3aGF0IHdhcyBmaW5pc2hlZC9tZXJnZWQg
-YW5kIHdoYXQgbm90LiBJdCBpcwpnb2luZyBoYXJkIGZvciBtZSB0byB0cmFjayBldmVyeXRoaW5n
-LgoKLS0gClBhbGkgUm9ow6FyCnBhbGkucm9oYXJAZ21haWwuY29tCgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcg
-bGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmlu
-ZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+This series intended to improve runtime PM and allow CPSW to be
+RPM suspended when all ethX netdevices are down.
+
+To achieve above goal it is required to relax runtime PM constraints for
+Davinci MDIO which blocks CPSW runtime PM now, because Davinci MDIO is always
+powered on during probe and powered off only when it's going to be removed.
+- Patches 6-11 implement PM runtime autosuspend for Davinci MDIO, but keep it
+disabled by default, because Davinci MDIO is integrated in big set of TI devices
+and not all of them verified to work correctly with RPM autosuspend enabled:
+ expected to work on SoCs where MDIO is defined as part of CPSW in DT
+ (cpsw.c DRA7/am57x, am437x, am335x)
+The CPSW need to be fixed before RPM suspended can be allowed:
+ - Patches 1-5 ensure that CPSW will not cause L3 errors while it is in RPM
+   suspended state.
+
+Davinci MDIO RPM autosuspend can be enabled through sysfs:
+ echo 100 > /sys/devices/../48484000.ethernet/48485000.mdio/power/autosuspend_delay_ms
+
+Patches 12 - 15: introduce new compatible string "ti,cpsw-mdio" which is used
+then to enable RPM for am335x/am437x/dra7 SoCs.
+
+Tested on am335x, am437x, am572x and k2g (on k2g with RPM disabled for Davinci MDIO)
+These changes should not affect on errata i877 implementation on DRA7.
+
+Power measurement on am335x GP EVM:
+ Without this series:  547.60 mW total SoC power
+ With this series + "ifconfig eth0 down": 477.32 mW Total Soc Power 
+
+Grygorii Strashko (15):
+  drivers: net: cpsw: fix suspend when all ethX devices are down
+  drivers: net: cpsw: check return code from pm runtime calls
+  drivers: net: cpsw: remove pm runtime calls from suspend callbacks
+  drivers: net: cpsw: ethtool: fix accessing to suspended device
+  drivers: net: cpsw: ndev: fix accessing to suspended device
+  drivers: net: davinci_mdio: do pm runtime initialization later in
+    probe
+  drivers: net: davinci_mdio: remove pm runtime calls from suspend
+    callbacks
+  drivers: net: davinci_mdio: drop suspended and lock fields from
+    mdio_data
+  drivers: net: davinci_mdio: split reset function on init_clk and
+    enable
+  drivers: net: davinci_mdio: add pm runtime callbacks
+  drivers: net: davinci_mdio: implement pm runtime auto mode
+  net: davinci_mdio: document missed "ti,am4372-mdio" compat string
+  net: davinci_mdio: introduce "ti,cpsw-mdio" compat string
+  drivers: net: davinci_mdio: enable pm runtime auto for ti cpsw-mdio
+  ARM: dts: am335x/am437x/dra7: use new "ti,cpsw-mdio" compat string
+
+ .../devicetree/bindings/net/davinci-mdio.txt       |   3 +-
+ arch/arm/boot/dts/am33xx.dtsi                      |   2 +-
+ arch/arm/boot/dts/am4372.dtsi                      |   2 +-
+ arch/arm/boot/dts/dra7.dtsi                        |   2 +-
+ drivers/net/ethernet/ti/cpsw.c                     |  88 +++++++++--
+ drivers/net/ethernet/ti/davinci_mdio.c             | 169 +++++++++++++--------
+ 6 files changed, 189 insertions(+), 77 deletions(-)
+
+-- 
+2.8.4
