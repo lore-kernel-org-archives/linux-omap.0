@@ -1,55 +1,62 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH] ARM: dts: am437x-sk-evm: Reduce i2c0 bus speed for tps65218
-Date: Wed, 15 Jun 2016 11:45:28 +0530
-Message-ID: <1465971328-16046-1-git-send-email-j-keerthy@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH] extcon: palmas: Fix boot up state of VBUS when using GPIO
+ detection
+Date: Wed, 15 Jun 2016 09:47:50 +0300
+Message-ID: <5760FA16.5070008@ti.com>
+References: <CGME20160614140603epcas1p25c5893caf8e0f15d89fbc022d05f2a6f@epcas1p2.samsung.com>
+ <1465913075-30166-1-git-send-email-rogerq@ti.com>
+ <5760B604.10407@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5760B604.10407@samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: robh+dt@kernel.org, j-keerthy@ti.com, mark.rutland@arm.com, d-gerlach@ti.com, nm@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Franklin S Cooper Jr <fcooper@ti.com>, Aparna Balasubramanian <aparnab@ti.com>
+To: Chanwoo Choi <cw00.choi@samsung.com>, myungjoo.ham@samsung.com
+Cc: balbi@kernel.org, nm@ti.com, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Dave Gerlach <d-gerlach@ti.com>
+On 15/06/16 04:57, Chanwoo Choi wrote:
+> On 2016=EB=85=84 06=EC=9B=94 14=EC=9D=BC 23:04, Roger Quadros wrote:
+>> If USB cable is connected prior to boot, we don't get any interrupts
+>> so we must manually check the VBUS state and report it during probe.
+>> If we don't do it then USB controller will never know that periphera=
+l
+>> cable was connected till the user unplugs and replugs the cable.
+>>
+>> Fixes: b7aad8e2685b ("extcon: palmas: Add the support for VBUS detec=
+tion by using GPIO")
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>  drivers/extcon/extcon-palmas.c | 2 ++
+>>  1 file changed, 2 insertions(+)
+>>
+>> diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-=
+palmas.c
+>> index 8b3226d..caff46c 100644
+>> --- a/drivers/extcon/extcon-palmas.c
+>> +++ b/drivers/extcon/extcon-palmas.c
+>> @@ -360,6 +360,8 @@ static int palmas_usb_probe(struct platform_devi=
+ce *pdev)
+>> =20
+>>  	palmas_enable_irq(palmas_usb);
+>>  	/* perform initial detection */
+>> +	if (palmas_usb->enable_gpio_vbus_detection)
+>> +		palmas_vbus_irq_handler(palmas_usb->gpio_vbus_irq, palmas_usb);
+>>  	palmas_gpio_id_detect(&palmas_usb->wq_detectid.work);
+>>  	device_set_wakeup_capable(&pdev->dev, true);
+>>  	return 0;
+>>
+>=20
+> Applied it.
 
-Based on the latest timing specifications for the TPS65218 from the data
-sheet, http://www.ti.com/lit/ds/symlink/tps65218.pdf, document SLDS206
-from November 2014, we must change the i2c bus speed to better fit within
-the minimum high SCL time required for proper i2c transfer.
+Thanks. But this is a bug fix and must go in v4.7-rc
+as well as stable v4.6+.
 
-When running at 400khz, measurements show that SCL spends
-0.8125 uS/1.666 uS high/low which violates the requirement for minimum
-high period of SCL provided in datasheet Table 7.6 which is 1 uS.
-Switching to 100khz gives us 5 uS/5 uS high/low which both fall above
-the minimum given values for 100 khz, 4.0 uS/4.7 uS high/low.
+Can you please add
 
-Without this patch occasionally a voltage set operation from the kernel
-will appear to have worked but the actual voltage reflected on the PMIC
-will not have updated, causing problems especially with cpufreq that may
-update to a higher OPP without actually raising the voltage on DCDC2,
-leading to a hang.
+Cc: stable@vger.kernel.org # v4.6+
 
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
-Signed-off-by: Aparna Balasubramanian <aparnab@ti.com>
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- arch/arm/boot/dts/am437x-sk-evm.dts | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am437x-sk-evm.dts
-index 18a3445..5f67001 100644
---- a/arch/arm/boot/dts/am437x-sk-evm.dts
-+++ b/arch/arm/boot/dts/am437x-sk-evm.dts
-@@ -490,7 +490,7 @@
- 	status = "okay";
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&i2c0_pins>;
--	clock-frequency = <400000>;
-+	clock-frequency = <100000>;
- 
- 	tps@24 {
- 		compatible = "ti,tps65218";
--- 
-1.9.1
+--
+cheers,
+-roger
