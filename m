@@ -1,60 +1,55 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH] gpio: omap: make gpio numbering deterministical by using
- of aliases
-Date: Wed, 15 Jun 2016 12:56:47 +0300
-Message-ID: <5761265F.2050508@ti.com>
-References: <1465898604-16294-1-git-send-email-u.kleine-koenig@pengutronix.de>
- <CACRpkdaVRTj4jpGQp9nDKo8RAPDPUaApp4jAdBGRgd45bqo2zQ@mail.gmail.com>
- <20160615072404.GB26768@pengutronix.de> <20160615082705.GW22406@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/2] Drop last two remaining omap3 legacy board files
+Date: Wed, 15 Jun 2016 03:48:07 -0700
+Message-ID: <1465987689-14812-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20160615082705.GW22406@atomide.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Alexandre Courbot <gnurou@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sascha Hauer <kernel@pengutronix.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman <khilman@baylibre.com>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Russell King <rmk+kernel@armlinux.org.uk>, Pavel Machek <pavel@ucw.cz>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 06/15/2016 11:27 AM, Tony Lindgren wrote:
-> * Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de> [160615 00:2=
-7]:
->> On Wed, Jun 15, 2016 at 08:56:58AM +0200, Linus Walleij wrote:
->>> The way forward is to use the character device and use gpiochip
->>> devices with offset indexes and look up GPIOs by name from the
->>> character devices. If nothing substantial happens I am merging the
->>> final pieces of the GPIO chardev ABI for v4.8 and that is doing all=
- that
->>> sysfs was doing and then some. I just need to change a small thing
->>> before sending the final version for review.
->>
->> Hmm, so /sys/class/gpio was obsoleted before the substitution was re=
-ady?
->> I'd say an overlapping of several kernel versions would be good as w=
-e
->> cannot expect that userspace changes as fast as the kernel.
->=20
-> Well the /sys/class/gpio is an interface, and we'll have to maintain
-> it basically forever as we all know. It also works just fine for simp=
-le
-> things, so let's make sure it is usable. Having it inconsistent can
-> cause nasty side effects upgrading kernels.
->=20
+Hi all,
 
-Wouldn't gpio-line-names be helpful for such cases as mentioned in [1],=
-[2]
-But I don't know it these properties were exposed in legacy GPIO sysfs =
-interface also.
+Here are two patches to drop the last remaining omap3 legacy boot
+files. We have device tree based booting working for these boards,
+and the legacy booting has been mostly kept around to validate
+against regressions.
 
-[1] http://www.spinics.net/lists/linux-gpio/msg15040.html
-[2] https://patchwork.ozlabs.org/patch/617713/
-=20
+Let's not touch the rest of the platform init code until around
+v4.9 so we can revert these two patches if needed.
 
---=20
-regards,
--grygorii
---
-To unsubscribe from this list: send the line "unsubscribe linux-gpio" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cheers,
+
+Tony
+
+Tony Lindgren (2):
+  ARM: OMAP2+: Drop legacy board file for n900
+  ARM: OMAP2+: Drop legacy board file for LDP
+
+ arch/arm/mach-omap2/Kconfig                  |   12 -
+ arch/arm/mach-omap2/Makefile                 |    4 -
+ arch/arm/mach-omap2/board-ldp.c              |  429 ---------
+ arch/arm/mach-omap2/board-rx51-peripherals.c | 1317 --------------------------
+ arch/arm/mach-omap2/board-rx51-video.c       |   67 --
+ arch/arm/mach-omap2/board-rx51.c             |  141 ---
+ arch/arm/mach-omap2/board-rx51.h             |   11 -
+ 7 files changed, 1981 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/board-ldp.c
+ delete mode 100644 arch/arm/mach-omap2/board-rx51-peripherals.c
+ delete mode 100644 arch/arm/mach-omap2/board-rx51-video.c
+ delete mode 100644 arch/arm/mach-omap2/board-rx51.c
+ delete mode 100644 arch/arm/mach-omap2/board-rx51.h
+
+-- 
+2.8.1
