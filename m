@@ -1,62 +1,60 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] extcon: palmas: Fix boot up state of VBUS when using GPIO
- detection
-Date: Wed, 15 Jun 2016 09:47:50 +0300
-Message-ID: <5760FA16.5070008@ti.com>
-References: <CGME20160614140603epcas1p25c5893caf8e0f15d89fbc022d05f2a6f@epcas1p2.samsung.com>
- <1465913075-30166-1-git-send-email-rogerq@ti.com>
- <5760B604.10407@samsung.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] gpio: omap: make gpio numbering deterministical by using
+ of aliases
+Date: Wed, 15 Jun 2016 08:56:58 +0200
+Message-ID: <CACRpkdaVRTj4jpGQp9nDKo8RAPDPUaApp4jAdBGRgd45bqo2zQ@mail.gmail.com>
+References: <1465898604-16294-1-git-send-email-u.kleine-koenig@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5760B604.10407@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Chanwoo Choi <cw00.choi@samsung.com>, myungjoo.ham@samsung.com
-Cc: balbi@kernel.org, nm@ti.com, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1465898604-16294-1-git-send-email-u.kleine-koenig@pengutronix.de>
+Sender: linux-gpio-owner@vger.kernel.org
+To: =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Alexandre Courbot <gnurou@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sascha Hauer <kernel@pengutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-On 15/06/16 04:57, Chanwoo Choi wrote:
-> On 2016=EB=85=84 06=EC=9B=94 14=EC=9D=BC 23:04, Roger Quadros wrote:
->> If USB cable is connected prior to boot, we don't get any interrupts
->> so we must manually check the VBUS state and report it during probe.
->> If we don't do it then USB controller will never know that periphera=
+On Tue, Jun 14, 2016 at 12:03 PM, Uwe Kleine-K=C3=B6nig
+<u.kleine-koenig@pengutronix.de> wrote:
+
+> Traditionally the n-th gpio device probed by the omap gpio driver got
+> the gpio number range [n*32 .. n*32+31].
+> When order of the devices probed by the driver changes (which can hap=
+pen
+> already now when some devices have a pinctrl and so the first probe
+> attempt returns -ENODEV) the numbering changes.
+>
+> To ensure a deterministical numbering use of_alias_get_id to determin=
+e
+> the number base for a given device. If no respective alias exists fal=
 l
->> cable was connected till the user unplugs and replugs the cable.
->>
->> Fixes: b7aad8e2685b ("extcon: palmas: Add the support for VBUS detec=
-tion by using GPIO")
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->>  drivers/extcon/extcon-palmas.c | 2 ++
->>  1 file changed, 2 insertions(+)
->>
->> diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-=
-palmas.c
->> index 8b3226d..caff46c 100644
->> --- a/drivers/extcon/extcon-palmas.c
->> +++ b/drivers/extcon/extcon-palmas.c
->> @@ -360,6 +360,8 @@ static int palmas_usb_probe(struct platform_devi=
-ce *pdev)
->> =20
->>  	palmas_enable_irq(palmas_usb);
->>  	/* perform initial detection */
->> +	if (palmas_usb->enable_gpio_vbus_detection)
->> +		palmas_vbus_irq_handler(palmas_usb->gpio_vbus_irq, palmas_usb);
->>  	palmas_gpio_id_detect(&palmas_usb->wq_detectid.work);
->>  	device_set_wakeup_capable(&pdev->dev, true);
->>  	return 0;
->>
->=20
-> Applied it.
+> back to the traditional numbering.
 
-Thanks. But this is a bug fix and must go in v4.7-rc
-as well as stable v4.6+.
+I'm not too happy about this approach.
 
-Can you please add
+The patch doesn't mention what practical problems it is trying to
+solve.
 
-Cc: stable@vger.kernel.org # v4.6+
+I am very much suspecting the sysfs ABI to be what you're trying to
+get consistent, and that is OBSOLETED, see
+fe95046e960b4b76e73dc1486955d93f47276134
+"gpio: ABI: mark the sysfs ABI as obsolete"
 
+The GPIO numbering scheme is a matter of Linux internals and
+not about hardware description IMO.
+
+The way forward is to use the character device and use gpiochip
+devices with offset indexes and look up GPIOs by name from the
+character devices. If nothing substantial happens I am merging the
+final pieces of the GPIO chardev ABI for v4.8 and that is doing all tha=
+t
+sysfs was doing and then some. I just need to change a small thing
+before sending the final version for review.
+
+Yours,
+Linus Walleij
 --
-cheers,
--roger
+To unsubscribe from this list: send the line "unsubscribe linux-gpio" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
