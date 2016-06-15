@@ -1,43 +1,50 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH] extcon: palmas: Fix boot up state of VBUS when using GPIO
- detection
-Date: Wed, 15 Jun 2016 11:12:05 +0300
-Message-ID: <57610DD5.1090606@ti.com>
-References: <1465913075-30166-1-git-send-email-rogerq@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] gpio: omap: make gpio numbering deterministical by using
+ of aliases
+Date: Wed, 15 Jun 2016 01:27:06 -0700
+Message-ID: <20160615082705.GW22406@atomide.com>
+References: <1465898604-16294-1-git-send-email-u.kleine-koenig@pengutronix.de>
+ <CACRpkdaVRTj4jpGQp9nDKo8RAPDPUaApp4jAdBGRgd45bqo2zQ@mail.gmail.com>
+ <20160615072404.GB26768@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1465913075-30166-1-git-send-email-rogerq@ti.com>
-Sender: stable-owner@vger.kernel.org
-To: myungjoo.ham@samsung.com, cw00.choi@samsung.com
-Cc: balbi@kernel.org, nm@ti.com, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, rogerq@ti.com, stable@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160615072404.GB26768@pengutronix.de>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Alexandre Courbot <gnurou@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sascha Hauer <kernel@pengutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-If USB cable is connected prior to boot, we don't get any interrupts
-so we must manually check the VBUS state and report it during probe.
-If we don't do it then USB controller will never know that peripheral
-cable was connected till the user unplugs and replugs the cable.
+* Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de> [160615 00:27]=
+:
+> On Wed, Jun 15, 2016 at 08:56:58AM +0200, Linus Walleij wrote:
+> > The way forward is to use the character device and use gpiochip
+> > devices with offset indexes and look up GPIOs by name from the
+> > character devices. If nothing substantial happens I am merging the
+> > final pieces of the GPIO chardev ABI for v4.8 and that is doing all=
+ that
+> > sysfs was doing and then some. I just need to change a small thing
+> > before sending the final version for review.
+>=20
+> Hmm, so /sys/class/gpio was obsoleted before the substitution was rea=
+dy?
+> I'd say an overlapping of several kernel versions would be good as we
+> cannot expect that userspace changes as fast as the kernel.
 
-Fixes: b7aad8e2685b ("extcon: palmas: Add the support for VBUS detection by using GPIO")
-Cc: stable@vger.kernel.org # v4.6+
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- drivers/extcon/extcon-palmas.c | 2 ++
- 1 file changed, 2 insertions(+)
+Well the /sys/class/gpio is an interface, and we'll have to maintain
+it basically forever as we all know. It also works just fine for simple
+things, so let's make sure it is usable. Having it inconsistent can
+cause nasty side effects upgrading kernels.
 
-diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-palmas.c
-index 8b3226d..caff46c 100644
---- a/drivers/extcon/extcon-palmas.c
-+++ b/drivers/extcon/extcon-palmas.c
-@@ -360,6 +360,8 @@ static int palmas_usb_probe(struct platform_device *pdev)
- 
- 	palmas_enable_irq(palmas_usb);
- 	/* perform initial detection */
-+	if (palmas_usb->enable_gpio_vbus_detection)
-+		palmas_vbus_irq_handler(palmas_usb->gpio_vbus_irq, palmas_usb);
- 	palmas_gpio_id_detect(&palmas_usb->wq_detectid.work);
- 	device_set_wakeup_capable(&pdev->dev, true);
- 	return 0;
--- 
-2.7.4
+Naturally I don't have any objections for adding a character device :)
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-gpio" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
