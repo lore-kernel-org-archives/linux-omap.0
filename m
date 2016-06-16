@@ -1,59 +1,54 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH 04/15] drivers: net: cpsw: ethtool: fix accessing to
- suspended device
-Date: Thu, 16 Jun 2016 16:32:27 +0300
-Message-ID: <5762AA6B.9060003@linaro.org>
-References: <20160615115603.4897-1-grygorii.strashko@ti.com>
- <20160615115603.4897-5-grygorii.strashko@ti.com> <57617ECF.2010902@gmail.com>
- <5761860C.2020502@ti.com> <5762A010.2070201@linaro.org>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v3 1/5] mfd: tps65217: Add support for IRQs
+Date: Thu, 16 Jun 2016 15:30:18 +0100
+Message-ID: <20160616143018.GY4948@dell>
+References: <20160616114110.23455-1-m.niestroj@grinn-global.com>
+ <20160616114110.23455-2-m.niestroj@grinn-global.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <5762A010.2070201@linaro.org>
-Sender: netdev-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Florian Fainelli <f.fainelli@gmail.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, Mugunthan V N <mugunthanvnm@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160616114110.23455-2-m.niestroj@grinn-global.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Marcin Niestroj <m.niestroj@grinn-global.com>
+Cc: Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-input@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On Thu, 16 Jun 2016, Marcin Niestroj wrote:
 
+> Add support for handling IRQs: power button, AC and USB power state
+> changes. Mask and interrupt bits are shared within one register, whic=
+h
+> prevents us to use regmap_irq implementation. New irq_domain is creat=
+ed in
+> order to add interrupt handling for each tps65217's subsystem. IRQ
+> resources have been added for charger subsystem to be able to notify =
+about
+> AC and USB state changes.
+>=20
+> Signed-off-by: Marcin Niestroj <m.niestroj@grinn-global.com>
+> ---
 
-On 16.06.16 15:48, Ivan Khoronzhuk wrote:
->
->
-> On 15.06.16 19:45, Grygorii Strashko wrote:
->> On 06/15/2016 07:14 PM, Florian Fainelli wrote:
->>> On 06/15/2016 04:55 AM, Grygorii Strashko wrote:
->>>> The CPSW might be suspended by RPM if all ethX interfaces are down,
->>>> but it still could be accesible through ethtool interfce. In this case
->>>> ethtool operations, requiring registers access, will cause L3 errors and
->>>> CPSW crash.
->>>>
->>>> Hence, fix it by adding RPM get/put calls in ethtool callbcaks which
->>>> can access CPSW registers: .set_coalesce(), .get_ethtool_stats(),
->>>> .set_pauseparam(), .get_regs()
->>>
->>> Provided that you implement an ethtool_ops::begin, it will be called
->>> before each ethtool operation runs, so that could allow you to eliminate
->>> some of the duplication here. Conversely ethtool_ops::end terminates
->>> each operation and can be used for that purpose.
->>
->> Ah. Thanks for the advice. (assume you've meant .complete())
->
-> Maybe better leave as is, I'm going to add two additional ehttool ops
-> containing RPM sensitive part and not, better to split code on those,
-> if possible...and hiding put/get in begin op can call rpm when it's not
-> needed at all..
+Please insert a change-log here in future.
 
-But it's not a big deal, ethtool operations are rarelly anyway, and have
-impact only when interface is down that makes it even more rarely.
+>  drivers/mfd/Kconfig          |   1 +
+>  drivers/mfd/tps65217.c       | 194 +++++++++++++++++++++++++++++++++=
+++++++++--
+>  include/linux/mfd/tps65217.h |  11 +++
+>  3 files changed, 198 insertions(+), 8 deletions(-)
 
->
->>
->>
->>
->
+Once you've fixed Grygorii's comments, you may add my:
 
--- 
-Regards,
-Ivan Khoronzhuk
+  Acked-by: Lee Jones <lee.jones@linaro.org>
+
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
