@@ -1,52 +1,51 @@
 From: Marcin Niestroj <m.niestroj@grinn-global.com>
-Subject: [PATCH v3 4/5] mfd: tps65217: Add power button as subdevice
-Date: Thu, 16 Jun 2016 13:41:09 +0200
-Message-ID: <20160616114110.23455-5-m.niestroj@grinn-global.com>
-References: <20160616114110.23455-1-m.niestroj@grinn-global.com>
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20160616114110.23455-1-m.niestroj@grinn-global.com>
-Sender: linux-pm-owner@vger.kernel.org
+Subject: [PATCH v3 0/5] mfd: tps65217: Add power-button and IRQ support
+Date: Thu, 16 Jun 2016 13:41:05 +0200
+Message-ID: <20160616114110.23455-1-m.niestroj@grinn-global.com>
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
 To: Lee Jones <lee.jones@linaro.org>
 Cc: Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-input@vger.kernel.org, devicetree@vger.kernel.org, Marcin Niestroj <m.niestroj@grinn-global.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add tps65217 power buttor subdevice with assigned IRQ resources.
+Hi,
 
-Signed-off-by: Marcin Niestroj <m.niestroj@grinn-global.com>
----
-depends on patch 1 in series
+the following patches add tps65217 power button support and make it usable
+with am335x boards. They also fix a NULL dereference in tps65217 charger
+subsystem and add possibility to use IRQs instead of polling task to
+update AC power state.
 
- drivers/mfd/tps65217.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+Changes v2 -> v3 (suggested by Lee):
+ * Alphabetical reorder of includes
+ * Rename enum tps65217_irqs -> tps65217_irq_type, so we won't confuse
+   it with structure object with the same name.
+ * Fix inconsistent order of irq_enable and irq_disable
+ * Remove redundant 'else' when returning from tps65217_irq_thread
 
-diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
-index 7763dbc..d76de72 100644
---- a/drivers/mfd/tps65217.c
-+++ b/drivers/mfd/tps65217.c
-@@ -38,6 +38,10 @@ static struct resource charger_resources[] = {
- 	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_USB, "USB"),
- };
- 
-+static struct resource pb_resources[] = {
-+	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_PB, "PB"),
-+};
-+
- struct tps65217_irq {
- 	int mask;
- 	int interrupt;
-@@ -122,6 +126,12 @@ static struct mfd_cell tps65217s[] = {
- 		.resources = charger_resources,
- 		.of_compatible = "ti,tps65217-charger",
- 	},
-+	{
-+		.name = "tps65217-pwrbutton",
-+		.num_resources = ARRAY_SIZE(pb_resources),
-+		.resources = pb_resources,
-+		.of_compatible = "ti,tps65217-pwrbutton",
-+	},
- };
- 
- static irqreturn_t tps65217_irq_thread(int irq, void *data)
+Changes v1 -> v2:
+ * Added information about parent device in tps65217 power button
+   device-tree binding documentation (suggested by Rob)
+ * Rebased and tested on top of v4.7-rc3
+
+Marcin Niestroj (5):
+  mfd: tps65217: Add support for IRQs
+  power_supply: tps65217-charger: Fix NULL deref during property export
+  power_supply: tps65217-charger: Add support for IRQs
+  mfd: tps65217: Add power button as subdevice
+  Input: Add tps65217 power button driver
+
+ .../bindings/input/tps65217-pwrbutton.txt          |  17 ++
+ drivers/input/misc/Kconfig                         |  10 +
+ drivers/input/misc/Makefile                        |   1 +
+ drivers/input/misc/tps65217-pwrbutton.c            | 131 +++++++++++++
+ drivers/mfd/Kconfig                                |   1 +
+ drivers/mfd/tps65217.c                             | 204 ++++++++++++++++++++-
+ drivers/power/tps65217_charger.c                   |  46 ++++-
+ include/linux/mfd/tps65217.h                       |  11 ++
+ 8 files changed, 405 insertions(+), 16 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/input/tps65217-pwrbutton.txt
+ create mode 100644 drivers/input/misc/tps65217-pwrbutton.c
+
 -- 
 2.8.3
 
