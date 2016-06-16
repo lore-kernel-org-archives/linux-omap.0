@@ -1,37 +1,41 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: ARM and OMAP patches to avoid lockdep complaints
-Date: Wed, 15 Jun 2016 14:09:26 -0700
-Message-ID: <20160615210926.GA30957@linux.vnet.ibm.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Re: [PATCH v4 4/7] arm: use the new LED disk activity trigger
+Date: Thu, 16 Jun 2016 09:16:04 +0200
+Message-ID: <87bn31a9jf.fsf@belgarion.home>
+References: <20160610060021.12382-1-linz@li-pro.net>
+	<20160610060021.12382-4-linz@li-pro.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com, linux@roeck-us.net
-Cc: linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, rostedt@goodmis.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160610060021.12382-4-linz@li-pro.net> (Stephan Linz's message
+	of "Fri, 10 Jun 2016 07:59:59 +0200")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephan Linz <linz@li-pro.net>
+Cc: linux-leds@vger.kernel.org, linux-ide@vger.kernel.org, =?utf-8?Q?Ben?= =?utf-8?Q?o=C3=AEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@armlinux.org.uk>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Gregory Clement <gregory.clement@free-electrons.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello!
+Stephan Linz <linz@li-pro.net> writes:
 
-Ingo was not comfortable taking these through -tip, which is understandable,
-given that they don't depend on each other or on anything else not already
-in mainline, and that they don't have anything to do with -tip.
+> - dts: rename 'ide-disk' to 'disk-activity'
+> - platform: rename 'ide-disk' to 'disk-activity'
+> - defconfig: rename 'LEDS_TRIGGER_IDE_DISK' to 'LEDS_TRIGGER_DISK'
+>
+> Signed-off-by: Stephan Linz <linz@li-pro.net>
+> ---
+>  arch/arm/boot/dts/am57xx-beagle-x15.dts  | 2 +-
+>  arch/arm/boot/dts/kirkwood-ns2lite.dts   | 2 +-
+>  arch/arm/boot/dts/kirkwood-topkick.dts   | 2 +-
+>  arch/arm/configs/collie_defconfig        | 2 +-
+>  arch/arm/configs/ixp4xx_defconfig        | 2 +-
+>  arch/arm/mach-davinci/board-dm644x-evm.c | 2 +-
+>  arch/arm/mach-omap1/board-osk.c          | 2 +-
+>  arch/arm/mach-pxa/spitz.c                | 2 +-
+>  8 files changed, 8 insertions(+), 8 deletions(-)
 
-So what would you guys like to do with these?
+For mach-pxa:
+Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
 
-They may be pulled from 7c64cc0531fa (arm: Use _rcuidle for
-smp_cross_call() tracepoints) in my -rcu tree:
+Cheers.
 
-	git://git.kernel.org/pub/scm/linux/kernel/git/paulmck/linux-rcu.git
-
-							Thanx, Paul
+--
+Robert
