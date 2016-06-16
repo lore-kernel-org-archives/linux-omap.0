@@ -1,69 +1,51 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH] ARM: OMAP2+: timer: add probe for clocksources
-Date: Thu, 16 Jun 2016 15:25:18 +0300
-Message-ID: <1466079918-6810-1-git-send-email-t-kristo@ti.com>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: Re: [PATCH 04/15] drivers: net: cpsw: ethtool: fix accessing to
+ suspended device
+Date: Thu, 16 Jun 2016 15:48:16 +0300
+Message-ID: <5762A010.2070201@linaro.org>
+References: <20160615115603.4897-1-grygorii.strashko@ti.com>
+ <20160615115603.4897-5-grygorii.strashko@ti.com> <57617ECF.2010902@gmail.com>
+ <5761860C.2020502@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5761860C.2020502@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Florian Fainelli <f.fainelli@gmail.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, Mugunthan V N <mugunthanvnm@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-A few platforms are currently missing clocksource_probe() completely
-in their time_init functionality. On OMAP3430 for example, this is
-causing cpuidle to be pretty much dead, as the counter32k is not
-going to be registered and instead a gptimer is used as a clocksource.
-This will tick in periodic mode, preventing any deeper idle states.
 
-While here, also drop one unnecessary check for populated DT before
-existing clocksource_probe() call.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/timer.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+On 15.06.16 19:45, Grygorii Strashko wrote:
+> On 06/15/2016 07:14 PM, Florian Fainelli wrote:
+>> On 06/15/2016 04:55 AM, Grygorii Strashko wrote:
+>>> The CPSW might be suspended by RPM if all ethX interfaces are down,
+>>> but it still could be accesible through ethtool interfce. In this case
+>>> ethtool operations, requiring registers access, will cause L3 errors and
+>>> CPSW crash.
+>>>
+>>> Hence, fix it by adding RPM get/put calls in ethtool callbcaks which
+>>> can access CPSW registers: .set_coalesce(), .get_ethtool_stats(),
+>>> .set_pauseparam(), .get_regs()
+>>
+>> Provided that you implement an ethtool_ops::begin, it will be called
+>> before each ethtool operation runs, so that could allow you to eliminate
+>> some of the duplication here. Conversely ethtool_ops::end terminates
+>> each operation and can be used for that purpose.
+>
+> Ah. Thanks for the advice. (assume you've meant .complete())
 
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 5b385bb..cb9497a 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -496,8 +496,7 @@ void __init omap_init_time(void)
- 	__omap_sync32k_timer_init(1, "timer_32k_ck", "ti,timer-alwon",
- 			2, "timer_sys_ck", NULL, false);
- 
--	if (of_have_populated_dt())
--		clocksource_probe();
-+	clocksource_probe();
- }
- 
- #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM43XX)
-@@ -505,6 +504,8 @@ void __init omap3_secure_sync32k_timer_init(void)
- {
- 	__omap_sync32k_timer_init(12, "secure_32k_fck", "ti,timer-secure",
- 			2, "timer_sys_ck", NULL, false);
-+
-+	clocksource_probe();
- }
- #endif /* CONFIG_ARCH_OMAP3 */
- 
-@@ -513,6 +514,8 @@ void __init omap3_gptimer_timer_init(void)
- {
- 	__omap_sync32k_timer_init(2, "timer_sys_ck", NULL,
- 			1, "timer_sys_ck", "ti,timer-alwon", true);
-+
-+	clocksource_probe();
- }
- #endif
- 
+Maybe better leave as is, I'm going to add two additional ehttool ops
+containing RPM sensitive part and not, better to split code on those,
+if possible...and hiding put/get in begin op can call rpm when it's not
+needed at all..
+
+>
+>
+>
+
 -- 
-1.9.1
+Regards,
+Ivan Khoronzhuk
