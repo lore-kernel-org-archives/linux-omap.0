@@ -1,39 +1,56 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: am437x-sk-evm: Reduce i2c0 bus speed for
- tps65218
-Date: Fri, 17 Jun 2016 02:59:26 -0700
-Message-ID: <20160617095925.GD22406@atomide.com>
-References: <1465971328-16046-1-git-send-email-j-keerthy@ti.com>
+Subject: Re: [RFC] [PATCH 0/3] media: an attempt to refresh omap1_camera
+ driver
+Date: Fri, 17 Jun 2016 03:03:07 -0700
+Message-ID: <20160617100307.GE22406@atomide.com>
+References: <1466097694-8660-1-git-send-email-jmkrzyszt@gmail.com>
+ <5763A114.2080309@xs4all.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-media-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1465971328-16046-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, d-gerlach@ti.com, nm@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Franklin S Cooper Jr <fcooper@ti.com>, Aparna Balasubramanian <aparnab@ti.com>
+In-Reply-To: <5763A114.2080309@xs4all.nl>
+Sender: linux-media-owner@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Amitoj Kaur Chawla <amitoj1606@gmail.com>, Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Keerthy <j-keerthy@ti.com> [160614 23:18]:
-> From: Dave Gerlach <d-gerlach@ti.com>
+* Hans Verkuil <hverkuil@xs4all.nl> [160617 00:07]:
+> Hi Janusz,
 > 
-> Based on the latest timing specifications for the TPS65218 from the data
-> sheet, http://www.ti.com/lit/ds/symlink/tps65218.pdf, document SLDS206
-> from November 2014, we must change the i2c bus speed to better fit within
-> the minimum high SCL time required for proper i2c transfer.
-> 
-> When running at 400khz, measurements show that SCL spends
-> 0.8125 uS/1.666 uS high/low which violates the requirement for minimum
-> high period of SCL provided in datasheet Table 7.6 which is 1 uS.
-> Switching to 100khz gives us 5 uS/5 uS high/low which both fall above
-> the minimum given values for 100 khz, 4.0 uS/4.7 uS high/low.
-> 
-> Without this patch occasionally a voltage set operation from the kernel
-> will appear to have worked but the actual voltage reflected on the PMIC
-> will not have updated, causing problems especially with cpufreq that may
-> update to a higher OPP without actually raising the voltage on DCDC2,
-> leading to a hang.
+> On 06/16/2016 07:21 PM, Janusz Krzysztofik wrote:
+> > As requested by media subsystem maintainers, here is an attempt to 
+> > convert the omap1_camera driver to the vb2 framework. Also, conversion 
+> > to the dmaengine framework, long awaited by ARM/OMAP maintainers, is 
+> > done.
 
-Applying into omap-for-v4.7/fixes thanks.
+Janusz, thanks for updating to the dmaengine :)
+
+> > Next, I'm going to approach removal of soc-camera dependency. Please 
+> > let me know how much time I have for that, i.e., when the soc-camera
+> > framework is going to be depreciated.
+> 
+> Well, it is already deprecated (i.e. new drivers cannot use it), but it won't
+> be removed any time soon. There are still drivers depending on it, and some
+> aren't easy to rewrite.
+> 
+> I have to say that it is totally unexpected to see that this omap1 driver is still
+> used. In fact, we've already merged a patch that removed it for the upcoming
+> 4.8 kernel. Based on this new development I'll revert that for the omap1
+> driver.
+> 
+> Out of curiosity: is supporting the Amstrad Delta something you do as a hobby
+> or are there other reasons?
+
+Hmm if that IP old phone works fine with mainline kernel, why not keep
+using it? :)
+
+> A final note: once you've managed to drop the soc-camera dependency you should
+> run the v4l2-compliance test over the video node (https://git.linuxtv.org/v4l-utils.git/).
+> 
+> If that passes without failures, then this driver is in good shape and can be
+> moved out of staging again.
+
+Sounds good to me also, thanks guys.
 
 Tony
