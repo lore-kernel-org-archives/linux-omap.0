@@ -1,65 +1,66 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC] [PATCH 0/3] media: an attempt to refresh omap1_camera
- driver
-Date: Fri, 17 Jun 2016 09:04:52 +0200
-Message-ID: <5763A114.2080309@xs4all.nl>
-References: <1466097694-8660-1-git-send-email-jmkrzyszt@gmail.com>
+From: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v10 00/14] USB OTG/dual-role framework
+Date: Fri, 17 Jun 2016 10:17:51 +0300
+Message-ID: <87a8ikz3kw.fsf@linux.intel.com>
+References: <1465564043-27163-1-git-send-email-rogerq@ti.com> <5762887A.4060606@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1466097694-8660-1-git-send-email-jmkrzyszt@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jmkrzyszt@gmail.com>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Amitoj Kaur Chawla <amitoj1606@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha256; protocol="application/pgp-signature"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5762887A.4060606-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Janusz,
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-On 06/16/2016 07:21 PM, Janusz Krzysztofik wrote:
-> As requested by media subsystem maintainers, here is an attempt to 
-> convert the omap1_camera driver to the vb2 framework. Also, conversion 
-> to the dmaengine framework, long awaited by ARM/OMAP maintainers, is 
-> done.
-> 
-> Next, I'm going to approach removal of soc-camera dependency. Please 
-> let me know how much time I have for that, i.e., when the soc-camera
-> framework is going to be depreciated.
 
-Well, it is already deprecated (i.e. new drivers cannot use it), but it won't
-be removed any time soon. There are still drivers depending on it, and some
-aren't easy to rewrite.
+Hi Roger,
 
-I have to say that it is totally unexpected to see that this omap1 driver is still
-used. In fact, we've already merged a patch that removed it for the upcoming
-4.8 kernel. Based on this new development I'll revert that for the omap1
-driver.
+Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> writes:
+>> This series centralizes OTG/Dual-role functionality in the kernel.
+>> As of now I've got Dual-role functionality working pretty reliably on
+>> dra7-evm and am437x-gp-evm.
+>
+> Do you have any comments on this series? If yes I can include them
+> before sending v11 with Acks from Peter and Alan. Thanks.
 
-Out of curiosity: is supporting the Amstrad Delta something you do as a hobby
-or are there other reasons?
+I'll need some more time to look at this, have been real busy with some
+internal tasks. Frankly, though, I still think this is way more complex
+than what it needs to be and that's actually quite scary IMO.
 
-A final note: once you've managed to drop the soc-camera dependency you should
-run the v4l2-compliance test over the video node (https://git.linuxtv.org/v4l-utils.git/).
+I'll try to dedicate some time today to review these patches, hopefully
+I'll find a few minutes. I know that I also owe you a look at the IRQ
+cleanup for dwc3, I'll see if I can get to that as well.
 
-If that passes without failures, then this driver is in good shape and can be
-moved out of staging again.
+=2D-=20
+balbi
 
-Regards,
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
 
-	Hans
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-> 
-> Thanks,
-> Janusz
-> 
-> 
-> Janusz Krzysztofik (3):
->   staging: media: omap1: drop videobuf-dma-sg mode
->   staging: media: omap1: convert to videobuf2
->   staging: media: omap1: use dmaengine
-> 
->  drivers/staging/media/omap1/Kconfig              |   5 +-
->  drivers/staging/media/omap1/omap1_camera.c       | 948 +++++------------------
->  include/linux/platform_data/media/omap1_camera.h |   9 -
->  3 files changed, 217 insertions(+), 745 deletions(-)
-> 
+iQIcBAEBCAAGBQJXY6QfAAoJEIaOsuA1yqREDzsP/20f0zzThBcB2ybCkG7naERd
+JLkqKUTB8u0tZh3l41z1kSU/Wk/r/BlRealmw6bszuTDLMGWV0MTEqSxHLwmGPhq
+ZtDBYSlhmh5o0HxNPEWzOhQ3YucifJFh5y1ksQY2UekbBaJXOK8eCgOSFSZthyvL
+dGyDKZD+wYZqdr7h30W6g0OH9kqA55rlGlCJrLUYFp/uWVnGkGsBybEdU1bW8/R3
+bs3ViPP0vp6k/BHZ+kxGo+hFjNbek7ZCbthBoqIu9I/7ICfIxJ36+7xP/yshX+oZ
+99z1qjI/+/vUcq4dwXdWEQ0cAmP4LzmW3LGHqJTmKlEY2+OBaqYyyouVI4vi3n3Z
+Ypi3THYhqE0X5TNjrBmnUbcxIeVndNc2I9LxQPXnlsATC5l7aiPMNGX0RqSbEWh2
+05Zy1+RxcaF1l9Ola66s4ULLBmaweyxwKiwrlLpZ6hyoodUqTcrD4dL79wmM3SIN
+ZWcwEadQWPfCVmqkcSpMRU1sMS5q1k71cBFnh6TMnPdSMmWQqChj+sM3VLluTe9B
+qHs/3GCtghupGXMAGhb0ApP3z/JoPwnQ6ipKQT+Kiy3Sf01Z20UFAlIjyMrsEM83
+vuuZYSTWQNHUJCjavCX7u5vrmaqFtXjFsOltU0o6pgAnPKkiOwjiRh3Ab3/rKeLe
+Hntd/qGGRyaslc7UQ/pI
+=yAGy
+-----END PGP SIGNATURE-----
+--=-=-=--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
