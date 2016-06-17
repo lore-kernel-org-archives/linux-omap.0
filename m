@@ -1,40 +1,56 @@
-From: Enric Balletbo i Serra <enric.balletbo-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-Subject: [PATCH] ARM: dts: am335x-bone-common: use stdout-path in Beaglebone boards.
-Date: Fri, 17 Jun 2016 13:10:10 +0200
-Message-ID: <1466161810-17342-1-git-send-email-enric.balletbo@collabora.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: ARM and OMAP patches to avoid lockdep complaints
+Date: Fri, 17 Jun 2016 05:58:25 -0700
+Message-ID: <20160617125825.GT3923@linux.vnet.ibm.com>
+References: <20160615210926.GA30957@linux.vnet.ibm.com>
+ <20160617040708.GA22406@atomide.com>
+Reply-To: paulmck@linux.vnet.ibm.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20160617040708.GA22406@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, rostedt@goodmis.org, linux@roeck-us.net
 List-Id: linux-omap@vger.kernel.org
 
-This commit adds the stdout-path propety in /chosen for all Beaglebone
-boards.
+On Thu, Jun 16, 2016 at 09:07:09PM -0700, Tony Lindgren wrote:
+> Hi,
+> 
+> * Paul E. McKenney <paulmck@linux.vnet.ibm.com> [160615 14:11]:
+> > Hello!
+> > 
+> > Ingo was not comfortable taking these through -tip, which is understandable,
+> > given that they don't depend on each other or on anything else not already
+> > in mainline, and that they don't have anything to do with -tip.
+> > 
+> > So what would you guys like to do with these?
+> 
+> I'll merge it into omap-for-v4.7/fixes thanks.
 
-Signed-off-by: Enric Balletbo i Serra <enric.balletbo-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
----
- arch/arm/boot/dts/am335x-bone-common.dtsi | 4 ++++
- 1 file changed, 4 insertions(+)
+Thank you, Tony!
 
-diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index 0cc150b..b6c4010 100644
---- a/arch/arm/boot/dts/am335x-bone-common.dtsi
-+++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-@@ -18,6 +18,10 @@
- 		reg = <0x80000000 0x10000000>; /* 256 MB */
- 	};
- 
-+	chosen {
-+		stdout-path = &uart0;
-+	};
-+
- 	leds {
- 		pinctrl-names = "default";
- 		pinctrl-0 = <&user_leds_s0>;
--- 
-2.1.0
+							Thanx, Paul
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Regards,
+> 
+> Tony
+> 
+> > They may be pulled from 7c64cc0531fa (arm: Use _rcuidle for
+> > smp_cross_call() tracepoints) in my -rcu tree:
+> > 
+> > 	git://git.kernel.org/pub/scm/linux/kernel/git/paulmck/linux-rcu.git
+> > 
+> > 							Thanx, Paul
+> > 
+> 
