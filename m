@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [RFC 06/19] HSI: omap_ssi: convert cawake irq handler to thread
-Date: Sat, 18 Jun 2016 18:26:56 +0200
-Message-ID: <1466267229-25012-7-git-send-email-sre@kernel.org>
+Subject: [RFC 08/19] HSI: core: switch port event notifier from atomic to blocking
+Date: Sat, 18 Jun 2016 18:26:58 +0200
+Message-ID: <1466267229-25012-9-git-send-email-sre@kernel.org>
 References: <1466267229-25012-1-git-send-email-sre@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1466267229-25012-1-git-send-email-sre@kernel.org>
@@ -10,112 +10,65 @@ To: Sebastian Reichel <sre@kernel.org>, linux-omap@vger.kernel.org, linux-kernel
 Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Convert cawake interrupt handler from tasklet to
-threaded interrupt handler in preparation of
-blocking runtime_pm calls.
-
-Signed-off-by: Sebastian Reichel <sre@kernel.org>
+port events should be sent from process context after
+irq_safe runtime pm flag is removed in omap-ssi.
 ---
- drivers/hsi/controllers/omap_ssi.h      |  2 --
- drivers/hsi/controllers/omap_ssi_core.c |  4 ++--
- drivers/hsi/controllers/omap_ssi_port.c | 21 ++++++---------------
- 3 files changed, 8 insertions(+), 19 deletions(-)
+ drivers/hsi/hsi_core.c  | 8 ++++----
+ include/linux/hsi/hsi.h | 2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/hsi/controllers/omap_ssi.h b/drivers/hsi/controllers/omap_ssi.h
-index ba2f92722c09..88a523902a8f 100644
---- a/drivers/hsi/controllers/omap_ssi.h
-+++ b/drivers/hsi/controllers/omap_ssi.h
-@@ -75,7 +75,6 @@ struct omap_ssm_ctx {
-  * @wake_irq: IRQ number for incoming wake line (-1 if none)
-  * @wake_gpio: GPIO number for incoming wake line (-1 if none)
-  * @pio_tasklet: Bottom half for PIO transfers and events
-- * @wake_tasklet: Bottom half for incoming wake events
-  * @wkin_cken: Keep track of clock references due to the incoming wake line
-  * @wk_refcount: Reference count for output wake line
-  * @sys_mpu_enable: Context for the interrupt enable register for irq 0
-@@ -99,7 +98,6 @@ struct omap_ssi_port {
- 	int			wake_irq;
- 	struct gpio_desc	*wake_gpio;
- 	struct tasklet_struct	pio_tasklet;
--	struct tasklet_struct	wake_tasklet;
- 	bool			wktest:1; /* FIXME: HACK to be removed */
- 	bool			wkin_cken:1; /* Workaround */
- 	unsigned int		wk_refcount;
-diff --git a/drivers/hsi/controllers/omap_ssi_core.c b/drivers/hsi/controllers/omap_ssi_core.c
-index 54943e439488..a463420a0810 100644
---- a/drivers/hsi/controllers/omap_ssi_core.c
-+++ b/drivers/hsi/controllers/omap_ssi_core.c
-@@ -312,7 +312,7 @@ static int ssi_clk_event(struct notifier_block *nb, unsigned long event,
- 				continue;
+diff --git a/drivers/hsi/hsi_core.c b/drivers/hsi/hsi_core.c
+index d7ce07ad67f3..c2a2a9795b0b 100644
+--- a/drivers/hsi/hsi_core.c
++++ b/drivers/hsi/hsi_core.c
+@@ -507,7 +507,7 @@ struct hsi_controller *hsi_alloc_controller(unsigned int n_ports, gfp_t flags)
+ 		port[i]->stop_tx = hsi_dummy_cl;
+ 		port[i]->release = hsi_dummy_cl;
+ 		mutex_init(&port[i]->lock);
+-		ATOMIC_INIT_NOTIFIER_HEAD(&port[i]->n_head);
++		BLOCKING_INIT_NOTIFIER_HEAD(&port[i]->n_head);
+ 		dev_set_name(&port[i]->device, "port%d", i);
+ 		hsi->port[i]->device.release = hsi_port_release;
+ 		device_initialize(&hsi->port[i]->device);
+@@ -689,7 +689,7 @@ int hsi_register_port_event(struct hsi_client *cl,
+ 	cl->ehandler = handler;
+ 	cl->nb.notifier_call = hsi_event_notifier_call;
  
- 			/* Workaround for SWBREAK + CAwake down race in CMT */
--			tasklet_disable(&omap_port->wake_tasklet);
-+			disable_irq(omap_port->wake_irq);
- 
- 			/* stop all ssi communication */
- 			pinctrl_pm_select_idle_state(omap_port->pdev);
-@@ -338,7 +338,7 @@ static int ssi_clk_event(struct notifier_block *nb, unsigned long event,
- 
- 			/* resume ssi communication */
- 			pinctrl_pm_select_default_state(omap_port->pdev);
--			tasklet_enable(&omap_port->wake_tasklet);
-+			enable_irq(omap_port->wake_irq);
- 		}
- 
- 		break;
-diff --git a/drivers/hsi/controllers/omap_ssi_port.c b/drivers/hsi/controllers/omap_ssi_port.c
-index 38388442e310..9001b06312c3 100644
---- a/drivers/hsi/controllers/omap_ssi_port.c
-+++ b/drivers/hsi/controllers/omap_ssi_port.c
-@@ -966,7 +966,7 @@ static irqreturn_t ssi_pio_isr(int irq, void *port)
- 	return IRQ_HANDLED;
+-	return atomic_notifier_chain_register(&port->n_head, &cl->nb);
++	return blocking_notifier_chain_register(&port->n_head, &cl->nb);
  }
+ EXPORT_SYMBOL_GPL(hsi_register_port_event);
  
--static void ssi_wake_tasklet(unsigned long ssi_port)
-+static irqreturn_t ssi_wake_thread(int irq __maybe_unused, void *ssi_port)
+@@ -709,7 +709,7 @@ int hsi_unregister_port_event(struct hsi_client *cl)
+ 
+ 	WARN_ON(!hsi_port_claimed(cl));
+ 
+-	err = atomic_notifier_chain_unregister(&port->n_head, &cl->nb);
++	err = blocking_notifier_chain_unregister(&port->n_head, &cl->nb);
+ 	if (!err)
+ 		cl->ehandler = NULL;
+ 
+@@ -734,7 +734,7 @@ EXPORT_SYMBOL_GPL(hsi_unregister_port_event);
+  */
+ int hsi_event(struct hsi_port *port, unsigned long event)
  {
- 	struct hsi_port *port = (struct hsi_port *)ssi_port;
- 	struct hsi_controller *ssi = to_hsi_controller(port->device.parent);
-@@ -1007,13 +1007,6 @@ static void ssi_wake_tasklet(unsigned long ssi_port)
- 		}
- 		spin_unlock(&omap_port->lock);
- 	}
--}
--
--static irqreturn_t ssi_wake_isr(int irq __maybe_unused, void *ssi_port)
--{
--	struct omap_ssi_port *omap_port = hsi_port_drvdata(ssi_port);
--
--	tasklet_hi_schedule(&omap_port->wake_tasklet);
- 
- 	return IRQ_HANDLED;
+-	return atomic_notifier_call_chain(&port->n_head, event, NULL);
++	return blocking_notifier_call_chain(&port->n_head, event, NULL);
  }
-@@ -1051,13 +1044,12 @@ static int ssi_wake_irq(struct hsi_port *port, struct platform_device *pd)
- 	}
+ EXPORT_SYMBOL_GPL(hsi_event);
  
- 	cawake_irq = gpiod_to_irq(omap_port->wake_gpio);
--
- 	omap_port->wake_irq = cawake_irq;
--	tasklet_init(&omap_port->wake_tasklet, ssi_wake_tasklet,
--							(unsigned long)port);
--	err = devm_request_irq(&port->device, cawake_irq, ssi_wake_isr,
--		IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
--							"cawake", port);
-+
-+	err = devm_request_threaded_irq(&port->device, cawake_irq, NULL,
-+		ssi_wake_thread,
-+		IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-+		"SSI cawake", port);
- 	if (err < 0)
- 		dev_err(&port->device, "Request Wake in IRQ %d failed %d\n",
- 						cawake_irq, err);
-@@ -1234,7 +1226,6 @@ static int ssi_port_remove(struct platform_device *pd)
+diff --git a/include/linux/hsi/hsi.h b/include/linux/hsi/hsi.h
+index 2790591c77cf..57402544b53f 100644
+--- a/include/linux/hsi/hsi.h
++++ b/include/linux/hsi/hsi.h
+@@ -246,7 +246,7 @@ struct hsi_port {
+ 	int				(*stop_tx)(struct hsi_client *cl);
+ 	int				(*release)(struct hsi_client *cl);
+ 	/* private */
+-	struct atomic_notifier_head	n_head;
++	struct blocking_notifier_head	n_head;
+ };
  
- 	hsi_port_unregister_clients(port);
- 
--	tasklet_kill(&omap_port->wake_tasklet);
- 	tasklet_kill(&omap_port->pio_tasklet);
- 
- 	port->async	= hsi_dummy_msg;
+ #define to_hsi_port(dev) container_of(dev, struct hsi_port, device)
 -- 
 2.8.1
