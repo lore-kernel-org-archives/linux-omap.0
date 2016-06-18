@@ -1,28 +1,44 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] gpio: omap: make gpio numbering deterministical by using
- of aliases
-Date: Sat, 18 Jun 2016 10:30:18 +0200
-Message-ID: <CACRpkdZ178-P=uVx7PTZdR4ut6fToNbNn+d70y21QRKtwrk9Dg@mail.gmail.com>
-References: <1465898604-16294-1-git-send-email-u.kleine-koenig@pengutronix.de>
- <CACRpkdaVRTj4jpGQp9nDKo8RAPDPUaApp4jAdBGRgd45bqo2zQ@mail.gmail.com>
- <20160615072404.GB26768@pengutronix.de> <20160615082705.GW22406@atomide.com> <5761265F.2050508@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: 4.5-rc0 regression: GPRS breaks after very short while
+Date: Sat, 18 Jun 2016 12:39:57 +0200
+Message-ID: <20160618103957.GA20130@amd>
+References: <20160518074924.GA20652@amd>
+ <20160518141624.GA8025@earth>
+ <20160518201251.GA22015@amd>
+ <20160520041258.GB22076@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <5761265F.2050508@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Alexandre Courbot <gnurou@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sascha Hauer <kernel@pengutronix.de>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160520041258.GB22076@earth>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jun 15, 2016 at 11:56 AM, Grygorii Strashko
-<grygorii.strashko@ti.com> wrote:
+On Fri 2016-05-20 06:12:59, Sebastian Reichel wrote:
+> Hi,
+> 
+> On Wed, May 18, 2016 at 10:12:51PM +0200, Pavel Machek wrote:
+> > > The last one only changes a comment, so not relevant, the other
+> > > two fix error handling during initialization and are most likely
+> > > also not the problem. Can you try to bisect the problem?
+> > 
+> > It will not be fun, but I guess it is doable. But before I start it
+> > would be good to know -- does it work for you?
+> 
+> I currently don't have a second SIM card with network access for my
+> dev phone, so I usually only test without gprs connection. As a
+> result I don't really know if longer data connection would work.
+> 
+> Also I'm quite busy until next weekend with other stuff. If you did
+> not find anything until then, I will do some testing/debugging.
 
-> Wouldn't gpio-line-names be helpful for such cases as mentioned in [1],[2]
-> But I don't know it these properties were exposed in legacy GPIO sysfs interface also.
+Ok, it looks like problems got less reproducible for me.
 
-The line names only expose through the chardev interface because the
-sysfs ABI is frozen and should not be extended.
+Best regards,
+									Pavel
 
-Yours,
-Linus Walleij
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
