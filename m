@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [RFC 18/19] HSI: omap_ssi_port: use rpm autosuspend API
-Date: Sat, 18 Jun 2016 18:27:08 +0200
-Message-ID: <1466267229-25012-19-git-send-email-sre@kernel.org>
+Subject: [RFC 09/19] HSI: omap_ssi_port: prepare start_tx/stop_tx for blocking pm_runtime calls
+Date: Sat, 18 Jun 2016 18:26:59 +0200
+Message-ID: <1466267229-25012-10-git-send-email-sre@kernel.org>
 References: <1466267229-25012-1-git-send-email-sre@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1466267229-25012-1-git-send-email-sre@kernel.org>
@@ -10,254 +10,101 @@ To: Sebastian Reichel <sre@kernel.org>, linux-omap@vger.kernel.org, linux-kernel
 Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Instead of immediately sending the SSI module to
-sleep, wait some time in case of new incoming or
-outgoing traffic.
+ssi_start_tx and ssi_stop_tx may be called from atomic context. Once
+pm_runtime_irq_safe() is removed for omap-ssi, this will fail, due
+to blocking pm_runtime_*_sync() calls.
+
+This fixes ssi_stop_tx by using non-sync API and ssi_start_tx by
+using a worker thread.
 
 Signed-off-by: Sebastian Reichel <sre@kernel.org>
 ---
- drivers/hsi/controllers/omap_ssi_port.c | 68 +++++++++++++++++++++------------
- 1 file changed, 44 insertions(+), 24 deletions(-)
+ drivers/hsi/controllers/omap_ssi.h      |  2 ++
+ drivers/hsi/controllers/omap_ssi_port.c | 23 ++++++++++++++++++-----
+ 2 files changed, 20 insertions(+), 5 deletions(-)
 
+diff --git a/drivers/hsi/controllers/omap_ssi.h b/drivers/hsi/controllers/omap_ssi.h
+index 6cdaad8805f7..5467f61e5086 100644
+--- a/drivers/hsi/controllers/omap_ssi.h
++++ b/drivers/hsi/controllers/omap_ssi.h
+@@ -79,6 +79,7 @@ struct omap_ssm_ctx {
+  * @pio_tasklet: Bottom half for PIO transfers and events
+  * @flags: flags to keep track of states
+  * @wk_refcount: Reference count for output wake line
++ * @work: worker for starting TX
+  * @sys_mpu_enable: Context for the interrupt enable register for irq 0
+  * @sst: Context for the synchronous serial transmitter
+  * @ssr: Context for the synchronous serial receiver
+@@ -103,6 +104,7 @@ struct omap_ssi_port {
+ 	bool			wktest:1; /* FIXME: HACK to be removed */
+ 	unsigned long		flags;
+ 	unsigned int		wk_refcount;
++	struct work_struct	work;
+ 	/* OMAP SSI port context */
+ 	u32			sys_mpu_enable; /* We use only one irq */
+ 	struct omap_ssm_ctx	sst;
 diff --git a/drivers/hsi/controllers/omap_ssi_port.c b/drivers/hsi/controllers/omap_ssi_port.c
-index 7717c769c4dd..f95efabc27b0 100644
+index 0d3452393670..cc56d0ee82a2 100644
 --- a/drivers/hsi/controllers/omap_ssi_port.c
 +++ b/drivers/hsi/controllers/omap_ssi_port.c
-@@ -126,7 +126,7 @@ static int ssi_debug_port_show(struct seq_file *m, void *p __maybe_unused)
- 		seq_printf(m, "BUFFER_CH%d\t: 0x%08x\n", ch,
- 				readl(base + SSI_SSR_BUFFER_CH_REG(ch)));
- 	}
--	pm_runtime_put_sync(omap_port->pdev);
-+	pm_runtime_put_autosuspend(omap_port->pdev);
- 
+@@ -567,12 +567,22 @@ static int ssi_flush(struct hsi_client *cl)
  	return 0;
  }
-@@ -150,7 +150,7 @@ static int ssi_div_get(void *data, u64 *val)
  
- 	pm_runtime_get_sync(omap_port->pdev);
- 	*val = readl(omap_port->sst_base + SSI_SST_DIVISOR_REG);
--	pm_runtime_put_sync(omap_port->pdev);
-+	pm_runtime_put_autosuspend(omap_port->pdev);
++static void start_tx_work(struct work_struct *work)
++{
++	struct omap_ssi_port *omap_port =
++				container_of(work, struct omap_ssi_port, work);
++	struct hsi_port *port = to_hsi_port(omap_port->dev);
++	struct hsi_controller *ssi = to_hsi_controller(port->device.parent);
++	struct omap_ssi_controller *omap_ssi = hsi_controller_drvdata(ssi);
++
++	pm_runtime_get_sync(omap_port->pdev); /* Grab clocks */
++	writel(SSI_WAKE(0), omap_ssi->sys + SSI_SET_WAKE_REG(port->num));
++}
++
+ static int ssi_start_tx(struct hsi_client *cl)
+ {
+ 	struct hsi_port *port = hsi_get_port(cl);
+ 	struct omap_ssi_port *omap_port = hsi_port_drvdata(port);
+-	struct hsi_controller *ssi = to_hsi_controller(port->device.parent);
+-	struct omap_ssi_controller *omap_ssi = hsi_controller_drvdata(ssi);
  
- 	return 0;
- }
-@@ -166,7 +166,7 @@ static int ssi_div_set(void *data, u64 val)
- 	pm_runtime_get_sync(omap_port->pdev);
- 	writel(val, omap_port->sst_base + SSI_SST_DIVISOR_REG);
- 	omap_port->sst.divisor = val;
--	pm_runtime_put_sync(omap_port->pdev);
-+	pm_runtime_put_autosuspend(omap_port->pdev);
+ 	dev_dbg(&port->device, "Wake out high %d\n", omap_port->wk_refcount);
  
- 	return 0;
- }
-@@ -245,7 +245,7 @@ static int ssi_start_dma(struct hsi_msg *msg, int lch)
- 
- 	if (!pm_runtime_active(omap_port->pdev)) {
- 		dev_warn(&port->device, "ssi_start_dma called without runtime PM!\n");
--		pm_runtime_put(omap_port->pdev);
-+		pm_runtime_put_autosuspend(omap_port->pdev);
- 		return -EREMOTEIO;
+@@ -581,10 +591,10 @@ static int ssi_start_tx(struct hsi_client *cl)
+ 		spin_unlock_bh(&omap_port->wk_lock);
+ 		return 0;
  	}
- 
-@@ -254,7 +254,7 @@ static int ssi_start_dma(struct hsi_msg *msg, int lch)
- 							DMA_FROM_DEVICE);
- 		if (err < 0) {
- 			dev_dbg(&ssi->device, "DMA map SG failed !\n");
--			pm_runtime_put(omap_port->pdev);
-+			pm_runtime_put_autosuspend(omap_port->pdev);
- 			return err;
- 		}
- 		csdp = SSI_DST_BURST_4x32_BIT | SSI_DST_MEMORY_PORT |
-@@ -271,7 +271,7 @@ static int ssi_start_dma(struct hsi_msg *msg, int lch)
- 							DMA_TO_DEVICE);
- 		if (err < 0) {
- 			dev_dbg(&ssi->device, "DMA map SG failed !\n");
--			pm_runtime_put(omap_port->pdev);
-+			pm_runtime_put_autosuspend(omap_port->pdev);
- 			return err;
- 		}
- 		csdp = SSI_SRC_BURST_4x32_BIT | SSI_SRC_MEMORY_PORT |
-@@ -317,7 +317,7 @@ static int ssi_start_pio(struct hsi_msg *msg)
- 
- 	if (!pm_runtime_active(omap_port->pdev)) {
- 		dev_warn(&port->device, "ssi_start_pio called without runtime PM!\n");
--		pm_runtime_put(omap_port->pdev);
-+		pm_runtime_put_autosuspend(omap_port->pdev);
- 		return -EREMOTEIO;
- 	}
- 
-@@ -332,7 +332,7 @@ static int ssi_start_pio(struct hsi_msg *msg)
- 						msg->ttype ? "write" : "read");
- 	val |= readl(omap_ssi->sys + SSI_MPU_ENABLE_REG(port->num, 0));
- 	writel(val, omap_ssi->sys + SSI_MPU_ENABLE_REG(port->num, 0));
--	pm_runtime_put(omap_port->pdev);
-+	pm_runtime_put_autosuspend(omap_port->pdev);
- 	msg->actual_len = 0;
- 	msg->status = HSI_STATUS_PROCEEDING;
- 
-@@ -390,7 +390,8 @@ static int ssi_async_break(struct hsi_msg *msg)
- 		spin_unlock_bh(&omap_port->lock);
- 	}
- out:
--	pm_runtime_put(omap_port->pdev);
-+	pm_runtime_mark_last_busy(omap_port->pdev);
-+	pm_runtime_put_autosuspend(omap_port->pdev);
- 
- 	return err;
- }
-@@ -428,7 +429,8 @@ static int ssi_async(struct hsi_msg *msg)
- 		msg->status = HSI_STATUS_ERROR;
- 	}
- 	spin_unlock_bh(&omap_port->lock);
--	pm_runtime_put(omap_port->pdev);
-+	pm_runtime_mark_last_busy(omap_port->pdev);
-+	pm_runtime_put_autosuspend(omap_port->pdev);
- 	dev_dbg(&port->device, "msg status %d ttype %d ch %d\n",
- 				msg->status, msg->ttype, msg->channel);
- 
-@@ -530,7 +532,8 @@ static int ssi_setup(struct hsi_client *cl)
- 	omap_port->ssr.mode = cl->rx_cfg.mode;
- out:
- 	spin_unlock_bh(&omap_port->lock);
--	pm_runtime_put(omap_port->pdev);
-+	pm_runtime_mark_last_busy(omap_port->pdev);
-+	pm_runtime_put_autosuspend(omap_port->pdev);
- 
- 	return err;
- }
-@@ -561,7 +564,7 @@ static int ssi_flush(struct hsi_client *cl)
- 			continue;
- 		writew_relaxed(0, omap_ssi->gdd + SSI_GDD_CCR_REG(i));
- 		if (msg->ttype == HSI_MSG_READ)
--			pm_runtime_put(omap_port->pdev);
-+			pm_runtime_put_autosuspend(omap_port->pdev);
- 		omap_ssi->gdd_trn[i].msg = NULL;
- 	}
- 	/* Flush all SST buffers */
-@@ -585,7 +588,7 @@ static int ssi_flush(struct hsi_client *cl)
- 	for (i = 0; i < omap_port->channels; i++) {
- 		/* Release write clocks */
- 		if (!list_empty(&omap_port->txqueue[i]))
--			pm_runtime_put(omap_port->pdev);
-+			pm_runtime_put_autosuspend(omap_port->pdev);
- 		ssi_flush_queue(&omap_port->txqueue[i], NULL);
- 		ssi_flush_queue(&omap_port->rxqueue[i], NULL);
- 	}
-@@ -595,7 +598,8 @@ static int ssi_flush(struct hsi_client *cl)
- 	pinctrl_pm_select_default_state(omap_port->pdev);
- 
- 	spin_unlock_bh(&omap_port->lock);
--	pm_runtime_put(omap_port->pdev);
-+	pm_runtime_mark_last_busy(omap_port->pdev);
-+	pm_runtime_put_autosuspend(omap_port->pdev);
- 
- 	return 0;
- }
-@@ -649,7 +653,9 @@ static int ssi_stop_tx(struct hsi_client *cl)
- 	writel(SSI_WAKE(0), omap_ssi->sys + SSI_CLEAR_WAKE_REG(port->num));
+-	pm_runtime_get_sync(omap_port->pdev); /* Grab clocks */
+-	writel(SSI_WAKE(0), omap_ssi->sys + SSI_SET_WAKE_REG(port->num));
  	spin_unlock_bh(&omap_port->wk_lock);
  
--	pm_runtime_put(omap_port->pdev); /* Release clocks */
-+	pm_runtime_mark_last_busy(omap_port->pdev);
-+	pm_runtime_put_autosuspend(omap_port->pdev); /* Release clocks */
++	schedule_work(&omap_port->work);
 +
- 
  	return 0;
  }
-@@ -675,7 +681,8 @@ static void ssi_transfer(struct omap_ssi_port *omap_port,
- 		}
- 	}
- 	spin_unlock_bh(&omap_port->lock);
--	pm_runtime_put(omap_port->pdev);
-+	pm_runtime_mark_last_busy(omap_port->pdev);
-+	pm_runtime_put_autosuspend(omap_port->pdev);
- }
  
- static void ssi_cleanup_queues(struct hsi_client *cl)
-@@ -704,7 +711,8 @@ static void ssi_cleanup_queues(struct hsi_client *cl)
- 			txbufstate |= (1 << i);
- 			status |= SSI_DATAACCEPT(i);
- 			/* Release the clocks writes, also GDD ones */
--			pm_runtime_put(omap_port->pdev);
-+			pm_runtime_mark_last_busy(omap_port->pdev);
-+			pm_runtime_put_autosuspend(omap_port->pdev);
- 		}
- 		ssi_flush_queue(&omap_port->txqueue[i], cl);
+@@ -604,9 +614,10 @@ static int ssi_stop_tx(struct hsi_client *cl)
+ 		return 0;
  	}
-@@ -758,8 +766,10 @@ static void ssi_cleanup_gdd(struct hsi_controller *ssi, struct hsi_client *cl)
- 		 * Clock references for write will be handled in
- 		 * ssi_cleanup_queues
- 		 */
--		if (msg->ttype == HSI_MSG_READ)
--			pm_runtime_put(omap_port->pdev);
-+		if (msg->ttype == HSI_MSG_READ) {
-+			pm_runtime_mark_last_busy(omap_port->pdev);
-+			pm_runtime_put_autosuspend(omap_port->pdev);
-+		}
- 		omap_ssi->gdd_trn[i].msg = NULL;
- 	}
- 	tmp = readl_relaxed(omap_ssi->sys + SSI_GDD_MPU_IRQ_ENABLE_REG);
-@@ -807,7 +817,7 @@ static int ssi_release(struct hsi_client *cl)
- 		WARN_ON(omap_port->wk_refcount != 0);
- 	}
- 	spin_unlock_bh(&omap_port->lock);
--	pm_runtime_put(omap_port->pdev);
-+	pm_runtime_put_sync(omap_port->pdev);
+ 	writel(SSI_WAKE(0), omap_ssi->sys + SSI_CLEAR_WAKE_REG(port->num));
+-	pm_runtime_put_sync(omap_port->pdev); /* Release clocks */
+ 	spin_unlock_bh(&omap_port->wk_lock);
  
++	pm_runtime_put(omap_port->pdev); /* Release clocks */
++
  	return 0;
  }
-@@ -954,7 +964,8 @@ static void ssi_pio_complete(struct hsi_port *port, struct list_head *queue)
- 	reg = readl(omap_ssi->sys + SSI_MPU_ENABLE_REG(port->num, 0));
- 	if (msg->ttype == HSI_MSG_WRITE) {
- 		/* Release clocks for write transfer */
--		pm_runtime_put(omap_port->pdev);
-+		pm_runtime_mark_last_busy(omap_port->pdev);
-+		pm_runtime_put_autosuspend(omap_port->pdev);
- 	}
- 	reg &= ~val;
- 	writel_relaxed(reg, omap_ssi->sys + SSI_MPU_ENABLE_REG(port->num, 0));
-@@ -998,7 +1009,9 @@ static irqreturn_t ssi_pio_thread(int irq, void *ssi_port)
- 		/* TODO: sleep if we retry? */
- 	} while (status_reg);
  
--	pm_runtime_put(omap_port->pdev);
-+	pm_runtime_mark_last_busy(omap_port->pdev);
-+	pm_runtime_put_autosuspend(omap_port->pdev);
+@@ -1149,6 +1160,8 @@ static int ssi_port_probe(struct platform_device *pd)
+ 	omap_port->pdev = &pd->dev;
+ 	omap_port->port_id = port_id;
+ 
++	INIT_WORK(&omap_port->work, start_tx_work);
 +
- 	return IRQ_HANDLED;
- }
- 
-@@ -1032,8 +1045,10 @@ static irqreturn_t ssi_wake_thread(int irq __maybe_unused, void *ssi_port)
- 				omap_ssi->sys + SSI_CLEAR_WAKE_REG(port->num));
- 		}
- 		hsi_event(port, HSI_EVENT_STOP_RX);
--		if (test_and_clear_bit(SSI_WAKE_EN, &omap_port->flags))
--			pm_runtime_put_sync(omap_port->pdev);
-+		if (test_and_clear_bit(SSI_WAKE_EN, &omap_port->flags)) {
-+			pm_runtime_mark_last_busy(omap_port->pdev);
-+			pm_runtime_put_autosuspend(omap_port->pdev);
-+		}
- 	}
- 
- 	return IRQ_HANDLED;
-@@ -1222,6 +1237,9 @@ static int ssi_port_probe(struct platform_device *pd)
- 	omap_port->dev = &port->device;
- 
- 	pm_runtime_irq_safe(omap_port->pdev);
-+
-+	pm_runtime_use_autosuspend(omap_port->pdev);
-+	pm_runtime_set_autosuspend_delay(omap_port->pdev, 250);
- 	pm_runtime_enable(omap_port->pdev);
- 
- #ifdef CONFIG_DEBUG_FS
-@@ -1266,6 +1284,8 @@ static int ssi_port_remove(struct platform_device *pd)
- 
- 	omap_ssi->port[omap_port->port_id] = NULL;
- 	platform_set_drvdata(pd, NULL);
-+
-+	pm_runtime_dont_use_autosuspend(&pd->dev);
- 	pm_runtime_disable(&pd->dev);
- 
- 	return 0;
+ 	/* initialize HSI port */
+ 	port->async	= ssi_async;
+ 	port->setup	= ssi_setup;
 -- 
 2.8.1
