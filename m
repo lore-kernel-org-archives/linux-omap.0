@@ -1,30 +1,30 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 2/4] ASoC: tap6130a2: Use regmap
-Date: Sun, 19 Jun 2016 00:33:25 +0200
-Message-ID: <20160618223325.GD5510@earth>
+Subject: Re: [PATCH 3/4] ASoC: tpa6130a2: Use snd soc volsw functions
+Date: Sun, 19 Jun 2016 00:34:48 +0200
+Message-ID: <20160618223448.GE5510@earth>
 References: <cover.1466218805.git.helen.koike@collabora.co.uk>
- <fe75f8da1580cd37309a566eb515598ffb148add.1466218805.git.helen.koike@collabora.co.uk>
+ <d3bebd44d475e2a4560cfa06bf897b04560784b6.1466218805.git.helen.koike@collabora.co.uk>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="C1iGAkRnbeBonpVg"
+	protocol="application/pgp-signature"; boundary="Rgf3q3z9SdmXC6oT"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <fe75f8da1580cd37309a566eb515598ffb148add.1466218805.git.helen.koike@collabora.co.uk>
+In-Reply-To: <d3bebd44d475e2a4560cfa06bf897b04560784b6.1466218805.git.helen.koike@collabora.co.uk>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Helen Koike <helen.koike@collabora.co.uk>
 Cc: lgirdwood@gmail.com, broonie@kernel.org, peter.ujfalusi@ti.com, jarkko.nikula@bitmer.com, lars@metafoo.de, k.kozlowski@samsung.com, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, perex@perex.cz, tiwai@suse.com
 List-Id: linux-omap@vger.kernel.org
 
 
---C1iGAkRnbeBonpVg
+--Rgf3q3z9SdmXC6oT
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Sat, Jun 18, 2016 at 12:26:29AM -0300, Helen Koike wrote:
-> Use regmap instead of open-coding IO access and caching
+On Sat, Jun 18, 2016 at 12:26:30AM -0300, Helen Koike wrote:
+> Use snd_soc_{info,get,put}_volsw instead of custom volume functions
 >=20
 > Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
 > [koike: port for upstream]
@@ -35,25 +35,25 @@ Tested-By: Sebastian Reichel <sre@kernel.org>
 
 -- Sebastian
 
---C1iGAkRnbeBonpVg
+--Rgf3q3z9SdmXC6oT
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBCgAGBQJXZcw1AAoJENju1/PIO/qanFYP/2w8E6VKpBUZ1dXJyDxLpM5e
-qUvRUVb+GVHRcPdAADnQ4/KQ3o+IZ9f+vzJrHdxH+lhm7QaSK5U6yovd+sNtxh9L
-ipf7ajlursRSwT8cyra6d0kqVy/ddQDJdvBaZgsQbZ0tUq989XRJoV0UPl/1RB75
-2XIlnOYw+ZS5f1L2vpNeSt8N/yNGQ+eQD4+300VnOaF0ep3NkaGOU+tfl1bIlrdI
-jG+TuGN5WJXbeNL77nEqlV5Xnby/4+fOXjss92xgjEbsFF0MucBikTk0BkPSSORQ
-eOmplZ/nzLHCEOk5vf/PSd42s1LQrefM2X4h30jThoWpn0I8D58kok3ZGd/ePdSM
-H6T5Qp48834ZggxWpCRCVPz4TWmriwLAbFKD/cdN1B0D6DEjXx3Lc85jvziXvQO/
-Ef5FtNq61kqPb1GhBjzu0WMpNDAGJP4AEehreXFaxnUSDD8beoEsR/6SEPJ4BJPa
-aQH567om6pqqTRNMCWVQtAxO6u2gjN7b4ZTyNQRXGOTBtbtMzWE277l2BooCS1qW
-PrwCkTYXXFzKfa/RPs5p6oa89rUYljTo4ZPmUsFAHPcqs0nKTjZy5W2kF0gqfUSe
-GAflNPigWcD1jcrNQMYJmKfqs8qA1DJci0j45sr7sbyfw1iU4HC9VY9N5s29F45n
-0ImWVASPboU/iZUpbMud
-=J+i+
+iQIcBAEBCgAGBQJXZcyIAAoJENju1/PIO/qaeJQP/027t6Z8gQeoa/lFfWlyd4C3
+TJeNnSYVp2y+7zx8VHc3/eiZwADAN0i8XYn3wzIuKuLbyKgTUPHyng9tNSrqwIKP
+NRgg29bA+61oXSbemNWpiVe8vunH1ZNlv0XqgKNpQIiSrgHT6RQqJZqKqAha4QqZ
+SG+KSqhkcSbB5+pmLWrqLk5m0F5M0xWLy40eGrvMKoqCXgYQGy659aQW5dXqZCVP
+mEbcwLCxr6Et8bBJfZaSJvxitJrbp3hbMSCRIyj4HTeZSS6Xfn3PcGxlyKXfN8VX
+kh7MScTPIwmMUuBEr/OmXHB+YKMtIqhIoq3cIBQRSfJd4CeQhF1+HKmeHwT4MKMC
+U1ZJZ2oRaF96xaIjz0MwKfDmQXQppxd2QqAs6TlmisBCrSbDhTQUnYENRF33r0kD
+I5SvDVbuQfRPGIRnVkvKRa4AL+xjhT81X5uLvIxtQn4E0jiStRnSQTWkGEGJrgz/
+0WyOIi76Ve3kmTdtoMDloBqcdAcY6578Mgb/d8Oktmt5ZYnkPVJDJsvOilcJ3358
+Lll/DS7fn/fhOL8P7JXHffUr8P8O3dFiJBoi5eYtTaMiSV8+/UcRo8z2o263dq6b
+C0jJoPTAl5r5mU/5RG+dzU3joLfBXPivhjfPp9twNs/IDS3wJqccypftQLWeQygC
+LNEsCeAbZw1zOmGg9TMQ
+=YeBJ
 -----END PGP SIGNATURE-----
 
---C1iGAkRnbeBonpVg--
+--Rgf3q3z9SdmXC6oT--
