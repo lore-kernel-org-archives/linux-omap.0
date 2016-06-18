@@ -1,52 +1,66 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] userspace API definitions for auto-focus coil
-Date: Sat, 18 Jun 2016 17:38:46 +0200
-Message-ID: <20160618153846.GA15662@amd>
-References: <20160602074544.GR26360@valkosipuli.retiisi.org.uk>
- <20160602193027.GB7984@amd>
- <20160602212746.GT26360@valkosipuli.retiisi.org.uk>
- <20160605190716.GA11321@amd>
- <575512E5.5030000@gmail.com>
- <20160611220654.GC26360@valkosipuli.retiisi.org.uk>
- <20160612084811.GA27446@amd>
- <20160612112253.GD26360@valkosipuli.retiisi.org.uk>
- <20160613191753.GA17459@amd>
- <20160617213545.GH24980@valkosipuli.retiisi.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sebastian Reichel <sre@kernel.org>
+Subject: [RFC 00/19] Runtime PM fixes for omap-ssi
+Date: Sat, 18 Jun 2016 18:26:50 +0200
+Message-ID: <1466267229-25012-1-git-send-email-sre@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160617213545.GH24980@valkosipuli.retiisi.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+Hi,
 
-> > Not V4L2_CID_USER_AD5820...?
-> 
-> The rest of the controls have no USER as part of the macro name, so I
-> wouldn't use it here either.
+This series fixes runtime PM for omap-ssi, so that
+the OMAP SoC can idle correctly. After applying the
+series, the SSI module correctly goes into idle if
+phonet0 interface is not configured or if it's
+used by ofono (*). Apart from me Pavel Machek did
+some testing of my devel branch [0] and reported,
+that he was able to get the phone into full idle.
 
-Ok.
+Note: I did my testing with kernel flashing over USB, so
+idle is broken. But I found the bit in cm_idlest1_core,
+that stands for SSI blocking status: 0x00800000 (documented
+as "reserved" in the public TRM).
 
-> > Ok, separate header file for 2 lines seemed like a bit of overkill,
-> > but why not.
-> 
-> That follows an existing pattern of how controls have been implemented in
-> other drivers.
+(*) "ifconfig phonet0 up" will result in blocking ssi module
+    until modem setup has finished (data communication via
+	phonet0 device), since it enables ssi wakelines.
 
-Ok.
+[0] https://git.kernel.org/cgit/linux/kernel/git/sre/linux-hsi.git/log/?h=runtime-pm-fixes
 
-> Could you merge this with the driver patch? I've dropped that from my ad5820
-> branch as it does not compile.
+-- Sebastian
 
-Yes, merged patch should be in your inbox now.
+Sebastian Reichel (19):
+  HSI: omap_ssi_port: remove useless newline
+  HSI: omap_ssi: do not reset module
+  HSI: ssi_protocol: avoid ssi_waketest call with held spinlock
+  HSI: ssi_protocol: replace spin_lock with spin_lock_bh
+  HSI: ssi_protocol: fix ssip_xmit invocation
+  HSI: omap_ssi: convert cawake irq handler to thread
+  HSI: omap_ssi_port: replace wkin_cken with atomic bitmap operations
+  HSI: core: switch port event notifier from atomic to blocking
+  HSI: omap_ssi_port: prepare start_tx/stop_tx for blocking pm_runtime
+    calls
+  HSI: omap_ssi_core: use pm_runtime_put instead of pm_runtime_put_sync
+  HSI: omap_ssi_core: remove pm_runtime_get_sync call from tasklet
+  HSI: omap_ssi_port: switch to threaded pio irq
+  HSI: omap_ssi_port: avoid pm_runtime_get_sync in ssi_start_dma and
+    ssi_start_pio
+  HSI: omap_ssi_port: avoid calling runtime_pm_*_sync inside spinlock
+  HSI: omap_ssi_port: replace pm_runtime_put_sync with non-sync variant
+  HSI: omap_ssi_port: ensure clocks are kept enabled during transfer
+  HSI: omap_ssi: call msg->complete() from process context
+  HSI: omap_ssi_port: use rpm autosuspend API
+  HSI: omap_ssi: drop pm_runtime_irq_safe
 
-Thanks,
-									Pavel
+ drivers/hsi/clients/ssi_protocol.c      | 110 +++++++++-------
+ drivers/hsi/controllers/omap_ssi.h      |  18 +--
+ drivers/hsi/controllers/omap_ssi_core.c |  46 +++----
+ drivers/hsi/controllers/omap_ssi_port.c | 226 ++++++++++++++++++--------------
+ drivers/hsi/hsi_core.c                  |   8 +-
+ include/linux/hsi/hsi.h                 |   2 +-
+ 6 files changed, 229 insertions(+), 181 deletions(-)
 
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+2.8.1
