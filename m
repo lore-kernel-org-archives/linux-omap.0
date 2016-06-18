@@ -1,59 +1,59 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 3/4] ASoC: tpa6130a2: Use snd soc volsw functions
-Date: Sun, 19 Jun 2016 00:34:48 +0200
-Message-ID: <20160618223448.GE5510@earth>
+Subject: Re: [PATCH 4/4] ASoC: tpa6130a2: Add DAPM support
+Date: Sun, 19 Jun 2016 01:21:31 +0200
+Message-ID: <20160618232131.GF5510@earth>
 References: <cover.1466218805.git.helen.koike@collabora.co.uk>
- <d3bebd44d475e2a4560cfa06bf897b04560784b6.1466218805.git.helen.koike@collabora.co.uk>
+ <2aed60529eea206f2192a7236f2d80386a73f2ee.1466218805.git.helen.koike@collabora.co.uk>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="Rgf3q3z9SdmXC6oT"
+	protocol="application/pgp-signature"; boundary="1Y7d0dPL928TPQbc"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <d3bebd44d475e2a4560cfa06bf897b04560784b6.1466218805.git.helen.koike@collabora.co.uk>
+In-Reply-To: <2aed60529eea206f2192a7236f2d80386a73f2ee.1466218805.git.helen.koike@collabora.co.uk>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Helen Koike <helen.koike@collabora.co.uk>
 Cc: lgirdwood@gmail.com, broonie@kernel.org, peter.ujfalusi@ti.com, jarkko.nikula@bitmer.com, lars@metafoo.de, k.kozlowski@samsung.com, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, perex@perex.cz, tiwai@suse.com
 List-Id: linux-omap@vger.kernel.org
 
 
---Rgf3q3z9SdmXC6oT
+--1Y7d0dPL928TPQbc
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Sat, Jun 18, 2016 at 12:26:30AM -0300, Helen Koike wrote:
-> Use snd_soc_{info,get,put}_volsw instead of custom volume functions
->=20
-> Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
-> [koike: port for upstream]
-> Signed-off-by: Helen Koike <helen.koike@collabora.co.uk>
+On Sat, Jun 18, 2016 at 12:26:31AM -0300, Helen Koike wrote:
+> Add DAPM support and updated rx51 accordingly.
+> As a consequence:
+> - the exported function tpa6130a2_stereo_enable is not needed anymore
+> - the mutex is dealt in the DAPM
+> - the power state is tracked by the DAPM
 
-[On N900]
-Tested-By: Sebastian Reichel <sre@kernel.org>
+This breaks headphone on N900. So far I only checked, that
+tpa6130a2_power_event() is not called. I guess the DAPM
+graph is wrong.
 
 -- Sebastian
 
---Rgf3q3z9SdmXC6oT
+--1Y7d0dPL928TPQbc
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBCgAGBQJXZcyIAAoJENju1/PIO/qaeJQP/027t6Z8gQeoa/lFfWlyd4C3
-TJeNnSYVp2y+7zx8VHc3/eiZwADAN0i8XYn3wzIuKuLbyKgTUPHyng9tNSrqwIKP
-NRgg29bA+61oXSbemNWpiVe8vunH1ZNlv0XqgKNpQIiSrgHT6RQqJZqKqAha4QqZ
-SG+KSqhkcSbB5+pmLWrqLk5m0F5M0xWLy40eGrvMKoqCXgYQGy659aQW5dXqZCVP
-mEbcwLCxr6Et8bBJfZaSJvxitJrbp3hbMSCRIyj4HTeZSS6Xfn3PcGxlyKXfN8VX
-kh7MScTPIwmMUuBEr/OmXHB+YKMtIqhIoq3cIBQRSfJd4CeQhF1+HKmeHwT4MKMC
-U1ZJZ2oRaF96xaIjz0MwKfDmQXQppxd2QqAs6TlmisBCrSbDhTQUnYENRF33r0kD
-I5SvDVbuQfRPGIRnVkvKRa4AL+xjhT81X5uLvIxtQn4E0jiStRnSQTWkGEGJrgz/
-0WyOIi76Ve3kmTdtoMDloBqcdAcY6578Mgb/d8Oktmt5ZYnkPVJDJsvOilcJ3358
-Lll/DS7fn/fhOL8P7JXHffUr8P8O3dFiJBoi5eYtTaMiSV8+/UcRo8z2o263dq6b
-C0jJoPTAl5r5mU/5RG+dzU3joLfBXPivhjfPp9twNs/IDS3wJqccypftQLWeQygC
-LNEsCeAbZw1zOmGg9TMQ
-=YeBJ
+iQIcBAEBCgAGBQJXZdd4AAoJENju1/PIO/qa6SwP/1mVFmKCisiccYDwyV4+wJY4
+G7Kwiis2ogYzPbYm1ukYD6JjjhNio1/A6yUujEzS07V+B/XWgWQ0/gIX9ySYFhXZ
+YBrxLhPUQhXjWuJSiXQT8FzUxIdQ2td6zXn34xs498XsRniupvIkb9p2u1l5LZp7
+km/JhAVJgluuo0Sp+3a+62Yf7m5T4Ry/j24hEG3IlFMeYU8s5BIsT3042//45F3k
+jvGfxMe5Ua3ytYVpJje0WF/u12GiI6ro69d/x8/pZDN4OZ1ZgHZqXvxYKmCTv2w1
+QYdCkk6M5C85J1wqx1HAJsR0g+BRqhcqvyYJsRIK1CvAgzoAVYmS6jfyYZ4X/H8+
+v0nd/C5t8trApk0diFB2/euc+R8yQBYkYt8EEEIOuJl9OilJq5x1yd0UT3K1tJwb
+jcBMq2HpRc83RUKYwOu0B4kwwMJLefUt/CxKUJD+a4Kt6GCRzXveTclmRK2cMfp2
+bQ8A/9S93CgBcjaD8pmYzcyVkTCBpdLuAdo0LYp4/PEcoqwV5TQqSXhft7Lk+K6m
+oWzKSo6FiIH7xDPO7+uDaCXCSl9u0CPVsxQOryV2QOu/zhgU5IM+1u0OKVDSwPtG
+SVwq10LtDkkd3KOQ70oz3l+9VixfE79lL20qFsDUgb5S7eVvpFdn1y174p9hn0OS
+B1TZ+z3L9tRa2c/OBYn9
+=bGow
 -----END PGP SIGNATURE-----
 
---Rgf3q3z9SdmXC6oT--
+--1Y7d0dPL928TPQbc--
