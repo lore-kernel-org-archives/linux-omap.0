@@ -1,59 +1,80 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 4/4] ASoC: tpa6130a2: Add DAPM support
-Date: Sun, 19 Jun 2016 01:21:31 +0200
-Message-ID: <20160618232131.GF5510@earth>
-References: <cover.1466218805.git.helen.koike@collabora.co.uk>
- <2aed60529eea206f2192a7236f2d80386a73f2ee.1466218805.git.helen.koike@collabora.co.uk>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+Subject: Re: [PATCH] gpio: omap: make gpio numbering deterministical by using
+ of aliases
+Date: Sun, 19 Jun 2016 03:08:23 +0200
+Message-ID: <20160619010823.GC26875@pengutronix.de>
+References: <1465898604-16294-1-git-send-email-u.kleine-koenig@pengutronix.de>
+ <CACRpkdaVRTj4jpGQp9nDKo8RAPDPUaApp4jAdBGRgd45bqo2zQ@mail.gmail.com>
+ <20160615072404.GB26768@pengutronix.de>
+ <CACRpkdYK1C5px+A_O1sF99KTPTob9qTQpipEaRLHnNx5=AokLg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="1Y7d0dPL928TPQbc"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-gpio-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <2aed60529eea206f2192a7236f2d80386a73f2ee.1466218805.git.helen.koike@collabora.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Helen Koike <helen.koike@collabora.co.uk>
-Cc: lgirdwood@gmail.com, broonie@kernel.org, peter.ujfalusi@ti.com, jarkko.nikula@bitmer.com, lars@metafoo.de, k.kozlowski@samsung.com, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, perex@perex.cz, tiwai@suse.com
+In-Reply-To: <CACRpkdYK1C5px+A_O1sF99KTPTob9qTQpipEaRLHnNx5=AokLg@mail.gmail.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Mark Rutland <mark.rutland@arm.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Kevin Hilman <khilman@kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Santosh Shilimkar <ssantosh@kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Hello Linus,
 
---1Y7d0dPL928TPQbc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Sat, Jun 18, 2016 at 10:25:45AM +0200, Linus Walleij wrote:
+> On Wed, Jun 15, 2016 at 9:24 AM, Uwe Kleine-K=F6nig
+> <u.kleine-koenig@pengutronix.de> wrote:
+> > On Wed, Jun 15, 2016 at 08:56:58AM +0200, Linus Walleij wrote:
+>=20
+> >> The GPIO numbering scheme is a matter of Linux internals and
+> >> not about hardware description IMO.
+> >
+> > Not sure if I should agree here or not. It's very usual that the
+> > "internal" gpio numbers match the hardware reference manual. I know=
+ this
+> > from imx, at91, all pre-dt platforms, I'm sure there are more, and =
+I bet
+> > I'm not the only one relying on this for omap.
+>=20
+> I think it will still match nicely against the chip-local offsets of =
+the
+> primary gpiochip so it'll be fine with a chardev too. The same was/is
 
-Hi,
+I cannot follow. What is the primary gpiochip? The first one? What is a
+"chip-local offset". Just 3 for the fourth gpio of a given gpio bank?
+I guess the problem is that I didn't follow development of the gpio
+chardev.
 
-On Sat, Jun 18, 2016 at 12:26:31AM -0300, Helen Koike wrote:
-> Add DAPM support and updated rx51 accordingly.
-> As a consequence:
-> - the exported function tpa6130a2_stereo_enable is not needed anymore
-> - the mutex is dealt in the DAPM
-> - the power state is tracked by the DAPM
+> the case of the first interrupts on x86 I think, but with the plethor=
+a of
+> irqchips and dependency on probe order etc the assumption is
+> nowadays to dangerous.
+>=20
+> >
+> > And this is very usual in the dt world, too:
+> >
+> > $ git grep -El 'gpio. =3D \&gpio' arch/arm/boot/dts | wc -l
+> > 37
+>=20
+> Aha I didn't even know. Well I guess I could allow it for OMAP too
+> then, but I want an ACK from one of the DT binding maintainers.
 
-This breaks headphone on N900. So far I only checked, that
-tpa6130a2_power_event() is not called. I guess the DAPM
-graph is wrong.
+I added Rob, Frank, Mark and the device tree list to the recipients of
+this mail. Can you please comment? There is already a v2 that you can
+find at http://thread.gmane.org/gmane.linux.kernel.gpio/17399/ in case
+it didn't hit your mailbox. If you tell me that you want it, I can also
+bounce you the series.
 
--- Sebastian
+Best regards
+Uwe
 
---1Y7d0dPL928TPQbc
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJXZdd4AAoJENju1/PIO/qa6SwP/1mVFmKCisiccYDwyV4+wJY4
-G7Kwiis2ogYzPbYm1ukYD6JjjhNio1/A6yUujEzS07V+B/XWgWQ0/gIX9ySYFhXZ
-YBrxLhPUQhXjWuJSiXQT8FzUxIdQ2td6zXn34xs498XsRniupvIkb9p2u1l5LZp7
-km/JhAVJgluuo0Sp+3a+62Yf7m5T4Ry/j24hEG3IlFMeYU8s5BIsT3042//45F3k
-jvGfxMe5Ua3ytYVpJje0WF/u12GiI6ro69d/x8/pZDN4OZ1ZgHZqXvxYKmCTv2w1
-QYdCkk6M5C85J1wqx1HAJsR0g+BRqhcqvyYJsRIK1CvAgzoAVYmS6jfyYZ4X/H8+
-v0nd/C5t8trApk0diFB2/euc+R8yQBYkYt8EEEIOuJl9OilJq5x1yd0UT3K1tJwb
-jcBMq2HpRc83RUKYwOu0B4kwwMJLefUt/CxKUJD+a4Kt6GCRzXveTclmRK2cMfp2
-bQ8A/9S93CgBcjaD8pmYzcyVkTCBpdLuAdo0LYp4/PEcoqwV5TQqSXhft7Lk+K6m
-oWzKSo6FiIH7xDPO7+uDaCXCSl9u0CPVsxQOryV2QOu/zhgU5IM+1u0OKVDSwPtG
-SVwq10LtDkkd3KOQ70oz3l+9VixfE79lL20qFsDUgb5S7eVvpFdn1y174p9hn0OS
-B1TZ+z3L9tRa2c/OBYn9
-=bGow
------END PGP SIGNATURE-----
-
---1Y7d0dPL928TPQbc--
+--=20
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
+    |
+Industrial Linux Solutions                 | http://www.pengutronix.de/=
+  |
+--
+To unsubscribe from this list: send the line "unsubscribe linux-gpio" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
