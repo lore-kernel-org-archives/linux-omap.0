@@ -1,14 +1,14 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] omap rcu and fiq fixes for v4.7 merge window
-Date: Sat, 18 Jun 2016 22:22:27 -0700
-Message-ID: <20160619052227.GC11958@localhost>
-References: <20160617160754.GF22406@atomide.com>
+Subject: Re: [GIT PULL] omap fixes for v4.7-rc cycle
+Date: Sat, 18 Jun 2016 22:58:48 -0700
+Message-ID: <20160619055848.GA16376@localhost>
+References: <20160614081101.GV22406@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20160617160754.GF22406@atomide.com>
+In-Reply-To: <20160614081101.GV22406@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,35 +22,38 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jun 17, 2016 at 09:07:54AM -0700, Tony Lindgren wrote:
-> The following changes since commit f55532a0c0b8bb6148f4e07853b876ef73bc69ca:
+On Tue, Jun 14, 2016 at 01:11:02AM -0700, Tony Lindgren wrote:
+> The following changes since commit af8c34ce6ae32addda3788d54a7e340cad22516b:
 > 
->   Linux 4.6-rc1 (2016-03-26 16:03:24 -0700)
+>   Linux 4.7-rc2 (2016-06-05 14:31:26 -0700)
 > 
 > are available in the git repository at:
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/fixes-rcu-fiq-signed
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.7/fixes-powedomain
 > 
-> for you to fetch changes up to d279f7a7e95af6bb4b5eaea3527d1f85a28c5cf6:
+> for you to fetch changes up to 6b41d44862e8f3a4b95102c6ff6cad3fccc7994b:
 > 
->   ARM: dts: am437x-sk-evm: Reduce i2c0 bus speed for tps65218 (2016-06-17 02:59:04 -0700)
+>   ARM: OMAP: DRA7: powerdomain data: Remove unused pwrsts_mem_ret (2016-06-13 01:04:01 -0700)
 > 
 > ----------------------------------------------------------------
 > Fixes for omaps for v4.7-rc cycle:
 > 
-> - Two boot warning fixes from the RCU tree that should have gotten
->   merged several weeks ago already but did not because of issues
->   with who merges them. Paul has now split the RCU warning fixes into
->   sets for various maintainers.
+> - Fix dra7 for hardware issues limiting L4Per and L3init power domains
+>   to on state. Without this the devices may not work correctly after
+>   some time of use because of asymmetric aging. And related to this,
+>   let's also remove the unusable states.
 > 
-> - Fix ams-delta FIQ regression caused by omap1 sparse IRQ changes
+> - Always select omap interconnect for am43x as otherwise the am43x
+>   only configurations will not boot properly. This can happen easily
+>   for any product kernels that leave out other SoCs to save memory.
 > 
-> - Fix PM for omap3 boards using timer12 and gptimer, like the
->   original beagleboard
+> - Fix DSS PLL2 addresses that have gone unused for now
 > 
-> - Fix hangs on am437x-sk-evm by lowering the I2C bus speed
+> - Select erratum 430973 for omap3, this is now safe to do and can
+>   save quite a bit of debugging time for people who may have left
+>   it out.
 
-Merged, thanks!
+Grmbl, our fixes branch was only at -rc1, but I merged this anyway.
 
 
 -Olof
