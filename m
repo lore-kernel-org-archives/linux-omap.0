@@ -1,60 +1,97 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] omap-gpmc fixes for v4.7 rc cycle
-Date: Sat, 18 Jun 2016 23:01:06 -0700
-Message-ID: <20160619060106.GB16376@localhost>
-References: <57626DF2.70907@ti.com>
+From: Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH 4/4] ASoC: tpa6130a2: Add DAPM support
+Date: Sun, 19 Jun 2016 11:39:15 +0200
+Message-ID: <57666843.2020604@metafoo.de>
+References: <cover.1466218805.git.helen.koike@collabora.co.uk>
+ <2aed60529eea206f2192a7236f2d80386a73f2ee.1466218805.git.helen.koike@collabora.co.uk>
+ <20160618232131.GF5510@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <57626DF2.70907@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, arm@kernel.org, SebastienOcquidant@Eaton.com, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/mixed; boundary="===============7265928433589657001=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20160618232131.GF5510@earth>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Sebastian Reichel <sre@kernel.org>, Helen Koike <helen.koike@collabora.co.uk>
+Cc: alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, tiwai@suse.com, k.kozlowski@samsung.com, lgirdwood@gmail.com, peter.ujfalusi@ti.com, broonie@kernel.org, linux-omap@vger.kernel.org, jarkko.nikula@bitmer.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 16, 2016 at 12:14:26PM +0300, Roger Quadros wrote:
-> Hi Arnd/Olof,
-> 
-> The following changes since commit 5edb56491d4812c42175980759da53388e5d86f5:
-> 
->   Linux 4.7-rc3 (2016-06-12 07:20:35 -0700)
-> 
-> are available in the git repository at:
-> 
->   https://github.com/rogerq/linux.git tags/gpmc-omap-fixes-for-v4.7
-> 
-> for you to fetch changes up to 8f50b8e57442d28e41bb736c173d8a2490549a82:
-> 
->   memory: omap-gpmc: Fix omap gpmc EXTRADELAY timing (2016-06-16 11:43:48 +0300)
-> 
-> ----------------------------------------------------------------
-> OMAP-GPMC: Fixes for for v4.7-rc cycle:
-> 
-> - Fix omap gpmc EXTRADELAY timing. The DT provided timings
-> were wrongly used causing devices requiring extra delay timing
-> to fail.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--===============7265928433589657001==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="ECqn3XmgfkV6ebxCSNkUbkHE6Xcw6eBDp"
 
-So, our fixes branch is at 4.7-rc1, so now you force us to bring in -rc3 just
-because of this one patch. That's a little annoying. Base your branch on an
-older release if it makes sense, and/or take a look at what release our
-branch is on if you think of it. :)
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--ECqn3XmgfkV6ebxCSNkUbkHE6Xcw6eBDp
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-It's not a huge deal but the main disadvantage is that git request-pull
-sometimes gets confused of what's actually in the branch and not, so it might
-produce an incorrect pull request. We normally don't have to deal with that on
-fixes, only what we stage for the merge windows.
+On 06/19/2016 01:21 AM, Sebastian Reichel wrote:
+> Hi,
+>=20
+> On Sat, Jun 18, 2016 at 12:26:31AM -0300, Helen Koike wrote:
+>> Add DAPM support and updated rx51 accordingly.
+>> As a consequence:
+>> - the exported function tpa6130a2_stereo_enable is not needed anymore
+>> - the mutex is dealt in the DAPM
+>> - the power state is tracked by the DAPM
+>=20
+> This breaks headphone on N900. So far I only checked, that
+> tpa6130a2_power_event() is not called. I guess the DAPM
+> graph is wrong.
 
-Anyhow, I've merged this for now.
+Can you try with
+
++	{"TPA6130A2 HPLEFT", NULL, "LLOUT"},
++	{"TPA6130A2 HPRIGHT", NULL, "RLOUT"}
+
+being replaced with
+
++       {"TPA6130A2 LEFTIN", NULL, "LLOUT"},
++       {"TPA6130A2 RIGHTIN", NULL, "RLOUT"},
+
+Thanks,
+- Lars
 
 
--Olof
+
+--ECqn3XmgfkV6ebxCSNkUbkHE6Xcw6eBDp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJXZmhKAAoJEOj3aLScRbOZ1+EP/jwQj/N9qQZA7KJ1xETgzWn8
+MVhRgzAok3jw+Xnf3gQTLd5CphAuQYlT+V0/muzuvV1ohJXyojgehRKB+MwwMdI7
+bOrhvXwW5WeLnWvlaAc0Ux/Ae2jetQsnqkh7cpXojPKHTL+n7obsgeJD3I59rQYI
+B9Nbf1bllx+JEfp8bHqkMUL3Xo4eZSPQS63OqpBYDIkqXx6A1p2Dw7O0Rn1EGtEZ
+Idq4dl11gkcwUFgg9FBVzfCcIYjC3e7GuxYOCY5IIR6IHltrDD47im/umDoyLKMR
+Oee8VCO5vq5N04agemgLVLaHymosTki/CQYONRxofmzmY+PYO5qgQL0ZUMLJoosE
+K9lxJP81yBpo7Yh2PZWtm4RVQ6ukQZkjBtoDOocrmS8VxK4LhIk6wIZC8QaOl4eS
+UdPb1/roYBw13U7hT6LObaYP1VADezdAi8EVYuQ3LD+QD68bRgxS62djUDaOiAJ7
+HHsDDzfDxFm5cA2J5mcxXzGzS7riUIHz3oowAbwG+vgEOXRCyPf/U7rdEA30EiFm
+3iOPXscctHpJLK1zgCeVH+6WlKATsis5mz6ZkFTl31aYQoqvLZmi9pNh1X0fpsh+
+Pf4G09ewMR49du5OVnpovCadIbaIxoyR6mHkwZyXTbCPl3AsYLQdiMxlh19CuGfg
+BTw1Nuw05GWAcM+fkTSF
+=Q/7I
+-----END PGP SIGNATURE-----
+
+--ECqn3XmgfkV6ebxCSNkUbkHE6Xcw6eBDp--
+
+--===============7265928433589657001==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============7265928433589657001==--
