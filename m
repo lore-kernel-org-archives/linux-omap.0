@@ -1,79 +1,98 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 4/4] ASoC: tpa6130a2: Add DAPM support
-Date: Sun, 19 Jun 2016 22:03:01 +0200
-Message-ID: <20160619200300.GB15429@earth>
+Subject: Re: [PATCH 0/4] ASoC: tpa6130a2: Add support for
+	multiple instances
+Date: Sun, 19 Jun 2016 22:14:14 +0200
+Message-ID: <20160619201413.GC15429@earth>
 References: <cover.1466218805.git.helen.koike@collabora.co.uk>
- <2aed60529eea206f2192a7236f2d80386a73f2ee.1466218805.git.helen.koike@collabora.co.uk>
- <20160618232131.GF5510@earth>
- <57666843.2020604@metafoo.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="hQiwHBbRI9kgIhsi"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <57666843.2020604@metafoo.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Helen Koike <helen.koike@collabora.co.uk>, lgirdwood@gmail.com, broonie@kernel.org, peter.ujfalusi@ti.com, jarkko.nikula@bitmer.com, k.kozlowski@samsung.com, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, perex@perex.cz, tiwai@suse.com
+Content-Type: multipart/mixed; boundary="===============2272149252706949631=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <cover.1466218805.git.helen.koike@collabora.co.uk>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Helen Koike <helen.koike@collabora.co.uk>
+Cc: k.kozlowski@samsung.com, lars@metafoo.de, alsa-devel@alsa-project.org, tiwai@suse.com, lgirdwood@gmail.com, linux-kernel@vger.kernel.org, peter.ujfalusi@ti.com, broonie@kernel.org, linux-omap@vger.kernel.org, jarkko.nikula@bitmer.com
 List-Id: linux-omap@vger.kernel.org
 
 
---hQiwHBbRI9kgIhsi
+--===============2272149252706949631==
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="5QAgd0e35j3NYeGe"
+Content-Disposition: inline
+
+
+--5QAgd0e35j3NYeGe
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Sun, Jun 19, 2016 at 11:39:15AM +0200, Lars-Peter Clausen wrote:
-> On 06/19/2016 01:21 AM, Sebastian Reichel wrote:
-> > On Sat, Jun 18, 2016 at 12:26:31AM -0300, Helen Koike wrote:
-> >> Add DAPM support and updated rx51 accordingly.
-> >> As a consequence:
-> >> - the exported function tpa6130a2_stereo_enable is not needed anymore
-> >> - the mutex is dealt in the DAPM
-> >> - the power state is tracked by the DAPM
-> >=20
-> > This breaks headphone on N900. So far I only checked, that
-> > tpa6130a2_power_event() is not called. I guess the DAPM
-> > graph is wrong.
+On Sat, Jun 18, 2016 at 12:26:27AM -0300, Helen Koike wrote:
+> The current tpa6130a2 driver supports only a single instance.
+> This patch series add support for multiple instances by removing the glob=
+al
+> variable that holds the instance.
+> This is performed by using the component API, regmap, the
+> snd_soc_{info,put,get}_volsw API and DAPM.
 >=20
-> Can you try with
+> This patch series also touches code from the Nokia RX51 which I didn't te=
+sted (as
+> I am testing the tpa6130a2 in another board that is not upstream).
+> I would appreciate is if someone who possesses the Nokia RX51 (n900) coul=
+d please
+> test the code.
 >=20
-> +	{"TPA6130A2 HPLEFT", NULL, "LLOUT"},
-> +	{"TPA6130A2 HPRIGHT", NULL, "RLOUT"}
->=20
-> being replaced with
->=20
-> +       {"TPA6130A2 LEFTIN", NULL, "LLOUT"},
-> +       {"TPA6130A2 RIGHTIN", NULL, "RLOUT"},
+> This patch series is based on git://git.kernel.org/pub/scm/linux/kernel/g=
+it/broonie/sound.git for-next
+> Available at https://git.collabora.com/cgit/user/koike/linux.git/log/?h=
+=3Dsound/review/tpa6130a2
 
-With that change:
+Locking at the resulting tpa6130a2.c I suggest to add a patch
+removing the useless "goto err_gpio" in tpa6130a2_probe().
 
-Tested-By: Sebastian Reichel <sre@kernel.org>
-Reviewed-By: Sebastian Reichel <sre@kernel.org>
+Also switching to gpiod_get() safes some more lines of code.
+It may make sense to postpone this to 4.9, though (this change
+involves removing the gpio from the platform data and the rx51
+will become DT only in 4.8).
 
 -- Sebastian
 
---hQiwHBbRI9kgIhsi
+--5QAgd0e35j3NYeGe
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBCgAGBQJXZvpxAAoJENju1/PIO/qa//sP/0j3KQo+iJIXi1E4UvAVtd5N
-Ws50Def3HIwcHy0W4D01zaLIH+lnmUbnuSws7Zr7l/83ojZnkX7GMODWRfBK1f43
-nyTzlO9vhVJSeRV9t916ya88gtSlkc/RR+v0wWvXvnjR78YCvIp29s/OMuZBS/rT
-7CGZWHjrFZC8apv4jTFEwGkE4XZEsK2JaL0SbSKtJ4PRLaNmRIXZjS9fcD+JGYLP
-ibCwfLX7oGNOf1pfqUJApHo6Teaahq6jmL3YoBICxjOujpuV/SaDhL7RHGKUL+aO
-kDuKLpOgCwXS+Gax3sQYVMBST61y3hvYPX6n8RuzVoujrYlP6NjEXe5YMOkRaRjX
-j3Iv6hLd37T8MmU0sfSbgWePuN/OG8z0uAWuuxSx4a0OWDZCU14dsxvkVacqWb7y
-g3IRtwV5D9jIt1cAfgo9gvxwVEt4ILrkXV7uklmNB97MdR6kaXeuXtQebxFDysdo
-3nZ77u6w1VR0xnPBGU7ctgoiQtX89hIA9+X+2n2va9sgvvs7ZqOOa0pdOxhXNzFn
-wWv6SKhb0hvtdWsNmDZnma3TWKVkaCuelsMpuOAA9fUC5HRKFxdR8VLv7UwT+8li
-NzwpcVUQZDQXvGG2hEOj88gXkWjbF+jDAbjM433viLScBlnasoyEZ+FNC+f04nB8
-dIuaKhXPooD3FJSq1ZmR
-=mU+9
+iQIcBAEBCgAGBQJXZv0NAAoJENju1/PIO/qafIcP/3zx1X1jmNrwh3LOukvBS4EW
+tcCs/kMXXxG7U+6yxOrXmbUmnz5BzQ4Dzs2fxmt/NfyS9GMqUo6PptYHQQLnc6gX
+CA0HZDdoQS7tjPsgMPPeLO0Oiosh5YVXAAc1DrS7pW5RQrRvMwFe8kBThP9kYovH
+JppnH7iLJ0ehPm4Q//HVkUsIOvc4mHds2pqAIS2hZbc7fySWCXENLfFi8ZpkJpv4
+Pu6trR1RQ/elmrCz1xEiln2StePh4dIlhFDaGJp2UbpjrWEX29M/iF9p2ExQZIb6
+nKKzrbwGfxOQMA0ooQrbgXlB6mMUDIH7TcoHtZCKQqnxduvWNsNtRCsKr/SCqNs9
+0coHQ2o723pwh2IdfrFZlSi/hk/Wi3N4EyWUTcGijRMMibU0UZpjoFHB7j5tVZb8
+0ResxlVvdqwRp2G8O7WVUNfqNTKQH5GYe6lzhFfL0LwP3KmCF0P3SS+RTuq1ZBtC
+8wwpOlkCO4Y4HGtuSilGIU6cztmfZVcRQRKVJabU9R/3oQf/A/Fbyo/aDuvpTe0+
+YPurBsCEU6V7Jv9n9F0aoVxcKkNBaDFDyN5nQNMU+9c3Struvg1rGNc+ELM6jEXo
+XkLgY4cjkkKK/OAgKd47+eHKheP2o03CqmGLYReuGEs+7MqvLiKrPZJUvMEkXeLL
+RgQMa1fgOU9Be0F9xJxu
+=ZCaa
 -----END PGP SIGNATURE-----
 
---hQiwHBbRI9kgIhsi--
+--5QAgd0e35j3NYeGe--
+
+--===============2272149252706949631==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============2272149252706949631==--
