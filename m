@@ -1,97 +1,48 @@
-From: Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH 4/4] ASoC: tpa6130a2: Add DAPM support
-Date: Sun, 19 Jun 2016 11:39:15 +0200
-Message-ID: <57666843.2020604@metafoo.de>
-References: <cover.1466218805.git.helen.koike@collabora.co.uk>
- <2aed60529eea206f2192a7236f2d80386a73f2ee.1466218805.git.helen.koike@collabora.co.uk>
- <20160618232131.GF5510@earth>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 12/15] net: davinci_mdio: document missed
+ "ti,am4372-mdio" compat string
+Date: Sun, 19 Jun 2016 09:35:43 -0500
+Message-ID: <20160619143543.GA14844@rob-hp-laptop>
+References: <20160615115603.4897-1-grygorii.strashko@ti.com>
+ <20160615115603.4897-13-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============7265928433589657001=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20160618232131.GF5510@earth>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Sebastian Reichel <sre@kernel.org>, Helen Koike <helen.koike@collabora.co.uk>
-Cc: alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, tiwai@suse.com, k.kozlowski@samsung.com, lgirdwood@gmail.com, peter.ujfalusi@ti.com, broonie@kernel.org, linux-omap@vger.kernel.org, jarkko.nikula@bitmer.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160615115603.4897-13-grygorii.strashko@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, Mugunthan V N <mugunthanvnm@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---===============7265928433589657001==
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="ECqn3XmgfkV6ebxCSNkUbkHE6Xcw6eBDp"
+On Wed, Jun 15, 2016 at 02:56:00PM +0300, Grygorii Strashko wrote:
+> Document missed "ti,am4372-mdio" compat string used for TI am437x SoC
+> (am4372.dtsi).
+> 
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> ---
+>  Documentation/devicetree/bindings/net/davinci-mdio.txt | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/net/davinci-mdio.txt b/Documentation/devicetree/bindings/net/davinci-mdio.txt
+> index 0369e25..f2bba50 100644
+> --- a/Documentation/devicetree/bindings/net/davinci-mdio.txt
+> +++ b/Documentation/devicetree/bindings/net/davinci-mdio.txt
+> @@ -2,7 +2,8 @@ TI SoC Davinci/Keystone2 MDIO Controller Device Tree Bindings
+>  ---------------------------------------------------
+>  
+>  Required properties:
+> -- compatible		: Should be "ti,davinci_mdio" or "ti,keystone_mdio"
+> +- compatible		: Should be "ti,davinci_mdio", "ti,keystone_mdio",
+> +			  "ti,am4372-mdio"
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---ECqn3XmgfkV6ebxCSNkUbkHE6Xcw6eBDp
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+This is still an OR relationship?
 
-On 06/19/2016 01:21 AM, Sebastian Reichel wrote:
-> Hi,
->=20
-> On Sat, Jun 18, 2016 at 12:26:31AM -0300, Helen Koike wrote:
->> Add DAPM support and updated rx51 accordingly.
->> As a consequence:
->> - the exported function tpa6130a2_stereo_enable is not needed anymore
->> - the mutex is dealt in the DAPM
->> - the power state is tracked by the DAPM
->=20
-> This breaks headphone on N900. So far I only checked, that
-> tpa6130a2_power_event() is not called. I guess the DAPM
-> graph is wrong.
+It's preferred to list one per line.
 
-Can you try with
-
-+	{"TPA6130A2 HPLEFT", NULL, "LLOUT"},
-+	{"TPA6130A2 HPRIGHT", NULL, "RLOUT"}
-
-being replaced with
-
-+       {"TPA6130A2 LEFTIN", NULL, "LLOUT"},
-+       {"TPA6130A2 RIGHTIN", NULL, "RLOUT"},
-
-Thanks,
-- Lars
-
-
-
---ECqn3XmgfkV6ebxCSNkUbkHE6Xcw6eBDp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJXZmhKAAoJEOj3aLScRbOZ1+EP/jwQj/N9qQZA7KJ1xETgzWn8
-MVhRgzAok3jw+Xnf3gQTLd5CphAuQYlT+V0/muzuvV1ohJXyojgehRKB+MwwMdI7
-bOrhvXwW5WeLnWvlaAc0Ux/Ae2jetQsnqkh7cpXojPKHTL+n7obsgeJD3I59rQYI
-B9Nbf1bllx+JEfp8bHqkMUL3Xo4eZSPQS63OqpBYDIkqXx6A1p2Dw7O0Rn1EGtEZ
-Idq4dl11gkcwUFgg9FBVzfCcIYjC3e7GuxYOCY5IIR6IHltrDD47im/umDoyLKMR
-Oee8VCO5vq5N04agemgLVLaHymosTki/CQYONRxofmzmY+PYO5qgQL0ZUMLJoosE
-K9lxJP81yBpo7Yh2PZWtm4RVQ6ukQZkjBtoDOocrmS8VxK4LhIk6wIZC8QaOl4eS
-UdPb1/roYBw13U7hT6LObaYP1VADezdAi8EVYuQ3LD+QD68bRgxS62djUDaOiAJ7
-HHsDDzfDxFm5cA2J5mcxXzGzS7riUIHz3oowAbwG+vgEOXRCyPf/U7rdEA30EiFm
-3iOPXscctHpJLK1zgCeVH+6WlKATsis5mz6ZkFTl31aYQoqvLZmi9pNh1X0fpsh+
-Pf4G09ewMR49du5OVnpovCadIbaIxoyR6mHkwZyXTbCPl3AsYLQdiMxlh19CuGfg
-BTw1Nuw05GWAcM+fkTSF
-=Q/7I
------END PGP SIGNATURE-----
-
---ECqn3XmgfkV6ebxCSNkUbkHE6Xcw6eBDp--
-
---===============7265928433589657001==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============7265928433589657001==--
+>  - reg			: physical base address and size of the davinci mdio
+>  			  registers map
+>  - bus_freq		: Mdio Bus frequency
+> -- 
+> 2.8.4
+> 
