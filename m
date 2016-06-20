@@ -1,50 +1,40 @@
-From: Helen Koike <helen.koike@collabora.co.uk>
-Subject: Re: [PATCH v2 4/5] ASoC: tpa6130a2: Add DAPM support
-Date: Mon, 20 Jun 2016 17:12:29 -0300
-Message-ID: <57684E2D.8040508@collabora.co.uk>
-References: <20160618104038.GB31665@earth>
- <cover.1466441036.git.helen.koike@collabora.co.uk>
- <bbddafe634bde1d12288862e02622d15c9b7c25c.1466441036.git.helen.koike@collabora.co.uk>
- <57684795.8050705@metafoo.de>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: [PATCH 01/28] crypto: omap-aes: Fix registration of algorithms
+Date: Tue, 21 Jun 2016 07:49:29 +0800
+Message-ID: <20160620234929.GB18131@gondor.apana.org.au>
+References: <1464771389-10640-1-git-send-email-t-kristo@ti.com>
+ <1464771389-10640-2-git-send-email-t-kristo@ti.com>
+ <20160607104821.GA520@gondor.apana.org.au>
+ <5767DD8A.9010107@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <57684795.8050705@metafoo.de>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Lars-Peter Clausen <lars@metafoo.de>, Sebastian Reichel <sre@kernel.org>
-Cc: alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, tiwai@suse.com, k.kozlowski@samsung.com, lgirdwood@gmail.com, peter.ujfalusi@ti.com, broonie@kernel.org, cphealy@gmail.com, linux-omap@vger.kernel.org, jarkko.nikula@bitmer.com
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <5767DD8A.9010107@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: tony@atomide.com, lokeshvutla@ti.com, linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 20-06-2016 16:44, Lars-Peter Clausen wrote:
->> +	/* before widget power up */
->> +	if (SND_SOC_DAPM_EVENT_ON(event)) {
->> +		/* Turn on the chip */
->> +		tpa6130a2_power(data, true);
->> +		/* Sync the registers */
->> +		ret = regcache_sync(data->regmap);
->> +		if (ret < 0) {
->> +			dev_err(c->dev, "Failed to initialize chip\n");
->> +			tpa6130a2_power(data, false);
->> +			return ret;
->> +		}
->> +	/* after widget power down */
->> +	} else
->> +		tpa6130a2_power(data, false);
+On Mon, Jun 20, 2016 at 03:11:54PM +0300, Tero Kristo wrote:
 >
-> checkpatch.pl should complain about this. Kernel code style is if one branch
-> has branches the other has to have it as well.
->
+> Did you check the rest of the series? I only got feedback for this
+> and patch #2 on the series, shall I repost the remainder of the
+> series as a whole or...?
 
-Weird, checkpatch.pl doesn't complain. I'll add the braces in v3, thank 
-you for reviewing
+Yes please repost them.
+
+Thanks,
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
