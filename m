@@ -1,68 +1,123 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [GIT PULL] omap-gpmc fixes for v4.7 rc cycle
-Date: Mon, 20 Jun 2016 10:22:59 +0300
-Message-ID: <576799D3.8000107@ti.com>
-References: <57626DF2.70907@ti.com> <20160619060106.GB16376@localhost>
+Subject: Re: [PATCH v10 06/14] usb: gadget.h: Add OTG to gadget interface
+Date: Mon, 20 Jun 2016 10:28:48 +0300
+Message-ID: <57679B30.6030809@ti.com>
+References: <1465564043-27163-1-git-send-email-rogerq@ti.com>
+ <1465564043-27163-7-git-send-email-rogerq@ti.com>
+ <87k2hkxr4d.fsf@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160619060106.GB16376@localhost>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, arm@kernel.org, SebastienOcquidant@Eaton.com, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="NmORdVcQ5RW4s9GPuF1k0s77mGCKd5o3J"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <87k2hkxr4d.fsf@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@kernel.org>, peter.chen@freescale.com
+Cc: tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, joe@perches.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Olof,
+--NmORdVcQ5RW4s9GPuF1k0s77mGCKd5o3J
+Content-Type: multipart/mixed; boundary="brMpXhEskQR4Hu6nVfvwxwc4OII2vxKSP"
+From: Roger Quadros <rogerq@ti.com>
+To: Felipe Balbi <balbi@kernel.org>, peter.chen@freescale.com
+Cc: tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com,
+ mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com,
+ sergei.shtylyov@cogentembedded.com, jun.li@freescale.com,
+ grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org,
+ nsekhar@ti.com, b-liu@ti.com, joe@perches.com, linux-usb@vger.kernel.org,
+ linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+ devicetree@vger.kernel.org
+Message-ID: <57679B30.6030809@ti.com>
+Subject: Re: [PATCH v10 06/14] usb: gadget.h: Add OTG to gadget interface
+References: <1465564043-27163-1-git-send-email-rogerq@ti.com>
+ <1465564043-27163-7-git-send-email-rogerq@ti.com>
+ <87k2hkxr4d.fsf@linux.intel.com>
+In-Reply-To: <87k2hkxr4d.fsf@linux.intel.com>
 
-On 19/06/16 09:01, Olof Johansson wrote:
-> On Thu, Jun 16, 2016 at 12:14:26PM +0300, Roger Quadros wrote:
->> Hi Arnd/Olof,
->>
->> The following changes since commit 5edb56491d4812c42175980759da53388e5d86f5:
->>
->>   Linux 4.7-rc3 (2016-06-12 07:20:35 -0700)
->>
->> are available in the git repository at:
->>
->>   https://github.com/rogerq/linux.git tags/gpmc-omap-fixes-for-v4.7
->>
->> for you to fetch changes up to 8f50b8e57442d28e41bb736c173d8a2490549a82:
->>
->>   memory: omap-gpmc: Fix omap gpmc EXTRADELAY timing (2016-06-16 11:43:48 +0300)
->>
->> ----------------------------------------------------------------
->> OMAP-GPMC: Fixes for for v4.7-rc cycle:
->>
->> - Fix omap gpmc EXTRADELAY timing. The DT provided timings
->> were wrongly used causing devices requiring extra delay timing
->> to fail.
-> 
-> So, our fixes branch is at 4.7-rc1, so now you force us to bring in -rc3 just
-> because of this one patch. That's a little annoying. Base your branch on an
-> older release if it makes sense, and/or take a look at what release our
-> branch is on if you think of it. :)
+--brMpXhEskQR4Hu6nVfvwxwc4OII2vxKSP
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-My apologies for not checking that your fixes branch is at v4.7-rc1.
+On 20/06/16 10:21, Felipe Balbi wrote:
+>=20
+> Hi,
+>=20
+> Roger Quadros <rogerq@ti.com> writes:
+>> The OTG core will use struct otg_gadget_ops to
+>> start/stop the gadget controller.
+>>
+>> The main purpose of this interface is to avoid directly
+>> calling usb_gadget_start/stop() from the OTG core as they
+>> wouldn't be defined in the built-in symbol table if
+>> CONFIG_USB_GADGET is m.
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>  include/linux/usb/gadget.h | 16 ++++++++++++++++
+>>  1 file changed, 16 insertions(+)
+>>
+>> diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
+>> index 2dd9e6b..f4fc0aa 100644
+>> --- a/include/linux/usb/gadget.h
+>> +++ b/include/linux/usb/gadget.h
+>> @@ -639,6 +639,22 @@ struct usb_gadget_driver {
+>>  };
+>> =20
+>> =20
+>> +/*-------------------------------------------------------------------=
+------*/
+>> +
+>> +/**
+>> + * struct otg_gadget_ops - Interface between OTG core and gadget
+>> + *
+>> + * Provided by the gadget core to allow the OTG core to start/stop th=
+e gadget
+>> + *
+>> + * @start: function to start the gadget
+>> + * @stop: function to stop the gadget
+>> + * @connect_control: function to connect/disconnect from the bus
+>> + */
+>> +struct otg_gadget_ops {
+>> +	int (*start)(struct usb_gadget *gadget);
+>> +	int (*stop)(struct usb_gadget *gadget);
+>> +	int (*connect_control)(struct usb_gadget *gadget, bool connect);
+>> +};
+>=20
+> you shouldn't need these at all. They are already part of the gadget
+> framework as ->udc_start(), ->udc_stop() and ->pullup()
+>=20
 
-> 
-> It's not a huge deal but the main disadvantage is that git request-pull
-> sometimes gets confused of what's actually in the branch and not, so it might
-> produce an incorrect pull request. We normally don't have to deal with that on
-> fixes, only what we stage for the merge windows.
-> 
-> Anyhow, I've merged this for now.
-> 
+This is to avoid the undefined symbol errors during build when OTG has is=
 
-Thanks a lot :).
+built-in because USB (host) is built-in but GADGET is still a module.
 
 cheers,
 -roger
+
+
+--brMpXhEskQR4Hu6nVfvwxwc4OII2vxKSP--
+
+--NmORdVcQ5RW4s9GPuF1k0s77mGCKd5o3J
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJXZ5szAAoJENJaa9O+djCTvwYQAJQ4nx6KVmNTnl/V28SQcPNZ
+F2QEdfvGUHcLMYHxMd0BqGSoJ2KqbgyVG4mfORbD/jrMhEcXoEZf1vrDFIoi1WFJ
+aOUNbO2GcmGMfbs5TEGjL/cyrCUKEeuof3Pb/BPdS0CrUtMM6stNc93G+uUb6z6F
+cPXMse5kENlZCxkta/OFlKPzYmyeunRzeLf1dYbfwjC9qSBu/7lVVFTISLC0RoxJ
+qpccGwXafFVTPIKmBn1zAhBGmCCs8267WVLkck3iBsBweyLpWb4KhE7CYrMz1Vz0
+G8TJUl7exX1pmy3ULQkZxsbEhF3wyo0l9Qh/BvMqHWEHMLDyTcBwNErFuuoi+tSS
+VIlozRvbV999WctE0w+jxQ/7MgIInHzogNq5crYXJ4EYnE1gEV/yaJ94K9tyWMA/
+ifhLKDdLNEYDnh9x1L6jOeT3h1FI9aHnIt6B521V11goXWYt7Pat+fnOsFnIesJl
+k7VUMm7IQcQsMiE5L43EEvCbLZ55r6hry+iVQ1XgLczYFFpcQF/UTUCtT8JtQKgx
+SlG4eEJ7ipAUPXgt0CdtwRge0E4Q0wGHjZpKdD3HuKOwH2MBXcYihMkb/AL8dYxe
+y8uRL8APzgyijuolxHnX2sHftKqdg0ZiL24DoR7bp95Mjz0sxUfRnEDSObaluxNK
+eB+BPQL950OKJ+uuTGqx
+=NGB4
+-----END PGP SIGNATURE-----
+
+--NmORdVcQ5RW4s9GPuF1k0s77mGCKd5o3J--
