@@ -1,40 +1,49 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v3 5/5] Input: Add tps65217 power button driver
-Date: Mon, 20 Jun 2016 08:06:04 -0500
-Message-ID: <20160620130604.GA23272@rob-hp-laptop>
-References: <20160616114110.23455-1-m.niestroj@grinn-global.com>
- <20160616114110.23455-6-m.niestroj@grinn-global.com>
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: Re: [PATCH v4 2/5] power_supply: tps65217-charger: Fix NULL deref
+ during property export
+Date: Mon, 20 Jun 2016 15:23:14 +0200
+Message-ID: <CAJKOXPd87nM=7nPsact67TNHVhr45MJxP9=LKvv-esTQsg2A-A@mail.gmail.com>
+References: <20160620105056.25843-1-m.niestroj@grinn-global.com> <20160620105056.25843-3-m.niestroj@grinn-global.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160616114110.23455-6-m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Eremin-Solenikov <dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20160620105056.25843-3-m.niestroj@grinn-global.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Marcin Niestroj <m.niestroj@grinn-global.com>
+Cc: Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-input@vger.kernel.org, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 16, 2016 at 01:41:10PM +0200, Marcin Niestroj wrote:
-> This driver enables us to use tps65217's power button as KEY_POWER on
-> am335x boards (directly connected button in chiliboard, accessible pin
-> via expansion header in beaglebone). This patch has been tested with
-> chiliboard.
-> 
-> Signed-off-by: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
+On Mon, Jun 20, 2016 at 12:50 PM, Marcin Niestroj
+<m.niestroj@grinn-global.com> wrote:
+> This bug leads to:
+>
+> [    1.906411] Unable to handle kernel NULL pointer dereference at virtual address 0000000c
+> [    1.914878] pgd = c0004000
+> [    1.917786] [0000000c] *pgd=00000000
+> [    1.921536] Internal error: Oops: 5 [#1] SMP ARM
+> [    1.926357] Modules linked in:
+> [    1.929556] CPU: 0 PID: 14 Comm: kworker/0:1 Not tainted 4.4.5 #18
+> [    1.936006] Hardware name: Generic AM33XX (Flattened Device Tree)
+> [    1.942383] Workqueue: events power_supply_changed_work
+> [    1.947842] task: de2c41c0 ti: de2c8000 task.ti: de2c8000
+> [    1.953483] PC is at tps65217_ac_get_property+0x14/0x28
+> [    1.958937] LR is at tps65217_ac_get_property+0x10/0x28
+>
+> Driver was trying to use drv_data in property get handler. However drv_data
+> was not set, so it caused NULL pointer dereference. This patch properly
+> sets drv_data during probe by power_supply_config parameter, so the
+> property get handler works as desired.
+>
+> Signed-off-by: Marcin Niestroj <m.niestroj@grinn-global.com>
 > ---
-> depends on patches 1-4 in series
-> 
->  .../bindings/input/tps65217-pwrbutton.txt          |  17 +++
+> Changes v1 -> v4: none
 
-Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+This should crash on first try (get_property() is called just after
+power supply register)... I wonder how was it working before...
+Reviewed-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 
->  drivers/input/misc/Kconfig                         |  10 ++
->  drivers/input/misc/Makefile                        |   1 +
->  drivers/input/misc/tps65217-pwrbutton.c            | 131 +++++++++++++++++++++
->  4 files changed, 159 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/input/tps65217-pwrbutton.txt
->  create mode 100644 drivers/input/misc/tps65217-pwrbutton.c
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Fixes: 3636859b280c ("power_supply: Add support for tps65217-charger.")
+Cc: <stable@vger.kernel.org>
+
+Best regards,
+Krzysztof
