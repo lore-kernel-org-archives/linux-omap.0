@@ -1,71 +1,76 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [PATCH 0/8] ARM: dts: Add operating-points-v2 tables for TI
- platforms
-Date: Mon, 20 Jun 2016 11:57:14 -0500
-Message-ID: <5768206A.5050501@ti.com>
-References: <cover.1463606963.git.d-gerlach@ti.com>
- <20160519044744.GE32001@vireshk-i7> <20160610110414.GX22406@atomide.com>
- <575AD3A0.1050203@ti.com> <20160611024400.GE27439@vireshk-i7>
+From: Helen Koike <helen.koike@collabora.co.uk>
+Subject: [PATCH v2 0/5] ASoC: tpa6130a2: Add support for
+	multiple instances
+Date: Mon, 20 Jun 2016 14:12:28 -0300
+Message-ID: <cover.1466441036.git.helen.koike@collabora.co.uk>
+References: <20160618104038.GB31665@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160611024400.GE27439@vireshk-i7>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Viresh Kumar <viresh.kumar@linaro.org>, Nishanth Menon <nm@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Yegor Yefremov <yegorslists@googlemail.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20160618104038.GB31665@earth>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: k.kozlowski@samsung.com, lars@metafoo.de, alsa-devel@alsa-project.org, tiwai@suse.com, lgirdwood@gmail.com, linux-kernel@vger.kernel.org, peter.ujfalusi@ti.com, broonie@kernel.org, cphealy@gmail.com, Helen Koike <helen.koike@collabora.co.uk>, linux-omap@vger.kernel.org, jarkko.nikula@bitmer.com
 List-Id: linux-omap@vger.kernel.org
 
-On 06/10/2016 09:44 PM, Viresh Kumar wrote:
-> On 10-06-16, 09:50, Nishanth Menon wrote:
->> On 06/10/2016 06:04 AM, Tony Lindgren wrote:
->>> * Viresh Kumar <viresh.kumar@linaro.org> [160518 21:49]:
->>>> On 18-05-16, 18:36, Dave Gerlach wrote:
->>>>> Hi,
->>>>> This series adds operating-points-v2 tables for am335x, am437x, dra7xx,
->>>>> and am57xx based platforms along with some support patches so that we
->>>>> can enable more OPPs for the CPU on these platforms.
->>>>>
->>>>> These patches rely on the ti-cpufreq series sent here [1] and provide
->>>>> opp-supported-hw data for each OPP so that only the appropriate OPPs
->>>>> for a specific piece of silicon get enabled.
->>>>
->>>> Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
->>>
->>> Applying all the dts changes into omap-for-v4.8/dt thanks.
->>>
->>> Tony
->>>
->> Viresh, are we ready with the cpufreq series?
->>
->> https://patchwork.kernel.org/patch/9122961/
->> https://patchwork.kernel.org/patch/9122921/
->>
->> Also current series: https://patchwork.kernel.org/patch/9123071/
->> Seems to have comments pending.
->>
->> Dave is on vacation for another week or so, doubt he can respond in
->> time -> Should we wait on this series till we get the cpufreq support in?
->
-> Rafael handles all the merges, etc. It would be better if you can
-> reply to that thread instead.
->
+The current tpa6130a2 driver supports only a single instance.
+This patch series add support for multiple instances by removing the global
+variable that holds the instance.
+This is performed by using the component API, regmap, the
+snd_soc_{info,put,get}_volsw API and DAPM.
 
-Sorry for the delay responding here, the only issue with this series 
-would be that we haven't received an ACK on the DT binding doc from 
-cpufreq series [1] from a DT maintainer, so if comments are received 
-there these patches could potentially change. I had pinged but still no 
-response either way.
+This patch series also touches code from the Nokia RX51 which I didn't tested (as
+I am testing the tpa6130a2 in another board that is not upstream).
+I would appreciate is if someone who possesses the Nokia RX51 (n900) could please
+test the code.
 
-Regards,
-Dave
+This patch series is based on git://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git for-next
+Available at https://git.collabora.com/cgit/user/koike/linux.git/log/?h=sound/review/tpa6130a2
 
-[1] https://patchwork.kernel.org/patch/9122921/
+Helen Koike (5):
+  ASoC: tpa6130a2: Register component
+  ASoC: tap6130a2: Use regmap
+  ASoC: tpa6130a2: Use snd soc volsw functions
+  ASoC: tpa6130a2: Add DAPM support
+  ASoC: tpa6130a2: Remove goto err_gpio
+
+ sound/soc/codecs/tpa6130a2.c | 393 ++++++++++++-------------------------------
+ sound/soc/codecs/tpa6130a2.h |  14 +-
+ sound/soc/omap/rx51.c        |  46 ++---
+ 3 files changed, 136 insertions(+), 317 deletions(-)
+
+
+Changes since v1:
+  ASoC: tpa6130a2: Register component
+	- Remove prefix from snd_kcontrol_new in tpa6130a2.c
+	- Add tested-by and reviewd-by from Sebastian
+  ASoC: tap6130a2: Use regmap
+	- Add tested-by from Sebastian
+  ASoC: tpa6130a2: Use snd soc volsw functions
+	- Add tested-by from Sebastian
+  ASoC: tpa6130a2: Add DAPM support
+	- Replace
+		+	{"TPA6130A2 HPLEFT", NULL, "LLOUT"},
+		+	{"TPA6130A2 HPRIGHT", NULL, "RLOUT"}
+	
+		by
+	
+		+       {"TPA6130A2 LEFTIN", NULL, "LLOUT"},
+		+       {"TPA6130A2 RIGHTIN", NULL, "RLOUT"},
+	- Add tested-by and reviewed-by from Sebastian
+	- Add struct device dev* in struct tpa6130a2_data and pass data instead
+	of dev to tpa6130a2_power function
+	- remove #include "../codecs/tpa6130a2.h" in rx51.c
+  ASoC: tpa6130a2: Remove goto err_gpio
+	- this is a new patch in the series
+-- 
+1.9.1
