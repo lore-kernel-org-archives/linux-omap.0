@@ -1,51 +1,71 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH] ARM: AM43XX: hwmod: Fix RSTST register offset for pruss
-Date: Mon, 20 Jun 2016 11:19:07 -0500
-Message-ID: <5768177B.9070306@ti.com>
-References: <1466394745-983-1-git-send-email-j-keerthy@ti.com>
- <5E94841CD408F1498111ED1D1196B1B237B18D3A@DBDE04.ent.ti.com>
- <5767A81E.1040809@ti.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH 0/8] ARM: dts: Add operating-points-v2 tables for TI
+ platforms
+Date: Mon, 20 Jun 2016 11:57:14 -0500
+Message-ID: <5768206A.5050501@ti.com>
+References: <cover.1463606963.git.d-gerlach@ti.com>
+ <20160519044744.GE32001@vireshk-i7> <20160610110414.GX22406@atomide.com>
+ <575AD3A0.1050203@ti.com> <20160611024400.GE27439@vireshk-i7>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5767A81E.1040809@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <a0393675@ti.com>, "Mohammed, Afzal" <afzal@ti.com>, "J, KEERTHY" <j-keerthy@ti.com>, "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Kristo, Tero" <t-kristo@ti.com>, "Gerlach, Dave" <d-gerlach@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux@armlinux.org.uk" <linux@armlinux.org.uk>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160611024400.GE27439@vireshk-i7>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Viresh Kumar <viresh.kumar@linaro.org>, Nishanth Menon <nm@ti.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Yegor Yefremov <yegorslists@googlemail.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Afzal,
+On 06/10/2016 09:44 PM, Viresh Kumar wrote:
+> On 10-06-16, 09:50, Nishanth Menon wrote:
+>> On 06/10/2016 06:04 AM, Tony Lindgren wrote:
+>>> * Viresh Kumar <viresh.kumar@linaro.org> [160518 21:49]:
+>>>> On 18-05-16, 18:36, Dave Gerlach wrote:
+>>>>> Hi,
+>>>>> This series adds operating-points-v2 tables for am335x, am437x, dra7xx,
+>>>>> and am57xx based platforms along with some support patches so that we
+>>>>> can enable more OPPs for the CPU on these platforms.
+>>>>>
+>>>>> These patches rely on the ti-cpufreq series sent here [1] and provide
+>>>>> opp-supported-hw data for each OPP so that only the appropriate OPPs
+>>>>> for a specific piece of silicon get enabled.
+>>>>
+>>>> Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+>>>
+>>> Applying all the dts changes into omap-for-v4.8/dt thanks.
+>>>
+>>> Tony
+>>>
+>> Viresh, are we ready with the cpufreq series?
+>>
+>> https://patchwork.kernel.org/patch/9122961/
+>> https://patchwork.kernel.org/patch/9122921/
+>>
+>> Also current series: https://patchwork.kernel.org/patch/9123071/
+>> Seems to have comments pending.
+>>
+>> Dave is on vacation for another week or so, doubt he can respond in
+>> time -> Should we wait on this series till we get the cpufreq support in?
+>
+> Rafael handles all the merges, etc. It would be better if you can
+> reply to that thread instead.
+>
 
-On 06/20/2016 03:23 AM, Keerthy wrote:
-> 
-> 
-> On Monday 20 June 2016 12:35 PM, Mohammed, Afzal wrote:
->> Hi,
->>
->> J, KEERTHY wrote on Monday, June 20, 2016 9:22 AM:
->>
->>> pruss hwmod RSTST register wrongly points to PWRSTCTRL register in
->>> case of
->>> am43xx. Fix the RSTST register offset value.
->>
->>> This can lead to setting of wrong power state values for PER domain.
->>
->> Just curious, does it happen or noticed by going thr' the code ?
+Sorry for the delay responding here, the only issue with this series 
+would be that we haven't received an ACK on the DT binding doc from 
+cpufreq series [1] from a DT maintainer, so if comments are received 
+there these patches could potentially change. I had pinged but still no 
+response either way.
 
-It does happen when the pruss module is exercised. We found this when we
-tried to do a standby test on suspend, and while it worked on AM33xx,
-AM437x failed because of this difference.
+Regards,
+Dave
 
-regards
-Suman
-
-> 
-> No i was trying omap4_prminst_deassert_hardreset on AM43XX on my local
-> tree and i saw issues and then saw that RSTST register offsets were
-> wrongly populated. Hence fixing the same.
-> 
->>
->> Regards
->> afzal
->>
+[1] https://patchwork.kernel.org/patch/9122921/
