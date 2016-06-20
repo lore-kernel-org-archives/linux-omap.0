@@ -1,183 +1,78 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 1/9] regulator: tps65217: Enable suspend configuration
-Date: Mon, 20 Jun 2016 14:13:30 +0530
-Message-ID: <1466412218-5906-2-git-send-email-j-keerthy@ti.com>
-References: <1466412218-5906-1-git-send-email-j-keerthy@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] mfd: twl6040: Handle mclk used for HPPLL and optional
+ internal clock source
+Date: Mon, 20 Jun 2016 11:53:57 +0300
+Message-ID: <b4bd5fed-fd64-26b6-45ce-976169ec7208@ti.com>
+References: <1462965209-6955-1-git-send-email-peter.ujfalusi@ti.com>
+ <20160616151658.GA21702@dell>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1466412218-5906-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, broonie@kernel.org, devicetree@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, russ.dill@ti.com, robh+dt@kernel.org, mark.rutland@arm.com, j-keerthy@ti.com, linux@armlinux.org.uk, Russ Dill <Russ.Dill@ti.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160616151658.GA21702@dell>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Russ Dill <Russ.Dill@ti.com>
+On 06/16/2016 06:16 PM, Lee Jones wrote:
+> On Wed, 11 May 2016, Peter Ujfalusi wrote:
+>=20
+>> On some boards, like omap5-uevm the MCLK is gated by default and in =
+order
+>> to be able to use the High performance modes of twl6040 it need to b=
+e
+>> enabled by SW.
+>> Add support for handling the MCLK source clock via CCF.
+>> At the same time lover the print priority of the notification that t=
+he 32K
+>=20
+> Mr Lover Lover!
 
-This allows platform data to specify which power rails should be on or off
-during RTC only suspend. This is necessary to keep DDR state while in RTC
-only suspend.
+Oh. :D
 
-Signed-off-by: Russ Dill <Russ.Dill@ti.com>
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- drivers/regulator/tps65217-regulator.c | 74 +++++++++++++++++++++++++++++-----
- 1 file changed, 65 insertions(+), 9 deletions(-)
+>>  	twl6040->supplies[0].supply =3D "vio";
+>> diff --git a/include/linux/mfd/twl6040.h b/include/linux/mfd/twl6040=
+=2Eh
+>> index 8f9fc3d26e6d..a7c50e54f3e0 100644
+>> --- a/include/linux/mfd/twl6040.h
+>> +++ b/include/linux/mfd/twl6040.h
+>> @@ -224,7 +224,8 @@ struct twl6040 {
+>>  	struct regmap *regmap;
+>>  	struct regmap_irq_chip_data *irq_data;
+>>  	struct regulator_bulk_data supplies[2]; /* supplies for vio, v2v1 =
+*/
+>> -	struct clk *clk32k;
+>> +	struct clk *clk32k_clk;
+>> +	struct clk *mclk_clk;
+>
+> Not sure I get the naming here.
+>=20
+> What's wrong with clk32k and mclk?
 
-diff --git a/drivers/regulator/tps65217-regulator.c b/drivers/regulator/tps65217-regulator.c
-index adbe4fc..c15659c 100644
---- a/drivers/regulator/tps65217-regulator.c
-+++ b/drivers/regulator/tps65217-regulator.c
-@@ -28,7 +28,7 @@
- #include <linux/mfd/tps65217.h>
- 
- #define TPS65217_REGULATOR(_name, _id, _of_match, _ops, _n, _vr, _vm, _em, \
--                           _t, _lr, _nlr) \
-+			   _t, _lr, _nlr,  _sr, _sm)	\
- 	{						\
- 		.name		= _name,		\
- 		.id		= _id,			\
-@@ -45,6 +45,8 @@
- 		.volt_table	= _t,			\
- 		.linear_ranges	= _lr,			\
- 		.n_linear_ranges = _nlr,		\
-+		.bypass_reg	= _sr,			\
-+		.bypass_mask	= _sm,			\
- 	}						\
- 
- static const unsigned int LDO1_VSEL_table[] = {
-@@ -118,6 +120,42 @@ static int tps65217_pmic_set_voltage_sel(struct regulator_dev *dev,
- 	return ret;
- }
- 
-+struct tps65217_regulator_data {
-+	int strobe;
-+};
-+
-+static struct tps65217_regulator_data regulator_data[TPS65217_NUM_REGULATOR];
-+
-+static int tps65217_pmic_set_suspend_enable(struct regulator_dev *dev)
-+{
-+	struct tps65217 *tps = rdev_get_drvdata(dev);
-+	unsigned int rid = rdev_get_id(dev);
-+
-+	if (rid < TPS65217_DCDC_1 || rid > TPS65217_LDO_4)
-+		return -EINVAL;
-+
-+	return tps65217_clear_bits(tps, dev->desc->bypass_reg,
-+				   dev->desc->bypass_mask,
-+				   TPS65217_PROTECT_L1);
-+}
-+
-+static int tps65217_pmic_set_suspend_disable(struct regulator_dev *dev)
-+{
-+	struct tps65217 *tps = rdev_get_drvdata(dev);
-+	unsigned int rid = rdev_get_id(dev);
-+
-+	if (rid < TPS65217_DCDC_1 || rid > TPS65217_LDO_4)
-+		return -EINVAL;
-+
-+	if (!regulator_data[rid].strobe)
-+		return -EINVAL;
-+
-+	return tps65217_set_bits(tps, dev->desc->bypass_reg,
-+				 dev->desc->bypass_mask,
-+				 regulator_data[rid].strobe,
-+				 TPS65217_PROTECT_L1);
-+}
-+
- /* Operations permitted on DCDCx, LDO2, LDO3 and LDO4 */
- static struct regulator_ops tps65217_pmic_ops = {
- 	.is_enabled		= regulator_is_enabled_regmap,
-@@ -127,6 +165,8 @@ static struct regulator_ops tps65217_pmic_ops = {
- 	.set_voltage_sel	= tps65217_pmic_set_voltage_sel,
- 	.list_voltage		= regulator_list_voltage_linear_range,
- 	.map_voltage		= regulator_map_voltage_linear_range,
-+	.set_suspend_enable	= tps65217_pmic_set_suspend_enable,
-+	.set_suspend_disable	= tps65217_pmic_set_suspend_disable,
- };
- 
- /* Operations permitted on LDO1 */
-@@ -138,41 +178,50 @@ static struct regulator_ops tps65217_pmic_ldo1_ops = {
- 	.set_voltage_sel	= tps65217_pmic_set_voltage_sel,
- 	.list_voltage		= regulator_list_voltage_table,
- 	.map_voltage		= regulator_map_voltage_ascend,
-+	.set_suspend_enable	= tps65217_pmic_set_suspend_enable,
-+	.set_suspend_disable	= tps65217_pmic_set_suspend_disable,
- };
- 
- static const struct regulator_desc regulators[] = {
- 	TPS65217_REGULATOR("DCDC1", TPS65217_DCDC_1, "dcdc1",
- 			   tps65217_pmic_ops, 64, TPS65217_REG_DEFDCDC1,
- 			   TPS65217_DEFDCDCX_DCDC_MASK, TPS65217_ENABLE_DC1_EN,
--			   NULL, tps65217_uv1_ranges, 2),
-+			   NULL, tps65217_uv1_ranges, 2, TPS65217_REG_SEQ1,
-+			   TPS65217_SEQ1_DC1_SEQ_MASK),
- 	TPS65217_REGULATOR("DCDC2", TPS65217_DCDC_2, "dcdc2",
- 			   tps65217_pmic_ops, 64, TPS65217_REG_DEFDCDC2,
- 			   TPS65217_DEFDCDCX_DCDC_MASK, TPS65217_ENABLE_DC2_EN,
- 			   NULL, tps65217_uv1_ranges,
--			   ARRAY_SIZE(tps65217_uv1_ranges)),
-+			   ARRAY_SIZE(tps65217_uv1_ranges), TPS65217_REG_SEQ1,
-+			   TPS65217_SEQ1_DC2_SEQ_MASK),
- 	TPS65217_REGULATOR("DCDC3", TPS65217_DCDC_3, "dcdc3",
- 			   tps65217_pmic_ops, 64, TPS65217_REG_DEFDCDC3,
- 			   TPS65217_DEFDCDCX_DCDC_MASK, TPS65217_ENABLE_DC3_EN,
--			   NULL, tps65217_uv1_ranges, 1),
-+			   NULL, tps65217_uv1_ranges, 1, TPS65217_REG_SEQ2,
-+			   TPS65217_SEQ2_DC3_SEQ_MASK),
- 	TPS65217_REGULATOR("LDO1", TPS65217_LDO_1, "ldo1",
- 			   tps65217_pmic_ldo1_ops, 16, TPS65217_REG_DEFLDO1,
- 			   TPS65217_DEFLDO1_LDO1_MASK, TPS65217_ENABLE_LDO1_EN,
--			   LDO1_VSEL_table, NULL, 0),
-+			   LDO1_VSEL_table, NULL, 0, TPS65217_REG_SEQ2,
-+			   TPS65217_SEQ2_LDO1_SEQ_MASK),
- 	TPS65217_REGULATOR("LDO2", TPS65217_LDO_2, "ldo2", tps65217_pmic_ops,
- 			   64, TPS65217_REG_DEFLDO2,
- 			   TPS65217_DEFLDO2_LDO2_MASK, TPS65217_ENABLE_LDO2_EN,
- 			   NULL, tps65217_uv1_ranges,
--			   ARRAY_SIZE(tps65217_uv1_ranges)),
-+			   ARRAY_SIZE(tps65217_uv1_ranges), TPS65217_REG_SEQ3,
-+			   TPS65217_SEQ3_LDO2_SEQ_MASK),
- 	TPS65217_REGULATOR("LDO3", TPS65217_LDO_3, "ldo3", tps65217_pmic_ops,
- 			   32, TPS65217_REG_DEFLS1, TPS65217_DEFLDO3_LDO3_MASK,
- 			   TPS65217_ENABLE_LS1_EN | TPS65217_DEFLDO3_LDO3_EN,
- 			   NULL, tps65217_uv2_ranges,
--			   ARRAY_SIZE(tps65217_uv2_ranges)),
-+			   ARRAY_SIZE(tps65217_uv2_ranges), TPS65217_REG_SEQ3,
-+			   TPS65217_SEQ3_LDO3_SEQ_MASK),
- 	TPS65217_REGULATOR("LDO4", TPS65217_LDO_4, "ldo4", tps65217_pmic_ops,
- 			   32, TPS65217_REG_DEFLS2, TPS65217_DEFLDO4_LDO4_MASK,
- 			   TPS65217_ENABLE_LS2_EN | TPS65217_DEFLDO4_LDO4_EN,
- 			   NULL, tps65217_uv2_ranges,
--			   ARRAY_SIZE(tps65217_uv2_ranges)),
-+			   ARRAY_SIZE(tps65217_uv2_ranges), TPS65217_REG_SEQ4,
-+			   TPS65217_SEQ4_LDO4_SEQ_MASK),
- };
- 
- static int tps65217_regulator_probe(struct platform_device *pdev)
-@@ -181,7 +230,8 @@ static int tps65217_regulator_probe(struct platform_device *pdev)
- 	struct tps65217_board *pdata = dev_get_platdata(tps->dev);
- 	struct regulator_dev *rdev;
- 	struct regulator_config config = { };
--	int i;
-+	int i, ret;
-+	unsigned int val;
- 
- 	if (tps65217_chip_id(tps) != TPS65217) {
- 		dev_err(&pdev->dev, "Invalid tps chip version\n");
-@@ -200,6 +250,12 @@ static int tps65217_regulator_probe(struct platform_device *pdev)
- 
- 		rdev = devm_regulator_register(&pdev->dev, &regulators[i],
- 					       &config);
-+
-+		/* Store default strobe info */
-+		ret = tps65217_reg_read(tps, regulators[i].bypass_reg, &val);
-+
-+		regulator_data[i].strobe = val & regulators[i].bypass_mask;
-+
- 		if (IS_ERR(rdev)) {
- 			dev_err(tps->dev, "failed to register %s regulator\n",
- 				pdev->name);
--- 
-1.9.1
+The struct already have mclk (unsigned int) member to store the rate of=
+ the
+reference clock (32768 in case of LPPLL or the rate of the mclk clock i=
+n case
+of HPPLL). I could use clk32k and mclk for the clk and rename the curre=
+nt mclk
+to refclk_rate or something if that is better. This value is only impor=
+tant
+for the HPPLL usage, if I restructure the driver I might be able to ren=
+ame it
+as mclk_rate and store only the MCLK freq there.
+
+>=20
+>>  	struct mutex mutex;
+>>  	struct mutex irq_mutex;
+>>  	struct mfd_cell cells[TWL6040_CELLS];
+>=20
+
+
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
