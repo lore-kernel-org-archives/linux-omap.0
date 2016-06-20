@@ -1,111 +1,122 @@
-From: Marcin Niestroj <m.niestroj@grinn-global.com>
-Subject: Re: [PATCH v3 1/5] mfd: tps65217: Add support for IRQs
-Date: Mon, 20 Jun 2016 12:56:42 +0200
-Message-ID: <90cc8e89-3132-e43e-371b-842774a5a7fc@grinn-global.com>
-References: <20160616114110.23455-1-m.niestroj@grinn-global.com>
- <20160616114110.23455-2-m.niestroj@grinn-global.com>
- <5762A3AC.9010409@ti.com>
- <123e6759-fa44-48f0-860d-623aaa39f8ea@grinn-global.com>
- <57640C3C.1070001@ti.com>
- <062438af-c05f-00b3-adc6-ac27e7cec892@grinn-global.com>
- <576420C4.4060002@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v7 1/4] usb: dwc3: core.h: add some register definitions
+Date: Mon, 20 Jun 2016 14:53:05 +0300
+Message-ID: <5767D921.60509@ti.com>
+References: <1465564650-27516-1-git-send-email-rogerq@ti.com>
+ <1465564650-27516-2-git-send-email-rogerq@ti.com>
+ <87fus8qkep.fsf@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <576420C4.4060002@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Lee Jones <lee.jones@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-input@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="HdVjA76D2Q4n7O8cRfPqEFNOXhMSeh9Fc"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87fus8qkep.fsf-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 17.06.2016 18:09, Grygorii Strashko wrote:
-> On 06/17/2016 06:31 PM, Marcin Niestroj wrote:
->>
->>
->> On 17.06.2016 16:42, Grygorii Strashko wrote:
->>> On 06/17/2016 05:05 PM, Marcin Niestroj wrote:
->>>>
->>>> On 16.06.2016 15:03, Grygorii Strashko wrote:
->>>>> On 06/16/2016 02:41 PM, Marcin Niestroj wrote:
->>>>>> Add support for handling IRQs: power button, AC and USB power state
->>>>>> changes. Mask and interrupt bits are shared within one register, which
->>>>>> prevents us to use regmap_irq implementation. New irq_domain is
->>>>>> created in
->>>>>> order to add interrupt handling for each tps65217's subsystem. IRQ
->>>>>> resources have been added for charger subsystem to be able to notify
->>>>>> about
->>>>>> AC and USB state changes.
->>>>>>
->>>>>> Signed-off-by: Marcin Niestroj <m.niestroj@grinn-global.com>
->>>>>> ---
->>>>>>   drivers/mfd/Kconfig          |   1 +
->>>>>>   drivers/mfd/tps65217.c       | 194
->>>>>> +++++++++++++++++++++++++++++++++++++++++--
->>>>>>   include/linux/mfd/tps65217.h |  11 +++
->>>>>>   3 files changed, 198 insertions(+), 8 deletions(-)
->>>
->>> [...]
->>>
->>>>>> +{
->>>>>> +    int ret;
->>>>>> +
->>>>>> +    mutex_init(&tps->irq_lock);
->>>>>> +
->>>>>> +    /* Mask all interrupt sources */
->>>>>> +    tps->irq_mask = (TPS65217_INT_RESERVEDM | TPS65217_INT_PBM
->>>>>> +            | TPS65217_INT_ACM | TPS65217_INT_USBM);
->>>>>> +    tps65217_reg_write(tps, TPS65217_REG_INT, tps->irq_mask,
->>>>>> +            TPS65217_PROTECT_NONE);
->>>>>> +
->>>>>> +    tps->irq_domain = irq_domain_add_linear(tps->dev->of_node,
->>>>>> +        TPS65217_NUM_IRQ, &tps65217_irq_domain_ops, tps);
->>>>>> +    if (!tps->irq_domain) {
->>>>>> +        dev_err(tps->dev, "Could not create IRQ domain\n");
->>>>>> +        return -ENOMEM;
->>>>>> +    }
->>>>>> +
->>>>>> +    ret = devm_request_threaded_irq(tps->dev, irq, NULL,
->>>>>> +                    tps65217_irq_thread,
->>>>>> +                    IRQF_TRIGGER_RISING | IRQF_ONESHOT,
->>>>>
->>>>> Are there any reasons why IRQ trigger type specified here explicitly?
->>>>
->>>> Not really. I have configured it that way, it worked and I forgot about
->>>> it when preparing patches. Could you give some hint here?
->>>>
->>>
->>> It's better to get it from DT and in case of DT boot it will - the real
->>> IRQ trigger type may depends on board.
->>>
->>
->> So what I understand, I need to remove IRQF_TRIGGER_RISING here.
->> Addidional flags will be passed by 'irq_flags' in
->> "interrupts = <irq_num irq_flags>" in DT, right?
->
-> Indeed. And usually it is not "Addidional flags" - its mandatory cell for
->  the most of IRQ controllers.
->
-> The problem with hard-coded IRQ trigger type values in code is that on
-> different boards IRQ can be wired on different way - to the GIC/INTC,
-> to SoC GPIO, to GPIO expanders and .. And they can support different sets
-> of allowed IRQ triggering types. More over, on some boards IRQ signal can be
-> inverted, for example :P
->
-> So, It's more generic to not hard-code it if your driver is expected to be
-> used only with DT.
-> Also as per TRM http://www.ti.com/lit/ds/symlink/tps65217.pdf
-> nINT - interrupt output (active low, open drain). Pin is pulled low if an interrupt bit is set. The
->        output goes high after the bit causing the interrupt in register INT has been read.
->        The interrupt sources can be masked in register INT, so no interrupt is generated when the
->        corresponding interrupt bit is set
->
->
+--HdVjA76D2Q4n7O8cRfPqEFNOXhMSeh9Fc
+Content-Type: multipart/mixed; boundary="nOXMLfIKmMcKFqaM1pPTwKbpRwuQBEw8M"
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org,
+ sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org,
+ jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org,
+ yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <5767D921.60509-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v7 1/4] usb: dwc3: core.h: add some register definitions
+References: <1465564650-27516-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+ <1465564650-27516-2-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+ <87fus8qkep.fsf-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+In-Reply-To: <87fus8qkep.fsf-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 
-Thanks very much for making this clear to me.
+--nOXMLfIKmMcKFqaM1pPTwKbpRwuQBEw8M
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-I have just send new patch version with fixes from your comments.
+On 20/06/16 12:28, Felipe Balbi wrote:
+>=20
+> Hi,
+>=20
+> Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> writes:
+>> Add OTG and GHWPARAMS6 register definitions
+>>
+>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  drivers/usb/dwc3/core.h | 84 ++++++++++++++++++++++++++++++++++++++++=
+++++++++-
+>>  1 file changed, 83 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+>> index 8fb6361..32bb7531 100644
+>> --- a/drivers/usb/dwc3/core.h
+>> +++ b/drivers/usb/dwc3/core.h
+>> @@ -197,6 +197,15 @@
+>>  #define DWC3_GCTL_GBLHIBERNATIONEN	(1 << 1)
+>>  #define DWC3_GCTL_DSBLCLKGTNG		(1 << 0)
+>> =20
+>> +/* Global Status Register */
+>> +#define DWC3_GSTS_OTG_IP	BIT(10)
+>> +#define DWC3_GSTS_BC_IP		BIT(9)
+>> +#define DWC3_GSTS_ADP_IP	BIT(8)
+>> +#define DWC3_GSTS_HOST_IP	BIT(7)
+>> +#define DWC3_GSTS_DEVICE_IP	BIT(6)
+>> +#define DWC3_GSTS_CSR_TIMEOUT	BIT(5)
+>> +#define DWC3_GSTS_BUS_ERR_ADDR_VLD	BIT(4)
+>> +
+>>  /* Global USB2 PHY Configuration Register */
+>>  #define DWC3_GUSB2PHYCFG_PHYSOFTRST	(1 << 31)
+>>  #define DWC3_GUSB2PHYCFG_SUSPHY		(1 << 6)
+>> @@ -269,7 +278,12 @@
+>>  #define DWC3_MAX_HIBER_SCRATCHBUFS		15
+>> =20
+>>  /* Global HWPARAMS6 Register */
+>> -#define DWC3_GHWPARAMS6_EN_FPGA			(1 << 7)
+>> +#define DWC3_GHWPARAMS6_BCSUPPORT		BIT(14)
+>> +#define DWC3_GHWPARAMS6_OTG3SUPPORT		BIT(13)
+>> +#define DWC3_GHWPARAMS6_ADPSUPPORT		BIT(12)
+>> +#define DWC3_GHWPARAMS6_HNPSUPPORT		BIT(11)
+>> +#define DWC3_GHWPARAMS6_SRPSUPPORT		BIT(10)
+>> +#define DWC3_GHWPARAMS6_EN_FPGA			BIT(7)
+>=20
+> Keep consistency, we don't use BIT() here.
+>=20
+Checkpatch was complaining. But I can revert to the non BIT format for
+consistency.
 
--- 
-Regards,
-Marcin Niestroj
+cheers,
+-roger
+
+
+--nOXMLfIKmMcKFqaM1pPTwKbpRwuQBEw8M--
+
+--HdVjA76D2Q4n7O8cRfPqEFNOXhMSeh9Fc
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJXZ9khAAoJENJaa9O+djCTNyoP+wVqs2J6kA8Bd7rCDwCAXYF5
+ePlltgw1dLjtnRy27fllbF4ZJEQqAxnzE4ZnikPi8KdI7cjBFg5RneT9IsTkPoQ1
+mZ29OZRkbnWaIIM/oWvCP6bxbqv4iWnr1Gn2Htnt794S+g/phZ23l1IiLG+DaA46
+ztZat+F/8FWI9wvIpEu3BW8XeV6aPWId0luEcFEYOcRTNYXyB+krJo1tzGtyfdoH
+76Wn+oRWOuNsYq8EgmgXvECxBkqRuzwaEsU2j5KxJ1ylhwieixEAUED8mo4g92ZY
+9A+f8/lCGqR5U+gs6U5cMCb04moNRuk443nQkTHuPMN5uEXtS2EgGEm3pBKe+RPC
+7t9qDtLzyQe9QtbsPu1JOYxfjKu/wOGuedeb0G7p2N4QgWlj3wuTrP3EGPjACX2A
+CPTkGstyyFqeMSdxvwvbZhOxOf4F16VwQWYvTvbYb0azIPyThPNKPuj429B7FyP6
+Fwu6UEzbgdvcOLfWRV91KYApsCRm+jCXpAcmjKZJD4Da282wwU2Tj9Ea3moR/3uw
+wNb4RcF2YdIoTW3xiDY7Xu3kmJQLTVWtJkORWCUzMcCr0XPfp4ZYIxad1miWcdrl
+sC4DJzG11M5J0v4LsOYy/ClZG80x08499zLDRK22xKMaScDZ6W6tmilriBogYxOw
+L9bluX4nXdqCIM25cWJW
+=ko6w
+-----END PGP SIGNATURE-----
+
+--HdVjA76D2Q4n7O8cRfPqEFNOXhMSeh9Fc--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
