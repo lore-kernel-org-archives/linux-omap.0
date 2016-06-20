@@ -1,48 +1,98 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RESEND PATCHv2 00/28] clk: ti: hwmod clock type support
-Date: Mon, 20 Jun 2016 05:10:28 -0700
-Message-ID: <20160620121027.GG22406@atomide.com>
-References: <1465844702-12200-1-git-send-email-t-kristo@ti.com>
+From: Felipe Balbi <balbi@kernel.org>
+Subject: Re: [PATCH v7 1/4] usb: dwc3: core.h: add some register definitions
+Date: Mon, 20 Jun 2016 15:04:48 +0300
+Message-ID: <8760t4qd5r.fsf@linux.intel.com>
+References: <1465564650-27516-1-git-send-email-rogerq@ti.com> <1465564650-27516-2-git-send-email-rogerq@ti.com> <87fus8qkep.fsf@linux.intel.com> <5767D921.60509@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1465844702-12200-1-git-send-email-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: mturquette@baylibre.com, linux-omap@vger.kernel.org, sboyd@codeaurora.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha256; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5767D921.60509@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, nsekhar@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [160613 12:07]:
-> Hi,
-> 
-> Resending the series as it didn't get that much attention last time.
-> This has just been rebased on top of 4.7-rc1, no other changes.
-> 
-> This series adds support for hwmod module clocks, which are currently
-> directly handled by hwmod core. This addresses following issues:
-> 
->  * one step closer of removing hwmod core / data from kernel
->  * unblock Tony's interconnect driver work (this is also required
->    for removing hwmod codebase)
->  * add proper clock support for the hardware modules currently handled
->    by hwmod core; use counting for clocks, ability to share clocks
->    between multiple modules, etc.
->  * add helper clock APIs for removing most of the clock aliases under
->    drivers/clk/ti/clk-xyz.c files
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Mike & Stephen, are you guys OK with this approach? If so, we should
-put this into an immutable branch to avoid merge conflicts.
 
-Regards,
+Hi,
 
-Tony
+Roger Quadros <rogerq@ti.com> writes:
+>> Roger Quadros <rogerq@ti.com> writes:
+>>> Add OTG and GHWPARAMS6 register definitions
+>>>
+>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>> ---
+>>>  drivers/usb/dwc3/core.h | 84 +++++++++++++++++++++++++++++++++++++++++=
++++++++-
+>>>  1 file changed, 83 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+>>> index 8fb6361..32bb7531 100644
+>>> --- a/drivers/usb/dwc3/core.h
+>>> +++ b/drivers/usb/dwc3/core.h
+>>> @@ -197,6 +197,15 @@
+>>>  #define DWC3_GCTL_GBLHIBERNATIONEN	(1 << 1)
+>>>  #define DWC3_GCTL_DSBLCLKGTNG		(1 << 0)
+>>>=20=20
+>>> +/* Global Status Register */
+>>> +#define DWC3_GSTS_OTG_IP	BIT(10)
+>>> +#define DWC3_GSTS_BC_IP		BIT(9)
+>>> +#define DWC3_GSTS_ADP_IP	BIT(8)
+>>> +#define DWC3_GSTS_HOST_IP	BIT(7)
+>>> +#define DWC3_GSTS_DEVICE_IP	BIT(6)
+>>> +#define DWC3_GSTS_CSR_TIMEOUT	BIT(5)
+>>> +#define DWC3_GSTS_BUS_ERR_ADDR_VLD	BIT(4)
+>>> +
+>>>  /* Global USB2 PHY Configuration Register */
+>>>  #define DWC3_GUSB2PHYCFG_PHYSOFTRST	(1 << 31)
+>>>  #define DWC3_GUSB2PHYCFG_SUSPHY		(1 << 6)
+>>> @@ -269,7 +278,12 @@
+>>>  #define DWC3_MAX_HIBER_SCRATCHBUFS		15
+>>>=20=20
+>>>  /* Global HWPARAMS6 Register */
+>>> -#define DWC3_GHWPARAMS6_EN_FPGA			(1 << 7)
+>>> +#define DWC3_GHWPARAMS6_BCSUPPORT		BIT(14)
+>>> +#define DWC3_GHWPARAMS6_OTG3SUPPORT		BIT(13)
+>>> +#define DWC3_GHWPARAMS6_ADPSUPPORT		BIT(12)
+>>> +#define DWC3_GHWPARAMS6_HNPSUPPORT		BIT(11)
+>>> +#define DWC3_GHWPARAMS6_SRPSUPPORT		BIT(10)
+>>> +#define DWC3_GHWPARAMS6_EN_FPGA			BIT(7)
+>>=20
+>> Keep consistency, we don't use BIT() here.
+>>=20
+> Checkpatch was complaining.
+
+then you should first convert everything to BIT() first, right?
+
+> But I can revert to the non BIT format for consistency.
+
+works for me.
+
+=2D-=20
+balbi
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJXZ9vgAAoJEIaOsuA1yqREJ9kQAKHEtKdoznv+3iKa5vIV+yRE
+nDHRv2LNasZz+1wpqhk2qEJpaBEsRllKvNccXSefzxWTFc2alE2dN+c5Jne6rQOL
+Bvh8eCwdTIjNrjXUN2+uKAUt/M1N6N1o88w2KvpIPRrVetUww6f4Jgs+lIYodB5S
+FQDT3XFzTuwEQ/1nFIna43obaXWpM/u9NnBSAtI1vop5q5SemkTIv/ZhM6e9ahOv
+Y97fxk78YKOolQZaC5Og11LCHohLP2Q+9JaQ9UP/6pEij3r8eR5Enx5ml2+B/9s3
+1YP1Une2YOikAWjhn+UNAAYgnIYHK0sA3BkNmyk+EdUMEiXhHEhKbseDWq//05Ry
+Zfrv6dG0ywwbVPhySAw1ItPXOfOl5h2rr3CkAjaz/7ZnuHVwPySAFZoUhOt28UzC
+c8bLlt6nZnPW71z0QaZNSGJWKZ1b5EdFmHdPVeVVcxk6o2jfh0RWdTV1muohM1Lz
+K0FK1GYxQ6rL1IfqEHUV+l2j8YiMwGlk2+DqAu1RKSM2Gm3AY49Wj4yIlsO/ndEL
+OO0UusU1mnVapadA7vNN2drGO3LnC0qMg25Ry417nCCTsTBQ8qPvRJF+crBFFujE
+bbnNURe8xlrmkUhKq3kCk4QXdhdEC0uOykJGGGH98r8Qlho9ZbRFH6mYhmTH1Jwj
+mHb4H6jyl6uNbDv4i6Tq
+=ao3d
+-----END PGP SIGNATURE-----
+--=-=-=--
