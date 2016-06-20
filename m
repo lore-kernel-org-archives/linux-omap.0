@@ -1,42 +1,46 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 6/9] ARM: dts: am437x-gp-evm: disable DDR regulator in rtc-only/poweroff mode
-Date: Mon, 20 Jun 2016 14:13:35 +0530
-Message-ID: <1466412218-5906-7-git-send-email-j-keerthy@ti.com>
-References: <1466412218-5906-1-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 0/9] regulator: Enable suspend configuration
+Date: Mon, 20 Jun 2016 14:13:29 +0530
+Message-ID: <1466412218-5906-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1466412218-5906-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, broonie@kernel.org, devicetree@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, russ.dill@ti.com, robh+dt@kernel.org, mark.rutland@arm.com, j-keerthy@ti.com, linux@armlinux.org.uk, Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, russ.dill@ti.com, robh+dt@kernel.org, mark.rutland@arm.com, j-keerthy@ti.com, linux@armlinux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-From: Tero Kristo <t-kristo@ti.com>
+The series adds suspend configuration for tps65218 and tps65217 PMICs.
 
-Without this, the memory will remain active during poweroff consuming
-extra power.
+Boot tested on am437x-sk-evm, am437x-gp-evm, am335x-bone, am335x-boneblack
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- arch/arm/boot/dts/am437x-gp-evm.dts | 3 +++
- 1 file changed, 3 insertions(+)
+Keerthy (2):
+  regulator: of: setup initial suspend state
+  ARM: dts: AM437X-GP-EVM: AM437X-SK-EVM: Make dcdc3 dcdc5 and dcdc6
+    enable during suspend
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index 7b7ccc0..a9b09b4 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -540,6 +540,9 @@
- 			regulator-state-mem {
- 				regulator-on-in-suspend;
- 			};
-+			regulator-state-disk {
-+				regulator-off-in-suspend;
-+			};
- 		};
- 
- 		dcdc5: regulator-dcdc5 {
+Russ Dill (1):
+  regulator: tps65217: Enable suspend configuration
+
+Tero Kristo (6):
+  regulator: tps65218: Enable suspend configuration
+  regulator: tps65218: force set power-up/down strobe to 3 for dcdc3
+  ARM: dts: am437x-gp-evm: disable DDR regulator in rtc-only/poweroff
+    mode
+  mfd: tps65218: add version check to the PMIC probe
+  regulator: tps65218: do not disable DCDC3 during poweroff on broken
+    PMICs
+  ARM: dts: am437x-sk-evm: disable DDR regulator in rtc-only/poweroff
+    mode
+
+ arch/arm/boot/dts/am437x-gp-evm.dts    | 13 ++++++
+ arch/arm/boot/dts/am437x-sk-evm.dts    | 30 ++++++++++++
+ drivers/mfd/tps65218.c                 |  9 ++++
+ drivers/regulator/of_regulator.c       |  3 ++
+ drivers/regulator/tps65217-regulator.c | 74 ++++++++++++++++++++++++++----
+ drivers/regulator/tps65218-regulator.c | 84 +++++++++++++++++++++++++++++-----
+ include/linux/mfd/tps65218.h           |  8 ++++
+ 7 files changed, 201 insertions(+), 20 deletions(-)
+
 -- 
 1.9.1
