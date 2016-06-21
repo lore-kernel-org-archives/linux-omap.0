@@ -1,73 +1,30 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 4/4] ARM: OMAP4+: Allow kexec on SMP variants
-Date: Tue, 21 Jun 2016 00:52:45 -0700
-Message-ID: <1466495565-17480-5-git-send-email-tony@atomide.com>
-References: <1466495565-17480-1-git-send-email-tony@atomide.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH] ARM: AM43XX: hwmod: Fix RSTST register offset for pruss
+Date: Tue, 21 Jun 2016 07:52:08 +0000
+Message-ID: <5E94841CD408F1498111ED1D1196B1B237B191FD@DBDE04.ent.ti.com>
+References: <1466394745-983-1-git-send-email-j-keerthy@ti.com>
+ <5E94841CD408F1498111ED1D1196B1B237B18D3A@DBDE04.ent.ti.com>
+ <5767A81E.1040809@ti.com> <5768177B.9070306@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1466495565-17480-1-git-send-email-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Nishanth Menon <nm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Tero Kristo <t-kristo@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5768177B.9070306@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Anna, Suman" <s-anna@ti.com>, "J, KEERTHY" <j-keerthy@ti.com>"J, KEERTHY" <j-keerthy@ti.com>, "tony@atomide.com" <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Kristo, Tero" <t-kristo@ti.com>, "Gerlach, Dave" <d-gerlach@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux@armlinux.org.uk" <linux@armlinux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-Kexec needs omap4_cpu_kill, otherwise kexec will produce on SMP:
+Hi Suman,
 
-kexec_load failed: Invalid argument
+Anna, Suman wrote on Monday, June 20, 2016 9:49 PM:
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/common.h       | 1 +
- arch/arm/mach-omap2/omap-hotplug.c | 6 ++++++
- arch/arm/mach-omap2/omap-smp.c     | 1 +
- 3 files changed, 8 insertions(+)
+> It does happen when the pruss module is exercised. We found this when we
+> tried to do a standby test on suspend, and while it worked on AM33xx,
+> AM437x failed because of this difference.
 
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index 0136405..deed42e 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -272,6 +272,7 @@ extern void omap_auxcoreboot_addr(u32 cpu_addr);
- extern u32 omap_read_auxcoreboot0(void);
- 
- extern void omap4_cpu_die(unsigned int cpu);
-+extern int omap4_cpu_kill(unsigned int cpu);
- 
- extern const struct smp_operations omap4_smp_ops;
- 
-diff --git a/arch/arm/mach-omap2/omap-hotplug.c b/arch/arm/mach-omap2/omap-hotplug.c
-index 593fec7..d3fb566 100644
---- a/arch/arm/mach-omap2/omap-hotplug.c
-+++ b/arch/arm/mach-omap2/omap-hotplug.c
-@@ -64,3 +64,9 @@ void omap4_cpu_die(unsigned int cpu)
- 		pr_debug("CPU%u: spurious wakeup call\n", cpu);
- 	}
- }
-+
-+/* Needed by kexec and platform_can_cpu_hotplug() */
-+int omap4_cpu_kill(unsigned int cpu)
-+{
-+	return 1;
-+}
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-index 81bb053..d53a0de 100644
---- a/arch/arm/mach-omap2/omap-smp.c
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -329,5 +329,6 @@ const struct smp_operations omap4_smp_ops __initconst = {
- 	.smp_boot_secondary	= omap4_boot_secondary,
- #ifdef CONFIG_HOTPLUG_CPU
- 	.cpu_die		= omap4_cpu_die,
-+	.cpu_kill		= omap4_cpu_kill,
- #endif
- };
--- 
-2.8.1
+Okay, seems on am335x, PER doesn't have RSTST register itself.
+
+Regards
+afzal
