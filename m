@@ -1,92 +1,58 @@
-From: Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
-Subject: Re: [PATCH 2/2] arm: fix kernel image size
-Date: Tue, 21 Jun 2016 22:51:41 +0100
-Message-ID: <20160621215141.GC5783@n2100.arm.linux.org.uk>
-References: <20160617194405.GN1041@n2100.armlinux.org.uk>
- <E1bDzh4-0006a4-7p@e0050434b2927.dyn.armlinux.org.uk>
- <20160621074319.GH22406@atomide.com>
- <20160621094737.GA5783@n2100.arm.linux.org.uk>
- <20160621103810.GI22406@atomide.com>
- <20160621105720.GK22406@atomide.com>
- <20160621154407.GB5783@n2100.arm.linux.org.uk>
- <20160621165523.GY22406@atomide.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH] ARM: AM33xx: PRM: Remove wrongly defined RSTST offset for
+ PER Domain
+Date: Tue, 21 Jun 2016 17:25:52 -0500
+Message-ID: <5769BEF0.4040902@ti.com>
+References: <1466503706-5292-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160621165523.GY22406-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/kexec/>
-List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "kexec" <kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Pratyush Anand <panand-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Baoquan He <bhe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Simon Horman <horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org>, Kees Cook <keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1466503706-5292-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>, rnayak@codeaurora.org, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, afzal@ti.com, d-gerlach@ti.com, paul@pwsan.com, linux@armlinux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jun 21, 2016 at 09:55:25AM -0700, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org> [160621 08:46]:
-> > On Tue, Jun 21, 2016 at 03:57:20AM -0700, Tony Lindgren wrote:
-> > > 
-> > > Maybe zImage size + MAX_RODATA_SZ + 4x zImage size?
-> > > 
-> > > Then the MAX_RODATA_SZ could be 2 or 4 MB or whatever we
-> > > think is sufficient to kick the can until we have a better
-> > > solution.
-> > 
-> > Maybe if you give some details about your failing case - you omitted any
-> > details about the uncompressed image size...
+Hi Keerthy,
+
+On 06/21/2016 05:08 AM, Keerthy wrote:
+> As per the TRM: http://www.ti.com/lit/ug/spruh73m/spruh73m.pdf
+> offset 0x4 is reserved for PRM_PER. Hence removing the wrongly
+> defined address offset.
+
+Thanks for the patch.  These macros are not used anywhere, so it should
+be safe to remove these. I have tested this patch with an off-tree PRUSS
+driver releasing the reset, it works as expected without throwing any
+issues.
+
+That said, the current omap_hwmod code assumes default rstst_offs and
+st_shift and tries to still write some value into the RSTCTRL register
+in am33xx_prm_deassert_hardreset(), but it didn't have any side-affects
+though on AM33xx. This is what affected the AM437x due to incorrect
+RSTST offset value. That behavior is independent of this patch though.
+
+Tested-by: Suman Anna <s-anna@ti.com>
+
+regards
+Suman
+
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>  arch/arm/mach-omap2/prm33xx.h | 2 --
+>  1 file changed, 2 deletions(-)
 > 
-> Looks like we currently have this:
+> diff --git a/arch/arm/mach-omap2/prm33xx.h b/arch/arm/mach-omap2/prm33xx.h
+> index 2bc4ec5..66302c6 100644
+> --- a/arch/arm/mach-omap2/prm33xx.h
+> +++ b/arch/arm/mach-omap2/prm33xx.h
+> @@ -52,8 +52,6 @@
+>  /* PRM.PER_PRM register offsets */
+>  #define AM33XX_RM_PER_RSTCTRL_OFFSET		0x0000
+>  #define AM33XX_RM_PER_RSTCTRL			AM33XX_PRM_REGADDR(AM33XX_PRM_PER_MOD, 0x0000)
+> -#define AM33XX_RM_PER_RSTST_OFFSET		0x0004
+> -#define AM33XX_RM_PER_RSTST			AM33XX_PRM_REGADDR(AM33XX_PRM_PER_MOD, 0x0004)
+>  #define AM33XX_PM_PER_PWRSTST_OFFSET		0x0008
+>  #define AM33XX_PM_PER_PWRSTST			AM33XX_PRM_REGADDR(AM33XX_PRM_PER_MOD, 0x0008)
+>  #define AM33XX_PM_PER_PWRSTCTRL_OFFSET		0x000c
 > 
-> Memory: 2033088K/2095100K available (7376K kernel code, 784K rwdata,
-> 2312K rodata, 1024K init, 8117K bss, 45628K reserved,
-> 16384K cma-reserved, 1292284K highmem)
-> Virtual kernel memory layout:
->     vector  : 0xffff0000 - 0xffff1000   (   4 kB)
->     fixmap  : 0xffc00000 - 0xfff00000   (3072 kB)
->     vmalloc : 0xf0800000 - 0xff800000   ( 240 MB)
->     lowmem  : 0xc0000000 - 0xf0000000   ( 768 MB)
->     pkmap   : 0xbfe00000 - 0xc0000000   (   2 MB)
->     modules : 0xbf000000 - 0xbfe00000   (  14 MB)
->       .text : 0xc0008000 - 0xc0a762a4   (10681 kB)
->       .init : 0xc0b00000 - 0xc0c00000   (1024 kB)
->       .data : 0xc0c00000 - 0xc0cc411c   ( 785 kB)
->        .bss : 0xc0cc6000 - 0xc14b37f8   (8118 kB)
-
-So that's 20.7MB, and the zImage was 3.6MB.  You're getting an
-expansion ratio of 5.7x.
-
-To fix that, we'd need to up it to 7x, but the problem with upping
-it in this way is that it increases the requirements for the
-crashdump region too.  We can play with this number, but there will
-always be cases where it doesn't work - either because the ratio is
-too big or too small.
-
-By way of illustration, "zImage size + MAX_RODATA_SZ + 4x zImage size"
-doesn't even work for this case, since you need about 25MB.  Your
-calculation comes out at 22MB, which is 3MB short.  Not only that, but
-it introduces (from what I can see) an irrelevant fudge factor of
-"MAX_RODATA_SZ" which has no basis in what's really going on here, and
-I'm left wondering what "MAX_RODATA_SZ" is actually referring to.
-
-So... I'm of the opinion that we shouldn't play with it - but instead
-try to come up with a solution which *doesn't* involve teaching kexec
-a whole load of internals about how the ARM kernel booting happens.
-
-What's more worrying to me at the moment, though, is that the kexec code
-only tries to find memory for the actual "kernel" size, not the actual
-space required to decompress the kernel.  It could find a chunk of
-memory large enough to fit the kernel image to be loaded, but is not big
-enough to allow its decompression.  kexec is really quite a mess on
-ARM. :(
-
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
