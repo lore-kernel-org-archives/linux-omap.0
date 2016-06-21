@@ -1,98 +1,88 @@
 From: Peter Chen <hzpeterchen@gmail.com>
 Subject: Re: [PATCH v11 08/14] usb: otg: add OTG/dual-role core
-Date: Tue, 21 Jun 2016 14:05:17 +0800
-Message-ID: <20160621060517.GA5108@shlinux2>
+Date: Tue, 21 Jun 2016 14:39:36 +0800
+Message-ID: <20160621063936.GB5108@shlinux2>
 References: <1465564043-27163-1-git-send-email-rogerq@ti.com>
  <1465564043-27163-9-git-send-email-rogerq@ti.com>
  <575E672E.5070603@ti.com>
  <87h9coxq04.fsf@linux.intel.com>
- <20160620114904.GC26936@shlinux2>
- <8737o8qd00.fsf@linux.intel.com>
+ <5767C1B9.2060805@ti.com>
+ <878ty0qd7q.fsf@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <8737o8qd00.fsf@linux.intel.com>
+In-Reply-To: <878ty0qd7q.fsf@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Felipe Balbi <balbi@kernel.org>
-Cc: Roger Quadros <rogerq@ti.com>, peter.chen@freescale.com, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, yoshihiro.shimoda.uh@renesas.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, joe@perches.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Roger Quadros <rogerq@ti.com>, peter.chen@freescale.com, yoshihiro.shimoda.uh@renesas.com, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, joe@perches.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jun 20, 2016 at 03:08:15PM +0300, Felipe Balbi wrote:
+On Mon, Jun 20, 2016 at 03:03:37PM +0300, Felipe Balbi wrote:
 > 
 > Hi,
 > 
-> Peter Chen <hzpeterchen@gmail.com> writes:
-> >> Roger Quadros <rogerq@ti.com> writes:
-> >> > It provides APIs for the following tasks
-> >> >
-> >> > - Registering an OTG/dual-role capable controller
-> >> > - Registering Host and Gadget controllers to OTG core
-> >> > - Providing inputs to and kicking the OTG state machine
+> >>> +
+> >>> +		/* start host */
+> >>> +		ret = hcd_ops->add(otg->primary_hcd.hcd,
+> >>> +				   otg->primary_hcd.irqnum,
+> >>> +				   otg->primary_hcd.irqflags);
 > >> 
-> >> I think I have already mentioned this, but after over 10 years of OTG,
-> >> nobody seems to care about it, why are we still touching at all I don't
-> >> know. For common non-OTG role-swapping we really don't need any of this
-> >> and, quite frankly, I fail to see enough users for this.
-> >> 
-> >> Apparently there's only chipidea which, AFAICT, already had working
-> >> dual-role before this OTG State Machine was added to the kernel.
+> >> this is usb_add_hcd(), is it not? Why add an indirection?
 > >
-> > Some users would like to know if vendor's platform is OTG compliance,
-> > so we add it to pass usb.org USB OTG certification test.
+> > I've introduced the host and gadget ops interface to get around the
+> > circular dependency issue we can't avoid.
+> > otg needs to call host/gadget functions and host/gadget also needs to
+> > call otg functions.
 > 
-> I strongly doubt that's really what they mean. IMHO, users want to know
-> if they can swap roles. Ask them if they are really going for OTG
-> certification. Ask them if they have an OPT tester. Ask them if they
-> really want all those timers. If they want HNP polling, etc etc etc.
+> IMO, this shows a fragility of your design. You're, now, lying to
+> usb_hcd and usb_udc and making them register into a virtual layer that
+> doesn't exist. And that layer will end up calling the real registration
+> function when some magic event happens.
 > 
-> So far, I haven't seen anybody talking about real USB OTG (the spec)
-> when they say OTG. Usually they just mean "a method for swapping between
-> host and peripheral roles, but we really don't want all the extra cost
-> of the OTG specification".
+> This is only really needed for quirky devices like dwc3 (but see more on
+> dwc3 below) where host and peripheral registers shadow each
+> other. Otherwise we would be able to always keep hcd and udc always
+> registered. They would get different interrupt statuses anyway and
+> nothing would ever break.
 > 
-
-That's what I thought before, but the request from the Marketing guy is
-"To prove the SoC is OTG compliance, support HNP and SRP", don't you
-see the SoC reference manual say "it supports HNP and SRP"?
-
-If there is no request, who else wants to implement so complicated FSM
-but seldom use cases, and go to pass OTG compliance test (tested by PET).
-
-> > For the real use case, some Carplay platforms need it.
+> However, when it comes to dwc3, we already have all the code necessary
+> to workaround this issue by destroying the XHCI pdev when OTG interrupt
+> says we should be peripheral (and vice-versa). DWC3 also keeps track of
+> the OTG states for those folks who really care about OTG (Hint: nobody
+> has cared for the past 10 years, why would they do so now?) and we don't
+> need a SW state machine when the HW handles that for us, right?
 > 
-> Carplay does *NOT* rely on OTG. Apple has its own proprietary and closed
-> specification which is not OTG-compliant.
-> 
+> As for chipidea, IIRC, that doesn't need a SW state machine either, but
+> I know very little about that IP and don't even have documentation on
+> it. My understanding, however, is that chipidea behaves kinda like MUSB,
+> which changes roles automatically in HW based on ID pin state.
 
-Yes, it is not OTG-compliant, but it can co-work with some standard OTG FSM
-states to finish role swap. Notice, it needs to swap role without
-disconnect cable.
+Chipidea needs to set register for USB role manually.
 
-> >> > diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
-> >> > index f4fc0aa..1d74fb8 100644
-> >> > --- a/include/linux/usb/gadget.h
-> >> > +++ b/include/linux/usb/gadget.h
-> >> > @@ -328,6 +328,7 @@ struct usb_gadget_ops {
-> >> >   * @in_epnum: last used in ep number
-> >> >   * @mA: last set mA value
-> >> >   * @otg_caps: OTG capabilities of this gadget.
-> >> > + * @otg_dev: OTG controller device, if needs to be used with OTG core.
+> >>> + * @otg_dev: OTG controller device, if needs to be used with OTG core.
 > >> 
 > >> do you really know of any platform which has a separate OTG controller?
 > >> 
 > >
-> > It may not be a real separate OTG controller. It can be a hardware part
-> > (external connector, external IC, SoC OTG register area, etc) to handle vbus
-> > ,id and other signals which are used for role swap.
+> > Andrew had pointed out in [1] that Tegra210 has separate blocks for OTG, host
+> > and gadget.
+> >
+> > [1] http://article.gmane.org/gmane.linux.ports.tegra/22969
 > 
-> That's already solved. EXTCON solved that years back and OMAP has been
-> using EXTCON to program its UTMI mailbox.
+> that's not an OTG controller, it's just a mux. No different than Intel's
+> mux for swapping between XHCI and peripheral-only DWC3.
+> 
+> frankly, I would NEVER talk about OTG when type-C comes into play. They
+> are two competing standards and, apparently, type-C is winning when it
+> comes to role-swapping.
 > 
 
-No, that's not the same thing, it does not include the swap role.
-Consider the use case the host driver is at host/ and udc driver is
-at gadget/udc, how to finish to role swap?
+In fact, OTG is mis-used by people. Currently, if the port is dual-role,
+It will be considered as an OTG port.
+
+You are right, if the connector is type-c, it will be called as "type-c
+port" by people :)
 
 -- 
 
