@@ -1,50 +1,62 @@
-From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH 0/4] Get kexec working on SMP omap variants
-Date: Tue, 21 Jun 2016 09:07:59 -0700
-Message-ID: <cfc75c15-ab10-22ee-35b8-529e28d2773c@oracle.com>
-References: <1466495565-17480-1-git-send-email-tony@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 2/2] arm: fix kernel image size
+Date: Tue, 21 Jun 2016 09:55:25 -0700
+Message-ID: <20160621165523.GY22406@atomide.com>
+References: <20160617194405.GN1041@n2100.armlinux.org.uk>
+ <E1bDzh4-0006a4-7p@e0050434b2927.dyn.armlinux.org.uk>
+ <20160621074319.GH22406@atomide.com>
+ <20160621094737.GA5783@n2100.arm.linux.org.uk>
+ <20160621103810.GI22406@atomide.com>
+ <20160621105720.GK22406@atomide.com>
+ <20160621154407.GB5783@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1466495565-17480-1-git-send-email-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: Nishanth Menon <nm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Tero Kristo <t-kristo@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, linux-arm-kernel@lists.infradead.org
+Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160621154407.GB5783-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/kexec>,
+ <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/kexec/>
+List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
+ <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "kexec" <kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
+Cc: Pratyush Anand <panand-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Baoquan He <bhe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Simon Horman <horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org>, Kees Cook <keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 6/21/2016 12:52 AM, Tony Lindgren wrote:
-> Hi all,
->
-> Here are some patches to make kexec work for SMP omaps. To test
-> these you need to use the latest kexec-tools.git kexec with
-> Russell's recent patches in "[PATCH 0/2] Simple fix to the ARM
-> kexec tools implementation" thread fixed for 6x. Or else you
-> need to use appended DTB.
->
-> I've tested these so far on 4430 duovero, omap5-uevm, and
-> beagle-x15.
->
+* Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org> [160621 08:46]:
+> On Tue, Jun 21, 2016 at 03:57:20AM -0700, Tony Lindgren wrote:
+> > 
+> > Maybe zImage size + MAX_RODATA_SZ + 4x zImage size?
+> > 
+> > Then the MAX_RODATA_SZ could be 2 or 4 MB or whatever we
+> > think is sufficient to kick the can until we have a better
+> > solution.
+> 
+> Maybe if you give some details about your failing case - you omitted any
+> details about the uncompressed image size...
 
->
->
-> Tony Lindgren (4):
->   ARM: OMAP4+: Initialize SAR RAM base early for proper CPU1 reset for
->     kexec
->   ARM: OMAP4+: Prevent CPU1 related hang with kexec
->   ARM: OMAP4+: Reset CPU1 properly for kexec
->   ARM: OMAP4+: Allow kexec on SMP variants
->
+Looks like we currently have this:
 
-I suggest to do bit wider testing including PM. From
-quick scan, the series looks fine to me.
+Memory: 2033088K/2095100K available (7376K kernel code, 784K rwdata,
+2312K rodata, 1024K init, 8117K bss, 45628K reserved,
+16384K cma-reserved, 1292284K highmem)
+Virtual kernel memory layout:
+    vector  : 0xffff0000 - 0xffff1000   (   4 kB)
+    fixmap  : 0xffc00000 - 0xfff00000   (3072 kB)
+    vmalloc : 0xf0800000 - 0xff800000   ( 240 MB)
+    lowmem  : 0xc0000000 - 0xf0000000   ( 768 MB)
+    pkmap   : 0xbfe00000 - 0xc0000000   (   2 MB)
+    modules : 0xbf000000 - 0xbfe00000   (  14 MB)
+      .text : 0xc0008000 - 0xc0a762a4   (10681 kB)
+      .init : 0xc0b00000 - 0xc0c00000   (1024 kB)
+      .data : 0xc0c00000 - 0xc0cc411c   ( 785 kB)
+       .bss : 0xc0cc6000 - 0xc14b37f8   (8118 kB)
 
-FWIW, Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
+Regards,
+
+Tony
