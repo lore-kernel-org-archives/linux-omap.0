@@ -1,47 +1,49 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 2/2] arm: fix kernel image size
-Date: Tue, 21 Jun 2016 03:57:20 -0700
-Message-ID: <20160621105720.GK22406@atomide.com>
-References: <20160617194405.GN1041@n2100.armlinux.org.uk>
- <E1bDzh4-0006a4-7p@e0050434b2927.dyn.armlinux.org.uk>
- <20160621074319.GH22406@atomide.com>
- <20160621094737.GA5783@n2100.arm.linux.org.uk>
- <20160621103810.GI22406@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP2+: Drop legacy board file for n900
+Date: Tue, 21 Jun 2016 04:25:36 -0700
+Message-ID: <20160621112535.GN22406@atomide.com>
+References: <1465987689-14812-1-git-send-email-tony@atomide.com>
+ <1465987689-14812-2-git-send-email-tony@atomide.com>
+ <20160615105552.GN29844@pali> <20160615110201.GY22406@atomide.com>
+ <20160615114936.GO29844@pali> <20160615120556.GZ22406@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20160621103810.GI22406-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/kexec/>
-List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "kexec" <kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
-Cc: Pratyush Anand <panand-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Baoquan He <bhe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Simon Horman <horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org>, Kees Cook <keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+In-Reply-To: <20160615120556.GZ22406@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman <khilman@baylibre.com>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Russell King <rmk+kernel@armlinux.org.uk>, Pavel Machek <pavel@ucw.cz>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [160621 03:41]:
-> * Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org> [160621 02:50]:
-> > 
-> > There isn't really an answer which will always work for this problem,
-> > as I've already detailed in a previous thread discussing the issue.
-> > Adding a zImage header don't fix the problem.
-> 
-> Well how about we change both comments and code to use a value
-> that works?
-
-Maybe zImage size + MAX_RODATA_SZ + 4x zImage size?
-
-Then the MAX_RODATA_SZ could be 2 or 4 MB or whatever we
-think is sufficient to kick the can until we have a better
-solution.
-
-Regards,
-
-Tony
+KiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPiBbMTYwNjE1IDA1OjA4XToKPiAqIFBh
+bGkgUm9ow6FyIDxwYWxpLnJvaGFyQGdtYWlsLmNvbT4gWzE2MDYxNSAwNDo1Ml06Cj4gPiBPbiBX
+ZWRuZXNkYXkgMTUgSnVuZSAyMDE2IDA0OjAyOjAyIFRvbnkgTGluZGdyZW4gd3JvdGU6Cj4gPiA+
+IEhpLAo+ID4gPiAKPiA+ID4gKiBQYWxpIFJvaMOhciA8cGFsaS5yb2hhckBnbWFpbC5jb20+IFsx
+NjA2MTUgMDM6NThdOgo+ID4gPiA+IEhpISBJIGp1c3QgcXVpY2tseSBsb29rZWQgYXQgTjkwMCBz
+dGF0dXMgbWF0cml4IGh0dHBzOi8vZWxpbnV4Lm9yZy9OOTAwCj4gPiA+ID4gYW5kIHRoZXJlIGlz
+IHN0aWxsIG9uZSB0aGluZyBub3QgZmluaXNoZWQgaW4gRFQ6IEl0IGlzIHNsb3QtbmFtZSBmb3IK
+PiA+ID4gPiBvbWFwX2hzbW1jIGRyaXZlci4gU28gc3dpdGNoIGZyb20gbGVnYWN5IGJvYXJkIGNv
+ZGUgdG8gRFQgaXMgcmVncmVzc2lvbi4KPiA+ID4gCj4gPiA+IFRoYXQncyBmaXhlZCB3aXRoIHRo
+ZSBmb2xsb3dpbmcgaW4gdjQuNy1yYyBzZXJpZXM6Cj4gPiA+IAo+ID4gPiBkYjg2M2Q4OTY2ODEg
+KCJtbWM6IG9tYXBfaHNtbWM6IENoZWNrIGlmIE1NQyBzbG90IG5hbWUgaXMgcGFzc2VkIGluIHBk
+YXRhIikKPiA+ID4gMTBjMWY3ZDMyYmY0ICgiQVJNOiBPTUFQMis6IG45MDAgbmVlZHMgTU1DIHNs
+b3QgbmFtZXMgZm9yIGxlZ2FjeSB1c2VyIHNwYWNlIikKPiA+IAo+ID4gR3JlYXQhIFNvcnJ5LCBi
+dXQgbm93IHdpa2kgaXMgbm90IGZ1bGx5IHVwZGF0ZWQgd2l0aCBsYXN0IGNoYW5nZXMgYW5kIEkK
+PiA+IGRvIG5vdCBoYXZlIGluIG15IG1pbmQgd2hhdCB3YXMgZmluaXNoZWQvbWVyZ2VkIGFuZCB3
+aGF0IG5vdC4gSXQgaXMKPiA+IGdvaW5nIGhhcmQgZm9yIG1lIHRvIHRyYWNrIGV2ZXJ5dGhpbmcu
+Cj4gCj4gT0sgd2VsbCBtYXliZSB0YWtlIG9uZSBtb3JlIGxvb2sgYW5kIHRoZW4gYWNrIGlmIG5v
+IG1vcmUgaXNzdWVzLgoKUGFsaSwgYW55IG5ld3Mgb24gdGhpcz8KClJlZ2FyZHMsCgpUb255Cgpf
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0t
+a2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcK
+aHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2Vy
+bmVsCg==
