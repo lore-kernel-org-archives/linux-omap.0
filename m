@@ -1,50 +1,55 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 23/28] ARM: dts: DRA7: Add DT node for DES IP
-Date: Tue, 21 Jun 2016 20:56:15 +0300
-Message-ID: <57697FBF.7020709@ti.com>
-References: <1464771389-10640-1-git-send-email-t-kristo@ti.com>
- <1464772006-11254-1-git-send-email-t-kristo@ti.com>
- <1464772006-11254-4-git-send-email-t-kristo@ti.com>
- <20160610113836.GF22406@atomide.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 1/9] regulator: tps65217: Enable suspend configuration
+Date: Tue, 21 Jun 2016 20:08:48 +0100
+Message-ID: <20160621190848.GF28202@sirena.org.uk>
+References: <1466412218-5906-1-git-send-email-j-keerthy@ti.com>
+ <1466412218-5906-2-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <20160610113836.GF22406@atomide.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-crypto@vger.kernel.org, herbert@gondor.apana.org.au, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, lokeshvutla@ti.com
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="XIiC+We3v3zHqZ6Z"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1466412218-5906-2-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, russ.dill@ti.com, robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-On 10/06/16 14:38, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo@ti.com> [160601 02:09]:
->> From: Joel Fernandes <joelf@ti.com>
->>
->> DRA7xx SoCs have a DES3DES IP. Add DT data for the same.
->
-> Are these dts changes safe to apply separately or do they
-> cause issues like extra warnings during boot?
 
-DTS changes are fine to merge as is separately, some crypto 
-functionality might not work properly though (well, the support is 
-somewhat broken on am43xx/dra7 anyways.) I just gave the kernel a boot 
-test with am43xx/dra7 platforms with the DT data only applied, and that 
-part worked fine.
+--XIiC+We3v3zHqZ6Z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I noticed that if you merge the hwmod changes before you have the DTS 
-data though, you will get some extra boot warnings of the following kind 
-on am43xx/dra7:
+On Mon, Jun 20, 2016 at 02:13:30PM +0530, Keerthy wrote:
 
-<snip>
-[    0.315623] omap_hwmod: aes1: no dt node
-[    0.315631] ------------[ cut here ]------------
-[    0.315656] WARNING: CPU: 0 PID: 1 at 
-arch/arm/mach-omap2/omap_hwmod.c:2497 _init+0x1d0/0x41c
-[    0.315663] omap_hwmod: aes1: doesn't have mpu register target base
-<snip>
+> +static struct tps65217_regulator_data regulator_data[TPS65217_NUM_REGULATOR];
 
-Do you want to pick-up the DTS changes from this revision of series as 
-is or shall I repost those also? I think the series would require a 
-re-ordering of posting the DTS changes before the hwmod data.
+Why is this a static global?
 
--Tero
+> +		/* Store default strobe info */
+> +		ret = tps65217_reg_read(tps, regulators[i].bypass_reg, &val);
+> +
+> +		regulator_data[i].strobe = val & regulators[i].bypass_mask;
+> +
+
+Not sure what this is doing...  I think this needs splitting up a bit,
+it looks like it's a bit more than just adding the ops (which should be
+generic things), that bit seems OK but there's these other bits in
+there as well.
+
+--XIiC+We3v3zHqZ6Z
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJXaZC+AAoJECTWi3JdVIfQJ9IH/jvO5mMNs/t1n9soNxyQUqbj
+bDNw3p/jWayvnOgV66QMyXPc3YJo2z5Gp/A+SwtSQRdhbE7TerSQYUWly+xGnjIj
+3ftlfEeKPvF0DOc8ZSm7XaLSn41iy5yctcPcCpAcXuu1unJfOHfFHBxTaxKS7m3M
+DagqcsU4WAhrkFHAhhkJMhb8HNQmIOoREzWbEh8gppmJeSn0zWcwpeTIUNxd0kNA
+0tGZHdufWXFUX8Z6DRfzJ2eYD/3QoGNmw2H16h2ygwH8302GpduY6FUJ9NQdxZYM
+qXCCHzx1aKOogDQrS1RIPbI0V0jsyKkCbvTovXuv2tk4SGDfsmAqk8jHd/mlgGU=
+=uxF5
+-----END PGP SIGNATURE-----
+
+--XIiC+We3v3zHqZ6Z--
