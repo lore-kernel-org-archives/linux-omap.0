@@ -1,16 +1,18 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2 v2] gpio: omap: make gpio numbering deterministical
- by using of aliases
-Date: Tue, 21 Jun 2016 04:28:59 -0700
-Message-ID: <20160621112858.GO22406@atomide.com>
-References: <1465930632-18941-1-git-send-email-u.kleine-koenig@pengutronix.de>
- <1465930632-18941-2-git-send-email-u.kleine-koenig@pengutronix.de>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP2+: Drop legacy board file for n900
+Date: Tue, 21 Jun 2016 13:29:44 +0200
+Message-ID: <20160621112944.GV29844@pali>
+References: <1465987689-14812-1-git-send-email-tony@atomide.com>
+ <1465987689-14812-2-git-send-email-tony@atomide.com>
+ <20160615105552.GN29844@pali> <20160615110201.GY22406@atomide.com>
+ <20160615114936.GO29844@pali> <20160615120556.GZ22406@atomide.com>
+ <20160621112535.GN22406@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1465930632-18941-2-git-send-email-u.kleine-koenig@pengutronix.de>
+In-Reply-To: <20160621112535.GN22406@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,27 +22,32 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Kevin Hilman <khilman@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, kernel@pengutronix.de, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman <khilman@baylibre.com>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Russell King <rmk+kernel@armlinux.org.uk>, Pavel Machek <pavel@ucw.cz>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-KiBVd2UgS2xlaW5lLUvDtm5pZyA8dS5rbGVpbmUta29lbmlnQHBlbmd1dHJvbml4LmRlPiBbMTYw
-NjE0IDEyOjAzXToKPiBUcmFkaXRpb25hbGx5IHRoZSBuLXRoIGdwaW8gZGV2aWNlIHByb2JlZCBi
-eSB0aGUgb21hcCBncGlvIGRyaXZlciBnb3QKPiB0aGUgZ3BpbyBudW1iZXIgcmFuZ2UgW24qMzIg
-Li4gbiozMiszMV0uCj4gV2hlbiBvcmRlciBvZiB0aGUgZGV2aWNlcyBwcm9iZWQgYnkgdGhlIGRy
-aXZlciBjaGFuZ2VzICh3aGljaCBjYW4gaGFwcGVuCj4gYWxyZWFkeSBub3cgd2hlbiBzb21lIGRl
-dmljZXMgaGF2ZSBhIHBpbmN0cmwgYW5kIHNvIHRoZSBmaXJzdCBwcm9iZQo+IGF0dGVtcHQgcmV0
-dXJucyAtRU5PREVWKSB0aGUgbnVtYmVyaW5nIGNoYW5nZXMuCj4gCj4gVG8gZW5zdXJlIGEgZGV0
-ZXJtaW5pc3RpY2FsIG51bWJlcmluZyB1c2Ugb2ZfYWxpYXNfZ2V0X2lkIHRvIGRldGVybWluZQo+
-IHRoZSBiYXNlIGZvciBhIGdpdmVuIGRldmljZS4gSWYgbm8gcmVzcGVjdGl2ZSBhbGlhcyBleGlz
-dHMgZmFsbCBiYWNrIHRvCj4gdGhlIHRyYWRpdGlvbmFsIG51bWJlcmluZy4KPiAKPiBGb3IgdGhl
-IHVudXN1YWwgY2FzZSB3aGVyZSBvbmx5IGEgcGFydCBvZiB0aGUgZ3BpbyBkZXZpY2VzIGhhdmUg
-YQo+IG1hdGNoaW5nIGFsaWFzIHNvbWUgb2YgdGhlbSBtaWdodCBmYWlsIHRvIHByb2JlLiBCdXQg
-aWYgbm9uZSBvZiB0aGVtIGhhcwo+IGFuIGFsaWFzIG9yIGFsbCwgdGhlcmUgaXMgbm8gY29uZmxp
-Y3Qgd2hpY2ggc2hvdWxkIGJlIGdvb2QgZW5vdWdoIHRvCj4gbWFpbnRhaW4gYmFja3dhcmQgY29t
-cGF0aWJpbGl0eS4KCkkgdGhpbmsgZG9pbmcgdGhpcyBpcyBhIGdvb2QgaWRlYSB0byBwcmV2ZW50
-IG5hc3R5IHN1cHJpc2VzIHdoZW4KdXBncmFkaW5nIGEga2VybmVsIG9uIHNvbWUgZGV2aWNlOgoK
-QWNrZWQtYnk6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+CgpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxp
-bmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3Rz
-LmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+T24gVHVlc2RheSAyMSBKdW5lIDIwMTYgMDQ6MjU6MzYgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiAq
+IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+IFsxNjA2MTUgMDU6MDhdOgo+ID4gKiBQ
+YWxpIFJvaMOhciA8cGFsaS5yb2hhckBnbWFpbC5jb20+IFsxNjA2MTUgMDQ6NTJdOgo+ID4gPiBP
+biBXZWRuZXNkYXkgMTUgSnVuZSAyMDE2IDA0OjAyOjAyIFRvbnkgTGluZGdyZW4gd3JvdGU6Cj4g
+PiA+ID4gSGksCj4gPiA+ID4gCj4gPiA+ID4gKiBQYWxpIFJvaMOhciA8cGFsaS5yb2hhckBnbWFp
+bC5jb20+IFsxNjA2MTUgMDM6NThdOgo+ID4gPiA+ID4gSGkhIEkganVzdCBxdWlja2x5IGxvb2tl
+ZCBhdCBOOTAwIHN0YXR1cyBtYXRyaXggaHR0cHM6Ly9lbGludXgub3JnL045MDAKPiA+ID4gPiA+
+IGFuZCB0aGVyZSBpcyBzdGlsbCBvbmUgdGhpbmcgbm90IGZpbmlzaGVkIGluIERUOiBJdCBpcyBz
+bG90LW5hbWUgZm9yCj4gPiA+ID4gPiBvbWFwX2hzbW1jIGRyaXZlci4gU28gc3dpdGNoIGZyb20g
+bGVnYWN5IGJvYXJkIGNvZGUgdG8gRFQgaXMgcmVncmVzc2lvbi4KPiA+ID4gPiAKPiA+ID4gPiBU
+aGF0J3MgZml4ZWQgd2l0aCB0aGUgZm9sbG93aW5nIGluIHY0LjctcmMgc2VyaWVzOgo+ID4gPiA+
+IAo+ID4gPiA+IGRiODYzZDg5NjY4MSAoIm1tYzogb21hcF9oc21tYzogQ2hlY2sgaWYgTU1DIHNs
+b3QgbmFtZSBpcyBwYXNzZWQgaW4gcGRhdGEiKQo+ID4gPiA+IDEwYzFmN2QzMmJmNCAoIkFSTTog
+T01BUDIrOiBuOTAwIG5lZWRzIE1NQyBzbG90IG5hbWVzIGZvciBsZWdhY3kgdXNlciBzcGFjZSIp
+Cj4gPiA+IAo+ID4gPiBHcmVhdCEgU29ycnksIGJ1dCBub3cgd2lraSBpcyBub3QgZnVsbHkgdXBk
+YXRlZCB3aXRoIGxhc3QgY2hhbmdlcyBhbmQgSQo+ID4gPiBkbyBub3QgaGF2ZSBpbiBteSBtaW5k
+IHdoYXQgd2FzIGZpbmlzaGVkL21lcmdlZCBhbmQgd2hhdCBub3QuIEl0IGlzCj4gPiA+IGdvaW5n
+IGhhcmQgZm9yIG1lIHRvIHRyYWNrIGV2ZXJ5dGhpbmcuCj4gPiAKPiA+IE9LIHdlbGwgbWF5YmUg
+dGFrZSBvbmUgbW9yZSBsb29rIGFuZCB0aGVuIGFjayBpZiBubyBtb3JlIGlzc3Vlcy4KPiAKPiBQ
+YWxpLCBhbnkgbmV3cyBvbiB0aGlzPwoKSSBoYXZlIG5vdCBsb29rZWQgYXQgdGhpcyBkZWVwbHkg
+eWV0LiBQbGVhc2UgZ2l2ZSBtZSBzb21lIG1vcmUgdGltZS4KCi0tIApQYWxpIFJvaMOhcgpwYWxp
+LnJvaGFyQGdtYWlsLmNvbQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBs
+aXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlz
+dGluZm8vbGludXgtYXJtLWtlcm5lbAo=
