@@ -1,62 +1,66 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 2/2] arm: fix kernel image size
-Date: Tue, 21 Jun 2016 09:55:25 -0700
-Message-ID: <20160621165523.GY22406@atomide.com>
-References: <20160617194405.GN1041@n2100.armlinux.org.uk>
- <E1bDzh4-0006a4-7p@e0050434b2927.dyn.armlinux.org.uk>
- <20160621074319.GH22406@atomide.com>
- <20160621094737.GA5783@n2100.arm.linux.org.uk>
- <20160621103810.GI22406@atomide.com>
- <20160621105720.GK22406@atomide.com>
- <20160621154407.GB5783@n2100.arm.linux.org.uk>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 1/2 v2] gpio: omap: make gpio numbering deterministical by
+ using of aliases
+Date: Tue, 21 Jun 2016 20:01:36 +0300
+Message-ID: <576972F0.7090207@ti.com>
+References: <1465930632-18941-1-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1465930632-18941-2-git-send-email-u.kleine-koenig@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160621154407.GB5783-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/kexec/>
-List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "kexec" <kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
-Cc: Pratyush Anand <panand-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Baoquan He <bhe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Simon Horman <horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org>, Kees Cook <keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1465930632-18941-2-git-send-email-u.kleine-koenig@pengutronix.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <u.kleine-koenig@pengutronix.de>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
+Cc: linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, kernel@pengutronix.de, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org> [160621 08:46]:
-> On Tue, Jun 21, 2016 at 03:57:20AM -0700, Tony Lindgren wrote:
-> > 
-> > Maybe zImage size + MAX_RODATA_SZ + 4x zImage size?
-> > 
-> > Then the MAX_RODATA_SZ could be 2 or 4 MB or whatever we
-> > think is sufficient to kick the can until we have a better
-> > solution.
-> 
-> Maybe if you give some details about your failing case - you omitted any
-> details about the uncompressed image size...
-
-Looks like we currently have this:
-
-Memory: 2033088K/2095100K available (7376K kernel code, 784K rwdata,
-2312K rodata, 1024K init, 8117K bss, 45628K reserved,
-16384K cma-reserved, 1292284K highmem)
-Virtual kernel memory layout:
-    vector  : 0xffff0000 - 0xffff1000   (   4 kB)
-    fixmap  : 0xffc00000 - 0xfff00000   (3072 kB)
-    vmalloc : 0xf0800000 - 0xff800000   ( 240 MB)
-    lowmem  : 0xc0000000 - 0xf0000000   ( 768 MB)
-    pkmap   : 0xbfe00000 - 0xc0000000   (   2 MB)
-    modules : 0xbf000000 - 0xbfe00000   (  14 MB)
-      .text : 0xc0008000 - 0xc0a762a4   (10681 kB)
-      .init : 0xc0b00000 - 0xc0c00000   (1024 kB)
-      .data : 0xc0c00000 - 0xc0cc411c   ( 785 kB)
-       .bss : 0xc0cc6000 - 0xc14b37f8   (8118 kB)
-
-Regards,
-
-Tony
+T24gMDYvMTQvMjAxNiAwOTo1NyBQTSwgVXdlIEtsZWluZS1Lw7ZuaWcgd3JvdGU6Cj4gVHJhZGl0
+aW9uYWxseSB0aGUgbi10aCBncGlvIGRldmljZSBwcm9iZWQgYnkgdGhlIG9tYXAgZ3BpbyBkcml2
+ZXIgZ290Cj4gdGhlIGdwaW8gbnVtYmVyIHJhbmdlIFtuKjMyIC4uIG4qMzIrMzFdLgo+IFdoZW4g
+b3JkZXIgb2YgdGhlIGRldmljZXMgcHJvYmVkIGJ5IHRoZSBkcml2ZXIgY2hhbmdlcyAod2hpY2gg
+Y2FuIGhhcHBlbgo+IGFscmVhZHkgbm93IHdoZW4gc29tZSBkZXZpY2VzIGhhdmUgYSBwaW5jdHJs
+IGFuZCBzbyB0aGUgZmlyc3QgcHJvYmUKPiBhdHRlbXB0IHJldHVybnMgLUVOT0RFVikgdGhlIG51
+bWJlcmluZyBjaGFuZ2VzLgo+Cj4gVG8gZW5zdXJlIGEgZGV0ZXJtaW5pc3RpY2FsIG51bWJlcmlu
+ZyB1c2Ugb2ZfYWxpYXNfZ2V0X2lkIHRvIGRldGVybWluZQo+IHRoZSBiYXNlIGZvciBhIGdpdmVu
+IGRldmljZS4gSWYgbm8gcmVzcGVjdGl2ZSBhbGlhcyBleGlzdHMgZmFsbCBiYWNrIHRvCj4gdGhl
+IHRyYWRpdGlvbmFsIG51bWJlcmluZy4KPgo+IEZvciB0aGUgdW51c3VhbCBjYXNlIHdoZXJlIG9u
+bHkgYSBwYXJ0IG9mIHRoZSBncGlvIGRldmljZXMgaGF2ZSBhCj4gbWF0Y2hpbmcgYWxpYXMgc29t
+ZSBvZiB0aGVtIG1pZ2h0IGZhaWwgdG8gcHJvYmUuIEJ1dCBpZiBub25lIG9mIHRoZW0gaGFzCj4g
+YW4gYWxpYXMgb3IgYWxsLCB0aGVyZSBpcyBubyBjb25mbGljdCB3aGljaCBzaG91bGQgYmUgZ29v
+ZCBlbm91Z2ggdG8KPiBtYWludGFpbiBiYWNrd2FyZCBjb21wYXRpYmlsaXR5Lgo+Cj4gU2lnbmVk
+LW9mZi1ieTogVXdlIEtsZWluZS1Lw7ZuaWcgPHUua2xlaW5lLWtvZW5pZ0BwZW5ndXRyb25peC5k
+ZT4KPiAtLS0KPiAgIGRyaXZlcnMvZ3Bpby9ncGlvLW9tYXAuYyB8IDE5ICsrKysrKysrKysrKysr
+KysrKy0KPiAgIDEgZmlsZSBjaGFuZ2VkLCAxOCBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0p
+Cj4KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9ncGlvL2dwaW8tb21hcC5jIGIvZHJpdmVycy9ncGlv
+L2dwaW8tb21hcC5jCj4gaW5kZXggYjk4ZWRlNzhjOWQ4Li40ZDkxNzkyZTcyNjYgMTAwNjQ0Cj4g
+LS0tIGEvZHJpdmVycy9ncGlvL2dwaW8tb21hcC5jCj4gKysrIGIvZHJpdmVycy9ncGlvL2dwaW8t
+b21hcC5jCj4gQEAgLTEwNTMsOSArMTA1MywyNiBAQCBzdGF0aWMgaW50IG9tYXBfZ3Bpb19jaGlw
+X2luaXQoc3RydWN0IGdwaW9fYmFuayAqYmFuaywgc3RydWN0IGlycV9jaGlwICppcnFjKQo+ICAg
+CQkJYmFuay0+Y2hpcC5wYXJlbnQgPSAmb21hcF9tcHVpb19kZXZpY2UuZGV2Owo+ICAgCQliYW5r
+LT5jaGlwLmJhc2UgPSBPTUFQX01QVUlPKDApOwo+ICAgCX0gZWxzZSB7Cj4gKwkJaW50IGdwaW9f
+YWxpYXNfaWQgX19tYXliZV91bnVzZWQ7Cj4gKwo+ICAgCQliYW5rLT5jaGlwLmxhYmVsID0gImdw
+aW8iOwo+IC0JCWJhbmstPmNoaXAuYmFzZSA9IGdwaW87Cj4gKwo+ICsjaWYgZGVmaW5lZChDT05G
+SUdfT0ZfR1BJTykKPiArCQkvKgo+ICsJCSAqIFRyYWRpdGlvbmFsbHkgdGhlIGJhc2UgaXMgZ2l2
+ZW4gb3V0IGluIGZpcnN0LWNvbWUtZmlyc3Qtc2VydmUKPiArCQkgKiBvcmRlci4gIFRoaXMgbWln
+aHQgc2h1ZmZsZSB0aGUgbnVtYmVyaW5nIG9mIGdwaW9zIGlmIHRoZQo+ICsJCSAqIHByb2JlIG9y
+ZGVyIGNoYW5nZXMuICBTbyBtYWtlIHRoZSBiYXNlIGRldGVybWluaXN0aWNhbCBpZiB0aGUKPiAr
+CQkgKiBkZXZpY2UgdHJlZSBzcGVjaWZpZXMgYWxpYXMgaWRzLgo+ICsJCSAqLwo+ICsJCWdwaW9f
+YWxpYXNfaWQgPSBvZl9hbGlhc19nZXRfaWQoYmFuay0+Y2hpcC5vZl9ub2RlLCAiZ3BpbyIpOwo+
+ICsJCWlmIChncGlvX2FsaWFzX2lkID49IDApCj4gKwkJCWJhbmstPmNoaXAuYmFzZSA9IGJhbmst
+PndpZHRoICogZ3Bpb19hbGlhc19pZDsKPiArCQllbHNlCj4gKyNlbmRpZgo+ICsJCQliYW5rLT5j
+aGlwLmJhc2UgPSBncGlvOwo+ICAgCX0KPiArCj4gKwo+ICAgCWJhbmstPmNoaXAubmdwaW8gPSBi
+YW5rLT53aWR0aDsKPgo+ICAgCXJldCA9IGdwaW9jaGlwX2FkZF9kYXRhKCZiYW5rLT5jaGlwLCBi
+YW5rKTsKPgoKUmV2aWV3ZWQtYnk6IEdyeWdvcmlpIFN0cmFzaGtvIDxncnlnb3JpaS5zdHJhc2hr
+b0B0aS5jb20+CgotLSAKcmVnYXJkcywKLWdyeWdvcmlpCgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdAps
+aW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVh
+ZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
