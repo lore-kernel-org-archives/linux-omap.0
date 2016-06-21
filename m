@@ -1,58 +1,74 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH] ARM: AM33xx: PRM: Remove wrongly defined RSTST offset for
- PER Domain
-Date: Tue, 21 Jun 2016 17:25:52 -0500
-Message-ID: <5769BEF0.4040902@ti.com>
-References: <1466503706-5292-1-git-send-email-j-keerthy@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: camera application for testing (was Re: v4l subdevs without big
+ device)
+Date: Wed, 22 Jun 2016 00:32:46 +0200
+Message-ID: <20160621223246.GA10929@amd>
+References: <20160428084546.GA9957@amd>
+ <20160429071525.GA4823@amd>
+ <57230DE7.3020701@xs4all.nl>
+ <20160429221359.GA29297@amd>
+ <20160501140831.GH26360@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1466503706-5292-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>, rnayak@codeaurora.org, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, afzal@ti.com, d-gerlach@ti.com, paul@pwsan.com, linux@armlinux.org.uk
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-media-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160501140831.GH26360@valkosipuli.retiisi.org.uk>
+Sender: linux-media-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, tuukkat76@gmail.com, mchehab@osg.samsung.com, linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Keerthy,
+Hi!
 
-On 06/21/2016 05:08 AM, Keerthy wrote:
-> As per the TRM: http://www.ti.com/lit/ug/spruh73m/spruh73m.pdf
-> offset 0x4 is reserved for PRM_PER. Hence removing the wrongly
-> defined address offset.
-
-Thanks for the patch.  These macros are not used anywhere, so it should
-be safe to remove these. I have tested this patch with an off-tree PRUSS
-driver releasing the reset, it works as expected without throwing any
-issues.
-
-That said, the current omap_hwmod code assumes default rstst_offs and
-st_shift and tries to still write some value into the RSTCTRL register
-in am33xx_prm_deassert_hardreset(), but it didn't have any side-affects
-though on AM33xx. This is what affected the AM437x due to incorrect
-RSTST offset value. That behavior is independent of this patch though.
-
-Tested-by: Suman Anna <s-anna@ti.com>
-
-regards
-Suman
-
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
->  arch/arm/mach-omap2/prm33xx.h | 2 --
->  1 file changed, 2 deletions(-)
+> > What is reasonable camera application for testing?
+> > 
+> > N900 looks like a low-end digital camera. I have now have the hardware
+> > working (can set focus to X cm using command line), but that's not
+> > going to be useful for taking photos.
 > 
-> diff --git a/arch/arm/mach-omap2/prm33xx.h b/arch/arm/mach-omap2/prm33xx.h
-> index 2bc4ec5..66302c6 100644
-> --- a/arch/arm/mach-omap2/prm33xx.h
-> +++ b/arch/arm/mach-omap2/prm33xx.h
-> @@ -52,8 +52,6 @@
->  /* PRM.PER_PRM register offsets */
->  #define AM33XX_RM_PER_RSTCTRL_OFFSET		0x0000
->  #define AM33XX_RM_PER_RSTCTRL			AM33XX_PRM_REGADDR(AM33XX_PRM_PER_MOD, 0x0000)
-> -#define AM33XX_RM_PER_RSTST_OFFSET		0x0004
-> -#define AM33XX_RM_PER_RSTST			AM33XX_PRM_REGADDR(AM33XX_PRM_PER_MOD, 0x0004)
->  #define AM33XX_PM_PER_PWRSTST_OFFSET		0x0008
->  #define AM33XX_PM_PER_PWRSTST			AM33XX_PRM_REGADDR(AM33XX_PRM_PER_MOD, 0x0008)
->  #define AM33XX_PM_PER_PWRSTCTRL_OFFSET		0x000c
+> I guess you already knew about omap3camd; it's proprietary but from purely
+> practical point of view it'd be an option to support taking photos on the
+> N900. That would not be extensible any way, the best possible functionality
+> is limited what the daemon implements.
 > 
+> I'm just mentioning the option of implementing wrapper for the omap3camd so
+> that it can work with upsteam APIs, I don't propose that however.
+> 
+> > 
+> > In particular, who is going to do computation neccessary for
+> > autofocus, whitebalance and exposure/gain?
+> 
+> I think libv4l itself has algorithms to control at least some of these. It
+> relies on the image data so the CPU time consumption will be high.
+> 
+> AFAIR Laurent has also worked on implementing some algorithms that use the
+> histogram and some of the statistics. Add him to cc list.
+
+Ok, so I played a bit... and have something working. I modified
+fcam-dev to work with the current kernel, and removed most
+functionality in the process. Then I re-did sharpness and autogain
+computations in software, and it seems to work somehow... but its
+rather slow. (But good news is that's because code is stupid; the
+computations should be fast enough.)
+
+In particular, it takes cca 10 seconds to take a picture. I guess
+there's a room for improvement :-).
+
+> > There's http://fcam.garage.maemo.org/gettingStarted.html that should
+> > work on maemo, but a) it is not in Debian, b) it has non-trivial
+> > dependencies and c) will be a lot of fun to get working...
+> > 
+> > (and d), will not be too useful, anyway, due to 1sec shutter lag:
+> 
+> I believe this will be shorter nowadays. I don't remember the exact
+> technical solution which the text below refers to but I'm pretty sure it'll
+> be better with the current upstream. API-wise, there's work to be done there
+> (to port FCAM to upsteram APIs) but it's a possibility.
+
+So far I have really horrible hacks.
+
+Best regards,
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
