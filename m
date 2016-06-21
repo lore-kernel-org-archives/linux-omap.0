@@ -1,57 +1,78 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH v2 5/5] ASoC: tpa6130a2: Remove goto err_gpio
-Date: Tue, 21 Jun 2016 03:42:23 +0200
-Message-ID: <20160621014222.GD17167@earth>
-References: <cover.1466441036.git.helen.koike@collabora.co.uk>
- <903012887a1b2f8f59e44b1cfb472c9362fd964f.1466441036.git.helen.koike@collabora.co.uk>
+Subject: Re: [PATCH v2 4/5] ASoC: tpa6130a2: Add DAPM support
+Date: Tue, 21 Jun 2016 03:45:26 +0200
+Message-ID: <20160621014526.GE17167@earth>
+References: <20160618104038.GB31665@earth>
+ <cover.1466441036.git.helen.koike@collabora.co.uk>
+ <bbddafe634bde1d12288862e02622d15c9b7c25c.1466441036.git.helen.koike@collabora.co.uk>
+ <57683EA2.70602@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="J5MfuwkIyy7RmF4Q"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <903012887a1b2f8f59e44b1cfb472c9362fd964f.1466441036.git.helen.koike@collabora.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============3335375349654466704=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <57683EA2.70602@collabora.co.uk>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
 To: Helen Koike <helen.koike@collabora.co.uk>
-Cc: lgirdwood@gmail.com, broonie@kernel.org, peter.ujfalusi@ti.com, jarkko.nikula@bitmer.com, lars@metafoo.de, k.kozlowski@samsung.com, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, perex@perex.cz, tiwai@suse.com, cphealy@gmail.com
+Cc: k.kozlowski@samsung.com, lars@metafoo.de, alsa-devel@alsa-project.org, tiwai@suse.com, lgirdwood@gmail.com, linux-kernel@vger.kernel.org, peter.ujfalusi@ti.com, broonie@kernel.org, cphealy@gmail.com, linux-omap@vger.kernel.org, jarkko.nikula@bitmer.com
 List-Id: linux-omap@vger.kernel.org
 
 
---J5MfuwkIyy7RmF4Q
+--===============3335375349654466704==
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="4Epv4kl9IRBfg3rk"
+Content-Disposition: inline
+
+
+--4Epv4kl9IRBfg3rk
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi,
+Hi Helen,
 
-On Mon, Jun 20, 2016 at 02:12:33PM -0300, Helen Koike wrote:
-> Replace goto err_gpio by return ret
->=20
-> Signed-off-by: Helen Koike <helen.koike@collabora.co.uk>
+On Mon, Jun 20, 2016 at 04:06:10PM -0300, Helen Koike wrote:
+> I added these changes above and kept your tested-by and reviewed-by, could
+> you please confirm that I can keep them? As I changed more things then you
+> suggested.
 
-Tested-By: Sebastian Reichel <sre@kernel.org>
-Reviewed-By: Sebastian Reichel <sre@kernel.org>
+The changes look fine to me, the new patchset works on N900.
 
 -- Sebastian
 
---J5MfuwkIyy7RmF4Q
+--4Epv4kl9IRBfg3rk
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBCgAGBQJXaJt+AAoJENju1/PIO/qakgcP/i8KHgP66ujp9NaYsCZPcYZQ
-Eedxor7Nyjci41vRaSuQg03xSlJRoAe6qlbF8Qd3GvHMzVxSmSQc+rdldVU8WLyk
-Gcf6e3Tnd+UhloaExUPggizuXE3CcxggeE4c4/DBIAAH+xOJhY5mwh9WGLbxc/H3
-GOxQU/9W/c5+Bvh17Ke5li3QrEAIVPXLL6YO19AS5/LyUsG5W0KGqodwiMRkLOE3
-gyeFZ63e0gOHStbf9iuebrWp8sI2j5513x07F0RuKgiLJ3Hw3nXVg6UNAYdOD+sh
-ckWVW0HUV0dOqliZ7DhlLFdfOMErXVXdH+BeFLkAkoND16ffepqytWJPAtCDVPTu
-+NfR6PwogRDzRlnTseemtrYpA3IESoNrOZio9bjm5z5n9qUDeC2d7RTkjbp6gNXl
-AmXx075iAh5fcbCfDr8bIRXjxuEOGmSTtaFQj5YezuGXM20fRmq0XAr0GWRI8Wnz
-ivVsNEhP70xqHCH/F/5NGA/NI4yQ1UynBuaH3oZdtLAeVTdYYb/0KuGI5kdwFy/+
-0I+t7bdtlWE7b4UCXmx9B9p5oCDuon9jQHhJt6A35gw5knMfH1899XC0bn1c6Ju4
-PEQTxk5Kp7VqgtoszMPqZ7xyAlTpL4FrXjGshlXpkXhFKRtQGmmLUwbvoZdYh6Rr
-WKzchamhnDzDBiEQo19A
-=9o5Q
+iQIcBAEBCgAGBQJXaJw2AAoJENju1/PIO/qasScP/jDhOJa5YM+YpVjFmDOrNnqs
+KmYjypJ158LWD+zYrpK6/kjCoCNNDdNPOUJ+X1cvsoUHMr2TChjppVk4JgeWxPBy
+LsUMFU2IgNI4jadoaBbBRbCBvlmLnJdr6fHs8i4y1FTpVrTE7ZUJAjdaaq6iL+/T
+juLKxfV8NgSlaIzH4s5Jt39IFspqh7jMfhzGJdskkHyjFnwoAPX9Xce3h5q9CCY0
+4Xes4hlzMr6aTcgrwquwaBNrh7AbpjGrT3awc5sKU299yUC+jl3fX7m4JdeYIDF5
+n9Fb686JrUnwsMT89YI+eE/18ju40UDAdlCwPGdRb6mFKz8excwyd8TiNZ9nnDk0
+lJBLT4JtEqBlk7HlfTEOtpMf36Txo30P2L1ha0Z7X+PM2ahG1Bkb7mxtg/fErtna
+3Z1AcSwJWWEEmWKvB2MTuLhnfapkcyhhYcgSuSSIpBJ/k6uQnbQhlvjdnpmUeISe
+cQCoGHSBxc19TPdpdRpcxqzw4Jdg2e7BWSqXr5vazDdqDdJSd1kVZ9eKZbVFDo2P
+nz+e4AfUl4T7cPa0rjvKZscwhQ1AiK24CbMHu+4Rh2vZk0X0cdgCoBVaTGvJZm5S
+9heQDTJfkGIEseKfjhr3WAKCjJzBq9SbkvXAMnsE1fFEiShO1PbHvFuYmiq1nJqj
+hoOaJfmkldNBP+IixW5w
+=jbIb
 -----END PGP SIGNATURE-----
 
---J5MfuwkIyy7RmF4Q--
+--4Epv4kl9IRBfg3rk--
+
+--===============3335375349654466704==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============3335375349654466704==--
