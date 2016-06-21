@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/4] ARM: OMAP4+: Reset CPU1 properly for kexec
-Date: Tue, 21 Jun 2016 00:52:44 -0700
-Message-ID: <1466495565-17480-4-git-send-email-tony@atomide.com>
+Subject: [PATCH 2/4] ARM: OMAP4+: Prevent CPU1 related hang with kexec
+Date: Tue, 21 Jun 2016 00:52:43 -0700
+Message-ID: <1466495565-17480-3-git-send-email-tony@atomide.com>
 References: <1466495565-17480-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,167 +21,142 @@ To: linux-omap@vger.kernel.org
 Cc: Nishanth Menon <nm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Tero Kristo <t-kristo@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-We need to reset CPU1 properly for kexec when booting different
-kernel versions. Otherwise CPU1 will attempt to boot the the
-previous kernel's start_secondary(). Note that the restctrl
-register is different from the low-power mode wakeup register
-CPU1_WAKEUP_NS_PA_ADDR. We need to configure both.
+Kexec booted kernels on omap4 will hang early during the boot if the
+booted kernel is different version from the previous kernel.
 
-Let's fix the issue by defining SoC specific data to initialize
-things in a more generic way. And let's also standardize omap-smp.c
-to use soc_is instead of cpu_is while at it.
+This is because the previous kernel may have configured low-power mode
+using CPU1_WAKEUP_NS_PA_ADDR. In that case it points to the previous
+kernel's omap4_secondary_startup(), and CPU1 can be in low power mode
+from the previous kernel. When the new kernel configures the CPU1
+clockdomain, CPU1 can wake from low power state prematurely during
+omap44xx_clockdomains_init() running random code.
+
+Let's fix the issue by configuring CPU1_WAKEUP_NS_PA_ADDR before we
+call omap44xx_clockdomains_init(). Note that this is very early during
+the init, and we will do proper CPU1 reset during SMP init a bit later
+on in omap4_smp_prepare_cpus(). And we need to do this when SMP is
+not enabled as the previous kernel may have had it enabled.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap-smp.c | 95 ++++++++++++++++++++++++++++++------------
- 1 file changed, 69 insertions(+), 26 deletions(-)
+ arch/arm/mach-omap2/Makefile              |  4 ++--
+ arch/arm/mach-omap2/common.h              |  6 ++++--
+ arch/arm/mach-omap2/io.c                  |  1 +
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c | 29 +++++++++++++++++++++++++----
+ 4 files changed, 32 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-index 8cd1de9..81bb053 100644
---- a/arch/arm/mach-omap2/omap-smp.c
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -40,14 +40,35 @@
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 04e276c..cd820f5 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -8,7 +8,7 @@ ccflags-y := -I$(srctree)/$(src)/include \
+ # Common support
+ obj-y := id.o io.o control.o mux.o devices.o fb.o serial.o timer.o pm.o \
+ 	 common.o gpio.o dma.o wd_timer.o display.o i2c.o hdq1w.o omap_hwmod.o \
+-	 omap_device.o sram.o drm.o
++	 omap_device.o omap-headsmp.o sram.o drm.o
  
- #define OMAP5_CORE_COUNT	0x2
+ hwmod-common				= omap_hwmod.o omap_hwmod_reset.o \
+ 					  omap_hwmod_common_data.o
+@@ -32,7 +32,7 @@ obj-$(CONFIG_SOC_HAS_OMAP2_SDRC)	+= sdrc.o
  
--/* SCU base address */
--static void __iomem *scu_base;
-+struct omap_smp_config {
-+	unsigned long cpu1_rstctrl_pa;
-+	void __iomem *cpu1_rstctrl_va;
-+	void __iomem *scu_base;
-+	void *startup_addr;
-+};
+ # SMP support ONLY available for OMAP4
+ 
+-smp-$(CONFIG_SMP)			+= omap-smp.o omap-headsmp.o
++smp-$(CONFIG_SMP)			+= omap-smp.o
+ smp-$(CONFIG_HOTPLUG_CPU)		+= omap-hotplug.o
+ omap-4-5-common				=  omap4-common.o omap-wakeupgen.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= $(omap-4-5-common) $(smp-y) sleep44xx.o
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index 9cbae6e..0136405 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -259,12 +259,14 @@ extern void gic_timer_retrigger(void);
+ extern void omap_smc1(u32 fn, u32 arg);
+ extern void omap4_sar_ram_init(void);
+ extern void __iomem *omap4_get_sar_ram_base(void);
++extern void omap4_mpuss_early_init(void);
+ extern void omap_do_wfi(void);
+ 
+-#ifdef CONFIG_SMP
+-/* Needed for secondary core boot */
+ extern void omap4_secondary_startup(void);
+ extern void omap4460_secondary_startup(void);
 +
-+static struct omap_smp_config cfg;
++#ifdef CONFIG_SMP
++/* Needed for secondary core boot */
+ extern u32 omap_modify_auxcoreboot0(u32 set_mask, u32 clear_mask);
+ extern void omap_auxcoreboot_addr(u32 cpu_addr);
+ extern u32 omap_read_auxcoreboot0(void);
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 4548cb9..0e9acdd 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -691,6 +691,7 @@ void __init omap4430_init_early(void)
+ 	omap4xxx_check_features();
+ 	omap2_prcm_base_init();
+ 	omap4_sar_ram_init();
++	omap4_mpuss_early_init();
+ 	omap4_pm_init_early();
+ 	omap44xx_voltagedomains_init();
+ 	omap44xx_powerdomains_init();
+diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+index 65024af..1751517 100644
+--- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+@@ -62,6 +62,8 @@
+ #include "prm44xx.h"
+ #include "prm-regbits-44xx.h"
+ 
++static void __iomem *sar_base;
 +
-+static const struct omap_smp_config omap443x_cfg __initconst = {
-+	.cpu1_rstctrl_pa = 0x4824380c,
-+	.startup_addr = omap4_secondary_startup,
-+};
-+
-+static const struct omap_smp_config omap446x_cfg __initconst = {
-+	.cpu1_rstctrl_pa = 0x4824380c,
-+	.startup_addr = omap4460_secondary_startup,
-+};
-+
-+static const struct omap_smp_config omap5_cfg __initconst = {
-+	.cpu1_rstctrl_pa = 0x48243810,
-+	.startup_addr = omap5_secondary_startup,
-+};
+ #ifdef CONFIG_SMP
  
- static DEFINE_SPINLOCK(boot_lock);
+ struct omap4_cpu_pm_info {
+@@ -90,7 +92,6 @@ struct cpu_pm_ops {
  
- void __iomem *omap4_get_scu_base(void)
- {
--	return scu_base;
-+	return cfg.scu_base;
- }
+ static DEFINE_PER_CPU(struct omap4_cpu_pm_info, omap4_pm_info);
+ static struct powerdomain *mpuss_pd;
+-static void __iomem *sar_base;
+ static u32 cpu_context_offset;
  
- #ifdef CONFIG_OMAP5_ERRATA_801819
-@@ -93,7 +114,7 @@ static void omap4_secondary_init(unsigned int cpu)
- 	 * OMAP443X GP devices- SMP bit isn't accessible.
- 	 * OMAP446X GP devices - SMP bit access is enabled on both CPUs.
- 	 */
--	if (cpu_is_omap443x() && (omap_type() != OMAP2_DEVICE_TYPE_GP))
-+	if (soc_is_omap443x() && (omap_type() != OMAP2_DEVICE_TYPE_GP))
- 		omap_secure_dispatcher(OMAP4_PPA_CPU_ACTRL_SMP_INDEX,
- 							4, 0, 0, 0, 0, 0);
- 
-@@ -222,9 +243,9 @@ static void __init omap4_smp_init_cpus(void)
- 		 * Currently we can't call ioremap here because
- 		 * SoC detection won't work until after init_early.
- 		 */
--		scu_base =  OMAP2_L4_IO_ADDRESS(scu_a9_get_base());
--		BUG_ON(!scu_base);
--		ncores = scu_get_core_count(scu_base);
-+		cfg.scu_base =  OMAP2_L4_IO_ADDRESS(scu_a9_get_base());
-+		BUG_ON(!cfg.scu_base);
-+		ncores = scu_get_core_count(cfg.scu_base);
- 	} else if (cpu_id == CPU_CORTEX_A15) {
- 		ncores = OMAP5_CORE_COUNT;
+ static int default_finish_suspend(unsigned long cpu_state)
+@@ -366,9 +367,6 @@ int __init omap4_mpuss_init(void)
+ 		return -ENODEV;
  	}
-@@ -242,20 +263,51 @@ static void __init omap4_smp_init_cpus(void)
  
- static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
- {
--	void *startup_addr = omap4_secondary_startup;
- 	void __iomem *base = omap_get_wakeupgen_base();
-+	const struct omap_smp_config *c = NULL;
-+
-+	if (soc_is_omap443x())
-+		c = &omap443x_cfg;
-+	else if (soc_is_omap446x())
-+		c = &omap446x_cfg;
-+	else if (soc_is_dra74x() || soc_is_omap54xx())
-+		c = &omap5_cfg;
-+
-+	if (!c) {
-+		pr_err("%s Unknown SMP SoC?\n", __func__);
-+		return;
-+	}
-+
-+	/* Must preserve cfg.scu_base set earlier */
-+	cfg.cpu1_rstctrl_pa = c->cpu1_rstctrl_pa;
-+	cfg.startup_addr = c->startup_addr;
-+
-+	if (soc_is_dra74x() || soc_is_omap54xx()) {
-+		if ((__boot_cpu_mode & MODE_MASK) == HYP_MODE)
-+			cfg.startup_addr = omap5_secondary_hyp_startup;
-+		omap5_erratum_workaround_801819();
-+	}
-+
-+	cfg.cpu1_rstctrl_va = ioremap(cfg.cpu1_rstctrl_pa, 4);
-+	if (!cfg.cpu1_rstctrl_va)
-+		return;
- 
- 	/*
- 	 * Initialise the SCU and wake up the secondary core using
- 	 * wakeup_secondary().
- 	 */
--	if (scu_base)
--		scu_enable(scu_base);
-+	if (cfg.scu_base)
-+		scu_enable(cfg.scu_base);
- 
--	if (cpu_is_omap446x())
--		startup_addr = omap4460_secondary_startup;
--	if (soc_is_dra74x() || soc_is_omap54xx())
--		omap5_erratum_workaround_801819();
-+	/*
-+	 * Reset CPU1 before configuring, otherwise kexec will
-+	 * end up trying to use old kernel startup address.
-+	 */
-+	if (cfg.cpu1_rstctrl_va) {
-+		writel_relaxed(1, cfg.cpu1_rstctrl_va);
-+		readl_relaxed(cfg.cpu1_rstctrl_va);
-+		writel_relaxed(0, cfg.cpu1_rstctrl_va);
-+	}
- 
- 	/*
- 	 * Write the address of secondary startup routine into the
-@@ -264,19 +316,10 @@ static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
- 	 * A barrier is added to ensure that write buffer is drained
- 	 */
- 	if (omap_secure_apis_support())
--		omap_auxcoreboot_addr(virt_to_phys(startup_addr));
-+		omap_auxcoreboot_addr(virt_to_phys(cfg.startup_addr));
- 	else
--		/*
--		 * If the boot CPU is in HYP mode then start secondary
--		 * CPU in HYP mode as well.
--		 */
--		if ((__boot_cpu_mode & MODE_MASK) == HYP_MODE)
--			writel_relaxed(virt_to_phys(omap5_secondary_hyp_startup),
--				       base + OMAP_AUX_CORE_BOOT_1);
--		else
--			writel_relaxed(virt_to_phys(omap5_secondary_startup),
--				       base + OMAP_AUX_CORE_BOOT_1);
+-	if (cpu_is_omap44xx())
+-		sar_base = omap4_get_sar_ram_base();
 -
-+		writel_relaxed(virt_to_phys(cfg.startup_addr),
-+			       base + OMAP_AUX_CORE_BOOT_1);
+ 	/* Initilaise per CPU PM information */
+ 	pm_info = &per_cpu(omap4_pm_info, 0x0);
+ 	if (sar_base) {
+@@ -444,3 +442,26 @@ int __init omap4_mpuss_init(void)
  }
  
- const struct smp_operations omap4_smp_ops __initconst = {
+ #endif
++
++/*
++ * For kexec, we must set CPU1_WAKEUP_NS_PA_ADDR to point to
++ * current kernel's secondary_startup() early before
++ * clockdomains_init(). Otherwise clockdomain_init() can
++ * wake CPU1 and cause a hang.
++ */
++void __init omap4_mpuss_early_init(void)
++{
++	unsigned long startup_pa;
++
++	if (!cpu_is_omap44xx())
++		return;
++
++	sar_base = omap4_get_sar_ram_base();
++
++	if (cpu_is_omap443x())
++		startup_pa = virt_to_phys(omap4_secondary_startup);
++	else
++		startup_pa = virt_to_phys(omap4460_secondary_startup);
++
++	writel_relaxed(startup_pa, sar_base + CPU1_WAKEUP_NS_PA_ADDR_OFFSET);
++}
 -- 
 2.8.1
