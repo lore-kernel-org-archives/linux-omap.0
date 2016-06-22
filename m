@@ -1,88 +1,123 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH] gpio: omap: make gpio numbering deterministical by using
- of aliases
-Date: Wed, 22 Jun 2016 17:16:44 +0100
-Message-ID: <20160622161644.GD31817@leverpostej>
-References: <1465898604-16294-1-git-send-email-u.kleine-koenig@pengutronix.de>
- <CACRpkdaVRTj4jpGQp9nDKo8RAPDPUaApp4jAdBGRgd45bqo2zQ@mail.gmail.com>
- <20160615072404.GB26768@pengutronix.de>
- <CACRpkdYK1C5px+A_O1sF99KTPTob9qTQpipEaRLHnNx5=AokLg@mail.gmail.com>
- <20160619010823.GC26875@pengutronix.de>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP2+: Drop legacy board file for n900
+Date: Wed, 22 Jun 2016 18:48:41 +0200
+Message-ID: <201606221848.41305@pali>
+References: <1465987689-14812-1-git-send-email-tony@atomide.com>
+ <20160621112944.GV29844@pali> <20160621113215.GP22406@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160619010823.GC26875@pengutronix.de>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Kevin Hilman <khilman@kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Santosh Shilimkar <ssantosh@kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, devicetree@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============3375846608549447269=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160621113215.GP22406@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman <khilman@baylibre.com>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Russell King <rmk+kernel@armlinux.org.uk>, Pavel Machek <pavel@ucw.cz>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Jun 19, 2016 at 03:08:23AM +0200, Uwe Kleine-K=C3=B6nig wrote:
-> Hello Linus,
+--===============3375846608549447269==
+Content-Type: multipart/signed;
+  boundary="nextPart25738281.10MMZqv5ng";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+
+--nextPart25738281.10MMZqv5ng
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Tuesday 21 June 2016 13:32:16 Tony Lindgren wrote:
+> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [160621 04:32]:
+> > On Tuesday 21 June 2016 04:25:36 Tony Lindgren wrote:
+> > > * Tony Lindgren <tony@atomide.com> [160615 05:08]:
+> > > > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [160615 04:52]:
+> > > > > On Wednesday 15 June 2016 04:02:02 Tony Lindgren wrote:
+> > > > > > Hi,
+> > > > > >=20
+> > > > > > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [160615 03:58]:
+> > > > > > > Hi! I just quickly looked at N900 status matrix
+> > > > > > > https://elinux.org/N900 and there is still one thing not
+> > > > > > > finished in DT: It is slot-name for omap_hsmmc driver.
+> > > > > > > So switch from legacy board code to DT is regression.
+> > > > > >=20
+> > > > > > That's fixed with the following in v4.7-rc series:
+> > > > > >=20
+> > > > > > db863d896681 ("mmc: omap_hsmmc: Check if MMC slot name is
+> > > > > > passed in pdata") 10c1f7d32bf4 ("ARM: OMAP2+: n900 needs
+> > > > > > MMC slot names for legacy user space")
+> > > > >=20
+> > > > > Great! Sorry, but now wiki is not fully updated with last
+> > > > > changes and I do not have in my mind what was
+> > > > > finished/merged and what not. It is going hard for me to
+> > > > > track everything.
+> > > >=20
+> > > > OK well maybe take one more look and then ack if no more
+> > > > issues.
+> > >=20
+> > > Pali, any news on this?
+> >=20
+> > I have not looked at this deeply yet. Please give me some more
+> > time.
 >=20
-> On Sat, Jun 18, 2016 at 10:25:45AM +0200, Linus Walleij wrote:
-> > On Wed, Jun 15, 2016 at 9:24 AM, Uwe Kleine-K=C3=B6nig
-> > <u.kleine-koenig@pengutronix.de> wrote:
-> > > On Wed, Jun 15, 2016 at 08:56:58AM +0200, Linus Walleij wrote:
-> >=20
-> > >> The GPIO numbering scheme is a matter of Linux internals and
-> > >> not about hardware description IMO.
-> > >
-> > > Not sure if I should agree here or not. It's very usual that the
-> > > "internal" gpio numbers match the hardware reference manual. I kn=
-ow this
-> > > from imx, at91, all pre-dt platforms, I'm sure there are more, an=
-d I bet
-> > > I'm not the only one relying on this for omap.
-> >=20
-> > I think it will still match nicely against the chip-local offsets o=
-f the
-> > primary gpiochip so it'll be fine with a chardev too. The same was/=
-is
+> OK I'd like to apply this series by Monday if no issues to have
+> enough time for it in Linux next. Does that sound OK to you?
 >=20
-> I cannot follow. What is the primary gpiochip? The first one? What is=
- a
-> "chip-local offset". Just 3 for the fourth gpio of a given gpio bank?
-> I guess the problem is that I didn't follow development of the gpio
-> chardev.
+> Regards,
+>=20
+> Tony
 
-If I've understood correctly, Linus was on about the id space for GPIOs
-under a particular gpiochip. If I've understand correctly, you're tryin=
-g
-to ensure consistent numbering the the *global* ID space shared by all
-GPIO chips present in a system?
+Ok, now I looked at it and tested current version from torvalds tree.
 
-> > the case of the first interrupts on x86 I think, but with the pleth=
-ora of
-> > irqchips and dependency on probe order etc the assumption is
-> > nowadays to dangerous.
-> >=20
-> > > And this is very usual in the dt world, too:
-> > >
-> > > $ git grep -El 'gpio. =3D \&gpio' arch/arm/boot/dts | wc -l
-> > > 37
-> >=20
-> > Aha I didn't even know. Well I guess I could allow it for OMAP too
-> > then, but I want an ACK from one of the DT binding maintainers.
+There is still missing fixed support for IR, but that is waiting in=20
+media tree queue for next merge window.
 
-In general, our use of aliases is rather ill-defined. It would be nicer
-if we could address devices in a similar manner to disks or partitions,
-e.g. by path or uuid, but I don't think we have anything sensible we ca=
-n
-use there.
+So after IR patches land in torvalds tree, I'm fine with dropping legacy=20
+board code for n900 and you can add my Acked-by.
 
-Given that, I can see the use of an alias to provide a consistent way o=
-f
-referring to a particular gpiochip (and maybe we need to expose the
-alises information somehow to userspace), but IMO that's independent of
-any global ID space, probe ordering, etc.
+Sorry that it look so long time, but Nokia N900 is omap3 device with=20
+most features & drivers.
 
-Thanks,
-Mark.
---
-To unsubscribe from this list: send the line "unsubscribe linux-gpio" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I need to say that Nokia N900 support has good support in mainline=20
+kernel, probably the best from all mobile phones. It is almost feature=20
+complete, missing parts are: DSP, both cameras, bluetooth and RM radio.
+
+So thanks everybody for this big improvement!
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart25738281.10MMZqv5ng
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAldqwWkACgkQi/DJPQPkQ1L17ACfYr65RkvoYfWpUA280vKpcRTb
+18wAnRal7ILsX4pWx0F2LGrwPaYnq7iI
+=rPTL
+-----END PGP SIGNATURE-----
+
+--nextPart25738281.10MMZqv5ng--
+
+
+--===============3375846608549447269==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============3375846608549447269==--
