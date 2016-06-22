@@ -1,38 +1,46 @@
 From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP2+: Drop legacy board file for n900
-Date: Wed, 22 Jun 2016 21:35:55 +0300
-Message-ID: <576ADA8B.10404@gmail.com>
-References: <1465987689-14812-1-git-send-email-tony@atomide.com>
- <20160621112944.GV29844@pali> <20160621113215.GP22406@atomide.com>
- <201606221848.41305@pali> <20160622175959.GA21075@amd>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160622175959.GA21075@amd>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Pavel Machek <pavel@ucw.cz>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@baylibre.com>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Russell King <rmk+kernel@armlinux.org.uk>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: [RESEND PATCH v2 0/5] ir-rx51 driver fixes
+Date: Wed, 22 Jun 2016 22:22:16 +0300
+Message-ID: <1466623341-30130-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Return-path: <linux-pwm-owner@vger.kernel.org>
+Sender: linux-pwm-owner@vger.kernel.org
+To: robh+dt@kernel.org, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, thierry.reding@gmail.com, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, mchehab@osg.samsung.com
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
+ir-rx51 is a driver for Nokia N900 IR transmitter. The current series
+fixes the remaining problems in the driver:
 
+ - replace GP timer 9 with PWM framework usage
+ - replace pulse width timer dmtimer usage with hrtimer
+ - add DT support to the driver
+ - add driver to the board DTS
 
-On 22.06.2016 20:59, Pavel Machek wrote:
->
-> ...and graphics acceleration and power management. But who needs
-> accelerated graphics, and power management will be solved. So yes,
-> N900 is the best phone :-).
->
+Patch 2 is needed so the driver to function correctly, without it PWM
+refuses to set the needed carrier frequency.
 
-Well, actually we have SGX out-of-tree driver working (with some 
-glitches) with 4.7-rc, Maemo 5 needs it :)
+Changes compared to v1:
+ - removed [PATCH 5/7] ARM: OMAP: dmtimer: Do not call PM runtime
+   functions when not needed.
+ - DT compatible string changed to "nokia,n900-ir"
 
-Ivo
+Ivaylo Dimitrov (5):
+  ir-rx51: Fix build after multiarch changes broke it
+  pwm: omap-dmtimer: Allow for setting dmtimer clock source
+  ir-rx51: use PWM framework instead of OMAP dmtimer
+  ir-rx51: add DT support to driver
+  ir-rx51: use hrtimer instead of dmtimer
+
+ .../devicetree/bindings/media/nokia,n900-ir        |  20 ++
+ .../devicetree/bindings/pwm/pwm-omap-dmtimer.txt   |   4 +
+ arch/arm/mach-omap2/board-rx51-peripherals.c       |   5 -
+ arch/arm/mach-omap2/pdata-quirks.c                 |  10 +-
+ drivers/media/rc/Kconfig                           |   2 +-
+ drivers/media/rc/ir-rx51.c                         | 229 +++++++--------------
+ drivers/pwm/pwm-omap-dmtimer.c                     |  12 +-
+ include/linux/platform_data/media/ir-rx51.h        |   3 -
+ 8 files changed, 111 insertions(+), 174 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/nokia,n900-ir
+
+-- 
+1.9.1
