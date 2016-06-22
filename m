@@ -1,166 +1,94 @@
-From: Felipe Balbi <balbi@kernel.org>
-Subject: Re: [PATCH v11 08/14] usb: otg: add OTG/dual-role core
-Date: Wed, 22 Jun 2016 11:14:56 +0300
-Message-ID: <87fus5ljwf.fsf@linux.intel.com>
-References: <1465564043-27163-1-git-send-email-rogerq@ti.com> <1465564043-27163-9-git-send-email-rogerq@ti.com> <575E672E.5070603@ti.com> <87h9coxq04.fsf@linux.intel.com> <20160620114904.GC26936@shlinux2> <8737o8qd00.fsf@linux.intel.com> <20160621060517.GA5108@shlinux2> <877fdjovef.fsf@linux.intel.com> <20160621090738.GD5108@shlinux2> <87h9cmoo4s.fsf@linux.intel.com> <20160621130512.GF5108@shlinux2> <87por9lnjd.fsf@linux.intel.com> <576A4321.6020209@ti.com>
+From: Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
+Subject: Re: [PATCH 2/2] arm: fix kernel image size
+Date: Wed, 22 Jun 2016 09:29:59 +0100
+Message-ID: <20160622082958.GD5783@n2100.arm.linux.org.uk>
+References: <20160617194405.GN1041@n2100.armlinux.org.uk>
+ <E1bDzh4-0006a4-7p@e0050434b2927.dyn.armlinux.org.uk>
+ <20160621074319.GH22406@atomide.com>
+ <20160621094737.GA5783@n2100.arm.linux.org.uk>
+ <20160621103810.GI22406@atomide.com>
+ <20160621105720.GK22406@atomide.com>
+ <20160621154407.GB5783@n2100.arm.linux.org.uk>
+ <20160621165523.GY22406@atomide.com>
+ <20160621215141.GC5783@n2100.arm.linux.org.uk>
+ <20160622073614.GZ22406@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha256; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <576A4321.6020209@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, Peter Chen <hzpeterchen@gmail.com>, yoshihiro.shimoda.uh@renesas.com
-Cc: peter.chen@freescale.com, tony@atomide.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, mathias.nyman@linux.intel.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, jun.li@freescale.com, grygorii.strashko@ti.com, robh@kernel.org, nsekhar@ti.com, b-liu@ti.com, joe@perches.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160622073614.GZ22406-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/kexec>,
+ <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/kexec/>
+List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
+ <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "kexec" <kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Pratyush Anand <panand-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Baoquan He <bhe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Simon Horman <horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org>, Kees Cook <keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+On Wed, Jun 22, 2016 at 12:36:16AM -0700, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org> [160621 14:54]:
+> > So that's 20.7MB, and the zImage was 3.6MB.  You're getting an
+> > expansion ratio of 5.7x.
+> > 
+> > To fix that, we'd need to up it to 7x, but the problem with upping
+> > it in this way is that it increases the requirements for the
+> > crashdump region too.  We can play with this number, but there will
+> > always be cases where it doesn't work - either because the ratio is
+> > too big or too small.
+> 
+> OK
+> 
+> > By way of illustration, "zImage size + MAX_RODATA_SZ + 4x zImage size"
+> > doesn't even work for this case, since you need about 25MB.  Your
+> > calculation comes out at 22MB, which is 3MB short.  Not only that, but
+> > it introduces (from what I can see) an irrelevant fudge factor of
+> > "MAX_RODATA_SZ" which has no basis in what's really going on here, and
+> > I'm left wondering what "MAX_RODATA_SZ" is actually referring to.
+> 
+> Well I thinking the section alignment split might give us some
+> known size for rodata, but looking at it more it's only with
+> DEBUG_ALIGN_RODATA. If we can't make any assumptions about the
+> size of the rodata, then no point adding it.
 
+I think you're just getting completely confused about what the problem
+is, due to the naming of the config option.
 
-Hi,
+It's got nothing to do with the size of the read-only data.  Really.
 
-Roger Quadros <rogerq@ti.com> writes:
->>>>>>>>> For the real use case, some Carplay platforms need it.
->>>>>>>>
->>>>>>>> Carplay does *NOT* rely on OTG. Apple has its own proprietary and =
-closed
->>>>>>>> specification which is not OTG-compliant.
->>>>>>>>
->>>>>>>
->>>>>>> Yes, it is not OTG-compliant, but it can co-work with some standard=
- OTG FSM
->>>>>>> states to finish role swap.
->>>>>>
->>>>>> What are you referring to as "finish role swap"? I don't get that.
->>>>>
->>>>> Change current role from host to peripheral.
->>>>
->>>> Okay, we have two scenarios here:
->>>>
->>>> 1. You need full OTG compliance
->>>>
->>>> 	For this, granted, you need the state machine if your HW doesn't
->>>> 	track it. This is a given. With only one user, however, perhaps
->>>> 	we don't need a generic layer. There are not enough different
->>>> 	setups to design a good enough generic layer. We will end up
->>>> 	with a pseudo-generic framework which is coupled with its only
->>>> 	user.
->>>>
->>>> 2. Dual-role support, without OTG compliance
->>>>
->>>> 	In this case, you don't need a stack. All you need is a signal
->>>> 	to tell you state of ID pin and another to tell you state of
->>>> 	VBUS level. If you have those, you don't need to walk an OTG
->>>> 	state machine at all. You don't need any of those quirky OTG
->>>> 	timers, agreed?
->>>>
->>>> 	Given the above, why would you even want to use a subset of OTG
->>>> 	state machine to implement something that's _usually_ as simple
->>>> 	as:
->>>>
->>>> 8<--------------------------------------------------------------------=
---
->>>> 	vbus =3D read(VBUS_STATE); /* could be a gpio_get_value() */
->>>>         id =3D read(ID_STATE); /* could be a gpio_get_value() */
->>>>
->>>>         set_role(id);
->>>>         set_vbus(vbus);
->>>> ----------------------------------------------------------------------=
---
->>>>
->>>
->>> In fact, the individual driver can do it by itself. The chipidea driver
->>> handles OTG and dual-role well currently. By considering this OTG/DRD
->>> framework is worthwhile or not, we would like to see if it can
->>> simplify DRD design for each driver, and can benefit the platforms which
->>> has different drivers for host and peripheral to finish the role switch
->>> well.
->>=20
->> simplify how?  By adding unnecessary workqueues and a level indirection
->> that just goes back to the same driver?
->
-> What do you mean by same driver?
+When CONFIG_DEBUG_RODATA is enabled, we align the text, read-only data,
+data, and so on to 1MB boundaries so that we can change the permissions
+of the sections to enforce the properties of the various ELF segments.
+This padding massively inflates the size of the run-time kernel image,
+and can result in megabytes of wastage (if we're as little as one byte
+into 1MB, we have to round up to the next megabyte.)
 
-dwc3 registers to OTG layer. dwc3 also registers as UDC to UDC
-layer. When dwc3 OTG IRQ fires, dwc3 tells OTG layer about it and OTG
-layer jumps to a callback that goes back to dwc3 to e.g. start
-peripheral side.
+The padding, being a string of zeros, is very compressable, and this
+increases the compression ratio.
 
-See ?!? Starts on dwc3, goes to OTG layer, goes back to DWC3.
+The BSS is not included in the compressed image, but needs to be taken
+account of when avoiding overwriting the DTB.
 
-> Gadget driver, host driver and PHY (or MUX) driver (for ID/VBUS) can
-> be 3 totally independent drivers unlike dwc3 where you have a single
-> driver in control of both host and gadget.
+> How about we check the size of RAM available, and if there is plenty
+> of RAM we use a safe compression ratio of 8. If RAM is a problem,
+> we could make the compression ratio smaller and warn about it. And
+> we could also allow passing the compression ratio to kexec as an
+> option.
 
-That's a totally different issue and one not being tackled by OTG
-layer, because there are no such users yet. We can't design anything
-based solely on speculation of what might happen.
+You do know that you can already pass the "size" of the kernel to be
+reserved to kexec.  --image-size.  It's not documented in --help, but
+it is there (which is another annoying thing about ARM kexec...)
 
-If there aren't enough users, there is no way to design a good generic
-layer.
+> I forgot if we still have some 128MB limits too..
 
-> Questions not clear to me are:
->
-> 1) Which driver handles ID/VBUS events and makes a decision to do the
-> role swap?  Probably the PHY/MUX driver?
+We do.
 
-This is implementation dependent. For TI's USB subsystem, we have PMIC
-sampling VBUS/ID that and using EXTCON to tell dwc3-omap to program UTMI
-mailbox. The same mailbox can be used in HW-mode (see AM437x) where SW
-has no intervention.
-
-For Intel's USB subsystem, we have PMIC sampling VBUS/ID with an
-internal mux (much like TI's UTMI mailbox, but slightly different) to
-switch between a separate XHCI or a separate dwc3. The same mux can be
-put in HW-mode where SW has no intervention.
-
-In any case, for Intel's stuff most of the magic happens in ASL. Our PHY
-driver just detects role (at least for Type-C based plats) and executes
-_DSM with correct arguments [1]. _DSM will program internal MUX, toggle
-VBUS and, for type-C, toggle VCONN when needed.
-
-> 2) How does it perform the role swap? Probably a register write to the
-> PHY/MUX without needing to stop/start controllers? Easy case is both
-> controllers can run in co-existence without interference. Is there any
-> platform other than dwc3 where this is not the case?
-
-Again speculation. But to answer your question, only dwc3 is in such a
-case today. But even for dwc3 we can have DRD with a much, much simpler
-setup as I have already explained.
-
-> 3) Even if host and gadget controllers can operate in coexistence,
-> there is no need for both to be running for embedded applications
-> which are usually power conservative.  How can we achieve that?
-
-Now you're also speculating that you're running on embedded applications
-and that we _can_ power off parts of the IP. I happen to know that we
-can't power off XHCI part of dwc3 in TI's SoC because that's fed by same
-Clocks and power rails as the peripheral side.
-
-[1] https://lkml.org/lkml/2016/6/21/658
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJXakkBAAoJEIaOsuA1yqREdYIP/jHsSFwyjr52jPI3tttLDR/U
-k27cdbsy8FUPfWbzM7mlfSW5n3qG0wUKvJc+1dVK+QsmAR5f78w91pbVlpUmf+wK
-iHy0B4TWX1NGW2FW/2G347TUT/JyIzDF+cH1pWyuN6E2a0I5f+moy3lNH1iBkB2v
-vs4CaxiygYI5VAzNiRTLvr4FwvlGUNvkzvKQJQ/0qoxPXL2J3G4ZEoO5jzOF/jrU
-7nPB1gzoqnratBB1zJOXV36Fljyh/yqVT9JrtWlkvh3OBL5FzAoxN5shzOGSchme
-EBWe0p8XFjK5iMr3IK0X+FDa0YPwrpW8w5IjmTPh91KqDSUjQKSXFQv6FZGeclk1
-Z6Z39YSJujySlyr5P9CPe5j5Jsee06GPZ5SCjgSR5TsbOPKbiza+q3szFqDTCU2y
-iC4sZMzwLZgbMG827m+kcIEs1vE7/pVdmjjSf8Fu6+Rm28bU+f0/XoLhc/9umUfY
-hQmuYgdOd81IZISd5HwAaTT6eOfShEd2rYHHWVMHoRGJ7mR+0gJQN19Er5EHAif2
-aK2SDtaD3mRr4L3akjyfr6znItqbsMHIHtasVQmwyg12kLq3S2RqAoBP5YCTCzIS
-IWxrsYgA7RWsX5EK1mZB5wRebhC7Dikib1YIxHLUTvqTfkdWjuqSkTvEjI9WWd/a
-KyTwFKQ0FJO+gHHjFOp3
-=aON4
------END PGP SIGNATURE-----
---=-=-=--
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
