@@ -1,62 +1,72 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH 1/9] regulator: tps65217: Enable suspend configuration
-Date: Wed, 22 Jun 2016 15:44:02 +0530
-Message-ID: <576A64EA.4000607@ti.com>
-References: <1466412218-5906-1-git-send-email-j-keerthy@ti.com>
- <1466412218-5906-2-git-send-email-j-keerthy@ti.com>
- <20160621190848.GF28202@sirena.org.uk>
+From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 12/15] net: davinci_mdio: document missed "ti,am4372-mdio"
+ compat string
+Date: Wed, 22 Jun 2016 13:26:45 +0300
+Message-ID: <576A67E5.5050106@ti.com>
+References: <20160615115603.4897-1-grygorii.strashko@ti.com>
+ <20160615115603.4897-13-grygorii.strashko@ti.com>
+ <20160619143543.GA14844@rob-hp-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160621190848.GF28202@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>, Keerthy <j-keerthy@ti.com>
-Cc: tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, russ.dill@ti.com, robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160619143543.GA14844@rob-hp-laptop>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ivan Khoronzhuk <ivan.khoronzhuk-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On 06/19/2016 05:35 PM, Rob Herring wrote:
+> On Wed, Jun 15, 2016 at 02:56:00PM +0300, Grygorii Strashko wrote:
+>> Document missed "ti,am4372-mdio" compat string used for TI am437x SoC
+>> (am4372.dtsi).
+>>
+>> Signed-off-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+>> ---
+>>   Documentation/devicetree/bindings/net/davinci-mdio.txt | 3 ++-
+>>   1 file changed, 2 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/net/davinci-mdio.txt b/Documentation/devicetree/bindings/net/davinci-mdio.txt
+>> index 0369e25..f2bba50 100644
+>> --- a/Documentation/devicetree/bindings/net/davinci-mdio.txt
+>> +++ b/Documentation/devicetree/bindings/net/davinci-mdio.txt
+>> @@ -2,7 +2,8 @@ TI SoC Davinci/Keystone2 MDIO Controller Device Tree Bindings
+>>   ---------------------------------------------------
+>>   
+>>   Required properties:
+>> -- compatible		: Should be "ti,davinci_mdio" or "ti,keystone_mdio"
+>> +- compatible		: Should be "ti,davinci_mdio", "ti,keystone_mdio",
+>> +			  "ti,am4372-mdio"
+> 
+> This is still an OR relationship?
+
+I think it's AND relation. It should be smth. like this:
+ [SoC,][IP family,] "ti,davinci_mdio"
+where "ti,davinci_mdio" is mandatory always
+ [IP family] - mandatory for IP/SOC family and can be "ti,keystone_mdio" or "ti,cpsw-mdio" (last one is added by subsequent patch)
+ [SoC] - mandatory for SoC. now can be "ti,am4372-mdio"
+
+I can update it as below:
+- compatible		: Should be "ti,davinci_mdio"  
+			  and "ti,keystone_mdio" for Keystone 2 SoCs
+ 			  and "ti,am4372-mdio" for am472x SoC
+and in subsequent patch
+			 and "ti,cpsw-mdio" for am335x, am472x, am57xx/dra7, dm814x SoCs
+			 and "ti,am4372-mdio" for am472x SoC
 
 
-On Wednesday 22 June 2016 12:38 AM, Mark Brown wrote:
-> On Mon, Jun 20, 2016 at 02:13:30PM +0530, Keerthy wrote:
->
->> +static struct tps65217_regulator_data regulator_data[TPS65217_NUM_REGULATOR];
->
-> Why is this a static global?
->
->> +		/* Store default strobe info */
->> +		ret = tps65217_reg_read(tps, regulators[i].bypass_reg, &val);
->> +
->> +		regulator_data[i].strobe = val & regulators[i].bypass_mask;
->> +
->
-> Not sure what this is doing...  I think this needs splitting up a bit,
-> it looks like it's a bit more than just adding the ops (which should be
-> generic things), that bit seems OK but there's these other bits in
-> there as well.
 
-Okay. Let me explain a bit more here:
+> 
+> It's preferred to list one per line.
 
-The TPS65217 has a pre-defined power-up / power-down sequence which in a 
-typical application does not need
-to be changed. However, it is possible to define custom sequences under 
-I2C control. The power-up sequence is
-defined by strobes and delay times. Each output rail is assigned to a 
-strobe to determine the order in which the
-rails are enabled.
+ok
 
-Every regulator of tps65217 PMIC has sequence registers and every 
-regulator has a default strobe value
-and gets disabled when a particular power down sequence occurs.
 
-So as to keep it on during suspend we write value 0 to strobe so that 
-the regulator is out of all sequencers and is not impacted by any power 
-down sequence. We are saving the default strobe value during probe so 
-that when we want to regulator to be enabled during suspend we write 0 
-to strobe and when we want it to get disabled during suspend we write 
-the default saved strobe value.
 
-Hence saving it in a static array and using it later in the ops 
-functions to disable or enable regulator during suspend.
-
->
+-- 
+regards,
+-grygorii
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
