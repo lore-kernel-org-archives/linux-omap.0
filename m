@@ -1,159 +1,76 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [PATCHv2 1/1] thermal: core: call thermal_zone_device_update()
- after mode update
-Date: Wed, 22 Jun 2016 08:05:48 -0700
-Message-ID: <20160622150546.GA30080@localhost.localdomain>
-References: <1466563538.2471.10.camel@intel.com>
- <1466572546-12944-1-git-send-email-edubezval@gmail.com>
- <576A5B79.7070209@ti.com>
- <20160622143609.GA28915@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160622143609.GA28915@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
-To: Keerthy <a0393675@ti.com>
-Cc: Rui Zhang <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Darren Hart <dvhart@infradead.org>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-pm@vger.kernel.org
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Applied "regulator: of: setup initial suspend state" to the regulator tree
+Date: Wed, 22 Jun 2016 16:29:02 +0100
+Message-ID: <E1bFk5O-0002RF-W0@debutante>
+References: <1466412218-5906-3-git-send-email-j-keerthy@ti.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1466412218-5906-3-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.orgbroonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.orgt-kristo-l0cyMroinI0@public.gmane.org, russ.dill-l0cyMroinI0@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, j-keerthy-l0cyMroinI0@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.orgDave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jun 22, 2016 at 07:36:11AM -0700, Eduardo Valentin wrote:
-> On Wed, Jun 22, 2016 at 03:03:45PM +0530, Keerthy wrote:
-> > 
-> > 
-> > On Wednesday 22 June 2016 10:45 AM, Eduardo Valentin wrote:
-> > >Because several drivers do the following pattern:
-> > >.set_mode()
-> > >    ...
-> > >    local_data->mode = new_mode;
-> > >    thermal_zone_device_update(tz);
-> > >
-> > >makes sense to simply do the thermal_zone_device_update()
-> > >in thermal core, after setting the new mode.
-> > 
-> > http://pastebin.ubuntu.com/17687601/
-> > 
-> > linux-next + current v2 of the patch.
-> > The back trace still comes.
-> 
-> I confirm this. Please check V3 I just sent. On V2 I focused
-> on thermal_zone_device_update(), but for OF thermal specifically,
-> we also hold the lock for protecting other accesses. Now they
-> are removed.
+The patch
 
-Please use v4. I removed extra non needed locking in ti SoC
-driver for case which boots without DT (not sure if this is still used
-though). Also, improved acpi thermal, as it was remove the update
-from other needed cases.
+   regulator: of: setup initial suspend state
 
-> 
-> > 
-> > Regards,
-> > Keerthy
-> > 
-> > >
-> > >Also, this patch also remove deadlocks on drivers that
-> > >call thermal_zone_device_update() on .set_mode(),
-> > >as .set_mode()  is now called always with tz->lock held.
-> > >
-> > >Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> > >Cc: Len Brown <lenb@kernel.org>
-> > >Cc: linux-acpi@vger.kernel.org
-> > >Cc: "Lee, Chun-Yi" <jlee@suse.com>
-> > >Cc: Darren Hart <dvhart@infradead.org>
-> > >Cc: Zhang Rui <rui.zhang@intel.com>
-> > >Cc: Keerthy <j-keerthy@ti.com>
-> > >Cc: linux-kernel@vger.kernel.org
-> > >Cc: linux-omap@vger.kernel.org
-> > >Cc: platform-driver-x86@vger.kernel.org
-> > >Cc: linux-pm@vger.kernel.org
-> > >Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
-> > >---
-> > >Please ignore last version.
-> > >
-> > >V1-> V2:
-> > >Cleaned the patch and remove unrelated changes.
-> > >---
-> > >
-> > >  drivers/acpi/thermal.c                             | 2 --
-> > >  drivers/platform/x86/acerhdf.c                     | 1 -
-> > >  drivers/thermal/imx_thermal.c                      | 1 -
-> > >  drivers/thermal/of-thermal.c                       | 1 -
-> > >  drivers/thermal/thermal_sysfs.c                    | 1 +
-> > >  drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 1 -
-> > >  6 files changed, 1 insertion(+), 6 deletions(-)
-> > >
-> > >diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> > >index 82707f9..8582b88 100644
-> > >--- a/drivers/acpi/thermal.c
-> > >+++ b/drivers/acpi/thermal.c
-> > >@@ -519,8 +519,6 @@ static void acpi_thermal_check(void *data)
-> > >
-> > >  	if (!tz->tz_enabled)
-> > >  		return;
-> > >-
-> > >-	thermal_zone_device_update(tz->thermal_zone);
-> > >  }
-> > >
-> > >  /* sys I/F for generic thermal sysfs support */
-> > >diff --git a/drivers/platform/x86/acerhdf.c b/drivers/platform/x86/acerhdf.c
-> > >index 460fa67..aee33ba 100644
-> > >--- a/drivers/platform/x86/acerhdf.c
-> > >+++ b/drivers/platform/x86/acerhdf.c
-> > >@@ -405,7 +405,6 @@ static inline void acerhdf_enable_kernelmode(void)
-> > >  	kernelmode = 1;
-> > >
-> > >  	thz_dev->polling_delay = interval*1000;
-> > >-	thermal_zone_device_update(thz_dev);
-> > >  	pr_notice("kernel mode fan control ON\n");
-> > >  }
-> > >
-> > >diff --git a/drivers/thermal/imx_thermal.c b/drivers/thermal/imx_thermal.c
-> > >index c5547bd..a413eb6 100644
-> > >--- a/drivers/thermal/imx_thermal.c
-> > >+++ b/drivers/thermal/imx_thermal.c
-> > >@@ -246,7 +246,6 @@ static int imx_set_mode(struct thermal_zone_device *tz,
-> > >  	}
-> > >
-> > >  	data->mode = mode;
-> > >-	thermal_zone_device_update(tz);
-> > >
-> > >  	return 0;
-> > >  }
-> > >diff --git a/drivers/thermal/of-thermal.c b/drivers/thermal/of-thermal.c
-> > >index b8e509c..4602e2e 100644
-> > >--- a/drivers/thermal/of-thermal.c
-> > >+++ b/drivers/thermal/of-thermal.c
-> > >@@ -292,7 +292,6 @@ static int of_thermal_set_mode(struct thermal_zone_device *tz,
-> > >  	mutex_unlock(&tz->lock);
-> > >
-> > >  	data->mode = mode;
-> > >-	thermal_zone_device_update(tz);
-> > >
-> > >  	return 0;
-> > >  }
-> > >diff --git a/drivers/thermal/thermal_sysfs.c b/drivers/thermal/thermal_sysfs.c
-> > >index 743df50..3d0dc30 100644
-> > >--- a/drivers/thermal/thermal_sysfs.c
-> > >+++ b/drivers/thermal/thermal_sysfs.c
-> > >@@ -100,6 +100,7 @@ mode_store(struct device *dev, struct device_attribute *attr,
-> > >  	mutex_lock(&tz->lock);
-> > >  	result = tz->ops->set_mode(tz, mode);
-> > >  	mutex_unlock(&tz->lock);
-> > >+	thermal_zone_device_update(tz);
-> > >
-> > >  	if (result)
-> > >  		return result;
-> > >diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> > >index 15c0a9a..9a5a3a3 100644
-> > >--- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> > >+++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> > >@@ -205,7 +205,6 @@ static int ti_thermal_set_mode(struct thermal_zone_device *thermal,
-> > >  	data->mode = mode;
-> > >  	ti_bandgap_write_update_interval(bgp, data->sensor_id,
-> > >  					data->ti_thermal->polling_delay);
-> > >-	thermal_zone_device_update(data->ti_thermal);
-> > >  	dev_dbg(&thermal->device, "thermal polling set for duration=%d msec\n",
-> > >  		data->ti_thermal->polling_delay);
-> > >
-> > >
+has been applied to the regulator tree at
+
+   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
+
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From a0f78bc89c0396d14b6102c6f72485e14c8821f3 Mon Sep 17 00:00:00 2001
+From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Date: Mon, 20 Jun 2016 14:13:31 +0530
+Subject: [PATCH] regulator: of: setup initial suspend state
+
+Setup initial suspend state to mem, if suspend state is defined for
+mem state. This makes sure that the regulators are in proper mode
+already from boot.
+
+Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/regulator/of_regulator.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/regulator/of_regulator.c b/drivers/regulator/of_regulator.c
+index cd828dbf9d52..4f613ec99500 100644
+--- a/drivers/regulator/of_regulator.c
++++ b/drivers/regulator/of_regulator.c
+@@ -163,6 +163,9 @@ static void of_get_regulation_constraints(struct device_node *np,
+ 					"regulator-suspend-microvolt", &pval))
+ 			suspend_state->uV = pval;
+ 
++		if (i == PM_SUSPEND_MEM)
++			constraints->initial_state = PM_SUSPEND_MEM;
++
+ 		of_node_put(suspend_np);
+ 		suspend_state = NULL;
+ 		suspend_np = NULL;
+-- 
+2.8.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
