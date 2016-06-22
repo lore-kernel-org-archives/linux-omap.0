@@ -1,65 +1,52 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 2/2] arm: fix kernel image size
-Date: Wed, 22 Jun 2016 01:51:07 -0700
-Message-ID: <20160622085105.GE22406@atomide.com>
-References: <E1bDzh4-0006a4-7p@e0050434b2927.dyn.armlinux.org.uk>
- <20160621074319.GH22406@atomide.com>
- <20160621094737.GA5783@n2100.arm.linux.org.uk>
- <20160621103810.GI22406@atomide.com>
- <20160621105720.GK22406@atomide.com>
- <20160621154407.GB5783@n2100.arm.linux.org.uk>
- <20160621165523.GY22406@atomide.com>
- <20160621215141.GC5783@n2100.arm.linux.org.uk>
- <20160622073614.GZ22406@atomide.com>
- <20160622082958.GD5783@n2100.arm.linux.org.uk>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH] ARM: AM43XX: hwmod: Fix RSTST register offset for pruss
+Date: Wed, 22 Jun 2016 14:40:16 +0530
+Message-ID: <576A55F8.4070906@ti.com>
+References: <1466394745-983-1-git-send-email-j-keerthy@ti.com>
+ <5E94841CD408F1498111ED1D1196B1B237B18D3A@DBDE04.ent.ti.com>
+ <5767A81E.1040809@ti.com> <5768177B.9070306@ti.com>
+ <5E94841CD408F1498111ED1D1196B1B237B191FD@DBDE04.ent.ti.com>
+ <57690F83.80709@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160622082958.GD5783-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/kexec/>
-List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "kexec" <kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
-Cc: Pratyush Anand <panand-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Baoquan He <bhe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Simon Horman <horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org>, Kees Cook <keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <57690F83.80709@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Mohammed, Afzal" <afzal@ti.com>, "Anna, Suman" <s-anna@ti.com>, "J, KEERTHY" <j-keerthy@ti.com>, "tony@atomide.com" <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Kristo, Tero" <t-kristo@ti.com>, "Gerlach, Dave" <d-gerlach@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux@armlinux.org.uk" <linux@armlinux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org> [160622 01:32]:
-> When CONFIG_DEBUG_RODATA is enabled, we align the text, read-only data,
-> data, and so on to 1MB boundaries so that we can change the permissions
-> of the sections to enforce the properties of the various ELF segments.
-> This padding massively inflates the size of the run-time kernel image,
-> and can result in megabytes of wastage (if we're as little as one byte
-> into 1MB, we have to round up to the next megabyte.)
+Tony,
 
-Yes understood, and looks like we cannot make any assumptions about
-what the alignment might be.
+On Tuesday 21 June 2016 03:27 PM, Keerthy wrote:
+>
+>
+> On Tuesday 21 June 2016 01:22 PM, Mohammed, Afzal wrote:
+>> Hi Suman,
+>>
+>> Anna, Suman wrote on Monday, June 20, 2016 9:49 PM:
+>>
+>>> It does happen when the pruss module is exercised. We found this when we
+>>> tried to do a standby test on suspend, and while it worked on AM33xx,
+>>> AM437x failed because of this difference.
+>>
+>> Okay, seems on am335x, PER doesn't have RSTST register itself.
+>
+> Seems like code has some reference!
+>
+> arch/arm/mach-omap2/prm33xx.h
+> #define AM33XX_RM_PER_RSTST_OFFSET        0x0004
+>
+> But TRM: http://www.ti.com/lit/ug/spruh73m/spruh73m.pdf
+> claims that offset is reserved.
+>
+> Should i remove the above lines altogether?
+>
 
-> The padding, being a string of zeros, is very compressable, and this
-> increases the compression ratio.
-> 
-> The BSS is not included in the compressed image, but needs to be taken
-> account of when avoiding overwriting the DTB.
-> 
-> > How about we check the size of RAM available, and if there is plenty
-> > of RAM we use a safe compression ratio of 8. If RAM is a problem,
-> > we could make the compression ratio smaller and warn about it. And
-> > we could also allow passing the compression ratio to kexec as an
-> > option.
-> 
-> You do know that you can already pass the "size" of the kernel to be
-> reserved to kexec.  --image-size.  It's not documented in --help, but
-> it is there (which is another annoying thing about ARM kexec...)
+Can you pull this patch as well?
 
-Oh ok that's nice.
-
-Regards,
-
-Tony
+>>
+>> Regards
+>> afzal
+>>
