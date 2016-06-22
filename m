@@ -1,39 +1,27 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4] Get kexec working on SMP omap variants
-Date: Wed, 22 Jun 2016 02:53:05 -0700
-Message-ID: <20160622095303.GF22406@atomide.com>
-References: <1466495565-17480-1-git-send-email-tony@atomide.com>
- <cfc75c15-ab10-22ee-35b8-529e28d2773c@oracle.com>
+Subject: Re: [PATCH] ARM: AM43XX: hwmod: Fix RSTST register offset for pruss
+Date: Wed, 22 Jun 2016 02:59:07 -0700
+Message-ID: <20160622095905.GG22406@atomide.com>
+References: <1466394745-983-1-git-send-email-j-keerthy@ti.com>
+ <5E94841CD408F1498111ED1D1196B1B237B18D3A@DBDE04.ent.ti.com>
+ <5767A81E.1040809@ti.com>
+ <5768177B.9070306@ti.com>
+ <5E94841CD408F1498111ED1D1196B1B237B191FD@DBDE04.ent.ti.com>
+ <57690F83.80709@ti.com>
+ <576A55F8.4070906@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <cfc75c15-ab10-22ee-35b8-529e28d2773c@oracle.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Cc: Nishanth Menon <nm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Tero Kristo <t-kristo@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <576A55F8.4070906@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <a0393675@ti.com>
+Cc: "Mohammed, Afzal" <afzal@ti.com>, "Anna, Suman" <s-anna@ti.com>, "J, KEERTHY" <j-keerthy@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Kristo, Tero" <t-kristo@ti.com>, "Gerlach, Dave" <d-gerlach@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux@armlinux.org.uk" <linux@armlinux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-* Santosh Shilimkar <santosh.shilimkar@oracle.com> [160621 09:10]:
-> 
-> I suggest to do bit wider testing including PM. From
-> quick scan, the series looks fine to me.
+* Keerthy <a0393675@ti.com> [160622 02:13]:
+> Can you pull this patch as well?
 
-Looks like the /sys/kernel/debug/pm_debug/count values for
-both cores for off increse just fine with these patches
-both before and after kexec.
-
-> FWIW, Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
-
-Thanks,
+OK thanks applying into omap-for-v4.8/soc.
 
 Tony
