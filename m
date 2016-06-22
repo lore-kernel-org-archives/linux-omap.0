@@ -1,238 +1,140 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH v5 0/5] Thermal: Support for hardware-tracked trip points
-Date: Wed, 22 Jun 2016 11:25:39 +0800
-Message-ID: <1466565939.2379.5.camel@intel.com>
-References: <1465213489-14898-1-git-send-email-wxt@rock-chips.com>
-	 <57689B82.3000902@gmail.com>
+From: Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v11 08/14] usb: otg: add OTG/dual-role core
+Date: Wed, 22 Jun 2016 11:33:56 +0800
+Message-ID: <20160622033356.GB21361@shlinux2>
+References: <5767C1B9.2060805@ti.com>
+ <878ty0qd7q.fsf@linux.intel.com>
+ <20160621063936.GB5108@shlinux2>
+ <87d1nbovp7.fsf@linux.intel.com>
+ <20160621080209.GC5108@shlinux2>
+ <87mvmfneeq.fsf@linux.intel.com>
+ <20160621091437.GE5108@shlinux2>
+ <87fus6n2iz.fsf@linux.intel.com>
+ <20160621131205.GG5108@shlinux2>
+ <874m8mmwdo.fsf@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <57689B82.3000902@gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Caesar Wang <caesar.upstream@gmail.com>, Caesar Wang <wxt@rock-chips.com>, edubezval@gmail.com, linux-pm@vger.kernel.org
-Cc: Heiko Stuebner <heiko@sntech.de>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Laxman Dewangan <ldewangan@nvidia.com>, smbarber@google.com, Durgadoss R <durgadoss.r@intel.com>, Jonathan Corbet <corbet@lwn.net>, linux-rockchip@lists.infradead.org, briannorris@google.com, Andy Champ <andycham@amazon.com>, huangtao@rock-chips.com, Sascha Hauer <s.hauer@pengutronix.de>, javi.merino@arm.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ni Wade <wni@nvidia.com>, Keerthy <j-keerthy@ti.com>, dmitry.torokhov@gmail.com, peter@piie.net, dianders@chromium.org, Leo Yan <leo.yan@linaro.org>, cf@rock-chips.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <874m8mmwdo.fsf-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On =E4=BA=8C, 2016-06-21 at 09:42 +0800, Caesar Wang wrote:
-> Do you have other ideas for the following patches? :-)=C2=A0
-> Even if only took two weeks feel after a long time.
->=20
-> 9157919 New=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 [v5=
-,1/5] thermal: Add support for hardware-
-> tracked trip points
-> 9157917 New=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 [v5=
-,2/5] thermal: of: implement .set_trips for
-> device tree thermal zones
-> 9161129 New=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 [v5=
-=2E1,3/5] thermal: streamline get_trend
-> callbacks
-> 9157929 New=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 [v5=
-,4/5] thermal: bang-bang governor: act on
-> lower trip boundary
-> 9157925 New=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 [v5=
-,5/5] thermal: rockchip: add the set_trips
-> function
-> ---
->=20
-I have no objections to this patch set, except one change in patch 1/5.
-But as this also touches of_thermal and rockchip thermal driver. I'd
-leave this patch set for Eduardo to review and take.
-BTW, Eduardo is traveling recently, so you may still need to wait some
-time.
+On Tue, Jun 21, 2016 at 05:47:47PM +0300, Felipe Balbi wrote:
+> 
+> Hi,
+> 
+> Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
+> >> >> >> >> >>> + * @otg_dev: OTG controller device, if needs to be used with OTG core.
+> >> >> >> >> >> 
+> >> >> >> >> >> do you really know of any platform which has a separate OTG controller?
+> >> >> >> >> >> 
+> >> >> >> >> >
+> >> >> >> >> > Andrew had pointed out in [1] that Tegra210 has separate blocks for OTG, host
+> >> >> >> >> > and gadget.
+> >> >> >> >> >
+> >> >> >> >> > [1] http://article.gmane.org/gmane.linux.ports.tegra/22969
+> >> >> >> >> 
+> >> >> >> >> that's not an OTG controller, it's just a mux. No different than Intel's
+> >> >> >> >> mux for swapping between XHCI and peripheral-only DWC3.
+> >> >> >> >> 
+> >> >> >> >> frankly, I would NEVER talk about OTG when type-C comes into play. They
+> >> >> >> >> are two competing standards and, apparently, type-C is winning when it
+> >> >> >> >> comes to role-swapping.
+> >> >> >> >> 
+> >> >> >> >
+> >> >> >> > In fact, OTG is mis-used by people. Currently, if the port is dual-role,
+> >> >> >> > It will be considered as an OTG port.
+> >> >> >> 
+> >> >> >> That's because "dual-role" is a non-standard OTG. Seen as people really
+> >> >> >> didn't care about OTG, we (linux-usb folks) ended up naturally referring
+> >> >> >> to "non-standard OTG" as "dual-role". Just to avoid confusion.
+> >> >> >
+> >> >> > So, unless we use OTG FSM defined in OTG spec, we should not mention
+> >> >> > "OTG" in Linux, right?
+> >> >> 
+> >> >> to avoid confusion with the terminology, yes. With that settled, let's
+> >> >> figure out how you can deliver what your marketting guys are asking of
+> >> >> you.
+> >> >> 
+> >> >
+> >> > Since nxp SoC claims they are OTG compliance, we need to pass usb.org
+> >> > test. The internal bsp has passed PET test, and formal compliance test
+> >> > is on the way (should pass too). 
+> >> >
+> >> > The dual-role and OTG compliance use the same zImage, but different
+> >> > dtb.
+> >> 
+> >> okay, that's good to know. Now, the question really is: considering we
+> >> only have one user for this generic OTG FSM layer, do we really need to
+> >> make it generic at all? I mean, just look at how invasive a change that
+> >> is.
+> >
+> > If the chipidea is the only user for this roger's framework, I don't
+> > think it is necessary. In fact, Roger introduces this framework, and
+> > the first user is dwc3, we think it can be used for others. Let's
+> 
+> Right, we need to look at the history of dwc3 to figure out why the
+> conclusion that dwc3 needs this was made.
+> 
+> Roger started working on this framework when Power on Reset section of
+> databook had some details which weren't always clear and, for safety, we
+> always had reset asserted for a really long time. It was so long (about
+> 400 ms) that resetting dwc3 for each role swap was just too much.
+> 
+> Coupled with that, the OTG chapter wasn't very clear either on
+> expections from Host and Peripheral side initialization in OTG/DRD
+> systems.
+> 
+> More recent version of dwc3 databook have a much better description of
+> how and which reset bits _must_ be asserted and which shouldn't be
+> touched unless it's for debugging purposes. When I implemented that, our
+> ->probe() went from 400ms down to about 50us.
+> 
+> Coupled with that, the OTG chapter also became a lot clearer to the
+> point that it states you just don't initialize anything other than the
+> OTG block, and just wait for OTG interrupt to do whatever it is you need
+> to do.
+> 
+> This meant that we could actually afford to do full reinitialization of
+> dwc3 on role swap (it's now only 50us anyway) and we knew how to swap
+> roles properly.
+> 
+> (The reason for needing soft-reset during role swap is kinda long. But
+> in summary dwc3 shadows register writes to both host and peripheral
+> sides)
+> 
+> > just discuss if it is necessary for dual-role switch.
+> 
+> fair. However, if we have a single user we don't have a Generic
+> layer. There's not enough variance to come up with truly generic
+> architecture for this.
+> 
+> -- 
 
-Thanks,
-rui
->=20
-> Caesar
->=20
-> On 2016=E5=B9=B406=E6=9C=8806=E6=97=A5 19:44, Caesar Wang wrote:
-> > Thank you all for providing inputs and comments on previous
-> > versions of
-> > this patchset.
-> > Especially thanks to the (Mikko,Sascha,Eduardo,Javi,Steve....).
-> >=20
-> > The history patches come from Mikko and Sascha.
-> > =C2=A0=C2=A0=C2=A0=C2=A0http://thread.gmane.org/gmane.linux.power-m=
-anagement.general/59
-> > 451
-> >=20
-> > Now, I pick them up to continue upstream.
-> > Nevermind!
-> >=20
-> > This series history patches:
-> > v4: https://lkml.org/lkml/2016/5/27/122
-> > v3: https://lkml.org/lkml/2016/5/24/797
-> > v2: https://lkml.org/lkml/2016/5/3/220
-> > v1: https://lkml.org/lkml/2016/4/24/227
-> >=20
-> > This series adds support for hardware trip points. It picks up
-> > earlier
-> > work from Mikko Perttunen. Mikko implemented hardware trip points
-> > as part
-> > of the device tree support. It was suggested back then to move the
-> > functionality to the thermal core instead of putting more code into
-> > the
-> > device tree support. This series does exactly that.
-> >=20
-> > This series patches rebase the conflicts with the lastest next
-> > kernel.
-> > Note that the hardware-tracked trip points are very well tested
-> > currently.
-> >=20
-> > Verified and tested on https://github.com/Caesar-github/rockchip/tr
-> > ee/wip/fixes-thermal-0606
-> > That's based on the next kernel (4.7-rc2).
-> > localhost / # cat /proc/version
-> > Linux version 4.7.0-rc2-next-20160606-02546-g534926d (wxt@nb)
-> > ---
-> > There are five pathes in this series.
-> > thermal: Add support for hardware-tracked trip point
-> > thermal: of: implement .set_trips for device tree thermal zones
-> > thermal: streamline get_trend callbacks
-> > thermal: bang-bang governor: act on lower trip boundary
-> > thermal: rockchip: add the set_trips function
-> >=20
-> > Note: the hardware-tracked trip points that the similar patches
-> > were verified
-> > on ChromoeOs platform.
-> > e.g.:
-> > https://chromium.googlesource.com/chromiumos/third_party/kernel/+/c
-> > hromeos-3.14
-> > https://chromium.googlesource.com/chromiumos/third_party/kernel/+/c
-> > hromeos-3.18
-> > https://chromium.googlesource.com/chromiumos/third_party/kernel/+/c
-> > hromeos-4.4
-> > ---
-> >=20
-> > Anyway, I take the lastest thermal change to test from next kernel,
-> >=20
-> > Tested on RK3399 SoCs on https://chromium.googlesource.com/chromium
-> > os/third_party/kernel/+/chromeos-4.4
-> > And
-> > Tested on RK3288 SoCs with chromebook on next kernel.
-> > localhost / # while true; do grep ""
-> > /sys/class/thermal/thermal_zone[0-1]/temp; sleep .5; done
-> > /sys/class/thermal/thermal_zone1/temp:45454
-> > /sys/class/thermal/thermal_zone2/temp:44090
-> > /sys/class/thermal/thermal_zone1/temp:44545
-> > /sys/class/thermal/thermal_zone2/temp:44545
-> > /sys/class/thermal/thermal_zone1/temp:45454
-> > /sys/class/thermal/thermal_zone2/temp:44545
-> > /sys/class/thermal/thermal_zone1/temp:45000
-> > ...
-> > Then add the loading,
-> > localhost / # md5sum /dev/zero &
-> > [3] 8354
-> > ..
-> > The Set trips trigger the hardware-tracked points.
-> >=20
-> > rockchip-thermal ff280000.tsadc: sensor 1 - temp: 68461, retval: 0
-> > rockchip-thermal ff280000.tsadc: sensor 2 - temp: 64166, retval: 0
-> > rockchip-thermal ff280000.tsadc: sensor 1 - temp: 70000, retval: 0
-> > rockchip-thermal ff280000.tsadc: rockchip_thermal_set_trips: sensor
-> > 1: low: 68000, high 75000
-> > rockchip-thermal ff280000.tsadc: sensor 2 - temp: 66153, retval: 0
-> > rockchip-thermal ff280000.tsadc: sensor 1 - temp: 69230, retval: 0
-> > rockchip-thermal ff280000.tsadc: rockchip_thermal_set_trips: sensor
-> > 1: low: 68000, high 70000
-> > rockchip-thermal ff280000.tsadc: sensor 1 - temp: 68076, retval: 0
-> > rockchip-thermal ff280000.tsadc: sensor 2 - temp: 65384, retval: 0
-> > rockchip-thermal ff280000.tsadc: sensor 1 - temp: 69615, retval: 0
-> > rockchip-thermal ff280000.tsadc: sensor 1 - temp: 70000, retval: 0
-> > rockchip-thermal ff280000.tsadc: rockchip_thermal_set_trips: sensor
-> > 1: low: 68000, high 75000
-> > rockchip-thermal ff280000.tsadc: sensor 2 - temp: 65384, retval: 0
-> > rockchip-thermal ff280000.tsadc: sensor 1 - temp: 69615, retval: 0
-> > rockchip-thermal ff280000.tsadc: rockchip_thermal_set_trips: sensor
-> > 1: low: 68000, high 70000
-> > rockchip-thermal ff280000.tsadc: sensor 1 - temp: 69615, retval: 0
-> > rockchip-thermal ff280000.tsadc: sensor 1 - temp: 69230, retval: 0
-> > rockchip-thermal ff280000.tsadc: sensor 1 - temp: 70833, retval: 0
-> > rockchip-thermal ff280000.tsadc: rockchip_thermal_set_trips: sensor
-> > 1: low: 68000, high 75000
-> > rockchip-thermal ff280000.tsadc: sensor 2 - temp: 66153, retval: 0
-> > rockchip-thermal ff280000.tsadc: sensor 1 - temp: 69230, retval: 0
-> > rockchip-thermal ff280000.tsadc: rockchip_thermal_set_trips: sensor
-> > 1: low: 68000, high 70000
-> > rockchip-thermal ff280000.tsadc: sensor 1 - temp: 70416, retval: 0
-> > rockchip-thermal ff280000.tsadc: rockchip_thermal_set_trips: sensor
-> > 1: low: 68000, high 75000
-> > rockchip-thermal ff280000.tsadc: sensor 1 - temp: 70000, retval: 0
-> > rockchip-thermal ff280000.tsadc: sensor 1 - temp: 69615, retval: 0
-> > rockchip-thermal ff280000.tsadc: rockchip_thermal_set_trips: sensor
-> > 1: low: 68000, high 70000
-> > rockchip-thermal ff280000.tsadc: sensor 1 - temp: 70000, retval: 0
-> > rockchip-thermal ff280000.tsadc: rockchip_thermal_set_trips: sensor
-> > 1: low: 68000, high 75000
-> > ..
-> > ---
-> > Anyway, the series patches are verified on rockchip platform.
-> >=20
-> > Thanks someone are reviewing and testing for it.
-> >=20
-> > -Caesar
-> >=20
-> >=20
-> > Changes in v5:
-> > - add the lock for thermal_zone_set_trips function.
-> > - change based on next kernel.
-> > - add the tested by Steve.
-> >=20
-> > Changes in v4:
-> > - Missing the lock added in v3.
-> > - as the Javi comments, %s/implemnets/implements.
-> >=20
-> > Changes in v3:
-> > - as Javi comments on https://patchwork.kernel.org/patch/9001281/.
-> > - add the lock for preventing the called from multi placce
-> > - add the note for pre_low/high_trip.
-> > - as the Javi comments on https://patchwork.kernel.org/patch/900131
-> > 1/.
-> > - add the select if they set the option for devicetree.
-> > - Add the peter's ACK.
-> >=20
-> > Changes in v2:
-> > - update the sysfs-api.txt for set_trips.
-> > - add the commit in patch[v2 2/5].
-> > - Update the commit for patch[v2 4/5].
-> >=20
-> > Caesar Wang (1):
-> > =C2=A0 thermal: rockchip: add the set_trips function
-> >=20
-> > Sascha Hauer (4):
-> > =C2=A0 thermal: Add support for hardware-tracked trip points
-> > =C2=A0 thermal: of: implement .set_trips for device tree thermal zo=
-nes
-> > =C2=A0 thermal: streamline get_trend callbacks
-> > =C2=A0 thermal: bang-bang governor: act on lower trip boundary
-> >=20
-> > =C2=A0Documentation/thermal/sysfs-api.txt=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0|=C2=
-=A0=C2=A07 +++
-> > =C2=A0drivers/thermal/gov_bang_bang.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0|=C2=A0=C2=A02 +-
-> > =C2=A0drivers/thermal/of-thermal.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0| 30 ++++++++
-> > ----
-> > =C2=A0drivers/thermal/rockchip_thermal.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0| 39
-> > ++++++++++++++++
-> > =C2=A0drivers/thermal/thermal_core.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0| 54
-> > ++++++++++++++++++++++
-> > =C2=A0drivers/thermal/thermal_sysfs.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0|=C2=A0=C2=A03 ++
-> > =C2=A0drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 25 ++++-=
------
-> > =C2=A0include/linux/thermal.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0| 16 ++++++-
-> > =C2=A08 files changed, 147 insertions(+), 29 deletions(-)
-> >=20
-> =C2=A0
+I have put some points in my last reply [1], I summery it here to
+see if a generic framework is deserved or not?
+
+1. If there are some parts we can use during the role switch
+- The common start/stop host and peripheral operation
+eg, when switch from host to peripheral, all drivers can use
+usb_remove_hcd to finish it.
+- A common workqueue to handle vbus and id event
+- sysfs for role switch
+
+2. Does a mux driver can do it well? Yoshihiro, here we need your
+point. The main point is if we need to call USB API to change
+roles (eg, usb_remove_hcd) during the role switch, thanks.
+
+
+[1] http://www.spinics.net/lists/linux-usb/msg142974.html
+-- 
+
+Best Regards,
+Peter Chen
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
