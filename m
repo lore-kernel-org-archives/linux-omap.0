@@ -1,143 +1,39 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCHv2 1/1] thermal: core: call thermal_zone_device_update()
- after mode update
-Date: Wed, 22 Jun 2016 15:03:45 +0530
-Message-ID: <576A5B79.7070209@ti.com>
-References: <1466563538.2471.10.camel@intel.com>
- <1466572546-12944-1-git-send-email-edubezval@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/4] Get kexec working on SMP omap variants
+Date: Wed, 22 Jun 2016 02:53:05 -0700
+Message-ID: <20160622095303.GF22406@atomide.com>
+References: <1466495565-17480-1-git-send-email-tony@atomide.com>
+ <cfc75c15-ab10-22ee-35b8-529e28d2773c@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1466572546-12944-1-git-send-email-edubezval@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Eduardo Valentin <edubezval@gmail.com>, Rui Zhang <rui.zhang@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Darren Hart <dvhart@infradead.org>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-pm@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <cfc75c15-ab10-22ee-35b8-529e28d2773c@oracle.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Cc: Nishanth Menon <nm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Tero Kristo <t-kristo@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+* Santosh Shilimkar <santosh.shilimkar@oracle.com> [160621 09:10]:
+> 
+> I suggest to do bit wider testing including PM. From
+> quick scan, the series looks fine to me.
 
+Looks like the /sys/kernel/debug/pm_debug/count values for
+both cores for off increse just fine with these patches
+both before and after kexec.
 
-On Wednesday 22 June 2016 10:45 AM, Eduardo Valentin wrote:
-> Because several drivers do the following pattern:
-> .set_mode()
->     ...
->     local_data->mode = new_mode;
->     thermal_zone_device_update(tz);
->
-> makes sense to simply do the thermal_zone_device_update()
-> in thermal core, after setting the new mode.
+> FWIW, Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
 
-http://pastebin.ubuntu.com/17687601/
+Thanks,
 
-linux-next + current v2 of the patch.
-The back trace still comes.
-
-Regards,
-Keerthy
-
->
-> Also, this patch also remove deadlocks on drivers that
-> call thermal_zone_device_update() on .set_mode(),
-> as .set_mode()  is now called always with tz->lock held.
->
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: linux-acpi@vger.kernel.org
-> Cc: "Lee, Chun-Yi" <jlee@suse.com>
-> Cc: Darren Hart <dvhart@infradead.org>
-> Cc: Zhang Rui <rui.zhang@intel.com>
-> Cc: Keerthy <j-keerthy@ti.com>
-> Cc: linux-kernel@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org
-> Cc: platform-driver-x86@vger.kernel.org
-> Cc: linux-pm@vger.kernel.org
-> Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
-> ---
-> Please ignore last version.
->
-> V1-> V2:
-> Cleaned the patch and remove unrelated changes.
-> ---
->
->   drivers/acpi/thermal.c                             | 2 --
->   drivers/platform/x86/acerhdf.c                     | 1 -
->   drivers/thermal/imx_thermal.c                      | 1 -
->   drivers/thermal/of-thermal.c                       | 1 -
->   drivers/thermal/thermal_sysfs.c                    | 1 +
->   drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 1 -
->   6 files changed, 1 insertion(+), 6 deletions(-)
->
-> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> index 82707f9..8582b88 100644
-> --- a/drivers/acpi/thermal.c
-> +++ b/drivers/acpi/thermal.c
-> @@ -519,8 +519,6 @@ static void acpi_thermal_check(void *data)
->
->   	if (!tz->tz_enabled)
->   		return;
-> -
-> -	thermal_zone_device_update(tz->thermal_zone);
->   }
->
->   /* sys I/F for generic thermal sysfs support */
-> diff --git a/drivers/platform/x86/acerhdf.c b/drivers/platform/x86/acerhdf.c
-> index 460fa67..aee33ba 100644
-> --- a/drivers/platform/x86/acerhdf.c
-> +++ b/drivers/platform/x86/acerhdf.c
-> @@ -405,7 +405,6 @@ static inline void acerhdf_enable_kernelmode(void)
->   	kernelmode = 1;
->
->   	thz_dev->polling_delay = interval*1000;
-> -	thermal_zone_device_update(thz_dev);
->   	pr_notice("kernel mode fan control ON\n");
->   }
->
-> diff --git a/drivers/thermal/imx_thermal.c b/drivers/thermal/imx_thermal.c
-> index c5547bd..a413eb6 100644
-> --- a/drivers/thermal/imx_thermal.c
-> +++ b/drivers/thermal/imx_thermal.c
-> @@ -246,7 +246,6 @@ static int imx_set_mode(struct thermal_zone_device *tz,
->   	}
->
->   	data->mode = mode;
-> -	thermal_zone_device_update(tz);
->
->   	return 0;
->   }
-> diff --git a/drivers/thermal/of-thermal.c b/drivers/thermal/of-thermal.c
-> index b8e509c..4602e2e 100644
-> --- a/drivers/thermal/of-thermal.c
-> +++ b/drivers/thermal/of-thermal.c
-> @@ -292,7 +292,6 @@ static int of_thermal_set_mode(struct thermal_zone_device *tz,
->   	mutex_unlock(&tz->lock);
->
->   	data->mode = mode;
-> -	thermal_zone_device_update(tz);
->
->   	return 0;
->   }
-> diff --git a/drivers/thermal/thermal_sysfs.c b/drivers/thermal/thermal_sysfs.c
-> index 743df50..3d0dc30 100644
-> --- a/drivers/thermal/thermal_sysfs.c
-> +++ b/drivers/thermal/thermal_sysfs.c
-> @@ -100,6 +100,7 @@ mode_store(struct device *dev, struct device_attribute *attr,
->   	mutex_lock(&tz->lock);
->   	result = tz->ops->set_mode(tz, mode);
->   	mutex_unlock(&tz->lock);
-> +	thermal_zone_device_update(tz);
->
->   	if (result)
->   		return result;
-> diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> index 15c0a9a..9a5a3a3 100644
-> --- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> +++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> @@ -205,7 +205,6 @@ static int ti_thermal_set_mode(struct thermal_zone_device *thermal,
->   	data->mode = mode;
->   	ti_bandgap_write_update_interval(bgp, data->sensor_id,
->   					data->ti_thermal->polling_delay);
-> -	thermal_zone_device_update(data->ti_thermal);
->   	dev_dbg(&thermal->device, "thermal polling set for duration=%d msec\n",
->   		data->ti_thermal->polling_delay);
->
->
+Tony
