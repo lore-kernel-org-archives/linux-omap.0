@@ -1,192 +1,143 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 27/27] ARM: AMx3xx: hwmod: Add data for RNG
-Date: Wed, 22 Jun 2016 16:24:00 +0300
-Message-ID: <1466601840-18486-28-git-send-email-t-kristo@ti.com>
-References: <1466601840-18486-1-git-send-email-t-kristo@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <1466601840-18486-1-git-send-email-t-kristo@ti.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-crypto@vger.kernel.org, tony@atomide.com, herbert@gondor.apana.org.au, davem@davemloft.net, lokeshvutla@ti.com
-Cc: linux-arm-kernel@lists.infradead.org
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [PATCHv3 1/1] thermal: core: call thermal_zone_device_update() after mode update
+Date: Wed, 22 Jun 2016 07:34:14 -0700
+Message-ID: <1466606054-28867-1-git-send-email-edubezval@gmail.com>
+References: <1466563538.2471.10.camel@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+In-Reply-To: <1466563538.2471.10.camel@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
+To: Rui Zhang <rui.zhang@intel.com>
+Cc: Eduardo Valentin <edubezval@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Darren Hart <dvhart@infradead.org>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Lokesh Vutla <lokeshvutla@ti.com>
+Because several drivers do the following pattern:
+.set_mode()
+   ...
+   local_data->mode = new_mode;
+   thermal_zone_device_update(tz);
 
-Hardware random number generator is present in both AM33xx and AM43xx
-SoC's. So moving the hwmod data to common data.
+makes sense to simply do the thermal_zone_device_update()
+in thermal core, after setting the new mode.
 
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Also, this patch also remove deadlocks on drivers that
+call thermal_zone_device_update() on .set_mode(),
+as .set_mode()  is now called always with tz->lock held.
+
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+Cc: "Lee, Chun-Yi" <jlee@suse.com>
+Cc: Darren Hart <dvhart@infradead.org>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+Cc: platform-driver-x86@vger.kernel.org
+Cc: linux-pm@vger.kernel.org
+Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
 ---
- .../mach-omap2/omap_hwmod_33xx_43xx_common_data.h  |  2 ++
- .../omap_hwmod_33xx_43xx_interconnect_data.c       |  8 +++++
- .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 29 ++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c         | 35 ----------------------
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |  1 +
- arch/arm/mach-omap2/prcm43xx.h                     |  1 +
- 6 files changed, 41 insertions(+), 35 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
-index 7f73796..968ce46 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
-@@ -77,6 +77,7 @@ extern struct omap_hwmod_ocp_if am33xx_l4_ls__uart6;
- extern struct omap_hwmod_ocp_if am33xx_l3_main__ocmc;
- extern struct omap_hwmod_ocp_if am33xx_l3_main__sha0;
- extern struct omap_hwmod_ocp_if am33xx_l3_main__aes0;
-+extern struct omap_hwmod_ocp_if am33xx_l4_per__rng;
+Hey,
+
+
+V2--> V3: Remove locking from OF thermal set mode.
+The locking is done from thermal core already.
+
+BR,
+
+Eduardo
+
+ drivers/acpi/thermal.c                             | 2 --
+ drivers/platform/x86/acerhdf.c                     | 1 -
+ drivers/thermal/imx_thermal.c                      | 1 -
+ drivers/thermal/of-thermal.c                       | 5 -----
+ drivers/thermal/thermal_sysfs.c                    | 1 +
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 1 -
+ 6 files changed, 1 insertion(+), 10 deletions(-)
+
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index 82707f9..8582b88 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -519,8 +519,6 @@ static void acpi_thermal_check(void *data)
  
- extern struct omap_hwmod am33xx_l3_main_hwmod;
- extern struct omap_hwmod am33xx_l3_s_hwmod;
-@@ -89,6 +90,7 @@ extern struct omap_hwmod am33xx_gfx_hwmod;
- extern struct omap_hwmod am33xx_prcm_hwmod;
- extern struct omap_hwmod am33xx_aes0_hwmod;
- extern struct omap_hwmod am33xx_sha0_hwmod;
-+extern struct omap_hwmod am33xx_rng_hwmod;
- extern struct omap_hwmod am33xx_ocmcram_hwmod;
- extern struct omap_hwmod am33xx_smartreflex0_hwmod;
- extern struct omap_hwmod am33xx_smartreflex1_hwmod;
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
-index 1c210cb..b99d6ea 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
-@@ -611,3 +611,11 @@ struct omap_hwmod_ocp_if am33xx_l3_main__aes0 = {
- 	.addr		= am33xx_aes0_addrs,
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
-+
-+/* l4 per -> rng */
-+struct omap_hwmod_ocp_if am33xx_l4_per__rng = {
-+	.master		= &am33xx_l4_ls_hwmod,
-+	.slave		= &am33xx_rng_hwmod,
-+	.clk		= "rng_fck",
-+	.user		= OCP_USER_MPU,
-+};
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-index aed3362..d2f0bb4 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-@@ -267,6 +267,33 @@ struct omap_hwmod am33xx_sha0_hwmod = {
- 	},
- };
- 
-+/* rng */
-+static struct omap_hwmod_class_sysconfig am33xx_rng_sysc = {
-+	.rev_offs	= 0x1fe0,
-+	.sysc_offs	= 0x1fe4,
-+	.sysc_flags	= SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE,
-+	.idlemodes	= SIDLE_FORCE | SIDLE_NO,
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class am33xx_rng_hwmod_class = {
-+	.name		= "rng",
-+	.sysc		= &am33xx_rng_sysc,
-+};
-+
-+struct omap_hwmod am33xx_rng_hwmod = {
-+	.name		= "rng",
-+	.class		= &am33xx_rng_hwmod_class,
-+	.clkdm_name	= "l4ls_clkdm",
-+	.flags		= HWMOD_SWSUP_SIDLE,
-+	.main_clk	= "rng_fck",
-+	.prcm		= {
-+		.omap4	= {
-+			.modulemode	= MODULEMODE_SWCTRL,
-+		},
-+	},
-+};
-+
- /* ocmcram */
- static struct omap_hwmod_class am33xx_ocmcram_hwmod_class = {
- 	.name = "ocmcram",
-@@ -1397,6 +1424,7 @@ static void omap_hwmod_am33xx_clkctrl(void)
- 	CLKCTRL(am33xx_ocmcram_hwmod , AM33XX_CM_PER_OCMCRAM_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_sha0_hwmod , AM33XX_CM_PER_SHA0_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_aes0_hwmod , AM33XX_CM_PER_AES0_CLKCTRL_OFFSET);
-+	CLKCTRL(am33xx_rng_hwmod, AM33XX_CM_PER_RNG_CLKCTRL_OFFSET);
+ 	if (!tz->tz_enabled)
+ 		return;
+-
+-	thermal_zone_device_update(tz->thermal_zone);
  }
  
- static void omap_hwmod_am33xx_rst(void)
-@@ -1470,6 +1498,7 @@ static void omap_hwmod_am43xx_clkctrl(void)
- 	CLKCTRL(am33xx_ocmcram_hwmod , AM43XX_CM_PER_OCMCRAM_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_sha0_hwmod , AM43XX_CM_PER_SHA0_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_aes0_hwmod , AM43XX_CM_PER_AES0_CLKCTRL_OFFSET);
-+	CLKCTRL(am33xx_rng_hwmod, AM43XX_CM_PER_RNG_CLKCTRL_OFFSET);
+ /* sys I/F for generic thermal sysfs support */
+diff --git a/drivers/platform/x86/acerhdf.c b/drivers/platform/x86/acerhdf.c
+index 460fa67..aee33ba 100644
+--- a/drivers/platform/x86/acerhdf.c
++++ b/drivers/platform/x86/acerhdf.c
+@@ -405,7 +405,6 @@ static inline void acerhdf_enable_kernelmode(void)
+ 	kernelmode = 1;
+ 
+ 	thz_dev->polling_delay = interval*1000;
+-	thermal_zone_device_update(thz_dev);
+ 	pr_notice("kernel mode fan control ON\n");
  }
  
- static void omap_hwmod_am43xx_rst(void)
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-index cc0791d..f43ab86 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-@@ -503,41 +503,6 @@ static struct omap_hwmod_ocp_if am33xx_l3_s__usbss = {
- 	.flags		= OCPIF_SWSUP_IDLE,
- };
+diff --git a/drivers/thermal/imx_thermal.c b/drivers/thermal/imx_thermal.c
+index c5547bd..a413eb6 100644
+--- a/drivers/thermal/imx_thermal.c
++++ b/drivers/thermal/imx_thermal.c
+@@ -246,7 +246,6 @@ static int imx_set_mode(struct thermal_zone_device *tz,
+ 	}
  
--/* rng */
--static struct omap_hwmod_class_sysconfig am33xx_rng_sysc = {
--	.rev_offs	= 0x1fe0,
--	.sysc_offs	= 0x1fe4,
--	.sysc_flags	= SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE,
--	.idlemodes	= SIDLE_FORCE | SIDLE_NO,
--	.sysc_fields	= &omap_hwmod_sysc_type1,
--};
+ 	data->mode = mode;
+-	thermal_zone_device_update(tz);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/thermal/of-thermal.c b/drivers/thermal/of-thermal.c
+index b8e509c..95c47da 100644
+--- a/drivers/thermal/of-thermal.c
++++ b/drivers/thermal/of-thermal.c
+@@ -282,17 +282,12 @@ static int of_thermal_set_mode(struct thermal_zone_device *tz,
+ {
+ 	struct __thermal_zone *data = tz->devdata;
+ 
+-	mutex_lock(&tz->lock);
 -
--static struct omap_hwmod_class am33xx_rng_hwmod_class = {
--	.name		= "rng",
--	.sysc		= &am33xx_rng_sysc,
--};
+ 	if (mode == THERMAL_DEVICE_ENABLED)
+ 		tz->polling_delay = data->polling_delay;
+ 	else
+ 		tz->polling_delay = 0;
+ 
+-	mutex_unlock(&tz->lock);
 -
--static struct omap_hwmod am33xx_rng_hwmod = {
--	.name		= "rng",
--	.class		= &am33xx_rng_hwmod_class,
--	.clkdm_name	= "l4ls_clkdm",
--	.flags		= HWMOD_SWSUP_SIDLE,
--	.main_clk	= "rng_fck",
--	.prcm		= {
--		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_RNG_CLKCTRL_OFFSET,
--			.modulemode	= MODULEMODE_SWCTRL,
--		},
--	},
--};
--
--static struct omap_hwmod_ocp_if am33xx_l4_per__rng = {
--	.master		= &am33xx_l4_ls_hwmod,
--	.slave		= &am33xx_rng_hwmod,
--	.clk		= "rng_fck",
--	.user		= OCP_USER_MPU,
--};
--
- static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
- 	&am33xx_l3_main__emif,
- 	&am33xx_mpu__l3_main,
-diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-index b54eeaa..1cb12ea 100644
---- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-@@ -994,6 +994,7 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
- 	&am33xx_l4_per__i2c2,
- 	&am33xx_l4_per__i2c3,
- 	&am33xx_l4_per__mailbox,
-+	&am33xx_l4_per__rng,
- 	&am33xx_l4_ls__mcasp0,
- 	&am33xx_l4_ls__mcasp1,
- 	&am33xx_l4_ls__mmc0,
-diff --git a/arch/arm/mach-omap2/prcm43xx.h b/arch/arm/mach-omap2/prcm43xx.h
-index 593482e..75976b4 100644
---- a/arch/arm/mach-omap2/prcm43xx.h
-+++ b/arch/arm/mach-omap2/prcm43xx.h
-@@ -91,6 +91,7 @@
- #define AM43XX_CM_PER_MAILBOX0_CLKCTRL_OFFSET		0x04b8
- #define AM43XX_CM_PER_MMC0_CLKCTRL_OFFSET		0x04c0
- #define AM43XX_CM_PER_MMC1_CLKCTRL_OFFSET		0x04c8
-+#define AM43XX_CM_PER_RNG_CLKCTRL_OFFSET		0x04e0
- #define AM43XX_CM_PER_SPI0_CLKCTRL_OFFSET		0x0500
- #define AM43XX_CM_PER_SPI1_CLKCTRL_OFFSET		0x0508
- #define AM43XX_CM_PER_SPINLOCK_CLKCTRL_OFFSET		0x0528
+ 	data->mode = mode;
+-	thermal_zone_device_update(tz);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/thermal/thermal_sysfs.c b/drivers/thermal/thermal_sysfs.c
+index 743df50..3d0dc30 100644
+--- a/drivers/thermal/thermal_sysfs.c
++++ b/drivers/thermal/thermal_sysfs.c
+@@ -100,6 +100,7 @@ mode_store(struct device *dev, struct device_attribute *attr,
+ 	mutex_lock(&tz->lock);
+ 	result = tz->ops->set_mode(tz, mode);
+ 	mutex_unlock(&tz->lock);
++	thermal_zone_device_update(tz);
+ 
+ 	if (result)
+ 		return result;
+diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+index 15c0a9a..9a5a3a3 100644
+--- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
++++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+@@ -205,7 +205,6 @@ static int ti_thermal_set_mode(struct thermal_zone_device *thermal,
+ 	data->mode = mode;
+ 	ti_bandgap_write_update_interval(bgp, data->sensor_id,
+ 					data->ti_thermal->polling_delay);
+-	thermal_zone_device_update(data->ti_thermal);
+ 	dev_dbg(&thermal->device, "thermal polling set for duration=%d msec\n",
+ 		data->ti_thermal->polling_delay);
+ 
 -- 
-1.9.1
+2.1.4
+
