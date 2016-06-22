@@ -1,27 +1,40 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: AM43XX: hwmod: Fix RSTST register offset for pruss
-Date: Wed, 22 Jun 2016 02:59:07 -0700
-Message-ID: <20160622095905.GG22406@atomide.com>
-References: <1466394745-983-1-git-send-email-j-keerthy@ti.com>
- <5E94841CD408F1498111ED1D1196B1B237B18D3A@DBDE04.ent.ti.com>
- <5767A81E.1040809@ti.com>
- <5768177B.9070306@ti.com>
- <5E94841CD408F1498111ED1D1196B1B237B191FD@DBDE04.ent.ti.com>
- <57690F83.80709@ti.com>
- <576A55F8.4070906@ti.com>
+Subject: Re: [PATCH] ARM: AMx3xx: Allow low level debugging on all UARTs
+Date: Wed, 22 Jun 2016 03:04:46 -0700
+Message-ID: <20160622100444.GH22406@atomide.com>
+References: <20160621120758.28732-1-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <576A55F8.4070906@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <a0393675@ti.com>
-Cc: "Mohammed, Afzal" <afzal@ti.com>, "Anna, Suman" <s-anna@ti.com>, "J, KEERTHY" <j-keerthy@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Kristo, Tero" <t-kristo@ti.com>, "Gerlach, Dave" <d-gerlach@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux@armlinux.org.uk" <linux@armlinux.org.uk>
+In-Reply-To: <20160621120758.28732-1-lokeshvutla@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, nm@ti.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Keerthy <a0393675@ti.com> [160622 02:13]:
-> Can you pull this patch as well?
+* Lokesh Vutla <lokeshvutla@ti.com> [160621 05:10]:
+> AM33xx/AM43xx Soc has 6 UART interfaces. Any of these 6 UARTs can be used as
+> serial console as defined by the specific board design and passing a proper
+> console bootarg. Given this, we should be able to use any UART(that is
+> used as serial console) for low level debugging. Currently only UART1 can
+> be used for low level debugging. So, adding support for all other UARTs
+> instead of waiting for new board with a different UART console.
 
-OK thanks applying into omap-for-v4.8/soc.
+Well we should just switch over to the standard 8250 debug code
+instead. With multiarch the port detection for debug_ll port is
+no longer needed. And we can still keep the Kconfig options for
+various ports.
+
+Regards,
 
 Tony
