@@ -1,67 +1,98 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Subject: Re: [RESEND PATCH v2 2/5] pwm: omap-dmtimer: Allow for setting
- dmtimer clock source
-Date: Thu, 23 Jun 2016 10:24:36 +0200
-Message-ID: <20160623082436.GB8136@ulmo.ba.sec>
-References: <1466623341-30130-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <1466623341-30130-3-git-send-email-ivo.g.dimitrov.75@gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 1/2 v2] gpio: omap: make gpio numbering deterministical by
+ using of aliases
+Date: Thu, 23 Jun 2016 10:54:05 +0200
+Message-ID: <CACRpkdYHHLyBTJYPw_pMds0z-BtPPHf7mEcjE2ayTw7jRqNDdA@mail.gmail.com>
+References: <1465930632-18941-1-git-send-email-u.kleine-koenig@pengutronix.de> <1465930632-18941-2-git-send-email-u.kleine-koenig@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="BwCQnh7xodEAoBMC"
-Return-path: <linux-pwm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1466623341-30130-3-git-send-email-ivo.g.dimitrov.75@gmail.com>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, mchehab@osg.samsung.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1465930632-18941-2-git-send-email-u.kleine-koenig@pengutronix.de>
+Sender: linux-gpio-owner@vger.kernel.org
+To: =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Alexandre Courbot <gnurou@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sascha Hauer <kernel@pengutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
+Looping in DT people.
 
---BwCQnh7xodEAoBMC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Please send subsequent patches also to devicetree@vger.kernel.org
 
-On Wed, Jun 22, 2016 at 10:22:18PM +0300, Ivaylo Dimitrov wrote:
-> OMAP GP timers can have different input clocks that allow different PWM
-> frequencies. However, there is no other way of setting the clock source b=
-ut
-> through clocks or clock-names properties of the timer itself. This limits
-> PWM functionality to only the frequencies allowed by the particular clock
-> source. Allowing setting the clock source by PWM rather than by timer
-> allows different PWMs to have different ranges by not hard-wiring the clo=
-ck
-> source to the timer.
->=20
-> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-> Acked-by: Rob Herring <robh@kernel.org>
+On Tue, Jun 14, 2016 at 8:57 PM, Uwe Kleine-K=C3=B6nig
+<u.kleine-koenig@pengutronix.de> wrote:
+
+> Traditionally the n-th gpio device probed by the omap gpio driver got
+> the gpio number range [n*32 .. n*32+31].
+> When order of the devices probed by the driver changes (which can hap=
+pen
+> already now when some devices have a pinctrl and so the first probe
+> attempt returns -ENODEV) the numbering changes.
+>
+> To ensure a deterministical numbering use of_alias_get_id to determin=
+e
+> the base for a given device. If no respective alias exists fall back =
+to
+> the traditional numbering.
+>
+> For the unusual case where only a part of the gpio devices have a
+> matching alias some of them might fail to probe. But if none of them =
+has
+> an alias or all, there is no conflict which should be good enough to
+> maintain backward compatibility.
+>
+> Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
 > ---
->  Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt |  4 ++++
->  drivers/pwm/pwm-omap-dmtimer.c                             | 12 +++++++-=
-----
->  2 files changed, 11 insertions(+), 5 deletions(-)
+>  drivers/gpio/gpio-omap.c | 19 ++++++++++++++++++-
+>  1 file changed, 18 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index b98ede78c9d8..4d91792e7266 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -1053,9 +1053,26 @@ static int omap_gpio_chip_init(struct gpio_ban=
+k *bank, struct irq_chip *irqc)
+>                         bank->chip.parent =3D &omap_mpuio_device.dev;
+>                 bank->chip.base =3D OMAP_MPUIO(0);
+>         } else {
+> +               int gpio_alias_id __maybe_unused;
+> +
+>                 bank->chip.label =3D "gpio";
+> -               bank->chip.base =3D gpio;
+> +
+> +#if defined(CONFIG_OF_GPIO)
+> +               /*
+> +                * Traditionally the base is given out in first-come-=
+first-serve
+> +                * order.  This might shuffle the numbering of gpios =
+if the
+> +                * probe order changes.  So make the base determinist=
+ical if the
+> +                * device tree specifies alias ids.
+> +                */
+> +               gpio_alias_id =3D of_alias_get_id(bank->chip.of_node,=
+ "gpio");
+> +               if (gpio_alias_id >=3D 0)
+> +                       bank->chip.base =3D bank->width * gpio_alias_=
+id;
+> +               else
+> +#endif
+> +                       bank->chip.base =3D gpio;
+>         }
+> +
+> +
 
-Acked-by: Thierry Reding <treding@nvidia.com>
+I need:
 
---BwCQnh7xodEAoBMC
-Content-Type: application/pgp-signature; name="signature.asc"
+- A hunk of the patch to hit
+  Documentation/devicetree/bindings/gpio/gpio.txt
+  and describe the alias usage there
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+-  an ACK from a DT bindings maintainer for this.
 
-iQIcBAABCAAGBQJXa5zBAAoJEN0jrNd/PrOhwlQQAKJqIX/WVu0eYrxSyfNzKumN
-r0uqDlK8kPVU2XrLSiUsZmSmSLsPWbYLxvJ6b8ONrV0/CEaj6ANuI2F9Sp94u9aU
-Zgl4NUWTSKbHYACj0CWgBk4PwWIbZVUZrWOTTgh73xpo4KhEnWREZjGhiYgZhQRH
-Ji6RfvoRtYpw76ORkiAZ7aO1lcPCBv/fgvC/cuC+0rAwRHHS7cMz0+nd/MC+/+O3
-uM9Mcq+fs1qvQ4kJKGGDMHYTv5FkXQ/eNFmDx03EUEYvOJ57Yhy0TQREH/ZsdEfm
-ELfUqP7UClhqO5/FFcn9wJxIxrQssnQkpCAOks6JIsV6nMYmBwVBapYmP7px4TNL
-6CohXEyx93aG99VbO1L7jvyf1PF1aIUDiNO/qFD6ZYqpcPvlr+64AdokRtfK70a0
-quZ14G7iuMiywclw6Y/CilOjf8t3GCPvIOmNk7ndiE2ca4wDAqyZ7Zohk5H58LFF
-5BZLbdhGh2GYr0ju/s+jBZmq2GsQzkGEv3KsjODIsH5jMxb0v95/418cbcMWLwHh
-6gSLOMiY213xvTPfYY4VOyW6vtKTV09r0s3A3d5478F2k82H8r4D898yZqRpYhOv
-0yBemF/xgWy88Sgpx4wnCJNUbsdwzBs31UwVvNG7IQdnQErUlRHvL2VqOU07pzCe
-75BREWFVSnfAX9zhyEog
-=BVNy
------END PGP SIGNATURE-----
-
---BwCQnh7xodEAoBMC--
+Yours,
+Linus Walleij
+--
+To unsubscribe from this list: send the line "unsubscribe linux-gpio" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
