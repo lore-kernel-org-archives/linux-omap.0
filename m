@@ -1,307 +1,210 @@
-From: "ivan.khoronzhuk" <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH] net: ethernet: ti: cpdma: switch to use genalloc
-Date: Thu, 23 Jun 2016 16:17:35 +0300
-Message-ID: <576BE16F.6060406@globallogic.com>
-References: <20160623123620.11681-1-grygorii.strashko@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "ASoC: tpa6130a2: Register component" to the
+	asoc tree
+Date: Thu, 23 Jun 2016 15:38:11 +0100
+Message-ID: <E1bG5lj-000461-S1@debutante>
+References: <139032aca71410fa9df608ea34ecb8046439c626.1466441036.git.helen.koike@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160623123620.11681-1-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <139032aca71410fa9df608ea34ecb8046439c626.1466441036.git.helen.koike@collabora.co.uk>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Helen Koike <helen.koike@collabora.co.uk>
+Cc: alsa-devel@alsa-project.org, lars@metafoo.de, lgirdwood@gmail.com, linux-kernel@vger.kernel.org, k.kozlowski@samsung.com, tiwai@suse.com, Sebastian Reichel <sre@kernel.org>, peter.ujfalusi@ti.com, broonie@kernel.org, jarkko.nikula@bitmer.com, linux-omap@vger.kernel.org, cphealy@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
+The patch
 
+   ASoC: tpa6130a2: Register component
 
-On 23.06.16 15:36, Grygorii Strashko wrote:
-> TI CPDMA currently uses a bitmap for tracking descriptors alloactions
-> allocations, but The genalloc already handles the same and can be used
-> as with special memory (SRAM) as with DMA cherent memory chank
-> (dma_alloc_coherent()). Hence, switch to using genalloc and add
-> desc_num property for each channel for limitation of max number of
-> allowed descriptors for each CPDMA channel. This patch do not affect
-> on net throuput.
->
-> Cc: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+has been applied to the asoc tree at
 
-Tested-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git 
 
-> ---
-> Testing
-> TCP window: 256K, bandwidth in Mbits/sec:
->   host: iperf -s
->   device: iperf -c  172.22.39.17 -t600 -i5 -d -w128K
->
-> AM437x-idk, 1Gbps link
->   before: : 341.60, after: 232+123=355
-> am57xx-beagle-x15, 1Gbps link
->   before: : 1112.80, after: 814+321=1135
-> am335x-boneblack, 100Mbps link
->   before: : 162.40, after: 72+93=165
->
->   drivers/net/ethernet/ti/davinci_cpdma.c | 136 +++++++++++++++-----------------
->   1 file changed, 62 insertions(+), 74 deletions(-)
->
-> diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-> index 18bf3a8..03b9882 100644
-> --- a/drivers/net/ethernet/ti/davinci_cpdma.c
-> +++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-> @@ -21,7 +21,7 @@
->   #include <linux/dma-mapping.h>
->   #include <linux/io.h>
->   #include <linux/delay.h>
-> -
-> +#include <linux/genalloc.h>
->   #include "davinci_cpdma.h"
->
->   /* DMA Registers */
-> @@ -87,9 +87,8 @@ struct cpdma_desc_pool {
->   	void			*cpumap;	/* dma_alloc map */
->   	int			desc_size, mem_size;
->   	int			num_desc, used_desc;
-> -	unsigned long		*bitmap;
->   	struct device		*dev;
-> -	spinlock_t		lock;
-> +	struct gen_pool		*gen_pool;
->   };
->
->   enum cpdma_state {
-> @@ -117,6 +116,7 @@ struct cpdma_chan {
->   	int				chan_num;
->   	spinlock_t			lock;
->   	int				count;
-> +	u32				desc_num;
->   	u32				mask;
->   	cpdma_handler_fn		handler;
->   	enum dma_data_direction		dir;
-> @@ -145,6 +145,20 @@ struct cpdma_chan {
->   				 (directed << CPDMA_TO_PORT_SHIFT));	\
->   	} while (0)
->
-> +static void cpdma_desc_pool_destroy(struct cpdma_desc_pool *pool)
-> +{
-> +	if (!pool)
-> +		return;
-> +
-> +	WARN_ON(pool->used_desc);
-> +	if (pool->cpumap) {
-> +		dma_free_coherent(pool->dev, pool->mem_size, pool->cpumap,
-> +				  pool->phys);
-> +	} else {
-> +		iounmap(pool->iomap);
-> +	}
-> +}
-> +
->   /*
->    * Utility constructs for a cpdma descriptor pool.  Some devices (e.g. davinci
->    * emac) have dedicated on-chip memory for these descriptors.  Some other
-> @@ -155,24 +169,25 @@ static struct cpdma_desc_pool *
->   cpdma_desc_pool_create(struct device *dev, u32 phys, dma_addr_t hw_addr,
->   				int size, int align)
->   {
-> -	int bitmap_size;
->   	struct cpdma_desc_pool *pool;
-> +	int ret;
->
->   	pool = devm_kzalloc(dev, sizeof(*pool), GFP_KERNEL);
->   	if (!pool)
-> -		goto fail;
-> -
-> -	spin_lock_init(&pool->lock);
-> +		goto gen_pool_create_fail;
->
->   	pool->dev	= dev;
->   	pool->mem_size	= size;
->   	pool->desc_size	= ALIGN(sizeof(struct cpdma_desc), align);
->   	pool->num_desc	= size / pool->desc_size;
->
-> -	bitmap_size  = (pool->num_desc / BITS_PER_LONG) * sizeof(long);
-> -	pool->bitmap = devm_kzalloc(dev, bitmap_size, GFP_KERNEL);
-> -	if (!pool->bitmap)
-> -		goto fail;
-> +	pool->gen_pool = devm_gen_pool_create(dev, ilog2(pool->desc_size), -1,
-> +					      "cpdma");
-> +	if (IS_ERR(pool->gen_pool)) {
-> +		dev_err(dev, "pool create failed %ld\n",
-> +			PTR_ERR(pool->gen_pool));
-> +		goto gen_pool_create_fail;
-> +	}
->
->   	if (phys) {
->   		pool->phys  = phys;
-> @@ -185,24 +200,22 @@ cpdma_desc_pool_create(struct device *dev, u32 phys, dma_addr_t hw_addr,
->   		pool->phys = pool->hw_addr; /* assumes no IOMMU, don't use this value */
->   	}
->
-> -	if (pool->iomap)
-> -		return pool;
-> -fail:
-> -	return NULL;
-> -}
-> -
-> -static void cpdma_desc_pool_destroy(struct cpdma_desc_pool *pool)
-> -{
-> -	if (!pool)
-> -		return;
-> +	if (!pool->iomap)
-> +		goto gen_pool_create_fail;
->
-> -	WARN_ON(pool->used_desc);
-> -	if (pool->cpumap) {
-> -		dma_free_coherent(pool->dev, pool->mem_size, pool->cpumap,
-> -				  pool->phys);
-> -	} else {
-> -		iounmap(pool->iomap);
-> +	ret = gen_pool_add_virt(pool->gen_pool, (unsigned long)pool->iomap,
-> +				pool->phys, pool->mem_size, -1);
-> +	if (ret < 0) {
-> +		dev_err(dev, "pool add failed %d\n", ret);
-> +		goto gen_pool_add_virt_fail;
->   	}
-> +
-> +	return pool;
-> +
-> +gen_pool_add_virt_fail:
-> +	cpdma_desc_pool_destroy(pool);
-> +gen_pool_create_fail:
-> +	return NULL;
->   }
->
->   static inline dma_addr_t desc_phys(struct cpdma_desc_pool *pool,
-> @@ -210,7 +223,7 @@ static inline dma_addr_t desc_phys(struct cpdma_desc_pool *pool,
->   {
->   	if (!desc)
->   		return 0;
-> -	return pool->hw_addr + (__force long)desc - (__force long)pool->iomap;
-> +	return gen_pool_virt_to_phys(pool->gen_pool, (unsigned long)desc);
->   }
->
->   static inline struct cpdma_desc __iomem *
-> @@ -220,47 +233,23 @@ desc_from_phys(struct cpdma_desc_pool *pool, dma_addr_t dma)
->   }
->
->   static struct cpdma_desc __iomem *
-> -cpdma_desc_alloc(struct cpdma_desc_pool *pool, int num_desc, bool is_rx)
-> +cpdma_desc_alloc(struct cpdma_desc_pool *pool)
->   {
-> -	unsigned long flags;
-> -	int index;
-> -	int desc_start;
-> -	int desc_end;
->   	struct cpdma_desc __iomem *desc = NULL;
->
-> -	spin_lock_irqsave(&pool->lock, flags);
-> -
-> -	if (is_rx) {
-> -		desc_start = 0;
-> -		desc_end = pool->num_desc/2;
-> -	 } else {
-> -		desc_start = pool->num_desc/2;
-> -		desc_end = pool->num_desc;
-> -	}
-> -
-> -	index = bitmap_find_next_zero_area(pool->bitmap,
-> -				desc_end, desc_start, num_desc, 0);
-> -	if (index < desc_end) {
-> -		bitmap_set(pool->bitmap, index, num_desc);
-> -		desc = pool->iomap + pool->desc_size * index;
-> +	desc = (struct cpdma_desc __iomem *)gen_pool_alloc(pool->gen_pool,
-> +							   pool->desc_size);
-> +	if (desc)
->   		pool->used_desc++;
-> -	}
->
-> -	spin_unlock_irqrestore(&pool->lock, flags);
->   	return desc;
->   }
->
->   static void cpdma_desc_free(struct cpdma_desc_pool *pool,
->   			    struct cpdma_desc __iomem *desc, int num_desc)
->   {
-> -	unsigned long flags, index;
-> -
-> -	index = ((unsigned long)desc - (unsigned long)pool->iomap) /
-> -		pool->desc_size;
-> -	spin_lock_irqsave(&pool->lock, flags);
-> -	bitmap_clear(pool->bitmap, index, num_desc);
-> +	gen_pool_free(pool->gen_pool, (unsigned long)desc, pool->desc_size);
->   	pool->used_desc--;
-> -	spin_unlock_irqrestore(&pool->lock, flags);
->   }
->
->   struct cpdma_ctlr *cpdma_ctlr_create(struct cpdma_params *params)
-> @@ -516,6 +505,7 @@ struct cpdma_chan *cpdma_chan_create(struct cpdma_ctlr *ctlr, int chan_num,
->   	chan->state	= CPDMA_STATE_IDLE;
->   	chan->chan_num	= chan_num;
->   	chan->handler	= handler;
-> +	chan->desc_num = ctlr->pool->num_desc / 2;
->
->   	if (is_rx_chan(chan)) {
->   		chan->hdp	= ctlr->params.rxhdp + offset;
-> @@ -675,7 +665,13 @@ int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data,
->   		goto unlock_ret;
->   	}
->
-> -	desc = cpdma_desc_alloc(ctlr->pool, 1, is_rx_chan(chan));
-> +	if (chan->count >= chan->desc_num)	{
-> +		chan->stats.desc_alloc_fail++;
-> +		ret = -ENOMEM;
-> +		goto unlock_ret;
-> +	}
-> +
-> +	desc = cpdma_desc_alloc(ctlr->pool);
->   	if (!desc) {
->   		chan->stats.desc_alloc_fail++;
->   		ret = -ENOMEM;
-> @@ -721,24 +717,16 @@ EXPORT_SYMBOL_GPL(cpdma_chan_submit);
->
->   bool cpdma_check_free_tx_desc(struct cpdma_chan *chan)
->   {
-> -	unsigned long flags;
-> -	int index;
-> -	bool ret;
->   	struct cpdma_ctlr	*ctlr = chan->ctlr;
->   	struct cpdma_desc_pool	*pool = ctlr->pool;
-> +	unsigned long flags;
-> +	bool	free_tx_desc;
->
-> -	spin_lock_irqsave(&pool->lock, flags);
-> -
-> -	index = bitmap_find_next_zero_area(pool->bitmap,
-> -				pool->num_desc, pool->num_desc/2, 1, 0);
-> -
-> -	if (index < pool->num_desc)
-> -		ret = true;
-> -	else
-> -		ret = false;
-> -
-> -	spin_unlock_irqrestore(&pool->lock, flags);
-> -	return ret;
-> +	spin_lock_irqsave(&chan->lock, flags);
-> +	free_tx_desc = (chan->count < chan->desc_num) &&
-> +			 gen_pool_avail(pool->gen_pool);
-> +	spin_unlock_irqrestore(&chan->lock, flags);
-> +	return free_tx_desc;
->   }
->   EXPORT_SYMBOL_GPL(cpdma_check_free_tx_desc);
->
-> @@ -772,7 +760,6 @@ static int __cpdma_chan_process(struct cpdma_chan *chan)
->   	unsigned long			flags;
->
->   	spin_lock_irqsave(&chan->lock, flags);
-> -
->   	desc = chan->head;
->   	if (!desc) {
->   		chan->stats.empty_dequeue++;
-> @@ -796,6 +783,7 @@ static int __cpdma_chan_process(struct cpdma_chan *chan)
->   			    CPDMA_DESC_PORT_MASK);
->
->   	chan->head = desc_from_phys(pool, desc_read(desc, hw_next));
-> +
->   	chan_write(chan, cp, desc_dma);
->   	chan->count--;
->   	chan->stats.good_dequeue++;
->
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From cb7e62256e99d285e415cf75db67558f0f8bb107 Mon Sep 17 00:00:00 2001
+From: Helen Koike <helen.koike@collabora.co.uk>
+Date: Mon, 20 Jun 2016 14:12:29 -0300
+Subject: [PATCH] ASoC: tpa6130a2: Register component
+
+Add tpa6130a2 controls by the component API and update rx51 accordingly
+
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+[koike: port for upstream]
+Signed-off-by: Helen Koike <helen.koike@collabora.co.uk>
+Tested-By: Sebastian Reichel <sre@kernel.org>
+Reviewed-By: Sebastian Reichel <sre@kernel.org>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ sound/soc/codecs/tpa6130a2.c | 30 +++++++++++++++---------------
+ sound/soc/codecs/tpa6130a2.h |  1 -
+ sound/soc/omap/rx51.c        | 23 ++++++++++++-----------
+ 3 files changed, 27 insertions(+), 27 deletions(-)
+
+diff --git a/sound/soc/codecs/tpa6130a2.c b/sound/soc/codecs/tpa6130a2.c
+index 11d85c5c787a..f31326a332fb 100644
+--- a/sound/soc/codecs/tpa6130a2.c
++++ b/sound/soc/codecs/tpa6130a2.c
+@@ -273,7 +273,7 @@ static const DECLARE_TLV_DB_RANGE(tpa6130_tlv,
+ );
+ 
+ static const struct snd_kcontrol_new tpa6130a2_controls[] = {
+-	SOC_SINGLE_EXT_TLV("TPA6130A2 Headphone Playback Volume",
++	SOC_SINGLE_EXT_TLV("Headphone Playback Volume",
+ 		       TPA6130A2_REG_VOL_MUTE, 0, 0x3f, 0,
+ 		       tpa6130a2_get_volsw, tpa6130a2_put_volsw,
+ 		       tpa6130_tlv),
+@@ -286,7 +286,7 @@ static const DECLARE_TLV_DB_RANGE(tpa6140_tlv,
+ );
+ 
+ static const struct snd_kcontrol_new tpa6140a2_controls[] = {
+-	SOC_SINGLE_EXT_TLV("TPA6140A2 Headphone Playback Volume",
++	SOC_SINGLE_EXT_TLV("Headphone Playback Volume",
+ 		       TPA6130A2_REG_VOL_MUTE, 1, 0x1f, 0,
+ 		       tpa6130a2_get_volsw, tpa6130a2_put_volsw,
+ 		       tpa6140_tlv),
+@@ -348,23 +348,22 @@ int tpa6130a2_stereo_enable(struct snd_soc_codec *codec, int enable)
+ }
+ EXPORT_SYMBOL_GPL(tpa6130a2_stereo_enable);
+ 
+-int tpa6130a2_add_controls(struct snd_soc_codec *codec)
++static int tpa6130a2_component_probe(struct snd_soc_component *component)
+ {
+-	struct	tpa6130a2_data *data;
+-
+-	if (tpa6130a2_client == NULL)
+-		return -ENODEV;
+-
+-	data = i2c_get_clientdata(tpa6130a2_client);
++	struct tpa6130a2_data *data = snd_soc_component_get_drvdata(component);
+ 
+ 	if (data->id == TPA6140A2)
+-		return snd_soc_add_codec_controls(codec, tpa6140a2_controls,
+-						ARRAY_SIZE(tpa6140a2_controls));
++		return snd_soc_add_component_controls(component,
++			tpa6140a2_controls, ARRAY_SIZE(tpa6140a2_controls));
+ 	else
+-		return snd_soc_add_codec_controls(codec, tpa6130a2_controls,
+-						ARRAY_SIZE(tpa6130a2_controls));
++		return snd_soc_add_component_controls(component,
++			tpa6130a2_controls, ARRAY_SIZE(tpa6130a2_controls));
+ }
+-EXPORT_SYMBOL_GPL(tpa6130a2_add_controls);
++
++struct snd_soc_component_driver tpa6130a2_component_driver = {
++	.name = "tpa6130a2",
++	.probe = tpa6130a2_component_probe,
++};
+ 
+ static int tpa6130a2_probe(struct i2c_client *client,
+ 			   const struct i2c_device_id *id)
+@@ -451,7 +450,8 @@ static int tpa6130a2_probe(struct i2c_client *client,
+ 	if (ret != 0)
+ 		goto err_gpio;
+ 
+-	return 0;
++	return devm_snd_soc_register_component(&client->dev,
++			&tpa6130a2_component_driver, NULL, 0);
+ 
+ err_gpio:
+ 	tpa6130a2_client = NULL;
+diff --git a/sound/soc/codecs/tpa6130a2.h b/sound/soc/codecs/tpa6130a2.h
+index 417444020ba6..78ee7237568b 100644
+--- a/sound/soc/codecs/tpa6130a2.h
++++ b/sound/soc/codecs/tpa6130a2.h
+@@ -56,7 +56,6 @@
+ /* TPA6130A2_REG_VERSION (0x04) */
+ #define TPA6130A2_VERSION_MASK		(0x0f)
+ 
+-extern int tpa6130a2_add_controls(struct snd_soc_codec *codec);
+ extern int tpa6130a2_stereo_enable(struct snd_soc_codec *codec, int enable);
+ 
+ #endif /* __TPA6130A2_H__ */
+diff --git a/sound/soc/omap/rx51.c b/sound/soc/omap/rx51.c
+index 54949242bc70..b59cf89c5cab 100644
+--- a/sound/soc/omap/rx51.c
++++ b/sound/soc/omap/rx51.c
+@@ -286,16 +286,10 @@ static const struct snd_kcontrol_new aic34_rx51_controls[] = {
+ 
+ static int rx51_aic34_init(struct snd_soc_pcm_runtime *rtd)
+ {
+-	struct snd_soc_codec *codec = rtd->codec;
+ 	struct snd_soc_card *card = rtd->card;
+ 	struct rx51_audio_pdata *pdata = snd_soc_card_get_drvdata(card);
+ 	int err;
+ 
+-	err = tpa6130a2_add_controls(codec);
+-	if (err < 0) {
+-		dev_err(card->dev, "Failed to add TPA6130A2 controls\n");
+-		return err;
+-	}
+ 	snd_soc_limit_volume(card, "TPA6130A2 Headphone Playback Volume", 42);
+ 
+ 	err = omap_mcbsp_st_add_controls(rtd, 2);
+@@ -357,6 +351,10 @@ static struct snd_soc_aux_dev rx51_aux_dev[] = {
+ 		.name = "TLV320AIC34b",
+ 		.codec_name = "tlv320aic3x-codec.2-0019",
+ 	},
++	{
++		.name = "TPA61320A2",
++		.codec_name = "tpa6130a2.2-0060",
++	},
+ };
+ 
+ static struct snd_soc_codec_conf rx51_codec_conf[] = {
+@@ -364,6 +362,10 @@ static struct snd_soc_codec_conf rx51_codec_conf[] = {
+ 		.dev_name = "tlv320aic3x-codec.2-0019",
+ 		.name_prefix = "b",
+ 	},
++	{
++		.dev_name = "tpa6130a2.2-0060",
++		.name_prefix = "TPA6130A2",
++	},
+ };
+ 
+ /* Audio card */
+@@ -435,11 +437,10 @@ static int rx51_soc_probe(struct platform_device *pdev)
+ 			dev_err(&pdev->dev, "Headphone amplifier node is not provided\n");
+ 			return -EINVAL;
+ 		}
+-
+-		/* TODO: tpa6130a2a driver supports only a single instance, so
+-		 * this driver ignores the headphone-amplifier node for now.
+-		 * It's already mandatory in the DT binding to be future proof.
+-		 */
++		rx51_aux_dev[1].codec_name = NULL;
++		rx51_aux_dev[1].codec_of_node = dai_node;
++		rx51_codec_conf[1].dev_name = NULL;
++		rx51_codec_conf[1].of_node = dai_node;
+ 	}
+ 
+ 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+-- 
+2.8.1
