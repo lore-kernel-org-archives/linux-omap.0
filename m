@@ -1,16 +1,16 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+From: "ivan.khoronzhuk" <ivan.khoronzhuk@linaro.org>
 Subject: Re: [PATCH] net: ethernet: ti: cpdma: switch to use genalloc
-Date: Thu, 23 Jun 2016 15:56:04 +0300
-Message-ID: <576BDC64.3030908@linaro.org>
+Date: Thu, 23 Jun 2016 16:17:35 +0300
+Message-ID: <576BE16F.6060406@globallogic.com>
 References: <20160623123620.11681-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20160623123620.11681-1-grygorii.strashko@ti.com>
-Sender: netdev-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Grygorii Strashko <grygorii.strashko@ti.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
 
@@ -26,6 +26,9 @@ On 23.06.16 15:36, Grygorii Strashko wrote:
 >
 > Cc: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 > Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+
+Tested-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+
 > ---
 > Testing
 > TCP window: 256K, bandwidth in Mbits/sec:
@@ -92,8 +95,6 @@ On 23.06.16 15:36, Grygorii Strashko wrote:
 > +	}
 > +}
 > +
-single if, brackets?
-
 >   /*
 >    * Utility constructs for a cpdma descriptor pool.  Some devices (e.g. davinci
 >    * emac) have dedicated on-chip memory for these descriptors.  Some other
@@ -266,8 +267,6 @@ single if, brackets?
 >   	struct cpdma_desc_pool	*pool = ctlr->pool;
 > +	unsigned long flags;
 > +	bool	free_tx_desc;
-longer first
-
 >
 > -	spin_lock_irqsave(&pool->lock, flags);
 > -
@@ -294,8 +293,6 @@ longer first
 >
 >   	spin_lock_irqsave(&chan->lock, flags);
 > -
-?
-
 >   	desc = chan->head;
 >   	if (!desc) {
 >   		chan->stats.empty_dequeue++;
@@ -304,13 +301,7 @@ longer first
 >
 >   	chan->head = desc_from_phys(pool, desc_read(desc, hw_next));
 > +
-?
-
 >   	chan_write(chan, cp, desc_dma);
 >   	chan->count--;
 >   	chan->stats.good_dequeue++;
 >
-
--- 
-Regards,
-Ivan Khoronzhuk
