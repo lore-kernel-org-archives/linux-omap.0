@@ -1,79 +1,67 @@
-From: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
-Subject: RE: [PATCH v11 08/14] usb: otg: add OTG/dual-role core
-Date: Thu, 23 Jun 2016 07:42:05 +0000
-Message-ID: <SG2PR06MB0919F0BD0D600FBFFB95FFBED82D0@SG2PR06MB0919.apcprd06.prod.outlook.com>
-References: <1465564043-27163-1-git-send-email-rogerq@ti.com>
- <1465564043-27163-9-git-send-email-rogerq@ti.com> <575E672E.5070603@ti.com>
- <87h9coxq04.fsf@linux.intel.com> <20160620114904.GC26936@shlinux2>
- <8737o8qd00.fsf@linux.intel.com> <20160621060517.GA5108@shlinux2>
- <877fdjovef.fsf@linux.intel.com> <20160621090738.GD5108@shlinux2>
- <87h9cmoo4s.fsf@linux.intel.com> <20160621130512.GF5108@shlinux2>
- <87por9lnjd.fsf@linux.intel.com> <576A4321.6020209@ti.com>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [RESEND PATCH v2 2/5] pwm: omap-dmtimer: Allow for setting
+ dmtimer clock source
+Date: Thu, 23 Jun 2016 10:24:36 +0200
+Message-ID: <20160623082436.GB8136@ulmo.ba.sec>
+References: <1466623341-30130-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <1466623341-30130-3-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <576A4321.6020209-l0cyMroinI0@public.gmane.org>
-Content-Language: ja-JP
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Chen <hzpeterchen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org" <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, "jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "grygorii.strashko-l0cyMroinI0@public.gmane.org" <grygorii.strashko-l0cyMroinI0@public.gmane.org>, "robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "nsekhar-l0cyMroinI0@public.gmane.org" <nsekhar-l0cyMroinI0@public.gmane.org>, "b-liu-l0cyMroinI0@public.gmane.org" <b-liu-l0cyMroinI0@public.gmane.org>, "joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org" <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="BwCQnh7xodEAoBMC"
+Return-path: <linux-pwm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1466623341-30130-3-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, mchehab@osg.samsung.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz
 List-Id: linux-omap@vger.kernel.org
 
-Hi Roger-san,
 
-< snip >
-> >>>> commit 11c011a5e777c83819078a18672543f04482b3ec
-> >>>> Author: Srinivas Kandagatla <srinivas.kandagatla-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> >>>> Date:   Thu May 19 11:12:56 2016 +0100
-> >>>>
-> >>>>     usb: echi-hcd: Add ehci_setup check before echi_shutdown
-> >>>>
-> >>>>
-> >>>>
-> >>>> In some cases, the USB code (gadget/hcd->start/stop) needs to be called
-> >>>> during the role swap. For example, if you have mux driver, you may
-> >>>> need to call usb_remove_hcd when ID from 0 to 1. Without Roger's framework,
-> >>>> how can we do that?
-> >>>
-> >>> You don't really need to remove the gadget. Just mask its interrupts and
-> >>> ignore any calls to any gadget_driver ops, right? Likewise for
-> >>> XHCI. Just clear RUN/STOP and no events will ever reach XHCI. But, from
-> >>> the point of view of dwc3, it's simpler to unregister the platform
-> >>> device we create for xhci-plat.c. I need no changes in XHCI to do that
-> >>> and driver model will make sure to call xhci-plat's ->remove() which
-> >>> will handle everything for me correctly.
-> >>>
-> >>
-> >> I admit it can do in a IP driver, eg both host and peripheral for the
-> >> single IP, eg chipidea, dwc3, etc. But how can we clear RUN/STOP bit
-> >> or what else for HCD at mux driver?
-> >
-> > dwc3's OTG block has control of that, however, what I'll do is
-> > platform_device_del() xhci-plat's device. Not one line changes inside
-> > XHCI.
-> >
-> 
-> Let's talk about how non dwc3 based platforms can get it done.
-> 
-> Yoshihiro-san, could you please share your platform requirements from dual-role
-> perspective?
+--BwCQnh7xodEAoBMC
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-My platform requirements about dual-role are:
-- Initial settings of all host, gadget and OTG IP registers are needed before enters [AB]-device recognition procedure.
-- In the recognition procedures, a software needs:
- - to check ID pin related register in OTG
- - to set OTG IP registers to change the role
-  - and then host or gadget can start.
-- In the disconnect detection procedures, a software needs similar checkings/settings with the recognition.
+On Wed, Jun 22, 2016 at 10:22:18PM +0300, Ivaylo Dimitrov wrote:
+> OMAP GP timers can have different input clocks that allow different PWM
+> frequencies. However, there is no other way of setting the clock source b=
+ut
+> through clocks or clock-names properties of the timer itself. This limits
+> PWM functionality to only the frequencies allowed by the particular clock
+> source. Allowing setting the clock source by PWM rather than by timer
+> allows different PWMs to have different ranges by not hard-wiring the clo=
+ck
+> source to the timer.
+>=20
+> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+> Acked-by: Rob Herring <robh@kernel.org>
+> ---
+>  Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt |  4 ++++
+>  drivers/pwm/pwm-omap-dmtimer.c                             | 12 +++++++-=
+----
+>  2 files changed, 11 insertions(+), 5 deletions(-)
 
-Best regards,
-Yoshihiro Shimoda
+Acked-by: Thierry Reding <treding@nvidia.com>
 
-> cheers,
-> -roger
+--BwCQnh7xodEAoBMC
+Content-Type: application/pgp-signature; name="signature.asc"
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJXa5zBAAoJEN0jrNd/PrOhwlQQAKJqIX/WVu0eYrxSyfNzKumN
+r0uqDlK8kPVU2XrLSiUsZmSmSLsPWbYLxvJ6b8ONrV0/CEaj6ANuI2F9Sp94u9aU
+Zgl4NUWTSKbHYACj0CWgBk4PwWIbZVUZrWOTTgh73xpo4KhEnWREZjGhiYgZhQRH
+Ji6RfvoRtYpw76ORkiAZ7aO1lcPCBv/fgvC/cuC+0rAwRHHS7cMz0+nd/MC+/+O3
+uM9Mcq+fs1qvQ4kJKGGDMHYTv5FkXQ/eNFmDx03EUEYvOJ57Yhy0TQREH/ZsdEfm
+ELfUqP7UClhqO5/FFcn9wJxIxrQssnQkpCAOks6JIsV6nMYmBwVBapYmP7px4TNL
+6CohXEyx93aG99VbO1L7jvyf1PF1aIUDiNO/qFD6ZYqpcPvlr+64AdokRtfK70a0
+quZ14G7iuMiywclw6Y/CilOjf8t3GCPvIOmNk7ndiE2ca4wDAqyZ7Zohk5H58LFF
+5BZLbdhGh2GYr0ju/s+jBZmq2GsQzkGEv3KsjODIsH5jMxb0v95/418cbcMWLwHh
+6gSLOMiY213xvTPfYY4VOyW6vtKTV09r0s3A3d5478F2k82H8r4D898yZqRpYhOv
+0yBemF/xgWy88Sgpx4wnCJNUbsdwzBs31UwVvNG7IQdnQErUlRHvL2VqOU07pzCe
+75BREWFVSnfAX9zhyEog
+=BVNy
+-----END PGP SIGNATURE-----
+
+--BwCQnh7xodEAoBMC--
