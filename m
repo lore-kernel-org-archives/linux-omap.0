@@ -1,53 +1,54 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH v4 1/5] mfd: tps65217: Add support for IRQs
-Date: Fri, 24 Jun 2016 12:58:15 +0300
-Message-ID: <576D0437.1020800@ti.com>
-References: <20160620105056.25843-1-m.niestroj@grinn-global.com>
- <20160620105056.25843-2-m.niestroj@grinn-global.com>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: [PATCHv2 05/27] crypto: omap-sham: avoid executing tasklet where
+ not needed
+Date: Fri, 24 Jun 2016 18:30:42 +0800
+Message-ID: <20160624103042.GA19571@gondor.apana.org.au>
+References: <1466601840-18486-1-git-send-email-t-kristo@ti.com>
+ <1466601840-18486-6-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20160620105056.25843-2-m.niestroj@grinn-global.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Marcin Niestroj <m.niestroj@grinn-global.com>, Lee Jones <lee.jones@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-input@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-crypto-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1466601840-18486-6-git-send-email-t-kristo@ti.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-crypto@vger.kernel.org, tony@atomide.com, davem@davemloft.net, lokeshvutla@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 06/20/2016 01:50 PM, Marcin Niestroj wrote:
-> Add support for handling IRQs: power button, AC and USB power state
-> changes. Mask and interrupt bits are shared within one register, which
-> prevents us to use regmap_irq implementation. New irq_domain is created in
-> order to add interrupt handling for each tps65217's subsystem. IRQ
-> resources have been added for charger subsystem to be able to notify about
-> AC and USB state changes.
->
-> Signed-off-by: Marcin Niestroj <m.niestroj@grinn-global.com>
-> Acked-by: Lee Jones <lee.jones@linaro.org>
+On Wed, Jun 22, 2016 at 04:23:38PM +0300, Tero Kristo wrote:
+> Some of the call paths of OMAP SHA driver can avoid executing the next
+> step of the crypto queue under tasklet; instead, execute the next step
+> directly via function call. This avoids a costly round-trip via the
+> scheduler giving a slight performance boost.
+> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
 > ---
-> Changes v3 -> v4 (suggested by Grygorii):
->   * Add irq_set_parent() during irq init
->   * Remove hardcoded IRQ trigger type, rely on DT bindings instead
->
-> Changes v2 -> v3 (suggested by Lee):
->   * Alphabetical reorder of includes
->   * Rename enum tps65217_irqs -> tps65217_irq_type, so we won't confuse
->     it with structure object with the same name.
->   * Fix inconsistent order of irq_enable and irq_disable
->   * Remove redundant 'else' when returning from tps65217_irq_thread
->
-> Changes v1 -> v2: none
->
->   drivers/mfd/Kconfig          |   1 +
->   drivers/mfd/tps65217.c       | 195 +++++++++++++++++++++++++++++++++++++++++--
->   include/linux/mfd/tps65217.h |  12 +++
->   3 files changed, 200 insertions(+), 8 deletions(-)
->
+>  drivers/crypto/omap-sham.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
+> index 6247887..84a0027 100644
+> --- a/drivers/crypto/omap-sham.c
+> +++ b/drivers/crypto/omap-sham.c
+> @@ -242,6 +242,8 @@ static struct omap_sham_drv sham = {
+>  	.lock = __SPIN_LOCK_UNLOCKED(sham.lock),
+>  };
+>  
+> +static void omap_sham_done_task(unsigned long data);
+> +
+>  static inline u32 omap_sham_read(struct omap_sham_dev *dd, u32 offset)
+>  {
+>  	return __raw_readl(dd->io_base + offset);
+> @@ -1007,7 +1009,7 @@ static void omap_sham_finish_req(struct ahash_request *req, int err)
+>  		req->base.complete(&req->base, err);
+>  
+>  	/* handle new request */
+> -	tasklet_schedule(&dd->done_task);
+> +	omap_sham_done_task((unsigned long)dd);
+>  }
 
-Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
-
-
-
+Hmm, what guarnatees that you won't run out of stack doing this?
 -- 
-regards,
--grygorii
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
