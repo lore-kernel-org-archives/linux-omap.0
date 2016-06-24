@@ -1,61 +1,31 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH] ARM: OMAP3: hwmod data: Add sysc information for DSI
-Date: Fri, 24 Jun 2016 03:59:33 +0200
-Message-ID: <1466733573-19177-1-git-send-email-sre@kernel.org>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH] net: ethernet: ti: cpdma: switch to use genalloc
+Date: Fri, 24 Jun 2016 11:33:31 +0530
+Message-ID: <576CCD33.80806@ti.com>
+References: <20160623123620.11681-1-grygorii.strashko@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160623123620.11681-1-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>
+To: Grygorii Strashko <grygorii.strashko@ti.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org
+Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add missing sysconfig/sysstatus information
-to OMAP3 hwmod. The information has been
-checked against OMAP34xx and OMAP36xx TRM.
+On Thursday 23 June 2016 06:06 PM, Grygorii Strashko wrote:
+> TI CPDMA currently uses a bitmap for tracking descriptors alloactions
+> allocations, but The genalloc already handles the same and can be used
+> as with special memory (SRAM) as with DMA cherent memory chank
+> (dma_alloc_coherent()). Hence, switch to using genalloc and add
+> desc_num property for each channel for limitation of max number of
+> allowed descriptors for each CPDMA channel. This patch do not affect
+> on net throuput.
+> 
+> Cc: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
-Without this change DSI block is not reset
-during boot, which is required for working
-Nokia N950 display.
+Acked-by: Mugunthan V N <mugunthanvnm@ti.com>
 
-Signed-off-by: Sebastian Reichel <sre@kernel.org>
----
-Hi,
-
-This is an updated version of this patch [0]. Instead
-of the workaround implemented in [0], this patch fixes
-the root problem - missing hwmod data. I think it should
-be added to -rc.
-
-[0] http://article.gmane.org/gmane.comp.video.dri.devel/153665
-
--- Sebastian
----
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 9869a75c5d96..caf15c8e0c47 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -722,8 +722,20 @@ static struct omap_hwmod omap3xxx_dss_dispc_hwmod = {
-  * display serial interface controller
-  */
- 
-+static struct omap_hwmod_class_sysconfig omap3xxx_dsi_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_CLOCKACTIVITY |
-+			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE |
-+			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
- static struct omap_hwmod_class omap3xxx_dsi_hwmod_class = {
- 	.name = "dsi",
-+	.sysc	= &omap3xxx_dsi_sysc,
- };
- 
- static struct omap_hwmod_irq_info omap3xxx_dsi1_irqs[] = {
--- 
-2.8.1
+Regards
+Mugunthan V N
