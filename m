@@ -1,53 +1,35 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH v2 02/15] drivers: net: cpsw: check return code from pm runtime calls
-Date: Fri, 24 Jun 2016 21:23:42 +0300
-Message-ID: <20160624182355.23515-3-grygorii.strashko@ti.com>
-References: <20160624182355.23515-1-grygorii.strashko@ti.com>
+From: "Lennart Sorensen" <lsorense@csclub.uwaterloo.ca>
+Subject: Re: [PATCH] net: ethernet: ti: cpdma: switch to use genalloc
+Date: Fri, 24 Jun 2016 14:39:21 -0400
+Message-ID: <20160624183921.GB23499@csclub.uwaterloo.ca>
+References: <20160623123620.11681-1-grygorii.strashko@ti.com>
+ <576BDC64.3030908@linaro.org>
+ <576CCD9B.2050700@ti.com>
+ <20160624161541.GA23499@csclub.uwaterloo.ca>
+ <576D66B8.7040300@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160624182355.23515-1-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <576D66B8.7040300@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Mugunthan V N <mugunthanvnm@ti.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add missed check of return code from PM runtime get() calls.
+On Fri, Jun 24, 2016 at 07:58:32PM +0300, Grygorii Strashko wrote:
+> Oh. nice :( So, seems, I'd need to send v3. Right?
+> By the way, this code hasn't been introduced by this patch - I've
+> just moved whole function from one place to another.
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
- drivers/net/ethernet/ti/cpsw.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+Well since it is moving I would think that was a handy time to fix the
+coding style violation too, since it got noticed.
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 736c77a..c76f9db 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -1253,7 +1253,11 @@ static int cpsw_ndo_open(struct net_device *ndev)
- 	int i, ret;
- 	u32 reg;
- 
--	pm_runtime_get_sync(&priv->pdev->dev);
-+	ret = pm_runtime_get_sync(&priv->pdev->dev);
-+	if (ret < 0) {
-+		pm_runtime_put_noidle(&priv->pdev->dev);
-+		return ret;
-+	}
- 
- 	if (!cpsw_common_res_usage_state(priv))
- 		cpsw_intr_disable(priv);
-@@ -2322,7 +2326,11 @@ static int cpsw_probe(struct platform_device *pdev)
- 	/* Need to enable clocks with runtime PM api to access module
- 	 * registers
- 	 */
--	pm_runtime_get_sync(&pdev->dev);
-+	ret = pm_runtime_get_sync(&pdev->dev);
-+	if (ret < 0) {
-+		pm_runtime_put_noidle(&pdev->dev);
-+		goto clean_runtime_disable_ret;
-+	}
- 	priv->version = readl(&priv->regs->id_ver);
- 	pm_runtime_put_sync(&pdev->dev);
- 
+That leaves just one place in that file violating that part of the coding
+style (the other is in cpdma_chan_dump).
+
+Somehow it wasn't spotted when the code was put in back in 2010, and since
+they were wrapped lines, they don't stand out quite as much visually.
+
 -- 
-2.9.0
+Len Sorensen
