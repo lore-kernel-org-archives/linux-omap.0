@@ -1,7 +1,8 @@
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 4/6] mfd: dm355evm_msp: Refactoring for add_child()
-Date: Sun, 26 Jun 2016 15:50:40 +0200
-Message-ID: <75c1cc23-3a2d-db78-d0f2-b5934b18e828@users.sourceforge.net>
+Subject: [PATCH 5/6] mfd: smsc-ece1099: Delete an unnecessary variable
+ initialisation in smsc_i2c_probe()
+Date: Sun, 26 Jun 2016 15:51:36 +0200
+Message-ID: <1b29f010-5617-3862-23f5-42a5e6a1bc81@users.sourceforge.net>
 References: <566ABCD9.1060404@users.sourceforge.net>
  <5682D228.7070902@users.sourceforge.net> <20160111082922.GB14104@x1>
  <05b7db2a-437a-60ac-d289-71d2150e7f5f@users.sourceforge.net>
@@ -19,58 +20,29 @@ Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia 
 List-Id: linux-omap@vger.kernel.org
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 26 Jun 2016 13:56:58 +0200
+Date: Sun, 26 Jun 2016 14:14:54 +0200
 
-Adjust jump targets according to the Linux coding style convention.
-Another check for the variable "status" can be omitted then at the end.
+The variable "ret" will be set to an appropriate value a bit later.
+Thus omit the explicit initialisation at the beginning.
 
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/mfd/dm355evm_msp.c | 18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ drivers/mfd/smsc-ece1099.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/mfd/dm355evm_msp.c b/drivers/mfd/dm355evm_msp.c
-index 270e19c..baf6075 100644
---- a/drivers/mfd/dm355evm_msp.c
-+++ b/drivers/mfd/dm355evm_msp.c
-@@ -209,7 +209,7 @@ static struct device *add_child(struct i2c_client *client, const char *name,
- 		status = platform_device_add_data(pdev, pdata, pdata_len);
- 		if (status < 0) {
- 			dev_dbg(&pdev->dev, "can't add platform_data\n");
--			goto err;
-+			goto put_device;
- 		}
- 	}
+diff --git a/drivers/mfd/smsc-ece1099.c b/drivers/mfd/smsc-ece1099.c
+index 7f89e89..2aaf89f 100644
+--- a/drivers/mfd/smsc-ece1099.c
++++ b/drivers/mfd/smsc-ece1099.c
+@@ -36,7 +36,7 @@ static int smsc_i2c_probe(struct i2c_client *i2c,
+ {
+ 	struct smsc *smsc;
+ 	int devid, rev, venid_l, venid_h;
+-	int ret = 0;
++	int ret;
  
-@@ -222,19 +222,21 @@ static struct device *add_child(struct i2c_client *client, const char *name,
- 		status = platform_device_add_resources(pdev, &r, 1);
- 		if (status < 0) {
- 			dev_dbg(&pdev->dev, "can't add irq\n");
--			goto err;
-+			goto put_device;
- 		}
- 	}
- 
- 	status = platform_device_add(pdev);
- 
--err:
--	if (status < 0) {
--		platform_device_put(pdev);
--		dev_err(&client->dev, "can't add %s dev\n", name);
--		return ERR_PTR(status);
--	}
-+	if (status)
-+		goto put_device;
-+
- 	return &pdev->dev;
-+
-+put_device:
-+	platform_device_put(pdev);
-+	dev_err(&client->dev, "failed to add device %s\n", name);
-+	return ERR_PTR(status);
- }
- 
- static int add_children(struct i2c_client *client)
+ 	smsc = devm_kzalloc(&i2c->dev, sizeof(struct smsc),
+ 				GFP_KERNEL);
 -- 
 2.9.0
 
