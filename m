@@ -1,8 +1,7 @@
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 1/6] mfd: twl-core: Return directly after a failed
- platform_device_alloc() in add_numbered_child()
-Date: Sun, 26 Jun 2016 15:45:40 +0200
-Message-ID: <fe8a131a-2149-2bd6-73f5-b17854209107@users.sourceforge.net>
+Subject: [PATCH 2/6] mfd: twl-core: Refactoring for add_numbered_child()
+Date: Sun, 26 Jun 2016 15:47:27 +0200
+Message-ID: <9cf59380-e999-0cf8-9b8d-106691b86d0b@users.sourceforge.net>
 References: <566ABCD9.1060404@users.sourceforge.net>
  <5682D228.7070902@users.sourceforge.net> <20160111082922.GB14104@x1>
  <05b7db2a-437a-60ac-d289-71d2150e7f5f@users.sourceforge.net>
@@ -20,38 +19,62 @@ Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia 
 List-Id: linux-omap@vger.kernel.org
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 26 Jun 2016 12:25:36 +0200
+Date: Sun, 26 Jun 2016 13:03:59 +0200
 
-The platform_device_put() function was called in one case by the
-add_numbered_child() function during error handling even if the passed
-variable "pdev" contained a null pointer.
-Return directly in this case.
-
-This issue was detected by using the Coccinelle software.
+Adjust jump targets according to the Linux coding style convention.
+Another check for the variable "status" can be omitted then at the end.
 
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Acked-by: Lee Jones <lee.jones@linaro.org>
 ---
- drivers/mfd/twl-core.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/mfd/twl-core.c | 21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 831696e..9458c6d 100644
+index 9458c6d..a49d3db 100644
 --- a/drivers/mfd/twl-core.c
 +++ b/drivers/mfd/twl-core.c
-@@ -622,11 +622,8 @@ add_numbered_child(unsigned mod_no, const char *name, int num,
- 	twl = &twl_priv->twl_modules[sid];
+@@ -631,7 +631,7 @@ add_numbered_child(unsigned mod_no, const char *name, int num,
+ 		status = platform_device_add_data(pdev, pdata, pdata_len);
+ 		if (status < 0) {
+ 			dev_dbg(&pdev->dev, "can't add platform_data\n");
+-			goto err;
++			goto put_device;
+ 		}
+ 	}
  
- 	pdev = platform_device_alloc(name, num);
--	if (!pdev) {
--		dev_dbg(&twl->client->dev, "can't alloc dev\n");
--		status = -ENOMEM;
--		goto err;
+@@ -644,21 +644,22 @@ add_numbered_child(unsigned mod_no, const char *name, int num,
+ 		status = platform_device_add_resources(pdev, r, irq1 ? 2 : 1);
+ 		if (status < 0) {
+ 			dev_dbg(&pdev->dev, "can't add irqs\n");
+-			goto err;
++			goto put_device;
+ 		}
+ 	}
+ 
+ 	status = platform_device_add(pdev);
+-	if (status == 0)
+-		device_init_wakeup(&pdev->dev, can_wakeup);
++	if (status)
++		goto put_device;
++
++	device_init_wakeup(&pdev->dev, can_wakeup);
+ 
+-err:
+-	if (status < 0) {
+-		platform_device_put(pdev);
+-		dev_err(&twl->client->dev, "can't add %s dev\n", name);
+-		return ERR_PTR(status);
 -	}
-+	if (!pdev)
-+		return ERR_PTR(-ENOMEM);
+ 	return &pdev->dev;
++
++put_device:
++	platform_device_put(pdev);
++	dev_err(&twl->client->dev, "failed to add device %s\n", name);
++	return ERR_PTR(status);
+ }
  
- 	pdev->dev.parent = &twl->client->dev;
- 
+ static inline struct device *add_child(unsigned mod_no, const char *name,
 -- 
 2.9.0
 
