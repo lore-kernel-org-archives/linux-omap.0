@@ -1,72 +1,76 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 6/6] mfd: smsc-ece1099: Return directly after a function
- failure in smsc_i2c_probe()
-Date: Sun, 26 Jun 2016 15:54:20 +0200
-Message-ID: <7de4f21e-30a2-fab6-204d-890619ccbbe6@users.sourceforge.net>
-References: <566ABCD9.1060404@users.sourceforge.net>
- <5682D228.7070902@users.sourceforge.net> <20160111082922.GB14104@x1>
- <05b7db2a-437a-60ac-d289-71d2150e7f5f@users.sourceforge.net>
- <de3598c4-f85a-6807-303a-55ee0ac707f2@users.sourceforge.net>
- <20160608111442.GB14888@dell>
- <e4eaf0b4-e539-b400-c8a2-70f210cee1fa@users.sourceforge.net>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH] thermal: of-thermal: Fix setting of set_emul_temp hook
+Date: Mon, 27 Jun 2016 11:48:03 +0530
+Message-ID: <5770C51B.30505@ti.com>
+References: <1464857690-23330-1-git-send-email-j-keerthy@ti.com>
+ <575A5DD0.4080208@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <e4eaf0b4-e539-b400-c8a2-70f210cee1fa@users.sourceforge.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <575A5DD0.4080208@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>, edubezval@gmail.com, rui.zhang@intel.com
+Cc: nm@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 26 Jun 2016 14:30:46 +0200
 
-This issue was detected by using the Coccinelle software.
 
-Return directly if a call of the function "devm_regmap_init_i2c"
-or "regmap_write" failed.
+On Friday 10 June 2016 11:57 AM, Keerthy wrote:
+>
+>
+> On Thursday 02 June 2016 02:24 PM, Keerthy wrote:
+>> Currently thermal zone set_emul_temp is set unconditionally
+>> with of_thermal_set_emul_temp function. Set this only if the
+>> set_emul_temp hook is provided for thermal_zone_of_device_ops.
+>>
+>> This fixes emul_temp failures on platforms for which set_emul_temp
+>> hook is not populated.
+>
+> Eduardo,
+>
+> A gentle ping on this patch.
 
-Delete the jump label "err" then.
+Eduardo,
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/mfd/smsc-ece1099.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+Another gentle ping.
 
-diff --git a/drivers/mfd/smsc-ece1099.c b/drivers/mfd/smsc-ece1099.c
-index 2aaf89f..cd18c09 100644
---- a/drivers/mfd/smsc-ece1099.c
-+++ b/drivers/mfd/smsc-ece1099.c
-@@ -46,10 +46,8 @@ static int smsc_i2c_probe(struct i2c_client *i2c,
- 	}
- 
- 	smsc->regmap = devm_regmap_init_i2c(i2c, &smsc_regmap_config);
--	if (IS_ERR(smsc->regmap)) {
--		ret = PTR_ERR(smsc->regmap);
--		goto err;
--	}
-+	if (IS_ERR(smsc->regmap))
-+		return PTR_ERR(smsc->regmap);
- 
- 	i2c_set_clientdata(i2c, smsc);
- 	smsc->dev = &i2c->dev;
-@@ -68,7 +66,7 @@ static int smsc_i2c_probe(struct i2c_client *i2c,
- 
- 	ret = regmap_write(smsc->regmap, SMSC_CLK_CTRL, smsc->clk);
- 	if (ret)
--		goto err;
-+		return ret;
- 
- #ifdef CONFIG_OF
- 	if (i2c->dev.of_node)
-@@ -76,7 +74,6 @@ static int smsc_i2c_probe(struct i2c_client *i2c,
- 					   NULL, NULL, &i2c->dev);
- #endif
- 
--err:
- 	return ret;
- }
- 
--- 
-2.9.0
+
+>
+>
+>>
+>> Fixes: "184a4bf623f (thermal: of: Extend current
+>>     of-thermal.c code to allow setting emulated temp)"
+>> Suggested-by: Eduardo Valentin <edubezval@gmail.com>
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> ---
+>>   drivers/thermal/of-thermal.c | 7 +++----
+>>   1 file changed, 3 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/thermal/of-thermal.c b/drivers/thermal/of-thermal.c
+>> index b8e509c..93d8ce0 100644
+>> --- a/drivers/thermal/of-thermal.c
+>> +++ b/drivers/thermal/of-thermal.c
+>> @@ -181,9 +181,6 @@ static int of_thermal_set_emul_temp(struct
+>> thermal_zone_device *tz,
+>>   {
+>>       struct __thermal_zone *data = tz->devdata;
+>>
+>> -    if (!data->ops || !data->ops->set_emul_temp)
+>> -        return -EINVAL;
+>> -
+>>       return data->ops->set_emul_temp(data->sensor_data, temp);
+>>   }
+>>
+>> @@ -427,7 +424,9 @@ thermal_zone_of_add_sensor(struct device_node *zone,
+>>
+>>       tzd->ops->get_temp = of_thermal_get_temp;
+>>       tzd->ops->get_trend = of_thermal_get_trend;
+>> -    tzd->ops->set_emul_temp = of_thermal_set_emul_temp;
+>> +    if (ops->set_emul_temp)
+>> +        tzd->ops->set_emul_temp = of_thermal_set_emul_temp;
+>> +
+>>       mutex_unlock(&tzd->lock);
+>>
+>>       return tzd;
+>>
