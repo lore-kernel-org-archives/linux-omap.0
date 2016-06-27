@@ -1,7 +1,7 @@
 From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 05/27] ARM: dts: omap3-beagle: remove unneeded unit names
-Date: Mon, 27 Jun 2016 15:20:46 -0400
-Message-ID: <1467055268-13194-6-git-send-email-javier@osg.samsung.com>
+Subject: [PATCH 09/27] ARM: dts: omap3-devkit8000-lcd-common: remove unneeded unit names
+Date: Mon, 27 Jun 2016 15:20:50 -0400
+Message-ID: <1467055268-13194-10-git-send-email-javier@osg.samsung.com>
 References: <1467055268-13194-1-git-send-email-javier@osg.samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1467055268-13194-1-git-send-email-javier@osg.samsung.com>
@@ -10,67 +10,66 @@ To: linux-kernel@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@osg.samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch fixes the following DTC warnings for omap3-beagle.dtb:
+This patch fixes the following DTC warnings for omap3-devkit8000-lcd43.dtb
+and omap3-devkit8000-lcd70.dtb:
 
-"encoder@0 has a unit name, but no reg property"
-"encoder@0/ports/port@0/endpoint@0 has a unit name, but no reg property"
-"encoder@0/ports/port@1/endpoint@0 has a unit name, but no reg property"
-"connector@0 has a unit name, but no reg property"
-"connector@1 has a unit name, but no reg property"
+"display@0 has a unit name, but no reg property"
 
 Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 ---
 
- arch/arm/boot/dts/omap3-beagle.dts | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/arm/boot/dts/omap3-devkit8000-lcd-common.dtsi | 4 ++--
+ arch/arm/boot/dts/omap3-devkit8000-lcd43.dts       | 2 +-
+ arch/arm/boot/dts/omap3-devkit8000-lcd70.dts       | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-index a4deff0e2d52..a19d907d4850 100644
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -85,7 +85,7 @@
- 
+diff --git a/arch/arm/boot/dts/omap3-devkit8000-lcd-common.dtsi b/arch/arm/boot/dts/omap3-devkit8000-lcd-common.dtsi
+index 738910db5c0c..2d64bcffaaa8 100644
+--- a/arch/arm/boot/dts/omap3-devkit8000-lcd-common.dtsi
++++ b/arch/arm/boot/dts/omap3-devkit8000-lcd-common.dtsi
+@@ -14,7 +14,7 @@
+ 		display2 = &tv0;
  	};
  
--	tfp410: encoder@0 {
-+	tfp410: encoder0 {
- 		compatible = "ti,tfp410";
- 		powerdown-gpios = <&gpio6 10 GPIO_ACTIVE_LOW>;	/* gpio_170 */
+-	lcd0: display@0 {
++	lcd0: display {
+ 		compatible = "panel-dpi";
+ 		label = "lcd";
  
-@@ -99,7 +99,7 @@
- 			port@0 {
- 				reg = <0>;
+@@ -30,7 +30,7 @@
  
--				tfp410_in: endpoint@0 {
-+				tfp410_in: endpoint {
- 					remote-endpoint = <&dpi_out>;
- 				};
- 			};
-@@ -107,14 +107,14 @@
- 			port@1 {
- 				reg = <1>;
- 
--				tfp410_out: endpoint@0 {
-+				tfp410_out: endpoint {
- 					remote-endpoint = <&dvi_connector_in>;
- 				};
- 			};
+ &dss {
+ 	port {
+-		dpi_lcd_out: endpoint@1 {
++		dpi_lcd_out: endpoint {
+ 			remote-endpoint = <&lcd_in>;
+ 			data-lines = <24>;
  		};
- 	};
+diff --git a/arch/arm/boot/dts/omap3-devkit8000-lcd43.dts b/arch/arm/boot/dts/omap3-devkit8000-lcd43.dts
+index d5705356d52c..d8b16398bfb3 100644
+--- a/arch/arm/boot/dts/omap3-devkit8000-lcd43.dts
++++ b/arch/arm/boot/dts/omap3-devkit8000-lcd43.dts
+@@ -16,7 +16,7 @@
+ 	model = "TimLL OMAP3 Devkit8000 with 4.3'' LCD panel";
+ 	compatible = "timll,omap3-devkit8000", "ti,omap3";
  
--	dvi0: connector@0 {
-+	dvi0: connector0 {
- 		compatible = "dvi-connector";
- 		label = "dvi";
+-	lcd0: display@0 {
++	lcd0: display {
+ 		panel-timing {
+ 			clock-frequency = <10164705>;
+ 			hactive = <480>;
+diff --git a/arch/arm/boot/dts/omap3-devkit8000-lcd70.dts b/arch/arm/boot/dts/omap3-devkit8000-lcd70.dts
+index 4afad4b233ec..edb37ba80498 100644
+--- a/arch/arm/boot/dts/omap3-devkit8000-lcd70.dts
++++ b/arch/arm/boot/dts/omap3-devkit8000-lcd70.dts
+@@ -16,7 +16,7 @@
+ 	model = "TimLL OMAP3 Devkit8000 with 7.0'' LCD panel";
+ 	compatible = "timll,omap3-devkit8000", "ti,omap3";
  
-@@ -129,7 +129,7 @@
- 		};
- 	};
- 
--	tv0: connector@1 {
-+	tv0: connector1 {
- 		compatible = "svideo-connector";
- 		label = "tv";
- 
+-	lcd0: display@0 {
++	lcd0: display {
+ 		panel-timing {
+ 			clock-frequency = <40000000>;
+ 			hactive = <800>;
 -- 
 2.5.5
