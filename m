@@ -1,53 +1,31 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [GIT PULL] omap-gpmc changes for v4.8 merge window
-Date: Mon, 27 Jun 2016 11:34:35 +0300
-Message-ID: <5770E51B.8040206@ti.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH v2] net: ethernet: ti: cpdma: switch to use genalloc
+Date: Mon, 27 Jun 2016 14:12:33 +0530
+Message-ID: <5770E6F9.2010809@ti.com>
+References: <20160624114338.26933-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, rogerq@ti.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160624114338.26933-1-grygorii.strashko@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org
+Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Arnd/Olof,
+On Friday 24 June 2016 05:13 PM, Grygorii Strashko wrote:
+> TI CPDMA currently uses a bitmap for tracking descriptors alloactions
+> allocations, but The genalloc already handles the same and can be used
+> as with special memory (SRAM) as with DMA cherent memory chank
+> (dma_alloc_coherent()). Hence, switch to using genalloc and add
+> desc_num property for each channel for limitation of max number of
+> allowed descriptors for each CPDMA channel. This patch do not affect
+> on net throuput.
+> 
+> Tested-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org> 
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
-The following changes since commit 1a695a905c18548062509178b98bc91e67510864:
+Acked-by: Mugunthan V N <mugunthanvnm@ti.com>
 
-  Linux 4.7-rc1 (2016-05-29 09:29:24 -0700)
-
-are available in the git repository at:
-
-  https://github.com/rogerq/linux.git gpmc-omap-for-v4.8
-
-for you to fetch changes up to 32dd625a9f3541ee6d390f12f810f28531d016c7:
-
-  memory: omap-gpmc: Move gpio functions out of #ifdef CONFIG_OF (2016-06-17 10:26:48 +0300)
-
-----------------------------------------------------------------
-OMAP-GPMC: driver updates for v4.8
-
-* Make GPMC driver non modular as it is going to
-be built-in only till arch/arm/mach-omap2 users
-are removed.
-
-* Fix build if CONFIG_OF is not defined.
-
-----------------------------------------------------------------
-Paul Gortmaker (1):
-      memory: omap-gpmc: make it explicitly non-modular
-
-Roger Quadros (1):
-      memory: omap-gpmc: Move gpio functions out of #ifdef CONFIG_OF
-
- drivers/memory/omap-gpmc.c | 136 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-------------------------------------------------------------------------
- 1 file changed, 63 insertions(+), 73 deletions(-)
+Regards
+Mugunthan V N
