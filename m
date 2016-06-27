@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v2 5/8] ARM: dts: AM437X-GP-EVM: Remove redundant regulator compatibles
-Date: Mon, 27 Jun 2016 16:31:42 +0530
-Message-ID: <1467025305-13464-6-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH v2 8/8] ARM: dts: AM43X-EPOS-EVM: Remove redundant regulator compatibles
+Date: Mon, 27 Jun 2016 16:31:45 +0530
+Message-ID: <1467025305-13464-9-git-send-email-j-keerthy@ti.com>
 References: <1467025305-13464-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -18,14 +18,14 @@ individual regulator nodes. Hence removing them all.
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
- arch/arm/boot/dts/am437x-gp-evm.dts | 6 ------
- 1 file changed, 6 deletions(-)
+ arch/arm/boot/dts/am43x-epos-evm.dts | 7 -------
+ 1 file changed, 7 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index 8889be1..67329e0 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -513,7 +513,6 @@
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+index d5dd720..4599d23 100644
+--- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -421,7 +421,6 @@
  		#interrupt-cells = <2>;
  
  		dcdc1: regulator-dcdc1 {
@@ -33,7 +33,7 @@ index 8889be1..67329e0 100644
  			regulator-name = "vdd_core";
  			regulator-min-microvolt = <912000>;
  			regulator-max-microvolt = <1144000>;
-@@ -522,7 +521,6 @@
+@@ -430,7 +429,6 @@
  		};
  
  		dcdc2: regulator-dcdc2 {
@@ -41,7 +41,7 @@ index 8889be1..67329e0 100644
  			regulator-name = "vdd_mpu";
  			regulator-min-microvolt = <912000>;
  			regulator-max-microvolt = <1378000>;
-@@ -531,7 +529,6 @@
+@@ -439,7 +437,6 @@
  		};
  
  		dcdc3: regulator-dcdc3 {
@@ -49,15 +49,22 @@ index 8889be1..67329e0 100644
  			regulator-name = "vdcdc3";
  			regulator-min-microvolt = <1500000>;
  			regulator-max-microvolt = <1500000>;
-@@ -539,7 +536,6 @@
- 			regulator-always-on;
+@@ -448,7 +445,6 @@
  		};
+ 
+ 		dcdc4: regulator-dcdc4 {
+-			compatible = "ti,tps65218-dcdc4";
+ 			regulator-name = "vdcdc4";
+ 			regulator-min-microvolt = <3300000>;
+ 			regulator-max-microvolt = <3300000>;
+@@ -457,21 +453,18 @@
+ 		};
+ 
  		dcdc5: regulator-dcdc5 {
 -			compatible = "ti,tps65218-dcdc5";
  			regulator-name = "v1_0bat";
  			regulator-min-microvolt = <1000000>;
  			regulator-max-microvolt = <1000000>;
-@@ -548,7 +544,6 @@
  		};
  
  		dcdc6: regulator-dcdc6 {
@@ -65,7 +72,6 @@ index 8889be1..67329e0 100644
  			regulator-name = "v1_8bat";
  			regulator-min-microvolt = <1800000>;
  			regulator-max-microvolt = <1800000>;
-@@ -557,7 +552,6 @@
  		};
  
  		ldo1: regulator-ldo1 {
