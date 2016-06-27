@@ -1,50 +1,77 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v2 5/5] regulator: tps65218: do not disable DCDC3 during
- poweroff on broken PMICs
-Date: Mon, 27 Jun 2016 17:59:30 +0100
-Message-ID: <20160627165930.GC17217@sirena.org.uk>
-References: <1466756892-17015-1-git-send-email-j-keerthy@ti.com>
- <1466756892-17015-5-git-send-email-j-keerthy@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="JWEK1jqKZ6MHAcjA"
+Subject: Applied "regulator: tps65218: force set power-up/down strobe to 3 for dcdc3" to the regulator tree
+Date: Mon, 27 Jun 2016 18:00:46 +0100
+Message-ID: <E1bHZtu-0006DV-AL@debutante>
+References: <1466412218-5906-6-git-send-email-j-keerthy@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1466756892-17015-5-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <1466412218-5906-6-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: lee.jones@linaro.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, russ.dill@ti.com, Dave Gerlach <d-gerlach@ti.com>
+Cc: Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, Mark Brown <broonie@kernel.org>, tony@atomide.combroonie@kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, russ.dill@ti.com, robh+dt@kernel.org, mark.rutland@arm.comj-keerthy@ti.com, linux@armlinux.org.ukDave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+The patch
 
---JWEK1jqKZ6MHAcjA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+   regulator: tps65218: force set power-up/down strobe to 3 for dcdc3
 
-On Fri, Jun 24, 2016 at 01:58:11PM +0530, Keerthy wrote:
-> From: Tero Kristo <t-kristo@ti.com>
->=20
-> Some versions of tps65218 do not seem to support poweroff modes properly
-> if DCDC3 regulator is shut-down. Thus, keep it enabled even during
-> poweroff if the version info matches the broken silicon revision.
+has been applied to the regulator tree at
 
-This is fine but depends on the MFD bit so needs to wait for that to be
-reviewed.
+   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
 
---JWEK1jqKZ6MHAcjA
-Content-Type: application/pgp-signature; name="signature.asc"
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
 
-iQEcBAEBCAAGBQJXcVtwAAoJECTWi3JdVIfQTQIH+QEwK/ay4gusnCJA7HQU4fPs
-7OW0bB/mPFR7maTwV+qPG9wxsuEMfHD+Sb31t0Ul7nD1vUOcVbxe/dlkqFMMo33h
-1goj2tWiuUgiRf/9KXXGLt/7WZf/cIqMnCSX5mzcLHVxVyiUSdyJgFi+l2gYDE33
-tOkqde29bQi4fhqORaMO1JJBFvEW3hAOUbBv789swtljKhzNBBIRgcqTRADfzV+D
-LlL8HaKUO73auh746TWTpWmnI9MQ9UOWSNtM8UmWvTJK2WS4wbSs0MNVbKdCd8FD
-Ib58f2dqT+geXr/sIsccz2oeLbpe7VEURRZXya0AAOgS+f7SdY/T4qSPRGrUTpo=
-=KuGt
------END PGP SIGNATURE-----
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
 
---JWEK1jqKZ6MHAcjA--
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From 3fb2ef111d6f799f3da8860c1a90ef3d9c36ea55 Mon Sep 17 00:00:00 2001
+From: Tero Kristo <t-kristo@ti.com>
+Date: Fri, 24 Jun 2016 13:58:09 +0530
+Subject: [PATCH] regulator: tps65218: force set power-up/down strobe to 3 for
+ dcdc3
+
+The reset value for this register seems broken on certain versions of
+tps65218 chip, so make sure the dcdc3 settings is proper. Needed for
+proper functionality of rtc+ddr / rtc-only modes.
+
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/regulator/tps65218-regulator.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/regulator/tps65218-regulator.c b/drivers/regulator/tps65218-regulator.c
+index 8eca1eb4f219..d1e631d64a20 100644
+--- a/drivers/regulator/tps65218-regulator.c
++++ b/drivers/regulator/tps65218-regulator.c
+@@ -180,8 +180,12 @@ static int tps65218_pmic_set_suspend_disable(struct regulator_dev *dev)
+ 	if (rid < TPS65218_DCDC_1 || rid > TPS65218_LDO_1)
+ 		return -EINVAL;
+ 
+-	if (!tps->info[rid]->strobe)
+-		return -EINVAL;
++	if (!tps->info[rid]->strobe) {
++		if (rid == TPS65218_DCDC_3)
++			tps->info[rid]->strobe = 3;
++		else
++			return -EINVAL;
++	}
+ 
+ 	return tps65218_set_bits(tps, dev->desc->bypass_reg,
+ 				 dev->desc->bypass_mask,
+-- 
+2.8.1
