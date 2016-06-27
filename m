@@ -1,80 +1,115 @@
-From: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 3/8] mfd: tps65218: Use mfd_add_devices instead of
- of_platform_populate
-Date: Mon, 27 Jun 2016 13:23:45 +0100
-Message-ID: <20160627122345.GC24377@dell>
-References: <1467025305-13464-1-git-send-email-j-keerthy@ti.com>
- <1467025305-13464-4-git-send-email-j-keerthy@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/4] ARM: OMAP4+: Prevent CPU1 related hang with kexec
+Date: Mon, 27 Jun 2016 06:26:48 -0700
+Message-ID: <20160627132648.GA28140@atomide.com>
+References: <1466495565-17480-1-git-send-email-tony@atomide.com>
+ <1466495565-17480-3-git-send-email-tony@atomide.com>
+ <4439074.kx9oBqeAS1@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1467025305-13464-4-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Cc: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+In-Reply-To: <4439074.kx9oBqeAS1@wuerfel>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Nishanth Menon <nm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Tero Kristo <t-kristo@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 27 Jun 2016, Keerthy wrote:
+* Arnd Bergmann <arnd@arndb.de> [160624 00:41]:
+> This doesn't work:
+> 
+> arch/arm/mach-omap2/built-in.o: In function `omap5_secondary_startup':
+> dss-common.c:(.text+0x4cc4): undefined reference to `secondary_startup'
+> arch/arm/mach-omap2/built-in.o: In function `hyp_boot':
+> dss-common.c:(.text+0x4cf0): undefined reference to `secondary_startup'
+> arch/arm/mach-omap2/built-in.o: In function `omap4_secondary_startup':
+> dss-common.c:(.text+0x4d14): undefined reference to `secondary_startup'
+> arch/arm/mach-omap2/built-in.o: In function `omap4460_secondary_startup':
+> dss-common.c:(.text+0x4d48): undefined reference to `secondary_startup'
+> 
+> secondary_startup() is not defined when CONFIG_SMP is disabled.
 
-> mfd_add_devices enables parsing device tree nodes without compatibles
-> for child nodes. Replace of_platform_populate with mfd_add_devices.
-> mfd_cell currently is populated with only regulators.
->=20
-> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-> ---
->=20
-> Changes in v2:
->=20
->   * Updated commit log.
->=20
-> As of now only regulators driver is in kernel. The PMIC contains
-> a bunch of GPIOs, Over temperature warning / shutdown unit.
->=20
->  drivers/mfd/tps65218.c | 10 ++++++++--
->  1 file changed, 8 insertions(+), 2 deletions(-)
+Oh sorry. Looks like I did not properly check the compiler output
+while fixing up the randconfig errors I got earlier. Below is a
+fix for this build error.
 
-Acked-by: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Regards,
 
-> diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
-> index f20a531..b8b3a58 100644
-> --- a/drivers/mfd/tps65218.c
-> +++ b/drivers/mfd/tps65218.c
-> @@ -33,6 +33,10 @@
-> =20
->  #define TPS65218_PASSWORD_REGS_UNLOCK   0x7D
-> =20
-> +static const struct mfd_cell tps65218_cells[] =3D {
-> +	{ .name =3D "tps65218-regulator", },
-> +};
-> +
->  /**
->   * tps65218_reg_write: Write a single tps65218 register.
->   *
-> @@ -236,8 +240,10 @@ static int tps65218_probe(struct i2c_client *cli=
-ent,
->  	if (ret < 0)
->  		return ret;
-> =20
-> -	ret =3D of_platform_populate(client->dev.of_node, NULL, NULL,
-> -				   &client->dev);
-> +	ret =3D mfd_add_devices(tps->dev, PLATFORM_DEVID_AUTO, tps65218_cel=
-ls,
-> +			      ARRAY_SIZE(tps65218_cells), NULL, 0,
-> +			      regmap_irq_get_domain(tps->irq_data));
-> +
->  	if (ret < 0)
->  		goto err_irq;
-> =20
+Tony
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+8< -----------------
+From: Tony Lindgren <tony@atomide.com>
+Date: Sun, 26 Jun 2016 22:47:06 -0700
+Subject: [PATCH] ARM: OMAP2+: Fix build if CONFIG_SMP is not set
+
+Looks like I only partially fixed up things if CONFIG_SMP
+is not set for the recent kexec changes. We don't have
+boot_secondary available without SMP as reported by Arnd.
+
+Reported-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
+index 6d1dffc..fe36ce2 100644
+--- a/arch/arm/mach-omap2/omap-headsmp.S
++++ b/arch/arm/mach-omap2/omap-headsmp.S
+@@ -24,6 +24,16 @@
+ #define AUX_CORE_BOOT0_PA			0x48281800
+ #define API_HYP_ENTRY				0x102
+ 
++ENTRY(omap_secondary_startup)
++#ifdef CONFIG_SMP
++	b	secondary_startup
++#else
++/* Should never get here */
++again:	wfi
++	b	again
++#endif
++#ENDPROC(omap_secondary_startup)
++
+ /*
+  * OMAP5 specific entry point for secondary CPU to jump from ROM
+  * code.  This routine also provides a holding flag into which
+@@ -39,7 +49,7 @@ wait:	ldr	r2, =AUX_CORE_BOOT0_PA	@ read from AuxCoreBoot0
+ 	and	r4, r4, #0x0f
+ 	cmp	r0, r4
+ 	bne	wait
+-	b	secondary_startup
++	b	omap_secondary_startup
+ ENDPROC(omap5_secondary_startup)
+ /*
+  * Same as omap5_secondary_startup except we call into the ROM to
+@@ -59,7 +69,7 @@ wait_2:	ldr	r2, =AUX_CORE_BOOT0_PA	@ read from AuxCoreBoot0
+ 	adr	r0, hyp_boot
+ 	smc	#0
+ hyp_boot:
+-	b	secondary_startup
++	b	omap_secondary_startup
+ ENDPROC(omap5_secondary_hyp_startup)
+ /*
+  * OMAP4 specific entry point for secondary CPU to jump from ROM
+@@ -82,7 +92,7 @@ hold:	ldr	r12,=0x103
+ 	 * we've been released from the wait loop,secondary_stack
+ 	 * should now contain the SVC stack for this core
+ 	 */
+-	b	secondary_startup
++	b	omap_secondary_startup
+ ENDPROC(omap4_secondary_startup)
+ 
+ ENTRY(omap4460_secondary_startup)
+@@ -119,5 +129,5 @@ hold_2:	ldr	r12,=0x103
+ 	 * we've been released from the wait loop,secondary_stack
+ 	 * should now contain the SVC stack for this core
+ 	 */
+-	b	secondary_startup
++	b	omap_secondary_startup
+ ENDPROC(omap4460_secondary_startup)
