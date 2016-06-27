@@ -1,115 +1,108 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/4] ARM: OMAP4+: Prevent CPU1 related hang with kexec
-Date: Mon, 27 Jun 2016 06:26:48 -0700
-Message-ID: <20160627132648.GA28140@atomide.com>
-References: <1466495565-17480-1-git-send-email-tony@atomide.com>
- <1466495565-17480-3-git-send-email-tony@atomide.com>
- <4439074.kx9oBqeAS1@wuerfel>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH v2 1/8] mfd: tps65218: Remove redundant read wrapper
+Date: Mon, 27 Jun 2016 20:00:53 +0530
+Message-ID: <5771389D.5000103@ti.com>
+References: <1467025305-13464-1-git-send-email-j-keerthy@ti.com>
+ <1467025305-13464-2-git-send-email-j-keerthy@ti.com>
+ <20160627122331.GB24377@dell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <4439074.kx9oBqeAS1@wuerfel>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Nishanth Menon <nm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Tero Kristo <t-kristo@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160627122331.GB24377@dell>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>, Keerthy <j-keerthy@ti.com>
+Cc: broonie@kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, robh+dt@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [160624 00:41]:
-> This doesn't work:
-> 
-> arch/arm/mach-omap2/built-in.o: In function `omap5_secondary_startup':
-> dss-common.c:(.text+0x4cc4): undefined reference to `secondary_startup'
-> arch/arm/mach-omap2/built-in.o: In function `hyp_boot':
-> dss-common.c:(.text+0x4cf0): undefined reference to `secondary_startup'
-> arch/arm/mach-omap2/built-in.o: In function `omap4_secondary_startup':
-> dss-common.c:(.text+0x4d14): undefined reference to `secondary_startup'
-> arch/arm/mach-omap2/built-in.o: In function `omap4460_secondary_startup':
-> dss-common.c:(.text+0x4d48): undefined reference to `secondary_startup'
-> 
-> secondary_startup() is not defined when CONFIG_SMP is disabled.
 
-Oh sorry. Looks like I did not properly check the compiler output
-while fixing up the randconfig errors I got earlier. Below is a
-fix for this build error.
 
-Regards,
+On Monday 27 June 2016 05:53 PM, Lee Jones wrote:
+> On Mon, 27 Jun 2016, Keerthy wrote:
+>
+>> Currently read directly calls the repmap read function. Hence
+>> remove the redundant wrapper and use regmap read wherever
+>> needed.
+>>
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> ---
+>>   drivers/mfd/tps65218.c                 | 16 +---------------
+>>   drivers/regulator/tps65218-regulator.c |  3 ++-
+>>   include/linux/mfd/tps65218.h           |  2 --
+>>   3 files changed, 3 insertions(+), 18 deletions(-)
+>>
+>> diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
+>> index 80b9dc3..f20a531 100644
+>> --- a/drivers/mfd/tps65218.c
+>> +++ b/drivers/mfd/tps65218.c
+>> @@ -34,20 +34,6 @@
+>>   #define TPS65218_PASSWORD_REGS_UNLOCK   0x7D
+>>
+>>   /**
+>> - * tps65218_reg_read: Read a single tps65218 register.
+>> - *
+>> - * @tps: Device to read from.
+>> - * @reg: Register to read.
+>> - * @val: Contians the value
+>> - */
+>> -int tps65218_reg_read(struct tps65218 *tps, unsigned int reg,
+>> -			unsigned int *val)
+>> -{
+>> -	return regmap_read(tps->regmap, reg, val);
+>> -}
+>> -EXPORT_SYMBOL_GPL(tps65218_reg_read);
+>> -
+>
+> What about the calls in the GPIO and Misc drivers?
 
-Tony
+Thanks Lee Jones for catching this. I will send an updated v3 of the set.
 
-8< -----------------
-From: Tony Lindgren <tony@atomide.com>
-Date: Sun, 26 Jun 2016 22:47:06 -0700
-Subject: [PATCH] ARM: OMAP2+: Fix build if CONFIG_SMP is not set
-
-Looks like I only partially fixed up things if CONFIG_SMP
-is not set for the recent kexec changes. We don't have
-boot_secondary available without SMP as reported by Arnd.
-
-Reported-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
-index 6d1dffc..fe36ce2 100644
---- a/arch/arm/mach-omap2/omap-headsmp.S
-+++ b/arch/arm/mach-omap2/omap-headsmp.S
-@@ -24,6 +24,16 @@
- #define AUX_CORE_BOOT0_PA			0x48281800
- #define API_HYP_ENTRY				0x102
- 
-+ENTRY(omap_secondary_startup)
-+#ifdef CONFIG_SMP
-+	b	secondary_startup
-+#else
-+/* Should never get here */
-+again:	wfi
-+	b	again
-+#endif
-+#ENDPROC(omap_secondary_startup)
-+
- /*
-  * OMAP5 specific entry point for secondary CPU to jump from ROM
-  * code.  This routine also provides a holding flag into which
-@@ -39,7 +49,7 @@ wait:	ldr	r2, =AUX_CORE_BOOT0_PA	@ read from AuxCoreBoot0
- 	and	r4, r4, #0x0f
- 	cmp	r0, r4
- 	bne	wait
--	b	secondary_startup
-+	b	omap_secondary_startup
- ENDPROC(omap5_secondary_startup)
- /*
-  * Same as omap5_secondary_startup except we call into the ROM to
-@@ -59,7 +69,7 @@ wait_2:	ldr	r2, =AUX_CORE_BOOT0_PA	@ read from AuxCoreBoot0
- 	adr	r0, hyp_boot
- 	smc	#0
- hyp_boot:
--	b	secondary_startup
-+	b	omap_secondary_startup
- ENDPROC(omap5_secondary_hyp_startup)
- /*
-  * OMAP4 specific entry point for secondary CPU to jump from ROM
-@@ -82,7 +92,7 @@ hold:	ldr	r12,=0x103
- 	 * we've been released from the wait loop,secondary_stack
- 	 * should now contain the SVC stack for this core
- 	 */
--	b	secondary_startup
-+	b	omap_secondary_startup
- ENDPROC(omap4_secondary_startup)
- 
- ENTRY(omap4460_secondary_startup)
-@@ -119,5 +129,5 @@ hold_2:	ldr	r12,=0x103
- 	 * we've been released from the wait loop,secondary_stack
- 	 * should now contain the SVC stack for this core
- 	 */
--	b	secondary_startup
-+	b	omap_secondary_startup
- ENDPROC(omap4460_secondary_startup)
+>
+>> -/**
+>>    * tps65218_reg_write: Write a single tps65218 register.
+>>    *
+>>    * @tps65218: Device to write to.
+>> @@ -93,7 +79,7 @@ static int tps65218_update_bits(struct tps65218 *tps, unsigned int reg,
+>>   	int ret;
+>>   	unsigned int data;
+>>
+>> -	ret = tps65218_reg_read(tps, reg, &data);
+>> +	ret = regmap_read(tps->regmap, reg, &data);
+>>   	if (ret) {
+>>   		dev_err(tps->dev, "Read from reg 0x%x failed\n", reg);
+>>   		return ret;
+>> diff --git a/drivers/regulator/tps65218-regulator.c b/drivers/regulator/tps65218-regulator.c
+>> index a5e5634..679ab2f 100644
+>> --- a/drivers/regulator/tps65218-regulator.c
+>> +++ b/drivers/regulator/tps65218-regulator.c
+>> @@ -22,6 +22,7 @@
+>>   #include <linux/err.h>
+>>   #include <linux/platform_device.h>
+>>   #include <linux/of_device.h>
+>> +#include <linux/regmap.h>
+>>   #include <linux/regulator/of_regulator.h>
+>>   #include <linux/regulator/driver.h>
+>>   #include <linux/regulator/machine.h>
+>> @@ -224,7 +225,7 @@ static int tps65218_pmic_get_current_limit(struct regulator_dev *dev)
+>>   	unsigned int index;
+>>   	struct tps65218 *tps = rdev_get_drvdata(dev);
+>>
+>> -	retval = tps65218_reg_read(tps, dev->desc->csel_reg, &index);
+>> +	retval = regmap_read(tps->regmap, dev->desc->csel_reg, &index);
+>>   	if (retval < 0)
+>>   		return retval;
+>>
+>> diff --git a/include/linux/mfd/tps65218.h b/include/linux/mfd/tps65218.h
+>> index d58f3b5..7c9241f 100644
+>> --- a/include/linux/mfd/tps65218.h
+>> +++ b/include/linux/mfd/tps65218.h
+>> @@ -276,8 +276,6 @@ struct tps65218 {
+>>   	struct regmap *regmap;
+>>   };
+>>
+>> -int tps65218_reg_read(struct tps65218 *tps, unsigned int reg,
+>> -					unsigned int *val);
+>>   int tps65218_reg_write(struct tps65218 *tps, unsigned int reg,
+>>   			unsigned int val, unsigned int level);
+>>   int tps65218_set_bits(struct tps65218 *tps, unsigned int reg,
+>
