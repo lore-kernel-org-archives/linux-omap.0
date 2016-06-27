@@ -1,76 +1,40 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH] thermal: of-thermal: Fix setting of set_emul_temp hook
-Date: Mon, 27 Jun 2016 11:48:03 +0530
-Message-ID: <5770C51B.30505@ti.com>
-References: <1464857690-23330-1-git-send-email-j-keerthy@ti.com>
- <575A5DD0.4080208@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv2 06/27] crypto: ahash: increase the maximum allowed
+ statesize
+Date: Mon, 27 Jun 2016 07:58:43 +0300
+Message-ID: <5770B283.8000902@ti.com>
+References: <1466601840-18486-1-git-send-email-t-kristo@ti.com>
+ <1466601840-18486-7-git-send-email-t-kristo@ti.com>
+ <20160624103209.GA19607@gondor.apana.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <575A5DD0.4080208@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>, edubezval@gmail.com, rui.zhang@intel.com
-Cc: nm@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <20160624103209.GA19607@gondor.apana.org.au>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: linux-omap@vger.kernel.org, linux-crypto@vger.kernel.org, tony@atomide.com, davem@davemloft.net, lokeshvutla@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On Friday 10 June 2016 11:57 AM, Keerthy wrote:
+On 24/06/16 13:32, Herbert Xu wrote:
+> On Wed, Jun 22, 2016 at 04:23:39PM +0300, Tero Kristo wrote:
+>> The statesize is used to determine the maximum size for saved ahash
+>> context. In some cases, this can be much larger than what is currently
+>> allocated for it, for example omap-sham driver uses a buffer size of
+>> PAGE_SIZE. Increase the statesize to accommodate this.
+>>
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
 >
+> Nack.  The exported state is supposed to consist of the actual
+> hash state, plus at most one block worth of unhashed data.  It's
+> limited so that we can store it on the stack.
 >
-> On Thursday 02 June 2016 02:24 PM, Keerthy wrote:
->> Currently thermal zone set_emul_temp is set unconditionally
->> with of_thermal_set_emul_temp function. Set this only if the
->> set_emul_temp hook is provided for thermal_zone_of_device_ops.
->>
->> This fixes emul_temp failures on platforms for which set_emul_temp
->> hook is not populated.
+> So no I'm not taking this patch.
 >
-> Eduardo,
->
-> A gentle ping on this patch.
 
-Eduardo,
+Ok, I think I need to allocate the storage space locally then within the 
+driver. Would it be ok to call kmalloc / free in the export / import 
+implementation of the driver? The size of the unhashed buffer in 
+omap-sham is unfortunately rather large.
 
-Another gentle ping.
-
-
->
->
->>
->> Fixes: "184a4bf623f (thermal: of: Extend current
->>     of-thermal.c code to allow setting emulated temp)"
->> Suggested-by: Eduardo Valentin <edubezval@gmail.com>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->> ---
->>   drivers/thermal/of-thermal.c | 7 +++----
->>   1 file changed, 3 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/thermal/of-thermal.c b/drivers/thermal/of-thermal.c
->> index b8e509c..93d8ce0 100644
->> --- a/drivers/thermal/of-thermal.c
->> +++ b/drivers/thermal/of-thermal.c
->> @@ -181,9 +181,6 @@ static int of_thermal_set_emul_temp(struct
->> thermal_zone_device *tz,
->>   {
->>       struct __thermal_zone *data = tz->devdata;
->>
->> -    if (!data->ops || !data->ops->set_emul_temp)
->> -        return -EINVAL;
->> -
->>       return data->ops->set_emul_temp(data->sensor_data, temp);
->>   }
->>
->> @@ -427,7 +424,9 @@ thermal_zone_of_add_sensor(struct device_node *zone,
->>
->>       tzd->ops->get_temp = of_thermal_get_temp;
->>       tzd->ops->get_trend = of_thermal_get_trend;
->> -    tzd->ops->set_emul_temp = of_thermal_set_emul_temp;
->> +    if (ops->set_emul_temp)
->> +        tzd->ops->set_emul_temp = of_thermal_set_emul_temp;
->> +
->>       mutex_unlock(&tzd->lock);
->>
->>       return tzd;
->>
+-Tero
