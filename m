@@ -1,68 +1,53 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH v3 03/10] input: tps65218-pwrbutton: Add
- platform_device_id table
-Date: Tue, 28 Jun 2016 12:25:45 +0530
-Message-ID: <57721F71.5010700@ti.com>
-References: <1467093980-11458-1-git-send-email-j-keerthy@ti.com>
- <1467093980-11458-4-git-send-email-j-keerthy@ti.com>
- <20160628064948.GB6720@dell>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RESEND PATCHv2 04/28] ARM: OMAP2+: hwmod: use new ti_clk_get
+ API to search for clock handles
+Date: Mon, 27 Jun 2016 23:57:12 -0700
+Message-ID: <20160628065712.GC28140@atomide.com>
+References: <1465844702-12200-1-git-send-email-t-kristo@ti.com>
+ <1465844702-12200-5-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20160628064948.GB6720@dell>
-Sender: linux-input-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>, Keerthy <j-keerthy@ti.com>
-Cc: dmitry.torokhov@gmail.com, linus.walleij@linaro.org, gnurou@gmail.com, broonie@kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-gpio@vger.kernel.org, linux-input@vger.kernel.org, robh+dt@kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1465844702-12200-5-git-send-email-t-kristo@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
+* Tero Kristo <t-kristo@ti.com> [160613 12:07]:
+> The new API avoids the need to add clock aliases for most of the clocks,
+> should use of it is preferred. Many of the existing clock aliases are
+> only created because of hwmod data.
+> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> index 83cb527..0ea869c 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -786,7 +786,7 @@ static int _init_main_clk(struct omap_hwmod *oh)
+>  	if (!oh->main_clk)
+>  		return 0;
+>  
+> -	oh->_clk = clk_get(NULL, oh->main_clk);
+> +	oh->_clk = ti_clk_get(oh->main_clk);
+>  	if (IS_ERR(oh->_clk)) {
+>  		pr_warn("omap_hwmod: %s: cannot clk_get main_clk %s\n",
+>  			oh->name, oh->main_clk);
 
-On Tuesday 28 June 2016 12:19 PM, Lee Jones wrote:
-> On Tue, 28 Jun 2016, Keerthy wrote:
->
->> platform_device_id table is needed for adding the tps65218-pwrbutton
->> module to the mfd_cell array.
->>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->> ---
->>   drivers/input/misc/tps65218-pwrbutton.c | 7 +++++++
->>   1 file changed, 7 insertions(+)
->>
->> diff --git a/drivers/input/misc/tps65218-pwrbutton.c b/drivers/input/misc/tps65218-pwrbutton.c
->> index 2bba8de..a0cb7d2 100644
->> --- a/drivers/input/misc/tps65218-pwrbutton.c
->> +++ b/drivers/input/misc/tps65218-pwrbutton.c
->> @@ -113,12 +113,19 @@ static const struct of_device_id of_tps65218_pwr_match[] = {
->>   };
->>   MODULE_DEVICE_TABLE(of, of_tps65218_pwr_match);
->>
->> +static const struct platform_device_id tps65218_pwrbtn_id_table[] = {
->> +	{ "tps65218-pwrbutton", },
->> +	{ /* sentinel */ }
->> +}
->
-> Missing ';'.  Did you build test this?
+After thinking about this for a while I think code outside TI specific
+clock implementation should use just clk_get(). Otherwise we create more
+dependencies to move code to live under drivers subdirectory.
 
-Oops sorry for the mess. Yes i built and booted. While reviewing and 
-just before sending i have accidentally deleted. I will send a v4 in a 
-bit. I will send v4 of this patch.
+Can't we have clk_get() call a SoC specific helper function if clock
+is not found?
 
-I just checked now. It somehow compiles silently even with the ';' 
-missing! I will send a v4.
+Regards,
 
-
->
->> +MODULE_DEVICE_TABLE(platform, tps65218_pwrbtn_id_table);
->> +
->>   static struct platform_driver tps65218_pwron_driver = {
->>   	.probe	= tps65218_pwron_probe,
->>   	.driver	= {
->>   		.name	= "tps65218_pwrbutton",
->>   		.of_match_table = of_tps65218_pwr_match,
->>   	},
->> +	.id_table = tps65218_pwrbtn_id_table,
->>   };
->>   module_platform_driver(tps65218_pwron_driver);
->>
->
+Tony
