@@ -1,171 +1,138 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v6 1/6] mfd: tps65218: Remove redundant read wrapper
-Date: Tue, 28 Jun 2016 18:00:49 +0530
-Message-ID: <1467117054-12943-2-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH v6 2/6] Documentation: regulator: tps65218: Update examples
+Date: Tue, 28 Jun 2016 18:00:50 +0530
+Message-ID: <1467117054-12943-3-git-send-email-j-keerthy@ti.com>
 References: <1467117054-12943-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1467117054-12943-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: dmitry.torokhov@gmail.com, linus.walleij@linaro.org, gnurou@gmail.com, lee.jones@linaro.org, broonie@kernel.org, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-gpio@vger.kernel.org, linux-input@vger.kernel.org, robh+dt@kernel.org, linux-arm-kernel@lists.infradead.org, j-keerthy@ti.com
+Cc: devicetree@vger.kernel.org, j-keerthy@ti.com, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, robh+dt@kernel.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Currently read directly calls the repmap read function. Hence
-remove the redundant wrapper and use regmap read wherever
-needed.
+This updates the Device Tree according to the preferred way of parsing
+the nodes using the regulator framework.
 
-Acked-by: Lee Jones <lee.jones@linaro.org>
+Acked-by: Rob Herring <robh@kernel.org>
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
-Changes in v6:
-
-Rebased against linux-next + https://lkml.org/lkml/2016/6/24/122 series.
-
 Changes in v4:
 
-  * Added Lee Jones's Ack.
+  * Formatted and corrected typos in few lines.
+  * Used relative path names for the file names.
 
-Changes in v3:
+ .../devicetree/bindings/regulator/tps65218.txt     | 87 ++++++++++++++++++----
+ 1 file changed, 71 insertions(+), 16 deletions(-)
 
-   * Cleaned up tps65218-pwrbutton and gpio drivers to remove
-     tps65218_reg_read instances.
-
- drivers/gpio/gpio-tps65218.c            |  3 ++-
- drivers/input/misc/tps65218-pwrbutton.c |  3 ++-
- drivers/mfd/tps65218.c                  | 18 ++----------------
- drivers/regulator/tps65218-regulator.c  |  5 +++--
- include/linux/mfd/tps65218.h            |  2 --
- 5 files changed, 9 insertions(+), 22 deletions(-)
-
-diff --git a/drivers/gpio/gpio-tps65218.c b/drivers/gpio/gpio-tps65218.c
-index 0eaeac8..0f9d9bd 100644
---- a/drivers/gpio/gpio-tps65218.c
-+++ b/drivers/gpio/gpio-tps65218.c
-@@ -16,6 +16,7 @@
- #include <linux/errno.h>
- #include <linux/gpio/driver.h>
- #include <linux/platform_device.h>
-+#include <linux/regmap.h>
- #include <linux/mfd/tps65218.h>
+diff --git a/Documentation/devicetree/bindings/regulator/tps65218.txt b/Documentation/devicetree/bindings/regulator/tps65218.txt
+index fccc1d2..02f0e9b 100644
+--- a/Documentation/devicetree/bindings/regulator/tps65218.txt
++++ b/Documentation/devicetree/bindings/regulator/tps65218.txt
+@@ -1,23 +1,78 @@
+ TPS65218 family of regulators
  
- struct tps65218_gpio {
-@@ -30,7 +31,7 @@ static int tps65218_gpio_get(struct gpio_chip *gc, unsigned offset)
- 	unsigned int val;
- 	int ret;
- 
--	ret = tps65218_reg_read(tps65218, TPS65218_REG_ENABLE2, &val);
-+	ret = regmap_read(tps65218->regmap, TPS65218_REG_ENABLE2, &val);
- 	if (ret)
- 		return ret;
- 
-diff --git a/drivers/input/misc/tps65218-pwrbutton.c b/drivers/input/misc/tps65218-pwrbutton.c
-index a39b626..2bba8de 100644
---- a/drivers/input/misc/tps65218-pwrbutton.c
-+++ b/drivers/input/misc/tps65218-pwrbutton.c
-@@ -22,6 +22,7 @@
- #include <linux/module.h>
- #include <linux/of.h>
- #include <linux/platform_device.h>
-+#include <linux/regmap.h>
- #include <linux/slab.h>
- 
- struct tps65218_pwrbutton {
-@@ -36,7 +37,7 @@ static irqreturn_t tps65218_pwr_irq(int irq, void *_pwr)
- 	unsigned int reg;
- 	int error;
- 
--	error = tps65218_reg_read(pwr->tps, TPS65218_REG_STATUS, &reg);
-+	error = regmap_read(pwr->tps->regmap, TPS65218_REG_STATUS, &reg);
- 	if (error) {
- 		dev_err(pwr->dev, "can't read register: %d\n", error);
- 		goto out;
-diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
-index ba610ad..9bca1b1 100644
---- a/drivers/mfd/tps65218.c
-+++ b/drivers/mfd/tps65218.c
-@@ -34,20 +34,6 @@
- #define TPS65218_PASSWORD_REGS_UNLOCK   0x7D
- 
- /**
-- * tps65218_reg_read: Read a single tps65218 register.
-- *
-- * @tps: Device to read from.
-- * @reg: Register to read.
-- * @val: Contians the value
-- */
--int tps65218_reg_read(struct tps65218 *tps, unsigned int reg,
--			unsigned int *val)
--{
--	return regmap_read(tps->regmap, reg, val);
--}
--EXPORT_SYMBOL_GPL(tps65218_reg_read);
+ Required properties:
+-For tps65218 regulators/LDOs
+-- compatible:
+-  - "ti,tps65218-dcdc1" for DCDC1
+-  - "ti,tps65218-dcdc2" for DCDC2
+-  - "ti,tps65218-dcdc3" for DCDC3
+-  - "ti,tps65218-dcdc4" for DCDC4
+-  - "ti,tps65218-dcdc5" for DCDC5
+-  - "ti,tps65218-dcdc6" for DCDC6
+-  - "ti,tps65218-ldo1" for LDO1
 -
--/**
-  * tps65218_reg_write: Write a single tps65218 register.
-  *
-  * @tps65218: Device to write to.
-@@ -93,7 +79,7 @@ static int tps65218_update_bits(struct tps65218 *tps, unsigned int reg,
- 	int ret;
- 	unsigned int data;
+-Optional properties:
+-- Any optional property defined in bindings/regulator/regulator.txt
++- compatible: "ti,tps65218"
++- reg: I2C slave address
++
++- List of regulators provided by this controller, must be named
++  after their hardware counterparts: dcdc[1-6] and ldo1
++- This is the list of child nodes that specify the regulator
++  initialization data for defined regulators. Not all regulators for the given
++  device need to be present. The definition for each of these nodes is defined
++  using the standard binding for regulators found at ./regulator.txt.
++
++  The valid names for regulators are:
++  tps65217: regulator-dcdc1, regulator-dcdc2, regulator-dcdc3, regulator-dcdc4,
++  regulator-dcdc5, regulator-dcdc6, regulator-ldo1, regulator-ls3.
++  Each regulator is defined using the standard binding for regulators.
  
--	ret = tps65218_reg_read(tps, reg, &data);
-+	ret = regmap_read(tps->regmap, reg, &data);
- 	if (ret) {
- 		dev_err(tps->dev, "Read from reg 0x%x failed\n", reg);
- 		return ret;
-@@ -251,7 +237,7 @@ static int tps65218_probe(struct i2c_client *client,
- 	if (ret < 0)
- 		return ret;
+ Example:
++tps65218: tps65218@24 {
++	reg = <0x24>;
++	compatible = "ti,tps65218";
++	interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* NMIn */
++	interrupt-controller;
++	#interrupt-cells = <2>;
++
++	dcdc1: regulator-dcdc1 {
++		regulator-name = "vdd_core";
++		regulator-min-microvolt = <912000>;
++		regulator-max-microvolt = <1144000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
++	dcdc2: regulator-dcdc2 {
++		regulator-name = "vdd_mpu";
++		regulator-min-microvolt = <912000>;
++		regulator-max-microvolt = <1378000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
++	dcdc3: regulator-dcdc3 {
++		regulator-name = "vdcdc3";
++		regulator-min-microvolt = <1500000>;
++		regulator-max-microvolt = <1500000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
++	dcdc5: regulator-dcdc5 {
++		regulator-name = "v1_0bat";
++		regulator-min-microvolt = <1000000>;
++		regulator-max-microvolt = <1000000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
++	dcdc6: regulator-dcdc6 {
++		regulator-name = "v1_8bat";
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <1800000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
++	ldo1: regulator-ldo1 {
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <1800000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
  
--	ret = tps65218_reg_read(tps, TPS65218_REG_CHIPID, &chipid);
-+	ret = regmap_read(tps->regmap, TPS65218_REG_CHIPID, &chipid);
- 	if (ret) {
- 		dev_err(tps->dev, "Failed to read chipid: %d\n", ret);
- 		return ret;
-diff --git a/drivers/regulator/tps65218-regulator.c b/drivers/regulator/tps65218-regulator.c
-index eb0f5b1..ae16caf 100644
---- a/drivers/regulator/tps65218-regulator.c
-+++ b/drivers/regulator/tps65218-regulator.c
-@@ -22,6 +22,7 @@
- #include <linux/err.h>
- #include <linux/platform_device.h>
- #include <linux/of_device.h>
-+#include <linux/regmap.h>
- #include <linux/regulator/of_regulator.h>
- #include <linux/regulator/driver.h>
- #include <linux/regulator/machine.h>
-@@ -272,7 +273,7 @@ static int tps65218_pmic_get_current_limit(struct regulator_dev *dev)
- 	unsigned int index;
- 	struct tps65218 *tps = rdev_get_drvdata(dev);
- 
--	retval = tps65218_reg_read(tps, dev->desc->csel_reg, &index);
-+	retval = regmap_read(tps->regmap, dev->desc->csel_reg, &index);
- 	if (retval < 0)
- 		return retval;
- 
-@@ -383,7 +384,7 @@ static int tps65218_regulator_probe(struct platform_device *pdev)
- 		return PTR_ERR(rdev);
- 	}
- 
--	ret = tps65218_reg_read(tps, regulators[id].bypass_reg, &val);
-+	ret = regmap_read(tps->regmap, regulators[id].bypass_reg, &val);
- 	if (ret)
- 		return ret;
- 
-diff --git a/include/linux/mfd/tps65218.h b/include/linux/mfd/tps65218.h
-index d1db952..51bef53 100644
---- a/include/linux/mfd/tps65218.h
-+++ b/include/linux/mfd/tps65218.h
-@@ -284,8 +284,6 @@ struct tps65218 {
- 	struct regmap *regmap;
- };
- 
--int tps65218_reg_read(struct tps65218 *tps, unsigned int reg,
--					unsigned int *val);
- int tps65218_reg_write(struct tps65218 *tps, unsigned int reg,
- 			unsigned int val, unsigned int level);
- int tps65218_set_bits(struct tps65218 *tps, unsigned int reg,
+-	xyz: regulator@0 {
+-		compatible = "ti,tps65218-dcdc1";
+-		regulator-min-microvolt  = <1000000>;
+-		regulator-max-microvolt  = <3000000>;
++	ls3: regulator-ls3 {
++		regulator-min-microvolt = <100000>;
++		regulator-max-microvolt = <1000000>;
+ 	};
++};
 -- 
 1.9.1
