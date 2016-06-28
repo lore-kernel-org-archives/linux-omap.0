@@ -1,71 +1,62 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [RFC 00/19] Runtime PM fixes for omap-ssi
-Date: Tue, 28 Jun 2016 02:33:04 +0200
-Message-ID: <20160628003303.GA24501@earth>
-References: <1466267229-25012-1-git-send-email-sre@kernel.org>
+From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 00/10] mfd: tps65218: Clean ups
+Date: Tue, 28 Jun 2016 11:36:10 +0530
+Message-ID: <1467093980-11458-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="YiEDa0DAkWCtVeE4"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1466267229-25012-1-git-send-email-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, j-keerthy-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+The series cleans up mainly the regulator driver and implements
+the device tree parsing using the regulator framework. Removes
+all the redundant compatibles for the individual regulators.
+Removes compatible for gpio driver as well and adds it to
+the mfd_cell.
 
---YiEDa0DAkWCtVeE4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+One of the patch removes redundant read wrapper and makes
+use of regmap_read wherever necessary.
 
-Hi,
+The series is checked for all the regulator registrations on
+am437x-gp-evm and am437x-sk-evm.
 
-On Sat, Jun 18, 2016 at 06:26:50PM +0200, Sebastian Reichel wrote:
-> This series fixes runtime PM for omap-ssi, so that
-> the OMAP SoC can idle correctly. After applying the
-> series, the SSI module correctly goes into idle if
-> phonet0 interface is not configured or if it's
-> used by ofono (*). Apart from me Pavel Machek did
-> some testing of my devel branch [0] and reported,
-> that he was able to get the phone into full idle.
->=20
-> Note: I did my testing with kernel flashing over USB, so
-> idle is broken. But I found the bit in cm_idlest1_core,
-> that stands for SSI blocking status: 0x00800000 (documented
-> as "reserved" in the public TRM).
->=20
-> (*) "ifconfig phonet0 up" will result in blocking ssi module
->     until modem setup has finished (data communication via
-> 	phonet0 device), since it enables ssi wakelines.
->=20
-> [0] https://git.kernel.org/cgit/linux/kernel/git/sre/linux-hsi.git/log/?h=
-=3Druntime-pm-fixes
+Changes in v3:
 
-I just added this patchset to hsi's for-next branch.
+Missed making corresponding changes in the power button and gpio
+drivers. Added couple of patches to fix them to use mfd_cell way
+of parsing.
 
--- Sebastian
 
---YiEDa0DAkWCtVeE4
-Content-Type: application/pgp-signature; name="signature.asc"
+Keerthy (10):
+  mfd: tps65218: Remove redundant read wrapper
+  Documentation: regulator: tps65218: Update examples
+  input: tps65218-pwrbutton: Add platform_device_id table
+  mfd: tps65218: Use mfd_add_devices instead of of_platform_populate
+  regulator: tps65218: Remove all the compatibles
+  gpio: tps65218: Remove the compatible
+  ARM: dts: AM437X-GP-EVM: Remove redundant regulator compatibles
+  ARM: dts: AM437X-SK-EVM: Remove redundant regulator compatibles
+  ARM: dts: AM437X-CM-T43: Remove redundant regulator compatibles
+  ARM: dts: AM43X-EPOS-EVM: Remove redundant regulator compatibles
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+ .../devicetree/bindings/regulator/tps65218.txt     |  87 ++++++++++---
+ arch/arm/boot/dts/am437x-cm-t43.dts                |   6 -
+ arch/arm/boot/dts/am437x-gp-evm.dts                |   6 -
+ arch/arm/boot/dts/am437x-sk-evm.dts                |   5 -
+ arch/arm/boot/dts/am43x-epos-evm.dts               |   7 --
+ drivers/gpio/gpio-tps65218.c                       |  13 +-
+ drivers/input/misc/tps65218-pwrbutton.c            |  10 +-
+ drivers/mfd/tps65218.c                             |  29 ++---
+ drivers/regulator/tps65218-regulator.c             | 134 ++++++++-------------
+ include/linux/mfd/tps65218.h                       |   2 -
+ 10 files changed, 147 insertions(+), 152 deletions(-)
 
-iQIcBAEBCgAGBQJXccW9AAoJENju1/PIO/qaC58QAJ4rZFSgU5rS+/fR3YP+3mB2
-tous/2GlDRClFJweyfZ0ctNk28y2vh+qMaKprWAK/omYs5Ha5hmvyp8dQOP/Ps4v
-n9kF7kMDUNYKQ9PvqmahZTAgmyLxfIGbfs2OuwjK7ejB/1RdN6zTBb8JDoO81Se1
-Fy37qDNZjz9q0dVg9aRQNad4bbraK/Sl6kx3TlGaSFZHKUGlDO5PUhRtWxE9AMr4
-I5EWZ1BFCmMWizMmJc+rOVj8mdTabRU2a0cJWK5m/Z9PaOKaAU8EyqZua22TDs1b
-fcf4KQhW2MpCV1s4/Vkp15PyOGV7fwmKhlr8lirNcDm5nNPy4o+56rV1Y299cVJP
-8J+4Ael+EEjCuPr6mCe1szWz4z2zfzzstjQpJoSeSklsZwYOSLwQ35WJeAlEJ+vi
-jQrwG83X10o5X0tcq4pFlOxIBl2zxXAvP7pB+gx21uw7voS6vJupq00OWP07xTCp
-RpeoB84CsS1QppvqeD93WJ9ioPfB6XUbkzy60BGbCcniEaBgXZ027JDN+AYC9siK
-GOOVxHkM0EXlwRB70NOpGKoqWLvNd+cfBk4UG46DLvMjFPdUwmNe6UEg84wVnGjI
-PuSpsztmvZoGgGmDiMtlBXooH9ZS3xQtsX84F5Tz05CPTxr5uDpWIr4mi1JkQDFg
-Tzkm9DDRWfsf5aAgwOht
-=pHT1
------END PGP SIGNATURE-----
+-- 
+1.9.1
 
---YiEDa0DAkWCtVeE4--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
