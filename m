@@ -1,7 +1,8 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 2/6] mfd: twl-core: Refactoring for add_numbered_child()
-Date: Tue, 28 Jun 2016 16:03:36 +0100
-Message-ID: <20160628150336.GJ24982@dell>
+Subject: Re: [PATCH 3/6] mfd: dm355evm_msp: Return directly after a failed
+ platform_device_alloc() in add_child()
+Date: Tue, 28 Jun 2016 16:03:57 +0100
+Message-ID: <20160628150357.GK24982@dell>
 References: <566ABCD9.1060404@users.sourceforge.net>
  <5682D228.7070902@users.sourceforge.net>
  <20160111082922.GB14104@x1>
@@ -9,14 +10,14 @@ References: <566ABCD9.1060404@users.sourceforge.net>
  <de3598c4-f85a-6807-303a-55ee0ac707f2@users.sourceforge.net>
  <20160608111442.GB14888@dell>
  <e4eaf0b4-e539-b400-c8a2-70f210cee1fa@users.sourceforge.net>
- <9cf59380-e999-0cf8-9b8d-106691b86d0b@users.sourceforge.net>
+ <2fec6004-8191-c117-94c3-86524cfb4780@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <kernel-janitors-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <9cf59380-e999-0cf8-9b8d-106691b86d0b@users.sourceforge.net>
-Sender: kernel-janitors-owner@vger.kernel.org
+In-Reply-To: <2fec6004-8191-c117-94c3-86524cfb4780@users.sourceforge.net>
+Sender: linux-kernel-owner@vger.kernel.org
 To: SF Markus Elfring <elfring@users.sourceforge.net>
 Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
 List-Id: linux-omap@vger.kernel.org
@@ -24,76 +25,44 @@ List-Id: linux-omap@vger.kernel.org
 On Sun, 26 Jun 2016, SF Markus Elfring wrote:
 
 > From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Sun, 26 Jun 2016 13:03:59 +0200
+> Date: Sun, 26 Jun 2016 13:40:35 +0200
 >=20
-> Adjust jump targets according to the Linux coding style convention.
-> Another check for the variable "status" can be omitted then at the en=
-d.
+> The platform_device_put() function was called in one case by the
+> add_child() function during error handling even if the passed
+> variable "pdev" contained a null pointer.
+> Return directly in this case.
+>=20
+> This issue was detected by using the Coccinelle software.
 >=20
 > Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> Acked-by: Lee Jones <lee.jones@linaro.org>
 > ---
->  drivers/mfd/twl-core.c | 21 +++++++++++----------
->  1 file changed, 11 insertions(+), 10 deletions(-)
+>  drivers/mfd/dm355evm_msp.c | 7 ++-----
+>  1 file changed, 2 insertions(+), 5 deletions(-)
 
 Applied, thanks.
 
-> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-> index 9458c6d..a49d3db 100644
-> --- a/drivers/mfd/twl-core.c
-> +++ b/drivers/mfd/twl-core.c
-> @@ -631,7 +631,7 @@ add_numbered_child(unsigned mod_no, const char *n=
-ame, int num,
->  		status =3D platform_device_add_data(pdev, pdata, pdata_len);
->  		if (status < 0) {
->  			dev_dbg(&pdev->dev, "can't add platform_data\n");
-> -			goto err;
-> +			goto put_device;
->  		}
->  	}
+> diff --git a/drivers/mfd/dm355evm_msp.c b/drivers/mfd/dm355evm_msp.c
+> index 14661ec..270e19c 100644
+> --- a/drivers/mfd/dm355evm_msp.c
+> +++ b/drivers/mfd/dm355evm_msp.c
+> @@ -199,11 +199,8 @@ static struct device *add_child(struct i2c_clien=
+t *client, const char *name,
+>  	int			status;
 > =20
-> @@ -644,21 +644,22 @@ add_numbered_child(unsigned mod_no, const char =
-*name, int num,
->  		status =3D platform_device_add_resources(pdev, r, irq1 ? 2 : 1);
->  		if (status < 0) {
->  			dev_dbg(&pdev->dev, "can't add irqs\n");
-> -			goto err;
-> +			goto put_device;
->  		}
->  	}
-> =20
->  	status =3D platform_device_add(pdev);
-> -	if (status =3D=3D 0)
-> -		device_init_wakeup(&pdev->dev, can_wakeup);
-> +	if (status)
-> +		goto put_device;
-> +
-> +	device_init_wakeup(&pdev->dev, can_wakeup);
-> =20
-> -err:
-> -	if (status < 0) {
-> -		platform_device_put(pdev);
-> -		dev_err(&twl->client->dev, "can't add %s dev\n", name);
-> -		return ERR_PTR(status);
+>  	pdev =3D platform_device_alloc(name, -1);
+> -	if (!pdev) {
+> -		dev_dbg(&client->dev, "can't alloc dev\n");
+> -		status =3D -ENOMEM;
+> -		goto err;
 > -	}
->  	return &pdev->dev;
-> +
-> +put_device:
-> +	platform_device_put(pdev);
-> +	dev_err(&twl->client->dev, "failed to add device %s\n", name);
-> +	return ERR_PTR(status);
->  }
+> +	if (!pdev)
+> +		return ERR_PTR(-ENOMEM);
 > =20
->  static inline struct device *add_child(unsigned mod_no, const char *=
-name,
+>  	device_init_wakeup(&pdev->dev, can_wakeup);
+>  	pdev->dev.parent =3D &client->dev;
 
 --=20
 Lee Jones
 Linaro STMicroelectronics Landing Team Lead
 Linaro.org =E2=94=82 Open source software for ARM SoCs
 =46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe kernel-janito=
-rs" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
