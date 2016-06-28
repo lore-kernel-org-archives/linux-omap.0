@@ -1,161 +1,35 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH v3 01/10] mfd: tps65218: Remove redundant read wrapper
-Date: Tue, 28 Jun 2016 12:31:56 +0530
-Message-ID: <577220E4.9060708@ti.com>
-References: <1467093980-11458-1-git-send-email-j-keerthy@ti.com>
- <1467093980-11458-2-git-send-email-j-keerthy@ti.com>
- <20160628070055.GF6720@dell>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RESEND PATCHv2 06/28] ARM: OMAP2+: hwmod: fetch main_clk based
+ on hwmod name
+Date: Tue, 28 Jun 2016 00:03:54 -0700
+Message-ID: <20160628070354.GE28140@atomide.com>
+References: <1465844702-12200-1-git-send-email-t-kristo@ti.com>
+ <1465844702-12200-7-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20160628070055.GF6720@dell>
-Sender: linux-input-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>, Keerthy <j-keerthy@ti.com>
-Cc: dmitry.torokhov@gmail.com, linus.walleij@linaro.org, gnurou@gmail.com, broonie@kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-gpio@vger.kernel.org, linux-input@vger.kernel.org, robh+dt@kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1465844702-12200-7-git-send-email-t-kristo@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+* Tero Kristo <t-kristo@ti.com> [160613 12:07]:
+> With the transition to hwmod module clocks, all hwmods will have
+> their main clocks named <hwmod_name>_mod_ck. Use this info to
+> fetch main_clk, and use it if found.
+> 
+> Also, if a main_clk is found based on the hwmod name, disable
+> the direct PRCM modulemode access from hwmod.
 
+Makes sense, otherwise unknown number of things will break before
+we have the clock phandles available in the dts files for these:
 
-On Tuesday 28 June 2016 12:30 PM, Lee Jones wrote:
-> On Tue, 28 Jun 2016, Keerthy wrote:
->
->> Currently read directly calls the repmap read function. Hence
->> remove the redundant wrapper and use regmap read wherever
->> needed.
->>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->> ---
->>
->> Changes in v3:
->>
->>    * Cleaned up tps65218-pwrbutton and gpio drivers to remove
->>      tps65218_reg_read instances.
->>
->>   drivers/gpio/gpio-tps65218.c            |  3 ++-
->>   drivers/input/misc/tps65218-pwrbutton.c |  3 ++-
->>   drivers/mfd/tps65218.c                  | 16 +---------------
->>   drivers/regulator/tps65218-regulator.c  |  3 ++-
->>   include/linux/mfd/tps65218.h            |  2 --
->>   5 files changed, 7 insertions(+), 20 deletions(-)
->
-> I like the idea.  So, as long as the patch is properly build tested:
->
-> For the MFD part:
->    Acked-by: Lee Jones <lee.jones@linaro.org>
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-I will do the testing again. Post a v4. With all the suggested changes. 
-Thanks for the review.
+Or let me know if you want me to queue this separately.
 
->
->> diff --git a/drivers/gpio/gpio-tps65218.c b/drivers/gpio/gpio-tps65218.c
->> index 0eaeac8..0f9d9bd 100644
->> --- a/drivers/gpio/gpio-tps65218.c
->> +++ b/drivers/gpio/gpio-tps65218.c
->> @@ -16,6 +16,7 @@
->>   #include <linux/errno.h>
->>   #include <linux/gpio/driver.h>
->>   #include <linux/platform_device.h>
->> +#include <linux/regmap.h>
->>   #include <linux/mfd/tps65218.h>
->>
->>   struct tps65218_gpio {
->> @@ -30,7 +31,7 @@ static int tps65218_gpio_get(struct gpio_chip *gc, unsigned offset)
->>   	unsigned int val;
->>   	int ret;
->>
->> -	ret = tps65218_reg_read(tps65218, TPS65218_REG_ENABLE2, &val);
->> +	ret = regmap_read(tps65218->regmap, TPS65218_REG_ENABLE2, &val);
->>   	if (ret)
->>   		return ret;
->>
->> diff --git a/drivers/input/misc/tps65218-pwrbutton.c b/drivers/input/misc/tps65218-pwrbutton.c
->> index a39b626..2bba8de 100644
->> --- a/drivers/input/misc/tps65218-pwrbutton.c
->> +++ b/drivers/input/misc/tps65218-pwrbutton.c
->> @@ -22,6 +22,7 @@
->>   #include <linux/module.h>
->>   #include <linux/of.h>
->>   #include <linux/platform_device.h>
->> +#include <linux/regmap.h>
->>   #include <linux/slab.h>
->>
->>   struct tps65218_pwrbutton {
->> @@ -36,7 +37,7 @@ static irqreturn_t tps65218_pwr_irq(int irq, void *_pwr)
->>   	unsigned int reg;
->>   	int error;
->>
->> -	error = tps65218_reg_read(pwr->tps, TPS65218_REG_STATUS, &reg);
->> +	error = regmap_read(pwr->tps->regmap, TPS65218_REG_STATUS, &reg);
->>   	if (error) {
->>   		dev_err(pwr->dev, "can't read register: %d\n", error);
->>   		goto out;
->> diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
->> index 80b9dc3..f20a531 100644
->> --- a/drivers/mfd/tps65218.c
->> +++ b/drivers/mfd/tps65218.c
->> @@ -34,20 +34,6 @@
->>   #define TPS65218_PASSWORD_REGS_UNLOCK   0x7D
->>
->>   /**
->> - * tps65218_reg_read: Read a single tps65218 register.
->> - *
->> - * @tps: Device to read from.
->> - * @reg: Register to read.
->> - * @val: Contians the value
->> - */
->> -int tps65218_reg_read(struct tps65218 *tps, unsigned int reg,
->> -			unsigned int *val)
->> -{
->> -	return regmap_read(tps->regmap, reg, val);
->> -}
->> -EXPORT_SYMBOL_GPL(tps65218_reg_read);
->> -
->> -/**
->>    * tps65218_reg_write: Write a single tps65218 register.
->>    *
->>    * @tps65218: Device to write to.
->> @@ -93,7 +79,7 @@ static int tps65218_update_bits(struct tps65218 *tps, unsigned int reg,
->>   	int ret;
->>   	unsigned int data;
->>
->> -	ret = tps65218_reg_read(tps, reg, &data);
->> +	ret = regmap_read(tps->regmap, reg, &data);
->>   	if (ret) {
->>   		dev_err(tps->dev, "Read from reg 0x%x failed\n", reg);
->>   		return ret;
->> diff --git a/drivers/regulator/tps65218-regulator.c b/drivers/regulator/tps65218-regulator.c
->> index a5e5634..679ab2f 100644
->> --- a/drivers/regulator/tps65218-regulator.c
->> +++ b/drivers/regulator/tps65218-regulator.c
->> @@ -22,6 +22,7 @@
->>   #include <linux/err.h>
->>   #include <linux/platform_device.h>
->>   #include <linux/of_device.h>
->> +#include <linux/regmap.h>
->>   #include <linux/regulator/of_regulator.h>
->>   #include <linux/regulator/driver.h>
->>   #include <linux/regulator/machine.h>
->> @@ -224,7 +225,7 @@ static int tps65218_pmic_get_current_limit(struct regulator_dev *dev)
->>   	unsigned int index;
->>   	struct tps65218 *tps = rdev_get_drvdata(dev);
->>
->> -	retval = tps65218_reg_read(tps, dev->desc->csel_reg, &index);
->> +	retval = regmap_read(tps->regmap, dev->desc->csel_reg, &index);
->>   	if (retval < 0)
->>   		return retval;
->>
->> diff --git a/include/linux/mfd/tps65218.h b/include/linux/mfd/tps65218.h
->> index d58f3b5..7c9241f 100644
->> --- a/include/linux/mfd/tps65218.h
->> +++ b/include/linux/mfd/tps65218.h
->> @@ -276,8 +276,6 @@ struct tps65218 {
->>   	struct regmap *regmap;
->>   };
->>
->> -int tps65218_reg_read(struct tps65218 *tps, unsigned int reg,
->> -					unsigned int *val);
->>   int tps65218_reg_write(struct tps65218 *tps, unsigned int reg,
->>   			unsigned int val, unsigned int level);
->>   int tps65218_set_bits(struct tps65218 *tps, unsigned int reg,
->
+Regards,
+
+Tony
