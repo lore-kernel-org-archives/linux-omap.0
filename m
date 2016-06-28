@@ -1,139 +1,68 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v4 2/6] Documentation: regulator: tps65218: Update examples
-Date: Tue, 28 Jun 2016 14:52:05 +0530
-Message-ID: <1467105729-28249-3-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH v4 5/6] mfd: tps65218: Use mfd_add_devices instead of of_platform_populate
+Date: Tue, 28 Jun 2016 14:52:08 +0530
+Message-ID: <1467105729-28249-6-git-send-email-j-keerthy@ti.com>
 References: <1467105729-28249-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-gpio-owner@vger.kernel.org>
 In-Reply-To: <1467105729-28249-1-git-send-email-j-keerthy@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-gpio-owner@vger.kernel.org
 To: dmitry.torokhov@gmail.com, linus.walleij@linaro.org, gnurou@gmail.com, lee.jones@linaro.org, broonie@kernel.org, tony@atomide.com
-Cc: devicetree@vger.kernel.org, j-keerthy@ti.com, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, robh+dt@kernel.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-gpio@vger.kernel.org, linux-input@vger.kernel.org, robh+dt@kernel.org, linux-arm-kernel@lists.infradead.org, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-This updates the Device Tree according to the preferred way of parsing
-the nodes using the regulator framework.
+mfd_add_devices enables parsing device tree nodes without compatibles
+for regulators and gpio modules. Replace of_platform_populate with
+mfd_add_devices. mfd_cell currently is populated with regulators,
+gpio and powerbutton.
 
-Acked-by: Rob Herring <robh@kernel.org>
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
 
 Changes in v4:
 
-  * Formatted and corrected typos in few lines.
-  * Used relative path names for the file names.
+  * Regrouped the mfd cells better.
 
- .../devicetree/bindings/regulator/tps65218.txt     | 87 ++++++++++++++++++----
- 1 file changed, 71 insertions(+), 16 deletions(-)
+ drivers/mfd/tps65218.c | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/regulator/tps65218.txt b/Documentation/devicetree/bindings/regulator/tps65218.txt
-index fccc1d2..9a6d024 100644
---- a/Documentation/devicetree/bindings/regulator/tps65218.txt
-+++ b/Documentation/devicetree/bindings/regulator/tps65218.txt
-@@ -1,23 +1,78 @@
- TPS65218 family of regulators
+diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
+index f20a531..f13c8d9 100644
+--- a/drivers/mfd/tps65218.c
++++ b/drivers/mfd/tps65218.c
+@@ -33,6 +33,18 @@
  
- Required properties:
--For tps65218 regulators/LDOs
--- compatible:
--  - "ti,tps65218-dcdc1" for DCDC1
--  - "ti,tps65218-dcdc2" for DCDC2
--  - "ti,tps65218-dcdc3" for DCDC3
--  - "ti,tps65218-dcdc4" for DCDC4
--  - "ti,tps65218-dcdc5" for DCDC5
--  - "ti,tps65218-dcdc6" for DCDC6
--  - "ti,tps65218-ldo1" for LDO1
--
--Optional properties:
--- Any optional property defined in bindings/regulator/regulator.txt
-+- compatible: "ti,tps65218"
-+- reg: I2C slave address
-+
-+- List of regulators provided by this controller, must be named
-+  after their hardware counterparts: dcdc[1-6] and ldo1
-+- This is the list of child nodes that specify the regulator
-+  initialization data for defined regulators. Not all regulators for the given
-+  device need to be present. The definition for each of these nodes is defined
-+  using the standard binding for regulators found at ./regulator.txt.
-+
-+  The valid names for regulators are:
-+  tps65217: regulator-dcdc1, regulator-dcdc2, regulator-dcdc3, regulator-dcdc4,
-+  regulator-dcdc5, regulator-dcdc6, regulator-ldo1, regulator-ls3.
-+  Each regulator is defined using the standard binding for regulators.
+ #define TPS65218_PASSWORD_REGS_UNLOCK   0x7D
  
- Example:
-+tps65218: tps65218@24 {
-+	reg = <0x24>;
-+	compatible = "ti,tps65218";
-+	interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* NMIn */
-+	interrupt-controller;
-+	#interrupt-cells = <2>;
-+
-+	dcdc1: regulator-dcdc1 {
-+		regulator-name = "vdd_core";
-+		regulator-min-microvolt = <912000>;
-+		regulator-max-microvolt = <1144000>;
-+		regulator-boot-on;
-+		regulator-always-on;
-+	};
-+
-+	dcdc2: regulator-dcdc2 {
-+		regulator-name = "vdd_mpu";
-+		regulator-min-microvolt = <912000>;
-+		regulator-max-microvolt = <1378000>;
-+		regulator-boot-on;
-+		regulator-always-on;
-+	};
-+
-+	dcdc3: regulator-dcdc3 {
-+		regulator-name = "vdcdc3";
-+		regulator-min-microvolt = <1500000>;
-+		regulator-max-microvolt = <1500000>;
-+		regulator-boot-on;
-+		regulator-always-on;
-+	};
-+
-+	dcdc5: regulator-dcdc5 {
-+		regulator-name = "v1_0bat";
-+		regulator-min-microvolt = <1000000>;
-+		regulator-max-microvolt = <1000000>;
-+		regulator-boot-on;
-+		regulator-always-on;
-+	};
-+
-+	dcdc6: regulator-dcdc6 {
-+		regulator-name = "v1_8bat";
-+		regulator-min-microvolt = <1800000>;
-+		regulator-max-microvolt = <1800000>;
-+		regulator-boot-on;
-+		regulator-always-on;
-+	};
-+
-+	ldo1: regulator-ldo1 {
-+		regulator-min-microvolt = <1800000>;
-+		regulator-max-microvolt = <1800000>;
-+		regulator-boot-on;
-+		regulator-always-on;
-+	};
- 
--	xyz: regulator@0 {
--		compatible = "ti,tps65218-dcdc1";
--		regulator-min-microvolt  = <1000000>;
--		regulator-max-microvolt  = <3000000>;
-+	ls3: regulator-ls3 {
-+		regulator-min-microvolt = <100000>;
-+		regulator-max-microvolt = <1000000>;
- 	};
++static const struct mfd_cell tps65218_cells[] = {
++	{
++		.name = "tps65218-pwrbutton",
++		.of_compatible = "ti,tps65218-pwrbutton",
++	},
++	{
++		.name = "tps65218-gpio",
++		.of_compatible = "ti,tps65218-gpio",
++	},
++	{ .name = "tps65218-regulator", },
 +};
++
+ /**
+  * tps65218_reg_write: Write a single tps65218 register.
+  *
+@@ -236,8 +248,10 @@ static int tps65218_probe(struct i2c_client *client,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = of_platform_populate(client->dev.of_node, NULL, NULL,
+-				   &client->dev);
++	ret = mfd_add_devices(tps->dev, PLATFORM_DEVID_AUTO, tps65218_cells,
++			      ARRAY_SIZE(tps65218_cells), NULL, 0,
++			      regmap_irq_get_domain(tps->irq_data));
++
+ 	if (ret < 0)
+ 		goto err_irq;
+ 
 -- 
 1.9.1
+
