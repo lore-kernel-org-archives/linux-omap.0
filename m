@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v3 06/10] gpio: tps65218: Remove the compatible
-Date: Tue, 28 Jun 2016 11:36:16 +0530
-Message-ID: <1467093980-11458-7-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH v3 09/10] ARM: dts: AM437X-CM-T43: Remove redundant regulator compatibles
+Date: Tue, 28 Jun 2016 11:36:19 +0530
+Message-ID: <1467093980-11458-10-git-send-email-j-keerthy@ti.com>
 References: <1467093980-11458-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,43 +12,66 @@ To: dmitry.torokhov@gmail.com, linus.walleij@linaro.org, gnurou@gmail.com, lee.j
 Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-gpio@vger.kernel.org, linux-input@vger.kernel.org, robh+dt@kernel.org, linux-arm-kernel@lists.infradead.org, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Remove the individual compatible for the gpio module.
-Introduce id_table and update the driver accordingly
-to parse device tree nodes by just using the mfd compatible.
+With the device tree parsing using the regulator framework
+there is a no longer a need for separate compatibles for
+individual regulator nodes. Hence removing them all.
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
- drivers/gpio/gpio-tps65218.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/arm/boot/dts/am437x-cm-t43.dts | 6 ------
+ 1 file changed, 6 deletions(-)
 
-diff --git a/drivers/gpio/gpio-tps65218.c b/drivers/gpio/gpio-tps65218.c
-index 0f9d9bd..06fd61f 100644
---- a/drivers/gpio/gpio-tps65218.c
-+++ b/drivers/gpio/gpio-tps65218.c
-@@ -225,19 +225,19 @@ static int tps65218_gpio_remove(struct platform_device *pdev)
- 	return 0;
- }
+diff --git a/arch/arm/boot/dts/am437x-cm-t43.dts b/arch/arm/boot/dts/am437x-cm-t43.dts
+index 9551c47..9e92d48 100644
+--- a/arch/arm/boot/dts/am437x-cm-t43.dts
++++ b/arch/arm/boot/dts/am437x-cm-t43.dts
+@@ -209,7 +209,6 @@
+ 		#interrupt-cells = <2>;
  
--static const struct of_device_id tps65218_dt_match[] = {
--	{ .compatible = "ti,tps65218-gpio" },
--	{  }
-+static const struct platform_device_id tps65218_gpio_id_table[] = {
-+	{ "tps65218-gpio", },
-+	{ /* sentinel */ }
- };
--MODULE_DEVICE_TABLE(of, tps65218_dt_match);
-+MODULE_DEVICE_TABLE(platform, tps65218_gpio_id_table);
+ 		dcdc1: regulator-dcdc1 {
+-			compatible = "ti,tps65218-dcdc1";
+ 			regulator-name = "vdd_core";
+ 			regulator-min-microvolt = <912000>;
+ 			regulator-max-microvolt = <1144000>;
+@@ -218,7 +217,6 @@
+ 		};
  
- static struct platform_driver tps65218_gpio_driver = {
- 	.driver = {
- 		.name = "tps65218-gpio",
--		.of_match_table = of_match_ptr(tps65218_dt_match)
- 	},
- 	.probe = tps65218_gpio_probe,
- 	.remove = tps65218_gpio_remove,
-+	.id_table = tps65218_gpio_id_table,
- };
+ 		dcdc2: regulator-dcdc2 {
+-			compatible = "ti,tps65218-dcdc2";
+ 			regulator-name = "vdd_mpu";
+ 			regulator-min-microvolt = <912000>;
+ 			regulator-max-microvolt = <1378000>;
+@@ -227,7 +225,6 @@
+ 		};
  
- module_platform_driver(tps65218_gpio_driver);
+ 		dcdc3: regulator-dcdc3 {
+-			compatible = "ti,tps65218-dcdc3";
+ 			regulator-name = "vdcdc3";
+ 			regulator-suspend-enable;
+ 			regulator-min-microvolt = <1500000>;
+@@ -237,7 +234,6 @@
+ 		};
+ 
+ 		dcdc5: regulator-dcdc5 {
+-			compatible = "ti,tps65218-dcdc5";
+ 			regulator-name = "v1_0bat";
+ 			regulator-min-microvolt = <1000000>;
+ 			regulator-max-microvolt = <1000000>;
+@@ -246,7 +242,6 @@
+ 		};
+ 
+ 		dcdc6: regulator-dcdc6 {
+-			compatible = "ti,tps65218-dcdc6";
+ 			regulator-name = "v1_8bat";
+ 			regulator-min-microvolt = <1800000>;
+ 			regulator-max-microvolt = <1800000>;
+@@ -255,7 +250,6 @@
+ 		};
+ 
+ 		ldo1: regulator-ldo1 {
+-			compatible = "ti,tps65218-ldo1";
+ 			regulator-min-microvolt = <1800000>;
+ 			regulator-max-microvolt = <1800000>;
+ 			regulator-boot-on;
 -- 
 1.9.1
