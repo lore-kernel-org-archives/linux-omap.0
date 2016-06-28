@@ -1,84 +1,54 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v3 10/10] ARM: dts: AM43X-EPOS-EVM: Remove redundant regulator compatibles
-Date: Tue, 28 Jun 2016 11:36:20 +0530
-Message-ID: <1467093980-11458-11-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH v3 06/10] gpio: tps65218: Remove the compatible
+Date: Tue, 28 Jun 2016 11:36:16 +0530
+Message-ID: <1467093980-11458-7-git-send-email-j-keerthy@ti.com>
 References: <1467093980-11458-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-input-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1467093980-11458-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-input-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: dmitry.torokhov@gmail.com, linus.walleij@linaro.org, gnurou@gmail.com, lee.jones@linaro.org, broonie@kernel.org, tony@atomide.com
 Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-gpio@vger.kernel.org, linux-input@vger.kernel.org, robh+dt@kernel.org, linux-arm-kernel@lists.infradead.org, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-With the device tree parsing using the regulator framework
-there is a no longer a need for separate compatibles for
-individual regulator nodes. Hence removing them all.
+Remove the individual compatible for the gpio module.
+Introduce id_table and update the driver accordingly
+to parse device tree nodes by just using the mfd compatible.
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
- arch/arm/boot/dts/am43x-epos-evm.dts | 7 -------
- 1 file changed, 7 deletions(-)
+ drivers/gpio/gpio-tps65218.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 3549b8c..6a2eecd 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -421,7 +421,6 @@
- 		#interrupt-cells = <2>;
+diff --git a/drivers/gpio/gpio-tps65218.c b/drivers/gpio/gpio-tps65218.c
+index 0f9d9bd..06fd61f 100644
+--- a/drivers/gpio/gpio-tps65218.c
++++ b/drivers/gpio/gpio-tps65218.c
+@@ -225,19 +225,19 @@ static int tps65218_gpio_remove(struct platform_device *pdev)
+ 	return 0;
+ }
  
- 		dcdc1: regulator-dcdc1 {
--			compatible = "ti,tps65218-dcdc1";
- 			regulator-name = "vdd_core";
- 			regulator-min-microvolt = <912000>;
- 			regulator-max-microvolt = <1144000>;
-@@ -430,7 +429,6 @@
- 		};
+-static const struct of_device_id tps65218_dt_match[] = {
+-	{ .compatible = "ti,tps65218-gpio" },
+-	{  }
++static const struct platform_device_id tps65218_gpio_id_table[] = {
++	{ "tps65218-gpio", },
++	{ /* sentinel */ }
+ };
+-MODULE_DEVICE_TABLE(of, tps65218_dt_match);
++MODULE_DEVICE_TABLE(platform, tps65218_gpio_id_table);
  
- 		dcdc2: regulator-dcdc2 {
--			compatible = "ti,tps65218-dcdc2";
- 			regulator-name = "vdd_mpu";
- 			regulator-min-microvolt = <912000>;
- 			regulator-max-microvolt = <1378000>;
-@@ -439,7 +437,6 @@
- 		};
+ static struct platform_driver tps65218_gpio_driver = {
+ 	.driver = {
+ 		.name = "tps65218-gpio",
+-		.of_match_table = of_match_ptr(tps65218_dt_match)
+ 	},
+ 	.probe = tps65218_gpio_probe,
+ 	.remove = tps65218_gpio_remove,
++	.id_table = tps65218_gpio_id_table,
+ };
  
- 		dcdc3: regulator-dcdc3 {
--			compatible = "ti,tps65218-dcdc3";
- 			regulator-name = "vdcdc3";
- 			regulator-min-microvolt = <1500000>;
- 			regulator-max-microvolt = <1500000>;
-@@ -448,7 +445,6 @@
- 		};
- 
- 		dcdc4: regulator-dcdc4 {
--			compatible = "ti,tps65218-dcdc4";
- 			regulator-name = "vdcdc4";
- 			regulator-min-microvolt = <3300000>;
- 			regulator-max-microvolt = <3300000>;
-@@ -457,21 +453,18 @@
- 		};
- 
- 		dcdc5: regulator-dcdc5 {
--			compatible = "ti,tps65218-dcdc5";
- 			regulator-name = "v1_0bat";
- 			regulator-min-microvolt = <1000000>;
- 			regulator-max-microvolt = <1000000>;
- 		};
- 
- 		dcdc6: regulator-dcdc6 {
--			compatible = "ti,tps65218-dcdc6";
- 			regulator-name = "v1_8bat";
- 			regulator-min-microvolt = <1800000>;
- 			regulator-max-microvolt = <1800000>;
- 		};
- 
- 		ldo1: regulator-ldo1 {
--			compatible = "ti,tps65218-ldo1";
- 			regulator-min-microvolt = <1800000>;
- 			regulator-max-microvolt = <1800000>;
- 			regulator-boot-on;
+ module_platform_driver(tps65218_gpio_driver);
 -- 
 1.9.1
-
