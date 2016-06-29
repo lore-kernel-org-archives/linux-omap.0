@@ -1,35 +1,53 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v6 4/6] gpio: tps65218-gpio: Add platform_device_id table
-Date: Wed, 29 Jun 2016 10:56:21 +0200
-Message-ID: <CACRpkdb=jz-=K-itevZtvPtHF05pKdhkSp1USaf5LzQWaxckJw@mail.gmail.com>
-References: <1467117054-12943-1-git-send-email-j-keerthy@ti.com> <1467117054-12943-5-git-send-email-j-keerthy@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [RESEND PATCHv2 03/28] ARM: OMAP2+: omap_device: create clock
+ alias purely from DT data
+Date: Wed, 29 Jun 2016 12:00:51 +0300
+Message-ID: <57738E43.6060706@ti.com>
+References: <1465844702-12200-1-git-send-email-t-kristo@ti.com>
+ <1465844702-12200-4-git-send-email-t-kristo@ti.com>
+ <20160628070011.GD28140@atomide.com> <577373F0.5080700@ti.com>
+ <5773745A.6020307@ti.com> <20160629075446.GK28140@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1467117054-12943-5-git-send-email-j-keerthy@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Lee Jones <lee.jones@linaro.org>, Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux Input <linux-input@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <20160629075446.GK28140@atomide.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jun 28, 2016 at 2:30 PM, Keerthy <j-keerthy@ti.com> wrote:
-
-> platform_device_id table is needed for adding the tps65218-gpio
-> module to the mfd_cell array.
+On 29/06/16 10:54, Tony Lindgren wrote:
+> * Tero Kristo <t-kristo@ti.com> [160629 00:13]:
+>> On 29/06/16 10:08, Tero Kristo wrote:
+>>> On 28/06/16 10:00, Tony Lindgren wrote:
+>>>> * Tero Kristo <t-kristo@ti.com> [160613 12:07]:
+>>>>> This avoids the need to add most of the clock aliases under
+>>>>> drivers/clk/ti/clk-xyz.c files.
+>>>>
+>>>> This is a nice improvment, probably best to queu this along
+>>>> with the rest of the series via the clock tree:
+>>>>
+>>>> Acked-by: Tony Lindgren <tony@atomide.com>
+>>>>
+>>>> Or please let me know if you want me to pick this separately.
+>>>>
+>>>> Regards,
+>>>>
+>>>> Tony
+>>>>
+>>>
+>>> Patches #3, #6, #7, #8 you can pick up separately (but you will have
+>>> some conflicts due to missing ti_clk_get implementation.) These patches
+>>> are required for this series to work properly though.
+>>
+>> And patch #9 you can pick up also obviously...
 >
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
->
-> Changes in v4:
->
->   * Retained the compatible strings in order to interrogate the DT in the
->     normal way.
+> OK can you please repost the ones I can pick for v4.8 merge window
+> to get them out of the way? There were some merge conflicts against
+> Linux next when I tried to apply them for testing yesterday.
 
-So do I just apply this or do you need it applied through another tree?
+Yeah, I can repost these separately once I split up the series.
 
-It looks standalone, should I just merge it?
+-Tero
 
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
-
-Yours,
-Linus Walleij
