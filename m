@@ -1,70 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RESEND PATCHv2 04/28] ARM: OMAP2+: hwmod: use new ti_clk_get
- API to search for clock handles
-Date: Wed, 29 Jun 2016 00:01:50 -0700
-Message-ID: <20160629070149.GI28140@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [RESEND PATCHv2 03/28] ARM: OMAP2+: omap_device: create clock
+ alias purely from DT data
+Date: Wed, 29 Jun 2016 10:08:32 +0300
+Message-ID: <577373F0.5080700@ti.com>
 References: <1465844702-12200-1-git-send-email-t-kristo@ti.com>
- <1465844702-12200-5-git-send-email-t-kristo@ti.com>
- <20160628065712.GC28140@atomide.com>
- <577367CB.6090703@ti.com>
+ <1465844702-12200-4-git-send-email-t-kristo@ti.com>
+ <20160628070011.GD28140@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-clk-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <577367CB.6090703@ti.com>
+In-Reply-To: <20160628070011.GD28140@atomide.com>
 Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [160628 23:19]:
-> On 28/06/16 09:57, Tony Lindgren wrote:
-> > Hi,
-> > 
-> > * Tero Kristo <t-kristo@ti.com> [160613 12:07]:
-> > > The new API avoids the need to add clock aliases for most of the clocks,
-> > > should use of it is preferred. Many of the existing clock aliases are
-> > > only created because of hwmod data.
-> > > 
-> > > Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> > > ---
-> > >   arch/arm/mach-omap2/omap_hwmod.c | 6 +++---
-> > >   1 file changed, 3 insertions(+), 3 deletions(-)
-> > > 
-> > > diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> > > index 83cb527..0ea869c 100644
-> > > --- a/arch/arm/mach-omap2/omap_hwmod.c
-> > > +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> > > @@ -786,7 +786,7 @@ static int _init_main_clk(struct omap_hwmod *oh)
-> > >   	if (!oh->main_clk)
-> > >   		return 0;
-> > > 
-> > > -	oh->_clk = clk_get(NULL, oh->main_clk);
-> > > +	oh->_clk = ti_clk_get(oh->main_clk);
-> > >   	if (IS_ERR(oh->_clk)) {
-> > >   		pr_warn("omap_hwmod: %s: cannot clk_get main_clk %s\n",
-> > >   			oh->name, oh->main_clk);
-> > 
-> > After thinking about this for a while I think code outside TI specific
-> > clock implementation should use just clk_get(). Otherwise we create more
-> > dependencies to move code to live under drivers subdirectory.
-> > 
-> > Can't we have clk_get() call a SoC specific helper function if clock
-> > is not found?
-> 
-> That is for Mike / Stephen to answer. Implementing something like this
-> sounds trivial, I could just hook up the ti_clk_get being called here.
-> However, any attempted changes to the clkdev implementation have been shot
-> down so far, thus I did this.
+On 28/06/16 10:00, Tony Lindgren wrote:
+> * Tero Kristo <t-kristo@ti.com> [160613 12:07]:
+>> This avoids the need to add most of the clock aliases under
+>> drivers/clk/ti/clk-xyz.c files.
+>
+> This is a nice improvment, probably best to queu this along
+> with the rest of the series via the clock tree:
+>
+> Acked-by: Tony Lindgren <tony@atomide.com>
+>
+> Or please let me know if you want me to pick this separately.
+>
+> Regards,
+>
+> Tony
+>
 
-Probably best to send a minimal patch for that for review. We want to
-have the clock framework consumers using the standard interface.
+Patches #3, #6, #7, #8 you can pick up separately (but you will have 
+some conflicts due to missing ti_clk_get implementation.) These patches 
+are required for this series to work properly though.
 
-> The problem is still the clocks which are just referred via a name only, not
-> via a DT node.
+If we want to re-work the clk_get / ti_clk_get implementation, we should 
+probably postpone it to 4.8, and that would push this series forward 
+also. In that case, you can pick up the above patches for merge 
+yourself, and we would handle the rest separately.
 
-OK
-
-Regards,
-
-Tony
+-Tero
