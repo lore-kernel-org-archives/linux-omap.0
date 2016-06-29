@@ -1,53 +1,46 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v4 0/3]  mfd: lp873x: Add lp873x PMIC support
-Date: Wed, 29 Jun 2016 15:00:01 +0530
-Message-ID: <1467192604-29149-1-git-send-email-j-keerthy@ti.com>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH v6 4/6] gpio: tps65218-gpio: Add platform_device_id table
+Date: Wed, 29 Jun 2016 15:02:50 +0530
+Message-ID: <577395C2.5050807@ti.com>
+References: <1467117054-12943-1-git-send-email-j-keerthy@ti.com>
+ <1467117054-12943-5-git-send-email-j-keerthy@ti.com>
+ <CACRpkdb=jz-=K-itevZtvPtHF05pKdhkSp1USaf5LzQWaxckJw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linus.walleij@linaro.org, gnurou@gmail.com, lee.jones@linaro.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-gpio@vger.kernel.org, broonie@kernel.org, robh+dt@kernel.org, j-keerthy@ti.com, tony@atomide.com
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <CACRpkdb=jz-=K-itevZtvPtHF05pKdhkSp1USaf5LzQWaxckJw@mail.gmail.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, Keerthy <j-keerthy@ti.com>, Lee Jones <lee.jones@linaro.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux Input <linux-input@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-The LP873X chip is a power management IC for Portable Navigation Systems
-    and Tablet Computing devices. It contains the following components:
 
-     - Regulators.
-     - Configurable General Purpose Output Signals(GPO).
 
-PMIC interacts with the main processor through i2c. PMIC has
-couple of LDOs(Linear Regulators), couple of BUCKs (Step-Down DC-DC
-Converter Cores) and GPOs(General Purpose Output Signals).
+On Wednesday 29 June 2016 02:26 PM, Linus Walleij wrote:
+> On Tue, Jun 28, 2016 at 2:30 PM, Keerthy <j-keerthy@ti.com> wrote:
+>
+>> platform_device_id table is needed for adding the tps65218-gpio
+>> module to the mfd_cell array.
+>>
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> ---
+>>
+>> Changes in v4:
+>>
+>>    * Retained the compatible strings in order to interrogate the DT in the
+>>      normal way.
+>
+> So do I just apply this or do you need it applied through another tree?
+>
+> It looks standalone, should I just merge it?
+>
+> Acked-by: Linus Walleij <linus.walleij@linaro.org>
 
-The regulator patch is already queued:
-http://marc.info/?l=linux-kernel&m=146298767110771&w=2
+Thanks Linus. I guess this can be merged by you. Is that fine Lee Jones?
 
-Hence posting the remaining patches of the series with
-the comments fixed on mfd driver.
 
-Chnages in v4:
-
-Added GPO driver support. 
-
-Keerthy (3):
-  Documentation: mfd: LP873X: Add information for the mfd driver
-  mfd: lp873x: Add lp873x PMIC support
-  gpio: lp873x: Add support for General Purpose Outputs
-
- Documentation/devicetree/bindings/mfd/lp873x.txt |  59 +++++
- drivers/gpio/Kconfig                             |  10 +
- drivers/gpio/Makefile                            |   1 +
- drivers/gpio/gpio-lp873x.c                       | 188 ++++++++++++++++
- drivers/mfd/Kconfig                              |  14 ++
- drivers/mfd/Makefile                             |   2 +
- drivers/mfd/lp873x.c                             |  99 +++++++++
- include/linux/mfd/lp873x.h                       | 264 +++++++++++++++++++++++
- 8 files changed, 637 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/mfd/lp873x.txt
- create mode 100644 drivers/gpio/gpio-lp873x.c
- create mode 100644 drivers/mfd/lp873x.c
- create mode 100644 include/linux/mfd/lp873x.h
-
--- 
-1.9.1
+>
+> Yours,
+> Linus Walleij
+>
