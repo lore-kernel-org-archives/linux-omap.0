@@ -1,55 +1,25 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: Extcon build failure in next
-Date: Thu, 30 Jun 2016 14:05:10 +0200
-Message-ID: <124460021.HZdfr0AOY2@wuerfel>
-References: <20160630053705.GM28140@atomide.com> <3746939.q8kt0ym6m3@wuerfel>
- <20160630114911.GO28140@atomide.com>
+From: Jani Nikula <jani.nikula@linux.intel.com>
+Subject: Re: [PATCH] backlight: Avoid double fbcon backlight handling
+Date: Thu, 30 Jun 2016 15:03:37 +0300
+Message-ID: <8737nurihy.fsf@intel.com>
+References: <1467286256-8870-1-git-send-email-chris@chris-wilson.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160630114911.GO28140@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-renesas-soc-owner@vger.kernel.org>
+In-Reply-To: <1467286256-8870-1-git-send-email-chris@chris-wilson.co.uk>
+Sender: linux-renesas-soc-owner@vger.kernel.org
+To: intel-gfx@lists.freedesktop.org
+Cc: Chris Wilson <chris@chris-wilson.co.uk>, Imre Deak <imre.deak@intel.com>, Zhang Rui <rui.zhang@intel.com>, Alex Deucher <alexander.deucher@amd.com>, Christian =?utf-8?Q?K=C3=B6nig?= <christian.koenig@amd.com>, David Airlie <airlied@linux.ie>, Patrik Jakobsson <patrik.r.jakobsson@gmail.com>, Daniel Vetter <daniel.vetter@intel.com>, Ben Skeggs <bskeggs@redhat.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Bruno =?utf-8?Q?Pr=C3=A9mont?= <bonbons@linux-vserver.org>, Jiri Kosina <jikos@kernel.org>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Noralf =?utf-8?Q?Tr?= =?utf-8?Q?=C3=B8nnes?= <noralf@tronnes.org>, Jens Frederich <jfrederich@gmail.com>, Daniel Drake <dsd@laptop.org>, Jon Nettleton <jon.nettleton@gmail.com>, Jingoo Han <jingoohan1@gmail.com>, Lee Jones <lee.jones@linaro.org>, Jean-Christophe
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday, June 30, 2016 4:49:12 AM CEST Tony Lindgren wrote:
-> > > Also I'm seeing:
-> > > 
-> > > drivers/extcon/extcon.c: In function 'extcon_register_notifier':
-> > > drivers/extcon/extcon.c:455:6: warning: 'idx' may be used uninitialized in this function [-Wmaybe-uninitialized]
-> > >    if (idx >= 0) {
-> > >          ^
-> > 
-> > I don't see this one. Which compiler version do you use?
-> 
-> Looks like I'm currently using older arm-none-linux-gnueabi-gcc
-> (Sourcery CodeBench Lite 2014.05-29) 4.8.3 20140320 (prerelease).
-> I think the Debian compiler was not working few months ago and
-> I changed to something I had around.
-> 
-> Looks like the warning does not appear with arm-linux-gnueabihf-gcc
-> (Debian 6.1.1-3) 6.1.1 20160511.
+On Thu, 30 Jun 2016, Chris Wilson <chris@chris-wilson.co.uk> wrote:
+> Backlights controlled by i915.ko and only associated with its connectors
+> and also only associated with the intel_drmfb fbcon, controlled by
+> i915.ko. In this situation, we already handle adjusting the backlight
+> when the fbcon is blanked/unblanked and do not require backlight trying
+> to do the same.
 
-You are certainly not the only one using gcc-4.7 or gcc-4.8, but
-they are known to produce more false postive -Wmaybe-uninitialized
-warnings and 4.9 or higher. I usually send patches for these warnings
-when gcc-6 finds them, and I have recently sent patches for all
-the warnings I got in allmodconfig with 4.9, but have no plans to
-do that for the older compilers.
+Acked-by: Jani Nikula <jani.nikula@intel.com>
 
-I wonder whether we should just disable this warning with gcc-4.8
-by adding $(call cc-ifversion, -eq, 0408, -Wno-maybe-uninitialized)
-to the command line. However, gcc-4.7 does not let you turn off
-the warning at all, so the use of that is fairly limited.
-
-	Arnd
+-- 
+Jani Nikula, Intel Open Source Technology Center
