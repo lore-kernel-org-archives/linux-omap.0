@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 2/7] clk: ti: add clkdev get helper
-Date: Thu, 30 Jun 2016 17:13:33 +0300
-Message-ID: <1467296018-25086-3-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv3 5/7] clk: ti: am33xx: fix timer3/6 init time setup for module clocks
+Date: Thu, 30 Jun 2016 17:13:36 +0300
+Message-ID: <1467296018-25086-6-git-send-email-t-kristo@ti.com>
 References: <1467296018-25086-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,82 +12,35 @@ To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, tony@atomide.com, pau
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-TI clocks can be found based on a simple query against the clock name,
-thus add a clkdev helper functionality for this. Using this new helper
-implementation  allows getting rid of most of the DT_CLK() entries under
-drivers/clk/ti.
+timer*_fck are going to be renamed as timer*_mod_ck:s. Fix the init
+time configuration of timer3/timer6 to take this into account, and
+lookup for the module clock in case the lookup for fck fails.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/clk.c | 38 +++++++++++++++++++++++++++++++++-----
- 1 file changed, 33 insertions(+), 5 deletions(-)
+ drivers/clk/ti/clk-33xx.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-index 5fcf247..17554c3 100644
---- a/drivers/clk/ti/clk.c
-+++ b/drivers/clk/ti/clk.c
-@@ -68,6 +68,36 @@ static u32 clk_memmap_readl(void __iomem *reg)
- }
+diff --git a/drivers/clk/ti/clk-33xx.c b/drivers/clk/ti/clk-33xx.c
+index ef2ec64..c69fed5 100644
+--- a/drivers/clk/ti/clk-33xx.c
++++ b/drivers/clk/ti/clk-33xx.c
+@@ -144,9 +144,15 @@ int __init am33xx_dt_clk_init(void)
  
- /**
-+ * ti_clk_get - lookup a TI clock handle
-+ * @dev_id: device to lookup clock for
-+ * @con_id: connection ID to find
-+ *
-+ * Searches for a TI clock handle based on the DT node name.
-+ * Returns the pointer to the clock handle, or ERR_PTR in failure.
-+ */
-+static struct clk *ti_clk_get(const char *dev_id, const char *con_id)
-+{
-+	struct of_phandle_args clkspec;
-+	struct device_node *node;
-+	struct clk *clk;
+ 	clk1 = clk_get_sys(NULL, "sys_clkin_ck");
+ 	clk2 = clk_get_sys(NULL, "timer3_fck");
++	if (IS_ERR(clk2))
++		clk2 = clk_get_sys(NULL, "timer3_mod_ck");
 +
-+	/* Only check for cases of type clk_get_sys(NULL, "xyz") */
-+	if (dev_id || !con_id)
-+		return ERR_PTR(-ENOENT);
-+
-+	if (of_have_populated_dt()) {
-+		node = of_find_node_by_name(NULL, con_id);
-+		clkspec.np = node;
-+		clk = of_clk_get_from_provider(&clkspec);
-+
-+		if (!IS_ERR(clk))
-+			return clk;
-+	}
-+
-+	return ERR_PTR(-ENOENT);
-+}
-+
-+/**
-  * ti_clk_setup_ll_ops - setup low level clock operations
-  * @ops: low level clock ops descriptor
-  *
-@@ -87,6 +117,8 @@ int ti_clk_setup_ll_ops(struct ti_clk_ll_ops *ops)
- 	ops->clk_readl = clk_memmap_readl;
- 	ops->clk_writel = clk_memmap_writel;
+ 	clk_set_parent(clk2, clk1);
  
-+	clkdev_helper_register(ti_clk_get);
+ 	clk2 = clk_get_sys(NULL, "timer6_fck");
++	if (IS_ERR(clk2))
++		clk2 = clk_get_sys(NULL, "timer6_mod_ck");
 +
- 	return 0;
- }
- 
-@@ -102,14 +134,10 @@ int ti_clk_setup_ll_ops(struct ti_clk_ll_ops *ops)
- void __init ti_dt_clocks_register(struct ti_dt_clk oclks[])
- {
- 	struct ti_dt_clk *c;
--	struct device_node *node;
- 	struct clk *clk;
--	struct of_phandle_args clkspec;
- 
- 	for (c = oclks; c->node_name != NULL; c++) {
--		node = of_find_node_by_name(NULL, c->node_name);
--		clkspec.np = node;
--		clk = of_clk_get_from_provider(&clkspec);
-+		clk = ti_clk_get(NULL, c->node_name);
- 
- 		if (!IS_ERR(clk)) {
- 			c->lk.clk = clk;
+ 	clk_set_parent(clk2, clk1);
+ 	/*
+ 	 * The On-Chip 32K RC Osc clock is not an accurate clock-source as per
 -- 
 1.9.1
 
