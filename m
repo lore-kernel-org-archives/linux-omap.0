@@ -1,63 +1,55 @@
-From: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] usb: dwc3: host: Fix broken XHCI host
-Date: Thu, 30 Jun 2016 15:01:48 +0300
-Message-ID: <87shvu9977.fsf@linux.intel.com>
-References: <1467287657-7280-1-git-send-email-rogerq@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: Extcon build failure in next
+Date: Thu, 30 Jun 2016 14:05:10 +0200
+Message-ID: <124460021.HZdfr0AOY2@wuerfel>
+References: <20160630053705.GM28140@atomide.com> <3746939.q8kt0ym6m3@wuerfel>
+ <20160630114911.GO28140@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha256; protocol="application/pgp-signature"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1467287657-7280-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
-Cc: b-liu-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160630114911.GO28140@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Chanwoo Choi <cw00.choi@samsung.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+On Thursday, June 30, 2016 4:49:12 AM CEST Tony Lindgren wrote:
+> > > Also I'm seeing:
+> > > 
+> > > drivers/extcon/extcon.c: In function 'extcon_register_notifier':
+> > > drivers/extcon/extcon.c:455:6: warning: 'idx' may be used uninitialized in this function [-Wmaybe-uninitialized]
+> > >    if (idx >= 0) {
+> > >          ^
+> > 
+> > I don't see this one. Which compiler version do you use?
+> 
+> Looks like I'm currently using older arm-none-linux-gnueabi-gcc
+> (Sourcery CodeBench Lite 2014.05-29) 4.8.3 20140320 (prerelease).
+> I think the Debian compiler was not working few months ago and
+> I changed to something I had around.
+> 
+> Looks like the warning does not appear with arm-linux-gnueabihf-gcc
+> (Debian 6.1.1-3) 6.1.1 20160511.
 
+You are certainly not the only one using gcc-4.7 or gcc-4.8, but
+they are known to produce more false postive -Wmaybe-uninitialized
+warnings and 4.9 or higher. I usually send patches for these warnings
+when gcc-6 finds them, and I have recently sent patches for all
+the warnings I got in allmodconfig with 4.9, but have no plans to
+do that for the older compilers.
 
-Hi,
+I wonder whether we should just disable this warning with gcc-4.8
+by adding $(call cc-ifversion, -eq, 0408, -Wno-maybe-uninitialized)
+to the command line. However, gcc-4.7 does not let you turn off
+the warning at all, so the use of that is fairly limited.
 
-Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> writes:
-> Looks like we lost all changes related to
-> commit 9522def40065 ("usb: dwc3: core: cleanup IRQ resources") in host.c
-> when Felipe's next branch was merged into Greg's next branch.
->
-> Fixes 215db948181 ("Merge tag 'usb-for-v4.8' of git://git.kernel.org/pub/=
-scm/linux/kernel/git/balbi/usb into usb-next")
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-
-looks good to me.
-
-Acked-by: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJXdQosAAoJEIaOsuA1yqREeDIQAIqmdRhXosexbIJzPgHgl1jO
-1UkayhNnCXtPd0e3riST508lrqyEK2yndmDpdJ4tkFE3ZZGJfKIco8if2KJS6mgS
-qWaMlnMpRYqnibimt6u34mPfernTzGh6Mols9X3G5qGRoTTfkyJ5chS8z3tePwRm
-23qsODSHsda/5562mBVfjoHfJMzHcBvsnxrkGWBpLf5G7zGdZo2Bu50R5KkiiTC5
-sWWBWe5Xbq1+Cxij9Te7HUibp6FM4UOt3qyhn22VLNAvQv1Ulpn80xsueOoxrPx4
-ssMHWap+Ad6I+D1RAR02LWXkh9kXT/PBpoubWrSw9id1vlhDOdvKua6ZeQOZzg0p
-QicKId/0N9REzXDHLy4BbnoyA+d5Q1WfRzRNAuZtLaaNpXsJ7SoTiuMVTcfJOyV+
-rAhfGGP75PONfuMBvJKFJ+c7WI7BGD7eTPBpr32pVY59xhFPwWlW1pvs4pVDrwGG
-kj/zqG58qpGdefvxE/WPncIWHrIAZjdUDdouo2069pXzdEKtJGsGjdmtOGyIUrvE
-zI03rDTNcyrhOVcZsLiwwgtntr3lrmoWflEdlDi86YRXV/C9eh8UEGMWjkFPu2G/
-MBWvjaid1kb541DdrF6zyoM/GYL9XmuMBK9TZ1m6L2dhAn+9ABFf/ch5ehxZNqAW
-RdtFBYzGaB87C6x71uha
-=vfCj
------END PGP SIGNATURE-----
---=-=-=--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Arnd
