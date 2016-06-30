@@ -1,70 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: OMAP2+: Fix build with CONFIG_SMP and CONFIG_PM is not
- set
-Date: Thu, 30 Jun 2016 06:27:50 -0700
-Message-ID: <1467293270-7253-1-git-send-email-tony@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH] usb: host: Allow EHCI_OMAP to be built-in when USB_GADGET
+ is 'm'
+Date: Thu, 30 Jun 2016 16:59:27 +0300
+Message-ID: <577525BF.3060509@ti.com>
+References: <1467276056-19357-1-git-send-email-rogerq@ti.com>
+ <8760srgf00.fsf@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <8760srgf00.fsf@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@kernel.org>
+Cc: stern@rowland.harvard.edu, sre@kernel.org, peter.chen@nxp.com, tony@atomide.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-I found one more make randconfig build error with the recent
-SMP kexec changes. We need the mpuss now always available early.
+Hi Felipe,
 
-Fixes: 0573b957fc21 ("ARM: OMAP4+: Prevent CPU1 related hang
-with kexec")
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/Makefile              | 5 ++++-
- arch/arm/mach-omap2/omap-mpuss-lowpower.c | 2 +-
- 2 files changed, 5 insertions(+), 2 deletions(-)
+On 30/06/16 13:14, Felipe Balbi wrote:
+> 
+> Hi,
+> 
+> Roger Quadros <rogerq@ti.com> writes:
+>> NOP_USB_XCEIV is used not only by gadget drivers but by
+>> host drivers as well e.g. EHCI_OMAP.
+>>
+>> commit 5a8d651a2bde ("usb: gadget: move gadget API functions to udc-core")
+>> made it so that NOP_USB_XCEIV can't be built-in if USB_GADGET is 'm'.
+>> But this prevents EHCI_OMAP to be built-in if USB_GADGET is 'm'.
+>>
+>> Fix this undesired behaviour by moving usb_gadget_vbus_connect/disconnect()
+>> to usb/gadget.h so that NOP_USB_XCEIV has no build dependency
+>> on USB_GADGET.
+>>
+>> Retain the original Kconfig behaviour i.e. NOP_USB_XCEIV is selected
+>> by drivers that need it.
+> 
+> no, this is the wrong way to fix this. NOP _has_ a dependency on the
+> Gadget API if it calls Gadget API functions. Dependencies are proper.
+> 
+> Maybe the reason for the problem is that we ended up adding far too much
+> code to phy-generic.c itself. Maybe it shouldn't know about clks and
+> interrupts. The original idea of that driver was to simply satisfy a
+> requirement to have a valid transceiver by some platforms. Maybe we
+> should fix that instead. Moving functions around to workaround a problem
+> is not the way to go, sorry.
+> 
+OK but something that was working all these years is broken by your patch.
+Do you mind fixing it please? Or at least let me know how you want to get it fixed.
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index c0c0abb..5b37ec2 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -78,13 +78,16 @@ obj-$(CONFIG_ARCH_OMAP4)		+= opp4xxx_data.o
- endif
- 
- # Power Management
-+omap-4-5-pm-common			= omap-mpuss-lowpower.o
-+obj-$(CONFIG_ARCH_OMAP4)		+= $(omap-4-5-pm-common)
-+obj-$(CONFIG_ARCH_OMAP5)		+= $(omap-4-5-pm-common)
- obj-$(CONFIG_OMAP_PM_NOOP)		+= omap-pm-noop.o
- 
- ifeq ($(CONFIG_PM),y)
- obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
- obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o
--omap-4-5-pm-common			=  pm44xx.o omap-mpuss-lowpower.o
-+omap-4-5-pm-common			+= pm44xx.o
- obj-$(CONFIG_ARCH_OMAP4)		+= $(omap-4-5-pm-common)
- obj-$(CONFIG_SOC_OMAP5)			+= $(omap-4-5-pm-common)
- obj-$(CONFIG_SOC_DRA7XX)		+= $(omap-4-5-pm-common)
-diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-index 1751517..ad98246 100644
---- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-+++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -64,7 +64,7 @@
- 
- static void __iomem *sar_base;
- 
--#ifdef CONFIG_SMP
-+#if defined(CONFIG_PM) && defined(CONFIG_SMP)
- 
- struct omap4_cpu_pm_info {
- 	struct powerdomain *pwrdm;
--- 
-2.8.1
+cheers,
+-roger
