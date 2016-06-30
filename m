@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 6/7] dt-bindings: clk: ti: Document module clock type
-Date: Thu, 30 Jun 2016 17:13:37 +0300
-Message-ID: <1467296018-25086-7-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv3 1/7] clkdev: add helper registration API
+Date: Thu, 30 Jun 2016 17:13:32 +0300
+Message-ID: <1467296018-25086-2-git-send-email-t-kristo@ti.com>
 References: <1467296018-25086-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,85 +9,87 @@ Return-path: <linux-clk-owner@vger.kernel.org>
 In-Reply-To: <1467296018-25086-1-git-send-email-t-kristo@ti.com>
 Sender: linux-clk-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, tony@atomide.com, paul@pwsan.com, sboyd@codeaurora.org, mturquette@baylibre.com
-Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org, Russell King <linux@armlinux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-Document the new TI module clock type, which is intended to replace the
-internal clock control handling within omap_hwmod. Module clock is
-effectively a gate clock controlling both interface and functional
-clocks for a single hardware IP block.
+In certain cases, it is desirable to extend the implementation of the
+clkdev lookup, to avoid registering massive amounts of clkdev aliases.
+A simple helper implementation can instead be used to search and
+automatically create the clkdev entries. A sample of this is the TI
+clock implementation, which currently registers a large number of
+clkdev entries with a very simple mapping strategy.
+
+This patch adds an API to register a helper function that gets called
+during clk_get(), in case everything else fails to look up the clock.
+Individual clock drivers are then free to register the helper and
+implement it the way they want.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Russell King <linux@armlinux.org.uk>
 ---
- .../devicetree/bindings/clock/ti/module.txt        | 59 ++++++++++++++++++++++
- 1 file changed, 59 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/clock/ti/module.txt
+ drivers/clk/clkdev.c   | 22 +++++++++++++++++++++-
+ include/linux/clkdev.h |  1 +
+ 2 files changed, 22 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/clock/ti/module.txt b/Documentation/devicetree/bindings/clock/ti/module.txt
-new file mode 100644
-index 0000000..0329667
---- /dev/null
-+++ b/Documentation/devicetree/bindings/clock/ti/module.txt
-@@ -0,0 +1,59 @@
-+Binding for Texas Instruments module clock.
+diff --git a/drivers/clk/clkdev.c b/drivers/clk/clkdev.c
+index 89cc700..788c0b2 100644
+--- a/drivers/clk/clkdev.c
++++ b/drivers/clk/clkdev.c
+@@ -26,6 +26,8 @@
+ 
+ static LIST_HEAD(clocks);
+ static DEFINE_MUTEX(clocks_mutex);
++static struct clk * (*clkdev_get_helper)(const char *dev_id,
++					 const char *con_id);
+ 
+ #if defined(CONFIG_OF) && defined(CONFIG_COMMON_CLK)
+ static struct clk *__of_clk_get(struct device_node *np, int index,
+@@ -190,7 +192,13 @@ struct clk *clk_get_sys(const char *dev_id, const char *con_id)
+ out:
+ 	mutex_unlock(&clocks_mutex);
+ 
+-	return cl ? clk : ERR_PTR(-ENOENT);
++	if (cl)
++		return clk;
 +
-+Binding status: Unstable - ABI compatibility may be broken in the future
++	if (clkdev_get_helper)
++		return clkdev_get_helper(dev_id, con_id);
 +
-+This binding uses the common clock binding[1]. This clock is
-+quite much similar to the basic gate-clock [2], however, internally
-+it controls an OMAP module clock, which effectively handles
-+both interface and functional clocks for a single module. In some
-+cases, support for mux clock [3] is composited to the same clock node,
-+currently only needed for proper support of timer module clocks.
++	return ERR_PTR(-ENOENT);
+ }
+ EXPORT_SYMBOL(clk_get_sys);
+ 
+@@ -209,6 +217,18 @@ struct clk *clk_get(struct device *dev, const char *con_id)
+ }
+ EXPORT_SYMBOL(clk_get);
+ 
++int clkdev_helper_register(struct clk * (*helper)(const char *,
++						  const char *))
++{
++	if (clkdev_get_helper)
++		return -EBUSY;
 +
-+[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
-+[2] Documentation/devicetree/bindings/clock/ti/gate.txt
-+[3] Documentation/devicetree/bindings/clock/ti/mux.txt
++	clkdev_get_helper = helper;
 +
-+Required properties:
-+- compatible : shall be one of:
-+  "ti,omap4-mod-clock" - basic module clock, no gating supported
-+  "ti,omap4-hw-mod-clock" - module clock with hardware gating support
-+  "ti,omap4-sw-mod-clock" - module clock with software forced gating support
-+  "ti,omap4-sw-no-idlest-mod-clock" - module clock with software forced gating
-+				      support, misses idlest
-+  "ti,omap4-mux-mod-clock" - composite clock with mux and module clocks, no
-+			     gating supported
-+  "ti,omap4-hw-mux-mod-clock" - composite clock with mux and module clocks,
-+				with hardware gating
-+  "ti,omap4-sw-mux-mod-clock" - composite clock with mux and module clocks,
-+				with software forced gating
++	return 0;
++}
++EXPORT_SYMBOL(clkdev_helper_register);
 +
-+- #clock-cells : from common clock binding; shall be set to 0
-+- clocks : link to phandle of parent clock(s)
-+- reg : offset for register controlling adjustable gate and optional mux
-+
-+Optional properties:
-+- ti,bit-shift : bit shift for programming the clock mux, only needed for
-+		 the nodes of the mux variant
-+
-+Examples:
-+	timer6_mod_ck: timer6_mod_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mux-mod-clock";
-+		reg = <0x0570>;
-+		clocks = <&syc_clk_div_ck>, <&sys_32k_ck>;
-+		ti,bit-shift = <24>;
-+	};
-+
-+	i2c1_mod_ck: i2c1_mod_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-sw-mod-clock";
-+		reg = <0x14a0>;
-+		clocks = <&func_96m_fclk>;
-+	};
-+
-+	hsi_mod_ck: hsi_mod_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap4-hw-mod-clock";
-+		reg = <0x1338>;
-+		clocks = <&hsi_fck>;
-+	};
+ void clk_put(struct clk *clk)
+ {
+ 	__clk_put(clk);
+diff --git a/include/linux/clkdev.h b/include/linux/clkdev.h
+index 2eabc86..173e2fa 100644
+--- a/include/linux/clkdev.h
++++ b/include/linux/clkdev.h
+@@ -51,6 +51,7 @@ int clk_add_alias(const char *, const char *, const char *, struct device *);
+ 
+ int clk_register_clkdev(struct clk *, const char *, const char *);
+ int clk_hw_register_clkdev(struct clk_hw *, const char *, const char *);
++int clkdev_helper_register(struct clk * (*)(const char *, const char *));
+ 
+ #ifdef CONFIG_COMMON_CLK
+ int __clk_get(struct clk *clk);
 -- 
 1.9.1
 
