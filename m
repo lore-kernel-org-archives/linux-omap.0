@@ -1,11 +1,14 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 0/5] ARM: OMAP2+: hwmod/clk related fixes
-Date: Thu, 30 Jun 2016 16:14:58 +0300
-Message-ID: <1467292503-4376-1-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 1/5] ARM: OMAP2+: omap_device: create clock alias purely from
+ DT data
+Date: Thu, 30 Jun 2016 16:14:59 +0300
+Message-ID: <1467292503-4376-2-git-send-email-t-kristo@ti.com>
+References: <1467292503-4376-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1467292503-4376-1-git-send-email-t-kristo@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,51 +22,42 @@ To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+This avoids the need to add most of the clock aliases under
+drivers/clk/ti/clk-xyz.c files.
 
-These patches have been split out of the series here:
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/omap_device.c | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
-http://www.spinics.net/lists/arm-kernel/msg510985.html
-
-Basically a few fixes to the hwmod / clk related functionality
-under mach-omap2.
-
-This split up series has been boot tested on following platforms:
-
-  : Board           : Boot WRN version                 
- 1: am335x-evm      : PASS   0 4.7.0-rc1-00005-g8238af6
- 2: am335x-evmsk    : PASS   0 4.7.0-rc1-00005-g8238af6
- 3: am3517-evm      : PASS   1 4.7.0-rc1-00005-g8238af6
- 4: am37x-evm       : PASS   0 4.7.0-rc1-00005-g8238af6
- 5: am437x-sk       : PASS   0 4.7.0-rc1-00005-g8238af6
- 6: am43x-epos-evm  : PASS   0 4.7.0-rc1-00005-g8238af6
- 7: am437x-gp-evm   : PASS   0 4.7.0-rc1-00005-g8238af6
- 8: am57xx-evm      : PASS   3 4.7.0-rc1-00005-g8238af6
- 9: omap3-beagle-xm : PASS   0 4.7.0-rc1-00005-g8238af6
-10: omap3-beagle    : PASS   0 4.7.0-rc1-00005-g8238af6
-11: am335x-boneblack: PASS   0 4.7.0-rc1-00005-g8238af6
-12: am335x-bone     : PASS   0 4.7.0-rc1-00005-g8238af6
-13: craneboard      : PASS   1 4.7.0-rc1-00005-g8238af6
-14: dra72x-evm      : FAIL   3 4.7.0-rc1-00005-g8238af6
-15: dra7xx-evm      : PASS   3 4.7.0-rc1-00005-g8238af6
-16: ldp3430         : FAIL   0                         
-17: omap3-n900      : PASS   0 4.7.0-rc1-00005-g8238af6
-18: omap5-uevm      : PASS   0 4.7.0-rc1-00005-g8238af6
-19: omap4-panda-es  : PASS   0 4.7.0-rc1-00005-g8238af6
-20: omap4-panda     : PASS   0 4.7.0-rc1-00005-g8238af6
-21: omap2430-sdp    : PASS   0 4.7.0-rc1-00005-g8238af6
-22: omap3430-sdp    : PASS   0 4.7.0-rc1-00005-g8238af6
-23: omap4-sdp-es23plus: PASS   0 4.7.0-rc1-00005-g8238af6
-TOTAL = 23 boards, Booted Boards = 21, No Boot boards = 2
-
-Does not generate any new boot warnings, or other visible side effects.
-
-The two failing boards seem to be broken in the farm in general, as they
-fail with any kernel.
-
-Patches also available here:
-
-tree: https://github.com/t-kristo/linux-pm.git
-branch: 4.7-rc1-hwmod-fixes
-
--Tero
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+index f7ff3b9..b32d7c8 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -63,7 +63,22 @@ static void _add_clkdev(struct omap_device *od, const char *clk_alias,
+ 		return;
+ 	}
+ 
+-	rc = clk_add_alias(clk_alias, dev_name(&od->pdev->dev), clk_name, NULL);
++	r = clk_get_sys(NULL, clk_name);
++
++	if (IS_ERR(r) && of_have_populated_dt()) {
++		struct of_phandle_args clkspec;
++
++		clkspec.np = of_find_node_by_name(NULL, clk_name);
++
++		r = of_clk_get_from_provider(&clkspec);
++
++		rc = clk_register_clkdev(r, clk_alias,
++					 dev_name(&od->pdev->dev));
++	} else {
++		rc = clk_add_alias(clk_alias, dev_name(&od->pdev->dev),
++				   clk_name, NULL);
++	}
++
+ 	if (rc) {
+ 		if (rc == -ENODEV || rc == -ENOMEM)
+ 			dev_err(&od->pdev->dev,
+-- 
+1.9.1
