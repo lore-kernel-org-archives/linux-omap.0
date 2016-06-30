@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 5/7] clk: ti: am33xx: fix timer3/6 init time setup for module clocks
-Date: Thu, 30 Jun 2016 17:13:36 +0300
-Message-ID: <1467296018-25086-6-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv3 3/7] clk: ti: remove un-used definitions from public clk_hw_omap struct
+Date: Thu, 30 Jun 2016 17:13:34 +0300
+Message-ID: <1467296018-25086-4-git-send-email-t-kristo@ti.com>
 References: <1467296018-25086-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,35 +12,36 @@ To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, tony@atomide.com, pau
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-timer*_fck are going to be renamed as timer*_mod_ck:s. Fix the init
-time configuration of timer3/timer6 to take this into account, and
-lookup for the module clock in case the lookup for fck fails.
+Clksel support has been deprecated a while back, so remove these from
+the struct also.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/clk-33xx.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/clk/ti.h | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/drivers/clk/ti/clk-33xx.c b/drivers/clk/ti/clk-33xx.c
-index ef2ec64..c69fed5 100644
---- a/drivers/clk/ti/clk-33xx.c
-+++ b/drivers/clk/ti/clk-33xx.c
-@@ -144,9 +144,15 @@ int __init am33xx_dt_clk_init(void)
- 
- 	clk1 = clk_get_sys(NULL, "sys_clkin_ck");
- 	clk2 = clk_get_sys(NULL, "timer3_fck");
-+	if (IS_ERR(clk2))
-+		clk2 = clk_get_sys(NULL, "timer3_mod_ck");
-+
- 	clk_set_parent(clk2, clk1);
- 
- 	clk2 = clk_get_sys(NULL, "timer6_fck");
-+	if (IS_ERR(clk2))
-+		clk2 = clk_get_sys(NULL, "timer6_mod_ck");
-+
- 	clk_set_parent(clk2, clk1);
- 	/*
- 	 * The On-Chip 32K RC Osc clock is not an accurate clock-source as per
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index 6110fe0..07308db 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -129,8 +129,6 @@ struct clk_hw_omap_ops {
+  * @enable_bit: bitshift to write to enable/disable the clock (see @enable_reg)
+  * @flags: see "struct clk.flags possibilities" above
+  * @clksel_reg: for clksel clks, register va containing src/divisor select
+- * @clksel_mask: bitmask in @clksel_reg for the src/divisor selector
+- * @clksel: for clksel clks, pointer to struct clksel for this clock
+  * @dpll_data: for DPLLs, pointer to struct dpll_data for this clock
+  * @clkdm_name: clockdomain name that this clock is contained in
+  * @clkdm: pointer to struct clockdomain, resolved from @clkdm_name at runtime
+@@ -145,8 +143,6 @@ struct clk_hw_omap {
+ 	u8			enable_bit;
+ 	u8			flags;
+ 	void __iomem		*clksel_reg;
+-	u32			clksel_mask;
+-	const struct clksel	*clksel;
+ 	struct dpll_data	*dpll_data;
+ 	const char		*clkdm_name;
+ 	struct clockdomain	*clkdm;
 -- 
 1.9.1
 
