@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 2/5] ARM: OMAP2+: hwmod: fetch main_clk based on hwmod name
-Date: Thu, 30 Jun 2016 16:15:00 +0300
-Message-ID: <1467292503-4376-3-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 3/5] ARM: OMAP2+: timer: change order of hwmod data handling
+Date: Thu, 30 Jun 2016 16:15:01 +0300
+Message-ID: <1467292503-4376-4-git-send-email-t-kristo@ti.com>
 References: <1467292503-4376-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,112 +21,39 @@ To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-With the transition to hwmod module clocks, all hwmods will have
-their main clocks named <hwmod_name>_mod_ck. Use this info to
-fetch main_clk, and use it if found.
-
-Also, if a main_clk is found based on the hwmod name, disable
-the direct PRCM modulemode access from hwmod.
+With the introduction of hwmod module clocks, the name of the hwmod
+main clk may not be available before hwmod setup, as hwmod setup
+may lookup the main clock dynamically based on the hwmod name.
+Thus, change the order of hwmod setup and main clock handling for
+the timer code, to make sure the main clock is going to be
+available.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c | 49 ++++++++++++++++++++++++++++++++++++----
- 1 file changed, 44 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/timer.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 83cb527..8adf1c1 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -200,6 +200,7 @@ struct omap_hwmod_soc_ops {
- 	int (*init_clkdm)(struct omap_hwmod *oh);
- 	void (*update_context_lost)(struct omap_hwmod *oh);
- 	int (*get_context_lost)(struct omap_hwmod *oh);
-+	int (*disable_direct_prcm)(struct omap_hwmod *oh);
- };
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 5b385bb..e7eccf6 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -289,6 +289,8 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+ 	if (!timer->io_base)
+ 		return -ENXIO;
  
- /* soc_ops: adapts the omap_hwmod code to the currently-booted SoC */
-@@ -776,17 +777,34 @@ static int _del_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
-  * @oh: struct omap_hwmod *
-  *
-  * Called from _init_clocks().  Populates the @oh _clk (main
-- * functional clock pointer) if a main_clk is present.  Returns 0 on
-- * success or -EINVAL on error.
-+ * functional clock pointer) if a clock matching the hwmod name is found,
-+ * or a main_clk is present.  Returns 0 on success or -EINVAL on error.
-  */
- static int _init_main_clk(struct omap_hwmod *oh)
- {
- 	int ret = 0;
-+	char name[32];
-+	static int max_len;
-+	struct clk *clk;
++	omap_hwmod_setup_one(oh_name);
++
+ 	/* After the dmtimer is using hwmod these clocks won't be needed */
+ 	timer->fclk = clk_get(NULL, omap_hwmod_get_main_clk(oh));
+ 	if (IS_ERR(timer->fclk))
+@@ -303,7 +305,6 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
  
--	if (!oh->main_clk)
--		return 0;
-+	strcpy(name, oh->name);
-+	strcat(name, "_mod_ck");
-+
-+	if (strlen(name) > max_len)
-+		max_len = strlen(name);
-+
-+	clk = clk_get(NULL, name);
-+	if (!IS_ERR(clk)) {
-+		oh->_clk = clk;
-+		soc_ops.disable_direct_prcm(oh);
-+		oh->main_clk = kstrdup(name, GFP_KERNEL);
-+	} else {
-+		if (!oh->main_clk)
-+			return 0;
-+
-+		oh->_clk = clk_get(NULL, oh->main_clk);
-+	}
+ 	clk_put(src);
  
--	oh->_clk = clk_get(NULL, oh->main_clk);
- 	if (IS_ERR(oh->_clk)) {
- 		pr_warn("omap_hwmod: %s: cannot clk_get main_clk %s\n",
- 			oh->name, oh->main_clk);
-@@ -3091,6 +3109,25 @@ static int _omap4_is_hardreset_asserted(struct omap_hwmod *oh,
- }
+-	omap_hwmod_setup_one(oh_name);
+ 	omap_hwmod_enable(oh);
+ 	__omap_dm_timer_init_regs(timer);
  
- /**
-+ * _omap4_disable_direct_prcm - disable direct PRCM control for hwmod
-+ * @oh: struct omap_hwmod * to disable control for
-+ *
-+ * Disables direct PRCM clkctrl done by hwmod core. Instead, the hwmod
-+ * will be using its main_clk to enable/disable the module. Returns
-+ * 0 if successful.
-+ */
-+static int _omap4_disable_direct_prcm(struct omap_hwmod *oh)
-+{
-+	if (!oh)
-+		return -EINVAL;
-+
-+	oh->prcm.omap4.clkctrl_offs = 0;
-+	oh->prcm.omap4.modulemode = 0;
-+
-+	return 0;
-+}
-+
-+/**
-  * _am33xx_deassert_hardreset - call AM33XX PRM hardreset fn with hwmod args
-  * @oh: struct omap_hwmod * to deassert hardreset
-  * @ohri: hardreset line data
-@@ -3913,6 +3950,7 @@ void __init omap_hwmod_init(void)
- 		soc_ops.init_clkdm = _init_clkdm;
- 		soc_ops.update_context_lost = _omap4_update_context_lost;
- 		soc_ops.get_context_lost = _omap4_get_context_lost;
-+		soc_ops.disable_direct_prcm = _omap4_disable_direct_prcm;
- 	} else if (cpu_is_ti814x() || cpu_is_ti816x() || soc_is_am33xx() ||
- 		   soc_is_am43xx()) {
- 		soc_ops.enable_module = _omap4_enable_module;
-@@ -3922,6 +3960,7 @@ void __init omap_hwmod_init(void)
- 		soc_ops.deassert_hardreset = _am33xx_deassert_hardreset;
- 		soc_ops.is_hardreset_asserted = _omap4_is_hardreset_asserted;
- 		soc_ops.init_clkdm = _init_clkdm;
-+		soc_ops.disable_direct_prcm = _omap4_disable_direct_prcm;
- 	} else {
- 		WARN(1, "omap_hwmod: unknown SoC type\n");
- 	}
 -- 
 1.9.1
