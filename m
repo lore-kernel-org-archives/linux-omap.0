@@ -1,66 +1,83 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Extcon build failure in next
-Date: Thu, 30 Jun 2016 04:49:12 -0700
-Message-ID: <20160630114911.GO28140@atomide.com>
-References: <20160630053705.GM28140@atomide.com>
- <20160630054112.GN28140@atomide.com> <3746939.q8kt0ym6m3@wuerfel>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] usb: dwc3: host: Fix broken XHCI host
+Date: Thu, 30 Jun 2016 14:54:17 +0300
+Message-ID: <1467287657-7280-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <3746939.q8kt0ym6m3@wuerfel>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
+Cc: b-liu-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [160630 04:38]:
-> On Wednesday, June 29, 2016 10:41:13 PM CEST Tony Lindgren wrote:
-> > * Tony Lindgren <tony@atomide.com> [160629 22:41]:
-> > > Hi Chanwoo,
-> > > 
-> > > Looks like current Linux next fails to build with at least
-> > > omap2plus_defconfig because of:
-> > > 
-> > > ERROR: "extcon_dev_allocate" [drivers/extcon/devres.ko] undefined!
-> > > scripts/Makefile.modpost:91: recipe for target '__modpost' failed
-> > > make[1]: *** [__modpost] Error 1
-> > > Makefile:1163: recipe for target 'modules' failed
-> > > make: *** [modules] Error 2
-> > > Kernel build failed
-> > > 
-> > > Probably extcon_dev_allocate just needs EXPORT_SYMBOL_GPL?
-> 
-> I've sent "extcon: link devres into core module" for this
+Looks like we lost all changes related to
+commit 9522def40065 ("usb: dwc3: core: cleanup IRQ resources") in host.c
+when Felipe's next branch was merged into Greg's next branch.
 
-OK thanks.
+Fixes 215db948181 ("Merge tag 'usb-for-v4.8' of git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb into usb-next")
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+---
+ drivers/usb/dwc3/host.c | 43 ++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 42 insertions(+), 1 deletion(-)
 
-> > Also I'm seeing:
-> > 
-> > drivers/extcon/extcon.c: In function 'extcon_register_notifier':
-> > drivers/extcon/extcon.c:455:6: warning: 'idx' may be used uninitialized in this function [-Wmaybe-uninitialized]
-> >    if (idx >= 0) {
-> >          ^
-> 
-> I don't see this one. Which compiler version do you use?
+diff --git a/drivers/usb/dwc3/host.c b/drivers/usb/dwc3/host.c
+index 67f90d7..f6533c6 100644
+--- a/drivers/usb/dwc3/host.c
++++ b/drivers/usb/dwc3/host.c
+@@ -23,7 +23,48 @@ int dwc3_host_init(struct dwc3 *dwc)
+ {
+ 	struct property_entry	props[2];
+ 	struct platform_device	*xhci;
+-	int			ret;
++	int			ret, irq;
++	struct resource		*res;
++	struct platform_device	*dwc3_pdev = to_platform_device(dwc->dev);
++
++	irq = platform_get_irq_byname(dwc3_pdev, "host");
++	if (irq == -EPROBE_DEFER)
++		return irq;
++
++	if (irq <= 0) {
++		irq = platform_get_irq_byname(dwc3_pdev, "dwc_usb3");
++		if (irq == -EPROBE_DEFER)
++			return irq;
++
++		if (irq <= 0) {
++			irq = platform_get_irq(dwc3_pdev, 0);
++			if (irq <= 0) {
++				if (irq != -EPROBE_DEFER) {
++					dev_err(dwc->dev,
++						"missing host IRQ\n");
++				}
++				if (!irq)
++					irq = -EINVAL;
++				return irq;
++			} else {
++				res = platform_get_resource(dwc3_pdev,
++							    IORESOURCE_IRQ, 0);
++			}
++		} else {
++			res = platform_get_resource_byname(dwc3_pdev,
++							   IORESOURCE_IRQ,
++							   "dwc_usb3");
++		}
++
++	} else {
++		res = platform_get_resource_byname(dwc3_pdev, IORESOURCE_IRQ,
++						   "host");
++	}
++
++	dwc->xhci_resources[1].start = irq;
++	dwc->xhci_resources[1].end = irq;
++	dwc->xhci_resources[1].flags = res->flags;
++	dwc->xhci_resources[1].name = res->name;
+ 
+ 	xhci = platform_device_alloc("xhci-hcd", PLATFORM_DEVID_AUTO);
+ 	if (!xhci) {
+-- 
+2.7.4
 
-Looks like I'm currently using older arm-none-linux-gnueabi-gcc
-(Sourcery CodeBench Lite 2014.05-29) 4.8.3 20140320 (prerelease).
-I think the Debian compiler was not working few months ago and
-I changed to something I had around.
-
-Looks like the warning does not appear with arm-linux-gnueabihf-gcc
-(Debian 6.1.1-3) 6.1.1 20160511.
-
-Regards,
-
-Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
