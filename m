@@ -1,95 +1,228 @@
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [PATCH v5 22/44] video: dma-mapping: Use unsigned long for dma_attrs
-Date: Thu, 30 Jun 2016 10:25:49 +0200
-Message-ID: <1467275171-6298-22-git-send-email-k.kozlowski@samsung.com>
-References: <1467275019-30789-1-git-send-email-k.kozlowski@samsung.com>
- <1467275171-6298-1-git-send-email-k.kozlowski@samsung.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH] usb: host: Allow EHCI_OMAP to be built-in when USB_GADGET is 'm'
+Date: Thu, 30 Jun 2016 11:40:56 +0300
+Message-ID: <1467276056-19357-1-git-send-email-rogerq@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <1467275171-6298-1-git-send-email-k.kozlowski@samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, hch@infradead.org, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: balbi@kernel.org
+Cc: stern@rowland.harvard.edu, sre@kernel.org, peter.chen@nxp.com, tony@atomide.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Split out subsystem specific changes for easier reviews. This will be
-squashed with main commit.
+NOP_USB_XCEIV is used not only by gadget drivers but by
+host drivers as well e.g. EHCI_OMAP.
 
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+commit 5a8d651a2bde ("usb: gadget: move gadget API functions to udc-core")
+made it so that NOP_USB_XCEIV can't be built-in if USB_GADGET is 'm'.
+But this prevents EHCI_OMAP to be built-in if USB_GADGET is 'm'.
+
+Fix this undesired behaviour by moving usb_gadget_vbus_connect/disconnect()
+to usb/gadget.h so that NOP_USB_XCEIV has no build dependency
+on USB_GADGET.
+
+Retain the original Kconfig behaviour i.e. NOP_USB_XCEIV is selected
+by drivers that need it.
+
+Fixes: 5a8d651a2bde ("usb: gadget: move gadget API functions to udc-core")
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/video/fbdev/omap2/omapfb/omapfb-main.c | 12 ++++++------
- drivers/video/fbdev/omap2/omapfb/omapfb.h      |  3 +--
- 2 files changed, 7 insertions(+), 8 deletions(-)
+ drivers/usb/gadget/udc/core.c | 60 -------------------------------------------
+ drivers/usb/host/Kconfig      |  2 +-
+ drivers/usb/phy/Kconfig       |  5 ++--
+ include/linux/usb/gadget.h    | 44 ++++++++++++++++++++++++++-----
+ 4 files changed, 41 insertions(+), 70 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c b/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
-index d3af01c94a58..59172a2185c0 100644
---- a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
-+++ b/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
-@@ -1332,7 +1332,7 @@ static void omapfb_free_fbmem(struct fb_info *fbi)
- 	}
+diff --git a/drivers/usb/gadget/udc/core.c b/drivers/usb/gadget/udc/core.c
+index ff8685e..687828d 100644
+--- a/drivers/usb/gadget/udc/core.c
++++ b/drivers/usb/gadget/udc/core.c
+@@ -538,37 +538,6 @@ out:
+ EXPORT_SYMBOL_GPL(usb_gadget_clear_selfpowered);
  
- 	dma_free_attrs(fbdev->dev, rg->size, rg->token, rg->dma_handle,
--			&rg->attrs);
-+			rg->attrs);
+ /**
+- * usb_gadget_vbus_connect - Notify controller that VBUS is powered
+- * @gadget:The device which now has VBUS power.
+- * Context: can sleep
+- *
+- * This call is used by a driver for an external transceiver (or GPIO)
+- * that detects a VBUS power session starting.  Common responses include
+- * resuming the controller, activating the D+ (or D-) pullup to let the
+- * host detect that a USB device is attached, and starting to draw power
+- * (8mA or possibly more, especially after SET_CONFIGURATION).
+- *
+- * Returns zero on success, else negative errno.
+- */
+-int usb_gadget_vbus_connect(struct usb_gadget *gadget)
+-{
+-	int ret = 0;
+-
+-	if (!gadget->ops->vbus_session) {
+-		ret = -EOPNOTSUPP;
+-		goto out;
+-	}
+-
+-	ret = gadget->ops->vbus_session(gadget, 1);
+-
+-out:
+-	trace_usb_gadget_vbus_connect(gadget, ret);
+-
+-	return ret;
+-}
+-EXPORT_SYMBOL_GPL(usb_gadget_vbus_connect);
+-
+-/**
+  * usb_gadget_vbus_draw - constrain controller's VBUS power usage
+  * @gadget:The device whose VBUS usage is being described
+  * @mA:How much current to draw, in milliAmperes.  This should be twice
+@@ -601,35 +570,6 @@ out:
+ EXPORT_SYMBOL_GPL(usb_gadget_vbus_draw);
  
- 	rg->token = NULL;
- 	rg->vaddr = NULL;
-@@ -1370,7 +1370,7 @@ static int omapfb_alloc_fbmem(struct fb_info *fbi, unsigned long size,
- 	struct omapfb2_device *fbdev = ofbi->fbdev;
- 	struct omapfb2_mem_region *rg;
- 	void *token;
--	DEFINE_DMA_ATTRS(attrs);
-+	unsigned long attrs;
- 	dma_addr_t dma_handle;
- 	int r;
+ /**
+- * usb_gadget_vbus_disconnect - notify controller about VBUS session end
+- * @gadget:the device whose VBUS supply is being described
+- * Context: can sleep
+- *
+- * This call is used by a driver for an external transceiver (or GPIO)
+- * that detects a VBUS power session ending.  Common responses include
+- * reversing everything done in usb_gadget_vbus_connect().
+- *
+- * Returns zero on success, else negative errno.
+- */
+-int usb_gadget_vbus_disconnect(struct usb_gadget *gadget)
+-{
+-	int ret = 0;
+-
+-	if (!gadget->ops->vbus_session) {
+-		ret = -EOPNOTSUPP;
+-		goto out;
+-	}
+-
+-	ret = gadget->ops->vbus_session(gadget, 0);
+-
+-out:
+-	trace_usb_gadget_vbus_disconnect(gadget, ret);
+-
+-	return ret;
+-}
+-EXPORT_SYMBOL_GPL(usb_gadget_vbus_disconnect);
+-
+-/**
+  * usb_gadget_connect - software-controlled connect to USB host
+  * @gadget:the peripheral being connected
+  *
+diff --git a/drivers/usb/host/Kconfig b/drivers/usb/host/Kconfig
+index 2e710a4..d8f5674 100644
+--- a/drivers/usb/host/Kconfig
++++ b/drivers/usb/host/Kconfig
+@@ -180,7 +180,7 @@ config USB_EHCI_MXC
+ config USB_EHCI_HCD_OMAP
+ 	tristate "EHCI support for OMAP3 and later chips"
+ 	depends on ARCH_OMAP
+-	depends on NOP_USB_XCEIV
++	select NOP_USB_XCEIV
+ 	default y
+ 	---help---
+ 	  Enables support for the on-chip EHCI controller on
+diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
+index b9c409a..fe94bbc 100644
+--- a/drivers/usb/phy/Kconfig
++++ b/drivers/usb/phy/Kconfig
+@@ -45,7 +45,7 @@ config ISP1301_OMAP
+ config KEYSTONE_USB_PHY
+ 	tristate "Keystone USB PHY Driver"
+ 	depends on ARCH_KEYSTONE || COMPILE_TEST
+-	depends on NOP_USB_XCEIV
++	select NOP_USB_XCEIV
+ 	help
+ 	  Enable this to support Keystone USB phy. This driver provides
+ 	  interface to interact with USB 2.0 and USB 3.0 PHY that is part
+@@ -53,7 +53,6 @@ config KEYSTONE_USB_PHY
  
-@@ -1386,15 +1386,15 @@ static int omapfb_alloc_fbmem(struct fb_info *fbi, unsigned long size,
+ config NOP_USB_XCEIV
+ 	tristate "NOP USB Transceiver Driver"
+-	depends on USB_GADGET || !USB_GADGET # if USB_GADGET=m, NOP can't be built-in
+ 	select USB_PHY
+ 	help
+ 	  This driver is to be used by all the usb transceiver which are either
+@@ -66,7 +65,7 @@ config AM335X_CONTROL_USB
+ config AM335X_PHY_USB
+ 	tristate "AM335x USB PHY Driver"
+ 	depends on ARM || COMPILE_TEST
+-	depends on NOP_USB_XCEIV
++	select NOP_USB_XCEIV
+ 	select USB_PHY
+ 	select AM335X_CONTROL_USB
+ 	select USB_COMMON
+diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
+index 612dbdf..305d81e 100644
+--- a/include/linux/usb/gadget.h
++++ b/include/linux/usb/gadget.h
+@@ -508,14 +508,50 @@ static inline int gadget_is_otg(struct usb_gadget *g)
  
- 	size = PAGE_ALIGN(size);
+ /*-------------------------------------------------------------------------*/
  
--	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
-+	attrs = DMA_ATTR_WRITE_COMBINE;
- 
- 	if (ofbi->rotation_type == OMAP_DSS_ROT_VRFB)
--		dma_set_attr(DMA_ATTR_NO_KERNEL_MAPPING, &attrs);
-+		attrs |= DMA_ATTR_NO_KERNEL_MAPPING;
- 
- 	DBG("allocating %lu bytes for fb %d\n", size, ofbi->id);
- 
- 	token = dma_alloc_attrs(fbdev->dev, size, &dma_handle,
--			GFP_KERNEL, &attrs);
-+			GFP_KERNEL, attrs);
- 
- 	if (token == NULL) {
- 		dev_err(fbdev->dev, "failed to allocate framebuffer\n");
-@@ -1408,7 +1408,7 @@ static int omapfb_alloc_fbmem(struct fb_info *fbi, unsigned long size,
- 		r = omap_vrfb_request_ctx(&rg->vrfb);
- 		if (r) {
- 			dma_free_attrs(fbdev->dev, size, token, dma_handle,
--					&attrs);
-+					attrs);
- 			dev_err(fbdev->dev, "vrfb create ctx failed\n");
- 			return r;
- 		}
-diff --git a/drivers/video/fbdev/omap2/omapfb/omapfb.h b/drivers/video/fbdev/omap2/omapfb/omapfb.h
-index 623cd872a367..8aaa2f643820 100644
---- a/drivers/video/fbdev/omap2/omapfb/omapfb.h
-+++ b/drivers/video/fbdev/omap2/omapfb/omapfb.h
-@@ -28,7 +28,6 @@
- #endif
- 
- #include <linux/rwsem.h>
--#include <linux/dma-attrs.h>
- #include <linux/dma-mapping.h>
- 
- #include <video/omapdss.h>
-@@ -51,7 +50,7 @@ extern bool omapfb_debug;
- 
- struct omapfb2_mem_region {
- 	int             id;
--	struct dma_attrs attrs;
-+	unsigned long	attrs;
- 	void		*token;
- 	dma_addr_t	dma_handle;
- 	u32		paddr;
++/**
++ * usb_gadget_vbus_connect - Notify controller that VBUS is powered
++ * @gadget:The device which now has VBUS power.
++ * Context: can sleep
++ *
++ * This call is used by a driver for an external transceiver (or GPIO)
++ * that detects a VBUS power session starting.  Common responses include
++ * resuming the controller, activating the D+ (or D-) pullup to let the
++ * host detect that a USB device is attached, and starting to draw power
++ * (8mA or possibly more, especially after SET_CONFIGURATION).
++ *
++ * Returns zero on success, else negative errno.
++ */
++static inline int usb_gadget_vbus_connect(struct usb_gadget *gadget)
++{
++	if (!gadget->ops->vbus_session)
++		return -EOPNOTSUPP;
++	return gadget->ops->vbus_session(gadget, 1);
++}
++
++/**
++ * usb_gadget_vbus_disconnect - notify controller about VBUS session end
++ * @gadget:the device whose VBUS supply is being described
++ * Context: can sleep
++ *
++ * This call is used by a driver for an external transceiver (or GPIO)
++ * that detects a VBUS power session ending.  Common responses include
++ * reversing everything done in usb_gadget_vbus_connect().
++ *
++ * Returns zero on success, else negative errno.
++ */
++static inline int usb_gadget_vbus_disconnect(struct usb_gadget *gadget)
++{
++	if (!gadget->ops->vbus_session)
++		return -EOPNOTSUPP;
++	return gadget->ops->vbus_session(gadget, 0);
++}
++
+ #if IS_ENABLED(CONFIG_USB_GADGET)
+ int usb_gadget_frame_number(struct usb_gadget *gadget);
+ int usb_gadget_wakeup(struct usb_gadget *gadget);
+ int usb_gadget_set_selfpowered(struct usb_gadget *gadget);
+ int usb_gadget_clear_selfpowered(struct usb_gadget *gadget);
+-int usb_gadget_vbus_connect(struct usb_gadget *gadget);
+ int usb_gadget_vbus_draw(struct usb_gadget *gadget, unsigned mA);
+-int usb_gadget_vbus_disconnect(struct usb_gadget *gadget);
+ int usb_gadget_connect(struct usb_gadget *gadget);
+ int usb_gadget_disconnect(struct usb_gadget *gadget);
+ int usb_gadget_deactivate(struct usb_gadget *gadget);
+@@ -529,12 +565,8 @@ static inline int usb_gadget_set_selfpowered(struct usb_gadget *gadget)
+ { return 0; }
+ static inline int usb_gadget_clear_selfpowered(struct usb_gadget *gadget)
+ { return 0; }
+-static inline int usb_gadget_vbus_connect(struct usb_gadget *gadget)
+-{ return 0; }
+ static inline int usb_gadget_vbus_draw(struct usb_gadget *gadget, unsigned mA)
+ { return 0; }
+-static inline int usb_gadget_vbus_disconnect(struct usb_gadget *gadget)
+-{ return 0; }
+ static inline int usb_gadget_connect(struct usb_gadget *gadget)
+ { return 0; }
+ static inline int usb_gadget_disconnect(struct usb_gadget *gadget)
 -- 
-1.9.1
+2.7.4
