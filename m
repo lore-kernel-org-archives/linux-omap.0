@@ -1,53 +1,93 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] usb: host: Allow EHCI_OMAP to be built-in when USB_GADGET
- is 'm'
-Date: Thu, 30 Jun 2016 16:59:27 +0300
-Message-ID: <577525BF.3060509@ti.com>
-References: <1467276056-19357-1-git-send-email-rogerq@ti.com>
- <8760srgf00.fsf@linux.intel.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv3 2/7] clk: ti: add clkdev get helper
+Date: Thu, 30 Jun 2016 17:13:33 +0300
+Message-ID: <1467296018-25086-3-git-send-email-t-kristo@ti.com>
+References: <1467296018-25086-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <8760srgf00.fsf@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@kernel.org>
-Cc: stern@rowland.harvard.edu, sre@kernel.org, peter.chen@nxp.com, tony@atomide.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <1467296018-25086-1-git-send-email-t-kristo@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, tony@atomide.com, paul@pwsan.com, sboyd@codeaurora.org, mturquette@baylibre.com
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Felipe,
+TI clocks can be found based on a simple query against the clock name,
+thus add a clkdev helper functionality for this. Using this new helper
+implementation  allows getting rid of most of the DT_CLK() entries under
+drivers/clk/ti.
 
-On 30/06/16 13:14, Felipe Balbi wrote:
-> 
-> Hi,
-> 
-> Roger Quadros <rogerq@ti.com> writes:
->> NOP_USB_XCEIV is used not only by gadget drivers but by
->> host drivers as well e.g. EHCI_OMAP.
->>
->> commit 5a8d651a2bde ("usb: gadget: move gadget API functions to udc-core")
->> made it so that NOP_USB_XCEIV can't be built-in if USB_GADGET is 'm'.
->> But this prevents EHCI_OMAP to be built-in if USB_GADGET is 'm'.
->>
->> Fix this undesired behaviour by moving usb_gadget_vbus_connect/disconnect()
->> to usb/gadget.h so that NOP_USB_XCEIV has no build dependency
->> on USB_GADGET.
->>
->> Retain the original Kconfig behaviour i.e. NOP_USB_XCEIV is selected
->> by drivers that need it.
-> 
-> no, this is the wrong way to fix this. NOP _has_ a dependency on the
-> Gadget API if it calls Gadget API functions. Dependencies are proper.
-> 
-> Maybe the reason for the problem is that we ended up adding far too much
-> code to phy-generic.c itself. Maybe it shouldn't know about clks and
-> interrupts. The original idea of that driver was to simply satisfy a
-> requirement to have a valid transceiver by some platforms. Maybe we
-> should fix that instead. Moving functions around to workaround a problem
-> is not the way to go, sorry.
-> 
-OK but something that was working all these years is broken by your patch.
-Do you mind fixing it please? Or at least let me know how you want to get it fixed.
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ drivers/clk/ti/clk.c | 38 +++++++++++++++++++++++++++++++++-----
+ 1 file changed, 33 insertions(+), 5 deletions(-)
 
-cheers,
--roger
+diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
+index 5fcf247..17554c3 100644
+--- a/drivers/clk/ti/clk.c
++++ b/drivers/clk/ti/clk.c
+@@ -68,6 +68,36 @@ static u32 clk_memmap_readl(void __iomem *reg)
+ }
+ 
+ /**
++ * ti_clk_get - lookup a TI clock handle
++ * @dev_id: device to lookup clock for
++ * @con_id: connection ID to find
++ *
++ * Searches for a TI clock handle based on the DT node name.
++ * Returns the pointer to the clock handle, or ERR_PTR in failure.
++ */
++static struct clk *ti_clk_get(const char *dev_id, const char *con_id)
++{
++	struct of_phandle_args clkspec;
++	struct device_node *node;
++	struct clk *clk;
++
++	/* Only check for cases of type clk_get_sys(NULL, "xyz") */
++	if (dev_id || !con_id)
++		return ERR_PTR(-ENOENT);
++
++	if (of_have_populated_dt()) {
++		node = of_find_node_by_name(NULL, con_id);
++		clkspec.np = node;
++		clk = of_clk_get_from_provider(&clkspec);
++
++		if (!IS_ERR(clk))
++			return clk;
++	}
++
++	return ERR_PTR(-ENOENT);
++}
++
++/**
+  * ti_clk_setup_ll_ops - setup low level clock operations
+  * @ops: low level clock ops descriptor
+  *
+@@ -87,6 +117,8 @@ int ti_clk_setup_ll_ops(struct ti_clk_ll_ops *ops)
+ 	ops->clk_readl = clk_memmap_readl;
+ 	ops->clk_writel = clk_memmap_writel;
+ 
++	clkdev_helper_register(ti_clk_get);
++
+ 	return 0;
+ }
+ 
+@@ -102,14 +134,10 @@ int ti_clk_setup_ll_ops(struct ti_clk_ll_ops *ops)
+ void __init ti_dt_clocks_register(struct ti_dt_clk oclks[])
+ {
+ 	struct ti_dt_clk *c;
+-	struct device_node *node;
+ 	struct clk *clk;
+-	struct of_phandle_args clkspec;
+ 
+ 	for (c = oclks; c->node_name != NULL; c++) {
+-		node = of_find_node_by_name(NULL, c->node_name);
+-		clkspec.np = node;
+-		clk = of_clk_get_from_provider(&clkspec);
++		clk = ti_clk_get(NULL, c->node_name);
+ 
+ 		if (!IS_ERR(clk)) {
+ 			c->lk.clk = clk;
+-- 
+1.9.1
+
