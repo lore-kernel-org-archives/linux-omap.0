@@ -1,196 +1,196 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [PATCHv4 1/1] thermal: core: call thermal_zone_device_update()
- after mode update
-Date: Fri, 1 Jul 2016 13:57:59 -0700
-Message-ID: <20160701205758.GC7814@localhost.localdomain>
-References: <1466563538.2471.10.camel@intel.com>
- <1466607798-30025-1-git-send-email-edubezval@gmail.com>
- <1467181402.2194.9.camel@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1467181402.2194.9.camel@intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Darren Hart <dvhart@infradead.org>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-pm@vger.kernel.org
+From: Philippe Reynes <tremyfr@gmail.com>
+Subject: [PATCH 1/2] net: ethernet: davinci_emac: use phydev from struct net_device
+Date: Sat,  2 Jul 2016 00:02:34 +0200
+Message-ID: <1467410555-19514-1-git-send-email-tremyfr@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: mugunthanvnm@ti.com, grygorii.strashko@ti.com, davem@davemloft.net
+Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Philippe Reynes <tremyfr@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jun 29, 2016 at 02:23:22PM +0800, Zhang Rui wrote:
-> Hi, Eduardo,
->=20
-> as the locking patch set has not been in upstream yet, you should
-> either fold this fix into patch 02/15, or rebase your locking patch
-> series on top of this fix.
+The private structure contain a pointer to phydev, but the structure
+net_device already contain such pointer. So we can remove the pointer
+phy in the private structure, and update the driver to use the
+one contained in struct net_device.
 
-I am folding into 02/15 and resending only the new version of that
-patch. Are you OK to pick it up like that?
+Signed-off-by: Philippe Reynes <tremyfr@gmail.com>
+---
+ drivers/net/ethernet/ti/davinci_emac.c |   61 ++++++++++++++------------------
+ 1 files changed, 27 insertions(+), 34 deletions(-)
 
->=20
-> thanks,
-> rui
->=20
-> On =E4=B8=89, 2016-06-22 at 08:03 -0700, Eduardo Valentin wrote:
-> > Because several drivers do the following pattern:
-> > .set_mode()
-> > =C2=A0=C2=A0=C2=A0...
-> > =C2=A0=C2=A0=C2=A0local_data->mode =3D new_mode;
-> > =C2=A0=C2=A0=C2=A0thermal_zone_device_update(tz);
-> >=20
-> > makes sense to simply do the thermal_zone_device_update()
-> > in thermal core, after setting the new mode.
-> >=20
-> > Also, this patch also remove deadlocks on drivers that
-> > call thermal_zone_device_update() on .set_mode(),
-> > as .set_mode()=C2=A0=C2=A0is now called always with tz->lock held.
-> >=20
-> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> > Cc: Len Brown <lenb@kernel.org>
-> > Cc: linux-acpi@vger.kernel.org
-> > Cc: "Lee, Chun-Yi" <jlee@suse.com>
-> > Cc: Darren Hart <dvhart@infradead.org>
-> > Cc: Zhang Rui <rui.zhang@intel.com>
-> > Cc: Keerthy <j-keerthy@ti.com>
-> > Cc: linux-kernel@vger.kernel.org
-> > Cc: linux-omap@vger.kernel.org
-> > Cc: platform-driver-x86@vger.kernel.org
-> > Cc: linux-pm@vger.kernel.org
-> > Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
-> > ---
-> > Hello,
-> >=20
-> > V3->V4:
-> > - ti-soc: Removed extra locking from TI SoC in set_mode
-> > - ACPI: Kept the update on check as it is called on other places
-> >=20
-> > BR,
-> >=20
-> > Eduardo
-> >=20
-> > =C2=A0drivers/acpi/thermal.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0| 1 -
-> > =C2=A0drivers/platform/x86/acerhdf.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0| 1 -
-> > =C2=A0drivers/thermal/imx_thermal.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0| 1 -
-> > =C2=A0drivers/thermal/of-thermal.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0| 5 -----
-> > =C2=A0drivers/thermal/thermal_sysfs.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0| 1 +
-> > =C2=A0drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 5 -----
-> > =C2=A06 files changed, 1 insertion(+), 13 deletions(-)
-> >=20
-> > diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> > index 82707f9..03c3460 100644
-> > --- a/drivers/acpi/thermal.c
-> > +++ b/drivers/acpi/thermal.c
-> > @@ -581,7 +581,6 @@ static int thermal_set_mode(struct
-> > thermal_zone_device *thermal,
-> > =C2=A0		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> > =C2=A0			"%s kernel ACPI thermal control\n",
-> > =C2=A0			tz->tz_enabled ? "Enable" : "Disable"));
-> > -		acpi_thermal_check(tz);
-> > =C2=A0	}
-> > =C2=A0	return 0;
-> > =C2=A0}
-> > diff --git a/drivers/platform/x86/acerhdf.c
-> > b/drivers/platform/x86/acerhdf.c
-> > index 460fa67..aee33ba 100644
-> > --- a/drivers/platform/x86/acerhdf.c
-> > +++ b/drivers/platform/x86/acerhdf.c
-> > @@ -405,7 +405,6 @@ static inline void
-> > acerhdf_enable_kernelmode(void)
-> > =C2=A0	kernelmode =3D 1;
-> > =C2=A0
-> > =C2=A0	thz_dev->polling_delay =3D interval*1000;
-> > -	thermal_zone_device_update(thz_dev);
-> > =C2=A0	pr_notice("kernel mode fan control ON\n");
-> > =C2=A0}
-> > =C2=A0
-> > diff --git a/drivers/thermal/imx_thermal.c
-> > b/drivers/thermal/imx_thermal.c
-> > index c5547bd..a413eb6 100644
-> > --- a/drivers/thermal/imx_thermal.c
-> > +++ b/drivers/thermal/imx_thermal.c
-> > @@ -246,7 +246,6 @@ static int imx_set_mode(struct
-> > thermal_zone_device *tz,
-> > =C2=A0	}
-> > =C2=A0
-> > =C2=A0	data->mode =3D mode;
-> > -	thermal_zone_device_update(tz);
-> > =C2=A0
-> > =C2=A0	return 0;
-> > =C2=A0}
-> > diff --git a/drivers/thermal/of-thermal.c b/drivers/thermal/of-
-> > thermal.c
-> > index b8e509c..95c47da 100644
-> > --- a/drivers/thermal/of-thermal.c
-> > +++ b/drivers/thermal/of-thermal.c
-> > @@ -282,17 +282,12 @@ static int of_thermal_set_mode(struct
-> > thermal_zone_device *tz,
-> > =C2=A0{
-> > =C2=A0	struct __thermal_zone *data =3D tz->devdata;
-> > =C2=A0
-> > -	mutex_lock(&tz->lock);
-> > -
-> > =C2=A0	if (mode =3D=3D THERMAL_DEVICE_ENABLED)
-> > =C2=A0		tz->polling_delay =3D data->polling_delay;
-> > =C2=A0	else
-> > =C2=A0		tz->polling_delay =3D 0;
-> > =C2=A0
-> > -	mutex_unlock(&tz->lock);
-> > -
-> > =C2=A0	data->mode =3D mode;
-> > -	thermal_zone_device_update(tz);
-> > =C2=A0
-> > =C2=A0	return 0;
-> > =C2=A0}
-> > diff --git a/drivers/thermal/thermal_sysfs.c
-> > b/drivers/thermal/thermal_sysfs.c
-> > index 743df50..3d0dc30 100644
-> > --- a/drivers/thermal/thermal_sysfs.c
-> > +++ b/drivers/thermal/thermal_sysfs.c
-> > @@ -100,6 +100,7 @@ mode_store(struct device *dev, struct
-> > device_attribute *attr,
-> > =C2=A0	mutex_lock(&tz->lock);
-> > =C2=A0	result =3D tz->ops->set_mode(tz, mode);
-> > =C2=A0	mutex_unlock(&tz->lock);
-> > +	thermal_zone_device_update(tz);
-> > =C2=A0
-> > =C2=A0	if (result)
-> > =C2=A0		return result;
-> > diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> > b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> > index 15c0a9a..5dce053 100644
-> > --- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> > +++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> > @@ -193,19 +193,14 @@ static int ti_thermal_set_mode(struct
-> > thermal_zone_device *thermal,
-> > =C2=A0		return 0;
-> > =C2=A0	}
-> > =C2=A0
-> > -	mutex_lock(&data->ti_thermal->lock);
-> > -
-> > =C2=A0	if (mode =3D=3D THERMAL_DEVICE_ENABLED)
-> > =C2=A0		data->ti_thermal->polling_delay =3D
-> > FAST_TEMP_MONITORING_RATE;
-> > =C2=A0	else
-> > =C2=A0		data->ti_thermal->polling_delay =3D 0;
-> > =C2=A0
-> > -	mutex_unlock(&data->ti_thermal->lock);
-> > -
-> > =C2=A0	data->mode =3D mode;
-> > =C2=A0	ti_bandgap_write_update_interval(bgp, data->sensor_id,
-> > =C2=A0					data->ti_thermal-
-> > >polling_delay);
-> > -	thermal_zone_device_update(data->ti_thermal);
-> > =C2=A0	dev_dbg(&thermal->device, "thermal polling set for
-> > duration=3D%d msec\n",
-> > =C2=A0		data->ti_thermal->polling_delay);
-> > =C2=A0
+diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
+index f56d66e..76683c7 100644
+--- a/drivers/net/ethernet/ti/davinci_emac.c
++++ b/drivers/net/ethernet/ti/davinci_emac.c
+@@ -348,7 +348,6 @@ struct emac_priv {
+ 	u32 rx_addr_type;
+ 	const char *phy_id;
+ 	struct device_node *phy_node;
+-	struct phy_device *phydev;
+ 	spinlock_t lock;
+ 	/*platform specific members*/
+ 	void (*int_enable) (void);
+@@ -496,9 +495,8 @@ static void emac_get_drvinfo(struct net_device *ndev,
+ static int emac_get_settings(struct net_device *ndev,
+ 			     struct ethtool_cmd *ecmd)
+ {
+-	struct emac_priv *priv = netdev_priv(ndev);
+-	if (priv->phydev)
+-		return phy_ethtool_gset(priv->phydev, ecmd);
++	if (ndev->phydev)
++		return phy_ethtool_gset(ndev->phydev, ecmd);
+ 	else
+ 		return -EOPNOTSUPP;
+ 
+@@ -514,9 +512,8 @@ static int emac_get_settings(struct net_device *ndev,
+  */
+ static int emac_set_settings(struct net_device *ndev, struct ethtool_cmd *ecmd)
+ {
+-	struct emac_priv *priv = netdev_priv(ndev);
+-	if (priv->phydev)
+-		return phy_ethtool_sset(priv->phydev, ecmd);
++	if (ndev->phydev)
++		return phy_ethtool_sset(ndev->phydev, ecmd);
+ 	else
+ 		return -EOPNOTSUPP;
+ 
+@@ -651,8 +648,8 @@ static void emac_update_phystatus(struct emac_priv *priv)
+ 	mac_control = emac_read(EMAC_MACCONTROL);
+ 	cur_duplex = (mac_control & EMAC_MACCONTROL_FULLDUPLEXEN) ?
+ 			DUPLEX_FULL : DUPLEX_HALF;
+-	if (priv->phydev)
+-		new_duplex = priv->phydev->duplex;
++	if (ndev->phydev)
++		new_duplex = ndev->phydev->duplex;
+ 	else
+ 		new_duplex = DUPLEX_FULL;
+ 
+@@ -1454,7 +1451,7 @@ static void emac_poll_controller(struct net_device *ndev)
+ static void emac_adjust_link(struct net_device *ndev)
+ {
+ 	struct emac_priv *priv = netdev_priv(ndev);
+-	struct phy_device *phydev = priv->phydev;
++	struct phy_device *phydev = ndev->phydev;
+ 	unsigned long flags;
+ 	int new_state = 0;
+ 
+@@ -1483,7 +1480,7 @@ static void emac_adjust_link(struct net_device *ndev)
+ 	}
+ 	if (new_state) {
+ 		emac_update_phystatus(priv);
+-		phy_print_status(priv->phydev);
++		phy_print_status(ndev->phydev);
+ 	}
+ 
+ 	spin_unlock_irqrestore(&priv->lock, flags);
+@@ -1505,15 +1502,13 @@ static void emac_adjust_link(struct net_device *ndev)
+  */
+ static int emac_devioctl(struct net_device *ndev, struct ifreq *ifrq, int cmd)
+ {
+-	struct emac_priv *priv = netdev_priv(ndev);
+-
+ 	if (!(netif_running(ndev)))
+ 		return -EINVAL;
+ 
+ 	/* TODO: Add phy read and write and private statistics get feature */
+ 
+-	if (priv->phydev)
+-		return phy_mii_ioctl(priv->phydev, ifrq, cmd);
++	if (ndev->phydev)
++		return phy_mii_ioctl(ndev->phydev, ifrq, cmd);
+ 	else
+ 		return -EOPNOTSUPP;
+ }
+@@ -1542,6 +1537,7 @@ static int emac_dev_open(struct net_device *ndev)
+ 	int res_num = 0, irq_num = 0;
+ 	int i = 0;
+ 	struct emac_priv *priv = netdev_priv(ndev);
++	struct phy_device *phydev = NULL;
+ 
+ 	ret = pm_runtime_get_sync(&priv->pdev->dev);
+ 	if (ret < 0) {
+@@ -1607,12 +1603,10 @@ static int emac_dev_open(struct net_device *ndev)
+ 
+ 	cpdma_ctlr_start(priv->dma);
+ 
+-	priv->phydev = NULL;
+-
+ 	if (priv->phy_node) {
+-		priv->phydev = of_phy_connect(ndev, priv->phy_node,
+-					      &emac_adjust_link, 0, 0);
+-		if (!priv->phydev) {
++		phydev = of_phy_connect(ndev, priv->phy_node,
++					&emac_adjust_link, 0, 0);
++		if (!phydev) {
+ 			dev_err(emac_dev, "could not connect to phy %s\n",
+ 				priv->phy_node->full_name);
+ 			ret = -ENODEV;
+@@ -1621,7 +1615,7 @@ static int emac_dev_open(struct net_device *ndev)
+ 	}
+ 
+ 	/* use the first phy on the bus if pdata did not give us a phy id */
+-	if (!priv->phydev && !priv->phy_id) {
++	if (!phydev && !priv->phy_id) {
+ 		struct device *phy;
+ 
+ 		phy = bus_find_device(&mdio_bus_type, NULL, NULL,
+@@ -1630,16 +1624,15 @@ static int emac_dev_open(struct net_device *ndev)
+ 			priv->phy_id = dev_name(phy);
+ 	}
+ 
+-	if (!priv->phydev && priv->phy_id && *priv->phy_id) {
+-		priv->phydev = phy_connect(ndev, priv->phy_id,
+-					   &emac_adjust_link,
+-					   PHY_INTERFACE_MODE_MII);
++	if (!phydev && priv->phy_id && *priv->phy_id) {
++		phydev = phy_connect(ndev, priv->phy_id,
++				     &emac_adjust_link,
++				     PHY_INTERFACE_MODE_MII);
+ 
+-		if (IS_ERR(priv->phydev)) {
++		if (IS_ERR(phydev)) {
+ 			dev_err(emac_dev, "could not connect to phy %s\n",
+ 				priv->phy_id);
+-			ret = PTR_ERR(priv->phydev);
+-			priv->phydev = NULL;
++			ret = PTR_ERR(phydev);
+ 			goto err;
+ 		}
+ 
+@@ -1647,10 +1640,10 @@ static int emac_dev_open(struct net_device *ndev)
+ 		priv->speed = 0;
+ 		priv->duplex = ~0;
+ 
+-		phy_attached_info(priv->phydev);
++		phy_attached_info(phydev);
+ 	}
+ 
+-	if (!priv->phydev) {
++	if (!phydev) {
+ 		/* No PHY , fix the link, speed and duplex settings */
+ 		dev_notice(emac_dev, "no phy, defaulting to 100/full\n");
+ 		priv->link = 1;
+@@ -1665,8 +1658,8 @@ static int emac_dev_open(struct net_device *ndev)
+ 	if (netif_msg_drv(priv))
+ 		dev_notice(emac_dev, "DaVinci EMAC: Opened %s\n", ndev->name);
+ 
+-	if (priv->phydev)
+-		phy_start(priv->phydev);
++	if (phydev)
++		phy_start(phydev);
+ 
+ 	return 0;
+ 
+@@ -1717,8 +1710,8 @@ static int emac_dev_stop(struct net_device *ndev)
+ 	cpdma_ctlr_stop(priv->dma);
+ 	emac_write(EMAC_SOFTRESET, 1);
+ 
+-	if (priv->phydev)
+-		phy_disconnect(priv->phydev);
++	if (ndev->phydev)
++		phy_disconnect(ndev->phydev);
+ 
+ 	/* Free IRQ */
+ 	while ((res = platform_get_resource(priv->pdev, IORESOURCE_IRQ, i))) {
+-- 
+1.7.4.4
