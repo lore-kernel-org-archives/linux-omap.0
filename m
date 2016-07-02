@@ -1,93 +1,78 @@
 From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-Subject: [PATCH] omapfb: omapfb-main: Remove deprecated
- create_singlethread_workqueue
-Date: Sat, 2 Jul 2016 14:00:56 +0530
-Message-ID: <20160702083056.GA26936@Karyakshetra>
+Subject: [PATCH] fbdev: Remove deprecated create_singlethread_workqueue
+Date: Sat, 2 Jul 2016 14:09:23 +0530
+Message-ID: <20160702083923.GA27352@Karyakshetra>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Oleg Nesterov <oleg@redhat.com>, Andrew Morton <akpm@linux-foundation.org>
-Cc: Tejun Heo <tj@kernel.org>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+Cc: Tejun Heo <tj@kernel.org>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The workqueue auto_update_work is involved in auto updating mode for
-manual-update displays. omapfb driver uses a delayed work item to update
-the display at a constant rate.
+The workqueue "esd_wq" has only a single workitem(&md->esd_work)
+and hence doesn't require ordering. Also, it is not being used on a
+memory reclaim path. Hence, the singlethreaded workqueue has been
+replaced with the use of system_wq.
 
-Since these long-running work items aren't involved in memory reclaim in
-any way, system_long_wq has been used.
+System workqueues have been able to handle high level of concurrency
+for a long time now and hence it's not required to have a singlethreaded
+workqueue just to gain concurrency. Unlike a dedicated per-cpu workqueue
+created with create_singlethread_workqueue(), system_wq allows multiple
+work items to overlap executions even on the same CPU; however, a
+per-cpu workqueue doesn't have any CPU locality or global ordering
+guarantee unless the target CPU is explicitly specified and thus the
+increase of local concurrency shouldn't make any difference.
 
-Work item has been sync cancelled in omapfb_stop_auto_update() which gets
-called in omapfb_free_resources() to ensure that nothing is pending when
-the driver is disconnected.
+mipid_esd_stop_check () calls cancel_delayed_work() in mipid_cleanup()
+to ensure that there are no pending tasks while disconnecting the driver.
 
 Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
 ---
- drivers/video/fbdev/omap2/omapfb/omapfb-main.c | 23 +----------------------
- drivers/video/fbdev/omap2/omapfb/omapfb.h      |  1 -
- 2 files changed, 1 insertion(+), 23 deletions(-)
+ drivers/video/fbdev/omap/lcd_mipid.c | 9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c b/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
-index d3af01c..5c6eec7 100644
---- a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
-+++ b/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
-@@ -1693,8 +1693,7 @@ static void omapfb_auto_update_work(struct work_struct *work)
- 	freq = auto_update_freq;
- 	if (freq == 0)
- 		freq = 20;
--	queue_delayed_work(fbdev->auto_update_wq,
--			&d->auto_update_work, HZ / freq);
-+	queue_delayed_work(system_long_wq, &d->auto_update_work, HZ / freq);
- }
+diff --git a/drivers/video/fbdev/omap/lcd_mipid.c b/drivers/video/fbdev/omap/lcd_mipid.c
+index 0e4cee9..c81f150 100644
+--- a/drivers/video/fbdev/omap/lcd_mipid.c
++++ b/drivers/video/fbdev/omap/lcd_mipid.c
+@@ -60,7 +60,6 @@ struct mipid_device {
+ 	struct mutex		mutex;
+ 	struct lcd_panel	panel;
 
- void omapfb_start_auto_update(struct omapfb2_device *fbdev,
-@@ -1702,20 +1701,6 @@ void omapfb_start_auto_update(struct omapfb2_device *fbdev,
- {
- 	struct omapfb_display_data *d;
-
--	if (fbdev->auto_update_wq == NULL) {
--		struct workqueue_struct *wq;
--
--		wq = create_singlethread_workqueue("omapfb_auto_update");
--
--		if (wq == NULL) {
--			dev_err(fbdev->dev, "Failed to create workqueue for "
--					"auto-update\n");
--			return;
--		}
--
--		fbdev->auto_update_wq = wq;
--	}
--
- 	d = get_display_data(fbdev, display);
-
- 	INIT_DELAYED_WORK(&d->auto_update_work, omapfb_auto_update_work);
-@@ -1867,12 +1852,6 @@ static void omapfb_free_resources(struct omapfb2_device *fbdev)
- 		omap_dss_put_device(dssdev);
- 	}
-
--	if (fbdev->auto_update_wq != NULL) {
--		flush_workqueue(fbdev->auto_update_wq);
--		destroy_workqueue(fbdev->auto_update_wq);
--		fbdev->auto_update_wq = NULL;
--	}
--
- 	dev_set_drvdata(fbdev->dev, NULL);
- }
-
-diff --git a/drivers/video/fbdev/omap2/omapfb/omapfb.h b/drivers/video/fbdev/omap2/omapfb/omapfb.h
-index 623cd87..ff0cf79 100644
---- a/drivers/video/fbdev/omap2/omapfb/omapfb.h
-+++ b/drivers/video/fbdev/omap2/omapfb/omapfb.h
-@@ -106,7 +106,6 @@ struct omapfb2_device {
- 	unsigned num_managers;
- 	struct omap_overlay_manager *managers[10];
-
--	struct workqueue_struct *auto_update_wq;
+-	struct workqueue_struct	*esd_wq;
+ 	struct delayed_work	esd_work;
+ 	void			(*esd_check)(struct mipid_device *m);
  };
+@@ -390,7 +389,7 @@ static void ls041y3_esd_check(struct mipid_device *md)
+ static void mipid_esd_start_check(struct mipid_device *md)
+ {
+ 	if (md->esd_check != NULL)
+-		queue_delayed_work(md->esd_wq, &md->esd_work,
++		schedule_delayed_work(&md->esd_work,
+ 				   MIPID_ESD_CHECK_PERIOD);
+ }
 
- struct omapfb_colormode {
+@@ -476,11 +475,6 @@ static int mipid_init(struct lcd_panel *panel,
+ 	struct mipid_device *md = to_mipid_device(panel);
+
+ 	md->fbdev = fbdev;
+-	md->esd_wq = create_singlethread_workqueue("mipid_esd");
+-	if (md->esd_wq == NULL) {
+-		dev_err(&md->spi->dev, "can't create ESD workqueue\n");
+-		return -ENOMEM;
+-	}
+ 	INIT_DELAYED_WORK(&md->esd_work, mipid_esd_work);
+ 	mutex_init(&md->mutex);
+
+@@ -500,7 +494,6 @@ static void mipid_cleanup(struct lcd_panel *panel)
+
+ 	if (md->enabled)
+ 		mipid_esd_stop_check(md);
+-	destroy_workqueue(md->esd_wq);
+ }
+
+ static struct lcd_panel mipid_panel = {
 --
 2.1.4
