@@ -1,46 +1,29 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCHv2 06/27] crypto: ahash: increase the maximum allowed
- statesize
-Date: Mon, 4 Jul 2016 17:42:14 +0800
-Message-ID: <20160704094214.GA32058@gondor.apana.org.au>
-References: <1466601840-18486-1-git-send-email-t-kristo@ti.com>
- <1466601840-18486-7-git-send-email-t-kristo@ti.com>
- <20160624103209.GA19607@gondor.apana.org.au>
- <5770B283.8000902@ti.com>
- <20160627050031.GA5673@gondor.apana.org.au>
- <577A298E.4040803@ti.com>
- <20160704091925.GA31964@gondor.apana.org.au>
- <577A2BE4.1090202@ti.com>
+From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v6 4/6] gpio: tps65218-gpio: Add platform_device_id table
+Date: Mon, 4 Jul 2016 11:50:51 +0200
+Message-ID: <CACRpkdaUebMzS4F1LM4D9536+JHBHBbcXBESEbKKPF5TCi0LmQ@mail.gmail.com>
+References: <1467117054-12943-1-git-send-email-j-keerthy@ti.com> <1467117054-12943-5-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-crypto-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <577A2BE4.1090202@ti.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-crypto@vger.kernel.org, tony@atomide.com, davem@davemloft.net, lokeshvutla@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1467117054-12943-5-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Input <linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jul 04, 2016 at 12:27:00PM +0300, Tero Kristo wrote:
+On Tue, Jun 28, 2016 at 2:30 PM, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> wrote:
+
+> platform_device_id table is needed for adding the tps65218-gpio
+> module to the mfd_cell array.
 >
-> The driver allocates a largish buffer for copying the input data
-> from the sgs into a sequential space. If I don't save the contents
-> of this buffer anywhere, the export/import doesn't work as expected
-> it seems.
-> 
-> Actually I am now wondering why the driver allocates this sequential
-> buffer at all, DMA should be possible to use over the sgs just fine,
-> at least some other crypto drivers are doing this.
+> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 
-Indeed this is totally broken.  No hash driver should be holding
-data without actually hashing it, unless of course if there is less
-than a block of data.
+Patch applied.
 
-So either fix the driver to hash the data as they come in, or
-make it use a software fallback for update.
-
-Cheers,
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+Yours,
+Linus Walleij
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
