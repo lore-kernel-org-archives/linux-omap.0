@@ -1,29 +1,77 @@
-From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v6 4/6] gpio: tps65218-gpio: Add platform_device_id table
-Date: Mon, 4 Jul 2016 11:50:51 +0200
-Message-ID: <CACRpkdaUebMzS4F1LM4D9536+JHBHBbcXBESEbKKPF5TCi0LmQ@mail.gmail.com>
-References: <1467117054-12943-1-git-send-email-j-keerthy@ti.com> <1467117054-12943-5-git-send-email-j-keerthy@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH 3/4] ARM: dts: AM437X-CM-T43: Remove redundant regulator compatibles
+Date: Mon, 4 Jul 2016 15:25:12 +0530
+Message-ID: <1467626113-15705-4-git-send-email-j-keerthy@ti.com>
+References: <1467626113-15705-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1467117054-12943-5-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Cc: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Input <linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1467626113-15705-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, lee.jones@linaro.org, broonie@kernel.org, robh+dt@kernel.org, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jun 28, 2016 at 2:30 PM, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> wrote:
+With the device tree parsing using the regulator framework
+there is a no longer a need for separate compatibles for
+individual regulator nodes. Hence removing them all.
 
-> platform_device_id table is needed for adding the tps65218-gpio
-> module to the mfd_cell array.
->
-> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
+ arch/arm/boot/dts/am437x-cm-t43.dts | 6 ------
+ 1 file changed, 6 deletions(-)
 
-Patch applied.
-
-Yours,
-Linus Walleij
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/boot/dts/am437x-cm-t43.dts b/arch/arm/boot/dts/am437x-cm-t43.dts
+index 9551c47..9e92d48 100644
+--- a/arch/arm/boot/dts/am437x-cm-t43.dts
++++ b/arch/arm/boot/dts/am437x-cm-t43.dts
+@@ -209,7 +209,6 @@
+ 		#interrupt-cells = <2>;
+ 
+ 		dcdc1: regulator-dcdc1 {
+-			compatible = "ti,tps65218-dcdc1";
+ 			regulator-name = "vdd_core";
+ 			regulator-min-microvolt = <912000>;
+ 			regulator-max-microvolt = <1144000>;
+@@ -218,7 +217,6 @@
+ 		};
+ 
+ 		dcdc2: regulator-dcdc2 {
+-			compatible = "ti,tps65218-dcdc2";
+ 			regulator-name = "vdd_mpu";
+ 			regulator-min-microvolt = <912000>;
+ 			regulator-max-microvolt = <1378000>;
+@@ -227,7 +225,6 @@
+ 		};
+ 
+ 		dcdc3: regulator-dcdc3 {
+-			compatible = "ti,tps65218-dcdc3";
+ 			regulator-name = "vdcdc3";
+ 			regulator-suspend-enable;
+ 			regulator-min-microvolt = <1500000>;
+@@ -237,7 +234,6 @@
+ 		};
+ 
+ 		dcdc5: regulator-dcdc5 {
+-			compatible = "ti,tps65218-dcdc5";
+ 			regulator-name = "v1_0bat";
+ 			regulator-min-microvolt = <1000000>;
+ 			regulator-max-microvolt = <1000000>;
+@@ -246,7 +242,6 @@
+ 		};
+ 
+ 		dcdc6: regulator-dcdc6 {
+-			compatible = "ti,tps65218-dcdc6";
+ 			regulator-name = "v1_8bat";
+ 			regulator-min-microvolt = <1800000>;
+ 			regulator-max-microvolt = <1800000>;
+@@ -255,7 +250,6 @@
+ 		};
+ 
+ 		ldo1: regulator-ldo1 {
+-			compatible = "ti,tps65218-ldo1";
+ 			regulator-min-microvolt = <1800000>;
+ 			regulator-max-microvolt = <1800000>;
+ 			regulator-boot-on;
+-- 
+1.9.1
