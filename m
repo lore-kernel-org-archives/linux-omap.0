@@ -1,31 +1,38 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v5 3/3] gpio: lp873x: Add support for General Purpose Outputs
-Date: Mon, 4 Jul 2016 13:22:38 +0200
-Message-ID: <CACRpkdZ-gcedMc53V8LZm3vhhd+n0PPudF_fSd_5kSmKX3obkg@mail.gmail.com>
-References: <1467215067-6486-1-git-send-email-j-keerthy@ti.com> <1467215067-6486-4-git-send-email-j-keerthy@ti.com>
+From: Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+Subject: mtd: nand: omap2: check for elm_id removed
+Date: Mon, 04 Jul 2016 14:51:57 +0200
+Message-ID: <1467636717.4618.19.camel@lws-tremmet.phytec.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1467215067-6486-4-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Lee Jones <lee.jones@linaro.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jun 29, 2016 at 5:44 PM, Keerthy <j-keerthy@ti.com> wrote:
+Hello,
 
-> Add driver for lp873x PMIC family GPOs. Two GPOs are supported
-> and can be configured in Open-drain output or Push-pull output.
->
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
+with commit c9711ec5250b22fd94e9b34c17c095e001a90e66
+("mtd: nand: omap: Clean up device tree support")
+the old "elm_id" property check has been removed. So only "ti,elm-id" is
+valid now.
+I noticed that the old property is still used by 3 boards:
 
-Looks all right to me.
+git grep elm_id arch/arm/boot/dts/*
+arch/arm/boot/dts/am335x-baltos.dtsi:           elm_id = <&elm>;
+arch/arm/boot/dts/am335x-igep0033.dtsi:         elm_id = <&elm>;
+arch/arm/boot/dts/am335x-phycore-som.dtsi:              elm_id = <&elm>;
 
-> +#include <linux/mfd/lp873x.h>
+I wonder if the right way would be to patch the device trees, or to add
+the check again and to keep backward compatibility?
 
-I guess this means Lee must merge this.
+I may provide a patch then.
 
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Regards,
+Teresa
 
-Yours,
-Linus Walleij
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
