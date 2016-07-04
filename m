@@ -1,60 +1,41 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 2/5] ARM: OMAP2+: hwmod: fetch main_clk based on hwmod name
-Date: Mon, 4 Jul 2016 12:17:57 +0300
-Message-ID: <577A29C5.3010209@ti.com>
-References: <1467292503-4376-1-git-send-email-t-kristo@ti.com>
- <1467292503-4376-3-git-send-email-t-kristo@ti.com>
- <20160704065428.GS28140@atomide.com>
+Subject: Re: [PATCHv2 06/27] crypto: ahash: increase the maximum allowed
+ statesize
+Date: Mon, 4 Jul 2016 12:27:00 +0300
+Message-ID: <577A2BE4.1090202@ti.com>
+References: <1466601840-18486-1-git-send-email-t-kristo@ti.com>
+ <1466601840-18486-7-git-send-email-t-kristo@ti.com>
+ <20160624103209.GA19607@gondor.apana.org.au> <5770B283.8000902@ti.com>
+ <20160627050031.GA5673@gondor.apana.org.au> <577A298E.4040803@ti.com>
+ <20160704091925.GA31964@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160704065428.GS28140@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <20160704091925.GA31964@gondor.apana.org.au>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: linux-omap@vger.kernel.org, linux-crypto@vger.kernel.org, tony@atomide.com, davem@davemloft.net, lokeshvutla@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 04/07/16 09:54, Tony Lindgren wrote:
-> Hi,
->
-> * Tero Kristo <t-kristo@ti.com> [160630 06:18]:
->> With the transition to hwmod module clocks, all hwmods will have
->> their main clocks named <hwmod_name>_mod_ck. Use this info to
->> fetch main_clk, and use it if found.
-> ..
->
->>   static int _init_main_clk(struct omap_hwmod *oh)
->>   {
->>   	int ret = 0;
->> +	char name[32];
->> +	static int max_len;
->> +	struct clk *clk;
+On 04/07/16 12:19, Herbert Xu wrote:
+> On Mon, Jul 04, 2016 at 12:17:02PM +0300, Tero Kristo wrote:
 >>
->> -	if (!oh->main_clk)
->> -		return 0;
->> +	strcpy(name, oh->name);
->> +	strcat(name, "_mod_ck");
->> +
->> +	if (strlen(name) > max_len)
->> +		max_len = strlen(name);
+>> I need some clarification on this, afaik request_alloc related
+>> functionality only works per-request basis. The export / import
+>> functionality however is supposed to work across multiple requests.
+>> The test code for example does this:
 >
-> Just noticed that this needs some improvments to avoid nasty
-> bugs early on. You don't seem to have max_len defined, and
-> you should do a strncpy using #define MOD_CLK_MAX_LEN (32 + 7)
-> or something similar instead of the strcpy and leave room for
-> the strcat.
->
-> Care to update and repost just this one?
+> Why are you trying to allocate memory in export/import at all?
+> The preferred approach is to unconditionally allocate the memory
+> in ahash_request_alloc.
 
-Yeah, let me fix this and repost a bit later today.
+The driver allocates a largish buffer for copying the input data from 
+the sgs into a sequential space. If I don't save the contents of this 
+buffer anywhere, the export/import doesn't work as expected it seems.
+
+Actually I am now wondering why the driver allocates this sequential 
+buffer at all, DMA should be possible to use over the sgs just fine, at 
+least some other crypto drivers are doing this.
 
 -Tero
