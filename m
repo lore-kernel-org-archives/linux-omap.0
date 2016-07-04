@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 3/4] ARM: dts: AM437X-CM-T43: Remove redundant regulator compatibles
-Date: Mon, 4 Jul 2016 15:25:12 +0530
-Message-ID: <1467626113-15705-4-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 1/4] ARM: dts: AM437X-GP-EVM: Remove redundant regulator compatibles
+Date: Mon, 4 Jul 2016 15:25:10 +0530
+Message-ID: <1467626113-15705-2-git-send-email-j-keerthy@ti.com>
 References: <1467626113-15705-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -18,14 +18,14 @@ individual regulator nodes. Hence removing them all.
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
- arch/arm/boot/dts/am437x-cm-t43.dts | 6 ------
+ arch/arm/boot/dts/am437x-gp-evm.dts | 6 ------
  1 file changed, 6 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am437x-cm-t43.dts b/arch/arm/boot/dts/am437x-cm-t43.dts
-index 9551c47..9e92d48 100644
---- a/arch/arm/boot/dts/am437x-cm-t43.dts
-+++ b/arch/arm/boot/dts/am437x-cm-t43.dts
-@@ -209,7 +209,6 @@
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+index 1cecc09..cafa974 100644
+--- a/arch/arm/boot/dts/am437x-gp-evm.dts
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -513,7 +513,6 @@
  		#interrupt-cells = <2>;
  
  		dcdc1: regulator-dcdc1 {
@@ -33,7 +33,7 @@ index 9551c47..9e92d48 100644
  			regulator-name = "vdd_core";
  			regulator-min-microvolt = <912000>;
  			regulator-max-microvolt = <1144000>;
-@@ -218,7 +217,6 @@
+@@ -522,7 +521,6 @@
  		};
  
  		dcdc2: regulator-dcdc2 {
@@ -41,15 +41,15 @@ index 9551c47..9e92d48 100644
  			regulator-name = "vdd_mpu";
  			regulator-min-microvolt = <912000>;
  			regulator-max-microvolt = <1378000>;
-@@ -227,7 +225,6 @@
+@@ -531,7 +529,6 @@
  		};
  
  		dcdc3: regulator-dcdc3 {
 -			compatible = "ti,tps65218-dcdc3";
  			regulator-name = "vdcdc3";
- 			regulator-suspend-enable;
  			regulator-min-microvolt = <1500000>;
-@@ -237,7 +234,6 @@
+ 			regulator-max-microvolt = <1500000>;
+@@ -546,7 +543,6 @@
  		};
  
  		dcdc5: regulator-dcdc5 {
@@ -57,7 +57,7 @@ index 9551c47..9e92d48 100644
  			regulator-name = "v1_0bat";
  			regulator-min-microvolt = <1000000>;
  			regulator-max-microvolt = <1000000>;
-@@ -246,7 +242,6 @@
+@@ -558,7 +554,6 @@
  		};
  
  		dcdc6: regulator-dcdc6 {
@@ -65,7 +65,7 @@ index 9551c47..9e92d48 100644
  			regulator-name = "v1_8bat";
  			regulator-min-microvolt = <1800000>;
  			regulator-max-microvolt = <1800000>;
-@@ -255,7 +250,6 @@
+@@ -570,7 +565,6 @@
  		};
  
  		ldo1: regulator-ldo1 {
