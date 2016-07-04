@@ -1,44 +1,39 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 3/3] ARM: dts: am437x-sk-evm: disable DDR regulator in rtc-only/poweroff mode
-Date: Mon, 4 Jul 2016 12:04:02 +0530
-Message-ID: <1467614042-6838-4-git-send-email-j-keerthy@ti.com>
-References: <1467614042-6838-1-git-send-email-j-keerthy@ti.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC] [PATCH 0/3] media: an attempt to refresh omap1_camera driver
+Date: Mon, 4 Jul 2016 08:50:23 +0200
+Message-ID: <da99de8c-8a5a-9f5c-f39f-1eb63244a920@xs4all.nl>
+References: <1466097694-8660-1-git-send-email-jmkrzyszt@gmail.com>
+ <5763A114.2080309@xs4all.nl>
+ <20160703233253.GA14630@raspberrypi.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1467614042-6838-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, lee.jones@linaro.org, broonie@kernel.org, robh+dt@kernel.org, j-keerthy@ti.com, Tero Kristo <t-kristo@ti.com>, Dave Gerlach <d-gerlach@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20160703233253.GA14630@raspberrypi.musicnaut.iki.fi>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: devel@driverdev.osuosl.org, Arnd Bergmann <arnd@arndb.de>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Janusz Krzysztofik <jmkrzyszt@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Tero Kristo <t-kristo@ti.com>
+On 07/04/2016 01:32 AM, Aaro Koskinen wrote:
+> Hi,
+> 
+> On Fri, Jun 17, 2016 at 09:04:52AM +0200, Hans Verkuil wrote:
+>> Out of curiosity: is supporting the Amstrad Delta something you do as a hobby
+>> or are there other reasons?
+> 
+> Out of curiousity, why should this matter?
 
-Without this, the memory will remain active during poweroff consuming
-extra power. Please note revision 2.1 PMIC seems to fail when DCDC3
-disable is attempted, so this is not done on that PMIC revision. The
-PMIC revision checks in the regulator patches make sure of this.
+It doesn't. As I said, I was just curious!
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- arch/arm/boot/dts/am437x-sk-evm.dts | 3 +++
- 1 file changed, 3 insertions(+)
+Regards,
 
-diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am437x-sk-evm.dts
-index b5e84e6..3af92b6 100644
---- a/arch/arm/boot/dts/am437x-sk-evm.dts
-+++ b/arch/arm/boot/dts/am437x-sk-evm.dts
-@@ -457,6 +457,9 @@
- 			regulator-state-mem {
- 				regulator-on-in-suspend;
- 			};
-+			regulator-state-disk {
-+				regulator-off-in-suspend;
-+			};
- 		};
- 
- 		dcdc4: regulator-dcdc4 {
--- 
-1.9.1
+	Hans
