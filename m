@@ -1,39 +1,59 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC] [PATCH 0/3] media: an attempt to refresh omap1_camera driver
-Date: Mon, 4 Jul 2016 08:50:23 +0200
-Message-ID: <da99de8c-8a5a-9f5c-f39f-1eb63244a920@xs4all.nl>
-References: <1466097694-8660-1-git-send-email-jmkrzyszt@gmail.com>
- <5763A114.2080309@xs4all.nl>
- <20160703233253.GA14630@raspberrypi.musicnaut.iki.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/5] ARM: OMAP2+: hwmod: fetch main_clk based on hwmod name
+Date: Sun, 3 Jul 2016 23:54:29 -0700
+Message-ID: <20160704065428.GS28140@atomide.com>
+References: <1467292503-4376-1-git-send-email-t-kristo@ti.com>
+ <1467292503-4376-3-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <20160703233253.GA14630@raspberrypi.musicnaut.iki.fi>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: devel@driverdev.osuosl.org, Arnd Bergmann <arnd@arndb.de>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Janusz Krzysztofik <jmkrzyszt@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1467292503-4376-3-git-send-email-t-kristo@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/04/2016 01:32 AM, Aaro Koskinen wrote:
-> Hi,
-> 
-> On Fri, Jun 17, 2016 at 09:04:52AM +0200, Hans Verkuil wrote:
->> Out of curiosity: is supporting the Amstrad Delta something you do as a hobby
->> or are there other reasons?
-> 
-> Out of curiousity, why should this matter?
+Hi,
 
-It doesn't. As I said, I was just curious!
+* Tero Kristo <t-kristo@ti.com> [160630 06:18]:
+> With the transition to hwmod module clocks, all hwmods will have
+> their main clocks named <hwmod_name>_mod_ck. Use this info to
+> fetch main_clk, and use it if found.
+..
+
+>  static int _init_main_clk(struct omap_hwmod *oh)
+>  {
+>  	int ret = 0;
+> +	char name[32];
+> +	static int max_len;
+> +	struct clk *clk;
+>  
+> -	if (!oh->main_clk)
+> -		return 0;
+> +	strcpy(name, oh->name);
+> +	strcat(name, "_mod_ck");
+> +
+> +	if (strlen(name) > max_len)
+> +		max_len = strlen(name);
+
+Just noticed that this needs some improvments to avoid nasty
+bugs early on. You don't seem to have max_len defined, and
+you should do a strncpy using #define MOD_CLK_MAX_LEN (32 + 7)
+or something similar instead of the strcpy and leave room for
+the strcat.
+
+Care to update and repost just this one?
 
 Regards,
 
-	Hans
+Tony
