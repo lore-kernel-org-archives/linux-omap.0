@@ -1,51 +1,39 @@
-From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: Re: mtd: nand: omap2: check for elm_id removed
-Date: Mon, 4 Jul 2016 15:01:59 +0200
-Message-ID: <20160704150159.0af47ad5@bbrezillon>
-References: <1467636717.4618.19.camel@lws-tremmet.phytec.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv2 2/5] ARM: OMAP2+: hwmod: fetch main_clk based on hwmod
+ name
+Date: Mon, 4 Jul 2016 07:32:48 -0700
+Message-ID: <20160704143248.GU28140@atomide.com>
+References: <20160704065428.GS28140@atomide.com>
+ <1467630708-28498-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1467636717.4618.19.camel-wipSkzokR0f8DgGbXC/JcDlJRLeN4+xs@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1467630708-28498-1-git-send-email-t-kristo@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 04 Jul 2016 14:51:57 +0200
-Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org> wrote:
+* Tero Kristo <t-kristo@ti.com> [160704 04:14]:
+> With the transition to hwmod module clocks, all hwmods will have
+> their main clocks named <hwmod_name>_mod_ck. Use this info to
+> fetch main_clk, and use it if found.
+> 
+> Also, if a main_clk is found based on the hwmod name, disable
+> the direct PRCM modulemode access from hwmod.
 
-> Hello,
-> 
-> with commit c9711ec5250b22fd94e9b34c17c095e001a90e66
-> ("mtd: nand: omap: Clean up device tree support")
-> the old "elm_id" property check has been removed. So only "ti,elm-id" is
-> valid now.
-> I noticed that the old property is still used by 3 boards:
-> 
-> git grep elm_id arch/arm/boot/dts/*
-> arch/arm/boot/dts/am335x-baltos.dtsi:           elm_id = <&elm>;
-> arch/arm/boot/dts/am335x-igep0033.dtsi:         elm_id = <&elm>;
-> arch/arm/boot/dts/am335x-phycore-som.dtsi:              elm_id = <&elm>;
-> 
-> I wonder if the right way would be to patch the device trees, or to add
-> the check again and to keep backward compatibility?
+Thanks for updating this, applying all into omap-for-v4.8/soc.
 
-We should probably do both, though backward compat is usually dependent
-on the platform maintainer (some accept to break DT backward compat).
+Regards,
 
-Anyway, all DTs should be patched to use the new binding, so you can at
-least send a patch doing that.
-
-> 
-> I may provide a patch then.
-> 
-> Regards,
-> Teresa
-> 
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
