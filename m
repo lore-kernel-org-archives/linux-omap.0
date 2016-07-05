@@ -1,14 +1,12 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/2] omap soc updates for v4.8 merge window, part 2
-Date: Tue,  5 Jul 2016 00:56:53 -0700
-Message-ID: <24390.1583519348$1467705483@news.gmane.org>
-References: <pull-1467702709-538742>
+Subject: [GIT PULL 1/2] omap ir-rx51 driver fixes for multiarch for v4.8 merge
+ window
+Date: Tue,  5 Jul 2016 00:56:52 -0700
+Message-ID: <20733.4646060646$1467705490@news.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1467702709-538742>
-In-Reply-To: <pull-1467702709-538742>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,50 +17,53 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>, linux-arm-kernel@lists.infradead.org, Mauro Carvalho Chehab <m.chehab@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 44e7475d40eb26b8d3a6e2b2f7a5f12a5fe0942e:
+The following changes since commit 1a695a905c18548062509178b98bc91e67510864:
 
-  ARM: OMAP2+: Fix build if CONFIG_SMP is not set (2016-06-27 23:30:02 -0700)
+  Linux 4.7-rc1 (2016-05-29 09:29:24 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.8/soc-pt2-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.8/ir-rx51-signed
 
-for you to fetch changes up to 183e2077d007aa4b697efba095ecfea7244a6107:
+for you to fetch changes up to 79cdad3635b3a253d712aba115fa274ef94a8c6b:
 
-  ARM: AM33xx: fix module_wait_ready without clkctrl register (2016-07-04 07:15:47 -0700)
-
-----------------------------------------------------------------
-Few more omap SoC changes for v4.8 merge window:
-
-- Fix a make randconfig build error for recent SMP kexec changes
-
-- A series of clock related fixes to prepare things for moving
-  device clkctrl register handling to drivers/clk
+  ir-rx51: use hrtimer instead of dmtimer (2016-06-29 21:54:35 -0700)
 
 ----------------------------------------------------------------
-Tero Kristo (5):
-      ARM: OMAP2+: omap_device: create clock alias purely from DT data
-      ARM: OMAP2+: hwmod: fetch main_clk based on hwmod name
-      ARM: OMAP2+: timer: change order of hwmod data handling
-      ARM: OMAP2+: clockdomain: add usecounting support to autoidle APIs
-      ARM: AM33xx: fix module_wait_ready without clkctrl register
+Fix a long time regression for ir-rx51 driver for n900 device tree
+booting.
 
-Tony Lindgren (1):
-      ARM: OMAP2+: Fix build with CONFIG_SMP and CONFIG_PM is not set
+This driver has been unusable with multiarch because of the hardware
+timer access. With the recent PWM changes, we can finally fix the
+driver for multiarch and device tree support. And naturally there
+is no rush for these for the -rc cycle, these can wait for the
+merge window.
 
- arch/arm/mach-omap2/Makefile              |  5 +-
- arch/arm/mach-omap2/clockdomain.c         | 36 +++++++++-----
- arch/arm/mach-omap2/clockdomain.h         |  2 +
- arch/arm/mach-omap2/cm33xx.c              |  3 ++
- arch/arm/mach-omap2/cpuidle44xx.c         |  2 +-
- arch/arm/mach-omap2/omap-mpuss-lowpower.c |  2 +-
- arch/arm/mach-omap2/omap-smp.c            |  2 +-
- arch/arm/mach-omap2/omap_device.c         | 17 ++++++-
- arch/arm/mach-omap2/omap_hwmod.c          | 82 +++++++++++++++++++++++--------
- arch/arm/mach-omap2/pm.c                  |  8 +--
- arch/arm/mach-omap2/powerdomain.c         | 20 +++-----
- arch/arm/mach-omap2/timer.c               |  3 +-
- 12 files changed, 123 insertions(+), 59 deletions(-)
+The PWM changes have been acked by Thierry. For the media changes
+I did not get an ack from Mauro but he was Cc'd in the discussion
+and these changes do not conflict with other media changes.
+
+After this series we can drop the remaining omap3 legacy booting
+board files finally.
+
+----------------------------------------------------------------
+Ivaylo Dimitrov (5):
+      ir-rx51: Fix build after multiarch changes broke it
+      pwm: omap-dmtimer: Allow for setting dmtimer clock source
+      ir-rx51: use PWM framework instead of OMAP dmtimer
+      ir-rx51: add DT support to driver
+      ir-rx51: use hrtimer instead of dmtimer
+
+ .../devicetree/bindings/media/nokia,n900-ir        |  20 ++
+ .../devicetree/bindings/pwm/pwm-omap-dmtimer.txt   |   4 +
+ arch/arm/mach-omap2/board-rx51-peripherals.c       |   5 -
+ arch/arm/mach-omap2/pdata-quirks.c                 |  10 +-
+ drivers/media/rc/Kconfig                           |   2 +-
+ drivers/media/rc/ir-rx51.c                         | 229 +++++++--------------
+ drivers/pwm/pwm-omap-dmtimer.c                     |  12 +-
+ include/linux/platform_data/media/ir-rx51.h        |   3 -
+ 8 files changed, 111 insertions(+), 174 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/nokia,n900-ir
