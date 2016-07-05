@@ -1,42 +1,75 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH v5 3/3] gpio: lp873x: Add support for General Purpose
- Outputs
-Date: Tue, 5 Jul 2016 10:19:16 +0530
-Message-ID: <577B3C4C.1090008@ti.com>
-References: <1467215067-6486-1-git-send-email-j-keerthy@ti.com>
- <1467215067-6486-4-git-send-email-j-keerthy@ti.com>
- <CACRpkdZ-gcedMc53V8LZm3vhhd+n0PPudF_fSd_5kSmKX3obkg@mail.gmail.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] device tree updates for omaps for v4.8 merge window
+Date: Mon, 4 Jul 2016 21:47:57 -0700
+Message-ID: <20160705044757.GL1669@localhost>
+References: <20160622110640.GD22353@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdZ-gcedMc53V8LZm3vhhd+n0PPudF_fSd_5kSmKX3obkg@mail.gmail.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>, Keerthy <j-keerthy@ti.com>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Lee Jones <lee.jones@linaro.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20160622110640.GD22353@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
+
+On Wed, Jun 22, 2016 at 04:06:42AM -0700, Tony Lindgren wrote:
+> The following changes since commit 1a695a905c18548062509178b98bc91e67510864:
+> 
+>   Linux 4.7-rc1 (2016-05-29 09:29:24 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.8/dt-part1-signed-v2
+> 
+> for you to fetch changes up to 52c7c91319e469142628199548852198bcc3150f:
+> 
+>   ARM: dts: AM43xx: Add node for RNG (2016-06-22 00:44:16 -0700)
+> 
+> ----------------------------------------------------------------
+> Device tree changes for omaps for v4.8 merge window:
+> 
+> - PWM binding updates and related dts changes
+> 
+> - OCM RAM updates for dra7
+> 
+> - Enable n900 lirc-rx51 driver
+> 
+> - omap3-gta04 updates for backlight, bma180, itg3200, hmc5843 and wifi
+> 
+> - am335x, am437x and am57xx operating point updates and additions
+> 
+> - am335x-icev2 pca9536 node
+> 
+> - dra72-evm regulator updates
+> 
+> - edma spelling fixes
+> 
+> - am335x and am437x ethernet phy update
+> 
+> - a series of mcbsp updates
+> 
+> - omap3-gta04 eeprom
+> 
+> - dra7 PCIe unit address fix
+> 
+> - stdout-path for beaglebone variants
+> 
+> - crypto accelerator nodes for am335x, am437x and dra7
 
 
-On Monday 04 July 2016 04:52 PM, Linus Walleij wrote:
-> On Wed, Jun 29, 2016 at 5:44 PM, Keerthy <j-keerthy@ti.com> wrote:
->
->> Add driver for lp873x PMIC family GPOs. Two GPOs are supported
->> and can be configured in Open-drain output or Push-pull output.
->>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->
-> Looks all right to me.
->
->> +#include <linux/mfd/lp873x.h>
->
-> I guess this means Lee must merge this.
->
-> Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Merged, thanks.
 
-Thanks Linus!
 
->
-> Yours,
-> Linus Walleij
->
+-Olof
