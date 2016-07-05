@@ -1,7 +1,7 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: dts: Fix USB selection to keep Ethernet working
-Date: Tue,  5 Jul 2016 00:58:00 -0700
-Message-ID: <1467705480-8560-1-git-send-email-tony@atomide.com>
+From: Teresa Remmet <t.remmet@phytec.de>
+Subject: [PATCH 1/2] ARM: dts: am335x: Update elm phandle binding
+Date: Tue, 5 Jul 2016 11:32:29 +0200
+Message-ID: <1467711150-23356-1-git-send-email-t.remmet@phytec.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -15,45 +15,59 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org
+Cc: Mark Rutland <mark.rutland@arm.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Richard Weinberger <richard@nod.at>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Brian Norris <computersforpeace@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-With the recent Kconfig changes we need to now enable
-the PHYs to keep USB working.
+The check for the "elm_id" binding had been removed.
+This causes nand boot to fail on boards still using
+the old binding. Update the bindings on those boards.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Teresa Remmet <t.remmet@phytec.de>
 ---
- arch/arm/configs/omap2plus_defconfig | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/am335x-baltos.dtsi      | 2 +-
+ arch/arm/boot/dts/am335x-igep0033.dtsi    | 2 +-
+ arch/arm/boot/dts/am335x-phycore-som.dtsi | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 506f4fa..2530472 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -355,11 +355,13 @@ CONFIG_USB_OHCI_HCD=m
- CONFIG_USB_WDM=m
- CONFIG_USB_STORAGE=m
- CONFIG_USB_MUSB_HDRC=m
-+CONFIG_USB_MUSB_TUSB6010=m
- CONFIG_USB_MUSB_OMAP2PLUS=m
- CONFIG_USB_MUSB_AM35X=m
- CONFIG_USB_MUSB_DSPS=m
- CONFIG_USB_INVENTRA_DMA=y
- CONFIG_USB_TI_CPPI41_DMA=y
-+CONFIG_USB_TUSB_OMAP_DMA=y
- CONFIG_USB_DWC3=m
- CONFIG_USB_SERIAL=m
- CONFIG_USB_SERIAL_GENERIC=y
-@@ -367,7 +369,8 @@ CONFIG_USB_SERIAL_SIMPLE=m
- CONFIG_USB_SERIAL_FTDI_SIO=m
- CONFIG_USB_SERIAL_PL2303=m
- CONFIG_USB_TEST=m
--CONFIG_AM335X_PHY_USB=y
-+CONFIG_NOP_USB_XCEIV=m
-+CONFIG_AM335X_PHY_USB=m
- CONFIG_TWL6030_USB=m
- CONFIG_USB_GADGET=m
- CONFIG_USB_GADGET_DEBUG=y
+diff --git a/arch/arm/boot/dts/am335x-baltos.dtsi b/arch/arm/boot/dts/am335x-baltos.dtsi
+index c8609d8..b689172 100644
+--- a/arch/arm/boot/dts/am335x-baltos.dtsi
++++ b/arch/arm/boot/dts/am335x-baltos.dtsi
+@@ -226,7 +226,7 @@
+ 
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+-		elm_id = <&elm>;
++		ti,elm-id = <&elm>;
+ 	};
+ };
+ 
+diff --git a/arch/arm/boot/dts/am335x-igep0033.dtsi b/arch/arm/boot/dts/am335x-igep0033.dtsi
+index df63484..e7d9ca1 100644
+--- a/arch/arm/boot/dts/am335x-igep0033.dtsi
++++ b/arch/arm/boot/dts/am335x-igep0033.dtsi
+@@ -161,7 +161,7 @@
+ 
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+-		elm_id = <&elm>;
++		ti,elm-id = <&elm>;
+ 
+ 		/* MTD partition table */
+ 		partition@0 {
+diff --git a/arch/arm/boot/dts/am335x-phycore-som.dtsi b/arch/arm/boot/dts/am335x-phycore-som.dtsi
+index 86f7731..1263c9d 100644
+--- a/arch/arm/boot/dts/am335x-phycore-som.dtsi
++++ b/arch/arm/boot/dts/am335x-phycore-som.dtsi
+@@ -197,7 +197,7 @@
+ 		gpmc,wr-access-ns = <30>;
+ 		gpmc,wr-data-mux-bus-ns = <0>;
+ 
+-		elm_id = <&elm>;
++		ti,elm-id = <&elm>;
+ 
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
 -- 
-2.8.1
+1.9.1
