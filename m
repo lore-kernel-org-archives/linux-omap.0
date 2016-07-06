@@ -1,13 +1,15 @@
-From: Teresa Remmet <t.remmet@phytec.de>
-Subject: [PATCH 2/2] mtd: nand: omap2: Add check for old elm binding
-Date: Tue, 5 Jul 2016 11:32:30 +0200
-Message-ID: <1467711150-23356-2-git-send-email-t.remmet@phytec.de>
-References: <1467711150-23356-1-git-send-email-t.remmet@phytec.de>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL 2/2] dtc warning fixes for omaps for v4.8 merge window
+Date: Tue, 5 Jul 2016 22:33:33 -0700
+Message-ID: <20160706053333.GM23212@localhost>
+References: <pull-1467270686-995259>
+ <5774c68b.4130620a.bf46e.ffffe39dSMTPIN_ADDED_BROKEN@mx.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1467711150-23356-1-git-send-email-t.remmet@phytec.de>
+Content-Disposition: inline
+In-Reply-To: <5774c68b.4130620a.bf46e.ffffe39dSMTPIN_ADDED_BROKEN@mx.google.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,33 +19,29 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org
-Cc: Mark Rutland <mark.rutland@arm.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Richard Weinberger <richard@nod.at>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Brian Norris <computersforpeace@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Roger Quadros <rogerq@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-commit c9711ec5250b ("mtd: nand: omap: Clean up device tree support")
-removes the check for the old elm phandle binding.
-Add it again to keep backward compatibility.
+On Thu, Jun 30, 2016 at 12:13:01AM -0700, Tony Lindgren wrote:
+> The following changes since commit 52c7c91319e469142628199548852198bcc3150f:
+> 
+>   ARM: dts: AM43xx: Add node for RNG (2016-06-22 00:44:16 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.8/dt-part2-signed
+> 
+> for you to fetch changes up to 480985b06c8e3999940929bf024042e4181bbdce:
+> 
+>   ARM: dts: am57xx: sbc-am57x: remove unneded unit name (2016-06-29 00:05:39 -0700)
+> 
+> ----------------------------------------------------------------
+> Second set of device tree updates for omaps for v4.8 merge window.
+> This is a series of dtc warning fixes when compiled with make W=2
+> from Javier Martinez Canillas <javier@osg.samsung.com>.
 
-Signed-off-by: Teresa Remmet <t.remmet@phytec.de>
----
- drivers/mtd/nand/omap2.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Merged, thanks!
 
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 08e1588..d788663 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -1658,7 +1658,9 @@ static int omap_get_dt_info(struct device *dev, struct omap_nand_info *info)
- 	/* detect availability of ELM module. Won't be present pre-OMAP4 */
- 	info->elm_of_node = of_parse_phandle(child, "ti,elm-id", 0);
- 	if (!info->elm_of_node)
--		dev_dbg(dev, "ti,elm-id not in DT\n");
-+		info->elm_of_node = of_parse_phandle(child, "elm_id", 0);
-+		if (!info->elm_of_node)
-+			dev_dbg(dev, "ti,elm-id not in DT\n");
- 
- 	/* select ecc-scheme for NAND */
- 	if (of_property_read_string(child, "ti,nand-ecc-opt", &s)) {
--- 
-1.9.1
+
+-Olof
