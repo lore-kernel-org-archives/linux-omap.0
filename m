@@ -1,72 +1,54 @@
-From: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
-Subject: [RFC] [PATCH v3 1/4] spi: omap2-mcspi: Add comments for RX only DMA buffer workaround
-Date: Thu,  7 Jul 2016 12:17:48 -0500
-Message-ID: <1467911871-4508-2-git-send-email-fcooper@ti.com>
-References: <1467911871-4508-1-git-send-email-fcooper@ti.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1467911871-4508-1-git-send-email-fcooper-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, robert.jarzmik-GANU6spQydw@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
-Cc: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
+From: Franklin S Cooper Jr <fcooper@ti.com>
+Subject: [RFC] [PATCH v3 0/4] spi: omap2-mcspi: Use the SPI framework to
+ handle DMA mapping
+Date: Thu,  7 Jul 2016 12:17:47 -0500
+Message-ID: <1467911871-4508-1-git-send-email-fcooper@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com, robh+dt@kernel.org, broonie@kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, andy.shevchenko@gmail.com, robert.jarzmik@free.fr, nsekhar@ti.com
+Cc: Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-OMAP35x and OMAP37x mentions in the McSPI End-of-Transfer Sequences section
-that if the McSPI is configured as a Master and only DMA RX is being
-performed then the DMA transfer size needs to be reduced by 1 or 2.
+This patchset switches omap2-mcspi from handling DMA mapping internally to
+using the mechanism built into the SPI framework.
 
-This was originally implemented by:
-commit 57c5c28dbc83 ("spi: omap2_mcspi rxdma bugfix")
+However, this is slightly complex since some OMAP SoCs have a quirk that
+needs to be handled. In the driver on certain OMAP SOCs if certain
+conditions are met the DMA should transfer one or two less elements
+when reading from the SPI. The remaining bytes are read in CPU mode.
+Sg_split is used to implement this quirk without altering the original
+sgl.
 
-This patch adds comments to clarify what is going on in the code since its
-not obvious what problem its addressing.
+Note: The first patch looks to already have been accepted.
 
-Signed-off-by: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
----
- drivers/spi/spi-omap2-mcspi.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+V2 changes:
+Save page_link value if page_link doesn't point to chained sg_list
 
-diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index 1d237e9..c47f958 100644
---- a/drivers/spi/spi-omap2-mcspi.c
-+++ b/drivers/spi/spi-omap2-mcspi.c
-@@ -459,6 +459,11 @@ omap2_mcspi_rx_dma(struct spi_device *spi, struct spi_transfer *xfer,
- 	count = xfer->len;
- 	dma_count = xfer->len;
- 
-+	/*
-+	 *  In the "End-of-Transfer Procedure" section for DMA RX in OMAP35x TRM
-+	 *  it mentions reducing DMA transfer length by one element in master
-+	 *  normal mode.
-+	 */
- 	if (mcspi->fifo_depth == 0)
- 		dma_count -= es;
- 
-@@ -478,6 +483,10 @@ omap2_mcspi_rx_dma(struct spi_device *spi, struct spi_transfer *xfer,
- 
- 		dmaengine_slave_config(mcspi_dma->dma_rx, &cfg);
- 
-+		/*
-+		 *  Reduce DMA transfer length by one more if McSPI is
-+		 *  configured in turbo mode.
-+		 */
- 		if ((l & OMAP2_MCSPI_CHCONF_TURBO) && mcspi->fifo_depth == 0)
- 			dma_count -= es;
- 
-@@ -507,6 +516,10 @@ omap2_mcspi_rx_dma(struct spi_device *spi, struct spi_transfer *xfer,
- 	if (mcspi->fifo_depth > 0)
- 		return count;
- 
-+	/*
-+	 *  Due to the DMA transfer length reduction the missing bytes must
-+	 *  be read manually to receive all of the expected data.
-+	 */
- 	omap2_mcspi_set_enable(spi, 0);
- 
- 	elements = element_count - 1;
+v3 changes:
+Switch from using custom sg_table clone function to sg_split that already
+exist within the kernel.
+
+Franklin S Cooper Jr (4):
+  spi: omap2-mcspi: Add comments for RX only DMA buffer workaround
+  spi: spi-omap2-mcspi: Select SPI_SPLIT
+  spi: omap2-mcspi: Use the SPI framework to handle DMA mapping
+  ARM: dts: am335x-icev2: Add SPI based NOR
+
+ arch/arm/boot/dts/am335x-icev2.dts |  39 ++++++++++
+ drivers/spi/Kconfig                |   1 +
+ drivers/spi/spi-omap2-mcspi.c      | 145 ++++++++++++++++++-------------------
+ 3 files changed, 109 insertions(+), 76 deletions(-)
+
 -- 
 2.7.0
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
