@@ -1,86 +1,86 @@
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [GIT PULL 1/2] omap ir-rx51 driver fixes for multiarch for v4.8
- merge window
-Date: Thu, 07 Jul 2016 21:34:21 -0300
-Message-ID: <20160707213421.07a886ac.m.chehab@samsung.com>
-References: <pull-1467702709-538742@samsung.com>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH 0/4] regulator: tps65917/palmas: Cleanups and bugfixes
+Date: Fri, 8 Jul 2016 10:58:17 +0530
+Message-ID: <577F39F1.3000203@ti.com>
+References: <1462494592-27909-1-git-send-email-nm@ti.com>
+ <572C444F.9070304@nvidia.com> <20160506171453.GX6292@sirena.org.uk>
+ <572CEA22.2090300@ti.com> <573E9306.5050908@ti.com>
+ <573EABD8.7040206@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-reply-to: <pull-1467702709-538742@samsung.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, Thierry Reding <thierry.reding@gmail.com>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <573EABD8.7040206@nvidia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Laxman Dewangan <ldewangan@nvidia.com>, Nishanth Menon <nm@ti.com>, Mark Brown <broonie@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Keerthy <j-keerthy@ti.com>, Stephen Warren <swarren@nvidia.com>, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Em Tue, 05 Jul 2016 00:56:52 -0700
-Tony Lindgren <tony@atomide.com> escreveu:
-
-> The following changes since commit 1a695a905c18548062509178b98bc91e67510864:
-> 
->   Linux 4.7-rc1 (2016-05-29 09:29:24 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.8/ir-rx51-signed
-> 
-> for you to fetch changes up to 79cdad3635b3a253d712aba115fa274ef94a8c6b:
-> 
->   ir-rx51: use hrtimer instead of dmtimer (2016-06-29 21:54:35 -0700)
-> 
-> ----------------------------------------------------------------
-> Fix a long time regression for ir-rx51 driver for n900 device tree
-> booting.
-
-Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-(sorry for taking too long to ack on that... got some VPN issues
-that were solved only today)
-
-> 
-> This driver has been unusable with multiarch because of the hardware
-> timer access. With the recent PWM changes, we can finally fix the
-> driver for multiarch and device tree support. And naturally there
-> is no rush for these for the -rc cycle, these can wait for the
-> merge window.
-> 
-> The PWM changes have been acked by Thierry. For the media changes
-> I did not get an ack from Mauro but he was Cc'd in the discussion
-> and these changes do not conflict with other media changes.
-> 
-> After this series we can drop the remaining omap3 legacy booting
-> board files finally.
-> 
-> ----------------------------------------------------------------
-> Ivaylo Dimitrov (5):
->       ir-rx51: Fix build after multiarch changes broke it
->       pwm: omap-dmtimer: Allow for setting dmtimer clock source
->       ir-rx51: use PWM framework instead of OMAP dmtimer
->       ir-rx51: add DT support to driver
->       ir-rx51: use hrtimer instead of dmtimer
-> 
->  .../devicetree/bindings/media/nokia,n900-ir        |  20 ++
->  .../devicetree/bindings/pwm/pwm-omap-dmtimer.txt   |   4 +
->  arch/arm/mach-omap2/board-rx51-peripherals.c       |   5 -
->  arch/arm/mach-omap2/pdata-quirks.c                 |  10 +-
->  drivers/media/rc/Kconfig                           |   2 +-
->  drivers/media/rc/ir-rx51.c                         | 229 +++++++--------------
->  drivers/pwm/pwm-omap-dmtimer.c                     |  12 +-
->  include/linux/platform_data/media/ir-rx51.h        |   3 -
->  8 files changed, 111 insertions(+), 174 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/media/nokia,n900-ir
-> 
 
 
--- 
-Thanks,
-Mauro
+On Friday 20 May 2016 11:46 AM, Laxman Dewangan wrote:
+>
+> On Friday 20 May 2016 10:01 AM, Keerthy wrote:
+>> + Lee Jones
+>>
+>> On Saturday 07 May 2016 12:31 AM, Nishanth Menon wrote:
+>>> On 05/06/2016 12:14 PM, Mark Brown wrote:
+>>>> On Fri, May 06, 2016 at 12:44:23PM +0530, Laxman Dewangan wrote:
+>>>>
+>>>>> When you are here, can you implement the dt parsing with the new
+>>>>> method from
+>>>>> regulator framework.
+>>>>> Regulator FW calls callback to parse customized DT property, just
+>>>>> need to
+>>>>> pass the node and pointer when registering.
+>>>>
+>>>>> This will helps lots in cleanups and readability.
+>>>>
+>>>> Yes, please.
+>>>>
+>>> yeah, the driver has started showing it's age, it will be good to do a
+>>> refactor.
+>>
+>> Laxman,
+>>
+>> I got the dt parsing with new method from regulator framework part, But
+>> by new method do you also want to remove the dt compatible of
+>> regulators and let only the mfd compatible stay?
+>>
+>> replace of_platform_populate with mfd_add_devices so that linux
+>> handles the drivers split up and not the device tree?
+>>
+>
+> The DT binding of child devices of the palmas are like that each sub
+> node has compatible.
+> So I dont think we can change this to avoid regression.
+>
+> However, if we make the child devices independent of the parent devices
+> then it will be very useful to use across different PMIC if they have
+> same IP.
+> Currently, child devices are very much tightly coupled with parent
+> devices for the register access and global structure member accces.
+>
+> This is exactly what we did for the max77686 RTC driver which is used by
+> max77686, max77802 and max77620.
+>
+> There is two mfd core driver, max77686 and max77620 and uses same RTC
+> driver rtc-max77686.c
+
+Laxman,
+
+Sorry for responding late on this thread. The new way of the dt parsing 
+with the new method expects the driver to populate vsel_reg, vsel_mask,
+enable_reg, enable_mask.
+
+The inherent difference in palmas regulator driver w.r.t handling 
+regulators is that this driver treats smps and ldo differently. It has 
+separate read/write functions for both and goes by separate base 
+addresses for spmp and ldo. Now to get all this unified under one 
+regulator_desc array a lot of code churn would be needed in both header 
+and C files. Not sure if that is okay.
+
+Regards,
+Keerthy
+>
+>
