@@ -1,86 +1,54 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH 0/4] regulator: tps65917/palmas: Cleanups and bugfixes
-Date: Fri, 8 Jul 2016 10:58:17 +0530
-Message-ID: <577F39F1.3000203@ti.com>
-References: <1462494592-27909-1-git-send-email-nm@ti.com>
- <572C444F.9070304@nvidia.com> <20160506171453.GX6292@sirena.org.uk>
- <572CEA22.2090300@ti.com> <573E9306.5050908@ti.com>
- <573EABD8.7040206@nvidia.com>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC] [PATCH v3 1/4] spi: omap2-mcspi: Add comments for RX only
+ DMA buffer workaround
+Date: Fri, 8 Jul 2016 10:46:24 +0200
+Message-ID: <20160708084624.GS6247@sirena.org.uk>
+References: <1467911871-4508-1-git-send-email-fcooper@ti.com>
+ <1467911871-4508-2-git-send-email-fcooper@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <573EABD8.7040206@nvidia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Laxman Dewangan <ldewangan@nvidia.com>, Nishanth Menon <nm@ti.com>, Mark Brown <broonie@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Keerthy <j-keerthy@ti.com>, Stephen Warren <swarren@nvidia.com>, Lee Jones <lee.jones@linaro.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="onT/iYtSweZVW9zT"
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1467911871-4508-2-git-send-email-fcooper-l0cyMroinI0@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, robert.jarzmik-GANU6spQydw@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
+--onT/iYtSweZVW9zT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On Friday 20 May 2016 11:46 AM, Laxman Dewangan wrote:
->
-> On Friday 20 May 2016 10:01 AM, Keerthy wrote:
->> + Lee Jones
->>
->> On Saturday 07 May 2016 12:31 AM, Nishanth Menon wrote:
->>> On 05/06/2016 12:14 PM, Mark Brown wrote:
->>>> On Fri, May 06, 2016 at 12:44:23PM +0530, Laxman Dewangan wrote:
->>>>
->>>>> When you are here, can you implement the dt parsing with the new
->>>>> method from
->>>>> regulator framework.
->>>>> Regulator FW calls callback to parse customized DT property, just
->>>>> need to
->>>>> pass the node and pointer when registering.
->>>>
->>>>> This will helps lots in cleanups and readability.
->>>>
->>>> Yes, please.
->>>>
->>> yeah, the driver has started showing it's age, it will be good to do a
->>> refactor.
->>
->> Laxman,
->>
->> I got the dt parsing with new method from regulator framework part, But
->> by new method do you also want to remove the dt compatible of
->> regulators and let only the mfd compatible stay?
->>
->> replace of_platform_populate with mfd_add_devices so that linux
->> handles the drivers split up and not the device tree?
->>
->
-> The DT binding of child devices of the palmas are like that each sub
-> node has compatible.
-> So I dont think we can change this to avoid regression.
->
-> However, if we make the child devices independent of the parent devices
-> then it will be very useful to use across different PMIC if they have
-> same IP.
-> Currently, child devices are very much tightly coupled with parent
-> devices for the register access and global structure member accces.
->
-> This is exactly what we did for the max77686 RTC driver which is used by
-> max77686, max77802 and max77620.
->
-> There is two mfd core driver, max77686 and max77620 and uses same RTC
-> driver rtc-max77686.c
+On Thu, Jul 07, 2016 at 12:17:48PM -0500, Franklin S Cooper Jr wrote:
+> OMAP35x and OMAP37x mentions in the McSPI End-of-Transfer Sequences section
+> that if the McSPI is configured as a Master and only DMA RX is being
+> performed then the DMA transfer size needs to be reduced by 1 or 2.
 
-Laxman,
+Please do not submit new versions of already applied patches, please
+submit incremental updates to the existing code.  Modifying existing
+commits creates problems for other users building on top of those
+commits so it's best practice to only change pubished git commits if
+absolutely essential.
 
-Sorry for responding late on this thread. The new way of the dt parsing 
-with the new method expects the driver to populate vsel_reg, vsel_mask,
-enable_reg, enable_mask.
+--onT/iYtSweZVW9zT
+Content-Type: application/pgp-signature; name="signature.asc"
 
-The inherent difference in palmas regulator driver w.r.t handling 
-regulators is that this driver treats smps and ldo differently. It has 
-separate read/write functions for both and goes by separate base 
-addresses for spmp and ldo. Now to get all this unified under one 
-regulator_desc array a lot of code churn would be needed in both header 
-and C files. Not sure if that is okay.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-Regards,
-Keerthy
->
->
+iQEcBAEBCAAGBQJXf2hgAAoJECTWi3JdVIfQNQEH/0zc6vi4VIt8HuxulY09TfYG
+23I2JBcq7kO9JNWLuSt9vfa4IXiCUBiQzr6h3mUPrDYq1c+o8use+4QLC/87jCfA
+PHk19k9q02P6OPXUVKA8RnW6Z8Oge5NhKnwkUSmSd56sAkSzFMSOA9SyR1FMaHKu
+Vic2N2a7mJ+oBizThfANHX+Nb9IH3L5EJC8Xag3/htqf/wtYLcKPYlD6l1J0UKzI
+99Gxn3wfL+NkYRjl5Z9hUREfPcfmuc5/KaD+GjTogyfMWdUdSlxnCaHb+Pg2SExV
+vz01RXjHMOuYbjUljj+snah8GhSvA+ABzjKJgI5yD0qef//fpdwhGv1VpVSOvsI=
+=jk7N
+-----END PGP SIGNATURE-----
+
+--onT/iYtSweZVW9zT--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
