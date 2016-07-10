@@ -1,81 +1,63 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH v2] arm: omap1_defconfig: convert to use libata PATA
- drivers
-Date: Sat, 9 Jul 2016 01:06:53 +0300
-Message-ID: <20160708220653.GB14630@raspberrypi.musicnaut.iki.fi>
-References: <1467985859-23500-1-git-send-email-b.zolnierkie@samsung.com>
- <1467985859-23500-2-git-send-email-b.zolnierkie@samsung.com>
+From: Brian Norris <computersforpeace@gmail.com>
+Subject: Re: [PATCH 2/2] mtd: nand: omap2: Add check for old elm binding
+Date: Sat, 9 Jul 2016 17:56:14 -0700
+Message-ID: <20160710005614.GB29572@localhost>
+References: <1467711150-23356-1-git-send-email-t.remmet@phytec.de>
+ <1467711150-23356-2-git-send-email-t.remmet@phytec.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1467985859-23500-2-git-send-email-b.zolnierkie@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org
+In-Reply-To: <1467711150-23356-2-git-send-email-t.remmet@phytec.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Teresa Remmet <t.remmet@phytec.de>
+Cc: Mark Rutland <mark.rutland@arm.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Richard Weinberger <richard@nod.at>, Rob Herring <robh+dt@kernel.org>, linux-mtd@lists.infradead.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Tue, Jul 05, 2016 at 11:32:30AM +0200, Teresa Remmet wrote:
+> commit c9711ec5250b ("mtd: nand: omap: Clean up device tree support")
+> removes the check for the old elm phandle binding.
 
-On Fri, Jul 08, 2016 at 03:50:59PM +0200, Bartlomiej Zolnierkiewicz wrote:
-> IDE subsystem has been deprecated since 2009 and the majority
-> (if not all) of Linux distributions have switched to use
-> libata for ATA support exclusively.  However there are still
-> some users (mostly old or/and embedded non-x86 systems) that
-> have not converted from using IDE subsystem to libata PATA
-> drivers.  This doesn't seem to be good thing in the long-term
-> for Linux as while there is less and less PATA systems left
-> in use:
-> 
-> * testing efforts are divided between two subsystems
-> 
-> * having duplicate drivers for same hardware confuses users
-> 
-> This patch converts omap1_defconfig to use libata PATA
-> drivers.
-> 
-> Cc: linux-omap@vger.kernel.org
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+That seems like a silly breakage of backwards compatibility. Must have
+overlooked that one, sorry.
 
-I have been using ATA/PATA_PCMCIA on OMAP1 already for a while, so:
+> Add it again to keep backward compatibility.
+> 
+> Signed-off-by: Teresa Remmet <t.remmet@phytec.de>
 
-Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+I think we should probably take this for v4.7, since the breaking commit
+was only merged in v4.7-rc1. OMAP folks, any comment?
 
-A.
+Brian
 
 > ---
-> v2:
-> - added Acked-by tag from Tony
+>  drivers/mtd/nand/omap2.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
 > 
->  arch/arm/configs/omap1_defconfig | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/configs/omap1_defconfig b/arch/arm/configs/omap1_defconfig
-> index 0c8a787..6ffc984 100644
-> --- a/arch/arm/configs/omap1_defconfig
-> +++ b/arch/arm/configs/omap1_defconfig
-> @@ -96,14 +96,14 @@ CONFIG_BLK_DEV_LOOP=y
->  CONFIG_BLK_DEV_RAM=y
->  CONFIG_BLK_DEV_RAM_COUNT=2
->  CONFIG_BLK_DEV_RAM_SIZE=8192
-> -CONFIG_IDE=m
-> -CONFIG_BLK_DEV_IDECS=m
->  CONFIG_SCSI=y
->  # CONFIG_SCSI_PROC_FS is not set
->  CONFIG_BLK_DEV_SD=y
->  CONFIG_CHR_DEV_ST=y
->  CONFIG_BLK_DEV_SR=y
->  CONFIG_CHR_DEV_SG=y
-> +CONFIG_ATA=m
-> +CONFIG_PATA_PCMCIA=m
->  CONFIG_NETDEVICES=y
->  CONFIG_TUN=y
->  CONFIG_PHYLIB=y
+> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> index 08e1588..d788663 100644
+> --- a/drivers/mtd/nand/omap2.c
+> +++ b/drivers/mtd/nand/omap2.c
+> @@ -1658,7 +1658,9 @@ static int omap_get_dt_info(struct device *dev, struct omap_nand_info *info)
+>  	/* detect availability of ELM module. Won't be present pre-OMAP4 */
+>  	info->elm_of_node = of_parse_phandle(child, "ti,elm-id", 0);
+>  	if (!info->elm_of_node)
+> -		dev_dbg(dev, "ti,elm-id not in DT\n");
+> +		info->elm_of_node = of_parse_phandle(child, "elm_id", 0);
+> +		if (!info->elm_of_node)
+> +			dev_dbg(dev, "ti,elm-id not in DT\n");
+>  
+>  	/* select ecc-scheme for NAND */
+>  	if (of_property_read_string(child, "ti,nand-ecc-opt", &s)) {
 > -- 
 > 1.9.1
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
