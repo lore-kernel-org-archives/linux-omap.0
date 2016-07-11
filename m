@@ -1,47 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] RFC: net: smsc911x: add wake-up event interrupt
- support
-Date: Mon, 11 Jul 2016 01:14:52 -0700
-Message-ID: <20160711081451.GX28305@atomide.com>
-References: <1467968852-6175-1-git-send-email-linus.walleij@linaro.org>
- <1467968852-6175-3-git-send-email-linus.walleij@linaro.org>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [PATCH v8 3/9] pwm: pwm-tiehrpwm: Update dt binding document to
+ use generic node name
+Date: Mon, 11 Jul 2016 11:55:52 +0200
+Message-ID: <20160711095552.GH5823@ulmo.ba.sec>
+References: <1462291015-1919-1-git-send-email-fcooper@ti.com>
+ <1462291015-1919-4-git-send-email-fcooper@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="ZPDwMsyfds7q4mrK"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1467968852-6175-3-git-send-email-linus.walleij@linaro.org>
-Sender: netdev-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: netdev@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, Steve Glendinning <steve.glendinning@smsc.com>, Guenter Roeck <linux@roeck-us.net>, Jeremy Linton <jeremy.linton@arm.com>, Kamlakant Patel <kamlakant.patel@broadcom.com>, Pavel Fedin <p.fedin@samsung.com>, Sudeep Holla <sudeep.holla@arm.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, John Stultz <john.stultz@linaro.org>, linux-omap@vger.kernel.org
+In-Reply-To: <1462291015-1919-4-git-send-email-fcooper@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Franklin S Cooper Jr <fcooper@ti.com>
+Cc: robh+dt@kernel.org, tony@atomide.com, linux@arm.linux.org.uk, paul@pwsan.com, t-kristo@ti.com, mturquette@baylibre.com, sboyd@codeaurora.org, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, vigneshr@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Linus Walleij <linus.walleij@linaro.org> [160708 02:10]:
-> The SMSC911x have a line out of the chip called "PME",
-> Power Management Event. When connected to an asynchronous
-> interrupt controller this is able to wake the system up
-> from sleep in response to certain network events.
 
-Cool, so far have not found any boards here with that
-connected. Should be possible to solder that on at least
-omap3-evm at some point though.
+--ZPDwMsyfds7q4mrK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> +static irqreturn_t smsc911x_pme_irq_thread(int irq, void *dev_id)
-> +{
-> +	struct net_device *dev = dev_id;
-> +	struct smsc911x_data *pdata __maybe_unused = netdev_priv(dev);
-> +
-> +	SMSC_TRACE(pdata, pm, "wakeup event");
-> +	/* This signal is active for 50 ms, wait for it to deassert */
-> +	usleep_range(50000, 100000);
-> +	return IRQ_HANDLED;
-> +}
+On Tue, May 03, 2016 at 10:56:49AM -0500, Franklin S Cooper Jr wrote:
+> Now that the node name has been changed from ehrpwm to pwm the document
+> should show this proper usage. Change the unit address in the example
+> from 0 to the proper physical address value that should be used. Also
+> insure that the unit address matches to the reg property.
+>=20
+> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+> Acked-by: Rob Herring <robh@kernel.org>
+> ---
+>  Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
 
-This probably adds an extra 50 ms latency before we wake up
-the smsc911x driver. Maybe we can eventually come up with
-some nice solution to that too. Anyways, no objections on
-my side for this patch as it provides a nice GPIO wakeirq test
-case that can be automated with just ping -c 1 :)
+I applied this long ago, but never replied: Applied, thanks.
 
-Regards,
+Thierry
 
-Tony
+--ZPDwMsyfds7q4mrK
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJXg20mAAoJEN0jrNd/PrOhIeUP/jn+tXVGKN5TntUnYN35a8/r
+thpQZEdWLeKfro6QrXt2PVubKf7DUllHX0p3fLF5K7by13ATq+Ewm2VvLlA0mQEP
+EisBUOBbx/yN05avwMk6iuOzxXMBFwVeCJa9tjpIkOiBCQiIMywqq9ptdshpzp5p
+Ianv0aq49cwpUXpZNrvTq5Vm0G3AKkg6WFr553kmbUkmJ9cjA6sWZp6JVW2IVnLa
+IZgCpZxAwSJgGfiP6cefWWALpMpdsA7xeqCVH+yIe5xVr3St9JUd4j24qcTac8ig
+zBPOJ1Vn6pMLfT2J8XhZBpr8hJ7xL8otNakH0AIErDX0KAURgKzjwjw+m1pxuctH
+iHEgRtufRWUxmCPeJCcchEBCQvBmwJa4+hXUFVTVA+ab1VGnDcPb7MPB4NzFPaAj
+nPtA4AViRewjzjC6/uU61MT8z5p2wES34s2d23AMmrHq6aSRi9frM47vzLaWpUEc
+1G5dQn+Kpa0Ck5SEroeF4d6oh0iQZq/glUrDt8k8U4gLJrTbTMr2CsplkXM5VsGg
+prElhJyEARWOPKrWgsKA0crIeMd5gdKDNHQoG2aKTWwpf5mLg4TN10oIpgo1imwn
+MH+AyUop9jpSJ4glrpJbsqrBNr+kpkNUM0JmmXjMxAFGFoNlB9gMuegcYJTRjLxn
+wpKXs9O1Px8dylvmqcp1
+=FH2T
+-----END PGP SIGNATURE-----
+
+--ZPDwMsyfds7q4mrK--
