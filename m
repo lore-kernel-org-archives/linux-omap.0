@@ -1,63 +1,47 @@
-From: Brian Norris <computersforpeace@gmail.com>
-Subject: Re: [PATCH 2/2] mtd: nand: omap2: Add check for old elm binding
-Date: Sat, 9 Jul 2016 17:56:14 -0700
-Message-ID: <20160710005614.GB29572@localhost>
-References: <1467711150-23356-1-git-send-email-t.remmet@phytec.de>
- <1467711150-23356-2-git-send-email-t.remmet@phytec.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/3] RFC: net: smsc911x: add wake-up event interrupt
+ support
+Date: Mon, 11 Jul 2016 01:14:52 -0700
+Message-ID: <20160711081451.GX28305@atomide.com>
+References: <1467968852-6175-1-git-send-email-linus.walleij@linaro.org>
+ <1467968852-6175-3-git-send-email-linus.walleij@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1467711150-23356-2-git-send-email-t.remmet@phytec.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Teresa Remmet <t.remmet@phytec.de>
-Cc: Mark Rutland <mark.rutland@arm.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Richard Weinberger <richard@nod.at>, Rob Herring <robh+dt@kernel.org>, linux-mtd@lists.infradead.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+In-Reply-To: <1467968852-6175-3-git-send-email-linus.walleij@linaro.org>
+Sender: netdev-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: netdev@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, Steve Glendinning <steve.glendinning@smsc.com>, Guenter Roeck <linux@roeck-us.net>, Jeremy Linton <jeremy.linton@arm.com>, Kamlakant Patel <kamlakant.patel@broadcom.com>, Pavel Fedin <p.fedin@samsung.com>, Sudeep Holla <sudeep.holla@arm.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, John Stultz <john.stultz@linaro.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jul 05, 2016 at 11:32:30AM +0200, Teresa Remmet wrote:
-> commit c9711ec5250b ("mtd: nand: omap: Clean up device tree support")
-> removes the check for the old elm phandle binding.
+* Linus Walleij <linus.walleij@linaro.org> [160708 02:10]:
+> The SMSC911x have a line out of the chip called "PME",
+> Power Management Event. When connected to an asynchronous
+> interrupt controller this is able to wake the system up
+> from sleep in response to certain network events.
 
-That seems like a silly breakage of backwards compatibility. Must have
-overlooked that one, sorry.
+Cool, so far have not found any boards here with that
+connected. Should be possible to solder that on at least
+omap3-evm at some point though.
 
-> Add it again to keep backward compatibility.
-> 
-> Signed-off-by: Teresa Remmet <t.remmet@phytec.de>
+> +static irqreturn_t smsc911x_pme_irq_thread(int irq, void *dev_id)
+> +{
+> +	struct net_device *dev = dev_id;
+> +	struct smsc911x_data *pdata __maybe_unused = netdev_priv(dev);
+> +
+> +	SMSC_TRACE(pdata, pm, "wakeup event");
+> +	/* This signal is active for 50 ms, wait for it to deassert */
+> +	usleep_range(50000, 100000);
+> +	return IRQ_HANDLED;
+> +}
 
-I think we should probably take this for v4.7, since the breaking commit
-was only merged in v4.7-rc1. OMAP folks, any comment?
+This probably adds an extra 50 ms latency before we wake up
+the smsc911x driver. Maybe we can eventually come up with
+some nice solution to that too. Anyways, no objections on
+my side for this patch as it provides a nice GPIO wakeirq test
+case that can be automated with just ping -c 1 :)
 
-Brian
+Regards,
 
-> ---
->  drivers/mtd/nand/omap2.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> index 08e1588..d788663 100644
-> --- a/drivers/mtd/nand/omap2.c
-> +++ b/drivers/mtd/nand/omap2.c
-> @@ -1658,7 +1658,9 @@ static int omap_get_dt_info(struct device *dev, struct omap_nand_info *info)
->  	/* detect availability of ELM module. Won't be present pre-OMAP4 */
->  	info->elm_of_node = of_parse_phandle(child, "ti,elm-id", 0);
->  	if (!info->elm_of_node)
-> -		dev_dbg(dev, "ti,elm-id not in DT\n");
-> +		info->elm_of_node = of_parse_phandle(child, "elm_id", 0);
-> +		if (!info->elm_of_node)
-> +			dev_dbg(dev, "ti,elm-id not in DT\n");
->  
->  	/* select ecc-scheme for NAND */
->  	if (of_property_read_string(child, "ti,nand-ecc-opt", &s)) {
-> -- 
-> 1.9.1
-> 
+Tony
