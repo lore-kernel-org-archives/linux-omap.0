@@ -1,62 +1,59 @@
 From: Thierry Reding <thierry.reding@gmail.com>
-Subject: Re: [PATCH v8 3/9] pwm: pwm-tiehrpwm: Update dt binding document to
- use generic node name
-Date: Mon, 11 Jul 2016 11:55:52 +0200
-Message-ID: <20160711095552.GH5823@ulmo.ba.sec>
+Subject: Re: [PATCH v8 4/9] pwm: pwm-tiecap: Update dt binding document to
+ use proper unit address
+Date: Mon, 11 Jul 2016 11:56:23 +0200
+Message-ID: <20160711095623.GI5823@ulmo.ba.sec>
 References: <1462291015-1919-1-git-send-email-fcooper@ti.com>
- <1462291015-1919-4-git-send-email-fcooper@ti.com>
+ <1462291015-1919-5-git-send-email-fcooper@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="ZPDwMsyfds7q4mrK"
+	protocol="application/pgp-signature"; boundary="Encpt1P6Mxii2VuT"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1462291015-1919-4-git-send-email-fcooper@ti.com>
+In-Reply-To: <1462291015-1919-5-git-send-email-fcooper@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Franklin S Cooper Jr <fcooper@ti.com>
 Cc: robh+dt@kernel.org, tony@atomide.com, linux@arm.linux.org.uk, paul@pwsan.com, t-kristo@ti.com, mturquette@baylibre.com, sboyd@codeaurora.org, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, vigneshr@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
 
---ZPDwMsyfds7q4mrK
+--Encpt1P6Mxii2VuT
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, May 03, 2016 at 10:56:49AM -0500, Franklin S Cooper Jr wrote:
-> Now that the node name has been changed from ehrpwm to pwm the document
-> should show this proper usage. Change the unit address in the example
-> from 0 to the proper physical address value that should be used. Also
-> insure that the unit address matches to the reg property.
+On Tue, May 03, 2016 at 10:56:50AM -0500, Franklin S Cooper Jr wrote:
+> Replace unit address from 0 to the proper physical address. Also insure
+> that the unit address matches the reg property address.
 >=20
 > Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
-> Acked-by: Rob Herring <robh@kernel.org>
 > ---
->  Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt | 8 ++++----
+>  Documentation/devicetree/bindings/pwm/pwm-tiecap.txt | 8 ++++----
 >  1 file changed, 4 insertions(+), 4 deletions(-)
 
-I applied this long ago, but never replied: Applied, thanks.
+I applied this long ago but never let you know: Applied, thanks.
 
 Thierry
 
---ZPDwMsyfds7q4mrK
+--Encpt1P6Mxii2VuT
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJXg20mAAoJEN0jrNd/PrOhIeUP/jn+tXVGKN5TntUnYN35a8/r
-thpQZEdWLeKfro6QrXt2PVubKf7DUllHX0p3fLF5K7by13ATq+Ewm2VvLlA0mQEP
-EisBUOBbx/yN05avwMk6iuOzxXMBFwVeCJa9tjpIkOiBCQiIMywqq9ptdshpzp5p
-Ianv0aq49cwpUXpZNrvTq5Vm0G3AKkg6WFr553kmbUkmJ9cjA6sWZp6JVW2IVnLa
-IZgCpZxAwSJgGfiP6cefWWALpMpdsA7xeqCVH+yIe5xVr3St9JUd4j24qcTac8ig
-zBPOJ1Vn6pMLfT2J8XhZBpr8hJ7xL8otNakH0AIErDX0KAURgKzjwjw+m1pxuctH
-iHEgRtufRWUxmCPeJCcchEBCQvBmwJa4+hXUFVTVA+ab1VGnDcPb7MPB4NzFPaAj
-nPtA4AViRewjzjC6/uU61MT8z5p2wES34s2d23AMmrHq6aSRi9frM47vzLaWpUEc
-1G5dQn+Kpa0Ck5SEroeF4d6oh0iQZq/glUrDt8k8U4gLJrTbTMr2CsplkXM5VsGg
-prElhJyEARWOPKrWgsKA0crIeMd5gdKDNHQoG2aKTWwpf5mLg4TN10oIpgo1imwn
-MH+AyUop9jpSJ4glrpJbsqrBNr+kpkNUM0JmmXjMxAFGFoNlB9gMuegcYJTRjLxn
-wpKXs9O1Px8dylvmqcp1
-=FH2T
+iQIcBAABCAAGBQJXg21HAAoJEN0jrNd/PrOhIf8P/1RA6cb3nNXTmNBuoU9w3FNW
+1/NyIDBXs8zsOf9c1WMvrRrEbG2fhBHRPfykGJVnb71Lg14aJro1XdJ+4/N1WAbU
+E59jJZzIbZ/X7HfY+0kWazhqD5k+MqQJxsNN6aEbH+3nx0q4MpjkqRpvmkD0FyMV
+iJ+W33fymyiPdQKYYKV7hNfVG34Sd/5z+G85Wo2DpTSJ1HWToNqcc2n2Nh7QgdxO
+J9RJWIy8Y/uDN2OSqPQJwyjKG8r8prZMmc/nznxead2zWUI9anh+wBYIiHW2g/WQ
+ZZvDtxGIEPWxmR9Fj196tJE5d5wvR30R8QcCZJ2iaUpqJU0bQ/yVy211EhMLhcyT
+q4itTrxjzB5jEbRix3zYdAhpy5rGDJ83y4cgg4bPW2UMbBXntvYo2sdVvGQjVXzP
+F9RuRdsUnZOt/4d+jaO+UVh4Z9Ldn5ECA58YMY4nPZFMK41E+TpVMfeqc9ILdt6+
+OhKJWqfk33f/ez+59qT3aQxf5iHpXEgly/iFl1uGvew+A0xBtkwrVGNw2IIsNZ0E
+uW0WqnK9Qo870a+DBrSWdRZun4N6BA3fFqp2RAReAxl3Z+j1H89YTO32c6lE2yUI
+70q+EcMvOascx25ieIZ0jgKiDUxRj1vkClzuQTJxznEzNuNpORkPYThLtQ+hZFGx
+3nGf2/oiwyhoC+av9t1O
+=pUZU
 -----END PGP SIGNATURE-----
 
---ZPDwMsyfds7q4mrK--
+--Encpt1P6Mxii2VuT--
