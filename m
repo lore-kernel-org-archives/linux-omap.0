@@ -1,12 +1,12 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap2plus_defconfig fix for v4.8 merge window
-Date: Mon, 11 Jul 2016 09:11:12 -0700
-Message-ID: <20160711161112.GA28563@atomide.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH] Revert "ARM: AM33xx: fix module_wait_ready without clkctrl
+ register"
+Date: Mon, 11 Jul 2016 16:39:38 -0500
+Message-ID: <20160711213938.28385-1-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -16,31 +16,40 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
+Cc: Olof Johansson <olof@lixom.net>, Paul Walmsley <paul@pwsan.com>, Arnd Bergmann <arnd@arndb.de>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 1a695a905c18548062509178b98bc91e67510864:
+This reverts commit 183e2077d007aa4b697efba095ecfea7244a6107.
 
-  Linux 4.7-rc1 (2016-05-29 09:29:24 -0700)
+The original patch added a check to am33xx_cm_wait_module_ready for a
+clkctrl offset of 0 as an invalid case, however, clkctrl offset of 0 is
+perfectly valid for hwmods, in particular the rtc.
 
-are available in the git repository at:
+Without reverting this patch sometimes external aborts are seen on
+am335x during boot. This is due to the am33xx_cm_wait_module_ready
+function immediately returning 0 rather than waiting for the RTC_CLKCTRL
+register to indicate it is actually ready before rtc register accesses
+happen.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.8/defconfig-v2-signed
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+---
+ arch/arm/mach-omap2/cm33xx.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-for you to fetch changes up to 0992b2f16bc055df4fcd30558653490912637edd:
-
-  ARM: omap2plus_defconfig: Fix USB selection to keep Ethernet working (2016-07-11 00:24:27 -0700)
-
-----------------------------------------------------------------
-A defconfig update for omap2plus_defconfig to fix changed USB
-Kconfig dependencies for v4.8 merge window. Otherwise things
-like USB Ethernet on omap3 beagle, omap4 panda and omap5-uevm
-won't work without manual configuration.
-
-----------------------------------------------------------------
-Tony Lindgren (1):
-      ARM: omap2plus_defconfig: Fix USB selection to keep Ethernet working
-
- arch/arm/configs/omap2plus_defconfig | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+diff --git a/arch/arm/mach-omap2/cm33xx.c b/arch/arm/mach-omap2/cm33xx.c
+index c073fb57dd13..7b181f929525 100644
+--- a/arch/arm/mach-omap2/cm33xx.c
++++ b/arch/arm/mach-omap2/cm33xx.c
+@@ -220,9 +220,6 @@ static int am33xx_cm_wait_module_ready(u8 part, s16 inst, u16 clkctrl_offs,
+ {
+ 	int i = 0;
+ 
+-	if (!clkctrl_offs)
+-		return 0;
+-
+ 	omap_test_timeout(_is_module_ready(inst, clkctrl_offs),
+ 			  MAX_MODULE_READY_TIME, i);
+ 
+-- 
+2.9.0
