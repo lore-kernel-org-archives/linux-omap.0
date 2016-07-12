@@ -1,8 +1,8 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 1/4] ARM: OMAP4+: hwmod: Add hwmod flag for
- HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET
-Date: Tue, 12 Jul 2016 12:50:31 -0500
-Message-ID: <20160712175034.743-2-d-gerlach@ti.com>
+Subject: [PATCH 3/4] ARM: OMAP4+: Have _omap4_wait_target_* check for valid
+ clkctrl_offs
+Date: Tue, 12 Jul 2016 12:50:33 -0500
+Message-ID: <20160712175034.743-4-d-gerlach@ti.com>
 References: <20160712175034.743-1-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,33 +22,47 @@ To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindg
 Cc: Lokesh Vutla <lokeshvutla@ti.com>, Olof Johansson <olof@lixom.net>, Paul Walmsley <paul@pwsan.com>, Arnd Bergmann <arnd@arndb.de>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Nearly all modules on OMAP4 and newer platforms have clkctrl offsets
-that are non-zero except for the RTC on am335x. Because we rely on a
-clkctrl_offset of zero to indicate no clkctrl_offset being present,
-lets add a HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET flag to use to indicate
-hwmods that have a valid clkctrl_offset of 0.
+Previously the low-level CM call internal to the
+_omap4_wait_target_ready/disable calls was responsible for checking for
+a valid clkctrl_offs. Now we must also consider the value of the
+prcm.omap4.flags because if HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET is set in
+the flags then clkctrl_offs of 0 is valid.
+
+Let's move this check into the _omap4_wait_target_ready/disable where we
+have access to both the clkctrl_offs and the flags values and simply
+return 0 without calling the low level CM call at all, which would have
+returned 0 anyway if the clktrl_offs was zero.
 
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.h | 4 ++++
- 1 file changed, 4 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
-index 4041bad79a9a..78904017f18c 100644
---- a/arch/arm/mach-omap2/omap_hwmod.h
-+++ b/arch/arm/mach-omap2/omap_hwmod.h
-@@ -443,8 +443,12 @@ struct omap_hwmod_omap2_prcm {
-  * HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT: Some IP blocks don't have a PRCM
-  *     module-level context loss register associated with them; this
-  *     flag bit should be set in those cases
-+ * HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET: Some IP blocks have a valid CLKCTRL
-+ *	offset of zero; this flag bit should be set in those cases to
-+ *	distinguish from hwmods that have no clkctrl offset.
-  */
- #define HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT		(1 << 0)
-+#define HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET		(1 << 1)
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 5b709383381c..1052b29697b8 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1053,6 +1053,10 @@ static int _omap4_wait_target_disable(struct omap_hwmod *oh)
+ 	if (oh->flags & HWMOD_NO_IDLEST)
+ 		return 0;
  
- /**
-  * struct omap_hwmod_omap4_prcm - OMAP4-specific PRCM data
++	if (!oh->prcm.omap4.clkctrl_offs &&
++	    !(oh->prcm.omap4.flags & HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET))
++		return 0;
++
+ 	return omap_cm_wait_module_idle(oh->clkdm->prcm_partition,
+ 					oh->clkdm->cm_inst,
+ 					oh->prcm.omap4.clkctrl_offs, 0);
+@@ -2971,6 +2975,10 @@ static int _omap4_wait_target_ready(struct omap_hwmod *oh)
+ 	if (!_find_mpu_rt_port(oh))
+ 		return 0;
+ 
++	if (!oh->prcm.omap4.clkctrl_offs &&
++	    !(oh->prcm.omap4.flags & HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET))
++		return 0;
++
+ 	/* XXX check module SIDLEMODE, hardreset status */
+ 
+ 	return omap_cm_wait_module_ready(oh->clkdm->prcm_partition,
 -- 
 2.9.0
