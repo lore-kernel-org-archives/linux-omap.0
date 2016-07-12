@@ -1,14 +1,15 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 4/4] ARM: OMAP4+: CM: Remove redundant checks for clkctrl_offs
- of zero
-Date: Tue, 12 Jul 2016 12:50:34 -0500
-Message-ID: <20160712175034.743-5-d-gerlach@ti.com>
-References: <20160712175034.743-1-d-gerlach@ti.com>
+Subject: Re: [PATCH] Revert "ARM: AM33xx: fix module_wait_ready without
+ clkctrl register"
+Date: Tue, 12 Jul 2016 12:55:49 -0500
+Message-ID: <57852F25.2070001@ti.com>
+References: <20160711213938.28385-1-d-gerlach@ti.com> <5784653C.30502@ti.com>
+ <57848DD9.5070400@ti.com> <5784F1E2.1060605@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160712175034.743-1-d-gerlach@ti.com>
+In-Reply-To: <5784F1E2.1060605@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,67 +19,88 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, Olof Johansson <olof@lixom.net>, Paul Walmsley <paul@pwsan.com>, Arnd Bergmann <arnd@arndb.de>, Dave Gerlach <d-gerlach@ti.com>
+To: Tero Kristo <t-kristo@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: Olof Johansson <olof@lixom.net>, Paul Walmsley <paul@pwsan.com>, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-omap@vger.kernel.org
 
-Now that we have moved the check for valid clkctrl_offs to the caller of
-am33xx_cm_wait_module_ready/idle and omap4_cminst_wait_module_ready/idle
-let's remove the now redundant check for clkctrl_offs from these functions.
+On 07/12/2016 08:34 AM, Dave Gerlach wrote:
+> On 07/12/2016 01:27 AM, Tero Kristo wrote:
+>> On 12/07/16 06:34, Lokesh Vutla wrote:
+>>>
+>>>
+>>> On Tuesday 12 July 2016 03:09 AM, Dave Gerlach wrote:
+>>>> This reverts commit 183e2077d007aa4b697efba095ecfea7244a6107.
+>>>>
+>>>> The original patch added a check to am33xx_cm_wait_module_ready for a
+>>>> clkctrl offset of 0 as an invalid case, however, clkctrl offset of 0 is
+>>>> perfectly valid for hwmods, in particular the rtc.
+>>>
+>>> Looks like a similar check is present for am33xx_cm_wait_module_idle.
+>>> Shouldn't that also be removed?
+>>
+>> Oh this is annoying, I didn't notice that RTC had mutant register when I
+>> did the patch to add the check in place, and didn't face this issue
+>> either during testing. However, this check must be in there to avoid any
+>> issues with the transition to the hwmod clock data, as all the clkctrl
+>> offsets will be removed from hwmod data.
+>>
+>> I think for RTC we probably need to add some sort of HWMOD flag, and add
+>> a check within the hwmod code itself against this. Just reverting this
+>> patch is wrong approach, as you need to fix it some other way then.
+>
+> I agree, that was another option I considered, but I went with reverting
+> it for now as there were no ill effects and we've made it this long with
+> out it.
+>
+> I can send a new version with a flag soon.
 
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
----
- arch/arm/mach-omap2/cm33xx.c     | 6 ------
- arch/arm/mach-omap2/cminst44xx.c | 6 ------
- 2 files changed, 12 deletions(-)
+Ok so let's forget this patch, new series sent here
 
-diff --git a/arch/arm/mach-omap2/cm33xx.c b/arch/arm/mach-omap2/cm33xx.c
-index c073fb57dd13..6f2d0aec0513 100644
---- a/arch/arm/mach-omap2/cm33xx.c
-+++ b/arch/arm/mach-omap2/cm33xx.c
-@@ -220,9 +220,6 @@ static int am33xx_cm_wait_module_ready(u8 part, s16 inst, u16 clkctrl_offs,
- {
- 	int i = 0;
- 
--	if (!clkctrl_offs)
--		return 0;
--
- 	omap_test_timeout(_is_module_ready(inst, clkctrl_offs),
- 			  MAX_MODULE_READY_TIME, i);
- 
-@@ -246,9 +243,6 @@ static int am33xx_cm_wait_module_idle(u8 part, s16 inst, u16 clkctrl_offs,
- {
- 	int i = 0;
- 
--	if (!clkctrl_offs)
--		return 0;
--
- 	omap_test_timeout((_clkctrl_idlest(inst, clkctrl_offs) ==
- 				CLKCTRL_IDLEST_DISABLED),
- 				MAX_MODULE_READY_TIME, i);
-diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
-index 2c0e07ed6b99..2ab27ade136a 100644
---- a/arch/arm/mach-omap2/cminst44xx.c
-+++ b/arch/arm/mach-omap2/cminst44xx.c
-@@ -278,9 +278,6 @@ static int omap4_cminst_wait_module_ready(u8 part, s16 inst, u16 clkctrl_offs,
- {
- 	int i = 0;
- 
--	if (!clkctrl_offs)
--		return 0;
--
- 	omap_test_timeout(_is_module_ready(part, inst, clkctrl_offs),
- 			  MAX_MODULE_READY_TIME, i);
- 
-@@ -304,9 +301,6 @@ static int omap4_cminst_wait_module_idle(u8 part, s16 inst, u16 clkctrl_offs,
- {
- 	int i = 0;
- 
--	if (!clkctrl_offs)
--		return 0;
--
- 	omap_test_timeout((_clkctrl_idlest(part, inst, clkctrl_offs) ==
- 			   CLKCTRL_IDLEST_DISABLED),
- 			  MAX_MODULE_DISABLE_TIME, i);
--- 
-2.9.0
+http://marc.info/?l=linux-omap&m=146834587516818&w=2
+
+Regards,
+Dave
+
+>
+> Regards,
+> Dave
+>
+>>
+>> -Tero
+>>
+>>>
+>>> Thanks and regards,
+>>> Lokesh
+>>>
+>>>>
+>>>> Without reverting this patch sometimes external aborts are seen on
+>>>> am335x during boot. This is due to the am33xx_cm_wait_module_ready
+>>>> function immediately returning 0 rather than waiting for the
+>>>> RTC_CLKCTRL
+>>>> register to indicate it is actually ready before rtc register accesses
+>>>> happen.
+>>>>
+>>>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+>>>> ---
+>>>>   arch/arm/mach-omap2/cm33xx.c | 3 ---
+>>>>   1 file changed, 3 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/cm33xx.c
+>>>> b/arch/arm/mach-omap2/cm33xx.c
+>>>> index c073fb57dd13..7b181f929525 100644
+>>>> --- a/arch/arm/mach-omap2/cm33xx.c
+>>>> +++ b/arch/arm/mach-omap2/cm33xx.c
+>>>> @@ -220,9 +220,6 @@ static int am33xx_cm_wait_module_ready(u8 part,
+>>>> s16 inst, u16 clkctrl_offs,
+>>>>   {
+>>>>       int i = 0;
+>>>>
+>>>> -    if (!clkctrl_offs)
+>>>> -        return 0;
+>>>> -
+>>>>       omap_test_timeout(_is_module_ready(inst, clkctrl_offs),
+>>>>                 MAX_MODULE_READY_TIME, i);
+>>>>
+>>>>
+>>
+>
