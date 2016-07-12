@@ -1,92 +1,94 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] pwm: twl: Reliably disable TWL6030 PWMs
-Date: Tue, 12 Jul 2016 16:18:18 +0300
-Message-ID: <b41e8c8c-80e4-d8f7-e223-9b40e85a3438@ti.com>
-References: <1459277745-16878-1-git-send-email-contact@paulk.fr>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH] Revert "ARM: AM33xx: fix module_wait_ready without
+ clkctrl register"
+Date: Tue, 12 Jul 2016 08:34:26 -0500
+Message-ID: <5784F1E2.1060605@ti.com>
+References: <20160711213938.28385-1-d-gerlach@ti.com> <5784653C.30502@ti.com>
+ <57848DD9.5070400@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1459277745-16878-1-git-send-email-contact@paulk.fr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Kocialkowski <contact@paulk.fr>, linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org
-Cc: Thierry Reding <thierry.reding@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <57848DD9.5070400@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: Olof Johansson <olof@lixom.net>, Paul Walmsley <paul@pwsan.com>, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/29/16 21:55, Paul Kocialkowski wrote:
-> The current TWL6030 code for the TWL PWM driver does not reliably dis=
-able the
-> PWM output, as tested with LEDs. The previous commit to that driver i=
-ntroduced
-> that regression.
->=20
-> However, it does make sense to disable the PWM clock after resetting =
-the PWM,
-> but for some obscure reason, doing it all at once simply doesn't work=
-=2E
->=20
-> The TWL6030 datasheet mentions that PWMs have to be disabled in two d=
-istinct
-> steps. However, clearing the clock enable bit in a second step (after=
- issuing a
-> reset first) does not work.
->=20
-> The only approach that works is the one that was in place before the =
-previous
-> commit to the driver. It consists in enabling the PWM clock after iss=
-uing a
-> reset. This is what TI kernel trees and production code seem to be us=
-ing.
->=20
-> However, adding an extra step to disable the PWM clock seems to work =
-reliably,
-> despite looking quite odd.
+On 07/12/2016 01:27 AM, Tero Kristo wrote:
+> On 12/07/16 06:34, Lokesh Vutla wrote:
+>>
+>>
+>> On Tuesday 12 July 2016 03:09 AM, Dave Gerlach wrote:
+>>> This reverts commit 183e2077d007aa4b697efba095ecfea7244a6107.
+>>>
+>>> The original patch added a check to am33xx_cm_wait_module_ready for a
+>>> clkctrl offset of 0 as an invalid case, however, clkctrl offset of 0 is
+>>> perfectly valid for hwmods, in particular the rtc.
+>>
+>> Looks like a similar check is present for am33xx_cm_wait_module_idle.
+>> Shouldn't that also be removed?
+>
+> Oh this is annoying, I didn't notice that RTC had mutant register when I
+> did the patch to add the check in place, and didn't face this issue
+> either during testing. However, this check must be in there to avoid any
+> issues with the transition to the hwmod clock data, as all the clkctrl
+> offsets will be removed from hwmod data.
+>
+> I think for RTC we probably need to add some sort of HWMOD flag, and add
+> a check within the hwmod code itself against this. Just reverting this
+> patch is wrong approach, as you need to fix it some other way then.
 
-Unfortunately I don't have board to test, but based on the documentatio=
-n and
-your explanation, this is the correct way.
-Thank you for debugging and fixing it!
+I agree, that was another option I considered, but I went with reverting 
+it for now as there were no ill effects and we've made it this long with 
+out it.
 
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+I can send a new version with a flag soon.
 
->=20
-> Signed-off-by: Paul Kocialkowski <contact@paulk.fr>
-> ---
->  drivers/pwm/pwm-twl.c | 16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
->=20
-> diff --git a/drivers/pwm/pwm-twl.c b/drivers/pwm/pwm-twl.c
-> index 04f7672..7a993b0 100644
-> --- a/drivers/pwm/pwm-twl.c
-> +++ b/drivers/pwm/pwm-twl.c
-> @@ -269,6 +269,22 @@ static void twl6030_pwm_disable(struct pwm_chip =
-*chip, struct pwm_device *pwm)
->  		goto out;
->  	}
-> =20
-> +	val |=3D TWL6030_PWM_TOGGLE(pwm->hwpwm, TWL6030_PWMXEN);
-> +
-> +	ret =3D twl_i2c_write_u8(TWL6030_MODULE_ID1, val, TWL6030_TOGGLE3_R=
-EG);
-> +	if (ret < 0) {
-> +		dev_err(chip->dev, "%s: Failed to disable PWM\n", pwm->label);
-> +		goto out;
-> +	}
-> +
-> +	val &=3D ~TWL6030_PWM_TOGGLE(pwm->hwpwm, TWL6030_PWMXEN);
-> +
-> +	ret =3D twl_i2c_write_u8(TWL6030_MODULE_ID1, val, TWL6030_TOGGLE3_R=
-EG);
-> +	if (ret < 0) {
-> +		dev_err(chip->dev, "%s: Failed to disable PWM\n", pwm->label);
-> +		goto out;
-> +	}
-> +
->  	twl->twl6030_toggle3 =3D val;
->  out:
->  	mutex_unlock(&twl->mutex);
->=20
+Regards,
+Dave
 
-
---=20
-P=E9ter
+>
+> -Tero
+>
+>>
+>> Thanks and regards,
+>> Lokesh
+>>
+>>>
+>>> Without reverting this patch sometimes external aborts are seen on
+>>> am335x during boot. This is due to the am33xx_cm_wait_module_ready
+>>> function immediately returning 0 rather than waiting for the RTC_CLKCTRL
+>>> register to indicate it is actually ready before rtc register accesses
+>>> happen.
+>>>
+>>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+>>> ---
+>>>   arch/arm/mach-omap2/cm33xx.c | 3 ---
+>>>   1 file changed, 3 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/cm33xx.c b/arch/arm/mach-omap2/cm33xx.c
+>>> index c073fb57dd13..7b181f929525 100644
+>>> --- a/arch/arm/mach-omap2/cm33xx.c
+>>> +++ b/arch/arm/mach-omap2/cm33xx.c
+>>> @@ -220,9 +220,6 @@ static int am33xx_cm_wait_module_ready(u8 part,
+>>> s16 inst, u16 clkctrl_offs,
+>>>   {
+>>>       int i = 0;
+>>>
+>>> -    if (!clkctrl_offs)
+>>> -        return 0;
+>>> -
+>>>       omap_test_timeout(_is_module_ready(inst, clkctrl_offs),
+>>>                 MAX_MODULE_READY_TIME, i);
+>>>
+>>>
+>
