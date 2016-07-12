@@ -1,8 +1,8 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 2/4] ARM: OMAP2+: AM33XX: Add HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET
- flag to rtc hwmod
-Date: Tue, 12 Jul 2016 12:50:32 -0500
-Message-ID: <20160712175034.743-3-d-gerlach@ti.com>
+Subject: [PATCH 4/4] ARM: OMAP4+: CM: Remove redundant checks for clkctrl_offs
+ of zero
+Date: Tue, 12 Jul 2016 12:50:34 -0500
+Message-ID: <20160712175034.743-5-d-gerlach@ti.com>
 References: <20160712175034.743-1-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,36 +22,63 @@ To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindg
 Cc: Lokesh Vutla <lokeshvutla@ti.com>, Olof Johansson <olof@lixom.net>, Paul Walmsley <paul@pwsan.com>, Arnd Bergmann <arnd@arndb.de>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The RTC hwmod on AM335x family of SoCs is unique in that the
-clkctrl_offs in the PRCM is 0. We rely on a clkctrl_offs of zero as
-indicating no clkctrl is present so we must flag this hwmod with
-HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET to indicate the 0 clkctrl_offs is in
-fact valid in this case.
+Now that we have moved the check for valid clkctrl_offs to the caller of
+am33xx_cm_wait_module_ready/idle and omap4_cminst_wait_module_ready/idle
+let's remove the now redundant check for clkctrl_offs from these functions.
 
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/mach-omap2/cm33xx.c     | 6 ------
+ arch/arm/mach-omap2/cminst44xx.c | 6 ------
+ 2 files changed, 12 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-index 55c5878577f4..e2d84aa7f595 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-@@ -29,6 +29,7 @@
- #define CLKCTRL(oh, clkctrl) ((oh).prcm.omap4.clkctrl_offs = (clkctrl))
- #define RSTCTRL(oh, rstctrl) ((oh).prcm.omap4.rstctrl_offs = (rstctrl))
- #define RSTST(oh, rstst) ((oh).prcm.omap4.rstst_offs = (rstst))
-+#define PRCM_FLAGS(oh, flag) ((oh).prcm.omap4.flags = (flag))
+diff --git a/arch/arm/mach-omap2/cm33xx.c b/arch/arm/mach-omap2/cm33xx.c
+index c073fb57dd13..6f2d0aec0513 100644
+--- a/arch/arm/mach-omap2/cm33xx.c
++++ b/arch/arm/mach-omap2/cm33xx.c
+@@ -220,9 +220,6 @@ static int am33xx_cm_wait_module_ready(u8 part, s16 inst, u16 clkctrl_offs,
+ {
+ 	int i = 0;
  
- /*
-  * 'l3' class
-@@ -1296,6 +1297,7 @@ static void omap_hwmod_am33xx_clkctrl(void)
- 	CLKCTRL(am33xx_i2c1_hwmod, AM33XX_CM_WKUP_I2C0_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_wd_timer1_hwmod, AM33XX_CM_WKUP_WDT1_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_rtc_hwmod, AM33XX_CM_RTC_RTC_CLKCTRL_OFFSET);
-+	PRCM_FLAGS(am33xx_rtc_hwmod, HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_mmc2_hwmod, AM33XX_CM_PER_MMC2_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_gpmc_hwmod, AM33XX_CM_PER_GPMC_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_l4_ls_hwmod, AM33XX_CM_PER_L4LS_CLKCTRL_OFFSET);
+-	if (!clkctrl_offs)
+-		return 0;
+-
+ 	omap_test_timeout(_is_module_ready(inst, clkctrl_offs),
+ 			  MAX_MODULE_READY_TIME, i);
+ 
+@@ -246,9 +243,6 @@ static int am33xx_cm_wait_module_idle(u8 part, s16 inst, u16 clkctrl_offs,
+ {
+ 	int i = 0;
+ 
+-	if (!clkctrl_offs)
+-		return 0;
+-
+ 	omap_test_timeout((_clkctrl_idlest(inst, clkctrl_offs) ==
+ 				CLKCTRL_IDLEST_DISABLED),
+ 				MAX_MODULE_READY_TIME, i);
+diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
+index 2c0e07ed6b99..2ab27ade136a 100644
+--- a/arch/arm/mach-omap2/cminst44xx.c
++++ b/arch/arm/mach-omap2/cminst44xx.c
+@@ -278,9 +278,6 @@ static int omap4_cminst_wait_module_ready(u8 part, s16 inst, u16 clkctrl_offs,
+ {
+ 	int i = 0;
+ 
+-	if (!clkctrl_offs)
+-		return 0;
+-
+ 	omap_test_timeout(_is_module_ready(part, inst, clkctrl_offs),
+ 			  MAX_MODULE_READY_TIME, i);
+ 
+@@ -304,9 +301,6 @@ static int omap4_cminst_wait_module_idle(u8 part, s16 inst, u16 clkctrl_offs,
+ {
+ 	int i = 0;
+ 
+-	if (!clkctrl_offs)
+-		return 0;
+-
+ 	omap_test_timeout((_clkctrl_idlest(part, inst, clkctrl_offs) ==
+ 			   CLKCTRL_IDLEST_DISABLED),
+ 			  MAX_MODULE_DISABLE_TIME, i);
 -- 
 2.9.0
