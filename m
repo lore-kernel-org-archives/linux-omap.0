@@ -1,80 +1,63 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] Revert "ARM: AM33xx: fix module_wait_ready without
- clkctrl register"
-Date: Tue, 12 Jul 2016 09:27:37 +0300
-Message-ID: <57848DD9.5070400@ti.com>
-References: <20160711213938.28385-1-d-gerlach@ti.com> <5784653C.30502@ti.com>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: [PATCHv3 2/7] clk: ti: add clkdev get helper
+Date: Tue, 12 Jul 2016 11:22:28 +0100
+Message-ID: <20160712102228.GE5783@n2100.arm.linux.org.uk>
+References: <1467296018-25086-1-git-send-email-t-kristo@ti.com>
+ <1467296018-25086-3-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5784653C.30502@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lokesh Vutla <lokeshvutla@ti.com>, Dave Gerlach <d-gerlach@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
-Cc: Olof Johansson <olof@lixom.net>, Paul Walmsley <paul@pwsan.com>, Arnd Bergmann <arnd@arndb.de>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1467296018-25086-3-git-send-email-t-kristo@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, tony@atomide.com, paul@pwsan.com, sboyd@codeaurora.org, mturquette@baylibre.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 12/07/16 06:34, Lokesh Vutla wrote:
->
->
-> On Tuesday 12 July 2016 03:09 AM, Dave Gerlach wrote:
->> This reverts commit 183e2077d007aa4b697efba095ecfea7244a6107.
->>
->> The original patch added a check to am33xx_cm_wait_module_ready for a
->> clkctrl offset of 0 as an invalid case, however, clkctrl offset of 0 is
->> perfectly valid for hwmods, in particular the rtc.
->
-> Looks like a similar check is present for am33xx_cm_wait_module_idle.
-> Shouldn't that also be removed?
+On Thu, Jun 30, 2016 at 05:13:33PM +0300, Tero Kristo wrote:
+>  /**
+> + * ti_clk_get - lookup a TI clock handle
+> + * @dev_id: device to lookup clock for
+> + * @con_id: connection ID to find
+> + *
+> + * Searches for a TI clock handle based on the DT node name.
+> + * Returns the pointer to the clock handle, or ERR_PTR in failure.
+> + */
+> +static struct clk *ti_clk_get(const char *dev_id, const char *con_id)
+> +{
+> +	struct of_phandle_args clkspec;
+> +	struct device_node *node;
+> +	struct clk *clk;
+> +
+> +	/* Only check for cases of type clk_get_sys(NULL, "xyz") */
+> +	if (dev_id || !con_id)
+> +		return ERR_PTR(-ENOENT);
+> +
+> +	if (of_have_populated_dt()) {
+> +		node = of_find_node_by_name(NULL, con_id);
+> +		clkspec.np = node;
+> +		clk = of_clk_get_from_provider(&clkspec);
+> +
+> +		if (!IS_ERR(clk))
+> +			return clk;
+> +	}
+> +
+> +	return ERR_PTR(-ENOENT);
+> +}
 
-Oh this is annoying, I didn't notice that RTC had mutant register when I 
-did the patch to add the check in place, and didn't face this issue 
-either during testing. However, this check must be in there to avoid any 
-issues with the transition to the hwmod clock data, as all the clkctrl 
-offsets will be removed from hwmod data.
+I _really_ don't like this.  This takes us back to the totally broken
+idea, that's already been proven to be greatly harmful in OMAP land,
+that the "con_id" is not a _DEVICE SPECIFIC CONNECTION NAME_ but is a
+CLOCK NAME.  The connection ID is supposed to be a static string in
+the requestor of the clock, not some random string picked out from
+DT.
 
-I think for RTC we probably need to add some sort of HWMOD flag, and add 
-a check within the hwmod code itself against this. Just reverting this 
-patch is wrong approach, as you need to fix it some other way then.
+This series started out with the assertion that the new clkdev hook
+was to avoid registering lots of clock aliases, but it seems with
+this patch we're going to end up with lots of specifically named
+nodes in DT instead.  It's just moving the problem to somewhere else.
 
--Tero
-
->
-> Thanks and regards,
-> Lokesh
->
->>
->> Without reverting this patch sometimes external aborts are seen on
->> am335x during boot. This is due to the am33xx_cm_wait_module_ready
->> function immediately returning 0 rather than waiting for the RTC_CLKCTRL
->> register to indicate it is actually ready before rtc register accesses
->> happen.
->>
->> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
->> ---
->>   arch/arm/mach-omap2/cm33xx.c | 3 ---
->>   1 file changed, 3 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/cm33xx.c b/arch/arm/mach-omap2/cm33xx.c
->> index c073fb57dd13..7b181f929525 100644
->> --- a/arch/arm/mach-omap2/cm33xx.c
->> +++ b/arch/arm/mach-omap2/cm33xx.c
->> @@ -220,9 +220,6 @@ static int am33xx_cm_wait_module_ready(u8 part, s16 inst, u16 clkctrl_offs,
->>   {
->>   	int i = 0;
->>
->> -	if (!clkctrl_offs)
->> -		return 0;
->> -
->>   	omap_test_timeout(_is_module_ready(inst, clkctrl_offs),
->>   			  MAX_MODULE_READY_TIME, i);
->>
->>
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
