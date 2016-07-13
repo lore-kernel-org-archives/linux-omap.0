@@ -1,7 +1,7 @@
 From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: [PATCH] userspace API definitions for auto-focus coil
-Date: Wed, 13 Jul 2016 08:57:00 +0200
-Message-ID: <20160713065700.GA3781@amd>
+Date: Wed, 13 Jul 2016 09:26:38 +0200
+Message-ID: <20160713072638.GB3781@amd>
 References: <20160602212746.GT26360@valkosipuli.retiisi.org.uk>
  <20160605190716.GA11321@amd>
  <575512E5.5030000@gmail.com>
@@ -14,16 +14,16 @@ References: <20160602212746.GT26360@valkosipuli.retiisi.org.uk>
  <20160712203201.7ffd8f22@recife.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
 In-Reply-To: <20160712203201.7ffd8f22@recife.lan>
-Sender: linux-media-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 Cc: Sakari Ailus <sakari.ailus@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 On Tue 2016-07-12 20:32:01, Mauro Carvalho Chehab wrote:
-1;2802;0c> Em Sat, 18 Jun 2016 17:38:46 +0200
+> Em Sat, 18 Jun 2016 17:38:46 +0200
 > Pavel Machek <pavel@ucw.cz> escreveu:
 > 
 > > Hi!
@@ -53,23 +53,12 @@ On Tue 2016-07-12 20:32:01, Mauro Carvalho Chehab wrote:
 > moving from DocBook to ReST markup language. The patches for it are
 > right now on a separate topic branch (docs-next), to be merged for
 > Kernel 4.8 on the next merge window.
-> 
-> You should either base the patch on such branch or wait for it to be
-> merged back mainstream to write such documentation additions.
 
-So how many iterations and how many releases does it take to get
-trivial driver into the tree?
+What about: I drop all the functionality but FOCUS_ABSOLUTE, which is
+core functionality, anyway, and does not need core changes. When V4L2
+core stabilizes, it can be reintroduced.
 
-I did what Sakari asked me to do. The driver is trivial. You can see
-pretty easily what I'm changing in the core... and it is not much. Can
-you just add your acked-by to it, merge it and me done with it?
-
-If some more docs is required, I can do the docs, but stalling patch
-for months and then claiming "hey, we have these new rules you have to
-follow" is not a nice thing.
-
-Thanks,
-
+Best regards,
 									Pavel
 -- 
 (english) http://www.livejournal.com/~pavelmachek
