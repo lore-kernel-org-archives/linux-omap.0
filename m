@@ -1,35 +1,76 @@
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: Error handling in drivers/pci/host/pci-dra7xx.c
-Date: Wed, 13 Jul 2016 06:59:32 +0200
-Message-ID: <edb7b73b-3880-23a5-99ff-2b5b30f45ace@wanadoo.fr>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] userspace API definitions for auto-focus coil
+Date: Wed, 13 Jul 2016 08:57:00 +0200
+Message-ID: <20160713065700.GA3781@amd>
+References: <20160602212746.GT26360@valkosipuli.retiisi.org.uk>
+ <20160605190716.GA11321@amd>
+ <575512E5.5030000@gmail.com>
+ <20160611220654.GC26360@valkosipuli.retiisi.org.uk>
+ <20160612084811.GA27446@amd>
+ <20160612112253.GD26360@valkosipuli.retiisi.org.uk>
+ <20160613191753.GA17459@amd>
+ <20160617213545.GH24980@valkosipuli.retiisi.org.uk>
+ <20160618153846.GA15662@amd>
+ <20160712203201.7ffd8f22@recife.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-media-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160712203201.7ffd8f22@recife.lan>
+Sender: linux-media-owner@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-(resent because of broken cc)
+On Tue 2016-07-12 20:32:01, Mauro Carvalho Chehab wrote:
+1;2802;0c> Em Sat, 18 Jun 2016 17:38:46 +0200
+> Pavel Machek <pavel@ucw.cz> escreveu:
+> 
+> > Hi!
+> > 
+> > > > Not V4L2_CID_USER_AD5820...?  
+> > > 
+> > > The rest of the controls have no USER as part of the macro name, so I
+> > > wouldn't use it here either.  
+> > 
+> > Ok.
+> > 
+> > > > Ok, separate header file for 2 lines seemed like a bit of overkill,
+> > > > but why not.  
+> > > 
+> > > That follows an existing pattern of how controls have been implemented in
+> > > other drivers.  
+> > 
+> > Ok.
+> > 
+> > > Could you merge this with the driver patch? I've dropped that from my ad5820
+> > > branch as it does not compile.  
+> > 
+> > Yes, merged patch should be in your inbox now.
+> 
+> The V4L2 core changes should be on a separate patch. Btw, you'll also
+> need to patch documentation to reflect such changes. We're right now
+> moving from DocBook to ReST markup language. The patches for it are
+> right now on a separate topic branch (docs-next), to be merged for
+> Kernel 4.8 on the next merge window.
+> 
+> You should either base the patch on such branch or wait for it to be
+> merged back mainstream to write such documentation additions.
 
+So how many iterations and how many releases does it take to get
+trivial driver into the tree?
 
-Hi,
+I did what Sakari asked me to do. The driver is trivial. You can see
+pretty easily what I'm changing in the core... and it is not much. Can
+you just add your acked-by to it, merge it and me done with it?
 
-in file 'drivers/pci/host/pci-dra7xx.c', error handling in 
-'dra7xx_pcie_init_irq_domain()' seams to be broken.
+If some more docs is required, I can do the docs, but stalling patch
+for months and then claiming "hey, we have these new rules you have to
+follow" is not a nice thing.
 
-The pattern used is:
+Thanks,
 
-    if (!var) {
-       ...
-       dev_err(...);
-       return PTR_ERR(var);
-    }
-
-so we always return '0', which means success.
-
-Returning PTR_ERR(-EINVAL) or PTR_ERR(-ENODEV) could be, IMHO, better.
-
-Best regards,
-
-CJ
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
