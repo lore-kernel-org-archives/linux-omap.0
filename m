@@ -1,68 +1,33 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 4/7] dmaengine: omap-dma: Dynamically allocate memory for lch_map
-Date: Thu, 14 Jul 2016 15:42:39 +0300
-Message-ID: <20160714124242.7579-5-peter.ujfalusi@ti.com>
-References: <20160714124242.7579-1-peter.ujfalusi@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] omap2plus_defconfig fix for v4.8 merge window
+Date: Thu, 14 Jul 2016 15:17:02 +0200
+Message-ID: <6564922.rj3i88MBX8@wuerfel>
+References: <20160711161112.GA28563@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160714124242.7579-1-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: vinod.koul@intel.com
-Cc: linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160711161112.GA28563@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On OMAP1 platforms we do not have 32 channels available. Allocate the
-lch_map based on the available channels. This way we are not going to have
-more visible channels then it is available on the platform.
+On Monday, July 11, 2016 9:11:12 AM CEST Tony Lindgren wrote:
+> A defconfig update for omap2plus_defconfig to fix changed USB
+> Kconfig dependencies for v4.8 merge window. Otherwise things
+> like USB Ethernet on omap3 beagle, omap4 panda and omap5-uevm
+> won't work without manual configuration.
+> 
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- drivers/dma/omap-dma.c | 20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
+Pulled into next/defconfig, thanks!
 
-diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index 6d134252ed61..c026642fc66a 100644
---- a/drivers/dma/omap-dma.c
-+++ b/drivers/dma/omap-dma.c
-@@ -35,7 +35,7 @@ struct omap_dmadev {
- 	unsigned dma_requests;
- 	spinlock_t irq_lock;
- 	uint32_t irq_enable_mask;
--	struct omap_chan *lch_map[OMAP_SDMA_CHANNELS];
-+	struct omap_chan **lch_map;
- };
- 
- struct omap_chan {
-@@ -1223,16 +1223,24 @@ static int omap_dma_probe(struct platform_device *pdev)
- 	spin_lock_init(&od->lock);
- 	spin_lock_init(&od->irq_lock);
- 
--	od->dma_requests = OMAP_SDMA_REQUESTS;
--	if (pdev->dev.of_node && of_property_read_u32(pdev->dev.of_node,
--						      "dma-requests",
--						      &od->dma_requests)) {
-+	if (!pdev->dev.of_node) {
-+		od->dma_requests = od->plat->dma_attr->lch_count;
-+		if (unlikely(!od->dma_requests))
-+			od->dma_requests = OMAP_SDMA_REQUESTS;
-+	} else if (of_property_read_u32(pdev->dev.of_node, "dma-requests",
-+					&od->dma_requests)) {
- 		dev_info(&pdev->dev,
- 			 "Missing dma-requests property, using %u.\n",
- 			 OMAP_SDMA_REQUESTS);
-+		od->dma_requests = OMAP_SDMA_REQUESTS;
- 	}
- 
--	for (i = 0; i < OMAP_SDMA_CHANNELS; i++) {
-+	od->lch_map = devm_kcalloc(&pdev->dev, od->dma_requests,
-+				   sizeof(*od->lch_map), GFP_KERNEL);
-+	if (!od->lch_map)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < od->dma_requests; i++) {
- 		rc = omap_dma_chan_init(od);
- 		if (rc) {
- 			omap_dma_free(od);
--- 
-2.9.1
+	Arnd
