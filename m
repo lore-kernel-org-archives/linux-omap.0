@@ -1,33 +1,68 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] omap2plus_defconfig fix for v4.8 merge window
-Date: Thu, 14 Jul 2016 15:17:02 +0200
-Message-ID: <6564922.rj3i88MBX8@wuerfel>
-References: <20160711161112.GA28563@atomide.com>
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: [PATCH] PCI: dra7xx: Fix return value in case of error
+Date: Thu, 14 Jul 2016 23:18:27 +0200
+Message-ID: <1468531107-3639-1-git-send-email-christophe.jaillet@wanadoo.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160711161112.GA28563@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: kishon@ti.com, bhelgaas@google.com
+Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 List-Id: linux-omap@vger.kernel.org
 
-On Monday, July 11, 2016 9:11:12 AM CEST Tony Lindgren wrote:
-> A defconfig update for omap2plus_defconfig to fix changed USB
-> Kconfig dependencies for v4.8 merge window. Otherwise things
-> like USB Ethernet on omap3 beagle, omap4 panda and omap5-uevm
-> won't work without manual configuration.
-> 
+In function 'dra7xx_pcie_init_irq_domain', the pattern used to check an=
+d
+return error is:
 
-Pulled into next/defconfig, thanks!
+   if (!var) {
+      dev_err(...);
+      return PTR_ERR(var);
+   }
 
-	Arnd
+So the returned value in case of error is always 0, which means 'succes=
+s'.
+Change it to return -ENODEV instead.
+
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+---
+ drivers/pci/host/pci-dra7xx.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7x=
+x.c
+index f441130..81b3949 100644
+--- a/drivers/pci/host/pci-dra7xx.c
++++ b/drivers/pci/host/pci-dra7xx.c
+@@ -181,14 +181,14 @@ static int dra7xx_pcie_init_irq_domain(struct pci=
+e_port *pp)
+=20
+ 	if (!pcie_intc_node) {
+ 		dev_err(dev, "No PCIe Intc node found\n");
+-		return PTR_ERR(pcie_intc_node);
++		return -ENODEV;
+ 	}
+=20
+ 	pp->irq_domain =3D irq_domain_add_linear(pcie_intc_node, 4,
+ 					       &intx_domain_ops, pp);
+ 	if (!pp->irq_domain) {
+ 		dev_err(dev, "Failed to get a INTx IRQ domain\n");
+-		return PTR_ERR(pp->irq_domain);
++		return -ENODEV;
+ 	}
+=20
+ 	return 0;
+--=20
+2.7.4
+
+
+---
+L'absence de virus dans ce courrier =C3=A9lectronique a =C3=A9t=C3=A9 v=
+=C3=A9rifi=C3=A9e par le logiciel antivirus Avast.
+https://www.avast.com/antivirus
+
+--
+To unsubscribe from this list: send the line "unsubscribe kernel-janito=
+rs" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
