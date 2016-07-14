@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 1/7] dmaengine: omap-dma: Simplify omap_dma_start_sg parameter list
-Date: Thu, 14 Jul 2016 15:42:36 +0300
-Message-ID: <20160714124242.7579-2-peter.ujfalusi@ti.com>
+Subject: [PATCH 5/7] dmaengine: omap-dma: Add more debug information when freeing channel
+Date: Thu, 14 Jul 2016 15:42:40 +0300
+Message-ID: <20160714124242.7579-6-peter.ujfalusi@ti.com>
 References: <20160714124242.7579-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,58 +12,27 @@ To: vinod.koul@intel.com
 Cc: linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-We can drop the (sg)idx parameter for the omap_dma_start_sg() function and
-increment the sgidx inside of the same function.
+Print the same information the driver prints when allocating the channel
+resources regarding to the sDMA channel.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/omap-dma.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/dma/omap-dma.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index 2e0d49bcfd8a..7d56cd88c9a5 100644
+index c026642fc66a..bbad82985083 100644
 --- a/drivers/dma/omap-dma.c
 +++ b/drivers/dma/omap-dma.c
-@@ -365,10 +365,9 @@ static void omap_dma_stop(struct omap_chan *c)
- 	c->running = false;
+@@ -568,7 +568,8 @@ static void omap_dma_free_chan_resources(struct dma_chan *chan)
+ 	vchan_free_chan_resources(&c->vc);
+ 	omap_free_dma(c->dma_ch);
+ 
+-	dev_dbg(od->ddev.dev, "freeing channel for %u\n", c->dma_sig);
++	dev_dbg(od->ddev.dev, "freeing channel %u used for %u\n", c->dma_ch,
++		c->dma_sig);
+ 	c->dma_sig = 0;
  }
  
--static void omap_dma_start_sg(struct omap_chan *c, struct omap_desc *d,
--	unsigned idx)
-+static void omap_dma_start_sg(struct omap_chan *c, struct omap_desc *d)
- {
--	struct omap_sg *sg = d->sg + idx;
-+	struct omap_sg *sg = d->sg + c->sgidx;
- 	unsigned cxsa, cxei, cxfi;
- 
- 	if (d->dir == DMA_DEV_TO_MEM || d->dir == DMA_MEM_TO_MEM) {
-@@ -388,6 +387,7 @@ static void omap_dma_start_sg(struct omap_chan *c, struct omap_desc *d,
- 	omap_dma_chan_write(c, CFN, sg->fn);
- 
- 	omap_dma_start(c, d);
-+	c->sgidx++;
- }
- 
- static void omap_dma_start_desc(struct omap_chan *c)
-@@ -433,7 +433,7 @@ static void omap_dma_start_desc(struct omap_chan *c)
- 	omap_dma_chan_write(c, CSDP, d->csdp);
- 	omap_dma_chan_write(c, CLNK_CTRL, d->clnk_ctrl);
- 
--	omap_dma_start_sg(c, d, 0);
-+	omap_dma_start_sg(c, d);
- }
- 
- static void omap_dma_callback(int ch, u16 status, void *data)
-@@ -446,8 +446,8 @@ static void omap_dma_callback(int ch, u16 status, void *data)
- 	d = c->desc;
- 	if (d) {
- 		if (!c->cyclic) {
--			if (++c->sgidx < d->sglen) {
--				omap_dma_start_sg(c, d, c->sgidx);
-+			if (c->sgidx < d->sglen) {
-+				omap_dma_start_sg(c, d);
- 			} else {
- 				omap_dma_start_desc(c);
- 				vchan_cookie_complete(&d->vd);
 -- 
 2.9.1
