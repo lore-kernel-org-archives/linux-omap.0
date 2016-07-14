@@ -1,83 +1,67 @@
-From: Brian Norris <computersforpeace@gmail.com>
-Subject: Re: [PATCH 1/2] ARM: dts: am335x: Update elm phandle binding
-Date: Wed, 13 Jul 2016 10:14:07 -0700
-Message-ID: <20160713171407.GB136972@google.com>
-References: <1467711150-23356-1-git-send-email-t.remmet@phytec.de>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 0/7] dmaengine:omap-dma: Linked List transfer for slave_sg
+Date: Thu, 14 Jul 2016 15:42:35 +0300
+Message-ID: <20160714124242.7579-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1467711150-23356-1-git-send-email-t.remmet@phytec.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Teresa Remmet <t.remmet@phytec.de>
-Cc: Mark Rutland <mark.rutland@arm.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Richard Weinberger <richard@nod.at>, Rob Herring <robh+dt@kernel.org>, linux-mtd@lists.infradead.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: vinod.koul@intel.com
+Cc: linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jul 05, 2016 at 11:32:29AM +0200, Teresa Remmet wrote:
-> The check for the "elm_id" binding had been removed.
-> This causes nand boot to fail on boards still using
-> the old binding. Update the bindings on those boards.
+Hi,
 
-Acked-by: Brian Norris <computersforpeace@gmail.com>
+The following series with the final patch will add support for sDMA Linked List
+transfer support.
+Linked List is supported by sDMA in OMAP3630+ (OMAP4/5, dra7 family).
+If the descriptor load feature is present we can create the descriptors for each
+SG beforehand and let sDMA to walk them through.
+This way the number of sDMA interrupts the kernel need to handle will drop
+dramatically.
 
-We're fixing the backward compatibility issue anyway, but might as well
-"upgrade" the device tree.
+I have gathered some numbers to show the difference.
 
-> Signed-off-by: Teresa Remmet <t.remmet@phytec.de>
-> ---
->  arch/arm/boot/dts/am335x-baltos.dtsi      | 2 +-
->  arch/arm/boot/dts/am335x-igep0033.dtsi    | 2 +-
->  arch/arm/boot/dts/am335x-phycore-som.dtsi | 2 +-
->  3 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/am335x-baltos.dtsi b/arch/arm/boot/dts/am335x-baltos.dtsi
-> index c8609d8..b689172 100644
-> --- a/arch/arm/boot/dts/am335x-baltos.dtsi
-> +++ b/arch/arm/boot/dts/am335x-baltos.dtsi
-> @@ -226,7 +226,7 @@
->  
->  		#address-cells = <1>;
->  		#size-cells = <1>;
-> -		elm_id = <&elm>;
-> +		ti,elm-id = <&elm>;
->  	};
->  };
->  
-> diff --git a/arch/arm/boot/dts/am335x-igep0033.dtsi b/arch/arm/boot/dts/am335x-igep0033.dtsi
-> index df63484..e7d9ca1 100644
-> --- a/arch/arm/boot/dts/am335x-igep0033.dtsi
-> +++ b/arch/arm/boot/dts/am335x-igep0033.dtsi
-> @@ -161,7 +161,7 @@
->  
->  		#address-cells = <1>;
->  		#size-cells = <1>;
-> -		elm_id = <&elm>;
-> +		ti,elm-id = <&elm>;
->  
->  		/* MTD partition table */
->  		partition@0 {
-> diff --git a/arch/arm/boot/dts/am335x-phycore-som.dtsi b/arch/arm/boot/dts/am335x-phycore-som.dtsi
-> index 86f7731..1263c9d 100644
-> --- a/arch/arm/boot/dts/am335x-phycore-som.dtsi
-> +++ b/arch/arm/boot/dts/am335x-phycore-som.dtsi
-> @@ -197,7 +197,7 @@
->  		gpmc,wr-access-ns = <30>;
->  		gpmc,wr-data-mux-bus-ns = <0>;
->  
-> -		elm_id = <&elm>;
-> +		ti,elm-id = <&elm>;
->  
->  		#address-cells = <1>;
->  		#size-cells = <1>;
-> -- 
-> 1.9.1
-> 
+Booting up the board with filesystem on SD card for example:
+# cat /proc/interrupts | grep dma
+W/o LinkedList support:
+ 27:       4436          0     WUGEN  13 Level     omap-dma-engine
+
+Same board/filesystem with this patch:
+ 27:       1027          0     WUGEN  13 Level     omap-dma-engine
+
+Or copying files from SD card to eMCC:
+# du -h /usr
+2.1G    /usr/
+# find /usr/ -type f | wc -l
+232001
+
+# cp -r /usr/* /mnt/emmc/tmp/
+
+W/o LinkedList we see ~761069 DMA interrupts.
+With LinkedList support it is down to ~269314 DMA interrupts.
+
+With the decreased DMA interrupt number the CPU load is dropping
+significantly as well.
+
+The series depends on the interleaved transfer support patch I have sent couple
+of days ago:
+https://lkml.org/lkml/2016/7/12/216
+
+Regards,
+Peter
+---
+Peter Ujfalusi (7):
+  dmaengine: omap-dma: Simplify omap_dma_start_sg parameter list
+  dmaengine: omap-dma: Complete the cookie first on transfer completion
+  dmaengine: omap-dma: Simplify omap_dma_callback
+  dmaengine: omap-dma: Dynamically allocate memory for lch_map
+  dmaengine: omap-dma: Add more debug information when freeing channel
+  dmaengine: omap-dma: Use pointer to omap_sg in slave_sg setup's loop
+  dmaengine: omap-dma: Support for LinkedList transfer of slave_sg
+
+ drivers/dma/omap-dma.c | 234 +++++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 207 insertions(+), 27 deletions(-)
+
+--
+2.9.1
