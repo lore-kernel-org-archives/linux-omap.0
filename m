@@ -1,68 +1,55 @@
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: [PATCH] PCI: dra7xx: Fix return value in case of error
-Date: Thu, 14 Jul 2016 23:18:27 +0200
-Message-ID: <1468531107-3639-1-git-send-email-christophe.jaillet@wanadoo.fr>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: outdated documentation for lp5523 LED driver?
+Date: Fri, 15 Jul 2016 09:32:14 +0200
+Message-ID: <20160715073214.GC13429@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: kishon@ti.com, bhelgaas@google.com
-Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
+Cc: samu.p.onkalo@nokia.com, milo.kim@ti.com, toshik@chromium.org, j.anaszewski@samsung.com, cooloney@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-In function 'dra7xx_pcie_init_irq_domain', the pattern used to check an=
-d
-return error is:
+Hi!
 
-   if (!var) {
-      dev_err(...);
-      return PTR_ERR(var);
-   }
+Documentation says that load/leds are only visible in the load mode,
+but that does not seem to be true (kernel 4.4.0 on N900).
 
-So the returned value in case of error is always 0, which means 'succes=
-s'.
-Change it to return -ENODEV instead.
+# 1) Legacy interface - enginex_mode, enginex_load and enginex_leds
+#  Control interface for the engines:
+#    x is 1 .. 3
+#      enginex_mode : disabled, load, run
+#      enginex_load : microcode load (visible only in load mode)
+#      enginex_leds : led mux control (visible only in load mode)
 
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
----
- drivers/pci/host/pci-dra7xx.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+pavel@n900:/sys/class/leds/lp5523:r/device$ ls -al engine*
+-rw-r--r-- 1 root root 4096 Jul  6 22:47 engine1_leds
+--w------- 1 root root 4096 Jul  6 22:47 engine1_load
+-rw-r--r-- 1 root root 4096 Jul  6 23:41 engine1_mode
+-rw-r--r-- 1 root root 4096 Jul  6 22:47 engine2_leds
+--w------- 1 root root 4096 Jul  6 22:47 engine2_load
+-rw-r--r-- 1 root root 4096 Jul  6 23:41 engine2_mode
+-rw-r--r-- 1 root root 4096 Jul  6 22:47 engine3_leds
+--w------- 1 root root 4096 Jul  6 22:47 engine3_load
+-rw-r--r-- 1 root root 4096 Jul  6 22:47 engine3_mode
+pavel@n900:/sys/class/leds/lp5523:r/device$ grep . engine*mode
+engine1_mode:run
+engine2_mode:load
+engine3_mode:run
+pavel@n900:/sys/class/leds/lp5523:r/device$
 
-diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7x=
-x.c
-index f441130..81b3949 100644
---- a/drivers/pci/host/pci-dra7xx.c
-+++ b/drivers/pci/host/pci-dra7xx.c
-@@ -181,14 +181,14 @@ static int dra7xx_pcie_init_irq_domain(struct pci=
-e_port *pp)
-=20
- 	if (!pcie_intc_node) {
- 		dev_err(dev, "No PCIe Intc node found\n");
--		return PTR_ERR(pcie_intc_node);
-+		return -ENODEV;
- 	}
-=20
- 	pp->irq_domain =3D irq_domain_add_linear(pcie_intc_node, 4,
- 					       &intx_domain_ops, pp);
- 	if (!pp->irq_domain) {
- 		dev_err(dev, "Failed to get a INTx IRQ domain\n");
--		return PTR_ERR(pp->irq_domain);
-+		return -ENODEV;
- 	}
-=20
- 	return 0;
---=20
-2.7.4
+I got both the legacy and the firmware interface to work... but the
+firmware interface only seems to work once for me.
 
+How new and old interface are expected to interact with each other is
+not clear to me.
 
----
-L'absence de virus dans ce courrier =C3=A9lectronique a =C3=A9t=C3=A9 v=
-=C3=A9rifi=C3=A9e par le logiciel antivirus Avast.
-https://www.avast.com/antivirus
+What should be done there?
 
---
-To unsubscribe from this list: send the line "unsubscribe kernel-janito=
-rs" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best regards,
+									Pavel
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
