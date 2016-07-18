@@ -1,82 +1,58 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: outdated documentation for lp5523 LED driver?
-Date: Fri, 15 Jul 2016 11:26:57 +0200
-Message-ID: <20160715092657.GA25380@amd>
-References: <20160715073214.GC13429@amd>
- <20160715074052.GE29844@pali>
- <20160715085425.GA21257@amd>
- <20160715090110.GF29844@pali>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH] PCI: dra7xx: Fix return value in case of error
+Date: Mon, 18 Jul 2016 11:59:21 +0530
+Message-ID: <578C7741.2010903@ti.com>
+References: <1468531107-3639-1-git-send-email-christophe.jaillet@wanadoo.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160715090110.GF29844@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, samu.p.onkalo@nokia.com, milo.kim@ti.com, toshik@chromium.org, j.anaszewski@samsung.com, cooloney@gmail.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1468531107-3639-1-git-send-email-christophe.jaillet@wanadoo.fr>
+Sender: linux-pci-owner@vger.kernel.org
+To: Christophe JAILLET <christophe.jaillet@wanadoo.fr>, bhelgaas@google.com
+Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri 2016-07-15 11:01:10, Pali Roh=E1r wrote:
-> On Friday 15 July 2016 10:54:25 Pavel Machek wrote:
-> > On Fri 2016-07-15 09:40:52, Pali Roh=E1r wrote:
-> > > On Friday 15 July 2016 09:32:14 Pavel Machek wrote:
-> > > > Hi!
-> > > >=20
-> > > > Documentation says that load/leds are only visible in the load =
-mode,
-> > > > but that does not seem to be true (kernel 4.4.0 on N900).
-> > > >=20
-> > > > # 1) Legacy interface - enginex_mode, enginex_load and enginex_=
-leds
-> > > > #  Control interface for the engines:
-> > > > #    x is 1 .. 3
-> > > > #      enginex_mode : disabled, load, run
-> > > > #      enginex_load : microcode load (visible only in load mode=
-)
-> > > > #      enginex_leds : led mux control (visible only in load mod=
-e)
-> > > >=20
-> > > > pavel@n900:/sys/class/leds/lp5523:r/device$ ls -al engine*
-> > > > -rw-r--r-- 1 root root 4096 Jul  6 22:47 engine1_leds
-> > > > --w------- 1 root root 4096 Jul  6 22:47 engine1_load
-> > > > -rw-r--r-- 1 root root 4096 Jul  6 23:41 engine1_mode
-> > > > -rw-r--r-- 1 root root 4096 Jul  6 22:47 engine2_leds
-> > > > --w------- 1 root root 4096 Jul  6 22:47 engine2_load
-> > > > -rw-r--r-- 1 root root 4096 Jul  6 23:41 engine2_mode
-> > > > -rw-r--r-- 1 root root 4096 Jul  6 22:47 engine3_leds
-> > > > --w------- 1 root root 4096 Jul  6 22:47 engine3_load
-> > > > -rw-r--r-- 1 root root 4096 Jul  6 22:47 engine3_mode
-> > > > pavel@n900:/sys/class/leds/lp5523:r/device$ grep . engine*mode
-> > > > engine1_mode:run
-> > > > engine2_mode:load
-> > > > engine3_mode:run
-> > > > pavel@n900:/sys/class/leds/lp5523:r/device$
-> > >=20
-> > > On 2.6.28 kernel is present only legacy interface and for this ve=
-rsion
-> > > is above documentation correct. When engine is in "run" or "disab=
-led",
-> > > then sysfs nodes _load and _leds are invisible.
-> >=20
-> > Well, I don't think 2.6.28 is suitable kernel to compare
-> > against... and I don't think hiding sysfs attributes makes any sens=
-e.
->=20
-> It is legacy interface which was used in older kernels (like 2.6.28) =
-and
-> is there to not break existing applications... So comparing with kern=
-el
-> when that interface was not legacy is correct way to check...
 
-Well, not breaking legacy applications is only goal after reasonable
-interface is merged to mainline.
 
-Can you test if they actually care about the change or not? I suspect
-they don't.
+On Friday 15 July 2016 02:48 AM, Christophe JAILLET wrote:
+> In function 'dra7xx_pcie_init_irq_domain', the pattern used to check and
+> return error is:
+> 
+>    if (!var) {
+>       dev_err(...);
+>       return PTR_ERR(var);
+>    }
+> 
+> So the returned value in case of error is always 0, which means 'success'.
+> Change it to return -ENODEV instead.
+> 
+> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
-/blog.html
+Reviewed-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  drivers/pci/host/pci-dra7xx.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
+> index f441130..81b3949 100644
+> --- a/drivers/pci/host/pci-dra7xx.c
+> +++ b/drivers/pci/host/pci-dra7xx.c
+> @@ -181,14 +181,14 @@ static int dra7xx_pcie_init_irq_domain(struct pcie_port *pp)
+>  
+>  	if (!pcie_intc_node) {
+>  		dev_err(dev, "No PCIe Intc node found\n");
+> -		return PTR_ERR(pcie_intc_node);
+> +		return -ENODEV;
+>  	}
+>  
+>  	pp->irq_domain = irq_domain_add_linear(pcie_intc_node, 4,
+>  					       &intx_domain_ops, pp);
+>  	if (!pp->irq_domain) {
+>  		dev_err(dev, "Failed to get a INTx IRQ domain\n");
+> -		return PTR_ERR(pp->irq_domain);
+> +		return -ENODEV;
+>  	}
+>  
+>  	return 0;
+> 
