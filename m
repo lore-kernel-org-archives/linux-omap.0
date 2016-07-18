@@ -1,58 +1,35 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH] PCI: dra7xx: Fix return value in case of error
-Date: Mon, 18 Jul 2016 11:59:21 +0530
-Message-ID: <578C7741.2010903@ti.com>
-References: <1468531107-3639-1-git-send-email-christophe.jaillet@wanadoo.fr>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: [PATCH 0/7] dmaengine:omap-dma: Linked List transfer for slave_sg
+Date: Mon, 18 Jul 2016 11:31:37 +0100
+Message-ID: <20160718103137.GG5783@n2100.arm.linux.org.uk>
+References: <20160714124242.7579-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1468531107-3639-1-git-send-email-christophe.jaillet@wanadoo.fr>
-Sender: linux-pci-owner@vger.kernel.org
-To: Christophe JAILLET <christophe.jaillet@wanadoo.fr>, bhelgaas@google.com
-Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160714124242.7579-1-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: vinod.koul@intel.com, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
+On Thu, Jul 14, 2016 at 03:42:35PM +0300, Peter Ujfalusi wrote:
+> Hi,
+> 
+> The following series with the final patch will add support for sDMA Linked List
+> transfer support.
+> Linked List is supported by sDMA in OMAP3630+ (OMAP4/5, dra7 family).
+> If the descriptor load feature is present we can create the descriptors for each
+> SG beforehand and let sDMA to walk them through.
+> This way the number of sDMA interrupts the kernel need to handle will drop
+> dramatically.
 
+I suggested this a few years ago, and I was told by TI that there was
+no interest to implement this feature as it had very little performance
+effect.  Do I take it that TI have changed their position on this
+feature?
 
-On Friday 15 July 2016 02:48 AM, Christophe JAILLET wrote:
-> In function 'dra7xx_pcie_init_irq_domain', the pattern used to check and
-> return error is:
-> 
->    if (!var) {
->       dev_err(...);
->       return PTR_ERR(var);
->    }
-> 
-> So the returned value in case of error is always 0, which means 'success'.
-> Change it to return -ENODEV instead.
-> 
-> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-
-Reviewed-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  drivers/pci/host/pci-dra7xx.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-> index f441130..81b3949 100644
-> --- a/drivers/pci/host/pci-dra7xx.c
-> +++ b/drivers/pci/host/pci-dra7xx.c
-> @@ -181,14 +181,14 @@ static int dra7xx_pcie_init_irq_domain(struct pcie_port *pp)
->  
->  	if (!pcie_intc_node) {
->  		dev_err(dev, "No PCIe Intc node found\n");
-> -		return PTR_ERR(pcie_intc_node);
-> +		return -ENODEV;
->  	}
->  
->  	pp->irq_domain = irq_domain_add_linear(pcie_intc_node, 4,
->  					       &intx_domain_ops, pp);
->  	if (!pp->irq_domain) {
->  		dev_err(dev, "Failed to get a INTx IRQ domain\n");
-> -		return PTR_ERR(pp->irq_domain);
-> +		return -ENODEV;
->  	}
->  
->  	return 0;
-> 
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
