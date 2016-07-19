@@ -1,45 +1,74 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 0/7] dmaengine:omap-dma: Linked List transfer for slave_sg
-Date: Mon, 18 Jul 2016 15:30:17 +0300
-Message-ID: <2c542d87-3fd6-62db-1e37-159b673f6dc2@ti.com>
-References: <20160714124242.7579-1-peter.ujfalusi@ti.com>
- <20160718103137.GG5783@n2100.arm.linux.org.uk>
- <5c538963-ae46-54fc-27bf-dbae81443215@ti.com>
- <20160718122125.GJ5783@n2100.arm.linux.org.uk>
+From: Teresa Remmet <t.remmet@phytec.de>
+Subject: [RESEND PATCH] ARM: dts: am335x: Update elm phandle binding
+Date: Tue, 19 Jul 2016 09:29:53 +0200
+Message-ID: <1468913393-42532-1-git-send-email-t.remmet@phytec.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160718122125.GJ5783@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: vinod.koul@intel.com, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org
+Cc: Mark Rutland <mark.rutland@arm.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Richard Weinberger <richard@nod.at>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Brian Norris <computersforpeace@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 07/18/16 15:21, Russell King - ARM Linux wrote:
-> On Mon, Jul 18, 2016 at 03:07:57PM +0300, Peter Ujfalusi wrote:
->> I was not aware of any position on this from TI - as I mentioned I w=
-as not
->> involved with DMA. It could be that the position from 'TI' is still =
-what it
->> was. Or changed. But as I have been asked to look after TI DMA drive=
-rs
->> upstream and I believe that the linked list mode is a good thing to =
-have -
->> which is backed by my experiences. My position is that linked list s=
-upport is
->> cool.
->=20
-> That's really nice news.  Nothing like asking the author first whethe=
-r
-> he'd like to pass over maintainership of the driver.  I guess you won=
-'t
-> mind if at some point in the future, I decide to just take it back...
+The check for the "elm_id" binding had been removed.
+This causes nand boot to fail on boards still using
+the old binding. Update the bindings on those boards.
 
-I work with the DMA drivers on behalf of TI. Inside TI the DMA related =
-queries
-are targeted at me. This does not change the maintainer of the drivers =
-upstream.
+Signed-off-by: Teresa Remmet <t.remmet@phytec.de>
+Acked-by: Brian Norris <computersforpeace@gmail.com>
+---
+ arch/arm/boot/dts/am335x-baltos.dtsi      | 2 +-
+ arch/arm/boot/dts/am335x-igep0033.dtsi    | 2 +-
+ arch/arm/boot/dts/am335x-phycore-som.dtsi | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
---=20
-P=E9ter
+diff --git a/arch/arm/boot/dts/am335x-baltos.dtsi b/arch/arm/boot/dts/am335x-baltos.dtsi
+index c8609d8..b689172 100644
+--- a/arch/arm/boot/dts/am335x-baltos.dtsi
++++ b/arch/arm/boot/dts/am335x-baltos.dtsi
+@@ -226,7 +226,7 @@
+ 
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+-		elm_id = <&elm>;
++		ti,elm-id = <&elm>;
+ 	};
+ };
+ 
+diff --git a/arch/arm/boot/dts/am335x-igep0033.dtsi b/arch/arm/boot/dts/am335x-igep0033.dtsi
+index df63484..e7d9ca1 100644
+--- a/arch/arm/boot/dts/am335x-igep0033.dtsi
++++ b/arch/arm/boot/dts/am335x-igep0033.dtsi
+@@ -161,7 +161,7 @@
+ 
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+-		elm_id = <&elm>;
++		ti,elm-id = <&elm>;
+ 
+ 		/* MTD partition table */
+ 		partition@0 {
+diff --git a/arch/arm/boot/dts/am335x-phycore-som.dtsi b/arch/arm/boot/dts/am335x-phycore-som.dtsi
+index 86f7731..1263c9d 100644
+--- a/arch/arm/boot/dts/am335x-phycore-som.dtsi
++++ b/arch/arm/boot/dts/am335x-phycore-som.dtsi
+@@ -197,7 +197,7 @@
+ 		gpmc,wr-access-ns = <30>;
+ 		gpmc,wr-data-mux-bus-ns = <0>;
+ 
+-		elm_id = <&elm>;
++		ti,elm-id = <&elm>;
+ 
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+-- 
+1.9.1
