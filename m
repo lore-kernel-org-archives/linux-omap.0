@@ -1,74 +1,53 @@
-From: Teresa Remmet <t.remmet@phytec.de>
-Subject: [RESEND PATCH] ARM: dts: am335x: Update elm phandle binding
-Date: Tue, 19 Jul 2016 09:29:53 +0200
-Message-ID: <1468913393-42532-1-git-send-email-t.remmet@phytec.de>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 2/7] dmaengine: omap-dma: Complete the cookie first on
+ transfer completion
+Date: Tue, 19 Jul 2016 15:35:18 +0300
+Message-ID: <923b54d6-c7fc-66c2-1c20-d8d74ebed912@ti.com>
+References: <20160714124242.7579-1-peter.ujfalusi@ti.com>
+ <20160714124242.7579-3-peter.ujfalusi@ti.com>
+ <20160718103409.GH5783@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org
-Cc: Mark Rutland <mark.rutland@arm.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Richard Weinberger <richard@nod.at>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Brian Norris <computersforpeace@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160718103409.GH5783@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: vinod.koul@intel.com, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-The check for the "elm_id" binding had been removed.
-This causes nand boot to fail on boards still using
-the old binding. Update the bindings on those boards.
+On 07/18/16 13:34, Russell King - ARM Linux wrote:
+> On Thu, Jul 14, 2016 at 03:42:37PM +0300, Peter Ujfalusi wrote:
+>> Before looking for the next descriptor to start, complete the just f=
+inished
+>> cookie.
+>=20
+> This change will reduce performance as we no longer have an overlap
+> between the next request starting to be dealt with in the hardware
+> vs the previous request being completed.
 
-Signed-off-by: Teresa Remmet <t.remmet@phytec.de>
-Acked-by: Brian Norris <computersforpeace@gmail.com>
----
- arch/arm/boot/dts/am335x-baltos.dtsi      | 2 +-
- arch/arm/boot/dts/am335x-igep0033.dtsi    | 2 +-
- arch/arm/boot/dts/am335x-phycore-som.dtsi | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+vchan_cookie_complete() will only mark the cookie completed, adds the v=
+d to
+the desc_completed list (it was deleted from desc_issued list when it w=
+as
+started by omap_dma_start_desc) and schedule the tasklet to deal with t=
+he real
+completion later.
+Marking the just finished descriptor/cookie done first then looking for
+possible descriptors in the queue to start feels like a better sequence=
+=2E
 
-diff --git a/arch/arm/boot/dts/am335x-baltos.dtsi b/arch/arm/boot/dts/am335x-baltos.dtsi
-index c8609d8..b689172 100644
---- a/arch/arm/boot/dts/am335x-baltos.dtsi
-+++ b/arch/arm/boot/dts/am335x-baltos.dtsi
-@@ -226,7 +226,7 @@
- 
- 		#address-cells = <1>;
- 		#size-cells = <1>;
--		elm_id = <&elm>;
-+		ti,elm-id = <&elm>;
- 	};
- };
- 
-diff --git a/arch/arm/boot/dts/am335x-igep0033.dtsi b/arch/arm/boot/dts/am335x-igep0033.dtsi
-index df63484..e7d9ca1 100644
---- a/arch/arm/boot/dts/am335x-igep0033.dtsi
-+++ b/arch/arm/boot/dts/am335x-igep0033.dtsi
-@@ -161,7 +161,7 @@
- 
- 		#address-cells = <1>;
- 		#size-cells = <1>;
--		elm_id = <&elm>;
-+		ti,elm-id = <&elm>;
- 
- 		/* MTD partition table */
- 		partition@0 {
-diff --git a/arch/arm/boot/dts/am335x-phycore-som.dtsi b/arch/arm/boot/dts/am335x-phycore-som.dtsi
-index 86f7731..1263c9d 100644
---- a/arch/arm/boot/dts/am335x-phycore-som.dtsi
-+++ b/arch/arm/boot/dts/am335x-phycore-som.dtsi
-@@ -197,7 +197,7 @@
- 		gpmc,wr-access-ns = <30>;
- 		gpmc,wr-data-mux-bus-ns = <0>;
- 
--		elm_id = <&elm>;
-+		ti,elm-id = <&elm>;
- 
- 		#address-cells = <1>;
- 		#size-cells = <1>;
--- 
-1.9.1
+After a quick grep in the kernel source: only omap-dma.c was starting t=
+he next
+transfer before marking the current completed descriptor/cookie done.
+
+> Your commit log doesn't
+> say _why_ the change is being made, it merely tells us what the
+> patch is doing, which we can see already.
+>=20
+> Please describe changes a little better.
+>=20
+
+
+--=20
+P=E9ter
