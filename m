@@ -1,60 +1,66 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 2/7] dmaengine: omap-dma: Complete the cookie first on
- transfer completion
-Date: Tue, 19 Jul 2016 22:23:12 +0300
-Message-ID: <3baff443-be07-47d1-82a5-f770a116f216@ti.com>
-References: <20160714124242.7579-1-peter.ujfalusi@ti.com>
- <20160714124242.7579-3-peter.ujfalusi@ti.com>
- <20160718103409.GH5783@n2100.arm.linux.org.uk>
- <923b54d6-c7fc-66c2-1c20-d8d74ebed912@ti.com>
- <20160719162004.GK5783@n2100.arm.linux.org.uk>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Subject: [PATCH 1/3] ARM: mach-omap2: remove bogus "or_module" from rx51-peripherals
+Date: Wed, 20 Jul 2016 00:13:30 -0400
+Message-ID: <20160720041332.30789-2-paul.gortmaker@windriver.com>
+References: <20160720041332.30789-1-paul.gortmaker@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160719162004.GK5783@n2100.arm.linux.org.uk>
+In-Reply-To: <20160720041332.30789-1-paul.gortmaker@windriver.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: vinod.koul@intel.com, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com
+To: linux-kernel@vger.kernel.org
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/19/2016 07:20 PM, Russell King - ARM Linux wrote:
->> vchan_cookie_complete() will only mark the cookie completed, adds th=
-e vd to
->> the desc_completed list (it was deleted from desc_issued list when i=
-t was
->> started by omap_dma_start_desc) and schedule the tasklet to deal wit=
-h the real
->> completion later.
->> Marking the just finished descriptor/cookie done first then looking =
-for
->> possible descriptors in the queue to start feels like a better seque=
-nce.
->=20
-> I deliberately arranged the code in the original order so that the ne=
-xt
-> transfer was started on the hardware with the least amount of work by
-> the CPU.  Yes, there may not be much in it, but everything you mentio=
-n
-> above adds to the number of CPU cycles that need to be executed befor=
-e
-> the next transfer can be started.
->=20
-> More CPU cycles wasted means higher latency between transfers, which
-> means lower performance.
+During unrelated work, attempting to remove an include of the
+linux/module.h in favour of "struct module;" in order to reduce
+header entanglement, we found doing so caused a build failure in
+this file.
 
-OK. I will drop this patch in v2.
+It turns out this file uses __init_or_module which lives in the
+module.h header, but it wasn't including module.h -- which was
+being masked by the module.h in include/linux/gpio/driver.h - the
+one we want to remove/replace.
 
->> After a quick grep in the kernel source: only omap-dma.c was startin=
-g the
->> next transfer before marking the current completed descriptor/cookie=
- done.
->=20
-> Right, because I've thought about the issue, having been the author o=
-f
-> both virt-dma and omap-dma.
->=20
+However, if we dig into Makefile / Kconfig we find:
 
+mach-omap2/board-rx51-peripherals.o ---->
+   mach-omap2/Makefile:obj-$(CONFIG_MACH_NOKIA_RX51) += board-rx51-peripherals.o
 
---=20
-P=E9ter
+arch/arm/mach-omap2/Kconfig:config MACH_NOKIA_RX51
+arch/arm/mach-omap2/Kconfig:    bool "Nokia N900 (RX-51) phone"
+
+...and hence the __init_or_module is pointless, as it will always
+evaluate to plain __init.
+
+With ARM and GPIO being different subsystems, we'll need to get
+this in ARM 1st, and then wait a release before changing the GPIO
+header, otherwise we'll risk triggering build failures.
+
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Alexandre Courbot <gnurou@gmail.com>
+Cc: linux-omap@vger.kernel.org
+Cc: linux-gpio@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+---
+ arch/arm/mach-omap2/board-rx51-peripherals.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index a5ab712c1a59..4ddda1d33ec1 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -978,7 +978,7 @@ static struct twl4030_platform_data rx51_twldata __initdata = {
+ 	.vio			= &rx51_vio,
+ };
+ 
+-static struct tpa6130a2_platform_data rx51_tpa6130a2_data __initdata_or_module = {
++static struct tpa6130a2_platform_data rx51_tpa6130a2_data __initdata = {
+ 	.power_gpio		= 98,
+ };
+ 
+-- 
+2.8.4
