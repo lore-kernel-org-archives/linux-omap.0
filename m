@@ -1,58 +1,72 @@
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: Re: [PATCH 2/7] dmaengine: omap-dma: Complete the cookie first on transfer completion
-Date: Wed, 20 Jul 2016 08:26:03 +0200
-Message-ID: <877fcg25c4.fsf@belgarion.home>
-References: <20160714124242.7579-1-peter.ujfalusi@ti.com>
-	<20160714124242.7579-3-peter.ujfalusi@ti.com>
-	<20160718103409.GH5783@n2100.arm.linux.org.uk>
-	<923b54d6-c7fc-66c2-1c20-d8d74ebed912@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 0/6] dmaengine:omap-dma: Linked List transfer for slave_sg
+Date: Wed, 20 Jul 2016 11:50:26 +0300
+Message-ID: <20160720085032.2955-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <923b54d6-c7fc-66c2-1c20-d8d74ebed912@ti.com> (Peter Ujfalusi's
-	message of "Tue, 19 Jul 2016 15:35:18 +0300")
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Russell King - ARM Linux <linux@armlinux.org.uk>, vinod.koul@intel.com, linux-kernel@vger.kernel.org, tony@atomide.com, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: vinod.koul@intel.com, linux@arm.linux.org.uk
+Cc: linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-Peter Ujfalusi <peter.ujfalusi@ti.com> writes:
+Hi,
 
-> On 07/18/16 13:34, Russell King - ARM Linux wrote:
->> On Thu, Jul 14, 2016 at 03:42:37PM +0300, Peter Ujfalusi wrote:
->>> Before looking for the next descriptor to start, complete the just finished
->>> cookie.
->> 
->> This change will reduce performance as we no longer have an overlap
->> between the next request starting to be dealt with in the hardware
->> vs the previous request being completed.
->
-> vchan_cookie_complete() will only mark the cookie completed, adds the vd to
-> the desc_completed list (it was deleted from desc_issued list when it was
-> started by omap_dma_start_desc) and schedule the tasklet to deal with the real
-> completion later.
-> Marking the just finished descriptor/cookie done first then looking for
-> possible descriptors in the queue to start feels like a better sequence.
->
-> After a quick grep in the kernel source: only omap-dma.c was starting the next
-> transfer before marking the current completed descriptor/cookie done.
+Changes since v1:
+- dropped the patch changing the sequence of vchan_cookie_complete and
+  omap_dma_start_sg in omap_dma_callback
+- Use appropriate macros to find omap_chan and omap_desc in patch 6
+- Use per-device pool instead of per-channel pools.
 
-Euh actually I think it's done in other drivers as well :
- - Documentation/dmaengine/pxa_dma.txt (chapter "Transfers hot-chaining)
- - drivers/dma/pxa_dma.c
-   => look for pxad_try_hotchain() and it's impact on pxad_chan_handler() which
-   will mark the completion while the next transfer is already pumped by the
-   hardware.
+The following series with the final patch will add support for sDMA Linked List
+transfer support.
+Linked List is supported by sDMA in OMAP3630+ (OMAP4/5, dra7 family).
+If the descriptor load feature is present we can create the descriptors for each
+SG beforehand and let sDMA to walk them through.
+This way the number of sDMA interrupts the kernel need to handle will drop
+dramatically.
 
-Speaking of which, from a purely design point of view, as long as you think
-beforehand what is your sequence, ie. what is the sequence of your link
-chaining, completion handling, etc ..., both marking before or after next tx
-start should be fine IMHO.
+I have gathered some numbers to show the difference.
 
-So in your quest for the "better sequence" the pxa driver's one might give you
-some perspective :)
+Booting up the board with filesystem on SD card for example:
+# cat /proc/interrupts | grep dma
+W/o LinkedList support:
+ 27:       4436          0     WUGEN  13 Level     omap-dma-engine
 
-Cheers.
+Same board/filesystem with this patch:
+ 27:       1027          0     WUGEN  13 Level     omap-dma-engine
 
--- 
-Robert
+Or copying files from SD card to eMCC:
+# du -h /usr
+2.1G    /usr/
+# find /usr/ -type f | wc -l
+232001
+
+# cp -r /usr/* /mnt/emmc/tmp/
+
+W/o LinkedList we see ~761069 DMA interrupts.
+With LinkedList support it is down to ~269314 DMA interrupts.
+
+With the decreased DMA interrupt number the CPU load is dropping
+significantly as well.
+
+The series depends on the interleaved transfer support patch I have sent couple
+of days ago:
+https://lkml.org/lkml/2016/7/12/216
+
+Regards,
+Peter
+---
+Peter Ujfalusi (6):
+  dmaengine: omap-dma: Simplify omap_dma_start_sg parameter list
+  dmaengine: omap-dma: Simplify omap_dma_callback
+  dmaengine: omap-dma: Dynamically allocate memory for lch_map
+  dmaengine: omap-dma: Add more debug information when freeing channel
+  dmaengine: omap-dma: Use pointer to omap_sg in slave_sg setup's loop
+  dmaengine: omap-dma: Support for LinkedList transfer of slave_sg
+
+ drivers/dma/omap-dma.c | 234 +++++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 207 insertions(+), 27 deletions(-)
+
+--
+2.9.2
