@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 2/6] dmaengine: omap-dma: Simplify omap_dma_callback
-Date: Wed, 20 Jul 2016 11:50:28 +0300
-Message-ID: <20160720085032.2955-3-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 1/6] dmaengine: omap-dma: Simplify omap_dma_start_sg parameter list
+Date: Wed, 20 Jul 2016 11:50:27 +0300
+Message-ID: <20160720085032.2955-2-peter.ujfalusi@ti.com>
 References: <20160720085032.2955-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,39 +12,58 @@ To: vinod.koul@intel.com, linux@arm.linux.org.uk
 Cc: linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-Flatten the indentation level of the function which gives better view on
-the cases we handle here.
+We can drop the (sg)idx parameter for the omap_dma_start_sg() function and
+increment the sgidx inside of the same function.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/omap-dma.c | 14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ drivers/dma/omap-dma.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index 7d56cd88c9a5..d469f9b820e0 100644
+index 2e0d49bcfd8a..7d56cd88c9a5 100644
 --- a/drivers/dma/omap-dma.c
 +++ b/drivers/dma/omap-dma.c
-@@ -445,15 +445,13 @@ static void omap_dma_callback(int ch, u16 status, void *data)
- 	spin_lock_irqsave(&c->vc.lock, flags);
+@@ -365,10 +365,9 @@ static void omap_dma_stop(struct omap_chan *c)
+ 	c->running = false;
+ }
+ 
+-static void omap_dma_start_sg(struct omap_chan *c, struct omap_desc *d,
+-	unsigned idx)
++static void omap_dma_start_sg(struct omap_chan *c, struct omap_desc *d)
+ {
+-	struct omap_sg *sg = d->sg + idx;
++	struct omap_sg *sg = d->sg + c->sgidx;
+ 	unsigned cxsa, cxei, cxfi;
+ 
+ 	if (d->dir == DMA_DEV_TO_MEM || d->dir == DMA_MEM_TO_MEM) {
+@@ -388,6 +387,7 @@ static void omap_dma_start_sg(struct omap_chan *c, struct omap_desc *d,
+ 	omap_dma_chan_write(c, CFN, sg->fn);
+ 
+ 	omap_dma_start(c, d);
++	c->sgidx++;
+ }
+ 
+ static void omap_dma_start_desc(struct omap_chan *c)
+@@ -433,7 +433,7 @@ static void omap_dma_start_desc(struct omap_chan *c)
+ 	omap_dma_chan_write(c, CSDP, d->csdp);
+ 	omap_dma_chan_write(c, CLNK_CTRL, d->clnk_ctrl);
+ 
+-	omap_dma_start_sg(c, d, 0);
++	omap_dma_start_sg(c, d);
+ }
+ 
+ static void omap_dma_callback(int ch, u16 status, void *data)
+@@ -446,8 +446,8 @@ static void omap_dma_callback(int ch, u16 status, void *data)
  	d = c->desc;
  	if (d) {
--		if (!c->cyclic) {
--			if (c->sgidx < d->sglen) {
--				omap_dma_start_sg(c, d);
--			} else {
--				omap_dma_start_desc(c);
--				vchan_cookie_complete(&d->vd);
--			}
--		} else {
-+		if (c->cyclic) {
- 			vchan_cyclic_callback(&d->vd);
-+		} else if (c->sgidx == d->sglen) {
-+			omap_dma_start_desc(c);
-+			vchan_cookie_complete(&d->vd);
-+		} else {
-+			omap_dma_start_sg(c, d);
- 		}
- 	}
- 	spin_unlock_irqrestore(&c->vc.lock, flags);
+ 		if (!c->cyclic) {
+-			if (++c->sgidx < d->sglen) {
+-				omap_dma_start_sg(c, d, c->sgidx);
++			if (c->sgidx < d->sglen) {
++				omap_dma_start_sg(c, d);
+ 			} else {
+ 				omap_dma_start_desc(c);
+ 				vchan_cookie_complete(&d->vd);
 -- 
 2.9.2
