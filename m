@@ -1,71 +1,58 @@
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: [PATCH 3/3] ARM: pxa: add module.h for spitz symbol_get/symbol_put
- usage
-Date: Wed, 20 Jul 2016 00:13:32 -0400
-Message-ID: <20160720041332.30789-4-paul.gortmaker@windriver.com>
-References: <20160720041332.30789-1-paul.gortmaker@windriver.com>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Re: [PATCH 2/7] dmaengine: omap-dma: Complete the cookie first on transfer completion
+Date: Wed, 20 Jul 2016 08:26:03 +0200
+Message-ID: <877fcg25c4.fsf@belgarion.home>
+References: <20160714124242.7579-1-peter.ujfalusi@ti.com>
+	<20160714124242.7579-3-peter.ujfalusi@ti.com>
+	<20160718103409.GH5783@n2100.arm.linux.org.uk>
+	<923b54d6-c7fc-66c2-1c20-d8d74ebed912@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160720041332.30789-1-paul.gortmaker@windriver.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-kernel@vger.kernel.org
-Cc: Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Russell King <linux@armlinux.org.uk>, Haojian Zhuang <haojian.zhuang@gmail.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Robert Jarzmik <robert.jarzmik@free.fr>, Daniel Mack <daniel@zonque.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <923b54d6-c7fc-66c2-1c20-d8d74ebed912@ti.com> (Peter Ujfalusi's
+	message of "Tue, 19 Jul 2016 15:35:18 +0300")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Russell King - ARM Linux <linux@armlinux.org.uk>, vinod.koul@intel.com, linux-kernel@vger.kernel.org, tony@atomide.com, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-During unrelated work, attempting to remove an include of the
-linux/module.h in favour of "struct module;" in order to reduce
-header entanglement, we found doing so caused a build failure in
-this file.
+Peter Ujfalusi <peter.ujfalusi@ti.com> writes:
 
-mach-pxa/spitz.c: In function 'spitz_bl_kick_battery':
-mach-pxa/spitz.c:524:2: error: implicit declaration of function 'symbol_get' [-Werror=implicit-function-declaration]
-mach-pxa/spitz.c:524:12: warning: assignment makes pointer from integer without a cast [enabled by default]
-mach-pxa/spitz.c:527:3: error: implicit declaration of function 'symbol_put' [-Werror=implicit-function-declaration]
+> On 07/18/16 13:34, Russell King - ARM Linux wrote:
+>> On Thu, Jul 14, 2016 at 03:42:37PM +0300, Peter Ujfalusi wrote:
+>>> Before looking for the next descriptor to start, complete the just finished
+>>> cookie.
+>> 
+>> This change will reduce performance as we no longer have an overlap
+>> between the next request starting to be dealt with in the hardware
+>> vs the previous request being completed.
+>
+> vchan_cookie_complete() will only mark the cookie completed, adds the vd to
+> the desc_completed list (it was deleted from desc_issued list when it was
+> started by omap_dma_start_desc) and schedule the tasklet to deal with the real
+> completion later.
+> Marking the just finished descriptor/cookie done first then looking for
+> possible descriptors in the queue to start feels like a better sequence.
+>
+> After a quick grep in the kernel source: only omap-dma.c was starting the next
+> transfer before marking the current completed descriptor/cookie done.
 
-It turns out this file uses symbol_get/symbol_put which live in the
-module.h header, but it wasn't including module.h -- which was
-being masked by the module.h in include/linux/gpio/driver.h - the
-one we want to remove/replace.
+Euh actually I think it's done in other drivers as well :
+ - Documentation/dmaengine/pxa_dma.txt (chapter "Transfers hot-chaining)
+ - drivers/dma/pxa_dma.c
+   => look for pxad_try_hotchain() and it's impact on pxad_chan_handler() which
+   will mark the completion while the next transfer is already pumped by the
+   hardware.
 
-With ARM and GPIO being different subsystems, we'll need to get
-this in ARM 1st, and then wait a release before changing the GPIO
-header, otherwise we'll risk triggering build failures.
+Speaking of which, from a purely design point of view, as long as you think
+beforehand what is your sequence, ie. what is the sequence of your link
+chaining, completion handling, etc ..., both marking before or after next tx
+start should be fine IMHO.
 
-Cc: Daniel Mack <daniel@zonque.org>
-Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
-Cc: Robert Jarzmik <robert.jarzmik@free.fr>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Alexandre Courbot <gnurou@gmail.com>
-Cc: linux-omap@vger.kernel.org
-Cc: linux-gpio@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
----
- arch/arm/mach-pxa/spitz.c | 1 +
- 1 file changed, 1 insertion(+)
+So in your quest for the "better sequence" the pxa driver's one might give you
+some perspective :)
 
-diff --git a/arch/arm/mach-pxa/spitz.c b/arch/arm/mach-pxa/spitz.c
-index b410698808ca..8078e3cdb6c8 100644
---- a/arch/arm/mach-pxa/spitz.c
-+++ b/arch/arm/mach-pxa/spitz.c
-@@ -13,6 +13,7 @@
-  */
- 
- #include <linux/kernel.h>
-+#include <linux/module.h>	/* symbol_get ; symbol_put */
- #include <linux/platform_device.h>
- #include <linux/delay.h>
- #include <linux/gpio_keys.h>
+Cheers.
+
 -- 
-2.8.4
+Robert
