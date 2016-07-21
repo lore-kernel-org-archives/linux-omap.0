@@ -1,55 +1,33 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: [PATCH 2/7] dmaengine: omap-dma: Complete the cookie first on
- transfer completion
-Date: Thu, 21 Jul 2016 10:47:04 +0100
-Message-ID: <20160721094704.GL5783@n2100.arm.linux.org.uk>
-References: <20160714124242.7579-1-peter.ujfalusi@ti.com>
- <20160714124242.7579-3-peter.ujfalusi@ti.com>
- <20160718103409.GH5783@n2100.arm.linux.org.uk>
- <923b54d6-c7fc-66c2-1c20-d8d74ebed912@ti.com>
- <877fcg25c4.fsf@belgarion.home>
- <f18ced07-39e4-c336-b788-254c2c130f82@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 0/2] dra7: add support for two PCIe ports
+Date: Thu, 21 Jul 2016 17:27:54 +0530
+Message-ID: <1469102276-14777-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <f18ced07-39e4-c336-b788-254c2c130f82@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Robert Jarzmik <robert.jarzmik@free.fr>, vinod.koul@intel.com, linux-kernel@vger.kernel.org, tony@atomide.com, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: bcousson@baylibre.com, tony@atomide.com
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, kishon@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jul 21, 2016 at 12:33:12PM +0300, Peter Ujfalusi wrote:
-> On 07/20/16 09:26, Robert Jarzmik wrote:
-> > Speaking of which, from a purely design point of view, as long as you think
-> > beforehand what is your sequence, ie. what is the sequence of your link
-> > chaining, completion handling, etc ..., both marking before or after next tx
-> > start should be fine IMHO.
-> 
-> Yes, it might be a bit better from performance point of view if we first start
-> the pending descriptor (if there is one) then do the vchan_cookie_complete().
-> On the other hand if we care more about latency and accuracy we should
-> complete the transfer first then look for pending descriptors. But since
-> virt_dma is using a tasklet for the real completion, the latency is always
-> going to be when the tasklet is given the chance to execute.
+This series adds patches to support 2 PCIe ports simultaneously
+on dra7 based boards.
+None of the supported boards exposes 2 PCIe ports. However these are
+mandatory changes that would be required in order to support
+2 PCIe ports.
 
-I think this shows a slight misunderstanding of the DMA engine API.  The
-DMA completion is defined by the API to always happen in tasklet context,
-which is why the virt-dma stuff does it that way - and all other DMA
-engine drivers.  It's one of the fundamentals of the API.
+This series has been tested to see if there are regressions with 1
+PCIe port. Though testing of 2 PCIe ports is not done
+while sending this patch series, it has been verified in
+few of the customer boards.
 
-As it happens in tasklet context, tasklets can be scheduled to run with
-variable latency, so any use of the DMA engine API which has a predictable
-latency around the completion handling is going to be unreliable.
+Kishon Vijay Abraham I (2):
+  ARM: dts: DRA7: Add "linux,pci-domain" property for pci dt nodes
+  ARM: DRA7: select PCI_DOMAINS config
 
-Remember also that with circular buffers, there's no guarantee of getting
-period-based completion callbacks - several periods can complete and you
-are only guaranteed to get one completion callback.
-
-So, the idea that completion callbacks can have anything to do with low
-latency or accuracy is totally incorrect.
+ arch/arm/boot/dts/dra7.dtsi |    2 ++
+ arch/arm/mach-omap2/Kconfig |    1 +
+ 2 files changed, 3 insertions(+)
 
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+1.7.9.5
