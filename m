@@ -1,102 +1,100 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [net-next PATCH 1/3] net: phy: dp83867: Add documentation for
- optional impedance control
-Date: Thu, 21 Jul 2016 11:52:36 +0530
-Message-ID: <57906A2C.7010201@ti.com>
-References: <20160720145614.13132-1-mugunthanvnm@ti.com>
- <20160720145614.13132-2-mugunthanvnm@ti.com> <578F99D3.9090601@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 2/7] dmaengine: omap-dma: Complete the cookie first on
+ transfer completion
+Date: Thu, 21 Jul 2016 12:33:12 +0300
+Message-ID: <f18ced07-39e4-c336-b788-254c2c130f82@ti.com>
+References: <20160714124242.7579-1-peter.ujfalusi@ti.com>
+ <20160714124242.7579-3-peter.ujfalusi@ti.com>
+ <20160718103409.GH5783@n2100.arm.linux.org.uk>
+ <923b54d6-c7fc-66c2-1c20-d8d74ebed912@ti.com> <877fcg25c4.fsf@belgarion.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <578F99D3.9090601@ti.com>
+In-Reply-To: <877fcg25c4.fsf@belgarion.home>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Mugunthan V N <mugunthanvnm@ti.com>, netdev@vger.kernel.org, Rob Herring <robh+dt@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Florian Fainelli <f.fainelli@gmail.com>, "David S . Miller" <davem@davemloft.net>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: Russell King - ARM Linux <linux@armlinux.org.uk>, vinod.koul@intel.com, linux-kernel@vger.kernel.org, tony@atomide.com, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Nishanth,
-
-On Wednesday 20 July 2016 09:03 PM, Nishanth Menon wrote:
-> On 07/20/2016 09:56 AM, Mugunthan V N wrote:
->> Add documention of ti,impedance-control which can be used to
->> correct MAC impedance mismatch using phy extended registers.
+On 07/20/16 09:26, Robert Jarzmik wrote:
+> Peter Ujfalusi <peter.ujfalusi@ti.com> writes:
+>=20
+>> On 07/18/16 13:34, Russell King - ARM Linux wrote:
+>>> On Thu, Jul 14, 2016 at 03:42:37PM +0300, Peter Ujfalusi wrote:
+>>>> Before looking for the next descriptor to start, complete the just=
+ finished
+>>>> cookie.
+>>>
+>>> This change will reduce performance as we no longer have an overlap
+>>> between the next request starting to be dealt with in the hardware
+>>> vs the previous request being completed.
 >>
->> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
->> ---
->>   Documentation/devicetree/bindings/net/ti,dp83867.txt | 7 +++++++
->>   1 file changed, 7 insertions(+)
+>> vchan_cookie_complete() will only mark the cookie completed, adds th=
+e vd to
+>> the desc_completed list (it was deleted from desc_issued list when i=
+t was
+>> started by omap_dma_start_desc) and schedule the tasklet to deal wit=
+h the real
+>> completion later.
+>> Marking the just finished descriptor/cookie done first then looking =
+for
+>> possible descriptors in the queue to start feels like a better seque=
+nce.
 >>
->> diff --git a/Documentation/devicetree/bindings/net/ti,dp83867.txt
->> b/Documentation/devicetree/bindings/net/ti,dp83867.txt
->> index 5d21141..531ea3c5 100644
->> --- a/Documentation/devicetree/bindings/net/ti,dp83867.txt
->> +++ b/Documentation/devicetree/bindings/net/ti,dp83867.txt
->> @@ -9,6 +9,13 @@ Required properties:
->>       - ti,fifo-depth - Transmitt FIFO depth- see
->> dt-bindings/net/ti-dp83867.h
->>           for applicable values
->>
->> +Optional property:
->> +    - ti,impedance-control - MAC Interface Impedance control to vary the
->> +                 output impedance with an approximate range
->> +                 from 35-70 ohms in 32 steps. Value range can
->> +                 be 0x0 to 0x1f. Lowest impedance value is
->> +                 0x1f and highest impedance being 0x0.
->> +
-> 
-> Should'nt you be using the impedance values of 35 to 70 as the valid
-> values here? that would be the hardware description, and the values to
-> program corresponding to those are 0x00 to 0x1f. Right?
-> 
-> Rob: is'nt that the right way to do it?
+>> After a quick grep in the kernel source: only omap-dma.c was startin=
+g the next
+>> transfer before marking the current completed descriptor/cookie done=
+=2E
+>=20
+> Euh actually I think it's done in other drivers as well :
+>  - Documentation/dmaengine/pxa_dma.txt (chapter "Transfers hot-chaini=
+ng)
+>  - drivers/dma/pxa_dma.c
+>    =3D> look for pxad_try_hotchain() and it's impact on pxad_chan_han=
+dler() which
+>    will mark the completion while the next transfer is already pumped=
+ by the
+>    hardware.
 
-Agree that that is usually the right way to do it. I believe this case
-is bit peculiar though. Here is the extract from the datasheet[1] about
-how the register in question works.
+The 'hot-chaining' is a bit different then what omap-dma is doing. If I=
+ got it
+right. When the DMA is running and a new request comes the driver will =
+append
+the new transfer to the list used by the HW. This way there will be no =
+stop
+and restart needed, the DMA is running w/o interruption.
 
-"
-Output impedance approximate range from 35-70 ohms in 32 steps.
-Lowest being 11110 and highest being 00000. Range and Step size
-will vary with process.
+> Speaking of which, from a purely design point of view, as long as you=
+ think
+> beforehand what is your sequence, ie. what is the sequence of your li=
+nk
+> chaining, completion handling, etc ..., both marking before or after =
+next tx
+> start should be fine IMHO.
 
-Default is set to 50 ohms by trim. But the default register value can
-vary by process. Non default values of MAC I/O impedance can be
-used based on trace impedance. Mismatch between device and
-trace impedance can cause voltage overshoot and undershoot.
-"
+Yes, it might be a bit better from performance point of view if we firs=
+t start
+the pending descriptor (if there is one) then do the vchan_cookie_compl=
+ete().
+On the other hand if we care more about latency and accuracy we should
+complete the transfer first then look for pending descriptors. But sinc=
+e
+virt_dma is using a tasklet for the real completion, the latency is alw=
+ays
+going to be when the tasklet is given the chance to execute.
 
-So clearly, there is no easy correspondence that the hardware guarantees
-between output impedance ohmage and the register value programmed. Only
-couple of things are guaranteed.
+> So in your quest for the "better sequence" the pxa driver's one might=
+ give you
+> some perspective :)
 
-1) Programming a value of 0 gives approximately 35 ohms
-2) Programming a value of 0x1F gives approximately 70 ohms
-3) Default value of the register gives 50 ohms (the default value could
-vary by device).
-4) Programming a value in between will give some ohmage in the
-approximate range 35-70 (curve is unknown).
+I did thought about similar 'hot-chaining' for TI's eDMA and sDMA. Espe=
+cially
+eDMA would benefit from it, but so far I see too many race conditions t=
+o
+overcome to be brave enough to write something to test it. and I don't =
+have
+time for it atm ;)
 
-Given this, I am not sure how one can convert a given user supplied ohms
-values to a reasonable register value. Clearly, the register is supposed
-to be programmed by experimentation, not calculation.
-
-That said, we could take another approach. At least for the current
-issue we are trying to address, we only need to configure the register
-to max value. And given the nature of the register, I am pretty sure
-that is what most people will end up doing.
-
-So, may be we have two properties:
-
-ti,max-output-impedance
-ti,min-output-imepdance
-
-which configure the impedance to maximum and minimum values
-respectively. If, in future, someone needs to configure a value in
-between, he can introduce a more granular property which when then
-override whatever else is specified.
-
-Regards,
-Sekhar
-
-[1] http://www.ti.com/lit/ds/symlink/dp83867ir.pdf
+--=20
+P=E9ter
