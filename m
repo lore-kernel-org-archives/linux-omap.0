@@ -1,71 +1,38 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 2/7] dmaengine: omap-dma: Complete the cookie first on
- transfer completion
-Date: Fri, 22 Jul 2016 14:00:33 +0300
-Message-ID: <a4b6fc99-13a9-b78f-b395-8b3e5eb30642@ti.com>
-References: <20160714124242.7579-1-peter.ujfalusi@ti.com>
- <20160714124242.7579-3-peter.ujfalusi@ti.com>
- <20160718103409.GH5783@n2100.arm.linux.org.uk>
- <923b54d6-c7fc-66c2-1c20-d8d74ebed912@ti.com> <877fcg25c4.fsf@belgarion.home>
- <f18ced07-39e4-c336-b788-254c2c130f82@ti.com>
- <20160721094704.GL5783@n2100.arm.linux.org.uk>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 2/2] ARM: DRA7: select PCI_DOMAINS config
+Date: Fri, 22 Jul 2016 15:29:26 +0200
+Message-ID: <5655227.Z3Bo3vTPGH@wuerfel>
+References: <1469102276-14777-1-git-send-email-kishon@ti.com> <20160722071644.GZ28140@atomide.com> <5791D8C7.5020303@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160721094704.GL5783@n2100.arm.linux.org.uk>
+In-Reply-To: <5791D8C7.5020303@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Robert Jarzmik <robert.jarzmik@free.fr>, vinod.koul@intel.com, linux-kernel@vger.kernel.org, tony@atomide.com, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, bcousson@baylibre.com, robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 07/21/16 12:47, Russell King - ARM Linux wrote:
-> On Thu, Jul 21, 2016 at 12:33:12PM +0300, Peter Ujfalusi wrote:
->> On 07/20/16 09:26, Robert Jarzmik wrote:
->>> Speaking of which, from a purely design point of view, as long as y=
-ou think
->>> beforehand what is your sequence, ie. what is the sequence of your =
-link
->>> chaining, completion handling, etc ..., both marking before or afte=
-r next tx
->>> start should be fine IMHO.
->>
->> Yes, it might be a bit better from performance point of view if we f=
-irst start
->> the pending descriptor (if there is one) then do the vchan_cookie_co=
-mplete().
->> On the other hand if we care more about latency and accuracy we shou=
-ld
->> complete the transfer first then look for pending descriptors. But s=
-ince
->> virt_dma is using a tasklet for the real completion, the latency is =
-always
->> going to be when the tasklet is given the chance to execute.
->=20
-> I think this shows a slight misunderstanding of the DMA engine API.  =
-The
-> DMA completion is defined by the API to always happen in tasklet cont=
-ext,
-> which is why the virt-dma stuff does it that way - and all other DMA
-> engine drivers.  It's one of the fundamentals of the API.
->=20
-> As it happens in tasklet context, tasklets can be scheduled to run wi=
-th
-> variable latency, so any use of the DMA engine API which has a predic=
-table
-> latency around the completion handling is going to be unreliable.
->=20
-> Remember also that with circular buffers, there's no guarantee of get=
-ting
-> period-based completion callbacks - several periods can complete and =
-you
-> are only guaranteed to get one completion callback.
->=20
-> So, the idea that completion callbacks can have anything to do with l=
-ow
-> latency or accuracy is totally incorrect.
+On Friday, July 22, 2016 1:56:47 PM CEST Kishon Vijay Abraham I wrote:
+> 
+> since it doesn't harm even if a platform has a single PCIe port, it should be
+> okay to set PCI_DOMAINS. I'll resend the following as a separate patch if it's
+> okay.
+> 
+> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+> index 90542db..0cccb50 100644
+> --- a/arch/arm/Kconfig
+> +++ b/arch/arm/Kconfig
+> @@ -338,6 +338,7 @@ config ARCH_MULTIPLATFORM
+>         select MULTI_IRQ_HANDLER
+>         select SPARSE_IRQ
+>         select USE_OF
+> +       select PCI_DOMAINS if PCI
+> 
 
-Thanks for refreshing my memory, you are absolutely right.
+Sounds good, but please remove all other 'select PCI_DOMAINS if PCI'
+statements in arch/arm then in the same patch.
 
---=20
-P=E9ter
+I have checked that all of them are for ARCH_MULTIPLATFORM based machines.
+
+	Arnd
