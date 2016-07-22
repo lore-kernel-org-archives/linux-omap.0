@@ -1,59 +1,71 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 2/2] ARM: DRA7: select PCI_DOMAINS config
-Date: Fri, 22 Jul 2016 13:56:47 +0530
-Message-ID: <5791D8C7.5020303@ti.com>
-References: <1469102276-14777-1-git-send-email-kishon@ti.com>
- <1469102276-14777-3-git-send-email-kishon@ti.com>
- <8047226.VhgpLo8JQu@wuerfel> <20160722071644.GZ28140@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 0/4] ARM: OMAP2+: Fix AM335x RTC External Abort
+Date: Fri, 22 Jul 2016 11:41:30 +0300
+Message-ID: <5791DC3A.6070808@ti.com>
+References: <20160712175034.743-1-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160722071644.GZ28140@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: bcousson@baylibre.com, robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, nsekhar@ti.com
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160712175034.743-1-d-gerlach@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Dave Gerlach <d-gerlach@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, Olof Johansson <olof@lixom.net>, Paul Walmsley <paul@pwsan.com>, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On 12/07/16 20:50, Dave Gerlach wrote:
+> Hi,
+> With next-20160711 there is an external abort during boot on am335x
+> platforms from the RTC which is caused by commit 183e2077d007 ("ARM:
+> AM33xx: fix module_wait_ready without clkctrl register"), log is here [1].
+> The RTC hwmod is unique in that it has a clkctrl_offs of 0 which is
+> invalid normally, all other hwmods have non-zero offsets. Because of this,
+> we need to flag the hwmod so 0 actually gets used for the offset
+> instead of the just returning 0 and doing nothing.
+>
+> This series adds a HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET flag and moves the check
+> for validity of the clkctrl_offs value to the omap_hwmod code so that we are
+> able to check both the flag and clkctrl_offs values. This code is shared by
+> all OMAP4+ platforms but shoudl have no affect for anything but RTC on
+> am335x but still boot tested on the following platforms:
 
-On Friday 22 July 2016 12:46 PM, Tony Lindgren wrote:
-> * Arnd Bergmann <arnd@arndb.de> [160721 05:08]:
->> On Thursday, July 21, 2016 5:27:56 PM CEST Kishon Vijay Abraham I wrote:
->>> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
->>> index 1a648e9..8e6e2c0 100644
->>> --- a/arch/arm/mach-omap2/Kconfig
->>> +++ b/arch/arm/mach-omap2/Kconfig
->>> @@ -86,6 +86,7 @@ config SOC_DRA7XX
->>>         select OMAP_INTERCONNECT_BARRIER
->>>         select PM_OPP if PM
->>>         select ZONE_DMA if ARM_LPAE
->>> +       select PCI_DOMAINS if PCI
->>>  
->>>  config ARCH_OMAP2PLUS
->>>         bool
->>>
->>
->> Should we just set this unconditionally for ARCH_MULTIPLATFORM maybe?
-> 
-> Makes sense to me if many SoCs need this.
+Series looks good to me, so:
 
-since it doesn't harm even if a platform has a single PCIe port, it should be
-okay to set PCI_DOMAINS. I'll resend the following as a separate patch if it's
-okay.
+Acked-by: Tero Kristo <t-kristo@ti.com>
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 90542db..0cccb50 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -338,6 +338,7 @@ config ARCH_MULTIPLATFORM
-        select MULTI_IRQ_HANDLER
-        select SPARSE_IRQ
-        select USE_OF
-+       select PCI_DOMAINS if PCI
+-Tero
 
- config ARM_SINGLE_ARMV7M
-        bool "ARMv7-M based platforms (Cortex-M0/M3/M4)"
-
-Thanks
-Kishon
+>
+> AM335x GP EVM:		Pass http://pastebin.ubuntu.com/19186160/
+> Beaglebone Black:	Pass http://pastebin.ubuntu.com/19186862/
+> AM437x GP EVM:		Pass http://pastebin.ubuntu.com/19186555/
+> OMAP4 Panda ES:		Pass http://pastebin.ubuntu.com/19186711/
+> OMAP5 uEVM:		Pass http://pastebin.ubuntu.com/19186925/
+>
+> Regards,
+> Dave
+>
+> [1] https://storage.kernelci.org/next/next-20160711/arm-omap2plus_defconfig/lab-baylibre-seattle/boot-am335x-boneblack.html
+>
+> Dave Gerlach (4):
+>    ARM: OMAP4+: hwmod: Add hwmod flag for HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET
+>    ARM: OMAP2+: AM33XX: Add HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET flag to rtc
+>      hwmod
+>    ARM: OMAP4+: Have _omap4_wait_target_* check for valid clkctrl_offs
+>    ARM: OMAP4+: CM: Remove redundant checks for clkctrl_offs of zero
+>
+>   arch/arm/mach-omap2/cm33xx.c                            | 6 ------
+>   arch/arm/mach-omap2/cminst44xx.c                        | 6 ------
+>   arch/arm/mach-omap2/omap_hwmod.c                        | 8 ++++++++
+>   arch/arm/mach-omap2/omap_hwmod.h                        | 4 ++++
+>   arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 2 ++
+>   5 files changed, 14 insertions(+), 12 deletions(-)
+>
