@@ -1,46 +1,41 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/4] ARM: OMAP4+: Have _omap4_wait_target_* check for
- valid clkctrl_offs
-Date: Thu, 21 Jul 2016 23:46:32 -0700
-Message-ID: <20160722064631.GX28140@atomide.com>
-References: <20160712175034.743-1-d-gerlach@ti.com>
- <20160712175034.743-4-d-gerlach@ti.com>
+Subject: Re: [PATCH] ARM: OMAP3: hwmod data: Add sysc information for DSI
+Date: Fri, 22 Jul 2016 00:14:42 -0700
+Message-ID: <20160722071442.GY28140@atomide.com>
+References: <1466733573-19177-1-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160712175034.743-4-d-gerlach@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Arnd Bergmann <arnd@arndb.de>, Lokesh Vutla <lokeshvutla@ti.com>, Tero Kristo <t-kristo@ti.com>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1466733573-19177-1-git-send-email-sre@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Paul Walmsley <paul@pwsan.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Dave Gerlach <d-gerlach@ti.com> [160712 10:53]:
-> Previously the low-level CM call internal to the
-> _omap4_wait_target_ready/disable calls was responsible for checking for
-> a valid clkctrl_offs. Now we must also consider the value of the
-> prcm.omap4.flags because if HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET is set in
-> the flags then clkctrl_offs of 0 is valid.
+* Sebastian Reichel <sre@kernel.org> [160623 19:02]:
+> Add missing sysconfig/sysstatus information
+> to OMAP3 hwmod. The information has been
+> checked against OMAP34xx and OMAP36xx TRM.
 > 
-> Let's move this check into the _omap4_wait_target_ready/disable where we
-> have access to both the clkctrl_offs and the flags values and simply
-> return 0 without calling the low level CM call at all, which would have
-> returned 0 anyway if the clktrl_offs was zero.
+> Without this change DSI block is not reset
+> during boot, which is required for working
+> Nokia N950 display.
+> 
+> Signed-off-by: Sebastian Reichel <sre@kernel.org>
+> ---
+> Hi,
+> 
+> This is an updated version of this patch [0]. Instead
+> of the workaround implemented in [0], this patch fixes
+> the root problem - missing hwmod data. I think it should
+> be added to -rc.
+> 
+> [0] http://article.gmane.org/gmane.comp.video.dri.devel/153665
 
-This series looks OK to me to fix the RTC regression. Paul and Tero,
-do you see any issues with this or care to ack?
-
-I'm planning to s/Let's move this check/Let's add this check/ while
-committing to avoid confusion.
+Sorry for the delay in replying, I was offline for few weeks.
+I'll add this into fixes for v4.8 with cc stable as it's not
+a regression or a oops.
 
 Regards,
 
