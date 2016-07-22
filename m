@@ -1,128 +1,71 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [net-next PATCH 1/3] net: phy: dp83867: Add documentation for
- optional impedance control
-Date: Fri, 22 Jul 2016 15:35:46 +0530
-Message-ID: <959bac39-ccd6-8338-a9f4-7f56f63b0478@ti.com>
-References: <20160720145614.13132-1-mugunthanvnm@ti.com>
- <20160720145614.13132-2-mugunthanvnm@ti.com> <578F99D3.9090601@ti.com>
- <57906A2C.7010201@ti.com> <20160721211429.GA17696@rob-hp-laptop>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 2/7] dmaengine: omap-dma: Complete the cookie first on
+ transfer completion
+Date: Fri, 22 Jul 2016 14:00:33 +0300
+Message-ID: <a4b6fc99-13a9-b78f-b395-8b3e5eb30642@ti.com>
+References: <20160714124242.7579-1-peter.ujfalusi@ti.com>
+ <20160714124242.7579-3-peter.ujfalusi@ti.com>
+ <20160718103409.GH5783@n2100.arm.linux.org.uk>
+ <923b54d6-c7fc-66c2-1c20-d8d74ebed912@ti.com> <877fcg25c4.fsf@belgarion.home>
+ <f18ced07-39e4-c336-b788-254c2c130f82@ti.com>
+ <20160721094704.GL5783@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20160721211429.GA17696@rob-hp-laptop>
-Sender: netdev-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>, Sekhar Nori <nsekhar@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, netdev@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Florian Fainelli <f.fainelli@gmail.com>, "David S . Miller" <davem@davemloft.net>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160721094704.GL5783@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Robert Jarzmik <robert.jarzmik@free.fr>, vinod.koul@intel.com, linux-kernel@vger.kernel.org, tony@atomide.com, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Rob,
-
-On Friday 22 July 2016 02:44 AM, Rob Herring wrote:
-> On Thu, Jul 21, 2016 at 11:52:36AM +0530, Sekhar Nori wrote:
->> Nishanth,
+On 07/21/16 12:47, Russell King - ARM Linux wrote:
+> On Thu, Jul 21, 2016 at 12:33:12PM +0300, Peter Ujfalusi wrote:
+>> On 07/20/16 09:26, Robert Jarzmik wrote:
+>>> Speaking of which, from a purely design point of view, as long as y=
+ou think
+>>> beforehand what is your sequence, ie. what is the sequence of your =
+link
+>>> chaining, completion handling, etc ..., both marking before or afte=
+r next tx
+>>> start should be fine IMHO.
 >>
->> On Wednesday 20 July 2016 09:03 PM, Nishanth Menon wrote:
->>> On 07/20/2016 09:56 AM, Mugunthan V N wrote:
->>>> Add documention of ti,impedance-control which can be used to
->>>> correct MAC impedance mismatch using phy extended registers.
->>>>
->>>> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
->>>> ---
->>>>   Documentation/devicetree/bindings/net/ti,dp83867.txt | 7 +++++++
->>>>   1 file changed, 7 insertions(+)
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/net/ti,dp83867.txt
->>>> b/Documentation/devicetree/bindings/net/ti,dp83867.txt
->>>> index 5d21141..531ea3c5 100644
->>>> --- a/Documentation/devicetree/bindings/net/ti,dp83867.txt
->>>> +++ b/Documentation/devicetree/bindings/net/ti,dp83867.txt
->>>> @@ -9,6 +9,13 @@ Required properties:
->>>>       - ti,fifo-depth - Transmitt FIFO depth- see
->>>> dt-bindings/net/ti-dp83867.h
->>>>           for applicable values
->>>>
->>>> +Optional property:
->>>> +    - ti,impedance-control - MAC Interface Impedance control to vary the
->>>> +                 output impedance with an approximate range
->>>> +                 from 35-70 ohms in 32 steps. Value range can
->>>> +                 be 0x0 to 0x1f. Lowest impedance value is
->>>> +                 0x1f and highest impedance being 0x0.
->>>> +
->>>
->>> Should'nt you be using the impedance values of 35 to 70 as the valid
->>> values here? that would be the hardware description, and the values to
->>> program corresponding to those are 0x00 to 0x1f. Right?
->>>
->>> Rob: is'nt that the right way to do it?
-> 
-> Normally, yes that is preferred. I don't have an issue with it here if 
-> that is what makes sense.
-> 
->> Agree that that is usually the right way to do it. I believe this case
->> is bit peculiar though. Here is the extract from the datasheet[1] about
->> how the register in question works.
->>
->> "
->> Output impedance approximate range from 35-70 ohms in 32 steps.
->> Lowest being 11110 and highest being 00000. Range and Step size
->> will vary with process.
->>
->> Default is set to 50 ohms by trim. But the default register value can
->> vary by process. Non default values of MAC I/O impedance can be
->> used based on trace impedance. Mismatch between device and
->> trace impedance can cause voltage overshoot and undershoot.
->> "
->>
->> So clearly, there is no easy correspondence that the hardware guarantees
->> between output impedance ohmage and the register value programmed. Only
->> couple of things are guaranteed.
->>
->> 1) Programming a value of 0 gives approximately 35 ohms
->> 2) Programming a value of 0x1F gives approximately 70 ohms
->> 3) Default value of the register gives 50 ohms (the default value could
->> vary by device).
->> 4) Programming a value in between will give some ohmage in the
->> approximate range 35-70 (curve is unknown).
+>> Yes, it might be a bit better from performance point of view if we f=
+irst start
+>> the pending descriptor (if there is one) then do the vchan_cookie_co=
+mplete().
+>> On the other hand if we care more about latency and accuracy we shou=
+ld
+>> complete the transfer first then look for pending descriptors. But s=
+ince
+>> virt_dma is using a tasklet for the real completion, the latency is =
+always
+>> going to be when the tasklet is given the chance to execute.
+>=20
+> I think this shows a slight misunderstanding of the DMA engine API.  =
+The
+> DMA completion is defined by the API to always happen in tasklet cont=
+ext,
+> which is why the virt-dma stuff does it that way - and all other DMA
+> engine drivers.  It's one of the fundamentals of the API.
+>=20
+> As it happens in tasklet context, tasklets can be scheduled to run wi=
+th
+> variable latency, so any use of the DMA engine API which has a predic=
+table
+> latency around the completion handling is going to be unreliable.
+>=20
+> Remember also that with circular buffers, there's no guarantee of get=
+ting
+> period-based completion callbacks - several periods can complete and =
+you
+> are only guaranteed to get one completion callback.
+>=20
+> So, the idea that completion callbacks can have anything to do with l=
+ow
+> latency or accuracy is totally incorrect.
 
-Sekhar got it wrong, programming 0x1F provides the minimum impedance of
-35 ohms and 0x0 provides the maximum impedance of 70 ohms.
+Thanks for refreshing my memory, you are absolutely right.
 
->>
->> Given this, I am not sure how one can convert a given user supplied ohms
->> values to a reasonable register value. Clearly, the register is supposed
->> to be programmed by experimentation, not calculation.
-> 
-> So your are going to change from a known value tuned for the individual 
-> Si (50ohm) to the same value for all chips (at least for a given board). 
-> Or does this get set by firmware at boot? If not, seems like you would 
-> want to specify a delta from the default register value in this case.
-
-The delta will not be constant for each steps of the register content.
-So this approach cannot be taken.
-
-> 
->> That said, we could take another approach. At least for the current
->> issue we are trying to address, we only need to configure the register
->> to max value. And given the nature of the register, I am pretty sure
->> that is what most people will end up doing.
-> 
-> How does the max value get determined? Possibly it should just be set in 
-> the kernel.
-
-Yes, the min/max value will be determined in the kernel and the DT will
-have either of the properties below.
-
->  
->> So, may be we have two properties:
->>
->> ti,max-output-impedance
->> ti,min-output-imepdance
-> 
-> Just define max if that's all you currently need.
-
-Currently we care about only the min-output-impedance (register content
-0x1f). Will respin the patch using ti,min-output-impedance.
-
-Regards
-Mugunthan V N
+--=20
+P=E9ter
