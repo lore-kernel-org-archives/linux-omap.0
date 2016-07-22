@@ -1,41 +1,39 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP3: hwmod data: Add sysc information for DSI
-Date: Fri, 22 Jul 2016 00:14:42 -0700
-Message-ID: <20160722071442.GY28140@atomide.com>
-References: <1466733573-19177-1-git-send-email-sre@kernel.org>
+Subject: Re: [PATCH 2/2] ARM: DRA7: select PCI_DOMAINS config
+Date: Fri, 22 Jul 2016 00:16:44 -0700
+Message-ID: <20160722071644.GZ28140@atomide.com>
+References: <1469102276-14777-1-git-send-email-kishon@ti.com>
+ <1469102276-14777-3-git-send-email-kishon@ti.com>
+ <8047226.VhgpLo8JQu@wuerfel>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1466733573-19177-1-git-send-email-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Paul Walmsley <paul@pwsan.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <8047226.VhgpLo8JQu@wuerfel>
+Sender: linux-pci-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, bcousson@baylibre.com, robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@kernel.org> [160623 19:02]:
-> Add missing sysconfig/sysstatus information
-> to OMAP3 hwmod. The information has been
-> checked against OMAP34xx and OMAP36xx TRM.
+* Arnd Bergmann <arnd@arndb.de> [160721 05:08]:
+> On Thursday, July 21, 2016 5:27:56 PM CEST Kishon Vijay Abraham I wrote:
+> > diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> > index 1a648e9..8e6e2c0 100644
+> > --- a/arch/arm/mach-omap2/Kconfig
+> > +++ b/arch/arm/mach-omap2/Kconfig
+> > @@ -86,6 +86,7 @@ config SOC_DRA7XX
+> >         select OMAP_INTERCONNECT_BARRIER
+> >         select PM_OPP if PM
+> >         select ZONE_DMA if ARM_LPAE
+> > +       select PCI_DOMAINS if PCI
+> >  
+> >  config ARCH_OMAP2PLUS
+> >         bool
+> > 
 > 
-> Without this change DSI block is not reset
-> during boot, which is required for working
-> Nokia N950 display.
-> 
-> Signed-off-by: Sebastian Reichel <sre@kernel.org>
-> ---
-> Hi,
-> 
-> This is an updated version of this patch [0]. Instead
-> of the workaround implemented in [0], this patch fixes
-> the root problem - missing hwmod data. I think it should
-> be added to -rc.
-> 
-> [0] http://article.gmane.org/gmane.comp.video.dri.devel/153665
+> Should we just set this unconditionally for ARCH_MULTIPLATFORM maybe?
 
-Sorry for the delay in replying, I was offline for few weeks.
-I'll add this into fixes for v4.8 with cc stable as it's not
-a regression or a oops.
+Makes sense to me if many SoCs need this.
 
 Regards,
 
