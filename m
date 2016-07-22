@@ -1,34 +1,128 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH 2/2] ARM: DRA7: select PCI_DOMAINS config
-Date: Fri, 22 Jul 2016 14:53:33 +0530
-Message-ID: <5791E615.3070904@ti.com>
-References: <1469102276-14777-1-git-send-email-kishon@ti.com>
- <1469102276-14777-3-git-send-email-kishon@ti.com>
- <8047226.VhgpLo8JQu@wuerfel> <20160722071644.GZ28140@atomide.com>
- <5791D8C7.5020303@ti.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [net-next PATCH 1/3] net: phy: dp83867: Add documentation for
+ optional impedance control
+Date: Fri, 22 Jul 2016 15:35:46 +0530
+Message-ID: <959bac39-ccd6-8338-a9f4-7f56f63b0478@ti.com>
+References: <20160720145614.13132-1-mugunthanvnm@ti.com>
+ <20160720145614.13132-2-mugunthanvnm@ti.com> <578F99D3.9090601@ti.com>
+ <57906A2C.7010201@ti.com> <20160721211429.GA17696@rob-hp-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <5791D8C7.5020303@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: bcousson@baylibre.com, robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20160721211429.GA17696@rob-hp-laptop>
+Sender: netdev-owner@vger.kernel.org
+To: Rob Herring <robh@kernel.org>, Sekhar Nori <nsekhar@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, netdev@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Florian Fainelli <f.fainelli@gmail.com>, "David S . Miller" <davem@davemloft.net>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 22 July 2016 01:56 PM, Kishon Vijay Abraham I wrote:
+Rob,
 
-> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-> index 90542db..0cccb50 100644
-> --- a/arch/arm/Kconfig
-> +++ b/arch/arm/Kconfig
-> @@ -338,6 +338,7 @@ config ARCH_MULTIPLATFORM
->         select MULTI_IRQ_HANDLER
->         select SPARSE_IRQ
->         select USE_OF
-> +       select PCI_DOMAINS if PCI
+On Friday 22 July 2016 02:44 AM, Rob Herring wrote:
+> On Thu, Jul 21, 2016 at 11:52:36AM +0530, Sekhar Nori wrote:
+>> Nishanth,
+>>
+>> On Wednesday 20 July 2016 09:03 PM, Nishanth Menon wrote:
+>>> On 07/20/2016 09:56 AM, Mugunthan V N wrote:
+>>>> Add documention of ti,impedance-control which can be used to
+>>>> correct MAC impedance mismatch using phy extended registers.
+>>>>
+>>>> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+>>>> ---
+>>>>   Documentation/devicetree/bindings/net/ti,dp83867.txt | 7 +++++++
+>>>>   1 file changed, 7 insertions(+)
+>>>>
+>>>> diff --git a/Documentation/devicetree/bindings/net/ti,dp83867.txt
+>>>> b/Documentation/devicetree/bindings/net/ti,dp83867.txt
+>>>> index 5d21141..531ea3c5 100644
+>>>> --- a/Documentation/devicetree/bindings/net/ti,dp83867.txt
+>>>> +++ b/Documentation/devicetree/bindings/net/ti,dp83867.txt
+>>>> @@ -9,6 +9,13 @@ Required properties:
+>>>>       - ti,fifo-depth - Transmitt FIFO depth- see
+>>>> dt-bindings/net/ti-dp83867.h
+>>>>           for applicable values
+>>>>
+>>>> +Optional property:
+>>>> +    - ti,impedance-control - MAC Interface Impedance control to vary the
+>>>> +                 output impedance with an approximate range
+>>>> +                 from 35-70 ohms in 32 steps. Value range can
+>>>> +                 be 0x0 to 0x1f. Lowest impedance value is
+>>>> +                 0x1f and highest impedance being 0x0.
+>>>> +
+>>>
+>>> Should'nt you be using the impedance values of 35 to 70 as the valid
+>>> values here? that would be the hardware description, and the values to
+>>> program corresponding to those are 0x00 to 0x1f. Right?
+>>>
+>>> Rob: is'nt that the right way to do it?
+> 
+> Normally, yes that is preferred. I don't have an issue with it here if 
+> that is what makes sense.
+> 
+>> Agree that that is usually the right way to do it. I believe this case
+>> is bit peculiar though. Here is the extract from the datasheet[1] about
+>> how the register in question works.
+>>
+>> "
+>> Output impedance approximate range from 35-70 ohms in 32 steps.
+>> Lowest being 11110 and highest being 00000. Range and Step size
+>> will vary with process.
+>>
+>> Default is set to 50 ohms by trim. But the default register value can
+>> vary by process. Non default values of MAC I/O impedance can be
+>> used based on trace impedance. Mismatch between device and
+>> trace impedance can cause voltage overshoot and undershoot.
+>> "
+>>
+>> So clearly, there is no easy correspondence that the hardware guarantees
+>> between output impedance ohmage and the register value programmed. Only
+>> couple of things are guaranteed.
+>>
+>> 1) Programming a value of 0 gives approximately 35 ohms
+>> 2) Programming a value of 0x1F gives approximately 70 ohms
+>> 3) Default value of the register gives 50 ohms (the default value could
+>> vary by device).
+>> 4) Programming a value in between will give some ohmage in the
+>> approximate range 35-70 (curve is unknown).
 
-Keep the select list in sorted order.
+Sekhar got it wrong, programming 0x1F provides the minimum impedance of
+35 ohms and 0x0 provides the maximum impedance of 70 ohms.
 
-Regards,
-Sekhar
+>>
+>> Given this, I am not sure how one can convert a given user supplied ohms
+>> values to a reasonable register value. Clearly, the register is supposed
+>> to be programmed by experimentation, not calculation.
+> 
+> So your are going to change from a known value tuned for the individual 
+> Si (50ohm) to the same value for all chips (at least for a given board). 
+> Or does this get set by firmware at boot? If not, seems like you would 
+> want to specify a delta from the default register value in this case.
+
+The delta will not be constant for each steps of the register content.
+So this approach cannot be taken.
+
+> 
+>> That said, we could take another approach. At least for the current
+>> issue we are trying to address, we only need to configure the register
+>> to max value. And given the nature of the register, I am pretty sure
+>> that is what most people will end up doing.
+> 
+> How does the max value get determined? Possibly it should just be set in 
+> the kernel.
+
+Yes, the min/max value will be determined in the kernel and the DT will
+have either of the properties below.
+
+>  
+>> So, may be we have two properties:
+>>
+>> ti,max-output-impedance
+>> ti,min-output-imepdance
+> 
+> Just define max if that's all you currently need.
+
+Currently we care about only the min-output-impedance (register content
+0x1f). Will respin the patch using ti,min-output-impedance.
+
+Regards
+Mugunthan V N
