@@ -1,50 +1,98 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4] ARM: OMAP2+: Fix AM335x RTC External Abort
-Date: Fri, 22 Jul 2016 23:26:35 -0700
-Message-ID: <20160723062635.GB28140@atomide.com>
-References: <20160712175034.743-1-d-gerlach@ti.com> <5791DC3A.6070808@ti.com>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Re: [PATCH 0/3] ARM: fix three implicit module use cases fed via gpio
+Date: Sat, 23 Jul 2016 10:09:20 +0200
+Message-ID: <8737n022tr.fsf@belgarion.home>
+References: <20160720041332.30789-1-paul.gortmaker@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <5791DC3A.6070808@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Arnd Bergmann <arnd@arndb.de>, Dave Gerlach <d-gerlach@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20160720041332.30789-1-paul.gortmaker@windriver.com> (Paul
+	Gortmaker's message of "Wed, 20 Jul 2016 00:13:29 -0400")
+Sender: linux-gpio-owner@vger.kernel.org
+To: Paul Gortmaker <paul.gortmaker@windriver.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, Alexandre Courbot <gnurou@gmail.com>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, Russell King <linux@armlinux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [160722 01:41]:
-> On 12/07/16 20:50, Dave Gerlach wrote:
-> > Hi,
-> > With next-20160711 there is an external abort during boot on am335x
-> > platforms from the RTC which is caused by commit 183e2077d007 ("ARM:
-> > AM33xx: fix module_wait_ready without clkctrl register"), log is here [1].
-> > The RTC hwmod is unique in that it has a clkctrl_offs of 0 which is
-> > invalid normally, all other hwmods have non-zero offsets. Because of this,
-> > we need to flag the hwmod so 0 actually gets used for the offset
-> > instead of the just returning 0 and doing nothing.
-> > 
-> > This series adds a HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET flag and moves the check
-> > for validity of the clkctrl_offs value to the omap_hwmod code so that we are
-> > able to check both the flag and clkctrl_offs values. This code is shared by
-> > all OMAP4+ platforms but shoudl have no affect for anything but RTC on
-> > am335x but still boot tested on the following platforms:
-> 
-> Series looks good to me, so:
-> 
-> Acked-by: Tero Kristo <t-kristo@ti.com>
+Paul Gortmaker <paul.gortmaker@windriver.com> writes:
 
-Applying these into omap-for-v4,8/soc.
+> While working on some for-4.9 cleanups of linux/gpio/driver.h it was
+> found that changes there caused build failures when walking all the
+> ARM defconfigs, in ARM specific mach-* files.
+>
+> The proposed GPIO header change is just this:
+>
+>  ---------------------------------------      
+>      --- a/include/linux/gpio/driver.h
+>      +++ b/include/linux/gpio/driver.h
+>      @@ -3,7 +3,6 @@
+>       
+>       #include <linux/device.h>
+>       #include <linux/types.h>
+>      -#include <linux/module.h>
+>       #include <linux/irq.h>
+>       #include <linux/irqchip/chained_irq.h>
+>       #include <linux/irqdomain.h>
+>      @@ -16,6 +15,7 @@ struct of_phandle_args;
+>       struct device_node;
+>       struct seq_file;
+>       struct gpio_device;
+>      +struct module;
+>       
+>       #ifdef CONFIG_GPIOLIB
+>  ---------------------------------------      
+>
+> ...which is what we've already got in ~50 other include/linux/* files to
+> try and keep cross contamination entanglement at a minimum.
+>
+> So we uncovered three users in ARM specific files relying on the above
+> presence in this header, vs. dealing with it within the driver itself.
+>
+> But with ARM and GPIO being different subsystems, we'll need to get
+> this in ARM 1st, and then wait a release before changing the GPIO
+> header, otherwise we'll risk triggering these three build failures.
+>
+> So, if folks consider these three trivial changes OK for late in the
+> for-4.8 cycle, then great.  Otherwise I'll resubmit the ARM parts for
+> for-4.9 and the GPIO bits for the one after that.
+>
+> [Yes, there were gpio implicit users too, but they are easily sync'd
+> with the gpio header change being at the end of that series.]
+>
+> Paul.
+> --
+>
+> Cc: Alexandre Courbot <gnurou@gmail.com>
+> Cc: Daniel Mack <daniel@zonque.org>
+> Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
+> Cc: Linus Walleij <linus.walleij@linaro.org>
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-gpio@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: Robert Jarzmik <robert.jarzmik@free.fr>
+> Cc: Russell King <linux@armlinux.org.uk>
+> Cc: Tony Lindgren <tony@atomide.com>
+>
+> Paul Gortmaker (3):
+>   ARM: mach-omap2: remove bogus "or_module" from rx51-peripherals
+>   ARM: pxa: add module.h for corgi symbol_get/symbol_put usage
+>   ARM: pxa: add module.h for spitz symbol_get/symbol_put usage
+>
+>  arch/arm/mach-omap2/board-rx51-peripherals.c | 2 +-
+>  arch/arm/mach-pxa/corgi.c                    | 1 +
+>  arch/arm/mach-pxa/spitz.c                    | 1 +
+>  3 files changed, 3 insertions(+), 1 deletion(-)
 
-Regards,
+Hi Paul,
 
-Tony
+I'll take the mach-pxa changes to pxa/for-next tree with Linus's ack.
+Tony, I think you will carry the remaining omap2 one, right ?
+
+As for the cycle, I'd prefer have it for-4.9 as we're at rc7 and it's a bit late
+for me. If you want your GPIO bits to get in 4.9 I think I can commit to request
+pull very early (-rc1 time) or give my ack so that Linus can carry these changes
+through the gpio tree with the other changes.
+
+Cheers.
+
+-- 
+Robert
