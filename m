@@ -1,68 +1,50 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH 1/3] net: ethernet: ti: cpdma: fix lockup in
- cpdma_ctlr_destroy()
-Date: Sat, 23 Jul 2016 09:24:55 +0300
-Message-ID: <fcce1940-3ca2-f5ad-bc71-8ab902c14266@linaro.org>
-References: <20160722135847.20557-1-grygorii.strashko@ti.com>
- <20160722135847.20557-2-grygorii.strashko@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/4] ARM: OMAP2+: Fix AM335x RTC External Abort
+Date: Fri, 22 Jul 2016 23:26:35 -0700
+Message-ID: <20160723062635.GB28140@atomide.com>
+References: <20160712175034.743-1-d-gerlach@ti.com> <5791DC3A.6070808@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160722135847.20557-2-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <5791DC3A.6070808@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Arnd Bergmann <arnd@arndb.de>, Dave Gerlach <d-gerlach@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+* Tero Kristo <t-kristo@ti.com> [160722 01:41]:
+> On 12/07/16 20:50, Dave Gerlach wrote:
+> > Hi,
+> > With next-20160711 there is an external abort during boot on am335x
+> > platforms from the RTC which is caused by commit 183e2077d007 ("ARM:
+> > AM33xx: fix module_wait_ready without clkctrl register"), log is here [1].
+> > The RTC hwmod is unique in that it has a clkctrl_offs of 0 which is
+> > invalid normally, all other hwmods have non-zero offsets. Because of this,
+> > we need to flag the hwmod so 0 actually gets used for the offset
+> > instead of the just returning 0 and doing nothing.
+> > 
+> > This series adds a HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET flag and moves the check
+> > for validity of the clkctrl_offs value to the omap_hwmod code so that we are
+> > able to check both the flag and clkctrl_offs values. This code is shared by
+> > all OMAP4+ platforms but shoudl have no affect for anything but RTC on
+> > am335x but still boot tested on the following platforms:
+> 
+> Series looks good to me, so:
+> 
+> Acked-by: Tero Kristo <t-kristo@ti.com>
 
+Applying these into omap-for-v4,8/soc.
 
-On 22.07.16 16:58, Grygorii Strashko wrote:
-> Fix deadlock in cpdma_ctlr_destroy() which is triggered now on
-> cpsw module removal:
->  cpsw_remove()
->  - cpdma_ctlr_destroy()
->    - spin_lock_irqsave(&ctlr->lock, flags)
->    - cpdma_ctlr_stop()
->      - spin_lock_irqsave(&ctlr->lock, flags); <- deadlock
->    - cpdma_chan_destroy()
->      - spin_lock_irqsave(&ctlr->lock, flags); <- deadlock
->
-> The issue has not been observed before because CPDMA channels have
-> been destroyed manually by CPSW until commit d941ebe88a41 ("net:
-> ethernet: ti: cpsw: use destroy ctlr to destroy channels") was merged.
->
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> ---
->  drivers/net/ethernet/ti/davinci_cpdma.c | 2 --
->  1 file changed, 2 deletions(-)
->
-> diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-> index a68652a..89242e9 100644
-> --- a/drivers/net/ethernet/ti/davinci_cpdma.c
-> +++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-> @@ -436,7 +436,6 @@ int cpdma_ctlr_destroy(struct cpdma_ctlr *ctlr)
->  	if (!ctlr)
->  		return -EINVAL;
->
-> -	spin_lock_irqsave(&ctlr->lock, flags);
-Should ctlr->state be checked under lock?
-Seems like here should be used unlocked static versions of
-cpdma_ctlr_stop() and cpdma_chan_destroy() instead.
-
->  	if (ctlr->state != CPDMA_STATE_IDLE)
->  		cpdma_ctlr_stop(ctlr);
->
-> @@ -444,7 +443,6 @@ int cpdma_ctlr_destroy(struct cpdma_ctlr *ctlr)
->  		cpdma_chan_destroy(ctlr->channels[i]);
->
->  	cpdma_desc_pool_destroy(ctlr->pool);
-> -	spin_unlock_irqrestore(&ctlr->lock, flags);
->  	return ret;
->  }
->  EXPORT_SYMBOL_GPL(cpdma_ctlr_destroy);
->
-
--- 
 Regards,
-Ivan Khoronzhuk
+
+Tony
