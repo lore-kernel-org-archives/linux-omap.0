@@ -1,8 +1,8 @@
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH] memory: omap-gpmc: Delete an unnecessary check before the
- function call "gpiochip_free_own_desc"
-Date: Sat, 23 Jul 2016 19:09:10 +0200
-Message-ID: <e3f6205c-39a0-b9f7-5290-be4c6cbb2f0b@users.sourceforge.net>
+Subject: [PATCH] omapfb: panel-dsi-cm: Delete an unnecessary check before
+ backlight_device_unregister()
+Date: Sat, 23 Jul 2016 19:37:14 +0200
+Message-ID: <1c53beae-e516-f208-935e-2a49416ce075@users.sourceforge.net>
 References: <5307CAA2.8060406@users.sourceforge.net>
  <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6>
  <530A086E.8010901@users.sourceforge.net>
@@ -23,41 +23,40 @@ References: <5307CAA2.8060406@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <5317A59D.4@users.sourceforge.net>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Dave Airlie <airlied@gmail.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Clark <robdclark@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
 List-Id: linux-omap@vger.kernel.org
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 23 Jul 2016 18:54:02 +0200
+Date: Sat, 23 Jul 2016 19:29:28 +0200
 
-The gpiochip_free_own_desc() function tests whether its argument is NULL
-and then returns immediately. Thus the test around the call is not needed.
+The backlight_device_unregister() function tests whether its argument
+is NULL and then returns immediately.
+Thus the test around the call is not needed.
 
 This issue was detected by using the Coccinelle software.
 
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/memory/omap-gpmc.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-index 869c83f..e138875 100644
---- a/drivers/memory/omap-gpmc.c
-+++ b/drivers/memory/omap-gpmc.c
-@@ -2143,9 +2143,7 @@ err_child_fail:
- 	ret = -ENODEV;
+diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
+index b58012b..9d308db 100644
+--- a/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
++++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
+@@ -1283,8 +1283,7 @@ static int dsicm_probe(struct platform_device *pdev)
+ 	return 0;
  
- err_cs:
--	if (waitpin_desc)
--		gpiochip_free_own_desc(waitpin_desc);
--
-+	gpiochip_free_own_desc(waitpin_desc);
- err:
- 	gpmc_cs_free(cs);
- 
+ err_sysfs_create:
+-	if (bldev != NULL)
+-		backlight_device_unregister(bldev);
++	backlight_device_unregister(bldev);
+ err_bl:
+ 	destroy_workqueue(ddata->workqueue);
+ err_reg:
 -- 
 2.9.2
-
