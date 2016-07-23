@@ -1,45 +1,63 @@
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: Re: [PATCH 1/3] ARM: mach-omap2: remove bogus "or_module" from
- rx51-peripherals
-Date: Sat, 23 Jul 2016 10:14:22 -0400
-Message-ID: <20160723141421.GC12632@windriver.com>
-References: <20160720041332.30789-1-paul.gortmaker@windriver.com>
- <20160720041332.30789-2-paul.gortmaker@windriver.com>
- <20160722064101.GW28140@atomide.com>
- <20160722140242.GC11410@windriver.com>
- <20160723055524.GA28140@atomide.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH] memory: omap-gpmc: Delete an unnecessary check before the
+ function call "gpiochip_free_own_desc"
+Date: Sat, 23 Jul 2016 19:09:10 +0200
+Message-ID: <e3f6205c-39a0-b9f7-5290-be4c6cbb2f0b@users.sourceforge.net>
+References: <5307CAA2.8060406@users.sourceforge.net>
+ <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6>
+ <530A086E.8010901@users.sourceforge.net>
+ <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6>
+ <530A72AA.3000601@users.sourceforge.net>
+ <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6>
+ <530B5FB6.6010207@users.sourceforge.net>
+ <alpine.DEB.2.10.1402241710370.2074@hadrien>
+ <530C5E18.1020800@users.sourceforge.net>
+ <alpine.DEB.2.10.1402251014170.2080@hadrien>
+ <530CD2C4.4050903@users.sourceforge.net>
+ <alpine.DEB.2.10.1402251840450.7035@hadrien>
+ <530CF8FF.8080600@users.sourceforge.net>
+ <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
+ <530DD06F.4090703@users.sourceforge.net>
+ <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
+ <5317A59D.4@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160723055524.GA28140@atomide.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <5317A59D.4@users.sourceforge.net>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
 List-Id: linux-omap@vger.kernel.org
 
-[Re: [PATCH 1/3] ARM: mach-omap2: remove bogus "or_module" from rx51-peripherals] On 22/07/2016 (Fri 22:55) Tony Lindgren wrote:
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 23 Jul 2016 18:54:02 +0200
 
-> * Paul Gortmaker <paul.gortmaker@windriver.com> [160722 07:02]:
+The gpiochip_free_own_desc() function tests whether its argument is NULL
+and then returns immediately. Thus the test around the call is not needed.
 
-[...]
+This issue was detected by using the Coccinelle software.
 
-> > Having the patch present, or having the file deleted both take care of
-> > my concern -- which was was introducing build regressions when adding
-> > the gpio header cleanup into for-4.9 content.  
-> 
-> OK. As I've already pushed out the board-*.c removal branch, I
-> suggest we just drop the $subject patch to avoid a merge conflict.
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/memory/omap-gpmc.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-Sounds like a plan.  I'll just keep it in my local queue so my tests
-don't fail and drop it on the floor once I see your removal loop around
-to me via linux-next or master.
+diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+index 869c83f..e138875 100644
+--- a/drivers/memory/omap-gpmc.c
++++ b/drivers/memory/omap-gpmc.c
+@@ -2143,9 +2143,7 @@ err_child_fail:
+ 	ret = -ENODEV;
+ 
+ err_cs:
+-	if (waitpin_desc)
+-		gpiochip_free_own_desc(waitpin_desc);
+-
++	gpiochip_free_own_desc(waitpin_desc);
+ err:
+ 	gpmc_cs_free(cs);
+ 
+-- 
+2.9.2
 
-Thanks,
-Paul.
---
-
-> 
-> Regards,
-> 
-> Tony
