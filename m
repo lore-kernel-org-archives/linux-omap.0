@@ -1,36 +1,55 @@
-From: Ran Shalit <ranshalit@gmail.com>
-Subject: Is there a way to force probe to be called (etherned driver) ?
-Date: Sun, 24 Jul 2016 11:51:20 +0300
-Message-ID: <CAJ2oMh+mjySAQbOEmkQGvfO+JmC-mdQ3HBEFRViA-vpEGeTJQA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kernelnewbies-bounces@kernelnewbies.org>
-List-Unsubscribe: <https://lists.kernelnewbies.org/mailman/listinfo/kernelnewbies>,
-	<mailto:kernelnewbies-request@kernelnewbies.org?subject=unsubscribe>
-List-Archive: <http://lists.kernelnewbies.org/pipermail/kernelnewbies>
-List-Post: <mailto:kernelnewbies@kernelnewbies.org>
-List-Help: <mailto:kernelnewbies-request@kernelnewbies.org?subject=help>
-List-Subscribe: <https://lists.kernelnewbies.org/mailman/listinfo/kernelnewbies>,
-	<mailto:kernelnewbies-request@kernelnewbies.org?subject=subscribe>
-Sender: kernelnewbies-bounces@kernelnewbies.org
-Errors-To: kernelnewbies-bounces@kernelnewbies.org
-To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, kernelnewbies <kernelnewbies@kernelnewbies.org>
+From: Johan Hovold <johan@kernel.org>
+Subject: [PATCH 0/3] ARM: omap: fix 4.7 gpmc networking regression
+Date: Sun, 24 Jul 2016 14:10:57 +0200
+Message-ID: <1469362260-20066-1-git-send-email-johan@kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, Johan Hovold <johan@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+Networking is currently broken for Overo boards due to a regression in
+4.7. I bisected it down to
+
+	d2d00862dfbb ("memory: omap-gpmc: Support general purpose input
+	for WAITPINs")
+
+which changed how errors when probing gpmc child nodes are handled.
+Instead of proceeding with setting up any other children as before, a
+single error now aborts the whole process.
+
+Due to an unrelated issue with a nand gpmc-node, this change broke
+networking for Overo Tobi and other Overo boards with gpmc ethernet:
+
+[    0.823364] omap-gpmc 6e000000.gpmc: GPMC revision 5.0
+[    0.823822] gpmc_mem_init: disabling cs 0 mapped at 0x0-0x1000000
+[    0.823974] gpiochip_find_base: found new base at 508
+[    0.824096] gpio gpiochip6: (omap-gpmc): added GPIO chardev (254:6)
+[    0.827148] gpiochip_setup_dev: registered GPIOs 508 to 511 on device: gpiochip6 (omap-gpmc)
+[    0.827362] omap-gpmc 6e000000.gpmc: /ocp/gpmc@6e000000/nand@0,0 has malformed 'reg' property
+[    0.827392] omap-gpmc 6e000000.gpmc: failed to probe DT children
+
+This series restores the 4.6 behaviour of allowing probe of gpmc child
+nodes to fail, and also fixes the problems with the Overo nand node.
+
+Note that simply fixing the Overo NAND issue would fix the Overo
+networking regression, but by restoring the 4.6 gpmc-probe behaviour
+similar regressions on other OMAP systems are also avoided.
+
+Johan
 
 
-I write ethernet driver (mac controller is implemented in fpga connected to cpu)
+Johan Hovold (3):
+  memory: omap-gpmc: allow probe of child nodes to fail
+  ARM: dts: overo: fix gpmc nand cs0 range
+  ARM: dts: overo: fix gpmc nand on boards with ethernet
 
-I see that the probe is not called on doing insmod.
+ arch/arm/boot/dts/omap3-overo-base.dtsi             |  4 +++-
+ .../arm/boot/dts/omap3-overo-chestnut43-common.dtsi |  2 --
+ arch/arm/boot/dts/omap3-overo-tobi-common.dtsi      |  2 --
+ arch/arm/boot/dts/omap3-overo-tobiduo-common.dtsi   |  3 ---
+ drivers/memory/omap-gpmc.c                          | 21 +++++++--------------
+ 5 files changed, 10 insertions(+), 22 deletions(-)
 
-Is there a way to force the probe to be called on doing insmod ?
-
-I could not find in the board file (omap dart, kernel 3.4.0) any
-reference to ethernet.
-
-
-Best Regards,
-
-Ran
+-- 
+2.7.3
