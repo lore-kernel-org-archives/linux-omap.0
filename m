@@ -1,65 +1,80 @@
-From: Nicholas Mc Guire <hofrat@osadl.org>
-Subject: [PATCH] omapfb/dss: wait_for_completion_interruptible_timeout expects long
-Date: Mon, 25 Jul 2016 19:12:47 +0200
-Message-ID: <1469466767-23352-1-git-send-email-hofrat@osadl.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Rob Clark <robdclark@gmail.com>, Dave Airlie <airlied@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Luis de Bethencourt <luisbg@osg.samsung.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Nicholas Mc Guire <hofrat@osadl.org>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] PCI: dra7xx: Fix return value in case of error
+Date: Mon, 25 Jul 2016 12:30:47 -0500
+Message-ID: <20160725173047.GC12484@localhost>
+References: <1468531107-3639-1-git-send-email-christophe.jaillet@wanadoo.fr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1468531107-3639-1-git-send-email-christophe.jaillet@wanadoo.fr>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Cc: kishon@ti.com, bhelgaas@google.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-wait_for_completion_timeout_interruptible returns long not unsigned long.
-an appropriately typed variable is introduced and assignments fixed up.
+On Thu, Jul 14, 2016 at 11:18:27PM +0200, Christophe JAILLET wrote:
+> In function 'dra7xx_pcie_init_irq_domain', the pattern used to check =
+and
+> return error is:
+>=20
+>    if (!var) {
+>       dev_err(...);
+>       return PTR_ERR(var);
+>    }
+>=20
+> So the returned value in case of error is always 0, which means 'succ=
+ess'.
+> Change it to return -ENODEV instead.
+>=20
+> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 
-Fixes: f76ee892a99e ("omapfb: copy omapdss & displays for omapfb")
+Applied with Kishon's reviewed-by to pci/host-dra7xx for v4.8, thanks!
 
-Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
----
-
-API non-compliance was located by coccinelle
-
-This is mostly cosmetic since the returned value is only compared 
-at present, however if remaining time (completion occurred) where ever 
-used, then a signal received would be interpreted as a large remaining 
-jiffies left, which would be wrong.
-
-Compile tested with: omap2plus_defconfig (implies CONFIG_FB_OMAP2_DSS)
-
-Patch is against 4.7.0-rc7 (localversion-next -next-20160724)
-
- drivers/video/fbdev/omap2/omapfb/dss/dispc-compat.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dispc-compat.c b/drivers/video/fbdev/omap2/omapfb/dss/dispc-compat.c
-index 3691bde..a864608 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/dispc-compat.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/dispc-compat.c
-@@ -644,6 +644,7 @@ int omap_dispc_wait_for_irq_interruptible_timeout(u32 irqmask,
- {
- 
- 	int r;
-+	long time_left;
- 	DECLARE_COMPLETION_ONSTACK(completion);
- 
- 	r = omap_dispc_register_isr(dispc_irq_wait_handler, &completion,
-@@ -652,15 +653,15 @@ int omap_dispc_wait_for_irq_interruptible_timeout(u32 irqmask,
- 	if (r)
- 		return r;
- 
--	timeout = wait_for_completion_interruptible_timeout(&completion,
-+	time_left = wait_for_completion_interruptible_timeout(&completion,
- 			timeout);
- 
- 	omap_dispc_unregister_isr(dispc_irq_wait_handler, &completion, irqmask);
- 
--	if (timeout == 0)
-+	if (time_left == 0)
- 		return -ETIMEDOUT;
- 
--	if (timeout == -ERESTARTSYS)
-+	if (time_left == -ERESTARTSYS)
- 		return -ERESTARTSYS;
- 
- 	return 0;
--- 
-2.1.4
+> ---
+>  drivers/pci/host/pci-dra7xx.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra=
+7xx.c
+> index f441130..81b3949 100644
+> --- a/drivers/pci/host/pci-dra7xx.c
+> +++ b/drivers/pci/host/pci-dra7xx.c
+> @@ -181,14 +181,14 @@ static int dra7xx_pcie_init_irq_domain(struct p=
+cie_port *pp)
+> =20
+>  	if (!pcie_intc_node) {
+>  		dev_err(dev, "No PCIe Intc node found\n");
+> -		return PTR_ERR(pcie_intc_node);
+> +		return -ENODEV;
+>  	}
+> =20
+>  	pp->irq_domain =3D irq_domain_add_linear(pcie_intc_node, 4,
+>  					       &intx_domain_ops, pp);
+>  	if (!pp->irq_domain) {
+>  		dev_err(dev, "Failed to get a INTx IRQ domain\n");
+> -		return PTR_ERR(pp->irq_domain);
+> +		return -ENODEV;
+>  	}
+> =20
+>  	return 0;
+> --=20
+> 2.7.4
+>=20
+>=20
+> ---
+> L'absence de virus dans ce courrier =E9lectronique a =E9t=E9 v=E9rifi=
+=E9e par le logiciel antivirus Avast.
+> https://www.avast.com/antivirus
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" =
+in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe kernel-janito=
+rs" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
