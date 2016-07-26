@@ -1,50 +1,40 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 0/2] net: davinci_cpdma: reduce latency on -rt
-Date: Tue, 26 Jul 2016 17:36:49 +0300
-Message-ID: <f546b5f0-1da6-2c16-647a-33bb8692b753@ti.com>
-References: <1469534545-14478-1-git-send-email-u.kleine-koenig@pengutronix.de>
+From: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] usb: phy: omap-otg: Fix missing platform_set_drvdata() in omap_otg_probe()
+Date: Tue, 26 Jul 2016 14:48:39 +0000
+Message-ID: <1469544519-31666-1-git-send-email-weiyj.lk@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1469534545-14478-1-git-send-email-u.kleine-koenig@pengutronix.de>
-Sender: netdev-owner@vger.kernel.org
-To: =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <u.kleine-koenig@pengutronix.de>, Mugunthan V N <mugunthanvnm@ti.com>
-Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, kernel@pengutronix.de
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/26/2016 03:02 PM, Uwe Kleine-K=C3=B6nig wrote:
-> Hello,
->
-> these patches are based on next-20160726. I didn't check yet how late=
-ncy
-> improves by using these patches, but even if the improvment is small,
-> it's still a good idea to have them.
+Add missing platform_set_drvdata() in omap_otg_probe(), otherwise
+calling platform_get_drvdata() in remove returns NULL.
 
-Sry, but how this will affect on -RT? This is not a raw locks, so
-they will be converted to rt-mutexes which are sleepable.
-Or I've missed smth?
+This is detected by Coccinelle semantic patch.
 
->
-> A second pair of eyes checking what I did would be great.
->
-> Best regards
-> Uwe
->
->
-> Uwe Kleine-K=C3=B6nig (2):
->   net: davinci_cpdma: reduce time holding ctlr->lock in
->     cpdma_control_set
->   net: davinci_cpdma: reduce time holding chan->lock in
->     cpdma_chan_submit
->
->  drivers/net/ethernet/ti/davinci_cpdma.c | 58 ++++++++++++++++-------=
-----------
->  1 file changed, 29 insertions(+), 29 deletions(-)
->
+Signed-off-by: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ drivers/usb/phy/phy-omap-otg.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
+diff --git a/drivers/usb/phy/phy-omap-otg.c b/drivers/usb/phy/phy-omap-otg.c
+index 6f6d2a7..6523af4 100644
+--- a/drivers/usb/phy/phy-omap-otg.c
++++ b/drivers/usb/phy/phy-omap-otg.c
+@@ -140,6 +140,8 @@ static int omap_otg_probe(struct platform_device *pdev)
+ 		 (rev >> 4) & 0xf, rev & 0xf, config->extcon, otg_dev->id,
+ 		 otg_dev->vbus);
+ 
++	platform_set_drvdata(pdev, otg_dev);
++
+ 	return 0;
+ }
 
---=20
-regards,
--grygorii
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
