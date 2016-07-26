@@ -1,50 +1,47 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH v2] net: davinci_cpdma: remove excessive dump of register
- values to kernel log
-Date: Tue, 26 Jul 2016 17:26:39 +0300
-Message-ID: <4c8afcb9-f7a9-4db3-e923-48dca5cacc3c@ti.com>
-References: <1469440485-19889-1-git-send-email-u.kleine-koenig@pengutronix.de>
- <20160725.175705.820422537273157170.davem@davemloft.net>
- <fd720b67-ca2b-fe28-c151-0a749fbba821@ti.com>
+Subject: Re: [PATCH 0/2] net: davinci_cpdma: reduce latency on -rt
+Date: Tue, 26 Jul 2016 17:36:49 +0300
+Message-ID: <f546b5f0-1da6-2c16-647a-33bb8692b753@ti.com>
+References: <1469534545-14478-1-git-send-email-u.kleine-koenig@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
+Content-Type: text/plain; charset=utf-8;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <fd720b67-ca2b-fe28-c151-0a749fbba821@ti.com>
+In-Reply-To: <1469534545-14478-1-git-send-email-u.kleine-koenig@pengutronix.de>
 Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>, u.kleine-koenig@pengutronix.de, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Cc: mugunthanvnm@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, kernel@pengutronix.de
+To: =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <u.kleine-koenig@pengutronix.de>, Mugunthan V N <mugunthanvnm@ti.com>
+Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, kernel@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-+ CC: Ivan
+On 07/26/2016 03:02 PM, Uwe Kleine-K=C3=B6nig wrote:
+> Hello,
+>
+> these patches are based on next-20160726. I didn't check yet how late=
+ncy
+> improves by using these patches, but even if the improvment is small,
+> it's still a good idea to have them.
 
-On 07/26/2016 05:09 PM, Grygorii Strashko wrote:
-> On 07/26/2016 03:57 AM, David Miller wrote:
->> From: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
->> Date: Mon, 25 Jul 2016 11:54:45 +0200
->>
->>> Such a big dump of register values is hardly useful on a production
->>> system.
->>>
->>> Another downside of the now removed functions is that calling
->>> emac_dump_regs resulted in at least 87 calls to dev_info while hold=
-ing a
->>> spinlock and having irqs off which is a big source of latency.
->>>
->>> Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
->>
->> Applied.
->>
+Sry, but how this will affect on -RT? This is not a raw locks, so
+they will be converted to rt-mutexes which are sleepable.
+Or I've missed smth?
+
 >
-> :( To be honest I was really enjoyed using cpdma_ctlr_dump()
-> for debug purposed during the past few weeks in cpsw where I've added
-> calls to this func manually. And I even thinking about adding debug_f=
-s
-> entry for the same :(
+> A second pair of eyes checking what I did would be great.
 >
-> Pretty fast merge :(
+> Best regards
+> Uwe
 >
+>
+> Uwe Kleine-K=C3=B6nig (2):
+>   net: davinci_cpdma: reduce time holding ctlr->lock in
+>     cpdma_control_set
+>   net: davinci_cpdma: reduce time holding chan->lock in
+>     cpdma_chan_submit
+>
+>  drivers/net/ethernet/ti/davinci_cpdma.c | 58 ++++++++++++++++-------=
+----------
+>  1 file changed, 29 insertions(+), 29 deletions(-)
 >
 
 
