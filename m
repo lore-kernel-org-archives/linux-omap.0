@@ -1,39 +1,46 @@
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: [PATCH 0/2] net: davinci_cpdma: reduce latency on -rt
-Date: Tue, 26 Jul 2016 14:02:23 +0200
-Message-ID: <1469534545-14478-1-git-send-email-u.kleine-koenig@pengutronix.de>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH v2] net: davinci_cpdma: remove excessive dump of register
+ values to kernel log
+Date: Tue, 26 Jul 2016 17:09:19 +0300
+Message-ID: <fd720b67-ca2b-fe28-c151-0a749fbba821@ti.com>
+References: <1469440485-19889-1-git-send-email-u.kleine-koenig@pengutronix.de>
+ <20160725.175705.820422537273157170.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20160725.175705.820422537273157170.davem@davemloft.net>
 Sender: netdev-owner@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, kernel@pengutronix.de
+To: David Miller <davem@davemloft.net>, u.kleine-koenig@pengutronix.de
+Cc: mugunthanvnm@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, kernel@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+On 07/26/2016 03:57 AM, David Miller wrote:
+> From: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+> Date: Mon, 25 Jul 2016 11:54:45 +0200
+>
+>> Such a big dump of register values is hardly useful on a production
+>> system.
+>>
+>> Another downside of the now removed functions is that calling
+>> emac_dump_regs resulted in at least 87 calls to dev_info while holdi=
+ng a
+>> spinlock and having irqs off which is a big source of latency.
+>>
+>> Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+>
+> Applied.
+>
 
-these patches are based on next-20160726. I didn't check yet how latenc=
-y
-improves by using these patches, but even if the improvment is small,
-it's still a good idea to have them.
+:( To be honest I was really enjoyed using cpdma_ctlr_dump()
+for debug purposed during the past few weeks in cpsw where I've added=20
+calls to this func manually. And I even thinking about adding debug_fs=20
+entry for the same :(
 
-A second pair of eyes checking what I did would be great.
+Pretty fast merge :(
 
-Best regards
-Uwe
-
-
-Uwe Kleine-K=C3=B6nig (2):
-  net: davinci_cpdma: reduce time holding ctlr->lock in
-    cpdma_control_set
-  net: davinci_cpdma: reduce time holding chan->lock in
-    cpdma_chan_submit
-
- drivers/net/ethernet/ti/davinci_cpdma.c | 58 ++++++++++++++++---------=
---------
- 1 file changed, 29 insertions(+), 29 deletions(-)
 
 --=20
-2.8.1
+regards,
+-grygorii
