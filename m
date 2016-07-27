@@ -1,52 +1,79 @@
 From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
 	<u.kleine-koenig@pengutronix.de>
-Subject: Re: [PATCH 0/2] net: davinci_cpdma: reduce latency on -rt
-Date: Wed, 27 Jul 2016 09:03:02 +0200
-Message-ID: <20160727070302.GG5368@pengutronix.de>
+Subject: Re: [PATCH 2/2] net: davinci_cpdma: reduce time holding chan->lock
+ in cpdma_chan_submit
+Date: Wed, 27 Jul 2016 09:12:28 +0200
+Message-ID: <20160727071228.GH5368@pengutronix.de>
 References: <1469534545-14478-1-git-send-email-u.kleine-koenig@pengutronix.de>
- <f546b5f0-1da6-2c16-647a-33bb8692b753@ti.com>
+ <1469534545-14478-3-git-send-email-u.kleine-koenig@pengutronix.de>
+ <66d886a4-4852-096c-a3b3-3faec3eb167f@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <f546b5f0-1da6-2c16-647a-33bb8692b753@ti.com>
+In-Reply-To: <66d886a4-4852-096c-a3b3-3faec3eb167f@ti.com>
 Sender: netdev-owner@vger.kernel.org
 To: Grygorii Strashko <grygorii.strashko@ti.com>
 Cc: Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, kernel@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jul 26, 2016 at 05:36:49PM +0300, Grygorii Strashko wrote:
+Hello,
+
+On Tue, Jul 26, 2016 at 05:25:58PM +0300, Grygorii Strashko wrote:
 > On 07/26/2016 03:02 PM, Uwe Kleine-K=F6nig wrote:
-> >Hello,
-> >
-> >these patches are based on next-20160726. I didn't check yet how lat=
-ency
-> >improves by using these patches, but even if the improvment is small=
-,
-> >it's still a good idea to have them.
+> > Allocating and preparing a dma descriptor doesn't need to happen un=
+der
+> > the channel's lock. So do this before taking the channel's lock. Th=
+e only
+> > down side is that the dma descriptor might be allocated even though=
+ the
+> > channel is about to be stopped. This is unlikely though.
+> >=20
+> > Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+> > ---
+> >  drivers/net/ethernet/ti/davinci_cpdma.c | 38 +++++++++++++++++----=
+------------
+> >  1 file changed, 20 insertions(+), 18 deletions(-)
+> >=20
+> > diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/=
+ethernet/ti/davinci_cpdma.c
+> > index 5ffa04a306c6..ba3462707ae3 100644
+> > --- a/drivers/net/ethernet/ti/davinci_cpdma.c
+> > +++ b/drivers/net/ethernet/ti/davinci_cpdma.c
+> > @@ -542,24 +542,10 @@ int cpdma_chan_submit(struct cpdma_chan *chan=
+, void *token, void *data,
+> >  	u32				mode;
+> >  	int				ret =3D 0;
+> > =20
+> > -	spin_lock_irqsave(&chan->lock, flags);
+> > -
+> > -	if (chan->state =3D=3D CPDMA_STATE_TEARDOWN) {
+> > -		ret =3D -EINVAL;
+> > -		goto unlock_ret;
+> > -	}
+> > -
+> > -	if (chan->count >=3D chan->desc_num)	{
+> > -		chan->stats.desc_alloc_fail++;
+> > -		ret =3D -ENOMEM;
+> > -		goto unlock_ret;
+> > -	}
 >=20
-> Sry, but how this will affect on -RT? This is not a raw locks, so
-> they will be converted to rt-mutexes which are sleepable.
-> Or I've missed smth?
+> I'm not sure this is right thing to do. This check is expected to be =
+strict
+> and means "channel has exhausted the available descriptors, so furthe=
+r descs allocation does not allowed".
 
-They are still locks after all. On -rt I saw for the relevant
-application:
+I developed this patch basing on a 4.4 kernel which doesn't have
+742fb20fd4c7 ("net: ethernet: ti: cpdma: switch to use genalloc"). Ther=
+e
+my patch is more obviously correct. As currently chan->count is
+protected by chan->lock we must hold the lock for this check. If a
+failing check means we must not call cpdma_desc_alloc in the first
+place, that's bad.
 
-  send package         |
-    take lock          |
-    write pckt to hw   |
-                       | rcv irq
-		       |   take lock
-		       |     schedule
-    drop lock	       |=20
-      schedule         |
-                       |   get pckt from hw
-		       |   drop lock
-
-So reducing the time a lock is taken reduces the chances that the lock
-is contended for another thread which results in extra context switches=
-=2E
+But I'm not sure this is the case here. After all cpdma_desc_alloc
+doesn't do anything relevant for the hardware, right?
 
 Best regards
 Uwe
