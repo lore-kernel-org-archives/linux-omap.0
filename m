@@ -1,72 +1,133 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: Re: [PATCH 0/2] net: davinci_cpdma: reduce latency on -rt
-Date: Wed, 27 Jul 2016 16:38:04 +0200
-Message-ID: <20160727143804.GC5629@pengutronix.de>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: Re: [PATCH 2/2] net: davinci_cpdma: reduce time holding chan->lock in
+ cpdma_chan_submit
+Date: Wed, 27 Jul 2016 21:11:36 +0300
+Message-ID: <8d736b86-bfd2-6757-8b83-1a1662ccf83f@linaro.org>
 References: <1469534545-14478-1-git-send-email-u.kleine-koenig@pengutronix.de>
- <f546b5f0-1da6-2c16-647a-33bb8692b753@ti.com>
- <20160727070302.GG5368@pengutronix.de>
- <076e6aa6-91f3-8707-1d8b-504c4962f7cd@ti.com>
+ <1469534545-14478-3-git-send-email-u.kleine-koenig@pengutronix.de>
+ <66d886a4-4852-096c-a3b3-3faec3eb167f@ti.com>
+ <20160727071228.GH5368@pengutronix.de>
+ <31cab303-4712-63e5-3dd5-7cffeb3edb0f@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=windows-1252;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <076e6aa6-91f3-8707-1d8b-504c4962f7cd@ti.com>
+In-Reply-To: <31cab303-4712-63e5-3dd5-7cffeb3edb0f@ti.com>
 Sender: netdev-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
+To: Grygorii Strashko <grygorii.strashko@ti.com>, =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <u.kleine-koenig@pengutronix.de>
 Cc: Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, kernel@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
 
-On Wed, Jul 27, 2016 at 05:11:54PM +0300, Grygorii Strashko wrote:
-> On 07/27/2016 10:03 AM, Uwe Kleine-K=F6nig wrote:
-> > On Tue, Jul 26, 2016 at 05:36:49PM +0300, Grygorii Strashko wrote:
-> >> On 07/26/2016 03:02 PM, Uwe Kleine-K=F6nig wrote:
-> >>> Hello,
-> >>>
-> >>> these patches are based on next-20160726. I didn't check yet how =
-latency
-> >>> improves by using these patches, but even if the improvment is sm=
-all,
-> >>> it's still a good idea to have them.
-> >>
-> >> Sry, but how this will affect on -RT? This is not a raw locks, so
-> >> they will be converted to rt-mutexes which are sleepable.
-> >> Or I've missed smth?
-> >=20
-> > They are still locks after all. On -rt I saw for the relevant
-> > application:
-> >=20
-> >   send package         |
-> >     take lock          |
-> >     write pckt to hw   |
-> >                        | rcv irq
-> > 		       |   take lock
-> > 		       |     schedule
-> >     drop lock	       |=20
-> >       schedule         |
-> >                        |   get pckt from hw
-> > 		       |   drop lock
-> >=20
-> > So reducing the time a lock is taken reduces the chances that the l=
-ock
-> > is contended for another thread which results in extra context swit=
-ches.
-> >=20
-> Thanks a lot for explanation. So, this is not exactly rt-latency redu=
-ction,
-> but it might improve net performance on -RT. correct?
 
-Well, it's not really rt related, but if you hit a locked lock on rt it
-hurts more than on !rt. And this results in increased latency.
+On 27.07.16 17:08, Grygorii Strashko wrote:
+> On 07/27/2016 10:12 AM, Uwe Kleine-K=F6nig wrote:
+>> Hello,
+>>
+>> On Tue, Jul 26, 2016 at 05:25:58PM +0300, Grygorii Strashko wrote:
+>>> On 07/26/2016 03:02 PM, Uwe Kleine-K=F6nig wrote:
+>>>> Allocating and preparing a dma descriptor doesn't need to happen u=
+nder
+>>>> the channel's lock. So do this before taking the channel's lock. T=
+he only
+>>>> down side is that the dma descriptor might be allocated even thoug=
+h the
+>>>> channel is about to be stopped. This is unlikely though.
+>>>>
+>>>> Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+>>>> ---
+>>>>  drivers/net/ethernet/ti/davinci_cpdma.c | 38 +++++++++++++++++---=
+-------------
+>>>>  1 file changed, 20 insertions(+), 18 deletions(-)
+>>>>
+>>>> diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net=
+/ethernet/ti/davinci_cpdma.c
+>>>> index 5ffa04a306c6..ba3462707ae3 100644
+>>>> --- a/drivers/net/ethernet/ti/davinci_cpdma.c
+>>>> +++ b/drivers/net/ethernet/ti/davinci_cpdma.c
+>>>> @@ -542,24 +542,10 @@ int cpdma_chan_submit(struct cpdma_chan *cha=
+n, void *token, void *data,
+>>>>  	u32				mode;
+>>>>  	int				ret =3D 0;
+>>>>
+>>>> -	spin_lock_irqsave(&chan->lock, flags);
+>>>> -
+>>>> -	if (chan->state =3D=3D CPDMA_STATE_TEARDOWN) {
+>>>> -		ret =3D -EINVAL;
+>>>> -		goto unlock_ret;
+>>>> -	}
+>>>> -
+>>>> -	if (chan->count >=3D chan->desc_num)	{
+>>>> -		chan->stats.desc_alloc_fail++;
+>>>> -		ret =3D -ENOMEM;
+>>>> -		goto unlock_ret;
+>>>> -	}
+>>>
+>>> I'm not sure this is right thing to do. This check is expected to b=
+e strict
+>>> and means "channel has exhausted the available descriptors, so furt=
+her descs allocation does not allowed".
+>>
+>> I developed this patch basing on a 4.4 kernel which doesn't have
+>> 742fb20fd4c7 ("net: ethernet: ti: cpdma: switch to use genalloc"). T=
+here
+>> my patch is more obviously correct. As currently chan->count is
+>> protected by chan->lock we must hold the lock for this check. If a
+>> failing check means we must not call cpdma_desc_alloc in the first
+>> place, that's bad.
+The chan->count is not only case where this lock is needed unfortunatel=
+y.
+I like the idea to remove a bunch of locks from here (I was wondering w=
+hy it needs to have
+so much locks when using h/w queues, but this is the style driver is wr=
+itten though)
+This lock is also needed to cover stats counters at least.
+In case of cpsw driver, that uses cpdam_chan, the same channel can be s=
+hared
+between two emacs (in dual emac mode) then the lock is needed for every=
+ chan var.
+So that's not rare case. In general, the optimization of cpdma is good =
+idea,
+but seems it can require much more changes.
 
-Best regards
-Uwe
+>
+> Yes. That's intention of this check :(
+> Now it'll work as following for two (rx/tx) channels, as example
+> RX desc_num =3D 16 (max allowed number of descriptors)
+> TX desc_num =3D 16 (max allowed number of descriptors)
+> and with current code number of allocated descriptors will never exce=
+ed 16.
+>
+> with your change, in corner case when TX channel's already utilized 1=
+6 descriptors the
+> following will happen:
+> cpdma_chan_submit()
+>  - cpdma_desc_alloc() -  will allocate 17th desc
+>  - lock
+>  - check for chan->count - fail
+>  - unlock
+>  - cpdma_desc_free()
+>
+> so your patch will add additional desc_alloc/desc_free in the above c=
+orner case
+> and that's what i'm worry about (TEARDOWN seems ok) especially taking=
+ into account
+> further multi-queue feature development.
+>
+> Above corner case seems might happen very rare, because of the guard =
+check in cpsw_ndo_start_xmit(),
+> but it could.
+>
+>>
+>> But I'm not sure this is the case here. After all cpdma_desc_alloc
+>> doesn't do anything relevant for the hardware, right?
+>
+> Right.
+>
+> Thanks. I'd try to do some measurement also.
+>
 
 --=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
-    |
-Industrial Linux Solutions                 | http://www.pengutronix.de/=
-  |
+Regards,
+Ivan Khoronzhuk
