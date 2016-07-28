@@ -1,42 +1,42 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: Re: [PATCH 0/2] net: davinci_cpdma: reduce latency on -rt
-Date: Thu, 28 Jul 2016 14:12:28 +0200
-Message-ID: <20160728121228.GK5629@pengutronix.de>
-References: <1469534545-14478-1-git-send-email-u.kleine-koenig@pengutronix.de>
- <f546b5f0-1da6-2c16-647a-33bb8692b753@ti.com>
- <20160727070302.GG5368@pengutronix.de>
- <076e6aa6-91f3-8707-1d8b-504c4962f7cd@ti.com>
- <20160727143804.GC5629@pengutronix.de>
- <fc2a3300-4f6b-aff7-995d-77b37bdaab65@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH v2 0/4] drivers: net: cpsw: fix driver loading/unloading
+Date: Thu, 28 Jul 2016 20:50:33 +0300
+Message-ID: <20160728175037.22053-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <fc2a3300-4f6b-aff7-995d-77b37bdaab65@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, kernel@pengutronix.de, netdev@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hello Grygorii,
+This series fixes set of isssues observed when CPSW driver module is unloaded/loaded:
+1) rmmod: deadlock in cpdma_ctlr_destroy
+2) rmmod: L3 back-trace and crash if all net interfaces are down, because CPSW
+can be powerred down by PM runtime in this case.
+3) insmod: mdio device is not recreated on next insmod
+ - need to use of_platform_depopulate() in cpsw_remove().
+4) rmmod: system crash on omap_device removal
 
-On Thu, Jul 28, 2016 at 12:34:19PM +0300, Grygorii Strashko wrote:
-> Thanks. I've just wanted to have clear understanding of the [possible=
-] issue.
-> And I'd be appreciated if you could share and measurement results if =
-you have.
+Tested on: am437x-idk, am57xx-beagle-x15
 
-I didn't measure anything (yet), just considered these patches
-low-hanging fruits. But when looking again there, I will provide some
-numbers.
+Changes in v2:
+- build warning fixed
+- added fix for correct omap_device removal
 
-Best regards
-Uwe
+Link on v1:
+ https://lkml.org/lkml/2016/7/22/240
 
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
-    |
-Industrial Linux Solutions                 | http://www.pengutronix.de/=
-  |
+Grygorii Strashko (4):
+  net: ethernet: ti: cpdma: fix lockup in cpdma_ctlr_destroy()
+  drivers: net: cpsw: fix wrong regs access in cpsw_remove
+  drivers: net: cpsw: use of_platform_depopulate()
+  ARM: OMAP2+: omap_device: fix crash on omap_device removal
+
+ arch/arm/mach-omap2/omap_device.c       |  2 +-
+ drivers/net/ethernet/ti/cpsw.c          | 19 +++++++++----------
+ drivers/net/ethernet/ti/davinci_cpdma.c |  3 ---
+ 3 files changed, 10 insertions(+), 14 deletions(-)
+
+-- 
+2.9.2
