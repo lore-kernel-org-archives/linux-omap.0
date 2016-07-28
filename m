@@ -1,56 +1,74 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH v4 3/5] power_supply: tps65217-charger: Add support for
- IRQs
-Date: Wed, 27 Jul 2016 22:04:51 +0200
-Message-ID: <20160727200450.GA14663@earth>
-References: <20160620105056.25843-1-m.niestroj@grinn-global.com>
- <20160620105056.25843-4-m.niestroj@grinn-global.com>
- <e70d4f16-e727-6729-b3f2-fad2dd7847cb@grinn-global.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 0/2] net: davinci_cpdma: reduce latency on -rt
+Date: Thu, 28 Jul 2016 12:34:19 +0300
+Message-ID: <fc2a3300-4f6b-aff7-995d-77b37bdaab65@ti.com>
+References: <1469534545-14478-1-git-send-email-u.kleine-koenig@pengutronix.de>
+ <f546b5f0-1da6-2c16-647a-33bb8692b753@ti.com>
+ <20160727070302.GG5368@pengutronix.de>
+ <076e6aa6-91f3-8707-1d8b-504c4962f7cd@ti.com>
+ <20160727143804.GC5629@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="7AUc2qLy4jB3hD7Z"
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <e70d4f16-e727-6729-b3f2-fad2dd7847cb@grinn-global.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Marcin Niestroj <m.niestroj@grinn-global.com>
-Cc: Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-input@vger.kernel.org, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20160727143804.GC5629@pengutronix.de>
+Sender: netdev-owner@vger.kernel.org
+To: =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <u.kleine-koenig@pengutronix.de>
+Cc: Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, kernel@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
+On 07/27/2016 05:38 PM, Uwe Kleine-K=F6nig wrote:
+> Hello,
+>=20
+> On Wed, Jul 27, 2016 at 05:11:54PM +0300, Grygorii Strashko wrote:
+>> On 07/27/2016 10:03 AM, Uwe Kleine-K=F6nig wrote:
+>>> On Tue, Jul 26, 2016 at 05:36:49PM +0300, Grygorii Strashko wrote:
+>>>> On 07/26/2016 03:02 PM, Uwe Kleine-K=F6nig wrote:
+>>>>> Hello,
+>>>>>
+>>>>> these patches are based on next-20160726. I didn't check yet how =
+latency
+>>>>> improves by using these patches, but even if the improvment is sm=
+all,
+>>>>> it's still a good idea to have them.
+>>>>
+>>>> Sry, but how this will affect on -RT? This is not a raw locks, so
+>>>> they will be converted to rt-mutexes which are sleepable.
+>>>> Or I've missed smth?
+>>>
+>>> They are still locks after all. On -rt I saw for the relevant
+>>> application:
+>>>
+>>>   send package         |
+>>>     take lock          |
+>>>     write pckt to hw   |
+>>>                        | rcv irq
+>>> 		       |   take lock
+>>> 		       |     schedule
+>>>     drop lock	       |=20
+>>>       schedule         |
+>>>                        |   get pckt from hw
+>>> 		       |   drop lock
+>>>
+>>> So reducing the time a lock is taken reduces the chances that the l=
+ock
+>>> is contended for another thread which results in extra context swit=
+ches.
+>>>
+>> Thanks a lot for explanation. So, this is not exactly rt-latency red=
+uction,
+>> but it might improve net performance on -RT. correct?
+>=20
+> Well, it's not really rt related, but if you hit a locked lock on rt =
+it
+> hurts more than on !rt. And this results in increased latency.
+>=20
 
---7AUc2qLy4jB3hD7Z
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Thanks. I've just wanted to have clear understanding of the [possible] =
+issue.
+And I'd be appreciated if you could share and measurement results if yo=
+u have.
 
-Hi,
-
-On Wed, Jul 27, 2016 at 11:14:27AM +0200, Marcin Niestroj wrote:
-> ping
-
-I missed this one. We are currently in the merge window. I will have
-a look after 4.8-rc1 has been released.
-
--- Sebastian
-
---7AUc2qLy4jB3hD7Z
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJXmRPfAAoJENju1/PIO/qa2isP+wfS1bY1onLzQTObSas+JKIk
-UuN0x/HSiyOUauI8+V33K7UAjioQm5AlB/a/XXGjtj9W5KmgRKZyCz7Pomyjebol
-ifSypuanXuT4NjHHYH6xtu60R8Wq0ibnmeLAImJlei6jTE+xuex8U9Ztmo9c5fHm
-9S2sqV8T9819m380YHUuzf5kVl9X1WUyATOrdWGJ0H6az56tiLG3Bd3PLCgkw6IK
-127/NWCm4dNpL0XS4EFD4NyQAj75V4f+4TgoX57Ov/d9M3mqNuXfNqCScutlD2Rs
-EJp0T81sItQDU8ilC5/u1Gr9pxmYTGTuoL5l94Xv7M/4dRMwytFzjwfpEbvY7edA
-iIAvWqLzeUFpcrXaxLxctZPbNZot5E/TdkdJbFaRWwJMUdoyxGqWpuMyTairq/72
-QACWuhZfTghVYaozT9lpZEmuInjv6TdUKL1cu4zXx4l565FF2O7H+kwzdC8g55Hs
-+cyryykp0dqF50ryh1gUy15IPwt5ep22HbO1/FDIOFl9TYBvF1Sk+F67fCEr1rlZ
-LnbM1LxbFzTtI/nqy0+gHwWgBfcOyuH+8spdIiwExKIqaHCdka70ufR3UEmL/kKh
-4lNnHTnvrUDkgiQJQQDoTM5QxsNPUpH4ise4uSLh4/ZYdF6S4IGO2dVaTu90LUer
-jIP8V7dbXgt/jDWYnpLL
-=JdyA
------END PGP SIGNATURE-----
-
---7AUc2qLy4jB3hD7Z--
+--=20
+regards,
+-grygorii
