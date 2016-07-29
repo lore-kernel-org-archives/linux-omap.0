@@ -1,116 +1,49 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH v2 4/4] ARM: OMAP2+: omap_device: fix crash on omap_device
- removal
-Date: Fri, 29 Jul 2016 15:52:39 +0300
-Message-ID: <5588245d-0a70-1070-fd53-f767d65444b1@ti.com>
-References: <20160728175037.22053-1-grygorii.strashko@ti.com>
- <20160728175037.22053-5-grygorii.strashko@ti.com>
- <ca582e58-8c97-67cb-8f1c-778e4c7b448e@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <ca582e58-8c97-67cb-8f1c-778e4c7b448e@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: [PATCH] musb: omap2430: do not assume balanced enable()/disable()
+Date: Fri, 29 Jul 2016 19:42:31 +0200
+Message-ID: <1469814151-2571-1-git-send-email-andreas@kemnade.info>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bin Liu <b-liu@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
+Cc: Andreas Kemnade <andreas@kemnade.info>
 List-Id: linux-omap@vger.kernel.org
 
-On 07/29/2016 08:15 AM, Peter Ujfalusi wrote:
-> On 07/28/16 20:50, Grygorii Strashko wrote:
->> Below call chain causes system crash when OMAP device is
->> removed by calling of_platform_depopulate()/device_del():
->
-> Should you swap 3 <-> 4 in the series?
-> Currently patch 3 will introduce the crash you are fixing in patch 4...
+The code assumes that omap2430_musb_enable() and
+omap2430_musb_disable() is called in a balanced way. The
+That fact is broken by the fact that musb_init_controller() calls
+musb_platform_disable() to switch from unknown state to off state.
 
-No. The key function here is device_del() - of_device_unregister(), 
-which was used previously has the same issue:
-   of_device_unregister() -> device_unregister() ->device_del()
+That means that phy_power_off() is called first so that
+phy->power_count gets -1 and the phy is not enabled on phy_power_on().
+In the probably common case of using the phy_twl4030, that
+prevents also charging the battery and so makes further
+kernel debugging hard.
 
-In general all these patches are independent and they were created just 
-in bugs detection order.
+The patch prevents phy_power_off() from being called when
+it is already off.
 
->
->>
->> device_del()
->> - blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
->>  			     BUS_NOTIFY_DEL_DEVICE, dev);
->>   - _omap_device_notifier_call()
->>     - omap_device_delete()
->>       - od->pdev->archdata.od = NULL;
->> 	kfree(od->hwmods);
->> 	kfree(od);
->>   - bus_remove_device()
->>     - device_release_driver()
->>       - __device_release_driver()
->> 	- pm_runtime_get_sync()
->> 	   - _od_runtime_resume()
->> 	     - omap_hwmod_enable() <- OOPS od's delted already
->>
->> Backtrace:
->> Unable to handle kernel NULL pointer dereference at virtual address 0000000d
->> pgd = eb100000
->> [0000000d] *pgd=ad6e1831, *pte=00000000, *ppte=00000000
->> Internal error: Oops: 17 [#1] PREEMPT SMP ARM
->> CPU: 1 PID: 1273 Comm: modprobe Not tainted 4.4.15-rt19-00115-ge4d3cd3-dirty #68
->> Hardware name: Generic DRA74X (Flattened Device Tree)
->> task: eb1ee800 ti: ec962000 task.ti: ec962000
->> PC is at omap_device_enable+0x10/0x90
->> LR is at _od_runtime_resume+0x10/0x24
->> [...]
->> [<c00299dc>] (omap_device_enable) from [<c0029a6c>] (_od_runtime_resume+0x10/0x24)
->> [<c0029a6c>] (_od_runtime_resume) from [<c04ad404>] (__rpm_callback+0x20/0x34)
->> [<c04ad404>] (__rpm_callback) from [<c04ad438>] (rpm_callback+0x20/0x80)
->> [<c04ad438>] (rpm_callback) from [<c04aee28>] (rpm_resume+0x48c/0x964)
->> [<c04aee28>] (rpm_resume) from [<c04af360>] (__pm_runtime_resume+0x60/0x88)
->> [<c04af360>] (__pm_runtime_resume) from [<c04a4974>] (__device_release_driver+0x30/0x100)
->> [<c04a4974>] (__device_release_driver) from [<c04a4a60>] (device_release_driver+0x1c/0x28)
->> [<c04a4a60>] (device_release_driver) from [<c04a38c0>] (bus_remove_device+0xec/0x144)
->> [<c04a38c0>] (bus_remove_device) from [<c04a0764>] (device_del+0x10c/0x210)
->> [<c04a0764>] (device_del) from [<c04a67b0>] (platform_device_del+0x18/0x84)
->> [<c04a67b0>] (platform_device_del) from [<c04a6828>] (platform_device_unregister+0xc/0x20)
->> [<c04a6828>] (platform_device_unregister) from [<c05adcfc>] (of_platform_device_destroy+0x8c/0x90)
->> [<c05adcfc>] (of_platform_device_destroy) from [<c04a02f0>] (device_for_each_child+0x4c/0x78)
->> [<c04a02f0>] (device_for_each_child) from [<c05adc5c>] (of_platform_depopulate+0x30/0x44)
->> [<c05adc5c>] (of_platform_depopulate) from [<bf123920>] (cpsw_remove+0x68/0xf4 [ti_cpsw])
->> [<bf123920>] (cpsw_remove [ti_cpsw]) from [<c04a68d8>] (platform_drv_remove+0x24/0x3c)
->> [<c04a68d8>] (platform_drv_remove) from [<c04a49c8>] (__device_release_driver+0x84/0x100)
->> [<c04a49c8>] (__device_release_driver) from [<c04a4b20>] (driver_detach+0xac/0xb0)
->> [<c04a4b20>] (driver_detach) from [<c04a3be8>] (bus_remove_driver+0x60/0xd4)
->> [<c04a3be8>] (bus_remove_driver) from [<c00d9870>] (SyS_delete_module+0x184/0x20c)
->> [<c00d9870>] (SyS_delete_module) from [<c0010540>] (ret_fast_syscall+0x0/0x1c)
->> Code: e3500000 e92d4070 1590630c 01a06000 (e5d6300d)
->>
->> Hence, fix it by using BUS_NOTIFY_REMOVED_DEVICE event for OMAP device
->> deletion which is sent when DD has finished processing of device
->> deletion.
->>
->> Cc: Tony Lindgren <tony@atomide.com>
->> Cc: Tero Kristo <t-kristo@ti.com>
->> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->> ---
->>  arch/arm/mach-omap2/omap_device.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
->> index f7ff3b9..208f115 100644
->> --- a/arch/arm/mach-omap2/omap_device.c
->> +++ b/arch/arm/mach-omap2/omap_device.c
->> @@ -194,7 +194,7 @@ static int _omap_device_notifier_call(struct notifier_block *nb,
->>  	int err;
->>
->>  	switch (event) {
->> -	case BUS_NOTIFY_DEL_DEVICE:
->> +	case BUS_NOTIFY_REMOVED_DEVICE:
->>  		if (pdev->archdata.od)
->>  			omap_device_delete(pdev->archdata.od);
->>  		break;
->>
->
->
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+ drivers/usb/musb/omap2430.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index aecb934..c7ae117 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -415,9 +415,10 @@ static void omap2430_musb_disable(struct musb *musb)
+ 	struct device *dev = musb->controller;
+ 	struct omap2430_glue *glue = dev_get_drvdata(dev->parent);
+ 
+-	if (!WARN_ON(!musb->phy))
+-		phy_power_off(musb->phy);
+-
++	if (glue->enabled) {
++		if (!WARN_ON(!musb->phy))
++			phy_power_off(musb->phy);
++	}
+ 	if (glue->status != MUSB_UNKNOWN)
+ 		omap_control_usb_set_mode(glue->control_otghs,
+ 			USB_MODE_DISCONNECT);
 -- 
-regards,
--grygorii
+2.1.4
