@@ -1,60 +1,116 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH 15/15] ethernet: ti: davinci_emac: add missing of_node_put
- after calling of_parse_phandle
-Date: Fri, 29 Jul 2016 14:59:46 +0530
-Message-ID: <1c3c541a-a183-4b23-da69-991e48a06184@ti.com>
-References: <1469586048-15697-1-git-send-email-peter.chen@nxp.com>
- <1469586048-15697-16-git-send-email-peter.chen@nxp.com>
- <cc2ab963-3d26-78d7-2119-bc00bcbbd1c7@ti.com>
- <HE1PR04MB145066B58D8B26F0E4CADA488B0F0@HE1PR04MB1450.eurprd04.prod.outlook.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH v2 4/4] ARM: OMAP2+: omap_device: fix crash on omap_device
+ removal
+Date: Fri, 29 Jul 2016 15:52:39 +0300
+Message-ID: <5588245d-0a70-1070-fd53-f767d65444b1@ti.com>
+References: <20160728175037.22053-1-grygorii.strashko@ti.com>
+ <20160728175037.22053-5-grygorii.strashko@ti.com>
+ <ca582e58-8c97-67cb-8f1c-778e4c7b448e@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <HE1PR04MB145066B58D8B26F0E4CADA488B0F0@HE1PR04MB1450.eurprd04.prod.outlook.com>
+In-Reply-To: <ca582e58-8c97-67cb-8f1c-778e4c7b448e@ti.com>
 Sender: netdev-owner@vger.kernel.org
-To: Peter Chen <peter.chen@nxp.com>, "davem@davemloft.net" <davem@davemloft.net>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "vbridger@opensource.altera.com" <vbridger@opensource.altera.com>, "isubramanian@apm.com" <isubramanian@apm.com>, "kchudgar@apm.com" <kchudgar@apm.com>, "yisen.zhuang@huawei.com" <yisen.zhuang@huawei.com>, "salil.mehta@huawei.com" <salil.mehta@huawei.com>, "thomas.petazzoni@free-electrons.com" <thomas.petazzoni@free-electrons.com>, "sergei.shtylyov@cogentembedded.com" <sergei.shtylyov@cogentembedded.com>, "peppe.cavallaro@st.com" <peppe.cavallaro@st.com>, "alexandre.torgue@st.com" <alexandre.torgue@st.com>, "tremyfr@gmail.com" <tremyfr@gmail.com>, "wxt@rock-chips.com" <wxt@rock-chips.com>, "arnd@arndb.de" <arnd@arndb.de>, "david.daney@cavium.com" <david.daney@cavium.com>, "huangdaode@hisilicon.com" <huangdaode@hisilicon.com>, "jszhang@marvell.com" <jszhang@marvell.com>, Linux OMAP Mailing List <linux-omap@vger.ker>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-+ Linux Omap ML
+On 07/29/2016 08:15 AM, Peter Ujfalusi wrote:
+> On 07/28/16 20:50, Grygorii Strashko wrote:
+>> Below call chain causes system crash when OMAP device is
+>> removed by calling of_platform_depopulate()/device_del():
+>
+> Should you swap 3 <-> 4 in the series?
+> Currently patch 3 will introduce the crash you are fixing in patch 4...
 
-On Wednesday 27 July 2016 01:13 PM, Peter Chen wrote:
->  
->> On Wednesday 27 July 2016 07:50 AM, Peter Chen wrote:
->>> of_node_put needs to be called when the device node which is got from
->>> of_parse_phandle has finished using.
->>>
->>> Signed-off-by: Peter Chen <peter.chen@nxp.com>
->>> ---
->>>  drivers/net/ethernet/ti/davinci_emac.c | 1 +
->>>  1 file changed, 1 insertion(+)
->>>
->>> diff --git a/drivers/net/ethernet/ti/davinci_emac.c
->>> b/drivers/net/ethernet/ti/davinci_emac.c
->>> index c6c5465..d8cb9d0 100644
->>> --- a/drivers/net/ethernet/ti/davinci_emac.c
->>> +++ b/drivers/net/ethernet/ti/davinci_emac.c
->>> @@ -1571,6 +1571,7 @@ static int emac_dev_open(struct net_device *ndev)
->>>  	if (priv->phy_node) {
->>>  		phydev = of_phy_connect(ndev, priv->phy_node,
->>>  					&emac_adjust_link, 0, 0);
->>> +		of_node_put(priv->phy_node);
->>>  		if (!phydev) {
->>>  			dev_err(emac_dev, "could not connect to phy %s\n",
->>>  				priv->phy_node->full_name);
->>>
+No. The key function here is device_del() - of_device_unregister(), 
+which was used previously has the same issue:
+   of_device_unregister() -> device_unregister() ->device_del()
+
+In general all these patches are independent and they were created just 
+in bugs detection order.
+
+>
 >>
->> phy_node is accessed in case of of_phy_connect() returns error, so it has to be
->> moved after the dev_err log
+>> device_del()
+>> - blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
+>>  			     BUS_NOTIFY_DEL_DEVICE, dev);
+>>   - _omap_device_notifier_call()
+>>     - omap_device_delete()
+>>       - od->pdev->archdata.od = NULL;
+>> 	kfree(od->hwmods);
+>> 	kfree(od);
+>>   - bus_remove_device()
+>>     - device_release_driver()
+>>       - __device_release_driver()
+>> 	- pm_runtime_get_sync()
+>> 	   - _od_runtime_resume()
+>> 	     - omap_hwmod_enable() <- OOPS od's delted already
 >>
-> 
-> Yeah, you are right. I will change it, thanks.
-> 
+>> Backtrace:
+>> Unable to handle kernel NULL pointer dereference at virtual address 0000000d
+>> pgd = eb100000
+>> [0000000d] *pgd=ad6e1831, *pte=00000000, *ppte=00000000
+>> Internal error: Oops: 17 [#1] PREEMPT SMP ARM
+>> CPU: 1 PID: 1273 Comm: modprobe Not tainted 4.4.15-rt19-00115-ge4d3cd3-dirty #68
+>> Hardware name: Generic DRA74X (Flattened Device Tree)
+>> task: eb1ee800 ti: ec962000 task.ti: ec962000
+>> PC is at omap_device_enable+0x10/0x90
+>> LR is at _od_runtime_resume+0x10/0x24
+>> [...]
+>> [<c00299dc>] (omap_device_enable) from [<c0029a6c>] (_od_runtime_resume+0x10/0x24)
+>> [<c0029a6c>] (_od_runtime_resume) from [<c04ad404>] (__rpm_callback+0x20/0x34)
+>> [<c04ad404>] (__rpm_callback) from [<c04ad438>] (rpm_callback+0x20/0x80)
+>> [<c04ad438>] (rpm_callback) from [<c04aee28>] (rpm_resume+0x48c/0x964)
+>> [<c04aee28>] (rpm_resume) from [<c04af360>] (__pm_runtime_resume+0x60/0x88)
+>> [<c04af360>] (__pm_runtime_resume) from [<c04a4974>] (__device_release_driver+0x30/0x100)
+>> [<c04a4974>] (__device_release_driver) from [<c04a4a60>] (device_release_driver+0x1c/0x28)
+>> [<c04a4a60>] (device_release_driver) from [<c04a38c0>] (bus_remove_device+0xec/0x144)
+>> [<c04a38c0>] (bus_remove_device) from [<c04a0764>] (device_del+0x10c/0x210)
+>> [<c04a0764>] (device_del) from [<c04a67b0>] (platform_device_del+0x18/0x84)
+>> [<c04a67b0>] (platform_device_del) from [<c04a6828>] (platform_device_unregister+0xc/0x20)
+>> [<c04a6828>] (platform_device_unregister) from [<c05adcfc>] (of_platform_device_destroy+0x8c/0x90)
+>> [<c05adcfc>] (of_platform_device_destroy) from [<c04a02f0>] (device_for_each_child+0x4c/0x78)
+>> [<c04a02f0>] (device_for_each_child) from [<c05adc5c>] (of_platform_depopulate+0x30/0x44)
+>> [<c05adc5c>] (of_platform_depopulate) from [<bf123920>] (cpsw_remove+0x68/0xf4 [ti_cpsw])
+>> [<bf123920>] (cpsw_remove [ti_cpsw]) from [<c04a68d8>] (platform_drv_remove+0x24/0x3c)
+>> [<c04a68d8>] (platform_drv_remove) from [<c04a49c8>] (__device_release_driver+0x84/0x100)
+>> [<c04a49c8>] (__device_release_driver) from [<c04a4b20>] (driver_detach+0xac/0xb0)
+>> [<c04a4b20>] (driver_detach) from [<c04a3be8>] (bus_remove_driver+0x60/0xd4)
+>> [<c04a3be8>] (bus_remove_driver) from [<c00d9870>] (SyS_delete_module+0x184/0x20c)
+>> [<c00d9870>] (SyS_delete_module) from [<c0010540>] (ret_fast_syscall+0x0/0x1c)
+>> Code: e3500000 e92d4070 1590630c 01a06000 (e5d6300d)
+>>
+>> Hence, fix it by using BUS_NOTIFY_REMOVED_DEVICE event for OMAP device
+>> deletion which is sent when DD has finished processing of device
+>> deletion.
+>>
+>> Cc: Tony Lindgren <tony@atomide.com>
+>> Cc: Tero Kristo <t-kristo@ti.com>
+>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/omap_device.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+>> index f7ff3b9..208f115 100644
+>> --- a/arch/arm/mach-omap2/omap_device.c
+>> +++ b/arch/arm/mach-omap2/omap_device.c
+>> @@ -194,7 +194,7 @@ static int _omap_device_notifier_call(struct notifier_block *nb,
+>>  	int err;
+>>
+>>  	switch (event) {
+>> -	case BUS_NOTIFY_DEL_DEVICE:
+>> +	case BUS_NOTIFY_REMOVED_DEVICE:
+>>  		if (pdev->archdata.od)
+>>  			omap_device_delete(pdev->archdata.od);
+>>  		break;
+>>
+>
+>
 
-I see one more problem, when you stop and open the interface there is no
-way to get the phy_node and interface will be unusable, so of_node_put()
-should be moved to remove()
 
-Regards
-Mugunthan V N
+-- 
+regards,
+-grygorii
