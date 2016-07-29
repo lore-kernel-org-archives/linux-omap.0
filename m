@@ -1,30 +1,26 @@
 From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH v2 2/4] drivers: net: cpsw: fix wrong regs access in
- cpsw_remove
-Date: Fri, 29 Jul 2016 14:01:59 +0530
-Message-ID: <d01a86a6-4f0b-7ea7-a69d-9fcc5b2967e3@ti.com>
+Subject: Re: [PATCH v2 3/4] drivers: net: cpsw: use of_platform_depopulate()
+Date: Fri, 29 Jul 2016 14:06:29 +0530
+Message-ID: <586a36bd-3fa7-c602-d7c5-fd09e184b21f@ti.com>
 References: <20160728175037.22053-1-grygorii.strashko@ti.com>
- <20160728175037.22053-3-grygorii.strashko@ti.com>
+ <20160728175037.22053-4-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20160728175037.22053-3-grygorii.strashko@ti.com>
-Sender: netdev-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160728175037.22053-4-grygorii.strashko@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Grygorii Strashko <grygorii.strashko@ti.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org
 Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 On Thursday 28 July 2016 11:20 PM, Grygorii Strashko wrote:
-> The L3 error will be generated and system will crash during unloading
-> of CPSW driver if CPSW is used as module and ethX devices are down.
-> This happens because CPSW can be power off by PM runtime now when ethX
-> devices are down.
-> 
-> Hence, ensure that CPSW powered up by PM runtime before performing any
-> deinitialization actions which require CPSW registers access. In case
-> of PM runtime error just leave cpsw_remove() as we can't do anything
-> anymore.
+> Use of_platform_depopulate() in cpsw_remove() instead of
+> of_device_unregister(), because CSPW child devices will not be
+> recreated otherwise on next insmod. of_platform_depopulate() is
+> correct way now as it will ensure that all steps done in
+> of_platform_populate() are reverted, including cleaning up of
+> OF_POPULATED flag.
 > 
 > Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
