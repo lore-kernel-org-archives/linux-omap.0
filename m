@@ -1,13 +1,15 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [GIT PULL] omap-gpmc changes for v4.8 merge window
-Date: Mon, 1 Aug 2016 11:51:17 +0300
-Message-ID: <edc2a5dc-c831-b05a-5745-c1e361441b41@ti.com>
-References: <5770E51B.8040206@ti.com> <20160705052111.GO1669@localhost>
+Subject: Re: [PATCH 2/2] mtd: nand: omap2: Add check for old elm binding
+Date: Mon, 1 Aug 2016 12:22:42 +0300
+Message-ID: <1cb6e1f9-b4b5-9097-5b02-96ac9559e8ae@ti.com>
+References: <1467711150-23356-1-git-send-email-t.remmet@phytec.de>
+ <1467711150-23356-2-git-send-email-t.remmet@phytec.de>
+ <20160710005614.GB29572@localhost> <20160713171303.GA136972@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160705052111.GO1669@localhost>
+In-Reply-To: <20160713171303.GA136972@google.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,51 +19,32 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, linux-omap <linux-omap@vger.kernel.org>, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+To: Brian Norris <computersforpeace@gmail.com>, Teresa Remmet <t.remmet@phytec.de>
+Cc: Mark Rutland <mark.rutland@arm.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Richard Weinberger <richard@nod.at>, Rob Herring <robh+dt@kernel.org>, linux-mtd@lists.infradead.org, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 05/07/16 08:21, Olof Johansson wrote:
-> On Mon, Jun 27, 2016 at 11:34:35AM +0300, Roger Quadros wrote:
->> Hi Arnd/Olof,
+On 13/07/16 20:13, Brian Norris wrote:
+> On Sat, Jul 09, 2016 at 05:56:14PM -0700, Brian Norris wrote:
+>> On Tue, Jul 05, 2016 at 11:32:30AM +0200, Teresa Remmet wrote:
+>>> commit c9711ec5250b ("mtd: nand: omap: Clean up device tree support")
+>>> removes the check for the old elm phandle binding.
 >>
->> The following changes since commit 1a695a905c18548062509178b98bc91e67510864:
+>> That seems like a silly breakage of backwards compatibility. Must have
+>> overlooked that one, sorry.
 >>
->>   Linux 4.7-rc1 (2016-05-29 09:29:24 -0700)
+>>> Add it again to keep backward compatibility.
+>>>
+>>> Signed-off-by: Teresa Remmet <t.remmet@phytec.de>
 >>
->> are available in the git repository at:
->>
->>   https://github.com/rogerq/linux.git gpmc-omap-for-v4.8
->>
->> for you to fetch changes up to 32dd625a9f3541ee6d390f12f810f28531d016c7:
->>
->>   memory: omap-gpmc: Move gpio functions out of #ifdef CONFIG_OF (2016-06-17 10:26:48 +0300)
->>
->> ----------------------------------------------------------------
->> OMAP-GPMC: driver updates for v4.8
->>
->> * Make GPMC driver non modular as it is going to
->> be built-in only till arch/arm/mach-omap2 users
->> are removed.
->>
->> * Fix build if CONFIG_OF is not defined.
+>> I think we should probably take this for v4.7, since the breaking commit
+>> was only merged in v4.7-rc1. OMAP folks, any comment?
 > 
-> Merged into next/drivers.
+> Applied to linux-mtd.git. I plan to send this to Linus for v4.7, since
+> it's a DT regression, unless someone has a good reason not to.
 > 
->>
->> ----------------------------------------------------------------
->> Paul Gortmaker (1):
->>       memory: omap-gpmc: make it explicitly non-modular
->>
->> Roger Quadros (1):
->>       memory: omap-gpmc: Move gpio functions out of #ifdef CONFIG_OF
->>
->>  drivers/memory/omap-gpmc.c | 136 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-------------------------------------------------------------------------
-> 
-> Tip for the future: If you redirect the output through cat, you get the
-> diffstat at 80 character lines.
 
-Thanks :).
+Sorry for the late reply as I was on vacation.
+Thanks for the patch Teresa and thank you Brian for taking it into v4.7 :).
 
 cheers,
 -roger
