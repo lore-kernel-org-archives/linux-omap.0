@@ -1,138 +1,84 @@
 From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 07/10] ARM: dts: am335x/am437x: remove unneeded unit name for gpio-keys nodes
-Date: Mon,  1 Aug 2016 12:47:01 -0400
-Message-ID: <1470070024-30281-8-git-send-email-javier@osg.samsung.com>
-References: <1470070024-30281-1-git-send-email-javier@osg.samsung.com>
+Subject: [PATCH 00/10] ARM: dts: omap: another round of DTC warning fixes
+Date: Mon,  1 Aug 2016 12:46:54 -0400
+Message-ID: <1470070024-30281-1-git-send-email-javier@osg.samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1470070024-30281-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@osg.samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch fixes the following DTC warnings for many boards:
+Hello Tony,
 
-"Node /gpio_keys/button0@10 has a unit name, but no reg property"
+This is yet another series with fixes for DTC warnings caused by mismatches
+between device nodes' unit names and reg properties.
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
+The patches should not cause a functional change but were only build tested.
 
- arch/arm/boot/dts/am335x-evm.dts     |  6 +++---
- arch/arm/boot/dts/am335x-evmsk.dts   | 10 +++++-----
- arch/arm/boot/dts/am335x-pepper.dts  |  6 +++---
- arch/arm/boot/dts/am437x-idk-evm.dts |  2 +-
- 4 files changed, 12 insertions(+), 12 deletions(-)
+Best regards,
+Javier
 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 63124f898186..944914e5b15a 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -73,20 +73,20 @@
- 				0x0201006c>;	/* DOWN */
- 	};
- 
--	gpio_keys: volume_keys@0 {
-+	gpio_keys: volume_keys0 {
- 		compatible = "gpio-keys";
- 		#address-cells = <1>;
- 		#size-cells = <0>;
- 		autorepeat;
- 
--		switch@9 {
-+		switch9 {
- 			label = "volume-up";
- 			linux,code = <115>;
- 			gpios = <&gpio0 2 GPIO_ACTIVE_LOW>;
- 			wakeup-source;
- 		};
- 
--		switch@10 {
-+		switch10 {
- 			label = "volume-down";
- 			linux,code = <114>;
- 			gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index c96c42cb84f6..80e9978402e1 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -102,31 +102,31 @@
- 		};
- 	};
- 
--	gpio_buttons: gpio_buttons@0 {
-+	gpio_buttons: gpio_buttons0 {
- 		compatible = "gpio-keys";
- 		#address-cells = <1>;
- 		#size-cells = <0>;
- 
--		switch@1 {
-+		switch1 {
- 			label = "button0";
- 			linux,code = <0x100>;
- 			gpios = <&gpio2 3 GPIO_ACTIVE_HIGH>;
- 		};
- 
--		switch@2 {
-+		switch2 {
- 			label = "button1";
- 			linux,code = <0x101>;
- 			gpios = <&gpio2 2 GPIO_ACTIVE_HIGH>;
- 		};
- 
--		switch@3 {
-+		switch3 {
- 			label = "button2";
- 			linux,code = <0x102>;
- 			gpios = <&gpio0 30 GPIO_ACTIVE_HIGH>;
- 			wakeup-source;
- 		};
- 
--		switch@4 {
-+		switch4 {
- 			label = "button3";
- 			linux,code = <0x103>;
- 			gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>;
-diff --git a/arch/arm/boot/dts/am335x-pepper.dts b/arch/arm/boot/dts/am335x-pepper.dts
-index 5fe52a3a7f47..dbf079065659 100644
---- a/arch/arm/boot/dts/am335x-pepper.dts
-+++ b/arch/arm/boot/dts/am335x-pepper.dts
-@@ -616,21 +616,21 @@
- 	#address-cells = <1>;
- 	#size-cells = <0>;
- 
--	button@0 {
-+	button0 {
- 		label = "home";
- 		linux,code = <KEY_HOME>;
- 		gpios = <&gpio1 22 GPIO_ACTIVE_LOW>;
- 		wakeup-source;
- 	};
- 
--	button@1 {
-+	button1 {
- 		label = "menu";
- 		linux,code = <KEY_MENU>;
- 		gpios = <&gpio1 23 GPIO_ACTIVE_LOW>;
- 		wakeup-source;
- 	};
- 
--	buttons@2 {
-+	buttons2 {
- 		label = "power";
- 		linux,code = <KEY_POWER>;
- 		gpios = <&gpio0 7 GPIO_ACTIVE_LOW>;
-diff --git a/arch/arm/boot/dts/am437x-idk-evm.dts b/arch/arm/boot/dts/am437x-idk-evm.dts
-index 12a69518383e..25ce611c6568 100644
---- a/arch/arm/boot/dts/am437x-idk-evm.dts
-+++ b/arch/arm/boot/dts/am437x-idk-evm.dts
-@@ -104,7 +104,7 @@
- 		#address-cells = <1>;
- 		#size-cells = <0>;
- 
--		switch@0 {
-+		switch0 {
- 			label = "power-button";
- 			linux,code = <KEY_POWER>;
- 			gpios = <&gpio4 2 GPIO_ACTIVE_LOW>;
+
+Javier Martinez Canillas (10):
+  ARM: dts: omap3/am4372: add missing unit name to ocp node
+  ARM: dts: omap3: overo: add missing unit name for lcd35 display
+  ARM: dts: am335x/am437x: remove unneeded unit name for
+    gpio-matrix-keypad
+  ARM: dts: am335x/am437x: remove unneeded unit name for fixed
+    regulators
+  ARM: dts: da850/dm81x: remove unneeded unit name for fixed regulators
+  ARM: dts: omap3/dra62x: remove unneeded unit name for fixed regulators
+  ARM: dts: am335x/am437x: remove unneeded unit name for gpio-keys nodes
+  ARM: dts: omap3/4: remove unneeded unit name for gpio-keys nodes
+  ARM: dts: am335x/437x/57xx: remove unneeded unit name for gpio-leds
+    nodes
+  ARM: dts: omap3/4/5/dra7: remove unneeded unit name for gpio-leds
+    nodes
+
+ arch/arm/boot/dts/am335x-baltos.dtsi               |  4 +--
+ arch/arm/boot/dts/am335x-base0033.dts              |  4 +--
+ arch/arm/boot/dts/am335x-bone-common.dtsi          | 10 +++---
+ arch/arm/boot/dts/am335x-cm-t335.dts               |  6 ++--
+ arch/arm/boot/dts/am335x-evm.dts                   | 14 ++++-----
+ arch/arm/boot/dts/am335x-evmsk.dts                 | 26 ++++++++--------
+ arch/arm/boot/dts/am335x-icev2.dts                 | 36 +++++++++++-----------
+ arch/arm/boot/dts/am335x-igep0033.dtsi             |  6 ++--
+ arch/arm/boot/dts/am335x-lxm.dts                   |  4 +--
+ arch/arm/boot/dts/am335x-nano.dts                  |  2 +-
+ arch/arm/boot/dts/am335x-pepper.dts                | 16 +++++-----
+ arch/arm/boot/dts/am335x-phycore-som.dtsi          |  2 +-
+ arch/arm/boot/dts/am335x-shc.dts                   | 14 ++++-----
+ arch/arm/boot/dts/am335x-sl50.dts                  | 10 +++---
+ arch/arm/boot/dts/am335x-wega.dtsi                 |  2 +-
+ arch/arm/boot/dts/am3517.dtsi                      |  2 +-
+ arch/arm/boot/dts/am4372.dtsi                      |  2 +-
+ arch/arm/boot/dts/am437x-gp-evm.dts                |  2 +-
+ arch/arm/boot/dts/am437x-idk-evm.dts               |  2 +-
+ arch/arm/boot/dts/am437x-sk-evm.dts                | 10 +++---
+ arch/arm/boot/dts/am43x-epos-evm.dts               |  4 +--
+ arch/arm/boot/dts/am57xx-beagle-x15.dts            |  8 ++---
+ arch/arm/boot/dts/am57xx-cl-som-am57x.dts          |  2 +-
+ arch/arm/boot/dts/da850-evm.dts                    |  2 +-
+ arch/arm/boot/dts/dm8148-evm.dts                   |  2 +-
+ arch/arm/boot/dts/dm8148-t410.dts                  |  2 +-
+ arch/arm/boot/dts/dm8168-evm.dts                   |  2 +-
+ arch/arm/boot/dts/dra62x-j5eco-evm.dts             |  2 +-
+ arch/arm/boot/dts/dra7-evm.dts                     |  8 ++---
+ arch/arm/boot/dts/omap3-n950-n9.dtsi               |  4 +--
+ arch/arm/boot/dts/omap3-overo-alto35-common.dtsi   |  2 +-
+ .../boot/dts/omap3-overo-chestnut43-common.dtsi    |  4 +--
+ arch/arm/boot/dts/omap3-overo-common-lcd35.dtsi    |  2 +-
+ arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi |  4 +--
+ arch/arm/boot/dts/omap3-overo-palo35-common.dtsi   |  4 +--
+ arch/arm/boot/dts/omap3-overo-palo43-common.dtsi   |  4 +--
+ arch/arm/boot/dts/omap3-pandora-common.dtsi        |  8 ++---
+ arch/arm/boot/dts/omap3.dtsi                       |  2 +-
+ arch/arm/boot/dts/omap34xx.dtsi                    |  2 +-
+ arch/arm/boot/dts/omap36xx.dtsi                    |  2 +-
+ arch/arm/boot/dts/omap4-duovero-parlor.dts         |  2 +-
+ arch/arm/boot/dts/omap5-board-common.dtsi          |  2 +-
+ arch/arm/boot/dts/omap5-cm-t54.dts                 |  2 +-
+ 43 files changed, 125 insertions(+), 125 deletions(-)
+
 -- 
 2.5.5
