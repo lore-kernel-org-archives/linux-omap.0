@@ -1,84 +1,135 @@
 From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 00/10] ARM: dts: omap: another round of DTC warning fixes
-Date: Mon,  1 Aug 2016 12:46:54 -0400
-Message-ID: <1470070024-30281-1-git-send-email-javier@osg.samsung.com>
+Subject: [PATCH 08/10] ARM: dts: omap3/4: remove unneeded unit name for gpio-keys nodes
+Date: Mon,  1 Aug 2016 12:47:02 -0400
+Message-ID: <1470070024-30281-9-git-send-email-javier@osg.samsung.com>
+References: <1470070024-30281-1-git-send-email-javier@osg.samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1470070024-30281-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@osg.samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hello Tony,
+This patch fixes the following DTC warnings for many boards:
 
-This is yet another series with fixes for DTC warnings caused by mismatches
-between device nodes' unit names and reg properties.
+"Node /gpio_keys/button0@10 has a unit name, but no reg property"
 
-The patches should not cause a functional change but were only build tested.
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+---
 
-Best regards,
-Javier
+ arch/arm/boot/dts/omap3-overo-alto35-common.dtsi     | 2 +-
+ arch/arm/boot/dts/omap3-overo-chestnut43-common.dtsi | 4 ++--
+ arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi   | 4 ++--
+ arch/arm/boot/dts/omap3-overo-palo35-common.dtsi     | 4 ++--
+ arch/arm/boot/dts/omap3-overo-palo43-common.dtsi     | 4 ++--
+ arch/arm/boot/dts/omap4-duovero-parlor.dts           | 2 +-
+ 6 files changed, 10 insertions(+), 10 deletions(-)
 
-
-Javier Martinez Canillas (10):
-  ARM: dts: omap3/am4372: add missing unit name to ocp node
-  ARM: dts: omap3: overo: add missing unit name for lcd35 display
-  ARM: dts: am335x/am437x: remove unneeded unit name for
-    gpio-matrix-keypad
-  ARM: dts: am335x/am437x: remove unneeded unit name for fixed
-    regulators
-  ARM: dts: da850/dm81x: remove unneeded unit name for fixed regulators
-  ARM: dts: omap3/dra62x: remove unneeded unit name for fixed regulators
-  ARM: dts: am335x/am437x: remove unneeded unit name for gpio-keys nodes
-  ARM: dts: omap3/4: remove unneeded unit name for gpio-keys nodes
-  ARM: dts: am335x/437x/57xx: remove unneeded unit name for gpio-leds
-    nodes
-  ARM: dts: omap3/4/5/dra7: remove unneeded unit name for gpio-leds
-    nodes
-
- arch/arm/boot/dts/am335x-baltos.dtsi               |  4 +--
- arch/arm/boot/dts/am335x-base0033.dts              |  4 +--
- arch/arm/boot/dts/am335x-bone-common.dtsi          | 10 +++---
- arch/arm/boot/dts/am335x-cm-t335.dts               |  6 ++--
- arch/arm/boot/dts/am335x-evm.dts                   | 14 ++++-----
- arch/arm/boot/dts/am335x-evmsk.dts                 | 26 ++++++++--------
- arch/arm/boot/dts/am335x-icev2.dts                 | 36 +++++++++++-----------
- arch/arm/boot/dts/am335x-igep0033.dtsi             |  6 ++--
- arch/arm/boot/dts/am335x-lxm.dts                   |  4 +--
- arch/arm/boot/dts/am335x-nano.dts                  |  2 +-
- arch/arm/boot/dts/am335x-pepper.dts                | 16 +++++-----
- arch/arm/boot/dts/am335x-phycore-som.dtsi          |  2 +-
- arch/arm/boot/dts/am335x-shc.dts                   | 14 ++++-----
- arch/arm/boot/dts/am335x-sl50.dts                  | 10 +++---
- arch/arm/boot/dts/am335x-wega.dtsi                 |  2 +-
- arch/arm/boot/dts/am3517.dtsi                      |  2 +-
- arch/arm/boot/dts/am4372.dtsi                      |  2 +-
- arch/arm/boot/dts/am437x-gp-evm.dts                |  2 +-
- arch/arm/boot/dts/am437x-idk-evm.dts               |  2 +-
- arch/arm/boot/dts/am437x-sk-evm.dts                | 10 +++---
- arch/arm/boot/dts/am43x-epos-evm.dts               |  4 +--
- arch/arm/boot/dts/am57xx-beagle-x15.dts            |  8 ++---
- arch/arm/boot/dts/am57xx-cl-som-am57x.dts          |  2 +-
- arch/arm/boot/dts/da850-evm.dts                    |  2 +-
- arch/arm/boot/dts/dm8148-evm.dts                   |  2 +-
- arch/arm/boot/dts/dm8148-t410.dts                  |  2 +-
- arch/arm/boot/dts/dm8168-evm.dts                   |  2 +-
- arch/arm/boot/dts/dra62x-j5eco-evm.dts             |  2 +-
- arch/arm/boot/dts/dra7-evm.dts                     |  8 ++---
- arch/arm/boot/dts/omap3-n950-n9.dtsi               |  4 +--
- arch/arm/boot/dts/omap3-overo-alto35-common.dtsi   |  2 +-
- .../boot/dts/omap3-overo-chestnut43-common.dtsi    |  4 +--
- arch/arm/boot/dts/omap3-overo-common-lcd35.dtsi    |  2 +-
- arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi |  4 +--
- arch/arm/boot/dts/omap3-overo-palo35-common.dtsi   |  4 +--
- arch/arm/boot/dts/omap3-overo-palo43-common.dtsi   |  4 +--
- arch/arm/boot/dts/omap3-pandora-common.dtsi        |  8 ++---
- arch/arm/boot/dts/omap3.dtsi                       |  2 +-
- arch/arm/boot/dts/omap34xx.dtsi                    |  2 +-
- arch/arm/boot/dts/omap36xx.dtsi                    |  2 +-
- arch/arm/boot/dts/omap4-duovero-parlor.dts         |  2 +-
- arch/arm/boot/dts/omap5-board-common.dtsi          |  2 +-
- arch/arm/boot/dts/omap5-cm-t54.dts                 |  2 +-
- 43 files changed, 125 insertions(+), 125 deletions(-)
-
+diff --git a/arch/arm/boot/dts/omap3-overo-alto35-common.dtsi b/arch/arm/boot/dts/omap3-overo-alto35-common.dtsi
+index 3b3a75997f81..99a7eee6e61f 100644
+--- a/arch/arm/boot/dts/omap3-overo-alto35-common.dtsi
++++ b/arch/arm/boot/dts/omap3-overo-alto35-common.dtsi
+@@ -44,7 +44,7 @@
+ 		#size-cells = <0>;
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&button_pins>;
+-		button0@10 {
++		button0 {
+ 			label = "button0";
+ 			linux,code = <BTN_0>;
+ 			gpios = <&gpio1 10 GPIO_ACTIVE_LOW>;		/* gpio_10 */
+diff --git a/arch/arm/boot/dts/omap3-overo-chestnut43-common.dtsi b/arch/arm/boot/dts/omap3-overo-chestnut43-common.dtsi
+index 7df27926ead2..a57671c4a664 100644
+--- a/arch/arm/boot/dts/omap3-overo-chestnut43-common.dtsi
++++ b/arch/arm/boot/dts/omap3-overo-chestnut43-common.dtsi
+@@ -37,13 +37,13 @@
+ 		pinctrl-0 = <&button_pins>;
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+-		button0@23 {
++		button0 {
+ 			label = "button0";
+ 			linux,code = <BTN_0>;
+ 			gpios = <&gpio1 23 GPIO_ACTIVE_LOW>;		/* gpio_23 */
+ 			wakeup-source;
+ 		};
+-		button1@14 {
++		button1 {
+ 			label = "button1";
+ 			linux,code = <BTN_1>;
+ 			gpios = <&gpio1 14 GPIO_ACTIVE_LOW>;		/* gpio_14 */
+diff --git a/arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi b/arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi
+index 250cc7fe5d5e..286f5baddf07 100644
+--- a/arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi
++++ b/arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi
+@@ -37,13 +37,13 @@
+ 		pinctrl-0 = <&button_pins>;
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+-		button0@23 {
++		button0 {
+ 			label = "button0";
+ 			linux,code = <BTN_0>;
+ 			gpios = <&gpio1 23 GPIO_ACTIVE_LOW>;		/* gpio_23 */
+ 			wakeup-source;
+ 		};
+-		button1@14 {
++		button1 {
+ 			label = "button1";
+ 			linux,code = <BTN_1>;
+ 			gpios = <&gpio1 14 GPIO_ACTIVE_LOW>;		/* gpio_14 */
+diff --git a/arch/arm/boot/dts/omap3-overo-palo35-common.dtsi b/arch/arm/boot/dts/omap3-overo-palo35-common.dtsi
+index 8df7ec35d17d..a8020fb42464 100644
+--- a/arch/arm/boot/dts/omap3-overo-palo35-common.dtsi
++++ b/arch/arm/boot/dts/omap3-overo-palo35-common.dtsi
+@@ -37,13 +37,13 @@
+ 		pinctrl-0 = <&button_pins>;
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+-		button0@23 {
++		button0 {
+ 			label = "button0";
+ 			linux,code = <BTN_0>;
+ 			gpios = <&gpio1 23 GPIO_ACTIVE_LOW>;		/* gpio_23 */
+ 			wakeup-source;
+ 		};
+-		button1@14 {
++		button1 {
+ 			label = "button1";
+ 			linux,code = <BTN_1>;
+ 			gpios = <&gpio1 14 GPIO_ACTIVE_LOW>;		/* gpio_14 */
+diff --git a/arch/arm/boot/dts/omap3-overo-palo43-common.dtsi b/arch/arm/boot/dts/omap3-overo-palo43-common.dtsi
+index 0ea2c451c809..11965737e2c9 100644
+--- a/arch/arm/boot/dts/omap3-overo-palo43-common.dtsi
++++ b/arch/arm/boot/dts/omap3-overo-palo43-common.dtsi
+@@ -37,13 +37,13 @@
+ 		pinctrl-0 = <&button_pins>;
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+-		button0@23 {
++		button0 {
+ 			label = "button0";
+ 			linux,code = <BTN_0>;
+ 			gpios = <&gpio1 23 GPIO_ACTIVE_LOW>;		/* gpio_23 */
+ 			wakeup-source;
+ 		};
+-		button1@14 {
++		button1 {
+ 			label = "button1";
+ 			linux,code = <BTN_1>;
+ 			gpios = <&gpio1 14 GPIO_ACTIVE_LOW>;		/* gpio_14 */
+diff --git a/arch/arm/boot/dts/omap4-duovero-parlor.dts b/arch/arm/boot/dts/omap4-duovero-parlor.dts
+index 6b39808b8313..1b825128a7b9 100644
+--- a/arch/arm/boot/dts/omap4-duovero-parlor.dts
++++ b/arch/arm/boot/dts/omap4-duovero-parlor.dts
+@@ -32,7 +32,7 @@
+ 		compatible = "gpio-keys";
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+-		button0@121 {
++		button0 {
+ 			label = "button0";
+ 			linux,code = <BTN_0>;
+ 			gpios = <&gpio4 25 GPIO_ACTIVE_LOW>;	/* gpio_121 */
 -- 
 2.5.5
