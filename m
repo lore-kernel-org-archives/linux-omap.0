@@ -1,57 +1,75 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 1271/1285] Replace numeric parameter like 0444 with macro
-Date: Tue, 2 Aug 2016 16:25:15 +0300
-Message-ID: <4bc851b0-73a2-f206-09e7-e6cc1f60cb9f@ti.com>
-References: <20160802123326.2771-1-baolex.ni@intel.com>
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: Re: [PATCH] musb: omap2430: do not assume balanced
+ enable()/disable()
+Date: Tue, 2 Aug 2016 17:01:01 +0200
+Message-ID: <20160802170101.12bdad52@aktux>
+References: <1469814151-2571-1-git-send-email-andreas@kemnade.info>
+	<20160802103334.GC28140@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/YZ5GJCEi7ubGxfcwk1ig.ot"; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160802123326.2771-1-baolex.ni@intel.com>
+In-Reply-To: <20160802103334.GC28140@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Baole Ni <baolex.ni@intel.com>, jarkko.nikula@bitmer.com, lgirdwood@gmail.com, broonie@kernel.org, perex@perex.cz, tiwai@suse.com, davem@davemloft.net, m.szyprowski@samsung.com, kyungmin.park@samsung.com, k.kozlowski@samsung.com
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, chuansheng.liu@intel.com, fabio.estevam@nxp.com, linus.walleij@linaro.org, zidan.wang@freescale.com, sachinpandhare@gmail.com, lars@metafoo.de
+To: Tony Lindgren <tony@atomide.com>
+Cc: Bin Liu <b-liu@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/02/16 15:33, Baole Ni wrote:
-> I find that the developers often just specified the numeric value
-> when calling a macro which is defined with a parameter for access permission.
-> As we know, these numeric value for access permission have had the corresponding macro,
-> and that using macro can improve the robustness and readability of the code,
-> thus, I suggest replacing the numeric parameter with the macro.
-> 
-> Signed-off-by: Chuansheng Liu <chuansheng.liu@intel.com>
-> Signed-off-by: Baole Ni <baolex.ni@intel.com>
-> ---
->  sound/soc/omap/mcbsp.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
-> index 4a16e77..3938336 100644
-> --- a/sound/soc/omap/mcbsp.c
-> +++ b/sound/soc/omap/mcbsp.c
-> @@ -857,7 +857,7 @@ unlock:
->  	return size;
->  }
->  
-> -static DEVICE_ATTR(dma_op_mode, 0644, dma_op_mode_show, dma_op_mode_store);
-> +static DEVICE_ATTR(dma_op_mode, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH, dma_op_mode_show, dma_op_mode_store);
+--Sig_/YZ5GJCEi7ubGxfcwk1ig.ot
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-I prefer to have the octal representation, more compact, easier to understand.
+On Tue, 2 Aug 2016 03:33:34 -0700
+Tony Lindgren <tony@atomide.com> wrote:
 
->  
->  static const struct attribute *additional_attrs[] = {
->  	&dev_attr_max_tx_thres.attr,
-> @@ -926,7 +926,7 @@ out:
->  	return size;
->  }
->  
-> -static DEVICE_ATTR(st_taps, 0644, st_taps_show, st_taps_store);
-> +static DEVICE_ATTR(st_taps, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH, st_taps_show, st_taps_store);
->  
->  static const struct attribute *sidetone_attrs[] = {
->  	&dev_attr_st_taps.attr,
-> 
+> * Andreas Kemnade <andreas@kemnade.info> [160729 11:14]:
+> > The code assumes that omap2430_musb_enable() and
+> > omap2430_musb_disable() is called in a balanced way. The
+> > That fact is broken by the fact that musb_init_controller() calls
+> > musb_platform_disable() to switch from unknown state to off state.
+>=20
+> OK, some spelling issues with the above paragraph though :)
+>=20
+> > That means that phy_power_off() is called first so that
+> > phy->power_count gets -1 and the phy is not enabled on
+> > phy_power_on(). In the probably common case of using the
+> > phy_twl4030, that prevents also charging the battery and so makes
+> > further kernel debugging hard.
+>=20
+> Is this with v4.7 kernel? Also, care to describe how you hit this
+> and on which hardware? Just wondering..
 
--- 
-Péter
+I got this error on the Openphoenux GTA04 phone. It has a DM3730
+SoC and a TPS65950 companion. Severe charging problems were already
+observed with the 4.4rc1. I do not know if that already was exactly
+*this* problem. I have debugged and patched the v4.7 kernel.
+How I hit the problem: Just boot an that device and try to charge
+via usb.
+Should I resubmit the patch with an extended commit message?
+
+Regards,
+Andreas Kemnade
+
+--Sig_/YZ5GJCEi7ubGxfcwk1ig.ot
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJXoLWtAAoJEInxNTv1CwY0Ld4P/1bkvxdYtg+dtb0SclmcA1Do
+ORpMymXYB7AVxbf5g6pj4JjwT4FMziLlfekfeS+scSm4i27Sr8qafnfulIGjY15h
+B6uzcVmfPQCHmGs0JvOUoSNuO5Fer3OQ+2rM9reDPpONlbmjAUHxpv8m/sAeU3h7
+7R3SiHfOqstQuT28lN8yu3akJLKy5AUzBXMOOu13GmGWX7y8PVlXg2HOglZA7aG0
+QohUa3nKs794X0dbAUXB/76wu7ZnQ2D0krnxhmOgNQxED7GzfKUY/c456rajpLxv
+sOEVWE1kGU1qTe1Cxh5ppGZLraVKsQdyU2gQx9nuQM/LOneNOE6h+3b6PVIs6z2p
+wQJqELgHQAfqn8ZnoZyCoEgFMMWuzmH8BD7EEt1QrqqFwymGuX7S2whm85HBWEUr
+XwCL2vJNJBXIwIVTLaji3n0snQR9T0k3NrKeNcEfKLCWa5BnYDeyFzbgo2c+mZTy
+ZXivDhzuzv3lLvjyjPa3d6ZCiVHAVyw6dmfsWw3JiGizSiCu20sX9jyOctqLeUnY
+tXxzYgdEJ1fLmsPK1LFoZHWWy7rgEzdSNofJhuMkqm6WaHJRpXe98LEqC6f/kApm
+22ouVcT/+lXGf4fvOf7xmQlNLaPCidfTPhbEMXSAVfthSNSuzbdjTKXxtVEKlyh4
+O/1kCkZYs6ruwVgJaMnq
+=BJpx
+-----END PGP SIGNATURE-----
+
+--Sig_/YZ5GJCEi7ubGxfcwk1ig.ot--
