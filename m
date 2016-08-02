@@ -1,36 +1,44 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/3] ARM: omap: fix 4.7 gpmc networking regression
-Date: Tue, 2 Aug 2016 03:35:05 -0700
-Message-ID: <20160802103505.GD28140@atomide.com>
-References: <1469362260-20066-1-git-send-email-johan@kernel.org>
+Subject: Re: [PATCH] musb: omap2430: do not assume balanced enable()/disable()
+Date: Tue, 2 Aug 2016 03:33:34 -0700
+Message-ID: <20160802103334.GC28140@atomide.com>
+References: <1469814151-2571-1-git-send-email-andreas@kemnade.info>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1469362260-20066-1-git-send-email-johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1469814151-2571-1-git-send-email-andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [160724 05:11]:
-> Networking is currently broken for Overo boards due to a regression in
-> 4.7. I bisected it down to
-> 
-> 	d2d00862dfbb ("memory: omap-gpmc: Support general purpose input
-> 	for WAITPINs")
-...
+* Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org> [160729 11:14]:
+> The code assumes that omap2430_musb_enable() and
+> omap2430_musb_disable() is called in a balanced way. The
+> That fact is broken by the fact that musb_init_controller() calls
+> musb_platform_disable() to switch from unknown state to off state.
 
-> Note that simply fixing the Overo NAND issue would fix the Overo
-> networking regression, but by restoring the 4.6 gpmc-probe behaviour
-> similar regressions on other OMAP systems are also avoided.
+OK, some spelling issues with the above paragraph though :)
 
-Roger, got a better fix in mind?
+> That means that phy_power_off() is called first so that
+> phy->power_count gets -1 and the phy is not enabled on phy_power_on().
+> In the probably common case of using the phy_twl4030, that
+> prevents also charging the battery and so makes further
+> kernel debugging hard.
+
+Is this with v4.7 kernel? Also, care to describe how you hit this
+and on which hardware? Just wondering..
+
+> The patch prevents phy_power_off() from being called when
+> it is already off.
+
+OK
 
 Regards,
 
 Tony
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
