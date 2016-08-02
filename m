@@ -1,11 +1,11 @@
 From: Baole Ni <baolex.ni@intel.com>
-Subject: [PATCH 1011/1285] Replace numeric parameter like 0444 with macro
-Date: Tue,  2 Aug 2016 20:08:05 +0800
-Message-ID: <20160802120805.17489-1-baolex.ni@intel.com>
+Subject: [PATCH 1271/1285] Replace numeric parameter like 0444 with macro
+Date: Tue,  2 Aug 2016 20:33:26 +0800
+Message-ID: <20160802123326.2771-1-baolex.ni@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, m.chehab@samsung.com, gregkh@linuxfoundation.org, m.szyprowski@samsung.com, kyungmin.park@samsung.com, k.kozlowski@samsung.com
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, chuansheng.liu@intel.com, baolex.ni@intel.com, oneukum@suse.com
+To: peter.ujfalusi@ti.com, jarkko.nikula@bitmer.com, lgirdwood@gmail.com, broonie@kernel.org, perex@perex.cz, tiwai@suse.com, davem@davemloft.net, m.szyprowski@samsung.com, kyungmin.park@samsung.com, k.kozlowski@samsung.com
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, chuansheng.liu@intel.com, baolex.ni@intel.com, fabio.estevam@nxp.com, linus.walleij@linaro.org, zidan.wang@freescale.com, sachinpandhare@gmail.com, lars@metafoo.de
 List-Id: linux-omap@vger.kernel.org
 
 I find that the developers often just specified the numeric value
@@ -17,56 +17,30 @@ thus, I suggest replacing the numeric parameter with the macro.
 Signed-off-by: Chuansheng Liu <chuansheng.liu@intel.com>
 Signed-off-by: Baole Ni <baolex.ni@intel.com>
 ---
- drivers/video/fbdev/omap/omapfb_main.c | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ sound/soc/omap/mcbsp.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap/omapfb_main.c b/drivers/video/fbdev/omap/omapfb_main.c
-index 6429f33..e03c066 100644
---- a/drivers/video/fbdev/omap/omapfb_main.c
-+++ b/drivers/video/fbdev/omap/omapfb_main.c
-@@ -1307,8 +1307,8 @@ static ssize_t omapfb_show_caps_text(struct device *dev,
+diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
+index 4a16e77..3938336 100644
+--- a/sound/soc/omap/mcbsp.c
++++ b/sound/soc/omap/mcbsp.c
+@@ -857,7 +857,7 @@ unlock:
  	return size;
  }
  
--static DEVICE_ATTR(caps_num, 0444, omapfb_show_caps_num, NULL);
--static DEVICE_ATTR(caps_text, 0444, omapfb_show_caps_text, NULL);
-+static DEVICE_ATTR(caps_num, S_IRUSR | S_IRGRP | S_IROTH, omapfb_show_caps_num, NULL);
-+static DEVICE_ATTR(caps_text, S_IRUSR | S_IRGRP | S_IROTH, omapfb_show_caps_text, NULL);
+-static DEVICE_ATTR(dma_op_mode, 0644, dma_op_mode_show, dma_op_mode_store);
++static DEVICE_ATTR(dma_op_mode, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH, dma_op_mode_show, dma_op_mode_store);
  
- /* panel sysfs entries */
- static ssize_t omapfb_show_panel_name(struct device *dev,
-@@ -1370,9 +1370,9 @@ static ssize_t omapfb_show_bklight_max(struct device *dev,
- 
- static struct device_attribute dev_attr_panel_name =
- 	__ATTR(name, 0444, omapfb_show_panel_name, NULL);
--static DEVICE_ATTR(backlight_level, 0664,
-+static DEVICE_ATTR(backlight_level, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH,
- 		   omapfb_show_bklight_level, omapfb_store_bklight_level);
--static DEVICE_ATTR(backlight_max, 0444, omapfb_show_bklight_max, NULL);
-+static DEVICE_ATTR(backlight_max, S_IRUSR | S_IRGRP | S_IROTH, omapfb_show_bklight_max, NULL);
- 
- static struct attribute *panel_attrs[] = {
- 	&dev_attr_panel_name.attr,
-@@ -1928,13 +1928,13 @@ static void __exit omapfb_cleanup(void)
- 	platform_driver_unregister(&omapfb_driver);
+ static const struct attribute *additional_attrs[] = {
+ 	&dev_attr_max_tx_thres.attr,
+@@ -926,7 +926,7 @@ out:
+ 	return size;
  }
  
--module_param_named(accel, def_accel, uint, 0664);
--module_param_array_named(vram, def_vram, ulong, &def_vram_cnt, 0664);
--module_param_named(vxres, def_vxres, long, 0664);
--module_param_named(vyres, def_vyres, long, 0664);
--module_param_named(rotate, def_rotate, uint, 0664);
--module_param_named(mirror, def_mirror, uint, 0664);
--module_param_named(manual_update, manual_update, bool, 0664);
-+module_param_named(accel, def_accel, uint, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-+module_param_array_named(vram, def_vram, ulong, &def_vram_cnt, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-+module_param_named(vxres, def_vxres, long, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-+module_param_named(vyres, def_vyres, long, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-+module_param_named(rotate, def_rotate, uint, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-+module_param_named(mirror, def_mirror, uint, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-+module_param_named(manual_update, manual_update, bool, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+-static DEVICE_ATTR(st_taps, 0644, st_taps_show, st_taps_store);
++static DEVICE_ATTR(st_taps, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH, st_taps_show, st_taps_store);
  
- module_init(omapfb_init);
- module_exit(omapfb_cleanup);
+ static const struct attribute *sidetone_attrs[] = {
+ 	&dev_attr_st_taps.attr,
 -- 
 2.9.2
