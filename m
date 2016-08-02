@@ -1,51 +1,36 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [RFT PATCH v2 2/3] ARM: Fix *MIGHT_HAVE_PCI* config from being
- selected redundantly
-Date: Tue, 2 Aug 2016 11:52:35 +0530
-Message-ID: <57A03C2B.2080407@ti.com>
-References: <1470049950-4697-1-git-send-email-kishon@ti.com>
- <1470049950-4697-3-git-send-email-kishon@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/3] ARM: omap: fix 4.7 gpmc networking regression
+Date: Tue, 2 Aug 2016 03:35:05 -0700
+Message-ID: <20160802103505.GD28140@atomide.com>
+References: <1469362260-20066-1-git-send-email-johan@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1470049950-4697-3-git-send-email-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Nicolas Ferre <nicolas.ferre@atmel.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Krzysztof Halasa <khalasa@piap.pl>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Santosh Shilimkar <ssantosh@kernel.org>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Viresh Kumar <vireshk@kernel.org>, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-pci@vger.kernel.org, nsekhar@ti.com, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, helgaas@kernel.org, Benoit Cousson <bcousson@baylibre.com>, Greg Ungerer <gerg@uclinux.org>, Fabio Estevam <fabio.estevam@nxp.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1469362260-20066-1-git-send-email-johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Monday 01 August 2016 04:42 PM, Kishon Vijay Abraham I wrote:
-> *MIGHT_HAVE_PCI* config is already selected in ARCH_MULTIPLATFORM.
-> Fix it from getting redundantly selected in all
-> ARCH_MULTIPLATFORM based machines.
+* Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [160724 05:11]:
+> Networking is currently broken for Overo boards due to a regression in
+> 4.7. I bisected it down to
 > 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  arch/arm/Kconfig                 |    2 --
->  arch/arm/mach-at91/Kconfig       |    1 -
->  arch/arm/mach-axxia/Kconfig      |    1 -
->  arch/arm/mach-exynos/Kconfig     |    1 -
->  arch/arm/mach-integrator/Kconfig |    1 -
->  arch/arm/mach-keystone/Kconfig   |    1 -
->  arch/arm/mach-ks8695/Kconfig     |    5 -----
->  arch/arm/mach-pxa/Kconfig        |    1 -
->  arch/arm/mach-spear/Kconfig      |    1 -
->  arch/arm/mach-versatile/Kconfig  |    1 -
+> 	d2d00862dfbb ("memory: omap-gpmc: Support general purpose input
+> 	for WAITPINs")
+...
 
-Thank you everyone for reviewing this patch.
-Looks like ARCH_IXP4XX, ARCH_DOVE, ARCH_KS8695, ARCH_PXA are not converted to
-multiplatform. I'll fix this patch accordingly and repost the series.
+> Note that simply fixing the Overo NAND issue would fix the Overo
+> networking regression, but by restoring the 4.6 gpmc-probe behaviour
+> similar regressions on other OMAP systems are also avoided.
 
-Thanks
-Kishon
+Roger, got a better fix in mind?
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
