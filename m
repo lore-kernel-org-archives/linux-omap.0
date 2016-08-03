@@ -1,61 +1,60 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: Support for configurable PCIe endpoint
-Date: Wed, 03 Aug 2016 18:03:54 +0200
-Message-ID: <2460140.yVuTYYqBTX@wuerfel>
-References: <57A18927.9070003@ti.com> <20160803094747.GA10170@infradead.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160803094747.GA10170@infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, David Daney <david.daney@cavium.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Tanmay Inamdar <tinamdar@apm.com>, Joao Pinto <jpinto@synopsys.com>, Pratyush Anand <pratyush.anand@gmail.com>, Kishon Vijay Abraham I <kishon@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, Jason Cooper <jason@lakedaemon.net>, Simon Horman <horms@verge.net.au>, "bhelgaas@google.com" <bhelgaas@google.com>, Mingkai Hu <mingkai.hu@freescale.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Jingoo Han <jingoohan1@gmail.com>, Richard Zhu <Richard.Zhu@freescale.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stanimir
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: [PATCH v2] musb: omap2430: do not assume balanced enable()/disable()
+Date: Wed,  3 Aug 2016 17:38:51 +0200
+Message-ID: <1470238731-32358-1-git-send-email-andreas@kemnade.info>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bin Liu <b-liu@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, letux-kernel@openphoenux.org
+Cc: Andreas Kemnade <andreas@kemnade.info>
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday, August 3, 2016 2:47:47 AM CEST Christoph Hellwig wrote:
-> On Wed, Aug 03, 2016 at 11:33:19AM +0530, Kishon Vijay Abraham I wrote:
-> > Hi,
-> > 
-> > The PCIe controller present in TI's DRA7 SoC is capable of operating either in
-> > Root Complex mode or Endpoint mode. (It uses Synopsys Designware Core).I'd
-> > assume most of the PCIe controllers on other platforms that use Designware core
-> > should also be capable to operate in endpoint mode. But linux kernel right now
-> > supports only RC mode.
-> > 
-> > PCIe endpoint support discussion came up briefly before [1] but it was felt the
-> > practical use case will find firmware more suitable and endpoint support in
-> > kernel can be used only for validation or demo.
-> 
-> I disagree.  It's highly useful for rapid prototyping of hardware
-> interfaces, and I've been looking into PCIe EP drivers for exactly
-> that reason recently.  Going a little offtopic: any good DRA7 eval
-> boards you'd recommend to try for this purpose?
-> 
-> We already have a EP driver in the tree:
-> 
-> drivers/misc/spear13xx_pcie_gadget.c
-> 
-> but as far as I can tell it doesn't really work at the moment.
-> 
+The code assumes that omap2430_musb_enable() and
+omap2430_musb_disable() are called in a balanced way.
+That fact is broken by the fact that musb_init_controller() calls
+musb_platform_disable() to switch from unknown state to off state
+on initialisation.
 
-This is indeed for the designware pcie hardware, but it never worked
-in a mainline kernel, and I marked it 'depends on BROKEN' after it
-had not correctly compiled for a long time. It's also lacking because
-it neither abstracts the hardware nor the protocol, and I think we
-want both.
+That means that phy_power_off() is called first so that
+phy->power_count gets -1 and the phy is not enabled on phy_power_on().
+So when usb gadget is started the phy is not powered on.
+Depending on the phy used that caused various problems.
+Besides of causing usb problems, that can also have side effects.
 
-drivers/ntb seems like a reasonable start, while an alternative
-approach that we have discussed in the past would be based on top
-of virtio, so we could use the existing front-end drivers (net, block,
-v9fs, console, ...).
+In the case of using the phy_twl4030, that prevents also charging
+the battery via usb (using twl4030_charger) and so makes further
+kernel debugging hard.
+The problem was seen with 4.7 on an openphoenux gta04. It has a DM3730
+SoC and a TPS65950 companion.  phy->power never became 1
+and so the usb did get powered on.
 
-	Arnd
+The patch prevents phy_power_off() from being called when
+it is already off.
+
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+changes in v2:
+improved commit message
+
+ drivers/usb/musb/omap2430.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 0b4cec9..c1a2b7b 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -413,9 +413,10 @@ static void omap2430_musb_disable(struct musb *musb)
+ 	struct device *dev = musb->controller;
+ 	struct omap2430_glue *glue = dev_get_drvdata(dev->parent);
+ 
+-	if (!WARN_ON(!musb->phy))
+-		phy_power_off(musb->phy);
+-
++	if (glue->enabled) {
++		if (!WARN_ON(!musb->phy))
++			phy_power_off(musb->phy);
++	}
+ 	if (glue->status != MUSB_UNKNOWN)
+ 		omap_control_usb_set_mode(glue->control_otghs,
+ 			USB_MODE_DISCONNECT);
+-- 
+2.1.4
