@@ -1,75 +1,63 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Support for configurable PCIe endpoint
-Date: Wed, 3 Aug 2016 11:33:19 +0530
-Message-ID: <57A18927.9070003@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] musb: omap2430: do not assume balanced enable()/disable()
+Date: Tue, 2 Aug 2016 23:30:16 -0700
+Message-ID: <20160803063015.GE28140@atomide.com>
+References: <1469814151-2571-1-git-send-email-andreas@kemnade.info>
+ <20160802103334.GC28140@atomide.com>
+ <20160802170101.12bdad52@aktux>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: "bhelgaas@google.com" <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, Jingoo Han <jingoohan1@gmail.com>, Pratyush Anand <pratyush.anand@gmail.com>
-Cc: Ley Foon Tan <lftan@altera.com>, Rob Herring <robh@kernel.org>, Tanmay Inamdar <tinamdar@apm.com>, Roy Zang <tie-fei.zang@freescale.com>, Mingkai Hu <mingkai.hu@freescale.com>, Minghuan Lian <minghuan.Lian@freescale.com>, Richard Zhu <Richard.Zhu@freescale.com>, Lucas Stach <l.stach@pengutronix.de>, Murali Karicheri <m-karicheri2@ti.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Jason Cooper <jason@lakedaemon.net>, Thierry Reding <thierry.reding@gmail.com>, Kishon Vijay Abraham I <kishon@ti.com>, Simon Horman <horms@verge.net.au>, Joao Pinto <jpinto@synopsys.com>, Zhou Wang <wangzhou1@hisilicon.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, Stanimir Varbanov <svarbanov@mm-sol.com>, David Daney <david.daney@cavium.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@list>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160802170101.12bdad52@aktux>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org> [160802 08:14]:
+> On Tue, 2 Aug 2016 03:33:34 -0700
+> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+> 
+> > * Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org> [160729 11:14]:
+> > > The code assumes that omap2430_musb_enable() and
+> > > omap2430_musb_disable() is called in a balanced way. The
+> > > That fact is broken by the fact that musb_init_controller() calls
+> > > musb_platform_disable() to switch from unknown state to off state.
+> > 
+> > OK, some spelling issues with the above paragraph though :)
+> > 
+> > > That means that phy_power_off() is called first so that
+> > > phy->power_count gets -1 and the phy is not enabled on
+> > > phy_power_on(). In the probably common case of using the
+> > > phy_twl4030, that prevents also charging the battery and so makes
+> > > further kernel debugging hard.
+> > 
+> > Is this with v4.7 kernel? Also, care to describe how you hit this
+> > and on which hardware? Just wondering..
+> 
+> I got this error on the Openphoenux GTA04 phone. It has a DM3730
+> SoC and a TPS65950 companion. Severe charging problems were already
+> observed with the 4.4rc1. I do not know if that already was exactly
+> *this* problem. I have debugged and patched the v4.7 kernel.
 
-The PCIe controller present in TI's DRA7 SoC is capable of operating either in
-Root Complex mode or Endpoint mode. (It uses Synopsys Designware Core).I'd
-assume most of the PCIe controllers on other platforms that use Designware core
-should also be capable to operate in endpoint mode. But linux kernel right now
-supports only RC mode.
+OK thanks for the info.
 
-PCIe endpoint support discussion came up briefly before [1] but it was felt the
-practical use case will find firmware more suitable and endpoint support in
-kernel can be used only for validation or demo.
+> How I hit the problem: Just boot an that device and try to charge
+> via usb.
 
-Validation or demo is itself a valid use case in my opinion (consider something
-similar to gadget zero for USB). There can be other use cases as well. The RC
-can use the SoC with EP mode support as an accelerator to accomplish specific
-task. Here RC gives data to the EP. The EP processes the data. The processing
-can be done either in ARM itself or it can use other hardware accelerators
-(like DSP, IVA-HD etc..) present in the EP system. If HW accelerator is used,
-the linux kernel running in ARM can be used to accomplish other tasks. Once EP
-mode support is added, I think more use cases will be added.
+OK so it's the twl4030 charger then I guess.
 
->From the high level this should look _similar_ to the gadget framework of USB.
-One difference from USB would be this should allow HW components (like DSP, PRU
-etc.. and maybe even some peripheral) in the EP system to be used by RC system.
+> Should I resubmit the patch with an extended commit message?
 
-So these are the high-level steps that I thought would be needed to add EP
-support in linux.
-*) move pcie-designware.c out of drivers/pci/host (maybe create a
-drivers/pci/designware/ folder?). All users of pcie-designware.c should be
-moved here.
-This is in preparation for adding EP mode support to designware.
+Well yeah it might be worth describing that it's the twl4030
+charger that otherwise does not work properly.
 
-*) Add library functions in pcie-designware.c specific to EP mode like
-initializing general ecam registers, BAR registers etc.. These functions should
-be invoked from a *function* driver (function driver should determine the use
-of a particular EP).
+Regards,
 
-*) Add a sample *function* driver that can be used just for validation. This
-function driver will invoke the previously added functions in PCIe controller
-to initialize ecam, BAR etc.. This will invoke the PCIe controller functions
-through *ep-core* layer. That way the same function driver can be made to work
-with different PCIe controllers. (A PCIe driver corresponding to this function
-driver should also be implemented in RC side)
-
-*) Add *ep-core* layer to bind the function driver to the controller driver and
-using which the function driver will invoke controller driver callbacks (to
-initialize ecam, BAR registers etc..)
-
-*) Modify platform driver to support EP mode (in my case pci-dra7xx.c).
-
-*) dt binding specific to EP mode should be created.
-
-Once I complete the implementation and start posting RFC patches, a lot of
-these will become clear. But I want to check if this sounds okay to you guys
-before starting the implementation.
-
-Let me know if you have some other ideas too.
-
-Cheers
-Kishon
-
-[1] -> http://www.spinics.net/lists/linux-pci/msg26026.html
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
