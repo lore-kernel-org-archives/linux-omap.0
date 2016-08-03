@@ -1,85 +1,35 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [Letux-kernel] [PATCH v2] musb: omap2430: do not assume balanced enable()/disable()
-Date: Wed, 3 Aug 2016 19:07:09 +0200
-Message-ID: <FFDA9A63-599B-44CA-B244-C8860D9E01D9@goldelico.com>
-References: <1470238731-32358-1-git-send-email-andreas@kemnade.info>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: Support for configurable PCIe endpoint
+Date: Wed, 3 Aug 2016 10:27:36 -0700
+Message-ID: <20160803172736.GA12989@infradead.org>
+References: <57A18927.9070003@ti.com> <20160803094747.GA10170@infradead.org>
+ <2460140.yVuTYYqBTX@wuerfel>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1470238731-32358-1-git-send-email-andreas@kemnade.info>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: Bin Liu <b-liu@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux USB Mailing List <linux-usb@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <2460140.yVuTYYqBTX@wuerfel>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, David Daney <david.daney@cavium.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Tanmay Inamdar <tinamdar@apm.com>, Joao Pinto <jpinto@synopsys.com>, Pratyush Anand <pratyush.anand@gmail.com>, Kishon Vijay Abraham I <kishon@ti.com>, Christoph Hellwig <hch@infradead.org>, Murali Karicheri <m-karicheri2@ti.com>, Jason Cooper <jason@lakedaemon.net>, Simon Horman <horms@verge.net.au>, "bhelgaas@google.com" <bhelgaas@google.com>, Mingkai Hu <mingkai.hu@freescale.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Jingoo Han <jingoohan1@gmail.com>, Richard Zhu <Richard.Zhu@freescale.com>, "linux-kernel@vger.kernel.org" <linux-ke>
 List-Id: linux-omap@vger.kernel.org
 
+On Wed, Aug 03, 2016 at 06:03:54PM +0200, Arnd Bergmann wrote:
+> drivers/ntb seems like a reasonable start, while an alternative
+> approach that we have discussed in the past would be based on top
+> of virtio, so we could use the existing front-end drivers (net, block,
+> v9fs, console, ...).
 
-> Am 03.08.2016 um 17:38 schrieb Andreas Kemnade <andreas@kemnade.info>:
-> 
-> The code assumes that omap2430_musb_enable() and
-> omap2430_musb_disable() are called in a balanced way.
-> That fact is broken by the fact that musb_init_controller() calls
-> musb_platform_disable() to switch from unknown state to off state
-> on initialisation.
-> 
-> That means that phy_power_off() is called first so that
-> phy->power_count gets -1 and the phy is not enabled on phy_power_on().
-> So when usb gadget is started the phy is not powered on.
-> Depending on the phy used that caused various problems.
-> Besides of causing usb problems, that can also have side effects.
-> 
-> In the case of using the phy_twl4030, that prevents also charging
-> the battery via usb (using twl4030_charger) and so makes further
-> kernel debugging hard.
-> The problem was seen with 4.7 on an openphoenux gta04. It has a DM3730
-> SoC and a TPS65950 companion.  phy->power never became 1
-
-s/TPS65950/TPS65950 (twl4030)/
-
-> and so the usb did get powered on.
-
-s/did get/did not get/
-
-maybe add:
-
-All this prevents detection of cable plugin-events and VBUS measurement
-and setting OTG_EN before charging is attempted.
-
-> 
-> The patch prevents phy_power_off() from being called when
-> it is already off.
-> 
-> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-> ---
-> changes in v2:
-> improved commit message
-> 
-> drivers/usb/musb/omap2430.c | 7 ++++---
-> 1 file changed, 4 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> index 0b4cec9..c1a2b7b 100644
-> --- a/drivers/usb/musb/omap2430.c
-> +++ b/drivers/usb/musb/omap2430.c
-> @@ -413,9 +413,10 @@ static void omap2430_musb_disable(struct musb *musb)
-> 	struct device *dev = musb->controller;
-> 	struct omap2430_glue *glue = dev_get_drvdata(dev->parent);
-> 
-> -	if (!WARN_ON(!musb->phy))
-> -		phy_power_off(musb->phy);
-> -
-> +	if (glue->enabled) {
-> +		if (!WARN_ON(!musb->phy))
-> +			phy_power_off(musb->phy);
-> +	}
-> 	if (glue->status != MUSB_UNKNOWN)
-> 		omap_control_usb_set_mode(glue->control_otghs,
-> 			USB_MODE_DISCONNECT);
-> -- 
-> 2.1.4
-> 
-> _______________________________________________
-> http://projects.goldelico.com/p/gta04-kernel/
-> Letux-kernel mailing list
-> Letux-kernel@openphoenux.org
-> http://lists.goldelico.com/mailman/listinfo.cgi/letux-kernel
+I don't really think either is a good aproach for the lowest level
+interface.  To be useful the EP driver needs to be able to implement
+any (reasonable) thing a PCIe device could do.  Both NTB and virtio
+can sit on top of that, though.
