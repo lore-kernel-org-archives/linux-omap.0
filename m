@@ -1,13 +1,13 @@
-From: Vladimir Murzin <vladimir.murzin@arm.com>
-Subject: Re: Kernel NFS boot failure
-Date: Wed, 3 Aug 2016 13:06:00 +0100
-Message-ID: <57A1DE28.7020604@arm.com>
-References: <674e6841-d2c5-ccae-6633-a699e848e6d2@ti.com>
+From: Joao Pinto <Joao.Pinto@synopsys.com>
+Subject: Re: Support for configurable PCIe endpoint
+Date: Wed, 3 Aug 2016 14:39:00 +0100
+Message-ID: <7c696488-eb78-d6d9-dc70-49fa5b4e3317@synopsys.com>
+References: <57A18927.9070003@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <674e6841-d2c5-ccae-6633-a699e848e6d2@ti.com>
+In-Reply-To: <57A18927.9070003@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,57 +17,58 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, netdev <netdev@vger.kernel.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Kishon Vijay Abraham I <kishon@ti.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, Jingoo Han <jingoohan1@gmail.com>, Pratyush Anand <pratyush.anand@gmail.com>
+Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, David Daney <david.daney@cavium.com>, Carlos Palminha <CARLOS.PALMINHA@synopsys.com>, Thierry Reding <thierry.reding@gmail.com>, Tanmay Inamdar <tinamdar@apm.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Murali Karicheri <m-karicheri2@ti.com>, Jason Cooper <jason@lakedaemon.net>, Simon Horman <horms@verge.net.au>, Mingkai Hu <mingkai.hu@freescale.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Richard Zhu <Richard.Zhu@freescale.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stanimir Varbanov <svarbanov@mm-sol.com>, Minghuan Lian <minghuan.Lian@freescale.com>, Zhou Wang <wangzhou1@hisilicon.com>, Ley Foon Tan <lftan@altera.com>, Roy Zang <tie-fei.zang@fr>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Kishon,
 
-On 03/08/16 12:41, Grygorii Strashko wrote:
-> Hi All,
+On 8/3/2016 7:03 AM, Kishon Vijay Abraham I wrote:
+> Hi,
 > 
-> We observe Kernel boot failure while running NFS boot stress test (1000 iterations):
-> - Linux version 4.7.0 
-> - am335x-evm (TI AM335x EVM)
-> - failure rate 10-20 times per test.
-> Originally this issue was reproduced using TI Kernel 4.4
-> ( git://git.ti.com/ti-linux-kernel/ti-linux-kernel.git, branch: ti-linux-4.4.y)
-> on both am335x-evm and am57xx-beagle-x15(am57xx-evm) platforms.
-> This issues has not been reproduced with TI Kernel 4.1 before.
+> The PCIe controller present in TI's DRA7 SoC is capable of operating either in
+> Root Complex mode or Endpoint mode. (It uses Synopsys Designware Core). I'd
+> assume most of the PCIe controllers on other platforms that use Designware core
+> should also be capable to operate in endpoint mode. But linux kernel right now
+> supports only RC mode.
 > 
-> The SysRq shows that system stuck in nfs_fs_mount()
+> PCIe endpoint support discussion came up briefly before [1] but it was felt the
+> practical use case will find firmware more suitable and endpoint support in
+> kernel can be used only for validation or demo.
 > 
-> [  207.904632] [<c07ab34c>] (schedule) from [<c0783554>] (rpc_wait_bit_killable+0x2c/0xd8)
-> [  207.912996] [<c0783554>] (rpc_wait_bit_killable) from [<c07ab7f0>] (__wait_on_bit+0x84/0xc0)
-> [  207.921812] [<c07ab7f0>] (__wait_on_bit) from [<c07ab890>] (out_of_line_wait_on_bit+0x64/0x70)
-> [  207.930810] [<c07ab890>] (out_of_line_wait_on_bit) from [<c07843f4>] (__rpc_execute+0x18c/0x544)
-> [  207.939988] [<c07843f4>] (__rpc_execute) from [<c0779f24>] (rpc_run_task+0x13c/0x158)
-> [  207.948166] [<c0779f24>] (rpc_run_task) from [<c0779f84>] (rpc_call_sync+0x44/0xc4)
-> [  207.956163] [<c0779f84>] (rpc_call_sync) from [<c077a04c>] (rpc_ping+0x48/0x68)
-> [  207.963796] [<c077a04c>] (rpc_ping) from [<c077a158>] (rpc_create_xprt+0xec/0x164)
-> [  207.971702] [<c077a158>] (rpc_create_xprt) from [<c077a2c0>] (rpc_create+0xf0/0x1a0)
-> [  207.979794] [<c077a2c0>] (rpc_create) from [<c0393088>] (nfs_create_rpc_client+0xd4/0xec)
-> [  207.988338] [<c0393088>] (nfs_create_rpc_client) from [<c0394d10>] (nfs_init_client+0x20/0x78)
-> [  207.997332] [<c0394d10>] (nfs_init_client) from [<c03949d4>] (nfs_create_server+0xa0/0x3bc)
-> [  208.006057] [<c03949d4>] (nfs_create_server) from [<c03b197c>] (nfs3_create_server+0x8/0x20)
-> [  208.014879] [<c03b197c>] (nfs3_create_server) from [<c03a34c4>] (nfs_try_mount+0xc4/0x1f0)
-> [  208.023513] [<c03a34c4>] (nfs_try_mount) from [<c03a2c48>] (nfs_fs_mount+0x290/0x910)
-> [  208.031702] [<c03a2c48>] (nfs_fs_mount) from [<c0294d24>] (mount_fs+0x44/0x168)
+> *) Modify platform driver to support EP mode (in my case pci-dra7xx.c).
 > 
-> Has anyone else seen this issue?
+> *) dt binding specific to EP mode should be created.
 > 
-> I'd be appreciated for any help or advice related to this issue?
+> Once I complete the implementation and start posting RFC patches, a lot of
+> these will become clear. But I want to check if this sounds okay to you guys
+> before starting the implementation.
+> 
+> Let me know if you have some other ideas too.
+> 
+> Cheers
+> Kishon
+> 
+> [1] -> http://www.spinics.net/lists/linux-pci/msg26026.html
+> 
 
-I did not look at details, but because it is 4.4 and __wait_on_bit
-showed up you might want to look at [1]
+You are rising a topic that we are also addressing in Synopsys.
 
-[1] https://lkml.org/lkml/2015/11/20/472
+For the PCIe RC hardware validation we are currently using the standard
+pcie-designware and pcie-designware-plat drivers.
 
-Just my 2p.
-Vladimir
+For the Endpoint we have to use an internal software package. Its main purpose
+is to initialize the IP registers, eDMA channels and make data transfer to prove
+that the everything is working properly. This is done in 2 levels, a custom
+driver built and loaded and an application that makes some ioctl to the driver
+executing some interesting functions to check the Endpoint status and make some
+data exchange.
 
-> 
-> Thanks in advance.
-> 
-> regards,
-> -grygorii
+We are very interest in the subject and we are available to participate in the
+development.
+
+I would suggest that also the IP eDMA initialization and manipulation be
+included in the framework and maybe produce a standard tool to test the endpoint.
+
+Thanks
+Joao
