@@ -1,79 +1,96 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: Kernel NFS boot failure
-Date: Wed, 3 Aug 2016 18:04:40 +0300
-Message-ID: <c234fc25-ef5b-eecc-450f-34d01410f9de@ti.com>
-References: <674e6841-d2c5-ccae-6633-a699e848e6d2@ti.com>
- <57A1DE28.7020604@arm.com>
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: Re: [PATCH] musb: omap2430: do not assume balanced
+ enable()/disable()
+Date: Wed, 3 Aug 2016 16:54:36 +0200
+Message-ID: <20160803165436.007842fc@aktux>
+References: <1469814151-2571-1-git-send-email-andreas@kemnade.info>
+	<20160802103334.GC28140@atomide.com>
+	<20160802170101.12bdad52@aktux>
+	<20160803063015.GE28140@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <57A1DE28.7020604@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Vladimir Murzin <vladimir.murzin@arm.com>, netdev <netdev@vger.kernel.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, open list <linux-kernel@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/awDbYkDT5oy+3SIUrYVVwoJ"; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160803063015.GE28140@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Bin Liu <b-liu@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Vladimir,
+--Sig_/awDbYkDT5oy+3SIUrYVVwoJ
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-On 08/03/2016 03:06 PM, Vladimir Murzin wrote:
-> On 03/08/16 12:41, Grygorii Strashko wrote:
->> We observe Kernel boot failure while running NFS boot stress test (1000 iterations):
->> - Linux version 4.7.0 
+On Tue, 2 Aug 2016 23:30:16 -0700
+Tony Lindgren <tony@atomide.com> wrote:
 
-I'd like to pay your attention that this issue also reproducible with
-Kernel 4.7.0!
-The same can be seen from the log I've provided in first e-mail:
-[    0.000000] Linux version 4.7.0 (lcpdbld@dflsdit-build06.dal.design.ti.com) (gcc version 4.9.3 20150413 (prerelease) (Linaro GCC 4.9-2015.05) ) #1 SMP Fri Jul 29 17:41:27 CDT 2016
+> * Andreas Kemnade <andreas@kemnade.info> [160802 08:14]:
+> > On Tue, 2 Aug 2016 03:33:34 -0700
+> > Tony Lindgren <tony@atomide.com> wrote:
+> >=20
+> > > * Andreas Kemnade <andreas@kemnade.info> [160729 11:14]:
+> > > > The code assumes that omap2430_musb_enable() and
+> > > > omap2430_musb_disable() is called in a balanced way. The
+> > > > That fact is broken by the fact that musb_init_controller()
+> > > > calls musb_platform_disable() to switch from unknown state to
+> > > > off state.
+> > >=20
+> > > OK, some spelling issues with the above paragraph though :)
+> > >=20
+> > > > That means that phy_power_off() is called first so that
+> > > > phy->power_count gets -1 and the phy is not enabled on
+> > > > phy_power_on(). In the probably common case of using the
+> > > > phy_twl4030, that prevents also charging the battery and so
+> > > > makes further kernel debugging hard.
+> > >=20
+> > > Is this with v4.7 kernel? Also, care to describe how you hit this
+> > > and on which hardware? Just wondering..
+> >=20
+> > I got this error on the Openphoenux GTA04 phone. It has a DM3730
+> > SoC and a TPS65950 companion. Severe charging problems were already
+> > observed with the 4.4rc1. I do not know if that already was exactly
+> > *this* problem. I have debugged and patched the v4.7 kernel.
+>=20
+> OK thanks for the info.
+>=20
+> > How I hit the problem: Just boot an that device and try to charge
+> > via usb.
+>=20
+> OK so it's the twl4030 charger then I guess.
+>=20
+yes, besides from causing usb gadget problems, it has side effect
+towards the twl4030 charger.
 
+> > Should I resubmit the patch with an extended commit message?
+>=20
+> Well yeah it might be worth describing that it's the twl4030
+> charger that otherwise does not work properly.
+>=20
+Ok, will resend a better commit message.
 
-I've not run the test with current master at it's not been tagged yet.
+Regards,
+Andreas Kemnade
 
->> - am335x-evm (TI AM335x EVM)
->> - failure rate 10-20 times per test.
->> Originally this issue was reproduced using TI Kernel 4.4
->> ( git://git.ti.com/ti-linux-kernel/ti-linux-kernel.git, branch: ti-linux-4.4.y)
->> on both am335x-evm and am57xx-beagle-x15(am57xx-evm) platforms.
->> This issues has not been reproduced with TI Kernel 4.1 before.
->>
->> The SysRq shows that system stuck in nfs_fs_mount()
->>
->> [  207.904632] [<c07ab34c>] (schedule) from [<c0783554>] (rpc_wait_bit_killable+0x2c/0xd8)
->> [  207.912996] [<c0783554>] (rpc_wait_bit_killable) from [<c07ab7f0>] (__wait_on_bit+0x84/0xc0)
->> [  207.921812] [<c07ab7f0>] (__wait_on_bit) from [<c07ab890>] (out_of_line_wait_on_bit+0x64/0x70)
->> [  207.930810] [<c07ab890>] (out_of_line_wait_on_bit) from [<c07843f4>] (__rpc_execute+0x18c/0x544)
->> [  207.939988] [<c07843f4>] (__rpc_execute) from [<c0779f24>] (rpc_run_task+0x13c/0x158)
->> [  207.948166] [<c0779f24>] (rpc_run_task) from [<c0779f84>] (rpc_call_sync+0x44/0xc4)
->> [  207.956163] [<c0779f84>] (rpc_call_sync) from [<c077a04c>] (rpc_ping+0x48/0x68)
->> [  207.963796] [<c077a04c>] (rpc_ping) from [<c077a158>] (rpc_create_xprt+0xec/0x164)
->> [  207.971702] [<c077a158>] (rpc_create_xprt) from [<c077a2c0>] (rpc_create+0xf0/0x1a0)
->> [  207.979794] [<c077a2c0>] (rpc_create) from [<c0393088>] (nfs_create_rpc_client+0xd4/0xec)
->> [  207.988338] [<c0393088>] (nfs_create_rpc_client) from [<c0394d10>] (nfs_init_client+0x20/0x78)
->> [  207.997332] [<c0394d10>] (nfs_init_client) from [<c03949d4>] (nfs_create_server+0xa0/0x3bc)
->> [  208.006057] [<c03949d4>] (nfs_create_server) from [<c03b197c>] (nfs3_create_server+0x8/0x20)
->> [  208.014879] [<c03b197c>] (nfs3_create_server) from [<c03a34c4>] (nfs_try_mount+0xc4/0x1f0)
->> [  208.023513] [<c03a34c4>] (nfs_try_mount) from [<c03a2c48>] (nfs_fs_mount+0x290/0x910)
->> [  208.031702] [<c03a2c48>] (nfs_fs_mount) from [<c0294d24>] (mount_fs+0x44/0x168)
->>
->> Has anyone else seen this issue?
->>
->> I'd be appreciated for any help or advice related to this issue?
-> 
-> I did not look at details, but because it is 4.4 and __wait_on_bit
-> showed up you might want to look at [1]
-> 
-> [1] https://lkml.org/lkml/2015/11/20/472
+--Sig_/awDbYkDT5oy+3SIUrYVVwoJ
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
-Thanks. I'll take a look.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
--- 
-regards,
--grygorii
+iQIcBAEBCAAGBQJXogWsAAoJEInxNTv1CwY0ZBQP/RKakSqmL15HeY2nTJzFK0F3
+cNj7wvUYUGecb74YS6LX5zU4ctYEvVda2jvGRtp3E9TCqbxT8x5YULKpW2S18LGr
+pTNqQphP+WfI0Nlz5bVdTxPrIwMOMFXnj2j2J/8a5rGPrTkswAAcJjp+svHVTCYr
+/SaV/WuXltY/t8lHjAiFOadaxGSQ+0R0yeLXrGQfu7iQw93vXEvUmXzqTbxwT7+d
+D0FHl17xVNBH/OjSeeOWlRg+7YYw3aQD/7zHw8ha3y00zXVEb/mooC8NRm78R+1N
+BlGo6cPa3npcX/boG5iWVXYUWJT4NTxjjfx4a9ZQi5MbGJjud+h4KNTUIn8RcVHn
+HRRwKVXCJXjNOtmNS4FdHOMIef49qZKencSM3pLjSwtlNo2ALigXx9jhmecruFY5
+Oac64KrTN17E+xDr4lU63vi2HH2tSHuLZjmsvv7I/JIKJuZe/rDcOEka1JciAlxq
+Z58gnKs/PiY7aMFM0JxZsV/C8daj8ySPEZVzGExEghncGIwRytSWgmf8TwtgHSUu
+cHov/fQixfe/0RDNgOS7MhtBosdUQCCHOXXEzuO0jVgzKMzyEJjdxPrC2BY5CU9T
+SpeWlL0YZwveC3s5VxI6EO32VGsxPgsmnBnnGE3DOxgUyYNr7xdjkuQxnN7EkscA
+ks8AJ3aDAEdDAM/H6iIi
+=+bWc
+-----END PGP SIGNATURE-----
+
+--Sig_/awDbYkDT5oy+3SIUrYVVwoJ--
