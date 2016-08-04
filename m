@@ -1,46 +1,95 @@
-From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: Extcon build failure in next
-Date: Thu, 04 Aug 2016 09:45:58 +0900
-Message-ID: <57A29046.3080107@samsung.com>
-References: <20160630053705.GM28140@atomide.com>
- <CGME20160630054118epcas1p449283c7fb5b5fc8df79144a9e8da2475@epcas1p4.samsung.com>
- <20160630054112.GN28140@atomide.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: Support for configurable PCIe endpoint
+Date: Thu, 4 Aug 2016 13:49:15 +0530
+Message-ID: <57A2FA83.3090100@ti.com>
+References: <57A18927.9070003@ti.com> <2795776.a946dnWVV6@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-reply-to: <20160630054112.GN28140@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <2795776.a946dnWVV6@wuerfel>
+Sender: linux-pci-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
+Cc: "bhelgaas@google.com" <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Jingoo Han <jingoohan1@gmail.com>, Pratyush Anand <pratyush.anand@gmail.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, David Daney <david.daney@cavium.com>, Thierry Reding <thierry.reding@gmail.com>, Tanmay Inamdar <tinamdar@apm.com>, Joao Pinto <jpinto@synopsys.com>, Murali Karicheri <m-karicheri2@ti.com>, Jason Cooper <jason@lakedaemon.net>, Simon Horman <horms@verge.net.au>, Mingkai Hu <mingkai.hu@freescale.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Richard Zhu <Richard.Zhu@freescale.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stanimir Varbanov <svarbanov@mm-sol.com>, Minghuan Lian <minghuan.Lian@freescale.com>, Zhou Wang <wangzhou1@hisilicon.com>, Ley
 List-Id: linux-omap@vger.kernel.org
 
-SGkgVG9ueSwKCk9uIDIwMTbrhYQgMDbsm5QgMzDsnbwgMTQ6NDEsIFRvbnkgTGluZGdyZW4gd3Jv
-dGU6Cj4gKiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPiBbMTYwNjI5IDIyOjQxXToK
-Pj4gSGkgQ2hhbndvbywKPj4KPj4gTG9va3MgbGlrZSBjdXJyZW50IExpbnV4IG5leHQgZmFpbHMg
-dG8gYnVpbGQgd2l0aCBhdCBsZWFzdAo+PiBvbWFwMnBsdXNfZGVmY29uZmlnIGJlY2F1c2Ugb2Y6
-Cj4+Cj4+IEVSUk9SOiAiZXh0Y29uX2Rldl9hbGxvY2F0ZSIgW2RyaXZlcnMvZXh0Y29uL2RldnJl
-cy5rb10gdW5kZWZpbmVkIQo+PiBzY3JpcHRzL01ha2VmaWxlLm1vZHBvc3Q6OTE6IHJlY2lwZSBm
-b3IgdGFyZ2V0ICdfX21vZHBvc3QnIGZhaWxlZAo+PiBtYWtlWzFdOiAqKiogW19fbW9kcG9zdF0g
-RXJyb3IgMQo+PiBNYWtlZmlsZToxMTYzOiByZWNpcGUgZm9yIHRhcmdldCAnbW9kdWxlcycgZmFp
-bGVkCj4+IG1ha2U6ICoqKiBbbW9kdWxlc10gRXJyb3IgMgo+PiBLZXJuZWwgYnVpbGQgZmFpbGVk
-Cj4+Cj4+IFByb2JhYmx5IGV4dGNvbl9kZXZfYWxsb2NhdGUganVzdCBuZWVkcyBFWFBPUlRfU1lN
-Qk9MX0dQTD8KPiAKPiBBbHNvIEknbSBzZWVpbmc6Cj4gCj4gZHJpdmVycy9leHRjb24vZXh0Y29u
-LmM6IEluIGZ1bmN0aW9uICdleHRjb25fcmVnaXN0ZXJfbm90aWZpZXInOgo+IGRyaXZlcnMvZXh0
-Y29uL2V4dGNvbi5jOjQ1NTo2OiB3YXJuaW5nOiAnaWR4JyBtYXkgYmUgdXNlZCB1bmluaXRpYWxp
-emVkIGluIHRoaXMgZnVuY3Rpb24gWy1XbWF5YmUtdW5pbml0aWFsaXplZF0KPiAgICBpZiAoaWR4
-ID49IDApIHsKClRoaXMgaXNzdWUgaXMgYWxyZWFkeSBmaXhlZCBvbiBwYXRjaFsxXSBhbmQgbWVy
-Z2VkIGl0LgpbMV0gaHR0cHM6Ly9naXQua2VybmVsLm9yZy9jZ2l0L2xpbnV4L2tlcm5lbC9naXQv
-Y2hhbndvby9leHRjb24uZ2l0L2NvbW1pdC8/aD1leHRjb24tbmV4dAoKUmVnYXJkcywKQ2hhbndv
-byBDaG9pCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwps
-aW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJh
-ZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51
-eC1hcm0ta2VybmVsCg==
+Hi Arnd,
+
+On Wednesday 03 August 2016 01:12 PM, Arnd Bergmann wrote:
+> On Wednesday, August 3, 2016 11:33:19 AM CEST Kishon Vijay Abraham I wrote:
+>> Hi,
+>>
+>> The PCIe controller present in TI's DRA7 SoC is capable of operating either in
+>> Root Complex mode or Endpoint mode. (It uses Synopsys Designware Core).I'd
+>> assume most of the PCIe controllers on other platforms that use Designware core
+>> should also be capable to operate in endpoint mode. But linux kernel right now
+>> supports only RC mode.
+>>
+>> PCIe endpoint support discussion came up briefly before [1] but it was felt the
+>> practical use case will find firmware more suitable and endpoint support in
+>> kernel can be used only for validation or demo.
+>>
+>> Validation or demo is itself a valid use case in my opinion (consider something
+>> similar to gadget zero for USB). There can be other use cases as well. The RC
+>> can use the SoC with EP mode support as an accelerator to accomplish specific
+>> task. Here RC gives data to the EP. The EP processes the data. The processing
+>> can be done either in ARM itself or it can use other hardware accelerators
+>> (like DSP, IVA-HD etc..) present in the EP system. If HW accelerator is used,
+>> the linux kernel running in ARM can be used to accomplish other tasks. Once EP
+>> mode support is added, I think more use cases will be added.
+>>
+>> From the high level this should look _similar_ to the gadget framework of USB.
+>> One difference from USB would be this should allow HW components (like DSP, PRU
+>> etc.. and maybe even some peripheral) in the EP system to be used by RC system.
+> 
+> (Adding Jon Mason)
+> 
+> We have the drivers/ntb framework, which in theory should be able to handle
+> this, but in practice is only used for a very small number of bridge
+> implementations, and is also limited in the way it can be configured
+> (compared to USB gadget)
+> 
+>> So these are the high-level steps that I thought would be needed to add EP
+>> support in linux.
+>> *) move pcie-designware.c out of drivers/pci/host (maybe create a
+>> drivers/pci/designware/ folder?). All users of pcie-designware.c should be
+>> moved here.
+>> This is in preparation for adding EP mode support to designware.
+> 
+> A lot of the other drivers in drivers/pci/host support endpoint mode too,
+> I don't think moving them all elsewhere is helpful or necessary here.
+
+having drivers that support endpoint in *host* directory might be misleading IMO.
+> 
+>> *) Add library functions in pcie-designware.c specific to EP mode like
+>> initializing general ecam registers, BAR registers etc.. These functions should
+>> be invoked from a *function* driver (function driver should determine the use
+>> of a particular EP).
+>>
+>> *) Add a sample *function* driver that can be used just for validation. This
+>> function driver will invoke the previously added functions in PCIe controller
+>> to initialize ecam, BAR etc.. This will invoke the PCIe controller functions
+>> through *ep-core* layer. That way the same function driver can be made to work
+>> with different PCIe controllers. (A PCIe driver corresponding to this function
+>> driver should also be implemented in RC side)
+>>
+>> *) Add *ep-core* layer to bind the function driver to the controller driver and
+>> using which the function driver will invoke controller driver callbacks (to
+>> initialize ecam, BAR registers etc..)
+> 
+> I think we should first have a rough idea what the framework should look like,
+> and how it handles having multiple hardware implementation and multiple
+> protocol implementations, before we modify a particular driver.
+> 
+> So this step here should come a bit earlier than the others.
+
+Okay. That makes sense to me as well.
+> 
+>> *) Modify platform driver to support EP mode (in my case pci-dra7xx.c).
+>>
+>> *) dt binding specific to EP mode should be created.
+> 
+> Right.
+
+Thanks
+Kishon
