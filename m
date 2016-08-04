@@ -1,76 +1,42 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 08/11] crypto: omap-aes: Add support for multiple cores
-Date: Thu, 4 Aug 2016 13:28:43 +0300
-Message-ID: <1470306526-27219-9-git-send-email-t-kristo@ti.com>
-References: <1470306526-27219-1-git-send-email-t-kristo@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: Support for configurable PCIe endpoint
+Date: Thu, 04 Aug 2016 13:13:06 +0200
+Message-ID: <2422602.ltmdGR0pWX@wuerfel>
+References: <57A18927.9070003@ti.com> <7c696488-eb78-d6d9-dc70-49fa5b4e3317@synopsys.com> <57A31299.2040805@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <1470306526-27219-1-git-send-email-t-kristo@ti.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: herbert@gondor.apana.org.au, lokeshvutla@ti.com, davem@davemloft.net, linux-crypto@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <57A31299.2040805@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Joao Pinto <Joao.Pinto@synopsys.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Jingoo Han <jingoohan1@gmail.com>, Pratyush Anand <pratyush.anand@gmail.com>, Ley Foon Tan <lftan@altera.com>, Rob Herring <robh@kernel.org>, Tanmay Inamdar <tinamdar@apm.com>, Roy Zang <tie-fei.zang@freescale.com>, Mingkai Hu <mingkai.hu@freescale.com>, Minghuan Lian <minghuan.Lian@freescale.com>, Richard Zhu <Richard.Zhu@freescale.com>, Lucas Stach <l.stach@pengutronix.de>, Murali Karicheri <m-karicheri2@ti.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Jason Cooper <jason@lakedaemon.net>, Thierry Reding <thierry.reding@gmail.com>, Simon Horman <horms@verge.net.au>, Zhou Wang <wangzhou1@hisilicon.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, Stanimir Varbanov <svarbanov@mm-sol.com>, David Daney <david>
 List-Id: linux-omap@vger.kernel.org
 
-From: Lokesh Vutla <lokeshvutla@ti.com>
+On Thursday, August 4, 2016 3:32:01 PM CEST Kishon Vijay Abraham I wrote:
+> On Wednesday 03 August 2016 07:09 PM, Joao Pinto wrote:
+> > 
+> > You are rising a topic that we are also addressing in Synopsys.
+> > 
+> > For the PCIe RC hardware validation we are currently using the standard
+> > pcie-designware and pcie-designware-plat drivers.
+> > 
+> > For the Endpoint we have to use an internal software package. Its main purpose
+> > is to initialize the IP registers, eDMA channels and make data transfer to prove
+> > that the everything is working properly. This is done in 2 levels, a custom
+> > driver built and loaded and an application that makes some ioctl to the driver
+> > executing some interesting functions to check the Endpoint status and make some
+> > data exchange.
+> 
+> hmm.. the platform I have doesn't have a DMA in PCIe IP
+> (http://www.ti.com/lit/ug/spruhz6g/spruhz6g.pdf). So in your testing does the
+> EP access RC memory? i.e the driver in the RC allocates memory from it's DDR
+> and gives it's DDR address to the EP. The EP then transfers data to this
+> address. (This is a typical use case with ethernet PCIe cards). IIUC that's not
+> simple with configurable EPs. I'd like to know more about your testing though.
 
-Some SoCs like omap4/omap5/dra7 contain multiple AES crypto accelerator
-cores. Adapt the driver to support this. The driver picks the last used
-device from a list of AES devices.
 
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-[t-kristo@ti.com: forward ported to 4.7 kernel]
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- drivers/crypto/omap-aes.c | 20 ++++++--------------
- 1 file changed, 6 insertions(+), 14 deletions(-)
+What's the difference between using the EDMA on that chip or a DMA engine
+that is part of the PCIe bridge?
 
-diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
-index f443042..3cf7b8f 100644
---- a/drivers/crypto/omap-aes.c
-+++ b/drivers/crypto/omap-aes.c
-@@ -329,20 +329,12 @@ static void omap_aes_dma_stop(struct omap_aes_dev *dd)
- 
- static struct omap_aes_dev *omap_aes_find_dev(struct omap_aes_ctx *ctx)
- {
--	struct omap_aes_dev *dd = NULL, *tmp;
-+	struct omap_aes_dev *dd;
- 
- 	spin_lock_bh(&list_lock);
--	if (!ctx->dd) {
--		list_for_each_entry(tmp, &dev_list, list) {
--			/* FIXME: take fist available aes core */
--			dd = tmp;
--			break;
--		}
--		ctx->dd = dd;
--	} else {
--		/* already found before */
--		dd = ctx->dd;
--	}
-+	dd = list_first_entry(&dev_list, struct omap_aes_dev, list);
-+	list_move_tail(&dd->list, &dev_list);
-+	ctx->dd = dd;
- 	spin_unlock_bh(&list_lock);
- 
- 	return dd;
-@@ -615,7 +607,7 @@ static int omap_aes_prepare_req(struct crypto_engine *engine,
- {
- 	struct omap_aes_ctx *ctx = crypto_ablkcipher_ctx(
- 			crypto_ablkcipher_reqtfm(req));
--	struct omap_aes_dev *dd = omap_aes_find_dev(ctx);
-+	struct omap_aes_dev *dd = ctx->dd;
- 	struct omap_aes_reqctx *rctx;
- 
- 	if (!dd)
-@@ -661,7 +653,7 @@ static int omap_aes_crypt_req(struct crypto_engine *engine,
- {
- 	struct omap_aes_ctx *ctx = crypto_ablkcipher_ctx(
- 			crypto_ablkcipher_reqtfm(req));
--	struct omap_aes_dev *dd = omap_aes_find_dev(ctx);
-+	struct omap_aes_dev *dd = ctx->dd;
- 
- 	if (!dd)
- 		return -ENODEV;
--- 
-1.9.1
+	Arnd
