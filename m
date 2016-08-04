@@ -1,71 +1,84 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: Support for configurable PCIe endpoint
-Date: Thu, 4 Aug 2016 15:32:01 +0530
-Message-ID: <57A31299.2040805@ti.com>
-References: <57A18927.9070003@ti.com>
- <7c696488-eb78-d6d9-dc70-49fa5b4e3317@synopsys.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv3 03/11] crypto: omap-sham: implement context export/import
+ APIs
+Date: Thu, 4 Aug 2016 13:28:38 +0300
+Message-ID: <1470306526-27219-4-git-send-email-t-kristo@ti.com>
+References: <1470306526-27219-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <7c696488-eb78-d6d9-dc70-49fa5b4e3317@synopsys.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joao Pinto <Joao.Pinto@synopsys.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, Jingoo Han <jingoohan1@gmail.com>, Pratyush Anand <pratyush.anand@gmail.com>
-Cc: Ley Foon Tan <lftan@altera.com>, Rob Herring <robh@kernel.org>, Tanmay Inamdar <tinamdar@apm.com>, Roy Zang <tie-fei.zang@freescale.com>, Mingkai Hu <mingkai.hu@freescale.com>, Minghuan Lian <minghuan.Lian@freescale.com>, Richard Zhu <Richard.Zhu@freescale.com>, Lucas Stach <l.stach@pengutronix.de>, Murali Karicheri <m-karicheri2@ti.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Jason Cooper <jason@lakedaemon.net>, Thierry Reding <thierry.reding@gmail.com>, Simon Horman <horms@verge.net.au>, Zhou Wang <wangzhou1@hisilicon.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, Stanimir Varbanov <svarbanov@mm-sol.com>, David Daney <david.daney@cavium.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1470306526-27219-1-git-send-email-t-kristo@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: herbert@gondor.apana.org.au, lokeshvutla@ti.com, davem@davemloft.net, linux-crypto@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Context export/import are now required for ahash algorithms due to
+required support in algif_hash. Implement these for OMAP SHA driver,
+saving and restoring the internal state of the driver.
 
-On Wednesday 03 August 2016 07:09 PM, Joao Pinto wrote:
-> Hi Kishon,
-> 
-> On 8/3/2016 7:03 AM, Kishon Vijay Abraham I wrote:
->> Hi,
->>
->> The PCIe controller present in TI's DRA7 SoC is capable of operating either in
->> Root Complex mode or Endpoint mode. (It uses Synopsys Designware Core). I'd
->> assume most of the PCIe controllers on other platforms that use Designware core
->> should also be capable to operate in endpoint mode. But linux kernel right now
->> supports only RC mode.
->>
->> PCIe endpoint support discussion came up briefly before [1] but it was felt the
->> practical use case will find firmware more suitable and endpoint support in
->> kernel can be used only for validation or demo.
->>
->> *) Modify platform driver to support EP mode (in my case pci-dra7xx.c).
->>
->> *) dt binding specific to EP mode should be created.
->>
->> Once I complete the implementation and start posting RFC patches, a lot of
->> these will become clear. But I want to check if this sounds okay to you guys
->> before starting the implementation.
->>
->> Let me know if you have some other ideas too.
->>
->> Cheers
->> Kishon
->>
->> [1] -> http://www.spinics.net/lists/linux-pci/msg26026.html
->>
-> 
-> You are rising a topic that we are also addressing in Synopsys.
-> 
-> For the PCIe RC hardware validation we are currently using the standard
-> pcie-designware and pcie-designware-plat drivers.
-> 
-> For the Endpoint we have to use an internal software package. Its main purpose
-> is to initialize the IP registers, eDMA channels and make data transfer to prove
-> that the everything is working properly. This is done in 2 levels, a custom
-> driver built and loaded and an application that makes some ioctl to the driver
-> executing some interesting functions to check the Endpoint status and make some
-> data exchange.
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ drivers/crypto/omap-sham.c | 31 +++++++++++++++++++++++++++++--
+ 1 file changed, 29 insertions(+), 2 deletions(-)
 
-hmm.. the platform I have doesn't have a DMA in PCIe IP
-(http://www.ti.com/lit/ug/spruhz6g/spruhz6g.pdf). So in your testing does the
-EP access RC memory? i.e the driver in the RC allocates memory from it's DDR
-and gives it's DDR address to the EP. The EP then transfers data to this
-address. (This is a typical use case with ethernet PCIe cards). IIUC that's not
-simple with configurable EPs. I'd like to know more about your testing though.
-
-Thanks
-Kishon
+diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
+index 6e53944..aa71e61 100644
+--- a/drivers/crypto/omap-sham.c
++++ b/drivers/crypto/omap-sham.c
+@@ -1379,6 +1379,27 @@ exit_unlock:
+ 	return ret;
+ }
+ 
++static int omap_sham_export(struct ahash_request *req, void *out)
++{
++	struct omap_sham_reqctx *rctx = ahash_request_ctx(req);
++
++	while (omap_sham_flush(req) == -EINPROGRESS)
++		msleep(10);
++
++	memcpy(out, rctx, sizeof(*rctx) + SHA512_BLOCK_SIZE);
++
++	return 0;
++}
++
++static int omap_sham_import(struct ahash_request *req, const void *in)
++{
++	struct omap_sham_reqctx *rctx = ahash_request_ctx(req);
++
++	memcpy(rctx, in, sizeof(*rctx) + SHA512_BLOCK_SIZE);
++
++	return 0;
++}
++
+ static struct ahash_alg algs_sha1_md5[] = {
+ {
+ 	.init		= omap_sham_init,
+@@ -2037,8 +2058,14 @@ static int omap_sham_probe(struct platform_device *pdev)
+ 
+ 	for (i = 0; i < dd->pdata->algs_info_size; i++) {
+ 		for (j = 0; j < dd->pdata->algs_info[i].size; j++) {
+-			err = crypto_register_ahash(
+-					&dd->pdata->algs_info[i].algs_list[j]);
++			struct ahash_alg *alg;
++
++			alg = &dd->pdata->algs_info[i].algs_list[j];
++			alg->export = omap_sham_export;
++			alg->import = omap_sham_import;
++			alg->halg.statesize = sizeof(struct omap_sham_reqctx) +
++				SHA512_BLOCK_SIZE;
++			err = crypto_register_ahash(alg);
+ 			if (err)
+ 				goto err_algs;
+ 
+-- 
+1.9.1
