@@ -1,92 +1,56 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH] net: ethernet: ti: cpdma: remove used_desc counter
-Date: Thu, 4 Aug 2016 18:56:12 +0300
-Message-ID: <614baaea-0b60-647b-6000-d4676a94df6b@linaro.org>
-References: <20160804152051.30565-1-grygorii.strashko@ti.com>
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: Re: [Letux-kernel] [PATCH v2] musb: omap2430: do not assume
+ balanced enable()/disable()
+Date: Thu, 4 Aug 2016 18:31:29 +0200
+Message-ID: <20160804183129.2e0cac71@aktux>
+References: <1470238731-32358-1-git-send-email-andreas@kemnade.info>
+	<FFDA9A63-599B-44CA-B244-C8860D9E01D9@goldelico.com>
+	<20160804142919.GG28140@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160804152051.30565-1-grygorii.strashko@ti.com>
+In-Reply-To: <20160804142919.GG28140@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Bin Liu <b-liu@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux USB Mailing List <linux-usb@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
+On Thu, 4 Aug 2016 07:29:19 -0700
+Tony Lindgren <tony@atomide.com> wrote:
 
-On 04.08.16 18:20, Grygorii Strashko wrote:
-> The struct cpdma_desc_pool->used_desc field can be safely removed from
-> CPDMA driver (and hot patch) because used_descs counter is used just
-> for pool consistency check at CPDMA deinitialization and now this
-> check can be re-implemnted using gen_pool_size(pool->gen_pool) !=
-> gen_pool_avail(pool->gen_pool).
-> More over, this will allow to get rid of warnings in
-> cpdma_desc_pool_destro()-> WARN_ON(pool->used_desc) which may happen
-> because the used_descs is used unprotected, since CPDMA has been
-> switched to use genalloc, and may get wrong values on SMP.
->
-> Hence, remove used_desc from struct cpdma_desc_pool.
->
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com
+> Hi,
+> 
+> * H. Nikolaus Schaller <hns@goldelico.com> [160803 10:07]:
+> > All this prevents detection of cable plugin-events and VBUS
+> > measurement and setting OTG_EN before charging is attempted.
+> 
+> So I gave this patch a try but it now blocks all deeper SoC idle
+> states as the PHY stays active. I think the real fix is to make
+> sure the charger behaves independent of the USB PHY state. So
+> probably this needs to be fixed in phy-twl4030-usb.c and
+> twl4030_charger.c instead. Now it sounds like we're also shutting
+> down the charger with the USB PHY.
+> 
+Then there is another power management issue. The patch is not about
+fixing every pm issue in musb. That is not only about charging, it is
+about enabling/disabling() the phy unbalanced:
+Again what happens here without the patch:
 
-Reviewed-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+musb will be initialized:
+omap2430_musb_disable()
+   calls phy_power_off(), phy will be disabled,
+	phy->power_count goes to -1.
 
-> ---
->  drivers/net/ethernet/ti/davinci_cpdma.c | 18 +++++++-----------
->  1 file changed, 7 insertions(+), 11 deletions(-)
->
-> diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-> index 19e5f32..cf72b33 100644
-> --- a/drivers/net/ethernet/ti/davinci_cpdma.c
-> +++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-> @@ -86,7 +86,7 @@ struct cpdma_desc_pool {
->  	void __iomem		*iomap;		/* ioremap map */
->  	void			*cpumap;	/* dma_alloc map */
->  	int			desc_size, mem_size;
-> -	int			num_desc, used_desc;
-> +	int			num_desc;
->  	struct device		*dev;
->  	struct gen_pool		*gen_pool;
->  };
-> @@ -148,7 +148,10 @@ static void cpdma_desc_pool_destroy(struct cpdma_desc_pool *pool)
->  	if (!pool)
->  		return;
->
-> -	WARN_ON(pool->used_desc);
-> +	WARN(gen_pool_size(pool->gen_pool) != gen_pool_avail(pool->gen_pool),
-> +	     "cpdma_desc_pool size %d != avail %d",
-> +	     gen_pool_size(pool->gen_pool),
-> +	     gen_pool_avail(pool->gen_pool));
->  	if (pool->cpumap)
->  		dma_free_coherent(pool->dev, pool->mem_size, pool->cpumap,
->  				  pool->phys);
-> @@ -232,21 +235,14 @@ desc_from_phys(struct cpdma_desc_pool *pool, dma_addr_t dma)
->  static struct cpdma_desc __iomem *
->  cpdma_desc_alloc(struct cpdma_desc_pool *pool)
->  {
-> -	struct cpdma_desc __iomem *desc = NULL;
-> -
-> -	desc = (struct cpdma_desc __iomem *)gen_pool_alloc(pool->gen_pool,
-> -							   pool->desc_size);
-> -	if (desc)
-> -		pool->used_desc++;
-> -
-> -	return desc;
-> +	return (struct cpdma_desc __iomem *)
-> +		gen_pool_alloc(pool->gen_pool, pool->desc_size);
->  }
->
->  static void cpdma_desc_free(struct cpdma_desc_pool *pool,
->  			    struct cpdma_desc __iomem *desc, int num_desc)
->  {
->  	gen_pool_free(pool->gen_pool, (unsigned long)desc, pool->desc_size);
-> -	pool->used_desc--;
->  }
->
->  struct cpdma_ctlr *cpdma_ctlr_create(struct cpdma_params *params)
->
+gadget driver is loaded.
+musb_start() is called
+    omap2430_musb_enable() is called
+	calls phy_power_on(),
+	phy->power_count goes to 0,
+	phy is not powered on because power_count != 1
+-> no gadget working, no charging.
 
--- 
-Regards,
-Ivan Khoronzhuk
+Regards
+Andreas
