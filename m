@@ -1,68 +1,71 @@
-From: Chris Wilson <chris@chris-wilson.co.uk>
-Subject: Re: [PATCH] backlight: Avoid double fbcon backlight
- handling
-Date: Thu, 4 Aug 2016 10:57:29 +0100
-Message-ID: <20160804095729.GN12611@nuc-i3427.alporthouse.com>
-References: <1467286256-8870-1-git-send-email-chris@chris-wilson.co.uk>
- <20160712122119.GR23520@phenom.ffwll.local>
- <87a8gsq540.fsf@intel.com>
- <20160804095027.GB6232@phenom.ffwll.local>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: Support for configurable PCIe endpoint
+Date: Thu, 4 Aug 2016 15:32:01 +0530
+Message-ID: <57A31299.2040805@ti.com>
+References: <57A18927.9070003@ti.com>
+ <7c696488-eb78-d6d9-dc70-49fa5b4e3317@synopsys.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20160804095027.GB6232@phenom.ffwll.local>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Milo Kim <milo.kim@ti.com>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, David Airlie <airlied@linux.ie>, nouveau@lists.freedesktop.org, Jon Nettleton <jon.nettleton@gmail.com>, Nicolas Ferre <nicolas.ferre@atmel.com>, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, Thierry Reding <thierry.reding@gmail.com>, Paul Mackerras <paulus@samba.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Daniel Vetter <daniel.vetter@intel.com>, Lee Jones <lee.jones@linaro.org>, Daniel Drake <dsd@laptop.org>, Jens Frederich <jfrederich@gmail.com>, linux-acpi@vger.kernel.org, Bruno =?iso-8859-1?Q?Pr=E9mont?= <bonbons@linux-vserver.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Ben Skeggs <bskeggs@redhat.com>, Zhang Rui <rui.zhang@intel.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Michael Hennerich <michael.hennerich@analog.com>, intel-gfx@lists.f
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <7c696488-eb78-d6d9-dc70-49fa5b4e3317@synopsys.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joao Pinto <Joao.Pinto@synopsys.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, Jingoo Han <jingoohan1@gmail.com>, Pratyush Anand <pratyush.anand@gmail.com>
+Cc: Ley Foon Tan <lftan@altera.com>, Rob Herring <robh@kernel.org>, Tanmay Inamdar <tinamdar@apm.com>, Roy Zang <tie-fei.zang@freescale.com>, Mingkai Hu <mingkai.hu@freescale.com>, Minghuan Lian <minghuan.Lian@freescale.com>, Richard Zhu <Richard.Zhu@freescale.com>, Lucas Stach <l.stach@pengutronix.de>, Murali Karicheri <m-karicheri2@ti.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Jason Cooper <jason@lakedaemon.net>, Thierry Reding <thierry.reding@gmail.com>, Simon Horman <horms@verge.net.au>, Zhou Wang <wangzhou1@hisilicon.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, Stanimir Varbanov <svarbanov@mm-sol.com>, David Daney <david.daney@cavium.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gVGh1LCBBdWcgMDQsIDIwMTYgYXQgMTE6NTA6MjdBTSArMDIwMCwgRGFuaWVsIFZldHRlciB3
-cm90ZToKPiBPbiBUaHUsIEF1ZyAwNCwgMjAxNiBhdCAxMjowMjoyM1BNICswMzAwLCBKYW5pIE5p
-a3VsYSB3cm90ZToKPiA+IE9uIFR1ZSwgMTIgSnVsIDIwMTYsIERhbmllbCBWZXR0ZXIgPGRhbmll
-bEBmZndsbC5jaD4gd3JvdGU6Cj4gPiA+IE9uIFRodSwgSnVuIDMwLCAyMDE2IGF0IDEyOjMwOjU2
-UE0gKzAxMDAsIENocmlzIFdpbHNvbiB3cm90ZToKPiA+ID4+IEJhY2tsaWdodHMgY29udHJvbGxl
-ZCBieSBpOTE1LmtvIGFuZCBvbmx5IGFzc29jaWF0ZWQgd2l0aCBpdHMgY29ubmVjdG9ycwo+ID4g
-Pj4gYW5kIGFsc28gb25seSBhc3NvY2lhdGVkIHdpdGggdGhlIGludGVsX2RybWZiIGZiY29uLCBj
-b250cm9sbGVkIGJ5Cj4gPiA+PiBpOTE1LmtvLiBJbiB0aGlzIHNpdHVhdGlvbiwgd2UgYWxyZWFk
-eSBoYW5kbGUgYWRqdXN0aW5nIHRoZSBiYWNrbGlnaHQKPiA+ID4+IHdoZW4gdGhlIGZiY29uIGlz
-IGJsYW5rZWQvdW5ibGFua2VkIGFuZCBkbyBub3QgcmVxdWlyZSBiYWNrbGlnaHQgdHJ5aW5nCj4g
-PiA+PiB0byBkbyB0aGUgc2FtZS4KPiA+ID4+IAo+ID4gPj4gQXR0ZW1wdGluZyB0byByZWdpc3Rl
-ciB3aXRoIHRoZSBmYmRldiBhcyBhIGNsaWVudCBjYXVzZXMgbG9ja2RlcCB0byB3YXJuCj4gPiA+
-PiBhYm91dCBhIGRlcGVuZGVuY3kgY3ljbGU6Cj4gPiA+Cj4gPiA+IFRoZSBmYmRldiBub3RpZmll
-ciBzdHJpa2VzIGFnYWluIQo+ID4gPgo+ID4gPiBMYXN0IHRpbWUgSSBsb29rZWQgaW50byB0aGlz
-IEkgdGhpbmsgdGhlIHByb3BlciBzb2x1dGlvbiB3b3VsZCBiZSB0byBzcGxpdAo+ID4gPiB0aGUg
-YmFja2xpZ2h0IHBhcnQgZnJvbSB0aGUgb3RoZXIgZmJkZXYgbm90aWZpZXIgKHdoaWNoIGlzIHVz
-ZWQgYnkgZmJjb24KPiA+ID4gZm9yIHJlYWN0aW5nIHRvIGZiZGV2IGRldmljZSByZWcvdW5yZWcg
-ZXZlbnRzKS4KPiA+ID4KPiA+ID4gSSB0aGluayB0aGF0IHdvdWxkIGZpeCB0aGlzIHRvbywgd2l0
-aCB0aGUgYWRkZWQgYm9udXMgb2Ygc2xpZ2h0bHkKPiA+ID4gdW50YW5nbGluZyB0aGUgZmJjb24g
-bG9ja2luZyBtZXNzLiBBbmQgaXQncyBhbHNvIHRoZSBvbmUgcGFydCBvZgo+ID4gPiB1bnRhbmds
-aW5nIHRoaXMgbWVzcyB3aGljaCBzaG91bGQgYmUgcG9zc2libGUgd2l0aG91dCBhbnkgdHJvdWJs
-ZSAtIEkndmUKPiA+ID4gc2ltcGx5IG5ldmVyIGRvbmUgaXQgc2luY2UgZW50aXJlbHkgZ2V0dGlu
-ZyByaWQgb2YgdGhlIGZiZGV2IG5vdGlmaWVyIGZvcgo+ID4gPiBmYmNvbiBpcyBhIGxvdCBtb3Jl
-IHdvcmsuCj4gPiAKPiA+IFNvIHdoYXQgZG8gd2UgZG8gd2l0aCB0aGlzPyBJdCBmaXhlcyBhIHBy
-b2JsZW0gdXBzdHJlYW0uIFRoZXJlJ3Mgbm8KPiA+IEZpeGVzOiB0byBpZGVudGlmeSB0aGUgYmFk
-IGNvbW1pdC4gQW55IGlkZWEgb24gdGhhdD8gSXQncyBlaXRoZXIgdGhpcyBvcgo+ID4gd2UgZGln
-IG91dCB0aGUgYmFkIGNvbW1pdCAoQ2hyaXMgcHJvYmFibHkga25vd3Mgd2hpY2ggb25lPykgYW5k
-IHJldmVydC4KPiAKPiBUaGUgcmVhbCB0cm91YmxlIGlzIHRoZSBkcm1fZm9yX2VhY2hfY29ubmVj
-dG9yIGluCj4gZHJtX2Nvbm5lY3Rvcl9yZWdpc3Rlcl9hbGwoKS4gVGhpcyBpbnRyb2R1Y2VkIHRo
-ZSBuZXcgZGVwZW5jeS4gVGhlIHByb3Blcgo+IGZpeCBpbW8gaXMgdG8gZml4IHVwIHRoZSBjb25u
-ZWN0b3JfbGlzdCBsb2NraW5nLCBidXQgZm9yIDQuOCB3ZSBjb3VsZCBkbwo+IHRoZSBzYW1lIGhh
-Y2srY29tbWVudCBsaWtlIHdlIGRvIGluIHVucmVnaXN0ZXJfYWxsLiBJdCdzIG5vdCB0aGUgb25s
-eQo+IHBsYWNlIHRoYXQncyBicm9rZW4gYW55d2F5LCBhbmQgbXVjaCBsZXNzIGludmFzaXZlIHRo
-YW4gdGhpcyBoZXJlLgoKWW91IHN0aWxsIGhhdmUgdGhlIHVuZGVybHlpbmcgaXNzdWUgb2YgbXVs
-dGlwbGUgZHJpdmVycyB0cnlpbmcgdG8KY29udHJvbCB0aGUgc2FtZSBwaWVjZSBvZiBoYXJkd2Fy
-ZSwgY2F1c2luZyBkdXBsaWNhdGUgd29yayAoYXQgYmVzdCkuCi1DaHJpcwoKLS0gCkNocmlzIFdp
-bHNvbiwgSW50ZWwgT3BlbiBTb3VyY2UgVGVjaG5vbG9neSBDZW50cmUKX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4IG1haWxpbmcgbGlzdApJ
-bnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Au
-b3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cg==
+Hi,
+
+On Wednesday 03 August 2016 07:09 PM, Joao Pinto wrote:
+> Hi Kishon,
+> 
+> On 8/3/2016 7:03 AM, Kishon Vijay Abraham I wrote:
+>> Hi,
+>>
+>> The PCIe controller present in TI's DRA7 SoC is capable of operating either in
+>> Root Complex mode or Endpoint mode. (It uses Synopsys Designware Core). I'd
+>> assume most of the PCIe controllers on other platforms that use Designware core
+>> should also be capable to operate in endpoint mode. But linux kernel right now
+>> supports only RC mode.
+>>
+>> PCIe endpoint support discussion came up briefly before [1] but it was felt the
+>> practical use case will find firmware more suitable and endpoint support in
+>> kernel can be used only for validation or demo.
+>>
+>> *) Modify platform driver to support EP mode (in my case pci-dra7xx.c).
+>>
+>> *) dt binding specific to EP mode should be created.
+>>
+>> Once I complete the implementation and start posting RFC patches, a lot of
+>> these will become clear. But I want to check if this sounds okay to you guys
+>> before starting the implementation.
+>>
+>> Let me know if you have some other ideas too.
+>>
+>> Cheers
+>> Kishon
+>>
+>> [1] -> http://www.spinics.net/lists/linux-pci/msg26026.html
+>>
+> 
+> You are rising a topic that we are also addressing in Synopsys.
+> 
+> For the PCIe RC hardware validation we are currently using the standard
+> pcie-designware and pcie-designware-plat drivers.
+> 
+> For the Endpoint we have to use an internal software package. Its main purpose
+> is to initialize the IP registers, eDMA channels and make data transfer to prove
+> that the everything is working properly. This is done in 2 levels, a custom
+> driver built and loaded and an application that makes some ioctl to the driver
+> executing some interesting functions to check the Endpoint status and make some
+> data exchange.
+
+hmm.. the platform I have doesn't have a DMA in PCIe IP
+(http://www.ti.com/lit/ug/spruhz6g/spruhz6g.pdf). So in your testing does the
+EP access RC memory? i.e the driver in the RC allocates memory from it's DDR
+and gives it's DDR address to the EP. The EP then transfers data to this
+address. (This is a typical use case with ethernet PCIe cards). IIUC that's not
+simple with configurable EPs. I'd like to know more about your testing though.
+
+Thanks
+Kishon
