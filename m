@@ -1,100 +1,62 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [PATCH 1/3] drm/i2c: tda998x: Improve
- tda998x_configure_audio() audio related pdata
-Date: Fri, 5 Aug 2016 12:02:27 +0300
-Message-ID: <98a2279c-019d-7393-06a4-0b51c1229be5@ti.com>
+Subject: Re: [PATCH 2/3] drm/i2c: tda998x: Register ASoC hdmi-codec and add
+ audio DT binding
+Date: Fri, 5 Aug 2016 12:02:39 +0300
+Message-ID: <3a3dcfa4-cec8-53f8-eddb-9a0e04c10ac9@ti.com>
 References: <cover.1470129989.git.jsarha@ti.com>
- <5adcd94104080abcd5b072a5d6a85b85c5ea0584.1470129989.git.jsarha@ti.com>
- <20160804133135.GN5783@n2100.arm.linux.org.uk>
+ <ce10548e1c28270d80ee99a525e117d0d25f5656.1470129989.git.jsarha@ti.com>
+ <20160804140712.GO5783@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20160804133135.GN5783@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20160804140712.GO5783@n2100.arm.linux.org.uk>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, airlied@linux.ie, tomi.valkeinen@ti.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, broonie@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, tomi.valkeinen@ti.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, broonie@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/04/16 16:31, Russell King - ARM Linux wrote:
-> On Tue, Aug 02, 2016 at 03:05:07PM +0300, Jyri Sarha wrote:
->> @@ -787,19 +792,13 @@ tda998x_configure_audio(struct tda998x_priv *priv,
->>  	reg_clear(priv, REG_AIP_CNTRL_0, AIP_CNTRL_0_RST_CTS);
->>  
->>  	/* Write the channel status */
->> -	buf[0] = IEC958_AES0_CON_NOT_COPYRIGHT;
->> -	buf[1] = 0x00;
->> -	buf[2] = IEC958_AES3_CON_FS_NOTID;
->> -	buf[3] = IEC958_AES4_CON_ORIGFS_NOTID |
->> -			IEC958_AES4_CON_MAX_WORDLEN_24;
->> -	reg_write_range(priv, REG_CH_STAT_B(0), buf, 4);
->> +	reg_write_range(priv, REG_CH_STAT_B(0), params->status, 4);
-> 
-> Take a close look at the code you are replacing here - the buffer
-> contents is not AES bytes 0, 1, 2, 3, 4, but AES bytes 0, 1, 3, 4
-> - byte 2 is not present in this array.  I don't think you've noticed
-> this as your second patch merely copies verboten the IEC status:
-> 
-> +       memcpy(audio.status, params->iec.status,
-> +              min(sizeof(audio.status), sizeof(params->iec.status)));
-> 
-> assuming that it is bytes 0-3.  Byte 2 is stored separately for each
-> I2S channel in the following registers.
-> 
-
-Oh, yes. I missed that. I think it would be better to increase
-tda998x_audio_params status buffer length by one and keep it otherwise
-as it is. Then just write the bytes 0-1 and 3-4 separately into channel
-status registers, with appropriate comments. I guess the the AES byte 2
-can remain 0 for now (source and channel unspecified, with assumption of
-consumer stream).
-
->> diff --git a/include/drm/i2c/tda998x.h b/include/drm/i2c/tda998x.h
->> index 3e419d9..24be7aa 100644
->> --- a/include/drm/i2c/tda998x.h
->> +++ b/include/drm/i2c/tda998x.h
->> @@ -1,6 +1,19 @@
->>  #ifndef __DRM_I2C_TDA998X_H__
->>  #define __DRM_I2C_TDA998X_H__
->>  
->> +#define AFMT_UNUSED	0
->> +#define AFMT_SPDIF	1
->> +#define AFMT_I2S	2
-> 
-> I'd prefer this to stay an enum please.
-> 
-
-Ok.
-
->> +struct tda998x_audio_params {
->> +	u8 config;
->> +	u8 format;
->> +	unsigned sample_width;
->> +	unsigned sample_rate;
->> +	struct hdmi_audio_infoframe cea;
-> 
-> With this addition, this file will need to include linux/hdmi.h.
-> 
-
-Oh yes, thanks.
-
->> +	u8 status[4];
-> 
-> A comment here about the missing byte 2 would probably be a good idea.
-> 
-
-As I said earlier, I'd rather keep this as plain channel status buffer
-and just increase its size by one.
-
-Thanks a lot for the review!
-
-Best reagards,
-Jyri
+T24gMDgvMDQvMTYgMTc6MDcsIFJ1c3NlbGwgS2luZyAtIEFSTSBMaW51eCB3cm90ZToKPiBPbiBU
+dWUsIEF1ZyAwMiwgMjAxNiBhdCAwMzowNTowOFBNICswMzAwLCBKeXJpIFNhcmhhIHdyb3RlOgo+
+PiArCW1lbWNweShhdWRpby5zdGF0dXMsIHBhcmFtcy0+aWVjLnN0YXR1cywKPj4gKwkgICAgICAg
+bWluKHNpemVvZihhdWRpby5zdGF0dXMpLCBzaXplb2YocGFyYW1zLT5pZWMuc3RhdHVzKSkpOwo+
+IAo+IEFzIG1lbnRpb25lZCBpbiB0aGUgb3RoZXIgcGF0Y2gsIHRoZSBhdWRpbyBzdGF0dXMgZG9l
+cyBub3QgZGlyZWN0bHkKPiBjb3JyZXNwb25kIHdpdGggdGhlIEFFUyBieXRlcywgc28gdGhpcyBl
+bmRzIHVwIGNhdXNpbmcgdGhlIGRyaXZlciB0bwo+IHdyaXRlIHRoZSB3cm9uZyBieXRlcyB0byB0
+aGUgd3JvbmcgcmVnaXN0ZXJzLgo+IAoKQXMgSSBzYWlkIGVhcmxpZXIsIEknZCByYXRoZXIgaGF2
+ZSBpdCBhcyBwbGFpbiBBRVMvSUVDOTU4IGNoYW5uZWwgc3RhdHVzCmJpdHMgYnVmZmVyLgoKPj4g
+KwlyZXQgPSB0ZGE5OTh4X2NvbmZpZ3VyZV9hdWRpbyhwcml2LAo+PiArCQkJCSAgICAgICZhdWRp
+bywKPj4gKwkJCQkgICAgICBwcml2LT5lbmNvZGVyLmNydGMtPmh3bW9kZS5jbG9jayk7Cj4gCj4g
+V2hhdCBoYXBwZW5zIGlmIGF1ZGlvIGNoYW5nZXMgYXQgdGhlIHNhbWUgdGltZSB0aGF0IHRoZSB2
+aWRlbyBtb2RlCj4gY2hhbmdlcz8gIFdoYXQgcHJvdGVjdGlvbiBpcyB0aGVyZSBhZ2FpbnN0IHR3
+byB0aHJlYWRzIGNvbmN1cnJlbnRseQo+IGV4ZWN1dGluZyB0ZGE5OTh4X2NvbmZpZ3VyZV9hdWRp
+bygpID8KPiAKCk9oLCB5ZXMuIEkgZGVmaW5pdGVseSBuZWVkIHNvbWUgbG9ja2luZyBoZXJlLiBU
+aGUgc2FtZSBsb2NrIGNvdWxkCnByb3RlY3QgdGhlIGF0b21pY2l0eSBvZiB0ZGE5OTh4X2F1ZGlv
+X3BhcmFtcyB1cGRhdGUgYW5kIHVzYWdlLgoKPj4gKwlwcml2LT5hdWRpb19wZGV2ID0gcGxhdGZv
+cm1fZGV2aWNlX3JlZ2lzdGVyX2RhdGEoCj4+ICsJCWRldiwgSERNSV9DT0RFQ19EUlZfTkFNRSwg
+UExBVEZPUk1fREVWSURfQVVUTywKPj4gKwkJJmNvZGVjX2RhdGEsIHNpemVvZihjb2RlY19kYXRh
+KSk7Cj4gCj4gSSdkIG11Y2ggcHJlZmVyIHRoYXQgdGhpcyB3YXMgYSBjaGlsZCBvZiB0aGUgSTJD
+IGRldmljZSwgd2hpY2ggd2lsbAo+IHNob3cgdGhlIHJlbGF0aW9uc2hpcCBiZXR3ZWVuIHRoaXMg
+dmlydHVhbCBwbGF0Zm9ybSBkZXZpY2UgYW5kIHRoZQo+IGRldmljZSB3aGljaCBpdCdzIGFzc29j
+aWF0ZWQgd2l0aC4gIFRoYXQgY2FuIGJlIGRvbmUgdmlhCj4gcGxhdGZvcm1fZGV2aWNlX3JlZ2lz
+dGVyX2Z1bGwoKS4KPiAKClRoYXQgbWF5IGJlIGEgcHJvYmxlbS4gVGhlIEFTb0MgY2FyZCBkZXZp
+Y2UgdHJlZSBiaW5kaW5nIGN1cnJlbnQgbG9va3MKZm9yIHRoZSBBU29DIERBSSdzIHBhcmVudCdz
+IG9mLW5vZGUgaWYgaXQgY2FuIG5vdCBmaW5kIHRoZSBub2RlIGZvciB0aGUKREFJLWRldmljZSBp
+dHNlbGYuIEluZGljYXRpbmcgQVNvQyBEQUktbGluayBieSByZWZlcmVuY2luZyB0aGUgcGFyZW50
+CmkyYyBkZXZpY2Ugc2ltcGx5IHdvbid0IHdvcmssIGJlY2F1c2UgdGhlcmUgbWF5IGJlIG90aGVy
+IEFTb0MgY29kZWNzIG9uCnRoZSBzYW1lIGkyYyBidXMuIEFkZGluZyBhIHNlcGFyYXRlIERULW5v
+ZGUgZm9yIGEgdmlydHVhbCBhdWRpbyBkZXZpY2UKc2hvdWxkIGJlIHBvc3NpYmxlLCBidXQgaXQg
+bmVlZHMgc29tZSB0aGlua2luZyBhbmQgbWF5IGhhdmUgaXRzIG93bgpwcm9ibGVtcy4gSSBjYW4g
+bm90IGZvbGxvdyB0aGUgcmVhc29uaW5nIGJlaGluZCB0aGlzLCBpcyB0aGlzIHJlYWxseQpuZWNl
+c3Nhcnk/CgpCZXN0IHJlZ2FyZHMsCkp5cmkKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMu
+ZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlz
+dGluZm8vZHJpLWRldmVsCg==
