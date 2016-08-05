@@ -1,127 +1,89 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 3/3] net: ethernet: ti: cpsw: split common driver data and
- private net data
-Date: Fri, 5 Aug 2016 15:14:23 +0300
-Message-ID: <04f2beb0-7b1c-1585-7661-aa12c0d175df@ti.com>
-References: <1470345272-874-1-git-send-email-ivan.khoronzhuk@linaro.org>
- <1470345272-874-4-git-send-email-ivan.khoronzhuk@linaro.org>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 6/6] mfd: twl-core: Make it explicitly non-modular
+Date: Fri, 5 Aug 2016 13:58:22 +0100
+Message-ID: <20160805125822.GE5243@dell>
+References: <20160705012544.14143-1-paul.gortmaker@windriver.com>
+ <20160705012544.14143-7-paul.gortmaker@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1470345272-874-4-git-send-email-ivan.khoronzhuk@linaro.org>
-Sender: netdev-owner@vger.kernel.org
-To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, netdev@vger.kernel.org, mugunthanvnm@ti.com
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160705012544.14143-7-paul.gortmaker@windriver.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/05/2016 12:14 AM, Ivan Khoronzhuk wrote:
-> Simplify driver by splitting common driver data and net dev
-> private data. In case of dual_emac mode 2 networks devices
-> are created, each of them contains its own private data.
-> But 2 net devices share a bunch of h/w resources, that shouldn't
-> be duplicated.
-> This patch leads to the following:
-> - no functional changes
-> - reduce code size
-> - reduce memory usage
-> - reduce number of conversion to priv function
-> - reduce number of arguments for some functions
-> - increase code readability
-> - create prerequisites to add multichannel support,
->   when channels are shared between net devices
+On Mon, 04 Jul 2016, Paul Gortmaker wrote:
 
-Even if it sounds reasonable, I have to NACK this patch -
-main reason below, but there are few more:
-- could you pls split this change as it's too big and I'm pretty sure it's possible;
-- could you pls avoid unrelated changes like variable reordering in structures
-
-and thanks a lot for working on this.
-
+> The Kconfig currently controlling compilation of this code is:
 > 
-> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> drivers/mfd/Kconfig:config TWL4030_CORE
+> drivers/mfd/Kconfig:    bool "TI TWL4030/TWL5030/TWL6030/TPS659x0 Support"
+> 
+> ...meaning that it currently is not being built as a module by anyone.
+> 
+> Lets remove what modular code that we can, so that when reading the
+> driver there is less doubt that it is builtin-only.  Note that we can't
+> remove the twl_remove() itself ; it is still used by the probe unwind
+> routine.  So we leave it linked into the .remove as well, even though
+> it will most likely never be called via that path from an unbind.
+> 
+> Since module_i2c_driver() uses the same init level priority as
+> builtin_i2c_driver() the init ordering remains unchanged with
+> this commit.
+> 
+> Also note that MODULE_DEVICE_TABLE is a no-op for non-modular code.
+> 
+> We also delete the MODULE_LICENSE tag etc. since all that information
+> is already contained at the top of the file in the comments.
+> 
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
+> Cc: Lee Jones <lee.jones@linaro.org>
+> Cc: linux-omap@vger.kernel.org
+> Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 > ---
->  drivers/net/ethernet/ti/cpsw.c | 775 +++++++++++++++++++----------------------
->  1 file changed, 364 insertions(+), 411 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> index 85ee9f5..7a84515 100644
-> --- a/drivers/net/ethernet/ti/cpsw.c
-> +++ b/drivers/net/ethernet/ti/cpsw.c
-> @@ -141,8 +141,8 @@ do {								\
->  #define CPSW_CMINTMIN_INTVL	((1000 / CPSW_CMINTMAX_CNT) + 1)
+>  drivers/mfd/twl-core.c | 9 +--------
+>  1 file changed, 1 insertion(+), 8 deletions(-)
+
+Applied, thanks.
+
+> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+> index a49d3db6d936..c64615dca2bd 100644
+> --- a/drivers/mfd/twl-core.c
+> +++ b/drivers/mfd/twl-core.c
+> @@ -30,7 +30,6 @@
 >  
->  #define cpsw_slave_index(priv)				\
-> -		((priv->data.dual_emac) ? priv->emac_port :	\
-> -		priv->data.active_slave)
-> +		((cpsw->data.dual_emac) ? priv->emac_port :	\
-> +		cpsw->data.active_slave)
->  
->  static int debug_level;
->  module_param(debug_level, int, 0);
-> @@ -364,29 +364,34 @@ static inline void slave_write(struct cpsw_slave *slave, u32 val, u32 offset)
->  }
->  
->  struct cpsw_priv {
-> -	struct platform_device		*pdev;
->  	struct net_device		*ndev;
-> -	struct napi_struct		napi_rx;
-> -	struct napi_struct		napi_tx;
->  	struct device			*dev;
-> +	u8				mac_addr[ETH_ALEN];
-> +	bool				rx_pause;
-> +	bool				tx_pause;
-> +	u32				msg_enable;
-> +	u32				emac_port;
-> +};
-> +
-> +struct cpsw_common {
-> +	struct net_device		*ndev; /* holds base ndev */
-> +	struct platform_device		*pdev;
->  	struct cpsw_platform_data	data;
-> +	struct napi_struct		napi_rx;
-> +	struct napi_struct		napi_tx;
-> +	struct cpdma_chan		*txch, *rxch;
-> +	struct cpsw_slave		*slaves;
->  	struct cpsw_ss_regs __iomem	*regs;
->  	struct cpsw_wr_regs __iomem	*wr_regs;
->  	u8 __iomem			*hw_stats;
->  	struct cpsw_host_regs __iomem	*host_port_regs;
-> -	u32				msg_enable;
-> -	u32				version;
-> -	u32				coal_intvl;
-> -	u32				bus_freq_mhz;
-> -	int				rx_packet_max;
->  	struct clk			*clk;
-> -	u8				mac_addr[ETH_ALEN];
-> -	struct cpsw_slave		*slaves;
->  	struct cpdma_ctlr		*dma;
-> -	struct cpdma_chan		*txch, *rxch;
->  	struct cpsw_ale			*ale;
-> -	bool				rx_pause;
-> -	bool				tx_pause;
-> +	int				rx_packet_max;
-> +	u32				bus_freq_mhz;
-> +	u32				version;
-> +	u32				coal_intvl;
->  	bool				quirk_irq;
->  	bool				rx_irq_disabled;
->  	bool				tx_irq_disabled;
-> @@ -394,9 +399,10 @@ struct cpsw_priv {
->  	u32 irqs_table[4];
->  	u32 num_irqs;
->  	struct cpts *cpts;
-> -	u32 emac_port;
+>  #include <linux/init.h>
+>  #include <linux/mutex.h>
+> -#include <linux/module.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/regmap.h>
+>  #include <linux/clk.h>
+> @@ -1258,7 +1257,6 @@ static const struct i2c_device_id twl_ids[] = {
+>  	{ "twl6032", TWL6030_CLASS | TWL6032_SUBCLASS }, /* "Phoenix lite" */
+>  	{ /* end of list */ },
 >  };
-
-
-
+> -MODULE_DEVICE_TABLE(i2c, twl_ids);
 >  
-> +static struct cpsw_common *cpsw;
-> +
-
-Sry, but NACK - no new static variables pls.
+>  /* One Client Driver , 4 Clients */
+>  static struct i2c_driver twl_driver = {
+> @@ -1267,9 +1265,4 @@ static struct i2c_driver twl_driver = {
+>  	.probe		= twl_probe,
+>  	.remove		= twl_remove,
+>  };
+> -
+> -module_i2c_driver(twl_driver);
+> -
+> -MODULE_AUTHOR("Texas Instruments, Inc.");
+> -MODULE_DESCRIPTION("I2C Core interface for TWL");
+> -MODULE_LICENSE("GPL");
+> +builtin_i2c_driver(twl_driver);
 
 -- 
-regards,
--grygorii
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
