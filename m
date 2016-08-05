@@ -1,89 +1,52 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 6/6] mfd: twl-core: Make it explicitly non-modular
-Date: Fri, 5 Aug 2016 13:58:22 +0100
-Message-ID: <20160805125822.GE5243@dell>
-References: <20160705012544.14143-1-paul.gortmaker@windriver.com>
- <20160705012544.14143-7-paul.gortmaker@windriver.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [Letux-kernel] [PATCH v2] musb: omap2430: do not assume balanced
+ enable()/disable()
+Date: Fri, 5 Aug 2016 06:55:01 -0700
+Message-ID: <20160805135501.GJ28140@atomide.com>
+References: <1470238731-32358-1-git-send-email-andreas@kemnade.info>
+ <FFDA9A63-599B-44CA-B244-C8860D9E01D9@goldelico.com>
+ <20160804142919.GG28140@atomide.com>
+ <20160804183129.2e0cac71@aktux>
+ <20160804184402.73963e8a@aktux>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160705012544.14143-7-paul.gortmaker@windriver.com>
+In-Reply-To: <20160804184402.73963e8a@aktux>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, linux-omap@vger.kernel.org
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Linux USB Mailing List <linux-usb@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap <linux-omap@vger.kernel.org>, Bin Liu <b-liu@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 04 Jul 2016, Paul Gortmaker wrote:
+* Andreas Kemnade <andreas@kemnade.info> [160804 09:44]:
+> Nothing happens here, so the previous state of the phy remains.
+> It would be disabled by the generic phy layer in drivers/phy/phy-core.c
+>
+> > gadget driver is loaded.
+> > musb_start() is called
+> >     omap2430_musb_enable() is called
+> > 	calls phy_power_on(),
+> > 	phy->power_count goes to 0,
+> > 	phy is not powered on because power_count != 1
+> > -> no gadget working, no charging.
+> > 
+> ... if not configured by u-boot before. USB gadget might work when
+> initialized earlier in the boot process (u-boot/x-loader/mlo ...)
+> and phy-twl4030 cannot do anything about it besides if we change
+> drivers/phy/phy-core.c
 
-> The Kconfig currently controlling compilation of this code is:
-> 
-> drivers/mfd/Kconfig:config TWL4030_CORE
-> drivers/mfd/Kconfig:    bool "TI TWL4030/TWL5030/TWL6030/TPS659x0 Support"
-> 
-> ...meaning that it currently is not being built as a module by anyone.
-> 
-> Lets remove what modular code that we can, so that when reading the
-> driver there is less doubt that it is builtin-only.  Note that we can't
-> remove the twl_remove() itself ; it is still used by the probe unwind
-> routine.  So we leave it linked into the .remove as well, even though
-> it will most likely never be called via that path from an unbind.
-> 
-> Since module_i2c_driver() uses the same init level priority as
-> builtin_i2c_driver() the init ordering remains unchanged with
-> this commit.
-> 
-> Also note that MODULE_DEVICE_TABLE is a no-op for non-modular code.
-> 
-> We also delete the MODULE_LICENSE tag etc. since all that information
-> is already contained at the top of the file in the comments.
-> 
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
-> Cc: Lee Jones <lee.jones@linaro.org>
-> Cc: linux-omap@vger.kernel.org
-> Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
-> ---
->  drivers/mfd/twl-core.c | 9 +--------
->  1 file changed, 1 insertion(+), 8 deletions(-)
+Ssounds like an issue in the phy-twl4030-usb.c. Let's try to figure
+out what all we need set there for the various components there.
 
-Applied, thanks.
+PM runtime for phy-twl4030-usb.c should be for the whole PHY
+device including all it's components. Then the charger and
+MUSB should separately increment the PM runtime count and then
+enable the component specific things. And then we have the
+errata to deal with when VBUS is enabled.
 
-> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-> index a49d3db6d936..c64615dca2bd 100644
-> --- a/drivers/mfd/twl-core.c
-> +++ b/drivers/mfd/twl-core.c
-> @@ -30,7 +30,6 @@
->  
->  #include <linux/init.h>
->  #include <linux/mutex.h>
-> -#include <linux/module.h>
->  #include <linux/platform_device.h>
->  #include <linux/regmap.h>
->  #include <linux/clk.h>
-> @@ -1258,7 +1257,6 @@ static const struct i2c_device_id twl_ids[] = {
->  	{ "twl6032", TWL6030_CLASS | TWL6032_SUBCLASS }, /* "Phoenix lite" */
->  	{ /* end of list */ },
->  };
-> -MODULE_DEVICE_TABLE(i2c, twl_ids);
->  
->  /* One Client Driver , 4 Clients */
->  static struct i2c_driver twl_driver = {
-> @@ -1267,9 +1265,4 @@ static struct i2c_driver twl_driver = {
->  	.probe		= twl_probe,
->  	.remove		= twl_remove,
->  };
-> -
-> -module_i2c_driver(twl_driver);
-> -
-> -MODULE_AUTHOR("Texas Instruments, Inc.");
-> -MODULE_DESCRIPTION("I2C Core interface for TWL");
-> -MODULE_LICENSE("GPL");
-> +builtin_i2c_driver(twl_driver);
+If there are MUSB specific PM runtime issues then let's fix
+those separately.
 
--- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+Regards,
+
+Tony
