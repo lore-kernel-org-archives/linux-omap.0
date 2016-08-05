@@ -1,60 +1,96 @@
-From: Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
-Subject: Re: [PATCH 2/3] drm/i2c: tda998x: Register ASoC hdmi-codec and add
- audio DT binding
-Date: Fri, 5 Aug 2016 18:04:50 +0100
-Message-ID: <20160805170450.GQ5783@n2100.arm.linux.org.uk>
-References: <cover.1470129989.git.jsarha@ti.com>
- <ce10548e1c28270d80ee99a525e117d0d25f5656.1470129989.git.jsarha@ti.com>
- <20160804140712.GO5783@n2100.arm.linux.org.uk>
- <3a3dcfa4-cec8-53f8-eddb-9a0e04c10ac9@ti.com>
- <20160805164845.GP5783@n2100.arm.linux.org.uk>
- <20160805165959.GA10383@sirena.org.uk>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH 0/2] Drop last two remaining omap3 legacy board files
+Date: Fri, 5 Aug 2016 19:45:57 +0200
+Message-ID: <20160805174557.GA27448@earth>
+References: <1465987689-14812-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160805165959.GA10383-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org
+Content-Type: multipart/mixed; boundary="===============0946296753900497597=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1465987689-14812-1-git-send-email-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman <khilman@baylibre.com>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, Russell King <rmk+kernel@armlinux.org.uk>, Pavel Machek <pavel@ucw.cz>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Aug 05, 2016 at 05:59:59PM +0100, Mark Brown wrote:
-> On Fri, Aug 05, 2016 at 05:48:45PM +0100, Russell King - ARM Linux wrote:
-> > On Fri, Aug 05, 2016 at 12:02:39PM +0300, Jyri Sarha wrote:
-> 
-> > > That may be a problem. The ASoC card device tree binding current looks
-> > > for the ASoC DAI's parent's of-node if it can not find the node for the
-> > > DAI-device itself.
-> 
-> > I don't follow.  The "parent" of this audio_pdev device above is
-> > the "platform" device - /sys/devices/platform.  If ASoC is
-> > referencing the parent of the above platform device for some
-> > reason, it's probably not going to get anything useful from such
-> > an attempt.
-> 
-> > Any other ASoC codec driver where the codec platform device was
-> > declared with a NULL parent pointer also ends up as a child of
-> > that same location.
-> 
-> > I'd _really_ be surprised if ASoC is even doing what you describe,
-> > because such an action is totally illogical (as can be seen from
-> > my description above.)
-> 
-> We do have some stuff in there in order to handle MFDs - they'll
-> instantiate a Linux-internal virtual platform device as a child of the
-> DT device that represents the device as a whole.  We're definitely not
-> expecting to find anything for parentless platform devices though, it's
-> only done if the ASoC level device has no of_node and the parent does.
 
-And if we make the hdmi-codec device a child of the I2C device which
-does have an of-node, what will happen?
+--===============0946296753900497597==
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="opJtzjQTFsWo+cga"
+Content-Disposition: inline
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--opJtzjQTFsWo+cga
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi Tony,
+
+On Wed, Jun 15, 2016 at 03:48:07AM -0700, Tony Lindgren wrote:
+> Here are two patches to drop the last remaining omap3 legacy boot
+> files. We have device tree based booting working for these boards,
+> and the legacy booting has been mostly kept around to validate
+> against regressions.
+>=20
+> Let's not touch the rest of the platform init code until around
+> v4.9 so we can revert these two patches if needed.
+>
+> Cheers,
+>=20
+> Tony
+>=20
+> Tony Lindgren (2):
+>   ARM: OMAP2+: Drop legacy board file for n900
+>   ARM: OMAP2+: Drop legacy board file for LDP
+
+I wonder what happened to these patches. I see, that you have a
+omap-for-v4.8/legacy branch, which contains them. But as far as I
+can see its not in linux-next and it was not included in the ARM
+pull request.
+
+-- Sebastian
+
+--opJtzjQTFsWo+cga
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJXpNDSAAoJENju1/PIO/qap8YP/AsfqvlFHd9aknM4CTBU1Aae
+fqu7VVPThpMzZWLm8glpNqNzNhcUCBEdMjtgUoFDu6VV2FjU/3akSxpKesB/IFor
+jygJwvLMzi0crJ27PwVxfOu1h0IPMmvot3YFYSYeV2NNoS+KmLITh6Z3zE8MyXFs
+DBSskG0xIsJ1OYTnegwQiiK96YQtsQWKnyhBCxgSfXTf2QdDRoHF/hvJtSAwigfg
+Y1kO+JV0a0oJ4BxcN0OAKxTerp4ONta820i87kHZvihLvbq00SEQbktTa4jz8eAf
+aHINi8wusDrfhPNhVDTyXAU4jIkDVvBBA1j074RWiKF2pnaxaRSaZ5vbwYd8Vz8l
+2TM3VVwIoKLwziG6fHW9fhQlRAumpuuyqdrjsoMJZViKO+AJHyfLhHtZhuJ+Pqv/
+IHQScycN+eCOMupem7mgovcmaXZWoiK4TOR3eTf5fopS1DGRWbgyAkhR9CRKtLNC
+KdJvYp/vuNAsn+59Lgtndmm+NuyhAeNHB6wjwUHnmaZ/A52IR4ERq69MapD0L3B6
+erCl67JCzgyThLx3MWCdZeQWt/PyXI0rR+oiqFZAxLAPTj2QpmsnIHqRkhSjl6CY
+5UUYvb4qMf3yAN4zsyKkX4X0WDWVcCz/llV51YxFyCUzP0ouzdBLWJiDpMdY7MOx
+N9jjz8mrd37BlFWf9jiP
+=E1ZV
+-----END PGP SIGNATURE-----
+
+--opJtzjQTFsWo+cga--
+
+
+--===============0946296753900497597==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============0946296753900497597==--
