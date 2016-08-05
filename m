@@ -1,49 +1,127 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
-Date: Fri, 5 Aug 2016 12:30:51 +0200
-Message-ID: <20160805103051.GP30047@pali>
-References: <20160517181927.GA28741@amd>
- <20160521054336.GA27123@amd>
- <573FFF51.1000004@gmail.com>
- <20160521105607.GA20071@amd>
- <574049EF.2090208@gmail.com>
- <20160524090433.GA1277@amd>
- <20160524091746.GA14536@amd>
- <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd>
- <20160805102611.GA13116@amd>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 3/3] net: ethernet: ti: cpsw: split common driver data and
+ private net data
+Date: Fri, 5 Aug 2016 15:14:23 +0300
+Message-ID: <04f2beb0-7b1c-1585-7661-aa12c0d175df@ti.com>
+References: <1470345272-874-1-git-send-email-ivan.khoronzhuk@linaro.org>
+ <1470345272-874-4-git-send-email-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160805102611.GA13116@amd>
-Sender: linux-media-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1470345272-874-4-git-send-email-ivan.khoronzhuk@linaro.org>
+Sender: netdev-owner@vger.kernel.org
+To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, netdev@vger.kernel.org, mugunthanvnm@ti.com
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 05 August 2016 12:26:11 Pavel Machek wrote:
-> 
-> This adds support for AD5820 autofocus coil, found for example in
-> Nokia N900 smartphone.
-> 
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+On 08/05/2016 12:14 AM, Ivan Khoronzhuk wrote:
+> Simplify driver by splitting common driver data and net dev
+> private data. In case of dual_emac mode 2 networks devices
+> are created, each of them contains its own private data.
+> But 2 net devices share a bunch of h/w resources, that shouldn't
+> be duplicated.
+> This patch leads to the following:
+> - no functional changes
+> - reduce code size
+> - reduce memory usage
+> - reduce number of conversion to priv function
+> - reduce number of arguments for some functions
+> - increase code readability
+> - create prerequisites to add multichannel support,
+>   when channels are shared between net devices
 
-Acked-by: Pali Rohár <pali.rohar@gmail.com>
+Even if it sounds reasonable, I have to NACK this patch -
+main reason below, but there are few more:
+- could you pls split this change as it's too big and I'm pretty sure it's possible;
+- could you pls avoid unrelated changes like variable reordering in structures
 
+and thanks a lot for working on this.
+
+> 
+> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 > ---
-> v2: simple cleanups, fix error paths, simplify probe
-> v3: more cleanups, remove printk, add include
-> v4: remove header file.
-> v5: switch to devm_ , style cleanups, fixes
-> v6: remove new userspace APIs.
+>  drivers/net/ethernet/ti/cpsw.c | 775 +++++++++++++++++++----------------------
+>  1 file changed, 364 insertions(+), 411 deletions(-)
 > 
-> Can we finally get the patch in, please?
+> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+> index 85ee9f5..7a84515 100644
+> --- a/drivers/net/ethernet/ti/cpsw.c
+> +++ b/drivers/net/ethernet/ti/cpsw.c
+> @@ -141,8 +141,8 @@ do {								\
+>  #define CPSW_CMINTMIN_INTVL	((1000 / CPSW_CMINTMAX_CNT) + 1)
+>  
+>  #define cpsw_slave_index(priv)				\
+> -		((priv->data.dual_emac) ? priv->emac_port :	\
+> -		priv->data.active_slave)
+> +		((cpsw->data.dual_emac) ? priv->emac_port :	\
+> +		cpsw->data.active_slave)
+>  
+>  static int debug_level;
+>  module_param(debug_level, int, 0);
+> @@ -364,29 +364,34 @@ static inline void slave_write(struct cpsw_slave *slave, u32 val, u32 offset)
+>  }
+>  
+>  struct cpsw_priv {
+> -	struct platform_device		*pdev;
+>  	struct net_device		*ndev;
+> -	struct napi_struct		napi_rx;
+> -	struct napi_struct		napi_tx;
+>  	struct device			*dev;
+> +	u8				mac_addr[ETH_ALEN];
+> +	bool				rx_pause;
+> +	bool				tx_pause;
+> +	u32				msg_enable;
+> +	u32				emac_port;
+> +};
+> +
+> +struct cpsw_common {
+> +	struct net_device		*ndev; /* holds base ndev */
+> +	struct platform_device		*pdev;
+>  	struct cpsw_platform_data	data;
+> +	struct napi_struct		napi_rx;
+> +	struct napi_struct		napi_tx;
+> +	struct cpdma_chan		*txch, *rxch;
+> +	struct cpsw_slave		*slaves;
+>  	struct cpsw_ss_regs __iomem	*regs;
+>  	struct cpsw_wr_regs __iomem	*wr_regs;
+>  	u8 __iomem			*hw_stats;
+>  	struct cpsw_host_regs __iomem	*host_port_regs;
+> -	u32				msg_enable;
+> -	u32				version;
+> -	u32				coal_intvl;
+> -	u32				bus_freq_mhz;
+> -	int				rx_packet_max;
+>  	struct clk			*clk;
+> -	u8				mac_addr[ETH_ALEN];
+> -	struct cpsw_slave		*slaves;
+>  	struct cpdma_ctlr		*dma;
+> -	struct cpdma_chan		*txch, *rxch;
+>  	struct cpsw_ale			*ale;
+> -	bool				rx_pause;
+> -	bool				tx_pause;
+> +	int				rx_packet_max;
+> +	u32				bus_freq_mhz;
+> +	u32				version;
+> +	u32				coal_intvl;
+>  	bool				quirk_irq;
+>  	bool				rx_irq_disabled;
+>  	bool				tx_irq_disabled;
+> @@ -394,9 +399,10 @@ struct cpsw_priv {
+>  	u32 irqs_table[4];
+>  	u32 num_irqs;
+>  	struct cpts *cpts;
+> -	u32 emac_port;
+>  };
 
-This patch is on ML for months or years, right?
-Please merge it...
+
+
+>  
+> +static struct cpsw_common *cpsw;
+> +
+
+Sry, but NACK - no new static variables pls.
 
 -- 
-Pali Rohár
-pali.rohar@gmail.com
+regards,
+-grygorii
