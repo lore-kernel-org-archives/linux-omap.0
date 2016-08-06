@@ -1,8 +1,8 @@
 From: Russell King - ARM Linux <linux@armlinux.org.uk>
 Subject: Re: [PATCH 1/3] drm/i2c: tda998x: Improve
  tda998x_configure_audio() audio related pdata
-Date: Sat, 6 Aug 2016 17:57:34 +0100
-Message-ID: <20160806165734.GS5783@n2100.arm.linux.org.uk>
+Date: Sat, 6 Aug 2016 18:56:35 +0100
+Message-ID: <20160806175634.GT5783@n2100.arm.linux.org.uk>
 References: <cover.1470129989.git.jsarha@ti.com>
  <5adcd94104080abcd5b072a5d6a85b85c5ea0584.1470129989.git.jsarha@ti.com>
 Mime-Version: 1.0
@@ -25,31 +25,38 @@ Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.c
 List-Id: linux-omap@vger.kernel.org
 
 On Tue, Aug 02, 2016 at 03:05:07PM +0300, Jyri Sarha wrote:
-> @@ -787,19 +792,13 @@ tda998x_configure_audio(struct tda998x_priv *priv,
->  	reg_clear(priv, REG_AIP_CNTRL_0, AIP_CNTRL_0_RST_CTS);
+> @@ -41,7 +41,7 @@ struct tda998x_priv {
+>  	u8 vip_cntrl_0;
+>  	u8 vip_cntrl_1;
+>  	u8 vip_cntrl_2;
+> -	struct tda998x_encoder_params params;
+> +	struct tda998x_audio_params audio_params;
+...
+> @@ -820,7 +819,7 @@ static void tda998x_encoder_set_config(struct tda998x_priv *priv,
+>  			    VIP_CNTRL_2_SWAP_F(p->swap_f) |
+>  			    (p->mirr_f ? VIP_CNTRL_2_MIRR_F : 0);
 >  
->  	/* Write the channel status */
-> -	buf[0] = IEC958_AES0_CON_NOT_COPYRIGHT;
-> -	buf[1] = 0x00;
-> -	buf[2] = IEC958_AES3_CON_FS_NOTID;
-> -	buf[3] = IEC958_AES4_CON_ORIGFS_NOTID |
-> -			IEC958_AES4_CON_MAX_WORDLEN_24;
-> -	reg_write_range(priv, REG_CH_STAT_B(0), buf, 4);
-> +	reg_write_range(priv, REG_CH_STAT_B(0), params->status, 4);
+> -	priv->params = *p;
+> +	priv->audio_params = p->audio;
+...
+> @@ -15,16 +28,7 @@ struct tda998x_encoder_params {
+>  	u8 swap_e:3;
+>  	u8 mirr_e:1;
+>  
+> -	u8 audio_cfg;
+> -	u8 audio_clk_cfg;
+> -	u8 audio_frame[6];
+> -
+> -	enum {
+> -		AFMT_SPDIF,
+> -		AFMT_I2S
+> -	} audio_format;
+> -
+> -	unsigned audio_sample_rate;
+> +	struct tda998x_audio_params audio;
 
-Another couple of points here:
-
-1. I think we should only write the channel status if I2S mode is
-selected - channel status won't be used on SPDIF mode as SPDIF
-supplies its own channel status.
-
-2. I think we should continue writing all the channel status in a
-single I2C transaction, and not breaking it into several different
-transactions to cater for the odd register order.  I don't have
-any direct evidence that one way is better than the other in terms
-of atomicity of the update, but I think having it as a single
-transaction stands a better chance of the chip atomically updating
-the channel status.
+Another point - it would be nice if the name for both tda998x_audio_params
+structures was the same.
 
 -- 
 RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
