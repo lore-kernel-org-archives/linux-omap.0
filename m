@@ -1,59 +1,83 @@
-From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/3] drm/i2c: tda998x: Register ASoC hdmi-codec and add
- audio DT binding
-Date: Mon, 8 Aug 2016 15:15:42 +0300
-Message-ID: <fef3d781-3a97-e1ab-6faf-6fac910dee2d@ti.com>
-References: <cover.1470129989.git.jsarha@ti.com>
- <ce10548e1c28270d80ee99a525e117d0d25f5656.1470129989.git.jsarha@ti.com>
- <20160804140712.GO5783@n2100.arm.linux.org.uk>
- <3a3dcfa4-cec8-53f8-eddb-9a0e04c10ac9@ti.com>
- <20160805164845.GP5783@n2100.arm.linux.org.uk>
- <20160805165959.GA10383@sirena.org.uk>
- <20160805170450.GQ5783@n2100.arm.linux.org.uk>
- <20160805175908.GC10383@sirena.org.uk>
- <20160805221944.GR5783@n2100.arm.linux.org.uk>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2 6/6] dmaengine: omap-dma: Support for LinkedList
+ transfer of slave_sg
+Date: Mon, 8 Aug 2016 16:58:15 +0300
+Message-ID: <76993999-9638-7c46-a85a-e2ed2ef1b8a0@ti.com>
+References: <20160720085032.2955-1-peter.ujfalusi@ti.com>
+ <20160720085032.2955-7-peter.ujfalusi@ti.com>
+ <20160808054226.GR9681@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 8bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160805221944.GR5783-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160808054226.GR9681@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vinod Koul <vinod.koul@intel.com>
+Cc: linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-On 08/06/16 01:19, Russell King - ARM Linux wrote:
->> > It'll pick up that as the DT device to hang things off which I'd expect
->> > to be the desired outcome given that this is a very similar situation to
->> > the MFD situation.  I've not been following the full thread so there is
->> > probably context I'm missing here...
-> Okay, and that sounds to me like a very reasonable thing to want to
-> happen - so that the audio side can be clearly identified as being
-> coupled with the video side.
+On 08/08/16 08:42, Vinod Koul wrote:
+> On Wed, Jul 20, 2016 at 11:50:32AM +0300, Peter Ujfalusi wrote:
+>> sDMA in OMAP3630 or newer SoC have support for LinkedList transfer. When
+>> LinkedList or Descriptor load feature is present we can create the
+>> descriptors for each and program sDMA to walk through the list of
+>> descriptors instead of the current way of sDMA stop, sDMA reconfiguration
+>> and sDMA start after each SG transfer.
+>> By using LinkedList transfer in sDMA the number of DMA interrupts will
+>> decrease dramatically.
+>> Booting up the board with filesystem on SD card for example:
+>> W/o LinkedList support:
+>>  27:       4436          0     WUGEN  13 Level     omap-dma-engine
+>>
+>> Same board/filesystem with this patch:
+>>  27:       1027          0     WUGEN  13 Level     omap-dma-engine
+>>
+>> Or copying files from SD card to eMCC:
+>> 2.1G    /usr/
+>> 232001
+>>
+>> W/o LinkedList we see ~761069 DMA interrupts.
+>> With LinkedList support it is down to ~269314 DMA interrupts.
+>>
+>> With the decreased DMA interrupt number the CPU load is dropping
+>> significantly as well.
 > 
-> So, I'm not seeing a problem with my suggestion... I'm actually more
-> reasons why it's a good thing to want.
+> Interesting, I would have counted the throughput of DMA by using time for
+> transfer and not really interrupts and CPU load. With LL mode, you get a
+> big performance boost due to starting next transaction by hardware without
+> waiting for CPU intervention and yes side effect is lesser interrupts and
+> load :)
 
+I did throughput test as well, it was slightly faster, but not the boost I was
+hoping for.
+The copy of the /usr (2.1G) - 5 runs average:
+w/o linked list: 7:30 mins
+with this patch: 7:23 mins
 
-Ok, so getting back to this comment:
+The limiting factor here is the SD card I have used. But the board was way
+more responsible during heavy I/O tasks, like running 'emerge --sync' I can
+still use the board.
 
->> +	priv->audio_pdev = platform_device_register_data(
->> > +		dev, HDMI_CODEC_DRV_NAME, PLATFORM_DEVID_AUTO,
->> > +		&codec_data, sizeof(codec_data));
-> I'd much prefer that this was a child of the I2C device, which will
-> show the relationship between this virtual platform device and the
-> device which it's associated with.  That can be done via
-> platform_device_register_full().
+>> @@ -743,6 +863,7 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+>>  	struct omap_desc *d;
+>>  	dma_addr_t dev_addr;
+>>  	unsigned i, es, en, frame_bytes;
+>> +	bool ll_failed = false;
+>>  	u32 burst;
+>>  
+>>  	if (dir == DMA_DEV_TO_MEM) {
+>> @@ -818,16 +939,47 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+>>  	 */
+>>  	en = burst;
+>>  	frame_bytes = es_bytes[es] * en;
+>> +
+>> +	if (sglen >= 2)
+>> +		d->using_ll = od->ll123_supported;
+> 
+> No upperbound on length? Does the hardware support any lengths?
 
-The platform_device_register_data() sets the parent of the registered
-platform device according to the first parameter, the tda998x i2c-client
-in this case. Is there some reason why I should use
-platform_device_register_full() and should I set parent to something
-else than the tda998x i2c device?
+No, we don't have upper limit, we can link as many sg as we could allocate
+from the pool.
 
-BR,
-Jyri
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Péter
