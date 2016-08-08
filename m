@@ -1,70 +1,61 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v2 6/6] dmaengine: omap-dma: Support for LinkedList
- transfer of slave_sg
-Date: Mon, 8 Aug 2016 11:12:26 +0530
-Message-ID: <20160808054226.GR9681@localhost>
-References: <20160720085032.2955-1-peter.ujfalusi@ti.com>
- <20160720085032.2955-7-peter.ujfalusi@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v6 0/4]  mfd: lp873x: Add lp873x PMIC support
+Date: Mon, 8 Aug 2016 11:16:54 +0530
+Message-ID: <1470635218-15951-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160720085032.2955-7-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com
+Content-Type: text/plain
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: broonie@kernel.org, lee.jones@linaro.org, tony@atomide.com
+Cc: j-keerthy@ti.com, linus.walleij@linaro.org, gnurou@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-gpio@vger.kernel.org, robh+dt@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jul 20, 2016 at 11:50:32AM +0300, Peter Ujfalusi wrote:
-> sDMA in OMAP3630 or newer SoC have support for LinkedList transfer. When
-> LinkedList or Descriptor load feature is present we can create the
-> descriptors for each and program sDMA to walk through the list of
-> descriptors instead of the current way of sDMA stop, sDMA reconfiguration
-> and sDMA start after each SG transfer.
-> By using LinkedList transfer in sDMA the number of DMA interrupts will
-> decrease dramatically.
-> Booting up the board with filesystem on SD card for example:
-> W/o LinkedList support:
->  27:       4436          0     WUGEN  13 Level     omap-dma-engine
-> 
-> Same board/filesystem with this patch:
->  27:       1027          0     WUGEN  13 Level     omap-dma-engine
-> 
-> Or copying files from SD card to eMCC:
-> 2.1G    /usr/
-> 232001
-> 
-> W/o LinkedList we see ~761069 DMA interrupts.
-> With LinkedList support it is down to ~269314 DMA interrupts.
-> 
-> With the decreased DMA interrupt number the CPU load is dropping
-> significantly as well.
+The LP873X chip is a power management IC for Portable Navigation Systems
+    and Tablet Computing devices. It contains the following components:
 
-Interesting, I would have counted the throughput of DMA by using time for
-transfer and not really interrupts and CPU load. With LL mode, you get a
-big performance boost due to starting next transaction by hardware without
-waiting for CPU intervention and yes side effect is lesser interrupts and
-load :)
+     - Regulators.
+     - Configurable General Purpose Output Signals(GPO).
 
-> @@ -743,6 +863,7 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
->  	struct omap_desc *d;
->  	dma_addr_t dev_addr;
->  	unsigned i, es, en, frame_bytes;
-> +	bool ll_failed = false;
->  	u32 burst;
->  
->  	if (dir == DMA_DEV_TO_MEM) {
-> @@ -818,16 +939,47 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
->  	 */
->  	en = burst;
->  	frame_bytes = es_bytes[es] * en;
-> +
-> +	if (sglen >= 2)
-> +		d->using_ll = od->ll123_supported;
+PMIC interacts with the main processor through i2c. PMIC has
+couple of LDOs(Linear Regulators), couple of BUCKs (Step-Down DC-DC
+Converter Cores) and GPOs(General Purpose Output Signals).
 
-No upperbound on length? Does the hardware support any lengths?
+The regulator patch is already queued:
+http://marc.info/?l=linux-kernel&m=146298767110771&w=2
 
+Hence posting the remaining patches of the series with
+the comments fixed on mfd driver.
 
+Changes in v6:
+
+Series depends on: http://www.gossamer-threads.com/lists/linux/kernel/2457552
+probe_new used.
+
+Chnages in v4:
+
+Added GPO driver support.
+
+Keerthy (4):
+  Documentation: mfd: LP873X: Add information for the mfd driver
+  mfd: lp873x: Add lp873x PMIC support
+  gpio: lp873x: Add support for General Purpose Outputs
+  regulator: lp873x: Change the MFD config option as per latest naming
+
+ Documentation/devicetree/bindings/mfd/lp873x.txt |  59 +++++
+ drivers/gpio/Kconfig                             |  10 +
+ drivers/gpio/Makefile                            |   1 +
+ drivers/gpio/gpio-lp873x.c                       | 185 ++++++++++++++++
+ drivers/mfd/Kconfig                              |  14 ++
+ drivers/mfd/Makefile                             |   2 +
+ drivers/mfd/lp873x.c                             |  89 ++++++++
+ drivers/regulator/Kconfig                        |   2 +-
+ include/linux/mfd/lp873x.h                       | 264 +++++++++++++++++++++++
+ 9 files changed, 625 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/mfd/lp873x.txt
+ create mode 100644 drivers/gpio/gpio-lp873x.c
+ create mode 100644 drivers/mfd/lp873x.c
+ create mode 100644 include/linux/mfd/lp873x.h
 
 -- 
-~Vinod
+1.9.1
+
