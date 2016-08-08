@@ -1,67 +1,41 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH v6 2/4] mfd: lp873x: Add lp873x PMIC support
-Date: Mon, 8 Aug 2016 12:19:23 +0530
-Message-ID: <57A82B73.6070005@ti.com>
-References: <201608081419.tHdP36PF%fengguang.wu@intel.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
+Date: Mon, 8 Aug 2016 11:09:56 +0300
+Message-ID: <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
+References: <20160517181927.GA28741@amd>
+ <20160521054336.GA27123@amd>
+ <573FFF51.1000004@gmail.com>
+ <20160521105607.GA20071@amd>
+ <574049EF.2090208@gmail.com>
+ <20160524090433.GA1277@amd>
+ <20160524091746.GA14536@amd>
+ <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
+ <20160527205140.GA26767@amd>
+ <20160805102611.GA13116@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201608081419.tHdP36PF%fengguang.wu@intel.com>
+Content-Disposition: inline
+In-Reply-To: <20160805102611.GA13116@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: kbuild test robot <lkp@intel.com>, Keerthy <j-keerthy@ti.com>
-Cc: kbuild-all@01.org, broonie@kernel.org, lee.jones@linaro.org, tony@atomide.com, linus.walleij@linaro.org, gnurou@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-gpio@vger.kernel.org, robh+dt@kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com
 List-Id: linux-omap@vger.kernel.org
 
+On Fri, Aug 05, 2016 at 12:26:11PM +0200, Pavel Machek wrote:
+> 
+> This adds support for AD5820 autofocus coil, found for example in
+> Nokia N900 smartphone.
 
+Thanks, Pavel!
 
-On Monday 08 August 2016 11:56 AM, kbuild test robot wrote:
-> Hi Keerthy,
->
-> [auto build test ERROR on gpio/for-next]
-> [also build test ERROR on v4.8-rc1 next-20160805]
-> [cannot apply to ljones-mfd/for-mfd-next]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
->
-> url:    https://github.com/0day-ci/linux/commits/Keerthy/mfd-lp873x-Add-lp873x-PMIC-support/20160808-135204
-> base:   https://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-gpio.git for-next
-> config: i386-allmodconfig (attached as .config)
-> compiler: gcc-6 (Debian 6.1.1-9) 6.1.1 20160705
-> reproduce:
->          # save the attached .config to linux build tree
->          make ARCH=i386
->
-> All errors (new ones prefixed by >>):
->
->>> drivers/mfd/lp873x.c:83:2: error: unknown field 'probe_new' specified in initializer
->       .probe_new  = lp873x_probe,
->       ^
->>> drivers/mfd/lp873x.c:83:16: error: initialization from incompatible pointer type [-Werror=incompatible-pointer-types]
->       .probe_new  = lp873x_probe,
->                     ^~~~~~~~~~~~
->     drivers/mfd/lp873x.c:83:16: note: (near initialization for 'lp873x_driver.id_table')
->     cc1: some warnings being treated as errors
->
-> vim +/probe_new +83 drivers/mfd/lp873x.c
->
->      77	
->      78	static struct i2c_driver lp873x_driver = {
->      79		.driver		= {
->      80			.name	= "lp873x",
->      81			.of_match_table = of_lp873x_match_table,
->      82		},
->    > 83		.probe_new		= lp873x_probe,
+Let's use V4L2_CID_FOCUS_ABSOLUTE, as is in the patch. If we get something
+better in the future, we'll switch to that then.
 
-Depends on: Rebased on top of 
-http://www.gossamer-threads.com/lists/linux/kernel/2457552
+I've applied this to ad5820 branch in my tree.
 
-As mentioned clearly.
+-- 
+Cheers,
 
->      84	};
->      85	module_i2c_driver(lp873x_driver);
->      86	
->
-> ---
-> 0-DAY kernel test infrastructure                Open Source Technology Center
-> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
->
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
