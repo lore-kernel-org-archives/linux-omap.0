@@ -1,41 +1,128 @@
-From: Heiko =?ISO-8859-1?Q?St=FCbner?= <heiko@sntech.de>
-Subject: Re: [PATCH] i2c: don't print error when adding adapter fails
-Date: Tue, 09 Aug 2016 14:13:11 +0200
-Message-ID: <5423570.keugkegXM3@diego>
-References: <1470742581-12971-1-git-send-email-wsa-dev@sang-engineering.com> <1470742581-12971-2-git-send-email-wsa-dev@sang-engineering.com>
+From: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v6 1/4] Documentation: mfd: LP873X: Add information for
+ the mfd driver
+Date: Tue, 9 Aug 2016 13:50:37 +0100
+Message-ID: <20160809125037.GE5243@dell>
+References: <1470635218-15951-1-git-send-email-j-keerthy@ti.com>
+ <1470635218-15951-2-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <1470742581-12971-2-git-send-email-wsa-dev@sang-engineering.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Wolfram Sang <wsa-dev@sang-engineering.com>
-Cc: linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org, Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>, Ludovic Desroches <ludovic.desroches@atmel.com>, Ray Jui <rjui@broadcom.com>, Scott Branden <sbranden@broadcom.com>, Jon Mason <jonmason@broadcom.com>, bcm-kernel-feedback-list@broadcom.com, Florian Fainelli <f.fainelli@gmail.com>, Sonic Zhang <sonic.zhang@analog.com>, Brian Norris <computersforpeace@gmail.com>, Gregory Fong <gregory.0xf0@gmail.com>, Michal Simek <michal.simek@xilinx.com>, =?ISO-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann@xilinx.com>, Jochen Friedrich <jochen@scram.de>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Guenter Roeck <linux@roeck-us.net>, Uwe =?ISO-8859-1?Q?Kleine=2DK=F6nig?= <kernel@pengutronix.de>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1470635218-15951-2-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Am Dienstag, 9. August 2016, 13:36:17 schrieb Wolfram Sang:
-> The core will do this for us now.
+On Mon, 08 Aug 2016, Keerthy wrote:
+
+> The lp873x series of PMICs have a bunch of regulators and a couple
+> of GPO(General Purpose Outputs).
+> Add information for the MFD and regulator drivers.
 > 
-> Signed-off-by: Wolfram Sang <wsa-dev@sang-engineering.com>
+> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+
+These should be in chronological order.  Rob could not have Acked the
+patch before you sent it.
+
 > ---
-
-[...]
-
-> diff --git a/drivers/i2c/busses/i2c-rk3x.c b/drivers/i2c/busses/i2c-rk3x.c
-> index 2bc8b01153d619..3b87afe82f6394 100644
-> --- a/drivers/i2c/busses/i2c-rk3x.c
-> +++ b/drivers/i2c/busses/i2c-rk3x.c
-> @@ -1303,10 +1303,8 @@ static int rk3x_i2c_probe(struct platform_device
-> *pdev) rk3x_i2c_adapt_div(i2c, clk_rate);
+> Changes in v6:
 > 
->  	ret = i2c_add_adapter(&i2c->adap);
-> -	if (ret < 0) {
-> -		dev_err(&pdev->dev, "Could not register adapter\n");
-> +	if (ret < 0)
->  		goto err_clk_notifier;
-> -	}
+>   * Added more formating for properties.
 > 
->  	dev_info(&pdev->dev, "Initialized RK3xxx I2C bus at %p\n", i2c->regs);
+> Changes in v4:
+> 
+>   * Added the GPIO properties.
+> 
+> Changes in v3:
+> 
+>   * Changed the example node lable to pmic from lp8733.
+> 
+>  Documentation/devicetree/bindings/mfd/lp873x.txt | 59 ++++++++++++++++++++++++
+>  1 file changed, 59 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/mfd/lp873x.txt
 
-for Rockchip
-Acked-by: Heiko Stuebner <heiko@sntech.de>
+Patch looks good though.
+
+I'll fix the nit above.
+
+Applied, thanks.
+
+> diff --git a/Documentation/devicetree/bindings/mfd/lp873x.txt b/Documentation/devicetree/bindings/mfd/lp873x.txt
+> new file mode 100644
+> index 0000000..1377c25
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/mfd/lp873x.txt
+> @@ -0,0 +1,59 @@
+> +TI LP873X PMIC MFD driver
+> +
+> +Required properties:
+> +  - compatible:	"ti,lp8732", "ti,lp8733"
+> +  - reg:		I2C slave address.
+> +  - gpio-controller:	Marks the device node as a GPIO Controller.
+> +  - #gpio-cells:	Should be two.  The first cell is the pin number and
+> +			the second cell is used to specify flags.
+> +			See ../gpio/gpio.txt for more information.
+> +  - regulators:	List of child nodes that specify the regulator
+> +			initialization data.
+> +Example:
+> +
+> +pmic: lp8733@60 {
+> +	compatible = "ti,lp8733";
+> +	reg = <0x60>;
+> +	gpio-controller;
+> +	#gpio-cells = <2>;
+> +
+> +	regulators {
+> +		lp8733_buck0: buck0 {
+> +			regulator-name = "lp8733-buck0";
+> +			regulator-min-microvolt = <800000>;
+> +			regulator-max-microvolt = <1400000>;
+> +			regulator-min-microamp = <1500000>;
+> +			regulator-max-microamp = <4000000>;
+> +			regulator-ramp-delay = <10000>;
+> +			regulator-always-on;
+> +			regulator-boot-on;
+> +		};
+> +
+> +		lp8733_buck1: buck1 {
+> +			regulator-name = "lp8733-buck1";
+> +			regulator-min-microvolt = <800000>;
+> +			regulator-max-microvolt = <1400000>;
+> +			regulator-min-microamp = <1500000>;
+> +			regulator-max-microamp = <4000000>;
+> +			regulator-ramp-delay = <10000>;
+> +			regulator-boot-on;
+> +			regulator-always-on;
+> +		};
+> +
+> +		lp8733_ldo0: ldo0 {
+> +			regulator-name = "lp8733-ldo0";
+> +			regulator-min-microvolt = <800000>;
+> +			regulator-max-microvolt = <3000000>;
+> +			regulator-boot-on;
+> +			regulator-always-on;
+> +		};
+> +
+> +		lp8733_ldo1: ldo1 {
+> +			regulator-name = "lp8733-ldo1";
+> +			regulator-min-microvolt = <800000>;
+> +			regulator-max-microvolt = <3000000>;
+> +			regulator-always-on;
+> +			regulator-boot-on;
+> +		};
+> +	};
+> +};
+
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
