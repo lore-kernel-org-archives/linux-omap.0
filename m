@@ -1,96 +1,103 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v5 2/3] mfd: lp873x: Add lp873x PMIC support
-Date: Tue, 9 Aug 2016 10:44:16 +0100
-Message-ID: <20160809094416.GX5243@dell>
-References: <1467215067-6486-1-git-send-email-j-keerthy@ti.com>
- <1467215067-6486-3-git-send-email-j-keerthy@ti.com>
- <20160805080322.GO5243@dell>
- <57A44D21.2080106@ti.com>
- <20160805090147.GT5243@dell>
- <57A81849.7010707@ti.com>
+From: Matt Ranostay <mranostay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/2] iio: adc: ti_am335x_adc: Protect FIFO1 from
+ concurrent access
+Date: Tue, 9 Aug 2016 02:51:04 -0700
+Message-ID: <CAKzfze92jp-O1Zy_9gpFTjPdE4Oq_Tt26dAe7854jD30oAEKvg@mail.gmail.com>
+References: <20160808110501.29586-1-vigneshr@ti.com> <20160808110501.29586-2-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <57A81849.7010707@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <a0393675@ti.com>
-Cc: Keerthy <j-keerthy@ti.com>, linus.walleij@linaro.org, gnurou@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-gpio@vger.kernel.org, broonie@kernel.org, robh+dt@kernel.org, tony@atomide.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160808110501.29586-2-vigneshr-l0cyMroinI0@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Cc: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Andrew F . Davis" <afd-l0cyMroinI0@public.gmane.org>, "linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 08 Aug 2016, Keerthy wrote:
-> On Friday 05 August 2016 02:31 PM, Lee Jones wrote:
-> > On Fri, 05 Aug 2016, Keerthy wrote:
-> > > On Friday 05 August 2016 01:33 PM, Lee Jones wrote:
-> > > > On Wed, 29 Jun 2016, Keerthy wrote:
-> > > > 
-> > > > > The LP873X chip is a power management IC for Portable Navigation Systems
-> > > > >       and Tablet Computing devices. It contains the following components:
-> > > > > 
-> > > > >        - Regulators.
-> > > > >        - Configurable General Purpose Output Signals(GPO).
-> > > > > 
-> > > > > PMIC interacts with the main processor through i2c. PMIC has
-> > > > > couple of LDOs(Linear Regulators), couple of BUCKs (Step-Down DC-DC
-> > > > > Converter Cores) and GPOs(General Purpose Output Signals).
-> > > > > 
-> > > > > Signed-off-by: Keerthy <j-keerthy@ti.com>
-> > > > > ---
-> > > > > 
-> > > > > Changes in v4:
-> > > > > 
-> > > > >     * Added Author.
-> > > > >     * Added the mfd_cell for gpio.
-> > > > > 
-> > > > > Changes in v3:
-> > > > > 
-> > > > >     * Reordered the probe code.
-> > > > >     * Fixed Typo in Kconfig description.
-> > > > >     * Removed unused member from struct lp873x.
-> > > > > 
-> > > > >    drivers/mfd/Kconfig        |  14 +++
-> > > > >    drivers/mfd/Makefile       |   2 +
-> > > > >    drivers/mfd/lp873x.c       |  99 +++++++++++++++++
-> > > > >    include/linux/mfd/lp873x.h | 264 +++++++++++++++++++++++++++++++++++++++++++++
-> > > > >    4 files changed, 379 insertions(+)
-> > > > >    create mode 100644 drivers/mfd/lp873x.c
-> > > > >    create mode 100644 include/linux/mfd/lp873x.h
+On Mon, Aug 8, 2016 at 4:05 AM, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org> wrote:
+> It is possible that two or more ADC channels can be simultaneously
+> requested for raw samples, in which case there can be race in access to
+> FIFO data resulting in loss of samples.
+> If am335x_tsc_se_set_once() is called again from tiadc_read_raw(), when
+> ADC is still acquired to sample one of the channels, the second process
+> might be put into uninterruptible sleep state. Fix these issues, by
+> protecting FIFO access and channel configurations with a mutex. Since
+> tiadc_read_raw() might take anywhere between few microseconds to few
+> milliseconds to finish execution (depending on averaging and delay
+> values supplied via DT), its better to use mutex instead of spinlock.
+>
+> Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/iio/adc/ti_am335x_adc.c | 14 +++++++++++---
+>  1 file changed, 11 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+> index 8a368756881b..bed9977a1863 100644
+> --- a/drivers/iio/adc/ti_am335x_adc.c
+> +++ b/drivers/iio/adc/ti_am335x_adc.c
+> @@ -32,6 +32,7 @@
+>
+>  struct tiadc_device {
+>         struct ti_tscadc_dev *mfd_tscadc;
+> +       struct mutex fifo1_lock; /* to protect fifo access */
 
-[...]
+Are there more than one FIFOs, or even possible? Just wondering the
+number indexing here..
 
-> > > > > +static const struct i2c_device_id lp873x_id_table[] = {
-> > > > > +	{ "lp873x", LP873X },
-> > > > > +	{ "lp8732", LP873X },
-> > > > > +	{ "lp8733", LP873X },
-> > > > 
-> > > > Do you use these IDs at any point?
-> > > 
-> > > I have lp8733 and lp8732 at the moment. They are register exact but
-> > > different parts none the less. Hence having separate strings. As of now no
-> > > differences seen in gpio/regulator modules so not using them anywhere.
-> > 
-> > I have a patch-set pending on the I2C list that removes all unused
-> > 'struct i2c_device_id' tables.  To identify which ones are in use and
-> > which ones can be removed, it would help if you could remove the
-> > unused .id field.
-> 
-> I guess you are referring to this:
-> 
-> http://www.gossamer-threads.com/lists/linux/kernel/2457552
-> 
-> I applied the above series and i see that by using driver_new in lp873x
-> MFD driver i no longer need the mandatory i2c_device_id. Thanks.
-> I will send a series on top of your i2c set v5 without any unused device_id.
-> I will add a dependency on your set.
-
-I would not do that if I were you.  That set has been pending for
-years.  I'm just saying, when that patch-set is accepted, it will be
-easier to identify removable tables if they do not contain populated,
-but unused .id entries.
-
--- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+>         int channels;
+>         u8 channel_line[8];
+>         u8 channel_step[8];
+> @@ -359,6 +360,7 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
+>                 int *val, int *val2, long mask)
+>  {
+>         struct tiadc_device *adc_dev = iio_priv(indio_dev);
+> +       int ret = IIO_VAL_INT;
+>         int i, map_val;
+>         unsigned int fifo1count, read, stepid;
+>         bool found = false;
+> @@ -372,6 +374,7 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
+>         if (!step_en)
+>                 return -EINVAL;
+>
+> +       mutex_lock(&adc_dev->fifo1_lock);
+>         fifo1count = tiadc_readl(adc_dev, REG_FIFO1CNT);
+>         while (fifo1count--)
+>                 tiadc_readl(adc_dev, REG_FIFO1);
+> @@ -388,7 +391,8 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
+>
+>                 if (time_after(jiffies, timeout)) {
+>                         am335x_tsc_se_adc_done(adc_dev->mfd_tscadc);
+> -                       return -EAGAIN;
+> +                       ret = -EAGAIN;
+> +                       goto err_unlock;
+>                 }
+>         }
+>         map_val = adc_dev->channel_step[chan->scan_index];
+> @@ -414,8 +418,11 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
+>         am335x_tsc_se_adc_done(adc_dev->mfd_tscadc);
+>
+>         if (found == false)
+> -               return -EBUSY;
+> -       return IIO_VAL_INT;
+> +               ret =  -EBUSY;
+> +
+> +err_unlock:
+> +       mutex_unlock(&adc_dev->fifo1_lock);
+> +       return ret;
+>  }
+>
+>  static const struct iio_info tiadc_info = {
+> @@ -483,6 +490,7 @@ static int tiadc_probe(struct platform_device *pdev)
+>
+>         tiadc_step_config(indio_dev);
+>         tiadc_writel(adc_dev, REG_FIFO1THR, FIFO1_THRESHOLD);
+> +       mutex_init(&adc_dev->fifo1_lock);
+>
+>         err = tiadc_channel_init(indio_dev, adc_dev->channels);
+>         if (err < 0)
+> --
+> 2.9.2
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-iio" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
