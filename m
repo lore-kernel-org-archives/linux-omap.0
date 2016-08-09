@@ -1,75 +1,39 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH] i2c: don't print error when adding adapter fails
-Date: Tue, 9 Aug 2016 16:39:15 +0200
-Message-ID: <20160809143915.GB1666@katana>
-References: <1470742581-12971-1-git-send-email-wsa-dev@sang-engineering.com>
- <1470742581-12971-2-git-send-email-wsa-dev@sang-engineering.com>
- <32d25618-83f6-b876-07b0-adb988516173@roeck-us.net>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH] drivers: net: cpsw: fix kmemleak false-positive reports
+ for sk buffers
+Date: Tue, 9 Aug 2016 16:19:37 +0100
+Message-ID: <20160809151937.GA15447@e104818-lin.cambridge.arm.com>
+References: <20160809120944.23185-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ftEhullJWpWg/VHq"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <32d25618-83f6-b876-07b0-adb988516173@roeck-us.net>
+In-Reply-To: <20160809120944.23185-1-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Wolfram Sang <wsa-dev@sang-engineering.com>, linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, adi-buildroot-devel@lists.sourceforge.net, linuxppc-dev@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org, linux-amlogic@lists.infradead.org, linux-omap@vger.kernel.org, linux-rockchip@lists.infradead.org, kernel@stlinux.com, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On Tue, Aug 09, 2016 at 03:09:44PM +0300, Grygorii Strashko wrote:
+> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+> index 0805855..0456e0e 100644
+> --- a/drivers/net/ethernet/ti/cpsw.c
+> +++ b/drivers/net/ethernet/ti/cpsw.c
+> @@ -732,6 +732,7 @@ static void cpsw_rx_handler(void *token, int len, int status)
+>  		netif_receive_skb(skb);
+>  		ndev->stats.rx_bytes += len;
+>  		ndev->stats.rx_packets++;
+> +		kmemleak_not_leak(new_skb);
+>  	} else {
+>  		ndev->stats.rx_dropped++;
+>  		new_skb = skb;
+> @@ -1323,6 +1324,7 @@ static int cpsw_ndo_open(struct net_device *ndev)
+>  				kfree_skb(skb);
+>  				goto err_cleanup;
+>  			}
+> +			kmemleak_not_leak(skb);
 
---ftEhullJWpWg/VHq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Nitpick: I would add a short comment above the kmemleak_not_leak() calls
+on why there is a false positive. Otherwise:
 
-
-> >@@ -550,15 +550,10 @@ static int uniphier_fi2c_probe(struct platform_dev=
-ice *pdev)
-> > 	}
-> >
-> > 	ret =3D i2c_add_adapter(&priv->adap);
-> >-	if (ret) {
-> >-		dev_err(dev, "failed to add I2C adapter\n");
-> >-		goto err;
-> >-	}
-> >-
-> >-err:
-> > 	if (ret)
-> > 		clk_disable_unprepare(priv->clk);
-> >
-> >+ err:
->=20
-> You sure about that one ? It leaves the clock enabled in some of the erro=
-r paths.
-
-Uh, ehrm, where is the brown paper bag? Thanks, Guenter!
-
-> Note: I dropped all individuals from Cc:; my mailer refused to accept the=
- reply because there
-> were too many.
-
-Yes, the disadvantage of not breaking out.
-
-
---ftEhullJWpWg/VHq
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXqesTAAoJEBQN5MwUoCm2fdIQAKsMhNBydvOJrt8SvVKc4fd8
-39601dtUJkADzbUDKqrQm08buBble9GQe38/YIQXiPO1pRY1RQBmPLbdNTlEWMFW
-Rc2RFmg1L469UhoDgrarWvT/VFMPBGOXEVEMe/0HFX+xKXfzWwYtFHvoUBtWVv0a
-rmuq47nYitymT9AS2Pul4Jn93hT2iMiIXoqhsEoNC8NiW/JR2okn64C8dUhx+tYv
-cjwClAbJwCpd+hBwSYR6CCunZTUUMcpHxjVtgfckNHc6TPBGxwHRVGpye0dd176M
-z69gqUsx5ny+iNFeCZzgynfX0U0yzFYjNeyNFm9MuXDGD4cr6qB1PonvkStV4vKu
-cxomrG2RjT/36NHlJIbXklT2PSB0QOPjGkS+apvPlQ9eM4u24j+WlXyCtszOr/qP
-19wm6SZ+0rvlM56aPgpA935XkdCQJ8KffRTbqHxrXEthtKwhmRR1IFC1zSX7/1a9
-dA6AOB2i1fQ+FgZ/0vhmWQr72DvmTnM+T3HLWq/IK9u16j1tHRD2HA8IKDb4yY8W
-cVD511wu8qkLta47lkOVbLwxyWDBeLOT0Ekn67y6PvXoPItoFO7ormtLUkvaL7AW
-VYPILEWfsj/CAdATGEU2j//OIYakDl66HUp3yM9VxH+39gTboiHV1aFJ8/dfVZuF
-OGDTbDBP2wxqJac3m7M3
-=0rq4
------END PGP SIGNATURE-----
-
---ftEhullJWpWg/VHq--
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
