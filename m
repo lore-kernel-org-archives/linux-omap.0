@@ -1,74 +1,41 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH v2 02/14] net: ethernet: ti: cpsw: remove redundant check
- in napi poll
-Date: Tue, 9 Aug 2016 15:10:02 +0300
-Message-ID: <dbdd5e2d-8aef-34e4-2ef5-1a35edadbf2c@linaro.org>
-References: <1470480524-6851-1-git-send-email-ivan.khoronzhuk@linaro.org>
- <1470480524-6851-3-git-send-email-ivan.khoronzhuk@linaro.org>
- <c3f81cb3-2a1c-89e5-b2f0-a67e220fb5ca@ti.com>
+From: Heiko =?ISO-8859-1?Q?St=FCbner?= <heiko@sntech.de>
+Subject: Re: [PATCH] i2c: don't print error when adding adapter fails
+Date: Tue, 09 Aug 2016 14:13:11 +0200
+Message-ID: <5423570.keugkegXM3@diego>
+References: <1470742581-12971-1-git-send-email-wsa-dev@sang-engineering.com> <1470742581-12971-2-git-send-email-wsa-dev@sang-engineering.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <c3f81cb3-2a1c-89e5-b2f0-a67e220fb5ca@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, netdev@vger.kernel.org, mugunthanvnm@ti.com
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, dlide@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <1470742581-12971-2-git-send-email-wsa-dev@sang-engineering.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Wolfram Sang <wsa-dev@sang-engineering.com>
+Cc: linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org, Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>, Ludovic Desroches <ludovic.desroches@atmel.com>, Ray Jui <rjui@broadcom.com>, Scott Branden <sbranden@broadcom.com>, Jon Mason <jonmason@broadcom.com>, bcm-kernel-feedback-list@broadcom.com, Florian Fainelli <f.fainelli@gmail.com>, Sonic Zhang <sonic.zhang@analog.com>, Brian Norris <computersforpeace@gmail.com>, Gregory Fong <gregory.0xf0@gmail.com>, Michal Simek <michal.simek@xilinx.com>, =?ISO-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann@xilinx.com>, Jochen Friedrich <jochen@scram.de>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Guenter Roeck <linux@roeck-us.net>, Uwe =?ISO-8859-1?Q?Kleine=2DK=F6nig?= <kernel@pengutronix.de>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <k.kozlowski@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
+Am Dienstag, 9. August 2016, 13:36:17 schrieb Wolfram Sang:
+> The core will do this for us now.
+> 
+> Signed-off-by: Wolfram Sang <wsa-dev@sang-engineering.com>
+> ---
 
+[...]
 
-On 09.08.16 14:29, Grygorii Strashko wrote:
-> On 08/06/2016 01:48 PM, Ivan Khoronzhuk wrote:
->> No need to check number of handled packets, when in most cases (> 99%)
->> it's not 0. It can be 0 only in rare cases, even in this case
->> it's not bad to print just 0.
->>
->> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
->> ---
->>  drivers/net/ethernet/ti/cpsw.c | 8 ++------
->>  1 file changed, 2 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
->> index 8972bf6..85ee9f5 100644
->> --- a/drivers/net/ethernet/ti/cpsw.c
->> +++ b/drivers/net/ethernet/ti/cpsw.c
->> @@ -793,9 +793,7 @@ static int cpsw_tx_poll(struct napi_struct *napi_tx, int budget)
->>  		}
->>  	}
->>
->> -	if (num_tx)
->> -		cpsw_dbg(priv, intr, "poll %d tx pkts\n", num_tx);
->> -
->> +	cpsw_dbg(priv, intr, "poll %d tx pkts\n", num_tx);
->
-> I think, this dbg log can be just dropped as it seems not very useful.
-> This also will allow to drop patch [PATCH v2 12/14] net: ethernet: ti: cpsw: fix int dbg message
-That was my first thought, but I worried about someone can use it.
-If no one has objection, I'll drop the patch 12 and delete "poll" print at all.
+> diff --git a/drivers/i2c/busses/i2c-rk3x.c b/drivers/i2c/busses/i2c-rk3x.c
+> index 2bc8b01153d619..3b87afe82f6394 100644
+> --- a/drivers/i2c/busses/i2c-rk3x.c
+> +++ b/drivers/i2c/busses/i2c-rk3x.c
+> @@ -1303,10 +1303,8 @@ static int rk3x_i2c_probe(struct platform_device
+> *pdev) rk3x_i2c_adapt_div(i2c, clk_rate);
+> 
+>  	ret = i2c_add_adapter(&i2c->adap);
+> -	if (ret < 0) {
+> -		dev_err(&pdev->dev, "Could not register adapter\n");
+> +	if (ret < 0)
+>  		goto err_clk_notifier;
+> -	}
+> 
+>  	dev_info(&pdev->dev, "Initialized RK3xxx I2C bus at %p\n", i2c->regs);
 
->
->>  	return num_tx;
->>  }
->>
->> @@ -814,9 +812,7 @@ static int cpsw_rx_poll(struct napi_struct *napi_rx, int budget)
->>  		}
->>  	}
->>
->> -	if (num_rx)
->> -		cpsw_dbg(priv, intr, "poll %d rx pkts\n", num_rx);
->> -
->> +	cpsw_dbg(priv, intr, "poll %d rx pkts\n", num_rx);
->
-> Same here.
->
->>  	return num_rx;
->>  }
->>
->>
->
->
-
--- 
-Regards,
-Ivan Khoronzhuk
+for Rockchip
+Acked-by: Heiko Stuebner <heiko@sntech.de>
