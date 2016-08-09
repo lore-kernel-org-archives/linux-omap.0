@@ -1,35 +1,55 @@
-From: Joachim Eastwood <manabian-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] i2c: don't print error when adding adapter fails
-Date: Tue, 9 Aug 2016 18:45:54 +0200
-Message-ID: <CAGhQ9VwJk1WZ2cB6Ag3HXfWEwe1GC-G9L2TWem+Lf5moLDx9uQ@mail.gmail.com>
-References: <1470742581-12971-1-git-send-email-wsa-dev@sang-engineering.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH v2 0/3] drm/i2c: tda998x ASoC hdmi-codec
+	support + BeagleBoneBlack audio support
+Date: Tue, 9 Aug 2016 22:00:03 +0300
+Message-ID: <cover.1470754071.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1470742581-12971-1-git-send-email-wsa-dev-jBu1N2QxHDJrcw3mvpCnnVaTQe2KTcn/@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wolfram Sang <wsa-dev-jBu1N2QxHDJrcw3mvpCnnVaTQe2KTcn/@public.gmane.org>
-Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, adi-buildroot-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, kernel-F5mvAk5X5gdBDgjK7y7TUQ@public.gmane.org, linux-amlogic-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org
+Cc: peter.ujfalusi@ti.com, tony@atomide.com, broonie@kernel.org, Jyri Sarha <jsarha@ti.com>, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-On 9 August 2016 at 13:36, Wolfram Sang <wsa-dev-jBu1N2QxHDJrcw3mvpCnnVaTQe2KTcn/@public.gmane.org> wrote:
-> Since v4.8-rc1, the I2C core will print detailed information when adding an I2C
-> adapter fails. So, drivers can skip this now.
->
-> I am still undecided if I apply this as a single patch or break it out. But for
-> reviewing, avoiding the patch bomb is probably a good thing.
->
-> Should go via subsystem tree, I'd think.
->
-> Wolfram Sang (1):
->   i2c: don't print error when adding adapter fails
+Changes since first version [1] of this series:
+- "drm/i2c: tda998x: Improve tda998x_configure_audio() audio related pdata"
+  - Change audio in tda998x pdata to audio_params to match the naming in
+    private data struct
+  - Skip IEC958_AES2 byte when writing status bytes to registers 
+  - Turn AFMT-macros to enum
+  - include linux/hdmi.h in drm/i2c/tda998x.h
+- "drm/i2c: tda998x: Register ASoC hdmi-codec and add audio DT binding"
+  - Fix macronaming naming in dt-bindings/display/tda998x.h
+  - Turn AFMT-macros to enum
+  - Add locking to protect access to audio registers from ASoC thread
+- "dts/am335x-boneblack: SQUASH"
+  - Use corrected macros from dt-bindings/display/tda998x.h
 
+[1] https://lists.freedesktop.org/archives/dri-devel/2016-August/114491.html 
 
-For
->  drivers/i2c/busses/i2c-lpc2k.c          | 4 +---
+Jyri Sarha (3):
+  drm/i2c: tda998x: Improve tda998x_configure_audio() audio related
+    pdata
+  drm/i2c: tda998x: Register ASoC hdmi-codec and add audio DT binding
+  ARM: dts: am335x-boneblack: Add HDMI audio support
 
-Acked-by: Joachim Eastwood <manabian-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+ .../devicetree/bindings/display/bridge/tda998x.txt |  18 ++
+ arch/arm/boot/dts/am335x-boneblack.dts             |  71 ++++-
+ drivers/gpu/drm/i2c/Kconfig                        |   1 +
+ drivers/gpu/drm/i2c/tda998x_drv.c                  | 297 ++++++++++++++++++---
+ include/drm/i2c/tda998x.h                          |  29 +-
+ include/dt-bindings/display/tda998x.h              |   7 +
+ 6 files changed, 368 insertions(+), 55 deletions(-)
+ create mode 100644 include/dt-bindings/display/tda998x.h
 
-
-regards,
-Joachim Eastwood
+-- 
+1.9.1
