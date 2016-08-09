@@ -1,68 +1,76 @@
-From: Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Guenter Roeck <linux@roeck-us.net>
 Subject: Re: [PATCH] i2c: don't print error when adding adapter fails
-Date: Tue, 9 Aug 2016 14:58:46 +0200
-Message-ID: <20160809125846.GA17535@ulmo.ba.sec>
+Date: Tue, 9 Aug 2016 06:31:40 -0700
+Message-ID: <32d25618-83f6-b876-07b0-adb988516173@roeck-us.net>
 References: <1470742581-12971-1-git-send-email-wsa-dev@sang-engineering.com>
  <1470742581-12971-2-git-send-email-wsa-dev@sang-engineering.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="3V7upXqbjpZ4EhLz"
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1470742581-12971-2-git-send-email-wsa-dev-jBu1N2QxHDJrcw3mvpCnnVaTQe2KTcn/@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wolfram Sang <wsa-dev-jBu1N2QxHDJrcw3mvpCnnVaTQe2KTcn/@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jean Delvare <jdelvare-IBi9RG/b67k@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Ludovic Desroches <ludovic.desroches-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>, Ray Jui <rjui-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Scott Branden <sbranden-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Jon Mason <jonmason-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, bcm-kernel-feedback-list-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, Florian Fainelli <f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sonic Zhang <sonic.zhang-OyLXuOCK7orQT0dZR+AlfA@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Gregory Fong <gregory.0xf0-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Michal Simek <michal.simek-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, =?utf-8?B?U8O2cmVu?= Brinkmann <soren.brinkmann-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, Jochen Friedrich <jochen-NIgtFMG+Po8@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Kukjin Kim <kgene-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Seth Heasley <seth.hea>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1470742581-12971-2-git-send-email-wsa-dev@sang-engineering.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Wolfram Sang <wsa-dev@sang-engineering.com>, linux-kernel@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-arm-kernel@lists.infradead.org, adi-buildroot-devel@lists.sourceforge.net, linuxppc-dev@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org, linux-amlogic@lists.infradead.org, linux-omap@vger.kernel.org, linux-rockchip@lists.infradead.org, kernel@stlinux.com, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+On 08/09/2016 04:36 AM, Wolfram Sang wrote:
+> The core will do this for us now.
+>
+> Signed-off-by: Wolfram Sang <wsa-dev@sang-engineering.com>
+> ---
+[ ... ]
 
---3V7upXqbjpZ4EhLz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Aug 09, 2016 at 01:36:17PM +0200, Wolfram Sang wrote:
-[...]
-> diff --git a/drivers/i2c/busses/i2c-tegra.c b/drivers/i2c/busses/i2c-tegr=
-a.c
-> index b126dbaa47e370..d9979da11485ae 100644
-> --- a/drivers/i2c/busses/i2c-tegra.c
-> +++ b/drivers/i2c/busses/i2c-tegra.c
-> @@ -932,10 +932,8 @@ static int tegra_i2c_probe(struct platform_device *p=
-dev)
->  	i2c_dev->adapter.dev.of_node =3D pdev->dev.of_node;
-> =20
->  	ret =3D i2c_add_numbered_adapter(&i2c_dev->adapter);
+> diff --git a/drivers/i2c/busses/i2c-uniphier-f.c b/drivers/i2c/busses/i2c-uniphier-f.c
+> index aeead0d27d1007..64318e69089439 100644
+> --- a/drivers/i2c/busses/i2c-uniphier-f.c
+> +++ b/drivers/i2c/busses/i2c-uniphier-f.c
+> @@ -550,15 +550,10 @@ static int uniphier_fi2c_probe(struct platform_device *pdev)
+>  	}
+>
+>  	ret = i2c_add_adapter(&priv->adap);
 > -	if (ret) {
-> -		dev_err(&pdev->dev, "Failed to add I2C adapter\n");
-> +	if (ret)
->  		goto disable_div_clk;
+> -		dev_err(dev, "failed to add I2C adapter\n");
+> -		goto err;
 > -	}
-> =20
->  	return 0;
-> =20
+> -
+> -err:
+>  	if (ret)
+>  		clk_disable_unprepare(priv->clk);
+>
+> + err:
 
-Acked-by: Thierry Reding <treding-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+You sure about that one ? It leaves the clock enabled in some of the error paths.
 
---3V7upXqbjpZ4EhLz
-Content-Type: application/pgp-signature; name="signature.asc"
+>  	return ret;
+>  }
+>
+> diff --git a/drivers/i2c/busses/i2c-uniphier.c b/drivers/i2c/busses/i2c-uniphier.c
+> index 475a5eb514e215..94f64cccfdef08 100644
+> --- a/drivers/i2c/busses/i2c-uniphier.c
+> +++ b/drivers/i2c/busses/i2c-uniphier.c
+> @@ -407,15 +407,10 @@ static int uniphier_i2c_probe(struct platform_device *pdev)
+>  	}
+>
+>  	ret = i2c_add_adapter(&priv->adap);
+> -	if (ret) {
+> -		dev_err(dev, "failed to add I2C adapter\n");
+> -		goto err;
+> -	}
+> -
+> -err:
+>  	if (ret)
+>  		clk_disable_unprepare(priv->clk);
+>
+> + err:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Same as above.
 
-iQIcBAABCAAGBQJXqdOEAAoJEN0jrNd/PrOhSNIP/RQ75Esfs8mPoEh7M/5DOHO2
-+MZA5wZFAjAq9Fs0Fa9an7cdEdBzl08eV9pTSMbIPFnWbsUJEdxslWL3DSzEo4C4
-unceavytjzf22ZcNmqumed4culNlRrXlTXFIUkm0h+tV2ihE9WcSuIGQKzlvukxy
-3RK+D1sqgBwfdU12IUnTkcd0wVY2nn0+6anihxSHX5GiEmt/a8hpYE47C/aRs+IE
-HIljoV10JSV5iDufUnxxvvnqXo/yG0F/8kPz3lD/zdMaBFvHmcJntUiEWf/6vHd2
-rqz+6KeEX8fHuPsfGy8HQx/LceZRGVo6bQX5i1DH6DBoq4UVbzgPe4At6h4pQpCh
-W1EXyM8D98tVsXK0zb5L7+nPPdid+d8hulME8184DA0DXS3okVKV5sP2NPkRFKiG
-/1eHD6rmyBweZcfMJv/kkJc5OFEzoe0fVeIpq/+c1BdkSBBLQEDAeAAE99diFgMz
-nETfb+IqVqjknOh37oEgw66bo1Xgv3lQWM4YxLEu5Y2FZXeQlAs5Z99NkXd0LnXT
-e2IMgYn0a0qGU+mp7qjA4CCxqYoxtIByqr3B7bQmVRvIRXvQbVKRcZz2a1r/zhj7
-Y0RSO9me3E8zF8LkaxoCPhkNNP2r5Bbufh3TOx42WCBCq1N0JyplaDSJRdOM6GjK
-eLEXDPBaPNV2IKKCm1xm
-=n1jF
------END PGP SIGNATURE-----
+Note: I dropped all individuals from Cc:; my mailer refused to accept the reply because there
+were too many.
 
---3V7upXqbjpZ4EhLz--
+Guenter
+
+>  	return ret;
+>  }
+>
