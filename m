@@ -1,32 +1,60 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: Re: [PATCH] i2c: don't print error when adding adapter fails
-Date: Tue, 9 Aug 2016 13:57:40 +0200
-Message-ID: <20160809115740.GA5528@pengutronix.de>
-References: <1470742581-12971-1-git-send-email-wsa-dev@sang-engineering.com>
- <1470742581-12971-2-git-send-email-wsa-dev@sang-engineering.com>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: Re: [PATCH v2 05/14] net: ethernet: ti: cpsw: don't check slave num
+ in runtime
+Date: Tue, 9 Aug 2016 15:08:38 +0300
+Message-ID: <27ec9c9d-a0f4-ebeb-0d59-6f0e4ca5eead@linaro.org>
+References: <1470480524-6851-1-git-send-email-ivan.khoronzhuk@linaro.org>
+ <1470480524-6851-6-git-send-email-ivan.khoronzhuk@linaro.org>
+ <aa96e076-f5a9-df65-bf7e-e4b02df0a210@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1470742581-12971-2-git-send-email-wsa-dev@sang-engineering.com>
+In-Reply-To: <aa96e076-f5a9-df65-bf7e-e4b02df0a210@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Wolfram Sang <wsa-dev@sang-engineering.com>
-Cc: linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org, Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>, Ludovic Desroches <ludovic.desroches@atmel.com>, Ray Jui <rjui@broadcom.com>, Scott Branden <sbranden@broadcom.com>, Jon Mason <jonmason@broadcom.com>, bcm-kernel-feedback-list@broadcom.com, Florian Fainelli <f.fainelli@gmail.com>, Sonic Zhang <sonic.zhang@analog.com>, Brian Norris <computersforpeace@gmail.com>, Gregory Fong <gregory.0xf0@gmail.com>, Michal Simek <michal.simek@xilinx.com>, =?iso-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann@xilinx.com>, Jochen Friedrich <jochen@scram.de>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Guenter Roeck <linux@roeck-us.net>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <kernel@pengutronix.de>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <k.kozlowski@samsung.com>Seth Heasley <se>
+To: Grygorii Strashko <grygorii.strashko@ti.com>, netdev@vger.kernel.org, mugunthanvnm@ti.com
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, dlide@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello Wolfram,
 
-On Tue, Aug 09, 2016 at 01:36:17PM +0200, Wolfram Sang wrote:
-> The core will do this for us now.
 
-Would be nice to point out the relevant commit that changed the core in
-the commit log.
+On 09.08.16 14:34, Grygorii Strashko wrote:
+> On 08/06/2016 01:48 PM, Ivan Khoronzhuk wrote:
+>> No need to check const slave num in runtime for every packet,
+>> and ndev for slaves w/o ndev is anyway NULL. So remove redundant
+>> check.
+>>
+>> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+>> ---
+>>  drivers/net/ethernet/ti/cpsw.c | 3 +--
+>>  1 file changed, 1 insertion(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+>> index 70a9570..19aa4bb 100644
+>> --- a/drivers/net/ethernet/ti/cpsw.c
+>> +++ b/drivers/net/ethernet/ti/cpsw.c
+>> @@ -498,8 +498,7 @@ static const struct cpsw_stats cpsw_gstrings_stats[] = {
+>>  				(func)(slave++, ##arg);			\
+>>  	} while (0)
+>>  #define cpsw_get_slave_ndev(priv, __slave_no__)				\
+>> -	((__slave_no__ < priv->data.slaves) ?				\
+>> -		priv->slaves[__slave_no__].ndev : NULL)
+>> +		priv->slaves[__slave_no__].ndev
+>
+> So after this change it will be
+> #define cpsw_get_slave_ndev(priv, __slave_no__) priv->slaves[__slave_no__].ndev
+>
+> Can we just drop cpsw_get_slave_ndev() macro?
+Sure. Will drop it in v3.
 
-Best regards
-Uwe
+>
+>>  #define cpsw_get_slave_priv(priv, __slave_no__)				\
+>>  	(((__slave_no__ < priv->data.slaves) &&				\
+>>  		(priv->slaves[__slave_no__].ndev)) ?			\
+>>
+>
+>
 
 -- 
-Pengutronix e.K.                           | Uwe Kleine-König            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Regards,
+Ivan Khoronzhuk
