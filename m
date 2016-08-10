@@ -1,27 +1,33 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH v3 06/13] net: ethernet: ti: cpsw: create common struct to
- hold shared driver data
-Date: Wed, 10 Aug 2016 21:12:10 +0530
-Message-ID: <ef492aad-2d65-760e-26e4-e86d1bcfda03@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH v3 00/13] net: ethernet: ti: cpsw: split driver data and
+ per ndev data
+Date: Wed, 10 Aug 2016 19:38:01 +0300
+Message-ID: <ee835c48-4978-10ab-f061-1a77387941a6@ti.com>
 References: <1470784964-26440-1-git-send-email-ivan.khoronzhuk@linaro.org>
- <1470784964-26440-7-git-send-email-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1470784964-26440-7-git-send-email-ivan.khoronzhuk@linaro.org>
+In-Reply-To: <1470784964-26440-1-git-send-email-ivan.khoronzhuk@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, netdev@vger.kernel.org, grygorii.strashko@ti.com
+To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, netdev@vger.kernel.org, mugunthanvnm@ti.com
 Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, dlide@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 10 August 2016 04:52 AM, Ivan Khoronzhuk wrote:
-> This patch simply create holder for common data and as a start moves
-> pdev var to it.
-> 
-> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+On 08/10/2016 02:22 AM, Ivan Khoronzhuk wrote:
+> In dual_emac mode the driver can handle 2 network devices. Each of them can use
+> its own private data and common data/resources. This patchset splits common driver
+> data/resources and private per net device data.
+> It leads to:
+> - reduce memory usage
+> - increase code readability
+> - allows add a bunch of simplification
+> - create prerequisites to add multi-channel support,
+>   when channels are shared between net devices
+>
 
-Reviewed-by: Mugunthan V N <mugunthanvnm@ti.com>
+Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
-Regards
-Mugunthan V N
+-- 
+regards,
+-grygorii
