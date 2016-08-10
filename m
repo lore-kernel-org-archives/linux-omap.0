@@ -1,20 +1,11 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
-Date: Wed, 10 Aug 2016 15:01:05 +0300
-Message-ID: <20160810120105.GP3182@valkosipuli.retiisi.org.uk>
-References: <573FFF51.1000004@gmail.com> <20160521105607.GA20071@amd>
- <574049EF.2090208@gmail.com> <20160524090433.GA1277@amd>
- <20160524091746.GA14536@amd>
- <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd> <20160805102611.GA13116@amd>
- <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
- <20160808214132.GB2946@xo-6d-61-c0.localdomain>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v3 0/3] ARM: cleanup PCI specific configs
+Date: Wed, 10 Aug 2016 17:59:54 +0530
+Message-ID: <1470832197-11767-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20160808214132.GB2946@xo-6d-61-c0.localdomain>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,30 +15,50 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-media@vger.kernel.org, khilman@kernel.org, tony@atomide.com, mchehab@osg.samsung.com, aaro.koskinen@iki.fi, kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org, pali.rohar@gmail.com, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
+To: Russell King <linux@armlinux.org.uk>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>, Magnus Damm <magnus.damm@gmail.com>, Simon Horman <horms@verge.net.au>, Shawn Guo <shawnguo@kernel.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, nsekhar@ti.com, kishon@ti.com, Rob Herring <robh+dt@kernel.org>, Krzysztof Halasa <khalasa@piap.pl>, Kukjin Kim <kgene@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Santosh Shilimkar <ssantosh@kernel.org>, Fabio Estevam <fabio.estevam@nxp.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, Viresh Kumar <vireshk@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Aug 08, 2016 at 11:41:32PM +0200, Pavel Machek wrote:
-> On Mon 2016-08-08 11:09:56, Sakari Ailus wrote:
-> > On Fri, Aug 05, 2016 at 12:26:11PM +0200, Pavel Machek wrote:
-> > > 
-> > > This adds support for AD5820 autofocus coil, found for example in
-> > > Nokia N900 smartphone.
-> > 
-> > Thanks, Pavel!
-> > 
-> > Let's use V4L2_CID_FOCUS_ABSOLUTE, as is in the patch. If we get something
-> > better in the future, we'll switch to that then.
-> > 
-> > I've applied this to ad5820 branch in my tree.
-> 
-> Thanks. If I understands things correctly, both DTS patch and this patch are
-> waiting in your tree, so we should be good to go for 4.9 (unless some unexpected
-> problems surface)?
+This series was initially sent to add support for two PCIe
+ports in dra7. This included selecting PCI_DOMAINS config
+in SOC_DRA7XX.
 
-Yeah. I just compiled it but haven't tested it. I presume it'll work. :-)
+However from the review, PCI_DOMAINS can instead be selected
+from ARCH_MULTIPLATFORM. This is fixed in this series along
+with removing PCI_DOMAINS from other configs.
+
+Since this series was initially sent to add support for
+two PCIe ports in dra7, it has been tested to see if there
+are regressions with 1 PCIe port. Though testing of 2 PCIe ports
+is not done while sending this patch series, it has been verified
+before in few of the customer boards.
+
+Changes from v2:
+*) v2 removed MIGHT_HAVE_PCI from platforms that are not
+   ARCH_MULTIPLATFORM. Fixed it in this version
+
+Changes from v1:
+*) select PCI_DOMAINS config from ARCH_MULTIPLATFORM
+*) Fix *MIGHT_HAVE_PCI* config from being selected redundantly
+
+Kishon Vijay Abraham I (3):
+  ARM: dts: DRA7: Add "linux,pci-domain" property for pci dt nodes
+  ARM: Fix *MIGHT_HAVE_PCI* config from being selected redundantly
+  ARM: select PCI_DOMAINS config from ARCH_MULTIPLATFORM
+
+ arch/arm/Kconfig                 |    1 +
+ arch/arm/boot/dts/dra7.dtsi      |    2 ++
+ arch/arm/mach-at91/Kconfig       |    1 -
+ arch/arm/mach-axxia/Kconfig      |    2 --
+ arch/arm/mach-cns3xxx/Kconfig    |    1 -
+ arch/arm/mach-exynos/Kconfig     |    2 --
+ arch/arm/mach-imx/Kconfig        |    2 --
+ arch/arm/mach-integrator/Kconfig |    1 -
+ arch/arm/mach-keystone/Kconfig   |    2 --
+ arch/arm/mach-shmobile/Kconfig   |    1 -
+ arch/arm/mach-spear/Kconfig      |    1 -
+ arch/arm/mach-versatile/Kconfig  |    1 -
+ 12 files changed, 3 insertions(+), 14 deletions(-)
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+1.7.9.5
