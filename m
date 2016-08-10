@@ -1,43 +1,41 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
-Date: Wed, 10 Aug 2016 09:34:03 +0200
-Message-ID: <20160810073403.GB30047@pali>
-References: <20160521054336.GA27123@amd> <573FFF51.1000004@gmail.com>
- <20160521105607.GA20071@amd> <574049EF.2090208@gmail.com>
- <20160524090433.GA1277@amd> <20160524091746.GA14536@amd>
- <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd> <20160805102611.GA13116@amd>
- <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: Re: [PATCH] i2c: don't print error when adding adapter fails
+Date: Wed, 10 Aug 2016 10:32:00 +0200
+Message-ID: <35fd8f31-2fa1-7220-8ed9-13bad638fe6f@samsung.com>
+References: <1470742581-12971-1-git-send-email-wsa-dev@sang-engineering.com>
+ <1470742581-12971-2-git-send-email-wsa-dev@sang-engineering.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-media@vger.kernel.org, khilman@kernel.org, tony@atomide.com, mchehab@osg.samsung.com, aaro.koskinen@iki.fi, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+In-reply-to: <1470742581-12971-2-git-send-email-wsa-dev@sang-engineering.com>
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+Sender: "Linuxppc-dev"
+ <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+To: Wolfram Sang <wsa-dev@sang-engineering.com>, linux-kernel@vger.kernel.org
+Cc: Heiko Stuebner <heiko@sntech.de>, Wolfram Sang <wsa@the-dreams.de>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Sekhar Nori <nsekhar@ti.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Laxman Dewangan <ldewangan@nvidia.com>, linux-i2c@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, Peter Korsgaard <jacmet@sunsite.dk>, Sonic Zhang <sonic.zhang@analog.com>, kernel@stlinux.com, Alexandre Courbot <gnurou@gmail.com>, Florian Fainelli <f.fainelli@gmail.com>, Kevin Hilman <khilman@kernel.org>, Michal Simek <michal.simek@xilinx.com>, linux-rockchip@lists.infradead.org, Kukjin Kim <kgene@kernel.org>, bcm-kernel-feedback-list@broadcom.com, linux-arm-kernel@lists.infradead.org, Sylvain Lemieux <slemieux.tyco@gmail.com>, Guenter Roeck <linux@roeck-us.net>, Alessandro Rubini <rubini@unipv.it>, Jean Delvare <jdelvare@suse.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gTW9uZGF5IDA4IEF1Z3VzdCAyMDE2IDExOjA5OjU2IFNha2FyaSBBaWx1cyB3cm90ZToKPiBP
-biBGcmksIEF1ZyAwNSwgMjAxNiBhdCAxMjoyNjoxMVBNICswMjAwLCBQYXZlbCBNYWNoZWsgd3Jv
-dGU6Cj4gPiAKPiA+IFRoaXMgYWRkcyBzdXBwb3J0IGZvciBBRDU4MjAgYXV0b2ZvY3VzIGNvaWws
-IGZvdW5kIGZvciBleGFtcGxlIGluCj4gPiBOb2tpYSBOOTAwIHNtYXJ0cGhvbmUuCj4gCj4gVGhh
-bmtzLCBQYXZlbCEKPiAKPiBMZXQncyB1c2UgVjRMMl9DSURfRk9DVVNfQUJTT0xVVEUsIGFzIGlz
-IGluIHRoZSBwYXRjaC4gSWYgd2UgZ2V0IHNvbWV0aGluZwo+IGJldHRlciBpbiB0aGUgZnV0dXJl
-LCB3ZSdsbCBzd2l0Y2ggdG8gdGhhdCB0aGVuLgoKT2ssIGFuZCB3aGF0IHdpdGggQUQ1ODIwX1JB
-TVBfVElNRSBhbmQgQUQ1ODIwX1JBTVBfTU9ERT8KCj4gSSd2ZSBhcHBsaWVkIHRoaXMgdG8gYWQ1
-ODIwIGJyYW5jaCBpbiBteSB0cmVlLgoKQXJlIHlvdSBnb2luZyB0byBmaW5hbGx5IHNlbmQgdGhp
-cyBwYXRjaCB0byBtZWRpYSB0cmVlIG9yIHB1bGwgcmVxdWVzdAp0byBMaW51cz8KCi0tIApQYWxp
-IFJvaMOhcgpwYWxpLnJvaGFyQGdtYWlsLmNvbQoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgt
-YXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3Jn
-L21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+On 08/09/2016 01:36 PM, Wolfram Sang wrote:
+> The core will do this for us now.
+> 
+> Signed-off-by: Wolfram Sang <wsa-dev@sang-engineering.com>
+> ---
+
+(...)
+
+>  drivers/i2c/busses/i2c-exynos5.c        | 4 +---
+>  drivers/i2c/busses/i2c-s3c2410.c        | 1 -
+
+For Exynos and S3C2410:
+Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+
+Best regards,
+Krzysztof
