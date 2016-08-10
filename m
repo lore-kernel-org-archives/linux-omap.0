@@ -1,96 +1,64 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] omapfb/dss: wait_for_completion_interruptible_timeout
- expects long
-Date: Wed, 10 Aug 2016 13:21:46 +0300
-Message-ID: <cff34342-3574-d197-df08-dc5b9b6ced80@ti.com>
-References: <1469466767-23352-1-git-send-email-hofrat@osadl.org>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v7 0/3] mfd: lp873x: Add lp873x PMIC support
+Date: Wed, 10 Aug 2016 15:48:08 +0530
+Message-ID: <1470824291-14902-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="5H5s06E2cgeOPS40D8p3pIUfLQAbH6QG8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1469466767-23352-1-git-send-email-hofrat@osadl.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nicholas Mc Guire <hofrat@osadl.org>
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Rob Clark <robdclark@gmail.com>, Dave Airlie <airlied@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Luis de Bethencourt <luisbg@osg.samsung.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: broonie@kernel.org, lee.jones@linaro.org, linus.walleij@linaro.org
+Cc: linux-omap@vger.kernel.org, robh+dt@kernel.org, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
---5H5s06E2cgeOPS40D8p3pIUfLQAbH6QG8
-Content-Type: multipart/mixed; boundary="PXqIFPkd1beTI8eKi4BSrGnpTFaLdPpE5"
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: Nicholas Mc Guire <hofrat@osadl.org>
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
- Rob Clark <robdclark@gmail.com>, Dave Airlie <airlied@gmail.com>,
- Peter Ujfalusi <peter.ujfalusi@ti.com>,
- Luis de Bethencourt <luisbg@osg.samsung.com>, linux-omap@vger.kernel.org,
- linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Message-ID: <cff34342-3574-d197-df08-dc5b9b6ced80@ti.com>
-Subject: Re: [PATCH] omapfb/dss: wait_for_completion_interruptible_timeout
- expects long
-References: <1469466767-23352-1-git-send-email-hofrat@osadl.org>
-In-Reply-To: <1469466767-23352-1-git-send-email-hofrat@osadl.org>
+The LP873X chip is a power management IC for Portable Navigation Systems
+    and Tablet Computing devices. It contains the following components:
 
---PXqIFPkd1beTI8eKi4BSrGnpTFaLdPpE5
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+     - Regulators.
+     - Configurable General Purpose Output Signals(GPO).
 
-On 25/07/16 20:12, Nicholas Mc Guire wrote:
-> wait_for_completion_timeout_interruptible returns long not unsigned lon=
-g.
-> an appropriately typed variable is introduced and assignments fixed up.=
+PMIC interacts with the main processor through i2c. PMIC has
+couple of LDOs(Linear Regulators), couple of BUCKs (Step-Down DC-DC
+Converter Cores) and GPOs(General Purpose Output Signals).
 
->=20
-> Fixes: f76ee892a99e ("omapfb: copy omapdss & displays for omapfb")
->=20
-> Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
-> ---
->=20
-> API non-compliance was located by coccinelle
->=20
-> This is mostly cosmetic since the returned value is only compared=20
-> at present, however if remaining time (completion occurred) where ever =
+The regulator patch is already queued:
+http://marc.info/?l=linux-kernel&m=146298767110771&w=2
 
-> used, then a signal received would be interpreted as a large remaining =
+DT patch also queued:
 
-> jiffies left, which would be wrong.
->=20
-> Compile tested with: omap2plus_defconfig (implies CONFIG_FB_OMAP2_DSS)
->=20
-> Patch is against 4.7.0-rc7 (localversion-next -next-20160724)
->=20
->  drivers/video/fbdev/omap2/omapfb/dss/dispc-compat.c | 7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
+Hence posting the remaining patches of the series with
+the comments fixed on mfd driver.
 
-Thanks, queued for v4.9. I dropped the "Fixes: " line, as that commit
-only does a copy of the files, so the commit didn't really introduce the
-bug.
+Chages in v7:
 
- Tomi
+Reverted the dependency on http://www.gossamer-threads.com/lists/linux/kernel/2457552.
 
+Changes in v6:
 
---PXqIFPkd1beTI8eKi4BSrGnpTFaLdPpE5--
+Series depends on: http://www.gossamer-threads.com/lists/linux/kernel/2457552
+probe_new used.
 
---5H5s06E2cgeOPS40D8p3pIUfLQAbH6QG8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Chnages in v4:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Added GPO driver support. 
 
-iQIcBAEBCAAGBQJXqwA6AAoJEPo9qoy8lh71BNIQAKb30tFcZu21/YOBWtEhfI+8
-2XaMoNFXQY8Yr27t0ifZIB+XUEVNGPzdl5gSKqK6LA7m+n10WhU/CNm+1vcwHBqD
-/dzKgyxt3EZoP/sGdjEpdZBy6YIKH5ioCeBlKGn8dcehdvFx19evUBS50hyTiOds
-KPyyWBMi01tL8ttsShnoZjVl4+kXc7VqVHh2KGN8EdmPzykKuQ6iNrI1XifONWZC
-JGyEXIKhnrxerz4e0R7loEnbaoEDPPqJ7jCFogpbEFKR1f6FGW+gw63llpfdogRv
-WT+AOuJS85IyMeu086w4s1HQNwmob2dOSGHfWZ3dyr7BEFmeAD8z97QMZjZlZbfv
-pQxE9vOQvenLqiYEQzvIK6jzj3+dP7jxy/8ookfOBox7rYaoxEQXi4hNoGhSt09O
-Azcr5RLM3VcSuJ734zBU2K7dBD6tQbdJWe5KFtaAR4wrNUZ4L5mk1TxOxoZKlIu2
-mhLMiaH4enU+ROiU943UyRDo9Qstc9arhk8HplaUqTq53UbofLJnRUAEy0k+I+cv
-dsPr8KH6Iu48fdR8Bxub1jt+NY0TGJy8pOnOfC1nvu/f/R+EAqhcIx+z46ekakj8
-sBMKMMnuZCB3H0m2jJb15pibg1gV7Zv11zkHuP1Luke3yPCJwJ24bLQynG7uFUpI
-dAebDhGBg5tuy5dqnl+H
-=y+8O
------END PGP SIGNATURE-----
+Keerthy (3):
+  mfd: lp873x: Add lp873x PMIC support
+  gpio: lp873x: Add support for General Purpose Outputs
+  regulator: lp873x: Change the MFD config option as per latest naming
 
---5H5s06E2cgeOPS40D8p3pIUfLQAbH6QG8--
+ drivers/gpio/Kconfig       |  10 ++
+ drivers/gpio/Makefile      |   1 +
+ drivers/gpio/gpio-lp873x.c | 185 +++++++++++++++++++++++++++++++
+ drivers/mfd/Kconfig        |  14 +++
+ drivers/mfd/Makefile       |   2 +
+ drivers/mfd/lp873x.c       |  96 +++++++++++++++++
+ drivers/regulator/Kconfig  |   2 +-
+ include/linux/mfd/lp873x.h | 264 +++++++++++++++++++++++++++++++++++++++++++++
+ 8 files changed, 573 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/gpio/gpio-lp873x.c
+ create mode 100644 drivers/mfd/lp873x.c
+ create mode 100644 include/linux/mfd/lp873x.h
+
+-- 
+1.9.1
+
