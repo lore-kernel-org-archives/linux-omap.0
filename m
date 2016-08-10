@@ -1,52 +1,68 @@
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: Re: [RFT RESEND PATCH v3 3/3] ARM: select PCI_DOMAINS config from
- ARCH_MULTIPLATFORM
-Date: Wed, 10 Aug 2016 15:23:43 +0200
-Message-ID: <cf4a7376-1cd4-aeb4-cbf0-7dbbc3575137@samsung.com>
-References: <1470832400-11929-1-git-send-email-kishon@ti.com>
- <1470832400-11929-4-git-send-email-kishon@ti.com>
+From: =?UTF-8?q?Stefan=20M=C3=BCller-Klieser?= <s.mueller-klieser@phytec.de>
+Subject: [PATCH] ARM: dts: am335x-wega: Add audio support
+Date: Wed, 10 Aug 2016 17:12:15 +0200
+Message-ID: <1470841935-14190-1-git-send-email-s.mueller-klieser@phytec.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-reply-to: <1470832400-11929-4-git-send-email-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Russell King <linux@armlinux.org.uk>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Cc: Mark Rutland <mark.rutland@arm.com>, Magnus Damm <magnus.damm@gmail.com>, Simon Horman <horms@verge.net.au>, Shawn Guo <shawnguo@kernel.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, nsekhar@ti.com, Rob Herring <robh+dt@kernel.org>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Kukjin Kim <kgene@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Santosh Shilimkar <ssantosh@kernel.org>, Fabio Estevam <fabio.estevam@nxp.com>, Krzysztof Halasa <khalasa@piap.pl>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, Viresh Kumar <vireshk@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, alsa-devel@alsa-project.org, tony@atomide.com, peter.ujfalusi@ti.com, robh+dt@kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/10/2016 02:33 PM, Kishon Vijay Abraham I wrote:
-> PCI_DOMAINS config should be selected for any SoCs
-> having more than a single PCIe controller. Without PCI_DOMAINS
-> config, only one PCIe controller gets registered.
-> 
-> Select PCI_DOMAINS in ARCH_MULTIPLATFORM if PCI is selected, since
-> it doesn't harm even if a platform has a single PCIe port.
-> Also remove PCI_DOMAINS being selected from other platform
-> specific configs.
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  arch/arm/Kconfig               |    1 +
->  arch/arm/mach-axxia/Kconfig    |    1 -
->  arch/arm/mach-cns3xxx/Kconfig  |    1 -
->  arch/arm/mach-exynos/Kconfig   |    1 -
->  arch/arm/mach-imx/Kconfig      |    2 --
->  arch/arm/mach-keystone/Kconfig |    1 -
->  arch/arm/mach-shmobile/Kconfig |    1 -
->  7 files changed, 1 insertion(+), 7 deletions(-)
-
-For Exynos5440 output is equal and we do not use PCI on other SoCs, so:
-
-Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-
-Best regards,
-Krzysztof
+VGhlIHdlZ2EgYm9hcmQgaGFzIGEgVExWMzIwQUlDMzAwNyBjb25uZWN0ZWQgdmlhIE1jQVNQMC4g
+SW4gdGhlIGRlZmF1bHQKY29uZmlndXJhdGlvbiwgbm8gZXh0ZXJuYWwgY3J5c3RhbCBpcyBtb3Vu
+dGVkLiBXZSBydW4gYSBzeXN0ZW0gY2xvY2sgb2YKMjUgTUh6LCBzbyB3ZSB1c2UgdGhlIGF1ZGlv
+IGNvZGVjIFBMTCBmb3IgYXVkaW8gY2xvY2sgZ2VuZXJhdGlvbi4KClNpZ25lZC1vZmYtYnk6IFN0
+ZWZhbiBNw7xsbGVyLUtsaWVzZXIgPHMubXVlbGxlci1rbGllc2VyQHBoeXRlYy5kZT4KLS0tCiBh
+cmNoL2FybS9ib290L2R0cy9hbTMzNXgtd2VnYS5kdHNpIHwgNjIgKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysKIDEgZmlsZSBjaGFuZ2VkLCA2MiBpbnNlcnRpb25zKCspCgpk
+aWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LXdlZ2EuZHRzaSBiL2FyY2gvYXJt
+L2Jvb3QvZHRzL2FtMzM1eC13ZWdhLmR0c2kKaW5kZXggMjgyZjZkNC4uN2Y1ZjhlZCAxMDA2NDQK
+LS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LXdlZ2EuZHRzaQorKysgYi9hcmNoL2FybS9i
+b290L2R0cy9hbTMzNXgtd2VnYS5kdHNpCkBAIC0xMSw2ICsxMSwxMCBAQAogCW1vZGVsID0gIlBo
+eXRlYyBBTTMzNXggcGh5Qk9BUkQtV0VHQSI7CiAJY29tcGF0aWJsZSA9ICJwaHl0ZWMsYW0zMzV4
+LXdlZ2EiLCAicGh5dGVjLGFtMzM1eC1waHljb3JlLXNvbSIsICJ0aSxhbTMzeHgiOwogCisJc291
+bmQ6IHNvdW5kX2lmYWNlIHsKKwkJY29tcGF0aWJsZSA9ICJ0aSxkYTgzMC1ldm0tYXVkaW8iOwor
+CX07CisKIAlyZWd1bGF0b3JzIHsKIAkJY29tcGF0aWJsZSA9ICJzaW1wbGUtYnVzIjsKIApAQCAt
+MjQsNiArMjgsNTggQEAKIAl9OwogfTsKIAorLyogQXVkaW8gKi8KKyZhbTMzeHhfcGlubXV4IHsK
+KwltY2FzcDBfcGluczogcGlubXV4X21jYXNwMCB7CisJCXBpbmN0cmwtc2luZ2xlLHBpbnMgPSA8
+CisJCQlBTTMzWFhfSU9QQUQoMHg5QUMsIFBJTl9PVVRQVVRfUFVMTERPV04gfCBNVVhfTU9ERTAp
+IC8qIG1jYXNwMF9haGNsa3gubWNhc3AwX2FoY2xreCAqLworCQkJQU0zM1hYX0lPUEFEKDB4OTkw
+LCBQSU5fSU5QVVRfUFVMTERPV04gfCBNVVhfTU9ERTApICAvKiBtY2FzcDBfYWNsa3gubWNhc3Aw
+X2FjbGt4ICovCisJCQlBTTMzWFhfSU9QQUQoMHg5OTQsIFBJTl9JTlBVVF9QVUxMRE9XTiB8IE1V
+WF9NT0RFMCkgIC8qIG1jYXNwMF9mc3gubWNhc3AwX2ZzeCAqLworCQkJQU0zM1hYX0lPUEFEKDB4
+OTk4LCBQSU5fSU5QVVRfUFVMTERPV04gfCBNVVhfTU9ERTApICAvKiBtY2FzcDBfYXhyMC5tY2Fz
+cDBfYXhyMCAqLworCQkJQU0zM1hYX0lPUEFEKDB4OUE4LCBQSU5fT1VUUFVUX1BVTExET1dOIHwg
+TVVYX01PREUwKSAvKiBtY2FzcDBfYXhyMS5tY2FzcDBfYXhyMSAqLworCQk+OworCX07Cit9Owor
+CismaTJjMCB7CisJdGx2MzIwYWljMzAwNzogdGx2MzIwYWljMzAwN0AxOCB7CisJCWNvbXBhdGli
+bGUgPSAidGksdGx2MzIwYWljMzAwNyI7CisJCXJlZyA9IDwweDE4PjsKKwkJQVZERC1zdXBwbHkg
+PSA8JnZjYzN2Mz47CisJCUlPVkRELXN1cHBseSA9IDwmdmNjM3YzPjsKKwkJRFJWREQtc3VwcGx5
+ID0gPCZ2Y2MzdjM+OworCQlEVkRELXN1cHBseSA9IDwmdmRpZzFfcmVnPjsKKwkJc3RhdHVzID0g
+Im9rYXkiOworCX07Cit9OworCismbWNhc3AwIHsKKwlwaW5jdHJsLW5hbWVzID0gImRlZmF1bHQi
+OworCXBpbmN0cmwtMCA9IDwmbWNhc3AwX3BpbnM+OworCW9wLW1vZGUgPSA8MD47IC8qIERBVklO
+Q0lfTUNBU1BfSUlTX01PREUgKi8KKwl0ZG0tc2xvdHMgPSA8Mj47CisJc2VyaWFsLWRpciA9IDwK
+KwkJMiAxIDAgMCAvKiAjIDA6IElOQUNUSVZFLCAxOiBUWCwgMjogUlggKi8KKwk+OworCXR4LW51
+bS1ldnQgPSA8MTY+OworCXJ0LW51bS1ldnQgPSA8MTY+OworCXN0YXR1cyA9ICJva2F5IjsKK307
+CisKKyZzb3VuZCB7CisJdGksbW9kZWwgPSAiQU0zMzV4LVdlZ2EiOworCXRpLGF1ZGlvLWNvZGVj
+ID0gPCZ0bHYzMjBhaWMzMDA3PjsKKwl0aSxtY2FzcC1jb250cm9sbGVyID0gPCZtY2FzcDA+Owor
+CXRpLGF1ZGlvLXJvdXRpbmcgPQorCQkiTGluZSBPdXQiLAkJIkxMT1VUIiwKKwkJIkxpbmUgT3V0
+IiwJCSJSTE9VVCIsCisJCSJMSU5FMUwiLAkJIkxpbmUgSW4iLAorCQkiTElORTFSIiwJCSJMaW5l
+IEluIjsKKwljbG9ja3MgPSA8Jm1jYXNwMF9mY2s+OworCWNsb2NrLW5hbWVzID0gIm1jbGsiOwor
+CXN0YXR1cyA9ICJva2F5IjsKK307CisKIC8qIENBTiBCdXNzZXMgKi8KICZhbTMzeHhfcGlubXV4
+IHsKIAlkY2FuMV9waW5zOiBwaW5tdXhfZGNhbjEgewpAQCAtOTksNiArMTU1LDEyIEBACiAJc3Rh
+dHVzID0gIm9rYXkiOwogfTsKIAorLyogUG93ZXIgKi8KKyZ2ZGlnMV9yZWcgeworCXJlZ3VsYXRv
+ci1ib290LW9uOworCXJlZ3VsYXRvci1hbHdheXMtb247Cit9OworCiAvKiBVQVJUcyAqLwogJmFt
+MzN4eF9waW5tdXggewogCXVhcnQwX3BpbnM6IHBpbm11eF91YXJ0MCB7Ci0tIAoxLjkuMQoKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KQWxzYS1kZXZlbCBt
+YWlsaW5nIGxpc3QKQWxzYS1kZXZlbEBhbHNhLXByb2plY3Qub3JnCmh0dHA6Ly9tYWlsbWFuLmFs
+c2EtcHJvamVjdC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbHNhLWRldmVsCg==
