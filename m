@@ -1,20 +1,15 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
-Date: Tue, 9 Aug 2016 01:23:23 +0200
-Message-ID: <20160808232323.GC2946@xo-6d-61-c0.localdomain>
-References: <20160521105607.GA20071@amd> <574049EF.2090208@gmail.com>
- <20160524090433.GA1277@amd> <20160524091746.GA14536@amd>
- <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd> <20160805102611.GA13116@amd>
- <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
- <20160808214132.GB2946@xo-6d-61-c0.localdomain>
- <20160810120105.GP3182@valkosipuli.retiisi.org.uk>
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: Re: [RFT RESEND PATCH v3 3/3] ARM: select PCI_DOMAINS config from
+ ARCH_MULTIPLATFORM
+Date: Wed, 10 Aug 2016 15:23:43 +0200
+Message-ID: <cf4a7376-1cd4-aeb4-cbf0-7dbbc3575137@samsung.com>
+References: <1470832400-11929-1-git-send-email-kishon@ti.com>
+ <1470832400-11929-4-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20160810120105.GP3182@valkosipuli.retiisi.org.uk>
+In-reply-to: <1470832400-11929-4-git-send-email-kishon@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,38 +19,34 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-media@vger.kernel.org, khilman@kernel.org, tony@atomide.com, mchehab@osg.samsung.com, aaro.koskinen@iki.fi, kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org, pali.rohar@gmail.com, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
+To: Kishon Vijay Abraham I <kishon@ti.com>, Russell King <linux@armlinux.org.uk>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: Mark Rutland <mark.rutland@arm.com>, Magnus Damm <magnus.damm@gmail.com>, Simon Horman <horms@verge.net.au>, Shawn Guo <shawnguo@kernel.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, nsekhar@ti.com, Rob Herring <robh+dt@kernel.org>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Kukjin Kim <kgene@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Santosh Shilimkar <ssantosh@kernel.org>, Fabio Estevam <fabio.estevam@nxp.com>, Krzysztof Halasa <khalasa@piap.pl>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, Viresh Kumar <vireshk@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed 2016-08-10 15:01:05, Sakari Ailus wrote:
-> On Mon, Aug 08, 2016 at 11:41:32PM +0200, Pavel Machek wrote:
-> > On Mon 2016-08-08 11:09:56, Sakari Ailus wrote:
-> > > On Fri, Aug 05, 2016 at 12:26:11PM +0200, Pavel Machek wrote:
-> > > > 
-> > > > This adds support for AD5820 autofocus coil, found for example in
-> > > > Nokia N900 smartphone.
-> > > 
-> > > Thanks, Pavel!
-> > > 
-> > > Let's use V4L2_CID_FOCUS_ABSOLUTE, as is in the patch. If we get something
-> > > better in the future, we'll switch to that then.
-> > > 
-> > > I've applied this to ad5820 branch in my tree.
-> > 
-> > Thanks. If I understands things correctly, both DTS patch and this patch are
-> > waiting in your tree, so we should be good to go for 4.9 (unless some unexpected
-> > problems surface)?
+On 08/10/2016 02:33 PM, Kishon Vijay Abraham I wrote:
+> PCI_DOMAINS config should be selected for any SoCs
+> having more than a single PCIe controller. Without PCI_DOMAINS
+> config, only one PCIe controller gets registered.
 > 
-> Yeah. I just compiled it but haven't tested it. I presume it'll work. :-)
+> Select PCI_DOMAINS in ARCH_MULTIPLATFORM if PCI is selected, since
+> it doesn't harm even if a platform has a single PCIe port.
+> Also remove PCI_DOMAINS being selected from other platform
+> specific configs.
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  arch/arm/Kconfig               |    1 +
+>  arch/arm/mach-axxia/Kconfig    |    1 -
+>  arch/arm/mach-cns3xxx/Kconfig  |    1 -
+>  arch/arm/mach-exynos/Kconfig   |    1 -
+>  arch/arm/mach-imx/Kconfig      |    2 --
+>  arch/arm/mach-keystone/Kconfig |    1 -
+>  arch/arm/mach-shmobile/Kconfig |    1 -
+>  7 files changed, 1 insertion(+), 7 deletions(-)
 
-I'm testing it on n900. I guess simpler hardware with ad5820 would be better for the
-test...
+For Exynos5440 output is equal and we do not use PCI on other SoCs, so:
 
-What hardware do you have?
+Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 
 Best regards,
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Krzysztof
