@@ -1,66 +1,96 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v3 2/2] regulator: tps65218: do not disable DCDC3 during poweroff on broken PMICs
-Date: Wed, 10 Aug 2016 17:53:55 +0530
-Message-ID: <1470831835-22352-3-git-send-email-j-keerthy@ti.com>
-References: <1470831835-22352-1-git-send-email-j-keerthy@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] omapfb/dss: wait_for_completion_interruptible_timeout
+ expects long
+Date: Wed, 10 Aug 2016 13:21:46 +0300
+Message-ID: <cff34342-3574-d197-df08-dc5b9b6ced80@ti.com>
+References: <1469466767-23352-1-git-send-email-hofrat@osadl.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="5H5s06E2cgeOPS40D8p3pIUfLQAbH6QG8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1470831835-22352-1-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <1469466767-23352-1-git-send-email-hofrat@osadl.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: broonie@kernel.org, lee.jones@linaro.org, tony@atomide.com
-Cc: t-kristo@ti.com, russ.dill@ti.com, d-gerlach@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, j-keerthy@ti.com
+To: Nicholas Mc Guire <hofrat@osadl.org>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Rob Clark <robdclark@gmail.com>, Dave Airlie <airlied@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Luis de Bethencourt <luisbg@osg.samsung.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Tero Kristo <t-kristo@ti.com>
+--5H5s06E2cgeOPS40D8p3pIUfLQAbH6QG8
+Content-Type: multipart/mixed; boundary="PXqIFPkd1beTI8eKi4BSrGnpTFaLdPpE5"
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Nicholas Mc Guire <hofrat@osadl.org>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+ Rob Clark <robdclark@gmail.com>, Dave Airlie <airlied@gmail.com>,
+ Peter Ujfalusi <peter.ujfalusi@ti.com>,
+ Luis de Bethencourt <luisbg@osg.samsung.com>, linux-omap@vger.kernel.org,
+ linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Message-ID: <cff34342-3574-d197-df08-dc5b9b6ced80@ti.com>
+Subject: Re: [PATCH] omapfb/dss: wait_for_completion_interruptible_timeout
+ expects long
+References: <1469466767-23352-1-git-send-email-hofrat@osadl.org>
+In-Reply-To: <1469466767-23352-1-git-send-email-hofrat@osadl.org>
 
-Some versions of tps65218 do not seem to support poweroff modes properly
-if DCDC3 regulator is shut-down. Thus, keep it enabled even during
-poweroff if the version info matches the broken silicon revision.
+--PXqIFPkd1beTI8eKi4BSrGnpTFaLdPpE5
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-Signed-off-by: Keerthy <j-keerthy@ti.com>
-Acked-by: Lee Jones <lee.jones@linaro.org>
----
- drivers/regulator/tps65218-regulator.c | 8 ++++++++
- include/linux/mfd/tps65218.h           | 5 +++++
- 2 files changed, 13 insertions(+)
+On 25/07/16 20:12, Nicholas Mc Guire wrote:
+> wait_for_completion_timeout_interruptible returns long not unsigned lon=
+g.
+> an appropriately typed variable is introduced and assignments fixed up.=
 
-diff --git a/drivers/regulator/tps65218-regulator.c b/drivers/regulator/tps65218-regulator.c
-index d1e631d..eb0f5b1 100644
---- a/drivers/regulator/tps65218-regulator.c
-+++ b/drivers/regulator/tps65218-regulator.c
-@@ -180,6 +180,14 @@ static int tps65218_pmic_set_suspend_disable(struct regulator_dev *dev)
- 	if (rid < TPS65218_DCDC_1 || rid > TPS65218_LDO_1)
- 		return -EINVAL;
- 
-+	/*
-+	 * Certain revisions of TPS65218 will need to have DCDC3 regulator
-+	 * enabled always, otherwise an immediate system reboot will occur
-+	 * during poweroff.
-+	 */
-+	if (rid == TPS65218_DCDC_3 && tps->rev == TPS65218_REV_2_1)
-+		return 0;
-+
- 	if (!tps->info[rid]->strobe) {
- 		if (rid == TPS65218_DCDC_3)
- 			tps->info[rid]->strobe = 3;
-diff --git a/include/linux/mfd/tps65218.h b/include/linux/mfd/tps65218.h
-index 85e464e..d1db952 100644
---- a/include/linux/mfd/tps65218.h
-+++ b/include/linux/mfd/tps65218.h
-@@ -63,6 +63,11 @@
- #define TPS65218_CHIPID_CHIP_MASK	0xF8
- #define TPS65218_CHIPID_REV_MASK	0x07
- 
-+#define TPS65218_REV_1_0		0x0
-+#define TPS65218_REV_1_1		0x1
-+#define TPS65218_REV_2_0		0x2
-+#define TPS65218_REV_2_1		0x3
-+
- #define TPS65218_INT1_VPRG		BIT(5)
- #define TPS65218_INT1_AC		BIT(4)
- #define TPS65218_INT1_PB		BIT(3)
--- 
-1.9.1
+>=20
+> Fixes: f76ee892a99e ("omapfb: copy omapdss & displays for omapfb")
+>=20
+> Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
+> ---
+>=20
+> API non-compliance was located by coccinelle
+>=20
+> This is mostly cosmetic since the returned value is only compared=20
+> at present, however if remaining time (completion occurred) where ever =
+
+> used, then a signal received would be interpreted as a large remaining =
+
+> jiffies left, which would be wrong.
+>=20
+> Compile tested with: omap2plus_defconfig (implies CONFIG_FB_OMAP2_DSS)
+>=20
+> Patch is against 4.7.0-rc7 (localversion-next -next-20160724)
+>=20
+>  drivers/video/fbdev/omap2/omapfb/dss/dispc-compat.c | 7 ++++---
+>  1 file changed, 4 insertions(+), 3 deletions(-)
+
+Thanks, queued for v4.9. I dropped the "Fixes: " line, as that commit
+only does a copy of the files, so the commit didn't really introduce the
+bug.
+
+ Tomi
+
+
+--PXqIFPkd1beTI8eKi4BSrGnpTFaLdPpE5--
+
+--5H5s06E2cgeOPS40D8p3pIUfLQAbH6QG8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJXqwA6AAoJEPo9qoy8lh71BNIQAKb30tFcZu21/YOBWtEhfI+8
+2XaMoNFXQY8Yr27t0ifZIB+XUEVNGPzdl5gSKqK6LA7m+n10WhU/CNm+1vcwHBqD
+/dzKgyxt3EZoP/sGdjEpdZBy6YIKH5ioCeBlKGn8dcehdvFx19evUBS50hyTiOds
+KPyyWBMi01tL8ttsShnoZjVl4+kXc7VqVHh2KGN8EdmPzykKuQ6iNrI1XifONWZC
+JGyEXIKhnrxerz4e0R7loEnbaoEDPPqJ7jCFogpbEFKR1f6FGW+gw63llpfdogRv
+WT+AOuJS85IyMeu086w4s1HQNwmob2dOSGHfWZ3dyr7BEFmeAD8z97QMZjZlZbfv
+pQxE9vOQvenLqiYEQzvIK6jzj3+dP7jxy/8ookfOBox7rYaoxEQXi4hNoGhSt09O
+Azcr5RLM3VcSuJ734zBU2K7dBD6tQbdJWe5KFtaAR4wrNUZ4L5mk1TxOxoZKlIu2
+mhLMiaH4enU+ROiU943UyRDo9Qstc9arhk8HplaUqTq53UbofLJnRUAEy0k+I+cv
+dsPr8KH6Iu48fdR8Bxub1jt+NY0TGJy8pOnOfC1nvu/f/R+EAqhcIx+z46ekakj8
+sBMKMMnuZCB3H0m2jJb15pibg1gV7Zv11zkHuP1Luke3yPCJwJ24bLQynG7uFUpI
+dAebDhGBg5tuy5dqnl+H
+=y+8O
+-----END PGP SIGNATURE-----
+
+--5H5s06E2cgeOPS40D8p3pIUfLQAbH6QG8--
