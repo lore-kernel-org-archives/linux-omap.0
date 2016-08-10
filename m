@@ -1,68 +1,46 @@
-From: =?UTF-8?q?Stefan=20M=C3=BCller-Klieser?= <s.mueller-klieser@phytec.de>
-Subject: [PATCH] ARM: dts: am335x-wega: Add audio support
-Date: Wed, 10 Aug 2016 17:12:15 +0200
-Message-ID: <1470841935-14190-1-git-send-email-s.mueller-klieser@phytec.de>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH v2 0/6] dmaengine:omap-dma: Linked List transfer for
+ slave_sg
+Date: Wed, 10 Aug 2016 23:02:36 +0530
+Message-ID: <20160810173235.GI9681@localhost>
+References: <20160720085032.2955-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, alsa-devel@alsa-project.org, tony@atomide.com, peter.ujfalusi@ti.com, robh+dt@kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20160720085032.2955-1-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux@arm.linux.org.uk, tony@atomide.com, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-VGhlIHdlZ2EgYm9hcmQgaGFzIGEgVExWMzIwQUlDMzAwNyBjb25uZWN0ZWQgdmlhIE1jQVNQMC4g
-SW4gdGhlIGRlZmF1bHQKY29uZmlndXJhdGlvbiwgbm8gZXh0ZXJuYWwgY3J5c3RhbCBpcyBtb3Vu
-dGVkLiBXZSBydW4gYSBzeXN0ZW0gY2xvY2sgb2YKMjUgTUh6LCBzbyB3ZSB1c2UgdGhlIGF1ZGlv
-IGNvZGVjIFBMTCBmb3IgYXVkaW8gY2xvY2sgZ2VuZXJhdGlvbi4KClNpZ25lZC1vZmYtYnk6IFN0
-ZWZhbiBNw7xsbGVyLUtsaWVzZXIgPHMubXVlbGxlci1rbGllc2VyQHBoeXRlYy5kZT4KLS0tCiBh
-cmNoL2FybS9ib290L2R0cy9hbTMzNXgtd2VnYS5kdHNpIHwgNjIgKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysKIDEgZmlsZSBjaGFuZ2VkLCA2MiBpbnNlcnRpb25zKCspCgpk
-aWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LXdlZ2EuZHRzaSBiL2FyY2gvYXJt
-L2Jvb3QvZHRzL2FtMzM1eC13ZWdhLmR0c2kKaW5kZXggMjgyZjZkNC4uN2Y1ZjhlZCAxMDA2NDQK
-LS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LXdlZ2EuZHRzaQorKysgYi9hcmNoL2FybS9i
-b290L2R0cy9hbTMzNXgtd2VnYS5kdHNpCkBAIC0xMSw2ICsxMSwxMCBAQAogCW1vZGVsID0gIlBo
-eXRlYyBBTTMzNXggcGh5Qk9BUkQtV0VHQSI7CiAJY29tcGF0aWJsZSA9ICJwaHl0ZWMsYW0zMzV4
-LXdlZ2EiLCAicGh5dGVjLGFtMzM1eC1waHljb3JlLXNvbSIsICJ0aSxhbTMzeHgiOwogCisJc291
-bmQ6IHNvdW5kX2lmYWNlIHsKKwkJY29tcGF0aWJsZSA9ICJ0aSxkYTgzMC1ldm0tYXVkaW8iOwor
-CX07CisKIAlyZWd1bGF0b3JzIHsKIAkJY29tcGF0aWJsZSA9ICJzaW1wbGUtYnVzIjsKIApAQCAt
-MjQsNiArMjgsNTggQEAKIAl9OwogfTsKIAorLyogQXVkaW8gKi8KKyZhbTMzeHhfcGlubXV4IHsK
-KwltY2FzcDBfcGluczogcGlubXV4X21jYXNwMCB7CisJCXBpbmN0cmwtc2luZ2xlLHBpbnMgPSA8
-CisJCQlBTTMzWFhfSU9QQUQoMHg5QUMsIFBJTl9PVVRQVVRfUFVMTERPV04gfCBNVVhfTU9ERTAp
-IC8qIG1jYXNwMF9haGNsa3gubWNhc3AwX2FoY2xreCAqLworCQkJQU0zM1hYX0lPUEFEKDB4OTkw
-LCBQSU5fSU5QVVRfUFVMTERPV04gfCBNVVhfTU9ERTApICAvKiBtY2FzcDBfYWNsa3gubWNhc3Aw
-X2FjbGt4ICovCisJCQlBTTMzWFhfSU9QQUQoMHg5OTQsIFBJTl9JTlBVVF9QVUxMRE9XTiB8IE1V
-WF9NT0RFMCkgIC8qIG1jYXNwMF9mc3gubWNhc3AwX2ZzeCAqLworCQkJQU0zM1hYX0lPUEFEKDB4
-OTk4LCBQSU5fSU5QVVRfUFVMTERPV04gfCBNVVhfTU9ERTApICAvKiBtY2FzcDBfYXhyMC5tY2Fz
-cDBfYXhyMCAqLworCQkJQU0zM1hYX0lPUEFEKDB4OUE4LCBQSU5fT1VUUFVUX1BVTExET1dOIHwg
-TVVYX01PREUwKSAvKiBtY2FzcDBfYXhyMS5tY2FzcDBfYXhyMSAqLworCQk+OworCX07Cit9Owor
-CismaTJjMCB7CisJdGx2MzIwYWljMzAwNzogdGx2MzIwYWljMzAwN0AxOCB7CisJCWNvbXBhdGli
-bGUgPSAidGksdGx2MzIwYWljMzAwNyI7CisJCXJlZyA9IDwweDE4PjsKKwkJQVZERC1zdXBwbHkg
-PSA8JnZjYzN2Mz47CisJCUlPVkRELXN1cHBseSA9IDwmdmNjM3YzPjsKKwkJRFJWREQtc3VwcGx5
-ID0gPCZ2Y2MzdjM+OworCQlEVkRELXN1cHBseSA9IDwmdmRpZzFfcmVnPjsKKwkJc3RhdHVzID0g
-Im9rYXkiOworCX07Cit9OworCismbWNhc3AwIHsKKwlwaW5jdHJsLW5hbWVzID0gImRlZmF1bHQi
-OworCXBpbmN0cmwtMCA9IDwmbWNhc3AwX3BpbnM+OworCW9wLW1vZGUgPSA8MD47IC8qIERBVklO
-Q0lfTUNBU1BfSUlTX01PREUgKi8KKwl0ZG0tc2xvdHMgPSA8Mj47CisJc2VyaWFsLWRpciA9IDwK
-KwkJMiAxIDAgMCAvKiAjIDA6IElOQUNUSVZFLCAxOiBUWCwgMjogUlggKi8KKwk+OworCXR4LW51
-bS1ldnQgPSA8MTY+OworCXJ0LW51bS1ldnQgPSA8MTY+OworCXN0YXR1cyA9ICJva2F5IjsKK307
-CisKKyZzb3VuZCB7CisJdGksbW9kZWwgPSAiQU0zMzV4LVdlZ2EiOworCXRpLGF1ZGlvLWNvZGVj
-ID0gPCZ0bHYzMjBhaWMzMDA3PjsKKwl0aSxtY2FzcC1jb250cm9sbGVyID0gPCZtY2FzcDA+Owor
-CXRpLGF1ZGlvLXJvdXRpbmcgPQorCQkiTGluZSBPdXQiLAkJIkxMT1VUIiwKKwkJIkxpbmUgT3V0
-IiwJCSJSTE9VVCIsCisJCSJMSU5FMUwiLAkJIkxpbmUgSW4iLAorCQkiTElORTFSIiwJCSJMaW5l
-IEluIjsKKwljbG9ja3MgPSA8Jm1jYXNwMF9mY2s+OworCWNsb2NrLW5hbWVzID0gIm1jbGsiOwor
-CXN0YXR1cyA9ICJva2F5IjsKK307CisKIC8qIENBTiBCdXNzZXMgKi8KICZhbTMzeHhfcGlubXV4
-IHsKIAlkY2FuMV9waW5zOiBwaW5tdXhfZGNhbjEgewpAQCAtOTksNiArMTU1LDEyIEBACiAJc3Rh
-dHVzID0gIm9rYXkiOwogfTsKIAorLyogUG93ZXIgKi8KKyZ2ZGlnMV9yZWcgeworCXJlZ3VsYXRv
-ci1ib290LW9uOworCXJlZ3VsYXRvci1hbHdheXMtb247Cit9OworCiAvKiBVQVJUcyAqLwogJmFt
-MzN4eF9waW5tdXggewogCXVhcnQwX3BpbnM6IHBpbm11eF91YXJ0MCB7Ci0tIAoxLjkuMQoKX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KQWxzYS1kZXZlbCBt
-YWlsaW5nIGxpc3QKQWxzYS1kZXZlbEBhbHNhLXByb2plY3Qub3JnCmh0dHA6Ly9tYWlsbWFuLmFs
-c2EtcHJvamVjdC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbHNhLWRldmVsCg==
+On Wed, Jul 20, 2016 at 11:50:26AM +0300, Peter Ujfalusi wrote:
+> Hi,
+> 
+> Changes since v1:
+> - dropped the patch changing the sequence of vchan_cookie_complete and
+>   omap_dma_start_sg in omap_dma_callback
+> - Use appropriate macros to find omap_chan and omap_desc in patch 6
+> - Use per-device pool instead of per-channel pools.
+> 
+> The following series with the final patch will add support for sDMA Linked List
+> transfer support.
+> Linked List is supported by sDMA in OMAP3630+ (OMAP4/5, dra7 family).
+> If the descriptor load feature is present we can create the descriptors for each
+> SG beforehand and let sDMA to walk them through.
+> This way the number of sDMA interrupts the kernel need to handle will drop
+> dramatically.
+
+Applied all, thanks
+
+-- 
+~Vinod
