@@ -1,64 +1,95 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v7 0/3] mfd: lp873x: Add lp873x PMIC support
-Date: Wed, 10 Aug 2016 15:48:08 +0530
-Message-ID: <1470824291-14902-1-git-send-email-j-keerthy@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: broonie@kernel.org, lee.jones@linaro.org, linus.walleij@linaro.org
-Cc: linux-omap@vger.kernel.org, robh+dt@kernel.org, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, j-keerthy@ti.com
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "regulator: tps65218: do not disable DCDC3 during poweroff on broken PMICs" to the regulator tree
+Date: Wed, 10 Aug 2016 21:04:14 +0100
+Message-ID: <E1bXZja-0000XE-A6@debutante>
+References: <1466412218-5906-9-git-send-email-j-keerthy@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1466412218-5906-9-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+Cc: Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, Lee Jones <lee.jones@linaro.org>, Mark Brown <broonie@kernel.org>, tony@atomide.combroonie@kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, russ.dill@ti.com, robh+dt@kernel.org, mark.rutland@arm.comj-keerthy@ti.com, linux@armlinux.org.ukDave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The LP873X chip is a power management IC for Portable Navigation Systems
-    and Tablet Computing devices. It contains the following components:
+The patch
 
-     - Regulators.
-     - Configurable General Purpose Output Signals(GPO).
+   regulator: tps65218: do not disable DCDC3 during poweroff on broken PMICs
 
-PMIC interacts with the main processor through i2c. PMIC has
-couple of LDOs(Linear Regulators), couple of BUCKs (Step-Down DC-DC
-Converter Cores) and GPOs(General Purpose Output Signals).
+has been applied to the regulator tree at
 
-The regulator patch is already queued:
-http://marc.info/?l=linux-kernel&m=146298767110771&w=2
+   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
 
-DT patch also queued:
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
 
-Hence posting the remaining patches of the series with
-the comments fixed on mfd driver.
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
 
-Chages in v7:
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
 
-Reverted the dependency on http://www.gossamer-threads.com/lists/linux/kernel/2457552.
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
 
-Changes in v6:
+Thanks,
+Mark
 
-Series depends on: http://www.gossamer-threads.com/lists/linux/kernel/2457552
-probe_new used.
+>From 23a34f9d03a5d40a6234855bc069da370708cc9e Mon Sep 17 00:00:00 2001
+From: Tero Kristo <t-kristo@ti.com>
+Date: Wed, 10 Aug 2016 17:53:55 +0530
+Subject: [PATCH] regulator: tps65218: do not disable DCDC3 during poweroff on
+ broken PMICs
 
-Chnages in v4:
+Some versions of tps65218 do not seem to support poweroff modes properly
+if DCDC3 regulator is shut-down. Thus, keep it enabled even during
+poweroff if the version info matches the broken silicon revision.
 
-Added GPO driver support. 
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+Acked-by: Lee Jones <lee.jones@linaro.org>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/regulator/tps65218-regulator.c | 8 ++++++++
+ include/linux/mfd/tps65218.h           | 5 +++++
+ 2 files changed, 13 insertions(+)
 
-Keerthy (3):
-  mfd: lp873x: Add lp873x PMIC support
-  gpio: lp873x: Add support for General Purpose Outputs
-  regulator: lp873x: Change the MFD config option as per latest naming
-
- drivers/gpio/Kconfig       |  10 ++
- drivers/gpio/Makefile      |   1 +
- drivers/gpio/gpio-lp873x.c | 185 +++++++++++++++++++++++++++++++
- drivers/mfd/Kconfig        |  14 +++
- drivers/mfd/Makefile       |   2 +
- drivers/mfd/lp873x.c       |  96 +++++++++++++++++
- drivers/regulator/Kconfig  |   2 +-
- include/linux/mfd/lp873x.h | 264 +++++++++++++++++++++++++++++++++++++++++++++
- 8 files changed, 573 insertions(+), 1 deletion(-)
- create mode 100644 drivers/gpio/gpio-lp873x.c
- create mode 100644 drivers/mfd/lp873x.c
- create mode 100644 include/linux/mfd/lp873x.h
-
+diff --git a/drivers/regulator/tps65218-regulator.c b/drivers/regulator/tps65218-regulator.c
+index d1e631d64a20..eb0f5b13841a 100644
+--- a/drivers/regulator/tps65218-regulator.c
++++ b/drivers/regulator/tps65218-regulator.c
+@@ -180,6 +180,14 @@ static int tps65218_pmic_set_suspend_disable(struct regulator_dev *dev)
+ 	if (rid < TPS65218_DCDC_1 || rid > TPS65218_LDO_1)
+ 		return -EINVAL;
+ 
++	/*
++	 * Certain revisions of TPS65218 will need to have DCDC3 regulator
++	 * enabled always, otherwise an immediate system reboot will occur
++	 * during poweroff.
++	 */
++	if (rid == TPS65218_DCDC_3 && tps->rev == TPS65218_REV_2_1)
++		return 0;
++
+ 	if (!tps->info[rid]->strobe) {
+ 		if (rid == TPS65218_DCDC_3)
+ 			tps->info[rid]->strobe = 3;
+diff --git a/include/linux/mfd/tps65218.h b/include/linux/mfd/tps65218.h
+index 85e464e32c43..d1db9527fab5 100644
+--- a/include/linux/mfd/tps65218.h
++++ b/include/linux/mfd/tps65218.h
+@@ -63,6 +63,11 @@
+ #define TPS65218_CHIPID_CHIP_MASK	0xF8
+ #define TPS65218_CHIPID_REV_MASK	0x07
+ 
++#define TPS65218_REV_1_0		0x0
++#define TPS65218_REV_1_1		0x1
++#define TPS65218_REV_2_0		0x2
++#define TPS65218_REV_2_1		0x3
++
+ #define TPS65218_INT1_VPRG		BIT(5)
+ #define TPS65218_INT1_AC		BIT(4)
+ #define TPS65218_INT1_PB		BIT(3)
 -- 
-1.9.1
-
+2.8.1
