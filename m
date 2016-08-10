@@ -1,46 +1,28 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v2 0/6] dmaengine:omap-dma: Linked List transfer for
- slave_sg
-Date: Wed, 10 Aug 2016 23:02:36 +0530
-Message-ID: <20160810173235.GI9681@localhost>
-References: <20160720085032.2955-1-peter.ujfalusi@ti.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH v3 13/13] net: ethernet: ti: cpsw: move ale, cpts and
+ drivers params under cpsw_common
+Date: Wed, 10 Aug 2016 21:18:03 +0530
+Message-ID: <2d78ce21-08ec-5533-8208-ca670b008d02@ti.com>
+References: <1470784964-26440-1-git-send-email-ivan.khoronzhuk@linaro.org>
+ <1470784964-26440-14-git-send-email-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20160720085032.2955-1-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux@arm.linux.org.uk, tony@atomide.com, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1470784964-26440-14-git-send-email-ivan.khoronzhuk@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, netdev@vger.kernel.org, grygorii.strashko@ti.com
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, dlide@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jul 20, 2016 at 11:50:26AM +0300, Peter Ujfalusi wrote:
-> Hi,
+On Wednesday 10 August 2016 04:52 AM, Ivan Khoronzhuk wrote:
+> The ale, cpts, version, rx_packet_max, bus_freq, interrupt pacing
+> parameters are common per net device that uses the same h/w. So,
+> move them to common driver structure.
 > 
-> Changes since v1:
-> - dropped the patch changing the sequence of vchan_cookie_complete and
->   omap_dma_start_sg in omap_dma_callback
-> - Use appropriate macros to find omap_chan and omap_desc in patch 6
-> - Use per-device pool instead of per-channel pools.
-> 
-> The following series with the final patch will add support for sDMA Linked List
-> transfer support.
-> Linked List is supported by sDMA in OMAP3630+ (OMAP4/5, dra7 family).
-> If the descriptor load feature is present we can create the descriptors for each
-> SG beforehand and let sDMA to walk them through.
-> This way the number of sDMA interrupts the kernel need to handle will drop
-> dramatically.
+> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 
-Applied all, thanks
+Reviewed-by: Mugunthan V N <mugunthanvnm@ti.com>
 
--- 
-~Vinod
+Regards
+Mugunthan V N
