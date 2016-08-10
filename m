@@ -1,50 +1,44 @@
-From: Nicholas Mc Guire <der.herr@hofr.at>
-Subject: Re: [PATCH] omapfb/dss: wait_for_completion_interruptible_timeout
- expects long
-Date: Wed, 10 Aug 2016 10:30:19 +0000
-Message-ID: <20160810103019.GA3842@osadl.at>
-References: <1469466767-23352-1-git-send-email-hofrat@osadl.org>
- <cff34342-3574-d197-df08-dc5b9b6ced80@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v7 3/3] regulator: lp873x: Change the MFD config option
+ as per latest naming
+Date: Wed, 10 Aug 2016 12:42:05 +0100
+Message-ID: <20160810114205.GK9347@sirena.org.uk>
+References: <1470824291-14902-1-git-send-email-j-keerthy@ti.com>
+ <1470824291-14902-4-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="AYsPlKobQGgtCvjI"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <cff34342-3574-d197-df08-dc5b9b6ced80@ti.com>
+In-Reply-To: <1470824291-14902-4-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Nicholas Mc Guire <hofrat@osadl.org>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Rob Clark <robdclark@gmail.com>, Dave Airlie <airlied@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Luis de Bethencourt <luisbg@osg.samsung.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: lee.jones@linaro.org, linus.walleij@linaro.org, linux-omap@vger.kernel.org, robh+dt@kernel.org, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Aug 10, 2016 at 01:21:46PM +0300, Tomi Valkeinen wrote:
-> On 25/07/16 20:12, Nicholas Mc Guire wrote:
-> > wait_for_completion_timeout_interruptible returns long not unsigned long.
-> > an appropriately typed variable is introduced and assignments fixed up.
-> > 
-> > Fixes: f76ee892a99e ("omapfb: copy omapdss & displays for omapfb")
-> > 
-> > Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
-> > ---
-> > 
-> > API non-compliance was located by coccinelle
-> > 
-> > This is mostly cosmetic since the returned value is only compared 
-> > at present, however if remaining time (completion occurred) where ever 
-> > used, then a signal received would be interpreted as a large remaining 
-> > jiffies left, which would be wrong.
-> > 
-> > Compile tested with: omap2plus_defconfig (implies CONFIG_FB_OMAP2_DSS)
-> > 
-> > Patch is against 4.7.0-rc7 (localversion-next -next-20160724)
-> > 
-> >  drivers/video/fbdev/omap2/omapfb/dss/dispc-compat.c | 7 ++++---
-> >  1 file changed, 4 insertions(+), 3 deletions(-)
-> 
-> Thanks, queued for v4.9. I dropped the "Fixes: " line, as that commit
-> only does a copy of the files, so the commit didn't really introduce the
-> bug.
->
-sorry for the wrong fixes tag - did not notice that - and thanks for
-fixing this.
 
-thx!
-hofrat
+--AYsPlKobQGgtCvjI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Wed, Aug 10, 2016 at 03:48:11PM +0530, Keerthy wrote:
+> Change the MFD config option as per latest naming
+
+Acked-by: Mark Brown <broonie@kernel.org>
+
+--AYsPlKobQGgtCvjI
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJXqxMMAAoJECTWi3JdVIfQp1MH/33w6L5QTFGMCDLSczXb924y
+X3JNXZRhbIMNEexLYYZAC/fvvkNA5VG87cydyihZKX9CIGj/p0eEvB6Lkn7ij7na
+MWsx9ZairnLx5HSvrdCM2T7HzRECcvPPK1QCbsPFMY8PUCzQPxMxRjIV8fIUrS+b
+zv96uPVzumU0IWmjkDqpLu1B0MW2d+PjKeyMheHv9D/4TWoqWULCvhW0szYKEX/y
+zVaZFBgAaDdrKPGBoUViQXI3PKDVFyzZ+x+utC6Hb/CEYPKksZ2WThllwc31EQ54
+n3jcVIjOtSuyrC6XNqpPZNq5mTT+y/4OlBhUTIVXrcebgZXd4UgWvXNzTn5xf7c=
+=8Hf8
+-----END PGP SIGNATURE-----
+
+--AYsPlKobQGgtCvjI--
