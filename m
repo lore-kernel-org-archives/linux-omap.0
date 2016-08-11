@@ -1,52 +1,52 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH v2] drivers: net: cpsw: fix kmemleak false-positive
- reports for sk buffers
-Date: Thu, 11 Aug 2016 15:39:17 +0300
-Message-ID: <4655373e-cafc-70ad-443e-9668a81a1d08@ti.com>
-References: <20160810170253.31825-1-grygorii.strashko@ti.com>
- <20160810.180020.2223832285502216272.davem@davemloft.net>
+From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v6 3/4] gpio: lp873x: Add support for General Purpose Outputs
+Date: Thu, 11 Aug 2016 15:30:54 +0200
+Message-ID: <CACRpkdbFHbxcKHC827A1v8q1JPFk8jZsbJEHFpXi1Ddz054Xdw@mail.gmail.com>
+References: <1470635218-15951-1-git-send-email-j-keerthy@ti.com> <1470635218-15951-4-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160810.180020.2223832285502216272.davem@davemloft.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, mugunthanvnm@ti.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, catalin.marinas@arm.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1470635218-15951-4-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/11/2016 04:00 AM, David Miller wrote:
-> From: Grygorii Strashko <grygorii.strashko@ti.com>
-> Date: Wed, 10 Aug 2016 20:02:53 +0300
->
->> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
->> index 0805855..5caef77 100644
->> --- a/drivers/net/ethernet/ti/cpsw.c
->> +++ b/drivers/net/ethernet/ti/cpsw.c
->> @@ -732,6 +732,11 @@ static void cpsw_rx_handler(void *token, int len, int status)
->>  		netif_receive_skb(skb);
->>  		ndev->stats.rx_bytes += len;
->>  		ndev->stats.rx_packets++;
->> +		/* SKB pointer will be stored in CPPI RAM (SRAM) which belongs
->> +		 * to MMIO space, as result false positive memory leak report
->> +		 * will be generated.
->> +		 */
->> +		kmemleak_not_leak(new_skb);
->>  	} else {
->>  		ndev->stats.rx_dropped++;
->>  		new_skb = skb;
->
-> There is already a kmemleak_not_leak() statement here in the current
-> driver.
->
-> Please always develop and generate patches against current sources.
->
+On Mon, Aug 8, 2016 at 7:46 AM, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> wrote:
 
-Oh. Sorry, I've expected to receive merge notification (as you do 
-usually),  but I didn't see it. I'll be more careful in the future.
+> Add driver for lp873x PMIC family GPOs. Two GPOs are supported
+> and can be configured in Open-drain output or Push-pull output.
+>
+> Acked-by: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 
-Sorry again.
+Still looks pretty nice, just thought of some things if
+you're anyway working on the code:
 
--- 
-regards,
--grygorii
+> +       return regmap_update_bits(gpio->lp873->regmap, LP873X_REG_GPO_CTRL,
+> +                                 BIT(offset * 4), value ? BIT(offset * 4) : 0);
+(...)
+(...)
+> +       return val & BIT(offset * 4);
+(...)
+> +       regmap_update_bits(gpio->lp873->regmap, LP873X_REG_GPO_CTRL,
+> +                          BIT(offset * 4), value ? BIT(offset * 4) : 0);
+(...)
+> +               return regmap_update_bits(gpio->lp873->regmap,
+> +                                         LP873X_REG_GPO_CTRL,
+> +                                         BIT(offset * 4 + 2),
+> +                                         BIT(offset * 4 + 2));
+> +       case LINE_MODE_PUSH_PULL:
+> +               return regmap_update_bits(gpio->lp873->regmap,
+> +                                         LP873X_REG_GPO_CTRL,
+> +                                         BIT(offset * 4 + 2), 0);
+
+This 4 +2 etc business is a bit hard to understand, could you create
+a macro with a clever name that makes it more understandable?
+
+Yours,
+Linus Walleij
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
