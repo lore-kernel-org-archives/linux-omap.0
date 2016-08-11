@@ -1,31 +1,40 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v3 00/13] net: ethernet: ti: cpsw: split driver data
- and per ndev data
-Date: Wed, 10 Aug 2016 17:28:05 -0700 (PDT)
-Message-ID: <20160810.172805.1742489787835736863.davem@davemloft.net>
-References: <1470784964-26440-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Subject: Re: [PATCH v2] drivers: net: cpsw: fix kmemleak false-positive
+ reports for sk buffers
+Date: Wed, 10 Aug 2016 18:00:20 -0700 (PDT)
+Message-ID: <20160810.180020.2223832285502216272.davem@davemloft.net>
+References: <20160810170253.31825-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1470784964-26440-1-git-send-email-ivan.khoronzhuk@linaro.org>
+In-Reply-To: <20160810170253.31825-1-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: ivan.khoronzhuk@linaro.org
-Cc: netdev@vger.kernel.org, mugunthanvnm@ti.com, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, dlide@ti.com
+To: grygorii.strashko@ti.com
+Cc: netdev@vger.kernel.org, mugunthanvnm@ti.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, catalin.marinas@arm.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Date: Wed, 10 Aug 2016 02:22:31 +0300
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Date: Wed, 10 Aug 2016 20:02:53 +0300
 
-> In dual_emac mode the driver can handle 2 network devices. Each of them can use
-> its own private data and common data/resources. This patchset splits common driver
-> data/resources and private per net device data.
-> It leads to:
-> - reduce memory usage
-> - increase code readability
-> - allows add a bunch of simplification
-> - create prerequisites to add multi-channel support,
->   when channels are shared between net devices
- ...
+> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+> index 0805855..5caef77 100644
+> --- a/drivers/net/ethernet/ti/cpsw.c
+> +++ b/drivers/net/ethernet/ti/cpsw.c
+> @@ -732,6 +732,11 @@ static void cpsw_rx_handler(void *token, int len, int status)
+>  		netif_receive_skb(skb);
+>  		ndev->stats.rx_bytes += len;
+>  		ndev->stats.rx_packets++;
+> +		/* SKB pointer will be stored in CPPI RAM (SRAM) which belongs
+> +		 * to MMIO space, as result false positive memory leak report
+> +		 * will be generated.
+> +		 */
+> +		kmemleak_not_leak(new_skb);
+>  	} else {
+>  		ndev->stats.rx_dropped++;
+>  		new_skb = skb;
 
-Series applied to net-next, thank you.
+There is already a kmemleak_not_leak() statement here in the current
+driver.
+
+Please always develop and generate patches against current sources.
