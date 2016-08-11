@@ -1,106 +1,66 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [RESEND PATCH 1/3] ARM: dts: AM437X-GP-EVM: AM437X-SK-EVM: Make dcdc3 dcdc5 and dcdc6 enable during suspend
-Date: Thu, 11 Aug 2016 10:57:48 +0530
-Message-ID: <1470893270-5042-2-git-send-email-j-keerthy@ti.com>
-References: <1470893270-5042-1-git-send-email-j-keerthy@ti.com>
+From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] tools: iio: fix iio build error by adding KBUILD_OUTPUT support to makefile
+Date: Thu, 11 Aug 2016 11:31:24 +0530
+Message-ID: <20160811060124.6604-1-mugunthanvnm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1470893270-5042-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: devicetree@vger.kernel.org, robh+dt@kernel.org, broonie@kernel.org, lee.jones@linaro.org, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, j-keerthy@ti.com
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-dcdc3, dcdc5, dcdc6 supply ddr and rtc respectively. These
-are required to be on during suspend. Hence set the state accordingly.
+Current make doesn't have support to pass kernel built directory
+to find events.h kernel header file, so adding support for
+KBUILD_OUTPUT support to Makefile.
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
+$ make CROSS_COMPILE=arm-linux-gnueabihf- -C tools/iio
+make: Entering directory '/home/a0131834/workspace/git/mainline/linux/tools/iio'
+arm-linux-gnueabihf-gcc -Wall -g -D_GNU_SOURCE   -c -o iio_event_monitor.o iio_event_monitor.c
+arm-linux-gnueabihf-gcc -Wall -g -D_GNU_SOURCE   -c -o iio_utils.o iio_utils.c
+arm-linux-gnueabihf-gcc -Wall -g -D_GNU_SOURCE   -c -o lsiio.o lsiio.c
+arm-linux-gnueabihf-gcc -Wall -g -D_GNU_SOURCE   -c -o iio_generic_buffer.o iio_generic_buffer.c
+arm-linux-gnueabihf-gcc   lsiio.o iio_utils.o   -o lsiio
+arm-linux-gnueabihf-gcc   iio_generic_buffer.o iio_utils.o   -o iio_generic_buffer
+iio_event_monitor.c:28:30: fatal error: linux/iio/events.h: No such file or directory
+ #include <linux/iio/events.h>
+                               ^
+compilation terminated.
+<builtin>: recipe for target 'iio_event_monitor.o' failed
+make: *** [iio_event_monitor.o] Error 1
+make: Leaving directory '/home/a0131834/workspace/git/mainline/linux/tools/iio'
+
+Signed-off-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/am437x-gp-evm.dts | 10 ++++++++++
- arch/arm/boot/dts/am437x-sk-evm.dts | 27 +++++++++++++++++++++++++++
- 2 files changed, 37 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index 14677d5..fba26c9 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -537,7 +537,11 @@
- 			regulator-max-microvolt = <1500000>;
- 			regulator-boot-on;
- 			regulator-always-on;
-+			regulator-state-mem {
-+				regulator-on-in-suspend;
-+			};
- 		};
-+
- 		dcdc5: regulator-dcdc5 {
- 			compatible = "ti,tps65218-dcdc5";
- 			regulator-name = "v1_0bat";
-@@ -545,6 +549,9 @@
- 			regulator-max-microvolt = <1000000>;
- 			regulator-boot-on;
- 			regulator-always-on;
-+			regulator-state-mem {
-+				regulator-on-in-suspend;
-+			};
- 		};
+With this fix I am able to build the iio tools
+
+$ make CROSS_COMPILE=arm-linux-gnueabihf- -C tools/iio KBUILD_OUTPUT=`pwd`
+make: Entering directory '/home/a0131834/workspace/git/mainline/linux/tools/iio'
+arm-linux-gnueabihf-gcc -Wall -g -D_GNU_SOURCE -I/home/a0131834/workspace/git/mainline/linux/usr/include   -c -o iio_event_monitor.o iio_event_monitor.c
+arm-linux-gnueabihf-gcc -Wall -g -D_GNU_SOURCE -I/home/a0131834/workspace/git/mainline/linux/usr/include   -c -o iio_utils.o iio_utils.c
+arm-linux-gnueabihf-gcc   iio_event_monitor.o iio_utils.o   -o iio_event_monitor
+arm-linux-gnueabihf-gcc -Wall -g -D_GNU_SOURCE -I/home/a0131834/workspace/git/mainline/linux/usr/include   -c -o lsiio.o lsiio.c
+arm-linux-gnueabihf-gcc   lsiio.o iio_utils.o   -o lsiio
+arm-linux-gnueabihf-gcc -Wall -g -D_GNU_SOURCE -I/home/a0131834/workspace/git/mainline/linux/usr/include   -c -o iio_generic_buffer.o iio_generic_buffer.c
+arm-linux-gnueabihf-gcc   iio_generic_buffer.o iio_utils.o   -o iio_generic_buffer
+make: Leaving directory '/home/a0131834/workspace/git/mainline/linux/tools/iio'
+
+---
+ tools/iio/Makefile | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/tools/iio/Makefile b/tools/iio/Makefile
+index 5446d62..0ec3ea0 100644
+--- a/tools/iio/Makefile
++++ b/tools/iio/Makefile
+@@ -1,5 +1,6 @@
+ CC = $(CROSS_COMPILE)gcc
+-CFLAGS += -Wall -g -D_GNU_SOURCE
++KBUILD_OUTPUT ?= /lib/modules/$(shell uname -r)/build
++CFLAGS += -Wall -g -D_GNU_SOURCE -I$(KBUILD_OUTPUT)/usr/include
  
- 		dcdc6: regulator-dcdc6 {
-@@ -554,6 +561,9 @@
- 			regulator-max-microvolt = <1800000>;
- 			regulator-boot-on;
- 			regulator-always-on;
-+			regulator-state-mem {
-+				regulator-on-in-suspend;
-+			};
- 		};
- 
- 		ldo1: regulator-ldo1 {
-diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am437x-sk-evm.dts
-index 5687d6b..b5e84e6 100644
---- a/arch/arm/boot/dts/am437x-sk-evm.dts
-+++ b/arch/arm/boot/dts/am437x-sk-evm.dts
-@@ -454,6 +454,9 @@
- 			regulator-max-microvolt = <1500000>;
- 			regulator-boot-on;
- 			regulator-always-on;
-+			regulator-state-mem {
-+				regulator-on-in-suspend;
-+			};
- 		};
- 
- 		dcdc4: regulator-dcdc4 {
-@@ -465,6 +468,30 @@
- 			regulator-always-on;
- 		};
- 
-+		dcdc5: regulator-dcdc5 {
-+			compatible = "ti,tps65218-dcdc5";
-+			regulator-name = "v1_0bat";
-+			regulator-min-microvolt = <1000000>;
-+			regulator-max-microvolt = <1000000>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+			regulator-state-mem {
-+				regulator-on-in-suspend;
-+			};
-+		};
-+
-+		dcdc6: regulator-dcdc6 {
-+			compatible = "ti,tps65218-dcdc6";
-+			regulator-name = "v1_8bat";
-+			regulator-min-microvolt = <1800000>;
-+			regulator-max-microvolt = <1800000>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+			regulator-state-mem {
-+				regulator-on-in-suspend;
-+			};
-+		};
-+
- 		ldo1: regulator-ldo1 {
- 			compatible = "ti,tps65218-ldo1";
- 			regulator-name = "v1_8d";
+ BINDIR=usr/bin
+ INSTALL_PROGRAM=install -m 755 -p
 -- 
-1.9.1
+2.9.2.664.ga0a1831
