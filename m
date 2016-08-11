@@ -1,8 +1,10 @@
 From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 1/2] ARM: OMAP1: use IS_ENABLED() instead of checking for built-in or module
-Date: Thu, 11 Aug 2016 15:29:44 -0400
-Message-ID: <1470943785-21282-1-git-send-email-javier@osg.samsung.com>
+Subject: [PATCH 2/2] ARM: OMAP2+: use IS_ENABLED() instead of checking for built-in or module
+Date: Thu, 11 Aug 2016 15:29:45 -0400
+Message-ID: <1470943785-21282-2-git-send-email-javier@osg.samsung.com>
+References: <1470943785-21282-1-git-send-email-javier@osg.samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1470943785-21282-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@osg.samsung.com>
@@ -15,272 +17,355 @@ Using the macro makes the code more readable by helping abstract away some
 of the Kconfig built-in and module enable details.
 
 Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
 ---
 
- arch/arm/mach-omap1/board-h2-mmc.c     |  2 +-
- arch/arm/mach-omap1/board-h2.c         |  2 +-
- arch/arm/mach-omap1/board-h3-mmc.c     |  2 +-
- arch/arm/mach-omap1/board-h3.c         |  2 +-
- arch/arm/mach-omap1/board-htcherald.c  |  4 ++--
- arch/arm/mach-omap1/board-innovator.c  |  4 ++--
- arch/arm/mach-omap1/board-nokia770.c   |  4 ++--
- arch/arm/mach-omap1/board-sx1-mmc.c    |  2 +-
- arch/arm/mach-omap1/devices.c          | 10 +++++-----
- arch/arm/mach-omap1/fb.c               |  2 +-
- arch/arm/mach-omap1/include/mach/usb.h |  2 +-
- arch/arm/mach-omap1/mmc.h              |  2 +-
- arch/arm/mach-omap1/usb.c              |  6 +++---
- 13 files changed, 22 insertions(+), 22 deletions(-)
+ arch/arm/mach-omap2/board-flash.c            | 10 ++++------
+ arch/arm/mach-omap2/board-flash.h            | 11 +++--------
+ arch/arm/mach-omap2/board-n8x0.c             |  5 ++---
+ arch/arm/mach-omap2/board-rx51-peripherals.c | 23 +++++++++++------------
+ arch/arm/mach-omap2/board-rx51-video.c       |  4 ++--
+ arch/arm/mach-omap2/common-board-devices.c   |  3 +--
+ arch/arm/mach-omap2/devices.c                |  7 +++----
+ arch/arm/mach-omap2/drm.c                    |  2 +-
+ arch/arm/mach-omap2/fb.c                     |  2 +-
+ arch/arm/mach-omap2/gpmc-smsc911x.h          |  2 +-
+ arch/arm/mach-omap2/hsmmc.c                  |  2 +-
+ arch/arm/mach-omap2/hsmmc.h                  |  2 +-
+ arch/arm/mach-omap2/twl-common.c             |  3 +--
+ 13 files changed, 32 insertions(+), 44 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/board-h2-mmc.c b/arch/arm/mach-omap1/board-h2-mmc.c
-index 7119ef28e0ad..357be2debc9d 100644
---- a/arch/arm/mach-omap1/board-h2-mmc.c
-+++ b/arch/arm/mach-omap1/board-h2-mmc.c
-@@ -19,7 +19,7 @@
- #include "board-h2.h"
- #include "mmc.h"
+diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
+index 70b21cc279ba..2188dc30e232 100644
+--- a/arch/arm/mach-omap2/board-flash.c
++++ b/arch/arm/mach-omap2/board-flash.c
+@@ -81,8 +81,7 @@ __init board_nor_init(struct mtd_partition *nor_parts, u8 nr_parts, u8 cs)
+ 		pr_err("Unable to register NOR device\n");
+ }
  
--#if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE)
-+#if IS_ENABLED(CONFIG_MMC_OMAP)
+-#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
+-		defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
++#if IS_ENABLED(CONFIG_MTD_ONENAND_OMAP2)
+ static struct omap_onenand_platform_data board_onenand_data = {
+ 	.dma_channel	= -1,   /* disable DMA in OMAP OneNAND driver */
+ };
+@@ -97,10 +96,9 @@ __init board_onenand_init(struct mtd_partition *onenand_parts,
  
- static int mmc_set_power(struct device *dev, int slot, int power_on,
- 				int vdd)
-diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
-index cd146ed0538d..675254ee4b1e 100644
---- a/arch/arm/mach-omap1/board-h2.c
-+++ b/arch/arm/mach-omap1/board-h2.c
-@@ -349,7 +349,7 @@ static struct omap_usb_config h2_usb_config __initdata = {
- #if IS_ENABLED(CONFIG_USB_OMAP)
- 	.hmc_mode	= 19,	/* 0:host(off) 1:dev|otg 2:disabled */
- 	/* .hmc_mode	= 21,*/	/* 0:host(off) 1:dev(loopback) 2:host(loopback) */
--#elif	defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
-+#elif	IS_ENABLED(CONFIG_USB_OHCI_HCD)
- 	/* needs OTG cable, or NONSTANDARD (B-to-MiniB) */
- 	.hmc_mode	= 20,	/* 1:dev|otg(off) 1:host 2:disabled */
- #endif
-diff --git a/arch/arm/mach-omap1/board-h3-mmc.c b/arch/arm/mach-omap1/board-h3-mmc.c
-index 43aab63cbc39..4f58bfa5e754 100644
---- a/arch/arm/mach-omap1/board-h3-mmc.c
-+++ b/arch/arm/mach-omap1/board-h3-mmc.c
-@@ -20,7 +20,7 @@
- #include "board-h3.h"
- #include "mmc.h"
+ 	gpmc_onenand_init(&board_onenand_data);
+ }
+-#endif /* CONFIG_MTD_ONENAND_OMAP2 || CONFIG_MTD_ONENAND_OMAP2_MODULE */
++#endif /* IS_ENABLED(CONFIG_MTD_ONENAND_OMAP2) */
  
--#if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE)
-+#if IS_ENABLED(CONFIG_MMC_OMAP)
+-#if defined(CONFIG_MTD_NAND_OMAP2) || \
+-		defined(CONFIG_MTD_NAND_OMAP2_MODULE)
++#if IS_ENABLED(CONFIG_MTD_NAND_OMAP2)
  
- static int mmc_set_power(struct device *dev, int slot, int power_on,
- 				int vdd)
-diff --git a/arch/arm/mach-omap1/board-h3.c b/arch/arm/mach-omap1/board-h3.c
-index f7c8c63dd532..e62f9d454f10 100644
---- a/arch/arm/mach-omap1/board-h3.c
-+++ b/arch/arm/mach-omap1/board-h3.c
-@@ -368,7 +368,7 @@ static struct omap_usb_config h3_usb_config __initdata = {
+ /* Note that all values in this struct are in nanoseconds */
+ struct gpmc_timings nand_default_timings[1] = {
+@@ -144,7 +142,7 @@ __init board_nand_init(struct mtd_partition *nand_parts, u8 nr_parts, u8 cs,
+ 	board_nand_data.ecc_opt = OMAP_ECC_HAM1_CODE_SW;
+ 	gpmc_nand_init(&board_nand_data, gpmc_t);
+ }
+-#endif /* CONFIG_MTD_NAND_OMAP2 || CONFIG_MTD_NAND_OMAP2_MODULE */
++#endif /* IS_ENABLED(CONFIG_MTD_NAND_OMAP2) */
  
- #if IS_ENABLED(CONFIG_USB_OMAP)
- 	.hmc_mode       = 19,   /* 0:host(off) 1:dev|otg 2:disabled */
--#elif  defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
-+#elif IS_ENABLED(CONFIG_USB_OHCI_HCD)
- 	/* NONSTANDARD CABLE NEEDED (B-to-Mini-B) */
- 	.hmc_mode       = 20,   /* 1:dev|otg(off) 1:host 2:disabled */
- #endif
-diff --git a/arch/arm/mach-omap1/board-htcherald.c b/arch/arm/mach-omap1/board-htcherald.c
-index 9525ef9bc6c0..e424df901dbd 100644
---- a/arch/arm/mach-omap1/board-htcherald.c
-+++ b/arch/arm/mach-omap1/board-htcherald.c
-@@ -401,7 +401,7 @@ static struct platform_device lcd_device = {
+ /**
+  * get_gpmc0_type - Reads the FPGA DIP_SWITCH_INPUT_REGISTER2 to get
+diff --git a/arch/arm/mach-omap2/board-flash.h b/arch/arm/mach-omap2/board-flash.h
+index ea9aaebe11e7..8b39eec07318 100644
+--- a/arch/arm/mach-omap2/board-flash.h
++++ b/arch/arm/mach-omap2/board-flash.h
+@@ -23,10 +23,7 @@ struct flash_partitions {
+ 	int nr_parts;
  };
  
- /* MMC Card */
--#if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE)
-+#if IS_ENABLED(CONFIG_MMC_OMAP)
- static struct omap_mmc_platform_data htc_mmc1_data = {
- 	.nr_slots                       = 1,
- 	.switch_slot                    = NULL,
-@@ -586,7 +586,7 @@ static void __init htcherald_init(void)
- 
- 	omap_register_i2c_bus(1, 100, NULL, 0);
- 
--#if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE)
-+#if IS_ENABLED(CONFIG_MMC_OMAP)
- 	htc_mmc_data[0] = &htc_mmc1_data;
- 	omap1_init_mmc(htc_mmc_data, 1);
- #endif
-diff --git a/arch/arm/mach-omap1/board-innovator.c b/arch/arm/mach-omap1/board-innovator.c
-index ae90bd02b3bf..67e188271643 100644
---- a/arch/arm/mach-omap1/board-innovator.c
-+++ b/arch/arm/mach-omap1/board-innovator.c
-@@ -315,7 +315,7 @@ static struct omap_usb_config h2_usb_config __initdata = {
- #if IS_ENABLED(CONFIG_USB_OMAP)
- 	.hmc_mode	= 19,	/* 0:host(off) 1:dev|otg 2:disabled */
- 	/* .hmc_mode	= 21,*/	/* 0:host(off) 1:dev(loopback) 2:host(loopback) */
--#elif	defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
-+#elif	IS_ENABLED(CONFIG_USB_OHCI_HCD)
- 	/* NONSTANDARD CABLE NEEDED (B-to-Mini-B) */
- 	.hmc_mode	= 20,	/* 1:dev|otg(off) 1:host 2:disabled */
- #endif
-@@ -328,7 +328,7 @@ static struct omap_lcd_config innovator1610_lcd_config __initdata = {
- };
- #endif
- 
--#if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE)
-+#if IS_ENABLED(CONFIG_MMC_OMAP)
- 
- static int mmc_set_power(struct device *dev, int slot, int power_on,
- 				int vdd)
-diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
-index dd3a3ad797ea..ee8d9f553db4 100644
---- a/arch/arm/mach-omap1/board-nokia770.c
-+++ b/arch/arm/mach-omap1/board-nokia770.c
-@@ -159,7 +159,7 @@ static struct omap_usb_config nokia770_usb_config __initdata = {
- 	.extcon		= "tahvo-usb",
- };
- 
--#if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE)
-+#if IS_ENABLED(CONFIG_MMC_OMAP)
- 
- #define NOKIA770_GPIO_MMC_POWER		41
- #define NOKIA770_GPIO_MMC_SWITCH	23
-@@ -216,7 +216,7 @@ static inline void nokia770_mmc_init(void)
+-#if defined(CONFIG_MTD_NAND_OMAP2) || \
+-		defined(CONFIG_MTD_NAND_OMAP2_MODULE) || \
+-		defined(CONFIG_MTD_ONENAND_OMAP2) || \
+-		defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
++#if IS_ENABLED(CONFIG_MTD_NAND_OMAP2) || IS_ENABLED(CONFIG_MTD_ONENAND_OMAP2)
+ extern void board_flash_init(struct flash_partitions [],
+ 				char chip_sel[][GPMC_CS_NUM], int nand_type);
+ #else
+@@ -36,8 +33,7 @@ static inline void board_flash_init(struct flash_partitions part[],
  }
  #endif
  
--#if defined(CONFIG_I2C_CBUS_GPIO) || defined(CONFIG_I2C_CBUS_GPIO_MODULE)
-+#if IS_ENABLED(CONFIG_I2C_CBUS_GPIO)
- static struct i2c_cbus_platform_data nokia770_cbus_data = {
- 	.clk_gpio = OMAP_MPUIO(9),
- 	.dat_gpio = OMAP_MPUIO(10),
-diff --git a/arch/arm/mach-omap1/board-sx1-mmc.c b/arch/arm/mach-omap1/board-sx1-mmc.c
-index a9373570bbb1..79f0af8bfae0 100644
---- a/arch/arm/mach-omap1/board-sx1-mmc.c
-+++ b/arch/arm/mach-omap1/board-sx1-mmc.c
-@@ -20,7 +20,7 @@
+-#if defined(CONFIG_MTD_NAND_OMAP2) || \
+-		defined(CONFIG_MTD_NAND_OMAP2_MODULE)
++#if IS_ENABLED(CONFIG_MTD_NAND_OMAP2)
+ extern void board_nand_init(struct mtd_partition *nand_parts,
+ 		u8 nr_parts, u8 cs, int nand_type, struct gpmc_timings *gpmc_t);
+ extern struct gpmc_timings nand_default_timings[];
+@@ -49,8 +45,7 @@ static inline void board_nand_init(struct mtd_partition *nand_parts,
+ #define	nand_default_timings	NULL
+ #endif
  
- #include "mmc.h"
- 
--#if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE)
-+#if IS_ENABLED(CONFIG_MMC_OMAP)
- 
- static int mmc_set_power(struct device *dev, int slot, int power_on,
- 				int vdd)
-diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
-index 8c8be861fff2..baaf902b7016 100644
---- a/arch/arm/mach-omap1/devices.c
-+++ b/arch/arm/mach-omap1/devices.c
-@@ -33,7 +33,7 @@
- #include "mmc.h"
- #include "sram.h"
- 
--#if defined(CONFIG_RTC_DRV_OMAP) || defined(CONFIG_RTC_DRV_OMAP_MODULE)
-+#if IS_ENABLED(CONFIG_RTC_DRV_OMAP)
- 
- #define	OMAP_RTC_BASE		0xfffb4800
- 
-@@ -72,7 +72,7 @@ static inline void omap_init_mbox(void) { }
- 
- /*-------------------------------------------------------------------------*/
- 
--#if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE)
-+#if IS_ENABLED(CONFIG_MMC_OMAP)
- 
- static inline void omap1_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
- 			int controller_nr)
-@@ -230,7 +230,7 @@ void __init omap1_init_mmc(struct omap_mmc_platform_data **mmc_data,
- /*-------------------------------------------------------------------------*/
- 
- /* OMAP7xx SPI support */
--#if defined(CONFIG_SPI_OMAP_100K) || defined(CONFIG_SPI_OMAP_100K_MODULE)
-+#if IS_ENABLED(CONFIG_SPI_OMAP_100K)
- 
- struct platform_device omap_spi1 = {
- 	.name           = "omap1_spi100k",
-@@ -312,7 +312,7 @@ static inline void omap_init_sti(void) {}
-  * mcbsp1..3	= 5..7
-  */
- 
--#if defined(CONFIG_SPI_OMAP_UWIRE) || defined(CONFIG_SPI_OMAP_UWIRE_MODULE)
-+#if IS_ENABLED(CONFIG_SPI_OMAP_UWIRE)
- 
- #define	OMAP_UWIRE_BASE		0xfffb3000
- 
-@@ -418,7 +418,7 @@ static int __init omap1_init_devices(void)
+-#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
+-		defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
++#if IS_ENABLED(CONFIG_MTD_ONENAND_OMAP2)
+ extern void board_onenand_init(struct mtd_partition *nand_parts,
+ 					u8 nr_parts, u8 cs);
+ #else
+diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
+index b6443a4e0c78..6b6fda65fb3b 100644
+--- a/arch/arm/mach-omap2/board-n8x0.c
++++ b/arch/arm/mach-omap2/board-n8x0.c
+@@ -66,7 +66,7 @@ static void board_check_revision(void)
+ 		pr_err("Unknown board\n");
  }
- arch_initcall(omap1_init_devices);
  
--#if defined(CONFIG_OMAP_WATCHDOG) || defined(CONFIG_OMAP_WATCHDOG_MODULE)
-+#if IS_ENABLED(CONFIG_OMAP_WATCHDOG)
+-#if defined(CONFIG_USB_MUSB_TUSB6010) || defined(CONFIG_USB_MUSB_TUSB6010_MODULE)
++#if IS_ENABLED(CONFIG_USB_MUSB_TUSB6010)
+ /*
+  * Enable or disable power to TUSB6010. When enabling, turn on 3.3 V and
+  * 1.5 V voltage regulators of PM companion chip. Companion chip will then
+@@ -163,8 +163,7 @@ static struct spi_board_info n800_spi_board_info[] __initdata = {
+ 	},
+ };
  
- static struct resource wdt_resources[] = {
+-#if defined(CONFIG_MENELAUS) &&						\
+-	(defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE))
++#if defined(CONFIG_MENELAUS) && IS_ENABLED(CONFIG_MMC_OMAP)
+ 
+ /*
+  * On both N800 and N810, only the first of the two MMC controllers is in use.
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index a5ab712c1a59..631a5a4005fc 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -86,7 +86,7 @@ enum {
+ static struct wl1251_platform_data wl1251_pdata;
+ static struct tsc2005_platform_data tsc2005_pdata;
+ 
+-#if defined(CONFIG_SENSORS_LIS3_I2C) || defined(CONFIG_SENSORS_LIS3_I2C_MODULE)
++#if IS_ENABLED(CONFIG_SENSORS_LIS3_I2C)
+ static int lis302_setup(void)
+ {
+ 	int err;
+@@ -156,13 +156,13 @@ static struct lis3lv02d_platform_data rx51_lis3lv02d_data = {
+ };
+ #endif
+ 
+-#if defined(CONFIG_SENSORS_TSL2563) || defined(CONFIG_SENSORS_TSL2563_MODULE)
++#if IS_ENABLED(CONFIG_SENSORS_TSL2563)
+ static struct tsl2563_platform_data rx51_tsl2563_platform_data = {
+ 	.cover_comp_gain = 16,
+ };
+ #endif
+ 
+-#if defined(CONFIG_LEDS_LP5523) || defined(CONFIG_LEDS_LP5523_MODULE)
++#if IS_ENABLED(CONFIG_LEDS_LP5523)
+ static struct lp55xx_led_config rx51_lp5523_led_config[] = {
  	{
-diff --git a/arch/arm/mach-omap1/fb.c b/arch/arm/mach-omap1/fb.c
-index c770d45c7226..ddab04087b7a 100644
---- a/arch/arm/mach-omap1/fb.c
-+++ b/arch/arm/mach-omap1/fb.c
-@@ -33,7 +33,7 @@
+ 		.name		= "lp5523:kb1",
+@@ -299,7 +299,7 @@ static void __init rx51_charger_init(void)
+ 	platform_device_register(&rx51_charger_device);
+ }
  
- #include <asm/mach/map.h>
+-#if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
++#if IS_ENABLED(CONFIG_KEYBOARD_GPIO)
  
--#if defined(CONFIG_FB_OMAP) || defined(CONFIG_FB_OMAP_MODULE)
-+#if IS_ENABLED(CONFIG_FB_OMAP)
+ #define RX51_GPIO_CAMERA_LENS_COVER	110
+ #define RX51_GPIO_CAMERA_FOCUS		68
+@@ -377,7 +377,7 @@ static void __init rx51_add_gpio_keys(void)
+ static void __init rx51_add_gpio_keys(void)
+ {
+ }
+-#endif /* CONFIG_KEYBOARD_GPIO || CONFIG_KEYBOARD_GPIO_MODULE */
++#endif /* IS_ENABLED(CONFIG_KEYBOARD_GPIO) */
  
- static bool omapfb_lcd_configured;
+ static uint32_t board_keymap[] = {
+ 	/*
+@@ -1018,13 +1018,13 @@ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_2[] = {
+ 		I2C_BOARD_INFO("tlv320aic3x", 0x19),
+ 		.platform_data = &rx51_aic3x_data2,
+ 	},
+-#if defined(CONFIG_SENSORS_TSL2563) || defined(CONFIG_SENSORS_TSL2563_MODULE)
++#if IS_ENABLED(CONFIG_SENSORS_TSL2563)
+ 	{
+ 		I2C_BOARD_INFO("tsl2563", 0x29),
+ 		.platform_data = &rx51_tsl2563_platform_data,
+ 	},
+ #endif
+-#if defined(CONFIG_LEDS_LP5523) || defined(CONFIG_LEDS_LP5523_MODULE)
++#if IS_ENABLED(CONFIG_LEDS_LP5523)
+ 	{
+ 		I2C_BOARD_INFO("lp5523", 0x32),
+ 		.platform_data  = &rx51_lp5523_platform_data,
+@@ -1040,7 +1040,7 @@ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_2[] = {
+ };
+ 
+ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_3[] = {
+-#if defined(CONFIG_SENSORS_LIS3_I2C) || defined(CONFIG_SENSORS_LIS3_I2C_MODULE)
++#if IS_ENABLED(CONFIG_SENSORS_LIS3_I2C)
+ 	{
+ 		I2C_BOARD_INFO("lis3lv02d", 0x1d),
+ 		.platform_data = &rx51_lis3lv02d_data,
+@@ -1081,7 +1081,7 @@ static int __init rx51_i2c_init(void)
+ #endif
+ 	omap_register_i2c_bus(2, 100, rx51_peripherals_i2c_board_info_2,
+ 			      ARRAY_SIZE(rx51_peripherals_i2c_board_info_2));
+-#if defined(CONFIG_SENSORS_LIS3_I2C) || defined(CONFIG_SENSORS_LIS3_I2C_MODULE)
++#if IS_ENABLED(CONFIG_SENSORS_LIS3_I2C)
+ 	rx51_lis3lv02d_data.irq2 = gpio_to_irq(LIS302_IRQ2_GPIO);
+ 	rx51_peripherals_i2c_board_info_3[0].irq = gpio_to_irq(LIS302_IRQ1_GPIO);
+ #endif
+@@ -1090,8 +1090,7 @@ static int __init rx51_i2c_init(void)
+ 	return 0;
+ }
+ 
+-#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
+-	defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
++#if IS_ENABLED(CONFIG_MTD_ONENAND_OMAP2)
+ 
+ static struct mtd_partition onenand_partitions[] = {
+ 	{
+@@ -1239,7 +1238,7 @@ static struct pwm_omap_dmtimer_pdata __maybe_unused pwm_dmtimer_pdata = {
+ };
+ #endif
+ 
+-#if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
++#if IS_ENABLED(CONFIG_IR_RX51)
+ static struct lirc_rx51_platform_data rx51_lirc_data = {
+ 	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
+ };
+diff --git a/arch/arm/mach-omap2/board-rx51-video.c b/arch/arm/mach-omap2/board-rx51-video.c
+index 180c6aa633bd..ef5cbb6f4c47 100644
+--- a/arch/arm/mach-omap2/board-rx51-video.c
++++ b/arch/arm/mach-omap2/board-rx51-video.c
+@@ -28,7 +28,7 @@
+ 
+ #define RX51_LCD_RESET_GPIO	90
+ 
+-#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
++#if IS_ENABLED(CONFIG_FB_OMAP2)
+ 
+ static struct connector_atv_platform_data rx51_tv_pdata = {
+ 	.name = "tv",
+@@ -64,4 +64,4 @@ static int __init rx51_video_init(void)
+ }
+ 
+ omap_subsys_initcall(rx51_video_init);
+-#endif /* defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE) */
++#endif /* IS_ENABLED(CONFIG_FB_OMAP2) */
+diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
+index d246efd9f734..5388fcd3de72 100644
+--- a/arch/arm/mach-omap2/common-board-devices.c
++++ b/arch/arm/mach-omap2/common-board-devices.c
+@@ -29,8 +29,7 @@
+ #include "common.h"
+ #include "common-board-devices.h"
+ 
+-#if defined(CONFIG_TOUCHSCREEN_ADS7846) || \
+-	defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
++#if IS_ENABLED(CONFIG_TOUCHSCREEN_ADS7846)
+ static struct omap2_mcspi_device_config ads7846_mcspi_config = {
+ 	.turbo_mode	= 0,
+ };
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index d7f1d69daf6d..60a20f3b44de 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -67,7 +67,7 @@ omap_postcore_initcall(omap3_l3_init);
+ 
+ static inline void omap_init_sti(void) {}
+ 
+-#if defined(CONFIG_SPI_OMAP24XX) || defined(CONFIG_SPI_OMAP24XX_MODULE)
++#if IS_ENABLED(CONFIG_SPI_OMAP24XX)
+ 
+ #include <linux/platform_data/spi-omap2-mcspi.h>
+ 
+@@ -163,9 +163,8 @@ static void __init omap_init_aes(void)
+ 
+ /*-------------------------------------------------------------------------*/
+ 
+-#if defined(CONFIG_VIDEO_OMAP2_VOUT) || \
+-	defined(CONFIG_VIDEO_OMAP2_VOUT_MODULE)
+-#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
++#if IS_ENABLED(CONFIG_VIDEO_OMAP2_VOUT)
++#if IS_ENABLED(CONFIG_FB_OMAP2)
+ static struct resource omap_vout_resource[3 - CONFIG_FB_OMAP2_NUM_FBS] = {
+ };
+ #else
+diff --git a/arch/arm/mach-omap2/drm.c b/arch/arm/mach-omap2/drm.c
+index facd7406a03d..44fef961bb70 100644
+--- a/arch/arm/mach-omap2/drm.c
++++ b/arch/arm/mach-omap2/drm.c
+@@ -28,7 +28,7 @@
+ #include "soc.h"
+ #include "display.h"
+ 
+-#if defined(CONFIG_DRM_OMAP) || defined(CONFIG_DRM_OMAP_MODULE)
++#if IS_ENABLED(CONFIG_DRM_OMAP)
+ 
+ static struct omap_drm_platform_data platform_data;
+ 
+diff --git a/arch/arm/mach-omap2/fb.c b/arch/arm/mach-omap2/fb.c
+index 1f1ecf8807eb..ecd00b63181e 100644
+--- a/arch/arm/mach-omap2/fb.c
++++ b/arch/arm/mach-omap2/fb.c
+@@ -90,7 +90,7 @@ int __init omap_init_vrfb(void)
+ int __init omap_init_vrfb(void) { return 0; }
+ #endif
+ 
+-#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
++#if IS_ENABLED(CONFIG_FB_OMAP2)
+ 
+ static u64 omap_fb_dma_mask = ~(u32)0;
  static struct omapfb_platform_data omapfb_config;
-diff --git a/arch/arm/mach-omap1/include/mach/usb.h b/arch/arm/mach-omap1/include/mach/usb.h
-index 2c263051dc51..a7c5559caef2 100644
---- a/arch/arm/mach-omap1/include/mach/usb.h
-+++ b/arch/arm/mach-omap1/include/mach/usb.h
-@@ -12,7 +12,7 @@
+diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.h b/arch/arm/mach-omap2/gpmc-smsc911x.h
+index ea6c9c88c725..99a05b8412fa 100644
+--- a/arch/arm/mach-omap2/gpmc-smsc911x.h
++++ b/arch/arm/mach-omap2/gpmc-smsc911x.h
+@@ -21,7 +21,7 @@ struct omap_smsc911x_platform_data {
+ 	u32	flags;
+ };
  
- void omap_otg_init(struct omap_usb_config *config);
+-#if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
++#if IS_ENABLED(CONFIG_SMSC911X)
  
--#if defined(CONFIG_USB) || defined(CONFIG_USB_MODULE)
-+#if IS_ENABLED(CONFIG_USB)
- void omap1_usb_init(struct omap_usb_config *pdata);
- #else
- static inline void omap1_usb_init(struct omap_usb_config *pdata)
-diff --git a/arch/arm/mach-omap1/mmc.h b/arch/arm/mach-omap1/mmc.h
-index 39c2b13de884..d7b46880e4ca 100644
---- a/arch/arm/mach-omap1/mmc.h
-+++ b/arch/arm/mach-omap1/mmc.h
-@@ -7,7 +7,7 @@
- #define OMAP1_MMC1_BASE		0xfffb7800
- #define OMAP1_MMC2_BASE		0xfffb7c00	/* omap16xx only */
+ extern void gpmc_smsc911x_init(struct omap_smsc911x_platform_data *d);
  
--#if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE)
-+#if IS_ENABLED(CONFIG_MMC_OMAP)
- void omap1_init_mmc(struct omap_mmc_platform_data **mmc_data,
- 				int nr_controllers);
- #else
-diff --git a/arch/arm/mach-omap1/usb.c b/arch/arm/mach-omap1/usb.c
-index 4118db50d5e8..2506e598a067 100644
---- a/arch/arm/mach-omap1/usb.c
-+++ b/arch/arm/mach-omap1/usb.c
-@@ -136,7 +136,7 @@ omap_otg_init(struct omap_usb_config *config)
- 	}
- #endif
+diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+index cff079e563f4..478097741bce 100644
+--- a/arch/arm/mach-omap2/hsmmc.c
++++ b/arch/arm/mach-omap2/hsmmc.c
+@@ -26,7 +26,7 @@
+ #include "hsmmc.h"
+ #include "control.h"
  
--#if	defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
-+#if	IS_ENABLED(CONFIG_USB_OHCI_HCD)
- 	if (config->otg || config->register_host) {
- 		struct platform_device *ohci_device = config->ohci_device;
- 		int status;
-@@ -221,7 +221,7 @@ static inline void udc_device_init(struct omap_usb_config *pdata)
+-#if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
++#if IS_ENABLED(CONFIG_MMC_OMAP_HS)
  
- #endif
+ static u16 control_pbias_offset;
+ static u16 control_devconf1_offset;
+diff --git a/arch/arm/mach-omap2/hsmmc.h b/arch/arm/mach-omap2/hsmmc.h
+index 148cd9b15499..69b619ddc765 100644
+--- a/arch/arm/mach-omap2/hsmmc.h
++++ b/arch/arm/mach-omap2/hsmmc.h
+@@ -28,7 +28,7 @@ struct omap2_hsmmc_info {
+ 	void (*init_card)(struct mmc_card *card);
+ };
  
--#if	defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
-+#if	IS_ENABLED(CONFIG_USB_OHCI_HCD)
+-#if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
++#if IS_ENABLED(CONFIG_MMC_OMAP_HS)
  
- /* The dmamask must be set for OHCI to work */
- static u64 ohci_dmamask = ~(u32)0;
-@@ -612,7 +612,7 @@ static void __init omap_1510_usb_init(struct omap_usb_config *config)
- 	}
- #endif
+ void omap_hsmmc_init(struct omap2_hsmmc_info *);
+ void omap_hsmmc_late_init(struct omap2_hsmmc_info *);
+diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
+index 292eca0e78ed..a72738eab009 100644
+--- a/arch/arm/mach-omap2/twl-common.c
++++ b/arch/arm/mach-omap2/twl-common.c
+@@ -532,8 +532,7 @@ void __init omap4_pmic_get_config(struct twl4030_platform_data *pmic_data,
+ }
+ #endif /* CONFIG_ARCH_OMAP4 */
  
--#if	defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
-+#if	IS_ENABLED(CONFIG_USB_OHCI_HCD)
- 	if (config->register_host) {
- 		int status;
+-#if defined(CONFIG_SND_OMAP_SOC_OMAP_TWL4030) || \
+-	defined(CONFIG_SND_OMAP_SOC_OMAP_TWL4030_MODULE)
++#if IS_ENABLED(CONFIG_SND_OMAP_SOC_OMAP_TWL4030)
+ #include <linux/platform_data/omap-twl4030.h>
  
+ /* Commonly used configuration */
 -- 
 2.5.5
