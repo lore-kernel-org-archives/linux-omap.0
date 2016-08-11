@@ -1,31 +1,52 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v7 1/5] mfd: tps65218: Remove redundant read wrapper
-Date: Thu, 11 Aug 2016 14:10:24 +0200
-Message-ID: <CACRpkdbLXDknZpVbofFC7dBb_4hLaurScXBDzL_xGtD+8AcBLA@mail.gmail.com>
-References: <1470833545-29462-1-git-send-email-j-keerthy@ti.com> <1470833545-29462-2-git-send-email-j-keerthy@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH v2] drivers: net: cpsw: fix kmemleak false-positive
+ reports for sk buffers
+Date: Thu, 11 Aug 2016 15:39:17 +0300
+Message-ID: <4655373e-cafc-70ad-443e-9668a81a1d08@ti.com>
+References: <20160810170253.31825-1-grygorii.strashko@ti.com>
+ <20160810.180020.2223832285502216272.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1470833545-29462-2-git-send-email-j-keerthy@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: Mark Brown <broonie@kernel.org>, Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Linux Input <linux-input@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tero Kristo <t-kristo@ti.com>, Russ Dill <russ.dill@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160810.180020.2223832285502216272.davem@davemloft.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, mugunthanvnm@ti.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, catalin.marinas@arm.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Aug 10, 2016 at 2:52 PM, Keerthy <j-keerthy@ti.com> wrote:
-
-> Currently read directly calls the repmap read function. Hence
-> remove the redundant wrapper and use regmap read wherever
-> needed.
+On 08/11/2016 04:00 AM, David Miller wrote:
+> From: Grygorii Strashko <grygorii.strashko@ti.com>
+> Date: Wed, 10 Aug 2016 20:02:53 +0300
 >
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> Acked-by: Lee Jones <lee.jones@linaro.org>
+>> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+>> index 0805855..5caef77 100644
+>> --- a/drivers/net/ethernet/ti/cpsw.c
+>> +++ b/drivers/net/ethernet/ti/cpsw.c
+>> @@ -732,6 +732,11 @@ static void cpsw_rx_handler(void *token, int len, int status)
+>>  		netif_receive_skb(skb);
+>>  		ndev->stats.rx_bytes += len;
+>>  		ndev->stats.rx_packets++;
+>> +		/* SKB pointer will be stored in CPPI RAM (SRAM) which belongs
+>> +		 * to MMIO space, as result false positive memory leak report
+>> +		 * will be generated.
+>> +		 */
+>> +		kmemleak_not_leak(new_skb);
+>>  	} else {
+>>  		ndev->stats.rx_dropped++;
+>>  		new_skb = skb;
+>
+> There is already a kmemleak_not_leak() statement here in the current
+> driver.
+>
+> Please always develop and generate patches against current sources.
+>
 
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Oh. Sorry, I've expected to receive merge notification (as you do 
+usually),  but I didn't see it. I'll be more careful in the future.
 
-I assume an immutable branch will not be needed for this,
-this small changed "should not" collide with anything in
-my tree (famous last words)...
+Sorry again.
 
-Yours,
-Linus Walleij
+-- 
+regards,
+-grygorii
