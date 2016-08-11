@@ -1,82 +1,121 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: kmemleak: Cannot insert 0xff7f1000 into the object search tree
- (overlaps existing)
-Date: Thu, 11 Aug 2016 16:54:23 +0100
-Message-ID: <20160811155423.GC18366@e104818-lin.cambridge.arm.com>
-References: <7f50c137-5c6a-0882-3704-ae9bb7552c30@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [4.4-RT PATCH RFC/RFT] drivers: net: cpsw: mark rx/tx irq as IRQF_NO_THREAD
+Date: Thu, 11 Aug 2016 19:15:40 +0300
+Message-ID: <20160811161540.9613-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <7f50c137-5c6a-0882-3704-ae9bb7552c30@ti.com>
-Sender: owner-linux-mm@kvack.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: linux-mm@kvack.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-rt-users-owner@vger.kernel.org>
+Sender: linux-rt-users-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Steven Rostedt <rostedt@goodmis.org>
+Cc: linux-omap@vger.kernel.org, Alison Chaiken <alison@peloton-tech.com>, linux-rt-users@vger.kernel.org, netdev@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Aug 11, 2016 at 05:20:51PM +0530, Vignesh R wrote:
-> I see the below message from kmemleak when booting linux-next on AM335x
-> GP EVM and DRA7 EVM
+Mark CPSW Rx/Tx IRQs as IRQF_NO_THREAD and avoid double scheduling on -RT
+where this IRQs are forced threaded:
+ rx-irq
+  |- schedule threaded rx-irq handler
+...
+  |- threaded rx-irq handler -> cpsw_rx_interrupt()
+     |- napi_schedule()
+	|- __raise_softirq_irqoff()
+	   |- wakeup_proper_softirq()
+...
+  napi
 
-Can you also reproduce it with 4.8-rc1?
+after:
+ rx-irq
+  |- cpsw_rx_interrupt()
+     |- napi_schedule()
+  |- irq_exit()
+     |- invoke_softirq()
+	   |- wakeup_softirqd()
+...
+  napi
 
-> [    0.803934] kmemleak: Cannot insert 0xff7f1000 into the object search tree (overlaps existing)
-> [    0.803950] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.8.0-rc1-next-20160809 #497
-> [    0.803958] Hardware name: Generic DRA72X (Flattened Device Tree)
-> [    0.803979] [<c0110104>] (unwind_backtrace) from [<c010c24c>] (show_stack+0x10/0x14)
-> [    0.803994] [<c010c24c>] (show_stack) from [<c0490df0>] (dump_stack+0xac/0xe0)
-> [    0.804010] [<c0490df0>] (dump_stack) from [<c0296f88>] (create_object+0x214/0x278)
-> [    0.804025] [<c0296f88>] (create_object) from [<c07c770c>] (kmemleak_alloc_percpu+0x54/0xc0)
-> [    0.804038] [<c07c770c>] (kmemleak_alloc_percpu) from [<c025fb08>] (pcpu_alloc+0x368/0x5fc)
-> [    0.804052] [<c025fb08>] (pcpu_alloc) from [<c0b1bfbc>] (crash_notes_memory_init+0x10/0x40)
-> [    0.804064] [<c0b1bfbc>] (crash_notes_memory_init) from [<c010188c>] (do_one_initcall+0x3c/0x178)
-> [    0.804075] [<c010188c>] (do_one_initcall) from [<c0b00e98>] (kernel_init_freeable+0x1fc/0x2c8)
-> [    0.804086] [<c0b00e98>] (kernel_init_freeable) from [<c07c66b0>] (kernel_init+0x8/0x114)
-> [    0.804098] [<c07c66b0>] (kernel_init) from [<c0107910>] (ret_from_fork+0x14/0x24)
+And, as result, get benefits from the following improvements (tested
+on am57xx-evm):
 
-This is the allocation stack trace, going via pcpu_alloc().
+1) "[ 78.348599] NOHZ: local_softirq_pending 80" message will not be
+   seen any more. Now these warnings can be seen once iperf is started.
+   # iperf -c $IPERFHOST -w 128K  -d -t 60
 
-> [    0.804106] kmemleak: Kernel memory leak detector disabled
-> [    0.804113] kmemleak: Object 0xfe800000 (size 16777216):
-> [    0.804121] kmemleak:   comm "swapper/0", pid 0, jiffies 4294937296
-> [    0.804127] kmemleak:   min_count = -1
-> [    0.804132] kmemleak:   count = 0
-> [    0.804138] kmemleak:   flags = 0x5
-> [    0.804143] kmemleak:   checksum = 0
-> [    0.804149] kmemleak:   backtrace:
-> [    0.804155]      [<c0b26a90>] cma_declare_contiguous+0x16c/0x214
-> [    0.804170]      [<c0b3c9c0>] dma_contiguous_reserve_area+0x30/0x64
-> [    0.804183]      [<c0b3ca74>] dma_contiguous_reserve+0x80/0x94
-> [    0.804195]      [<c0b06810>] arm_memblock_init+0x130/0x184
-> [    0.804207]      [<c0b04214>] setup_arch+0x590/0xc08
-> [    0.804217]      [<c0b00940>] start_kernel+0x58/0x3b4
-> [    0.804227]      [<8000807c>] 0x8000807c
-> [    0.804237]      [<ffffffff>] 0xffffffff
+2) latency reduction when cyclictest is run in parallel with network load
+ where net_perf.sh is:
+   iperf -c $IPERFHOST -w 8K    -d -t 60
+   iperf -c $IPERFHOST -w 16K   -d -t 60
+   iperf -c $IPERFHOST -w 32K   -d -t 60
+   iperf -c $IPERFHOST -w 64K   -d -t 60
+   iperf -c $IPERFHOST -w 128K  -d -t 60
 
-This seems to be the original object that was allocated via
-cma_declare_contiguous(): 16MB range from 0xfe800000 to 0xff800000.
-Since the pointer returned by pcpu_alloc is 0xff7f1000 falls in the 16MB
-CMA range, kmemleak gets confused (it doesn't allow overlapping
-objects).
+before:
+T: 0 ( 1326) P:98 I:1000 C: 240000 Min:      8 Act:   13 Avg:   18 Max:      70
+T: 1 ( 1327) P:98 I:1500 C: 159981 Min:      9 Act:   15 Avg:   16 Max:      43
+after:
+T: 0 ( 1331) P:98 I:1000 C: 240000 Min:      8 Act:   15 Avg:   14 Max:      51
+T: 1 ( 1332) P:98 I:1500 C: 159953 Min:      8 Act:   16 Avg:   15 Max:      33
 
-So what I think goes wrong is that the kmemleak_alloc(__va(found)) call
-in memblock_alloc_range_nid() doesn't get the right value for the VA of
-the CMA block. The memblock_alloc_range() call in
-cma_declare_contiguous() asks for memory above high_memory, hence on a
-32-bit architecture with highmem enabled, __va() use is not really
-valid, returning the wrong address. The existing kmemleak object is
-bogus, it shouldn't have been created in the first place.
+3) network performance increase
 
-Now I'm trying to figure out how to differentiate between lowmem
-memblocks and highmem ones. Ignoring the kmemleak_alloc() calls
-altogether in mm/memblock.c is probably not an option as it would lead
-to lots of false positives.
+win, K	Mbits/s
+	before	after	%
+8K	354	350.3	0.0
+16K	412	551	33.7
+32K	423	659.5	55.9
+64K	436	728.3	67.0
+128K	537	845	57.4
 
+This change does not affect on non-RT.
+
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+Hi All,
+
+I'll be appreciated on any feedback or tested-by.
+In case of positive feedback I'll resend it for upstream.
+
+ drivers/net/ethernet/ti/cpsw.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 7b59283..fa4bb81 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -769,7 +769,7 @@ static irqreturn_t cpsw_tx_interrupt(int irq, void *dev_id)
+ 		priv->tx_irq_disabled = true;
+ 	}
+ 
+-	napi_schedule(&priv->napi_tx);
++	napi_schedule_irqoff(&priv->napi_tx);
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -785,7 +785,7 @@ static irqreturn_t cpsw_rx_interrupt(int irq, void *dev_id)
+ 		priv->rx_irq_disabled = true;
+ 	}
+ 
+-	napi_schedule(&priv->napi_rx);
++	napi_schedule_irqoff(&priv->napi_rx);
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -2827,7 +2827,7 @@ static int cpsw_probe(struct platform_device *pdev)
+ 
+ 	priv->irqs_table[0] = irq;
+ 	ret = devm_request_irq(&pdev->dev, irq, cpsw_rx_interrupt,
+-			       0, dev_name(&pdev->dev), priv);
++			       IRQF_NO_THREAD, dev_name(&pdev->dev), priv);
+ 	if (ret < 0) {
+ 		dev_err(priv->dev, "error attaching irq (%d)\n", ret);
+ 		goto clean_ale_ret;
+@@ -2842,7 +2842,7 @@ static int cpsw_probe(struct platform_device *pdev)
+ 
+ 	priv->irqs_table[1] = irq;
+ 	ret = devm_request_irq(&pdev->dev, irq, cpsw_tx_interrupt,
+-			       0, dev_name(&pdev->dev), priv);
++			       IRQF_NO_THREAD, dev_name(&pdev->dev), priv);
+ 	if (ret < 0) {
+ 		dev_err(priv->dev, "error attaching irq (%d)\n", ret);
+ 		goto clean_ale_ret;
 -- 
-Catalin
+2.9.2
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
