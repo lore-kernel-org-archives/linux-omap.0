@@ -1,138 +1,119 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH] soc: ti: wkup_m3_ipc: switch to using remoteproc OF
- infrastructure
-Date: Thu, 11 Aug 2016 19:35:29 -0500
-Message-ID: <20160812003529.519-1-s-anna@ti.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: kmemleak: Cannot insert 0xff7f1000 into the object search tree
+ (overlaps existing)
+Date: Fri, 12 Aug 2016 09:45:05 +0530
+Message-ID: <e3495507-abf9-8df6-057d-32016bd4f221@ti.com>
+References: <7f50c137-5c6a-0882-3704-ae9bb7552c30@ti.com>
+ <20160811155423.GC18366@e104818-lin.cambridge.arm.com>
+ <920709c7-2d5b-ea67-5f1c-4197ef30e3b2@ti.com>
+ <20160811170812.GF18366@e104818-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Santosh Shilimkar <ssantosh@kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: Dave Gerlach <d-gerlach@ti.com>, linux-remoteproc@vger.kernel.org, Bjorn Andersson <bjorn.andersson@linaro.org>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-arm-kernel@lists.infradead.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20160811170812.GF18366@e104818-lin.cambridge.arm.com>
+Sender: owner-linux-mm@kvack.org
+To: Catalin Marinas <catalin.marinas@arm.com>, "Strashko, Grygorii" <grygorii.strashko@ti.com>
+Cc: "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-The remoteproc framework has been enhanced recently to provide new
-OF API to retrieve a remoteproc handle by client drivers through a
-standard 'rprocs' property in client nodes. The wkup_m3_ipc driver
-has been using a custom 'ti,rproc' property until now, switch this
-to use this new OF infrastructure. The wkup_m3_ipc driver has been
-fixed up to provide backward compatibility for older DTBs by
-replacing the older property with the standard newer property.
+Hi Catalin,
 
-The wkup_m3_ipc binding has also been updated accordingly.
+Thanks for the response!
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
-This patch is based on the discussion [1] for introducing new standard
-OF API in remoteproc core series [2] and the exporting of couple of
-functions in OF base code [3].
+On Thursday 11 August 2016 10:38 PM, Catalin Marinas wrote:
+> On Thu, Aug 11, 2016 at 07:48:12PM +0300, Grygorii Strashko wrote:
+>> On 08/11/2016 06:54 PM, Catalin Marinas wrote:
+>>> On Thu, Aug 11, 2016 at 05:20:51PM +0530, Vignesh R wrote:
+>>>> I see the below message from kmemleak when booting linux-next on AM335x
+>>>> GP EVM and DRA7 EVM
+>>>
+>>> Can you also reproduce it with 4.8-rc1?
 
-With this in place, the remoteproc core need not be looking for the
-TI specific property anymore. I will submit the DTS changes once this
-makes it to mainline.
+Yes, I can reproduce this on 4.8.0-rc1-g4b9eaf33d83d
 
-regards
-Suman
+[...]
+> 
+> diff --git a/mm/memblock.c b/mm/memblock.c
+> index 483197ef613f..7d3361d53ac2 100644
+> --- a/mm/memblock.c
+> +++ b/mm/memblock.c
+> @@ -723,7 +723,8 @@ int __init_memblock memblock_free(phys_addr_t base, phys_addr_t size)
+>  		     (unsigned long long)base + size - 1,
+>  		     (void *)_RET_IP_);
+>  
+> -	kmemleak_free_part(__va(base), size);
+> +	if (base < __pa(high_memory))
+> +		kmemleak_free_part(__va(base), size);
+>  	return memblock_remove_range(&memblock.reserved, base, size);
+>  }
+>  
+> @@ -1152,7 +1153,8 @@ static phys_addr_t __init memblock_alloc_range_nid(phys_addr_t size,
+>  		 * The min_count is set to 0 so that memblock allocations are
+>  		 * never reported as leaks.
+>  		 */
+> -		kmemleak_alloc(__va(found), size, 0, 0);
+> +		if (found < __pa(high_memory))
+> +			kmemleak_alloc(__va(found), size, 0, 0);
+>  		return found;
+>  	}
+>  	return 0;
+> @@ -1399,7 +1401,8 @@ void __init __memblock_free_early(phys_addr_t base, phys_addr_t size)
+>  	memblock_dbg("%s: [%#016llx-%#016llx] %pF\n",
+>  		     __func__, (u64)base, (u64)base + size - 1,
+>  		     (void *)_RET_IP_);
+> -	kmemleak_free_part(__va(base), size);
+> +	if (base < __pa(high_memory))
+> +		kmemleak_free_part(__va(base), size);
+>  	memblock_remove_range(&memblock.reserved, base, size);
+>  }
+>  
+> @@ -1419,7 +1422,8 @@ void __init __memblock_free_late(phys_addr_t base, phys_addr_t size)
+>  	memblock_dbg("%s: [%#016llx-%#016llx] %pF\n",
+>  		     __func__, (u64)base, (u64)base + size - 1,
+>  		     (void *)_RET_IP_);
+> -	kmemleak_free_part(__va(base), size);
+> +	if (base < __pa(high_memory))
+> +		kmemleak_free_part(__va(base), size);
+>  	cursor = PFN_UP(base);
+>  	end = PFN_DOWN(base + size);
+>  
+> 
 
-[1] https://patchwork.kernel.org/patch/9237767/
-[2] http://marc.info/?l=linux-kernel&m=146894341701010&w=2
-[3] https://patchwork.kernel.org/patch/9276181/
+With above change on 4.8-rc1, I see a different warning from kmemleak:
 
- .../devicetree/bindings/soc/ti/wkup_m3_ipc.txt     |  9 ++++++--
- drivers/soc/ti/wkup_m3_ipc.c                       | 26 +++++++++++++++++++++-
- 2 files changed, 32 insertions(+), 3 deletions(-)
+[    0.002918] kmemleak: Trying to color unknown object at 0xfe800000 as
+Black
+[    0.002943] CPU: 0 PID: 0 Comm: swapper/0 Not tainted
+4.8.0-rc1-00121-g4b9eaf33d83d-dirty #59
+[    0.002955] Hardware name: Generic AM33XX (Flattened Device Tree)
+[    0.003000] [<c01100fc>] (unwind_backtrace) from [<c010c264>]
+(show_stack+0x10/0x14)
+[    0.003027] [<c010c264>] (show_stack) from [<c049040c>]
+(dump_stack+0xac/0xe0)
+[    0.003052] [<c049040c>] (dump_stack) from [<c02971c0>]
+(paint_ptr+0x78/0x9c)
+[    0.003074] [<c02971c0>] (paint_ptr) from [<c0b25e20>]
+(kmemleak_init+0x1cc/0x284)
+[    0.003104] [<c0b25e20>] (kmemleak_init) from [<c0b00bc0>]
+(start_kernel+0x2d8/0x3b4)
+[    0.003122] [<c0b00bc0>] (start_kernel) from [<8000807c>] (0x8000807c)
+[    0.003133] kmemleak: Early log backtrace:
+[    0.003146]    [<c0b3c9cc>] dma_contiguous_reserve+0x80/0x94
+[    0.003170]    [<c0b06810>] arm_memblock_init+0x130/0x184
+[    0.003191]    [<c0b04210>] setup_arch+0x58c/0xc00
+[    0.003208]    [<c0b00940>] start_kernel+0x58/0x3b4
+[    0.003224]    [<8000807c>] 0x8000807c
+[    0.003239]    [<ffffffff>] 0xffffffff
 
-diff --git a/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt b/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt
-index 401550487ed6..2ea7dd91acff 100644
---- a/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt
-+++ b/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt
-@@ -23,12 +23,17 @@ Required properties:
- 			with the Wakeup M3 processor
- - interrupts:		Contains the interrupt information for the wkup_m3
- 			interrupt that signals the MPU.
--- ti,rproc:		phandle to the wkup_m3 rproc node so the IPC driver
-+- rprocs:		phandle to the wkup_m3 rproc node so the IPC driver
- 			can boot it.
- - mboxes:		phandles used by IPC framework to get correct mbox
- 			channel for communication. Must point to appropriate
- 			mbox_wkupm3 child node.
- 
-+Deprecated properties:
-+----------------------
-+- ti,rproc:		This property has been replaced with the "rprocs"
-+			property.
-+
- Example:
- --------
- /* AM33xx */
-@@ -48,7 +53,7 @@ Example:
- 				compatible = "ti,am3352-wkup-m3-ipc";
- 				reg = <0x1324 0x24>;
- 				interrupts = <78>;
--				ti,rproc = <&wkup_m3>;
-+				rprocs = <&wkup_m3>;
- 				mboxes = <&mailbox &mbox_wkupm3>;
- 			};
- 
-diff --git a/drivers/soc/ti/wkup_m3_ipc.c b/drivers/soc/ti/wkup_m3_ipc.c
-index 8823cc81ae45..86085f9bf6a8 100644
---- a/drivers/soc/ti/wkup_m3_ipc.c
-+++ b/drivers/soc/ti/wkup_m3_ipc.c
-@@ -1,7 +1,7 @@
- /*
-  * AMx3 Wkup M3 IPC driver
-  *
-- * Copyright (C) 2015 Texas Instruments, Inc.
-+ * Copyright (C) 2015-2016 Texas Instruments, Inc.
-  *
-  * Dave Gerlach <d-gerlach@ti.com>
-  *
-@@ -390,6 +390,8 @@ static int wkup_m3_ipc_probe(struct platform_device *pdev)
- 	struct resource *res;
- 	struct task_struct *task;
- 	struct wkup_m3_ipc *m3_ipc;
-+	struct property *nprop, *oprop;
-+	const char nprop_name[] = "rprocs";
- 
- 	m3_ipc = devm_kzalloc(dev, sizeof(*m3_ipc), GFP_KERNEL);
- 	if (!m3_ipc)
-@@ -415,6 +417,28 @@ static int wkup_m3_ipc_probe(struct platform_device *pdev)
- 		return ret;
- 	}
- 
-+	/* provide compatibility for older DTBs using ti,rproc property */
-+	nprop = of_find_property(dev->of_node, "rprocs", NULL);
-+	if (!nprop) {
-+		oprop = of_find_property(dev->of_node, "ti,rproc", NULL);
-+		if (!oprop) {
-+			dev_err(&pdev->dev, "node is missing ti,rproc property\n");
-+			return -ENODEV;
-+		}
-+
-+		nprop = kzalloc(sizeof(*nprop) + sizeof(nprop_name),
-+				GFP_KERNEL);
-+		if (!nprop)
-+			return -ENOMEM;
-+
-+		nprop->name = (char *)nprop + sizeof(*nprop);
-+		snprintf(nprop->name, sizeof(nprop_name), nprop_name);
-+		nprop->value = oprop->value;
-+		nprop->length = oprop->length;
-+		of_update_property(dev->of_node, nprop);
-+		of_remove_property(dev->of_node, oprop);
-+	}
-+
- 	m3_ipc->mbox_client.dev = dev;
- 	m3_ipc->mbox_client.tx_done = NULL;
- 	m3_ipc->mbox_client.tx_prepare = NULL;
+Full boot log: http://pastebin.ubuntu.com/23048180/
+
 -- 
-2.9.0
+Thanks
+Vignesh
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
