@@ -1,371 +1,138 @@
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 2/2] ARM: OMAP2+: use IS_ENABLED() instead of checking for built-in or module
-Date: Thu, 11 Aug 2016 15:29:45 -0400
-Message-ID: <1470943785-21282-2-git-send-email-javier@osg.samsung.com>
-References: <1470943785-21282-1-git-send-email-javier@osg.samsung.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1470943785-21282-1-git-send-email-javier@osg.samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@osg.samsung.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH] soc: ti: wkup_m3_ipc: switch to using remoteproc OF
+ infrastructure
+Date: Thu, 11 Aug 2016 19:35:29 -0500
+Message-ID: <20160812003529.519-1-s-anna@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Santosh Shilimkar <ssantosh@kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: Dave Gerlach <d-gerlach@ti.com>, linux-remoteproc@vger.kernel.org, Bjorn Andersson <bjorn.andersson@linaro.org>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The IS_ENABLED() macro checks if a Kconfig symbol has been enabled either
-built-in or as a module, use that macro instead of open coding the same.
+The remoteproc framework has been enhanced recently to provide new
+OF API to retrieve a remoteproc handle by client drivers through a
+standard 'rprocs' property in client nodes. The wkup_m3_ipc driver
+has been using a custom 'ti,rproc' property until now, switch this
+to use this new OF infrastructure. The wkup_m3_ipc driver has been
+fixed up to provide backward compatibility for older DTBs by
+replacing the older property with the standard newer property.
 
-Using the macro makes the code more readable by helping abstract away some
-of the Kconfig built-in and module enable details.
+The wkup_m3_ipc binding has also been updated accordingly.
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
+Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
+This patch is based on the discussion [1] for introducing new standard
+OF API in remoteproc core series [2] and the exporting of couple of
+functions in OF base code [3].
 
- arch/arm/mach-omap2/board-flash.c            | 10 ++++------
- arch/arm/mach-omap2/board-flash.h            | 11 +++--------
- arch/arm/mach-omap2/board-n8x0.c             |  5 ++---
- arch/arm/mach-omap2/board-rx51-peripherals.c | 23 +++++++++++------------
- arch/arm/mach-omap2/board-rx51-video.c       |  4 ++--
- arch/arm/mach-omap2/common-board-devices.c   |  3 +--
- arch/arm/mach-omap2/devices.c                |  7 +++----
- arch/arm/mach-omap2/drm.c                    |  2 +-
- arch/arm/mach-omap2/fb.c                     |  2 +-
- arch/arm/mach-omap2/gpmc-smsc911x.h          |  2 +-
- arch/arm/mach-omap2/hsmmc.c                  |  2 +-
- arch/arm/mach-omap2/hsmmc.h                  |  2 +-
- arch/arm/mach-omap2/twl-common.c             |  3 +--
- 13 files changed, 32 insertions(+), 44 deletions(-)
+With this in place, the remoteproc core need not be looking for the
+TI specific property anymore. I will submit the DTS changes once this
+makes it to mainline.
 
-diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
-index 70b21cc279ba..2188dc30e232 100644
---- a/arch/arm/mach-omap2/board-flash.c
-+++ b/arch/arm/mach-omap2/board-flash.c
-@@ -81,8 +81,7 @@ __init board_nor_init(struct mtd_partition *nor_parts, u8 nr_parts, u8 cs)
- 		pr_err("Unable to register NOR device\n");
- }
+regards
+Suman
+
+[1] https://patchwork.kernel.org/patch/9237767/
+[2] http://marc.info/?l=linux-kernel&m=146894341701010&w=2
+[3] https://patchwork.kernel.org/patch/9276181/
+
+ .../devicetree/bindings/soc/ti/wkup_m3_ipc.txt     |  9 ++++++--
+ drivers/soc/ti/wkup_m3_ipc.c                       | 26 +++++++++++++++++++++-
+ 2 files changed, 32 insertions(+), 3 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt b/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt
+index 401550487ed6..2ea7dd91acff 100644
+--- a/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt
++++ b/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt
+@@ -23,12 +23,17 @@ Required properties:
+ 			with the Wakeup M3 processor
+ - interrupts:		Contains the interrupt information for the wkup_m3
+ 			interrupt that signals the MPU.
+-- ti,rproc:		phandle to the wkup_m3 rproc node so the IPC driver
++- rprocs:		phandle to the wkup_m3 rproc node so the IPC driver
+ 			can boot it.
+ - mboxes:		phandles used by IPC framework to get correct mbox
+ 			channel for communication. Must point to appropriate
+ 			mbox_wkupm3 child node.
  
--#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
--		defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
-+#if IS_ENABLED(CONFIG_MTD_ONENAND_OMAP2)
- static struct omap_onenand_platform_data board_onenand_data = {
- 	.dma_channel	= -1,   /* disable DMA in OMAP OneNAND driver */
- };
-@@ -97,10 +96,9 @@ __init board_onenand_init(struct mtd_partition *onenand_parts,
++Deprecated properties:
++----------------------
++- ti,rproc:		This property has been replaced with the "rprocs"
++			property.
++
+ Example:
+ --------
+ /* AM33xx */
+@@ -48,7 +53,7 @@ Example:
+ 				compatible = "ti,am3352-wkup-m3-ipc";
+ 				reg = <0x1324 0x24>;
+ 				interrupts = <78>;
+-				ti,rproc = <&wkup_m3>;
++				rprocs = <&wkup_m3>;
+ 				mboxes = <&mailbox &mbox_wkupm3>;
+ 			};
  
- 	gpmc_onenand_init(&board_onenand_data);
- }
--#endif /* CONFIG_MTD_ONENAND_OMAP2 || CONFIG_MTD_ONENAND_OMAP2_MODULE */
-+#endif /* IS_ENABLED(CONFIG_MTD_ONENAND_OMAP2) */
- 
--#if defined(CONFIG_MTD_NAND_OMAP2) || \
--		defined(CONFIG_MTD_NAND_OMAP2_MODULE)
-+#if IS_ENABLED(CONFIG_MTD_NAND_OMAP2)
- 
- /* Note that all values in this struct are in nanoseconds */
- struct gpmc_timings nand_default_timings[1] = {
-@@ -144,7 +142,7 @@ __init board_nand_init(struct mtd_partition *nand_parts, u8 nr_parts, u8 cs,
- 	board_nand_data.ecc_opt = OMAP_ECC_HAM1_CODE_SW;
- 	gpmc_nand_init(&board_nand_data, gpmc_t);
- }
--#endif /* CONFIG_MTD_NAND_OMAP2 || CONFIG_MTD_NAND_OMAP2_MODULE */
-+#endif /* IS_ENABLED(CONFIG_MTD_NAND_OMAP2) */
- 
- /**
-  * get_gpmc0_type - Reads the FPGA DIP_SWITCH_INPUT_REGISTER2 to get
-diff --git a/arch/arm/mach-omap2/board-flash.h b/arch/arm/mach-omap2/board-flash.h
-index ea9aaebe11e7..8b39eec07318 100644
---- a/arch/arm/mach-omap2/board-flash.h
-+++ b/arch/arm/mach-omap2/board-flash.h
-@@ -23,10 +23,7 @@ struct flash_partitions {
- 	int nr_parts;
- };
- 
--#if defined(CONFIG_MTD_NAND_OMAP2) || \
--		defined(CONFIG_MTD_NAND_OMAP2_MODULE) || \
--		defined(CONFIG_MTD_ONENAND_OMAP2) || \
--		defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
-+#if IS_ENABLED(CONFIG_MTD_NAND_OMAP2) || IS_ENABLED(CONFIG_MTD_ONENAND_OMAP2)
- extern void board_flash_init(struct flash_partitions [],
- 				char chip_sel[][GPMC_CS_NUM], int nand_type);
- #else
-@@ -36,8 +33,7 @@ static inline void board_flash_init(struct flash_partitions part[],
- }
- #endif
- 
--#if defined(CONFIG_MTD_NAND_OMAP2) || \
--		defined(CONFIG_MTD_NAND_OMAP2_MODULE)
-+#if IS_ENABLED(CONFIG_MTD_NAND_OMAP2)
- extern void board_nand_init(struct mtd_partition *nand_parts,
- 		u8 nr_parts, u8 cs, int nand_type, struct gpmc_timings *gpmc_t);
- extern struct gpmc_timings nand_default_timings[];
-@@ -49,8 +45,7 @@ static inline void board_nand_init(struct mtd_partition *nand_parts,
- #define	nand_default_timings	NULL
- #endif
- 
--#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
--		defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
-+#if IS_ENABLED(CONFIG_MTD_ONENAND_OMAP2)
- extern void board_onenand_init(struct mtd_partition *nand_parts,
- 					u8 nr_parts, u8 cs);
- #else
-diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-index b6443a4e0c78..6b6fda65fb3b 100644
---- a/arch/arm/mach-omap2/board-n8x0.c
-+++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -66,7 +66,7 @@ static void board_check_revision(void)
- 		pr_err("Unknown board\n");
- }
- 
--#if defined(CONFIG_USB_MUSB_TUSB6010) || defined(CONFIG_USB_MUSB_TUSB6010_MODULE)
-+#if IS_ENABLED(CONFIG_USB_MUSB_TUSB6010)
+diff --git a/drivers/soc/ti/wkup_m3_ipc.c b/drivers/soc/ti/wkup_m3_ipc.c
+index 8823cc81ae45..86085f9bf6a8 100644
+--- a/drivers/soc/ti/wkup_m3_ipc.c
++++ b/drivers/soc/ti/wkup_m3_ipc.c
+@@ -1,7 +1,7 @@
  /*
-  * Enable or disable power to TUSB6010. When enabling, turn on 3.3 V and
-  * 1.5 V voltage regulators of PM companion chip. Companion chip will then
-@@ -163,8 +163,7 @@ static struct spi_board_info n800_spi_board_info[] __initdata = {
- 	},
- };
+  * AMx3 Wkup M3 IPC driver
+  *
+- * Copyright (C) 2015 Texas Instruments, Inc.
++ * Copyright (C) 2015-2016 Texas Instruments, Inc.
+  *
+  * Dave Gerlach <d-gerlach@ti.com>
+  *
+@@ -390,6 +390,8 @@ static int wkup_m3_ipc_probe(struct platform_device *pdev)
+ 	struct resource *res;
+ 	struct task_struct *task;
+ 	struct wkup_m3_ipc *m3_ipc;
++	struct property *nprop, *oprop;
++	const char nprop_name[] = "rprocs";
  
--#if defined(CONFIG_MENELAUS) &&						\
--	(defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE))
-+#if defined(CONFIG_MENELAUS) && IS_ENABLED(CONFIG_MMC_OMAP)
+ 	m3_ipc = devm_kzalloc(dev, sizeof(*m3_ipc), GFP_KERNEL);
+ 	if (!m3_ipc)
+@@ -415,6 +417,28 @@ static int wkup_m3_ipc_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
  
- /*
-  * On both N800 and N810, only the first of the two MMC controllers is in use.
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index a5ab712c1a59..631a5a4005fc 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -86,7 +86,7 @@ enum {
- static struct wl1251_platform_data wl1251_pdata;
- static struct tsc2005_platform_data tsc2005_pdata;
- 
--#if defined(CONFIG_SENSORS_LIS3_I2C) || defined(CONFIG_SENSORS_LIS3_I2C_MODULE)
-+#if IS_ENABLED(CONFIG_SENSORS_LIS3_I2C)
- static int lis302_setup(void)
- {
- 	int err;
-@@ -156,13 +156,13 @@ static struct lis3lv02d_platform_data rx51_lis3lv02d_data = {
- };
- #endif
- 
--#if defined(CONFIG_SENSORS_TSL2563) || defined(CONFIG_SENSORS_TSL2563_MODULE)
-+#if IS_ENABLED(CONFIG_SENSORS_TSL2563)
- static struct tsl2563_platform_data rx51_tsl2563_platform_data = {
- 	.cover_comp_gain = 16,
- };
- #endif
- 
--#if defined(CONFIG_LEDS_LP5523) || defined(CONFIG_LEDS_LP5523_MODULE)
-+#if IS_ENABLED(CONFIG_LEDS_LP5523)
- static struct lp55xx_led_config rx51_lp5523_led_config[] = {
- 	{
- 		.name		= "lp5523:kb1",
-@@ -299,7 +299,7 @@ static void __init rx51_charger_init(void)
- 	platform_device_register(&rx51_charger_device);
- }
- 
--#if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
-+#if IS_ENABLED(CONFIG_KEYBOARD_GPIO)
- 
- #define RX51_GPIO_CAMERA_LENS_COVER	110
- #define RX51_GPIO_CAMERA_FOCUS		68
-@@ -377,7 +377,7 @@ static void __init rx51_add_gpio_keys(void)
- static void __init rx51_add_gpio_keys(void)
- {
- }
--#endif /* CONFIG_KEYBOARD_GPIO || CONFIG_KEYBOARD_GPIO_MODULE */
-+#endif /* IS_ENABLED(CONFIG_KEYBOARD_GPIO) */
- 
- static uint32_t board_keymap[] = {
- 	/*
-@@ -1018,13 +1018,13 @@ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_2[] = {
- 		I2C_BOARD_INFO("tlv320aic3x", 0x19),
- 		.platform_data = &rx51_aic3x_data2,
- 	},
--#if defined(CONFIG_SENSORS_TSL2563) || defined(CONFIG_SENSORS_TSL2563_MODULE)
-+#if IS_ENABLED(CONFIG_SENSORS_TSL2563)
- 	{
- 		I2C_BOARD_INFO("tsl2563", 0x29),
- 		.platform_data = &rx51_tsl2563_platform_data,
- 	},
- #endif
--#if defined(CONFIG_LEDS_LP5523) || defined(CONFIG_LEDS_LP5523_MODULE)
-+#if IS_ENABLED(CONFIG_LEDS_LP5523)
- 	{
- 		I2C_BOARD_INFO("lp5523", 0x32),
- 		.platform_data  = &rx51_lp5523_platform_data,
-@@ -1040,7 +1040,7 @@ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_2[] = {
- };
- 
- static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_3[] = {
--#if defined(CONFIG_SENSORS_LIS3_I2C) || defined(CONFIG_SENSORS_LIS3_I2C_MODULE)
-+#if IS_ENABLED(CONFIG_SENSORS_LIS3_I2C)
- 	{
- 		I2C_BOARD_INFO("lis3lv02d", 0x1d),
- 		.platform_data = &rx51_lis3lv02d_data,
-@@ -1081,7 +1081,7 @@ static int __init rx51_i2c_init(void)
- #endif
- 	omap_register_i2c_bus(2, 100, rx51_peripherals_i2c_board_info_2,
- 			      ARRAY_SIZE(rx51_peripherals_i2c_board_info_2));
--#if defined(CONFIG_SENSORS_LIS3_I2C) || defined(CONFIG_SENSORS_LIS3_I2C_MODULE)
-+#if IS_ENABLED(CONFIG_SENSORS_LIS3_I2C)
- 	rx51_lis3lv02d_data.irq2 = gpio_to_irq(LIS302_IRQ2_GPIO);
- 	rx51_peripherals_i2c_board_info_3[0].irq = gpio_to_irq(LIS302_IRQ1_GPIO);
- #endif
-@@ -1090,8 +1090,7 @@ static int __init rx51_i2c_init(void)
- 	return 0;
- }
- 
--#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
--	defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
-+#if IS_ENABLED(CONFIG_MTD_ONENAND_OMAP2)
- 
- static struct mtd_partition onenand_partitions[] = {
- 	{
-@@ -1239,7 +1238,7 @@ static struct pwm_omap_dmtimer_pdata __maybe_unused pwm_dmtimer_pdata = {
- };
- #endif
- 
--#if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
-+#if IS_ENABLED(CONFIG_IR_RX51)
- static struct lirc_rx51_platform_data rx51_lirc_data = {
- 	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
- };
-diff --git a/arch/arm/mach-omap2/board-rx51-video.c b/arch/arm/mach-omap2/board-rx51-video.c
-index 180c6aa633bd..ef5cbb6f4c47 100644
---- a/arch/arm/mach-omap2/board-rx51-video.c
-+++ b/arch/arm/mach-omap2/board-rx51-video.c
-@@ -28,7 +28,7 @@
- 
- #define RX51_LCD_RESET_GPIO	90
- 
--#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
-+#if IS_ENABLED(CONFIG_FB_OMAP2)
- 
- static struct connector_atv_platform_data rx51_tv_pdata = {
- 	.name = "tv",
-@@ -64,4 +64,4 @@ static int __init rx51_video_init(void)
- }
- 
- omap_subsys_initcall(rx51_video_init);
--#endif /* defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE) */
-+#endif /* IS_ENABLED(CONFIG_FB_OMAP2) */
-diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
-index d246efd9f734..5388fcd3de72 100644
---- a/arch/arm/mach-omap2/common-board-devices.c
-+++ b/arch/arm/mach-omap2/common-board-devices.c
-@@ -29,8 +29,7 @@
- #include "common.h"
- #include "common-board-devices.h"
- 
--#if defined(CONFIG_TOUCHSCREEN_ADS7846) || \
--	defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
-+#if IS_ENABLED(CONFIG_TOUCHSCREEN_ADS7846)
- static struct omap2_mcspi_device_config ads7846_mcspi_config = {
- 	.turbo_mode	= 0,
- };
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index d7f1d69daf6d..60a20f3b44de 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -67,7 +67,7 @@ omap_postcore_initcall(omap3_l3_init);
- 
- static inline void omap_init_sti(void) {}
- 
--#if defined(CONFIG_SPI_OMAP24XX) || defined(CONFIG_SPI_OMAP24XX_MODULE)
-+#if IS_ENABLED(CONFIG_SPI_OMAP24XX)
- 
- #include <linux/platform_data/spi-omap2-mcspi.h>
- 
-@@ -163,9 +163,8 @@ static void __init omap_init_aes(void)
- 
- /*-------------------------------------------------------------------------*/
- 
--#if defined(CONFIG_VIDEO_OMAP2_VOUT) || \
--	defined(CONFIG_VIDEO_OMAP2_VOUT_MODULE)
--#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
-+#if IS_ENABLED(CONFIG_VIDEO_OMAP2_VOUT)
-+#if IS_ENABLED(CONFIG_FB_OMAP2)
- static struct resource omap_vout_resource[3 - CONFIG_FB_OMAP2_NUM_FBS] = {
- };
- #else
-diff --git a/arch/arm/mach-omap2/drm.c b/arch/arm/mach-omap2/drm.c
-index facd7406a03d..44fef961bb70 100644
---- a/arch/arm/mach-omap2/drm.c
-+++ b/arch/arm/mach-omap2/drm.c
-@@ -28,7 +28,7 @@
- #include "soc.h"
- #include "display.h"
- 
--#if defined(CONFIG_DRM_OMAP) || defined(CONFIG_DRM_OMAP_MODULE)
-+#if IS_ENABLED(CONFIG_DRM_OMAP)
- 
- static struct omap_drm_platform_data platform_data;
- 
-diff --git a/arch/arm/mach-omap2/fb.c b/arch/arm/mach-omap2/fb.c
-index 1f1ecf8807eb..ecd00b63181e 100644
---- a/arch/arm/mach-omap2/fb.c
-+++ b/arch/arm/mach-omap2/fb.c
-@@ -90,7 +90,7 @@ int __init omap_init_vrfb(void)
- int __init omap_init_vrfb(void) { return 0; }
- #endif
- 
--#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
-+#if IS_ENABLED(CONFIG_FB_OMAP2)
- 
- static u64 omap_fb_dma_mask = ~(u32)0;
- static struct omapfb_platform_data omapfb_config;
-diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.h b/arch/arm/mach-omap2/gpmc-smsc911x.h
-index ea6c9c88c725..99a05b8412fa 100644
---- a/arch/arm/mach-omap2/gpmc-smsc911x.h
-+++ b/arch/arm/mach-omap2/gpmc-smsc911x.h
-@@ -21,7 +21,7 @@ struct omap_smsc911x_platform_data {
- 	u32	flags;
- };
- 
--#if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
-+#if IS_ENABLED(CONFIG_SMSC911X)
- 
- extern void gpmc_smsc911x_init(struct omap_smsc911x_platform_data *d);
- 
-diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-index cff079e563f4..478097741bce 100644
---- a/arch/arm/mach-omap2/hsmmc.c
-+++ b/arch/arm/mach-omap2/hsmmc.c
-@@ -26,7 +26,7 @@
- #include "hsmmc.h"
- #include "control.h"
- 
--#if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
-+#if IS_ENABLED(CONFIG_MMC_OMAP_HS)
- 
- static u16 control_pbias_offset;
- static u16 control_devconf1_offset;
-diff --git a/arch/arm/mach-omap2/hsmmc.h b/arch/arm/mach-omap2/hsmmc.h
-index 148cd9b15499..69b619ddc765 100644
---- a/arch/arm/mach-omap2/hsmmc.h
-+++ b/arch/arm/mach-omap2/hsmmc.h
-@@ -28,7 +28,7 @@ struct omap2_hsmmc_info {
- 	void (*init_card)(struct mmc_card *card);
- };
- 
--#if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
-+#if IS_ENABLED(CONFIG_MMC_OMAP_HS)
- 
- void omap_hsmmc_init(struct omap2_hsmmc_info *);
- void omap_hsmmc_late_init(struct omap2_hsmmc_info *);
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index 292eca0e78ed..a72738eab009 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -532,8 +532,7 @@ void __init omap4_pmic_get_config(struct twl4030_platform_data *pmic_data,
- }
- #endif /* CONFIG_ARCH_OMAP4 */
- 
--#if defined(CONFIG_SND_OMAP_SOC_OMAP_TWL4030) || \
--	defined(CONFIG_SND_OMAP_SOC_OMAP_TWL4030_MODULE)
-+#if IS_ENABLED(CONFIG_SND_OMAP_SOC_OMAP_TWL4030)
- #include <linux/platform_data/omap-twl4030.h>
- 
- /* Commonly used configuration */
++	/* provide compatibility for older DTBs using ti,rproc property */
++	nprop = of_find_property(dev->of_node, "rprocs", NULL);
++	if (!nprop) {
++		oprop = of_find_property(dev->of_node, "ti,rproc", NULL);
++		if (!oprop) {
++			dev_err(&pdev->dev, "node is missing ti,rproc property\n");
++			return -ENODEV;
++		}
++
++		nprop = kzalloc(sizeof(*nprop) + sizeof(nprop_name),
++				GFP_KERNEL);
++		if (!nprop)
++			return -ENOMEM;
++
++		nprop->name = (char *)nprop + sizeof(*nprop);
++		snprintf(nprop->name, sizeof(nprop_name), nprop_name);
++		nprop->value = oprop->value;
++		nprop->length = oprop->length;
++		of_update_property(dev->of_node, nprop);
++		of_remove_property(dev->of_node, oprop);
++	}
++
+ 	m3_ipc->mbox_client.dev = dev;
+ 	m3_ipc->mbox_client.tx_done = NULL;
+ 	m3_ipc->mbox_client.tx_prepare = NULL;
 -- 
-2.5.5
+2.9.0
