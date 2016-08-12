@@ -1,15 +1,11 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] soc: ti: wkup_m3_ipc: switch to using remoteproc OF
- infrastructure
-Date: Fri, 12 Aug 2016 12:02:01 +0100
-Message-ID: <20160812110201.GD25844@dell>
-References: <20160812003529.519-1-s-anna@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [GIT PULL] omap-gpmc fixes for v4.8-rc1
+Date: Fri, 12 Aug 2016 14:02:47 +0300
+Message-ID: <a2bf20d0-c446-2fab-5de2-33636eab79a7@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20160812003529.519-1-s-anna@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,92 +15,34 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, linux-remoteproc@vger.kernel.org, Bjorn Andersson <bjorn.andersson@linaro.org>, Rob Herring <robh+dt@kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: arm@kenel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, Johan Hovold <johan@kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gVGh1LCAxMSBBdWcgMjAxNiwgU3VtYW4gQW5uYSB3cm90ZToKCj4gVGhlIHJlbW90ZXByb2Mg
-ZnJhbWV3b3JrIGhhcyBiZWVuIGVuaGFuY2VkIHJlY2VudGx5IHRvIHByb3ZpZGUgbmV3Cj4gT0Yg
-QVBJIHRvIHJldHJpZXZlIGEgcmVtb3RlcHJvYyBoYW5kbGUgYnkgY2xpZW50IGRyaXZlcnMgdGhy
-b3VnaCBhCj4gc3RhbmRhcmQgJ3Jwcm9jcycgcHJvcGVydHkgaW4gY2xpZW50IG5vZGVzLiBUaGUg
-d2t1cF9tM19pcGMgZHJpdmVyCj4gaGFzIGJlZW4gdXNpbmcgYSBjdXN0b20gJ3RpLHJwcm9jJyBw
-cm9wZXJ0eSB1bnRpbCBub3csIHN3aXRjaCB0aGlzCj4gdG8gdXNlIHRoaXMgbmV3IE9GIGluZnJh
-c3RydWN0dXJlLiBUaGUgd2t1cF9tM19pcGMgZHJpdmVyIGhhcyBiZWVuCj4gZml4ZWQgdXAgdG8g
-cHJvdmlkZSBiYWNrd2FyZCBjb21wYXRpYmlsaXR5IGZvciBvbGRlciBEVEJzIGJ5Cj4gcmVwbGFj
-aW5nIHRoZSBvbGRlciBwcm9wZXJ0eSB3aXRoIHRoZSBzdGFuZGFyZCBuZXdlciBwcm9wZXJ0eS4K
-PiAKPiBUaGUgd2t1cF9tM19pcGMgYmluZGluZyBoYXMgYWxzbyBiZWVuIHVwZGF0ZWQgYWNjb3Jk
-aW5nbHkuCj4gCj4gU2lnbmVkLW9mZi1ieTogU3VtYW4gQW5uYSA8cy1hbm5hQHRpLmNvbT4KPiAt
-LS0KPiBUaGlzIHBhdGNoIGlzIGJhc2VkIG9uIHRoZSBkaXNjdXNzaW9uIFsxXSBmb3IgaW50cm9k
-dWNpbmcgbmV3IHN0YW5kYXJkCj4gT0YgQVBJIGluIHJlbW90ZXByb2MgY29yZSBzZXJpZXMgWzJd
-IGFuZCB0aGUgZXhwb3J0aW5nIG9mIGNvdXBsZSBvZgo+IGZ1bmN0aW9ucyBpbiBPRiBiYXNlIGNv
-ZGUgWzNdLgo+IAo+IFdpdGggdGhpcyBpbiBwbGFjZSwgdGhlIHJlbW90ZXByb2MgY29yZSBuZWVk
-IG5vdCBiZSBsb29raW5nIGZvciB0aGUKPiBUSSBzcGVjaWZpYyBwcm9wZXJ0eSBhbnltb3JlLiBJ
-IHdpbGwgc3VibWl0IHRoZSBEVFMgY2hhbmdlcyBvbmNlIHRoaXMKPiBtYWtlcyBpdCB0byBtYWlu
-bGluZS4KPiAKPiByZWdhcmRzCj4gU3VtYW4KPiAKPiBbMV0gaHR0cHM6Ly9wYXRjaHdvcmsua2Vy
-bmVsLm9yZy9wYXRjaC85MjM3NzY3Lwo+IFsyXSBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LWtl
-cm5lbCZtPTE0Njg5NDM0MTcwMTAxMCZ3PTIKPiBbM10gaHR0cHM6Ly9wYXRjaHdvcmsua2VybmVs
-Lm9yZy9wYXRjaC85Mjc2MTgxLwo+IAo+ICAuLi4vZGV2aWNldHJlZS9iaW5kaW5ncy9zb2MvdGkv
-d2t1cF9tM19pcGMudHh0ICAgICB8ICA5ICsrKysrKy0tCj4gIGRyaXZlcnMvc29jL3RpL3drdXBf
-bTNfaXBjLmMgICAgICAgICAgICAgICAgICAgICAgIHwgMjYgKysrKysrKysrKysrKysrKysrKysr
-LQo+ICAyIGZpbGVzIGNoYW5nZWQsIDMyIGluc2VydGlvbnMoKyksIDMgZGVsZXRpb25zKC0pCj4g
-Cj4gZGlmZiAtLWdpdCBhL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9zb2MvdGkv
-d2t1cF9tM19pcGMudHh0IGIvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL3NvYy90
-aS93a3VwX20zX2lwYy50eHQKPiBpbmRleCA0MDE1NTA0ODdlZDYuLjJlYTdkZDkxYWNmZiAxMDA2
-NDQKPiAtLS0gYS9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3Mvc29jL3RpL3drdXBf
-bTNfaXBjLnR4dAo+ICsrKyBiL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9zb2Mv
-dGkvd2t1cF9tM19pcGMudHh0Cj4gQEAgLTIzLDEyICsyMywxNyBAQCBSZXF1aXJlZCBwcm9wZXJ0
-aWVzOgo+ICAJCQl3aXRoIHRoZSBXYWtldXAgTTMgcHJvY2Vzc29yCj4gIC0gaW50ZXJydXB0czoJ
-CUNvbnRhaW5zIHRoZSBpbnRlcnJ1cHQgaW5mb3JtYXRpb24gZm9yIHRoZSB3a3VwX20zCj4gIAkJ
-CWludGVycnVwdCB0aGF0IHNpZ25hbHMgdGhlIE1QVS4KPiAtLSB0aSxycHJvYzoJCXBoYW5kbGUg
-dG8gdGhlIHdrdXBfbTMgcnByb2Mgbm9kZSBzbyB0aGUgSVBDIGRyaXZlcgo+ICstIHJwcm9jczoJ
-CXBoYW5kbGUgdG8gdGhlIHdrdXBfbTMgcnByb2Mgbm9kZSBzbyB0aGUgSVBDIGRyaXZlcgo+ICAJ
-CQljYW4gYm9vdCBpdC4KPiAgLSBtYm94ZXM6CQlwaGFuZGxlcyB1c2VkIGJ5IElQQyBmcmFtZXdv
-cmsgdG8gZ2V0IGNvcnJlY3QgbWJveAo+ICAJCQljaGFubmVsIGZvciBjb21tdW5pY2F0aW9uLiBN
-dXN0IHBvaW50IHRvIGFwcHJvcHJpYXRlCj4gIAkJCW1ib3hfd2t1cG0zIGNoaWxkIG5vZGUuCj4g
-IAo+ICtEZXByZWNhdGVkIHByb3BlcnRpZXM6Cj4gKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KPiAr
-LSB0aSxycHJvYzoJCVRoaXMgcHJvcGVydHkgaGFzIGJlZW4gcmVwbGFjZWQgd2l0aCB0aGUgInJw
-cm9jcyIKPiArCQkJcHJvcGVydHkuCj4gKwo+ICBFeGFtcGxlOgo+ICAtLS0tLS0tLQo+ICAvKiBB
-TTMzeHggKi8KPiBAQCAtNDgsNyArNTMsNyBAQCBFeGFtcGxlOgo+ICAJCQkJY29tcGF0aWJsZSA9
-ICJ0aSxhbTMzNTItd2t1cC1tMy1pcGMiOwo+ICAJCQkJcmVnID0gPDB4MTMyNCAweDI0PjsKPiAg
-CQkJCWludGVycnVwdHMgPSA8Nzg+Owo+IC0JCQkJdGkscnByb2MgPSA8JndrdXBfbTM+Owo+ICsJ
-CQkJcnByb2NzID0gPCZ3a3VwX20zPjsKPiAgCQkJCW1ib3hlcyA9IDwmbWFpbGJveCAmbWJveF93
-a3VwbTM+Owo+ICAJCQl9Owo+ICAKPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9zb2MvdGkvd2t1cF9t
-M19pcGMuYyBiL2RyaXZlcnMvc29jL3RpL3drdXBfbTNfaXBjLmMKPiBpbmRleCA4ODIzY2M4MWFl
-NDUuLjg2MDg1ZjliZjZhOCAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL3NvYy90aS93a3VwX20zX2lw
-Yy5jCj4gKysrIGIvZHJpdmVycy9zb2MvdGkvd2t1cF9tM19pcGMuYwo+IEBAIC0xLDcgKzEsNyBA
-QAo+ICAvKgo+ICAgKiBBTXgzIFdrdXAgTTMgSVBDIGRyaXZlcgo+ICAgKgo+IC0gKiBDb3B5cmln
-aHQgKEMpIDIwMTUgVGV4YXMgSW5zdHJ1bWVudHMsIEluYy4KPiArICogQ29weXJpZ2h0IChDKSAy
-MDE1LTIwMTYgVGV4YXMgSW5zdHJ1bWVudHMsIEluYy4KPiAgICoKPiAgICogRGF2ZSBHZXJsYWNo
-IDxkLWdlcmxhY2hAdGkuY29tPgo+ICAgKgo+IEBAIC0zOTAsNiArMzkwLDggQEAgc3RhdGljIGlu
-dCB3a3VwX20zX2lwY19wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQo+ICAJc3Ry
-dWN0IHJlc291cmNlICpyZXM7Cj4gIAlzdHJ1Y3QgdGFza19zdHJ1Y3QgKnRhc2s7Cj4gIAlzdHJ1
-Y3Qgd2t1cF9tM19pcGMgKm0zX2lwYzsKPiArCXN0cnVjdCBwcm9wZXJ0eSAqbnByb3AsICpvcHJv
-cDsKPiArCWNvbnN0IGNoYXIgbnByb3BfbmFtZVtdID0gInJwcm9jcyI7Cj4gIAo+ICAJbTNfaXBj
-ID0gZGV2bV9remFsbG9jKGRldiwgc2l6ZW9mKCptM19pcGMpLCBHRlBfS0VSTkVMKTsKPiAgCWlm
-ICghbTNfaXBjKQo+IEBAIC00MTUsNiArNDE3LDI4IEBAIHN0YXRpYyBpbnQgd2t1cF9tM19pcGNf
-cHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKPiAgCQlyZXR1cm4gcmV0Owo+ICAJ
-fQo+ICAKPiArCS8qIHByb3ZpZGUgY29tcGF0aWJpbGl0eSBmb3Igb2xkZXIgRFRCcyB1c2luZyB0
-aSxycHJvYyBwcm9wZXJ0eSAqLwo+ICsJbnByb3AgPSBvZl9maW5kX3Byb3BlcnR5KGRldi0+b2Zf
-bm9kZSwgInJwcm9jcyIsIE5VTEwpOwo+ICsJaWYgKCFucHJvcCkgewo+ICsJCW9wcm9wID0gb2Zf
-ZmluZF9wcm9wZXJ0eShkZXYtPm9mX25vZGUsICJ0aSxycHJvYyIsIE5VTEwpOwo+ICsJCWlmICgh
-b3Byb3ApIHsKPiArCQkJZGV2X2VycigmcGRldi0+ZGV2LCAibm9kZSBpcyBtaXNzaW5nIHRpLHJw
-cm9jIHByb3BlcnR5XG4iKTsKPiArCQkJcmV0dXJuIC1FTk9ERVY7Cj4gKwkJfQo+ICsKPiArCQlu
-cHJvcCA9IGt6YWxsb2Moc2l6ZW9mKCpucHJvcCkgKyBzaXplb2YobnByb3BfbmFtZSksCj4gKwkJ
-CQlHRlBfS0VSTkVMKTsKPiArCQlpZiAoIW5wcm9wKQo+ICsJCQlyZXR1cm4gLUVOT01FTTsKPiAr
-Cj4gKwkJbnByb3AtPm5hbWUgPSAoY2hhciAqKW5wcm9wICsgc2l6ZW9mKCpucHJvcCk7Cj4gKwkJ
-c25wcmludGYobnByb3AtPm5hbWUsIHNpemVvZihucHJvcF9uYW1lKSwgbnByb3BfbmFtZSk7Cj4g
-KwkJbnByb3AtPnZhbHVlID0gb3Byb3AtPnZhbHVlOwo+ICsJCW5wcm9wLT5sZW5ndGggPSBvcHJv
-cC0+bGVuZ3RoOwo+ICsJCW9mX3VwZGF0ZV9wcm9wZXJ0eShkZXYtPm9mX25vZGUsIG5wcm9wKTsK
-PiArCQlvZl9yZW1vdmVfcHJvcGVydHkoZGV2LT5vZl9ub2RlLCBvcHJvcCk7Cj4gKwl9Cj4gKwoK
-KzEgZm9yIGdldHRpbmcgdGhlIGZ1bmN0aW9uYWxpdHkgb3V0IG9mIGNvcmUgY29kZS4KCi0xMDAg
-Zm9yIGhhdmluZyB0byBqdW1wIHRob3VnaCBhbGwgdGhlc2UgaG9vcHMuCgpJZiB5b3UgYXJlIGdv
-aW5nIHRvIGtlZXAgYWxsIG9mIHRoaXMsIEkgd291bGQgYXQgbGVhc3QgdHVjayBpdCBhd2F5IGlu
-CmEgaGVhZGVyIGZpbGUgb3Igc29tZXRoaW5nLgoKPiAgCW0zX2lwYy0+bWJveF9jbGllbnQuZGV2
-ID0gZGV2Owo+ICAJbTNfaXBjLT5tYm94X2NsaWVudC50eF9kb25lID0gTlVMTDsKPiAgCW0zX2lw
-Yy0+bWJveF9jbGllbnQudHhfcHJlcGFyZSA9IE5VTEw7CgotLSAKTGVlIEpvbmVzCkxpbmFybyBT
-VE1pY3JvZWxlY3Ryb25pY3MgTGFuZGluZyBUZWFtIExlYWQKTGluYXJvLm9yZyDilIIgT3BlbiBz
-b3VyY2Ugc29mdHdhcmUgZm9yIEFSTSBTb0NzCkZvbGxvdyBMaW5hcm86IEZhY2Vib29rIHwgVHdp
-dHRlciB8IEJsb2cKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMu
-aW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2xpbnV4LWFybS1rZXJuZWwK
+Hi Arnd/Olof,
+
+The following changes since commit 29b4817d4018df78086157ea3a55c1d9424a7cfc:
+
+  Linux 4.8-rc1 (2016-08-07 18:18:00 -0700)
+
+are available in the git repository at:
+
+  https://github.com/rogerq/linux.git tags/gpmc-omap-v4.8-rc1
+
+for you to fetch changes up to 23540d6e2f3193b946c4de43e3f9654fa6d23fe7:
+
+  memory: omap-gpmc: allow probe of child nodes to fail (2016-08-08 11:18:40 +0300)
+
+----------------------------------------------------------------
+OMAP-GPMC: fixes for v4.8-rc1
+
+* Allow other children of GPMC to probe even if any child fails.
+This fixes problem on Overo boards where networking device child
+doesn't probe due to broken NAND child.
+
+----------------------------------------------------------------
+Johan Hovold (1):
+      memory: omap-gpmc: allow probe of child nodes to fail
+
+ drivers/memory/omap-gpmc.c | 21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
