@@ -1,48 +1,46 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [GIT PULL] omap-gpmc fixes for v4.8-rc1
-Date: Fri, 12 Aug 2016 14:02:47 +0300
-Message-ID: <a2bf20d0-c446-2fab-5de2-33636eab79a7@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [PATCH v3 2/9] hwmon: (core) New hwmon registration API
+Date: Fri, 12 Aug 2016 05:40:25 -0700
+Message-ID: <ccf1b5d0-0dd0-cc9f-40e6-27f3bbae3bbf@roeck-us.net>
+References: <1469417552-9749-1-git-send-email-linux@roeck-us.net>
+ <1469417552-9749-3-git-send-email-linux@roeck-us.net>
+ <57AD85C4.5020409@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kenel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, Johan Hovold <johan@kernel.org>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <57AD85C4.5020409@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <a0393675@ti.com>, Jean Delvare <jdelvare@suse.com>
+Cc: Jonathan Cameron <jic23@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>, Punit Agrawal <punit.agrawal@arm.com>, linux-pm@vger.kernel.org, linux-iio@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "R, Vignesh" <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Arnd/Olof,
+On 08/12/2016 01:16 AM, Keerthy wrote:
+> On Monday 25 July 2016 09:02 AM, Guenter Roeck wrote:
+>> Up to now, each hwmon driver has to implement its own sysfs attributes.
+>> This requires a lot of template code, and distracts from the driver's core
+>> function to read and write chip registers.
+>>
+>> To be able to reduce driver complexity, move sensor attribute handling
+>> and thermal zone registration into hwmon core. By using the new API,
+>> driver code and data size is typically reduced by 20-70%, depending
+>> on driver complexity and the number of sysfs attributes supported.
+>>
+>> With this patch, the new API only supports thermal sensors. Support for
+>> other sensor types will be added with subsequent patches.
+>>
+> Hi Guenter,
+>
+> Seems like this patch introduces a cycling dependency between
+> thermal_sys and hwmon:
+>
+> DEPMOD 4.8.0-rc1-next-20160811-00001-g2f84cf7854e7
+> depmod: ERROR: Found 2 modules in dependency cycles!
+> depmod: ERROR: Cycle detected: hwmon -> thermal_sys -> hwmon
+>
+> As reported by R, Vignesh <vigneshr@ti.com>.
+>
 
-The following changes since commit 29b4817d4018df78086157ea3a55c1d9424a7cfc:
+Hmm ... interesting. Thanks for letting me know. I'll have to think about that.
 
-  Linux 4.8-rc1 (2016-08-07 18:18:00 -0700)
-
-are available in the git repository at:
-
-  https://github.com/rogerq/linux.git tags/gpmc-omap-v4.8-rc1
-
-for you to fetch changes up to 23540d6e2f3193b946c4de43e3f9654fa6d23fe7:
-
-  memory: omap-gpmc: allow probe of child nodes to fail (2016-08-08 11:18:40 +0300)
-
-----------------------------------------------------------------
-OMAP-GPMC: fixes for v4.8-rc1
-
-* Allow other children of GPMC to probe even if any child fails.
-This fixes problem on Overo boards where networking device child
-doesn't probe due to broken NAND child.
-
-----------------------------------------------------------------
-Johan Hovold (1):
-      memory: omap-gpmc: allow probe of child nodes to fail
-
- drivers/memory/omap-gpmc.c | 21 +++++++--------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
+Guenter
