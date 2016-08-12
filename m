@@ -1,119 +1,51 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: kmemleak: Cannot insert 0xff7f1000 into the object search tree
- (overlaps existing)
-Date: Fri, 12 Aug 2016 09:45:05 +0530
-Message-ID: <e3495507-abf9-8df6-057d-32016bd4f221@ti.com>
-References: <7f50c137-5c6a-0882-3704-ae9bb7552c30@ti.com>
- <20160811155423.GC18366@e104818-lin.cambridge.arm.com>
- <920709c7-2d5b-ea67-5f1c-4197ef30e3b2@ti.com>
- <20160811170812.GF18366@e104818-lin.cambridge.arm.com>
+From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 2/2] ARM: dts: am335x-icev2: Add nodes for gpio-decoder
+Date: Fri, 12 Aug 2016 10:22:29 +0530
+Message-ID: <20160812045229.29241-3-vigneshr@ti.com>
+References: <20160812045229.29241-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20160811170812.GF18366@e104818-lin.cambridge.arm.com>
-Sender: owner-linux-mm@kvack.org
-To: Catalin Marinas <catalin.marinas@arm.com>, "Strashko, Grygorii" <grygorii.strashko@ti.com>
-Cc: "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160812045229.29241-1-vigneshr-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, S Twiss <stwiss.opensource-WBD+wuPFNBhBDgjK7y7TUQ@public.gmane.org>, Jorge Ramirez-Ortiz <jorge.ramirez-ortiz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Moritz Fischer <moritz.fischer-+aYTwkv1SeIAvxtiuMwx3w@public.gmane.org>, Daniel Hung-yu Wu <hywu-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Grant Grundler <grundler-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Catalin,
+AM335x ICE board has a rotary-switch connected to PCA9536 I2C GPIO
+expander. The position of the rotary-switch is reflected by status of
+GPIO lines. Add gpio-decoder node to read these GPIO line status via
+gpio-decoder driver and report it as an input event to the system.
 
-Thanks for the response!
+Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/am335x-icev2.dts | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-On Thursday 11 August 2016 10:38 PM, Catalin Marinas wrote:
-> On Thu, Aug 11, 2016 at 07:48:12PM +0300, Grygorii Strashko wrote:
->> On 08/11/2016 06:54 PM, Catalin Marinas wrote:
->>> On Thu, Aug 11, 2016 at 05:20:51PM +0530, Vignesh R wrote:
->>>> I see the below message from kmemleak when booting linux-next on AM335x
->>>> GP EVM and DRA7 EVM
->>>
->>> Can you also reproduce it with 4.8-rc1?
-
-Yes, I can reproduce this on 4.8.0-rc1-g4b9eaf33d83d
-
-[...]
-> 
-> diff --git a/mm/memblock.c b/mm/memblock.c
-> index 483197ef613f..7d3361d53ac2 100644
-> --- a/mm/memblock.c
-> +++ b/mm/memblock.c
-> @@ -723,7 +723,8 @@ int __init_memblock memblock_free(phys_addr_t base, phys_addr_t size)
->  		     (unsigned long long)base + size - 1,
->  		     (void *)_RET_IP_);
->  
-> -	kmemleak_free_part(__va(base), size);
-> +	if (base < __pa(high_memory))
-> +		kmemleak_free_part(__va(base), size);
->  	return memblock_remove_range(&memblock.reserved, base, size);
->  }
->  
-> @@ -1152,7 +1153,8 @@ static phys_addr_t __init memblock_alloc_range_nid(phys_addr_t size,
->  		 * The min_count is set to 0 so that memblock allocations are
->  		 * never reported as leaks.
->  		 */
-> -		kmemleak_alloc(__va(found), size, 0, 0);
-> +		if (found < __pa(high_memory))
-> +			kmemleak_alloc(__va(found), size, 0, 0);
->  		return found;
->  	}
->  	return 0;
-> @@ -1399,7 +1401,8 @@ void __init __memblock_free_early(phys_addr_t base, phys_addr_t size)
->  	memblock_dbg("%s: [%#016llx-%#016llx] %pF\n",
->  		     __func__, (u64)base, (u64)base + size - 1,
->  		     (void *)_RET_IP_);
-> -	kmemleak_free_part(__va(base), size);
-> +	if (base < __pa(high_memory))
-> +		kmemleak_free_part(__va(base), size);
->  	memblock_remove_range(&memblock.reserved, base, size);
->  }
->  
-> @@ -1419,7 +1422,8 @@ void __init __memblock_free_late(phys_addr_t base, phys_addr_t size)
->  	memblock_dbg("%s: [%#016llx-%#016llx] %pF\n",
->  		     __func__, (u64)base, (u64)base + size - 1,
->  		     (void *)_RET_IP_);
-> -	kmemleak_free_part(__va(base), size);
-> +	if (base < __pa(high_memory))
-> +		kmemleak_free_part(__va(base), size);
->  	cursor = PFN_UP(base);
->  	end = PFN_DOWN(base + size);
->  
-> 
-
-With above change on 4.8-rc1, I see a different warning from kmemleak:
-
-[    0.002918] kmemleak: Trying to color unknown object at 0xfe800000 as
-Black
-[    0.002943] CPU: 0 PID: 0 Comm: swapper/0 Not tainted
-4.8.0-rc1-00121-g4b9eaf33d83d-dirty #59
-[    0.002955] Hardware name: Generic AM33XX (Flattened Device Tree)
-[    0.003000] [<c01100fc>] (unwind_backtrace) from [<c010c264>]
-(show_stack+0x10/0x14)
-[    0.003027] [<c010c264>] (show_stack) from [<c049040c>]
-(dump_stack+0xac/0xe0)
-[    0.003052] [<c049040c>] (dump_stack) from [<c02971c0>]
-(paint_ptr+0x78/0x9c)
-[    0.003074] [<c02971c0>] (paint_ptr) from [<c0b25e20>]
-(kmemleak_init+0x1cc/0x284)
-[    0.003104] [<c0b25e20>] (kmemleak_init) from [<c0b00bc0>]
-(start_kernel+0x2d8/0x3b4)
-[    0.003122] [<c0b00bc0>] (start_kernel) from [<8000807c>] (0x8000807c)
-[    0.003133] kmemleak: Early log backtrace:
-[    0.003146]    [<c0b3c9cc>] dma_contiguous_reserve+0x80/0x94
-[    0.003170]    [<c0b06810>] arm_memblock_init+0x130/0x184
-[    0.003191]    [<c0b04210>] setup_arch+0x58c/0xc00
-[    0.003208]    [<c0b00940>] start_kernel+0x58/0x3b4
-[    0.003224]    [<8000807c>] 0x8000807c
-[    0.003239]    [<ffffffff>] 0xffffffff
-
-Full boot log: http://pastebin.ubuntu.com/23048180/
-
+diff --git a/arch/arm/boot/dts/am335x-icev2.dts b/arch/arm/boot/dts/am335x-icev2.dts
+index 7d8b8fefdf08..f2de594343f2 100644
+--- a/arch/arm/boot/dts/am335x-icev2.dts
++++ b/arch/arm/boot/dts/am335x-icev2.dts
+@@ -139,6 +139,15 @@
+ 			default-state = "off";
+ 		};
+ 	};
++	gpio-decoder0 {
++		compatible = "gpio-decoder";
++		gpios = <&pca9536 3 GPIO_ACTIVE_HIGH>,
++			<&pca9536 2 GPIO_ACTIVE_HIGH>,
++			<&pca9536 1 GPIO_ACTIVE_HIGH>,
++			<&pca9536 0 GPIO_ACTIVE_HIGH>;
++		linux,axis = <0>; /* ABS_X */
++		gpio-decoder,max-value = <9>;
++	};
+ };
+ 
+ &am33xx_pinmux {
 -- 
-Thanks
-Vignesh
+2.9.2
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
