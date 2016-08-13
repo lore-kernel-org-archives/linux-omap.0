@@ -1,57 +1,32 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 2/2] ARM: dts: am335x-icev2: Add nodes for gpio-decoder
-Date: Fri, 12 Aug 2016 14:00:31 -0500
-Message-ID: <20160812190031.GA16954@rob-hp-laptop>
-References: <20160812045229.29241-1-vigneshr@ti.com>
- <20160812045229.29241-3-vigneshr@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160812045229.29241-3-vigneshr-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Cc: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, S Twiss <stwiss.opensource-WBD+wuPFNBhBDgjK7y7TUQ@public.gmane.org>, Jorge Ramirez-Ortiz <jorge.ramirez-ortiz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Moritz Fischer <moritz.fischer-+aYTwkv1SeIAvxtiuMwx3w@public.gmane.org>, Daniel Hung-yu Wu <hywu-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Grant Grundler <grundler-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+From: Sebastian Reichel <sre@kernel.org>
+Subject: [RFC 1/7] tty: serial: omap: add UPF_BOOT_AUTOCONF flag for DT init
+Date: Sat, 13 Aug 2016 05:14:32 +0200
+Message-ID: <1471058078-5579-2-git-send-email-sre@kernel.org>
+References: <1471058078-5579-1-git-send-email-sre@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1471058078-5579-1-git-send-email-sre@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Marcel Holtmann <marcel@holtmann.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>
+Cc: Ville Tervo <ville.tervo@iki.fi>, =?UTF-8?q?Filip=20Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, ivo.g.dimitrov.75@gmail.com, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Aug 12, 2016 at 10:22:29AM +0530, Vignesh R wrote:
-> AM335x ICE board has a rotary-switch connected to PCA9536 I2C GPIO
-> expander. The position of the rotary-switch is reflected by status of
-> GPIO lines. Add gpio-decoder node to read these GPIO line status via
-> gpio-decoder driver and report it as an input event to the system.
-> 
-> Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-> ---
->  arch/arm/boot/dts/am335x-icev2.dts | 9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/am335x-icev2.dts b/arch/arm/boot/dts/am335x-icev2.dts
-> index 7d8b8fefdf08..f2de594343f2 100644
-> --- a/arch/arm/boot/dts/am335x-icev2.dts
-> +++ b/arch/arm/boot/dts/am335x-icev2.dts
-> @@ -139,6 +139,15 @@
->  			default-state = "off";
->  		};
->  	};
-> +	gpio-decoder0 {
+---
+ drivers/tty/serial/omap-serial.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Drop the 0 here.
-
-> +		compatible = "gpio-decoder";
-> +		gpios = <&pca9536 3 GPIO_ACTIVE_HIGH>,
-> +			<&pca9536 2 GPIO_ACTIVE_HIGH>,
-> +			<&pca9536 1 GPIO_ACTIVE_HIGH>,
-> +			<&pca9536 0 GPIO_ACTIVE_HIGH>;
-> +		linux,axis = <0>; /* ABS_X */
-> +		gpio-decoder,max-value = <9>;
-> +	};
->  };
->  
->  &am33xx_pinmux {
-> -- 
-> 2.9.2
-> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index a2a529994ba5..7c2c77789c2c 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -1542,6 +1542,9 @@ static struct omap_uart_port_info *of_get_uart_port_info(struct device *dev)
+ 
+ 	of_property_read_u32(dev->of_node, "clock-frequency",
+ 					 &omap_up_info->uartclk);
++
++	omap_up_info->flags = UPF_BOOT_AUTOCONF;
++
+ 	return omap_up_info;
+ }
+ 
+-- 
+2.8.1
