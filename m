@@ -1,62 +1,91 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH] i2c: don't print error when adding adapter fails
-Date: Mon, 15 Aug 2016 00:17:20 +0200
-Message-ID: <20160814221719.GA10501@katana>
-References: <1470742581-12971-1-git-send-email-wsa-dev@sang-engineering.com>
+From: Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>
+Subject: Re: [RFC 5/7] Bluetooth: hci_nokia: Introduce new driver
+Date: Sun, 14 Aug 2016 19:54:28 -0400
+Message-ID: <CAP=VYLo4ptVzhPjKoiiakbCgBSmpQndNzf0LHWxCZs7LiZ7PYw@mail.gmail.com>
+References: <1471058078-5579-1-git-send-email-sre@kernel.org> <1471058078-5579-6-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VbJkn9YxBvnuCH5J"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1470742581-12971-1-git-send-email-wsa-dev@sang-engineering.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Wolfram Sang <wsa-dev@sang-engineering.com>
-Cc: linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org, adi-buildroot-devel@lists.sourceforge.net, kernel@stlinux.com, linux-amlogic@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-rockchip@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1471058078-5579-6-git-send-email-sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Jiri Slaby <jslaby-IBi9RG/b67k@public.gmane.org>, Ville Tervo <ville.tervo-X3B1VOXEql0@public.gmane.org>, =?UTF-8?Q?Filip_Matijevi=C4=87?= <filip.matijevic.pz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Fri, Aug 12, 2016 at 11:14 PM, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> This driver adds support for Nokia H4+ procotol used
+> for example by Nokia's internet tablets (N770 - N950).
+> ---
+>  drivers/bluetooth/Kconfig     |  10 +
+>  drivers/bluetooth/Makefile    |   1 +
+>  drivers/bluetooth/hci_ldisc.c |   6 +
+>  drivers/bluetooth/hci_nokia.c | 734 ++++++++++++++++++++++++++++++++++++++++++
+>  drivers/bluetooth/hci_nokia.h | 140 ++++++++
+>  drivers/bluetooth/hci_uart.h  |   8 +-
+>  6 files changed, 898 insertions(+), 1 deletion(-)
+>  create mode 100644 drivers/bluetooth/hci_nokia.c
+>  create mode 100644 drivers/bluetooth/hci_nokia.h
+>
+> diff --git a/drivers/bluetooth/Kconfig b/drivers/bluetooth/Kconfig
+> index cf50fd2e96df..c32d9d5ad1d2 100644
+> --- a/drivers/bluetooth/Kconfig
+> +++ b/drivers/bluetooth/Kconfig
+> @@ -86,6 +86,16 @@ config BT_HCIUART_H4
+>
+>           Say Y here to compile support for HCI UART (H4) protocol.
+>
+> +config BT_HCIUART_NOKIA
+> +       bool "UART Nokia H4+ protocol support"
 
---VbJkn9YxBvnuCH5J
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+If the option is a bool, then you don't need module.h or any MODULE
+macros, nor do you need any __exit or unregister related code.
 
-On Tue, Aug 09, 2016 at 01:36:16PM +0200, Wolfram Sang wrote:
-> Since v4.8-rc1, the I2C core will print detailed information when adding =
-an I2C
-> adapter fails. So, drivers can skip this now.
->=20
-> I am still undecided if I apply this as a single patch or break it out. B=
-ut for
-> reviewing, avoiding the patch bomb is probably a good thing.
->=20
-> Should go via subsystem tree, I'd think.
->=20
-> Wolfram Sang (1):
->   i2c: don't print error when adding adapter fails
->=20
+Alternatively, if there is a use case for it to be modular, then maybe you
+want to change the above to a tristate.
 
-Applied to for-next, thanks!
+Paul.
+--
+
+> +       depends on BT_HCIUART
+> +       help
+> +         Nokia H4+ is serial protocol for communication between Bluetooth
+> +         device and host. This protocol is required for Bluetooth devices
+> +         with UART interface in Nokia devices.
+> +
+> +         Say Y here to compile support for Nokia's H4+ protocol.
+> +
+>  config BT_HCIUART_BCSP
+>         bool "BCSP protocol support"
+>         depends on BT_HCIUART
 
 
---VbJkn9YxBvnuCH5J
-Content-Type: application/pgp-signature; name="signature.asc"
+[...]
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXsO3vAAoJEBQN5MwUoCm2w3IP/jptxJ55zOpqqrP4YiIo9d1P
-ldYqyfLqKHVN00p64U+1H3ryKADkcH4kyXCMj8NNrFmD1Sjp4t+IpSJrfbyjhjxD
-iYkgvfZCKtLXECOE3AnrtBvlwv0wdBIP4Riztq2WgAfwXJvebU8K3dld3fx0f3k0
-KUpk5uQ24K5RbYcSPS+PqqDi7LRvu1iRfsOyqA3j8n7nQ4uKVLLYbcst5NyFpG7x
-168XGity4IdRjQM4PeEEQkXWgN9UdbS/5Ah7vG52Ug3iEfzXgMSyjrUM5NfuxGv8
-oku57fUtN2y+uH2Od5gL0S27m49mGDxNPnhPK4CPItekcz2wxwaFlnb+3eOpRT57
-sADpkE1bpl70FdaWJdSeI9F689dUCvWVsRpg7dglHI8yxzk+oQOE8KfWMXSX0CCn
-JUBsKsSBR1FUDpFAaACjGvMSf4E/2gosQC6pxF2jSo3Y/i2JH+HgzhtQcxRJ2v5f
-zG711NoBMbzZMRteYN5NHidiDrzZeo9fGoGxWLmKuayR2oifMB8O1IVAwx8HeVJh
-hPGCi0ZSGsCYYZ/SZ6QmzYZAfrKnt/EDFjyywJ/egf6yvDB1xkIkbFGkK+V1OhGp
-C61jKV4qHvvDxkOf2l7W77AWxJOswfJW3JZzkMC+1eniXU1yULAsJ09I9Jhol3AZ
-GpCRWj5TN9jg1a0kP26G
-=vwEG
------END PGP SIGNATURE-----
-
---VbJkn9YxBvnuCH5J--
+> +       { .compatible = "nokia,ti,wl1271-bluetooth", },
+> +       {},
+> +};
+> +MODULE_DEVICE_TABLE(of, nokia_bluetooth_of_match);
+> +
+> +static struct platform_driver platform_nokia_driver = {
+> +       .driver = {
+> +               .name = "nokia-bluetooth",
+> +               .of_match_table = nokia_bluetooth_of_match,
+> +       },
+> +       .probe = nokia_bluetooth_probe,
+> +};
+> +
+> +int __init nokia_init(void)
+> +{
+> +       platform_driver_register(&platform_nokia_driver);
+> +       return hci_uart_register_proto(&nokia_proto);
+> +}
+> +
+> +int __exit nokia_deinit(void)
+> +{
+> +       platform_driver_unregister(&platform_nokia_driver);
+> +       return hci_uart_unregister_proto(&nokia_proto);
+> +}
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
