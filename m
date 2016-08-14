@@ -1,35 +1,66 @@
-From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Subject: Re: [RFC 2/7] tty: add support for "tty slave" devices
-Date: Sun, 14 Aug 2016 13:35:13 +0200
-Message-ID: <20160814113513.GB21529@kroah.com>
+Date: Sun, 14 Aug 2016 13:36:12 +0200
+Message-ID: <20160814113612.GC21529@kroah.com>
 References: <1471058078-5579-1-git-send-email-sre@kernel.org>
  <1471058078-5579-3-git-send-email-sre@kernel.org>
  <20160813100345.GA14665@kroah.com>
- <20160814084822.GA21321@amd>
+ <20160813203124.GA647@earth>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160814084822.GA21321@amd>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>, Jiri Slaby <jslaby-IBi9RG/b67k@public.gmane.org>, Ville Tervo <ville.tervo-X3B1VOXEql0@public.gmane.org>, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
+In-Reply-To: <20160813203124.GA647@earth>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Marcel Holtmann <marcel@holtmann.org>, Jiri Slaby <jslaby@suse.com>, Ville Tervo <ville.tervo@iki.fi>, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, ivo.g.dimitrov.75@gmail.com, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, NeilBrown <neilb@suse.de>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Aug 14, 2016 at 10:48:22AM +0200, Pavel Machek wrote:
-> On Sat 2016-08-13 12:03:45, Greg Kroah-Hartman wrote:
+On Sat, Aug 13, 2016 at 10:31:24PM +0200, Sebastian Reichel wrote:
+> Hi,
+> 
+> On Sat, Aug 13, 2016 at 12:03:45PM +0200, Greg Kroah-Hartman wrote:
 > > On Sat, Aug 13, 2016 at 05:14:33AM +0200, Sebastian Reichel wrote:
-> > > From: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
+> > > From: NeilBrown <neilb@suse.de>
 > > > 
 > > > A "tty slave" is a device connected via UART.  It may need a driver to,
 > > > for example, power the device on when the tty is opened, and power it
 > > > off when the tty is released.
 > > > 
-> > > Signed-off-by: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
-> > > Signed-off-by: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> 
-> Acked-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-> 
+> > > Signed-off-by: NeilBrown <neilb@suse.de>
+> > > Signed-off-by: Sebastian Reichel <sre@kernel.org>
+> > > ---
+> > >  Documentation/devicetree/bindings/serial/8250.txt | 4 ++++
+> > >  drivers/tty/tty_io.c                              | 6 ++++++
+> > >  2 files changed, 10 insertions(+)
+> > > 
+> > > diff --git a/Documentation/devicetree/bindings/serial/8250.txt b/Documentation/devicetree/bindings/serial/8250.txt
+> > > index f5561ac7e17e..ecb74730f71b 100644
+> > > --- a/Documentation/devicetree/bindings/serial/8250.txt
+> > > +++ b/Documentation/devicetree/bindings/serial/8250.txt
+> > > @@ -46,6 +46,10 @@ Optional properties:
+> > >    line respectively. It will use specified GPIO instead of the peripheral
+> > >    function pin for the UART feature. If unsure, don't specify this property.
+> > >  
+> > > +Optional child node:
+> > > +- a device connected to the uart can be specified as child node with
+> > > +  compatible value.
+> > > +
+> > >  Note:
+> > >  * fsl,ns16550:
+> > >    ------------
+> > > diff --git a/drivers/tty/tty_io.c b/drivers/tty/tty_io.c
+> > > index 734a635e7363..39ff5dcdfd50 100644
+> > > --- a/drivers/tty/tty_io.c
+> > > +++ b/drivers/tty/tty_io.c
+> > > @@ -95,6 +95,7 @@
+> > >  #include <linux/seq_file.h>
+> > >  #include <linux/serial.h>
+> > >  #include <linux/ratelimit.h>
+> > > +#include <linux/of_platform.h>
+> > >  
+> > >  #include <linux/uaccess.h>
+> > >  
 > > > @@ -3317,6 +3318,11 @@ struct device *tty_register_device_attr(struct tty_driver *driver,
 > > >  	retval = device_register(dev);
 > > >  	if (retval)
@@ -39,26 +70,24 @@ On Sun, Aug 14, 2016 at 10:48:22AM +0200, Pavel Machek wrote:
 > > > +		 * runtime_pm managed by this tty.
 > > > +		 */
 > > > +		of_platform_populate(device->of_node, NULL, NULL, dev);
-> > 
-> > Why are these platform devices?  And why only OF?
+> >
+> > Why are these platform devices?
+> > And why only OF?
 > 
-> OF based systems are the only ones that have this problem, so that's
-> the only place where we can test this solution.
+> I just took this patch over from Neil to get bluetooth working
+> on N900/N950. Both of them are DT only (well N900 still has
+> boardcode, but that will be removed shortly), so it was enough
+> for me.
 > 
-> Given that these devices are connected over the UART, it seems right
-> to categorize them as platform devices... You can't connect PCI, SATA
-> or USB device over UART port.
+> I guess you have something in mind, that's similar to e.g. i2c
+> and spi with a serial_client device and support to instanciate
+> it from DT, ACPI and boardcode?
 
-No, that's a total abuse of the platform bus, please don't.
+I'm not going to accept a OF-only patch to the tty layer like this,
+especially one that abuses platform drivers.
 
-I've said before that a "serial" bus should be created and you can hang
-devices off of it.  For some reason that message keeps getting
-ignored...
+See my response to Pavel for what this "should" look like.
 
 thanks,
 
 greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
