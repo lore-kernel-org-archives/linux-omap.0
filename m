@@ -1,225 +1,109 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH v2 1/4] net: ethernet: ti: davinci_cpdma: split descs num between all channels
-Date: Mon, 15 Aug 2016 18:16:18 +0300
-Message-ID: <1471274181-780-2-git-send-email-ivan.khoronzhuk@linaro.org>
-References: <1471274181-780-1-git-send-email-ivan.khoronzhuk@linaro.org>
+From: Jonathan Cameron <jic23@kernel.org>
+Subject: Re: [PATCH 1/2] iio: adc: ti_am335x_adc: Protect FIFO1 from
+ concurrent access
+Date: Mon, 15 Aug 2016 16:45:35 +0100
+Message-ID: <1731ca3d-56f1-1183-b049-360b155ced28@kernel.org>
+References: <20160808110501.29586-1-vigneshr@ti.com>
+ <20160808110501.29586-2-vigneshr@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1471274181-780-1-git-send-email-ivan.khoronzhuk@linaro.org>
+In-Reply-To: <20160808110501.29586-2-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: davem@davemloft.net, netdev@vger.kernel.org, mugunthanvnm@ti.com, grygorii.strashko@ti.com
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+To: Vignesh R <vigneshr@ti.com>
+Cc: Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Lee Jones <lee.jones@linaro.org>, "Andrew F . Davis" <afd@ti.com>, linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Currently the tx channels share same pool of descriptors. Thus one
-channel can block another if pool is emptied by one. But, the shaper
-should decide which channel is allowed to send packets. To avoid such
-impact of one channel on another, let every channel to have its own
-peace of pool.
+On 08/08/16 12:05, Vignesh R wrote:
+> It is possible that two or more ADC channels can be simultaneously
+> requested for raw samples, in which case there can be race in access to
+> FIFO data resulting in loss of samples.
+> If am335x_tsc_se_set_once() is called again from tiadc_read_raw(), when
+> ADC is still acquired to sample one of the channels, the second process
+> might be put into uninterruptible sleep state. Fix these issues, by
+> protecting FIFO access and channel configurations with a mutex. Since
+> tiadc_read_raw() might take anywhere between few microseconds to few
+> milliseconds to finish execution (depending on averaging and delay
+> values supplied via DT), its better to use mutex instead of spinlock.
+> 
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
+Hi,
 
-Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
----
- drivers/net/ethernet/ti/cpsw.c          | 61 ++++++++++++++++++++-------------
- drivers/net/ethernet/ti/davinci_cpdma.c | 47 +++++++++++++++++++++++--
- drivers/net/ethernet/ti/davinci_cpdma.h |  2 +-
- 3 files changed, 84 insertions(+), 26 deletions(-)
+Thanks for the patch.
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index b4d3b41..a4c1538 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -1212,6 +1212,40 @@ static void cpsw_init_host_port(struct cpsw_priv *priv)
- 	}
- }
- 
-+static int cpsw_fill_rx_channels(struct net_device *ndev)
-+{
-+	struct cpsw_priv *priv = netdev_priv(ndev);
-+	struct cpsw_common *cpsw = priv->cpsw;
-+	struct sk_buff *skb;
-+	int ch_buf_num;
-+	int i, ret;
-+
-+	ch_buf_num = cpdma_chan_get_rx_buf_num(cpsw->rxch);
-+	for (i = 0; i < ch_buf_num; i++) {
-+		skb = __netdev_alloc_skb_ip_align(ndev,
-+						  cpsw->rx_packet_max,
-+						  GFP_KERNEL);
-+		if (!skb) {
-+			cpsw_err(priv, ifup, "cannot allocate skb\n");
-+			return -ENOMEM;
-+		}
-+
-+		ret = cpdma_chan_submit(cpsw->rxch, skb, skb->data,
-+					skb_tailroom(skb), 0);
-+		if (ret < 0) {
-+			cpsw_err(priv, ifup,
-+				 "cannot submit skb to rx channel, error %d\n",
-+				 ret);
-+			kfree_skb(skb);
-+			return ret;
-+		}
-+	}
-+
-+	cpsw_info(priv, ifup, "submitted %d rx descriptors\n", ch_buf_num);
-+
-+	return ch_buf_num;
-+}
-+
- static void cpsw_slave_stop(struct cpsw_slave *slave, struct cpsw_common *cpsw)
- {
- 	u32 slave_port;
-@@ -1232,7 +1266,7 @@ static int cpsw_ndo_open(struct net_device *ndev)
- {
- 	struct cpsw_priv *priv = netdev_priv(ndev);
- 	struct cpsw_common *cpsw = priv->cpsw;
--	int i, ret;
-+	int ret;
- 	u32 reg;
- 
- 	ret = pm_runtime_get_sync(cpsw->dev);
-@@ -1264,8 +1298,6 @@ static int cpsw_ndo_open(struct net_device *ndev)
- 				  ALE_ALL_PORTS, ALE_ALL_PORTS, 0, 0);
- 
- 	if (!cpsw_common_res_usage_state(cpsw)) {
--		int buf_num;
--
- 		/* setup tx dma to fixed prio and zero offset */
- 		cpdma_control_set(cpsw->dma, CPDMA_TX_PRIO_FIXED, 1);
- 		cpdma_control_set(cpsw->dma, CPDMA_RX_BUFFER_OFFSET, 0);
-@@ -1292,26 +1324,9 @@ static int cpsw_ndo_open(struct net_device *ndev)
- 			enable_irq(cpsw->irqs_table[0]);
- 		}
- 
--		buf_num = cpdma_chan_get_rx_buf_num(cpsw->dma);
--		for (i = 0; i < buf_num; i++) {
--			struct sk_buff *skb;
--
--			ret = -ENOMEM;
--			skb = __netdev_alloc_skb_ip_align(priv->ndev,
--					cpsw->rx_packet_max, GFP_KERNEL);
--			if (!skb)
--				goto err_cleanup;
--			ret = cpdma_chan_submit(cpsw->rxch, skb, skb->data,
--						skb_tailroom(skb), 0);
--			if (ret < 0) {
--				kfree_skb(skb);
--				goto err_cleanup;
--			}
--		}
--		/* continue even if we didn't manage to submit all
--		 * receive descs
--		 */
--		cpsw_info(priv, ifup, "submitted %d rx descriptors\n", i);
-+		ret = cpsw_fill_rx_channels(ndev);
-+		if (ret < 0)
-+			goto err_cleanup;
- 
- 		if (cpts_register(cpsw->dev, cpsw->cpts,
- 				  cpsw->data.cpts_clock_mult,
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-index cf72b33..ec560ab 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.c
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-@@ -104,6 +104,7 @@ struct cpdma_ctlr {
- 	struct cpdma_desc_pool	*pool;
- 	spinlock_t		lock;
- 	struct cpdma_chan	*channels[2 * CPDMA_MAX_CHANNELS];
-+	int chan_num;
- };
- 
- struct cpdma_chan {
-@@ -256,6 +257,7 @@ struct cpdma_ctlr *cpdma_ctlr_create(struct cpdma_params *params)
- 	ctlr->state = CPDMA_STATE_IDLE;
- 	ctlr->params = *params;
- 	ctlr->dev = params->dev;
-+	ctlr->chan_num = 0;
- 	spin_lock_init(&ctlr->lock);
- 
- 	ctlr->pool = cpdma_desc_pool_create(ctlr->dev,
-@@ -399,6 +401,32 @@ void cpdma_ctlr_eoi(struct cpdma_ctlr *ctlr, u32 value)
- }
- EXPORT_SYMBOL_GPL(cpdma_ctlr_eoi);
- 
-+/**
-+ * cpdma_chan_split_pool - Splits ctrl pool between all channels.
-+ * Has to be called under ctlr lock
-+ *
-+ */
-+static void cpdma_chan_split_pool(struct cpdma_ctlr *ctlr)
-+{
-+	struct cpdma_desc_pool *pool = ctlr->pool;
-+	struct cpdma_chan *chan;
-+	int ch_desc_num;
-+	int i;
-+
-+	if (!ctlr->chan_num)
-+		return;
-+
-+	/* calculate average size of pool slice */
-+	ch_desc_num = pool->num_desc / ctlr->chan_num;
-+
-+	/* split ctlr pool */
-+	for (i = 0; i < ARRAY_SIZE(ctlr->channels); i++) {
-+		chan = ctlr->channels[i];
-+		if (chan)
-+			chan->desc_num = ch_desc_num;
-+	}
-+}
-+
- struct cpdma_chan *cpdma_chan_create(struct cpdma_ctlr *ctlr, int chan_num,
- 				     cpdma_handler_fn handler)
- {
-@@ -447,14 +475,25 @@ struct cpdma_chan *cpdma_chan_create(struct cpdma_ctlr *ctlr, int chan_num,
- 	spin_lock_init(&chan->lock);
- 
- 	ctlr->channels[chan_num] = chan;
-+	ctlr->chan_num++;
-+
-+	cpdma_chan_split_pool(ctlr);
-+
- 	spin_unlock_irqrestore(&ctlr->lock, flags);
- 	return chan;
- }
- EXPORT_SYMBOL_GPL(cpdma_chan_create);
- 
--int cpdma_chan_get_rx_buf_num(struct cpdma_ctlr *ctlr)
-+int cpdma_chan_get_rx_buf_num(struct cpdma_chan *chan)
- {
--	return ctlr->pool->num_desc / 2;
-+	unsigned long flags;
-+	int desc_num;
-+
-+	spin_lock_irqsave(&chan->lock, flags);
-+	desc_num = chan->desc_num;
-+	spin_unlock_irqrestore(&chan->lock, flags);
-+
-+	return desc_num;
- }
- EXPORT_SYMBOL_GPL(cpdma_chan_get_rx_buf_num);
- 
-@@ -471,6 +510,10 @@ int cpdma_chan_destroy(struct cpdma_chan *chan)
- 	if (chan->state != CPDMA_STATE_IDLE)
- 		cpdma_chan_stop(chan);
- 	ctlr->channels[chan->chan_num] = NULL;
-+	ctlr->chan_num--;
-+
-+	cpdma_chan_split_pool(ctlr);
-+
- 	spin_unlock_irqrestore(&ctlr->lock, flags);
- 	return 0;
- }
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.h b/drivers/net/ethernet/ti/davinci_cpdma.h
-index 4b46cd6..9119b43 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.h
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.h
-@@ -80,7 +80,7 @@ int cpdma_ctlr_stop(struct cpdma_ctlr *ctlr);
- 
- struct cpdma_chan *cpdma_chan_create(struct cpdma_ctlr *ctlr, int chan_num,
- 				     cpdma_handler_fn handler);
--int cpdma_chan_get_rx_buf_num(struct cpdma_ctlr *ctlr);
-+int cpdma_chan_get_rx_buf_num(struct cpdma_chan *chan);
- int cpdma_chan_destroy(struct cpdma_chan *chan);
- int cpdma_chan_start(struct cpdma_chan *chan);
- int cpdma_chan_stop(struct cpdma_chan *chan);
--- 
-1.9.1
+As this is clearly a fix for a long standing issue, I'd like to send
+it for stable inclusion.  Would you mind doing a bit of detective work
+to added a Fixes tag to say which original patch introduced the issue?
+
+I'm going to start pushing back on this in general as it's helpful
+to the stable maintainers if we provide this info whenever possible.
+
+Thanks,
+
+Jonathan
+> ---
+>  drivers/iio/adc/ti_am335x_adc.c | 14 +++++++++++---
+>  1 file changed, 11 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+> index 8a368756881b..bed9977a1863 100644
+> --- a/drivers/iio/adc/ti_am335x_adc.c
+> +++ b/drivers/iio/adc/ti_am335x_adc.c
+> @@ -32,6 +32,7 @@
+>  
+>  struct tiadc_device {
+>  	struct ti_tscadc_dev *mfd_tscadc;
+> +	struct mutex fifo1_lock; /* to protect fifo access */
+>  	int channels;
+>  	u8 channel_line[8];
+>  	u8 channel_step[8];
+> @@ -359,6 +360,7 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
+>  		int *val, int *val2, long mask)
+>  {
+>  	struct tiadc_device *adc_dev = iio_priv(indio_dev);
+> +	int ret = IIO_VAL_INT;
+>  	int i, map_val;
+>  	unsigned int fifo1count, read, stepid;
+>  	bool found = false;
+> @@ -372,6 +374,7 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
+>  	if (!step_en)
+>  		return -EINVAL;
+>  
+> +	mutex_lock(&adc_dev->fifo1_lock);
+>  	fifo1count = tiadc_readl(adc_dev, REG_FIFO1CNT);
+>  	while (fifo1count--)
+>  		tiadc_readl(adc_dev, REG_FIFO1);
+> @@ -388,7 +391,8 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
+>  
+>  		if (time_after(jiffies, timeout)) {
+>  			am335x_tsc_se_adc_done(adc_dev->mfd_tscadc);
+> -			return -EAGAIN;
+> +			ret = -EAGAIN;
+> +			goto err_unlock;
+>  		}
+>  	}
+>  	map_val = adc_dev->channel_step[chan->scan_index];
+> @@ -414,8 +418,11 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
+>  	am335x_tsc_se_adc_done(adc_dev->mfd_tscadc);
+>  
+>  	if (found == false)
+> -		return -EBUSY;
+> -	return IIO_VAL_INT;
+> +		ret =  -EBUSY;
+> +
+> +err_unlock:
+> +	mutex_unlock(&adc_dev->fifo1_lock);
+> +	return ret;
+>  }
+>  
+>  static const struct iio_info tiadc_info = {
+> @@ -483,6 +490,7 @@ static int tiadc_probe(struct platform_device *pdev)
+>  
+>  	tiadc_step_config(indio_dev);
+>  	tiadc_writel(adc_dev, REG_FIFO1THR, FIFO1_THRESHOLD);
+> +	mutex_init(&adc_dev->fifo1_lock);
+>  
+>  	err = tiadc_channel_init(indio_dev, adc_dev->channels);
+>  	if (err < 0)
+> 
