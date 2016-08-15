@@ -1,36 +1,58 @@
-From: Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [PATCH v1 03/14] clk: twl6040: Rename the driver and use
- consistent names in the code
-Date: Mon, 15 Aug 2016 12:10:26 -0700
-Message-ID: <20160815191026.GY361@codeaurora.org>
-References: <20160530085522.30398-1-peter.ujfalusi@ti.com>
- <20160530085522.30398-4-peter.ujfalusi@ti.com>
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v4 3/5] power_supply: tps65217-charger: Add support for
+ IRQs
+Date: Mon, 15 Aug 2016 21:26:03 +0200
+Message-ID: <20160815192602.cpibysrzshm5tr7q@earth>
+References: <20160620105056.25843-1-m.niestroj@grinn-global.com>
+ <20160620105056.25843-4-m.niestroj@grinn-global.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="mj3hw3cm4t2vfm45"
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160530085522.30398-4-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20160620105056.25843-4-m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
+To: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
+Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Dmitry Eremin-Solenikov <dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 05/30, Peter Ujfalusi wrote:
-> The driver is to provide the functional clock to OMAP4/5 McPDM. The clock
-> is named as pdmclk in the documentations so change the function names,
-> structure names and variables to align with this.
-> At the same time rename the driver from "twl6040-clk" to "twl6040-pdmclk".
-> This can be done w/o regression since the clock driver is not in use at
-> the moment, the MFD core driver is not even registering the device for it.
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-> ---
 
-Applied to clk-next
+--mj3hw3cm4t2vfm45
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+Hi,
+
+On Mon, Jun 20, 2016 at 12:50:54PM +0200, Marcin Niestroj wrote:
+> Make use of IRQ resources defined in tps65217 mfd code. If they are valid
+> we use them instead separate poll task, in order to define AC power state.
+
+Thanks, queued into power-supply's -next branch.
+
+-- Sebastian
+
+--mj3hw3cm4t2vfm45
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJXshdHAAoJENju1/PIO/qaRLsQAJLqeAiiZGgAiWGL/kn0lZlM
+FwHfBwcXDIYFOtnJexiTkIgzseDau2/xr1MrSkQ/6Qusgx1Kb7EgBHc6qhDkcyHT
+Q7mr8atoX05hM9R2XyNIOjdyhVIpVnbYpAF9DHaTftcwTntnfpkzIcxB5YIoEGo7
+vKvejtZ+lxEwdONoDSj7REQppfk1dKVLQlLhxbbVmxc+od5DM0T1EDg7nEqu1D76
+e+XEftu9bCMLIJGfDOOK+2G1v5Owh9NkW4vdp8Fh75b3I5w/sqU5cK3gPg+6CjSu
+rU8knmJ4/bL94fXlRDAV2wUiVZGOx22/QkIgOdZmd8ZcbkDkLZDdczYuXKhB/gBO
+apk+jD9zwmYrGI11cfTh5PsK+JIiaLG1FwlC1kqewi7PeH8ZOSDvtHu8tc4p5AH4
+mms3sfYl4s7KZbXDRbZlhiALPoZbxLNP97dRTGslcLzAhYKjAs0bC/AZE9tv1Jhb
+jxgP4IM6P2UhrRuSmQ6I5zividazNK6t/rybyymNs9MPnFQg2zMpGhh68by1GDTp
+fR0cuMomcvcCTdp08poOl90iM/Xwtj/i/Z0HA4P0KEJrgFylKMdpcRuIH0oj86JE
+WvD4iMcXdnae+SXAv948Ytw4pjKoImFPf6V5P+TVfqT1tjQnQOztnw0hGmUSl6Ga
+b3iLBjB9BPIRocO0unHu
+=bZw1
+-----END PGP SIGNATURE-----
+
+--mj3hw3cm4t2vfm45--
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
