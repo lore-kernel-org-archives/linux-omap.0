@@ -1,76 +1,52 @@
-From: Jonathan Cameron <jic23@kernel.org>
-Subject: Re: [PATCH 2/2] iio: adc: ti_am335x_adc: Increase timeout value
- waiting for ADC sample
-Date: Mon, 15 Aug 2016 16:47:50 +0100
-Message-ID: <6e5c9bea-7b0f-0fdb-976a-29b7a0bccc5e@kernel.org>
-References: <20160808110501.29586-1-vigneshr@ti.com>
- <20160808110501.29586-3-vigneshr@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] ARM: dts: am335x: Update elm phandle binding
+Date: Mon, 15 Aug 2016 09:02:20 -0700
+Message-ID: <20160815160220.GP28140@atomide.com>
+References: <1467711150-23356-1-git-send-email-t.remmet@phytec.de>
+ <20160713171407.GB136972@google.com>
+ <9354c50f-f851-f473-a8af-0a84c951453e@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160808110501.29586-3-vigneshr@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Lee Jones <lee.jones@linaro.org>, "Andrew F . Davis" <afd@ti.com>, linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <9354c50f-f851-f473-a8af-0a84c951453e@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Brian Norris <computersforpeace@gmail.com>, Richard Weinberger <richard@nod.at>, Rob Herring <robh+dt@kernel.org>, linux-mtd@lists.infradead.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Teresa Remmet <t.remmet@phytec.de>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/08/16 12:05, Vignesh R wrote:
-> Now that open delay and sample delay for each channel is configurable
-> via DT, the default IDLE_TIMEOUT value is not enough as this is
-> calculated based on hardcoded macros. This results in driver returning
-> EBUSY sometimes. Fix this by increasing the timeout
-> value based on maximum value possible to open delay and sample delays
-> for each channel.
+* Roger Quadros <rogerq@ti.com> [160801 02:25]:
+> On 13/07/16 20:14, Brian Norris wrote:
+> > On Tue, Jul 05, 2016 at 11:32:29AM +0200, Teresa Remmet wrote:
+> >> The check for the "elm_id" binding had been removed.
+> >> This causes nand boot to fail on boards still using
+> >> the old binding. Update the bindings on those boards.
+> > 
+> > Acked-by: Brian Norris <computersforpeace@gmail.com>
+> > 
+> > We're fixing the backward compatibility issue anyway, but might as well
+> > "upgrade" the device tree.
+> > 
+> >> Signed-off-by: Teresa Remmet <t.remmet@phytec.de>
 > 
-> Signed-off-by: Vignesh R <vigneshr@ti.com>
-As with patch 1 could you provide a fixes tag as well highlighting the
-patch that introduced the issue. I'm thinking you are referring to:
+> Acked-by: Roger Quadros <rogerq@ti.com>
+> 
+> Tony,
+> 
+> Please take this one via your OMAP DT tree. Thanks.
 
-iio: adc: ti_am335x_adc: make sample delay, open delay, averaging DT parameters
-5dc11e810676ec4a5acb4423ccd33314bf74f4e54
+Applying to omap-for-v4.8/fixes finally thanks. Sorry for
+the delay.
 
-> ---
->  drivers/iio/adc/ti_am335x_adc.c      | 2 +-
->  include/linux/mfd/ti_am335x_tscadc.h | 8 ++++----
->  2 files changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
-> index bed9977a1863..c3cfacca2541 100644
-> --- a/drivers/iio/adc/ti_am335x_adc.c
-> +++ b/drivers/iio/adc/ti_am335x_adc.c
-> @@ -381,7 +381,7 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
->  
->  	am335x_tsc_se_set_once(adc_dev->mfd_tscadc, step_en);
->  
-> -	timeout = jiffies + usecs_to_jiffies
-> +	timeout = jiffies + msecs_to_jiffies
->  				(IDLE_TIMEOUT * adc_dev->channels);
->  	/* Wait for Fifo threshold interrupt */
->  	while (1) {
-> diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
-> index 2567a87872b0..7f55b8b41032 100644
-> --- a/include/linux/mfd/ti_am335x_tscadc.h
-> +++ b/include/linux/mfd/ti_am335x_tscadc.h
-> @@ -138,16 +138,16 @@
->  /*
->   * time in us for processing a single channel, calculated as follows:
->   *
-> - * num cycles = open delay + (sample delay + conv time) * averaging
-> + * max num cycles = open delay + (sample delay + conv time) * averaging
->   *
-> - * num cycles: 152 + (1 + 13) * 16 = 376
-> + * max num cycles: 262143 + (255 + 13) * 16 = 266431
->   *
->   * clock frequency: 26MHz / 8 = 3.25MHz
->   * clock period: 1 / 3.25MHz = 308ns
->   *
-> - * processing time: 376 * 308ns = 116us
-> + * max processing time: 266431 * 308ns = 83ms(approx)
->   */
-> -#define IDLE_TIMEOUT 116 /* microsec */
-> +#define IDLE_TIMEOUT 83 /* milliseconds */
->  
->  #define TSCADC_CELLS		2
->  
-> 
+Regards,
+
+Tony
