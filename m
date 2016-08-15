@@ -1,56 +1,56 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/3] ARM: omap: fix 4.7 gpmc networking regression
-Date: Mon, 15 Aug 2016 09:07:22 -0700
-Message-ID: <20160815160722.GQ28140@atomide.com>
-References: <1469362260-20066-1-git-send-email-johan@kernel.org>
- <20160802103505.GD28140@atomide.com>
- <9cf04231-091c-4ac3-bfb8-8d8be3d591eb@ti.com>
- <20160803080149.GB15860@localhost>
- <2fde63f3-62b1-75a0-524a-f858ff1de459@ti.com>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: Re: [PATCH v2 1/4] net: ethernet: ti: davinci_cpdma: split descs num
+ between all channels
+Date: Mon, 15 Aug 2016 19:30:28 +0300
+Message-ID: <7426a9f3-a93e-5ae4-da00-48caf0dc86b8@linaro.org>
+References: <1471274181-780-1-git-send-email-ivan.khoronzhuk@linaro.org>
+ <1471274181-780-2-git-send-email-ivan.khoronzhuk@linaro.org>
+ <SN2PR11MB009489AF2C64CD34DE5473A597120@SN2PR11MB0094.namprd11.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <2fde63f3-62b1-75a0-524a-f858ff1de459-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <SN2PR11MB009489AF2C64CD34DE5473A597120@SN2PR11MB0094.namprd11.prod.outlook.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yuval Mintz <Yuval.Mintz@qlogic.com>, David Miller <davem@davemloft.net>, netdev <netdev@vger.kernel.org>, "mugunthanvnm@ti.com" <mugunthanvnm@ti.com>, "grygorii.strashko@ti.com" <grygorii.strashko@ti.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "nsekhar@ti.com" <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [160803 02:56]:
-> On 03/08/16 11:01, Johan Hovold wrote:
-> > On Wed, Aug 03, 2016 at 10:46:24AM +0300, Roger Quadros wrote:
-> >> On 02/08/16 13:35, Tony Lindgren wrote:
-> >>> * Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [160724 05:11]:
-> >>>> Networking is currently broken for Overo boards due to a regression in
-> >>>> 4.7. I bisected it down to
-> >>>>
-> >>>> 	d2d00862dfbb ("memory: omap-gpmc: Support general purpose input
-> >>>> 	for WAITPINs")
-> >>> ...
-> >>>
-> >>>> Note that simply fixing the Overo NAND issue would fix the Overo
-> >>>> networking regression, but by restoring the 4.6 gpmc-probe behaviour
-> >>>> similar regressions on other OMAP systems are also avoided.
-> >>>
-> >>> Roger, got a better fix in mind?
-> >>>
-> >>
-> >> Nope. I'll take patch 1 in my omap-gpmc queue for v4.8.
-> >> Thanks for the fixes Johan.
-> > 
-> > Now that 4.7 has been released, you may want to consider adding a stable
-> > tag also for the first patch to avoid similar issues on other systems
-> > when they get updated to 4.7-stable.
-> > 
-> 
-> Yes, that was my plan as well.
 
-OK and I'm now finally applying the dts fixes into omap-for-v4.8/fixes.
-Sorry for the delay.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 15.08.16 19:05, Yuval Mintz wrote:
+>> Currently the tx channels share same pool of descriptors. Thus one channel can
+>> block another if pool is emptied by one. But, the shaper should decide which
+>> channel is allowed to send packets. To avoid such impact of one channel on
+>> another, let every channel to have its own peace of pool.
+> Piece.
+Yep.
+
+>
+>> +/**
+>> + * cpdma_chan_split_pool - Splits ctrl pool between all channels.
+>> + * Has to be called under ctlr lock
+>> + *
+>> + */
+> No need for the extra empty comment line.
+Ok.
+
+>
+>> +	/* calculate average size of pool slice */
+>> +	ch_desc_num = pool->num_desc / ctlr->chan_num;
+>> +
+>> +	/* split ctlr pool */
+>> +	for (i = 0; i < ARRAY_SIZE(ctlr->channels); i++) {
+>> +		chan = ctlr->channels[i];
+>> +		if (chan)
+>> +			chan->desc_num = ch_desc_num;
+> Is this 'if' needed? If there's some route where the channel can be NULL,
+> You're splitting the value incorrectly.
+If chan == NULL it's not active and pool->chan_num doesn't include it.
+The descriptors are split between active channels only.
+
+>
+
+-- 
+Regards,
+Ivan Khoronzhuk
