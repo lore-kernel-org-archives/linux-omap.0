@@ -1,52 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] ARM: dts: am335x: Update elm phandle binding
-Date: Mon, 15 Aug 2016 09:02:20 -0700
-Message-ID: <20160815160220.GP28140@atomide.com>
-References: <1467711150-23356-1-git-send-email-t.remmet@phytec.de>
- <20160713171407.GB136972@google.com>
- <9354c50f-f851-f473-a8af-0a84c951453e@ti.com>
+From: Yuval Mintz <Yuval.Mintz@qlogic.com>
+Subject: RE: [PATCH v2 1/4] net: ethernet: ti: davinci_cpdma: split descs num
+ between all channels
+Date: Mon, 15 Aug 2016 16:05:53 +0000
+Message-ID: <SN2PR11MB009489AF2C64CD34DE5473A597120@SN2PR11MB0094.namprd11.prod.outlook.com>
+References: <1471274181-780-1-git-send-email-ivan.khoronzhuk@linaro.org>
+ <1471274181-780-2-git-send-email-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <9354c50f-f851-f473-a8af-0a84c951453e@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Brian Norris <computersforpeace@gmail.com>, Richard Weinberger <richard@nod.at>, Rob Herring <robh+dt@kernel.org>, linux-mtd@lists.infradead.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Teresa Remmet <t.remmet@phytec.de>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1471274181-780-2-git-send-email-ivan.khoronzhuk@linaro.org>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, David Miller <davem@davemloft.net>, netdev <netdev@vger.kernel.org>, "mugunthanvnm@ti.com" <mugunthanvnm@ti.com>, "grygorii.strashko@ti.com" <grygorii.strashko@ti.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "nsekhar@ti.com" <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [160801 02:25]:
-> On 13/07/16 20:14, Brian Norris wrote:
-> > On Tue, Jul 05, 2016 at 11:32:29AM +0200, Teresa Remmet wrote:
-> >> The check for the "elm_id" binding had been removed.
-> >> This causes nand boot to fail on boards still using
-> >> the old binding. Update the bindings on those boards.
-> > 
-> > Acked-by: Brian Norris <computersforpeace@gmail.com>
-> > 
-> > We're fixing the backward compatibility issue anyway, but might as well
-> > "upgrade" the device tree.
-> > 
-> >> Signed-off-by: Teresa Remmet <t.remmet@phytec.de>
-> 
-> Acked-by: Roger Quadros <rogerq@ti.com>
-> 
-> Tony,
-> 
-> Please take this one via your OMAP DT tree. Thanks.
+> Currently the tx channels share same pool of descriptors. Thus one channel can
+> block another if pool is emptied by one. But, the shaper should decide which
+> channel is allowed to send packets. To avoid such impact of one channel on
+> another, let every channel to have its own peace of pool.
+Piece.
+ 
+> +/**
+> + * cpdma_chan_split_pool - Splits ctrl pool between all channels.
+> + * Has to be called under ctlr lock
+> + *
+> + */
+No need for the extra empty comment line.
 
-Applying to omap-for-v4.8/fixes finally thanks. Sorry for
-the delay.
-
-Regards,
-
-Tony
+> +	/* calculate average size of pool slice */
+> +	ch_desc_num = pool->num_desc / ctlr->chan_num;
+> +
+> +	/* split ctlr pool */
+> +	for (i = 0; i < ARRAY_SIZE(ctlr->channels); i++) {
+> +		chan = ctlr->channels[i];
+> +		if (chan)
+> +			chan->desc_num = ch_desc_num;
+Is this 'if' needed? If there's some route where the channel can be NULL,
+You're splitting the value incorrectly.
