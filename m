@@ -1,67 +1,53 @@
-From: Marcel Holtmann <marcel@holtmann.org>
-Subject: Re: [RFC 4/7] Bluetooth: hci_uart: Add support for word alignment
-Date: Tue, 16 Aug 2016 09:05:19 +0200
-Message-ID: <F96C9280-2B85-42A0-A1DB-2C0C231F5C1D@holtmann.org>
-References: <1471058078-5579-1-git-send-email-sre@kernel.org> <1471058078-5579-5-git-send-email-sre@kernel.org>
+From: Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [RFC 0/7] Nokia N9xx bluetooth driver
+Date: Tue, 16 Aug 2016 09:10:54 +0200
+Message-ID: <A9EA833E-DDDE-46FB-917C-30CF00A70A6C@holtmann.org>
+References: <1471058078-5579-1-git-send-email-sre@kernel.org>
 Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1471058078-5579-5-git-send-email-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, Ville Tervo <ville.tervo@iki.fi>, =?utf-8?Q?Filip_Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, =?utf-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, ivo.g.dimitrov.75@gmail.com, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1471058078-5579-1-git-send-email-sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Jiri Slaby <jslaby-IBi9RG/b67k@public.gmane.org>, Ville Tervo <ville.tervo-X3B1VOXEql0@public.gmane.org>, =?utf-8?Q?Filip_Matijevi=C4=87?= <filip.matijevic.pz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, =?utf-8?Q?Pali_Roh=C3=A1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Sebatian,
+Hi Sebastian,
 
-> This will be used by Nokia's H4+ protocol, which
-> adds padding to packets to reach word alignment.
-> ---
-> drivers/bluetooth/hci_h4.c   | 10 ++++++++++
-> drivers/bluetooth/hci_uart.h |  1 +
-> 2 files changed, 11 insertions(+)
+> This series (based von 4.8-rc1) adds support for bluetooth on the Nokia
+> N9xx devices. It has been tested on the Nokia N950, where it works
+> correctly. On Nokia N900 it currently fails during negotiation
+> (probably related to slightly incorrect serial settings/timings).
+> The N900's bcm2048 correctly answeres to alive check even before
+> negotiation (on N950 it does not work before negotiation), but replies
+> with an Hardware error event to the negotiation packet.
 > 
-> diff --git a/drivers/bluetooth/hci_h4.c b/drivers/bluetooth/hci_h4.c
-> index 635597b6e168..a934e4eb692b 100644
-> --- a/drivers/bluetooth/hci_h4.c
-> +++ b/drivers/bluetooth/hci_h4.c
-> @@ -253,11 +253,21 @@ struct sk_buff *h4_recv_buf(struct hci_dev *hdev, struct sk_buff *skb,
-> 			}
+> Apart from N900 support there are still two "features" missing in the
+> driver:
 > 
-> 			if (!dlen) {
-> +				if ((&pkts[i])->wordaligned && !(skb->len % 2)) {
-> +					buffer++;
-> +					count--;
-> +				}
-> +
-> 				/* No more data, complete frame */
-> 				(&pkts[i])->recv(hdev, skb);
-> 				skb = NULL;
-> 			}
-> 		} else {
-> +			if ((&pkts[i])->wordaligned && !(skb->len % 2)) {
-> +				buffer++;
-> +				count--;
-> +			}
-> +
-> 			/* Complete frame */
-> 			(&pkts[i])->recv(hdev, skb);
-> 			skb = NULL;
-> diff --git a/drivers/bluetooth/hci_uart.h b/drivers/bluetooth/hci_uart.h
-> index 839bad1d8152..a7d67aec3632 100644
-> --- a/drivers/bluetooth/hci_uart.h
-> +++ b/drivers/bluetooth/hci_uart.h
-> @@ -121,6 +121,7 @@ struct h4_recv_pkt {
-> 	u8  loff;	/* Data length offset in header */
-> 	u8  lsize;	/* Data length field size */
-> 	u16 maxlen;	/* Max overall packet length */
-> +	bool wordaligned;	/* packets are word aligned */
+> 1. To save energy the bluetooth module can be put into sleep mode via a
+>   GPIO. This gpio should be enabled before sending data via UART and
+>   disabled once the transmission is done. I currently just keep the
+>   GPIO always enabled.
+> 2. It would be nice to have a bluetooth device exposed by the kernel
+>   automatically without having to setup the tty disector first for
+>   proper configurationless out of the box support. I could not find
+>   a nice way to do this from the kernel, though.
 
-I wonder if not a u8 align would be a way better choice here. We set it to 1 for all existing packet types. And the Nokia driver can use 2 here.
+currently using the HCI line discipline is the only way to attach a Bluetooth device to a serial line / UART.
 
-> 	int (*recv)(struct hci_dev *hdev, struct sk_buff *skb);
+However I have been advocating for a serial bus or UART bus for a long time now. It is needed especially for Bluetooth devices which have no business in being exposed as TTYs in the first place.
+
+This is true for the ACPI and DT world actually. Some UARTs should not be exposed as TTY and just be stuck on a bus that can be enumerated and matched by a driver that knows how to handle it.
+
+This goes along with the weird fetish to expose certain Bluetooth GPIOs as RFKILL switches. They are not that either since they just power the UART. They have nothing to do with a radio RFKILL switch. We fixed the Intel and Broadcom ones to be mapped into the driver. Having a proper bus would make this one also a lot easier.
 
 Regards
 
 Marcel
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
