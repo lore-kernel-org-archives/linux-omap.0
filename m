@@ -1,290 +1,1097 @@
-From: Ye Xiaolong <xiaolong.ye@intel.com>
-Subject: Re: [lkp] [usb]  ad05399d68: BUG: unable to handle kernel NULL
- pointer dereference at 0000000000000012
-Date: Tue, 16 Aug 2016 12:40:25 +0800
-Message-ID: <20160816044024.GC1845@yexl-desktop>
-References: <20160815043823.GH19354@yexl-desktop>
- <HE1PR04MB14503E90B2937B9F913EA3258B120@HE1PR04MB1450.eurprd04.prod.outlook.com>
- <20160815144955.GA19665@yexl-desktop>
- <20160816013820.GD16965@shlinux2>
-Mime-Version: 1.0
+From: Marcel Holtmann <marcel@holtmann.org>
+Subject: Re: [RFC 5/7] Bluetooth: hci_nokia: Introduce new driver
+Date: Tue, 16 Aug 2016 09:02:14 +0200
+Message-ID: <0528B894-39CB-4D18-971E-3209EEEA2583@holtmann.org>
+References: <1471058078-5579-1-git-send-email-sre@kernel.org> <1471058078-5579-6-git-send-email-sre@kernel.org>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160816013820.GD16965@shlinux2>
+In-Reply-To: <1471058078-5579-6-git-send-email-sre@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Chen <hzpeterchen@gmail.com>
-Cc: Peter Chen <peter.chen@nxp.com>, Felipe Balbi <felipe.balbi@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lkp@01.org" <lkp@01.org>
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, Ville Tervo <ville.tervo@iki.fi>, =?utf-8?Q?Filip_Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, =?utf-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, ivo.g.dimitrov.75@gmail.com, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/16, Peter Chen wrote:
->On Mon, Aug 15, 2016 at 10:49:55PM +0800, Ye Xiaolong wrote:
->> On 08/15, Peter Chen wrote:
->> > 
->> >>
->> >>
->> >>FYI, we noticed the following commit:
->> >>
->> >>https://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git testing/next commit
->> >>ad05399d68b6ae1649cdcfc82ce3ffea1a7c5104 ("usb: udc: core: fix error handling")
->> >>
->> >
->> >Hi Xiaolong,
->> >
->> >You reported it one month ago, and said it is a false report. see below.
->> >Would you please double confirm it?
->> 
->> Hi, peter
->> 
->> Last time I reported stat "WARNING: CPU: 0 PID: 1 at
->> lib/list_debug.c:36" and it showed both in this commit and its parent,
->> this time, the observed change stat is "BUG: unable to handle kernel NULL
->> pointer dereference at 0000000000000012" and it doesn't show in parent
->> commit, however, the parent commit's dmesg would show kernel panic log
->> as:
->> 
->> [   10.338487] Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
->> [   10.338487] 
->> [   10.339911] CPU: 0 PID: 1 Comm: init Not tainted 4.8.0-rc1-00020-g0937a4d #1
->> [   10.341177] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Debian-1.8.2-1 04/01/2014
->> [   10.342798]  0000000000000000 ffff88001e53bc28 ffffffff8168cf8a ffff88001e534000
->> [   10.345177]  ffffffff8256ef20 ffff88001e53bcb8 ffff88001e50ca50 ffff88001e53bca8
->> [   10.346739]  ffffffff8114e062 ffff880000000010 ffff88001e53bcb8 ffff88001e53bc50
->> [   10.347970] Call Trace:
->> [   10.348690]  [<ffffffff8168cf8a>] dump_stack+0x83/0xb9
->> [   10.351592]  [<ffffffff8114e062>] panic+0xf3/0x2a9
->> [   10.352386]  [<ffffffff81090e01>] do_exit+0x601/0xde0
->> [   10.352879]  [<ffffffff8109a283>] ? __sigqueue_free+0x43/0x50
->> [   10.353511]  [<ffffffff8109a5f7>] ? __dequeue_signal+0x1f7/0x210
->> [   10.354483]  [<ffffffff810916e2>] do_group_exit+0xa2/0x100
->> [   10.355324]  [<ffffffff8109e06e>] get_signal+0x68e/0x740
->> [   10.356155]  [<ffffffff81009233>] do_signal+0x23/0x670
->> [   10.356983]  [<ffffffff810e0000>] ? do_syslog+0x2c0/0x6a0
->> [   10.357832]  [<ffffffff810305e3>] ? bad_area_nosemaphore+0x33/0x40
->> [   10.358825]  [<ffffffff81030cf7>] ? __do_page_fault+0x407/0x4d0
->> [   10.359738]  [<ffffffff810020c9>] exit_to_usermode_loop+0x69/0xc0
->> [   10.360680]  [<ffffffff8100241d>] prepare_exit_to_usermode+0x3d/0x70
->> [   10.361725]  [<ffffffff82025a27>] retint_user+0x8/0x10
->> [   10.362650] Kernel Offset: disabled
->> 
->> The whole parent dmesg is attached.
->> 
->
->Then, what's the conclusion? Is this one is detect one or not?
->
+Hi Sebastian,
 
-It seems parent kernel lives longer than this commit, and the 
-sysfs_kf_write bug shows up consistently in 3 boot tests in LKP
-environment.
+> This driver adds support for Nokia H4+ procotol used
+> for example by Nokia's internet tablets (N770 - N950).
+> ---
+> drivers/bluetooth/Kconfig     |  10 +
+> drivers/bluetooth/Makefile    |   1 +
+> drivers/bluetooth/hci_ldisc.c |   6 +
+> drivers/bluetooth/hci_nokia.c | 734 ++++++++++++++++++++++++++++++++++++++++++
+> drivers/bluetooth/hci_nokia.h | 140 ++++++++
+> drivers/bluetooth/hci_uart.h  |   8 +-
+> 6 files changed, 898 insertions(+), 1 deletion(-)
+> create mode 100644 drivers/bluetooth/hci_nokia.c
+> create mode 100644 drivers/bluetooth/hci_nokia.h
+> 
+> diff --git a/drivers/bluetooth/Kconfig b/drivers/bluetooth/Kconfig
+> index cf50fd2e96df..c32d9d5ad1d2 100644
+> --- a/drivers/bluetooth/Kconfig
+> +++ b/drivers/bluetooth/Kconfig
+> @@ -86,6 +86,16 @@ config BT_HCIUART_H4
+> 
+> 	  Say Y here to compile support for HCI UART (H4) protocol.
+> 
+> +config BT_HCIUART_NOKIA
+> +	bool "UART Nokia H4+ protocol support"
+> +	depends on BT_HCIUART
+> +	help
+> +	  Nokia H4+ is serial protocol for communication between Bluetooth
+> +	  device and host. This protocol is required for Bluetooth devices
+> +	  with UART interface in Nokia devices.
+> +
+> +	  Say Y here to compile support for Nokia's H4+ protocol.
+> +
+> config BT_HCIUART_BCSP
+> 	bool "BCSP protocol support"
+> 	depends on BT_HCIUART
+> diff --git a/drivers/bluetooth/Makefile b/drivers/bluetooth/Makefile
+> index 9c18939fc5c9..f7951646ee14 100644
+> --- a/drivers/bluetooth/Makefile
+> +++ b/drivers/bluetooth/Makefile
+> @@ -37,6 +37,7 @@ hci_uart-$(CONFIG_BT_HCIUART_INTEL)	+= hci_intel.o
+> hci_uart-$(CONFIG_BT_HCIUART_BCM)	+= hci_bcm.o
+> hci_uart-$(CONFIG_BT_HCIUART_QCA)	+= hci_qca.o
+> hci_uart-$(CONFIG_BT_HCIUART_AG6XX)	+= hci_ag6xx.o
+> +hci_uart-$(CONFIG_BT_HCIUART_NOKIA)	+= hci_nokia.o
+> hci_uart-objs				:= $(hci_uart-y)
+> 
+> ccflags-y += -D__CHECK_ENDIAN__
+> diff --git a/drivers/bluetooth/hci_ldisc.c b/drivers/bluetooth/hci_ldisc.c
+> index dda97398c59a..83d0de94bf35 100644
+> --- a/drivers/bluetooth/hci_ldisc.c
+> +++ b/drivers/bluetooth/hci_ldisc.c
+> @@ -810,6 +810,9 @@ static int __init hci_uart_init(void)
+> #ifdef CONFIG_BT_HCIUART_AG6XX
+> 	ag6xx_init();
+> #endif
+> +#ifdef CONFIG_BT_HCIUART_NOKIA
+> +	nokia_init();
+> +#endif
+> 
+> 	return 0;
+> }
+> @@ -845,6 +848,9 @@ static void __exit hci_uart_exit(void)
+> #ifdef CONFIG_BT_HCIUART_AG6XX
+> 	ag6xx_deinit();
+> #endif
+> +#ifdef CONFIG_BT_HCIUART_NOKIA
+> +	nokia_deinit();
+> +#endif
+> 
+> 	/* Release tty registration of line discipline */
+> 	err = tty_unregister_ldisc(N_HCI);
+> diff --git a/drivers/bluetooth/hci_nokia.c b/drivers/bluetooth/hci_nokia.c
+> new file mode 100644
+> index 000000000000..efd4dd320838
+> --- /dev/null
+> +++ b/drivers/bluetooth/hci_nokia.c
+> @@ -0,0 +1,734 @@
+> +/*
+> + *
+> + *  Bluetooth HCI UART H4 driver with Nokia Extensions
+> + *
+> + *  Copyright (C) 2015 Marcel Holtmann <marcel@holtmann.org>
+> + *  Copyright (C) 2016 Sebastian Reichel <sre@kernel.org>
+> + *
+> + *  This program is free software; you can redistribute it and/or modify
+> + *  it under the terms of the GNU General Public License as published by
+> + *  the Free Software Foundation; either version 2 of the License, or
+> + *  (at your option) any later version.
+> + *
+> + *  This program is distributed in the hope that it will be useful,
+> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *  GNU General Public License for more details.
+> + */
+> +
+> +#include <linux/module.h>
+> +
+> +#include <linux/clk.h>
+> +#include <linux/kernel.h>
+> +#include <linux/init.h>
+> +#include <linux/types.h>
+> +#include <linux/fcntl.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/ptrace.h>
+> +#include <linux/poll.h>
+> +#include <linux/pm_runtime.h>
+> +#include <linux/firmware.h>
+> +#include <linux/slab.h>
+> +#include <linux/tty.h>
+> +#include <linux/errno.h>
+> +#include <linux/string.h>
+> +#include <linux/signal.h>
+> +#include <linux/ioctl.h>
+> +#include <linux/skbuff.h>
+> +#include <linux/delay.h>
+> +#include <linux/platform_device.h>
+> +
+> +#include <linux/gpio/consumer.h>
+> +
+> +#include <linux/unaligned/le_struct.h>
 
-% compare -at ad05399d68b6ae1649cdcfc82ce3ffea1a7c5104
-tests: 3
-testcase/path_params/tbox_group/run: boot/1/vm-kbuild-yocto-x86_64
+are you sure all these includes are needed?
 
-0937a4d787539e2f  ad05399d68b6ae1649cdcfc82c
-----------------  --------------------------
-      fail:runs  %reproduction    fail:runs
-          |             |             |
-         6:6         -100%            :4     kmsg.stc):gdata/new_proto/recv_or_reg_complete_cb_not_ready
-         6:6         -100%            :4     kmsg.fmdrv:st_unregister_failed
-          :6          100%           4:4     kmsg.list_del_corruption.prev->next_should_be#,but_was
-          :6          100%           4:4     dmesg.WARNING:at_lib/list_debug.c:#__list_del_entry
-          :6          100%           4:4     dmesg.BUG:unable_to_handle_kernel
-          :6          100%           4:4     dmesg.Oops
-          :6          100%           4:4     dmesg.RIP:sysfs_kf_write
-          :6          100%           4:4     dmesg.Kernel_panic-not_syncing:Fatal_exception
-         6:6         -100%            :4     dmesg.Kernel_panic-not_syncing:Attempted_to_kill_init!exitcode=
+> +#include <net/bluetooth/bluetooth.h>
+> +#include <net/bluetooth/hci_core.h>
+> +
+> +#include "hci_uart.h"
+> +#include "hci_nokia.h"
+> +
+> +struct nokia_uart_dev {
+> +	struct device *dev;
+> +	struct tty_port *port;
+> +	struct gpio_desc *reset;
+> +	struct gpio_desc *wakeup_host;
+> +	struct gpio_desc *wakeup_bt;
+> +	unsigned long sysclk_speed;
+> +};
+> +
+> +struct nokia_bt_dev {
+> +	struct hci_uart *hu;
+> +	struct nokia_uart_dev *btdata;
+> +	int wake_irq;
+> +	bool wake_state;
+> +	struct sk_buff *rx_skb;
+> +	struct sk_buff_head txq;
+> +	bdaddr_t bdaddr;
+> +
+> +	int init_error;
+> +	struct completion init_completion;
+> +
+> +	uint8_t man_id;
+> +	uint8_t ver_id;
+> +};
+> +
+> +static char *nokia_get_fw_name(struct nokia_bt_dev *btdev)
+> +{
+> +	switch (btdev->man_id) {
+> +	case NOKIA_ID_CSR:
+> +		return FIRMWARE_CSR;
+> +	case NOKIA_ID_BCM2048:
+> +		return FIRMWARE_BCM2048;
+> +	case NOKIA_ID_TI1271:
+> +		return FIRMWARE_TI1271;
+> +	default:
+> +		return NULL;
+> +	}
+> +}
+> +
+> +static int hci_uart_wait_for_cts(struct hci_uart *hu, bool state,
+> +				 int timeout_ms)
+> +{
+> +	unsigned long timeout;
+> +	int signal;
+> +
+> +	timeout = jiffies + msecs_to_jiffies(timeout_ms);
+> +	for (;;) {
+> +		signal = hu->tty->ops->tiocmget(hu->tty) & TIOCM_CTS;
+> +		if (!!signal == !!state) {
+> +			dev_dbg(hu->tty->dev, "wait for cts... received!\n");
+> +			return 0;
+> +		}
+> +		if (time_after(jiffies, timeout)) {
+> +			dev_dbg(hu->tty->dev, "wait for cts... timeout!\n");
+> +			return -ETIMEDOUT;
+> +		}
+> +		usleep_range(1000, 2000);
+> +	}
+> +}
 
-testcase/path_params/tbox_group/run: boot/1/vm-ivb41-yocto-ia32
+This is a super odd function. No return value since we essentially have an endless loop.
 
-0937a4d787539e2f  ad05399d68b6ae1649cdcfc82c
-----------------  --------------------------
-         2:2         -100%            :2     kmsg.stc):gdata/new_proto/recv_or_reg_complete_cb_not_ready
-         2:2         -100%            :2     kmsg.fmdrv:st_unregister_failed
-          :2          100%           2:2     dmesg.BUG:unable_to_handle_kernel
-          :2          100%           2:2     dmesg.Oops
-          :2          100%           2:2     dmesg.RIP:sysfs_kf_write
-          :2          100%           2:2     dmesg.Kernel_panic-not_syncing:Fatal_exception
-         2:2         -100%            :2     dmesg.BUG:kernel_test_hang
+> +
+> +static int btdev_match(struct device *child, void *data)
+> +{
+> +	if (!strcmp(child->driver->name, "nokia-bluetooth"))
+> +		return 1;
+> +	else
+> +		return 0;
+> +}
 
-testcase/path_params/tbox_group/run: boot/1/vm-kbuild-1G
+Anything wrong with just return !strcmp?
 
-0937a4d787539e2f  ad05399d68b6ae1649cdcfc82c
-----------------  --------------------------
-          :4          100%           4:4     dmesg.WARNING:at_lib/list_debug.c:#__list_del_entry
-          :4           75%           3:4     dmesg.BUG:unable_to_handle_kernel
-          :4           75%           3:4     dmesg.Oops
-          :4           75%           3:4     dmesg.RIP:sysfs_kf_write
-          :4           75%           3:4     dmesg.Kernel_panic-not_syncing:Fatal_exception
-         4:4         -100%            :4     dmesg.BUG:kernel_oversize_in_test_stage
+> +
+> +static irqreturn_t wakeup_handler(int irq, void *data)
+> +{
+> +	struct nokia_bt_dev *btdev = data;
+> +	struct device *serialdev = btdev->hu->tty->dev;
+> +	int wake_state = gpiod_get_value(btdev->btdata->wakeup_host);
+> +
+> +	dev_dbg(serialdev, "wakeup received: %d -> %d\n",
+> +		btdev->wake_state, wake_state);
+> +
+> +	if (btdev->wake_state == wake_state)
+> +		return IRQ_HANDLED;
+> +
+> +	if (wake_state)
+> +		pm_runtime_get_sync(serialdev);
+> +	else if (!wake_state)
+> +		pm_runtime_put(serialdev);
+> +
+> +	btdev->wake_state = wake_state;
+> +
+> +	return IRQ_HANDLED;
+> +}
+> +
+> +static int nokia_reset(struct hci_uart *hu)
+> +{
+> +	struct nokia_bt_dev *btdev = hu->priv;
+> +	int err;
+> +
+> +	/* reset routine */
+> +	gpiod_set_value_cansleep(btdev->btdata->reset, 0);
+> +	gpiod_set_value_cansleep(btdev->btdata->wakeup_bt, 1);
+> +
+> +	msleep(50);
+> +
+> +	/* safety check */
+> +	err = gpiod_get_value_cansleep(btdev->btdata->wakeup_host);
+> +	if (err == 1) {
+> +		dev_err(hu->tty->dev, "reset: host wakeup not low!\n");
+> +		return -EPROTO;
+> +	}
+> +
+> +	/* flush queues */
+> +	tty_ldisc_flush(hu->tty);
+> +	tty_driver_flush_buffer(hu->tty);
+> +
+> +	/* init uart */
+> +	hci_uart_init_tty(hu);
+> +	hci_uart_set_flow_control(hu, true);
+> +	hci_uart_set_baudrate(hu, INIT_SPEED);
+> +
+> +	gpiod_set_value_cansleep(btdev->btdata->reset, 1);
+> +	gpiod_set_value_cansleep(btdev->btdata->wakeup_bt, 0);
+> +
+> +	msleep(100);
+> +
+> +	err = gpiod_get_value_cansleep(btdev->btdata->wakeup_host);
+> +	if (err == 0) {
+> +		dev_err(hu->tty->dev, "reset: host wakeup not high!\n");
+> +		return -EPROTO;
+> +	}
+> +
+> +	/* wait for cts */
+> +	err = hci_uart_wait_for_cts(hu, true, 100);
+> +	if (err < 0) {
+> +		dev_err(hu->tty->dev, "CTS not received: %d\n", err);
+> +		return err;
+> +	}
+> +
+> +	gpiod_set_value_cansleep(btdev->btdata->wakeup_bt, 1);
+> +	hci_uart_set_flow_control(hu, false);
+> +
+> +	return 0;
+> +}
+> +
+> +static int nokia_send_alive_packet(struct hci_uart *hu)
+> +{
+> +	struct nokia_bt_dev *btdev = hu->priv;
+> +	struct hci_nokia_alive_hdr *hdr;
+> +	struct hci_nokia_alive_pkt *pkt;
+> +	struct sk_buff *skb;
+> +	int len;
+> +
+> +	dev_dbg(hu->tty->dev, "Sending alive packet...\n");
+> +
+> +	init_completion(&btdev->init_completion);
+> +
+> +	len = H4_TYPE_SIZE + sizeof(*hdr) + sizeof(*pkt);
+> +	skb = bt_skb_alloc(len, GFP_KERNEL);
+> +	if (!skb)
+> +		return -ENOMEM;
+> +
+> +	hci_skb_pkt_type(skb) = HCI_NOKIA_ALIVE_PKT;
+> +	memset(skb->data, 0x00, len);
+> +
+> +	hdr = (struct hci_nokia_alive_hdr *)skb_put(skb, sizeof(*hdr));
+> +	hdr->dlen = sizeof(*pkt);
+> +	pkt = (struct hci_nokia_alive_pkt *)skb_put(skb, sizeof(*pkt));
+> +	pkt->mid = NOKIA_ALIVE_REQ;
+> +
+> +	hu->hdev->send(hu->hdev, skb);
 
+I am not sure we want these to go through the Bluetooth core packet sending. They are not standard HCI packet and should stay within the driver. If you send them through the core they will cause problems with the monitor interface.
 
->Peter
->
->> Thanks,
->> Xiaolong
->> 
->> >
->> >On Wed, Jul 13, 2016 at 01:55:26AM +0000, Peter Chen wrote:
->> >> 
->> >>
->> >>>-----Original Message-----
->> >>>From: lkp-request@eclists.intel.com 
->> >>>[mailto:lkp-request@eclists.intel.com] On Behalf Of kernel test robot
->> >>>Sent: Wednesday, July 13, 2016 9:28 AM
->> >>>To: Peter Chen <peter.chen@nxp.com>
->> >>>Cc: 0day robot <fengguang.wu@intel.com>; LKML 
->> >>><linux-kernel@vger.kernel.org>; lkp@01.org
->> >>>Subject: [lkp] [usb] 9696ef14de: WARNING: CPU: 0 PID: 1 at 
->> >>>lib/list_debug.c:36
->> >>>__list_add+0x104/0x188
->> >>>
->> >>>
->> >>>FYI, we noticed the following commit:
->> >>>
->> >>>https://github.com/0day-ci/linux Peter-Chen/usb-udc-core-fix-error-
->> >>>handling/20160711-100832
->> >>>commit 9696ef14ded07fb0847f8e1cdda6d98a89ecd4f2 ("usb: udc: core: fix 
->> >>>error
->> >>>handling")
->> >>>
->> >>
->> >>Thanks,  but I really can't find the relationship between my patch and dump.
->> >>Can you reproduce it after running again or without my patch?
->> >>
->> >
->> >Sorry, it's a false report, the error dump also showed in parent commit, please ignore the report and sorry for the noise.
->> >
->> >Thanks,
->> >Xiaolong
->> >
->> >
->> >
->> >
->> >Peter
->> >
->> >>in testcase: boot
->> >>
->> >>on test machine: 1 threads qemu-system-x86_64 -enable-kvm -cpu SandyBridge
->> >>with 512M memory
->> >>
->> >>caused below changes:
->> >>
->> >>
->> >>+-----------------------------------------------------------+------------+------------+
->> >>|                                                           | 0937a4d787
->> >>| | ad05399d68 |
->> >>+-----------------------------------------------------------+------------+------------+
->> >>| boot_successes                                            | 0          | 0          |
->> >>| boot_failures                                             | 12         | 12         |
->> >>| WARNING:at_lib/list_debug.c:#__list_del_entry             | 2          | 12         |
->> >>| BUG:kernel_test_hang                                      | 2          |            |
->> >>| backtrace:kernel_restart                                  | 2          |            |
->> >>| backtrace:SyS_reboot                                      | 2          |            |
->> >>| BUG:kernel_oversize_in_test_stage                         | 4          |            |
->> >>| Kernel_panic-not_syncing:Attempted_to_kill_init!exitcode= | 6          |            |
->> >>| BUG:unable_to_handle_kernel                               | 0          | 11         |
->> >>| Oops                                                      | 0          | 11         |
->> >>| RIP:sysfs_kf_write                                        | 0          | 11         |
->> >>| Kernel_panic-not_syncing:Fatal_exception                  | 0          | 11         |
->> >>| backtrace:serio_handle_event                              | 0          | 12         |
->> >>| backtrace:vfs_write                                       | 0          | 11         |
->> >>| backtrace:SyS_write                                       | 0          | 11         |
->> >>+-----------------------------------------------------------+------------+------------+
->> >>
->> >>
->> >>[   12.161205] BUG: unable to handle kernel NULL pointer dereference at
->> >>0000000000000012
->> >>[   12.162485] IP: [<ffffffff81245ecf>] sysfs_kf_write+0x4f/0x70
->> >>[   12.163414] PGD 1a380067 PUD 1a357067 PMD 0
->> >>[   12.164242] Oops: 0000 [#1] PREEMPT SMP
->> >>[   12.164952] CPU: 0 PID: 240 Comm: udevadm Tainted: G        W       4.8.0-rc1-
->> >>00021-gad05399 #1
->> >>[   12.166477] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS
->> >>Debian-1.8.2-1 04/01/2014
->> >>[   12.167885] task: ffff88001a3701c0 task.stack: ffff88001a374000
->> >>[   12.168789] RIP: 0010:[<ffffffff81245ecf>]  [<ffffffff81245ecf>]
->> >>sysfs_kf_write+0x4f/0x70
->> >>[   12.170082] RSP: 0018:ffff88001a377dc0  EFLAGS: 00010297
->> >>[   12.171001] RAX: ffff88001aad9260 RBX: 0000000000000000 RCX:
->> >>0000000000000003
->> >>[   12.172252] RDX: ffff88001a253020 RSI: ffffffff82888fa0 RDI: ffff88001aada1f8
->> >>[   12.186536] RBP: ffff88001a377de8 R08: 0000000000000000 R09:
->> >>0000000000000000
->> >>[   12.187769] R10: 0000000055aab65f R11: 0000000000000001 R12:
->> >>0000000000000003
->> >>[   12.189058] R13: ffff88001a393000 R14: 000000000000000a R15:
->> >>ffff88001a253020
->> >>[   12.190274] FS:  00007f1f13d8f700(0000) GS:ffff88001f400000(0000)
->> >>knlGS:0000000000000000
->> >>[   12.191514] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
->> >>[   12.192393] CR2: 0000000000000012 CR3: 000000001a341000 CR4:
->> >>00000000000406b0
->> >>[   12.193518] Stack:
->> >>[   12.193884]  ffff88001a253020 ffff88001a393000 0000000000000003
->> >>ffffffff81245e80
->> >>[   12.195278]  ffff88001a393018 ffff88001a377e28 ffffffff81244e44
->> >>ffff88001a377f20
->> >>[   12.196679]  ffff88001dc6fc40 ffffffff81244cf0 ffff88001a377f20
->> >>0000000000000003
->> >>[   12.197896] Call Trace:
->> >>[   12.198289]  [<ffffffff81245e80>] ? sysfs_file_ops+0x90/0x90
->> >>[   12.199162]  [<ffffffff81244e44>] kernfs_fop_write+0x154/0x200
->> >>[   12.211238]  [<ffffffff81244cf0>] ? kernfs_vma_page_mkwrite+0xb0/0xb0
->> >>[   12.212330]  [<ffffffff811ae953>] __vfs_write+0x43/0x1b0
->> >>[   12.213150]  [<ffffffff811b369a>] ? __sb_start_write+0xba/0x110
->> >>[   12.214175]  [<ffffffff810d4612>] ? percpu_down_read+0x52/0x90
->> >>[   12.215219]  [<ffffffff811b369a>] ? __sb_start_write+0xba/0x110
->> >>[   12.216256]  [<ffffffff811aecd6>] vfs_write+0x106/0x1f0
->> >>[   12.217146]  [<ffffffff811aeed3>] SyS_write+0x53/0xc0
->> >>[   12.217930]  [<ffffffff820250b6>] entry_SYSCALL_64_fastpath+0x1e/0xad
->> >>[   12.218907] Code: ff ff 4d 85 e4 74 2d 49 89 c6 e8 0d 25 ee ff 49 8b 45 00 4c 89
->> >>e1 4c 89 fa 48 8b b0 80 00 00 00 48 8b 40 28 48 8b b8 80 00 00 00 <41> ff 56 08 48
->> >>89 c3 eb 00 e8 e3 24 ee ff 48 89 d8 5b 41 5c 41
->> >>[   12.223712] RIP  [<ffffffff81245ecf>] sysfs_kf_write+0x4f/0x70
->> >>[   12.224633]  RSP <ffff88001a377dc0>
->> >>[   12.225172] CR2: 0000000000000012
->> >>[   12.366338] ---[ end trace b696b5aff8dfca8d ]---
->> >>[   12.367092] Kernel panic - not syncing: Fatal exception
->> >>[   12.367920] Kernel Offset: disabled
->> >>
->> >>
->> >>FYI, raw QEMU command line is:
->> >>
->> >>	qemu-system-x86_64 -enable-kvm -cpu SandyBridge -kernel
->> >>/pkg/linux/x86_64-randconfig-n0-08110915/gcc-
->> >>6/ad05399d68b6ae1649cdcfc82ce3ffea1a7c5104/vmlinuz-4.8.0-rc1-00021-
->> >>gad05399 -append 'ip=::::vm-kbuild-yocto-x86_64-3::dhcp root=/dev/ram0 user=lkp
->> >>job=/lkp/scheduled/vm-kbuild-yocto-x86_64-3/boot-1-yocto-minimal-x86_64.cgz-
->> >>ad05399d68b6ae1649cdcfc82ce3ffea1a7c5104-20160812-122343-ax2dev-0.yaml
->> >>ARCH=x86_64 kconfig=x86_64-randconfig-n0-08110915 branch=linux-devel/devel-
->> >>hourly-2016081104 commit=ad05399d68b6ae1649cdcfc82ce3ffea1a7c5104
->> >>BOOT_IMAGE=/pkg/linux/x86_64-randconfig-n0-08110915/gcc-
->> >>6/ad05399d68b6ae1649cdcfc82ce3ffea1a7c5104/vmlinuz-4.8.0-rc1-00021-
->> >>gad05399 max_uptime=600 RESULT_ROOT=/result/boot/1/vm-kbuild-yocto-
->> >>x86_64/yocto-minimal-x86_64.cgz/x86_64-randconfig-n0-08110915/gcc-
->> >>6/ad05399d68b6ae1649cdcfc82ce3ffea1a7c5104/0 LKP_SERVER=inn debug
->> >>apic=debug sysrq_always_enabled rcupdate.rcu_cpu_stall_timeout=100 panic=-1
->> >>softlockup_panic=1 nmi_watchdog=panic oops=panic load_ramdisk=2
->> >>prompt_ramdisk=0 systemd.log_level=err ignore_loglevel earlyprintk=ttyS0,115200
->> >>console=ttyS0,115200 console=tty0 vga=normal rw drbd.minor_count=8'  -initrd
->> >>/fs/sdg1/initrd-vm-kbuild-yocto-x86_64-3 -m 512 -smp 1 -device e1000,netdev=net0
->> >>-netdev user,id=net0 -boot order=nc -no-reboot -watchdog i6300esb -watchdog-
->> >>action debug -rtc base=localtime -drive file=/fs/sdg1/disk0-vm-kbuild-yocto-x86_64-
->> >>3,media=disk,if=virtio -pidfile /dev/shm/kboot/pid-vm-kbuild-yocto-x86_64-3 -serial
->> >>file:/dev/shm/kboot/serial-vm-kbuild-yocto-x86_64-3 -daemonize -display none -
->> >>monitor null
->> >>
->> >>
->> >>
->> >>
->> >>
->> >>Thanks,
->> >>Xiaolong
->
->
->
->-- 
->
->Best Regards,
->Peter Chen
+> +
+> +	if (!wait_for_completion_interruptible_timeout(&btdev->init_completion,
+> +		msecs_to_jiffies(1000))) {
+> +		return -ETIMEDOUT;
+> +	}
+> +
+> +	if (btdev->init_error < 0)
+> +		return btdev->init_error;
+> +
+> +	return 0;
+> +}
+> +
+> +static int nokia_send_negotiation(struct hci_uart *hu)
+> +{
+> +	struct nokia_bt_dev *btdev = hu->priv;
+> +	struct hci_nokia_neg_cmd *neg_cmd;
+> +	struct hci_nokia_neg_hdr *neg_hdr;
+> +	struct sk_buff *skb;
+> +	int len, err;
+> +	u16 baud = DIV_ROUND_CLOSEST(BT_BAUDRATE_DIVIDER, MAX_BAUD_RATE);
+> +	int sysclk = btdev->btdata->sysclk_speed / 1000;
+> +
+> +	dev_dbg(hu->tty->dev, "Sending negotiation...\n");
+> +
+> +	len = H4_TYPE_SIZE + sizeof(*neg_hdr) + sizeof(*neg_cmd);
+> +	skb = bt_skb_alloc(len, GFP_KERNEL);
+> +	if (!skb)
+> +		return -ENOMEM;
+> +
+> +	hci_skb_pkt_type(skb) = HCI_NOKIA_NEG_PKT;
+> +
+> +	neg_hdr = (struct hci_nokia_neg_hdr *)skb_put(skb, sizeof(*neg_hdr));
+> +	neg_hdr->dlen = sizeof(*neg_cmd);
+> +
+> +	neg_cmd = (struct hci_nokia_neg_cmd *)skb_put(skb, sizeof(*neg_cmd));
+> +	neg_cmd->ack = NOKIA_NEG_REQ;
+> +	neg_cmd->baud = cpu_to_le16(baud);
+> +	neg_cmd->unused1 = 0x0000;
+> +	neg_cmd->proto = NOKIA_PROTO_BYTE;
+> +	neg_cmd->sys_clk = cpu_to_le16(sysclk);
+> +	neg_cmd->unused2 = 0x0000;
+> +
+> +	btdev->init_error = 0;
+> +	init_completion(&btdev->init_completion);
+> +
+> +	hu->hdev->send(hu->hdev, skb);
+> +
+> +	if (!wait_for_completion_interruptible_timeout(&btdev->init_completion,
+> +		msecs_to_jiffies(10000))) {
+> +		return -ETIMEDOUT;
+> +	}
+> +
+> +	if (btdev->init_error < 0)
+> +		return btdev->init_error;
+> +
+> +	/* Change to operational settings */
+> +	hci_uart_set_flow_control(hu, true); // disable flow control
+
+Please use a proper comment that explains also disabling flow control.
+> +
+> +	/* setup negotiated max. baudrate */
+> +	hci_uart_set_baudrate(hu, MAX_BAUD_RATE);
+> +
+> +	err = hci_uart_wait_for_cts(hu, true, 100);
+> +	if (err < 0)
+> +		return err;
+> +
+> +	hci_uart_set_flow_control(hu, false); // re-enable flow control
+> +
+> +	dev_dbg(hu->tty->dev, "Negotiation successful...\n");
+> +
+> +	return 0;
+> +}
+> +
+> +static int nokia_setup_fw(struct hci_uart *hu)
+> +{
+> +	struct nokia_bt_dev *btdev = hu->priv;
+> +	const struct firmware *fw;
+> +	const u8 *fw_ptr;
+> +	size_t fw_size;
+> +	int err;
+> +
+> +	BT_DBG("hu %p", hu);
+> +
+> +	err = request_firmware(&fw, nokia_get_fw_name(btdev), hu->tty->dev);
+
+So does this nokia_get_fw_name really needs to be a separate function? Or can this just be done right here in this function? I prefer it to be done where it is actually used. Unless you use that name in many places.
+
+> +	if (err < 0) {
+> +		BT_ERR("%s: Failed to load Nokia firmware file (%d)",
+> +		       hu->hdev->name, err);
+> +		return err;
+> +	}
+> +
+> +	fw_ptr = fw->data;
+> +	fw_size = fw->size;
+> +
+> +	while (fw_size >= 4) {
+> +		u16 pkt_size = get_unaligned_le16(fw_ptr);
+> +		u8 pkt_type = fw_ptr[2];
+> +		const struct hci_command_hdr *cmd;
+> +		u16 opcode;
+> +		struct sk_buff *skb;
+> +
+> +		switch (pkt_type) {
+> +		case HCI_COMMAND_PKT:
+> +			cmd = (struct hci_command_hdr *)(fw_ptr + 3);
+> +			opcode = le16_to_cpu(cmd->opcode);
+> +
+> +			skb = __hci_cmd_sync(hu->hdev, opcode, cmd->plen,
+> +					     fw_ptr + 3 + HCI_COMMAND_HDR_SIZE,
+> +					     HCI_INIT_TIMEOUT);
+> +			if (IS_ERR(skb)) {
+> +				err = PTR_ERR(skb);
+> +				BT_ERR("%s: Firmware command %04x failed (%d)",
+> +				       hu->hdev->name, opcode, err);
+> +				goto done;
+> +			}
+> +			kfree_skb(skb);
+> +			break;
+> +		case HCI_NOKIA_RADIO_PKT:
+
+Are you sure you can ignore the RADIO_PKT commands. They are used to set up the FM radio parts of the chip. They are standard HCI commands (in the case of Broadcom at least). At minimum it should be added a comment here that you are ignoring them on purpose.
+
+> +		case HCI_NOKIA_NEG_PKT:
+> +		case HCI_NOKIA_ALIVE_PKT:
+
+And here I would also a comment on why are we ignore these commands and driving this all by ourselves.
+
+> +			break;
+> +		}
+> +
+> +		fw_ptr += pkt_size + 2;
+> +		fw_size -= pkt_size + 2;
+> +	}
+> +
+> +done:
+> +	release_firmware(fw);
+> +	return err;
+> +}
+> +
+> +static int nokia_setup(struct hci_uart *hu)
+> +{
+> +	int err;
+> +
+> +	pm_runtime_get_sync(hu->tty->dev);
+> +
+> +	dev_dbg(hu->tty->dev, "Nokia H4+ protocol setup...\n");
+> +
+> +	/* 0. reset connection */
+> +	err = nokia_reset(hu);
+> +	if (err < 0) {
+> +		dev_err(hu->tty->dev, "Reset failed: %d\n", err);
+> +		goto out;
+> +	}
+> +
+> +	/* 1. negotiate speed etc */
+> +	err = nokia_send_negotiation(hu);
+> +	if (err < 0) {
+> +		dev_err(hu->tty->dev, "Negotiation failed: %d\n", err);
+> +		goto out;
+> +	}
+> +
+> +	/* 2. verify correct setup using alive packet */
+> +	err = nokia_send_alive_packet(hu);
+> +	if (err < 0) {
+> +		dev_err(hu->tty->dev, "Alive check failed: %d\n", err);
+> +		goto out;
+> +	}
+> +
+> +	/* 3. send firmware */
+> +	err = nokia_setup_fw(hu);
+> +	if (err < 0) {
+> +		dev_err(hu->tty->dev, "Could not setup FW: %d\n", err);
+> +		goto out;
+> +	}
+> +
+> +	hci_uart_set_flow_control(hu, true);
+> +	hci_uart_set_baudrate(hu, BC4_MAX_BAUD_RATE);
+
+I think this variable needs a better name if it is common for all vendors.
+
+> +	hci_uart_set_flow_control(hu, false);
+> +
+> +	dev_dbg(hu->tty->dev, "Nokia H4+ protocol setup done!\n");
+> +
+> +	/*
+> +	 * TODO:
+> +	 * disable wakeup_bt at this point and automatically enable it when
+> +	 * data is about to be written until all data has been written (+ some
+> +	 * delay).
+> +	 *
+> +	 * Since this is not yet support by the uart/tty kernel framework we
+> +	 * will always keep enabled the wakeup_bt gpio for now, so that the
+> +	 * bluetooth chip will never transit into idle modes.
+> +	 */
+> +
+> +out:
+> +	pm_runtime_put(hu->tty->dev);
+> +
+> +	return err;
+> +}
+> +
+> +static int nokia_open(struct hci_uart *hu)
+> +{
+> +	struct device *serialdev = hu->tty->dev;
+> +	struct nokia_bt_dev *btdev;
+> +	struct device *uartbtdev;
+> +	int err;
+> +
+> +	btdev = kzalloc(sizeof(*btdev), GFP_KERNEL);
+> +	if (!btdev)
+> +		return -ENOMEM;
+> +
+> +	btdev->hu = hu;
+> +
+> +	skb_queue_head_init(&btdev->txq);
+> +
+> +	uartbtdev = device_find_child(serialdev, NULL, btdev_match);
+> +	if (!uartbtdev) {
+> +		dev_err(serialdev, "bluetooth device node not found!\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	btdev->btdata = dev_get_drvdata(uartbtdev);
+> +	if (!btdev->btdata)
+> +		return -EINVAL;
+> +
+> +	hu->priv = btdev;
+> +
+> +	/* register handler for host wakeup gpio */
+> +	btdev->wake_irq = gpiod_to_irq(btdev->btdata->wakeup_host);
+> +	err = request_threaded_irq(btdev->wake_irq, NULL, wakeup_handler,
+> +		IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+> +		"wakeup", btdev);
+> +	if (err) {
+> +		gpiod_set_value(btdev->btdata->reset, 0);
+> +		gpiod_set_value(btdev->btdata->wakeup_bt, 0);
+> +		return err;
+> +	}
+> +
+> +	dev_dbg(serialdev, "Nokia H4+ protocol initialized with %s!\n",
+> +		dev_name(uartbtdev));
+> +
+> +	pm_runtime_enable(hu->tty->dev);
+> +
+> +	return 0;
+> +}
+> +
+> +static int nokia_flush(struct hci_uart *hu)
+> +{
+> +	struct nokia_bt_dev *btdev = hu->priv;
+> +
+> +	BT_DBG("hu %p", hu);
+> +
+> +	skb_queue_purge(&btdev->txq);
+> +
+> +	return 0;
+> +}
+> +
+> +static int nokia_close(struct hci_uart *hu)
+> +{
+> +	struct nokia_bt_dev *btdev = hu->priv;
+> +
+> +	hu->priv = NULL;
+> +
+> +	BT_DBG("hu %p", hu);
+> +
+> +	skb_queue_purge(&btdev->txq);
+> +
+> +	kfree_skb(btdev->rx_skb);
+> +
+> +	free_irq(btdev->wake_irq, btdev);
+> +
+> +	/* disable module */
+> +	gpiod_set_value(btdev->btdata->reset, 0);
+> +	gpiod_set_value(btdev->btdata->wakeup_bt, 0);
+> +
+> +	hu->priv = NULL;
+> +	kfree(btdev);
+> +
+> +	pm_runtime_disable(hu->tty->dev);
+> +
+> +	return 0;
+> +}
+> +
+> +/* Enqueue frame for transmittion (padding, crc, etc) */
+> +static int nokia_enqueue(struct hci_uart *hu, struct sk_buff *skb)
+> +{
+> +	struct nokia_bt_dev *btdev = hu->priv;
+> +	int err;
+> +
+> +	BT_DBG("hu %p skb %p", hu, skb);
+> +
+> +	/* Prepend skb with frame type */
+> +	memcpy(skb_push(skb, 1), &bt_cb(skb)->pkt_type, 1);
+> +
+> +	/* Packets must be word aligned */
+> +	if (skb->len % 2) {
+> +		err = skb_pad(skb, 1);
+> +		if (err)
+> +			return err;
+> +		*skb_put(skb, 1) = 0x00;
+> +	}
+> +
+> +	skb_queue_tail(&btdev->txq, skb);
+> +
+> +	return 0;
+> +}
+> +
+> +static int nokia_recv_negotiation_packet(struct hci_dev *hdev,
+> +					 struct sk_buff *skb)
+> +{
+> +	struct hci_uart *hu = hci_get_drvdata(hdev);
+> +	struct nokia_bt_dev *btdev = hu->priv;
+> +	struct hci_nokia_neg_hdr *hdr;
+> +	struct hci_nokia_neg_evt *evt;
+> +	int ret = 0;
+> +
+> +	hdr = (struct hci_nokia_neg_hdr *)skb->data;
+> +	if (hdr->dlen != sizeof(*evt)) {
+> +		btdev->init_error = -EIO;
+> +		ret = -EIO;
+> +		goto finish_neg;
+> +	}
+> +
+> +	evt = (struct hci_nokia_neg_evt *)skb_pull(skb, sizeof(*hdr));
+> +
+> +	if (evt->ack != NOKIA_NEG_ACK) {
+> +		dev_err(hu->tty->dev, "Could not negotiate hci_nokia settings\n");
+> +		btdev->init_error = -EINVAL;
+> +	}
+> +
+> +	btdev->man_id = evt->man_id;
+> +	btdev->ver_id = evt->ver_id;
+> +
+> +	dev_dbg(hu->tty->dev, "NOKIA negotiation:\n");
+> +	dev_dbg(hu->tty->dev, "\tbaudrate = %u\n", evt->baud);
+> +	dev_dbg(hu->tty->dev, "\tsystem clock = %u\n", evt->sys_clk);
+> +	dev_dbg(hu->tty->dev, "\tmanufacturer id = %u\n", evt->man_id);
+> +	dev_dbg(hu->tty->dev, "\tversion id = %u\n", evt->ver_id);
+> +
+> +finish_neg:
+> +	complete(&btdev->init_completion);
+> +	kfree_skb(skb);
+> +	return ret;
+> +}
+> +
+> +static int nokia_recv_alive_packet(struct hci_dev *hdev, struct sk_buff *skb)
+> +{
+> +	struct hci_uart *hu = hci_get_drvdata(hdev);
+> +	struct nokia_bt_dev *btdev = hu->priv;
+> +	struct hci_nokia_alive_hdr *hdr;
+> +	struct hci_nokia_alive_pkt *pkt;
+> +	int ret = 0;
+> +
+> +	hdr = (struct hci_nokia_alive_hdr *)skb->data;
+> +	if (hdr->dlen != sizeof(*pkt)) {
+> +		dev_err(hu->tty->dev, "Corrupted alive message\n");
+> +		btdev->init_error = -EIO;
+> +		ret = -EIO;
+> +		goto finish_alive;
+> +	}
+> +
+> +	pkt = (struct hci_nokia_alive_pkt *)skb_pull(skb, sizeof(*hdr));
+> +
+> +	if (pkt->mid != NOKIA_ALIVE_RESP) {
+> +		dev_err(hu->tty->dev, "Invalid alive response: 0x%02x!\n",
+> +			pkt->mid);
+> +		btdev->init_error = -EINVAL;
+> +		goto finish_alive;
+> +	}
+> +
+> +	dev_dbg(hu->tty->dev, "Received alive packet!\n");
+> +
+> +finish_alive:
+> +	complete(&btdev->init_completion);
+> +	kfree_skb(skb);
+> +	return ret;
+> +}
+> +
+> +static int nokia_recv_radio(struct hci_dev *hdev, struct sk_buff *skb)
+> +{
+> +	/* Packets received on the dedicated radio channel are
+> +	 * HCI events and so feed them back into the core.
+> +	 */
+> +	bt_cb(skb)->pkt_type = HCI_EVENT_PKT;
+
+I think using hci_skb_pkt_type(skb) is correct here as well.
+
+> +	return hci_recv_frame(hdev, skb);
+> +}
+> +
+> +/* Recv data */
+> +static const struct h4_recv_pkt nokia_recv_pkts[] = {
+> +	{ NOKIA_RECV_ACL,	.recv = hci_recv_frame },
+> +	{ NOKIA_RECV_SCO,	.recv = hci_recv_frame },
+> +	{ NOKIA_RECV_EVENT,	.recv = hci_recv_frame },
+> +	{ NOKIA_RECV_ALIVE,	.recv = nokia_recv_alive_packet },
+> +	{ NOKIA_RECV_NEG,	.recv = nokia_recv_negotiation_packet },
+> +	{ NOKIA_RECV_RADIO,	.recv = nokia_recv_radio },
+> +};
+> +
+> +static int nokia_recv(struct hci_uart *hu, const void *data, int count)
+> +{
+> +	struct nokia_bt_dev *btdev = hu->priv;
+> +	int err;
+> +
+> +	if (!test_bit(HCI_UART_REGISTERED, &hu->flags))
+> +		return -EUNATCH;
+> +
+> +	btdev->rx_skb = h4_recv_buf(hu->hdev, btdev->rx_skb, data, count,
+> +				  nokia_recv_pkts, ARRAY_SIZE(nokia_recv_pkts));
+> +	if (IS_ERR(btdev->rx_skb)) {
+> +		err = PTR_ERR(btdev->rx_skb);
+> +		BT_ERR("%s: Frame reassembly failed (%d)", hu->hdev->name, err);
+> +		btdev->rx_skb = NULL;
+> +		return err;
+> +	}
+> +
+> +	return count;
+> +}
+> +
+> +static struct sk_buff *nokia_dequeue(struct hci_uart *hu)
+> +{
+> +	struct nokia_bt_dev *btdev = hu->priv;
+> +
+> +	return skb_dequeue(&btdev->txq);
+> +}
+> +
+> +static const struct hci_uart_proto nokia_proto = {
+> +	.id		= HCI_UART_NOKIA,
+> +	.name		= "Nokia",
+> +	.open		= nokia_open,
+> +	.close		= nokia_close,
+> +	.recv		= nokia_recv,
+> +	.enqueue	= nokia_enqueue,
+> +	.dequeue	= nokia_dequeue,
+> +	.flush		= nokia_flush,
+> +	.setup		= nokia_setup,
+> +};
+> +
+> +static int nokia_bluetooth_probe(struct platform_device *pdev)
+> +{
+> +	struct nokia_uart_dev *btdata;
+> +	struct device *bcmdev = &pdev->dev;
+> +	struct clk *sysclk;
+> +	int err = 0;
+> +
+> +	if(!bcmdev->parent) {
+> +		dev_err(bcmdev, "parent device missing!\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	btdata = devm_kmalloc(bcmdev, sizeof(*btdata), GFP_KERNEL);
+> +	if(!btdata)
+> +		return -ENOMEM;
+> +
+> +	btdata->dev = bcmdev;
+> +	dev_set_drvdata(bcmdev, btdata);
+> +
+> +	btdata->port = dev_get_drvdata(bcmdev->parent);
+> +	if(!btdata->port) {
+> +		dev_err(bcmdev, "port data missing in parent device!\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	btdata->reset = devm_gpiod_get(bcmdev, "reset", GPIOD_OUT_LOW);
+> +	if (IS_ERR(btdata->reset)) {
+> +		err = PTR_ERR(btdata->reset);
+> +		dev_err(bcmdev, "could not get reset gpio: %d\n", err);
+> +		return err;
+> +	}
+> +
+> +	btdata->wakeup_host = devm_gpiod_get(bcmdev, "host-wakeup", GPIOD_IN);
+> +	if (IS_ERR(btdata->wakeup_host)) {
+> +		err = PTR_ERR(btdata->wakeup_host);
+> +		dev_err(bcmdev, "could not get host wakeup gpio: %d\n", err);
+> +		return err;
+> +	}
+> +
+> +
+> +	btdata->wakeup_bt = devm_gpiod_get(bcmdev, "bluetooth-wakeup",
+> +					    GPIOD_OUT_LOW);
+> +	if (IS_ERR(btdata->wakeup_bt)) {
+> +		err = PTR_ERR(btdata->wakeup_bt);
+> +		dev_err(bcmdev, "could not get BT wakeup gpio: %d\n", err);
+> +		return err;
+> +	}
+> +
+> +	sysclk = devm_clk_get(bcmdev, "sysclk");
+> +	if (IS_ERR(sysclk)) {
+> +		err = PTR_ERR(sysclk);
+> +		dev_err(bcmdev, "could not get sysclk: %d\n", err);
+> +		return err;
+> +	}
+> +
+> +	clk_prepare_enable(sysclk);
+> +	btdata->sysclk_speed = clk_get_rate(sysclk);
+> +	clk_disable_unprepare(sysclk);
+> +
+> +	dev_dbg(bcmdev, "parent uart: %s\n", dev_name(bcmdev->parent));
+> +	dev_dbg(bcmdev, "sysclk speed: %ld kHz\n", btdata->sysclk_speed / 1000);
+> +
+> +	/* TODO: open tty and setup line disector from kernel-side */
+> +
+> +	return err;
+> +}
+> +
+> +static const struct of_device_id nokia_bluetooth_of_match[] = {
+> +	{ .compatible = "nokia,brcm,bcm2048", },
+> +	{ .compatible = "nokia,ti,wl1271-bluetooth", },
+
+Where is the CSR BC4 one here? I prefer if we only have support for the ones that are actually supported and detected. We can easily extend things later.
+
+> +	{},
+> +};
+> +MODULE_DEVICE_TABLE(of, nokia_bluetooth_of_match);
+> +
+> +static struct platform_driver platform_nokia_driver = {
+> +	.driver = {
+> +		.name = "nokia-bluetooth",
+> +		.of_match_table = nokia_bluetooth_of_match,
+> +	},
+> +	.probe = nokia_bluetooth_probe,
+> +};
+> +
+> +int __init nokia_init(void)
+> +{
+> +	platform_driver_register(&platform_nokia_driver);
+> +	return hci_uart_register_proto(&nokia_proto);
+> +}
+> +
+> +int __exit nokia_deinit(void)
+> +{
+> +	platform_driver_unregister(&platform_nokia_driver);
+> +	return hci_uart_unregister_proto(&nokia_proto);
+> +}
+> diff --git a/drivers/bluetooth/hci_nokia.h b/drivers/bluetooth/hci_nokia.h
+> new file mode 100644
+> index 000000000000..8c4d307840e5
+> --- /dev/null
+> +++ b/drivers/bluetooth/hci_nokia.h
+> @@ -0,0 +1,140 @@
+> +/*
+> + *  Copyright (C) 2016 Sebastian Reichel <sre@kernel.org>
+> + *
+> + *  This program is free software; you can redistribute it and/or modify
+> + *  it under the terms of the GNU General Public License as published by
+> + *  the Free Software Foundation; either version 2 of the License, or
+> + *  (at your option) any later version.
+> + *
+> + *  This program is distributed in the hope that it will be useful,
+> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *  GNU General Public License for more details.
+> + */
+> +
+> +#ifndef __HCI_NOKIA_H
+> +#define __HCI_NOKIA_H
+
+Lets not do a separate header here. Just move this all into hci_nokia.c. There is really zero benefit in the header.
+
+> +
+> +#define NOKIA_ID_CSR		0x02
+> +#define NOKIA_ID_BCM2048	0x04
+> +#define NOKIA_ID_TI1271		0x31
+> +
+> +#define FIRMWARE_CSR		"nokia/bc4fw.bin"
+
+If the CSR ones are not yet supported, then leave them out for now. We can add this later.
+
+> +#define FIRMWARE_BCM2048	"nokia/bcmfw.bin"
+> +#define FIRMWARE_TI1271		"nokia/ti1273.bin"
+> +
+> +#define NOKIA_BCM_BDADDR	0xfc01
+
+We have btbcm.[ch] for this.
+
+> +
+> +#define HCI_NOKIA_NEG_PKT	0x06
+> +#define HCI_NOKIA_ALIVE_PKT	0x07
+> +#define HCI_NOKIA_RADIO_PKT	0x08
+> +
+> +#define HCI_NOKIA_NEG_HDR_SIZE		1
+> +#define HCI_NOKIA_MAX_NEG_SIZE		255
+> +#define HCI_NOKIA_ALIVE_HDR_SIZE	1
+> +#define HCI_NOKIA_MAX_ALIVE_SIZE	255
+> +#define HCI_NOKIA_RADIO_HDR_SIZE	2
+> +#define HCI_NOKIA_MAX_RADIO_SIZE	255
+> +
+> +#define NOKIA_PROTO_PKT		0x44
+> +#define NOKIA_PROTO_BYTE	0x4c
+> +
+> +#define NOKIA_NEG_REQ		0x00
+> +#define NOKIA_NEG_ACK		0x20
+> +#define NOKIA_NEG_NAK		0x40
+> +
+> +#define H4_TYPE_SIZE		1
+
+I am not sure this define adds any overall value to the code.
+
+> +
+> +#define NOKIA_RECV_ACL \
+> +	H4_RECV_ACL, \
+> +	.wordaligned = true
+> +
+> +#define NOKIA_RECV_SCO \
+> +	H4_RECV_SCO, \
+> +	.wordaligned = true
+> +
+> +#define NOKIA_RECV_EVENT \
+> +	H4_RECV_EVENT, \
+> +	.wordaligned = true
+> +
+> +#define NOKIA_RECV_ALIVE \
+> +	.type = HCI_NOKIA_ALIVE_PKT, \
+> +	.hlen = HCI_NOKIA_ALIVE_HDR_SIZE, \
+> +	.loff = 0, \
+> +	.lsize = 1, \
+> +	.maxlen = HCI_NOKIA_MAX_ALIVE_SIZE, \
+> +	.wordaligned = true
+> +
+> +#define NOKIA_RECV_NEG \
+> +	.type = HCI_NOKIA_NEG_PKT, \
+> +	.hlen = HCI_NOKIA_NEG_HDR_SIZE, \
+> +	.loff = 0, \
+> +	.lsize = 1, \
+> +	.maxlen = HCI_NOKIA_MAX_NEG_SIZE, \
+> +	.wordaligned = true
+> +
+> +#define NOKIA_RECV_RADIO \
+> +	.type = HCI_NOKIA_RADIO_PKT, \
+> +	.hlen = HCI_NOKIA_RADIO_HDR_SIZE, \
+> +	.loff = 1, \
+> +	.lsize = 1, \
+> +	.maxlen = HCI_NOKIA_MAX_RADIO_SIZE, \
+> +	.wordaligned = true
+
+For this ones I would have use the HCI event ones. My original patch had this:
+
++#define NOK_RECV_NEG \
++	.type = NOK_NEG_PKT, \
++	.hlen = NOK_NEG_HDR_SIZE, \
++	.loff = 0, \
++	.lsize = 1, \
++	.maxlen = HCI_MAX_EVENT_SIZE
++
++#define NOK_RECV_ALIVE \
++	.type = NOK_ALIVE_PKT, \
++	.hlen = NOK_ALIVE_HDR_SIZE, \
++	.loff = 0, \
++	.lsize = 1, \
++	.maxlen = HCI_MAX_EVENT_SIZE
++
++#define NOK_RECV_RADIO \
++	.type = NOK_RADIO_PKT, \
++	.hlen = HCI_EVENT_HDR_SIZE, \
++	.loff = 1, \
++	.lsize = 1, \
++	.maxlen = HCI_MAX_EVENT_SIZE
++
++static const struct h4_recv_pkt nok_recv_pkts[] = {
++	{ H4_RECV_ACL,    .recv = hci_recv_frame },
++	{ H4_RECV_SCO,    .recv = hci_recv_frame },
++	{ H4_RECV_EVENT,  .recv = hci_recv_frame },
++	{ NOK_RECV_NEG,   .recv = nok_recv_neg   },
++	{ NOK_RECV_ALIVE, .recv = nok_recv_alive },
++	{ NOK_RECV_RADIO, .recv = nok_recv_radio },
+
+With just these simple defines at the top:
+
++#define NOK_NEG_PKT	0x06
++#define NOK_ALIVE_PKT	0x07
++#define NOK_RADIO_PKT	0x08
++
++#define NOK_NEG_HDR_SIZE	1
++#define NOK_ALIVE_HDR_SIZE	1
+
+And I would prefer if we keep it like that.
+
+> +
+> +struct hci_nokia_neg_hdr {
+> +	__u8	dlen;
+> +} __packed;
+> +
+> +struct hci_nokia_neg_cmd {
+> +	__u8	ack;
+> +	__u16	baud;
+> +	__u16	unused1;
+> +	__u8	proto;
+> +	__u16	sys_clk;
+> +	__u16	unused2;
+> +} __packed;
+> +
+> +static inline struct hci_nokia_neg_hdr *hci_nokia_neg_hdr(const struct sk_buff *skb)
+> +{
+> +	return (struct hci_nokia_neg_hdr *) skb->data;
+> +}
+
+What good is this inline? A define would be way better, if really needed.
+
+> +
+> +#define NOKIA_ALIVE_REQ   0x55
+> +#define NOKIA_ALIVE_RESP  0xcc
+> +
+> +struct hci_nokia_alive_hdr {
+> +	__u8	dlen;
+> +} __packed;
+> +
+> +struct hci_nokia_alive_pkt {
+> +	__u8	mid;
+> +	__u8	unused;
+> +} __packed;
+> +
+> +static inline struct hci_nokia_alive_hdr *hci_nokia_alive_hdr(const struct sk_buff *skb)
+> +{
+> +	return (struct hci_nokia_alive_hdr *) skb->data;
+> +}
+> +
+> +struct hci_nokia_neg_evt {
+> +	__u8	ack;
+> +	__u16	baud;
+> +	__u16	unused1;
+> +	__u8	proto;
+> +	__u16	sys_clk;
+> +	__u16	unused2;
+> +	__u8	man_id;
+> +	__u8	ver_id;
+> +} __packed;
+> +
+> +#define BT_BAUDRATE_DIVIDER     384000000
+> +#define BC4_MAX_BAUD_RATE       3692300
+> +#define MAX_BAUD_RATE           921600
+> +#define INIT_SPEED              120000
+> +
+> +struct hci_nokia_radio_hdr {
+> +	__u8	evt;
+> +	__u8	dlen;
+> +} __packed;
+> +
+> +#endif
+> diff --git a/drivers/bluetooth/hci_uart.h b/drivers/bluetooth/hci_uart.h
+> index a7d67aec3632..314b243df996 100644
+> --- a/drivers/bluetooth/hci_uart.h
+> +++ b/drivers/bluetooth/hci_uart.h
+> @@ -35,7 +35,7 @@
+> #define HCIUARTGETFLAGS		_IOR('U', 204, int)
+> 
+> /* UART protocols */
+> -#define HCI_UART_MAX_PROTO	10
+> +#define HCI_UART_MAX_PROTO	11
+> 
+> #define HCI_UART_H4	0
+> #define HCI_UART_BCSP	1
+> @@ -47,6 +47,7 @@
+> #define HCI_UART_BCM	7
+> #define HCI_UART_QCA	8
+> #define HCI_UART_AG6XX	9
+> +#define HCI_UART_NOKIA	10
+> 
+> #define HCI_UART_RAW_DEVICE	0
+> #define HCI_UART_RESET_ON_INIT	1
+> @@ -190,3 +191,8 @@ int qca_deinit(void);
+> int ag6xx_init(void);
+> int ag6xx_deinit(void);
+> #endif
+> +
+> +#ifdef CONFIG_BT_HCIUART_NOKIA
+> +int nokia_init(void);
+> +int nokia_deinit(void);
+> +#endif
+
+Regards
+
+Marcel
