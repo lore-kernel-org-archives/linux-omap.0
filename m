@@ -1,62 +1,38 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v5] spi: spi-ti-qspi: Add DMA support for QSPI mmap read
-Date: Tue, 16 Aug 2016 19:42:53 +0100
-Message-ID: <20160816184253.GC9347@sirena.org.uk>
-References: <20160809110311.13521-1-vigneshr@ti.com>
- <20160809113329.GA9347@sirena.org.uk>
- <13e676c2-7e2f-d1c5-5312-bc2e11a6b6a1@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [RFC 5/7] Bluetooth: hci_nokia: Introduce new driver
+Date: Tue, 16 Aug 2016 22:05:50 +0200
+Message-ID: <20160816200550.GA7196@amd>
+References: <1471058078-5579-1-git-send-email-sre@kernel.org>
+ <1471058078-5579-6-git-send-email-sre@kernel.org>
+ <0528B894-39CB-4D18-971E-3209EEEA2583@holtmann.org>
+ <20160816090952.ur35t5bbcr7hsxvj@earth>
+ <2B099E26-62C8-4778-B701-F727BB3FC110@holtmann.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="bS87dHSPlkoPpvQ6"
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <13e676c2-7e2f-d1c5-5312-bc2e11a6b6a1-l0cyMroinI0@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Cc: linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <2B099E26-62C8-4778-B701-F727BB3FC110@holtmann.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marcel Holtmann <marcel@holtmann.org>
+Cc: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, Ville Tervo <ville.tervo@iki.fi>, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, linux-serial@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi!
 
---bS87dHSPlkoPpvQ6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> > I think we could use the packets from the firmware instead
+> > of doing it manually (On N900 they are bit identical to the
+> > manually generated one - On N950 I have not yet checked), but
+> > until N900 works having it coded explicitly helps debugging.
+> 
+> We can also always manually encode the firmware to do it correctly. At the end of the day, the firmware should go into linux-firmware tree anyway.
+> 
 
-On Tue, Aug 09, 2016 at 06:20:01PM +0530, Vignesh R wrote:
->=20
->=20
+Editing firmware may raise some "interesting" legal questions... and
+its redistribution might be tricky, too. Microsoft is not likely to be
+too helpful :-(.
 
-> According to this thread[1], converting virtual address
-> pointer into scatterlist which is then DMA mapped is unsafe on systems
-> with certain cache architecture. Hence, I added code to handle kmap
-> buffers inside the driver rather than updating generic spi-core code.
-
-That's saying that things that aren't covered aren't DMAable safely at
-all which is a more general issue...
-
-> If its okay to update the spi_map_buf() to handle kmap buffers as above
-> then I can submit the patch accordingly.
-
-Yes, the whole point is that this is all in generic code so drivers
-don't need to worry about it.
-
---bS87dHSPlkoPpvQ6
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJXs16sAAoJECTWi3JdVIfQZiwH/RtMuJba3YSE2zXr3uWKoi/7
-6AIQtUwq0nVQmTkZm53C5WNIz5AdPEcdNu6VabdUXLn9KkjT46UX92bTfvYsfo6D
-c8bsAvP/FEZ6hRJOxHyRxb2yqpE3qXiWtdwM1su+5UBPmNV7YJPDSRtA/V4MP97y
-kLwla79M056k+T+BHIT9MB9yq8oWAZTIDWXoYdkN8JKVroryLOfkPfQegGN1Gxem
-YQKhxKpY3zvH14h6mdC+Xjar9hoLtGQ2EnitBSpwiG+zj0Xm5ZPNJFGf79foj28Y
-Dn+oHlfXxSJwSsVex9WJurx3RA4VndCVqJY3w1G8kulhpFXh7NnOHhk8XVzH8ZA=
-=H0d3
------END PGP SIGNATURE-----
-
---bS87dHSPlkoPpvQ6--
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best,
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
