@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for v4.8-rc cycle
-Date: Tue, 16 Aug 2016 08:47:40 -0700
-Message-ID: <20160816154740.bq3nuqz44tglcdxf@atomide.com>
+Subject: [GIT PULL] drop last omap3 board files for v4.8
+Date: Tue, 16 Aug 2016 08:52:42 -0700
+Message-ID: <20160816155241.eka7c6p2rvp4q5zk@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -17,74 +17,67 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman <khilman@baylibre.com>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, Russell King <rmk+kernel@armlinux.org.uk>, Pavel Machek <pavel@ucw.cz>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 29b4817d4018df78086157ea3a55c1d9424a7cfc:
+The following changes since commit 79cdad3635b3a253d712aba115fa274ef94a8c6b:
 
-  Linux 4.8-rc1 (2016-08-07 18:18:00 -0700)
+  ir-rx51: use hrtimer instead of dmtimer (2016-06-29 21:54:35 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.8/fixes-rc2
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.8/legacy-signed
 
-for you to fetch changes up to 73912188a6663192063dc29362039997f4deb580:
+for you to fetch changes up to e92fc4f04a34a407f5ff8acaa13127c62b7bec07:
 
-  Merge branch 'dts-fixes' into omap-for-v4.8/fixes (2016-08-15 09:16:45 -0700)
-
-----------------------------------------------------------------
-Fixes for omaps for v4.8-rc cycle, mostly a series of four fixes for
-am335x RTC zero offset for clkctrl register. Also few other fixes:
-
-- Add missing sysc information for DSI as at least n950 needs it for
-  the working display
-
-- Fix old elm-id properties that cause nand boot to not work
-
-- Fix overo gpmc nand cs0 range
-
-- FIx overo gpmc nand on boards with ethernet
-
-- Fix logicpd torpedo nand ready pin nand interrupt configuration
+  ARM: OMAP2+: Drop legacy board file for LDP (2016-07-10 23:47:38 -0700)
 
 ----------------------------------------------------------------
-Adam Ford (2):
-      ARM: dts: logicpd-torpedo-som: Provide NAND ready pin
-      ARM: dts: logicpd-somlv: Fix NAND device nodes
+Remove the last two legacy board-*.c files for omap3 for legacy
+booting for v4.8 to allow making mach-omap2 device tree only for
+v4.9.
 
-Dave Gerlach (4):
-      ARM: OMAP4+: hwmod: Add hwmod flag for HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET
-      ARM: OMAP2+: AM33XX: Add HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET flag to rtc hwmod
-      ARM: OMAP4+: Have _omap4_wait_target_* check for valid clkctrl_offs
-      ARM: OMAP4+: CM: Remove redundant checks for clkctrl_offs of zero
+We've had Nokia N900 and omap3 LDP board-*.c files remaining
+while other omap3 devices have been device tree only for quite
+a while now. Also N900 and LDP have had device tree based booting
+working for years now, but few drivers for N900 were still only
+working in legacy only mode until recently. With the remaining
+issues out of the way, we discussed on the mailing lists that
+we're finally OK to remove the remaining board-*.c files.
 
-Johan Hovold (2):
-      ARM: dts: overo: fix gpmc nand cs0 range
-      ARM: dts: overo: fix gpmc nand on boards with ethernet
+For the timing of this pull request, I wanted to wait until
+v4.8-rc1 is out to make sure the legacy booting still works fine
+after the merge window before doing it.
 
-Sebastian Reichel (1):
-      ARM: OMAP3: hwmod data: Add sysc information for DSI
+And for v4.8, let's not touch any other platform data in case we
+still need to revert for some reason. This makes the revert just a
+question of adding back the legacy board-*.c files.
 
-Teresa Remmet (1):
-      ARM: dts: am335x: Update elm phandle binding
+Then if no issues, we can remove the unused remaining platform
+data later on for v4.9.
 
-Tony Lindgren (2):
-      Merge branch 'omap-for-v4.8/soc' into omap-for-v4.8/fixes
-      Merge branch 'dts-fixes' into omap-for-v4.8/fixes
+----------------------------------------------------------------
+Tony Lindgren (3):
+      Merge remote-tracking branch 'peter/peter/for-4.8_omapdss_part1' into omap-for-v4.8/legacy
+      ARM: OMAP2+: Drop legacy board file for n900
+      ARM: OMAP2+: Drop legacy board file for LDP
 
- arch/arm/boot/dts/am335x-baltos.dtsi                    |  2 +-
- arch/arm/boot/dts/am335x-igep0033.dtsi                  |  2 +-
- arch/arm/boot/dts/am335x-phycore-som.dtsi               |  2 +-
- arch/arm/boot/dts/logicpd-som-lv.dtsi                   | 11 ++++++-----
- arch/arm/boot/dts/logicpd-torpedo-som.dtsi              |  1 +
- arch/arm/boot/dts/omap3-overo-base.dtsi                 |  4 +++-
- arch/arm/boot/dts/omap3-overo-chestnut43-common.dtsi    |  2 --
- arch/arm/boot/dts/omap3-overo-tobi-common.dtsi          |  2 --
- arch/arm/boot/dts/omap3-overo-tobiduo-common.dtsi       |  3 ---
- arch/arm/mach-omap2/cm33xx.c                            |  6 ------
- arch/arm/mach-omap2/cminst44xx.c                        |  6 ------
- arch/arm/mach-omap2/omap_hwmod.c                        |  8 ++++++++
- arch/arm/mach-omap2/omap_hwmod.h                        |  4 ++++
- arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |  2 ++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c              | 12 ++++++++++++
- 15 files changed, 39 insertions(+), 28 deletions(-)
+ arch/arm/mach-omap2/Kconfig                  |   12 -
+ arch/arm/mach-omap2/Makefile                 |    4 -
+ arch/arm/mach-omap2/board-ldp.c              |  429 ---------
+ arch/arm/mach-omap2/board-rx51-peripherals.c | 1312 --------------------------
+ arch/arm/mach-omap2/board-rx51-video.c       |   67 --
+ arch/arm/mach-omap2/board-rx51.c             |  141 ---
+ arch/arm/mach-omap2/board-rx51.h             |   11 -
+ arch/arm/mach-omap2/display.c                |    2 +-
+ arch/arm/mach-omap2/display.h                |    5 +
+ arch/arm/mach-omap2/dss-common.c             |    2 +-
+ include/linux/platform_data/omapdss.h        |   42 +
+ include/video/omapdss.h                      |   31 +-
+ 12 files changed, 50 insertions(+), 2008 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/board-ldp.c
+ delete mode 100644 arch/arm/mach-omap2/board-rx51-peripherals.c
+ delete mode 100644 arch/arm/mach-omap2/board-rx51-video.c
+ delete mode 100644 arch/arm/mach-omap2/board-rx51.c
+ delete mode 100644 arch/arm/mach-omap2/board-rx51.h
+ create mode 100644 include/linux/platform_data/omapdss.h
