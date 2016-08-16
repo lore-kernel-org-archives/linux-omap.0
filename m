@@ -1,83 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] drop last omap3 board files for v4.8
-Date: Tue, 16 Aug 2016 08:52:42 -0700
-Message-ID: <20160816155241.eka7c6p2rvp4q5zk@atomide.com>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v5] spi: spi-ti-qspi: Add DMA support for QSPI mmap read
+Date: Tue, 16 Aug 2016 19:42:53 +0100
+Message-ID: <20160816184253.GC9347@sirena.org.uk>
+References: <20160809110311.13521-1-vigneshr@ti.com>
+ <20160809113329.GA9347@sirena.org.uk>
+ <13e676c2-7e2f-d1c5-5312-bc2e11a6b6a1@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="bS87dHSPlkoPpvQ6"
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman <khilman@baylibre.com>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, Russell King <rmk+kernel@armlinux.org.uk>, Pavel Machek <pavel@ucw.cz>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <13e676c2-7e2f-d1c5-5312-bc2e11a6b6a1-l0cyMroinI0@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Cc: linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 79cdad3635b3a253d712aba115fa274ef94a8c6b:
 
-  ir-rx51: use hrtimer instead of dmtimer (2016-06-29 21:54:35 -0700)
+--bS87dHSPlkoPpvQ6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-are available in the git repository at:
+On Tue, Aug 09, 2016 at 06:20:01PM +0530, Vignesh R wrote:
+>=20
+>=20
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.8/legacy-signed
+> According to this thread[1], converting virtual address
+> pointer into scatterlist which is then DMA mapped is unsafe on systems
+> with certain cache architecture. Hence, I added code to handle kmap
+> buffers inside the driver rather than updating generic spi-core code.
 
-for you to fetch changes up to e92fc4f04a34a407f5ff8acaa13127c62b7bec07:
+That's saying that things that aren't covered aren't DMAable safely at
+all which is a more general issue...
 
-  ARM: OMAP2+: Drop legacy board file for LDP (2016-07-10 23:47:38 -0700)
+> If its okay to update the spi_map_buf() to handle kmap buffers as above
+> then I can submit the patch accordingly.
 
-----------------------------------------------------------------
-Remove the last two legacy board-*.c files for omap3 for legacy
-booting for v4.8 to allow making mach-omap2 device tree only for
-v4.9.
+Yes, the whole point is that this is all in generic code so drivers
+don't need to worry about it.
 
-We've had Nokia N900 and omap3 LDP board-*.c files remaining
-while other omap3 devices have been device tree only for quite
-a while now. Also N900 and LDP have had device tree based booting
-working for years now, but few drivers for N900 were still only
-working in legacy only mode until recently. With the remaining
-issues out of the way, we discussed on the mailing lists that
-we're finally OK to remove the remaining board-*.c files.
+--bS87dHSPlkoPpvQ6
+Content-Type: application/pgp-signature; name="signature.asc"
 
-For the timing of this pull request, I wanted to wait until
-v4.8-rc1 is out to make sure the legacy booting still works fine
-after the merge window before doing it.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-And for v4.8, let's not touch any other platform data in case we
-still need to revert for some reason. This makes the revert just a
-question of adding back the legacy board-*.c files.
+iQEcBAEBCAAGBQJXs16sAAoJECTWi3JdVIfQZiwH/RtMuJba3YSE2zXr3uWKoi/7
+6AIQtUwq0nVQmTkZm53C5WNIz5AdPEcdNu6VabdUXLn9KkjT46UX92bTfvYsfo6D
+c8bsAvP/FEZ6hRJOxHyRxb2yqpE3qXiWtdwM1su+5UBPmNV7YJPDSRtA/V4MP97y
+kLwla79M056k+T+BHIT9MB9yq8oWAZTIDWXoYdkN8JKVroryLOfkPfQegGN1Gxem
+YQKhxKpY3zvH14h6mdC+Xjar9hoLtGQ2EnitBSpwiG+zj0Xm5ZPNJFGf79foj28Y
+Dn+oHlfXxSJwSsVex9WJurx3RA4VndCVqJY3w1G8kulhpFXh7NnOHhk8XVzH8ZA=
+=H0d3
+-----END PGP SIGNATURE-----
 
-Then if no issues, we can remove the unused remaining platform
-data later on for v4.9.
-
-----------------------------------------------------------------
-Tony Lindgren (3):
-      Merge remote-tracking branch 'peter/peter/for-4.8_omapdss_part1' into omap-for-v4.8/legacy
-      ARM: OMAP2+: Drop legacy board file for n900
-      ARM: OMAP2+: Drop legacy board file for LDP
-
- arch/arm/mach-omap2/Kconfig                  |   12 -
- arch/arm/mach-omap2/Makefile                 |    4 -
- arch/arm/mach-omap2/board-ldp.c              |  429 ---------
- arch/arm/mach-omap2/board-rx51-peripherals.c | 1312 --------------------------
- arch/arm/mach-omap2/board-rx51-video.c       |   67 --
- arch/arm/mach-omap2/board-rx51.c             |  141 ---
- arch/arm/mach-omap2/board-rx51.h             |   11 -
- arch/arm/mach-omap2/display.c                |    2 +-
- arch/arm/mach-omap2/display.h                |    5 +
- arch/arm/mach-omap2/dss-common.c             |    2 +-
- include/linux/platform_data/omapdss.h        |   42 +
- include/video/omapdss.h                      |   31 +-
- 12 files changed, 50 insertions(+), 2008 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/board-ldp.c
- delete mode 100644 arch/arm/mach-omap2/board-rx51-peripherals.c
- delete mode 100644 arch/arm/mach-omap2/board-rx51-video.c
- delete mode 100644 arch/arm/mach-omap2/board-rx51.c
- delete mode 100644 arch/arm/mach-omap2/board-rx51.h
- create mode 100644 include/linux/platform_data/omapdss.h
+--bS87dHSPlkoPpvQ6--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
