@@ -1,7 +1,7 @@
 From: Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
 Subject: Re: [RFC 5/7] Bluetooth: hci_nokia: Introduce new driver
-Date: Tue, 16 Aug 2016 12:23:43 +0200
-Message-ID: <2B099E26-62C8-4778-B701-F727BB3FC110@holtmann.org>
+Date: Tue, 16 Aug 2016 12:23:50 +0200
+Message-ID: <E6B16AB6-341F-459B-AE6C-B9344CA5DA8A@holtmann.org>
 References: <1471058078-5579-1-git-send-email-sre@kernel.org> <1471058078-5579-6-git-send-email-sre@kernel.org> <0528B894-39CB-4D18-971E-3209EEEA2583@holtmann.org> <20160816090952.ur35t5bbcr7hsxvj@earth>
 Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
 Content-Type: text/plain; charset=us-ascii
