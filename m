@@ -1,16 +1,12 @@
-From: Rob Herring <robh+dt@kernel.org>
-Subject: Re: [PATCH] soc: ti: wkup_m3_ipc: switch to using remoteproc OF
- infrastructure
-Date: Tue, 16 Aug 2016 09:54:35 -0500
-Message-ID: <CAL_Jsq+aOd-FqaKNtmDESw--pdxbWMuOzv+KXf-hhX+oU94CdQ@mail.gmail.com>
-References: <20160812003529.519-1-s-anna@ti.com> <20160812110201.GD25844@dell>
- <55d90506-eb1b-c8f9-02b5-8484b9a4babd@ti.com>
- <20160812164335.GG26240@tuxbot>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fixes for v4.8-rc cycle
+Date: Tue, 16 Aug 2016 08:47:40 -0700
+Message-ID: <20160816154740.bq3nuqz44tglcdxf@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160812164335.GG26240@tuxbot>
+Content-Disposition: inline
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,171 +16,75 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Bjorn Andersson <bjorn.andersson@linaro.org>
-Cc: Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, linux-remoteproc@vger.kernel.org, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Aug 12, 2016 at 11:43 AM, Bjorn Andersson
-<bjorn.andersson@linaro.org> wrote:
-> On Fri 12 Aug 09:00 PDT 2016, Suman Anna wrote:
->
->> On 08/12/2016 06:02 AM, Lee Jones wrote:
->> > On Thu, 11 Aug 2016, Suman Anna wrote:
->> >
->> >> The remoteproc framework has been enhanced recently to provide new
->> >> OF API to retrieve a remoteproc handle by client drivers through a
->> >> standard 'rprocs' property in client nodes. The wkup_m3_ipc driver
->> >> has been using a custom 'ti,rproc' property until now, switch this
->> >> to use this new OF infrastructure. The wkup_m3_ipc driver has been
->> >> fixed up to provide backward compatibility for older DTBs by
->> >> replacing the older property with the standard newer property.
->> >>
->> >> The wkup_m3_ipc binding has also been updated accordingly.
->> >>
->> >> Signed-off-by: Suman Anna <s-anna@ti.com>
->> >> ---
->> >> This patch is based on the discussion [1] for introducing new standard
->> >> OF API in remoteproc core series [2] and the exporting of couple of
->> >> functions in OF base code [3].
->> >>
->> >> With this in place, the remoteproc core need not be looking for the
->> >> TI specific property anymore. I will submit the DTS changes once this
->> >> makes it to mainline.
->> >>
->> >> regards
->> >> Suman
->> >>
->> >> [1] https://patchwork.kernel.org/patch/9237767/
->> >> [2] http://marc.info/?l=linux-kernel&m=146894341701010&w=2
->> >> [3] https://patchwork.kernel.org/patch/9276181/
->> >>
->> >>  .../devicetree/bindings/soc/ti/wkup_m3_ipc.txt     |  9 ++++++--
->> >>  drivers/soc/ti/wkup_m3_ipc.c                       | 26 +++++++++++++++++++++-
->> >>  2 files changed, 32 insertions(+), 3 deletions(-)
->> >>
->> >> diff --git a/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt b/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt
->> >> index 401550487ed6..2ea7dd91acff 100644
->> >> --- a/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt
->> >> +++ b/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt
->> >> @@ -23,12 +23,17 @@ Required properties:
->> >>                    with the Wakeup M3 processor
->> >>  - interrupts:             Contains the interrupt information for the wkup_m3
->> >>                    interrupt that signals the MPU.
->> >> -- ti,rproc:               phandle to the wkup_m3 rproc node so the IPC driver
->> >> +- rprocs:         phandle to the wkup_m3 rproc node so the IPC driver
->> >>                    can boot it.
->> >>  - mboxes:         phandles used by IPC framework to get correct mbox
->> >>                    channel for communication. Must point to appropriate
->> >>                    mbox_wkupm3 child node.
->> >>
->> >> +Deprecated properties:
->> >> +----------------------
->> >> +- ti,rproc:               This property has been replaced with the "rprocs"
->> >> +                  property.
->> >> +
->> >>  Example:
->> >>  --------
->> >>  /* AM33xx */
->> >> @@ -48,7 +53,7 @@ Example:
->> >>                            compatible = "ti,am3352-wkup-m3-ipc";
->> >>                            reg = <0x1324 0x24>;
->> >>                            interrupts = <78>;
->> >> -                          ti,rproc = <&wkup_m3>;
->> >> +                          rprocs = <&wkup_m3>;
->> >>                            mboxes = <&mailbox &mbox_wkupm3>;
->> >>                    };
->> >>
->> >> diff --git a/drivers/soc/ti/wkup_m3_ipc.c b/drivers/soc/ti/wkup_m3_ipc.c
->> >> index 8823cc81ae45..86085f9bf6a8 100644
->> >> --- a/drivers/soc/ti/wkup_m3_ipc.c
->> >> +++ b/drivers/soc/ti/wkup_m3_ipc.c
->> >> @@ -1,7 +1,7 @@
->> >>  /*
->> >>   * AMx3 Wkup M3 IPC driver
->> >>   *
->> >> - * Copyright (C) 2015 Texas Instruments, Inc.
->> >> + * Copyright (C) 2015-2016 Texas Instruments, Inc.
->> >>   *
->> >>   * Dave Gerlach <d-gerlach@ti.com>
->> >>   *
->> >> @@ -390,6 +390,8 @@ static int wkup_m3_ipc_probe(struct platform_device *pdev)
->> >>    struct resource *res;
->> >>    struct task_struct *task;
->> >>    struct wkup_m3_ipc *m3_ipc;
->> >> +  struct property *nprop, *oprop;
->> >> +  const char nprop_name[] = "rprocs";
->> >>
->> >>    m3_ipc = devm_kzalloc(dev, sizeof(*m3_ipc), GFP_KERNEL);
->> >>    if (!m3_ipc)
->> >> @@ -415,6 +417,28 @@ static int wkup_m3_ipc_probe(struct platform_device *pdev)
->> >>            return ret;
->> >>    }
->> >>
->> >> +  /* provide compatibility for older DTBs using ti,rproc property */
->> >> +  nprop = of_find_property(dev->of_node, "rprocs", NULL);
->> >> +  if (!nprop) {
->> >> +          oprop = of_find_property(dev->of_node, "ti,rproc", NULL);
->> >> +          if (!oprop) {
->> >> +                  dev_err(&pdev->dev, "node is missing ti,rproc property\n");
->> >> +                  return -ENODEV;
->> >> +          }
->> >> +
->> >> +          nprop = kzalloc(sizeof(*nprop) + sizeof(nprop_name),
->> >> +                          GFP_KERNEL);
->> >> +          if (!nprop)
->> >> +                  return -ENOMEM;
->> >> +
->> >> +          nprop->name = (char *)nprop + sizeof(*nprop);
->> >> +          snprintf(nprop->name, sizeof(nprop_name), nprop_name);
->> >> +          nprop->value = oprop->value;
->> >> +          nprop->length = oprop->length;
->> >> +          of_update_property(dev->of_node, nprop);
->> >> +          of_remove_property(dev->of_node, oprop);
->> >> +  }
->> >> +
->> >
->> > +1 for getting the functionality out of core code.
->> >
->> > -100 for having to jump though all these hoops.
->> >
->> > If you are going to keep all of this, I would at least tuck it away in
->> > a header file or something.
->>
->> Hiding it somewhere else won't make much of a difference though. If this
->> is such an eyesore, we still can do this cleanly without jumping through
->> these hoops. I would say this is a direct result of the removal of the
->> rproc_get_by_phandle API in Patch 2 of your OF remoteproc series [2].
->> That API is still an agnostic API. We can just add the of_rproc_get()
->> convenience helper in your Patch 1 and drop patch 2 completely with no
->> references to ti,rproc in the core code in the first place. The other
->> option, if we do want to remove that API is to add an additional
->> property name argument (NULL to mean "rprocs") to
->> of_rproc_get_by_index(), and it can be hidden away under of_rproc_get()
->> API - which is what I am expecting most of the new client users would
->> use anyway.
->>
->> Once "rprocs" hits mainline, I will definitely switch over the
->> wkup_m3_ipc nodes to use that standard property and can fix this driver
->> independently.
->>
->
-> We're stuck with this problem all over the place, as the world continues
-> to evolve we will have issues with DT being static. This has been
-> discussed many times before and the suggested solution is always what
-> you implemented here - make the code deal with both versions, preferably
-> by patching.
->
-> The fact that you had to export the of_ operations indicates that no-one
-> has tried this before and I'm happy you did. I'm however not happy about
-> the size of the chunk of code it takes to do this dance.
->
-> I think for this to be practical we need to provide higher level
-> operations for DT modification - in this case a of_rename_property().
->
-> @Rob, any comments on this?
+The following changes since commit 29b4817d4018df78086157ea3a55c1d9424a7cfc:
 
-I agree. Pantelis submitted some helpers in this area a while back
-(for the changeset API IIRC). I believe they were mostly fine, but
-needed some users.
+  Linux 4.8-rc1 (2016-08-07 18:18:00 -0700)
 
-Rob
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.8/fixes-rc2
+
+for you to fetch changes up to 73912188a6663192063dc29362039997f4deb580:
+
+  Merge branch 'dts-fixes' into omap-for-v4.8/fixes (2016-08-15 09:16:45 -0700)
+
+----------------------------------------------------------------
+Fixes for omaps for v4.8-rc cycle, mostly a series of four fixes for
+am335x RTC zero offset for clkctrl register. Also few other fixes:
+
+- Add missing sysc information for DSI as at least n950 needs it for
+  the working display
+
+- Fix old elm-id properties that cause nand boot to not work
+
+- Fix overo gpmc nand cs0 range
+
+- FIx overo gpmc nand on boards with ethernet
+
+- Fix logicpd torpedo nand ready pin nand interrupt configuration
+
+----------------------------------------------------------------
+Adam Ford (2):
+      ARM: dts: logicpd-torpedo-som: Provide NAND ready pin
+      ARM: dts: logicpd-somlv: Fix NAND device nodes
+
+Dave Gerlach (4):
+      ARM: OMAP4+: hwmod: Add hwmod flag for HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET
+      ARM: OMAP2+: AM33XX: Add HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET flag to rtc hwmod
+      ARM: OMAP4+: Have _omap4_wait_target_* check for valid clkctrl_offs
+      ARM: OMAP4+: CM: Remove redundant checks for clkctrl_offs of zero
+
+Johan Hovold (2):
+      ARM: dts: overo: fix gpmc nand cs0 range
+      ARM: dts: overo: fix gpmc nand on boards with ethernet
+
+Sebastian Reichel (1):
+      ARM: OMAP3: hwmod data: Add sysc information for DSI
+
+Teresa Remmet (1):
+      ARM: dts: am335x: Update elm phandle binding
+
+Tony Lindgren (2):
+      Merge branch 'omap-for-v4.8/soc' into omap-for-v4.8/fixes
+      Merge branch 'dts-fixes' into omap-for-v4.8/fixes
+
+ arch/arm/boot/dts/am335x-baltos.dtsi                    |  2 +-
+ arch/arm/boot/dts/am335x-igep0033.dtsi                  |  2 +-
+ arch/arm/boot/dts/am335x-phycore-som.dtsi               |  2 +-
+ arch/arm/boot/dts/logicpd-som-lv.dtsi                   | 11 ++++++-----
+ arch/arm/boot/dts/logicpd-torpedo-som.dtsi              |  1 +
+ arch/arm/boot/dts/omap3-overo-base.dtsi                 |  4 +++-
+ arch/arm/boot/dts/omap3-overo-chestnut43-common.dtsi    |  2 --
+ arch/arm/boot/dts/omap3-overo-tobi-common.dtsi          |  2 --
+ arch/arm/boot/dts/omap3-overo-tobiduo-common.dtsi       |  3 ---
+ arch/arm/mach-omap2/cm33xx.c                            |  6 ------
+ arch/arm/mach-omap2/cminst44xx.c                        |  6 ------
+ arch/arm/mach-omap2/omap_hwmod.c                        |  8 ++++++++
+ arch/arm/mach-omap2/omap_hwmod.h                        |  4 ++++
+ arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |  2 ++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c              | 12 ++++++++++++
+ 15 files changed, 39 insertions(+), 28 deletions(-)
