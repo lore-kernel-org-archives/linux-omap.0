@@ -1,96 +1,72 @@
-From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 1/2] iio: adc: ti_am335x_adc: Protect FIFO1 from concurrent access
-Date: Wed, 17 Aug 2016 17:43:00 +0530
-Message-ID: <20160817121301.21785-2-vigneshr@ti.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH v2 2/2] iio: adc: ti_am335x_adc: Increase timeout value waiting for ADC sample
+Date: Wed, 17 Aug 2016 17:43:01 +0530
+Message-ID: <20160817121301.21785-3-vigneshr@ti.com>
 References: <20160817121301.21785-1-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160817121301.21785-1-vigneshr-l0cyMroinI0@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, "Andrew F . Davis" <afd-l0cyMroinI0@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160817121301.21785-1-vigneshr@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jonathan Cameron <jic23@kernel.org>
+Cc: Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Lee Jones <lee.jones@linaro.org>, Vignesh R <vigneshr@ti.com>, "Andrew F . Davis" <afd@ti.com>, linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-It is possible that two or more ADC channels can be simultaneously
-requested for raw samples, in which case there can be race in access to
-FIFO data resulting in loss of samples.
-If am335x_tsc_se_set_once() is called again from tiadc_read_raw(), when
-ADC is still acquired to sample one of the channels, the second process
-might be put into uninterruptible sleep state. Fix these issues, by
-protecting FIFO access and channel configurations with a mutex. Since
-tiadc_read_raw() might take anywhere between few microseconds to few
-milliseconds to finish execution (depending on averaging and delay
-values supplied via DT), its better to use mutex instead of spinlock.
+Now that open delay and sample delay for each channel is configurable
+via DT, the default IDLE_TIMEOUT value is not enough as this is
+calculated based on hardcoded macros. This results in driver returning
+EBUSY sometimes. Fix this by increasing the timeout
+value based on maximum value possible to open delay and sample delays
+for each channel.
 
-Fixes: 7ca6740cd1cd4 ("mfd: input: iio: ti_amm335x: Rework TSC/ADC synchronization")
-Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Fixes: 5dc11e810676e ("iio: adc: ti_am335x_adc: make sample delay, open delay, averaging DT parameters")
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+Acked-by: Lee Jones <lee.jones@linaro.org>
 ---
 
 v2: Add fixes tag.
 
- drivers/iio/adc/ti_am335x_adc.c | 14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ drivers/iio/adc/ti_am335x_adc.c      | 2 +-
+ include/linux/mfd/ti_am335x_tscadc.h | 8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
-index 8a368756881b..bed9977a1863 100644
+index bed9977a1863..c3cfacca2541 100644
 --- a/drivers/iio/adc/ti_am335x_adc.c
 +++ b/drivers/iio/adc/ti_am335x_adc.c
-@@ -32,6 +32,7 @@
+@@ -381,7 +381,7 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
  
- struct tiadc_device {
- 	struct ti_tscadc_dev *mfd_tscadc;
-+	struct mutex fifo1_lock; /* to protect fifo access */
- 	int channels;
- 	u8 channel_line[8];
- 	u8 channel_step[8];
-@@ -359,6 +360,7 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
- 		int *val, int *val2, long mask)
- {
- 	struct tiadc_device *adc_dev = iio_priv(indio_dev);
-+	int ret = IIO_VAL_INT;
- 	int i, map_val;
- 	unsigned int fifo1count, read, stepid;
- 	bool found = false;
-@@ -372,6 +374,7 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
- 	if (!step_en)
- 		return -EINVAL;
+ 	am335x_tsc_se_set_once(adc_dev->mfd_tscadc, step_en);
  
-+	mutex_lock(&adc_dev->fifo1_lock);
- 	fifo1count = tiadc_readl(adc_dev, REG_FIFO1CNT);
- 	while (fifo1count--)
- 		tiadc_readl(adc_dev, REG_FIFO1);
-@@ -388,7 +391,8 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
+-	timeout = jiffies + usecs_to_jiffies
++	timeout = jiffies + msecs_to_jiffies
+ 				(IDLE_TIMEOUT * adc_dev->channels);
+ 	/* Wait for Fifo threshold interrupt */
+ 	while (1) {
+diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
+index 2567a87872b0..7f55b8b41032 100644
+--- a/include/linux/mfd/ti_am335x_tscadc.h
++++ b/include/linux/mfd/ti_am335x_tscadc.h
+@@ -138,16 +138,16 @@
+ /*
+  * time in us for processing a single channel, calculated as follows:
+  *
+- * num cycles = open delay + (sample delay + conv time) * averaging
++ * max num cycles = open delay + (sample delay + conv time) * averaging
+  *
+- * num cycles: 152 + (1 + 13) * 16 = 376
++ * max num cycles: 262143 + (255 + 13) * 16 = 266431
+  *
+  * clock frequency: 26MHz / 8 = 3.25MHz
+  * clock period: 1 / 3.25MHz = 308ns
+  *
+- * processing time: 376 * 308ns = 116us
++ * max processing time: 266431 * 308ns = 83ms(approx)
+  */
+-#define IDLE_TIMEOUT 116 /* microsec */
++#define IDLE_TIMEOUT 83 /* milliseconds */
  
- 		if (time_after(jiffies, timeout)) {
- 			am335x_tsc_se_adc_done(adc_dev->mfd_tscadc);
--			return -EAGAIN;
-+			ret = -EAGAIN;
-+			goto err_unlock;
- 		}
- 	}
- 	map_val = adc_dev->channel_step[chan->scan_index];
-@@ -414,8 +418,11 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
- 	am335x_tsc_se_adc_done(adc_dev->mfd_tscadc);
+ #define TSCADC_CELLS		2
  
- 	if (found == false)
--		return -EBUSY;
--	return IIO_VAL_INT;
-+		ret =  -EBUSY;
-+
-+err_unlock:
-+	mutex_unlock(&adc_dev->fifo1_lock);
-+	return ret;
- }
- 
- static const struct iio_info tiadc_info = {
-@@ -483,6 +490,7 @@ static int tiadc_probe(struct platform_device *pdev)
- 
- 	tiadc_step_config(indio_dev);
- 	tiadc_writel(adc_dev, REG_FIFO1THR, FIFO1_THRESHOLD);
-+	mutex_init(&adc_dev->fifo1_lock);
- 
- 	err = tiadc_channel_init(indio_dev, adc_dev->channels);
- 	if (err < 0)
 -- 
 2.9.2
