@@ -1,277 +1,266 @@
-From: "ivan.khoronzhuk" <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH v3 5/5] net: ethernet: ti: cpsw: add ethtool channels
- support
-Date: Wed, 17 Aug 2016 10:22:45 +0300
-Message-ID: <656d80a7-1944-43e8-476e-514506e8f12f@globallogic.com>
-References: <1471303549-4134-1-git-send-email-ivan.khoronzhuk@linaro.org>
- <1471303549-4134-6-git-send-email-ivan.khoronzhuk@linaro.org>
- <ca02be90-d827-ea93-a39a-ea11050d3fa5@ti.com>
+From: Priyaranjan Das <priyaranjan456789@gmail.com>
+Subject: tty driver crash in LInux Kernel 3.8
+Date: Wed, 17 Aug 2016 14:29:39 +0530
+Message-ID: <CAMNxYswaQ8h8oPHzJWa1VX_QcbSY6++=O92rq-zFSx-7twg13w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <ca02be90-d827-ea93-a39a-ea11050d3fa5@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, davem@davemloft.net, netdev@vger.kernel.org, grygorii.strashko@ti.com
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-serial@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Priyaranjan Das <priyaranjan45678@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
+Hello All,
+
+I need help in finding a fix of an issue of TTY LDISC for Kernel 3.8.
 
 
-On 17.08.16 09:22, Mugunthan V N wrote:
-> On Tuesday 16 August 2016 04:55 AM, Ivan Khoronzhuk wrote:
->> These ops allow to control number of channels driver is allowed to
->> work with at cpdma level. The maximum number of channels is 8 for
->> rx and 8 for tx. In dual_emac mode the h/w channels are shared
->> between two interfaces and changing number on one interface changes
->> number of channels on another.
->>
->> How many channels are supported and enabled:
->> $ ethtool -l ethX
->>
->> Change number of channels (up to 8)
->> $ ethtool -L ethX rx 6 tx 6
->>
->> Per-channel statistic:
->> $ ethtool -S ethX
->>
->> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
->> ---
->>  drivers/net/ethernet/ti/cpsw.c | 180 ++++++++++++++++++++++++++++++++++++++++-
->>  1 file changed, 176 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
->> index 6dcbd8a..f02e577 100644
->> --- a/drivers/net/ethernet/ti/cpsw.c
->> +++ b/drivers/net/ethernet/ti/cpsw.c
->> @@ -735,6 +735,11 @@ static void cpsw_rx_handler(void *token, int len, int status)
->>  	}
->>
->>  requeue:
->> +	if (netif_dormant(ndev)) {
->> +		dev_kfree_skb_any(new_skb);
->> +		return;
->> +	}
->> +
->>  	ch = cpsw->rxch[skb_get_queue_mapping(new_skb)];
->>  	ret = cpdma_chan_submit(ch, new_skb, new_skb->data,
->>  				skb_tailroom(new_skb), 0);
->> @@ -1267,9 +1272,8 @@ static void cpsw_init_host_port(struct cpsw_priv *priv)
->>  	}
->>  }
->>
->> -static int cpsw_fill_rx_channels(struct net_device *ndev)
->> +static int cpsw_fill_rx_channels(struct cpsw_priv *priv)
->
-> This change can be moved to patch 1/5 where the function definition is
-> added at first.
-Yes. Will do it in v4.
+I am trying to debug a Linux Kernel Crash related to tty(serial) Ldisc
+in Kernel 3.8. I am working on OMAP based embedded platform.
 
->
->>  {
->> -	struct cpsw_priv *priv = netdev_priv(ndev);
->>  	struct cpsw_common *cpsw = priv->cpsw;
->>  	struct sk_buff *skb;
->>  	int ch, i, ret;
->> @@ -1279,7 +1283,7 @@ static int cpsw_fill_rx_channels(struct net_device *ndev)
->>
->>  		ch_buf_num = cpdma_chan_get_rx_buf_num(cpsw->rxch[ch]);
->>  		for (i = 0; i < ch_buf_num; i++) {
->> -			skb = __netdev_alloc_skb_ip_align(ndev,
->> +			skb = __netdev_alloc_skb_ip_align(priv->ndev,
->>  							  cpsw->rx_packet_max,
->>  							  GFP_KERNEL);
->>  			if (!skb) {
->> @@ -1397,7 +1401,7 @@ static int cpsw_ndo_open(struct net_device *ndev)
->>  			enable_irq(cpsw->irqs_table[0]);
->>  		}
->>
->> -		ret = cpsw_fill_rx_channels(ndev);
->> +		ret = cpsw_fill_rx_channels(priv);
->>  		if (ret < 0)
->>  			goto err_cleanup;
->>
->> @@ -2060,6 +2064,172 @@ static void cpsw_ethtool_op_complete(struct net_device *ndev)
->>  		cpsw_err(priv, drv, "ethtool complete failed %d\n", ret);
->>  }
->>
->> +static void cpsw_get_channels(struct net_device *ndev,
->> +			      struct ethtool_channels *ch)
->> +{
->> +	struct cpsw_common *cpsw = ndev_to_cpsw(ndev);
->> +
->> +	ch->max_combined = 0;
->> +	ch->max_rx = CPSW_MAX_QUEUES;
->> +	ch->max_tx = CPSW_MAX_QUEUES;
->> +	ch->max_other = 0;
->> +	ch->other_count = 0;
->> +	ch->rx_count = cpsw->rx_ch_num;
->> +	ch->tx_count = cpsw->tx_ch_num;
->> +	ch->combined_count = 0;
->> +}
->> +
->> +static int cpsw_check_ch_settings(struct cpsw_common *cpsw,
->> +				  struct ethtool_channels *ch)
->> +{
->> +	if (ch->combined_count)
->> +		return -EINVAL;
->> +
->> +	/* verify we have at least one channel in each direction */
->> +	if (!ch->rx_count || !ch->tx_count)
->> +		return -EINVAL;
->> +
->> +	if (ch->rx_count > cpsw->data.channels ||
->> +	    ch->tx_count > cpsw->data.channels)
->> +		return -EINVAL;
->> +
->> +	return 0;
->> +}
->> +
->> +static int cpsw_update_channels_res(struct cpsw_priv *priv, int ch_num, int rx)
->> +{
->> +	int (*poll)(struct napi_struct *, int);
->> +	struct cpsw_common *cpsw = priv->cpsw;
->> +	void (*handler)(void *, int, int);
->> +	struct cpdma_chan **chan;
->> +	int ret, *ch;
->> +
->> +	if (rx) {
->> +		ch = &cpsw->rx_ch_num;
->> +		chan = cpsw->rxch;
->> +		handler = cpsw_rx_handler;
->> +		poll = cpsw_rx_poll;
->> +	} else {
->> +		ch = &cpsw->tx_ch_num;
->> +		chan = cpsw->txch;
->> +		handler = cpsw_tx_handler;
->> +		poll = cpsw_tx_poll;
->> +	}
->> +
->> +	while (*ch < ch_num) {
->> +		chan[*ch] = cpdma_chan_create(cpsw->dma, *ch, handler, rx);
->> +
->> +		if (IS_ERR(chan[*ch]))
->> +			return PTR_ERR(chan[*ch]);
->> +
->> +		if (!chan[*ch])
->> +			return -EINVAL;
->> +
->> +		cpsw_info(priv, ifup, "created new %d %s channel\n", *ch,
->> +			  (rx ? "rx" : "tx"));
->> +		(*ch)++;
->> +	}
->> +
->> +	while (*ch > ch_num) {
->> +		(*ch)--;
->> +
->> +		ret = cpdma_chan_destroy(chan[*ch]);
->> +		if (ret)
->> +			return ret;
->> +
->> +		cpsw_info(priv, ifup, "destroyed %d %s channel\n", *ch,
->> +			  (rx ? "rx" : "tx"));
->> +	}
->> +
->> +	return 0;
->> +}
->> +
->> +static int cpsw_update_channels(struct cpsw_priv *priv,
->> +				struct ethtool_channels *ch)
->> +{
->> +	int ret;
->> +
->> +	ret = cpsw_update_channels_res(priv, ch->rx_count, 1);
->> +	if (ret)
->> +		return ret;
->> +
->> +	ret = cpsw_update_channels_res(priv, ch->tx_count, 0);
->> +	if (ret)
->> +		return ret;
->> +
->> +	return 0;
->> +}
->> +
->> +static int cpsw_set_channels(struct net_device *ndev,
->> +			     struct ethtool_channels *chs)
->> +{
->> +	struct cpsw_priv *priv = netdev_priv(ndev);
->> +	struct cpsw_common *cpsw = priv->cpsw;
->> +	struct cpsw_slave *slave;
->> +	int i, ret;
->> +
->> +	ret = cpsw_check_ch_settings(cpsw, chs);
->> +	if (ret < 0)
->> +		return ret;
->> +
->> +	cpsw_intr_disable(cpsw);
->> +
->> +	for (i = cpsw->data.slaves, slave = cpsw->slaves; i; i--, slave++) {
->> +		if (!(slave->ndev && netif_running(slave->ndev)))
->> +			continue;
->> +
->> +		netif_tx_stop_all_queues(slave->ndev);
->> +		netif_dormant_on(slave->ndev);
->> +	}
->> +
->> +	cpdma_ctlr_stop(cpsw->dma);
->> +	ret = cpsw_update_channels(priv, chs);
->> +	if (ret)
->> +		goto err;
->> +
->> +	for (i = cpsw->data.slaves, slave = cpsw->slaves; i; i--, slave++) {
->> +		if (!(slave->ndev && netif_running(slave->ndev)))
->> +			continue;
->> +
->> +		/* inform stack about new count of queues */
->> +		ret = netif_set_real_num_tx_queues(slave->ndev,
->> +						   cpsw->tx_ch_num);
->> +		if (ret) {
->> +			dev_err(priv->dev, "cannot set real number of tx queues\n");
->> +			goto err;
->> +		}
->> +
->> +		ret = netif_set_real_num_rx_queues(slave->ndev,
->> +						   cpsw->rx_ch_num);
->> +		if (ret) {
->> +			dev_err(priv->dev, "cannot set real number of rx queues\n");
->> +			goto err;
->> +		}
->> +
->> +		netif_dormant_off(slave->ndev);
->> +	}
->> +
->> +	if (cpsw_common_res_usage_state(cpsw)) {
->> +		if (cpsw_fill_rx_channels(priv))
->> +			goto err;
->> +
->> +		cpdma_ctlr_start(cpsw->dma);
->> +		cpsw_intr_enable(cpsw);
->> +	}
->> +
->> +	for (i = cpsw->data.slaves, slave = cpsw->slaves; i; i--, slave++) {
->> +		if (!(slave->ndev && netif_running(slave->ndev)))
->> +			continue;
->> +		netif_tx_start_all_queues(slave->ndev);
->> +	}
->> +
->> +	return 0;
->> +err:
->> +	dev_err(priv->dev, "cannot update channels number, closing device\n");
->> +	dev_close(ndev);
->> +	return ret;
->> +}
->> +
->>  static const struct ethtool_ops cpsw_ethtool_ops = {
->>  	.get_drvinfo	= cpsw_get_drvinfo,
->>  	.get_msglevel	= cpsw_get_msglevel,
->> @@ -2081,6 +2251,8 @@ static const struct ethtool_ops cpsw_ethtool_ops = {
->>  	.get_regs	= cpsw_get_regs,
->>  	.begin		= cpsw_ethtool_op_begin,
->>  	.complete	= cpsw_ethtool_op_complete,
->> +	.get_channels	= cpsw_get_channels,
->> +	.set_channels	= cpsw_set_channels,
->>  };
->>
->>  static void cpsw_slave_init(struct cpsw_slave *slave, struct cpsw_common *cpsw,
->>
->
+The below is the crash logs :-
+
+15:40:20.6255-04:00 - Unable to handle kernel NULL pointer dereference
+at virtual address 00000000
+15:40:20.6255-04:00 - pgd = e2bb0000
+15:40:20.6255-04:00 - [00000000] *pgd=00000000
+15:40:20.6255-04:00 - Internal error: Oops: 5 [#1] PREEMPT SMP ARM
+15:40:20.6255-04:00 - Modules linked in: snd_soc_dra7_atl net1080
+cdc_subset cdc_ncm cdc_ether usbnet lzo arc4 8021q crc7 crc_ccitt garp
+dns_resolver xfrm6_mode_tunnel xfrm6_mode_transport stp sit llc
+input_polldev sdio_uart ntfs hfsplus hfs cmemk nls_utf8 usb_storage
+bcmdhd g_ffs g_utbridge snd_usb_audio snd_usbmidi_lib snd_rawmidi
+snd_hwdep g_zero dwc3 xhci_hcd libcomposite udc_core dwc3_omap
+omap_usb3audit: audit_lost=1 audit_rate_limit=20
+audit_backlog_limit=64
+15:40:20.6265-04:00 - audit: rate limit exceeded
+15:40:20.6265-04:00 -  omap_usb2 omap_control_usb snd_harman snd_pcm
+traceBuf snd_timer snd_page_alloc snd soundcore lvsd tun mac80211
+omaplfb(O) pvrsrvkm(O)
+15:40:20.6265-04:00 - CPU: 0    Tainted: G           O  (3.8.13-g6b9a919 #2)
+15:40:20.6265-04:00 - PC is at __wake_up_common+0x2c/0xa0
+15:40:20.6265-04:00 - LR is at __wake_up+0x48/0x5c
+15:40:20.6275-04:00 - pc : [<c0080d14>]    lr : [<c0083034>]    psr: a0000093
+15:40:20.6275-04:00 - sp : e2b53e78  ip : 00000000  fp : e2b53eac
+15:40:20.6275-04:00 - r10: e2b52000  r9 : 00000003  r8 : 00000000
+15:40:20.6275-04:00 - r7 : 00000003  r6 : e422d90c  r5 : 00000013  r4 : e422d908
+15:40:20.6275-04:00 - r3 : 00000000  r2 : 00000001  r1 : 00000003  r0 : e422d908
+15:40:20.6275-04:00 - Flags: NzCv  IRQs off  FIQs on  Mode SVC_32  ISA
+ARM  Segment user
+15:40:20.6275-04:00 - Control: 10c5387d  Table: a2bb006a  DAC: 00000015
+15:40:20.6275-04:00 -
+15:40:20.6275-04:00 - PC: 0xc0080c94:
+15:40:20.6275-04:00 - 0c94  e0a33007 e0588002 e0c99003 e1b050a5
+e1a04064 e1560008 e0d7c009 e59fc024
+15:40:20.6285-04:00 - 0cb4  e18020fc e18040f1 bafffff1 e24bd028
+e89daff0 e1a03234 e2484001 e0040394
+15:40:20.6285-04:00 - 0cd4  eaffffd2 c05bbe78 00000478 00000418
+1dcd6500 e1a0c00d e92ddff0 e24cb004
+15:40:20.6285-04:00 - 0cf4  e24dd00c e52de004 e8bd4000 e1a06000
+e1a09001 e5b6c004 e50b2030 e156000c
+15:40:20.6285-04:00 - 0d14  e59c4000 e1a08003 e244400c e24cc00c
+e59b7004 0a000014 e59ca008 e1a0000c
+15:40:20.6285-04:00 - 0d34  e1a03007 e1a01009 e1a02008 e59c5000
+e12fff3a e1a03004 e1a0c004 e3500000
+15:40:20.6285-04:00 - 0d54  0a000005 e3150001 0a000003 e51b2030
+e2522001 e50b2030 0a000003 e5b3400c
+15:40:20.6295-04:00 - 0d74  e1560003 e244400c 1affffea e24bd028
+e89daff0 e1a0c00d e92dd800 e24cb004
+15:40:20.6295-04:00 -
+15:40:20.6295-04:00 - LR: 0xc0082fb4:
+15:40:20.6295-04:00 - 2fb4  ebffc11d e59521f0 e5943014 e5921014
+e1530001 03a04001 0a000003 e5924004
+15:40:20.6295-04:00 - 2fd4  e0533004 e2734000 e0b44003 ebffc1b9
+e1a00004 e89da830 e1a0c00d e92dd9f0
+15:40:20.6295-04:00 - 2ff4  e24cb004 e24dd00c e52de004 e8bd4000
+e1a08003 e1a04000 e1a07001 e1a06002
+15:40:20.6295-04:00 - 3014  eb14ca8e e1a01007 e1a02006 e3a03000
+e58d8000 e1a05000 e1a00004 ebfff72c
+15:40:20.6295-04:00 - 3034  e1a00004 e1a01005 eb14cb0c e24bd020
+e89da9f0 e1a0c00d e92dd9f0 e24cb004
+15:40:20.6305-04:00 - 3054  e24dd00c e52de004 e8bd4000 e2504000
+e1a05001 e1a07002 e1a06003 0a00000b
+15:40:20.6305-04:00 - 3074  eb14ca76 e2973000 e1a01005 e1a02007
+e58d6000 13a03001 e1a08000 e1a00004
+15:40:20.6305-04:00 - 3094  ebfff713 e1a00004 e1a01008 eb14caf3
+e24bd020 e89da9f0 e1a0c00d e92dd800
+15:40:20.6305-04:00 -
+15:40:20.6305-04:00 - SP: 0xe2b53df8:
+15:40:20.6305-04:00 - 3df8  00000000 e2b52010 e2b53ea4 c0080d14
+a0000093 c0080d14 a0000093 ffffffff
+15:40:20.6305-04:00 - 3e18  e2b53e64 00000000 e2b53eac e2b53e30
+c00141e4 c0008334 e422d908 00000003
+15:40:20.6305-04:00 - 3e38  00000001 00000000 e422d908 00000013
+e422d90c 00000003 00000000 00000003
+15:40:20.6315-04:00 - 3e58  e2b52000 e2b53eac 00000000 e2b53e78
+c0083034 c0080d14 a0000093 ffffffff
+15:40:20.6315-04:00 - 3e78  c0086044 00000001 00000000 e422d908
+00000013 00000001 00000003 00000000
+15:40:20.6315-04:00 - 3e98  e2b52000 e2b52000 e2b53edc e2b53eb0
+c0083034 c0080cf4 00000000 e3fab800
+15:40:20.6315-04:00 - 3eb8  e2b53edc e422d900 a0000013 e3fab800
+00000023 e563f180 e2b53ef4 e2b53ee0
+15:40:20.6315-04:00 - 3ed8  c02f2c9c c0082ff8 e5a4b198 00000000
+e2b53f04 e2b53ef8 c02f2d1c c02f2c20
+15:40:20.6315-04:00 -
+15:40:20.6315-04:00 - FP: 0xe2b53e2c:
+15:40:20.6325-04:00 - 3e2c  c0008334 e422d908 00000003 00000001
+00000000 e422d908 00000013 e422d90c
+15:40:20.6325-04:00 - 3e4c  00000003 00000000 00000003 e2b52000
+e2b53eac 00000000 e2b53e78 c0083034
+15:40:20.6325-04:00 - 3e6c  c0080d14 a0000093 ffffffff c0086044
+00000001 00000000 e422d908 00000013
+15:40:20.6325-04:00 - 3e8c  00000001 00000003 00000000 e2b52000
+e2b52000 e2b53edc e2b53eb0 c0083034
+15:40:20.6325-04:00 - 3eac  c0080cf4 00000000 e3fab800 e2b53edc
+e422d900 a0000013 e3fab800 00000023
+15:40:20.6325-04:00 - 3ecc  e563f180 e2b53ef4 e2b53ee0 c02f2c9c
+c0082ff8 e5a4b198 00000000 e2b53f04
+15:40:20.6335-04:00 - 3eec  e2b53ef8 c02f2d1c c02f2c20 e2b53f44
+e2b53f08 c02ec1c0 c02f2d10 00000023
+15:40:20.6335-04:00 - 3f0c  e422d900 c02eed58 00000400 c0069480
+e563f180 b643a304 e2b52008 e2b53f78
+15:40:20.6335-04:00 -
+15:40:20.6335-04:00 - R0: 0xe422d888:
+15:40:20.6335-04:00 - d888  00000000 b4b2cb40 00000000 00000000
+00000000 00000000 f8d9b11f 09f10078
+15:40:20.7805-04:00 - d8a8  3c015440 800ef000 e8bdb00a f8d985e0
+20e6e14c 1c0247f0 000000d1 000000d1
+15:40:20.7805-04:00 - d8c8  000000ed 00000001 00000000 00000000
+00000000 00000000 00028cc9 00000020
+15:40:20.7805-04:00 - d8e8  00008060 00000000 0000004c 5c00f5bd
+c000f8dc 4060e92d 0000002c 00000185
+15:40:20.7805-04:00 - d908  00010000 00000000 00000000 00000000
+e99c10a0 e99c10a0 f8502c10 f8d0000c
+15:40:20.7815-04:00 - d928  47f0e02c f0003c01 b0058003 8060e8bd
+e230f8d9 e7f847f0 7379732f 72656b2f
+15:40:20.7815-04:00 - d948  2f6c656e 75626564 00000067 00000000
+00000000 00000000 c000f8dc 40e0e92d
+15:40:20.7815-04:00 - d968  1c07b084 1c0d9000 68c01c38 f8d01c29
+f8d00140 47f0e02c 00000128 00000003
+15:40:20.7815-04:00 -
+15:40:20.7815-04:00 - R4: 0xe422d888:
+15:40:20.7815-04:00 - d888  00000000 b4b2cb40 00000000 00000000
+00000000 00000000 f8d9b11f 09f10078
+15:40:20.7815-04:00 - d8a8  3c015440 800ef000 e8bdb00a f8d985e0
+20e6e14c 1c0247f0 000000d1 000000d1
+15:40:20.7815-04:00 - d8c8  000000ed 00000001 00000000 00000000
+00000000 00000000 00028cc9 00000020
+15:40:20.7825-04:00 - d8e8  00008060 00000000 0000004c 5c00f5bd
+c000f8dc 4060e92d 0000002c 00000185
+15:40:20.7825-04:00 - d908  00010000 00000000 00000000 00000000
+e99c10a0 e99c10a0 f8502c10 f8d0000c
+15:40:20.7825-04:00 - d928  47f0e02c f0003c01 b0058003 8060e8bd
+e230f8d9 e7f847f0 7379732f 72656b2f
+15:40:20.7825-04:00 - d948  2f6c656e 75626564 00000067 00000000
+00000000 00000000 c000f8dc 40e0e92d
+15:40:20.7825-04:00 - d968  1c07b084 1c0d9000 68c01c38 f8d01c29
+f8d00140 47f0e02c 00000128 00000003
+15:40:20.7825-04:00 -
+15:40:20.7825-04:00 - R6: 0xe422d88c:
+15:40:20.7825-04:00 - d88c  b4b2cb40 00000000 00000000 00000000
+00000000 f8d9b11f 09f10078 3c015440
+15:40:20.7835-04:00 - d8ac  800ef000 e8bdb00a f8d985e0 20e6e14c
+1c0247f0 000000d1 000000d1 000000ed
+15:40:20.7835-04:00 - d8cc  00000001 00000000 00000000 00000000
+00000000 00028cc9 00000020 00008060
+15:40:20.7835-04:00 - d8ec  00000000 0000004c 5c00f5bd c000f8dc
+4060e92d 0000002c 00000185 00010000
+15:40:20.7835-04:00 - d90c  00000000 00000000 00000000 e99c10a0
+e99c10a0 f8502c10 f8d0000c 47f0e02c
+15:40:20.7835-04:00 - d92c  f0003c01 b0058003 8060e8bd e230f8d9
+e7f847f0 7379732f 72656b2f 2f6c656e
+15:40:20.7835-04:00 - d94c  75626564 00000067 00000000 00000000
+00000000 c000f8dc 40e0e92d 1c07b084
+15:40:20.7845-04:00 - d96c  1c0d9000 68c01c38 f8d01c29 f8d00140
+47f0e02c 00000128 00000003 0000000f
+15:40:20.7845-04:00 -
+15:40:20.7845-04:00 - R10: 0xe2b51f80:
+15:40:20.7845-04:00 - 1f80  af4950f0 af495120 af4950c0 00000036
+c00149c8 e2b50000 00000000 e2b51fa8
+15:40:20.7845-04:00 - 1fa0  c0014740 c0134b20 af4950f0 af495120
+00000005 c0186201 a4ca7cd0 a4ca7cc8
+15:40:20.7845-04:00 - 1fc0  af4950f0 af495120 af4950c0 00000036
+00000001 b4903e88 b6df4fd9 a4ca7db0
+15:40:20.7845-04:00 - 1fe0  b4878ca0 a4ca7cb8 b6e306f1 b6e198d8
+600f0010 00000005 00000000 00000000
+15:40:20.7855-04:00 - 2000  00000003 00000002 00000000 e40ca940
+c08e78bc 00000000 00000015 e2b90e40
+15:40:20.7855-04:00 - 2020  00000000 e2b52010 c088a900 e40ca940
+c1987900 e88b4dc0 e2b53ea4 e2b53e10
+15:40:20.7855-04:00 - 2040  c05b43c8 00000000 00000000 00000000
+00000000 00000000 01010000 00000000
+15:40:20.7855-04:00 - 2060  b6face30 00000000 00000000 00000000
+00000000 00000000 00000000 00000000
+15:40:20.7855-04:00 - Process sh (pid: 5559, stack limit = 0xe2b52240)
+15:40:20.7855-04:00 - Stack: (0xe2b53e78 to 0xe2b54000)
+15:40:20.7855-04:00 - 3e60:
+           c0086044 00000001
+15:40:20.7865-04:00 - 3e80: 00000000 e422d908 00000013 00000001
+00000003 00000000 e2b52000 e2b52000
+15:40:20.7865-04:00 - 3ea0: e2b53edc e2b53eb0 c0083034 c0080cf4
+00000000 e3fab800 e2b53edc e422d900
+15:40:20.7865-04:00 - 3ec0: a0000013 e3fab800 00000023 e563f180
+e2b53ef4 e2b53ee0 c02f2c9c c0082ff8
+15:40:20.7865-04:00 - 3ee0: e5a4b198 00000000 e2b53f04 e2b53ef8
+c02f2d1c c02f2c20 e2b53f44 e2b53f08
+15:40:20.7865-04:00 - 3f00: c02ec1c0 c02f2d10 00000023 e422d900
+c02eed58 00000400 c0069480 e563f180
+15:40:20.7865-04:00 - 3f20: b643a304 e2b52008 e2b53f78 00000000
+00000023 00000000 e2b53f74 e2b53f48
+15:40:20.7875-04:00 - 3f40: c0123ac8 c02ec008 00000043 c00149c8
+00000000 00000000 e563f180 b643a304
+15:40:20.7875-04:00 - 3f60: 00000000 00000023 e2b53fa4 e2b53f78
+c0123c78 c0123a28 00000000 00000000
+15:40:20.7875-04:00 - 3f80: b6fd5f6c 00000000 00000023 00000004
+c00149c8 e2b52000 00000000 e2b53fa8
+15:40:20.7875-04:00 - 3fa0: c0014740 c0123c38 b6fd5f6c 00000000
+00000002 b643a304 00000023 00000002
+15:40:20.7875-04:00 - 3fc0: b6fd5f6c 00000000 00000023 00000004
+00000000 00000000 00000000 00000000
+15:40:20.7875-04:00 - 3fe0: b643a304 be9ad7e0 b6fca04b b6f5b2ac
+200f0010 00000002 a9781821 a9781c21
+15:40:20.7885-04:00 - [<c0080d14>] (__wake_up_common+0x2c/0xa0) from
+[<c0083034>] (__wake_up+0x48/0x5c)
+15:40:20.7885-04:00 - [<c0083034>] (__wake_up+0x48/0x5c) from
+[<c02f2c9c>] (put_ldisc+0x88/0xf0)
+15:40:20.7885-04:00 - [<c02f2c9c>] (put_ldisc+0x88/0xf0) from
+[<c02f2d1c>] (tty_ldisc_deref+0x18/0x1c)
+15:40:20.7885-04:00 - [<c02f2d1c>] (tty_ldisc_deref+0x18/0x1c) from
+[<c02ec1c0>] (tty_write+0x1c4/0x274)
+15:40:20.7885-04:00 - [<c02ec1c0>] (tty_write+0x1c4/0x274) from
+[<c0123ac8>] (vfs_write+0xac/0x188)
+15:40:20.8215-04:00 - [<c0123ac8>] (vfs_write+0xac/0x188) from
+[<c0123c78>] (sys_write+0x4c/0x88)
+15:40:20.8225-04:00 - [<c0123c78>] (sys_write+0x4c/0x88) from
+[<c0014740>] (ret_fast_syscall+0x0/0x48)
+15:40:20.8225-04:00 - Code: e1a09001 e5b6c004 e50b2030 e156000c (e59c4000)
+
+
+As per my understanding the tty serial driver crashes during the
+put_ldisc as can be seen from the stack above.
+
+We have back ported a latest patch (as below)  to resolve the Kernel
+Bug - 'Bad Scheduling while Atomic'  w.r.t drivers/tty/tty_ldisc.c
+
+commit bd5d7ce9afdd0cddc5ab65e20d1134ccad824418
+
+Author: Ivo Sieben <meltedpianoman@gmail.com>
+
+Date:   Tue Dec 18 15:48:50 2012 +0100
+
+
+
+    tty: Only wakeup the line discipline idle queue when queue is active
+
+
+However the above issue was reproduced even after the patch was
+applied. Can anyone help me?
+
+I observed that there were multiple of patches submitted after 3.8 for
+race conditions/crashes on TTY LDISC in Kerbel 3.14. But As I am not
+migrating the whole kernel now, I am facing the above problem.
+
+
+Regards,
+Priyaranjan
