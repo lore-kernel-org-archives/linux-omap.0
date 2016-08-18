@@ -1,71 +1,141 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
-Date: Thu, 18 Aug 2016 12:45:39 +0200
-Message-ID: <20160818104539.GA7427@amd>
-References: <20160524090433.GA1277@amd>
- <20160524091746.GA14536@amd>
- <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd>
- <20160805102611.GA13116@amd>
- <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
- <20160808214132.GB2946@xo-6d-61-c0.localdomain>
- <20160810120105.GP3182@valkosipuli.retiisi.org.uk>
- <20160808232323.GC2946@xo-6d-61-c0.localdomain>
- <20160811111633.GR3182@valkosipuli.retiisi.org.uk>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH for 4.8] Revert "ASoC: omap-mcpdm: Add support
+	for pdmclk clock handling"
+Date: Thu, 18 Aug 2016 14:00:59 +0300
+Message-ID: <20160818110059.13457-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160811111633.GR3182@valkosipuli.retiisi.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu 2016-08-11 14:16:34, Sakari Ailus wrote:
-> On Tue, Aug 09, 2016 at 01:23:23AM +0200, Pavel Machek wrote:
-> > On Wed 2016-08-10 15:01:05, Sakari Ailus wrote:
-> > > On Mon, Aug 08, 2016 at 11:41:32PM +0200, Pavel Machek wrote:
-> > > > On Mon 2016-08-08 11:09:56, Sakari Ailus wrote:
-> > > > > On Fri, Aug 05, 2016 at 12:26:11PM +0200, Pavel Machek wrote:
-> > > > > > 
-> > > > > > This adds support for AD5820 autofocus coil, found for example in
-> > > > > > Nokia N900 smartphone.
-> > > > > 
-> > > > > Thanks, Pavel!
-> > > > > 
-> > > > > Let's use V4L2_CID_FOCUS_ABSOLUTE, as is in the patch. If we get something
-> > > > > better in the future, we'll switch to that then.
-> > > > > 
-> > > > > I've applied this to ad5820 branch in my tree.
-> > > > 
-> > > > Thanks. If I understands things correctly, both DTS patch and this patch are
-> > > > waiting in your tree, so we should be good to go for 4.9 (unless some unexpected
-> > > > problems surface)?
-> > > 
-> > > Yeah. I just compiled it but haven't tested it. I presume it'll work. :-)
-> > 
-> > I'm testing it on n900. I guess simpler hardware with ad5820 would be better for the
-> > test...
-> > 
-> > What hardware do you have?
-> 
-> N900. What else could it be? :-) :-)
+This reverts commit 65aca64d05b5eaa5ce15e18b458a8d338ddbd478.
 
-Heh. Basically anything is easier to develop for than n900 :-(.
+The patches for twl6040 MFD and clk missed the merge window and
+causing the McPDM driver to never probe since it is put back to
+the deferred list because the missing drivers.
 
-Ok, for real testing, Ivaylo's camera patchset is useful, so that you
-have picture to work with, plus your subdevs for omap3 patchset (which
-needs a forward port).
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+Mark,
 
-I have patches against v4.7, if you are interested.
+OMAP4/5 audio regressed in 4.8 due to the hack that the twl6040 MFD and clk
+driver changes were not take in time.
+The only clean solution I can think is to revert the pdmclk clock handling
+from the McPDM driver for now.
 
-I guess subdevs for omap3 should be merged at this point. Do you have
-any plans to do that, or should I take a look?
+Regards,
+Peter
 
-Best regards,
+ Documentation/devicetree/bindings/sound/omap-mcpdm.txt | 10 ----------
+ sound/soc/omap/omap-mcpdm.c                            | 17 -----------------
+ 2 files changed, 27 deletions(-)
 
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+diff --git a/Documentation/devicetree/bindings/sound/omap-mcpdm.txt b/Documentation/devicetree/bindings/sound/omap-mcpdm.txt
+index 6f6c2f8e908d..0741dff048dd 100644
+--- a/Documentation/devicetree/bindings/sound/omap-mcpdm.txt
++++ b/Documentation/devicetree/bindings/sound/omap-mcpdm.txt
+@@ -8,8 +8,6 @@ Required properties:
+ - interrupts: Interrupt number for McPDM
+ - interrupt-parent: The parent interrupt controller
+ - ti,hwmods: Name of the hwmod associated to the McPDM
+-- clocks:  phandle for the pdmclk provider, likely <&twl6040>
+-- clock-names: Must be "pdmclk"
+
+ Example:
+
+@@ -21,11 +19,3 @@ mcpdm: mcpdm@40132000 {
+ 	interrupt-parent = <&gic>;
+ 	ti,hwmods = "mcpdm";
+ };
+-
+-In board DTS file the pdmclk needs to be added:
+-
+-&mcpdm {
+-	clocks = <&twl6040>;
+-	clock-names = "pdmclk";
+-	status = "okay";
+-};
+diff --git a/sound/soc/omap/omap-mcpdm.c b/sound/soc/omap/omap-mcpdm.c
+index e7cdc51fd806..74d6e6fdcfd0 100644
+--- a/sound/soc/omap/omap-mcpdm.c
++++ b/sound/soc/omap/omap-mcpdm.c
+@@ -31,7 +31,6 @@
+ #include <linux/err.h>
+ #include <linux/io.h>
+ #include <linux/irq.h>
+-#include <linux/clk.h>
+ #include <linux/slab.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/of_device.h>
+@@ -55,7 +54,6 @@ struct omap_mcpdm {
+ 	unsigned long phys_base;
+ 	void __iomem *io_base;
+ 	int irq;
+-	struct clk *pdmclk;
+
+ 	struct mutex mutex;
+
+@@ -390,7 +388,6 @@ static int omap_mcpdm_probe(struct snd_soc_dai *dai)
+ 	struct omap_mcpdm *mcpdm = snd_soc_dai_get_drvdata(dai);
+ 	int ret;
+
+-	clk_prepare_enable(mcpdm->pdmclk);
+ 	pm_runtime_enable(mcpdm->dev);
+
+ 	/* Disable lines while request is ongoing */
+@@ -425,7 +422,6 @@ static int omap_mcpdm_remove(struct snd_soc_dai *dai)
+
+ 	pm_runtime_disable(mcpdm->dev);
+
+-	clk_disable_unprepare(mcpdm->pdmclk);
+ 	return 0;
+ }
+
+@@ -445,8 +441,6 @@ static int omap_mcpdm_suspend(struct snd_soc_dai *dai)
+ 		mcpdm->pm_active_count++;
+ 	}
+
+-	clk_disable_unprepare(mcpdm->pdmclk);
+-
+ 	return 0;
+ }
+
+@@ -454,8 +448,6 @@ static int omap_mcpdm_resume(struct snd_soc_dai *dai)
+ {
+ 	struct omap_mcpdm *mcpdm = snd_soc_dai_get_drvdata(dai);
+
+-	clk_prepare_enable(mcpdm->pdmclk);
+-
+ 	if (mcpdm->pm_active_count) {
+ 		while (mcpdm->pm_active_count--)
+ 			pm_runtime_get_sync(mcpdm->dev);
+@@ -549,15 +541,6 @@ static int asoc_mcpdm_probe(struct platform_device *pdev)
+
+ 	mcpdm->dev = &pdev->dev;
+
+-	mcpdm->pdmclk = devm_clk_get(&pdev->dev, "pdmclk");
+-	if (IS_ERR(mcpdm->pdmclk)) {
+-		if (PTR_ERR(mcpdm->pdmclk) == -EPROBE_DEFER)
+-			return -EPROBE_DEFER;
+-		dev_warn(&pdev->dev, "Error getting pdmclk (%ld)!\n",
+-			 PTR_ERR(mcpdm->pdmclk));
+-		mcpdm->pdmclk = NULL;
+-	}
+-
+ 	ret =  devm_snd_soc_register_component(&pdev->dev,
+ 					       &omap_mcpdm_component,
+ 					       &omap_mcpdm_dai, 1);
+--
+2.9.2
