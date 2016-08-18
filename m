@@ -1,45 +1,71 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [RFC 3/7] dt: bindings: Add nokia-bluetooth
-Date: Wed, 17 Aug 2016 17:54:52 +0200
-Message-ID: <20160817155452.GA14957@amd>
-References: <1471058078-5579-1-git-send-email-sre@kernel.org>
- <1471058078-5579-4-git-send-email-sre@kernel.org>
- <20160816135155.GA20948@rob-hp-laptop>
- <20160816232855.qgempm64zgp36ufd@earth>
- <CAL_JsqLcDzTZ++h+e7D-n0xbt7LgryK6jfGJDNEcAaU=Dn4b0w@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
+Date: Thu, 18 Aug 2016 12:45:39 +0200
+Message-ID: <20160818104539.GA7427@amd>
+References: <20160524090433.GA1277@amd>
+ <20160524091746.GA14536@amd>
+ <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
+ <20160527205140.GA26767@amd>
+ <20160805102611.GA13116@amd>
+ <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
+ <20160808214132.GB2946@xo-6d-61-c0.localdomain>
+ <20160810120105.GP3182@valkosipuli.retiisi.org.uk>
+ <20160808232323.GC2946@xo-6d-61-c0.localdomain>
+ <20160811111633.GR3182@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAL_JsqLcDzTZ++h+e7D-n0xbt7LgryK6jfGJDNEcAaU=Dn4b0w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Jiri Slaby <jslaby-IBi9RG/b67k@public.gmane.org>, Ville Tervo <ville.tervo-X3B1VOXEql0@public.gmane.org>, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160811111633.GR3182@valkosipuli.retiisi.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
-
-> >> > +  - reset-gpios:           Should specify the gpio for bluetooth reset
-> >> > +  - host-wakeup-gpios:             Should specify the gpio for host wakeup
-> >>
-> >> Should be interrupt instead?
-> >
-> > Yes this is mostly an interrupt, but I need to read the current
-> > line state.
+On Thu 2016-08-11 14:16:34, Sakari Ailus wrote:
+> On Tue, Aug 09, 2016 at 01:23:23AM +0200, Pavel Machek wrote:
+> > On Wed 2016-08-10 15:01:05, Sakari Ailus wrote:
+> > > On Mon, Aug 08, 2016 at 11:41:32PM +0200, Pavel Machek wrote:
+> > > > On Mon 2016-08-08 11:09:56, Sakari Ailus wrote:
+> > > > > On Fri, Aug 05, 2016 at 12:26:11PM +0200, Pavel Machek wrote:
+> > > > > > 
+> > > > > > This adds support for AD5820 autofocus coil, found for example in
+> > > > > > Nokia N900 smartphone.
+> > > > > 
+> > > > > Thanks, Pavel!
+> > > > > 
+> > > > > Let's use V4L2_CID_FOCUS_ABSOLUTE, as is in the patch. If we get something
+> > > > > better in the future, we'll switch to that then.
+> > > > > 
+> > > > > I've applied this to ad5820 branch in my tree.
+> > > > 
+> > > > Thanks. If I understands things correctly, both DTS patch and this patch are
+> > > > waiting in your tree, so we should be good to go for 4.9 (unless some unexpected
+> > > > problems surface)?
+> > > 
+> > > Yeah. I just compiled it but haven't tested it. I presume it'll work. :-)
+> > 
+> > I'm testing it on n900. I guess simpler hardware with ad5820 would be better for the
+> > test...
+> > 
+> > What hardware do you have?
 > 
-> When? If the interrupt is level triggered, then you can get the line
-> state based on whether you get an interrupt or not. If this needs to
-> be a wakeup source (see the wakeup source binding), then it needs to
-> be an interrupt.
+> N900. What else could it be? :-) :-)
 
-What is wrong with GPIO? It is simply a piece of wire. Yes, we'll
-configure it to generate an interrupt, or maybe not, but that's
-software detail, the device tree just should not care....
-								Pavel
+Heh. Basically anything is easier to develop for than n900 :-(.
+
+Ok, for real testing, Ivaylo's camera patchset is useful, so that you
+have picture to work with, plus your subdevs for omap3 patchset (which
+needs a forward port).
+
+I have patches against v4.7, if you are interested.
+
+I guess subdevs for omap3 should be merged at this point. Do you have
+any plans to do that, or should I take a look?
+
+Best regards,
+
+									Pavel
 -- 
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
