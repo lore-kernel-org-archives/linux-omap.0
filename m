@@ -1,89 +1,95 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCHv2] of: Add generic handling for ePAPR 1.1 fail-sss states
-Date: Wed, 31 Aug 2016 14:41:52 -0700
-Message-ID: <20160831214151.wzq7y54xxs2qj422@atomide.com>
-References: <20160829223542.18871-1-tony@atomide.com>
- <57C74306.9020901@gmail.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH] soc: ti: wkup_m3_ipc: switch to using remoteproc OF
+ infrastructure
+Date: Fri, 19 Aug 2016 16:35:21 -0500
+Message-ID: <a18ac529-27d1-a98b-dcfa-82f5c03197fe@ti.com>
+References: <20160812003529.519-1-s-anna@ti.com> <20160812110201.GD25844@dell>
+ <55d90506-eb1b-c8f9-02b5-8484b9a4babd@ti.com>
+ <20160812164335.GG26240@tuxbot>
+ <CAL_Jsq+aOd-FqaKNtmDESw--pdxbWMuOzv+KXf-hhX+oU94CdQ@mail.gmail.com>
+ <dea62d2e-2935-ff91-967a-e8dee469543d@ti.com>
+ <CAL_JsqLDWkpiZx2PTa11T-ynW=meCwq=tiNK6C2-U4-q5qrYDw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <57C74306.9020901-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Tom Rini <trini-OWPKS81ov/FWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAL_JsqLDWkpiZx2PTa11T-ynW=meCwq=tiNK6C2-U4-q5qrYDw@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Rob Herring <robh+dt@kernel.org>
+Cc: Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, linux-remoteproc@vger.kernel.org, Bjorn Andersson <bjorn.andersson@linaro.org>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [160831 13:51]:
-> On 08/29/16 15:35, Tony Lindgren wrote:
-> > 	if (of_device_is_incomplete(pdev->dev.of_node, status)) {
-> > 		if (!strcmp("hw-incomplete-pins", status)) {
-> > 			dev_info(&pdev->dev,
-> > 				 "Unusable hardware: Not pinned out\n");
-> > 			err = -ENODEV;
-> > 			goto out;
-> > 		}
-> > 		if (!strcmp("hw-missing-daughter-card")) {
-> > 			err = -EPROBE_DEFER;
-> > 			goto out;
-> > 		}
-> > 		if (!strcmp("hw-buggy-dma")) {
-> > 			dev_warn(&pdev->dev,
-> > 				 "Replace hardware for working DMA\n");
-> > 		}
-> > 	}
+On 08/19/2016 04:21 PM, Rob Herring wrote:
+> On Thu, Aug 18, 2016 at 4:30 PM, Suman Anna <s-anna@ti.com> wrote:
+>> Hi Rob,
+>>
+>> On 08/16/2016 09:54 AM, Rob Herring wrote:
+>>> On Fri, Aug 12, 2016 at 11:43 AM, Bjorn Andersson
+>>> <bjorn.andersson@linaro.org> wrote:
+>>>> On Fri 12 Aug 09:00 PDT 2016, Suman Anna wrote:
+>>>>
+>>>>> On 08/12/2016 06:02 AM, Lee Jones wrote:
+>>>>>> On Thu, 11 Aug 2016, Suman Anna wrote:
+>>>>>>
 > 
-> What if the device has two issues to be reported?  You can not
-> specify two different values for the status property.
-
-That's a good point.
-
-> What if the firmware wants to report that the hardware failed
-> self-test (thus status = "fail-sss") but is already using
-> status to describe the hardware?
-
-Yeah that's true. Do you know what the "sss" stands for here?
-Status Self teSt, or Side Scan Sonar? :)
-
-> > - Make more generic as suggested by Frank but stick with
-> >   "operational status of a device" approch most people seem
-> >   to prefer that
+> [...]
 > 
-> I am still opposed to using the status property for this purpose.
+>>>>> Once "rprocs" hits mainline, I will definitely switch over the
+>>>>> wkup_m3_ipc nodes to use that standard property and can fix this driver
+>>>>> independently.
+>>>>>
+>>>>
+>>>> We're stuck with this problem all over the place, as the world continues
+>>>> to evolve we will have issues with DT being static. This has been
+>>>> discussed many times before and the suggested solution is always what
+>>>> you implemented here - make the code deal with both versions, preferably
+>>>> by patching.
+>>>>
+>>>> The fact that you had to export the of_ operations indicates that no-one
+>>>> has tried this before and I'm happy you did. I'm however not happy about
+>>>> the size of the chunk of code it takes to do this dance.
+>>>>
+>>>> I think for this to be practical we need to provide higher level
+>>>> operations for DT modification - in this case a of_rename_property().
+>>>>
+>>>> @Rob, any comments on this?
+>>>
+>>> I agree. Pantelis submitted some helpers in this area a while back
+>>> (for the changeset API IIRC). I believe they were mostly fine, but
+>>> needed some users.
+>>>
+>>
+>> Is this the series you are talking about?
+>> http://marc.info/?l=devicetree&m=146341689512653&w=2
+>>
+>> It looks like that series is effective only when OF_DYNAMIC is enabled.
 > 
-> The status property is intended to report an operational problem with
-> a device or a device that the kernel can cause to be operational (such
-> as a quiescent cpu being enabled).  It is the only property I am aware
-> of to report _state_.
+> Yes, as changeset API allows adding/removing nodes. It's probably just
+> a matter of time until OF_DYNAMIC is always enabled.
 > 
-> It is unfortunate that Linux has adopted the practice of overloading status
-> to determine whether a piece of hardware exists or does not exist.  This
-> is extremely useful for the way we structure the .dts and .dtsi files but
-> should have used a new property name.  We are stuck with that choice of
-> using the status property for two purposes, first the state of a device,
-> and secondly the hardware description of existing or not existing.
+>> Probably a dumb question, but is this limited to DT Overlays?
 > 
-> Why not just create a new property that describes the hardware?
-> Perhaps something like:
+> No, changesets are the mechanism overlays use to apply changes.
 > 
->    incomplete = "pins_output", "buggy_dma";
+>> This
+>> particular usage is a one-time change (first-time module is insmod'd)
+>> mainly to provide compatibility for older DTBs, thereafter we wouldn't
+>> be required to make any changes. It is definitely not a bulk update and
+>> we don't want to unroll the changes even if we removed the module.
+> 
+> If you only need property changes, then we could do similar helpers to
+> make it easier for callers.
 
-New property for incomplete works for me. Rob, got any comments here?
+So if you are ok with an of_rename_property() API, I can submit a patch
+for the same.
 
-> > + *  __of_device_is_incomplete - check if a device is incomplete
-> 
-> It is not checking if a device is incomplete.  It is checking whether the
-> device is operational _or_ incomplete.
-> 
-> This is conflating concepts and likely to be confusing.  This is the problem
-> with overloading the status property for yet another purpose.
-
-Sure that's a valid point.
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards
+Suman
