@@ -1,80 +1,80 @@
 From: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 2/2] iio: adc: ti_am335x_adc: Increase timeout value
- waiting for ADC sample
-Date: Sun, 21 Aug 2016 19:49:58 +0100
-Message-ID: <5f496aae-2913-d652-b88c-e2c17cd92a30@kernel.org>
-References: <20160817121301.21785-1-vigneshr@ti.com>
- <20160817121301.21785-3-vigneshr@ti.com>
+Subject: Re: [PATCH] tools: iio: fix iio build error by adding KBUILD_OUTPUT
+ support to makefile
+Date: Sun, 21 Aug 2016 20:05:31 +0100
+Message-ID: <198eb20a-0150-b2b7-8b96-a4a13349724a@kernel.org>
+References: <20160811060124.6604-1-mugunthanvnm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160817121301.21785-3-vigneshr-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20160811060124.6604-1-mugunthanvnm-l0cyMroinI0@public.gmane.org>
 Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Cc: Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Andrew F . Davis" <afd-l0cyMroinI0@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 17/08/16 13:13, Vignesh R wrote:
-> Now that open delay and sample delay for each channel is configurable
-> via DT, the default IDLE_TIMEOUT value is not enough as this is
-> calculated based on hardcoded macros. This results in driver returning
-> EBUSY sometimes. Fix this by increasing the timeout
-> value based on maximum value possible to open delay and sample delays
-> for each channel.
+On 11/08/16 07:01, Mugunthan V N wrote:
+> Current make doesn't have support to pass kernel built directory
+> to find events.h kernel header file, so adding support for
+> KBUILD_OUTPUT support to Makefile.
 > 
-> Fixes: 5dc11e810676e ("iio: adc: ti_am335x_adc: make sample delay, open delay, averaging DT parameters")
-> Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-> Acked-by: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Applied to the fixes-togreg branch of iio.git and marked for stable.
+> $ make CROSS_COMPILE=arm-linux-gnueabihf- -C tools/iio
+> make: Entering directory '/home/a0131834/workspace/git/mainline/linux/tools/iio'
+> arm-linux-gnueabihf-gcc -Wall -g -D_GNU_SOURCE   -c -o iio_event_monitor.o iio_event_monitor.c
+> arm-linux-gnueabihf-gcc -Wall -g -D_GNU_SOURCE   -c -o iio_utils.o iio_utils.c
+> arm-linux-gnueabihf-gcc -Wall -g -D_GNU_SOURCE   -c -o lsiio.o lsiio.c
+> arm-linux-gnueabihf-gcc -Wall -g -D_GNU_SOURCE   -c -o iio_generic_buffer.o iio_generic_buffer.c
+> arm-linux-gnueabihf-gcc   lsiio.o iio_utils.o   -o lsiio
+> arm-linux-gnueabihf-gcc   iio_generic_buffer.o iio_utils.o   -o iio_generic_buffer
+> iio_event_monitor.c:28:30: fatal error: linux/iio/events.h: No such file or directory
+>  #include <linux/iio/events.h>
+>                                ^
+> compilation terminated.
+> <builtin>: recipe for target 'iio_event_monitor.o' failed
+> make: *** [iio_event_monitor.o] Error 1
+> make: Leaving directory '/home/a0131834/workspace/git/mainline/linux/tools/iio'
+> 
+> Signed-off-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+I can see where you are coming from, but wouldn't we normally expect the kernel
+headers for the relevant kernel to available as part of the toolchain being
+used to do the build?
 
-Thanks,
+They often lag a bit I guess, so perhaps we do want to put this little bit
+of 'fudging' in place.
+
+What do others think?
 
 Jonathan
 > ---
 > 
-> v2: Add fixes tag.
+> With this fix I am able to build the iio tools
 > 
->  drivers/iio/adc/ti_am335x_adc.c      | 2 +-
->  include/linux/mfd/ti_am335x_tscadc.h | 8 ++++----
->  2 files changed, 5 insertions(+), 5 deletions(-)
+> $ make CROSS_COMPILE=arm-linux-gnueabihf- -C tools/iio KBUILD_OUTPUT=`pwd`
+> make: Entering directory '/home/a0131834/workspace/git/mainline/linux/tools/iio'
+> arm-linux-gnueabihf-gcc -Wall -g -D_GNU_SOURCE -I/home/a0131834/workspace/git/mainline/linux/usr/include   -c -o iio_event_monitor.o iio_event_monitor.c
+> arm-linux-gnueabihf-gcc -Wall -g -D_GNU_SOURCE -I/home/a0131834/workspace/git/mainline/linux/usr/include   -c -o iio_utils.o iio_utils.c
+> arm-linux-gnueabihf-gcc   iio_event_monitor.o iio_utils.o   -o iio_event_monitor
+> arm-linux-gnueabihf-gcc -Wall -g -D_GNU_SOURCE -I/home/a0131834/workspace/git/mainline/linux/usr/include   -c -o lsiio.o lsiio.c
+> arm-linux-gnueabihf-gcc   lsiio.o iio_utils.o   -o lsiio
+> arm-linux-gnueabihf-gcc -Wall -g -D_GNU_SOURCE -I/home/a0131834/workspace/git/mainline/linux/usr/include   -c -o iio_generic_buffer.o iio_generic_buffer.c
+> arm-linux-gnueabihf-gcc   iio_generic_buffer.o iio_utils.o   -o iio_generic_buffer
+> make: Leaving directory '/home/a0131834/workspace/git/mainline/linux/tools/iio'
 > 
-> diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
-> index bed9977a1863..c3cfacca2541 100644
-> --- a/drivers/iio/adc/ti_am335x_adc.c
-> +++ b/drivers/iio/adc/ti_am335x_adc.c
-> @@ -381,7 +381,7 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
+> ---
+>  tools/iio/Makefile | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/tools/iio/Makefile b/tools/iio/Makefile
+> index 5446d62..0ec3ea0 100644
+> --- a/tools/iio/Makefile
+> +++ b/tools/iio/Makefile
+> @@ -1,5 +1,6 @@
+>  CC = $(CROSS_COMPILE)gcc
+> -CFLAGS += -Wall -g -D_GNU_SOURCE
+> +KBUILD_OUTPUT ?= /lib/modules/$(shell uname -r)/build
+> +CFLAGS += -Wall -g -D_GNU_SOURCE -I$(KBUILD_OUTPUT)/usr/include
 >  
->  	am335x_tsc_se_set_once(adc_dev->mfd_tscadc, step_en);
->  
-> -	timeout = jiffies + usecs_to_jiffies
-> +	timeout = jiffies + msecs_to_jiffies
->  				(IDLE_TIMEOUT * adc_dev->channels);
->  	/* Wait for Fifo threshold interrupt */
->  	while (1) {
-> diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
-> index 2567a87872b0..7f55b8b41032 100644
-> --- a/include/linux/mfd/ti_am335x_tscadc.h
-> +++ b/include/linux/mfd/ti_am335x_tscadc.h
-> @@ -138,16 +138,16 @@
->  /*
->   * time in us for processing a single channel, calculated as follows:
->   *
-> - * num cycles = open delay + (sample delay + conv time) * averaging
-> + * max num cycles = open delay + (sample delay + conv time) * averaging
->   *
-> - * num cycles: 152 + (1 + 13) * 16 = 376
-> + * max num cycles: 262143 + (255 + 13) * 16 = 266431
->   *
->   * clock frequency: 26MHz / 8 = 3.25MHz
->   * clock period: 1 / 3.25MHz = 308ns
->   *
-> - * processing time: 376 * 308ns = 116us
-> + * max processing time: 266431 * 308ns = 83ms(approx)
->   */
-> -#define IDLE_TIMEOUT 116 /* microsec */
-> +#define IDLE_TIMEOUT 83 /* milliseconds */
->  
->  #define TSCADC_CELLS		2
->  
+>  BINDIR=usr/bin
+>  INSTALL_PROGRAM=install -m 755 -p
 > 
