@@ -1,62 +1,56 @@
-From: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/2] dmaengine: cppi41: Add basic PM runtime support
-Date: Mon, 22 Aug 2016 22:28:23 +0530
-Message-ID: <20160822165823.GQ2890@localhost>
-References: <20160819225940.12653-1-tony@atomide.com>
- <20160819225940.12653-3-tony@atomide.com>
- <20160822064152.GP2890@localhost>
- <20160822142148.bylnbykob4xy3xb3@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160822142148.bylnbykob4xy3xb3-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [PATCH v4 2/5] net: ethernet: ti: davinci_cpdma: fix locking while ctrl_stop
+Date: Mon, 22 Aug 2016 21:18:25 +0300
+Message-ID: <1471889908-29983-3-git-send-email-ivan.khoronzhuk@linaro.org>
+References: <1471889908-29983-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1471889908-29983-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Sender: netdev-owner@vger.kernel.org
+To: davem@davemloft.net, netdev@vger.kernel.org, mugunthanvnm@ti.com, grygorii.strashko@ti.com
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, dlide@ti.com, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Aug 22, 2016 at 07:21:48AM -0700, Tony Lindgren wrote:
-> Hi,
-> 
-> * Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> [160821 23:34]:
-> > On Fri, Aug 19, 2016 at 03:59:40PM -0700, Tony Lindgren wrote:
-> > @@ -349,6 +358,12 @@ static dma_cookie_t cppi41_tx_submit(struct dma_async_tx_descriptor *tx)
-> > >  static int cppi41_dma_alloc_chan_resources(struct dma_chan *chan)
-> > >  {
-> > >  	struct cppi41_channel *c = to_cpp41_chan(chan);
-> > > +	struct cppi41_dd *cdd = c->cdd;
-> > > +	int error;
-> > > +
-> > > +	error = pm_runtime_get_sync(cdd->ddev.dev);
-> > 
-> > This will be problematic. The alloc callback are not supposed to sleep, so
-> > we cannot use a _sync() call here :(
-> > 
-> > This is explicitly documented in Documentation/dmaengine/provider.txt
-> 
-> Hmm but for device_alloc_chan_resources and device_free_chan_resources
-> we have "These functions can sleep" in the documentation?
+The interrupts shouldn't be disabled while receiving skb, but while
+ctrl_stop, the channels are stopped and all remaining packets are
+handled with netif_receive_skb(), it can cause WARN_ONCE when ctrl
+is stopping while not all packets were handled with NAPIs:
 
-which is correct :)
+lock_irq_save
+    cpdma_ctlr_stop
+       cpdma_chan_top
+           __cpdma_chan_free
+               cpsw_rx_handler
+                   netif_receive_skb
 
-> 
-> Maybe you got confused with the patch @@ line saying cppi41_tx_submit
-> although the pm_runtime_get is in cppi41_dma_alloc_chan_resources?
-> Or else I'm confused :)
+So, split locking while ctrl stop thus interrupts are still
+enabled while skbs handling. It can cause WARN_ONCE in rare
+cases when ctrl is stopping while not all packets were handled
+with NAPIs.
 
-Ah, I was trying to finish this before I took my lunch break and looks like
-messed it up. Sorry..
-Never to rush a review again!
+Reviewed-by: Mugunthan V N <mugunthanvnm@ti.com>
+Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+---
+ drivers/net/ethernet/ti/davinci_cpdma.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-> Anyways, if necessary we could move the call to cppi_writel out of
-> cppi41_dma_alloc_chan_resources I think.
-
-I think alloc is fine, I will take a detailed look tomorrow...
-
+diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
+index 167fd65..ffb32af 100644
+--- a/drivers/net/ethernet/ti/davinci_cpdma.c
++++ b/drivers/net/ethernet/ti/davinci_cpdma.c
+@@ -334,12 +334,14 @@ int cpdma_ctlr_stop(struct cpdma_ctlr *ctlr)
+ 	}
+ 
+ 	ctlr->state = CPDMA_STATE_TEARDOWN;
++	spin_unlock_irqrestore(&ctlr->lock, flags);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(ctlr->channels); i++) {
+ 		if (ctlr->channels[i])
+ 			cpdma_chan_stop(ctlr->channels[i]);
+ 	}
+ 
++	spin_lock_irqsave(&ctlr->lock, flags);
+ 	dma_reg_write(ctlr, CPDMA_RXINTMASKCLEAR, 0xffffffff);
+ 	dma_reg_write(ctlr, CPDMA_TXINTMASKCLEAR, 0xffffffff);
+ 
 -- 
-~Vinod
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.9.1
