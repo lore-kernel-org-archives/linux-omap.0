@@ -1,41 +1,54 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [PATCH] USB: ohci-omap - avoid including mach/irqs.h
-Date: Mon, 22 Aug 2016 11:28:21 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1608221128050.1543-100000@iolanthe.rowland.org>
-References: <E1bamhf-0004XR-Nk@rmk-PC.armlinux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Bunch of CRC errors in next with arm: move exports to definitions
+Date: Mon, 22 Aug 2016 09:25:13 -0700
+Message-ID: <20160822162512.mptzbiaozx2fz42l@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <E1bamhf-0004XR-Nk-eh5Bv4kxaXIk46pC+1QYvQNdhmdF6hFW@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Russell King <rmk+kernel-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 19 Aug 2016, Russell King wrote:
+Hi Al,
 
-> ohci-omap doesn't need to include mach/irqs.h - nothing within this
-> driver needs anything from this header file.  Remove this include.
-> 
-> Signed-off-by: Russell King <rmk+kernel-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
-> ---
->  drivers/usb/host/ohci-omap.c | 1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/usb/host/ohci-omap.c b/drivers/usb/host/ohci-omap.c
-> index de7c68602a7e..495c1454b9e8 100644
-> --- a/drivers/usb/host/ohci-omap.c
-> +++ b/drivers/usb/host/ohci-omap.c
-> @@ -36,7 +36,6 @@
->  #include <mach/mux.h>
->  
->  #include <mach/hardware.h>
-> -#include <mach/irqs.h>
->  #include <mach/usb.h>
+Looks like starting with next-20160818 I'm now getting close to
+800 lines of WARNINGs on ARM with omap2plus_defconfig while doing
+make modules:
 
-Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Building modules, stage 2.
+  MODPOST 399 modules
+WARNING: "__memzero" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
+WARNING: "memset" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
+WARNING: "memcpy" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
+WARNING: "_set_bit" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
+WARNING: "_test_and_set_bit" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
+WARNING: "_clear_bit" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
+WARNING: "__aeabi_uidivmod" [sound/usb/snd-usb-audio.ko] has no CRC!
+WARNING: "_test_and_clear_bit" [sound/usb/snd-usb-audio.ko] has no CRC!
+WARNING: "arm_copy_to_user" [sound/usb/snd-usb-audio.ko] has no CRC!
+WARNING: "__aeabi_uidiv" [sound/usb/snd-usb-audio.ko] has no CRC!
+...
+WARNING: "memset" [crypto/drbg.ko] has no CRC!
+WARNING: "memcpy" [crypto/ctr.ko] has no CRC!
+WARNING: "memcpy" [crypto/cmac.ko] has no CRC!
+WARNING: "__memzero" [crypto/cmac.ko] has no CRC!
+WARNING: "memcpy" [crypto/ccm.ko] has no CRC!
+WARNING: "__memzero" [crypto/ccm.ko] has no CRC!
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Reverting commit 4dd1837d7589 ("arm: move exports to definitions")
+fixes it.
+
+Regards,
+
+Tony
