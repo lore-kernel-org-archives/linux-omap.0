@@ -1,54 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Bunch of CRC errors in next with arm: move exports to definitions
-Date: Mon, 22 Aug 2016 09:25:13 -0700
-Message-ID: <20160822162512.mptzbiaozx2fz42l@atomide.com>
+From: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 2/2] dmaengine: cppi41: Add basic PM runtime support
+Date: Mon, 22 Aug 2016 22:28:23 +0530
+Message-ID: <20160822165823.GQ2890@localhost>
+References: <20160819225940.12653-1-tony@atomide.com>
+ <20160819225940.12653-3-tony@atomide.com>
+ <20160822064152.GP2890@localhost>
+ <20160822142148.bylnbykob4xy3xb3@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20160822142148.bylnbykob4xy3xb3-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Al,
+On Mon, Aug 22, 2016 at 07:21:48AM -0700, Tony Lindgren wrote:
+> Hi,
+> 
+> * Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> [160821 23:34]:
+> > On Fri, Aug 19, 2016 at 03:59:40PM -0700, Tony Lindgren wrote:
+> > @@ -349,6 +358,12 @@ static dma_cookie_t cppi41_tx_submit(struct dma_async_tx_descriptor *tx)
+> > >  static int cppi41_dma_alloc_chan_resources(struct dma_chan *chan)
+> > >  {
+> > >  	struct cppi41_channel *c = to_cpp41_chan(chan);
+> > > +	struct cppi41_dd *cdd = c->cdd;
+> > > +	int error;
+> > > +
+> > > +	error = pm_runtime_get_sync(cdd->ddev.dev);
+> > 
+> > This will be problematic. The alloc callback are not supposed to sleep, so
+> > we cannot use a _sync() call here :(
+> > 
+> > This is explicitly documented in Documentation/dmaengine/provider.txt
+> 
+> Hmm but for device_alloc_chan_resources and device_free_chan_resources
+> we have "These functions can sleep" in the documentation?
 
-Looks like starting with next-20160818 I'm now getting close to
-800 lines of WARNINGs on ARM with omap2plus_defconfig while doing
-make modules:
+which is correct :)
 
-Building modules, stage 2.
-  MODPOST 399 modules
-WARNING: "__memzero" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
-WARNING: "memset" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
-WARNING: "memcpy" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
-WARNING: "_set_bit" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
-WARNING: "_test_and_set_bit" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
-WARNING: "_clear_bit" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
-WARNING: "__aeabi_uidivmod" [sound/usb/snd-usb-audio.ko] has no CRC!
-WARNING: "_test_and_clear_bit" [sound/usb/snd-usb-audio.ko] has no CRC!
-WARNING: "arm_copy_to_user" [sound/usb/snd-usb-audio.ko] has no CRC!
-WARNING: "__aeabi_uidiv" [sound/usb/snd-usb-audio.ko] has no CRC!
-...
-WARNING: "memset" [crypto/drbg.ko] has no CRC!
-WARNING: "memcpy" [crypto/ctr.ko] has no CRC!
-WARNING: "memcpy" [crypto/cmac.ko] has no CRC!
-WARNING: "__memzero" [crypto/cmac.ko] has no CRC!
-WARNING: "memcpy" [crypto/ccm.ko] has no CRC!
-WARNING: "__memzero" [crypto/ccm.ko] has no CRC!
+> 
+> Maybe you got confused with the patch @@ line saying cppi41_tx_submit
+> although the pm_runtime_get is in cppi41_dma_alloc_chan_resources?
+> Or else I'm confused :)
 
-Reverting commit 4dd1837d7589 ("arm: move exports to definitions")
-fixes it.
+Ah, I was trying to finish this before I took my lunch break and looks like
+messed it up. Sorry..
+Never to rush a review again!
 
-Regards,
+> Anyways, if necessary we could move the call to cppi_writel out of
+> cppi41_dma_alloc_chan_resources I think.
 
-Tony
+I think alloc is fine, I will take a detailed look tomorrow...
+
+-- 
+~Vinod
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
