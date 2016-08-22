@@ -1,67 +1,50 @@
-From: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-Subject: Re: [PATCH v4 4/5] mfd: tps65217: Add power button as subdevice
-Date: Mon, 22 Aug 2016 12:08:42 +0200
-Message-ID: <8a091fa5-3e0a-c3e6-33db-714ab9e7b413@grinn-global.com>
+From: Marcin Niestroj <m.niestroj@grinn-global.com>
+Subject: Re: [PATCH v4 5/5] Input: Add tps65217 power button driver
+Date: Mon, 22 Aug 2016 12:09:17 +0200
+Message-ID: <8fe03c82-24aa-106f-80ee-e297eaf0d4e2@grinn-global.com>
 References: <20160620105056.25843-1-m.niestroj@grinn-global.com>
- <20160620105056.25843-5-m.niestroj@grinn-global.com>
+ <20160620105056.25843-6-m.niestroj@grinn-global.com>
+ <20160621131735.GA896@rob-hp-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160620105056.25843-5-m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Eremin-Solenikov <dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20160621131735.GA896@rob-hp-laptop>
+Sender: linux-input-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Rob Herring <robh@kernel.org>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Pawel Moll <pawel.moll@arm.com>, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-input@vger.kernel.org, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
 ping
 
-On 20.06.2016 12:50, Marcin Niestroj wrote:
-> Add tps65217 power buttor subdevice with assigned IRQ resources.
+On 21.06.2016 15:17, Rob Herring wrote:
+> On Mon, Jun 20, 2016 at 12:50:56PM +0200, Marcin Niestroj wrote:
+>> This driver enables us to use tps65217's power button as KEY_POWER on
+>> am335x boards (directly connected button in chiliboard, accessible pin
+>> via expansion header in beaglebone). This patch has been tested with
+>> chiliboard.
+>>
+>> Signed-off-by: Marcin Niestroj <m.niestroj@grinn-global.com>
+>> ---
+>> Depends on patches 1-4 in series
+>>
+>> Changes v2 -> v4: none
+>>
+>> Changes v1 -> v2:
+>>  * Added information about parent device in tps65217 power button
+>>    device-tree binding documentation (suggested by Rob)
+>>
+>>  .../bindings/input/tps65217-pwrbutton.txt          |  17 +++
 >
-> Signed-off-by: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-> Acked-by: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> ---
-> Depends on patch 1 in series
+> Acked-by: Rob Herring <robh@kernel.org>
 >
-> Changes v1 -> v4: none
->
->  drivers/mfd/tps65217.c | 10 ++++++++++
->  1 file changed, 10 insertions(+)
->
-> diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
-> index 41b5d59..57c8741 100644
-> --- a/drivers/mfd/tps65217.c
-> +++ b/drivers/mfd/tps65217.c
-> @@ -38,6 +38,10 @@ static struct resource charger_resources[] = {
->  	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_USB, "USB"),
->  };
->
-> +static struct resource pb_resources[] = {
-> +	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_PB, "PB"),
-> +};
-> +
->  struct tps65217_irq {
->  	int mask;
->  	int interrupt;
-> @@ -122,6 +126,12 @@ static struct mfd_cell tps65217s[] = {
->  		.resources = charger_resources,
->  		.of_compatible = "ti,tps65217-charger",
->  	},
-> +	{
-> +		.name = "tps65217-pwrbutton",
-> +		.num_resources = ARRAY_SIZE(pb_resources),
-> +		.resources = pb_resources,
-> +		.of_compatible = "ti,tps65217-pwrbutton",
-> +	},
->  };
->
->  static irqreturn_t tps65217_irq_thread(int irq, void *data)
+>>  drivers/input/misc/Kconfig                         |  10 ++
+>>  drivers/input/misc/Makefile                        |   1 +
+>>  drivers/input/misc/tps65217-pwrbutton.c            | 131 +++++++++++++++++++++
+>>  4 files changed, 159 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/input/tps65217-pwrbutton.txt
+>>  create mode 100644 drivers/input/misc/tps65217-pwrbutton.c
 >
 
 -- 
 Marcin Niestroj
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
