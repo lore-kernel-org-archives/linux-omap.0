@@ -1,111 +1,64 @@
-From: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/2] dmaengine: cppi41: Add basic PM runtime support
-Date: Mon, 22 Aug 2016 12:11:52 +0530
-Message-ID: <20160822064152.GP2890@localhost>
-References: <20160819225940.12653-1-tony@atomide.com>
- <20160819225940.12653-3-tony@atomide.com>
+From: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
+Subject: Re: [PATCH v4 1/5] mfd: tps65217: Add support for IRQs
+Date: Mon, 22 Aug 2016 12:02:40 +0200
+Message-ID: <534cdc5b-42b8-14e4-e957-a0695c301056@grinn-global.com>
+References: <20160620105056.25843-1-m.niestroj@grinn-global.com>
+ <20160620105056.25843-2-m.niestroj@grinn-global.com>
+ <576D0437.1020800@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160819225940.12653-3-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <576D0437.1020800-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Eremin-Solenikov <dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Aug 19, 2016 at 03:59:40PM -0700, Tony Lindgren wrote:
-> Let's keep the device enabled between cppi41_dma_issue_pending()
-> and dmaengine_desc_get_callback_invoke() and rely on the PM runtime
-> autoidle timeout elsewhere.
-> 
-> As the PM runtime is for whole device, not for each channel,
-> we need to queue pending transfers if the device is PM runtime
-> suspended. Then we start the pending transfers in PM runtime
-> resume.
-> 
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> ---
->  drivers/dma/cppi41.c | 104 ++++++++++++++++++++++++++++++++++++++++++++++++---
->  1 file changed, 99 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
-> index 66b84fe..ce8739f 100644
-> --- a/drivers/dma/cppi41.c
-> +++ b/drivers/dma/cppi41.c
-> @@ -108,6 +108,8 @@ struct cppi41_channel {
->  	unsigned td_queued:1;
->  	unsigned td_seen:1;
->  	unsigned td_desc_seen:1;
-> +
-> +	struct list_head node;		/* Node for pending list */
->  };
->  
->  struct cppi41_desc {
-> @@ -146,6 +148,9 @@ struct cppi41_dd {
->  	const struct chan_queues *queues_tx;
->  	struct chan_queues td_queue;
->  
-> +	struct list_head pending;	/* Pending queued transfers */
-> +	spinlock_t lock;		/* Lock for pending list */
-> +
->  	/* context for suspend/resume */
->  	unsigned int dma_tdfdq;
->  };
-> @@ -332,6 +337,10 @@ static irqreturn_t cppi41_irq(int irq, void *data)
->  			c->residue = pd_trans_len(c->desc->pd6) - len;
->  			dma_cookie_complete(&c->txd);
->  			dmaengine_desc_get_callback_invoke(&c->txd, NULL);
-> +
-> +			/* Paired with cppi41_dma_issue_pending */
-> +			pm_runtime_mark_last_busy(cdd->ddev.dev);
-> +			pm_runtime_put_autosuspend(cdd->ddev.dev);
->  		}
->  	}
->  	return IRQ_HANDLED;
-> @@ -349,6 +358,12 @@ static dma_cookie_t cppi41_tx_submit(struct dma_async_tx_descriptor *tx)
->  static int cppi41_dma_alloc_chan_resources(struct dma_chan *chan)
->  {
->  	struct cppi41_channel *c = to_cpp41_chan(chan);
-> +	struct cppi41_dd *cdd = c->cdd;
-> +	int error;
-> +
-> +	error = pm_runtime_get_sync(cdd->ddev.dev);
+ping
 
-This will be problematic. The alloc callback are not supposed to sleep, so
-we cannot use a _sync() call here :(
-
-This is explicitly documented in Documentation/dmaengine/provider.txt
-
-> +	if (error < 0)
-> +		return error;
->  
->  	dma_cookie_init(chan);
->  	dma_async_tx_descriptor_init(&c->txd, chan);
-> @@ -357,11 +372,26 @@ static int cppi41_dma_alloc_chan_resources(struct dma_chan *chan)
->  	if (!c->is_tx)
->  		cppi_writel(c->q_num, c->gcr_reg + RXHPCRA0);
->  
-> +	pm_runtime_mark_last_busy(cdd->ddev.dev);
-> +	pm_runtime_put_autosuspend(cdd->ddev.dev);
-> +
->  	return 0;
->  }
->  
->  static void cppi41_dma_free_chan_resources(struct dma_chan *chan)
->  {
-> +	struct cppi41_channel *c = to_cpp41_chan(chan);
-> +	struct cppi41_dd *cdd = c->cdd;
-> +	int error;
-> +
-> +	error = pm_runtime_get_sync(cdd->ddev.dev);
-
-same applies here too
-
+On 24.06.2016 11:58, Grygorii Strashko wrote:
+> On 06/20/2016 01:50 PM, Marcin Niestroj wrote:
+>> Add support for handling IRQs: power button, AC and USB power state
+>> changes. Mask and interrupt bits are shared within one register, which
+>> prevents us to use regmap_irq implementation. New irq_domain is
+>> created in
+>> order to add interrupt handling for each tps65217's subsystem. IRQ
+>> resources have been added for charger subsystem to be able to notify
+>> about
+>> AC and USB state changes.
+>>
+>> Signed-off-by: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
+>> Acked-by: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>> ---
+>> Changes v3 -> v4 (suggested by Grygorii):
+>>   * Add irq_set_parent() during irq init
+>>   * Remove hardcoded IRQ trigger type, rely on DT bindings instead
+>>
+>> Changes v2 -> v3 (suggested by Lee):
+>>   * Alphabetical reorder of includes
+>>   * Rename enum tps65217_irqs -> tps65217_irq_type, so we won't confuse
+>>     it with structure object with the same name.
+>>   * Fix inconsistent order of irq_enable and irq_disable
+>>   * Remove redundant 'else' when returning from tps65217_irq_thread
+>>
+>> Changes v1 -> v2: none
+>>
+>>   drivers/mfd/Kconfig          |   1 +
+>>   drivers/mfd/tps65217.c       | 195
+>> +++++++++++++++++++++++++++++++++++++++++--
+>>   include/linux/mfd/tps65217.h |  12 +++
+>>   3 files changed, 200 insertions(+), 8 deletions(-)
+>>
+>
+> Reviewed-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+>
+>
+>
 
 -- 
-~Vinod
+Marcin Niestroj
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
