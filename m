@@ -1,28 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v4 0/5] net: ethernet: ti: cpsw: add cpdma multi-queue
- support
-Date: Tue, 23 Aug 2016 00:14:10 -0700 (PDT)
-Message-ID: <20160823.001410.1891719126833335234.davem@davemloft.net>
-References: <1471889908-29983-1-git-send-email-ivan.khoronzhuk@linaro.org>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 0/3] phy: omap-usb2: Fixes for v4.9
+Date: Tue, 23 Aug 2016 11:57:38 +0300
+Message-ID: <1471942661-1728-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1471889908-29983-1-git-send-email-ivan.khoronzhuk@linaro.org>
-Sender: netdev-owner@vger.kernel.org
-To: ivan.khoronzhuk@linaro.org
-Cc: netdev@vger.kernel.org, mugunthanvnm@ti.com, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, dlide@ti.com
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: kishon@ti.com, tony@atomide.com
+Cc: robh+dt@kernel.org, nsekhar@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Date: Mon, 22 Aug 2016 21:18:23 +0300
+Hi Kishon & Tony,
 
-> This series is intended to allow cpsw driver to use cpdma ability of
-> h/w shaper to send/receive data with up to 8 tx and 8 rx queues. This
-> series doesn't contain interface to configure h/w shaper itself, it
-> contains only multi-queue support part and ability to configure number
-> of tx/rx queues with ethtool, it also doesn't contain mapping of input
-> traffic to rx queues, as it can depend on usage and requires separate
-> interface for setup.
+Here are some fixes found in the TI vendor tree for omap-usb2 PHY
+and are important for upstream. Please queue for -next if OK. Thanks.
 
-Series applied, thanks.
+The 3rd patch should probably go via Tony's SoC DT tree.
+
+cheers,
+-roger
+
+Sekhar Nori (3):
+  phy: omap-usb2: support suspend/resume
+  dt-bindings: phy: ti: add documentation for ti,dra7x-usb2
+  ARM: dts: dra7: workaround silicon limitation i845
+
+ Documentation/devicetree/bindings/phy/ti-phy.txt |   2 +
+ arch/arm/boot/dts/dra7.dtsi                      |   2 +-
+ drivers/phy/phy-omap-usb2.c                      | 100 +++++++++++------------
+ 3 files changed, 49 insertions(+), 55 deletions(-)
+
+-- 
+2.7.4
