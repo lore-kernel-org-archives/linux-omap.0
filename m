@@ -1,39 +1,44 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH v4 5/5] net: ethernet: ti: cpsw: add ethtool channels
- support
-Date: Tue, 23 Aug 2016 11:09:45 +0530
-Message-ID: <28a8a12e-bae5-86fc-ffca-5f40b7965ee8@ti.com>
-References: <1471889908-29983-1-git-send-email-ivan.khoronzhuk@linaro.org>
- <1471889908-29983-6-git-send-email-ivan.khoronzhuk@linaro.org>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH v2 0/2] AM335x-ICE: Add support for rotary switch
+Date: Tue, 23 Aug 2016 11:46:47 +0530
+Message-ID: <20160823061649.3394-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1471889908-29983-6-git-send-email-ivan.khoronzhuk@linaro.org>
-Sender: netdev-owner@vger.kernel.org
-To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, davem@davemloft.net, netdev@vger.kernel.org, grygorii.strashko@ti.com
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, dlide@ti.com
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Moritz Fischer <moritz.fischer@ettus.com>, John Stultz <john.stultz@linaro.org>, Vignesh R <vigneshr@ti.com>, Arnd Bergmann <arnd@arndb.de>, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Daniel Hung-yu Wu <hywu@google.com>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, Grant Grundler <grundler@chromium.org>, Rob Herring <robh+dt@kernel.org>, S Twiss <stwiss.opensource@diasemi.com>, linux-input@vger.kernel.org, Jorge Ramirez-Ortiz <jorge.ramirez-ortiz@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 22 August 2016 11:48 PM, Ivan Khoronzhuk wrote:
-> These ops allow to control number of channels driver is allowed to
-> work with at cpdma level. The maximum number of channels is 8 for
-> rx and 8 for tx. In dual_emac mode the h/w channels are shared
-> between two interfaces and changing number on one interface changes
-> number of channels on another.
-> 
-> How many channels are supported and enabled:
-> $ ethtool -l ethX
-> 
-> Change number of channels (up to 8)
-> $ ethtool -L ethX rx 6 tx 6
-> 
-> Per-channel statistic:
-> $ ethtool -S ethX
-> 
-> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+This series adds support for rotary-switch on AM335x-ICE that is
+connected to TI PCA9536 I2C GPIO expander.
+First patch adds new generic driver to read status of group of GPIO
+lines and report the value as an input event. The second patch adds DT
+entries for the same.
 
-Reviewed-by: Mugunthan V N <mugunthanvnm@ti.com>
+v1: https://lkml.org/lkml/2016/8/12/7
 
-Regards
-Mugunthan V N
+Vignesh R (2):
+  input: misc: Add generic input driver to read encoded GPIO lines
+  ARM: dts: am335x-icev2: Add nodes for gpio-decoder
+
+ .../devicetree/bindings/input/gpio-decoder.txt     |  23 ++++
+ arch/arm/boot/dts/am335x-icev2.dts                 |   9 ++
+ drivers/input/misc/Kconfig                         |  12 ++
+ drivers/input/misc/Makefile                        |   1 +
+ drivers/input/misc/gpio_decoder.c                  | 130 +++++++++++++++++++++
+ 5 files changed, 175 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/input/gpio-decoder.txt
+ create mode 100644 drivers/input/misc/gpio_decoder.c
+
+-- 
+2.9.2
