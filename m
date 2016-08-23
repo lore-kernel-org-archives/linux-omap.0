@@ -1,45 +1,70 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v2 1/2] input: misc: Add generic input driver to read
- encoded GPIO lines
-Date: Tue, 23 Aug 2016 13:03:35 -0700
-Message-ID: <20160823200335.GC6712@dtor-ws>
-References: <20160823061649.3394-1-vigneshr@ti.com>
- <20160823061649.3394-2-vigneshr@ti.com>
- <949d92f3-4510-ada5-d3d6-a29544465fd6@ti.com>
+From: Wei Yongjun <weiyj.lk@gmail.com>
+Subject: [PATCH -next] ASoC: omap-abe-twl6040: Use
+	devm_snd_soc_register_card()
+Date: Tue, 23 Aug 2016 23:10:17 +0000
+Message-ID: <1471993817-10903-1-git-send-email-weiyj.lk@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <949d92f3-4510-ada5-d3d6-a29544465fd6@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Andrew F. Davis" <afd@ti.com>
-Cc: Vignesh R <vigneshr@ti.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Daniel Hung-yu Wu <hywu@google.com>, Grant Grundler <grundler@chromium.org>, S Twiss <stwiss.opensource@diasemi.com>, Moritz Fischer <moritz.fischer@ettus.com>, Jorge Ramirez-Ortiz <jorge.ramirez-ortiz@linaro.org>, John Stultz <john.stultz@linaro.org>, linux-input@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Wei Yongjun <weiyongjun1@huawei.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Aug 23, 2016 at 10:27:59AM -0500, Andrew F. Davis wrote:
-> On 08/23/2016 01:16 AM, Vignesh R wrote:
-> > Add a driver to read group of GPIO lines and provide its status as a
-> > numerical value as input event to the system. This will help in
-> > intefacing devices, that can be connected over GPIOs, that provide input
-> > to the system by driving GPIO lines connected to them like a rotary dial
-> > or a switch.
-> > 
-> > For example, a rotary switch can be connected to four GPIO lines. The
-> > status of the GPIO lines reflect the actual position of the rotary
-> > switch dial. For example, if dial points to 9, then the four GPIO lines
-> > connected to the switch will read HLLH(0b'1001 = 9). This value
-> > can be reported as an ABS_* event to the input subsystem.
-> > 
-> > Signed-off-by: Vignesh R <vigneshr@ti.com>
-> > Acked-by: Rob Herring <robh@kernel.org>
-> > ---
-> > 
-> > v2: Use decoder,max-value instead of gpio-decoder,max-value.
+From: Wei Yongjun <weiyongjun1@huawei.com>
 
-That's not what Rob asked for. "decoder-max-value", not "decoder" vendor
-prefix.
+Using devm_snd_soc_register_card() can make the code
+shorter and cleaner.
 
-Thanks.
+Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+---
+ sound/soc/omap/omap-abe-twl6040.c | 14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
 
--- 
-Dmitry
+diff --git a/sound/soc/omap/omap-abe-twl6040.c b/sound/soc/omap/omap-abe-twl6040.c
+index f61b3b5..89fe95e 100644
+--- a/sound/soc/omap/omap-abe-twl6040.c
++++ b/sound/soc/omap/omap-abe-twl6040.c
+@@ -305,23 +305,14 @@ static int omap_abe_probe(struct platform_device *pdev)
+ 
+ 	snd_soc_card_set_drvdata(card, priv);
+ 
+-	ret = snd_soc_register_card(card);
++	ret = devm_snd_soc_register_card(&pdev->dev, card);
+ 	if (ret)
+-		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
++		dev_err(&pdev->dev, "devm_snd_soc_register_card() failed: %d\n",
+ 			ret);
+ 
+ 	return ret;
+ }
+ 
+-static int omap_abe_remove(struct platform_device *pdev)
+-{
+-	struct snd_soc_card *card = platform_get_drvdata(pdev);
+-
+-	snd_soc_unregister_card(card);
+-
+-	return 0;
+-}
+-
+ static const struct of_device_id omap_abe_of_match[] = {
+ 	{.compatible = "ti,abe-twl6040", },
+ 	{ },
+@@ -335,7 +326,6 @@ static struct platform_driver omap_abe_driver = {
+ 		.of_match_table = omap_abe_of_match,
+ 	},
+ 	.probe = omap_abe_probe,
+-	.remove = omap_abe_remove,
+ };
+ 
+ static int __init omap_abe_init(void)
