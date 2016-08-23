@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 3/3] ARM: dts: dra7: workaround silicon limitation i845
-Date: Tue, 23 Aug 2016 11:57:41 +0300
-Message-ID: <1471942661-1728-4-git-send-email-rogerq@ti.com>
+Subject: [PATCH 2/3] dt-bindings: phy: ti: add documentation for ti,dra7x-usb2
+Date: Tue, 23 Aug 2016 11:57:40 +0300
+Message-ID: <1471942661-1728-3-git-send-email-rogerq@ti.com>
 References: <1471942661-1728-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,33 +14,30 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Sekhar Nori <nsekhar@ti.com>
 
-Silicon limitation i845 documents how to cope with false
-disconnection condition on USB2 PHY. Reference: AM572x
-silicon errata document SPRZ429H, revised January 2016.
+Commit 7e472402ca30 ("phy: omap-usb2: Provide workaround for
+USB2PHY false disconnect") added a new binding for USB2 PHYs
+on DRA7x. But it has remained undocumented so far.
 
-Using compatible "ti,dra7x-usb2" enables the recommended
-software workaround for this issue. Use it for USB1 PHY.
-
-The workaround is already in place for USB2 PHY.
+Add documentation for the binding.
 
 Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/devicetree/bindings/phy/ti-phy.txt | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index d9bfb94..df0dcbc 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1413,7 +1413,7 @@
- 			ti,hwmods = "ocp2scp1";
+diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
+index a3b3945..cd13e615 100644
+--- a/Documentation/devicetree/bindings/phy/ti-phy.txt
++++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
+@@ -31,6 +31,8 @@ OMAP USB2 PHY
  
- 			usb2_phy1: phy@4a084000 {
--				compatible = "ti,omap-usb2";
-+				compatible = "ti,dra7x-usb2", "ti,omap-usb2";
- 				reg = <0x4a084000 0x400>;
- 				syscon-phy-power = <&scm_conf 0x300>;
- 				clocks = <&usb_phy1_always_on_clk32k>,
+ Required properties:
+  - compatible: Should be "ti,omap-usb2"
++	       Should be "ti,dra7x-usb2" for the 1st instance of USB2 PHY on
++	       DRA7x
+ 	       Should be "ti,dra7x-usb2-phy2" for the 2nd instance of USB2 PHY
+ 	       in DRA7x
+  - reg : Address and length of the register set for the device.
 -- 
 2.7.4
