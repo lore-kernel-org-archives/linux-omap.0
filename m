@@ -1,13 +1,13 @@
-From: Daniel Mack <daniel@zonque.org>
-Subject: Re: [PATCH v3 0/2] AM335x-ICE: Add support for rotary switch
-Date: Wed, 24 Aug 2016 10:35:52 +0200
-Message-ID: <c5385d42-14e4-d5ca-370e-5b04e37d873d@zonque.org>
-References: <20160824075859.30979-1-vigneshr@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [GIT PULL] omap-gpmc fixes for v4.8-rc1
+Date: Wed, 24 Aug 2016 11:38:24 +0300
+Message-ID: <68e0e835-4679-f950-0a2f-65e221e11ffb@ti.com>
+References: <a4bd1d47-87b1-9ef9-d9d1-6c69be404b9e@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160824075859.30979-1-vigneshr@ti.com>
+In-Reply-To: <a4bd1d47-87b1-9ef9-d9d1-6c69be404b9e@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,28 +17,55 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Vignesh R <vigneshr@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Moritz Fischer <moritz.fischer@ettus.com>, John Stultz <john.stultz@linaro.org>, Arnd Bergmann <arnd@arndb.de>, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <u.kleine-koenig@pengutronix.de>, Daniel Hung-yu Wu <hywu@google.com>, Russell King <linux@armlinux.org.uk>, "Andrew F . Davis" <afd@ti.com>, Grant Grundler <grundler@chromium.org>, Rob Herring <robh+dt@kernel.org>, S Twiss <stwiss.opensource@diasemi.com>, linux-input@vger.kernel.org, Jorge Ramirez-Ortiz <jorge.ramirez-ortiz@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Johan Hovold <johan@kernel.org>, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Arnd/Olof,
 
-On 08/24/2016 09:58 AM, Vignesh R wrote:
-> This series adds support for rotary-switch on AM335x-ICE that is
-> connected to TI PCA9536 I2C GPIO expander.
-> First patch adds new generic driver to read status of group of GPIO
-> lines and report the value as an input event. The second patch adds DT
-> entries for the same.
+On 15/08/16 10:53, Roger Quadros wrote:
+> Hi Arnd/Olof,
 > 
-> v2: https://lkml.org/lkml/2016/8/23/111
-> v1: https://lkml.org/lkml/2016/8/12/7
+> The following changes since commit 29b4817d4018df78086157ea3a55c1d9424a7cfc:
+> 
+>   Linux 4.8-rc1 (2016-08-07 18:18:00 -0700)
+> 
+> are available in the git repository at:
+> 
+>   https://github.com/rogerq/linux.git tags/gpmc-omap-v4.8-rc1
+> 
+> for you to fetch changes up to 23540d6e2f3193b946c4de43e3f9654fa6d23fe7:
+> 
+>   memory: omap-gpmc: allow probe of child nodes to fail (2016-08-08 11:18:40 +0300)
+> 
+> ----------------------------------------------------------------
+> OMAP-GPMC: fixes for v4.8-rc1
+> 
+> * Allow other children of GPMC to probe even if any child fails.
+> This fixes problem on Overo boards where networking device child
+> doesn't probe due to broken NAND child.
+> 
+> ----------------------------------------------------------------
 
-Is there a reason why the rotary-encoder driver cannot handle this?
-Commit 7dde4e74744 ("Input: rotary-encoder - support more than 2 gpios
-as input") added support for that mode AFAIU.
+Gentle reminder to pick this for v4.8-rc. Thanks.
 
-I copied the author of that patch to have a look.
+cheers,
+-roger
 
 
-Thanks,
-Daniel
+> Johan Hovold (1):
+>       memory: omap-gpmc: allow probe of child nodes to fail
+> 
+>  drivers/memory/omap-gpmc.c | 21 +++++++--------------
+>  1 file changed, 7 insertions(+), 14 deletions(-)
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
