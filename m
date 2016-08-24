@@ -1,72 +1,109 @@
 From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: [PATCH 0/9] PCI: final demodularization of non-modular code
-Date: Wed, 24 Aug 2016 16:57:43 -0400
-Message-ID: <20160824205752.12024-1-paul.gortmaker@windriver.com>
+Subject: [PATCH 4/9] PCI: dra7xx: make host code explicitly non-modular
+Date: Wed, 24 Aug 2016 16:57:47 -0400
+Message-ID: <20160824205752.12024-5-paul.gortmaker@windriver.com>
+References: <20160824205752.12024-1-paul.gortmaker@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20160824205752.12024-1-paul.gortmaker@windriver.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, Bharat Kumar Gogada <bharat.kumar.gogada@xilinx.com>, Bjorn Helgaas <bhelgaas@google.com>, Keith Busch <keith.busch@intel.com>, Kishon Vijay Abraham I <kishon@ti.com>, kristen.c.accardi@intel.com, Marc Zyngier <marc.zyngier@arm.com>, Michal Simek <michal.simek@xilinx.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Scott Murray <scott@spiteful.org>, =?UTF-8?q?S=C3=B6ren=20Brinkmann?= <soren.brinkmann@xilinx.com>, Stanimir Varbanov <svarbanov@mm-sol.com>, Tom Long Nguyen <tom.l.nguyen@intel.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This final (assuming more new instances don't leak back in) series
-ensures all the PCI code out there that remains using module.h is
-actually modular or containing some use of modular infrastructure.
+The Kconfig currently controlling compilation of this code is:
 
-These last commits are slightly more involved than some of the
-earlier ones since we are actually removing orphaned __exit functions
-and some ".remove" functions as well.  So we can't claim binary
-equivalence here, but the overall runtime should remain unchanged.
+drivers/pci/host/Kconfig:config PCI_DRA7XX
+drivers/pci/host/Kconfig:       bool "TI DRA7xx PCIe controller"
 
-To that end, we have remained with the existing initcall levels
-even though some of the hotplug infrastructural ones might make
-better sense to be listed as subsys_initcall or similar.
+...meaning that it currently is not being built as a module by anyone.
 
-Build tested with allmodconfig on all the major architectures.
+Lets remove the modular code that is essentially orphaned, so that
+when reading the driver there is no doubt it is builtin-only.
 
-Paul.
----
+We explicitly disallow a driver unbind, since that doesn't have a
+sensible use case anyway, and it allows us to drop the ".remove"
+code for non-modular drivers.
 
-Cc: Bharat Kumar Gogada <bharat.kumar.gogada@xilinx.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Keith Busch <keith.busch@intel.com>
+Since module_platform_driver() uses the same init level priority as
+builtin_platform_driver() the init ordering remains unchanged with
+this commit.
+
+Also note that MODULE_DEVICE_TABLE is a no-op for non-modular code.
+
+We also delete the MODULE_LICENSE tag etc. since all that information
+is already contained at the top of the file in the comments.
+
 Cc: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: kristen.c.accardi@intel.com
-Cc: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Michal Simek <michal.simek@xilinx.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Scott Murray <scott@spiteful.org>
-Cc: "Sören Brinkmann" <soren.brinkmann@xilinx.com>
-Cc: Stanimir Varbanov <svarbanov@mm-sol.com>
-Cc: Tom Long Nguyen <tom.l.nguyen@intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
 Cc: linux-omap@vger.kernel.org
 Cc: linux-pci@vger.kernel.org
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+---
+ drivers/pci/host/pci-dra7xx.c | 31 +++----------------------------
+ 1 file changed, 3 insertions(+), 28 deletions(-)
 
-Paul Gortmaker (9):
-  PCI: PCIe dpc: make it explicitly non-modular
-  PCI: PCIe pme: make it explicitly non-modular
-  PCI: PCIe aerdrv: make it explicitly non-modular
-  PCI: dra7xx: make host code explicitly non-modular
-  PCI: PCIe qcom: make host code explicitly non-modular
-  PCI: PCIe xilinx: make host code explicitly non-modular
-  PCI: PCIe xilinx-nwl: make host code explicitly non-modular
-  PCI: hotplug_core: make it explicitly non-modular
-  PCI: hotplug: make PCIe core code explicitly non-modular
-
- drivers/pci/host/pci-dra7xx.c           | 31 ++-----------------
- drivers/pci/host/pcie-qcom.c            | 28 +++++------------
- drivers/pci/host/pcie-xilinx-nwl.c      | 53 ++-------------------------------
- drivers/pci/host/pcie-xilinx.c          | 53 ++-------------------------------
- drivers/pci/hotplug/cpci_hotplug.h      |  2 --
- drivers/pci/hotplug/cpci_hotplug_core.c | 10 -------
- drivers/pci/hotplug/pci_hotplug_core.c  | 18 ++++-------
- drivers/pci/hotplug/pciehp_core.c       | 20 ++++---------
- drivers/pci/pcie/aer/aerdrv.c           | 18 +----------
- drivers/pci/pcie/pcie-dpc.c             | 18 +++--------
- drivers/pci/pcie/pme.c                  | 16 +---------
- 11 files changed, 32 insertions(+), 235 deletions(-)
-
+diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
+index 81b3949a26db..19223ed2e619 100644
+--- a/drivers/pci/host/pci-dra7xx.c
++++ b/drivers/pci/host/pci-dra7xx.c
+@@ -15,7 +15,7 @@
+ #include <linux/irq.h>
+ #include <linux/irqdomain.h>
+ #include <linux/kernel.h>
+-#include <linux/module.h>
++#include <linux/init.h>
+ #include <linux/of_gpio.h>
+ #include <linux/pci.h>
+ #include <linux/phy/phy.h>
+@@ -443,25 +443,6 @@ err_phy:
+ 	return ret;
+ }
+ 
+-static int __exit dra7xx_pcie_remove(struct platform_device *pdev)
+-{
+-	struct dra7xx_pcie *dra7xx = platform_get_drvdata(pdev);
+-	struct pcie_port *pp = &dra7xx->pp;
+-	struct device *dev = &pdev->dev;
+-	int count = dra7xx->phy_count;
+-
+-	if (pp->irq_domain)
+-		irq_domain_remove(pp->irq_domain);
+-	pm_runtime_put(dev);
+-	pm_runtime_disable(dev);
+-	while (count--) {
+-		phy_power_off(dra7xx->phy[count]);
+-		phy_exit(dra7xx->phy[count]);
+-	}
+-
+-	return 0;
+-}
+-
+ #ifdef CONFIG_PM_SLEEP
+ static int dra7xx_pcie_suspend(struct device *dev)
+ {
+@@ -545,19 +526,13 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
+ 	{ .compatible = "ti,dra7-pcie", },
+ 	{},
+ };
+-MODULE_DEVICE_TABLE(of, of_dra7xx_pcie_match);
+ 
+ static struct platform_driver dra7xx_pcie_driver = {
+-	.remove		= __exit_p(dra7xx_pcie_remove),
+ 	.driver = {
+ 		.name	= "dra7-pcie",
+ 		.of_match_table = of_dra7xx_pcie_match,
++		.suppress_bind_attrs = true,
+ 		.pm	= &dra7xx_pcie_pm_ops,
+ 	},
+ };
+-
+-module_platform_driver_probe(dra7xx_pcie_driver, dra7xx_pcie_probe);
+-
+-MODULE_AUTHOR("Kishon Vijay Abraham I <kishon@ti.com>");
+-MODULE_DESCRIPTION("TI PCIe controller driver");
+-MODULE_LICENSE("GPL v2");
++builtin_platform_driver_probe(dra7xx_pcie_driver, dra7xx_pcie_probe);
 -- 
 2.8.4
