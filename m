@@ -1,75 +1,106 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH 0/9] PCI: final demodularization of non-modular code
-Date: Wed, 24 Aug 2016 17:34:18 -0500
-Message-ID: <20160824223418.GL23914@localhost>
-References: <20160824205752.12024-1-paul.gortmaker@windriver.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "ASoC: omap-abe-twl6040: Use
+	devm_snd_soc_register_card()" to the asoc tree
+Date: Wed, 24 Aug 2016 12:20:34 +0100
+Message-ID: <E1bcWEU-00009o-Uh@debutante>
+References: <1471993817-10903-1-git-send-email-weiyj.lk@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160824205752.12024-1-paul.gortmaker@windriver.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: linux-kernel@vger.kernel.org, Bharat Kumar Gogada <bharat.kumar.gogada@xilinx.com>, Bjorn Helgaas <bhelgaas@google.com>, Keith Busch <keith.busch@intel.com>, Kishon Vijay Abraham I <kishon@ti.com>, kristen.c.accardi@intel.com, Marc Zyngier <marc.zyngier@arm.com>, Michal Simek <michal.simek@xilinx.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Scott Murray <scott@spiteful.org>, =?iso-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann@xilinx.com>, Stanimir Varbanov <svarbanov@mm-sol.com>, Tom Long Nguyen <tom.l.nguyen@intel.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1471993817-10903-1-git-send-email-weiyj.lk@gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Wei Yongjun <weiyongjun1@huawei.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Aug 24, 2016 at 04:57:43PM -0400, Paul Gortmaker wrote:
-> This final (assuming more new instances don't leak back in) series
-> ensures all the PCI code out there that remains using module.h is
-> actually modular or containing some use of modular infrastructure.
-> 
-> These last commits are slightly more involved than some of the
-> earlier ones since we are actually removing orphaned __exit functions
-> and some ".remove" functions as well.  So we can't claim binary
-> equivalence here, but the overall runtime should remain unchanged.
-> 
-> To that end, we have remained with the existing initcall levels
-> even though some of the hotplug infrastructural ones might make
-> better sense to be listed as subsys_initcall or similar.
-> 
-> Build tested with allmodconfig on all the major architectures.
-> 
-> Paul.
-> ---
-> 
-> Cc: Bharat Kumar Gogada <bharat.kumar.gogada@xilinx.com>
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: Keith Busch <keith.busch@intel.com>
-> Cc: Kishon Vijay Abraham I <kishon@ti.com>
-> Cc: kristen.c.accardi@intel.com
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> Cc: Michal Simek <michal.simek@xilinx.com>
-> Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Cc: Scott Murray <scott@spiteful.org>
-> Cc: "Sören Brinkmann" <soren.brinkmann@xilinx.com>
-> Cc: Stanimir Varbanov <svarbanov@mm-sol.com>
-> Cc: Tom Long Nguyen <tom.l.nguyen@intel.com>
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-pci@vger.kernel.org
-> 
-> Paul Gortmaker (9):
->   PCI: PCIe dpc: make it explicitly non-modular
->   PCI: PCIe pme: make it explicitly non-modular
->   PCI: PCIe aerdrv: make it explicitly non-modular
->   PCI: dra7xx: make host code explicitly non-modular
->   PCI: PCIe qcom: make host code explicitly non-modular
->   PCI: PCIe xilinx: make host code explicitly non-modular
->   PCI: PCIe xilinx-nwl: make host code explicitly non-modular
->   PCI: hotplug_core: make it explicitly non-modular
->   PCI: hotplug: make PCIe core code explicitly non-modular
-> 
->  drivers/pci/host/pci-dra7xx.c           | 31 ++-----------------
->  drivers/pci/host/pcie-qcom.c            | 28 +++++------------
->  drivers/pci/host/pcie-xilinx-nwl.c      | 53 ++-------------------------------
->  drivers/pci/host/pcie-xilinx.c          | 53 ++-------------------------------
->  drivers/pci/hotplug/cpci_hotplug.h      |  2 --
->  drivers/pci/hotplug/cpci_hotplug_core.c | 10 -------
->  drivers/pci/hotplug/pci_hotplug_core.c  | 18 ++++-------
->  drivers/pci/hotplug/pciehp_core.c       | 20 ++++---------
->  drivers/pci/pcie/aer/aerdrv.c           | 18 +----------
->  drivers/pci/pcie/pcie-dpc.c             | 18 +++--------
->  drivers/pci/pcie/pme.c                  | 16 +---------
->  11 files changed, 32 insertions(+), 235 deletions(-)
+The patch
 
-Applied to pci/demodularize for v4.9, thanks a lot, Paul!
+   ASoC: omap-abe-twl6040: Use devm_snd_soc_register_card()
+
+has been applied to the asoc tree at
+
+   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git 
+
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From 687df1ad848102da9ea1ee8b0c64c2576ceb60f6 Mon Sep 17 00:00:00 2001
+From: Wei Yongjun <weiyongjun1@huawei.com>
+Date: Tue, 23 Aug 2016 23:10:17 +0000
+Subject: [PATCH] ASoC: omap-abe-twl6040: Use devm_snd_soc_register_card()
+
+Using devm_snd_soc_register_card() can make the code
+shorter and cleaner.
+
+Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ sound/soc/omap/omap-abe-twl6040.c | 14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
+
+diff --git a/sound/soc/omap/omap-abe-twl6040.c b/sound/soc/omap/omap-abe-twl6040.c
+index f61b3b58083b..89fe95e877db 100644
+--- a/sound/soc/omap/omap-abe-twl6040.c
++++ b/sound/soc/omap/omap-abe-twl6040.c
+@@ -305,23 +305,14 @@ static int omap_abe_probe(struct platform_device *pdev)
+ 
+ 	snd_soc_card_set_drvdata(card, priv);
+ 
+-	ret = snd_soc_register_card(card);
++	ret = devm_snd_soc_register_card(&pdev->dev, card);
+ 	if (ret)
+-		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
++		dev_err(&pdev->dev, "devm_snd_soc_register_card() failed: %d\n",
+ 			ret);
+ 
+ 	return ret;
+ }
+ 
+-static int omap_abe_remove(struct platform_device *pdev)
+-{
+-	struct snd_soc_card *card = platform_get_drvdata(pdev);
+-
+-	snd_soc_unregister_card(card);
+-
+-	return 0;
+-}
+-
+ static const struct of_device_id omap_abe_of_match[] = {
+ 	{.compatible = "ti,abe-twl6040", },
+ 	{ },
+@@ -335,7 +326,6 @@ static struct platform_driver omap_abe_driver = {
+ 		.of_match_table = omap_abe_of_match,
+ 	},
+ 	.probe = omap_abe_probe,
+-	.remove = omap_abe_remove,
+ };
+ 
+ static int __init omap_abe_init(void)
+-- 
+2.8.1
