@@ -1,40 +1,43 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH] memory: omap-gpmc: Fix build with CONFIG_OMAP_GPMC disabled
-Date: Wed, 24 Aug 2016 12:19:54 +0300
-Message-ID: <1472030394-11609-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH] mtd: nand: Allow MTD_NAND_OMAP2 to be usable on Keystone devices
+Date: Wed, 24 Aug 2016 12:25:00 +0300
+Message-ID: <1472030700-16051-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: boris.brezillon@free-electrons.com
+Cc: computersforpeace@gmail.com, fcooper@ti.com, tony@atomide.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Fix the following build failure if omap-gpmc.h is
-used with CONFIG_OMAP_GPMC disabled.
-
-./include/linux/omap-gpmc.h:32:1: error: unknown type name ‘gpmc_nand_ops’
+Some Keystone devices (e.g. K2G) include a OMAP NAND IP.
+Allow the NAND driver to be usable for both
+Keystone and OMAP devices.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- include/linux/omap-gpmc.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mtd/nand/Kconfig | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/omap-gpmc.h b/include/linux/omap-gpmc.h
-index 9e9d79e..35d0fd7 100644
---- a/include/linux/omap-gpmc.h
-+++ b/include/linux/omap-gpmc.h
-@@ -29,8 +29,8 @@ struct gpmc_nand_regs;
- struct gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *regs,
- 					     int cs);
- #else
--static inline gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *regs,
--						    int cs)
-+static inline struct gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *regs,
-+							   int cs)
- {
- 	return NULL;
- }
+diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
+index 21ff580..e6260df 100644
+--- a/drivers/mtd/nand/Kconfig
++++ b/drivers/mtd/nand/Kconfig
+@@ -88,11 +88,11 @@ config MTD_NAND_AMS_DELTA
+ 	  Support for NAND flash on Amstrad E3 (Delta).
+ 
+ config MTD_NAND_OMAP2
+-	tristate "NAND Flash device on OMAP2, OMAP3 and OMAP4"
+-	depends on ARCH_OMAP2PLUS
++	tristate "NAND Flash device on OMAP2, OMAP3, OMAP4 and Keystone"
++	depends on (ARCH_OMAP2PLUS || ARCH_KEYSTONE)
+ 	help
+-          Support for NAND flash on Texas Instruments OMAP2, OMAP3 and OMAP4
+-	  platforms.
++          Support for NAND flash on Texas Instruments OMAP2, OMAP3, OMAP4
++	  and Keystone platforms.
+ 
+ config MTD_NAND_OMAP_BCH
+ 	depends on MTD_NAND_OMAP2
 -- 
 2.7.4
