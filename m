@@ -1,51 +1,72 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] usb: musb: Fix locking errors for host only mode
-Date: Wed, 24 Aug 2016 14:33:08 -0500
-Message-ID: <20160824193308.GC4050@uda0271908>
-References: <1471560038-6243-1-git-send-email-tony@atomide.com>
- <20160824184552.GB4050@uda0271908>
- <20160824191508.nf63okevka5kkfks@atomide.com>
- <20160824192926.bjfgzbzhaj5cg4o5@atomide.com>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Subject: [PATCH 0/9] PCI: final demodularization of non-modular code
+Date: Wed, 24 Aug 2016 16:57:43 -0400
+Message-ID: <20160824205752.12024-1-paul.gortmaker@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160824192926.bjfgzbzhaj5cg4o5-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, Bharat Kumar Gogada <bharat.kumar.gogada@xilinx.com>, Bjorn Helgaas <bhelgaas@google.com>, Keith Busch <keith.busch@intel.com>, Kishon Vijay Abraham I <kishon@ti.com>, kristen.c.accardi@intel.com, Marc Zyngier <marc.zyngier@arm.com>, Michal Simek <michal.simek@xilinx.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Scott Murray <scott@spiteful.org>, =?UTF-8?q?S=C3=B6ren=20Brinkmann?= <soren.brinkmann@xilinx.com>, Stanimir Varbanov <svarbanov@mm-sol.com>, Tom Long Nguyen <tom.l.nguyen@intel.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Aug 24, 2016 at 12:29:26PM -0700, Tony Lindgren wrote:
-> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [160824 12:17]:
-> > * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [160824 11:47]:
-> > > Hi,
-> > > 
-> > > On Thu, Aug 18, 2016 at 03:40:38PM -0700, Tony Lindgren wrote:
-> > > > If we have USB gadgets disabled and USB_MUSB_HOST set, we get
-> > > > errors "possible irq lock inverssion dependency detected"
-> > > > errors during boot.
-> > > 
-> > > On which platform was this issue found? I am trying to replicate the
-> > > issue on am335x, but have no luck yet - musb-hdrc does not load at all
-> > > when usb gadget support is disabled.
-> > 
-> > It seems to be with a built-in MUSB and gadgets in the .config,
-> > I'll forward you the one I got earlier from Ladis.
-> 
-> And probably specifically CONFIG_USB_MUSB_HOST=y.
+This final (assuming more new instances don't leak back in) series
+ensures all the PCI code out there that remains using module.h is
+actually modular or containing some use of modular infrastructure.
 
-yes, I had gadget support disabled and CONFIG_USB_MUSB_HOST=y, but
-MUSB_HDRC=m. I will try your .config once I have time.
+These last commits are slightly more involved than some of the
+earlier ones since we are actually removing orphaned __exit functions
+and some ".remove" functions as well.  So we can't claim binary
+equivalence here, but the overall runtime should remain unchanged.
 
-Thanks,
--Bin.
+To that end, we have remained with the existing initcall levels
+even though some of the hotplug infrastructural ones might make
+better sense to be listed as subsys_initcall or similar.
 
-> 
-> Regards,
-> 
-> Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Build tested with allmodconfig on all the major architectures.
+
+Paul.
+---
+
+Cc: Bharat Kumar Gogada <bharat.kumar.gogada@xilinx.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Keith Busch <keith.busch@intel.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: kristen.c.accardi@intel.com
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Michal Simek <michal.simek@xilinx.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Scott Murray <scott@spiteful.org>
+Cc: "Sören Brinkmann" <soren.brinkmann@xilinx.com>
+Cc: Stanimir Varbanov <svarbanov@mm-sol.com>
+Cc: Tom Long Nguyen <tom.l.nguyen@intel.com>
+Cc: linux-omap@vger.kernel.org
+Cc: linux-pci@vger.kernel.org
+
+Paul Gortmaker (9):
+  PCI: PCIe dpc: make it explicitly non-modular
+  PCI: PCIe pme: make it explicitly non-modular
+  PCI: PCIe aerdrv: make it explicitly non-modular
+  PCI: dra7xx: make host code explicitly non-modular
+  PCI: PCIe qcom: make host code explicitly non-modular
+  PCI: PCIe xilinx: make host code explicitly non-modular
+  PCI: PCIe xilinx-nwl: make host code explicitly non-modular
+  PCI: hotplug_core: make it explicitly non-modular
+  PCI: hotplug: make PCIe core code explicitly non-modular
+
+ drivers/pci/host/pci-dra7xx.c           | 31 ++-----------------
+ drivers/pci/host/pcie-qcom.c            | 28 +++++------------
+ drivers/pci/host/pcie-xilinx-nwl.c      | 53 ++-------------------------------
+ drivers/pci/host/pcie-xilinx.c          | 53 ++-------------------------------
+ drivers/pci/hotplug/cpci_hotplug.h      |  2 --
+ drivers/pci/hotplug/cpci_hotplug_core.c | 10 -------
+ drivers/pci/hotplug/pci_hotplug_core.c  | 18 ++++-------
+ drivers/pci/hotplug/pciehp_core.c       | 20 ++++---------
+ drivers/pci/pcie/aer/aerdrv.c           | 18 +----------
+ drivers/pci/pcie/pcie-dpc.c             | 18 +++--------
+ drivers/pci/pcie/pme.c                  | 16 +---------
+ 11 files changed, 32 insertions(+), 235 deletions(-)
+
+-- 
+2.8.4
