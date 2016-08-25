@@ -1,106 +1,59 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Applied "ASoC: omap-abe-twl6040: Use
-	devm_snd_soc_register_card()" to the asoc tree
-Date: Wed, 24 Aug 2016 12:20:34 +0100
-Message-ID: <E1bcWEU-00009o-Uh@debutante>
-References: <1471993817-10903-1-git-send-email-weiyj.lk@gmail.com>
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
+Subject: Re: [PATCH 1/3] ARM: dts: omap5-board-common: enable rtc and charging
+ of backup battery
+Date: Thu, 25 Aug 2016 04:43:40 +0200
+Message-ID: <CAALWOA_JStjvXv3u46bq91Dz0sR6HwAoL8Y6t2MzPVMw5zz=Tw@mail.gmail.com>
+References: <CCB763BE-5D1F-4A53-BF9A-C12C08A6EFC4@goldelico.com>
+ <20160111202421.GA12777@atomide.com> <20160112000917.GC12777@atomide.com>
+ <417BBA32-A7DC-40CD-8A6B-EA910B1C9C13@goldelico.com> <E4C8F6CA-37C1-406F-9804-46055253BED9@goldelico.com>
+ <001346CD-CF31-4FEF-B406-B89EEBDFA063@goldelico.com> <56966558.1070608@ti.com>
+ <569669C5.2070200@ti.com> <20160113164856.GF12777@atomide.com>
+ <5696896F.4090309@ti.com> <20160113180006.GJ12777@atomide.com>
+ <2B99611A-5D2E-4D17-A17D-0150516109FD@goldelico.com> <56969800.5010206@ti.com>
+ <D6479E92-4226-4B07-95F3-C0DF092B827C@goldelico.com> <5696A002.6050402@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1471993817-10903-1-git-send-email-weiyj.lk@gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Wei Yongjun <weiyongjun1@huawei.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5696A002.6050402@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Tony Lindgren <tony@atomide.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Laxman Dewangan <ldewangan@nvidia.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Marek Belisko <marek@goldelico.com>, =?UTF-8?Q?Gra=C5=BEvydas_Ignotas?= <notasas@gmail.com>, Keerthy <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The patch
+On 13 January 2016 at 19:18, Nishanth Menon <nm@ti.com> wrote:
+> As you already see it is ridiculously round about way of protecting RTC
+> time.. but anyways, for what ever reason, that was mandatory function to
+> support on certain product lines.
 
-   ASoC: omap-abe-twl6040: Use devm_snd_soc_register_card()
+Having secure date/time is probably necessary for some digital rights
+management schemes; e.g. you rent a movie for limited time, but it may
+not always be acceptable to require working internet connectivity to
+be able to hit the play button hence the need to rely on a secure RTC.
 
-has been applied to the asoc tree at
+There wouldn't even be an SMC for setting the RTC, probably it would
+synchronize when the secure-world shizzle contacts the Big Server
+O'Secrety Bits. :P
 
-   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git 
+Protecting pinmux through the L4 firewall sounds hilarious: the whole
+ctrl_core module (0x4a002000 - 0x4a002fff) is a single firewall
+region. All permitted access to it by linux would have to be
+redirected to an SMC or similar.
 
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.  
+On 13 January 2016 at 20:05, Nishanth Menon <nm@ti.com> wrote:
+> An internal feedback I got some time back on AM57 (not OMAP5) - context
+> was that we were discussing if an external pull up resistor was needed
+> for a GPIO button:
+> "Internal pull-ups are relatively weak (ranging to 100kOhm or higher)
 
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
+Unlike the OMAP5, AM57xx uses 1.8V/3.3V drivers for its generic IOs,
+which have to do magic to not get fried by such high voltages.
+Crappier specs result, especially for pulling up to 3.3V:
+1.8V mode, pull-down current while pin is held high: 50-210 uA
+3.3V mode, pull-down current while pin is held high: 40-200 uA
+1.8V mode, pull-up current while pin is held low: 60-200 uA
+3.3V mode, pull-up current while pin is held low: 10-290 uA
 
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
+Note the worst-case equivalent pull-up resistance in 3.3V mode is 330
+kOhm, eleven times higher than in 1.8V mode.
 
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
-
-Thanks,
-Mark
-
->From 687df1ad848102da9ea1ee8b0c64c2576ceb60f6 Mon Sep 17 00:00:00 2001
-From: Wei Yongjun <weiyongjun1@huawei.com>
-Date: Tue, 23 Aug 2016 23:10:17 +0000
-Subject: [PATCH] ASoC: omap-abe-twl6040: Use devm_snd_soc_register_card()
-
-Using devm_snd_soc_register_card() can make the code
-shorter and cleaner.
-
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Mark Brown <broonie@kernel.org>
----
- sound/soc/omap/omap-abe-twl6040.c | 14 ++------------
- 1 file changed, 2 insertions(+), 12 deletions(-)
-
-diff --git a/sound/soc/omap/omap-abe-twl6040.c b/sound/soc/omap/omap-abe-twl6040.c
-index f61b3b58083b..89fe95e877db 100644
---- a/sound/soc/omap/omap-abe-twl6040.c
-+++ b/sound/soc/omap/omap-abe-twl6040.c
-@@ -305,23 +305,14 @@ static int omap_abe_probe(struct platform_device *pdev)
- 
- 	snd_soc_card_set_drvdata(card, priv);
- 
--	ret = snd_soc_register_card(card);
-+	ret = devm_snd_soc_register_card(&pdev->dev, card);
- 	if (ret)
--		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
-+		dev_err(&pdev->dev, "devm_snd_soc_register_card() failed: %d\n",
- 			ret);
- 
- 	return ret;
- }
- 
--static int omap_abe_remove(struct platform_device *pdev)
--{
--	struct snd_soc_card *card = platform_get_drvdata(pdev);
--
--	snd_soc_unregister_card(card);
--
--	return 0;
--}
--
- static const struct of_device_id omap_abe_of_match[] = {
- 	{.compatible = "ti,abe-twl6040", },
- 	{ },
-@@ -335,7 +326,6 @@ static struct platform_driver omap_abe_driver = {
- 		.of_match_table = omap_abe_of_match,
- 	},
- 	.probe = omap_abe_probe,
--	.remove = omap_abe_remove,
- };
- 
- static int __init omap_abe_init(void)
--- 
-2.8.1
+Matthijs
