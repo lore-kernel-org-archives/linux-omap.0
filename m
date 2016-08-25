@@ -1,322 +1,54 @@
-From: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-Subject: [PATCH v4] rtc: omap: Support ext_wakeup configuration
-Date: Thu, 25 Aug 2016 13:19:12 +0200
-Message-ID: <20160825111912.23017-1-m.niestroj@grinn-global.com>
-Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: Support for configurable PCIe endpoint
+Date: Thu, 25 Aug 2016 14:59:28 +0200
+Message-ID: <1944530.NcryPj8uKU@wuerfel>
+References: <57A18927.9070003@ti.com> <2422602.ltmdGR0pWX@wuerfel> <57B5B4A1.9030308@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <rtc-linux+bncBD7N3SEV2QCRBVFI7O6QKGQE7JYY3HQ-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <https://groups.google.com/group/rtc-linux
-List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <https://groups.google.com/group/rtc-linux/subscribe>
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <57B5B4A1.9030308@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, David Daney <david.daney@cavium.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Carlos Palminha <CARLOS.PALMINHA@synopsys.com>, Thierry Reding <thierry.reding@gmail.com>, Tanmay Inamdar <tinamdar@apm.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Pratyush Anand <pratyush.anand@gmail.com>, Murali Karicheri <m-karicheri2@ti.com>, Jason Cooper <jason@lakedaemon.net>, Simon Horman <horms@verge.net.au>, "bhelgaas@google.com" <bhelgaas@google.com>, Mingkai Hu <mingkai.hu@freescale.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Jingoo Han <jingoohan1@gmail.com>, Richard Zhu <Richard.Zhu>
 List-Id: linux-omap@vger.kernel.org
 
-Support configuration of ext_wakeup sources. This patch makes it
-possible to enable ext_wakeup and set it's polarity, depending on board
-configuration. AM335x's dedicated PMIC (tps65217) uses ext_wakeup to
-notify about power-button presses. Handling power-button presses enables
-to recover from RTC-only power states correctly.
+On Thursday, August 18, 2016 6:44:09 PM CEST Kishon Vijay Abraham I wrote:
+> Hi Arnd,
+> 
+> On Thursday 04 August 2016 04:43 PM, Arnd Bergmann wrote:
+> > On Thursday, August 4, 2016 3:32:01 PM CEST Kishon Vijay Abraham I wrote:
+> >> On Wednesday 03 August 2016 07:09 PM, Joao Pinto wrote:
+> >>>
+> >>> You are rising a topic that we are also addressing in Synopsys.
+> >>>
+> >>> For the PCIe RC hardware validation we are currently using the standard
+> >>> pcie-designware and pcie-designware-plat drivers.
+> >>>
+> >>> For the Endpoint we have to use an internal software package. Its main purpose
+> >>> is to initialize the IP registers, eDMA channels and make data transfer to prove
+> >>> that the everything is working properly. This is done in 2 levels, a custom
+> >>> driver built and loaded and an application that makes some ioctl to the driver
+> >>> executing some interesting functions to check the Endpoint status and make some
+> >>> data exchange.
+> >>
+> >> hmm.. the platform I have doesn't have a DMA in PCIe IP
+> >> (http://www.ti.com/lit/ug/spruhz6g/spruhz6g.pdf). So in your testing does the
+> >> EP access RC memory? i.e the driver in the RC allocates memory from it's DDR
+> >> and gives it's DDR address to the EP. The EP then transfers data to this
+> >> address. (This is a typical use case with ethernet PCIe cards). IIUC that's not
+> >> simple with configurable EPs. I'd like to know more about your testing though.
+> > 
+> > 
+> > What's the difference between using the EDMA on that chip or a DMA engine
+> > that is part of the PCIe bridge?
+> 
+> Do you mean the difference between using DMA on an EP (like ethernet card or
+> sata card) and DMA on PCI RC system? or is it the difference between eDMA
+> within the PCIe IP and system DMA?
 
-Signed-off-by: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
----
-Hi,
+The latter. You write that there is no DMA in the PCIe IP, but from the
+perspective of the RC, it should not matter whether the DMA engine is
+part of the EP logic or behind it.
 
-This is a total reimplementation, so it is not based on any of the previos
-patch versions. This patch adds support for ext_wakeup using generic pinconf
-device-tree bindings, with one added "ti,input-polarity" custom property.
-This approach has been suggested by Tony and Grygorii in [1].
-
-Patch was developed on 4.6, rebased on 4.8-rc3, tested using chiliBoard.
-
-[1] http://www.spinics.net/lists/devicetree/msg131516.html
-
- Documentation/devicetree/bindings/rtc/rtc-omap.txt |  21 +++
- drivers/rtc/Kconfig                                |   1 +
- drivers/rtc/rtc-omap.c                             | 167 ++++++++++++++++++++-
- 3 files changed, 181 insertions(+), 8 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/rtc/rtc-omap.txt b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-index bf7d11a..5d18373 100644
---- a/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-+++ b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-@@ -18,6 +18,18 @@ Optional properties:
-   through pmic_power_en
- - clocks: Any internal or external clocks feeding in to rtc
- - clock-names: Corresponding names of the clocks
-+- pinctrl-0: a phandle pointing to the pin settings for the device
-+- pinctrl-names: should be "default"
-+
-+Optional subnodes:
-+- generic pinctrl node
-+
-+Required pinctrl subnodes properties:
-+- pins - Names of ext_wakeup pins to configure
-+
-+Optional pinctrl subnodes properties:
-+- input-enable - Enables ext_wakeup
-+- ti,input-polarity - GPIO_ACTIVE_LOW or GPIO_ACTIVE_HIGH depending board
- 
- Example:
- 
-@@ -30,4 +42,13 @@ rtc@1c23000 {
- 	system-power-controller;
- 	clocks = <&clk_32k_rtc>, <&clk_32768_ck>;
- 	clock-names = "ext-clk", "int-clk";
-+
-+	pinctrl-0 = <&ext_wakeup>;
-+	pinctrl-names = "default";
-+
-+	ext_wakeup: ext_wakeup {
-+		pins = "ext_wakeup0";
-+		input-enable;
-+		ti,input-polarity = <GPIO_ACTIVE_LOW>;
-+	};
- };
-diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
-index e215f50..647d913 100644
---- a/drivers/rtc/Kconfig
-+++ b/drivers/rtc/Kconfig
-@@ -1231,6 +1231,7 @@ config RTC_DRV_IMXDI
- config RTC_DRV_OMAP
- 	tristate "TI OMAP Real Time Clock"
- 	depends on ARCH_OMAP || ARCH_DAVINCI || COMPILE_TEST
-+	select GENERIC_PINCONF
- 	help
- 	  Say "yes" here to support the on chip real time clock
- 	  present on TI OMAP1, AM33xx, DA8xx/OMAP-L13x, AM43xx and DRA7xx.
-diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-index ec2e9c5..b817afb 100644
---- a/drivers/rtc/rtc-omap.c
-+++ b/drivers/rtc/rtc-omap.c
-@@ -13,19 +13,23 @@
-  * 2 of the License, or (at your option) any later version.
-  */
- 
--#include <linux/kernel.h>
-+#include <dt-bindings/gpio/gpio.h>
-+#include <linux/bcd.h>
-+#include <linux/clk.h>
-+#include <linux/delay.h>
- #include <linux/init.h>
--#include <linux/module.h>
-+#include <linux/io.h>
- #include <linux/ioport.h>
--#include <linux/delay.h>
--#include <linux/rtc.h>
--#include <linux/bcd.h>
--#include <linux/platform_device.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
- #include <linux/of.h>
- #include <linux/of_device.h>
-+#include <linux/pinctrl/pinctrl.h>
-+#include <linux/pinctrl/pinconf.h>
-+#include <linux/pinctrl/pinconf-generic.h>
-+#include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
--#include <linux/io.h>
--#include <linux/clk.h>
-+#include <linux/rtc.h>
- 
- /*
-  * The OMAP RTC is a year/month/day/hours/minutes/seconds BCD clock
-@@ -115,6 +119,8 @@
- 
- /* OMAP_RTC_PMIC bit fields: */
- #define OMAP_RTC_PMIC_POWER_EN_EN	BIT(16)
-+#define OMAP_RTC_PMIC_EXT_WKUP_EN(x)	BIT(x)
-+#define OMAP_RTC_PMIC_EXT_WKUP_POL(x)	BIT(4 + x)
- 
- /* OMAP_RTC_KICKER values */
- #define	KICK0_VALUE			0x83e70b13
-@@ -141,6 +147,7 @@ struct omap_rtc {
- 	bool is_pmic_controller;
- 	bool has_ext_clk;
- 	const struct omap_rtc_device_type *type;
-+	struct pinctrl_dev *pctldev;
- };
- 
- static inline u8 rtc_read(struct omap_rtc *rtc, unsigned int reg)
-@@ -525,6 +532,138 @@ static const struct of_device_id omap_rtc_of_match[] = {
- };
- MODULE_DEVICE_TABLE(of, omap_rtc_of_match);
- 
-+static const struct pinctrl_pin_desc rtc_pins_desc[] = {
-+	PINCTRL_PIN(0, "ext_wakeup0"),
-+	PINCTRL_PIN(1, "ext_wakeup1"),
-+	PINCTRL_PIN(2, "ext_wakeup2"),
-+	PINCTRL_PIN(3, "ext_wakeup3"),
-+};
-+
-+static int rtc_pinctrl_get_groups_count(struct pinctrl_dev *pctldev)
-+{
-+	return 0;
-+}
-+
-+static const char *rtc_pinctrl_get_group_name(struct pinctrl_dev *pctldev,
-+					unsigned int group)
-+{
-+	return NULL;
-+}
-+
-+static const struct pinctrl_ops rtc_pinctrl_ops = {
-+	.get_groups_count = rtc_pinctrl_get_groups_count,
-+	.get_group_name = rtc_pinctrl_get_group_name,
-+	.dt_node_to_map = pinconf_generic_dt_node_to_map_pin,
-+	.dt_free_map = pinconf_generic_dt_free_map,
-+};
-+
-+enum rtc_pin_config_param {
-+	PIN_CONFIG_INPUT_POLARITY = PIN_CONFIG_END + 1,
-+};
-+
-+static const struct pinconf_generic_params rtc_params[] = {
-+	{"ti,input-polarity", PIN_CONFIG_INPUT_POLARITY, GPIO_ACTIVE_HIGH},
-+};
-+
-+#ifdef CONFIG_DEBUG_FS
-+static const struct pin_config_item rtc_conf_items[ARRAY_SIZE(rtc_params)] = {
-+	PCONFDUMP(PIN_CONFIG_INPUT_POLARITY, "input polarity", NULL, true),
-+};
-+#endif
-+
-+static int rtc_pinconf_get(struct pinctrl_dev *pctldev,
-+			unsigned int pin, unsigned long *config)
-+{
-+	struct omap_rtc *rtc = pinctrl_dev_get_drvdata(pctldev);
-+	unsigned int param = pinconf_to_config_param(*config);
-+	u32 val;
-+	u16 arg = 0;
-+
-+	rtc->type->unlock(rtc);
-+	val = rtc_readl(rtc, OMAP_RTC_PMIC_REG);
-+	rtc->type->lock(rtc);
-+
-+	switch (param) {
-+	case PIN_CONFIG_INPUT_ENABLE:
-+		if (!(val & OMAP_RTC_PMIC_EXT_WKUP_EN(pin)))
-+			return -EINVAL;
-+		break;
-+	case PIN_CONFIG_INPUT_POLARITY:
-+		arg = !!(val & OMAP_RTC_PMIC_EXT_WKUP_POL(pin));
-+		break;
-+	default:
-+		return -ENOTSUPP;
-+	};
-+
-+	*config = pinconf_to_config_packed(param, arg);
-+
-+	return 0;
-+}
-+
-+static int rtc_pinconf_set(struct pinctrl_dev *pctldev,
-+			unsigned int pin, unsigned long *configs,
-+			unsigned int num_configs)
-+{
-+	struct omap_rtc *rtc = pinctrl_dev_get_drvdata(pctldev);
-+	u32 val;
-+	unsigned int param;
-+	u16 param_val;
-+	int i;
-+
-+	rtc->type->unlock(rtc);
-+	val = rtc_readl(rtc, OMAP_RTC_PMIC_REG);
-+	rtc->type->lock(rtc);
-+
-+	for (i = 0; i < num_configs; i++) {
-+		param = pinconf_to_config_param(configs[i]);
-+		param_val = pinconf_to_config_argument(configs[i]);
-+
-+		switch (param) {
-+		case PIN_CONFIG_INPUT_ENABLE:
-+			if (param_val)
-+				val |= OMAP_RTC_PMIC_EXT_WKUP_EN(pin);
-+			else
-+				val &= ~OMAP_RTC_PMIC_EXT_WKUP_EN(pin);
-+			break;
-+		case PIN_CONFIG_INPUT_POLARITY:
-+			if (param_val == GPIO_ACTIVE_LOW)
-+				val |= OMAP_RTC_PMIC_EXT_WKUP_POL(pin);
-+			else
-+				val &= ~OMAP_RTC_PMIC_EXT_WKUP_POL(pin);
-+			break;
-+		default:
-+			dev_err(&rtc->rtc->dev, "Property %u not supported\n",
-+				param);
-+			return -ENOTSUPP;
-+		}
-+	}
-+
-+	rtc->type->unlock(rtc);
-+	rtc_writel(rtc, OMAP_RTC_PMIC_REG, val);
-+	rtc->type->lock(rtc);
-+
-+	return 0;
-+}
-+
-+static const struct pinconf_ops rtc_pinconf_ops = {
-+	.is_generic = true,
-+	.pin_config_get = rtc_pinconf_get,
-+	.pin_config_set = rtc_pinconf_set,
-+};
-+
-+static struct pinctrl_desc rtc_pinctrl_desc = {
-+	.pins = rtc_pins_desc,
-+	.npins = ARRAY_SIZE(rtc_pins_desc),
-+	.pctlops = &rtc_pinctrl_ops,
-+	.confops = &rtc_pinconf_ops,
-+	.custom_params = rtc_params,
-+	.num_custom_params = ARRAY_SIZE(rtc_params),
-+#ifdef CONFIG_DEBUG_FS
-+	.custom_conf_items = rtc_conf_items,
-+#endif
-+	.owner = THIS_MODULE,
-+};
-+
- static int omap_rtc_probe(struct platform_device *pdev)
- {
- 	struct omap_rtc	*rtc;
-@@ -681,6 +820,15 @@ static int omap_rtc_probe(struct platform_device *pdev)
- 		}
- 	}
- 
-+	/* Support ext_wakeup pinconf */
-+	rtc_pinctrl_desc.name = dev_name(&pdev->dev);
-+
-+	rtc->pctldev = pinctrl_register(&rtc_pinctrl_desc, &pdev->dev, rtc);
-+	if (IS_ERR(rtc->pctldev)) {
-+		dev_err(&pdev->dev, "Couldn't register pinctrl driver\n");
-+		return PTR_ERR(rtc->pctldev);
-+	}
-+
- 	return 0;
- 
- err:
-@@ -724,6 +872,9 @@ static int __exit omap_rtc_remove(struct platform_device *pdev)
- 	pm_runtime_put_sync(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
- 
-+	/* Remove ext_wakeup pinconf */
-+	pinctrl_unregister(rtc->pctldev);
-+
- 	return 0;
- }
- 
--- 
-2.9.3
-
--- 
-You received this message because you are subscribed to "rtc-linux".
-Membership options at http://groups.google.com/group/rtc-linux .
-Please read http://groups.google.com/group/rtc-linux/web/checklist
-before submitting a driver.
---- 
-You received this message because you are subscribed to the Google Groups "rtc-linux" group.
-To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-For more options, visit https://groups.google.com/d/optout.
+	Arnd
