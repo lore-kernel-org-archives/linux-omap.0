@@ -1,81 +1,77 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [RFC 1/1] drivers: i2c: omap: Add slave support
-Date: Thu, 25 Aug 2016 19:14:30 +0200
-Message-ID: <20160825171430.GM2856@katana>
-References: <20160525141119.14486-1-rk@ti.com>
- <20160525141119.14486-2-rk@ti.com>
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] usb: musb: Fix locking errors for host only mode
+Date: Thu, 25 Aug 2016 12:18:56 -0500
+Message-ID: <20160825171833.GD4050@uda0271908>
+References: <1471560038-6243-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="DXTueXWT3Da08pik"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160525141119.14486-2-rk@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ravikumar Kattekola <rk@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <1471560038-6243-1-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-
-
---DXTueXWT3Da08pik
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
 Hi,
 
-> The omap i2c controller (at least on dra7x devices)
-> doesn't have  start/stop (STT/STP) support for slave mode
-> so event  #5 is not implemented in the driver.
+On Thu, Aug 18, 2016 at 03:40:38PM -0700, Tony Lindgren wrote:
+> If we have USB gadgets disabled and USB_MUSB_HOST set, we get
+> errors "possible irq lock inverssion dependency detected"
+> errors during boot.
+> 
+> Let's fix the issue by adding start_musb flag and start
+> the controller after we're out of the spinlock protected
+> section.
+> 
+> Reported-by: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+> Tested-by: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 
-I think you can deduce that. If a new {READ|WRITE}_REQUESTED slave event
-comes in when you had *_PROCESSED events before, there must have been a
-STOP on the bus inbetween.
-
-> +		if (stat & OMAP_I2C_STAT_XRDY) {
-> +			i2c_slave_event(omap->slave, I2C_SLAVE_READ_REQUESTED,
-> +					&value);
-> +			omap_i2c_write_reg(omap, OMAP_I2C_DATA_REG, value);
-> +			i2c_slave_event(omap->slave, I2C_SLAVE_READ_PROCESSED,
-> +					&value);
-
-This looks fishy. READ_REQUESTED is only sent after the address phase.
-Have you read the documentation (Documentation/i2c/slave-interface)?
-Please say if it was unclear.
-
-> +	/* As of now, We dont need all interrupts be enabled */
-> +	omap->iestate = OMAP_I2C_IE_AAS | OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY;
-
-This looks even more fishy. Are you disabling the master interrupts?
-That's a no (unless there are HW constraints). Your driver should be
-able to switch between master and slave depending on what happens on the
-bus.
-
-For more guidance, here is my talk at ELCE 2015:
-https://www.youtube.com/watch?v=JdQ21jlwb58
+Signed-off-by: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
 
 Regards,
+-Bin.
 
-   Wolfram
-
-
---DXTueXWT3Da08pik
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXvyd2AAoJEBQN5MwUoCm28FAQAI6Z/XY7WOE8MP9oZGs9x2pf
-vmxNM50Q66Did4j94gj8UrS9tLP++3cd22Wa/NEfn3CNZR5OvImW5VAac+Yt7qXM
-R8rPuVzH00uDTO+O0KZh6eB8OqkY4zA7BzV6XthWk7eeIaqrt05pQPzcNbn0Qez2
-Dt7rgSZTDcHfldZGp1InkcG+AZ31q75WtEZamFFktxeVQsjRODRQhfdwOy21ey5J
-kCDB7seZP41YQngTaI7KRNN5LPSH6TRnMixCJsv7OGMeLaSD8YCgRT+8QS/rySng
-tMYGdL5twJlCdOCMfnodLtvCb4HRpn3MaKetTPQ1Krf/Qn+7Kg7GcMRXmeeQvvkM
-gnEKKfRg7SlGyNuaSYbRbimEFleXpnBHqRe2o+UBlV1xod29dqECSgB1tU8A2VOh
-Or6R7DeBMaxHMz/+RA12s/XvIo4RP0mr03iW8yMxWksVT+ptmhwJCtbmbwYLdx2p
-g5KxngegRAVE8nBhZtjAmnvEweQWCMb+62yyPK5mCGgWO+bbvTeOvZ11DxXzz24n
-bmlnJuSo3hMP3OlUXedftpGe41p/zPOsHxGhATrGAbGKucEI21L0EFOTpDPqVXD3
-w9ROEj+HPfQXd4X1rpjdNje3ZgPQR1OBH2y+TuSzNyUX16RvSYhjAP5jOAKBvvta
-7Zsw+HE+zhC9Yp4DLoFk
-=ReR6
------END PGP SIGNATURE-----
-
---DXTueXWT3Da08pik--
+> ---
+>  drivers/usb/musb/musb_virthub.c | 7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/usb/musb/musb_virthub.c b/drivers/usb/musb/musb_virthub.c
+> index 192248f..fe08e77 100644
+> --- a/drivers/usb/musb/musb_virthub.c
+> +++ b/drivers/usb/musb/musb_virthub.c
+> @@ -290,6 +290,7 @@ int musb_hub_control(
+>  	u32		temp;
+>  	int		retval = 0;
+>  	unsigned long	flags;
+> +	bool		start_musb = false;
+>  
+>  	spin_lock_irqsave(&musb->lock, flags);
+>  
+> @@ -390,7 +391,7 @@ int musb_hub_control(
+>  			 * logic relating to VBUS power-up.
+>  			 */
+>  			if (!hcd->self.is_b_host && musb_has_gadget(musb))
+> -				musb_start(musb);
+> +				start_musb = true;
+>  			break;
+>  		case USB_PORT_FEAT_RESET:
+>  			musb_port_reset(musb, true);
+> @@ -451,5 +452,9 @@ error:
+>  		retval = -EPIPE;
+>  	}
+>  	spin_unlock_irqrestore(&musb->lock, flags);
+> +
+> +	if (start_musb)
+> +		musb_start(musb);
+> +
+>  	return retval;
+>  }
+> -- 
+> 2.8.1
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
