@@ -1,57 +1,31 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] usb: musb: Fix locking errors for host only mode
-Date: Fri, 26 Aug 2016 07:57:39 -0700
-Message-ID: <20160826145738.ptsdhdbcn3vudszb@atomide.com>
-References: <1471560038-6243-1-git-send-email-tony@atomide.com>
- <20160825171833.GD4050@uda0271908>
- <20160826143904.ew3cufraegj7rbjm@atomide.com>
- <20160826145626.GA4159@uda0271908>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: am57xx-idk-common: Enable support for QSPI
+Date: Fri, 26 Aug 2016 08:16:00 -0700
+Message-ID: <20160826151600.twqqour447jpkfzx@atomide.com>
+References: <20160802052147.11085-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20160826145626.GA4159@uda0271908>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+In-Reply-To: <20160802052147.11085-1-vigneshr@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [160826 07:57]:
-> On Fri, Aug 26, 2016 at 07:39:05AM -0700, Tony Lindgren wrote:
-> > Hi,
-> > 
-> > * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [160825 10:19]:
-> > > Hi,
-> > > 
-> > > On Thu, Aug 18, 2016 at 03:40:38PM -0700, Tony Lindgren wrote:
-> > > > If we have USB gadgets disabled and USB_MUSB_HOST set, we get
-> > > > errors "possible irq lock inverssion dependency detected"
-> > > > errors during boot.
-> > > > 
-> > > > Let's fix the issue by adding start_musb flag and start
-> > > > the controller after we're out of the spinlock protected
-> > > > section.
-> > > > 
-> > > > Reported-by: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
-> > > > Tested-by: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
-> > > > Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> > > 
-> > > Signed-off-by: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-> > 
-> > Bin, your Signed-off-by here suggests you've committed this to
-> > a fixes branch somewhere but I can't see it in next. Are you
-> > going to send a pull request for it or what's the plan?
-> > Just wondering.. Also added Greg to Cc.
-> 
-> I don't have a public git repo to host my musb maintenance work yet, and
-> I don't have a plan to create one since there aren't many musb patches
-> from the community.  So far I have been managing all the patches in my
-> local tree, and sending patch bombs to Greg. Your this patch will be
-> sent to Greg today or tomorrow.
+* Vignesh R <vigneshr@ti.com> [160801 22:22]:
+> AM572x IDK has a Spansion s25fl256s1 QSPI flash on the EVM connected to
+> TI QSPI IP over CS0. Hence, add QSPI and flash slave DT nodes.
 
-OK so no need for me to do anything then. Thanks for the update.
+Applying into omap-for-v4.9/dt thanks.
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
