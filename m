@@ -1,39 +1,33 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: am335x-wega: Add audio support
-Date: Fri, 26 Aug 2016 08:24:49 -0700
-Message-ID: <20160826152449.qmlrro3ka3vvh266@atomide.com>
-References: <1470841935-14190-1-git-send-email-s.mueller-klieser@phytec.de>
- <7109f6e5-e7fd-4b60-98b7-85b9d78ef690@ti.com>
+Subject: Re: [PATCH 3/3] ARM: dts: dra7: workaround silicon limitation i845
+Date: Fri, 26 Aug 2016 08:28:54 -0700
+Message-ID: <20160826152854.l5kc2nuaxxomffi4@atomide.com>
+References: <1471942661-1728-1-git-send-email-rogerq@ti.com>
+ <1471942661-1728-4-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <7109f6e5-e7fd-4b60-98b7-85b9d78ef690@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, alsa-devel@alsa-project.org, Stefan =?utf-8?Q?M=C3=BCller-Klieser?= <s.mueller-klieser@phytec.de>, robh+dt@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1471942661-1728-4-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: kishon@ti.com, robh+dt@kernel.org, nsekhar@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-KiBQZXRlciBVamZhbHVzaSA8cGV0ZXIudWpmYWx1c2lAdGkuY29tPiBbMTYwODExIDAyOjI2XToK
-PiBPbiAwOC8xMC8xNiAxODoxMiwgU3RlZmFuIE3DvGxsZXItS2xpZXNlciB3cm90ZToKPiA+IFRo
-ZSB3ZWdhIGJvYXJkIGhhcyBhIFRMVjMyMEFJQzMwMDcgY29ubmVjdGVkIHZpYSBNY0FTUDAuIElu
-IHRoZSBkZWZhdWx0Cj4gPiBjb25maWd1cmF0aW9uLCBubyBleHRlcm5hbCBjcnlzdGFsIGlzIG1v
-dW50ZWQuIFdlIHJ1biBhIHN5c3RlbSBjbG9jayBvZgo+ID4gMjUgTUh6LCBzbyB3ZSB1c2UgdGhl
-IGF1ZGlvIGNvZGVjIFBMTCBmb3IgYXVkaW8gY2xvY2sgZ2VuZXJhdGlvbi4KPiAKPiBJdCBpcyBn
-cmVhdCB0aGF0IHRoZSAidGksZGE4MzAtZXZtLWF1ZGlvIiB3b3JrcyBmb3IgeW91LiBJIGhvcGUg
-SSB3aWxsIGhhdmUKPiB0aW1lIHNvb24gdG8gd29yayBvbiB0aGUgTWNBU1AgZHJpdmVyJ3MgQ0NG
-IHN1cHBvcnQgaW4gdGhlIG5lYXIgZnV0dXJlLgo+IAo+IFJldmlld2VkLWJ5OiBQZXRlciBVamZh
-bHVzaSA8cGV0ZXIudWpmYWx1c2lAdGkuY29tPgoKQXBwbHlpbmcgaW50byBvbWFwLWZvci12NC45
-L2R0IHRoYW5rcy4KClRvbnkKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxA
-bGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xp
-c3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+* Roger Quadros <rogerq@ti.com> [160823 01:58]:
+> From: Sekhar Nori <nsekhar@ti.com>
+> 
+> Silicon limitation i845 documents how to cope with false
+> disconnection condition on USB2 PHY. Reference: AM572x
+> silicon errata document SPRZ429H, revised January 2016.
+> 
+> Using compatible "ti,dra7x-usb2" enables the recommended
+> software workaround for this issue. Use it for USB1 PHY.
+> 
+> The workaround is already in place for USB2 PHY.
+
+Picking this patch into omap-for-v4.9/dt branch.
+
+Regards,
+
+Tony
