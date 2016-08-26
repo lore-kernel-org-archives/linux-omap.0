@@ -1,43 +1,55 @@
-From: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/4] ARM: dts: TPS65218: Clean ups
-Date: Fri, 26 Aug 2016 21:41:59 +0530
-Message-ID: <6b1ba3c8-dcb5-4d9d-d231-734735d88eb9@ti.com>
-References: <1467626113-15705-1-git-send-email-j-keerthy@ti.com>
- <20160826145059.ar37v7rbtcrah5yu@atomide.com>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: [PATCH] USB: ohci-omap - avoid including mach/irqs.h
+Date: Fri, 26 Aug 2016 17:43:51 +0100
+Message-ID: <20160826164351.GV5783@n2100.arm.linux.org.uk>
+References: <E1bamhf-0004XR-Nk@rmk-PC.armlinux.org.uk>
+ <Pine.LNX.4.44L0.1608221128050.1543-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160826145059.ar37v7rbtcrah5yu-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.1608221128050.1543-100000@iolanthe.rowland.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+On Mon, Aug 22, 2016 at 11:28:21AM -0400, Alan Stern wrote:
+> On Fri, 19 Aug 2016, Russell King wrote:
+> 
+> > ohci-omap doesn't need to include mach/irqs.h - nothing within this
+> > driver needs anything from this header file.  Remove this include.
+> > 
+> > Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+> > ---
+> >  drivers/usb/host/ohci-omap.c | 1 -
+> >  1 file changed, 1 deletion(-)
+> > 
+> > diff --git a/drivers/usb/host/ohci-omap.c b/drivers/usb/host/ohci-omap.c
+> > index de7c68602a7e..495c1454b9e8 100644
+> > --- a/drivers/usb/host/ohci-omap.c
+> > +++ b/drivers/usb/host/ohci-omap.c
+> > @@ -36,7 +36,6 @@
+> >  #include <mach/mux.h>
+> >  
+> >  #include <mach/hardware.h>
+> > -#include <mach/irqs.h>
+> >  #include <mach/usb.h>
+> 
+> Acked-by: Alan Stern <stern@rowland.harvard.edu>
 
+Thanks.  Will Greg be picking this up?
 
-On Friday 26 August 2016 08:21 PM, Tony Lindgren wrote:
-> * Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> [160704 02:58]:
->> Now that all the driver patches are Acked by respective sub-system
->> Maintainers. Here is the set of Device Tree patches. Another set
->> of Device Tree patches were posted earlier which touch the same
->> files: https://lkml.org/lkml/2016/7/4/36
->
-> Applying into omap-for-v4.9/dt thanks.
-
-Lee Jones,
-
-This series was dependent on:
-https://lkml.org/lkml/2016/8/10/286
-
-All Acks are in place. Could you please pull the series?
-
-- Keerthy
-
->
-> Tony
->
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
