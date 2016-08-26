@@ -1,28 +1,38 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/4] ARM: dts: TPS65218: Clean ups
-Date: Fri, 26 Aug 2016 07:51:00 -0700
-Message-ID: <20160826145059.ar37v7rbtcrah5yu@atomide.com>
-References: <1467626113-15705-1-git-send-email-j-keerthy@ti.com>
+From: Wei Yongjun <weiyj.lk@gmail.com>
+Subject: [PATCH -next] net: ethernet: ti: cpsw: fix error return code in cpsw_set_channels()
+Date: Fri, 26 Aug 2016 14:35:43 +0000
+Message-ID: <1472222143-3604-1-git-send-email-weiyj.lk@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1467626113-15705-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Cc: Wei Yongjun <weiyongjun1@huawei.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> [160704 02:58]:
-> Now that all the driver patches are Acked by respective sub-system
-> Maintainers. Here is the set of Device Tree patches. Another set
-> of Device Tree patches were posted earlier which touch the same
-> files: https://lkml.org/lkml/2016/7/4/36
+From: Wei Yongjun <weiyongjun1@huawei.com>
 
-Applying into omap-for-v4.9/dt thanks.
+Fix to return a negative error code from the cpsw_fill_rx_channels()
+error handling case instead of 0, as done elsewhere in this function.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Fixes: ce52c744574b ("net: ethernet: ti: cpsw: add ethtool channels support")
+Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+---
+ drivers/net/ethernet/ti/cpsw.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 4273e7f..c6cff3d 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -2217,7 +2217,8 @@ static int cpsw_set_channels(struct net_device *ndev,
+ 	}
+ 
+ 	if (cpsw_common_res_usage_state(cpsw)) {
+-		if (cpsw_fill_rx_channels(priv))
++		ret = cpsw_fill_rx_channels(priv);
++		if (ret)
+ 			goto err;
+ 
+ 		/* After this receive is started */
