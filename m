@@ -1,48 +1,37 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] usb: musb: Fix locking errors for host only mode
-Date: Fri, 26 Aug 2016 07:39:05 -0700
-Message-ID: <20160826143904.ew3cufraegj7rbjm@atomide.com>
-References: <1471560038-6243-1-git-send-email-tony@atomide.com>
- <20160825171833.GD4050@uda0271908>
+Subject: Re: [RESEND PATCH 0/3] ARM: dts: Enable suspend configuration
+Date: Fri, 26 Aug 2016 07:48:09 -0700
+Message-ID: <20160826144809.7ywhucrkx2e2cter@atomide.com>
+References: <1470893270-5042-1-git-send-email-j-keerthy@ti.com>
+ <a22b1bd6-b8a2-6512-6c0e-a4cdd0c1d787@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160825171833.GD4050@uda0271908>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+In-Reply-To: <a22b1bd6-b8a2-6512-6c0e-a4cdd0c1d787-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
+Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-* Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [160825 10:19]:
-> Hi,
+* Keerthy <a0393675-l0cyMroinI0@public.gmane.org> [160822 21:39]:
+> Tony,
 > 
-> On Thu, Aug 18, 2016 at 03:40:38PM -0700, Tony Lindgren wrote:
-> > If we have USB gadgets disabled and USB_MUSB_HOST set, we get
-> > errors "possible irq lock inverssion dependency detected"
-> > errors during boot.
+> On Thursday 11 August 2016 10:57 AM, Keerthy wrote:
+> > Now that https://lkml.org/lkml/2016/8/10/243 series is in.
+> > Here is the set of Device Tree patches which were dependent on
+> > the driver patches.
 > > 
-> > Let's fix the issue by adding start_musb flag and start
-> > the controller after we're out of the spinlock protected
-> > section.
-> > 
-> > Reported-by: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
-> > Tested-by: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
-> > Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 > 
-> Signed-off-by: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+> Could you please pull this set if there are no further comments. All the
+> driver dependencies are picked by Mark already.
 
-Bin, your Signed-off-by here suggests you've committed this to
-a fixes branch somewhere but I can't see it in next. Are you
-going to send a pull request for it or what's the plan?
-Just wondering.. Also added Greg to Cc.
+Applying into omap-for-v4.9/dt finally thanks.
 
 Regards,
 
 Tony
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
