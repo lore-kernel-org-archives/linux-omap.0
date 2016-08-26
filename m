@@ -1,7 +1,7 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
 Subject: Re: Bunch of CRC errors in next with arm: move exports to definitions
-Date: Fri, 26 Aug 2016 11:46:06 -0700
-Message-ID: <20160826184605.4a4u4bxoknmdlgai@atomide.com>
+Date: Fri, 26 Aug 2016 19:51:27 +0100
+Message-ID: <20160826185127.GX5783@n2100.arm.linux.org.uk>
 References: <20160822162512.mptzbiaozx2fz42l@atomide.com>
  <20160826181910.ujtk325yqsmvfpbg@atomide.com>
 Mime-Version: 1.0
@@ -19,11 +19,11 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Russell King <rmk+kernel@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [160826 11:20]:
+On Fri, Aug 26, 2016 at 11:19:10AM -0700, Tony Lindgren wrote:
 > * Tony Lindgren <tony@atomide.com> [160822 09:28]:
 > > Hi Al,
 > > 
@@ -37,15 +37,10 @@ List-Id: linux-omap@vger.kernel.org
 > And not happening with multi_v7_defconfig for example. Adding Russell
 > to Cc, maybe he already has a fix for this one?
 
-And this issue does not seem to happen with omap2plus_defconfig when
-compiled with:
+I don't, and I'm not aware of the commit either... so this is all a
+surprise to me.
 
-gcc version 4.8.3 20140320 (prerelease) (Sourcery CodeBench Lite 2014.05-29)
-
-But does happen when compiled with:
-
-gcc version 6.1.1 20160705 (Debian 6.1.1-9)
-
-Regards,
-
-Tony
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
