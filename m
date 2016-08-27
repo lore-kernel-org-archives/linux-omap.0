@@ -1,28 +1,29 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH -next] net: ethernet: ti: cpsw: fix error return code
- in cpsw_set_channels()
-Date: Fri, 26 Aug 2016 21:50:08 -0700 (PDT)
-Message-ID: <20160826.215008.1804199901151222246.davem@davemloft.net>
-References: <1472222143-3604-1-git-send-email-weiyj.lk@gmail.com>
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
+Subject: Re: [PATCH] omapdrm: dss: drop unneeded of_node_put() on ref passed
+ to of_get_next_parent()
+Date: Sat, 27 Aug 2016 13:53:58 +0200
+Message-ID: <CAALWOA8hrtrGZKpLZCdASPWK001p41YOmvFObF=FYSi2zCSROw@mail.gmail.com>
+References: <20160826122321.4787-1-andrey_utkin@fastmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1472222143-3604-1-git-send-email-weiyj.lk@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: weiyj.lk@gmail.com
-Cc: mugunthanvnm@ti.com, grygorii.strashko@ti.com, ivan.khoronzhuk@linaro.org, weiyongjun1@huawei.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160826122321.4787-1-andrey_utkin@fastmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrey Utkin <andrey_utkin@fastmail.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, David Airlie <airlied@linux.ie>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Dave Airlie <airlied@gmail.com>, Peter Chen <peter.chen@nxp.com>, Rob Clark <robdclark@gmail.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Andrew Bradford <bradfa@gmail.com>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, dri-devel@lists.freedesktop.org, lkml <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sean Paul <seanpaul@chromium.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Wei Yongjun <weiyj.lk@gmail.com>
-Date: Fri, 26 Aug 2016 14:35:43 +0000
+To clarify, this patch effectively reverts
 
-> From: Wei Yongjun <weiyongjun1@huawei.com>
-> 
-> Fix to return a negative error code from the cpsw_fill_rx_channels()
-> error handling case instead of 0, as done elsewhere in this function.
-> 
-> Fixes: ce52c744574b ("net: ethernet: ti: cpsw: add ethtool channels support")
-> Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+commit 2ab9f5879162499e1c4e48613287e3f59e593c4f
+gpu: drm: omapdrm: dss-of: add missing of_node_put after calling
+of_parse_phandle
 
-Applied.
+except it leaves behind unnecessary verbiage that this commit
+introduced. And to be clear, that commit *should* indeed be reverted,
+although preferably in its entirety obviously.
+
+of_get_next_parent already drops a ref on its argument, so of_node_put
+was never "missing" here.
+
+Matthijs
