@@ -1,58 +1,28 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: Bunch of CRC errors in next with arm: move exports to definitions
-Date: Fri, 26 Aug 2016 19:53:37 +0100
-Message-ID: <20160826185337.GY5783@n2100.arm.linux.org.uk>
-References: <20160822162512.mptzbiaozx2fz42l@atomide.com>
- <20160826181910.ujtk325yqsmvfpbg@atomide.com>
- <20160826184605.4a4u4bxoknmdlgai@atomide.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH -next] net: ethernet: ti: cpsw: fix error return code
+ in cpsw_set_channels()
+Date: Fri, 26 Aug 2016 21:50:08 -0700 (PDT)
+Message-ID: <20160826.215008.1804199901151222246.davem@davemloft.net>
+References: <1472222143-3604-1-git-send-email-weiyj.lk@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20160826184605.4a4u4bxoknmdlgai@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, linux-arm-kernel@lists.infradead.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1472222143-3604-1-git-send-email-weiyj.lk@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: weiyj.lk@gmail.com
+Cc: mugunthanvnm@ti.com, grygorii.strashko@ti.com, ivan.khoronzhuk@linaro.org, weiyongjun1@huawei.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Aug 26, 2016 at 11:46:06AM -0700, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [160826 11:20]:
-> > * Tony Lindgren <tony@atomide.com> [160822 09:28]:
-> > > Hi Al,
-> > > 
-> > > Looks like starting with next-20160818 I'm now getting close to
-> > > 800 lines of WARNINGs on ARM with omap2plus_defconfig while doing
-> > > make modules:
-> > ...
-> > > Reverting commit 4dd1837d7589 ("arm: move exports to definitions")
-> > > fixes it.
-> > 
-> > And not happening with multi_v7_defconfig for example. Adding Russell
-> > to Cc, maybe he already has a fix for this one?
-> 
-> And this issue does not seem to happen with omap2plus_defconfig when
-> compiled with:
-> 
-> gcc version 4.8.3 20140320 (prerelease) (Sourcery CodeBench Lite 2014.05-29)
-> 
-> But does happen when compiled with:
-> 
-> gcc version 6.1.1 20160705 (Debian 6.1.1-9)
+From: Wei Yongjun <weiyj.lk@gmail.com>
+Date: Fri, 26 Aug 2016 14:35:43 +0000
 
-Hmm, if it's a "bleeding edge gcc" issue, I won't see it anyway, my
-cross-compiler is still 4.7.4!  Even my ubuntu boxes are only on
-4.8.4...
+> From: Wei Yongjun <weiyongjun1@huawei.com>
+> 
+> Fix to return a negative error code from the cpsw_fill_rx_channels()
+> error handling case instead of 0, as done elsewhere in this function.
+> 
+> Fixes: ce52c744574b ("net: ethernet: ti: cpsw: add ethtool channels support")
+> Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Applied.
