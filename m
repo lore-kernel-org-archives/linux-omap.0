@@ -1,41 +1,37 @@
-From: Matthijs van Duin <matthijsvanduin@gmail.com>
-Subject: Re: [RFC 1/1] drivers: i2c: omap: Add slave support
-Date: Sun, 28 Aug 2016 01:38:16 +0200
-Message-ID: <CAALWOA8mtMAszBv6rcXdMzE_mRrrh-wmn6ECMJ32z4cJcfcOjw@mail.gmail.com>
-References: <20160525141119.14486-1-rk@ti.com> <20160525141119.14486-2-rk@ti.com>
- <20160825171430.GM2856@katana> <CAALWOA-XP+mfTcVPc1LZZofAaCK-KtKhFKKKHu2PyHWFrfir3A@mail.gmail.com>
- <20160827172211.GA1601@katana>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Baoyou Xie <baoyou.xie@linaro.org>
+Subject: [PATCH] fix:memory:omap-gpmc:mark symbols static where possible
+Date: Sun, 28 Aug 2016 13:28:15 +0800
+Message-ID: <1472362095-15715-1-git-send-email-baoyou.xie@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160827172211.GA1601@katana>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: Ravikumar Kattekola <rk@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-i2c@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
+To: rogerq@ti.com, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, arnd@linaro.org, baoyou.xie@linaro.org, xie.baoyou@zte.com.cn
 List-Id: linux-omap@vger.kernel.org
 
-On 27 August 2016 at 19:22, Wolfram Sang <wsa@the-dreams.de> wrote:
-> Uh, that sounds like bad HW...
+We get 1 warning when build kernel with W=1:
+drivers/memory/omap-gpmc.c:354:14: warning: no previous prototype for 'gpmc_clk_ticks_to_ns' [-Wmissing-prototypes]
 
-Making a mess of I2C controllers seems to be a popular hobby among
-chip designers :P
+In fact, this function is only used in the file in which it is declared
+and don't need a declaration, but can be made static.
+so this patch marks it 'static'.
 
-( I also really like how the RPi handles clock stretching... *cough* )
+Signed-off-by: Baoyou Xie <baoyou.xie@linaro.org>
+---
+ drivers/memory/omap-gpmc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> While it surely is nice to have super detailed information, can you give
-> this overloaded maintainer a few-line, high level summary of what is
-> written there?
-
-What's written there is what should have been in the docs: correct (as
-in reality-matching) details of how the thing actually works in slave
-mode, and how to operate it without risking race conditions. They're
-not comprehensive, and certainly not polished since they are my
-personal notes I've made while studying the peripheral in detail, but
-I figured both on E2E and here I might perhaps save time and
-frustration by making them available.
-
-A lot of the details (including the completely bizarre behaviour of
-its innocuous-looking irq registers) would be quite non-trivial to
-figure out without putting in a similar effort.
-
-Matthijs
+diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+index 869c83f..f71cbf7 100644
+--- a/drivers/memory/omap-gpmc.c
++++ b/drivers/memory/omap-gpmc.c
+@@ -350,7 +350,7 @@ static unsigned int gpmc_ps_to_ticks(unsigned int time_ps)
+ 	return (time_ps + tick_ps - 1) / tick_ps;
+ }
+ 
+-unsigned int gpmc_clk_ticks_to_ns(unsigned ticks, int cs,
++static unsigned int gpmc_clk_ticks_to_ns(unsigned int ticks, int cs,
+ 				  enum gpmc_clk_domain cd)
+ {
+ 	return ticks * gpmc_get_clk_period(cs, cd) / 1000;
+-- 
+2.7.4
