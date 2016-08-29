@@ -1,54 +1,65 @@
-From: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-Subject: Re: [PATCH v4 5/5] Input: Add tps65217 power button driver
-Date: Mon, 29 Aug 2016 11:09:34 +0200
-Message-ID: <6a55ea5d-c276-f01d-2712-fc4e1c6a1633@grinn-global.com>
-References: <20160620105056.25843-1-m.niestroj@grinn-global.com>
- <20160620105056.25843-6-m.niestroj@grinn-global.com>
- <20160621131735.GA896@rob-hp-laptop>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: Support for configurable PCIe endpoint
+Date: Mon, 29 Aug 2016 17:17:16 +0530
+Message-ID: <57C420C4.4000004@ti.com>
+References: <57A18927.9070003@ti.com> <2422602.ltmdGR0pWX@wuerfel>
+ <57B5B4A1.9030308@ti.com> <1944530.NcryPj8uKU@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160621131735.GA896@rob-hp-laptop>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Eremin-Solenikov <dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1944530.NcryPj8uKU@wuerfel>
+Sender: linux-pci-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
+Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, David Daney <david.daney@cavium.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Carlos Palminha <CARLOS.PALMINHA@synopsys.com>, Thierry Reding <thierry.reding@gmail.com>, Tanmay Inamdar <tinamdar@apm.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Pratyush Anand <pratyush.anand@gmail.com>, Murali Karicheri <m-karicheri2@ti.com>, Jason Cooper <jason@lakedaemon.net>, Simon Horman <horms@verge.net.au>, "bhelgaas@google.com" <bhelgaas@google.com>, Mingkai Hu <mingkai.hu@freescale.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Jingoo Han <jingoohan1@gmail.com>, Richard Zhu <Richard.Zhu@freescale.com>, linux-kernel@vger.kern
 List-Id: linux-omap@vger.kernel.org
 
-ping
+Hi Arnd,
 
-On 21.06.2016 15:17, Rob Herring wrote:
-> On Mon, Jun 20, 2016 at 12:50:56PM +0200, Marcin Niestroj wrote:
->> This driver enables us to use tps65217's power button as KEY_POWER on
->> am335x boards (directly connected button in chiliboard, accessible pin
->> via expansion header in beaglebone). This patch has been tested with
->> chiliboard.
+On Thursday 25 August 2016 06:29 PM, Arnd Bergmann wrote:
+> On Thursday, August 18, 2016 6:44:09 PM CEST Kishon Vijay Abraham I wrote:
+>> Hi Arnd,
 >>
->> Signed-off-by: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
->> ---
->> Depends on patches 1-4 in series
+>> On Thursday 04 August 2016 04:43 PM, Arnd Bergmann wrote:
+>>> On Thursday, August 4, 2016 3:32:01 PM CEST Kishon Vijay Abraham I wrote:
+>>>> On Wednesday 03 August 2016 07:09 PM, Joao Pinto wrote:
+>>>>>
+>>>>> You are rising a topic that we are also addressing in Synopsys.
+>>>>>
+>>>>> For the PCIe RC hardware validation we are currently using the standard
+>>>>> pcie-designware and pcie-designware-plat drivers.
+>>>>>
+>>>>> For the Endpoint we have to use an internal software package. Its main purpose
+>>>>> is to initialize the IP registers, eDMA channels and make data transfer to prove
+>>>>> that the everything is working properly. This is done in 2 levels, a custom
+>>>>> driver built and loaded and an application that makes some ioctl to the driver
+>>>>> executing some interesting functions to check the Endpoint status and make some
+>>>>> data exchange.
+>>>>
+>>>> hmm.. the platform I have doesn't have a DMA in PCIe IP
+>>>> (http://www.ti.com/lit/ug/spruhz6g/spruhz6g.pdf). So in your testing does the
+>>>> EP access RC memory? i.e the driver in the RC allocates memory from it's DDR
+>>>> and gives it's DDR address to the EP. The EP then transfers data to this
+>>>> address. (This is a typical use case with ethernet PCIe cards). IIUC that's not
+>>>> simple with configurable EPs. I'd like to know more about your testing though.
+>>>
+>>>
+>>> What's the difference between using the EDMA on that chip or a DMA engine
+>>> that is part of the PCIe bridge?
 >>
->> Changes v2 -> v4: none
->>
->> Changes v1 -> v2:
->>  * Added information about parent device in tps65217 power button
->>    device-tree binding documentation (suggested by Rob)
->>
->>  .../bindings/input/tps65217-pwrbutton.txt          |  17 +++
->
-> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->
->>  drivers/input/misc/Kconfig                         |  10 ++
->>  drivers/input/misc/Makefile                        |   1 +
->>  drivers/input/misc/tps65217-pwrbutton.c            | 131 +++++++++++++++++++++
->>  4 files changed, 159 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/input/tps65217-pwrbutton.txt
->>  create mode 100644 drivers/input/misc/tps65217-pwrbutton.c
->
+>> Do you mean the difference between using DMA on an EP (like ethernet card or
+>> sata card) and DMA on PCI RC system? or is it the difference between eDMA
+>> within the PCIe IP and system DMA?
+> 
+> The latter. You write that there is no DMA in the PCIe IP, but from the
+> perspective of the RC, it should not matter whether the DMA engine is
+> part of the EP logic or behind it.
 
--- 
-Marcin Niestroj
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+right, from the RC perspective there is no difference.
+
+What I meant is DMA support in PCIe driver has to be added newly (i.e for
+designware) and the the platform I have doesn't have a DMA in PCIe IP. Anyways,
+we'll come back to this later after I post my RFC series, maybe by this week end.
+
+Thanks
+Kishon
