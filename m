@@ -1,65 +1,66 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: Support for configurable PCIe endpoint
-Date: Mon, 29 Aug 2016 17:17:16 +0530
-Message-ID: <57C420C4.4000004@ti.com>
-References: <57A18927.9070003@ti.com> <2422602.ltmdGR0pWX@wuerfel>
- <57B5B4A1.9030308@ti.com> <1944530.NcryPj8uKU@wuerfel>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv3 03/11] crypto: omap-sham: implement context
+ export/import APIs
+Date: Mon, 29 Aug 2016 17:11:35 +0300
+Message-ID: <d828fca9-a97a-7722-c4cb-24e07816cbc4@ti.com>
+References: <1470306526-27219-1-git-send-email-t-kristo@ti.com>
+ <1470306526-27219-4-git-send-email-t-kristo@ti.com>
+ <20160809100633.GA6751@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1944530.NcryPj8uKU@wuerfel>
-Sender: linux-pci-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
-Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, David Daney <david.daney@cavium.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Carlos Palminha <CARLOS.PALMINHA@synopsys.com>, Thierry Reding <thierry.reding@gmail.com>, Tanmay Inamdar <tinamdar@apm.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Pratyush Anand <pratyush.anand@gmail.com>, Murali Karicheri <m-karicheri2@ti.com>, Jason Cooper <jason@lakedaemon.net>, Simon Horman <horms@verge.net.au>, "bhelgaas@google.com" <bhelgaas@google.com>, Mingkai Hu <mingkai.hu@freescale.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Jingoo Han <jingoohan1@gmail.com>, Richard Zhu <Richard.Zhu@freescale.com>, linux-kernel@vger.kern
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <20160809100633.GA6751@gondor.apana.org.au>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: lokeshvutla@ti.com, davem@davemloft.net, linux-crypto@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Arnd,
-
-On Thursday 25 August 2016 06:29 PM, Arnd Bergmann wrote:
-> On Thursday, August 18, 2016 6:44:09 PM CEST Kishon Vijay Abraham I wrote:
->> Hi Arnd,
+On 09/08/16 13:06, Herbert Xu wrote:
+> On Thu, Aug 04, 2016 at 01:28:38PM +0300, Tero Kristo wrote:
+>> Context export/import are now required for ahash algorithms due to
+>> required support in algif_hash. Implement these for OMAP SHA driver,
+>> saving and restoring the internal state of the driver.
 >>
->> On Thursday 04 August 2016 04:43 PM, Arnd Bergmann wrote:
->>> On Thursday, August 4, 2016 3:32:01 PM CEST Kishon Vijay Abraham I wrote:
->>>> On Wednesday 03 August 2016 07:09 PM, Joao Pinto wrote:
->>>>>
->>>>> You are rising a topic that we are also addressing in Synopsys.
->>>>>
->>>>> For the PCIe RC hardware validation we are currently using the standard
->>>>> pcie-designware and pcie-designware-plat drivers.
->>>>>
->>>>> For the Endpoint we have to use an internal software package. Its main purpose
->>>>> is to initialize the IP registers, eDMA channels and make data transfer to prove
->>>>> that the everything is working properly. This is done in 2 levels, a custom
->>>>> driver built and loaded and an application that makes some ioctl to the driver
->>>>> executing some interesting functions to check the Endpoint status and make some
->>>>> data exchange.
->>>>
->>>> hmm.. the platform I have doesn't have a DMA in PCIe IP
->>>> (http://www.ti.com/lit/ug/spruhz6g/spruhz6g.pdf). So in your testing does the
->>>> EP access RC memory? i.e the driver in the RC allocates memory from it's DDR
->>>> and gives it's DDR address to the EP. The EP then transfers data to this
->>>> address. (This is a typical use case with ethernet PCIe cards). IIUC that's not
->>>> simple with configurable EPs. I'd like to know more about your testing though.
->>>
->>>
->>> What's the difference between using the EDMA on that chip or a DMA engine
->>> that is part of the PCIe bridge?
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> ---
+>>  drivers/crypto/omap-sham.c | 31 +++++++++++++++++++++++++++++--
+>>  1 file changed, 29 insertions(+), 2 deletions(-)
 >>
->> Do you mean the difference between using DMA on an EP (like ethernet card or
->> sata card) and DMA on PCI RC system? or is it the difference between eDMA
->> within the PCIe IP and system DMA?
-> 
-> The latter. You write that there is no DMA in the PCIe IP, but from the
-> perspective of the RC, it should not matter whether the DMA engine is
-> part of the EP logic or behind it.
+>> diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
+>> index 6e53944..aa71e61 100644
+>> --- a/drivers/crypto/omap-sham.c
+>> +++ b/drivers/crypto/omap-sham.c
+>> @@ -1379,6 +1379,27 @@ exit_unlock:
+>>  	return ret;
+>>  }
+>>
+>> +static int omap_sham_export(struct ahash_request *req, void *out)
+>> +{
+>> +	struct omap_sham_reqctx *rctx = ahash_request_ctx(req);
+>> +
+>> +	while (omap_sham_flush(req) == -EINPROGRESS)
+>> +		msleep(10);
+>
+> Do we really need this? You must not call export until the previous
+> operation has completed.
+>
+> Cheers,
+>
 
-right, from the RC perspective there is no difference.
+Sorry about a late reply, I was out on vacation.
 
-What I meant is DMA support in PCIe driver has to be added newly (i.e for
-designware) and the the platform I have doesn't have a DMA in PCIe IP. Anyways,
-we'll come back to this later after I post my RFC series, maybe by this week end.
+For OMAP SHAM, this is actually needed, because the driver still has a 
+very large internal buffer for performance reasons, and the whole buffer 
+can't be exported. The flush functionality pushes out sufficient amount 
+of data to the hardware, so that the rest of the buffer can be exported 
+to the available space.
 
-Thanks
-Kishon
+This is pretty much related to the discussion we had previously here:
+
+https://patchwork.kernel.org/patch/9192881/
+
+Basically I decided to keep the driver buffer the same size as 
+previously, but flush out any extra data.
+
+-Tero
