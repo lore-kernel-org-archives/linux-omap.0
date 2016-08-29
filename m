@@ -1,60 +1,64 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] fix:memory:omap-gpmc:mark symbols static where possible
-Date: Mon, 29 Aug 2016 10:32:44 +0300
-Message-ID: <a07bfba4-0e75-4797-85f9-67c279b374f4@ti.com>
-References: <1472362095-15715-1-git-send-email-baoyou.xie@linaro.org>
+Subject: [GIT PULL] omap-gpmc changes for v4.9 merge window
+Date: Mon, 29 Aug 2016 11:30:34 +0300
+Message-ID: <16b618d9-735f-f20c-7966-6e3d23b6b44e@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1472362095-15715-1-git-send-email-baoyou.xie@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Baoyou Xie <baoyou.xie@linaro.org>, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, arnd@linaro.org, xie.baoyou@zte.com.cn
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Olof/Arnd,
 
-On 28/08/16 08:28, Baoyou Xie wrote:
-> We get 1 warning when build kernel with W=1:
-> drivers/memory/omap-gpmc.c:354:14: warning: no previous prototype for 'gpmc_clk_ticks_to_ns' [-Wmissing-prototypes]
-> 
-> In fact, this function is only used in the file in which it is declared
-> and don't need a declaration, but can be made static.
-> so this patch marks it 'static'.
-> 
-> Signed-off-by: Baoyou Xie <baoyou.xie@linaro.org>
-> ---
->  drivers/memory/omap-gpmc.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-> index 869c83f..f71cbf7 100644
-> --- a/drivers/memory/omap-gpmc.c
-> +++ b/drivers/memory/omap-gpmc.c
-> @@ -350,7 +350,7 @@ static unsigned int gpmc_ps_to_ticks(unsigned int time_ps)
->  	return (time_ps + tick_ps - 1) / tick_ps;
->  }
->  
-> -unsigned int gpmc_clk_ticks_to_ns(unsigned ticks, int cs,
-> +static unsigned int gpmc_clk_ticks_to_ns(unsigned int ticks, int cs,
->  				  enum gpmc_clk_domain cd)
->  {
->  	return ticks * gpmc_get_clk_period(cs, cd) / 1000;
-> 
+The following changes since commit fa8410b355251fd30341662a40ac6b22d3e38468:
 
-This patch fails checkpatch with following error
+  Linux 4.8-rc3 (2016-08-21 16:14:10 -0700)
 
-CHECK: Alignment should match open parenthesis
-#28: FILE: drivers/memory/omap-gpmc.c:354:
-+static unsigned int gpmc_clk_ticks_to_ns(unsigned int ticks, int cs,
- 				  enum gpmc_clk_domain cd)
+are available in the git repository at:
 
-Also IMO patch subject is better as
-"memory: omap-gpmc: make gpmc_clk_ticks_to_ns() static"
+  https://github.com/rogerq/linux.git tags/gpmc-omap-for-v4.9
 
-I'll fix these issues myself this time. Thanks for the fix.
-Picked for v4.9.
+for you to fetch changes up to 3950fffdf0c088dd4d9e85c9a5a6be4c6e8b5a07:
 
-regards,
+  memory: omap-gpmc: make gpmc_clk_ticks_to_ns() static (2016-08-29 11:00:24 +0300)
+
+----------------------------------------------------------------
+OMAP-GPMC: driver updates for v4.9
+
+* Fix potential build failure if CONFIG_OMAP_GPMC is disabled while
+  OMAP_NAND driver is enabled
+* Trivial fixes which fix build warnings and code check tool warnings
+  (Coccinelle)
+* Use devm_gpiochip_add_data()
+
+----------------------------------------------------------------
+Baoyou Xie (1):
+      memory: omap-gpmc: make gpmc_clk_ticks_to_ns() static
+
+Linus Walleij (1):
+      memory: omap-gpmc: use devm_gpiochip_add_data()
+
+Markus Elfring (1):
+      memory: omap-gpmc: Delete an unnecessary check before the function call "gpiochip_free_own_desc"
+
+Roger Quadros (1):
+      memory: omap-gpmc: Fix build with CONFIG_OMAP_GPMC disabled
+
+ drivers/memory/omap-gpmc.c | 20 +++++---------------
+ include/linux/omap-gpmc.h  |  4 ++--
+ 2 files changed, 7 insertions(+), 17 deletions(-)
+
+--
+cheers,
 -roger
