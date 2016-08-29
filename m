@@ -1,42 +1,84 @@
-From: Peter Chen <peter.chen@nxp.com>
-Subject: RE: [PATCH] omapdrm: dss: drop unneeded of_node_put() on ref passed
- to of_get_next_parent()
-Date: Mon, 29 Aug 2016 00:49:29 +0000
-Message-ID: <HE1PR04MB145072749A2A9A771A9B9ED28BE10@HE1PR04MB1450.eurprd04.prod.outlook.com>
-References: <20160826122321.4787-1-andrey_utkin@fastmail.com>
- <CAALWOA8hrtrGZKpLZCdASPWK001p41YOmvFObF=FYSi2zCSROw@mail.gmail.com>
- <CAALWOA-HbcmCLLdZV2U4EevKK+ujjQhq8MNfSk6K3y=EskjQpg@mail.gmail.com>
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
+Subject: Re: [RFC 1/1] drivers: i2c: omap: Add slave support
+Date: Mon, 29 Aug 2016 05:43:01 +0200
+Message-ID: <20160829034301.GA21292@squirrel.local>
+References: <20160525141119.14486-1-rk@ti.com>
+ <20160525141119.14486-2-rk@ti.com>
+ <20160825171430.GM2856@katana>
+ <CAALWOA-XP+mfTcVPc1LZZofAaCK-KtKhFKKKHu2PyHWFrfir3A@mail.gmail.com>
+ <20160827172211.GA1601@katana>
+ <CAALWOA8mtMAszBv6rcXdMzE_mRrrh-wmn6ECMJ32z4cJcfcOjw@mail.gmail.com>
+ <20160828053502.GA1601@katana>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAALWOA-HbcmCLLdZV2U4EevKK+ujjQhq8MNfSk6K3y=EskjQpg@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthijs van Duin <matthijsvanduin@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, Sean Paul <seanpaul@chromium.org>, Andrey Utkin <andrey_utkin@fastmail.com>
-Cc: David Airlie <airlied@linux.ie>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Dave Airlie <airlied@gmail.com>, Rob Clark <robdclark@gmail.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Andrew Bradford <bradfa@gmail.com>, "kernel@pyra-handheld.com" <kernel@pyra-handheld.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, lkml <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160828053502.GA1601@katana>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: Ravikumar Kattekola <rk@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-i2c@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-IA0KPlNlbnQ6IFNhdHVyZGF5LCBBdWd1c3QgMjcsIDIwMTYgODowNyBQTQ0KPlRvOiBUb21pIFZh
-bGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPjsgVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9t
-aWRlLmNvbT47DQo+U2VhbiBQYXVsIDxzZWFucGF1bEBjaHJvbWl1bS5vcmc+OyBQZXRlciBDaGVu
-IDxwZXRlci5jaGVuQG54cC5jb20+Ow0KPkFuZHJleSBVdGtpbiA8YW5kcmV5X3V0a2luQGZhc3Rt
-YWlsLmNvbT4NCj5DYzogRGF2aWQgQWlybGllIDxhaXJsaWVkQGxpbnV4LmllPjsgUGV0ZXIgVWpm
-YWx1c2kgPHBldGVyLnVqZmFsdXNpQHRpLmNvbT47IERhdmUNCj5BaXJsaWUgPGFpcmxpZWRAZ21h
-aWwuY29tPjsgUm9iIENsYXJrIDxyb2JkY2xhcmtAZ21haWwuY29tPjsgRHIuIEguIE5pa29sYXVz
-DQo+U2NoYWxsZXIgPGhuc0Bnb2xkZWxpY28uY29tPjsgQW5kcmV3IEJyYWRmb3JkIDxicmFkZmFA
-Z21haWwuY29tPjsNCj5rZXJuZWxAcHlyYS1oYW5kaGVsZC5jb207IERpc2N1c3Npb25zIGFib3V0
-IHRoZSBMZXR1eCBLZXJuZWwgPGxldHV4LQ0KPmtlcm5lbEBvcGVucGhvZW51eC5vcmc+OyBkcmkt
-ZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnOyBsa21sIDxsaW51eC0NCj5rZXJuZWxAdmdlci5r
-ZXJuZWwub3JnPjsgbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcNCj5TdWJqZWN0OiBSZTogW1BB
-VENIXSBvbWFwZHJtOiBkc3M6IGRyb3AgdW5uZWVkZWQgb2Zfbm9kZV9wdXQoKSBvbiByZWYgcGFz
-c2VkIHRvDQo+b2ZfZ2V0X25leHRfcGFyZW50KCkNCj4NCj4+IFsgICAgOC44NDI4MDZdIE9GOiBF
-UlJPUjogQmFkIG9mX25vZGVfcHV0KCkgb24gL2VuY29kZXIvcG9ydHMvcG9ydEAxL2VuZHBvaW50
-DQo+PiBbICAgIDguODQzMDE0XSBbPGJmODg5NDMzPl0gKG9tYXBkc3Nfb2ZfZmluZF9zb3VyY2Vf
-Zm9yX2ZpcnN0X2VwIFtvbWFwZHNzXSkNCj4NCj5JIGNhbiBjb25maXJtIHRoYXQgcmV2ZXJ0aW5n
-IDJhYjlmNTg3OTE2MiBmaXhlcyB0aGlzIHJlZ3Jlc3Npb24sIHRlc3RlZCBvbiBvbWFwNS0NCj51
-ZXZtLg0KPg0KDQpJdCB3YXMgbXkgY2FyZWxlc3MgZm9yIGludHJvZHVjaW5nIHJlZ3Jlc3Npb24u
-IFRoZSByZXZlcnQgcGF0Y2ggaGFzIGFscmVhZHkgYmVlbg0KYXQgbGludXgtbmV4dC4gU29ycnkg
-Zm9yIGluY29udmVuaWVuY2UuDQoNCmh0dHBzOi8vZ2l0Lmtlcm5lbC5vcmcvY2dpdC9saW51eC9r
-ZXJuZWwvZ2l0L25leHQvbGludXgtbmV4dC5naXQvY29tbWl0Lz9pZD01YTc4ZmY3YmY3ZTI1MTkx
-MTQ0YjU1MDk2MTAwMWJiZjZjNzM0ZGE0DQoNCg0KUGV0ZXINCg==
+On 28 August 2016 at 07:35, Wolfram Sang <wsa@the-dreams.de> wrote:
+> Well, I2C is simple, what could go wrong? :/
+
+Actually I2C is elegant and *seems* simple, but in all its
+asynchronicity there are actually a surprising number of fine details
+you can trip over.  Maybe that's why so many i2c controllers suck: since
+i2c looks simple enough manufacturers are easily tempted to roll their
+own instead of licensing a good implementation.
+
+Having said that, most of the inconsistency and obnoxiousness of the TI
+I2C controller is not even excusable by that argument.  For example its
+irq registers *look* like the usual set { rawstatus, status, en, dis }
+that's their current standard ("Highlander") for peripherals. They do
+not however *behave* like the standard set however:
+  1. status isn't always (rawstatus & enabled)
+  2. status != 0 does not always imply the irq output is asserted
+  3. some enable-bits also change the behaviour of rawstatus
+All of these misbehaviours are unprecedented afaik.
+
+Normally you'd also expect each irq (raw)status bit to either
+  a. be an event, set by hw and can be cleared by software any time, or
+  b. be a level status, unaffected by software attempts to set/clear.
+Again the i2c controller decided this is far too little diversity.
+
+> So, it is possible to make a proper I2C slave with OMAP, but you need
+> to know those 100 gory details?
+
+Mostly.  There are some limitations such as:
+
+* No ability to selectively ACK/NACK when addressed as slave. If you're
+unable to respond for some time then you'd end up blocking the bus with
+clock stretching.  You could temporarily deconfigure your slave address
+but the TRM states changing slave address is forbidden while bus busy.
+
+* According to my notes it always ACKs a General Call and this cannot
+even be stalled using the SBLOCK register.  Since I don't care about GC
+there's no more details in my notes, but if this is true then on any bus
+where GC is used, irq handling will have real-time deadlines to avoid
+losing track of transaction boundaries and misinterpreting data.
+
+Finally, as my first link pointed out, various protocol errors can lock
+up the peripheral's internal state machine.  When operating as slave
+this is basically undetectable: all registers look normal and the
+bus-busy bit will continue to track start/stop, but the peripheral will
+not ACK any slave address anymore until you reset it.
+
+You could argue "well, but that requires bus protocol errors" but it is
+nevertheless a direct violation of the I2C standard:
+
+	I2C-bus compatible devices must reset their bus logic on receipt
+	of a START or repeated START condition such that they all
+	anticipate the sending of a slave address, even if these START
+	conditions are not positioned according to the proper format.
+
+Also, my testing showed pulsing SDA low on an idle bus sufficed to
+trigger this state.  It needs to pass the glitch filter of course, but
+this filter is implemented by sampling the bus requiring two consecutive
+samples to agree.  Two small glitches with just the right timing would
+therefore suffice.  Rather unlikely for random noise, but having lots of
+signals on your pcb that ultimately derive from the same clock source
+probably makes the odds a lot more favorable.
+
+Matthijs
