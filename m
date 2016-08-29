@@ -1,64 +1,42 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [RFC 1/1] drivers: i2c: omap: Add slave support
-Date: Sun, 28 Aug 2016 07:35:05 +0200
-Message-ID: <20160828053502.GA1601@katana>
-References: <20160525141119.14486-1-rk@ti.com>
- <20160525141119.14486-2-rk@ti.com>
- <20160825171430.GM2856@katana>
- <CAALWOA-XP+mfTcVPc1LZZofAaCK-KtKhFKKKHu2PyHWFrfir3A@mail.gmail.com>
- <20160827172211.GA1601@katana>
- <CAALWOA8mtMAszBv6rcXdMzE_mRrrh-wmn6ECMJ32z4cJcfcOjw@mail.gmail.com>
+From: Peter Chen <peter.chen@nxp.com>
+Subject: RE: [PATCH] omapdrm: dss: drop unneeded of_node_put() on ref passed
+ to of_get_next_parent()
+Date: Mon, 29 Aug 2016 00:49:29 +0000
+Message-ID: <HE1PR04MB145072749A2A9A771A9B9ED28BE10@HE1PR04MB1450.eurprd04.prod.outlook.com>
+References: <20160826122321.4787-1-andrey_utkin@fastmail.com>
+ <CAALWOA8hrtrGZKpLZCdASPWK001p41YOmvFObF=FYSi2zCSROw@mail.gmail.com>
+ <CAALWOA-HbcmCLLdZV2U4EevKK+ujjQhq8MNfSk6K3y=EskjQpg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="k1lZvvs/B4yU6o8G"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAALWOA8mtMAszBv6rcXdMzE_mRrrh-wmn6ECMJ32z4cJcfcOjw@mail.gmail.com>
+In-Reply-To: <CAALWOA-HbcmCLLdZV2U4EevKK+ujjQhq8MNfSk6K3y=EskjQpg@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Matthijs van Duin <matthijsvanduin@gmail.com>
-Cc: Ravikumar Kattekola <rk@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-i2c@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
+To: Matthijs van Duin <matthijsvanduin@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, Sean Paul <seanpaul@chromium.org>, Andrey Utkin <andrey_utkin@fastmail.com>
+Cc: David Airlie <airlied@linux.ie>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Dave Airlie <airlied@gmail.com>, Rob Clark <robdclark@gmail.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Andrew Bradford <bradfa@gmail.com>, "kernel@pyra-handheld.com" <kernel@pyra-handheld.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, lkml <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-
---k1lZvvs/B4yU6o8G
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-
-> Making a mess of I2C controllers seems to be a popular hobby among
-> chip designers :P
-
-Well, I2C is simple, what could go wrong? :/
-
-> A lot of the details (including the completely bizarre behaviour of
-> its innocuous-looking irq registers) would be quite non-trivial to
-> figure out without putting in a similar effort.
-
-Thanks. So, it is possible to make a proper I2C slave with OMAP, but you
-need to know those 100 gory details?
-
-   Wolfram
-
-
---k1lZvvs/B4yU6o8G
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXwngGAAoJEBQN5MwUoCm2UUsQAKSqRRIjw8S8EP82ZYxFLgDh
-G0NEmQhc71m+GQhCLgm1olMy/EFR/jc8R18VrUKg2N6uzHve1AJuPFuAJ08YW3bg
-Qizn52e56cer/iZujji5aCUXpR6q8owCcVtCNgt8Ydggc99QkrZhT8QjvEEWm2eG
-yugx+FIerZWy7hCwR0C5YfLMZ0s/0KKnzMuB8qgKNPX7RLDUbwK4i9ee+JcBh0Za
-N/UBZcjlXro7Wxs3Vmss5ObRwYVzJeAMRU6SY5TBL+qWdnPc8l9KybahvhWyWgB3
-fTMFyRdYP9cO7LkqHJiq6VQabdMK24FUZJ96z0lNvrU5+OPje4vvCQDzU3BdWlCC
-CajJVHgUsO+ZubSidPXA53Xv7ZuD5wAmD3iu+zwpdqNygqNA6hy6TJKpULefqLhx
-89V+IjVvgm74VIR6e3mrWxQehPdqys9qBsv8NkFLkzhbrWMulzmZcfhJ8zH6I2sT
-IT2pHefHOLeLqDo8egSMcqZdpR+pO+LEQ9JPXEkQ016sWzFUy39jsEpRRiyzUBv4
-wSIEZGtKzLZ/ZZRot5Gpc+VR7HQ8fuHZS4ojz4rqotDIj2nbo4QdoCWuYs5bxA2z
-MKGItJWjG+pZnE6YqlWW/BF/ltgyZ0W7XUSRHOp9bdYezDRTNl8ilt0PB+ikO0Rk
-4Pt/fHr0PVY4DOQ9lb4H
-=yqte
------END PGP SIGNATURE-----
-
---k1lZvvs/B4yU6o8G--
+IA0KPlNlbnQ6IFNhdHVyZGF5LCBBdWd1c3QgMjcsIDIwMTYgODowNyBQTQ0KPlRvOiBUb21pIFZh
+bGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPjsgVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9t
+aWRlLmNvbT47DQo+U2VhbiBQYXVsIDxzZWFucGF1bEBjaHJvbWl1bS5vcmc+OyBQZXRlciBDaGVu
+IDxwZXRlci5jaGVuQG54cC5jb20+Ow0KPkFuZHJleSBVdGtpbiA8YW5kcmV5X3V0a2luQGZhc3Rt
+YWlsLmNvbT4NCj5DYzogRGF2aWQgQWlybGllIDxhaXJsaWVkQGxpbnV4LmllPjsgUGV0ZXIgVWpm
+YWx1c2kgPHBldGVyLnVqZmFsdXNpQHRpLmNvbT47IERhdmUNCj5BaXJsaWUgPGFpcmxpZWRAZ21h
+aWwuY29tPjsgUm9iIENsYXJrIDxyb2JkY2xhcmtAZ21haWwuY29tPjsgRHIuIEguIE5pa29sYXVz
+DQo+U2NoYWxsZXIgPGhuc0Bnb2xkZWxpY28uY29tPjsgQW5kcmV3IEJyYWRmb3JkIDxicmFkZmFA
+Z21haWwuY29tPjsNCj5rZXJuZWxAcHlyYS1oYW5kaGVsZC5jb207IERpc2N1c3Npb25zIGFib3V0
+IHRoZSBMZXR1eCBLZXJuZWwgPGxldHV4LQ0KPmtlcm5lbEBvcGVucGhvZW51eC5vcmc+OyBkcmkt
+ZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnOyBsa21sIDxsaW51eC0NCj5rZXJuZWxAdmdlci5r
+ZXJuZWwub3JnPjsgbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcNCj5TdWJqZWN0OiBSZTogW1BB
+VENIXSBvbWFwZHJtOiBkc3M6IGRyb3AgdW5uZWVkZWQgb2Zfbm9kZV9wdXQoKSBvbiByZWYgcGFz
+c2VkIHRvDQo+b2ZfZ2V0X25leHRfcGFyZW50KCkNCj4NCj4+IFsgICAgOC44NDI4MDZdIE9GOiBF
+UlJPUjogQmFkIG9mX25vZGVfcHV0KCkgb24gL2VuY29kZXIvcG9ydHMvcG9ydEAxL2VuZHBvaW50
+DQo+PiBbICAgIDguODQzMDE0XSBbPGJmODg5NDMzPl0gKG9tYXBkc3Nfb2ZfZmluZF9zb3VyY2Vf
+Zm9yX2ZpcnN0X2VwIFtvbWFwZHNzXSkNCj4NCj5JIGNhbiBjb25maXJtIHRoYXQgcmV2ZXJ0aW5n
+IDJhYjlmNTg3OTE2MiBmaXhlcyB0aGlzIHJlZ3Jlc3Npb24sIHRlc3RlZCBvbiBvbWFwNS0NCj51
+ZXZtLg0KPg0KDQpJdCB3YXMgbXkgY2FyZWxlc3MgZm9yIGludHJvZHVjaW5nIHJlZ3Jlc3Npb24u
+IFRoZSByZXZlcnQgcGF0Y2ggaGFzIGFscmVhZHkgYmVlbg0KYXQgbGludXgtbmV4dC4gU29ycnkg
+Zm9yIGluY29udmVuaWVuY2UuDQoNCmh0dHBzOi8vZ2l0Lmtlcm5lbC5vcmcvY2dpdC9saW51eC9r
+ZXJuZWwvZ2l0L25leHQvbGludXgtbmV4dC5naXQvY29tbWl0Lz9pZD01YTc4ZmY3YmY3ZTI1MTkx
+MTQ0YjU1MDk2MTAwMWJiZjZjNzM0ZGE0DQoNCg0KUGV0ZXINCg==
