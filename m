@@ -1,64 +1,60 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [GIT PULL] omap-gpmc changes for v4.9 merge window
-Date: Mon, 29 Aug 2016 11:30:34 +0300
-Message-ID: <16b618d9-735f-f20c-7966-6e3d23b6b44e@ti.com>
+From: Marcin Niestroj <m.niestroj@grinn-global.com>
+Subject: Re: [PATCH v4 1/5] mfd: tps65217: Add support for IRQs
+Date: Mon, 29 Aug 2016 11:05:34 +0200
+Message-ID: <c339a5bb-7e0d-bda4-2d76-38808977d3f6@grinn-global.com>
+References: <20160620105056.25843-1-m.niestroj@grinn-global.com>
+ <20160620105056.25843-2-m.niestroj@grinn-global.com>
+ <576D0437.1020800@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <576D0437.1020800@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-input@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Olof/Arnd,
+ping
 
-The following changes since commit fa8410b355251fd30341662a40ac6b22d3e38468:
+On 24.06.2016 11:58, Grygorii Strashko wrote:
+> On 06/20/2016 01:50 PM, Marcin Niestroj wrote:
+>> Add support for handling IRQs: power button, AC and USB power state
+>> changes. Mask and interrupt bits are shared within one register, which
+>> prevents us to use regmap_irq implementation. New irq_domain is
+>> created in
+>> order to add interrupt handling for each tps65217's subsystem. IRQ
+>> resources have been added for charger subsystem to be able to notify
+>> about
+>> AC and USB state changes.
+>>
+>> Signed-off-by: Marcin Niestroj <m.niestroj@grinn-global.com>
+>> Acked-by: Lee Jones <lee.jones@linaro.org>
+>> ---
+>> Changes v3 -> v4 (suggested by Grygorii):
+>>   * Add irq_set_parent() during irq init
+>>   * Remove hardcoded IRQ trigger type, rely on DT bindings instead
+>>
+>> Changes v2 -> v3 (suggested by Lee):
+>>   * Alphabetical reorder of includes
+>>   * Rename enum tps65217_irqs -> tps65217_irq_type, so we won't confuse
+>>     it with structure object with the same name.
+>>   * Fix inconsistent order of irq_enable and irq_disable
+>>   * Remove redundant 'else' when returning from tps65217_irq_thread
+>>
+>> Changes v1 -> v2: none
+>>
+>>   drivers/mfd/Kconfig          |   1 +
+>>   drivers/mfd/tps65217.c       | 195
+>> +++++++++++++++++++++++++++++++++++++++++--
+>>   include/linux/mfd/tps65217.h |  12 +++
+>>   3 files changed, 200 insertions(+), 8 deletions(-)
+>>
+>
+> Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>
+>
+>
 
-  Linux 4.8-rc3 (2016-08-21 16:14:10 -0700)
-
-are available in the git repository at:
-
-  https://github.com/rogerq/linux.git tags/gpmc-omap-for-v4.9
-
-for you to fetch changes up to 3950fffdf0c088dd4d9e85c9a5a6be4c6e8b5a07:
-
-  memory: omap-gpmc: make gpmc_clk_ticks_to_ns() static (2016-08-29 11:00:24 +0300)
-
-----------------------------------------------------------------
-OMAP-GPMC: driver updates for v4.9
-
-* Fix potential build failure if CONFIG_OMAP_GPMC is disabled while
-  OMAP_NAND driver is enabled
-* Trivial fixes which fix build warnings and code check tool warnings
-  (Coccinelle)
-* Use devm_gpiochip_add_data()
-
-----------------------------------------------------------------
-Baoyou Xie (1):
-      memory: omap-gpmc: make gpmc_clk_ticks_to_ns() static
-
-Linus Walleij (1):
-      memory: omap-gpmc: use devm_gpiochip_add_data()
-
-Markus Elfring (1):
-      memory: omap-gpmc: Delete an unnecessary check before the function call "gpiochip_free_own_desc"
-
-Roger Quadros (1):
-      memory: omap-gpmc: Fix build with CONFIG_OMAP_GPMC disabled
-
- drivers/memory/omap-gpmc.c | 20 +++++---------------
- include/linux/omap-gpmc.h  |  4 ++--
- 2 files changed, 7 insertions(+), 17 deletions(-)
-
---
-cheers,
--roger
+-- 
+Marcin Niestroj
