@@ -1,42 +1,100 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RESEND PATCH v3 1/3] ARM: dts: DRA7: Add "linux,pci-domain"
- property for pci dt nodes
-Date: Tue, 30 Aug 2016 11:47:03 -0700
-Message-ID: <20160830184702.hgn2vgxlts4pgkyy@atomide.com>
-References: <1470832400-11929-1-git-send-email-kishon@ti.com>
- <1470832400-11929-2-git-send-email-kishon@ti.com>
- <20160826153035.h6uyplc4mjlbc3v3@atomide.com>
- <57C5687C.8030805@ti.com>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v4] rtc: omap: Support ext_wakeup configuration
+Date: Tue, 30 Aug 2016 14:59:03 -0500
+Message-ID: <20160830195903.GA14471@rob-hp-laptop>
+References: <20160825111912.23017-1-m.niestroj@grinn-global.com>
+Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-renesas-soc-owner@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <rtc-linux+bncBDJIP47K7MERBCWLS67AKGQEQ4WCOGA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Content-Disposition: inline
-In-Reply-To: <57C5687C.8030805@ti.com>
-Sender: linux-renesas-soc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Russell King <linux@armlinux.org.uk>, Benoit Cousson <bcousson@baylibre.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-renesas-soc@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Nicolas Ferre <nicolas.ferre@atmel.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Krzysztof Halasa <khalasa@piap.pl>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Fabio Estevam <fabio.estevam@nxp.com>, Santosh Shilimkar <ssantosh@kernel.o>
+In-Reply-To: <20160825111912.23017-1-m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
+List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <https://groups.google.com/group/rtc-linux
+List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <https://groups.google.com/group/rtc-linux/subscribe>
+To: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Kishon Vijay Abraham I <kishon@ti.com> [160830 04:06]:
-> Hi Tony,
+On Thu, Aug 25, 2016 at 01:19:12PM +0200, Marcin Niestroj wrote:
+> Support configuration of ext_wakeup sources. This patch makes it
+> possible to enable ext_wakeup and set it's polarity, depending on board
+> configuration. AM335x's dedicated PMIC (tps65217) uses ext_wakeup to
+> notify about power-button presses. Handling power-button presses enables
+> to recover from RTC-only power states correctly.
 > 
-> On Friday 26 August 2016 09:00 PM, Tony Lindgren wrote:
-> > * Kishon Vijay Abraham I <kishon@ti.com> [160810 05:34]:
-> >> Since DRA7 has multiple PCIe Rootcomplex, add "linux,pci-domain"
-> >> property to assign a PCI domain number to each of the host
-> >> bridges.
-> > 
-> > Is this patch safe to apply without the other changes?
+> Signed-off-by: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
+> ---
+> Hi,
 > 
-> Yes. I verified pcie on dra7x by applying only this patch and it doesn't break
-> anything.
+> This is a total reimplementation, so it is not based on any of the previos
+> patch versions. This patch adds support for ext_wakeup using generic pinconf
+> device-tree bindings, with one added "ti,input-polarity" custom property.
+> This approach has been suggested by Tony and Grygorii in [1].
+> 
+> Patch was developed on 4.6, rebased on 4.8-rc3, tested using chiliBoard.
+> 
+> [1] http://www.spinics.net/lists/devicetree/msg131516.html
+> 
+>  Documentation/devicetree/bindings/rtc/rtc-omap.txt |  21 +++
+>  drivers/rtc/Kconfig                                |   1 +
+>  drivers/rtc/rtc-omap.c                             | 167 ++++++++++++++++++++-
+>  3 files changed, 181 insertions(+), 8 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/rtc/rtc-omap.txt b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+> index bf7d11a..5d18373 100644
+> --- a/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+> +++ b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+> @@ -18,6 +18,18 @@ Optional properties:
+>    through pmic_power_en
+>  - clocks: Any internal or external clocks feeding in to rtc
+>  - clock-names: Corresponding names of the clocks
+> +- pinctrl-0: a phandle pointing to the pin settings for the device
+> +- pinctrl-names: should be "default"
+> +
+> +Optional subnodes:
+> +- generic pinctrl node
+> +
+> +Required pinctrl subnodes properties:
+> +- pins - Names of ext_wakeup pins to configure
+> +
+> +Optional pinctrl subnodes properties:
+> +- input-enable - Enables ext_wakeup
+> +- ti,input-polarity - GPIO_ACTIVE_LOW or GPIO_ACTIVE_HIGH depending board
 
-OK thanks for testing, I'm picking the dts change into omap-for-v4.9/dt
-branch.
+This is not a GPIO, so don't use GPIO defines. Just make this boolean 
+with not present ideally being the more common case.
 
-The other patches you probably should upload to RMKs patch system
-if no more comments.
+>  Example:
+>  
+> @@ -30,4 +42,13 @@ rtc@1c23000 {
+>  	system-power-controller;
+>  	clocks = <&clk_32k_rtc>, <&clk_32768_ck>;
+>  	clock-names = "ext-clk", "int-clk";
+> +
+> +	pinctrl-0 = <&ext_wakeup>;
+> +	pinctrl-names = "default";
+> +
+> +	ext_wakeup: ext_wakeup {
 
-Regards,
+Use '-', not '_' in node names.
 
-Tony
+> +		pins = "ext_wakeup0";
+> +		input-enable;
+> +		ti,input-polarity = <GPIO_ACTIVE_LOW>;
+> +	};
+>  };
+
+-- 
+You received this message because you are subscribed to "rtc-linux".
+Membership options at http://groups.google.com/group/rtc-linux .
+Please read http://groups.google.com/group/rtc-linux/web/checklist
+before submitting a driver.
+--- 
+You received this message because you are subscribed to the Google Groups "rtc-linux" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit https://groups.google.com/d/optout.
