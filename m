@@ -1,7 +1,7 @@
 From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 20/23] ARM: dts: dm8148: Add missing unit name to memory nodes
-Date: Wed, 31 Aug 2016 12:35:34 +0200
-Message-ID: <1472639737-17586-21-git-send-email-javier@osg.samsung.com>
+Subject: [PATCH 18/23] ARM: dts: am4372: Add missing unit name to memory nodes
+Date: Wed, 31 Aug 2016 12:35:32 +0200
+Message-ID: <1472639737-17586-19-git-send-email-javier@osg.samsung.com>
 References: <1472639737-17586-1-git-send-email-javier@osg.samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1472639737-17586-1-git-send-email-javier@osg.samsung.com>
@@ -17,35 +17,21 @@ This patch fixes the following DTC warnings:
 Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 ---
 
- arch/arm/boot/dts/dm8148-evm.dts  | 2 +-
- arch/arm/boot/dts/dm8148-t410.dts | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/am4372.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/dm8148-evm.dts b/arch/arm/boot/dts/dm8148-evm.dts
-index 376b85381e8c..d6657b3bae84 100644
---- a/arch/arm/boot/dts/dm8148-evm.dts
-+++ b/arch/arm/boot/dts/dm8148-evm.dts
-@@ -12,7 +12,7 @@
- 	model = "DM8148 EVM";
- 	compatible = "ti,dm8148-evm", "ti,dm8148";
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index dda607d254ae..a275fa956813 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -17,7 +17,7 @@
+ 	#address-cells = <1>;
+ 	#size-cells = <1>;
  
 -	memory {
-+	memory@80000000 {
++	memory@0 {
  		device_type = "memory";
- 		reg = <0x80000000 0x40000000>;	/* 1 GB */
- 	};
-diff --git a/arch/arm/boot/dts/dm8148-t410.dts b/arch/arm/boot/dts/dm8148-t410.dts
-index b1ce1398b3ed..63883b3479f9 100644
---- a/arch/arm/boot/dts/dm8148-t410.dts
-+++ b/arch/arm/boot/dts/dm8148-t410.dts
-@@ -11,7 +11,7 @@
- 	model = "HP t410 Smart Zero Client";
- 	compatible = "hp,t410", "ti,dm8148";
- 
--	memory {
-+	memory@80000000 {
- 		device_type = "memory";
- 		reg = <0x80000000 0x40000000>;	/* 1 GB */
+ 		reg = <0 0>;
  	};
 -- 
 2.7.4
