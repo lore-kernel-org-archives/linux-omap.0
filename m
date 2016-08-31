@@ -1,57 +1,64 @@
-From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RESEND PATCH 1/2] ARM: dts: dra7: Fix clock data for
- gmac_gmii_ref_clk_div
-Date: Wed, 31 Aug 2016 20:34:48 +0300
-Message-ID: <232e8fb7-320f-3d64-b1f2-599d53d65291@ti.com>
-References: <20160830145801.10364-1-grygorii.strashko@ti.com>
- <20160830184158.xydy3ixy7c5b73le@atomide.com>
- <fd7850dd-b7a2-e6ef-508f-8406c3f2cea9@ti.com>
- <20160831143928.vxuaznyws2pipohu@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ASoC: omap-mcbsp: Add PM QoS support for
+ McBSP to prevent glitches
+Date: Wed, 31 Aug 2016 07:13:40 -0700
+Message-ID: <20160831141340.h24szdqjnicmt2ew@atomide.com>
+References: <20160829182746.53vrgbxadqodzzug@atomide.com>
+ <925ded57-1e91-3db6-9e82-3a3ff5775412@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160831143928.vxuaznyws2pipohu-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "J.D. Schroeder" <jay.schroeder-UF6BFNFdnjXQT0dZR+AlfA@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <925ded57-1e91-3db6-9e82-3a3ff5775412@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Liam Girdwood <lgirdwood@gmail.com>, Sebastian Reichel <sre@kernel.org>, Mark Brown <broonie@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Pavel Machel <pavel@ucw.cz>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 31/08/16 17:39, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org> [160830 23:09]:
->> On 30/08/16 21:41, Tony Lindgren wrote:
->>> * Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [160830 07:58]:
->>>>
->>>> Originally this patch was posted (and acked) here
->>>> https://lkml.org/lkml/2016/4/27/272,
->>>> but it, unfortunatelly, has never been merged.
->>>> So re-send + minor subj change.
->>>
->>> OK yeah sorry about that. And thanks for the resend. If some patches
->>> have pending discussion as I tend to tag threads that have pending
->>> discussion as read and then forget them. And I miss patches in other
->>> ways too..
->>>
->>> Tero, care to take a look and ack?
->>
->> For both patches:
->>
->> Acked-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
->
-> Thanks applying both into omap-for-v4.9/dt as the Ethernet works
-> currently.
->
-> Regards,
->
-> Tony
->
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [160831 04:38]:
+> >  
+> > +	/* Prevent omap hardware from hitting off between fifo fills */
+> > +	pm_qos_add_request(&mcbsp->pm_qos_req, PM_QOS_CPU_DMA_LATENCY,
+> > +			   30 * 1000);
+> 
+> The latency value depends on the McBSP FIFO size and the speed the DMA can
+> transfer the data.
+> OMAP3.McBSP2 have 1280 word as buffer. All other McBSP across SoCs have 128
+> words or no FIFO.
 
-Yea I think the ethernet clock rate happens to be the same in the 
-existing setup, just the hierarchy is wrong. That is at least what I saw 
-with quick testing.
+Yeah this is with mcbsp2 using boards like the beaglebone variants.
+Probably the same issue on 900 as reported by Pavel earlier.
 
--Tero
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> The DMA fill speed will depend on several factors, I guess it is faster on
+> OMAP4/5 then on OMAP3/2/1.
+
+Probably this is only issue with mcbsp2..
+
+> If we have McBSP w/o FIFO there is no need for the qos AFAIK.
+> I'm fine with the 30ms, if you have done the testing on OMAP3.McBSP2, probably
+> setting 30ms for McBSP with 1280 FIFO, 3ms for 128 FIFO and no qos for McBSP
+> w/o FIFO might be better. Or:
+> 
+> latency = mcbsp->pdata->buffer_size * 23; /* 29.44ms on omap3's mcbsp2 */
+> 
+> if (latency)
+> 	pm_qos_add_request(&mcbsp->pm_qos_req, PM_QOS_CPU_DMA_LATENCY,
+> 			   latency);
+
+OK let me run some tests with that and mcbsp2 fifo set to 128. My guess
+is that things already work for that case with no patches with the existing
+fifo based  snd_pcm_hw_constraint_step() setting limits low enough so
+we never enter deeper idle states, but let's see :)
+
+Regards,
+
+Tony
