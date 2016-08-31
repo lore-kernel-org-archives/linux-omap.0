@@ -1,80 +1,48 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH] ASoC: omap-mcbsp: Add PM QoS support for
- McBSP to prevent glitches
-Date: Wed, 31 Aug 2016 18:24:40 +0100
-Message-ID: <20160831172440.GA7866@sirena.org.uk>
-References: <20160829182746.53vrgbxadqodzzug@atomide.com>
- <201608300739.JrTVlIyd%fengguang.wu@intel.com>
- <20160830183834.6u73eb5ujgm5emlk@atomide.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: Re: [PATCH v3 0/8] drm/tilcdc: Address LCDC rev 2 color errata +
+ other fixes
+Date: Wed, 31 Aug 2016 21:48:24 +0300
+Message-ID: <c049825a-0802-0637-3b1e-5290032e6d10@ti.com>
+References: <cover.1472634657.git.jsarha@ti.com>
+ <20160831180418.rte4sf5s4llyuuvn@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5935005333530031835=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20160830183834.6u73eb5ujgm5emlk@atomide.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20160831180418.rte4sf5s4llyuuvn@atomide.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: Tony Lindgren <tony@atomide.com>
-Cc: alsa-devel@alsa-project.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, kbuild test robot <lkp@intel.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Liam Girdwood <lgirdwood@gmail.com>, Sebastian Reichel <sre@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, kbuild-all@01.org, Pavel Machel <pavel@ucw.cz>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org
+Cc: devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, tomi.valkeinen@ti.com, kbeldan@baylibre.com, laurent.pinchart@ideasonboard.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-
---===============5935005333530031835==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="FL5UXtIhxfXey3p5"
-Content-Disposition: inline
-
-
---FL5UXtIhxfXey3p5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Aug 30, 2016 at 11:38:35AM -0700, Tony Lindgren wrote:
-
-> Updated patch below, Mark let me know if you need an incremental
-> patch to fix the warning.
->=20
-> Regards,
->=20
-> Tony
->=20
-> 8< -----------------
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Mon, 29 Aug 2016 11:27:46 -0700
-> Subject: [PATCHv2] ASoC: omap-mcbsp: Add PM QoS support for McBSP to prev=
-ent
-
-Please send the patch normally rather than burying it in the middle of
-another e-mail :(
-
---FL5UXtIhxfXey3p5
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJXxxLXAAoJECTWi3JdVIfQEHwH/RcdnTEKuJq5g7V9GnElA2qr
-NvvogYrkpTBPHHvj4EKsua4jxbMFoQtCwcRBCxfAMGYiHYqMxH2tzbYm9gorWAxg
-h/qCRI5Rv7ZNifmPNzqcWGG++BaKhU5OtkOcPqjyF1XH5JJ1/ng/iOP3qmNKrRAW
-5IbtPtOokVYH24DQ82k6s86VGC6Fk6+kKtP+ehzts0g2gtlwNmUeLD0RO1yiQqyc
-JxG8fGIH+TAsBFRdSGVUbgdrNMKxMjDitNGCa3rdKiRKVgbCN6GXmUnabhJLpGcj
-yJtdO6BOSeacqzPyAPCEKj/w5JF7Lzy3da6PDu3kHPPb9tG/cEVi0sPNJSL/dWQ=
-=2xvS
------END PGP SIGNATURE-----
-
---FL5UXtIhxfXey3p5--
-
---===============5935005333530031835==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============5935005333530031835==--
+T24gMDgvMzEvMTYgMjE6MDQsIFRvbnkgTGluZGdyZW4gd3JvdGU6Cj4gKiBKeXJpIFNhcmhhIDxq
+c2FyaGFAdGkuY29tPiBbMTYwODMxIDA2OjE5XToKPj4gICBBUk06IGR0czogYW0zMzV4LWJvbmVi
+bGFjazogQWRkIGJsdWUtYW5kLXJlZC13aXJpbmcgLXByb3BlcnR5IHRvIExDREMKPj4gICAgIG5v
+ZGUKPj4gICBBUk06IGR0czogYW0zMzV4LWV2bTogQWRkIGJsdWUtYW5kLXJlZC13aXJpbmcgLXBy
+b3BlcnR5IHRvIGxjZGMgbm9kZQo+PiAgIEFSTTogZHRzOiBhbTMzNXgtZXZtc2s6IFdoaXRlc3Bh
+Y2UgY2xlYW51cCBvZiBsY2RjIHJlbGF0ZWQgbm9kZXMKPj4gICBBUk06IGR0czogYW0zMzV4LWV2
+bXNrOiBBZGQgYmx1ZS1hbmQtcmVkLXdpcmluZyAtcHJvcGVydHkgdG8gbGNkYyBub2RlCj4gCj4g
+SWYgc29tZSBvZiB0aGVzZSBkdHMgY2hhbmdlcyBhcmUgT0sgZm9yIG1lIHRvIGFwcGx5IHNlcGFy
+YXRlbHkgYWxyZWFkeSwKPiBwbGVhc2UgbGV0IG1lIGtub3cuCj4gCj4gT3RoZXJ3aXNlIEknbGwg
+dGFnIHRoaXMgdGhyZWFkIGFzIHJlYWQgYW5kIGFzc3VtZSB5b3UnbGwgc2VuZCB0aGUgZHRzCj4g
+Y2hhbmdlcyBzZXBhcmF0ZWx5IHdoZW4gcmVhZHkgOikKPiAKCkFjY29yZGluZyB0byBteSBwbGFu
+IHRoZSBkcm0gc2lkZSBjaGFuZ2VzIHNob3VsZCBnbyBpbnRvIDQuOS4KClRoZSBjb21taXQgbWVz
+c2FnZXMgYW5kIHRoZSBjb21tZW50cyBtYXkgbG9vayBjb25mdXNpbmcgd2l0aG91dCB0aGUKaW1w
+bGVtZW50YXRpb24sIGJ1dCBvdGhlcndpc2UgdGhlcmUgc2hvdWxkIGJlIG5vIGhhcm0gaW4gYXBw
+bHlpbmcgdGhlc2UKYWxyZWFkeS4gVGhlIG5ldyBwcm9wZXJ0aWVzIGluIGR0cyBzaW1wbHkgd29u
+dCBoYXZlIGFueSBlZmZlY3QuIE9uIHRoZQpvdGhlciBoYW5kLCBub3QgaGF2aW5nIHRoZSBkdHMg
+Y2hhbmdlcyB3b24ndCBoYXZlIGFueSBkcmFtYXRpYyBlZmZlY3QKZWl0aGVyLiBUaGUgc3VwcG9y
+dGVkIGNvbG91ciBmb3JtYXRzIHdpbGwganVzdCByZW1haW4gaW4gdGhlIHNhbWUKaW5jb3JyZWN0
+IHN0YXRlIGFzIHRoZXkgaGF2ZSBhbHdheXMgYmVlbiB1bnRpbCB0aGUgZHRzIGNoYW5nZXMgYXJl
+CnRoZXJlLiBTbyB3aGF0IGV2ZXIgaXMgbW9yZSBjb252ZW5pZW50IGZvciB5b3UuCgpUaGFua3Ms
+Ckp5cmkKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJp
+LWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBz
+Oi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
