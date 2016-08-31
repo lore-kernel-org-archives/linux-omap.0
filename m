@@ -1,75 +1,47 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [GIT PULL] Immutable branch between MFD, GPIO and Regulator due
- for the v4.9 merge window
-Date: Wed, 31 Aug 2016 16:21:09 +0100
-Message-ID: <20160831152109.GQ9415@dell>
-References: <1472633892-8261-1-git-send-email-j-keerthy@ti.com>
- <20160831122435.GD9415@dell>
- <8e1378ce-b757-39f9-7c36-707f2d9db21e@ti.com>
+From: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 2/2] dmaengine: cppi41: Add basic PM runtime support
+Date: Wed, 31 Aug 2016 21:25:07 +0530
+Message-ID: <20160831155507.GY9355@localhost>
+References: <20160819225940.12653-1-tony@atomide.com>
+ <20160819225940.12653-3-tony@atomide.com>
+ <20160831045241.GU9355@localhost>
+ <20160831143055.p3naiumias4ptuvm@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <8e1378ce-b757-39f9-7c36-707f2d9db21e@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Keerthy <a0393675@ti.com>
-Cc: Keerthy <j-keerthy@ti.com>, broonie@kernel.org, linus.walleij@linaro.org, linux-omap@vger.kernel.org, robh+dt@kernel.org, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20160831143055.p3naiumias4ptuvm-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 31 Aug 2016, Keerthy wrote:
-
-> On Wednesday 31 August 2016 05:54 PM, Lee Jones wrote:
-> > Enjoy!
+On Wed, Aug 31, 2016 at 07:30:55AM -0700, Tony Lindgren wrote:
+> * Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> [160830 21:45]:
+> > On Fri, Aug 19, 2016 at 03:59:40PM -0700, Tony Lindgren wrote:
+> > > Let's keep the device enabled between cppi41_dma_issue_pending()
+> > > and dmaengine_desc_get_callback_invoke() and rely on the PM runtime
+> > > autoidle timeout elsewhere.
+> > > 
+> > > As the PM runtime is for whole device, not for each channel,
+> > > we need to queue pending transfers if the device is PM runtime
+> > > suspended. Then we start the pending transfers in PM runtime
+> > > resume.
+> > 
+> > This fails to apply for me :(
+> > 
+> > Can you please rebase and resend this one.
 > 
-> Thanks! Just curious to know where to pull the below patch from:
+> OK sorry about that, that was against Linux next. The conflict
+> is with c->txd.callback and dmaengine_desc_get_callback_invoke.
 > 
-> https://patchwork.kernel.org/patch/9266665/
-> 
-> I checked in couple of other branches in your tree could not find the above
-> patch.
+> Below is a version against your cppi branch.
 
-The name has changed.  Pull my MFD branch and look for:
-
-  ea7f225 Documentation: mfd: Add DT bindings for the LP873X
-
-> > The following changes since commit 694d0d0bb2030d2e36df73e2d23d5770511dbc8d:
-> > 
-> >   Linux 4.8-rc2 (2016-08-14 19:11:36 -0700)
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd.git ib-mfd-gpio-regulator-v4.9
-> > 
-> > for you to fetch changes up to f618ed218dc01207882a8f02b1310c7daaf5156a:
-> > 
-> >   regulator: lp873x: Change the MFD config option as per latest naming (2016-08-31 13:20:44 +0100)
-> > 
-> > ----------------------------------------------------------------
-> > Immutable branch between MFD, GPIO and Regulator due for the v4.9 merge window
-> > 
-> > ----------------------------------------------------------------
-> > Keerthy (3):
-> >       mfd: lp873x: Add lp873x PMIC support
-> >       gpio: lp873x: Add support for General Purpose Outputs
-> >       regulator: lp873x: Change the MFD config option as per latest naming
-> > 
-> >  drivers/gpio/Kconfig       |  10 ++
-> >  drivers/gpio/Makefile      |   1 +
-> >  drivers/gpio/gpio-lp873x.c | 193 ++++++++++++++++++++++++++++++++
-> >  drivers/mfd/Kconfig        |  14 +++
-> >  drivers/mfd/Makefile       |   2 +
-> >  drivers/mfd/lp873x.c       |  99 +++++++++++++++++
-> >  drivers/regulator/Kconfig  |   2 +-
-> >  include/linux/mfd/lp873x.h | 269 +++++++++++++++++++++++++++++++++++++++++++++
-> >  8 files changed, 589 insertions(+), 1 deletion(-)
-> >  create mode 100644 drivers/gpio/gpio-lp873x.c
-> >  create mode 100644 drivers/mfd/lp873x.c
-> >  create mode 100644 include/linux/mfd/lp873x.h
-> > 
+Thanks, applied now
 
 -- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+~Vinod
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
