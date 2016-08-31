@@ -1,69 +1,60 @@
-From: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
-Subject: Re: [GIT PULL] Immutable branch between MFD, GPIO and Regulator due
- for the v4.9 merge window
-Date: Wed, 31 Aug 2016 18:20:32 +0530
-Message-ID: <8e1378ce-b757-39f9-7c36-707f2d9db21e@ti.com>
-References: <1472633892-8261-1-git-send-email-j-keerthy@ti.com>
- <20160831122435.GD9415@dell>
+From: Enric Balletbo Serra <eballetbo@gmail.com>
+Subject: Re: [PATCH 01/23] ARM: am335x: Add missing memory node in sl50 board
+Date: Wed, 31 Aug 2016 15:09:17 +0200
+Message-ID: <CAFqH_51F-1n3mp8_Ags4LSCR5DX10vDVEvLCXpnWvHY=Mi0cTA@mail.gmail.com>
+References: <1472639737-17586-1-git-send-email-javier@osg.samsung.com> <1472639737-17586-2-git-send-email-javier@osg.samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160831122435.GD9415@dell>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Cc: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1472639737-17586-2-git-send-email-javier@osg.samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Enric Balletbo i Serra <enric.balletbo@collabora.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 31 August 2016 05:54 PM, Lee Jones wrote:
-> Enjoy!
+2016-08-31 12:35 GMT+02:00 Javier Martinez Canillas <javier@osg.samsung.com>:
+> The skeleton.dtsi file was removed in ARM64 for different reasons as
+> explained in commit ("3ebee5a2e141 arm64: dts: kill skeleton.dtsi").
+>
+> These also applies to ARM and it will also allow to get rid of the
+> following DTC warnings in the future:
+>
+> "Node /memory has a reg or ranges property, but no unit name"
+>
+> But the sl50 board doesn't have a, so removing the  skeleton.dtsi
+> inclusion from am33xx.dtsi will cause a change in the compiled DTB.
+>
+> The board has 512 MiB of RAM and its starting address is 0x80000000,
+> so add a proper memory device node in the DTS.
+>
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>
+> ---
+>
+>  arch/arm/boot/dts/am335x-sl50.dts | 5 +++++
+>  1 file changed, 5 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/am335x-sl50.dts b/arch/arm/boot/dts/am335x-sl50.dts
+> index f802adb23ff9..e3be7a6bf8f1 100644
+> --- a/arch/arm/boot/dts/am335x-sl50.dts
+> +++ b/arch/arm/boot/dts/am335x-sl50.dts
+> @@ -19,6 +19,11 @@
+>                 };
+>         };
+>
+> +       memory {
+> +               device_type = "memory";
+> +               reg = <0x80000000 0x20000000>; /* 512 MB */
+> +       };
+> +
+>         chosen {
+>                 stdout-path = &uart0;
+>         };
+> --
+> 2.7.4
+>
 
-Thanks! Just curious to know where to pull the below patch from:
+Acked-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
 
-https://patchwork.kernel.org/patch/9266665/
-
-I checked in couple of other branches in your tree could not find the 
-above patch.
-
-Regards,
-Keerthy
-
->
-> The following changes since commit 694d0d0bb2030d2e36df73e2d23d5770511dbc8d:
->
->   Linux 4.8-rc2 (2016-08-14 19:11:36 -0700)
->
-> are available in the git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd.git ib-mfd-gpio-regulator-v4.9
->
-> for you to fetch changes up to f618ed218dc01207882a8f02b1310c7daaf5156a:
->
->   regulator: lp873x: Change the MFD config option as per latest naming (2016-08-31 13:20:44 +0100)
->
-> ----------------------------------------------------------------
-> Immutable branch between MFD, GPIO and Regulator due for the v4.9 merge window
->
-> ----------------------------------------------------------------
-> Keerthy (3):
->       mfd: lp873x: Add lp873x PMIC support
->       gpio: lp873x: Add support for General Purpose Outputs
->       regulator: lp873x: Change the MFD config option as per latest naming
->
->  drivers/gpio/Kconfig       |  10 ++
->  drivers/gpio/Makefile      |   1 +
->  drivers/gpio/gpio-lp873x.c | 193 ++++++++++++++++++++++++++++++++
->  drivers/mfd/Kconfig        |  14 +++
->  drivers/mfd/Makefile       |   2 +
->  drivers/mfd/lp873x.c       |  99 +++++++++++++++++
->  drivers/regulator/Kconfig  |   2 +-
->  include/linux/mfd/lp873x.h | 269 +++++++++++++++++++++++++++++++++++++++++++++
->  8 files changed, 589 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/gpio/gpio-lp873x.c
->  create mode 100644 drivers/mfd/lp873x.c
->  create mode 100644 include/linux/mfd/lp873x.h
->
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+ Enric
