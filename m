@@ -1,44 +1,73 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH 2/2] ARM: dts: dra7: cpsw: fix clocks tree
-Date: Wed, 31 Aug 2016 14:08:54 +0530
-Message-ID: <94120809-8e43-36f2-152a-e82fadfa1095@ti.com>
-References: <20160830145801.10364-1-grygorii.strashko@ti.com>
- <20160830145801.10364-2-grygorii.strashko@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v9 0/3] mfd: lp873x: Add lp873x PMIC support
+Date: Wed, 31 Aug 2016 14:28:09 +0530
+Message-ID: <1472633892-8261-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160830145801.10364-2-grygorii.strashko@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: lee.jones@linaro.org
+Cc: j-keerthy@ti.com, broonie@kernel.org, linus.walleij@linaro.org, linux-omap@vger.kernel.org, robh+dt@kernel.org, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 30 August 2016 08:28 PM, Grygorii Strashko wrote:
-> Current clocks tree definition for CPSW/CPTS doesn't
-> correspond TRM for dra7/am57 SoCs.
-> 
-> CPTS: has to be sourced from gmac_rft_clk_mux clock
-> CPSW: DPLL_GMAC -> CLKOUT_M2 -> GMAC_250M_CLK -> 1/2 ->
->       -> GMAC_MAIN_CLK (125 MHZ)
-> 
-> Hence, correct clock tree for GMAC_MAIN_CLK and use proper
-> clock for CPTS. This also require updating of CPTS clock
-> multiplier.
-> 
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Cc: Mugunthan V N <mugunthanvnm@ti.com>
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+The LP873X chip is a power management IC for Portable Navigation Systems
+    and Tablet Computing devices. It contains the following components:
 
-Reviewed-by: Mugunthan V N <mugunthanvnm@ti.com>
+     - Regulators.
+     - Configurable General Purpose Output Signals(GPO).
 
-Regards
-Mugunthan V N
+PMIC interacts with the main processor through i2c. PMIC has
+couple of LDOs(Linear Regulators), couple of BUCKs (Step-Down DC-DC
+Converter Cores) and GPOs(General Purpose Output Signals).
+
+The regulator patch is already queued:
+http://marc.info/?l=linux-kernel&m=146298767110771&w=2
+
+DT patch also queued.
+
+Hence posting the remaining patches of the series with
+the comments fixed on mfd driver.
+
+Changes in v9:
+
+Fixed comments on spacing, indentation and '\n' adding in the mfd
+driver patch.
+ 
+Changes in v8:
+
+Defined Macros for hardcoded bit definitions in gpio driver.
+Added Mark's ack for the regulator config change patch.
+
+Chages in v7:
+
+Reverted the dependency on http://www.gossamer-threads.com/lists/linux/kernel/2457552.
+
+Changes in v6:
+
+Series depends on: http://www.gossamer-threads.com/lists/linux/kernel/2457552
+probe_new used.
+
+Chnages in v4:
+
+Added GPO driver support.
+
+Keerthy (3):
+  mfd: lp873x: Add lp873x PMIC support
+  gpio: lp873x: Add support for General Purpose Outputs
+  regulator: lp873x: Change the MFD config option as per latest naming
+
+ drivers/gpio/Kconfig       |  10 ++
+ drivers/gpio/Makefile      |   1 +
+ drivers/gpio/gpio-lp873x.c | 193 ++++++++++++++++++++++++++++++++
+ drivers/mfd/Kconfig        |  14 +++
+ drivers/mfd/Makefile       |   2 +
+ drivers/mfd/lp873x.c       |  99 +++++++++++++++++
+ drivers/regulator/Kconfig  |   2 +-
+ include/linux/mfd/lp873x.h | 269 +++++++++++++++++++++++++++++++++++++++++++++
+ 8 files changed, 589 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/gpio/gpio-lp873x.c
+ create mode 100644 drivers/mfd/lp873x.c
+ create mode 100644 include/linux/mfd/lp873x.h
+
+-- 
+1.9.1
