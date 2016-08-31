@@ -1,67 +1,40 @@
-From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v4 4/5] mfd: tps65217: Add power button as subdevice
-Date: Wed, 31 Aug 2016 14:34:56 +0200
-Message-ID: <20160831123455.4v4ymcyoik4fv33m@earth>
-References: <20160620105056.25843-1-m.niestroj@grinn-global.com>
- <20160620105056.25843-5-m.niestroj@grinn-global.com>
- <c849849f-ba1d-3263-9941-b346ef9eef59@grinn-global.com>
- <20160830090329.GD1661@dell>
- <9fafa9b0-cc45-6fe9-ddb9-5c933064261c@grinn-global.com>
- <20160830095034.GI1661@dell>
- <fe1fd5ea-5fce-61d0-d607-e4d527b51d4c@grinn-global.com>
- <20160831111724.GH27357@dell>
- <a1752816-3cee-adb9-79e2-bafce286a5c3@grinn-global.com>
+From: Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
+Subject: Re: [PATCH v2 0/3] drm/i2c: tda998x ASoC hdmi-codec support +
+ BeagleBoneBlack audio support
+Date: Wed, 31 Aug 2016 13:41:14 +0100
+Message-ID: <20160831124113.GZ5783@n2100.arm.linux.org.uk>
+References: <cover.1470754071.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="lzkaxmhmyo2ogx5e"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <a1752816-3cee-adb9-79e2-bafce286a5c3-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
+In-Reply-To: <cover.1470754071.git.jsarha-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Dmitry Eremin-Solenikov <dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+To: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On Tue, Aug 09, 2016 at 10:00:03PM +0300, Jyri Sarha wrote:
+> Changes since first version [1] of this series:
+> - "drm/i2c: tda998x: Improve tda998x_configure_audio() audio related pdata"
+>   - Change audio in tda998x pdata to audio_params to match the naming in
+>     private data struct
+>   - Skip IEC958_AES2 byte when writing status bytes to registers 
+>   - Turn AFMT-macros to enum
+>   - include linux/hdmi.h in drm/i2c/tda998x.h
+> - "drm/i2c: tda998x: Register ASoC hdmi-codec and add audio DT binding"
+>   - Fix macronaming naming in dt-bindings/display/tda998x.h
+>   - Turn AFMT-macros to enum
+>   - Add locking to protect access to audio registers from ASoC thread
+> - "dts/am335x-boneblack: SQUASH"
+>   - Use corrected macros from dt-bindings/display/tda998x.h
 
---lzkaxmhmyo2ogx5e
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thanks, series queued.
 
-Hi,
-
-On Wed, Aug 31, 2016 at 01:18:31PM +0200, Marcin Niestroj wrote:
-> > You should rebase the set and drop any patches which have already been
-> > applied.
->=20
-> So include or drop patch 3?
-
-Drop it and leave a note in the changelog.
-
--- Sebastian
-
---lzkaxmhmyo2ogx5e
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJXxs7tAAoJENju1/PIO/qam2AQAJb7rdLNgPxZ96VKMvIWP1vx
-LTBmeaJ80vAJ483CWsY5yP5vF54csFf7+yqpKtoJqqM7kbT/kqot7flNHdyQRfXq
-VBu69d99SksW8SnyL8wT+JCIZ3oNHarNTpTVQ+GUm2X2ADY29ZQ55cK18ptJA447
-HdFiKv1fiGnw0FqHfKQ0lwNmFKPgxlNlCz+l+NEfmYRQ0ukqvfKGxcCqAGGyBEiS
-n9A65KeSGNqy7vIa6CTKcchxYIeA9w5CCe86UR0sllkxctO2APy2w3Lom49sL+81
-EftCAKijpZFDayHFxISIv+eQX1geVp4hbWjSonMysJUhP7yN0g6dUE3cjlVwVz2g
-71aVnDj802FNBOfwjDkakC3WnRiZTfnNXyandJW/qCE0LRvHCx99nVlgSE90Kcdk
-iqmVLIwlb0lZEDMuR4+l5pgC2t1MAGvUJnSjCegxUm7Ti41wHCV3jcvHg/7jpdyt
-ZryQNRrBhar95Qd1R50S+WHyguGzotmiKDpeCQ5PZ/EoBcyNj39DNpsAM1m5b9H4
-y0MfipKAPLm5KPtH5nYMQ4DiirC9zCrHCQ1vw59mGES36FzkcDvXRKuiXPXuvtqN
-lW6yyS8rmxuvuGi9gNOa/ED20AaIwcBSihfkXUEQNEm0GUwwoXe6WgElHSo6ZYDF
-NxssE+pmV8LGn0MP5mYT
-=3Uar
------END PGP SIGNATURE-----
-
---lzkaxmhmyo2ogx5e--
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
