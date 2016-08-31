@@ -1,37 +1,118 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v9 3/3] regulator: lp873x: Change the MFD config option as per latest naming
-Date: Wed, 31 Aug 2016 14:28:12 +0530
-Message-ID: <1472633892-8261-4-git-send-email-j-keerthy@ti.com>
-References: <1472633892-8261-1-git-send-email-j-keerthy@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH 00/23] ARM: dts: omap: Remove skeleton.dtsi usage and fix memory node DTC warning"
+Date: Wed, 31 Aug 2016 12:35:14 +0200
+Message-ID: <1472639737-17586-1-git-send-email-javier@osg.samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1472633892-8261-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: lee.jones@linaro.org
-Cc: j-keerthy@ti.com, broonie@kernel.org, linus.walleij@linaro.org, linux-omap@vger.kernel.org, robh+dt@kernel.org, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier@osg.samsung.com>, Enric Balletbo i Serra <enric.balletbo@collabora.com>
 List-Id: linux-omap@vger.kernel.org
 
-Change the MFD config option as per latest naming
+Hello Tony,
 
-Acked-by: Mark Brown <broonie@kernel.org>
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- drivers/regulator/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+This series removes the usage of the skeleton.dtsi in all the OMAP dts,
+which allows to get rid of the DTC warnings about a mismatch between the
+memory nodes unit names and reg properties.
 
-diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
-index 4c2631a..06c7518 100644
---- a/drivers/regulator/Kconfig
-+++ b/drivers/regulator/Kconfig
-@@ -323,7 +323,7 @@ config REGULATOR_LP872X
- 
- config REGULATOR_LP873X
- 	tristate "TI LP873X Power regulators"
--	depends on MFD_LP873X && OF
-+	depends on MFD_TI_LP873X && OF
- 	help
- 	  This driver supports LP873X voltage regulator chips. LP873X
- 	  provides two step-down converters and two general-purpose LDO
+Patches are pretty trivial and shouldn't cause functional changes AFAIK,
+but have been only built tested.
+
+Best regards,
+Javier
+
+
+Javier Martinez Canillas (23):
+  ARM: am335x: Add missing memory node in sl50 board
+  ARM: omap3: Add missing memory node in overo and torpedo boards
+  ARM: dts: omap2: Remove skeleton.dtsi usage
+  ARM: dts: omap3: Remove skeleton.dtsi usage
+  ARM: dts: omap4: Remove skeleton.dtsi usage
+  ARM: dts: omap5: Remove skeleton.dtsi usage
+  ARM: dts: am33xx: Remove skeleton.dtsi usage
+  ARM: dts: dm814x: Remove skeleton.dtsi usage
+  ARM: dts: dm816x: Remove skeleton.dtsi usage
+  ARM: dts: dra7: Remove skeleton.dtsi usage
+  ARM: dts: am4372: Remove skeleton.dtsi usage
+  ARM: dts: omap2: Add missing unit name to memory nodes
+  ARM: dts: omap3: Add missing unit name to memory nodes
+  ARM: dts: omap4: Add missing unit name to memory nodes
+  ARM: dts: omap5: Add missing unit name to memory nodes
+  ARM: dts: am335x: Add missing unit name to memory nodes
+  ARM: dts: am3517: Add missing unit name to memory nodes
+  ARM: dts: am4372: Add missing unit name to memory nodes
+  ARM: dts: am572x: Add missing unit name to memory nodes
+  ARM: dts: dm8148: Add missing unit name to memory nodes
+  ARM: dts: dm8168: Add missing unit name to memory nodes
+  ARM: dts: dra62x: Add missing unit name to memory nodes
+  ARM: dts: dra7: Add missing unit name to memory nodes
+
+ arch/arm/boot/dts/am335x-baltos.dtsi           | 2 +-
+ arch/arm/boot/dts/am335x-bone-common.dtsi      | 2 +-
+ arch/arm/boot/dts/am335x-chilisom.dtsi         | 2 +-
+ arch/arm/boot/dts/am335x-cm-t335.dts           | 2 +-
+ arch/arm/boot/dts/am335x-evm.dts               | 2 +-
+ arch/arm/boot/dts/am335x-evmsk.dts             | 2 +-
+ arch/arm/boot/dts/am335x-icev2.dts             | 2 +-
+ arch/arm/boot/dts/am335x-igep0033.dtsi         | 2 +-
+ arch/arm/boot/dts/am335x-lxm.dts               | 2 +-
+ arch/arm/boot/dts/am335x-nano.dts              | 2 +-
+ arch/arm/boot/dts/am335x-pepper.dts            | 2 +-
+ arch/arm/boot/dts/am335x-phycore-som.dtsi      | 2 +-
+ arch/arm/boot/dts/am335x-shc.dts               | 2 +-
+ arch/arm/boot/dts/am335x-sl50.dts              | 5 +++++
+ arch/arm/boot/dts/am33xx.dtsi                  | 4 ++--
+ arch/arm/boot/dts/am3517-craneboard.dts        | 2 +-
+ arch/arm/boot/dts/am3517-evm.dts               | 2 +-
+ arch/arm/boot/dts/am3517_mt_ventoux.dts        | 2 +-
+ arch/arm/boot/dts/am4372.dtsi                  | 8 ++++++--
+ arch/arm/boot/dts/am572x-idk.dts               | 2 +-
+ arch/arm/boot/dts/am57xx-beagle-x15.dts        | 2 +-
+ arch/arm/boot/dts/am57xx-cl-som-am57x.dts      | 2 +-
+ arch/arm/boot/dts/dm8148-evm.dts               | 2 +-
+ arch/arm/boot/dts/dm8148-t410.dts              | 2 +-
+ arch/arm/boot/dts/dm814x.dtsi                  | 4 ++--
+ arch/arm/boot/dts/dm8168-evm.dts               | 2 +-
+ arch/arm/boot/dts/dm816x.dtsi                  | 4 ++--
+ arch/arm/boot/dts/dra62x-j5eco-evm.dts         | 2 +-
+ arch/arm/boot/dts/dra7-evm.dts                 | 2 +-
+ arch/arm/boot/dts/dra7.dtsi                    | 2 --
+ arch/arm/boot/dts/dra72-evm-revc.dts           | 2 +-
+ arch/arm/boot/dts/dra72-evm.dts                | 2 +-
+ arch/arm/boot/dts/logicpd-torpedo-som.dtsi     | 5 +++++
+ arch/arm/boot/dts/omap2.dtsi                   | 4 ++--
+ arch/arm/boot/dts/omap2420-h4.dts              | 2 +-
+ arch/arm/boot/dts/omap2420-n8x0-common.dtsi    | 2 +-
+ arch/arm/boot/dts/omap2430-sdp.dts             | 2 +-
+ arch/arm/boot/dts/omap3-beagle-xm.dts          | 2 +-
+ arch/arm/boot/dts/omap3-beagle.dts             | 2 +-
+ arch/arm/boot/dts/omap3-cm-t3x.dtsi            | 2 +-
+ arch/arm/boot/dts/omap3-devkit8000-common.dtsi | 2 +-
+ arch/arm/boot/dts/omap3-evm-37xx.dts           | 2 +-
+ arch/arm/boot/dts/omap3-evm.dts                | 2 +-
+ arch/arm/boot/dts/omap3-gta04.dtsi             | 2 +-
+ arch/arm/boot/dts/omap3-igep.dtsi              | 2 +-
+ arch/arm/boot/dts/omap3-ldp.dts                | 2 +-
+ arch/arm/boot/dts/omap3-lilly-a83x.dtsi        | 2 +-
+ arch/arm/boot/dts/omap3-n900.dts               | 2 +-
+ arch/arm/boot/dts/omap3-n950-n9.dtsi           | 2 +-
+ arch/arm/boot/dts/omap3-overo-base.dtsi        | 6 ++++++
+ arch/arm/boot/dts/omap3-pandora-common.dtsi    | 2 +-
+ arch/arm/boot/dts/omap3-sniper.dts             | 2 +-
+ arch/arm/boot/dts/omap3-tao3530.dtsi           | 2 +-
+ arch/arm/boot/dts/omap3-zoom3.dts              | 2 +-
+ arch/arm/boot/dts/omap3.dtsi                   | 4 ++--
+ arch/arm/boot/dts/omap3430-sdp.dts             | 2 +-
+ arch/arm/boot/dts/omap4-duovero.dtsi           | 2 +-
+ arch/arm/boot/dts/omap4-kc1.dts                | 2 +-
+ arch/arm/boot/dts/omap4-panda-common.dtsi      | 2 +-
+ arch/arm/boot/dts/omap4-sdp.dts                | 2 +-
+ arch/arm/boot/dts/omap4-var-som-om44.dtsi      | 2 +-
+ arch/arm/boot/dts/omap4.dtsi                   | 4 ++--
+ arch/arm/boot/dts/omap5-cm-t54.dts             | 2 +-
+ arch/arm/boot/dts/omap5-igep0050.dts           | 2 +-
+ arch/arm/boot/dts/omap5-uevm.dts               | 2 +-
+ arch/arm/boot/dts/omap5.dtsi                   | 2 --
+ 66 files changed, 88 insertions(+), 72 deletions(-)
+
 -- 
-1.9.1
+2.7.4
