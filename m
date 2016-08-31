@@ -1,34 +1,135 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/23] ARM: dts: omap: Remove skeleton.dtsi usage and fix
- memory node DTC warning"
-Date: Wed, 31 Aug 2016 07:24:44 -0700
-Message-ID: <20160831142443.yevd4c6wldrprxrl@atomide.com>
-References: <1472639737-17586-1-git-send-email-javier@osg.samsung.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v4 4/5] mfd: tps65217: Add power button as subdevice
+Date: Wed, 31 Aug 2016 15:31:10 +0100
+Message-ID: <20160831143110.GK9415@dell>
+References: <20160620105056.25843-1-m.niestroj@grinn-global.com>
+ <20160620105056.25843-5-m.niestroj@grinn-global.com>
+ <c849849f-ba1d-3263-9941-b346ef9eef59@grinn-global.com>
+ <20160830090329.GD1661@dell>
+ <9fafa9b0-cc45-6fe9-ddb9-5c933064261c@grinn-global.com>
+ <20160830095034.GI1661@dell>
+ <fe1fd5ea-5fce-61d0-d607-e4d527b51d4c@grinn-global.com>
+ <20160831111724.GH27357@dell>
+ <a1752816-3cee-adb9-79e2-bafce286a5c3@grinn-global.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1472639737-17586-1-git-send-email-javier@osg.samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, Enric Balletbo i Serra <enric.balletbo@collabora.com>
+In-Reply-To: <a1752816-3cee-adb9-79e2-bafce286a5c3@grinn-global.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Marcin Niestroj <m.niestroj@grinn-global.com>
+Cc: Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-input@vger.kernel.org, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Javier Martinez Canillas <javier@osg.samsung.com> [160831 03:36]:
-> Hello Tony,
+On Wed, 31 Aug 2016, Marcin Niestroj wrote:
+
+> On 31.08.2016 13:17, Lee Jones wrote:
+> > On Wed, 31 Aug 2016, Marcin Niestroj wrote:
+> > 
+> > > On 30.08.2016 11:50, Lee Jones wrote:
+> > > > On Tue, 30 Aug 2016, Marcin Niestroj wrote:
+> > > > 
+> > > > > On 30.08.2016 11:03, Lee Jones wrote:
+> > > > > > On Mon, 29 Aug 2016, Marcin Niestroj wrote:
+> > > > > > 
+> > > > > > > ping
+> > > > > > 
+> > > > > > Don't do that!
+> > > > > > 
+> > > > > > If you think the patch hasn't attracted attention in >2 weeks, then
+> > > > > > it's probably slipped through the gaps and you need to send a
+> > > > > > [RESEND].
+> > > > > 
+> > > > > Clear.
+> > > > > 
+> > > > > > 
+> > > > > > However ...
+> > > > > > 
+> > > > > > > On 20.06.2016 12:50, Marcin Niestroj wrote:
+> > > > > > > > Add tps65217 power buttor subdevice with assigned IRQ resources.
+> > > > > > > > 
+> > > > > > > > Signed-off-by: Marcin Niestroj <m.niestroj@grinn-global.com>
+> > > > > > > > Acked-by: Lee Jones <lee.jones@linaro.org>
+> > > > > > 
+> > > > > > This patch has a maintainer Ack, so why are you pinging?
+> > > > > 
+> > > > > Because I didn't see it applied anywhere and there were no new
+> > > > > comments, so I thought it slipped somewhere.
+> > > > > 
+> > > > > So my question is: what happens with the patch after maintainer Ack?
+> > > > > Are we still waiting for some comments from the community? Do I still
+> > > > > need to worry, that the patch might slipped? What is author's role now?
+> > > > 
+> > > > Since you sent the patches as a set, it is assumed there are some
+> > > > dependencies between them, or they are at least in some way related.
+> > > > To that end, it is normal for Maintainers (especially for me as the
+> > > > MFD Maintainer, since there often some complex ties into the leaf
+> > > > driver's changes) to wait until *all* of the patches have either been
+> > > > accepted or have acquired an Ack of their own to proceed.
+> > > > 
+> > > > I believe we are still waiting on other patches to be reviewed, no?
+> > > 
+> > > I've just noticed, that patch 5 was only partially Acked.
+> > > 
+> > > I will send a RESEND. However patch 2 is already in mainline. Should I
+> > > contain this patch or remove it from the patch set? Additionally
+> > > patch 3 has been queued into power-supply's -next branch.
+> > 
+> > You should rebase the set and drop any patches which have already been
+> > applied.
 > 
-> This series removes the usage of the skeleton.dtsi in all the OMAP dts,
-> which allows to get rid of the DTC warnings about a mismatch between the
-> memory nodes unit names and reg properties.
+> So include or drop patch 3?
+
+You said it's been applied, so drop it.
+
+> > > > > > > > ---
+> > > > > > > > Depends on patch 1 in series
+> > > > > > > > 
+> > > > > > > > Changes v1 -> v4: none
+> > > > > > > > 
+> > > > > > > >  drivers/mfd/tps65217.c | 10 ++++++++++
+> > > > > > > >  1 file changed, 10 insertions(+)
+> > > > > > > > 
+> > > > > > > > diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
+> > > > > > > > index 41b5d59..57c8741 100644
+> > > > > > > > --- a/drivers/mfd/tps65217.c
+> > > > > > > > +++ b/drivers/mfd/tps65217.c
+> > > > > > > > @@ -38,6 +38,10 @@ static struct resource charger_resources[] = {
+> > > > > > > >  	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_USB, "USB"),
+> > > > > > > >  };
+> > > > > > > > 
+> > > > > > > > +static struct resource pb_resources[] = {
+> > > > > > > > +	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_PB, "PB"),
+> > > > > > > > +};
+> > > > > > > > +
+> > > > > > > >  struct tps65217_irq {
+> > > > > > > >  	int mask;
+> > > > > > > >  	int interrupt;
+> > > > > > > > @@ -122,6 +126,12 @@ static struct mfd_cell tps65217s[] = {
+> > > > > > > >  		.resources = charger_resources,
+> > > > > > > >  		.of_compatible = "ti,tps65217-charger",
+> > > > > > > >  	},
+> > > > > > > > +	{
+> > > > > > > > +		.name = "tps65217-pwrbutton",
+> > > > > > > > +		.num_resources = ARRAY_SIZE(pb_resources),
+> > > > > > > > +		.resources = pb_resources,
+> > > > > > > > +		.of_compatible = "ti,tps65217-pwrbutton",
+> > > > > > > > +	},
+> > > > > > > >  };
+> > > > > > > > 
+> > > > > > > >  static irqreturn_t tps65217_irq_thread(int irq, void *data)
+> > > > > > > > 
+> > > > > > > 
+> > > > > > 
+> > > > > 
+> > > > 
+> > > 
+> > 
 > 
-> Patches are pretty trivial and shouldn't cause functional changes AFAIK,
-> but have been only built tested.
 
-OK will take a look today and make sure things stay working.
-
-Good to hear the solution is to remove the include of skeleton.dtsi,
-I was wondering what we're going to do about those warnings.
-
-Regards,
-
-Tony
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
