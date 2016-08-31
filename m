@@ -1,81 +1,48 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH RESEND 2/2] mfd: twl6040: Register child device for
- twl6040-pdmclk
-Date: Wed, 31 Aug 2016 15:39:43 +0100
-Message-ID: <20160831143943.GN9415@dell>
-References: <20160831114621.6301-1-peter.ujfalusi@ti.com>
- <20160831114621.6301-3-peter.ujfalusi@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [RESEND PATCH 1/2] ARM: dts: dra7: Fix clock data for
+ gmac_gmii_ref_clk_div
+Date: Wed, 31 Aug 2016 07:39:29 -0700
+Message-ID: <20160831143928.vxuaznyws2pipohu@atomide.com>
+References: <20160830145801.10364-1-grygorii.strashko@ti.com>
+ <20160830184158.xydy3ixy7c5b73le@atomide.com>
+ <fd7850dd-b7a2-e6ef-508f-8406c3f2cea9@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160831114621.6301-3-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <fd7850dd-b7a2-e6ef-508f-8406c3f2cea9-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Cc: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "J.D. Schroeder" <jay.schroeder-UF6BFNFdnjXQT0dZR+AlfA@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 31 Aug 2016, Peter Ujfalusi wrote:
-
-> The McPDM in OMAP4/5 is using the pdmclk from twl6040 as functional clock.
-> The twl6040-pdmclk driver provides a clock which can be used to make sure
-> that the pdmclk is active when the McPDM is in use.
+* Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org> [160830 23:09]:
+> On 30/08/16 21:41, Tony Lindgren wrote:
+> > * Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [160830 07:58]:
+> > > 
+> > > Originally this patch was posted (and acked) here
+> > > https://lkml.org/lkml/2016/4/27/272,
+> > > but it, unfortunatelly, has never been merged.
+> > > So re-send + minor subj change.
+> > 
+> > OK yeah sorry about that. And thanks for the resend. If some patches
+> > have pending discussion as I tend to tag threads that have pending
+> > discussion as read and then forget them. And I miss patches in other
+> > ways too..
+> > 
+> > Tero, care to take a look and ack?
 > 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Acked-by: Rob Herring <robh@kernel.org>
-> ---
->  Documentation/devicetree/bindings/mfd/twl6040.txt | 1 +
->  drivers/mfd/twl6040.c                             | 5 +++++
->  include/linux/mfd/twl6040.h                       | 2 +-
->  3 files changed, 7 insertions(+), 1 deletion(-)
+> For both patches:
+> 
+> Acked-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 
-Applied, thanks.
+Thanks applying both into omap-for-v4.9/dt as the Ethernet works
+currently.
 
-> diff --git a/Documentation/devicetree/bindings/mfd/twl6040.txt b/Documentation/devicetree/bindings/mfd/twl6040.txt
-> index e6afdfa3543d..9a98ee7c323d 100644
-> --- a/Documentation/devicetree/bindings/mfd/twl6040.txt
-> +++ b/Documentation/devicetree/bindings/mfd/twl6040.txt
-> @@ -12,6 +12,7 @@ Required properties:
->  - interrupt-parent: The parent interrupt controller
->  - gpio-controller:
->  - #gpio-cells = <1>: twl6040 provides GPO lines.
-> +- #clock-cells = <0>; twl6040 is a provider of pdmclk which is used by McPDM
->  - twl6040,audpwron-gpio: Power on GPIO line for the twl6040
->  
->  - vio-supply: Regulator for the twl6040 VIO supply
-> diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
-> index c3ad59ef43dd..d66502d36ba0 100644
-> --- a/drivers/mfd/twl6040.c
-> +++ b/drivers/mfd/twl6040.c
-> @@ -783,6 +783,11 @@ static int twl6040_probe(struct i2c_client *client,
->  	cell->name = "twl6040-gpo";
->  	children++;
->  
-> +	/* PDM clock support  */
-> +	cell = &twl6040->cells[children];
-> +	cell->name = "twl6040-pdmclk";
-> +	children++;
-> +
->  	/* The chip is powered down so mark regmap to cache only and dirty */
->  	regcache_cache_only(twl6040->regmap, true);
->  	regcache_mark_dirty(twl6040->regmap);
-> diff --git a/include/linux/mfd/twl6040.h b/include/linux/mfd/twl6040.h
-> index 36795a1be479..a2e88761c09f 100644
-> --- a/include/linux/mfd/twl6040.h
-> +++ b/include/linux/mfd/twl6040.h
-> @@ -168,7 +168,7 @@
->  #define TWL6040_VIBROCDET		0x20
->  #define TWL6040_TSHUTDET                0x40
->  
-> -#define TWL6040_CELLS			3
-> +#define TWL6040_CELLS			4
->  
->  #define TWL6040_REV_ES1_0		0x00
->  #define TWL6040_REV_ES1_1		0x01 /* Rev ES1.1 and ES1.2 */
+Regards,
 
--- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
