@@ -1,33 +1,40 @@
-From: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/2] dmaengine: cppi41: Prepare to add PM runtime support
-Date: Wed, 31 Aug 2016 10:23:00 +0530
-Message-ID: <20160831045300.GV9355@localhost>
-References: <20160819225940.12653-1-tony@atomide.com>
- <20160819225940.12653-2-tony@atomide.com>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RESEND PATCH 1/2] ARM: dts: dra7: Fix clock data for
+ gmac_gmii_ref_clk_div
+Date: Wed, 31 Aug 2016 09:08:12 +0300
+Message-ID: <fd7850dd-b7a2-e6ef-508f-8406c3f2cea9@ti.com>
+References: <20160830145801.10364-1-grygorii.strashko@ti.com>
+ <20160830184158.xydy3ixy7c5b73le@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160819225940.12653-2-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160830184158.xydy3ixy7c5b73le-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Cc: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "J.D. Schroeder" <jay.schroeder-UF6BFNFdnjXQT0dZR+AlfA@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Aug 19, 2016 at 03:59:39PM -0700, Tony Lindgren wrote:
-> Let's just move code from cppi41_dma_issue_pending() to
-> push_desc_queue() as that's the only call to push_desc_queue().
-> 
-> We want to do this for PM runtime as we need to call push_desc_queue()
-> also for pending queued transfers from PM runtime resume.
-> 
-> No functional changes, just moves code around.
+On 30/08/16 21:41, Tony Lindgren wrote:
+> * Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [160830 07:58]:
+>>
+>> Originally this patch was posted (and acked) here
+>> https://lkml.org/lkml/2016/4/27/272,
+>> but it, unfortunatelly, has never been merged.
+>> So re-send + minor subj change.
+>
+> OK yeah sorry about that. And thanks for the resend. If some patches
+> have pending discussion as I tend to tag threads that have pending
+> discussion as read and then forget them. And I miss patches in other
+> ways too..
+>
+> Tero, care to take a look and ack?
 
-Applied, now
+For both patches:
 
--- 
-~Vinod
+Acked-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
