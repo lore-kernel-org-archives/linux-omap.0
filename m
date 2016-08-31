@@ -1,60 +1,34 @@
-From: Enric Balletbo Serra <eballetbo@gmail.com>
-Subject: Re: [PATCH 01/23] ARM: am335x: Add missing memory node in sl50 board
-Date: Wed, 31 Aug 2016 15:09:17 +0200
-Message-ID: <CAFqH_51F-1n3mp8_Ags4LSCR5DX10vDVEvLCXpnWvHY=Mi0cTA@mail.gmail.com>
-References: <1472639737-17586-1-git-send-email-javier@osg.samsung.com> <1472639737-17586-2-git-send-email-javier@osg.samsung.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/23] ARM: dts: omap: Remove skeleton.dtsi usage and fix
+ memory node DTC warning"
+Date: Wed, 31 Aug 2016 07:24:44 -0700
+Message-ID: <20160831142443.yevd4c6wldrprxrl@atomide.com>
+References: <1472639737-17586-1-git-send-email-javier@osg.samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1472639737-17586-2-git-send-email-javier@osg.samsung.com>
+Content-Disposition: inline
+In-Reply-To: <1472639737-17586-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Enric Balletbo i Serra <enric.balletbo@collabora.com>
+Cc: linux-kernel@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, Enric Balletbo i Serra <enric.balletbo@collabora.com>
 List-Id: linux-omap@vger.kernel.org
 
-2016-08-31 12:35 GMT+02:00 Javier Martinez Canillas <javier@osg.samsung.com>:
-> The skeleton.dtsi file was removed in ARM64 for different reasons as
-> explained in commit ("3ebee5a2e141 arm64: dts: kill skeleton.dtsi").
->
-> These also applies to ARM and it will also allow to get rid of the
-> following DTC warnings in the future:
->
-> "Node /memory has a reg or ranges property, but no unit name"
->
-> But the sl50 board doesn't have a, so removing the  skeleton.dtsi
-> inclusion from am33xx.dtsi will cause a change in the compiled DTB.
->
-> The board has 512 MiB of RAM and its starting address is 0x80000000,
-> so add a proper memory device node in the DTS.
->
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
->
-> ---
->
->  arch/arm/boot/dts/am335x-sl50.dts | 5 +++++
->  1 file changed, 5 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/am335x-sl50.dts b/arch/arm/boot/dts/am335x-sl50.dts
-> index f802adb23ff9..e3be7a6bf8f1 100644
-> --- a/arch/arm/boot/dts/am335x-sl50.dts
-> +++ b/arch/arm/boot/dts/am335x-sl50.dts
-> @@ -19,6 +19,11 @@
->                 };
->         };
->
-> +       memory {
-> +               device_type = "memory";
-> +               reg = <0x80000000 0x20000000>; /* 512 MB */
-> +       };
-> +
->         chosen {
->                 stdout-path = &uart0;
->         };
-> --
-> 2.7.4
->
+* Javier Martinez Canillas <javier@osg.samsung.com> [160831 03:36]:
+> Hello Tony,
+> 
+> This series removes the usage of the skeleton.dtsi in all the OMAP dts,
+> which allows to get rid of the DTC warnings about a mismatch between the
+> memory nodes unit names and reg properties.
+> 
+> Patches are pretty trivial and shouldn't cause functional changes AFAIK,
+> but have been only built tested.
 
-Acked-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+OK will take a look today and make sure things stay working.
 
-Thanks,
- Enric
+Good to hear the solution is to remove the include of skeleton.dtsi,
+I was wondering what we're going to do about those warnings.
+
+Regards,
+
+Tony
