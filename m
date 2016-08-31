@@ -1,40 +1,68 @@
-From: Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
-Subject: Re: [PATCH v2 0/3] drm/i2c: tda998x ASoC hdmi-codec support +
- BeagleBoneBlack audio support
-Date: Wed, 31 Aug 2016 13:41:14 +0100
-Message-ID: <20160831124113.GZ5783@n2100.arm.linux.org.uk>
-References: <cover.1470754071.git.jsarha@ti.com>
+From: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
+Subject: Re: [GIT PULL] Immutable branch between MFD, GPIO and Regulator due
+ for the v4.9 merge window
+Date: Wed, 31 Aug 2016 18:20:32 +0530
+Message-ID: <8e1378ce-b757-39f9-7c36-707f2d9db21e@ti.com>
+References: <1472633892-8261-1-git-send-email-j-keerthy@ti.com>
+ <20160831122435.GD9415@dell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <cover.1470754071.git.jsarha-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20160831122435.GD9415@dell>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org
+To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Aug 09, 2016 at 10:00:03PM +0300, Jyri Sarha wrote:
-> Changes since first version [1] of this series:
-> - "drm/i2c: tda998x: Improve tda998x_configure_audio() audio related pdata"
->   - Change audio in tda998x pdata to audio_params to match the naming in
->     private data struct
->   - Skip IEC958_AES2 byte when writing status bytes to registers 
->   - Turn AFMT-macros to enum
->   - include linux/hdmi.h in drm/i2c/tda998x.h
-> - "drm/i2c: tda998x: Register ASoC hdmi-codec and add audio DT binding"
->   - Fix macronaming naming in dt-bindings/display/tda998x.h
->   - Turn AFMT-macros to enum
->   - Add locking to protect access to audio registers from ASoC thread
-> - "dts/am335x-boneblack: SQUASH"
->   - Use corrected macros from dt-bindings/display/tda998x.h
+On Wednesday 31 August 2016 05:54 PM, Lee Jones wrote:
+> Enjoy!
 
-Thanks, series queued.
+Thanks! Just curious to know where to pull the below patch from:
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+https://patchwork.kernel.org/patch/9266665/
+
+I checked in couple of other branches in your tree could not find the 
+above patch.
+
+Regards,
+Keerthy
+
+>
+> The following changes since commit 694d0d0bb2030d2e36df73e2d23d5770511dbc8d:
+>
+>   Linux 4.8-rc2 (2016-08-14 19:11:36 -0700)
+>
+> are available in the git repository at:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd.git ib-mfd-gpio-regulator-v4.9
+>
+> for you to fetch changes up to f618ed218dc01207882a8f02b1310c7daaf5156a:
+>
+>   regulator: lp873x: Change the MFD config option as per latest naming (2016-08-31 13:20:44 +0100)
+>
+> ----------------------------------------------------------------
+> Immutable branch between MFD, GPIO and Regulator due for the v4.9 merge window
+>
+> ----------------------------------------------------------------
+> Keerthy (3):
+>       mfd: lp873x: Add lp873x PMIC support
+>       gpio: lp873x: Add support for General Purpose Outputs
+>       regulator: lp873x: Change the MFD config option as per latest naming
+>
+>  drivers/gpio/Kconfig       |  10 ++
+>  drivers/gpio/Makefile      |   1 +
+>  drivers/gpio/gpio-lp873x.c | 193 ++++++++++++++++++++++++++++++++
+>  drivers/mfd/Kconfig        |  14 +++
+>  drivers/mfd/Makefile       |   2 +
+>  drivers/mfd/lp873x.c       |  99 +++++++++++++++++
+>  drivers/regulator/Kconfig  |   2 +-
+>  include/linux/mfd/lp873x.h | 269 +++++++++++++++++++++++++++++++++++++++++++++
+>  8 files changed, 589 insertions(+), 1 deletion(-)
+>  create mode 100644 drivers/gpio/gpio-lp873x.c
+>  create mode 100644 drivers/mfd/lp873x.c
+>  create mode 100644 include/linux/mfd/lp873x.h
+>
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
