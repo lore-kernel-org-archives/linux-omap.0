@@ -1,268 +1,88 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 2/2] dmaengine: cppi41: Add basic PM runtime support
-Date: Wed, 31 Aug 2016 07:30:55 -0700
-Message-ID: <20160831143055.p3naiumias4ptuvm@atomide.com>
-References: <20160819225940.12653-1-tony@atomide.com>
- <20160819225940.12653-3-tony@atomide.com>
- <20160831045241.GU9355@localhost>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH RESEND 2/2] mfd: twl6040: Register child device for
+ twl6040-pdmclk
+Date: Wed, 31 Aug 2016 15:38:20 +0100
+Message-ID: <20160831143820.GL9415@dell>
+References: <20160831114621.6301-1-peter.ujfalusi@ti.com>
+ <20160831114621.6301-3-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160831045241.GU9355@localhost>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20160831114621.6301-3-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> [160830 21:45]:
-> On Fri, Aug 19, 2016 at 03:59:40PM -0700, Tony Lindgren wrote:
-> > Let's keep the device enabled between cppi41_dma_issue_pending()
-> > and dmaengine_desc_get_callback_invoke() and rely on the PM runtime
-> > autoidle timeout elsewhere.
-> > 
-> > As the PM runtime is for whole device, not for each channel,
-> > we need to queue pending transfers if the device is PM runtime
-> > suspended. Then we start the pending transfers in PM runtime
-> > resume.
+On Wed, 31 Aug 2016, Peter Ujfalusi wrote:
+
+> The McPDM in OMAP4/5 is using the pdmclk from twl6040 as functional clock.
+> The twl6040-pdmclk driver provides a clock which can be used to make sure
+> that the pdmclk is active when the McPDM is in use.
 > 
-> This fails to apply for me :(
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Acked-by: Rob Herring <robh@kernel.org>
+> ---
+>  Documentation/devicetree/bindings/mfd/twl6040.txt | 1 +
+>  drivers/mfd/twl6040.c                             | 5 +++++
+>  include/linux/mfd/twl6040.h                       | 2 +-
+>  3 files changed, 7 insertions(+), 1 deletion(-)
 > 
-> Can you please rebase and resend this one.
+> diff --git a/Documentation/devicetree/bindings/mfd/twl6040.txt b/Documentation/devicetree/bindings/mfd/twl6040.txt
+> index e6afdfa3543d..9a98ee7c323d 100644
+> --- a/Documentation/devicetree/bindings/mfd/twl6040.txt
+> +++ b/Documentation/devicetree/bindings/mfd/twl6040.txt
+> @@ -12,6 +12,7 @@ Required properties:
+>  - interrupt-parent: The parent interrupt controller
+>  - gpio-controller:
+>  - #gpio-cells = <1>: twl6040 provides GPO lines.
+> +- #clock-cells = <0>; twl6040 is a provider of pdmclk which is used by McPDM
+>  - twl6040,audpwron-gpio: Power on GPIO line for the twl6040
+>  
+>  - vio-supply: Regulator for the twl6040 VIO supply
+> diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
+> index c3ad59ef43dd..d66502d36ba0 100644
+> --- a/drivers/mfd/twl6040.c
+> +++ b/drivers/mfd/twl6040.c
+> @@ -783,6 +783,11 @@ static int twl6040_probe(struct i2c_client *client,
+>  	cell->name = "twl6040-gpo";
+>  	children++;
+>  
+> +	/* PDM clock support  */
+> +	cell = &twl6040->cells[children];
+> +	cell->name = "twl6040-pdmclk";
+> +	children++;
 
-OK sorry about that, that was against Linux next. The conflict
-is with c->txd.callback and dmaengine_desc_get_callback_invoke.
+What an awful way of adding cells.
 
-Below is a version against your cppi branch.
+That wouldn't happen in my day! ;)
 
-Regards,
+But ... it fits in with the current way of doing things, so:
 
-Tony
+For my own reference:
+  Acked-by: Lee Jones <lee.jones@linaro.org>
 
-8< ---------------------
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Date: Wed, 31 Aug 2016 07:19:59 -0700
-Subject: [PATCHv2] dmaengine: cppi41: Add basic PM runtime support
+>  	/* The chip is powered down so mark regmap to cache only and dirty */
+>  	regcache_cache_only(twl6040->regmap, true);
+>  	regcache_mark_dirty(twl6040->regmap);
+> diff --git a/include/linux/mfd/twl6040.h b/include/linux/mfd/twl6040.h
+> index 36795a1be479..a2e88761c09f 100644
+> --- a/include/linux/mfd/twl6040.h
+> +++ b/include/linux/mfd/twl6040.h
+> @@ -168,7 +168,7 @@
+>  #define TWL6040_VIBROCDET		0x20
+>  #define TWL6040_TSHUTDET                0x40
+>  
+> -#define TWL6040_CELLS			3
+> +#define TWL6040_CELLS			4
+>  
+>  #define TWL6040_REV_ES1_0		0x00
+>  #define TWL6040_REV_ES1_1		0x01 /* Rev ES1.1 and ES1.2 */
 
-Let's keep the device enabled between cppi41_dma_issue_pending()
-and dmaengine_desc_get_callback_invoke() and rely on the PM runtime
-autoidle timeout elsewhere.
-
-As the PM runtime is for whole device, not for each channel,
-we need to queue pending transfers if the device is PM runtime
-suspended. Then we start the pending transfers in PM runtime
-resume.
-
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- drivers/dma/cppi41.c | 104 ++++++++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 99 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
---- a/drivers/dma/cppi41.c
-+++ b/drivers/dma/cppi41.c
-@@ -108,6 +108,8 @@ struct cppi41_channel {
- 	unsigned td_queued:1;
- 	unsigned td_seen:1;
- 	unsigned td_desc_seen:1;
-+
-+	struct list_head node;		/* Node for pending list */
- };
- 
- struct cppi41_desc {
-@@ -146,6 +148,9 @@ struct cppi41_dd {
- 	const struct chan_queues *queues_tx;
- 	struct chan_queues td_queue;
- 
-+	struct list_head pending;	/* Pending queued transfers */
-+	spinlock_t lock;		/* Lock for pending list */
-+
- 	/* context for suspend/resume */
- 	unsigned int dma_tdfdq;
- };
-@@ -332,6 +337,10 @@ static irqreturn_t cppi41_irq(int irq, void *data)
- 			c->residue = pd_trans_len(c->desc->pd6) - len;
- 			dma_cookie_complete(&c->txd);
- 			c->txd.callback(c->txd.callback_param);
-+
-+			/* Paired with cppi41_dma_issue_pending */
-+			pm_runtime_mark_last_busy(cdd->ddev.dev);
-+			pm_runtime_put_autosuspend(cdd->ddev.dev);
- 		}
- 	}
- 	return IRQ_HANDLED;
-@@ -349,6 +358,12 @@ static dma_cookie_t cppi41_tx_submit(struct dma_async_tx_descriptor *tx)
- static int cppi41_dma_alloc_chan_resources(struct dma_chan *chan)
- {
- 	struct cppi41_channel *c = to_cpp41_chan(chan);
-+	struct cppi41_dd *cdd = c->cdd;
-+	int error;
-+
-+	error = pm_runtime_get_sync(cdd->ddev.dev);
-+	if (error < 0)
-+		return error;
- 
- 	dma_cookie_init(chan);
- 	dma_async_tx_descriptor_init(&c->txd, chan);
-@@ -357,11 +372,26 @@ static int cppi41_dma_alloc_chan_resources(struct dma_chan *chan)
- 	if (!c->is_tx)
- 		cppi_writel(c->q_num, c->gcr_reg + RXHPCRA0);
- 
-+	pm_runtime_mark_last_busy(cdd->ddev.dev);
-+	pm_runtime_put_autosuspend(cdd->ddev.dev);
-+
- 	return 0;
- }
- 
- static void cppi41_dma_free_chan_resources(struct dma_chan *chan)
- {
-+	struct cppi41_channel *c = to_cpp41_chan(chan);
-+	struct cppi41_dd *cdd = c->cdd;
-+	int error;
-+
-+	error = pm_runtime_get_sync(cdd->ddev.dev);
-+	if (error < 0)
-+		return;
-+
-+	WARN_ON(!list_empty(&cdd->pending));
-+
-+	pm_runtime_mark_last_busy(cdd->ddev.dev);
-+	pm_runtime_put_autosuspend(cdd->ddev.dev);
- }
- 
- static enum dma_status cppi41_dma_tx_status(struct dma_chan *chan,
-@@ -414,11 +444,35 @@ static void push_desc_queue(struct cppi41_channel *c)
- 	cppi_writel(reg, cdd->qmgr_mem + QMGR_QUEUE_D(c->q_num));
- }
- 
-+static void pending_desc(struct cppi41_channel *c)
-+{
-+	struct cppi41_dd *cdd = c->cdd;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&cdd->lock, flags);
-+	list_add_tail(&c->node, &cdd->pending);
-+	spin_unlock_irqrestore(&cdd->lock, flags);
-+}
-+
- static void cppi41_dma_issue_pending(struct dma_chan *chan)
- {
- 	struct cppi41_channel *c = to_cpp41_chan(chan);
-+	struct cppi41_dd *cdd = c->cdd;
-+	int error;
-+
-+	/* PM runtime paired with dmaengine_desc_get_callback_invoke */
-+	error = pm_runtime_get(cdd->ddev.dev);
-+	if (error < 0) {
-+		dev_err(cdd->ddev.dev, "Failed to pm_runtime_get: %i\n",
-+			error);
- 
--	push_desc_queue(c);
-+		return;
-+	}
-+
-+	if (likely(pm_runtime_active(cdd->ddev.dev)))
-+		push_desc_queue(c);
-+	else
-+		pending_desc(c);
- }
- 
- static u32 get_host_pd0(u32 length)
-@@ -940,12 +994,18 @@ static int cppi41_dma_probe(struct platform_device *pdev)
- 	cdd->ctrl_mem = of_iomap(dev->of_node, 1);
- 	cdd->sched_mem = of_iomap(dev->of_node, 2);
- 	cdd->qmgr_mem = of_iomap(dev->of_node, 3);
-+	spin_lock_init(&cdd->lock);
-+	INIT_LIST_HEAD(&cdd->pending);
-+
-+	platform_set_drvdata(pdev, cdd);
- 
- 	if (!cdd->usbss_mem || !cdd->ctrl_mem || !cdd->sched_mem ||
- 			!cdd->qmgr_mem)
- 		return -ENXIO;
- 
- 	pm_runtime_enable(dev);
-+	pm_runtime_set_autosuspend_delay(dev, 100);
-+	pm_runtime_use_autosuspend(dev);
- 	ret = pm_runtime_get_sync(dev);
- 	if (ret < 0)
- 		goto err_get_sync;
-@@ -985,7 +1045,9 @@ static int cppi41_dma_probe(struct platform_device *pdev)
- 	if (ret)
- 		goto err_of;
- 
--	platform_set_drvdata(pdev, cdd);
-+	pm_runtime_mark_last_busy(dev);
-+	pm_runtime_put_autosuspend(dev);
-+
- 	return 0;
- err_of:
- 	dma_async_device_unregister(&cdd->ddev);
-@@ -996,7 +1058,8 @@ err_irq:
- err_chans:
- 	deinit_cppi41(dev, cdd);
- err_init_cppi:
--	pm_runtime_put(dev);
-+	pm_runtime_dont_use_autosuspend(dev);
-+	pm_runtime_put_sync(dev);
- err_get_sync:
- 	pm_runtime_disable(dev);
- 	iounmap(cdd->usbss_mem);
-@@ -1021,7 +1084,8 @@ static int cppi41_dma_remove(struct platform_device *pdev)
- 	iounmap(cdd->ctrl_mem);
- 	iounmap(cdd->sched_mem);
- 	iounmap(cdd->qmgr_mem);
--	pm_runtime_put(&pdev->dev);
-+	pm_runtime_dont_use_autosuspend(&pdev->dev);
-+	pm_runtime_put_sync(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
- 	return 0;
- }
-@@ -1062,9 +1126,39 @@ static int cppi41_resume(struct device *dev)
- 
- 	return 0;
- }
-+
-+static int cppi41_runtime_suspend(struct device *dev)
-+{
-+	struct cppi41_dd *cdd = dev_get_drvdata(dev);
-+
-+	WARN_ON(!list_empty(&cdd->pending));
-+
-+	return 0;
-+}
-+
-+static int cppi41_runtime_resume(struct device *dev)
-+{
-+	struct cppi41_dd *cdd = dev_get_drvdata(dev);
-+	struct cppi41_channel *c, *_c;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&cdd->lock, flags);
-+	list_for_each_entry_safe(c, _c, &cdd->pending, node) {
-+		push_desc_queue(c);
-+		list_del(&c->node);
-+	}
-+	spin_unlock_irqrestore(&cdd->lock, flags);
-+
-+	return 0;
-+}
- #endif
- 
--static SIMPLE_DEV_PM_OPS(cppi41_pm_ops, cppi41_suspend, cppi41_resume);
-+static const struct dev_pm_ops cppi41_pm_ops = {
-+	SET_LATE_SYSTEM_SLEEP_PM_OPS(cppi41_suspend, cppi41_resume)
-+	SET_RUNTIME_PM_OPS(cppi41_runtime_suspend,
-+			   cppi41_runtime_resume,
-+			   NULL)
-+};
- 
- static struct platform_driver cpp41_dma_driver = {
- 	.probe  = cppi41_dma_probe,
 -- 
-2.9.3
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
