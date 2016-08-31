@@ -1,7 +1,7 @@
 From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 07/23] ARM: dts: am33xx: Remove skeleton.dtsi usage
-Date: Wed, 31 Aug 2016 12:35:21 +0200
-Message-ID: <1472639737-17586-8-git-send-email-javier@osg.samsung.com>
+Subject: [PATCH 06/23] ARM: dts: omap5: Remove skeleton.dtsi usage
+Date: Wed, 31 Aug 2016 12:35:20 +0200
+Message-ID: <1472639737-17586-7-git-send-email-javier@osg.samsung.com>
 References: <1472639737-17586-1-git-send-email-javier@osg.samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1472639737-17586-1-git-send-email-javier@osg.samsung.com>
@@ -25,26 +25,21 @@ functional changes.
 Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 ---
 
- arch/arm/boot/dts/am33xx.dtsi | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/omap5.dtsi | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 98748c61ed99..eeef6bc8e410 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -11,11 +11,11 @@
- #include <dt-bindings/gpio/gpio.h>
- #include <dt-bindings/pinctrl/am33xx.h>
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 84c10195e79b..71a8f5492c8b 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -11,8 +11,6 @@
+ #include <dt-bindings/interrupt-controller/arm-gic.h>
+ #include <dt-bindings/pinctrl/omap.h>
  
 -#include "skeleton.dtsi"
 -
  / {
- 	compatible = "ti,am33xx";
- 	interrupt-parent = <&intc>;
-+	#address-cells = <1>;
-+	#size-cells = <1>;
- 
- 	aliases {
- 		i2c0 = &i2c0;
+ 	#address-cells = <1>;
+ 	#size-cells = <1>;
 -- 
 2.7.4
