@@ -1,13 +1,13 @@
 From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 01/23] ARM: am335x: Add missing memory node in sl50 board
-Date: Wed, 31 Aug 2016 12:35:15 +0200
-Message-ID: <1472639737-17586-2-git-send-email-javier@osg.samsung.com>
+Subject: [PATCH 05/23] ARM: dts: omap4: Remove skeleton.dtsi usage
+Date: Wed, 31 Aug 2016 12:35:19 +0200
+Message-ID: <1472639737-17586-6-git-send-email-javier@osg.samsung.com>
 References: <1472639737-17586-1-git-send-email-javier@osg.samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1472639737-17586-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier@osg.samsung.com>, Enric Balletbo i Serra <enric.balletbo@collabora.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier@osg.samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
 The skeleton.dtsi file was removed in ARM64 for different reasons as
@@ -18,34 +18,33 @@ following DTC warnings in the future:
 
 "Node /memory has a reg or ranges property, but no unit name"
 
-But the sl50 board doesn't have a, so removing the  skeleton.dtsi
-inclusion from am33xx.dtsi will cause a change in the compiled DTB.
-
-The board has 512 MiB of RAM and its starting address is 0x80000000,
-so add a proper memory device node in the DTS.
+The disassembled DTB are almost the same besides an empty chosen
+node being removed and nodes reordered, so it should not have
+functional changes.
 
 Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
 ---
 
- arch/arm/boot/dts/am335x-sl50.dts | 5 +++++
- 1 file changed, 5 insertions(+)
+ arch/arm/boot/dts/omap4.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am335x-sl50.dts b/arch/arm/boot/dts/am335x-sl50.dts
-index f802adb23ff9..e3be7a6bf8f1 100644
---- a/arch/arm/boot/dts/am335x-sl50.dts
-+++ b/arch/arm/boot/dts/am335x-sl50.dts
-@@ -19,6 +19,11 @@
- 		};
- 	};
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 3fdc51cd0fad..0ced079b7ae3 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -10,11 +10,11 @@
+ #include <dt-bindings/interrupt-controller/arm-gic.h>
+ #include <dt-bindings/pinctrl/omap.h>
  
-+	memory {
-+		device_type = "memory";
-+		reg = <0x80000000 0x20000000>; /* 512 MB */
-+	};
-+
- 	chosen {
- 		stdout-path = &uart0;
- 	};
+-#include "skeleton.dtsi"
+-
+ / {
+ 	compatible = "ti,omap4430", "ti,omap4";
+ 	interrupt-parent = <&wakeupgen>;
++	#address-cells = <1>;
++	#size-cells = <1>;
+ 
+ 	aliases {
+ 		i2c0 = &i2c1;
 -- 
 2.7.4
