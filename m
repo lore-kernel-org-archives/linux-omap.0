@@ -1,7 +1,7 @@
 From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 06/23] ARM: dts: omap5: Remove skeleton.dtsi usage
-Date: Wed, 31 Aug 2016 12:35:20 +0200
-Message-ID: <1472639737-17586-7-git-send-email-javier@osg.samsung.com>
+Subject: [PATCH 10/23] ARM: dts: dra7: Remove skeleton.dtsi usage
+Date: Wed, 31 Aug 2016 12:35:24 +0200
+Message-ID: <1472639737-17586-11-git-send-email-javier@osg.samsung.com>
 References: <1472639737-17586-1-git-send-email-javier@osg.samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1472639737-17586-1-git-send-email-javier@osg.samsung.com>
@@ -25,21 +25,21 @@ functional changes.
 Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 ---
 
- arch/arm/boot/dts/omap5.dtsi | 2 --
+ arch/arm/boot/dts/dra7.dtsi | 2 --
  1 file changed, 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 84c10195e79b..71a8f5492c8b 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -11,8 +11,6 @@
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index d9bfb94a2992..5464a9d354b1 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -10,8 +10,6 @@
  #include <dt-bindings/interrupt-controller/arm-gic.h>
- #include <dt-bindings/pinctrl/omap.h>
+ #include <dt-bindings/pinctrl/dra.h>
  
 -#include "skeleton.dtsi"
 -
+ #define MAX_SOURCES 400
+ 
  / {
- 	#address-cells = <1>;
- 	#size-cells = <1>;
 -- 
 2.7.4
