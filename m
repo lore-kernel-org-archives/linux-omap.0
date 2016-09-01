@@ -1,87 +1,65 @@
-From: Lee Jones <lee.jones@linaro.org>
+From: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 Subject: Re: Applied "mfd: tps65218: add version check to the PMIC probe" to
  the regulator tree
-Date: Thu, 1 Sep 2016 09:18:34 +0100
-Message-ID: <20160901081834.GE4921@dell>
+Date: Thu, 1 Sep 2016 09:23:08 +0100
+Message-ID: <20160901082308.GF4921@dell>
 References: <1466412218-5906-8-git-send-email-j-keerthy@ti.com>
  <E1bXZjd-0000YR-7n@debutante>
  <20160831083114.GP10121@dell>
- <20160831175701.GA5783@n2100.arm.linux.org.uk>
+ <20160831114105.GH3950@sirena.org.uk>
+ <20160831145018.GO9415@dell>
+ <20160831160227.GC5967@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160831175701.GA5783@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Mark Brown <broonie@kernel.org>, Tero Kristo <t-kristo@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, russ.dill@ti.com, robh+dt@kernel.org, mark.rutland@arm.com
+In-Reply-To: <20160831160227.GC5967-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, russ.dill-l0cyMroinI0@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 31 Aug 2016, Russell King - ARM Linux wrote:
+On Wed, 31 Aug 2016, Mark Brown wrote:
 
-> On Wed, Aug 31, 2016 at 09:31:14AM +0100, Lee Jones wrote:
-> > On Wed, 10 Aug 2016, Mark Brown wrote:
-> > 
-> > > The patch
-> > > 
-> > >    mfd: tps65218: add version check to the PMIC probe
-> > 
-> > Why did you take this patch?
+> On Wed, Aug 31, 2016 at 03:50:18PM +0100, Lee Jones wrote:
+> > On Wed, 31 Aug 2016, Mark Brown wrote:
 > 
-> I think folk need to start to understand the purpose of the To: and Cc:
-> lines in emails.
+> > > You acked it, that's saying that you're OK with the patch and are
+> > > expecting someone else to apply it.
 > 
-> To: means you're sending the message _to_ the recipient, expecting them
-> to be the _primary_ receiver of the message, and to _process_ the message
-> in some way.  In the case of a patch, that may be applying the change.
+> > No it doesn't, you made that up. :)
 > 
-> Cc: means you're providing the recipient with a copy of the message, "for
-> their information" and you're not expecting them to take action.
+> > I know when you and some others Ack a patch, that's what you mean, but
 > 
-> If you think that there's no difference between To: and Cc: then ask
-> yourself this question: what's the point of having the two headers,
-> why not list all recipients under one single header.
-> 
-> Mark was in the To: line, therefore it is perfectly reasonable for him
-> to apply the patch when it gets acked, since the original author sent
-> it _TO_ Mark implicitly asking him to apply it.
-> 
-> If you have a problem with that, then you need to say something in
-> reply to the patch, or you need to instruct folk who send patches for
-> bits of your subsystem not to place others in the To: field who may
-> pick up the patch.
+> That's the standard meaning I'm afraid, you're going to confuse people
+> if you do that.  I'd suggest using a different tag if you want to do
+> this, probably make one up.
 
-It's not up to submitters which repo patches get applied to.  They are
-free to make a verbal (written) request and if it's justified then we
-can choose to agree to it or not.  For instance, a submitter is more
-likely to know if a dependency was recently taken in via a particular
-tree than a Maintainer, since it's almost impossible to keep track
-each and every patch and all it's possible dependants.
+Reviewed-by-BUT-DONT-TAKE-IT-YOU-FIEND: <me>
 
-I personally review/accept patches based solely on the subsystem(s)
-touched and the actions of particular Maintainers, knowing firstly how
-they operate.  Actioning patches based on whether a contributor uses
-the To: or Cc: lines seems very fragile and prone to unnecessary
-complications.
+:)
 
-> However, there is a tendency with some people's mailers (including
-> yours) which keeps the recipients of the To: and Cc: from the message
-> being replied to, and copies them to the reply as-is.  That totally
-> screws up the meaning of the To: and Cc: headers, and is really
-> really really really annoying for people who are in the To: field
-> but who aren't being asked to do anything in the replies.  (Fix your
-> bloody mailer not to do this please!)
+Temporary-Acked-by-[to go through MFD tree]: <me>
 
-I use the Mutt's default configuration for 'reply-to-all' in all
-cases.  I really don't have time to manually reorganise something as
-trivial as To: and Cc: lines.  I find them irrelevant in this
-setting.  Any time spent on trivial activities such as these adds
-further delay to patch-reviews.  Some of us have day jobs too you
-know. ;)
+Suggestions?
+
+> > you've been working with me for long enough to know that's not what I
+> > mean when I Ack a patch.  I do it as an indication that I've reviewed
+> > the patch and I'm happy with it.  Most MFD patches that have
+> 
+> Sorry but I'm not actually reading most of these threads, I've not seen
+> this behaviour.  Mostly I just look at the relevant patches, especially
+> on the resends where presumably this has been happening.  Not sure why I
+> even saw the ack here, perhaps I had some question about the versioning
+> API.  
 
 -- 
 Lee Jones
 Linaro STMicroelectronics Landing Team Lead
 Linaro.org │ Open source software for ARM SoCs
 Follow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
