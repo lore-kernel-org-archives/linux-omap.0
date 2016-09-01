@@ -1,47 +1,56 @@
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: [PATCH] ASoC: omap-pcm: off-by-one in
-	'omap_pcm_limit_supported_formats'
-Date: Thu,  1 Sep 2016 08:52:37 +0200
-Message-ID: <1472712757-21066-1-git-send-email-christophe.jaillet@wanadoo.fr>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv3 03/11] crypto: omap-sham: implement context
+ export/import APIs
+Date: Thu, 1 Sep 2016 09:56:06 +0300
+Message-ID: <70468d4d-9f26-1bad-ace1-4b7c5cf43b52@ti.com>
+References: <1470306526-27219-1-git-send-email-t-kristo@ti.com>
+ <1470306526-27219-4-git-send-email-t-kristo@ti.com>
+ <20160809100633.GA6751@gondor.apana.org.au>
+ <d828fca9-a97a-7722-c4cb-24e07816cbc4@ti.com>
+ <20160901033320.GA650@gondor.apana.org.au>
+ <60a5ed40-5552-3ec8-fa21-7e6fb8213fc3@ti.com>
+ <20160901061630.GB650@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: peter.ujfalusi@ti.com, jarkko.nikula@bitmer.com, lgirdwood@gmail.com, broonie@kernel.org, perex@perex.cz, tiwai@suse.com
-Cc: Christophe JAILLET <christophe.jaillet@wanadoo.fr>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <20160901061630.GB650@gondor.apana.org.au>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: lokeshvutla@ti.com, davem@davemloft.net, linux-crypto@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-When calling 'snd_pcm_format_physical_width', SNDRV_PCM_FORMAT_LAST is a
-valid value, so don't skip it.
+On 01/09/16 09:16, Herbert Xu wrote:
+> On Thu, Sep 01, 2016 at 09:12:59AM +0300, Tero Kristo wrote:
+>>
+>> Well, but the driver doesn't flush its buffers automatically, it
+>> caches data until it has sufficient amount available. So, assuming
+>> you want to do this:
+>>
+>> sham_init
+>>   sham_update 256 bytes
+>>   sham_update 256 bytes
+>>   wait until two above updates are complete
+>>   sham_export
+>>
+>> ... the execution hangs at the wait phase as the driver is still
+>
+> Well that's a bug in the driver.  While it's not illegal to wait
+> for more data, it's usually unnecessary.  Because we instead try
+> to get our users to generate as big a request as possible, e.g.,
+> one packet for IPsec.
+>
+> If you really have to do the hold thing, then you must install a
+> timer like sha1-mb does on x86 to do the flush.
+>
+> In any case, the completion function must not be called until
+> you're actually complete.
 
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
----
-Un-tested
----
- sound/soc/omap/omap-pcm.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hmm, looking at the driver, sham_update returns 0 immediately if it just 
+caches data. In a sense, the update is not completed at this point. Are 
+you saying this is illegal and can't be done?
 
-diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
-index a84f677234f0..94e9ff791f3a 100644
---- a/sound/soc/omap/omap-pcm.c
-+++ b/sound/soc/omap/omap-pcm.c
-@@ -58,7 +58,7 @@ static void omap_pcm_limit_supported_formats(void)
- {
- 	int i;
- 
--	for (i = 0; i < SNDRV_PCM_FORMAT_LAST; i++) {
-+	for (i = 0; i <= SNDRV_PCM_FORMAT_LAST; i++) {
- 		switch (snd_pcm_format_physical_width(i)) {
- 		case 8:
- 		case 16:
--- 
-2.7.4
+ From my understanding, valid results are expected from the driver only 
+after ->final is called.
+
+-Tero
