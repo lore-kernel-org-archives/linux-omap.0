@@ -1,44 +1,47 @@
-From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 0/3] ARM: dts: Add operating-points-v2 tables for TI platforms
-Date: Wed, 31 Aug 2016 21:48:13 -0500
-Message-ID: <20160901024816.32390-1-d-gerlach@ti.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH v2 1/3] ARM: dts: am33xx: Change operating-points-v2 table to
+ am3352 version
+Date: Wed, 31 Aug 2016 21:48:14 -0500
+Message-ID: <20160901024816.32390-2-d-gerlach@ti.com>
+References: <20160901024816.32390-1-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160901024816.32390-1-d-gerlach@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-pm@vger.kernel.org
+Cc: Mark Rutland <mark.rutland@arm.com>, Viresh Kumar <viresh.kumar@linaro.org>, Nishanth Menon <nm@ti.com>, Rob Herring <robh+dt@kernel.org>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-This is v2 of the series to add operating-points-v2 tables for am335x,
-am437x, dra7, and am57x platforms, but really just updates the already
-merged v1 found here [1].
+The operating-points-v2 table got merged before the binding had
+stabilized so update the compatible string to am3352 version.
 
-It seems v1 was merged without the binding being finalized so this series
-just updates the nodes that are already present in order to work with the
-new bindings coming in v2 of the ti-cpufreq driver series which will follow
-shortly.
-
-Regards,
-Dave
-
-[1] http://lists.infradead.org/pipermail/linux-arm-kernel/2016-May/430205.html
-
-Dave Gerlach (3):
-  ARM: dts: am33xx: Change operating-points-v2 table to am3352 version
-  ARM: dts: am4372: Change operating-points-v2 table to am4372 version
-  ARM: dts: dra7: Change operating-points-v2 table to dra7 version
-
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+---
  arch/arm/boot/dts/am33xx.dtsi | 2 +-
- arch/arm/boot/dts/am4372.dtsi | 2 +-
- arch/arm/boot/dts/dra7.dtsi   | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 98748c61ed99..a07212914130 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -57,7 +57,7 @@
+ 	};
+ 
+ 	cpu0_opp_table: opp_table0 {
+-		compatible = "operating-points-v2";
++		compatible = "operating-points-v2-ti-am3352-cpu";
+ 
+ 		/*
+ 		 * The three following nodes are marked with opp-suspend
 -- 
 2.9.0
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
