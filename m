@@ -1,65 +1,46 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 2/2] usb: musb: Call pm_runtime from musb_gadget_queue
-Date: Fri, 30 Sep 2016 11:10:10 -0700
-Message-ID: <20160930181010.3829-3-tony@atomide.com>
-References: <20160930181010.3829-1-tony@atomide.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160930181010.3829-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 3/3] omap defconfig updates for v4.9 merge window
+Date: Thu,  1 Sep 2016 08:45:21 -0700
+Message-ID: <28889.6608203233$1505291655@news.gmane.org>
+References: <pull-1472744519-445833>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1472744519-445833>
+In-Reply-To: <pull-1472744519-445833>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-If we're booting pandaboard using NFSroot over built-in g_ether, we
-can get the following after booting once and doing a warm reset:
+The following changes since commit 29b4817d4018df78086157ea3a55c1d9424a7cfc:
 
-g_ether gadget: ecm_open
-g_ether gadget: notify connect true
-...
-WARNING: CPU: 0 PID: 1 at drivers/bus/omap_l3_noc.c:147
-l3_interrupt_handler+0x220/0x34c
-44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4CFG (Read):
-Data Access in User mode du ring Functional access
-...
+  Linux 4.8-rc1 (2016-08-07 18:18:00 -0700)
 
-Fix the issue by calling pm_runtime functions from
-musb_gadget_queue.
+are available in the git repository at:
 
-Note that in the long run we should be able to queue the pending
-transfers if pm_runtime is not active, and flush the queue from
-pm_runtime_resume.
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.9/defconfig-signed
 
-Reported-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Tested-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- drivers/usb/musb/musb_gadget.c | 4 ++++
- 1 file changed, 4 insertions(+)
+for you to fetch changes up to f56e6fe09c7848f0a299e661153977372a11abad:
 
-diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -1255,6 +1255,7 @@ static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
- 
- 	map_dma_buffer(request, musb, musb_ep);
- 
-+	pm_runtime_get_sync(musb->controller);
- 	spin_lock_irqsave(&musb->lock, lockflags);
- 
- 	/* don't queue if the ep is down */
-@@ -1275,6 +1276,9 @@ static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
- 
- unlock:
- 	spin_unlock_irqrestore(&musb->lock, lockflags);
-+	pm_runtime_mark_last_busy(musb->controller);
-+	pm_runtime_put_autosuspend(musb->controller);
-+
- 	return status;
- }
- 
--- 
-2.9.3
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  ARM: omap2plus_defconfig: switch to the IIO BMP085 driver (2016-08-26 08:45:38 -0700)
+
+----------------------------------------------------------------
+A patch from Linus Walleij <linus.walleij@linaro.org> to switch to use
+generic IIO BMP280 driver instead of the BMP085.
+
+----------------------------------------------------------------
+Linus Walleij (1):
+      ARM: omap2plus_defconfig: switch to the IIO BMP085 driver
+
+ arch/arm/configs/omap2plus_defconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
