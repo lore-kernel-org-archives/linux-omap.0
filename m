@@ -1,19 +1,14 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ASoC: omap-mcbsp: Add PM QoS support for
- McBSP to prevent glitches
-Date: Thu, 1 Sep 2016 09:57:01 +0300
-Message-ID: <5af44090-6902-2ade-be78-378843757a0a@ti.com>
-References: <20160829182746.53vrgbxadqodzzug@atomide.com>
- <925ded57-1e91-3db6-9e82-3a3ff5775412@ti.com>
- <20160831141340.h24szdqjnicmt2ew@atomide.com>
- <20160831165959.3sldcjxaci3kdx6z@atomide.com>
- <eef88aa4-b829-1889-f083-eb0359c0dac6@ti.com>
- <20160831194107.wijnbmdns2jjvzkv@atomide.com>
+Subject: Re: [PATCH] ASoC: omap-pcm: off-by-one in
+ 'omap_pcm_limit_supported_formats'
+Date: Thu, 1 Sep 2016 09:59:29 +0300
+Message-ID: <0bb8879b-84d0-f871-7b36-f8c9b4b0b560@ti.com>
+References: <1472712757-21066-1-git-send-email-christophe.jaillet@wanadoo.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20160831194107.wijnbmdns2jjvzkv@atomide.com>
+In-Reply-To: <1472712757-21066-1-git-send-email-christophe.jaillet@wanadoo.fr>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -23,109 +18,41 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
 Errors-To: alsa-devel-bounces@alsa-project.org
 Sender: alsa-devel-bounces@alsa-project.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: alsa-devel@alsa-project.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Liam Girdwood <lgirdwood@gmail.com>, Sebastian Reichel <sre@kernel.org>, Mark Brown <broonie@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Pavel Machel <pavel@ucw.cz>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org
+To: Christophe JAILLET <christophe.jaillet@wanadoo.fr>, jarkko.nikula@bitmer.com, lgirdwood@gmail.com, broonie@kernel.org, perex@perex.cz, tiwai@suse.com
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/31/16 22:41, Tony Lindgren wrote:
-> * Peter Ujfalusi <peter.ujfalusi@ti.com> [160831 11:34]:
->> On 08/31/16 19:59, Tony Lindgren wrote:
->>> * Tony Lindgren <tony@atomide.com> [160831 07:14]:
->>>> * Peter Ujfalusi <peter.ujfalusi@ti.com> [160831 04:38]:
->>>>> If we have McBSP w/o FIFO there is no need for the qos AFAIK.
->>>>> I'm fine with the 30ms, if you have done the testing on OMAP3.McBSP2,=
- probably
->>>>> setting 30ms for McBSP with 1280 FIFO, 3ms for 128 FIFO and no qos fo=
-r McBSP
->>>>> w/o FIFO might be better. Or:
->>>>>
->>>>> latency =3D mcbsp->pdata->buffer_size * 23; /* 29.44ms on omap3's mcb=
-sp2 */
->>>>>
->>>>> if (latency)
->>>>> 	pm_qos_add_request(&mcbsp->pm_qos_req, PM_QOS_CPU_DMA_LATENCY,
->>>>> 			   latency);
->>>>
->>>> OK let me run some tests with that and mcbsp2 fifo set to 128. My guess
->>>> is that things already work for that case with no patches with the exi=
-sting
->>>> fifo based  snd_pcm_hw_constraint_step() setting limits low enough so
->>>> we never enter deeper idle states, but let's see :)
->>>
->>> Well not quite so :) The fixed limit of 30 ms also works with fifo
->>> set to 128, but we still have audio fail without any patches.
->>
->> does it fail at start time or later?
->> At start time we will have ~10 DMA bursts of 128 words to fill the FIFO =
-on McBSP2.
+On 09/01/16 09:52, Christophe JAILLET wrote:
+> When calling 'snd_pcm_format_physical_width', SNDRV_PCM_FORMAT_LAST is a
+> valid value, so don't skip it.
 
-OK, so it is not happening during DMA bursts.
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-> The problems start only later on, about 10 seconds into playing of
-> course depending on things like console activity etc.
+> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+> ---
+> Un-tested
+> ---
+>  sound/soc/omap/omap-pcm.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > =
 
->>> @@ -1064,6 +1072,16 @@ int omap_mcbsp_init(struct platform_device *pdev)
->>>  		mcbsp->max_tx_thres =3D max_thres(mcbsp) - 0x10;
->>>  		mcbsp->max_rx_thres =3D max_thres(mcbsp) - 0x10;
->>>  =
+> diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
+> index a84f677234f0..94e9ff791f3a 100644
+> --- a/sound/soc/omap/omap-pcm.c
+> +++ b/sound/soc/omap/omap-pcm.c
+> @@ -58,7 +58,7 @@ static void omap_pcm_limit_supported_formats(void)
+>  {
+>  	int i;
+>  =
 
->>> +		/*
->>> +		 * Prevent device from hitting deeper idle states between
->>> +		 * DMA fifo loads. On omap3 mcbsp2 we have a larger FIFO of
->>> +		 * 1280 bytes instead of the usual 128 bytes, and the measured
->>
->> not bytes, but words. The word size does not matter, it can be 8, 16 or
->> 32bits, but we have 1280 or 128 of these words.
+> -	for (i =3D 0; i < SNDRV_PCM_FORMAT_LAST; i++) {
+> +	for (i =3D 0; i <=3D SNDRV_PCM_FORMAT_LAST; i++) {
+>  		switch (snd_pcm_format_physical_width(i)) {
+>  		case 8:
+>  		case 16:
 > =
 
-> Oh OK, will fix.
-> =
 
->>> +		 * max latency we can tolerate is somewhere below 40 ms. To be
->>> +		 * safe, use a fixed value of 30 ms to block off idle on omap3
->>> +		 * while still allowing retention idle.
->>> +		 */
->>> +		mcbsp->latency =3D 30 * 1000;
->>
->> were there issue with calculating the latency like
->> 		mcbsp->latency =3D max_thres(mcbsp) * 23;
-> =
-
-> Yes, we're not hitting retention idle at all during play with FIFO set
-> to 128 words.
-
-What is the audio format you are using? sampling rate and how many channels?
-cat /proc/asound/card0/pcm0p/sub0/hw_params
-
-What happens if you set the FIFO to 256? Do you still need the 30ms or it c=
-an
-be higher, like 60ms?
-
-When the FIFO is set to 128, it means that after the initial FIFO fill we w=
-ill
-have DMA request coming from McBSP to sDMA with a rate of:
-
-(1000/sampling_rate) * (FIFO-threshold / channels) =3D DMA_req_distance_in_=
-ms
-
-So in case of 44.1KHz, stereo with 128 FIFO threshold DMA request will come=
- at
-every 1.45ms. If I'm not mistaken. The whole FIFO (1280) holds 14.51ms of
-audio in this case.
-
-I don't see this correlate with the 30ms at all.
-
-Do you see anything in the kernel log? If McBSP is not powered and DMA tries
-to write data we should see l3 error at least. If the reason is that the
-system is not able to wake up fast enough to react to the DMA request from
-McBSP, then we should see FIFO underrun from McBSP (this patch will show th=
-em:
-http://mailman.alsa-project.org/pipermail/alsa-devel/2016-August/111671.htm=
-l)
-
-Have you tried with different sampling rates? That would have similar effect
-as changing the FIFO threshold for the DMA request periods.
 
 -- =
 
