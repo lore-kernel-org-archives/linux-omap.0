@@ -1,59 +1,43 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ASoC: omap-pcm: off-by-one in
- 'omap_pcm_limit_supported_formats'
-Date: Thu, 1 Sep 2016 09:59:29 +0300
-Message-ID: <0bb8879b-84d0-f871-7b36-f8c9b4b0b560@ti.com>
-References: <1472712757-21066-1-git-send-email-christophe.jaillet@wanadoo.fr>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: [PATCHv3 03/11] crypto: omap-sham: implement context
+ export/import APIs
+Date: Thu, 1 Sep 2016 15:19:58 +0800
+Message-ID: <20160901071958.GA2076@gondor.apana.org.au>
+References: <1470306526-27219-1-git-send-email-t-kristo@ti.com>
+ <1470306526-27219-4-git-send-email-t-kristo@ti.com>
+ <20160809100633.GA6751@gondor.apana.org.au>
+ <d828fca9-a97a-7722-c4cb-24e07816cbc4@ti.com>
+ <20160901033320.GA650@gondor.apana.org.au>
+ <60a5ed40-5552-3ec8-fa21-7e6fb8213fc3@ti.com>
+ <20160901061630.GB650@gondor.apana.org.au>
+ <70468d4d-9f26-1bad-ace1-4b7c5cf43b52@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1472712757-21066-1-git-send-email-christophe.jaillet@wanadoo.fr>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Christophe JAILLET <christophe.jaillet@wanadoo.fr>, jarkko.nikula@bitmer.com, lgirdwood@gmail.com, broonie@kernel.org, perex@perex.cz, tiwai@suse.com
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-crypto-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <70468d4d-9f26-1bad-ace1-4b7c5cf43b52@ti.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: lokeshvutla@ti.com, davem@davemloft.net, linux-crypto@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/01/16 09:52, Christophe JAILLET wrote:
-> When calling 'snd_pcm_format_physical_width', SNDRV_PCM_FORMAT_LAST is a
-> valid value, so don't skip it.
+On Thu, Sep 01, 2016 at 09:56:06AM +0300, Tero Kristo wrote:
+>
+> Hmm, looking at the driver, sham_update returns 0 immediately if it
+> just caches data. In a sense, the update is not completed at this
+> point. Are you saying this is illegal and can't be done?
 
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Once you call the completion function (and returning zero from
+the update itself is equivalent to calling the completion function)
+the hardware must not touch the request anymore.
 
-> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-> ---
-> Un-tested
-> ---
->  sound/soc/omap/omap-pcm.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> =
+> From my understanding, valid results are expected from the driver
+> only after ->final is called.
 
-> diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
-> index a84f677234f0..94e9ff791f3a 100644
-> --- a/sound/soc/omap/omap-pcm.c
-> +++ b/sound/soc/omap/omap-pcm.c
-> @@ -58,7 +58,7 @@ static void omap_pcm_limit_supported_formats(void)
->  {
->  	int i;
->  =
+That's because you never implemented export/import :)
 
-> -	for (i =3D 0; i < SNDRV_PCM_FORMAT_LAST; i++) {
-> +	for (i =3D 0; i <=3D SNDRV_PCM_FORMAT_LAST; i++) {
->  		switch (snd_pcm_format_physical_width(i)) {
->  		case 8:
->  		case 16:
-> =
-
-
-
--- =
-
-P=E9ter
+Cheers,
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
