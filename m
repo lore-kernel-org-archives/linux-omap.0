@@ -1,95 +1,82 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH] soc: ti: wkup_m3_ipc: switch to using remoteproc OF
- infrastructure
-Date: Fri, 19 Aug 2016 16:35:21 -0500
-Message-ID: <a18ac529-27d1-a98b-dcfa-82f5c03197fe@ti.com>
-References: <20160812003529.519-1-s-anna@ti.com> <20160812110201.GD25844@dell>
- <55d90506-eb1b-c8f9-02b5-8484b9a4babd@ti.com>
- <20160812164335.GG26240@tuxbot>
- <CAL_Jsq+aOd-FqaKNtmDESw--pdxbWMuOzv+KXf-hhX+oU94CdQ@mail.gmail.com>
- <dea62d2e-2935-ff91-967a-e8dee469543d@ti.com>
- <CAL_JsqLDWkpiZx2PTa11T-ynW=meCwq=tiNK6C2-U4-q5qrYDw@mail.gmail.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH 0/8] ARM: dts: Add operating-points-v2 tables for TI platforms
+Date: Wed, 31 Aug 2016 21:46:05 -0500
+Message-ID: <57C7966D.2000800@ti.com>
+References: <cover.1463606963.git.d-gerlach@ti.com> <20160519044744.GE32001@vireshk-i7> <20160610110414.GX22406@atomide.com> <575AD3A0.1050203@ti.com> <20160611024400.GE27439@vireshk-i7> <5768206A.5050501@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAL_JsqLDWkpiZx2PTa11T-ynW=meCwq=tiNK6C2-U4-q5qrYDw@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rob Herring <robh+dt@kernel.org>
-Cc: Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, linux-remoteproc@vger.kernel.org, Bjorn Andersson <bjorn.andersson@linaro.org>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <5768206A.5050501@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Viresh Kumar <viresh.kumar@linaro.org>, Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Yegor Yefremov <yegorslists@googlemail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/19/2016 04:21 PM, Rob Herring wrote:
-> On Thu, Aug 18, 2016 at 4:30 PM, Suman Anna <s-anna@ti.com> wrote:
->> Hi Rob,
->>
->> On 08/16/2016 09:54 AM, Rob Herring wrote:
->>> On Fri, Aug 12, 2016 at 11:43 AM, Bjorn Andersson
->>> <bjorn.andersson@linaro.org> wrote:
->>>> On Fri 12 Aug 09:00 PDT 2016, Suman Anna wrote:
->>>>
->>>>> On 08/12/2016 06:02 AM, Lee Jones wrote:
->>>>>> On Thu, 11 Aug 2016, Suman Anna wrote:
+Hi,
+On 06/20/2016 11:57 AM, Dave Gerlach wrote:
+> On 06/10/2016 09:44 PM, Viresh Kumar wrote:
+>> On 10-06-16, 09:50, Nishanth Menon wrote:
+>>> On 06/10/2016 06:04 AM, Tony Lindgren wrote:
+>>>> * Viresh Kumar <viresh.kumar@linaro.org> [160518 21:49]:
+>>>>> On 18-05-16, 18:36, Dave Gerlach wrote:
+>>>>>> Hi,
+>>>>>> This series adds operating-points-v2 tables for am335x, am437x, dra7xx,
+>>>>>> and am57xx based platforms along with some support patches so that we
+>>>>>> can enable more OPPs for the CPU on these platforms.
 >>>>>>
-> 
-> [...]
-> 
->>>>> Once "rprocs" hits mainline, I will definitely switch over the
->>>>> wkup_m3_ipc nodes to use that standard property and can fix this driver
->>>>> independently.
+>>>>>> These patches rely on the ti-cpufreq series sent here [1] and provide
+>>>>>> opp-supported-hw data for each OPP so that only the appropriate OPPs
+>>>>>> for a specific piece of silicon get enabled.
 >>>>>
+>>>>> Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
 >>>>
->>>> We're stuck with this problem all over the place, as the world continues
->>>> to evolve we will have issues with DT being static. This has been
->>>> discussed many times before and the suggested solution is always what
->>>> you implemented here - make the code deal with both versions, preferably
->>>> by patching.
+>>>> Applying all the dts changes into omap-for-v4.8/dt thanks.
 >>>>
->>>> The fact that you had to export the of_ operations indicates that no-one
->>>> has tried this before and I'm happy you did. I'm however not happy about
->>>> the size of the chunk of code it takes to do this dance.
+>>>> Tony
 >>>>
->>>> I think for this to be practical we need to provide higher level
->>>> operations for DT modification - in this case a of_rename_property().
->>>>
->>>> @Rob, any comments on this?
+>>> Viresh, are we ready with the cpufreq series?
 >>>
->>> I agree. Pantelis submitted some helpers in this area a while back
->>> (for the changeset API IIRC). I believe they were mostly fine, but
->>> needed some users.
+>>> https://patchwork.kernel.org/patch/9122961/
+>>> https://patchwork.kernel.org/patch/9122921/
 >>>
+>>> Also current series: https://patchwork.kernel.org/patch/9123071/
+>>> Seems to have comments pending.
+>>>
+>>> Dave is on vacation for another week or so, doubt he can respond in
+>>> time -> Should we wait on this series till we get the cpufreq support in?
 >>
->> Is this the series you are talking about?
->> http://marc.info/?l=devicetree&m=146341689512653&w=2
+>> Rafael handles all the merges, etc. It would be better if you can
+>> reply to that thread instead.
 >>
->> It looks like that series is effective only when OF_DYNAMIC is enabled.
 > 
-> Yes, as changeset API allows adding/removing nodes. It's probably just
-> a matter of time until OF_DYNAMIC is always enabled.
+> Sorry for the delay responding here, the only issue with this series would be
+> that we haven't received an ACK on the DT binding doc from cpufreq series [1]
+> from a DT maintainer, so if comments are received there these patches could
+> potentially change. I had pinged but still no response either way.
 > 
->> Probably a dumb question, but is this limited to DT Overlays?
+> Regards,
+> Dave
 > 
-> No, changesets are the mechanism overlays use to apply changes.
-> 
->> This
->> particular usage is a one-time change (first-time module is insmod'd)
->> mainly to provide compatibility for older DTBs, thereafter we wouldn't
->> be required to make any changes. It is definitely not a bulk update and
->> we don't want to unroll the changes even if we removed the module.
-> 
-> If you only need property changes, then we could do similar helpers to
-> make it easier for callers.
+> [1] https://patchwork.kernel.org/patch/9122921/
 
-So if you are ok with an of_rename_property() API, I can submit a patch
-for the same.
+Seems this got merged and is already part of master, even though the binding it
+uses is not yet finalized or accepted. I am about to send v2 of the ti-cpufreq
+series that makes use of these bindings, and I will be sending a series to fix
+these nodes that has already been merged, however it should *NOT* be merged.
+until the binding and driver have been merged, as it could still potentially change.
 
-regards
-Suman
+Also, this series replaced the OPP v1 tables for am33xx and dra7, so cpufreq is
+no longer enabled at the moment for these platforms. To fix this we could revert
+patches:
+
+f80bc97fd0a9 ("ARM: dts: dra7: Move to operating-points-v2 table")
+c36e6ec90487 ("ARM: dts: am335x-boneblack: Enable 1GHz OPP for cpu")
+4317be116210 ("ARM: dts: am33xx: Move to operating-points-v2 table and
+ti-cpufreq driver")
+
+until the ti-cpufreq driver series is merged, at which point we can add them
+back in to re-enable cpufreq with the new driver.
+
+Regards,
+Dave
