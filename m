@@ -1,70 +1,94 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] drop last omap3 board files for v4.8
-Date: Fri, 02 Sep 2016 16:05:26 +0200
-Message-ID: <4327380.4mS7Wg8her@wuerfel>
-References: <20160816155241.eka7c6p2rvp4q5zk@atomide.com>
- <20160901154057.y6hib3ckdjppehfl@atomide.com>
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/4] usb: musb: Prepare dsps glue layer for PM runtime
+ support
+Date: Fri, 2 Sep 2016 09:05:50 -0500
+Message-ID: <20160902140537.GC22318@uda0271908>
+References: <1471560410-6428-1-git-send-email-tony@atomide.com>
+ <1471560410-6428-3-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160901154057.y6hib3ckdjppehfl@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman <khilman@baylibre.com>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, Russell King <rmk+kernel@armlinux.org.uk>, arm@kernel.org, Pavel Machek <pavel@ucw.cz>, Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1471560410-6428-3-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday, September 1, 2016 8:40:57 AM CEST Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [160816 08:53]:
-> > The following changes since commit 79cdad3635b3a253d712aba115fa274ef94a8c6b:
-> > 
-> >   ir-rx51: use hrtimer instead of dmtimer (2016-06-29 21:54:35 -0700)
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.8/legacy-signed
-> > 
-> > for you to fetch changes up to e92fc4f04a34a407f5ff8acaa13127c62b7bec07:
-> > 
-> >   ARM: OMAP2+: Drop legacy board file for LDP (2016-07-10 23:47:38 -0700)
-> > 
-> > ----------------------------------------------------------------
-> > Remove the last two legacy board-*.c files for omap3 for legacy
-> > booting for v4.8 to allow making mach-omap2 device tree only for
-> > v4.9.
-> > 
-> > We've had Nokia N900 and omap3 LDP board-*.c files remaining
-> > while other omap3 devices have been device tree only for quite
-> > a while now. Also N900 and LDP have had device tree based booting
-> > working for years now, but few drivers for N900 were still only
-> > working in legacy only mode until recently. With the remaining
-> > issues out of the way, we discussed on the mailing lists that
-> > we're finally OK to remove the remaining board-*.c files.
-> > 
-> > For the timing of this pull request, I wanted to wait until
-> > v4.8-rc1 is out to make sure the legacy booting still works fine
-> > after the merge window before doing it.
-> > 
-> > And for v4.8, let's not touch any other platform data in case we
-> > still need to revert for some reason. This makes the revert just a
-> > question of adding back the legacy board-*.c files.
-> > 
-> > Then if no issues, we can remove the unused remaining platform
-> > data later on for v4.9.
+On Thu, Aug 18, 2016 at 03:46:48PM -0700, Tony Lindgren wrote:
+> We want to be polling the state when nothing is connected.
+> Let's change the polling logic in preparation for PM runtime
+> support.
 > 
-> Naturally this can wait for v4.9 merge window too if considered
-> too intrusive this late.
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> ---
+>  drivers/usb/musb/musb_dsps.c | 24 +++++++++++++++++++-----
+>  1 file changed, 19 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+> index 2537179..ec0369b 100644
+> --- a/drivers/usb/musb/musb_dsps.c
+> +++ b/drivers/usb/musb/musb_dsps.c
+> @@ -247,6 +247,10 @@ static void otg_timer(unsigned long _musb)
+>  
+>  	spin_lock_irqsave(&musb->lock, flags);
+>  	switch (musb->xceiv->otg->state) {
+> +	case OTG_STATE_A_WAIT_VRISE:
+> +		mod_timer(&glue->timer, jiffies +
+> +				msecs_to_jiffies(wrp->poll_timeout));
+> +		break;
+>  	case OTG_STATE_A_WAIT_BCON:
+>  		musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
+>  		skip_session = 1;
+> @@ -338,7 +342,8 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
+>  			MUSB_HST_MODE(musb);
+>  			musb->xceiv->otg->default_a = 1;
+>  			musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
+> -			del_timer(&glue->timer);
+> +			mod_timer(&glue->timer, jiffies +
+> +				  msecs_to_jiffies(wrp->poll_timeout));
+>  		} else {
+>  			musb->is_active = 0;
+>  			MUSB_DEV_MODE(musb);
+> @@ -358,11 +363,17 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
+>  	if (musb->int_tx || musb->int_rx || musb->int_usb)
+>  		ret |= musb_interrupt(musb);
+>  
+> -	/* Poll for ID change in OTG port mode */
+> -	if (musb->xceiv->otg->state == OTG_STATE_B_IDLE &&
+> -			musb->port_mode == MUSB_PORT_MODE_DUAL_ROLE)
+> +	/* Poll for ID change and connect */
+> +	switch (musb->xceiv->otg->state) {
+> +	case OTG_STATE_B_IDLE:
+> +	case OTG_STATE_A_WAIT_BCON:
+>  		mod_timer(&glue->timer, jiffies +
+> -				msecs_to_jiffies(wrp->poll_timeout));
+> +			  msecs_to_jiffies(wrp->poll_timeout));
 
-I'd prefer to do it as a cleanup for 4.9, and added the pull
-request to my todo folder for that now, will get to it along
-with the other pull requests.
+Unintentional change? I undo'ed it in my tree.
 
-	Arnd
+> +		break;
+> +	default:
+> +		break;
+> +	}
+> +
+>  out:
+>  	spin_unlock_irqrestore(&musb->lock, flags);
+>  
+> @@ -461,6 +472,9 @@ static int dsps_musb_init(struct musb *musb)
+>  		musb_writeb(musb->mregs, MUSB_BABBLE_CTL, val);
+>  	}
+>  
+> +	mod_timer(&glue->timer, jiffies +
+> +		  msecs_to_jiffies(glue->wrp->poll_timeout));
+> +
+>  	return dsps_musb_dbg_init(musb, glue);
+>  }
+>  
+> -- 
+> 2.8.1
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
