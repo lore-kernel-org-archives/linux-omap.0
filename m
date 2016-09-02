@@ -1,763 +1,258 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V2 2/2] ARM: dts: am57xx-beagle-x15: Add support for rev B1
-Date: Fri, 2 Sep 2016 12:14:45 -0500
-Message-ID: <20160902171445.27757-3-nm@ti.com>
-References: <20160902171445.27757-1-nm@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] ASoC: omap-mcbsp: Add PM QoS support for
+ McBSP to prevent glitches
+Date: Fri, 2 Sep 2016 22:38:44 +0300
+Message-ID: <c8f293f6-db2e-e518-7566-2cd92eb06ec0@ti.com>
+References: <20160829182746.53vrgbxadqodzzug@atomide.com>
+ <925ded57-1e91-3db6-9e82-3a3ff5775412@ti.com>
+ <20160831141340.h24szdqjnicmt2ew@atomide.com>
+ <20160831165959.3sldcjxaci3kdx6z@atomide.com>
+ <eef88aa4-b829-1889-f083-eb0359c0dac6@ti.com>
+ <20160831194107.wijnbmdns2jjvzkv@atomide.com>
+ <5af44090-6902-2ade-be78-378843757a0a@ti.com>
+ <20160901145006.xr3ux63cg6f5bh7p@atomide.com>
+ <b3a254b2-948f-f04d-3289-fb8fb9f9ab23@ti.com>
+ <20160902145604.nlixopwza76kfgbz@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160902171445.27757-1-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20160902145604.nlixopwza76kfgbz@atomide.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, robertcnelson@gmail.com, nsekhar@ti.com, jkridner@beagleboard.org, beagleboard-x15@googlegroups.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Nishanth Menon <nm@ti.com>
+Cc: alsa-devel@alsa-project.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Liam Girdwood <lgirdwood@gmail.com>, Sebastian Reichel <sre@kernel.org>, "Kristo, Tero" <t-kristo@ti.com>, Mark Brown <broonie@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Pavel Machel <pavel@ucw.cz>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Latest update to the BeagleBoard-X15 platform (revision B1)[1] updates
-for allowing UHS SD cards to function with the split of supply to SD
-card from a dedicated LDO.
+On 09/02/2016 05:56 PM, Tony Lindgren wrote:
+> * Peter Ujfalusi <peter.ujfalusi@ti.com> [160902 00:30]:
+>> On 09/01/16 17:50, Tony Lindgren wrote:
+>>> * Peter Ujfalusi <peter.ujfalusi@ti.com> [160831 23:58]:
+>>>> What is the audio format you are using? sampling rate and how many cha=
+nnels?
+>>>> cat /proc/asound/card0/pcm0p/sub0/hw_params
+>>>
+>>> Just 44.1 stereo mp3 or wav files.
+>>>
+>>>> What happens if you set the FIFO to 256? Do you still need the 30ms or=
+ it can
+>>>> be higher, like 60ms?
+>>>
+>>> No this is not related to the FIFO size. We just need to block off idle=
+ mode
+>>> for cpuidle as the McBSP hardware is not blocking it.
+>>
+>> So this happens with any threshold value? Even in element mode, where we=
+ have
+>> the threshold set to 2?
+> =
 
-As a result of this, AM57xx BeagleBoard-X15 now uses gpio2_30 instead
-of gpio6_28 for HDMI because HDMI_LS_OE should now be switched from
-GPIO6_28(Y9) to GPIO2_30 (AG8) to avoid a 1.8V GPIO toggling a 3.3V
-SoC input when the SD card is in UHS 1.8V mode.
+> Probably. How can I test the above?
 
-NOTE: For UHS mode to function, we need full fledged IODelay support
-in kernel to be functional. IODelay support is yet to be added.
+set 'element' mode to the used McBSP's dma_op_mode file in sysfs.
+When in 'threshold' mode, you can change the FIFO threshold.
 
-Further, It does not make much sense to spin off a new board
-compatible flag since there is no real functional benefit for the
-same.
+>>>> When the FIFO is set to 128, it means that after the initial FIFO fill=
+ we will
+>>>> have DMA request coming from McBSP to sDMA with a rate of:
+>>>>
+>>>> (1000/sampling_rate) * (FIFO-threshold / channels) =3D DMA_req_distanc=
+e_in_ms
+>>>>
+>>>> So in case of 44.1KHz, stereo with 128 FIFO threshold DMA request will=
+ come at
+>>>> every 1.45ms. If I'm not mistaken. The whole FIFO (1280) holds 14.51ms=
+ of
+>>>> audio in this case.
+>>>>
+>>>> I don't see this correlate with the 30ms at all.
+>>>
+>>> It seems we easily have a situation where DMA is done buffering to McBS=
+P,
+>>> and PMIC is playing audio, and we hit idle. At that point there are no =
+immediate
+>>> timers pending and cpuidle determines we can try to hit a deeper idle m=
+ode. As
+>>> there are no hardware blockers with DMA off and McBSP not blocking, the=
+ hardware
+>>> hits off mode. This cuts power to McBSP.
+>>>
+>>> Ideally we'd configure McBSP activity to block deeper idle states in the
+>>> hardware but I don't think we have such a configuration available.
+>>
+>> I wonder why we have not seen this before? I can not recall anything lik=
+e this
+>> with n900 (Jarkko might know that better) neither with n9/n950. On the n=
+9/n950
+>> I have even put the OMAP3 to OFF during audio playback with the DAC33 and
+>> still it worked just fine. On the twl4030 audio side we used 1024 or som=
+ething
+>> as threshold during audio playback and we do not had QoS placed at all.
+>> The C state numbers must be different what we had and what we have in ma=
+inline
+>> now days, but still this is something I don't expect to happen.
+>>
+>> Why McBSP is not working correctly in smart-idle mode in upstream, when =
+it
+>> appeared to be working fine on n900/n9/n950?
+> =
 
-Note: Even though production version is supposed to be B1, there is
-over ~200 boards of previous version (A2)[2] out there which continue
-to get supported with the existing dts file (to maintain compatibility
-with existing bootloaders for A2) and the production board is now
-supported as revb1.
+> I think the difference is that the audio chip on n900/n9/n950 is a buffer=
+ing
+> one while the pmic is not.
 
-[1] https://github.com/beagleboard/beagleboard-x15/blob/master/BEAGLEBOARD_X15_REV_B1.pdf
-[2] http://marc.info/?l=linux-arm-kernel&m=147273929820708&w=2
+n900 uses aic3x for audio with McBSP2. On n9/n950 we have dac33 with McBSP2
+and twl5030 on McBSP3. The DAC33 can be set in bypass mode when it is not
+buffering.
 
-Tested-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-Changes in v2:
-	- fixed up commit message to better illustrate why we are insisting on
-	  x15.dts to reflect A2 boards.
-	- Picked up Tomi's tested-by (no change in HDMI in this patch)
-	- Added comment to x15.dts for future reader without needing to dig
-	  through git log and figure out this commit..
-	- Fixed comment in x15-revb1 for LS OE gpio
-	- Fixed up vmmc-supply property for x15.dts
+> Plus I think we're also missing McBSP state save
+> and restore in the mainline kernel for off mode.
 
-and all the notes since v1 (note that the checkpatch.pl does not like long weblinks
-in commit message, I chose to ignore that warning rather than have broken links)
+In Nokia kernel we did not had suspend/resume either in mcbsp driver.
 
-v1: https://patchwork.kernel.org/patch/9310617/
+> And we're missing the piece
+> of code that in the Nokia kernel blocked off idle when McBSP was active.
+> And we're missing some kind of wakeirq that tells to wake up McBSP, resto=
+re
+> it's state and refill the fifo.
 
- arch/arm/boot/dts/Makefile                         |   1 +
- ...eagle-x15.dts => am57xx-beagle-x15-common.dtsi} |   8 +-
- arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts      |  24 +
- arch/arm/boot/dts/am57xx-beagle-x15.dts            | 592 +--------------------
- 4 files changed, 33 insertions(+), 592 deletions(-)
- copy arch/arm/boot/dts/{am57xx-beagle-x15.dts => am57xx-beagle-x15-common.dtsi} (97%)
- create mode 100644 arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts
+Hrm, it is possible that the C state numbers in Nokia kernel were adjusted,
+but I don't see anything in the McBSP or audio codes to do this.
 
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index faacd52370d2..b8d9840895c2 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -570,6 +570,7 @@ dtb-$(CONFIG_SOC_OMAP5) += \
- 	omap5-uevm.dtb
- dtb-$(CONFIG_SOC_DRA7XX) += \
- 	am57xx-beagle-x15.dtb \
-+	am57xx-beagle-x15-revb1.dtb \
- 	am57xx-cl-som-am57x.dtb \
- 	am57xx-sbc-am57x.dtb \
- 	am572x-idk.dtb \
-diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
-similarity index 97%
-copy from arch/arm/boot/dts/am57xx-beagle-x15.dts
-copy to arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
-index ef21da558ea3..ec85ff9004e8 100644
---- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
-+++ b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
-@@ -1,5 +1,5 @@
- /*
-- * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/
-+ * Copyright (C) 2014-2016 Texas Instruments Incorporated - http://www.ti.com/
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-@@ -13,7 +13,6 @@
- #include <dt-bindings/interrupt-controller/irq.h>
- 
- / {
--	model = "TI AM5728 BeagleBoard-X15";
- 	compatible = "ti,am572x-beagle-x15", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7";
- 
- 	aliases {
-@@ -114,10 +113,6 @@
- 	tpd12s015: encoder {
- 		compatible = "ti,tpd12s015";
- 
--		gpios = <&gpio7 10 GPIO_ACTIVE_HIGH>,	/* gpio7_10, CT CP HPD */
--			<&gpio6 28 GPIO_ACTIVE_HIGH>,	/* gpio6_28, LS OE */
--			<&gpio7 12 GPIO_ACTIVE_HIGH>;	/* gpio7_12/sp1_cs2, HPD */
--
- 		ports {
- 			#address-cells = <1>;
- 			#size-cells = <0>;
-@@ -448,7 +443,6 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&mmc1_pins_default>;
- 
--	vmmc-supply = <&ldo1_reg>;
- 	bus-width = <4>;
- 	cd-gpios = <&gpio6 27 GPIO_ACTIVE_LOW>; /* gpio 219 */
- };
-diff --git a/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts b/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts
-new file mode 100644
-index 000000000000..ca85570629fd
---- /dev/null
-+++ b/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts
-@@ -0,0 +1,24 @@
-+/*
-+ * Copyright (C) 2014-2016 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include "am57xx-beagle-x15-common.dtsi"
-+
-+/ {
-+	model = "TI AM5728 BeagleBoard-X15 rev B1";
-+};
-+
-+&tpd12s015 {
-+	gpios = <&gpio7 10 GPIO_ACTIVE_HIGH>,	/* gpio7_10, CT CP HPD */
-+		<&gpio2 30 GPIO_ACTIVE_HIGH>,	/* gpio2_30, LS OE */
-+		<&gpio7 12 GPIO_ACTIVE_HIGH>;	/* gpio7_12/sp1_cs2, HPD */
-+};
-+
-+&mmc1 {
-+	vmmc-supply = <&vdd_3v3>;
-+	vmmc-aux-supply = <&ldo1_reg>;
-+};
-diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-index ef21da558ea3..8c66f2efd283 100644
---- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
-+++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-@@ -1,602 +1,24 @@
- /*
-- * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/
-+ * Copyright (C) 2014-2016 Texas Instruments Incorporated - http://www.ti.com/
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-  */
--/dts-v1/;
- 
--#include "dra74x.dtsi"
--#include "am57xx-commercial-grade.dtsi"
--#include <dt-bindings/gpio/gpio.h>
--#include <dt-bindings/interrupt-controller/irq.h>
-+#include "am57xx-beagle-x15-common.dtsi"
- 
- / {
-+	/* NOTE: This describes the "original" pre-production A2 revision */
- 	model = "TI AM5728 BeagleBoard-X15";
--	compatible = "ti,am572x-beagle-x15", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7";
--
--	aliases {
--		rtc0 = &mcp_rtc;
--		rtc1 = &tps659038_rtc;
--		rtc2 = &rtc;
--		display0 = &hdmi0;
--	};
--
--	memory@0 {
--		device_type = "memory";
--		reg = <0x0 0x80000000 0x0 0x80000000>;
--	};
--
--	vdd_3v3: fixedregulator-vdd_3v3 {
--		compatible = "regulator-fixed";
--		regulator-name = "vdd_3v3";
--		vin-supply = <&regen1>;
--		regulator-min-microvolt = <3300000>;
--		regulator-max-microvolt = <3300000>;
--	};
--
--	aic_dvdd: fixedregulator-aic_dvdd {
--		compatible = "regulator-fixed";
--		regulator-name = "aic_dvdd_fixed";
--		vin-supply = <&vdd_3v3>;
--		regulator-min-microvolt = <1800000>;
--		regulator-max-microvolt = <1800000>;
--	};
--
--	vtt_fixed: fixedregulator-vtt {
--		/* TPS51200 */
--		compatible = "regulator-fixed";
--		regulator-name = "vtt_fixed";
--		vin-supply = <&smps3_reg>;
--		regulator-min-microvolt = <3300000>;
--		regulator-max-microvolt = <3300000>;
--		regulator-always-on;
--		regulator-boot-on;
--		enable-active-high;
--		gpio = <&gpio7 11 GPIO_ACTIVE_HIGH>;
--	};
--
--	leds {
--		compatible = "gpio-leds";
--
--		led0 {
--			label = "beagle-x15:usr0";
--			gpios = <&gpio7 9 GPIO_ACTIVE_HIGH>;
--			linux,default-trigger = "heartbeat";
--			default-state = "off";
--		};
--
--		led1 {
--			label = "beagle-x15:usr1";
--			gpios = <&gpio7 8 GPIO_ACTIVE_HIGH>;
--			linux,default-trigger = "cpu0";
--			default-state = "off";
--		};
--
--		led2 {
--			label = "beagle-x15:usr2";
--			gpios = <&gpio7 14 GPIO_ACTIVE_HIGH>;
--			linux,default-trigger = "mmc0";
--			default-state = "off";
--		};
--
--		led3 {
--			label = "beagle-x15:usr3";
--			gpios = <&gpio7 15 GPIO_ACTIVE_HIGH>;
--			linux,default-trigger = "disk-activity";
--			default-state = "off";
--		};
--	};
--
--	gpio_fan: gpio_fan {
--		/* Based on 5v 500mA AFB02505HHB */
--		compatible = "gpio-fan";
--		gpios =  <&tps659038_gpio 2 GPIO_ACTIVE_HIGH>;
--		gpio-fan,speed-map = <0     0>,
--				     <13000 1>;
--		#cooling-cells = <2>;
--	};
--
--	hdmi0: connector {
--		compatible = "hdmi-connector";
--		label = "hdmi";
--
--		type = "a";
--
--		port {
--			hdmi_connector_in: endpoint {
--				remote-endpoint = <&tpd12s015_out>;
--			};
--		};
--	};
--
--	tpd12s015: encoder {
--		compatible = "ti,tpd12s015";
--
--		gpios = <&gpio7 10 GPIO_ACTIVE_HIGH>,	/* gpio7_10, CT CP HPD */
--			<&gpio6 28 GPIO_ACTIVE_HIGH>,	/* gpio6_28, LS OE */
--			<&gpio7 12 GPIO_ACTIVE_HIGH>;	/* gpio7_12/sp1_cs2, HPD */
--
--		ports {
--			#address-cells = <1>;
--			#size-cells = <0>;
--
--			port@0 {
--				reg = <0>;
--
--				tpd12s015_in: endpoint {
--					remote-endpoint = <&hdmi_out>;
--				};
--			};
--
--			port@1 {
--				reg = <1>;
--
--				tpd12s015_out: endpoint {
--					remote-endpoint = <&hdmi_connector_in>;
--				};
--			};
--		};
--	};
--
--	sound0: sound0 {
--		compatible = "simple-audio-card";
--		simple-audio-card,name = "BeagleBoard-X15";
--		simple-audio-card,widgets =
--			"Line", "Line Out",
--			"Line", "Line In";
--		simple-audio-card,routing =
--			"Line Out",	"LLOUT",
--			"Line Out",	"RLOUT",
--			"MIC2L",	"Line In",
--			"MIC2R",	"Line In";
--		simple-audio-card,format = "dsp_b";
--		simple-audio-card,bitclock-master = <&sound0_master>;
--		simple-audio-card,frame-master = <&sound0_master>;
--		simple-audio-card,bitclock-inversion;
--
--		simple-audio-card,cpu {
--			sound-dai = <&mcasp3>;
--		};
--
--		sound0_master: simple-audio-card,codec {
--			sound-dai = <&tlv320aic3104>;
--			clocks = <&clkout2_clk>;
--		};
--	};
--};
--
--&dra7_pmx_core {
--	mmc1_pins_default: mmc1_pins_default {
--		pinctrl-single,pins = <
--			DRA7XX_CORE_IOPAD(0x376c, PIN_INPUT | MUX_MODE14)	/* mmc1sdcd.gpio219 */
--			DRA7XX_CORE_IOPAD(0x3754, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_clk.clk */
--			DRA7XX_CORE_IOPAD(0x3758, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_cmd.cmd */
--			DRA7XX_CORE_IOPAD(0x375c, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat0.dat0 */
--			DRA7XX_CORE_IOPAD(0x3760, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat1.dat1 */
--			DRA7XX_CORE_IOPAD(0x3764, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat2.dat2 */
--			DRA7XX_CORE_IOPAD(0x3768, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat3.dat3 */
--		>;
--	};
--
--	mmc2_pins_default: mmc2_pins_default {
--		pinctrl-single,pins = <
--			DRA7XX_CORE_IOPAD(0x349c, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a23.mmc2_clk */
--			DRA7XX_CORE_IOPAD(0x34b0, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_cs1.mmc2_cmd */
--			DRA7XX_CORE_IOPAD(0x34a0, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a24.mmc2_dat0 */
--			DRA7XX_CORE_IOPAD(0x34a4, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a25.mmc2_dat1 */
--			DRA7XX_CORE_IOPAD(0x34a8, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a26.mmc2_dat2 */
--			DRA7XX_CORE_IOPAD(0x34ac, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a27.mmc2_dat3 */
--			DRA7XX_CORE_IOPAD(0x348c, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a19.mmc2_dat4 */
--			DRA7XX_CORE_IOPAD(0x3490, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a20.mmc2_dat5 */
--			DRA7XX_CORE_IOPAD(0x3494, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a21.mmc2_dat6 */
--			DRA7XX_CORE_IOPAD(0x3498, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a22.mmc2_dat7 */
--		>;
--	};
--};
--&i2c1 {
--	status = "okay";
--	clock-frequency = <400000>;
--
--	tps659038: tps659038@58 {
--		compatible = "ti,tps659038";
--		reg = <0x58>;
--		interrupt-parent = <&gpio1>;
--		interrupts = <0 IRQ_TYPE_LEVEL_LOW>;
--
--		#interrupt-cells = <2>;
--		interrupt-controller;
--
--		ti,system-power-controller;
--
--		tps659038_pmic {
--			compatible = "ti,tps659038-pmic";
--
--			regulators {
--				smps12_reg: smps12 {
--					/* VDD_MPU */
--					regulator-name = "smps12";
--					regulator-min-microvolt = < 850000>;
--					regulator-max-microvolt = <1250000>;
--					regulator-always-on;
--					regulator-boot-on;
--				};
--
--				smps3_reg: smps3 {
--					/* VDD_DDR */
--					regulator-name = "smps3";
--					regulator-min-microvolt = <1350000>;
--					regulator-max-microvolt = <1350000>;
--					regulator-always-on;
--					regulator-boot-on;
--				};
--
--				smps45_reg: smps45 {
--					/* VDD_DSPEVE, VDD_IVA, VDD_GPU */
--					regulator-name = "smps45";
--					regulator-min-microvolt = < 850000>;
--					regulator-max-microvolt = <1250000>;
--					regulator-always-on;
--					regulator-boot-on;
--				};
--
--				smps6_reg: smps6 {
--					/* VDD_CORE */
--					regulator-name = "smps6";
--					regulator-min-microvolt = <850000>;
--					regulator-max-microvolt = <1150000>;
--					regulator-always-on;
--					regulator-boot-on;
--				};
--
--				/* SMPS7 unused */
--
--				smps8_reg: smps8 {
--					/* VDD_1V8 */
--					regulator-name = "smps8";
--					regulator-min-microvolt = <1800000>;
--					regulator-max-microvolt = <1800000>;
--					regulator-always-on;
--					regulator-boot-on;
--				};
--
--				/* SMPS9 unused */
--
--				ldo1_reg: ldo1 {
--					/* VDD_SD / VDDSHV8  */
--					regulator-name = "ldo1";
--					regulator-min-microvolt = <1800000>;
--					regulator-max-microvolt = <3300000>;
--					regulator-boot-on;
--					regulator-always-on;
--				};
--
--				ldo2_reg: ldo2 {
--					/* VDD_SHV5 */
--					regulator-name = "ldo2";
--					regulator-min-microvolt = <3300000>;
--					regulator-max-microvolt = <3300000>;
--					regulator-always-on;
--					regulator-boot-on;
--				};
--
--				ldo3_reg: ldo3 {
--					/* VDDA_1V8_PHYA */
--					regulator-name = "ldo3";
--					regulator-min-microvolt = <1800000>;
--					regulator-max-microvolt = <1800000>;
--					regulator-always-on;
--					regulator-boot-on;
--				};
--
--				ldo4_reg: ldo4 {
--					/* VDDA_1V8_PHYB */
--					regulator-name = "ldo4";
--					regulator-min-microvolt = <1800000>;
--					regulator-max-microvolt = <1800000>;
--					regulator-always-on;
--					regulator-boot-on;
--				};
--
--				ldo9_reg: ldo9 {
--					/* VDD_RTC */
--					regulator-name = "ldo9";
--					regulator-min-microvolt = <1050000>;
--					regulator-max-microvolt = <1050000>;
--					regulator-always-on;
--					regulator-boot-on;
--				};
--
--				ldoln_reg: ldoln {
--					/* VDDA_1V8_PLL */
--					regulator-name = "ldoln";
--					regulator-min-microvolt = <1800000>;
--					regulator-max-microvolt = <1800000>;
--					regulator-always-on;
--					regulator-boot-on;
--				};
--
--				ldousb_reg: ldousb {
--					/* VDDA_3V_USB: VDDA_USBHS33 */
--					regulator-name = "ldousb";
--					regulator-min-microvolt = <3300000>;
--					regulator-max-microvolt = <3300000>;
--					regulator-boot-on;
--				};
--
--				regen1: regen1 {
--					/* VDD_3V3_ON */
--					regulator-name = "regen1";
--					regulator-boot-on;
--					regulator-always-on;
--				};
--			};
--		};
--
--		tps659038_rtc: tps659038_rtc {
--			compatible = "ti,palmas-rtc";
--			interrupt-parent = <&tps659038>;
--			interrupts = <8 IRQ_TYPE_EDGE_FALLING>;
--			wakeup-source;
--		};
--
--		tps659038_pwr_button: tps659038_pwr_button {
--			compatible = "ti,palmas-pwrbutton";
--			interrupt-parent = <&tps659038>;
--			interrupts = <1 IRQ_TYPE_EDGE_FALLING>;
--			wakeup-source;
--			ti,palmas-long-press-seconds = <12>;
--		};
--
--		tps659038_gpio: tps659038_gpio {
--			compatible = "ti,palmas-gpio";
--			gpio-controller;
--			#gpio-cells = <2>;
--		};
--
--		extcon_usb2: tps659038_usb {
--			compatible = "ti,palmas-usb-vid";
--			ti,enable-vbus-detection;
--			vbus-gpio = <&gpio4 21 GPIO_ACTIVE_HIGH>;
--		};
--
--	};
--
--	tmp102: tmp102@48 {
--		compatible = "ti,tmp102";
--		reg = <0x48>;
--		interrupt-parent = <&gpio7>;
--		interrupts = <16 IRQ_TYPE_LEVEL_LOW>;
--		#thermal-sensor-cells = <1>;
--	};
--
--	tlv320aic3104: tlv320aic3104@18 {
--		#sound-dai-cells = <0>;
--		compatible = "ti,tlv320aic3104";
--		reg = <0x18>;
--		assigned-clocks = <&clkoutmux2_clk_mux>;
--		assigned-clock-parents = <&sys_clk2_dclk_div>;
--
--		status = "okay";
--		adc-settle-ms = <40>;
--
--		AVDD-supply = <&vdd_3v3>;
--		IOVDD-supply = <&vdd_3v3>;
--		DRVDD-supply = <&vdd_3v3>;
--		DVDD-supply = <&aic_dvdd>;
--	};
--
--	eeprom: eeprom@50 {
--		compatible = "at,24c32";
--		reg = <0x50>;
--	};
- };
- 
--&i2c3 {
--	status = "okay";
--	clock-frequency = <400000>;
--
--	mcp_rtc: rtc@6f {
--		compatible = "microchip,mcp7941x";
--		reg = <0x6f>;
--		interrupts-extended = <&crossbar_mpu GIC_SPI 2 IRQ_TYPE_EDGE_RISING>,
--				      <&dra7_pmx_core 0x424>;
--		interrupt-names = "irq", "wakeup";
--
--		vcc-supply = <&vdd_3v3>;
--		wakeup-source;
--	};
--};
--
--&gpio7 {
--	ti,no-reset-on-init;
--	ti,no-idle-on-init;
--};
--
--&cpu0 {
--	cpu0-supply = <&smps12_reg>;
--	voltage-tolerance = <1>;
--};
--
--&uart3 {
--	status = "okay";
--	interrupts-extended = <&crossbar_mpu GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>,
--			      <&dra7_pmx_core 0x3f8>;
--};
--
--&mac {
--	status = "okay";
--	dual_emac;
--};
--
--&cpsw_emac0 {
--	phy_id = <&davinci_mdio>, <1>;
--	phy-mode = "rgmii";
--	dual_emac_res_vlan = <1>;
--};
--
--&cpsw_emac1 {
--	phy_id = <&davinci_mdio>, <2>;
--	phy-mode = "rgmii";
--	dual_emac_res_vlan = <2>;
-+&tpd12s015 {
-+	gpios = <&gpio7 10 GPIO_ACTIVE_HIGH>,	/* gpio7_10, CT CP HPD */
-+		<&gpio6 28 GPIO_ACTIVE_HIGH>,	/* gpio6_28, LS OE */
-+		<&gpio7 12 GPIO_ACTIVE_HIGH>;	/* gpio7_12/sp1_cs2, HPD */
- };
- 
- &mmc1 {
--	status = "okay";
--
--	pinctrl-names = "default";
--	pinctrl-0 = <&mmc1_pins_default>;
--
- 	vmmc-supply = <&ldo1_reg>;
--	bus-width = <4>;
--	cd-gpios = <&gpio6 27 GPIO_ACTIVE_LOW>; /* gpio 219 */
--};
--
--&mmc2 {
--	status = "okay";
--
--	pinctrl-names = "default";
--	pinctrl-0 = <&mmc1_pins_default>;
--
--	vmmc-supply = <&vdd_3v3>;
--	bus-width = <8>;
--	ti,non-removable;
--	cap-mmc-dual-data-rate;
--};
--
--&sata {
--	status = "okay";
--};
--
--&usb2_phy1 {
--	phy-supply = <&ldousb_reg>;
--};
--
--&usb2_phy2 {
--	phy-supply = <&ldousb_reg>;
--};
--
--&usb1 {
--	dr_mode = "host";
--};
--
--&omap_dwc3_2 {
--	extcon = <&extcon_usb2>;
--};
--
--&usb2 {
--	/*
--	 * Stand alone usage is peripheral only.
--	 * However, with some resistor modifications
--	 * this port can be used via expansion connectors
--	 * as "host" or "dual-role". If so, provide
--	 * the necessary dr_mode override in the expansion
--	 * board's DT.
--	 */
--	dr_mode = "peripheral";
--};
--
--&cpu_trips {
--	cpu_alert1: cpu_alert1 {
--		temperature = <50000>; /* millicelsius */
--		hysteresis = <2000>; /* millicelsius */
--		type = "active";
--	};
--};
--
--&cpu_cooling_maps {
--	map1 {
--		trip = <&cpu_alert1>;
--		cooling-device = <&gpio_fan THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
--	};
--};
--
--&thermal_zones {
--	board_thermal: board_thermal {
--		polling-delay-passive = <1250>; /* milliseconds */
--		polling-delay = <1500>; /* milliseconds */
--
--				/* sensor       ID */
--		thermal-sensors = <&tmp102     0>;
--
--		board_trips: trips {
--			board_alert0: board_alert {
--				temperature = <40000>; /* millicelsius */
--				hysteresis = <2000>; /* millicelsius */
--				type = "active";
--			};
--
--			board_crit: board_crit {
--				temperature = <105000>; /* millicelsius */
--				hysteresis = <0>; /* millicelsius */
--				type = "critical";
--			};
--		};
--
--		board_cooling_maps: cooling-maps {
--			map0 {
--				trip = <&board_alert0>;
--				cooling-device =
--				  <&gpio_fan THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
--			};
--		};
--       };
--};
--
--&dss {
--	status = "ok";
--
--	vdda_video-supply = <&ldoln_reg>;
--};
--
--&hdmi {
--	status = "ok";
--	vdda-supply = <&ldo4_reg>;
--
--	port {
--		hdmi_out: endpoint {
--			remote-endpoint = <&tpd12s015_in>;
--		};
--	};
--};
--
--&pcie1 {
--	gpios = <&gpio2 8 GPIO_ACTIVE_LOW>;
--};
--
--&mcasp3 {
--	#sound-dai-cells = <0>;
--	assigned-clocks = <&mcasp3_ahclkx_mux>;
--	assigned-clock-parents = <&sys_clkin2>;
--	status = "okay";
--
--	op-mode = <0>;	/* MCASP_IIS_MODE */
--	tdm-slots = <2>;
--	/* 4 serializers */
--	serial-dir = <	/* 0: INACTIVE, 1: TX, 2: RX */
--		1 2 0 0
--	>;
--	tx-num-evt = <32>;
--	rx-num-evt = <32>;
--};
--
--&mailbox5 {
--	status = "okay";
--	mbox_ipu1_ipc3x: mbox_ipu1_ipc3x {
--		status = "okay";
--	};
--	mbox_dsp1_ipc3x: mbox_dsp1_ipc3x {
--		status = "okay";
--	};
--};
--
--&mailbox6 {
--	status = "okay";
--	mbox_ipu2_ipc3x: mbox_ipu2_ipc3x {
--		status = "okay";
--	};
--	mbox_dsp2_ipc3x: mbox_dsp2_ipc3x {
--		status = "okay";
--	};
- };
--- 
-2.9.1.200.gb1ec08f
+> The wakeirq could be anything like audio codec GPIO in bank one or PMIC
+> GPIO. Or it could be just a Linux timer that wakes up the system to refill
+> the fifo.
+
+Yeah, for the DAC3 mode7lp mode we had the gpio irq to wake the system up a=
+nd
+there I have set the QoS to be able to wake up in time.
+
+>>> So we just want to tell pm_qos that McBSP can't take any idle states sh=
+orter
+>>> than 30 ms to prevent cutting off power fro the whole SoC.
+>>
+>> based on the numbers in the arch/arm/mach-omap2/cpuidle34xx.c we are try=
+ing to
+>> block C7 since the exit_latency for it is (10000 + 30000)us, right? Or i=
+s it
+>> the traget_residency we need to look at when we set PM_QOS_CPU_DMA_LATEN=
+CY?
+> =
+
+> Yeah anything blocking C7 is enough because McBSP can't survive off mode.
+> =
+
+>> Still in case of 44.1KHz/Stereo, FIFO threshold at 128 we will have DMA
+>> requests coming at 1.45ms with the whole FIFO holding 14.51ms of data. In
+>> order to avoid draining the FIFO, the latency for omap3.mcbsp2 when the =
+audio
+>> is 44.1KHz, stereo must be set to 14.51ms maximum, but I would set it to:
+>> (1000/sampling_rate) * ((FIFOsize - threshold) / channels) in ms.
+> =
+
+> Yes if it was fifo related I'd agree :) But it's not, see below.
+> =
+
+> I think the reason why we don't need to set any pm_qos latency limit with
+> retention idle is that the McBSP hardware will automatigally wake up the
+> system to a fifo threshold interrupt or a timer which will trigger another
+> dma transaction. As long as the wakeup latency from retention idle is less
+> than the time needed to refill the fifo, everything works automagically in
+> the hardware. So the calculation above is not needed at all and unnecessa=
+rily
+> blocks core retention during idle.
+> =
+
+>> Certainly not 30ms. What happens if someone changes the C7 state number =
+and it
+>> is going to be less than 30ms? We will hit C7 and have the same issue? I
+>> suppose yes.
+> =
+
+> That value is a hardware limitation of the SoC for the only known working
+> case of off idle in the mainline kernel. But yes it would have to be SoC
+> specific if we ever get let's say omap4 off idle working in the mainline
+> kernel. In that case I'd make SoC specific using someting like
+> compatible =3D "ti,omap4-mcbsp".
+> =
+
+>> This is my main problem with the 30ms. It is just an arbitrary number wh=
+ich
+>> matches some number in cpuidle34xx.c, but it has nothing to do with the =
+real
+>> requirement of McBSP, which is that we should not hit a state where the =
+wakeup
+>> is going to take more time than what we can compensate from the McBSP FI=
+FO.
+> =
+
+> Yeah I agree this number is somewhat artificial as it is a value that's a
+> limitation of the SoC and not the McBSP. I don't know a better way to
+> block C7 in a Linux generic way though when McBSP is active.
+> =
+
+>> Furthermore: in case of other McBSPs where they have 128 word FIFO, which
+>> holds in your use case 1.45ms of audio, how it will survive the C6 wakeup
+>> latency of (3000 + 8500)us? It can tolerate C3 at maximum, C4 takes (150=
+0 +
+>> 1800)us.
+> =
+
+> That's because the hardware or a timer triggers the next dma automagically
+> so we don't need to do anything.
+
+McBSP is triggering thee DMA request. In case of non OMAP3.McBSP2 the time
+between them is shorter than 1.45ms. as the maximum FIFO size is 128. But in
+your case you also have threshold of 128, which means that we have DMA
+requests coming in every 1.45ms.
+In theory no audio should be working on OMAP3 if we can hit C7 runtime.
+
+>> Sure, we will not going to be able to hit C6 with this based on the numb=
+ers we
+>> have in cpuidle34xx.c, but I have no view on how those numbers were calc=
+ulated...
+> =
+
+> Right, but we don't need to block C6 because of the hardware and/or Linux
+> timers doing things for us :)
+
+But the correct QoS latency for McBSP is the one which would ensure that the
+FIFO will be not drained. This is the whole point of PM_QOS. And that is:
+(1000/sampling_rate) * ((FIFOsize - threshold) / channels)
+In case of playback
+
+On OMAP3.McBSP2 for example (44.1KHz, stereo):
+FIFO threshold 128
+ - DMA request will be triggered when 128 slots are free in the FIFO
+ - at that point we have still 1152 words in the FIFO.
+ - if the C wakeup latency is longer then what it takes to play out the
+samples from the FIFO (13.06ms), we will drain the FIFO and got underflow.
+ - in this case the QOS should be set as 13.06ms
+
+FIFO threshold 1024
+ - DMA request will be triggered when 1024 slots are free in the FIFO
+ - at that point we have still 256 words in the FIFO.
+ - if the C wakeup latency is longer then what it takes to play out the
+samples from the FIFO (2.9ms), we will drain the FIFO and got underflow.
+ - in this case the QOS should be 2.9ms
+
+On other McBSPs with 128 word FIFO the required latency is shorter to ensure
+we don't drain the FIFO.
+
+IMHO if the driver sets the PM_QOS, it should set it in a way it is needing=
+ it
+and not to work around system issues.
+
+I don't know the PM code that well, but is there a way to set attribute to a
+device to tell how deep C state it can tolerate on the given board or SoC?
+
+-- =
+
+P=E9ter
