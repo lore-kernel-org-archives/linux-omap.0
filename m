@@ -1,94 +1,48 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/4] usb: musb: Prepare dsps glue layer for PM runtime
- support
-Date: Fri, 2 Sep 2016 09:05:50 -0500
-Message-ID: <20160902140537.GC22318@uda0271908>
-References: <1471560410-6428-1-git-send-email-tony@atomide.com>
- <1471560410-6428-3-git-send-email-tony@atomide.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 1/2] ARM: dts: am57xx-beagle-x15: Remove pinmux
+ configurations
+Date: Fri, 2 Sep 2016 09:52:21 -0500
+Message-ID: <007b3c61-ec4c-a89d-e80e-adcec314e298@ti.com>
+References: <20160902090600.27262-1-nm@ti.com>
+ <20160902090600.27262-2-nm@ti.com>
+ <9bdf5693-ba02-8ce5-04b0-08875ccf7603@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1471560410-6428-3-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <9bdf5693-ba02-8ce5-04b0-08875ccf7603@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Aug 18, 2016 at 03:46:48PM -0700, Tony Lindgren wrote:
-> We want to be polling the state when nothing is connected.
-> Let's change the polling logic in preparation for PM runtime
-> support.
-> 
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> ---
->  drivers/usb/musb/musb_dsps.c | 24 +++++++++++++++++++-----
->  1 file changed, 19 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-> index 2537179..ec0369b 100644
-> --- a/drivers/usb/musb/musb_dsps.c
-> +++ b/drivers/usb/musb/musb_dsps.c
-> @@ -247,6 +247,10 @@ static void otg_timer(unsigned long _musb)
->  
->  	spin_lock_irqsave(&musb->lock, flags);
->  	switch (musb->xceiv->otg->state) {
-> +	case OTG_STATE_A_WAIT_VRISE:
-> +		mod_timer(&glue->timer, jiffies +
-> +				msecs_to_jiffies(wrp->poll_timeout));
-> +		break;
->  	case OTG_STATE_A_WAIT_BCON:
->  		musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
->  		skip_session = 1;
-> @@ -338,7 +342,8 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
->  			MUSB_HST_MODE(musb);
->  			musb->xceiv->otg->default_a = 1;
->  			musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
-> -			del_timer(&glue->timer);
-> +			mod_timer(&glue->timer, jiffies +
-> +				  msecs_to_jiffies(wrp->poll_timeout));
->  		} else {
->  			musb->is_active = 0;
->  			MUSB_DEV_MODE(musb);
-> @@ -358,11 +363,17 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
->  	if (musb->int_tx || musb->int_rx || musb->int_usb)
->  		ret |= musb_interrupt(musb);
->  
-> -	/* Poll for ID change in OTG port mode */
-> -	if (musb->xceiv->otg->state == OTG_STATE_B_IDLE &&
-> -			musb->port_mode == MUSB_PORT_MODE_DUAL_ROLE)
-> +	/* Poll for ID change and connect */
-> +	switch (musb->xceiv->otg->state) {
-> +	case OTG_STATE_B_IDLE:
-> +	case OTG_STATE_A_WAIT_BCON:
->  		mod_timer(&glue->timer, jiffies +
-> -				msecs_to_jiffies(wrp->poll_timeout));
-> +			  msecs_to_jiffies(wrp->poll_timeout));
+On 09/02/2016 05:18 AM, Sekhar Nori wrote:
+> On Friday 02 September 2016 02:35 PM, Nishanth Menon wrote:
+>> pinmuxing for DRA7x/AM57x family of processors need to be done in IO
+>> isolation as part of initial bootloader executed from SRAM. This is
+>> done as part of iodelay configuration sequence and is required due to
+>> the limitations introduced by erratum ID: i869[1] and elaborated in
+>> the Technical Reference Manual[2] 18.4.6.1.7 Isolation Requirements.
+>>
+>> Only peripheral that is permitted for dynamic pin mux configuration is
+>> MMC. This is to accommodate the requirements for varied speeds (which
+>
+> Actually its MMC and DCAN. DCAN because of i893 ("DCAN Initialization
+> Sequence"). But I can see you may have omitted reference to it since
+> DCAN is not really used on the x15.
 
-Unintentional change? I undo'ed it in my tree.
+True, I should add that for completeness. will do. thanks for catching 
+the same.
 
-> +		break;
-> +	default:
-> +		break;
-> +	}
-> +
->  out:
->  	spin_unlock_irqrestore(&musb->lock, flags);
->  
-> @@ -461,6 +472,9 @@ static int dsps_musb_init(struct musb *musb)
->  		musb_writeb(musb->mregs, MUSB_BABBLE_CTL, val);
->  	}
->  
-> +	mod_timer(&glue->timer, jiffies +
-> +		  msecs_to_jiffies(glue->wrp->poll_timeout));
-> +
->  	return dsps_musb_dbg_init(musb, glue);
->  }
->  
-> -- 
-> 2.8.1
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+Regards,
+Nishanth Menon
