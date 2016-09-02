@@ -1,60 +1,94 @@
-From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Subject: Re: [PATCH 2/2] ARM: dts: am57xx-beagle-x15: Add support for rev B1
-Date: Fri, 2 Sep 2016 14:18:23 +0300
-Message-ID: <0927d74a-17cf-dc4e-081d-b27c3bf5ac3c@ti.com>
+Date: Fri, 2 Sep 2016 14:48:52 +0300
+Message-ID: <f4cff876-4457-4548-31ad-3bbe43607f72@ti.com>
 References: <20160902090600.27262-1-nm@ti.com>
  <20160902090600.27262-3-nm@ti.com>
- <dd74f5e1-304f-661e-7fd9-f5f81bcfc55e@ti.com>
+ <6617013b-4fcd-76cb-7ef0-9395adcddd8d@ti.com>
+ <d3df6f32-1294-17bc-8b5f-236d14a349a0@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
         protocol="application/pgp-signature";
-        boundary="QchJO620jlSNBAOK8iE20ugCN9OltxFGR"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <dd74f5e1-304f-661e-7fd9-f5f81bcfc55e-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+        boundary="1ASglPqVfcMMikjfKc7uxutPuujCcadOc"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <d3df6f32-1294-17bc-8b5f-236d14a349a0@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---QchJO620jlSNBAOK8iE20ugCN9OltxFGR
-Content-Type: multipart/mixed; boundary="U1fFk2kO4NfpDmbpHoxvi3opXx36nhGV4";
+--1ASglPqVfcMMikjfKc7uxutPuujCcadOc
+Content-Type: multipart/mixed; boundary="LPwPgBIa5lU1sTI3dKusU1SEKcg5LAe3e";
  protected-headers="v1"
-From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>,
- Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org,
- devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Message-ID: <0927d74a-17cf-dc4e-081d-b27c3bf5ac3c-l0cyMroinI0@public.gmane.org>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, linux-omap@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ devicetree@vger.kernel.org
+Message-ID: <f4cff876-4457-4548-31ad-3bbe43607f72@ti.com>
 Subject: Re: [PATCH 2/2] ARM: dts: am57xx-beagle-x15: Add support for rev B1
-References: <20160902090600.27262-1-nm-l0cyMroinI0@public.gmane.org>
- <20160902090600.27262-3-nm-l0cyMroinI0@public.gmane.org>
- <dd74f5e1-304f-661e-7fd9-f5f81bcfc55e-l0cyMroinI0@public.gmane.org>
-In-Reply-To: <dd74f5e1-304f-661e-7fd9-f5f81bcfc55e-l0cyMroinI0@public.gmane.org>
+References: <20160902090600.27262-1-nm@ti.com>
+ <20160902090600.27262-3-nm@ti.com>
+ <6617013b-4fcd-76cb-7ef0-9395adcddd8d@ti.com>
+ <d3df6f32-1294-17bc-8b5f-236d14a349a0@ti.com>
+In-Reply-To: <d3df6f32-1294-17bc-8b5f-236d14a349a0@ti.com>
 
---U1fFk2kO4NfpDmbpHoxvi3opXx36nhGV4
+--LPwPgBIa5lU1sTI3dKusU1SEKcg5LAe3e
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 02/09/16 13:41, Sekhar Nori wrote:
 
-> Also, how about renaming the existing dts to am57xx-beagle-x15-reva2.dt=
-s
-> and let the production version be called am57xx-beagle-x15.dts? Surely
-> this will cause some inconvenience to A2 users. But there are few users=
 
-> of those and it might be more intuitive for the majority users if the
-> file for production version is without a specific version string
-> attached. Just a thought though, not sure about it myself either.
+On 02/09/16 13:01, Nishanth Menon wrote:
+> On 09/02/2016 04:58 AM, Tomi Valkeinen wrote:
+>> On 02/09/16 12:06, Nishanth Menon wrote:
+>>
+>>> diff --git a/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts
+>>> b/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts
+>>> new file mode 100644
+>>> index 000000000000..da61dbba7768
+>>> --- /dev/null
+>>> +++ b/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts
+>>> @@ -0,0 +1,24 @@
+>>> +/*
+>>> + * Copyright (C) 2014-2016 Texas Instruments Incorporated -
+>>> http://www.ti.com/
+>>> + *
+>>> + * This program is free software; you can redistribute it and/or mod=
+ify
+>>> + * it under the terms of the GNU General Public License version 2 as=
 
-I was about to suggest the same, so yes, this sounds good to me.
+>>> + * published by the Free Software Foundation.
+>>> + */
+>>> +
+>>> +#include "am57xx-beagle-x15-common.dtsi"
+>>> +
+>>> +/ {
+>>> +    model =3D "TI AM5728 BeagleBoard-X15 rev B1";
+>>> +};
+>>> +
+>>> +&tpd12s015 {
+>>> +    gpios =3D <&gpio7 10 GPIO_ACTIVE_HIGH>,    /* gpio7_10, CT CP HP=
+D */
+>>> +        <&gpio2 30 GPIO_ACTIVE_HIGH>,    /* gpio6_30, LS OE */
+>>
+>> Wrong gpio in the comment.
+>=20
+> Uggh.. thanks for catching that.. should have been gpio2_30
+>=20
+> will repost a v2 if there are no further comments at the end of the day=
+=2E.
+
+Booting and HDMI works fine:
+
+Tested-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
  Tomi
 
 
---U1fFk2kO4NfpDmbpHoxvi3opXx36nhGV4--
+--LPwPgBIa5lU1sTI3dKusU1SEKcg5LAe3e--
 
---QchJO620jlSNBAOK8iE20ugCN9OltxFGR
+--1ASglPqVfcMMikjfKc7uxutPuujCcadOc
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -62,23 +96,19 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJXyV//AAoJEPo9qoy8lh71eQ0QAK+iWuJWwbMiPVk64eMplVes
-O3cEY9kk67C9vuWD9CHHJ+MvSgT5nXphLRz7q1qjE5lulmk+srQPWQp57kB6EvIu
-0UYMM5twpBS69Gc8hviOLVpzzxmA2fTgtCx/ionpg0ETeltmrIdnj7TH5RHOJGwG
-Pn5ABCK6GZCaSP1epNUxo3r/ExYthVf4KJFkm00wKAabL7b59QqNB6hbPLkdu4tA
-wQHwqLqjC9NRwKtVzLiAYC1YyX60oH++G/BvDDpuDrVjChDubpVsNerpK7uKNgY1
-NiJsjw1ynGBWofSRKjv92WI2tBGRnKiRi5aMaDBZZ1MtJIRLtTcDhlsxvUjGy4am
-qVDraecjNe/6cBtGzAYBRwskzIv4z5Ko4bo6tkpy5jxE7cysPFNePQNXFHaqc4m7
-7DHOf6UCOzl50wPDWydsfaOW9sRdPUqWuFWRy/rRrxTHgYchO6CH4xYeT/WwyaRQ
-/ddlqsyeT9aWUOI/oQ4N3HQqNEfBLefo3uKsLfxcJyt0yvWKY8LofpL1pYs4uNc+
-BBXhNPCUfsk2+Q3QM5jVn2vMwB5hhQYOcOkECbcxHZYRjtd7p9rqQ5J93sYMI+2v
-PWWn+FX4C3AQ87WBJwNu8nl+PWcjjjnYyllbDZP0ehD3fqBDZSAo4JdOhkbhSIKD
-ZNcm+y+QMKAVaNmU+gRg
-=kDd7
+iQIcBAEBCAAGBQJXyWckAAoJEPo9qoy8lh71wI8QAK5efoVgxyvWcOAwb9RNjUx2
+uu33RjtVMZZGSNp3MTyXBsIPv+lF8YM+fJb7npRBCYL2bcuafi8gDDFCY2PVAdy5
+sqh2I1Cx9nuVUZjCg2CMVV0atPgtUq/PG3sWXYhjfljvCkLkeb9pm/xxx1qrT43N
+JFOprDkgJReGOKTuXuKsn9Ya5617Wa8jqO9fgN/LuVAycVBy66EnHHBO3tVS1cZw
+bgd89Tqhl4wS3U0QG4rqtk7MWW0GH4FIQIF8eaY4vOw3EvzcIFOHoKAWuExDmUc3
+SI4nQ8nWBMBJl4NOZc2oq74FUOzdA4TVvtgDOfax3sHmPFGWsZUkDARtwyOYAPOH
+zKUECionF7W7KDnuxGkScegjeTKx+Lj6ALXOi1Der4PzZpGNZ4jvF0IVt9s5RUoj
+t3dT2AQOOmEK+Fo5PzWc6CYqI22HdtGWeZD8C73MVj5IjCMGRw3OOPVIH1SsSxg1
+2rCwFYdG2Ly61c0Xe61iSEaJDbW7jSr5s1I8MBDXF1kpcIuz/Cn4GUOIsCl3MT25
+HYOF3n+g03XgtvsRVpS5zWkXaCTG4pyB+qfRr0OVAKB9+J9i3xUqN+qEzJRfRr7f
+p3DtxXYV9dHI98csnMLia3sRYMH3ZOwviuT+LCZEzoC0rXpm1Dj62bz5apMWJqsG
+psEu+vxDEO1QqYZaPysm
+=57e0
 -----END PGP SIGNATURE-----
 
---QchJO620jlSNBAOK8iE20ugCN9OltxFGR--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--1ASglPqVfcMMikjfKc7uxutPuujCcadOc--
