@@ -1,62 +1,38 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 2/2] ARM: dts: am57xx-beagle-x15: Add support for rev B1
-Date: Fri, 2 Sep 2016 05:01:57 -0500
-Message-ID: <d3df6f32-1294-17bc-8b5f-236d14a349a0@ti.com>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/2] ARM: dts: am57xx-beagle-x15: Remove pinmux
+ configurations
+Date: Fri, 2 Sep 2016 15:48:54 +0530
+Message-ID: <9bdf5693-ba02-8ce5-04b0-08875ccf7603@ti.com>
 References: <20160902090600.27262-1-nm@ti.com>
- <20160902090600.27262-3-nm@ti.com>
- <6617013b-4fcd-76cb-7ef0-9395adcddd8d@ti.com>
+ <20160902090600.27262-2-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <6617013b-4fcd-76cb-7ef0-9395adcddd8d@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kishon Vijay Abraham I <kishon@ti.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160902090600.27262-2-nm-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/02/2016 04:58 AM, Tomi Valkeinen wrote:
-> On 02/09/16 12:06, Nishanth Menon wrote:
->
->> diff --git a/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts b/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts
->> new file mode 100644
->> index 000000000000..da61dbba7768
->> --- /dev/null
->> +++ b/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts
->> @@ -0,0 +1,24 @@
->> +/*
->> + * Copyright (C) 2014-2016 Texas Instruments Incorporated - http://www.ti.com/
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + */
->> +
->> +#include "am57xx-beagle-x15-common.dtsi"
->> +
->> +/ {
->> +	model = "TI AM5728 BeagleBoard-X15 rev B1";
->> +};
->> +
->> +&tpd12s015 {
->> +	gpios = <&gpio7 10 GPIO_ACTIVE_HIGH>,	/* gpio7_10, CT CP HPD */
->> +		<&gpio2 30 GPIO_ACTIVE_HIGH>,	/* gpio6_30, LS OE */
->
-> Wrong gpio in the comment.
+On Friday 02 September 2016 02:35 PM, Nishanth Menon wrote:
+> pinmuxing for DRA7x/AM57x family of processors need to be done in IO
+> isolation as part of initial bootloader executed from SRAM. This is
+> done as part of iodelay configuration sequence and is required due to
+> the limitations introduced by erratum ID: i869[1] and elaborated in
+> the Technical Reference Manual[2] 18.4.6.1.7 Isolation Requirements.
+> 
+> Only peripheral that is permitted for dynamic pin mux configuration is
+> MMC. This is to accommodate the requirements for varied speeds (which
 
-Uggh.. thanks for catching that.. should have been gpio2_30
+Actually its MMC and DCAN. DCAN because of i893 ("DCAN Initialization
+Sequence"). But I can see you may have omitted reference to it since
+DCAN is not really used on the x15.
 
-will repost a v2 if there are no further comments at the end of the day..
+Thanks,
+Sekhar
 
-
--- 
-Regards,
-Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
