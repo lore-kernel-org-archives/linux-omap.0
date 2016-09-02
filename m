@@ -1,113 +1,41 @@
-From: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-Subject: Re: [PATCH v4] rtc: omap: Support ext_wakeup configuration
-Date: Fri, 2 Sep 2016 10:13:12 +0200
-Message-ID: <53fbdcb2-99cd-4b9d-7aea-11a2a0fb7fcb@grinn-global.com>
-References: <20160825111912.23017-1-m.niestroj@grinn-global.com>
- <20160830195903.GA14471@rob-hp-laptop>
-Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 0/2] ARM: dts: Introduce support for rev BeagleBoard-X15 B1
+Date: Fri, 2 Sep 2016 04:05:58 -0500
+Message-ID: <20160902090600.27262-1-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Return-path: <rtc-linux+bncBD7N3SEV2QCRBKPJUS7AKGQEHJNAR4I-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-In-Reply-To: <20160830195903.GA14471@rob-hp-laptop>
-List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <https://groups.google.com/group/rtc-linux
-List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <https://groups.google.com/group/rtc-linux/subscribe>
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 30.08.2016 21:59, Rob Herring wrote:
-> On Thu, Aug 25, 2016 at 01:19:12PM +0200, Marcin Niestroj wrote:
->> Support configuration of ext_wakeup sources. This patch makes it
->> possible to enable ext_wakeup and set it's polarity, depending on board
->> configuration. AM335x's dedicated PMIC (tps65217) uses ext_wakeup to
->> notify about power-button presses. Handling power-button presses enables
->> to recover from RTC-only power states correctly.
->>
->> Signed-off-by: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
->> ---
->> Hi,
->>
->> This is a total reimplementation, so it is not based on any of the previos
->> patch versions. This patch adds support for ext_wakeup using generic pinconf
->> device-tree bindings, with one added "ti,input-polarity" custom property.
->> This approach has been suggested by Tony and Grygorii in [1].
->>
->> Patch was developed on 4.6, rebased on 4.8-rc3, tested using chiliBoard.
->>
->> [1] http://www.spinics.net/lists/devicetree/msg131516.html
->>
->>  Documentation/devicetree/bindings/rtc/rtc-omap.txt |  21 +++
->>  drivers/rtc/Kconfig                                |   1 +
->>  drivers/rtc/rtc-omap.c                             | 167 ++++++++++++++++++++-
->>  3 files changed, 181 insertions(+), 8 deletions(-)
->>
->> diff --git a/Documentation/devicetree/bindings/rtc/rtc-omap.txt b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
->> index bf7d11a..5d18373 100644
->> --- a/Documentation/devicetree/bindings/rtc/rtc-omap.txt
->> +++ b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
->> @@ -18,6 +18,18 @@ Optional properties:
->>    through pmic_power_en
->>  - clocks: Any internal or external clocks feeding in to rtc
->>  - clock-names: Corresponding names of the clocks
->> +- pinctrl-0: a phandle pointing to the pin settings for the device
->> +- pinctrl-names: should be "default"
->> +
->> +Optional subnodes:
->> +- generic pinctrl node
->> +
->> +Required pinctrl subnodes properties:
->> +- pins - Names of ext_wakeup pins to configure
->> +
->> +Optional pinctrl subnodes properties:
->> +- input-enable - Enables ext_wakeup
->> +- ti,input-polarity - GPIO_ACTIVE_LOW or GPIO_ACTIVE_HIGH depending board
->
-> This is not a GPIO, so don't use GPIO defines. Just make this boolean
-> with not present ideally being the more common case.
->
->>  Example:
->>
->> @@ -30,4 +42,13 @@ rtc@1c23000 {
->>  	system-power-controller;
->>  	clocks = <&clk_32k_rtc>, <&clk_32768_ck>;
->>  	clock-names = "ext-clk", "int-clk";
->> +
->> +	pinctrl-0 = <&ext_wakeup>;
->> +	pinctrl-names = "default";
->> +
->> +	ext_wakeup: ext_wakeup {
->
-> Use '-', not '_' in node names.
 
-To be sure... It should look like below?
+Hi,
 
-ext_wakeup: ext-wakeup {
-	pins = "ext_wakeup0";
-	input-enable;
-	ti,active-high;
-}
+Please find the series to cleanup and support Production version of
+Beagleboard-X15 rev B1 support.
 
->
->> +		pins = "ext_wakeup0";
->> +		input-enable;
->> +		ti,input-polarity = <GPIO_ACTIVE_LOW>;
->> +	};
->>  };
+More  details can be found at https://github.com/beagleboard/beagleboard-x15
+
+Bootlog on B1: http://pastebin.ubuntu.com/23123408/ (sd and hdmi hpd tested)
+
+Nishanth Menon (2):
+  ARM: dts: am57xx-beagle-x15: Remove pinmux configurations
+  ARM: dts: am57xx-beagle-x15: Add support for rev B1
+
+ arch/arm/boot/dts/Makefile                         |   1 +
+ ...eagle-x15.dts => am57xx-beagle-x15-common.dtsi} | 230 +-----
+ arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts      |  24 +
+ arch/arm/boot/dts/am57xx-beagle-x15.dts            | 812 +--------------------
+ 4 files changed, 34 insertions(+), 1033 deletions(-)
+ copy arch/arm/boot/dts/{am57xx-beagle-x15.dts => am57xx-beagle-x15-common.dtsi} (60%)
+ create mode 100644 arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts
 
 -- 
-Marcin Niestroj
+2.9.1.200.gb1ec08f
 
--- 
-You received this message because you are subscribed to "rtc-linux".
-Membership options at http://groups.google.com/group/rtc-linux .
-Please read http://groups.google.com/group/rtc-linux/web/checklist
-before submitting a driver.
---- 
-You received this message because you are subscribed to the Google Groups "rtc-linux" group.
-To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-For more options, visit https://groups.google.com/d/optout.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
