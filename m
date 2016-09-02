@@ -1,37 +1,760 @@
 From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 0/2] ARM: dts: Introduce support for rev BeagleBoard-X15 B1
-Date: Fri, 2 Sep 2016 04:05:58 -0500
-Message-ID: <20160902090600.27262-1-nm@ti.com>
+Subject: [PATCH 2/2] ARM: dts: am57xx-beagle-x15: Add support for rev B1
+Date: Fri, 2 Sep 2016 04:06:00 -0500
+Message-ID: <20160902090600.27262-3-nm@ti.com>
+References: <20160902090600.27262-1-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160902090600.27262-1-nm-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Cc: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+Latest update to the BeagleBoard-X15 platform (revision B1)[1] updates
+for allowing UHS SD cards to function with the split of supply to SD
+card from a dedicated LDO.
 
-Hi,
+As a result of this, AM57xx BeagleBoard-X15 now uses gpio2_30 instead
+of gpio6_28 for HDMI because HDMI_LS_OE should now be switched from
+GPIO6_28(Y9) to GPIO2_30 (AG8) to avoid a 1.8V GPIO toggling a 3.3V
+SoC input when the SD card is in UHS 1.8V mode.
 
-Please find the series to cleanup and support Production version of
-Beagleboard-X15 rev B1 support.
+NOTE: For UHS mode to function, we need full fledged IODelay support
+in kernel to be functional. IODelay support is yet to be added.
 
-More  details can be found at https://github.com/beagleboard/beagleboard-x15
+Further, It does not make much sense to spin off a new board
+compatible flag since there is no real functional benefit for the
+same.
 
-Bootlog on B1: http://pastebin.ubuntu.com/23123408/ (sd and hdmi hpd tested)
+Note: Even though production version is supposed to be B1, there is
+over ~200 boards of previous version (A2)[2] out there which continue
+to get supported with the existing dts file and the production board
+is now supported as revb1
 
-Nishanth Menon (2):
-  ARM: dts: am57xx-beagle-x15: Remove pinmux configurations
-  ARM: dts: am57xx-beagle-x15: Add support for rev B1
+[1] https://github.com/beagleboard/beagleboard-x15/blob/master/BEAGLEBOARD_X15_REV_B1.pdf
+[2] http://marc.info/?l=linux-arm-kernel&m=147273929820708&w=2
+
+Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+---
+
+NOTE: even though I have used -C -M option with git-format-patch, the
+diff for x15.dts might look a little weird. we could alternatively
+split the patch into two by creating a common dtsi and then
+introducing revb1 -> but, at least for the moment, I felt it to be an
+overkill.
+
+Also, please note that even though revb1 is the production platform,
+there are sufficient quantities of x15 A2s (pre-prod) in the wild
+currently to leave existing dts in sync with A2 and introduce b1 as a
+seperate dts (instead of the other way around).
 
  arch/arm/boot/dts/Makefile                         |   1 +
- ...eagle-x15.dts => am57xx-beagle-x15-common.dtsi} | 230 +-----
+ ...eagle-x15.dts => am57xx-beagle-x15-common.dtsi} |   8 +-
  arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts      |  24 +
- arch/arm/boot/dts/am57xx-beagle-x15.dts            | 812 +--------------------
- 4 files changed, 34 insertions(+), 1033 deletions(-)
- copy arch/arm/boot/dts/{am57xx-beagle-x15.dts => am57xx-beagle-x15-common.dtsi} (60%)
+ arch/arm/boot/dts/am57xx-beagle-x15.dts            | 592 +--------------------
+ 4 files changed, 33 insertions(+), 592 deletions(-)
+ copy arch/arm/boot/dts/{am57xx-beagle-x15.dts => am57xx-beagle-x15-common.dtsi} (97%)
  create mode 100644 arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts
 
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index faacd52370d2..b8d9840895c2 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -570,6 +570,7 @@ dtb-$(CONFIG_SOC_OMAP5) += \
+ 	omap5-uevm.dtb
+ dtb-$(CONFIG_SOC_DRA7XX) += \
+ 	am57xx-beagle-x15.dtb \
++	am57xx-beagle-x15-revb1.dtb \
+ 	am57xx-cl-som-am57x.dtb \
+ 	am57xx-sbc-am57x.dtb \
+ 	am572x-idk.dtb \
+diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
+similarity index 97%
+copy from arch/arm/boot/dts/am57xx-beagle-x15.dts
+copy to arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
+index ef21da558ea3..ec85ff9004e8 100644
+--- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
++++ b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/
++ * Copyright (C) 2014-2016 Texas Instruments Incorporated - http://www.ti.com/
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -13,7 +13,6 @@
+ #include <dt-bindings/interrupt-controller/irq.h>
+ 
+ / {
+-	model = "TI AM5728 BeagleBoard-X15";
+ 	compatible = "ti,am572x-beagle-x15", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7";
+ 
+ 	aliases {
+@@ -114,10 +113,6 @@
+ 	tpd12s015: encoder {
+ 		compatible = "ti,tpd12s015";
+ 
+-		gpios = <&gpio7 10 GPIO_ACTIVE_HIGH>,	/* gpio7_10, CT CP HPD */
+-			<&gpio6 28 GPIO_ACTIVE_HIGH>,	/* gpio6_28, LS OE */
+-			<&gpio7 12 GPIO_ACTIVE_HIGH>;	/* gpio7_12/sp1_cs2, HPD */
+-
+ 		ports {
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+@@ -448,7 +443,6 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&mmc1_pins_default>;
+ 
+-	vmmc-supply = <&ldo1_reg>;
+ 	bus-width = <4>;
+ 	cd-gpios = <&gpio6 27 GPIO_ACTIVE_LOW>; /* gpio 219 */
+ };
+diff --git a/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts b/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts
+new file mode 100644
+index 000000000000..da61dbba7768
+--- /dev/null
++++ b/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts
+@@ -0,0 +1,24 @@
++/*
++ * Copyright (C) 2014-2016 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include "am57xx-beagle-x15-common.dtsi"
++
++/ {
++	model = "TI AM5728 BeagleBoard-X15 rev B1";
++};
++
++&tpd12s015 {
++	gpios = <&gpio7 10 GPIO_ACTIVE_HIGH>,	/* gpio7_10, CT CP HPD */
++		<&gpio2 30 GPIO_ACTIVE_HIGH>,	/* gpio6_30, LS OE */
++		<&gpio7 12 GPIO_ACTIVE_HIGH>;	/* gpio7_12/sp1_cs2, HPD */
++};
++
++&mmc1 {
++	vmmc-supply = <&vdd_3v3>;
++	vmmc-aux-supply = <&ldo1_reg>;
++};
+diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+index ef21da558ea3..b47ac4bbfde6 100644
+--- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
++++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+@@ -1,602 +1,24 @@
+ /*
+- * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/
++ * Copyright (C) 2014-2016 Texas Instruments Incorporated - http://www.ti.com/
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
+-/dts-v1/;
+ 
+-#include "dra74x.dtsi"
+-#include "am57xx-commercial-grade.dtsi"
+-#include <dt-bindings/gpio/gpio.h>
+-#include <dt-bindings/interrupt-controller/irq.h>
++#include "am57xx-beagle-x15-common.dtsi"
+ 
+ / {
+ 	model = "TI AM5728 BeagleBoard-X15";
+-	compatible = "ti,am572x-beagle-x15", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7";
+-
+-	aliases {
+-		rtc0 = &mcp_rtc;
+-		rtc1 = &tps659038_rtc;
+-		rtc2 = &rtc;
+-		display0 = &hdmi0;
+-	};
+-
+-	memory@0 {
+-		device_type = "memory";
+-		reg = <0x0 0x80000000 0x0 0x80000000>;
+-	};
+-
+-	vdd_3v3: fixedregulator-vdd_3v3 {
+-		compatible = "regulator-fixed";
+-		regulator-name = "vdd_3v3";
+-		vin-supply = <&regen1>;
+-		regulator-min-microvolt = <3300000>;
+-		regulator-max-microvolt = <3300000>;
+-	};
+-
+-	aic_dvdd: fixedregulator-aic_dvdd {
+-		compatible = "regulator-fixed";
+-		regulator-name = "aic_dvdd_fixed";
+-		vin-supply = <&vdd_3v3>;
+-		regulator-min-microvolt = <1800000>;
+-		regulator-max-microvolt = <1800000>;
+-	};
+-
+-	vtt_fixed: fixedregulator-vtt {
+-		/* TPS51200 */
+-		compatible = "regulator-fixed";
+-		regulator-name = "vtt_fixed";
+-		vin-supply = <&smps3_reg>;
+-		regulator-min-microvolt = <3300000>;
+-		regulator-max-microvolt = <3300000>;
+-		regulator-always-on;
+-		regulator-boot-on;
+-		enable-active-high;
+-		gpio = <&gpio7 11 GPIO_ACTIVE_HIGH>;
+-	};
+-
+-	leds {
+-		compatible = "gpio-leds";
+-
+-		led0 {
+-			label = "beagle-x15:usr0";
+-			gpios = <&gpio7 9 GPIO_ACTIVE_HIGH>;
+-			linux,default-trigger = "heartbeat";
+-			default-state = "off";
+-		};
+-
+-		led1 {
+-			label = "beagle-x15:usr1";
+-			gpios = <&gpio7 8 GPIO_ACTIVE_HIGH>;
+-			linux,default-trigger = "cpu0";
+-			default-state = "off";
+-		};
+-
+-		led2 {
+-			label = "beagle-x15:usr2";
+-			gpios = <&gpio7 14 GPIO_ACTIVE_HIGH>;
+-			linux,default-trigger = "mmc0";
+-			default-state = "off";
+-		};
+-
+-		led3 {
+-			label = "beagle-x15:usr3";
+-			gpios = <&gpio7 15 GPIO_ACTIVE_HIGH>;
+-			linux,default-trigger = "disk-activity";
+-			default-state = "off";
+-		};
+-	};
+-
+-	gpio_fan: gpio_fan {
+-		/* Based on 5v 500mA AFB02505HHB */
+-		compatible = "gpio-fan";
+-		gpios =  <&tps659038_gpio 2 GPIO_ACTIVE_HIGH>;
+-		gpio-fan,speed-map = <0     0>,
+-				     <13000 1>;
+-		#cooling-cells = <2>;
+-	};
+-
+-	hdmi0: connector {
+-		compatible = "hdmi-connector";
+-		label = "hdmi";
+-
+-		type = "a";
+-
+-		port {
+-			hdmi_connector_in: endpoint {
+-				remote-endpoint = <&tpd12s015_out>;
+-			};
+-		};
+-	};
+-
+-	tpd12s015: encoder {
+-		compatible = "ti,tpd12s015";
+-
+-		gpios = <&gpio7 10 GPIO_ACTIVE_HIGH>,	/* gpio7_10, CT CP HPD */
+-			<&gpio6 28 GPIO_ACTIVE_HIGH>,	/* gpio6_28, LS OE */
+-			<&gpio7 12 GPIO_ACTIVE_HIGH>;	/* gpio7_12/sp1_cs2, HPD */
+-
+-		ports {
+-			#address-cells = <1>;
+-			#size-cells = <0>;
+-
+-			port@0 {
+-				reg = <0>;
+-
+-				tpd12s015_in: endpoint {
+-					remote-endpoint = <&hdmi_out>;
+-				};
+-			};
+-
+-			port@1 {
+-				reg = <1>;
+-
+-				tpd12s015_out: endpoint {
+-					remote-endpoint = <&hdmi_connector_in>;
+-				};
+-			};
+-		};
+-	};
+-
+-	sound0: sound0 {
+-		compatible = "simple-audio-card";
+-		simple-audio-card,name = "BeagleBoard-X15";
+-		simple-audio-card,widgets =
+-			"Line", "Line Out",
+-			"Line", "Line In";
+-		simple-audio-card,routing =
+-			"Line Out",	"LLOUT",
+-			"Line Out",	"RLOUT",
+-			"MIC2L",	"Line In",
+-			"MIC2R",	"Line In";
+-		simple-audio-card,format = "dsp_b";
+-		simple-audio-card,bitclock-master = <&sound0_master>;
+-		simple-audio-card,frame-master = <&sound0_master>;
+-		simple-audio-card,bitclock-inversion;
+-
+-		simple-audio-card,cpu {
+-			sound-dai = <&mcasp3>;
+-		};
+-
+-		sound0_master: simple-audio-card,codec {
+-			sound-dai = <&tlv320aic3104>;
+-			clocks = <&clkout2_clk>;
+-		};
+-	};
+-};
+-
+-&dra7_pmx_core {
+-	mmc1_pins_default: mmc1_pins_default {
+-		pinctrl-single,pins = <
+-			DRA7XX_CORE_IOPAD(0x376c, PIN_INPUT | MUX_MODE14)	/* mmc1sdcd.gpio219 */
+-			DRA7XX_CORE_IOPAD(0x3754, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_clk.clk */
+-			DRA7XX_CORE_IOPAD(0x3758, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_cmd.cmd */
+-			DRA7XX_CORE_IOPAD(0x375c, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat0.dat0 */
+-			DRA7XX_CORE_IOPAD(0x3760, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat1.dat1 */
+-			DRA7XX_CORE_IOPAD(0x3764, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat2.dat2 */
+-			DRA7XX_CORE_IOPAD(0x3768, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat3.dat3 */
+-		>;
+-	};
+-
+-	mmc2_pins_default: mmc2_pins_default {
+-		pinctrl-single,pins = <
+-			DRA7XX_CORE_IOPAD(0x349c, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a23.mmc2_clk */
+-			DRA7XX_CORE_IOPAD(0x34b0, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_cs1.mmc2_cmd */
+-			DRA7XX_CORE_IOPAD(0x34a0, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a24.mmc2_dat0 */
+-			DRA7XX_CORE_IOPAD(0x34a4, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a25.mmc2_dat1 */
+-			DRA7XX_CORE_IOPAD(0x34a8, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a26.mmc2_dat2 */
+-			DRA7XX_CORE_IOPAD(0x34ac, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a27.mmc2_dat3 */
+-			DRA7XX_CORE_IOPAD(0x348c, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a19.mmc2_dat4 */
+-			DRA7XX_CORE_IOPAD(0x3490, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a20.mmc2_dat5 */
+-			DRA7XX_CORE_IOPAD(0x3494, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a21.mmc2_dat6 */
+-			DRA7XX_CORE_IOPAD(0x3498, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a22.mmc2_dat7 */
+-		>;
+-	};
+-};
+-&i2c1 {
+-	status = "okay";
+-	clock-frequency = <400000>;
+-
+-	tps659038: tps659038@58 {
+-		compatible = "ti,tps659038";
+-		reg = <0x58>;
+-		interrupt-parent = <&gpio1>;
+-		interrupts = <0 IRQ_TYPE_LEVEL_LOW>;
+-
+-		#interrupt-cells = <2>;
+-		interrupt-controller;
+-
+-		ti,system-power-controller;
+-
+-		tps659038_pmic {
+-			compatible = "ti,tps659038-pmic";
+-
+-			regulators {
+-				smps12_reg: smps12 {
+-					/* VDD_MPU */
+-					regulator-name = "smps12";
+-					regulator-min-microvolt = < 850000>;
+-					regulator-max-microvolt = <1250000>;
+-					regulator-always-on;
+-					regulator-boot-on;
+-				};
+-
+-				smps3_reg: smps3 {
+-					/* VDD_DDR */
+-					regulator-name = "smps3";
+-					regulator-min-microvolt = <1350000>;
+-					regulator-max-microvolt = <1350000>;
+-					regulator-always-on;
+-					regulator-boot-on;
+-				};
+-
+-				smps45_reg: smps45 {
+-					/* VDD_DSPEVE, VDD_IVA, VDD_GPU */
+-					regulator-name = "smps45";
+-					regulator-min-microvolt = < 850000>;
+-					regulator-max-microvolt = <1250000>;
+-					regulator-always-on;
+-					regulator-boot-on;
+-				};
+-
+-				smps6_reg: smps6 {
+-					/* VDD_CORE */
+-					regulator-name = "smps6";
+-					regulator-min-microvolt = <850000>;
+-					regulator-max-microvolt = <1150000>;
+-					regulator-always-on;
+-					regulator-boot-on;
+-				};
+-
+-				/* SMPS7 unused */
+-
+-				smps8_reg: smps8 {
+-					/* VDD_1V8 */
+-					regulator-name = "smps8";
+-					regulator-min-microvolt = <1800000>;
+-					regulator-max-microvolt = <1800000>;
+-					regulator-always-on;
+-					regulator-boot-on;
+-				};
+-
+-				/* SMPS9 unused */
+-
+-				ldo1_reg: ldo1 {
+-					/* VDD_SD / VDDSHV8  */
+-					regulator-name = "ldo1";
+-					regulator-min-microvolt = <1800000>;
+-					regulator-max-microvolt = <3300000>;
+-					regulator-boot-on;
+-					regulator-always-on;
+-				};
+-
+-				ldo2_reg: ldo2 {
+-					/* VDD_SHV5 */
+-					regulator-name = "ldo2";
+-					regulator-min-microvolt = <3300000>;
+-					regulator-max-microvolt = <3300000>;
+-					regulator-always-on;
+-					regulator-boot-on;
+-				};
+-
+-				ldo3_reg: ldo3 {
+-					/* VDDA_1V8_PHYA */
+-					regulator-name = "ldo3";
+-					regulator-min-microvolt = <1800000>;
+-					regulator-max-microvolt = <1800000>;
+-					regulator-always-on;
+-					regulator-boot-on;
+-				};
+-
+-				ldo4_reg: ldo4 {
+-					/* VDDA_1V8_PHYB */
+-					regulator-name = "ldo4";
+-					regulator-min-microvolt = <1800000>;
+-					regulator-max-microvolt = <1800000>;
+-					regulator-always-on;
+-					regulator-boot-on;
+-				};
+-
+-				ldo9_reg: ldo9 {
+-					/* VDD_RTC */
+-					regulator-name = "ldo9";
+-					regulator-min-microvolt = <1050000>;
+-					regulator-max-microvolt = <1050000>;
+-					regulator-always-on;
+-					regulator-boot-on;
+-				};
+-
+-				ldoln_reg: ldoln {
+-					/* VDDA_1V8_PLL */
+-					regulator-name = "ldoln";
+-					regulator-min-microvolt = <1800000>;
+-					regulator-max-microvolt = <1800000>;
+-					regulator-always-on;
+-					regulator-boot-on;
+-				};
+-
+-				ldousb_reg: ldousb {
+-					/* VDDA_3V_USB: VDDA_USBHS33 */
+-					regulator-name = "ldousb";
+-					regulator-min-microvolt = <3300000>;
+-					regulator-max-microvolt = <3300000>;
+-					regulator-boot-on;
+-				};
+-
+-				regen1: regen1 {
+-					/* VDD_3V3_ON */
+-					regulator-name = "regen1";
+-					regulator-boot-on;
+-					regulator-always-on;
+-				};
+-			};
+-		};
+-
+-		tps659038_rtc: tps659038_rtc {
+-			compatible = "ti,palmas-rtc";
+-			interrupt-parent = <&tps659038>;
+-			interrupts = <8 IRQ_TYPE_EDGE_FALLING>;
+-			wakeup-source;
+-		};
+-
+-		tps659038_pwr_button: tps659038_pwr_button {
+-			compatible = "ti,palmas-pwrbutton";
+-			interrupt-parent = <&tps659038>;
+-			interrupts = <1 IRQ_TYPE_EDGE_FALLING>;
+-			wakeup-source;
+-			ti,palmas-long-press-seconds = <12>;
+-		};
+-
+-		tps659038_gpio: tps659038_gpio {
+-			compatible = "ti,palmas-gpio";
+-			gpio-controller;
+-			#gpio-cells = <2>;
+-		};
+-
+-		extcon_usb2: tps659038_usb {
+-			compatible = "ti,palmas-usb-vid";
+-			ti,enable-vbus-detection;
+-			vbus-gpio = <&gpio4 21 GPIO_ACTIVE_HIGH>;
+-		};
+-
+-	};
+-
+-	tmp102: tmp102@48 {
+-		compatible = "ti,tmp102";
+-		reg = <0x48>;
+-		interrupt-parent = <&gpio7>;
+-		interrupts = <16 IRQ_TYPE_LEVEL_LOW>;
+-		#thermal-sensor-cells = <1>;
+-	};
+-
+-	tlv320aic3104: tlv320aic3104@18 {
+-		#sound-dai-cells = <0>;
+-		compatible = "ti,tlv320aic3104";
+-		reg = <0x18>;
+-		assigned-clocks = <&clkoutmux2_clk_mux>;
+-		assigned-clock-parents = <&sys_clk2_dclk_div>;
+-
+-		status = "okay";
+-		adc-settle-ms = <40>;
+-
+-		AVDD-supply = <&vdd_3v3>;
+-		IOVDD-supply = <&vdd_3v3>;
+-		DRVDD-supply = <&vdd_3v3>;
+-		DVDD-supply = <&aic_dvdd>;
+-	};
+-
+-	eeprom: eeprom@50 {
+-		compatible = "at,24c32";
+-		reg = <0x50>;
+-	};
+ };
+ 
+-&i2c3 {
+-	status = "okay";
+-	clock-frequency = <400000>;
+-
+-	mcp_rtc: rtc@6f {
+-		compatible = "microchip,mcp7941x";
+-		reg = <0x6f>;
+-		interrupts-extended = <&crossbar_mpu GIC_SPI 2 IRQ_TYPE_EDGE_RISING>,
+-				      <&dra7_pmx_core 0x424>;
+-		interrupt-names = "irq", "wakeup";
+-
+-		vcc-supply = <&vdd_3v3>;
+-		wakeup-source;
+-	};
+-};
+-
+-&gpio7 {
+-	ti,no-reset-on-init;
+-	ti,no-idle-on-init;
+-};
+-
+-&cpu0 {
+-	cpu0-supply = <&smps12_reg>;
+-	voltage-tolerance = <1>;
+-};
+-
+-&uart3 {
+-	status = "okay";
+-	interrupts-extended = <&crossbar_mpu GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>,
+-			      <&dra7_pmx_core 0x3f8>;
+-};
+-
+-&mac {
+-	status = "okay";
+-	dual_emac;
+-};
+-
+-&cpsw_emac0 {
+-	phy_id = <&davinci_mdio>, <1>;
+-	phy-mode = "rgmii";
+-	dual_emac_res_vlan = <1>;
+-};
+-
+-&cpsw_emac1 {
+-	phy_id = <&davinci_mdio>, <2>;
+-	phy-mode = "rgmii";
+-	dual_emac_res_vlan = <2>;
++&tpd12s015 {
++	gpios = <&gpio7 10 GPIO_ACTIVE_HIGH>,	/* gpio7_10, CT CP HPD */
++		<&gpio6 28 GPIO_ACTIVE_HIGH>,	/* gpio6_28, LS OE */
++		<&gpio7 12 GPIO_ACTIVE_HIGH>;	/* gpio7_12/sp1_cs2, HPD */
+ };
+ 
+ &mmc1 {
+-	status = "okay";
+-
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&mmc1_pins_default>;
+-
+-	vmmc-supply = <&ldo1_reg>;
+-	bus-width = <4>;
+-	cd-gpios = <&gpio6 27 GPIO_ACTIVE_LOW>; /* gpio 219 */
+-};
+-
+-&mmc2 {
+-	status = "okay";
+-
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&mmc1_pins_default>;
+-
+ 	vmmc-supply = <&vdd_3v3>;
+-	bus-width = <8>;
+-	ti,non-removable;
+-	cap-mmc-dual-data-rate;
+-};
+-
+-&sata {
+-	status = "okay";
+-};
+-
+-&usb2_phy1 {
+-	phy-supply = <&ldousb_reg>;
+-};
+-
+-&usb2_phy2 {
+-	phy-supply = <&ldousb_reg>;
+-};
+-
+-&usb1 {
+-	dr_mode = "host";
+-};
+-
+-&omap_dwc3_2 {
+-	extcon = <&extcon_usb2>;
+-};
+-
+-&usb2 {
+-	/*
+-	 * Stand alone usage is peripheral only.
+-	 * However, with some resistor modifications
+-	 * this port can be used via expansion connectors
+-	 * as "host" or "dual-role". If so, provide
+-	 * the necessary dr_mode override in the expansion
+-	 * board's DT.
+-	 */
+-	dr_mode = "peripheral";
+-};
+-
+-&cpu_trips {
+-	cpu_alert1: cpu_alert1 {
+-		temperature = <50000>; /* millicelsius */
+-		hysteresis = <2000>; /* millicelsius */
+-		type = "active";
+-	};
+-};
+-
+-&cpu_cooling_maps {
+-	map1 {
+-		trip = <&cpu_alert1>;
+-		cooling-device = <&gpio_fan THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+-	};
+-};
+-
+-&thermal_zones {
+-	board_thermal: board_thermal {
+-		polling-delay-passive = <1250>; /* milliseconds */
+-		polling-delay = <1500>; /* milliseconds */
+-
+-				/* sensor       ID */
+-		thermal-sensors = <&tmp102     0>;
+-
+-		board_trips: trips {
+-			board_alert0: board_alert {
+-				temperature = <40000>; /* millicelsius */
+-				hysteresis = <2000>; /* millicelsius */
+-				type = "active";
+-			};
+-
+-			board_crit: board_crit {
+-				temperature = <105000>; /* millicelsius */
+-				hysteresis = <0>; /* millicelsius */
+-				type = "critical";
+-			};
+-		};
+-
+-		board_cooling_maps: cooling-maps {
+-			map0 {
+-				trip = <&board_alert0>;
+-				cooling-device =
+-				  <&gpio_fan THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+-			};
+-		};
+-       };
+-};
+-
+-&dss {
+-	status = "ok";
+-
+-	vdda_video-supply = <&ldoln_reg>;
+-};
+-
+-&hdmi {
+-	status = "ok";
+-	vdda-supply = <&ldo4_reg>;
+-
+-	port {
+-		hdmi_out: endpoint {
+-			remote-endpoint = <&tpd12s015_in>;
+-		};
+-	};
+-};
+-
+-&pcie1 {
+-	gpios = <&gpio2 8 GPIO_ACTIVE_LOW>;
+-};
+-
+-&mcasp3 {
+-	#sound-dai-cells = <0>;
+-	assigned-clocks = <&mcasp3_ahclkx_mux>;
+-	assigned-clock-parents = <&sys_clkin2>;
+-	status = "okay";
+-
+-	op-mode = <0>;	/* MCASP_IIS_MODE */
+-	tdm-slots = <2>;
+-	/* 4 serializers */
+-	serial-dir = <	/* 0: INACTIVE, 1: TX, 2: RX */
+-		1 2 0 0
+-	>;
+-	tx-num-evt = <32>;
+-	rx-num-evt = <32>;
+-};
+-
+-&mailbox5 {
+-	status = "okay";
+-	mbox_ipu1_ipc3x: mbox_ipu1_ipc3x {
+-		status = "okay";
+-	};
+-	mbox_dsp1_ipc3x: mbox_dsp1_ipc3x {
+-		status = "okay";
+-	};
+-};
+-
+-&mailbox6 {
+-	status = "okay";
+-	mbox_ipu2_ipc3x: mbox_ipu2_ipc3x {
+-		status = "okay";
+-	};
+-	mbox_dsp2_ipc3x: mbox_dsp2_ipc3x {
+-		status = "okay";
+-	};
++	vmmc-aux-supply = <&ldo1_reg>;
+ };
 -- 
 2.9.1.200.gb1ec08f
 
