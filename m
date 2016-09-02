@@ -1,239 +1,85 @@
-From: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-Subject: [RESEND PATCH v4 3/3] Input: Add tps65217 power button driver
-Date: Fri,  2 Sep 2016 12:35:26 +0200
-Message-ID: <20160902103526.5050-4-m.niestroj@grinn-global.com>
-References: <20160902103526.5050-1-m.niestroj@grinn-global.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160902103526.5050-1-m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH 2/2] ARM: dts: am57xx-beagle-x15: Add support for rev B1
+Date: Fri, 2 Sep 2016 16:11:59 +0530
+Message-ID: <dd74f5e1-304f-661e-7fd9-f5f81bcfc55e@ti.com>
+References: <20160902090600.27262-1-nm@ti.com>
+ <20160902090600.27262-3-nm@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160902090600.27262-3-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-This driver enables us to use tps65217's power button as KEY_POWER on
-am335x boards (directly connected button in chiliboard, accessible pin
-via expansion header in beaglebone). This patch has been tested with
-chiliboard.
++ Robert Nelson
 
-Signed-off-by: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
-Depends on patches 1-2 in series and commit
-47d7d5ed68d877269003a392b7008905d65650bb
-("power_supply: tps65217-charger: Add support for IRQs")
-in power-supply's -next branch.
+On Friday 02 September 2016 02:36 PM, Nishanth Menon wrote:
+> Latest update to the BeagleBoard-X15 platform (revision B1)[1] updates
+> for allowing UHS SD cards to function with the split of supply to SD
+> card from a dedicated LDO.
+> 
+> As a result of this, AM57xx BeagleBoard-X15 now uses gpio2_30 instead
+> of gpio6_28 for HDMI because HDMI_LS_OE should now be switched from
+> GPIO6_28(Y9) to GPIO2_30 (AG8) to avoid a 1.8V GPIO toggling a 3.3V
+> SoC input when the SD card is in UHS 1.8V mode.
+> 
+> NOTE: For UHS mode to function, we need full fledged IODelay support
+> in kernel to be functional. IODelay support is yet to be added.
+> 
+> Further, It does not make much sense to spin off a new board
+> compatible flag since there is no real functional benefit for the
+> same.
+> 
+> Note: Even though production version is supposed to be B1, there is
+> over ~200 boards of previous version (A2)[2] out there which continue
+> to get supported with the existing dts file and the production board
+> is now supported as revb1
+> 
+> [1] https://github.com/beagleboard/beagleboard-x15/blob/master/BEAGLEBOARD_X15_REV_B1.pdf
+> [2] http://marc.info/?l=linux-arm-kernel&m=147273929820708&w=2
+> 
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+> 
+> NOTE: even though I have used -C -M option with git-format-patch, the
+> diff for x15.dts might look a little weird. we could alternatively
+> split the patch into two by creating a common dtsi and then
+> introducing revb1 -> but, at least for the moment, I felt it to be an
+> overkill.
+> 
+> Also, please note that even though revb1 is the production platform,
+> there are sufficient quantities of x15 A2s (pre-prod) in the wild
+> currently to leave existing dts in sync with A2 and introduce b1 as a
+> seperate dts (instead of the other way around).
+> 
+>  arch/arm/boot/dts/Makefile                         |   1 +
+>  ...eagle-x15.dts => am57xx-beagle-x15-common.dtsi} |   8 +-
+>  arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts      |  24 +
+>  arch/arm/boot/dts/am57xx-beagle-x15.dts            | 592 +--------------------
 
-Changes v2 -> v4: none
+I understand that there are existing users of A2 boards and so we simply
+cannot remove support for those boards (at least yet).
 
-Changes v1 -> v2:
- * Added information about parent device in tps65217 power button
-   device-tree binding documentation (suggested by Rob)
+But given the small numbers of A2 boards, its also quite likely that we
+will not have enough test coverage for those boards. Especially as years
+pass and there are fewer and fewer people with access to working A2 boards.
 
- .../bindings/input/tps65217-pwrbutton.txt          |  17 +++
- drivers/input/misc/Kconfig                         |  10 ++
- drivers/input/misc/Makefile                        |   1 +
- drivers/input/misc/tps65217-pwrbutton.c            | 131 +++++++++++++++++++++
- 4 files changed, 159 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/input/tps65217-pwrbutton.txt
- create mode 100644 drivers/input/misc/tps65217-pwrbutton.c
+Given that, aren't we increasing the chance of A2 breakage by creating a
+common file - this essentially necessitates that any change to
+am57xx-beagle-x15-common.dtsi is also tested on A2.
 
-diff --git a/Documentation/devicetree/bindings/input/tps65217-pwrbutton.txt b/Documentation/devicetree/bindings/input/tps65217-pwrbutton.txt
-new file mode 100644
-index 0000000..d5f5cce
---- /dev/null
-+++ b/Documentation/devicetree/bindings/input/tps65217-pwrbutton.txt
-@@ -0,0 +1,17 @@
-+Texas Instruments TPS65217 power button
-+
-+This module is part of the TPS65217. For more details about the whole
-+chip see Documentation/devicetree/bindings/regulator/tps65217.txt.
-+
-+This module provides a simple power button event via an Interrupt.
-+
-+Required properties:
-+- compatible: should be "ti,tps65217-pwrbutton"
-+
-+Example:
-+
-+&tps {
-+	tps65217-pwrbutton {
-+		compatible = "ti,tps65217-pwrbutton";
-+	};
-+};
-diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
-index efb0ca8..826f62b6 100644
---- a/drivers/input/misc/Kconfig
-+++ b/drivers/input/misc/Kconfig
-@@ -452,6 +452,16 @@ config INPUT_RETU_PWRBUTTON
- 	  To compile this driver as a module, choose M here. The module will
- 	  be called retu-pwrbutton.
- 
-+config INPUT_TPS65217_PWRBUTTON
-+	tristate "TPS65217 Power button driver"
-+	depends on MFD_TPS65217
-+	help
-+	  Say Y here if you want to enable power button reporting for
-+	  the TPS65217 Power Management IC device.
-+
-+	  To compile this driver as a module, choose M here. The module will
-+	  be called tps65217-pwrbutton.
-+
- config INPUT_TPS65218_PWRBUTTON
- 	tristate "TPS65218 Power button driver"
- 	depends on MFD_TPS65218
-diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
-index 6a1e5e2..bb5ac44 100644
---- a/drivers/input/misc/Makefile
-+++ b/drivers/input/misc/Makefile
-@@ -67,6 +67,7 @@ obj-$(CONFIG_INPUT_SGI_BTNS)		+= sgi_btns.o
- obj-$(CONFIG_INPUT_SIRFSOC_ONKEY)	+= sirfsoc-onkey.o
- obj-$(CONFIG_INPUT_SOC_BUTTON_ARRAY)	+= soc_button_array.o
- obj-$(CONFIG_INPUT_SPARCSPKR)		+= sparcspkr.o
-+obj-$(CONFIG_INPUT_TPS65217_PWRBUTTON)	+= tps65217-pwrbutton.o
- obj-$(CONFIG_INPUT_TPS65218_PWRBUTTON)	+= tps65218-pwrbutton.o
- obj-$(CONFIG_INPUT_TWL4030_PWRBUTTON)	+= twl4030-pwrbutton.o
- obj-$(CONFIG_INPUT_TWL4030_VIBRA)	+= twl4030-vibra.o
-diff --git a/drivers/input/misc/tps65217-pwrbutton.c b/drivers/input/misc/tps65217-pwrbutton.c
-new file mode 100644
-index 0000000..50372bf
---- /dev/null
-+++ b/drivers/input/misc/tps65217-pwrbutton.c
-@@ -0,0 +1,131 @@
-+/*
-+ * Texas Instruments' TPS65217 Power Button Input Driver
-+ *
-+ * Copyright (C) 2016 Grinn - http://www.grinn-global.com/
-+ * Author: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/input.h>
-+#include <linux/interrupt.h>
-+#include <linux/kernel.h>
-+#include <linux/mfd/tps65217.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+
-+struct tps65217_pwrbutton {
-+	struct device *dev;
-+	struct tps65217 *tps;
-+	struct input_dev *idev;
-+};
-+
-+static irqreturn_t tps65217_pb_irq(int irq, void *data)
-+{
-+	struct tps65217_pwrbutton *pwr = data;
-+	unsigned int reg;
-+	int error;
-+
-+	error = tps65217_reg_read(pwr->tps, TPS65217_REG_STATUS, &reg);
-+	if (error) {
-+		dev_err(pwr->dev, "can't read register: %d\n", error);
-+		goto out;
-+	}
-+
-+	if (reg & TPS65217_STATUS_PB) {
-+		input_report_key(pwr->idev, KEY_POWER, 1);
-+		pm_wakeup_event(pwr->dev, 0);
-+	} else {
-+		input_report_key(pwr->idev, KEY_POWER, 0);
-+	}
-+
-+	input_sync(pwr->idev);
-+
-+out:
-+	return IRQ_HANDLED;
-+}
-+
-+static int tps65217_pb_probe(struct platform_device *pdev)
-+{
-+	struct tps65217 *tps = dev_get_drvdata(pdev->dev.parent);
-+	struct device *dev = &pdev->dev;
-+	struct tps65217_pwrbutton *pwr;
-+	struct input_dev *idev;
-+	int error;
-+	int irq;
-+
-+	pwr = devm_kzalloc(dev, sizeof(*pwr), GFP_KERNEL);
-+	if (!pwr)
-+		return -ENOMEM;
-+
-+	idev = devm_input_allocate_device(dev);
-+	if (!idev)
-+		return -ENOMEM;
-+
-+	idev->name = "tps65217_pwrbutton";
-+	idev->phys = "tps65217_pwrbutton/input0";
-+	idev->dev.parent = dev;
-+	idev->id.bustype = BUS_I2C;
-+
-+	input_set_capability(idev, EV_KEY, KEY_POWER);
-+
-+	pwr->tps = tps;
-+	pwr->dev = dev;
-+	pwr->idev = idev;
-+	platform_set_drvdata(pdev, pwr);
-+	device_init_wakeup(dev, true);
-+
-+	irq = platform_get_irq_byname(pdev, "PB");
-+	if (irq < 0) {
-+		dev_err(dev, "No IRQ resource!\n");
-+		return -EINVAL;
-+	}
-+
-+	error = devm_request_threaded_irq(dev, irq, NULL, tps65217_pb_irq,
-+					IRQF_TRIGGER_RISING |
-+					IRQF_TRIGGER_FALLING |
-+					IRQF_ONESHOT,
-+					"tps65217-pwrbutton", pwr);
-+	if (error) {
-+		dev_err(dev, "failed to request IRQ #%d: %d\n",
-+			irq, error);
-+		return error;
-+	}
-+
-+	error = input_register_device(idev);
-+	if (error) {
-+		dev_err(dev, "Can't register power button: %d\n", error);
-+		return error;
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id tps65217_pb_match[] = {
-+	{ .compatible = "ti,tps65217-pwrbutton" },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, tps65217_pb_match);
-+
-+static struct platform_driver tps65217_pb_driver = {
-+	.probe	= tps65217_pb_probe,
-+	.driver	= {
-+		.name	= "tps65217-pwrbutton",
-+		.of_match_table = tps65217_pb_match,
-+	},
-+};
-+module_platform_driver(tps65217_pb_driver);
-+
-+MODULE_DESCRIPTION("TPS65217 Power Button");
-+MODULE_LICENSE("GPL v2");
-+MODULE_AUTHOR("Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>");
--- 
-2.9.3
+Instead, it seems to be easier for maintenance and safer overall if the
+older version has a file of its own which can be kept alone.
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Also, how about renaming the existing dts to am57xx-beagle-x15-reva2.dts
+and let the production version be called am57xx-beagle-x15.dts? Surely
+this will cause some inconvenience to A2 users. But there are few users
+of those and it might be more intuitive for the majority users if the
+file for production version is without a specific version string
+attached. Just a thought though, not sure about it myself either.
+
+Regards,
+Sekhar
