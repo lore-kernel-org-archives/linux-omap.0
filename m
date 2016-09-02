@@ -1,168 +1,113 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ASoC: omap-mcbsp: Add PM QoS support for
- McBSP to prevent glitches
-Date: Fri, 2 Sep 2016 10:30:36 +0300
-Message-ID: <b3a254b2-948f-f04d-3289-fb8fb9f9ab23@ti.com>
-References: <20160829182746.53vrgbxadqodzzug@atomide.com>
- <925ded57-1e91-3db6-9e82-3a3ff5775412@ti.com>
- <20160831141340.h24szdqjnicmt2ew@atomide.com>
- <20160831165959.3sldcjxaci3kdx6z@atomide.com>
- <eef88aa4-b829-1889-f083-eb0359c0dac6@ti.com>
- <20160831194107.wijnbmdns2jjvzkv@atomide.com>
- <5af44090-6902-2ade-be78-378843757a0a@ti.com>
- <20160901145006.xr3ux63cg6f5bh7p@atomide.com>
+From: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
+Subject: Re: [PATCH v4] rtc: omap: Support ext_wakeup configuration
+Date: Fri, 2 Sep 2016 10:13:12 +0200
+Message-ID: <53fbdcb2-99cd-4b9d-7aea-11a2a0fb7fcb@grinn-global.com>
+References: <20160825111912.23017-1-m.niestroj@grinn-global.com>
+ <20160830195903.GA14471@rob-hp-laptop>
+Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20160901145006.xr3ux63cg6f5bh7p@atomide.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Tony Lindgren <tony@atomide.com>, "Kristo, Tero" <t-kristo@ti.com>
-Cc: alsa-devel@alsa-project.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Liam Girdwood <lgirdwood@gmail.com>, Sebastian Reichel <sre@kernel.org>, Mark Brown <broonie@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Pavel Machel <pavel@ucw.cz>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Return-path: <rtc-linux+bncBD7N3SEV2QCRBKPJUS7AKGQEHJNAR4I-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+In-Reply-To: <20160830195903.GA14471@rob-hp-laptop>
+List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <https://groups.google.com/group/rtc-linux
+List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <https://groups.google.com/group/rtc-linux/subscribe>
+To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/01/16 17:50, Tony Lindgren wrote:
-> * Peter Ujfalusi <peter.ujfalusi@ti.com> [160831 23:58]:
->> What is the audio format you are using? sampling rate and how many chann=
-els?
->> cat /proc/asound/card0/pcm0p/sub0/hw_params
-> =
-
-> Just 44.1 stereo mp3 or wav files.
-> =
-
->> What happens if you set the FIFO to 256? Do you still need the 30ms or i=
-t can
->> be higher, like 60ms?
-> =
-
-> No this is not related to the FIFO size. We just need to block off idle m=
-ode
-> for cpuidle as the McBSP hardware is not blocking it.
-
-So this happens with any threshold value? Even in element mode, where we ha=
-ve
-the threshold set to 2?
-
->> When the FIFO is set to 128, it means that after the initial FIFO fill w=
-e will
->> have DMA request coming from McBSP to sDMA with a rate of:
+On 30.08.2016 21:59, Rob Herring wrote:
+> On Thu, Aug 25, 2016 at 01:19:12PM +0200, Marcin Niestroj wrote:
+>> Support configuration of ext_wakeup sources. This patch makes it
+>> possible to enable ext_wakeup and set it's polarity, depending on board
+>> configuration. AM335x's dedicated PMIC (tps65217) uses ext_wakeup to
+>> notify about power-button presses. Handling power-button presses enables
+>> to recover from RTC-only power states correctly.
 >>
->> (1000/sampling_rate) * (FIFO-threshold / channels) =3D DMA_req_distance_=
-in_ms
+>> Signed-off-by: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
+>> ---
+>> Hi,
 >>
->> So in case of 44.1KHz, stereo with 128 FIFO threshold DMA request will c=
-ome at
->> every 1.45ms. If I'm not mistaken. The whole FIFO (1280) holds 14.51ms of
->> audio in this case.
+>> This is a total reimplementation, so it is not based on any of the previos
+>> patch versions. This patch adds support for ext_wakeup using generic pinconf
+>> device-tree bindings, with one added "ti,input-polarity" custom property.
+>> This approach has been suggested by Tony and Grygorii in [1].
 >>
->> I don't see this correlate with the 30ms at all.
-> =
+>> Patch was developed on 4.6, rebased on 4.8-rc3, tested using chiliBoard.
+>>
+>> [1] http://www.spinics.net/lists/devicetree/msg131516.html
+>>
+>>  Documentation/devicetree/bindings/rtc/rtc-omap.txt |  21 +++
+>>  drivers/rtc/Kconfig                                |   1 +
+>>  drivers/rtc/rtc-omap.c                             | 167 ++++++++++++++++++++-
+>>  3 files changed, 181 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/rtc/rtc-omap.txt b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+>> index bf7d11a..5d18373 100644
+>> --- a/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+>> +++ b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+>> @@ -18,6 +18,18 @@ Optional properties:
+>>    through pmic_power_en
+>>  - clocks: Any internal or external clocks feeding in to rtc
+>>  - clock-names: Corresponding names of the clocks
+>> +- pinctrl-0: a phandle pointing to the pin settings for the device
+>> +- pinctrl-names: should be "default"
+>> +
+>> +Optional subnodes:
+>> +- generic pinctrl node
+>> +
+>> +Required pinctrl subnodes properties:
+>> +- pins - Names of ext_wakeup pins to configure
+>> +
+>> +Optional pinctrl subnodes properties:
+>> +- input-enable - Enables ext_wakeup
+>> +- ti,input-polarity - GPIO_ACTIVE_LOW or GPIO_ACTIVE_HIGH depending board
+>
+> This is not a GPIO, so don't use GPIO defines. Just make this boolean
+> with not present ideally being the more common case.
+>
+>>  Example:
+>>
+>> @@ -30,4 +42,13 @@ rtc@1c23000 {
+>>  	system-power-controller;
+>>  	clocks = <&clk_32k_rtc>, <&clk_32768_ck>;
+>>  	clock-names = "ext-clk", "int-clk";
+>> +
+>> +	pinctrl-0 = <&ext_wakeup>;
+>> +	pinctrl-names = "default";
+>> +
+>> +	ext_wakeup: ext_wakeup {
+>
+> Use '-', not '_' in node names.
 
-> It seems we easily have a situation where DMA is done buffering to McBSP,
-> and PMIC is playing audio, and we hit idle. At that point there are no im=
-mediate
-> timers pending and cpuidle determines we can try to hit a deeper idle mod=
-e. As
-> there are no hardware blockers with DMA off and McBSP not blocking, the h=
-ardware
-> hits off mode. This cuts power to McBSP.
-> =
+To be sure... It should look like below?
 
-> Ideally we'd configure McBSP activity to block deeper idle states in the
-> hardware but I don't think we have such a configuration available.
+ext_wakeup: ext-wakeup {
+	pins = "ext_wakeup0";
+	input-enable;
+	ti,active-high;
+}
 
-I wonder why we have not seen this before? I can not recall anything like t=
-his
-with n900 (Jarkko might know that better) neither with n9/n950. On the n9/n=
-950
-I have even put the OMAP3 to OFF during audio playback with the DAC33 and
-still it worked just fine. On the twl4030 audio side we used 1024 or someth=
-ing
-as threshold during audio playback and we do not had QoS placed at all.
-The C state numbers must be different what we had and what we have in mainl=
-ine
-now days, but still this is something I don't expect to happen.
+>
+>> +		pins = "ext_wakeup0";
+>> +		input-enable;
+>> +		ti,input-polarity = <GPIO_ACTIVE_LOW>;
+>> +	};
+>>  };
 
-Why McBSP is not working correctly in smart-idle mode in upstream, when it
-appeared to be working fine on n900/n9/n950?
+-- 
+Marcin Niestroj
 
-> So we just want to tell pm_qos that McBSP can't take any idle states shor=
-ter
-> than 30 ms to prevent cutting off power fro the whole SoC.
-
-based on the numbers in the arch/arm/mach-omap2/cpuidle34xx.c we are trying=
- to
-block C7 since the exit_latency for it is (10000 + 30000)us, right? Or is it
-the traget_residency we need to look at when we set PM_QOS_CPU_DMA_LATENCY?
-
-Still in case of 44.1KHz/Stereo, FIFO threshold at 128 we will have DMA
-requests coming at 1.45ms with the whole FIFO holding 14.51ms of data. In
-order to avoid draining the FIFO, the latency for omap3.mcbsp2 when the aud=
-io
-is 44.1KHz, stereo must be set to 14.51ms maximum, but I would set it to:
-(1000/sampling_rate) * ((FIFOsize - threshold) / channels) in ms.
-
-Certainly not 30ms. What happens if someone changes the C7 state number and=
- it
-is going to be less than 30ms? We will hit C7 and have the same issue? I
-suppose yes.
-This is my main problem with the 30ms. It is just an arbitrary number which
-matches some number in cpuidle34xx.c, but it has nothing to do with the real
-requirement of McBSP, which is that we should not hit a state where the wak=
-eup
-is going to take more time than what we can compensate from the McBSP FIFO.
-
-Furthermore: in case of other McBSPs where they have 128 word FIFO, which
-holds in your use case 1.45ms of audio, how it will survive the C6 wakeup
-latency of (3000 + 8500)us? It can tolerate C3 at maximum, C4 takes (1500 +
-1800)us.
-
-Sure, we will not going to be able to hit C6 with this based on the numbers=
- we
-have in cpuidle34xx.c, but I have no view on how those numbers were calcula=
-ted...
-
->> Do you see anything in the kernel log? If McBSP is not powered and DMA t=
-ries
->> to write data we should see l3 error at least. If the reason is that the
->> system is not able to wake up fast enough to react to the DMA request fr=
-om
->> McBSP, then we should see FIFO underrun from McBSP (this patch will show=
- them:
->> http://mailman.alsa-project.org/pipermail/alsa-devel/2016-August/111671.=
-html)
-> =
-
-> No, nothing as both McBSP and DMA are powered off :) Coming back from
-> idle, from McBSP and DMA point of view things appear as if nothing happen=
-ed.
-> I think we're still missing the save and restore of the McBSP state, but
-> that's a different story and does not help with the fact that we allow
-> cutting off the power to McBSP during playback.
-> =
-
-> With Linux next with the patch above, I do see occasional interrupts
-> for "omap-mcbsp 49022000.mcbsp: TX Buffer Overflow!" but those seem
-> to also happen if I keep the system busy and I don't hear any dropped
-> samples.
-> =
-
->> Have you tried with different sampling rates? That would have similar ef=
-fect
->> as changing the FIFO threshold for the DMA request periods.
-> =
-
-> Not very much, but this seems more like a SoC specific issue.
-
--- =
-
-P=E9ter
+-- 
+You received this message because you are subscribed to "rtc-linux".
+Membership options at http://groups.google.com/group/rtc-linux .
+Please read http://groups.google.com/group/rtc-linux/web/checklist
+before submitting a driver.
+--- 
+You received this message because you are subscribed to the Google Groups "rtc-linux" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit https://groups.google.com/d/optout.
