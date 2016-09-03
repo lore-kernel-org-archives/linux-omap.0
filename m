@@ -1,93 +1,250 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH] ASoC: omap-mcbsp: Add PM QoS support for
- McBSP to prevent glitches
-Date: Sat, 3 Sep 2016 18:08:36 +0200
-Message-ID: <20160903160836.yvyucnp5oefuherq@earth>
-References: <20160831141340.h24szdqjnicmt2ew@atomide.com>
- <20160831165959.3sldcjxaci3kdx6z@atomide.com>
- <eef88aa4-b829-1889-f083-eb0359c0dac6@ti.com>
- <20160831194107.wijnbmdns2jjvzkv@atomide.com>
- <5af44090-6902-2ade-be78-378843757a0a@ti.com>
- <20160901145006.xr3ux63cg6f5bh7p@atomide.com>
- <b3a254b2-948f-f04d-3289-fb8fb9f9ab23@ti.com>
- <20160902155437.GA4152@amd>
- <2ff0fe3b-d2a2-6186-1091-6aa802eb3596@ti.com>
- <20160902200922.getqf6xbiivvamj5@atomide.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [RESEND PATCH v4 3/3] Input: Add tps65217 power button driver
+Date: Sat, 3 Sep 2016 10:53:21 -0700
+Message-ID: <20160903175321.GC32345@dtor-ws>
+References: <20160902103526.5050-1-m.niestroj@grinn-global.com>
+ <20160902103526.5050-4-m.niestroj@grinn-global.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4693698624104834754=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20160902200922.getqf6xbiivvamj5@atomide.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Kristo, Tero" <t-kristo@ti.com>, alsa-devel@alsa-project.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Pavel Machek <pavel@ucw.cz>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160902103526.5050-4-m.niestroj@grinn-global.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Marcin Niestroj <m.niestroj@grinn-global.com>
+Cc: Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-input@vger.kernel.org, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+On Fri, Sep 02, 2016 at 12:35:26PM +0200, Marcin Niestroj wrote:
+> This driver enables us to use tps65217's power button as KEY_POWER on
+> am335x boards (directly connected button in chiliboard, accessible pin
+> via expansion header in beaglebone). This patch has been tested with
+> chiliboard.
+> 
+> Signed-off-by: Marcin Niestroj <m.niestroj@grinn-global.com>
+> Acked-by: Rob Herring <robh@kernel.org>
 
---===============4693698624104834754==
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="e7ogxms2hxkbuo4v"
-Content-Disposition: inline
+Was it produces by soing s/65218/65217 over
+drivers/input/misc/tps65217-pwrbutton.c? I honestly can't see much
+difference between the 2. Can they be probably be combined?
 
+Thanks.
 
---e7ogxms2hxkbuo4v
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> ---
+> Depends on patches 1-2 in series and commit
+> 47d7d5ed68d877269003a392b7008905d65650bb
+> ("power_supply: tps65217-charger: Add support for IRQs")
+> in power-supply's -next branch.
+> 
+> Changes v2 -> v4: none
+> 
+> Changes v1 -> v2:
+>  * Added information about parent device in tps65217 power button
+>    device-tree binding documentation (suggested by Rob)
+> 
+>  .../bindings/input/tps65217-pwrbutton.txt          |  17 +++
+>  drivers/input/misc/Kconfig                         |  10 ++
+>  drivers/input/misc/Makefile                        |   1 +
+>  drivers/input/misc/tps65217-pwrbutton.c            | 131 +++++++++++++++++++++
+>  4 files changed, 159 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/input/tps65217-pwrbutton.txt
+>  create mode 100644 drivers/input/misc/tps65217-pwrbutton.c
+> 
+> diff --git a/Documentation/devicetree/bindings/input/tps65217-pwrbutton.txt b/Documentation/devicetree/bindings/input/tps65217-pwrbutton.txt
+> new file mode 100644
+> index 0000000..d5f5cce
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/input/tps65217-pwrbutton.txt
+> @@ -0,0 +1,17 @@
+> +Texas Instruments TPS65217 power button
+> +
+> +This module is part of the TPS65217. For more details about the whole
+> +chip see Documentation/devicetree/bindings/regulator/tps65217.txt.
+> +
+> +This module provides a simple power button event via an Interrupt.
+> +
+> +Required properties:
+> +- compatible: should be "ti,tps65217-pwrbutton"
+> +
+> +Example:
+> +
+> +&tps {
+> +	tps65217-pwrbutton {
+> +		compatible = "ti,tps65217-pwrbutton";
+> +	};
+> +};
+> diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
+> index efb0ca8..826f62b6 100644
+> --- a/drivers/input/misc/Kconfig
+> +++ b/drivers/input/misc/Kconfig
+> @@ -452,6 +452,16 @@ config INPUT_RETU_PWRBUTTON
+>  	  To compile this driver as a module, choose M here. The module will
+>  	  be called retu-pwrbutton.
+>  
+> +config INPUT_TPS65217_PWRBUTTON
+> +	tristate "TPS65217 Power button driver"
+> +	depends on MFD_TPS65217
+> +	help
+> +	  Say Y here if you want to enable power button reporting for
+> +	  the TPS65217 Power Management IC device.
+> +
+> +	  To compile this driver as a module, choose M here. The module will
+> +	  be called tps65217-pwrbutton.
+> +
+>  config INPUT_TPS65218_PWRBUTTON
+>  	tristate "TPS65218 Power button driver"
+>  	depends on MFD_TPS65218
+> diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
+> index 6a1e5e2..bb5ac44 100644
+> --- a/drivers/input/misc/Makefile
+> +++ b/drivers/input/misc/Makefile
+> @@ -67,6 +67,7 @@ obj-$(CONFIG_INPUT_SGI_BTNS)		+= sgi_btns.o
+>  obj-$(CONFIG_INPUT_SIRFSOC_ONKEY)	+= sirfsoc-onkey.o
+>  obj-$(CONFIG_INPUT_SOC_BUTTON_ARRAY)	+= soc_button_array.o
+>  obj-$(CONFIG_INPUT_SPARCSPKR)		+= sparcspkr.o
+> +obj-$(CONFIG_INPUT_TPS65217_PWRBUTTON)	+= tps65217-pwrbutton.o
+>  obj-$(CONFIG_INPUT_TPS65218_PWRBUTTON)	+= tps65218-pwrbutton.o
+>  obj-$(CONFIG_INPUT_TWL4030_PWRBUTTON)	+= twl4030-pwrbutton.o
+>  obj-$(CONFIG_INPUT_TWL4030_VIBRA)	+= twl4030-vibra.o
+> diff --git a/drivers/input/misc/tps65217-pwrbutton.c b/drivers/input/misc/tps65217-pwrbutton.c
+> new file mode 100644
+> index 0000000..50372bf
+> --- /dev/null
+> +++ b/drivers/input/misc/tps65217-pwrbutton.c
+> @@ -0,0 +1,131 @@
+> +/*
+> + * Texas Instruments' TPS65217 Power Button Input Driver
+> + *
+> + * Copyright (C) 2016 Grinn - http://www.grinn-global.com/
+> + * Author: Marcin Niestroj <m.niestroj@grinn-global.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+> + * kind, whether express or implied; without even the implied warranty
+> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <linux/init.h>
+> +#include <linux/input.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/kernel.h>
+> +#include <linux/mfd/tps65217.h>
+> +#include <linux/module.h>
+> +#include <linux/of.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/slab.h>
+> +
+> +struct tps65217_pwrbutton {
+> +	struct device *dev;
+> +	struct tps65217 *tps;
+> +	struct input_dev *idev;
+> +};
+> +
+> +static irqreturn_t tps65217_pb_irq(int irq, void *data)
+> +{
+> +	struct tps65217_pwrbutton *pwr = data;
+> +	unsigned int reg;
+> +	int error;
+> +
+> +	error = tps65217_reg_read(pwr->tps, TPS65217_REG_STATUS, &reg);
+> +	if (error) {
+> +		dev_err(pwr->dev, "can't read register: %d\n", error);
+> +		goto out;
+> +	}
+> +
+> +	if (reg & TPS65217_STATUS_PB) {
+> +		input_report_key(pwr->idev, KEY_POWER, 1);
+> +		pm_wakeup_event(pwr->dev, 0);
+> +	} else {
+> +		input_report_key(pwr->idev, KEY_POWER, 0);
+> +	}
+> +
+> +	input_sync(pwr->idev);
+> +
+> +out:
+> +	return IRQ_HANDLED;
+> +}
+> +
+> +static int tps65217_pb_probe(struct platform_device *pdev)
+> +{
+> +	struct tps65217 *tps = dev_get_drvdata(pdev->dev.parent);
+> +	struct device *dev = &pdev->dev;
+> +	struct tps65217_pwrbutton *pwr;
+> +	struct input_dev *idev;
+> +	int error;
+> +	int irq;
+> +
+> +	pwr = devm_kzalloc(dev, sizeof(*pwr), GFP_KERNEL);
+> +	if (!pwr)
+> +		return -ENOMEM;
+> +
+> +	idev = devm_input_allocate_device(dev);
+> +	if (!idev)
+> +		return -ENOMEM;
+> +
+> +	idev->name = "tps65217_pwrbutton";
+> +	idev->phys = "tps65217_pwrbutton/input0";
+> +	idev->dev.parent = dev;
+> +	idev->id.bustype = BUS_I2C;
+> +
+> +	input_set_capability(idev, EV_KEY, KEY_POWER);
+> +
+> +	pwr->tps = tps;
+> +	pwr->dev = dev;
+> +	pwr->idev = idev;
+> +	platform_set_drvdata(pdev, pwr);
+> +	device_init_wakeup(dev, true);
+> +
+> +	irq = platform_get_irq_byname(pdev, "PB");
+> +	if (irq < 0) {
+> +		dev_err(dev, "No IRQ resource!\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	error = devm_request_threaded_irq(dev, irq, NULL, tps65217_pb_irq,
+> +					IRQF_TRIGGER_RISING |
+> +					IRQF_TRIGGER_FALLING |
+> +					IRQF_ONESHOT,
+> +					"tps65217-pwrbutton", pwr);
+> +	if (error) {
+> +		dev_err(dev, "failed to request IRQ #%d: %d\n",
+> +			irq, error);
+> +		return error;
+> +	}
+> +
+> +	error = input_register_device(idev);
+> +	if (error) {
+> +		dev_err(dev, "Can't register power button: %d\n", error);
+> +		return error;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct of_device_id tps65217_pb_match[] = {
+> +	{ .compatible = "ti,tps65217-pwrbutton" },
+> +	{ },
+> +};
+> +MODULE_DEVICE_TABLE(of, tps65217_pb_match);
+> +
+> +static struct platform_driver tps65217_pb_driver = {
+> +	.probe	= tps65217_pb_probe,
+> +	.driver	= {
+> +		.name	= "tps65217-pwrbutton",
+> +		.of_match_table = tps65217_pb_match,
+> +	},
+> +};
+> +module_platform_driver(tps65217_pb_driver);
+> +
+> +MODULE_DESCRIPTION("TPS65217 Power Button");
+> +MODULE_LICENSE("GPL v2");
+> +MODULE_AUTHOR("Marcin Niestroj <m.niestroj@grinn-global.com>");
+> -- 
+> 2.9.3
+> 
 
-Hi,
-
-On Fri, Sep 02, 2016 at 01:09:23PM -0700, Tony Lindgren wrote:
-> > So it must be possible to reproduce it on BeagleBoard-xm...
-> > I will try to get the PM working on it and let's see (hear).
->=20
-> Yeah you can do that quite easily with current mainline or next with
-> omap2plus_defconfig. Just use minimal modules and make sure *hci USB
-> kernel modules are not loaded. So root on MMC, not NFS. The same goes
-> for few other modules, at least hsi and isp used to block idle but I
-> have not checked the recent status for those.
-
-hsi should be fixed since 9c99e5e51988, which is part of 4.8.
-
-> [...]
-
--- Sebastian
-
---e7ogxms2hxkbuo4v
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJXyvWBAAoJENju1/PIO/qa8e4P/iRRtIdAF6xJg9dyR8c2is6T
-h/Y00Xm9MXjomFYRipuB1RBzJySBKVfWjfqcCTcBXTMFpEVrc1xxhZz5ObsACYWk
-8EEkJYmcYnTdCoY/J81Czc6BOUWU++KJt+3xZzBBhqgakkLa852SD4CSqDjmqLCi
-H79d8ItxbGPKCaovB5mK31m7dGi0J0csj35KR0hhosyJm81dQSB1zaOniedseJTM
-6TLjCzoc17jgvARSH2hRazWG5RGAJoVjuF/85BBciOWS7W3eRbuJy+k4Y9TUgAaX
-/nXiwwnLDPz6SdSjUq9Y/TAOZ43zFowsW923jutbu7JehOMOhQHf0RzEqcNV128Z
-/ASgvrBrAOlhVY2sEfwIFj6HK9zhYpmEQrViLM+cCwi39H3nmdEkB2eEVzf0zevs
-2Azjy1cQoaCzstnDw1DrVlHMFNUn1ZJbSoHJqc4FhCQ2sgUdXZxNcbODD3PAjqIu
-n3kokGFHjsl8QtOlDgS7Cy1v+aqzQC7nZ0PJ5O/NIvVRiYu/zd141tTt3KMvny8v
-+P2jtcDCSJ7USXjjgt2Pq4l+07r/mCiys/QndeCl8CQgGIFgOmc1YNgENPCnPbpW
-Tyf53HS2hTazRmNcqxSqx7M7C763twNNGuGPp5AofvO1/xqt0S89GyZiq9QjjU1x
-UcUtFN0DKOFGvOp1aU+M
-=EzLB
------END PGP SIGNATURE-----
-
---e7ogxms2hxkbuo4v--
-
---===============4693698624104834754==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============4693698624104834754==--
+-- 
+Dmitry
