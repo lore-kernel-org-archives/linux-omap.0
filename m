@@ -1,37 +1,59 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH] ARM: dts: omap3-gta04: reduce panel backlight PWM frequency to 83Hz
-Date: Mon,  5 Sep 2016 11:16:38 +0200
-Message-ID: <954d43b570092fe92b8b49cf8f475c027d3d8342.1473066997.git.hns@goldelico.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, marek@goldelico.com
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv3 03/11] crypto: omap-sham: implement context
+ export/import APIs
+Date: Mon, 5 Sep 2016 15:06:05 +0300
+Message-ID: <0e19ed55-f24b-ad98-215b-1eb318193f06@ti.com>
+References: <1470306526-27219-1-git-send-email-t-kristo@ti.com>
+ <1470306526-27219-4-git-send-email-t-kristo@ti.com>
+ <20160809100633.GA6751@gondor.apana.org.au>
+ <d828fca9-a97a-7722-c4cb-24e07816cbc4@ti.com>
+ <20160901033320.GA650@gondor.apana.org.au>
+ <60a5ed40-5552-3ec8-fa21-7e6fb8213fc3@ti.com>
+ <20160901061630.GB650@gondor.apana.org.au>
+ <70468d4d-9f26-1bad-ace1-4b7c5cf43b52@ti.com>
+ <20160901071958.GA2076@gondor.apana.org.au>
+ <4c45de7f-002c-48b5-c950-f445354adb09@ti.com>
+ <20160901073113.GA2232@gondor.apana.org.au>
+ <9af173f7-cc94-a92f-80ee-c746d97ab110@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <9af173f7-cc94-a92f-80ee-c746d97ab110@ti.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: lokeshvutla@ti.com, davem@davemloft.net, linux-crypto@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This helps to get 100% intensity closer to "always on".
+On 01/09/16 10:46, Tero Kristo wrote:
+> On 01/09/16 10:31, Herbert Xu wrote:
+>> On Thu, Sep 01, 2016 at 10:28:47AM +0300, Tero Kristo wrote:
+>>>
+>>> Yeah, the flush should do the trick now. Kind of a chicken-egg
+>>> problem here. :P How do you see the situation with the above
+>>> explanation?
+>>
+>> The export function is not allowed to sleep so you must not wait
+>> for the hardware to complete in it.
+>>
+>> If you need to wait, then you must use the completion mechanism.
+>
+> I don't think export is allowed to return -EINPROGRESS either? At least
+> currently the kernel pieces using this functionality won't work if I do
+> that.
+>
+> If thats the case, I need to think of something else to handle this...
+>
+> -Tero
+>
 
-It compensates for an effect of dmtimer which at 100% still emits short
-"off" impulses and the startup-time of the DC/DC converter makes
-backlight intensity not reach full scale. The lower the PWM frequency
-is, the smaller is this effect.
+Hi Herbert,
 
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
----
- arch/arm/boot/dts/omap3-gta04.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Additional request, would it be possible for you to check the rest of 
+the series and just ignore patches #2 and #3 for now, the rest don't 
+have any dependencies against these and can be applied cleanly without.
 
-diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index c09a057..94f12dd 100644
---- a/arch/arm/boot/dts/omap3-gta04.dtsi
-+++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -102,7 +102,7 @@
- 
- 	backlight {
- 		compatible = "pwm-backlight";
--		pwms = <&pwm11 0 2000000 0>;
-+		pwms = <&pwm11 0 12000000 0>;
- 		pwm-names = "backlight";
- 		brightness-levels = <0 11 20 30 40 50 60 70 80 90 100>;
- 		default-brightness-level = <9>;	/* => 90 */
--- 
-2.7.3
+I would like to see these move forward while I figure out how to handle 
+the buffer / export+import...
+
+-Tero
