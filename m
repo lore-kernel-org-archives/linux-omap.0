@@ -1,59 +1,40 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv3 03/11] crypto: omap-sham: implement context
- export/import APIs
-Date: Mon, 5 Sep 2016 15:06:05 +0300
-Message-ID: <0e19ed55-f24b-ad98-215b-1eb318193f06@ti.com>
-References: <1470306526-27219-1-git-send-email-t-kristo@ti.com>
- <1470306526-27219-4-git-send-email-t-kristo@ti.com>
- <20160809100633.GA6751@gondor.apana.org.au>
- <d828fca9-a97a-7722-c4cb-24e07816cbc4@ti.com>
- <20160901033320.GA650@gondor.apana.org.au>
- <60a5ed40-5552-3ec8-fa21-7e6fb8213fc3@ti.com>
- <20160901061630.GB650@gondor.apana.org.au>
- <70468d4d-9f26-1bad-ace1-4b7c5cf43b52@ti.com>
- <20160901071958.GA2076@gondor.apana.org.au>
- <4c45de7f-002c-48b5-c950-f445354adb09@ti.com>
- <20160901073113.GA2232@gondor.apana.org.au>
- <9af173f7-cc94-a92f-80ee-c746d97ab110@ti.com>
+From: "R, Vignesh" <vigneshr@ti.com>
+Subject: Re: [PATCH] pwm: pwm-tipwmss: Remove all pm_runtime gets and puts
+ from the driver
+Date: Mon, 5 Sep 2016 19:13:59 +0530
+Message-ID: <780acbff-615f-d6c4-eb6b-1d78fba74e28@ti.com>
+References: <20160808100915.30149-1-vigneshr@ti.com>
+ <20160905065109.GE3532@ulmo.ba.sec>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <9af173f7-cc94-a92f-80ee-c746d97ab110@ti.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: lokeshvutla@ti.com, davem@davemloft.net, linux-crypto@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <20160905065109.GE3532@ulmo.ba.sec>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Thierry Reding <thierry.reding@gmail.com>
+Cc: "Sarha, Jyri" <jsarha@ti.com>, "Gerlach, Dave" <d-gerlach@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-pwm@vger.kernel.org" <linux-pwm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 01/09/16 10:46, Tero Kristo wrote:
-> On 01/09/16 10:31, Herbert Xu wrote:
->> On Thu, Sep 01, 2016 at 10:28:47AM +0300, Tero Kristo wrote:
->>>
->>> Yeah, the flush should do the trick now. Kind of a chicken-egg
->>> problem here. :P How do you see the situation with the above
->>> explanation?
+
+
+On 9/5/2016 12:21 PM, Thierry Reding wrote:
+> On Mon, Aug 08, 2016 at 03:39:15PM +0530, Vignesh R wrote:
+>> From: Jyri Sarha <jsarha@ti.com>
 >>
->> The export function is not allowed to sleep so you must not wait
->> for the hardware to complete in it.
+>> Remove all pm_runtime gets and puts, and dummy pm_ops, from the
+>> pwm-tipwmss driver as there is no direct hardware access. The runtime PM
+>> needs to be enabled, so that the runtime PM framework takes care of
+>> enabling/disabling of PWMSS clock when submodules of PWMSS (ECAP or
+>> EHRPWM) call pm_runtime APIs. With this change PWMSS clock goes to
+>> idle when none of the submodules are in use.
 >>
->> If you need to wait, then you must use the completion mechanism.
->
-> I don't think export is allowed to return -EINPROGRESS either? At least
-> currently the kernel pieces using this functionality won't work if I do
-> that.
->
-> If thats the case, I need to think of something else to handle this...
->
-> -Tero
->
+>> Signed-off-by: Jyri Sarha <jsarha@ti.com>
+>> Signed-off-by: Vignesh R <vigneshr@ti.com>
+>> ---
+>>  drivers/pwm/pwm-tipwmss.c | 19 -------------------
+>>  1 file changed, 19 deletions(-)
+> 
+> Applied, with a slightly modified commit message.
+> 
 
-Hi Herbert,
-
-Additional request, would it be possible for you to check the rest of 
-the series and just ignore patches #2 and #3 for now, the rest don't 
-have any dependencies against these and can be applied cleanly without.
-
-I would like to see these move forward while I figure out how to handle 
-the buffer / export+import...
-
--Tero
+Thanks!
