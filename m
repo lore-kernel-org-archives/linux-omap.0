@@ -1,250 +1,79 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [RESEND PATCH v4 3/3] Input: Add tps65217 power button driver
-Date: Sat, 3 Sep 2016 10:53:21 -0700
-Message-ID: <20160903175321.GC32345@dtor-ws>
-References: <20160902103526.5050-1-m.niestroj@grinn-global.com>
- <20160902103526.5050-4-m.niestroj@grinn-global.com>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [PATCH] pwm: twl: Reliably disable TWL6030 PWMs
+Date: Mon, 5 Sep 2016 07:14:46 +0200
+Message-ID: <20160905051446.GA3532@ulmo.ba.sec>
+References: <1459277745-16878-1-git-send-email-contact@paulk.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="d6Gm4EdcadzBjdND"
+Return-path: <linux-pwm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160902103526.5050-4-m.niestroj@grinn-global.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Marcin Niestroj <m.niestroj@grinn-global.com>
-Cc: Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-input@vger.kernel.org, devicetree@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
+In-Reply-To: <1459277745-16878-1-git-send-email-contact@paulk.fr>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Paul Kocialkowski <contact@paulk.fr>
+Cc: linux-kernel@vger.kernel.org, linux-pwm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Sep 02, 2016 at 12:35:26PM +0200, Marcin Niestroj wrote:
-> This driver enables us to use tps65217's power button as KEY_POWER on
-> am335x boards (directly connected button in chiliboard, accessible pin
-> via expansion header in beaglebone). This patch has been tested with
-> chiliboard.
-> 
-> Signed-off-by: Marcin Niestroj <m.niestroj@grinn-global.com>
-> Acked-by: Rob Herring <robh@kernel.org>
 
-Was it produces by soing s/65218/65217 over
-drivers/input/misc/tps65217-pwrbutton.c? I honestly can't see much
-difference between the 2. Can they be probably be combined?
+--d6Gm4EdcadzBjdND
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks.
-
+On Tue, Mar 29, 2016 at 08:55:45PM +0200, Paul Kocialkowski wrote:
+> The current TWL6030 code for the TWL PWM driver does not reliably disable=
+ the
+> PWM output, as tested with LEDs. The previous commit to that driver intro=
+duced
+> that regression.
+>=20
+> However, it does make sense to disable the PWM clock after resetting the =
+PWM,
+> but for some obscure reason, doing it all at once simply doesn't work.
+>=20
+> The TWL6030 datasheet mentions that PWMs have to be disabled in two disti=
+nct
+> steps. However, clearing the clock enable bit in a second step (after iss=
+uing a
+> reset first) does not work.
+>=20
+> The only approach that works is the one that was in place before the prev=
+ious
+> commit to the driver. It consists in enabling the PWM clock after issuing=
+ a
+> reset. This is what TI kernel trees and production code seem to be using.
+>=20
+> However, adding an extra step to disable the PWM clock seems to work reli=
+ably,
+> despite looking quite odd.
+>=20
+> Signed-off-by: Paul Kocialkowski <contact@paulk.fr>
 > ---
-> Depends on patches 1-2 in series and commit
-> 47d7d5ed68d877269003a392b7008905d65650bb
-> ("power_supply: tps65217-charger: Add support for IRQs")
-> in power-supply's -next branch.
-> 
-> Changes v2 -> v4: none
-> 
-> Changes v1 -> v2:
->  * Added information about parent device in tps65217 power button
->    device-tree binding documentation (suggested by Rob)
-> 
->  .../bindings/input/tps65217-pwrbutton.txt          |  17 +++
->  drivers/input/misc/Kconfig                         |  10 ++
->  drivers/input/misc/Makefile                        |   1 +
->  drivers/input/misc/tps65217-pwrbutton.c            | 131 +++++++++++++++++++++
->  4 files changed, 159 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/input/tps65217-pwrbutton.txt
->  create mode 100644 drivers/input/misc/tps65217-pwrbutton.c
-> 
-> diff --git a/Documentation/devicetree/bindings/input/tps65217-pwrbutton.txt b/Documentation/devicetree/bindings/input/tps65217-pwrbutton.txt
-> new file mode 100644
-> index 0000000..d5f5cce
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/input/tps65217-pwrbutton.txt
-> @@ -0,0 +1,17 @@
-> +Texas Instruments TPS65217 power button
-> +
-> +This module is part of the TPS65217. For more details about the whole
-> +chip see Documentation/devicetree/bindings/regulator/tps65217.txt.
-> +
-> +This module provides a simple power button event via an Interrupt.
-> +
-> +Required properties:
-> +- compatible: should be "ti,tps65217-pwrbutton"
-> +
-> +Example:
-> +
-> +&tps {
-> +	tps65217-pwrbutton {
-> +		compatible = "ti,tps65217-pwrbutton";
-> +	};
-> +};
-> diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
-> index efb0ca8..826f62b6 100644
-> --- a/drivers/input/misc/Kconfig
-> +++ b/drivers/input/misc/Kconfig
-> @@ -452,6 +452,16 @@ config INPUT_RETU_PWRBUTTON
->  	  To compile this driver as a module, choose M here. The module will
->  	  be called retu-pwrbutton.
->  
-> +config INPUT_TPS65217_PWRBUTTON
-> +	tristate "TPS65217 Power button driver"
-> +	depends on MFD_TPS65217
-> +	help
-> +	  Say Y here if you want to enable power button reporting for
-> +	  the TPS65217 Power Management IC device.
-> +
-> +	  To compile this driver as a module, choose M here. The module will
-> +	  be called tps65217-pwrbutton.
-> +
->  config INPUT_TPS65218_PWRBUTTON
->  	tristate "TPS65218 Power button driver"
->  	depends on MFD_TPS65218
-> diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
-> index 6a1e5e2..bb5ac44 100644
-> --- a/drivers/input/misc/Makefile
-> +++ b/drivers/input/misc/Makefile
-> @@ -67,6 +67,7 @@ obj-$(CONFIG_INPUT_SGI_BTNS)		+= sgi_btns.o
->  obj-$(CONFIG_INPUT_SIRFSOC_ONKEY)	+= sirfsoc-onkey.o
->  obj-$(CONFIG_INPUT_SOC_BUTTON_ARRAY)	+= soc_button_array.o
->  obj-$(CONFIG_INPUT_SPARCSPKR)		+= sparcspkr.o
-> +obj-$(CONFIG_INPUT_TPS65217_PWRBUTTON)	+= tps65217-pwrbutton.o
->  obj-$(CONFIG_INPUT_TPS65218_PWRBUTTON)	+= tps65218-pwrbutton.o
->  obj-$(CONFIG_INPUT_TWL4030_PWRBUTTON)	+= twl4030-pwrbutton.o
->  obj-$(CONFIG_INPUT_TWL4030_VIBRA)	+= twl4030-vibra.o
-> diff --git a/drivers/input/misc/tps65217-pwrbutton.c b/drivers/input/misc/tps65217-pwrbutton.c
-> new file mode 100644
-> index 0000000..50372bf
-> --- /dev/null
-> +++ b/drivers/input/misc/tps65217-pwrbutton.c
-> @@ -0,0 +1,131 @@
-> +/*
-> + * Texas Instruments' TPS65217 Power Button Input Driver
-> + *
-> + * Copyright (C) 2016 Grinn - http://www.grinn-global.com/
-> + * Author: Marcin Niestroj <m.niestroj@grinn-global.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-> + * kind, whether express or implied; without even the implied warranty
-> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/init.h>
-> +#include <linux/input.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/kernel.h>
-> +#include <linux/mfd/tps65217.h>
-> +#include <linux/module.h>
-> +#include <linux/of.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/slab.h>
-> +
-> +struct tps65217_pwrbutton {
-> +	struct device *dev;
-> +	struct tps65217 *tps;
-> +	struct input_dev *idev;
-> +};
-> +
-> +static irqreturn_t tps65217_pb_irq(int irq, void *data)
-> +{
-> +	struct tps65217_pwrbutton *pwr = data;
-> +	unsigned int reg;
-> +	int error;
-> +
-> +	error = tps65217_reg_read(pwr->tps, TPS65217_REG_STATUS, &reg);
-> +	if (error) {
-> +		dev_err(pwr->dev, "can't read register: %d\n", error);
-> +		goto out;
-> +	}
-> +
-> +	if (reg & TPS65217_STATUS_PB) {
-> +		input_report_key(pwr->idev, KEY_POWER, 1);
-> +		pm_wakeup_event(pwr->dev, 0);
-> +	} else {
-> +		input_report_key(pwr->idev, KEY_POWER, 0);
-> +	}
-> +
-> +	input_sync(pwr->idev);
-> +
-> +out:
-> +	return IRQ_HANDLED;
-> +}
-> +
-> +static int tps65217_pb_probe(struct platform_device *pdev)
-> +{
-> +	struct tps65217 *tps = dev_get_drvdata(pdev->dev.parent);
-> +	struct device *dev = &pdev->dev;
-> +	struct tps65217_pwrbutton *pwr;
-> +	struct input_dev *idev;
-> +	int error;
-> +	int irq;
-> +
-> +	pwr = devm_kzalloc(dev, sizeof(*pwr), GFP_KERNEL);
-> +	if (!pwr)
-> +		return -ENOMEM;
-> +
-> +	idev = devm_input_allocate_device(dev);
-> +	if (!idev)
-> +		return -ENOMEM;
-> +
-> +	idev->name = "tps65217_pwrbutton";
-> +	idev->phys = "tps65217_pwrbutton/input0";
-> +	idev->dev.parent = dev;
-> +	idev->id.bustype = BUS_I2C;
-> +
-> +	input_set_capability(idev, EV_KEY, KEY_POWER);
-> +
-> +	pwr->tps = tps;
-> +	pwr->dev = dev;
-> +	pwr->idev = idev;
-> +	platform_set_drvdata(pdev, pwr);
-> +	device_init_wakeup(dev, true);
-> +
-> +	irq = platform_get_irq_byname(pdev, "PB");
-> +	if (irq < 0) {
-> +		dev_err(dev, "No IRQ resource!\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	error = devm_request_threaded_irq(dev, irq, NULL, tps65217_pb_irq,
-> +					IRQF_TRIGGER_RISING |
-> +					IRQF_TRIGGER_FALLING |
-> +					IRQF_ONESHOT,
-> +					"tps65217-pwrbutton", pwr);
-> +	if (error) {
-> +		dev_err(dev, "failed to request IRQ #%d: %d\n",
-> +			irq, error);
-> +		return error;
-> +	}
-> +
-> +	error = input_register_device(idev);
-> +	if (error) {
-> +		dev_err(dev, "Can't register power button: %d\n", error);
-> +		return error;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct of_device_id tps65217_pb_match[] = {
-> +	{ .compatible = "ti,tps65217-pwrbutton" },
-> +	{ },
-> +};
-> +MODULE_DEVICE_TABLE(of, tps65217_pb_match);
-> +
-> +static struct platform_driver tps65217_pb_driver = {
-> +	.probe	= tps65217_pb_probe,
-> +	.driver	= {
-> +		.name	= "tps65217-pwrbutton",
-> +		.of_match_table = tps65217_pb_match,
-> +	},
-> +};
-> +module_platform_driver(tps65217_pb_driver);
-> +
-> +MODULE_DESCRIPTION("TPS65217 Power Button");
-> +MODULE_LICENSE("GPL v2");
-> +MODULE_AUTHOR("Marcin Niestroj <m.niestroj@grinn-global.com>");
-> -- 
-> 2.9.3
-> 
+>  drivers/pwm/pwm-twl.c | 16 ++++++++++++++++
+>  1 file changed, 16 insertions(+)
 
--- 
-Dmitry
+Applied, thanks.
+
+Thierry
+
+--d6Gm4EdcadzBjdND
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAABCAAGBQJXzP9EAAoJEN0jrNd/PrOhJZ0P/RknLyUbkHObwQVEmFqTfokE
+z6s982doQrscQLej9/hlBMtF/PG5DdDNC736bmEaU6r7RnWcK8/qlaheRql5wE2X
+eOMWB0EIS91WzYQrlCSwpv+Sj/1BKFOgka30JsNDGGtsrwA+57RsgKMONqeFg+ST
+AljzbqNlVSFqZCBwR9mVL/OAB3rtrTVX86afkVru04AyJBxdXgnRm69mlOFYUh4L
+lrVJNUPrmaDUVv8uX7/lBKV33DqEdO2x4d75Z1Wojq9eOiqOLYr/GyRmwJtwynvS
+Baqmmfru6L1gMxVn+gB/8h+pcoyzoTDU5OBJGWh7uXgDdFdYr79nX+OYwGB+a4Xx
+eWfC+111NW4D2gfUSFKg9MruExt2M9IwjFlga+wqKNk4S/i5a/16Qf6isHbR/+6k
+nAcbIA5L3DL//fl1lnawUU/HJjcW0EE3Wchp3x4n1w+OZxgtBEYNxpH5j19WhuLU
+GwKC/8AMqOecSemund1C3LaQ9xLxhR1yGrbQme1Jggvi3GwEqItRHEasmzhw0CMi
+buXDpHmaeiQ4uLeTi/tdm4ADtLTDrLDQGCyBPA9/bWTy5+BqW+pzgr4pkp65bkyu
+6H54iKJY7Y4OfKjKpyXc5MpmY4IcTJERAVa8LqO/rLP1YZTOlOhELpcSbVsvl+Jp
+bUBp1ZC8Yoce9dW1FzS8
+=ia8M
+-----END PGP SIGNATURE-----
+
+--d6Gm4EdcadzBjdND--
