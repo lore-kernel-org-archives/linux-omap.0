@@ -1,65 +1,71 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Subject: Re: [PATCH] pwm: pwm-tipwmss: Remove all pm_runtime gets and puts
- from the driver
-Date: Mon, 5 Sep 2016 08:51:09 +0200
-Message-ID: <20160905065109.GE3532@ulmo.ba.sec>
-References: <20160808100915.30149-1-vigneshr@ti.com>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+        <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: Re: [PATCH v3 0/2] AM335x-ICE: Add support for rotary switch
+Date: Mon, 5 Sep 2016 09:50:42 +0200
+Message-ID: <20160905075042.zeumdequro3bp3bj@pengutronix.de>
+References: <20160824075859.30979-1-vigneshr@ti.com>
+ <c5385d42-14e4-d5ca-370e-5b04e37d873d@zonque.org>
+ <5294e820-4946-a196-549f-76a349b6606d@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="5oH/S/bF6lOfqCQb"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160808100915.30149-1-vigneshr@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Jyri Sarha <jsarha@ti.com>, Dave Gerlach <d-gerlach@ti.com>, linux-omap@vger.kernel.org, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <5294e820-4946-a196-549f-76a349b6606d-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Cc: Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Daniel Hung-yu Wu <hywu-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Grant Grundler <grundler-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, S Twiss <stwiss.opensource-WBD+wuPFNBhBDgjK7y7TUQ@public.gmane.org>, Moritz Fischer <moritz.fischer-+aYTwkv1SeIAvxtiuMwx3w@public.gmane.org>, Jorge Ramirez-Ortiz <jorge.ramirez-ortiz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Andrew F . Davis" <afd-l0cyMroinI0@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+Hello,
 
---5oH/S/bF6lOfqCQb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Wed, Aug 24, 2016 at 02:45:17PM +0530, Vignesh R wrote:
+> On Wednesday 24 August 2016 02:05 PM, Daniel Mack wrote:
+> > On 08/24/2016 09:58 AM, Vignesh R wrote:
+> >> This series adds support for rotary-switch on AM335x-ICE that is
+> >> connected to TI PCA9536 I2C GPIO expander.
+> >> First patch adds new generic driver to read status of group of GPIO
+> >> lines and report the value as an input event. The second patch adds DT
+> >> entries for the same.
+> >>
+> >> v2: https://lkml.org/lkml/2016/8/23/111
+> >> v1: https://lkml.org/lkml/2016/8/12/7
+> > 
+> > Is there a reason why the rotary-encoder driver cannot handle this?
+> > Commit 7dde4e74744 ("Input: rotary-encoder - support more than 2 gpios
+> > as input") added support for that mode AFAIU.
+> > 
+> 
+> Rotary encoder driver handles incremental encoders only and does not
+> support absolute encoders. The rotary switch on am335x-ice is different
+> from the incremental encoders in the
+> sense that GPIO line status directly reflect the position(number)
+> pointed by the dial of the encoder. So, there is no need to count steps
+> or know the direction of rotation as it does not matter.
 
-On Mon, Aug 08, 2016 at 03:39:15PM +0530, Vignesh R wrote:
-> From: Jyri Sarha <jsarha@ti.com>
->=20
-> Remove all pm_runtime gets and puts, and dummy pm_ops, from the
-> pwm-tipwmss driver as there is no direct hardware access. The runtime PM
-> needs to be enabled, so that the runtime PM framework takes care of
-> enabling/disabling of PWMSS clock when submodules of PWMSS (ECAP or
-> EHRPWM) call pm_runtime APIs. With this change PWMSS clock goes to
-> idle when none of the submodules are in use.
->=20
-> Signed-off-by: Jyri Sarha <jsarha@ti.com>
-> Signed-off-by: Vignesh R <vigneshr@ti.com>
-> ---
->  drivers/pwm/pwm-tipwmss.c | 19 -------------------
->  1 file changed, 19 deletions(-)
+I'd still prefer to expand drivers/input/misc/rotary_encoder.c to handle
+this. Yes, there is no reason to count steps or determine the direction
+of a rotation in this case, but still there is much code to share and
+IMHO it's ok that a driver that handles several types of similar devices
+does too much for some special cases.
 
-Applied, with a slightly modified commit message.
+> I did try to enhance rotary-encoder driver to support absolute
+> encoder[1] but the comment there was to write new driver that simply
+> translates gpio-encoded value into ABS* event. Indeed, the new driver
+> looks more simple and can handle more such hardwares.
 
-Thanks,
-Thierry
+Which type of hardware can be handled by your driver that the generic
+rotary encoder cannot? I guess it's just a matter of a (simple) patch?
 
---5oH/S/bF6lOfqCQb
-Content-Type: application/pgp-signature; name="signature.asc"
+Best regards
+Uwe
 
------BEGIN PGP SIGNATURE-----
+> [1] https://lkml.org/lkml/2016/5/19/98
 
-iQIcBAABCAAGBQJXzRXdAAoJEN0jrNd/PrOh5pIP/A2HAy2srZRO/Q+nsChB2nyp
-ciWfGBXXdh2Y6swndxGM42wTfjhdoJGkmCCReH/cIUgghSLIaZNu0C6oh1zRwMoz
-2QHAlmj+ig/z/eRHrbLGzo4H6BPzpQCt/z99FTb93dOdW/ElXDFy0q82zbTJUqPV
-HvG3prxl3pYYvVuv3k2/8Nb/mgB/LkTRNVmlXd7Oska1nwAHjxyySpen8QGiITQm
-4B8RPyoDBNknpadqIc0jmJMdFdlvg+oR3FGN6oYAm/IPCOl5WmZY98s7Z1BSrZg0
-qP6rQHNbBGj0AJUhJDoxYeeXqPWIy7k5NsrP6sFWF81FnYL8PhkwF8d1JOImNlxq
-ZXjJqRJkwUUyK7yRQiZXgFFVI3KYV2eQO76k2eIQwpSB4nH2MESd2Jl5jNrfH+AZ
-9R80Q4CTg0Gf0PLn9Hfwbuqm7juJXAFR/ntYnDA4CgGQW4AXHqyd5m2JGCVLgqtl
-tctGLIY98ROkn0yq5VIYZODUoZRO0vaXhhP32ISQAec7Bs0PObqTl0XviL/160M9
-gI6J6Yu75uwT3Y/v6QDA4IkZppsPIgLsR9np2cq9lJhYXFN7Kjj0tbxWwy2+jP3E
-YjbX7MJPJfrxptNaiJaGl440A0w5LlmHxbASSRnL3zNMq+8sm0Z7kUSswwyVT1ZD
-/98OZQxnja28nqD9sB2g
-=Sg+8
------END PGP SIGNATURE-----
-
---5oH/S/bF6lOfqCQb--
+-- 
+Pengutronix e.K.                           | Uwe Kleine-König            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
