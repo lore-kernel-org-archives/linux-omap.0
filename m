@@ -1,59 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Kexec regression in next-20160906
-Date: Tue, 6 Sep 2016 15:09:37 -0700
-Message-ID: <20160906220936.4txqzodkgknhjiyh@atomide.com>
+From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
+Subject: Re: Kexec regression in next-20160906
+Date: Tue, 06 Sep 2016 20:33:20 -0300
+Message-ID: <2229914.bQjEFCIRgO@hactar>
+References: <20160906220936.4txqzodkgknhjiyh@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <20160906220936.4txqzodkgknhjiyh@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>, Andrew Morton <akpm@linux-foundation.org>
-Cc: Eric Biederman <ebiederm@xmission.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Eric Biederman <ebiederm@xmission.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@armlinux.org.uk>, Dave Young <dyoung@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, linux-ima-devel@lists.sourceforge.net, linuxppc-dev@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hello Tony,
 
-Looks like commit 5c01cdd2d4bc ("kexec_file: allow skipping checksum
-calculation for some segments") makes next-20160916 stop working for
-me at least on ARM.
+Am Dienstag, 06 September 2016, 15:09:37 schrieb Tony Lindgren:
+> Looks like commit 5c01cdd2d4bc ("kexec_file: allow skipping checksum
+> calculation for some segments") makes next-20160916 stop working for
+> me at least on ARM.
+> 
+> I now get "kexec_load failed: Invalid argument error" on loading the
+> new kernel to memory with kexec -l.
+> 
+> Reverting the following two commits makes things work for me again:
+> 
+> d2bf993afdf1 ("kexec_file: add mechanism to update kexec segments")
+> 5c01cdd2d4bc ("kexec_file: allow skipping checksum calculation for
+> some segments")
 
-I now get "kexec_load failed: Invalid argument error" on loading the
-new kernel to memory with kexec -l.
+Thanks for reporting the problem and finding the commit that caused it.
+The only thing in commit 5c01cdd2d4bc which can affect kexec_load is the 
+fact that struct kexec_segment has a new member.
 
-Reverting the following two commits makes things work for me again:
+This is probably breaking the ABI on ARM, then. I verified that kexec_load 
+kept working on ppc64le with a kexec binary compiled with the original 
+struct kexec_segment definition, but apparently I got lucky.
 
-d2bf993afdf1 ("kexec_file: add mechanism to update kexec segments")
-5c01cdd2d4bc ("kexec_file: allow skipping checksum calculation for
-some segments")
+I'll prepare a new version of the kexec buffer hand-over series which 
+doesn't touch struct kexec_segment.
 
-Regards,
-
-Tony
-
-8< -------
-kernel: 0xb6b77008 kernel_size: 0x3aa538
-MEMORY RANGES
-0000000080000000-00000000ffcfffff (0)
-00000000fff00000-00000000ffffefff (0)
-kexec_load: entry = 0x80008000 flags = 0x280000
-nr_segments = 2
-segment[0].buf   = 0xb6b77008
-segment[0].bufsz = 0x3aa538
-segment[0].mem   = 0x80008000
-segment[0].memsz = 0x3ab000
-segment[1].buf   = 0xadf80
-segment[1].bufsz = 0x16080
-segment[1].mem   = 0x81709000
-segment[1].memsz = 0x17000
-kexec_load failed: Invalid argument
-entry       = 0x80008000 flags = 0x280000
-nr_segments = 2
-segment[0].buf   = 0xb6b77008
-segment[0].bufsz = 0x3aa538
-segment[0].mem   = 0x80008000
-segment[0].memsz = 0x3ab000
-segment[1].buf   = 0xadf80
-segment[1].bufsz = 0x16080
-segment[1].mem   = 0x81709000
-segment[1].memsz = 0x17000
-Nothing has been loaded!
+-- 
+[]'s
+Thiago Jung Bauermann
+IBM Linux Technology Center
