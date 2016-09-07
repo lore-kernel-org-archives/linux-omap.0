@@ -1,66 +1,52 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [PATCH v2 2/2] cpufreq: ti: Add cpufreq driver to determine
- available OPPs at runtime
-Date: Wed, 7 Sep 2016 10:50:53 +0530
-Message-ID: <20160907052053.GO27345@vireshk-i7>
-References: <20160901025328.376-1-d-gerlach@ti.com>
- <20160901025328.376-3-d-gerlach@ti.com>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: Kexec regression in next-20160906
+Date: Wed, 7 Sep 2016 09:08:07 +0100
+Message-ID: <20160907080807.GD5783@n2100.arm.linux.org.uk>
+References: <20160906220936.4txqzodkgknhjiyh@atomide.com>
+ <2229914.bQjEFCIRgO@hactar>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160901025328.376-3-d-gerlach@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-pm@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Mark Rutland <mark.rutland@arm.com>, Nishanth Menon <nm@ti.com>
+In-Reply-To: <2229914.bQjEFCIRgO@hactar>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
+Cc: Tony Lindgren <tony@atomide.com>, Andrew Morton <akpm@linux-foundation.org>, Eric Biederman <ebiederm@xmission.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Dave Young <dyoung@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, linux-ima-devel@lists.sourceforge.net, linuxppc-dev@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
 
-On 31-08-16, 21:53, Dave Gerlach wrote:
-> Some TI SoCs, like those in the AM335x, AM437x, DRA7x, and AM57x families,
-> have different OPPs available for the MPU depending on which specific
-> variant of the SoC is in use. This can be determined through use of the
-> revision and an eFuse register present in the silicon. Introduce a
-> ti-cpufreq driver that can read the aformentioned values and provide
-> them as version matching data to the opp framework. Through this the
-> opp-supported-hw dt binding that is part of the operating-points-v2
-> table can be used to indicate availability of OPPs for each device.
+On Tue, Sep 06, 2016 at 08:33:20PM -0300, Thiago Jung Bauermann wrote:
+> Thanks for reporting the problem and finding the commit that caused it.
+> The only thing in commit 5c01cdd2d4bc which can affect kexec_load is the 
+> fact that struct kexec_segment has a new member.
 > 
-> This driver also creates the "cpufreq-dt" platform_device after passing
-> the version matching data to the OPP framework so that the cpufreq-dt
-> handles the actual cpufreq implementation. Even without the necessary
-> data to pass the version matching data the driver will still create this
-> device to maintain backwards compatibility with operating-points v1
-> tables.
-> 
-> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-> ---
-> v1->v2:
-> 	- Convert to module_platform_driver to match against new compatibles
-> 	  in patch 1
-> 	- Cleaned up some bit shifts
-> 	- of_property_read_u32_array used rather than reading values individually
-> 
->  drivers/cpufreq/Kconfig.arm  |  11 ++
->  drivers/cpufreq/Makefile     |   1 +
->  drivers/cpufreq/ti-cpufreq.c | 308 +++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 320 insertions(+)
->  create mode 100644 drivers/cpufreq/ti-cpufreq.c
+> This is probably breaking the ABI on ARM, then. I verified that kexec_load 
+> kept working on ppc64le with a kexec binary compiled with the original 
+> struct kexec_segment definition, but apparently I got lucky.
 
-I am wondering if we should start writing OPP drivers instead. As this
-patch doesn't have anything to do with cpufreq really :)
+That _will_ definitely break the ABI on ARM, and pretty much all
+32-bit architectures.  It's a silly thing to do, and I'm really
+surprised that it passed through review without being spotted.
 
-But its fine for now..
+The reason you "got lucky" with ppc64le is that there was probably
+padding in the structure, and you happened to place your new member
+in that padding, so the structure size didn't change.
 
-> +static const struct of_device_id ti_cpufreq_of_match[] = {
-> +	{ .compatible = "operating-points-v2-ti-am3352-cpu",
-> +	  .data = &am3x_soc_data, },
-> +	{ .compatible = "operating-points-v2-ti-am4372-cpu",
-> +	  .data = &am4x_soc_data, },
-> +	{ .compatible = "operating-points-v2-ti-dra7-cpu",
-> +	  .data = &dra7_soc_data },
+For 32-bit architectures, there will be no padding - both the pointers
+and size_t members will be 32-bit, and will be naturally aligned, and
+hence there will be no padding.  Any addition to the structure will
+change the size of the structure.
 
-You should be using your SoC compatible strings here. OPP compatible
-property isn't supposed to be (mis)used for this purpose.
+Any change to a UAPI header needs to be carefully considered and
+questioned as it is always a potential userspace breakage - and in
+the kernel, we're supposed to be doing our up-most to avoid
+breaking userspace.
+
+It's not like it was in the old days when we didn't have the UAPI
+seperate - today, we can find these things by looking at the patch
+diffstat and seeing whether any file in "uapi" is touched.  That
+should be the trigger for a really in-depth review of the change.
 
 -- 
-viresh
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
