@@ -1,46 +1,35 @@
-From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Subject: Re: Kexec regression in next-20160906
-Date: Tue, 06 Sep 2016 20:33:20 -0300
-Message-ID: <2229914.bQjEFCIRgO@hactar>
-References: <20160906220936.4txqzodkgknhjiyh@atomide.com>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/2] ARM: dts: am57xx-beagle-x15: Add support for rev B1
+Date: Wed, 7 Sep 2016 10:39:26 +0530
+Message-ID: <dc4ed90a-223d-69c0-d350-39b6a9d5ce6f@ti.com>
+References: <20160902090600.27262-1-nm@ti.com>
+ <20160902090600.27262-3-nm@ti.com>
+ <dd74f5e1-304f-661e-7fd9-f5f81bcfc55e@ti.com>
+ <CAOCHtYiFjB-cuABmCiw96spc-De+qNNQYGrjp-MmNDuH2mJ9Bw@mail.gmail.com>
+ <84be68f4-c5a6-0afe-c402-1adba9172918@ti.com>
+ <20160906200553.wqkvwsfww3rllhd5@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160906220936.4txqzodkgknhjiyh@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Eric Biederman <ebiederm@xmission.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@armlinux.org.uk>, Dave Young <dyoung@redhat.com>, Mimi Zohar <zohar@linux.vnet.ibm.com>, linux-ima-devel@lists.sourceforge.net, linuxppc-dev@lists.ozlabs.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160906200553.wqkvwsfww3rllhd5-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello Tony,
-
-Am Dienstag, 06 September 2016, 15:09:37 schrieb Tony Lindgren:
-> Looks like commit 5c01cdd2d4bc ("kexec_file: allow skipping checksum
-> calculation for some segments") makes next-20160916 stop working for
-> me at least on ARM.
+On Wednesday 07 September 2016 01:35 AM, Tony Lindgren wrote:
+> And the am335x shared dtsi files are not enough. It's silly how many
+> times we're duplicating the same things over and over again for USB
+> setup for various am335x boards for example.
 > 
-> I now get "kexec_load failed: Invalid argument error" on loading the
-> new kernel to memory with kexec -l.
-> 
-> Reverting the following two commits makes things work for me again:
-> 
-> d2bf993afdf1 ("kexec_file: add mechanism to update kexec segments")
-> 5c01cdd2d4bc ("kexec_file: allow skipping checksum calculation for
-> some segments")
+> So my take is that we need more shared dtsi files, not less.
 
-Thanks for reporting the problem and finding the commit that caused it.
-The only thing in commit 5c01cdd2d4bc which can affect kexec_load is the 
-fact that struct kexec_segment has a new member.
+Alright, thanks for weighing in, Tony.
 
-This is probably breaking the ABI on ARM, then. I verified that kexec_load 
-kept working on ppc64le with a kexec binary compiled with the original 
-struct kexec_segment definition, but apparently I got lucky.
-
-I'll prepare a new version of the kexec buffer hand-over series which 
-doesn't touch struct kexec_segment.
-
--- 
-[]'s
-Thiago Jung Bauermann
-IBM Linux Technology Center
+Regards,
+Sekhar
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
