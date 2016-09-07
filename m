@@ -1,77 +1,129 @@
-From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 2/2] cpufreq: ti: Add cpufreq driver to determine
- available OPPs at runtime
-Date: Wed, 7 Sep 2016 10:04:37 -0500
-Message-ID: <57D02C85.7020300@ti.com>
-References: <20160901025328.376-1-d-gerlach@ti.com>
- <20160901025328.376-3-d-gerlach@ti.com> <20160907052053.GO27345@vireshk-i7>
+From: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RESEND PATCH v4 3/3] Input: Add tps65217 power button driver
+Date: Wed, 7 Sep 2016 09:54:45 -0700
+Message-ID: <20160907165445.GB6445@dtor-ws>
+References: <20160902103526.5050-1-m.niestroj@grinn-global.com>
+ <20160902103526.5050-4-m.niestroj@grinn-global.com>
+ <20160903175321.GC32345@dtor-ws>
+ <e24c9dc1-0e7a-0cc1-8f25-521034f09bc8@grinn-global.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160907052053.GO27345@vireshk-i7>
+Content-Disposition: inline
+In-Reply-To: <e24c9dc1-0e7a-0cc1-8f25-521034f09bc8-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+To: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
+Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/07/2016 12:20 AM, Viresh Kumar wrote:
-> On 31-08-16, 21:53, Dave Gerlach wrote:
->> Some TI SoCs, like those in the AM335x, AM437x, DRA7x, and AM57x families,
->> have different OPPs available for the MPU depending on which specific
->> variant of the SoC is in use. This can be determined through use of the
->> revision and an eFuse register present in the silicon. Introduce a
->> ti-cpufreq driver that can read the aformentioned values and provide
->> them as version matching data to the opp framework. Through this the
->> opp-supported-hw dt binding that is part of the operating-points-v2
->> table can be used to indicate availability of OPPs for each device.
->>
->> This driver also creates the "cpufreq-dt" platform_device after passing
->> the version matching data to the OPP framework so that the cpufreq-dt
->> handles the actual cpufreq implementation. Even without the necessary
->> data to pass the version matching data the driver will still create this
->> device to maintain backwards compatibility with operating-points v1
->> tables.
->>
->> Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
->> ---
->> v1->v2:
->> 	- Convert to module_platform_driver to match against new compatibles
->> 	  in patch 1
->> 	- Cleaned up some bit shifts
->> 	- of_property_read_u32_array used rather than reading values individually
->>
->>   drivers/cpufreq/Kconfig.arm  |  11 ++
->>   drivers/cpufreq/Makefile     |   1 +
->>   drivers/cpufreq/ti-cpufreq.c | 308 +++++++++++++++++++++++++++++++++++++++++++
->>   3 files changed, 320 insertions(+)
->>   create mode 100644 drivers/cpufreq/ti-cpufreq.c
->
-> I am wondering if we should start writing OPP drivers instead. As this
-> patch doesn't have anything to do with cpufreq really :)
->
-> But its fine for now..
->
->> +static const struct of_device_id ti_cpufreq_of_match[] = {
->> +	{ .compatible = "operating-points-v2-ti-am3352-cpu",
->> +	  .data = &am3x_soc_data, },
->> +	{ .compatible = "operating-points-v2-ti-am4372-cpu",
->> +	  .data = &am4x_soc_data, },
->> +	{ .compatible = "operating-points-v2-ti-dra7-cpu",
->> +	  .data = &dra7_soc_data },
->
-> You should be using your SoC compatible strings here. OPP compatible
-> property isn't supposed to be (mis)used for this purpose.
->
+On Wed, Sep 07, 2016 at 01:42:41PM +0200, Marcin Niestroj wrote:
+> On 03.09.2016 19:53, Dmitry Torokhov wrote:
+> >On Fri, Sep 02, 2016 at 12:35:26PM +0200, Marcin Niestroj wrote:
+> >>This driver enables us to use tps65217's power button as KEY_POWER on
+> >>am335x boards (directly connected button in chiliboard, accessible pin
+> >>via expansion header in beaglebone). This patch has been tested with
+> >>chiliboard.
+> >>
+> >>Signed-off-by: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
+> >>Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> >
+> >Was it produces by soing s/65218/65217 over
+> >drivers/input/misc/tps65217-pwrbutton.c? I honestly can't see much
+> >difference between the 2. Can they be probably be combined?
+> 
+> I didn't think of that earlier. Below is a patch that adds support for
+> tps65217 power button in tps65218-pwrbutton.c. Is this approach ok for
+> you? If yes, I will send new patch version with it.
+> 
+> Additionally I guess the file should be renamed to tps6521x-pwrbutton.c
+> and config option changed to CONFIG_INPUT_TPS6521X_PWRBUTTON?
 
-Referring to my comments in patch 1, what if we end up changing the 
-bindings based on DT maintainer comments? We will have these compatible 
-strings, and at that point is it acceptable to match against them? Or is 
-it still better to match to SoC compatibles? I think it makes sense to 
-just probe against these.
+We could but I do not think it is that important.
 
-Regards,
-Dave
+> 
+> diff --git a/drivers/input/misc/tps65218-pwrbutton.c
+> b/drivers/input/misc/tps65218-pwrbutton.c
+> index a39b626..19d2bb1 100644
+> --- a/drivers/input/misc/tps65218-pwrbutton.c
+> +++ b/drivers/input/misc/tps65218-pwrbutton.c
+> @@ -1,8 +1,9 @@
+>  /*
+> - * Texas Instruments' TPS65218 Power Button Input Driver
+> + * Texas Instruments' TPS65217 and TPS65218 Power Button Input Driver
+>   *
+>   * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/
+>   * Author: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> + * Author: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
+>   *
+>   * This program is free software; you can redistribute it and/or modify
+>   * it under the terms of the GNU General Public License version 2 as
+> @@ -18,31 +19,73 @@
+>  #include <linux/input.h>
+>  #include <linux/interrupt.h>
+>  #include <linux/kernel.h>
+> +#include <linux/mfd/tps65217.h>
+>  #include <linux/mfd/tps65218.h>
+>  #include <linux/module.h>
+>  #include <linux/of.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/slab.h>
+> 
+> -struct tps65218_pwrbutton {
+> +struct tps6521x_data {
+> +	unsigned int reg_status;
+> +	unsigned int pb_mask;
+> +	const char *name;
+> +};
+> +
+> +static const struct tps6521x_data tps65217_data = {
+> +	.reg_status = TPS65217_REG_STATUS,
+> +	.pb_mask = TPS65217_STATUS_PB,
+> +	.name = "tps65217_pwrbutton",
+> +};
+> +
+> +static const struct tps6521x_data tps65218_data = {
+> +	.reg_status = TPS65218_REG_STATUS,
+> +	.pb_mask = TPS65218_STATUS_PB_STATE,
+> +	.name = "tps65218_pwrbutton",
+> +};
+> +
+> +struct tps6521x_pwrbutton {
+>  	struct device *dev;
+> -	struct tps65218 *tps;
+> +	void *tps;
+>  	struct input_dev *idev;
+> +	const struct tps6521x_data *data;
+> +	char phys[32];
+>  };
+> 
+> -static irqreturn_t tps65218_pwr_irq(int irq, void *_pwr)
+> +static const struct of_device_id of_tps6521x_pwr_match[] = {
+> +	{ .compatible = "ti,tps65217-pwrbutton", .data = &tps65217_data },
+> +	{ .compatible = "ti,tps65218-pwrbutton", .data = &tps65218_data },
+> +	{ },
+> +};
+> +MODULE_DEVICE_TABLE(of, of_tps6521x_pwr_match);
+> +
+> +static int tps6521x_reg_read(struct tps6521x_pwrbutton *pwr,
+> unsigned int reg,
+> +		unsigned int *val)
+>  {
+> -	struct tps65218_pwrbutton *pwr = _pwr;
+> +	if (pwr->data == &tps65217_data)
+> +		return tps65217_reg_read((struct tps65217 *) pwr->tps,
+> +					reg, val);
+> +	else if (pwr->data == &tps65218_data)
+> +		return tps65218_reg_read((struct tps65218 *) pwr->tps,
+> +					reg, val);
+
+This is step in right direction, but not quite there yet. You could add
+the reg_read pointer to your tps6521x_data and avoid doing if/else/case,
+or, maybe better yet, have registers accessible via regmap.
+
+Thanks.
+
+-- 
+Dmitry
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
