@@ -1,43 +1,34 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2] of: Add generic handling for ePAPR 1.1 fail-sss states
-Date: Thu, 8 Sep 2016 13:19:31 -0700
-Message-ID: <20160908201931.kvkqn5cuowovxph3@atomide.com>
-References: <20160829223542.18871-1-tony@atomide.com>
- <57C74306.9020901@gmail.com>
- <20160831214151.wzq7y54xxs2qj422@atomide.com>
- <CAL_Jsq+dm5HMkX8DNNZNB2QF-VPg96Esb+Capv88zys9nAPksw@mail.gmail.com>
- <20160908155830.ov5so3vm2kmmccty@atomide.com>
- <57D1B75E.4020106@gmail.com>
- <57D1B959.5090108@gmail.com>
+Subject: Re: [PATCH v5 1/3] mfd: tps65217: Add support for IRQs
+Date: Thu, 8 Sep 2016 16:17:48 -0700
+Message-ID: <20160908231747.t6rbrrlteosad4nv@atomide.com>
+References: <20160908095900.30975-1-m.niestroj@grinn-global.com>
+ <20160908095900.30975-2-m.niestroj@grinn-global.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <57D1B959.5090108@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Frank Rowand <frowand.list@gmail.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Grant Likely <grant.likely@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Tom Rini <trini@konsulko.com>
+In-Reply-To: <20160908095900.30975-2-m.niestroj@grinn-global.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Marcin Niestroj <m.niestroj@grinn-global.com>
+Cc: Lee Jones <lee.jones@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Sebastian Reichel <sre@kernel.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-input@vger.kernel.org, devicetree@vger.kernel.org, Bin Liu <b-liu@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Frank Rowand <frowand.list@gmail.com> [160908 12:18]:
-> > On 09/08/16 08:58, Tony Lindgren wrote:
-> >> Just to consider other ways of doing it, we could use the compatible
-> >> flag to tag devices that need to be just idled on probe, but that does
-> >> not seem like generic solution to me.
-> > 
-> > Yuck.  Again overloading a property to convey multiple pieces of
-> > information.
+* Marcin Niestroj <m.niestroj@grinn-global.com> [160908 02:59]:
+> Add support for handling IRQs: power button, AC and USB power state
+> changes. Mask and interrupt bits are shared within one register, which
+> prevents us to use regmap_irq implementation. New irq_domain is created in
+> order to add interrupt handling for each tps65217's subsystem. IRQ
+> resources have been added for charger subsystem to be able to notify about
+> AC and USB state changes.
 > 
-> I should have been more explicit in that statement.
-> 
-> If the hardware device does not have "wires" routed to a connector or
-> bus then it is still the same device.  Thus the compatible should be
-> the same.
-> 
-> The difference is the way the device is used in the SOC or board.
+> Signed-off-by: Marcin Niestroj <m.niestroj@grinn-global.com>
+> Acked-by: Lee Jones <lee.jones@linaro.org>
+> Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
-That is correct. The device is exactly the same.
+Gave this a try with the peripheral USB port on BeagleBone black,
+works fine for me to detect cable events. Will post the musb dsps
+related patches after some clean up in few days. Anyways, feel
+free to add:
 
-Regards,
-
-Tony
+Tested-by: Tony Lindgren <tony@atomide.com>
