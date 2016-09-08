@@ -1,62 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ASoC: omap-mcbsp: Add PM QoS support for
- McBSP to prevent glitches
-Date: Wed, 7 Sep 2016 20:53:56 -0700
-Message-ID: <20160908035356.mkk35s5gpcemifcg@atomide.com>
-References: <20160831194107.wijnbmdns2jjvzkv@atomide.com>
- <5af44090-6902-2ade-be78-378843757a0a@ti.com>
- <20160901145006.xr3ux63cg6f5bh7p@atomide.com>
- <b3a254b2-948f-f04d-3289-fb8fb9f9ab23@ti.com>
- <20160902145604.nlixopwza76kfgbz@atomide.com>
- <c8f293f6-db2e-e518-7566-2cd92eb06ec0@ti.com>
- <20160902204049.uhp4oosu3oc4k5v6@atomide.com>
- <7d1c9a2f-60ae-2d83-f7dc-55fe476dbccb@ti.com>
- <20160906201649.fx4vhuqmnziwshoe@atomide.com>
- <1b82e33a-7db5-81ed-de4f-75847f840088@ti.com>
+From: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [GIT PULL] Immutable branch between MFD, GPIO and Regulator due
+ for the v4.9 merge window
+Date: Thu, 8 Sep 2016 08:26:46 +0100
+Message-ID: <20160908072646.GH4921@dell>
+References: <1472633892-8261-1-git-send-email-j-keerthy@ti.com>
+ <20160831122435.GD9415@dell>
+ <CACRpkdbfOdaouKEooLsGRYXhbwkjfNoTXTqunumF4bOPjOUD4w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1b82e33a-7db5-81ed-de4f-75847f840088@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: alsa-devel@alsa-project.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Liam Girdwood <lgirdwood@gmail.com>, Sebastian Reichel <sre@kernel.org>, "Kristo, Tero" <t-kristo@ti.com>, Mark Brown <broonie@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Pavel Machel <pavel@ucw.cz>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org
+In-Reply-To: <CACRpkdbfOdaouKEooLsGRYXhbwkjfNoTXTqunumF4bOPjOUD4w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [160907 07:32]:
-> On 09/06/2016 11:16 PM, Tony Lindgren wrote:
-> > Makes sense. Do you have a formula or updated patch I can test here?
-> > Then we can add comments about the possible unaccounted latencies that
-> > can be worked out as needed.
+On Wed, 07 Sep 2016, Linus Walleij wrote:
+
+> On Wed, Aug 31, 2016 at 2:24 PM, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
 > 
-> Not yet, but I'll try to come up with something in the coming days.
+> > The following changes since commit 694d0d0bb2030d2e36df73e2d23d5770511dbc8d:
+> >
+> >   Linux 4.8-rc2 (2016-08-14 19:11:36 -0700)
+> >
+> > are available in the git repository at:
+> >
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd.git ib-mfd-gpio-regulator-v4.9
+> 
+> Hm it is based on a later release candidate than my tree so I'll wait
+> and see if I
+> have to pull it (like if there are clashes in linux-next...)
 
-OK
+You use -rc1 as your base?  Crazy man. :)
 
-> btw: I have tried the idle off on beagbeboard-xm with audio, but even w/o the
-> qos it is not triggering. w/o audio I hit off but if audio is running, not.
-
-OK yeah figured it out you need to comment out the watch -n5 command
-as that keeps the serial console busy :) I was doing it over ssh earlier
-on the torpedo board.
-
-> btw2: if you set the qos to 30ms and set the mcbsp2 threshold to 1024 (or
-> leave it as default) do you have audio glitches? I think if we hit C6 we
-> should not be able to wake up in time...
-
-Not that I've noticed at least with the default fifo size. How can
-I force the threshold to 1024? I tried changing pkt_size for
-omap_mcbsp_set_threshold but not getting any audio.
-
-Regards,
-
-Tony
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
