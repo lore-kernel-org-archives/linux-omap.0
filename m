@@ -1,331 +1,251 @@
-From: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-Subject: [PATCH v5] rtc: omap: Support ext_wakeup configuration
-Date: Thu,  8 Sep 2016 12:52:03 +0200
-Message-ID: <20160908105203.8641-1-m.niestroj@grinn-global.com>
-Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] ASoC: omap-mcbsp: Add PM QoS support for
+ McBSP to prevent glitches
+Date: Thu, 8 Sep 2016 13:49:08 +0300
+Message-ID: <9452a3c6-9bf9-818f-6e8d-455193839e94@ti.com>
+References: <20160831194107.wijnbmdns2jjvzkv@atomide.com>
+ <5af44090-6902-2ade-be78-378843757a0a@ti.com>
+ <20160901145006.xr3ux63cg6f5bh7p@atomide.com>
+ <b3a254b2-948f-f04d-3289-fb8fb9f9ab23@ti.com>
+ <20160902145604.nlixopwza76kfgbz@atomide.com>
+ <c8f293f6-db2e-e518-7566-2cd92eb06ec0@ti.com>
+ <20160902204049.uhp4oosu3oc4k5v6@atomide.com>
+ <7d1c9a2f-60ae-2d83-f7dc-55fe476dbccb@ti.com>
+ <20160906201649.fx4vhuqmnziwshoe@atomide.com>
+ <1b82e33a-7db5-81ed-de4f-75847f840088@ti.com>
+ <20160908035356.mkk35s5gpcemifcg@atomide.com>
+ <ceb7854b-6cd4-fe3d-ede7-016c64f88dc0@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <rtc-linux+bncBD7N3SEV2QCRB2MFYW7AKGQEIOBVV3Y-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <https://groups.google.com/group/rtc-linux
-List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <https://groups.google.com/group/rtc-linux/subscribe>
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <ceb7854b-6cd4-fe3d-ede7-016c64f88dc0@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: alsa-devel@alsa-project.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Liam Girdwood <lgirdwood@gmail.com>, Sebastian Reichel <sre@kernel.org>, "Kristo, Tero" <t-kristo@ti.com>, Mark Brown <broonie@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Pavel Machel <pavel@ucw.cz>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Support configuration of ext_wakeup sources. This patch makes it
-possible to enable ext_wakeup and set it's polarity, depending on board
-configuration. AM335x's dedicated PMIC (tps65217) uses ext_wakeup to
-notify about power-button presses. Handling power-button presses enables
-to recover from RTC-only power states correctly.
+On 09/08/16 13:41, Peter Ujfalusi wrote:
+> On 09/08/16 06:53, Tony Lindgren wrote:
+>> * Peter Ujfalusi <peter.ujfalusi@ti.com> [160907 07:32]:
+>>> On 09/06/2016 11:16 PM, Tony Lindgren wrote:
+>>>> Makes sense. Do you have a formula or updated patch I can test here?
+>>>> Then we can add comments about the possible unaccounted latencies that
+>>>> can be worked out as needed.
+>>>
+>>> Not yet, but I'll try to come up with something in the coming days.
+>>
+>> OK
+> =
 
-Signed-off-by: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
----
-Hi,
+> I managed to get time for this and it looks like that we only need to blo=
+ck
+> core OFF for audio. I don't know why C6 ("MPU OFF + CORE RET") with it's =
+3000
+> + 8500 exit latency not causing issues when we have less time from the DMA
+> request to empty FIFO...
+> =
 
-This patch adds support for ext_wakeup using generic pinconf device-tree
-bindings, with one added custom property.
+> My findings so far:
+> w/o the QoS patch we will hit core OFF even if we are in element mode in =
+McBSP:
+> # cat /sys/devices/platform/68000000.ocp/49022000.mcbsp/dma_op_mode
+> [element] threshold
+> =
 
-Changes v4 -> v5 (suggested by Rob):
- * Don't use GPIO defines in ti,input-polarity, use optional ti,active-high
-   boolean instead.
- * Use '-' instead of '_' in node name.
+> If I start the playback we will hit core OFF even if the we have DMA requ=
+est
+> coming at every sample (every 0.02ms).
+> =
 
-Changes v1 -> v4:
- * This is a total reimplementation, so it is not based on any of the previous
-   patch versions. This approach has been suggested by Tony and Grygorii
-   in [1].
+> With the QoS set to 30ms and:
+> # cat /sys/devices/platform/68000000.ocp/49022000.mcbsp/dma_op_mode
+> element [threshold]
+> # cat /sys/devices/platform/68000000.ocp/49022000.mcbsp/max_tx_thres
+> 1264
+> =
 
-Patch was developed on 4.7, rebased on 4.8-rc5, tested using chiliBoard.
+> # cat /sys/kernel/debug/pm_debug/count; aplay -Dplughw:0,0
+> media/music/nin-echoplex.wav; cat /sys/kernel/debug/pm_debug/count
+> =
 
-[1] http://www.spinics.net/lists/devicetree/msg131516.html
+> core_pwrdm
+> (ON),OFF:1885,RET:6777,INA:86320,ON:94983,RET-LOGIC-OFF:0,RET-MEMBANK1-OF=
+F:0,RET-MEMBANK2-OFF:0
+> per_pwrdm (ON),OFF:2507,RET:1518,INA:0,ON:4026,RET-LOGIC-OFF:0,RET-MEMBAN=
+K1-OFF:0
+> mpu_pwrdm
+> (ON),OFF:80588,RET:7876,INA:97390,ON:185855,RET-LOGIC-OFF:0,RET-MEMBANK1-=
+OFF:0
+> =
 
- Documentation/devicetree/bindings/rtc/rtc-omap.txt |  21 +++
- drivers/rtc/Kconfig                                |   1 +
- drivers/rtc/rtc-omap.c                             | 168 ++++++++++++++++++++-
- 3 files changed, 182 insertions(+), 8 deletions(-)
+> Playing WAVE 'media/music/nin-echoplex.wav' : Signed 16 bit Little Endian,
+> Rate 48000 Hz, Stereo
+> =
 
-diff --git a/Documentation/devicetree/bindings/rtc/rtc-omap.txt b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-index bf7d11a..bee41f9 100644
---- a/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-+++ b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-@@ -18,6 +18,18 @@ Optional properties:
-   through pmic_power_en
- - clocks: Any internal or external clocks feeding in to rtc
- - clock-names: Corresponding names of the clocks
-+- pinctrl-0: a phandle pointing to the pin settings for the device
-+- pinctrl-names: should be "default"
-+
-+Optional subnodes:
-+- generic pinctrl node
-+
-+Required pinctrl subnodes properties:
-+- pins - Names of ext_wakeup pins to configure
-+
-+Optional pinctrl subnodes properties:
-+- input-enable - Enables ext_wakeup
-+- ti,active-high - Set input active high (by default active low)
- 
- Example:
- 
-@@ -30,4 +42,13 @@ rtc@1c23000 {
- 	system-power-controller;
- 	clocks = <&clk_32k_rtc>, <&clk_32768_ck>;
- 	clock-names = "ext-clk", "int-clk";
-+
-+	pinctrl-0 = <&ext_wakeup>;
-+	pinctrl-names = "default";
-+
-+	ext_wakeup: ext-wakeup {
-+		pins = "ext_wakeup0";
-+		input-enable;
-+		ti,active-high;
-+	};
- };
-diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
-index e215f50..647d913 100644
---- a/drivers/rtc/Kconfig
-+++ b/drivers/rtc/Kconfig
-@@ -1231,6 +1231,7 @@ config RTC_DRV_IMXDI
- config RTC_DRV_OMAP
- 	tristate "TI OMAP Real Time Clock"
- 	depends on ARCH_OMAP || ARCH_DAVINCI || COMPILE_TEST
-+	select GENERIC_PINCONF
- 	help
- 	  Say "yes" here to support the on chip real time clock
- 	  present on TI OMAP1, AM33xx, DA8xx/OMAP-L13x, AM43xx and DRA7xx.
-diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-index ec2e9c5..d5b4140 100644
---- a/drivers/rtc/rtc-omap.c
-+++ b/drivers/rtc/rtc-omap.c
-@@ -13,19 +13,23 @@
-  * 2 of the License, or (at your option) any later version.
-  */
- 
--#include <linux/kernel.h>
-+#include <dt-bindings/gpio/gpio.h>
-+#include <linux/bcd.h>
-+#include <linux/clk.h>
-+#include <linux/delay.h>
- #include <linux/init.h>
--#include <linux/module.h>
-+#include <linux/io.h>
- #include <linux/ioport.h>
--#include <linux/delay.h>
--#include <linux/rtc.h>
--#include <linux/bcd.h>
--#include <linux/platform_device.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
- #include <linux/of.h>
- #include <linux/of_device.h>
-+#include <linux/pinctrl/pinctrl.h>
-+#include <linux/pinctrl/pinconf.h>
-+#include <linux/pinctrl/pinconf-generic.h>
-+#include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
--#include <linux/io.h>
--#include <linux/clk.h>
-+#include <linux/rtc.h>
- 
- /*
-  * The OMAP RTC is a year/month/day/hours/minutes/seconds BCD clock
-@@ -115,6 +119,8 @@
- 
- /* OMAP_RTC_PMIC bit fields: */
- #define OMAP_RTC_PMIC_POWER_EN_EN	BIT(16)
-+#define OMAP_RTC_PMIC_EXT_WKUP_EN(x)	BIT(x)
-+#define OMAP_RTC_PMIC_EXT_WKUP_POL(x)	BIT(4 + x)
- 
- /* OMAP_RTC_KICKER values */
- #define	KICK0_VALUE			0x83e70b13
-@@ -141,6 +147,7 @@ struct omap_rtc {
- 	bool is_pmic_controller;
- 	bool has_ext_clk;
- 	const struct omap_rtc_device_type *type;
-+	struct pinctrl_dev *pctldev;
- };
- 
- static inline u8 rtc_read(struct omap_rtc *rtc, unsigned int reg)
-@@ -525,6 +532,139 @@ static const struct of_device_id omap_rtc_of_match[] = {
- };
- MODULE_DEVICE_TABLE(of, omap_rtc_of_match);
- 
-+static const struct pinctrl_pin_desc rtc_pins_desc[] = {
-+	PINCTRL_PIN(0, "ext_wakeup0"),
-+	PINCTRL_PIN(1, "ext_wakeup1"),
-+	PINCTRL_PIN(2, "ext_wakeup2"),
-+	PINCTRL_PIN(3, "ext_wakeup3"),
-+};
-+
-+static int rtc_pinctrl_get_groups_count(struct pinctrl_dev *pctldev)
-+{
-+	return 0;
-+}
-+
-+static const char *rtc_pinctrl_get_group_name(struct pinctrl_dev *pctldev,
-+					unsigned int group)
-+{
-+	return NULL;
-+}
-+
-+static const struct pinctrl_ops rtc_pinctrl_ops = {
-+	.get_groups_count = rtc_pinctrl_get_groups_count,
-+	.get_group_name = rtc_pinctrl_get_group_name,
-+	.dt_node_to_map = pinconf_generic_dt_node_to_map_pin,
-+	.dt_free_map = pinconf_generic_dt_free_map,
-+};
-+
-+enum rtc_pin_config_param {
-+	PIN_CONFIG_ACTIVE_HIGH = PIN_CONFIG_END + 1,
-+};
-+
-+static const struct pinconf_generic_params rtc_params[] = {
-+	{"ti,active-high", PIN_CONFIG_ACTIVE_HIGH, 0},
-+};
-+
-+#ifdef CONFIG_DEBUG_FS
-+static const struct pin_config_item rtc_conf_items[ARRAY_SIZE(rtc_params)] = {
-+	PCONFDUMP(PIN_CONFIG_ACTIVE_HIGH, "input active high", NULL, false),
-+};
-+#endif
-+
-+static int rtc_pinconf_get(struct pinctrl_dev *pctldev,
-+			unsigned int pin, unsigned long *config)
-+{
-+	struct omap_rtc *rtc = pinctrl_dev_get_drvdata(pctldev);
-+	unsigned int param = pinconf_to_config_param(*config);
-+	u32 val;
-+	u16 arg = 0;
-+
-+	rtc->type->unlock(rtc);
-+	val = rtc_readl(rtc, OMAP_RTC_PMIC_REG);
-+	rtc->type->lock(rtc);
-+
-+	switch (param) {
-+	case PIN_CONFIG_INPUT_ENABLE:
-+		if (!(val & OMAP_RTC_PMIC_EXT_WKUP_EN(pin)))
-+			return -EINVAL;
-+		break;
-+	case PIN_CONFIG_ACTIVE_HIGH:
-+		if (val & OMAP_RTC_PMIC_EXT_WKUP_POL(pin))
-+			return -EINVAL;
-+		break;
-+	default:
-+		return -ENOTSUPP;
-+	};
-+
-+	*config = pinconf_to_config_packed(param, arg);
-+
-+	return 0;
-+}
-+
-+static int rtc_pinconf_set(struct pinctrl_dev *pctldev,
-+			unsigned int pin, unsigned long *configs,
-+			unsigned int num_configs)
-+{
-+	struct omap_rtc *rtc = pinctrl_dev_get_drvdata(pctldev);
-+	u32 val;
-+	unsigned int param;
-+	u16 param_val;
-+	int i;
-+
-+	rtc->type->unlock(rtc);
-+	val = rtc_readl(rtc, OMAP_RTC_PMIC_REG);
-+	rtc->type->lock(rtc);
-+
-+	/* active low by default */
-+	val |= OMAP_RTC_PMIC_EXT_WKUP_POL(pin);
-+
-+	for (i = 0; i < num_configs; i++) {
-+		param = pinconf_to_config_param(configs[i]);
-+		param_val = pinconf_to_config_argument(configs[i]);
-+
-+		switch (param) {
-+		case PIN_CONFIG_INPUT_ENABLE:
-+			if (param_val)
-+				val |= OMAP_RTC_PMIC_EXT_WKUP_EN(pin);
-+			else
-+				val &= ~OMAP_RTC_PMIC_EXT_WKUP_EN(pin);
-+			break;
-+		case PIN_CONFIG_ACTIVE_HIGH:
-+			val &= ~OMAP_RTC_PMIC_EXT_WKUP_POL(pin);
-+			break;
-+		default:
-+			dev_err(&rtc->rtc->dev, "Property %u not supported\n",
-+				param);
-+			return -ENOTSUPP;
-+		}
-+	}
-+
-+	rtc->type->unlock(rtc);
-+	rtc_writel(rtc, OMAP_RTC_PMIC_REG, val);
-+	rtc->type->lock(rtc);
-+
-+	return 0;
-+}
-+
-+static const struct pinconf_ops rtc_pinconf_ops = {
-+	.is_generic = true,
-+	.pin_config_get = rtc_pinconf_get,
-+	.pin_config_set = rtc_pinconf_set,
-+};
-+
-+static struct pinctrl_desc rtc_pinctrl_desc = {
-+	.pins = rtc_pins_desc,
-+	.npins = ARRAY_SIZE(rtc_pins_desc),
-+	.pctlops = &rtc_pinctrl_ops,
-+	.confops = &rtc_pinconf_ops,
-+	.custom_params = rtc_params,
-+	.num_custom_params = ARRAY_SIZE(rtc_params),
-+#ifdef CONFIG_DEBUG_FS
-+	.custom_conf_items = rtc_conf_items,
-+#endif
-+	.owner = THIS_MODULE,
-+};
-+
- static int omap_rtc_probe(struct platform_device *pdev)
- {
- 	struct omap_rtc	*rtc;
-@@ -681,6 +821,15 @@ static int omap_rtc_probe(struct platform_device *pdev)
- 		}
- 	}
- 
-+	/* Support ext_wakeup pinconf */
-+	rtc_pinctrl_desc.name = dev_name(&pdev->dev);
-+
-+	rtc->pctldev = pinctrl_register(&rtc_pinctrl_desc, &pdev->dev, rtc);
-+	if (IS_ERR(rtc->pctldev)) {
-+		dev_err(&pdev->dev, "Couldn't register pinctrl driver\n");
-+		return PTR_ERR(rtc->pctldev);
-+	}
-+
- 	return 0;
- 
- err:
-@@ -724,6 +873,9 @@ static int __exit omap_rtc_remove(struct platform_device *pdev)
- 	pm_runtime_put_sync(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
- 
-+	/* Remove ext_wakeup pinconf */
-+	pinctrl_unregister(rtc->pctldev);
-+
- 	return 0;
- }
- 
--- 
-2.9.3
+> core_pwrdm
+> (ON),OFF:1885,RET:7860,INA:107434,ON:117180,RET-LOGIC-OFF:0,RET-MEMBANK1-=
+OFF:0,RET-MEMBANK2-OFF:0
+> per_pwrdm (ON),OFF:2507,RET:1518,INA:0,ON:4026,RET-LOGIC-OFF:0,RET-MEMBAN=
+K1-OFF:0
+> mpu_pwrdm
+> (ON),OFF:103223,RET:8185,INA:97461,ON:208870,RET-LOGIC-OFF:0,RET-MEMBANK1=
+-OFF:0
+> =
 
--- 
-You received this message because you are subscribed to "rtc-linux".
-Membership options at http://groups.google.com/group/rtc-linux .
-Please read http://groups.google.com/group/rtc-linux/web/checklist
-before submitting a driver.
---- 
-You received this message because you are subscribed to the Google Groups "rtc-linux" group.
-To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-For more options, visit https://groups.google.com/d/optout.
+> We hit C6, but when the DMA request comes we have 16 words in the FIFO (8
+> samples, 0.16ms of audio). C6 should take 11.5ms to exit...
+> =
+
+>>> btw: I have tried the idle off on beagbeboard-xm with audio, but even w=
+/o the
+>>> qos it is not triggering. w/o audio I hit off but if audio is running, =
+not.
+>>
+>> OK yeah figured it out you need to comment out the watch -n5 command
+>> as that keeps the serial console busy :) I was doing it over ssh earlier
+>> on the torpedo board.
+>>
+>>> btw2: if you set the qos to 30ms and set the mcbsp2 threshold to 1024 (=
+or
+>>> leave it as default) do you have audio glitches? I think if we hit C6 we
+>>> should not be able to wake up in time...
+>>
+>> Not that I've noticed at least with the default fifo size. How can
+>> I force the threshold to 1024? I tried changing pkt_size for
+>> omap_mcbsp_set_threshold but not getting any audio.
+> =
+
+> Based on my experiments the FIFO threshold does not matter as even if we
+> should not be able to leave from a C state in time, we do leave from the =
+state :o
+> =
+
+> The patch generates the following warning when the playback is stopped:
+> [  115.726531]
+> [  115.728149] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> [  115.732727] [ INFO: inconsistent lock state ]
+> [  115.737304] 4.8.0-rc3-next-20160825-00064-g957cf3635c39-dirty #1450 No=
+t tainted
+> [  115.744964] ---------------------------------
+> [  115.749542] inconsistent {SOFTIRQ-ON-W} -> {IN-SOFTIRQ-W} usage.
+> [  115.755859] swapper/0/0 [HC0[0]:SC1[1]:HE0:SE0] takes:
+> [  115.761230]  ((&(&req->work)->work)){+.?...}, at: [<c0152fe0>]
+> flush_work+0x0/0x260
+> [  115.769348] {SOFTIRQ-ON-W} state was registered at:
+> [  115.774475]   [<c015301c>] flush_work+0x3c/0x260
+> [  115.779357]   [<c0155b74>] __cancel_work_timer+0x90/0x1c0
+> [  115.785034]   [<c01999c8>] pm_qos_update_request+0x28/0x54
+> [  115.790802]   [<c01549ec>] process_one_work+0x1fc/0x770
+> [  115.796295]   [<c0154f98>] worker_thread+0x38/0x550
+> [  115.801452]   [<c015b0b8>] kthread+0xd4/0xf0
+> [  115.805969]   [<c0107910>] ret_from_fork+0x14/0x24
+> [  115.811004] irq event stamp: 191097
+> [  115.814666] hardirqs last  enabled at (191096): [<c07f8fb8>]
+> _raw_spin_unlock_irq+0x24/0x2c
+> [  115.823455] hardirqs last disabled at (191097): [<c0663f30>]
+> _snd_pcm_stream_lock_irqsave+0x2c/0x40
+> [  115.832977] softirqs last  enabled at (191090): [<c013e5dc>]
+> irq_enter+0x68/0x84
+> [  115.840759] softirqs last disabled at (191091): [<c013e6b8>]
+> irq_exit+0xc0/0x134
+> [  115.848541]
+> [  115.848541] other info that might help us debug this:
+> [  115.855407]  Possible unsafe locking scenario:
+> [  115.855407]
+> [  115.861602]        CPU0
+> [  115.864166]        ----
+> [  115.866760]   lock((&(&req->work)->work));
+> [  115.871063]   <Interrupt>
+> [  115.873809]     lock((&(&req->work)->work));
+> [  115.878326]
+> [  115.878326]  *** DEADLOCK ***
+> [  115.878326]
+> [  115.884552] 2 locks held by swapper/0/0:
+> [  115.888671]  #0:  (snd_pcm_link_rwlock){...-..}, at: [<c0663e9c>]
+> snd_pcm_stream_lock+0x20/0x50
+> [  115.897857]  #1:  (&(&substream->self_group.lock)->rlock){..-...}, at:
+> [<c0663f38>] _snd_pcm_stream_lock_irqsave+0x34/0x40
+> [  115.909515]
+> [  115.909515] stack backtrace:
+> [  115.914123] CPU: 0 PID: 0 Comm: swapper/0 Not tainted
+> 4.8.0-rc3-next-20160825-00064-g957cf3635c39-dirty #1450
+> [  115.924530] Hardware name: Generic OMAP36xx (Flattened Device Tree)
+> [  115.931121] [<c0110128>] (unwind_backtrace) from [<c010c2c0>]
+> (show_stack+0x10/0x14)
+> [  115.939270] [<c010c2c0>] (show_stack) from [<c048c120>] (dump_stack+0x=
+b0/0xe4)
+> [  115.946868] [<c048c120>] (dump_stack) from [<c0192708>]
+> (print_usage_bug+0x1e0/0x2d4)
+> [  115.955108] [<c0192708>] (print_usage_bug) from [<c0192d7c>]
+> (mark_lock+0x580/0x6c4)
+> [  115.963256] [<c0192d7c>] (mark_lock) from [<c0193a38>]
+> (__lock_acquire+0x5a8/0x187c)
+> [  115.971374] [<c0193a38>] (__lock_acquire) from [<c0195128>]
+> (lock_acquire+0xd0/0x238)
+> [  115.979614] [<c0195128>] (lock_acquire) from [<c015301c>]
+> (flush_work+0x3c/0x260)
+> [  115.987487] [<c015301c>] (flush_work) from [<c0155b74>]
+> (__cancel_work_timer+0x90/0x1c0)
+> [  115.996002] [<c0155b74>] (__cancel_work_timer) from [<c0199ad8>]
+> (pm_qos_remove_request+0x28/0x1c8)
+> [  116.005523] [<c0199ad8>] (pm_qos_remove_request) from [<c0684634>]
+> (omap_mcbsp_dai_trigger+0x70/0x8c)
+> [  116.015197] [<c0684634>] (omap_mcbsp_dai_trigger) from [<c067baa8>]
+> (soc_pcm_trigger+0xd0/0x11c)
+> [  116.024414] [<c067baa8>] (soc_pcm_trigger) from [<c0663be0>]
+> (snd_pcm_do_stop+0x50/0x54)
+> [  116.032928] [<c0663be0>] (snd_pcm_do_stop) from [<c06639c4>]
+> (snd_pcm_action_single+0x38/0x80)
+> [  116.041961] [<c06639c4>] (snd_pcm_action_single) from [<c066aa4c>]
+> (snd_pcm_update_state+0xd0/0x100)
+> [  116.051574] [<c066aa4c>] (snd_pcm_update_state) from [<c066ac20>]
+> (snd_pcm_update_hw_ptr0+0x1a4/0x3ac)
+> [  116.061340] [<c066ac20>] (snd_pcm_update_hw_ptr0) from [<c066ae9c>]
+> (snd_pcm_period_elapsed+0x74/0xb4)
+> [  116.071136] [<c066ae9c>] (snd_pcm_period_elapsed) from [<c04e63f8>]
+> (vchan_complete+0x190/0x1a4)
+> [  116.080352] [<c04e63f8>] (vchan_complete) from [<c013ee68>]
+> (tasklet_action+0x88/0x128)
+> [  116.088775] [<c013ee68>] (tasklet_action) from [<c013dee0>]
+> (__do_softirq+0xc4/0x55c)
+> [  116.096984] [<c013dee0>] (__do_softirq) from [<c013e6b8>] (irq_exit+0x=
+c0/0x134)
+> [  116.104675] [<c013e6b8>] (irq_exit) from [<c01a17a8>]
+> (__handle_domain_irq+0x6c/0xe0)
+> [  116.112884] [<c01a17a8>] (__handle_domain_irq) from [<c07f96b0>]
+> (__irq_svc+0x70/0x98)
+> [  116.121215] [<c07f96b0>] (__irq_svc) from [<c0613808>]
+> (cpuidle_enter_state+0x15c/0x464)
+> [  116.129699] [<c0613808>] (cpuidle_enter_state) from [<c0187788>]
+> (cpu_startup_entry+0x2b8/0x3e0)
+> [  116.138946] [<c0187788>] (cpu_startup_entry) from [<c0b00c1c>]
+> (start_kernel+0x340/0x3b4)
+> =
+
+> There is one more issue: if we have playback and capture running at the s=
+ame
+> time and you stop one of them. It will remove the QoS and the remaining s=
+tream
+> might break.
+
+it is better to place the QoS in omap_mcbsp_request() and remove it in
+omap_mcbsp_free(). This way we retain the QoS for the time the McBSP is in
+active use.
+
+> =
+
+
+
+-- =
+
+P=E9ter
