@@ -1,112 +1,102 @@
 From: Frank Rowand <frowand.list@gmail.com>
 Subject: Re: [PATCHv2] of: Add generic handling for ePAPR 1.1 fail-sss states
-Date: Thu, 8 Sep 2016 12:05:12 -0700
-Message-ID: <57D1B668.3070001@gmail.com>
+Date: Thu, 8 Sep 2016 12:09:18 -0700
+Message-ID: <57D1B75E.4020106@gmail.com>
 References: <20160829223542.18871-1-tony@atomide.com>
  <57C74306.9020901@gmail.com> <20160831214151.wzq7y54xxs2qj422@atomide.com>
  <CAL_Jsq+dm5HMkX8DNNZNB2QF-VPg96Esb+Capv88zys9nAPksw@mail.gmail.com>
+ <20160908155830.ov5so3vm2kmmccty@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAL_Jsq+dm5HMkX8DNNZNB2QF-VPg96Esb+Capv88zys9nAPksw@mail.gmail.com>
+In-Reply-To: <20160908155830.ov5so3vm2kmmccty@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>
+To: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>
 Cc: Grant Likely <grant.likely@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Tom Rini <trini@konsulko.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/08/16 06:38, Rob Herring wrote:
-> On Wed, Aug 31, 2016 at 4:41 PM, Tony Lindgren <tony@atomide.com> wrote:
->> * Frank Rowand <frowand.list@gmail.com> [160831 13:51]:
->>> On 08/29/16 15:35, Tony Lindgren wrote:
->>>>     if (of_device_is_incomplete(pdev->dev.of_node, status)) {
->>>>             if (!strcmp("hw-incomplete-pins", status)) {
->>>>                     dev_info(&pdev->dev,
->>>>                              "Unusable hardware: Not pinned out\n");
->>>>                     err = -ENODEV;
->>>>                     goto out;
->>>>             }
->>>>             if (!strcmp("hw-missing-daughter-card")) {
->>>>                     err = -EPROBE_DEFER;
->>>>                     goto out;
->>>>             }
->>>>             if (!strcmp("hw-buggy-dma")) {
->>>>                     dev_warn(&pdev->dev,
->>>>                              "Replace hardware for working DMA\n");
->>>>             }
->>>>     }
+On 09/08/16 08:58, Tony Lindgren wrote:
+> * Rob Herring <robh+dt@kernel.org> [160908 06:38]:
+>> On Wed, Aug 31, 2016 at 4:41 PM, Tony Lindgren <tony@atomide.com> wrote:
+>>> * Frank Rowand <frowand.list@gmail.com> [160831 13:51]:
+>>>> I am still opposed to using the status property for this purpose.
+>>>>
+>>>> The status property is intended to report an operational problem with
+>>>> a device or a device that the kernel can cause to be operational (such
+>>>> as a quiescent cpu being enabled).  It is the only property I am aware
+>>>> of to report _state_.
+>>
+>> Yes, in theory a device can go from disabled to okay, but that's
+>> generally never been supported. Linux takes the simple approach of
+>> "disabled" means ignore it. I think we'll see that change with
+>> overlays.
+> 
+> Yeah I think we have to assume that.
+> 
+>>>> It is unfortunate that Linux has adopted the practice of overloading status
+>>>> to determine whether a piece of hardware exists or does not exist.  This
+>>>> is extremely useful for the way we structure the .dts and .dtsi files but
+>>>> should have used a new property name.  We are stuck with that choice of
+>>>> using the status property for two purposes, first the state of a device,
+>>>> and secondly the hardware description of existing or not existing.
+>>
+>> I don't agree. Generally, disabled means the h/w is there, but don't
+>> use it. There may be some cases where the hardware doesn't exist for
+>> the convenience of having a single dts, but that's the exception.
+>>
+>>>> Why not just create a new property that describes the hardware?
+>>>> Perhaps something like:
+>>>>
+>>>>    incomplete = "pins_output", "buggy_dma";
 >>>
->>> What if the device has two issues to be reported?  You can not
->>> specify two different values for the status property.
+>>> New property for incomplete works for me. Rob, got any comments here?
 >>
->> That's a good point.
->>
->>> What if the firmware wants to report that the hardware failed
->>> self-test (thus status = "fail-sss") but is already using
->>> status to describe the hardware?
->>
->> Yeah that's true. Do you know what the "sss" stands for here?
->> Status Self teSt, or Side Scan Sonar? :)
+>> Pins not muxed out or connected on the board has to be the #1 reason
+>> for disabled status. I don't think we need or want another way to
+>> express that.
 > 
-> String String String!!!?
+> Both status and and a separate property work for me.
 > 
-> No clue for me.
-> 
->>
->>>> - Make more generic as suggested by Frank but stick with
->>>>   "operational status of a device" approch most people seem
->>>>   to prefer that
->>>
->>> I am still opposed to using the status property for this purpose.
->>>
->>> The status property is intended to report an operational problem with
->>> a device or a device that the kernel can cause to be operational (such
->>> as a quiescent cpu being enabled).  It is the only property I am aware
->>> of to report _state_.
-> 
-> Yes, in theory a device can go from disabled to okay, but that's
-> generally never been supported. Linux takes the simple approach of
-> "disabled" means ignore it. I think we'll see that change with
-> overlays.
-> 
->>> It is unfortunate that Linux has adopted the practice of overloading status
->>> to determine whether a piece of hardware exists or does not exist.  This
->>> is extremely useful for the way we structure the .dts and .dtsi files but
->>> should have used a new property name.  We are stuck with that choice of
->>> using the status property for two purposes, first the state of a device,
->>> and secondly the hardware description of existing or not existing.
-> 
-> I don't agree. Generally, disabled means the h/w is there, but don't
-> use it. There may be some cases where the hardware doesn't exist for
-> the convenience of having a single dts, but that's the exception.
+> If no other considerations, we should probably pick something with a
+> a limited set of states to avoid it getting out of control and being
+> misused for something weird like driver probe order..
 
-That it is not an exception, but instead a frequent pattern for .dtsi files.
-A quick look in arm:
-
-  $ grep status *.dtsi | wc -l
-  4842
-
-  $ grep status *.dtsi | grep '"disabled"' | wc -l
-  3431
+I do not want to add another property that conveys state.  The property
+that I was proposing does not convey state -- it describes the hardware.
 
 
->>> Why not just create a new property that describes the hardware?
->>> Perhaps something like:
->>>
->>>    incomplete = "pins_output", "buggy_dma";
->>
->> New property for incomplete works for me. Rob, got any comments here?
+> For example, just status = "fail" would be enough for the cases I've
+> seen. That would still allow probe the device, then PM runtime idle
+> it and bail out with -ENODEV.
 > 
-> Pins not muxed out or connected on the board has to be the #1 reason
-> for disabled status. I don't think we need or want another way to
-> express that.
-
-How is that expressed now?
-
-
-> We may have discussed this, but why can't the driver that checks fail
-> state just check whatever was used to set the device to fail in the
-> first place?
+> For whatever warnings or errors the driver needs to show, the driver
+> could probably figure it out. I don't know if we want to or need to
+> pass any informational messages with the incomplete status or
+> property :)
 > 
-> Rob
+>> We may have discussed this, but why can't the driver that checks fail
+>> state just check whatever was used to set the device to fail in the
+>> first place?
+> 
+> Well there may be no way to check if something is pinned out based on
+> the hardware. The same SoC can be packaged with different pins. In that
+> case only the die id or serial number for each produced chip is
+> different, not the revision numbers. So for cases like that the dtb
+> file or kernel cmdline is the only information available. And we can't
+> assume pinctrl is required as it's perfectly fine to do that only in
+> the bootloader for the static cases to save memory.
+> 
+> Just to consider other ways of doing it, we could use the compatible
+> flag to tag devices that need to be just idled on probe, but that does
+> not seem like generic solution to me.
+
+Yuck.  Again overloading a property to convey multiple pieces of
+information.
+
+
+> 
+> Regards,
+> 
+> Tony
 > 
