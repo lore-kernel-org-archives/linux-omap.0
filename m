@@ -1,50 +1,62 @@
-From: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 2/2] cpufreq: ti: Add cpufreq driver to determine
- available OPPs at runtime
-Date: Thu, 8 Sep 2016 09:09:09 +0530
-Message-ID: <20160908033909.GR27345@vireshk-i7>
-References: <20160901025328.376-1-d-gerlach@ti.com>
- <20160901025328.376-3-d-gerlach@ti.com>
- <20160907052053.GO27345@vireshk-i7>
- <57D02C85.7020300@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ASoC: omap-mcbsp: Add PM QoS support for
+ McBSP to prevent glitches
+Date: Wed, 7 Sep 2016 20:53:56 -0700
+Message-ID: <20160908035356.mkk35s5gpcemifcg@atomide.com>
+References: <20160831194107.wijnbmdns2jjvzkv@atomide.com>
+ <5af44090-6902-2ade-be78-378843757a0a@ti.com>
+ <20160901145006.xr3ux63cg6f5bh7p@atomide.com>
+ <b3a254b2-948f-f04d-3289-fb8fb9f9ab23@ti.com>
+ <20160902145604.nlixopwza76kfgbz@atomide.com>
+ <c8f293f6-db2e-e518-7566-2cd92eb06ec0@ti.com>
+ <20160902204049.uhp4oosu3oc4k5v6@atomide.com>
+ <7d1c9a2f-60ae-2d83-f7dc-55fe476dbccb@ti.com>
+ <20160906201649.fx4vhuqmnziwshoe@atomide.com>
+ <1b82e33a-7db5-81ed-de4f-75847f840088@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <57D02C85.7020300-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1b82e33a-7db5-81ed-de4f-75847f840088@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Liam Girdwood <lgirdwood@gmail.com>, Sebastian Reichel <sre@kernel.org>, "Kristo, Tero" <t-kristo@ti.com>, Mark Brown <broonie@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Pavel Machel <pavel@ucw.cz>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07-09-16, 10:04, Dave Gerlach wrote:
-> >>+static const struct of_device_id ti_cpufreq_of_match[] = {
-> >>+	{ .compatible = "operating-points-v2-ti-am3352-cpu",
-> >>+	  .data = &am3x_soc_data, },
-> >>+	{ .compatible = "operating-points-v2-ti-am4372-cpu",
-> >>+	  .data = &am4x_soc_data, },
-> >>+	{ .compatible = "operating-points-v2-ti-dra7-cpu",
-> >>+	  .data = &dra7_soc_data },
-> >
-> >You should be using your SoC compatible strings here. OPP compatible
-> >property isn't supposed to be (mis)used for this purpose.
-> >
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [160907 07:32]:
+> On 09/06/2016 11:16 PM, Tony Lindgren wrote:
+> > Makes sense. Do you have a formula or updated patch I can test here?
+> > Then we can add comments about the possible unaccounted latencies that
+> > can be worked out as needed.
 > 
-> Referring to my comments in patch 1, what if we end up changing the bindings
-> based on DT maintainer comments? We will have these compatible strings, and
-> at that point is it acceptable to match against them? Or is it still better
-> to match to SoC compatibles? I think it makes sense to just probe against
-> these.
+> Not yet, but I'll try to come up with something in the coming days.
 
-But even then I think these are not correct. You should have added a
-single compatible string: operating-points-v2-ti-cpu.
+OK
 
-As the properties will stay the same across machines. And then you
-need to use SoC strings here.
+> btw: I have tried the idle off on beagbeboard-xm with audio, but even w/o the
+> qos it is not triggering. w/o audio I hit off but if audio is running, not.
 
--- 
-viresh
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+OK yeah figured it out you need to comment out the watch -n5 command
+as that keeps the serial console busy :) I was doing it over ssh earlier
+on the torpedo board.
+
+> btw2: if you set the qos to 30ms and set the mcbsp2 threshold to 1024 (or
+> leave it as default) do you have audio glitches? I think if we hit C6 we
+> should not be able to wake up in time...
+
+Not that I've noticed at least with the default fifo size. How can
+I force the threshold to 1024? I tried changing pkt_size for
+omap_mcbsp_set_threshold but not getting any audio.
+
+Regards,
+
+Tony
