@@ -1,61 +1,28 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [v2] musb: omap2430: do not assume balanced enable()/disable()
-Date: Fri, 9 Sep 2016 14:33:42 -0700
-Message-ID: <20160909213341.m2tmrvws5ffomnho@atomide.com>
-References: <1470238731-32358-1-git-send-email-andreas@kemnade.info>
- <1946895.vi37Pmm05X@avalon>
- <20160909200803.4cngkfhgkki4e7o3@atomide.com>
- <1538976.gm2HNISj8k@avalon>
- <20160909205103.sqonsprxbb7i6zth@atomide.com>
- <20160909232206.70ee2558@aktux>
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
+Subject: Re: [4.8.0-rc1] am335x-evm boot failure: n_tty_receive_buf_common:
+ "Unable to handle kernel paging request.."
+Date: Sat, 10 Sep 2016 00:23:16 +0200
+Message-ID: <CAALWOA_=9fMG156H_XSZBjeckQUK-moDWoRE6_kr-8=Z_-KZuA@mail.gmail.com>
+References: <87ceb885-94a6-b9b3-60b3-2017198c4338@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160909232206.70ee2558@aktux>
+In-Reply-To: <87ceb885-94a6-b9b3-60b3-2017198c4338@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Bin Liu <b-liu@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Peter Hurley <peter@hurleysoftware.com>, Lokesh Vutla <lokeshvutla@ti.com>, lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Andreas Kemnade <andreas@kemnade.info> [160909 14:22]:
-> On Fri, 9 Sep 2016 13:51:04 -0700
-> Tony Lindgren <tony@atomide.com> wrote:
-> > Well for the phy-twl4030-usb.c, AFAIK the right fix is to fix the PHY
-> > driver as done in "[PATCH v2] phy-twl4030-usb: initialize
-> > charging-related stuff via pm_runtime". I suspect something similar
-> > is happening here also with the omap4 legacy phy.
-> > 
-> No, the fix is for making charging work independant of musb.
-> Gadget is working because charging is enabled and enables all parts in
-> the phy needed for it. And you can charge without musb (only musb_hdrc
-> for the mailbox but not the omap2430 glue module).
+If you look more carefully the first problem is actually a bus error:
+[ 15.776190] Unhandled fault: external abort on non-linefetch (0x1028)
+at 0xf9e3e044
+[ 15.825925] PC is at omap_hwmod_read+0x14/0x28
+[ 15.830583] LR is at omap_rtc_wait_not_busy+0x1c/0x44
 
-Oh right.
+I have no idea how the kernel manages to continue after a bus error in
+a driver (inside local_irq_disable even), but I wouldn't be inclined
+to take any later errors seriously.
 
-> We have two independant things:
-> 1. phy-twl4030-usb (and perhaps others) do not enable
->   the phy enough to allow charging on pm_runtime_get().
->   That is fixed by my phy-related patches.
+See also the "4.8 crash on BeagleBone" thread on linux-omap.
 
-OK
-
-> 2. phy_power_off/on() in called in an unbalanced way if
->    it is called behind musb_platform_enable()/disable()
->    as it happens in omap2430.c. Two ways to fix it:
->    a) prevent phy_power_off()/on() to be called in
->       an unbalanced way in omap240.c
->    b) prevent musb_platform_enable()
-> 	      musb_platform_disable() to be called in an
-> 	      unbalanced way by fixing musb_core.c
-> 
-> Fixing 1. is enough on gta04 to fix charging and hide 2. enough to
-> have gadget working for the most common usecases. (not using
-> twl4030-charger would not work yet)
-> But in the longer term 2. has to be fixed too.
-
-Sounds like option 2b here is the real fix.
-
-Regards,
-
-Tony
+Matthijs
