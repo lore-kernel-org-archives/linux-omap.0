@@ -1,43 +1,72 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] usb: ohci: Allow ohci on omap5 also
-Date: Fri, 9 Sep 2016 14:11:19 -0700
-Message-ID: <20160909211118.rtj53romz4vf5cng@atomide.com>
-References: <20160909201114.7cehi2sgmjw46gfo@atomide.com>
- <Pine.LNX.4.44L0.1609091640470.2050-100000@iolanthe.rowland.org>
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: Re: [v2] musb: omap2430: do not assume balanced enable()/disable()
+Date: Fri, 9 Sep 2016 23:22:06 +0200
+Message-ID: <20160909232206.70ee2558@aktux>
+References: <1470238731-32358-1-git-send-email-andreas@kemnade.info>
+        <1946895.vi37Pmm05X@avalon>
+        <20160909200803.4cngkfhgkki4e7o3@atomide.com>
+        <1538976.gm2HNISj8k@avalon>
+        <20160909205103.sqonsprxbb7i6zth@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1609091640470.2050-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160909205103.sqonsprxbb7i6zth@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Bin Liu <b-liu@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> [160909 13:41]:
-> On Fri, 9 Sep 2016, Tony Lindgren wrote:
-> 
-> > * Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> [160909 12:47]:
-> > > You know, as far as I can tell the only thing that is OMAP-specific
-> > > about the ohci-omap3 driver is the initialization of OHCI_CTRL_RWC.  
-> > > This could be added to the platform data or the DT bindings, after
-> > > which this driver wouldn't be needed at all -- the ohci_platform driver
-> > > would work.  Does this seem reasonable?
+On Fri, 9 Sep 2016 13:51:04 -0700
+Tony Lindgren <tony@atomide.com> wrote:
+
+> * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [160909 13:21]:
+> > On Friday 09 Sep 2016 13:08:03 Tony Lindgren wrote:
+> > > This patch has a side effect of fixing the issue by breaking PM
+> > > runtime, not a good fix as discussed.
 > > 
-> > Sure makes sense to me. Do we have some standard binding for
-> > OCHI_CTRL_RWC?
+> > How exactly is it worse breaking runtime PM than breaking USB
+> > gadget completely ? :-)
 > 
-> No, one would have to be created.
+> Yeah sorry to break it, I obviously did not test it on all
+> platforms :( I'm mostly using omap3 with the 2430 glue layer and
+> am335x for the dsps glue layer and did not know that omap4 is broken.
+> I guess I've recently just used the EHCI ports on panda.
+> 
+> > The issue here is that the .disable() platform operation is called
+> > by musb with the PHY already powered off, leading to the PHY power
+> > reference count becoming negative. The next call to the .enable()
+> > operation restores the reference count to 0 without enabling the
+> > PHY.
+> 
+> Well for the phy-twl4030-usb.c, AFAIK the right fix is to fix the PHY
+> driver as done in "[PATCH v2] phy-twl4030-usb: initialize
+> charging-related stuff via pm_runtime". I suspect something similar
+> is happening here also with the omap4 legacy phy.
+> 
+No, the fix is for making charging work independant of musb.
+Gadget is working because charging is enabled and enables all parts in
+the phy needed for it. And you can charge without musb (only musb_hdrc
+for the mailbox but not the omap2430 glue module).
 
-OK I can do a patch for that, what should be binding be?
+We have two independant things:
+1. phy-twl4030-usb (and perhaps others) do not enable
+  the phy enough to allow charging on pm_runtime_get().
+  That is fixed by my phy-related patches.
 
-ohci-ctrl-rwc-something?
+2. phy_power_off/on() in called in an unbalanced way if
+   it is called behind musb_platform_enable()/disable()
+   as it happens in omap2430.c. Two ways to fix it:
+   a) prevent phy_power_off()/on() to be called in
+      an unbalanced way in omap240.c
+   b) prevent musb_platform_enable()
+	      musb_platform_disable() to be called in an
+	      unbalanced way by fixing musb_core.c
+
+Fixing 1. is enough on gta04 to fix charging and hide 2. enough to
+have gadget working for the most common usecases. (not using
+twl4030-charger would not work yet)
+But in the longer term 2. has to be fixed too.
 
 Regards,
-
-Tony
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Andreas Kemnade
