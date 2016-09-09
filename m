@@ -1,10 +1,10 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: dts: Add support for more than 2GB of memory for omap5
-Date: Fri,  9 Sep 2016 14:05:30 -0700
-Message-ID: <20160909210530.19839-1-tony@atomide.com>
+Subject: [PATCH] ARM: dts: Add power button support for igepv5
+Date: Fri,  9 Sep 2016 14:07:29 -0700
+Message-ID: <20160909210729.20184-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -16,114 +16,33 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+Cc: Enric Balletbo Serra <eballetbo@gmail.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Pau Pajuel <ppajuel@gmail.com>, =?UTF-8?q?Agust=C3=AD=20Fontquerni=20i=20Gorchs?= <afontquerni@iseebcn.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Some omap5 variants have more than 2GB of memory available as
-optional models. Let's update the dts files to use two address
-cells similar to what dra7 is using with commit dae320ec3173
-("ARM: dts: DRA7: change address-cells and size-cells").
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/boot/dts/omap5-cm-t54.dts   |  2 +-
- arch/arm/boot/dts/omap5-igep0050.dts |  2 +-
- arch/arm/boot/dts/omap5-uevm.dts     |  2 +-
- arch/arm/boot/dts/omap5.dtsi         | 22 +++++++++++-----------
- 4 files changed, 14 insertions(+), 14 deletions(-)
-
-diff --git a/arch/arm/boot/dts/omap5-cm-t54.dts b/arch/arm/boot/dts/omap5-cm-t54.dts
-index c9390fa..b153f60 100644
---- a/arch/arm/boot/dts/omap5-cm-t54.dts
-+++ b/arch/arm/boot/dts/omap5-cm-t54.dts
-@@ -13,7 +13,7 @@
- 
- 	memory@80000000 {
- 		device_type = "memory";
--		reg = <0x80000000 0x7F000000>; /* 2048 MB */
-+		reg = <0 0x80000000 0 0x7f000000>; /* 2048 MB */
- 	};
- 
- 	aliases {
-diff --git a/arch/arm/boot/dts/omap5-igep0050.dts b/arch/arm/boot/dts/omap5-igep0050.dts
-index f24b449..078dd53 100644
---- a/arch/arm/boot/dts/omap5-igep0050.dts
-+++ b/arch/arm/boot/dts/omap5-igep0050.dts
-@@ -16,7 +16,7 @@
- 
- 	memory@80000000 {
- 		device_type = "memory";
--		reg = <0x80000000 0x7f000000>; /* 2032 MB */
-+		reg = <0x0 0x80000000 0 0x7f000000>;	/* 2032 MB */
- 	};
- 
- 	gpio_keys {
-diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-index 1770447..c3c23e4 100644
---- a/arch/arm/boot/dts/omap5-uevm.dts
-+++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -15,7 +15,7 @@
- 
- 	memory@80000000 {
- 		device_type = "memory";
--		reg = <0x80000000 0x7F000000>; /* 2032 MB */
-+		reg = <0 0x80000000 0 0x7f000000>; /* 2032 MB */
- 	};
- };
- 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -12,8 +12,8 @@
- #include <dt-bindings/pinctrl/omap.h>
- 
- / {
--	#address-cells = <1>;
--	#size-cells = <1>;
-+	#address-cells = <2>;
-+	#size-cells = <2>;
- 
- 	compatible = "ti,omap5";
- 	interrupt-parent = <&wakeupgen>;
-@@ -90,10 +90,10 @@
- 		compatible = "arm,cortex-a15-gic";
- 		interrupt-controller;
- 		#interrupt-cells = <3>;
--		reg = <0x48211000 0x1000>,
--		      <0x48212000 0x1000>,
--		      <0x48214000 0x2000>,
--		      <0x48216000 0x2000>;
-+		reg = <0 0x48211000 0 0x1000>,
-+		      <0 0x48212000 0 0x1000>,
-+		      <0 0x48214000 0 0x2000>,
-+		      <0 0x48216000 0 0x2000>;
- 		interrupt-parent = <&gic>;
- 	};
- 
-@@ -101,7 +101,7 @@
- 		compatible = "ti,omap5-wugen-mpu", "ti,omap4-wugen-mpu";
- 		interrupt-controller;
- 		#interrupt-cells = <3>;
--		reg = <0x48281000 0x1000>;
-+		reg = <0 0x48281000 0 0x1000>;
- 		interrupt-parent = <&gic>;
- 	};
- 
-@@ -129,11 +129,11 @@
- 		compatible = "ti,omap5-l3-noc", "simple-bus";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
--		ranges;
-+		ranges = <0 0 0 0xc0000000>;
- 		ti,hwmods = "l3_main_1", "l3_main_2", "l3_main_3";
--		reg = <0x44000000 0x2000>,
--		      <0x44800000 0x3000>,
--		      <0x45000000 0x4000>;
-+		reg = <0 0x44000000 0 0x2000>,
-+		      <0 0x44800000 0 0x3000>,
-+		      <0 0x45000000 0 0x4000>;
- 		interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>,
- 			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
- 
--- 
-2.9.3
+QWRkIHBvd2VyIGJ1dHRvbiBzdXBwb3J0IGZvciBpZ2VwdjUuCgpDYzogQWd1c3TDrSBGb250cXVl
+cm5pIGkgR29yY2hzIDxhZm9udHF1ZXJuaUBpc2VlYmNuLmNvbT4KQ2M6IEVucmljIEJhbGxldGJv
+IFNlcnJhIDxlYmFsbGV0Ym9AZ21haWwuY29tPgpDYzogSmF2aWVyIE1hcnRpbmV6IENhbmlsbGFz
+IDxqYXZpZXJAb3NnLnNhbXN1bmcuY29tPgpDYzogUGF1IFBhanVlbCA8cHBhanVlbEBnbWFpbC5j
+b20+ClNpZ25lZC1vZmYtYnk6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+Ci0tLQog
+YXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtaWdlcDAwNTAuZHRzIHwgMTkgKysrKysrKysrKysrKysr
+KysrKwogMSBmaWxlIGNoYW5nZWQsIDE5IGluc2VydGlvbnMoKykKCmRpZmYgLS1naXQgYS9hcmNo
+L2FybS9ib290L2R0cy9vbWFwNS1pZ2VwMDA1MC5kdHMgYi9hcmNoL2FybS9ib290L2R0cy9vbWFw
+NS1pZ2VwMDA1MC5kdHMKLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtaWdlcDAwNTAuZHRz
+CisrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LWlnZXAwMDUwLmR0cwpAQCAtNyw2ICs3LDcg
+QEAKICAqLwogL2R0cy12MS87CiAKKyNpbmNsdWRlIDxkdC1iaW5kaW5ncy9pbnB1dC9pbnB1dC5o
+PgogI2luY2x1ZGUgIm9tYXA1LWJvYXJkLWNvbW1vbi5kdHNpIgogCiAvIHsKQEAgLTE3LDYgKzE4
+LDE4IEBACiAJCWRldmljZV90eXBlID0gIm1lbW9yeSI7CiAJCXJlZyA9IDwweDgwMDAwMDAwIDB4
+N2YwMDAwMDA+OyAvKiAyMDMyIE1CICovCiAJfTsKKworCWdwaW9fa2V5cyB7CisgICAgICAgICAg
+ICAgICAgY29tcGF0aWJsZSA9ICJncGlvLWtleXMiOworCQlwaW5jdHJsLTAgPSA8JnBvd2VyX2J1
+dHRvbl9waW4+OworCQlwaW5jdHJsLW5hbWVzID0gImRlZmF1bHQiOworCisJCXBvd2VyLWJ1dHRv
+biB7CisJCQlsYWJlbCA9ICJQb3dlciBCdXR0b24iOworCQkJbGludXgsY29kZSA9IDxLRVlfUE9X
+RVI+OworCQkJZ3Bpb3MgPSA8JmdwaW80IDIyIEdQSU9fQUNUSVZFX0hJR0g+OworCQl9OworCX07
+CiB9OwogCiAmaGRtaSB7CkBAIC01OCw2ICs3MSwxMiBAQAogCQkJT01BUDVfSU9QQUQoMHgwZmEs
+IFBJTl9JTlBVVCB8IE1VWF9NT0RFMCkJLyogaTJjNF9zZGEgKi8KIAkJPjsKIAl9OworCisJcG93
+ZXJfYnV0dG9uX3BpbjogcGluY3RybF9wb3dlcl9idXR0b25fcGluIHsKKwkJcGluY3RybC1zaW5n
+bGUscGlucyA9IDwKKwkJCU9NQVA1X0lPUEFEKDB4MDg2LCBQSU5fSU5QVVQgfCBNVVhfTU9ERTYp
+CS8qIGdwaW80XzExOCAqLworCQk+OworCX07CiB9OwogCiAmdHBkMTJzMDE1IHsKLS0gCjIuOS4z
+CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1h
+cm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5v
+cmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0t
+a2VybmVsCg==
