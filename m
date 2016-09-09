@@ -1,48 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: dts: Add power button support for igepv5
-Date: Fri,  9 Sep 2016 14:07:29 -0700
-Message-ID: <20160909210729.20184-1-tony@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] usb: ohci: Allow ohci on omap5 also
+Date: Fri, 9 Sep 2016 14:11:19 -0700
+Message-ID: <20160909211118.rtj53romz4vf5cng@atomide.com>
+References: <20160909201114.7cehi2sgmjw46gfo@atomide.com>
+ <Pine.LNX.4.44L0.1609091640470.2050-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Enric Balletbo Serra <eballetbo@gmail.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Pau Pajuel <ppajuel@gmail.com>, =?UTF-8?q?Agust=C3=AD=20Fontquerni=20i=20Gorchs?= <afontquerni@iseebcn.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.1609091640470.2050-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-QWRkIHBvd2VyIGJ1dHRvbiBzdXBwb3J0IGZvciBpZ2VwdjUuCgpDYzogQWd1c3TDrSBGb250cXVl
-cm5pIGkgR29yY2hzIDxhZm9udHF1ZXJuaUBpc2VlYmNuLmNvbT4KQ2M6IEVucmljIEJhbGxldGJv
-IFNlcnJhIDxlYmFsbGV0Ym9AZ21haWwuY29tPgpDYzogSmF2aWVyIE1hcnRpbmV6IENhbmlsbGFz
-IDxqYXZpZXJAb3NnLnNhbXN1bmcuY29tPgpDYzogUGF1IFBhanVlbCA8cHBhanVlbEBnbWFpbC5j
-b20+ClNpZ25lZC1vZmYtYnk6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+Ci0tLQog
-YXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtaWdlcDAwNTAuZHRzIHwgMTkgKysrKysrKysrKysrKysr
-KysrKwogMSBmaWxlIGNoYW5nZWQsIDE5IGluc2VydGlvbnMoKykKCmRpZmYgLS1naXQgYS9hcmNo
-L2FybS9ib290L2R0cy9vbWFwNS1pZ2VwMDA1MC5kdHMgYi9hcmNoL2FybS9ib290L2R0cy9vbWFw
-NS1pZ2VwMDA1MC5kdHMKLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtaWdlcDAwNTAuZHRz
-CisrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LWlnZXAwMDUwLmR0cwpAQCAtNyw2ICs3LDcg
-QEAKICAqLwogL2R0cy12MS87CiAKKyNpbmNsdWRlIDxkdC1iaW5kaW5ncy9pbnB1dC9pbnB1dC5o
-PgogI2luY2x1ZGUgIm9tYXA1LWJvYXJkLWNvbW1vbi5kdHNpIgogCiAvIHsKQEAgLTE3LDYgKzE4
-LDE4IEBACiAJCWRldmljZV90eXBlID0gIm1lbW9yeSI7CiAJCXJlZyA9IDwweDgwMDAwMDAwIDB4
-N2YwMDAwMDA+OyAvKiAyMDMyIE1CICovCiAJfTsKKworCWdwaW9fa2V5cyB7CisgICAgICAgICAg
-ICAgICAgY29tcGF0aWJsZSA9ICJncGlvLWtleXMiOworCQlwaW5jdHJsLTAgPSA8JnBvd2VyX2J1
-dHRvbl9waW4+OworCQlwaW5jdHJsLW5hbWVzID0gImRlZmF1bHQiOworCisJCXBvd2VyLWJ1dHRv
-biB7CisJCQlsYWJlbCA9ICJQb3dlciBCdXR0b24iOworCQkJbGludXgsY29kZSA9IDxLRVlfUE9X
-RVI+OworCQkJZ3Bpb3MgPSA8JmdwaW80IDIyIEdQSU9fQUNUSVZFX0hJR0g+OworCQl9OworCX07
-CiB9OwogCiAmaGRtaSB7CkBAIC01OCw2ICs3MSwxMiBAQAogCQkJT01BUDVfSU9QQUQoMHgwZmEs
-IFBJTl9JTlBVVCB8IE1VWF9NT0RFMCkJLyogaTJjNF9zZGEgKi8KIAkJPjsKIAl9OworCisJcG93
-ZXJfYnV0dG9uX3BpbjogcGluY3RybF9wb3dlcl9idXR0b25fcGluIHsKKwkJcGluY3RybC1zaW5n
-bGUscGlucyA9IDwKKwkJCU9NQVA1X0lPUEFEKDB4MDg2LCBQSU5fSU5QVVQgfCBNVVhfTU9ERTYp
-CS8qIGdwaW80XzExOCAqLworCQk+OworCX07CiB9OwogCiAmdHBkMTJzMDE1IHsKLS0gCjIuOS4z
-CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1h
-cm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5v
-cmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0t
-a2VybmVsCg==
+* Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> [160909 13:41]:
+> On Fri, 9 Sep 2016, Tony Lindgren wrote:
+> 
+> > * Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> [160909 12:47]:
+> > > You know, as far as I can tell the only thing that is OMAP-specific
+> > > about the ohci-omap3 driver is the initialization of OHCI_CTRL_RWC.  
+> > > This could be added to the platform data or the DT bindings, after
+> > > which this driver wouldn't be needed at all -- the ohci_platform driver
+> > > would work.  Does this seem reasonable?
+> > 
+> > Sure makes sense to me. Do we have some standard binding for
+> > OCHI_CTRL_RWC?
+> 
+> No, one would have to be created.
+
+OK I can do a patch for that, what should be binding be?
+
+ohci-ctrl-rwc-something?
+
+Regards,
+
+Tony
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
