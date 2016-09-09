@@ -1,39 +1,116 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v5 3/3] Input: Add support for tps65217 power button
-Date: Thu, 8 Sep 2016 16:21:26 -0700
-Message-ID: <20160908232126.piopvzfhpfhpw2ed@atomide.com>
-References: <20160908095900.30975-1-m.niestroj@grinn-global.com>
- <20160908095900.30975-4-m.niestroj@grinn-global.com>
- <20160908170437.GA30299@dtor-ws>
+From: Rob Herring <robh+dt@kernel.org>
+Subject: Re: [PATCHv2] of: Add generic handling for ePAPR 1.1 fail-sss states
+Date: Thu, 8 Sep 2016 21:43:03 -0500
+Message-ID: <CAL_JsqKYqQpDrLbV0DZ-CvHfeHsXvMc-gncc9obir4gehriXOw@mail.gmail.com>
+References: <20160829223542.18871-1-tony@atomide.com> <57C74306.9020901@gmail.com>
+ <20160831214151.wzq7y54xxs2qj422@atomide.com> <CAL_Jsq+dm5HMkX8DNNZNB2QF-VPg96Esb+Capv88zys9nAPksw@mail.gmail.com>
+ <57D1B668.3070001@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160908170437.GA30299@dtor-ws>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <57D1B668.3070001@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Frank Rowand <frowand.list@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Tom Rini <trini@konsulko.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [160908 10:04]:
-> On Thu, Sep 08, 2016 at 11:59:00AM +0200, Marcin Niestroj wrote:
-> > -	pwr->tps = tps;
-> > +	pwr->regmap = *(struct regmap **) (tps + pwr->data->regmap_offset);
-> 
-> Please never ever do this stuff, it is extremely fragile and is bound to
-> break. Do this instead:
-> 
-> 	regmap = dev_get_regmap(pdev->dev.parent, NULL);
+On Thu, Sep 8, 2016 at 2:05 PM, Frank Rowand <frowand.list@gmail.com> wrote:
+> On 09/08/16 06:38, Rob Herring wrote:
+>> On Wed, Aug 31, 2016 at 4:41 PM, Tony Lindgren <tony@atomide.com> wrote:
+>>> * Frank Rowand <frowand.list@gmail.com> [160831 13:51]:
+>>>> On 08/29/16 15:35, Tony Lindgren wrote:
+>>>>>     if (of_device_is_incomplete(pdev->dev.of_node, status)) {
+>>>>>             if (!strcmp("hw-incomplete-pins", status)) {
+>>>>>                     dev_info(&pdev->dev,
+>>>>>                              "Unusable hardware: Not pinned out\n");
+>>>>>                     err = -ENODEV;
+>>>>>                     goto out;
+>>>>>             }
+>>>>>             if (!strcmp("hw-missing-daughter-card")) {
+>>>>>                     err = -EPROBE_DEFER;
+>>>>>                     goto out;
+>>>>>             }
+>>>>>             if (!strcmp("hw-buggy-dma")) {
+>>>>>                     dev_warn(&pdev->dev,
+>>>>>                              "Replace hardware for working DMA\n");
+>>>>>             }
+>>>>>     }
+>>>>
+>>>> What if the device has two issues to be reported?  You can not
+>>>> specify two different values for the status property.
+>>>
+>>> That's a good point.
+>>>
+>>>> What if the firmware wants to report that the hardware failed
+>>>> self-test (thus status = "fail-sss") but is already using
+>>>> status to describe the hardware?
+>>>
+>>> Yeah that's true. Do you know what the "sss" stands for here?
+>>> Status Self teSt, or Side Scan Sonar? :)
+>>
+>> String String String!!!?
+>>
+>> No clue for me.
+>>
+>>>
+>>>>> - Make more generic as suggested by Frank but stick with
+>>>>>   "operational status of a device" approch most people seem
+>>>>>   to prefer that
+>>>>
+>>>> I am still opposed to using the status property for this purpose.
+>>>>
+>>>> The status property is intended to report an operational problem with
+>>>> a device or a device that the kernel can cause to be operational (such
+>>>> as a quiescent cpu being enabled).  It is the only property I am aware
+>>>> of to report _state_.
+>>
+>> Yes, in theory a device can go from disabled to okay, but that's
+>> generally never been supported. Linux takes the simple approach of
+>> "disabled" means ignore it. I think we'll see that change with
+>> overlays.
+>>
+>>>> It is unfortunate that Linux has adopted the practice of overloading status
+>>>> to determine whether a piece of hardware exists or does not exist.  This
+>>>> is extremely useful for the way we structure the .dts and .dtsi files but
+>>>> should have used a new property name.  We are stuck with that choice of
+>>>> using the status property for two purposes, first the state of a device,
+>>>> and secondly the hardware description of existing or not existing.
+>>
+>> I don't agree. Generally, disabled means the h/w is there, but don't
+>> use it. There may be some cases where the hardware doesn't exist for
+>> the convenience of having a single dts, but that's the exception.
+>
+> That it is not an exception, but instead a frequent pattern for .dtsi files.
+> A quick look in arm:
+>
+>   $ grep status *.dtsi | wc -l
+>   4842
+>
+>   $ grep status *.dtsi | grep '"disabled"' | wc -l
+>   3431
 
-I wonder if we should add dev_get_parent_regmap(dev, "desc")?
+That's not what I mean. You can't grep for this. Yes, marking blocks
+as disabled by default in the SoC dtsi file and then enabling in the
+board file is standard practice. If it is left disabled that doesn't
+mean it doesn't exist is what I was getting at.
 
-This passing of pdev->dev.parent always makes me wonder why
-we're tweaking the parent resources..
+And yes, there are other cases where things get disabled with efuses
+or don't have pins. Sometimes there is no difference in parts at all
+and it's just a given block is not tested in factory test.
 
-Regards,
+>>>> Why not just create a new property that describes the hardware?
+>>>> Perhaps something like:
+>>>>
+>>>>    incomplete = "pins_output", "buggy_dma";
+>>>
+>>> New property for incomplete works for me. Rob, got any comments here?
+>>
+>> Pins not muxed out or connected on the board has to be the #1 reason
+>> for disabled status. I don't think we need or want another way to
+>> express that.
+>
+> How is that expressed now?
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+status = "disabled";
+
+Rob
