@@ -1,34 +1,46 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [PATCH] usb: ohci: Allow ohci on omap5 also
-Date: Fri, 9 Sep 2016 16:41:30 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1609091640470.2050-100000@iolanthe.rowland.org>
-References: <20160909201114.7cehi2sgmjw46gfo@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [v2] musb: omap2430: do not assume balanced enable()/disable()
+Date: Fri, 9 Sep 2016 13:51:04 -0700
+Message-ID: <20160909205103.sqonsprxbb7i6zth@atomide.com>
+References: <1470238731-32358-1-git-send-email-andreas@kemnade.info>
+ <1946895.vi37Pmm05X@avalon>
+ <20160909200803.4cngkfhgkki4e7o3@atomide.com>
+ <1538976.gm2HNISj8k@avalon>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160909201114.7cehi2sgmjw46gfo-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1538976.gm2HNISj8k@avalon>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Andreas Kemnade <andreas@kemnade.info>, Bin Liu <b-liu@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 9 Sep 2016, Tony Lindgren wrote:
-
-> * Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> [160909 12:47]:
-> > You know, as far as I can tell the only thing that is OMAP-specific
-> > about the ohci-omap3 driver is the initialization of OHCI_CTRL_RWC.  
-> > This could be added to the platform data or the DT bindings, after
-> > which this driver wouldn't be needed at all -- the ohci_platform driver
-> > would work.  Does this seem reasonable?
+* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [160909 13:21]:
+> On Friday 09 Sep 2016 13:08:03 Tony Lindgren wrote:
+> > This patch has a side effect of fixing the issue by breaking PM
+> > runtime, not a good fix as discussed.
 > 
-> Sure makes sense to me. Do we have some standard binding for
-> OCHI_CTRL_RWC?
+> How exactly is it worse breaking runtime PM than breaking USB gadget 
+> completely ? :-)
 
-No, one would have to be created.
+Yeah sorry to break it, I obviously did not test it on all platforms :(
+I'm mostly using omap3 with the 2430 glue layer and am335x for the
+dsps glue layer and did not know that omap4 is broken. I guess I've
+recently just used the EHCI ports on panda.
 
-Alan Stern
+> The issue here is that the .disable() platform operation is called by musb 
+> with the PHY already powered off, leading to the PHY power reference count 
+> becoming negative. The next call to the .enable() operation restores the 
+> reference count to 0 without enabling the PHY.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Well for the phy-twl4030-usb.c, AFAIK the right fix is to fix the PHY
+driver as done in "[PATCH v2] phy-twl4030-usb: initialize charging-related
+stuff via pm_runtime". I suspect something similar is happening here
+also with the omap4 legacy phy.
+
+> Feel free to send me a better fix and I will test it.
+
+Yeah will do, hang on.
+
+Tony
