@@ -1,50 +1,60 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [PATCH] usb: ohci: Allow ohci on omap5 also
-Date: Fri, 9 Sep 2016 15:47:41 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1609091536060.2050-100000@iolanthe.rowland.org>
-References: <20160909175823.7oxe7p7zc3bsdnld@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [08/15] usb: musb: Improve PM runtime and phy handling for 2430
+ glue layer
+Date: Fri, 9 Sep 2016 13:05:39 -0700
+Message-ID: <20160909200538.zwneky5547zqjiib@atomide.com>
+References: <1463014396-4095-9-git-send-email-tony@atomide.com>
+ <20160909172447.kw3jb3odlpwt6egv@atomide.com>
+ <3780063.Jn4ozlZU9e@avalon>
+ <2068802.BeclS25o24@avalon>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160909175823.7oxe7p7zc3bsdnld-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <2068802.BeclS25o24@avalon>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 9 Sep 2016, Tony Lindgren wrote:
-
-> With LPAE config we don't have omap3 or omap4 selected for
-> omap5 variants.
+* Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [160909 12:24]:
+> Hi Tony,
 > 
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> ---
->  drivers/usb/host/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> On Friday 09 Sep 2016 21:33:35 Laurent Pinchart wrote:
+> > On Friday 09 Sep 2016 10:24:47 Tony Lindgren wrote:
+> > > * Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [160909 10:08]:
+> > > > On Wednesday 11 May 2016 17:53:09 Tony Lindgren wrote:
+> > > > > This simplifies things and allows idling both MUSB and PHY
+> > > > > when nothing is configured. Let's just return early from PM
+> > > > > runtime if musb is not yet initialized.
+> > > > > 
+> > > > > Let's also warn if PHY is not configured.
+> > > > 
+> > > > git bisect pointed out to this patch today when I tried to find out what
+> > > > broke nfsroot over USB ethernet gadget on my Panda board :-/ Could you
+> > > > help me debugging and fixing that ?
+> > > 
+> > > OK, do you have commit 2c5575401e34 ("usb: musb: Fix locking errors for
+> > > host only mode")? That's now in v4.8-rc5. Or which kernel are we talking
+> > > about here?
+> > 
+> > I've originally ran into the issue on v4.8-rc2. I've then bisected the issue
+> > to this commit, and confirmed that both v4.7 and v4.8-rc5 are broken.
 > 
-> diff --git a/drivers/usb/host/Kconfig b/drivers/usb/host/Kconfig
-> --- a/drivers/usb/host/Kconfig
-> +++ b/drivers/usb/host/Kconfig
-> @@ -472,7 +472,7 @@ config USB_OHCI_HCD_AT91
->  
->  config USB_OHCI_HCD_OMAP3
->  	tristate "OHCI support for OMAP3 and later chips"
-> -	depends on (ARCH_OMAP3 || ARCH_OMAP4)
-> +	depends on (ARCH_OMAP3 || ARCH_OMAP4 || SOC_OMAP5)
->  	default y
->  	---help---
->  	  Enables support for the on-chip OHCI controller on
+> "[PATCH v2] musb: omap2430: do not assume balanced enable()/disable()login 
+> register mail settings" (https://patchwork.kernel.org/patch/9261611/) fixes 
+> the issue.
 
-Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Oh it's a different issue then. Sounds like it's probably related to
+drivers/phy vs drivers/usb/phy. Will take a look on my panda.
 
-You know, as far as I can tell the only thing that is OMAP-specific
-about the ohci-omap3 driver is the initialization of OHCI_CTRL_RWC.  
-This could be added to the platform data or the DT bindings, after
-which this driver wouldn't be needed at all -- the ohci_platform driver
-would work.  Does this seem reasonable?
+Tony
 
-Alan Stern
 
+
+Regards,
+
+Tony
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
