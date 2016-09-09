@@ -1,80 +1,51 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [v2] musb: omap2430: do not assume balanced enable()/disable()
-Date: Fri, 09 Sep 2016 22:27:56 +0300
-Message-ID: <1946895.vi37Pmm05X@avalon>
-References: <1470238731-32358-1-git-send-email-andreas@kemnade.info>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: [PATCH] usb: ohci: Allow ohci on omap5 also
+Date: Fri, 9 Sep 2016 15:47:41 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1609091536060.2050-100000@iolanthe.rowland.org>
+References: <20160909175823.7oxe7p7zc3bsdnld@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1470238731-32358-1-git-send-email-andreas@kemnade.info>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: Bin Liu <b-liu@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, letux-kernel@openphoenux.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160909175823.7oxe7p7zc3bsdnld-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Andreas,
+On Fri, 9 Sep 2016, Tony Lindgren wrote:
 
-Thank you for the patch.
-
-On Wednesday 03 Aug 2016 17:38:51 Andreas Kemnade wrote:
-> The code assumes that omap2430_musb_enable() and
-> omap2430_musb_disable() are called in a balanced way.
-> That fact is broken by the fact that musb_init_controller() calls
-> musb_platform_disable() to switch from unknown state to off state
-> on initialisation.
+> With LPAE config we don't have omap3 or omap4 selected for
+> omap5 variants.
 > 
-> That means that phy_power_off() is called first so that
-> phy->power_count gets -1 and the phy is not enabled on phy_power_on().
-> So when usb gadget is started the phy is not powered on.
-> Depending on the phy used that caused various problems.
-> Besides of causing usb problems, that can also have side effects.
-> 
-> In the case of using the phy_twl4030, that prevents also charging
-> the battery via usb (using twl4030_charger) and so makes further
-> kernel debugging hard.
-> The problem was seen with 4.7 on an openphoenux gta04. It has a DM3730
-> SoC and a TPS65950 companion.  phy->power never became 1
-> and so the usb did get powered on.
-> 
-> The patch prevents phy_power_off() from being called when
-> it is already off.
-> 
-> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-
-This fixes USB gadget operation on the Panda board.
-
-Fixes: a83e17d0f73b ("usb: musb: Improve PM runtime and phy handling for 2430 
-glue layer")
-Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 > ---
-> changes in v2:
-> improved commit message
+>  drivers/usb/host/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
->  drivers/usb/musb/omap2430.c | 7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> index 0b4cec9..c1a2b7b 100644
-> --- a/drivers/usb/musb/omap2430.c
-> +++ b/drivers/usb/musb/omap2430.c
-> @@ -413,9 +413,10 @@ static void omap2430_musb_disable(struct musb *musb)
->  	struct device *dev = musb->controller;
->  	struct omap2430_glue *glue = dev_get_drvdata(dev->parent);
-> 
-> -	if (!WARN_ON(!musb->phy))
-> -		phy_power_off(musb->phy);
-> -
-> +	if (glue->enabled) {
-> +		if (!WARN_ON(!musb->phy))
-> +			phy_power_off(musb->phy);
-> +	}
->  	if (glue->status != MUSB_UNKNOWN)
->  		omap_control_usb_set_mode(glue->control_otghs,
->  			USB_MODE_DISCONNECT);
+> diff --git a/drivers/usb/host/Kconfig b/drivers/usb/host/Kconfig
+> --- a/drivers/usb/host/Kconfig
+> +++ b/drivers/usb/host/Kconfig
+> @@ -472,7 +472,7 @@ config USB_OHCI_HCD_AT91
+>  
+>  config USB_OHCI_HCD_OMAP3
+>  	tristate "OHCI support for OMAP3 and later chips"
+> -	depends on (ARCH_OMAP3 || ARCH_OMAP4)
+> +	depends on (ARCH_OMAP3 || ARCH_OMAP4 || SOC_OMAP5)
+>  	default y
+>  	---help---
+>  	  Enables support for the on-chip OHCI controller on
 
--- 
-Regards,
+Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
 
-Laurent Pinchart
+You know, as far as I can tell the only thing that is OMAP-specific
+about the ohci-omap3 driver is the initialization of OHCI_CTRL_RWC.  
+This could be added to the platform data or the DT bindings, after
+which this driver wouldn't be needed at all -- the ohci_platform driver
+would work.  Does this seem reasonable?
+
+Alan Stern
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
