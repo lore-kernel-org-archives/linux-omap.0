@@ -1,50 +1,66 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [PATCH] usb: ohci: Allow ohci on omap5 also
-Date: Fri, 9 Sep 2016 21:36:15 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1609092131150.8630-100000@netrider.rowland.org>
-References: <20160909211118.rtj53romz4vf5cng@atomide.com>
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
+Subject: Re: [PATCH] ARM: dts: omap3-gta04: reduce panel backlight PWM
+ frequency to 83Hz
+Date: Sat, 10 Sep 2016 05:17:36 +0200
+Message-ID: <20160910031736.xwnepaoifpedqfbr@squirrel.local>
+References: <954d43b570092fe92b8b49cf8f475c027d3d8342.1473066997.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160909211118.rtj53romz4vf5cng-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <954d43b570092fe92b8b49cf8f475c027d3d8342.1473066997.git.hns@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>, David Rivshin <drivshin@allworx.com>
+Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, marek@goldelico.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org, Neil Armstrong <narmstrong@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 9 Sep 2016, Tony Lindgren wrote:
-
-> * Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> [160909 13:41]:
-> > On Fri, 9 Sep 2016, Tony Lindgren wrote:
-> > 
-> > > * Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> [160909 12:47]:
-> > > > You know, as far as I can tell the only thing that is OMAP-specific
-> > > > about the ohci-omap3 driver is the initialization of OHCI_CTRL_RWC.  
-> > > > This could be added to the platform data or the DT bindings, after
-> > > > which this driver wouldn't be needed at all -- the ohci_platform driver
-> > > > would work.  Does this seem reasonable?
-> > > 
-> > > Sure makes sense to me. Do we have some standard binding for
-> > > OCHI_CTRL_RWC?
-> > 
-> > No, one would have to be created.
+On Mon, Sep 05, 2016 at 11:16:38AM +0200, H. Nikolaus Schaller wrote:
+> This helps to get 100% intensity closer to "always on".
 > 
-> OK I can do a patch for that, what should be binding be?
-> 
-> ohci-ctrl-rwc-something?
+> It compensates for an effect of dmtimer which at 100% still emits short
+> "off" impulses and the startup-time of the DC/DC converter makes
+> backlight intensity not reach full scale. The lower the PWM frequency
+> is, the smaller is this effect.
 
-OHCI_CTRL_RWC is just a single-bit flag; the RWC part stands for
-"Remote Wakeup Control".  The flag indicates whether the controller
-hardware is able to wake up the system, and it is supposed to be set
-initially by the firmware during boot-up.  Under DT, the driver will
-have to set it manually.
+Sounds to me like you're working around something that should be fixed
+in the pwm-omap-dmtimer driver instead?
 
-So you could call it ohci-ctrl-rwc-on, or ohci-ctrl-rwc-enable, or 
-anything similar.  Use your own judgment.
+Looking at the (baremetal) dmtimer pwm code I wrote ages ago, which
+supports fully off to fully on, I do seem to be handling both endpoints
+in a special way.  A rough conversion of my code into C:
 
-Alan Stern
+// period in timer cycles
+void pwm_init( volatile struct dmtimer *timer, u32 period, bool invert )
+{
+	assert( period >= 2 );
+	timer->if_ctrl = 2;  // reset timer, configure as non-posted
+	timer->reload = -period;
+	timer->trigger = 0;
+	timer->config = 0x1043 | invert << 7;  // pwm initially disabled
+}
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+// value in timer cycles, 0 <= value <= period
+void pwm_set( volatile struct dmtimer *timer, u32 value )
+{
+	if( value == 0 ) {
+		timer->config &= ~0x800;  // disable pwm
+		return;
+	}
+	u32 period = -timer->reload;
+	if( value >= period )
+		timer->match = 0;
+	else
+		timer->match = value - period - 1;
+	timer->config |= 0x800;  // enable pwm
+}
+
+At the time I used a scope to check the exact behaviour of dmtimer pwm
+on a dm814x.  My notes mention (when pwm enabled):
+	match < reload	output on continuous
+	match == reload	output on 1 cycle, off period-1 cycles
+	match == -2	output on period-1 cycles, off 1 cycle
+	match == -1	output freezes
+
+Hope this helps
+
+Matthijs
