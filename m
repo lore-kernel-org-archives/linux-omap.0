@@ -1,103 +1,162 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH] ARM: dts: omap3-gta04: reduce panel backlight PWM frequency to 83Hz
-Date: Sat, 10 Sep 2016 11:10:17 +0200
-Message-ID: <7C9DF12E-32C6-4D7C-BAAD-5CE9F8BA305A@goldelico.com>
-References: <954d43b570092fe92b8b49cf8f475c027d3d8342.1473066997.git.hns@goldelico.com> <20160910031736.xwnepaoifpedqfbr@squirrel.local> <3188F52F-1372-4D59-B790-C15E584A44F2@goldelico.com> <CAALWOA8ZZBbgCG-5TRbd6=k27PQV2EHcCj6zwk31sKTHY1A7Bg@mail.gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: Re: [v2] musb: omap2430: do not assume balanced enable()/disable()
+Date: Sat, 10 Sep 2016 13:27:01 +0200
+Message-ID: <20160910132701.776e4d2c@aktux>
+References: <1470238731-32358-1-git-send-email-andreas@kemnade.info>
+        <1946895.vi37Pmm05X@avalon>
+        <20160909200803.4cngkfhgkki4e7o3@atomide.com>
+        <1538976.gm2HNISj8k@avalon>
+        <20160909205103.sqonsprxbb7i6zth@atomide.com>
+        <20160909232206.70ee2558@aktux>
+        <20160909213341.m2tmrvws5ffomnho@atomide.com>
+        <20160909234014.pvu3wp2z45rzbbk5@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAALWOA8ZZBbgCG-5TRbd6=k27PQV2EHcCj6zwk31sKTHY1A7Bg@mail.gmail.com>
+In-Reply-To: <20160909234014.pvu3wp2z45rzbbk5@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Matthijs van Duin <matthijsvanduin@gmail.com>
-Cc: David Rivshin <drivshin@allworx.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Marek Belisko <marek@goldelico.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Neil Armstrong <narmstrong@baylibre.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Bin Liu <b-liu@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Fri, 9 Sep 2016 16:40:15 -0700
+Tony Lindgren <tony@atomide.com> wrote:
 
-> Am 10.09.2016 um 10:20 schrieb Matthijs van Duin =
-<matthijsvanduin@gmail.com>:
->=20
-> On 10 September 2016 at 09:08, H. Nikolaus Schaller =
-<hns@goldelico.com> wrote:
->> Reducing the PWM frequency is good by itself since it should not be =
-unnecessarily
->> fast and helps to make the PWM to "average current" translation more =
-linear.
->>=20
->> The non-linear effect is that the PWM controlled DC/DC converter =
-reacts almost
->> immediately to a 1->0 control transition but needs some time (ca. =
-0.5ms) to recover
->> on a 0->1 transition.
->=20
-> DT already allows for compensation of many non-linearities by
-> specifying the duty cycle of each brightness increment.  Though, as
-> you observed, there's one limitation it cannot fix here:
->=20
->> If we just fix the PWM generator to output a steady 1 signal at 100%, =
-we have a
->> very significant change if we switch to 99%, depending on PWM =
-frequency.
->=20
-> Specifically the next-to-brightest step (assuming 0.5ms off-time) =
-would be:
-> 75%  @ 500 Hz
-> 90%  @ 200 Hz
-> 95%  @ 100 Hz
-> 96%  @  83 Hz
+> * Tony Lindgren <tony@atomide.com> [160909 14:33]:
+> > * Andreas Kemnade <andreas@kemnade.info> [160909 14:22]:
+> > > We have two independant things:
+> > > 1. phy-twl4030-usb (and perhaps others) do not enable
+> > >   the phy enough to allow charging on pm_runtime_get().
+> > >   That is fixed by my phy-related patches.
+> > 
+> > OK
+> >
+> > > 2. phy_power_off/on() in called in an unbalanced way if
+> > >    it is called behind musb_platform_enable()/disable()
+> > >    as it happens in omap2430.c. Two ways to fix it:
+> > >    a) prevent phy_power_off()/on() to be called in
+> > >       an unbalanced way in omap240.c
+> > >    b) prevent musb_platform_enable()
+> > > 	      musb_platform_disable() to be called in an
+> > > 	      unbalanced way by fixing musb_core.c
+> > > 
+> > > Fixing 1. is enough on gta04 to fix charging and hide 2. enough to
+> > > have gadget working for the most common usecases. (not using
+> > > twl4030-charger would not work yet)
+> > > But in the longer term 2. has to be fixed too.
+> > 
+> > Sounds like option 2b here is the real fix.
+> 
+> And doing full option 2b would be intrusive because of musb_stop
+> also calling musb_platform_disable. Here's a suggested fix for
+> v4.8-rc cycle.
+> 
+musb_platform_disable() in musb_stop() seems to be balanced.
 
-Yes.
+from my list in an earlier mail:
+musb_platform_disable() in musb_remove() called upon module removal
 
->=20
-> Note that perceptually the distance to 100% might be smaller due to
-> non-linear response of the eye. That's my experience with pwm
-> controlled leds anyway, which may or may not apply to backlights
+To my analysis this is odd because musb_stop() is also called indirectly
+upon removal.
+But topic that can be left for later.
 
-basically it does. Eye is basically logarithmic - but has several =
-auto-exposure
-and auto-iris mechanisms... So perceived brightness is a very complex =
-topic.
-It might even depend on the color and contrast of the image presented. =
-This
-is something we can ever fix by DT...
+> Seems to work for me for omap3 torpedo using phy-twl4030-usb,
+> omap4 pandaboard es using phy-twl6030-usb and am335x beaglebone
+> black using dsps glue. Also PM runtime works on omap3.
+> 
+> This patch causes a slight merge conlict with Andrea's patches,
+> as listed in #1 above, but we should probably merge this first
+> as a fix. That is assuming it does not cause side effects to
+> Andrea's phy-twl4030-usb charger test case.
+> 
+Hmm, if the patch will gender-change me, then a clear NAK ;-)
 
-> (though with my laptop's backlight I never really have use for the
-> distinct steps at the brightest end while those at the darkest end
-> seem disproportionally large).
->=20
->> This effect becomes smaller if the PWM frequency is reduced and 83Hz =
-seems more
->> reasonable (although still a little arbitrary) than the current =
-value.
->=20
-> While 500Hz is perhaps a bit high, 83Hz actually seems very low to me.
+> Can you guys please test? If things work I'll resend the
+> patch with proper tested-bys and acks.
+> 
+I tested the patch without any other musb/phy-fixes.
+No regressions. It fixes Gadget to be usable. Charging seems
+not to be totally stable. I will check my phy-patches
+on top of that again. 
+PM runtime probably still desires some work on it.
+But I give a clear Ack for merging this one first.
 
-Why? The eye can't even see flicker @ 50 Hz.
+Regards,
+Andreas Kemnade
 
-And, there is a capacitor that averages the voltage applied, hence it is
-low pass filtered. But the capacitor can't compensate for the startup =
-delay
-of the DC/DC converter.
-
-And, I have tested that on the device targeted by this DTS... No visible
-issue (except that maximum brightness decreases if too high).
-
-> Searching a bit around yielded 175 Hz as common frequency for CCFL
-> backlights and higher for LED backlights (source:
-> http://www.tftcentral.co.uk/articles/pulse_width_modulation.htm).
-
->=20
-> (I may be reacting a bit twitchy here due to having encountered dimmed
-> LED lighting that was flickering obnoxiously for me while noone else
-> noticed this.)
->=20
-> Matthijs
-
-But with the patch submitted, I just want to give the dts of a single
-device I have even designed a more reasonable value than in current
-linux/master and don't really want to make it a fundamental =
-discussion...
-
-BR,
-Nikolaus=
+> Regards,
+> 
+> Tony
+> 
+> 8< --------------------------
+> From: Tony Lindgren <tony@atomide.com>
+> Date: Fri, 9 Sep 2016 15:04:53 -0700
+> Subject: [PATCH] usb: musb: Fix unbalanced platform_disable
+> 
+> Commit a83e17d0f73b ("usb: musb: Improve PM runtime and phy handling
+> for 2430 glue layer") moved PHY enable/disable calls to happen from
+> omap2430_musb_enable/disable(). That broke enumeration for several
+> devices as PM runtime in the PHY will never enable it.
+> 
+> The root cause of the problem is unpaired calls from musb_core.c to
+> musb_platform_enable/disable in musb_core.c as reported by
+> Andreas Kemnade <andreas@kemnade.info>.
+> 
+> As musb_platform_enable/disable are being called from various
+> functions, let's not attempt to make them paiered immediately. This
+> would require fixing also musb_stop as it currently calls
+> musb_platform_disable.
+> 
+> Instead, let's first fix the regression in a minimal way by removing
+> the initial call to musb_platform_disable.
+> 
+> AFAIK the initial musb_platform_disable call has always been just an
+> attempted workaround for the 2430 glue layer announcing itself too
+> early before the gadgets are configured. And that issue finally
+> got fixed with commit a118df07f5b1 ("usb: musb: Don't set d+ high
+> before enable for 2430 glue layer").
+> 
+> We now also need to fix the twl4030-phy accordingly making it's
+> PM runtime call only needed in twl4030_phy_power_on and have it
+> autosuspend. The cable state will keep the phy active when connected.
+> 
+> Cc: Kishon Vijay Abraham I <kishon@ti.com>
+> Reported-by: Andreas Kemnade <andreas@kemnade.info>
+> Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Fixes: a83e17d0f73b ("usb: musb: Improve PM runtime and phy handling
+> for 2430 glue layer")
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> 
+> --- a/drivers/phy/phy-twl4030-usb.c
+> +++ b/drivers/phy/phy-twl4030-usb.c
+> @@ -447,8 +447,6 @@ static int twl4030_phy_power_off(struct phy *phy)
+>  	struct twl4030_usb *twl = phy_get_drvdata(phy);
+>  
+>  	dev_dbg(twl->dev, "%s\n", __func__);
+> -	pm_runtime_mark_last_busy(twl->dev);
+> -	pm_runtime_put_autosuspend(twl->dev);
+>  
+>  	return 0;
+>  }
+> @@ -465,6 +463,8 @@ static int twl4030_phy_power_on(struct phy *phy)
+>  		twl4030_i2c_access(twl, 0);
+>  	twl->linkstat = MUSB_UNKNOWN;
+>  	schedule_delayed_work(&twl->id_workaround_work, HZ);
+> +	pm_runtime_mark_last_busy(twl->dev);
+> +	pm_runtime_put_autosuspend(twl->dev);
+>  
+>  	return 0;
+>  }
+> --- a/drivers/usb/musb/musb_core.c
+> +++ b/drivers/usb/musb/musb_core.c
+> @@ -2142,7 +2142,6 @@ musb_init_controller(struct device *dev, int
+> nIrq, void __iomem *ctrl) }
+>  
+>  	/* be sure interrupts are disabled before connecting ISR */
+> -	musb_platform_disable(musb);
+>  	musb_generic_disable(musb);
+>  
+>  	/* Init IRQ workqueue before request_irq */
+> 
+> 
