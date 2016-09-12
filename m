@@ -1,14 +1,15 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2] ARM: dts: ARM: dts: Fix omap5 SDIO dat1 interrupt
-Date: Sun, 11 Sep 2016 21:01:02 -0700
-Message-ID: <20160912040100.llah4hxy2faoflk7@atomide.com>
-References: <20160909210243.19296-1-tony@atomide.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: Regmap regression in next caused by of_iomap change
+Date: Mon, 12 Sep 2016 09:55:27 +0100
+Message-ID: <20160912085527.GA1873@dell>
+References: <20160908184111.vj3sb2ik6ydehkag@atomide.com>
+ <4088076.eNNe5WgnxT@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20160909210243.19296-1-tony@atomide.com>
+In-Reply-To: <4088076.eNNe5WgnxT@wuerfel>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,115 +19,29 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Tony Lindgren <tony@atomide.com>, Andrey Smirnov <andrew.smirnov@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [160909 14:02]:
-> --- a/arch/arm/boot/dts/omap5-board-common.dtsi
-> +++ b/arch/arm/boot/dts/omap5-board-common.dtsi
-> @@ -332,7 +332,7 @@
->  
->  	wlcore_irq_pin: pinmux_wlcore_irq_pin {
->  		pinctrl-single,pins = <
-> -			OMAP5_IOPAD(0x40, PIN_INPUT_PULLUP | MUX_MODE6)	/* llia_wakereqin.gpio1_wk14 */
-> +			OMAP5_IOPAD(0x40, PIN_INPUT | MUX_MODE6)	/* llia_wakereqin.gpio1_wk14 */
->  		>;
->  	};
->  };
-> @@ -355,15 +355,17 @@
->  	non-removable;
->  	cap-power-off-card;
->  	pinctrl-names = "default";
-> -	pinctrl-0 = <&mmc3_pins &wlcore_irq_pin>;
-> +	pinctrl-0 = <&mmc3_pins>;
->  	interrupts-extended = <&gic GIC_SPI 94 IRQ_TYPE_LEVEL_HIGH
-> -			       &omap5_pmx_core 0x168>;
-> +			       &omap5_pmx_core 0x16a>;
->  
-
-And the &gic is wrong here, it should be &wakeupgen. That seems to
-make things a bit better on omap5-uevm. Updated patch below.
-
-Regards,
-
-Tony
-
-8< -----------------
-From: Tony Lindgren <tony@atomide.com>
-Date: Thu, 8 Sep 2016 09:04:50 -0700
-Subject: [PATCH] ARM: dts: ARM: dts: Fix omap5 SDIO dat1 interrupt
-
-Few changes to fix issues I've noticed while debugging omap5-uevm
-wl18xx issues:
-
-1. Move wlcore irq pin muxing under wlcore. This irq could be
-   different from gpio_wk14 on some board variants
-
-2. Don't configure pull on wlcore irq pin. There is a 10k
-   pull up resistor R105 on the device to VDDS_1v8_MAIN
-
-3. The padconf register for wlsdio_data1 is wrong, it's really
-   at 0x1a8 + 2 - 0x40 = 0x16a offset, not at 0x168 as that's
-   for wlsdio_data0
-
-4. Mark the omap5-uevm wlan as compatible with ti,wl1837 as
-   that's what the TDK R078 part seems to be
-
-5. The MMC interrupt for WLAN musb be wakeupgen, not gic
-
-Looks like omap5-uevm WLAN behaves better now, but I still seem
-to have issues with some access points.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/boot/dts/omap5-board-common.dtsi | 10 ++++++----
- arch/arm/boot/dts/omap5-uevm.dts          |  4 ++++
- 2 files changed, 10 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
---- a/arch/arm/boot/dts/omap5-board-common.dtsi
-+++ b/arch/arm/boot/dts/omap5-board-common.dtsi
-@@ -332,7 +332,7 @@
- 
- 	wlcore_irq_pin: pinmux_wlcore_irq_pin {
- 		pinctrl-single,pins = <
--			OMAP5_IOPAD(0x40, PIN_INPUT_PULLUP | MUX_MODE6)	/* llia_wakereqin.gpio1_wk14 */
-+			OMAP5_IOPAD(0x40, PIN_INPUT | MUX_MODE6)	/* llia_wakereqin.gpio1_wk14 */
- 		>;
- 	};
- };
-@@ -355,15 +355,17 @@
- 	non-removable;
- 	cap-power-off-card;
- 	pinctrl-names = "default";
--	pinctrl-0 = <&mmc3_pins &wlcore_irq_pin>;
--	interrupts-extended = <&gic GIC_SPI 94 IRQ_TYPE_LEVEL_HIGH
--			       &omap5_pmx_core 0x168>;
-+	pinctrl-0 = <&mmc3_pins>;
-+	interrupts-extended = <&wakeupgen GIC_SPI 94 IRQ_TYPE_LEVEL_HIGH
-+			       &omap5_pmx_core 0x16a>;
- 
- 	#address-cells = <1>;
- 	#size-cells = <0>;
- 	wlcore: wlcore@2 {
- 		compatible = "ti,wl1271";
- 		reg = <2>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&wlcore_irq_pin>;
- 		interrupt-parent = <&gpio1>;
- 		interrupts = <14 IRQ_TYPE_LEVEL_HIGH>;	/* gpio 14 */
- 		ref-clock-frequency = <26000000>;
-diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
---- a/arch/arm/boot/dts/omap5-uevm.dts
-+++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -61,3 +61,7 @@
- 		OMAP5_IOPAD(0x1be, PIN_OUTPUT | MUX_MODE6)	/* mcspi1_somi.gpio5_141 */
- 	>;
- };
-+
-+&wlcore {
-+	compatible = "ti,wl1837";
-+};
--- 
-2.9.3
+T24gVGh1LCAwOCBTZXAgMjAxNiwgQXJuZCBCZXJnbWFubiB3cm90ZToKCj4gT24gVGh1cnNkYXks
+IFNlcHRlbWJlciA4LCAyMDE2IDExOjQxOjEyIEFNIENFU1QgVG9ueSBMaW5kZ3JlbiB3cm90ZToK
+PiA+IEhpLAo+ID4gCj4gPiBMb29rcyBsaWtlIGNvbW1pdCAzOWRlMmM0Mjc1YTkgKCJtZmQ6IHN5
+c2NvbjogTWFrZSB1c2Ugb2Ygb2ZfaW9tYXAiKQo+ID4gbWFrZXMgYXQgbGVhc3QgTU1DIFBCSUFT
+IHJlZ3VsYXRvciBzdG9wIHdvcmtpbmcgb24gb21hcDMuCj4gPgo+ID4gVGhhdCdzIHByb2JhYmx5
+IGJlY2F1c2Ugb2Zfc3lzY29uX3JlZ2lzdGVyIHVzZXMgdGhlIG5vdyB1bmludGlhbGl6ZWQKPiA+
+IHN0cnVjdCByZXNvdXJjZSByZXMgdG8gc2V0IHN5c2Nvbl9jb25maWcubWF4X3JlZ2lzdGVyLgo+
+IAo+IExvb2tzIGNvcnJlY3QuIExlZSwgcGxlYXNlIHNlbmQgYSByZXZlcnQgb2YgdGhhdCBwYXRj
+aCB0byBMaW51cwo+IGFsb25nIHdpdGggYW55IG90aGVyIGZpeGVzIHlvdSBtYXkgaGF2ZS4KCk5v
+IG5lZWQuICBJdCdzIG5vdCBpbiBNYWlubGluZS4KCj4gPiBJIGhhdmUgYSBzdHJhbmdlIGRlamEg
+dnUgZmVlbGluZyB0aGF0IHdlJ3ZlIGJlZW4gdGhyb3VnaCB0aGlzCj4gPiBiZWZvcmUgIFNlZSBj
+b21taXQgY2E2NjhmMGVkZmFlICgibWZkOiBzeXNjb246IFNldCByZWdtYXAgbWF4X3JlZ2lzdGVy
+Cj4gPiBpbiBvZl9zeXNjb25fcmVnaXN0ZXIiKQo+ID4gCj4gPiBNYXliZSB3ZSBzaG91bGQgYWRk
+IGNvbW1lbnRzIHRoZXJlIGluc3RlYWQ/Cj4gCj4gSSB3b25kZXIgd2h5IGdjYyBkaWRuJ3QgZGV0
+ZWN0IHRoaXMgY2FzZS4gSSB1c3VhbGx5IGRvIG15Cj4gdGVzdCBidWlsZHMgd2l0aCAtV21heWJl
+LXVuaW5pdGlhbGl6ZWQgdGhhdCBzaG91bGQgaGF2ZQo+IGNhdWdodCBpdCBidXQgZGlkbid0LgoK
+LS0gCkxlZSBKb25lcwpMaW5hcm8gU1RNaWNyb2VsZWN0cm9uaWNzIExhbmRpbmcgVGVhbSBMZWFk
+CkxpbmFyby5vcmcg4pSCIE9wZW4gc291cmNlIHNvZnR3YXJlIGZvciBBUk0gU29DcwpGb2xsb3cg
+TGluYXJvOiBGYWNlYm9vayB8IFR3aXR0ZXIgfCBCbG9nCgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdAps
+aW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVh
+ZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
