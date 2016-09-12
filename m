@@ -1,76 +1,97 @@
-From: Neil Armstrong <narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: omap3-gta04: reduce panel backlight PWM
- frequency to 83Hz
-Date: Mon, 12 Sep 2016 17:03:32 +0200
-Message-ID: <a7975f8d-e2e2-6554-4bab-af8c00dc9252@baylibre.com>
-References: <954d43b570092fe92b8b49cf8f475c027d3d8342.1473066997.git.hns@goldelico.com>
- <20160910031736.xwnepaoifpedqfbr@squirrel.local>
- <57D40F2C.7000805@baylibre.com> <20160912104155.267876a2.drivshin@awxrd.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCHv2] usb: musb: Fix unbalanced platform_disable
+Date: Mon, 12 Sep 2016 08:39:49 -0700
+Message-ID: <20160912153947.k4gnggur6usyujii@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160912104155.267876a2.drivshin-WHIoityCHfoAvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Rivshin <drivshin-WHIoityCHfoAvxtiuMwx3w@public.gmane.org>
-Cc: Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/12/2016 04:41 PM, David Rivshin wrote:
-> On Sat, 10 Sep 2016 15:48:28 +0200
-> Neil Armstrong <narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org> wrote:
-> 
->> Le 10/09/2016 05:17, Matthijs van Duin a écrit :
->>> On Mon, Sep 05, 2016 at 11:16:38AM +0200, H. Nikolaus Schaller wrote:  
->>>> This helps to get 100% intensity closer to "always on".
-[...]
->>> }
->>>
->>> At the time I used a scope to check the exact behaviour of dmtimer pwm
->>> on a dm814x.  My notes mention (when pwm enabled):
->>> 	match < reload	output on continuous
->>> 	match == reload	output on 1 cycle, off period-1 cycles
->>> 	match == -2	output on period-1 cycles, off 1 cycle
->>> 	match == -1	output freezes
->>>
->>> Hope this helps  
->>
->> Hi,
->>
->> I think these corner cases should definitely be handled in the dmtimer driver.
-> 
-> Do you mean to modify the dmtimer driver itself, or the pwm-omap-dmtimer 
-> driver?
-> 
-> IIRC from the last time I was in the pwm-omap-dmtimer driver, it seemed to 
-> me that the 0% and 100% cases could/should be handled as simple special 
-> cases there. I think the dmtimer driver itself has the necessary API to the 
-> HW, but I'd need to re-familiarize myself with it to remember the details 
-> of what I was thinking. 
-> 
-> Actually, I did mention some thoughts on this a previous thread where
-> Adam Ford was using pwm-omap-dmtimer for a backlight:
->  http://www.spinics.net/lists/linux-omap/msg126006.html
-> So it may be as simple as using PWM_OMAP_DMTIMER_TRIGGER_NONE and passing 
-> def_on according to whether 0 or 100% duty were requested (and polarity).
+Commit a83e17d0f73b ("usb: musb: Improve PM runtime and phy handling
+for 2430 glue layer") moved PHY enable/disable calls to happen from
+omap2430_musb_enable/disable(). That broke enumeration for several
+devices as PM runtime in the PHY will never enable it.
 
-Yes it's exactly what I was talking about.
+The root cause of the problem is unpaired calls from musb_core.c to
+musb_platform_enable/disable in musb_core.c as reported by
+Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>.
 
-> 
-> 
->>
->> I'll try to post a fix to handle these, thanks for the original code dump.
->>
->>>
->>> Matthijs
->>>   
->>
->> Neil
+As musb_platform_enable/disable are being called from various functions,
+let's not attempt to make them paiered immediately. This would require
+fixing all the callers like musb_remove.
 
-Thanks,
-Neil
+Instead, let's first fix the regression in a minimal way by removing
+the initial call to musb_platform_disable.
 
+AFAIK the initial musb_platform_disable call has always been just an
+attempted workaround for the 2430 glue layer announcing itself too
+early before the gadgets are configured. And that issue finally
+got fixed with commit a118df07f5b1 ("usb: musb: Don't set d+ high
+before enable for 2430 glue layer").
+
+We now also need to fix the twl4030-phy accordingly making it's
+PM runtime call only needed in twl4030_phy_power_on and have it
+autosuspend. The cable state will keep the phy active when connected.
+
+Cc: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Fixes: a83e17d0f73b ("usb: musb: Improve PM runtime and phy handling
+for 2430 glue layer")
+Reported-by: Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>
+Acked-by: Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>
+Reported-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Tested-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Acked-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+
+Changes since v1: Updated description
+
+This is needed as a regression fix for the v4.8-rc cycle please.
+
+---
+ drivers/phy/phy-twl4030-usb.c | 4 ++--
+ drivers/usb/musb/musb_core.c  | 1 -
+ 2 files changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
+--- a/drivers/phy/phy-twl4030-usb.c
++++ b/drivers/phy/phy-twl4030-usb.c
+@@ -447,8 +447,6 @@ static int twl4030_phy_power_off(struct phy *phy)
+ 	struct twl4030_usb *twl = phy_get_drvdata(phy);
+ 
+ 	dev_dbg(twl->dev, "%s\n", __func__);
+-	pm_runtime_mark_last_busy(twl->dev);
+-	pm_runtime_put_autosuspend(twl->dev);
+ 
+ 	return 0;
+ }
+@@ -465,6 +463,8 @@ static int twl4030_phy_power_on(struct phy *phy)
+ 		twl4030_i2c_access(twl, 0);
+ 	twl->linkstat = MUSB_UNKNOWN;
+ 	schedule_delayed_work(&twl->id_workaround_work, HZ);
++	pm_runtime_mark_last_busy(twl->dev);
++	pm_runtime_put_autosuspend(twl->dev);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -2142,7 +2142,6 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+ 	}
+ 
+ 	/* be sure interrupts are disabled before connecting ISR */
+-	musb_platform_disable(musb);
+ 	musb_generic_disable(musb);
+ 
+ 	/* Init IRQ workqueue before request_irq */
+-- 
+2.9.3
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
