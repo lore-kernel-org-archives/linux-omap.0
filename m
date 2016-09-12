@@ -1,86 +1,103 @@
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: [PATCH v2 0/6] mfd: trivial demodularization of non-modular drivers.
-Date: Mon, 12 Sep 2016 10:40:48 -0400
-Message-ID: <20160912144054.27522-1-paul.gortmaker@windriver.com>
+From: David Rivshin <drivshin@awxrd.com>
+Subject: Re: [PATCH] ARM: dts: omap3-gta04: reduce panel backlight PWM
+ frequency to 83Hz
+Date: Mon, 12 Sep 2016 10:41:55 -0400
+Message-ID: <20160912104155.267876a2.drivshin@awxrd.com>
+References: <954d43b570092fe92b8b49cf8f475c027d3d8342.1473066997.git.hns@goldelico.com>
+        <20160910031736.xwnepaoifpedqfbr@squirrel.local>
+        <57D40F2C.7000805@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <57D40F2C.7000805@baylibre.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, Boris BREZILLON <boris.brezillon@free-electrons.com>, Florian Lobmaier <florian.lobmaier@ams.com>, Laxman Dewangan <ldewangan@nvidia.com>, Lee Jones <lee.jones@linaro.org>, Maxime Ripard <maxime.ripard@free-electrons.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Samuel Ortiz <sameo@linux.intel.com>, Sourav Poddar <sourav.poddar@ti.com>, Thor Thayer <tthayer@opensource.altera.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Neil Armstrong <narmstrong@baylibre.com>
+Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, =?UTF-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, marek@goldelico.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-I grouped this little series of mfd commits together because of the
-common theme of their relatively trivial use of modular infrastructure
-in these non-modular drivers.
+On Sat, 10 Sep 2016 15:48:28 +0200
+Neil Armstrong <narmstrong@baylibre.com> wrote:
 
-What that means is there are no orphaned __exit functions to remove;
-no unused ".remove" functions linked into the driver struct to be
-deleted -- so in the end we have binary equivalence between the
-pre-patched code and the post-patched code. Easy to review and low risk.
+> Le 10/09/2016 05:17, Matthijs van Duin a écrit :
+> > On Mon, Sep 05, 2016 at 11:16:38AM +0200, H. Nikolaus Schaller wrote:  
+> >> This helps to get 100% intensity closer to "always on".
+> >>
+> >> It compensates for an effect of dmtimer which at 100% still emits short
+> >> "off" impulses and the startup-time of the DC/DC converter makes
+> >> backlight intensity not reach full scale. The lower the PWM frequency
+> >> is, the smaller is this effect.  
+> > 
+> > Sounds to me like you're working around something that should be fixed
+> > in the pwm-omap-dmtimer driver instead?
+> > 
+> > Looking at the (baremetal) dmtimer pwm code I wrote ages ago, which
+> > supports fully off to fully on, I do seem to be handling both endpoints
+> > in a special way.  A rough conversion of my code into C:
+> > 
+> > // period in timer cycles
+> > void pwm_init( volatile struct dmtimer *timer, u32 period, bool invert )
+> > {
+> > 	assert( period >= 2 );
+> > 	timer->if_ctrl = 2;  // reset timer, configure as non-posted
+> > 	timer->reload = -period;
+> > 	timer->trigger = 0;
+> > 	timer->config = 0x1043 | invert << 7;  // pwm initially disabled
+> > }
+> > 
+> > // value in timer cycles, 0 <= value <= period
+> > void pwm_set( volatile struct dmtimer *timer, u32 value )
+> > {
+> > 	if( value == 0 ) {
+> > 		timer->config &= ~0x800;  // disable pwm
+> > 		return;
+> > 	}
+> > 	u32 period = -timer->reload;
+> > 	if( value >= period )
+> > 		timer->match = 0;
+> > 	else
+> > 		timer->match = value - period - 1;
+> > 	timer->config |= 0x800;  // enable pwm
+> > }
+> > 
+> > At the time I used a scope to check the exact behaviour of dmtimer pwm
+> > on a dm814x.  My notes mention (when pwm enabled):
+> > 	match < reload	output on continuous
+> > 	match == reload	output on 1 cycle, off period-1 cycles
+> > 	match == -2	output on period-1 cycles, off 1 cycle
+> > 	match == -1	output freezes
+> > 
+> > Hope this helps  
+> 
+> Hi,
+> 
+> I think these corner cases should definitely be handled in the dmtimer driver.
 
-More specifically - the only thing we are doing here is mapping the
-initcall that binds in the driver from the module variant to the
-built-in variant ; something that CPP would do for us anyway -- and
-then throwing away any MODULE_ tags which are no-ops in non-modular
-builds (while preserving any author/desc. info they had in comments).
-And in doing that, we can toss the include of module.h in favour of
-init.h (asssuming it wasn't included already).
+Do you mean to modify the dmtimer driver itself, or the pwm-omap-dmtimer 
+driver?
 
-One exception is patch #2; it converts a driver from bool to tristate,
-as was asked per the v1 review[1].  This has been build tested, but
-I don't have the specific hardware for run time testing.
+IIRC from the last time I was in the pwm-omap-dmtimer driver, it seemed to 
+me that the 0% and 100% cases could/should be handled as simple special 
+cases there. I think the dmtimer driver itself has the necessary API to the 
+HW, but I'd need to re-familiarize myself with it to remember the details 
+of what I was thinking. 
 
-For anyone new to the underlying goal of this cleanup, we are trying to
-make driver code consistent with the Makefiles/Kconfigs that control them.
+Actually, I did mention some thoughts on this a previous thread where
+Adam Ford was using pwm-omap-dmtimer for a backlight:
+ http://www.spinics.net/lists/linux-omap/msg126006.html
+So it may be as simple as using PWM_OMAP_DMTIMER_TRIGGER_NONE and passing 
+def_on according to whether 0 or 100% duty were requested (and polarity).
 
-This means not using modular functions/macros for drivers that can never
-be built as a module.  Some of the other downfalls this leads to are:
 
- (1) it is easy to accidentally write unused module_exit and remove code
- (2) it can be misleading when reading the source, thinking it can be
-     modular when the Makefile and/or Kconfig prohibit it
- (3) it requires the include of the module.h header file which in turn
-     includes nearly everything else, thus adding to CPP overhead.
- (4) it gets copied/replicated into other drivers and spreads like weeds.
-
-Build tested on linux-next for arm, arm64 and x86-64 to ensure no typos
-or similar issues crept in.
-
-[1] https://lkml.kernel.org/r/20160705012544.14143-1-paul.gortmaker@windriver.com
-
-Paul.
----
-
-[v1 --> v2: make one driver tristate, add some Ackd-by tags.]
-
-Cc: Boris BREZILLON <boris.brezillon@free-electrons.com>
-Cc: Florian Lobmaier <florian.lobmaier@ams.com>
-Cc: Laxman Dewangan <ldewangan@nvidia.com>
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Sourav Poddar <sourav.poddar@ti.com>
-Cc: Thor Thayer <tthayer@opensource.altera.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
-
-Paul Gortmaker (6):
-  mfd: altera-a10sr: make it explicitly non-modular
-  mfd: as3722: convert MFD_AS3722 from bool to tristate
-  mfd: intel_msic: Make it explicitly non-modular
-  mfd: smsc-ece1099: Make it explicitly non-modular
-  mfd: sun6i-prcm: Make it explicitly non-modular
-  mfd: twl-core: Make it explicitly non-modular
-
- drivers/mfd/Kconfig        |  2 +-
- drivers/mfd/altera-a10sr.c | 14 ++++++--------
- drivers/mfd/intel_msic.c   |  9 ++-------
- drivers/mfd/smsc-ece1099.c | 11 ++---------
- drivers/mfd/sun6i-prcm.c   |  8 ++------
- drivers/mfd/twl-core.c     |  9 +--------
- 6 files changed, 14 insertions(+), 39 deletions(-)
-
--- 
-2.8.4
+> 
+> I'll try to post a fix to handle these, thanks for the original code dump.
+> 
+> > 
+> > Matthijs
+> >   
+> 
+> Neil
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
