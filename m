@@ -1,78 +1,86 @@
 From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: [PATCH 6/6] mfd: twl-core: Make it explicitly non-modular
-Date: Mon, 12 Sep 2016 10:40:54 -0400
-Message-ID: <20160912144054.27522-7-paul.gortmaker@windriver.com>
-References: <20160912144054.27522-1-paul.gortmaker@windriver.com>
+Subject: [PATCH v2 0/6] mfd: trivial demodularization of non-modular drivers.
+Date: Mon, 12 Sep 2016 10:40:48 -0400
+Message-ID: <20160912144054.27522-1-paul.gortmaker@windriver.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160912144054.27522-1-paul.gortmaker@windriver.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, Boris BREZILLON <boris.brezillon@free-electrons.com>, Florian Lobmaier <florian.lobmaier@ams.com>, Laxman Dewangan <ldewangan@nvidia.com>, Lee Jones <lee.jones@linaro.org>, Maxime Ripard <maxime.ripard@free-electrons.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Samuel Ortiz <sameo@linux.intel.com>, Sourav Poddar <sourav.poddar@ti.com>, Thor Thayer <tthayer@opensource.altera.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The Kconfig currently controlling compilation of this code is:
+I grouped this little series of mfd commits together because of the
+common theme of their relatively trivial use of modular infrastructure
+in these non-modular drivers.
 
-drivers/mfd/Kconfig:config TWL4030_CORE
-drivers/mfd/Kconfig:    bool "TI TWL4030/TWL5030/TWL6030/TPS659x0 Support"
+What that means is there are no orphaned __exit functions to remove;
+no unused ".remove" functions linked into the driver struct to be
+deleted -- so in the end we have binary equivalence between the
+pre-patched code and the post-patched code. Easy to review and low risk.
 
-...meaning that it currently is not being built as a module by anyone.
+More specifically - the only thing we are doing here is mapping the
+initcall that binds in the driver from the module variant to the
+built-in variant ; something that CPP would do for us anyway -- and
+then throwing away any MODULE_ tags which are no-ops in non-modular
+builds (while preserving any author/desc. info they had in comments).
+And in doing that, we can toss the include of module.h in favour of
+init.h (asssuming it wasn't included already).
 
-Lets remove what modular code that we can, so that when reading the
-driver there is less doubt that it is builtin-only.  Note that we can't
-remove the twl_remove() itself ; it is still used by the probe unwind
-routine.  So we leave it linked into the .remove as well, even though
-it will most likely never be called via that path from an unbind.
+One exception is patch #2; it converts a driver from bool to tristate,
+as was asked per the v1 review[1].  This has been build tested, but
+I don't have the specific hardware for run time testing.
 
-Since module_i2c_driver() uses the same init level priority as
-builtin_i2c_driver() the init ordering remains unchanged with
-this commit.
+For anyone new to the underlying goal of this cleanup, we are trying to
+make driver code consistent with the Makefiles/Kconfigs that control them.
 
-Also note that MODULE_DEVICE_TABLE is a no-op for non-modular code.
+This means not using modular functions/macros for drivers that can never
+be built as a module.  Some of the other downfalls this leads to are:
 
-We also delete the MODULE_LICENSE tag etc. since all that information
-is already contained at the top of the file in the comments.
+ (1) it is easy to accidentally write unused module_exit and remove code
+ (2) it can be misleading when reading the source, thinking it can be
+     modular when the Makefile and/or Kconfig prohibit it
+ (3) it requires the include of the module.h header file which in turn
+     includes nearly everything else, thus adding to CPP overhead.
+ (4) it gets copied/replicated into other drivers and spreads like weeds.
 
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: linux-omap@vger.kernel.org
-Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+Build tested on linux-next for arm, arm64 and x86-64 to ensure no typos
+or similar issues crept in.
+
+[1] https://lkml.kernel.org/r/20160705012544.14143-1-paul.gortmaker@windriver.com
+
+Paul.
 ---
- drivers/mfd/twl-core.c | 9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index a49d3db6d936..c64615dca2bd 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -30,7 +30,6 @@
- 
- #include <linux/init.h>
- #include <linux/mutex.h>
--#include <linux/module.h>
- #include <linux/platform_device.h>
- #include <linux/regmap.h>
- #include <linux/clk.h>
-@@ -1258,7 +1257,6 @@ static const struct i2c_device_id twl_ids[] = {
- 	{ "twl6032", TWL6030_CLASS | TWL6032_SUBCLASS }, /* "Phoenix lite" */
- 	{ /* end of list */ },
- };
--MODULE_DEVICE_TABLE(i2c, twl_ids);
- 
- /* One Client Driver , 4 Clients */
- static struct i2c_driver twl_driver = {
-@@ -1267,9 +1265,4 @@ static struct i2c_driver twl_driver = {
- 	.probe		= twl_probe,
- 	.remove		= twl_remove,
- };
--
--module_i2c_driver(twl_driver);
--
--MODULE_AUTHOR("Texas Instruments, Inc.");
--MODULE_DESCRIPTION("I2C Core interface for TWL");
--MODULE_LICENSE("GPL");
-+builtin_i2c_driver(twl_driver);
+[v1 --> v2: make one driver tristate, add some Ackd-by tags.]
+
+Cc: Boris BREZILLON <boris.brezillon@free-electrons.com>
+Cc: Florian Lobmaier <florian.lobmaier@ams.com>
+Cc: Laxman Dewangan <ldewangan@nvidia.com>
+Cc: Lee Jones <lee.jones@linaro.org>
+Cc: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Sourav Poddar <sourav.poddar@ti.com>
+Cc: Thor Thayer <tthayer@opensource.altera.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
+
+Paul Gortmaker (6):
+  mfd: altera-a10sr: make it explicitly non-modular
+  mfd: as3722: convert MFD_AS3722 from bool to tristate
+  mfd: intel_msic: Make it explicitly non-modular
+  mfd: smsc-ece1099: Make it explicitly non-modular
+  mfd: sun6i-prcm: Make it explicitly non-modular
+  mfd: twl-core: Make it explicitly non-modular
+
+ drivers/mfd/Kconfig        |  2 +-
+ drivers/mfd/altera-a10sr.c | 14 ++++++--------
+ drivers/mfd/intel_msic.c   |  9 ++-------
+ drivers/mfd/smsc-ece1099.c | 11 ++---------
+ drivers/mfd/sun6i-prcm.c   |  8 ++------
+ drivers/mfd/twl-core.c     |  9 +--------
+ 6 files changed, 14 insertions(+), 39 deletions(-)
+
 -- 
 2.8.4
