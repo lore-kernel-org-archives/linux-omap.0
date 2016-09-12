@@ -1,68 +1,107 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v6 2/3] mfd: tps65217: Add power button as subdevice
-Date: Mon, 12 Sep 2016 14:57:56 +0100
-Message-ID: <20160912135756.GE9789@dell>
-References: <20160909084204.26226-1-m.niestroj@grinn-global.com>
- <20160909084204.26226-3-m.niestroj@grinn-global.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [v2] musb: omap2430: do not assume balanced enable()/disable()
+Date: Mon, 12 Sep 2016 07:35:55 -0700
+Message-ID: <20160912143554.bx33iibcebvqvlx3@atomide.com>
+References: <1470238731-32358-1-git-send-email-andreas@kemnade.info>
+ <20160910132701.776e4d2c@aktux>
+ <20160910130749.5qk37gwfidejdqlm@atomide.com>
+ <1486773.OWvLIvzMHp@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160909084204.26226-3-m.niestroj@grinn-global.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Marcin Niestroj <m.niestroj@grinn-global.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-input@vger.kernel.org, devicetree@vger.kernel.org
+In-Reply-To: <1486773.OWvLIvzMHp@avalon>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Andreas Kemnade <andreas@kemnade.info>, Bin Liu <b-liu@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 09 Sep 2016, Marcin Niestroj wrote:
-
-> Add tps65217 power buttor subdevice with assigned IRQ resources.
+* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [160911 02:06]:
+> Hi Tony,
 > 
-> Signed-off-by: Marcin Niestroj <m.niestroj@grinn-global.com>
-> Acked-by: Lee Jones <lee.jones@linaro.org>
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> ---
-> Depends on patch 1 in series
+> On Saturday 10 Sep 2016 06:07:50 Tony Lindgren wrote:
+> > * Andreas Kemnade <andreas@kemnade.info> [160910 04:27]:
+> > > On Fri, 9 Sep 2016 16:40:15 -0700 Tony Lindgren wrote:
+> > >> * Tony Lindgren <tony@atomide.com> [160909 14:33]:
+> > >>> * Andreas Kemnade <andreas@kemnade.info> [160909 14:22]:
+> > >>>> We have two independant things:
+> > >>>> 1. phy-twl4030-usb (and perhaps others) do not enable
+> > >>>> 
+> > >>>>   the phy enough to allow charging on pm_runtime_get().
+> > >>>>   That is fixed by my phy-related patches.
+> > >>> 
+> > >>> OK
+> > >>> 
+> > >>>> 2. phy_power_off/on() in called in an unbalanced way if
+> > >>>>    it is called behind musb_platform_enable()/disable()
+> > >>>>    as it happens in omap2430.c. Two ways to fix it:
+> > >>>>    a) prevent phy_power_off()/on() to be called in
+> > >>>>       an unbalanced way in omap240.c
+> > >>>>    
+> > >>>>    b) prevent musb_platform_enable()
+> > >>>> 	      musb_platform_disable() to be called in an
+> > >>>> 	      unbalanced way by fixing musb_core.c
+> > >>>> 
+> > >>>> Fixing 1. is enough on gta04 to fix charging and hide 2. enough to
+> > >>>> have gadget working for the most common usecases. (not using
+> > >>>> twl4030-charger would not work yet)
+> > >>>> But in the longer term 2. has to be fixed too.
+> > >>> 
+> > >>> Sounds like option 2b here is the real fix.
+> > >> 
+> > >> And doing full option 2b would be intrusive because of musb_stop
+> > >> also calling musb_platform_disable. Here's a suggested fix for
+> > >> v4.8-rc cycle.
+> > > 
+> > > musb_platform_disable() in musb_stop() seems to be balanced.
+> > > 
+> > > from my list in an earlier mail:
+> > > musb_platform_disable() in musb_remove() called upon module removal
+> > > 
+> > > To my analysis this is odd because musb_stop() is also called indirectly
+> > > upon removal.
+> > > But topic that can be left for later.
+> > 
+> > OK will update the patch description. You probaby should attempt
+> > to do a patch to make the calls paired as you already know what
+> > needs to be done there..
+> > 
+> > >> Seems to work for me for omap3 torpedo using phy-twl4030-usb,
+> > >> omap4 pandaboard es using phy-twl6030-usb and am335x beaglebone
+> > >> black using dsps glue. Also PM runtime works on omap3.
+> > >> 
+> > >> This patch causes a slight merge conlict with Andrea's patches,
+> > >> as listed in #1 above, but we should probably merge this first
+> > >> as a fix. That is assuming it does not cause side effects to
+> > >> Andrea's phy-twl4030-usb charger test case.
+> > > 
+> > > Hmm, if the patch will gender-change me, then a clear NAK ;-)
+> > 
+> > Sorry typo there, s/Andrea/Andreas/, no need for other radical
+> > changes :)
+> > 
+> > >> Can you guys please test? If things work I'll resend the
+> > >> patch with proper tested-bys and acks.
+> > > 
+> > > I tested the patch without any other musb/phy-fixes.
+> > > No regressions. It fixes Gadget to be usable. Charging seems
+> > > not to be totally stable. I will check my phy-patches
+> > > on top of that again.
+> > > PM runtime probably still desires some work on it.
+> > > But I give a clear Ack for merging this one first.
+> > 
+> > OK good to hear & thanks for testing. Let's see what Laurent
+> > says.
 > 
-> Changes v1 -> v6: none
+> I say
 > 
->  drivers/mfd/tps65217.c | 10 ++++++++++
->  1 file changed, 10 insertions(+)
+> Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> Thank you for the fix.
 
-Applied, thanks.
+OK great, will send a proper patch with acks shortly.
 
-> diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
-> index 41b5d59..57c8741 100644
-> --- a/drivers/mfd/tps65217.c
-> +++ b/drivers/mfd/tps65217.c
-> @@ -38,6 +38,10 @@ static struct resource charger_resources[] = {
->  	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_USB, "USB"),
->  };
->  
-> +static struct resource pb_resources[] = {
-> +	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_PB, "PB"),
-> +};
-> +
->  struct tps65217_irq {
->  	int mask;
->  	int interrupt;
-> @@ -122,6 +126,12 @@ static struct mfd_cell tps65217s[] = {
->  		.resources = charger_resources,
->  		.of_compatible = "ti,tps65217-charger",
->  	},
-> +	{
-> +		.name = "tps65217-pwrbutton",
-> +		.num_resources = ARRAY_SIZE(pb_resources),
-> +		.resources = pb_resources,
-> +		.of_compatible = "ti,tps65217-pwrbutton",
-> +	},
->  };
->  
->  static irqreturn_t tps65217_irq_thread(int irq, void *data)
+Thanks,
 
--- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+Tony
