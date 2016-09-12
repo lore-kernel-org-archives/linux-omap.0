@@ -1,107 +1,78 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [v2] musb: omap2430: do not assume balanced enable()/disable()
-Date: Mon, 12 Sep 2016 07:35:55 -0700
-Message-ID: <20160912143554.bx33iibcebvqvlx3@atomide.com>
-References: <1470238731-32358-1-git-send-email-andreas@kemnade.info>
- <20160910132701.776e4d2c@aktux>
- <20160910130749.5qk37gwfidejdqlm@atomide.com>
- <1486773.OWvLIvzMHp@avalon>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Subject: [PATCH 6/6] mfd: twl-core: Make it explicitly non-modular
+Date: Mon, 12 Sep 2016 10:40:54 -0400
+Message-ID: <20160912144054.27522-7-paul.gortmaker@windriver.com>
+References: <20160912144054.27522-1-paul.gortmaker@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1486773.OWvLIvzMHp@avalon>
+In-Reply-To: <20160912144054.27522-1-paul.gortmaker@windriver.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Andreas Kemnade <andreas@kemnade.info>, Bin Liu <b-liu@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>
+To: linux-kernel@vger.kernel.org
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [160911 02:06]:
-> Hi Tony,
-> 
-> On Saturday 10 Sep 2016 06:07:50 Tony Lindgren wrote:
-> > * Andreas Kemnade <andreas@kemnade.info> [160910 04:27]:
-> > > On Fri, 9 Sep 2016 16:40:15 -0700 Tony Lindgren wrote:
-> > >> * Tony Lindgren <tony@atomide.com> [160909 14:33]:
-> > >>> * Andreas Kemnade <andreas@kemnade.info> [160909 14:22]:
-> > >>>> We have two independant things:
-> > >>>> 1. phy-twl4030-usb (and perhaps others) do not enable
-> > >>>> 
-> > >>>>   the phy enough to allow charging on pm_runtime_get().
-> > >>>>   That is fixed by my phy-related patches.
-> > >>> 
-> > >>> OK
-> > >>> 
-> > >>>> 2. phy_power_off/on() in called in an unbalanced way if
-> > >>>>    it is called behind musb_platform_enable()/disable()
-> > >>>>    as it happens in omap2430.c. Two ways to fix it:
-> > >>>>    a) prevent phy_power_off()/on() to be called in
-> > >>>>       an unbalanced way in omap240.c
-> > >>>>    
-> > >>>>    b) prevent musb_platform_enable()
-> > >>>> 	      musb_platform_disable() to be called in an
-> > >>>> 	      unbalanced way by fixing musb_core.c
-> > >>>> 
-> > >>>> Fixing 1. is enough on gta04 to fix charging and hide 2. enough to
-> > >>>> have gadget working for the most common usecases. (not using
-> > >>>> twl4030-charger would not work yet)
-> > >>>> But in the longer term 2. has to be fixed too.
-> > >>> 
-> > >>> Sounds like option 2b here is the real fix.
-> > >> 
-> > >> And doing full option 2b would be intrusive because of musb_stop
-> > >> also calling musb_platform_disable. Here's a suggested fix for
-> > >> v4.8-rc cycle.
-> > > 
-> > > musb_platform_disable() in musb_stop() seems to be balanced.
-> > > 
-> > > from my list in an earlier mail:
-> > > musb_platform_disable() in musb_remove() called upon module removal
-> > > 
-> > > To my analysis this is odd because musb_stop() is also called indirectly
-> > > upon removal.
-> > > But topic that can be left for later.
-> > 
-> > OK will update the patch description. You probaby should attempt
-> > to do a patch to make the calls paired as you already know what
-> > needs to be done there..
-> > 
-> > >> Seems to work for me for omap3 torpedo using phy-twl4030-usb,
-> > >> omap4 pandaboard es using phy-twl6030-usb and am335x beaglebone
-> > >> black using dsps glue. Also PM runtime works on omap3.
-> > >> 
-> > >> This patch causes a slight merge conlict with Andrea's patches,
-> > >> as listed in #1 above, but we should probably merge this first
-> > >> as a fix. That is assuming it does not cause side effects to
-> > >> Andrea's phy-twl4030-usb charger test case.
-> > > 
-> > > Hmm, if the patch will gender-change me, then a clear NAK ;-)
-> > 
-> > Sorry typo there, s/Andrea/Andreas/, no need for other radical
-> > changes :)
-> > 
-> > >> Can you guys please test? If things work I'll resend the
-> > >> patch with proper tested-bys and acks.
-> > > 
-> > > I tested the patch without any other musb/phy-fixes.
-> > > No regressions. It fixes Gadget to be usable. Charging seems
-> > > not to be totally stable. I will check my phy-patches
-> > > on top of that again.
-> > > PM runtime probably still desires some work on it.
-> > > But I give a clear Ack for merging this one first.
-> > 
-> > OK good to hear & thanks for testing. Let's see what Laurent
-> > says.
-> 
-> I say
-> 
-> Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> Thank you for the fix.
+The Kconfig currently controlling compilation of this code is:
 
-OK great, will send a proper patch with acks shortly.
+drivers/mfd/Kconfig:config TWL4030_CORE
+drivers/mfd/Kconfig:    bool "TI TWL4030/TWL5030/TWL6030/TPS659x0 Support"
 
-Thanks,
+...meaning that it currently is not being built as a module by anyone.
 
-Tony
+Lets remove what modular code that we can, so that when reading the
+driver there is less doubt that it is builtin-only.  Note that we can't
+remove the twl_remove() itself ; it is still used by the probe unwind
+routine.  So we leave it linked into the .remove as well, even though
+it will most likely never be called via that path from an unbind.
+
+Since module_i2c_driver() uses the same init level priority as
+builtin_i2c_driver() the init ordering remains unchanged with
+this commit.
+
+Also note that MODULE_DEVICE_TABLE is a no-op for non-modular code.
+
+We also delete the MODULE_LICENSE tag etc. since all that information
+is already contained at the top of the file in the comments.
+
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Lee Jones <lee.jones@linaro.org>
+Cc: linux-omap@vger.kernel.org
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+---
+ drivers/mfd/twl-core.c | 9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
+
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index a49d3db6d936..c64615dca2bd 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -30,7 +30,6 @@
+ 
+ #include <linux/init.h>
+ #include <linux/mutex.h>
+-#include <linux/module.h>
+ #include <linux/platform_device.h>
+ #include <linux/regmap.h>
+ #include <linux/clk.h>
+@@ -1258,7 +1257,6 @@ static const struct i2c_device_id twl_ids[] = {
+ 	{ "twl6032", TWL6030_CLASS | TWL6032_SUBCLASS }, /* "Phoenix lite" */
+ 	{ /* end of list */ },
+ };
+-MODULE_DEVICE_TABLE(i2c, twl_ids);
+ 
+ /* One Client Driver , 4 Clients */
+ static struct i2c_driver twl_driver = {
+@@ -1267,9 +1265,4 @@ static struct i2c_driver twl_driver = {
+ 	.probe		= twl_probe,
+ 	.remove		= twl_remove,
+ };
+-
+-module_i2c_driver(twl_driver);
+-
+-MODULE_AUTHOR("Texas Instruments, Inc.");
+-MODULE_DESCRIPTION("I2C Core interface for TWL");
+-MODULE_LICENSE("GPL");
++builtin_i2c_driver(twl_driver);
+-- 
+2.8.4
