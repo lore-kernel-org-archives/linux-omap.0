@@ -1,79 +1,62 @@
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
 Subject: Re: [PATCHv2] usb: musb: Fix unbalanced platform_disable
-Date: Tue, 13 Sep 2016 17:32:23 +0300
-Message-ID: <3051875.lhB0TfZGyq@avalon>
-References: <20160912153947.k4gnggur6usyujii@atomide.com> <20160913031805.m5nzyqyclh4pyj6k@atomide.com> <20160913141448.GN18340@uda0271908>
+Date: Tue, 13 Sep 2016 09:40:20 -0500
+Message-ID: <20160913144020.GO18340@uda0271908>
+References: <20160912153947.k4gnggur6usyujii@atomide.com>
+ <20160913031805.m5nzyqyclh4pyj6k@atomide.com>
+ <20160913141448.GN18340@uda0271908>
+ <3051875.lhB0TfZGyq@avalon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160913141448.GN18340@uda0271908>
+Content-Disposition: inline
+In-Reply-To: <3051875.lhB0TfZGyq@avalon>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rolf Peukert <rolf.peukert-cSCHQGRfioA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Bin,
-
-On Tuesday 13 Sep 2016 09:14:48 Bin Liu wrote:
-> On Mon, Sep 12, 2016 at 08:18:05PM -0700, Tony Lindgren wrote:
-> > * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [160912 11:36]:
-> > > On Mon, Sep 12, 2016 at 08:05:30PM +0200, Andreas Kemnade wrote:
-> > > > Hmm, then the question is: Couldn't the X_musb_disable simply be
-> > > > called
-> > > > from X_probe if needed to be an the safe side?
+On Tue, Sep 13, 2016 at 05:32:23PM +0300, Laurent Pinchart wrote:
+> Hi Bin,
+> 
+> On Tuesday 13 Sep 2016 09:14:48 Bin Liu wrote:
+> > On Mon, Sep 12, 2016 at 08:18:05PM -0700, Tony Lindgren wrote:
+> > > * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [160912 11:36]:
+> > > > On Mon, Sep 12, 2016 at 08:05:30PM +0200, Andreas Kemnade wrote:
+> > > > > Hmm, then the question is: Couldn't the X_musb_disable simply be
+> > > > > called
+> > > > > from X_probe if needed to be an the safe side?
+> > > > 
+> > > > In general, we try not to do so if all possible. We want to put common
+> > > > code in the core, not repleat them in glue layers.
+> > > > 
+> > > > In this specific case, we cannot do it. For example in dsps glue, the
+> > > > musb reset is done in dsps_musb_init(), so no place in dsps_probe() to
+> > > > call dsps_musb_disable().
 > > > 
-> > > In general, we try not to do so if all possible. We want to put common
-> > > code in the core, not repleat them in glue layers.
-> > > 
-> > > In this specific case, we cannot do it. For example in dsps glue, the
-> > > musb reset is done in dsps_musb_init(), so no place in dsps_probe() to
-> > > call dsps_musb_disable().
+> > > OK yeah if we need to do something, then disabling the irq in
+> > > musb_core.c until we're done should be enough.
 > > 
-> > OK yeah if we need to do something, then disabling the irq in
-> > musb_core.c until we're done should be enough.
-> 
-> I don't think we can disable it in musb core directly. *_musb_disable()
-> in glue layers disables the musb wrapper's irq, not the core's irq.
-> 
-> But I guess we can let *_musb_init() directly calls *_musb_disable() in
-> the glue drivers right after musb reset. This would have to touch almost
-> all glue drivers, but trivial change. Thoughts?
-
-Is there any use case for starting a glue layer with interrupts enabled ? If 
-not I agree that all glue layers should do so in *_musb_init(). Probably not 
-by calling *_musb_disable() directly though, as that would reintroduce the 
-unbalanced PHY power control problem.
-
-> > Anyways, I tested the $subject patch also with am35x code with the
-> > following patch and no issues. So I've now tested with omap3,
-> > omap4, am335x, and am35x.
-> 
-> I don't expect your v2 breaks am35x either, as I believe its default of
-> out-of-reset already disables the irq. I just don't like that SW relies
-> on unguaranteed HW default state.
-> 
-> > There are also am35x musb device tree patches from last year by
-> > Rolf Peukert <rolf.peukert-cSCHQGRfioA@public.gmane.org>:
+> > I don't think we can disable it in musb core directly. *_musb_disable()
+> > in glue layers disables the musb wrapper's irq, not the core's irq.
 > > 
-> > https://patchwork.kernel.org/project/linux-omap/list/?submitter=144061
+> > But I guess we can let *_musb_init() directly calls *_musb_disable() in
+> > the glue drivers right after musb reset. This would have to touch almost
+> > all glue drivers, but trivial change. Thoughts?
 > 
-> Good to know this work.
-> 
-> > And we now have new drivers/phy/phy-da8xx-usb.c that might be the
-> > same phy on am35x except with register bits moved around.
-> > 
-> > So maybe we'll have it working with device tree quite easily.
-> > Meanwhile, we should probably apply the following patch so we
-> > get things working again.
-> 
-> Yup.
+> Is there any use case for starting a glue layer with interrupts enabled ? If 
 
--- 
+I cannot think of any, at least in the current musb drivers.
+
+> not I agree that all glue layers should do so in *_musb_init(). Probably not 
+> by calling *_musb_disable() directly though, as that would reintroduce the 
+> unbalanced PHY power control problem.
+
+Not a problem, such change will be done in each glue driver, so we don't
+do it for omap2430 glue.
+
 Regards,
-
-Laurent Pinchart
-
+-Bin.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
