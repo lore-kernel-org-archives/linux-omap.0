@@ -1,71 +1,261 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCHv2] usb: musb: Fix unbalanced platform_disable
-Date: Tue, 13 Sep 2016 07:53:30 -0700
-Message-ID: <20160913145329.hixzehjrwadx3ek3@atomide.com>
-References: <20160912153947.k4gnggur6usyujii@atomide.com>
- <20160913031805.m5nzyqyclh4pyj6k@atomide.com>
- <20160913141448.GN18340@uda0271908>
- <3051875.lhB0TfZGyq@avalon>
- <20160913144020.GO18340@uda0271908>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [RFC PATCH] pci: support for configurable PCI endpoint
+Date: Tue, 13 Sep 2016 22:40:42 +0530
+Message-ID: <1473786653-12759-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160913144020.GO18340@uda0271908>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rolf Peukert <rolf.peukert-cSCHQGRfioA@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Jingoo Han <jingoohan1@gmail.com>, hch@infradead.org, Joao.Pinto@synopsys.com, mingkai.hu@nxp.com, m-karicheri2@ti.com, Pratyush Anand <pratyush.anand@gmail.com>
+Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Joao Pinto <jpinto@synopsys.com>, Rob Herring <robh+dt@kernel.org>, kishon@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [160913 07:40]:
-> On Tue, Sep 13, 2016 at 05:32:23PM +0300, Laurent Pinchart wrote:
-> > Hi Bin,
-> > 
-> > On Tuesday 13 Sep 2016 09:14:48 Bin Liu wrote:
-> > > On Mon, Sep 12, 2016 at 08:18:05PM -0700, Tony Lindgren wrote:
-> > > > * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [160912 11:36]:
-> > > > > On Mon, Sep 12, 2016 at 08:05:30PM +0200, Andreas Kemnade wrote:
-> > > > > > Hmm, then the question is: Couldn't the X_musb_disable simply be
-> > > > > > called
-> > > > > > from X_probe if needed to be an the safe side?
-> > > > > 
-> > > > > In general, we try not to do so if all possible. We want to put common
-> > > > > code in the core, not repleat them in glue layers.
-> > > > > 
-> > > > > In this specific case, we cannot do it. For example in dsps glue, the
-> > > > > musb reset is done in dsps_musb_init(), so no place in dsps_probe() to
-> > > > > call dsps_musb_disable().
-> > > > 
-> > > > OK yeah if we need to do something, then disabling the irq in
-> > > > musb_core.c until we're done should be enough.
-> > > 
-> > > I don't think we can disable it in musb core directly. *_musb_disable()
-> > > in glue layers disables the musb wrapper's irq, not the core's irq.
-> > > 
-> > > But I guess we can let *_musb_init() directly calls *_musb_disable() in
-> > > the glue drivers right after musb reset. This would have to touch almost
-> > > all glue drivers, but trivial change. Thoughts?
-> > 
-> > Is there any use case for starting a glue layer with interrupts enabled ? If 
-> 
-> I cannot think of any, at least in the current musb drivers.
+This patch series
+	*) adds PCI endpoint core layer
+	*) modifies designware/dra7xx driver to be configured in EP mode
+	*) adds a PCI endpoint *test* function driver
 
-No reason that I can think of :)
+Known Limitation:
+	*) Does not support multi-function devices
 
-> > not I agree that all glue layers should do so in *_musb_init(). Probably not 
-> > by calling *_musb_disable() directly though, as that would reintroduce the 
-> > unbalanced PHY power control problem.
-> 
-> Not a problem, such change will be done in each glue driver, so we don't
-> do it for omap2430 glue.
+TODO:
+	*) access buffers in RC
+	*) MSI interrupts
+	*) Enable user space control for the RC side PCI driver
+	*) Adapt all other users of designware to use the new design
 
-Makes sense. Then we can just move all of musb_generic_enable/disable
-code into pm_runtime_resume/suspend in musb-core.c and make sure they
-are paired.
+HOW TO:
 
-Regards,
+ON THE EP SIDE:
+***************
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+/* EP function is configured using configfs */
+# mount -t configfs none /sys/kernel/config
+
+/* PCI EP core layer creates "pci_ep" entry in configfs */
+# cd /sys/kernel/config/pci_ep/
+
+/*
+ * This is the 1st step in creating an endpoint function. This
+ * creates the endpoint function device *instance*. The string
+ * before the .<num> suffix will identify the driver this
+ * EP function will bind to.
+ * Just pci_epf_test is also valid. The .<num> suffix is used
+ * if there are multiple PCI controllers and all of them wants
+ * to use the same function.
+ */
+# mkdir pci_epf_test.0
+
+/*
+ * When the above command is given, the function device will
+ * also be bound to a function driver. To find the list of
+ * function drivers available in the system, use the following
+ * command. To create a new driver, the following can be referred
+ * drivers/pci/endpoint/functions/pci-epf-test.c
+ */
+# ls /sys/bus/pci-epf/drivers
+pci_epf_test
+
+/* Now configure the endpoint function */
+# cd pci_epf_test.0
+
+/* These are the fields that can be configured */
+# ls
+baseclass_code    function          revid             vendorid
+cache_line_size   interrupt_pin     subclass_code
+deviceid          peripheral        subsys_id
+epc               progif_code       subsys_vendor_id
+
+/* The function driver will populate these fields with default values */
+# cat vendorid 
+0xffff
+
+# cat interrupt_pin 
+0x0001
+
+/* The user can configure any of these fields */
+# echo 0x104c > vendorid
+
+/*
+ * Next is binding this function driver to the controller driver. In
+ * order to find the possible controller drivers that this function
+ * driver can be bound to, the following sysfs entry can be used
+ */
+# ls /sys/class/pci_epc/
+51000000.pci
+
+/* Now bind the function driver to the controller driver */
+# echo "51000000.pcie" > epc
+[  494.743487] dra7-pcie 51000000.pcie: no free inbound window
+[  494.749367] pci_epf_test pci_epf_test.0: failed to set BAR4
+[  494.755238] dra7-pcie 51000000.pcie: no free inbound window
+[  494.761451] pci_epf_test pci_epf_test.0: failed to set BAR5
+
+/*
+ * the above error messages are due to non availability of free
+ * inbound windows. So the function drivers in dra7xx can use
+ * only 4 (BAR0..BAR3) BARs
+ */
+
+/****** PCI endpoint is configured ******/
+
+ON THE HOST SIDE:
+*****************
+# modprobe pci_endpoint_test
+[    8.197560] ****** Testing pci-endpoint-test Device ******
+[    9.056990] Reset: OKAY
+[    9.059753] BAR1 OKAY
+[    9.062419] BAR2 OKAY
+[    9.069506] BAR3 OKAY
+[    9.071880] BAR4 NOT OKAY
+[    9.074618] BAR5 NOT OKAY
+[    9.379257] Legacy IRQ: OKAY
+[    9.382281] ****** End Test ******
+
+/*
+ * Rightnow these tests gets executed as soon as the pci_endpoint_test
+ * module gets inserted. These will be modified so that user/user script
+ * can control this. Once the functionality for EP to access RC buffer
+ * is added, more tests can be added including throughput measurement tests.
+ */ 
+
+
+Kishon Vijay Abraham I (11):
+  pci: endpoint: add EP core layer to enable EP controller and EP
+    functions
+  pci: endpoint: introduce configfs entry for configuring EP functions
+  Documentation: PCI: guide to use PCI Endpoint Core Layer
+  pci: endpoint: functions: add an EP function to test PCI
+  pci: rename *host* directory to *controller*
+  pci: controller: split designware into *core* and *host*
+  pci: controller: designware: Add EP mode support
+  pci: controller: dra7xx: Add EP mode support
+  misc: add a new host side PCI endpoint test driver
+  ARM: dts: DRA7: Modify pcie1 dt node for EP mode
+  HACK: pci: controller: dra7xx: disable smart idle
+
+ Documentation/PCI/00-INDEX                         |    5 +
+ Documentation/PCI/pci-endpoint.txt                 |  199 ++++++++++
+ Documentation/PCI/pci-test.txt                     |   79 ++++
+ .../devicetree/bindings/pci/designware-pcie.txt    |   26 +-
+ Documentation/devicetree/bindings/pci/ti-pci.txt   |   30 +-
+ MAINTAINERS                                        |   50 +--
+ arch/arm/boot/dts/dra7.dtsi                        |   43 +--
+ drivers/Makefile                                   |    4 +
+ drivers/misc/Kconfig                               |    7 +
+ drivers/misc/Makefile                              |    1 +
+ drivers/misc/pci_endpoint_test.c                   |  291 +++++++++++++++
+ drivers/pci/Kconfig                                |    3 +-
+ drivers/pci/Makefile                               |    3 -
+ drivers/pci/{host => controller}/Kconfig           |  109 +++++-
+ drivers/pci/{host => controller}/Makefile          |    2 +
+ drivers/pci/{host => controller}/pci-aardvark.c    |    0
+ drivers/pci/{host => controller}/pci-dra7xx.c      |  340 +++++++++++++----
+ drivers/pci/{host => controller}/pci-exynos.c      |    0
+ drivers/pci/{host => controller}/pci-host-common.c |    0
+ .../pci/{host => controller}/pci-host-generic.c    |    0
+ drivers/pci/{host => controller}/pci-hyperv.c      |    0
+ drivers/pci/{host => controller}/pci-imx6.c        |    0
+ drivers/pci/{host => controller}/pci-keystone-dw.c |    0
+ drivers/pci/{host => controller}/pci-keystone.c    |    0
+ drivers/pci/{host => controller}/pci-keystone.h    |    0
+ drivers/pci/{host => controller}/pci-layerscape.c  |    0
+ drivers/pci/{host => controller}/pci-mvebu.c       |    0
+ drivers/pci/{host => controller}/pci-rcar-gen2.c   |    0
+ drivers/pci/{host => controller}/pci-tegra.c       |    0
+ .../pci/{host => controller}/pci-thunder-ecam.c    |    0
+ drivers/pci/{host => controller}/pci-thunder-pem.c |    0
+ drivers/pci/{host => controller}/pci-versatile.c   |    0
+ drivers/pci/{host => controller}/pci-xgene-msi.c   |    0
+ drivers/pci/{host => controller}/pci-xgene.c       |    0
+ drivers/pci/{host => controller}/pcie-altera-msi.c |    0
+ drivers/pci/{host => controller}/pcie-altera.c     |    0
+ drivers/pci/{host => controller}/pcie-armada8k.c   |    0
+ drivers/pci/{host => controller}/pcie-artpec6.c    |    0
+ drivers/pci/controller/pcie-designware-ep.c        |  228 ++++++++++++
+ .../pcie-designware-host.c}                        |  294 +++------------
+ .../{host => controller}/pcie-designware-plat.c    |    0
+ drivers/pci/controller/pcie-designware.c           |  233 ++++++++++++
+ drivers/pci/controller/pcie-designware.h           |  238 ++++++++++++
+ drivers/pci/{host => controller}/pcie-hisi.c       |    0
+ drivers/pci/{host => controller}/pcie-iproc-bcma.c |    0
+ drivers/pci/{host => controller}/pcie-iproc-msi.c  |    0
+ .../pci/{host => controller}/pcie-iproc-platform.c |    0
+ drivers/pci/{host => controller}/pcie-iproc.c      |    0
+ drivers/pci/{host => controller}/pcie-iproc.h      |    0
+ drivers/pci/{host => controller}/pcie-qcom.c       |    0
+ drivers/pci/{host => controller}/pcie-rcar.c       |    0
+ drivers/pci/{host => controller}/pcie-spear13xx.c  |    0
+ drivers/pci/{host => controller}/pcie-xilinx-nwl.c |    0
+ drivers/pci/{host => controller}/pcie-xilinx.c     |    0
+ drivers/pci/endpoint/Kconfig                       |   25 ++
+ drivers/pci/endpoint/Makefile                      |    6 +
+ drivers/pci/endpoint/functions/Kconfig             |   12 +
+ drivers/pci/endpoint/functions/Makefile            |    5 +
+ drivers/pci/endpoint/functions/pci-epf-test.c      |  272 ++++++++++++++
+ drivers/pci/endpoint/pci-ep-cfs.c                  |  275 ++++++++++++++
+ drivers/pci/endpoint/pci-epc-core.c                |  389 ++++++++++++++++++++
+ drivers/pci/endpoint/pci-epf-core.c                |  338 +++++++++++++++++
+ drivers/pci/host/pcie-designware.h                 |   89 -----
+ include/linux/mod_devicetable.h                    |   10 +
+ include/linux/pci-epc.h                            |  100 +++++
+ include/linux/pci-epf.h                            |  159 ++++++++
+ 66 files changed, 3373 insertions(+), 492 deletions(-)
+ create mode 100644 Documentation/PCI/pci-endpoint.txt
+ create mode 100644 Documentation/PCI/pci-test.txt
+ create mode 100644 drivers/misc/pci_endpoint_test.c
+ rename drivers/pci/{host => controller}/Kconfig (79%)
+ rename drivers/pci/{host => controller}/Makefile (93%)
+ rename drivers/pci/{host => controller}/pci-aardvark.c (100%)
+ rename drivers/pci/{host => controller}/pci-dra7xx.c (62%)
+ rename drivers/pci/{host => controller}/pci-exynos.c (100%)
+ rename drivers/pci/{host => controller}/pci-host-common.c (100%)
+ rename drivers/pci/{host => controller}/pci-host-generic.c (100%)
+ rename drivers/pci/{host => controller}/pci-hyperv.c (100%)
+ rename drivers/pci/{host => controller}/pci-imx6.c (100%)
+ rename drivers/pci/{host => controller}/pci-keystone-dw.c (100%)
+ rename drivers/pci/{host => controller}/pci-keystone.c (100%)
+ rename drivers/pci/{host => controller}/pci-keystone.h (100%)
+ rename drivers/pci/{host => controller}/pci-layerscape.c (100%)
+ rename drivers/pci/{host => controller}/pci-mvebu.c (100%)
+ rename drivers/pci/{host => controller}/pci-rcar-gen2.c (100%)
+ rename drivers/pci/{host => controller}/pci-tegra.c (100%)
+ rename drivers/pci/{host => controller}/pci-thunder-ecam.c (100%)
+ rename drivers/pci/{host => controller}/pci-thunder-pem.c (100%)
+ rename drivers/pci/{host => controller}/pci-versatile.c (100%)
+ rename drivers/pci/{host => controller}/pci-xgene-msi.c (100%)
+ rename drivers/pci/{host => controller}/pci-xgene.c (100%)
+ rename drivers/pci/{host => controller}/pcie-altera-msi.c (100%)
+ rename drivers/pci/{host => controller}/pcie-altera.c (100%)
+ rename drivers/pci/{host => controller}/pcie-armada8k.c (100%)
+ rename drivers/pci/{host => controller}/pcie-artpec6.c (100%)
+ create mode 100644 drivers/pci/controller/pcie-designware-ep.c
+ rename drivers/pci/{host/pcie-designware.c => controller/pcie-designware-host.c} (64%)
+ rename drivers/pci/{host => controller}/pcie-designware-plat.c (100%)
+ create mode 100644 drivers/pci/controller/pcie-designware.c
+ create mode 100644 drivers/pci/controller/pcie-designware.h
+ rename drivers/pci/{host => controller}/pcie-hisi.c (100%)
+ rename drivers/pci/{host => controller}/pcie-iproc-bcma.c (100%)
+ rename drivers/pci/{host => controller}/pcie-iproc-msi.c (100%)
+ rename drivers/pci/{host => controller}/pcie-iproc-platform.c (100%)
+ rename drivers/pci/{host => controller}/pcie-iproc.c (100%)
+ rename drivers/pci/{host => controller}/pcie-iproc.h (100%)
+ rename drivers/pci/{host => controller}/pcie-qcom.c (100%)
+ rename drivers/pci/{host => controller}/pcie-rcar.c (100%)
+ rename drivers/pci/{host => controller}/pcie-spear13xx.c (100%)
+ rename drivers/pci/{host => controller}/pcie-xilinx-nwl.c (100%)
+ rename drivers/pci/{host => controller}/pcie-xilinx.c (100%)
+ create mode 100644 drivers/pci/endpoint/Kconfig
+ create mode 100644 drivers/pci/endpoint/Makefile
+ create mode 100644 drivers/pci/endpoint/functions/Kconfig
+ create mode 100644 drivers/pci/endpoint/functions/Makefile
+ create mode 100644 drivers/pci/endpoint/functions/pci-epf-test.c
+ create mode 100644 drivers/pci/endpoint/pci-ep-cfs.c
+ create mode 100644 drivers/pci/endpoint/pci-epc-core.c
+ create mode 100644 drivers/pci/endpoint/pci-epf-core.c
+ delete mode 100644 drivers/pci/host/pcie-designware.h
+ create mode 100644 include/linux/pci-epc.h
+ create mode 100644 include/linux/pci-epf.h
+
+-- 
+1.7.9.5
