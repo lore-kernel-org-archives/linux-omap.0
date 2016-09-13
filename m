@@ -1,129 +1,336 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 3/5] wlcore: sdio: Populate config firmware data
-Date: Tue, 13 Sep 2016 14:50:41 -0700
-Message-ID: <20160913215043.29454-4-tony@atomide.com>
-References: <20160913215043.29454-1-tony@atomide.com>
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160913215043.29454-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH v5] rtc: omap: Support ext_wakeup configuration
+Date: Tue, 13 Sep 2016 23:58:37 +0200
+Message-ID: <20160913215837.xstx4c6d4pr42hgh@piout.net>
+References: <201609082240.a4dMqCnB%fengguang.wu@intel.com>
+ <4512fa0b-890b-0f10-00dd-188fcc98fb5c@grinn-global.com>
+Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <rtc-linux+bncBCKYNX7Y3IMBBE7N4G7AKGQEGQNMCTQ-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Content-Disposition: inline
+In-Reply-To: <4512fa0b-890b-0f10-00dd-188fcc98fb5c-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
+List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <https://groups.google.com/group/rtc-linux
+List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <https://groups.google.com/group/rtc-linux/subscribe>
+To: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
+Cc: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, kbuild-all-JC7UmRfGjtg@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Configure the config firmware names and make it available
-in platform data.
+Hi,
 
-Let's also fix the order of the struct wilink_family_data
-while at it.
+On 12/09/2016 at 11:01:05 +0200, Marcin Niestroj wrote :
+> I guess we are missing PINCTRL in Kconfig. I didn't add that before,
+> because I thought that there is a dependency chain GENERIC_PINCONF ->
+> PINCONF -> PINCTRL.
+> 
+> So to resolve this issue:
+> 1) Should we add "select" or "depends on" for PINCTRL?
+> 2) Should this option be somehow related to COMPILE_TEST?
+> 
 
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- drivers/net/wireless/ti/wlcore/spi.c | 42 ++++++++++++++++++++----------------
- 1 file changed, 24 insertions(+), 18 deletions(-)
+Adding a "depends on PINCTRL" line should be enough to solve that issue.
 
-diff --git a/drivers/net/wireless/ti/wlcore/spi.c b/drivers/net/wireless/ti/wlcore/spi.c
-index a336493..f949ad2b 100644
---- a/drivers/net/wireless/ti/wlcore/spi.c
-+++ b/drivers/net/wireless/ti/wlcore/spi.c
-@@ -79,15 +79,19 @@
- #define WSPI_MAX_NUM_OF_CHUNKS \
- 	((SPI_AGGR_BUFFER_SIZE / WSPI_MAX_CHUNK_SIZE) + 1)
- 
-+static const struct wilink_family_data wl127x_data = {
-+	.name = "wl127x",
-+	.nvs_name = "ti-connectivity/wl127x-nvs.bin",
-+};
- 
--static const struct wilink_family_data *wilink_data;
-+static const struct wilink_family_data wl128x_data = {
-+	.name = "wl128x",
-+	.nvs_name = "ti-connectivity/wl128x-nvs.bin",
-+};
- 
- static const struct wilink_family_data wl18xx_data = {
- 	.name = "wl18xx",
--};
--
--static const struct wilink_family_data wl12xx_data = {
--	.name = "wl12xx",
-+	.cfg_name = "ti-connectivity/wl18xx-conf.bin",
- };
- 
- struct wl12xx_spi_glue {
-@@ -425,10 +429,10 @@ static struct wl1271_if_operations spi_ops = {
- };
- 
- static const struct of_device_id wlcore_spi_of_match_table[] = {
--	{ .compatible = "ti,wl1271", .data = &wl12xx_data},
--	{ .compatible = "ti,wl1273", .data = &wl12xx_data},
--	{ .compatible = "ti,wl1281", .data = &wl12xx_data},
--	{ .compatible = "ti,wl1283", .data = &wl12xx_data},
-+	{ .compatible = "ti,wl1271", .data = &wl127x_data},
-+	{ .compatible = "ti,wl1273", .data = &wl127x_data},
-+	{ .compatible = "ti,wl1281", .data = &wl128x_data},
-+	{ .compatible = "ti,wl1283", .data = &wl128x_data},
- 	{ .compatible = "ti,wl1801", .data = &wl18xx_data},
- 	{ .compatible = "ti,wl1805", .data = &wl18xx_data},
- 	{ .compatible = "ti,wl1807", .data = &wl18xx_data},
-@@ -456,9 +460,9 @@ static int wlcore_probe_of(struct spi_device *spi, struct wl12xx_spi_glue *glue,
- 	if (!of_id)
- 		return -ENODEV;
- 
--	wilink_data = of_id->data;
-+	pdev_data->family = of_id->data;
- 	dev_info(&spi->dev, "selected chip family is %s\n",
--		 wilink_data->name);
-+		 pdev_data->family->name);
- 
- 	if (of_find_property(dt_node, "clock-xtal", NULL))
- 		pdev_data->ref_clock_xtal = true;
-@@ -475,13 +479,15 @@ static int wlcore_probe_of(struct spi_device *spi, struct wl12xx_spi_glue *glue,
- static int wl1271_probe(struct spi_device *spi)
- {
- 	struct wl12xx_spi_glue *glue;
--	struct wlcore_platdev_data pdev_data;
-+	struct wlcore_platdev_data *pdev_data;
- 	struct resource res[1];
- 	int ret;
- 
--	memset(&pdev_data, 0x00, sizeof(pdev_data));
-+	pdev_data = devm_kzalloc(&spi->dev, sizeof(*pdev_data), GFP_KERNEL);
-+	if (!pdev_data)
-+		return -ENOMEM;
- 
--	pdev_data.if_ops = &spi_ops;
-+	pdev_data->if_ops = &spi_ops;
- 
- 	glue = devm_kzalloc(&spi->dev, sizeof(*glue), GFP_KERNEL);
- 	if (!glue) {
-@@ -505,7 +511,7 @@ static int wl1271_probe(struct spi_device *spi)
- 		return PTR_ERR(glue->reg);
- 	}
- 
--	ret = wlcore_probe_of(spi, glue, &pdev_data);
-+	ret = wlcore_probe_of(spi, glue, pdev_data);
- 	if (ret) {
- 		dev_err(glue->dev,
- 			"can't get device tree parameters (%d)\n", ret);
-@@ -518,7 +524,7 @@ static int wl1271_probe(struct spi_device *spi)
- 		return ret;
- 	}
- 
--	glue->core = platform_device_alloc(wilink_data->name,
-+	glue->core = platform_device_alloc(pdev_data->family->name,
- 					   PLATFORM_DEVID_AUTO);
- 	if (!glue->core) {
- 		dev_err(glue->dev, "can't allocate platform_device\n");
-@@ -539,8 +545,8 @@ static int wl1271_probe(struct spi_device *spi)
- 		goto out_dev_put;
- 	}
- 
--	ret = platform_device_add_data(glue->core, &pdev_data,
--				       sizeof(pdev_data));
-+	ret = platform_device_add_data(glue->core, pdev_data,
-+				       sizeof(*pdev_data));
- 	if (ret) {
- 		dev_err(glue->dev, "can't add platform data\n");
- 		goto out_dev_put;
+> On 08.09.2016 16:20, kbuild test robot wrote:
+> > Hi Marcin,
+> > 
+> > [auto build test ERROR on abelloni/rtc-next]
+> > [also build test ERROR on v4.8-rc5]
+> > [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+> > [Suggest to use git(>=2.9.0) format-patch --base=<commit> (or --base=auto for convenience) to record what (public, well-known) commit your patch series was built on]
+> > [Check https://git-scm.com/docs/git-format-patch for more information]
+> > 
+> > url:    https://github.com/0day-ci/linux/commits/Marcin-Niestroj/rtc-omap-Support-ext_wakeup-configuration/20160908-190900
+> > base:   https://git.kernel.org/pub/scm/linux/kernel/git/abelloni/linux.git rtc-next
+> > config: ia64-allmodconfig (attached as .config)
+> > compiler: ia64-linux-gcc (GCC) 4.9.0
+> > reproduce:
+> >         wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
+> >         chmod +x ~/bin/make.cross
+> >         # save the attached .config to linux build tree
+> >         make.cross ARCH=ia64
+> > 
+> > All error/warnings (new ones prefixed by >>):
+> > 
+> > > > drivers/rtc/rtc-omap.c:535:38: error: array type has incomplete element type
+> >     static const struct pinctrl_pin_desc rtc_pins_desc[] = {
+> >                                          ^
+> > > > drivers/rtc/rtc-omap.c:536:2: error: implicit declaration of function 'PINCTRL_PIN' [-Werror=implicit-function-declaration]
+> >      PINCTRL_PIN(0, "ext_wakeup0"),
+> >      ^
+> > > > drivers/rtc/rtc-omap.c:553:21: error: variable 'rtc_pinctrl_ops' has initializer but incomplete type
+> >     static const struct pinctrl_ops rtc_pinctrl_ops = {
+> >                         ^
+> > > > drivers/rtc/rtc-omap.c:554:2: error: unknown field 'get_groups_count' specified in initializer
+> >      .get_groups_count = rtc_pinctrl_get_groups_count,
+> >      ^
+> > > > drivers/rtc/rtc-omap.c:554:2: warning: excess elements in struct initializer
+> >    drivers/rtc/rtc-omap.c:554:2: warning: (near initialization for 'rtc_pinctrl_ops')
+> > > > drivers/rtc/rtc-omap.c:555:2: error: unknown field 'get_group_name' specified in initializer
+> >      .get_group_name = rtc_pinctrl_get_group_name,
+> >      ^
+> >    drivers/rtc/rtc-omap.c:555:2: warning: excess elements in struct initializer
+> >    drivers/rtc/rtc-omap.c:555:2: warning: (near initialization for 'rtc_pinctrl_ops')
+> > > > drivers/rtc/rtc-omap.c:556:2: error: unknown field 'dt_node_to_map' specified in initializer
+> >      .dt_node_to_map = pinconf_generic_dt_node_to_map_pin,
+> >      ^
+> >    drivers/rtc/rtc-omap.c:556:2: warning: excess elements in struct initializer
+> >    drivers/rtc/rtc-omap.c:556:2: warning: (near initialization for 'rtc_pinctrl_ops')
+> > > > drivers/rtc/rtc-omap.c:557:2: error: unknown field 'dt_free_map' specified in initializer
+> >      .dt_free_map = pinconf_generic_dt_free_map,
+> >      ^
+> >    drivers/rtc/rtc-omap.c:557:2: warning: excess elements in struct initializer
+> >    drivers/rtc/rtc-omap.c:557:2: warning: (near initialization for 'rtc_pinctrl_ops')
+> >    drivers/rtc/rtc-omap.c: In function 'rtc_pinconf_get':
+> > > > drivers/rtc/rtc-omap.c:577:9: error: implicit declaration of function 'pinctrl_dev_get_drvdata' [-Werror=implicit-function-declaration]
+> >      struct omap_rtc *rtc = pinctrl_dev_get_drvdata(pctldev);
+> >             ^
+> > > > drivers/rtc/rtc-omap.c:577:25: warning: initialization makes pointer from integer without a cast
+> >      struct omap_rtc *rtc = pinctrl_dev_get_drvdata(pctldev);
+> >                             ^
+> >    drivers/rtc/rtc-omap.c: In function 'rtc_pinconf_set':
+> >    drivers/rtc/rtc-omap.c:608:25: warning: initialization makes pointer from integer without a cast
+> >      struct omap_rtc *rtc = pinctrl_dev_get_drvdata(pctldev);
+> >                             ^
+> >    drivers/rtc/rtc-omap.c: At top level:
+> > > > drivers/rtc/rtc-omap.c:649:21: error: variable 'rtc_pinconf_ops' has initializer but incomplete type
+> >     static const struct pinconf_ops rtc_pinconf_ops = {
+> >                         ^
+> > > > drivers/rtc/rtc-omap.c:650:2: error: unknown field 'is_generic' specified in initializer
+> >      .is_generic = true,
+> >      ^
+> >    drivers/rtc/rtc-omap.c:650:2: warning: excess elements in struct initializer
+> >    drivers/rtc/rtc-omap.c:650:2: warning: (near initialization for 'rtc_pinconf_ops')
+> > > > drivers/rtc/rtc-omap.c:651:2: error: unknown field 'pin_config_get' specified in initializer
+> >      .pin_config_get = rtc_pinconf_get,
+> >      ^
+> >    drivers/rtc/rtc-omap.c:651:2: warning: excess elements in struct initializer
+> >    drivers/rtc/rtc-omap.c:651:2: warning: (near initialization for 'rtc_pinconf_ops')
+> > > > drivers/rtc/rtc-omap.c:652:2: error: unknown field 'pin_config_set' specified in initializer
+> >      .pin_config_set = rtc_pinconf_set,
+> >      ^
+> >    drivers/rtc/rtc-omap.c:652:2: warning: excess elements in struct initializer
+> >    drivers/rtc/rtc-omap.c:652:2: warning: (near initialization for 'rtc_pinconf_ops')
+> > > > drivers/rtc/rtc-omap.c:655:15: error: variable 'rtc_pinctrl_desc' has initializer but incomplete type
+> >     static struct pinctrl_desc rtc_pinctrl_desc = {
+> >                   ^
+> > > > drivers/rtc/rtc-omap.c:656:2: error: unknown field 'pins' specified in initializer
+> >      .pins = rtc_pins_desc,
+> >      ^
+> >    drivers/rtc/rtc-omap.c:656:2: warning: excess elements in struct initializer
+> >    drivers/rtc/rtc-omap.c:656:2: warning: (near initialization for 'rtc_pinctrl_desc')
+> > > > drivers/rtc/rtc-omap.c:657:2: error: unknown field 'npins' specified in initializer
+> >      .npins = ARRAY_SIZE(rtc_pins_desc),
+> >      ^
+> >    In file included from include/linux/debug_locks.h:6:0,
+> >                     from include/linux/mutex-debug.h:6,
+> >                     from include/linux/mutex.h:82,
+> >                     from include/linux/notifier.h:13,
+> >                     from include/linux/clk.h:17,
+> >                     from drivers/rtc/rtc-omap.c:18:
+> >    include/linux/bug.h:34:45: error: bit-field '<anonymous>' width not an integer constant
+> >     #define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:-!!(e); }))
+> >                                                 ^
+> >    include/linux/compiler-gcc.h:64:28: note: in expansion of macro 'BUILD_BUG_ON_ZERO'
+> >     #define __must_be_array(a) BUILD_BUG_ON_ZERO(__same_type((a), &(a)[0]))
+> >                                ^
+> >    include/linux/kernel.h:53:59: note: in expansion of macro '__must_be_array'
+> >     #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
+> >                                                               ^
+> > > > drivers/rtc/rtc-omap.c:657:11: note: in expansion of macro 'ARRAY_SIZE'
+> >      .npins = ARRAY_SIZE(rtc_pins_desc),
+> >               ^
+> >    include/linux/bug.h:34:45: warning: excess elements in struct initializer
+> >     #define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:-!!(e); }))
+> >                                                 ^
+> >    include/linux/compiler-gcc.h:64:28: note: in expansion of macro 'BUILD_BUG_ON_ZERO'
+> >     #define __must_be_array(a) BUILD_BUG_ON_ZERO(__same_type((a), &(a)[0]))
+> >                                ^
+> >    include/linux/kernel.h:53:59: note: in expansion of macro '__must_be_array'
+> >     #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
+> >                                                               ^
+> > > > drivers/rtc/rtc-omap.c:657:11: note: in expansion of macro 'ARRAY_SIZE'
+> >      .npins = ARRAY_SIZE(rtc_pins_desc),
+> >               ^
+> >    include/linux/bug.h:34:45: warning: (near initialization for 'rtc_pinctrl_desc')
+> >     #define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:-!!(e); }))
+> >                                                 ^
+> >    include/linux/compiler-gcc.h:64:28: note: in expansion of macro 'BUILD_BUG_ON_ZERO'
+> >     #define __must_be_array(a) BUILD_BUG_ON_ZERO(__same_type((a), &(a)[0]))
+> >                                ^
+> >    include/linux/kernel.h:53:59: note: in expansion of macro '__must_be_array'
+> >     #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
+> >                                                               ^
+> > > > drivers/rtc/rtc-omap.c:657:11: note: in expansion of macro 'ARRAY_SIZE'
+> >      .npins = ARRAY_SIZE(rtc_pins_desc),
+> >               ^
+> > 
+> > vim +535 drivers/rtc/rtc-omap.c
+> > 
+> >    529		}, {
+> >    530			/* sentinel */
+> >    531		}
+> >    532	};
+> >    533	MODULE_DEVICE_TABLE(of, omap_rtc_of_match);
+> >    534	
+> >  > 535	static const struct pinctrl_pin_desc rtc_pins_desc[] = {
+> >  > 536		PINCTRL_PIN(0, "ext_wakeup0"),
+> >    537		PINCTRL_PIN(1, "ext_wakeup1"),
+> >    538		PINCTRL_PIN(2, "ext_wakeup2"),
+> >    539		PINCTRL_PIN(3, "ext_wakeup3"),
+> >    540	};
+> >    541	
+> >    542	static int rtc_pinctrl_get_groups_count(struct pinctrl_dev *pctldev)
+> >    543	{
+> >    544		return 0;
+> >    545	}
+> >    546	
+> >    547	static const char *rtc_pinctrl_get_group_name(struct pinctrl_dev *pctldev,
+> >    548						unsigned int group)
+> >    549	{
+> >    550		return NULL;
+> >    551	}
+> >    552	
+> >  > 553	static const struct pinctrl_ops rtc_pinctrl_ops = {
+> >  > 554		.get_groups_count = rtc_pinctrl_get_groups_count,
+> >  > 555		.get_group_name = rtc_pinctrl_get_group_name,
+> >  > 556		.dt_node_to_map = pinconf_generic_dt_node_to_map_pin,
+> >  > 557		.dt_free_map = pinconf_generic_dt_free_map,
+> >    558	};
+> >    559	
+> >    560	enum rtc_pin_config_param {
+> >    561		PIN_CONFIG_ACTIVE_HIGH = PIN_CONFIG_END + 1,
+> >    562	};
+> >    563	
+> >    564	static const struct pinconf_generic_params rtc_params[] = {
+> >    565		{"ti,active-high", PIN_CONFIG_ACTIVE_HIGH, 0},
+> >    566	};
+> >    567	
+> >    568	#ifdef CONFIG_DEBUG_FS
+> >    569	static const struct pin_config_item rtc_conf_items[ARRAY_SIZE(rtc_params)] = {
+> >    570		PCONFDUMP(PIN_CONFIG_ACTIVE_HIGH, "input active high", NULL, false),
+> >    571	};
+> >    572	#endif
+> >    573	
+> >    574	static int rtc_pinconf_get(struct pinctrl_dev *pctldev,
+> >    575				unsigned int pin, unsigned long *config)
+> >    576	{
+> >  > 577		struct omap_rtc *rtc = pinctrl_dev_get_drvdata(pctldev);
+> >    578		unsigned int param = pinconf_to_config_param(*config);
+> >    579		u32 val;
+> >    580		u16 arg = 0;
+> >    581	
+> >    582		rtc->type->unlock(rtc);
+> >    583		val = rtc_readl(rtc, OMAP_RTC_PMIC_REG);
+> >    584		rtc->type->lock(rtc);
+> >    585	
+> >    586		switch (param) {
+> >    587		case PIN_CONFIG_INPUT_ENABLE:
+> >    588			if (!(val & OMAP_RTC_PMIC_EXT_WKUP_EN(pin)))
+> >    589				return -EINVAL;
+> >    590			break;
+> >    591		case PIN_CONFIG_ACTIVE_HIGH:
+> >    592			if (val & OMAP_RTC_PMIC_EXT_WKUP_POL(pin))
+> >    593				return -EINVAL;
+> >    594			break;
+> >    595		default:
+> >    596			return -ENOTSUPP;
+> >    597		};
+> >    598	
+> >    599		*config = pinconf_to_config_packed(param, arg);
+> >    600	
+> >    601		return 0;
+> >    602	}
+> >    603	
+> >    604	static int rtc_pinconf_set(struct pinctrl_dev *pctldev,
+> >    605				unsigned int pin, unsigned long *configs,
+> >    606				unsigned int num_configs)
+> >    607	{
+> >  > 608		struct omap_rtc *rtc = pinctrl_dev_get_drvdata(pctldev);
+> >    609		u32 val;
+> >    610		unsigned int param;
+> >    611		u16 param_val;
+> >    612		int i;
+> >    613	
+> >    614		rtc->type->unlock(rtc);
+> >    615		val = rtc_readl(rtc, OMAP_RTC_PMIC_REG);
+> >    616		rtc->type->lock(rtc);
+> >    617	
+> >    618		/* active low by default */
+> >    619		val |= OMAP_RTC_PMIC_EXT_WKUP_POL(pin);
+> >    620	
+> >    621		for (i = 0; i < num_configs; i++) {
+> >    622			param = pinconf_to_config_param(configs[i]);
+> >    623			param_val = pinconf_to_config_argument(configs[i]);
+> >    624	
+> >    625			switch (param) {
+> >    626			case PIN_CONFIG_INPUT_ENABLE:
+> >    627				if (param_val)
+> >    628					val |= OMAP_RTC_PMIC_EXT_WKUP_EN(pin);
+> >    629				else
+> >    630					val &= ~OMAP_RTC_PMIC_EXT_WKUP_EN(pin);
+> >    631				break;
+> >    632			case PIN_CONFIG_ACTIVE_HIGH:
+> >    633				val &= ~OMAP_RTC_PMIC_EXT_WKUP_POL(pin);
+> >    634				break;
+> >    635			default:
+> >    636				dev_err(&rtc->rtc->dev, "Property %u not supported\n",
+> >    637					param);
+> >    638				return -ENOTSUPP;
+> >    639			}
+> >    640		}
+> >    641	
+> >    642		rtc->type->unlock(rtc);
+> >    643		rtc_writel(rtc, OMAP_RTC_PMIC_REG, val);
+> >    644		rtc->type->lock(rtc);
+> >    645	
+> >    646		return 0;
+> >    647	}
+> >    648	
+> >  > 649	static const struct pinconf_ops rtc_pinconf_ops = {
+> >  > 650		.is_generic = true,
+> >  > 651		.pin_config_get = rtc_pinconf_get,
+> >  > 652		.pin_config_set = rtc_pinconf_set,
+> >    653	};
+> >    654	
+> >  > 655	static struct pinctrl_desc rtc_pinctrl_desc = {
+> >  > 656		.pins = rtc_pins_desc,
+> >  > 657		.npins = ARRAY_SIZE(rtc_pins_desc),
+> >  > 658		.pctlops = &rtc_pinctrl_ops,
+> >  > 659		.confops = &rtc_pinconf_ops,
+> >  > 660		.custom_params = rtc_params,
+> >  > 661		.num_custom_params = ARRAY_SIZE(rtc_params),
+> >    662	#ifdef CONFIG_DEBUG_FS
+> >  > 663		.custom_conf_items = rtc_conf_items,
+> >    664	#endif
+> >  > 665		.owner = THIS_MODULE,
+> >    666	};
+> >    667	
+> >    668	static int omap_rtc_probe(struct platform_device *pdev)
+> > 
+> > ---
+> > 0-DAY kernel test infrastructure                Open Source Technology Center
+> > https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+> > 
+> 
+> -- 
+> Marcin Niestroj
+
 -- 
-2.9.3
+Alexandre Belloni, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
+
+-- 
+You received this message because you are subscribed to "rtc-linux".
+Membership options at http://groups.google.com/group/rtc-linux .
+Please read http://groups.google.com/group/rtc-linux/web/checklist
+before submitting a driver.
+--- 
+You received this message because you are subscribed to the Google Groups "rtc-linux" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit https://groups.google.com/d/optout.
