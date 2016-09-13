@@ -1,79 +1,78 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ASoC: omap-mcbsp: Add PM QoS support for
- McBSP to prevent glitches
-Date: Tue, 13 Sep 2016 06:45:14 -0700
-Message-ID: <20160913134512.7cpq3nuosn7rcgwl@atomide.com>
-References: <7d1c9a2f-60ae-2d83-f7dc-55fe476dbccb@ti.com>
- <20160906201649.fx4vhuqmnziwshoe@atomide.com>
- <1b82e33a-7db5-81ed-de4f-75847f840088@ti.com>
- <20160908035356.mkk35s5gpcemifcg@atomide.com>
- <ceb7854b-6cd4-fe3d-ede7-016c64f88dc0@ti.com>
- <9452a3c6-9bf9-818f-6e8d-455193839e94@ti.com>
- <20160908144834.i722j3afyztk6vhh@atomide.com>
- <8ec65c33-cc92-7737-ac7a-1338bcab7b90@ti.com>
- <20160909234528.qku3fugiwglkqa3q@atomide.com>
- <6f6c2c1c-5ca4-f821-0690-c6c726b1263e@ti.com>
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv2] usb: musb: Fix unbalanced platform_disable
+Date: Tue, 13 Sep 2016 09:14:48 -0500
+Message-ID: <20160913141448.GN18340@uda0271908>
+References: <20160912153947.k4gnggur6usyujii@atomide.com>
+ <20160912165455.GE18340@uda0271908>
+ <20160912171938.5fmx2qi6xtzsohpy@atomide.com>
+ <20160912173406.6qalsmolsylc2suq@atomide.com>
+ <20160912200530.69cb195d@aktux>
+ <20160912183552.GA9372@uda0271908>
+ <20160913031805.m5nzyqyclh4pyj6k@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <6f6c2c1c-5ca4-f821-0690-c6c726b1263e@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: alsa-devel@alsa-project.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Liam Girdwood <lgirdwood@gmail.com>, Sebastian Reichel <sre@kernel.org>, "Kristo, Tero" <t-kristo@ti.com>, Mark Brown <broonie@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Pavel Machel <pavel@ucw.cz>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org
+In-Reply-To: <20160913031805.m5nzyqyclh4pyj6k-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Rolf Peukert <rolf.peukert-cSCHQGRfioA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [160913 04:45]:
-> On 09/10/16 02:45, Tony Lindgren wrote:
-> >> In any way, according to the numbers:
-> >> C7 is (7505 + 15274) vs (10000 + 30000)
-> >> C6 is (7580 + 4134) vs (3000 + 8500)
-> >> C5 is (855 + 1146) vs (2500 + 7500)
-> >> C4 is (121 + 3374) vs (1500 + 1800)
-> >> C3 is (107 + 410) vs (50 + 50)
-> >>
-> >> with the 30ms QoS we set we will still hit OFF on OMAP3430, it should minimum
-> >> 11.715ms for omap3430, but that will block C6 on omap36xx.
+Hi,
+
+On Mon, Sep 12, 2016 at 08:18:05PM -0700, Tony Lindgren wrote:
+> * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [160912 11:36]:
+> > On Mon, Sep 12, 2016 at 08:05:30PM +0200, Andreas Kemnade wrote:
+> > > Hmm, then the question is: Couldn't the X_musb_disable simply be called
+> > > from X_probe if needed to be an the safe side?
 > > 
-> > Yeah those don't seem to be correct. The Nokia N9(50) kernel seems to have
-> > some measured numbers for 36xx.
-> 
-> True, probably we should give those numbers a try? It looks like they have
-> C1...C8 compared to mainline which have C1...C7.
-
-Well some of those numbers are based on OSWR (Open SWitch Retention), not
-sure if that works properly with mainline. Worth trying though.
-
-> >> If we could have the data for the struct cpuidle_state coming from DT and not
-> >> wired in the cpuidle34xx/44xx files then the McBSP driver could look up the C7
-> >> number and block that...
+> > In general, we try not to do so if all possible. We want to put common
+> > code in the core, not repleat them in glue layers.
 > > 
-> > I'm now thinking that your fifo threshold calculation is what we should
-> > do, then fix the cpuidle latencies and playback should hit retention idle.
+> > In this specific case, we cannot do it. For example in dsps glue, the
+> > musb reset is done in dsps_musb_init(), so no place in dsps_probe() to
+> > call dsps_musb_disable().
 > 
-> Right. So the QoS should be set time(FIFOsize - FIFOthreshold) - margin?
-> What margin we should use? The DMA does not need setup time as it will just
-> continue where it stopped, so probably we can ignore the margin and use the
-> number we got from the FIFO use?
+> OK yeah if we need to do something, then disabling the irq in
+> musb_core.c until we're done should be enough.
 
-Yeah seems safe assuming the mystery numbers are wrong C state latencies :)
+I don't think we can disable it in musb core directly. *_musb_disable()
+in glue layers disables the musb wrapper's irq, not the core's irq.
 
-> During hw_param we can calculate this, but we need to consider on more thing:
-> we need to make sure that the QoS we place covers the capture and the playback
-> as well, so we need to use the worst case number. the FIFO threshold can be
-> different for capture and playback.
+But I guess we can let *_musb_init() directly calls *_musb_disable() in
+the glue drivers right after musb reset. This would have to touch almost
+all glue drivers, but trivial change. Thoughts?
 
-OK makes sense to me.
+> 
+> Anyways, I tested the $subject patch also with am35x code with the
+> following patch and no issues. So I've now tested with omap3,
+> omap4, am335x, and am35x.
+ 
+I don't expect your v2 breaks am35x either, as I believe its default of
+out-of-reset already disables the irq. I just don't like that SW relies
+on unguaranteed HW default state.
+
+> There are also am35x musb device tree patches from last year by
+> Rolf Peukert <rolf.peukert-cSCHQGRfioA@public.gmane.org>:
+> 
+> https://patchwork.kernel.org/project/linux-omap/list/?submitter=144061
+
+Good to know this work.
+
+> 
+> And we now have new drivers/phy/phy-da8xx-usb.c that might be the
+> same phy on am35x except with register bits moved around.
+> 
+> So maybe we'll have it working with device tree quite easily.
+> Meanwhile, we should probably apply the following patch so we
+> get things working again.
+
+Yup.
 
 Regards,
-
-Tony
+-Bin.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
