@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 5/5] wlcore: wl18xx: Use chip specific configuration firmware
-Date: Tue, 13 Sep 2016 14:50:43 -0700
-Message-ID: <20160913215043.29454-6-tony@atomide.com>
+Subject: [PATCH 3/5] wlcore: sdio: Populate config firmware data
+Date: Tue, 13 Sep 2016 14:50:41 -0700
+Message-ID: <20160913215043.29454-4-tony@atomide.com>
 References: <20160913215043.29454-1-tony@atomide.com>
 Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160913215043.29454-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
@@ -10,67 +10,120 @@ To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Use the wl18xx specific config firmware we now have available.
+Configure the config firmware names and make it available
+in platform data.
+
+Let's also fix the order of the struct wilink_family_data
+while at it.
 
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/net/wireless/ti/wl18xx/main.c | 19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ drivers/net/wireless/ti/wlcore/spi.c | 42 ++++++++++++++++++++----------------
+ 1 file changed, 24 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/net/wireless/ti/wl18xx/main.c b/drivers/net/wireless/ti/wl18xx/main.c
-index 00a04df..06d6943 100644
---- a/drivers/net/wireless/ti/wl18xx/main.c
-+++ b/drivers/net/wireless/ti/wl18xx/main.c
-@@ -1397,25 +1397,24 @@ static int wl18xx_get_pg_ver(struct wl1271 *wl, s8 *ver)
- 	return ret;
- }
+diff --git a/drivers/net/wireless/ti/wlcore/spi.c b/drivers/net/wireless/ti/wlcore/spi.c
+index a336493..f949ad2b 100644
+--- a/drivers/net/wireless/ti/wlcore/spi.c
++++ b/drivers/net/wireless/ti/wlcore/spi.c
+@@ -79,15 +79,19 @@
+ #define WSPI_MAX_NUM_OF_CHUNKS \
+ 	((SPI_AGGR_BUFFER_SIZE / WSPI_MAX_CHUNK_SIZE) + 1)
  
--#define WL18XX_CONF_FILE_NAME "ti-connectivity/wl18xx-conf.bin"
++static const struct wilink_family_data wl127x_data = {
++	.name = "wl127x",
++	.nvs_name = "ti-connectivity/wl127x-nvs.bin",
++};
+ 
+-static const struct wilink_family_data *wilink_data;
++static const struct wilink_family_data wl128x_data = {
++	.name = "wl128x",
++	.nvs_name = "ti-connectivity/wl128x-nvs.bin",
++};
+ 
+ static const struct wilink_family_data wl18xx_data = {
+ 	.name = "wl18xx",
+-};
 -
- static int wl18xx_load_conf_file(struct device *dev, struct wlcore_conf *conf,
--				 struct wl18xx_priv_conf *priv_conf)
-+				 struct wl18xx_priv_conf *priv_conf,
-+				 const char *file)
+-static const struct wilink_family_data wl12xx_data = {
+-	.name = "wl12xx",
++	.cfg_name = "ti-connectivity/wl18xx-conf.bin",
+ };
+ 
+ struct wl12xx_spi_glue {
+@@ -425,10 +429,10 @@ static struct wl1271_if_operations spi_ops = {
+ };
+ 
+ static const struct of_device_id wlcore_spi_of_match_table[] = {
+-	{ .compatible = "ti,wl1271", .data = &wl12xx_data},
+-	{ .compatible = "ti,wl1273", .data = &wl12xx_data},
+-	{ .compatible = "ti,wl1281", .data = &wl12xx_data},
+-	{ .compatible = "ti,wl1283", .data = &wl12xx_data},
++	{ .compatible = "ti,wl1271", .data = &wl127x_data},
++	{ .compatible = "ti,wl1273", .data = &wl127x_data},
++	{ .compatible = "ti,wl1281", .data = &wl128x_data},
++	{ .compatible = "ti,wl1283", .data = &wl128x_data},
+ 	{ .compatible = "ti,wl1801", .data = &wl18xx_data},
+ 	{ .compatible = "ti,wl1805", .data = &wl18xx_data},
+ 	{ .compatible = "ti,wl1807", .data = &wl18xx_data},
+@@ -456,9 +460,9 @@ static int wlcore_probe_of(struct spi_device *spi, struct wl12xx_spi_glue *glue,
+ 	if (!of_id)
+ 		return -ENODEV;
+ 
+-	wilink_data = of_id->data;
++	pdev_data->family = of_id->data;
+ 	dev_info(&spi->dev, "selected chip family is %s\n",
+-		 wilink_data->name);
++		 pdev_data->family->name);
+ 
+ 	if (of_find_property(dt_node, "clock-xtal", NULL))
+ 		pdev_data->ref_clock_xtal = true;
+@@ -475,13 +479,15 @@ static int wlcore_probe_of(struct spi_device *spi, struct wl12xx_spi_glue *glue,
+ static int wl1271_probe(struct spi_device *spi)
  {
- 	struct wlcore_conf_file *conf_file;
- 	const struct firmware *fw;
+ 	struct wl12xx_spi_glue *glue;
+-	struct wlcore_platdev_data pdev_data;
++	struct wlcore_platdev_data *pdev_data;
+ 	struct resource res[1];
  	int ret;
  
--	ret = request_firmware(&fw, WL18XX_CONF_FILE_NAME, dev);
-+	ret = request_firmware(&fw, file, dev);
- 	if (ret < 0) {
- 		wl1271_error("could not get configuration binary %s: %d",
--			     WL18XX_CONF_FILE_NAME, ret);
-+			     file, ret);
+-	memset(&pdev_data, 0x00, sizeof(pdev_data));
++	pdev_data = devm_kzalloc(&spi->dev, sizeof(*pdev_data), GFP_KERNEL);
++	if (!pdev_data)
++		return -ENOMEM;
+ 
+-	pdev_data.if_ops = &spi_ops;
++	pdev_data->if_ops = &spi_ops;
+ 
+ 	glue = devm_kzalloc(&spi->dev, sizeof(*glue), GFP_KERNEL);
+ 	if (!glue) {
+@@ -505,7 +511,7 @@ static int wl1271_probe(struct spi_device *spi)
+ 		return PTR_ERR(glue->reg);
+ 	}
+ 
+-	ret = wlcore_probe_of(spi, glue, &pdev_data);
++	ret = wlcore_probe_of(spi, glue, pdev_data);
+ 	if (ret) {
+ 		dev_err(glue->dev,
+ 			"can't get device tree parameters (%d)\n", ret);
+@@ -518,7 +524,7 @@ static int wl1271_probe(struct spi_device *spi)
  		return ret;
  	}
  
- 	if (fw->size != WL18XX_CONF_SIZE) {
--		wl1271_error("configuration binary file size is wrong, expected %zu got %zu",
--			     WL18XX_CONF_SIZE, fw->size);
-+		wl1271_error("%s configuration binary size is wrong, expected %zu got %zu",
-+			     file, WL18XX_CONF_SIZE, fw->size);
- 		ret = -EINVAL;
- 		goto out_release;
+-	glue->core = platform_device_alloc(wilink_data->name,
++	glue->core = platform_device_alloc(pdev_data->family->name,
+ 					   PLATFORM_DEVID_AUTO);
+ 	if (!glue->core) {
+ 		dev_err(glue->dev, "can't allocate platform_device\n");
+@@ -539,8 +545,8 @@ static int wl1271_probe(struct spi_device *spi)
+ 		goto out_dev_put;
  	}
-@@ -1448,9 +1447,12 @@ static int wl18xx_load_conf_file(struct device *dev, struct wlcore_conf *conf,
  
- static int wl18xx_conf_init(struct wl1271 *wl, struct device *dev)
- {
-+	struct platform_device *pdev = wl->pdev;
-+	struct wlcore_platdev_data *pdata = dev_get_platdata(&pdev->dev);
- 	struct wl18xx_priv *priv = wl->priv;
- 
--	if (wl18xx_load_conf_file(dev, &wl->conf, &priv->conf) < 0) {
-+	if (wl18xx_load_conf_file(dev, &wl->conf, &priv->conf,
-+				  pdata->family->cfg_name) < 0) {
- 		wl1271_warning("falling back to default config");
- 
- 		/* apply driver default configuration */
-@@ -2141,4 +2143,3 @@ MODULE_PARM_DESC(num_rx_desc_param,
- MODULE_LICENSE("GPL v2");
- MODULE_AUTHOR("Luciano Coelho <coelho-l0cyMroinI0@public.gmane.org>");
- MODULE_FIRMWARE(WL18XX_FW_NAME);
--MODULE_FIRMWARE(WL18XX_CONF_FILE_NAME);
+-	ret = platform_device_add_data(glue->core, &pdev_data,
+-				       sizeof(pdev_data));
++	ret = platform_device_add_data(glue->core, pdev_data,
++				       sizeof(*pdev_data));
+ 	if (ret) {
+ 		dev_err(glue->dev, "can't add platform data\n");
+ 		goto out_dev_put;
 -- 
 2.9.3
