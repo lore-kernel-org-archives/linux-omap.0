@@ -1,48 +1,68 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: drivers/usb/musb/tusb6010.c:142:21: error: 'USB_INDEX' undeclared
-Date: Tue, 13 Sep 2016 15:35:05 -0700
-Message-ID: <20160913223504.7mdgtipmkltikuyt@atomide.com>
-References: <201606120442.yWatggEa%fengguang.wu@intel.com>
- <20160908174521.fcrjbcwktfiuujib@atomide.com>
- <20160908182609.GG4054@uda0271908>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] usb: ohci: Allow ohci on omap5 also
+Date: Tue, 13 Sep 2016 15:48:08 -0700
+Message-ID: <20160913224808.hzbahh33vz2f44wl@atomide.com>
+References: <Pine.LNX.4.44L0.1609092131150.8630-100000@netrider.rowland.org>
+ <Pine.LNX.4.44L0.1609102224120.31770-100000@netrider.rowland.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160908182609.GG4054@uda0271908>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bin Liu <b-liu@ti.com>
-Cc: kbuild test robot <fengguang.wu@intel.com>, kbuild-all@01.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.44L0.1609102224120.31770-100000-pYrvlCTfrz9XsRXLowluHWD2FQJk+8+b@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Bin Liu <b-liu@ti.com> [160908 11:26]:
-> On Thu, Sep 08, 2016 at 10:45:21AM -0700, Tony Lindgren wrote:
-> > --- a/drivers/usb/musb/Kconfig
-> > +++ b/drivers/usb/musb/Kconfig
-> > @@ -87,7 +87,7 @@ config USB_MUSB_DA8XX
-> >  config USB_MUSB_TUSB6010
-> >  	tristate "TUSB6010"
-> >  	depends on HAS_IOMEM
-> > -	depends on ARCH_OMAP2PLUS || COMPILE_TEST
-> > +	depends on (ARCH_OMAP2PLUS || COMPILE_TEST) && !BLACKFIN
+* Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> [160910 19:27]:
+> On Fri, 9 Sep 2016, Alan Stern wrote:
 > 
-> Would this cause more issue later when trying to enable all glue drivers
-> in one build?
+> > On Fri, 9 Sep 2016, Tony Lindgren wrote:
+> > 
+> > > * Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> [160909 13:41]:
+> > > > On Fri, 9 Sep 2016, Tony Lindgren wrote:
+> > > > 
+> > > > > * Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> [160909 12:47]:
+> > > > > > You know, as far as I can tell the only thing that is OMAP-specific
+> > > > > > about the ohci-omap3 driver is the initialization of OHCI_CTRL_RWC.  
+> > > > > > This could be added to the platform data or the DT bindings, after
+> > > > > > which this driver wouldn't be needed at all -- the ohci_platform driver
+> > > > > > would work.  Does this seem reasonable?
+> > > > > 
+> > > > > Sure makes sense to me. Do we have some standard binding for
+> > > > > OCHI_CTRL_RWC?
+> > > > 
+> > > > No, one would have to be created.
+> > > 
+> > > OK I can do a patch for that, what should be binding be?
+> > > 
+> > > ohci-ctrl-rwc-something?
+> > 
+> > OHCI_CTRL_RWC is just a single-bit flag; the RWC part stands for
+> > "Remote Wakeup Control".
+> 
+> Sorry, careless mistake on my part.  It actually stands for "Remote 
+> Wakeup Connected"; meaning that the remote-wakeup output signal from 
+> the controller is connected to something really can wake up the system.
+> This is exactly the sort of hardware implementation detail that the 
+> firmware is supposed to know.
 
-Yes but see what CONFIG_BLACKFIN is doing with musb_regs.h..
-It completely redefines all the registers with ifdef else.
+OK thanks. I think it can be set up as a generic wakeirq.
 
-> The macros defined in tusb6010.h are only used in tusb6010.c, so how
-> about move '#include "tusb6010.h"' from musb_regs.h to tusb6010.c
-> instead? This gives flexibility to random config test, isn't it?
+> >  The flag indicates whether the controller
+> > hardware is able to wake up the system, and it is supposed to be set
+> > initially by the firmware during boot-up.  Under DT, the driver will
+> > have to set it manually.
+> > 
+> > So you could call it ohci-ctrl-rwc-on, or ohci-ctrl-rwc-enable, or 
+> > anything similar.  Use your own judgment.
 
-I'd like to see that but we have this in musb_core.c:
-
-hw_ep->conf = mbase - 0x400 + TUSB_EP0_CONF;
-
-So the build would break there again on blackin with tusb6010..
-Got any ideas on how to sort that out?
+OK
 
 Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
