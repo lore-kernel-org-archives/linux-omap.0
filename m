@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [RFC PATCH] Documentation: PCI: guide to use PCI Endpoint Core Layer
-Date: Tue, 13 Sep 2016 22:40:45 +0530
-Message-ID: <1473786653-12759-4-git-send-email-kishon@ti.com>
+Subject: [RFC PATCH] pci: endpoint: functions: add an EP function to test PCI
+Date: Tue, 13 Sep 2016 22:40:46 +0530
+Message-ID: <1473786653-12759-5-git-send-email-kishon@ti.com>
 References: <1473786653-12759-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,230 +12,450 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Jingoo H
 Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Joao Pinto <jpinto@synopsys.com>, Rob Herring <robh+dt@kernel.org>, kishon@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add Documentation to let users enable endpoint mode in the PCI
-controller and add new PCI endpoint function.
+This adds a new endpoint function driver (to program the virtual
+test device) making use of the EP-core library. The complete
+usage of the test function is described in
+Documentation/PCI/pci-test.txt (included in this commit).
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- Documentation/PCI/00-INDEX         |    2 +
- Documentation/PCI/pci-endpoint.txt |  199 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 201 insertions(+)
- create mode 100644 Documentation/PCI/pci-endpoint.txt
+ Documentation/PCI/00-INDEX                    |    3 +
+ Documentation/PCI/pci-test.txt                |   79 +++++++
+ drivers/pci/endpoint/Kconfig                  |    2 +
+ drivers/pci/endpoint/Makefile                 |    2 +-
+ drivers/pci/endpoint/functions/Kconfig        |   12 ++
+ drivers/pci/endpoint/functions/Makefile       |    5 +
+ drivers/pci/endpoint/functions/pci-epf-test.c |  272 +++++++++++++++++++++++++
+ 7 files changed, 374 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/PCI/pci-test.txt
+ create mode 100644 drivers/pci/endpoint/functions/Kconfig
+ create mode 100644 drivers/pci/endpoint/functions/Makefile
+ create mode 100644 drivers/pci/endpoint/functions/pci-epf-test.c
 
 diff --git a/Documentation/PCI/00-INDEX b/Documentation/PCI/00-INDEX
-index 147231f..e422b8151 100644
+index e422b8151..e5a583c 100644
 --- a/Documentation/PCI/00-INDEX
 +++ b/Documentation/PCI/00-INDEX
-@@ -12,3 +12,5 @@ pci.txt
- 	- info on the PCI subsystem for device driver authors
- pcieaer-howto.txt
+@@ -14,3 +14,6 @@ pcieaer-howto.txt
  	- the PCI Express Advanced Error Reporting Driver Guide HOWTO
-+pci-endpoint.txt
-+	- guide to add endpoint controller driver and endpoint function driver.
-diff --git a/Documentation/PCI/pci-endpoint.txt b/Documentation/PCI/pci-endpoint.txt
+ pci-endpoint.txt
+ 	- guide to add endpoint controller driver and endpoint function driver.
++pci-test.txt
++	- description of the PCI EP function that can be used to test PCI
++	  functionality
+diff --git a/Documentation/PCI/pci-test.txt b/Documentation/PCI/pci-test.txt
 new file mode 100644
-index 0000000..a453aaa
+index 0000000..2bc796b
 --- /dev/null
-+++ b/Documentation/PCI/pci-endpoint.txt
-@@ -0,0 +1,199 @@
-+			    PCI ENDPOINT FRAMEWORK
++++ b/Documentation/PCI/pci-test.txt
+@@ -0,0 +1,79 @@
++				PCI TEST
 +		    Kishon Vijay Abraham I <kishon@ti.com>
 +
-+This document is a guide to use the PCI Endpoint Framework in order to create
-+endpoint controller driver, endpoint function driver and using configfs
-+interface to bind the function driver to the controller driver.
++Traditionally PCI RC has always been validated by using standard
++PCI cards like ethernet PCI cards or USB PCI cards or SATA PCI cards.
++However with the addition of EP-core in linux kernel, it is possible
++to configure a PCI controller that can operate in EP mode to work as
++a test device.
 +
-+1. Introduction
++The PCI endpoint test device is a completely software device used to
++test the endpoint functionality and serve as a sample driver for other
++PCI endpoint devices.
 +
-+*Linux* has a comprehensive PCI subsystem to support PCI controllers that
-+operates in Root Complex mode. The subsystem has capability to scan PCI bus,
-+assign memory resources and irq resources, load PCI driver (based on
-+vendorid, deviceid), support other services like hot-plug, power management,
-+advanced error reporting and virtual channels.
++The PCI endpoint test device has four registers:
 +
-+However PCI controller IPs integrated in certain SoC is capable of operating
-+either in Root Complex mode or Endpoint mode. PCI Endpoint Framework will
-+add endpoint mode support in *Linux*. This will help to run Linux in an
-+EP system which can have a wide variety of use cases from testing or
-+validation, co-processor accelerator etc..
++	1) PCI_ENDPOINT_TEST_COMMAND
++	2) PCI_ENDPOINT_TEST_STATUS
++	3) PCI_ENDPOINT_TEST_SRC_ADDR
++	4) PCI_ENDPOINT_TEST_DST_ADDR
 +
-+2. PCI Endpoint Core
++Since this is a virtual device, all these registers will be present
++in RAM and will be allocated using one of the standard memory allocation
++API (in this case dma_alloc_coherent)
 +
-+The PCI Endpoint Core layer comprises of 3 components: the Endpoint Controller
-+library, the Endpoint Function library and the configfs layer to bind the
-+endpoint function with the endpoint controller.
++*) PCI_ENDPOINT_TEST_COMMAND:
 +
-+2.1 PCI Endpoint Controller(EPC) Library
++This register will be used by the host driver to indicate the function
++that the endpoint device must perform.
 +
-+The EPC library provides APIs to be used by the controller that can operate
-+in endpoint mode. It also provides APIs to be used by function driver/library
-+in order to implement a particular endpoint function.
++Bitfield Description:
++  Bit 0: reset the PCI endpoint device
++  Bit 1: raise irq
++  Bit 2: Copy the data from source addr to destination address
 +
-+2.1.1 APIs for the PCI controller Driver
++*) PCI_ENDPOINT_TEST_STATUS
 +
-+This section lists the APIs that the PCI Endpoint core provides to be used
-+by the PCI controller driver.
++This register reflects the status of the PCI endpoint device.
 +
-+*) devm_pci_epc_create()/pci_epc_create()
++Bitfield Description:
++  Bit 0: PCI endpoint device is in initialized state
++  Bit 1: Copy is in progress
++  Bit 2: Copy is done
++  Bit 3: IRQ is raised
++  Bit 4: Source address is invalid
++  Bit 5: Destination address is invalid
 +
-+   The PCI controller driver should implement the following ops:
-+	 * write_header: ops to populate configuration space header
-+	 * set_bar: ops to configure the BAR
-+	 * clear_bar: ops to reset the BAR
-+	 * alloc_addr_space: ops to allocate *in* PCI controller address space
-+	 * free_addr_space: ops to free the allocated address space
-+	 * raise_irq: ops to raise a legacy or MSI interrupt
-+	 * start: ops to start the PCI link
-+	 * stop: ops to stop the PCI link
++*) PCI_ENDPOINT_TEST_SRC_ADDR
 +
-+   The PCI controller driver can then create a new EPC device by invoking
-+   devm_pci_epc_create/pci_epc_create.
++This register contains the source address for the COPY command.
 +
-+*) devm_pci_epc_destroy()/pci_epc_destroy()
++*) PCI_ENDPOINT_TEST_DST_ADDR
 +
-+   The PCI controller driver can destroy the EPC device created by either
-+   devm_pci_epc_create or pci_epc_create using devm_pci_epc_destroy() or
-+   /pci_epc_destroy()
++This register contains the destination address for the COPY command.
 +
-+2.1.2 APIs for the PCI Endpoint Function Driver
++PCI ENDPOINT TEST DRIVER (EP SIDE)
++==================================
 +
-+This section lists the APIs that the PCI Endpoint core provides to be used
-+by the PCI endpoint function driver.
++The Endpoint side function driver is present in
++drivers/pci/endpoint/functions/pci-epf-test.c
 +
-+*) pci_epc_write_header()
++This function driver creates the PCI endpoint test device and then
++waits for commands from the host driver. If the host driver sets
++Bit 1 (raise irq) in the COMMAND register, the endpoint driver
++will raise an irq. Similarly it resets the device if Bit 0 is set
++and starts copying the data if Bit 2 is set.
 +
-+   The PCI endpoint function driver should use pci_epc_write_header() to
-+   write the standard configuration header to the endpoint controller.
++The function driver is also responsible for updating the STATUS
++register.
 +
-+*) pci_epc_set_bar()
++PCI ENDPOINT TEST DRIVER (HOST SIDE)
++====================================
 +
-+   The PCI endpoint function driver should use pci_epc_set_bar() to configure
-+   the Base Address Register in order for the host to assign PCI addr space.
-+   Register space of the function driver is usually configured
-+   using this API.
++The host side PCI driver is present in
++drivers/misc/pci_endpoint_test.c
 +
-+*) pci_epc_clear_bar()
++The PCI driver for the test device performs 3 tests
++	*) Verifying addresses programmed in BAR
++	*) Raise legacy IRQ
++	*) Copy data from source address to destination address (TODO)
+diff --git a/drivers/pci/endpoint/Kconfig b/drivers/pci/endpoint/Kconfig
+index f1dd206..0e3dc8c 100644
+--- a/drivers/pci/endpoint/Kconfig
++++ b/drivers/pci/endpoint/Kconfig
+@@ -19,5 +19,7 @@ config PCI_ENDPOINT
+ 
+ 	   If in doubt, say "N" to disable Endpoint support.
+ 
++source "drivers/pci/endpoint/functions/Kconfig"
 +
-+   The PCI endpoint function driver should use pci_epc_clear_bar() to reset
-+   the BAR.
+ endmenu
+ 
+diff --git a/drivers/pci/endpoint/Makefile b/drivers/pci/endpoint/Makefile
+index 67c88bf..89310d1 100644
+--- a/drivers/pci/endpoint/Makefile
++++ b/drivers/pci/endpoint/Makefile
+@@ -3,4 +3,4 @@
+ #
+ 
+ obj-$(CONFIG_PCI_ENDPOINT)		:= pci-epc-core.o pci-epf-core.o \
+-					   pci-ep-cfs.o
++					   pci-ep-cfs.o functions/
+diff --git a/drivers/pci/endpoint/functions/Kconfig b/drivers/pci/endpoint/functions/Kconfig
+new file mode 100644
+index 0000000..175edad
+--- /dev/null
++++ b/drivers/pci/endpoint/functions/Kconfig
+@@ -0,0 +1,12 @@
++#
++# PCI Endpoint Functions
++#
 +
-+*) pci_epc_raise_irq()
++config PCI_EPF_TEST
++	tristate "PCI Endpoint Test driver"
++	depends on PCI_ENDPOINT
++	help
++	   Enable this configuration option to enable the test driver
++	   for PCI Endpoint.
 +
-+   The PCI endpoint function driver should use pci_epc_raise_irq() to raise
-+   Legacy Interrupt or MSI Interrupt.
++	   If in doubt, say "N" to disable Endpoint test driver.
+diff --git a/drivers/pci/endpoint/functions/Makefile b/drivers/pci/endpoint/functions/Makefile
+new file mode 100644
+index 0000000..53c120e
+--- /dev/null
++++ b/drivers/pci/endpoint/functions/Makefile
+@@ -0,0 +1,5 @@
++#
++# Makefile for PCI Endpoint Functions
++#
 +
-+*) pci_epc_start()
++obj-$(CONFIG_PCI_EPF_TEST)		:= pci-epf-test.o
+diff --git a/drivers/pci/endpoint/functions/pci-epf-test.c b/drivers/pci/endpoint/functions/pci-epf-test.c
+new file mode 100644
+index 0000000..a7585b1
+--- /dev/null
++++ b/drivers/pci/endpoint/functions/pci-epf-test.c
+@@ -0,0 +1,272 @@
++/**
++ * pci-epf-test.c - Test driver to test endpoint functionality
++ *
++ * Copyright (C) 2016 Texas Instruments
++ * Author: Kishon Vijay Abraham I <kishon@ti.com>
++ *
++ * This program is free software: you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 of
++ * the License as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
 +
-+   The PCI endpoint function driver should invoke pci_epc_start() once it
-+   has configured the endpoint function and wants to start the PCI link.
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/pci_ids.h>
 +
-+*) pci_epc_stop()
++#include <linux/pci-epc.h>
++#include <linux/pci-epf.h>
++#include <linux/pci_regs.h>
 +
-+   The PCI endpoint function driver should invoke pci_epc_stop() to stop
-+   the PCI LINK.
++#define COMMAND_RESET			BIT(0)
++#define COMMAND_RAISE_IRQ		BIT(1)
++#define COMMAND_COPY			BIT(2)
 +
-+2.1.3 APIs for the PCI Endpoint Function Library
++#define STATUS_INITIALIZED		BIT(0)
++#define STATUS_COPY_PROGRESS		BIT(1)
++#define STATUS_COPY_DONE		BIT(2)
++#define STATUS_IRQ_RAISED		BIT(3)
++#define STATUS_SOURCE_ADDR_INVALID	BIT(4)
++#define STATUS_DEST_ADDR_INVALID	BIT(5)
 +
-+This section lists the APIs that the PCI Endpoint core provides to be used
-+by the PCI endpoint function library.
++#define TIMER_RESOLUTION		5
 +
-+*) pci_epc_bind_epf()
++struct pci_epf_test {
++	struct timer_list	timer;
++	void			*reg[6];
++	struct pci_epf		*epf;
++};
 +
-+   The PCI endpoint function library uses pci_epc_bind_epf() to bind the
-+   function driver with a controller driver. The binding will be based on
-+   the endpoint controller function name (as seen in /sys/class/pci_epc/).
++struct pci_epf_test_reg {
++	u32	command;
++	u32	status;
++	u64	src_addr;
++	u64	dst_addr;
++};
 +
-+*) pci_epc_unbind_epf()
++struct pci_epf_header test_header = {
++	.vendorid	= PCI_ANY_ID,
++	.deviceid	= PCI_ANY_ID,
++	.baseclass_code = PCI_CLASS_OTHERS,
++	.interrupt_pin	= PCI_INTERRUPT_INTA,
++};
 +
-+   The PCI endpoint function library uses pci_epc_unbind_epf() to unbind
-+   the function driver from the controller driver. After unbind the controller
-+   driver can be bound to any other function driver.
++static int bar_size[] = { 512, 1024, 16384, 131072, 1048576};
 +
-+2.2 PCI Endpoint Function(EPF) Library
++static void pci_epf_test_cmd_handler(unsigned long data)
++{
++	struct pci_epf_test *epf_test = (struct pci_epf_test *)data;
++	struct pci_epf *epf = epf_test->epf;
++	struct pci_epc *epc = epf->epc;
++	struct pci_epf_test_reg *reg = epf_test->reg[0];
++	unsigned long timer;
 +
-+The EPF library provides APIs to be used by the function driver and the EPC
-+library in order to provide endpoint mode functionality.
++	if (!reg->command)
++		goto reset_handler;
 +
-+2.2.1 APIs for the PCI Endpoint Function Driver
++	if (reg->command & COMMAND_RESET)
++		reg->status = STATUS_INITIALIZED;
 +
-+This section lists the APIs that the PCI Endpoint core provides to be used
-+by the PCI endpoint function driver.
++	if (reg->command & COMMAND_RAISE_IRQ) {
++		reg->status |= STATUS_IRQ_RAISED;
++		pci_epc_raise_irq(epc, PCI_EPC_IRQ_LEGACY);
++	}
 +
-+*) pci_epf_register_driver()
++	reg->command = 0;
 +
-+   The PCI Endpoint Function driver should implement the following ops:
-+	 * bind: ops to perform when a EPC device has been bound to EPF device
-+	 * unbind: ops to perform when a binding has been lost between a EPC
-+	   device and EPF device
-+	 * linkup: ops to perform when the EPC device has established a
-+	   connection with a host system
++reset_handler:
++	timer = jiffies + msecs_to_jiffies(TIMER_RESOLUTION);
++	mod_timer(&epf_test->timer, timer);
++}
 +
-+  The PCI Function driver can then register the PCI EPF driver by using
-+  pci_epf_register_driver().
++static void pci_epf_test_linkup(struct pci_epf *epf)
++{
++	struct pci_epf_test *epf_test = epf_get_drvdata(epf);
++	unsigned long timer;
 +
-+*) pci_epf_unregister_driver()
++	setup_timer(&epf_test->timer, pci_epf_test_cmd_handler,
++		    (unsigned long)epf_test);
++	timer = jiffies + msecs_to_jiffies(TIMER_RESOLUTION);
++	mod_timer(&epf_test->timer, timer);
++}
 +
-+  The PCI Function driver can unregister the PCI EPF driver by using
-+  pci_epf_unregister_driver().
++static void pci_epf_test_unbind(struct pci_epf *epf)
++{
++	struct pci_epf_test *epf_test = epf_get_drvdata(epf);
++	struct pci_epc *epc = epf->epc;
++	int bar;
 +
-+*) pci_epf_alloc_space()
++	del_timer(&epf_test->timer);
++	pci_epc_stop(epc);
++	for (bar = BAR_0; bar <= BAR_5; bar++) {
++		if (epf_test->reg[bar]) {
++			pci_epf_free_space(epf, epf_test->reg[bar], bar);
++			pci_epc_clear_bar(epc, bar);
++		}
++	}
 +
-+  The PCI Function driver can allocate space for a particular BAR using
-+  pci_epf_alloc_space().
++	epf->pci_epc_name = NULL;
++}
 +
-+*) pci_epf_free_space()
++static int pci_epf_test_set_bar(struct pci_epf *epf)
++{
++	int flags;
++	int bar;
++	int ret;
++	struct pci_epf_bar *epf_bar;
++	struct pci_epc *epc = epf->epc;
++	struct device *dev = &epf->dev;
++	struct pci_epf_test *epf_test = epf_get_drvdata(epf);
 +
-+  The PCI Function driver can free the allocated space
-+  (using pci_epf_alloc_space) by invoking pci_epf_free_space().
++	flags = PCI_BASE_ADDRESS_SPACE_MEMORY | PCI_BASE_ADDRESS_MEM_TYPE_32;
++	if (sizeof(dma_addr_t) == 0x8)
++		flags |= PCI_BASE_ADDRESS_MEM_TYPE_64;
 +
-+2.2.2 APIs for the PCI Endpoint Controller Library
++	for (bar = BAR_0; bar <= BAR_5; bar++) {
++		epf_bar = &epf->bar[bar];
++		ret = pci_epc_set_bar(epc, bar, epf_bar->phys_addr,
++				      epf_bar->size, flags);
++		if (ret) {
++			pci_epf_free_space(epf, epf_test->reg[bar], bar);
++			dev_err(dev, "failed to set BAR%d\n", bar);
++			if (bar == BAR_0)
++				return ret;
++		}
++	}
 +
-+This section lists the APIs that the PCI Endpoint core provides to be used
-+by the PCI endpoint controller library.
++	return 0;
++}
 +
-+*) pci_epf_bind()
++static int pci_epf_test_alloc_space(struct pci_epf *epf)
++{
++	struct pci_epf_test *epf_test = epf_get_drvdata(epf);
++	struct device *dev = &epf->dev;
++	void *base;
++	int bar;
 +
-+   The PCI endpoint controller library invokes pci_epf_bind() when the EPF
-+   device has been bound to a EPC device.
++	base = pci_epf_alloc_space(epf, sizeof(struct pci_epf_test_reg),
++				   BAR_0);
++	if (!base) {
++		dev_err(dev, "failed to allocated register space\n");
++		return -ENOMEM;
++	}
++	epf_test->reg[0] = base;
 +
-+*) pci_epf_unbind()
++	for (bar = BAR_1; bar <= BAR_5; bar++) {
++		base = pci_epf_alloc_space(epf, bar_size[bar - 1], bar);
++		if (!base)
++			dev_err(dev, "failed to allocate space for BAR%d\n",
++				bar);
++		epf_test->reg[bar] = base;
++	}
 +
-+   The PCI endpoint controller library invokes pci_epf_unbind() when the
-+   binding between EPC device and EPF device is lost.
++	return 0;
++}
 +
-+*) pci_epf_linkup()
++static int pci_epf_test_bind(struct pci_epf *epf)
++{
++	int ret;
++	struct pci_epf_header *header = epf->header;
++	struct pci_epc *epc = epf->epc;
++	struct device *dev = &epf->dev;
 +
-+   The PCI endpoint controller library invokes pci_epf_linkup() when the
-+   EPC device has established the connection to the host.
++	ret = pci_epc_write_header(epc, header);
++	if (ret) {
++		dev_err(dev, "configuration header write failed\n");
++		return ret;
++	}
 +
-+2.3 CONFIGFS
++	ret = pci_epf_test_alloc_space(epf);
++	if (ret)
++		return ret;
 +
-+The PCI Endpoint Core exposes configfs entry (pci_ep) in order to configure the
-+PCI Endpoint Function and in order to bind the endpoint function
-+with the endpoint controller. Every folder in pci_ep/ represent a PCI
-+endpoint function.
++	ret = pci_epf_test_set_bar(epf);
++	if (ret)
++		return ret;
 +
-+The following entries can be used to configure the standard configuration
-+header of the endpoint function.
-+	vendorid
-+	deviceid
-+	revid
-+	progif_code
-+	subclass_code
-+	baseclass_code
-+	cache_line_size
-+	subsys_vendor_id
-+	subsys_id
-+	interrupt_pin
++	ret = pci_epc_start(epc);
++	if (ret) {
++		dev_err(dev, "failed to start endpoint controller\n");
++		return ret;
++	}
 +
-+The following entries has special meaning:
-+	function: this readonly entry shows the name using which the function
-+		  driver will be bound to this function
-+	epc	: the name of the EPC device this function should be bound to.
-+		  The name of the EPC device should be from /sys/class/pci_epc.
++	return 0;
++}
 +
-+3. Known Limitations
++static int pci_epf_test_probe(struct pci_epf *epf)
++{
++	struct pci_epf_test *epf_test;
++	struct device *dev = &epf->dev;
 +
-+The Endpoint Core doesn't support adding multi-function devices.
++	epf_test = devm_kzalloc(dev, sizeof(*epf_test), GFP_KERNEL);
++	if (!epf)
++		return -ENOMEM;
++
++	epf->header = &test_header;
++	epf_test->epf = epf;
++
++	epf_set_drvdata(epf, epf_test);
++	return 0;
++}
++
++static int pci_epf_test_remove(struct pci_epf *epf)
++{
++	struct pci_epf_test *epf_test = epf_get_drvdata(epf);
++
++	pci_epc_unbind_epf(epf_test->epf);
++	kfree(epf_test);
++	return 0;
++}
++
++struct pci_epf_ops ops = {
++	.unbind	= pci_epf_test_unbind,
++	.bind	= pci_epf_test_bind,
++	.linkup = pci_epf_test_linkup,
++};
++
++static const struct pci_epf_device_id pci_epf_test_ids[] = {
++	{
++		.name = "pci_epf_test",
++	},
++	{},
++};
++
++static struct pci_epf_driver test_driver = {
++	.driver.name	= "pci_epf_test",
++	.probe		= pci_epf_test_probe,
++	.remove		= pci_epf_test_remove,
++	.id_table	= pci_epf_test_ids,
++	.ops		= &ops,
++	.owner		= THIS_MODULE,
++};
++
++static int __init pci_epf_test_init(void)
++{
++	int ret;
++
++	ret = pci_epf_register_driver(&test_driver);
++	if (ret) {
++		pr_err("failed to register pci epf test driver --> %d\n", ret);
++		return ret;
++	}
++
++	return 0;
++}
++module_init(pci_epf_test_init);
++
++static void __exit pci_epf_test_exit(void)
++{
++	pci_epf_unregister_driver(&test_driver);
++}
++module_exit(pci_epf_test_exit);
++
++MODULE_DESCRIPTION("PCI EPF TEST DRIVER");
++MODULE_AUTHOR("Kishon Vijay Abraham I <kishon@ti.com>");
++MODULE_LICENSE("GPL v2");
 -- 
 1.7.9.5
