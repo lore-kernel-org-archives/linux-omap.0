@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [RFC PATCH] pci: controller: dra7xx: Add EP mode support
-Date: Tue, 13 Sep 2016 22:40:50 +0530
-Message-ID: <1473786653-12759-9-git-send-email-kishon@ti.com>
+Subject: [RFC PATCH] Documentation: PCI: guide to use PCI Endpoint Core Layer
+Date: Tue, 13 Sep 2016 22:40:45 +0530
+Message-ID: <1473786653-12759-4-git-send-email-kishon@ti.com>
 References: <1473786653-12759-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,439 +12,230 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Jingoo H
 Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Joao Pinto <jpinto@synopsys.com>, Rob Herring <robh+dt@kernel.org>, kishon@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The PCIe controller integrated in dra7xx SoCs is capable of operating
-in endpoint mode. Add support for dra7xx SoCs to operate in endpoint
-mode.
+Add Documentation to let users enable endpoint mode in the PCI
+controller and add new PCI endpoint function.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- Documentation/devicetree/bindings/pci/ti-pci.txt |   30 ++-
- drivers/pci/controller/Kconfig                   |   21 +++
- drivers/pci/controller/pci-dra7xx.c              |  211 +++++++++++++++++++---
- 3 files changed, 225 insertions(+), 37 deletions(-)
+ Documentation/PCI/00-INDEX         |    2 +
+ Documentation/PCI/pci-endpoint.txt |  199 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 201 insertions(+)
+ create mode 100644 Documentation/PCI/pci-endpoint.txt
 
-diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
-index 60e2516..b0e76f6 100644
---- a/Documentation/devicetree/bindings/pci/ti-pci.txt
-+++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
-@@ -1,17 +1,22 @@
- TI PCI Controllers
- 
- PCIe Designware Controller
-- - compatible: Should be "ti,dra7-pcie""
-- - reg : Two register ranges as listed in the reg-names property
-- - reg-names : The first entry must be "ti-conf" for the TI specific registers
--	       The second entry must be "rc-dbics" for the designware pcie
--	       registers
--	       The third entry must be "config" for the PCIe configuration space
-+ - compatible: Should be "ti,dra7-pcie" for RC
-+	       Should be "ti,dra7-pcie-ep" for EP
-  - phys : list of PHY specifiers (used by generic PHY framework)
-  - phy-names : must be "pcie-phy0", "pcie-phy1", "pcie-phyN".. based on the
- 	       number of PHYs as specified in *phys* property.
-  - ti,hwmods : Name of the hwmod associated to the pcie, "pcie<X>",
- 	       where <X> is the instance number of the pcie from the HW spec.
-+ - num-lanes as specified in ../designware-pcie.txt
+diff --git a/Documentation/PCI/00-INDEX b/Documentation/PCI/00-INDEX
+index 147231f..e422b8151 100644
+--- a/Documentation/PCI/00-INDEX
++++ b/Documentation/PCI/00-INDEX
+@@ -12,3 +12,5 @@ pci.txt
+ 	- info on the PCI subsystem for device driver authors
+ pcieaer-howto.txt
+ 	- the PCI Express Advanced Error Reporting Driver Guide HOWTO
++pci-endpoint.txt
++	- guide to add endpoint controller driver and endpoint function driver.
+diff --git a/Documentation/PCI/pci-endpoint.txt b/Documentation/PCI/pci-endpoint.txt
+new file mode 100644
+index 0000000..a453aaa
+--- /dev/null
++++ b/Documentation/PCI/pci-endpoint.txt
+@@ -0,0 +1,199 @@
++			    PCI ENDPOINT FRAMEWORK
++		    Kishon Vijay Abraham I <kishon@ti.com>
 +
-+HOST MODE
-+=========
-+ - reg : Two register ranges as listed in the reg-names property
-+ - reg-names : The first entry must be "ti-conf" for the TI specific registers
-+	       The second entry must be "rc-dbics" for the designware pcie
-+	       registers
-+	       The third entry must be "config" for the PCIe configuration space
-  - interrupts : Two interrupt entries must be specified. The first one is for
- 		main interrupt line and the second for MSI interrupt line.
-  - #address-cells,
-@@ -19,13 +24,24 @@ PCIe Designware Controller
-    #interrupt-cells,
-    device_type,
-    ranges,
--   num-lanes,
-    interrupt-map-mask,
-    interrupt-map : as specified in ../designware-pcie.txt
- 
- Optional Property:
-  - gpios : Should be added if a gpio line is required to drive PERST# line
- 
-+DEVICE MODE
-+===========
-+ - reg : Two register ranges as listed in the reg-names property
-+ - reg-names : "ti-conf" for the TI specific registers
-+	       "ep_dbics" for the standard configuration registers as
-+		they are locally accessed within the DIF CS space
-+	       "ep_dbics2" for the standard configuration registers as
-+		they are locally accessed within the DIF CS2 space
-+ - interrupts : one interrupt entries must be specified for main interrupt.
-+ - num-ib-windows : number of inbound address translation windows
-+ - num-ob-windows : number of outbound address translation windows
++This document is a guide to use the PCI Endpoint Framework in order to create
++endpoint controller driver, endpoint function driver and using configfs
++interface to bind the function driver to the controller driver.
 +
- Example:
- axi {
- 	compatible = "simple-bus";
-diff --git a/drivers/pci/controller/Kconfig b/drivers/pci/controller/Kconfig
-index 8574828..4d70981 100644
---- a/drivers/pci/controller/Kconfig
-+++ b/drivers/pci/controller/Kconfig
-@@ -23,6 +23,27 @@ config PCI_DRA7XX_HOST
- 	 Enables support for the PCIe controller in the DRA7xx SoC to work in
- 	 host mode.
- 
-+config PCI_DRA7XX_EP
-+	bool "Endpoint Only Mode"
-+	depends on PCI_ENDPOINT
-+	select PCIE_DW_EP
-+	help
-+	 Enables support for the PCIe controller in the DRA7xx SoC to work in
-+	 endpoint mode.
++1. Introduction
 +
-+config PCI_DRA7XX_HOST_EP
-+	bool "Both Host and Endpoint Mode"
-+	depends on PCI_MSI_IRQ_DOMAIN
-+	depends on PCI
-+	depends on PCI_ENDPOINT
-+	select PCIE_DW_HOST
-+	select PCIE_DW_EP
-+	help
-+	 Enables support for the PCIe controller in the DRA7xx SoC to work in
-+	 both endpoint mode and host mode. If the board has 2 PCIe ports and
-+	 one of them has to work in host mode and the other has to work in
-+	 EP mode then this option has to be enabled.
++*Linux* has a comprehensive PCI subsystem to support PCI controllers that
++operates in Root Complex mode. The subsystem has capability to scan PCI bus,
++assign memory resources and irq resources, load PCI driver (based on
++vendorid, deviceid), support other services like hot-plug, power management,
++advanced error reporting and virtual channels.
 +
- endchoice
- 
- endif
-diff --git a/drivers/pci/controller/pci-dra7xx.c b/drivers/pci/controller/pci-dra7xx.c
-index dc5b8ef..5b49367 100644
---- a/drivers/pci/controller/pci-dra7xx.c
-+++ b/drivers/pci/controller/pci-dra7xx.c
-@@ -10,6 +10,7 @@
-  * published by the Free Software Foundation.
-  */
- 
-+#include <linux/delay.h>
- #include <linux/err.h>
- #include <linux/interrupt.h>
- #include <linux/irq.h>
-@@ -17,6 +18,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/of_gpio.h>
-+#include <linux/of_device.h>
- #include <linux/pci.h>
- #include <linux/phy/phy.h>
- #include <linux/platform_device.h>
-@@ -56,6 +58,11 @@
- #define	MSI						BIT(4)
- #define	LEG_EP_INTERRUPTS (INTA | INTB | INTC | INTD)
- 
-+#define	PCIECTRL_TI_CONF_DEVICE_TYPE			0x0100
-+#define	DEVICE_TYPE_EP					0x0
-+#define	DEVICE_TYPE_LEG_EP				0x1
-+#define	DEVICE_TYPE_RC					0x4
++However PCI controller IPs integrated in certain SoC is capable of operating
++either in Root Complex mode or Endpoint mode. PCI Endpoint Framework will
++add endpoint mode support in *Linux*. This will help to run Linux in an
++EP system which can have a wide variety of use cases from testing or
++validation, co-processor accelerator etc..
 +
- #define	PCIECTRL_DRA7XX_CONF_DEVICE_CMD			0x0104
- #define	LTSSM_EN					0x1
- 
-@@ -63,12 +70,20 @@
- #define	LINK_UP						BIT(16)
- #define	DRA7XX_CPU_TO_BUS_ADDR				0x0FFFFFFF
- 
-+#define	PCIECTRL_TI_CONF_INTX_ASSERT			0x0124
-+#define	PCIECTRL_TI_CONF_INTX_DEASSERT			0x0128
++2. PCI Endpoint Core
 +
- struct dra7xx_pcie {
- 	void __iomem		*base;
- 	struct phy		**phy;
- 	int			phy_count;
- 	struct device		*dev;
- 	struct dw_pcie		*pci;
-+	enum dw_pcie_device_mode mode;
-+};
++The PCI Endpoint Core layer comprises of 3 components: the Endpoint Controller
++library, the Endpoint Function library and the configfs layer to bind the
++endpoint function with the endpoint controller.
 +
-+struct dra7xx_pcie_of_data {
-+	enum dw_pcie_device_mode mode;
- };
- 
- #define to_dra7xx_pcie(x)	dev_get_drvdata((x)->dev)
-@@ -248,6 +263,8 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
- static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
- {
- 	struct dra7xx_pcie *dra7xx = arg;
-+	struct dw_pcie *pci = dra7xx->pci;
-+	struct dw_pcie_ep *ep = &pci->ep;
- 	u32 reg;
- 
- 	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN);
-@@ -285,8 +302,11 @@ static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
- 	if (reg & LINK_REQ_RST)
- 		dev_dbg(dra7xx->dev, "Link Request Reset\n");
- 
--	if (reg & LINK_UP_EVT)
-+	if (reg & LINK_UP_EVT) {
-+		if (dra7xx->mode == DW_PCIE_EP_TYPE)
-+			dw_pcie_ep_linkup(ep);
- 		dev_dbg(dra7xx->dev, "Link-up state change\n");
-+	}
- 
- 	if (reg & CFG_BME_EVT)
- 		dev_dbg(dra7xx->dev, "CFG 'Bus Master Enable' change\n");
-@@ -299,6 +319,82 @@ static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
- 	return IRQ_HANDLED;
- }
- 
-+static void dra7xx_pcie_ep_init(struct dw_pcie_ep *ep)
-+{
-+	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
-+	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
++2.1 PCI Endpoint Controller(EPC) Library
 +
-+	dra7xx_pcie_enable_wrapper_interrupts(dra7xx);
-+}
++The EPC library provides APIs to be used by the controller that can operate
++in endpoint mode. It also provides APIs to be used by function driver/library
++in order to implement a particular endpoint function.
 +
-+static void dra7xx_pcie_raise_legacy_irq(struct dra7xx_pcie *dra7xx)
-+{
-+	dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_INTX_ASSERT, 0x1);
-+	mdelay(1);
-+	dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_INTX_DEASSERT, 0x1);
-+}
++2.1.1 APIs for the PCI controller Driver
 +
-+void dra7xx_pcie_raise_msi_irq(struct dra7xx_pcie *dra7xx)
-+{
-+	/* TODO */
-+}
++This section lists the APIs that the PCI Endpoint core provides to be used
++by the PCI controller driver.
 +
-+static int dra7xx_pcie_raise_irq(struct dw_pcie_ep *ep,
-+				 enum pci_epc_irq_type type)
-+{
-+	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
-+	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
++*) devm_pci_epc_create()/pci_epc_create()
 +
-+	switch (type) {
-+	case PCI_EPC_IRQ_LEGACY:
-+		dra7xx_pcie_raise_legacy_irq(dra7xx);
-+		break;
-+	case PCI_EPC_IRQ_MSI:
-+		dra7xx_pcie_raise_msi_irq(dra7xx);
-+		break;
-+	default:
-+		dev_err(pci->dev, "UNKNOWN IRQ type\n");
-+	}
++   The PCI controller driver should implement the following ops:
++	 * write_header: ops to populate configuration space header
++	 * set_bar: ops to configure the BAR
++	 * clear_bar: ops to reset the BAR
++	 * alloc_addr_space: ops to allocate *in* PCI controller address space
++	 * free_addr_space: ops to free the allocated address space
++	 * raise_irq: ops to raise a legacy or MSI interrupt
++	 * start: ops to start the PCI link
++	 * stop: ops to stop the PCI link
 +
-+	return 0;
-+}
++   The PCI controller driver can then create a new EPC device by invoking
++   devm_pci_epc_create/pci_epc_create.
 +
-+static struct dw_pcie_ep_ops pcie_ep_ops = {
-+	.ep_init = dra7xx_pcie_ep_init,
-+	.raise_irq = dra7xx_pcie_raise_irq,
-+};
++*) devm_pci_epc_destroy()/pci_epc_destroy()
 +
-+static int __init dra7xx_add_pcie_ep(struct dra7xx_pcie *dra7xx,
-+				     struct platform_device *pdev)
-+{
-+	int ret;
-+	struct dw_pcie_ep *ep;
-+	struct resource *res;
-+	struct device *dev = &pdev->dev;
-+	struct dw_pcie *pci = dra7xx->pci;
++   The PCI controller driver can destroy the EPC device created by either
++   devm_pci_epc_create or pci_epc_create using devm_pci_epc_destroy() or
++   /pci_epc_destroy()
 +
-+	ep = &pci->ep;
-+	ep->ops = &pcie_ep_ops;
++2.1.2 APIs for the PCI Endpoint Function Driver
 +
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ep_dbics");
-+	pci->dbi_base = devm_ioremap(dev, res->start, resource_size(res));
-+	if (!pci->dbi_base)
-+		return -ENOMEM;
++This section lists the APIs that the PCI Endpoint core provides to be used
++by the PCI endpoint function driver.
 +
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ep_dbics2");
-+	pci->dbi_base2 = devm_ioremap(dev, res->start, resource_size(res));
-+	if (!pci->dbi_base2)
-+		return -ENOMEM;
++*) pci_epc_write_header()
 +
-+	ret = dw_pcie_ep_init(ep);
-+	if (ret) {
-+		dev_err(dra7xx->dev, "failed to initialize host\n");
-+		return ret;
-+	}
++   The PCI endpoint function driver should use pci_epc_write_header() to
++   write the standard configuration header to the endpoint controller.
 +
-+	return 0;
-+}
++*) pci_epc_set_bar()
 +
- static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
- 				       struct platform_device *pdev)
- {
-@@ -346,12 +442,57 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
- 	return 0;
- }
- 
-+static const struct dra7xx_pcie_of_data dra7xx_pcie_rc_of_data = {
-+	.mode = DW_PCIE_RC_TYPE,
-+};
++   The PCI endpoint function driver should use pci_epc_set_bar() to configure
++   the Base Address Register in order for the host to assign PCI addr space.
++   Register space of the function driver is usually configured
++   using this API.
 +
-+static const struct dra7xx_pcie_of_data dra7xx_pcie_ep_of_data = {
-+	.mode = DW_PCIE_EP_TYPE,
-+};
++*) pci_epc_clear_bar()
 +
-+static const struct of_device_id of_dra7xx_pcie_match[] = {
-+	{
-+		.compatible = "ti,dra7-pcie",
-+		.data = &dra7xx_pcie_rc_of_data,
-+	},
-+	{
-+		.compatible = "ti,dra7-pcie-ep",
-+		.data = &dra7xx_pcie_ep_of_data,
-+	},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, of_dra7xx_pcie_match);
++   The PCI endpoint function driver should use pci_epc_clear_bar() to reset
++   the BAR.
 +
- static const struct dw_pcie_ops dw_pcie_ops = {
- 	.start_link = dra7xx_pcie_start_link,
- 	.stop_link = dra7xx_pcie_stop_link,
- 	.link_up = dra7xx_pcie_link_up,
- };
- 
-+static int dra7xx_pcie_gpio_reset(struct device *dev)
-+{
-+	int ret;
-+	int gpio_sel;
-+	enum of_gpio_flags flags;
-+	unsigned long gpio_flags;
++*) pci_epc_raise_irq()
 +
-+	gpio_sel = of_get_gpio_flags(dev->of_node, 0, &flags);
-+	if (gpio_is_valid(gpio_sel)) {
-+		gpio_flags = (flags & OF_GPIO_ACTIVE_LOW) ?
-+			      GPIOF_OUT_INIT_LOW : GPIOF_OUT_INIT_HIGH;
-+		ret = devm_gpio_request_one(dev, gpio_sel, gpio_flags,
-+					    "pcie_reset");
-+		if (ret)
-+			dev_err(dev, "gpio%d request failed, ret %d\n",
-+				gpio_sel, ret);
-+		return ret;
-+	}
-+	if (gpio_sel == -EPROBE_DEFER)
-+		return -EPROBE_DEFER;
++   The PCI endpoint function driver should use pci_epc_raise_irq() to raise
++   Legacy Interrupt or MSI Interrupt.
 +
-+	return 0;
-+}
++*) pci_epc_start()
 +
- static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- {
- 	u32 reg;
-@@ -367,9 +508,16 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	struct device *dev = &pdev->dev;
- 	struct device_node *np = dev->of_node;
- 	char name[10];
--	int gpio_sel;
--	enum of_gpio_flags flags;
--	unsigned long gpio_flags;
-+	const struct of_device_id *match;
-+	const struct dra7xx_pcie_of_data *data;
-+	enum dw_pcie_device_mode mode;
++   The PCI endpoint function driver should invoke pci_epc_start() once it
++   has configured the endpoint function and wants to start the PCI link.
 +
-+	match = of_match_device(of_match_ptr(of_dra7xx_pcie_match), dev);
-+	if (!match)
-+		return -EINVAL;
++*) pci_epc_stop()
 +
-+	data = (struct dra7xx_pcie_of_data *)match->data;
-+	mode = (enum dw_pcie_device_mode)data->mode;
- 
- 	dra7xx = devm_kzalloc(dev, sizeof(*dra7xx), GFP_KERNEL);
- 	if (!dra7xx)
-@@ -440,31 +588,34 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 		goto err_get_sync;
- 	}
- 
--	gpio_sel = of_get_gpio_flags(dev->of_node, 0, &flags);
--	if (gpio_is_valid(gpio_sel)) {
--		gpio_flags = (flags & OF_GPIO_ACTIVE_LOW) ?
--				GPIOF_OUT_INIT_LOW : GPIOF_OUT_INIT_HIGH;
--		ret = devm_gpio_request_one(dev, gpio_sel, gpio_flags,
--					    "pcie_reset");
--		if (ret) {
--			dev_err(&pdev->dev, "gpio%d request failed, ret %d\n",
--				gpio_sel, ret);
--			goto err_gpio;
--		}
--	} else if (gpio_sel == -EPROBE_DEFER) {
--		ret = -EPROBE_DEFER;
--		goto err_gpio;
--	}
--
- 	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
- 	reg &= ~LTSSM_EN;
- 	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
- 
- 	platform_set_drvdata(pdev, dra7xx);
- 
--	ret = dra7xx_add_pcie_port(dra7xx, pdev);
--	if (ret < 0)
--		goto err_gpio;
-+	switch (mode) {
-+	case DW_PCIE_RC_TYPE:
-+		ret = dra7xx_pcie_gpio_reset(dev);
-+		if (ret)
-+			goto err_gpio;
-+		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
-+				   DEVICE_TYPE_RC);
-+		ret = dra7xx_add_pcie_port(dra7xx, pdev);
-+		if (ret < 0)
-+			goto err_gpio;
-+		break;
-+	case DW_PCIE_EP_TYPE:
-+		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
-+				   DEVICE_TYPE_EP);
-+		ret = dra7xx_add_pcie_ep(dra7xx, pdev);
-+		if (ret < 0)
-+			goto err_gpio;
-+		break;
-+	default:
-+		dev_err(dev, "INVALID device type %d\n", mode);
-+	}
-+	dra7xx->mode = mode;
- 
- 	return 0;
- 
-@@ -491,7 +642,7 @@ static int __exit dra7xx_pcie_remove(struct platform_device *pdev)
- 	struct device *dev = &pdev->dev;
- 	int count = dra7xx->phy_count;
- 
--	if (pp->irq_domain)
-+	if (dra7xx->mode == DW_PCIE_RC_TYPE && pp->irq_domain)
- 		irq_domain_remove(pp->irq_domain);
- 	pm_runtime_put(dev);
- 	pm_runtime_disable(dev);
-@@ -510,6 +661,9 @@ static int dra7xx_pcie_suspend(struct device *dev)
- 	struct dw_pcie *pci = dra7xx->pci;
- 	u32 val;
- 
-+	if (dra7xx->mode != DW_PCIE_RC_TYPE)
-+		return 0;
++   The PCI endpoint function driver should invoke pci_epc_stop() to stop
++   the PCI LINK.
 +
- 	/* clear MSE */
- 	val = dra7xx_pcie_readl_dbi(pci->dbi_base, PCI_COMMAND);
- 	val &= ~PCI_COMMAND_MEMORY;
-@@ -524,6 +678,9 @@ static int dra7xx_pcie_resume(struct device *dev)
- 	struct dw_pcie *pci = dra7xx->pci;
- 	u32 val;
- 
-+	if (dra7xx->mode != DW_PCIE_RC_TYPE)
-+		return 0;
++2.1.3 APIs for the PCI Endpoint Function Library
 +
- 	/* set MSE */
- 	val = dra7xx_pcie_readl_dbi(pci->dbi_base, PCI_COMMAND);
- 	val |= PCI_COMMAND_MEMORY;
-@@ -582,12 +739,6 @@ static const struct dev_pm_ops dra7xx_pcie_pm_ops = {
- 				      dra7xx_pcie_resume_noirq)
- };
- 
--static const struct of_device_id of_dra7xx_pcie_match[] = {
--	{ .compatible = "ti,dra7-pcie", },
--	{},
--};
--MODULE_DEVICE_TABLE(of, of_dra7xx_pcie_match);
--
- static struct platform_driver dra7xx_pcie_driver = {
- 	.remove		= __exit_p(dra7xx_pcie_remove),
- 	.driver = {
++This section lists the APIs that the PCI Endpoint core provides to be used
++by the PCI endpoint function library.
++
++*) pci_epc_bind_epf()
++
++   The PCI endpoint function library uses pci_epc_bind_epf() to bind the
++   function driver with a controller driver. The binding will be based on
++   the endpoint controller function name (as seen in /sys/class/pci_epc/).
++
++*) pci_epc_unbind_epf()
++
++   The PCI endpoint function library uses pci_epc_unbind_epf() to unbind
++   the function driver from the controller driver. After unbind the controller
++   driver can be bound to any other function driver.
++
++2.2 PCI Endpoint Function(EPF) Library
++
++The EPF library provides APIs to be used by the function driver and the EPC
++library in order to provide endpoint mode functionality.
++
++2.2.1 APIs for the PCI Endpoint Function Driver
++
++This section lists the APIs that the PCI Endpoint core provides to be used
++by the PCI endpoint function driver.
++
++*) pci_epf_register_driver()
++
++   The PCI Endpoint Function driver should implement the following ops:
++	 * bind: ops to perform when a EPC device has been bound to EPF device
++	 * unbind: ops to perform when a binding has been lost between a EPC
++	   device and EPF device
++	 * linkup: ops to perform when the EPC device has established a
++	   connection with a host system
++
++  The PCI Function driver can then register the PCI EPF driver by using
++  pci_epf_register_driver().
++
++*) pci_epf_unregister_driver()
++
++  The PCI Function driver can unregister the PCI EPF driver by using
++  pci_epf_unregister_driver().
++
++*) pci_epf_alloc_space()
++
++  The PCI Function driver can allocate space for a particular BAR using
++  pci_epf_alloc_space().
++
++*) pci_epf_free_space()
++
++  The PCI Function driver can free the allocated space
++  (using pci_epf_alloc_space) by invoking pci_epf_free_space().
++
++2.2.2 APIs for the PCI Endpoint Controller Library
++
++This section lists the APIs that the PCI Endpoint core provides to be used
++by the PCI endpoint controller library.
++
++*) pci_epf_bind()
++
++   The PCI endpoint controller library invokes pci_epf_bind() when the EPF
++   device has been bound to a EPC device.
++
++*) pci_epf_unbind()
++
++   The PCI endpoint controller library invokes pci_epf_unbind() when the
++   binding between EPC device and EPF device is lost.
++
++*) pci_epf_linkup()
++
++   The PCI endpoint controller library invokes pci_epf_linkup() when the
++   EPC device has established the connection to the host.
++
++2.3 CONFIGFS
++
++The PCI Endpoint Core exposes configfs entry (pci_ep) in order to configure the
++PCI Endpoint Function and in order to bind the endpoint function
++with the endpoint controller. Every folder in pci_ep/ represent a PCI
++endpoint function.
++
++The following entries can be used to configure the standard configuration
++header of the endpoint function.
++	vendorid
++	deviceid
++	revid
++	progif_code
++	subclass_code
++	baseclass_code
++	cache_line_size
++	subsys_vendor_id
++	subsys_id
++	interrupt_pin
++
++The following entries has special meaning:
++	function: this readonly entry shows the name using which the function
++		  driver will be bound to this function
++	epc	: the name of the EPC device this function should be bound to.
++		  The name of the EPC device should be from /sys/class/pci_epc.
++
++3. Known Limitations
++
++The Endpoint Core doesn't support adding multi-function devices.
 -- 
 1.7.9.5
