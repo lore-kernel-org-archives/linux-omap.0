@@ -1,68 +1,37 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] usb: ohci: Allow ohci on omap5 also
-Date: Tue, 13 Sep 2016 15:48:08 -0700
-Message-ID: <20160913224808.hzbahh33vz2f44wl@atomide.com>
-References: <Pine.LNX.4.44L0.1609092131150.8630-100000@netrider.rowland.org>
- <Pine.LNX.4.44L0.1609102224120.31770-100000@netrider.rowland.org>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: Re: [PATCH] ARM: dts: Add power button support for igepv5
+Date: Tue, 13 Sep 2016 21:26:01 -0400
+Message-ID: <31409234-3185-5348-2d37-effb7769c92a@osg.samsung.com>
+References: <20160909210729.20184-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1609102224120.31770-100000-pYrvlCTfrz9XsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160909210729.20184-1-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: Enric Balletbo Serra <eballetbo@gmail.com>, Pau Pajuel <ppajuel@gmail.com>, =?UTF-8?Q?Agust=c3=ad_Fontquerni_i_Gorchs?= <afontquerni@iseebcn.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> [160910 19:27]:
-> On Fri, 9 Sep 2016, Alan Stern wrote:
-> 
-> > On Fri, 9 Sep 2016, Tony Lindgren wrote:
-> > 
-> > > * Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> [160909 13:41]:
-> > > > On Fri, 9 Sep 2016, Tony Lindgren wrote:
-> > > > 
-> > > > > * Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> [160909 12:47]:
-> > > > > > You know, as far as I can tell the only thing that is OMAP-specific
-> > > > > > about the ohci-omap3 driver is the initialization of OHCI_CTRL_RWC.  
-> > > > > > This could be added to the platform data or the DT bindings, after
-> > > > > > which this driver wouldn't be needed at all -- the ohci_platform driver
-> > > > > > would work.  Does this seem reasonable?
-> > > > > 
-> > > > > Sure makes sense to me. Do we have some standard binding for
-> > > > > OCHI_CTRL_RWC?
-> > > > 
-> > > > No, one would have to be created.
-> > > 
-> > > OK I can do a patch for that, what should be binding be?
-> > > 
-> > > ohci-ctrl-rwc-something?
-> > 
-> > OHCI_CTRL_RWC is just a single-bit flag; the RWC part stands for
-> > "Remote Wakeup Control".
-> 
-> Sorry, careless mistake on my part.  It actually stands for "Remote 
-> Wakeup Connected"; meaning that the remote-wakeup output signal from 
-> the controller is connected to something really can wake up the system.
-> This is exactly the sort of hardware implementation detail that the 
-> firmware is supposed to know.
-
-OK thanks. I think it can be set up as a generic wakeirq.
-
-> >  The flag indicates whether the controller
-> > hardware is able to wake up the system, and it is supposed to be set
-> > initially by the firmware during boot-up.  Under DT, the driver will
-> > have to set it manually.
-> > 
-> > So you could call it ohci-ctrl-rwc-on, or ohci-ctrl-rwc-enable, or 
-> > anything similar.  Use your own judgment.
-
-OK
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGVsbG8gVG9ueSwKCk9uIDA5LzA5LzIwMTYgMDU6MDcgUE0sIFRvbnkgTGluZGdyZW4gd3JvdGU6
+Cj4gQWRkIHBvd2VyIGJ1dHRvbiBzdXBwb3J0IGZvciBpZ2VwdjUuCj4gCj4gQ2M6IEFndXN0w60g
+Rm9udHF1ZXJuaSBpIEdvcmNocyA8YWZvbnRxdWVybmlAaXNlZWJjbi5jb20+Cj4gQ2M6IEVucmlj
+IEJhbGxldGJvIFNlcnJhIDxlYmFsbGV0Ym9AZ21haWwuY29tPgo+IENjOiBKYXZpZXIgTWFydGlu
+ZXogQ2FuaWxsYXMgPGphdmllckBvc2cuc2Ftc3VuZy5jb20+Cj4gQ2M6IFBhdSBQYWp1ZWwgPHBw
+YWp1ZWxAZ21haWwuY29tPgo+IFNpZ25lZC1vZmYtYnk6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRv
+bWlkZS5jb20+Cj4gLS0tCgpJIGRvbid0IGhhdmUgYSBzY2hlbWF0aWNzIGZvciB0aGlzIGJvYXJk
+LCBidXQgdGhlIHBhdGNoIGxvb2tzIGdvb2QgdG8gbWUuCgpSZXZpZXdlZC1ieTogSmF2aWVyIE1h
+cnRpbmV6IENhbmlsbGFzIDxqYXZpZXJAb3NnLnNhbXN1bmcuY29tPgoKQmVzdCByZWdhcmRzLAot
+LSAKSmF2aWVyIE1hcnRpbmV6IENhbmlsbGFzCk9wZW4gU291cmNlIEdyb3VwClNhbXN1bmcgUmVz
+ZWFyY2ggQW1lcmljYQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0
+cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGlu
+Zm8vbGludXgtYXJtLWtlcm5lbAo=
