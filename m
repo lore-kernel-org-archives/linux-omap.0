@@ -1,34 +1,51 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: [PATCH 3/9] net: ethernet: ti: cpts: rework
- initialization/deinitialization
-Date: Wed, 14 Sep 2016 22:52:23 +0200
-Message-ID: <20160914205223.GF12195@netboy>
-References: <20160914130231.3035-1-grygorii.strashko@ti.com>
- <20160914130231.3035-4-grygorii.strashko@ti.com>
- <20160914135214.GA28592@localhost.localdomain>
- <606f7cfc-aa34-528b-df04-7a60a9695425@ti.com>
- <20160914203217.GD12195@netboy>
- <c0aac71d-2033-f210-5494-15399b477e37@ti.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH 1/3] Revert "ARM: dts: am335x-boneblack: Enable 1GHz OPP for cpu"
+Date: Wed, 14 Sep 2016 15:57:15 -0500
+Message-ID: <20160914205717.21975-2-d-gerlach@ti.com>
+References: <20160914205717.21975-1-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <c0aac71d-2033-f210-5494-15399b477e37@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, WingMan Kwok <w-kwok2@ti.com>
+Content-Type: text/plain
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20160914205717.21975-1-d-gerlach@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Sep 14, 2016 at 11:37:45PM +0300, Grygorii Strashko wrote:
-> The problem is that if cpts not initialized than pinter on 
-> cpts (in consumer/parent driver - NETCP) will be NULL.
+This reverts commit c36e6ec904876de1935b1d74d2d711e6f5ceb572.
 
-You made that problem with your "clean up" in this series.
-Previously, cpts was always allocated.
+The original commit updated the cpufreq operating points tables for
+am335x-boneblack but was merged before the driver making use of the node
+was merged, which breaks the existing cpufreq implementation on the
+system, so revert the patch until the ti-cpufreq driver is merged.
 
-> So, rx_enable will be unaccessible and cause crash :(
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+---
+ arch/arm/boot/dts/am335x-boneblack.dts | 11 -----------
+ 1 file changed, 11 deletions(-)
 
-So just make sure cpts is initialized.
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index ca721670bd91..55c0e954b146 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -33,17 +33,6 @@
+ 	status = "okay";
+ };
+ 
+-&cpu0_opp_table {
+-	/*
+-	 * All PG 2.0 silicon may not support 1GHz but some of the early
+-	 * BeagleBone Blacks have PG 2.0 silicon which is guaranteed
+-	 * to support 1GHz OPP so enable it for PG 2.0 on this board.
+-	 */
+-	oppnitro@1000000000 {
+-		opp-supported-hw = <0x06 0x0100>;
+-	};
+-};
+-
+ &am33xx_pinmux {
+ 	nxp_hdmi_bonelt_pins: nxp_hdmi_bonelt_pins {
+ 		pinctrl-single,pins = <
+-- 
+2.9.3
 
-Thanks,
-Richard
