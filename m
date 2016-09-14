@@ -1,135 +1,44 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 2/3] Revert "ARM: dts: am33xx: Move to operating-points-v2 table and ti-cpufreq driver"
-Date: Wed, 14 Sep 2016 15:57:16 -0500
-Message-ID: <20160914205717.21975-3-d-gerlach@ti.com>
-References: <20160914205717.21975-1-d-gerlach@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 3/9] net: ethernet: ti: cpts: rework
+ initialization/deinitialization
+Date: Wed, 14 Sep 2016 23:59:26 +0300
+Message-ID: <efd98aa5-725a-86c1-88c9-e10350ff1b43@ti.com>
+References: <20160914130231.3035-1-grygorii.strashko@ti.com>
+ <20160914130231.3035-4-grygorii.strashko@ti.com>
+ <20160914135214.GA28592@localhost.localdomain>
+ <606f7cfc-aa34-528b-df04-7a60a9695425@ti.com> <20160914203217.GD12195@netboy>
+ <c0aac71d-2033-f210-5494-15399b477e37@ti.com> <20160914205223.GF12195@netboy>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20160914205717.21975-1-d-gerlach@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Dave Gerlach <d-gerlach@ti.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160914205223.GF12195@netboy>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Richard Cochran <richardcochran@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, WingMan Kwok <w-kwok2@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This reverts commit 4317be1162108bcdf50dc53dfb48eac94dcff25c.
+On 09/14/2016 11:52 PM, Richard Cochran wrote:
+> On Wed, Sep 14, 2016 at 11:37:45PM +0300, Grygorii Strashko wrote:
+>> The problem is that if cpts not initialized than pinter on 
+>> cpts (in consumer/parent driver - NETCP) will be NULL.
+> 
+> You made that problem with your "clean up" in this series.
+> Previously, cpts was always allocated.
 
-The original commit updated the cpufreq operating points tables for
-am33xx but was merged before the driver making use of the node was
-merged, which breaks the existing cpufreq implementation on the system,
-so revert the patch until the ti-cpufreq driver is merged.
+not exactly - it was allocated in CPSW .probe() manually, 
+in without this re-work it has to be allocated in NTCP the
+same way - manually. So, checks we are discussing here will be still
+present, but they will need to be done in CPSW/NETCP drivers -
+just one level up and duplicated in both these drivers.
 
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
----
- arch/arm/boot/dts/am33xx.dtsi | 88 +++++++------------------------------------
- 1 file changed, 13 insertions(+), 75 deletions(-)
+> 
+>> So, rx_enable will be unaccessible and cause crash :(
+> 
+> So just make sure cpts is initialized.
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 98748c61ed99..9e214bfd32d2 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -45,9 +45,19 @@
- 			device_type = "cpu";
- 			reg = <0>;
- 
--			operating-points-v2 = <&cpu0_opp_table>;
--			ti,syscon-efuse = <&scm_conf 0x7fc 0x1fff 0>;
--			ti,syscon-rev = <&scm_conf 0x600>;
-+			/*
-+			 * To consider voltage drop between PMIC and SoC,
-+			 * tolerance value is reduced to 2% from 4% and
-+			 * voltage value is increased as a precaution.
-+			 */
-+			operating-points = <
-+				/* kHz    uV */
-+				720000  1285000
-+				600000  1225000
-+				500000  1125000
-+				275000  1125000
-+			>;
-+			voltage-tolerance = <2>; /* 2 percentage */
- 
- 			clocks = <&dpll_mpu_ck>;
- 			clock-names = "cpu";
-@@ -56,78 +66,6 @@
- 		};
- 	};
- 
--	cpu0_opp_table: opp_table0 {
--		compatible = "operating-points-v2";
--
--		/*
--		 * The three following nodes are marked with opp-suspend
--		 * because the can not be enabled simultaneously on a
--		 * single SoC.
--		 */
--		opp50@300000000 {
--			opp-hz = /bits/ 64 <300000000>;
--			opp-microvolt = <950000 931000 969000>;
--			opp-supported-hw = <0x06 0x0010>;
--			opp-suspend;
--		};
--
--		opp100@275000000 {
--			opp-hz = /bits/ 64 <275000000>;
--			opp-microvolt = <1100000 1078000 1122000>;
--			opp-supported-hw = <0x01 0x00FF>;
--			opp-suspend;
--		};
--
--		opp100@300000000 {
--			opp-hz = /bits/ 64 <300000000>;
--			opp-microvolt = <1100000 1078000 1122000>;
--			opp-supported-hw = <0x06 0x0020>;
--			opp-suspend;
--		};
--
--		opp100@500000000 {
--			opp-hz = /bits/ 64 <500000000>;
--			opp-microvolt = <1100000 1078000 1122000>;
--			opp-supported-hw = <0x01 0xFFFF>;
--		};
--
--		opp100@600000000 {
--			opp-hz = /bits/ 64 <600000000>;
--			opp-microvolt = <1100000 1078000 1122000>;
--			opp-supported-hw = <0x06 0x0040>;
--		};
--
--		opp120@600000000 {
--			opp-hz = /bits/ 64 <600000000>;
--			opp-microvolt = <1200000 1176000 1224000>;
--			opp-supported-hw = <0x01 0xFFFF>;
--		};
--
--		opp120@720000000 {
--			opp-hz = /bits/ 64 <720000000>;
--			opp-microvolt = <1200000 1176000 1224000>;
--			opp-supported-hw = <0x06 0x0080>;
--		};
--
--		oppturbo@720000000 {
--			opp-hz = /bits/ 64 <720000000>;
--			opp-microvolt = <1260000 1234800 1285200>;
--			opp-supported-hw = <0x01 0xFFFF>;
--		};
--
--		oppturbo@800000000 {
--			opp-hz = /bits/ 64 <800000000>;
--			opp-microvolt = <1260000 1234800 1285200>;
--			opp-supported-hw = <0x06 0x0100>;
--		};
--
--		oppnitro@1000000000 {
--			opp-hz = /bits/ 64 <1000000000>;
--			opp-microvolt = <1325000 1298500 1351500>;
--			opp-supported-hw = <0x04 0x0200>;
--		};
--	};
--
- 	pmu {
- 		compatible = "arm,cortex-a8-pmu";
- 		interrupts = <3>;
+OK. I'll update code this way.
+
 -- 
-2.9.3
-
+regards,
+-grygorii
