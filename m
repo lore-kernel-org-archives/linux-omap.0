@@ -1,124 +1,28 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC PATCH 00/11] pci: support for configurable PCI endpoint
-Date: Wed, 14 Sep 2016 15:25:41 +0200
-Message-ID: <2837059.ka7z3gzjF2@wuerfel>
-References: <1473829927-20466-1-git-send-email-kishon@ti.com>
+From: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] dmaengine: cppi41: Ignore EINPROGRESS for PM runtime
+Date: Wed, 14 Sep 2016 19:13:46 +0530
+Message-ID: <20160914134346.GL13920@localhost>
+References: <20160913172243.13012-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1473829927-20466-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, hch@infradead.org, Joao.Pinto@synopsys.com, mingkai.hu@nxp.com, m-karicheri2@ti.com, Pratyush Anand <pratyush.anand@gmail.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Joao Pinto <jpinto@synopsys.com>, Rob Herring <robh+dt@kernel.org>, nsekhar@ti.com, Jon Mason <jdmason@kudzu.us>, Dave Jiang <dave.jiang@intel.com>, Allen Hubbe <Allen.Hubbe@emc.com>, linux-ntb@googlegroups.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160913172243.13012-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday, September 14, 2016 10:41:56 AM CEST Kishon Vijay Abraham I wrote:
-> This patch series
-> 	*) adds PCI endpoint core layer
-> 	*) modifies designware/dra7xx driver to be configured in EP mode
-> 	*) adds a PCI endpoint *test* function driver
+On Tue, Sep 13, 2016 at 10:22:43AM -0700, Tony Lindgren wrote:
+> We can occasionally get -EINPROGRESS for pm_runtime_get. In that case
+> we can just continue as we're queueing transfers anyways when
+> pm_runtime_active is not set.
 
-Hi Kishon,
+Applied, thanks
 
-I think this is a great start, thanks for posting early with a clear
-list of limitations and TODO items.
-
-I've added the drivers/ntb maintainers to Cc, given that there is
-a certain degree of overlap between your work and the existing
-code, I think they should be part of the discussion.
- 
-> Known Limitation:
-> 	*) Does not support multi-function devices
-
-If I understand it right, this was a problem for USB and adding
-it later made it somewhat inconsistent. Maybe we can at least
-try to come up with an idea of how multi-function devices
-could be handled even if we don't implement it until someone
-actually needs it.
-
-Is your hardware able to make the PCIe endpoint look like
-a device with multiple PCI functions, or would one have to
-do this in software inside of a single PCI function if we
-ever need it?
-
-> TODO:
-> 	*) access buffers in RC
-> 	*) raise MSI interrupts
-> 	*) Enable user space control for the RC side PCI driver
-
-The user space control would end up just being one of several
-gadget drivers, right? E.g. gadget drivers for standard hardware
-(8250 uart, ATA, NVMe, some ethernet) could be done as kernel
-drivers while a user space driver can be used for things that
-are more unusual and that don't need to interface to another
-part of the kernel?
-
-> 	*) Adapt all other users of designware to use the new design (only
-> 	   dra7xx has been adapted)
-
-I don't fully understand this part. Does every designware based
-driver need modifications, or are the changes to the
-generic parts of the designware driver enough to make it
-work for the simpler platforms?
-
-> HOW TO:
-> 
-> ON THE EP SIDE:
-> ***************
-> 
-> /* EP function is configured using configfs */
-> # mount -t configfs none /sys/kernel/config
-> 
-> /* PCI EP core layer creates "pci_ep" entry in configfs */
-> # cd /sys/kernel/config/pci_ep/
-> 
-> /*
->  * This is the 1st step in creating an endpoint function. This
->  * creates the endpoint function device *instance*. The string
->  * before the .<num> suffix will identify the driver this
->  * EP function will bind to.
->  * Just pci_epf_test is also valid. The .<num> suffix is used
->  * if there are multiple PCI controllers and all of them wants
->  * to use the same function.
->  */
-> # mkdir pci_epf_test.0
-
-I haven't used USB gadgets, but I assume this is modeled around
-the same interface. If there are notable differences, please mention
-what they are. Otherwise the general concept seems rather nice to me.
-
->  drivers/pci/{host => controller}/Kconfig           |  109 +++++-
->  drivers/pci/{host => controller}/Makefile          |    2 +
->  drivers/pci/{host => controller}/pci-aardvark.c    |    0
->  drivers/pci/{host => controller}/pci-dra7xx.c      |  340 +++++++++++++----
->  drivers/pci/{host => controller}/pci-exynos.c      |    0
->  drivers/pci/{host => controller}/pci-host-common.c |    0
->  .../pci/{host => controller}/pci-host-generic.c    |    0
->  drivers/pci/{host => controller}/pci-hyperv.c      |    0
->  drivers/pci/{host => controller}/pci-imx6.c        |    0
->  drivers/pci/{host => controller}/pci-keystone-dw.c |    0
->  drivers/pci/{host => controller}/pci-keystone.c    |    0
->  drivers/pci/{host => controller}/pci-keystone.h    |    0
-
-Maybe it's better to wait before moving it around, this will make
-it harder for you to rebase the patch series while you are working on
-it and other people are working on the existing code.
-
-I'd suggest dropping the rename patches for the moment and just work
-in drivers/pci/host.
-
-Let's talk (high-level) about the DT binding. I see that the way
-you have done it here, one will need to have a different .dtb file
-for a machine depending on whether the PCIe is used in host or
-endpoint mode. The advantage of this way is that it's a much
-cleaner binding (PCIe host bindings are a mess, and adding more
-options to it will only make it worse), the downside is that
-you can't decide at runtime what you want to use it for. E.g.
-connecting two identical machines over PCIe requires deciding
-in the bootloader which one is the endpoint, or using DT
-overlays, which may be awkward for some users. Is this a realistic
-use case, or do you expect that all machines will only ever be
-used in one of the two ways?
-
-	Arnd
+-- 
+~Vinod
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
