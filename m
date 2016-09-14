@@ -1,119 +1,96 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 6/9] net: ethernet: ti: cpts: clean up event list if event
- pool is empty
-Date: Wed, 14 Sep 2016 22:54:22 +0300
-Message-ID: <b5839ad4-bb22-9c07-4d84-3dcd7f881e27@ti.com>
+Subject: Re: [PATCH 7/9] net: ethernet: ti: cpts: calc mult and shift from
+ refclk freq
+Date: Wed, 14 Sep 2016 22:59:53 +0300
+Message-ID: <df77795a-c0f9-b6c4-497a-6386a0a6b1e5@ti.com>
 References: <20160914130231.3035-1-grygorii.strashko@ti.com>
- <20160914130231.3035-7-grygorii.strashko@ti.com>
- <20160914141414.GD28592@localhost.localdomain>
+ <20160914130231.3035-8-grygorii.strashko@ti.com>
+ <20160914142210.GE28592@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20160914141414.GD28592@localhost.localdomain>
-Sender: netdev-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160914142210.GE28592@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Richard Cochran <richardcochran@gmail.com>
 Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, WingMan Kwok <w-kwok2@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/14/2016 05:14 PM, Richard Cochran wrote:
-> On Wed, Sep 14, 2016 at 04:02:28PM +0300, Grygorii Strashko wrote:
->> From: WingMan Kwok <w-kwok2@ti.com>
->>
->> When a CPTS user does not exit gracefully by disabling cpts
->> timestamping and leaving a joined multicast group, the system
->> continues to receive and timestamps the ptp packets which eventually
->> occupy all the event list entries.  When this happns, the added code
->> tries to remove some list entries which are expired.
->>
->> Signed-off-by: WingMan Kwok <w-kwok2@ti.com>
->> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->> ---
->>  drivers/net/ethernet/ti/cpts.c | 30 ++++++++++++++++++++++++++++--
->>  1 file changed, 28 insertions(+), 2 deletions(-)
->>
+On 09/14/2016 05:22 PM, Richard Cochran wrote:
+> On Wed, Sep 14, 2016 at 04:02:29PM +0300, Grygorii Strashko wrote:
+>> @@ -35,6 +33,8 @@ Optional properties:
+>>  			  For example in dra72x-evm, pcf gpio has to be
+>>  			  driven low so that cpsw slave 0 and phy data
+>>  			  lines are connected via mux.
+>> +- cpts_clock_mult	: Numerator to convert input clock ticks into nanoseconds
+>> +- cpts_clock_shift	: Denominator to convert input clock ticks into nanoseconds
+>
+> You should explain to the reader how these will be calculated when the
+> properties are missing.
+
+Not sure how full should it be explained in bindings - I'll try.
+
+
+>
 >> diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
->> index 970d4e2..ff8bb85 100644
+>> index ff8bb85..8046a21 100644
 >> --- a/drivers/net/ethernet/ti/cpts.c
 >> +++ b/drivers/net/ethernet/ti/cpts.c
->> @@ -57,22 +57,48 @@ static int cpts_fifo_pop(struct cpts *cpts, u32 *high, u32 *low)
->>  	return -1;
+>> @@ -418,18 +418,60 @@ void cpts_unregister(struct cpts *cpts)
+>>  	clk_disable(cpts->refclk);
 >>  }
 >>
->> +static int cpts_event_list_clean_up(struct cpts *cpts)
->
-> 5 words, that is quite a mouth full.  How about this instead?
->
-> 	static int cpts_purge_events(struct cpts *cpts);
->
+>> +static void cpts_calc_mult_shift(struct cpts *cpts)
 >> +{
->> +	struct list_head *this, *next;
->> +	struct cpts_event *event;
->> +	int removed = 0;
+>> +	u64 maxsec;
+>> +	u32 freq;
+>> +	u32 mult;
+>> +	u32 shift;
+>> +	u64 ns;
+>> +	u64 frac;
+>
+> Why so many new lines?  This isn't good style.  Please combine
+> variables of the same type into one line and sort the lists
+> alphabetically.
+
+Its matter of preferences :), but sure - I'll update.
+>
+>> +	if (cpts->cc_mult || cpts->cc.shift)
+>> +		return;
 >> +
->> +	list_for_each_safe(this, next, &cpts->events) {
->> +		event = list_entry(this, struct cpts_event, list);
->> +		if (event_expired(event)) {
->> +			list_del_init(&event->list);
->> +			list_add(&event->list, &cpts->pool);
->> +			++removed;
->> +		}
->> +	}
->> +	return removed;
+>> +	freq = clk_get_rate(cpts->refclk);
+>> +
+>> +	/* Calc the maximum number of seconds which we can run before
+>> +	 * wrapping around.
+>> +	 */
+>> +	maxsec = cpts->cc.mask;
+>> +	do_div(maxsec, freq);
+>> +	if (!maxsec)
+>> +		maxsec = 1;
+>> +	else if (maxsec > 600 && cpts->cc.mask > UINT_MAX)
+>> +		maxsec = 600;
+>> +
+>> +	clocks_calc_mult_shift(&mult, &shift, freq, NSEC_PER_SEC, maxsec);
+>> +
+>> +	cpts->cc_mult = mult;
+>> +	cpts->cc.mult = mult;
+>> +	cpts->cc.shift = shift;
+>> +	/* Check calculations and inform if not precise */
+>
+> Contrary to this comment, you are not making any kind of judgment
+> about whether the calculations are precise or not.
+>
+>> +	frac = 0;
+>> +	ns = cyclecounter_cyc2ns(&cpts->cc, freq, cpts->cc.mask, &frac);
+>> +
+>> +	dev_info(cpts->dev,
+>> +		 "CPTS: ref_clk_freq:%u calc_mult:%u calc_shift:%u error:%lld nsec/sec\n",
+>> +		 freq, cpts->cc_mult, cpts->cc.shift, (ns - NSEC_PER_SEC));
 >> +}
 >> +
->>  /*
->>   * Returns zero if matching event type was found.
->>   */
->>  static int cpts_fifo_read(struct cpts *cpts, int match)
->>  {
->>  	int i, type = -1;
->> +	int removed;
->
-> No need for another variable, just change the return code above to
->
-> 	return removed ? 0 : -1;
->
-> and then you have ...
->
->>  	u32 hi, lo;
->>  	struct cpts_event *event;
->>
->>  	for (i = 0; i < CPTS_FIFO_DEPTH; i++) {
->>  		if (cpts_fifo_pop(cpts, &hi, &lo))
->>  			break;
->> +
->>  		if (list_empty(&cpts->pool)) {
->> -			pr_err("cpts: event pool is empty\n");
->> -			return -1;
->> +			removed = cpts_event_list_clean_up(cpts);
->> +			if (!removed) {
->> +				dev_err(cpts->dev,
->> +					"cpts: event pool is empty\n");
->> +				return -1;
->> +			}
->
-> 			if (cpts_purge_events(cpts)) {
-> 				dev_err(cpts->dev, "cpts: event pool empty\n");
-> 				return -1;
-> 			}
->
-> Notice how I avoided the ugly line break?
->
->> +			dev_dbg(cpts->dev,
->> +				"cpts: event pool cleaned up %d\n", removed);
->>  		}
->> +
->>  		event = list_first_entry(&cpts->pool, struct cpts_event, list);
->>  		event->tmo = jiffies + 2;
->>  		event->high = hi;
->> --
->> 2.9.3
->>
 >
 
-NP here - will update. Thanks for you review.
-
+Thanks for the review.
 
 -- 
 regards,
