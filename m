@@ -1,40 +1,32 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH] cpufreq: ti: Use generic platdev driver
-Date: Wed, 14 Sep 2016 15:41:37 -0500
-Message-ID: <20160914204137.20346-1-d-gerlach@ti.com>
+From: Richard Cochran <richardcochran@gmail.com>
+Subject: Re: [PATCH 8/9] net: ethernet: ti: cpts: fix overflow check period
+Date: Wed, 14 Sep 2016 22:43:07 +0200
+Message-ID: <20160914204307.GE12195@netboy>
+References: <20160914130231.3035-1-grygorii.strashko@ti.com>
+ <20160914130231.3035-9-grygorii.strashko@ti.com>
+ <20160914142503.GF28592@localhost.localdomain>
+ <d4cde14a-8147-6097-f034-c9cde6cdb718@ti.com>
+ <20160914200845.GB12195@netboy>
+ <33f6f81b-ce41-4eba-c62d-93cdb06daa8f@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Dave Gerlach <d-gerlach@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <33f6f81b-ce41-4eba-c62d-93cdb06daa8f@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, WingMan Kwok <w-kwok2@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Now that the cpufreq-dt-platdev is used to create the cpufreq-dt platform
-device for all OMAP platforms and the platform code that did it
-before has been removed, add ti,am33xx and ti,dra7xx to the machine list
-in cpufreq-dt-platdev which had relied on the removed platform code to do
-this previously.
+On Wed, Sep 14, 2016 at 11:23:43PM +0300, Grygorii Strashko wrote:
+> if yes then those changes are correct as from patch#7 point of 
+> view, as from patch#8 because they are separate standalone changes.
+> In patch patch#7 it reasonable to ball out earlier, while in patch#8
+> it required to move forward a bit as I need to know maxsec. 
 
-Fixes: 7694ca6e1d6f ("cpufreq: omap: Use generic platdev driver")
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
----
- drivers/cpufreq/cpufreq-dt-platdev.c | 2 ++
- 1 file changed, 2 insertions(+)
+And what about the extra blank line?  AFAICT, placing the test later
+in patch #7 is correct logic and has the advantage of not distracting
+reviews with pointless churn!
 
-diff --git a/drivers/cpufreq/cpufreq-dt-platdev.c b/drivers/cpufreq/cpufreq-dt-platdev.c
-index 0bb44d5b5df4..d5e8ba50f8a3 100644
---- a/drivers/cpufreq/cpufreq-dt-platdev.c
-+++ b/drivers/cpufreq/cpufreq-dt-platdev.c
-@@ -68,6 +68,8 @@ static const struct of_device_id machines[] __initconst = {
- 
- 	{ .compatible = "sigma,tango4" },
- 
-+	{ .compatible = "ti,am33xx", },
-+	{ .compatible = "ti,dra7", },
- 	{ .compatible = "ti,omap2", },
- 	{ .compatible = "ti,omap3", },
- 	{ .compatible = "ti,omap4", },
--- 
-2.9.3
-
+Thanks,
+Richard
