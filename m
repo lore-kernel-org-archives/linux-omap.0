@@ -1,43 +1,270 @@
-From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: omap3-gta04: reduce panel backlight PWM frequency to 83Hz
-Date: Wed, 14 Sep 2016 06:28:12 +0200
-Message-ID: <82853D52-0D6B-42EC-8900-5575A92123E6@goldelico.com>
-References: <954d43b570092fe92b8b49cf8f475c027d3d8342.1473066997.git.hns@goldelico.com> <20160910031736.xwnepaoifpedqfbr@squirrel.local> <3188F52F-1372-4D59-B790-C15E584A44F2@goldelico.com> <CAALWOA8ZZBbgCG-5TRbd6=k27PQV2EHcCj6zwk31sKTHY1A7Bg@mail.gmail.com> <7C9DF12E-32C6-4D7C-BAAD-5CE9F8BA305A@goldelico.com> <20160913220710.wo7jjyql362pttbs@atomide.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160913220710.wo7jjyql362pttbs-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Rivshin <drivshin-5fOYsn7Fw8lBDgjK7y7TUQ@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Discussions about the Letux Kernel <letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org>, Neil Armstrong <narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [RFC PATCH] pci: support for configurable PCI endpoint
+Date: Wed, 14 Sep 2016 10:36:44 +0530
+Message-ID: <57D8DAE4.5030007@ti.com>
+References: <1473786653-12759-1-git-send-email-kishon@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1473786653-12759-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Jingoo Han <jingoohan1@gmail.com>, hch@infradead.org, Joao.Pinto@synopsys.com, mingkai.hu@nxp.com, m-karicheri2@ti.com, Pratyush Anand <pratyush.anand@gmail.com>
+Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Joao Pinto <jpinto@synopsys.com>, Rob Herring <robh+dt@kernel.org>, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-> Am 14.09.2016 um 00:07 schrieb Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>:
->=20
-> * H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> [160910 02:10]:
->>> Am 10.09.2016 um 10:20 schrieb Matthijs van Duin =
-<matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
->>=20
->> But with the patch submitted, I just want to give the dts of a single
->> device I have even designed a more reasonable value than in current
->> linux/master and don't really want to make it a fundamental =
-discussion...
->=20
-> So what's the verdict here on this patch? Should we wait for the =
-driver
-> to get fixed?
+Will resend the series with patch numbering.
 
-No, because it are indeed two issues which can (and should) be fixed =
-independently.
-This one just makes the urgency of the other bug smaller.
+Thanks
+Kishon
 
-BR and thanks,
-Nikolaus
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Tuesday 13 September 2016 10:40 PM, Kishon Vijay Abraham I wrote:
+> This patch series
+> 	*) adds PCI endpoint core layer
+> 	*) modifies designware/dra7xx driver to be configured in EP mode
+> 	*) adds a PCI endpoint *test* function driver
+> 
+> Known Limitation:
+> 	*) Does not support multi-function devices
+> 
+> TODO:
+> 	*) access buffers in RC
+> 	*) MSI interrupts
+> 	*) Enable user space control for the RC side PCI driver
+> 	*) Adapt all other users of designware to use the new design
+> 
+> HOW TO:
+> 
+> ON THE EP SIDE:
+> ***************
+> 
+> /* EP function is configured using configfs */
+> # mount -t configfs none /sys/kernel/config
+> 
+> /* PCI EP core layer creates "pci_ep" entry in configfs */
+> # cd /sys/kernel/config/pci_ep/
+> 
+> /*
+>  * This is the 1st step in creating an endpoint function. This
+>  * creates the endpoint function device *instance*. The string
+>  * before the .<num> suffix will identify the driver this
+>  * EP function will bind to.
+>  * Just pci_epf_test is also valid. The .<num> suffix is used
+>  * if there are multiple PCI controllers and all of them wants
+>  * to use the same function.
+>  */
+> # mkdir pci_epf_test.0
+> 
+> /*
+>  * When the above command is given, the function device will
+>  * also be bound to a function driver. To find the list of
+>  * function drivers available in the system, use the following
+>  * command. To create a new driver, the following can be referred
+>  * drivers/pci/endpoint/functions/pci-epf-test.c
+>  */
+> # ls /sys/bus/pci-epf/drivers
+> pci_epf_test
+> 
+> /* Now configure the endpoint function */
+> # cd pci_epf_test.0
+> 
+> /* These are the fields that can be configured */
+> # ls
+> baseclass_code    function          revid             vendorid
+> cache_line_size   interrupt_pin     subclass_code
+> deviceid          peripheral        subsys_id
+> epc               progif_code       subsys_vendor_id
+> 
+> /* The function driver will populate these fields with default values */
+> # cat vendorid 
+> 0xffff
+> 
+> # cat interrupt_pin 
+> 0x0001
+> 
+> /* The user can configure any of these fields */
+> # echo 0x104c > vendorid
+> 
+> /*
+>  * Next is binding this function driver to the controller driver. In
+>  * order to find the possible controller drivers that this function
+>  * driver can be bound to, the following sysfs entry can be used
+>  */
+> # ls /sys/class/pci_epc/
+> 51000000.pci
+> 
+> /* Now bind the function driver to the controller driver */
+> # echo "51000000.pcie" > epc
+> [  494.743487] dra7-pcie 51000000.pcie: no free inbound window
+> [  494.749367] pci_epf_test pci_epf_test.0: failed to set BAR4
+> [  494.755238] dra7-pcie 51000000.pcie: no free inbound window
+> [  494.761451] pci_epf_test pci_epf_test.0: failed to set BAR5
+> 
+> /*
+>  * the above error messages are due to non availability of free
+>  * inbound windows. So the function drivers in dra7xx can use
+>  * only 4 (BAR0..BAR3) BARs
+>  */
+> 
+> /****** PCI endpoint is configured ******/
+> 
+> ON THE HOST SIDE:
+> *****************
+> # modprobe pci_endpoint_test
+> [    8.197560] ****** Testing pci-endpoint-test Device ******
+> [    9.056990] Reset: OKAY
+> [    9.059753] BAR1 OKAY
+> [    9.062419] BAR2 OKAY
+> [    9.069506] BAR3 OKAY
+> [    9.071880] BAR4 NOT OKAY
+> [    9.074618] BAR5 NOT OKAY
+> [    9.379257] Legacy IRQ: OKAY
+> [    9.382281] ****** End Test ******
+> 
+> /*
+>  * Rightnow these tests gets executed as soon as the pci_endpoint_test
+>  * module gets inserted. These will be modified so that user/user script
+>  * can control this. Once the functionality for EP to access RC buffer
+>  * is added, more tests can be added including throughput measurement tests.
+>  */ 
+> 
+> 
+> Kishon Vijay Abraham I (11):
+>   pci: endpoint: add EP core layer to enable EP controller and EP
+>     functions
+>   pci: endpoint: introduce configfs entry for configuring EP functions
+>   Documentation: PCI: guide to use PCI Endpoint Core Layer
+>   pci: endpoint: functions: add an EP function to test PCI
+>   pci: rename *host* directory to *controller*
+>   pci: controller: split designware into *core* and *host*
+>   pci: controller: designware: Add EP mode support
+>   pci: controller: dra7xx: Add EP mode support
+>   misc: add a new host side PCI endpoint test driver
+>   ARM: dts: DRA7: Modify pcie1 dt node for EP mode
+>   HACK: pci: controller: dra7xx: disable smart idle
+> 
+>  Documentation/PCI/00-INDEX                         |    5 +
+>  Documentation/PCI/pci-endpoint.txt                 |  199 ++++++++++
+>  Documentation/PCI/pci-test.txt                     |   79 ++++
+>  .../devicetree/bindings/pci/designware-pcie.txt    |   26 +-
+>  Documentation/devicetree/bindings/pci/ti-pci.txt   |   30 +-
+>  MAINTAINERS                                        |   50 +--
+>  arch/arm/boot/dts/dra7.dtsi                        |   43 +--
+>  drivers/Makefile                                   |    4 +
+>  drivers/misc/Kconfig                               |    7 +
+>  drivers/misc/Makefile                              |    1 +
+>  drivers/misc/pci_endpoint_test.c                   |  291 +++++++++++++++
+>  drivers/pci/Kconfig                                |    3 +-
+>  drivers/pci/Makefile                               |    3 -
+>  drivers/pci/{host => controller}/Kconfig           |  109 +++++-
+>  drivers/pci/{host => controller}/Makefile          |    2 +
+>  drivers/pci/{host => controller}/pci-aardvark.c    |    0
+>  drivers/pci/{host => controller}/pci-dra7xx.c      |  340 +++++++++++++----
+>  drivers/pci/{host => controller}/pci-exynos.c      |    0
+>  drivers/pci/{host => controller}/pci-host-common.c |    0
+>  .../pci/{host => controller}/pci-host-generic.c    |    0
+>  drivers/pci/{host => controller}/pci-hyperv.c      |    0
+>  drivers/pci/{host => controller}/pci-imx6.c        |    0
+>  drivers/pci/{host => controller}/pci-keystone-dw.c |    0
+>  drivers/pci/{host => controller}/pci-keystone.c    |    0
+>  drivers/pci/{host => controller}/pci-keystone.h    |    0
+>  drivers/pci/{host => controller}/pci-layerscape.c  |    0
+>  drivers/pci/{host => controller}/pci-mvebu.c       |    0
+>  drivers/pci/{host => controller}/pci-rcar-gen2.c   |    0
+>  drivers/pci/{host => controller}/pci-tegra.c       |    0
+>  .../pci/{host => controller}/pci-thunder-ecam.c    |    0
+>  drivers/pci/{host => controller}/pci-thunder-pem.c |    0
+>  drivers/pci/{host => controller}/pci-versatile.c   |    0
+>  drivers/pci/{host => controller}/pci-xgene-msi.c   |    0
+>  drivers/pci/{host => controller}/pci-xgene.c       |    0
+>  drivers/pci/{host => controller}/pcie-altera-msi.c |    0
+>  drivers/pci/{host => controller}/pcie-altera.c     |    0
+>  drivers/pci/{host => controller}/pcie-armada8k.c   |    0
+>  drivers/pci/{host => controller}/pcie-artpec6.c    |    0
+>  drivers/pci/controller/pcie-designware-ep.c        |  228 ++++++++++++
+>  .../pcie-designware-host.c}                        |  294 +++------------
+>  .../{host => controller}/pcie-designware-plat.c    |    0
+>  drivers/pci/controller/pcie-designware.c           |  233 ++++++++++++
+>  drivers/pci/controller/pcie-designware.h           |  238 ++++++++++++
+>  drivers/pci/{host => controller}/pcie-hisi.c       |    0
+>  drivers/pci/{host => controller}/pcie-iproc-bcma.c |    0
+>  drivers/pci/{host => controller}/pcie-iproc-msi.c  |    0
+>  .../pci/{host => controller}/pcie-iproc-platform.c |    0
+>  drivers/pci/{host => controller}/pcie-iproc.c      |    0
+>  drivers/pci/{host => controller}/pcie-iproc.h      |    0
+>  drivers/pci/{host => controller}/pcie-qcom.c       |    0
+>  drivers/pci/{host => controller}/pcie-rcar.c       |    0
+>  drivers/pci/{host => controller}/pcie-spear13xx.c  |    0
+>  drivers/pci/{host => controller}/pcie-xilinx-nwl.c |    0
+>  drivers/pci/{host => controller}/pcie-xilinx.c     |    0
+>  drivers/pci/endpoint/Kconfig                       |   25 ++
+>  drivers/pci/endpoint/Makefile                      |    6 +
+>  drivers/pci/endpoint/functions/Kconfig             |   12 +
+>  drivers/pci/endpoint/functions/Makefile            |    5 +
+>  drivers/pci/endpoint/functions/pci-epf-test.c      |  272 ++++++++++++++
+>  drivers/pci/endpoint/pci-ep-cfs.c                  |  275 ++++++++++++++
+>  drivers/pci/endpoint/pci-epc-core.c                |  389 ++++++++++++++++++++
+>  drivers/pci/endpoint/pci-epf-core.c                |  338 +++++++++++++++++
+>  drivers/pci/host/pcie-designware.h                 |   89 -----
+>  include/linux/mod_devicetable.h                    |   10 +
+>  include/linux/pci-epc.h                            |  100 +++++
+>  include/linux/pci-epf.h                            |  159 ++++++++
+>  66 files changed, 3373 insertions(+), 492 deletions(-)
+>  create mode 100644 Documentation/PCI/pci-endpoint.txt
+>  create mode 100644 Documentation/PCI/pci-test.txt
+>  create mode 100644 drivers/misc/pci_endpoint_test.c
+>  rename drivers/pci/{host => controller}/Kconfig (79%)
+>  rename drivers/pci/{host => controller}/Makefile (93%)
+>  rename drivers/pci/{host => controller}/pci-aardvark.c (100%)
+>  rename drivers/pci/{host => controller}/pci-dra7xx.c (62%)
+>  rename drivers/pci/{host => controller}/pci-exynos.c (100%)
+>  rename drivers/pci/{host => controller}/pci-host-common.c (100%)
+>  rename drivers/pci/{host => controller}/pci-host-generic.c (100%)
+>  rename drivers/pci/{host => controller}/pci-hyperv.c (100%)
+>  rename drivers/pci/{host => controller}/pci-imx6.c (100%)
+>  rename drivers/pci/{host => controller}/pci-keystone-dw.c (100%)
+>  rename drivers/pci/{host => controller}/pci-keystone.c (100%)
+>  rename drivers/pci/{host => controller}/pci-keystone.h (100%)
+>  rename drivers/pci/{host => controller}/pci-layerscape.c (100%)
+>  rename drivers/pci/{host => controller}/pci-mvebu.c (100%)
+>  rename drivers/pci/{host => controller}/pci-rcar-gen2.c (100%)
+>  rename drivers/pci/{host => controller}/pci-tegra.c (100%)
+>  rename drivers/pci/{host => controller}/pci-thunder-ecam.c (100%)
+>  rename drivers/pci/{host => controller}/pci-thunder-pem.c (100%)
+>  rename drivers/pci/{host => controller}/pci-versatile.c (100%)
+>  rename drivers/pci/{host => controller}/pci-xgene-msi.c (100%)
+>  rename drivers/pci/{host => controller}/pci-xgene.c (100%)
+>  rename drivers/pci/{host => controller}/pcie-altera-msi.c (100%)
+>  rename drivers/pci/{host => controller}/pcie-altera.c (100%)
+>  rename drivers/pci/{host => controller}/pcie-armada8k.c (100%)
+>  rename drivers/pci/{host => controller}/pcie-artpec6.c (100%)
+>  create mode 100644 drivers/pci/controller/pcie-designware-ep.c
+>  rename drivers/pci/{host/pcie-designware.c => controller/pcie-designware-host.c} (64%)
+>  rename drivers/pci/{host => controller}/pcie-designware-plat.c (100%)
+>  create mode 100644 drivers/pci/controller/pcie-designware.c
+>  create mode 100644 drivers/pci/controller/pcie-designware.h
+>  rename drivers/pci/{host => controller}/pcie-hisi.c (100%)
+>  rename drivers/pci/{host => controller}/pcie-iproc-bcma.c (100%)
+>  rename drivers/pci/{host => controller}/pcie-iproc-msi.c (100%)
+>  rename drivers/pci/{host => controller}/pcie-iproc-platform.c (100%)
+>  rename drivers/pci/{host => controller}/pcie-iproc.c (100%)
+>  rename drivers/pci/{host => controller}/pcie-iproc.h (100%)
+>  rename drivers/pci/{host => controller}/pcie-qcom.c (100%)
+>  rename drivers/pci/{host => controller}/pcie-rcar.c (100%)
+>  rename drivers/pci/{host => controller}/pcie-spear13xx.c (100%)
+>  rename drivers/pci/{host => controller}/pcie-xilinx-nwl.c (100%)
+>  rename drivers/pci/{host => controller}/pcie-xilinx.c (100%)
+>  create mode 100644 drivers/pci/endpoint/Kconfig
+>  create mode 100644 drivers/pci/endpoint/Makefile
+>  create mode 100644 drivers/pci/endpoint/functions/Kconfig
+>  create mode 100644 drivers/pci/endpoint/functions/Makefile
+>  create mode 100644 drivers/pci/endpoint/functions/pci-epf-test.c
+>  create mode 100644 drivers/pci/endpoint/pci-ep-cfs.c
+>  create mode 100644 drivers/pci/endpoint/pci-epc-core.c
+>  create mode 100644 drivers/pci/endpoint/pci-epf-core.c
+>  delete mode 100644 drivers/pci/host/pcie-designware.h
+>  create mode 100644 include/linux/pci-epc.h
+>  create mode 100644 include/linux/pci-epf.h
+> 
