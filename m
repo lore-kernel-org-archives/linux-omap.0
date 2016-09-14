@@ -1,36 +1,129 @@
 From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: [PATCH 4/9] net: ethernet: ti: cpts: move dt props parsing to
- cpts driver
-Date: Wed, 14 Sep 2016 15:55:35 +0200
-Message-ID: <20160914135535.GB28592@localhost.localdomain>
+Subject: Re: [PATCH 5/9] net: ethernet: ti: cpts: add return value to tx and
+ rx timestamp funcitons
+Date: Wed, 14 Sep 2016 16:00:15 +0200
+Message-ID: <20160914140015.GC28592@localhost.localdomain>
 References: <20160914130231.3035-1-grygorii.strashko@ti.com>
- <20160914130231.3035-5-grygorii.strashko@ti.com>
+ <20160914130231.3035-6-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160914130231.3035-5-grygorii.strashko@ti.com>
+In-Reply-To: <20160914130231.3035-6-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Grygorii Strashko <grygorii.strashko@ti.com>
 Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, WingMan Kwok <w-kwok2@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Sep 14, 2016 at 04:02:26PM +0300, Grygorii Strashko wrote:
-> Move DT properties parsing into CPTS driver to simplify consumer's
-> code and CPTS driver porting on other SoC in the future
-> (like Keystone 2).
+On Wed, Sep 14, 2016 at 04:02:27PM +0300, Grygorii Strashko wrote:
+> From: WingMan Kwok <w-kwok2@ti.com>
+> 
+> Added return values in tx and rx timestamp funcitons facilitate the
+> possibililies of timestamping by CPSW modules other than CPTS, such as
+> packet accelerator on Keystone 2 devices.
 
-And just who is the consumer?
+I'm sorry, this is totally bogus.
  
+> Signed-off-by: WingMan Kwok <w-kwok2@ti.com>
 > Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 > ---
->  drivers/net/ethernet/ti/cpsw.c | 16 +---------------
->  drivers/net/ethernet/ti/cpsw.h |  2 --
->  drivers/net/ethernet/ti/cpts.c | 29 ++++++++++++++++++++++++++---
->  drivers/net/ethernet/ti/cpts.h |  5 +++--
->  4 files changed, 30 insertions(+), 22 deletions(-)
+>  drivers/net/ethernet/ti/cpts.c | 16 ++++++++++------
+>  drivers/net/ethernet/ti/cpts.h | 11 +++++++----
+>  2 files changed, 17 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
+> index 1ee64c6..970d4e2 100644
+> --- a/drivers/net/ethernet/ti/cpts.c
+> +++ b/drivers/net/ethernet/ti/cpts.c
+> @@ -302,34 +302,38 @@ static u64 cpts_find_ts(struct cpts *cpts, struct sk_buff *skb, int ev_type)
+>  	return ns;
+>  }
+>  
+> -void cpts_rx_timestamp(struct cpts *cpts, struct sk_buff *skb)
+> +int cpts_rx_timestamp(struct cpts *cpts, struct sk_buff *skb)
+>  {
+>  	u64 ns;
+>  	struct skb_shared_hwtstamps *ssh;
+>  
+>  	if (!cpts || !cpts->rx_enable)
+> -		return;
+> +		return -EPERM;
 
-You have more (+) than (-).  I wouldn't call that a simplification.
+EPERM?  Come on.
+
+>  	ns = cpts_find_ts(cpts, skb, CPTS_EV_RX);
+>  	if (!ns)
+> -		return;
+> +		return -ENOENT;
+>  	ssh = skb_hwtstamps(skb);
+>  	memset(ssh, 0, sizeof(*ssh));
+>  	ssh->hwtstamp = ns_to_ktime(ns);
+> +
+> +	return 0;
+>  }
+>  
+> -void cpts_tx_timestamp(struct cpts *cpts, struct sk_buff *skb)
+> +int cpts_tx_timestamp(struct cpts *cpts, struct sk_buff *skb)
+>  {
+>  	u64 ns;
+>  	struct skb_shared_hwtstamps ssh;
+>  
+>  	if (!cpts || !(skb_shinfo(skb)->tx_flags & SKBTX_IN_PROGRESS))
+> -		return;
+> +		return -EPERM;
+>  	ns = cpts_find_ts(cpts, skb, CPTS_EV_TX);
+>  	if (!ns)
+> -		return;
+> +		return -ENOENT;
+>  	memset(&ssh, 0, sizeof(ssh));
+>  	ssh.hwtstamp = ns_to_ktime(ns);
+>  	skb_tstamp_tx(skb, &ssh);
+> +
+> +	return 0;
+>  }
+>  
+>  int cpts_register(struct cpts *cpts)
+> diff --git a/drivers/net/ethernet/ti/cpts.h b/drivers/net/ethernet/ti/cpts.h
+> index a865193..47026ec 100644
+> --- a/drivers/net/ethernet/ti/cpts.h
+> +++ b/drivers/net/ethernet/ti/cpts.h
+> @@ -129,8 +129,8 @@ struct cpts {
+>  	struct cpts_event pool_data[CPTS_MAX_EVENTS];
+>  };
+>  
+> -void cpts_rx_timestamp(struct cpts *cpts, struct sk_buff *skb);
+> -void cpts_tx_timestamp(struct cpts *cpts, struct sk_buff *skb);
+> +int cpts_rx_timestamp(struct cpts *cpts, struct sk_buff *skb);
+> +int cpts_tx_timestamp(struct cpts *cpts, struct sk_buff *skb);
+>  int cpts_register(struct cpts *cpts);
+>  void cpts_unregister(struct cpts *cpts);
+>  struct cpts *cpts_create(struct device *dev, void __iomem *regs,
+> @@ -162,11 +162,14 @@ static inline bool cpts_is_tx_enabled(struct cpts *cpts)
+>  #else
+>  struct cpts;
+>  
+> -static inline void cpts_rx_timestamp(struct cpts *cpts, struct sk_buff *skb)
+> +static inline int cpts_rx_timestamp(struct cpts *cpts, struct sk_buff *skb)
+>  {
+> +	return -EOPNOTSUPP;
+
+You are planning to check in the hot path if a compile time feature is
+enabled?
+
+Brilliant stuff.
+
+>  }
+> -static inline void cpts_tx_timestamp(struct cpts *cpts, struct sk_buff *skb)
+> +
+> +static inline int cpts_tx_timestamp(struct cpts *cpts, struct sk_buff *skb)
+>  {
+> +	return -EOPNOTSUPP;
+>  }
+>  
+>  static inline
+> -- 
+> 2.9.3
+> 
 
 Thanks,
 Richard
