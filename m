@@ -1,46 +1,43 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] mmc: omap_hsmmc: Initialize dma_slave_config to avoid random data
-Date: Wed, 14 Sep 2016 13:10:48 +0300
-Message-ID: <20160914101048.1061-1-peter.ujfalusi@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v4 0/2] ARM: cleanup PCI specific configs
+Date: Wed, 14 Sep 2016 15:49:04 +0530
+Message-ID: <1473848346-17905-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: ulf.hansson@linaro.org
-Cc: tony@atomide.com, kishon@ti.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux@armlinux.org.uk, bcousson@baylibre.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: nicolas.ferre@atmel.com, alexandre.belloni@free-electrons.com, plagnioj@jcrosoft.com, khalasa@piap.pl, kgene@kernel.org, k.kozlowski@samsung.com, shawnguo@kernel.org, kernel@pengutronix.de, fabio.estevam@nxp.com, ssantosh@kernel.org, horms@verge.net.au, magnus.damm@gmail.com, vireshk@kernel.org, shiraz.linux.kernel@gmail.com, kishon@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-It is wrong to not initialize the dma_slave_config struct as the DMAengine
-driver might look at non initialized (random data) fields and tries to
-interpret it.
+This series was initially sent to add support for two PCIe
+ports in dra7. This included selecting PCI_DOMAINS config
+in SOC_DRA7XX.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
-Hi,
+However from the review, PCI_DOMAINS can instead be selected
+from ARCH_MULTIPLATFORM. This is fixed in this series along
+with removing PCI_DOMAINS from other configs.
 
-would it be possible to send this patch for 4.8? I have omap-dma DMAengine
-driver changes pending, but they break the MMC/SD because of the uninitialized
-fields in dma_slave_config.
+Changes from v3:
+*) Added *Acked-by:*
+*) Fixed $subject to not have *Fix*
 
-Thanks,
-Peter
+Kishon Vijay Abraham I (2):
+  ARM: stop *MIGHT_HAVE_PCI* config from being selected redundantly
+  ARM: select PCI_DOMAINS config from ARCH_MULTIPLATFORM
 
- drivers/mmc/host/omap_hsmmc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/Kconfig                 |    1 +
+ arch/arm/mach-at91/Kconfig       |    1 -
+ arch/arm/mach-axxia/Kconfig      |    2 --
+ arch/arm/mach-cns3xxx/Kconfig    |    1 -
+ arch/arm/mach-exynos/Kconfig     |    2 --
+ arch/arm/mach-imx/Kconfig        |    2 --
+ arch/arm/mach-integrator/Kconfig |    1 -
+ arch/arm/mach-keystone/Kconfig   |    2 --
+ arch/arm/mach-shmobile/Kconfig   |    1 -
+ arch/arm/mach-spear/Kconfig      |    1 -
+ arch/arm/mach-versatile/Kconfig  |    1 -
+ 11 files changed, 1 insertion(+), 14 deletions(-)
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 24ebc9a8de89..0a5640156159 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1409,7 +1409,7 @@ static int omap_hsmmc_pre_dma_transfer(struct omap_hsmmc_host *host,
- static int omap_hsmmc_setup_dma_transfer(struct omap_hsmmc_host *host,
- 					struct mmc_request *req)
- {
--	struct dma_slave_config cfg;
-+	struct dma_slave_config cfg = {};
- 	struct dma_async_tx_descriptor *tx;
- 	int ret = 0, i;
- 	struct mmc_data *data = req->data;
---
-2.10.0
-
+-- 
+1.7.9.5
