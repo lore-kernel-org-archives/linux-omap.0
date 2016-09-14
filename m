@@ -1,340 +1,241 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [RFC PATCH 02/11] pci: endpoint: introduce configfs entry for configuring EP functions
-Date: Wed, 14 Sep 2016 10:41:58 +0530
-Message-ID: <1473829927-20466-3-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [RFC PATCH 03/11] Documentation: PCI: guide to use PCI Endpoint Core Layer
+Date: Wed, 14 Sep 2016 10:41:59 +0530
+Message-ID: <1473829927-20466-4-git-send-email-kishon@ti.com>
 References: <1473829927-20466-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1473829927-20466-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Jingoo Han <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, mingkai.hu-3arQi8VN3Tc@public.gmane.org, m-karicheri2-l0cyMroinI0@public.gmane.org, Pratyush Anand <pratyush.anand-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Joao Pinto <jpinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, kishon-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1473829927-20466-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Jingoo Han <jingoohan1@gmail.com>, hch@infradead.org, Joao.Pinto@synopsys.com, mingkai.hu@nxp.com, m-karicheri2@ti.com, Pratyush Anand <pratyush.anand@gmail.com>
+Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Joao Pinto <jpinto@synopsys.com>, Rob Herring <robh+dt@kernel.org>, kishon@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Introduce a new configfs entry to configure the EP function (like
-configuring the standard configuration header entries) and to
-bind the function with a controller.
+Add Documentation to let users enable endpoint mode in the PCI
+controller and add new PCI endpoint function.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/endpoint/Kconfig      |    4 +-
- drivers/pci/endpoint/Makefile     |    3 +-
- drivers/pci/endpoint/pci-ep-cfs.c |  275 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 280 insertions(+), 2 deletions(-)
- create mode 100644 drivers/pci/endpoint/pci-ep-cfs.c
+ Documentation/PCI/00-INDEX         |    2 +
+ Documentation/PCI/pci-endpoint.txt |  199 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 201 insertions(+)
+ create mode 100644 Documentation/PCI/pci-endpoint.txt
 
-diff --git a/drivers/pci/endpoint/Kconfig b/drivers/pci/endpoint/Kconfig
-index a6d827c..f1dd206 100644
---- a/drivers/pci/endpoint/Kconfig
-+++ b/drivers/pci/endpoint/Kconfig
-@@ -13,7 +13,9 @@ config PCI_ENDPOINT
- 
- 	   Enabling this option will build the endpoint library, which
- 	   includes endpoint controller library and endpoint function
--	   library.
-+	   library. This will also enable the configfs entry required to
-+	   configure the endpoint function and used to bind the
-+	   function with a endpoint controller.
- 
- 	   If in doubt, say "N" to disable Endpoint support.
- 
-diff --git a/drivers/pci/endpoint/Makefile b/drivers/pci/endpoint/Makefile
-index dbc5517..67c88bf 100644
---- a/drivers/pci/endpoint/Makefile
-+++ b/drivers/pci/endpoint/Makefile
-@@ -2,4 +2,5 @@
- # Makefile for PCI Endpoint Support
- #
- 
--obj-$(CONFIG_PCI_ENDPOINT)		:= pci-epc-core.o pci-epf-core.o
-+obj-$(CONFIG_PCI_ENDPOINT)		:= pci-epc-core.o pci-epf-core.o \
-+					   pci-ep-cfs.o
-diff --git a/drivers/pci/endpoint/pci-ep-cfs.c b/drivers/pci/endpoint/pci-ep-cfs.c
+diff --git a/Documentation/PCI/00-INDEX b/Documentation/PCI/00-INDEX
+index 147231f..e422b8151 100644
+--- a/Documentation/PCI/00-INDEX
++++ b/Documentation/PCI/00-INDEX
+@@ -12,3 +12,5 @@ pci.txt
+ 	- info on the PCI subsystem for device driver authors
+ pcieaer-howto.txt
+ 	- the PCI Express Advanced Error Reporting Driver Guide HOWTO
++pci-endpoint.txt
++	- guide to add endpoint controller driver and endpoint function driver.
+diff --git a/Documentation/PCI/pci-endpoint.txt b/Documentation/PCI/pci-endpoint.txt
 new file mode 100644
-index 0000000..d11ae34
+index 0000000..a453aaa
 --- /dev/null
-+++ b/drivers/pci/endpoint/pci-ep-cfs.c
-@@ -0,0 +1,275 @@
-+/**
-+ * pci-ep-cfs.c - configfs to configure the PCI endpoint
-+ *
-+ * Copyright (C) 2016 Texas Instruments
-+ * Author: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-+ *
-+ * This program is free software: you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 of
-+ * the License as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
++++ b/Documentation/PCI/pci-endpoint.txt
+@@ -0,0 +1,199 @@
++			    PCI ENDPOINT FRAMEWORK
++		    Kishon Vijay Abraham I <kishon@ti.com>
 +
-+#include <linux/configfs.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
++This document is a guide to use the PCI Endpoint Framework in order to create
++endpoint controller driver, endpoint function driver and using configfs
++interface to bind the function driver to the controller driver.
 +
-+#include <linux/pci-epc.h>
-+#include <linux/pci-epf.h>
++1. Introduction
 +
-+struct pci_epf_info {
-+	struct config_item pci_epf;
-+	struct pci_epf *epf;
-+};
++*Linux* has a comprehensive PCI subsystem to support PCI controllers that
++operates in Root Complex mode. The subsystem has capability to scan PCI bus,
++assign memory resources and irq resources, load PCI driver (based on
++vendorid, deviceid), support other services like hot-plug, power management,
++advanced error reporting and virtual channels.
 +
-+static inline struct pci_epf_info *to_pci_epf_info(struct config_item *item)
-+{
-+	return container_of(item, struct pci_epf_info, pci_epf);
-+}
++However PCI controller IPs integrated in certain SoC is capable of operating
++either in Root Complex mode or Endpoint mode. PCI Endpoint Framework will
++add endpoint mode support in *Linux*. This will help to run Linux in an
++EP system which can have a wide variety of use cases from testing or
++validation, co-processor accelerator etc..
 +
-+#define PCI_EPF_HEADER_R(_name)	\
-+static ssize_t pci_epf_##_name##_show(struct config_item *item,		\
-+			char *page)					       \
-+{									       \
-+	return sprintf(page, "0x%04x\n",				       \
-+		       to_pci_epf_info(item)->epf->header->_name);	       \
-+}
++2. PCI Endpoint Core
 +
-+#define PCI_EPF_HEADER_W_u32(_name)	\
-+static ssize_t pci_epf_##_name##_store(struct config_item *item,	       \
-+					     const char *page, size_t len)     \
-+{									       \
-+	u32 val;							       \
-+	int ret;							       \
-+	ret = kstrtou32(page, 0, &val);					       \
-+	if (ret)							       \
-+		return ret;						       \
-+	to_pci_epf_info(item)->epf->header->_name = val;		       \
-+	return len;							       \
-+}
++The PCI Endpoint Core layer comprises of 3 components: the Endpoint Controller
++library, the Endpoint Function library and the configfs layer to bind the
++endpoint function with the endpoint controller.
 +
-+#define PCI_EPF_HEADER_W_u16(_name)	\
-+static ssize_t pci_epf_##_name##_store(struct config_item *item,	       \
-+					     const char *page, size_t len)     \
-+{									       \
-+	u16 val;							       \
-+	int ret;							       \
-+	ret = kstrtou16(page, 0, &val);					       \
-+	if (ret)							       \
-+		return ret;						       \
-+	to_pci_epf_info(item)->epf->header->_name = val;		       \
-+	return len;							       \
-+}
++2.1 PCI Endpoint Controller(EPC) Library
 +
-+#define PCI_EPF_HEADER_W_u8(_name)	\
-+static ssize_t pci_epf_##_name##_store(struct config_item *item,	       \
-+					     const char *page, size_t len)     \
-+{									       \
-+	u8 val;								       \
-+	int ret;							       \
-+	ret = kstrtou8(page, 0, &val);					       \
-+	if (ret)							       \
-+		return ret;						       \
-+	to_pci_epf_info(item)->epf->header->_name = val;		       \
-+	return len;							       \
-+}
++The EPC library provides APIs to be used by the controller that can operate
++in endpoint mode. It also provides APIs to be used by function driver/library
++in order to implement a particular endpoint function.
 +
-+#define PCI_EPF_HEADER_RW(_name, _type)	\
-+	PCI_EPF_HEADER_R(_name)		\
-+	PCI_EPF_HEADER_W_##_type(_name)
++2.1.1 APIs for the PCI controller Driver
 +
-+static ssize_t pci_epf_peripheral_store(struct config_item *item,
-+					    const char *page, size_t len)
-+{
-+	struct pci_epf_info *epf_info = to_pci_epf_info(item);
-+	char *dev_name;
++This section lists the APIs that the PCI Endpoint core provides to be used
++by the PCI controller driver.
 +
-+	dev_name = kstrdup(page, GFP_KERNEL);
-+	if (!dev_name)
-+		return -ENOMEM;
-+	if (dev_name[len - 1] == '\n')
-+		dev_name[len - 1] = '\0';
++*) devm_pci_epc_create()/pci_epc_create()
 +
-+	epf_info->epf->hw_devname = dev_name;
-+	return len;
-+}
++   The PCI controller driver should implement the following ops:
++	 * write_header: ops to populate configuration space header
++	 * set_bar: ops to configure the BAR
++	 * clear_bar: ops to reset the BAR
++	 * alloc_addr_space: ops to allocate *in* PCI controller address space
++	 * free_addr_space: ops to free the allocated address space
++	 * raise_irq: ops to raise a legacy or MSI interrupt
++	 * start: ops to start the PCI link
++	 * stop: ops to stop the PCI link
 +
-+static ssize_t pci_epf_peripheral_show(struct config_item *item,
-+					   char *page)
-+{
-+	return sprintf(page, "%s\n",
-+		       to_pci_epf_info(item)->epf->hw_devname);
-+}
++   The PCI controller driver can then create a new EPC device by invoking
++   devm_pci_epc_create/pci_epc_create.
 +
-+static ssize_t pci_epf_function_show(struct config_item *item,
-+					   char *page)
-+{
-+	return sprintf(page, "%s\n",
-+		       to_pci_epf_info(item)->epf->name);
-+}
++*) devm_pci_epc_destroy()/pci_epc_destroy()
 +
-+static ssize_t pci_epf_epc_store(struct config_item *item,
-+					    const char *page, size_t len)
-+{
-+	int ret;
-+	struct pci_epf_info *epf_info = to_pci_epf_info(item);
-+	char *epc_name;
++   The PCI controller driver can destroy the EPC device created by either
++   devm_pci_epc_create or pci_epc_create using devm_pci_epc_destroy() or
++   /pci_epc_destroy()
 +
-+	epc_name = kstrdup(page, GFP_KERNEL);
-+	if (!epc_name)
-+		return -ENOMEM;
-+	if (epc_name[len - 1] == '\n')
-+		epc_name[len - 1] = '\0';
++2.1.2 APIs for the PCI Endpoint Function Driver
 +
-+	if (epf_info->epf->epc)
-+		pci_epc_unbind_epf(epf_info->epf);
++This section lists the APIs that the PCI Endpoint core provides to be used
++by the PCI endpoint function driver.
 +
-+	epf_info->epf->pci_epc_name = epc_name;
-+	ret = pci_epc_bind_epf(epf_info->epf);
-+	if (ret)
-+		return -EINVAL;
++*) pci_epc_write_header()
 +
-+	return len;
-+}
++   The PCI endpoint function driver should use pci_epc_write_header() to
++   write the standard configuration header to the endpoint controller.
 +
-+static ssize_t pci_epf_epc_show(struct config_item *item,
-+					   char *page)
-+{
-+	return sprintf(page, "%s\n",
-+		       to_pci_epf_info(item)->epf->pci_epc_name);
-+}
++*) pci_epc_set_bar()
 +
-+PCI_EPF_HEADER_RW(vendorid, u16);
-+PCI_EPF_HEADER_RW(deviceid, u16);
-+PCI_EPF_HEADER_RW(revid, u16);
-+PCI_EPF_HEADER_RW(progif_code, u16);
-+PCI_EPF_HEADER_RW(subclass_code, u16);
-+PCI_EPF_HEADER_RW(baseclass_code, u16);
-+PCI_EPF_HEADER_RW(cache_line_size, u16);
-+PCI_EPF_HEADER_RW(subsys_vendor_id, u16);
-+PCI_EPF_HEADER_RW(subsys_id, u16);
-+PCI_EPF_HEADER_RW(interrupt_pin, u16);
++   The PCI endpoint function driver should use pci_epc_set_bar() to configure
++   the Base Address Register in order for the host to assign PCI addr space.
++   Register space of the function driver is usually configured
++   using this API.
 +
-+CONFIGFS_ATTR(pci_epf_, vendorid);
-+CONFIGFS_ATTR(pci_epf_, deviceid);
-+CONFIGFS_ATTR(pci_epf_, revid);
-+CONFIGFS_ATTR(pci_epf_, progif_code);
-+CONFIGFS_ATTR(pci_epf_, subclass_code);
-+CONFIGFS_ATTR(pci_epf_, baseclass_code);
-+CONFIGFS_ATTR(pci_epf_, cache_line_size);
-+CONFIGFS_ATTR(pci_epf_, subsys_vendor_id);
-+CONFIGFS_ATTR(pci_epf_, subsys_id);
-+CONFIGFS_ATTR(pci_epf_, interrupt_pin);
-+CONFIGFS_ATTR(pci_epf_, peripheral);
-+CONFIGFS_ATTR_RO(pci_epf_, function);
-+CONFIGFS_ATTR(pci_epf_, epc);
++*) pci_epc_clear_bar()
 +
-+static struct configfs_attribute *pci_epf_attrs[] = {
-+	&pci_epf_attr_vendorid,
-+	&pci_epf_attr_deviceid,
-+	&pci_epf_attr_revid,
-+	&pci_epf_attr_progif_code,
-+	&pci_epf_attr_subclass_code,
-+	&pci_epf_attr_baseclass_code,
-+	&pci_epf_attr_cache_line_size,
-+	&pci_epf_attr_subsys_vendor_id,
-+	&pci_epf_attr_subsys_id,
-+	&pci_epf_attr_interrupt_pin,
-+	&pci_epf_attr_peripheral,
-+	&pci_epf_attr_function,
-+	&pci_epf_attr_epc,
-+	NULL,
-+};
++   The PCI endpoint function driver should use pci_epc_clear_bar() to reset
++   the BAR.
 +
-+static void pci_epf_release(struct config_item *item)
-+{
-+	struct pci_epf_info *epf_info = to_pci_epf_info(item);
++*) pci_epc_raise_irq()
 +
-+	pci_epf_destroy(epf_info->epf);
-+	kfree(epf_info);
-+}
++   The PCI endpoint function driver should use pci_epc_raise_irq() to raise
++   Legacy Interrupt or MSI Interrupt.
 +
-+static struct configfs_item_operations pci_epf_ops = {
-+	.release		= pci_epf_release,
-+};
++*) pci_epc_start()
 +
-+static struct config_item_type pci_epf_type = {
-+	.ct_item_ops	= &pci_epf_ops,
-+	.ct_attrs	= pci_epf_attrs,
-+	.ct_owner	= THIS_MODULE,
-+};
++   The PCI endpoint function driver should invoke pci_epc_start() once it
++   has configured the endpoint function and wants to start the PCI link.
 +
-+static struct config_item *pci_epf_make(struct config_group *group,
-+					const char *name)
-+{
-+	struct pci_epf_info *epf_info;
-+	struct pci_epf *epf;
++*) pci_epc_stop()
 +
-+	epf_info = kzalloc(sizeof(*epf_info), GFP_KERNEL);
-+	if (!epf_info)
-+		return ERR_PTR(-ENOMEM);
++   The PCI endpoint function driver should invoke pci_epc_stop() to stop
++   the PCI LINK.
 +
-+	epf = pci_epf_create(name);
-+	if (IS_ERR(epf)) {
-+		pr_err("failed to create endpoint function device\n");
-+		return ERR_PTR(-EINVAL);
-+	}
++2.1.3 APIs for the PCI Endpoint Function Library
 +
-+	epf_info->epf = epf;
++This section lists the APIs that the PCI Endpoint core provides to be used
++by the PCI endpoint function library.
 +
-+	config_item_init_type_name(&epf_info->pci_epf, name,
-+				   &pci_epf_type);
++*) pci_epc_bind_epf()
 +
-+	return &epf_info->pci_epf;
-+}
++   The PCI endpoint function library uses pci_epc_bind_epf() to bind the
++   function driver with a controller driver. The binding will be based on
++   the endpoint controller function name (as seen in /sys/class/pci_epc/).
 +
-+static struct configfs_group_operations pci_ep_ops = {
-+	.make_item	= pci_epf_make,
-+};
++*) pci_epc_unbind_epf()
 +
-+static struct config_item_type pci_ep_type = {
-+	.ct_group_ops	= &pci_ep_ops,
-+	.ct_owner	= THIS_MODULE,
-+};
++   The PCI endpoint function library uses pci_epc_unbind_epf() to unbind
++   the function driver from the controller driver. After unbind the controller
++   driver can be bound to any other function driver.
 +
-+static struct configfs_subsystem pci_ep_cfs_subsys = {
-+	.su_group = {
-+		.cg_item = {
-+			.ci_namebuf = "pci_ep",
-+			.ci_type = &pci_ep_type,
-+		},
-+	},
-+	.su_mutex = __MUTEX_INITIALIZER(pci_ep_cfs_subsys.su_mutex),
-+};
++2.2 PCI Endpoint Function(EPF) Library
 +
-+static int __init pci_ep_cfs_init(void)
-+{
-+	int ret;
++The EPF library provides APIs to be used by the function driver and the EPC
++library in order to provide endpoint mode functionality.
 +
-+	config_group_init(&pci_ep_cfs_subsys.su_group);
++2.2.1 APIs for the PCI Endpoint Function Driver
 +
-+	ret = configfs_register_subsystem(&pci_ep_cfs_subsys);
-+	if (ret)
-+		pr_err("Error %d while registering subsystem %s\n",
-+		       ret, pci_ep_cfs_subsys.su_group.cg_item.ci_namebuf);
++This section lists the APIs that the PCI Endpoint core provides to be used
++by the PCI endpoint function driver.
 +
-+	return ret;
-+}
-+module_init(pci_ep_cfs_init);
++*) pci_epf_register_driver()
 +
-+static void __exit pci_ep_cfs_exit(void)
-+{
-+	configfs_unregister_subsystem(&pci_ep_cfs_subsys);
-+}
-+module_exit(pci_ep_cfs_exit);
++   The PCI Endpoint Function driver should implement the following ops:
++	 * bind: ops to perform when a EPC device has been bound to EPF device
++	 * unbind: ops to perform when a binding has been lost between a EPC
++	   device and EPF device
++	 * linkup: ops to perform when the EPC device has established a
++	   connection with a host system
 +
-+MODULE_DESCRIPTION("PCI EP CONFIGFS");
-+MODULE_AUTHOR("Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>");
-+MODULE_LICENSE("GPL v2");
++  The PCI Function driver can then register the PCI EPF driver by using
++  pci_epf_register_driver().
++
++*) pci_epf_unregister_driver()
++
++  The PCI Function driver can unregister the PCI EPF driver by using
++  pci_epf_unregister_driver().
++
++*) pci_epf_alloc_space()
++
++  The PCI Function driver can allocate space for a particular BAR using
++  pci_epf_alloc_space().
++
++*) pci_epf_free_space()
++
++  The PCI Function driver can free the allocated space
++  (using pci_epf_alloc_space) by invoking pci_epf_free_space().
++
++2.2.2 APIs for the PCI Endpoint Controller Library
++
++This section lists the APIs that the PCI Endpoint core provides to be used
++by the PCI endpoint controller library.
++
++*) pci_epf_bind()
++
++   The PCI endpoint controller library invokes pci_epf_bind() when the EPF
++   device has been bound to a EPC device.
++
++*) pci_epf_unbind()
++
++   The PCI endpoint controller library invokes pci_epf_unbind() when the
++   binding between EPC device and EPF device is lost.
++
++*) pci_epf_linkup()
++
++   The PCI endpoint controller library invokes pci_epf_linkup() when the
++   EPC device has established the connection to the host.
++
++2.3 CONFIGFS
++
++The PCI Endpoint Core exposes configfs entry (pci_ep) in order to configure the
++PCI Endpoint Function and in order to bind the endpoint function
++with the endpoint controller. Every folder in pci_ep/ represent a PCI
++endpoint function.
++
++The following entries can be used to configure the standard configuration
++header of the endpoint function.
++	vendorid
++	deviceid
++	revid
++	progif_code
++	subclass_code
++	baseclass_code
++	cache_line_size
++	subsys_vendor_id
++	subsys_id
++	interrupt_pin
++
++The following entries has special meaning:
++	function: this readonly entry shows the name using which the function
++		  driver will be bound to this function
++	epc	: the name of the EPC device this function should be bound to.
++		  The name of the EPC device should be from /sys/class/pci_epc.
++
++3. Known Limitations
++
++The Endpoint Core doesn't support adding multi-function devices.
 -- 
 1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
