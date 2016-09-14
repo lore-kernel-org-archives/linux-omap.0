@@ -1,47 +1,135 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 0/3] ARM: dts: am33xx/dra7xx: Fix cpufreq regression
-Date: Wed, 14 Sep 2016 15:57:14 -0500
-Message-ID: <20160914205717.21975-1-d-gerlach@ti.com>
+Subject: [PATCH 2/3] Revert "ARM: dts: am33xx: Move to operating-points-v2 table and ti-cpufreq driver"
+Date: Wed, 14 Sep 2016 15:57:16 -0500
+Message-ID: <20160914205717.21975-3-d-gerlach@ti.com>
+References: <20160914205717.21975-1-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20160914205717.21975-1-d-gerlach@ti.com>
 Sender: linux-pm-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-CPUFreq on am335x and dra7 platforms got broken by two things:
- - Updated OPPv2 nodes in device tree were merged before driver to
-   handle them was accepted.
- - OMAP platforms now use the new cpufreq-dt-platdev driver to create
-   cpufreq-dt platform device but non OMAP TI devices were not changed
-   over to this driver.
+This reverts commit 4317be1162108bcdf50dc53dfb48eac94dcff25c.
 
-This series addresses the first issue listed above by reverting three of
-the dts patches that got merged to restore OPPv1 tables. The second issue
-is addressed by [1].
+The original commit updated the cpufreq operating points tables for
+am33xx but was merged before the driver making use of the node was
+merged, which breaks the existing cpufreq implementation on the system,
+so revert the patch until the ti-cpufreq driver is merged.
 
-With both this series and that patch we will have the existing cpufreq
-support restored on am335x and dra7xx.
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+---
+ arch/arm/boot/dts/am33xx.dtsi | 88 +++++++------------------------------------
+ 1 file changed, 13 insertions(+), 75 deletions(-)
 
-Regards,
-Dave
-
-[1] http://marc.info/?l=linux-pm&m=147388573513082&w=2
-
-Dave Gerlach (3):
-  Revert "ARM: dts: am335x-boneblack: Enable 1GHz OPP for cpu"
-  Revert "ARM: dts: am33xx: Move to operating-points-v2 table and
-    ti-cpufreq driver"
-  Revert "ARM: dts: dra7: Move to operating-points-v2 table"
-
- arch/arm/boot/dts/am335x-boneblack.dts | 11 -----
- arch/arm/boot/dts/am33xx.dtsi          | 88 +++++-----------------------------
- arch/arm/boot/dts/dra7.dtsi            | 26 ++--------
- arch/arm/boot/dts/dra74x.dtsi          |  1 -
- 4 files changed, 18 insertions(+), 108 deletions(-)
-
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 98748c61ed99..9e214bfd32d2 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -45,9 +45,19 @@
+ 			device_type = "cpu";
+ 			reg = <0>;
+ 
+-			operating-points-v2 = <&cpu0_opp_table>;
+-			ti,syscon-efuse = <&scm_conf 0x7fc 0x1fff 0>;
+-			ti,syscon-rev = <&scm_conf 0x600>;
++			/*
++			 * To consider voltage drop between PMIC and SoC,
++			 * tolerance value is reduced to 2% from 4% and
++			 * voltage value is increased as a precaution.
++			 */
++			operating-points = <
++				/* kHz    uV */
++				720000  1285000
++				600000  1225000
++				500000  1125000
++				275000  1125000
++			>;
++			voltage-tolerance = <2>; /* 2 percentage */
+ 
+ 			clocks = <&dpll_mpu_ck>;
+ 			clock-names = "cpu";
+@@ -56,78 +66,6 @@
+ 		};
+ 	};
+ 
+-	cpu0_opp_table: opp_table0 {
+-		compatible = "operating-points-v2";
+-
+-		/*
+-		 * The three following nodes are marked with opp-suspend
+-		 * because the can not be enabled simultaneously on a
+-		 * single SoC.
+-		 */
+-		opp50@300000000 {
+-			opp-hz = /bits/ 64 <300000000>;
+-			opp-microvolt = <950000 931000 969000>;
+-			opp-supported-hw = <0x06 0x0010>;
+-			opp-suspend;
+-		};
+-
+-		opp100@275000000 {
+-			opp-hz = /bits/ 64 <275000000>;
+-			opp-microvolt = <1100000 1078000 1122000>;
+-			opp-supported-hw = <0x01 0x00FF>;
+-			opp-suspend;
+-		};
+-
+-		opp100@300000000 {
+-			opp-hz = /bits/ 64 <300000000>;
+-			opp-microvolt = <1100000 1078000 1122000>;
+-			opp-supported-hw = <0x06 0x0020>;
+-			opp-suspend;
+-		};
+-
+-		opp100@500000000 {
+-			opp-hz = /bits/ 64 <500000000>;
+-			opp-microvolt = <1100000 1078000 1122000>;
+-			opp-supported-hw = <0x01 0xFFFF>;
+-		};
+-
+-		opp100@600000000 {
+-			opp-hz = /bits/ 64 <600000000>;
+-			opp-microvolt = <1100000 1078000 1122000>;
+-			opp-supported-hw = <0x06 0x0040>;
+-		};
+-
+-		opp120@600000000 {
+-			opp-hz = /bits/ 64 <600000000>;
+-			opp-microvolt = <1200000 1176000 1224000>;
+-			opp-supported-hw = <0x01 0xFFFF>;
+-		};
+-
+-		opp120@720000000 {
+-			opp-hz = /bits/ 64 <720000000>;
+-			opp-microvolt = <1200000 1176000 1224000>;
+-			opp-supported-hw = <0x06 0x0080>;
+-		};
+-
+-		oppturbo@720000000 {
+-			opp-hz = /bits/ 64 <720000000>;
+-			opp-microvolt = <1260000 1234800 1285200>;
+-			opp-supported-hw = <0x01 0xFFFF>;
+-		};
+-
+-		oppturbo@800000000 {
+-			opp-hz = /bits/ 64 <800000000>;
+-			opp-microvolt = <1260000 1234800 1285200>;
+-			opp-supported-hw = <0x06 0x0100>;
+-		};
+-
+-		oppnitro@1000000000 {
+-			opp-hz = /bits/ 64 <1000000000>;
+-			opp-microvolt = <1325000 1298500 1351500>;
+-			opp-supported-hw = <0x04 0x0200>;
+-		};
+-	};
+-
+ 	pmu {
+ 		compatible = "arm,cortex-a8-pmu";
+ 		interrupts = <3>;
 -- 
 2.9.3
 
