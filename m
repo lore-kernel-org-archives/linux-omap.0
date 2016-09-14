@@ -1,46 +1,40 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 3/9] net: ethernet: ti: cpts: rework
- initialization/deinitialization
-Date: Wed, 14 Sep 2016 23:37:45 +0300
-Message-ID: <c0aac71d-2033-f210-5494-15399b477e37@ti.com>
-References: <20160914130231.3035-1-grygorii.strashko@ti.com>
- <20160914130231.3035-4-grygorii.strashko@ti.com>
- <20160914135214.GA28592@localhost.localdomain>
- <606f7cfc-aa34-528b-df04-7a60a9695425@ti.com> <20160914203217.GD12195@netboy>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH] cpufreq: ti: Use generic platdev driver
+Date: Wed, 14 Sep 2016 15:41:37 -0500
+Message-ID: <20160914204137.20346-1-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160914203217.GD12195@netboy>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Richard Cochran <richardcochran@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, WingMan Kwok <w-kwok2@ti.com>
+Content-Type: text/plain
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/14/2016 11:32 PM, Richard Cochran wrote:
-> On Wed, Sep 14, 2016 at 11:10:48PM +0300, Grygorii Strashko wrote:
->> On 09/14/2016 04:52 PM, Richard Cochran wrote:
->>> On Wed, Sep 14, 2016 at 04:02:25PM +0300, Grygorii Strashko wrote:
-> 
->>>> -	if (!cpts->rx_enable)
->>>> +	if (!cpts || !cpts->rx_enable)
->>>>  		return;
-> 
->> Ok. I can't say I'd like all this checks, but there are internal requirement 
->> to allow CPTS to be disabled though DT on KS2 (even if built in).
->> I'd try to clarify and return back here.
->>
->> But It'll be good to know your position - acceptable/can be discussed/completely unacceptable?
-> 
-> Look at that code snippet.  We already test for @cpts->rx_enable.  If
-> you want to disable cpts at run time, just avoid setting that field.
-> There is no need for any new tests or return codes.
-> 
+Now that the cpufreq-dt-platdev is used to create the cpufreq-dt platform
+device for all OMAP platforms and the platform code that did it
+before has been removed, add ti,am33xx and ti,dra7xx to the machine list
+in cpufreq-dt-platdev which had relied on the removed platform code to do
+this previously.
 
-The problem is that if cpts not initialized than pinter on 
-cpts (in consumer/parent driver - NETCP) will be NULL.
-So, rx_enable will be unaccessible and cause crash :(
+Fixes: 7694ca6e1d6f ("cpufreq: omap: Use generic platdev driver")
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+---
+ drivers/cpufreq/cpufreq-dt-platdev.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
+diff --git a/drivers/cpufreq/cpufreq-dt-platdev.c b/drivers/cpufreq/cpufreq-dt-platdev.c
+index 0bb44d5b5df4..d5e8ba50f8a3 100644
+--- a/drivers/cpufreq/cpufreq-dt-platdev.c
++++ b/drivers/cpufreq/cpufreq-dt-platdev.c
+@@ -68,6 +68,8 @@ static const struct of_device_id machines[] __initconst = {
+ 
+ 	{ .compatible = "sigma,tango4" },
+ 
++	{ .compatible = "ti,am33xx", },
++	{ .compatible = "ti,dra7", },
+ 	{ .compatible = "ti,omap2", },
+ 	{ .compatible = "ti,omap3", },
+ 	{ .compatible = "ti,omap4", },
 -- 
-regards,
--grygorii
+2.9.3
+
