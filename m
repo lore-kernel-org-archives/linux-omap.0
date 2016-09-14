@@ -1,262 +1,340 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [RFC PATCH 00/11] pci: support for configurable PCI endpoint
-Date: Wed, 14 Sep 2016 10:41:56 +0530
-Message-ID: <1473829927-20466-1-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [RFC PATCH 02/11] pci: endpoint: introduce configfs entry for configuring EP functions
+Date: Wed, 14 Sep 2016 10:41:58 +0530
+Message-ID: <1473829927-20466-3-git-send-email-kishon@ti.com>
+References: <1473829927-20466-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-doc-owner@vger.kernel.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Jingoo Han <jingoohan1@gmail.com>, hch@infradead.org, Joao.Pinto@synopsys.com, mingkai.hu@nxp.com, m-karicheri2@ti.com, Pratyush Anand <pratyush.anand@gmail.com>
-Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Joao Pinto <jpinto@synopsys.com>, Rob Herring <robh+dt@kernel.org>, kishon@ti.com, nsekhar@ti.com
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1473829927-20466-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Jingoo Han <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, mingkai.hu-3arQi8VN3Tc@public.gmane.org, m-karicheri2-l0cyMroinI0@public.gmane.org, Pratyush Anand <pratyush.anand-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Joao Pinto <jpinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, kishon-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch series
-	*) adds PCI endpoint core layer
-	*) modifies designware/dra7xx driver to be configured in EP mode
-	*) adds a PCI endpoint *test* function driver
+Introduce a new configfs entry to configure the EP function (like
+configuring the standard configuration header entries) and to
+bind the function with a controller.
 
-Known Limitation:
-	*) Does not support multi-function devices
-
-TODO:
-	*) access buffers in RC
-	*) raise MSI interrupts
-	*) Enable user space control for the RC side PCI driver
-	*) Adapt all other users of designware to use the new design (only
-	   dra7xx has been adapted)
-
-HOW TO:
-
-ON THE EP SIDE:
-***************
-
-/* EP function is configured using configfs */
-# mount -t configfs none /sys/kernel/config
-
-/* PCI EP core layer creates "pci_ep" entry in configfs */
-# cd /sys/kernel/config/pci_ep/
-
-/*
- * This is the 1st step in creating an endpoint function. This
- * creates the endpoint function device *instance*. The string
- * before the .<num> suffix will identify the driver this
- * EP function will bind to.
- * Just pci_epf_test is also valid. The .<num> suffix is used
- * if there are multiple PCI controllers and all of them wants
- * to use the same function.
- */
-# mkdir pci_epf_test.0
-
-/*
- * When the above command is given, the function device will
- * also be bound to a function driver. To find the list of
- * function drivers available in the system, use the following
- * command. To create a new driver, the following can be referred
- * drivers/pci/endpoint/functions/pci-epf-test.c
- */
-# ls /sys/bus/pci-epf/drivers
-pci_epf_test
-
-/* Now configure the endpoint function */
-# cd pci_epf_test.0
-
-/* These are the fields that can be configured */
-# ls
-baseclass_code    function          revid             vendorid
-cache_line_size   interrupt_pin     subclass_code
-deviceid          peripheral        subsys_id
-epc               progif_code       subsys_vendor_id
-
-/* The function driver will populate these fields with default values */
-# cat vendorid 
-0xffff
-
-# cat interrupt_pin 
-0x0001
-
-/* The user can configure any of these fields */
-# echo 0x104c > vendorid
-
-/*
- * Next is binding this function driver to the controller driver. In
- * order to find the possible controller drivers that this function
- * driver can be bound to, the following sysfs entry can be used
- */
-# ls /sys/class/pci_epc/
-51000000.pci
-
-/* Now bind the function driver to the controller driver */
-# echo "51000000.pcie" > epc
-[  494.743487] dra7-pcie 51000000.pcie: no free inbound window
-[  494.749367] pci_epf_test pci_epf_test.0: failed to set BAR4
-[  494.755238] dra7-pcie 51000000.pcie: no free inbound window
-[  494.761451] pci_epf_test pci_epf_test.0: failed to set BAR5
-
-/*
- * the above error messages are due to non availability of free
- * inbound windows. So the function drivers in dra7xx can use
- * only 4 (BAR0..BAR3) BARs
- */
-
-/****** PCI endpoint is configured ******/
-
-ON THE HOST SIDE:
-*****************
-# modprobe pci_endpoint_test
-[    8.197560] ****** Testing pci-endpoint-test Device ******
-[    9.056990] Reset: OKAY
-[    9.059753] BAR1 OKAY
-[    9.062419] BAR2 OKAY
-[    9.069506] BAR3 OKAY
-[    9.071880] BAR4 NOT OKAY
-[    9.074618] BAR5 NOT OKAY
-[    9.379257] Legacy IRQ: OKAY
-[    9.382281] ****** End Test ******
-
-/*
- * Rightnow these tests gets executed as soon as the pci_endpoint_test
- * module gets inserted. These will be modified so that user/user script
- * can control this. Once the functionality for EP to access RC buffer
- * is added, more tests can be added including throughput measurement tests.
- */ 
-
-Kishon Vijay Abraham I (11):
-  pci: endpoint: add EP core layer to enable EP controller and EP
-    functions
-  pci: endpoint: introduce configfs entry for configuring EP functions
-  Documentation: PCI: guide to use PCI Endpoint Core Layer
-  pci: endpoint: functions: add an EP function to test PCI
-  pci: rename *host* directory to *controller*
-  pci: controller: split designware into *core* and *host*
-  pci: controller: designware: Add EP mode support
-  pci: controller: dra7xx: Add EP mode support
-  misc: add a new host side PCI endpoint test driver
-  ARM: dts: DRA7: Modify pcie1 dt node for EP mode
-  HACK: pci: controller: dra7xx: disable smart idle
-
- Documentation/PCI/00-INDEX                         |    5 +
- Documentation/PCI/pci-endpoint.txt                 |  199 ++++++++++
- Documentation/PCI/pci-test.txt                     |   79 ++++
- .../devicetree/bindings/pci/designware-pcie.txt    |   26 +-
- Documentation/devicetree/bindings/pci/ti-pci.txt   |   30 +-
- MAINTAINERS                                        |   50 +--
- arch/arm/boot/dts/dra7.dtsi                        |   43 +--
- drivers/Makefile                                   |    4 +
- drivers/misc/Kconfig                               |    7 +
- drivers/misc/Makefile                              |    1 +
- drivers/misc/pci_endpoint_test.c                   |  291 +++++++++++++++
- drivers/pci/Kconfig                                |    3 +-
- drivers/pci/Makefile                               |    3 -
- drivers/pci/{host => controller}/Kconfig           |  109 +++++-
- drivers/pci/{host => controller}/Makefile          |    2 +
- drivers/pci/{host => controller}/pci-aardvark.c    |    0
- drivers/pci/{host => controller}/pci-dra7xx.c      |  340 +++++++++++++----
- drivers/pci/{host => controller}/pci-exynos.c      |    0
- drivers/pci/{host => controller}/pci-host-common.c |    0
- .../pci/{host => controller}/pci-host-generic.c    |    0
- drivers/pci/{host => controller}/pci-hyperv.c      |    0
- drivers/pci/{host => controller}/pci-imx6.c        |    0
- drivers/pci/{host => controller}/pci-keystone-dw.c |    0
- drivers/pci/{host => controller}/pci-keystone.c    |    0
- drivers/pci/{host => controller}/pci-keystone.h    |    0
- drivers/pci/{host => controller}/pci-layerscape.c  |    0
- drivers/pci/{host => controller}/pci-mvebu.c       |    0
- drivers/pci/{host => controller}/pci-rcar-gen2.c   |    0
- drivers/pci/{host => controller}/pci-tegra.c       |    0
- .../pci/{host => controller}/pci-thunder-ecam.c    |    0
- drivers/pci/{host => controller}/pci-thunder-pem.c |    0
- drivers/pci/{host => controller}/pci-versatile.c   |    0
- drivers/pci/{host => controller}/pci-xgene-msi.c   |    0
- drivers/pci/{host => controller}/pci-xgene.c       |    0
- drivers/pci/{host => controller}/pcie-altera-msi.c |    0
- drivers/pci/{host => controller}/pcie-altera.c     |    0
- drivers/pci/{host => controller}/pcie-armada8k.c   |    0
- drivers/pci/{host => controller}/pcie-artpec6.c    |    0
- drivers/pci/controller/pcie-designware-ep.c        |  228 ++++++++++++
- .../pcie-designware-host.c}                        |  294 +++------------
- .../{host => controller}/pcie-designware-plat.c    |    0
- drivers/pci/controller/pcie-designware.c           |  233 ++++++++++++
- drivers/pci/controller/pcie-designware.h           |  238 ++++++++++++
- drivers/pci/{host => controller}/pcie-hisi.c       |    0
- drivers/pci/{host => controller}/pcie-iproc-bcma.c |    0
- drivers/pci/{host => controller}/pcie-iproc-msi.c  |    0
- .../pci/{host => controller}/pcie-iproc-platform.c |    0
- drivers/pci/{host => controller}/pcie-iproc.c      |    0
- drivers/pci/{host => controller}/pcie-iproc.h      |    0
- drivers/pci/{host => controller}/pcie-qcom.c       |    0
- drivers/pci/{host => controller}/pcie-rcar.c       |    0
- drivers/pci/{host => controller}/pcie-spear13xx.c  |    0
- drivers/pci/{host => controller}/pcie-xilinx-nwl.c |    0
- drivers/pci/{host => controller}/pcie-xilinx.c     |    0
- drivers/pci/endpoint/Kconfig                       |   25 ++
- drivers/pci/endpoint/Makefile                      |    6 +
- drivers/pci/endpoint/functions/Kconfig             |   12 +
- drivers/pci/endpoint/functions/Makefile            |    5 +
- drivers/pci/endpoint/functions/pci-epf-test.c      |  272 ++++++++++++++
- drivers/pci/endpoint/pci-ep-cfs.c                  |  275 ++++++++++++++
- drivers/pci/endpoint/pci-epc-core.c                |  389 ++++++++++++++++++++
- drivers/pci/endpoint/pci-epf-core.c                |  338 +++++++++++++++++
- drivers/pci/host/pcie-designware.h                 |   89 -----
- include/linux/mod_devicetable.h                    |   10 +
- include/linux/pci-epc.h                            |  100 +++++
- include/linux/pci-epf.h                            |  159 ++++++++
- 66 files changed, 3373 insertions(+), 492 deletions(-)
- create mode 100644 Documentation/PCI/pci-endpoint.txt
- create mode 100644 Documentation/PCI/pci-test.txt
- create mode 100644 drivers/misc/pci_endpoint_test.c
- rename drivers/pci/{host => controller}/Kconfig (79%)
- rename drivers/pci/{host => controller}/Makefile (93%)
- rename drivers/pci/{host => controller}/pci-aardvark.c (100%)
- rename drivers/pci/{host => controller}/pci-dra7xx.c (62%)
- rename drivers/pci/{host => controller}/pci-exynos.c (100%)
- rename drivers/pci/{host => controller}/pci-host-common.c (100%)
- rename drivers/pci/{host => controller}/pci-host-generic.c (100%)
- rename drivers/pci/{host => controller}/pci-hyperv.c (100%)
- rename drivers/pci/{host => controller}/pci-imx6.c (100%)
- rename drivers/pci/{host => controller}/pci-keystone-dw.c (100%)
- rename drivers/pci/{host => controller}/pci-keystone.c (100%)
- rename drivers/pci/{host => controller}/pci-keystone.h (100%)
- rename drivers/pci/{host => controller}/pci-layerscape.c (100%)
- rename drivers/pci/{host => controller}/pci-mvebu.c (100%)
- rename drivers/pci/{host => controller}/pci-rcar-gen2.c (100%)
- rename drivers/pci/{host => controller}/pci-tegra.c (100%)
- rename drivers/pci/{host => controller}/pci-thunder-ecam.c (100%)
- rename drivers/pci/{host => controller}/pci-thunder-pem.c (100%)
- rename drivers/pci/{host => controller}/pci-versatile.c (100%)
- rename drivers/pci/{host => controller}/pci-xgene-msi.c (100%)
- rename drivers/pci/{host => controller}/pci-xgene.c (100%)
- rename drivers/pci/{host => controller}/pcie-altera-msi.c (100%)
- rename drivers/pci/{host => controller}/pcie-altera.c (100%)
- rename drivers/pci/{host => controller}/pcie-armada8k.c (100%)
- rename drivers/pci/{host => controller}/pcie-artpec6.c (100%)
- create mode 100644 drivers/pci/controller/pcie-designware-ep.c
- rename drivers/pci/{host/pcie-designware.c => controller/pcie-designware-host.c} (64%)
- rename drivers/pci/{host => controller}/pcie-designware-plat.c (100%)
- create mode 100644 drivers/pci/controller/pcie-designware.c
- create mode 100644 drivers/pci/controller/pcie-designware.h
- rename drivers/pci/{host => controller}/pcie-hisi.c (100%)
- rename drivers/pci/{host => controller}/pcie-iproc-bcma.c (100%)
- rename drivers/pci/{host => controller}/pcie-iproc-msi.c (100%)
- rename drivers/pci/{host => controller}/pcie-iproc-platform.c (100%)
- rename drivers/pci/{host => controller}/pcie-iproc.c (100%)
- rename drivers/pci/{host => controller}/pcie-iproc.h (100%)
- rename drivers/pci/{host => controller}/pcie-qcom.c (100%)
- rename drivers/pci/{host => controller}/pcie-rcar.c (100%)
- rename drivers/pci/{host => controller}/pcie-spear13xx.c (100%)
- rename drivers/pci/{host => controller}/pcie-xilinx-nwl.c (100%)
- rename drivers/pci/{host => controller}/pcie-xilinx.c (100%)
- create mode 100644 drivers/pci/endpoint/Kconfig
- create mode 100644 drivers/pci/endpoint/Makefile
- create mode 100644 drivers/pci/endpoint/functions/Kconfig
- create mode 100644 drivers/pci/endpoint/functions/Makefile
- create mode 100644 drivers/pci/endpoint/functions/pci-epf-test.c
+Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+---
+ drivers/pci/endpoint/Kconfig      |    4 +-
+ drivers/pci/endpoint/Makefile     |    3 +-
+ drivers/pci/endpoint/pci-ep-cfs.c |  275 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 280 insertions(+), 2 deletions(-)
  create mode 100644 drivers/pci/endpoint/pci-ep-cfs.c
- create mode 100644 drivers/pci/endpoint/pci-epc-core.c
- create mode 100644 drivers/pci/endpoint/pci-epf-core.c
- delete mode 100644 drivers/pci/host/pcie-designware.h
- create mode 100644 include/linux/pci-epc.h
- create mode 100644 include/linux/pci-epf.h
 
+diff --git a/drivers/pci/endpoint/Kconfig b/drivers/pci/endpoint/Kconfig
+index a6d827c..f1dd206 100644
+--- a/drivers/pci/endpoint/Kconfig
++++ b/drivers/pci/endpoint/Kconfig
+@@ -13,7 +13,9 @@ config PCI_ENDPOINT
+ 
+ 	   Enabling this option will build the endpoint library, which
+ 	   includes endpoint controller library and endpoint function
+-	   library.
++	   library. This will also enable the configfs entry required to
++	   configure the endpoint function and used to bind the
++	   function with a endpoint controller.
+ 
+ 	   If in doubt, say "N" to disable Endpoint support.
+ 
+diff --git a/drivers/pci/endpoint/Makefile b/drivers/pci/endpoint/Makefile
+index dbc5517..67c88bf 100644
+--- a/drivers/pci/endpoint/Makefile
++++ b/drivers/pci/endpoint/Makefile
+@@ -2,4 +2,5 @@
+ # Makefile for PCI Endpoint Support
+ #
+ 
+-obj-$(CONFIG_PCI_ENDPOINT)		:= pci-epc-core.o pci-epf-core.o
++obj-$(CONFIG_PCI_ENDPOINT)		:= pci-epc-core.o pci-epf-core.o \
++					   pci-ep-cfs.o
+diff --git a/drivers/pci/endpoint/pci-ep-cfs.c b/drivers/pci/endpoint/pci-ep-cfs.c
+new file mode 100644
+index 0000000..d11ae34
+--- /dev/null
++++ b/drivers/pci/endpoint/pci-ep-cfs.c
+@@ -0,0 +1,275 @@
++/**
++ * pci-ep-cfs.c - configfs to configure the PCI endpoint
++ *
++ * Copyright (C) 2016 Texas Instruments
++ * Author: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
++ *
++ * This program is free software: you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 of
++ * the License as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/configfs.h>
++#include <linux/module.h>
++#include <linux/slab.h>
++
++#include <linux/pci-epc.h>
++#include <linux/pci-epf.h>
++
++struct pci_epf_info {
++	struct config_item pci_epf;
++	struct pci_epf *epf;
++};
++
++static inline struct pci_epf_info *to_pci_epf_info(struct config_item *item)
++{
++	return container_of(item, struct pci_epf_info, pci_epf);
++}
++
++#define PCI_EPF_HEADER_R(_name)	\
++static ssize_t pci_epf_##_name##_show(struct config_item *item,		\
++			char *page)					       \
++{									       \
++	return sprintf(page, "0x%04x\n",				       \
++		       to_pci_epf_info(item)->epf->header->_name);	       \
++}
++
++#define PCI_EPF_HEADER_W_u32(_name)	\
++static ssize_t pci_epf_##_name##_store(struct config_item *item,	       \
++					     const char *page, size_t len)     \
++{									       \
++	u32 val;							       \
++	int ret;							       \
++	ret = kstrtou32(page, 0, &val);					       \
++	if (ret)							       \
++		return ret;						       \
++	to_pci_epf_info(item)->epf->header->_name = val;		       \
++	return len;							       \
++}
++
++#define PCI_EPF_HEADER_W_u16(_name)	\
++static ssize_t pci_epf_##_name##_store(struct config_item *item,	       \
++					     const char *page, size_t len)     \
++{									       \
++	u16 val;							       \
++	int ret;							       \
++	ret = kstrtou16(page, 0, &val);					       \
++	if (ret)							       \
++		return ret;						       \
++	to_pci_epf_info(item)->epf->header->_name = val;		       \
++	return len;							       \
++}
++
++#define PCI_EPF_HEADER_W_u8(_name)	\
++static ssize_t pci_epf_##_name##_store(struct config_item *item,	       \
++					     const char *page, size_t len)     \
++{									       \
++	u8 val;								       \
++	int ret;							       \
++	ret = kstrtou8(page, 0, &val);					       \
++	if (ret)							       \
++		return ret;						       \
++	to_pci_epf_info(item)->epf->header->_name = val;		       \
++	return len;							       \
++}
++
++#define PCI_EPF_HEADER_RW(_name, _type)	\
++	PCI_EPF_HEADER_R(_name)		\
++	PCI_EPF_HEADER_W_##_type(_name)
++
++static ssize_t pci_epf_peripheral_store(struct config_item *item,
++					    const char *page, size_t len)
++{
++	struct pci_epf_info *epf_info = to_pci_epf_info(item);
++	char *dev_name;
++
++	dev_name = kstrdup(page, GFP_KERNEL);
++	if (!dev_name)
++		return -ENOMEM;
++	if (dev_name[len - 1] == '\n')
++		dev_name[len - 1] = '\0';
++
++	epf_info->epf->hw_devname = dev_name;
++	return len;
++}
++
++static ssize_t pci_epf_peripheral_show(struct config_item *item,
++					   char *page)
++{
++	return sprintf(page, "%s\n",
++		       to_pci_epf_info(item)->epf->hw_devname);
++}
++
++static ssize_t pci_epf_function_show(struct config_item *item,
++					   char *page)
++{
++	return sprintf(page, "%s\n",
++		       to_pci_epf_info(item)->epf->name);
++}
++
++static ssize_t pci_epf_epc_store(struct config_item *item,
++					    const char *page, size_t len)
++{
++	int ret;
++	struct pci_epf_info *epf_info = to_pci_epf_info(item);
++	char *epc_name;
++
++	epc_name = kstrdup(page, GFP_KERNEL);
++	if (!epc_name)
++		return -ENOMEM;
++	if (epc_name[len - 1] == '\n')
++		epc_name[len - 1] = '\0';
++
++	if (epf_info->epf->epc)
++		pci_epc_unbind_epf(epf_info->epf);
++
++	epf_info->epf->pci_epc_name = epc_name;
++	ret = pci_epc_bind_epf(epf_info->epf);
++	if (ret)
++		return -EINVAL;
++
++	return len;
++}
++
++static ssize_t pci_epf_epc_show(struct config_item *item,
++					   char *page)
++{
++	return sprintf(page, "%s\n",
++		       to_pci_epf_info(item)->epf->pci_epc_name);
++}
++
++PCI_EPF_HEADER_RW(vendorid, u16);
++PCI_EPF_HEADER_RW(deviceid, u16);
++PCI_EPF_HEADER_RW(revid, u16);
++PCI_EPF_HEADER_RW(progif_code, u16);
++PCI_EPF_HEADER_RW(subclass_code, u16);
++PCI_EPF_HEADER_RW(baseclass_code, u16);
++PCI_EPF_HEADER_RW(cache_line_size, u16);
++PCI_EPF_HEADER_RW(subsys_vendor_id, u16);
++PCI_EPF_HEADER_RW(subsys_id, u16);
++PCI_EPF_HEADER_RW(interrupt_pin, u16);
++
++CONFIGFS_ATTR(pci_epf_, vendorid);
++CONFIGFS_ATTR(pci_epf_, deviceid);
++CONFIGFS_ATTR(pci_epf_, revid);
++CONFIGFS_ATTR(pci_epf_, progif_code);
++CONFIGFS_ATTR(pci_epf_, subclass_code);
++CONFIGFS_ATTR(pci_epf_, baseclass_code);
++CONFIGFS_ATTR(pci_epf_, cache_line_size);
++CONFIGFS_ATTR(pci_epf_, subsys_vendor_id);
++CONFIGFS_ATTR(pci_epf_, subsys_id);
++CONFIGFS_ATTR(pci_epf_, interrupt_pin);
++CONFIGFS_ATTR(pci_epf_, peripheral);
++CONFIGFS_ATTR_RO(pci_epf_, function);
++CONFIGFS_ATTR(pci_epf_, epc);
++
++static struct configfs_attribute *pci_epf_attrs[] = {
++	&pci_epf_attr_vendorid,
++	&pci_epf_attr_deviceid,
++	&pci_epf_attr_revid,
++	&pci_epf_attr_progif_code,
++	&pci_epf_attr_subclass_code,
++	&pci_epf_attr_baseclass_code,
++	&pci_epf_attr_cache_line_size,
++	&pci_epf_attr_subsys_vendor_id,
++	&pci_epf_attr_subsys_id,
++	&pci_epf_attr_interrupt_pin,
++	&pci_epf_attr_peripheral,
++	&pci_epf_attr_function,
++	&pci_epf_attr_epc,
++	NULL,
++};
++
++static void pci_epf_release(struct config_item *item)
++{
++	struct pci_epf_info *epf_info = to_pci_epf_info(item);
++
++	pci_epf_destroy(epf_info->epf);
++	kfree(epf_info);
++}
++
++static struct configfs_item_operations pci_epf_ops = {
++	.release		= pci_epf_release,
++};
++
++static struct config_item_type pci_epf_type = {
++	.ct_item_ops	= &pci_epf_ops,
++	.ct_attrs	= pci_epf_attrs,
++	.ct_owner	= THIS_MODULE,
++};
++
++static struct config_item *pci_epf_make(struct config_group *group,
++					const char *name)
++{
++	struct pci_epf_info *epf_info;
++	struct pci_epf *epf;
++
++	epf_info = kzalloc(sizeof(*epf_info), GFP_KERNEL);
++	if (!epf_info)
++		return ERR_PTR(-ENOMEM);
++
++	epf = pci_epf_create(name);
++	if (IS_ERR(epf)) {
++		pr_err("failed to create endpoint function device\n");
++		return ERR_PTR(-EINVAL);
++	}
++
++	epf_info->epf = epf;
++
++	config_item_init_type_name(&epf_info->pci_epf, name,
++				   &pci_epf_type);
++
++	return &epf_info->pci_epf;
++}
++
++static struct configfs_group_operations pci_ep_ops = {
++	.make_item	= pci_epf_make,
++};
++
++static struct config_item_type pci_ep_type = {
++	.ct_group_ops	= &pci_ep_ops,
++	.ct_owner	= THIS_MODULE,
++};
++
++static struct configfs_subsystem pci_ep_cfs_subsys = {
++	.su_group = {
++		.cg_item = {
++			.ci_namebuf = "pci_ep",
++			.ci_type = &pci_ep_type,
++		},
++	},
++	.su_mutex = __MUTEX_INITIALIZER(pci_ep_cfs_subsys.su_mutex),
++};
++
++static int __init pci_ep_cfs_init(void)
++{
++	int ret;
++
++	config_group_init(&pci_ep_cfs_subsys.su_group);
++
++	ret = configfs_register_subsystem(&pci_ep_cfs_subsys);
++	if (ret)
++		pr_err("Error %d while registering subsystem %s\n",
++		       ret, pci_ep_cfs_subsys.su_group.cg_item.ci_namebuf);
++
++	return ret;
++}
++module_init(pci_ep_cfs_init);
++
++static void __exit pci_ep_cfs_exit(void)
++{
++	configfs_unregister_subsystem(&pci_ep_cfs_subsys);
++}
++module_exit(pci_ep_cfs_exit);
++
++MODULE_DESCRIPTION("PCI EP CONFIGFS");
++MODULE_AUTHOR("Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>");
++MODULE_LICENSE("GPL v2");
 -- 
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
