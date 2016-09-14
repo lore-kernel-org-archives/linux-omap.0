@@ -1,37 +1,43 @@
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: Re: [PATCH] ARM: dts: Add power button support for igepv5
-Date: Tue, 13 Sep 2016 21:26:01 -0400
-Message-ID: <31409234-3185-5348-2d37-effb7769c92a@osg.samsung.com>
-References: <20160909210729.20184-1-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160909210729.20184-1-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: Enric Balletbo Serra <eballetbo@gmail.com>, Pau Pajuel <ppajuel@gmail.com>, =?UTF-8?Q?Agust=c3=ad_Fontquerni_i_Gorchs?= <afontquerni@iseebcn.com>, linux-arm-kernel@lists.infradead.org
+From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: omap3-gta04: reduce panel backlight PWM frequency to 83Hz
+Date: Wed, 14 Sep 2016 06:28:12 +0200
+Message-ID: <82853D52-0D6B-42EC-8900-5575A92123E6@goldelico.com>
+References: <954d43b570092fe92b8b49cf8f475c027d3d8342.1473066997.git.hns@goldelico.com> <20160910031736.xwnepaoifpedqfbr@squirrel.local> <3188F52F-1372-4D59-B790-C15E584A44F2@goldelico.com> <CAALWOA8ZZBbgCG-5TRbd6=k27PQV2EHcCj6zwk31sKTHY1A7Bg@mail.gmail.com> <7C9DF12E-32C6-4D7C-BAAD-5CE9F8BA305A@goldelico.com> <20160913220710.wo7jjyql362pttbs@atomide.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160913220710.wo7jjyql362pttbs-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Rivshin <drivshin-5fOYsn7Fw8lBDgjK7y7TUQ@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Discussions about the Letux Kernel <letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org>, Neil Armstrong <narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-SGVsbG8gVG9ueSwKCk9uIDA5LzA5LzIwMTYgMDU6MDcgUE0sIFRvbnkgTGluZGdyZW4gd3JvdGU6
-Cj4gQWRkIHBvd2VyIGJ1dHRvbiBzdXBwb3J0IGZvciBpZ2VwdjUuCj4gCj4gQ2M6IEFndXN0w60g
-Rm9udHF1ZXJuaSBpIEdvcmNocyA8YWZvbnRxdWVybmlAaXNlZWJjbi5jb20+Cj4gQ2M6IEVucmlj
-IEJhbGxldGJvIFNlcnJhIDxlYmFsbGV0Ym9AZ21haWwuY29tPgo+IENjOiBKYXZpZXIgTWFydGlu
-ZXogQ2FuaWxsYXMgPGphdmllckBvc2cuc2Ftc3VuZy5jb20+Cj4gQ2M6IFBhdSBQYWp1ZWwgPHBw
-YWp1ZWxAZ21haWwuY29tPgo+IFNpZ25lZC1vZmYtYnk6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRv
-bWlkZS5jb20+Cj4gLS0tCgpJIGRvbid0IGhhdmUgYSBzY2hlbWF0aWNzIGZvciB0aGlzIGJvYXJk
-LCBidXQgdGhlIHBhdGNoIGxvb2tzIGdvb2QgdG8gbWUuCgpSZXZpZXdlZC1ieTogSmF2aWVyIE1h
-cnRpbmV6IENhbmlsbGFzIDxqYXZpZXJAb3NnLnNhbXN1bmcuY29tPgoKQmVzdCByZWdhcmRzLAot
-LSAKSmF2aWVyIE1hcnRpbmV6IENhbmlsbGFzCk9wZW4gU291cmNlIEdyb3VwClNhbXN1bmcgUmVz
-ZWFyY2ggQW1lcmljYQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0
-cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGlu
-Zm8vbGludXgtYXJtLWtlcm5lbAo=
+Hi,
+
+> Am 14.09.2016 um 00:07 schrieb Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>:
+>=20
+> * H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> [160910 02:10]:
+>>> Am 10.09.2016 um 10:20 schrieb Matthijs van Duin =
+<matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
+>>=20
+>> But with the patch submitted, I just want to give the dts of a single
+>> device I have even designed a more reasonable value than in current
+>> linux/master and don't really want to make it a fundamental =
+discussion...
+>=20
+> So what's the verdict here on this patch? Should we wait for the =
+driver
+> to get fixed?
+
+No, because it are indeed two issues which can (and should) be fixed =
+independently.
+This one just makes the urgency of the other bug smaller.
+
+BR and thanks,
+Nikolaus
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
