@@ -1,57 +1,24 @@
-From: Bin Liu <b-liu@ti.com>
-Subject: Re: drivers/usb/musb/tusb6010.c:142:21: error: 'USB_INDEX' undeclared
-Date: Wed, 14 Sep 2016 08:13:38 -0500
-Message-ID: <20160914131338.GA9442@uda0271908>
-References: <201606120442.yWatggEa%fengguang.wu@intel.com>
- <20160908174521.fcrjbcwktfiuujib@atomide.com>
- <20160908182609.GG4054@uda0271908>
- <20160913223504.7mdgtipmkltikuyt@atomide.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH] dmaengine: omap-dma: Correct type2 descriptor's member
+ types
+Date: Wed, 14 Sep 2016 19:02:41 +0530
+Message-ID: <20160914133241.GH13920@localhost>
+References: <20160913075843.26691-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160913223504.7mdgtipmkltikuyt@atomide.com>
+In-Reply-To: <20160913075843.26691-1-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: kbuild test robot <fengguang.wu@intel.com>, kbuild-all@01.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: dan.j.williams@intel.com, linux@armlinux.org.uk, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Sep 13, 2016 at 03:35:05PM -0700, Tony Lindgren wrote:
-> * Bin Liu <b-liu@ti.com> [160908 11:26]:
-> > On Thu, Sep 08, 2016 at 10:45:21AM -0700, Tony Lindgren wrote:
-> > > --- a/drivers/usb/musb/Kconfig
-> > > +++ b/drivers/usb/musb/Kconfig
-> > > @@ -87,7 +87,7 @@ config USB_MUSB_DA8XX
-> > >  config USB_MUSB_TUSB6010
-> > >  	tristate "TUSB6010"
-> > >  	depends on HAS_IOMEM
-> > > -	depends on ARCH_OMAP2PLUS || COMPILE_TEST
-> > > +	depends on (ARCH_OMAP2PLUS || COMPILE_TEST) && !BLACKFIN
-> > 
-> > Would this cause more issue later when trying to enable all glue drivers
-> > in one build?
-> 
-> Yes but see what CONFIG_BLACKFIN is doing with musb_regs.h..
-> It completely redefines all the registers with ifdef else.
-> 
-> > The macros defined in tusb6010.h are only used in tusb6010.c, so how
-> > about move '#include "tusb6010.h"' from musb_regs.h to tusb6010.c
-> > instead? This gives flexibility to random config test, isn't it?
-> 
-> I'd like to see that but we have this in musb_core.c:
-> 
-> hw_ep->conf = mbase - 0x400 + TUSB_EP0_CONF;
-> 
-> So the build would break there again on blackin with tusb6010..
-> Got any ideas on how to sort that out?
+On Tue, Sep 13, 2016 at 10:58:43AM +0300, Peter Ujfalusi wrote:
+> The type of CDEI, CSEI, CDFI and CSFI is signed.
+> This did not caused issue so far as we only use unsigned values.
 
-Thanks for catching it. It appears that the glues require more work to
-cleanup. I am taking your patch.
+Applied, thanks
 
-Regards,
--Bin.
-
-> 
-> Regards,
-> 
-> Tony
+-- 
+~Vinod
