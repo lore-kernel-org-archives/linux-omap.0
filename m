@@ -1,46 +1,53 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 7/9] net: ethernet: ti: cpts: calc mult and shift from
- refclk freq
-Date: Thu, 15 Sep 2016 00:14:35 +0300
-Message-ID: <4d5308ae-02ea-e561-d190-350b994efef1@ti.com>
-References: <20160914130231.3035-1-grygorii.strashko@ti.com>
- <20160914130231.3035-8-grygorii.strashko@ti.com>
- <20160914202618.GC12195@netboy> <4add2983-bdfe-8436-de62-4b2fdc2ea750@ti.com>
- <20160914210332.GG12195@netboy>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH] cpufreq: ti: Use generic platdev driver
+Date: Wed, 14 Sep 2016 16:36:02 -0500
+Message-ID: <57D9C2C2.6070807@ti.com>
+References: <20160914204137.20346-1-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160914210332.GG12195@netboy>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Richard Cochran <richardcochran@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, WingMan Kwok <w-kwok2@ti.com>, John Stultz <john.stultz@linaro.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20160914204137.20346-1-d-gerlach@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/15/2016 12:03 AM, Richard Cochran wrote:
-> On Wed, Sep 14, 2016 at 11:47:46PM +0300, Grygorii Strashko wrote:
->> As I understand (and tested), clocks_calc_mult_shift() will
->> return max possible mult which can be used without overflow.
+On 09/14/2016 03:41 PM, Dave Gerlach wrote:
+> Now that the cpufreq-dt-platdev is used to create the cpufreq-dt platform
+> device for all OMAP platforms and the platform code that did it
+> before has been removed, add ti,am33xx and ti,dra7xx to the machine list
+> in cpufreq-dt-platdev which had relied on the removed platform code to do
+> this previously.
 >
-> Yes, BUT the returned values depends on the @maxsec input.  As the
-> kerneldec says,
+> Fixes: 7694ca6e1d6f ("cpufreq: omap: Use generic platdev driver")
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> ---
+
+This got left out when OMAP was originally added to the 
+cpufreq-dt-platdev, so cpufreq disappeared on am335x and dra7 platforms. 
+This patch together with the series here [1] will fix this regression.
+
+Regards,
+Dave
+
+[1] http://marc.info/?l=linux-pm&m=147388667613317&w=2
+
+>   drivers/cpufreq/cpufreq-dt-platdev.c | 2 ++
+>   1 file changed, 2 insertions(+)
 >
->  * Larger ranges may reduce the conversion accuracy by chosing smaller
->  * mult and shift factors.
+> diff --git a/drivers/cpufreq/cpufreq-dt-platdev.c b/drivers/cpufreq/cpufreq-dt-platdev.c
+> index 0bb44d5b5df4..d5e8ba50f8a3 100644
+> --- a/drivers/cpufreq/cpufreq-dt-platdev.c
+> +++ b/drivers/cpufreq/cpufreq-dt-platdev.c
+> @@ -68,6 +68,8 @@ static const struct of_device_id machines[] __initconst = {
 >
-> In addition to that, frequency tuning by calculating a percentage of
-> 'mult', and if 'mult' is small, then the tuning resolution is poor.
+>   	{ .compatible = "sigma,tango4" },
 >
-> So we don't want @maxsec as large as possible, but as small as
-> possible.
+> +	{ .compatible = "ti,am33xx", },
+> +	{ .compatible = "ti,dra7", },
+>   	{ .compatible = "ti,omap2", },
+>   	{ .compatible = "ti,omap3", },
+>   	{ .compatible = "ti,omap4", },
 >
 
-Ok. So, will it work if maxsec will be ~= (maxsec / 2) + 1?
-+ 1 to cover potential delays of overflow check work execution.
-
-[...]
-
-
--- 
-regards,
--grygorii
