@@ -1,86 +1,47 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 3/3] Revert "ARM: dts: dra7: Move to operating-points-v2 table"
-Date: Wed, 14 Sep 2016 15:57:17 -0500
-Message-ID: <20160914205717.21975-4-d-gerlach@ti.com>
-References: <20160914205717.21975-1-d-gerlach@ti.com>
+Subject: [PATCH 0/3] ARM: dts: am33xx/dra7xx: Fix cpufreq regression
+Date: Wed, 14 Sep 2016 15:57:14 -0500
+Message-ID: <20160914205717.21975-1-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20160914205717.21975-1-d-gerlach@ti.com>
 Sender: linux-pm-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This reverts commit f80bc97fd0a9711ef11bdb3e63c2c01115a82c47.
+Hi,
+CPUFreq on am335x and dra7 platforms got broken by two things:
+ - Updated OPPv2 nodes in device tree were merged before driver to
+   handle them was accepted.
+ - OMAP platforms now use the new cpufreq-dt-platdev driver to create
+   cpufreq-dt platform device but non OMAP TI devices were not changed
+   over to this driver.
 
-The original commit updated the cpufreq operating points tables for
-dra7xx but was merged before the driver making use of the node was
-merged, which breaks the existing cpufreq implementation on the system,
-so revert the patch until the ti-cpufreq driver is merged.
+This series addresses the first issue listed above by reverting three of
+the dts patches that got merged to restore OPPv1 tables. The second issue
+is addressed by [1].
 
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
----
- arch/arm/boot/dts/dra7.dtsi   | 26 +++++---------------------
- arch/arm/boot/dts/dra74x.dtsi |  1 -
- 2 files changed, 5 insertions(+), 22 deletions(-)
+With both this series and that patch we will have the existing cpufreq
+support restored on am335x and dra7xx.
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index d9bfb94a2992..a0fbbf18d50c 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -82,9 +82,11 @@
- 			compatible = "arm,cortex-a15";
- 			reg = <0>;
- 
--			operating-points-v2 = <&cpu0_opp_table>;
--			ti,syscon-efuse = <&scm_wkup 0x20c 0xf80000 19>;
--			ti,syscon-rev = <&scm_wkup 0x204>;
-+			operating-points = <
-+				/* kHz    uV */
-+				1000000	1060000
-+				1176000	1160000
-+				>;
- 
- 			clocks = <&dpll_mpu_ck>;
- 			clock-names = "cpu";
-@@ -98,24 +100,6 @@
- 		};
- 	};
- 
--	cpu0_opp_table: opp_table0 {
--		compatible = "operating-points-v2";
--		opp-shared;
--
--		opp_nom@1000000000 {
--			opp-hz = /bits/ 64 <1000000000>;
--			opp-microvolt = <1060000 850000 1150000>;
--			opp-supported-hw = <0xFF 0x01>;
--			opp-suspend;
--		};
--
--		opp_od@1176000000 {
--			opp-hz = /bits/ 64 <1176000000>;
--			opp-microvolt = <1160000 885000 1160000>;
--			opp-supported-hw = <0xFF 0x02>;
--		};
--	};
--
- 	/*
- 	 * The soc node represents the soc top level view. It is used for IPs
- 	 * that are not memory mapped in the MPU view or for the MPU itself.
-diff --git a/arch/arm/boot/dts/dra74x.dtsi b/arch/arm/boot/dts/dra74x.dtsi
-index 8987b3e180a1..0a78347e6615 100644
---- a/arch/arm/boot/dts/dra74x.dtsi
-+++ b/arch/arm/boot/dts/dra74x.dtsi
-@@ -17,7 +17,6 @@
- 			device_type = "cpu";
- 			compatible = "arm,cortex-a15";
- 			reg = <1>;
--			operating-points-v2 = <&cpu0_opp_table>;
- 		};
- 	};
- 
+Regards,
+Dave
+
+[1] http://marc.info/?l=linux-pm&m=147388573513082&w=2
+
+Dave Gerlach (3):
+  Revert "ARM: dts: am335x-boneblack: Enable 1GHz OPP for cpu"
+  Revert "ARM: dts: am33xx: Move to operating-points-v2 table and
+    ti-cpufreq driver"
+  Revert "ARM: dts: dra7: Move to operating-points-v2 table"
+
+ arch/arm/boot/dts/am335x-boneblack.dts | 11 -----
+ arch/arm/boot/dts/am33xx.dtsi          | 88 +++++-----------------------------
+ arch/arm/boot/dts/dra7.dtsi            | 26 ++--------
+ arch/arm/boot/dts/dra74x.dtsi          |  1 -
+ 4 files changed, 18 insertions(+), 108 deletions(-)
+
 -- 
 2.9.3
 
