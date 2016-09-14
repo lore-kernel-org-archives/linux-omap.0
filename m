@@ -1,83 +1,56 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: [PATCH 8/9] net: ethernet: ti: cpts: fix overflow check period
-Date: Wed, 14 Sep 2016 16:25:03 +0200
-Message-ID: <20160914142503.GF28592@localhost.localdomain>
-References: <20160914130231.3035-1-grygorii.strashko@ti.com>
- <20160914130231.3035-9-grygorii.strashko@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: drivers/usb/musb/tusb6010.c:142:21: error: 'USB_INDEX' undeclared
+Date: Wed, 14 Sep 2016 07:35:48 -0700
+Message-ID: <20160914143546.wuqlwhl3cckybdrf@atomide.com>
+References: <201606120442.yWatggEa%fengguang.wu@intel.com>
+ <20160908174521.fcrjbcwktfiuujib@atomide.com>
+ <20160908182609.GG4054@uda0271908>
+ <20160913223504.7mdgtipmkltikuyt@atomide.com>
+ <20160914131338.GA9442@uda0271908>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160914130231.3035-9-grygorii.strashko@ti.com>
+In-Reply-To: <20160914131338.GA9442@uda0271908>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, WingMan Kwok <w-kwok2@ti.com>
+To: Bin Liu <b-liu@ti.com>, kbuild test robot <fengguang.wu@intel.com>, kbuild-all@01.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Sep 14, 2016 at 04:02:30PM +0300, Grygorii Strashko wrote:
-> @@ -427,9 +427,6 @@ static void cpts_calc_mult_shift(struct cpts *cpts)
->  	u64 ns;
->  	u64 frac;
->  
-> -	if (cpts->cc_mult || cpts->cc.shift)
-> -		return;
-> -
->  	freq = clk_get_rate(cpts->refclk);
->  
->  	/* Calc the maximum number of seconds which we can run before
-
-This hunk has nothing to do with $subject.
-
-> @@ -442,11 +439,20 @@ static void cpts_calc_mult_shift(struct cpts *cpts)
->  	else if (maxsec > 600 && cpts->cc.mask > UINT_MAX)
->  		maxsec = 600;
->  
-> +	/* Calc overflow check period (maxsec / 2) */
-> +	cpts->ov_check_period = (HZ * maxsec) / 2;
-> +	dev_info(cpts->dev, "cpts: overflow check period %lu\n",
-> +		 cpts->ov_check_period);
-> +
-> +	if (cpts->cc_mult || cpts->cc.shift)
-> +		return;
-> +
->  	clocks_calc_mult_shift(&mult, &shift, freq, NSEC_PER_SEC, maxsec);
->  
->  	cpts->cc_mult = mult;
->  	cpts->cc.mult = mult;
->  	cpts->cc.shift = shift;
-> +
-
-Nor does this.
-
-Thanks,
-Richard
-
-
->  	/* Check calculations and inform if not precise */
->  	frac = 0;
->  	ns = cyclecounter_cyc2ns(&cpts->cc, freq, cpts->cc.mask, &frac);
-> diff --git a/drivers/net/ethernet/ti/cpts.h b/drivers/net/ethernet/ti/cpts.h
-> index 47026ec..e0e4a62b 100644
-> --- a/drivers/net/ethernet/ti/cpts.h
-> +++ b/drivers/net/ethernet/ti/cpts.h
-> @@ -97,9 +97,6 @@ enum {
->  	CPTS_EV_TX,   /* Ethernet Transmit Event */
->  };
->  
-> -/* This covers any input clock up to about 500 MHz. */
-> -#define CPTS_OVERFLOW_PERIOD (HZ * 8)
-> -
->  #define CPTS_FIFO_DEPTH 16
->  #define CPTS_MAX_EVENTS 32
->  
-> @@ -127,6 +124,7 @@ struct cpts {
->  	struct list_head events;
->  	struct list_head pool;
->  	struct cpts_event pool_data[CPTS_MAX_EVENTS];
-> +	unsigned long ov_check_period;
->  };
->  
->  int cpts_rx_timestamp(struct cpts *cpts, struct sk_buff *skb);
-> -- 
-> 2.9.3
+* Bin Liu <b-liu@ti.com> [160914 06:14]:
+> On Tue, Sep 13, 2016 at 03:35:05PM -0700, Tony Lindgren wrote:
+> > * Bin Liu <b-liu@ti.com> [160908 11:26]:
+> > > On Thu, Sep 08, 2016 at 10:45:21AM -0700, Tony Lindgren wrote:
+> > > > --- a/drivers/usb/musb/Kconfig
+> > > > +++ b/drivers/usb/musb/Kconfig
+> > > > @@ -87,7 +87,7 @@ config USB_MUSB_DA8XX
+> > > >  config USB_MUSB_TUSB6010
+> > > >  	tristate "TUSB6010"
+> > > >  	depends on HAS_IOMEM
+> > > > -	depends on ARCH_OMAP2PLUS || COMPILE_TEST
+> > > > +	depends on (ARCH_OMAP2PLUS || COMPILE_TEST) && !BLACKFIN
+> > > 
+> > > Would this cause more issue later when trying to enable all glue drivers
+> > > in one build?
+> > 
+> > Yes but see what CONFIG_BLACKFIN is doing with musb_regs.h..
+> > It completely redefines all the registers with ifdef else.
+> > 
+> > > The macros defined in tusb6010.h are only used in tusb6010.c, so how
+> > > about move '#include "tusb6010.h"' from musb_regs.h to tusb6010.c
+> > > instead? This gives flexibility to random config test, isn't it?
+> > 
+> > I'd like to see that but we have this in musb_core.c:
+> > 
+> > hw_ep->conf = mbase - 0x400 + TUSB_EP0_CONF;
+> > 
+> > So the build would break there again on blackin with tusb6010..
+> > Got any ideas on how to sort that out?
 > 
+> Thanks for catching it. It appears that the glues require more work to
+> cleanup. I am taking your patch.
+
+OK thanks, yeah still more work needed for the glue layers for sure.
+
+Regards,
+
+Tony
