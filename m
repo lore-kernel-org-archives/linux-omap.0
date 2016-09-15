@@ -1,82 +1,88 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [4.4-RT PATCH RFC/RFT] drivers: net: cpsw: mark rx/tx irq as
- IRQF_NO_THREAD
-Date: Thu, 15 Sep 2016 16:39:33 +0200
-Message-ID: <20160915143933.25mm53eewkmiqllm@linutronix.de>
-References: <20160811161540.9613-1-grygorii.strashko@ti.com>
- <20160812083206.t7lvxpo44marwpf5@linutronix.de>
- <9f811252-82ff-fd24-1006-2b40cd448927@ti.com>
- <20160908160042.lci5xkd37o4rrrg5@linutronix.de>
- <cdfe7655-a3b3-9b38-0231-cf90c2af037b@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCHv3] usb: musb: Fix unbalanced platform_disable
+Date: Thu, 15 Sep 2016 07:43:46 -0700
+Message-ID: <20160915144343.jpeoizgbw2o23iuc@atomide.com>
+References: <20160914181019.22937-1-tony@atomide.com>
+ <79edbb45-cf85-1aba-1d42-1897021e0904@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-rt-users-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <cdfe7655-a3b3-9b38-0231-cf90c2af037b@ti.com>
-Sender: linux-rt-users-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>, linux-omap@vger.kernel.org, Alison Chaiken <alison@peloton-tech.com>, linux-rt-users@vger.kernel.org, netdev@vger.kernel.org
+In-Reply-To: <79edbb45-cf85-1aba-1d42-1897021e0904-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 2016-09-09 15:46:44 [+0300], Grygorii Strashko wrote:
+* Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> [160915 07:00]:
+> Hi,
 > 
-> It looks like scheduler playing ping-pong between CPUs with threaded irqs irq/354-355.
-> And seems this might be the case - if I pin both threaded IRQ handlers to CPU0
-> I can see better latency and netperf improvement
-> cyclictest -m -Sp98 -q  -D4m
-> T: 0 ( 1318) P:98 I:1000 C: 240000 Min:      9 Act:   14 Avg:   15 Max:      42
-> T: 1 ( 1319) P:98 I:1500 C: 159909 Min:      9 Act:   14 Avg:   16 Max:      39
+> On 14-09-16 20:10, Tony Lindgren wrote:
+> > Commit a83e17d0f73b ("usb: musb: Improve PM runtime and phy handling
+> > for 2430 glue layer") moved PHY enable/disable calls to happen from
+> > omap2430_musb_enable/disable(). That broke enumeration for several
+> > devices as PM runtime in the PHY will never enable it.
+> > 
+> > The root cause of the problem is unpaired calls from musb_core.c to
+> > musb_platform_enable/disable in musb_core.c as reported by
+> > Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>.
+> > 
+> > As musb_platform_enable/disable are being called from various functions,
+> > let's not attempt to make them paiered immediately. This would require
+> > fixing all the callers like musb_remove.
 > 
-> if I arrange hwirqs  and pin pin both threaded IRQ handlers on CPU1 
-> I can observe more less similar results as with this patch. 
-
-so no patch then.
-
-> with this change i do not see  "NOHZ: local_softirq_pending 80" any more 
-> Tested-by: Grygorii Strashko <grygorii.strashko@ti.com> 
-
-okay. So I need to think what I do about this. Either this or trying to
-run the "higher" softirq first but this could break things.
-Thanks for the confirmation.
-
-> > - having the hard-IRQ and IRQ-thread on the same CPU might help, too. It
-> >   is not strictly required but saves a few cycles if you don't have to
-> >   perform cross CPU wake ups and migrate task forth and back. The latter
-> >   happens at prio 99.
+> Yeah, the sunxi glue actually has:
 > 
-> I've experimented with this and it improves netperf and I also followed instructions from [1].
-> But seems messed ti pin threaded irqs to cpu.
-> [1] https://www.osadl.org/Real-time-Ethernet-UDP-worst-case-roun.qa-farm-rt-ethernet-udp-monitor.0.html
-
-There is irq_thread() => irq_thread_check_affinity(). It might not work
-as expected on ARM but it makes sense to follow the affinity mask HW irq
-for the thread.
-
-> > - I am not sure NAPI works as expected. I would assume so. There is IRQ
-> >   354 and 355 which fire after each other. One would be enough I guess.
-> >   And they seem to be short living / fire often. If NAPI works then it
-> >   should put an end to it and push it to the softirq thread.
-> >   If you have IRQ-pacing support I suggest to use something like 10ms or
-> >   so. That means your ping response will go from <= 1ms to 10ms in the
-> >   worst case but since you process more packets at a time your
-> >   throughput should increase.
-> >   If I count this correct, it too you alsmost 4ms from "raise SCHED" to
-> >   "try process SCHED" and most of the time was spent in 35[45] hard irq,
-> >   raise NET_RX or cross wakeup the IRQ thread.
+> static void sunxi_musb_enable(struct musb *musb)
+> {
+>         struct sunxi_glue *glue = dev_get_drvdata(musb->controller->parent);
 > 
-> The question I have to dial with is why switching to RT cause so significant
-> netperf drop (without additional tunning) comparing to vanilla - ~120% for 256K and ~200% for 128K windows?
+>         glue->musb = musb;
+> 
+>         /* musb_core does not call us in a balanced manner */
+>         if (test_and_set_bit(SUNXI_MUSB_FL_ENABLED, &glue->flags))
+>                 return;
 
-You have a sched / thread ping/pong. That is one thing. !RT with
-threaded irqs should show similar problems. The higher latency is caused
-by the migration thread.
+Heh we're trying to get to the "balanced manner" point hopefully soon :)
 
-> It's of course expected to see netperf drop, but I assume not so significant :(
-> And I can't find any reports or statistic related to this. Does the same happen on x86?
+>         schedule_work(&glue->work);
+> }
+> 
+> static void sunxi_musb_disable(struct musb *musb)
+> {
+>         struct sunxi_glue *glue = dev_get_drvdata(musb->controller->parent);
+> 
+>         clear_bit(SUNXI_MUSB_FL_ENABLED, &glue->flags);
+> }
+> 
+> Note that since the glue struct is kzalloc-ed, this makes calling
+> sunxi_musb_disable() from sunxi_musb_init() a nop, so if this
+> needs a respin please drop the sunxi changes, they are not
+> necessary.
 
-It should. Maybe at a lower level if it handles migration more
-effective. There is this watchdog thread (for instance) which tries to
-detect lockups and runs at P99. It causes "worse" cyclictest numbers on
-x86 and on ARM but on ARM this is more visible than on x86.
+Hmm we have sunxi_musb_probe() do platform_device_register_full(),
+then musb_probe() happens, and calls musb_init_controller().
 
-Sebastian
+In musb_init_controller() we do musb_platform_init() that finally
+calls sunxi_musb_init().
+
+So the sunxi glue is kzalloc'ed and initialized already in
+sunxi_musb_probe(), and musb parts are already initialized in
+musb_init_controller().
+
+I don't quite follow what you mean how it's a nop.. Care to
+clarify that a bit? Maybe you're thinking we're calling it from
+sunxi_musb_probe() instead?
+
+Anyways, calling sunxi_musb_disable() seems unnecessary from
+sunxi_musb_init() because it does reset_control_deassert().
+But that can be cleaned up later on if no other reasons for
+changes for v4.8-rc cycle.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
