@@ -1,85 +1,103 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 2/2] usb: musb: Fix session based PM for first invalid VBUS
-Date: Thu, 15 Sep 2016 09:29:14 -0700
-Message-ID: <20160915162914.8164-3-tony@atomide.com>
-References: <20160915162914.8164-1-tony@atomide.com>
+From: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCHv3] usb: musb: Fix unbalanced platform_disable
+Date: Thu, 15 Sep 2016 18:59:15 +0200
+Message-ID: <288e07e4-5dc3-3906-1aec-a24c0769972a@redhat.com>
+References: <20160914181019.22937-1-tony@atomide.com>
+ <79edbb45-cf85-1aba-1d42-1897021e0904@redhat.com>
+ <20160915144343.jpeoizgbw2o23iuc@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160915162914.8164-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20160915144343.jpeoizgbw2o23iuc-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-With the session bit based PM runtime working on musb, we've
-implemented few quirks to attempt to detect the current state of
-the hardware. One of the quirks is for invalid VBUS as peripheral,
-but it is not working in all cases.
+Hi,
 
-If we start musb on dm3730 as a peripheral with no cable connected,
-we will get the devctl 91 state once and will never idle as there
-are not further interrupts from musb. So we need to ignore the first
-devctl 91 state as there will be more interrupts if we're connected.
+On 15-09-16 16:43, Tony Lindgren wrote:
+> * Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> [160915 07:00]:
+>> Hi,
+>>
+>> On 14-09-16 20:10, Tony Lindgren wrote:
+>>> Commit a83e17d0f73b ("usb: musb: Improve PM runtime and phy handling
+>>> for 2430 glue layer") moved PHY enable/disable calls to happen from
+>>> omap2430_musb_enable/disable(). That broke enumeration for several
+>>> devices as PM runtime in the PHY will never enable it.
+>>>
+>>> The root cause of the problem is unpaired calls from musb_core.c to
+>>> musb_platform_enable/disable in musb_core.c as reported by
+>>> Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>.
+>>>
+>>> As musb_platform_enable/disable are being called from various functions,
+>>> let's not attempt to make them paiered immediately. This would require
+>>> fixing all the callers like musb_remove.
+>>
+>> Yeah, the sunxi glue actually has:
+>>
+>> static void sunxi_musb_enable(struct musb *musb)
+>> {
+>>         struct sunxi_glue *glue = dev_get_drvdata(musb->controller->parent);
+>>
+>>         glue->musb = musb;
+>>
+>>         /* musb_core does not call us in a balanced manner */
+>>         if (test_and_set_bit(SUNXI_MUSB_FL_ENABLED, &glue->flags))
+>>                 return;
+>
+> Heh we're trying to get to the "balanced manner" point hopefully soon :)
+>
+>>         schedule_work(&glue->work);
+>> }
+>>
+>> static void sunxi_musb_disable(struct musb *musb)
+>> {
+>>         struct sunxi_glue *glue = dev_get_drvdata(musb->controller->parent);
+>>
+>>         clear_bit(SUNXI_MUSB_FL_ENABLED, &glue->flags);
+>> }
+>>
+>> Note that since the glue struct is kzalloc-ed, this makes calling
+>> sunxi_musb_disable() from sunxi_musb_init() a nop, so if this
+>> needs a respin please drop the sunxi changes, they are not
+>> necessary.
+>
+> Hmm we have sunxi_musb_probe() do platform_device_register_full(),
+> then musb_probe() happens, and calls musb_init_controller().
+>
+> In musb_init_controller() we do musb_platform_init() that finally
+> calls sunxi_musb_init().
+>
+> So the sunxi glue is kzalloc'ed and initialized already in
+> sunxi_musb_probe(), and musb parts are already initialized in
+> musb_init_controller().
 
-The invalid VBUS state also can happen always when connected to
-certain USB hubs. Looks like musb on dm3730 can claim invalid VBUS
-with some hubs while 3717-evm and BeagleBone don't. This causes
-session as peripheral to fail for dm3730 with some hubs.
+Not really, musb_init_controller does little of interest before
+calling musb_platform_init(), which is a function pointer
+to sunxi_musb_init().
 
-This too is fixed by ignoring only the first invalid VBUS. When
-connected, we can just look at the session bit as that will clear
-automatically when the session ends.
+> I don't quite follow what you mean how it's a nop.. Care to
+> clarify that a bit? Maybe you're thinking we're calling it from
+> sunxi_musb_probe() instead?
 
-Fixes: 467d5c980709 ("usb: musb: Implement session bit based
-runtime PM for musb-core")
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- drivers/usb/musb/musb_core.c | 13 ++++++++-----
- drivers/usb/musb/musb_core.h |  1 +
- 2 files changed, 9 insertions(+), 5 deletions(-)
+Nope, I no the call chain, but nothing interesting happens between
+sunxi_musb_probe() and sunxi_musb_init().
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -1855,11 +1855,13 @@ static void musb_pm_runtime_check_session(struct musb *musb)
- 		MUSB_DEVCTL_HR;
- 	switch (devctl & ~s) {
- 	case MUSB_QUIRK_B_INVALID_VBUS_91:
--		if (musb->session)
--			break;
--		musb_dbg(musb, "Allow PM as device with invalid vbus: %02x",
--			devctl);
--		return;
-+		if (!musb->session && !musb->quirk_invalid_vbus) {
-+			musb->quirk_invalid_vbus = true;
-+			musb_dbg(musb,
-+				 "First invalid vbus, assume no session");
-+			return;
-+		}
-+		break;
- 	case MUSB_QUIRK_A_DISCONNECT_19:
- 		if (!musb->session)
- 			break;
-@@ -1886,6 +1888,7 @@ static void musb_pm_runtime_check_session(struct musb *musb)
- 				error);
- 	} else {
- 		musb_dbg(musb, "Allow PM with no session: %02x", devctl);
-+		musb->quirk_invalid_vbus = false;
- 		pm_runtime_mark_last_busy(musb->controller);
- 		pm_runtime_put_autosuspend(musb->controller);
- 	}
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -379,6 +379,7 @@ struct musb {
- 
- 	int			port_mode;	/* MUSB_PORT_MODE_* */
- 	bool			session;
-+	bool			quirk_invalid_vbus;
- 	bool			is_host;
- 
- 	int			a_wait_bcon;	/* VBUS timeout in msecs */
--- 
-2.9.3
+> Anyways, calling sunxi_musb_disable() seems unnecessary from
+> sunxi_musb_init() because it does reset_control_deassert().
+> But that can be cleaned up later on if no other reasons for
+> changes for v4.8-rc cycle.
+
+Ah is this patch for 4.8-rc, yeah then definitely keep it as
+is, as I tried to explain in my previous mail, my remark
+was only made in case you need to respin the patch for other
+reasons, if not then it is fine as is.
+
+Regards,
+
+Hans
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
