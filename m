@@ -1,87 +1,45 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCHv3] usb: musb: Fix unbalanced platform_disable
-Date: Thu, 15 Sep 2016 07:43:46 -0700
-Message-ID: <20160915144343.jpeoizgbw2o23iuc@atomide.com>
-References: <20160914181019.22937-1-tony@atomide.com>
- <79edbb45-cf85-1aba-1d42-1897021e0904@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH 1/2] usb: musb: Fix PM runtime for disconnect after unconfigure
+Date: Thu, 15 Sep 2016 09:29:13 -0700
+Message-ID: <20160915162914.8164-2-tony@atomide.com>
+References: <20160915162914.8164-1-tony@atomide.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <79edbb45-cf85-1aba-1d42-1897021e0904-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20160915162914.8164-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> [160915 07:00]:
-> Hi,
-> 
-> On 14-09-16 20:10, Tony Lindgren wrote:
-> > Commit a83e17d0f73b ("usb: musb: Improve PM runtime and phy handling
-> > for 2430 glue layer") moved PHY enable/disable calls to happen from
-> > omap2430_musb_enable/disable(). That broke enumeration for several
-> > devices as PM runtime in the PHY will never enable it.
-> > 
-> > The root cause of the problem is unpaired calls from musb_core.c to
-> > musb_platform_enable/disable in musb_core.c as reported by
-> > Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>.
-> > 
-> > As musb_platform_enable/disable are being called from various functions,
-> > let's not attempt to make them paiered immediately. This would require
-> > fixing all the callers like musb_remove.
-> 
-> Yeah, the sunxi glue actually has:
-> 
-> static void sunxi_musb_enable(struct musb *musb)
-> {
->         struct sunxi_glue *glue = dev_get_drvdata(musb->controller->parent);
-> 
->         glue->musb = musb;
-> 
->         /* musb_core does not call us in a balanced manner */
->         if (test_and_set_bit(SUNXI_MUSB_FL_ENABLED, &glue->flags))
->                 return;
+If we unconfigure musb as a USB peripheral with cable connected,
+and then remove the cable, no interrupts will happen. And musb
+thinks we're still connected keeping the device active.
 
-Heh we're trying to get to the "balanced manner" point hopefully soon :)
+Now with the session bit based PM runtime working for musb, we
+can fix this issue by calling musb irq_work. That rechecks the
+devctl register and reconfigures PM runtime based on the devctl.
 
->         schedule_work(&glue->work);
-> }
-> 
-> static void sunxi_musb_disable(struct musb *musb)
-> {
->         struct sunxi_glue *glue = dev_get_drvdata(musb->controller->parent);
-> 
->         clear_bit(SUNXI_MUSB_FL_ENABLED, &glue->flags);
-> }
-> 
-> Note that since the glue struct is kzalloc-ed, this makes calling
-> sunxi_musb_disable() from sunxi_musb_init() a nop, so if this
-> needs a respin please drop the sunxi changes, they are not
-> necessary.
+Fixes: 467d5c980709 ("usb: musb: Implement session bit based
+runtime PM for musb-core")
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/usb/musb/musb_gadget.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Hmm we have sunxi_musb_probe() do platform_device_register_full(),
-then musb_probe() happens, and calls musb_init_controller().
-
-In musb_init_controller() we do musb_platform_init() that finally
-calls sunxi_musb_init().
-
-So the sunxi glue is kzalloc'ed and initialized already in
-sunxi_musb_probe(), and musb parts are already initialized in
-musb_init_controller().
-
-I don't quite follow what you mean how it's a nop.. Care to
-clarify that a bit? Maybe you're thinking we're calling it from
-sunxi_musb_probe() instead?
-
-Anyways, calling sunxi_musb_disable() seems unnecessary from
-sunxi_musb_init() because it does reset_control_deassert().
-But that can be cleaned up later on if no other reasons for
-changes for v4.8-rc cycle.
-
-Regards,
-
-Tony
+diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+--- a/drivers/usb/musb/musb_gadget.c
++++ b/drivers/usb/musb/musb_gadget.c
+@@ -1964,6 +1964,9 @@ static int musb_gadget_stop(struct usb_gadget *g)
+ 	 * that currently misbehaves.
+ 	 */
+ 
++	/* Force check of devctl register for PM runtime */
++	schedule_work(&musb->irq_work);
++
+ 	pm_runtime_mark_last_busy(musb->controller);
+ 	pm_runtime_put_autosuspend(musb->controller);
+ 
+-- 
+2.9.3
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
