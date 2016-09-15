@@ -1,39 +1,31 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: v4.8-rc: GSM audio causes trouble
-Date: Thu, 15 Sep 2016 22:51:42 +0200
-Message-ID: <20160915205142.GA6747@amd>
-References: <20160915121755.GA5264@amd>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/2] Improve regmap support for more exotic devices
+Date: Thu, 15 Sep 2016 13:56:09 -0700
+Message-ID: <20160915205611.14046-1-tony@atomide.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160915121755.GA5264@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
+To: Mark Brown <broonie@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+Hi,
 
-> I was trying to improve GSM call quality, and hit problems in
-> v4.8-rc. Sound only worked for a while, then I tried to kill
-> cmtspeech_ofono_test, and could not, not even with -9 and could not
-> even reboot.
-> 
-> I went back to v4.1 (ok, quite far, I see), and problems are gone.
-> 
-> Does it work for you? Any ideas what to try... besides bisect?
+Here are few patches that make it possible to use little endian
+SPI devices with regmap-spi without custom read or write
+functions.
 
-v4.7 is okay.
+Regards,
 
-v4.8 with
+Tony
 
-git diff ..mini-v4.7 drivers/hsi/ | git apply
+Tony Lindgren (2):
+  regmap: Allow longer flag masks for read and write
+  regma: Add missing little endian functions
 
-Seems to work ok.
-
-Best regards,
-								Pavel
+ drivers/base/regmap/internal.h |  4 ++--
+ drivers/base/regmap/regmap.c   | 41 ++++++++++++++++++++++++++++-------------
+ include/linux/regmap.h         |  8 ++++----
+ 3 files changed, 34 insertions(+), 19 deletions(-)
 
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+2.9.3
