@@ -1,35 +1,31 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 0/7] mfd: Fix all W=1 warnings
-Date: Thu, 15 Sep 2016 14:44:35 +0200
-Message-ID: <CACRpkdYGW4bkWXZp6JWMLCxne0a7cp9rNkipA_tZmzL=9CRjfw@mail.gmail.com>
-References: <20160915104521.14286-1-lee.jones@linaro.org>
+From: Richard Cochran <richardcochran@gmail.com>
+Subject: Re: [PATCH 7/9] net: ethernet: ti: cpts: calc mult and shift from
+ refclk freq
+Date: Thu, 15 Sep 2016 15:49:26 +0200
+Message-ID: <20160915134926.GA27352@localhost.localdomain>
+References: <20160914130231.3035-1-grygorii.strashko@ti.com>
+ <20160914130231.3035-8-grygorii.strashko@ti.com>
+ <20160914202618.GC12195@netboy>
+ <20160915115814.GB24676@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160915104521.14286-1-lee.jones@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160915115814.GB24676@localhost.localdomain>
+Sender: netdev-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, WingMan Kwok <w-kwok2@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Sep 15, 2016 at 12:45 PM, Lee Jones <lee.jones@linaro.org> wrote:
+On Thu, Sep 15, 2016 at 01:58:15PM +0200, Richard Cochran wrote:
+> Can the input clock be higher than 1 GHz?  If not, I suggest using
+> clocks_calc_mult_shift() with maxsec=4 and a setting the watchdog also
+> to 4*HZ.
 
-> It really is as simple as it sounds!
->
-> Lee Jones (7):
->   mfd: max8997-irq: 'inline' should be at the beginning of the
->     declaration
->   mfd: ab8500-debugfs: Prevent initialised field from being over-written
->   mfd: db8500-prcmu: Remove unused *prcmu_set_ddr_opp() calls
->   mfd: ab8500-debugfs: Remove ab8500_dump_all_banks_to_mem()
->   mfd: ab8500-debugfs: Remove 'weak' function
->     suspend_test_wake_cause_interrupt_is_mine()
->   mfd: omap-usb-host: Return value is not 'const int'
->   mfd: cros_ec_spi: Remove unused variable 'request'
+On second thought, with the new 12% timer batching, using 4*HZ for 32
+bits of 1 GHz is cutting it too close.  So just keep it like you had
+it, with maxsec=mask/freq and timeout=maxsec/2, to stay on the safe
+side.
 
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
-
-For all the ab8500 and db8500 stuff.
-
-Yours,
-Linus Walleij
+Thanks,
+Richard
