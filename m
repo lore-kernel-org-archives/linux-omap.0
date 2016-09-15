@@ -1,28 +1,35 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: v4.8-rc: GSM audio causes trouble
-Date: Thu, 15 Sep 2016 14:17:55 +0200
-Message-ID: <20160915121755.GA5264@amd>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 0/7] mfd: Fix all W=1 warnings
+Date: Thu, 15 Sep 2016 14:44:35 +0200
+Message-ID: <CACRpkdYGW4bkWXZp6JWMLCxne0a7cp9rNkipA_tZmzL=9CRjfw@mail.gmail.com>
+References: <20160915104521.14286-1-lee.jones@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <20160915104521.14286-1-lee.jones@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+On Thu, Sep 15, 2016 at 12:45 PM, Lee Jones <lee.jones@linaro.org> wrote:
 
-I was trying to improve GSM call quality, and hit problems in
-v4.8-rc. Sound only worked for a while, then I tried to kill
-cmtspeech_ofono_test, and could not, not even with -9 and could not
-even reboot.
+> It really is as simple as it sounds!
+>
+> Lee Jones (7):
+>   mfd: max8997-irq: 'inline' should be at the beginning of the
+>     declaration
+>   mfd: ab8500-debugfs: Prevent initialised field from being over-written
+>   mfd: db8500-prcmu: Remove unused *prcmu_set_ddr_opp() calls
+>   mfd: ab8500-debugfs: Remove ab8500_dump_all_banks_to_mem()
+>   mfd: ab8500-debugfs: Remove 'weak' function
+>     suspend_test_wake_cause_interrupt_is_mine()
+>   mfd: omap-usb-host: Return value is not 'const int'
+>   mfd: cros_ec_spi: Remove unused variable 'request'
 
-I went back to v4.1 (ok, quite far, I see), and problems are gone.
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 
-Does it work for you? Any ideas what to try... besides bisect?
+For all the ab8500 and db8500 stuff.
 
-Best regards,
-								Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Yours,
+Linus Walleij
