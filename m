@@ -1,62 +1,52 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 5/9] dmaengine/ARM: omap-dma: Fix the DMAengine compile test on non OMAP configs
-Date: Fri, 16 Sep 2016 11:33:20 +0300
-Message-ID: <20160916083324.29133-6-peter.ujfalusi@ti.com>
+Subject: [PATCH 1/9] dmaengine: edma: Add missing MODULE_DEVICE_TABLE() for
+ of_device_id structs
+Date: Fri, 16 Sep 2016 11:33:16 +0300
+Message-ID: <20160916083324.29133-2-peter.ujfalusi@ti.com>
 References: <20160916083324.29133-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20160916083324.29133-1-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: vinod.koul@intel.com, dan.j.williams@intel.com
-Cc: arnd@arndb.de, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
+Cc: arnd@arndb.de, tony@atomide.com, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The DMAengine driver for omap-dma use three function calls from the
-plat-omap legacy driver. When the DMAengine driver is built when ARCH_OMAP
-is not set, the compilation will fail due to missing symbols.
-Add empty inline functions to allow the DMAengine driver to be compiled
-with COMPILE_TEST.
+The MODULE_DEVICE_TABLE() were missing from the driver for the of_device_id
+structures.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- include/linux/omap-dma.h | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ drivers/dma/edma.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/include/linux/omap-dma.h b/include/linux/omap-dma.h
-index 1d99b61adc65..290081620b3e 100644
---- a/include/linux/omap-dma.h
-+++ b/include/linux/omap-dma.h
-@@ -297,6 +297,7 @@ struct omap_system_dma_plat_info {
- #define dma_omap15xx()	__dma_omap15xx(d)
- #define dma_omap16xx()	__dma_omap16xx(d)
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index 3d277fa76c1a..c2098a4b4dcf 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -274,11 +274,13 @@ static const struct of_device_id edma_of_ids[] = {
+ 	},
+ 	{}
+ };
++MODULE_DEVICE_TABLE(of, edma_of_ids);
  
-+#if defined(CONFIG_ARCH_OMAP)
- extern struct omap_system_dma_plat_info *omap_get_plat_info(void);
+ static const struct of_device_id edma_tptc_of_ids[] = {
+ 	{ .compatible = "ti,edma3-tptc", },
+ 	{}
+ };
++MODULE_DEVICE_TABLE(of, edma_tptc_of_ids);
  
- extern void omap_set_dma_priority(int lch, int dst_port, int priority);
-@@ -355,4 +356,22 @@ static inline int omap_lcd_dma_running(void)
- }
- #endif
- 
-+#else /* CONFIG_ARCH_OMAP */
-+
-+static inline struct omap_system_dma_plat_info *omap_get_plat_info(void)
-+{
-+	return NULL;
-+}
-+
-+static inline int omap_request_dma(int dev_id, const char *dev_name,
-+			void (*callback)(int lch, u16 ch_status, void *data),
-+			void *data, int *dma_ch)
-+{
-+	return -ENODEV;
-+}
-+
-+static inline void omap_free_dma(int ch) { }
-+
-+#endif /* CONFIG_ARCH_OMAP */
-+
- #endif /* __LINUX_OMAP_DMA_H */
+ static inline unsigned int edma_read(struct edma_cc *ecc, int offset)
+ {
 -- 
 2.10.0
