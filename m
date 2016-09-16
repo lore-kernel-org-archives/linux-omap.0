@@ -1,89 +1,89 @@
-From: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v7 0/5] mfd: tps65218: Clean ups
-Date: Fri, 16 Sep 2016 17:12:38 +0530
-Message-ID: <ab94aff0-8470-57e5-2039-12f09bb0ca33@ti.com>
-References: <1470833641-29546-1-git-send-email-j-keerthy@ti.com>
+From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 2/3] ARM: dts: am335x-evmsk: Whitespace cleanup of lcdc related nodes
+Date: Fri, 16 Sep 2016 14:50:12 +0300
+Message-ID: <c7073c304d3069b7b6123658b222b38e3209175c.1474025756.git.jsarha@ti.com>
+References: <cover.1474025756.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1470833641-29546-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <cover.1474025756.git.jsarha-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, russ.dill-l0cyMroinI0@public.gmane.org, d-gerlach-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: tomi.valkeinen-l0cyMroinI0@public.gmane.org, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+Whitespace cleanup of lcdc related nodes. Do all indentation and
+alignment with tabs instead of spaces.
 
+Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Reviewed-by: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/am335x-evmsk.dts | 40 +++++++++++++++++++-------------------
+ 1 file changed, 20 insertions(+), 20 deletions(-)
 
-On Wednesday 10 August 2016 06:24 PM, Keerthy wrote:
-> The series cleans up mainly the regulator driver and implements
-> the device tree parsing using the regulator framework. Removes
-> all the redundant compatibles for the individual regulators.
-> Adds platform_device_id table for the gpio and power button modules.
->
-> One of the patch removes redundant read wrapper and makes
-> use of regmap_read wherever necessary.
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index 09308d6..23b94e7 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -170,29 +170,29 @@
+ 		pinctrl-1 = <&lcd_pins_sleep>;
+ 		status = "okay";
+ 		panel-info {
+-			ac-bias           = <255>;
+-			ac-bias-intrpt    = <0>;
+-			dma-burst-sz      = <16>;
+-			bpp               = <32>;
+-			fdd               = <0x80>;
+-			sync-edge         = <0>;
+-			sync-ctrl         = <1>;
+-			raster-order      = <0>;
+-			fifo-th           = <0>;
++			ac-bias		= <255>;
++			ac-bias-intrpt	= <0>;
++			dma-burst-sz	= <16>;
++			bpp		= <32>;
++			fdd		= <0x80>;
++			sync-edge	= <0>;
++			sync-ctrl	= <1>;
++			raster-order	= <0>;
++			fifo-th		= <0>;
+ 		};
+ 		display-timings {
+ 			480x272 {
+-				hactive         = <480>;
+-				vactive         = <272>;
+-				hback-porch     = <43>;
+-				hfront-porch    = <8>;
+-				hsync-len       = <4>;
+-				vback-porch     = <12>;
+-				vfront-porch    = <4>;
+-				vsync-len       = <10>;
++				hactive		= <480>;
++				vactive		= <272>;
++				hback-porch	= <43>;
++				hfront-porch	= <8>;
++				hsync-len	= <4>;
++				vback-porch	= <12>;
++				vfront-porch	= <4>;
++				vsync-len	= <10>;
+ 				clock-frequency = <9000000>;
+-				hsync-active    = <0>;
+-				vsync-active    = <0>;
++				hsync-active	= <0>;
++				vsync-active	= <0>;
+ 			};
+ 		};
+ 	};
+@@ -711,5 +711,5 @@
+ };
+ 
+ &lcdc {
+-      status = "okay";
++	status = "okay";
+ };
+-- 
+1.9.1
 
-Mark,
-
-Should i repost this series? I do not see this series in linux-next yet.
-
-Regards,
-Keerthy
->
-> The series is checked for all the regulator registrations on
-> am437x-gp-evm.
->
-> Boot log: http://pastebin.ubuntu.com/22905402/
->
-> The series is based on linux-next on top of series titled:
-> [PATCH v3 0/2] regulator: Enable suspend configuration
->
-> Do not have the link of the above series available at the moment.
->
-> Changes in v7:
->
-> Rebasing to latest next branch. GPIO patch of this series
-> pushed to linux-next by Linus. Hence posting the remaining
-> patches with respective Acks from the domain Maintainers.
->
-> Changes in v6:
->
-> Rebased regulator/mfd clean up patches against linux-next +
-> https://lkml.org/lkml/2016/6/24/122 series.
->
-> Changes in v5:
->
-> Rebased regulator clean up patch against linux-next.
->
-> Changes in v4:
->
-> For gpio-tps65218 reatined the compatible table.
-> Fixed missing ';' in the power button patch.
-> Fixed comments on the Documentation patch.
-> Split the Device Tree patches to a separate series.
->
-> Changes in v3:
->
-> Missed making corresponding changes in the power button and gpio
-> drivers. Added couple of patches to fix them to use mfd_cell way
-> of parsing.
->
-> Keerthy (5):
->   mfd: tps65218: Remove redundant read wrapper
->   Documentation: regulator: tps65218: Update examples
->   input: tps65218-pwrbutton: Add platform_device_id table
->   mfd: tps65218: Use mfd_add_devices instead of of_platform_populate
->   regulator: tps65218: Remove all the compatibles
->
->  .../devicetree/bindings/regulator/tps65218.txt     |  87 +++++++++---
->  drivers/gpio/gpio-tps65218.c                       |   3 +-
->  drivers/input/misc/tps65218-pwrbutton.c            |  10 +-
->  drivers/mfd/tps65218.c                             |  34 ++---
->  drivers/regulator/tps65218-regulator.c             | 153 ++++++++-------------
->  include/linux/mfd/tps65218.h                       |   3 +-
->  6 files changed, 158 insertions(+), 132 deletions(-)
->
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
