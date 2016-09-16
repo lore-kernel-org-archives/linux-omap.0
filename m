@@ -1,60 +1,72 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH] tools: iio: fix iio build error by adding KBUILD_OUTPUT
- support to makefile
-Date: Fri, 16 Sep 2016 10:56:33 +0530
-Message-ID: <b46a5beb-3998-bd98-d873-f822651b8657@ti.com>
-References: <20160811060124.6604-1-mugunthanvnm@ti.com>
- <198eb20a-0150-b2b7-8b96-a4a13349724a@kernel.org>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: v4.8-rc: GSM audio causes trouble
+Date: Fri, 16 Sep 2016 07:52:50 +0200
+Message-ID: <20160916055249.h7zw6hguvwwe2zwu@earth>
+References: <20160915121755.GA5264@amd>
+ <20160915205142.GA6747@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="a3erb4upxm6b6rbc"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <198eb20a-0150-b2b7-8b96-a4a13349724a@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160915205142.GA6747@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jonathan Cameron <jic23@kernel.org>, linux-iio@vger.kernel.org
-Cc: Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-Jonathan
 
-On Monday 22 August 2016 12:35 AM, Jonathan Cameron wrote:
-> On 11/08/16 07:01, Mugunthan V N wrote:
->> > Current make doesn't have support to pass kernel built directory
->> > to find events.h kernel header file, so adding support for
->> > KBUILD_OUTPUT support to Makefile.
->> > 
->> > $ make CROSS_COMPILE=arm-linux-gnueabihf- -C tools/iio
->> > make: Entering directory '/home/a0131834/workspace/git/mainline/linux/tools/iio'
->> > arm-linux-gnueabihf-gcc -Wall -g -D_GNU_SOURCE   -c -o iio_event_monitor.o iio_event_monitor.c
->> > arm-linux-gnueabihf-gcc -Wall -g -D_GNU_SOURCE   -c -o iio_utils.o iio_utils.c
->> > arm-linux-gnueabihf-gcc -Wall -g -D_GNU_SOURCE   -c -o lsiio.o lsiio.c
->> > arm-linux-gnueabihf-gcc -Wall -g -D_GNU_SOURCE   -c -o iio_generic_buffer.o iio_generic_buffer.c
->> > arm-linux-gnueabihf-gcc   lsiio.o iio_utils.o   -o lsiio
->> > arm-linux-gnueabihf-gcc   iio_generic_buffer.o iio_utils.o   -o iio_generic_buffer
->> > iio_event_monitor.c:28:30: fatal error: linux/iio/events.h: No such file or directory
->> >  #include <linux/iio/events.h>
->> >                                ^
->> > compilation terminated.
->> > <builtin>: recipe for target 'iio_event_monitor.o' failed
->> > make: *** [iio_event_monitor.o] Error 1
->> > make: Leaving directory '/home/a0131834/workspace/git/mainline/linux/tools/iio'
->> > 
->> > Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
-> I can see where you are coming from, but wouldn't we normally expect the kernel
-> headers for the relevant kernel to available as part of the toolchain being
-> used to do the build?
+--a3erb4upxm6b6rbc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-If it is a native build, we can expect toolchain to provide kernel
-headers, but for a cross compile user has to provide where the kernel
-headers present for the target which is done this patch.
+Hi,
 
-> 
-> They often lag a bit I guess, so perhaps we do want to put this little bit
-> of 'fudging' in place.
-> 
-> What do others think?
+On Thu, Sep 15, 2016 at 10:51:42PM +0200, Pavel Machek wrote:
+> > I was trying to improve GSM call quality, and hit problems in
+> > v4.8-rc. Sound only worked for a while, then I tried to kill
+> > cmtspeech_ofono_test, and could not, not even with -9 and could not
+> > even reboot.
+> >=20
+> > I went back to v4.1 (ok, quite far, I see), and problems are gone.
+> >=20
+> > Does it work for you? Any ideas what to try... besides bisect?
+>=20
+> v4.7 is okay.
+>=20
+> v4.8 with
+>=20
+> git diff ..mini-v4.7 drivers/hsi/ | git apply
+>=20
+> Seems to work ok.
+>=20
+> Best regards,
 
-Any updates on the patch?
+hsi changes from 4.7 to 4.8 are basically runtime PM enablement.
+Does 4.8 work for you with just 9c99e5e51988 reverted?
 
-Regards
-Mugunthan V N
+-- Sebastian
+
+--a3erb4upxm6b6rbc
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJX24ioAAoJENju1/PIO/qaBagQAJpa2UsvX/tNfatdpR1epCAA
+7lIHVVw5dai4TbMjqEOiu2QULkziN6Sn0+NbEwOaOo3DHucZaHq4qx6nIZVZuZIy
+YWj9EDMMVXbKXkx/rL0jZMNTofT05aQSCToRL9j26ysRjzQbD7/AXjJDcwIriJUo
++W5AC9MvT4zRW1QoLOAG5cisYxbULolZWUrhSOtCqYcjKUVb9lNJ0zlhk3QP98LP
+vDAFcgj4Nmq0mDJQ821JPqbMIujGs6y1aZ+oEI5itxInVtBhMstk/bY6od7IaGxg
+yhzrfYHORGf/NlEy59EYNvYY82iN4TIG+cxmc4lXFJQ8R2GcmA+O9hskHbs8Nc/Y
+CxNahVqlTINE/GOFDou/P5i33pxt6VEaRVhzfWutgd7JxwxqMeWPlAVoVB4WZC1N
+ay+IDqKX4y2ADbbQ7FOQKIBOhRux9Kz1ggmaezB00JzW3zTzSSZ7RanBU6RY/42U
+0Nu2j8abkVHKA3nb97tI5ntrFnGQrnbGhxHtGpCczH1vpMSYDbPX1iWNQvJZO+xo
+4MQsD7U+18QVzjtH9W3ANQG2OsFXfgmG8xvLuBSjyFiQfJDWU9W6fqKIm9MQ1yfL
+AdlHQuMftA5O+oNPb3ecPO74AMLCzFLsHGrK/Fij8YO9dnpTFbGCYv7YvotGR4KC
+gcmzPoUnbgWTZ3s6one9
+=Se/l
+-----END PGP SIGNATURE-----
+
+--a3erb4upxm6b6rbc--
