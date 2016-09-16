@@ -1,205 +1,50 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv3] usb: musb: Fix unbalanced platform_disable
-Date: Fri, 16 Sep 2016 09:04:02 -0500
-Message-ID: <20160916140339.GB15522@uda0271908>
-References: <20160914181019.22937-1-tony@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/3] ARM: dts: am335x-* Add blue-and-red-wiring propery
+ to lcdc nodes
+Date: Fri, 16 Sep 2016 08:02:42 -0700
+Message-ID: <20160916150242.vbvpuokftychkdfz@atomide.com>
+References: <cover.1474025756.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160914181019.22937-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <cover.1474025756.git.jsarha-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org> [160916 04:50]:
+> These patches complete the am335x LCDC color errata fix[1]. The
+> functional patches are now queued for v4.9.
+> 
+> The patch for am335x-boneblack.dts is delayed until v4.10 or v4.9-rc
+> phase to avoid conflickt with BBB HDMI audio DTS patch that slipped
+> into tda998x pull request.
+> 
+> [1] http://www.spinics.net/lists/devicetree/msg141246.html
 
-On Wed, Sep 14, 2016 at 11:10:19AM -0700, Tony Lindgren wrote:
-> Commit a83e17d0f73b ("usb: musb: Improve PM runtime and phy handling
-> for 2430 glue layer") moved PHY enable/disable calls to happen from
-> omap2430_musb_enable/disable(). That broke enumeration for several
-> devices as PM runtime in the PHY will never enable it.
-> 
-> The root cause of the problem is unpaired calls from musb_core.c to
-> musb_platform_enable/disable in musb_core.c as reported by
-> Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>.
-> 
-> As musb_platform_enable/disable are being called from various functions,
-> let's not attempt to make them paiered immediately. This would require
-> fixing all the callers like musb_remove.
-> 
-> Instead, let's first fix the regression in a minimal way by removing
-> the initial call to musb_platform_disable. To do that in a safe way,
-> we need to call the glue specific *_musb_disable() directly in the
-> glue layer *_musb_init() as noted by Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>.
-> 
-> AFAIK the initial musb_platform_disable call has always been just an
-> attempted workaround for the 2430 glue layer announcing itself too
-> early before the gadgets are configured. And that issue finally
-> got fixed with commit a118df07f5b1 ("usb: musb: Don't set d+ high
-> before enable for 2430 glue layer").
-> 
-> Further, most of the glue layers already do a reset of the musb
-> controller in the *_musb_init(), so later on we may want to
-> consider removing the calls to *__musb_disable() where a reset is
-> already done.
-> 
-> Note that we now also need to fix the twl4030-phy accordingly making
-> it's PM runtime call only needed in twl4030_phy_power_on and have it
-> autosuspend. The cable state will keep the phy active when connected.
-> 
-> Cc: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Cc: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-> Fixes: a83e17d0f73b ("usb: musb: Improve PM runtime and phy handling
-> for 2430 glue layer")
-> Reported-by: Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>
-> Acked-by: Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>
-> Reported-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-> Tested-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-> Acked-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> ---
+OK. Are these safe to merge even if the dts changes get merged before
+the driver changes? Or does it break something if merged out of order?
 
-If Kishon wants to take it, here is my
+Regards,
 
-Acked-by: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Tony
 
-Regards
--Bin.
 
+> Jyri Sarha (3):
+>   ARM: dts: am335x-evm: Add blue-and-red-wiring -property to lcdc node
+>   ARM: dts: am335x-evmsk: Whitespace cleanup of lcdc related nodes
+>   ARM: dts: am335x-evmsk: Add blue-and-red-wiring -property to lcdc node
 > 
-> I've kept the 2430 glue layer related acks as those parts did
-> not change. For the glue layers doing things in *_musb_disable(),
-> I've tested da8xx, am35x and musb_dsps glue layers.
+>  arch/arm/boot/dts/am335x-evm.dts   |  2 ++
+>  arch/arm/boot/dts/am335x-evmsk.dts | 42 ++++++++++++++++++++------------------
+>  2 files changed, 24 insertions(+), 20 deletions(-)
 > 
-> Changes since v2:
-> 
-> - Added glue layer calls to *_musb_disable() from *_musb_init()
->   where needed as suggested by Bin
-> 
-> ---
->  drivers/phy/phy-twl4030-usb.c | 4 ++--
->  drivers/usb/musb/am35x.c      | 1 +
->  drivers/usb/musb/da8xx.c      | 1 +
->  drivers/usb/musb/davinci.c    | 1 +
->  drivers/usb/musb/musb_core.c  | 1 -
->  drivers/usb/musb/musb_dsps.c  | 1 +
->  drivers/usb/musb/sunxi.c      | 3 +++
->  drivers/usb/musb/tusb6010.c   | 1 +
->  8 files changed, 10 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
-> --- a/drivers/phy/phy-twl4030-usb.c
-> +++ b/drivers/phy/phy-twl4030-usb.c
-> @@ -447,8 +447,6 @@ static int twl4030_phy_power_off(struct phy *phy)
->  	struct twl4030_usb *twl = phy_get_drvdata(phy);
->  
->  	dev_dbg(twl->dev, "%s\n", __func__);
-> -	pm_runtime_mark_last_busy(twl->dev);
-> -	pm_runtime_put_autosuspend(twl->dev);
->  
->  	return 0;
->  }
-> @@ -465,6 +463,8 @@ static int twl4030_phy_power_on(struct phy *phy)
->  		twl4030_i2c_access(twl, 0);
->  	twl->linkstat = MUSB_UNKNOWN;
->  	schedule_delayed_work(&twl->id_workaround_work, HZ);
-> +	pm_runtime_mark_last_busy(twl->dev);
-> +	pm_runtime_put_autosuspend(twl->dev);
->  
->  	return 0;
->  }
-> diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
-> --- a/drivers/usb/musb/am35x.c
-> +++ b/drivers/usb/musb/am35x.c
-> @@ -381,6 +381,7 @@ static int am35x_musb_init(struct musb *musb)
->  
->  	msleep(5);
->  
-> +	am35x_musb_disable(musb);
->  	musb->isr = am35x_musb_interrupt;
->  
->  	/* clear level interrupt */
-> diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
-> --- a/drivers/usb/musb/da8xx.c
-> +++ b/drivers/usb/musb/da8xx.c
-> @@ -440,6 +440,7 @@ static int da8xx_musb_init(struct musb *musb)
->  		 rev, __raw_readl(CFGCHIP2),
->  		 musb_readb(reg_base, DA8XX_USB_CTRL_REG));
->  
-> +	da8xx_musb_disable(musb);
->  	musb->isr = da8xx_musb_interrupt;
->  	return 0;
->  fail:
-> diff --git a/drivers/usb/musb/davinci.c b/drivers/usb/musb/davinci.c
-> --- a/drivers/usb/musb/davinci.c
-> +++ b/drivers/usb/musb/davinci.c
-> @@ -432,6 +432,7 @@ static int davinci_musb_init(struct musb *musb)
->  		revision, __raw_readl(USB_PHY_CTRL),
->  		musb_readb(tibase, DAVINCI_USB_CTRL_REG));
->  
-> +	davinci_musb_disable(musb);
->  	musb->isr = davinci_musb_interrupt;
->  	return 0;
->  
-> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> index 74fc306..f7dc3df 100644
-> --- a/drivers/usb/musb/musb_core.c
-> +++ b/drivers/usb/musb/musb_core.c
-> @@ -2142,7 +2142,6 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
->  	}
->  
->  	/* be sure interrupts are disabled before connecting ISR */
-> -	musb_platform_disable(musb);
->  	musb_generic_disable(musb);
->  
->  	/* Init IRQ workqueue before request_irq */
-> diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-> --- a/drivers/usb/musb/musb_dsps.c
-> +++ b/drivers/usb/musb/musb_dsps.c
-> @@ -441,6 +441,7 @@ static int dsps_musb_init(struct musb *musb)
->  	/* Reset the musb */
->  	musb_writel(reg_base, wrp->control, (1 << wrp->reset));
->  
-> +	dsps_musb_disable(musb);
->  	musb->isr = dsps_interrupt;
->  
->  	/* reset the otgdisable bit, needed for host mode to work */
-> diff --git a/drivers/usb/musb/sunxi.c b/drivers/usb/musb/sunxi.c
-> --- a/drivers/usb/musb/sunxi.c
-> +++ b/drivers/usb/musb/sunxi.c
-> @@ -93,6 +93,8 @@ struct sunxi_glue {
->  	struct notifier_block	host_nb;
->  };
->  
-> +static void sunxi_musb_disable(struct musb *musb);
-> +
->  /* phy_power_on / off may sleep, so we use a workqueue  */
->  static void sunxi_musb_work(struct work_struct *work)
->  {
-> @@ -265,6 +267,7 @@ static int sunxi_musb_init(struct musb *musb)
->  	if (ret)
->  		goto error_unregister_notifier;
->  
-> +	sunxi_musb_disable(musb);
->  	musb->isr = sunxi_musb_interrupt;
->  
->  	/* Stop the musb-core from doing runtime pm (not supported on sunxi) */
-> diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
-> --- a/drivers/usb/musb/tusb6010.c
-> +++ b/drivers/usb/musb/tusb6010.c
-> @@ -1149,6 +1149,7 @@ static int tusb_musb_init(struct musb *musb)
->  				ret);
->  		goto done;
->  	}
-> +	tusb_musb_disable(musb);
->  	musb->isr = tusb_musb_interrupt;
->  
->  	musb->xceiv->set_power = tusb_draw_power;
 > -- 
-> 2.9.3
+> 1.9.1
+> 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
