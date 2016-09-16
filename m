@@ -1,67 +1,90 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] dmaengine: omap-dma: Enable burst and data pack for SG
-Date: Fri, 16 Sep 2016 13:53:15 +0300
-Message-ID: <20160916105315.28320-1-peter.ujfalusi@ti.com>
+From: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v7 0/5] mfd: tps65218: Clean ups
+Date: Fri, 16 Sep 2016 17:12:38 +0530
+Message-ID: <ab94aff0-8470-57e5-2039-12f09bb0ca33@ti.com>
+References: <1470833641-29546-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: vinod.koul@intel.com, dan.j.williams@intel.com
-Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, linux@armlinux.org.uk, misael.lopez@ti.com
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1470833641-29546-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, russ.dill-l0cyMroinI0@public.gmane.org, d-gerlach-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Misael Lopez Cruz <misael.lopez@ti.com>
 
-Enable the burst and data pack modes for the scatter-gather
-in order to improve the throughput of the data transfers.
 
-The improvement has been verified with MMC HS200 mode in
-the DRA72 EVM using the iozone tool to compare the read
-throughput (in kB/s) with and without burst/pack for
-different reclens (in kB).
+On Wednesday 10 August 2016 06:24 PM, Keerthy wrote:
+> The series cleans up mainly the regulator driver and implements
+> the device tree parsing using the regulator framework. Removes
+> all the redundant compatibles for the individual regulators.
+> Adds platform_device_id table for the gpio and power button modules.
+>
+> One of the patch removes redundant read wrapper and makes
+> use of regmap_read wherever necessary.
 
-                              With
-    reclen    Baseline   sDMA burst/pack
-    ------    --------   ---------------
-       64       46568         50820
-      128       57564         63413
-      256       65634         74937
-      512       72427         83483
-     1024       74563         84504
-     2048       76265         86079
-     4096       78045         87335
-     8192       78989         88154
-    16384       81265         91034
+Mark,
 
-Signed-off-by: Misael Lopez Cruz <misael.lopez@ti.com>
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- drivers/dma/omap-dma.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+Should i repost this series? I do not see this series in linux-next yet.
 
-diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index 1b7f5f32bf74..7ca27d4b1c54 100644
---- a/drivers/dma/omap-dma.c
-+++ b/drivers/dma/omap-dma.c
-@@ -904,13 +904,16 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
- 	d->es = es;
- 
- 	d->ccr = c->ccr | CCR_SYNC_FRAME;
--	if (dir == DMA_DEV_TO_MEM)
-+	if (dir == DMA_DEV_TO_MEM) {
- 		d->ccr |= CCR_DST_AMODE_POSTINC | CCR_SRC_AMODE_CONSTANT;
--	else
-+		d->csdp = CSDP_DST_BURST_64 | CSDP_DST_PACKED;
-+	} else {
- 		d->ccr |= CCR_DST_AMODE_CONSTANT | CCR_SRC_AMODE_POSTINC;
-+		d->csdp = CSDP_SRC_BURST_64 | CSDP_SRC_PACKED;
-+	}
- 
- 	d->cicr = CICR_DROP_IE | CICR_BLOCK_IE;
--	d->csdp = es;
-+	d->csdp |= es;
- 
- 	if (dma_omap1()) {
- 		d->cicr |= CICR_TOUT_IE;
--- 
-2.10.0
+Regards,
+Keerthy
+>
+> The series is checked for all the regulator registrations on
+> am437x-gp-evm.
+>
+> Boot log: http://pastebin.ubuntu.com/22905402/
+>
+> The series is based on linux-next on top of series titled:
+> [PATCH v3 0/2] regulator: Enable suspend configuration
+>
+> Do not have the link of the above series available at the moment.
+>
+> Changes in v7:
+>
+> Rebasing to latest next branch. GPIO patch of this series
+> pushed to linux-next by Linus. Hence posting the remaining
+> patches with respective Acks from the domain Maintainers.
+>
+> Changes in v6:
+>
+> Rebased regulator/mfd clean up patches against linux-next +
+> https://lkml.org/lkml/2016/6/24/122 series.
+>
+> Changes in v5:
+>
+> Rebased regulator clean up patch against linux-next.
+>
+> Changes in v4:
+>
+> For gpio-tps65218 reatined the compatible table.
+> Fixed missing ';' in the power button patch.
+> Fixed comments on the Documentation patch.
+> Split the Device Tree patches to a separate series.
+>
+> Changes in v3:
+>
+> Missed making corresponding changes in the power button and gpio
+> drivers. Added couple of patches to fix them to use mfd_cell way
+> of parsing.
+>
+> Keerthy (5):
+>   mfd: tps65218: Remove redundant read wrapper
+>   Documentation: regulator: tps65218: Update examples
+>   input: tps65218-pwrbutton: Add platform_device_id table
+>   mfd: tps65218: Use mfd_add_devices instead of of_platform_populate
+>   regulator: tps65218: Remove all the compatibles
+>
+>  .../devicetree/bindings/regulator/tps65218.txt     |  87 +++++++++---
+>  drivers/gpio/gpio-tps65218.c                       |   3 +-
+>  drivers/input/misc/tps65218-pwrbutton.c            |  10 +-
+>  drivers/mfd/tps65218.c                             |  34 ++---
+>  drivers/regulator/tps65218-regulator.c             | 153 ++++++++-------------
+>  include/linux/mfd/tps65218.h                       |   3 +-
+>  6 files changed, 158 insertions(+), 132 deletions(-)
+>
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
