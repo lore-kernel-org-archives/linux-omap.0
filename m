@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 7/9] dmaengine: ti-dma-crossbar: Correct type for of_find_property() third parameter
-Date: Fri, 16 Sep 2016 11:33:22 +0300
-Message-ID: <20160916083324.29133-8-peter.ujfalusi@ti.com>
+Subject: [PATCH 6/9] dmaengine: omap-dma: enable COMPILE_TEST
+Date: Fri, 16 Sep 2016 11:33:21 +0300
+Message-ID: <20160916083324.29133-7-peter.ujfalusi@ti.com>
 References: <20160916083324.29133-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,27 +12,25 @@ To: vinod.koul@intel.com, dan.j.williams@intel.com
 Cc: arnd@arndb.de, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-The correct type is int and not for the third parameter of
-of_find_property().
-Fixes compilation for 64bit architectures (x86_64, aarch64).
+To get more coverage, enable COMPILE_TEST for this driver.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/ti-dma-crossbar.c | 2 +-
+ drivers/dma/Kconfig | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/dma/ti-dma-crossbar.c b/drivers/dma/ti-dma-crossbar.c
-index 5ae294b256a7..e4f3bd1ae264 100644
---- a/drivers/dma/ti-dma-crossbar.c
-+++ b/drivers/dma/ti-dma-crossbar.c
-@@ -311,7 +311,7 @@ static int ti_dra7_xbar_probe(struct platform_device *pdev)
- 	struct property *prop;
- 	struct resource *res;
- 	u32 safe_val;
--	size_t sz;
-+	int sz;
- 	void __iomem *iomem;
- 	int i, ret;
+diff --git a/drivers/dma/Kconfig b/drivers/dma/Kconfig
+index 4348249b943a..84647d6cb2f4 100644
+--- a/drivers/dma/Kconfig
++++ b/drivers/dma/Kconfig
+@@ -130,7 +130,7 @@ config DMA_JZ4780
  
+ config DMA_OMAP
+ 	tristate "OMAP DMA support"
+-	depends on ARCH_OMAP
++	depends on ARCH_OMAP || COMPILE_TEST
+ 	select DMA_ENGINE
+ 	select DMA_VIRTUAL_CHANNELS
+ 	select TI_DMA_CROSSBAR if SOC_DRA7XX
 -- 
 2.10.0
