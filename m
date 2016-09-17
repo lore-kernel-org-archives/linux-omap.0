@@ -1,38 +1,63 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/3] ARM: dts: am335x-evm: Add blue-and-red-wiring
- -property to lcdc node
-Date: Fri, 16 Sep 2016 17:17:21 -0500
-Message-ID: <a0e00898-80fb-8242-aafb-6e4d3f650345@ti.com>
-References: <cover.1474025756.git.jsarha@ti.com>
- <34893e286d16c281098063d2a4fec985acbf8818.1474025756.git.jsarha@ti.com>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH v7 0/5] mfd: tps65218: Clean ups
+Date: Sat, 17 Sep 2016 09:23:51 +0530
+Message-ID: <4c5b4ca3-4594-455e-8c0b-2f6cc4e6b8e2@ti.com>
+References: <1470833641-29546-1-git-send-email-j-keerthy@ti.com>
+ <ab94aff0-8470-57e5-2039-12f09bb0ca33@ti.com>
+ <20160916133153.GB27974@sirena.org.uk>
+ <0a30f210-0a23-0899-51b0-28f200ddd0a4@ti.com>
+ <20160916173620.GB10189@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <34893e286d16c281098063d2a4fec985acbf8818.1474025756.git.jsarha-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: tomi.valkeinen-l0cyMroinI0@public.gmane.org
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20160916173620.GB10189@sirena.org.uk>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Keerthy <j-keerthy@ti.com>, lee.jones@linaro.org, tony@atomide.com, dmitry.torokhov@gmail.com, linus.walleij@linaro.org, gnurou@gmail.com, devicetree@vger.kernel.org, robh+dt@kernel.org, linux-input@vger.kernel.org, linux-gpio@vger.kernel.org, linux-arm-kernel@lists.infradead.org, t-kristo@ti.com, russ.dill@ti.com, d-gerlach@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/16/2016 06:50 AM, Jyri Sarha wrote:
-[..]
-> +	blue-and-red-wiring = "crossed";
 
-Dumb question: Why is this a Linux generic property - does it make 
-sense to have "blue-and-red-wiring" as a Linux generic property? I 
-mean, it reminds me little of those movies "cut the blue or red wire 
-to diffuse the bomb" ;)
 
-"The am335x-evm has blue and red wires crossed to get 24-bit RGB (and 
-16-bit BGR". I mean, there has to be some sort of better description 
-specific to lcdc if some product used yellow and green wires for the 
-same signals crossed?
+On Friday 16 September 2016 11:06 PM, Mark Brown wrote:
+> On Fri, Sep 16, 2016 at 09:51:38PM +0530, Keerthy wrote:
+>> On Friday 16 September 2016 07:01 PM, Mark Brown wrote:
+>>> On Fri, Sep 16, 2016 at 05:12:38PM +0530, Keerthy wrote:
+>
+>>>> Should i repost this series? I do not see this series in linux-next yet.
+>
+>>> Please don't send content free pings and please allow a reasonable time
+>>> for review.  People get busy, go on holiday, attend conferences and so
+>
+>> I should have been clearer.
+>> The last Lee Jones conveyed that:
+>
+>> "I can't take this series yet, since it relies on a change which was
+>> taken into Mark's Regulator tree"
+>
+>> https://lkml.org/lkml/2016/8/31/312
+>
+>> So wanted to check if i needed to re-base/repost this series again.
+>> Sorry about the confusion i think that is because of $Subject goof up in the
+>> 0th patch of the series.
+>
+> I'm afraid I've no real idea what this series is about or what patches
+> it might depend on, sorry.  If you're waiting for me to do something
+> you'll need to tell me what it is but if it's a dependency that needs
+> cross merging then reposting this series isn't going to be needed.
 
--- 
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The series cleans up mainly the regulator driver and implements
+the device tree parsing using the regulator framework. Removes
+all the redundant compatibles for the individual regulators.
+Adds platform_device_id table for the gpio and power button modules.
+
+This has been reviewed extensively.
+
+Looks like v7 no longer applies directly on the linux-next branch as it 
+conflicts with:
+
+https://kernel.googlesource.com/pub/scm/linux/kernel/git/dtor/input/+/722dc54628ca5cffd3b4581b523775aa422b55df
+
+I will rebase and repost on the current linux-next and post v8.
+
+>
