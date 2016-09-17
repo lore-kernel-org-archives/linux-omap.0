@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 3/5] wlcore: spi: Populate config firmware data
-Date: Sat, 17 Sep 2016 09:06:31 -0700
-Message-ID: <20160917160633.8767-4-tony@atomide.com>
+Subject: [PATCH 4/5] wlcore: Fix config firmware loading issues
+Date: Sat, 17 Sep 2016 09:06:32 -0700
+Message-ID: <20160917160633.8767-5-tony@atomide.com>
 References: <20160917160633.8767-1-tony@atomide.com>
 Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160917160633.8767-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
@@ -10,119 +10,169 @@ To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Configure the config firmware names and make it available
-in platform data.
+Booting multiple wl12xx and wl18xx devices using the same rootfs is
+a pain. You currently have to symlink the right nvs file depending
+on the wl12xx type.
 
-Let's also fix the order of the struct wilink_family_data
-while at it.
+For example, with wl1271-nvs.bin being a symlink to wl127x-nvs.bin
+by default and trying to bring up a wl128x based device:
+
+wlcore: ERROR nvs size is not as expected: 1113 != 912
+wlcore: ERROR NVS file is needed during boot
+wlcore: ERROR NVS file is needed during boot
+wlcore: ERROR firmware boot failed despite 3 retries
+
+Note that wl18xx uses a separate config firmware wl18xx-conf.bin
+that can be generated with tools using the following two git repos:
+
+git.ti.com/wilink8-wlan/18xx-ti-utils
+git.ti.com/wilink8-wlan/wl18xx_fw
+
+So let's not configure the nvs file for wl18xx as it's not needed
+AFAIK. If it turns out that we also need the nvs file for wl18xx,
+we can just add it to the config firmware data for wl18xx.
+
+Let's fix the issue by using the chip specific config firmware
+data, and make sure we produce understandable warnings if something
+is missing.
 
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/net/wireless/ti/wlcore/spi.c | 42 ++++++++++++++++++++----------------
- 1 file changed, 24 insertions(+), 18 deletions(-)
+ drivers/net/wireless/ti/wlcore/boot.c     | 15 +++++++++----
+ drivers/net/wireless/ti/wlcore/main.c     | 36 ++++++++++++++++++++-----------
+ drivers/net/wireless/ti/wlcore/wlcore_i.h |  7 ------
+ 3 files changed, 35 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/net/wireless/ti/wlcore/spi.c b/drivers/net/wireless/ti/wlcore/spi.c
---- a/drivers/net/wireless/ti/wlcore/spi.c
-+++ b/drivers/net/wireless/ti/wlcore/spi.c
-@@ -79,15 +79,19 @@
- #define WSPI_MAX_NUM_OF_CHUNKS \
- 	((SPI_AGGR_BUFFER_SIZE / WSPI_MAX_CHUNK_SIZE) + 1)
+diff --git a/drivers/net/wireless/ti/wlcore/boot.c b/drivers/net/wireless/ti/wlcore/boot.c
+--- a/drivers/net/wireless/ti/wlcore/boot.c
++++ b/drivers/net/wireless/ti/wlcore/boot.c
+@@ -282,6 +282,9 @@ EXPORT_SYMBOL_GPL(wlcore_boot_upload_firmware);
  
-+static const struct wilink_family_data wl127x_data = {
-+	.name = "wl127x",
-+	.nvs_name = "ti-connectivity/wl127x-nvs.bin",
-+};
- 
--static const struct wilink_family_data *wilink_data;
-+static const struct wilink_family_data wl128x_data = {
-+	.name = "wl128x",
-+	.nvs_name = "ti-connectivity/wl128x-nvs.bin",
-+};
- 
- static const struct wilink_family_data wl18xx_data = {
- 	.name = "wl18xx",
--};
--
--static const struct wilink_family_data wl12xx_data = {
--	.name = "wl12xx",
-+	.cfg_name = "ti-connectivity/wl18xx-conf.bin",
- };
- 
- struct wl12xx_spi_glue {
-@@ -425,10 +429,10 @@ static struct wl1271_if_operations spi_ops = {
- };
- 
- static const struct of_device_id wlcore_spi_of_match_table[] = {
--	{ .compatible = "ti,wl1271", .data = &wl12xx_data},
--	{ .compatible = "ti,wl1273", .data = &wl12xx_data},
--	{ .compatible = "ti,wl1281", .data = &wl12xx_data},
--	{ .compatible = "ti,wl1283", .data = &wl12xx_data},
-+	{ .compatible = "ti,wl1271", .data = &wl127x_data},
-+	{ .compatible = "ti,wl1273", .data = &wl127x_data},
-+	{ .compatible = "ti,wl1281", .data = &wl128x_data},
-+	{ .compatible = "ti,wl1283", .data = &wl128x_data},
- 	{ .compatible = "ti,wl1801", .data = &wl18xx_data},
- 	{ .compatible = "ti,wl1805", .data = &wl18xx_data},
- 	{ .compatible = "ti,wl1807", .data = &wl18xx_data},
-@@ -456,9 +460,9 @@ static int wlcore_probe_of(struct spi_device *spi, struct wl12xx_spi_glue *glue,
- 	if (!of_id)
- 		return -ENODEV;
- 
--	wilink_data = of_id->data;
-+	pdev_data->family = of_id->data;
- 	dev_info(&spi->dev, "selected chip family is %s\n",
--		 wilink_data->name);
-+		 pdev_data->family->name);
- 
- 	if (of_find_property(dt_node, "clock-xtal", NULL))
- 		pdev_data->ref_clock_xtal = true;
-@@ -475,13 +479,15 @@ static int wlcore_probe_of(struct spi_device *spi, struct wl12xx_spi_glue *glue,
- static int wl1271_probe(struct spi_device *spi)
+ int wlcore_boot_upload_nvs(struct wl1271 *wl)
  {
- 	struct wl12xx_spi_glue *glue;
--	struct wlcore_platdev_data pdev_data;
-+	struct wlcore_platdev_data *pdev_data;
- 	struct resource res[1];
- 	int ret;
- 
--	memset(&pdev_data, 0x00, sizeof(pdev_data));
-+	pdev_data = devm_kzalloc(&spi->dev, sizeof(*pdev_data), GFP_KERNEL);
-+	if (!pdev_data)
-+		return -ENOMEM;
- 
--	pdev_data.if_ops = &spi_ops;
-+	pdev_data->if_ops = &spi_ops;
- 
- 	glue = devm_kzalloc(&spi->dev, sizeof(*glue), GFP_KERNEL);
- 	if (!glue) {
-@@ -505,7 +511,7 @@ static int wl1271_probe(struct spi_device *spi)
- 		return PTR_ERR(glue->reg);
++	struct platform_device *pdev = wl->pdev;
++	struct wlcore_platdev_data *pdev_data = dev_get_platdata(&pdev->dev);
++	const char *nvs_name = "unknown";
+ 	size_t nvs_len, burst_len;
+ 	int i;
+ 	u32 dest_addr, val;
+@@ -293,6 +296,9 @@ int wlcore_boot_upload_nvs(struct wl1271 *wl)
+ 		return -ENODEV;
  	}
  
--	ret = wlcore_probe_of(spi, glue, &pdev_data);
-+	ret = wlcore_probe_of(spi, glue, pdev_data);
- 	if (ret) {
- 		dev_err(glue->dev,
- 			"can't get device tree parameters (%d)\n", ret);
-@@ -518,7 +524,7 @@ static int wl1271_probe(struct spi_device *spi)
- 		return ret;
++	if (pdev_data && pdev_data->family)
++		nvs_name = pdev_data->family->nvs_name;
++
+ 	if (wl->quirks & WLCORE_QUIRK_LEGACY_NVS) {
+ 		struct wl1271_nvs_file *nvs =
+ 			(struct wl1271_nvs_file *)wl->nvs;
+@@ -310,8 +316,9 @@ int wlcore_boot_upload_nvs(struct wl1271 *wl)
+ 		if (wl->nvs_len != sizeof(struct wl1271_nvs_file) &&
+ 		    (wl->nvs_len != WL1271_INI_LEGACY_NVS_FILE_SIZE ||
+ 		     wl->enable_11a)) {
+-			wl1271_error("nvs size is not as expected: %zu != %zu",
+-				wl->nvs_len, sizeof(struct wl1271_nvs_file));
++			wl1271_error("%s size is not as expected: %zu != %zu",
++				     nvs_name, wl->nvs_len,
++				     sizeof(struct wl1271_nvs_file));
+ 			kfree(wl->nvs);
+ 			wl->nvs = NULL;
+ 			wl->nvs_len = 0;
+@@ -328,8 +335,8 @@ int wlcore_boot_upload_nvs(struct wl1271 *wl)
+ 			if (nvs->general_params.dual_mode_select)
+ 				wl->enable_11a = true;
+ 		} else {
+-			wl1271_error("nvs size is not as expected: %zu != %zu",
+-				     wl->nvs_len,
++			wl1271_error("%s size is not as expected: %zu != %zu",
++				     nvs_name, wl->nvs_len,
+ 				     sizeof(struct wl128x_nvs_file));
+ 			kfree(wl->nvs);
+ 			wl->nvs = NULL;
+diff --git a/drivers/net/wireless/ti/wlcore/main.c b/drivers/net/wireless/ti/wlcore/main.c
+--- a/drivers/net/wireless/ti/wlcore/main.c
++++ b/drivers/net/wireless/ti/wlcore/main.c
+@@ -6413,9 +6413,12 @@ static void wlcore_nvs_cb(const struct firmware *fw, void *context)
+ 			goto out;
+ 		}
+ 		wl->nvs_len = fw->size;
+-	} else {
++	} else if (pdev_data->family->nvs_name) {
+ 		wl1271_debug(DEBUG_BOOT, "Could not get nvs file %s",
+-			     WL12XX_NVS_NAME);
++			     pdev_data->family->nvs_name);
++		wl->nvs = NULL;
++		wl->nvs_len = 0;
++	} else {
+ 		wl->nvs = NULL;
+ 		wl->nvs_len = 0;
+ 	}
+@@ -6510,21 +6513,29 @@ static void wlcore_nvs_cb(const struct firmware *fw, void *context)
+ 
+ int wlcore_probe(struct wl1271 *wl, struct platform_device *pdev)
+ {
+-	int ret;
++	struct wlcore_platdev_data *pdev_data = dev_get_platdata(&pdev->dev);
++	const char *nvs_name;
++	int ret = 0;
+ 
+-	if (!wl->ops || !wl->ptable)
++	if (!wl->ops || !wl->ptable || !pdev_data)
+ 		return -EINVAL;
+ 
+ 	wl->dev = &pdev->dev;
+ 	wl->pdev = pdev;
+ 	platform_set_drvdata(pdev, wl);
+ 
+-	ret = request_firmware_nowait(THIS_MODULE, FW_ACTION_HOTPLUG,
+-				      WL12XX_NVS_NAME, &pdev->dev, GFP_KERNEL,
+-				      wl, wlcore_nvs_cb);
+-	if (ret < 0) {
+-		wl1271_error("request_firmware_nowait failed: %d", ret);
+-		complete_all(&wl->nvs_loading_complete);
++	if (pdev_data->family && pdev_data->family->nvs_name) {
++		nvs_name = pdev_data->family->nvs_name;
++		ret = request_firmware_nowait(THIS_MODULE, FW_ACTION_HOTPLUG,
++					      nvs_name, &pdev->dev, GFP_KERNEL,
++					      wl, wlcore_nvs_cb);
++		if (ret < 0) {
++			wl1271_error("request_firmware_nowait failed for %s: %d",
++				     nvs_name, ret);
++			complete_all(&wl->nvs_loading_complete);
++		}
++	} else {
++		wlcore_nvs_cb(NULL, wl);
  	}
  
--	glue->core = platform_device_alloc(wilink_data->name,
-+	glue->core = platform_device_alloc(pdev_data->family->name,
- 					   PLATFORM_DEVID_AUTO);
- 	if (!glue->core) {
- 		dev_err(glue->dev, "can't allocate platform_device\n");
-@@ -539,8 +545,8 @@ static int wl1271_probe(struct spi_device *spi)
- 		goto out_dev_put;
- 	}
+ 	return ret;
+@@ -6533,9 +6544,11 @@ EXPORT_SYMBOL_GPL(wlcore_probe);
  
--	ret = platform_device_add_data(glue->core, &pdev_data,
--				       sizeof(pdev_data));
-+	ret = platform_device_add_data(glue->core, pdev_data,
-+				       sizeof(*pdev_data));
- 	if (ret) {
- 		dev_err(glue->dev, "can't add platform data\n");
- 		goto out_dev_put;
--- 
-2.9.3
+ int wlcore_remove(struct platform_device *pdev)
+ {
++	struct wlcore_platdev_data *pdev_data = dev_get_platdata(&pdev->dev);
+ 	struct wl1271 *wl = platform_get_drvdata(pdev);
+ 
+-	wait_for_completion(&wl->nvs_loading_complete);
++	if (pdev_data->family && pdev_data->family->nvs_name)
++		wait_for_completion(&wl->nvs_loading_complete);
+ 	if (!wl->initialized)
+ 		return 0;
+ 
+@@ -6572,4 +6585,3 @@ MODULE_PARM_DESC(no_recovery, "Prevent HW recovery. FW will remain stuck.");
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Luciano Coelho <coelho-l0cyMroinI0@public.gmane.org>");
+ MODULE_AUTHOR("Juuso Oikarinen <juuso.oikarinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>");
+-MODULE_FIRMWARE(WL12XX_NVS_NAME);
+diff --git a/drivers/net/wireless/ti/wlcore/wlcore_i.h b/drivers/net/wireless/ti/wlcore/wlcore_i.h
+--- a/drivers/net/wireless/ti/wlcore/wlcore_i.h
++++ b/drivers/net/wireless/ti/wlcore/wlcore_i.h
+@@ -35,13 +35,6 @@
+ #include "conf.h"
+ #include "ini.h"
+ 
+-/*
+- * wl127x and wl128x are using the same NVS file name. However, the
+- * ini parameters between them are different.  The driver validates
+- * the correct NVS size in wl1271_boot_upload_nvs().
+- */
+-#define WL12XX_NVS_NAME "ti-connectivity/wl1271-nvs.bin"
