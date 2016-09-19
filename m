@@ -1,38 +1,49 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 8/8] crypto: omap-sham: shrink the internal buffer size
-Date: Mon, 19 Sep 2016 18:22:19 +0300
-Message-ID: <1474298539-23897-9-git-send-email-t-kristo@ti.com>
-References: <1474298539-23897-1-git-send-email-t-kristo@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] omap dts updates for v4.9 merge window, part 2
+Date: Mon, 19 Sep 2016 17:45:00 +0200
+Message-ID: <2566941.uVvDnvgHof@wuerfel>
+References: <20160915172021.6u2zam4yd6vruub4@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <1474298539-23897-1-git-send-email-t-kristo@ti.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: herbert@gondor.apana.org.au, lokeshvutla@ti.com, davem@davemloft.net, linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160915172021.6u2zam4yd6vruub4@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, arm@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The current internal buffer size is way too large for crypto core, so
-shrink it to be smaller. This makes the buffer to fit into the space
-reserved for the export/import buffers also.
+On Thursday, September 15, 2016 10:20:22 AM CEST Tony Lindgren wrote:
+> Part two of device tree changes for omaps for v4.9 merge window. This
+> is mostly usability and non-critical fixes except for the addition of
+> beagleboard-x15 rev B1 support:
+> 
+> - Fix omap4 pandaboard SDIO WLAN latencies in idle mode by enabling wakeirq
+> 
+> - Usability fixes for WLAN, USB, LEDs and power button on omap5 boards
+> 
+> - Remove am57xx beagleboard-x15 pinmux configuration as the processor requires
+>   that it's done in IO isolation in bootloader except for MMC and DCAN
+> 
+> - Add support for beagleboard-x15 rev B1 by moving most of the
+>   configuration to am57xx-beagle-x15-common.dtsi
+> 
+> - Enable support for more than 2GB of memory for omap5 with LPAE with
+>   #address-cells
+> 
+> - Fix omap3-gta04 backlight PWM frequency until the PWM driver
+> 
+> - Revert am335x dts changes related to cpufreq as the driver changes
+>   still have not merged and the dts changes broke cpufreq
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- drivers/crypto/omap-sham.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Pulled into next/dt, thanks!
 
-diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
-index 8eefd79..d0b16e5 100644
---- a/drivers/crypto/omap-sham.c
-+++ b/drivers/crypto/omap-sham.c
-@@ -135,7 +135,7 @@
- #define OMAP_ALIGN_MASK		(sizeof(u32)-1)
- #define OMAP_ALIGNED		__attribute__((aligned(sizeof(u32))))
- 
--#define BUFLEN			PAGE_SIZE
-+#define BUFLEN			SHA512_BLOCK_SIZE
- #define OMAP_SHA_DMA_THRESHOLD	256
- 
- struct omap_sham_dev;
--- 
-1.9.1
+	Arnd
