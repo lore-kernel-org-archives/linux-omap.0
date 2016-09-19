@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v8 1/5] mfd: tps65218: Remove redundant read wrapper
-Date: Mon, 19 Sep 2016 13:09:02 +0530
-Message-ID: <1474270746-11568-2-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH v8 4/5] mfd: tps65218: Use mfd_add_devices instead of of_platform_populate
+Date: Mon, 19 Sep 2016 13:09:05 +0530
+Message-ID: <1474270746-11568-5-git-send-email-j-keerthy@ti.com>
 References: <1474270746-11568-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,126 +12,53 @@ To: lee.jones@linaro.org
 Cc: j-keerthy@ti.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-input@vger.kernel.org, robh+dt@kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, tony@atomide.com, dmitry.torokhov@gmail.com, linus.walleij@linaro.org, broonie@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Currently read directly calls the repmap read function. Hence
-remove the redundant wrapper and use regmap read wherever
-needed.
+mfd_add_devices enables parsing device tree nodes without compatibles
+for regulators and gpio modules. Replace of_platform_populate with
+mfd_add_devices. mfd_cell currently is populated with regulators,
+gpio and powerbutton.
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 Acked-by: Lee Jones <lee.jones@linaro.org>
 ---
- drivers/gpio/gpio-tps65218.c           |  3 ++-
- drivers/mfd/tps65218.c                 | 18 ++----------------
- drivers/regulator/tps65218-regulator.c |  5 +++--
- include/linux/mfd/tps65218.h           |  2 --
- 4 files changed, 7 insertions(+), 21 deletions(-)
+ drivers/mfd/tps65218.c | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/gpio/gpio-tps65218.c b/drivers/gpio/gpio-tps65218.c
-index 03e0dfb..a4ba570 100644
---- a/drivers/gpio/gpio-tps65218.c
-+++ b/drivers/gpio/gpio-tps65218.c
-@@ -16,6 +16,7 @@
- #include <linux/errno.h>
- #include <linux/gpio/driver.h>
- #include <linux/platform_device.h>
-+#include <linux/regmap.h>
- #include <linux/mfd/tps65218.h>
- 
- struct tps65218_gpio {
-@@ -30,7 +31,7 @@ static int tps65218_gpio_get(struct gpio_chip *gc, unsigned offset)
- 	unsigned int val;
- 	int ret;
- 
--	ret = tps65218_reg_read(tps65218, TPS65218_REG_ENABLE2, &val);
-+	ret = regmap_read(tps65218->regmap, TPS65218_REG_ENABLE2, &val);
- 	if (ret)
- 		return ret;
- 
 diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
-index ba610ad..9bca1b1 100644
+index 9bca1b1..13834a0 100644
 --- a/drivers/mfd/tps65218.c
 +++ b/drivers/mfd/tps65218.c
-@@ -34,20 +34,6 @@
+@@ -33,6 +33,18 @@
+ 
  #define TPS65218_PASSWORD_REGS_UNLOCK   0x7D
  
++static const struct mfd_cell tps65218_cells[] = {
++	{
++		.name = "tps65218-pwrbutton",
++		.of_compatible = "ti,tps65218-pwrbutton",
++	},
++	{
++		.name = "tps65218-gpio",
++		.of_compatible = "ti,tps65218-gpio",
++	},
++	{ .name = "tps65218-regulator", },
++};
++
  /**
-- * tps65218_reg_read: Read a single tps65218 register.
-- *
-- * @tps: Device to read from.
-- * @reg: Register to read.
-- * @val: Contians the value
-- */
--int tps65218_reg_read(struct tps65218 *tps, unsigned int reg,
--			unsigned int *val)
--{
--	return regmap_read(tps->regmap, reg, val);
--}
--EXPORT_SYMBOL_GPL(tps65218_reg_read);
--
--/**
   * tps65218_reg_write: Write a single tps65218 register.
   *
-  * @tps65218: Device to write to.
-@@ -93,7 +79,7 @@ static int tps65218_update_bits(struct tps65218 *tps, unsigned int reg,
- 	int ret;
- 	unsigned int data;
+@@ -245,8 +257,10 @@ static int tps65218_probe(struct i2c_client *client,
  
--	ret = tps65218_reg_read(tps, reg, &data);
-+	ret = regmap_read(tps->regmap, reg, &data);
- 	if (ret) {
- 		dev_err(tps->dev, "Read from reg 0x%x failed\n", reg);
- 		return ret;
-@@ -251,7 +237,7 @@ static int tps65218_probe(struct i2c_client *client,
+ 	tps->rev = chipid & TPS65218_CHIPID_REV_MASK;
+ 
+-	ret = of_platform_populate(client->dev.of_node, NULL, NULL,
+-				   &client->dev);
++	ret = mfd_add_devices(tps->dev, PLATFORM_DEVID_AUTO, tps65218_cells,
++			      ARRAY_SIZE(tps65218_cells), NULL, 0,
++			      regmap_irq_get_domain(tps->irq_data));
++
  	if (ret < 0)
- 		return ret;
+ 		goto err_irq;
  
--	ret = tps65218_reg_read(tps, TPS65218_REG_CHIPID, &chipid);
-+	ret = regmap_read(tps->regmap, TPS65218_REG_CHIPID, &chipid);
- 	if (ret) {
- 		dev_err(tps->dev, "Failed to read chipid: %d\n", ret);
- 		return ret;
-diff --git a/drivers/regulator/tps65218-regulator.c b/drivers/regulator/tps65218-regulator.c
-index eb0f5b1..ae16caf 100644
---- a/drivers/regulator/tps65218-regulator.c
-+++ b/drivers/regulator/tps65218-regulator.c
-@@ -22,6 +22,7 @@
- #include <linux/err.h>
- #include <linux/platform_device.h>
- #include <linux/of_device.h>
-+#include <linux/regmap.h>
- #include <linux/regulator/of_regulator.h>
- #include <linux/regulator/driver.h>
- #include <linux/regulator/machine.h>
-@@ -272,7 +273,7 @@ static int tps65218_pmic_get_current_limit(struct regulator_dev *dev)
- 	unsigned int index;
- 	struct tps65218 *tps = rdev_get_drvdata(dev);
- 
--	retval = tps65218_reg_read(tps, dev->desc->csel_reg, &index);
-+	retval = regmap_read(tps->regmap, dev->desc->csel_reg, &index);
- 	if (retval < 0)
- 		return retval;
- 
-@@ -383,7 +384,7 @@ static int tps65218_regulator_probe(struct platform_device *pdev)
- 		return PTR_ERR(rdev);
- 	}
- 
--	ret = tps65218_reg_read(tps, regulators[id].bypass_reg, &val);
-+	ret = regmap_read(tps->regmap, regulators[id].bypass_reg, &val);
- 	if (ret)
- 		return ret;
- 
-diff --git a/include/linux/mfd/tps65218.h b/include/linux/mfd/tps65218.h
-index d1db952..51bef53 100644
---- a/include/linux/mfd/tps65218.h
-+++ b/include/linux/mfd/tps65218.h
-@@ -284,8 +284,6 @@ struct tps65218 {
- 	struct regmap *regmap;
- };
- 
--int tps65218_reg_read(struct tps65218 *tps, unsigned int reg,
--					unsigned int *val);
- int tps65218_reg_write(struct tps65218 *tps, unsigned int reg,
- 			unsigned int val, unsigned int level);
- int tps65218_set_bits(struct tps65218 *tps, unsigned int reg,
 -- 
 1.9.1
 
