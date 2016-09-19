@@ -1,61 +1,64 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCHv2] usb: musb: Fix unbalanced platform_disable
-Date: Mon, 19 Sep 2016 15:41:50 -0700
-Message-ID: <20160919224149.3msqxiv24ofwjz4c@atomide.com>
-References: <20160912153947.k4gnggur6usyujii@atomide.com>
- <14745757.ahNt4Zeunj@avalon>
- <20160918151901.k7go65s4jauldxcl@atomide.com>
- <2377851.ZR7UYeyr7h@avalon>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: Add power button support for igepv5
+Date: Mon, 19 Sep 2016 16:08:26 -0700
+Message-ID: <20160919230826.aubqvj2km4wg6gz7@atomide.com>
+References: <20160909210729.20184-1-tony@atomide.com>
+ <31409234-3185-5348-2d37-effb7769c92a@osg.samsung.com>
+ <CAMVEqEkKrw2eH3L6+te5MZLqxBT2jUiRO-KNuS+9nuNYvihCRA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <2377851.ZR7UYeyr7h@avalon>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <CAMVEqEkKrw2eH3L6+te5MZLqxBT2jUiRO-KNuS+9nuNYvihCRA@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Pau Pajuel <ppajuel@gmail.com>
+Cc: =?utf-8?Q?Agust=C3=AD?= Fontquerni i Gorchs <afontquerni@iseebcn.com>, Javier Martinez Canillas <javier@osg.samsung.com>, linux-omap@vger.kernel.org, Enric Balletbo Serra <eballetbo@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [160919 13:35]:
-> On Sunday 18 Sep 2016 08:19:02 Tony Lindgren wrote:
-> > > [    5.711303] [<c0872788>] (_raw_spin_unlock_irqrestore) from
-> > > [<c069b260>]
-> > > (musb_gadget_queue+0x128/0x4ac)
-> > > [    5.711303] [<c069b260>] (musb_gadget_queue) from [<c06a9ae4>]
-> > > (usb_ep_queue+0x38/0x1d4)
-> > > [    5.729766] [<c06a9ae4>] (usb_ep_queue) from [<c06aba40>]
-> > > (rx_submit+0xc8/0x19c)
-> > > [    5.737548] [<c06aba40>] (rx_submit) from [<c06abb90>]
-> > > (rx_fill+0x7c/0xa0) [    5.737548] [<c06abb90>] (rx_fill) from
-> > > [<c06abbdc>] (eth_start+0x28/0x48) [    5.751983] [<c06abbdc>]
-> > > (eth_start) from [<c06abe7c>] (eth_open+0x6c/0x7c) [    5.751983]
-> > > [<c06abe7c>] (eth_open) from [<c0778c2c>]
-> > > (__dev_open+0x9c/0x104)
-> > 
-> > This could be something else though. Care to email me your .config, maybe
-> > this is related to legacy g_ether being built in?
-> 
-> Sure, please find it attached. The legacy g_ether is indeed built-in, that's 
-> what I use to boot over nfsroot.
-
-OK, I think g_ether may have issues in general..
-
-I mostly test with configfs based gadgets and shell script as then I can
-test load/configure/connect/disconnect/unconfigure/unload easily :)
-
-> > Anyways, please also give the following patch a try.
-> 
-> I've tested the patch and if fixes the original problem. Warm reboots are 
-> still broken though.
-
-No luck here with your .config a try with my pandaboard es against v4.8-rc7
-plus the patch I posted on Sunday. It reboots with no errors for me with
-NFSroot. Do you do something other than just reboot?
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+KiBQYXUgUGFqdWVsIDxwcGFqdWVsQGdtYWlsLmNvbT4gWzE2MDkxOSAwMToxM106Cj4gSGVsbG8g
+VG9ueSwKPiAKPiAyMDE2LTA5LTE0IDM6MjYgR01UKzAyOjAwIEphdmllciBNYXJ0aW5leiBDYW5p
+bGxhcyA8amF2aWVyQG9zZy5zYW1zdW5nLmNvbT46Cj4gPiBIZWxsbyBUb255LAo+ID4KPiA+IE9u
+IDA5LzA5LzIwMTYgMDU6MDcgUE0sIFRvbnkgTGluZGdyZW4gd3JvdGU6Cj4gPj4gQWRkIHBvd2Vy
+IGJ1dHRvbiBzdXBwb3J0IGZvciBpZ2VwdjUuCj4gPj4KPiA+PiBDYzogQWd1c3TDrSBGb250cXVl
+cm5pIGkgR29yY2hzIDxhZm9udHF1ZXJuaUBpc2VlYmNuLmNvbT4KPiA+PiBDYzogRW5yaWMgQmFs
+bGV0Ym8gU2VycmEgPGViYWxsZXRib0BnbWFpbC5jb20+Cj4gPj4gQ2M6IEphdmllciBNYXJ0aW5l
+eiBDYW5pbGxhcyA8amF2aWVyQG9zZy5zYW1zdW5nLmNvbT4KPiA+PiBDYzogUGF1IFBhanVlbCA8
+cHBhanVlbEBnbWFpbC5jb20+Cj4gPj4gU2lnbmVkLW9mZi1ieTogVG9ueSBMaW5kZ3JlbiA8dG9u
+eUBhdG9taWRlLmNvbT4KPiA+PiAtLS0KPiA+Cj4gPiBJIGRvbid0IGhhdmUgYSBzY2hlbWF0aWNz
+IGZvciB0aGlzIGJvYXJkLCBidXQgdGhlIHBhdGNoIGxvb2tzIGdvb2QgdG8gbWUuCj4gUGF0Y2gg
+aGFzIGFuIGVycmF0YS4gUG93ZXIgYnV0dG9uIGlzIEdQSU9fQUNUSVZFX0xPVyBpbnN0ZWFkIEdQ
+SU9fQUNUSVZFX0hJR0guCgpPb3BzIHNvcnJ5IGFib3V0IHRoYXQsIGhlcmUncyBhbiBpbmNyZW1l
+bnRhbCBmaXguCgpSZWdhcmRzLAoKVG9ueQoKODwgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KRnJv
+bSB0b255IE1vbiBTZXAgMTcgMDA6MDA6MDAgMjAwMQpGcm9tOiBUb255IExpbmRncmVuIDx0b255
+QGF0b21pZGUuY29tPgpEYXRlOiBNb24sIDE5IFNlcCAyMDE2IDE2OjAyOjEyIC0wNzAwClN1Ympl
+Y3Q6IFtQQVRDSF0gQVJNOiBkdHM6IEZpeCBpZ2VwdjUgcG93ZXIgYnV0dG9uIEdQSU8gZGlyZWN0
+aW9uCk1JTUUtVmVyc2lvbjogMS4wCkNvbnRlbnQtVHlwZTogdGV4dC9wbGFpbjsgY2hhcnNldD1V
+VEYtOApDb250ZW50LVRyYW5zZmVyLUVuY29kaW5nOiA4Yml0CgpJdCBzaG91bGQgYmUgR1BJT19B
+Q1RJVkVfTE9XIGluc3RlYWQgb2YgR1BJT19BQ1RJVkVfSElHSCBhcwpwb2ludGVkIG91dCBieSBQ
+YXUgUGFqdWVsIDxwcGFqdWVsQGdtYWlsLmNvbT4uCgpDYzogQWd1c3TDrSBGb250cXVlcm5pIGkg
+R29yY2hzIDxhZm9udHF1ZXJuaUBpc2VlYmNuLmNvbT4KQ2M6IEVucmljIEJhbGxldGJvIFNlcnJh
+IDxlYmFsbGV0Ym9AZ21haWwuY29tPgpDYzogSmF2aWVyIE1hcnRpbmV6IENhbmlsbGFzIDxqYXZp
+ZXJAb3NnLnNhbXN1bmcuY29tPgpDYzogUGF1IFBhanVlbCA8cHBhanVlbEBnbWFpbC5jb20+CkZp
+eGVzOiBiMTE4YzZhNmZmYTEgKCJBUk06IGR0czogQWRkIHBvd2VyIGJ1dHRvbiBzdXBwb3J0IGZv
+ciBpZ2VwdjUiKQpTaWduZWQtb2ZmLWJ5OiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29t
+PgotLS0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LWlnZXAwMDUwLmR0cyB8IDIgKy0KIDEgZmls
+ZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKSwgMSBkZWxldGlvbigtKQoKZGlmZiAtLWdpdCBhL2Fy
+Y2gvYXJtL2Jvb3QvZHRzL29tYXA1LWlnZXAwMDUwLmR0cyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29t
+YXA1LWlnZXAwMDUwLmR0cwotLS0gYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNS1pZ2VwMDA1MC5k
+dHMKKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtaWdlcDAwNTAuZHRzCkBAIC0yNyw3ICsy
+Nyw3IEBACiAJCXBvd2VyLWJ1dHRvbiB7CiAJCQlsYWJlbCA9ICJQb3dlciBCdXR0b24iOwogCQkJ
+bGludXgsY29kZSA9IDxLRVlfUE9XRVI+OwotCQkJZ3Bpb3MgPSA8JmdwaW80IDIyIEdQSU9fQUNU
+SVZFX0hJR0g+OworCQkJZ3Bpb3MgPSA8JmdwaW80IDIyIEdQSU9fQUNUSVZFX0xPVz47CiAJCX07
+CiAJfTsKIAotLSAKMi45LjMKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxA
+bGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
