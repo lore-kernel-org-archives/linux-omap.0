@@ -1,49 +1,61 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] omap dts updates for v4.9 merge window, part 2
-Date: Mon, 19 Sep 2016 17:45:00 +0200
-Message-ID: <2566941.uVvDnvgHof@wuerfel>
-References: <20160915172021.6u2zam4yd6vruub4@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCHv2] usb: musb: Fix unbalanced platform_disable
+Date: Mon, 19 Sep 2016 09:02:50 -0700
+Message-ID: <20160919160250.itstpdk2rqw3zhzi@atomide.com>
+References: <20160912153947.k4gnggur6usyujii@atomide.com>
+ <14745757.ahNt4Zeunj@avalon>
+ <20160918151901.k7go65s4jauldxcl@atomide.com>
+ <20160919075941.4022b3f3@aktux>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160915172021.6u2zam4yd6vruub4@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, arm@kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160919075941.4022b3f3@aktux>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>
+Cc: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday, September 15, 2016 10:20:22 AM CEST Tony Lindgren wrote:
-> Part two of device tree changes for omaps for v4.9 merge window. This
-> is mostly usability and non-critical fixes except for the addition of
-> beagleboard-x15 rev B1 support:
+* Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org> [160918 23:00]:
+> On Sun, 18 Sep 2016 08:19:02 -0700
+> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
 > 
-> - Fix omap4 pandaboard SDIO WLAN latencies in idle mode by enabling wakeirq
-> 
-> - Usability fixes for WLAN, USB, LEDs and power button on omap5 boards
-> 
-> - Remove am57xx beagleboard-x15 pinmux configuration as the processor requires
->   that it's done in IO isolation in bootloader except for MMC and DCAN
-> 
-> - Add support for beagleboard-x15 rev B1 by moving most of the
->   configuration to am57xx-beagle-x15-common.dtsi
-> 
-> - Enable support for more than 2GB of memory for omap5 with LPAE with
->   #address-cells
-> 
-> - Fix omap3-gta04 backlight PWM frequency until the PWM driver
-> 
-> - Revert am335x dts changes related to cpufreq as the driver changes
->   still have not merged and the dts changes broke cpufreq
+> > * Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [160918 05:13]:
+> > > 
+> > > FYI, while this patch allows me to boot my Panda board with NFS
+> > > over usbnet, it only works with cold boots. A warm reboot results
+> > > in the following warning, and no ethernet traffic going through.
+> > > The USB device is detected by the host though.
+> > 
+> > Yeah I noticed too that we still have issues. For example doing rmmod
+> > of omap2430 with gadget configured and connected will produce a
+> > hardirq-safe hardirq-unsafe lock order error. That also happens with
+> > reboot with gadget configured and connected.
+> > 
+> hmm, well, there is a musb_platform_disable() in musb_remove() which is
+> simply superfluous...
+> Some days ago we had a locking problem with musb_start() and moved
+> it out of the locked area. Maybe we could do also something similar
+> here.
 
-Pulled into next/dt, thanks!
+Well I don't think we can do that safely at this point because we
+have unpaired calls to musb_start() and musb_stop(). So trying to
+make musb_platform_enable/disable() paired right now will just lead
+into mystery breakage in various use cases.
 
-	Arnd
+> > So I think the only sane thing to do at this point is to revert the
+> > changes trying to enable/disable USB PHY from
+> > omap2430_musb_enable/disable. The other fixes are OK too as they get
+> > us a bit closer to making the platform glue calls balanced.
+> >
+> or to balance it there (in a better way as done by my first patch).
+
+We can't do that until we have musb_start() and musb_stop() paired :)
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
