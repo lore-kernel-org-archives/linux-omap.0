@@ -1,55 +1,40 @@
-From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: Gadget regression with u_ether in Linux next
-Date: Mon, 19 Sep 2016 11:07:05 +0200
-Message-ID: <20160919090705.GA7531@kroah.com>
-References: <20160916220355.w6whbd75eqegrz3q@atomide.com>
- <87h99c4804.fsf@linux.intel.com>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/3] ARM: dts: am335x-evm: Add blue-and-red-wiring
+ -property to lcdc node
+Date: Mon, 19 Sep 2016 09:47:40 -0500
+Message-ID: <f82ff3b5-afc6-8ba0-14e1-28b4b3ae8e69@ti.com>
+References: <cover.1474025756.git.jsarha@ti.com>
+ <34893e286d16c281098063d2a4fec985acbf8818.1474025756.git.jsarha@ti.com>
+ <a0e00898-80fb-8242-aafb-6e4d3f650345@ti.com>
+ <3052854a-de30-0e6d-3084-6788733c7118@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <87h99c4804.fsf-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Harish Jenny K N <harish_kandiga-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>, Jim Baxter <jim_baxter-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <3052854a-de30-0e6d-3084-6788733c7118-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: tomi.valkeinen-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Sep 19, 2016 at 11:19:07AM +0300, Felipe Balbi wrote:
-> 
-> Hi Greg,
-> 
-> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
-> > Hi,
-> >
-> > Looks like commit c9ffc78745f8 ("usb: gadget: NCM: Protect dev->port_usb
-> > using dev->lock") causes hangs for me with Linux next.
-> >
-> > Reverting c9ffc78745f8 makes the issues go away, some more info below.
-> 
-> Can you revert this commit from your tree?
-> 
-> Here's the full commit for reference:
-> 
-> commit c9ffc78745f89e300fe704348dd8e6800acf4d18
-> Author: Harish Jenny K N <harish_kandiga-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>
-> Date:   Fri Sep 9 11:30:42 2016 +0200
-> 
->     usb: gadget: NCM: Protect dev->port_usb using dev->lock
->     
->     This commit incorporates findings from
->     https://lkml.org/lkml/2016/4/25/594
->     
->     The function has been modified to make sure we hold
->     the dev lock when accessing the net device pointer.
->     
->     Acked-by: Jim Baxter <jim_baxter-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>
->     Signed-off-by: Harish Jenny K N <harish_kandiga-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>
->     Signed-off-by: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+On 09/19/2016 02:55 AM, Jyri Sarha wrote:
+[...]
+> The functional patches, with the binding document can be found here:
+> http://www.spinics.net/lists/devicetree/msg141246.html
+>
+> [1] For more details see section 3.1.1 in AM335x Silicon Errata:
+> http://www.ti.com/general/docs/lit/getliterature.tsp?baseLiteratureNumber=sprz360
+>
 
-Now reverted, thanks.
+Thanks for the detailed explanation. 
+http://www.spinics.net/lists/devicetree/msg141248.html helped explain 
+the same.
 
-greg k-h
+
+-- 
+Regards,
+Nishanth Menon
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
