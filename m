@@ -1,39 +1,75 @@
-From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/3] ARM: dts: am335x-* Add blue-and-red-wiring propery to
- lcdc nodes
-Date: Mon, 19 Sep 2016 10:30:41 +0300
-Message-ID: <f8124caf-9752-c970-fd41-404ea4d983a9@ti.com>
-References: <cover.1474025756.git.jsarha@ti.com>
- <20160916150242.vbvpuokftychkdfz@atomide.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v8 0/5] mfd: tps65218: Clean ups
+Date: Mon, 19 Sep 2016 13:09:01 +0530
+Message-ID: <1474270746-11568-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160916150242.vbvpuokftychkdfz-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: lee.jones@linaro.org
+Cc: j-keerthy@ti.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-input@vger.kernel.org, robh+dt@kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, tony@atomide.com, dmitry.torokhov@gmail.com, linus.walleij@linaro.org, broonie@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/16/16 18:02, Tony Lindgren wrote:
-> * Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org> [160916 04:50]:
->> > These patches complete the am335x LCDC color errata fix[1]. The
->> > functional patches are now queued for v4.9.
->> > 
->> > The patch for am335x-boneblack.dts is delayed until v4.10 or v4.9-rc
->> > phase to avoid conflickt with BBB HDMI audio DTS patch that slipped
->> > into tda998x pull request.
->> > 
->> > [1] http://www.spinics.net/lists/devicetree/msg141246.html
-> OK. Are these safe to merge even if the dts changes get merged before
-> the driver changes? Or does it break something if merged out of order?
+The series cleans up mainly the regulator driver and implements
+the device tree parsing using the regulator framework. Removes
+all the redundant compatibles for the individual regulators.
+Adds platform_device_id table for the gpio and power button modules.
 
-Yes, they are safe. The new property just simply is not interpreted and
-everything works as before.
+One of the patch removes redundant read wrapper and makes
+use of regmap_read wherever necessary.
 
-BR,
-Jyri
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The series is checked for all the regulator registrations on
+am437x-sk-evm.
+
+Changes in v8:
+
+Rebased to latest next branch.
+
+Changes in v7:
+
+Rebasing to latest next branch. GPIO patch of this series
+pushed to linux-next by Linus. Hence posting the remaining
+patches with respective Acks from the domain Maintainers.
+
+Changes in v6:
+
+Rebased regulator/mfd clean up patches against linux-next +
+https://lkml.org/lkml/2016/6/24/122 series.
+
+Changes in v5:
+
+Rebased regulator clean up patch against linux-next.
+
+Changes in v4:
+
+For gpio-tps65218 reatined the compatible table.
+Fixed missing ';' in the power button patch.
+Fixed comments on the Documentation patch.
+Split the Device Tree patches to a separate series.
+
+Changes in v3:
+
+Missed making corresponding changes in the power button and gpio
+drivers. Added couple of patches to fix them to use mfd_cell way
+of parsing.
+
+ 
+
+Keerthy (5):
+  mfd: tps65218: Remove redundant read wrapper
+  Documentation: regulator: tps65218: Update examples
+  input: tps65218-pwrbutton: Add platform_device_id table
+  mfd: tps65218: Use mfd_add_devices instead of of_platform_populate
+  regulator: tps65218: Remove all the compatibles
+
+ .../devicetree/bindings/regulator/tps65218.txt     |  87 +++++++++---
+ drivers/gpio/gpio-tps65218.c                       |   3 +-
+ drivers/input/misc/tps65218-pwrbutton.c            |   8 ++
+ drivers/mfd/tps65218.c                             |  34 ++---
+ drivers/regulator/tps65218-regulator.c             | 153 ++++++++-------------
+ include/linux/mfd/tps65218.h                       |   3 +-
+ 6 files changed, 157 insertions(+), 131 deletions(-)
+
+-- 
+1.9.1
+
