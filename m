@@ -1,48 +1,83 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH] hwrng: omap - Only fail if pm_runtime_get_sync returns < 0
-Date: Tue, 20 Sep 2016 10:25:40 -0500
-Message-ID: <20160920152540.3004-1-d-gerlach@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCHv2] usb: musb: Fix unbalanced platform_disable
+Date: Tue, 20 Sep 2016 10:10:25 -0700
+Message-ID: <20160920171024.mnfjelzxjgv7s7dv@atomide.com>
+References: <20160912153947.k4gnggur6usyujii@atomide.com>
+ <2377851.ZR7UYeyr7h@avalon>
+ <20160919224149.3msqxiv24ofwjz4c@atomide.com>
+ <1688038.txo7nUYeUv@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-crypto-owner@vger.kernel.org>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Deepak Saxena <dsaxena@plexity.net>, Matt Mackall <mpm@selenic.com>, Herbert Xu <herbert@gondor.apana.org.au>, Nishanth Menon <nm@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1688038.txo7nUYeUv@avalon>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Currently omap-rng checks the return value of pm_runtime_get_sync and
-reports failure if anything is returned, however it should be checking
-if ret < 0 as pm_runtime_get_sync return 0 on success but also can return
-1 if the device was already active which is not a failure case. Only
-values < 0 are actual failures.
+* Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [160919 23:36]:
+> Hi Tony,
+> 
+> On Monday 19 Sep 2016 15:41:50 Tony Lindgren wrote:
+> > * Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [160919 13:35]:
+> > > On Sunday 18 Sep 2016 08:19:02 Tony Lindgren wrote:
+> > >>> [    5.711303] [<c0872788>] (_raw_spin_unlock_irqrestore) from
+> > >>> [<c069b260>]
+> > >>> (musb_gadget_queue+0x128/0x4ac)
+> > >>> [    5.711303] [<c069b260>] (musb_gadget_queue) from [<c06a9ae4>]
+> > >>> (usb_ep_queue+0x38/0x1d4)
+> > >>> [    5.729766] [<c06a9ae4>] (usb_ep_queue) from [<c06aba40>]
+> > >>> (rx_submit+0xc8/0x19c)
+> > >>> [    5.737548] [<c06aba40>] (rx_submit) from [<c06abb90>]
+> > >>> (rx_fill+0x7c/0xa0) [    5.737548] [<c06abb90>] (rx_fill) from
+> > >>> [<c06abbdc>] (eth_start+0x28/0x48) [    5.751983] [<c06abbdc>]
+> > >>> (eth_start) from [<c06abe7c>] (eth_open+0x6c/0x7c) [    5.751983]
+> > >>> [<c06abe7c>] (eth_open) from [<c0778c2c>]
+> > >>> (__dev_open+0x9c/0x104)
+> > >> 
+> > >> This could be something else though. Care to email me your .config,
+> > >> maybe this is related to legacy g_ether being built in?
+> > > 
+> > > Sure, please find it attached. The legacy g_ether is indeed built-in,
+> > > that's what I use to boot over nfsroot.
+> > 
+> > OK, I think g_ether may have issues in general..
+> > 
+> > I mostly test with configfs based gadgets and shell script as then I can
+> > test load/configure/connect/disconnect/unconfigure/unload easily :)
+> 
+> g_ether is very convenient when using nfsroot, as it allows booting the system 
+> without an initramfs.
 
-Fixes: 61dc0a446e5d ("hwrng: omap - Fix assumption that runtime_get_sync will always succeed")
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
----
- drivers/char/hw_random/omap-rng.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Yeah no doubt about that.
 
-diff --git a/drivers/char/hw_random/omap-rng.c b/drivers/char/hw_random/omap-rng.c
-index 01d4be2c354b..f5c26a5f6875 100644
---- a/drivers/char/hw_random/omap-rng.c
-+++ b/drivers/char/hw_random/omap-rng.c
-@@ -385,7 +385,7 @@ static int omap_rng_probe(struct platform_device *pdev)
- 
- 	pm_runtime_enable(&pdev->dev);
- 	ret = pm_runtime_get_sync(&pdev->dev);
--	if (ret) {
-+	if (ret < 0) {
- 		dev_err(&pdev->dev, "Failed to runtime_get device: %d\n", ret);
- 		pm_runtime_put_noidle(&pdev->dev);
- 		goto err_ioremap;
-@@ -443,7 +443,7 @@ static int __maybe_unused omap_rng_resume(struct device *dev)
- 	int ret;
- 
- 	ret = pm_runtime_get_sync(dev);
--	if (ret) {
-+	if (ret < 0) {
- 		dev_err(dev, "Failed to runtime_get device: %d\n", ret);
- 		pm_runtime_put_noidle(dev);
- 		return ret;
--- 
-2.9.3
+> > >> Anyways, please also give the following patch a try.
+> > > 
+> > > I've tested the patch and if fixes the original problem. Warm reboots are
+> > > still broken though.
+> > 
+> > No luck here with your .config a try with my pandaboard es against v4.8-rc7
+> > plus the patch I posted on Sunday. It reboots with no errors for me with
+> > NFSroot. Do you do something other than just reboot?
+> 
+> No, I perform the following steps:
+> 
+> - Connect the panda board to the USB through USB (which powers the board on)
+> - Let the board boot over NFS
+> - Log in as root, run 'reboot'
+> 
+> The second boot produces the warning.
+
+Oh I was looking at the errors while shutting down things.. OK yeah I get
+that too along with a bunch of DSS related warnings with your .config.
+Probably I did not notice it earlier because of the DSS warnings. Will
+take a look.
+
+Thanks,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
