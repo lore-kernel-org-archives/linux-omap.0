@@ -1,42 +1,63 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/3] ARM: dts: am335x-* Add blue-and-red-wiring propery
- to lcdc nodes
-Date: Mon, 19 Sep 2016 16:14:58 -0700
-Message-ID: <20160919231458.5t5a547kynqcooch@atomide.com>
-References: <cover.1474025756.git.jsarha@ti.com>
- <20160916150242.vbvpuokftychkdfz@atomide.com>
- <f8124caf-9752-c970-fd41-404ea4d983a9@ti.com>
+From: Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>
+Subject: Re: [PATCHv2] usb: musb: Fix unbalanced platform_disable
+Date: Tue, 20 Sep 2016 07:04:33 +0200
+Message-ID: <20160920070433.7dada289@aktux>
+References: <20160912153947.k4gnggur6usyujii@atomide.com>
+        <14745757.ahNt4Zeunj@avalon>
+        <20160918151901.k7go65s4jauldxcl@atomide.com>
+        <20160919075941.4022b3f3@aktux>
+        <20160919160250.itstpdk2rqw3zhzi@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <f8124caf-9752-c970-fd41-404ea4d983a9-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160919160250.itstpdk2rqw3zhzi-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org> [160919 00:31]:
-> On 09/16/16 18:02, Tony Lindgren wrote:
-> > * Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org> [160916 04:50]:
-> >> > These patches complete the am335x LCDC color errata fix[1]. The
-> >> > functional patches are now queued for v4.9.
-> >> > 
-> >> > The patch for am335x-boneblack.dts is delayed until v4.10 or v4.9-rc
-> >> > phase to avoid conflickt with BBB HDMI audio DTS patch that slipped
-> >> > into tda998x pull request.
-> >> > 
-> >> > [1] http://www.spinics.net/lists/devicetree/msg141246.html
-> > OK. Are these safe to merge even if the dts changes get merged before
-> > the driver changes? Or does it break something if merged out of order?
+On Mon, 19 Sep 2016 09:02:50 -0700
+Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+
+> * Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org> [160918 23:00]:
+> > On Sun, 18 Sep 2016 08:19:02 -0700
+> > Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+> > 
+> > > * Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [160918
+> > > 05:13]:
+> > > > 
+> > > > FYI, while this patch allows me to boot my Panda board with NFS
+> > > > over usbnet, it only works with cold boots. A warm reboot
+> > > > results in the following warning, and no ethernet traffic going
+> > > > through. The USB device is detected by the host though.
+> > > 
+> > > Yeah I noticed too that we still have issues. For example doing
+> > > rmmod of omap2430 with gadget configured and connected will
+> > > produce a hardirq-safe hardirq-unsafe lock order error. That also
+> > > happens with reboot with gadget configured and connected.
+> > > 
+> > hmm, well, there is a musb_platform_disable() in musb_remove()
+> > which is simply superfluous...
+> > Some days ago we had a locking problem with musb_start() and moved
+> > it out of the locked area. Maybe we could do also something similar
+> > here.
 > 
-> Yes, they are safe. The new property just simply is not interpreted and
-> everything works as before.
+> Well I don't think we can do that safely at this point because we
+> have unpaired calls to musb_start() and musb_stop(). So trying to
+> make musb_platform_enable/disable() paired right now will just lead
+> into mystery breakage in various use cases.
+> 
+I am primarily talking about 
+doing things like the patch
+      usb: musb: Fix locking errors for host only mode
+	2c5575401e34de3d2f
 
-OK applying into omap-for-v4.9/dt-v2 thanks.
+did for musb_start(), for musb_stop() also. 
 
-Tony
+
+Regards,
+Andreas
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
