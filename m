@@ -1,68 +1,50 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCHv2] usb: musb: Fix unbalanced platform_disable
-Date: Tue, 20 Sep 2016 11:37:02 -0700
-Message-ID: <20160920183701.nxme7yxgc6jpmgio@atomide.com>
-References: <20160912153947.k4gnggur6usyujii@atomide.com>
- <2377851.ZR7UYeyr7h@avalon>
- <20160919224149.3msqxiv24ofwjz4c@atomide.com>
- <1688038.txo7nUYeUv@avalon>
- <20160920171024.mnfjelzxjgv7s7dv@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: Add power button support for igepv5
+Date: Tue, 20 Sep 2016 11:39:30 -0700
+Message-ID: <20160920183930.bwjnpg47ovd2lrfy@atomide.com>
+References: <20160909210729.20184-1-tony@atomide.com>
+ <31409234-3185-5348-2d37-effb7769c92a@osg.samsung.com>
+ <CAMVEqEkKrw2eH3L6+te5MZLqxBT2jUiRO-KNuS+9nuNYvihCRA@mail.gmail.com>
+ <20160919230826.aubqvj2km4wg6gz7@atomide.com>
+ <20160920121521.GA32519@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20160920171024.mnfjelzxjgv7s7dv-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20160920121521.GA32519@localhost.localdomain>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: Pau Pajuel <ppajuel@gmail.com>, Enric Balletbo Serra <eballetbo@gmail.com>, =?utf-8?Q?Agust=C3=AD?= Fontquerni i Gorchs <afontquerni@iseebcn.com>, Javier Martinez Canillas <javier@osg.samsung.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [160920 10:11]:
-> * Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [160919 23:36]:
-> > No, I perform the following steps:
-> > 
-> > - Connect the panda board to the USB through USB (which powers the board on)
-> > - Let the board boot over NFS
-> > - Log in as root, run 'reboot'
-> > 
-> > The second boot produces the warning.
-> 
-> Oh I was looking at the errors while shutting down things.. OK yeah I get
-> that too along with a bunch of DSS related warnings with your .config.
-> Probably I did not notice it earlier because of the DSS warnings. Will
-> take a look.
-
-The patch below fixes the issue for me, care to give it a try?
-
-If that works for you I'll repost with a proper patch description.
-
-Regards,
-
-Tony
-
-8< ------------------------
-diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -1255,6 +1255,7 @@ static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
- 
- 	map_dma_buffer(request, musb, musb_ep);
- 
-+	pm_runtime_get_sync(musb->controller);
- 	spin_lock_irqsave(&musb->lock, lockflags);
- 
- 	/* don't queue if the ep is down */
-@@ -1275,6 +1276,9 @@ static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
- 
- unlock:
- 	spin_unlock_irqrestore(&musb->lock, lockflags);
-+	pm_runtime_mark_last_busy(musb->controller);
-+	pm_runtime_put_autosuspend(musb->controller);
-+
- 	return status;
- }
- 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+KiBMYWRpc2xhdiBNaWNobCA8bGFkaXNAbGludXgtbWlwcy5vcmc+IFsxNjA5MjAgMDU6MTVdOgo+
+IE9uIE1vbiwgU2VwIDE5LCAyMDE2IGF0IDA0OjA4OjI2UE0gLTA3MDAsIFRvbnkgTGluZGdyZW4g
+d3JvdGU6Cj4gPiAqIFBhdSBQYWp1ZWwgPHBwYWp1ZWxAZ21haWwuY29tPiBbMTYwOTE5IDAxOjEz
+XToKPiA+ID4gSGVsbG8gVG9ueSwKPiA+ID4gCj4gPiA+IDIwMTYtMDktMTQgMzoyNiBHTVQrMDI6
+MDAgSmF2aWVyIE1hcnRpbmV6IENhbmlsbGFzIDxqYXZpZXJAb3NnLnNhbXN1bmcuY29tPjoKPiA+
+ID4gPiBIZWxsbyBUb255LAo+ID4gPiA+Cj4gPiA+ID4gT24gMDkvMDkvMjAxNiAwNTowNyBQTSwg
+VG9ueSBMaW5kZ3JlbiB3cm90ZToKPiA+ID4gPj4gQWRkIHBvd2VyIGJ1dHRvbiBzdXBwb3J0IGZv
+ciBpZ2VwdjUuCj4gPiA+ID4+Cj4gPiA+ID4+IENjOiBBZ3VzdMOtIEZvbnRxdWVybmkgaSBHb3Jj
+aHMgPGFmb250cXVlcm5pQGlzZWViY24uY29tPgo+ID4gPiA+PiBDYzogRW5yaWMgQmFsbGV0Ym8g
+U2VycmEgPGViYWxsZXRib0BnbWFpbC5jb20+Cj4gPiA+ID4+IENjOiBKYXZpZXIgTWFydGluZXog
+Q2FuaWxsYXMgPGphdmllckBvc2cuc2Ftc3VuZy5jb20+Cj4gPiA+ID4+IENjOiBQYXUgUGFqdWVs
+IDxwcGFqdWVsQGdtYWlsLmNvbT4KPiA+ID4gPj4gU2lnbmVkLW9mZi1ieTogVG9ueSBMaW5kZ3Jl
+biA8dG9ueUBhdG9taWRlLmNvbT4KPiA+ID4gPj4gLS0tCj4gPiA+ID4KPiA+ID4gPiBJIGRvbid0
+IGhhdmUgYSBzY2hlbWF0aWNzIGZvciB0aGlzIGJvYXJkLCBidXQgdGhlIHBhdGNoIGxvb2tzIGdv
+b2QgdG8gbWUuCj4gPiA+IFBhdGNoIGhhcyBhbiBlcnJhdGEuIFBvd2VyIGJ1dHRvbiBpcyBHUElP
+X0FDVElWRV9MT1cgaW5zdGVhZCBHUElPX0FDVElWRV9ISUdILgo+ID4gCj4gPiBPb3BzIHNvcnJ5
+IGFib3V0IHRoYXQsIGhlcmUncyBhbiBpbmNyZW1lbnRhbCBmaXguCj4gCj4gQW5kIGhlcmUncyBh
+bm90aGVyIG5pdHBpY2sgOy0pCgpIZWggT0sgdGhhbmtzLCBhcHBseWluZyBib3RoIGludG8gb21h
+cC1mb3ItdjQuOS9kdC12Mi4KClJlZ2FyZHMsCgpUb255CgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdAps
+aW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVh
+ZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
