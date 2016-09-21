@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 3/9] dmaengine: edma: Use correct type for of_find_property() third parameter
-Date: Wed, 21 Sep 2016 15:41:29 +0300
-Message-ID: <20160921124135.11849-4-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 5/9] dmaengine: ti-dma-crossbar: Correct type for of_find_property() third parameter
+Date: Wed, 21 Sep 2016 15:41:31 +0300
+Message-ID: <20160921124135.11849-6-peter.ujfalusi@ti.com>
 References: <20160921124135.11849-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -18,22 +18,21 @@ Fixes compilation for 64bit architectures (x86_64, aarch64).
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/edma.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/dma/ti-dma-crossbar.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index 87c58710ae31..0241f39ba64c 100644
---- a/drivers/dma/edma.c
-+++ b/drivers/dma/edma.c
-@@ -2026,8 +2026,7 @@ static struct edma_soc_info *edma_setup_info_from_dt(struct device *dev,
- {
- 	struct edma_soc_info *info;
+diff --git a/drivers/dma/ti-dma-crossbar.c b/drivers/dma/ti-dma-crossbar.c
+index 5ae294b256a7..e4f3bd1ae264 100644
+--- a/drivers/dma/ti-dma-crossbar.c
++++ b/drivers/dma/ti-dma-crossbar.c
+@@ -311,7 +311,7 @@ static int ti_dra7_xbar_probe(struct platform_device *pdev)
  	struct property *prop;
+ 	struct resource *res;
+ 	u32 safe_val;
 -	size_t sz;
--	int ret;
-+	int sz, ret;
++	int sz;
+ 	void __iomem *iomem;
+ 	int i, ret;
  
- 	info = devm_kzalloc(dev, sizeof(struct edma_soc_info), GFP_KERNEL);
- 	if (!info)
 -- 
 2.10.0
