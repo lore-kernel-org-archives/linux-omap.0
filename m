@@ -1,48 +1,36 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/2] Few PM fixes for MUSB for v4.9 merge window
-Date: Wed, 21 Sep 2016 15:08:29 -0500
-Message-ID: <20160921200802.GA3981@uda0271908>
-References: <20160915162914.8164-1-tony@atomide.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH v4 0/2] ARM: cleanup PCI specific configs
+Date: Wed, 21 Sep 2016 22:47:47 +0200
+Message-ID: <3547319.cIOFfkHalq@wuerfel>
+References: <1473848346-17905-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160915162914.8164-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-renesas-soc-owner@vger.kernel.org>
+In-Reply-To: <1473848346-17905-1-git-send-email-kishon@ti.com>
+Sender: linux-renesas-soc-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, linux@armlinux.org.uk, bcousson@baylibre.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-renesas-soc@vger.kernel.org, k.kozlowski@samsung.com, magnus.damm@gmail.com, horms@verge.net.au, shawnguo@kernel.org, nicolas.ferre@atmel.com, nsekhar@ti.com, kgene@kernel.org, khalasa@piap.pl, kernel@pengutronix.de, ssantosh@kernel.org, fabio.estevam@nxp.com, alexandre.belloni@free-electrons.com, plagnioj@jcrosoft.com, shiraz.linux.kernel@gmail.com, vireshk@kernel.org, arm@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Wednesday, September 14, 2016 3:49:04 PM CEST Kishon Vijay Abraham I wrote:
+> This series was initially sent to add support for two PCIe
+> ports in dra7. This included selecting PCI_DOMAINS config
+> in SOC_DRA7XX.
+> 
+> However from the review, PCI_DOMAINS can instead be selected
+> from ARCH_MULTIPLATFORM. This is fixed in this series along
+> with removing PCI_DOMAINS from other configs.
+> 
+> Changes from v3:
+> *) Added *Acked-by:*
+> *) Fixed $subject to not have *Fix*
+> 
+> Kishon Vijay Abraham I (2):
+>   ARM: stop *MIGHT_HAVE_PCI* config from being selected redundantly
+>   ARM: select PCI_DOMAINS config from ARCH_MULTIPLATFORM
+> 
 
-On Thu, Sep 15, 2016 at 09:29:12AM -0700, Tony Lindgren wrote:
-> Hi,
-> 
-> I noticed few corner cases we're not handling properly with the
-> musb hardware session bit based PM runtime heading for v4.9.
-> 
-> Probably the disconnect after unconfigure PM issue has always
-> been there, but fixing it without the session bit based PM
-> runtime would be a mess.
-> 
-> Regards,
-> 
-> Tony
-> 
-> Tony Lindgren (2):
->   usb: musb: Fix PM runtime for disconnect after unconfigure
->   usb: musb: Fix session based PM for first invalid VBUS
-> 
->  drivers/usb/musb/musb_core.c   | 13 ++++++++-----
->  drivers/usb/musb/musb_core.h   |  1 +
->  drivers/usb/musb/musb_gadget.c |  3 +++
->  3 files changed, 12 insertions(+), 5 deletions(-)
+Applied both to next/cleanup now.
 
-Applied. Thanks.
-
-Regards,
--Bin.
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Arnd
