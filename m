@@ -1,60 +1,53 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 5/9] dmaengine/ARM: omap-dma: Fix the DMAengine compile
- test on non OMAP configs
-Date: Wed, 21 Sep 2016 10:34:34 +0300
-Message-ID: <498a255b-27a7-20fe-9736-ede2b5bdebe6@ti.com>
-References: <20160916083324.29133-1-peter.ujfalusi@ti.com>
- <20160916083324.29133-6-peter.ujfalusi@ti.com>
- <20160921035131.GD2609@localhost> <20160921035326.GF2609@localhost>
+Subject: [PATCH v2 0/9] dmaengine: ti drivers: enable COMPILE_TESTing
+Date: Wed, 21 Sep 2016 13:26:28 +0300
+Message-ID: <20160921102637.24845-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160921035326.GF2609@localhost>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Vinod Koul <vinod.koul@intel.com>
-Cc: arnd@arndb.de, tony@atomide.com, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: vinod.koul@intel.com, dan.j.williams@intel.com
+Cc: arnd@arndb.de, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-On 09/21/16 06:53, Vinod Koul wrote:
-> On Wed, Sep 21, 2016 at 09:21:32AM +0530, Vinod Koul wrote:
->> On Fri, Sep 16, 2016 at 11:33:20AM +0300, Peter Ujfalusi wrote:
->>> The DMAengine driver for omap-dma use three function calls from the
->>> plat-omap legacy driver. When the DMAengine driver is built when ARCH_O=
-MAP
->>> is not set, the compilation will fail due to missing symbols.
->>> Add empty inline functions to allow the DMAengine driver to be compiled
->>> with COMPILE_TEST.
->>
->> Peter,
->>
->> This should be before you enable COMPILE_TEST otherwise build will break!
-> =
+Hi,
 
-> Ah never mind, you have three drivers in this series so I think this is f=
-ine
-> before the omap one :)
+Changes since v1:
+- added the compiler warning message to ti-dma-crossbar enum type patch
+- moved the Kconfig patches at the end of the seris
 
-Yep, patch 1-4 is for eDMA, patch 5-6 is for omap-dma and the remaining is =
-for
-ti-dma-crossbar.
+The following series will enable unconditional COMPILE_TEST coverage for the
+following drivers: omap-dma, edma and ti-dma-crossbar
 
-I wanted to have them separate (including when I enable the COMPILE_TEST) so
-we can revert easily if needed.
+The series includes fixes noticed when compiling the drivers for x86_64 and
+aarch64.
 
-If I move the 'enable COMPILE_TEST' patches at the end of the series, I thi=
-nk
-I will still have them as separate as they are enabling the test for three
-different driver.
+Replaces the patch Vinod sent to enable partial compile testing for omap-dma:
+http://www.spinics.net/lists/dmaengine/msg11025.html
 
--- =
+Regards,
+Peter
+---
+Peter Ujfalusi (9):
+  dmaengine: edma: Add missing MODULE_DEVICE_TABLE() for of_device_id
+    structs
+  dmaengine: edma: Use enum for eDMA binding type (legacy vs TPCC)
+  dmaengine: edma: Use correct type for of_find_property() third
+    parameter
+  dmaengine/ARM: omap-dma: Fix the DMAengine compile test on non OMAP
+    configs
+  dmaengine: ti-dma-crossbar: Correct type for of_find_property() third
+    parameter
+  dmaengine: ti-dma-crossbar: Use enum for crossbar type
+  dmaengine: edma: enable COMPILE_TEST
+  dmaengine: omap-dma: enable COMPILE_TEST
+  dmaengine: ti-dma-crossbar: enable COMPILE_TEST
 
-P=E9ter
+ drivers/dma/Kconfig           |  8 ++++----
+ drivers/dma/edma.c            | 15 ++++++++++-----
+ drivers/dma/ti-dma-crossbar.c | 12 +++++++-----
+ include/linux/omap-dma.h      | 19 +++++++++++++++++++
+ 4 files changed, 40 insertions(+), 14 deletions(-)
+
+--
+2.10.0
