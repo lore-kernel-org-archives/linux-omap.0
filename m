@@ -1,50 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: Add power button support for igepv5
-Date: Tue, 20 Sep 2016 11:39:30 -0700
-Message-ID: <20160920183930.bwjnpg47ovd2lrfy@atomide.com>
-References: <20160909210729.20184-1-tony@atomide.com>
- <31409234-3185-5348-2d37-effb7769c92a@osg.samsung.com>
- <CAMVEqEkKrw2eH3L6+te5MZLqxBT2jUiRO-KNuS+9nuNYvihCRA@mail.gmail.com>
- <20160919230826.aubqvj2km4wg6gz7@atomide.com>
- <20160920121521.GA32519@localhost.localdomain>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH 5/9] dmaengine/ARM: omap-dma: Fix the DMAengine compile
+ test on non OMAP configs
+Date: Wed, 21 Sep 2016 09:21:32 +0530
+Message-ID: <20160921035131.GD2609@localhost>
+References: <20160916083324.29133-1-peter.ujfalusi@ti.com>
+ <20160916083324.29133-6-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160920121521.GA32519@localhost.localdomain>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ladislav Michl <ladis@linux-mips.org>
-Cc: Pau Pajuel <ppajuel@gmail.com>, Enric Balletbo Serra <eballetbo@gmail.com>, =?utf-8?Q?Agust=C3=AD?= Fontquerni i Gorchs <afontquerni@iseebcn.com>, Javier Martinez Canillas <javier@osg.samsung.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20160916083324.29133-6-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: dan.j.williams@intel.com, arnd@arndb.de, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-KiBMYWRpc2xhdiBNaWNobCA8bGFkaXNAbGludXgtbWlwcy5vcmc+IFsxNjA5MjAgMDU6MTVdOgo+
-IE9uIE1vbiwgU2VwIDE5LCAyMDE2IGF0IDA0OjA4OjI2UE0gLTA3MDAsIFRvbnkgTGluZGdyZW4g
-d3JvdGU6Cj4gPiAqIFBhdSBQYWp1ZWwgPHBwYWp1ZWxAZ21haWwuY29tPiBbMTYwOTE5IDAxOjEz
-XToKPiA+ID4gSGVsbG8gVG9ueSwKPiA+ID4gCj4gPiA+IDIwMTYtMDktMTQgMzoyNiBHTVQrMDI6
-MDAgSmF2aWVyIE1hcnRpbmV6IENhbmlsbGFzIDxqYXZpZXJAb3NnLnNhbXN1bmcuY29tPjoKPiA+
-ID4gPiBIZWxsbyBUb255LAo+ID4gPiA+Cj4gPiA+ID4gT24gMDkvMDkvMjAxNiAwNTowNyBQTSwg
-VG9ueSBMaW5kZ3JlbiB3cm90ZToKPiA+ID4gPj4gQWRkIHBvd2VyIGJ1dHRvbiBzdXBwb3J0IGZv
-ciBpZ2VwdjUuCj4gPiA+ID4+Cj4gPiA+ID4+IENjOiBBZ3VzdMOtIEZvbnRxdWVybmkgaSBHb3Jj
-aHMgPGFmb250cXVlcm5pQGlzZWViY24uY29tPgo+ID4gPiA+PiBDYzogRW5yaWMgQmFsbGV0Ym8g
-U2VycmEgPGViYWxsZXRib0BnbWFpbC5jb20+Cj4gPiA+ID4+IENjOiBKYXZpZXIgTWFydGluZXog
-Q2FuaWxsYXMgPGphdmllckBvc2cuc2Ftc3VuZy5jb20+Cj4gPiA+ID4+IENjOiBQYXUgUGFqdWVs
-IDxwcGFqdWVsQGdtYWlsLmNvbT4KPiA+ID4gPj4gU2lnbmVkLW9mZi1ieTogVG9ueSBMaW5kZ3Jl
-biA8dG9ueUBhdG9taWRlLmNvbT4KPiA+ID4gPj4gLS0tCj4gPiA+ID4KPiA+ID4gPiBJIGRvbid0
-IGhhdmUgYSBzY2hlbWF0aWNzIGZvciB0aGlzIGJvYXJkLCBidXQgdGhlIHBhdGNoIGxvb2tzIGdv
-b2QgdG8gbWUuCj4gPiA+IFBhdGNoIGhhcyBhbiBlcnJhdGEuIFBvd2VyIGJ1dHRvbiBpcyBHUElP
-X0FDVElWRV9MT1cgaW5zdGVhZCBHUElPX0FDVElWRV9ISUdILgo+ID4gCj4gPiBPb3BzIHNvcnJ5
-IGFib3V0IHRoYXQsIGhlcmUncyBhbiBpbmNyZW1lbnRhbCBmaXguCj4gCj4gQW5kIGhlcmUncyBh
-bm90aGVyIG5pdHBpY2sgOy0pCgpIZWggT0sgdGhhbmtzLCBhcHBseWluZyBib3RoIGludG8gb21h
-cC1mb3ItdjQuOS9kdC12Mi4KClJlZ2FyZHMsCgpUb255CgpfX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdAps
-aW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVh
-ZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+On Fri, Sep 16, 2016 at 11:33:20AM +0300, Peter Ujfalusi wrote:
+> The DMAengine driver for omap-dma use three function calls from the
+> plat-omap legacy driver. When the DMAengine driver is built when ARCH_OMAP
+> is not set, the compilation will fail due to missing symbols.
+> Add empty inline functions to allow the DMAengine driver to be compiled
+> with COMPILE_TEST.
+
+Peter,
+
+This should be before you enable COMPILE_TEST otherwise build will break!
+
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+>  include/linux/omap-dma.h | 19 +++++++++++++++++++
+>  1 file changed, 19 insertions(+)
+> 
+> diff --git a/include/linux/omap-dma.h b/include/linux/omap-dma.h
+> index 1d99b61adc65..290081620b3e 100644
+> --- a/include/linux/omap-dma.h
+> +++ b/include/linux/omap-dma.h
+> @@ -297,6 +297,7 @@ struct omap_system_dma_plat_info {
+>  #define dma_omap15xx()	__dma_omap15xx(d)
+>  #define dma_omap16xx()	__dma_omap16xx(d)
+>  
+> +#if defined(CONFIG_ARCH_OMAP)
+>  extern struct omap_system_dma_plat_info *omap_get_plat_info(void);
+>  
+>  extern void omap_set_dma_priority(int lch, int dst_port, int priority);
+> @@ -355,4 +356,22 @@ static inline int omap_lcd_dma_running(void)
+>  }
+>  #endif
+>  
+> +#else /* CONFIG_ARCH_OMAP */
+> +
+> +static inline struct omap_system_dma_plat_info *omap_get_plat_info(void)
+> +{
+> +	return NULL;
+> +}
+> +
+> +static inline int omap_request_dma(int dev_id, const char *dev_name,
+> +			void (*callback)(int lch, u16 ch_status, void *data),
+> +			void *data, int *dma_ch)
+> +{
+> +	return -ENODEV;
+> +}
+> +
+> +static inline void omap_free_dma(int ch) { }
+> +
+> +#endif /* CONFIG_ARCH_OMAP */
+> +
+>  #endif /* __LINUX_OMAP_DMA_H */
+> -- 
+> 2.10.0
+> 
+
+-- 
+~Vinod
