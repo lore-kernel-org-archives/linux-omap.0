@@ -1,68 +1,49 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 6/9] dmaengine: ti-dma-crossbar: Use enum for crossbar type
-Date: Wed, 21 Sep 2016 13:26:34 +0300
-Message-ID: <20160921102637.24845-7-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 3/9] dmaengine: edma: Use correct type for
+ of_find_property() third parameter
+Date: Wed, 21 Sep 2016 13:26:31 +0300
+Message-ID: <20160921102637.24845-4-peter.ujfalusi@ti.com>
 References: <20160921102637.24845-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20160921102637.24845-1-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: vinod.koul@intel.com, dan.j.williams@intel.com
-Cc: arnd@arndb.de, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
+Cc: arnd@arndb.de, tony@atomide.com, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Fixes compiler warnings on 64bit architectures:
-
-drivers/dma/ti-dma-crossbar.c: In function ‘ti_dra7_xbar_probe’:
-drivers/dma/ti-dma-crossbar.c:398:21: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
-  xbar->dma_offset = (u32)match->data;
-                     ^
-drivers/dma/ti-dma-crossbar.c: In function ‘ti_dma_xbar_probe’:
-drivers/dma/ti-dma-crossbar.c:431:10: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
-  switch ((u32)match->data) {
-          ^
+The correct type is int and not for the third parameter of
+of_find_property().
+Fixes compilation for 64bit architectures (x86_64, aarch64).
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/ti-dma-crossbar.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/dma/edma.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/dma/ti-dma-crossbar.c b/drivers/dma/ti-dma-crossbar.c
-index e4f3bd1ae264..876e4ccaf033 100644
---- a/drivers/dma/ti-dma-crossbar.c
-+++ b/drivers/dma/ti-dma-crossbar.c
-@@ -16,8 +16,10 @@
- #include <linux/of_device.h>
- #include <linux/of_dma.h>
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index 4c8818278fcc..16c0bb92fa4d 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -2024,8 +2024,7 @@ static struct edma_soc_info *edma_setup_info_from_dt(struct device *dev,
+ {
+ 	struct edma_soc_info *info;
+ 	struct property *prop;
+-	size_t sz;
+-	int ret;
++	int sz, ret;
  
--#define TI_XBAR_DRA7		0
--#define TI_XBAR_AM335X		1
-+enum ti_xbar_type {
-+	TI_XBAR_DRA7 = 0,
-+	TI_XBAR_AM335X,
-+};
- 
- static const struct of_device_id ti_dma_xbar_match[] = {
- 	{
-@@ -395,7 +397,7 @@ static int ti_dra7_xbar_probe(struct platform_device *pdev)
- 
- 	xbar->dmarouter.dev = &pdev->dev;
- 	xbar->dmarouter.route_free = ti_dra7_xbar_free;
--	xbar->dma_offset = (u32)match->data;
-+	xbar->dma_offset = (enum ti_xbar_type)match->data;
- 
- 	mutex_init(&xbar->mutex);
- 	platform_set_drvdata(pdev, xbar);
-@@ -428,7 +430,7 @@ static int ti_dma_xbar_probe(struct platform_device *pdev)
- 	if (unlikely(!match))
- 		return -EINVAL;
- 
--	switch ((u32)match->data) {
-+	switch ((enum ti_xbar_type)match->data) {
- 	case TI_XBAR_DRA7:
- 		ret = ti_dra7_xbar_probe(pdev);
- 		break;
+ 	info = devm_kzalloc(dev, sizeof(struct edma_soc_info), GFP_KERNEL);
+ 	if (!info)
 -- 
 2.10.0
