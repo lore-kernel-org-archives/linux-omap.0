@@ -1,50 +1,61 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v2 2/9] dmaengine: edma: Use enum for eDMA binding type (legacy vs TPCC)
-Date: Wed, 21 Sep 2016 13:38:02 +0200
-Message-ID: <4786368.2BtHOp8jmm@wuerfel>
-References: <20160921102637.24845-1-peter.ujfalusi@ti.com> <7753810.Z3F41qkFaI@wuerfel> <bbd248d1-223c-00a9-3d2a-33df085c4f68@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v3 0/9] dmaengine: ti drivers: enable COMPILE_TESTing
+Date: Wed, 21 Sep 2016 15:41:26 +0300
+Message-ID: <20160921124135.11849-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <bbd248d1-223c-00a9-3d2a-33df085c4f68@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: vinod.koul@intel.com, dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
+To: vinod.koul@intel.com, dan.j.williams@intel.com
+Cc: arnd@arndb.de, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday, September 21, 2016 2:07:22 PM CEST Peter Ujfalusi wrote:
-> > 
-> > I tend to use 'uintptr_t' for the cast instead.
-> 
-> What about keeping the defines and:
-> 
-> diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-> index 3e9606b08340..493fdf30e8b8 100644
-> --- a/drivers/dma/edma.c
-> +++ b/drivers/dma/edma.c
-> @@ -263,14 +263,19 @@ static const struct edmacc_param dummy_paramset = {
-> 
->  #define EDMA_BINDING_LEGACY    0
->  #define EDMA_BINDING_TPCC      1
-> +static const u32 edma_binding_type[] = {
-> +       [EDMA_BINDING_LEGACY] = EDMA_BINDING_LEGACY,
-> +       [EDMA_BINDING_TPCC] = EDMA_BINDING_TPCC,
-> +};
-> +
->  static const struct of_device_id edma_of_ids[] = {
->         {
->                 .compatible = "ti,edma3",
-> -               .data = (void *)EDMA_BINDING_LEGACY,
-> +               .data = (void *)&edma_binding_type[EDMA_BINDING_LEGACY],
->         },
->         {
->                 .compatible = "ti,edma3-tpcc",
-> -               .data = (void *)EDMA_BINDING_TPCC,
-> +               .data = (void *)&edma_binding_type[EDMA_BINDING_TPCC],
->         },
->         {}
+Hi,
 
-You can drop the cast to (void *) here, otherwise looks good.
+Changes since v2:
+- Instead of converting to use enum for the of_device_id data parameter the two
+  patch for edma and ti-dma-crossbar is using pointers to u32 variables to make
+  sure that the code compile (and in theory work) on all architectures.
+- fixed issue in the ti-dma-crossbar driver I have made with the enum change to
+  not handle the DMA offset parameters correctly.
 
-	Arnd
+Changes since v1:
+- added the compiler warning message to ti-dma-crossbar enum type patch
+- moved the Kconfig patches at the end of the seris
+
+The following series will enable unconditional COMPILE_TEST coverage for the
+following drivers: omap-dma, edma and ti-dma-crossbar
+
+The series includes fixes noticed when compiling the drivers for x86_64 and
+aarch64.
+
+Replaces the patch Vinod sent to enable partial compile testing for omap-dma:
+http://www.spinics.net/lists/dmaengine/msg11025.html
+
+Regards,
+Peter
+---
+Peter Ujfalusi (9):
+  dmaengine: edma: Add missing MODULE_DEVICE_TABLE() for of_device_id
+    structs
+  dmaengine: edma: Fix of_device_id data parameter usage (legacy vs
+    TPCC)
+  dmaengine: edma: Use correct type for of_find_property() third
+    parameter
+  dmaengine/ARM: omap-dma: Fix the DMAengine compile test on non OMAP
+    configs
+  dmaengine: ti-dma-crossbar: Correct type for of_find_property() third
+    parameter
+  dmaengine: ti-dma-crossbar: Fix of_device_id data parameter usage
+  dmaengine: edma: enable COMPILE_TEST
+  dmaengine: omap-dma: enable COMPILE_TEST
+  dmaengine: ti-dma-crossbar: enable COMPILE_TEST
+
+ drivers/dma/Kconfig           |  8 ++++----
+ drivers/dma/edma.c            | 16 +++++++++++-----
+ drivers/dma/ti-dma-crossbar.c | 30 +++++++++++++++++++-----------
+ include/linux/omap-dma.h      | 19 +++++++++++++++++++
+ 4 files changed, 53 insertions(+), 20 deletions(-)
+
+--
+2.10.0
