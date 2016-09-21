@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 4/9] dmaengine/ARM: omap-dma: Fix the DMAengine compile test on non OMAP configs
-Date: Wed, 21 Sep 2016 13:26:32 +0300
-Message-ID: <20160921102637.24845-5-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 9/9] dmaengine: ti-dma-crossbar: enable COMPILE_TEST
+Date: Wed, 21 Sep 2016 13:26:37 +0300
+Message-ID: <20160921102637.24845-10-peter.ujfalusi@ti.com>
 References: <20160921102637.24845-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,51 +12,36 @@ To: vinod.koul@intel.com, dan.j.williams@intel.com
 Cc: arnd@arndb.de, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-The DMAengine driver for omap-dma use three function calls from the
-plat-omap legacy driver. When the DMAengine driver is built when ARCH_OMAP
-is not set, the compilation will fail due to missing symbols.
-Add empty inline functions to allow the DMAengine driver to be compiled
-with COMPILE_TEST.
+To get more coverage, enable COMPILE_TEST for this driver.
+When compile testing eDMA or omap-dma, select also the ti-dma-crossbar so
+it is also covered by the compile testing.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- include/linux/omap-dma.h | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ drivers/dma/Kconfig | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/omap-dma.h b/include/linux/omap-dma.h
-index 1d99b61adc65..290081620b3e 100644
---- a/include/linux/omap-dma.h
-+++ b/include/linux/omap-dma.h
-@@ -297,6 +297,7 @@ struct omap_system_dma_plat_info {
- #define dma_omap15xx()	__dma_omap15xx(d)
- #define dma_omap16xx()	__dma_omap16xx(d)
+diff --git a/drivers/dma/Kconfig b/drivers/dma/Kconfig
+index 84647d6cb2f4..1c11628062ad 100644
+--- a/drivers/dma/Kconfig
++++ b/drivers/dma/Kconfig
+@@ -133,7 +133,7 @@ config DMA_OMAP
+ 	depends on ARCH_OMAP || COMPILE_TEST
+ 	select DMA_ENGINE
+ 	select DMA_VIRTUAL_CHANNELS
+-	select TI_DMA_CROSSBAR if SOC_DRA7XX
++	select TI_DMA_CROSSBAR if (SOC_DRA7XX || COMPILE_TEST)
  
-+#if defined(CONFIG_ARCH_OMAP)
- extern struct omap_system_dma_plat_info *omap_get_plat_info(void);
- 
- extern void omap_set_dma_priority(int lch, int dst_port, int priority);
-@@ -355,4 +356,22 @@ static inline int omap_lcd_dma_running(void)
- }
- #endif
- 
-+#else /* CONFIG_ARCH_OMAP */
-+
-+static inline struct omap_system_dma_plat_info *omap_get_plat_info(void)
-+{
-+	return NULL;
-+}
-+
-+static inline int omap_request_dma(int dev_id, const char *dev_name,
-+			void (*callback)(int lch, u16 ch_status, void *data),
-+			void *data, int *dma_ch)
-+{
-+	return -ENODEV;
-+}
-+
-+static inline void omap_free_dma(int ch) { }
-+
-+#endif /* CONFIG_ARCH_OMAP */
-+
- #endif /* __LINUX_OMAP_DMA_H */
+ config DMA_SA11X0
+ 	tristate "SA-11x0 DMA support"
+@@ -518,7 +518,7 @@ config TI_EDMA
+ 	depends on ARCH_DAVINCI || ARCH_OMAP || ARCH_KEYSTONE || COMPILE_TEST
+ 	select DMA_ENGINE
+ 	select DMA_VIRTUAL_CHANNELS
+-	select TI_DMA_CROSSBAR if ARCH_OMAP
++	select TI_DMA_CROSSBAR if (ARCH_OMAP || COMPILE_TEST)
+ 	default n
+ 	help
+ 	  Enable support for the TI EDMA controller. This DMA
 -- 
 2.10.0
