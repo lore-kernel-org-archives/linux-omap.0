@@ -1,72 +1,66 @@
 From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH 5/9] dmaengine/ARM: omap-dma: Fix the DMAengine compile
- test on non OMAP configs
-Date: Wed, 21 Sep 2016 09:21:32 +0530
-Message-ID: <20160921035131.GD2609@localhost>
+Subject: Re: [PATCH 8/9] dmaengine: ti-dma-crossbar: Use enum for crossbar
+ type
+Date: Wed, 21 Sep 2016 09:22:26 +0530
+Message-ID: <20160921035226.GE2609@localhost>
 References: <20160916083324.29133-1-peter.ujfalusi@ti.com>
- <20160916083324.29133-6-peter.ujfalusi@ti.com>
+ <20160916083324.29133-9-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160916083324.29133-6-peter.ujfalusi@ti.com>
+In-Reply-To: <20160916083324.29133-9-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Cc: dan.j.williams@intel.com, arnd@arndb.de, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Sep 16, 2016 at 11:33:20AM +0300, Peter Ujfalusi wrote:
-> The DMAengine driver for omap-dma use three function calls from the
-> plat-omap legacy driver. When the DMAengine driver is built when ARCH_OMAP
-> is not set, the compilation will fail due to missing symbols.
-> Add empty inline functions to allow the DMAengine driver to be compiled
-> with COMPILE_TEST.
+On Fri, Sep 16, 2016 at 11:33:23AM +0300, Peter Ujfalusi wrote:
+> Fixes compiler warning on 64bit architectures.
 
-Peter,
-
-This should be before you enable COMPILE_TEST otherwise build will break!
+Would be good to give the warning message here
 
 > 
 > Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 > ---
->  include/linux/omap-dma.h | 19 +++++++++++++++++++
->  1 file changed, 19 insertions(+)
+>  drivers/dma/ti-dma-crossbar.c | 10 ++++++----
+>  1 file changed, 6 insertions(+), 4 deletions(-)
 > 
-> diff --git a/include/linux/omap-dma.h b/include/linux/omap-dma.h
-> index 1d99b61adc65..290081620b3e 100644
-> --- a/include/linux/omap-dma.h
-> +++ b/include/linux/omap-dma.h
-> @@ -297,6 +297,7 @@ struct omap_system_dma_plat_info {
->  #define dma_omap15xx()	__dma_omap15xx(d)
->  #define dma_omap16xx()	__dma_omap16xx(d)
+> diff --git a/drivers/dma/ti-dma-crossbar.c b/drivers/dma/ti-dma-crossbar.c
+> index e4f3bd1ae264..876e4ccaf033 100644
+> --- a/drivers/dma/ti-dma-crossbar.c
+> +++ b/drivers/dma/ti-dma-crossbar.c
+> @@ -16,8 +16,10 @@
+>  #include <linux/of_device.h>
+>  #include <linux/of_dma.h>
 >  
-> +#if defined(CONFIG_ARCH_OMAP)
->  extern struct omap_system_dma_plat_info *omap_get_plat_info(void);
+> -#define TI_XBAR_DRA7		0
+> -#define TI_XBAR_AM335X		1
+> +enum ti_xbar_type {
+> +	TI_XBAR_DRA7 = 0,
+> +	TI_XBAR_AM335X,
+> +};
 >  
->  extern void omap_set_dma_priority(int lch, int dst_port, int priority);
-> @@ -355,4 +356,22 @@ static inline int omap_lcd_dma_running(void)
->  }
->  #endif
+>  static const struct of_device_id ti_dma_xbar_match[] = {
+>  	{
+> @@ -395,7 +397,7 @@ static int ti_dra7_xbar_probe(struct platform_device *pdev)
 >  
-> +#else /* CONFIG_ARCH_OMAP */
-> +
-> +static inline struct omap_system_dma_plat_info *omap_get_plat_info(void)
-> +{
-> +	return NULL;
-> +}
-> +
-> +static inline int omap_request_dma(int dev_id, const char *dev_name,
-> +			void (*callback)(int lch, u16 ch_status, void *data),
-> +			void *data, int *dma_ch)
-> +{
-> +	return -ENODEV;
-> +}
-> +
-> +static inline void omap_free_dma(int ch) { }
-> +
-> +#endif /* CONFIG_ARCH_OMAP */
-> +
->  #endif /* __LINUX_OMAP_DMA_H */
+>  	xbar->dmarouter.dev = &pdev->dev;
+>  	xbar->dmarouter.route_free = ti_dra7_xbar_free;
+> -	xbar->dma_offset = (u32)match->data;
+> +	xbar->dma_offset = (enum ti_xbar_type)match->data;
+>  
+>  	mutex_init(&xbar->mutex);
+>  	platform_set_drvdata(pdev, xbar);
+> @@ -428,7 +430,7 @@ static int ti_dma_xbar_probe(struct platform_device *pdev)
+>  	if (unlikely(!match))
+>  		return -EINVAL;
+>  
+> -	switch ((u32)match->data) {
+> +	switch ((enum ti_xbar_type)match->data) {
+>  	case TI_XBAR_DRA7:
+>  		ret = ti_dra7_xbar_probe(pdev);
+>  		break;
 > -- 
 > 2.10.0
 > 
