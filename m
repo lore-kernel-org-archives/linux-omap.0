@@ -1,8 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Regression in next with "mfd: twl6040: The chip does not support
- bulk access"
-Date: Thu, 22 Sep 2016 11:07:18 -0700
-Message-ID: <20160922180718.kmttyt26t56fa3kp@atomide.com>
+Subject: Regression in next with "softirq: fix tasklet_kill() and its users"
+Date: Thu, 22 Sep 2016 13:51:22 -0700
+Message-ID: <20160922205122.ezsxjint2l6lytyi@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -17,37 +16,17 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Lee Jones <lee.jones@linaro.org>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Santosh Shilimkar <ssantosh@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Santosh,
 
-Looks like commit 7a17e47f6403 ("mfd: twl6040: The chip does not
-support bulk access") breaks at least omap4-duovero. I now get
-tons of errors:
+Looks like commit 1f5e9c3bc47f ("softirq: fix tasklet_kill() and
+its users") causes pandaboard es to not get any IP address on the
+smsc95xx USB Ethernet.
 
-Skipping twl internal clock init and using bootloader value (unknown osc rate)
-twl 0-0048: PIH (irq 332) nested IRQs
-of_get_named_gpiod_flags: parsed 'ti,audpwron-gpio' property of node '/ocp/i2c@48070000/t
-wl@4b[0]' - status (0)
-omap_i2c 48070000.i2c: bus 0 rev0.10 at 400 kHz
-twl6040 0-004b: Failed to read IRQ status: -16
-twl6040 0-004b: Failed to read IRQ status: -16
-twl6040 0-004b: Failed to read IRQ status: -16
-twl6040 0-004b: Failed to read IRQ status: -16
-twl6040 0-004b: Failed to read IRQ status: -16
-twl6040 0-004b: Failed to read IRQ status: -16
-twl6040 0-004b: Failed to read IRQ status: -16
-twl6040 0-004b: Failed to read IRQ status: -16
-twl6040 0-004b: Failed to read IRQ status: -16
-
-It seems the regmap irqs don't work with use_single_rw?
-
-Also seems that twl6040 does support bulk access as things have been
-working earlier?
-
-Anyways, can you please revert?
+Reverting the commits fixes the issue. Any ideas?
 
 Regards,
 
