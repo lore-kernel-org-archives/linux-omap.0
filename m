@@ -1,85 +1,83 @@
-From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: Regression in next with "mfd: twl6040: The chip does not support
- bulk access"
-Date: Fri, 23 Sep 2016 08:24:14 -0700
-Message-ID: <06e0406c-3ff0-a069-a48a-0b1b82872f98@oracle.com>
-References: <20160922180718.kmttyt26t56fa3kp@atomide.com>
- <139a8c7b-8cfe-fa21-634a-4551511f0cea@ti.com>
- <20160923142634.zkaqxmiif22kws2e@atomide.com>
+From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 2/2] cpufreq: ti: Add cpufreq driver to determine
+ available OPPs at runtime
+Date: Fri, 23 Sep 2016 11:17:55 -0500
+Message-ID: <57E555B3.2010304@ti.com>
+References: <20160901025328.376-1-d-gerlach@ti.com>
+ <20160901025328.376-3-d-gerlach@ti.com> <20160907052053.GO27345@vireshk-i7>
+ <57D02C85.7020300@ti.com> <20160908033909.GR27345@vireshk-i7>
+ <57E2E0BE.3070206@ti.com> <20160923051947.GC17336@vireshk-i7>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160923142634.zkaqxmiif22kws2e@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <ssantosh@kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160923051947.GC17336@vireshk-i7>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 9/23/2016 7:26 AM, Tony Lindgren wrote:
-> * Peter Ujfalusi <peter.ujfalusi@ti.com> [160923 00:21]:
->> On 09/22/16 21:07, Tony Lindgren wrote:
-
-[...]
-
->> On which linux-next version you are seeing this?
+On 09/23/2016 12:19 AM, Viresh Kumar wrote:
+> On 21-09-16, 14:34, Dave Gerlach wrote:
+>> Viresh,
+>> On 09/07/2016 10:39 PM, Viresh Kumar wrote:
+>>> On 07-09-16, 10:04, Dave Gerlach wrote:
+>>>>>> +static const struct of_device_id ti_cpufreq_of_match[] = {
+>>>>>> +	{ .compatible = "operating-points-v2-ti-am3352-cpu",
+>>>>>> +	  .data = &am3x_soc_data, },
+>>>>>> +	{ .compatible = "operating-points-v2-ti-am4372-cpu",
+>>>>>> +	  .data = &am4x_soc_data, },
+>>>>>> +	{ .compatible = "operating-points-v2-ti-dra7-cpu",
+>>>>>> +	  .data = &dra7_soc_data },
+>>>>>
+>>>>> You should be using your SoC compatible strings here. OPP compatible
+>>>>> property isn't supposed to be (mis)used for this purpose.
+>>>>>
+>>>>
+>>>> Referring to my comments in patch 1, what if we end up changing the bindings
+>>>> based on DT maintainer comments? We will have these compatible strings, and
+>>>> at that point is it acceptable to match against them? Or is it still better
+>>>> to match to SoC compatibles? I think it makes sense to just probe against
+>>>> these.
+>>>
+>>> But even then I think these are not correct. You should have added a
+>>> single compatible string: operating-points-v2-ti-cpu.
+>>>
+>>> As the properties will stay the same across machines. And then you
+>>> need to use SoC strings here.
+>>>
+>>
+>> Are you opposed to moving _of_get_opp_desc_node from
+>> drivers/base/power/opp/opp.h to include/linux/pm_opp.h and renaming it
+>> appropriately?
 >
-> This was with next-20160922. But testing it again this is just another
-> regression caused by "softirq: fix tasklet_kill() and its users", so adding
-> Santosh to Cc.
+> I am not opposed to that, but ...
 >
-> So no need to revert $subject patch.
+>> If I move the ti properties out of the cpu node, as discussed in patch 1 of
+>> this series, and into the operating-points-v2 table, I need a way to get the
+>> operating-points-v2 device node and I think it makes sense to reuse this as
+>> it is what the opp framework uses internally to parse the phandle to the opp
+>> table.
 >
-So your driver also looks like fiddling with tasklet core structures if
-you got impacted because of the core change. After the merge window
-am going to take stab at bad users of tasklet but below is
-quick snap shot conversation I had with Thomas and Andrew...
+> I am not sure if those registers belong to the OPP bindings. What are those
+> registers really? What all can be read from them? Why shouldn't they be present
+> as a separate node in DT on the respective bus? Look at how it is done for
+> sti-cpufreq driver.
+>
 
-------------------------------------------------------------------
-B1;2802;0cOn Wed, 21 Sep 2016, Santosh Shilimkar wrote:
- > I requested you to include this patch but now am not sure anymore.
- > Looks like there are almost 30 more users which are directly
- > tweaking 'tasklet_struct' fields and calling other APIs. Hunting them
- > and fixing them probably would be an exercise and also those changes
- > needs those changed drivers to be tested.
- >
- > What do you suggest ? At least this patch needs to be dropped as of now
- > till we can have complete coverage for those bad users.
+The sti-cpufreq driver in v4.8-rc7 appears to do what I am already doing 
+in this revision of the patch, reading from a syscon phandle that is 
+part of the cpu node in the DT which is what I was told not to do.
 
-Yes, it needs to be dropped. Stephen, can you please revert it from next?
+The register I am referencing in the syscon is a bit-field describing 
+which OPPs are valid for the system, so it is very relevant to the OPP 
+binding. They really are already present in a separate node, I'm just 
+indexing into a syscon, same as the sti-cpufreq driver appears to be doing.
 
-How to fix this: The only way is to review all tasklet usage sites for
-creative abuse and then fix them one by one. This needs to be done anyway
-because those are ticking timebombs even without changes in the core
-code. I looked at one of the offenders and it's broken today, it's just
-protected by the extremly low probablity to hit the wreckage case.
+Regards,
+Dave
 
-What you can do to coerce the developers/maintainers of offending code into
-looking at the mess they created/merged is to implement accessors for the
-tasklet struct fields and replace the open coded fiddling with them.
-
-Once that is done, rename the struct fields to something which is absurd
-enough to type.  But don't worry, you will find people doing that. I
-catched a few brainwrecks who actually used:
-
-  irqdesc->core_internal_state__do_not_mess_with_it
-
-in their code.
-
-Now after having everything converted to accessors, you can add sanity
-checks into the accessors and emit WARN_ONCE() when they are used in the
-wrong context. That'll make them look and explain why they think that
-fiddling in the internals is a good idea.
-
-Thanks,
-
-	tglx
-------------------------------------------------------------------
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
