@@ -1,59 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Regression in next with "mfd: twl6040: The chip does not support
- bulk access"
-Date: Fri, 23 Sep 2016 07:27:28 -0700
-Message-ID: <20160923142727.ysj3or2ltlhk5r72@atomide.com>
-References: <20160922180718.kmttyt26t56fa3kp@atomide.com>
- <139a8c7b-8cfe-fa21-634a-4551511f0cea@ti.com>
- <8b8a49cd-ca7b-4580-58ba-3e05d933853e@ti.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [RFC PATCH 07/11] pci: controller: designware: Add EP mode
+ support
+Date: Fri, 23 Sep 2016 09:41:41 -0500
+Message-ID: <20160923144141.GA24842@rob-hp-laptop>
+References: <1473829927-20466-1-git-send-email-kishon@ti.com>
+ <1473829927-20466-8-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <8b8a49cd-ca7b-4580-58ba-3e05d933853e@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1473829927-20466-8-git-send-email-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Jingoo Han <jingoohan1@gmail.com>, hch@infradead.org, Joao.Pinto@synopsys.com, mingkai.hu@nxp.com, m-karicheri2@ti.com, Pratyush Anand <pratyush.anand@gmail.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Joao Pinto <jpinto@synopsys.com>, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [160923 03:20]:
-> On 09/23/16 10:20, Peter Ujfalusi wrote:
-> > On 09/22/16 21:07, Tony Lindgren wrote:
-> >> Hi,
-> >>
-> >> Looks like commit 7a17e47f6403 ("mfd: twl6040: The chip does not
-> >> support bulk access") breaks at least omap4-duovero.
-> > 
-> > That's odd. I see no such errors on omap4 PandaBoard-ES nor on omap5 uEVM.
-> > The IRQ status is one register so even in bulk access it is one read. So the
-> > use_single_rw should have no effect on the access.
-> > 
-> > The only time when regmap would try to use bulk access to twl6040 is when we
-> > execute regcache_sync() on it after resuming the chip and this would fail at
-> > the first time when it tries to restore more than one consecutive registers.
-> > 
-> > I just tested things on next-20160915 and I see no errors at all.
+On Wed, Sep 14, 2016 at 10:42:03AM +0530, Kishon Vijay Abraham I wrote:
+> Add endpoint mode support to designware driver. This uses the
+> EP Core layer introduced recently to add endpoint mode support.
+> *Any* function driver can now use this designware device
+> to achieve the EP functionality.
 > 
-> Retested on next-20160923 and I see no issue on Panda-ES or omap5-uevm.
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  .../devicetree/bindings/pci/designware-pcie.txt    |   26 ++-
+>  drivers/pci/controller/Kconfig                     |    5 +
+>  drivers/pci/controller/Makefile                    |    1 +
+>  drivers/pci/controller/pcie-designware-ep.c        |  228 ++++++++++++++++++++
+>  drivers/pci/controller/pcie-designware.c           |   30 +++
+>  drivers/pci/controller/pcie-designware.h           |   45 ++++
+>  6 files changed, 324 insertions(+), 11 deletions(-)
+>  create mode 100644 drivers/pci/controller/pcie-designware-ep.c
 > 
-> My guess is that you receive an interrupt from twl6040 while the chip is
-> powered down, the regmap is set to cache only. But this has nothing to do with
-> the bulk or non bulk access... Looking at the commit logs and git blame I see
-> no recent change in the driver(s) for twl6040 which changed the way it loads
-> and/or powers up/down.
+> diff --git a/Documentation/devicetree/bindings/pci/designware-pcie.txt b/Documentation/devicetree/bindings/pci/designware-pcie.txt
+> index 6c5322c..bb0b789 100644
+> --- a/Documentation/devicetree/bindings/pci/designware-pcie.txt
+> +++ b/Documentation/devicetree/bindings/pci/designware-pcie.txt
+> @@ -6,23 +6,27 @@ Required properties:
+>  - reg-names: Must be "config" for the PCIe configuration space.
+>      (The old way of getting the configuration address space from "ranges"
+>      is deprecated and should be avoided.)
+> -- #address-cells: set to <3>
+> -- #size-cells: set to <2>
+> -- device_type: set to "pci"
+> -- ranges: ranges for the PCI memory and I/O regions
+> -- #interrupt-cells: set to <1>
+> -- interrupt-map-mask and interrupt-map: standard PCI properties
+> -	to define the mapping of the PCIe interface to interrupt
+> +- #address-cells (only for host mode): set to <3>
+> +- #size-cells (only for host mode): set to <2>
+> +- device_type (only for host mode): set to "pci"
+> +- ranges (only for host mode): ranges for the PCI memory and I/O regions
+> +- num-ib-windows (only for EP mode): number of inbound address translation
+> +	windows
+> +- num-ob-windows (only for EP mode): number of outbound address translation
+> +	windows
+> +- #interrupt-cells (only for host mode): set to <1>
+> +- interrupt-map-mask and interrupt-map (only for host mode): standard PCI
+> +	properties to define the mapping of the PCIe interface to interrupt
 
-OK yeah this is another one caused by "softirq: fix tasklet_kill() and
-its users".
+It may be clearer to just document EP mode in a separate section even if 
+there's some duplication of properties. Other standard PCI binding 
+properties probably also don't apply.
 
-Thanks,
-
-Tony
+Rob
