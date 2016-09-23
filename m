@@ -1,128 +1,85 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [RFC PATCH 08/11] pci: controller: dra7xx: Add EP mode support
-Date: Fri, 23 Sep 2016 09:52:59 -0500
-Message-ID: <20160923145259.GA28285@rob-hp-laptop>
-References: <1473829927-20466-1-git-send-email-kishon@ti.com>
- <1473829927-20466-9-git-send-email-kishon@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: Regression in next with "mfd: twl6040: The chip does not support
+ bulk access"
+Date: Fri, 23 Sep 2016 08:24:14 -0700
+Message-ID: <06e0406c-3ff0-a069-a48a-0b1b82872f98@oracle.com>
+References: <20160922180718.kmttyt26t56fa3kp@atomide.com>
+ <139a8c7b-8cfe-fa21-634a-4551511f0cea@ti.com>
+ <20160923142634.zkaqxmiif22kws2e@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1473829927-20466-9-git-send-email-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Jingoo Han <jingoohan1@gmail.com>, hch@infradead.org, Joao.Pinto@synopsys.com, mingkai.hu@nxp.com, m-karicheri2@ti.com, Pratyush Anand <pratyush.anand@gmail.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Joao Pinto <jpinto@synopsys.com>, nsekhar@ti.com
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160923142634.zkaqxmiif22kws2e@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <ssantosh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Sep 14, 2016 at 10:42:04AM +0530, Kishon Vijay Abraham I wrote:
-> The PCIe controller integrated in dra7xx SoCs is capable of operating
-> in endpoint mode. Add support for dra7xx SoCs to operate in endpoint
-> mode.
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  Documentation/devicetree/bindings/pci/ti-pci.txt |   30 ++-
->  drivers/pci/controller/Kconfig                   |   21 +++
->  drivers/pci/controller/pci-dra7xx.c              |  211 +++++++++++++++++++---
->  3 files changed, 225 insertions(+), 37 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
-> index 60e2516..b0e76f6 100644
-> --- a/Documentation/devicetree/bindings/pci/ti-pci.txt
-> +++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
-> @@ -1,17 +1,22 @@
->  TI PCI Controllers
->  
->  PCIe Designware Controller
-> - - compatible: Should be "ti,dra7-pcie""
-> - - reg : Two register ranges as listed in the reg-names property
-> - - reg-names : The first entry must be "ti-conf" for the TI specific registers
-> -	       The second entry must be "rc-dbics" for the designware pcie
-> -	       registers
-> -	       The third entry must be "config" for the PCIe configuration space
-> + - compatible: Should be "ti,dra7-pcie" for RC
-> +	       Should be "ti,dra7-pcie-ep" for EP
->   - phys : list of PHY specifiers (used by generic PHY framework)
->   - phy-names : must be "pcie-phy0", "pcie-phy1", "pcie-phyN".. based on the
->  	       number of PHYs as specified in *phys* property.
->   - ti,hwmods : Name of the hwmod associated to the pcie, "pcie<X>",
->  	       where <X> is the instance number of the pcie from the HW spec.
-> + - num-lanes as specified in ../designware-pcie.txt
-> +
-> +HOST MODE
-> +=========
-> + - reg : Two register ranges as listed in the reg-names property
-> + - reg-names : The first entry must be "ti-conf" for the TI specific registers
-> +	       The second entry must be "rc-dbics" for the designware pcie
-> +	       registers
-> +	       The third entry must be "config" for the PCIe configuration space
->   - interrupts : Two interrupt entries must be specified. The first one is for
->  		main interrupt line and the second for MSI interrupt line.
->   - #address-cells,
-> @@ -19,13 +24,24 @@ PCIe Designware Controller
->     #interrupt-cells,
->     device_type,
->     ranges,
-> -   num-lanes,
->     interrupt-map-mask,
->     interrupt-map : as specified in ../designware-pcie.txt
->  
->  Optional Property:
->   - gpios : Should be added if a gpio line is required to drive PERST# line
+On 9/23/2016 7:26 AM, Tony Lindgren wrote:
+> * Peter Ujfalusi <peter.ujfalusi@ti.com> [160923 00:21]:
+>> On 09/22/16 21:07, Tony Lindgren wrote:
 
-Don't you need gpios as the input side of GPIO outputs in RC mode? Or 
-for EP mode they are all handled by h/w?
+[...]
 
->  
-> +DEVICE MODE
-> +===========
-> + - reg : Two register ranges as listed in the reg-names property
-> + - reg-names : "ti-conf" for the TI specific registers
-> +	       "ep_dbics" for the standard configuration registers as
-> +		they are locally accessed within the DIF CS space
-> +	       "ep_dbics2" for the standard configuration registers as
-> +		they are locally accessed within the DIF CS2 space
-> + - interrupts : one interrupt entries must be specified for main interrupt.
-> + - num-ib-windows : number of inbound address translation windows
-> + - num-ob-windows : number of outbound address translation windows
-> +
->  Example:
->  axi {
->  	compatible = "simple-bus";
-> diff --git a/drivers/pci/controller/Kconfig b/drivers/pci/controller/Kconfig
-> index 8574828..4d70981 100644
-> --- a/drivers/pci/controller/Kconfig
-> +++ b/drivers/pci/controller/Kconfig
-> @@ -23,6 +23,27 @@ config PCI_DRA7XX_HOST
->  	 Enables support for the PCIe controller in the DRA7xx SoC to work in
->  	 host mode.
->  
-> +config PCI_DRA7XX_EP
-> +	bool "Endpoint Only Mode"
-> +	depends on PCI_ENDPOINT
-> +	select PCIE_DW_EP
-> +	help
-> +	 Enables support for the PCIe controller in the DRA7xx SoC to work in
-> +	 endpoint mode.
-> +
-> +config PCI_DRA7XX_HOST_EP
+>> On which linux-next version you are seeing this?
+>
+> This was with next-20160922. But testing it again this is just another
+> regression caused by "softirq: fix tasklet_kill() and its users", so adding
+> Santosh to Cc.
+>
+> So no need to revert $subject patch.
+>
+So your driver also looks like fiddling with tasklet core structures if
+you got impacted because of the core change. After the merge window
+am going to take stab at bad users of tasklet but below is
+quick snap shot conversation I had with Thomas and Andrew...
 
-I'd make these 2 options just RC and EP depending on PCI_DRA7XX_HOST 
-with RC option being default yes.
+------------------------------------------------------------------
+B1;2802;0cOn Wed, 21 Sep 2016, Santosh Shilimkar wrote:
+ > I requested you to include this patch but now am not sure anymore.
+ > Looks like there are almost 30 more users which are directly
+ > tweaking 'tasklet_struct' fields and calling other APIs. Hunting them
+ > and fixing them probably would be an exercise and also those changes
+ > needs those changed drivers to be tested.
+ >
+ > What do you suggest ? At least this patch needs to be dropped as of now
+ > till we can have complete coverage for those bad users.
 
+Yes, it needs to be dropped. Stephen, can you please revert it from next?
 
-> +	bool "Both Host and Endpoint Mode"
-> +	depends on PCI_MSI_IRQ_DOMAIN
-> +	depends on PCI
-> +	depends on PCI_ENDPOINT
-> +	select PCIE_DW_HOST
-> +	select PCIE_DW_EP
-> +	help
-> +	 Enables support for the PCIe controller in the DRA7xx SoC to work in
-> +	 both endpoint mode and host mode. If the board has 2 PCIe ports and
-> +	 one of them has to work in host mode and the other has to work in
-> +	 EP mode then this option has to be enabled.
-> +
->  endchoice
->  
->  endif
+How to fix this: The only way is to review all tasklet usage sites for
+creative abuse and then fix them one by one. This needs to be done anyway
+because those are ticking timebombs even without changes in the core
+code. I looked at one of the offenders and it's broken today, it's just
+protected by the extremly low probablity to hit the wreckage case.
+
+What you can do to coerce the developers/maintainers of offending code into
+looking at the mess they created/merged is to implement accessors for the
+tasklet struct fields and replace the open coded fiddling with them.
+
+Once that is done, rename the struct fields to something which is absurd
+enough to type.  But don't worry, you will find people doing that. I
+catched a few brainwrecks who actually used:
+
+  irqdesc->core_internal_state__do_not_mess_with_it
+
+in their code.
+
+Now after having everything converted to accessors, you can add sanity
+checks into the accessors and emit WARN_ONCE() when they are used in the
+wrong context. That'll make them look and explain why they think that
+fiddling in the internals is a good idea.
+
+Thanks,
+
+	tglx
+------------------------------------------------------------------
