@@ -1,81 +1,76 @@
-From: Daniel Wagner <wagi@monom.org>
-Subject: [PATCH] omapfb: use complete() instead complete_all()
-Date: Fri, 23 Sep 2016 13:33:22 +0200
-Message-ID: <1474630402-11514-1-git-send-email-wagi@monom.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Daniel Wagner <daniel.wagner@bmw-carit.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-fbdev@vger.kernel.org
+From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Subject: [PATCH v3 5/8] DT:omap3+tsc2007: use new common touchscreen bindings
+Date: Fri, 23 Sep 2016 14:41:13 +0200
+Message-ID: <804ce271877ce003715a92ef04a6886ed3360bee.1474634475.git.hns@goldelico.com>
+References: <cover.1474634475.git.hns@goldelico.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1474634475.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+In-Reply-To: <cover.1474634475.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+References: <cover.1474634475.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, =?UTF-8?q?Mika=20Penttil=C3=A4?= <mika.penttila-MRsr7dthA9VWk0Htik3J/w@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>
+Cc: linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Daniel Wagner <daniel.wagner@bmw-carit.de>
+While we fix the GTA04 we add proper pinmux for the
+penirq gpio.
 
-There is only one waiter for the completion, therefore there
-is no need to use complete_all(). Let's make that clear by
-using complete() instead of complete_all().
+Tested on: GTA04A4 and Pyra-Handheld
 
-While we are at it, we also change the init_completion() to
-reinit_completion() which slightly lighter.
-
-The usage pattern of the completion is:
-
-waiter context                          waker context
-
-dss_mgr_disable_compat()
-  mutex_lock(apply_lock)
-  wait_pending_extra_info_updates()
-    reinit_completion()
-    wait_for_completion_timeout()
-  mutex_unlock(apply_lock)
-
-dss_ovl_unset_manager()
-  mutex_lock(apply_lock)
-  wait_pending_extra_info_updates()
-    reinit_completion()
-    wait_for_completion_timeout()
-  mutex_unlock(apply_lock)
-
-					dss_apply_irq_handler()
-					  complete()
-
-Furthermore dss_mgr_disable_compat(), dss_ovl_unset_manager and
-dss_apply_irq_handler() are serialized via the data_lock spinlock. That
-means the reinit_completion() and complete() call do not race.  The only
-problem there could be the ordering of those two functions. It is not
-clear to me if that is enforced by the hardware or the design of the
-driver. Given the fact this has been in place since years, it should
-just work as before.
-
-Signed-off-by: Daniel Wagner <daniel.wagner@bmw-carit.de>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-Cc: linux-omap@vger.kernel.org
-Cc: linux-fbdev@vger.kernel.org
+Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 ---
- drivers/video/fbdev/omap2/omapfb/dss/apply.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 25 +++++++++++++++++++++++--
+ 1 file changed, 23 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/apply.c b/drivers/video/fbdev/omap2/omapfb/dss/apply.c
-index 2481f48..f345aa9 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/apply.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/apply.c
-@@ -413,7 +413,7 @@ static void wait_pending_extra_info_updates(void)
- 		return;
- 	}
+diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+index c09a057..40d1459 100644
+--- a/arch/arm/boot/dts/omap3-gta04.dtsi
++++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+@@ -273,6 +273,13 @@
+ 			OMAP3_CORE1_IOPAD(0x2134, PIN_INPUT_PULLUP | MUX_MODE4) /* gpio112 */
+ 		>;
+ 	};
++
++	penirq_pins: pinmux_penirq_pins {
++		pinctrl-single,pins = <
++			/* here we could enable to wakeup the cpu from suspend by a pen touch */
++			OMAP3_CORE1_IOPAD(0x2194, PIN_INPUT_PULLUP | MUX_MODE4) /* gpio160 */
++		>;
++	};
+ };
  
--	init_completion(&extra_updated_completion);
-+	reinit_completion(&extra_updated_completion);
+ &omap3_pmx_core2 {
+@@ -410,10 +417,24 @@
+ 	tsc2007@48 {
+ 		compatible = "ti,tsc2007";
+ 		reg = <0x48>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&penirq_pins>;
+ 		interrupt-parent = <&gpio6>;
+ 		interrupts = <0 IRQ_TYPE_EDGE_FALLING>; /* GPIO_160 */
+-		gpios = <&gpio6 0 GPIO_ACTIVE_LOW>;
+-		ti,x-plate-ohms = <600>;
++		gpios = <&gpio6 0 GPIO_ACTIVE_LOW>;	/* GPIO_160 */
++		touchscreen-size-x = <480>;
++		touchscreen-size-y = <640>;
++		touchscreen-max-pressure = <1000>;
++		touchscreen-fuzz-x = <3>;
++		touchscreen-fuzz-y = <8>;
++		touchscreen-fuzz-pressure = <10>;
++		touchscreen-inverted-y;
++		ti,min-x = <0x100>;
++		ti,max-x = <0xf00>;
++		ti,min-y = <0x100>;
++		ti,max-y = <0xf00>;
++		ti,max-rt = <4096>;
++		ti,x-plate-ohms = <550>;
+ 	};
  
- 	spin_unlock_irqrestore(&data_lock, flags);
- 
-@@ -922,7 +922,7 @@ static void dss_apply_irq_handler(void *data, u32 mask)
- 
- 	extra_updating = extra_info_update_ongoing();
- 	if (!extra_updating)
--		complete_all(&extra_updated_completion);
-+		complete(&extra_updated_completion);
- 
- 	/* call framedone handlers for manual update displays */
- 	for (i = 0; i < num_mgrs; i++) {
+ 	/* RFID EEPROM */
 -- 
-2.7.4
+2.7.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
