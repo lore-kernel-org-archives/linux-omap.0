@@ -1,49 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Regression in next with "softirq: fix tasklet_kill() and its
- users"
-Date: Thu, 22 Sep 2016 13:59:41 -0700
-Message-ID: <20160922205941.al4m3vf6en4c3txk@atomide.com>
-References: <20160922205122.ezsxjint2l6lytyi@atomide.com>
- <a305129a-e2b4-9ba1-9e94-7998277da035@oracle.com>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH v2 2/2] cpufreq: ti: Add cpufreq driver to determine
+ available OPPs at runtime
+Date: Fri, 23 Sep 2016 10:49:47 +0530
+Message-ID: <20160923051947.GC17336@vireshk-i7>
+References: <20160901025328.376-1-d-gerlach@ti.com>
+ <20160901025328.376-3-d-gerlach@ti.com>
+ <20160907052053.GO27345@vireshk-i7>
+ <57D02C85.7020300@ti.com>
+ <20160908033909.GR27345@vireshk-i7>
+ <57E2E0BE.3070206@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <a305129a-e2b4-9ba1-9e94-7998277da035@oracle.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <ssantosh@kernel.org>
+In-Reply-To: <57E2E0BE.3070206@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-pm@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Mark Rutland <mark.rutland@arm.com>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Santosh Shilimkar <santosh.shilimkar@oracle.com> [160922 13:59]:
-> On 9/22/2016 1:51 PM, Tony Lindgren wrote:
-> > Hi Santosh,
-> > 
-> > Looks like commit 1f5e9c3bc47f ("softirq: fix tasklet_kill() and
-> > its users") causes pandaboard es to not get any IP address on the
-> > smsc95xx USB Ethernet.
-> > 
-> > Reverting the commits fixes the issue. Any ideas?
-> > 
-> Yep. It was discussed today morning and Stephen was suppose to
-> revert that commit from next for now.
+On 21-09-16, 14:34, Dave Gerlach wrote:
+> Viresh,
+> On 09/07/2016 10:39 PM, Viresh Kumar wrote:
+> >On 07-09-16, 10:04, Dave Gerlach wrote:
+> >>>>+static const struct of_device_id ti_cpufreq_of_match[] = {
+> >>>>+	{ .compatible = "operating-points-v2-ti-am3352-cpu",
+> >>>>+	  .data = &am3x_soc_data, },
+> >>>>+	{ .compatible = "operating-points-v2-ti-am4372-cpu",
+> >>>>+	  .data = &am4x_soc_data, },
+> >>>>+	{ .compatible = "operating-points-v2-ti-dra7-cpu",
+> >>>>+	  .data = &dra7_soc_data },
+> >>>
+> >>>You should be using your SoC compatible strings here. OPP compatible
+> >>>property isn't supposed to be (mis)used for this purpose.
+> >>>
+> >>
+> >>Referring to my comments in patch 1, what if we end up changing the bindings
+> >>based on DT maintainer comments? We will have these compatible strings, and
+> >>at that point is it acceptable to match against them? Or is it still better
+> >>to match to SoC compatibles? I think it makes sense to just probe against
+> >>these.
+> >
+> >But even then I think these are not correct. You should have added a
+> >single compatible string: operating-points-v2-ti-cpu.
+> >
+> >As the properties will stay the same across machines. And then you
+> >need to use SoC strings here.
+> >
 > 
-> The tasklet core fix even though fixes the issue, there are many
-> bad users of tasklet which are using tasklet APIs without
-> doing any sort of tasklet initialization. So there is more
-> work to do before the tasklet core can be fixed.
+> Are you opposed to moving _of_get_opp_desc_node from
+> drivers/base/power/opp/opp.h to include/linux/pm_opp.h and renaming it
+> appropriately?
 
-OK thanks for the info.
+I am not opposed to that, but ...
 
-Regards,
+> If I move the ti properties out of the cpu node, as discussed in patch 1 of
+> this series, and into the operating-points-v2 table, I need a way to get the
+> operating-points-v2 device node and I think it makes sense to reuse this as
+> it is what the opp framework uses internally to parse the phandle to the opp
+> table.
 
-Tony
+I am not sure if those registers belong to the OPP bindings. What are those
+registers really? What all can be read from them? Why shouldn't they be present
+as a separate node in DT on the respective bus? Look at how it is done for
+sti-cpufreq driver.
+
+-- 
+viresh
