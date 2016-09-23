@@ -1,69 +1,85 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [PATCH v2 2/2] cpufreq: ti: Add cpufreq driver to determine
- available OPPs at runtime
-Date: Fri, 23 Sep 2016 10:49:47 +0530
-Message-ID: <20160923051947.GC17336@vireshk-i7>
-References: <20160901025328.376-1-d-gerlach@ti.com>
- <20160901025328.376-3-d-gerlach@ti.com>
- <20160907052053.GO27345@vireshk-i7>
- <57D02C85.7020300@ti.com>
- <20160908033909.GR27345@vireshk-i7>
- <57E2E0BE.3070206@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: Regression in next with "mfd: twl6040: The chip does not support
+ bulk access"
+Date: Fri, 23 Sep 2016 10:20:45 +0300
+Message-ID: <139a8c7b-8cfe-fa21-634a-4551511f0cea@ti.com>
+References: <20160922180718.kmttyt26t56fa3kp@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <57E2E0BE.3070206@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-pm@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Mark Rutland <mark.rutland@arm.com>, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160922180718.kmttyt26t56fa3kp@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 21-09-16, 14:34, Dave Gerlach wrote:
-> Viresh,
-> On 09/07/2016 10:39 PM, Viresh Kumar wrote:
-> >On 07-09-16, 10:04, Dave Gerlach wrote:
-> >>>>+static const struct of_device_id ti_cpufreq_of_match[] = {
-> >>>>+	{ .compatible = "operating-points-v2-ti-am3352-cpu",
-> >>>>+	  .data = &am3x_soc_data, },
-> >>>>+	{ .compatible = "operating-points-v2-ti-am4372-cpu",
-> >>>>+	  .data = &am4x_soc_data, },
-> >>>>+	{ .compatible = "operating-points-v2-ti-dra7-cpu",
-> >>>>+	  .data = &dra7_soc_data },
-> >>>
-> >>>You should be using your SoC compatible strings here. OPP compatible
-> >>>property isn't supposed to be (mis)used for this purpose.
-> >>>
-> >>
-> >>Referring to my comments in patch 1, what if we end up changing the bindings
-> >>based on DT maintainer comments? We will have these compatible strings, and
-> >>at that point is it acceptable to match against them? Or is it still better
-> >>to match to SoC compatibles? I think it makes sense to just probe against
-> >>these.
-> >
-> >But even then I think these are not correct. You should have added a
-> >single compatible string: operating-points-v2-ti-cpu.
-> >
-> >As the properties will stay the same across machines. And then you
-> >need to use SoC strings here.
-> >
-> 
-> Are you opposed to moving _of_get_opp_desc_node from
-> drivers/base/power/opp/opp.h to include/linux/pm_opp.h and renaming it
-> appropriately?
+On 09/22/16 21:07, Tony Lindgren wrote:
+> Hi,
+> =
 
-I am not opposed to that, but ...
+> Looks like commit 7a17e47f6403 ("mfd: twl6040: The chip does not
+> support bulk access") breaks at least omap4-duovero.
 
-> If I move the ti properties out of the cpu node, as discussed in patch 1 of
-> this series, and into the operating-points-v2 table, I need a way to get the
-> operating-points-v2 device node and I think it makes sense to reuse this as
-> it is what the opp framework uses internally to parse the phandle to the opp
-> table.
+That's odd. I see no such errors on omap4 PandaBoard-ES nor on omap5 uEVM.
+The IRQ status is one register so even in bulk access it is one read. So the
+use_single_rw should have no effect on the access.
 
-I am not sure if those registers belong to the OPP bindings. What are those
-registers really? What all can be read from them? Why shouldn't they be present
-as a separate node in DT on the respective bus? Look at how it is done for
-sti-cpufreq driver.
+The only time when regmap would try to use bulk access to twl6040 is when we
+execute regcache_sync() on it after resuming the chip and this would fail at
+the first time when it tries to restore more than one consecutive registers.
 
--- 
-viresh
+I just tested things on next-20160915 and I see no errors at all.
+
+> I now get tons of errors:
+> =
+
+> Skipping twl internal clock init and using bootloader value (unknown osc =
+rate)
+> twl 0-0048: PIH (irq 332) nested IRQs
+> of_get_named_gpiod_flags: parsed 'ti,audpwron-gpio' property of node '/oc=
+p/i2c@48070000/t
+> wl@4b[0]' - status (0)
+> omap_i2c 48070000.i2c: bus 0 rev0.10 at 400 kHz
+> twl6040 0-004b: Failed to read IRQ status: -16
+> twl6040 0-004b: Failed to read IRQ status: -16
+> twl6040 0-004b: Failed to read IRQ status: -16
+> twl6040 0-004b: Failed to read IRQ status: -16
+> twl6040 0-004b: Failed to read IRQ status: -16
+> twl6040 0-004b: Failed to read IRQ status: -16
+> twl6040 0-004b: Failed to read IRQ status: -16
+> twl6040 0-004b: Failed to read IRQ status: -16
+> twl6040 0-004b: Failed to read IRQ status: -16
+> =
+
+> It seems the regmap irqs don't work with use_single_rw?
+> =
+
+> Also seems that twl6040 does support bulk access as things have been
+> working earlier?
+
+Things kind of worked as we had single register reads and writes, but when I
+tried to power down/up the twl6040 the regcache_sync() would fail to restore
+the registers at the first place when we had two or more registers to update
+in bulk mode. In that case regmap gives an error, but I have not been check=
+ing
+the return of the regcache_sync() so the chip comes up, but not all settings
+were restored.
+
+> Anyways, can you please revert?
+
+Please don't.
+
+On which linux-next version you are seeing this?
+
+-- =
+
+P=E9ter
