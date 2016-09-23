@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v3 4/8] drivers:input:tsc2007: check for presence and power down tsc2007 during probe
-Date: Fri, 23 Sep 2016 14:41:12 +0200
-Message-ID: <e029ce6aad9483e706e9ff50fb5dfa7c83d3d27e.1474634475.git.hns@goldelico.com>
+Subject: [PATCH v3 2/8] drivers:input:tsc2007: send pendown and penup only once like ads7846(+tsc2046) driver does
+Date: Fri, 23 Sep 2016 14:41:10 +0200
+Message-ID: <9eab7072cf800efa30de74ba308ef5a1f943b045.1474634475.git.hns@goldelico.com>
 References: <cover.1474634475.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1474634475.git.hns@goldelico.com>
@@ -12,33 +12,41 @@ To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Rob Herring <robh+dt@kernel.org
 Cc: linux-input@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, letux-kernel@openphoenux.org, linux-iio@vger.kernel.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-1. check if chip is really present and don't succeed if it isn't.
-2. if it succeeds, power down the chip until accessed
+this should reduce unnecessary input events.
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- drivers/input/touchscreen/tsc2007.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/input/touchscreen/tsc2007.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/input/touchscreen/tsc2007.c b/drivers/input/touchscreen/tsc2007.c
-index 559cbc6..3ddc31e 100644
+index 9a11509..e9d5086 100644
 --- a/drivers/input/touchscreen/tsc2007.c
 +++ b/drivers/input/touchscreen/tsc2007.c
-@@ -657,6 +657,15 @@ static int tsc2007_probe(struct i2c_client *client,
+@@ -94,6 +94,7 @@ struct tsc2007 {
  
- 	tsc2007_stop(ts);
+ 	wait_queue_head_t	wait;
+ 	bool			stopped;
++	bool			pendown;
  
-+	/* power down the chip (TSC2007_SETUP does not ACK on I2C) */
-+	err = tsc2007_xfer(ts, PWRDOWN);
-+	if (err < 0) {
-+		dev_err(&client->dev,
-+			"Failed to setup chip: %d\n", err);
-+		iio_device_unregister(indio_dev);
-+		return err;	/* usually, chip does not respond */
-+	}
+ 	int			(*get_pendown_state)(struct device *);
+ 	void			(*clear_penirq)(void);
+@@ -254,9 +255,13 @@ static irqreturn_t tsc2007_soft_irq(int irq, void *handle)
+ 
+ 	dev_dbg(&ts->client->dev, "UP\n");
+ 
+-	input_report_key(input, BTN_TOUCH, 0);
+-	input_report_abs(input, ABS_PRESSURE, 0);
+-	input_sync(input);
++	if (ts->pendown) {
++		input_report_key(input, BTN_TOUCH, 0);
++		input_report_abs(input, ABS_PRESSURE, 0);
++		input_sync(input);
 +
- 	err = input_register_device(input_dev);
- 	if (err) {
- 		dev_err(&client->dev,
++		ts->pendown = false;
++	}
+ 
+ 	if (ts->clear_penirq)
+ 		ts->clear_penirq();
 -- 
 2.7.3
