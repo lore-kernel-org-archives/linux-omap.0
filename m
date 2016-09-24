@@ -1,216 +1,146 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v3 6/8] drivers:input:ads7846(+tsc2046): add new common
- binding names, pre-calibration and flipping
-Date: Fri, 23 Sep 2016 17:50:23 -0500
-Message-ID: <20160923225023.GA9994@rob-hp-laptop>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH v3 1/8] drivers:input:tsc2007: add new common binding
+ names, pre-calibration, flipping and rotation
+Date: Sat, 24 Sep 2016 02:31:33 +0200
+Message-ID: <20160924003133.htaaiphjrm7vy52t@earth>
 References: <cover.1474634475.git.hns@goldelico.com>
- <7f69bbab0e932cb00bd28668f56c8a30e83c59e0.1474634475.git.hns@goldelico.com>
+ <1409ed9845f17445a8a67bd6fb16c902c3e4f69c.1474634475.git.hns@goldelico.com>
+ <20160923224726.GA4639@rob-hp-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="6a6tkmwscmjsvzhb"
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <7f69bbab0e932cb00bd28668f56c8a30e83c59e0.1474634475.git.hns@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Mark Rutland <mark.rutland@arm.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Michael Welling <mwelling@ieee.org>, Mika =?iso-8859-1?Q?Penttil=E4?= <mika.penttila@nextfour.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Igor Grinberg <grinberg@compulab.co.il>, Sebastian Reichel <sre@kernel.org>, "Andrew F. Davis" <afd@ti.com>, linux-input@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, letux-kernel@openphoenux.org, linux-iio@vger.kernel.org
+In-Reply-To: <20160923224726.GA4639@rob-hp-laptop>
+Sender: linux-input-owner@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Mark Rutland <mark.rutland@arm.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Michael Welling <mwelling@ieee.org>, Mika =?iso-8859-1?Q?Penttil=E4?= <mika.penttila@nextfour.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Igor Grinberg <grinberg@compulab.co.il>, "Andrew F. Davis" <afd@ti.com>, linux-input@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, letux-kernel@openphoenux.org, linux-iio@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Sep 23, 2016 at 02:41:14PM +0200, H. Nikolaus Schaller wrote:
-> commit b98abe52fa8e ("Input: add common DT binding for touchscreens")
-> introduced common DT bindings for touchscreens [1] and a helper function to
-> parse the DT.
-> 
-> commit ed7c9870c9bc ("Input: of_touchscreen - add support for inverted / swapped axes")
-> added another helper for parsing axis inversion and swapping
-> and applying them to x and y coordinates.
-> 
-> Both helpers have been integrated to accommodate any orientation of the
-> touch panel in relation to the LCD.
-> 
-> A new feature is to introduce scaling the min/max ADC values to the screen
-> size.
-> 
-> This makes it possible to pre-calibrate the touch so that is (almost)
-> exactly matches the LCD pixel coordinates it is glued onto. This allows to
-> well enough operate the touch before a user space calibration step can
-> improve the precision.
 
-This appears to be the prior patch's commit msg, or you don't need ADC 
-values in DT for this one?
+--6a6tkmwscmjsvzhb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> 
-> [1]: Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
-> 
-> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
-> ---
->  .../devicetree/bindings/input/ads7846.txt          |  9 +++-
->  drivers/input/touchscreen/ads7846.c                | 60 ++++++++++++++++++----
->  2 files changed, 57 insertions(+), 12 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/input/ads7846.txt b/Documentation/devicetree/bindings/input/ads7846.txt
-> index 9fc47b0..29f91ed 100644
-> --- a/Documentation/devicetree/bindings/input/ads7846.txt
-> +++ b/Documentation/devicetree/bindings/input/ads7846.txt
-> @@ -26,6 +26,12 @@ Additional required properties:
->  
->  Optional properties:
->  
-> +You can optionally specify any of the touchscreen parameters described in
-> +
-> +	Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
-> +
-> +This allows to scale, invert or swap coordinates and define the fuzz factors.
-> +
->  	ti,vref-delay-usecs		vref supply delay in usecs, 0 for
->  					external vref (u16).
->  	ti,vref-mv			The VREF voltage, in millivolts (u16).
-> @@ -33,7 +39,7 @@ Optional properties:
->  					(ADS7846).
->  	ti,keep-vref-on			set to keep vref on for differential
->  					measurements as well
-> -	ti,swap-xy			swap x and y axis
-> +	ti,swap-xy			deprecated name for touchscreen-swapped-x-y
->  	ti,settle-delay-usec		Settling time of the analog signals;
->  					a function of Vcc and the capacitance
->  					on the X/Y drivers.  If set to non-zero,
-> @@ -82,6 +88,7 @@ Example for a TSC2046 chip connected to an McSPI controller of an OMAP SoC::
->  			pendown-gpio = <&gpio1 8 0>;
->  			vcc-supply = <&reg_vcc3>;
->  
-> +			touchscreen-swapped-x-y;
->  			ti,x-min = /bits/ 16 <0>;
->  			ti,x-max = /bits/ 16 <8000>;
->  			ti,y-min = /bits/ 16 <0>;
-> diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touchscreen/ads7846.c
-> index 1ce3ecb..400e421 100644
-> --- a/drivers/input/touchscreen/ads7846.c
-> +++ b/drivers/input/touchscreen/ads7846.c
-> @@ -34,6 +34,7 @@
->  #include <linux/spi/ads7846.h>
->  #include <linux/regulator/consumer.h>
->  #include <linux/module.h>
-> +#include <linux/input/touchscreen.h>
->  #include <asm/irq.h>
->  
->  /*
-> @@ -109,8 +110,13 @@ struct ads7846 {
->  	u16			vref_delay_usecs;
->  	u16			x_plate_ohms;
->  	u16			pressure_max;
-> +	u16			x_min;
-> +	u16			x_max;
-> +	u16			y_min;
-> +	u16			y_max;
-> +
-> +	struct touchscreen_properties prop;
->  
-> -	bool			swap_xy;
->  	bool			use_internal;
->  
->  	struct ads7846_packet	*packet;
-> @@ -825,22 +831,36 @@ static void ads7846_report_state(struct ads7846 *ts)
->  	 */
->  	if (Rt) {
->  		struct input_dev *input = ts->input;
-> +		int sx, sy;
-> +
-> +		dev_dbg(&ts->spi->dev,
-> +			"Raw point(%4d,%4d), pressure (%4u)\n",
-> +				x, y, Rt);
-> +
-> +		/* scale ADC values to desired output range */
-> +		sx = (ts->prop.max_x * (x - ts->x_min))
-> +			/ (ts->x_max - ts->x_min);
-> +		sy = (ts->prop.max_y * (y - ts->y_min))
-> +			/ (ts->y_max - ts->y_min);
->  
-> -		if (ts->swap_xy)
-> -			swap(x, y);
-> +		dev_dbg(&ts->spi->dev,
-> +			"Scaled point(%4d,%4d), pressure (%4u)\n",
-> +				sx, sy, Rt);
->  
-> +		/* report event */
->  		if (!ts->pendown) {
->  			input_report_key(input, BTN_TOUCH, 1);
->  			ts->pendown = true;
->  			dev_vdbg(&ts->spi->dev, "DOWN\n");
->  		}
->  
-> -		input_report_abs(input, ABS_X, x);
-> -		input_report_abs(input, ABS_Y, y);
-> +		touchscreen_report_pos(ts->input, &ts->prop,
-> +				       (unsigned int) sx, (unsigned int) sy,
-> +				       false);
->  		input_report_abs(input, ABS_PRESSURE, ts->pressure_max - Rt);
->  
->  		input_sync(input);
-> -		dev_vdbg(&ts->spi->dev, "%4d/%4d/%4d\n", x, y, Rt);
-> +		dev_vdbg(&ts->spi->dev, "%4d/%4d/%4d\n", sx, sy, Rt);
->  	}
->  }
->  
-> @@ -1212,6 +1232,8 @@ static const struct ads7846_platform_data *ads7846_probe_dt(struct device *dev)
->  	pdata->keep_vref_on = of_property_read_bool(node, "ti,keep-vref-on");
->  
->  	pdata->swap_xy = of_property_read_bool(node, "ti,swap-xy");
-> +	if (pdata->swap_xy)
-> +		dev_notice(dev, "please update device tree to use touchscreen-swapped-x-y");
->  
->  	of_property_read_u16(node, "ti,settle-delay-usec",
->  			     &pdata->settle_delay_usecs);
-> @@ -1315,7 +1337,6 @@ static int ads7846_probe(struct spi_device *spi)
->  	ts->pressure_max = pdata->pressure_max ? : ~0;
->  
->  	ts->vref_mv = pdata->vref_mv;
-> -	ts->swap_xy = pdata->swap_xy;
->  
->  	if (pdata->filter != NULL) {
->  		if (pdata->filter_init != NULL) {
-> @@ -1355,18 +1376,35 @@ static int ads7846_probe(struct spi_device *spi)
->  	input_dev->dev.parent = &spi->dev;
->  
->  	input_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_ABS);
-> +	input_dev->absbit[0] = BIT_MASK(ABS_X) | BIT_MASK(ABS_Y) |
-> +				BIT_MASK(ABS_PRESSURE);
->  	input_dev->keybit[BIT_WORD(BTN_TOUCH)] = BIT_MASK(BTN_TOUCH);
-> +
-> +	ts->x_min = pdata->x_min ? : 0;
-> +	ts->x_max = pdata->x_max ? : MAX_12BIT;
-> +	ts->y_min = pdata->y_min ? : 0;
-> +	ts->y_max = pdata->y_max ? : MAX_12BIT;
-> +
->  	input_set_abs_params(input_dev, ABS_X,
-> -			pdata->x_min ? : 0,
-> -			pdata->x_max ? : MAX_12BIT,
-> +			ts->x_min,
-> +			ts->x_max,
->  			0, 0);
->  	input_set_abs_params(input_dev, ABS_Y,
-> -			pdata->y_min ? : 0,
-> -			pdata->y_max ? : MAX_12BIT,
-> +			ts->y_min,
-> +			ts->y_max,
->  			0, 0);
->  	input_set_abs_params(input_dev, ABS_PRESSURE,
->  			pdata->pressure_min, pdata->pressure_max, 0, 0);
->  
-> +	if (spi->dev.of_node) {
-> +		input_abs_set_min(input_dev, ABS_X, 0);
-> +		input_abs_set_min(input_dev, ABS_Y, 0);
-> +
-> +		touchscreen_parse_properties(ts->input, false, &ts->prop);
-> +	}
-> +
-> +	ts->prop.swap_x_y |= pdata->swap_xy;
-> +
->  	ads7846_setup_spi_msg(ts, pdata);
->  
->  	ts->reg = regulator_get(&spi->dev, "vcc");
-> -- 
-> 2.7.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe devicetree" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Fri, Sep 23, 2016 at 05:47:26PM -0500, Rob Herring wrote:
+> On Fri, Sep 23, 2016 at 02:41:09PM +0200, H. Nikolaus Schaller wrote:
+> > commit b98abe52fa8e ("Input: add common DT binding for touchscreens")
+> > introduced common DT bindings for touchscreens [1] and a helper functio=
+n to
+> > parse the DT.
+> >=20
+> > commit ed7c9870c9bc ("Input: of_touchscreen - add support for inverted =
+/ swapped axes")
+> > added another helper for parsing axis inversion and swapping
+> > and applying them to x and y coordinates.
+> >=20
+> > Both helpers have been integrated to accommodate any orientation of the
+> > touch panel in relation to the LCD.
+> >=20
+> > A new feature is to introduce scaling the min/max ADC values to the scr=
+een
+> > size.
+> >=20
+> > This makes it possible to pre-calibrate the touch so that is (almost)
+> > exactly matches the LCD pixel coordinates it is glued onto. This allows=
+ to
+> > well enough operate the touch before a user space calibration step can
+> > improve the precision.
+> >=20
+> > Finally, calculate_pressure has been renamed to calculate_resistance
+> > because that is what it is doing.
+>=20
+> Seems like you are breaking compatibility with old DTs. I can't tell for=
+=20
+> sure though.
+>=20
+> >=20
+> > [1]: Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
+> >=20
+> > Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+> > ---
+> >  .../bindings/input/touchscreen/tsc2007.txt         |  20 ++--
+> >  drivers/input/touchscreen/tsc2007.c                | 126 +++++++++++++=
+++++----
+> >  include/linux/i2c/tsc2007.h                        |   8 ++
+> >  3 files changed, 123 insertions(+), 31 deletions(-)
+> >=20
+> > diff --git a/Documentation/devicetree/bindings/input/touchscreen/tsc200=
+7.txt b/Documentation/devicetree/bindings/input/touchscreen/tsc2007.txt
+> > index ec365e1..6e9fd55 100644
+> > --- a/Documentation/devicetree/bindings/input/touchscreen/tsc2007.txt
+> > +++ b/Documentation/devicetree/bindings/input/touchscreen/tsc2007.txt
+> > @@ -6,6 +6,7 @@ Required properties:
+> >  - ti,x-plate-ohms: X-plate resistance in ohms.
+> > =20
+> >  Optional properties:
+> > +- generic touch screen properties: see touchscreen binding [2].
+> >  - gpios: the interrupt gpio the chip is connected to (trough the penir=
+q pin).
+> >    The penirq pin goes to low when the panel is touched.
+> >    (see GPIO binding[1] for more details).
+> > @@ -13,17 +14,20 @@ Optional properties:
+> >    (see interrupt binding[0]).
+> >  - interrupts: (gpio) interrupt to which the chip is connected
+> >    (see interrupt binding[0]).
+> > -- ti,max-rt: maximum pressure.
+> > -- ti,fuzzx: specifies the absolute input fuzz x value.
+> > -  If set, it will permit noise in the data up to +- the value given to=
+ the fuzz
+> > -  parameter, that is used to filter noise from the event stream.
+> > -- ti,fuzzy: specifies the absolute input fuzz y value.
+> > -- ti,fuzzz: specifies the absolute input fuzz z value.
+> > +- ti,max-rt: maximum pressure resistance above which samples are ignor=
+ed
+> > +  (default: 4095).
+> > +- ti,report-resistance: report resistance (no pressure =3D max_rt) ins=
+tead
+> > +  of pressure (no pressure =3D 0).
+> > +- ti,min-x: minimum value reported by X axis ADC (default 0).
+> > +- ti,max-x: maximum value reported by X axis ADC (default 4095).
+> > +- ti,min-y: minimum value reported by Y axis ADC (default 0).
+> > +- ti,max-y: maximum value reported by Y axis ADC (default 4095).
+>=20
+> Seems like these could be common too. They make more sense than giving x=
+=20
+> and y sizes in pixel units which really should come from the panel.
+
+The generic touchscreen properties are described "(in pixels)" in
+the DT, but they are used in the same way.
+
+So ti,max-[xy] is basically the same as touchscreen-size-[xy],
+except, that the generic bindings don't support min-[xy] !=3D 0.
+
+So maybe change the generic bindings like this:
+
+touchscreen-min-x: minimum value reported by X axis ADC (default 0)
+touchscreen-max-x: maximum value reported by Y axis ADC
+touchscreen-min-y: minimum value reported by Y axis ADC (default 0)
+touchscreen-max-y: maximum value reported by Y axis ADC
+touchscreen-size-x: deprecated alias for touchscreen-max-x
+touchscreen-size-y: deprecated alias for touchscreen-max-y
+
+-- Sebastian
+
+--6a6tkmwscmjsvzhb
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAABCgAGBQJX5cliAAoJENju1/PIO/qaqrMP/04uFRW5Ph4ytHVxMn1cOw1m
+i2NgDvbFwDZmrRFWU67UYeHc4xMwqGrm0icvkiXg+fNohskwFHDgocR0Ii2QXw6X
+F35f1Gk2JXlp9HBDBfAWJzj91G/cifCr0g+sn9LXl+215L/24N0N71rEoY2DxW0D
+fa1d73mvmYY2rMhKTkwaK5O+hIRrzWUwiSlLiBQm43A4p9NEQasIJMcqKnUVQqNm
+KEJinVyRFKZgObIpMI2mpE7MXIA5jO9Tjyb5KSx7RWmue6Wb22UibiBsfauA6WgX
+kaW4OQpPcezP/jueJOZxMyoymJAZwtwoJidJUK1SUMzIqtdwkLAJMA0p6Mh0ZSBC
+RDQO+TKSITQjlF6m1MVMl0x9ydir6WpahEKoZzfNwvjsUwVqkyXwANDiaJ6TxxJH
+2pG9MpChNuUZjVhQmMeFY904v3Pn5nGaJlrbQDqDtAjcqM8+3HIfvepU7xc3tn6O
+7q3jdRCpqU4nLeUIi0XA4c507HjFtjMHv+dOx0Q1000g0zVAuzA78oNJiDf1UlNY
+k6mMnIfgsEVPfO/QRHEQt+g76shkpnToWLj7deEVIELeV71rKw96/ZQx/XqZQpFM
+WJIPpmVxE7KvMMkA38t/g3laGefUgIL2YXG/JJbNnK3sBpcp+rISdYzEaAUThKXQ
+C4WkIv/25AtEmEtVKRiM
+=W2rx
+-----END PGP SIGNATURE-----
+
+--6a6tkmwscmjsvzhb--
