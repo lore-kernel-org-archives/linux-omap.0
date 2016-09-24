@@ -1,236 +1,290 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH v3 1/8] drivers:input:tsc2007: add new common binding names, pre-calibration, flipping and rotation
-Date: Sat, 24 Sep 2016 07:55:27 +0200
-Message-ID: <E8C59C6C-23D4-4417-8A9E-3E9AE5D2D100@goldelico.com>
-References: <cover.1474634475.git.hns@goldelico.com> <1409ed9845f17445a8a67bd6fb16c902c3e4f69c.1474634475.git.hns@goldelico.com> <20160923224726.GA4639@rob-hp-laptop> <20160924003133.htaaiphjrm7vy52t@earth>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: multipart/signed; boundary="Apple-Mail=_E760FB48-DF2C-4591-A7F0-A5F9B8D28409"; protocol="application/pgp-signature"; micalg=pgp-sha256
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160924003133.htaaiphjrm7vy52t@earth>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Rob Herring <robh@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Michael Welling <mwelling@ieee.org>, =?utf-8?Q?Mika_Penttil=C3=A4?= <mika.penttila@nextfour.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Igor Grinberg <grinberg@compulab.co.il>, "Andrew F. Davis" <afd@ti.com>, linux-input@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, letux-kernel@openphoenux.org, linux-iio@vger.kernel.org
+From: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v3 3/8] drivers:input:tsc2007: add iio interface to read
+ external ADC input, temperature and raw conversion values
+Date: Sat, 24 Sep 2016 17:07:11 +0100
+Message-ID: <af39fdf1-b6e4-1ab7-9b41-ddb25bfab829@kernel.org>
+References: <cover.1474634475.git.hns@goldelico.com>
+ <909d06d4f54359c7ac0dcf36a49cbd3ff7e8ebf2.1474634475.git.hns@goldelico.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <909d06d4f54359c7ac0dcf36a49cbd3ff7e8ebf2.1474634475.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, =?UTF-8?Q?Mika_Penttil=c3=a4?= <mika.penttila-MRsr7dthA9VWk0Htik3J/w@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>
+Cc: linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On 23/09/16 13:41, H. Nikolaus Schaller wrote:
+> The tsc2007 chip not only has a resistive touch screen controller but
+> also an external AUX adc imput which can be used for an ambient
+> light sensor, battery voltage monitoring or any general purpose.
+> 
+> Additionally it can measure the chip temperature.
+> 
+> This extension provides an iio interface for these adc channels
+> in addition to the raw x, y, z values and the estimated touch
+> screen resistance. This can be used for debugging or special
+> applications.
+I'm unconvinced that exposing the touch related channels is terribly
+useful.  Fair enough on the aux channel and temperature though.
 
---Apple-Mail=_E760FB48-DF2C-4591-A7F0-A5F9B8D28409
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain;
-	charset=us-ascii
+Otherwise a few minor bits and bobs.
 
-Hi,
+Jonathan
+> 
+> Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+> ---
+>  drivers/input/touchscreen/Kconfig   |   1 +
+>  drivers/input/touchscreen/tsc2007.c | 137 +++++++++++++++++++++++++++++++++++-
+>  2 files changed, 136 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/input/touchscreen/Kconfig b/drivers/input/touchscreen/Kconfig
+> index 2fb1f43..84c28e8 100644
+> --- a/drivers/input/touchscreen/Kconfig
+> +++ b/drivers/input/touchscreen/Kconfig
+> @@ -1019,6 +1019,7 @@ config TOUCHSCREEN_TSC2005
+>  config TOUCHSCREEN_TSC2007
+>  	tristate "TSC2007 based touchscreens"
+>  	depends on I2C
+> +	select IIO
+This is pulling quite a bit of core IIO code in for a feature a lot
+of users of this chip won't care about...
+>  	help
+>  	  Say Y here if you have a TSC2007 based touchscreen.
+>  
+> diff --git a/drivers/input/touchscreen/tsc2007.c b/drivers/input/touchscreen/tsc2007.c
+> index e9d5086..559cbc6 100644
+> --- a/drivers/input/touchscreen/tsc2007.c
+> +++ b/drivers/input/touchscreen/tsc2007.c
+> @@ -30,6 +30,9 @@
+>  #include <linux/of.h>
+>  #include <linux/of_gpio.h>
+>  #include <linux/input/touchscreen.h>
+> +#include <linux/iio/iio.h>
+> +#include <linux/iio/machine.h>
+Why machine.h? (or driver.h for that reason).
 
-> Am 24.09.2016 um 02:31 schrieb Sebastian Reichel <sre@kernel.org>:
->=20
-> On Fri, Sep 23, 2016 at 05:47:26PM -0500, Rob Herring wrote:
->> On Fri, Sep 23, 2016 at 02:41:09PM +0200, H. Nikolaus Schaller wrote:
->>> commit b98abe52fa8e ("Input: add common DT binding for =
-touchscreens")
->>> introduced common DT bindings for touchscreens [1] and a helper =
-function to
->>> parse the DT.
->>>=20
->>> commit ed7c9870c9bc ("Input: of_touchscreen - add support for =
-inverted / swapped axes")
->>> added another helper for parsing axis inversion and swapping
->>> and applying them to x and y coordinates.
->>>=20
->>> Both helpers have been integrated to accommodate any orientation of =
-the
->>> touch panel in relation to the LCD.
->>>=20
->>> A new feature is to introduce scaling the min/max ADC values to the =
-screen
->>> size.
->>>=20
->>> This makes it possible to pre-calibrate the touch so that is =
-(almost)
->>> exactly matches the LCD pixel coordinates it is glued onto. This =
-allows to
->>> well enough operate the touch before a user space calibration step =
-can
->>> improve the precision.
->>>=20
->>> Finally, calculate_pressure has been renamed to calculate_resistance
->>> because that is what it is doing.
->>=20
->> Seems like you are breaking compatibility with old DTs. I can't tell =
-for
->> sure though.
->>=20
->>>=20
->>> [1]: =
-Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
->>>=20
->>> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
->>> ---
->>> .../bindings/input/touchscreen/tsc2007.txt         |  20 ++--
->>> drivers/input/touchscreen/tsc2007.c                | 126 =
-+++++++++++++++++----
->>> include/linux/i2c/tsc2007.h                        |   8 ++
->>> 3 files changed, 123 insertions(+), 31 deletions(-)
->>>=20
->>> diff --git =
-a/Documentation/devicetree/bindings/input/touchscreen/tsc2007.txt =
-b/Documentation/devicetree/bindings/input/touchscreen/tsc2007.txt
->>> index ec365e1..6e9fd55 100644
->>> --- =
-a/Documentation/devicetree/bindings/input/touchscreen/tsc2007.txt
->>> +++ =
-b/Documentation/devicetree/bindings/input/touchscreen/tsc2007.txt
->>> @@ -6,6 +6,7 @@ Required properties:
->>> - ti,x-plate-ohms: X-plate resistance in ohms.
->>>=20
->>> Optional properties:
->>> +- generic touch screen properties: see touchscreen binding [2].
->>> - gpios: the interrupt gpio the chip is connected to (trough the =
-penirq pin).
->>>   The penirq pin goes to low when the panel is touched.
->>>   (see GPIO binding[1] for more details).
->>> @@ -13,17 +14,20 @@ Optional properties:
->>>   (see interrupt binding[0]).
->>> - interrupts: (gpio) interrupt to which the chip is connected
->>>   (see interrupt binding[0]).
->>> -- ti,max-rt: maximum pressure.
->>> -- ti,fuzzx: specifies the absolute input fuzz x value.
->>> -  If set, it will permit noise in the data up to +- the value given =
-to the fuzz
->>> -  parameter, that is used to filter noise from the event stream.
->>> -- ti,fuzzy: specifies the absolute input fuzz y value.
->>> -- ti,fuzzz: specifies the absolute input fuzz z value.
->>> +- ti,max-rt: maximum pressure resistance above which samples are =
-ignored
->>> +  (default: 4095).
->>> +- ti,report-resistance: report resistance (no pressure =3D max_rt) =
-instead
->>> +  of pressure (no pressure =3D 0).
->>> +- ti,min-x: minimum value reported by X axis ADC (default 0).
->>> +- ti,max-x: maximum value reported by X axis ADC (default 4095).
->>> +- ti,min-y: minimum value reported by Y axis ADC (default 0).
->>> +- ti,max-y: maximum value reported by Y axis ADC (default 4095).
->>=20
->> Seems like these could be common too. They make more sense than =
-giving x
->> and y sizes in pixel units which really should come from the panel.
->=20
-> The generic touchscreen properties are described "(in pixels)" in
-> the DT, but they are used in the same way.
->=20
-> So ti,max-[xy] is basically the same as touchscreen-size-[xy],
+> +#include <linux/iio/driver.h>
+>  
+>  #define TSC2007_MEASURE_TEMP0		(0x0 << 4)
+>  #define TSC2007_MEASURE_AUX		(0x2 << 4)
+> @@ -61,6 +64,16 @@
+>  #define READ_X		(ADC_ON_12BIT | TSC2007_MEASURE_X)
+>  #define PWRDOWN		(TSC2007_12BIT | TSC2007_POWER_OFF_IRQ_EN)
+>  
+> +#define TSC2007_CHAN_IIO(_chan, _name, _type, _chan_info) \
+> +{ \
+> +	.datasheet_name = _name, \
+> +	.type = _type, \
+> +	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |	\
+> +			BIT(_chan_info), \
+> +	.indexed = 1, \
+> +	.channel = _chan, \
+> +}
+> +
+>  struct ts_event {
+>  	u16	x;
+>  	u16	y;
+> @@ -69,9 +82,11 @@ struct ts_event {
+>  
+>  struct tsc2007 {
+>  	struct input_dev	*input;
+> +	struct iio_dev		*indio;
+>  	char			phys[32];
+>  
+>  	struct i2c_client	*client;
+> +	struct mutex		mlock;
+>  
+>  	u16			model;
+>  	u16			x_plate_ohms;
+> @@ -192,7 +207,10 @@ static irqreturn_t tsc2007_soft_irq(int irq, void *handle)
+>  	while (!ts->stopped && tsc2007_is_pen_down(ts)) {
+>  
+>  		/* pen is down, continue with the measurement */
+> +
+> +		mutex_lock(&ts->mlock);
+>  		tsc2007_read_values(ts, &tc);
+> +		mutex_unlock(&ts->mlock);
+>  
+>  		rt = tsc2007_calculate_resistance(ts, &tc);
+>  
+> @@ -319,6 +337,86 @@ static void tsc2007_close(struct input_dev *input_dev)
+>  	tsc2007_stop(ts);
+>  }
+>  
+> +static const struct iio_chan_spec tsc2007_iio_channel[] = {
+> +	TSC2007_CHAN_IIO(0, "x", IIO_VOLTAGE, IIO_CHAN_INFO_RAW),
+> +	TSC2007_CHAN_IIO(1, "y", IIO_VOLTAGE, IIO_CHAN_INFO_RAW),
+> +	TSC2007_CHAN_IIO(2, "z1", IIO_VOLTAGE, IIO_CHAN_INFO_RAW),
+> +	TSC2007_CHAN_IIO(3, "z2", IIO_VOLTAGE, IIO_CHAN_INFO_RAW),
+> +	TSC2007_CHAN_IIO(4, "adc", IIO_VOLTAGE, IIO_CHAN_INFO_RAW),
+> +	TSC2007_CHAN_IIO(5, "rt", IIO_VOLTAGE, IIO_CHAN_INFO_RAW), /* Ohms? */
+This one needs some explanation.  What is it measuring?
 
-No it is not the same and should be kept separate.
+> +	TSC2007_CHAN_IIO(6, "pen", IIO_PRESSURE, IIO_CHAN_INFO_RAW),
+At the moment this is defined as barometric pressure.  I suppose there
+is no reason it can't extend to touch pressure though, even if it's a boolean
+like this...
 
-> except, that the generic bindings don't support min-[xy] !=3D 0.
+> +	TSC2007_CHAN_IIO(7, "temp0", IIO_TEMP, IIO_CHAN_INFO_RAW),
+> +	TSC2007_CHAN_IIO(8, "temp1", IIO_TEMP, IIO_CHAN_INFO_RAW),
+I would be tempted to only expose those channels that have a meaning
+outside of touch screen usage (e.g. adc, temp0 and temp1).  
+> +};
+> +
+> +static int tsc2007_read_raw(struct iio_dev *indio_dev,
+> +	struct iio_chan_spec const *chan, int *val, int *val2, long mask)
+> +{
+> +	struct  tsc2007 *tsc = iio_priv(indio_dev);
+> +	int adc_chan = chan->channel;
+> +	int ret = 0;
+> +
+> +	if (adc_chan >= ARRAY_SIZE(tsc2007_iio_channel))
+> +		return -EINVAL;
+> +
+> +	if (mask != IIO_CHAN_INFO_RAW)
+> +		return -EINVAL;
+> +
+> +	mutex_lock(&tsc->mlock);
+> +
+> +	switch (chan->channel) {
+> +	case 0:
+> +		*val = tsc2007_xfer(tsc, READ_X);
+> +		break;
+> +	case 1:
+> +		*val = tsc2007_xfer(tsc, READ_Y);
+> +		break;
+> +	case 2:
+> +		*val = tsc2007_xfer(tsc, READ_Z1);
+> +		break;
+> +	case 3:
+> +		*val = tsc2007_xfer(tsc, READ_Z2);
+> +		break;
+> +	case 4:
+> +		*val = tsc2007_xfer(tsc, (ADC_ON_12BIT | TSC2007_MEASURE_AUX));
+> +		break;
+> +	case 5: {
+> +		struct ts_event tc;
+> +
+> +		tc.x = tsc2007_xfer(tsc, READ_X);
+> +		tc.z1 = tsc2007_xfer(tsc, READ_Z1);
+> +		tc.z2 = tsc2007_xfer(tsc, READ_Z2);
+> +		*val = tsc2007_calculate_resistance(tsc, &tc);
+> +		break;
+> +	}
+> +	case 6:
+> +		*val = tsc2007_is_pen_down(tsc);
+> +		break;
+> +	case 7:
+> +		*val = tsc2007_xfer(tsc,
+> +				    (ADC_ON_12BIT | TSC2007_MEASURE_TEMP0));
+> +		break;
+> +	case 8:
+> +		*val = tsc2007_xfer(tsc,
+> +				    (ADC_ON_12BIT | TSC2007_MEASURE_TEMP1));
+> +		break;
+> +	}
+> +
+> +	/* Prepare for next touch reading - power down ADC, enable PENIRQ */
+> +	tsc2007_xfer(tsc, PWRDOWN);
+> +
+> +	mutex_unlock(&tsc->mlock);
+> +
+> +	ret = IIO_VAL_INT;
+> +
+> +	return ret;
+> +}
+> +
+> +static const struct iio_info tsc2007_iio_info = {
+> +	.read_raw = tsc2007_read_raw,
+> +	.driver_module = THIS_MODULE,
+> +};
+> +
+>  #ifdef CONFIG_OF
+>  static int tsc2007_get_pendown_state_gpio(struct device *dev)
+>  {
+> @@ -453,15 +551,20 @@ static int tsc2007_probe(struct i2c_client *client,
+>  	const struct tsc2007_platform_data *pdata = dev_get_platdata(&client->dev);
+>  	struct tsc2007 *ts;
+>  	struct input_dev *input_dev;
+> +	struct iio_dev *indio_dev;
+>  	int err;
+>  
+>  	if (!i2c_check_functionality(client->adapter,
+>  				     I2C_FUNC_SMBUS_READ_WORD_DATA))
+>  		return -EIO;
+>  
+> -	ts = devm_kzalloc(&client->dev, sizeof(struct tsc2007), GFP_KERNEL);
+> -	if (!ts)
+> +	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*ts));
+> +	if (!indio_dev) {
+> +		dev_err(&client->dev, "iio_device_alloc failed\n");
+>  		return -ENOMEM;
+> +	}
+> +
+> +	ts = iio_priv(indio_dev);
+>  
+>  	input_dev = devm_input_allocate_device(&client->dev);
+>  	if (!input_dev)
+> @@ -469,10 +572,26 @@ static int tsc2007_probe(struct i2c_client *client,
+>  
+>  	i2c_set_clientdata(client, ts);
+>  
+> +	indio_dev->name = "tsc2007";
+> +	indio_dev->dev.parent = &client->dev;
+> +	indio_dev->info = &tsc2007_iio_info;
+> +	indio_dev->modes = INDIO_DIRECT_MODE;
+> +	indio_dev->channels = tsc2007_iio_channel;
+> +	indio_dev->num_channels = ARRAY_SIZE(tsc2007_iio_channel);
+> +
+> +	err = iio_device_register(indio_dev);
+> +	if (err < 0) {
+> +		dev_err(&client->dev, "iio_device_register() failed: %d\n",
+> +			err);
+> +		return err;
+> +	}
+> +
+>  	ts->client = client;
+>  	ts->irq = client->irq;
+>  	ts->input = input_dev;
+> +	ts->indio = indio_dev;
+>  	init_waitqueue_head(&ts->wait);
+> +	mutex_init(&ts->mlock);
+>  
+>  	snprintf(ts->phys, sizeof(ts->phys),
+>  		 "%s/input0", dev_name(&client->dev));
+> @@ -548,6 +667,19 @@ static int tsc2007_probe(struct i2c_client *client,
+>  	return 0;
+>  }
+>  
+> +static int tsc2007_remove(struct i2c_client *client)
+> +{
+> +	struct tsc2007 *ts = i2c_get_clientdata(client);
+> +	struct input_dev *input_dev = ts->input;
+> +	struct iio_dev *indio_dev = ts->indio;
+> +
+> +	input_unregister_device(input_dev);
+> +
+> +	iio_device_unregister(indio_dev);
+> +
+> +	return 0;
+> +}
+> +
+>  static const struct i2c_device_id tsc2007_idtable[] = {
+>  	{ "tsc2007", 0 },
+>  	{ }
+> @@ -570,6 +702,7 @@ static struct i2c_driver tsc2007_driver = {
+>  	},
+>  	.id_table	= tsc2007_idtable,
+>  	.probe		= tsc2007_probe,
+> +	.remove		= tsc2007_remove,
+>  };
+>  
+>  module_i2c_driver(tsc2007_driver);
+> 
 
-What would be the purpose of this? Every user-space I know
-about (X11, Replicant) expects coordinates in some range
-0..max so setting min in device tree makes no sense to me.
-
->=20
-> So maybe change the generic bindings like this:
->=20
-> touchscreen-min-x: minimum value reported by X axis ADC (default 0)
-> touchscreen-max-x: maximum value reported by Y axis ADC
-> touchscreen-min-y: minimum value reported by Y axis ADC (default 0)
-> touchscreen-max-y: maximum value reported by Y axis ADC
-> touchscreen-size-x: deprecated alias for touchscreen-max-x
-> touchscreen-size-y: deprecated alias for touchscreen-max-y
->=20
-
-Initially I had thought about this but it does not solve the problems
-with touch pre-calibration. Since it mixes raw coordinates with
-system coordinates.
-
-To achieve the goal of having a roughly precalibrated touch which
-should provide (0,0) at the lower left corner and =
-(touchscreen-size-x,touchscreen-size-y)
-in pixel coordinates of the panel. Hence it roughly works without
-a calibration matrix in user space (e.g. xorg.conf or Replicant).
-
-Why do we need pre-calibration? Because some systems might need
-touch interaction before they can offer (force) the user into
-a touch calibration step. We use these drivers and approach in
-our production kernels for GTA04, OpenPandora and Pyra for a while
-and nobody was even missing a user-space calibration tool any more.
-
-The underlaying problem is that you can have the same controller chip
-in different board designs and there are different touch panel types.
-Each one has certain physical properties but they can differ.
-But you certainly want touchscreen-size-x/y to be a constant.
-
-Now if we make touchscreen-max-x/y the same as touchscreen-size-x/y
-and change the panel, we have to adjust user space transformation
-each time we change the panel. This does not seem to be right
-and can be done better by keeping them separately.
-
-This is what this approach does: the roughly correct scaling of
-raw values to pixel values.
-
-ti,min-x   ->   0
-...
-x          ->   some value between 0 and touchscreen-size-x
-                calculated by
-			touchscreen-size-x * (x - min-x) / (max-x - =
-min-x)
-...
-ti,max-x   ->   touchscreen-size-x
-
-Hence the ti,min/max values describe the range of expected input
-values from the ADC and the touchscreen-size-x describes the touch
-in LCD pixels passed as input events.
-
-Example:
-
-ti,min-x =3D 64
-ti,max-x =3D 4016
-touchscreen-size-x =3D 480
-
-If we change the panel type which presents a slightly different ADC =
-range:
-
-ti,min-x =3D 100
-ti,max-x =3D 3900
-touchscreen-size-x =3D 480
-
-and we still get a coordinate range (0 .. 480).
-
-Note that this feature can be effectively disabled if ti,min-x=3D0 and
-ti,max-x=3D4095 and touchscreen-size-x=3D4095, i.e. reports the full
-range of ADC values because then it multiplies by 1.
-
-Our proposed driver does use these values if they are missing from DT
-and therefore it should not break old DT files which expect raw values
-to be reported.
-
-I hope this clarifies what we need to achieve and you can
-agree.
-
-BR and thanks,
-Nikolaus
-
---Apple-Mail=_E760FB48-DF2C-4591-A7F0-A5F9B8D28409
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename=signature.asc
-Content-Type: application/pgp-signature;
-	name=signature.asc
-Content-Description: Message signed with OpenPGP using GPGMail
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBCAAGBQJX5hVQAAoJEIl79TGLgAm6cNcP/RJCK2G5XiL7xOr9LxRmlsIu
-aeHPCKiA4fkTYSju2Sm343Hrv4Noh/PmI6n5WU78LadKHUs+uyeftjYTEZlfNqMF
-zH/wnt1UEnou1CXQwMc+n3skonE8zivxve9i6JRYSHvRnsOh3XYRpLH96AhdnuSG
-QzQRejbVBPmuY+OjB1MoaFhrbqlcJiALjcKhlXDCR4sbIbR3yvfI1gHdlvWUGVp6
-bsajX+9RhMKB1WlaPL+3LXtIN3c5Wesl6ouSWqZKP65L+SqJHLH5zs0vs81CIAcB
-B70nItq7zWlU91VvrhpWebpeUKjAQH3PZX8AA+I1grNbUttazG3TJW54iLoum7a6
-1wBoAwOTWD7WXXJMj46wVOy8M/mu9UhKZF1H6pqL6FPXd2byE86mfE2njLCSLSqd
-y9ux4fvYW5Oeq8cG/hA21G09cpWsMOUJ7kemkItLeyawEB/5uIQABblufdjid6GB
-NZ9tqGH+YCrgcvAFbczMy2WEemAErZB6/PeiPNxM+ChNUsAk/CwChnVVJwluTdVk
-Z+l/+X3dmtPRGlsxevkgO/RuRZw965ySATIPHVbwVpN2PL+RoH6ANNLAfuqdTtNi
-PO3jz2zcxYpJnxfppLi2j2Jb9GqyNvT7d8T9kVWiyDaL32DkeDPuRJG56bTdmi47
-fAkpW/vkkI5gGaSBtMLX
-=9Iws
------END PGP SIGNATURE-----
-
---Apple-Mail=_E760FB48-DF2C-4591-A7F0-A5F9B8D28409--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
