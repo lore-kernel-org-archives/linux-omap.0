@@ -1,59 +1,99 @@
-From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: Re: [PATCH v3 3/8] drivers:input:tsc2007: add iio interface to read external ADC input, temperature and raw conversion values
-Date: Sat, 24 Sep 2016 19:51:01 +0200
-Message-ID: <1D1171A5-21D2-4D5D-8182-02CB8DE06564@goldelico.com>
-References: <cover.1474634475.git.hns@goldelico.com> <909d06d4f54359c7ac0dcf36a49cbd3ff7e8ebf2.1474634475.git.hns@goldelico.com> <af39fdf1-b6e4-1ab7-9b41-ddb25bfab829@kernel.org> <8A30B517-FE25-418B-9921-407243B0B72B@goldelico.com> <CAKdAkRS3OhUp=WXtrLxQSJAvtgt24jo2W8Nw_NwR4O=R9jboaA@mail.gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAKdAkRS3OhUp=WXtrLxQSJAvtgt24jo2W8Nw_NwR4O=R9jboaA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, =?utf-8?Q?Mika_Penttil=C3=A4?= <mika.penttila-MRsr7dthA9VWk0Htik3J/w@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, "linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Discussions
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "regulator: tps65910: Work around silicon erratum SWCZ010" to the regulator tree
+Date: Sat, 24 Sep 2016 22:59:07 -0700
+Message-ID: <E1bo2Sx-00039x-UQ@finisterre>
+References: <1474620720-1157-2-git-send-email-j.remmet@phytec.de>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <1474620720-1157-2-git-send-email-j.remmet@phytec.de>
+Sender: stable-owner@vger.kernel.org
+To: Jan Remmet <j.remmet@phytec.de>
+Cc: Mark Brown <broonie@kernel.org>, stable@vger.kernel.org, tony@atomide.com, lgirdwood@gmail.combroonie@kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.orglinux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Dmitry,
+The patch
 
-> Am 24.09.2016 um 19:44 schrieb Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
-> 
-> On Sat, Sep 24, 2016 at 10:07 AM, H. Nikolaus Schaller
-> <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> wrote:
->> Hi Jonathan,
->> 
->>> Am 24.09.2016 um 18:07 schrieb Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>:
->>> 
->>> On 23/09/16 13:41, H. Nikolaus Schaller wrote:
->>>> The tsc2007 chip not only has a resistive touch screen controller but
->>>> also an external AUX adc imput which can be used for an ambient
->>>> light sensor, battery voltage monitoring or any general purpose.
->>>> 
->>>> Additionally it can measure the chip temperature.
->>>> 
->>>> This extension provides an iio interface for these adc channels
->>>> in addition to the raw x, y, z values and the estimated touch
->>>> screen resistance. This can be used for debugging or special
->>>> applications.
->>> I'm unconvinced that exposing the touch related channels is terribly
->>> useful.
->> 
->> Mostly for debugging of if someone wants to do a (better) touch detection
+   regulator: tps65910: Work around silicon erratum SWCZ010
 
-s/of/or/
+has been applied to the regulator tree at
 
->> in user space.
-> 
-> For that we should probably export data as a heat map via V4L2
-> interface, similarly to what Nick Dyer did for Synaptics and Atmel
-> drivers (albeit their heatmap functions are too slow for real
-> processing and only suitable for debug/validation).
+   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
 
-Sorry for my ignorance, but what is a heat map?
-Does it allow to cat /sys/bus/something the raw values?
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
 
-And why introduce another interface if we already get the iio that
-easily reports such values by just adding more channels and some
-lines of code?
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
 
-BR,
-Nikolaus
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From 8f9165c981fed187bb483de84caf9adf835aefda Mon Sep 17 00:00:00 2001
+From: Jan Remmet <j.remmet@phytec.de>
+Date: Fri, 23 Sep 2016 10:52:00 +0200
+Subject: [PATCH] regulator: tps65910: Work around silicon erratum SWCZ010
+
+http://www.ti.com/lit/pdf/SWCZ010:
+  DCDC o/p voltage can go higher than programmed value
+
+Impact:
+VDDI, VDD2, and VIO output programmed voltage level can go higher than
+expected or crash, when coming out of PFM to PWM mode or using DVFS.
+
+Description:
+When DCDC CLK SYNC bits are 11/01:
+* VIO 3-MHz oscillator is the source clock of the digital core and input
+  clock of VDD1 and VDD2
+* Turn-on of VDD1 and VDD2 HSD PFETis synchronized or at a constant
+  phase shift
+* Current pulled though VCC1+VCC2 is Iload(VDD1) + Iload(VDD2)
+* The 3 HSD PFET will be turned-on at the same time, causing the highest
+  possible switching noise on the application. This noise level depends
+  on the layout, the VBAT level, and the load current. The noise level
+  increases with improper layout.
+
+When DCDC CLK SYNC bits are 00:
+* VIO 3-MHz oscillator is the source clock of digital core
+* VDD1 and VDD2 are running on their own 3-MHz oscillator
+* Current pulled though VCC1+VCC2 average of Iload(VDD1) + Iload(VDD2)
+* The switching noise of the 3 SMPS will be randomly spread over time,
+  causing lower overall switching noise.
+
+Workaround:
+Set DCDCCTRL_REG[1:0]= 00.
+
+Signed-off-by: Jan Remmet <j.remmet@phytec.de>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+Cc: stable@vger.kernel.org
+---
+ drivers/regulator/tps65910-regulator.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/regulator/tps65910-regulator.c b/drivers/regulator/tps65910-regulator.c
+index fb991ec76423..696116ebdf50 100644
+--- a/drivers/regulator/tps65910-regulator.c
++++ b/drivers/regulator/tps65910-regulator.c
+@@ -1111,6 +1111,12 @@ static int tps65910_probe(struct platform_device *pdev)
+ 		pmic->num_regulators = ARRAY_SIZE(tps65910_regs);
+ 		pmic->ext_sleep_control = tps65910_ext_sleep_control;
+ 		info = tps65910_regs;
++		/* Work around silicon erratum SWCZ010: output programmed
++		 * voltage level can go higher than expected or crash
++		 * Workaround: use no synchronization of DCDC clocks
++		 */
++		tps65910_reg_clear_bits(pmic->mfd, TPS65910_DCDCCTRL,
++					DCDCCTRL_DCDCCKSYNC_MASK);
+ 		break;
+ 	case TPS65911:
+ 		pmic->get_ctrl_reg = &tps65911_get_ctrl_register;
+-- 
+2.9.3
