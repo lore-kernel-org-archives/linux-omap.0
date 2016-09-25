@@ -1,99 +1,58 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Applied "regulator: tps65910: Work around silicon erratum SWCZ010" to the regulator tree
-Date: Sat, 24 Sep 2016 22:59:07 -0700
-Message-ID: <E1bo2Sx-00039x-UQ@finisterre>
-References: <1474620720-1157-2-git-send-email-j.remmet@phytec.de>
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1474620720-1157-2-git-send-email-j.remmet@phytec.de>
-Sender: stable-owner@vger.kernel.org
-To: Jan Remmet <j.remmet@phytec.de>
-Cc: Mark Brown <broonie@kernel.org>, stable@vger.kernel.org, tony@atomide.com, lgirdwood@gmail.combroonie@kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.orglinux-kernel@vger.kernel.org
+From: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 0/4] Add DMA support for ti_am335x_adc driver
+Date: Sun, 25 Sep 2016 10:41:23 +0100
+Message-ID: <22588f2d-d0de-7911-35ed-92094f7dd28d@kernel.org>
+References: <20160921161134.6951-1-mugunthanvnm@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160921161134.6951-1-mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, "Andrew F . Davis" <afd-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The patch
+On 21/09/16 17:11, Mugunthan V N wrote:
+> The ADC has a 64 work depth fifo length which holds the ADC data
+> till the CPU reads. So when a user program needs a large ADC data
+> to operate on, then it has to do multiple reads to get its
+> buffer. Currently if the application asks for 4 samples per
+> channel with all 8 channels are enabled, kernel can provide only
+> 3 samples per channel when all 8 channels are enabled (logs at
+> [1]). So with DMA support user can request for large number of
+> samples at a time (logs at [2]).
+> 
+> Tested the patch on AM437x-gp-evm and AM335x Boneblack with the
+> patch [3] to enable ADC and pushed a branch for testing [4]
+> 
+> [1] - http://pastebin.ubuntu.com/23211490/
+> [2] - http://pastebin.ubuntu.com/23211492/
+> [3] - http://pastebin.ubuntu.com/23211494/
+> [4] - git://git.ti.com/~mugunthanvnm/ti-linux-kernel/linux.git iio-dma
+Just curious.  How fast is the ADC sampling at in these?  Never that
+obvious for this driver!
 
-   regulator: tps65910: Work around silicon erratum SWCZ010
+I'm also curious as to whether you started to hit the limits of the
+kfifo based interface.  Might be worth considering adding alternative
+support for the dma buffers interface which is obviously much lower
+overhead.
 
-has been applied to the regulator tree at
+Good to have this work prior to that as the kfifo stuff is somewhat
+easier to use.
 
-   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
-
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.  
-
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
-
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
-
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
-
-Thanks,
-Mark
-
->From 8f9165c981fed187bb483de84caf9adf835aefda Mon Sep 17 00:00:00 2001
-From: Jan Remmet <j.remmet@phytec.de>
-Date: Fri, 23 Sep 2016 10:52:00 +0200
-Subject: [PATCH] regulator: tps65910: Work around silicon erratum SWCZ010
-
-http://www.ti.com/lit/pdf/SWCZ010:
-  DCDC o/p voltage can go higher than programmed value
-
-Impact:
-VDDI, VDD2, and VIO output programmed voltage level can go higher than
-expected or crash, when coming out of PFM to PWM mode or using DVFS.
-
-Description:
-When DCDC CLK SYNC bits are 11/01:
-* VIO 3-MHz oscillator is the source clock of the digital core and input
-  clock of VDD1 and VDD2
-* Turn-on of VDD1 and VDD2 HSD PFETis synchronized or at a constant
-  phase shift
-* Current pulled though VCC1+VCC2 is Iload(VDD1) + Iload(VDD2)
-* The 3 HSD PFET will be turned-on at the same time, causing the highest
-  possible switching noise on the application. This noise level depends
-  on the layout, the VBAT level, and the load current. The noise level
-  increases with improper layout.
-
-When DCDC CLK SYNC bits are 00:
-* VIO 3-MHz oscillator is the source clock of digital core
-* VDD1 and VDD2 are running on their own 3-MHz oscillator
-* Current pulled though VCC1+VCC2 average of Iload(VDD1) + Iload(VDD2)
-* The switching noise of the 3 SMPS will be randomly spread over time,
-  causing lower overall switching noise.
-
-Workaround:
-Set DCDCCTRL_REG[1:0]= 00.
-
-Signed-off-by: Jan Remmet <j.remmet@phytec.de>
-Signed-off-by: Mark Brown <broonie@kernel.org>
-Cc: stable@vger.kernel.org
----
- drivers/regulator/tps65910-regulator.c | 6 ++++++
- 1 file changed, 6 insertions(+)
-
-diff --git a/drivers/regulator/tps65910-regulator.c b/drivers/regulator/tps65910-regulator.c
-index fb991ec76423..696116ebdf50 100644
---- a/drivers/regulator/tps65910-regulator.c
-+++ b/drivers/regulator/tps65910-regulator.c
-@@ -1111,6 +1111,12 @@ static int tps65910_probe(struct platform_device *pdev)
- 		pmic->num_regulators = ARRAY_SIZE(tps65910_regs);
- 		pmic->ext_sleep_control = tps65910_ext_sleep_control;
- 		info = tps65910_regs;
-+		/* Work around silicon erratum SWCZ010: output programmed
-+		 * voltage level can go higher than expected or crash
-+		 * Workaround: use no synchronization of DCDC clocks
-+		 */
-+		tps65910_reg_clear_bits(pmic->mfd, TPS65910_DCDCCTRL,
-+					DCDCCTRL_DCDCCKSYNC_MASK);
- 		break;
- 	case TPS65911:
- 		pmic->get_ctrl_reg = &tps65911_get_ctrl_register;
--- 
-2.9.3
+Jonathan
+> 
+> Mugunthan V N (4):
+>   mfd: ti_am335x_tscadc: store physical address
+>   drivers: iio: ti_am335x_adc: add dma support
+>   ARM: dts: am33xx: add DMA properties for tscadc
+>   ARM: dts: am4372: add DMA properties for tscadc
+> 
+>  arch/arm/boot/dts/am33xx.dtsi        |   2 +
+>  arch/arm/boot/dts/am4372.dtsi        |   2 +
+>  drivers/iio/adc/ti_am335x_adc.c      | 160 ++++++++++++++++++++++++++++++++++-
+>  drivers/mfd/ti_am335x_tscadc.c       |   1 +
+>  include/linux/mfd/ti_am335x_tscadc.h |   8 ++
+>  5 files changed, 170 insertions(+), 3 deletions(-)
+> 
