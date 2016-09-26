@@ -1,63 +1,30 @@
-From: Romain Perier <romain.perier@free-electrons.com>
-Subject: Re: [PATCH v3 0/8] Add support for SafeXcel IP-76 to OMAP RNG
-Date: Mon, 26 Sep 2016 12:01:21 +0200
-Message-ID: <57E8F1F1.6040906@free-electrons.com>
-References: <20160916100856.31727-1-romain.perier@free-electrons.com>
- <57DBEB1A.4050602@free-electrons.com>
+From: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [PATCH 1/5] wlcore: Prepare family to fix nvs file handling
+Date: Mon, 26 Sep 2016 18:47:06 +0300
+Message-ID: <878tuezmrp.fsf@kamboji.qca.qualcomm.com>
+References: <20160917160633.8767-1-tony@atomide.com>
+        <20160917160633.8767-2-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <57DBEB1A.4050602@free-electrons.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: dsaxena@plexity.net, mpm@selenic.com, Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Gregory Clement <gregory.clement@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Nadav Haklai <nadavh@marvell.com>, Omri Itach <omrii@marvell.com>, Shadi Ammouri <shadi@marvell.com>, Yahuda Yitschak <yehuday@marvell.com>, Hanna Hawa <hannah@marvell.com>, Neta Zur Hershkovits <neta@marvell.com>, Igal Liberman <igall@marvell.com>, Marcin Wojtas <mw@semihalf.com>, linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160917160633.8767-2-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> (Tony Lindgren's message
+        of "Sat, 17 Sep 2016 09:06:29 -0700")
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Maital Hahn <maitalm-l0cyMroinI0@public.gmane.org>, Maxim Altshul <maxim.altshul-l0cyMroinI0@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
 
-
-Le 16/09/2016 14:52, Romain Perier a écrit :
-> Hello,
+> Move struct wilink_family_data to be available for all TI WLAN
+> variants. And fix familiy typo, it should be just family.
 >
-> Le 16/09/2016 12:08, Romain Perier a écrit :
->> The driver omap-rng has a lot of similarity with the IP block SafeXcel
->> IP-76. A lot of registers are the same and the way that the driver works
->> is very closed the description of the TRNG EIP76 in its datasheet.
->>
->> This series refactorize the driver, add support for generating bigger
->> output random data and add a device variant for SafeXcel IP-76, found
->> in Armada 8K.
->>
->> Romain Perier (8):
->>    dt-bindings: Add vendor prefix for INSIDE Secure
->>    dt-bindings: omap-rng: Document SafeXcel IP-76 device variant
->>    hwrng: omap - Switch to non-obsolete read API implementation
->>    hwrng: omap - Remove global definition of hwrng
->>    hwrng: omap - Add support for 128-bit output of data
->>    hwrng: omap - Don't prefix the probe message with OMAP
->>    hwrng: omap - Add device variant for SafeXcel IP-76 found in Armada 8K
->>    arm64: dts: marvell: add TRNG description for Armada 8K CP
->>
->>   Documentation/devicetree/bindings/rng/omap_rng.txt |  14 +-
->>   .../devicetree/bindings/vendor-prefixes.txt        |   1 +
->>   .../boot/dts/marvell/armada-cp110-master.dtsi      |   8 +
->>   .../arm64/boot/dts/marvell/armada-cp110-slave.dtsi |   8 +
->>   drivers/char/hw_random/Kconfig                     |   2 +-
->>   drivers/char/hw_random/omap-rng.c                  | 162
->> ++++++++++++++++-----
->>   6 files changed, 152 insertions(+), 43 deletions(-)
->>
+> Looks like wl12xx use two different nvs.bin files and wl18xx
+> uses a different conf.bin file.
 >
-> If possible, I would like to get "Tested-by" tags by the omap guys
-> before this set of patches is merged, to be sure that there are no
-> regressions for the OMAP variant.
->
-> Thanks,
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 
-Added omap ML to Cc:
+Applied to wireless-drivers-next.git, thanks.
 
-Romain,
 -- 
-Romain Perier, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
+Kalle Valo
