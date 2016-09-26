@@ -1,58 +1,89 @@
-From: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 0/4] Add DMA support for ti_am335x_adc driver
-Date: Sun, 25 Sep 2016 10:41:23 +0100
-Message-ID: <22588f2d-d0de-7911-35ed-92094f7dd28d@kernel.org>
-References: <20160921161134.6951-1-mugunthanvnm@ti.com>
+From: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 2/2] cpufreq: ti: Add cpufreq driver to determine
+ available OPPs at runtime
+Date: Mon, 26 Sep 2016 10:03:44 +0530
+Message-ID: <20160926043344.GH17336@vireshk-i7>
+References: <20160901025328.376-1-d-gerlach@ti.com>
+ <20160901025328.376-3-d-gerlach@ti.com>
+ <20160907052053.GO27345@vireshk-i7>
+ <57D02C85.7020300@ti.com>
+ <20160908033909.GR27345@vireshk-i7>
+ <57E2E0BE.3070206@ti.com>
+ <20160923051947.GC17336@vireshk-i7>
+ <57E555B3.2010304@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160921161134.6951-1-mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, "Andrew F . Davis" <afd-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <57E555B3.2010304-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 21/09/16 17:11, Mugunthan V N wrote:
-> The ADC has a 64 work depth fifo length which holds the ADC data
-> till the CPU reads. So when a user program needs a large ADC data
-> to operate on, then it has to do multiple reads to get its
-> buffer. Currently if the application asks for 4 samples per
-> channel with all 8 channels are enabled, kernel can provide only
-> 3 samples per channel when all 8 channels are enabled (logs at
-> [1]). So with DMA support user can request for large number of
-> samples at a time (logs at [2]).
+On 23-09-16, 11:17, Dave Gerlach wrote:
+> On 09/23/2016 12:19 AM, Viresh Kumar wrote:
+> >On 21-09-16, 14:34, Dave Gerlach wrote:
+> >>Viresh,
+> >>On 09/07/2016 10:39 PM, Viresh Kumar wrote:
+> >>>On 07-09-16, 10:04, Dave Gerlach wrote:
+> >>>>>>+static const struct of_device_id ti_cpufreq_of_match[] = {
+> >>>>>>+	{ .compatible = "operating-points-v2-ti-am3352-cpu",
+> >>>>>>+	  .data = &am3x_soc_data, },
+> >>>>>>+	{ .compatible = "operating-points-v2-ti-am4372-cpu",
+> >>>>>>+	  .data = &am4x_soc_data, },
+> >>>>>>+	{ .compatible = "operating-points-v2-ti-dra7-cpu",
+> >>>>>>+	  .data = &dra7_soc_data },
+> >>>>>
+> >>>>>You should be using your SoC compatible strings here. OPP compatible
+> >>>>>property isn't supposed to be (mis)used for this purpose.
+> >>>>>
+> >>>>
+> >>>>Referring to my comments in patch 1, what if we end up changing the bindings
+> >>>>based on DT maintainer comments? We will have these compatible strings, and
+> >>>>at that point is it acceptable to match against them? Or is it still better
+> >>>>to match to SoC compatibles? I think it makes sense to just probe against
+> >>>>these.
+> >>>
+> >>>But even then I think these are not correct. You should have added a
+> >>>single compatible string: operating-points-v2-ti-cpu.
+> >>>
+> >>>As the properties will stay the same across machines. And then you
+> >>>need to use SoC strings here.
+> >>>
+> >>
+> >>Are you opposed to moving _of_get_opp_desc_node from
+> >>drivers/base/power/opp/opp.h to include/linux/pm_opp.h and renaming it
+> >>appropriately?
+> >
+> >I am not opposed to that, but ...
+> >
+> >>If I move the ti properties out of the cpu node, as discussed in patch 1 of
+> >>this series, and into the operating-points-v2 table, I need a way to get the
+> >>operating-points-v2 device node and I think it makes sense to reuse this as
+> >>it is what the opp framework uses internally to parse the phandle to the opp
+> >>table.
+> >
+> >I am not sure if those registers belong to the OPP bindings. What are those
+> >registers really? What all can be read from them? Why shouldn't they be present
+> >as a separate node in DT on the respective bus? Look at how it is done for
+> >sti-cpufreq driver.
+> >
 > 
-> Tested the patch on AM437x-gp-evm and AM335x Boneblack with the
-> patch [3] to enable ADC and pushed a branch for testing [4]
+> The sti-cpufreq driver in v4.8-rc7 appears to do what I am already doing in
+> this revision of the patch, reading from a syscon phandle that is part of
+> the cpu node in the DT which is what I was told not to do.
 > 
-> [1] - http://pastebin.ubuntu.com/23211490/
-> [2] - http://pastebin.ubuntu.com/23211492/
-> [3] - http://pastebin.ubuntu.com/23211494/
-> [4] - git://git.ti.com/~mugunthanvnm/ti-linux-kernel/linux.git iio-dma
-Just curious.  How fast is the ADC sampling at in these?  Never that
-obvious for this driver!
+> The register I am referencing in the syscon is a bit-field describing which
+> OPPs are valid for the system, so it is very relevant to the OPP binding.
+> They really are already present in a separate node, I'm just indexing into a
+> syscon, same as the sti-cpufreq driver appears to be doing.
 
-I'm also curious as to whether you started to hit the limits of the
-kfifo based interface.  Might be worth considering adding alternative
-support for the dma buffers interface which is obviously much lower
-overhead.
+Okay, you can move that function out.
 
-Good to have this work prior to that as the kfifo stuff is somewhat
-easier to use.
-
-Jonathan
-> 
-> Mugunthan V N (4):
->   mfd: ti_am335x_tscadc: store physical address
->   drivers: iio: ti_am335x_adc: add dma support
->   ARM: dts: am33xx: add DMA properties for tscadc
->   ARM: dts: am4372: add DMA properties for tscadc
-> 
->  arch/arm/boot/dts/am33xx.dtsi        |   2 +
->  arch/arm/boot/dts/am4372.dtsi        |   2 +
->  drivers/iio/adc/ti_am335x_adc.c      | 160 ++++++++++++++++++++++++++++++++++-
->  drivers/mfd/ti_am335x_tscadc.c       |   1 +
->  include/linux/mfd/ti_am335x_tscadc.h |   8 ++
->  5 files changed, 170 insertions(+), 3 deletions(-)
-> 
+-- 
+viresh
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
