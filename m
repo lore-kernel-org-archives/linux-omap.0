@@ -1,89 +1,258 @@
-From: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 2/2] cpufreq: ti: Add cpufreq driver to determine
- available OPPs at runtime
-Date: Mon, 26 Sep 2016 10:03:44 +0530
-Message-ID: <20160926043344.GH17336@vireshk-i7>
-References: <20160901025328.376-1-d-gerlach@ti.com>
- <20160901025328.376-3-d-gerlach@ti.com>
- <20160907052053.GO27345@vireshk-i7>
- <57D02C85.7020300@ti.com>
- <20160908033909.GR27345@vireshk-i7>
- <57E2E0BE.3070206@ti.com>
- <20160923051947.GC17336@vireshk-i7>
- <57E555B3.2010304@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [RFC PATCH 00/11] pci: support for configurable PCI endpoint
+Date: Mon, 26 Sep 2016 11:38:41 +0530
+Message-ID: <57E8BB69.4020804@ti.com>
+References: <1473829927-20466-1-git-send-email-kishon@ti.com>
+ <2837059.ka7z3gzjF2@wuerfel> <57DA5CC1.6030502@ti.com>
+ <6722152.QTF992tLpW@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <57E555B3.2010304-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <6722152.QTF992tLpW@wuerfel>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, hch@infradead.org, Joao.Pinto@synopsys.com, mingkai.hu@nxp.com, m-karicheri2@ti.com, Pratyush Anand <pratyush.anand@gmail.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Joao Pinto <jpinto@synopsys.com>, Rob Herring <robh+dt@kernel.org>, nsekhar@ti.com, Jon Mason <jdmason@kudzu.us>, Dave Jiang <dave.jiang@intel.com>, Allen Hubbe <Allen.Hubbe@emc.com>, linux-ntb@googlegroups.com
 List-Id: linux-omap@vger.kernel.org
 
-On 23-09-16, 11:17, Dave Gerlach wrote:
-> On 09/23/2016 12:19 AM, Viresh Kumar wrote:
-> >On 21-09-16, 14:34, Dave Gerlach wrote:
-> >>Viresh,
-> >>On 09/07/2016 10:39 PM, Viresh Kumar wrote:
-> >>>On 07-09-16, 10:04, Dave Gerlach wrote:
-> >>>>>>+static const struct of_device_id ti_cpufreq_of_match[] = {
-> >>>>>>+	{ .compatible = "operating-points-v2-ti-am3352-cpu",
-> >>>>>>+	  .data = &am3x_soc_data, },
-> >>>>>>+	{ .compatible = "operating-points-v2-ti-am4372-cpu",
-> >>>>>>+	  .data = &am4x_soc_data, },
-> >>>>>>+	{ .compatible = "operating-points-v2-ti-dra7-cpu",
-> >>>>>>+	  .data = &dra7_soc_data },
-> >>>>>
-> >>>>>You should be using your SoC compatible strings here. OPP compatible
-> >>>>>property isn't supposed to be (mis)used for this purpose.
-> >>>>>
-> >>>>
-> >>>>Referring to my comments in patch 1, what if we end up changing the bindings
-> >>>>based on DT maintainer comments? We will have these compatible strings, and
-> >>>>at that point is it acceptable to match against them? Or is it still better
-> >>>>to match to SoC compatibles? I think it makes sense to just probe against
-> >>>>these.
-> >>>
-> >>>But even then I think these are not correct. You should have added a
-> >>>single compatible string: operating-points-v2-ti-cpu.
-> >>>
-> >>>As the properties will stay the same across machines. And then you
-> >>>need to use SoC strings here.
-> >>>
-> >>
-> >>Are you opposed to moving _of_get_opp_desc_node from
-> >>drivers/base/power/opp/opp.h to include/linux/pm_opp.h and renaming it
-> >>appropriately?
-> >
-> >I am not opposed to that, but ...
-> >
-> >>If I move the ti properties out of the cpu node, as discussed in patch 1 of
-> >>this series, and into the operating-points-v2 table, I need a way to get the
-> >>operating-points-v2 device node and I think it makes sense to reuse this as
-> >>it is what the opp framework uses internally to parse the phandle to the opp
-> >>table.
-> >
-> >I am not sure if those registers belong to the OPP bindings. What are those
-> >registers really? What all can be read from them? Why shouldn't they be present
-> >as a separate node in DT on the respective bus? Look at how it is done for
-> >sti-cpufreq driver.
-> >
-> 
-> The sti-cpufreq driver in v4.8-rc7 appears to do what I am already doing in
-> this revision of the patch, reading from a syscon phandle that is part of
-> the cpu node in the DT which is what I was told not to do.
-> 
-> The register I am referencing in the syscon is a bit-field describing which
-> OPPs are valid for the system, so it is very relevant to the OPP binding.
-> They really are already present in a separate node, I'm just indexing into a
-> syscon, same as the sti-cpufreq driver appears to be doing.
+Hi Arnd,
 
-Okay, you can move that function out.
+On Thursday 22 September 2016 07:04 PM, Arnd Bergmann wrote:
+> On Thursday, September 15, 2016 2:03:05 PM CEST Kishon Vijay Abraham I wrote:
+>> On Wednesday 14 September 2016 06:55 PM, Arnd Bergmann wrote:
+>>> On Wednesday, September 14, 2016 10:41:56 AM CEST Kishon Vijay Abraham I wrote:
+>>> I've added the drivers/ntb maintainers to Cc, given that there is
+>>> a certain degree of overlap between your work and the existing
+>>> code, I think they should be part of the discussion.
+>>>  
+>>>> Known Limitation:
+>>>> 	*) Does not support multi-function devices
+>>>
+>>> If I understand it right, this was a problem for USB and adding
+>>> it later made it somewhat inconsistent. Maybe we can at least
+>>> try to come up with an idea of how multi-function devices
+>>> could be handled even if we don't implement it until someone
+>>> actually needs it.
+>>
+>> Actually IMO multi-function device in PCI should be much simpler than it is for
+>> USB. In the case of USB, all the functions in a multi-function device will
+>> share the same *usb configuration* . (USB device can have multiple
+>> configuration but only one can be enabled at a time). A multi-function USB
+>> device will still have a single vendor-id/product-id/class... So I think a
+>> separate library (composite.c) in USB makes sense.
+> 
+> Ok, makes sense.
+> 
+>> But in the case of PCI, every function can be treated independently since all
+>> the functions have it's own 4KB configuration space. Each function can be
+>> configured independently. Each can have it's own vendor-id/product-id/class..
+>> I'm not sure if we'll need a separate library for PCI like we have for USB.
+> 
+> I think it depends on whether we want to add the software multi-function
+> support you mention.
+> 
+>> Now the restriction for not allowing multi-function device is because of the
+>> following structure definition.
+>>
+>> struct pci_epc {
+>> 	..
+>>         struct pci_epf *epf;
+>> 	..
+>> };
+>>
+>> EPC has a single reference to EPF and it is used *only* to notify the function
+>> driver when the link is up. (If this can be changed to use notification
+>> mechanism, multi-function devices can be supported here)
+>>
+>> One more place where this restriction arises is in designware driver
+>>
+>> struct dw_pcie_ep {
+>> 	..
+>>         u8 bar_to_atu[6];
+>> 	..
+>> };
+>>
+>> We use single ATU window to configure a BAR (in BAR). If there are multiple
+>> functions, then this should also be modified since each function has 6 BARs.
+>>
+>> This can be fixed without much effort unless some other issue props up.
+> 
+> Ok.
+> 
+>>>
+>>> Is your hardware able to make the PCIe endpoint look like
+>>> a device with multiple PCI functions, or would one have to
+>>> do this in software inside of a single PCI function if we
+>>> ever need it?
+>>
+>> The hardware I have doesn't support multiple PCI functions (like having a
+>> separate configuration space for each function). It has a dedicated space for
+>> configuration space supporting only one function. [Section 24.9.7.3.2
+>> PCIe_SS_EP_CFG_DBICS Register Description in  [1]].
+>>
+>> yeah, it has to be done in software (but that won't be multi-function device in
+>> PCI terms).
+>>
+>> [1] -> http://www.ti.com/lit/ug/spruhz6g/spruhz6g.pdf
+> 
+> Ok, so in theory there can be other hardware (and quite likely is)
+> that supports multiple functions, and we can extend the framework
+> to support them without major obstacles, but your hardware doesn't,
+> so you kept it simple with one hardcoded function, right?
 
--- 
-viresh
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+right, PCIe can have upto 8 functions. So the issues with the current framework
+has to be fixed. I don't expect major obstacles with this as of now.
+> 
+> Seems completely reasonable to me.
+> 
+>>>> TODO:
+>>>> 	*) access buffers in RC
+>>>> 	*) raise MSI interrupts
+>>>> 	*) Enable user space control for the RC side PCI driver
+>>>
+>>> The user space control would end up just being one of several
+>>> gadget drivers, right? E.g. gadget drivers for standard hardware
+>>> (8250 uart, ATA, NVMe, some ethernet) could be done as kernel
+>>> drivers while a user space driver can be used for things that
+>>> are more unusual and that don't need to interface to another
+>>> part of the kernel?
+>>
+>> Actually I didn't mean that. It was more with respect to the host side PCI test
+>> driver (drivers/misc/pci_endpoint_test.c). Right now it validates BAR, irq
+>> itself. I wanted to change this so that the user controls which tests to run.
+>> (Like for USB gadget zero tests, testusb.c invokes ioctls to perform various
+>> tests). Similarly I want to have a userspace program invoke pci_endpoint_test
+>> to perform various PCI tests.
+> 
+> Ok, I see. So what I described above would be yet another function
+> driver that can be implemented, but so far, you have not planned
+> to do that because there was not need, right?
+
+right. I felt pci_endpoint_test is the generic function that would be of
+interest to all the vendors. Any new function can be added by taking
+pci_endpoint_test as a reference.
+
+The simple usecase I plan to work on after completing the framework is to have
+a camera sensor in one board and display in another board (the boards connected
+using PCIe) and the display showing the the camera capture.
+> 
+>>>
+>>>> 	*) Adapt all other users of designware to use the new design (only
+>>>> 	   dra7xx has been adapted)
+>>>
+>>> I don't fully understand this part. Does every designware based
+>>> driver need modifications, or are the changes to the
+>>> generic parts of the designware driver enough to make it
+>>> work for the simpler platforms?
+>>
+>> I have changed the core designware driver structures (like previously the
+>> platform drivers will only use pcie_port, but now I introduced struct dw_pcie
+>> to support both host and endpoint). This will break (compilation failure) all
+>> the designware based drivers (except dra7xx). All these drivers should be
+>> adapted to the new change (even if they work only in host mode these has to be
+>> adapted).
+> 
+> Ah, so we have to do two separate modifications to each designware driver:
+> 
+> a) make it work with your patch (mandatory)
+> b) make it support endpoint mode (optional)
+
+yes.
+> 
+>>>> HOW TO:
+>>>>
+>>>> ON THE EP SIDE:
+>>>> ***************
+>>>>
+>>>> /* EP function is configured using configfs */
+>>>> # mount -t configfs none /sys/kernel/config
+>>>>
+>>>> /* PCI EP core layer creates "pci_ep" entry in configfs */
+>>>> # cd /sys/kernel/config/pci_ep/
+>>>>
+>>>> /*
+>>>>  * This is the 1st step in creating an endpoint function. This
+>>>>  * creates the endpoint function device *instance*. The string
+>>>>  * before the .<num> suffix will identify the driver this
+>>>>  * EP function will bind to.
+>>>>  * Just pci_epf_test is also valid. The .<num> suffix is used
+>>>>  * if there are multiple PCI controllers and all of them wants
+>>>>  * to use the same function.
+>>>>  */
+>>>> # mkdir pci_epf_test.0
+>>>
+>>> I haven't used USB gadgets, but I assume this is modeled around
+>>> the same interface. If there are notable differences, please mention
+>>> what they are. Otherwise the general concept seems rather nice to me.
+>>
+>> Yeah, both USB gadget and PCI endpoint use configfs interface but the semantics
+>> are quite different.
+>>
+>> Every directory in *usb_gadget* corresponds to a gadget device, and the gadget
+>> device has a functions sub-directory which has the USB functions. And these
+>> directories have fields or attributes specific to USB.
+>>
+>> But in the case of PCI, every directory in *pci_ep* corresponds to a PCI
+>> function and it has fields or attributes specific to PCI function.
+> 
+> Ok, I see.
+> 
+>> The main reason for using configfs for PCI endpoint is to give the users to
+>> control "which function has to be bound to which controller". The same concept
+>> is used for USB gadget as well but there it is "which gadget device has to be
+>> bound to which controller".
+> 
+> We should still find out whether it's important that you can have
+> a single PCI function with a software multi-function support of some
+> sort. We'd still be limited to six BARs in total, and would also need
+> something to identify those sub-functions, so implementing that might
+> get quite hairy.
+> 
+> Possibly this could be done at a higher level, e.g. by implementing
+> a PCI-virtio multiplexer that can host multiple virtio based devices
+> inside of a single PCI function. If we think that would be a good idea,
+> we should make sure the configfs interface is extensible enough to
+> handle that.
+
+Okay. So here the main function (actual PCI function) *can* perform the work of
+virtio muliplexer if the platform wants to support sub-functions or it can be a
+normal PCI function. right?
+
+> 
+> One use case I have in mind for this is to have a PCI function that
+> can use virtio to provide rootfs (virtio-blk or 9pfs), network
+> and console to the system that implements the PCI function (note
+> that this is the opposite direction of what almost everyone else
+> uses PCI devices for).
+
+Do you mean the virtio should actually be in the host side? Even here the
+system that implements PCI function should have multiple functions right? (one
+for network, other for console etc..). So there should be a virtio multiplexer
+both in the host side and in the device side?
+> 
+>>> Let's talk (high-level) about the DT binding. I see that the way
+>>> you have done it here, one will need to have a different .dtb file
+>>> for a machine depending on whether the PCIe is used in host or
+>>> endpoint mode. The advantage of this way is that it's a much
+>>> cleaner binding (PCIe host bindings are a mess, and adding more
+>>> options to it will only make it worse), the downside is that
+>>> you can't decide at runtime what you want to use it for. E.g.
+>>> connecting two identical machines over PCIe requires deciding
+>>> in the bootloader which one is the endpoint, or using DT
+>>> overlays, which may be awkward for some users. Is this a realistic
+>>> use case, or do you expect that all machines will only ever be
+>>> used in one of the two ways?
+>>
+>> It would definitely be nice to select the mode at runtime. Even for this patch
+>> series, I added a temporary dtsi patch to configure the pci controller in EP
+>> mode (which can't be merged since the same controller is also used to test RC).
+> 
+> I think it should be possible to have two bindings that define a
+> distinct set of properties, and have one node that is marked
+> as "compatible" with both of them in order to let the OS choose
+> one or the other mode.
+
+hmm.. okay.
+
+Thanks
+Kishon
