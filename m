@@ -1,84 +1,51 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [RFC PATCH 08/11] pci: controller: dra7xx: Add EP mode support
-Date: Tue, 27 Sep 2016 17:04:58 +0530
-Message-ID: <57EA5962.90700@ti.com>
-References: <1473829927-20466-1-git-send-email-kishon@ti.com>
- <1473829927-20466-9-git-send-email-kishon@ti.com>
- <20160923145259.GA28285@rob-hp-laptop>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH RESEND 2/2] mfd: twl6040: Register child device for
+ twl6040-pdmclk
+Date: Tue, 27 Sep 2016 19:50:21 +0100
+Message-ID: <20160927185021.GH21388@dell>
+References: <20160831114621.6301-1-peter.ujfalusi@ti.com>
+ <20160831114621.6301-3-peter.ujfalusi@ti.com>
+ <20160831143943.GN9415@dell>
+ <3edeea3c-e9a0-f397-e1ec-204393383823@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160923145259.GA28285@rob-hp-laptop>
-Sender: linux-pci-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Jingoo Han <jingoohan1@gmail.com>, hch@infradead.org, Joao.Pinto@synopsys.com, mingkai.hu@nxp.com, m-karicheri2@ti.com, Pratyush Anand <pratyush.anand@gmail.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Joao Pinto <jpinto@synopsys.com>, nsekhar@ti.com
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <3edeea3c-e9a0-f397-e1ec-204393383823@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Tue, 27 Sep 2016, Peter Ujfalusi wrote:
 
-On Friday 23 September 2016 08:22 PM, Rob Herring wrote:
-> On Wed, Sep 14, 2016 at 10:42:04AM +0530, Kishon Vijay Abraham I wrote:
->> The PCIe controller integrated in dra7xx SoCs is capable of operating
->> in endpoint mode. Add support for dra7xx SoCs to operate in endpoint
->> mode.
->>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> ---
->>  Documentation/devicetree/bindings/pci/ti-pci.txt |   30 ++-
->>  drivers/pci/controller/Kconfig                   |   21 +++
->>  drivers/pci/controller/pci-dra7xx.c              |  211 +++++++++++++++++++---
->>  3 files changed, 225 insertions(+), 37 deletions(-)
->>
->> diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
->> index 60e2516..b0e76f6 100644
->> --- a/Documentation/devicetree/bindings/pci/ti-pci.txt
->> +++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
->> @@ -1,17 +1,22 @@
->>  TI PCI Controllers
->>  
->>  PCIe Designware Controller
->> - - compatible: Should be "ti,dra7-pcie""
->> - - reg : Two register ranges as listed in the reg-names property
->> - - reg-names : The first entry must be "ti-conf" for the TI specific registers
->> -	       The second entry must be "rc-dbics" for the designware pcie
->> -	       registers
->> -	       The third entry must be "config" for the PCIe configuration space
->> + - compatible: Should be "ti,dra7-pcie" for RC
->> +	       Should be "ti,dra7-pcie-ep" for EP
->>   - phys : list of PHY specifiers (used by generic PHY framework)
->>   - phy-names : must be "pcie-phy0", "pcie-phy1", "pcie-phyN".. based on the
->>  	       number of PHYs as specified in *phys* property.
->>   - ti,hwmods : Name of the hwmod associated to the pcie, "pcie<X>",
->>  	       where <X> is the instance number of the pcie from the HW spec.
->> + - num-lanes as specified in ../designware-pcie.txt
->> +
->> +HOST MODE
->> +=========
->> + - reg : Two register ranges as listed in the reg-names property
->> + - reg-names : The first entry must be "ti-conf" for the TI specific registers
->> +	       The second entry must be "rc-dbics" for the designware pcie
->> +	       registers
->> +	       The third entry must be "config" for the PCIe configuration space
->>   - interrupts : Two interrupt entries must be specified. The first one is for
->>  		main interrupt line and the second for MSI interrupt line.
->>   - #address-cells,
->> @@ -19,13 +24,24 @@ PCIe Designware Controller
->>     #interrupt-cells,
->>     device_type,
->>     ranges,
->> -   num-lanes,
->>     interrupt-map-mask,
->>     interrupt-map : as specified in ../designware-pcie.txt
->>  
->>  Optional Property:
->>   - gpios : Should be added if a gpio line is required to drive PERST# line
+> On 08/31/16 17:39, Lee Jones wrote:
+> > On Wed, 31 Aug 2016, Peter Ujfalusi wrote:
+> > 
+> >> The McPDM in OMAP4/5 is using the pdmclk from twl6040 as functional clock.
+> >> The twl6040-pdmclk driver provides a clock which can be used to make sure
+> >> that the pdmclk is active when the McPDM is in use.
+> >>
+> >> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> >> Acked-by: Rob Herring <robh@kernel.org>
+> >> ---
+> >>  Documentation/devicetree/bindings/mfd/twl6040.txt | 1 +
+> >>  drivers/mfd/twl6040.c                             | 5 +++++
+> >>  include/linux/mfd/twl6040.h                       | 2 +-
+> >>  3 files changed, 7 insertions(+), 1 deletion(-)
+> > 
+> > Applied, thanks.
 > 
-> Don't you need gpios as the input side of GPIO outputs in RC mode? Or 
-> for EP mode they are all handled by h/w?
+> Lee, for some reason this patch is not found in linux-next (20160927). I can
+> see patch 1, but this one is missing.
 
-I couldn't find any mention of the gpios being used in EP mode. I'll check this
-again.
+You're right, it had been dropped.  My apologies.
 
-Thanks
-Kishon
+It's been applied now.
+
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
