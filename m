@@ -1,83 +1,36 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH RESEND 2/2] mfd: twl6040: Register child device for
- twl6040-pdmclk
-Date: Tue, 27 Sep 2016 11:14:32 +0300
-Message-ID: <3edeea3c-e9a0-f397-e1ec-204393383823@ti.com>
-References: <20160831114621.6301-1-peter.ujfalusi@ti.com>
- <20160831114621.6301-3-peter.ujfalusi@ti.com> <20160831143943.GN9415@dell>
+From: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
+Subject: [RFC] wilink8-bluetooth: reading uart parametrs and enable pin info
+ from device tree
+Date: Tue, 27 Sep 2016 10:35:57 +0000
+Message-ID: <8665E2433BC68541A24DFFCA87B70F5B361A3A3E@DFRE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160831143943.GN9415@dell>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/31/16 17:39, Lee Jones wrote:
-> On Wed, 31 Aug 2016, Peter Ujfalusi wrote:
-> 
->> The McPDM in OMAP4/5 is using the pdmclk from twl6040 as functional clock.
->> The twl6040-pdmclk driver provides a clock which can be used to make sure
->> that the pdmclk is active when the McPDM is in use.
->>
->> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->> Acked-by: Rob Herring <robh@kernel.org>
->> ---
->>  Documentation/devicetree/bindings/mfd/twl6040.txt | 1 +
->>  drivers/mfd/twl6040.c                             | 5 +++++
->>  include/linux/mfd/twl6040.h                       | 2 +-
->>  3 files changed, 7 insertions(+), 1 deletion(-)
-> 
-> Applied, thanks.
+All,
 
-Lee, for some reason this patch is not found in linux-next (20160927). I can
-see patch 1, but this one is missing.
+The wl18xx family of chips include a Bluetooth subsystem which uses a UART 
+for HCI communication and a gpio as an enable pin.
 
--- 
-Péter
+See the following architecture diagram:
+http://www.ti.com/general/docs/datasheetdiagram.tsp?genericPartNumber=WL1837MOD&diagramId=SWRS170H
 
+In case we want to build an image that when it boots up, Bluetooth is enbled 
+out of the box we can pass this info to a user space app/script that would pick 
+the selected gpio, enable it and launch the bleutooth stack (using hciattach).
 
->> diff --git a/Documentation/devicetree/bindings/mfd/twl6040.txt b/Documentation/devicetree/bindings/mfd/twl6040.txt
->> index e6afdfa3543d..9a98ee7c323d 100644
->> --- a/Documentation/devicetree/bindings/mfd/twl6040.txt
->> +++ b/Documentation/devicetree/bindings/mfd/twl6040.txt
->> @@ -12,6 +12,7 @@ Required properties:
->>  - interrupt-parent: The parent interrupt controller
->>  - gpio-controller:
->>  - #gpio-cells = <1>: twl6040 provides GPO lines.
->> +- #clock-cells = <0>; twl6040 is a provider of pdmclk which is used by McPDM
->>  - twl6040,audpwron-gpio: Power on GPIO line for the twl6040
->>  
->>  - vio-supply: Regulator for the twl6040 VIO supply
->> diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
->> index c3ad59ef43dd..d66502d36ba0 100644
->> --- a/drivers/mfd/twl6040.c
->> +++ b/drivers/mfd/twl6040.c
->> @@ -783,6 +783,11 @@ static int twl6040_probe(struct i2c_client *client,
->>  	cell->name = "twl6040-gpo";
->>  	children++;
->>  
->> +	/* PDM clock support  */
->> +	cell = &twl6040->cells[children];
->> +	cell->name = "twl6040-pdmclk";
->> +	children++;
->> +
->>  	/* The chip is powered down so mark regmap to cache only and dirty */
->>  	regcache_cache_only(twl6040->regmap, true);
->>  	regcache_mark_dirty(twl6040->regmap);
->> diff --git a/include/linux/mfd/twl6040.h b/include/linux/mfd/twl6040.h
->> index 36795a1be479..a2e88761c09f 100644
->> --- a/include/linux/mfd/twl6040.h
->> +++ b/include/linux/mfd/twl6040.h
->> @@ -168,7 +168,7 @@
->>  #define TWL6040_VIBROCDET		0x20
->>  #define TWL6040_TSHUTDET                0x40
->>  
->> -#define TWL6040_CELLS			3
->> +#define TWL6040_CELLS			4
->>  
->>  #define TWL6040_REV_ES1_0		0x00
->>  #define TWL6040_REV_ES1_1		0x01 /* Rev ES1.1 and ES1.2 */
-> 
+The question is what would be the right practice for passing these parameters.
+As there is no kernel driver looking for this info and it is needed mainly 
+By user space, should we use something like the chosen node?
+If yes, would it be right to add a new chosen node entry, or just add additional
+Parameters to bootargs?
+Any other suggestion?
+
+Best Regards,
+Eyal Reizer
