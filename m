@@ -1,77 +1,84 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC PATCH 07/11] pci: controller: designware: Add EP mode
- support
-Date: Tue, 27 Sep 2016 16:58:28 +0530
-Message-ID: <57EA57DC.9030304@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [RFC PATCH 08/11] pci: controller: dra7xx: Add EP mode support
+Date: Tue, 27 Sep 2016 17:04:58 +0530
+Message-ID: <57EA5962.90700@ti.com>
 References: <1473829927-20466-1-git-send-email-kishon@ti.com>
- <1473829927-20466-8-git-send-email-kishon@ti.com>
- <20160923144141.GA24842@rob-hp-laptop>
+ <1473829927-20466-9-git-send-email-kishon@ti.com>
+ <20160923145259.GA28285@rob-hp-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160923144141.GA24842@rob-hp-laptop>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Jingoo Han <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, mingkai.hu-3arQi8VN3Tc@public.gmane.org, m-karicheri2-l0cyMroinI0@public.gmane.org, Pratyush Anand <pratyush.anand-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Joao Pinto <jpinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20160923145259.GA28285@rob-hp-laptop>
+Sender: linux-pci-owner@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Jingoo Han <jingoohan1@gmail.com>, hch@infradead.org, Joao.Pinto@synopsys.com, mingkai.hu@nxp.com, m-karicheri2@ti.com, Pratyush Anand <pratyush.anand@gmail.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Joao Pinto <jpinto@synopsys.com>, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-On Friday 23 September 2016 08:11 PM, Rob Herring wrote:
-> On Wed, Sep 14, 2016 at 10:42:03AM +0530, Kishon Vijay Abraham I wrote:
->> Add endpoint mode support to designware driver. This uses the
->> EP Core layer introduced recently to add endpoint mode support.
->> *Any* function driver can now use this designware device
->> to achieve the EP functionality.
+On Friday 23 September 2016 08:22 PM, Rob Herring wrote:
+> On Wed, Sep 14, 2016 at 10:42:04AM +0530, Kishon Vijay Abraham I wrote:
+>> The PCIe controller integrated in dra7xx SoCs is capable of operating
+>> in endpoint mode. Add support for dra7xx SoCs to operate in endpoint
+>> mode.
 >>
->> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 >> ---
->>  .../devicetree/bindings/pci/designware-pcie.txt    |   26 ++-
->>  drivers/pci/controller/Kconfig                     |    5 +
->>  drivers/pci/controller/Makefile                    |    1 +
->>  drivers/pci/controller/pcie-designware-ep.c        |  228 ++++++++++++++++++++
->>  drivers/pci/controller/pcie-designware.c           |   30 +++
->>  drivers/pci/controller/pcie-designware.h           |   45 ++++
->>  6 files changed, 324 insertions(+), 11 deletions(-)
->>  create mode 100644 drivers/pci/controller/pcie-designware-ep.c
+>>  Documentation/devicetree/bindings/pci/ti-pci.txt |   30 ++-
+>>  drivers/pci/controller/Kconfig                   |   21 +++
+>>  drivers/pci/controller/pci-dra7xx.c              |  211 +++++++++++++++++++---
+>>  3 files changed, 225 insertions(+), 37 deletions(-)
 >>
->> diff --git a/Documentation/devicetree/bindings/pci/designware-pcie.txt b/Documentation/devicetree/bindings/pci/designware-pcie.txt
->> index 6c5322c..bb0b789 100644
->> --- a/Documentation/devicetree/bindings/pci/designware-pcie.txt
->> +++ b/Documentation/devicetree/bindings/pci/designware-pcie.txt
->> @@ -6,23 +6,27 @@ Required properties:
->>  - reg-names: Must be "config" for the PCIe configuration space.
->>      (The old way of getting the configuration address space from "ranges"
->>      is deprecated and should be avoided.)
->> -- #address-cells: set to <3>
->> -- #size-cells: set to <2>
->> -- device_type: set to "pci"
->> -- ranges: ranges for the PCI memory and I/O regions
->> -- #interrupt-cells: set to <1>
->> -- interrupt-map-mask and interrupt-map: standard PCI properties
->> -	to define the mapping of the PCIe interface to interrupt
->> +- #address-cells (only for host mode): set to <3>
->> +- #size-cells (only for host mode): set to <2>
->> +- device_type (only for host mode): set to "pci"
->> +- ranges (only for host mode): ranges for the PCI memory and I/O regions
->> +- num-ib-windows (only for EP mode): number of inbound address translation
->> +	windows
->> +- num-ob-windows (only for EP mode): number of outbound address translation
->> +	windows
->> +- #interrupt-cells (only for host mode): set to <1>
->> +- interrupt-map-mask and interrupt-map (only for host mode): standard PCI
->> +	properties to define the mapping of the PCIe interface to interrupt
+>> diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
+>> index 60e2516..b0e76f6 100644
+>> --- a/Documentation/devicetree/bindings/pci/ti-pci.txt
+>> +++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
+>> @@ -1,17 +1,22 @@
+>>  TI PCI Controllers
+>>  
+>>  PCIe Designware Controller
+>> - - compatible: Should be "ti,dra7-pcie""
+>> - - reg : Two register ranges as listed in the reg-names property
+>> - - reg-names : The first entry must be "ti-conf" for the TI specific registers
+>> -	       The second entry must be "rc-dbics" for the designware pcie
+>> -	       registers
+>> -	       The third entry must be "config" for the PCIe configuration space
+>> + - compatible: Should be "ti,dra7-pcie" for RC
+>> +	       Should be "ti,dra7-pcie-ep" for EP
+>>   - phys : list of PHY specifiers (used by generic PHY framework)
+>>   - phy-names : must be "pcie-phy0", "pcie-phy1", "pcie-phyN".. based on the
+>>  	       number of PHYs as specified in *phys* property.
+>>   - ti,hwmods : Name of the hwmod associated to the pcie, "pcie<X>",
+>>  	       where <X> is the instance number of the pcie from the HW spec.
+>> + - num-lanes as specified in ../designware-pcie.txt
+>> +
+>> +HOST MODE
+>> +=========
+>> + - reg : Two register ranges as listed in the reg-names property
+>> + - reg-names : The first entry must be "ti-conf" for the TI specific registers
+>> +	       The second entry must be "rc-dbics" for the designware pcie
+>> +	       registers
+>> +	       The third entry must be "config" for the PCIe configuration space
+>>   - interrupts : Two interrupt entries must be specified. The first one is for
+>>  		main interrupt line and the second for MSI interrupt line.
+>>   - #address-cells,
+>> @@ -19,13 +24,24 @@ PCIe Designware Controller
+>>     #interrupt-cells,
+>>     device_type,
+>>     ranges,
+>> -   num-lanes,
+>>     interrupt-map-mask,
+>>     interrupt-map : as specified in ../designware-pcie.txt
+>>  
+>>  Optional Property:
+>>   - gpios : Should be added if a gpio line is required to drive PERST# line
 > 
-> It may be clearer to just document EP mode in a separate section even if 
-> there's some duplication of properties. Other standard PCI binding 
-> properties probably also don't apply.
+> Don't you need gpios as the input side of GPIO outputs in RC mode? Or 
+> for EP mode they are all handled by h/w?
 
-right, will change this accordingly.
+I couldn't find any mention of the gpios being used in EP mode. I'll check this
+again.
 
 Thanks
 Kishon
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
