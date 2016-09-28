@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: [PATCH v2 2/3] ARM: dts: omap5 uevm: add LEDs
-Date: Wed, 28 Sep 2016 20:08:19 +0200
-Message-ID: <319dacf1bf68c9bb9f3490dbf5e0caa58834acb2.1475086099.git.hns@goldelico.com>
+Subject: [PATCH v2 1/3] ARM: dts: omap5 uevm: add EEPROM
+Date: Wed, 28 Sep 2016 20:08:18 +0200
+Message-ID: <71e436e3587fa49517b22420c5a211389d43d178.1475086099.git.hns@goldelico.com>
 References: <cover.1475086099.git.hns@goldelico.com>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1475086099.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
@@ -14,80 +14,27 @@ List-Id: linux-omap@vger.kernel.org
 
 Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 ---
- arch/arm/boot/dts/omap5-uevm.dts | 60 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 60 insertions(+)
+ arch/arm/boot/dts/omap5-uevm.dts | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-index be659e8..149f75d 100644
+index 36ff7c3..be659e8 100644
 --- a/arch/arm/boot/dts/omap5-uevm.dts
 +++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -17,6 +17,66 @@
- 		device_type = "memory";
- 		reg = <0x80000000 0x7F000000>; /* 2032 MB */
- 	};
-+
-+	evm_leds {
-+		compatible = "gpio-leds";
-+
-+		led@1 {
-+			label = "omap5:red:led";
-+			gpios = <&gpio9 17 GPIO_ACTIVE_HIGH>;
-+			linux,default-trigger = "mmc0";
-+			default-state = "off";
-+		};
-+
-+		led@2 {
-+			label = "omap5:green:led";
-+			gpios = <&gpio9 18 GPIO_ACTIVE_HIGH>;
-+			linux,default-trigger = "mmc1";
-+			default-state = "off";
-+		};
-+
-+		led@3 {
-+			label = "omap5:blue:led";
-+			gpios = <&gpio9 19 GPIO_ACTIVE_HIGH>;
-+			linux,default-trigger = "mmc2";
-+			default-state = "off";
-+		};
-+
-+		led@4 {
-+			label = "omap5:green:led1";
-+			gpios = <&gpio9 2 GPIO_ACTIVE_HIGH>;
-+			linux,default-trigger = "heartbeat";
-+			default-state = "off";
-+		};
-+
-+		led@5 {
-+			label = "omap5:green:led2";
-+			gpios = <&gpio9 3 GPIO_ACTIVE_HIGH>;
-+			linux,default-trigger = "default-on";
-+			default-state = "off";
-+		};
-+
-+		led@6 {
-+			label = "omap5:green:led3";
-+			gpios = <&gpio9 4 GPIO_ACTIVE_HIGH>;
-+			linux,default-trigger = "heartbeat";
-+			default-state = "off";
-+		};
-+
-+		led@7 {
-+			label = "omap5:green:led4";
-+			gpios = <&gpio9 5 GPIO_ACTIVE_HIGH>;
-+			linux,default-trigger = "default-on";
-+			default-state = "off";
-+		};
-+
-+		led@8 {
-+			label = "omap5:green:led5";
-+			gpios = <&gpio9 6 GPIO_ACTIVE_HIGH>;
-+			linux,default-trigger = "heartbeat";
-+			default-state = "off";
-+		};
-+	};
+@@ -23,6 +23,13 @@
+ 	vdda-supply = <&ldo4_reg>;
  };
  
- &hdmi {
++&i2c1 {
++	eeprom@50 {
++		compatible = "atmel,24c02";
++		reg = <0x50>;
++	};
++};
++
+ &i2c5 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&i2c5_pins>;
 -- 
 2.7.3
 
