@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: [PATCH v2 1/3] ARM: dts: omap5 uevm: add EEPROM
-Date: Wed, 28 Sep 2016 20:08:18 +0200
-Message-ID: <71e436e3587fa49517b22420c5a211389d43d178.1475086099.git.hns@goldelico.com>
+Subject: [PATCH v2 3/3] ARM: dts: omap5 uevm: add USR1 button
+Date: Wed, 28 Sep 2016 20:08:20 +0200
+Message-ID: <8ea01db48e25a68bf7a2c99b6973f1a2b8ab6543.1475086099.git.hns@goldelico.com>
 References: <cover.1475086099.git.hns@goldelico.com>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1475086099.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
@@ -14,27 +14,52 @@ List-Id: linux-omap@vger.kernel.org
 
 Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 ---
- arch/arm/boot/dts/omap5-uevm.dts | 7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/arm/boot/dts/omap5-uevm.dts | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-index 36ff7c3..be659e8 100644
+index 149f75d..d4f22d8 100644
 --- a/arch/arm/boot/dts/omap5-uevm.dts
 +++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -23,6 +23,13 @@
- 	vdda-supply = <&ldo4_reg>;
+@@ -18,6 +18,25 @@
+ 		reg = <0x80000000 0x7F000000>; /* 2032 MB */
+ 	};
+ 
++	evm_keys {
++		compatible = "gpio-keys";
++
++		pinctrl-names = "default";
++		pinctrl-0 = <&evm_keys_pins>;
++
++		#address-cells = <7>;
++		#size-cells = <0>;
++
++		btn1 {
++			label = "BTN1";
++			linux,code = <169>;
++			gpios = <&gpio3 19 GPIO_ACTIVE_LOW>;	/* gpio3_83 */
++			gpio-key,wakeup;
++			autorepeat;
++			debounce_interval = <50>;
++		};
++	};
++
+ 	evm_leds {
+ 		compatible = "gpio-leds";
+ 
+@@ -105,6 +124,12 @@
  };
  
-+&i2c1 {
-+	eeprom@50 {
-+		compatible = "atmel,24c02";
-+		reg = <0x50>;
+ &omap5_pmx_core {
++	evm_keys_pins: pinmux_evm_keys_gpio_pins {
++		pinctrl-single,pins = <
++			OMAP5_IOPAD(0x0b6, PIN_INPUT | MUX_MODE6)	/* gpio3_83 */
++		>;
 +	};
-+};
 +
- &i2c5 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&i2c5_pins>;
+ 	i2c5_pins: pinmux_i2c5_pins {
+ 		pinctrl-single,pins = <
+ 			OMAP5_IOPAD(0x1c6, PIN_INPUT | MUX_MODE0)		/* i2c5_scl */
 -- 
 2.7.3
 
