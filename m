@@ -1,76 +1,63 @@
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: Re: [PATCHv2] usb: musb: Fix unbalanced platform_disable
-Date: Thu, 29 Sep 2016 12:38:17 +0300
-Message-ID: <3141427.tsfBWKPfxW@avalon>
-References: <20160912153947.k4gnggur6usyujii@atomide.com> <20160920183701.nxme7yxgc6jpmgio@atomide.com> <20160928184234.zoleas3mvpxso36r@atomide.com>
+From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 0/4] Add DMA support for ti_am335x_adc driver
+Date: Thu, 29 Sep 2016 18:31:30 +0530
+Message-ID: <ff19f584-e4e5-61ff-046d-68ec37ab51c2@ti.com>
+References: <20160921161134.6951-1-mugunthanvnm@ti.com>
+ <22588f2d-d0de-7911-35ed-92094f7dd28d@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160928184234.zoleas3mvpxso36r-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <22588f2d-d0de-7911-35ed-92094f7dd28d-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, "Andrew F . Davis" <afd-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
-
-On Wednesday 28 Sep 2016 11:42:35 Tony Lindgren wrote:
-> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [160920 11:37]:
-> > * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [160920 10:11]:
-> >> * Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [160919 23:36]:
-> >>> No, I perform the following steps:
-> >>> 
-> >>> - Connect the panda board to the USB through USB (which powers the
-> >>> board on) - Let the board boot over NFS
-> >>> - Log in as root, run 'reboot'
-> >>> 
-> >>> The second boot produces the warning.
-> >> 
-> >> Oh I was looking at the errors while shutting down things.. OK yeah I
-> >> get that too along with a bunch of DSS related warnings with your
-> >> .config. Probably I did not notice it earlier because of the DSS
-> >> warnings. Will take a look.
-> > 
-> > The patch below fixes the issue for me, care to give it a try?
-> > 
-> > If that works for you I'll repost with a proper patch description.
+On Sunday 25 September 2016 03:11 PM, Jonathan Cameron wrote:
+> On 21/09/16 17:11, Mugunthan V N wrote:
+>> > The ADC has a 64 work depth fifo length which holds the ADC data
+>> > till the CPU reads. So when a user program needs a large ADC data
+>> > to operate on, then it has to do multiple reads to get its
+>> > buffer. Currently if the application asks for 4 samples per
+>> > channel with all 8 channels are enabled, kernel can provide only
+>> > 3 samples per channel when all 8 channels are enabled (logs at
+>> > [1]). So with DMA support user can request for large number of
+>> > samples at a time (logs at [2]).
+>> > 
+>> > Tested the patch on AM437x-gp-evm and AM335x Boneblack with the
+>> > patch [3] to enable ADC and pushed a branch for testing [4]
+>> > 
+>> > [1] - http://pastebin.ubuntu.com/23211490/
+>> > [2] - http://pastebin.ubuntu.com/23211492/
+>> > [3] - http://pastebin.ubuntu.com/23211494/
+>> > [4] - git://git.ti.com/~mugunthanvnm/ti-linux-kernel/linux.git iio-dma
+> Just curious.  How fast is the ADC sampling at in these?  Never that
+> obvious for this driver!
 > 
-> Laurent, any news on when you may be able to test this one?
+> I'm also curious as to whether you started to hit the limits of the
+> kfifo based interface.  Might be worth considering adding alternative
+> support for the dma buffers interface which is obviously much lower
+> overhead.
+> 
+> Good to have this work prior to that as the kfifo stuff is somewhat
+> easier to use.
 
-I just did and your patch fixes the problem for me, thanks.
+Currently ADC clock is 3MHz, which can produce a data rate of 225KBps
+per channel with no open delay and no averaging of samples. So when all
+8 Channels are enables the data rate will be 1.75MBps
 
-Tested-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+ADC can be operated at 24MHz, which can generate a data rate of 28MBps
+with all 8 channels enabled and no open delay and averaging, but our
+target is to get 800K samples per second per channel which has a data
+rate of 12.5MBps
 
-> > 8< ------------------------
-> > diff --git a/drivers/usb/musb/musb_gadget.c
-> > b/drivers/usb/musb/musb_gadget.c --- a/drivers/usb/musb/musb_gadget.c
-> > +++ b/drivers/usb/musb/musb_gadget.c
-> > @@ -1255,6 +1255,7 @@ static int musb_gadget_queue(struct usb_ep *ep,
-> > struct usb_request *req,
-> >  	map_dma_buffer(request, musb, musb_ep);
-> > 
-> > +	pm_runtime_get_sync(musb->controller);
-> >  	spin_lock_irqsave(&musb->lock, lockflags);
-> >  	
-> >  	/* don't queue if the ep is down */
-> > @@ -1275,6 +1276,9 @@ static int musb_gadget_queue(struct usb_ep *ep,
-> > struct usb_request *req,> 
-> >  unlock:
-> >  	spin_unlock_irqrestore(&musb->lock, lockflags);
-> > 
-> > +	pm_runtime_mark_last_busy(musb->controller);
-> > +	pm_runtime_put_autosuspend(musb->controller);
-> > +
-> >  	return status;
-> >  }
+I think with this data rate, DMA will be the best option to implement
+without any data loss and less cpu overload to read the ADC samples.
 
--- 
-Regards,
-
-Laurent Pinchart
-
+Regards
+Mugunthan V N
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
