@@ -1,108 +1,50 @@
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: Re: [PATCH 1/2] usb: musb: Fix hardirq-safe hardirq-unsafe lock order error
-Date: Mon, 03 Oct 2016 12:51:33 +0300
-Message-ID: <2555156.tWcGPidzti@avalon>
-References: <20160930181010.3829-1-tony@atomide.com> <20160930181010.3829-2-tony@atomide.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [PATCH v2 0/4] Add DMA support for ti_am335x_adc driver
+Date: Mon, 3 Oct 2016 18:33:14 +0530
+Message-ID: <20161003130318.12591-1-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160930181010.3829-2-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-iio@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Lee Jones <lee.jones@linaro.org>, Vignesh R <vigneshr@ti.com>, "Andrew F . Davis" <afd@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, John Syne <john3909@gmail.com>, Mugunthan V N <mugunthanvnm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+The ADC has a 64 work depth fifo length which holds the ADC data
+till the CPU reads. So when a user program needs a large ADC data
+to operate on, then it has to do multiple reads to get its
+buffer. Currently if the application asks for 4 samples per
+channel with all 8 channels are enabled, kernel can provide only
+3 samples per channel when all 8 channels are enabled (logs at
+[1]). So with DMA support user can request for large number of
+samples at a time (logs at [2]).
 
-Thank you for the patch.
+Tested the patch on AM437x-gp-evm and AM335x Boneblack with the
+patch [3] to enable ADC and pushed a branch for testing [4]
 
-On Friday 30 Sep 2016 11:10:09 Tony Lindgren wrote:
-> If we configure musb with 2430 glue as a peripheral, and then rmmod
-> omap2430 module, we'll get the following error:
-> 
-> [ INFO: HARDIRQ-safe -> HARDIRQ-unsafe lock order detected ]
-> ...
-> rmmod/413 [HC0[0]:SC0[0]:HE0:SE1] is trying to acquire:
->  (&phy->mutex){+.+.+.}, at: [<c04b9fd0>] phy_power_off+0x1c/0xb8
-> [  204.678710]
->                and this task is already holding:
->  (&(&musb->lock)->rlock){-.-...}, at: [<bf3a482c>]
->  musb_gadget_stop+0x24/0xec [musb_hdrc]
-> which would create a new lock dependency:
->  (&(&musb->lock)->rlock){-.-...} -> (&phy->mutex){+.+.+.}
-> ...
-> 
-> This is because some glue layers expect musb_platform_enable/disable
-> to be called with spinlock held, and 2430 glue layer has USB PHY on
-> the I2C bus using a mutex.
-> 
-> We could fix the glue layers to take the spinlock, but we still have
-> a problem of musb_plaform_enable/disable being called in an unbalanced
-> manner. So that would still lead into USB PHY enable/disable related
-> problems for omap2430 glue layer.
-> 
-> While it makes sense to only enable USB PHY when needed from PM point
-> of view, in this case we just can't do it yet without breaking things.
-> So let's just revert phy_enable/disable related changes instead and
-> reconsider this after we have fixed musb_platform_enable/disable to
-> be balanced.
-> 
-> Fixes: a83e17d0f73b ("usb: musb: Improve PM runtime and phy handling
-> for 2430 glue layer")
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Changes from Initial version:
+* Changed DMA api from dma_request_slave_channel_compat() to
+  dma_request_chan()
+* Changed variable names to have more clear information as per
+  comments from Peter.
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+[1] - http://pastebin.ubuntu.com/23211490/
+[2] - http://pastebin.ubuntu.com/23269792/
+[3] - http://pastebin.ubuntu.com/23211494/
+[4] - git://git.ti.com/~mugunthanvnm/ti-linux-kernel/linux.git iio-dma-v2
 
-> ---
->  drivers/usb/musb/omap2430.c | 7 ++-----
->  1 file changed, 2 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> --- a/drivers/usb/musb/omap2430.c
-> +++ b/drivers/usb/musb/omap2430.c
-> @@ -287,6 +287,7 @@ static int omap2430_musb_init(struct musb *musb)
->  	}
->  	musb->isr = omap2430_musb_interrupt;
->  	phy_init(musb->phy);
-> +	phy_power_on(musb->phy);
-> 
->  	l = musb_readl(musb->mregs, OTG_INTERFSEL);
-> 
-> @@ -323,8 +324,6 @@ static void omap2430_musb_enable(struct musb *musb)
->  	struct musb_hdrc_platform_data *pdata = dev_get_platdata(dev);
->  	struct omap_musb_board_data *data = pdata->board_data;
-> 
-> -	if (!WARN_ON(!musb->phy))
-> -		phy_power_on(musb->phy);
-> 
->  	switch (glue->status) {
-> 
-> @@ -361,9 +360,6 @@ static void omap2430_musb_disable(struct musb *musb)
->  	struct device *dev = musb->controller;
->  	struct omap2430_glue *glue = dev_get_drvdata(dev->parent);
-> 
-> -	if (!WARN_ON(!musb->phy))
-> -		phy_power_off(musb->phy);
-> -
->  	if (glue->status != MUSB_UNKNOWN)
->  		omap_control_usb_set_mode(glue->control_otghs,
->  			USB_MODE_DISCONNECT);
-> @@ -375,6 +371,7 @@ static int omap2430_musb_exit(struct musb *musb)
->  	struct omap2430_glue *glue = dev_get_drvdata(dev->parent);
-> 
->  	omap2430_low_level_exit(musb);
-> +	phy_power_off(musb->phy);
->  	phy_exit(musb->phy);
->  	musb->phy = NULL;
->  	cancel_work_sync(&glue->omap_musb_mailbox_work);
+Mugunthan V N (4):
+  mfd: ti_am335x_tscadc: store physical address
+  drivers: iio: ti_am335x_adc: add dma support
+  ARM: dts: am33xx: add DMA properties for tscadc
+  ARM: dts: am4372: add DMA properties for tscadc
+
+ arch/arm/boot/dts/am33xx.dtsi        |   2 +
+ arch/arm/boot/dts/am4372.dtsi        |   2 +
+ drivers/iio/adc/ti_am335x_adc.c      | 145 ++++++++++++++++++++++++++++++++++-
+ drivers/mfd/ti_am335x_tscadc.c       |   1 +
+ include/linux/mfd/ti_am335x_tscadc.h |   8 ++
+ 5 files changed, 155 insertions(+), 3 deletions(-)
 
 -- 
-Regards,
-
-Laurent Pinchart
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.10.0.372.g6fe1b14
