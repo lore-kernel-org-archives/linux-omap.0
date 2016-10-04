@@ -1,72 +1,33 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [net-next PATCH] drivers: net: cpsw-phy-sel: add support to configure rgmii internal delay
-Date: Tue, 4 Oct 2016 19:07:29 +0530
-Message-ID: <20161004133729.12564-1-mugunthanvnm@ti.com>
+From: Theodore Ts'o <tytso@mit.edu>
+Subject: Re: Regression in next with ext4 oops
+Date: Tue, 4 Oct 2016 10:02:31 -0400
+Message-ID: <20161004140231.fyfrc6rs2lb6z63v@thunk.org>
+References: <20161003233054.eltv3coiweht3ui4@atomide.com>
+ <20161004090041.GE17515@quack2.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, "David S . Miller" <davem@davemloft.net>, Mugunthan V N <mugunthanvnm@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20161004090041.GE17515@quack2.suse.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jan Kara <jack@suse.cz>
+Cc: Tony Lindgren <tony@atomide.com>, Eric Biggers <ebiggers@google.com>, Andreas Dilger <adilger@dilger.ca>, Jaegeuk Kim <jaegeuk@kernel.org>, linux-ext4@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Al Viro <viro@ZenIV.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-Add support to enable CPSW RGMII internal delay (id mode) bits
-when rgmii internal delay is configured in phy.
+On Tue, Oct 04, 2016 at 11:00:41AM +0200, Jan Kara wrote:
+> Never seen this but I suspect it is a fallout from Al's directory locking
+> changes. In particular ext4_htree_fill_tree() builds rb-tree of found
+> directory entries in file->private_data (and generally modifies the
+> structure stored there) but after Al's changes we don't have exclusive
+> access to struct file if I'm right so if two processes end up calling
+> getdents() for the same 'struct file' we are doomed.
 
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
----
- drivers/net/ethernet/ti/cpsw-phy-sel.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+I haven't seen it either, and I've been doing a lot of testing on the
+ext4 test branch.  So I'm guessing Tony has the only reliable repro
+for the problem at the moment.  That being said, it shouldn't be that
+hard to create a test case for this and add it to xfstests.
 
-diff --git a/drivers/net/ethernet/ti/cpsw-phy-sel.c b/drivers/net/ethernet/ti/cpsw-phy-sel.c
-index c3e85ac..054a8dd 100644
---- a/drivers/net/ethernet/ti/cpsw-phy-sel.c
-+++ b/drivers/net/ethernet/ti/cpsw-phy-sel.c
-@@ -30,6 +30,8 @@
- 
- #define AM33XX_GMII_SEL_RMII2_IO_CLK_EN	BIT(7)
- #define AM33XX_GMII_SEL_RMII1_IO_CLK_EN	BIT(6)
-+#define AM33XX_GMII_SEL_RGMII2_IDMODE	BIT(5)
-+#define AM33XX_GMII_SEL_RGMII1_IDMODE	BIT(4)
- 
- #define GMII_SEL_MODE_MASK		0x3
- 
-@@ -48,6 +50,7 @@ static void cpsw_gmii_sel_am3352(struct cpsw_phy_sel_priv *priv,
- 	u32 reg;
- 	u32 mask;
- 	u32 mode = 0;
-+	bool rgmii_id = false;
- 
- 	reg = readl(priv->gmii_sel);
- 
-@@ -57,10 +60,14 @@ static void cpsw_gmii_sel_am3352(struct cpsw_phy_sel_priv *priv,
- 		break;
- 
- 	case PHY_INTERFACE_MODE_RGMII:
-+		mode = AM33XX_GMII_SEL_MODE_RGMII;
-+		break;
-+
- 	case PHY_INTERFACE_MODE_RGMII_ID:
- 	case PHY_INTERFACE_MODE_RGMII_RXID:
- 	case PHY_INTERFACE_MODE_RGMII_TXID:
- 		mode = AM33XX_GMII_SEL_MODE_RGMII;
-+		rgmii_id = true;
- 		break;
- 
- 	default:
-@@ -83,6 +90,13 @@ static void cpsw_gmii_sel_am3352(struct cpsw_phy_sel_priv *priv,
- 			mode |= AM33XX_GMII_SEL_RMII2_IO_CLK_EN;
- 	}
- 
-+	if (rgmii_id) {
-+		if (slave == 0)
-+			mode |= AM33XX_GMII_SEL_RGMII1_IDMODE;
-+		else
-+			mode |= AM33XX_GMII_SEL_RGMII2_IDMODE;
-+	}
-+
- 	reg &= ~mask;
- 	reg |= mode;
- 
--- 
-2.10.0.372.g6fe1b14
+I'm pretty sure Jan is right about this, though, but it would be great
+to a get a quick confirmation from Tony if at all possible.
+
+     	   	 	      	   	- Ted
