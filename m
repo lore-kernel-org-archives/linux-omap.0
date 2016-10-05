@@ -1,61 +1,32 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: [PATCH V2] OMAPDSS: Kconfig: Add HDMI for OMAP4 and OMAP5 dependencies
-Date: Tue,  4 Oct 2016 21:07:59 -0500
-Message-ID: <1475633279-32424-1-git-send-email-aford173@gmail.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH v2 2/4] net: phy: dp83867: add support for MAC impedance
+ configuration
+Date: Wed, 5 Oct 2016 08:58:27 +0530
+Message-ID: <20264692-6a13-58c0-c262-f631af8f355e@ti.com>
+References: <20161004125607.10569-1-mugunthanvnm@ti.com>
+ <20161004125607.10569-3-mugunthanvnm@ti.com> <20161004131032.GL11677@lunn.ch>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161004131032.GL11677@lunn.ch>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tomi.valkeinen@ti.com, airlied@linux.ie, plagnioj@jcrosoft.com, airlied@gmail.com, robdclark@gmail.com, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org, Adam Ford <aford173@gmail.com>
+To: Andrew Lunn <andrew@lunn.ch>
+Cc: netdev@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Florian Fainelli <f.fainelli@gmail.com>, David Miller <davem@davemloft.net>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Make "HDMI for OMAP4" and "HDMI for OMAP5" depend on ARCH_OMAP4
-and SOC_OMAP5/DRA7XX respectively.
+On Tuesday 04 October 2016 06:40 PM, Andrew Lunn wrote:
+>> +	if (of_property_read_bool(of_node, "ti,max-output-imepdance"))
+>> +		dp83867->io_impedance = DP83867_IO_MUX_CFG_IO_IMPEDANCE_MAX;
+>> +	else if (of_property_read_bool(of_node, "ti,min-output-imepdance"))
+> 
+> Did you really test this? Or did you make the same typos in your device
+> tree file?
+> 
 
-Signed-off-by: Adam Ford <aford173@gmail.com>
+I have tested this and attached the log in cover letter. Since there is
+a typo error on both dts and driver it worked as expected. Will send a
+v3 ASAP.
 
-Changes in v2: Add dependancy for DRA7XX or OMAP5
-
-diff --git a/drivers/gpu/drm/omapdrm/dss/Kconfig b/drivers/gpu/drm/omapdrm/dss/Kconfig
-index d1fa730..befdd7a 100644
---- a/drivers/gpu/drm/omapdrm/dss/Kconfig
-+++ b/drivers/gpu/drm/omapdrm/dss/Kconfig
-@@ -69,13 +69,15 @@ config OMAP2_DSS_HDMI_COMMON
- 
- config OMAP4_DSS_HDMI
- 	bool "HDMI support for OMAP4"
--        default y
-+	depends on ARCH_OMAP4
-+	default y
- 	select OMAP2_DSS_HDMI_COMMON
- 	help
- 	  HDMI support for OMAP4 based SoCs.
- 
- config OMAP5_DSS_HDMI
- 	bool "HDMI support for OMAP5"
-+	depends on SOC_OMAP5 || SOC_DRA7XX
- 	default n
- 	select OMAP2_DSS_HDMI_COMMON
- 	help
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/Kconfig b/drivers/video/fbdev/omap2/omapfb/dss/Kconfig
-index 27d2202..19e2e7b 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/Kconfig
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/Kconfig
-@@ -65,13 +65,15 @@ config FB_OMAP2_DSS_HDMI_COMMON
- 
- config FB_OMAP4_DSS_HDMI
- 	bool "HDMI support for OMAP4"
--        default y
-+	depends on ARCH_OMAP4
-+	default y
- 	select FB_OMAP2_DSS_HDMI_COMMON
- 	help
- 	  HDMI support for OMAP4 based SoCs.
- 
- config FB_OMAP5_DSS_HDMI
- 	bool "HDMI support for OMAP5"
-+	depends on SOC_OMAP5 || SOC_DRA7XX
- 	default n
- 	select FB_OMAP2_DSS_HDMI_COMMON
- 	help
--- 
-2.7.4
+Regards
+Mugunthan V N
