@@ -1,48 +1,31 @@
-From: Kalle Valo <kvalo@codeaurora.org>
-Subject: Re: Regression in next with ext4 oops
-Date: Wed, 05 Oct 2016 12:51:52 +0300
-Message-ID: <8737kbp1hj.fsf@kamboji.qca.qualcomm.com>
-References: <20161003233054.eltv3coiweht3ui4@atomide.com>
-        <20161004090041.GE17515@quack2.suse.cz>
-        <20161004140231.fyfrc6rs2lb6z63v@thunk.org>
-        <20161004145915.GZ19539@ZenIV.linux.org.uk>
-        <20161004191633.muirbg7mvb3ylhhl@atomide.com>
-        <20161004192908.sl6iabbgkyyrdhes@atomide.com>
-        <87fuobq4v1.fsf@kamboji.qca.qualcomm.com>
-        <20161004203404.cxx767awxo7ti4v7@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: PROBLEM: am3517 usb-ohci not working
+Date: Wed, 5 Oct 2016 07:10:51 -0700
+Message-ID: <20161005141051.ywtf6ebakhhvrmst@atomide.com>
+References: <CALX2uoP-RN6SmEDOVcaBpJv+4kD2dY_iqxGjZu-5JFxdRAVfjA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161004203404.cxx767awxo7ti4v7@atomide.com> (Tony Lindgren's
-        message of "Tue, 4 Oct 2016 13:34:04 -0700")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Jan Kara <jack@suse.cz>, Eric Biggers <ebiggers@google.com>, Andreas Dilger <adilger@dilger.ca>, Jaegeuk Kim <jaegeuk@kernel.org>, linux-ext4@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CALX2uoP-RN6SmEDOVcaBpJv+4kD2dY_iqxGjZu-5JFxdRAVfjA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?utf-8?B?xYF1a2FzeiBQdcWCa2E=?= <lukasz-u2dlg1C4t1k@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Tony Lindgren <tony@atomide.com> writes:
+* Łukasz Pułka <lukasz-u2dlg1C4t1k@public.gmane.org> [161004 23:36]:
+> 
+> Can you point me what else should I check to make USB HS working in ohci mode?
 
-> * Kalle Valo <kvalo@codeaurora.org> [161004 12:42]:
->> Tony Lindgren <tony@atomide.com> writes:
->> 
->> > And the patch below seems to fix the issue as the driver is now
->> > using devm_kzalloc. Will do some more testing and then will post
->> > a proper patch. The same issue might be there for SPI glue also.
->> 
->> This was already posted and you even acked it :)
->> 
->> wlcore: sdio: drop kfree for memory allocated with devm_kzalloc
->> 
->> https://patchwork.kernel.org/patch/9353985/
->
-> Heh well now we know :) Can you please apply it as it fixes a memory
-> corruption issue?
+Sounds like you're pretty close, in addition to the
+pin muxing and PHY configuration, check also that you
+have proper VBUS coming to the ports.
 
-Yeah, I'll apply it to wireless-drivers.git soon.
+Regards,
 
-> The SPI glue does not have this same issue.
-
-Good to know, thanks for checking.
-
--- 
-Kalle Valo
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
