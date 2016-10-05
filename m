@@ -1,46 +1,60 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH v2 3/4] ARM: dts: dra72-evm-revc: fix correct phy delay
- and impedance settings
-Date: Wed, 5 Oct 2016 08:59:14 +0530
-Message-ID: <c454c5d8-e5d6-28f4-a02d-3ce0bc05d986@ti.com>
-References: <20161004125607.10569-1-mugunthanvnm@ti.com>
- <20161004125607.10569-4-mugunthanvnm@ti.com>
- <a4ef7fc1-73f7-7136-0d60-6ce8a8ff33b9@ti.com>
+From: Jan Kara <jack@suse.cz>
+Subject: Re: Regression in next with ext4 oops
+Date: Wed, 5 Oct 2016 07:44:45 +0200
+Message-ID: <20161005054445.GA20752@quack2.suse.cz>
+References: <20161003233054.eltv3coiweht3ui4@atomide.com>
+ <20161004090041.GE17515@quack2.suse.cz>
+ <20161004145639.GY19539@ZenIV.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <a4ef7fc1-73f7-7136-0d60-6ce8a8ff33b9@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>, netdev@vger.kernel.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Florian Fainelli <f.fainelli@gmail.com>, David Miller <davem@davemloft.net>, Sekhar Nori <nsekhar@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20161004145639.GY19539@ZenIV.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Jan Kara <jack@suse.cz>, Tony Lindgren <tony@atomide.com>, Eric Biggers <ebiggers@google.com>, Theodore Ts'o <tytso@mit.edu>, Andreas Dilger <adilger@dilger.ca>, Jaegeuk Kim <jaegeuk@kernel.org>, linux-ext4@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 04 October 2016 06:41 PM, Lokesh Vutla wrote:
+On Tue 04-10-16 15:56:39, Al Viro wrote:
+> On Tue, Oct 04, 2016 at 11:00:41AM +0200, Jan Kara wrote:
+> > Hi!
+> > 
+> > On Mon 03-10-16 16:30:55, Tony Lindgren wrote:
+> > > I'm seeing a repeatable oops with Linux next while running
+> > > update-initramfs, see below. I tried reverting commit 59aa5a3aeead
+> > > ("fscrypto: make filename crypto functions return 0 on success")
+> > > as that's the only commit changing ext4_htree_store_dirent, but
+> > > that did not help.
+> > > 
+> > > Anybody else seeing something like this?
+> > 
+> > Never seen this but I suspect it is a fallout from Al's directory locking
+> > changes. In particular ext4_htree_fill_tree() builds rb-tree of found
+> > directory entries in file->private_data (and generally modifies the
+> > structure stored there) but after Al's changes we don't have exclusive
+> > access to struct file if I'm right so if two processes end up calling
+> > getdents() for the same 'struct file' we are doomed.
 > 
-> On Tuesday 04 October 2016 06:26 PM, Mugunthan V N wrote:
->> > The default impedance settings of the phy is not the optimal
->> > value, due to this the second ethernet is not working. Fix it
->> > with correct values which makes the second ethernet port to work.
->> > 
->> > Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
->> > ---
->> >  arch/arm/boot/dts/dra72-evm-revc.dts | 2 ++
->> >  1 file changed, 2 insertions(+)
->> > 
->> > diff --git a/arch/arm/boot/dts/dra72-evm-revc.dts b/arch/arm/boot/dts/dra72-evm-revc.dts
->> > index f9cfd3b..d626cd7 100644
->> > --- a/arch/arm/boot/dts/dra72-evm-revc.dts
->> > +++ b/arch/arm/boot/dts/dra72-evm-revc.dts
->> > @@ -62,6 +62,7 @@
->> >  		ti,rx-internal-delay = <DP83867_RGMIIDCTL_2_00_NS>;
->> >  		ti,tx-internal-delay = <DP83867_RGMIIDCTL_1_NS>;
->> >  		ti,fifo-depth = <DP83867_PHYCR_FIFO_DEPTH_8_B_NIB>;
->> > +		ti,min-output-imepdance;
-> s/imepdance/impedance
-> 
+> RTFS.  We sure as hell *do* have exclusive access to struct file.  See
+>         /* POSIX.1-2008/SUSv4 Section XSI 2.9.7 */
+>         if (S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode))
+>                 f->f_mode |= FMODE_ATOMIC_POS;
+> in do_dentry_open() as well as
+>         if (file && (file->f_mode & FMODE_ATOMIC_POS)) {
+>                 if (file_count(file) > 1) {
+>                         v |= FDPUT_POS_UNLOCK;
+>                         mutex_lock(&file->f_pos_lock);
+>                 }
+>         }
+> in __fdget_pos() and
+>         f = fdget_pos(fd);
+>         if (!f.file)
+>                 return -EBADF;
+> in getdents(2).
 
-Thanks for quick catch. Will fix this in v3.
+Yeah, sorry. I've misunderstood how the FMODE_ATOMIC_POS thing works...
 
-Regards
-Mugunthan V N
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
