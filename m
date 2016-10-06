@@ -1,58 +1,120 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: v4.8: working bluetooth support
-Date: Thu, 6 Oct 2016 13:05:58 +0200
-Message-ID: <20161006110557.GA20968@amd>
-References: <20161006100300.GA17524@amd>
- <20161006100927.GD27254@pali>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 3/7] mfd: db8500-prcmu: Remove unused *prcmu_set_ddr_opp() calls
+Date: Thu, 6 Oct 2016 22:35:12 +0200
+Message-ID: <CAPDyKFoVUFGtDkH8HhV1epvB1oMm2Zp7DR8XcF3-vZS-6BdrZA@mail.gmail.com>
+References: <20160915104521.14286-1-lee.jones@linaro.org> <20160915104521.14286-4-lee.jones@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="SLDf9lqlvOQaIe6s"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161006100927.GD27254@pali>
+In-Reply-To: <20160915104521.14286-4-lee.jones@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+On 15 September 2016 at 12:45, Lee Jones <lee.jones@linaro.org> wrote:
+> There are no call sites for these functions.  Strip them out.
+>
+> Signed-off-by: Lee Jones <lee.jones@linaro.org>
+> ---
+>  drivers/mfd/db8500-prcmu.c       | 19 -------------------
+>  include/linux/mfd/db8500-prcmu.h |  6 ------
+>  include/linux/mfd/dbx500-prcmu.h |  9 ---------
+>  3 files changed, 34 deletions(-)
+>
+> diff --git a/drivers/mfd/db8500-prcmu.c b/drivers/mfd/db8500-prcmu.c
+> index 388e268..ca38a6a 100644
+> --- a/drivers/mfd/db8500-prcmu.c
+> +++ b/drivers/mfd/db8500-prcmu.c
+> @@ -938,25 +938,6 @@ int db8500_prcmu_get_ddr_opp(void)
+>         return readb(PRCM_DDR_SUBSYS_APE_MINBW);
+>  }
+>
+> -/**
+> - * db8500_set_ddr_opp - set the appropriate DDR OPP
+> - * @opp: The new DDR operating point to which transition is to be made
+> - * Returns: 0 on success, non-zero on failure
+> - *
+> - * This function sets the operating point of the DDR.
+> - */
+> -static bool enable_set_ddr_opp;
+> -int db8500_prcmu_set_ddr_opp(u8 opp)
+> -{
+> -       if (opp < DDR_100_OPP || opp > DDR_25_OPP)
+> -               return -EINVAL;
+> -       /* Changing the DDR OPP can hang the hardware pre-v21 */
+> -       if (enable_set_ddr_opp)
+> -               writeb(opp, PRCM_DDR_SUBSYS_APE_MINBW);
+> -
+> -       return 0;
+> -}
+> -
 
---SLDf9lqlvOQaIe6s
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This function was actually used in the vendor tree to deal with DVFS,
+implemented a system wide PM QoS thing.
+I guess those hacks never made it upstream. :-)
 
-On Thu 2016-10-06 12:09:27, Pali Roh=E1r wrote:
-> On Thursday 06 October 2016 12:03:00 Pavel Machek wrote:
-> > Hi!
-> >=20
-> > I got bluetooth to work in useful configuration (on n900). Perhaps it
-> > is useful for Sebastian?
->=20
-> Hi! Is still bluetooth driver bases on Sebastian's one? Or older
-> versions which were removed from staging?
+>  /* Divide the frequency of certain clocks by 2 for APE_50_PARTLY_25_OPP. */
+>  static void request_even_slower_clocks(bool enable)
+>  {
+> diff --git a/include/linux/mfd/db8500-prcmu.h b/include/linux/mfd/db8500-prcmu.h
+> index 0bd6944..7ba67b5 100644
+> --- a/include/linux/mfd/db8500-prcmu.h
+> +++ b/include/linux/mfd/db8500-prcmu.h
+> @@ -538,7 +538,6 @@ int db8500_prcmu_get_arm_opp(void);
+>  int db8500_prcmu_set_ape_opp(u8 opp);
+>  int db8500_prcmu_get_ape_opp(void);
+>  int db8500_prcmu_request_ape_opp_100_voltage(bool enable);
+> -int db8500_prcmu_set_ddr_opp(u8 opp);
+>  int db8500_prcmu_get_ddr_opp(void);
+>
+>  u32 db8500_prcmu_read(unsigned int reg);
+> @@ -594,11 +593,6 @@ static inline int prcmu_release_usb_wakeup_state(void)
+>         return 0;
+>  }
+>
+> -static inline int db8500_prcmu_set_ddr_opp(u8 opp)
+> -{
+> -       return 0;
+> -}
+> -
+>  static inline int db8500_prcmu_get_ddr_opp(void)
+>  {
+>         return DDR_100_OPP;
+> diff --git a/include/linux/mfd/dbx500-prcmu.h b/include/linux/mfd/dbx500-prcmu.h
+> index 5d37460..2e2c6a6 100644
+> --- a/include/linux/mfd/dbx500-prcmu.h
+> +++ b/include/linux/mfd/dbx500-prcmu.h
+> @@ -269,10 +269,6 @@ unsigned long prcmu_clock_rate(u8 clock);
+>  long prcmu_round_clock_rate(u8 clock, unsigned long rate);
+>  int prcmu_set_clock_rate(u8 clock, unsigned long rate);
+>
+> -static inline int prcmu_set_ddr_opp(u8 opp)
+> -{
+> -       return db8500_prcmu_set_ddr_opp(opp);
+> -}
+>  static inline int prcmu_get_ddr_opp(void)
+>  {
+>         return db8500_prcmu_get_ddr_opp();
+> @@ -489,11 +485,6 @@ static inline int prcmu_get_arm_opp(void)
+>         return ARM_100_OPP;
+>  }
+>
+> -static inline int prcmu_set_ddr_opp(u8 opp)
+> -{
+> -       return 0;
+> -}
+> -
+>  static inline int prcmu_get_ddr_opp(void)
+>  {
+>         return DDR_100_OPP;
+> --
+> 2.9.3
+>
 
-Older versions.
+If not too late:
 
-I believe the plan is to wait for Sebastian's version to land in
-mainline, then try to addapt it. But if you have time and want to
-play... :-).
-									Pavel
+Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---SLDf9lqlvOQaIe6s
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlf2MBUACgkQMOfwapXb+vLI3gCguLRVyNO9RoNmjIM5uvID6ck9
-gXcAnjCePmdkCHJg5OyINyFpfyAUKNn6
-=yEW8
------END PGP SIGNATURE-----
-
---SLDf9lqlvOQaIe6s--
+Kind regards
+Uffe
