@@ -1,7 +1,7 @@
 From: "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 5/7] ARM: dts: am437x-idk: Add Industrial output support
-Date: Fri, 7 Oct 2016 09:44:26 -0500
-Message-ID: <20161007144428.16671-5-afd@ti.com>
+Subject: [PATCH 2/7] ARM: dts: am335x-icev2: Disable Industrial I/O LEDs and fix naming
+Date: Fri, 7 Oct 2016 09:44:23 -0500
+Message-ID: <20161007144428.16671-2-afd@ti.com>
 References: <20161007144428.16671-1-afd@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,92 +12,83 @@ To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gm
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Andrew F . Davis" <afd-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The TPIC2810 is available on the AM437x IDK and is attached to I2C1.
-Output is attached to the I/O header and 10 LEDs.
+The LEDs tied to the Industrial I/O output pins are meant for providing
+status feed-back and are not the primary use for the pins. Disable
+this use by default. Also unify the LED naming across IDK platforms.
 
 Signed-off-by: Andrew F. Davis <afd-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/am437x-idk-evm.dts | 59 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 59 insertions(+)
+ arch/arm/boot/dts/am335x-icev2.dts | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am437x-idk-evm.dts b/arch/arm/boot/dts/am437x-idk-evm.dts
-index fff7ef6..b76a7c0 100644
---- a/arch/arm/boot/dts/am437x-idk-evm.dts
-+++ b/arch/arm/boot/dts/am437x-idk-evm.dts
-@@ -117,6 +117,58 @@
- 		compatible = "fixed-clock";
- 		clock-frequency = <32768>;
+diff --git a/arch/arm/boot/dts/am335x-icev2.dts b/arch/arm/boot/dts/am335x-icev2.dts
+index d46efc6..fa3f5dc 100644
+--- a/arch/arm/boot/dts/am335x-icev2.dts
++++ b/arch/arm/boot/dts/am335x-icev2.dts
+@@ -43,52 +43,52 @@
+ 		enable-active-high;
  	};
-+
+ 
+-	leds0 {
 +	leds-iio {
 +		status = "disabled";
-+		compatible = "gpio-leds";
+ 		compatible = "gpio-leds";
+-
+-		led0 {
 +		led-out0 {
-+			label = "out0";
-+			gpios = <&tpic2810 0 GPIO_ACTIVE_HIGH>;
-+			default-state = "off";
-+		};
-+
+ 			label = "out0";
+ 			gpios = <&tpic2810 0 GPIO_ACTIVE_HIGH>;
+ 			default-state = "off";
+ 		};
+ 
+-		led1 {
 +		led-out1 {
-+			label = "out1";
-+			gpios = <&tpic2810 1 GPIO_ACTIVE_HIGH>;
-+			default-state = "off";
-+		};
-+
+ 			label = "out1";
+ 			gpios = <&tpic2810 1 GPIO_ACTIVE_HIGH>;
+ 			default-state = "off";
+ 		};
+ 
+-		led2 {
 +		led-out2 {
-+			label = "out2";
-+			gpios = <&tpic2810 2 GPIO_ACTIVE_HIGH>;
-+			default-state = "off";
-+		};
-+
+ 			label = "out2";
+ 			gpios = <&tpic2810 2 GPIO_ACTIVE_HIGH>;
+ 			default-state = "off";
+ 		};
+ 
+-		led3 {
 +		led-out3 {
-+			label = "out3";
-+			gpios = <&tpic2810 3 GPIO_ACTIVE_HIGH>;
-+			default-state = "off";
-+		};
-+
+ 			label = "out3";
+ 			gpios = <&tpic2810 3 GPIO_ACTIVE_HIGH>;
+ 			default-state = "off";
+ 		};
+ 
+-		led4 {
 +		led-out4 {
-+			label = "out4";
-+			gpios = <&tpic2810 4 GPIO_ACTIVE_HIGH>;
-+			default-state = "off";
-+		};
-+
+ 			label = "out4";
+ 			gpios = <&tpic2810 4 GPIO_ACTIVE_HIGH>;
+ 			default-state = "off";
+ 		};
+ 
+-		led5 {
 +		led-out5 {
-+			label = "out5";
-+			gpios = <&tpic2810 5 GPIO_ACTIVE_HIGH>;
-+			default-state = "off";
-+		};
-+
+ 			label = "out5";
+ 			gpios = <&tpic2810 5 GPIO_ACTIVE_HIGH>;
+ 			default-state = "off";
+ 		};
+ 
+-		led6 {
 +		led-out6 {
-+			label = "out6";
-+			gpios = <&tpic2810 6 GPIO_ACTIVE_HIGH>;
-+			default-state = "off";
-+		};
-+
+ 			label = "out6";
+ 			gpios = <&tpic2810 6 GPIO_ACTIVE_HIGH>;
+ 			default-state = "off";
+ 		};
+ 
+-		led7 {
 +		led-out7 {
-+			label = "out7";
-+			gpios = <&tpic2810 7 GPIO_ACTIVE_HIGH>;
-+			default-state = "off";
-+		};
-+	};
- };
- 
- &am43xx_pinmux {
-@@ -308,6 +360,13 @@
- 	pinctrl-0 = <&i2c2_pins_default>;
- 	pinctrl-1 = <&i2c2_pins_sleep>;
- 	clock-frequency = <100000>;
-+
-+	tpic2810: tpic2810@60 {
-+		compatible = "ti,tpic2810";
-+		reg = <0x60>;
-+		gpio-controller;
-+		#gpio-cells = <2>;
-+	};
- };
- 
- &spi1 {
+ 			label = "out7";
+ 			gpios = <&tpic2810 7 GPIO_ACTIVE_HIGH>;
+ 			default-state = "off";
 -- 
 2.10.0
 
