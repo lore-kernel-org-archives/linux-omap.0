@@ -1,8 +1,7 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH 2/9] PCI: dra7xx: Name private struct pointer "dra7xx"
- consistently
-Date: Fri, 07 Oct 2016 11:33:59 -0500
-Message-ID: <20161007163359.24926.11223.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+Subject: [PATCH 9/9] PCI: dra7xx: Set drvdata at end of probe function
+Date: Fri, 07 Oct 2016 11:35:09 -0500
+Message-ID: <20161007163509.24926.22244.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 References: <20161007163350.24926.17545.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,35 +13,31 @@ To: Kishon Vijay Abraham I <kishon@ti.com>
 Cc: linux-pci@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Use a device-specific name, "dra7xx", for struct dra7xx_pcie pointers
-to hint that this is device-specific information.  No functional change
+Set the drvdata pointer at the end of probe function for consistency with
+other drivers.  We don't need the drvdata until after the probe completes,
+and we don't need it at all if the probe fails.  No functional change
 intended.
 
 Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/pci/host/pci-dra7xx.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/pci/host/pci-dra7xx.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-index 765f48b..3248b32 100644
+index b0d427c..3976b61 100644
 --- a/drivers/pci/host/pci-dra7xx.c
 +++ b/drivers/pci/host/pci-dra7xx.c
-@@ -73,14 +73,14 @@ struct dra7xx_pcie {
+@@ -408,12 +408,11 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ 	reg &= ~LTSSM_EN;
+ 	dra7xx_writel(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
  
- #define to_dra7xx_pcie(x)	container_of((x), struct dra7xx_pcie, pp)
+-	platform_set_drvdata(pdev, dra7xx);
+-
+ 	ret = dra7xx_add_pcie_port(dra7xx, pdev);
+ 	if (ret < 0)
+ 		goto err_gpio;
  
--static u32 dra7xx_readl(struct dra7xx_pcie *pcie, u32 offset)
-+static u32 dra7xx_readl(struct dra7xx_pcie *dra7xx, u32 offset)
- {
--	return readl(pcie->base + offset);
-+	return readl(dra7xx->base + offset);
- }
++	platform_set_drvdata(pdev, dra7xx);
+ 	return 0;
  
--static void dra7xx_writel(struct dra7xx_pcie *pcie, u32 offset, u32 value)
-+static void dra7xx_writel(struct dra7xx_pcie *dra7xx, u32 offset, u32 value)
- {
--	writel(value, pcie->base + offset);
-+	writel(value, dra7xx->base + offset);
- }
- 
- static inline u32 dra7xx_pcie_readl_rc(struct pcie_port *pp, u32 offset)
+ err_gpio:
