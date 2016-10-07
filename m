@@ -1,7 +1,8 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH 9/9] PCI: dra7xx: Set drvdata at end of probe function
-Date: Fri, 07 Oct 2016 11:35:09 -0500
-Message-ID: <20161007163509.24926.22244.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+Subject: [PATCH 8/9] PCI: dra7xx: Move struct pcie_port setup to probe
+ function
+Date: Fri, 07 Oct 2016 11:35:01 -0500
+Message-ID: <20161007163501.24926.55838.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 References: <20161007163350.24926.17545.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,31 +14,52 @@ To: Kishon Vijay Abraham I <kishon@ti.com>
 Cc: linux-pci@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Set the drvdata pointer at the end of probe function for consistency with
-other drivers.  We don't need the drvdata until after the probe completes,
-and we don't need it at all if the probe fails.  No functional change
-intended.
+Do the basic pcie_port setup in the probe function for consistency with
+other drivers.  No functional change intended.
 
 Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/pci/host/pci-dra7xx.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/pci/host/pci-dra7xx.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-index b0d427c..3976b61 100644
+index 87c89178..b0d427c 100644
 --- a/drivers/pci/host/pci-dra7xx.c
 +++ b/drivers/pci/host/pci-dra7xx.c
-@@ -408,12 +408,11 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	reg &= ~LTSSM_EN;
- 	dra7xx_writel(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
+@@ -266,15 +266,11 @@ static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
+ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
+ 				       struct platform_device *pdev)
+ {
+-	struct device *dev = &pdev->dev;
+-	struct pcie_port *pp;
++	struct pcie_port *pp = &dra7xx->pp;
++	struct device *dev = pp->dev;
+ 	struct resource *res;
+ 	int ret;
  
--	platform_set_drvdata(pdev, dra7xx);
+-	pp = &dra7xx->pp;
+-	pp->dev = dev;
+-	pp->ops = &dra7xx_pcie_host_ops;
 -
- 	ret = dra7xx_add_pcie_port(dra7xx, pdev);
- 	if (ret < 0)
- 		goto err_gpio;
+ 	pp->irq = platform_get_irq(pdev, 1);
+ 	if (pp->irq < 0) {
+ 		dev_err(dev, "missing IRQ resource\n");
+@@ -314,6 +310,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ 	struct device *dev = &pdev->dev;
+ 	struct device_node *np = dev->of_node;
+ 	struct dra7xx_pcie *dra7xx;
++	struct pcie_port *pp;
+ 	u32 reg;
+ 	int ret;
+ 	int irq;
+@@ -331,6 +328,10 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ 	if (!dra7xx)
+ 		return -ENOMEM;
  
-+	platform_set_drvdata(pdev, dra7xx);
- 	return 0;
- 
- err_gpio:
++	pp = &dra7xx->pp;
++	pp->dev = dev;
++	pp->ops = &dra7xx_pcie_host_ops;
++
+ 	irq = platform_get_irq(pdev, 0);
+ 	if (irq < 0) {
+ 		dev_err(dev, "missing IRQ resource\n");
