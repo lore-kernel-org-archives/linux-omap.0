@@ -1,8 +1,8 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH 4/9] PCI: dra7xx: Remove redundant struct device pointer
- from dra7xx_pcie
-Date: Fri, 07 Oct 2016 11:34:18 -0500
-Message-ID: <20161007163418.24926.97909.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+Subject: [PATCH 6/9] PCI: dra7xx: Replace dra7xx_pcie_readl_rc() with
+ dw_pcie_readl_rc()
+Date: Fri, 07 Oct 2016 11:34:38 -0500
+Message-ID: <20161007163438.24926.7897.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 References: <20161007163350.24926.17545.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,106 +14,60 @@ To: Kishon Vijay Abraham I <kishon@ti.com>
 Cc: linux-pci@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The DesignWare core already stores the struct device pointer in struct
-pcie_port.  Remove the redundant copy from struct dra7xx_pcie.dev.  No
-functional change intended.
+The dw_pcie_readl_rc() and dw_pcie_writel_rc() interfaces do the same as
+dra7xx_pcie_readl_rc() and dra7xx_pcie_writel_rc(), and they also give us a
+clue that we're using the DesignWare-generic functionality.  Use the dw_*()
+interfaces and remove the dra7xx-specific ones.  No functional change
+intended.
 
 Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/pci/host/pci-dra7xx.c |   31 +++++++++++++++----------------
- 1 file changed, 15 insertions(+), 16 deletions(-)
+ drivers/pci/host/pci-dra7xx.c |   19 ++++---------------
+ 1 file changed, 4 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-index 942c95c..73d4948 100644
+index 118b612..5572613 100644
 --- a/drivers/pci/host/pci-dra7xx.c
 +++ b/drivers/pci/host/pci-dra7xx.c
-@@ -67,7 +67,6 @@ struct dra7xx_pcie {
- 	void __iomem		*base;
- 	struct phy		**phy;
- 	int			phy_count;
--	struct device		*dev;
- 	struct pcie_port	pp;
- };
+@@ -82,17 +82,6 @@ static void dra7xx_writel(struct dra7xx_pcie *dra7xx, u32 offset, u32 value)
+ 	writel(value, dra7xx->base + offset);
+ }
  
-@@ -223,50 +222,51 @@ static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
+-static u32 dra7xx_pcie_readl_rc(struct dra7xx_pcie *dra7xx, u32 offset)
+-{
+-	return readl(dra7xx->pp.dbi_base + offset);
+-}
+-
+-static void dra7xx_pcie_writel_rc(struct dra7xx_pcie *dra7xx, u32 offset,
+-				  u32 value)
+-{
+-	writel(value, dra7xx->pp.dbi_base + offset);
+-}
+-
+ static int dra7xx_pcie_link_up(struct pcie_port *pp)
  {
- 	struct dra7xx_pcie *dra7xx = arg;
- 	u32 reg;
-+	struct device *dev = dra7xx->pp.dev;
+ 	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
+@@ -448,9 +437,9 @@ static int dra7xx_pcie_suspend(struct device *dev)
+ 	u32 val;
  
- 	reg = dra7xx_readl(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN);
+ 	/* clear MSE */
+-	val = dra7xx_pcie_readl_rc(dra7xx, PCI_COMMAND);
++	val = dw_pcie_readl_rc(&dra7xx->pp, PCI_COMMAND);
+ 	val &= ~PCI_COMMAND_MEMORY;
+-	dra7xx_pcie_writel_rc(dra7xx, PCI_COMMAND, val);
++	dw_pcie_writel_rc(&dra7xx->pp, PCI_COMMAND, val);
  
- 	if (reg & ERR_SYS)
--		dev_dbg(dra7xx->dev, "System Error\n");
-+		dev_dbg(dev, "System Error\n");
+ 	return 0;
+ }
+@@ -461,9 +450,9 @@ static int dra7xx_pcie_resume(struct device *dev)
+ 	u32 val;
  
- 	if (reg & ERR_FATAL)
--		dev_dbg(dra7xx->dev, "Fatal Error\n");
-+		dev_dbg(dev, "Fatal Error\n");
+ 	/* set MSE */
+-	val = dra7xx_pcie_readl_rc(dra7xx, PCI_COMMAND);
++	val = dw_pcie_readl_rc(&dra7xx->pp, PCI_COMMAND);
+ 	val |= PCI_COMMAND_MEMORY;
+-	dra7xx_pcie_writel_rc(dra7xx, PCI_COMMAND, val);
++	dw_pcie_writel_rc(&dra7xx->pp, PCI_COMMAND, val);
  
- 	if (reg & ERR_NONFATAL)
--		dev_dbg(dra7xx->dev, "Non Fatal Error\n");
-+		dev_dbg(dev, "Non Fatal Error\n");
- 
- 	if (reg & ERR_COR)
--		dev_dbg(dra7xx->dev, "Correctable Error\n");
-+		dev_dbg(dev, "Correctable Error\n");
- 
- 	if (reg & ERR_AXI)
--		dev_dbg(dra7xx->dev, "AXI tag lookup fatal Error\n");
-+		dev_dbg(dev, "AXI tag lookup fatal Error\n");
- 
- 	if (reg & ERR_ECRC)
--		dev_dbg(dra7xx->dev, "ECRC Error\n");
-+		dev_dbg(dev, "ECRC Error\n");
- 
- 	if (reg & PME_TURN_OFF)
--		dev_dbg(dra7xx->dev,
-+		dev_dbg(dev,
- 			"Power Management Event Turn-Off message received\n");
- 
- 	if (reg & PME_TO_ACK)
--		dev_dbg(dra7xx->dev,
-+		dev_dbg(dev,
- 			"Power Management Turn-Off Ack message received\n");
- 
- 	if (reg & PM_PME)
--		dev_dbg(dra7xx->dev,
-+		dev_dbg(dev,
- 			"PM Power Management Event message received\n");
- 
- 	if (reg & LINK_REQ_RST)
--		dev_dbg(dra7xx->dev, "Link Request Reset\n");
-+		dev_dbg(dev, "Link Request Reset\n");
- 
- 	if (reg & LINK_UP_EVT)
--		dev_dbg(dra7xx->dev, "Link-up state change\n");
-+		dev_dbg(dev, "Link-up state change\n");
- 
- 	if (reg & CFG_BME_EVT)
--		dev_dbg(dra7xx->dev, "CFG 'Bus Master Enable' change\n");
-+		dev_dbg(dev, "CFG 'Bus Master Enable' change\n");
- 
- 	if (reg & CFG_MSE_EVT)
--		dev_dbg(dra7xx->dev, "CFG 'Memory Space Enable' change\n");
-+		dev_dbg(dev, "CFG 'Memory Space Enable' change\n");
- 
- 	dra7xx_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN, reg);
- 
-@@ -313,7 +313,7 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
- 
- 	ret = dw_pcie_host_init(pp);
- 	if (ret) {
--		dev_err(dra7xx->dev, "failed to initialize host\n");
-+		dev_err(dev, "failed to initialize host\n");
- 		return ret;
- 	}
- 
-@@ -389,7 +389,6 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 
- 	dra7xx->base = base;
- 	dra7xx->phy = phy;
--	dra7xx->dev = dev;
- 	dra7xx->phy_count = phy_count;
- 
- 	pm_runtime_enable(dev);
+ 	return 0;
+ }
