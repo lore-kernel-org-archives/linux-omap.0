@@ -1,93 +1,129 @@
-From: "Andrew F. Davis" <afd@ti.com>
-Subject: [PATCH 4/7] ARM: dts: am437x-idk: Add Industrial input support
-Date: Fri, 7 Oct 2016 09:44:25 -0500
-Message-ID: <20161007144428.16671-4-afd@ti.com>
-References: <20161007144428.16671-1-afd@ti.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: [PATCH 3/9] PCI: dra7xx: Pass device-specific struct to internal
+ functions
+Date: Fri, 07 Oct 2016 11:34:09 -0500
+Message-ID: <20161007163409.24926.81084.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+References: <20161007163350.24926.17545.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161007144428.16671-1-afd@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, "Andrew F . Davis" <afd@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20161007163350.24926.17545.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-pci@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The SN65HVS882 is available on the AM437x IDK and is attached to SPI1.
-Input is attached to the I/O header.
+Only interfaces used from outside the driver, e.g., those called by the
+DesignWare core, need to accept pointers to the generic struct pcie_port.
+Internal interfaces can accept pointers to the device-specific struct,
+which makes them more straightforward.  No functional change intended.
 
-Signed-off-by: Andrew F. Davis <afd@ti.com>
-Reviewed-by: Roger Quadros <rogerq@ti.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- arch/arm/boot/dts/am437x-idk-evm.dts | 42 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+ drivers/pci/host/pci-dra7xx.c |   34 ++++++++++++++++------------------
+ 1 file changed, 16 insertions(+), 18 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am437x-idk-evm.dts b/arch/arm/boot/dts/am437x-idk-evm.dts
-index 25ce611..fff7ef6 100644
---- a/arch/arm/boot/dts/am437x-idk-evm.dts
-+++ b/arch/arm/boot/dts/am437x-idk-evm.dts
-@@ -178,6 +178,24 @@
- 		>;
- 	};
+diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
+index 3248b32..942c95c 100644
+--- a/drivers/pci/host/pci-dra7xx.c
++++ b/drivers/pci/host/pci-dra7xx.c
+@@ -83,15 +83,15 @@ static void dra7xx_writel(struct dra7xx_pcie *dra7xx, u32 offset, u32 value)
+ 	writel(value, dra7xx->base + offset);
+ }
  
-+	spi1_pins_default: spi1_pins_default {
-+		pinctrl-single,pins = <
-+			AM4372_IOPAD(0x908, PIN_INPUT | MUX_MODE2)	/* mii1_col.spi1_sclk */
-+			AM4372_IOPAD(0x910, PIN_INPUT | MUX_MODE2)	/* mii1_rx_er.spi1_d1 */
-+			AM4372_IOPAD(0x944, PIN_OUTPUT | MUX_MODE2)	/* rmii1_ref_clk.spi1_cs0 */
-+			AM4372_IOPAD(0x90c, PIN_OUTPUT | MUX_MODE7)	/* mii1_crs.gpio3_1 */
-+		>;
-+	};
-+
-+	spi1_pins_sleep: spi1_pins_sleep {
-+		pinctrl-single,pins = <
-+			AM4372_IOPAD(0x908, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM4372_IOPAD(0x910, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM4372_IOPAD(0x944, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM4372_IOPAD(0x90c, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+		>;
-+	};
-+
- 	ecap0_pins_default: backlight_pins_default {
- 		pinctrl-single,pins = <
- 			AM4372_IOPAD(0x964, PIN_OUTPUT | MUX_MODE0) /* ecap0_in_pwm0_out.ecap0_in_pwm0_out */
-@@ -292,6 +310,26 @@
- 	clock-frequency = <100000>;
- };
+-static inline u32 dra7xx_pcie_readl_rc(struct pcie_port *pp, u32 offset)
++static u32 dra7xx_pcie_readl_rc(struct dra7xx_pcie *dra7xx, u32 offset)
+ {
+-	return readl(pp->dbi_base + offset);
++	return readl(dra7xx->pp.dbi_base + offset);
+ }
  
-+&spi1 {
-+	status = "okay";
-+	pinctrl-names = "default", "sleep";
-+	pinctrl-0 = <&spi1_pins_default>;
-+	pinctrl-1 = <&spi1_pins_sleep>;
-+	ti,pindir-d0-out-d1-in;
-+
-+	sn65hvs882: sn65hvs882@0 {
-+		compatible = "pisosr-gpio";
-+		gpio-controller;
-+		#gpio-cells = <2>;
-+
-+		load-gpios = <&gpio3 1 GPIO_ACTIVE_LOW>;
-+
-+		reg = <0>;
-+		spi-max-frequency = <1000000>;
-+		spi-cpol;
-+	};
-+};
-+
- &epwmss0 {
- 	status = "okay";
- };
-@@ -310,6 +348,10 @@
- 	status = "okay";
- };
+-static inline void dra7xx_pcie_writel_rc(struct pcie_port *pp, u32 offset,
+-					 u32 value)
++static void dra7xx_pcie_writel_rc(struct dra7xx_pcie *dra7xx, u32 offset,
++				  u32 value)
+ {
+-	writel(value, pp->dbi_base + offset);
++	writel(value, dra7xx->pp.dbi_base + offset);
+ }
  
-+&gpio3 {
-+	status = "okay";
-+};
+ static int dra7xx_pcie_link_up(struct pcie_port *pp)
+@@ -102,9 +102,9 @@ static int dra7xx_pcie_link_up(struct pcie_port *pp)
+ 	return !!(reg & LINK_UP);
+ }
+ 
+-static int dra7xx_pcie_establish_link(struct pcie_port *pp)
++static int dra7xx_pcie_establish_link(struct dra7xx_pcie *dra7xx)
+ {
+-	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
++	struct pcie_port *pp = &dra7xx->pp;
+ 	u32 reg;
+ 
+ 	if (dw_pcie_link_up(pp)) {
+@@ -119,10 +119,8 @@ static int dra7xx_pcie_establish_link(struct pcie_port *pp)
+ 	return dw_pcie_wait_for_link(pp);
+ }
+ 
+-static void dra7xx_pcie_enable_interrupts(struct pcie_port *pp)
++static void dra7xx_pcie_enable_interrupts(struct dra7xx_pcie *dra7xx)
+ {
+-	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
+-
+ 	dra7xx_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
+ 		      ~INTERRUPTS);
+ 	dra7xx_writel(dra7xx,
+@@ -141,6 +139,8 @@ static void dra7xx_pcie_enable_interrupts(struct pcie_port *pp)
+ 
+ static void dra7xx_pcie_host_init(struct pcie_port *pp)
+ {
++	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
 +
- &gpio4 {
- 	status = "okay";
- };
--- 
-2.10.0
+ 	pp->io_base &= DRA7XX_CPU_TO_BUS_ADDR;
+ 	pp->mem_base &= DRA7XX_CPU_TO_BUS_ADDR;
+ 	pp->cfg0_base &= DRA7XX_CPU_TO_BUS_ADDR;
+@@ -148,10 +148,10 @@ static void dra7xx_pcie_host_init(struct pcie_port *pp)
+ 
+ 	dw_pcie_setup_rc(pp);
+ 
+-	dra7xx_pcie_establish_link(pp);
++	dra7xx_pcie_establish_link(dra7xx);
+ 	if (IS_ENABLED(CONFIG_PCI_MSI))
+ 		dw_pcie_msi_init(pp);
+-	dra7xx_pcie_enable_interrupts(pp);
++	dra7xx_pcie_enable_interrupts(dra7xx);
+ }
+ 
+ static struct pcie_host_ops dra7xx_pcie_host_ops = {
+@@ -446,13 +446,12 @@ err_phy:
+ static int dra7xx_pcie_suspend(struct device *dev)
+ {
+ 	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
+-	struct pcie_port *pp = &dra7xx->pp;
+ 	u32 val;
+ 
+ 	/* clear MSE */
+-	val = dra7xx_pcie_readl_rc(pp, PCI_COMMAND);
++	val = dra7xx_pcie_readl_rc(dra7xx, PCI_COMMAND);
+ 	val &= ~PCI_COMMAND_MEMORY;
+-	dra7xx_pcie_writel_rc(pp, PCI_COMMAND, val);
++	dra7xx_pcie_writel_rc(dra7xx, PCI_COMMAND, val);
+ 
+ 	return 0;
+ }
+@@ -460,13 +459,12 @@ static int dra7xx_pcie_suspend(struct device *dev)
+ static int dra7xx_pcie_resume(struct device *dev)
+ {
+ 	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
+-	struct pcie_port *pp = &dra7xx->pp;
+ 	u32 val;
+ 
+ 	/* set MSE */
+-	val = dra7xx_pcie_readl_rc(pp, PCI_COMMAND);
++	val = dra7xx_pcie_readl_rc(dra7xx, PCI_COMMAND);
+ 	val |= PCI_COMMAND_MEMORY;
+-	dra7xx_pcie_writel_rc(pp, PCI_COMMAND, val);
++	dra7xx_pcie_writel_rc(dra7xx, PCI_COMMAND, val);
+ 
+ 	return 0;
+ }
