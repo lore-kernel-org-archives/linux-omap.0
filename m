@@ -1,41 +1,78 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH 5/9] PCI: dra7xx: Reorder struct dra7xx_pcie
-Date: Fri, 07 Oct 2016 11:34:30 -0500
-Message-ID: <20161007163430.24926.73533.stgit@bhelgaas-glaptop2.roam.corp.google.com>
-References: <20161007163350.24926.17545.stgit@bhelgaas-glaptop2.roam.corp.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20161007163350.24926.17545.stgit@bhelgaas-glaptop2.roam.corp.google.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-pci@vger.kernel.org, linux-omap@vger.kernel.org
+From: Philippe Reynes <tremyfr@gmail.com>
+Subject: [PATCH] net: ti: cpsw: use new api ethtool_{get|set}_link_ksettings
+Date: Sat,  8 Oct 2016 17:46:15 +0200
+Message-ID: <1475941575-26590-1-git-send-email-tremyfr@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: mugunthanvnm@ti.com, grygorii.strashko@ti.com, davem@davemloft.net
+Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Philippe Reynes <tremyfr@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Reorder struct dra7xx_pcie to put generic fields first.  No functional
-change intended.
+The ethtool api {get|set}_settings is deprecated.
+We move this driver to new api {get|set}_link_ksettings.
 
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+Signed-off-by: Philippe Reynes <tremyfr@gmail.com>
 ---
- drivers/pci/host/pci-dra7xx.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/net/ethernet/ti/cpsw.c |   17 ++++++++++-------
+ 1 files changed, 10 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-index 73d4948..118b612 100644
---- a/drivers/pci/host/pci-dra7xx.c
-+++ b/drivers/pci/host/pci-dra7xx.c
-@@ -64,10 +64,10 @@
- #define	DRA7XX_CPU_TO_BUS_ADDR				0x0FFFFFFF
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index c6cff3d..6d4b8a2 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -1967,27 +1967,30 @@ static int cpsw_get_ts_info(struct net_device *ndev,
+ 	return 0;
+ }
  
- struct dra7xx_pcie {
--	void __iomem		*base;
--	struct phy		**phy;
--	int			phy_count;
- 	struct pcie_port	pp;
-+	void __iomem		*base;		/* DT ti_conf */
-+	int			phy_count;	/* DT phy-names count */
-+	struct phy		**phy;
+-static int cpsw_get_settings(struct net_device *ndev,
+-			     struct ethtool_cmd *ecmd)
++static int cpsw_get_link_ksettings(struct net_device *ndev,
++				   struct ethtool_link_ksettings *ecmd)
+ {
+ 	struct cpsw_priv *priv = netdev_priv(ndev);
+ 	struct cpsw_common *cpsw = priv->cpsw;
+ 	int slave_no = cpsw_slave_index(cpsw, priv);
+ 
+ 	if (cpsw->slaves[slave_no].phy)
+-		return phy_ethtool_gset(cpsw->slaves[slave_no].phy, ecmd);
++		return phy_ethtool_ksettings_get(cpsw->slaves[slave_no].phy,
++						 ecmd);
+ 	else
+ 		return -EOPNOTSUPP;
+ }
+ 
+-static int cpsw_set_settings(struct net_device *ndev, struct ethtool_cmd *ecmd)
++static int cpsw_set_link_ksettings(struct net_device *ndev,
++				   const struct ethtool_link_ksettings *ecmd)
+ {
+ 	struct cpsw_priv *priv = netdev_priv(ndev);
+ 	struct cpsw_common *cpsw = priv->cpsw;
+ 	int slave_no = cpsw_slave_index(cpsw, priv);
+ 
+ 	if (cpsw->slaves[slave_no].phy)
+-		return phy_ethtool_sset(cpsw->slaves[slave_no].phy, ecmd);
++		return phy_ethtool_ksettings_set(cpsw->slaves[slave_no].phy,
++						 ecmd);
+ 	else
+ 		return -EOPNOTSUPP;
+ }
+@@ -2245,8 +2248,6 @@ static const struct ethtool_ops cpsw_ethtool_ops = {
+ 	.set_msglevel	= cpsw_set_msglevel,
+ 	.get_link	= ethtool_op_get_link,
+ 	.get_ts_info	= cpsw_get_ts_info,
+-	.get_settings	= cpsw_get_settings,
+-	.set_settings	= cpsw_set_settings,
+ 	.get_coalesce	= cpsw_get_coalesce,
+ 	.set_coalesce	= cpsw_set_coalesce,
+ 	.get_sset_count		= cpsw_get_sset_count,
+@@ -2262,6 +2263,8 @@ static const struct ethtool_ops cpsw_ethtool_ops = {
+ 	.complete	= cpsw_ethtool_op_complete,
+ 	.get_channels	= cpsw_get_channels,
+ 	.set_channels	= cpsw_set_channels,
++	.get_link_ksettings	= cpsw_get_link_ksettings,
++	.set_link_ksettings	= cpsw_set_link_ksettings,
  };
  
- #define to_dra7xx_pcie(x)	container_of((x), struct dra7xx_pcie, pp)
+ static void cpsw_slave_init(struct cpsw_slave *slave, struct cpsw_common *cpsw,
+-- 
+1.7.4.4
