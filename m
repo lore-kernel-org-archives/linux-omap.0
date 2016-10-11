@@ -1,13 +1,12 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] n900 device tree: cleanup, add camera flash
-Date: Tue, 11 Oct 2016 10:10:00 +0200
-Message-ID: <20161011081000.GA24476@amd>
+Subject: [PATCH] n900 device tree: cleanup
+Date: Tue, 11 Oct 2016 10:12:43 +0200
+Message-ID: <20161011081243.GA24580@amd>
 References: <20161011075416.GA22453@amd>
- <20161011080139.GK4467@pali>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1723112543337434929=="
+Content-Type: multipart/mixed; boundary="===============0662942261098520731=="
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20161011080139.GK4467@pali>
+In-Reply-To: <20161011075416.GA22453@amd>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,74 +16,70 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, tony@atomide.com, aaro.koskinen@iki.fi, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
+To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, bcousson@baylibre.com, robh+dt@kernel.org, mark.rutland@arm.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---===============1723112543337434929==
+--===============0662942261098520731==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6c2NcOVqGQ03X4Wi"
+	protocol="application/pgp-signature"; boundary="OXfL5xGRrasGEqWY"
 Content-Disposition: inline
 
 
---6c2NcOVqGQ03X4Wi
-Content-Type: text/plain; charset=iso-8859-1
+--OXfL5xGRrasGEqWY
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue 2016-10-11 10:01:39, Pali Roh=E1r wrote:
-> On Tuesday 11 October 2016 09:54:17 Pavel Machek wrote:
-> > @@ -669,6 +670,22 @@
-> > =20
-> >  		ti,usb-charger-detection =3D <&isp1707>;
-> >  	};
-> > +
-> > +	adp1653: led-controller@30 {
-> > +		compatible =3D "adi,adp1653";
-> > +		reg =3D <0x30>;
-> > +		gpios =3D <&gpio3 24 GPIO_ACTIVE_HIGH>; /* 88 */
-> > +
-> > +		flash {
-> > +			flash-timeout-us =3D <500000>;
-> > +			flash-max-microamp =3D <320000>;
-> > +			max-microamp =3D <50000>;
-> > +		};
-> > +
-> > +		indicator {
-> > +			max-microamp =3D <17500>;
-> > +		};
-> > +	};
-> >  };
-> > =20
-> >  &i2c3 {
-> >=20
->=20
-> This part of patch is already in mainline kernel, isn't?
+Fix GPIO comment to be consistent with rest of file and add comment what
+tpa6130 is.
 
-Oops, sorry about that. Disregard the patch.
-								Pavel
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n90=
+0.dts
+index bfffd6c..ca9fe8c 100644
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -47,7 +47,7 @@
+ 		compatible =3D "gpio-leds";
+ 		heartbeat {
+ 			label =3D "debug::sleep";
+-			gpios =3D <&gpio6 2 GPIO_ACTIVE_HIGH>;  /* gpio162 */
++			gpios =3D <&gpio6 2 GPIO_ACTIVE_HIGH>;  /* 162 */
+ 			linux,default-trigger =3D "default-on";
+ 			pinctrl-names =3D "default";
+ 			pinctrl-0 =3D <&debug_leds>;
+@@ -637,6 +637,7 @@
+ 		reg =3D <0x55>;
+ 	};
+=20
++	/* Stereo headphone amplifier */
+ 	tpa6130a2: tpa6130a2@60 {
+ 		compatible =3D "ti,tpa6130a2";
+ 		reg =3D <0x60>;
+
 --=20
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---6c2NcOVqGQ03X4Wi
+--OXfL5xGRrasGEqWY
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAlf8nlgACgkQMOfwapXb+vLo6gCeP96VYgrW4ECELHyL4qthcNO+
-2sEAn35t8JlRJeqwF06LdkrZmtdVbcHr
-=Dvfk
+iEYEARECAAYFAlf8nvsACgkQMOfwapXb+vLDpwCeJC+t2CaUA44sCSGgzTZ29NXz
+92oAoLaFgtD9UuZKzIvqsRCvVln0x7aB
+=bWvM
 -----END PGP SIGNATURE-----
 
---6c2NcOVqGQ03X4Wi--
+--OXfL5xGRrasGEqWY--
 
 
---===============1723112543337434929==
+--===============0662942261098520731==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -95,4 +90,4 @@ linux-arm-kernel mailing list
 linux-arm-kernel@lists.infradead.org
 http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
---===============1723112543337434929==--
+--===============0662942261098520731==--
