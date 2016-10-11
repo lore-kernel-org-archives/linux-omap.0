@@ -1,42 +1,64 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 0/4] PCI: designware/dra7xx: misc fixes and cleanups
-Date: Tue, 11 Oct 2016 18:28:31 +0530
-Message-ID: <1476190715-16884-1-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 2/4] PCI: dra7xx: simplify the probe code
+Date: Tue, 11 Oct 2016 18:28:33 +0530
+Message-ID: <1476190715-16884-3-git-send-email-kishon@ti.com>
+References: <1476190715-16884-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1476190715-16884-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>
+Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kishon@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-This series was created on 4.8 Kernel after merging "pci/host-designware"
-and "pci/host-dra7xx" of Bjorn's PCI tree.
+No functional change. Use the new devm_gpiod_get_optional() to
+simplify the probe code.
 
-The first patch fixes a compilation warning in designware code.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+---
+ drivers/pci/host/pci-dra7xx.c |   21 +++++----------------
+ 1 file changed, 5 insertions(+), 16 deletions(-)
 
-It is now possible to force the DRA7xx controller to work in GEN1 mode
-using a dt property.
-
-It includes a fix in dra7xx driver so that even if CONFIG_PCI_MSI is enabled,
-dra7xx driver can service legacy interrupts (provided the device
-support only legacy interrupts).
-
-Kishon Vijay Abraham I (4):
-  PCI: designware: Fix compiler warning
-  PCI: dra7xx: simplify the probe code
-  PCI: dra7xx: Add support to force RC to work in GEN1 mode
-  PCI: dra7xx: Enable MSI and legacy interrupts simultaneously
-
- Documentation/devicetree/bindings/pci/ti-pci.txt |    1 +
- drivers/pci/host/pci-dra7xx.c                    |   80 +++++++++++++---------
- drivers/pci/host/pcie-designware.c               |   10 +--
- 3 files changed, 49 insertions(+), 42 deletions(-)
-
+diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
+index 45eb833..4ccba6d 100644
+--- a/drivers/pci/host/pci-dra7xx.c
++++ b/drivers/pci/host/pci-dra7xx.c
+@@ -325,9 +325,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ 	void __iomem *base;
+ 	struct resource *res;
+ 	char name[10];
+-	int gpio_sel;
+-	enum of_gpio_flags flags;
+-	unsigned long gpio_flags;
++	struct gpio_desc *reset;
+ 
+ 	dra7xx_pcie = devm_kzalloc(dev, sizeof(*dra7xx_pcie), GFP_KERNEL);
+ 	if (!dra7xx_pcie)
+@@ -393,19 +391,10 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ 		goto err_get_sync;
+ 	}
+ 
+-	gpio_sel = of_get_gpio_flags(dev->of_node, 0, &flags);
+-	if (gpio_is_valid(gpio_sel)) {
+-		gpio_flags = (flags & OF_GPIO_ACTIVE_LOW) ?
+-				GPIOF_OUT_INIT_LOW : GPIOF_OUT_INIT_HIGH;
+-		ret = devm_gpio_request_one(dev, gpio_sel, gpio_flags,
+-					    "pcie_reset");
+-		if (ret) {
+-			dev_err(dev, "gpio%d request failed, ret %d\n",
+-				gpio_sel, ret);
+-			goto err_gpio;
+-		}
+-	} else if (gpio_sel == -EPROBE_DEFER) {
+-		ret = -EPROBE_DEFER;
++	reset = devm_gpiod_get_optional(dev, NULL, GPIOD_OUT_HIGH);
++	if (IS_ERR(reset)) {
++		ret = PTR_ERR(reset);
++		dev_err(&pdev->dev, "gpio request failed, ret %d\n", ret);
+ 		goto err_gpio;
+ 	}
+ 
 -- 
 1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
