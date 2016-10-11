@@ -1,70 +1,42 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 1/4] PCI: designware: Fix compiler warning
-Date: Tue, 11 Oct 2016 18:28:32 +0530
-Message-ID: <1476190715-16884-2-git-send-email-kishon@ti.com>
-References: <1476190715-16884-1-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 0/4] PCI: designware/dra7xx: misc fixes and cleanups
+Date: Tue, 11 Oct 2016 18:28:31 +0530
+Message-ID: <1476190715-16884-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1476190715-16884-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>
-Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kishon@ti.com, nsekhar@ti.com
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Fix the following compilation warning in dw_pcie_readl_unroll()
-and dw_pcie_writel_unroll() by just invoking dw_pcie_readl_rc() and
-dw_pcie_writel_rc() respectively instead of adding redundant code.
+This series was created on 4.8 Kernel after merging "pci/host-designware"
+and "pci/host-dra7xx" of Bjorn's PCI tree.
 
-pcie-designware.c: In function 'dw_pcie_readl_unroll':
-pcie-designware.c:165:32: warning: passing argument 2 of
- 'pp->ops->readl_rc' makes integer from pointer without a cast
- [-Wint-conversion]
-   return pp->ops->readl_rc(pp, pp->dbi_base + offset + reg);
-                                ^
-pcie-designware.c:165:32: note: expected 'u32 {aka unsigned int}' but
- argument is of type 'void *'
-pcie-designware.c: In function 'dw_pcie_writel_unroll':
-pcie-designware.c:176:31: warning: passing argument 3 of
- 'pp->ops->writel_rc' makes integer from pointer without a cast
- [-Wint-conversion]
-   pp->ops->writel_rc(pp, val, pp->dbi_base + offset + reg);
-                               ^
-drivers/pci/host/pcie-designware.c:176:31: note: expected 'u32
- {aka unsigned int}' but argument is of type 'void *'
+The first patch fixes a compilation warning in designware code.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- drivers/pci/host/pcie-designware.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+It is now possible to force the DRA7xx controller to work in GEN1 mode
+using a dt property.
 
-diff --git a/drivers/pci/host/pcie-designware.c b/drivers/pci/host/pcie-designware.c
-index 5ee8772..b8feea4 100644
---- a/drivers/pci/host/pcie-designware.c
-+++ b/drivers/pci/host/pcie-designware.c
-@@ -161,10 +161,7 @@ static inline u32 dw_pcie_readl_unroll(struct pcie_port *pp, u32 index, u32 reg)
- {
- 	u32 offset = PCIE_GET_ATU_OUTB_UNR_REG_OFFSET(index);
- 
--	if (pp->ops->readl_rc)
--		return pp->ops->readl_rc(pp, pp->dbi_base + offset + reg);
--
--	return readl(pp->dbi_base + offset + reg);
-+	return dw_pcie_readl_rc(pp, offset + reg);
- }
- 
- static inline void dw_pcie_writel_unroll(struct pcie_port *pp, u32 index,
-@@ -172,10 +169,7 @@ static inline void dw_pcie_writel_unroll(struct pcie_port *pp, u32 index,
- {
- 	u32 offset = PCIE_GET_ATU_OUTB_UNR_REG_OFFSET(index);
- 
--	if (pp->ops->writel_rc)
--		pp->ops->writel_rc(pp, val, pp->dbi_base + offset + reg);
--	else
--		writel(val, pp->dbi_base + offset + reg);
-+	dw_pcie_writel_rc(pp, offset + reg, val);
- }
- 
- static int dw_pcie_rd_own_conf(struct pcie_port *pp, int where, int size,
+It includes a fix in dra7xx driver so that even if CONFIG_PCI_MSI is enabled,
+dra7xx driver can service legacy interrupts (provided the device
+support only legacy interrupts).
+
+Kishon Vijay Abraham I (4):
+  PCI: designware: Fix compiler warning
+  PCI: dra7xx: simplify the probe code
+  PCI: dra7xx: Add support to force RC to work in GEN1 mode
+  PCI: dra7xx: Enable MSI and legacy interrupts simultaneously
+
+ Documentation/devicetree/bindings/pci/ti-pci.txt |    1 +
+ drivers/pci/host/pci-dra7xx.c                    |   80 +++++++++++++---------
+ drivers/pci/host/pcie-designware.c               |   10 +--
+ 3 files changed, 49 insertions(+), 42 deletions(-)
+
 -- 
 1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
