@@ -1,93 +1,70 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: [PATCH] n900 device tree: cleanup
-Date: Tue, 11 Oct 2016 10:12:43 +0200
-Message-ID: <20161011081243.GA24580@amd>
-References: <20161011075416.GA22453@amd>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 1/4] PCI: designware: Fix compiler warning
+Date: Tue, 11 Oct 2016 18:28:32 +0530
+Message-ID: <1476190715-16884-2-git-send-email-kishon@ti.com>
+References: <1476190715-16884-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0662942261098520731=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20161011075416.GA22453@amd>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, bcousson@baylibre.com, robh+dt@kernel.org, mark.rutland@arm.com, devicetree@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1476190715-16884-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>
+Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kishon@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+Fix the following compilation warning in dw_pcie_readl_unroll()
+and dw_pcie_writel_unroll() by just invoking dw_pcie_readl_rc() and
+dw_pcie_writel_rc() respectively instead of adding redundant code.
 
---===============0662942261098520731==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OXfL5xGRrasGEqWY"
-Content-Disposition: inline
+pcie-designware.c: In function 'dw_pcie_readl_unroll':
+pcie-designware.c:165:32: warning: passing argument 2 of
+ 'pp->ops->readl_rc' makes integer from pointer without a cast
+ [-Wint-conversion]
+   return pp->ops->readl_rc(pp, pp->dbi_base + offset + reg);
+                                ^
+pcie-designware.c:165:32: note: expected 'u32 {aka unsigned int}' but
+ argument is of type 'void *'
+pcie-designware.c: In function 'dw_pcie_writel_unroll':
+pcie-designware.c:176:31: warning: passing argument 3 of
+ 'pp->ops->writel_rc' makes integer from pointer without a cast
+ [-Wint-conversion]
+   pp->ops->writel_rc(pp, val, pp->dbi_base + offset + reg);
+                               ^
+drivers/pci/host/pcie-designware.c:176:31: note: expected 'u32
+ {aka unsigned int}' but argument is of type 'void *'
 
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ drivers/pci/host/pcie-designware.c |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
---OXfL5xGRrasGEqWY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Fix GPIO comment to be consistent with rest of file and add comment what
-tpa6130 is.
-
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n90=
-0.dts
-index bfffd6c..ca9fe8c 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -47,7 +47,7 @@
- 		compatible =3D "gpio-leds";
- 		heartbeat {
- 			label =3D "debug::sleep";
--			gpios =3D <&gpio6 2 GPIO_ACTIVE_HIGH>;  /* gpio162 */
-+			gpios =3D <&gpio6 2 GPIO_ACTIVE_HIGH>;  /* 162 */
- 			linux,default-trigger =3D "default-on";
- 			pinctrl-names =3D "default";
- 			pinctrl-0 =3D <&debug_leds>;
-@@ -637,6 +637,7 @@
- 		reg =3D <0x55>;
- 	};
-=20
-+	/* Stereo headphone amplifier */
- 	tpa6130a2: tpa6130a2@60 {
- 		compatible =3D "ti,tpa6130a2";
- 		reg =3D <0x60>;
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---OXfL5xGRrasGEqWY
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlf8nvsACgkQMOfwapXb+vLDpwCeJC+t2CaUA44sCSGgzTZ29NXz
-92oAoLaFgtD9UuZKzIvqsRCvVln0x7aB
-=bWvM
------END PGP SIGNATURE-----
-
---OXfL5xGRrasGEqWY--
-
-
---===============0662942261098520731==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============0662942261098520731==--
+diff --git a/drivers/pci/host/pcie-designware.c b/drivers/pci/host/pcie-designware.c
+index 5ee8772..b8feea4 100644
+--- a/drivers/pci/host/pcie-designware.c
++++ b/drivers/pci/host/pcie-designware.c
+@@ -161,10 +161,7 @@ static inline u32 dw_pcie_readl_unroll(struct pcie_port *pp, u32 index, u32 reg)
+ {
+ 	u32 offset = PCIE_GET_ATU_OUTB_UNR_REG_OFFSET(index);
+ 
+-	if (pp->ops->readl_rc)
+-		return pp->ops->readl_rc(pp, pp->dbi_base + offset + reg);
+-
+-	return readl(pp->dbi_base + offset + reg);
++	return dw_pcie_readl_rc(pp, offset + reg);
+ }
+ 
+ static inline void dw_pcie_writel_unroll(struct pcie_port *pp, u32 index,
+@@ -172,10 +169,7 @@ static inline void dw_pcie_writel_unroll(struct pcie_port *pp, u32 index,
+ {
+ 	u32 offset = PCIE_GET_ATU_OUTB_UNR_REG_OFFSET(index);
+ 
+-	if (pp->ops->writel_rc)
+-		pp->ops->writel_rc(pp, val, pp->dbi_base + offset + reg);
+-	else
+-		writel(val, pp->dbi_base + offset + reg);
++	dw_pcie_writel_rc(pp, offset + reg, val);
+ }
+ 
+ static int dw_pcie_rd_own_conf(struct pcie_port *pp, int where, int size,
+-- 
+1.7.9.5
