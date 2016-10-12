@@ -1,77 +1,40 @@
-From: "Andrew F. Davis" <afd@ti.com>
-Subject: Re: [PATCH v2 6/7] PCI: dra7xx: Move struct pcie_port setup to probe
- function
-Date: Wed, 12 Oct 2016 14:58:20 -0500
-Message-ID: <844ae443-f1ca-0c77-11fb-df0434d6cd0c@ti.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v2 3/7] PCI: dra7xx: Set drvdata at end of probe function
+Date: Wed, 12 Oct 2016 17:21:42 -0500
+Message-ID: <20161012222142.GA24545@localhost>
 References: <20161012133112.27714.93244.stgit@bhelgaas-glaptop2.roam.corp.google.com>
- <20161012133322.27714.21257.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+ <20161012133258.27714.51056.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+ <84f6a4b4-d900-844d-545f-cae1aed299e2@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20161012133322.27714.21257.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+Content-Disposition: inline
+In-Reply-To: <84f6a4b4-d900-844d-545f-cae1aed299e2@ti.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-pci@vger.kernel.org, linux-omap@vger.kernel.org
+To: "Andrew F. Davis" <afd@ti.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Kishon Vijay Abraham I <kishon@ti.com>, linux-pci@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 10/12/2016 08:33 AM, Bjorn Helgaas wrote:
-> Do the basic pcie_port setup in the probe function for consistency with
-> other drivers.  No functional change intended.
+On Wed, Oct 12, 2016 at 02:48:02PM -0500, Andrew F. Davis wrote:
+> On 10/12/2016 08:32 AM, Bjorn Helgaas wrote:
+> > Set the drvdata pointer at the end of probe function for consistency with
+> > other drivers. 
+> 
+> I've seen it done the current way many places.
+> 
+> > We don't need the drvdata until after the probe completes,
+> > and we don't need it at all if the probe fails. 
+> 
+> Are you sure this will always be true? Why not set it as soon as we have
+> the ability to, what do we gain by waiting till the end, something like
+> one less instruction in the failure case?
 
-Other drivers may do this, but it is really logical? All the pcie_port
-work and variables are isolated to the add_pcie_port function, now it
-they are mixed into probe as well, I don't see any benefit to this
-style, perhaps the other drivers should become more like this.
+I don't think it's likely anybody will need it before .probe()
+completes, because the purpose of drvdata is for an external driver
+entry point to locate its device data, and none of those entry points
+will be called until after .probe() completes successfully.
 
-> 
-> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-> ---
->  drivers/pci/host/pci-dra7xx.c |   13 +++++++------
->  1 file changed, 7 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-> index efb24b8..bb77c35 100644
-> --- a/drivers/pci/host/pci-dra7xx.c
-> +++ b/drivers/pci/host/pci-dra7xx.c
-> @@ -267,13 +267,9 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
->  				       struct platform_device *pdev)
->  {
->  	int ret;
-> -	struct pcie_port *pp;
-> +	struct pcie_port *pp = &dra7xx->pp;
-> +	struct device *dev = pp->dev;
->  	struct resource *res;
-> -	struct device *dev = &pdev->dev;
-> -
-> -	pp = &dra7xx->pp;
-> -	pp->dev = dev;
-> -	pp->ops = &dra7xx_pcie_host_ops;
->  
->  	pp->irq = platform_get_irq(pdev, 1);
->  	if (pp->irq < 0) {
-> @@ -320,6 +316,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->  	void __iomem *base;
->  	struct resource *res;
->  	struct dra7xx_pcie *dra7xx;
-> +	struct pcie_port *pp;
->  	struct device *dev = &pdev->dev;
->  	struct device_node *np = dev->of_node;
->  	char name[10];
-> @@ -331,6 +328,10 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->  	if (!dra7xx)
->  		return -ENOMEM;
->  
-> +	pp = &dra7xx->pp;
-> +	pp->dev = dev;
-> +	pp->ops = &dra7xx_pcie_host_ops;
-> +
->  	irq = platform_get_irq(pdev, 0);
->  	if (irq < 0) {
->  		dev_err(dev, "missing IRQ resource\n");
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+But I don't care at all if we do it earlier, as long as all the
+drivers do it the same way.
+
+Bjorn
