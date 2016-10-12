@@ -1,61 +1,74 @@
 From: "Andrew F. Davis" <afd@ti.com>
-Subject: Re: [PATCH v2 3/7] PCI: dra7xx: Set drvdata at end of probe function
-Date: Wed, 12 Oct 2016 14:48:02 -0500
-Message-ID: <84f6a4b4-d900-844d-545f-cae1aed299e2@ti.com>
+Subject: Re: [PATCH v2 6/7] PCI: dra7xx: Move struct pcie_port setup to probe
+ function
+Date: Wed, 12 Oct 2016 14:58:20 -0500
+Message-ID: <844ae443-f1ca-0c77-11fb-df0434d6cd0c@ti.com>
 References: <20161012133112.27714.93244.stgit@bhelgaas-glaptop2.roam.corp.google.com>
- <20161012133258.27714.51056.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+ <20161012133322.27714.21257.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20161012133258.27714.51056.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+In-Reply-To: <20161012133322.27714.21257.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Kishon Vijay Abraham I <kishon@ti.com>
 Cc: linux-pci@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 10/12/2016 08:32 AM, Bjorn Helgaas wrote:
-> Set the drvdata pointer at the end of probe function for consistency with
-> other drivers. 
+On 10/12/2016 08:33 AM, Bjorn Helgaas wrote:
+> Do the basic pcie_port setup in the probe function for consistency with
+> other drivers.  No functional change intended.
 
-I've seen it done the current way many places.
+Other drivers may do this, but it is really logical? All the pcie_port
+work and variables are isolated to the add_pcie_port function, now it
+they are mixed into probe as well, I don't see any benefit to this
+style, perhaps the other drivers should become more like this.
 
-> We don't need the drvdata until after the probe completes,
-> and we don't need it at all if the probe fails. 
-
-Are you sure this will always be true? Why not set it as soon as we have
-the ability to, what do we gain by waiting till the end, something like
-one less instruction in the failure case?
-
-> No functional change
-> intended.
 > 
 > Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 > ---
->  drivers/pci/host/pci-dra7xx.c |    3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
+>  drivers/pci/host/pci-dra7xx.c |   13 +++++++------
+>  1 file changed, 7 insertions(+), 6 deletions(-)
 > 
 > diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-> index 1c24f34..3d184f6 100644
+> index efb24b8..bb77c35 100644
 > --- a/drivers/pci/host/pci-dra7xx.c
 > +++ b/drivers/pci/host/pci-dra7xx.c
-> @@ -418,12 +418,11 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->  	reg &= ~LTSSM_EN;
->  	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
->  
-> -	platform_set_drvdata(pdev, dra7xx);
+> @@ -267,13 +267,9 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
+>  				       struct platform_device *pdev)
+>  {
+>  	int ret;
+> -	struct pcie_port *pp;
+> +	struct pcie_port *pp = &dra7xx->pp;
+> +	struct device *dev = pp->dev;
+>  	struct resource *res;
+> -	struct device *dev = &pdev->dev;
 > -
->  	ret = dra7xx_add_pcie_port(dra7xx, pdev);
->  	if (ret < 0)
->  		goto err_gpio;
+> -	pp = &dra7xx->pp;
+> -	pp->dev = dev;
+> -	pp->ops = &dra7xx_pcie_host_ops;
 >  
-> +	platform_set_drvdata(pdev, dra7xx);
-
-Space here.
-
->  	return 0;
+>  	pp->irq = platform_get_irq(pdev, 1);
+>  	if (pp->irq < 0) {
+> @@ -320,6 +316,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>  	void __iomem *base;
+>  	struct resource *res;
+>  	struct dra7xx_pcie *dra7xx;
+> +	struct pcie_port *pp;
+>  	struct device *dev = &pdev->dev;
+>  	struct device_node *np = dev->of_node;
+>  	char name[10];
+> @@ -331,6 +328,10 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>  	if (!dra7xx)
+>  		return -ENOMEM;
 >  
->  err_gpio:
+> +	pp = &dra7xx->pp;
+> +	pp->dev = dev;
+> +	pp->ops = &dra7xx_pcie_host_ops;
+> +
+>  	irq = platform_get_irq(pdev, 0);
+>  	if (irq < 0) {
+>  		dev_err(dev, "missing IRQ resource\n");
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
