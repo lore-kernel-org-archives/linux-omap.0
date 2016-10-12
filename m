@@ -1,78 +1,133 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: latest version of bluetooth for n950?
-Date: Tue, 11 Oct 2016 23:41:40 +0200
-Message-ID: <20161011214139.cgxe2ms7qjgruuxb@earth>
-References: <20161011074704.GA21003@amd>
- <20161011145140.cq3jex2r23wuayph@earth>
+From: Shawn Lin <shawn.lin-TNX95d0MmH7DzftRWevZcw@public.gmane.org>
+Subject: Re: [PATCH 3/4] PCI: dra7xx: Add support to force RC to work in GEN1
+ mode
+Date: Wed, 12 Oct 2016 12:14:20 +0800
+Message-ID: <b81e619b-de55-1994-af5d-fe0eb116d9f9@rock-chips.com>
+References: <1476190715-16884-1-git-send-email-kishon@ti.com>
+ <1476190715-16884-4-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="3kztabrpv2i5z6ye"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161011145140.cq3jex2r23wuayph@earth>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
+Content-Type: text/plain; charset=gbk; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1476190715-16884-4-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: shawn.lin-TNX95d0MmH7DzftRWevZcw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On 2016/10/11 20:58, Kishon Vijay Abraham I wrote:
+> PCIe in AM57x/DRA7x devices is by default
+> configured to work in GEN2 mode.  However there
+> may be situations when working in GEN1 mode is
+> desired. One example is limitation i925 (PCIe GEN2
+> mode not supported at junction temperatures < 0C).
+>
 
---3kztabrpv2i5z6ye
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Just a drive-by comment.
 
-Hi,
+Seems there are already much more requirments for host
+drivers to know the limitation of link speed, so
+I pushed patches recently to consolidate it for host
+drivers[0] suggested by Rob. So maybe you could use that
+instead. :)
 
-On Tue, Oct 11, 2016 at 04:51:40PM +0200, Sebastian Reichel wrote:
-> On Tue, Oct 11, 2016 at 09:47:04AM +0200, Pavel Machek wrote:
-> > I got some free cycles to play with n900 and bluetooth. There's still
-> > some unrelated config option that breaks even the old vesion of
-> > patches, but I'm ready for more debugging now.
-> >=20
-> > Could I have the latest version of the (clean) bluetooth patch? I have
-> > feeling it might work with the right config option, and would like to
-> > try.
-> >=20
-> > For the record, here's working .config and the tricky tricky oneliner
-> > that took me week to figure out.
->=20
-> https://git.kernel.org/cgit/linux/kernel/git/sre/linux-n900.git/log/?h=3D=
-n950-bluetooth
->=20
-> My local branch is based on 4.8 and fixes a few of Marcel's
-> comments. I'm currently at ELCE, but I will push my local
-> stuff later in the hotel after verifying, that it works as
-> expected (luckily I brought N950 with me :)).
+[0]
+https://patchwork.kernel.org/patch/9371931/
+https://patchwork.kernel.org/patch/9371929/
+> Add support to force Root Complex to work in GEN1
+> mode if so desired, but don't force GEN1 mode on
+> any board just yet.
+>
+> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+> ---
+>  Documentation/devicetree/bindings/pci/ti-pci.txt |    1 +
+>  drivers/pci/host/pci-dra7xx.c                    |   27 ++++++++++++++++++++++
+>  2 files changed, 28 insertions(+)
+>
+> diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
+> index 60e2516..a3d6ca3 100644
+> --- a/Documentation/devicetree/bindings/pci/ti-pci.txt
+> +++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
+> @@ -25,6 +25,7 @@ PCIe Designware Controller
+>
+>  Optional Property:
+>   - gpios : Should be added if a gpio line is required to drive PERST# line
+> + - ti,pcie-is-gen1 : Force the PCIe controller to work in GEN1 (2.5 GT/s).
+>
+>  Example:
+>  axi {
+> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
+> index 4ccba6d..2a669cb 100644
+> --- a/drivers/pci/host/pci-dra7xx.c
+> +++ b/drivers/pci/host/pci-dra7xx.c
+> @@ -63,11 +63,14 @@
+>  #define	LINK_UP						BIT(16)
+>  #define	DRA7XX_CPU_TO_BUS_ADDR				0x0FFFFFFF
+>
+> +#define EXP_CAP_ID_OFFSET				0x70
+> +
+>  struct dra7xx_pcie {
+>  	struct pcie_port	pp;
+>  	void __iomem		*base;		/* DT ti_conf */
+>  	int			phy_count;	/* DT phy-names count */
+>  	struct phy		**phy;
+> +	bool			is_gen1;
+>  };
+>
+>  #define to_dra7xx_pcie(x)	container_of((x), struct dra7xx_pcie, pp)
+> @@ -96,12 +99,33 @@ static int dra7xx_pcie_establish_link(struct dra7xx_pcie *dra7xx_pcie)
+>  	struct pcie_port *pp = &dra7xx_pcie->pp;
+>  	struct device *dev = pp->dev;
+>  	u32 reg;
+> +	u32 exp_cap_off = EXP_CAP_ID_OFFSET;
+>
+>  	if (dw_pcie_link_up(pp)) {
+>  		dev_err(dev, "link is already up\n");
+>  		return 0;
+>  	}
+>
+> +	if (dra7xx_pcie->is_gen1) {
+> +		dw_pcie_cfg_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCAP,
+> +				 4, &reg);
+> +		if ((reg & PCI_EXP_LNKCAP_SLS) != PCI_EXP_LNKCAP_SLS_2_5GB) {
+> +			reg &= ~((u32)PCI_EXP_LNKCAP_SLS);
+> +			reg |= PCI_EXP_LNKCAP_SLS_2_5GB;
+> +			dw_pcie_cfg_write(pp->dbi_base + exp_cap_off +
+> +					  PCI_EXP_LNKCAP, 4, reg);
+> +		}
+> +
+> +		dw_pcie_cfg_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCTL2,
+> +				 2, &reg);
+> +		if ((reg & PCI_EXP_LNKCAP_SLS) != PCI_EXP_LNKCAP_SLS_2_5GB) {
+> +			reg &= ~((u32)PCI_EXP_LNKCAP_SLS);
+> +			reg |= PCI_EXP_LNKCAP_SLS_2_5GB;
+> +			dw_pcie_cfg_write(pp->dbi_base + exp_cap_off +
+> +					  PCI_EXP_LNKCTL2, 2, reg);
+> +		}
+> +	}
+> +
+>  	reg = dra7xx_pcie_readl(dra7xx_pcie, PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
+>  	reg |= LTSSM_EN;
+>  	dra7xx_pcie_writel(dra7xx_pcie, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
+> @@ -402,6 +426,9 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>  	reg &= ~LTSSM_EN;
+>  	dra7xx_pcie_writel(dra7xx_pcie, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
+>
+> +	if (of_property_read_bool(np, "ti,pcie-is-gen1"))
+> +		dra7xx_pcie->is_gen1 = true;
+> +
+>  	ret = dra7xx_add_pcie_port(dra7xx_pcie, pdev);
+>  	if (ret < 0)
+>  		goto err_gpio;
+>
 
-It does not. Rebasing the pushed branch to v4.8 works, so the
-problem is somewhere in my new changes. I will try to have a
-look at it tomorrow.
 
-The changes shouldn't affect you for any tests, though. Just
-take the branch from above (and optionally rebase to v4.8).
+-- 
+Best Regards
+Shawn Lin
 
--- Sebastian
-
-
-
---3kztabrpv2i5z6ye
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAABCgAGBQJX/VyQAAoJENju1/PIO/qa9KkP/1Y+xO7yT1chi/Qvq5YuQwoa
-ufV1VDuVnfR3HdJGR80ZwdB0h3dC/9gwty4wTyBFXrxHdZtHIbXu4fWNkmkjKAv8
-/ywnvnlXTqbJZenSg2YYTjQxPCe12y7Gp4O+ZDSUKv555vplvPOghmNhRBZoh7PC
-3HNH0cijAn5zqE1XorQN/CDGgH60+KMQyfrD2QilSQDTzgFezc5gi9bWUYLP4vBX
-cuf2zl9RXK0wqKc4QS4AGMHrM70r0ZMMNsv7xDeaO2nWFpL2SbkBD/5+tAmNJub3
-+WMyT2nsuec53/GfES/SlhqjGYHKB2ylRvUaINcFRdnxjTeCViIGBqMDcRcOVM9D
-oXFoYl6JDWh0g0/VLb6ErdLrjlym+jOan5OP5HQvhydLIIOX1O59yfWGc9ByZUlM
-kvW1Llp5pil0okYe/he18m1oGgZnIA6znnjznlU3Rx1GrqvDnBhCuD4/RUg0uRqy
-xqCZj5gnrwaTa0M3SPr/KOI8vvwh9UVWQ3ipojkM/xRM5rF6aRSEn0Lw6fVr8I6q
-1z6PpMZaXteTL0VMUFEWbieZ+ehLZktRfeMSWjOdnYVK8bBgmktn/FZC+ekxsg98
-a13cu7NdtgN5BsQytyltq4Owk+yuTTaw2YF07Jc0irGif3M5SWxIpWU7W3ZKmU++
-CXRLGGaOQXsQ5IaXxkAi
-=1dA5
------END PGP SIGNATURE-----
-
---3kztabrpv2i5z6ye--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
