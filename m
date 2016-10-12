@@ -1,16 +1,15 @@
 From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [RFC PATCH 02/11] pci: endpoint: introduce configfs entry for
- configuring EP functions
-Date: Wed, 12 Oct 2016 05:42:10 -0700
-Message-ID: <20161012124210.GB942@infradead.org>
+Subject: Re: [RFC PATCH 05/11] pci: rename *host* directory to *controller*
+Date: Wed, 12 Oct 2016 05:43:15 -0700
+Message-ID: <20161012124315.GC942@infradead.org>
 References: <1473829927-20466-1-git-send-email-kishon@ti.com>
- <1473829927-20466-3-git-send-email-kishon@ti.com>
+ <1473829927-20466-6-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1473829927-20466-3-git-send-email-kishon@ti.com>
+In-Reply-To: <1473829927-20466-6-git-send-email-kishon@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,35 +23,5 @@ To: Kishon Vijay Abraham I <kishon@ti.com>
 Cc: devicetree@vger.kernel.org, Joao.Pinto@synopsys.com, Arnd Bergmann <arnd@arndb.de>, linux-doc@vger.kernel.org, Joao Pinto <jpinto@synopsys.com>, Jingoo Han <jingoohan1@gmail.com>, Pratyush Anand <pratyush.anand@gmail.com>, nsekhar@ti.com, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, hch@infradead.org, m-karicheri2@ti.com, linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, mingkai.hu@nxp.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Sep 14, 2016 at 10:41:58AM +0530, Kishon Vijay Abraham I wrote:
-> diff --git a/drivers/pci/endpoint/Kconfig b/drivers/pci/endpoint/Kconfig
-> index a6d827c..f1dd206 100644
-> --- a/drivers/pci/endpoint/Kconfig
-> +++ b/drivers/pci/endpoint/Kconfig
-> @@ -13,7 +13,9 @@ config PCI_ENDPOINT
->  
->  	   Enabling this option will build the endpoint library, which
->  	   includes endpoint controller library and endpoint function
-> -	   library.
-> +	   library. This will also enable the configfs entry required to
-> +	   configure the endpoint function and used to bind the
-> +	   function with a endpoint controller.
->  
->  	   If in doubt, say "N" to disable Endpoint support.
-
-This needs to grow a
-
-	depends on CONFIGFS_FS
-
-> +/**
-> + * pci-ep-cfs.c - configfs to configure the PCI endpoint
-
-Please don't use the file name in the top of the file comment, it's
-only bound to get out of date..
-
-> +struct pci_epf_info {
-> +	struct config_item pci_epf;
-> +	struct pci_epf *epf;
-> +};
-
-Any reason not to simply embedd the config_item into the pci_epf structure?
+This is a big and painful change.  I'd suggest to either drop it for
+now or convince Bjorn to take it as a scripted renamed just after -rc1.
