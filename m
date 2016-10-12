@@ -1,8 +1,8 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH v2 5/7] PCI: dra7xx: Pass device-specific struct to internal
- functions
-Date: Wed, 12 Oct 2016 08:33:14 -0500
-Message-ID: <20161012133314.27714.27407.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+Subject: [PATCH v2 2/7] PCI: dra7xx: Remove redundant struct device pointer
+ from dra7xx_pcie
+Date: Wed, 12 Oct 2016 08:32:50 -0500
+Message-ID: <20161012133250.27714.23262.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 References: <20161012133112.27714.93244.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,83 +14,32 @@ To: Kishon Vijay Abraham I <kishon@ti.com>
 Cc: linux-pci@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Only interfaces used from outside the driver, e.g., those called by the
-DesignWare core, need to accept pointers to the generic struct pcie_port.
-Internal interfaces can accept pointers to the device-specific struct,
-which makes them more straightforward.  No functional change intended.
+The DesignWare core already stores the struct device pointer in struct
+pcie_port.  Remove the redundant copy from struct dra7xx_pcie.dev.  No
+functional change intended.
 
 Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/pci/host/pci-dra7xx.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/pci/host/pci-dra7xx.c |    2 --
+ 1 file changed, 2 deletions(-)
 
 diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-index 66077d0..efb24b8 100644
+index 2323679..1c24f34 100644
 --- a/drivers/pci/host/pci-dra7xx.c
 +++ b/drivers/pci/host/pci-dra7xx.c
-@@ -91,9 +91,9 @@ static int dra7xx_pcie_link_up(struct pcie_port *pp)
- 	return !!(reg & LINK_UP);
- }
+@@ -67,7 +67,6 @@ struct dra7xx_pcie {
+ 	void __iomem		*base;
+ 	struct phy		**phy;
+ 	int			phy_count;
+-	struct device		*dev;
+ 	struct pcie_port	pp;
+ };
  
--static int dra7xx_pcie_establish_link(struct pcie_port *pp)
-+static int dra7xx_pcie_establish_link(struct dra7xx_pcie *dra7xx)
- {
--	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
-+	struct pcie_port *pp = &dra7xx->pp;
- 	struct device *dev = pp->dev;
- 	u32 reg;
+@@ -390,7 +389,6 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
  
-@@ -109,10 +109,8 @@ static int dra7xx_pcie_establish_link(struct pcie_port *pp)
- 	return dw_pcie_wait_for_link(pp);
- }
+ 	dra7xx->base = base;
+ 	dra7xx->phy = phy;
+-	dra7xx->dev = dev;
+ 	dra7xx->phy_count = phy_count;
  
--static void dra7xx_pcie_enable_interrupts(struct pcie_port *pp)
-+static void dra7xx_pcie_enable_interrupts(struct dra7xx_pcie *dra7xx)
- {
--	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
--
- 	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
- 			   ~INTERRUPTS);
- 	dra7xx_pcie_writel(dra7xx,
-@@ -131,6 +129,8 @@ static void dra7xx_pcie_enable_interrupts(struct pcie_port *pp)
- 
- static void dra7xx_pcie_host_init(struct pcie_port *pp)
- {
-+	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
-+
- 	pp->io_base &= DRA7XX_CPU_TO_BUS_ADDR;
- 	pp->mem_base &= DRA7XX_CPU_TO_BUS_ADDR;
- 	pp->cfg0_base &= DRA7XX_CPU_TO_BUS_ADDR;
-@@ -138,10 +138,10 @@ static void dra7xx_pcie_host_init(struct pcie_port *pp)
- 
- 	dw_pcie_setup_rc(pp);
- 
--	dra7xx_pcie_establish_link(pp);
-+	dra7xx_pcie_establish_link(dra7xx);
- 	if (IS_ENABLED(CONFIG_PCI_MSI))
- 		dw_pcie_msi_init(pp);
--	dra7xx_pcie_enable_interrupts(pp);
-+	dra7xx_pcie_enable_interrupts(dra7xx);
- }
- 
- static struct pcie_host_ops dra7xx_pcie_host_ops = {
-@@ -185,8 +185,8 @@ static int dra7xx_pcie_init_irq_domain(struct pcie_port *pp)
- 
- static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
- {
--	struct pcie_port *pp = arg;
--	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
-+	struct dra7xx_pcie *dra7xx = arg;
-+	struct pcie_port *pp = &dra7xx->pp;
- 	u32 reg;
- 
- 	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI);
-@@ -283,7 +283,7 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
- 
- 	ret = devm_request_irq(dev, pp->irq, dra7xx_pcie_msi_irq_handler,
- 			       IRQF_SHARED | IRQF_NO_THREAD,
--			       "dra7-pcie-msi",	pp);
-+			       "dra7-pcie-msi",	dra7xx);
- 	if (ret) {
- 		dev_err(dev, "failed to request irq\n");
- 		return ret;
+ 	pm_runtime_enable(dev);
