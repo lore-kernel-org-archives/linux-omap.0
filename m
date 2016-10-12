@@ -1,16 +1,16 @@
 From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [RFC PATCH 01/11] pci: endpoint: add EP core layer to enable EP
- controller and EP functions
-Date: Wed, 12 Oct 2016 05:38:43 -0700
-Message-ID: <20161012123843.GA942@infradead.org>
+Subject: Re: [RFC PATCH 02/11] pci: endpoint: introduce configfs entry for
+ configuring EP functions
+Date: Wed, 12 Oct 2016 05:42:10 -0700
+Message-ID: <20161012124210.GB942@infradead.org>
 References: <1473829927-20466-1-git-send-email-kishon@ti.com>
- <1473829927-20466-2-git-send-email-kishon@ti.com>
+ <1473829927-20466-3-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1473829927-20466-2-git-send-email-kishon@ti.com>
+In-Reply-To: <1473829927-20466-3-git-send-email-kishon@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,56 +24,35 @@ To: Kishon Vijay Abraham I <kishon@ti.com>
 Cc: devicetree@vger.kernel.org, Joao.Pinto@synopsys.com, Arnd Bergmann <arnd@arndb.de>, linux-doc@vger.kernel.org, Joao Pinto <jpinto@synopsys.com>, Jingoo Han <jingoohan1@gmail.com>, Pratyush Anand <pratyush.anand@gmail.com>, nsekhar@ti.com, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, hch@infradead.org, m-karicheri2@ti.com, linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, mingkai.hu@nxp.com
 List-Id: linux-omap@vger.kernel.org
 
-> +/**
-> + * pci_epc_stop() - stop the PCI link
-> + * @epc: the link of the EPC device that has to be stopped
-> + *
-> + * Invoke to stop the PCI link
-> + */
-> +void pci_epc_stop(struct pci_epc *epc)
-> +{
-> +	if (IS_ERR(epc) || !epc->ops->stop)
-> +		return;
-> +
-> +	spin_lock_irq(&epc->irq_lock);
-> +	epc->ops->stop(epc);
-> +	spin_unlock_irq(&epc->irq_lock);
-> +}
-> +EXPORT_SYMBOL_GPL(pci_epc_stop);
+On Wed, Sep 14, 2016 at 10:41:58AM +0530, Kishon Vijay Abraham I wrote:
+> diff --git a/drivers/pci/endpoint/Kconfig b/drivers/pci/endpoint/Kconfig
+> index a6d827c..f1dd206 100644
+> --- a/drivers/pci/endpoint/Kconfig
+> +++ b/drivers/pci/endpoint/Kconfig
+> @@ -13,7 +13,9 @@ config PCI_ENDPOINT
+>  
+>  	   Enabling this option will build the endpoint library, which
+>  	   includes endpoint controller library and endpoint function
+> -	   library.
+> +	   library. This will also enable the configfs entry required to
+> +	   configure the endpoint function and used to bind the
+> +	   function with a endpoint controller.
+>  
+>  	   If in doubt, say "N" to disable Endpoint support.
 
-Can you elaborate on the synchronization strategy here?  It seems
-like irq_lock is generally taken irq save and just around method
-calls.  Wou;dn't it be better to leave locking to the methods
-themselves?
+This needs to grow a
+
+	depends on CONFIGFS_FS
 
 > +/**
-> + * struct pci_epc - represents the PCI EPC device
-> + * @dev: PCI EPC device
-> + * @ops: function pointers for performing endpoint operations
-> + * @mutex: mutex to protect pci_epc ops
-> + */
-> +struct pci_epc {
-> +	struct device			dev;
-> +	/* support only single function PCI device for now */
-> +	struct pci_epf			*epf;
-> +	const struct pci_epc_ops	*ops;
-> +	spinlock_t			irq_lock;
+> + * pci-ep-cfs.c - configfs to configure the PCI endpoint
+
+Please don't use the file name in the top of the file comment, it's
+only bound to get out of date..
+
+> +struct pci_epf_info {
+> +	struct config_item pci_epf;
+> +	struct pci_epf *epf;
 > +};
 
-And this still documentes a mutex instead of the irq save spinlock,
-while we're at it..
-
-> +/**
-> + * struct pci_epf_bar - represents the BAR of EPF device
-> + * @phys_addr: physical address that should be mapped to the BAR
-> + * @size: the size of the address space present in BAR
-> + */
-> +struct pci_epf_bar {
-> +	dma_addr_t	phys_addr;
-> +	size_t		size;
-> +};
-
-Just curious: shouldn't this be a phys_addr_t instead of a dma_addr_t?
-
-
-Otherwise this looks like a nice little framework to get started!
+Any reason not to simply embedd the config_item into the pci_epf structure?
