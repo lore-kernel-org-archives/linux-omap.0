@@ -1,7 +1,7 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH v2 4/7] PCI: dra7xx: Use generic DesignWare accessors
-Date: Wed, 12 Oct 2016 08:33:06 -0500
-Message-ID: <20161012133306.27714.47113.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+Subject: [PATCH v2 3/7] PCI: dra7xx: Set drvdata at end of probe function
+Date: Wed, 12 Oct 2016 08:32:58 -0500
+Message-ID: <20161012133258.27714.51056.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 References: <20161012133112.27714.93244.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,58 +13,31 @@ To: Kishon Vijay Abraham I <kishon@ti.com>
 Cc: linux-pci@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The dw_pcie_readl_rc() and dw_pcie_writel_rc() interfaces already add in
-pp->dbi_base, so use those instead of doing it ourselves in the dra7xx
-driver.  No functional change intended.
+Set the drvdata pointer at the end of probe function for consistency with
+other drivers.  We don't need the drvdata until after the probe completes,
+and we don't need it at all if the probe fails.  No functional change
+intended.
 
 Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/pci/host/pci-dra7xx.c |   19 ++++---------------
- 1 file changed, 4 insertions(+), 15 deletions(-)
+ drivers/pci/host/pci-dra7xx.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-index 3d184f6..66077d0 100644
+index 1c24f34..3d184f6 100644
 --- a/drivers/pci/host/pci-dra7xx.c
 +++ b/drivers/pci/host/pci-dra7xx.c
-@@ -83,17 +83,6 @@ static inline void dra7xx_pcie_writel(struct dra7xx_pcie *pcie, u32 offset,
- 	writel(value, pcie->base + offset);
- }
+@@ -418,12 +418,11 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ 	reg &= ~LTSSM_EN;
+ 	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
  
--static inline u32 dra7xx_pcie_readl_rc(struct pcie_port *pp, u32 offset)
--{
--	return readl(pp->dbi_base + offset);
--}
+-	platform_set_drvdata(pdev, dra7xx);
 -
--static inline void dra7xx_pcie_writel_rc(struct pcie_port *pp, u32 offset,
--					 u32 value)
--{
--	writel(value, pp->dbi_base + offset);
--}
--
- static int dra7xx_pcie_link_up(struct pcie_port *pp)
- {
- 	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
-@@ -448,9 +437,9 @@ static int dra7xx_pcie_suspend(struct device *dev)
- 	u32 val;
+ 	ret = dra7xx_add_pcie_port(dra7xx, pdev);
+ 	if (ret < 0)
+ 		goto err_gpio;
  
- 	/* clear MSE */
--	val = dra7xx_pcie_readl_rc(pp, PCI_COMMAND);
-+	val = dw_pcie_readl_rc(pp, PCI_COMMAND);
- 	val &= ~PCI_COMMAND_MEMORY;
--	dra7xx_pcie_writel_rc(pp, PCI_COMMAND, val);
-+	dw_pcie_writel_rc(pp, PCI_COMMAND, val);
- 
++	platform_set_drvdata(pdev, dra7xx);
  	return 0;
- }
-@@ -462,9 +451,9 @@ static int dra7xx_pcie_resume(struct device *dev)
- 	u32 val;
  
- 	/* set MSE */
--	val = dra7xx_pcie_readl_rc(pp, PCI_COMMAND);
-+	val = dw_pcie_readl_rc(pp, PCI_COMMAND);
- 	val |= PCI_COMMAND_MEMORY;
--	dra7xx_pcie_writel_rc(pp, PCI_COMMAND, val);
-+	dw_pcie_writel_rc(pp, PCI_COMMAND, val);
- 
- 	return 0;
- }
+ err_gpio:
