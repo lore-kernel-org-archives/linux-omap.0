@@ -1,40 +1,52 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v2 3/7] PCI: dra7xx: Set drvdata at end of probe function
-Date: Wed, 12 Oct 2016 17:21:42 -0500
-Message-ID: <20161012222142.GA24545@localhost>
-References: <20161012133112.27714.93244.stgit@bhelgaas-glaptop2.roam.corp.google.com>
- <20161012133258.27714.51056.stgit@bhelgaas-glaptop2.roam.corp.google.com>
- <84f6a4b4-d900-844d-545f-cae1aed299e2@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH RESEND v3] dma: omap-dma: add support for pause of
+ non-cyclic transfers
+Date: Thu, 13 Oct 2016 13:07:53 +0300
+Message-ID: <d1eb15e4-7d8f-e2c0-0e27-580d3e41ac4e@ti.com>
+References: <20161010120755.26153-1-vigneshr@ti.com>
+ <46582bda-321f-47a6-d7d5-a27cbdd7f363@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <84f6a4b4-d900-844d-545f-cae1aed299e2@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Andrew F. Davis" <afd@ti.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Kishon Vijay Abraham I <kishon@ti.com>, linux-pci@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <46582bda-321f-47a6-d7d5-a27cbdd7f363@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>, Vinod Koul <vinod.koul@intel.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@armlinux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 12, 2016 at 02:48:02PM -0500, Andrew F. Davis wrote:
-> On 10/12/2016 08:32 AM, Bjorn Helgaas wrote:
-> > Set the drvdata pointer at the end of probe function for consistency with
-> > other drivers. 
+On 10/10/16 17:12, Peter Ujfalusi wrote:
+> On 10/10/16 15:07, Vignesh R wrote:
+>> From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+>>
+>> This DMA driver is used by 8250-omap on DRA7-evm. There is one
+>> requirement that is to pause a transfer. This is currently used on the RX
+>> side. It is possible that the UART HW aborted the RX (UART's RX-timeout)
+>> but the DMA controller starts the transfer shortly after.
+>> Before we can manually purge the FIFO we need to pause the transfer,
+>> check how many bytes it already received and terminate the transfer
+>> without it making any progress.
+>>
+>> From testing on the TX side it seems that it is possible that we invoke
+>> pause once the transfer has completed which is indicated by the missing
+>> CCR_ENABLE bit but before the interrupt has been noticed. In that case the
+>> interrupt will come even after disabling it.
+>>
+>> The AM572x manual says that we have to wait for the CCR_RD_ACTIVE &
+>> CCR_WR_ACTIVE bits to be gone before programming it again here is the
+>> drain loop. Also it looks like without the drain the TX-transfer makes
+>> sometimes progress.
+>>
+>> One note: The pause + resume combo is broken because after resume the
+>> the complete transfer will be programmed again. That means the already
+>> transferred bytes (until the pause event) will be sent again. This is
+>> currently not important for my UART user because it does only pause +
+>> terminate.
 > 
-> I've seen it done the current way many places.
-> 
-> > We don't need the drvdata until after the probe completes,
-> > and we don't need it at all if the probe fails. 
-> 
-> Are you sure this will always be true? Why not set it as soon as we have
-> the ability to, what do we gain by waiting till the end, something like
-> one less instruction in the failure case?
+> Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-I don't think it's likely anybody will need it before .probe()
-completes, because the purpose of drvdata is for an external driver
-entry point to locate its device data, and none of those entry points
-will be called until after .probe() completes successfully.
+Can you resend the patch with corrected subject line?
+dmaengine: omap-dma: ....
 
-But I don't care at all if we do it earlier, as long as all the
-drivers do it the same way.
-
-Bjorn
+-- 
+Péter
