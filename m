@@ -1,7 +1,7 @@
 From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 5/9] ARM: OMAP2+: board-generic: add support for DRA71x family
-Date: Fri, 14 Oct 2016 18:30:29 +0530
-Message-ID: <20161014130033.14172-6-lokeshvutla@ti.com>
+Subject: [PATCH 2/9] ARM: dra72-evm: Fix modelling of regulators
+Date: Fri, 14 Oct 2016 18:30:26 +0530
+Message-ID: <20161014130033.14172-3-lokeshvutla@ti.com>
 References: <20161014130033.14172-1-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,51 +12,92 @@ To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mai
 Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Linux ARM Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-DRA71x processor family is a derivative of DRA722 ES2.0 targeted for
-infotainment systems.
+Add proper description of input voltage regulators and update the voltage
+rail map for all the regulators.
 
 Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 ---
- Documentation/devicetree/bindings/arm/omap/omap.txt | 6 ++++++
- arch/arm/mach-omap2/board-generic.c                 | 1 +
- 2 files changed, 7 insertions(+)
+ arch/arm/boot/dts/dra72-evm-common.dtsi | 48 +++++++++++++++++++++++++++++++++
+ 1 file changed, 48 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-index f53e2ee..454b1be 100644
---- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-@@ -86,6 +86,9 @@ SoCs:
- - DRA722
-   compatible = "ti,dra722", "ti,dra72", "ti,dra7"
+diff --git a/arch/arm/boot/dts/dra72-evm-common.dtsi b/arch/arm/boot/dts/dra72-evm-common.dtsi
+index 3c02612..8537b6a 100644
+--- a/arch/arm/boot/dts/dra72-evm-common.dtsi
++++ b/arch/arm/boot/dts/dra72-evm-common.dtsi
+@@ -18,11 +18,47 @@
+ 		display0 = &hdmi0;
+ 	};
  
-+- DRA718
-+  compatible = "ti,dra718", "ti,dra722", "ti,dra72", "ti,dra7"
++	evm_12v0: fixedregulator-evm12v0 {
++		/* main supply */
++		compatible = "regulator-fixed";
++		regulator-name = "evm_12v0";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
 +
- - AM5728
-   compatible = "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7"
- 
-@@ -181,6 +184,9 @@ Boards:
- - DRA722 EVM: Software Development Board for DRA722
-   compatible = "ti,dra72-evm", "ti,dra722", "ti,dra72", "ti,dra7"
- 
-+- DRA718 EVM: Software Development Board for DRA718
-+  compatible = "ti,dra718-evm", "ti,dra718", "ti,dra722", "ti,dra72", "ti,dra7"
++	evm_5v0: fixedregulator-evm5v0 {
++		/* Output 1 of TPS43351QDAPRQ1 */
++		compatible = "regulator-fixed";
++		regulator-name = "evm_5v0";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		vin-supply = <&evm_12v0>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
 +
- - DM3730 Logic PD Torpedo + Wireless: Commercial System on Module with WiFi and Bluetooth
-   compatible = "logicpd,dm3730-torpedo-devkit", "ti,omap3630", "ti,omap3"
++	vsys_3v3: fixedregulator-vsys3v3 {
++		/* Output 2 of TPS43351QDAPRQ1 */
++		compatible = "regulator-fixed";
++		regulator-name = "vsys_3v3";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		vin-supply = <&evm_12v0>;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
+ 	evm_3v3_sw: fixedregulator-evm_3v3 {
++		/* TPS22965DSG */
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "evm_3v3";
+ 		regulator-min-microvolt = <3300000>;
+ 		regulator-max-microvolt = <3300000>;
++		vin-supply = <&vsys_3v3>;
++		regulator-always-on;
++		regulator-boot-on;
+ 	};
  
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index bab814d..981b23a 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -341,6 +341,7 @@ static const char *const dra72x_boards_compat[] __initconst = {
- 	"ti,am5718",
- 	"ti,am5716",
- 	"ti,dra722",
-+	"ti,dra718",
- 	NULL,
- };
+ 	aic_dvdd: fixedregulator-aic_dvdd {
+@@ -39,6 +75,7 @@
+ 		regulator-name = "evm_3v3_sd";
+ 		regulator-min-microvolt = <3300000>;
+ 		regulator-max-microvolt = <3300000>;
++		vin-supply = <&evm_3v3_sw>;
+ 		enable-active-high;
+ 		gpio = <&pcf_gpio_21 5 GPIO_ACTIVE_HIGH>;
+ 	};
+@@ -190,6 +227,17 @@
+ 		tps65917_pmic {
+ 			compatible = "ti,tps65917-pmic";
  
++			smps1-in-supply = <&vsys_3v3>;
++			smps2-in-supply = <&vsys_3v3>;
++			smps3-in-supply = <&vsys_3v3>;
++			smps4-in-supply = <&vsys_3v3>;
++			smps5-in-supply = <&vsys_3v3>;
++			ldo1-in-supply = <&vsys_3v3>;
++			ldo2-in-supply = <&vsys_3v3>;
++			ldo3-in-supply = <&vsys_3v3>;
++			ldo4-in-supply = <&evm_5v0>;
++			ldo5-in-supply = <&vsys_3v3>;
++
+ 			tps65917_regulators: regulators {
+ 				smps1_reg: smps1 {
+ 					/* VDD_MPU */
 -- 
 2.9.3
 
