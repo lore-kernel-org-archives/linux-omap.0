@@ -1,269 +1,60 @@
 From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH v4] dmaengine: omap-dma: add support for pause of non-cyclic transfers
-Date: Fri, 14 Oct 2016 10:30:47 +0530
-Message-ID: <20161014050047.28447-1-vigneshr@ti.com>
+Subject: Re: [PATCH RESEND v3] dma: omap-dma: add support for pause of
+ non-cyclic transfers
+Date: Fri, 14 Oct 2016 10:31:59 +0530
+Message-ID: <611e51ba-f484-0545-35e0-6f8e3885cf50@ti.com>
 References: <20161010120755.26153-1-vigneshr@ti.com>
+ <46582bda-321f-47a6-d7d5-a27cbdd7f363@ti.com>
+ <d1eb15e4-7d8f-e2c0-0e27-580d3e41ac4e@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161010120755.26153-1-vigneshr@ti.com>
+In-Reply-To: <d1eb15e4-7d8f-e2c0-0e27-580d3e41ac4e@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vinod Koul <vinod.koul@intel.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Russell King - ARM Linux <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, Vignesh R <vigneshr@ti.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Vinod Koul <vinod.koul@intel.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@armlinux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-This DMA driver is used by 8250-omap on DRA7-evm. There is one
-requirement that is to pause a transfer. This is currently used on the RX
-side. It is possible that the UART HW aborted the RX (UART's RX-timeout)
-but the DMA controller starts the transfer shortly after.
-Before we can manually purge the FIFO we need to pause the transfer,
-check how many bytes it already received and terminate the transfer
-without it making any progress.
 
->From testing on the TX side it seems that it is possible that we invoke
-pause once the transfer has completed which is indicated by the missing
-CCR_ENABLE bit but before the interrupt has been noticed. In that case the
-interrupt will come even after disabling it.
+On Thursday 13 October 2016 03:37 PM, Peter Ujfalusi wrote:
+> On 10/10/16 17:12, Peter Ujfalusi wrote:
+>> On 10/10/16 15:07, Vignesh R wrote:
+>>> From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+>>>
+>>> This DMA driver is used by 8250-omap on DRA7-evm. There is one
+>>> requirement that is to pause a transfer. This is currently used on the RX
+>>> side. It is possible that the UART HW aborted the RX (UART's RX-timeout)
+>>> but the DMA controller starts the transfer shortly after.
+>>> Before we can manually purge the FIFO we need to pause the transfer,
+>>> check how many bytes it already received and terminate the transfer
+>>> without it making any progress.
+>>>
+>>> From testing on the TX side it seems that it is possible that we invoke
+>>> pause once the transfer has completed which is indicated by the missing
+>>> CCR_ENABLE bit but before the interrupt has been noticed. In that case the
+>>> interrupt will come even after disabling it.
+>>>
+>>> The AM572x manual says that we have to wait for the CCR_RD_ACTIVE &
+>>> CCR_WR_ACTIVE bits to be gone before programming it again here is the
+>>> drain loop. Also it looks like without the drain the TX-transfer makes
+>>> sometimes progress.
+>>>
+>>> One note: The pause + resume combo is broken because after resume the
+>>> the complete transfer will be programmed again. That means the already
+>>> transferred bytes (until the pause event) will be sent again. This is
+>>> currently not important for my UART user because it does only pause +
+>>> terminate.
+>>
+>> Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> 
+> Can you resend the patch with corrected subject line?
+> dmaengine: omap-dma: ....
+> 
 
-The AM572x manual says that we have to wait for the CCR_RD_ACTIVE &
-CCR_WR_ACTIVE bits to be gone before programming it again here is the
-drain loop. Also it looks like without the drain the TX-transfer makes
-sometimes progress.
+Sent v4 in reply to the patch fixing up the subject. Thanks!
 
-One note: The pause + resume combo is broken because after resume the
-the complete transfer will be programmed again. That means the already
-transferred bytes (until the pause event) will be sent again. This is
-currently not important for my UART user because it does only pause +
-terminate.
-
-v3…v4:
- - update subject line.
-
-v2…v3:
-  - rephrase the comment based on Russell's information / feedback.
-
-v1…v2:
-  - move the drain loop into omap_dma_drain_chan() instead of having it
-    twice.
-  - allow pause only for DMA_DEV_TO_MEM transfers if non-cyclic. Add a
-    comment why DMA_MEM_TO_DEV not allowed.
-  - clear pause on terminate_all. Otherwise pause() + terminate_all()
-    will keep the pause bit set and we can't pause the following
-    transfer.
-
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-[vigneshr@ti.com: drain channel only when buffering is on, rebase to v4.8]
-Signed-off-by: Vignesh R <vigneshr@ti.com>
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- drivers/dma/omap-dma.c | 124 +++++++++++++++++++++++++++++++++++--------------
- 1 file changed, 89 insertions(+), 35 deletions(-)
-
-diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index 7ca27d4b1c54..fd6b9e6834ad 100644
---- a/drivers/dma/omap-dma.c
-+++ b/drivers/dma/omap-dma.c
-@@ -422,7 +422,30 @@ static void omap_dma_start(struct omap_chan *c, struct omap_desc *d)
- 	c->running = true;
- }
- 
--static void omap_dma_stop(struct omap_chan *c)
-+static void omap_dma_drain_chan(struct omap_chan *c)
-+{
-+	int i;
-+	u32 val;
-+
-+	/* Wait for sDMA FIFO to drain */
-+	for (i = 0; ; i++) {
-+		val = omap_dma_chan_read(c, CCR);
-+		if (!(val & (CCR_RD_ACTIVE | CCR_WR_ACTIVE)))
-+			break;
-+
-+		if (i > 100)
-+			break;
-+
-+		udelay(5);
-+	}
-+
-+	if (val & (CCR_RD_ACTIVE | CCR_WR_ACTIVE))
-+		dev_err(c->vc.chan.device->dev,
-+			"DMA drain did not complete on lch %d\n",
-+			c->dma_ch);
-+}
-+
-+static int omap_dma_stop(struct omap_chan *c)
- {
- 	struct omap_dmadev *od = to_omap_dma_dev(c->vc.chan.device);
- 	uint32_t val;
-@@ -435,7 +458,6 @@ static void omap_dma_stop(struct omap_chan *c)
- 	val = omap_dma_chan_read(c, CCR);
- 	if (od->plat->errata & DMA_ERRATA_i541 && val & CCR_TRIGGER_SRC) {
- 		uint32_t sysconfig;
--		unsigned i;
- 
- 		sysconfig = omap_dma_glbl_read(od, OCP_SYSCONFIG);
- 		val = sysconfig & ~DMA_SYSCONFIG_MIDLEMODE_MASK;
-@@ -446,27 +468,19 @@ static void omap_dma_stop(struct omap_chan *c)
- 		val &= ~CCR_ENABLE;
- 		omap_dma_chan_write(c, CCR, val);
- 
--		/* Wait for sDMA FIFO to drain */
--		for (i = 0; ; i++) {
--			val = omap_dma_chan_read(c, CCR);
--			if (!(val & (CCR_RD_ACTIVE | CCR_WR_ACTIVE)))
--				break;
--
--			if (i > 100)
--				break;
--
--			udelay(5);
--		}
--
--		if (val & (CCR_RD_ACTIVE | CCR_WR_ACTIVE))
--			dev_err(c->vc.chan.device->dev,
--				"DMA drain did not complete on lch %d\n",
--			        c->dma_ch);
-+		if (!(c->ccr & CCR_BUFFERING_DISABLE))
-+			omap_dma_drain_chan(c);
- 
- 		omap_dma_glbl_write(od, OCP_SYSCONFIG, sysconfig);
- 	} else {
-+		if (!(val & CCR_ENABLE))
-+			return -EINVAL;
-+
- 		val &= ~CCR_ENABLE;
- 		omap_dma_chan_write(c, CCR, val);
-+
-+		if (!(c->ccr & CCR_BUFFERING_DISABLE))
-+			omap_dma_drain_chan(c);
- 	}
- 
- 	mb();
-@@ -481,8 +495,8 @@ static void omap_dma_stop(struct omap_chan *c)
- 
- 		omap_dma_chan_write(c, CLNK_CTRL, val);
- 	}
--
- 	c->running = false;
-+	return 0;
- }
- 
- static void omap_dma_start_sg(struct omap_chan *c, struct omap_desc *d)
-@@ -836,6 +850,8 @@ static enum dma_status omap_dma_tx_status(struct dma_chan *chan,
- 	} else {
- 		txstate->residue = 0;
- 	}
-+	if (ret == DMA_IN_PROGRESS && c->paused)
-+		ret = DMA_PAUSED;
- 	spin_unlock_irqrestore(&c->vc.lock, flags);
- 
- 	return ret;
-@@ -1247,10 +1263,8 @@ static int omap_dma_terminate_all(struct dma_chan *chan)
- 			omap_dma_stop(c);
- 	}
- 
--	if (c->cyclic) {
--		c->cyclic = false;
--		c->paused = false;
--	}
-+	c->cyclic = false;
-+	c->paused = false;
- 
- 	vchan_get_all_descriptors(&c->vc, &head);
- 	spin_unlock_irqrestore(&c->vc.lock, flags);
-@@ -1269,28 +1283,66 @@ static void omap_dma_synchronize(struct dma_chan *chan)
- static int omap_dma_pause(struct dma_chan *chan)
- {
- 	struct omap_chan *c = to_omap_dma_chan(chan);
-+	struct omap_dmadev *od = to_omap_dma_dev(chan->device);
-+	unsigned long flags;
-+	int ret = -EINVAL;
-+	bool can_pause;
- 
--	/* Pause/Resume only allowed with cyclic mode */
--	if (!c->cyclic)
--		return -EINVAL;
-+	spin_lock_irqsave(&od->irq_lock, flags);
- 
--	if (!c->paused) {
--		omap_dma_stop(c);
--		c->paused = true;
-+	if (!c->desc)
-+		goto out;
-+
-+	if (c->cyclic)
-+		can_pause = true;
-+
-+	/*
-+	 * We do not allow DMA_MEM_TO_DEV transfers to be paused.
-+	 * From the AM572x TRM, 16.1.4.18 Disabling a Channel During Transfer:
-+	 * "When a channel is disabled during a transfer, the channel undergoes
-+	 * an abort, unless it is hardware-source-synchronized …".
-+	 * A source-synchronised channel is one where the fetching of data is
-+	 * under control of the device. In other words, a device-to-memory
-+	 * transfer. So, a destination-synchronised channel (which would be a
-+	 * memory-to-device transfer) undergoes an abort if the the CCR_ENABLE
-+	 * bit is cleared.
-+	 * From 16.1.4.20.4.6.2 Abort: "If an abort trigger occurs, the channel
-+	 * aborts immediately after completion of current read/write
-+	 * transactions and then the FIFO is cleaned up." The term "cleaned up"
-+	 * is not defined. TI recommends to check that RD_ACTIVE and WR_ACTIVE
-+	 * are both clear _before_ disabling the channel, otherwise data loss
-+	 * will occur.
-+	 * The problem is that if the channel is active, then device activity
-+	 * can result in DMA activity starting between reading those as both
-+	 * clear and the write to DMA_CCR to clear the enable bit hitting the
-+	 * hardware. If the DMA hardware can't drain the data in its FIFO to the
-+	 * destination, then data loss "might" occur (say if we write to an UART
-+	 * and the UART is not accepting any further data).
-+	 */
-+	else if (c->desc->dir == DMA_DEV_TO_MEM)
-+		can_pause = true;
-+
-+	if (can_pause && !c->paused) {
-+		ret = omap_dma_stop(c);
-+		if (!ret)
-+			c->paused = true;
- 	}
-+out:
-+	spin_unlock_irqrestore(&od->irq_lock, flags);
- 
--	return 0;
-+	return ret;
- }
- 
- static int omap_dma_resume(struct dma_chan *chan)
- {
- 	struct omap_chan *c = to_omap_dma_chan(chan);
-+	struct omap_dmadev *od = to_omap_dma_dev(chan->device);
-+	unsigned long flags;
-+	int ret = -EINVAL;
- 
--	/* Pause/Resume only allowed with cyclic mode */
--	if (!c->cyclic)
--		return -EINVAL;
-+	spin_lock_irqsave(&od->irq_lock, flags);
- 
--	if (c->paused) {
-+	if (c->paused && c->desc) {
- 		mb();
- 
- 		/* Restore channel link register */
-@@ -1298,9 +1350,11 @@ static int omap_dma_resume(struct dma_chan *chan)
- 
- 		omap_dma_start(c, c->desc);
- 		c->paused = false;
-+		ret = 0;
- 	}
-+	spin_unlock_irqrestore(&od->irq_lock, flags);
- 
--	return 0;
-+	return ret;
- }
- 
- static int omap_dma_chan_init(struct omap_dmadev *od)
 -- 
-2.10.1
+Regards
+Vignesh
