@@ -1,60 +1,67 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH RESEND v3] dma: omap-dma: add support for pause of
- non-cyclic transfers
-Date: Fri, 14 Oct 2016 10:31:59 +0530
-Message-ID: <611e51ba-f484-0545-35e0-6f8e3885cf50@ti.com>
-References: <20161010120755.26153-1-vigneshr@ti.com>
- <46582bda-321f-47a6-d7d5-a27cbdd7f363@ti.com>
- <d1eb15e4-7d8f-e2c0-0e27-580d3e41ac4e@ti.com>
+From: Ravikumar <a0131654@ti.com>
+Subject: Re: [RFC 1/1] drivers: i2c: omap: Add slave support
+Date: Fri, 14 Oct 2016 13:26:40 +0530
+Message-ID: <1731bbba-4dc6-745e-fcd2-1a91d6c20dd9@ti.com>
+References: <20160525141119.14486-1-rk@ti.com>
+ <20160525141119.14486-2-rk@ti.com> <20160825171430.GM2856@katana>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <d1eb15e4-7d8f-e2c0-0e27-580d3e41ac4e@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Vinod Koul <vinod.koul@intel.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@armlinux.org.uk>
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <20160825171430.GM2856@katana>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>, Ravikumar Kattekola <rk@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
+On Thursday 25 August 2016 10:44 PM, Wolfram Sang wrote:
+> Hi,
+>
+>> The omap i2c controller (at least on dra7x devices)
+>> doesn't have  start/stop (STT/STP) support for slave mode
+>> so event  #5 is not implemented in the driver.
+> I think you can deduce that. If a new {READ|WRITE}_REQUESTED slave event
+> comes in when you had *_PROCESSED events before, there must have been a
+> STOP on the bus inbetween.
+I've found that the Bus free interrupt can be used for STOP condition in 
+slave mode.
+So this shouldn't be a problem anymore.
+>
+>> +		if (stat & OMAP_I2C_STAT_XRDY) {
+>> +			i2c_slave_event(omap->slave, I2C_SLAVE_READ_REQUESTED,
+>> +					&value);
+>> +			omap_i2c_write_reg(omap, OMAP_I2C_DATA_REG, value);
+>> +			i2c_slave_event(omap->slave, I2C_SLAVE_READ_PROCESSED,
+>> +					&value);
+> This looks fishy. READ_REQUESTED is only sent after the address phase.
+> Have you read the documentation (Documentation/i2c/slave-interface)?
+> Please say if it was unclear.
+Will fix this.
+>> +	/* As of now, We dont need all interrupts be enabled */
+>> +	omap->iestate = OMAP_I2C_IE_AAS | OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY;
+> This looks even more fishy. Are you disabling the master interrupts?
+> That's a no (unless there are HW constraints). Your driver should be
+> able to switch between master and slave depending on what happens on the
+> bus.
+Dynamic switching on OMAP I2C IP could be a  difficult task.
+There is no separate status register for master mode vs slave mode, it's 
+a common register.
+Even the interrupt status bits are reused.
 
-On Thursday 13 October 2016 03:37 PM, Peter Ujfalusi wrote:
-> On 10/10/16 17:12, Peter Ujfalusi wrote:
->> On 10/10/16 15:07, Vignesh R wrote:
->>> From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
->>>
->>> This DMA driver is used by 8250-omap on DRA7-evm. There is one
->>> requirement that is to pause a transfer. This is currently used on the RX
->>> side. It is possible that the UART HW aborted the RX (UART's RX-timeout)
->>> but the DMA controller starts the transfer shortly after.
->>> Before we can manually purge the FIFO we need to pause the transfer,
->>> check how many bytes it already received and terminate the transfer
->>> without it making any progress.
->>>
->>> From testing on the TX side it seems that it is possible that we invoke
->>> pause once the transfer has completed which is indicated by the missing
->>> CCR_ENABLE bit but before the interrupt has been noticed. In that case the
->>> interrupt will come even after disabling it.
->>>
->>> The AM572x manual says that we have to wait for the CCR_RD_ACTIVE &
->>> CCR_WR_ACTIVE bits to be gone before programming it again here is the
->>> drain loop. Also it looks like without the drain the TX-transfer makes
->>> sometimes progress.
->>>
->>> One note: The pause + resume combo is broken because after resume the
->>> the complete transfer will be programmed again. That means the already
->>> transferred bytes (until the pause event) will be sent again. This is
->>> currently not important for my UART user because it does only pause +
->>> terminate.
->>
->> Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> 
-> Can you resend the patch with corrected subject line?
-> dmaengine: omap-dma: ....
-> 
+So i cant do a check on status like if(!MSR) slave_irq_handler();
 
-Sent v4 in reply to the patch fixing up the subject. Thanks!
+I think instead of status I may need to check the MST(1:master mode, 
+0:slave mode] bit in I2C_CON
+to take a decision on whether to call slave irq_handler or not.
+> For more guidance, here is my talk at ELCE 2015:
+> https://www.youtube.com/watch?v=JdQ21jlwb58
+Thanks for sharing the video.
+>
+> Regards,
+>
+>     Wolfram
+>
 
--- 
-Regards
-Vignesh
+Regards,
+RK
