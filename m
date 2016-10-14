@@ -1,7 +1,7 @@
 From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 4/9] regulator: lp873x: Add support for populating input supply
-Date: Fri, 14 Oct 2016 18:30:28 +0530
-Message-ID: <20161014130033.14172-5-lokeshvutla@ti.com>
+Subject: [PATCH 6/9] ARM: DRA7: hwmod: Do not register RTC on DRA71
+Date: Fri, 14 Oct 2016 18:30:30 +0530
+Message-ID: <20161014130033.14172-7-lokeshvutla@ti.com>
 References: <20161014130033.14172-1-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,59 +9,55 @@ Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161014130033.14172-1-lokeshvutla-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Linux ARM Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Linux ARM Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-In order to have a proper topology of regulators for a platform, each
-registering regulator needs to populate supply_name field for identifying
-its supply's name. Add supply_name field for lp873x regulators.
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 
-Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+RTC is not available on DRA71x, so accessing any of the RTC
+register or clkctrl register will lead to a crash. So, do not
+register RTC hwmod for DRA71x.
+
+Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 ---
- Documentation/devicetree/bindings/mfd/lp873x.txt | 8 ++++++++
- drivers/regulator/lp873x-regulator.c             | 1 +
- 2 files changed, 9 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/mfd/lp873x.txt b/Documentation/devicetree/bindings/mfd/lp873x.txt
-index 52766c2..936cba3 100644
---- a/Documentation/devicetree/bindings/mfd/lp873x.txt
-+++ b/Documentation/devicetree/bindings/mfd/lp873x.txt
-@@ -7,6 +7,9 @@ Required properties:
-   - #gpio-cells:	Should be two.  The first cell is the pin number and
- 			the second cell is used to specify flags.
- 			See ../gpio/gpio.txt for more information.
-+  - xxx-supply:		Phandle to parent supply node of each regulator
-+			populated under regulators node. xxx should match
-+			the supply_name populated in driver.
-   - regulators:	List of child nodes that specify the regulator
- 			initialization data.
- Example:
-@@ -17,6 +20,11 @@ pmic: lp8733@60 {
- 	gpio-controller;
- 	#gpio-cells = <2>;
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index 1ab7096..7f48577 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -3845,7 +3845,6 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+ 	&dra7xx_l3_main_1__pciess2,
+ 	&dra7xx_l4_cfg__pciess2,
+ 	&dra7xx_l3_main_1__qspi,
+-	&dra7xx_l4_per3__rtcss,
+ 	&dra7xx_l4_cfg__sata,
+ 	&dra7xx_l4_cfg__smartreflex_core,
+ 	&dra7xx_l4_cfg__smartreflex_mpu,
+@@ -3905,6 +3904,11 @@ static struct omap_hwmod_ocp_if *dra72x_hwmod_ocp_ifs[] __initdata = {
+ 	NULL,
+ };
  
-+	buck0-in-supply = <&vsys_3v3>;
-+	buck1-in-supply = <&vsys_3v3>;
-+	ldo0-in-supply = <&vsys_3v3>;
-+	ldo1-in-supply = <&vsys_3v3>;
++static struct omap_hwmod_ocp_if *dra74x_dra72x_hwmod_ocp_ifs[] __initdata = {
++	&dra7xx_l4_per3__rtcss,
++	NULL,
++};
 +
- 	regulators {
- 		lp8733_buck0: buck0 {
- 			regulator-name = "lp8733-buck0";
-diff --git a/drivers/regulator/lp873x-regulator.c b/drivers/regulator/lp873x-regulator.c
-index e504b91..70e3df6 100644
---- a/drivers/regulator/lp873x-regulator.c
-+++ b/drivers/regulator/lp873x-regulator.c
-@@ -24,6 +24,7 @@
- 	[_id] = {							\
- 		.desc = {						\
- 			.name			= _name,		\
-+			.supply_name		= _of "-in",		\
- 			.id			= _id,			\
- 			.of_match		= of_match_ptr(_of),	\
- 			.regulators_node	= of_match_ptr("regulators"),\
+ int __init dra7xx_hwmod_init(void)
+ {
+ 	int ret;
+@@ -3920,5 +3924,9 @@ int __init dra7xx_hwmod_init(void)
+ 	if (!ret && omap_type() == OMAP2_DEVICE_TYPE_GP)
+ 		ret = omap_hwmod_register_links(dra7xx_gp_hwmod_ocp_ifs);
+ 
++	/* now for the IPs *NOT* in dra71 */
++	if (!ret && !of_machine_is_compatible("ti,dra718"))
++		ret = omap_hwmod_register_links(dra74x_dra72x_hwmod_ocp_ifs);
++
+ 	return ret;
+ }
 -- 
 2.9.3
 
