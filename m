@@ -1,63 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Detected aborted journal error in Kernel 3.12
-Date: Fri, 14 Oct 2016 04:12:00 -0700
-Message-ID: <20161014111200.vjpnwlvtdfjfrgee@atomide.com>
-References: <CAFvPE2qruGv6hdGCkuagq9hHEgsmncBPfqD6ftpRLcY6tou9Bw@mail.gmail.com>
- <20160917154123.mfkkhptwvrzavs7y@atomide.com>
- <CAFvPE2ph+bGBkgvjPQfYzn3xwdXrTSXVEBHMo_CEDcdiR6-ekQ@mail.gmail.com>
- <20160919181541.45ahl6ktojawwtui@atomide.com>
- <CAALWOA_RHBW8gYq=HncNgw8k2yKipieRgmCaNyz=kvLF4RSAwg@mail.gmail.com>
+From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 8/9] ARM: omap2plus_defconfig: Enable REGULATOR_GPIO
+Date: Fri, 14 Oct 2016 18:30:32 +0530
+Message-ID: <20161014130033.14172-9-lokeshvutla@ti.com>
+References: <20161014130033.14172-1-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAALWOA_RHBW8gYq=HncNgw8k2yKipieRgmCaNyz=kvLF4RSAwg@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Matthijs van Duin <matthijsvanduin@gmail.com>
-Cc: Ankur Tank <ankurtank.linux@gmail.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161014130033.14172-1-lokeshvutla-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Linux ARM Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Matthijs van Duin <matthijsvanduin@gmail.com> [161013 13:25]:
-> It would indeed be very useful to have a reproducible case on an
-> uptodate kernel, but it is definitely not specific to his hardware.
-> Someone on the beagleboard forum also hit this issue, but sporadically:
-> 
-> https://groups.google.com/d/msg/beagleboard/5ZwTUQwGSx4/r15mENdfAwAJ
-> 
-> I'll quote my reply to it:
-> 
-> On 4 October 2016 at 21:00, Matthijs van Duin <matthijsvanduin@gmail.com> wrote:
-> > I've also run into this once during an apt-get upgrade, leaving the system
-> > in a pretty hosed state. I managed to recover it but it required a lot of
-> > effort. Although evidently rare, this is clearly a very serious issue.
-> >
-> > The direct cause is edma_prep_slave_sg() failing to allocate memory for the
-> > struct edma_desc. I don't know whether the kernel is genuinely out of memory
-> > or if it simply cannot free it up immediately (the allocation is done with
-> > GPF_ATOMIC), and whether this is because it is filled with a backlog of
-> > writes or whether a leak of some sort is going on.
-> >
-> > Instead of deferring until memory is available, or even just proceeding
-> > without DMA, the omap_hsmmc driver immediately fails the request with an
-> > error, thus pretty much guaranteeing loss of data or even filesystem
-> > corruption. I personally think this is completely unacceptable behaviour of
-> > a block driver.
+GPIO regulator is used on dra71-evm platform to control MMCSD IO
+voltage
 
-Yes I can see that being a problem. The fact that omap_hsmmc does
-not fail back to PIO mode is just strange. We've had the omap1
-drivers/mmc/host/omap.c work with and without DMA no problem,
-no idea why this would not be required also for omap_hsmmc too.
+Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/configs/omap2plus_defconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-> > I've been meaning to persue this matter on the linux-mmc and/or linux-omap
-> > lists, but since it was a single isolated incident and I have lots of other
-> > stuff to do I haven't been able to find the time and motivation yet.
-> 
-> If Ankur has a reproducible case then I think it's time to get
-> motivated. Ankur, can you please try 4.7 or 4.8 ?
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index 53e1a88..5695cff 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -270,6 +270,7 @@ CONFIG_MFD_TPS65217=y
+ CONFIG_MFD_TPS65218=y
+ CONFIG_MFD_TPS65910=y
+ CONFIG_TWL6040_CORE=y
++CONFIG_REGULATOR_GPIO=y
+ CONFIG_REGULATOR_LP872X=y
+ CONFIG_REGULATOR_PALMAS=y
+ CONFIG_REGULATOR_PBIAS=y
+-- 
+2.9.3
 
-Yes please. And also let's set up a new bug in bugzilla.kernel.org
-for this.
-
-Regards,
-
-Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
