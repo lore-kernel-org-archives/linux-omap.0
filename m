@@ -1,52 +1,47 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/2] Fixes for two more musb regressions
-Date: Fri, 14 Oct 2016 13:43:15 -0500
-Message-ID: <20161014184254.GA4035@uda0271908>
-References: <20160930181010.3829-1-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160930181010.3829-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: [PATCH] mfd: tps65217: Drop call to irq_set_parent()
+Date: Fri, 14 Oct 2016 14:18:06 -0700
+Message-ID: <1476479886-10208-1-git-send-email-linux@roeck-us.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, Marcin Niestroj <m.niestroj@grinn-global.com>, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+The call to irq_set_parent() causes the following build error if tps65217
+is built as module.
 
-On Fri, Sep 30, 2016 at 11:10:08AM -0700, Tony Lindgren wrote:
-> Hi all,
-> 
-> Looks like we have two more regressions caused by my attempts
-> to make musb PM simpler. As it's very close to the merge window
-> opening, these are against current Linux next.
-> 
-> Once reviewed, tested and merged to the mainline kernel we can
-> request these to be included also into v4.8.y kernel. Maybe Bin
-> can tag these as cc stable v4.8 already when applying.
-> 
-> Regards,
-> 
-> Tony
-> 
-> Tony Lindgren (2):
->   usb: musb: Fix hardirq-safe hardirq-unsafe lock order error
->   usb: musb: Call pm_runtime from musb_gadget_queue
+ERROR: ".irq_set_parent" [drivers/mfd/tps65217.ko] undefined!
 
-Applied.
+The problem was introduced with commit 6556bdacf646f ("mfd: tps65217: Add
+support for IRQs").
 
-Regards,
--Bin.
+The author states: "I have added irq_set_parent() similarly as in
+drivers/base/regmap/regmap-irq.c. But to be honest I am not sure what it
+really does in case of tps65217."
 
-> 
->  drivers/usb/musb/musb_gadget.c | 4 ++++
->  drivers/usb/musb/omap2430.c    | 7 ++-----
->  2 files changed, 6 insertions(+), 5 deletions(-)
-> 
-> -- 
-> 2.9.3
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So let's drop it.
+
+Fixes: 6556bdacf646f ("mfd: tps65217: Add support for IRQs")
+Cc: Marcin Niestroj <m.niestroj@grinn-global.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/mfd/tps65217.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
+index 9a4d8684dd32..2a57b444859c 100644
+--- a/drivers/mfd/tps65217.c
++++ b/drivers/mfd/tps65217.c
+@@ -170,7 +170,6 @@ static int tps65217_irq_map(struct irq_domain *h, unsigned int virq,
+ 	irq_set_chip_data(virq, tps);
+ 	irq_set_chip_and_handler(virq, &tps65217_irq_chip, handle_edge_irq);
+ 	irq_set_nested_thread(virq, 1);
+-	irq_set_parent(virq, tps->irq);
+ 	irq_set_noprobe(virq);
+ 
+ 	return 0;
+-- 
+2.5.0
