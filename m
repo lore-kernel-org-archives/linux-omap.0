@@ -1,47 +1,31 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: [PATCH] mfd: tps65217: Drop call to irq_set_parent()
-Date: Fri, 14 Oct 2016 14:18:06 -0700
-Message-ID: <1476479886-10208-1-git-send-email-linux@roeck-us.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, Marcin Niestroj <m.niestroj@grinn-global.com>, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 0/3] ARM-OMAP2+: Fine-tuning for five function implementations
+Date: Sat, 15 Oct 2016 22:50:08 +0200
+Message-ID: <e86a5ded-a6e9-1b40-be1a-98fffef0abb5@users.sourceforge.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, Tony Lindgren <tony@atomide.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The call to irq_set_parent() causes the following build error if tps65217
-is built as module.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 15 Oct 2016 22:44:22 +0200
 
-ERROR: ".irq_set_parent" [drivers/mfd/tps65217.ko] undefined!
+A few update suggestions were taken into account
+from static source code analysis.
 
-The problem was introduced with commit 6556bdacf646f ("mfd: tps65217: Add
-support for IRQs").
+Markus Elfring (3):
+  mux: Replace three seq_printf() calls by seq_puts()
+  mux: Use seq_putc() in omap_mux_dbg_signal_show()
+  pm-debug: Use seq_putc() in two functions
 
-The author states: "I have added irq_set_parent() similarly as in
-drivers/base/regmap/regmap-irq.c. But to be honest I am not sure what it
-really does in case of tps65217."
+ arch/arm/mach-omap2/mux.c      | 8 ++++----
+ arch/arm/mach-omap2/pm-debug.c | 5 ++---
+ 2 files changed, 6 insertions(+), 7 deletions(-)
 
-So let's drop it.
-
-Fixes: 6556bdacf646f ("mfd: tps65217: Add support for IRQs")
-Cc: Marcin Niestroj <m.niestroj@grinn-global.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/mfd/tps65217.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
-index 9a4d8684dd32..2a57b444859c 100644
---- a/drivers/mfd/tps65217.c
-+++ b/drivers/mfd/tps65217.c
-@@ -170,7 +170,6 @@ static int tps65217_irq_map(struct irq_domain *h, unsigned int virq,
- 	irq_set_chip_data(virq, tps);
- 	irq_set_chip_and_handler(virq, &tps65217_irq_chip, handle_edge_irq);
- 	irq_set_nested_thread(virq, 1);
--	irq_set_parent(virq, tps->irq);
- 	irq_set_noprobe(virq);
- 
- 	return 0;
 -- 
-2.5.0
+2.10.1
+
