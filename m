@@ -1,112 +1,104 @@
-From: Felipe Balbi <felipe.balbi@linux.intel.com>
-Subject: Re: [balbi-usb:testing/next 57/84] drivers/usb/dwc3/dwc3-st.c:328:2: error: implicit declaration of function 'pinctrl_pm_select_sleep_state'
-Date: Mon, 17 Oct 2016 14:50:39 +0300
-Message-ID: <87funvry7k.fsf@linux.intel.com>
-References: <201610171915.7Qg5kFu7%fengguang.wu@intel.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-        micalg=pgp-sha256; protocol="application/pgp-signature"
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <201610171915.7Qg5kFu7%fengguang.wu@intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: kbuild test robot <fengguang.wu@intel.com>, Linus Walleij <linus.walleij@linaro.org>
-Cc: kbuild-all@01.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
+From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Subject: Re: [PATCH v3 1/8] drivers:input:tsc2007: add new common binding names, pre-calibration, flipping and rotation
+Date: Mon, 17 Oct 2016 15:57:47 +0200
+Message-ID: <FD41BC96-41B9-48B1-AB57-05B2DCAB4E17@goldelico.com>
+References: <cover.1474634475.git.hns@goldelico.com> <1409ed9845f17445a8a67bd6fb16c902c3e4f69c.1474634475.git.hns@goldelico.com> <20160923224726.GA4639@rob-hp-laptop> <20160924003133.htaaiphjrm7vy52t@earth> <E8C59C6C-23D4-4417-8A9E-3E9AE5D2D100@goldelico.com> <20160930141603.mlo5v75oy72j64d5@earth> <29036A28-9997-4ED6-81FE-3ABC659EEEEB@goldelico.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: multipart/signed; boundary="Apple-Mail=_C27A8AB6-3549-4267-BFA0-26B6FB31FF1B"; protocol="application/pgp-signature"; micalg=pgp-sha256
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <29036A28-9997-4ED6-81FE-3ABC659EEEEB-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, =?utf-8?Q?Mika_Penttil=C3=A4?= <mika.penttila-MRsr7dthA9VWk0Htik3J/w@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Discussions about the Letux Kernel <letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
+
+--Apple-Mail=_C27A8AB6-3549-4267-BFA0-26B6FB31FF1B
 Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset=us-ascii
+
+Hi Sebastian,
+I did wait for the 4.9-rc1 merge window to be closed until I bring up =
+this patch
+set again.
+
+> Am 30.09.2016 um 16:40 schrieb H. Nikolaus Schaller =
+<hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>:
+>>=20
+>> I do agree with Rob, that the ti,min/max-x/y should become common,
+>> though. Also I would do s/minimum value/minimum raw value/g.
+>=20
+> Yes, that is a good idea!
+>=20
+> To me it seems as if "minimum-raw-value-x", "maximum-raw-value-y" =
+could be good.
+>=20
+> Or is the string too long (then we can drop the "-value" or the =
+"imum")? It
+> might blow up the DTB and string constant for finding the property?
+>=20
+> If we come to some consensus on this, I can update the patch set.
+
+Now when updating the patch set, I found that using ti,min/max-x/y was =
+not really
+a new invention. It is already upstream for a while for the ads7846/2046 =
+driver!
+
+This means: by introducing these properties to the tsc2007 as well we =
+just extend the
+already defined use of ti,min/max-x/y.
+
+Simply changing that as well to use some minimum-raw-value-x etc. would =
+break ads7846/2046
+boards not in mainline or need ugly code to handle property alias names.
+
+And since they are raw data and quite chip-specific, I think there is no =
+urgent need
+for harmonization of raw device data. While using the common bindings =
+for output
+scaling and fuzz, swap etc. is very important and helpful for board =
+designers.
+
+So I would prefer if we can keep it as is for the moment. And make =
+property name
+harmonization and evolution a separate task and discussion.
+
+I will submit v4 in a couple of minutes. It contains some other small =
+fixes as
+suggested by the previous discussion.
+
+BR and thanks,
+Nikolaus
 
 
-Hi,
-
-kbuild test robot <fengguang.wu@intel.com> writes:
-> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git tes=
-ting/next
-> head:   4281ef86fae986e0a9bb553fb311fe6d8e039118
-> commit: 040f47e7330045feaa8c06bf2900db2eb2038e80 [57/84] usb: dwc3: Kconf=
-ig: allow all glues to build if COMPILE_TEST
-> config: blackfin-allmodconfig (attached as .config)
-> compiler: bfin-uclinux-gcc (GCC) 6.2.0
-> reproduce:
->         wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.g=
-it/plain/sbin/make.cross -O ~/bin/make.cross
->         chmod +x ~/bin/make.cross
->         git checkout 040f47e7330045feaa8c06bf2900db2eb2038e80
->         # save the attached .config to linux build tree
->         make.cross ARCH=3Dblackfin=20
->
-> All errors (new ones prefixed by >>):
->
->    drivers/usb/dwc3/dwc3-st.c: In function 'st_dwc3_suspend':
->>> drivers/usb/dwc3/dwc3-st.c:328:2: error: implicit declaration of functi=
-on 'pinctrl_pm_select_sleep_state' [-Werror=3Dimplicit-function-declaration]
->      pinctrl_pm_select_sleep_state(dev);
->      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->    drivers/usb/dwc3/dwc3-st.c: In function 'st_dwc3_resume':
->>> drivers/usb/dwc3/dwc3-st.c:338:2: error: implicit declaration of functi=
-on 'pinctrl_pm_select_default_state' [-Werror=3Dimplicit-function-declarati=
-on]
->      pinctrl_pm_select_default_state(dev);
->      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->    cc1: some warnings being treated as errors
-
-looks like a bug in <linux/pinctrl/consumer.h>. Something along the
-lines of below should be enough:
-
-diff --git a/include/linux/pinctrl/consumer.h b/include/linux/pinctrl/consu=
-mer.h
-index d7e5d608faa7..c8aa03aa1c42 100644
-=2D-- a/include/linux/pinctrl/consumer.h
-+++ b/include/linux/pinctrl/consumer.h
-@@ -44,7 +44,9 @@ extern void devm_pinctrl_put(struct pinctrl *p);
- extern int pinctrl_pm_select_default_state(struct device *dev);
- extern int pinctrl_pm_select_sleep_state(struct device *dev);
- extern int pinctrl_pm_select_idle_state(struct device *dev);
-=2D#else
-+#endif
-+
-+#else /* !CONFIG_PINCTRL */
- static inline int pinctrl_pm_select_default_state(struct device *dev)
- {
-        return 0;
-@@ -57,9 +59,6 @@ static inline int pinctrl_pm_select_idle_state(struct dev=
-ice *dev)
- {
-        return 0;
- }
-=2D#endif
-=2D
-=2D#else /* !CONFIG_PINCTRL */
-=20
- static inline int pinctrl_request_gpio(unsigned gpio)
- {
-
-
-Linus, do you want me to send this as a proper patch? It's pretty clear
-that currently we can have build regressions with these helpers. Was it
-a conscious choice to not provide stubs or just a slip?
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
+--Apple-Mail=_C27A8AB6-3549-4267-BFA0-26B6FB31FF1B
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename=signature.asc
+Content-Type: application/pgp-signature;
+	name=signature.asc
+Content-Description: Message signed with OpenPGP using GPGMail
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBCAAGBQJYBLsPAAoJEMy+uJnhGpkGtWIQAIZOyLR2nyDW3/wqgLZGVb4J
-hVSY4Da7KJqW69eROGDJvxe/jh9hzJaYx/nRJdgw3NUhOAWH/cvALvwlslAcOR5J
-3FwxXyLCqTCinSoh2ZC2WzX6uqi/GlZWAuuFUGTw59Jz0TZMw3e1YDUDH97CVULD
-jT0T28miFXcbt58a5ljsDKMD4e5AM/0gTtWcDh4IBP9nDG9SEgH74D9GxVHjVBIk
-M7f7WVPTXpnm/DD7F9IMpZfh5ebGuksPqQU3QUA8zvk3rhR38y/J+4JDycEQNReF
-N5uPsg4z/UIKmLnN0Vxx2Xkd87q4j7s+mo4SZgZm6n0EOlMSKhFk96XUxL4gqWSE
-+b4zfcb6HGDGVvJWNSRWFj74tKW4caZmE0pez3cbYZPQ0xVpYyrFJJJvLEp3Oqfo
-IRmaut/1XHUC4XtLGbY7S8+uxdG9eBLSTvfRTfjlduMOVbkkQXkbWeEUBo3qt6y+
-p259to5wnz/KLisdw0f4CugBmzgAJT4hNrdnwz5xs3H/B33ulhoh10vMf8p0y+gZ
-331pnARj8n1GleVR042jBs3qwasi4B5+aNX6DlRREE22jn17ECOjBJjrXNxaLN5w
-9WPpHXZ0oK7L61hrd9sSmX7jvy8UOWwyGPmESi6iixcI4bSep9kbWGZzNLu2g26P
-Q6xlHt812RDTtQM4vsiV
-=x8OS
+iQIcBAEBCAAGBQJYBNjcAAoJEIl79TGLgAm6LdQP/3Rj7aocbqZQ2sAJeL2UJQpo
+reT6eBsWslzmWFvYazF8NE7ZtMqFPpp7A23XbUn7gyy5mMOSKPue525GciddUNBI
+YUAK8/Gkr69FlQJ6NQXt9Xc0wekHL4YzMR+1lD+UV40YB3cY347JW4laPP2feZOM
+Y5BpPrmmSf39hZRtj+bZMdMb/uDwy35DQEHDVMmmKu/gOq+lne5Vp6xQ8GlBwLEF
+51T8eGZfWyPI9xGYP8MBZBEdHEcobLguzCvoEdOyYqkbafu7hGqeCKwspAWMXAXu
+1+9PsgTLRFUqlKZHZD0MR7wDIP2ml60xuZWuf/J/SlOdNO5c0CbTa7QvFmkSEtHL
+EPu1OPZj20RrXMnW1TcYOmrRwIxZ+3dfWoLIh1ioTnjck8jA87poTPshC0Wn4Woy
+fBoazzSI3fcftAqJRWB8YvGZPgmgGde9WNT0NVOa2FXhzsMnJrJGiuBmyTGUHH3Z
+dZsFSKD/3VNiu7UKv5Az1euRnliln05ApDLblIB1Drqcg62JCWTlN+RvS8Mxblat
+9wHsdNcgqN9LFINZuZO9jqczi7yRfM/5NeFnXUBiP2Qxjryj3dQ+3379EYC0PbzI
+TI62eucZY8hh4xEvvKQlBhXz+ulNchBuI1/sWo1uYXe/Oh8oNjwYoDGALHErodV7
+c67YXquFn+PKMsTm2lEt
+=s6+4
 -----END PGP SIGNATURE-----
---=-=-=--
+
+--Apple-Mail=_C27A8AB6-3549-4267-BFA0-26B6FB31FF1B--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
