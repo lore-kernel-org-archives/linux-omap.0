@@ -1,64 +1,67 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [RESEND PATCH v8 4/5] mfd: tps65218: Use mfd_add_devices instead of of_platform_populate
-Date: Mon, 17 Oct 2016 21:29:37 +0530
-Message-ID: <1476719978-16332-5-git-send-email-j-keerthy@ti.com>
-References: <1476719978-16332-1-git-send-email-j-keerthy@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1476719978-16332-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: lee.jones@linaro.org
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-input@vger.kernel.org, robh+dt@kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, tony@atomide.com, dmitry.torokhov@gmail.com, linus.walleij@linaro.org, broonie@kernel.org, j-keerthy@ti.com
+From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Subject: Re: [PATCH v4 7/8] drivers:input:ads7846(+tsc2046): fix spi module table
+Date: Mon, 17 Oct 2016 18:52:51 +0200
+Message-ID: <FB793B8D-2CFB-4070-9267-A6A9680C8B5C@goldelico.com>
+References: <cover.1476712675.git.hns@goldelico.com> <70cc986f3cf98dd89f0460b5042083aad58a7366.1476712675.git.hns@goldelico.com> <acdf452f-01f2-27df-11c5-bb8db002394a@ti.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <acdf452f-01f2-27df-11c5-bb8db002394a-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>
+Cc: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, =?windows-1252?Q?Mika_Penttil=E4?= <mika.penttila-MRsr7dthA9VWk0Htik3J/w@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel@p
 List-Id: linux-omap@vger.kernel.org
 
-mfd_add_devices enables parsing device tree nodes without compatibles
-for regulators and gpio modules. Replace of_platform_populate with
-mfd_add_devices. mfd_cell currently is populated with regulators,
-gpio and powerbutton.
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
-Acked-by: Lee Jones <lee.jones@linaro.org>
----
- drivers/mfd/tps65218.c | 18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+> Am 17.10.2016 um 17:54 schrieb Andrew F. Davis <afd-l0cyMroinI0@public.gmane.org>:
+>=20
+> On 10/17/2016 08:57 AM, H. Nikolaus Schaller wrote:
+>> Fix module table so that the driver is loaded if compiled
+>> as module and requested by DT.
+>>=20
+>> Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+>> ---
+>> drivers/input/touchscreen/ads7846.c | 11 +++++++++++
+>> 1 file changed, 11 insertions(+)
+>>=20
+>> diff --git a/drivers/input/touchscreen/ads7846.c =
+b/drivers/input/touchscreen/ads7846.c
+>> index 400e421..9a5d84d 100644
+>> --- a/drivers/input/touchscreen/ads7846.c
+>> +++ b/drivers/input/touchscreen/ads7846.c
+>> @@ -1532,6 +1532,17 @@ static int ads7846_remove(struct spi_device =
+*spi)
+>> 	return 0;
+>> }
+>>=20
+>> +static const struct spi_device_id ads7846_idtable[] =3D {
+>> +	{ "tsc2046", 0 },
+>> +	{ "ads7843", 0 },
+>> +	{ "ads7845", 0 },
+>> +	{ "ads7846", 0 },
+>> +	{ "ads7873", 0 },
+>> +	{ }
+>> +};
+>> +
+>=20
+> no space needed
+>=20
+>> +MODULE_DEVICE_TABLE(spi, ads7846_idtable);
+>> +
+>> static struct spi_driver ads7846_driver =3D {
+>> 	.driver =3D {
+>> 		.name	=3D "ads7846",
+>>=20
+>=20
+> the MODULE_ALIAS below can now also be removed with this patch.
 
-diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
-index 9bca1b1..13834a0 100644
---- a/drivers/mfd/tps65218.c
-+++ b/drivers/mfd/tps65218.c
-@@ -33,6 +33,18 @@
- 
- #define TPS65218_PASSWORD_REGS_UNLOCK   0x7D
- 
-+static const struct mfd_cell tps65218_cells[] = {
-+	{
-+		.name = "tps65218-pwrbutton",
-+		.of_compatible = "ti,tps65218-pwrbutton",
-+	},
-+	{
-+		.name = "tps65218-gpio",
-+		.of_compatible = "ti,tps65218-gpio",
-+	},
-+	{ .name = "tps65218-regulator", },
-+};
-+
- /**
-  * tps65218_reg_write: Write a single tps65218 register.
-  *
-@@ -245,8 +257,10 @@ static int tps65218_probe(struct i2c_client *client,
- 
- 	tps->rev = chipid & TPS65218_CHIPID_REV_MASK;
- 
--	ret = of_platform_populate(client->dev.of_node, NULL, NULL,
--				   &client->dev);
-+	ret = mfd_add_devices(tps->dev, PLATFORM_DEVID_AUTO, tps65218_cells,
-+			      ARRAY_SIZE(tps65218_cells), NULL, 0,
-+			      regmap_irq_get_domain(tps->irq_data));
-+
- 	if (ret < 0)
- 		goto err_irq;
- 
--- 
-1.9.1
+Ok! Noted for V5.
 
+BR and thanks,
+Nikolaus
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
