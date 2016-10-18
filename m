@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 4/7] ARM: DRA7: hwmod: Add data for RNG IP
-Date: Tue, 18 Oct 2016 10:55:24 +0300
-Message-ID: <1476777327-700-5-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 6/7] ARM: AM43xx: hwmod: Add data for DES
+Date: Tue, 18 Oct 2016 10:55:26 +0300
+Message-ID: <1476777327-700-7-git-send-email-t-kristo@ti.com>
 References: <1476777327-700-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,80 +21,87 @@ To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Joel Fernandes <joelf@ti.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
 
-DRA7 SoC contains hardware random number generator. Add hwmod data for
-this IP so that it can be utilized.
+AM43xx SoC contains DES crypto hardware accelerator. Add hwmod data for
+this IP so that it can be utilized by crypto frameworks.
 
-Signed-off-by: Joel Fernandes <joelf@ti.com>
 Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-[t-kristo@ti.com: squashed the RNG hwmod IP flag fixes from Lokesh,
-                  squashed the HS chip fix from Daniel Allred]
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 36 +++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 33 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/prcm43xx.h             |  1 +
+ 2 files changed, 34 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index 87e9293..2804f06 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -2641,6 +2641,34 @@ static int dra7xx_pciess_reset(struct omap_hwmod *oh)
+diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+index 61f2f30..3f7dac0 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+@@ -442,6 +442,31 @@
  	},
  };
  
-+/* rng */
-+static struct omap_hwmod_class_sysconfig dra7xx_rng_sysc = {
-+	.rev_offs       = 0x1fe0,
-+	.sysc_offs      = 0x1fe4,
-+	.sysc_flags     = SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE,
-+	.idlemodes      = SIDLE_FORCE | SIDLE_NO,
-+	.sysc_fields    = &omap_hwmod_sysc_type1,
++static struct omap_hwmod_class_sysconfig am43xx_des_sysc = {
++	.rev_offs	= 0x30,
++	.sysc_offs	= 0x34,
++	.syss_offs	= 0x38,
++	.sysc_flags	= SYSS_HAS_RESET_STATUS,
 +};
 +
-+static struct omap_hwmod_class dra7xx_rng_hwmod_class = {
-+	.name           = "rng",
-+	.sysc           = &dra7xx_rng_sysc,
++static struct omap_hwmod_class am43xx_des_hwmod_class = {
++	.name		= "des",
++	.sysc		= &am43xx_des_sysc,
 +};
 +
-+static struct omap_hwmod dra7xx_rng_hwmod = {
-+	.name           = "rng",
-+	.class          = &dra7xx_rng_hwmod_class,
-+	.flags		= HWMOD_SWSUP_SIDLE,
-+	.clkdm_name     = "l4sec_clkdm",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4SEC_RNG_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4SEC_RNG_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_HWCTRL,
++static struct omap_hwmod am43xx_des_hwmod = {
++	.name		= "des",
++	.class		= &am43xx_des_hwmod_class,
++	.clkdm_name	= "l3_clkdm",
++	.main_clk	= "l3_gclk",
++	.prcm		= {
++		.omap4	= {
++			.clkctrl_offs	= AM43XX_CM_PER_DES_CLKCTRL_OFFSET,
++			.modulemode	= MODULEMODE_SWCTRL,
 +		},
 +	},
 +};
 +
- /*
-  * 'usb_otg_ss' class
-  *
-@@ -3798,6 +3826,13 @@ static int dra7xx_pciess_reset(struct omap_hwmod *oh)
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ /* dss */
+ 
+ static struct omap_hwmod am43xx_dss_core_hwmod = {
+@@ -870,6 +895,13 @@
+ 	.user           = OCP_USER_MPU | OCP_USER_SDMA,
  };
  
-+/* l4_per1 -> rng */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per1__rng = {
-+	.master         = &dra7xx_l4_per1_hwmod,
-+	.slave          = &dra7xx_rng_hwmod,
-+	.user           = OCP_USER_MPU,
++static struct omap_hwmod_ocp_if am43xx_l3_main__des = {
++	.master		= &am33xx_l3_main_hwmod,
++	.slave		= &am43xx_des_hwmod,
++	.clk		= "l3_gclk",
++	.user		= OCP_USER_MPU,
 +};
 +
- /* l4_per3 -> usb_otg_ss1 */
- static struct omap_hwmod_ocp_if dra7xx_l4_per3__usb_otg_ss1 = {
- 	.master		= &dra7xx_l4_per3_hwmod,
-@@ -4028,6 +4063,7 @@ static int dra7xx_pciess_reset(struct omap_hwmod *oh)
- /* GP-only hwmod links */
- static struct omap_hwmod_ocp_if *dra7xx_gp_hwmod_ocp_ifs[] __initdata = {
- 	&dra7xx_l4_wkup__timer12,
-+	&dra7xx_l4_per1__rng,
- 	NULL,
- };
- 
+ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am33xx_l4_wkup__synctimer,
+ 	&am43xx_l4_ls__timer8,
+@@ -950,6 +982,7 @@
+ 	&am33xx_cpgmac0__mdio,
+ 	&am33xx_l3_main__sha0,
+ 	&am33xx_l3_main__aes0,
++	&am43xx_l3_main__des,
+ 	&am43xx_l4_ls__ocp2scp0,
+ 	&am43xx_l4_ls__ocp2scp1,
+ 	&am43xx_l3_s__usbotgss0,
+diff --git a/arch/arm/mach-omap2/prcm43xx.h b/arch/arm/mach-omap2/prcm43xx.h
+index babb5db..4169685 100644
+--- a/arch/arm/mach-omap2/prcm43xx.h
++++ b/arch/arm/mach-omap2/prcm43xx.h
+@@ -133,6 +133,7 @@
+ #define AM43XX_CM_PER_OCMCRAM_CLKCTRL_OFFSET		0x0050
+ #define AM43XX_CM_PER_SHA0_CLKCTRL_OFFSET		0x0058
+ #define AM43XX_CM_PER_AES0_CLKCTRL_OFFSET		0x0028
++#define AM43XX_CM_PER_DES_CLKCTRL_OFFSET		0x0030
+ #define AM43XX_CM_PER_TIMER8_CLKCTRL_OFFSET		0x0560
+ #define AM43XX_CM_PER_TIMER9_CLKCTRL_OFFSET		0x0568
+ #define AM43XX_CM_PER_TIMER10_CLKCTRL_OFFSET		0x0570
 -- 
 1.9.1
