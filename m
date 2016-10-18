@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 05/15] clk: ti: create clock aliases automatically for simple clock types
-Date: Tue, 18 Oct 2016 18:45:58 +0300
-Message-ID: <1476805568-19264-6-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv4 02/15] clk: ti: mux: export mux clock APIs locally
+Date: Tue, 18 Oct 2016 18:45:55 +0300
+Message-ID: <1476805568-19264-3-git-send-email-t-kristo@ti.com>
 References: <1476805568-19264-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,75 +12,51 @@ To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, tony@atomide.com, mtu
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch generates clock aliases automatically for simple clock types
-(fixed-clock, fixed-factor-clock), so that we don't need to add the data
-for these statically into tables.
+get_parent and set_parent are going to be required by the support of
+module clocks, so export these locally.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/clk.c | 29 ++++++++++++++++++++++++++++-
- 1 file changed, 28 insertions(+), 1 deletion(-)
+ drivers/clk/ti/clock.h | 3 +++
+ drivers/clk/ti/mux.c   | 4 ++--
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-index 91bad55..7fd9d8e 100644
---- a/drivers/clk/ti/clk.c
-+++ b/drivers/clk/ti/clk.c
-@@ -355,12 +355,20 @@ struct clk __init *ti_clk_register_clk(struct ti_clk *setup)
- 	return clk;
- }
+diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
+index 90f3f47..7eca8a1 100644
+--- a/drivers/clk/ti/clock.h
++++ b/drivers/clk/ti/clock.h
+@@ -224,6 +224,9 @@ int ti_clk_retry_init(struct device_node *node, struct clk_hw *hw,
+ extern const struct clk_ops ti_clk_divider_ops;
+ extern const struct clk_ops ti_clk_mux_ops;
  
-+static const struct of_device_id simple_clk_match_table[] __initconst = {
-+	{ .compatible = "fixed-clock" },
-+	{ .compatible = "fixed-factor-clock" },
-+	{ }
-+};
++u8 ti_clk_mux_get_parent(struct clk_hw *hw);
++int ti_clk_mux_set_parent(struct clk_hw *hw, u8 index);
 +
- int __init ti_clk_register_legacy_clks(struct ti_clk_alias *clks)
+ int omap2_clkops_enable_clkdm(struct clk_hw *hw);
+ void omap2_clkops_disable_clkdm(struct clk_hw *hw);
+ 
+diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
+index 44777ab..57ff471 100644
+--- a/drivers/clk/ti/mux.c
++++ b/drivers/clk/ti/mux.c
+@@ -26,7 +26,7 @@
+ #undef pr_fmt
+ #define pr_fmt(fmt) "%s: " fmt, __func__
+ 
+-static u8 ti_clk_mux_get_parent(struct clk_hw *hw)
++u8 ti_clk_mux_get_parent(struct clk_hw *hw)
  {
- 	struct clk *clk;
- 	bool retry;
- 	struct ti_clk_alias *retry_clk;
- 	struct ti_clk_alias *tmp;
-+	struct device_node *np;
-+	int ret = 0;
- 
- 	while (clks->clk) {
- 		clk = ti_clk_register_clk(clks->clk);
-@@ -370,7 +378,14 @@ int __init ti_clk_register_legacy_clks(struct ti_clk_alias *clks)
- 			} else {
- 				pr_err("register for %s failed: %ld\n",
- 				       clks->clk->name, PTR_ERR(clk));
--				return PTR_ERR(clk);
-+				ret = PTR_ERR(clk);
-+				/*
-+				 * Aliases still need to be added here,
-+				 * as we might be running on a
-+				 * transitional system that has old DT
-+				 * clock data in place.
-+				 */
-+				goto add_aliases;
- 			}
- 		} else {
- 			clks->lk.clk = clk;
-@@ -404,6 +419,18 @@ int __init ti_clk_register_legacy_clks(struct ti_clk_alias *clks)
- 		}
- 	}
- 
-+add_aliases:
-+	/* add clock aliases for any fixed-clocks / fixed-factor-clocks */
-+	if (of_have_populated_dt())
-+		for_each_matching_node(np, simple_clk_match_table) {
-+			struct of_phandle_args clkspec;
-+
-+			clkspec.np = np;
-+			clk = of_clk_get_from_provider(&clkspec);
-+
-+			ti_clk_add_alias(NULL, clk, np->name);
-+		}
-+
- 	return 0;
+ 	struct clk_mux *mux = to_clk_mux(hw);
+ 	int num_parents = clk_hw_get_num_parents(hw);
+@@ -63,7 +63,7 @@ static u8 ti_clk_mux_get_parent(struct clk_hw *hw)
+ 	return val;
  }
- #endif
+ 
+-static int ti_clk_mux_set_parent(struct clk_hw *hw, u8 index)
++int ti_clk_mux_set_parent(struct clk_hw *hw, u8 index)
+ {
+ 	struct clk_mux *mux = to_clk_mux(hw);
+ 	u32 val;
 -- 
 1.9.1
 
