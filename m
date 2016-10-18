@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 01/15] clk: ti: remove un-used definitions from public clk_hw_omap struct
-Date: Tue, 18 Oct 2016 18:45:54 +0300
-Message-ID: <1476805568-19264-2-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv4 05/15] clk: ti: create clock aliases automatically for simple clock types
+Date: Tue, 18 Oct 2016 18:45:58 +0300
+Message-ID: <1476805568-19264-6-git-send-email-t-kristo@ti.com>
 References: <1476805568-19264-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,36 +12,75 @@ To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, tony@atomide.com, mtu
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Clksel support has been deprecated a while back, so remove these from
-the struct also.
+This patch generates clock aliases automatically for simple clock types
+(fixed-clock, fixed-factor-clock), so that we don't need to add the data
+for these statically into tables.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- include/linux/clk/ti.h | 4 ----
- 1 file changed, 4 deletions(-)
+ drivers/clk/ti/clk.c | 29 ++++++++++++++++++++++++++++-
+ 1 file changed, 28 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 6110fe0..07308db 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -129,8 +129,6 @@ struct clk_hw_omap_ops {
-  * @enable_bit: bitshift to write to enable/disable the clock (see @enable_reg)
-  * @flags: see "struct clk.flags possibilities" above
-  * @clksel_reg: for clksel clks, register va containing src/divisor select
-- * @clksel_mask: bitmask in @clksel_reg for the src/divisor selector
-- * @clksel: for clksel clks, pointer to struct clksel for this clock
-  * @dpll_data: for DPLLs, pointer to struct dpll_data for this clock
-  * @clkdm_name: clockdomain name that this clock is contained in
-  * @clkdm: pointer to struct clockdomain, resolved from @clkdm_name at runtime
-@@ -145,8 +143,6 @@ struct clk_hw_omap {
- 	u8			enable_bit;
- 	u8			flags;
- 	void __iomem		*clksel_reg;
--	u32			clksel_mask;
--	const struct clksel	*clksel;
- 	struct dpll_data	*dpll_data;
- 	const char		*clkdm_name;
- 	struct clockdomain	*clkdm;
+diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
+index 91bad55..7fd9d8e 100644
+--- a/drivers/clk/ti/clk.c
++++ b/drivers/clk/ti/clk.c
+@@ -355,12 +355,20 @@ struct clk __init *ti_clk_register_clk(struct ti_clk *setup)
+ 	return clk;
+ }
+ 
++static const struct of_device_id simple_clk_match_table[] __initconst = {
++	{ .compatible = "fixed-clock" },
++	{ .compatible = "fixed-factor-clock" },
++	{ }
++};
++
+ int __init ti_clk_register_legacy_clks(struct ti_clk_alias *clks)
+ {
+ 	struct clk *clk;
+ 	bool retry;
+ 	struct ti_clk_alias *retry_clk;
+ 	struct ti_clk_alias *tmp;
++	struct device_node *np;
++	int ret = 0;
+ 
+ 	while (clks->clk) {
+ 		clk = ti_clk_register_clk(clks->clk);
+@@ -370,7 +378,14 @@ int __init ti_clk_register_legacy_clks(struct ti_clk_alias *clks)
+ 			} else {
+ 				pr_err("register for %s failed: %ld\n",
+ 				       clks->clk->name, PTR_ERR(clk));
+-				return PTR_ERR(clk);
++				ret = PTR_ERR(clk);
++				/*
++				 * Aliases still need to be added here,
++				 * as we might be running on a
++				 * transitional system that has old DT
++				 * clock data in place.
++				 */
++				goto add_aliases;
+ 			}
+ 		} else {
+ 			clks->lk.clk = clk;
+@@ -404,6 +419,18 @@ int __init ti_clk_register_legacy_clks(struct ti_clk_alias *clks)
+ 		}
+ 	}
+ 
++add_aliases:
++	/* add clock aliases for any fixed-clocks / fixed-factor-clocks */
++	if (of_have_populated_dt())
++		for_each_matching_node(np, simple_clk_match_table) {
++			struct of_phandle_args clkspec;
++
++			clkspec.np = np;
++			clk = of_clk_get_from_provider(&clkspec);
++
++			ti_clk_add_alias(NULL, clk, np->name);
++		}
++
+ 	return 0;
+ }
+ #endif
 -- 
 1.9.1
 
