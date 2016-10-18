@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 12/15] clk: ti: enforce const types on string arrays
-Date: Tue, 18 Oct 2016 18:46:05 +0300
-Message-ID: <1476805568-19264-13-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv4 09/15] clk: ti: move omap2_init_clk_clkdm under TI clock driver
+Date: Tue, 18 Oct 2016 18:46:02 +0300
+Message-ID: <1476805568-19264-10-git-send-email-t-kristo@ti.com>
 References: <1476805568-19264-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,61 +12,127 @@ To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, tony@atomide.com, mtu
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Constant string arrays should use const char * const instead of just
-const char *. Change the implementations using these to proper type.
+This is not needed outside the driver, so move it inside it and remove
+the prototype from the public header also.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/clock.h     | 2 +-
- drivers/clk/ti/composite.c | 2 +-
- drivers/clk/ti/mux.c       | 8 ++++----
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/clock.c  | 34 ----------------------------------
+ drivers/clk/ti/clock.h       |  1 +
+ drivers/clk/ti/clockdomain.c | 30 ++++++++++++++++++++++++++++++
+ include/linux/clk/ti.h       |  1 -
+ 4 files changed, 31 insertions(+), 35 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 5391b66..ce8e804 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -79,40 +79,6 @@ int __init omap2_clk_setup_ll_ops(void)
+  * OMAP2+ specific clock functions
+  */
+ 
+-/* Private functions */
+-
+-/* Public functions */
+-
+-/**
+- * omap2_init_clk_clkdm - look up a clockdomain name, store pointer in clk
+- * @clk: OMAP clock struct ptr to use
+- *
+- * Convert a clockdomain name stored in a struct clk 'clk' into a
+- * clockdomain pointer, and save it into the struct clk.  Intended to be
+- * called during clk_register().  No return value.
+- */
+-void omap2_init_clk_clkdm(struct clk_hw *hw)
+-{
+-	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
+-	struct clockdomain *clkdm;
+-	const char *clk_name;
+-
+-	if (!clk->clkdm_name)
+-		return;
+-
+-	clk_name = __clk_get_name(hw->clk);
+-
+-	clkdm = clkdm_lookup(clk->clkdm_name);
+-	if (clkdm) {
+-		pr_debug("clock: associated clk %s to clkdm %s\n",
+-			 clk_name, clk->clkdm_name);
+-		clk->clkdm = clkdm;
+-	} else {
+-		pr_debug("clock: could not associate clk %s to clkdm %s\n",
+-			 clk_name, clk->clkdm_name);
+-	}
+-}
+-
+ static int __initdata mpurate;
+ 
+ /*
 diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
-index f6383ab..2e5fab8 100644
+index 5675e37..9c85a51 100644
 --- a/drivers/clk/ti/clock.h
 +++ b/drivers/clk/ti/clock.h
-@@ -88,7 +88,7 @@ struct ti_clk_mux {
- 	int num_parents;
- 	u16 reg;
- 	u8 module;
--	const char **parents;
-+	const char * const *parents;
- 	u16 flags;
- };
+@@ -232,6 +232,7 @@ int ti_clk_retry_init(struct device_node *node, struct clk_hw *hw,
+ u8 ti_clk_mux_get_parent(struct clk_hw *hw);
+ int ti_clk_mux_set_parent(struct clk_hw *hw, u8 index);
  
-diff --git a/drivers/clk/ti/composite.c b/drivers/clk/ti/composite.c
-index 3f60f99..beea894 100644
---- a/drivers/clk/ti/composite.c
-+++ b/drivers/clk/ti/composite.c
-@@ -124,7 +124,7 @@ struct clk *ti_clk_register_composite(struct ti_clk *setup)
- 	struct clk_hw *mux;
- 	struct clk_hw *div;
- 	int num_parents = 1;
--	const char **parent_names = NULL;
-+	const char * const *parent_names = NULL;
- 	struct clk *clk;
- 	int ret;
++void omap2_init_clk_clkdm(struct clk_hw *hw);
+ int omap2_clkops_enable_clkdm(struct clk_hw *hw);
+ void omap2_clkops_disable_clkdm(struct clk_hw *hw);
  
-diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
-index 774098e..520a18e 100644
---- a/drivers/clk/ti/mux.c
-+++ b/drivers/clk/ti/mux.c
-@@ -97,10 +97,10 @@ int ti_clk_mux_set_parent(struct clk_hw *hw, u8 index)
- };
+diff --git a/drivers/clk/ti/clockdomain.c b/drivers/clk/ti/clockdomain.c
+index 6cf9dd1..704157d 100644
+--- a/drivers/clk/ti/clockdomain.c
++++ b/drivers/clk/ti/clockdomain.c
+@@ -103,6 +103,36 @@ void omap2_clkops_disable_clkdm(struct clk_hw *hw)
+ 	ti_clk_ll_ops->clkdm_clk_disable(clk->clkdm, hw->clk);
+ }
  
- static struct clk *_register_mux(struct device *dev, const char *name,
--				 const char **parent_names, u8 num_parents,
--				 unsigned long flags, void __iomem *reg,
--				 u8 shift, u32 mask, u8 clk_mux_flags,
--				 u32 *table)
-+				 const char * const *parent_names,
-+				 u8 num_parents, unsigned long flags,
-+				 void __iomem *reg, u8 shift, u32 mask,
-+				 u8 clk_mux_flags, u32 *table)
++/**
++ * omap2_init_clk_clkdm - look up a clockdomain name, store pointer in clk
++ * @clk: OMAP clock struct ptr to use
++ *
++ * Convert a clockdomain name stored in a struct clk 'clk' into a
++ * clockdomain pointer, and save it into the struct clk.  Intended to be
++ * called during clk_register().  No return value.
++ */
++void omap2_init_clk_clkdm(struct clk_hw *hw)
++{
++	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
++	struct clockdomain *clkdm;
++	const char *clk_name;
++
++	if (!clk->clkdm_name)
++		return;
++
++	clk_name = __clk_get_name(hw->clk);
++
++	clkdm = ti_clk_ll_ops->clkdm_lookup(clk->clkdm_name);
++	if (clkdm) {
++		pr_debug("clock: associated clk %s to clkdm %s\n",
++			 clk_name, clk->clkdm_name);
++		clk->clkdm = clkdm;
++	} else {
++		pr_debug("clock: could not associate clk %s to clkdm %s\n",
++			 clk_name, clk->clkdm_name);
++	}
++}
++
+ static void __init of_ti_clockdomain_setup(struct device_node *node)
  {
- 	struct clk_mux *mux;
  	struct clk *clk;
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index bc7fd8f..626ae94 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -238,7 +238,6 @@ struct ti_clk_ll_ops {
+ 
+ #define to_clk_hw_omap(_hw) container_of(_hw, struct clk_hw_omap, hw)
+ 
+-void omap2_init_clk_clkdm(struct clk_hw *clk);
+ int omap2_clk_disable_autoidle_all(void);
+ int omap2_clk_enable_autoidle_all(void);
+ int omap2_clk_allow_idle(struct clk *clk);
 -- 
 1.9.1
 
