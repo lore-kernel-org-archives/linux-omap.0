@@ -1,236 +1,105 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 15/15] clk: ti: omap4: cleanup unnecessary clock aliases
-Date: Tue, 18 Oct 2016 18:46:08 +0300
-Message-ID: <1476805568-19264-16-git-send-email-t-kristo@ti.com>
-References: <1476805568-19264-1-git-send-email-t-kristo@ti.com>
+From: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v4 1/8] drivers:input:tsc2007: add new common binding
+ names, pre-calibration, flipping and rotation
+Date: Tue, 18 Oct 2016 11:22:43 -0500
+Message-ID: <CAL_JsqJhzZC6Hw3eRLFDiBA8jih=N507WvEh=TRbPhLS9EjhBQ@mail.gmail.com>
+References: <cover.1476712675.git.hns@goldelico.com> <76746b85957c9f3ef7101a7ee883898a414cabd8.1476712675.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <1476805568-19264-1-git-send-email-t-kristo@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, tony@atomide.com, mturquette@baylibre.com, sboyd@codeaurora.org
-Cc: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <76746b85957c9f3ef7101a7ee883898a414cabd8.1476712675.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Cc: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, =?UTF-8?Q?Mika_Penttil=C3=A4?= <mika.penttila-MRsr7dthA9VWk0Htik3J/w@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>linux-omap <lin>
 List-Id: linux-omap@vger.kernel.org
 
-Cleanup any unnecessary DT_CLK() alias entries from the OMAP4 clock file.
-Most of these are now handled dynamically by the driver code.
+On Mon, Oct 17, 2016 at 8:57 AM, H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> wrote:
+> commit b98abe52fa8e ("Input: add common DT binding for touchscreens")
+> introduced common DT bindings for touchscreens [1] and a helper function to
+> parse the DT.
+>
+> commit ed7c9870c9bc ("Input: of_touchscreen - add support for inverted / swapped axes")
+> added another helper for parsing axis inversion and swapping
+> and applying them to x and y coordinates.
+>
+> Both helpers have been integrated to accommodate any orientation of the
+> touch panel in relation to the LCD.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- drivers/clk/ti/clk-44xx.c | 186 ----------------------------------------------
- 1 file changed, 186 deletions(-)
+Please add the explanation of why this is a compatible change here.
 
-diff --git a/drivers/clk/ti/clk-44xx.c b/drivers/clk/ti/clk-44xx.c
-index b482047..72a3622 100644
---- a/drivers/clk/ti/clk-44xx.c
-+++ b/drivers/clk/ti/clk-44xx.c
-@@ -1435,196 +1435,13 @@
- };
- 
- static struct ti_dt_clk omap44xx_clks[] = {
--	DT_CLK(NULL, "extalt_clkin_ck", "extalt_clkin_ck"),
--	DT_CLK(NULL, "pad_clks_src_ck", "pad_clks_src_ck"),
--	DT_CLK(NULL, "pad_clks_ck", "pad_clks_ck"),
--	DT_CLK(NULL, "pad_slimbus_core_clks_ck", "pad_slimbus_core_clks_ck"),
--	DT_CLK(NULL, "secure_32k_clk_src_ck", "secure_32k_clk_src_ck"),
--	DT_CLK(NULL, "slimbus_src_clk", "slimbus_src_clk"),
--	DT_CLK(NULL, "slimbus_clk", "slimbus_clk"),
--	DT_CLK(NULL, "sys_32k_ck", "sys_32k_ck"),
--	DT_CLK(NULL, "virt_12000000_ck", "virt_12000000_ck"),
--	DT_CLK(NULL, "virt_13000000_ck", "virt_13000000_ck"),
--	DT_CLK(NULL, "virt_16800000_ck", "virt_16800000_ck"),
--	DT_CLK(NULL, "virt_19200000_ck", "virt_19200000_ck"),
--	DT_CLK(NULL, "virt_26000000_ck", "virt_26000000_ck"),
--	DT_CLK(NULL, "virt_27000000_ck", "virt_27000000_ck"),
--	DT_CLK(NULL, "virt_38400000_ck", "virt_38400000_ck"),
--	DT_CLK(NULL, "sys_clkin_ck", "sys_clkin_ck"),
--	DT_CLK(NULL, "tie_low_clock_ck", "tie_low_clock_ck"),
--	DT_CLK(NULL, "utmi_phy_clkout_ck", "utmi_phy_clkout_ck"),
--	DT_CLK(NULL, "xclk60mhsp1_ck", "xclk60mhsp1_ck"),
--	DT_CLK(NULL, "xclk60mhsp2_ck", "xclk60mhsp2_ck"),
--	DT_CLK(NULL, "xclk60motg_ck", "xclk60motg_ck"),
--	DT_CLK(NULL, "abe_dpll_bypass_clk_mux_ck", "abe_dpll_bypass_clk_mux_ck"),
--	DT_CLK(NULL, "abe_dpll_refclk_mux_ck", "abe_dpll_refclk_mux_ck"),
--	DT_CLK(NULL, "dpll_abe_ck", "dpll_abe_ck"),
--	DT_CLK(NULL, "dpll_abe_x2_ck", "dpll_abe_x2_ck"),
--	DT_CLK(NULL, "dpll_abe_m2x2_ck", "dpll_abe_m2x2_ck"),
--	DT_CLK(NULL, "abe_24m_fclk", "abe_24m_fclk"),
--	DT_CLK(NULL, "abe_clk", "abe_clk"),
--	DT_CLK(NULL, "aess_fclk", "aess_fclk"),
--	DT_CLK(NULL, "dpll_abe_m3x2_ck", "dpll_abe_m3x2_ck"),
--	DT_CLK(NULL, "core_hsd_byp_clk_mux_ck", "core_hsd_byp_clk_mux_ck"),
--	DT_CLK(NULL, "dpll_core_ck", "dpll_core_ck"),
--	DT_CLK(NULL, "dpll_core_x2_ck", "dpll_core_x2_ck"),
--	DT_CLK(NULL, "dpll_core_m6x2_ck", "dpll_core_m6x2_ck"),
--	DT_CLK(NULL, "dbgclk_mux_ck", "dbgclk_mux_ck"),
--	DT_CLK(NULL, "dpll_core_m2_ck", "dpll_core_m2_ck"),
--	DT_CLK(NULL, "ddrphy_ck", "ddrphy_ck"),
--	DT_CLK(NULL, "dpll_core_m5x2_ck", "dpll_core_m5x2_ck"),
--	DT_CLK(NULL, "div_core_ck", "div_core_ck"),
--	DT_CLK(NULL, "div_iva_hs_clk", "div_iva_hs_clk"),
--	DT_CLK(NULL, "div_mpu_hs_clk", "div_mpu_hs_clk"),
--	DT_CLK(NULL, "dpll_core_m4x2_ck", "dpll_core_m4x2_ck"),
--	DT_CLK(NULL, "dll_clk_div_ck", "dll_clk_div_ck"),
--	DT_CLK(NULL, "dpll_abe_m2_ck", "dpll_abe_m2_ck"),
--	DT_CLK(NULL, "dpll_core_m3x2_ck", "dpll_core_m3x2_ck"),
--	DT_CLK(NULL, "dpll_core_m7x2_ck", "dpll_core_m7x2_ck"),
--	DT_CLK(NULL, "iva_hsd_byp_clk_mux_ck", "iva_hsd_byp_clk_mux_ck"),
--	DT_CLK(NULL, "dpll_iva_ck", "dpll_iva_ck"),
--	DT_CLK(NULL, "dpll_iva_x2_ck", "dpll_iva_x2_ck"),
--	DT_CLK(NULL, "dpll_iva_m4x2_ck", "dpll_iva_m4x2_ck"),
--	DT_CLK(NULL, "dpll_iva_m5x2_ck", "dpll_iva_m5x2_ck"),
--	DT_CLK(NULL, "dpll_mpu_ck", "dpll_mpu_ck"),
--	DT_CLK(NULL, "dpll_mpu_m2_ck", "dpll_mpu_m2_ck"),
--	DT_CLK(NULL, "per_hs_clk_div_ck", "per_hs_clk_div_ck"),
--	DT_CLK(NULL, "per_hsd_byp_clk_mux_ck", "per_hsd_byp_clk_mux_ck"),
--	DT_CLK(NULL, "dpll_per_ck", "dpll_per_ck"),
--	DT_CLK(NULL, "dpll_per_m2_ck", "dpll_per_m2_ck"),
--	DT_CLK(NULL, "dpll_per_x2_ck", "dpll_per_x2_ck"),
--	DT_CLK(NULL, "dpll_per_m2x2_ck", "dpll_per_m2x2_ck"),
--	DT_CLK(NULL, "dpll_per_m3x2_ck", "dpll_per_m3x2_ck"),
--	DT_CLK(NULL, "dpll_per_m4x2_ck", "dpll_per_m4x2_ck"),
--	DT_CLK(NULL, "dpll_per_m5x2_ck", "dpll_per_m5x2_ck"),
--	DT_CLK(NULL, "dpll_per_m6x2_ck", "dpll_per_m6x2_ck"),
--	DT_CLK(NULL, "dpll_per_m7x2_ck", "dpll_per_m7x2_ck"),
--	DT_CLK(NULL, "usb_hs_clk_div_ck", "usb_hs_clk_div_ck"),
--	DT_CLK(NULL, "dpll_usb_ck", "dpll_usb_ck"),
--	DT_CLK(NULL, "dpll_usb_clkdcoldo_ck", "dpll_usb_clkdcoldo_ck"),
--	DT_CLK(NULL, "dpll_usb_m2_ck", "dpll_usb_m2_ck"),
--	DT_CLK(NULL, "ducati_clk_mux_ck", "ducati_clk_mux_ck"),
--	DT_CLK(NULL, "func_12m_fclk", "func_12m_fclk"),
--	DT_CLK(NULL, "func_24m_clk", "func_24m_clk"),
--	DT_CLK(NULL, "func_24mc_fclk", "func_24mc_fclk"),
--	DT_CLK(NULL, "func_48m_fclk", "func_48m_fclk"),
--	DT_CLK(NULL, "func_48mc_fclk", "func_48mc_fclk"),
--	DT_CLK(NULL, "func_64m_fclk", "func_64m_fclk"),
--	DT_CLK(NULL, "func_96m_fclk", "func_96m_fclk"),
--	DT_CLK(NULL, "init_60m_fclk", "init_60m_fclk"),
--	DT_CLK(NULL, "l3_div_ck", "l3_div_ck"),
--	DT_CLK(NULL, "l4_div_ck", "l4_div_ck"),
--	DT_CLK(NULL, "lp_clk_div_ck", "lp_clk_div_ck"),
--	DT_CLK(NULL, "l4_wkup_clk_mux_ck", "l4_wkup_clk_mux_ck"),
- 	DT_CLK("smp_twd", NULL, "mpu_periphclk"),
--	DT_CLK(NULL, "ocp_abe_iclk", "ocp_abe_iclk"),
--	DT_CLK(NULL, "per_abe_24m_fclk", "per_abe_24m_fclk"),
--	DT_CLK(NULL, "per_abe_nc_fclk", "per_abe_nc_fclk"),
--	DT_CLK(NULL, "syc_clk_div_ck", "syc_clk_div_ck"),
--	DT_CLK(NULL, "aes1_fck", "aes1_fck"),
--	DT_CLK(NULL, "aes2_fck", "aes2_fck"),
--	DT_CLK(NULL, "dmic_sync_mux_ck", "dmic_sync_mux_ck"),
--	DT_CLK(NULL, "func_dmic_abe_gfclk", "func_dmic_abe_gfclk"),
--	DT_CLK(NULL, "dss_sys_clk", "dss_sys_clk"),
--	DT_CLK(NULL, "dss_tv_clk", "dss_tv_clk"),
--	DT_CLK(NULL, "dss_dss_clk", "dss_dss_clk"),
--	DT_CLK(NULL, "dss_48mhz_clk", "dss_48mhz_clk"),
--	DT_CLK(NULL, "dss_fck", "dss_fck"),
- 	DT_CLK("omapdss_dss", "ick", "dss_fck"),
--	DT_CLK(NULL, "fdif_fck", "fdif_fck"),
--	DT_CLK(NULL, "gpio1_dbclk", "gpio1_dbclk"),
--	DT_CLK(NULL, "gpio2_dbclk", "gpio2_dbclk"),
--	DT_CLK(NULL, "gpio3_dbclk", "gpio3_dbclk"),
--	DT_CLK(NULL, "gpio4_dbclk", "gpio4_dbclk"),
--	DT_CLK(NULL, "gpio5_dbclk", "gpio5_dbclk"),
--	DT_CLK(NULL, "gpio6_dbclk", "gpio6_dbclk"),
--	DT_CLK(NULL, "sgx_clk_mux", "sgx_clk_mux"),
--	DT_CLK(NULL, "hsi_fck", "hsi_fck"),
--	DT_CLK(NULL, "iss_ctrlclk", "iss_ctrlclk"),
--	DT_CLK(NULL, "mcasp_sync_mux_ck", "mcasp_sync_mux_ck"),
--	DT_CLK(NULL, "func_mcasp_abe_gfclk", "func_mcasp_abe_gfclk"),
--	DT_CLK(NULL, "mcbsp1_sync_mux_ck", "mcbsp1_sync_mux_ck"),
--	DT_CLK(NULL, "func_mcbsp1_gfclk", "func_mcbsp1_gfclk"),
--	DT_CLK(NULL, "mcbsp2_sync_mux_ck", "mcbsp2_sync_mux_ck"),
--	DT_CLK(NULL, "func_mcbsp2_gfclk", "func_mcbsp2_gfclk"),
--	DT_CLK(NULL, "mcbsp3_sync_mux_ck", "mcbsp3_sync_mux_ck"),
--	DT_CLK(NULL, "func_mcbsp3_gfclk", "func_mcbsp3_gfclk"),
--	DT_CLK(NULL, "mcbsp4_sync_mux_ck", "mcbsp4_sync_mux_ck"),
--	DT_CLK(NULL, "per_mcbsp4_gfclk", "per_mcbsp4_gfclk"),
--	DT_CLK(NULL, "hsmmc1_fclk", "hsmmc1_fclk"),
--	DT_CLK(NULL, "hsmmc2_fclk", "hsmmc2_fclk"),
--	DT_CLK(NULL, "ocp2scp_usb_phy_phy_48m", "ocp2scp_usb_phy_phy_48m"),
--	DT_CLK(NULL, "sha2md5_fck", "sha2md5_fck"),
--	DT_CLK(NULL, "slimbus1_fclk_1", "slimbus1_fclk_1"),
--	DT_CLK(NULL, "slimbus1_fclk_0", "slimbus1_fclk_0"),
--	DT_CLK(NULL, "slimbus1_fclk_2", "slimbus1_fclk_2"),
--	DT_CLK(NULL, "slimbus1_slimbus_clk", "slimbus1_slimbus_clk"),
--	DT_CLK(NULL, "slimbus2_fclk_1", "slimbus2_fclk_1"),
--	DT_CLK(NULL, "slimbus2_fclk_0", "slimbus2_fclk_0"),
--	DT_CLK(NULL, "slimbus2_slimbus_clk", "slimbus2_slimbus_clk"),
--	DT_CLK(NULL, "smartreflex_core_fck", "smartreflex_core_fck"),
--	DT_CLK(NULL, "smartreflex_iva_fck", "smartreflex_iva_fck"),
--	DT_CLK(NULL, "smartreflex_mpu_fck", "smartreflex_mpu_fck"),
--	DT_CLK(NULL, "dmt1_clk_mux", "dmt1_clk_mux"),
--	DT_CLK(NULL, "cm2_dm10_mux", "cm2_dm10_mux"),
--	DT_CLK(NULL, "cm2_dm11_mux", "cm2_dm11_mux"),
--	DT_CLK(NULL, "cm2_dm2_mux", "cm2_dm2_mux"),
--	DT_CLK(NULL, "cm2_dm3_mux", "cm2_dm3_mux"),
--	DT_CLK(NULL, "cm2_dm4_mux", "cm2_dm4_mux"),
--	DT_CLK(NULL, "timer5_sync_mux", "timer5_sync_mux"),
--	DT_CLK(NULL, "timer6_sync_mux", "timer6_sync_mux"),
--	DT_CLK(NULL, "timer7_sync_mux", "timer7_sync_mux"),
--	DT_CLK(NULL, "timer8_sync_mux", "timer8_sync_mux"),
--	DT_CLK(NULL, "cm2_dm9_mux", "cm2_dm9_mux"),
--	DT_CLK(NULL, "usb_host_fs_fck", "usb_host_fs_fck"),
- 	DT_CLK("usbhs_omap", "fs_fck", "usb_host_fs_fck"),
--	DT_CLK(NULL, "utmi_p1_gfclk", "utmi_p1_gfclk"),
--	DT_CLK(NULL, "usb_host_hs_utmi_p1_clk", "usb_host_hs_utmi_p1_clk"),
--	DT_CLK(NULL, "utmi_p2_gfclk", "utmi_p2_gfclk"),
--	DT_CLK(NULL, "usb_host_hs_utmi_p2_clk", "usb_host_hs_utmi_p2_clk"),
--	DT_CLK(NULL, "usb_host_hs_utmi_p3_clk", "usb_host_hs_utmi_p3_clk"),
--	DT_CLK(NULL, "usb_host_hs_hsic480m_p1_clk", "usb_host_hs_hsic480m_p1_clk"),
--	DT_CLK(NULL, "usb_host_hs_hsic60m_p1_clk", "usb_host_hs_hsic60m_p1_clk"),
--	DT_CLK(NULL, "usb_host_hs_hsic60m_p2_clk", "usb_host_hs_hsic60m_p2_clk"),
--	DT_CLK(NULL, "usb_host_hs_hsic480m_p2_clk", "usb_host_hs_hsic480m_p2_clk"),
--	DT_CLK(NULL, "usb_host_hs_func48mclk", "usb_host_hs_func48mclk"),
--	DT_CLK(NULL, "usb_host_hs_fck", "usb_host_hs_fck"),
- 	DT_CLK("usbhs_omap", "hs_fck", "usb_host_hs_fck"),
--	DT_CLK(NULL, "otg_60m_gfclk", "otg_60m_gfclk"),
--	DT_CLK(NULL, "usb_otg_hs_xclk", "usb_otg_hs_xclk"),
--	DT_CLK(NULL, "usb_otg_hs_ick", "usb_otg_hs_ick"),
- 	DT_CLK("musb-omap2430", "ick", "usb_otg_hs_ick"),
--	DT_CLK(NULL, "usb_phy_cm_clk32k", "usb_phy_cm_clk32k"),
--	DT_CLK(NULL, "usb_tll_hs_usb_ch2_clk", "usb_tll_hs_usb_ch2_clk"),
--	DT_CLK(NULL, "usb_tll_hs_usb_ch0_clk", "usb_tll_hs_usb_ch0_clk"),
--	DT_CLK(NULL, "usb_tll_hs_usb_ch1_clk", "usb_tll_hs_usb_ch1_clk"),
--	DT_CLK(NULL, "usb_tll_hs_ick", "usb_tll_hs_ick"),
- 	DT_CLK("usbhs_omap", "usbtll_ick", "usb_tll_hs_ick"),
- 	DT_CLK("usbhs_tll", "usbtll_ick", "usb_tll_hs_ick"),
--	DT_CLK(NULL, "usim_ck", "usim_ck"),
--	DT_CLK(NULL, "usim_fclk", "usim_fclk"),
--	DT_CLK(NULL, "pmd_stm_clock_mux_ck", "pmd_stm_clock_mux_ck"),
--	DT_CLK(NULL, "pmd_trace_clk_mux_ck", "pmd_trace_clk_mux_ck"),
--	DT_CLK(NULL, "stm_clk_div_ck", "stm_clk_div_ck"),
--	DT_CLK(NULL, "trace_clk_div_ck", "trace_clk_div_ck"),
--	DT_CLK(NULL, "auxclk0_src_ck", "auxclk0_src_ck"),
--	DT_CLK(NULL, "auxclk0_ck", "auxclk0_ck"),
--	DT_CLK(NULL, "auxclkreq0_ck", "auxclkreq0_ck"),
--	DT_CLK(NULL, "auxclk1_src_ck", "auxclk1_src_ck"),
--	DT_CLK(NULL, "auxclk1_ck", "auxclk1_ck"),
--	DT_CLK(NULL, "auxclkreq1_ck", "auxclkreq1_ck"),
--	DT_CLK(NULL, "auxclk2_src_ck", "auxclk2_src_ck"),
--	DT_CLK(NULL, "auxclk2_ck", "auxclk2_ck"),
--	DT_CLK(NULL, "auxclkreq2_ck", "auxclkreq2_ck"),
--	DT_CLK(NULL, "auxclk3_src_ck", "auxclk3_src_ck"),
--	DT_CLK(NULL, "auxclk3_ck", "auxclk3_ck"),
--	DT_CLK(NULL, "auxclkreq3_ck", "auxclkreq3_ck"),
--	DT_CLK(NULL, "auxclk4_src_ck", "auxclk4_src_ck"),
--	DT_CLK(NULL, "auxclk4_ck", "auxclk4_ck"),
--	DT_CLK(NULL, "auxclkreq4_ck", "auxclkreq4_ck"),
--	DT_CLK(NULL, "auxclk5_src_ck", "auxclk5_src_ck"),
--	DT_CLK(NULL, "auxclk5_ck", "auxclk5_ck"),
--	DT_CLK(NULL, "auxclkreq5_ck", "auxclkreq5_ck"),
- 	DT_CLK("omap_i2c.1", "ick", "dummy_ck"),
- 	DT_CLK("omap_i2c.2", "ick", "dummy_ck"),
- 	DT_CLK("omap_i2c.3", "ick", "dummy_ck"),
-@@ -1664,9 +1481,6 @@
- 	DT_CLK("4013c000.timer", "timer_sys_ck", "syc_clk_div_ck"),
- 	DT_CLK("4013e000.timer", "timer_sys_ck", "syc_clk_div_ck"),
- 	DT_CLK(NULL, "cpufreq_ck", "dpll_mpu_ck"),
--	DT_CLK(NULL, "bandgap_fclk", "bandgap_fclk"),
--	DT_CLK(NULL, "div_ts_ck", "div_ts_ck"),
--	DT_CLK(NULL, "bandgap_ts_fclk", "bandgap_ts_fclk"),
- 	{ .node_name = NULL },
- };
- 
--- 
-1.9.1
+> A new feature is to introduce scaling the min/max ADC values to the screen
+> size.
 
+Sounds like a separate change.
+
+> This makes it possible to pre-calibrate the touch so that is (almost)
+> exactly matches the LCD pixel coordinates it is glued onto. This allows to
+> well enough operate the touch before a user space calibration step can
+> improve the precision.
+>
+> Finally, calculate_pressure has been renamed to calculate_resistance
+> because that is what it is doing.
+>
+> [1]: Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
+>
+> Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+> ---
+>  .../bindings/input/touchscreen/tsc2007.txt         |  20 ++--
+>  drivers/input/touchscreen/tsc2007.c                | 120 +++++++++++++++++----
+>  include/linux/i2c/tsc2007.h                        |   8 ++
+>  3 files changed, 118 insertions(+), 30 deletions(-)
+>
+> diff --git a/Documentation/devicetree/bindings/input/touchscreen/tsc2007.txt b/Documentation/devicetree/bindings/input/touchscreen/tsc2007.txt
+> index ec365e1..6e9fd55 100644
+> --- a/Documentation/devicetree/bindings/input/touchscreen/tsc2007.txt
+> +++ b/Documentation/devicetree/bindings/input/touchscreen/tsc2007.txt
+> @@ -6,6 +6,7 @@ Required properties:
+>  - ti,x-plate-ohms: X-plate resistance in ohms.
+>
+>  Optional properties:
+> +- generic touch screen properties: see touchscreen binding [2].
+>  - gpios: the interrupt gpio the chip is connected to (trough the penirq pin).
+>    The penirq pin goes to low when the panel is touched.
+>    (see GPIO binding[1] for more details).
+> @@ -13,17 +14,20 @@ Optional properties:
+>    (see interrupt binding[0]).
+>  - interrupts: (gpio) interrupt to which the chip is connected
+>    (see interrupt binding[0]).
+> -- ti,max-rt: maximum pressure.
+> -- ti,fuzzx: specifies the absolute input fuzz x value.
+> -  If set, it will permit noise in the data up to +- the value given to the fuzz
+> -  parameter, that is used to filter noise from the event stream.
+> -- ti,fuzzy: specifies the absolute input fuzz y value.
+> -- ti,fuzzz: specifies the absolute input fuzz z value.
+> +- ti,max-rt: maximum pressure resistance above which samples are ignored
+> +  (default: 4095).
+> +- ti,report-resistance: report resistance (no pressure = max_rt) instead
+> +  of pressure (no pressure = 0).
+> +- ti,min-x: minimum value reported by X axis ADC (default 0).
+> +- ti,max-x: maximum value reported by X axis ADC (default 4095).
+> +- ti,min-y: minimum value reported by Y axis ADC (default 0).
+> +- ti,max-y: maximum value reported by Y axis ADC (default 4095).
+
+I thought these were going to be common? I think they should be.
+
+Rob
+
+>  - ti,poll-period: how much time to wait (in milliseconds) before reading again the
+> -  values from the tsc2007.
+> +  values from the tsc2007 (default 1).
+>
+>  [0]: Documentation/devicetree/bindings/interrupt-controller/interrupts.txt
+>  [1]: Documentation/devicetree/bindings/gpio/gpio.txt
+> +[2]: Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
+>
+>  Example:
+>         &i2c1 {
+> @@ -35,6 +39,8 @@ Example:
+>                         interrupts = <0x0 0x8>;
+>                         gpios = <&gpio4 0 0>;
+>                         ti,x-plate-ohms = <180>;
+> +                       touchscreen-size-x = <640>;
+> +                       touchscreen-size-y = <480>;
+>                 };
+>
+>                 /* ... */
