@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 08/15] clk: ti: add clkdm_lookup to the exported functions
-Date: Tue, 18 Oct 2016 18:46:01 +0300
-Message-ID: <1476805568-19264-9-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv4 03/15] dt-bindings: clock: add omap4 hwmod clock IDs
+Date: Tue, 18 Oct 2016 18:45:56 +0300
+Message-ID: <1476805568-19264-4-git-send-email-t-kristo@ti.com>
 References: <1476805568-19264-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,47 +12,137 @@ To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, tony@atomide.com, mtu
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This will be needed to move some additional clockdomain functionality
-under clock driver.
+Add IDs for omap4 hwmod clocks. These are basically register offsets
+from the beginning of the clockdomain address space.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/clock.c | 1 +
- include/linux/clk/ti.h      | 2 ++
- 2 files changed, 3 insertions(+)
+ include/dt-bindings/clock/ti,omap44xx.h | 116 ++++++++++++++++++++++++++++++++
+ 1 file changed, 116 insertions(+)
+ create mode 100644 include/dt-bindings/clock/ti,omap44xx.h
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index d058125..5391b66 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -57,6 +57,7 @@
- static struct ti_clk_ll_ops omap_clk_ll_ops = {
- 	.clkdm_clk_enable = clkdm_clk_enable,
- 	.clkdm_clk_disable = clkdm_clk_disable,
-+	.clkdm_lookup = clkdm_lookup,
- 	.cm_wait_module_ready = omap_cm_wait_module_ready,
- 	.cm_split_idlest_reg = cm_split_idlest_reg,
- };
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 07308db..bc7fd8f 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -213,6 +213,7 @@ struct clk_omap_reg {
-  * @clk_writel: pointer to register write function
-  * @clkdm_clk_enable: pointer to clockdomain enable function
-  * @clkdm_clk_disable: pointer to clockdomain disable function
-+ * @clkdm_lookup: pointer to clockdomain lookup function
-  * @cm_wait_module_ready: pointer to CM module wait ready function
-  * @cm_split_idlest_reg: pointer to CM module function to split idlest reg
-  *
-@@ -228,6 +229,7 @@ struct ti_clk_ll_ops {
- 	int	(*clkdm_clk_enable)(struct clockdomain *clkdm, struct clk *clk);
- 	int	(*clkdm_clk_disable)(struct clockdomain *clkdm,
- 				     struct clk *clk);
-+	struct clockdomain * (*clkdm_lookup)(const char *name);
- 	int	(*cm_wait_module_ready)(u8 part, s16 prcm_mod, u16 idlest_reg,
- 					u8 idlest_shift);
- 	int	(*cm_split_idlest_reg)(void __iomem *idlest_reg, s16 *prcm_inst,
+diff --git a/include/dt-bindings/clock/ti,omap44xx.h b/include/dt-bindings/clock/ti,omap44xx.h
+new file mode 100644
+index 0000000..38af57d
+--- /dev/null
++++ b/include/dt-bindings/clock/ti,omap44xx.h
+@@ -0,0 +1,116 @@
++/*
++ * TI OMAP4 SoC clock definitions
++ *
++ * Copyright (C) 2016 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#ifndef __DT_BINDINGS_CLOCK_TI_OMAP4_H__
++#define __DT_BINDINGS_CLOCK_TI_OMAP4_H__
++
++#define OMAP44XX_MPUSS_MPU 0x20
++#define OMAP44XX_TESLA_DSP 0x20
++#define OMAP44XX_TESLA_MMU_DSP 0x20
++#define OMAP44XX_ABE_L4_ABE 0x20
++#define OMAP44XX_ABE_AESS 0x28
++#define OMAP44XX_ABE_MCPDM 0x30
++#define OMAP44XX_ABE_DMIC 0x38
++#define OMAP44XX_ABE_MCASP 0x40
++#define OMAP44XX_ABE_MCBSP1 0x48
++#define OMAP44XX_ABE_MCBSP2 0x50
++#define OMAP44XX_ABE_MCBSP3 0x58
++#define OMAP44XX_ABE_SLIMBUS1 0x60
++#define OMAP44XX_ABE_TIMER5 0x68
++#define OMAP44XX_ABE_TIMER6 0x70
++#define OMAP44XX_ABE_TIMER7 0x78
++#define OMAP44XX_ABE_TIMER8 0x80
++#define OMAP44XX_ABE_WD_TIMER3 0x88
++#define OMAP44XX_L4_WKUP_L4_WKUP 0x20
++#define OMAP44XX_L4_WKUP_WD_TIMER2 0x30
++#define OMAP44XX_L4_WKUP_GPIO1 0x38
++#define OMAP44XX_L4_WKUP_TIMER1 0x40
++#define OMAP44XX_L4_WKUP_COUNTER_32K 0x50
++#define OMAP44XX_L4_WKUP_KBD 0x78
++#define OMAP44XX_EMU_SYS_DEBUGSS 0x20
++#define OMAP44XX_L3_DSS_DSS_CORE 0x20
++#define OMAP44XX_L3_DSS_DSS_RFBI 0x20
++#define OMAP44XX_L3_DSS_DSS_HDMI 0x20
++#define OMAP44XX_L3_DSS_DSS_DSI2 0x20
++#define OMAP44XX_L3_DSS_DSS_VENC 0x20
++#define OMAP44XX_L3_DSS_DSS_DISPC 0x20
++#define OMAP44XX_L3_DSS_DSS_DSI1 0x20
++#define OMAP44XX_ISS_FDIF 0x28
++#define OMAP44XX_L4_PER_GPIO2 0x60
++#define OMAP44XX_L4_PER_GPIO3 0x68
++#define OMAP44XX_L4_PER_GPIO4 0x70
++#define OMAP44XX_L4_PER_GPIO5 0x78
++#define OMAP44XX_L4_PER_GPIO6 0x80
++#define OMAP44XX_L4_PER_HDQ1W 0x88
++#define OMAP44XX_L4_PER_I2C1 0xa0
++#define OMAP44XX_L4_PER_I2C2 0xa8
++#define OMAP44XX_L4_PER_I2C3 0xb0
++#define OMAP44XX_L4_PER_I2C4 0xb8
++#define OMAP44XX_L4_PER_L4_PER 0xc0
++#define OMAP44XX_L3_GFX_GPU 0x20
++#define OMAP44XX_L3_INIT_HSI 0x38
++#define OMAP44XX_ISS_ISS 0x20
++#define OMAP44XX_L4_PER_MCBSP4 0xe0
++#define OMAP44XX_L4_PER_MCSPI1 0xf0
++#define OMAP44XX_L4_PER_MCSPI2 0xf8
++#define OMAP44XX_L4_PER_MCSPI3 0x100
++#define OMAP44XX_L4_PER_MCSPI4 0x108
++#define OMAP44XX_L4_PER_MMC3 0x120
++#define OMAP44XX_L4_PER_MMC4 0x128
++#define OMAP44XX_L3_INIT_MMC1 0x28
++#define OMAP44XX_L3_INIT_MMC2 0x30
++#define OMAP44XX_L3_INIT_OCP2SCP_USB_PHY 0xe0
++#define OMAP44XX_L4_PER_TIMER10 0x28
++#define OMAP44XX_L4_PER_TIMER11 0x30
++#define OMAP44XX_L4_PER_TIMER2 0x38
++#define OMAP44XX_L4_PER_TIMER3 0x40
++#define OMAP44XX_L4_PER_TIMER4 0x48
++#define OMAP44XX_L4_PER_TIMER9 0x50
++#define OMAP44XX_L4_PER_ELM 0x58
++#define OMAP44XX_L4_PER_SLIMBUS2 0x138
++#define OMAP44XX_L4_PER_UART1 0x140
++#define OMAP44XX_L4_PER_UART2 0x148
++#define OMAP44XX_L4_PER_UART3 0x150
++#define OMAP44XX_L4_PER_UART4 0x158
++#define OMAP44XX_L4_PER_MMC5 0x160
++#define OMAP44XX_L4_AO_SMARTREFLEX_CORE 0x38
++#define OMAP44XX_L4_AO_SMARTREFLEX_IVA 0x30
++#define OMAP44XX_L4_AO_SMARTREFLEX_MPU 0x28
++#define OMAP44XX_L3_INIT_USB_HOST_FS 0xd0
++#define OMAP44XX_L3_INIT_USB_HOST_HS 0x58
++#define OMAP44XX_L3_INIT_USB_OTG_HS 0x60
++#define OMAP44XX_L3_1_L3_MAIN_1 0x20
++#define OMAP44XX_L3_2_L3_MAIN_2 0x20
++#define OMAP44XX_L3_2_GPMC 0x28
++#define OMAP44XX_L3_2_OCMC_RAM 0x30
++#define OMAP44XX_DUCATI_IPU 0x20
++#define OMAP44XX_DUCATI_MMU_IPU 0x20
++#define OMAP44XX_L3_DMA_DMA_SYSTEM 0x20
++#define OMAP44XX_L3_EMIF_DMM 0x20
++#define OMAP44XX_L3_EMIF_EMIF1 0x30
++#define OMAP44XX_L3_EMIF_EMIF2 0x38
++#define OMAP44XX_D2D_C2C 0x20
++#define OMAP44XX_L4_CFG_L4_CFG 0x20
++#define OMAP44XX_L4_CFG_SPINLOCK 0x28
++#define OMAP44XX_L4_CFG_MAILBOX 0x30
++#define OMAP44XX_L3_INSTR_L3_MAIN_3 0x20
++#define OMAP44XX_L3_INSTR_L3_INSTR 0x28
++#define OMAP44XX_L3_INSTR_OCP_WP_NOC 0x40
++#define OMAP44XX_IVAHD_IVA 0x20
++#define OMAP44XX_IVAHD_SL2IF 0x28
++#define OMAP44XX_L3_INIT_USB_TLL_HS 0x68
++
++#endif
 -- 
 1.9.1
 
