@@ -1,67 +1,102 @@
-From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: Re: [PATCH v4 7/8] drivers:input:ads7846(+tsc2046): fix spi module table
-Date: Mon, 17 Oct 2016 18:52:51 +0200
-Message-ID: <FB793B8D-2CFB-4070-9267-A6A9680C8B5C@goldelico.com>
-References: <cover.1476712675.git.hns@goldelico.com> <70cc986f3cf98dd89f0460b5042083aad58a7366.1476712675.git.hns@goldelico.com> <acdf452f-01f2-27df-11c5-bb8db002394a@ti.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <acdf452f-01f2-27df-11c5-bb8db002394a-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>
-Cc: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, =?windows-1252?Q?Mika_Penttil=E4?= <mika.penttila-MRsr7dthA9VWk0Htik3J/w@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel@p
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: Bunch of CRC errors in next with arm: move exports to definitions
+Date: Tue, 18 Oct 2016 06:59:44 +0200
+Message-ID: <20161018045944.o3j4odeuq4kj6gzx@earth>
+References: <20160822162512.mptzbiaozx2fz42l@atomide.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============0831127974035437910=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160822162512.mptzbiaozx2fz42l@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 
-> Am 17.10.2016 um 17:54 schrieb Andrew F. Davis <afd-l0cyMroinI0@public.gmane.org>:
->=20
-> On 10/17/2016 08:57 AM, H. Nikolaus Schaller wrote:
->> Fix module table so that the driver is loaded if compiled
->> as module and requested by DT.
->>=20
->> Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
->> ---
->> drivers/input/touchscreen/ads7846.c | 11 +++++++++++
->> 1 file changed, 11 insertions(+)
->>=20
->> diff --git a/drivers/input/touchscreen/ads7846.c =
-b/drivers/input/touchscreen/ads7846.c
->> index 400e421..9a5d84d 100644
->> --- a/drivers/input/touchscreen/ads7846.c
->> +++ b/drivers/input/touchscreen/ads7846.c
->> @@ -1532,6 +1532,17 @@ static int ads7846_remove(struct spi_device =
-*spi)
->> 	return 0;
->> }
->>=20
->> +static const struct spi_device_id ads7846_idtable[] =3D {
->> +	{ "tsc2046", 0 },
->> +	{ "ads7843", 0 },
->> +	{ "ads7845", 0 },
->> +	{ "ads7846", 0 },
->> +	{ "ads7873", 0 },
->> +	{ }
->> +};
->> +
->=20
-> no space needed
->=20
->> +MODULE_DEVICE_TABLE(spi, ads7846_idtable);
->> +
->> static struct spi_driver ads7846_driver =3D {
->> 	.driver =3D {
->> 		.name	=3D "ads7846",
->>=20
->=20
-> the MODULE_ALIAS below can now also be removed with this patch.
+--===============0831127974035437910==
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="lmg3ytwrkfnxcogr"
+Content-Disposition: inline
 
-Ok! Noted for V5.
 
-BR and thanks,
-Nikolaus
+--lmg3ytwrkfnxcogr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi,
+
+On Mon, Aug 22, 2016 at 09:25:13AM -0700, Tony Lindgren wrote:
+> Looks like starting with next-20160818 I'm now getting close to
+> 800 lines of WARNINGs on ARM with omap2plus_defconfig while doing
+> make modules:
+>=20
+> Building modules, stage 2.
+>   MODPOST 399 modules
+> WARNING: "__memzero" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
+> WARNING: "memset" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
+> WARNING: "memcpy" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
+> WARNING: "_set_bit" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
+> WARNING: "_test_and_set_bit" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
+> WARNING: "_clear_bit" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
+> WARNING: "__aeabi_uidivmod" [sound/usb/snd-usb-audio.ko] has no CRC!
+> WARNING: "_test_and_clear_bit" [sound/usb/snd-usb-audio.ko] has no CRC!
+> WARNING: "arm_copy_to_user" [sound/usb/snd-usb-audio.ko] has no CRC!
+> WARNING: "__aeabi_uidiv" [sound/usb/snd-usb-audio.ko] has no CRC!
+> ...
+> WARNING: "memset" [crypto/drbg.ko] has no CRC!
+> WARNING: "memcpy" [crypto/ctr.ko] has no CRC!
+> WARNING: "memcpy" [crypto/cmac.ko] has no CRC!
+> WARNING: "__memzero" [crypto/cmac.ko] has no CRC!
+> WARNING: "memcpy" [crypto/ccm.ko] has no CRC!
+> WARNING: "__memzero" [crypto/ccm.ko] has no CRC!
+
+Any update on this one? I just updated my power-supply next branch
+to v4.9-rc1 and now get almost 18000 CRC warnings for allmodconfig.
+(I use arm-linux-gnueabihf-gcc (Debian 6.1.1-9) 6.1.1 20160705)
+
+-- Sebastian
+
+--lmg3ytwrkfnxcogr
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAABCgAGBQJYBaw9AAoJENju1/PIO/qarHIP/RA5//Lt82EwE0YH1otnYHCb
+lXwXAkeBCBrqm0qp4jlIO6F1+ht1RnO7UIZslVOzQenPe7L7hIIzIPUXd45qJjhe
+0ObOCDRN04vH89IlTF36sHjqeqCftrBWlGEyX350cNn4XbhXW6unkkx40m4EYmxD
+Y8TSOvBpYD8mm1QELItwTXWSbiN6ZBwheb7YuDl9aBYUC+DLed4Lo94abRXqlvnp
+tONiJWSzsvn7ePPif+fPIFZ9rNk4u+X+9N/ZK93JYP1GhO8GDX1B72fQzKXfre3h
+8caYrif7qDdbuGYSKZ3EZ9iiVSOF482hoRbxSzeucziMrjkEaX36/fQRgclqr0o3
+1P0kRMG3aDX6I84hhqpyBjFGYuAyFVxbIcXpC/uNLgyV3ionz/I7MJsG/aU0enSj
+M7Wuo1/ooxmkDOV4t2qO/zDdP7UY3Pow9u/+UmSrjjiKIMMFubAHOq453x1SO7eC
+XpLM16ay/00lIjGL5pJeUZJpSW+LoBrS6rkPUotygq9wFR+hmzVDWPIjKQN9Mk5U
+d5ABBmKqBZlWUp3yizdcwRq4c83Gk7SDwClS2X3Dy32Vc9oGyh9VNqsPjnwdgYu/
+tQ+p8NUtUmjuwHzVCiSqVywoa7cVmzBAAPUt1uEUy+rlQu6c4WrisdturBz3KxO4
+IBKN2EdY9zy3xvc+QM+s
+=y1e1
+-----END PGP SIGNATURE-----
+
+--lmg3ytwrkfnxcogr--
+
+
+--===============0831127974035437910==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============0831127974035437910==--
