@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 13/15] clk: ti: add support for omap4 module clocks
-Date: Tue, 18 Oct 2016 18:46:06 +0300
-Message-ID: <1476805568-19264-14-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv4 14/15] clk: ti: omap4: add hwmod clock data
+Date: Tue, 18 Oct 2016 18:46:07 +0300
+Message-ID: <1476805568-19264-15-git-send-email-t-kristo@ti.com>
 References: <1476805568-19264-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,481 +12,1442 @@ To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, tony@atomide.com, mtu
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Previously, hwmod core has been used for controlling the hwmod level
-clocks. This has certain drawbacks, like being unable to share the
-clocks for multiple users, missing usecounting and generally being
-totally incompatible with common clock framework.
-
-Add support for new clock type under the TI clock driver, which will
-be used to convert all the existing hwmod clocks to.
+Add hwmod clock data for omap4 SoC. This data is basically a conversion
+of the existing hwmod data to clock format.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/Makefile   |   3 +-
- drivers/clk/ti/clk.c      |   6 +
- drivers/clk/ti/clkt_mod.c | 344 ++++++++++++++++++++++++++++++++++++++++++++++
- drivers/clk/ti/clock.h    |  24 ++++
- include/linux/clk/ti.h    |   2 +
- 5 files changed, 378 insertions(+), 1 deletion(-)
- create mode 100644 drivers/clk/ti/clkt_mod.c
+ drivers/clk/ti/clk-44xx.c | 1403 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 1403 insertions(+)
 
-diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-index 0deac98..15886ef 100644
---- a/drivers/clk/ti/Makefile
-+++ b/drivers/clk/ti/Makefile
-@@ -3,7 +3,8 @@ ifeq ($(CONFIG_ARCH_OMAP2PLUS), y)
- obj-y					+= clk.o autoidle.o clockdomain.o
- clk-common				= dpll.o composite.o divider.o gate.o \
- 					  fixed-factor.o mux.o apll.o \
--					  clkt_dpll.o clkt_iclk.o clkt_dflt.o
-+					  clkt_dpll.o clkt_iclk.o clkt_dflt.o \
-+					  clkt_mod.o
- obj-$(CONFIG_SOC_AM33XX)		+= $(clk-common) clk-33xx.o dpll3xxx.o
- obj-$(CONFIG_SOC_TI81XX)		+= $(clk-common) fapll.o clk-814x.o clk-816x.o
- obj-$(CONFIG_ARCH_OMAP2)		+= $(clk-common) interface.o clk-2xxx.o
-diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-index 8bebda4..3a75d8e 100644
---- a/drivers/clk/ti/clk.c
-+++ b/drivers/clk/ti/clk.c
-@@ -372,6 +372,12 @@ struct clk __init *ti_clk_register_clk(struct ti_clk *setup)
- 	case TI_CLK_DPLL:
- 		clk = ti_clk_register_dpll(setup);
- 		break;
-+	case TI_CLK_HWMOD:
-+		clk = ti_clk_register_hwmod(setup);
-+		break;
-+	case TI_CLK_HWMOD_MUX:
-+		clk = ti_clk_register_hwmod_mux(setup);
-+		break;
- 	default:
- 		pr_err("bad type for %s!\n", setup->name);
- 		clk = ERR_PTR(-EINVAL);
-diff --git a/drivers/clk/ti/clkt_mod.c b/drivers/clk/ti/clkt_mod.c
-new file mode 100644
-index 0000000..dc86109
---- /dev/null
-+++ b/drivers/clk/ti/clkt_mod.c
-@@ -0,0 +1,344 @@
-+/*
-+ * OMAP hardware module clock support
-+ *
-+ * Copyright (C) 2015 Texas Instruments, Inc.
-+ *
-+ * Tero Kristo <t-kristo@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/clk-provider.h>
-+#include <linux/slab.h>
-+#include <linux/of.h>
-+#include <linux/of_address.h>
-+#include <linux/clk/ti.h>
-+#include <linux/delay.h>
-+#include "clock.h"
-+
-+#undef pr_fmt
-+#define pr_fmt(fmt) "%s: " fmt, __func__
-+
-+#define NO_IDLEST			0x1
-+
-+#define OMAP4_MODULEMODE_MASK		0x3
-+
-+#define MODULEMODE_HWCTRL		0x1
-+#define MODULEMODE_SWCTRL		0x2
-+
-+#define OMAP4_IDLEST_MASK		(0x3 << 16)
-+#define OMAP4_IDLEST_SHIFT		16
-+
-+#define CLKCTRL_IDLEST_FUNCTIONAL	0x0
-+#define CLKCTRL_IDLEST_INTERFACE_IDLE	0x2
-+#define CLKCTRL_IDLEST_DISABLED		0x3
-+
-+/* These timeouts are in us */
-+#define OMAP4_MAX_MODULE_READY_TIME	2000
-+#define OMAP4_MAX_MODULE_DISABLE_TIME	5000
-+
-+static bool _early_timeout = true;
-+
-+union omap4_timeout {
-+	u32 cycles;
-+	ktime_t start;
-+};
-+
-+static u32 _omap4_idlest(u32 val)
-+{
-+	val &= OMAP4_IDLEST_MASK;
-+	val >>= OMAP4_IDLEST_SHIFT;
-+
-+	return val;
-+}
-+
-+static bool _omap4_is_idle(u32 val)
-+{
-+	val = _omap4_idlest(val);
-+
-+	return val == CLKCTRL_IDLEST_DISABLED;
-+}
-+
-+static bool _omap4_is_ready(u32 val)
-+{
-+	val = _omap4_idlest(val);
-+
-+	return val == CLKCTRL_IDLEST_FUNCTIONAL ||
-+	       val == CLKCTRL_IDLEST_INTERFACE_IDLE;
-+}
-+
-+static bool _omap4_is_timeout(union omap4_timeout *time, u32 timeout)
-+{
-+	if (unlikely(_early_timeout)) {
-+		if (time->cycles++ < timeout) {
-+			udelay(1);
-+			return false;
-+		}
-+	} else {
-+		if (!ktime_to_ns(time->start)) {
-+			time->start = ktime_get();
-+			return false;
-+		}
-+
-+		if (ktime_us_delta(ktime_get(), time->start) < timeout) {
-+			cpu_relax();
-+			return false;
-+		}
-+	}
-+
-+	return true;
-+}
-+
-+static int __init _omap4_disable_early_timeout(void)
-+{
-+	_early_timeout = false;
-+
-+	return 0;
-+}
-+arch_initcall(_omap4_disable_early_timeout);
-+
-+static int _omap4_hwmod_clk_enable(struct clk_hw *hw)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	u32 val;
-+	int ret;
-+	union omap4_timeout timeout = { 0 };
-+
-+	if (!clk->enable_bit)
-+		return 0;
-+
-+	if (clk->clkdm) {
-+		ret = ti_clk_ll_ops->clkdm_clk_enable(clk->clkdm, hw->clk);
-+		if (ret) {
-+			WARN(1,
-+			     "%s: could not enable %s's clockdomain %s: %d\n",
-+			     __func__, clk_hw_get_name(hw),
-+			     clk->clkdm_name, ret);
-+			return ret;
-+		}
-+	}
-+
-+	val = ti_clk_ll_ops->clk_readl(clk->enable_reg);
-+
-+	val &= ~OMAP4_MODULEMODE_MASK;
-+	val |= clk->enable_bit;
-+
-+	ti_clk_ll_ops->clk_writel(val, clk->enable_reg);
-+
-+	if (clk->flags & NO_IDLEST)
-+		return 0;
-+
-+	/* Wait until module is enabled */
-+	while (!_omap4_is_ready(ti_clk_ll_ops->clk_readl(clk->enable_reg))) {
-+		if (_omap4_is_timeout(&timeout, OMAP4_MAX_MODULE_READY_TIME)) {
-+			pr_err("%s: failed to enable\n", clk_hw_get_name(hw));
-+			return -EBUSY;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static void _omap4_hwmod_clk_disable(struct clk_hw *hw)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	u32 val;
-+	union omap4_timeout timeout = { 0 };
-+
-+	if (!clk->enable_bit)
-+		return;
-+
-+	val = ti_clk_ll_ops->clk_readl(clk->enable_reg);
-+
-+	val &= ~OMAP4_MODULEMODE_MASK;
-+
-+	ti_clk_ll_ops->clk_writel(val, clk->enable_reg);
-+
-+	if (clk->flags & NO_IDLEST)
-+		return;
-+
-+	/* Wait until module is disabled */
-+	while (!_omap4_is_idle(ti_clk_ll_ops->clk_readl(clk->enable_reg))) {
-+		if (_omap4_is_timeout(&timeout,
-+				      OMAP4_MAX_MODULE_DISABLE_TIME)) {
-+			pr_err("%s: failed to disable\n", clk_hw_get_name(hw));
-+			break;
-+		}
-+	}
-+
-+	if (clk->clkdm)
-+		ti_clk_ll_ops->clkdm_clk_disable(clk->clkdm, hw->clk);
-+}
-+
-+static int _omap4_hwmod_clk_is_enabled(struct clk_hw *hw)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	u32 val;
-+
-+	val = ti_clk_ll_ops->clk_readl(clk->enable_reg);
-+
-+	if (val & clk->enable_bit)
-+		return 1;
-+
-+	return 0;
-+}
-+
-+static const struct clk_ops omap4_module_clk_ops = {
-+	.enable		= _omap4_hwmod_clk_enable,
-+	.disable	= _omap4_hwmod_clk_disable,
-+	.is_enabled	= _omap4_hwmod_clk_is_enabled,
-+};
-+
-+struct clk *ti_clk_register_hwmod(struct ti_clk *setup)
-+{
-+	struct ti_clk_hwmod *data = setup->data;
-+	struct clk_init_data init = { NULL };
-+	struct clk_hw_omap *hw;
-+	struct clk *clk;
-+	int ret;
-+
-+	hw = kzalloc(sizeof(*hw), GFP_KERNEL);
-+	if (!hw) {
-+		ret = -ENOMEM;
-+		goto err;
-+	}
-+
-+	hw->enable_reg = ti_clk_get_reg_addr_clkdm(setup->clkdm_name,
-+						   data->reg);
-+	if (!hw->enable_reg) {
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
-+	if (data->flags & CLKF_SW_SUP)
-+		hw->enable_bit = MODULEMODE_SWCTRL;
-+	if (data->flags & CLKF_HW_SUP)
-+		hw->enable_bit = MODULEMODE_HWCTRL;
-+	if (data->flags & CLKF_NO_IDLEST)
-+		hw->flags |= NO_IDLEST;
-+
-+	init.parent_names = &data->parent;
-+	init.num_parents = 1;
-+	init.flags = 0;
-+	init.name = setup->name;
-+	init.ops = &omap4_module_clk_ops;
-+	hw->hw.init = &init;
-+
-+	clk = ti_clk_register(NULL, &hw->hw, setup->name);
-+	if (!IS_ERR(clk))
-+		return clk;
-+err:
-+	kfree(hw);
-+	return ERR_PTR(ret);
-+}
-+
-+static u8 _omap4_mux_mod_get_parent(struct clk_hw *hw)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	struct clk_hw *mux_hw = clk->mux;
-+
-+	__clk_hw_set_clk(mux_hw, hw);
-+
-+	return ti_clk_mux_get_parent(mux_hw);
-+}
-+
-+static int _omap4_mux_mod_set_parent(struct clk_hw *hw, u8 index)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	struct clk_hw *mux_hw = clk->mux;
-+
-+	__clk_hw_set_clk(mux_hw, hw);
-+
-+	return ti_clk_mux_set_parent(mux_hw, index);
-+}
-+
-+static int _omap4_mux_mod_determine_rate(struct clk_hw *hw,
-+					 struct clk_rate_request *req)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	struct clk_hw *mux_hw = clk->mux;
-+
-+	__clk_hw_set_clk(mux_hw, hw);
-+
-+	return __clk_mux_determine_rate(mux_hw, req);
-+}
-+
-+static const struct clk_ops omap4_mux_module_clk_ops = {
-+	.enable		= _omap4_hwmod_clk_enable,
-+	.disable	= _omap4_hwmod_clk_disable,
-+	.is_enabled	= _omap4_hwmod_clk_is_enabled,
-+	.get_parent	= _omap4_mux_mod_get_parent,
-+	.set_parent	= _omap4_mux_mod_set_parent,
-+	.determine_rate	= _omap4_mux_mod_determine_rate,
-+};
-+
-+struct clk *ti_clk_register_hwmod_mux(struct ti_clk *setup)
-+{
-+	struct ti_clk_hwmod_mux *data = setup->data;
-+	struct clk_init_data init = { NULL };
-+	struct clk_mux *mux;
-+	struct clk_hw_omap *gate;
-+	struct clk *clk;
-+	int ret;
-+	u8 modulemode;
-+
-+	if (data->num_parents < 2) {
-+		pr_err("%s: must have parents\n", setup->name);
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	mux = kzalloc(sizeof(*mux), GFP_KERNEL);
-+	gate = kzalloc(sizeof(*gate), GFP_KERNEL);
-+
-+	if (!mux || !gate) {
-+		ret = -ENOMEM;
-+		goto err;
-+	}
-+
-+	gate->mux = &mux->hw;
-+	mux->shift = data->shift;
-+
-+	if (data->flags & CLKF_INDEX_STARTS_AT_ONE)
-+		mux->flags |= CLK_MUX_INDEX_ONE;
-+
-+	if (data->flags & CLKF_SW_SUP)
-+		modulemode = MODULEMODE_SWCTRL;
-+	if (data->flags & CLKF_HW_SUP)
-+		modulemode = MODULEMODE_HWCTRL;
-+
-+	gate->enable_bit = modulemode;
-+	gate->enable_reg = ti_clk_get_reg_addr_clkdm(setup->clkdm_name,
-+						     data->mod_reg);
-+	mux->reg = ti_clk_get_reg_addr_clkdm(setup->clkdm_name, data->mux_reg);
-+
-+	if (!gate->enable_reg || !mux->reg) {
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
-+	init.num_parents = data->num_parents;
-+	init.parent_names = data->parents;
-+	init.flags = 0;
-+
-+	init.name = setup->name;
-+	init.ops = &omap4_mux_module_clk_ops;
-+	gate->hw.init = &init;
-+
-+	clk = ti_clk_register(NULL, &gate->hw, setup->name);
-+
-+	if (!IS_ERR(clk))
-+		return clk;
-+
-+err:
-+	kfree(gate);
-+	kfree(mux);
-+
-+	return ERR_PTR(ret);
-+}
-diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
-index 2e5fab8..ebcd81b 100644
---- a/drivers/clk/ti/clock.h
-+++ b/drivers/clk/ti/clock.h
-@@ -26,6 +26,8 @@ enum {
- 	TI_CLK_FIXED_FACTOR,
- 	TI_CLK_GATE,
- 	TI_CLK_DPLL,
-+	TI_CLK_HWMOD,
-+	TI_CLK_HWMOD_MUX,
- };
+diff --git a/drivers/clk/ti/clk-44xx.c b/drivers/clk/ti/clk-44xx.c
+index 7a8b51b..b482047 100644
+--- a/drivers/clk/ti/clk-44xx.c
++++ b/drivers/clk/ti/clk-44xx.c
+@@ -15,6 +15,7 @@
+ #include <linux/clk.h>
+ #include <linux/clkdev.h>
+ #include <linux/clk/ti.h>
++#include <dt-bindings/clock/ti,omap44xx.h>
  
- /* Global flags */
-@@ -54,6 +56,11 @@ enum {
- #define CLKF_CORE			(1 << 9)
- #define CLKF_J_TYPE			(1 << 10)
+ #include "clock.h"
  
-+/* HWMOD clk flags */
-+#define CLKF_SW_SUP			BIT(5)
-+#define CLKF_HW_SUP			BIT(6)
-+#define CLKF_NO_IDLEST			BIT(7)
-+
- #define CLK(dev, con, ck)		\
- 	{				\
- 		.lk = {			\
-@@ -156,6 +163,21 @@ struct ti_clk_dpll {
- 	u8 recal_st_bit;
- };
+@@ -33,6 +34,1406 @@
+  */
+ #define OMAP4_DPLL_USB_DEFFREQ				960000000
  
-+struct ti_clk_hwmod {
-+	u16 reg;
-+	u16 flags;
-+	const char *parent;
++static struct ti_clk_hwmod mpu_mod_ck_data = {
++	.reg = OMAP44XX_MPUSS_MPU,
++	.parent = "dpll_mpu_m2_ck",
 +};
 +
-+struct ti_clk_hwmod_mux {
-+	u16 mux_reg;
-+	u16 mod_reg;
-+	u16 flags;
-+	u8 shift;
-+	u8 num_parents;
-+	const char * const *parents;
++static struct ti_clk mpu_mod_ck = {
++	.name = "mpu_mod_ck",
++	.clkdm_name = "mpuss_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &mpu_mod_ck_data,
 +};
 +
- /* Composite clock component types */
- enum {
- 	CLK_COMPONENT_TYPE_GATE = 0,
-@@ -191,6 +213,8 @@ struct ti_dt_clk {
- struct clk *ti_clk_register_divider(struct ti_clk *setup);
- struct clk *ti_clk_register_composite(struct ti_clk *setup);
- struct clk *ti_clk_register_dpll(struct ti_clk *setup);
-+struct clk *ti_clk_register_hwmod(struct ti_clk *setup);
-+struct clk *ti_clk_register_hwmod_mux(struct ti_clk *setup);
- struct clk *ti_clk_register(struct device *dev, struct clk_hw *hw,
- 			    const char *con);
- int ti_clk_add_alias(struct device *dev, struct clk *clk, const char *con);
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index afccb48..5c7c24c 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -130,6 +130,7 @@ struct clk_hw_omap_ops {
-  * @enable_bit: bitshift to write to enable/disable the clock (see @enable_reg)
-  * @flags: see "struct clk.flags possibilities" above
-  * @clksel_reg: for clksel clks, register va containing src/divisor select
-+ * @mux: for module clocks, pointer to the optional mux component
-  * @dpll_data: for DPLLs, pointer to struct dpll_data for this clock
-  * @clkdm_name: clockdomain name that this clock is contained in
-  * @clkdm: pointer to struct clockdomain, resolved from @clkdm_name at runtime
-@@ -145,6 +146,7 @@ struct clk_hw_omap {
- 	u8			enable_bit;
- 	u8			flags;
- 	void __iomem		*clksel_reg;
-+	struct clk_hw		*mux;
- 	struct dpll_data	*dpll_data;
- 	const char		*clkdm_name;
- 	struct clockdomain	*clkdm;
++static struct ti_clk_hwmod dsp_mod_ck_data = {
++	.reg = OMAP44XX_TESLA_DSP,
++	.parent = "dpll_iva_m4x2_ck",
++	.flags = CLKF_HW_SUP,
++};
++
++static struct ti_clk dsp_mod_ck = {
++	.name = "dsp_mod_ck",
++	.clkdm_name = "tesla_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &dsp_mod_ck_data,
++};
++
++static struct ti_clk_hwmod mmu_dsp_mod_ck_data = {
++	.reg = OMAP44XX_TESLA_MMU_DSP,
++	.parent = "dpll_iva_m4x2_ck",
++	.flags = CLKF_HW_SUP,
++};
++
++static struct ti_clk mmu_dsp_mod_ck = {
++	.name = "mmu_dsp_mod_ck",
++	.clkdm_name = "tesla_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &mmu_dsp_mod_ck_data,
++};
++
++static struct ti_clk_hwmod l4_abe_mod_ck_data = {
++	.reg = OMAP44XX_ABE_L4_ABE,
++	.parent = "ocp_abe_iclk",
++};
++
++static struct ti_clk l4_abe_mod_ck = {
++	.name = "l4_abe_mod_ck",
++	.clkdm_name = "abe_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &l4_abe_mod_ck_data,
++};
++
++static struct ti_clk_hwmod aess_mod_ck_data = {
++	.reg = OMAP44XX_ABE_AESS,
++	.parent = "aess_fclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk aess_mod_ck = {
++	.name = "aess_mod_ck",
++	.clkdm_name = "abe_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &aess_mod_ck_data,
++};
++
++static struct ti_clk_hwmod mcpdm_mod_ck_data = {
++	.reg = OMAP44XX_ABE_MCPDM,
++	.parent = "pad_clks_ck",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk mcpdm_mod_ck = {
++	.name = "mcpdm_mod_ck",
++	.clkdm_name = "abe_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &mcpdm_mod_ck_data,
++};
++
++static struct ti_clk_hwmod dmic_mod_ck_data = {
++	.reg = OMAP44XX_ABE_DMIC,
++	.parent = "func_dmic_abe_gfclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk dmic_mod_ck = {
++	.name = "dmic_mod_ck",
++	.clkdm_name = "abe_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &dmic_mod_ck_data,
++};
++
++static struct ti_clk_hwmod mcasp_mod_ck_data = {
++	.reg = OMAP44XX_ABE_MCASP,
++	.parent = "func_mcasp_abe_gfclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk mcasp_mod_ck = {
++	.name = "mcasp_mod_ck",
++	.clkdm_name = "abe_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &mcasp_mod_ck_data,
++};
++
++static struct ti_clk_hwmod mcbsp1_mod_ck_data = {
++	.reg = OMAP44XX_ABE_MCBSP1,
++	.parent = "func_mcbsp1_gfclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk mcbsp1_mod_ck = {
++	.name = "mcbsp1_mod_ck",
++	.clkdm_name = "abe_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &mcbsp1_mod_ck_data,
++};
++
++static struct ti_clk_hwmod mcbsp2_mod_ck_data = {
++	.reg = OMAP44XX_ABE_MCBSP2,
++	.parent = "func_mcbsp2_gfclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk mcbsp2_mod_ck = {
++	.name = "mcbsp2_mod_ck",
++	.clkdm_name = "abe_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &mcbsp2_mod_ck_data,
++};
++
++static struct ti_clk_hwmod mcbsp3_mod_ck_data = {
++	.reg = OMAP44XX_ABE_MCBSP3,
++	.parent = "func_mcbsp3_gfclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk mcbsp3_mod_ck = {
++	.name = "mcbsp3_mod_ck",
++	.clkdm_name = "abe_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &mcbsp3_mod_ck_data,
++};
++
++static struct ti_clk_hwmod slimbus1_mod_ck_data = {
++	.reg = OMAP44XX_ABE_SLIMBUS1,
++	.parent = "slimbus1_fclk_0",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk slimbus1_mod_ck = {
++	.name = "slimbus1_mod_ck",
++	.clkdm_name = "abe_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &slimbus1_mod_ck_data,
++};
++
++static const char * const timer5_mod_ck_parents[] = {
++	"syc_clk_div_ck",
++	"sys_32k_ck",
++};
++
++static struct ti_clk_hwmod_mux timer5_mod_ck_data = {
++	.mod_reg = OMAP44XX_ABE_TIMER5,
++	.mux_reg = OMAP44XX_ABE_TIMER5,
++	.shift = 24,
++	.parents = timer5_mod_ck_parents,
++	.num_parents = ARRAY_SIZE(timer5_mod_ck_parents),
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk timer5_mod_ck = {
++	.name = "timer5_mod_ck",
++	.clkdm_name = "abe_clkdm",
++	.type = TI_CLK_HWMOD_MUX,
++	.data = &timer5_mod_ck_data,
++};
++
++static const char * const timer6_mod_ck_parents[] = {
++	"syc_clk_div_ck",
++	"sys_32k_ck",
++};
++
++static struct ti_clk_hwmod_mux timer6_mod_ck_data = {
++	.mod_reg = OMAP44XX_ABE_TIMER6,
++	.mux_reg = OMAP44XX_ABE_TIMER6,
++	.shift = 24,
++	.parents = timer6_mod_ck_parents,
++	.num_parents = ARRAY_SIZE(timer6_mod_ck_parents),
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk timer6_mod_ck = {
++	.name = "timer6_mod_ck",
++	.clkdm_name = "abe_clkdm",
++	.type = TI_CLK_HWMOD_MUX,
++	.data = &timer6_mod_ck_data,
++};
++
++static const char * const timer7_mod_ck_parents[] = {
++	"syc_clk_div_ck",
++	"sys_32k_ck",
++};
++
++static struct ti_clk_hwmod_mux timer7_mod_ck_data = {
++	.mod_reg = OMAP44XX_ABE_TIMER7,
++	.mux_reg = OMAP44XX_ABE_TIMER7,
++	.shift = 24,
++	.parents = timer7_mod_ck_parents,
++	.num_parents = ARRAY_SIZE(timer7_mod_ck_parents),
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk timer7_mod_ck = {
++	.name = "timer7_mod_ck",
++	.clkdm_name = "abe_clkdm",
++	.type = TI_CLK_HWMOD_MUX,
++	.data = &timer7_mod_ck_data,
++};
++
++static const char * const timer8_mod_ck_parents[] = {
++	"syc_clk_div_ck",
++	"sys_32k_ck",
++};
++
++static struct ti_clk_hwmod_mux timer8_mod_ck_data = {
++	.mod_reg = OMAP44XX_ABE_TIMER8,
++	.mux_reg = OMAP44XX_ABE_TIMER8,
++	.shift = 24,
++	.parents = timer8_mod_ck_parents,
++	.num_parents = ARRAY_SIZE(timer8_mod_ck_parents),
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk timer8_mod_ck = {
++	.name = "timer8_mod_ck",
++	.clkdm_name = "abe_clkdm",
++	.type = TI_CLK_HWMOD_MUX,
++	.data = &timer8_mod_ck_data,
++};
++
++static struct ti_clk_hwmod wd_timer3_mod_ck_data = {
++	.reg = OMAP44XX_ABE_WD_TIMER3,
++	.parent = "sys_32k_ck",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk wd_timer3_mod_ck = {
++	.name = "wd_timer3_mod_ck",
++	.clkdm_name = "abe_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &wd_timer3_mod_ck_data,
++};
++
++static struct ti_clk_hwmod l4_wkup_mod_ck_data = {
++	.reg = OMAP44XX_L4_WKUP_L4_WKUP,
++	.parent = "l4_wkup_clk_mux_ck",
++};
++
++static struct ti_clk l4_wkup_mod_ck = {
++	.name = "l4_wkup_mod_ck",
++	.clkdm_name = "l4_wkup_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &l4_wkup_mod_ck_data,
++};
++
++static struct ti_clk_hwmod wd_timer2_mod_ck_data = {
++	.reg = OMAP44XX_L4_WKUP_WD_TIMER2,
++	.parent = "sys_32k_ck",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk wd_timer2_mod_ck = {
++	.name = "wd_timer2_mod_ck",
++	.clkdm_name = "l4_wkup_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &wd_timer2_mod_ck_data,
++};
++
++static struct ti_clk_hwmod gpio1_mod_ck_data = {
++	.reg = OMAP44XX_L4_WKUP_GPIO1,
++	.parent = "l4_wkup_clk_mux_ck",
++	.flags = CLKF_HW_SUP,
++};
++
++static struct ti_clk gpio1_mod_ck = {
++	.name = "gpio1_mod_ck",
++	.clkdm_name = "l4_wkup_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &gpio1_mod_ck_data,
++};
++
++static const char * const timer1_mod_ck_parents[] = {
++	"sys_clkin_ck",
++	"sys_32k_ck",
++};
++
++static struct ti_clk_hwmod_mux timer1_mod_ck_data = {
++	.mod_reg = OMAP44XX_L4_WKUP_TIMER1,
++	.mux_reg = OMAP44XX_L4_WKUP_TIMER1,
++	.shift = 24,
++	.parents = timer1_mod_ck_parents,
++	.num_parents = ARRAY_SIZE(timer1_mod_ck_parents),
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk timer1_mod_ck = {
++	.name = "timer1_mod_ck",
++	.clkdm_name = "l4_wkup_clkdm",
++	.type = TI_CLK_HWMOD_MUX,
++	.data = &timer1_mod_ck_data,
++};
++
++static struct ti_clk_hwmod counter_32k_mod_ck_data = {
++	.reg = OMAP44XX_L4_WKUP_COUNTER_32K,
++	.parent = "sys_32k_ck",
++};
++
++static struct ti_clk counter_32k_mod_ck = {
++	.name = "counter_32k_mod_ck",
++	.clkdm_name = "l4_wkup_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &counter_32k_mod_ck_data,
++};
++
++static struct ti_clk_hwmod kbd_mod_ck_data = {
++	.reg = OMAP44XX_L4_WKUP_KBD,
++	.parent = "sys_32k_ck",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk kbd_mod_ck = {
++	.name = "kbd_mod_ck",
++	.clkdm_name = "l4_wkup_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &kbd_mod_ck_data,
++};
++
++static struct ti_clk_hwmod debugss_mod_ck_data = {
++	.reg = OMAP44XX_EMU_SYS_DEBUGSS,
++	.parent = "trace_clk_div_ck",
++};
++
++static struct ti_clk debugss_mod_ck = {
++	.name = "debugss_mod_ck",
++	.clkdm_name = "emu_sys_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &debugss_mod_ck_data,
++};
++
++static struct ti_clk_hwmod dss_core_mod_ck_data = {
++	.reg = OMAP44XX_L3_DSS_DSS_CORE,
++	.parent = "dss_dss_clk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk dss_core_mod_ck = {
++	.name = "dss_core_mod_ck",
++	.clkdm_name = "l3_dss_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &dss_core_mod_ck_data,
++};
++
++static struct ti_clk_hwmod dss_venc_mod_ck_data = {
++	.reg = OMAP44XX_L3_DSS_DSS_VENC,
++	.parent = "dss_tv_clk",
++};
++
++static struct ti_clk dss_venc_mod_ck = {
++	.name = "dss_venc_mod_ck",
++	.clkdm_name = "l3_dss_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &dss_venc_mod_ck_data,
++};
++
++static struct ti_clk_hwmod dss_dispc_mod_ck_data = {
++	.reg = OMAP44XX_L3_DSS_DSS_DISPC,
++	.parent = "dss_dss_clk",
++};
++
++static struct ti_clk dss_dispc_mod_ck = {
++	.name = "dss_dispc_mod_ck",
++	.clkdm_name = "l3_dss_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &dss_dispc_mod_ck_data,
++};
++
++static struct ti_clk_hwmod dss_dsi1_mod_ck_data = {
++	.reg = OMAP44XX_L3_DSS_DSS_DSI1,
++	.parent = "dss_dss_clk",
++};
++
++static struct ti_clk dss_dsi1_mod_ck = {
++	.name = "dss_dsi1_mod_ck",
++	.clkdm_name = "l3_dss_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &dss_dsi1_mod_ck_data,
++};
++
++static struct ti_clk_hwmod dss_rfbi_mod_ck_data = {
++	.reg = OMAP44XX_L3_DSS_DSS_RFBI,
++	.parent = "dss_dss_clk",
++};
++
++static struct ti_clk dss_rfbi_mod_ck = {
++	.name = "dss_rfbi_mod_ck",
++	.clkdm_name = "l3_dss_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &dss_rfbi_mod_ck_data,
++};
++
++static struct ti_clk_hwmod dss_dsi2_mod_ck_data = {
++	.reg = OMAP44XX_L3_DSS_DSS_DSI2,
++	.parent = "dss_dss_clk",
++};
++
++static struct ti_clk dss_dsi2_mod_ck = {
++	.name = "dss_dsi2_mod_ck",
++	.clkdm_name = "l3_dss_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &dss_dsi2_mod_ck_data,
++};
++
++static struct ti_clk_hwmod dss_hdmi_mod_ck_data = {
++	.reg = OMAP44XX_L3_DSS_DSS_HDMI,
++	.parent = "dss_48mhz_clk",
++};
++
++static struct ti_clk dss_hdmi_mod_ck = {
++	.name = "dss_hdmi_mod_ck",
++	.clkdm_name = "l3_dss_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &dss_hdmi_mod_ck_data,
++};
++
++static struct ti_clk_hwmod fdif_mod_ck_data = {
++	.reg = OMAP44XX_ISS_FDIF,
++	.parent = "fdif_fck",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk fdif_mod_ck = {
++	.name = "fdif_mod_ck",
++	.clkdm_name = "iss_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &fdif_mod_ck_data,
++};
++
++static struct ti_clk_hwmod gpio2_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_GPIO2,
++	.parent = "l4_div_ck",
++	.flags = CLKF_HW_SUP,
++};
++
++static struct ti_clk gpio2_mod_ck = {
++	.name = "gpio2_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &gpio2_mod_ck_data,
++};
++
++static struct ti_clk_hwmod gpio3_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_GPIO3,
++	.parent = "l4_div_ck",
++	.flags = CLKF_HW_SUP,
++};
++
++static struct ti_clk gpio3_mod_ck = {
++	.name = "gpio3_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &gpio3_mod_ck_data,
++};
++
++static struct ti_clk_hwmod gpio4_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_GPIO4,
++	.parent = "l4_div_ck",
++	.flags = CLKF_HW_SUP,
++};
++
++static struct ti_clk gpio4_mod_ck = {
++	.name = "gpio4_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &gpio4_mod_ck_data,
++};
++
++static struct ti_clk_hwmod gpio5_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_GPIO5,
++	.parent = "l4_div_ck",
++	.flags = CLKF_HW_SUP,
++};
++
++static struct ti_clk gpio5_mod_ck = {
++	.name = "gpio5_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &gpio5_mod_ck_data,
++};
++
++static struct ti_clk_hwmod gpio6_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_GPIO6,
++	.parent = "l4_div_ck",
++	.flags = CLKF_HW_SUP,
++};
++
++static struct ti_clk gpio6_mod_ck = {
++	.name = "gpio6_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &gpio6_mod_ck_data,
++};
++
++static struct ti_clk_hwmod hdq1w_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_HDQ1W,
++	.parent = "func_12m_fclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk hdq1w_mod_ck = {
++	.name = "hdq1w_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &hdq1w_mod_ck_data,
++};
++
++static struct ti_clk_hwmod i2c1_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_I2C1,
++	.parent = "func_96m_fclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk i2c1_mod_ck = {
++	.name = "i2c1_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &i2c1_mod_ck_data,
++};
++
++static struct ti_clk_hwmod i2c2_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_I2C2,
++	.parent = "func_96m_fclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk i2c2_mod_ck = {
++	.name = "i2c2_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &i2c2_mod_ck_data,
++};
++
++static struct ti_clk_hwmod i2c3_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_I2C3,
++	.parent = "func_96m_fclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk i2c3_mod_ck = {
++	.name = "i2c3_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &i2c3_mod_ck_data,
++};
++
++static struct ti_clk_hwmod i2c4_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_I2C4,
++	.parent = "func_96m_fclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk i2c4_mod_ck = {
++	.name = "i2c4_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &i2c4_mod_ck_data,
++};
++
++static struct ti_clk_hwmod l4_per_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_L4_PER,
++	.parent = "l4_div_ck",
++};
++
++static struct ti_clk l4_per_mod_ck = {
++	.name = "l4_per_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &l4_per_mod_ck_data,
++};
++
++static struct ti_clk_hwmod gpu_mod_ck_data = {
++	.reg = OMAP44XX_L3_GFX_GPU,
++	.parent = "sgx_clk_mux",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk gpu_mod_ck = {
++	.name = "gpu_mod_ck",
++	.clkdm_name = "l3_gfx_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &gpu_mod_ck_data,
++};
++
++static struct ti_clk_hwmod hsi_mod_ck_data = {
++	.reg = OMAP44XX_L3_INIT_HSI,
++	.parent = "hsi_fck",
++	.flags = CLKF_HW_SUP,
++};
++
++static struct ti_clk hsi_mod_ck = {
++	.name = "hsi_mod_ck",
++	.clkdm_name = "l3_init_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &hsi_mod_ck_data,
++};
++
++static struct ti_clk_hwmod iss_mod_ck_data = {
++	.reg = OMAP44XX_ISS_ISS,
++	.parent = "ducati_clk_mux_ck",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk iss_mod_ck = {
++	.name = "iss_mod_ck",
++	.clkdm_name = "iss_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &iss_mod_ck_data,
++};
++
++static struct ti_clk_hwmod mcbsp4_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_MCBSP4,
++	.parent = "per_mcbsp4_gfclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk mcbsp4_mod_ck = {
++	.name = "mcbsp4_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &mcbsp4_mod_ck_data,
++};
++
++static struct ti_clk_hwmod mcspi1_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_MCSPI1,
++	.parent = "func_48m_fclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk mcspi1_mod_ck = {
++	.name = "mcspi1_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &mcspi1_mod_ck_data,
++};
++
++static struct ti_clk_hwmod mcspi2_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_MCSPI2,
++	.parent = "func_48m_fclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk mcspi2_mod_ck = {
++	.name = "mcspi2_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &mcspi2_mod_ck_data,
++};
++
++static struct ti_clk_hwmod mcspi3_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_MCSPI3,
++	.parent = "func_48m_fclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk mcspi3_mod_ck = {
++	.name = "mcspi3_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &mcspi3_mod_ck_data,
++};
++
++static struct ti_clk_hwmod mcspi4_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_MCSPI4,
++	.parent = "func_48m_fclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk mcspi4_mod_ck = {
++	.name = "mcspi4_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &mcspi4_mod_ck_data,
++};
++
++static struct ti_clk_hwmod mmc3_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_MMC3,
++	.parent = "func_48m_fclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk mmc3_mod_ck = {
++	.name = "mmc3_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &mmc3_mod_ck_data,
++};
++
++static struct ti_clk_hwmod mmc4_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_MMC4,
++	.parent = "func_48m_fclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk mmc4_mod_ck = {
++	.name = "mmc4_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &mmc4_mod_ck_data,
++};
++
++static struct ti_clk_hwmod mmc1_mod_ck_data = {
++	.reg = OMAP44XX_L3_INIT_MMC1,
++	.parent = "hsmmc1_fclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk mmc1_mod_ck = {
++	.name = "mmc1_mod_ck",
++	.clkdm_name = "l3_init_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &mmc1_mod_ck_data,
++};
++
++static struct ti_clk_hwmod mmc2_mod_ck_data = {
++	.reg = OMAP44XX_L3_INIT_MMC2,
++	.parent = "hsmmc2_fclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk mmc2_mod_ck = {
++	.name = "mmc2_mod_ck",
++	.clkdm_name = "l3_init_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &mmc2_mod_ck_data,
++};
++
++static struct ti_clk_hwmod ocp2scp_usb_phy_mod_ck_data = {
++	.reg = OMAP44XX_L3_INIT_OCP2SCP_USB_PHY,
++	.parent = "ocp2scp_usb_phy_phy_48m",
++	.flags = CLKF_HW_SUP,
++};
++
++static struct ti_clk ocp2scp_usb_phy_mod_ck = {
++	.name = "ocp2scp_usb_phy_mod_ck",
++	.clkdm_name = "l3_init_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &ocp2scp_usb_phy_mod_ck_data,
++};
++
++static const char * const timer10_mod_ck_parents[] = {
++	"sys_clkin_ck",
++	"sys_32k_ck",
++};
++
++static struct ti_clk_hwmod_mux timer10_mod_ck_data = {
++	.mod_reg = OMAP44XX_L4_PER_TIMER10,
++	.mux_reg = OMAP44XX_L4_PER_TIMER10,
++	.shift = 24,
++	.parents = timer10_mod_ck_parents,
++	.num_parents = ARRAY_SIZE(timer10_mod_ck_parents),
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk timer10_mod_ck = {
++	.name = "timer10_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD_MUX,
++	.data = &timer10_mod_ck_data,
++};
++
++static const char * const timer11_mod_ck_parents[] = {
++	"sys_clkin_ck",
++	"sys_32k_ck",
++};
++
++static struct ti_clk_hwmod_mux timer11_mod_ck_data = {
++	.mod_reg = OMAP44XX_L4_PER_TIMER11,
++	.mux_reg = OMAP44XX_L4_PER_TIMER11,
++	.shift = 24,
++	.parents = timer11_mod_ck_parents,
++	.num_parents = ARRAY_SIZE(timer11_mod_ck_parents),
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk timer11_mod_ck = {
++	.name = "timer11_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD_MUX,
++	.data = &timer11_mod_ck_data,
++};
++
++static const char * const timer2_mod_ck_parents[] = {
++	"sys_clkin_ck",
++	"sys_32k_ck",
++};
++
++static struct ti_clk_hwmod_mux timer2_mod_ck_data = {
++	.mod_reg = OMAP44XX_L4_PER_TIMER2,
++	.mux_reg = OMAP44XX_L4_PER_TIMER2,
++	.shift = 24,
++	.parents = timer2_mod_ck_parents,
++	.num_parents = ARRAY_SIZE(timer2_mod_ck_parents),
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk timer2_mod_ck = {
++	.name = "timer2_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD_MUX,
++	.data = &timer2_mod_ck_data,
++};
++
++static const char * const timer3_mod_ck_parents[] = {
++	"sys_clkin_ck",
++	"sys_32k_ck",
++};
++
++static struct ti_clk_hwmod_mux timer3_mod_ck_data = {
++	.mod_reg = OMAP44XX_L4_PER_TIMER3,
++	.mux_reg = OMAP44XX_L4_PER_TIMER3,
++	.shift = 24,
++	.parents = timer3_mod_ck_parents,
++	.num_parents = ARRAY_SIZE(timer3_mod_ck_parents),
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk timer3_mod_ck = {
++	.name = "timer3_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD_MUX,
++	.data = &timer3_mod_ck_data,
++};
++
++static const char * const timer4_mod_ck_parents[] = {
++	"sys_clkin_ck",
++	"sys_32k_ck",
++};
++
++static struct ti_clk_hwmod_mux timer4_mod_ck_data = {
++	.mod_reg = OMAP44XX_L4_PER_TIMER4,
++	.mux_reg = OMAP44XX_L4_PER_TIMER4,
++	.shift = 24,
++	.parents = timer4_mod_ck_parents,
++	.num_parents = ARRAY_SIZE(timer4_mod_ck_parents),
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk timer4_mod_ck = {
++	.name = "timer4_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD_MUX,
++	.data = &timer4_mod_ck_data,
++};
++
++static const char * const timer9_mod_ck_parents[] = {
++	"sys_clkin_ck",
++	"sys_32k_ck",
++};
++
++static struct ti_clk_hwmod_mux timer9_mod_ck_data = {
++	.mod_reg = OMAP44XX_L4_PER_TIMER9,
++	.mux_reg = OMAP44XX_L4_PER_TIMER9,
++	.shift = 24,
++	.parents = timer9_mod_ck_parents,
++	.num_parents = ARRAY_SIZE(timer9_mod_ck_parents),
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk timer9_mod_ck = {
++	.name = "timer9_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD_MUX,
++	.data = &timer9_mod_ck_data,
++};
++
++static struct ti_clk_hwmod elm_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_ELM,
++	.parent = "l4_div_ck",
++};
++
++static struct ti_clk elm_mod_ck = {
++	.name = "elm_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &elm_mod_ck_data,
++};
++
++static struct ti_clk_hwmod slimbus2_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_SLIMBUS2,
++	.parent = "slimbus2_fclk_0",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk slimbus2_mod_ck = {
++	.name = "slimbus2_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &slimbus2_mod_ck_data,
++};
++
++static struct ti_clk_hwmod uart1_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_UART1,
++	.parent = "func_48m_fclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk uart1_mod_ck = {
++	.name = "uart1_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &uart1_mod_ck_data,
++};
++
++static struct ti_clk_hwmod uart2_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_UART2,
++	.parent = "func_48m_fclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk uart2_mod_ck = {
++	.name = "uart2_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &uart2_mod_ck_data,
++};
++
++static struct ti_clk_hwmod uart3_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_UART3,
++	.parent = "func_48m_fclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk uart3_mod_ck = {
++	.name = "uart3_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &uart3_mod_ck_data,
++};
++
++static struct ti_clk_hwmod uart4_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_UART4,
++	.parent = "func_48m_fclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk uart4_mod_ck = {
++	.name = "uart4_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &uart4_mod_ck_data,
++};
++
++static struct ti_clk_hwmod mmc5_mod_ck_data = {
++	.reg = OMAP44XX_L4_PER_MMC5,
++	.parent = "func_48m_fclk",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk mmc5_mod_ck = {
++	.name = "mmc5_mod_ck",
++	.clkdm_name = "l4_per_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &mmc5_mod_ck_data,
++};
++
++static struct ti_clk_hwmod smartreflex_core_mod_ck_data = {
++	.reg = OMAP44XX_L4_AO_SMARTREFLEX_CORE,
++	.parent = "smartreflex_core_fck",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk smartreflex_core_mod_ck = {
++	.name = "smartreflex_core_mod_ck",
++	.clkdm_name = "l4_ao_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &smartreflex_core_mod_ck_data,
++};
++
++static struct ti_clk_hwmod smartreflex_iva_mod_ck_data = {
++	.reg = OMAP44XX_L4_AO_SMARTREFLEX_IVA,
++	.parent = "smartreflex_iva_fck",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk smartreflex_iva_mod_ck = {
++	.name = "smartreflex_iva_mod_ck",
++	.clkdm_name = "l4_ao_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &smartreflex_iva_mod_ck_data,
++};
++
++static struct ti_clk_hwmod smartreflex_mpu_mod_ck_data = {
++	.reg = OMAP44XX_L4_AO_SMARTREFLEX_MPU,
++	.parent = "smartreflex_mpu_fck",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk smartreflex_mpu_mod_ck = {
++	.name = "smartreflex_mpu_mod_ck",
++	.clkdm_name = "l4_ao_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &smartreflex_mpu_mod_ck_data,
++};
++
++static struct ti_clk_hwmod usb_host_fs_mod_ck_data = {
++	.reg = OMAP44XX_L3_INIT_USB_HOST_FS,
++	.parent = "usb_host_fs_fck",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk usb_host_fs_mod_ck = {
++	.name = "usb_host_fs_mod_ck",
++	.clkdm_name = "l3_init_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &usb_host_fs_mod_ck_data,
++};
++
++static struct ti_clk_hwmod usb_host_hs_mod_ck_data = {
++	.reg = OMAP44XX_L3_INIT_USB_HOST_HS,
++	.parent = "usb_host_hs_fck",
++	.flags = CLKF_SW_SUP,
++};
++
++static struct ti_clk usb_host_hs_mod_ck = {
++	.name = "usb_host_hs_mod_ck",
++	.clkdm_name = "l3_init_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &usb_host_hs_mod_ck_data,
++};
++
++static struct ti_clk_hwmod usb_otg_hs_mod_ck_data = {
++	.reg = OMAP44XX_L3_INIT_USB_OTG_HS,
++	.parent = "usb_otg_hs_ick",
++	.flags = CLKF_HW_SUP,
++};
++
++static struct ti_clk usb_otg_hs_mod_ck = {
++	.name = "usb_otg_hs_mod_ck",
++	.clkdm_name = "l3_init_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &usb_otg_hs_mod_ck_data,
++};
++
++static struct ti_clk_hwmod l3_main_1_mod_ck_data = {
++	.reg = OMAP44XX_L3_1_L3_MAIN_1,
++	.parent = "l3_div_ck",
++};
++
++static struct ti_clk l3_main_1_mod_ck = {
++	.name = "l3_main_1_mod_ck",
++	.clkdm_name = "l3_1_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &l3_main_1_mod_ck_data,
++};
++
++static struct ti_clk_hwmod l3_main_2_mod_ck_data = {
++	.reg = OMAP44XX_L3_2_L3_MAIN_2,
++	.parent = "l3_div_ck",
++};
++
++static struct ti_clk l3_main_2_mod_ck = {
++	.name = "l3_main_2_mod_ck",
++	.clkdm_name = "l3_2_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &l3_main_2_mod_ck_data,
++};
++
++static struct ti_clk_hwmod gpmc_mod_ck_data = {
++	.reg = OMAP44XX_L3_2_GPMC,
++	.parent = "l3_div_ck",
++	.flags = CLKF_HW_SUP,
++};
++
++static struct ti_clk gpmc_mod_ck = {
++	.name = "gpmc_mod_ck",
++	.clkdm_name = "l3_2_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &gpmc_mod_ck_data,
++};
++
++static struct ti_clk_hwmod ocmc_ram_mod_ck_data = {
++	.reg = OMAP44XX_L3_2_OCMC_RAM,
++	.parent = "l3_div_ck",
++};
++
++static struct ti_clk ocmc_ram_mod_ck = {
++	.name = "ocmc_ram_mod_ck",
++	.clkdm_name = "l3_2_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &ocmc_ram_mod_ck_data,
++};
++
++static struct ti_clk_hwmod ipu_mod_ck_data = {
++	.reg = OMAP44XX_DUCATI_IPU,
++	.parent = "ducati_clk_mux_ck",
++	.flags = CLKF_HW_SUP,
++};
++
++static struct ti_clk ipu_mod_ck = {
++	.name = "ipu_mod_ck",
++	.clkdm_name = "ducati_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &ipu_mod_ck_data,
++};
++
++static struct ti_clk_hwmod mmu_ipu_mod_ck_data = {
++	.reg = OMAP44XX_DUCATI_MMU_IPU,
++	.parent = "ducati_clk_mux_ck",
++	.flags = CLKF_HW_SUP,
++};
++
++static struct ti_clk mmu_ipu_mod_ck = {
++	.name = "mmu_ipu_mod_ck",
++	.clkdm_name = "ducati_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &mmu_ipu_mod_ck_data,
++};
++
++static struct ti_clk_hwmod dma_system_mod_ck_data = {
++	.reg = OMAP44XX_L3_DMA_DMA_SYSTEM,
++	.parent = "l3_div_ck",
++};
++
++static struct ti_clk dma_system_mod_ck = {
++	.name = "dma_system_mod_ck",
++	.clkdm_name = "l3_dma_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &dma_system_mod_ck_data,
++};
++
++static struct ti_clk_hwmod dmm_mod_ck_data = {
++	.reg = OMAP44XX_L3_EMIF_DMM,
++	.parent = "l3_div_ck",
++};
++
++static struct ti_clk dmm_mod_ck = {
++	.name = "dmm_mod_ck",
++	.clkdm_name = "l3_emif_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &dmm_mod_ck_data,
++};
++
++static struct ti_clk_hwmod emif1_mod_ck_data = {
++	.reg = OMAP44XX_L3_EMIF_EMIF1,
++	.parent = "ddrphy_ck",
++	.flags = CLKF_HW_SUP,
++};
++
++static struct ti_clk emif1_mod_ck = {
++	.name = "emif1_mod_ck",
++	.clkdm_name = "l3_emif_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &emif1_mod_ck_data,
++};
++
++static struct ti_clk_hwmod emif2_mod_ck_data = {
++	.reg = OMAP44XX_L3_EMIF_EMIF2,
++	.parent = "ddrphy_ck",
++	.flags = CLKF_HW_SUP,
++};
++
++static struct ti_clk emif2_mod_ck = {
++	.name = "emif2_mod_ck",
++	.clkdm_name = "l3_emif_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &emif2_mod_ck_data,
++};
++
++static struct ti_clk_hwmod c2c_mod_ck_data = {
++	.reg = OMAP44XX_D2D_C2C,
++	.parent = "div_core_ck",
++};
++
++static struct ti_clk c2c_mod_ck = {
++	.name = "c2c_mod_ck",
++	.clkdm_name = "d2d_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &c2c_mod_ck_data,
++};
++
++static struct ti_clk_hwmod l4_cfg_mod_ck_data = {
++	.reg = OMAP44XX_L4_CFG_L4_CFG,
++	.parent = "l4_div_ck",
++};
++
++static struct ti_clk l4_cfg_mod_ck = {
++	.name = "l4_cfg_mod_ck",
++	.clkdm_name = "l4_cfg_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &l4_cfg_mod_ck_data,
++};
++
++static struct ti_clk_hwmod spinlock_mod_ck_data = {
++	.reg = OMAP44XX_L4_CFG_SPINLOCK,
++	.parent = "l4_div_ck",
++};
++
++static struct ti_clk spinlock_mod_ck = {
++	.name = "spinlock_mod_ck",
++	.clkdm_name = "l4_cfg_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &spinlock_mod_ck_data,
++};
++
++static struct ti_clk_hwmod mailbox_mod_ck_data = {
++	.reg = OMAP44XX_L4_CFG_MAILBOX,
++	.parent = "l4_div_ck",
++};
++
++static struct ti_clk mailbox_mod_ck = {
++	.name = "mailbox_mod_ck",
++	.clkdm_name = "l4_cfg_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &mailbox_mod_ck_data,
++};
++
++static struct ti_clk_hwmod l3_main_3_mod_ck_data = {
++	.reg = OMAP44XX_L3_INSTR_L3_MAIN_3,
++	.parent = "l3_div_ck",
++	.flags = CLKF_HW_SUP,
++};
++
++static struct ti_clk l3_main_3_mod_ck = {
++	.name = "l3_main_3_mod_ck",
++	.clkdm_name = "l3_instr_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &l3_main_3_mod_ck_data,
++};
++
++static struct ti_clk_hwmod l3_instr_mod_ck_data = {
++	.reg = OMAP44XX_L3_INSTR_L3_INSTR,
++	.parent = "l3_div_ck",
++	.flags = CLKF_HW_SUP,
++};
++
++static struct ti_clk l3_instr_mod_ck = {
++	.name = "l3_instr_mod_ck",
++	.clkdm_name = "l3_instr_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &l3_instr_mod_ck_data,
++};
++
++static struct ti_clk_hwmod ocp_wp_noc_mod_ck_data = {
++	.reg = OMAP44XX_L3_INSTR_OCP_WP_NOC,
++	.parent = "l3_div_ck",
++	.flags = CLKF_HW_SUP,
++};
++
++static struct ti_clk ocp_wp_noc_mod_ck = {
++	.name = "ocp_wp_noc_mod_ck",
++	.clkdm_name = "l3_instr_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &ocp_wp_noc_mod_ck_data,
++};
++
++static struct ti_clk_hwmod iva_mod_ck_data = {
++	.reg = OMAP44XX_IVAHD_IVA,
++	.parent = "dpll_iva_m5x2_ck",
++	.flags = CLKF_HW_SUP,
++};
++
++static struct ti_clk iva_mod_ck = {
++	.name = "iva_mod_ck",
++	.clkdm_name = "ivahd_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &iva_mod_ck_data,
++};
++
++static struct ti_clk_hwmod sl2if_mod_ck_data = {
++	.reg = OMAP44XX_IVAHD_SL2IF,
++	.parent = "dpll_iva_m5x2_ck",
++	.flags = CLKF_HW_SUP,
++};
++
++static struct ti_clk sl2if_mod_ck = {
++	.name = "sl2if_mod_ck",
++	.clkdm_name = "ivahd_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &sl2if_mod_ck_data,
++};
++
++static struct ti_clk_hwmod usb_tll_hs_mod_ck_data = {
++	.reg = OMAP44XX_L3_INIT_USB_TLL_HS,
++	.parent = "usb_tll_hs_ick",
++	.flags = CLKF_HW_SUP,
++};
++
++static struct ti_clk usb_tll_hs_mod_ck = {
++	.name = "usb_tll_hs_mod_ck",
++	.clkdm_name = "l3_init_clkdm",
++	.type = TI_CLK_HWMOD,
++	.data = &usb_tll_hs_mod_ck_data,
++};
++
++static struct ti_clk_alias omap44xx_hwmod_clks[] = {
++	CLK(NULL, "mpu_mod_ck", &mpu_mod_ck),
++	CLK(NULL, "dsp_mod_ck", &dsp_mod_ck),
++	CLK(NULL, "mmu_dsp_mod_ck", &mmu_dsp_mod_ck),
++	CLK(NULL, "l4_abe_mod_ck", &l4_abe_mod_ck),
++	CLK(NULL, "aess_mod_ck", &aess_mod_ck),
++	CLK(NULL, "mcpdm_mod_ck", &mcpdm_mod_ck),
++	CLK(NULL, "dmic_mod_ck", &dmic_mod_ck),
++	CLK(NULL, "mcasp_mod_ck", &mcasp_mod_ck),
++	CLK(NULL, "mcbsp1_mod_ck", &mcbsp1_mod_ck),
++	CLK(NULL, "mcbsp2_mod_ck", &mcbsp2_mod_ck),
++	CLK(NULL, "mcbsp3_mod_ck", &mcbsp3_mod_ck),
++	CLK(NULL, "slimbus1_mod_ck", &slimbus1_mod_ck),
++	CLK(NULL, "timer5_mod_ck", &timer5_mod_ck),
++	CLK(NULL, "timer6_mod_ck", &timer6_mod_ck),
++	CLK(NULL, "timer7_mod_ck", &timer7_mod_ck),
++	CLK(NULL, "timer8_mod_ck", &timer8_mod_ck),
++	CLK(NULL, "wd_timer3_mod_ck", &wd_timer3_mod_ck),
++	CLK(NULL, "l4_wkup_mod_ck", &l4_wkup_mod_ck),
++	CLK(NULL, "wd_timer2_mod_ck", &wd_timer2_mod_ck),
++	CLK(NULL, "gpio1_mod_ck", &gpio1_mod_ck),
++	CLK(NULL, "timer1_mod_ck", &timer1_mod_ck),
++	CLK(NULL, "counter_32k_mod_ck", &counter_32k_mod_ck),
++	CLK(NULL, "kbd_mod_ck", &kbd_mod_ck),
++	CLK(NULL, "debugss_mod_ck", &debugss_mod_ck),
++	CLK(NULL, "dss_core_mod_ck", &dss_core_mod_ck),
++	CLK(NULL, "dss_venc_mod_ck", &dss_venc_mod_ck),
++	CLK(NULL, "dss_dispc_mod_ck", &dss_dispc_mod_ck),
++	CLK(NULL, "dss_dsi1_mod_ck", &dss_dsi1_mod_ck),
++	CLK(NULL, "dss_rfbi_mod_ck", &dss_rfbi_mod_ck),
++	CLK(NULL, "dss_dsi2_mod_ck", &dss_dsi2_mod_ck),
++	CLK(NULL, "dss_hdmi_mod_ck", &dss_hdmi_mod_ck),
++	CLK(NULL, "fdif_mod_ck", &fdif_mod_ck),
++	CLK(NULL, "gpio2_mod_ck", &gpio2_mod_ck),
++	CLK(NULL, "gpio3_mod_ck", &gpio3_mod_ck),
++	CLK(NULL, "gpio4_mod_ck", &gpio4_mod_ck),
++	CLK(NULL, "gpio5_mod_ck", &gpio5_mod_ck),
++	CLK(NULL, "gpio6_mod_ck", &gpio6_mod_ck),
++	CLK(NULL, "hdq1w_mod_ck", &hdq1w_mod_ck),
++	CLK(NULL, "i2c1_mod_ck", &i2c1_mod_ck),
++	CLK(NULL, "i2c2_mod_ck", &i2c2_mod_ck),
++	CLK(NULL, "i2c3_mod_ck", &i2c3_mod_ck),
++	CLK(NULL, "i2c4_mod_ck", &i2c4_mod_ck),
++	CLK(NULL, "l4_per_mod_ck", &l4_per_mod_ck),
++	CLK(NULL, "gpu_mod_ck", &gpu_mod_ck),
++	CLK(NULL, "hsi_mod_ck", &hsi_mod_ck),
++	CLK(NULL, "iss_mod_ck", &iss_mod_ck),
++	CLK(NULL, "mcbsp4_mod_ck", &mcbsp4_mod_ck),
++	CLK(NULL, "mcspi1_mod_ck", &mcspi1_mod_ck),
++	CLK(NULL, "mcspi2_mod_ck", &mcspi2_mod_ck),
++	CLK(NULL, "mcspi3_mod_ck", &mcspi3_mod_ck),
++	CLK(NULL, "mcspi4_mod_ck", &mcspi4_mod_ck),
++	CLK(NULL, "mmc3_mod_ck", &mmc3_mod_ck),
++	CLK(NULL, "mmc4_mod_ck", &mmc4_mod_ck),
++	CLK(NULL, "mmc1_mod_ck", &mmc1_mod_ck),
++	CLK(NULL, "mmc2_mod_ck", &mmc2_mod_ck),
++	CLK(NULL, "ocp2scp_usb_phy_mod_ck", &ocp2scp_usb_phy_mod_ck),
++	CLK(NULL, "timer10_mod_ck", &timer10_mod_ck),
++	CLK(NULL, "timer11_mod_ck", &timer11_mod_ck),
++	CLK(NULL, "timer2_mod_ck", &timer2_mod_ck),
++	CLK(NULL, "timer3_mod_ck", &timer3_mod_ck),
++	CLK(NULL, "timer4_mod_ck", &timer4_mod_ck),
++	CLK(NULL, "timer9_mod_ck", &timer9_mod_ck),
++	CLK(NULL, "elm_mod_ck", &elm_mod_ck),
++	CLK(NULL, "slimbus2_mod_ck", &slimbus2_mod_ck),
++	CLK(NULL, "uart1_mod_ck", &uart1_mod_ck),
++	CLK(NULL, "uart2_mod_ck", &uart2_mod_ck),
++	CLK(NULL, "uart3_mod_ck", &uart3_mod_ck),
++	CLK(NULL, "uart4_mod_ck", &uart4_mod_ck),
++	CLK(NULL, "mmc5_mod_ck", &mmc5_mod_ck),
++	CLK(NULL, "smartreflex_core_mod_ck", &smartreflex_core_mod_ck),
++	CLK(NULL, "smartreflex_iva_mod_ck", &smartreflex_iva_mod_ck),
++	CLK(NULL, "smartreflex_mpu_mod_ck", &smartreflex_mpu_mod_ck),
++	CLK(NULL, "usb_host_fs_mod_ck", &usb_host_fs_mod_ck),
++	CLK(NULL, "usb_host_hs_mod_ck", &usb_host_hs_mod_ck),
++	CLK(NULL, "usb_otg_hs_mod_ck", &usb_otg_hs_mod_ck),
++	CLK(NULL, "l3_main_1_mod_ck", &l3_main_1_mod_ck),
++	CLK(NULL, "l3_main_2_mod_ck", &l3_main_2_mod_ck),
++	CLK(NULL, "gpmc_mod_ck", &gpmc_mod_ck),
++	CLK(NULL, "ocmc_ram_mod_ck", &ocmc_ram_mod_ck),
++	CLK(NULL, "ipu_mod_ck", &ipu_mod_ck),
++	CLK(NULL, "mmu_ipu_mod_ck", &mmu_ipu_mod_ck),
++	CLK(NULL, "dma_system_mod_ck", &dma_system_mod_ck),
++	CLK(NULL, "dmm_mod_ck", &dmm_mod_ck),
++	CLK(NULL, "emif1_mod_ck", &emif1_mod_ck),
++	CLK(NULL, "emif2_mod_ck", &emif2_mod_ck),
++	CLK(NULL, "c2c_mod_ck", &c2c_mod_ck),
++	CLK(NULL, "l4_cfg_mod_ck", &l4_cfg_mod_ck),
++	CLK(NULL, "spinlock_mod_ck", &spinlock_mod_ck),
++	CLK(NULL, "mailbox_mod_ck", &mailbox_mod_ck),
++	CLK(NULL, "l3_main_3_mod_ck", &l3_main_3_mod_ck),
++	CLK(NULL, "l3_instr_mod_ck", &l3_instr_mod_ck),
++	CLK(NULL, "ocp_wp_noc_mod_ck", &ocp_wp_noc_mod_ck),
++	CLK(NULL, "iva_mod_ck", &iva_mod_ck),
++	CLK(NULL, "sl2if_mod_ck", &sl2if_mod_ck),
++	CLK(NULL, "usb_tll_hs_mod_ck", &usb_tll_hs_mod_ck),
++	{ NULL },
++};
++
+ static struct ti_dt_clk omap44xx_clks[] = {
+ 	DT_CLK(NULL, "extalt_clkin_ck", "extalt_clkin_ck"),
+ 	DT_CLK(NULL, "pad_clks_src_ck", "pad_clks_src_ck"),
+@@ -276,6 +1677,8 @@ int __init omap4xxx_dt_clk_init(void)
+ 
+ 	ti_dt_clocks_register(omap44xx_clks);
+ 
++	ti_clk_register_clks(omap44xx_hwmod_clks);
++
+ 	omap2_clk_disable_autoidle_all();
+ 
+ 	/*
 -- 
 1.9.1
 
