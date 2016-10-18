@@ -1,13 +1,14 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 2/7] ARM: DRA7: hwmod: Add data for AES IP
-Date: Tue, 18 Oct 2016 10:55:22 +0300
-Message-ID: <1476777327-700-3-git-send-email-t-kristo@ti.com>
-References: <1476777327-700-1-git-send-email-t-kristo@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: Bunch of CRC errors in next with arm: move exports to definitions
+Date: Tue, 18 Oct 2016 11:13:31 +0200
+Message-ID: <6218660.zgecHdOkUb@wuerfel>
+References: <20160822162512.mptzbiaozx2fz42l@atomide.com>
+ <20161018045944.o3j4odeuq4kj6gzx@earth>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1476777327-700-1-git-send-email-t-kristo@ti.com>
+In-Reply-To: <20161018045944.o3j4odeuq4kj6gzx@earth>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,109 +18,43 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, Nicholas Piggin <npiggin@gmail.com>, Al Viro <viro@zeniv.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-From: Joel Fernandes <joelf@ti.com>
+On Tuesday, October 18, 2016 6:59:44 AM CEST Sebastian Reichel wrote:
+> Hi,
+> 
+> On Mon, Aug 22, 2016 at 09:25:13AM -0700, Tony Lindgren wrote:
+> > Looks like starting with next-20160818 I'm now getting close to
+> > 800 lines of WARNINGs on ARM with omap2plus_defconfig while doing
+> > make modules:
+> > 
+> > Building modules, stage 2.
+> >   MODPOST 399 modules
+> > WARNING: "__memzero" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
+> > WARNING: "memset" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
+> > WARNING: "memcpy" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
+> > WARNING: "_set_bit" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
+> > WARNING: "_test_and_set_bit" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
+> > WARNING: "_clear_bit" [sound/usb/snd-usbmidi-lib.ko] has no CRC!
+> > WARNING: "__aeabi_uidivmod" [sound/usb/snd-usb-audio.ko] has no CRC!
+> > WARNING: "_test_and_clear_bit" [sound/usb/snd-usb-audio.ko] has no CRC!
+> > WARNING: "arm_copy_to_user" [sound/usb/snd-usb-audio.ko] has no CRC!
+> > WARNING: "__aeabi_uidiv" [sound/usb/snd-usb-audio.ko] has no CRC!
+> > ...
+> > WARNING: "memset" [crypto/drbg.ko] has no CRC!
+> > WARNING: "memcpy" [crypto/ctr.ko] has no CRC!
+> > WARNING: "memcpy" [crypto/cmac.ko] has no CRC!
+> > WARNING: "__memzero" [crypto/cmac.ko] has no CRC!
+> > WARNING: "memcpy" [crypto/ccm.ko] has no CRC!
+> > WARNING: "__memzero" [crypto/ccm.ko] has no CRC!
+> 
+> Any update on this one? I just updated my power-supply next branch
+> to v4.9-rc1 and now get almost 18000 CRC warnings for allmodconfig.
+> (I use arm-linux-gnueabihf-gcc (Debian 6.1.1-9) 6.1.1 20160705)
 
-DRA7 SoC contains AES crypto hardware accelerator. Add hwmod data for
-this IP so that it can be utilized by crypto frameworks.
+Nick did a patch to fix this in general, and in powerpc specifically,
+I sent a patch yesterday to fix the ARM specific symbols.
 
-Signed-off-by: Joel Fernandes <joelf@ti.com>
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-[t-kristo@ti.com: squash in support for both AES1 and AES2 cores]
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 62 +++++++++++++++++++++++++++++++
- 1 file changed, 62 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index e89a7ec..4988a9e 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -690,6 +690,50 @@
- 	.parent_hwmod	= &dra7xx_dss_hwmod,
- };
- 
-+/* AES (the 'P' (public) device) */
-+static struct omap_hwmod_class_sysconfig dra7xx_aes_sysc = {
-+	.rev_offs	= 0x0080,
-+	.sysc_offs	= 0x0084,
-+	.syss_offs	= 0x0088,
-+	.sysc_flags	= SYSS_HAS_RESET_STATUS,
-+};
-+
-+static struct omap_hwmod_class dra7xx_aes_hwmod_class = {
-+	.name	= "aes",
-+	.sysc	= &dra7xx_aes_sysc,
-+	.rev	= 2,
-+};
-+
-+/* AES1 */
-+static struct omap_hwmod dra7xx_aes1_hwmod = {
-+	.name		= "aes1",
-+	.class		= &dra7xx_aes_hwmod_class,
-+	.clkdm_name	= "l4sec_clkdm",
-+	.main_clk	= "l3_iclk_div",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4SEC_AES1_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4SEC_AES1_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_HWCTRL,
-+		},
-+	},
-+};
-+
-+/* AES2 */
-+static struct omap_hwmod dra7xx_aes2_hwmod = {
-+	.name		= "aes2",
-+	.class		= &dra7xx_aes_hwmod_class,
-+	.clkdm_name	= "l4sec_clkdm",
-+	.main_clk	= "l3_iclk_div",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4SEC_AES2_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4SEC_AES2_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_HWCTRL,
-+		},
-+	},
-+};
-+
- /*
-  * 'elm' class
-  *
-@@ -2957,6 +3001,22 @@ static int dra7xx_pciess_reset(struct omap_hwmod *oh)
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* l3_main_1 -> aes1 */
-+static struct omap_hwmod_ocp_if dra7xx_l3_main_1__aes1 = {
-+	.master		= &dra7xx_l3_main_1_hwmod,
-+	.slave		= &dra7xx_aes1_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l3_main_1 -> aes2 */
-+static struct omap_hwmod_ocp_if dra7xx_l3_main_1__aes2 = {
-+	.master		= &dra7xx_l3_main_1_hwmod,
-+	.slave		= &dra7xx_aes2_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* l4_per2 -> mcasp1 */
- static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp1 = {
- 	.master		= &dra7xx_l4_per2_hwmod,
-@@ -3836,6 +3896,8 @@ static int dra7xx_pciess_reset(struct omap_hwmod *oh)
- 	&dra7xx_l3_main_1__dss,
- 	&dra7xx_l3_main_1__dispc,
- 	&dra7xx_l3_main_1__hdmi,
-+	&dra7xx_l3_main_1__aes1,
-+	&dra7xx_l3_main_1__aes2,
- 	&dra7xx_l4_per1__elm,
- 	&dra7xx_l4_wkup__gpio1,
- 	&dra7xx_l4_per1__gpio2,
--- 
-1.9.1
+	Arnd
