@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 5/7] ARM: OMAP: DRA7xx: Make L4SEC clock domain SWSUP only
-Date: Tue, 18 Oct 2016 10:55:25 +0300
-Message-ID: <1476777327-700-6-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 2/7] ARM: DRA7: hwmod: Add data for AES IP
+Date: Tue, 18 Oct 2016 10:55:22 +0300
+Message-ID: <1476777327-700-3-git-send-email-t-kristo@ti.com>
 References: <1476777327-700-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,38 +23,103 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Joel Fernandes <joelf@ti.com>
 
-Using HWSUP for l4sec clock domain is causing warnings in HWMOD code for
-DRA7. Based on some observations, once the clock domain goes into an IDLE
-state (because of no activity etc), the IDLEST for the module goes to '0x2'
-value which means Interface IDLE condition. So far so go, however once the
-MODULEMODE is set to disabled for the particular IP, the IDLEST for the
-module should go to '0x3', per the HW AUTO IDLE protocol. However this is
-not observed and there is no reason per the protocl for the transition to
-not happen. This could potentially be a bug in the HW AUTO state-machine.
-
-Work around for this is to use SWSUP only for the particular clockdomain.
-With this all the transitions of IDLEST happen correctly and warnings
-don't occur.
+DRA7 SoC contains AES crypto hardware accelerator. Add hwmod data for
+this IP so that it can be utilized by crypto frameworks.
 
 Signed-off-by: Joel Fernandes <joelf@ti.com>
 Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+[t-kristo@ti.com: squash in support for both AES1 and AES2 cores]
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/clockdomains7xx_data.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 62 +++++++++++++++++++++++++++++++
+ 1 file changed, 62 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/clockdomains7xx_data.c b/arch/arm/mach-omap2/clockdomains7xx_data.c
-index ef9ed36..6c67965 100644
---- a/arch/arm/mach-omap2/clockdomains7xx_data.c
-+++ b/arch/arm/mach-omap2/clockdomains7xx_data.c
-@@ -409,7 +409,7 @@
- 	.dep_bit	  = DRA7XX_L4SEC_STATDEP_SHIFT,
- 	.wkdep_srcs	  = l4sec_wkup_sleep_deps,
- 	.sleepdep_srcs	  = l4sec_wkup_sleep_deps,
--	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
-+	.flags		  = CLKDM_CAN_SWSUP,
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index e89a7ec..4988a9e 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -690,6 +690,50 @@
+ 	.parent_hwmod	= &dra7xx_dss_hwmod,
  };
  
- static struct clockdomain l3main1_7xx_clkdm = {
++/* AES (the 'P' (public) device) */
++static struct omap_hwmod_class_sysconfig dra7xx_aes_sysc = {
++	.rev_offs	= 0x0080,
++	.sysc_offs	= 0x0084,
++	.syss_offs	= 0x0088,
++	.sysc_flags	= SYSS_HAS_RESET_STATUS,
++};
++
++static struct omap_hwmod_class dra7xx_aes_hwmod_class = {
++	.name	= "aes",
++	.sysc	= &dra7xx_aes_sysc,
++	.rev	= 2,
++};
++
++/* AES1 */
++static struct omap_hwmod dra7xx_aes1_hwmod = {
++	.name		= "aes1",
++	.class		= &dra7xx_aes_hwmod_class,
++	.clkdm_name	= "l4sec_clkdm",
++	.main_clk	= "l3_iclk_div",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = DRA7XX_CM_L4SEC_AES1_CLKCTRL_OFFSET,
++			.context_offs = DRA7XX_RM_L4SEC_AES1_CONTEXT_OFFSET,
++			.modulemode   = MODULEMODE_HWCTRL,
++		},
++	},
++};
++
++/* AES2 */
++static struct omap_hwmod dra7xx_aes2_hwmod = {
++	.name		= "aes2",
++	.class		= &dra7xx_aes_hwmod_class,
++	.clkdm_name	= "l4sec_clkdm",
++	.main_clk	= "l3_iclk_div",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = DRA7XX_CM_L4SEC_AES2_CLKCTRL_OFFSET,
++			.context_offs = DRA7XX_RM_L4SEC_AES2_CONTEXT_OFFSET,
++			.modulemode   = MODULEMODE_HWCTRL,
++		},
++	},
++};
++
+ /*
+  * 'elm' class
+  *
+@@ -2957,6 +3001,22 @@ static int dra7xx_pciess_reset(struct omap_hwmod *oh)
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++/* l3_main_1 -> aes1 */
++static struct omap_hwmod_ocp_if dra7xx_l3_main_1__aes1 = {
++	.master		= &dra7xx_l3_main_1_hwmod,
++	.slave		= &dra7xx_aes1_hwmod,
++	.clk		= "l3_iclk_div",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l3_main_1 -> aes2 */
++static struct omap_hwmod_ocp_if dra7xx_l3_main_1__aes2 = {
++	.master		= &dra7xx_l3_main_1_hwmod,
++	.slave		= &dra7xx_aes2_hwmod,
++	.clk		= "l3_iclk_div",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ /* l4_per2 -> mcasp1 */
+ static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp1 = {
+ 	.master		= &dra7xx_l4_per2_hwmod,
+@@ -3836,6 +3896,8 @@ static int dra7xx_pciess_reset(struct omap_hwmod *oh)
+ 	&dra7xx_l3_main_1__dss,
+ 	&dra7xx_l3_main_1__dispc,
+ 	&dra7xx_l3_main_1__hdmi,
++	&dra7xx_l3_main_1__aes1,
++	&dra7xx_l3_main_1__aes2,
+ 	&dra7xx_l4_per1__elm,
+ 	&dra7xx_l4_wkup__gpio1,
+ 	&dra7xx_l4_per1__gpio2,
 -- 
 1.9.1
