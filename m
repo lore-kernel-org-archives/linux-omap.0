@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 0/7] ARM: AMx3xx/DRA7: crypto IP support data
-Date: Tue, 18 Oct 2016 10:50:11 +0300
-Message-ID: <1476777018-526-1-git-send-email-t-kristo@ti.com>
+Subject: ARM: AMx3xx/DRA7: crypto IP support data
+Date: Tue, 18 Oct 2016 10:53:46 +0300
+Message-ID: <1476777233-631-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
