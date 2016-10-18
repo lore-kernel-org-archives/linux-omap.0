@@ -1,48 +1,42 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v4] dmaengine: omap-dma: add support for pause of
- non-cyclic transfers
-Date: Tue, 18 Oct 2016 20:22:23 +0530
-Message-ID: <20161018145223.GA2467@localhost>
-References: <20161010120755.26153-1-vigneshr@ti.com>
- <20161014050047.28447-1-vigneshr@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv4 00/15] clk: ti: add support for hwmod clocks
+Date: Tue, 18 Oct 2016 18:45:53 +0300
+Message-ID: <1476805568-19264-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161014050047.28447-1-vigneshr@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Russell King - ARM Linux <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-clk-owner@vger.kernel.org>
+Sender: linux-clk-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, tony@atomide.com, mturquette@baylibre.com, sboyd@codeaurora.org
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Oct 14, 2016 at 10:30:47AM +0530, Vignesh R wrote:
-> From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> 
-> This DMA driver is used by 8250-omap on DRA7-evm. There is one
-> requirement that is to pause a transfer. This is currently used on the RX
-> side. It is possible that the UART HW aborted the RX (UART's RX-timeout)
-> but the DMA controller starts the transfer shortly after.
-> Before we can manually purge the FIFO we need to pause the transfer,
-> check how many bytes it already received and terminate the transfer
-> without it making any progress.
-> 
-> From testing on the TX side it seems that it is possible that we invoke
-> pause once the transfer has completed which is indicated by the missing
-> CCR_ENABLE bit but before the interrupt has been noticed. In that case the
-> interrupt will come even after disabling it.
-> 
-> The AM572x manual says that we have to wait for the CCR_RD_ACTIVE &
-> CCR_WR_ACTIVE bits to be gone before programming it again here is the
-> drain loop. Also it looks like without the drain the TX-transfer makes
-> sometimes progress.
-> 
-> One note: The pause + resume combo is broken because after resume the
-> the complete transfer will be programmed again. That means the already
-> transferred bytes (until the pause event) will be sent again. This is
-> currently not important for my UART user because it does only pause +
-> terminate.
+Hi,
 
-Applied, thanks
+As a recap, this series is part of the ongoing work to get rid of the
+hwmod database under mach-omap2 folder. This series converts the
+existing clock related functionality to a new clock type, which will
+allow removing all the .clkctrl related items from hwmod database.
+This series adds sample solution for OMAP4 only, rest of the SoCs can
+be converted automatically once the approach is acceptable.
 
--- 
-~Vinod
+v4 has the following high level changes compared to v3:
+- Clock data is now statically built-in to the driver
+- Adds clockdomain provider support, which can be used to fetch
+  clocks based on clockdomain relation. Only clockdomains need to be
+  registered within DT.
+- Added some automatic clock alias generation support to the TI clock
+  drivers, if this is not acceptable, I can change this to add all the
+  aliases under the individual drivers/clk/ti/clk-xyz.c files
+- As a sample, only omap4 clock data is available with this set
+
+After this series, the clock data can be dropped from the hwmod database
+for OMAP4, I have working patches for this for anybody interested. Also,
+the DT files require some modifications to add proper support for
+clockdomain providers, and drop some unnecessary clock nodes.
+
+Boot + simple PM test seems to be working on OMAP4 with this set, and
+boot test with other boards I have access to don't seem to cause any
+issues. Applies on top of 4.9-rc1.
+
+-Tero
+
