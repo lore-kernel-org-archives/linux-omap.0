@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 1/7] ARM: DRA7: hwmod: Add data for DES IP
-Date: Tue, 18 Oct 2016 10:55:21 +0300
-Message-ID: <1476777327-700-2-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 5/7] ARM: OMAP: DRA7xx: Make L4SEC clock domain SWSUP only
+Date: Tue, 18 Oct 2016 10:55:25 +0300
+Message-ID: <1476777327-700-6-git-send-email-t-kristo@ti.com>
 References: <1476777327-700-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,77 +23,38 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Joel Fernandes <joelf@ti.com>
 
-DRA7 SoC contains DES crypto hardware accelerator. Add hwmod data for
-this IP so that it can be utilized by crypto frameworks.
+Using HWSUP for l4sec clock domain is causing warnings in HWMOD code for
+DRA7. Based on some observations, once the clock domain goes into an IDLE
+state (because of no activity etc), the IDLEST for the module goes to '0x2'
+value which means Interface IDLE condition. So far so go, however once the
+MODULEMODE is set to disabled for the particular IP, the IDLEST for the
+module should go to '0x3', per the HW AUTO IDLE protocol. However this is
+not observed and there is no reason per the protocl for the transition to
+not happen. This could potentially be a bug in the HW AUTO state-machine.
+
+Work around for this is to use SWSUP only for the particular clockdomain.
+With this all the transitions of IDLEST happen correctly and warnings
+don't occur.
 
 Signed-off-by: Joel Fernandes <joelf@ti.com>
 Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 37 +++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+ arch/arm/mach-omap2/clockdomains7xx_data.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index 1ab7096..e89a7ec 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -2541,6 +2541,34 @@ static int dra7xx_pciess_reset(struct omap_hwmod *oh)
- 	},
+diff --git a/arch/arm/mach-omap2/clockdomains7xx_data.c b/arch/arm/mach-omap2/clockdomains7xx_data.c
+index ef9ed36..6c67965 100644
+--- a/arch/arm/mach-omap2/clockdomains7xx_data.c
++++ b/arch/arm/mach-omap2/clockdomains7xx_data.c
+@@ -409,7 +409,7 @@
+ 	.dep_bit	  = DRA7XX_L4SEC_STATDEP_SHIFT,
+ 	.wkdep_srcs	  = l4sec_wkup_sleep_deps,
+ 	.sleepdep_srcs	  = l4sec_wkup_sleep_deps,
+-	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
++	.flags		  = CLKDM_CAN_SWSUP,
  };
  
-+/* DES (the 'P' (public) device) */
-+static struct omap_hwmod_class_sysconfig dra7xx_des_sysc = {
-+	.rev_offs	= 0x0030,
-+	.sysc_offs	= 0x0034,
-+	.syss_offs	= 0x0038,
-+	.sysc_flags	= SYSS_HAS_RESET_STATUS,
-+};
-+
-+static struct omap_hwmod_class dra7xx_des_hwmod_class = {
-+	.name	= "des",
-+	.sysc	= &dra7xx_des_sysc,
-+};
-+
-+/* DES */
-+static struct omap_hwmod dra7xx_des_hwmod = {
-+	.name		= "des",
-+	.class		= &dra7xx_des_hwmod_class,
-+	.clkdm_name	= "l4sec_clkdm",
-+	.main_clk	= "l3_iclk_div",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4SEC_DES3DES_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4SEC_DES3DES_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_HWCTRL,
-+		},
-+	},
-+};
-+
- /*
-  * 'usb_otg_ss' class
-  *
-@@ -3642,6 +3670,14 @@ static int dra7xx_pciess_reset(struct omap_hwmod *oh)
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* l4_per1 -> des */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per1__des = {
-+	.master		= &dra7xx_l4_per1_hwmod,
-+	.slave		= &dra7xx_des_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* l4_per2 -> uart8 */
- static struct omap_hwmod_ocp_if dra7xx_l4_per2__uart8 = {
- 	.master		= &dra7xx_l4_per2_hwmod,
-@@ -3875,6 +3911,7 @@ static int dra7xx_pciess_reset(struct omap_hwmod *oh)
- 	&dra7xx_l4_per2__uart8,
- 	&dra7xx_l4_per2__uart9,
- 	&dra7xx_l4_wkup__uart10,
-+	&dra7xx_l4_per1__des,
- 	&dra7xx_l4_per3__usb_otg_ss1,
- 	&dra7xx_l4_per3__usb_otg_ss2,
- 	&dra7xx_l4_per3__usb_otg_ss3,
+ static struct clockdomain l3main1_7xx_clkdm = {
 -- 
 1.9.1
