@@ -1,42 +1,47 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 00/15] clk: ti: add support for hwmod clocks
-Date: Tue, 18 Oct 2016 18:45:53 +0300
-Message-ID: <1476805568-19264-1-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv4 01/15] clk: ti: remove un-used definitions from public clk_hw_omap struct
+Date: Tue, 18 Oct 2016 18:45:54 +0300
+Message-ID: <1476805568-19264-2-git-send-email-t-kristo@ti.com>
+References: <1476805568-19264-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <1476805568-19264-1-git-send-email-t-kristo@ti.com>
 Sender: linux-clk-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, tony@atomide.com, mturquette@baylibre.com, sboyd@codeaurora.org
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Clksel support has been deprecated a while back, so remove these from
+the struct also.
 
-As a recap, this series is part of the ongoing work to get rid of the
-hwmod database under mach-omap2 folder. This series converts the
-existing clock related functionality to a new clock type, which will
-allow removing all the .clkctrl related items from hwmod database.
-This series adds sample solution for OMAP4 only, rest of the SoCs can
-be converted automatically once the approach is acceptable.
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ include/linux/clk/ti.h | 4 ----
+ 1 file changed, 4 deletions(-)
 
-v4 has the following high level changes compared to v3:
-- Clock data is now statically built-in to the driver
-- Adds clockdomain provider support, which can be used to fetch
-  clocks based on clockdomain relation. Only clockdomains need to be
-  registered within DT.
-- Added some automatic clock alias generation support to the TI clock
-  drivers, if this is not acceptable, I can change this to add all the
-  aliases under the individual drivers/clk/ti/clk-xyz.c files
-- As a sample, only omap4 clock data is available with this set
-
-After this series, the clock data can be dropped from the hwmod database
-for OMAP4, I have working patches for this for anybody interested. Also,
-the DT files require some modifications to add proper support for
-clockdomain providers, and drop some unnecessary clock nodes.
-
-Boot + simple PM test seems to be working on OMAP4 with this set, and
-boot test with other boards I have access to don't seem to cause any
-issues. Applies on top of 4.9-rc1.
-
--Tero
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index 6110fe0..07308db 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -129,8 +129,6 @@ struct clk_hw_omap_ops {
+  * @enable_bit: bitshift to write to enable/disable the clock (see @enable_reg)
+  * @flags: see "struct clk.flags possibilities" above
+  * @clksel_reg: for clksel clks, register va containing src/divisor select
+- * @clksel_mask: bitmask in @clksel_reg for the src/divisor selector
+- * @clksel: for clksel clks, pointer to struct clksel for this clock
+  * @dpll_data: for DPLLs, pointer to struct dpll_data for this clock
+  * @clkdm_name: clockdomain name that this clock is contained in
+  * @clkdm: pointer to struct clockdomain, resolved from @clkdm_name at runtime
+@@ -145,8 +143,6 @@ struct clk_hw_omap {
+ 	u8			enable_bit;
+ 	u8			flags;
+ 	void __iomem		*clksel_reg;
+-	u32			clksel_mask;
+-	const struct clksel	*clksel;
+ 	struct dpll_data	*dpll_data;
+ 	const char		*clkdm_name;
+ 	struct clockdomain	*clkdm;
+-- 
+1.9.1
 
