@@ -1,56 +1,95 @@
-From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 4/9] regulator: lp873x: Add support for populating input
- supply
-Date: Wed, 19 Oct 2016 10:20:59 +0530
-Message-ID: <57988545-4319-0bcf-df1a-55c78111aa5b@ti.com>
-References: <20161014130033.14172-1-lokeshvutla@ti.com>
- <20161014130033.14172-5-lokeshvutla@ti.com>
- <20161018142743.xfgjuaw4wlssmoxq@rob-hp-laptop>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH 1/5] gpio: davinci: Remove gpio2regs function to accommodate  multi instances
+Date: Wed, 19 Oct 2016 11:03:55 +0530
+Message-ID: <1476855239-32730-2-git-send-email-j-keerthy@ti.com>
+References: <1476855239-32730-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161018142743.xfgjuaw4wlssmoxq@rob-hp-laptop>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux ARM Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1476855239-32730-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: linus.walleij@linaro.org
+Cc: gnurou@gmail.com, lokeshvutla@ti.com, robh+dt@kernel.org, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, rogerq@ti.com, grygorii.strashko@ti.com, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+gpio2regs is written making an assumption that driver supports only
+one instance of gpio controller. Removing this and adding a generic
+array so as to support multiple instances of gpio controllers.
 
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
+ drivers/gpio/gpio-davinci.c | 30 +++++++-----------------------
+ 1 file changed, 7 insertions(+), 23 deletions(-)
 
-On Tuesday 18 October 2016 07:57 PM, Rob Herring wrote:
-> On Fri, Oct 14, 2016 at 06:30:28PM +0530, Lokesh Vutla wrote:
->> In order to have a proper topology of regulators for a platform, each
->> registering regulator needs to populate supply_name field for identifying
->> its supply's name. Add supply_name field for lp873x regulators.
->>
->> Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->> Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
->> Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
->> ---
->>  Documentation/devicetree/bindings/mfd/lp873x.txt | 8 ++++++++
->>  drivers/regulator/lp873x-regulator.c             | 1 +
->>  2 files changed, 9 insertions(+)
->>
->> diff --git a/Documentation/devicetree/bindings/mfd/lp873x.txt b/Documentation/devicetree/bindings/mfd/lp873x.txt
->> index 52766c2..936cba3 100644
->> --- a/Documentation/devicetree/bindings/mfd/lp873x.txt
->> +++ b/Documentation/devicetree/bindings/mfd/lp873x.txt
->> @@ -7,6 +7,9 @@ Required properties:
->>    - #gpio-cells:	Should be two.  The first cell is the pin number and
->>  			the second cell is used to specify flags.
->>  			See ../gpio/gpio.txt for more information.
->> +  - xxx-supply:		Phandle to parent supply node of each regulator
->> +			populated under regulators node. xxx should match
->> +			the supply_name populated in driver.
-> 
-> xxx-in-supply?
+diff --git a/drivers/gpio/gpio-davinci.c b/drivers/gpio/gpio-davinci.c
+index dd262f0..419cfaf 100644
+--- a/drivers/gpio/gpio-davinci.c
++++ b/drivers/gpio/gpio-davinci.c
+@@ -42,25 +42,7 @@ struct davinci_gpio_regs {
+ #define BINTEN	0x8 /* GPIO Interrupt Per-Bank Enable Register */
+ 
+ static void __iomem *gpio_base;
+-
+-static struct davinci_gpio_regs __iomem *gpio2regs(unsigned gpio)
+-{
+-	void __iomem *ptr;
+-
+-	if (gpio < 32 * 1)
+-		ptr = gpio_base + 0x10;
+-	else if (gpio < 32 * 2)
+-		ptr = gpio_base + 0x38;
+-	else if (gpio < 32 * 3)
+-		ptr = gpio_base + 0x60;
+-	else if (gpio < 32 * 4)
+-		ptr = gpio_base + 0x88;
+-	else if (gpio < 32 * 5)
+-		ptr = gpio_base + 0xb0;
+-	else
+-		ptr = NULL;
+-	return ptr;
+-}
++static unsigned offset_array[5] = {0x10, 0x38, 0x60, 0x88, 0xb0};
+ 
+ static inline struct davinci_gpio_regs __iomem *irq2regs(struct irq_data *d)
+ {
+@@ -257,7 +239,7 @@ static int davinci_gpio_probe(struct platform_device *pdev)
+ #endif
+ 		spin_lock_init(&chips[i].lock);
+ 
+-		regs = gpio2regs(base);
++		regs = gpio_base + offset_array[i];
+ 		if (!regs)
+ 			return -ENXIO;
+ 		chips[i].regs = regs;
+@@ -415,7 +397,9 @@ static int gpio_irq_type_unbanked(struct irq_data *data, unsigned trigger)
+ davinci_gpio_irq_map(struct irq_domain *d, unsigned int irq,
+ 		     irq_hw_number_t hw)
+ {
+-	struct davinci_gpio_regs __iomem *g = gpio2regs(hw);
++	struct davinci_gpio_controller *chips =
++				(struct davinci_gpio_controller *)d->host_data;
++	struct davinci_gpio_regs __iomem *g = chips[hw / 32].regs;
+ 
+ 	irq_set_chip_and_handler_name(irq, &gpio_irqchip, handle_simple_irq,
+ 				"davinci_gpio");
+@@ -552,7 +536,7 @@ static int davinci_gpio_irq_setup(struct platform_device *pdev)
+ 		irq_chip->irq_set_type = gpio_irq_type_unbanked;
+ 
+ 		/* default trigger: both edges */
+-		g = gpio2regs(0);
++		g = chips[0].regs;
+ 		writel_relaxed(~0, &g->set_falling);
+ 		writel_relaxed(~0, &g->set_rising);
+ 
+@@ -572,7 +556,7 @@ static int davinci_gpio_irq_setup(struct platform_device *pdev)
+ 	 */
+ 	for (gpio = 0, bank = 0; gpio < ngpio; bank++, bank_irq++, gpio += 16) {
+ 		/* disabled by default, enabled only as needed */
+-		g = gpio2regs(gpio);
++		g = chips[bank / 2].regs;
+ 		writel_relaxed(~0, &g->clr_falling);
+ 		writel_relaxed(~0, &g->clr_rising);
+ 
+-- 
+1.9.1
 
-Oops. Right. Ill update it and repost.
-
-Thanks and regards,
-Lokesh
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
