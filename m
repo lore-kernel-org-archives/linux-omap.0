@@ -1,15 +1,15 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH v3 2/4] drivers: iio: ti_am335x_adc: add dma support
-Date: Wed, 19 Oct 2016 14:22:20 +0530
-Message-ID: <d7dd9a21-51d9-e8f5-a6fe-34653afc9240@ti.com>
-References: <20161005090443.24576-1-mugunthanvnm@ti.com>
- <20161005090443.24576-3-mugunthanvnm@ti.com>
- <d0105217-a8ee-cd8e-221d-34c19257765e@kernel.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: partial bluetooth success on n900 [was Re: bluetooth/uart timeout
+ handling]
+Date: Wed, 19 Oct 2016 11:25:06 +0200
+Message-ID: <20161019092506.GA1461@amd>
+References: <20161016002454.ul5rdqwubvkct4pf@earth> <20161016090959.GA377@amd>
+ <20161016173911.arxynrja6vely3d5@earth> <20161017085137.GA6628@amd>
+ <20161018224259.jrwbaal27irzjqyo@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============7446472455579839288=="
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <d0105217-a8ee-cd8e-221d-34c19257765e@kernel.org>
+In-Reply-To: <20161018224259.jrwbaal27irzjqyo@earth>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,299 +19,242 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jonathan Cameron <jic23@kernel.org>, linux-iio@vger.kernel.org
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>, Vignesh R <vigneshr@ti.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, "Andrew F . Davis" <afd@ti.com>, John Syne <john3909@gmail.com>, Rob Herring <robh+dt@kernel.org>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Hartmut Knaack <knaack.h@gmx.de>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-arm-kernel@lists.infradead.org
+Cc: ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, tony@atomide.com, aaro.koskinen@iki.fi, kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org, abcloriens@gmail.com, pali.rohar@gmail.com, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-On Sunday 09 October 2016 02:00 PM, Jonathan Cameron wrote:
-> On 05/10/16 10:04, Mugunthan V N wrote:
->> This patch adds the required pieces to ti_am335x_adc driver for
->> DMA support
->>
->> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
-> Hi,
-> 
-> Just the one question inline.  I'll also need an Ack from Lee as
-> this touches code in mfd (as does the previous patch).
-> We have obviously missed this merge window, so no particular rush.
-> 
-> Otherwise, looking very nice indeed.  Got to get my BBB out and play
-> with this now ;)
-> 
-> Jonathan
->> ---
->>  drivers/iio/adc/ti_am335x_adc.c      | 148 ++++++++++++++++++++++++++++++++++-
->>  include/linux/mfd/ti_am335x_tscadc.h |   7 ++
->>  2 files changed, 152 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
->> index c3cfacca..ad9dec3 100644
->> --- a/drivers/iio/adc/ti_am335x_adc.c
->> +++ b/drivers/iio/adc/ti_am335x_adc.c
->> @@ -30,10 +30,28 @@
->>  #include <linux/iio/buffer.h>
->>  #include <linux/iio/kfifo_buf.h>
->>  
->> +#include <linux/dmaengine.h>
->> +#include <linux/dma-mapping.h>
->> +
->> +#define DMA_BUFFER_SIZE		SZ_2K
->> +
->> +struct tiadc_dma {
->> +	struct dma_slave_config	conf;
->> +	struct dma_chan		*chan;
->> +	dma_addr_t		addr;
->> +	dma_cookie_t		cookie;
->> +	u8			*buf;
->> +	int			current_period;
->> +	int			period_size;
->> +	u8			fifo_thresh;
->> +};
->> +
->>  struct tiadc_device {
->>  	struct ti_tscadc_dev *mfd_tscadc;
->> +	struct tiadc_dma dma;
->>  	struct mutex fifo1_lock; /* to protect fifo access */
->>  	int channels;
->> +	int total_ch_enabled;
->>  	u8 channel_line[8];
->>  	u8 channel_step[8];
->>  	int buffer_en_ch_steps;
->> @@ -198,6 +216,67 @@ static irqreturn_t tiadc_worker_h(int irq, void *private)
->>  	return IRQ_HANDLED;
->>  }
->>  
->> +static void tiadc_dma_rx_complete(void *param)
->> +{
->> +	struct iio_dev *indio_dev = param;
->> +	struct tiadc_device *adc_dev = iio_priv(indio_dev);
->> +	struct tiadc_dma *dma = &adc_dev->dma;
->> +	u8 *data;
->> +	int i;
->> +
->> +	data = dma->buf + dma->current_period * dma->period_size;
->> +	dma->current_period = 1 - dma->current_period; /* swap the buffer ID */
->> +
->> +	for (i = 0; i < dma->period_size; i += indio_dev->scan_bytes) {
->> +		iio_push_to_buffers(indio_dev, data);
->> +		data += indio_dev->scan_bytes;
->> +	}
-> Hmm. Another case for the mooted iio_push_to_buffers_multi. Guess
-> we should move on with that one ;)
->> +}
->> +
->> +static int tiadc_start_dma(struct iio_dev *indio_dev)
->> +{
->> +	struct tiadc_device *adc_dev = iio_priv(indio_dev);
->> +	struct tiadc_dma *dma = &adc_dev->dma;
->> +	struct dma_async_tx_descriptor *desc;
->> +
->> +	dma->current_period = 0; /* We start to fill period 0 */
->> +	/*
->> +	 * Make the fifo thresh as the multiple of total number of
->> +	 * channels enabled, so make sure that cyclic DMA period
->> +	 * length is also a multiple of total number of channels
->> +	 * enabled. This ensures that no invalid data is reported
->> +	 * to the stack via iio_push_to_buffers().
->> +	 */
->> +	dma->fifo_thresh = rounddown(FIFO1_THRESHOLD + 1,
->> +				     adc_dev->total_ch_enabled) - 1;
->> +	/* Make sure that period length is multiple of fifo thresh level */
->> +	dma->period_size = rounddown(DMA_BUFFER_SIZE / 2,
->> +				    (dma->fifo_thresh + 1) * sizeof(u16));
->> +
->> +	dma->conf.src_maxburst = dma->fifo_thresh + 1;
->> +	dmaengine_slave_config(dma->chan, &dma->conf);
->> +
->> +	desc = dmaengine_prep_dma_cyclic(dma->chan, dma->addr,
->> +					 dma->period_size * 2,
->> +					 dma->period_size, DMA_DEV_TO_MEM,
->> +					 DMA_PREP_INTERRUPT);
->> +	if (!desc)
->> +		return -EBUSY;
->> +
->> +	desc->callback = tiadc_dma_rx_complete;
->> +	desc->callback_param = indio_dev;
->> +
->> +	dma->cookie = dmaengine_submit(desc);
->> +
->> +	dma_async_issue_pending(dma->chan);
->> +
->> +	tiadc_writel(adc_dev, REG_FIFO1THR, dma->fifo_thresh);
->> +	tiadc_writel(adc_dev, REG_DMA1REQ, dma->fifo_thresh);
->> +	tiadc_writel(adc_dev, REG_DMAENABLE_SET, DMA_FIFO1);
->> +
->> +	return 0;
->> +}
->> +
->>  static int tiadc_buffer_preenable(struct iio_dev *indio_dev)
->>  {
->>  	struct tiadc_device *adc_dev = iio_priv(indio_dev);
->> @@ -218,20 +297,30 @@ static int tiadc_buffer_preenable(struct iio_dev *indio_dev)
->>  static int tiadc_buffer_postenable(struct iio_dev *indio_dev)
->>  {
->>  	struct tiadc_device *adc_dev = iio_priv(indio_dev);
->> +	struct tiadc_dma *dma = &adc_dev->dma;
->> +	unsigned int irq_enable;
->>  	unsigned int enb = 0;
->>  	u8 bit;
->>  
->>  	tiadc_step_config(indio_dev);
->> -	for_each_set_bit(bit, indio_dev->active_scan_mask, adc_dev->channels)
->> +	for_each_set_bit(bit, indio_dev->active_scan_mask, adc_dev->channels) {
->>  		enb |= (get_adc_step_bit(adc_dev, bit) << 1);
->> +		adc_dev->total_ch_enabled++;
->> +	}
->>  	adc_dev->buffer_en_ch_steps = enb;
->>  
->> +	if (dma->chan)
->> +		tiadc_start_dma(indio_dev);
->> +
->>  	am335x_tsc_se_set_cache(adc_dev->mfd_tscadc, enb);
->>  
->>  	tiadc_writel(adc_dev,  REG_IRQSTATUS, IRQENB_FIFO1THRES
->>  				| IRQENB_FIFO1OVRRUN | IRQENB_FIFO1UNDRFLW);
->> -	tiadc_writel(adc_dev,  REG_IRQENABLE, IRQENB_FIFO1THRES
->> -				| IRQENB_FIFO1OVRRUN);
->> +
->> +	irq_enable = IRQENB_FIFO1OVRRUN;
->> +	if (!dma->chan)
->> +		irq_enable |= IRQENB_FIFO1THRES;
-> This changes the non dma behaviour as we no longer set IRQENB_FIFO1THRES.
-> Why?  Was it wrong before?
 
-In non DMA case, dms->chan will be NULL and IRQENB_FIFO1THRES interrupt
-will be enabled to pop the ADC samples.
+--===============7446472455579839288==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="dDRMvlgZJXvWKvBx"
+Content-Disposition: inline
 
-Regards
-Mugunthan V N
 
->> +	tiadc_writel(adc_dev,  REG_IRQENABLE, irq_enable);
->>  
->>  	return 0;
->>  }
->> @@ -239,12 +328,18 @@ static int tiadc_buffer_postenable(struct iio_dev *indio_dev)
->>  static int tiadc_buffer_predisable(struct iio_dev *indio_dev)
->>  {
->>  	struct tiadc_device *adc_dev = iio_priv(indio_dev);
->> +	struct tiadc_dma *dma = &adc_dev->dma;
->>  	int fifo1count, i, read;
->>  
->>  	tiadc_writel(adc_dev, REG_IRQCLR, (IRQENB_FIFO1THRES |
->>  				IRQENB_FIFO1OVRRUN | IRQENB_FIFO1UNDRFLW));
->>  	am335x_tsc_se_clr(adc_dev->mfd_tscadc, adc_dev->buffer_en_ch_steps);
->>  	adc_dev->buffer_en_ch_steps = 0;
->> +	adc_dev->total_ch_enabled = 0;
->> +	if (dma->chan) {
->> +		tiadc_writel(adc_dev, REG_DMAENABLE_CLEAR, 0x2);
->> +		dmaengine_terminate_async(dma->chan);
->> +	}
->>  
->>  	/* Flush FIFO of leftover data in the time it takes to disable adc */
->>  	fifo1count = tiadc_readl(adc_dev, REG_FIFO1CNT);
->> @@ -430,6 +525,41 @@ static const struct iio_info tiadc_info = {
->>  	.driver_module = THIS_MODULE,
->>  };
->>  
->> +static int tiadc_request_dma(struct platform_device *pdev,
->> +			     struct tiadc_device *adc_dev)
->> +{
->> +	struct tiadc_dma	*dma = &adc_dev->dma;
->> +	dma_cap_mask_t		mask;
->> +
->> +	/* Default slave configuration parameters */
->> +	dma->conf.direction = DMA_DEV_TO_MEM;
->> +	dma->conf.src_addr_width = DMA_SLAVE_BUSWIDTH_2_BYTES;
->> +	dma->conf.src_addr = adc_dev->mfd_tscadc->tscadc_phys_base + REG_FIFO1;
->> +
->> +	dma_cap_zero(mask);
->> +	dma_cap_set(DMA_CYCLIC, mask);
->> +
->> +	/* Get a channel for RX */
->> +	dma->chan = dma_request_chan(adc_dev->mfd_tscadc->dev, "fifo1");
->> +	if (IS_ERR(dma->chan)) {
->> +		int ret = PTR_ERR(dma->chan);
->> +
->> +		dma->chan = NULL;
->> +		return ret;
->> +	}
->> +
->> +	/* RX buffer */
->> +	dma->buf = dma_alloc_coherent(dma->chan->device->dev, DMA_BUFFER_SIZE,
->> +				      &dma->addr, GFP_KERNEL);
->> +	if (!dma->buf)
->> +		goto err;
->> +
->> +	return 0;
->> +err:
->> +	dma_release_channel(dma->chan);
->> +	return -ENOMEM;
->> +}
->> +
->>  static int tiadc_parse_dt(struct platform_device *pdev,
->>  			  struct tiadc_device *adc_dev)
->>  {
->> @@ -512,8 +642,14 @@ static int tiadc_probe(struct platform_device *pdev)
->>  
->>  	platform_set_drvdata(pdev, indio_dev);
->>  
->> +	err = tiadc_request_dma(pdev, adc_dev);
->> +	if (err && err == -EPROBE_DEFER)
->> +		goto err_dma;
->> +
->>  	return 0;
->>  
->> +err_dma:
->> +	iio_device_unregister(indio_dev);
->>  err_buffer_unregister:
->>  	tiadc_iio_buffered_hardware_remove(indio_dev);
->>  err_free_channels:
->> @@ -525,8 +661,14 @@ static int tiadc_remove(struct platform_device *pdev)
->>  {
->>  	struct iio_dev *indio_dev = platform_get_drvdata(pdev);
->>  	struct tiadc_device *adc_dev = iio_priv(indio_dev);
->> +	struct tiadc_dma *dma = &adc_dev->dma;
->>  	u32 step_en;
->>  
->> +	if (dma->chan) {
->> +		dma_free_coherent(dma->chan->device->dev, DMA_BUFFER_SIZE,
->> +				  dma->buf, dma->addr);
->> +		dma_release_channel(dma->chan);
->> +	}
->>  	iio_device_unregister(indio_dev);
->>  	tiadc_iio_buffered_hardware_remove(indio_dev);
->>  	tiadc_channels_remove(indio_dev);
->> diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
->> index e45a208..b9a53e0 100644
->> --- a/include/linux/mfd/ti_am335x_tscadc.h
->> +++ b/include/linux/mfd/ti_am335x_tscadc.h
->> @@ -23,6 +23,8 @@
->>  #define REG_IRQENABLE		0x02C
->>  #define REG_IRQCLR		0x030
->>  #define REG_IRQWAKEUP		0x034
->> +#define REG_DMAENABLE_SET	0x038
->> +#define REG_DMAENABLE_CLEAR	0x03c
->>  #define REG_CTRL		0x040
->>  #define REG_ADCFSM		0x044
->>  #define REG_CLKDIV		0x04C
->> @@ -36,6 +38,7 @@
->>  #define REG_FIFO0THR		0xE8
->>  #define REG_FIFO1CNT		0xF0
->>  #define REG_FIFO1THR		0xF4
->> +#define REG_DMA1REQ		0xF8
->>  #define REG_FIFO0		0x100
->>  #define REG_FIFO1		0x200
->>  
->> @@ -126,6 +129,10 @@
->>  #define FIFOREAD_DATA_MASK (0xfff << 0)
->>  #define FIFOREAD_CHNLID_MASK (0xf << 16)
->>  
->> +/* DMA ENABLE/CLEAR Register */
->> +#define DMA_FIFO0		BIT(0)
->> +#define DMA_FIFO1		BIT(1)
->> +
->>  /* Sequencer Status */
->>  #define SEQ_STATUS BIT(5)
->>  #define CHARGE_STEP		0x11
->>
-> 
+--dDRMvlgZJXvWKvBx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi!
+
+[Ccing lists.]
+
+> Can you push the patch, which gets further than negotiation into
+> some git branch available to me? I tried to apply your patch to
+> my code, but it did not work for me.
+
+Ok, I've pushed the branch to kernel.org:
+
+git push git@gitolite.kernel.org:pub/scm/linux/kernel/git/pavel/linux-n900.=
+git bt-2-v4.9:bt-2-v4.9
+
+In retrospect, I did make some changes to dts, they may be neccessary,
+too.
+
+If it still does not work, please try with my .config. I'm using
+modules here, using this script:
+
+pavel@n900:/my/modules$ cat run2
+echo removing...
+sudo killall a.out
+rmmod nokia_h4p
+#rmmod omap_serial
+#rmmod serial_core
+rmmod hci_uart.ko
+#rmmod bcm2048.ko
+echo installing...
+insmod serial_core.ko
+insmod omap-serial.ko
+insmod bcm2048.ko
+insmod hci_uart.ko
+ls -al /dev/ttyO1
+sleep 1
+stty crtscts < /dev/ttyO1
+/my/tui/ofone/a.out &
+
+For the record, dmesg says:
+
+Good luck,
+									Pavel
+
+[   30.694274] g_ether gadget: notify connect true
+[   30.714080] g_ether gadget: notify speed 425984000
+[  127.719146] ssi-protocol ssi-protocol: WAKELINES TEST OK
+[  218.542694] of_get_named_gpiod_flags: can't parse 'rts-gpio'
+property of node '/ocp@68000000/serial@4806c000[0]'
+[  218.546264] 4806c000.serial: ttyO1 at MMIO 0x4806c000 (irq =3D 89,
+base_baud =3D 3000000) is a OMAP UART1
+[  218.574157] of_get_named_gpiod_flags: can't parse 'rts-gpio'
+property of node '/ocp@68000000/serial@49020000[0]'
+[  218.574340] 49020000.serial: ttyO2 at MMIO 0x49020000 (irq =3D 90,
+base_baud =3D 3000000) is a OMAP UART2
+[  218.650115] bcm2048: probe
+[  218.650177] bcm2048 4806c000.serial:bluetooth: GPIO lookup for
+consumer reset
+[  218.650177] bcm2048 4806c000.serial:bluetooth: using device tree
+for GPIO lookup
+[  218.650360] of_get_named_gpiod_flags: parsed 'reset-gpios' property
+of node '/ocp@68000000/serial@4806c000/bluetooth[0]' - status (0)
+[  218.650390] bcm2048 4806c000.serial:bluetooth: GPIO lookup for
+consumer host-wakeup
+[  218.650421] bcm2048 4806c000.serial:bluetooth: using device tree
+for GPIO lookup
+[  218.650482] of_get_named_gpiod_flags: parsed 'host-wakeup-gpios'
+property of node '/ocp@68000000/serial@4806c000/bluetooth[0]' - status
+(0)
+[  218.650512] bcm2048 4806c000.serial:bluetooth: GPIO lookup for
+consumer bluetooth-wakeup
+[  218.650543] bcm2048 4806c000.serial:bluetooth: using device tree
+for GPIO lookup
+[  218.650604] of_get_named_gpiod_flags: parsed
+'bluetooth-wakeup-gpios' property of node
+'/ocp@68000000/serial@4806c000/bluetooth[0]' - status (0)
+[  218.650817] bcm2048 4806c000.serial:bluetooth: parent uart: ttyO1
+[  218.650817] bcm2048 4806c000.serial:bluetooth: sysclk speed: 38400
+kHz
+[  218.650848] bcm2048 4806c000.serial:bluetooth: probe: 0
+[  218.774139] Bluetooth: HCI UART driver ver 2.3
+[  218.774169] Bluetooth: HCI UART protocol H4 registered
+[  218.774169] Bluetooth: HCI UART protocol H4+ registered
+[  218.774169] Bluetooth: HCI UART protocol BCSP registered
+[  218.774200] Bluetooth: HCI UART protocol LL registered
+[  218.774200] Bluetooth: HCI UART protocol ATH3K registered
+[  218.774200] Bluetooth: HCI UART protocol Three-wire (H5) registered
+[  219.904876] tty ttyO1: Nokia H4+ protocol initialized with
+4806c000.serial:bluetooth!
+[  219.921112] tty ttyO1: Nokia H4+ protocol setup...
+[  219.921142] h4p_reset: reset
+[  219.921142] hci_uart_init_tty
+[  219.983520] h4p_reset: flush
+[  219.983551] h4p_reset: speed
+[  219.983581] tty ttyO1: setting speed to 120000 baud
+[  219.983673] h4p_reset: safety
+[  219.986480] tty ttyO1: wakeup received: 0 -> 1
+[  220.013488] tty ttyO1: wait for cts... received!
+[  220.013519] h4p_reset: flow
+[  220.013549] tty ttyO1: Sending negotiation...
+[  220.013580] tty ttyO1: gpio state: reset=3D1 wakehost=3D1 wakebt=3D1
+[  220.013610] enqueue: hu c304cc80 skb cd4da000
+[  220.017425] tty ttyO1: H4P negotiation:
+[  220.017456] tty ttyO1:     baudrate =3D 416
+[  220.017486] tty ttyO1:     system clock =3D 38400
+[  220.017486] tty ttyO1:     manufacturer id =3D 4
+[  220.017486] tty ttyO1:     version id =3D 11
+[  220.017578] tty ttyO1: setting speed to 921600 baud
+[  220.043457] tty ttyO1: wait for cts... received!
+[  220.043548] tty ttyO1: Negotiation successful...
+[  220.043579] tty ttyO1: Sending alive packet...
+[  220.043579] enqueue: hu c304cc80 skb cd4dacc0
+[  220.043853] tty ttyO1: Received alive packet!
+[  220.047851] tty ttyO1: FW: Skip negotion packet!
+[  220.047882] tty ttyO1: FW: Skip alive packet!
+[  220.052185] enqueue: hu c304cc80 skb cd4da480
+[  220.055175] enqueue: hu c304cc80 skb cd4dae40
+[  220.058776] enqueue: hu c304cc80 skb cd4da6c0
+[  220.058898] Bluetooth: hci0: Frame reassembly failed (-84)
+[  220.058929] Bluetooth: hci0: Frame reassembly failed (-84)
+[  220.064605] enqueue: hu c304cc80 skb cd4daf00
+[  220.068389] enqueue: hu c304cc80 skb cd4da0c0
+[  220.068542] Bluetooth: hci0: Frame reassembly failed (-84)
+[  220.068542] Bluetooth: hci0: Frame reassembly failed (-84)
+[  220.071960] enqueue: hu c304cc80 skb cd4da840
+[  220.072082] Bluetooth: hci0: Frame reassembly failed (-84)
+[  220.072082] Bluetooth: hci0: Frame reassembly failed (-84)
+[  220.075592] enqueue: hu c304cc80 skb cd4da180
+[  220.079803] enqueue: hu c304cc80 skb cd479cc0
+[  220.084381] enqueue: hu c304cc80 skb cd479180
+[  220.087982] enqueue: hu c304cc80 skb cd4793c0
+[  220.088104] Bluetooth: hci0: Frame reassembly failed (-84)
+[  220.088134] Bluetooth: hci0: Frame reassembly failed (-84)
+[  220.091522] enqueue: hu c304cc80 skb cd479e40
+[  220.095336] enqueue: hu c304cc80 skb cd479540
+[  220.098876] enqueue: hu c304cc80 skb cd479000
+[  220.102386] enqueue: hu c304cc80 skb cd479600
+[  220.102478] Bluetooth: hci0: Frame reassembly failed (-84)
+[  220.102508] Bluetooth: hci0: Frame reassembly failed (-84)
+[  220.105987] enqueue: hu c304cc80 skb cd479780
+[  220.109527] enqueue: hu c304cc80 skb cd450cc0
+[  220.109619] Bluetooth: hci0: Frame reassembly failed (-84)
+[  220.109649] Bluetooth: hci0: Frame reassembly failed (-84)
+[  220.113098] enqueue: hu c304cc80 skb cd484600
+[  220.113220] Bluetooth: hci0: Frame reassembly failed (-84)
+[  220.113250] Bluetooth: hci0: Frame reassembly failed (-84)
+[  220.116760] enqueue: hu c304cc80 skb cd4a9b40
+[  220.120300] enqueue: hu c304cc80 skb cd77c840
+[  220.124786] enqueue: hu c304cc80 skb cd4f7900
+[  220.128387] enqueue: hu c304cc80 skb c4fb2180
+[  220.131896] enqueue: hu c304cc80 skb c4fb23c0
+[  220.135498] enqueue: hu c304cc80 skb c4fb2cc0
+[  220.139007] enqueue: hu c304cc80 skb c4fb2000
+[  220.142486] enqueue: hu c304cc80 skb cd44fcc0
+[  220.146118] enqueue: hu c304cc80 skb cd4b60c0
+[  220.149627] enqueue: hu c304cc80 skb cf1986c0
+[  220.153106] enqueue: hu c304cc80 skb cf198480
+[  220.156738] enqueue: hu c304cc80 skb cf1980c0
+[  220.160278] enqueue: hu c304cc80 skb cf198240
+[  220.164733] enqueue: hu c304cc80 skb cd49f780
+[  220.168365] enqueue: hu c304cc80 skb cd4daf00
+[  220.171844] enqueue: hu c304cc80 skb cd4da6c0
+[  220.175445] enqueue: hu c304cc80 skb cd4dab40
+[  220.175567] Bluetooth: hci0: Frame reassembly failed (-84)
+[  220.175567] Bluetooth: hci0: Frame reassembly failed (-84)
+[  220.178955] enqueue: hu c304cc80 skb cd479780
+[  220.182434] enqueue: hu c304cc80 skb cd479540
+[  220.182525] Bluetooth: hci0: Frame reassembly failed (-84)
+[  220.182556] Bluetooth: hci0: Frame reassembly failed (-84)
+[  220.186035] enqueue: hu c304cc80 skb cd4793c0
+[  220.188140] enqueue: hu c304cc80 skb cd479b40
+[  220.188537] enqueue: hu c304cc80 skb cd484600
+[  220.236480] enqueue: hu c304cc80 skb cd4a9f00
+[  220.237701] enqueue: hu c304cc80 skb cd4f7900
+[  220.238830] enqueue: hu c304cc80 skb c4fb23c0
+[  220.239959] enqueue: hu c304cc80 skb c4fb2b40
+[  220.241119] enqueue: hu c304cc80 skb c3107000
+[  220.242187] enqueue: hu c304cc80 skb cd724240
+[  220.243286] enqueue: hu c304cc80 skb cf198540
+[  220.244781] enqueue: hu c304cc80 skb cf198540
+[  220.245758] enqueue: hu c304cc80 skb cd49f780
+[  220.246612] enqueue: hu c304cc80 skb cd4daf00
+[  220.247436] enqueue: hu c304cc80 skb cd479540
+[  220.248535] tty ttyO1: Sending radio packet...
+[  220.248565] enqueue: hu c304cc80 skb cd479cc0
+[  220.248596] tty ttyO1: Radio packet sent
+[  220.249328] Bluetooth: hci0: Frame reassembly failed (-84)
+[  220.272949] tty ttyO1: wakeup received: 1 -> 0
+[  221.283477] tty ttyO1: radio packet timeout!
+[  221.283630] enqueue: hu c304cc80 skb cd4a9b40
+[  223.363372] Bluetooth: hci0 command 0xfc18 tx timeout
+pavel@n900:~$
+
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--dDRMvlgZJXvWKvBx
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlgHO/IACgkQMOfwapXb+vKQAACfdb7J0RqNbqxHahETxsICxgi6
+SLEAnRXtOzpepIg0ilFvCf3vJwDMYeYN
+=xDFq
+-----END PGP SIGNATURE-----
+
+--dDRMvlgZJXvWKvBx--
+
+
+--===============7446472455579839288==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============7446472455579839288==--
