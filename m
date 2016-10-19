@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 3/5] gpio: davinci: irq support for multiple gpio controllers
-Date: Wed, 19 Oct 2016 11:03:57 +0530
-Message-ID: <1476855239-32730-4-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 2/5] drivers: gpio: Add support for multiple IPs
+Date: Wed, 19 Oct 2016 11:03:56 +0530
+Message-ID: <1476855239-32730-3-git-send-email-j-keerthy@ti.com>
 References: <1476855239-32730-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,138 +12,38 @@ To: linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
 Cc: gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, lokeshvutla-l0cyMroinI0@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, j-keerthy-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 
-The Davinci GPIO driver is implemented to work with one monolithic
-Davinci GPIO platform device which may have up to Y(144) gpios.
-The Davinci GPIO driver instantiates number of GPIO chips with
-max 32 gpio pins per each during initialization and one IRQ domain.
-So, the current GPIO's  opjects structure is:
+Update GPIO driver to support Multiple GPIO IPs.
 
-<platform device> Davinci GPIO controller
- |- <gpio0_chip0> ------|
- ...                    |--- irq_domain (hwirq [0..143])
- |- <gpio0_chipN> ------|
-
-The gpio2hwirq conversation is performing in the following way:
-hwirq = gpio0_chipX.base + gpio_offsetN
-
-where gpio_offsetN is gpio pin number inside gpio0_chipX
-and gpio0_chipX.base can have values 0..128 with step 32.
-
-Above will work properly only when one Davinci GPIO controller is
-present, but if second one (68 gpios) is added IRQs will not work for it,
-because gpio1_chipX.base will have values 144..208 with step 32 and
-above formula will not work any more.
-
-Hence, update Davinci GPIO driver to handle this situation properly:
-- add new field in struct davinci_gpio_controller.ctrl_base and
-  save Linux GPIO number of the first GPIO assigned to the Davinci GPIO
-  controller in .probe() - value of static variable "bank_base";
-- correct gpio2hwirq conversation formula as below
-  hwirq = (gpio0_chipX.base - gpio_controller.ctrl_base) + gpio_offsetN
-
-Signed-off-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-[j-keerthy-l0cyMroinI0@public.gmane.org added the ctrl_base to keep track of gpios per controller]
+Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 ---
- drivers/gpio/gpio-davinci.c                | 28 ++++++++++++++++++++++------
- include/linux/platform_data/gpio-davinci.h |  1 +
- 2 files changed, 23 insertions(+), 6 deletions(-)
+ drivers/gpio/gpio-davinci.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpio/gpio-davinci.c b/drivers/gpio/gpio-davinci.c
-index 2654dae..2bc308a 100644
+index 419cfaf..2654dae 100644
 --- a/drivers/gpio/gpio-davinci.c
 +++ b/drivers/gpio/gpio-davinci.c
-@@ -176,7 +176,7 @@ static int davinci_gpio_of_xlate(struct gpio_chip *gc,
+@@ -183,6 +183,7 @@ static int davinci_gpio_probe(struct platform_device *pdev)
+ 	struct davinci_gpio_regs __iomem *regs;
+ 	struct device *dev = &pdev->dev;
+ 	struct resource *res;
++	static int bank_base;
  
- static int davinci_gpio_probe(struct platform_device *pdev)
- {
--	int i, base;
-+	int i, base, temp_ctrl_base;
- 	unsigned ngpio, nbank;
- 	struct davinci_gpio_controller *chips;
- 	struct davinci_gpio_platform_data *pdata;
-@@ -219,6 +219,8 @@ static int davinci_gpio_probe(struct platform_device *pdev)
- 	if (IS_ERR(gpio_base))
- 		return PTR_ERR(gpio_base);
- 
-+	temp_ctrl_base = bank_base;
-+
- 	for (i = 0, base = 0; base < ngpio; i++, base += 32) {
- 		chips[i].chip.label = "DaVinci";
- 
-@@ -228,10 +230,13 @@ static int davinci_gpio_probe(struct platform_device *pdev)
+ 	pdata = davinci_gpio_get_pdata(pdev);
+ 	if (!pdata) {
+@@ -226,7 +227,8 @@ static int davinci_gpio_probe(struct platform_device *pdev)
+ 		chips[i].chip.direction_output = davinci_direction_out;
  		chips[i].chip.set = davinci_gpio_set;
  
- 		chips[i].chip.base = bank_base;
-+		chips[i].ctrl_base = temp_ctrl_base;
- 		bank_base += 32;
+-		chips[i].chip.base = base;
++		chips[i].chip.base = bank_base;
++		bank_base += 32;
  		chips[i].chip.ngpio = ngpio - base;
  		if (chips[i].chip.ngpio > 32)
  			chips[i].chip.ngpio = 32;
-+		else
-+			bank_base = ngpio;
- 
- #ifdef CONFIG_OF_GPIO
- 		chips[i].chip.of_gpio_n_cells = 2;
-@@ -329,6 +334,7 @@ static void gpio_irq_handler(struct irq_desc *desc)
- 	while (1) {
- 		u32		status;
- 		int		bit;
-+		irq_hw_number_t hw_irq;
- 
- 		/* ack any irqs */
- 		status = readl_relaxed(&g->intstat) & mask;
-@@ -341,9 +347,13 @@ static void gpio_irq_handler(struct irq_desc *desc)
- 		while (status) {
- 			bit = __ffs(status);
- 			status &= ~BIT(bit);
-+			/* Max number of gpios per controller is 144 so
-+			 * hw_irq will be in [0..143]
-+			 */
-+			hw_irq = (d->chip.base - d->ctrl_base) + bit;
-+
- 			generic_handle_irq(
--				irq_find_mapping(d->irq_domain,
--						 d->chip.base + bit));
-+				irq_find_mapping(d->irq_domain, hw_irq));
- 		}
- 	}
- 	chained_irq_exit(irq_desc_get_chip(desc), desc);
-@@ -353,11 +363,17 @@ static void gpio_irq_handler(struct irq_desc *desc)
- static int gpio_to_irq_banked(struct gpio_chip *chip, unsigned offset)
- {
- 	struct davinci_gpio_controller *d = gpiochip_get_data(chip);
-+	irq_hw_number_t hw_irq;
- 
--	if (d->irq_domain)
--		return irq_create_mapping(d->irq_domain, d->chip.base + offset);
--	else
-+	if (d->irq_domain) {
-+		/* Max number of gpios per controller is 144 so
-+		 * hw_irq will be in [0..143]
-+		 */
-+		hw_irq = (d->chip.base - d->ctrl_base) + offset;
-+		return irq_create_mapping(d->irq_domain, hw_irq);
-+	} else {
- 		return -ENXIO;
-+	}
- }
- 
- static int gpio_to_irq_unbanked(struct gpio_chip *chip, unsigned offset)
-diff --git a/include/linux/platform_data/gpio-davinci.h b/include/linux/platform_data/gpio-davinci.h
-index 6ace3fd..0a0cdd7 100644
---- a/include/linux/platform_data/gpio-davinci.h
-+++ b/include/linux/platform_data/gpio-davinci.h
-@@ -38,6 +38,7 @@ struct davinci_gpio_controller {
- 	void __iomem		*in_data;
- 	int			gpio_unbanked;
- 	unsigned		gpio_irq;
-+	unsigned int		ctrl_base;
- };
- 
- /*
 -- 
 1.9.1
 
