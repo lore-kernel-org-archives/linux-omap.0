@@ -1,33 +1,56 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: seeing some junk characters on boot console with v4.9-rc1-3-g14155ca
-Date: Tue, 18 Oct 2016 14:39:21 -0500
-Message-ID: <CAL_JsqKgv5ez6a=F7ZxPLhZu7aHP+5ZSgaEiHx27zHk=x7iouA@mail.gmail.com>
-References: <7940c6b1-22df-90f9-4ef8-43b707db6f68@ti.com>
+From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 4/9] regulator: lp873x: Add support for populating input
+ supply
+Date: Wed, 19 Oct 2016 10:20:59 +0530
+Message-ID: <57988545-4319-0bcf-df1a-55c78111aa5b@ti.com>
+References: <20161014130033.14172-1-lokeshvutla@ti.com>
+ <20161014130033.14172-5-lokeshvutla@ti.com>
+ <20161018142743.xfgjuaw4wlssmoxq@rob-hp-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <7940c6b1-22df-90f9-4ef8-43b707db6f68@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, Vignesh R <vigneshr@ti.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161018142743.xfgjuaw4wlssmoxq@rob-hp-laptop>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux ARM Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 18, 2016 at 7:08 AM, Mugunthan V N <mugunthanvnm@ti.com> wrote:
-> Hi
->
-> I am seeing some junk characters on uart boot console on DRA72x platform
-> [1] and even on other TI platforms, did a bisect and found the commit
-> "761ed4a94582" broke it first.
->
-> By reverting below two commit, I don't see the issue logs [2].
->
-> 761ed4a94582 "tty:serial_core: convert uart_close to use tty_port_close"
-> a5a2b13074fd "serial: core: fix potential NULL pointer dereference"
 
-Can you test with the patch titled "tty: serial_core: Fix serial
-console crash on port shutdown"[1]? It may be disabling the console
-when it shouldn't.
 
-Rob
+On Tuesday 18 October 2016 07:57 PM, Rob Herring wrote:
+> On Fri, Oct 14, 2016 at 06:30:28PM +0530, Lokesh Vutla wrote:
+>> In order to have a proper topology of regulators for a platform, each
+>> registering regulator needs to populate supply_name field for identifying
+>> its supply's name. Add supply_name field for lp873x regulators.
+>>
+>> Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>> Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+>> Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  Documentation/devicetree/bindings/mfd/lp873x.txt | 8 ++++++++
+>>  drivers/regulator/lp873x-regulator.c             | 1 +
+>>  2 files changed, 9 insertions(+)
+>>
+>> diff --git a/Documentation/devicetree/bindings/mfd/lp873x.txt b/Documentation/devicetree/bindings/mfd/lp873x.txt
+>> index 52766c2..936cba3 100644
+>> --- a/Documentation/devicetree/bindings/mfd/lp873x.txt
+>> +++ b/Documentation/devicetree/bindings/mfd/lp873x.txt
+>> @@ -7,6 +7,9 @@ Required properties:
+>>    - #gpio-cells:	Should be two.  The first cell is the pin number and
+>>  			the second cell is used to specify flags.
+>>  			See ../gpio/gpio.txt for more information.
+>> +  - xxx-supply:		Phandle to parent supply node of each regulator
+>> +			populated under regulators node. xxx should match
+>> +			the supply_name populated in driver.
+> 
+> xxx-in-supply?
 
-[1] http://www.gossamer-threads.com/lists/linux/kernel/2546399
+Oops. Right. Ill update it and repost.
+
+Thanks and regards,
+Lokesh
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
