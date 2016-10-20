@@ -1,32 +1,35 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv4 03/15] dt-bindings: clock: add omap4 hwmod clock IDs
-Date: Thu, 20 Oct 2016 06:11:43 -0700
-Message-ID: <20161020131143.5cfhl3eug2lr64oa@atomide.com>
-References: <1476805568-19264-1-git-send-email-t-kristo@ti.com>
- <1476805568-19264-4-git-send-email-t-kristo@ti.com>
- <20161020124742.7b65l5lz6kcfsysl@atomide.com>
- <051e2a14-8fb9-fd0f-99e0-decc5c02ae75@ti.com>
+Subject: Re: [PATCH 0/3] ARM-OMAP2+: Fine-tuning for five function
+ implementations
+Date: Thu, 20 Oct 2016 06:13:44 -0700
+Message-ID: <20161020131344.ibixaniopemiumvm@atomide.com>
+References: <e86a5ded-a6e9-1b40-be1a-98fffef0abb5@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
+Return-path: <kernel-janitors-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <051e2a14-8fb9-fd0f-99e0-decc5c02ae75@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, mturquette@baylibre.com, sboyd@codeaurora.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <e86a5ded-a6e9-1b40-be1a-98fffef0abb5@users.sourceforge.net>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [161020 06:00]:
-> On 20/10/16 15:47, Tony Lindgren wrote:
-> > * Tero Kristo <t-kristo@ti.com> [161018 08:47]:
-> > > Add IDs for omap4 hwmod clocks. These are basically register offsets
-> > > from the beginning of the clockdomain address space.
-> > 
-> > Looks like you have a wrong subject for this patch?
+* SF Markus Elfring <elfring@users.sourceforge.net> [161015 13:51]:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Sat, 15 Oct 2016 22:44:22 +0200
 > 
-> What is the correct one? There seems to be multiple approaches in place.
+> A few update suggestions were taken into account
+> from static source code analysis.
+> 
+> Markus Elfring (3):
+>   mux: Replace three seq_printf() calls by seq_puts()
+>   mux: Use seq_putc() in omap_mux_dbg_signal_show()
+>   pm-debug: Use seq_putc() in two functions
 
-Oh sorry yeah never mind, I somehow thought these defines
-we for drivers/clk, not for dt-bindings.. Sorry for the noise.
+Thanks will be applying for v4.10 merge window. FYI, chances
+are that arch/arm/mach-map2/mux.c will get dropped for v4.10
+unless we run into regressions.
+
+Regards,
 
 Tony
