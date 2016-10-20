@@ -1,50 +1,73 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH RESEND] ARM: AM43XX: Select OMAP_INTERCONNECT in Kconfig
-Date: Wed, 19 Oct 2016 15:44:12 -0500
-Message-ID: <20161019204412.18607-1-d-gerlach@ti.com>
+From: Romain Perier <romain.perier@free-electrons.com>
+Subject: Re: [PATCH v3 0/8] Add support for SafeXcel IP-76 to OMAP RNG
+Date: Thu, 20 Oct 2016 09:02:33 +0200
+Message-ID: <dd208140-468c-f17d-1a5f-b297fa0688ec@free-electrons.com>
+References: <20160916100856.31727-1-romain.perier@free-electrons.com>
+ <57DBEB1A.4050602@free-electrons.com> <57E8F1F1.6040906@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Dave Gerlach <d-gerlach@ti.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <57E8F1F1.6040906@free-electrons.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: dsaxena@plexity.net, mpm@selenic.com, Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Gregory Clement <gregory.clement@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Nadav Haklai <nadavh@marvell.com>, Omri Itach <omrii@marvell.com>, Shadi Ammouri <shadi@marvell.com>, Yahuda Yitschak <yehuday@marvell.com>, Hanna Hawa <hannah@marvell.com>, Neta Zur Hershkovits <neta@marvell.com>, Igal Liberman <igall@marvell.com>, Marcin Wojtas <mw@semihalf.com>, linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-AM437x makes use of the omap_l3_noc driver so explicitly select
-OMAP_INTERCONNECT in the Kconfig for SOC_AM43XX to ensure it gets enabled
-for AM43XX only builds.
+Hello,
 
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
----
-This was supposed to be picked up for v4.7 [1] but doesn't seem to have
-ever been merged, maybe it was missed? Here it is again, rebased
-on v4.9-rc1.
+Le 26/09/2016 à 12:01, Romain Perier a écrit :
+>
+>
+> Le 16/09/2016 14:52, Romain Perier a écrit :
+>> Hello,
+>>
+>> Le 16/09/2016 12:08, Romain Perier a écrit :
+>>> The driver omap-rng has a lot of similarity with the IP block SafeXcel
+>>> IP-76. A lot of registers are the same and the way that the driver works
+>>> is very closed the description of the TRNG EIP76 in its datasheet.
+>>>
+>>> This series refactorize the driver, add support for generating bigger
+>>> output random data and add a device variant for SafeXcel IP-76, found
+>>> in Armada 8K.
+>>>
+>>> Romain Perier (8):
+>>>    dt-bindings: Add vendor prefix for INSIDE Secure
+>>>    dt-bindings: omap-rng: Document SafeXcel IP-76 device variant
+>>>    hwrng: omap - Switch to non-obsolete read API implementation
+>>>    hwrng: omap - Remove global definition of hwrng
+>>>    hwrng: omap - Add support for 128-bit output of data
+>>>    hwrng: omap - Don't prefix the probe message with OMAP
+>>>    hwrng: omap - Add device variant for SafeXcel IP-76 found in
+>>> Armada 8K
+>>>    arm64: dts: marvell: add TRNG description for Armada 8K CP
+>>>
+>>>   Documentation/devicetree/bindings/rng/omap_rng.txt |  14 +-
+>>>   .../devicetree/bindings/vendor-prefixes.txt        |   1 +
+>>>   .../boot/dts/marvell/armada-cp110-master.dtsi      |   8 +
+>>>   .../arm64/boot/dts/marvell/armada-cp110-slave.dtsi |   8 +
+>>>   drivers/char/hw_random/Kconfig                     |   2 +-
+>>>   drivers/char/hw_random/omap-rng.c                  | 162
+>>> ++++++++++++++++-----
+>>>   6 files changed, 152 insertions(+), 43 deletions(-)
+>>>
+>>
+>> If possible, I would like to get "Tested-by" tags by the omap guys
+>> before this set of patches is merged, to be sure that there are no
+>> regressions for the OMAP variant.
+>>
+>> Thanks,
+>
+> Added omap ML to Cc:
+>
+> Romain,
 
-[1] http://www.spinics.net/lists/linux-omap/msg129708.html
+Without any feedbacks from the OMAP guys, could you merge please ? 
+Regressions can be detected in "next" and then fixed.
 
- arch/arm/mach-omap2/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index a9afeebd59f2..0465338183c7 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -71,6 +71,7 @@ config SOC_AM43XX
- 	select HAVE_ARM_TWD
- 	select ARM_ERRATA_754322
- 	select ARM_ERRATA_775420
-+	select OMAP_INTERCONNECT
- 
- config SOC_DRA7XX
- 	bool "TI DRA7XX"
+Regards,
+Romain
 -- 
-2.9.3
+Romain Perier, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
