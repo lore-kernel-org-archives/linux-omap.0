@@ -1,7 +1,7 @@
 From: Milo Kim <woogyom.kim@gmail.com>
-Subject: [PATCH 3/7] ARM: dts: tps65217: Add the power button device
-Date: Fri, 21 Oct 2016 23:01:02 +0900
-Message-ID: <20161021140106.21531-4-woogyom.kim@gmail.com>
+Subject: [PATCH 5/7] ARM: dts: am335x: Add the charger interrupt
+Date: Fri, 21 Oct 2016 23:01:04 +0900
+Message-ID: <20161021140106.21531-6-woogyom.kim@gmail.com>
 References: <20161021140106.21531-1-woogyom.kim@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20161021140106.21531-1-woogyom.kim@gmail.com>
@@ -10,28 +10,39 @@ To: bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Milo Kim <woogyom.kim@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Support the power button driver and disable it by default.
+This enables the charger driver gets corresponding IRQ number by using
+platform_get_irq_byname() helper.
 
 Signed-off-by: Milo Kim <woogyom.kim@gmail.com>
 ---
- arch/arm/boot/dts/tps65217.dtsi | 5 +++++
- 1 file changed, 5 insertions(+)
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/arch/arm/boot/dts/tps65217.dtsi b/arch/arm/boot/dts/tps65217.dtsi
-index 8f77d0d..02de56b 100644
---- a/arch/arm/boot/dts/tps65217.dtsi
-+++ b/arch/arm/boot/dts/tps65217.dtsi
-@@ -21,6 +21,11 @@
- 		status = "disabled";
- 	};
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 25303d9..cec9d91 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -6,6 +6,8 @@
+  * published by the Free Software Foundation.
+  */
  
-+	pwrbutton {
-+		compatible = "ti,tps65217-pwrbutton";
-+		status = "disabled";
++#include <dt-bindings/mfd/tps65217.h>
++
+ / {
+ 	cpus {
+ 		cpu@0 {
+@@ -316,6 +318,12 @@
+ 
+ 	ti,pmic-shutdown-controller;
+ 
++	charger {
++		interrupts = <TPS65217_IRQ_AC>, <TPS65217_IRQ_USB>;
++		interrupts-names = "AC", "USB";
++		status = "okay";
 +	};
 +
  	regulators {
- 		#address-cells = <1>;
- 		#size-cells = <0>;
+ 		dcdc1_reg: regulator@0 {
+ 			regulator-name = "vdds_dpr";
 -- 
 2.9.3
