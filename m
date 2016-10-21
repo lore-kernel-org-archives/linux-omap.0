@@ -1,73 +1,45 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/2] musb-fixes for v4.9-rc2
-Date: Fri, 21 Oct 2016 00:17:23 -0700
-Message-ID: <20161021071722.2cetd2mt23t245ao@atomide.com>
-References: <1476896620-15432-1-git-send-email-b-liu@ti.com>
- <20161020082318.GA2903@localhost.localdomain>
- <20161020123524.oepmqvlhzzu7elgj@atomide.com>
- <20161020193612.GA29736@localhost.localdomain>
+From: Jeroen Hofstee <jhofstee@victronenergy.com>
+Subject: Re: [PATCH] net: cpsw: fix obtaining mac address for am3517
+Date: Fri, 21 Oct 2016 09:36:22 +0200
+Message-ID: <b713c697-3e42-4621-5d65-ab69c979d8be@victronenergy.com>
+References: <1476993351-23065-1-git-send-email-jhofstee@victronenergy.com>
+ <20161021063851.6frul6pemo52i7ot@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161020193612.GA29736-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20161021063851.6frul6pemo52i7ot@atomide.com>
+Sender: netdev-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org> [161020 12:37]:
-> On Thu, Oct 20, 2016 at 05:35:24AM -0700, Tony Lindgren wrote:
-> > I don't think I've seen that error..
-> 
-> Comment in code reads: 'FIXME this is another "SHOULD NEVER HAPPEN"'
+Hello Tony,
 
-Seems like it does though..
+On 21-10-16 08:38, Tony Lindgren wrote:
+> * Jeroen Hofstee <jhofstee@victronenergy.com> [161020 12:57]:
+>> Commit b6745f6e4e63 ("drivers: net: cpsw: davinci_emac: move reading mac
+>> id to common file") did not only move the code for an am3517, it also
+>> added the slave parameter, resulting in a invalid (all zero) mac address
+>> being returned. So change it back to always read from slave zero, so it
+>> works again.
+> Hmm doesn't this now break it for cpsw with two instances?
+>
 
-> > There are few patches that we seem to need for v4.7 and v4.8 stable.
-> > At least these two fixes that should be merged for v4.9 should be
-> > in:
-> > 
-> > [PATCH 0/2] Fixes for two more musb regressions
-> > 
-> > Then two patches for phy-twl4030-usb.c:
-> > 
-> > b78ea84a7d45 ("phy-twl4030-usb: initialize charging-related stuff via
-> > pm_runtime")
-> > 78489c7c48d4 ("phy-twl4030-usb: better handle musb_mailbox() failure")
-> > 
-> > Are you using the twl4030 phy or something else? Also, care to try
-> 
-> twl4030.
-> 
-> > with v4.9-rc + [PATCH 0/2] Fixes for two more musb regressions?
-> 
-> Compiled recent Linus' git tree with those two patches on top of it.
-> It doesn't work either, but I found that when I unplug hub from musb
-> during bootup and connect is again after musb gets initialized, it works
-> normally. Well, almost... It does survive only few reconnects, then
-> ends with:
+Yes, well, they get the same mac address at least. But does it matter?
+This changes davinci_emac_3517_get_macid, the only way to get there
+is:
 
-OK interesting, care to check if things work normally with the fixes
-mentioned and without the hub? Maybe that's the difference here
-compared to my setup.
-...
+     if (of_device_is_compatible(dev->of_node, "ti,am3517-emac"))
+         return davinci_emac_3517_get_macid(dev, 0x110, slave, mac_addr)
 
-> [  186.457519] musb-hdrc musb-hdrc.0.auto: VBUS_ERROR in a_wait_bcon (90, <VBusValid), retry #3, port1 0008010c
-> 
-> And that's the end, since now it does not react on hub plug/unplug.
-> 
-> Also all that VBUS_ERROR conditions are strange as hub is powered separately
-> and power lines from phy are not used.
+and the only user of ti,am3517-emac is arch/arm/boot/dts/am3517.dtsi,
+which only has one emac. So the change is already am3517 specific.
 
-Hmm yeah. I'd like to be able to reproduce this. Can you email me
-your .config (again)? You have things in host mode with a powered
-hub plus few devices with no USB gadgets configured?
+> We may need am3517 specific quirk flag instead?
+
+Given above, it is already am3517 specific. Let me know if you prefer this
+route then I will have a look at it.
 
 Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jeroen
