@@ -1,35 +1,28 @@
-From: Jeroen Hofstee <jhofstee@victronenergy.com>
-Subject: Re: [PATCH] davinci_emac: fix setting the mac from DT
-Date: Thu, 20 Oct 2016 15:35:19 +0200
-Message-ID: <4caaccd7-69c4-ed5d-2e2e-6cf431fceeb4@victronenergy.com>
-References: <1476904973-13226-1-git-send-email-jhofstee@victronenergy.com>
- <20161020124149.v47amnfbisndai4q@atomide.com>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: [PATCH v3 0/8] Add support for SafeXcel IP-76 to OMAP RNG
+Date: Fri, 21 Oct 2016 11:10:58 +0800
+Message-ID: <20161021031058.GC22979@gondor.apana.org.au>
+References: <20160916100856.31727-1-romain.perier@free-electrons.com>
+ <57DBEB1A.4050602@free-electrons.com>
+ <57E8F1F1.6040906@free-electrons.com>
+ <dd208140-468c-f17d-1a5f-b297fa0688ec@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20161020124149.v47amnfbisndai4q@atomide.com>
-Sender: netdev-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: netdev@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, Anant Gole <anantgole@ti.com>, Chaithrika U S <chaithrika@ti.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-crypto-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <dd208140-468c-f17d-1a5f-b297fa0688ec@free-electrons.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Romain Perier <romain.perier@free-electrons.com>
+Cc: dsaxena@plexity.net, mpm@selenic.com, Gregory Clement <gregory.clement@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Nadav Haklai <nadavh@marvell.com>, Omri Itach <omrii@marvell.com>, Shadi Ammouri <shadi@marvell.com>, Yahuda Yitschak <yehuday@marvell.com>, Hanna Hawa <hannah@marvell.com>, Neta Zur Hershkovits <neta@marvell.com>, Igal Liberman <igall@marvell.com>, Marcin Wojtas <mw@semihalf.com>, linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Thu, Oct 20, 2016 at 09:02:33AM +0200, Romain Perier wrote:
+>
+> Without any feedbacks from the OMAP guys, could you merge please ?
+> Regressions can be detected in "next" and then fixed.
 
-
-On 20-10-16 14:41, Tony Lindgren wrote:
-> * Jeroen Hofstee <jhofstee@victronenergy.com> [161019 12:39]:
->> commit 9120bd6e9f77 ("net: davinci_emac: Get device dm816x MAC address
->> using the cpsw code") sets the mac address to the one stored in the chip
->> unconditionally, overwritten the one already set from the device tree.
->> This patch makes sure the mac from DT is preserved.
->>
->> On a am3517 this address is incorrectly read as all zeros, making it
->> impossible to set a valid mac address without this patch.
-> OK, at least I don't have better ideas for fixing this:
-
-more details about the am3517 specific issue can be found
-here http://marc.info/?l=linux-omap&m=147678889732646&w=2
-
-Regards,
-Jeroen
+All appied.  Thanks.
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
