@@ -1,323 +1,289 @@
 From: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v3 2/4] drivers: iio: ti_am335x_adc: add dma support
-Date: Sat, 22 Oct 2016 18:47:41 +0100
-Message-ID: <28c29f63-d7ef-0ef2-7af1-cf6d631136fc@kernel.org>
-References: <20161005090443.24576-1-mugunthanvnm@ti.com>
- <20161005090443.24576-3-mugunthanvnm@ti.com>
- <d0105217-a8ee-cd8e-221d-34c19257765e@kernel.org>
- <d7dd9a21-51d9-e8f5-a6fe-34653afc9240@ti.com>
+Subject: Re: [PATCH v4 4/8] drivers:input:tsc2007: add iio interface to read
+ external ADC input and temperature
+Date: Sat, 22 Oct 2016 19:33:13 +0100
+Message-ID: <07bb4d52-a439-f9a9-8593-ddde8e93e6ee@kernel.org>
+References: <cover.1476712675.git.hns@goldelico.com>
+ <4d3c600bf0a6b75a74212a103bf31525505290a0.1476712675.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <d7dd9a21-51d9-e8f5-a6fe-34653afc9240-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <4d3c600bf0a6b75a74212a103bf31525505290a0.1476712675.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, "Andrew F . Davis" <afd-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, John Syne <john3909-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, =?UTF-8?Q?Mika_Penttil=c3=a4?= <mika.penttila-MRsr7dthA9VWk0Htik3J/w@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 19/10/16 09:52, Mugunthan V N wrote:
-> On Sunday 09 October 2016 02:00 PM, Jonathan Cameron wrote:
->> On 05/10/16 10:04, Mugunthan V N wrote:
->>> This patch adds the required pieces to ti_am335x_adc driver for
->>> DMA support
->>>
->>> Signed-off-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
->> Hi,
->>
->> Just the one question inline.  I'll also need an Ack from Lee as
->> this touches code in mfd (as does the previous patch).
->> We have obviously missed this merge window, so no particular rush.
-Question answered below.  So just need that Ack from Lee.
+On 17/10/16 14:57, H. Nikolaus Schaller wrote:
+> The tsc2007 chip not only has a resistive touch screen controller but
+> also an external AUX adc imput which can be used for an ambient
+> light sensor, battery voltage monitoring or any general purpose.
+> 
+> Additionally it can measure the chip temperature.
+> 
+> This extension provides an iio interface for these adc channels.
+> 
+> Since it is not wasting much resources and is very straightforward,
+> we simply provide all other adc channels as optional iio interfaces
+> as weel. This can be used for debugging or special applications.
+well
+> 
+> Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+This could be cleaner done perhaps by factoring out the IIO stuff into a separate
+file and using a header with stubs to deal with the no available case.
 
+There will only be a handful of stubs and it'll give you a lot cleaner code
+in here.
 
->>
->> Otherwise, looking very nice indeed.  Got to get my BBB out and play
->> with this now ;)
->>
->> Jonathan
->>> ---
->>>  drivers/iio/adc/ti_am335x_adc.c      | 148 ++++++++++++++++++++++++++++++++++-
->>>  include/linux/mfd/ti_am335x_tscadc.h |   7 ++
->>>  2 files changed, 152 insertions(+), 3 deletions(-)
->>>
->>> diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
->>> index c3cfacca..ad9dec3 100644
->>> --- a/drivers/iio/adc/ti_am335x_adc.c
->>> +++ b/drivers/iio/adc/ti_am335x_adc.c
->>> @@ -30,10 +30,28 @@
->>>  #include <linux/iio/buffer.h>
->>>  #include <linux/iio/kfifo_buf.h>
->>>  
->>> +#include <linux/dmaengine.h>
->>> +#include <linux/dma-mapping.h>
->>> +
->>> +#define DMA_BUFFER_SIZE		SZ_2K
->>> +
->>> +struct tiadc_dma {
->>> +	struct dma_slave_config	conf;
->>> +	struct dma_chan		*chan;
->>> +	dma_addr_t		addr;
->>> +	dma_cookie_t		cookie;
->>> +	u8			*buf;
->>> +	int			current_period;
->>> +	int			period_size;
->>> +	u8			fifo_thresh;
->>> +};
->>> +
->>>  struct tiadc_device {
->>>  	struct ti_tscadc_dev *mfd_tscadc;
->>> +	struct tiadc_dma dma;
->>>  	struct mutex fifo1_lock; /* to protect fifo access */
->>>  	int channels;
->>> +	int total_ch_enabled;
->>>  	u8 channel_line[8];
->>>  	u8 channel_step[8];
->>>  	int buffer_en_ch_steps;
->>> @@ -198,6 +216,67 @@ static irqreturn_t tiadc_worker_h(int irq, void *private)
->>>  	return IRQ_HANDLED;
->>>  }
->>>  
->>> +static void tiadc_dma_rx_complete(void *param)
->>> +{
->>> +	struct iio_dev *indio_dev = param;
->>> +	struct tiadc_device *adc_dev = iio_priv(indio_dev);
->>> +	struct tiadc_dma *dma = &adc_dev->dma;
->>> +	u8 *data;
->>> +	int i;
->>> +
->>> +	data = dma->buf + dma->current_period * dma->period_size;
->>> +	dma->current_period = 1 - dma->current_period; /* swap the buffer ID */
->>> +
->>> +	for (i = 0; i < dma->period_size; i += indio_dev->scan_bytes) {
->>> +		iio_push_to_buffers(indio_dev, data);
->>> +		data += indio_dev->scan_bytes;
->>> +	}
->> Hmm. Another case for the mooted iio_push_to_buffers_multi. Guess
->> we should move on with that one ;)
->>> +}
->>> +
->>> +static int tiadc_start_dma(struct iio_dev *indio_dev)
->>> +{
->>> +	struct tiadc_device *adc_dev = iio_priv(indio_dev);
->>> +	struct tiadc_dma *dma = &adc_dev->dma;
->>> +	struct dma_async_tx_descriptor *desc;
->>> +
->>> +	dma->current_period = 0; /* We start to fill period 0 */
->>> +	/*
->>> +	 * Make the fifo thresh as the multiple of total number of
->>> +	 * channels enabled, so make sure that cyclic DMA period
->>> +	 * length is also a multiple of total number of channels
->>> +	 * enabled. This ensures that no invalid data is reported
->>> +	 * to the stack via iio_push_to_buffers().
->>> +	 */
->>> +	dma->fifo_thresh = rounddown(FIFO1_THRESHOLD + 1,
->>> +				     adc_dev->total_ch_enabled) - 1;
->>> +	/* Make sure that period length is multiple of fifo thresh level */
->>> +	dma->period_size = rounddown(DMA_BUFFER_SIZE / 2,
->>> +				    (dma->fifo_thresh + 1) * sizeof(u16));
->>> +
->>> +	dma->conf.src_maxburst = dma->fifo_thresh + 1;
->>> +	dmaengine_slave_config(dma->chan, &dma->conf);
->>> +
->>> +	desc = dmaengine_prep_dma_cyclic(dma->chan, dma->addr,
->>> +					 dma->period_size * 2,
->>> +					 dma->period_size, DMA_DEV_TO_MEM,
->>> +					 DMA_PREP_INTERRUPT);
->>> +	if (!desc)
->>> +		return -EBUSY;
->>> +
->>> +	desc->callback = tiadc_dma_rx_complete;
->>> +	desc->callback_param = indio_dev;
->>> +
->>> +	dma->cookie = dmaengine_submit(desc);
->>> +
->>> +	dma_async_issue_pending(dma->chan);
->>> +
->>> +	tiadc_writel(adc_dev, REG_FIFO1THR, dma->fifo_thresh);
->>> +	tiadc_writel(adc_dev, REG_DMA1REQ, dma->fifo_thresh);
->>> +	tiadc_writel(adc_dev, REG_DMAENABLE_SET, DMA_FIFO1);
->>> +
->>> +	return 0;
->>> +}
->>> +
->>>  static int tiadc_buffer_preenable(struct iio_dev *indio_dev)
->>>  {
->>>  	struct tiadc_device *adc_dev = iio_priv(indio_dev);
->>> @@ -218,20 +297,30 @@ static int tiadc_buffer_preenable(struct iio_dev *indio_dev)
->>>  static int tiadc_buffer_postenable(struct iio_dev *indio_dev)
->>>  {
->>>  	struct tiadc_device *adc_dev = iio_priv(indio_dev);
->>> +	struct tiadc_dma *dma = &adc_dev->dma;
->>> +	unsigned int irq_enable;
->>>  	unsigned int enb = 0;
->>>  	u8 bit;
->>>  
->>>  	tiadc_step_config(indio_dev);
->>> -	for_each_set_bit(bit, indio_dev->active_scan_mask, adc_dev->channels)
->>> +	for_each_set_bit(bit, indio_dev->active_scan_mask, adc_dev->channels) {
->>>  		enb |= (get_adc_step_bit(adc_dev, bit) << 1);
->>> +		adc_dev->total_ch_enabled++;
->>> +	}
->>>  	adc_dev->buffer_en_ch_steps = enb;
->>>  
->>> +	if (dma->chan)
->>> +		tiadc_start_dma(indio_dev);
->>> +
->>>  	am335x_tsc_se_set_cache(adc_dev->mfd_tscadc, enb);
->>>  
->>>  	tiadc_writel(adc_dev,  REG_IRQSTATUS, IRQENB_FIFO1THRES
->>>  				| IRQENB_FIFO1OVRRUN | IRQENB_FIFO1UNDRFLW);
->>> -	tiadc_writel(adc_dev,  REG_IRQENABLE, IRQENB_FIFO1THRES
->>> -				| IRQENB_FIFO1OVRRUN);
->>> +
->>> +	irq_enable = IRQENB_FIFO1OVRRUN;
->>> +	if (!dma->chan)
->>> +		irq_enable |= IRQENB_FIFO1THRES;
->> This changes the non dma behaviour as we no longer set IRQENB_FIFO1THRES.
->> Why?  Was it wrong before?
+If def fun in .c files is always harder to deal with than in a header
+where stubs are really obvious.
+
+J
+> ---
+>  drivers/input/touchscreen/tsc2007.c | 151 +++++++++++++++++++++++++++++++++++-
+>  1 file changed, 150 insertions(+), 1 deletion(-)
 > 
-> In non DMA case, dms->chan will be NULL and IRQENB_FIFO1THRES interrupt
-> will be enabled to pop the ADC samples.
-> 
-oops.  Thanks for pointing out how I'd misread this!
-So just after the ack from Lee now.
-Jonathan
-> Regards
-> Mugunthan V N
-> 
->>> +	tiadc_writel(adc_dev,  REG_IRQENABLE, irq_enable);
->>>  
->>>  	return 0;
->>>  }
->>> @@ -239,12 +328,18 @@ static int tiadc_buffer_postenable(struct iio_dev *indio_dev)
->>>  static int tiadc_buffer_predisable(struct iio_dev *indio_dev)
->>>  {
->>>  	struct tiadc_device *adc_dev = iio_priv(indio_dev);
->>> +	struct tiadc_dma *dma = &adc_dev->dma;
->>>  	int fifo1count, i, read;
->>>  
->>>  	tiadc_writel(adc_dev, REG_IRQCLR, (IRQENB_FIFO1THRES |
->>>  				IRQENB_FIFO1OVRRUN | IRQENB_FIFO1UNDRFLW));
->>>  	am335x_tsc_se_clr(adc_dev->mfd_tscadc, adc_dev->buffer_en_ch_steps);
->>>  	adc_dev->buffer_en_ch_steps = 0;
->>> +	adc_dev->total_ch_enabled = 0;
->>> +	if (dma->chan) {
->>> +		tiadc_writel(adc_dev, REG_DMAENABLE_CLEAR, 0x2);
->>> +		dmaengine_terminate_async(dma->chan);
->>> +	}
->>>  
->>>  	/* Flush FIFO of leftover data in the time it takes to disable adc */
->>>  	fifo1count = tiadc_readl(adc_dev, REG_FIFO1CNT);
->>> @@ -430,6 +525,41 @@ static const struct iio_info tiadc_info = {
->>>  	.driver_module = THIS_MODULE,
->>>  };
->>>  
->>> +static int tiadc_request_dma(struct platform_device *pdev,
->>> +			     struct tiadc_device *adc_dev)
->>> +{
->>> +	struct tiadc_dma	*dma = &adc_dev->dma;
->>> +	dma_cap_mask_t		mask;
->>> +
->>> +	/* Default slave configuration parameters */
->>> +	dma->conf.direction = DMA_DEV_TO_MEM;
->>> +	dma->conf.src_addr_width = DMA_SLAVE_BUSWIDTH_2_BYTES;
->>> +	dma->conf.src_addr = adc_dev->mfd_tscadc->tscadc_phys_base + REG_FIFO1;
->>> +
->>> +	dma_cap_zero(mask);
->>> +	dma_cap_set(DMA_CYCLIC, mask);
->>> +
->>> +	/* Get a channel for RX */
->>> +	dma->chan = dma_request_chan(adc_dev->mfd_tscadc->dev, "fifo1");
->>> +	if (IS_ERR(dma->chan)) {
->>> +		int ret = PTR_ERR(dma->chan);
->>> +
->>> +		dma->chan = NULL;
->>> +		return ret;
->>> +	}
->>> +
->>> +	/* RX buffer */
->>> +	dma->buf = dma_alloc_coherent(dma->chan->device->dev, DMA_BUFFER_SIZE,
->>> +				      &dma->addr, GFP_KERNEL);
->>> +	if (!dma->buf)
->>> +		goto err;
->>> +
->>> +	return 0;
->>> +err:
->>> +	dma_release_channel(dma->chan);
->>> +	return -ENOMEM;
->>> +}
->>> +
->>>  static int tiadc_parse_dt(struct platform_device *pdev,
->>>  			  struct tiadc_device *adc_dev)
->>>  {
->>> @@ -512,8 +642,14 @@ static int tiadc_probe(struct platform_device *pdev)
->>>  
->>>  	platform_set_drvdata(pdev, indio_dev);
->>>  
->>> +	err = tiadc_request_dma(pdev, adc_dev);
->>> +	if (err && err == -EPROBE_DEFER)
->>> +		goto err_dma;
->>> +
->>>  	return 0;
->>>  
->>> +err_dma:
->>> +	iio_device_unregister(indio_dev);
->>>  err_buffer_unregister:
->>>  	tiadc_iio_buffered_hardware_remove(indio_dev);
->>>  err_free_channels:
->>> @@ -525,8 +661,14 @@ static int tiadc_remove(struct platform_device *pdev)
->>>  {
->>>  	struct iio_dev *indio_dev = platform_get_drvdata(pdev);
->>>  	struct tiadc_device *adc_dev = iio_priv(indio_dev);
->>> +	struct tiadc_dma *dma = &adc_dev->dma;
->>>  	u32 step_en;
->>>  
->>> +	if (dma->chan) {
->>> +		dma_free_coherent(dma->chan->device->dev, DMA_BUFFER_SIZE,
->>> +				  dma->buf, dma->addr);
->>> +		dma_release_channel(dma->chan);
->>> +	}
->>>  	iio_device_unregister(indio_dev);
->>>  	tiadc_iio_buffered_hardware_remove(indio_dev);
->>>  	tiadc_channels_remove(indio_dev);
->>> diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
->>> index e45a208..b9a53e0 100644
->>> --- a/include/linux/mfd/ti_am335x_tscadc.h
->>> +++ b/include/linux/mfd/ti_am335x_tscadc.h
->>> @@ -23,6 +23,8 @@
->>>  #define REG_IRQENABLE		0x02C
->>>  #define REG_IRQCLR		0x030
->>>  #define REG_IRQWAKEUP		0x034
->>> +#define REG_DMAENABLE_SET	0x038
->>> +#define REG_DMAENABLE_CLEAR	0x03c
->>>  #define REG_CTRL		0x040
->>>  #define REG_ADCFSM		0x044
->>>  #define REG_CLKDIV		0x04C
->>> @@ -36,6 +38,7 @@
->>>  #define REG_FIFO0THR		0xE8
->>>  #define REG_FIFO1CNT		0xF0
->>>  #define REG_FIFO1THR		0xF4
->>> +#define REG_DMA1REQ		0xF8
->>>  #define REG_FIFO0		0x100
->>>  #define REG_FIFO1		0x200
->>>  
->>> @@ -126,6 +129,10 @@
->>>  #define FIFOREAD_DATA_MASK (0xfff << 0)
->>>  #define FIFOREAD_CHNLID_MASK (0xf << 16)
->>>  
->>> +/* DMA ENABLE/CLEAR Register */
->>> +#define DMA_FIFO0		BIT(0)
->>> +#define DMA_FIFO1		BIT(1)
->>> +
->>>  /* Sequencer Status */
->>>  #define SEQ_STATUS BIT(5)
->>>  #define CHARGE_STEP		0x11
->>>
->>
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-iio" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/drivers/input/touchscreen/tsc2007.c b/drivers/input/touchscreen/tsc2007.c
+> index c314331..b4a9504 100644
+> --- a/drivers/input/touchscreen/tsc2007.c
+> +++ b/drivers/input/touchscreen/tsc2007.c
+> @@ -30,6 +30,7 @@
+>  #include <linux/of.h>
+>  #include <linux/of_gpio.h>
+>  #include <linux/input/touchscreen.h>
+> +#include <linux/iio/iio.h>
+>  
+>  #define TSC2007_MEASURE_TEMP0		(0x0 << 4)
+>  #define TSC2007_MEASURE_AUX		(0x2 << 4)
+> @@ -61,6 +62,16 @@
+>  #define READ_X		(ADC_ON_12BIT | TSC2007_MEASURE_X)
+>  #define PWRDOWN		(TSC2007_12BIT | TSC2007_POWER_OFF_IRQ_EN)
+>  
+> +#define TSC2007_CHAN_IIO(_chan, _name, _type, _chan_info) \
+> +{ \
+> +	.datasheet_name = _name, \
+> +	.type = _type, \
+> +	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |	\
+> +			BIT(_chan_info), \
+> +	.indexed = 1, \
+> +	.channel = _chan, \
+> +}
+> +
+>  struct ts_event {
+>  	u16	x;
+>  	u16	y;
+> @@ -69,9 +80,13 @@ struct ts_event {
+>  
+>  struct tsc2007 {
+>  	struct input_dev	*input;
+> +#ifdef CONFIG_IIO
+> +	struct iio_dev		*indio;
+> +#endif
+>  	char			phys[32];
+>  
+>  	struct i2c_client	*client;
+> +	struct mutex		mlock;
+>  
+>  	u16			model;
+>  	u16			x_plate_ohms;
+> @@ -192,7 +207,10 @@ static irqreturn_t tsc2007_soft_irq(int irq, void *handle)
+>  	while (!ts->stopped && tsc2007_is_pen_down(ts)) {
+>  
+>  		/* pen is down, continue with the measurement */
+> +
+> +		mutex_lock(&ts->mlock);
+>  		tsc2007_read_values(ts, &tc);
+> +		mutex_unlock(&ts->mlock);
+>  
+>  		rt = tsc2007_calculate_resistance(ts, &tc);
+>  
+> @@ -319,6 +337,89 @@ static void tsc2007_close(struct input_dev *input_dev)
+>  	tsc2007_stop(ts);
+>  }
+>  
+> +#ifdef CONFIG_IIO
+> +
+> +static const struct iio_chan_spec tsc2007_iio_channel[] = {
+> +	TSC2007_CHAN_IIO(0, "x", IIO_VOLTAGE, IIO_CHAN_INFO_RAW),
+> +	TSC2007_CHAN_IIO(1, "y", IIO_VOLTAGE, IIO_CHAN_INFO_RAW),
+> +	TSC2007_CHAN_IIO(2, "z1", IIO_VOLTAGE, IIO_CHAN_INFO_RAW),
+> +	TSC2007_CHAN_IIO(3, "z2", IIO_VOLTAGE, IIO_CHAN_INFO_RAW),
+> +	TSC2007_CHAN_IIO(4, "adc", IIO_VOLTAGE, IIO_CHAN_INFO_RAW),
+> +	TSC2007_CHAN_IIO(5, "rt", IIO_VOLTAGE, IIO_CHAN_INFO_RAW), /* Ohms? */
+> +	TSC2007_CHAN_IIO(6, "pen", IIO_PRESSURE, IIO_CHAN_INFO_RAW),
+> +	TSC2007_CHAN_IIO(7, "temp0", IIO_TEMP, IIO_CHAN_INFO_RAW),
+> +	TSC2007_CHAN_IIO(8, "temp1", IIO_TEMP, IIO_CHAN_INFO_RAW),
+> +};
+> +
+> +static int tsc2007_read_raw(struct iio_dev *indio_dev,
+> +	struct iio_chan_spec const *chan, int *val, int *val2, long mask)
+> +{
+> +	struct  tsc2007 *tsc = iio_priv(indio_dev);
+> +	int adc_chan = chan->channel;
+> +	int ret = 0;
+> +
+> +	if (adc_chan >= ARRAY_SIZE(tsc2007_iio_channel))
+> +		return -EINVAL;
+> +
+> +	if (mask != IIO_CHAN_INFO_RAW)
+> +		return -EINVAL;
+> +
+> +	mutex_lock(&tsc->mlock);
+> +
+> +	switch (chan->channel) {
+> +	case 0:
+> +		*val = tsc2007_xfer(tsc, READ_X);
+> +		break;
+> +	case 1:
+> +		*val = tsc2007_xfer(tsc, READ_Y);
+> +		break;
+> +	case 2:
+> +		*val = tsc2007_xfer(tsc, READ_Z1);
+> +		break;
+> +	case 3:
+> +		*val = tsc2007_xfer(tsc, READ_Z2);
+> +		break;
+> +	case 4:
+> +		*val = tsc2007_xfer(tsc, (ADC_ON_12BIT | TSC2007_MEASURE_AUX));
+> +		break;
+> +	case 5: {
+> +		struct ts_event tc;
+> +
+> +		tc.x = tsc2007_xfer(tsc, READ_X);
+> +		tc.z1 = tsc2007_xfer(tsc, READ_Z1);
+> +		tc.z2 = tsc2007_xfer(tsc, READ_Z2);
+> +		*val = tsc2007_calculate_resistance(tsc, &tc);
+> +		break;
+> +	}
+> +	case 6:
+> +		*val = tsc2007_is_pen_down(tsc);
+> +		break;
+> +	case 7:
+> +		*val = tsc2007_xfer(tsc,
+> +				    (ADC_ON_12BIT | TSC2007_MEASURE_TEMP0));
+> +		break;
+> +	case 8:
+> +		*val = tsc2007_xfer(tsc,
+> +				    (ADC_ON_12BIT | TSC2007_MEASURE_TEMP1));
+> +		break;
+> +	}
+> +
+> +	/* Prepare for next touch reading - power down ADC, enable PENIRQ */
+> +	tsc2007_xfer(tsc, PWRDOWN);
+> +
+> +	mutex_unlock(&tsc->mlock);
+> +
+> +	ret = IIO_VAL_INT;
+> +
+> +	return ret;
+> +}
+> +
+> +static const struct iio_info tsc2007_iio_info = {
+> +	.read_raw = tsc2007_read_raw,
+> +	.driver_module = THIS_MODULE,
+> +};
+> +#endif
+> +
+>  #ifdef CONFIG_OF
+>  static int tsc2007_get_pendown_state_gpio(struct device *dev)
+>  {
+> @@ -453,26 +554,56 @@ static int tsc2007_probe(struct i2c_client *client,
+>  	const struct tsc2007_platform_data *pdata = dev_get_platdata(&client->dev);
+>  	struct tsc2007 *ts;
+>  	struct input_dev *input_dev;
+> +#ifdef CONFIG_IIO
+> +	struct iio_dev *indio_dev;
+> +#endif
+>  	int err;
+>  
+>  	if (!i2c_check_functionality(client->adapter,
+>  				     I2C_FUNC_SMBUS_READ_WORD_DATA))
+>  		return -EIO;
+>  
+> +#ifdef CONFIG_IIO
+> +	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*ts));
+> +	if (!indio_dev) {
+> +		dev_err(&client->dev, "iio_device_alloc failed\n");
+> +		return -ENOMEM;
+> +	}
+> +
+> +	ts = iio_priv(indio_dev);
+> +#else
+>  	ts = devm_kzalloc(&client->dev, sizeof(struct tsc2007), GFP_KERNEL);
+>  	if (!ts)
+>  		return -ENOMEM;
+> -
+> +#endif
+>  	input_dev = devm_input_allocate_device(&client->dev);
+>  	if (!input_dev)
+>  		return -ENOMEM;
+>  
+>  	i2c_set_clientdata(client, ts);
+>  
+> +#ifdef CONFIG_IIO
+> +	indio_dev->name = "tsc2007";
+> +	indio_dev->dev.parent = &client->dev;
+> +	indio_dev->info = &tsc2007_iio_info;
+> +	indio_dev->modes = INDIO_DIRECT_MODE;
+> +	indio_dev->channels = tsc2007_iio_channel;
+> +	indio_dev->num_channels = ARRAY_SIZE(tsc2007_iio_channel);
+> +
+> +	err = iio_device_register(indio_dev);
+> +	if (err < 0) {
+> +		dev_err(&client->dev, "iio_device_register() failed: %d\n",
+> +			err);
+> +		return err;
+> +	}
+> +	ts->indio = indio_dev;
+> +#endif
+> +
+>  	ts->client = client;
+>  	ts->irq = client->irq;
+>  	ts->input = input_dev;
+>  	init_waitqueue_head(&ts->wait);
+> +	mutex_init(&ts->mlock);
+>  
+>  	snprintf(ts->phys, sizeof(ts->phys),
+>  		 "%s/input0", dev_name(&client->dev));
+> @@ -543,7 +674,9 @@ static int tsc2007_probe(struct i2c_client *client,
+>  	if (err < 0) {
+>  		dev_err(&client->dev,
+>  			"Failed to setup chip: %d\n", err);
+> +#ifdef CONFIG_IIO
+>  		iio_device_unregister(indio_dev);
+> +#endif
+>  		return err;	/* usually, chip does not respond */
+>  	}
+>  
+> @@ -557,6 +690,21 @@ static int tsc2007_probe(struct i2c_client *client,
+>  	return 0;
+>  }
+>  
+> +static int tsc2007_remove(struct i2c_client *client)
+> +{
+> +	struct tsc2007 *ts = i2c_get_clientdata(client);
+> +	struct input_dev *input_dev = ts->input;
+> +#ifdef CONFIG_IIO
+> +	struct iio_dev *indio_dev = ts->indio;
+> +#endif
+> +	input_unregister_device(input_dev);
+> +
+> +#ifdef CONFIG_IIO
+> +	iio_device_unregister(indio_dev);
+> +#endif
+> +	return 0;
+> +}
+> +
+>  static const struct i2c_device_id tsc2007_idtable[] = {
+>  	{ "tsc2007", 0 },
+>  	{ }
+> @@ -579,6 +727,7 @@ static struct i2c_driver tsc2007_driver = {
+>  	},
+>  	.id_table	= tsc2007_idtable,
+>  	.probe		= tsc2007_probe,
+> +	.remove		= tsc2007_remove,
+>  };
+>  
+>  module_i2c_driver(tsc2007_driver);
 > 
