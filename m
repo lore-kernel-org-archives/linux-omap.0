@@ -1,59 +1,85 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH v2 2/2] power: bq27xxx_battery: add poll interval
- property query
-Date: Mon, 24 Oct 2016 22:14:43 +0200
-Message-ID: <20161024201443.GB5989@amd>
-References: <1475092512-30555-1-git-send-email-matt@ranostay.consulting>
- <1475092512-30555-3-git-send-email-matt@ranostay.consulting>
- <CAKzfze9uvMvrF=gWph_HKFk_cH0qzRz6Wa2VJafK+H+wdnP0rg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="4SFOXa2GPu3tIq4H"
+From: John Syne <john3909@gmail.com>
+Subject: Re: [PATCH] drivers: mfd: ti_am335x_tscadc: increase ADC ref clock to 24MHz
+Date: Mon, 24 Oct 2016 13:58:55 -0700
+Message-ID: <038C6B01-8443-4321-9C65-BAC4095237D3@gmail.com>
+References: <20161024060226.4170-1-mugunthanvnm@ti.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAKzfze9uvMvrF=gWph_HKFk_cH0qzRz6Wa2VJafK+H+wdnP0rg@mail.gmail.com>
+In-Reply-To: <20161024060226.4170-1-mugunthanvnm@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Matt Ranostay <mranostay@gmail.com>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: Lee Jones <lee.jones@linaro.org>, linux-iio@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@kernel.org>, Vignesh R <vigneshr@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
 
---4SFOXa2GPu3tIq4H
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> On Oct 23, 2016, at 11:02 PM, Mugunthan V N <mugunthanvnm@ti.com> =
+wrote:
+>=20
+> Increase ADC reference clock from 3MHz to 24MHz so that the
+> sampling rates goes up from 100K samples per second to 800K
+> samples per second on AM335x and AM437x SoC.
+>=20
+> Also increase opendelay for touchscreen configuration to
+> equalize the increase in ADC reference clock frequency,
+> which results in the same amount touch events reported via
+> evtest on AM335x GP EVM.
+>=20
+> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+> ---
+>=20
+> This patch depends on ADC DMA patch series [1]
+>=20
+> Without DMA support, when ADC ref clock is set at 24MHz, I am
+> seeing fifo overflow as CPU is not able to pull the ADC samples.
+> This answers that DMA support is must for ADC to consume the
+> samples generated at 24MHz with no open, step delay or
+> averaging with patch [2].
+>=20
+> Measured the performance with the iio_generic_buffer with the
+> patch [3] applied
+>=20
+> [1] - http://www.spinics.net/lists/devicetree/msg145045.html
+> [2] - http://pastebin.ubuntu.com/23357935/
+> [3] - http://pastebin.ubuntu.com/23357939/
+>=20
+> ---
+> include/linux/mfd/ti_am335x_tscadc.h | 4 ++--
+> 1 file changed, 2 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/include/linux/mfd/ti_am335x_tscadc.h =
+b/include/linux/mfd/ti_am335x_tscadc.h
+> index b9a53e0..96c4207 100644
+> --- a/include/linux/mfd/ti_am335x_tscadc.h
+> +++ b/include/linux/mfd/ti_am335x_tscadc.h
+> @@ -90,7 +90,7 @@
+> /* Delay register */
+> #define STEPDELAY_OPEN_MASK	(0x3FFFF << 0)
+> #define STEPDELAY_OPEN(val)	((val) << 0)
+> -#define STEPCONFIG_OPENDLY	STEPDELAY_OPEN(0x098)
+Wouldn=E2=80=99t this be better to add this to the devicetree?
 
-On Mon 2016-10-24 12:58:25, Matt Ranostay wrote:
-> Pavel + Sebastian this is the patchset that need I some input on :)
+	ti,chan-step-avg =3D <0x16 0x16 0x16 0x16 0x16 0x16 0x16>;
+	ti,chan-step-opendelay =3D <0x500 0x500 0x500 0x500 0x500 0x500 =
+0x500>;
+	ti,chan-step-sampledelay =3D <0x0 0x0 0x0 0x0 0x0 0x0 0x0>;
 
-Better then previous one.
-
-But my version of bq27xxx_battery.c already contains this:
-
-static const struct kernel_param_ops param_ops_poll_interval =3D {
-        .get =3D param_get_uint,
-        .set =3D poll_interval_param_set,
-};
-
-=2E..so it should be possible to set poll interval already.
-
-									Pavel
-								=09
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---4SFOXa2GPu3tIq4H
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlgOa7MACgkQMOfwapXb+vIEQwCfaqEzHwCgehh9rPgyS5/3Bcd1
-EJkAoI1GGRsaDu5BjeNrb3Qhk6styBCq
-=qdnU
------END PGP SIGNATURE-----
-
---4SFOXa2GPu3tIq4H--
+Regards,
+John
+> +#define STEPCONFIG_OPENDLY	STEPDELAY_OPEN(0x500)
+> #define STEPDELAY_SAMPLE_MASK	(0xFF << 24)
+> #define STEPDELAY_SAMPLE(val)	((val) << 24)
+> #define STEPCONFIG_SAMPLEDLY	STEPDELAY_SAMPLE(0)
+> @@ -137,7 +137,7 @@
+> #define SEQ_STATUS BIT(5)
+> #define CHARGE_STEP		0x11
+>=20
+> -#define ADC_CLK			3000000
+> +#define ADC_CLK			24000000
+> #define TOTAL_STEPS		16
+> #define TOTAL_CHANNELS		8
+> #define FIFO1_THRESHOLD		19
+> --=20
+> 2.10.1.502.g6598894
+>=20
