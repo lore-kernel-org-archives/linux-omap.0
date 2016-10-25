@@ -1,166 +1,75 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: [RFC] shutdown machine when li-ion battery goes below 3V
-Date: Tue, 25 Oct 2016 13:54:45 +0200
-Message-ID: <20161025115445.GN12154@pali>
-References: <20161024212250.GA31336@amd>
- <20161024212932.uhjz752z2cy5hohl@atomide.com>
- <20161025112757.GC25855@amd>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: musb RPM sleep-while-atomic in 4.9-rc1
+Date: Tue, 25 Oct 2016 08:11:10 -0700
+Message-ID: <20161025151110.vih52s47a2g2col5@atomide.com>
+References: <20161020153749.GC12413@localhost>
+ <20161021070848.rum7wrlihjayqdbh@atomide.com>
+ <20161021092530.GO2765@localhost>
+ <20161021094904.q66kjsl33yzf2kir@atomide.com>
+ <20161021110725.GA5192@localhost>
+ <20161021112745.lancojpgv4h6aqpw@atomide.com>
+ <20161024173538.26xvlitxiwjmh4fx@atomide.com>
+ <20161025083237.GF12024@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161025112757.GC25855@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Tony Lindgren <tony@atomide.com>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
+In-Reply-To: <20161025083237.GF12024@localhost>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 25 October 2016 13:27:57 Pavel Machek wrote:
-> On Mon 2016-10-24 14:29:33, Tony Lindgren wrote:
-> > * Pavel Machek <pavel@ucw.cz> [161024 14:24]:
-> > > Hi!
-> > > 
-> > > What about something like this? N900 will drain the battery down to
-> > > system crash, which is quite uncool.
+* Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [161025 01:33]:
+> On Mon, Oct 24, 2016 at 10:35:38AM -0700, Tony Lindgren wrote:
+> 
+> > From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> > Date: Mon, 24 Oct 2016 09:18:02 -0700
+> > Subject: [PATCH] usb: musb: Fix sleeping function called from invalid
+> >  context for hdrc glue
 > > 
-> > Can't we make that generic and configurable for the voltage somehow?
+> > Commit 65b3f50ed6fa ("usb: musb: Add PM runtime support for MUSB DSPS
+> > glue layer") wrongly added a call for pm_runtime_get_sync to otg_timer
+> > that runs in softirq context. That causes a "BUG: sleeping function called
+> > from invalid context" every time when polling the cable status:
 > > 
-> > Also, the shutdown voltage can depend on external devices connected.
-> > It could be for example 3.3V depending on eMMC on some devices while
-> > devices with no eMMC could have it at 3.0V.
+> > [<c015ebb4>] (__might_sleep) from [<c0413d60>] (__pm_runtime_resume+0x9c/0xa0)
+> > [<c0413d60>] (__pm_runtime_resume) from [<c04d0bc4>] (otg_timer+0x3c/0x254)
+> > [<c04d0bc4>] (otg_timer) from [<c0191180>] (call_timer_fn+0xfc/0x41c)
+> > [<c0191180>] (call_timer_fn) from [<c01915c0>] (expire_timers+0x120/0x210)
+> > [<c01915c0>] (expire_timers) from [<c0191acc>] (run_timer_softirq+0xa4/0xdc)
+> > [<c0191acc>] (run_timer_softirq) from [<c010168c>] (__do_softirq+0x12c/0x594)
+> > 
+> > I did not notice that as I did not have CONFIG_DEBUG_ATOMIC_SLEEP enabled.
+> > 
+> > Let's fix the issue by adding dsps_check_status() and dsps_runtime_resume()
+> > functions. And let's have otg_timer() check for the PM runtime status, and
+> > if not already enabled, have dsps_runtime_resume() call dsps_check_status()
+> > directly.
 > 
-> Actually, do we need to make it configurable? It looks like we should
-> respect hardware telling us battery is dead, and only use (low)
-> hardcoded voltages as a fallback.
+> While this makes the sleeping-while-atomic warning go away, it does not
+> seem correct. In case we were suspended, the glue layer will now call
+> dsps_check_status while the controller (child) is still suspended:
 > 
-> Currently patch looks like this. generic_protect() should work for
-> other batteries drivers, too.
+> [    8.577538] musb-hdrc musb-hdrc.0.auto: otg_timer
+> [    8.582642] musb-dsps 47401400.usb: dsps_runtime_resume
+> [    8.600651] musb-hdrc musb-hdrc.0.auto: dsps_check_status
+> [    8.630617] musb-hdrc musb-hdrc.0.auto: musb_runtime_resume
 
-Now I checked Maemo's BME replacement code and it shutdown device 10
-seconds after it read that capacity level is LOW or CRITICAL. bq27xxx
-driver reports LOW when EDV1 is set and CRITICAL when EDVF is set. And
-bq27xxx reports those LOW/CRITICAL based on EDV1/EDVF flags even if
-battery is not calibrated.
+Hmm that's a good point yeah. If we start doing something generic in
+musb-core.c musb_runtime_resume, things could go wrong in the future.
 
-So I would be happy if kernel does not issue emergency shutdown before
-Maemo's BME replacement issue own "correct" system shutdown. As Maemo is
-doing it on EDV1 flag (not EDVF as I thought!) with 10 seconds delay and
-check is done every 30 seconds it means that Maemo shutdown process in
-worst case is started 40 seconds after EDV1 is set. Shutdown process is
-about 60 seconds (probably max.), can we ensure that kernel does not do
-its own emergency shutdown earlier then 2 minutes before first see EDV1
-flag? Or can test that EDVF flag is set in most cases 2 minutes after
-EDV1?
+With this particular hardware musb registers are always accessible
+though when the parent of the two musb instances musb_am335x is done.
 
-It is really bad idea to start emergency kernel shutdown before even
-userspace do it!
+We could just reprogam the otg timer if !pm_runtime_active(dev). But
+the sucky things with that approach is that when idle we have two
+timers, one to wake-up, then another one to check the status.
 
-> 								Pavel
-> 
-> diff --git a/drivers/power/supply/bq27xxx_battery.c b/drivers/power/supply/bq27xxx_battery.c
-> index 0fe278b..04094ad 100644
-> --- a/drivers/power/supply/bq27xxx_battery.c
-> +++ b/drivers/power/supply/bq27xxx_battery.c
-> @@ -46,6 +46,7 @@
->  #include <linux/delay.h>
->  #include <linux/platform_device.h>
->  #include <linux/power_supply.h>
-> +#include <linux/reboot.h>
->  #include <linux/slab.h>
->  #include <linux/of.h>
->  
-> @@ -679,10 +680,10 @@ static int bq27xxx_battery_read_health(struct bq27xxx_device_info *di)
->  	/* Unlikely but important to return first */
->  	if (unlikely(bq27xxx_battery_overtemp(di, flags)))
->  		return POWER_SUPPLY_HEALTH_OVERHEAT;
-> -	if (unlikely(bq27xxx_battery_undertemp(di, flags)))
-> -		return POWER_SUPPLY_HEALTH_COLD;
->  	if (unlikely(bq27xxx_battery_dead(di, flags)))
->  		return POWER_SUPPLY_HEALTH_DEAD;
-> +	if (unlikely(bq27xxx_battery_undertemp(di, flags)))
-> +		return POWER_SUPPLY_HEALTH_COLD;
->  
->  	return POWER_SUPPLY_HEALTH_GOOD;
->  }
-> @@ -740,6 +741,49 @@ void bq27xxx_battery_update(struct bq27xxx_device_info *di)
->  }
->  EXPORT_SYMBOL_GPL(bq27xxx_battery_update);
->  
-> +static void shutdown(char *reason)
-> +{
-> +	pr_alert("%s Forcing shutdown\n", reason);
-> +	orderly_poweroff(true);
-> +}
-> +
-> +static int generic_protect(struct power_supply *psy)
-> +{
-> +	union power_supply_propval val;
-> +	int res;
-> +	int mV, mA, mOhm = 430, mVadj = 0;
-> +
-> +	res = psy->desc->get_property(psy, POWER_SUPPLY_PROP_HEALTH, &val);
-> +	if (res)
-> +		return res;
-> +
-> +	if (val.intval == POWER_SUPPLY_HEALTH_OVERHEAT)
-> +		shutdown("Battery overheat.");
-> +	if (val.intval == POWER_SUPPLY_HEALTH_DEAD)
-> +		shutdown("Battery dead.");
+Regards,
 
-Generally this is not a good idea. On some boards with bq27xxx devices
-you can have another battery device or connected power device. You could
-have "dead" battery but device supplied e.g. from wallcharger.
-
-N900 cannot be powered from wallcharger by default, but in specific
-conditions (turned everything except display) you can do battery
-hotswap (when wallcharger is connected; it can power system).
-
-So this patch basically break lot of other self powered devices.
-
-I would propose check for am_i_power_supplied() (function with such name
-in power_supply interface exist) and do that only for negative response.
-
-> +	res = psy->desc->get_property(psy, POWER_SUPPLY_PROP_VOLTAGE_NOW, &val);
-> +	if (res)
-> +		return res;
-> +	mV = val.intval / 1000;
-> +
-> +	if (mV < 2950)
-> +		shutdown("Battery below 2.95V.");
-> +
-> +	res = psy->desc->get_property(psy, POWER_SUPPLY_PROP_CURRENT_NOW, &val);
-> +	if (res)
-> +		return res;
-> +	mA = val.intval / 1000;
-> +	mVadj = mV + (mA * mOhm) / 1000;
-> +
-> +	if (mVadj < 3150)
-> +		shutdown("Battery internal voltage below 3.15.");
-> +	
-> +	printk(KERN_INFO "Main battery %d mV, internal voltage %d mV\n",
-> +	       mV, mVadj);
-
-Please no printk. There is dev_info or how is that function called. And
-spamming dmesg for every poll is not good idea. It should be probably
-DEBUG not INFO.
-
-> +	return 0;
-> +}
-> +
->  static void bq27xxx_battery_poll(struct work_struct *work)
->  {
->  	struct bq27xxx_device_info *di =
-> @@ -747,6 +791,7 @@ static void bq27xxx_battery_poll(struct work_struct *work)
->  				     work.work);
->  
->  	bq27xxx_battery_update(di);
-> +	generic_protect(di->bat);
->  
->  	if (poll_interval > 0)
->  		schedule_delayed_work(&di->work, poll_interval * HZ);
-> 
-
--- 
-Pali Rohár
-pali.rohar@gmail.com
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
