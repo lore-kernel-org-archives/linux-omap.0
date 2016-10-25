@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH resent v3 3/3] ASoC: omap-abe-twl6040: fix typo in bindings documentation
-Date: Tue, 25 Oct 2016 19:38:11 +0200
-Message-ID: <f2ade237f55685f4fdb2aaa127995f3ccb986bb3.1477417090.git.hns@goldelico.com>
+Subject: [PATCH resent v3 2/3] dts: omap5: board-common: enable twl6040 headset jack detection
+Date: Tue, 25 Oct 2016 19:38:10 +0200
+Message-ID: <b918b86fd1d1f7e6fb2c15bb507b84d5cf1f0d3e.1477417090.git.hns@goldelico.com>
 References: <cover.1477417090.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1477417090.git.hns@goldelico.com>
@@ -14,21 +14,20 @@ List-Id: linux-omap@vger.kernel.org
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- Documentation/devicetree/bindings/sound/omap-abe-twl6040.txt | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/omap5-board-common.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/Documentation/devicetree/bindings/sound/omap-abe-twl6040.txt b/Documentation/devicetree/bindings/sound/omap-abe-twl6040.txt
-index fd40c85..462b04e8 100644
---- a/Documentation/devicetree/bindings/sound/omap-abe-twl6040.txt
-+++ b/Documentation/devicetree/bindings/sound/omap-abe-twl6040.txt
-@@ -12,7 +12,7 @@ Required properties:
+diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
+index b04adee..ab60a8e 100644
+--- a/arch/arm/boot/dts/omap5-board-common.dtsi
++++ b/arch/arm/boot/dts/omap5-board-common.dtsi
+@@ -124,6 +124,7 @@
+ 		compatible = "ti,abe-twl6040";
+ 		ti,model = "omap5-uevm";
  
- Optional properties:
- - ti,dmic: phandle for the OMAP dmic node if the machine have it connected
--- ti,jack_detection: Need to be present if the board capable to detect jack
-+- ti,jack-detection: Need to be present if the board capable to detect jack
-   insertion, removal.
++		ti,jack-detection;
+ 		ti,mclk-freq = <19200000>;
  
- Available audio endpoints for the audio-routing table:
+ 		ti,mcpdm = <&mcpdm>;
 -- 
 2.7.3
