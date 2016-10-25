@@ -1,62 +1,105 @@
-From: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: musb RPM sleep-while-atomic in 4.9-rc1
-Date: Tue, 25 Oct 2016 10:32:37 +0200
-Message-ID: <20161025083237.GF12024@localhost>
-References: <20161020153749.GC12413@localhost>
- <20161021070848.rum7wrlihjayqdbh@atomide.com>
- <20161021092530.GO2765@localhost>
- <20161021094904.q66kjsl33yzf2kir@atomide.com>
- <20161021110725.GA5192@localhost>
- <20161021112745.lancojpgv4h6aqpw@atomide.com>
- <20161024173538.26xvlitxiwjmh4fx@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [RFC] shutdown machine when li-ion battery goes below 3V
+Date: Tue, 25 Oct 2016 12:24:35 +0200
+Message-ID: <20161025102435.GA6916@amd>
+References: <20161024212250.GA31336@amd>
+ <20161024212932.uhjz752z2cy5hohl@atomide.com>
+ <20161024214152.GA32310@amd>
+ <201610242348.47484@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="cWoXeonUoKmBZSoM"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20161024173538.26xvlitxiwjmh4fx-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <201610242348.47484@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Oct 24, 2016 at 10:35:38AM -0700, Tony Lindgren wrote:
 
-> From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> Date: Mon, 24 Oct 2016 09:18:02 -0700
-> Subject: [PATCH] usb: musb: Fix sleeping function called from invalid
->  context for hdrc glue
-> 
-> Commit 65b3f50ed6fa ("usb: musb: Add PM runtime support for MUSB DSPS
-> glue layer") wrongly added a call for pm_runtime_get_sync to otg_timer
-> that runs in softirq context. That causes a "BUG: sleeping function called
-> from invalid context" every time when polling the cable status:
-> 
-> [<c015ebb4>] (__might_sleep) from [<c0413d60>] (__pm_runtime_resume+0x9c/0xa0)
-> [<c0413d60>] (__pm_runtime_resume) from [<c04d0bc4>] (otg_timer+0x3c/0x254)
-> [<c04d0bc4>] (otg_timer) from [<c0191180>] (call_timer_fn+0xfc/0x41c)
-> [<c0191180>] (call_timer_fn) from [<c01915c0>] (expire_timers+0x120/0x210)
-> [<c01915c0>] (expire_timers) from [<c0191acc>] (run_timer_softirq+0xa4/0xdc)
-> [<c0191acc>] (run_timer_softirq) from [<c010168c>] (__do_softirq+0x12c/0x594)
-> 
-> I did not notice that as I did not have CONFIG_DEBUG_ATOMIC_SLEEP enabled.
-> 
-> Let's fix the issue by adding dsps_check_status() and dsps_runtime_resume()
-> functions. And let's have otg_timer() check for the PM runtime status, and
-> if not already enabled, have dsps_runtime_resume() call dsps_check_status()
-> directly.
+--cWoXeonUoKmBZSoM
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-While this makes the sleeping-while-atomic warning go away, it does not
-seem correct. In case we were suspended, the glue layer will now call
-dsps_check_status while the controller (child) is still suspended:
+On Mon 2016-10-24 23:48:47, Pali Roh=E1r wrote:
+> On Monday 24 October 2016 23:41:52 Pavel Machek wrote:
+> > On Mon 2016-10-24 14:29:33, Tony Lindgren wrote:
+> > > Also, the shutdown voltage can depend on external devices
+> > > connected. It could be for example 3.3V depending on eMMC on some
+> > > devices while devices with no eMMC could have it at 3.0V.
+> >=20
+> > Actually, I'd like to shutdown at 3.3V or more (like 3.5V), because
+> > going below that is pretty mean to the battery. But if I set
+> > threshold too high, GSM activity will push it below that for a very
+> > short while, and I'll shutdown too soon.
+> >=20
+> > Ideas welcome...
+>=20
+> bq27x00 has EDVF flag which means that battery is empty. Maemo with=20
+> bq27x00 driver is configured to issue system shutdown when EDVF is set.
+>=20
+> Maybe kernel should issue emergency shutdown e.g. after minute or two=20
+> after EDVF flag is set?
 
-[    8.577538] musb-hdrc musb-hdrc.0.auto: otg_timer
-[    8.582642] musb-dsps 47401400.usb: dsps_runtime_resume
-[    8.600651] musb-hdrc musb-hdrc.0.auto: dsps_check_status
-[    8.630617] musb-hdrc musb-hdrc.0.auto: musb_runtime_resume
+Thanks for pointer.
 
-Thanks,
-Johan
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+EDVF seems to be exposed as health. ... but only if battery is
+calibrated, AFAICT.
+
+ if (has_ci_flag && (cache.flags & BQ27000_FLAG_CI)) {
+      dev_info_once(di->dev, "battery is not calibrated! ignoring capacity =
+values\n");
+      ...
+      cache.health =3D -ENODATA;
+
+Plus, it prioritizes battery cold over battery dead. IMO we don't need
+to shutdown on battery cold (we just may not charge the battery), but
+we need to shutdown on battery dead.
+
+So something like this?
+
+								Pavel
+
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+
+diff --git a/drivers/power/supply/bq27xxx_battery.c b/drivers/power/supply/=
+bq27xxx_battery.c
+index 8eb2f8f..5ddf6d7 100644
+--- a/drivers/power/supply/bq27xxx_battery.c
++++ b/drivers/power/supply/bq27xxx_battery.c
+@@ -680,10 +680,10 @@ static int bq27xxx_battery_read_health(struct bq27xxx=
+_device_info *di)
+ 	/* Unlikely but important to return first */
+ 	if (unlikely(bq27xxx_battery_overtemp(di, flags)))
+ 		return POWER_SUPPLY_HEALTH_OVERHEAT;
+-	if (unlikely(bq27xxx_battery_undertemp(di, flags)))
+-		return POWER_SUPPLY_HEALTH_COLD;
+ 	if (unlikely(bq27xxx_battery_dead(di, flags)))
+ 		return POWER_SUPPLY_HEALTH_DEAD;
++	if (unlikely(bq27xxx_battery_undertemp(di, flags)))
++		return POWER_SUPPLY_HEALTH_COLD;
+=20
+ 	return POWER_SUPPLY_HEALTH_GOOD;
+ }
+
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--cWoXeonUoKmBZSoM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlgPMuMACgkQMOfwapXb+vIq7gCdEqdyx0MBDU3992IQT6z7HEV4
+GWgAmwRTsaBkCFVaJkey0vX+WSNqpeMo
+=RcH+
+-----END PGP SIGNATURE-----
+
+--cWoXeonUoKmBZSoM--
