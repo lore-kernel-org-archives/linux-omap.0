@@ -1,57 +1,36 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 0/4] Generic #pinctrl-cells and and pinctrl_parse_index_with_args
-Date: Tue, 25 Oct 2016 09:45:34 -0700
-Message-ID: <20161025164538.453-1-tony@atomide.com>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: [PATCH v2 1/2] dts: omap5: baord-common: add phandle to reference Palmas gpadc
+Date: Tue, 25 Oct 2016 18:48:25 +0200
+Message-ID: <500798689d98862d94e4ef6c11c61ddb0f0281bc.1477414105.git.hns@goldelico.com>
+References: <cover.1477414105.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1477414105.git.hns@goldelico.com>
+In-Reply-To: <cover.1477414105.git.hns@goldelico.com>
+References: <cover.1477414105.git.hns@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Jon Hunter <jonathanh@nvidia.com>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, Russell King <linux@armlinux.org.uk>
+Cc: ldewangan@nvidia.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, marek@goldelico.com, kernel@pyra-handheld.com, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+Will be needed for iio based drivers.
 
-Here are some pinctrl changes to introduce #pinctrl-cells and a generic
-parser pinctrl_parse_index_with_args that the drivers can optionally use.
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+---
+ arch/arm/boot/dts/omap5-board-common.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Regards,
-
-Tony
-
-
-Tony Lindgren (4):
-  pinctrl: Introduce generic #pinctrl-cells and
-    pinctrl_parse_index_with_args
-  pinctrl: single: Use generic parser and #pinctrl-cells for
-    pinctrl-single,pins
-  pinctrl: single: Use generic parser and #pinctrl-cells for
-    pinctrl-single,bits
-  ARM: dts: Add #pinctrl-cells for pinctrl-single instances
-
- .../bindings/pinctrl/pinctrl-bindings.txt          |  42 +++++-
- .../devicetree/bindings/pinctrl/pinctrl-single.txt |   3 +
- arch/arm/boot/dts/am33xx.dtsi                      |   2 +
- arch/arm/boot/dts/am3517.dtsi                      |   1 +
- arch/arm/boot/dts/am4372.dtsi                      |   1 +
- arch/arm/boot/dts/da850.dtsi                       |   1 +
- arch/arm/boot/dts/dm814x.dtsi                      |   1 +
- arch/arm/boot/dts/dm816x.dtsi                      |   2 +
- arch/arm/boot/dts/dra7.dtsi                        |   1 +
- arch/arm/boot/dts/hi3620.dtsi                      |   2 +
- arch/arm/boot/dts/keystone-k2g.dtsi                |   1 +
- arch/arm/boot/dts/keystone-k2l.dtsi                |   1 +
- arch/arm/boot/dts/omap2420.dtsi                    |   2 +
- arch/arm/boot/dts/omap2430.dtsi                    |   2 +
- arch/arm/boot/dts/omap3.dtsi                       |   2 +
- arch/arm/boot/dts/omap34xx.dtsi                    |   1 +
- arch/arm/boot/dts/omap36xx.dtsi                    |   1 +
- arch/arm/boot/dts/omap4.dtsi                       |   2 +
- arch/arm/boot/dts/omap5.dtsi                       |   2 +
- arch/arm/boot/dts/pxa3xx.dtsi                      |   1 +
- arch/arm64/boot/dts/hisilicon/hi6220.dtsi          |   3 +
- drivers/pinctrl/devicetree.c                       | 151 ++++++++++++++++++++
- drivers/pinctrl/devicetree.h                       |  24 ++++
- drivers/pinctrl/pinctrl-single.c                   | 157 +++++++++++++++------
- 24 files changed, 363 insertions(+), 43 deletions(-)
-
+diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
+index 7500283..b04adee 100644
+--- a/arch/arm/boot/dts/omap5-board-common.dtsi
++++ b/arch/arm/boot/dts/omap5-board-common.dtsi
+@@ -415,7 +415,7 @@
+ 			ti,backup-battery-charge-high-current;
+ 		};
+ 
+-		gpadc {
++		gpadc: gpadc {
+ 			compatible = "ti,palmas-gpadc";
+ 			interrupts = <18 0
+ 				      16 0
 -- 
-2.9.3
+2.7.3
