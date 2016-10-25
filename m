@@ -1,47 +1,94 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 0/2] dmaengine: core/omap-dma: Support for port window
-Date: Tue, 25 Oct 2016 13:50:17 +0300
-Message-ID: <20161025105019.24475-1-peter.ujfalusi@ti.com>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: [RFC] shutdown machine when li-ion battery goes below 3V
+Date: Tue, 25 Oct 2016 12:53:20 +0200
+Message-ID: <20161025105320.GK12154@pali>
+References: <20161024212250.GA31336@amd>
+ <20161024212932.uhjz752z2cy5hohl@atomide.com>
+ <20161024214152.GA32310@amd>
+ <201610242348.47484@pali>
+ <20161025102435.GA6916@amd>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20161025102435.GA6916@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: vinod.koul@intel.com, dan.j.williams@intel.com, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, arnd@arndb.de
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Tony Lindgren <tony@atomide.com>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Tuesday 25 October 2016 12:24:35 Pavel Machek wrote:
+> On Mon 2016-10-24 23:48:47, Pali Rohár wrote:
+> > On Monday 24 October 2016 23:41:52 Pavel Machek wrote:
+> > > On Mon 2016-10-24 14:29:33, Tony Lindgren wrote:
+> > > > Also, the shutdown voltage can depend on external devices
+> > > > connected. It could be for example 3.3V depending on eMMC on some
+> > > > devices while devices with no eMMC could have it at 3.0V.
+> > > 
+> > > Actually, I'd like to shutdown at 3.3V or more (like 3.5V), because
+> > > going below that is pretty mean to the battery. But if I set
+> > > threshold too high, GSM activity will push it below that for a very
+> > > short while, and I'll shutdown too soon.
+> > > 
+> > > Ideas welcome...
+> > 
+> > bq27x00 has EDVF flag which means that battery is empty. Maemo with 
+> > bq27x00 driver is configured to issue system shutdown when EDVF is set.
+> > 
+> > Maybe kernel should issue emergency shutdown e.g. after minute or two 
+> > after EDVF flag is set?
+> 
+> Thanks for pointer.
+> 
+> EDVF seems to be exposed as health. ... but only if battery is
+> calibrated, AFAICT.
 
-as I'm trying to convert the remaining OMAP driver to use DMAengine instead of
-the legacy omap-dma API I have encountered with the
-drivers/usb/musb/tusb6010_omap.c driver.
+No, EDVF is available also for uncalibrated battery. There are EDV1 and
+EDVF flags. Both are set based on battery voltage and some other
+parameters from bq EEPROM.
 
-The TUSB6010 is connected via NOR FLASH interface and it's register space is
-mapped in the GPMC memory area. In OMAP SoCs we have support for external DMA
-request lines and the TUSB6010 is using those as well.
+>  if (has_ci_flag && (cache.flags & BQ27000_FLAG_CI)) {
+>       dev_info_once(di->dev, "battery is not calibrated! ignoring capacity values\n");
 
-With asynchronous access the DMA needs to read/write within the FIFO 'window' in
-incremental address mode to read/write data.
-The constant addressing only works in synchronous mode.
+Yes, it ignores only capacity values (which needs calibration), not
+those raw flags which works also without calibration.
 
-Since the DMA is driven by external DMA requests, the asynchronous mode is also
-slave DMA operation, but currently the port window can not be 'swiped' as the
-DMAengine only supports single register/address on the slave side.
+>       ...
+>       cache.health = -ENODATA;
+> 
+> Plus, it prioritizes battery cold over battery dead. IMO we don't need
+> to shutdown on battery cold (we just may not charge the battery), but
+> we need to shutdown on battery dead.
+> 
+> So something like this?
+> 
+> 								Pavel
+> 
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> 
+> diff --git a/drivers/power/supply/bq27xxx_battery.c b/drivers/power/supply/bq27xxx_battery.c
+> index 8eb2f8f..5ddf6d7 100644
+> --- a/drivers/power/supply/bq27xxx_battery.c
+> +++ b/drivers/power/supply/bq27xxx_battery.c
+> @@ -680,10 +680,10 @@ static int bq27xxx_battery_read_health(struct bq27xxx_device_info *di)
+>  	/* Unlikely but important to return first */
+>  	if (unlikely(bq27xxx_battery_overtemp(di, flags)))
+>  		return POWER_SUPPLY_HEALTH_OVERHEAT;
+> -	if (unlikely(bq27xxx_battery_undertemp(di, flags)))
+> -		return POWER_SUPPLY_HEALTH_COLD;
+>  	if (unlikely(bq27xxx_battery_dead(di, flags)))
+>  		return POWER_SUPPLY_HEALTH_DEAD;
+> +	if (unlikely(bq27xxx_battery_undertemp(di, flags)))
+> +		return POWER_SUPPLY_HEALTH_COLD;
+>  
+>  	return POWER_SUPPLY_HEALTH_GOOD;
+>  }
+> 
+> 
 
-This series will add support in dma_slave_config to specify the port side window
-size and the second patch implements the setup needs in omap-dma driver for such
-a transfer.
+Looks like this is OK.
 
-Regards,
-Peter
----
-Peter Ujfalusi (2):
-  dmaengine: dma_slave_config: add support for slave port window
-  dmaengine: omap-dma: Support for slave devices with data port window
-
- drivers/dma/omap-dma.c    | 45 +++++++++++++++++++++++++++++++++++++++++++--
- include/linux/dmaengine.h |  8 ++++++++
- 2 files changed, 51 insertions(+), 2 deletions(-)
-
---
-2.10.1
+-- 
+Pali Rohár
+pali.rohar@gmail.com
