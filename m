@@ -1,70 +1,62 @@
-From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] drivers: mfd: ti_am335x_tscadc: increase ADC ref clock to
- 24MHz
-Date: Tue, 25 Oct 2016 12:07:51 +0530
-Message-ID: <7024bec3-2ebe-db82-12e2-6d6bcc664c6b@ti.com>
-References: <20161024060226.4170-1-mugunthanvnm@ti.com>
- <038C6B01-8443-4321-9C65-BAC4095237D3@gmail.com>
- <086ab2fa-63ee-c5ab-2715-b2efd78270d7@ti.com>
- <12725C92-9BB8-4F77-A7B4-F3C3DA9F8B0B@gmail.com>
- <DB09B26E-C5AB-427A-82D5-6FE857E7C218@gmail.com>
+From: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: musb RPM sleep-while-atomic in 4.9-rc1
+Date: Tue, 25 Oct 2016 10:32:37 +0200
+Message-ID: <20161025083237.GF12024@localhost>
+References: <20161020153749.GC12413@localhost>
+ <20161021070848.rum7wrlihjayqdbh@atomide.com>
+ <20161021092530.GO2765@localhost>
+ <20161021094904.q66kjsl33yzf2kir@atomide.com>
+ <20161021110725.GA5192@localhost>
+ <20161021112745.lancojpgv4h6aqpw@atomide.com>
+ <20161024173538.26xvlitxiwjmh4fx@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <DB09B26E-C5AB-427A-82D5-6FE857E7C218-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: John Syne <john3909-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161024173538.26xvlitxiwjmh4fx-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On Mon, Oct 24, 2016 at 10:35:38AM -0700, Tony Lindgren wrote:
 
-
-On Tuesday 25 October 2016 11:46 AM, John Syne wrote:
+> From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Date: Mon, 24 Oct 2016 09:18:02 -0700
+> Subject: [PATCH] usb: musb: Fix sleeping function called from invalid
+>  context for hdrc glue
 > 
->> On Oct 24, 2016, at 11:01 PM, John Syne <john3909-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->>
->>>
->>> On Oct 24, 2016, at 10:52 PM, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org> wrote:
->>>
-[...]
->>>>>>
->>>>>> ---
->>>>>> include/linux/mfd/ti_am335x_tscadc.h | 4 ++--
->>>>>> 1 file changed, 2 insertions(+), 2 deletions(-)
->>>>>>
->>>>>> diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
->>>>>> index b9a53e0..96c4207 100644
->>>>>> --- a/include/linux/mfd/ti_am335x_tscadc.h
->>>>>> +++ b/include/linux/mfd/ti_am335x_tscadc.h
->>>>>> @@ -90,7 +90,7 @@
->>>>>> /* Delay register */
->>>>>> #define STEPDELAY_OPEN_MASK	(0x3FFFF << 0)
->>>>>> #define STEPDELAY_OPEN(val)	((val) << 0)
->>>>>> -#define STEPCONFIG_OPENDLY	STEPDELAY_OPEN(0x098)
->>>> Wouldn’t this be better to add this to the devicetree?
->>>>
->>>> 	ti,chan-step-avg = <0x16 0x16 0x16 0x16 0x16 0x16 0x16>;
->>>> 	ti,chan-step-opendelay = <0x500 0x500 0x500 0x500 0x500 0x500 0x500>;
->>>> 	ti,chan-step-sampledelay = <0x0 0x0 0x0 0x0 0x0 0x0 0x0>;
->>>
->>> For a touch screen, there is not need to change in these parameter
->>> settings, so my opinion is to keep it as is. Or am I missing something?
->> I was thinking that if you are using this driver as an ADC, you may want the flexibility to make these changes in the DT. I’m doing this by connecting sensors to the ADC inputs. I’m not using this driver for a touchscreen.
+> Commit 65b3f50ed6fa ("usb: musb: Add PM runtime support for MUSB DSPS
+> glue layer") wrongly added a call for pm_runtime_get_sync to otg_timer
+> that runs in softirq context. That causes a "BUG: sleeping function called
+> from invalid context" every time when polling the cable status:
 > 
-
-ti_am335x_adc driver already supports above DT parameters and its upto
-the user to adjust these parameters as required.
-
-> Here is a DT overlay were this gets using on the BeagleBoneBlack.  
+> [<c015ebb4>] (__might_sleep) from [<c0413d60>] (__pm_runtime_resume+0x9c/0xa0)
+> [<c0413d60>] (__pm_runtime_resume) from [<c04d0bc4>] (otg_timer+0x3c/0x254)
+> [<c04d0bc4>] (otg_timer) from [<c0191180>] (call_timer_fn+0xfc/0x41c)
+> [<c0191180>] (call_timer_fn) from [<c01915c0>] (expire_timers+0x120/0x210)
+> [<c01915c0>] (expire_timers) from [<c0191acc>] (run_timer_softirq+0xa4/0xdc)
+> [<c0191acc>] (run_timer_softirq) from [<c010168c>] (__do_softirq+0x12c/0x594)
 > 
-> https://github.com/RobertCNelson/bb.org-overlays/blob/master/src/arm/BB-ADC-00A0.dts
+> I did not notice that as I did not have CONFIG_DEBUG_ATOMIC_SLEEP enabled.
 > 
-> Besides, these DT features are already implemented in the driver so it is just a matter of adding these entries to the am33xx.dtsi & am4372.dtsi, which you modified in this patch series.
-> 
+> Let's fix the issue by adding dsps_check_status() and dsps_runtime_resume()
+> functions. And let's have otg_timer() check for the PM runtime status, and
+> if not already enabled, have dsps_runtime_resume() call dsps_check_status()
+> directly.
 
-Touchscreen driver (ti_am335x_tsc.c) does not support above DT parameters.
+While this makes the sleeping-while-atomic warning go away, it does not
+seem correct. In case we were suspended, the glue layer will now call
+dsps_check_status while the controller (child) is still suspended:
 
--- 
-Regards
-Vignesh
+[    8.577538] musb-hdrc musb-hdrc.0.auto: otg_timer
+[    8.582642] musb-dsps 47401400.usb: dsps_runtime_resume
+[    8.600651] musb-hdrc musb-hdrc.0.auto: dsps_check_status
+[    8.630617] musb-hdrc musb-hdrc.0.auto: musb_runtime_resume
+
+Thanks,
+Johan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
