@@ -1,105 +1,52 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [RFC] shutdown machine when li-ion battery goes below 3V
-Date: Tue, 25 Oct 2016 12:24:35 +0200
-Message-ID: <20161025102435.GA6916@amd>
-References: <20161024212250.GA31336@amd>
- <20161024212932.uhjz752z2cy5hohl@atomide.com>
- <20161024214152.GA32310@amd>
- <201610242348.47484@pali>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 1/2] dmaengine: dma_slave_config: add support for slave port window
+Date: Tue, 25 Oct 2016 13:50:18 +0300
+Message-ID: <20161025105019.24475-2-peter.ujfalusi@ti.com>
+References: <20161025105019.24475-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="cWoXeonUoKmBZSoM"
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201610242348.47484@pali>
+In-Reply-To: <20161025105019.24475-1-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
+To: vinod.koul@intel.com, dan.j.williams@intel.com, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, arnd@arndb.de
 List-Id: linux-omap@vger.kernel.org
 
+Some slave devices uses address window instead of single register for read
+and/or write of data. With the src/dst_port_window_size the address window
+can be specified and the DMAengine driver should use this information to
+correctly set up the transfer to loop within the provided window.
 
---cWoXeonUoKmBZSoM
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ include/linux/dmaengine.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-On Mon 2016-10-24 23:48:47, Pali Roh=E1r wrote:
-> On Monday 24 October 2016 23:41:52 Pavel Machek wrote:
-> > On Mon 2016-10-24 14:29:33, Tony Lindgren wrote:
-> > > Also, the shutdown voltage can depend on external devices
-> > > connected. It could be for example 3.3V depending on eMMC on some
-> > > devices while devices with no eMMC could have it at 3.0V.
-> >=20
-> > Actually, I'd like to shutdown at 3.3V or more (like 3.5V), because
-> > going below that is pretty mean to the battery. But if I set
-> > threshold too high, GSM activity will push it below that for a very
-> > short while, and I'll shutdown too soon.
-> >=20
-> > Ideas welcome...
->=20
-> bq27x00 has EDVF flag which means that battery is empty. Maemo with=20
-> bq27x00 driver is configured to issue system shutdown when EDVF is set.
->=20
-> Maybe kernel should issue emergency shutdown e.g. after minute or two=20
-> after EDVF flag is set?
-
-Thanks for pointer.
-
-EDVF seems to be exposed as health. ... but only if battery is
-calibrated, AFAICT.
-
- if (has_ci_flag && (cache.flags & BQ27000_FLAG_CI)) {
-      dev_info_once(di->dev, "battery is not calibrated! ignoring capacity =
-values\n");
-      ...
-      cache.health =3D -ENODATA;
-
-Plus, it prioritizes battery cold over battery dead. IMO we don't need
-to shutdown on battery cold (we just may not charge the battery), but
-we need to shutdown on battery dead.
-
-So something like this?
-
-								Pavel
-
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-
-diff --git a/drivers/power/supply/bq27xxx_battery.c b/drivers/power/supply/=
-bq27xxx_battery.c
-index 8eb2f8f..5ddf6d7 100644
---- a/drivers/power/supply/bq27xxx_battery.c
-+++ b/drivers/power/supply/bq27xxx_battery.c
-@@ -680,10 +680,10 @@ static int bq27xxx_battery_read_health(struct bq27xxx=
-_device_info *di)
- 	/* Unlikely but important to return first */
- 	if (unlikely(bq27xxx_battery_overtemp(di, flags)))
- 		return POWER_SUPPLY_HEALTH_OVERHEAT;
--	if (unlikely(bq27xxx_battery_undertemp(di, flags)))
--		return POWER_SUPPLY_HEALTH_COLD;
- 	if (unlikely(bq27xxx_battery_dead(di, flags)))
- 		return POWER_SUPPLY_HEALTH_DEAD;
-+	if (unlikely(bq27xxx_battery_undertemp(di, flags)))
-+		return POWER_SUPPLY_HEALTH_COLD;
-=20
- 	return POWER_SUPPLY_HEALTH_GOOD;
- }
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---cWoXeonUoKmBZSoM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlgPMuMACgkQMOfwapXb+vIq7gCdEqdyx0MBDU3992IQT6z7HEV4
-GWgAmwRTsaBkCFVaJkey0vX+WSNqpeMo
-=RcH+
------END PGP SIGNATURE-----
-
---cWoXeonUoKmBZSoM--
+diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+index cc535a478bae..689d44327ef3 100644
+--- a/include/linux/dmaengine.h
++++ b/include/linux/dmaengine.h
+@@ -336,6 +336,12 @@ enum dma_slave_buswidth {
+  * may or may not be applicable on memory sources.
+  * @dst_maxburst: same as src_maxburst but for destination target
+  * mutatis mutandis.
++ * @src_port_window_size: The length of the register area the data need to be
++ * written on the device side. It is only used for devices which is using an
++ * area instead of a single register to receive the data. Typically the DMA
++ * loops in this area in order to transfer the data.
++ * @dst_port_window_size: same as src_port_window_size but for the destination
++ * port.
+  * @device_fc: Flow Controller Settings. Only valid for slave channels. Fill
+  * with 'true' if peripheral should be flow controller. Direction will be
+  * selected at Runtime.
+@@ -363,6 +369,8 @@ struct dma_slave_config {
+ 	enum dma_slave_buswidth dst_addr_width;
+ 	u32 src_maxburst;
+ 	u32 dst_maxburst;
++	u32 src_port_window_size;
++	u32 dst_port_window_size;
+ 	bool device_fc;
+ 	unsigned int slave_id;
+ };
+-- 
+2.10.1
