@@ -1,41 +1,31 @@
-From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: [PATCH resent v3 1/3] dts: omap5: board-common: add phandle to reference Palmas gpadc
-Date: Tue, 25 Oct 2016 19:38:09 +0200
-Message-ID: <43183bf31a486c2f683b335aff7ad947b8fbf117.1477417090.git.hns@goldelico.com>
-References: <cover.1477417090.git.hns@goldelico.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1477417090.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-In-Reply-To: <cover.1477417090.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-References: <cover.1477417090.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
-Cc: ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: [PATCH resent v3 0/3] DT Fixes for OMAP5 boards
+Date: Tue, 25 Oct 2016 19:38:08 +0200
+Message-ID: <cover.1477417090.git.hns@goldelico.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, Russell King <linux@armlinux.org.uk>
+Cc: ldewangan@nvidia.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, marek@goldelico.com, kernel@pyra-handheld.com, letux-kernel@openphoenux.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-Will be needed for iio based drivers.
+2016-10-25 19:29:49: Changes V3:
+* fix property name to enable twl6040 jack-detection and not jack_detection (Peter Ujfalusi)
+* fix typo on bindings documentation
+* fix typos in commit messages (Tony Lindgren)
 
-Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
----
- arch/arm/boot/dts/omap5-board-common.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+2016-10-25 18:48:28: This patch series adds DT nodes for:
+* twl6040 enable jack_detection (e.g. OMAP5EVM)
+* twl6037 gpadc for omap5 based boards (e.g. OMAP5EVM)
 
-diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
-index 7500283..b04adee 100644
---- a/arch/arm/boot/dts/omap5-board-common.dtsi
-+++ b/arch/arm/boot/dts/omap5-board-common.dtsi
-@@ -415,7 +415,7 @@
- 			ti,backup-battery-charge-high-current;
- 		};
- 
--		gpadc {
-+		gpadc: gpadc {
- 			compatible = "ti,palmas-gpadc";
- 			interrupts = <18 0
- 				      16 0
+
+H. Nikolaus Schaller (3):
+  dts: omap5: board-common: add phandle to reference Palmas gpadc
+  dts: omap5: board-common: enable twl6040 headset jack detection
+  ASoC: omap-abe-twl6040: fix typo in bindings documentation
+
+ Documentation/devicetree/bindings/sound/omap-abe-twl6040.txt | 2 +-
+ arch/arm/boot/dts/omap5-board-common.dtsi                    | 3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
 -- 
 2.7.3
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
