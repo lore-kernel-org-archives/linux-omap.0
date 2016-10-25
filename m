@@ -1,50 +1,44 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v5 7/8] drivers:input:ads7846(+tsc2046): fix spi module table
-Date: Tue, 25 Oct 2016 21:26:21 +0200
-Message-ID: <02ab640b7496faa121c405f9fdae314d0d445185.1477423581.git.hns@goldelico.com>
+Subject: [PATCH v5 3/8] drivers:input:tsc2007: check for presence and power down tsc2007 during probe
+Date: Tue, 25 Oct 2016 21:26:17 +0200
+Message-ID: <d868be0fc14f8a9cd2230fb449ec9a8f21138d96.1477423581.git.hns@goldelico.com>
 References: <cover.1477423581.git.hns@goldelico.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-input-owner@vger.kernel.org>
 In-Reply-To: <cover.1477423581.git.hns@goldelico.com>
 In-Reply-To: <cover.1477423581.git.hns@goldelico.com>
 References: <cover.1477423581.git.hns@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-input-owner@vger.kernel.org
 To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Michael Welling <mwelling@ieee.org>, =?UTF-8?q?Mika=20Penttil=C3=A4?= <mika.penttila@nextfour.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Igor Grinberg <grinberg@compulab.co.il>, Sebastian Reichel <sre@kernel.org>, "Andrew F. Davis" <afd@ti.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, Mark Brown <broonie@kernel.org>, Jonathan Cameron <jic23@kernel.org>, Hans de Goede <hdegoede@redhat.com>, Sangwon Jee <jeesw@melfas.com>
 Cc: linux-input@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, letux-kernel@openphoenux.org, linux-iio@vger.kernel.org, kernel@pyra-handheld.com
 List-Id: linux-omap@vger.kernel.org
 
-Fix module table so that the driver is loaded if compiled
-as module and requested by DT.
+1. check if chip is really present and don't succeed if it isn't.
+2. if it succeeds, power down the chip until accessed
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- drivers/input/touchscreen/ads7846.c | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ drivers/input/touchscreen/tsc2007.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touchscreen/ads7846.c
-index 400e421..50c85d2 100644
---- a/drivers/input/touchscreen/ads7846.c
-+++ b/drivers/input/touchscreen/ads7846.c
-@@ -1532,6 +1532,16 @@ static int ads7846_remove(struct spi_device *spi)
- 	return 0;
- }
+diff --git a/drivers/input/touchscreen/tsc2007.c b/drivers/input/touchscreen/tsc2007.c
+index e9d5086..5e3c4bf 100644
+--- a/drivers/input/touchscreen/tsc2007.c
++++ b/drivers/input/touchscreen/tsc2007.c
+@@ -538,6 +538,14 @@ static int tsc2007_probe(struct i2c_client *client,
  
-+static const struct spi_device_id ads7846_idtable[] = {
-+	{ "tsc2046", 0 },
-+	{ "ads7843", 0 },
-+	{ "ads7845", 0 },
-+	{ "ads7846", 0 },
-+	{ "ads7873", 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(spi, ads7846_idtable);
+ 	tsc2007_stop(ts);
+ 
++	/* power down the chip (TSC2007_SETUP does not ACK on I2C) */
++	err = tsc2007_xfer(ts, PWRDOWN);
++	if (err < 0) {
++		dev_err(&client->dev,
++			"Failed to setup chip: %d\n", err);
++		return err;	/* usually, chip does not respond */
++	}
 +
- static struct spi_driver ads7846_driver = {
- 	.driver = {
- 		.name	= "ads7846",
-@@ -1546,4 +1556,3 @@ module_spi_driver(ads7846_driver);
- 
- MODULE_DESCRIPTION("ADS7846 TouchScreen Driver");
- MODULE_LICENSE("GPL");
--MODULE_ALIAS("spi:ads7846");
+ 	err = input_register_device(input_dev);
+ 	if (err) {
+ 		dev_err(&client->dev,
 -- 
 2.7.3
+
