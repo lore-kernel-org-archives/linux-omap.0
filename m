@@ -1,121 +1,47 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 2/2] dmaengine: omap-dma: Support for slave devices with data port window
-Date: Tue, 25 Oct 2016 13:50:19 +0300
-Message-ID: <20161025105019.24475-3-peter.ujfalusi@ti.com>
-References: <20161025105019.24475-1-peter.ujfalusi@ti.com>
+Subject: [PATCH 0/2] dmaengine: core/omap-dma: Support for port window
+Date: Tue, 25 Oct 2016 13:50:17 +0300
+Message-ID: <20161025105019.24475-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161025105019.24475-1-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: vinod.koul@intel.com, dan.j.williams@intel.com, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@armlinux.org.uk>
 Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, arnd@arndb.de
 List-Id: linux-omap@vger.kernel.org
 
-Based on the src/dst_port_window_size - if it is set - configure the DMA
-channel to use double indexing in order to be able to loop within the
-address window.
+Hi,
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+as I'm trying to convert the remaining OMAP driver to use DMAengine instead of
+the legacy omap-dma API I have encountered with the
+drivers/usb/musb/tusb6010_omap.c driver.
+
+The TUSB6010 is connected via NOR FLASH interface and it's register space is
+mapped in the GPMC memory area. In OMAP SoCs we have support for external DMA
+request lines and the TUSB6010 is using those as well.
+
+With asynchronous access the DMA needs to read/write within the FIFO 'window' in
+incremental address mode to read/write data.
+The constant addressing only works in synchronous mode.
+
+Since the DMA is driven by external DMA requests, the asynchronous mode is also
+slave DMA operation, but currently the port window can not be 'swiped' as the
+DMAengine only supports single register/address on the slave side.
+
+This series will add support in dma_slave_config to specify the port side window
+size and the second patch implements the setup needs in omap-dma driver for such
+a transfer.
+
+Regards,
+Peter
 ---
- drivers/dma/omap-dma.c | 45 +++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 43 insertions(+), 2 deletions(-)
+Peter Ujfalusi (2):
+  dmaengine: dma_slave_config: add support for slave port window
+  dmaengine: omap-dma: Support for slave devices with data port window
 
-diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index 025f499cb20d..29350f936154 100644
---- a/drivers/dma/omap-dma.c
-+++ b/drivers/dma/omap-dma.c
-@@ -166,6 +166,9 @@ enum {
- 	CSDP_DST_BURST_16	= 1 << 14,
- 	CSDP_DST_BURST_32	= 2 << 14,
- 	CSDP_DST_BURST_64	= 3 << 14,
-+	CSDP_WRITE_NON_POSTED	= (0 << 16),
-+	CSDP_WRITE_POSTED	= (1 << 16),
-+	CSDP_WRITE_LAST_NON_POSTED = (2 << 16),
- 
- 	CICR_TOUT_IE		= BIT(0),	/* OMAP1 only */
- 	CICR_DROP_IE		= BIT(1),
-@@ -883,15 +886,18 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
- 	unsigned i, es, en, frame_bytes;
- 	bool ll_failed = false;
- 	u32 burst;
-+	int32_t port_window;
- 
- 	if (dir == DMA_DEV_TO_MEM) {
- 		dev_addr = c->cfg.src_addr;
- 		dev_width = c->cfg.src_addr_width;
- 		burst = c->cfg.src_maxburst;
-+		port_window = c->cfg.src_port_window_size;
- 	} else if (dir == DMA_MEM_TO_DEV) {
- 		dev_addr = c->cfg.dst_addr;
- 		dev_width = c->cfg.dst_addr_width;
- 		burst = c->cfg.dst_maxburst;
-+		port_window = c->cfg.dst_port_window_size;
- 	} else {
- 		dev_err(chan->device->dev, "%s: bad direction?\n", __func__);
- 		return NULL;
-@@ -923,11 +929,39 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
- 
- 	d->ccr = c->ccr | CCR_SYNC_FRAME;
- 	if (dir == DMA_DEV_TO_MEM) {
--		d->ccr |= CCR_DST_AMODE_POSTINC | CCR_SRC_AMODE_CONSTANT;
- 		d->csdp = CSDP_DST_BURST_64 | CSDP_DST_PACKED;
-+
-+		d->ccr |= CCR_DST_AMODE_POSTINC;
-+		if (port_window) {
-+			d->ccr |= CCR_SRC_AMODE_DBLIDX;
-+			d->ei = 1;
-+			d->fi = (-1) * (port_window - 1);
-+
-+			if (port_window / 64)
-+				d->csdp = CSDP_SRC_BURST_64 | CSDP_SRC_PACKED;
-+			else if (port_window / 32)
-+				d->csdp = CSDP_SRC_BURST_32 | CSDP_SRC_PACKED;
-+			else if (port_window / 16)
-+				d->csdp = CSDP_SRC_BURST_16 | CSDP_SRC_PACKED;
-+		} else {
-+			d->ccr |= CCR_SRC_AMODE_CONSTANT;
-+		}
- 	} else {
--		d->ccr |= CCR_DST_AMODE_CONSTANT | CCR_SRC_AMODE_POSTINC;
- 		d->csdp = CSDP_SRC_BURST_64 | CSDP_SRC_PACKED;
-+
-+		d->ccr |= CCR_SRC_AMODE_POSTINC;
-+		if (port_window) {
-+			d->ccr |= CCR_DST_AMODE_DBLIDX;
-+
-+			if (port_window / 64)
-+				d->csdp = CSDP_DST_BURST_64 | CSDP_DST_PACKED;
-+			else if (port_window / 32)
-+				d->csdp = CSDP_DST_BURST_32 | CSDP_DST_PACKED;
-+			else if (port_window / 16)
-+				d->csdp = CSDP_DST_BURST_16 | CSDP_DST_PACKED;
-+		} else {
-+			d->ccr |= CCR_DST_AMODE_CONSTANT;
-+		}
- 	}
- 
- 	d->cicr = CICR_DROP_IE | CICR_BLOCK_IE;
-@@ -945,6 +979,9 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
- 			d->ccr |= CCR_TRIGGER_SRC;
- 
- 		d->cicr |= CICR_MISALIGNED_ERR_IE | CICR_TRANS_ERR_IE;
-+
-+		if (port_window)
-+			d->csdp |= CSDP_WRITE_LAST_NON_POSTED;
- 	}
- 	if (od->plat->errata & DMA_ERRATA_PARALLEL_CHANNELS)
- 		d->clnk_ctrl = c->dma_ch;
-@@ -970,6 +1007,10 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
- 		osg->addr = sg_dma_address(sgent);
- 		osg->en = en;
- 		osg->fn = sg_dma_len(sgent) / frame_bytes;
-+		if (port_window && dir == DMA_MEM_TO_DEV) {
-+			osg->ei = 1;
-+			osg->fi = (-1) * (port_window - 1);
-+		}
- 
- 		if (d->using_ll) {
- 			osg->t2_desc = dma_pool_alloc(od->desc_pool, GFP_ATOMIC,
--- 
+ drivers/dma/omap-dma.c    | 45 +++++++++++++++++++++++++++++++++++++++++++--
+ include/linux/dmaengine.h |  8 ++++++++
+ 2 files changed, 51 insertions(+), 2 deletions(-)
+
+--
 2.10.1
