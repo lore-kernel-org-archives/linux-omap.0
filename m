@@ -1,48 +1,47 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH resent v3 3/3] ASoC: omap-abe-twl6040: fix typo in
- bindings documentation
-Date: Wed, 26 Oct 2016 10:59:29 +0300
-Message-ID: <79d574c7-f3ed-5d54-5807-698115d999bd@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH resent v3 2/3] dts: omap5: board-common: enable twl6040
+ headset jack detection
+Date: Wed, 26 Oct 2016 11:02:14 +0300
+Message-ID: <06084abe-015a-ed84-2ce3-779be5744773@ti.com>
 References: <cover.1477417090.git.hns@goldelico.com>
- <f2ade237f55685f4fdb2aaa127995f3ccb986bb3.1477417090.git.hns@goldelico.com>
+ <b918b86fd1d1f7e6fb2c15bb507b84d5cf1f0d3e.1477417090.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <f2ade237f55685f4fdb2aaa127995f3ccb986bb3.1477417090.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org, marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <b918b86fd1d1f7e6fb2c15bb507b84d5cf1f0d3e.1477417090.git.hns@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, Russell King <linux@armlinux.org.uk>
+Cc: devicetree@vger.kernel.org, letux-kernel@openphoenux.org, linux-kernel@vger.kernel.org, ldewangan@nvidia.com, kernel@pyra-handheld.com, marek@goldelico.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 On 10/25/16 20:38, H. Nikolaus Schaller wrote:
-> Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 
-Acked-by: Peter Ujfalusi <perter.ujfalusi-l0cyMroinI0@public.gmane.org>
+I'm not sure if this is valid for igep0500 as I have not seen the schematics.
+It might be safer to enable the jack detection only for omap5-uevm?
+
+In any case:
+Reviewed-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
 > ---
->  Documentation/devicetree/bindings/sound/omap-abe-twl6040.txt | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  arch/arm/boot/dts/omap5-board-common.dtsi | 1 +
+>  1 file changed, 1 insertion(+)
 > 
-> diff --git a/Documentation/devicetree/bindings/sound/omap-abe-twl6040.txt b/Documentation/devicetree/bindings/sound/omap-abe-twl6040.txt
-> index fd40c85..462b04e8 100644
-> --- a/Documentation/devicetree/bindings/sound/omap-abe-twl6040.txt
-> +++ b/Documentation/devicetree/bindings/sound/omap-abe-twl6040.txt
-> @@ -12,7 +12,7 @@ Required properties:
+> diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
+> index b04adee..ab60a8e 100644
+> --- a/arch/arm/boot/dts/omap5-board-common.dtsi
+> +++ b/arch/arm/boot/dts/omap5-board-common.dtsi
+> @@ -124,6 +124,7 @@
+>  		compatible = "ti,abe-twl6040";
+>  		ti,model = "omap5-uevm";
 >  
->  Optional properties:
->  - ti,dmic: phandle for the OMAP dmic node if the machine have it connected
-> -- ti,jack_detection: Need to be present if the board capable to detect jack
-> +- ti,jack-detection: Need to be present if the board capable to detect jack
->    insertion, removal.
+> +		ti,jack-detection;
+>  		ti,mclk-freq = <19200000>;
 >  
->  Available audio endpoints for the audio-routing table:
+>  		ti,mcpdm = <&mcpdm>;
 > 
 
 
 -- 
 Péter
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
