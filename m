@@ -1,317 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/5] pinctrl: core: Add generic pinctrl functions for managing groups
-Date: Tue, 25 Oct 2016 14:02:18 -0700
-Message-ID: <20161025210221.9150-3-tony@atomide.com>
-References: <20161025210221.9150-1-tony@atomide.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161025210221.9150-1-tony@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Haojian Zhuang <haojian.zhuang@linaro.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH resent v3 3/3] ASoC: omap-abe-twl6040: fix typo in
+ bindings documentation
+Date: Wed, 26 Oct 2016 10:59:29 +0300
+Message-ID: <79d574c7-f3ed-5d54-5807-698115d999bd@ti.com>
+References: <cover.1477417090.git.hns@goldelico.com>
+ <f2ade237f55685f4fdb2aaa127995f3ccb986bb3.1477417090.git.hns@goldelico.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <f2ade237f55685f4fdb2aaa127995f3ccb986bb3.1477417090.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org, marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-We can add generic helpers for pin group handling for cases where the pin
-controller driver does not need to use static arrays.
+On 10/25/16 20:38, H. Nikolaus Schaller wrote:
+> Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/pinctrl/Kconfig |   3 +
- drivers/pinctrl/core.c  | 178 ++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/pinctrl/core.h  |  47 +++++++++++++
- 3 files changed, 228 insertions(+)
+Acked-by: Peter Ujfalusi <perter.ujfalusi-l0cyMroinI0@public.gmane.org>
 
-diff --git a/drivers/pinctrl/Kconfig b/drivers/pinctrl/Kconfig
---- a/drivers/pinctrl/Kconfig
-+++ b/drivers/pinctrl/Kconfig
-@@ -8,6 +8,9 @@ config PINCTRL
- menu "Pin controllers"
- 	depends on PINCTRL
- 
-+config GENERIC_PINCTRL
-+	bool
-+
- config PINMUX
- 	bool "Support pin multiplexing controllers" if COMPILE_TEST
- 
-diff --git a/drivers/pinctrl/core.c b/drivers/pinctrl/core.c
---- a/drivers/pinctrl/core.c
-+++ b/drivers/pinctrl/core.c
-@@ -540,6 +540,182 @@ void pinctrl_remove_gpio_range(struct pinctrl_dev *pctldev,
- }
- EXPORT_SYMBOL_GPL(pinctrl_remove_gpio_range);
- 
-+#ifdef CONFIG_GENERIC_PINCTRL
-+
-+/**
-+ * pinctrl_generic_get_group_count() - returns the number of pin groups
-+ * @pctldev: pin controller device
-+ */
-+int pinctrl_generic_get_group_count(struct pinctrl_dev *pctldev)
-+{
-+	return pctldev->num_groups;
-+}
-+EXPORT_SYMBOL_GPL(pinctrl_generic_get_group_count);
-+
-+/**
-+ * pinctrl_generic_get_group_name() - returns the name of a pin group
-+ * @pctldev: pin controller device
-+ * @selector: group number
-+ */
-+const char *pinctrl_generic_get_group_name(struct pinctrl_dev *pctldev,
-+					   unsigned int selector)
-+{
-+	struct group_desc *group;
-+
-+	group = radix_tree_lookup(&pctldev->pin_group_tree,
-+				  selector);
-+	if (!group)
-+		return NULL;
-+
-+	return group->name;
-+}
-+EXPORT_SYMBOL_GPL(pinctrl_generic_get_group_name);
-+
-+/**
-+ * pinctrl_generic_get_group_pins() - gets the pin group pins
-+ * @pctldev: pin controller device
-+ * @selector: group number
-+ * @pins: pins in the group
-+ * @num_pins: number of pins in the group
-+ */
-+int pinctrl_generic_get_group_pins(struct pinctrl_dev *pctldev,
-+				   unsigned int selector,
-+				   const unsigned int **pins,
-+				   unsigned int *num_pins)
-+{
-+	struct group_desc *group;
-+
-+	group = radix_tree_lookup(&pctldev->pin_group_tree,
-+				  selector);
-+	if (!group) {
-+		dev_err(pctldev->dev, "%s could not find pingroup%i\n",
-+			__func__, selector);
-+		return -EINVAL;
-+	}
-+
-+	*pins = group->pins;
-+	*num_pins = group->num_pins;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(pinctrl_generic_get_group_pins);
-+
-+/**
-+ * pinctrl_generic_get_group() - returns a pin group based on the number
-+ * @pctldev: pin controller device
-+ * @gselector: group number
-+ */
-+struct group_desc *pinctrl_generic_get_group(struct pinctrl_dev *pctldev,
-+					     unsigned int selector)
-+{
-+	struct group_desc *group;
-+
-+	group = radix_tree_lookup(&pctldev->pin_group_tree,
-+				  selector);
-+	if (!group)
-+		return NULL;
-+
-+	return group;
-+}
-+EXPORT_SYMBOL_GPL(pinctrl_generic_get_group);
-+
-+/**
-+ * pinctrl_generic_add_group() - adds a new pin group
-+ * @pctldev: pin controller device
-+ * @name: name of the pin group
-+ * @pins: pins in the pin group
-+ * @num_pins: number of pins in the pin group
-+ * @data: pin controller driver specific data
-+ *
-+ * Note that the caller must take care of locking.
-+ */
-+int pinctrl_generic_add_group(struct pinctrl_dev *pctldev, const char *name,
-+			      int *pins, int num_pins, void *data)
-+{
-+	struct group_desc *group;
-+
-+	group = devm_kzalloc(pctldev->dev, sizeof(*group), GFP_KERNEL);
-+	if (!group)
-+		return -ENOMEM;
-+
-+	group->name = name;
-+	group->pins = pins;
-+	group->num_pins = num_pins;
-+	group->data = data;
-+
-+	radix_tree_insert(&pctldev->pin_group_tree, pctldev->num_groups,
-+			  group);
-+
-+	pctldev->num_groups++;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(pinctrl_generic_add_group);
-+
-+/**
-+ * pinctrl_generic_remove_group() - removes a numbered pin group
-+ * @pctldev: pin controller device
-+ * @selector: group number
-+ *
-+ * Note that the caller must take care of locking.
-+ */
-+int pinctrl_generic_remove_group(struct pinctrl_dev *pctldev,
-+				 unsigned int selector)
-+{
-+	struct group_desc *group;
-+
-+	group = radix_tree_lookup(&pctldev->pin_group_tree,
-+				  selector);
-+	if (!group)
-+		return -ENOENT;
-+
-+	radix_tree_delete(&pctldev->pin_group_tree, selector);
-+	devm_kfree(pctldev->dev, group);
-+
-+	pctldev->num_groups--;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(pinctrl_generic_remove_group);
-+
-+/**
-+ * pinctrl_generic_free_groups() - removes all pin groups
-+ * @pctldev: pin controller device
-+ *
-+ * Note that the caller must take care of locking.
-+ */
-+static void pinctrl_generic_free_groups(struct pinctrl_dev *pctldev)
-+{
-+	struct radix_tree_iter iter;
-+	struct group_desc *group;
-+	unsigned long *indices;
-+	void **slot;
-+	int i = 0;
-+
-+	indices = devm_kzalloc(pctldev->dev, sizeof(*indices) *
-+			       pctldev->num_groups, GFP_KERNEL);
-+	if (!indices)
-+		return;
-+
-+	radix_tree_for_each_slot(slot, &pctldev->pin_group_tree, &iter, 0)
-+		indices[i++] = iter.index;
-+
-+	for (i = 0; i < pctldev->num_groups; i++) {
-+		group = radix_tree_lookup(&pctldev->pin_group_tree,
-+					  indices[i]);
-+		radix_tree_delete(&pctldev->pin_group_tree, indices[i]);
-+		devm_kfree(pctldev->dev, group);
-+	}
-+
-+	pctldev->num_groups = 0;
-+}
-+
-+#else
-+static inline void pinctrl_generic_free_groups(struct pinctrl_dev *pctldev)
-+{
-+}
-+#endif /* CONFIG_GENERIC_PINCTRL */
-+
- /**
-  * pinctrl_get_group_selector() - returns the group selector for a group
-  * @pctldev: the pin controller handling the group
-@@ -1794,6 +1970,7 @@ struct pinctrl_dev *pinctrl_register(struct pinctrl_desc *pctldesc,
- 	pctldev->desc = pctldesc;
- 	pctldev->driver_data = driver_data;
- 	INIT_RADIX_TREE(&pctldev->pin_desc_tree, GFP_KERNEL);
-+	INIT_RADIX_TREE(&pctldev->pin_group_tree, GFP_KERNEL);
- 	INIT_LIST_HEAD(&pctldev->gpio_ranges);
- 	INIT_DELAYED_WORK(&pctldev->hog_work, pinctrl_hog_work);
- 	pctldev->dev = dev;
-@@ -1872,6 +2049,7 @@ void pinctrl_unregister(struct pinctrl_dev *pctldev)
- 	mutex_lock(&pctldev->mutex);
- 	/* TODO: check that no pinmuxes are still active? */
- 	list_del(&pctldev->node);
-+	pinctrl_generic_free_groups(pctldev);
- 	/* Destroy descriptor tree */
- 	pinctrl_free_pindescs(pctldev, pctldev->desc->pins,
- 			      pctldev->desc->npins);
-diff --git a/drivers/pinctrl/core.h b/drivers/pinctrl/core.h
---- a/drivers/pinctrl/core.h
-+++ b/drivers/pinctrl/core.h
-@@ -24,6 +24,8 @@ struct pinctrl_gpio_range;
-  *	controller
-  * @pin_desc_tree: each pin descriptor for this pin controller is stored in
-  *	this radix tree
-+ * @pin_group_tree: optionally each pin group can be stored in this radix tree
-+ * @num_groups: optionally number of groups can be kept here
-  * @gpio_ranges: a list of GPIO ranges that is handled by this pin controller,
-  *	ranges are added to this list at runtime
-  * @dev: the device entry for this pin controller
-@@ -41,6 +43,8 @@ struct pinctrl_dev {
- 	struct list_head node;
- 	struct pinctrl_desc *desc;
- 	struct radix_tree_root pin_desc_tree;
-+	struct radix_tree_root pin_group_tree;
-+	unsigned int num_groups;
- 	struct list_head gpio_ranges;
- 	struct device *dev;
- 	struct module *owner;
-@@ -162,6 +166,20 @@ struct pin_desc {
- };
- 
- /**
-+ * struct group_desc - generic pin group descriptor
-+ * @name: name of the pin group
-+ * @pins: array of pins that belong to the group
-+ * @num_pins: number of pins in the group
-+ * @data: pin controller driver specific data
-+ */
-+struct group_desc {
-+	const char *name;
-+	int *pins;
-+	int num_pins;
-+	void *data;
-+};
-+
-+/**
-  * struct pinctrl_maps - a list item containing part of the mapping table
-  * @node: mapping table list node
-  * @maps: array of mapping table entries
-@@ -173,6 +191,35 @@ struct pinctrl_maps {
- 	unsigned num_maps;
- };
- 
-+#ifdef CONFIG_GENERIC_PINCTRL
-+
-+int pinctrl_generic_get_group_count(struct pinctrl_dev *pctldev);
-+
-+const char *pinctrl_generic_get_group_name(struct pinctrl_dev *pctldev,
-+					   unsigned int group_selector);
-+
-+int pinctrl_generic_get_group_pins(struct pinctrl_dev *pctldev,
-+				   unsigned int group_selector,
-+				   const unsigned int **pins,
-+				   unsigned int *npins);
-+
-+struct group_desc *pinctrl_generic_get_group(struct pinctrl_dev *pctldev,
-+					     unsigned int group_selector);
-+
-+int pinctrl_generic_add_group(struct pinctrl_dev *pctldev, const char *name,
-+			      int *gpins, int ngpins, void *data);
-+
-+int pinctrl_generic_remove_group(struct pinctrl_dev *pctldev,
-+				 unsigned int group_selector);
-+
-+static inline int
-+pinctrl_generic_remove_last_group(struct pinctrl_dev *pctldev)
-+{
-+	return pinctrl_generic_remove_group(pctldev, pctldev->num_groups - 1);
-+}
-+
-+#endif	/* CONFIG_GENERIC_PINCTRL */
-+
- struct pinctrl_dev *get_pinctrl_dev_from_devname(const char *dev_name);
- struct pinctrl_dev *get_pinctrl_dev_from_of_node(struct device_node *np);
- int pin_get_from_name(struct pinctrl_dev *pctldev, const char *name);
+> ---
+>  Documentation/devicetree/bindings/sound/omap-abe-twl6040.txt | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/sound/omap-abe-twl6040.txt b/Documentation/devicetree/bindings/sound/omap-abe-twl6040.txt
+> index fd40c85..462b04e8 100644
+> --- a/Documentation/devicetree/bindings/sound/omap-abe-twl6040.txt
+> +++ b/Documentation/devicetree/bindings/sound/omap-abe-twl6040.txt
+> @@ -12,7 +12,7 @@ Required properties:
+>  
+>  Optional properties:
+>  - ti,dmic: phandle for the OMAP dmic node if the machine have it connected
+> -- ti,jack_detection: Need to be present if the board capable to detect jack
+> +- ti,jack-detection: Need to be present if the board capable to detect jack
+>    insertion, removal.
+>  
+>  Available audio endpoints for the audio-routing table:
+> 
+
+
 -- 
-2.9.3
+Péter
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
