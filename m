@@ -1,66 +1,75 @@
-From: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 7/7] mfd: tps65217: Fix mismatched interrupt number
-Date: Wed, 26 Oct 2016 14:56:31 +0100
-Message-ID: <20161026135631.GC13127@dell>
-References: <20161021140106.21531-1-woogyom.kim@gmail.com>
- <20161021140106.21531-8-woogyom.kim@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/4] pinctrl: single: Use generic parser and
+ #pinctrl-cells for pinctrl-single,pins
+Date: Wed, 26 Oct 2016 07:16:28 -0700
+Message-ID: <20161026141628.x42rbn5o2ekdoluk@atomide.com>
+References: <20161025164538.453-1-tony@atomide.com>
+ <20161025164538.453-3-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20161021140106.21531-8-woogyom.kim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Milo Kim <woogyom.kim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20161025164538.453-3-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Jon Hunter <jonathanh@nvidia.com>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 21 Oct 2016, Milo Kim wrote:
+* Tony Lindgren <tony@atomide.com> [161025 09:51]:
+> We can now use generic parser. To support the legacy binding without
+> #pinctrl-cells, add pcs_quirk_missing_pinctrl_cells() and warn about
+> missing #pinctrl-cells.
+...
 
-> Enum value of 'tps65217_irq_type' is not matched with DT parsed hwirq
-> number[*].
-> 
-> The MFD driver gets the IRQ data by referencing hwirq, but the value is
-> different. So, irq_to_tps65217_irq() returns mismatched IRQ data.
-> Eventually, the power button driver enables not PB but USB interrupt
-> when it is probed.
-> 
-> According to the TPS65217 register map[**], USB interrupt is the LSB.
-> This patch synchronizes TPS65217 IRQ index.
-> 
-> [*]  include/dt-bindings/mfd/tps65217.h
-> [**] http://www.ti.com/lit/ds/symlink/tps65217.pdf
-> 
-> Signed-off-by: Milo Kim <woogyom.kim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
->  include/linux/mfd/tps65217.h | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/linux/mfd/tps65217.h b/include/linux/mfd/tps65217.h
-> index 4ccda89..75a3a5f 100644
-> --- a/include/linux/mfd/tps65217.h
-> +++ b/include/linux/mfd/tps65217.h
-> @@ -235,9 +235,9 @@ struct tps65217_bl_pdata {
->  };
->  
->  enum tps65217_irq_type {
-> -	TPS65217_IRQ_PB,
-> -	TPS65217_IRQ_AC,
->  	TPS65217_IRQ_USB,
-> +	TPS65217_IRQ_AC,
-> +	TPS65217_IRQ_PB,
->  	TPS65217_NUM_IRQ
->  };
+> +/**
+> + * pcs_quirk_missing_pinctrl_cells - handle legacy binding
+> + * @pcs: pinctrl driver instance
+> + * @np: device tree node
+> + * @cells: number of cells
+> + *
+> + * Handle legacy binding with no #pinctrl-cells. This should be
+> + * always two pinctrl-single,bit-per-mux and one for others.
+> + * At some point we may want to consider removing this.
+> + */
+> +static int pcs_quirk_missing_pinctrl_cells(struct pcs_device *pcs,
+> +					   struct device_node *np,
+> +					   int cells)
+> +{
+> +	struct property *p;
+> +	const char *name = "#pinctrl-cells";
+> +	int error;
+> +	u32 val;
+> +
+> +	error = of_property_read_u32(np, name, &val);
+> +	if (!error)
+> +		return 0;
+> +
+> +	dev_warn(pcs->dev, "please update dts to use %s = <%i>\n",
+> +		 name, cells);
+> +
+> +	p = devm_kzalloc(pcs->dev, sizeof(*p), GFP_KERNEL);
+> +	if (!p)
+> +		return -ENOMEM;
+> +
+> +	p->length = sizeof(__be32);
+> +	p->value = devm_kzalloc(pcs->dev, sizeof(__be32), GFP_KERNEL);
+> +	if (!p->value)
+> +		return -ENOMEM;
+> +	*(__be32 *)p->value = cpu_to_be32(cells);
+> +
+> +	p->name = devm_kstrdup(pcs->dev, name, GFP_KERNEL);
+> +	if (!p->name)
+> +		return -ENOMEM;
+> +
+> +	pcs->missing_nr_pinctrl_cells = p;
+> +
+> +	return of_add_property(np, pcs->missing_nr_pinctrl_cells);
+> +}
 
-This is why using enum for these types of assignments is sometimes
-dangerous.  It's probably best to be explicit.
+Looking at some make randconfig results, looks like we don't have
+of_add_property() and of_remove_property() exported. Is there some
+reason not to export them?
 
--- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+
+Tony
