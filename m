@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/3] ARM: dts: AM335X-bone-common: Add the internal and external clock nodes for rtc
-Date: Thu, 27 Oct 2016 11:18:06 +0530
-Message-ID: <1477547288-5041-2-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 2/3] ARM: dts: AM335X-evm: Add the internal and external clock nodes for rtc
+Date: Thu, 27 Oct 2016 11:18:07 +0530
+Message-ID: <1477547288-5041-3-git-send-email-j-keerthy@ti.com>
 References: <1477547288-5041-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -18,36 +18,22 @@ clock is board dependent. Assigning the corresponding clocks.
 
 Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/am335x-bone-common.dtsi | 5 +++++
- arch/arm/boot/dts/am33xx.dtsi             | 2 ++
- 2 files changed, 7 insertions(+)
+ arch/arm/boot/dts/am335x-evm.dts | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index 007b5e5..ca9f7ce 100644
---- a/arch/arm/boot/dts/am335x-bone-common.dtsi
-+++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-@@ -393,3 +393,8 @@
- &sham {
- 	status = "okay";
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index e82432c..c2186ec 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -783,3 +783,8 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&dcan1_pins_default>;
  };
 +
 +&rtc {
 +	clocks = <&clk_32768_ck>, <&clkdiv32k_ick>;
 +	clock-names = "ext-clk", "int-clk";
 +};
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 194d884..d52fa1c 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -505,6 +505,8 @@
- 			interrupts = <75
- 				      76>;
- 			ti,hwmods = "rtc";
-+			clocks = <&clkdiv32k_ick>;
-+			clock-names = "int-clk";
- 		};
- 
- 		spi0: spi@48030000 {
 -- 
 1.9.1
 
