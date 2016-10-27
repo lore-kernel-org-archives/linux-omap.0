@@ -1,71 +1,104 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 0/3] Add memremap executable mapping and extend drivers/misc/sram.c
-Date: Thu, 27 Oct 2016 13:56:09 -0500
-Message-ID: <20161027185612.22362-1-d-gerlach@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: musb RPM sleep-while-atomic in 4.9-rc1
+Date: Thu, 27 Oct 2016 12:15:52 -0700
+Message-ID: <20161027191552.tuutyslp5qtu2b4f@atomide.com>
+References: <20161021112745.lancojpgv4h6aqpw@atomide.com>
+ <20161024173538.26xvlitxiwjmh4fx@atomide.com>
+ <20161025083237.GF12024@localhost>
+ <20161025151110.vih52s47a2g2col5@atomide.com>
+ <20161026142050.GK12024@localhost>
+ <20161026143100.rg4pse6mjyq32hxm@atomide.com>
+ <20161027151446.ffj6w2tydf6ymv7c@atomide.com>
+ <20161027164416.GL12024@localhost>
+ <20161027174016.43twztwekvb3b25t@atomide.com>
+ <20161027184507.GM12024@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Russell King <linux@arm.linux.org.uk>, Dan Williams <dan.j.williams@intel.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Shawn Guo <shawnguo@kernel.org>, Tony Lindgren <tony@atomide.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Nishanth Menon <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161027184507.GM12024@localhost>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-There are several instances when one would want to execute out of on-chip
-SRAM, such as PM code on ARM platforms, so once again revisiting this
-series to allow that in a generic manner. Seems that having a solution for
-allowing SRAM to be mapped as executable will help clean up PM code on several
-ARM platforms that are using ARM internal __arm_ioremap_exec API
-and also open the door for PM support on new platforms like TI AM335x and
-AM437x. This was last sent as RFC here [1] and based on comments from Russell
-King and Arnd Bergmann has been rewritten to use memremap API rather than
-ioremap API, as executable iomem does not really make sense.
+* Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [161027 11:46]:
+> On Thu, Oct 27, 2016 at 10:40:17AM -0700, Tony Lindgren wrote:
+> > And that one I must have hosed when cleaning up, thanks for noticing
+> > these. Updated patch below.
+> 
+> I had a couple of inline comments to the previous version about locking
+> in the gadget code as well (hidden after too much context). Looks like
+> there's a lock missing for the deferred work, and something that seems
+> like a possible ABBA deadlock.
 
-I still see several platforms (at-91, imx6, socfpga) that could make use
-of this and use the generic sram driver to allocate the SRAM needed for PM.
-This series allows direct allocation of SRAM using the generic SRAM driver
-that will be already mapped as executable. Otherwise platform SRAM allocation
-code must be used or if the generic sram driver is used as-is the memory
-must be remapped as executable after it has been mapped normally by the
-SRAM driver.
+Oh sorry, I totally missed those.
 
-I had sent omap3 series to convert from using old omap sram platform
-mapping code to using the generic sram driver instead here [2] which was
-based on previous RFC but can easily be rebased on this updated series.
-Finally, forthcoming TI am335x and am437x PM code must make use of
-it as well, as portions of PM code are moving in to drivers.
+> > diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+> > --- a/drivers/usb/musb/musb_gadget.c
+> > +++ b/drivers/usb/musb/musb_gadget.c
+> > @@ -1222,6 +1222,13 @@ void musb_ep_restart(struct musb *musb, struct musb_request *req)
+> >  		rxstate(musb, req);
+> >  }
+> >  
+> > +void musb_ep_restart_resume_work(struct musb *musb, void *data)
+> > +{
+> > +	struct musb_request *req = data;
+> > +
+> > +	musb_ep_restart(musb, req);
+> 
+> This one is supposed to be called with musb->lock held (according to the
+> function header anyway).
 
-Changes from the RFC include:
+Good point, yeah that calls the monster functions txstate and rxstate.
 
-- Rather than introduce ioremap_exec API, use memremap API, as the concept
-  of executable iomem does not make sense; any memory that can used to
-  run code should not have io side effects like iomem.
-- Rather than having a fallback mapping if a platform does not support
-  exec mappings under the memremap API, have the mapping fail, as if you
-  are mapping memory as exec, presumably you will then try to run code
-  from it which will fail anyway, so it makes more sense to prevent the
-  mapping in the first place.
-- Update sram driver to use memremap rather than ioremap for exec flags.
+> >  static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
+> >  			gfp_t gfp_flags)
+> >  {
+> > @@ -1255,7 +1262,7 @@ static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
+> >  
+> >  	map_dma_buffer(request, musb, musb_ep);
+> >  
+> > -	pm_runtime_get_sync(musb->controller);
+> > +	pm_runtime_get(musb->controller);
+> >  	spin_lock_irqsave(&musb->lock, lockflags);
+> >  
+> >  	/* don't queue if the ep is down */
+> > @@ -1271,8 +1278,13 @@ static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
+> >  	list_add_tail(&request->list, &musb_ep->req_list);
+> >  
+> >  	/* it this is the head of the queue, start i/o ... */
+> > -	if (!musb_ep->busy && &request->list == musb_ep->req_list.next)
+> > -		musb_ep_restart(musb, request);
+> > +	if (!musb_ep->busy && &request->list == musb_ep->req_list.next) {
+> > +		if (pm_runtime_active(musb->controller))
+> > +			musb_ep_restart(musb, request);
+> > +		else
+> > +			musb_queue_on_resume(musb, musb_ep_restart_resume_work,
+> > +					     request);
+> > +	}
+> 
+> But then this looks like it could trigger an ABBA deadlock as musb->lock
+> is held while queue_on_resume() takes musb->list_lock, and
+> musb_run_pending() would take the same locks in the reverse order.
+
+It seems we can avoid that by locking only list_add_tail() and list_del():
+
+list_for_each_entry_safe(w, _w, &musb->resume_work, node) {
+	spin_lock_irqsave(&musb->list_lock, flags);
+	list_del(&w->node);
+	spin_unlock_irqrestore(&musb->list_lock, flags);
+	if (w->callback)
+		w->callback(musb, w->data);
+	devm_kfree(musb->controller, w);
+}
+
+Or do you have some better ideas?
 
 Regards,
-Dave
 
-[1] http://www.spinics.net/lists/arm-kernel/msg503071.html
-[2] http://www.spinics.net/lists/linux-omap/msg128753.html
-
-Dave Gerlach (3):
-  ARM: memremap: implement arch_memremap_exec/exec_nocache
-  memremap: add MEMREMAP_EXEC and MEMREMAP_EXEC_NOCACHE flags
-  misc: SRAM: Add option to map SRAM to allow code execution
-
- Documentation/devicetree/bindings/sram/sram.txt |  2 ++
- arch/arm/include/asm/io.h                       |  5 ++++
- arch/arm/mm/ioremap.c                           | 16 ++++++++++++
- arch/arm/mm/nommu.c                             | 12 +++++++++
- drivers/misc/sram.c                             |  7 +++++
- include/linux/io.h                              |  2 ++
- kernel/memremap.c                               | 34 ++++++++++++++++++++++++-
- 7 files changed, 77 insertions(+), 1 deletion(-)
-
--- 
-2.9.3
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
