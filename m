@@ -1,34 +1,138 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 0/2] Few pinctrl-single clean-ups
-Date: Thu, 27 Oct 2016 22:15:07 +0200
-Message-ID: <CACRpkdZ36CDU3OWRYKFbhoa5y5pLyESQ-PFiBvKVTg4=156OFw@mail.gmail.com>
-References: <20161025160900.2724-1-tony@atomide.com> <CACRpkdYDfyd_+uLfMD+Zd6SzYbHMCtuF4fsa=CQwftTWXuPGjA@mail.gmail.com>
- <20161027150045.q3cx6mvdadi7wshi@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20161027150045.q3cx6mvdadi7wshi@atomide.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Haojian Zhuang <haojian.zhuang@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>
+From: John Syne <john3909@gmail.com>
+Subject: Re: [PATCH] drivers: mfd: ti_am335x_tscadc: increase ADC ref clock to
+ 24MHz
+Date: Thu, 27 Oct 2016 14:17:21 -0700
+Message-ID: <A5F6974F-5793-4E85-BF82-2D9309980991@gmail.com>
+References: <20161024060226.4170-1-mugunthanvnm@ti.com>
+ <038C6B01-8443-4321-9C65-BAC4095237D3@gmail.com>
+ <086ab2fa-63ee-c5ab-2715-b2efd78270d7@ti.com>
+ <12725C92-9BB8-4F77-A7B4-F3C3DA9F8B0B@gmail.com>
+ <DB09B26E-C5AB-427A-82D5-6FE857E7C218@gmail.com> <20161025063847.GD8574@dell>
+ <CC15CFB4-60D0-4A63-A3D3-2079CFA31274@gmail.com> <20161026084811.GI8574@dell>
+Mime-Version: 1.0 (Mac OS X Mail 10.1 \(3251\))
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161026084811.GI8574@dell>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Mugunthan V N <mugunthanvnm@ti.com>, linux-iio@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@kernel.org>, Vignesh R <vigneshr@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Oct 27, 2016 at 5:00 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Linus Walleij <linus.walleij@linaro.org> [161027 01:17]:
->> On Tue, Oct 25, 2016 at 6:08 PM, Tony Lindgren <tony@atomide.com> wrote:
->>
->> > In preparation for some more generic pinctrl changes, here are two clean-up
->> > patches for pinctrl-single.
->>
->> Can you respin the first patch so I can merge these two?
->
-> OK posted as a reply that to it that should apply with
-> git-am --scissors. Let me know if you want me to repost the whole
-> thread.
+>=20
+> On Oct 26, 2016, at 1:48 AM, Lee Jones <lee.jones@linaro.org> wrote:
+>=20
+> On Tue, 25 Oct 2016, John Syne wrote:
+>>> On Oct 24, 2016, at 11:38 PM, Lee Jones <lee.jones@linaro.org> =
+wrote:
+>>> On Mon, 24 Oct 2016, John Syne wrote:
+>>>>> On Oct 24, 2016, at 11:01 PM, John Syne <john3909@gmail.com> =
+wrote:
+>>>>>> On Oct 24, 2016, at 10:52 PM, Mugunthan V N <mugunthanvnm@ti.com> =
+wrote:
+>>>>>>=20
+>>>>>> On Tuesday 25 October 2016 02:28 AM, John Syne wrote:
+>>>>>>>>> On Oct 23, 2016, at 11:02 PM, Mugunthan V N =
+<mugunthanvnm@ti.com> wrote:
+>>>>>>>>>=20
+>>>>>>>>> Increase ADC reference clock from 3MHz to 24MHz so that the
+>>>>>>>>> sampling rates goes up from 100K samples per second to 800K
+>>>>>>>>> samples per second on AM335x and AM437x SoC.
+>>>>>>>>>=20
+>>>>>>>>> Also increase opendelay for touchscreen configuration to
+>>>>>>>>> equalize the increase in ADC reference clock frequency,
+>>>>>>>>> which results in the same amount touch events reported via
+>>>>>>>>> evtest on AM335x GP EVM.
+>>>>>>>>>=20
+>>>>>>>>> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+>>>>>>>>> ---
+>>>>>>>>>=20
+>>>>>>>>> This patch depends on ADC DMA patch series [1]
+>>>>>>>>>=20
+>>>>>>>>> Without DMA support, when ADC ref clock is set at 24MHz, I am
+>>>>>>>>> seeing fifo overflow as CPU is not able to pull the ADC =
+samples.
+>>>>>>>>> This answers that DMA support is must for ADC to consume the
+>>>>>>>>> samples generated at 24MHz with no open, step delay or
+>>>>>>>>> averaging with patch [2].
+>>>>>>>>>=20
+>>>>>>>>> Measured the performance with the iio_generic_buffer with the
+>>>>>>>>> patch [3] applied
+>>>>>>>>>=20
+>>>>>>>>> [1] - http://www.spinics.net/lists/devicetree/msg145045.html
+>>>>>>>>> [2] - http://pastebin.ubuntu.com/23357935/
+>>>>>>>>> [3] - http://pastebin.ubuntu.com/23357939/
+>>>>>>>>>=20
+>>>>>>>>> ---
+>>>>>>>>> include/linux/mfd/ti_am335x_tscadc.h | 4 ++--
+>>>>>>>>> 1 file changed, 2 insertions(+), 2 deletions(-)
+>>>>>>>>>=20
+>>>>>>>>> diff --git a/include/linux/mfd/ti_am335x_tscadc.h =
+b/include/linux/mfd/ti_am335x_tscadc.h
+>>>>>>>>> index b9a53e0..96c4207 100644
+>>>>>>>>> --- a/include/linux/mfd/ti_am335x_tscadc.h
+>>>>>>>>> +++ b/include/linux/mfd/ti_am335x_tscadc.h
+>>>>>>>>> @@ -90,7 +90,7 @@
+>>>>>>>>> /* Delay register */
+>>>>>>>>> #define STEPDELAY_OPEN_MASK	(0x3FFFF << 0)
+>>>>>>>>> #define STEPDELAY_OPEN(val)	((val) << 0)
+>>>>>>>>> -#define STEPCONFIG_OPENDLY	STEPDELAY_OPEN(0x098)
+>>>>>>> Wouldn=E2=80=99t this be better to add this to the devicetree?
+>>>>>>>=20
+>>>>>>> 	ti,chan-step-avg =3D <0x16 0x16 0x16 0x16 0x16 0x16 =
+0x16>;
+>>>>>>> 	ti,chan-step-opendelay =3D <0x500 0x500 0x500 0x500 =
+0x500 0x500 0x500>;
+>>>>>>> 	ti,chan-step-sampledelay =3D <0x0 0x0 0x0 0x0 0x0 0x0 =
+0x0>;
+>>>>>>=20
+>>>>>> For a touch screen, there is not need to change in these =
+parameter
+>>>>>> settings, so my opinion is to keep it as is. Or am I missing =
+something?
+>>>>> I was thinking that if you are using this driver as an ADC, you =
+may want the flexibility to make these changes in the DT. I=E2=80=99m =
+doing this by connecting sensors to the ADC inputs. I=E2=80=99m not =
+using this driver for a touchscreen.=20
+>>>>=20
+>>>> Here is a DT overlay were this gets using on the BeagleBoneBlack. =20=
 
-I don't see the replies :O
+>>>>=20
+>>>> =
+https://github.com/RobertCNelson/bb.org-overlays/blob/master/src/arm/BB-AD=
+C-00A0.dts
+>>>>=20
+>>>> Besides, these DT features are already implemented in the driver so =
+it is just a matter of adding these entries to the am33xx.dtsi & =
+am4372.dtsi, which you modified in this patch series.
+>>>=20
+>>> This looks like configuration, no?
+>>>=20
+>>> DT should be used to describe the hardware.
+>> You may be right, but how is this different to setting the baud rate =
+on a serial channel or sampling rate on a audio channel? Looking through =
+the DT, there are many configuration settings, so I=E2=80=99m not sure =
+what is the correct way to handle this. Surely it is better to handle =
+this in DT vs hard coding these settings?
+>=20
+> I think setting the UART baud rate is also an invalid DT entry.
+>=20
+> It's okay to list all of the options in DT, but to actually select
+> one, that should be done either in userspace or as a kernel option.
+> Perhaps as a Kconfig selection.
+Yeah, this has been inconsistent for a long time. My only point was that =
+these DT parameters had already been implemented in the ti_am335x_adc KM =
+and I thought that this was better than hard coding these settings. =
+Implementing this in Kconfig means rebuilding the KM, which isn=E2=80=99t =
+desirable. Perhaps this should be done via sysfs attributes so as you =
+say, a userspace app can configure this driver. I guess the DT code in =
+ti_am335x_adc.c should be removed.=20
 
-I wonder what happened :/
-
-Yours,
-Linus Walleij
+Regards,
+John
+>=20
+> --=20
+> Lee Jones
+> Linaro STMicroelectronics Landing Team Lead
+> Linaro.org =E2=94=82 Open source software for ARM SoCs
+> Follow Linaro: Facebook | Twitter | Blog
