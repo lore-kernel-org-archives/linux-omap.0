@@ -1,51 +1,73 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH 5/5] gpio: davinci: Add a separate compatible for k2g
-Date: Thu, 27 Oct 2016 08:58:43 +0530
-Message-ID: <9b50700c-f7c2-4374-0e7a-2d5b8302f5c0@ti.com>
+From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/5] drivers: gpio: Add support for multiple IPs
+Date: Thu, 27 Oct 2016 09:12:20 +0530
+Message-ID: <c5c95d86-2c89-3819-725c-ee0b86c37ec0@ti.com>
 References: <1476855239-32730-1-git-send-email-j-keerthy@ti.com>
- <1476855239-32730-6-git-send-email-j-keerthy@ti.com>
- <20161026210851.jt2xoo2ap6zijowg@rob-hp-laptop>
+ <1476855239-32730-3-git-send-email-j-keerthy@ti.com>
+ <CACRpkdbsgM-yiWpiA5G35jQR8v3FO=Me+4rhe6TzE0qsWOJ8Ew@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20161026210851.jt2xoo2ap6zijowg@rob-hp-laptop>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: linus.walleij@linaro.org, gnurou@gmail.com, lokeshvutla@ti.com, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, rogerq@ti.com, grygorii.strashko@ti.com
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CACRpkdbsgM-yiWpiA5G35jQR8v3FO=Me+4rhe6TzE0qsWOJ8Ew-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On Thursday 27 October 2016 02:38 AM, Rob Herring wrote:
-> On Wed, Oct 19, 2016 at 11:03:59AM +0530, Keerthy wrote:
->> In the case of k2g the clocks are handled differently as when compared
->> with other keystones. Hence adding a separate compatible and match tables
->> accordingly.
->>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->> ---
->>  .../devicetree/bindings/gpio/gpio-davinci.txt      |  2 +-
->>  drivers/gpio/gpio-davinci.c                        | 45 ++++++++++++++++++++--
->>  2 files changed, 42 insertions(+), 5 deletions(-)
->>
->> diff --git a/Documentation/devicetree/bindings/gpio/gpio-davinci.txt b/Documentation/devicetree/bindings/gpio/gpio-davinci.txt
->> index 5079ba7..a76abd2 100644
->> --- a/Documentation/devicetree/bindings/gpio/gpio-davinci.txt
->> +++ b/Documentation/devicetree/bindings/gpio/gpio-davinci.txt
->> @@ -1,7 +1,7 @@
->>  Davinci/Keystone GPIO controller bindings
->>
->>  Required Properties:
->> -- compatible: should be "ti,dm6441-gpio", "ti,keystone-gpio"
->> +- compatible: should be "ti,dm6441-gpio", "ti,keystone-gpio", "ti,k2g-gpio"
+On Sunday 23 October 2016 04:02 PM, Linus Walleij wrote:
+> On Wed, Oct 19, 2016 at 7:33 AM, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> wrote:
 >
-> Is this "one of" or all? Seems line the former in which case please
-> reformat to one per line.
+>> From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+>>
+>> Update GPIO driver to support Multiple GPIO IPs.
+>>
+>> Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+>> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+>
+> This commit message is not at all describing what the patch is doing.
+>
+> What it does is bumping the GPIO pin offset in the Linux global
+> GPIO number space with 32 for each new controller.
+>
+>> +       static int bank_base;
+>>
+>>         pdata = davinci_gpio_get_pdata(pdev);
+>>         if (!pdata) {
+>> @@ -226,7 +227,8 @@ static int davinci_gpio_probe(struct platform_device *pdev)
+>>                 chips[i].chip.direction_output = davinci_direction_out;
+>>                 chips[i].chip.set = davinci_gpio_set;
+>>
+>> -               chips[i].chip.base = base;
+>> +               chips[i].chip.base = bank_base;
+>> +               bank_base += 32;
+>
+> Why can you not rewrite the driver to pass -1 as base and
+> get a dynamic allocation of GPIO numbers instead? Then
+> you won't have this hairy problem.
 
-It is One of. I will reformat.
+Ok i will try that.
+
+In case of k2g. There are 2 big GPIO modules GPIO0 and GPIO1.
+GPIO0 comprises of 144 GPIOs
+and GPIO1 has about 68 GPIOs. Wanted feedback from you on how this is 
+being modeled.
+
+I am creating a controller for every 32 GPIOs under the big module each 
+containing a gpio_chip. Each 32 GPIOs chip has 2 banks of 16 GPIOs each.
+Each 16 GPIO bank has an interrupt.
+
+Is this modeling fine or do you think creating one chip with 144 pins 
+and another with 68 pins is a better way?
+
 
 >
->>
->>  - reg: Physical base address of the controller and the size of memory mapped
->>         registers.
+> Yours,
+> Linus Walleij
+>
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
