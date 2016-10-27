@@ -1,230 +1,288 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/5] ARM: DRA7: PM: cpuidle MPU CSWR support
-Date: Thu, 27 Oct 2016 09:15:01 -0700
-Message-ID: <20161027161501.oehhwixykldta7hz@atomide.com>
-References: <20161026151703.24730-1-tony@atomide.com>
- <20161026151703.24730-5-tony@atomide.com>
+From: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: musb RPM sleep-while-atomic in 4.9-rc1
+Date: Thu, 27 Oct 2016 18:44:16 +0200
+Message-ID: <20161027164416.GL12024@localhost>
+References: <20161021092530.GO2765@localhost>
+ <20161021094904.q66kjsl33yzf2kir@atomide.com>
+ <20161021110725.GA5192@localhost>
+ <20161021112745.lancojpgv4h6aqpw@atomide.com>
+ <20161024173538.26xvlitxiwjmh4fx@atomide.com>
+ <20161025083237.GF12024@localhost>
+ <20161025151110.vih52s47a2g2col5@atomide.com>
+ <20161026142050.GK12024@localhost>
+ <20161026143100.rg4pse6mjyq32hxm@atomide.com>
+ <20161027151446.ffj6w2tydf6ymv7c@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161026151703.24730-5-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Nishanth Menon <nm@ti.com>, Dmitry Lifshitz <lifshitz@compulab.co.il>, Keerthy <j-keerthy@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Enric Balletbo Serra <eballetbo@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Pau Pajuel <ppajuel@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Santosh Shilimkar <ssantosh@kernel.org>, Javier Martinez Canillas <javier@dowhile0.org>, Robert Nelson <robertcnelson@gmail.com>, Marek Belisko <marek@goldelico.com>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20161027151446.ffj6w2tydf6ymv7c-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [161026 08:18]:
-> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+On Thu, Oct 27, 2016 at 08:14:46AM -0700, Tony Lindgren wrote:
+> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [161026 07:32]:
+
+> 8< -------------------------------
+> From tony Mon Sep 17 00:00:00 2001
+> From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Date: Tue, 25 Oct 2016 08:42:00 -0700
+> Subject: [PATCH] usb: musb: Fix sleeping function called from invalid
+>  context for hdrc glue
 > 
-> Add DRA74/72 CPUIDLE support.
+> Commit 65b3f50ed6fa ("usb: musb: Add PM runtime support for MUSB DSPS
+> glue layer") wrongly added a call for pm_runtime_get_sync to otg_timer
+> that runs in softirq context. That causes a "BUG: sleeping function called
+> from invalid context" every time when polling the cable status:
+> 
+> [<c015ebb4>] (__might_sleep) from [<c0413d60>] (__pm_runtime_resume+0x9c/0xa0)
+> [<c0413d60>] (__pm_runtime_resume) from [<c04d0bc4>] (otg_timer+0x3c/0x254)
+> [<c04d0bc4>] (otg_timer) from [<c0191180>] (call_timer_fn+0xfc/0x41c)
+> [<c0191180>] (call_timer_fn) from [<c01915c0>] (expire_timers+0x120/0x210)
+> [<c01915c0>] (expire_timers) from [<c0191acc>] (run_timer_softirq+0xa4/0xdc)
+> [<c0191acc>] (run_timer_softirq) from [<c010168c>] (__do_softirq+0x12c/0x594)
+> 
+> I did not notice that as I did not have CONFIG_DEBUG_ATOMIC_SLEEP enabled.
+> 
+> Let's fix the issue by adding dsps_check_status() and then register a
+> callback with musb_runtime_resume() so it gets called only when musb core
+> and it's parent devices are awake. Note that we don't want to do this from
+> PM runtime resume in musb_dsps.c as musb core is not awake yet at that
+> point as noted by Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>.
 
-And as Nishnath noted, that hardware does not support deeper
-idle states properly. So below is patches 4 and 5 updated and
-squashed together into a single patche to enable cpuidle only
-for omap5.
+It seems some chunks are missing since this patch only runs the
+deferred work at remove and not at runtime resume, effectively breaking
+detection.
 
-Regards,
+> Note that musb_gadget_queue() also suffers from a similar issue when
+> connecting the cable and cannot use pm_runtime_get_sync().
 
-Tony
+You seem to have left that pm_runtime_get_sync() in there though.
 
-8< -------------------------
->From tony Mon Sep 17 00:00:00 2001
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Date: Tue, 25 Oct 2016 08:33:32 -0700
-Subject: [PATCH] ARM: OMAP5: Add basic cpuidle MPU CSWR support
+> Fixes: 65b3f50ed6fa ("usb: musb: Add PM runtime support for MUSB DSPS
+> glue layer")
+> Reported-by: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> ---
+>  drivers/usb/musb/musb_core.c   | 44 +++++++++++++++++++++++++++++++++++++++++-
+>  drivers/usb/musb/musb_core.h   |  7 +++++++
+>  drivers/usb/musb/musb_dsps.c   | 29 +++++++++++++++++++++-------
+>  drivers/usb/musb/musb_gadget.c | 16 +++++++++++++--
+>  4 files changed, 86 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+> --- a/drivers/usb/musb/musb_core.c
+> +++ b/drivers/usb/musb/musb_core.c
+> @@ -122,7 +122,6 @@ MODULE_AUTHOR(DRIVER_AUTHOR);
+>  MODULE_LICENSE("GPL");
+>  MODULE_ALIAS("platform:" MUSB_DRIVER_NAME);
+>  
+> -
+>  /*-------------------------------------------------------------------------*/
+>  
+>  static inline struct musb *dev_to_musb(struct device *dev)
+> @@ -1896,6 +1895,46 @@ static void musb_pm_runtime_check_session(struct musb *musb)
+>  	musb->session = s;
+>  }
+>  
+> +struct musb_resume_work {
+> +	void (*callback)(struct musb *musb, void *data);
+> +	void *data;
+> +	struct list_head node;
+> +};
+> +
+> +void musb_queue_on_resume(struct musb *musb,
+> +			  void (*callback)(struct musb *musb, void *data),
+> +			  void *data)
+> +{
+> +	struct musb_resume_work *w;
+> +	unsigned long flags;
+> +
+> +	w = devm_kzalloc(musb->controller, sizeof(*w), GFP_ATOMIC);
+> +	if (!w)
+> +		return;
+> +
+> +	w->callback = callback;
+> +	w->data = data;
+> +	spin_lock_irqsave(&musb->list_lock, flags);
+> +	list_add_tail(&w->node, &musb->resume_work);
+> +	spin_unlock_irqrestore(&musb->list_lock, flags);
+> +}
+> +EXPORT_SYMBOL_GPL(musb_queue_on_resume);
+> +
+> +static void musb_run_pending(struct musb *musb)
+> +{
+> +	struct musb_resume_work *w, *_w;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&musb->list_lock, flags);
+> +	list_for_each_entry_safe(w, _w, &musb->resume_work, node) {
+> +		if (w->callback)
+> +			w->callback(musb, w->data);
+> +		list_del(&w->node);
+> +		devm_kfree(musb->controller, w);
+> +	}
+> +	spin_unlock_irqrestore(&musb->list_lock, flags);
+> +}
+> +
+>  /* Only used to provide driver mode change events */
+>  static void musb_irq_work(struct work_struct *data)
+>  {
+> @@ -1969,6 +2008,7 @@ static struct musb *allocate_instance(struct device *dev,
+>  	INIT_LIST_HEAD(&musb->control);
+>  	INIT_LIST_HEAD(&musb->in_bulk);
+>  	INIT_LIST_HEAD(&musb->out_bulk);
+> +	INIT_LIST_HEAD(&musb->resume_work);
+>  
+>  	musb->vbuserr_retry = VBUSERR_RETRY_COUNT;
+>  	musb->a_wait_bcon = OTG_TIME_A_WAIT_BCON;
+> @@ -2065,6 +2105,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+>  	}
+>  
+>  	spin_lock_init(&musb->lock);
+> +	spin_lock_init(&musb->list_lock);
+>  	musb->board_set_power = plat->set_power;
+>  	musb->min_power = plat->min_power;
+>  	musb->ops = plat->platform_ops;
+> @@ -2374,6 +2415,7 @@ static int musb_remove(struct platform_device *pdev)
+>  	 *  - Peripheral mode: peripheral is deactivated (or never-activated)
+>  	 *  - OTG mode: both roles are deactivated (or never-activated)
+>  	 */
+> +	musb_run_pending(musb);
+>  	musb_exit_debugfs(musb);
+>  
+>  	cancel_work_sync(&musb->irq_work);
+> diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+> --- a/drivers/usb/musb/musb_core.h
+> +++ b/drivers/usb/musb/musb_core.h
+> @@ -303,6 +303,7 @@ struct musb_context_registers {
+>  struct musb {
+>  	/* device lock */
+>  	spinlock_t		lock;
+> +	spinlock_t		list_lock;	/* resume work list lock */
+>  
+>  	struct musb_io		io;
+>  	const struct musb_platform_ops *ops;
+> @@ -337,6 +338,7 @@ struct musb {
+>  	struct list_head	control;	/* of musb_qh */
+>  	struct list_head	in_bulk;	/* of musb_qh */
+>  	struct list_head	out_bulk;	/* of musb_qh */
+> +	struct list_head	resume_work;	/* pending work on resume */
+>  
+>  	struct timer_list	otg_timer;
+>  	struct notifier_block	nb;
+> @@ -540,6 +542,11 @@ extern irqreturn_t musb_interrupt(struct musb *);
+>  
+>  extern void musb_hnp_stop(struct musb *musb);
+>  
+> +extern void
+> +musb_queue_on_resume(struct musb *musb,
+> +		     void (*callback)(struct musb *musb, void *data),
+> +		     void *data);
+> +
+>  static inline void musb_platform_set_vbus(struct musb *musb, int is_on)
+>  {
+>  	if (musb->ops->set_vbus)
+> diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+> --- a/drivers/usb/musb/musb_dsps.c
+> +++ b/drivers/usb/musb/musb_dsps.c
+> @@ -188,9 +188,8 @@ static void dsps_musb_disable(struct musb *musb)
+>  	musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
+>  }
+>  
+> -static void otg_timer(unsigned long _musb)
+> +static void dsps_check_status(struct musb *musb)
+>  {
+> -	struct musb *musb = (void *)_musb;
+>  	void __iomem *mregs = musb->mregs;
+>  	struct device *dev = musb->controller;
+>  	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
+> @@ -198,11 +197,6 @@ static void otg_timer(unsigned long _musb)
+>  	u8 devctl;
+>  	unsigned long flags;
+>  	int skip_session = 0;
+> -	int err;
+> -
+> -	err = pm_runtime_get_sync(dev);
+> -	if (err < 0)
+> -		dev_err(dev, "Poll could not pm_runtime_get: %i\n", err);
+>  
+>  	/*
+>  	 * We poll because DSPS IP's won't expose several OTG-critical
+> @@ -246,6 +240,27 @@ static void otg_timer(unsigned long _musb)
+>  		break;
+>  	}
+>  	spin_unlock_irqrestore(&musb->lock, flags);
+> +}
+> +
+> +static void dsps_check_status_resume_work(struct musb *musb, void *unused)
+> +{
+> +	dsps_check_status(musb);
+> +}
+> +
+> +static void otg_timer(unsigned long _musb)
+> +{
+> +	struct musb *musb = (void *)_musb;
+> +	struct device *dev = musb->controller;
+> +	int err;
+> +
+> +	err = pm_runtime_get(dev);
+> +	if (err < 0)
+> +		dev_err(dev, "Poll could not pm_runtime_get: %i\n", err);
+> +
+> +	if (pm_runtime_active(dev))
+> +		dsps_check_status(musb);
+> +	else
+> +		musb_queue_on_resume(musb, dsps_check_status_resume_work, NULL);
+>  
+>  	pm_runtime_mark_last_busy(dev);
+>  	pm_runtime_put_autosuspend(dev);
+> diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+> --- a/drivers/usb/musb/musb_gadget.c
+> +++ b/drivers/usb/musb/musb_gadget.c
+> @@ -1222,6 +1222,13 @@ void musb_ep_restart(struct musb *musb, struct musb_request *req)
+>  		rxstate(musb, req);
+>  }
+>  
+> +void musb_ep_restart_resume_work(struct musb *musb, void *data)
+> +{
+> +	struct musb_request *req = data;
+> +
+> +	musb_ep_restart(musb, req);
 
-Add OMAP5 CPUIDLE support.
+This one is supposed to be called with musb->lock held (according to the
+function header anyway).
 
-This patch adds MPUSS low power states in cpuidle.
+> +}
+> +
+>  static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
+>  			gfp_t gfp_flags)
+>  {
+> @@ -1271,8 +1278,13 @@ static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
+>  	list_add_tail(&request->list, &musb_ep->req_list);
+>  
+>  	/* it this is the head of the queue, start i/o ... */
+> -	if (!musb_ep->busy && &request->list == musb_ep->req_list.next)
+> -		musb_ep_restart(musb, request);
+> +	if (!musb_ep->busy && &request->list == musb_ep->req_list.next) {
+> +		if (pm_runtime_active(musb->controller))
+> +			musb_ep_restart(musb, request);
+> +		else
+> +			musb_queue_on_resume(musb, musb_ep_restart_resume_work,
+> +					     request);
+> +	}
+>  
+>  unlock:
+>  	spin_unlock_irqrestore(&musb->lock, lockflags);
 
-        C1 - CPU0 WFI + CPU1 WFI + MPU ON
-        C2 - CPU0 RET + CPU1 RET + MPU CSWR
+And then this looks like it could trigger an ABBA deadlock as musb->lock
+is held while queue_on_resume() takes musb->list_lock, and
+musb_run_pending() would take the same locks in the reverse order.
 
-Modified from TI kernel tree commit 605967fd2205 ("ARM: DRA7: PM:
-cpuidle MPU CSWR support") except enable cpuidle for omap5 instead
-of dra7.
-
-According to Nishanth Menon <nm@ti.com>, cpuidle on dra7 is not
-supported properly in the hardware so we don't want to enable it.
-However, for omap5 this adds some nice power savings. Note that
-the TI 3.8 based tree has other cpuidle states that we may be able
-to enable later on.
-
-On omap5-uevm, the power consumption eventually settles down to about
-920mW with ehci-omap and ohci-omap3 unloaded compared to about 1.7W
-without these patches. Note that it seems to take few minutes after
-booting for the idle power to go down to 920mW from 1.3W, no idea so
-far what might be causing that.
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-[ j-keerthy@ti.com rework on 3.14]
-Signed-off-by: Keerthy <j-keerthy@ti.com>
-[nm@ti.com: updates based on profiling]
-[tony@atomide.com: dropped CPUIDLE_FLAG_TIME_VALID no longer used,
-changed for omap5 only as requested by Nishanth, updated comments]
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/mach-omap2/cpuidle44xx.c | 80 ++++++++++++++++++++++++++++++++++++++-
- arch/arm/mach-omap2/pm44xx.c      |  2 +-
- 2 files changed, 80 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
---- a/arch/arm/mach-omap2/cpuidle44xx.c
-+++ b/arch/arm/mach-omap2/cpuidle44xx.c
-@@ -21,6 +21,7 @@
- #include "common.h"
- #include "pm.h"
- #include "prm.h"
-+#include "soc.h"
- #include "clockdomain.h"
- 
- #define MAX_CPUS	2
-@@ -30,6 +31,7 @@ struct idle_statedata {
- 	u32 cpu_state;
- 	u32 mpu_logic_state;
- 	u32 mpu_state;
-+	u32 mpu_state_vote;
- };
- 
- static struct idle_statedata omap4_idle_data[] = {
-@@ -50,12 +52,26 @@ static struct idle_statedata omap4_idle_data[] = {
- 	},
- };
- 
-+static struct idle_statedata omap5_idle_data[] = {
-+	{
-+		.cpu_state = PWRDM_POWER_ON,
-+		.mpu_state = PWRDM_POWER_ON,
-+		.mpu_logic_state = PWRDM_POWER_ON,
-+	},
-+	{
-+		.cpu_state = PWRDM_POWER_RET,
-+		.mpu_state = PWRDM_POWER_RET,
-+		.mpu_logic_state = PWRDM_POWER_RET,
-+	},
-+};
-+
- static struct powerdomain *mpu_pd, *cpu_pd[MAX_CPUS];
- static struct clockdomain *cpu_clkdm[MAX_CPUS];
- 
- static atomic_t abort_barrier;
- static bool cpu_done[MAX_CPUS];
- static struct idle_statedata *state_ptr = &omap4_idle_data[0];
-+static DEFINE_RAW_SPINLOCK(mpu_lock);
- 
- /* Private functions */
- 
-@@ -77,6 +93,32 @@ static int omap_enter_idle_simple(struct cpuidle_device *dev,
- 	return index;
- }
- 
-+static int omap_enter_idle_smp(struct cpuidle_device *dev,
-+			       struct cpuidle_driver *drv,
-+			       int index)
-+{
-+	struct idle_statedata *cx = state_ptr + index;
-+	unsigned long flag;
-+
-+	raw_spin_lock_irqsave(&mpu_lock, flag);
-+	cx->mpu_state_vote++;
-+	if (cx->mpu_state_vote == num_online_cpus()) {
-+		pwrdm_set_logic_retst(mpu_pd, cx->mpu_logic_state);
-+		omap_set_pwrdm_state(mpu_pd, cx->mpu_state);
-+	}
-+	raw_spin_unlock_irqrestore(&mpu_lock, flag);
-+
-+	omap4_enter_lowpower(dev->cpu, cx->cpu_state);
-+
-+	raw_spin_lock_irqsave(&mpu_lock, flag);
-+	if (cx->mpu_state_vote == num_online_cpus())
-+		omap_set_pwrdm_state(mpu_pd, PWRDM_POWER_ON);
-+	cx->mpu_state_vote--;
-+	raw_spin_unlock_irqrestore(&mpu_lock, flag);
-+
-+	return index;
-+}
-+
- static int omap_enter_idle_coupled(struct cpuidle_device *dev,
- 			struct cpuidle_driver *drv,
- 			int index)
-@@ -220,6 +262,32 @@ static struct cpuidle_driver omap4_idle_driver = {
- 	.safe_state_index = 0,
- };
- 
-+static struct cpuidle_driver omap5_idle_driver = {
-+	.name				= "omap5_idle",
-+	.owner				= THIS_MODULE,
-+	.states = {
-+		{
-+			/* C1 - CPU0 ON + CPU1 ON + MPU ON */
-+			.exit_latency = 2 + 2,
-+			.target_residency = 5,
-+			.enter = omap_enter_idle_simple,
-+			.name = "C1",
-+			.desc = "CPUx WFI, MPUSS ON"
-+		},
-+		{
-+			/* C2 - CPU0 RET + CPU1 RET + MPU CSWR */
-+			.exit_latency = 48 + 60,
-+			.target_residency = 100,
-+			.flags = CPUIDLE_FLAG_TIMER_STOP,
-+			.enter = omap_enter_idle_smp,
-+			.name = "C2",
-+			.desc = "CPUx CSWR, MPUSS CSWR",
-+		},
-+	},
-+	.state_count = ARRAY_SIZE(omap5_idle_data),
-+	.safe_state_index = 0,
-+};
-+
- /* Public functions */
- 
- /**
-@@ -230,6 +298,16 @@ static struct cpuidle_driver omap4_idle_driver = {
-  */
- int __init omap4_idle_init(void)
- {
-+	struct cpuidle_driver *idle_driver;
-+
-+	if (soc_is_omap54xx()) {
-+		state_ptr = &omap5_idle_data[0];
-+		idle_driver = &omap5_idle_driver;
-+	} else {
-+		state_ptr = &omap4_idle_data[0];
-+		idle_driver = &omap4_idle_driver;
-+	}
-+
- 	mpu_pd = pwrdm_lookup("mpu_pwrdm");
- 	cpu_pd[0] = pwrdm_lookup("cpu0_pwrdm");
- 	cpu_pd[1] = pwrdm_lookup("cpu1_pwrdm");
-@@ -244,5 +322,5 @@ int __init omap4_idle_init(void)
- 	/* Configure the broadcast timer on each cpu */
- 	on_each_cpu(omap_setup_broadcast_timer, NULL, 1);
- 
--	return cpuidle_register(&omap4_idle_driver, cpu_online_mask);
-+	return cpuidle_register(idle_driver, cpu_online_mask);
- }
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -287,7 +287,7 @@ int __init omap4_pm_init(void)
- 	/* Overwrite the default cpu_do_idle() */
- 	arm_pm_idle = omap_default_idle;
- 
--	if (cpu_is_omap44xx())
-+	if (cpu_is_omap44xx() || soc_is_omap54xx())
- 		omap4_idle_init();
- 
- err2:
--- 
-2.9.3
+Johan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
