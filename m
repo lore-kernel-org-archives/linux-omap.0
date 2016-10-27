@@ -1,56 +1,104 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH v3 0/3] cpufreq: Introduce TI CPUFreq/OPP Driver
-Date: Thu, 27 Oct 2016 16:41:28 -0500
-Message-ID: <20161027214131.1725-1-d-gerlach@ti.com>
+Subject: [PATCH v3 1/3] PM / OPP: Expose _of_get_opp_desc_node as dev_pm_opp API
+Date: Thu, 27 Oct 2016 16:41:29 -0500
+Message-ID: <20161027214131.1725-2-d-gerlach@ti.com>
+References: <20161027214131.1725-1-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20161027214131.1725-1-d-gerlach@ti.com>
 Sender: linux-pm-owner@vger.kernel.org
 To: Viresh Kumar <viresh.kumar@linaro.org>, Rob Herring <robh+dt@kernel.org>
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-This series is v3 of the series to introduce the ti-cpufreq driver
-which parses SoC data and provides opp-supported-hw data to the
-OPP core in order to enable the proper OPPs for the silicon in use.
-v2 of this series can be found here [1].
+Move _of_get_opp_desc_node into include/linux/pm_opp.h and rename it
+dev_pm_opp_of_get_opp_desc_node to allow other drivers, such as platform
+OPP and cpufreq drivers, to make use of it.
 
-Several changes to the dt-binding and ti-cpufreq driver are
-present in v3, which are described in detail under scissors line
-in patches but mostly focused on moving properties that were added
-in cpu node previously to the operating-points node and updating
-driver to reflect these changes, along with using a common compatible
-for all ti platforms. Also, a new patch was added to expose an internal
-OPP core API to allow a common way to get a reference to the OPP table
-from a platform driver.
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+---
+ drivers/base/power/opp/of.c  | 8 ++++----
+ drivers/base/power/opp/opp.h | 1 -
+ include/linux/pm_opp.h       | 6 ++++++
+ 3 files changed, 10 insertions(+), 5 deletions(-)
 
-I have just sent the driver and binding here but have held off on the
-updated DT nodes, I will send these out once we can agree on the binding
-and driver changes but have pushed them if anyone is curious here [2].
-
-Regards,
-Dave
-
-[1] http://www.spinics.net/lists/linux-omap/msg131601.html
-[2] https://github.com/dgerlach/linux-pm/tree/upstream/v4.9/ti-cpufreq-driver-v3
-
-Dave Gerlach (3):
-  PM / OPP: Expose _of_get_opp_desc_node as dev_pm_opp API
-  Documentation: dt: add bindings for ti-cpufreq
-  cpufreq: ti: Add cpufreq driver to determine available OPPs at runtime
-
- .../devicetree/bindings/cpufreq/ti-cpufreq.txt     | 132 ++++++++++
- drivers/base/power/opp/of.c                        |   8 +-
- drivers/base/power/opp/opp.h                       |   1 -
- drivers/cpufreq/Kconfig.arm                        |  11 +
- drivers/cpufreq/Makefile                           |   1 +
- drivers/cpufreq/ti-cpufreq.c                       | 288 +++++++++++++++++++++
- include/linux/pm_opp.h                             |   6 +
- 7 files changed, 442 insertions(+), 5 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
- create mode 100644 drivers/cpufreq/ti-cpufreq.c
-
+diff --git a/drivers/base/power/opp/of.c b/drivers/base/power/opp/of.c
+index 5552211e6fcd..215f5a538c78 100644
+--- a/drivers/base/power/opp/of.c
++++ b/drivers/base/power/opp/of.c
+@@ -198,7 +198,7 @@ void dev_pm_opp_of_remove_table(struct device *dev)
+ EXPORT_SYMBOL_GPL(dev_pm_opp_of_remove_table);
+ 
+ /* Returns opp descriptor node for a device, caller must do of_node_put() */
+-struct device_node *_of_get_opp_desc_node(struct device *dev)
++struct device_node *dev_pm_opp_of_get_opp_desc_node(struct device *dev)
+ {
+ 	/*
+ 	 * TODO: Support for multiple OPP tables.
+@@ -450,7 +450,7 @@ int dev_pm_opp_of_add_table(struct device *dev)
+ 	 * OPPs have two version of bindings now. The older one is deprecated,
+ 	 * try for the new binding first.
+ 	 */
+-	opp_np = _of_get_opp_desc_node(dev);
++	opp_np = dev_pm_opp_of_get_opp_desc_node(dev);
+ 	if (!opp_np) {
+ 		/*
+ 		 * Try old-deprecated bindings for backward compatibility with
+@@ -560,7 +560,7 @@ int dev_pm_opp_of_get_sharing_cpus(struct device *cpu_dev,
+ 	int cpu, ret = 0;
+ 
+ 	/* Get OPP descriptor node */
+-	np = _of_get_opp_desc_node(cpu_dev);
++	np = dev_pm_opp_of_get_opp_desc_node(cpu_dev);
+ 	if (!np) {
+ 		dev_dbg(cpu_dev, "%s: Couldn't find cpu_dev node.\n", __func__);
+ 		return -ENOENT;
+@@ -585,7 +585,7 @@ int dev_pm_opp_of_get_sharing_cpus(struct device *cpu_dev,
+ 		}
+ 
+ 		/* Get OPP descriptor node */
+-		tmp_np = _of_get_opp_desc_node(tcpu_dev);
++		tmp_np = dev_pm_opp_of_get_opp_desc_node(tcpu_dev);
+ 		if (!tmp_np) {
+ 			dev_err(tcpu_dev, "%s: Couldn't find tcpu_dev node.\n",
+ 				__func__);
+diff --git a/drivers/base/power/opp/opp.h b/drivers/base/power/opp/opp.h
+index fabd5ca1a083..96cd30ac6c1d 100644
+--- a/drivers/base/power/opp/opp.h
++++ b/drivers/base/power/opp/opp.h
+@@ -190,7 +190,6 @@ struct opp_table {
+ /* Routines internal to opp core */
+ struct opp_table *_find_opp_table(struct device *dev);
+ struct opp_device *_add_opp_dev(const struct device *dev, struct opp_table *opp_table);
+-struct device_node *_of_get_opp_desc_node(struct device *dev);
+ void _dev_pm_opp_remove_table(struct device *dev, bool remove_all);
+ struct dev_pm_opp *_allocate_opp(struct device *dev, struct opp_table **opp_table);
+ int _opp_add(struct device *dev, struct dev_pm_opp *new_opp, struct opp_table *opp_table);
+diff --git a/include/linux/pm_opp.h b/include/linux/pm_opp.h
+index bca26157f5b6..9e8c138f55b7 100644
+--- a/include/linux/pm_opp.h
++++ b/include/linux/pm_opp.h
+@@ -208,6 +208,7 @@ void dev_pm_opp_of_remove_table(struct device *dev);
+ int dev_pm_opp_of_cpumask_add_table(const struct cpumask *cpumask);
+ void dev_pm_opp_of_cpumask_remove_table(const struct cpumask *cpumask);
+ int dev_pm_opp_of_get_sharing_cpus(struct device *cpu_dev, struct cpumask *cpumask);
++struct device_node *dev_pm_opp_of_get_opp_desc_node(struct device *dev);
+ #else
+ static inline int dev_pm_opp_of_add_table(struct device *dev)
+ {
+@@ -231,6 +232,11 @@ static inline int dev_pm_opp_of_get_sharing_cpus(struct device *cpu_dev, struct
+ {
+ 	return -ENOTSUPP;
+ }
++
++static inline struct device_node *dev_pm_opp_of_get_opp_desc_node(struct device *dev)
++{
++	return NULL;
++}
+ #endif
+ 
+ #endif		/* __LINUX_OPP_H__ */
 -- 
 2.9.3
 
