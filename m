@@ -1,12 +1,15 @@
 From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/2] rtc: omap: Fix selecting external osc
-Date: Thu, 27 Oct 2016 11:27:25 +0530
-Message-ID: <1477547846-5335-1-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 2/2] rtc: omap: prevent disabling of clock/module
+ during suspend
+Date: Thu, 27 Oct 2016 11:27:26 +0530
+Message-ID: <1477547846-5335-2-git-send-email-j-keerthy@ti.com>
+References: <1477547846-5335-1-git-send-email-j-keerthy@ti.com>
 Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <rtc-linux+bncBD66BCOYSQBBBTVOY3AAKGQEA2XOWRA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <rtc-linux+bncBD66BCOYSQBBBT5OY3AAKGQE2ENI76A-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+In-Reply-To: <1477547846-5335-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
 List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Archive: <https://groups.google.com/group/rtc-linux
@@ -17,69 +20,97 @@ To: alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Cc: a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lokeshvutla-l0cyMroinI0@public.gmane.org, j-keerthy-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 
-RTC can be clocked from an external 32KHz oscillator, or from the
-Peripheral PLL. The RTC has an internal oscillator buffer to support
-direct operation with a crystal.
+If RTC is running from an internal clock source, the RTC module can't
+be disabled; otherwise it stops ticking completely. Current suspend
+handler implementation disables the clock/module unconditionally,
+instead fix this by disabling the clock only if we are running on
+external clock source, which is not affected by suspend.
 
-            ----------------------------------------
-            |       Device          ---------       |
-            |                       |       |       |
-            |                       | RTCSS |       |
-            |       ---------       |       |       |
-    OSC     |<------| RTC   |       |       |       |
-            |------>| OSC   |---    |       |       |
-            |       --------   |    |       |       |
-            |                   ----|clk    |       |
-            |       --------   |    |       |       |
-            |       | PRCM  |---    |       |       |
-            |       --------        --------        |
-            ----------------------------------------
+The prevention of disabling the clock must be done via implementing
+the runtime_pm handlers for the device, and returning an error code
+from the runtime suspend handler; otherwise OMAP core PM will disable
+the clocks for the driver.
 
-The RTC functional clock is sourced by default from the clock derived
-from the Peripheral PLL. In order to select source as external osc clk
-the following changes needs to be done:
-- Enable the RTC OSC (RTC_OSC_REG[4]OSC32K_GZ = 0)
-- Enable the clock mux(RTC_OSC_REG[6]K32CLK_EN = 1)
-- Select the external clock source (RTC_OSC_REG[3]32KCLK_SEL = 1)
-
-Fixes: 399cf0f63f6f2 ("rtc: omap: Add external clock enabling support")
+Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
 ---
 
 Boot tested and checked for rtc ticking on am335x-boneblack, am335x-bone
 am437x-gp-evm, dra7-evm, dra72-evm.
 
- drivers/rtc/rtc-omap.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-omap.c | 32 ++++++++++++++++++++++++++------
+ 1 file changed, 26 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-index b04ea9b..dddaa60 100644
+index dddaa60..51e5244 100644
 --- a/drivers/rtc/rtc-omap.c
 +++ b/drivers/rtc/rtc-omap.c
-@@ -113,6 +113,7 @@
- /* OMAP_RTC_OSC_REG bit fields: */
- #define OMAP_RTC_OSC_32KCLK_EN		BIT(6)
- #define OMAP_RTC_OSC_SEL_32KCLK_SRC	BIT(3)
-+#define OMAP_RTC_OSC_OSC32K_GZ_DISABLE	BIT(4)
- 
- /* OMAP_RTC_IRQWAKEEN bit fields: */
- #define OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN	BIT(1)
-@@ -786,8 +787,9 @@ static int omap_rtc_probe(struct platform_device *pdev)
- 	 */
- 	if (rtc->has_ext_clk) {
- 		reg = rtc_read(rtc, OMAP_RTC_OSC_REG);
--		rtc_write(rtc, OMAP_RTC_OSC_REG,
--			  reg | OMAP_RTC_OSC_SEL_32KCLK_SRC);
-+		reg &= ~OMAP_RTC_OSC_OSC32K_GZ_DISABLE;
-+		reg |= OMAP_RTC_OSC_32KCLK_EN | OMAP_RTC_OSC_SEL_32KCLK_SRC;
-+		rtc_writel(rtc, OMAP_RTC_OSC_REG, reg);
- 	}
- 
+@@ -147,6 +147,7 @@ struct omap_rtc {
+ 	u8 interrupts_reg;
+ 	bool is_pmic_controller;
+ 	bool has_ext_clk;
++	bool is_suspending;
+ 	const struct omap_rtc_device_type *type;
+ 	struct pinctrl_dev *pctldev;
+ };
+@@ -900,8 +901,7 @@ static int omap_rtc_suspend(struct device *dev)
+ 		rtc_write(rtc, OMAP_RTC_INTERRUPTS_REG, 0);
  	rtc->type->lock(rtc);
+ 
+-	/* Disable the clock/module */
+-	pm_runtime_put_sync(dev);
++	rtc->is_suspending = true;
+ 
+ 	return 0;
+ }
+@@ -910,9 +910,6 @@ static int omap_rtc_resume(struct device *dev)
+ {
+ 	struct omap_rtc *rtc = dev_get_drvdata(dev);
+ 
+-	/* Enable the clock/module so that we can access the registers */
+-	pm_runtime_get_sync(dev);
+-
+ 	rtc->type->unlock(rtc);
+ 	if (device_may_wakeup(dev))
+ 		disable_irq_wake(rtc->irq_alarm);
+@@ -920,11 +917,34 @@ static int omap_rtc_resume(struct device *dev)
+ 		rtc_write(rtc, OMAP_RTC_INTERRUPTS_REG, rtc->interrupts_reg);
+ 	rtc->type->lock(rtc);
+ 
++	rtc->is_suspending = false;
++
+ 	return 0;
+ }
+ #endif
+ 
+-static SIMPLE_DEV_PM_OPS(omap_rtc_pm_ops, omap_rtc_suspend, omap_rtc_resume);
++#ifdef CONFIG_PM
++static int omap_rtc_runtime_suspend(struct device *dev)
++{
++	struct omap_rtc *rtc = dev_get_drvdata(dev);
++
++	if (rtc->is_suspending && !rtc->has_ext_clk)
++		return -EBUSY;
++
++	return 0;
++}
++
++static int omap_rtc_runtime_resume(struct device *dev)
++{
++	return 0;
++}
++#endif
++
++static const struct dev_pm_ops omap_rtc_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(omap_rtc_suspend, omap_rtc_resume)
++	SET_RUNTIME_PM_OPS(omap_rtc_runtime_suspend,
++			   omap_rtc_runtime_resume, NULL)
++};
+ 
+ static void omap_rtc_shutdown(struct platform_device *pdev)
+ {
 -- 
 1.9.1
 
