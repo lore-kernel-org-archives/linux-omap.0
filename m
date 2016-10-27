@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/3] ARM: dts: AM335X-evm: Add the internal and external clock nodes for rtc
-Date: Thu, 27 Oct 2016 11:18:07 +0530
-Message-ID: <1477547288-5041-3-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 3/3] ARM: dts: AM335X-evmsk: Add the internal and external clock nodes for rtc
+Date: Thu, 27 Oct 2016 11:18:08 +0530
+Message-ID: <1477547288-5041-4-git-send-email-j-keerthy@ti.com>
 References: <1477547288-5041-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -18,16 +18,16 @@ clock is board dependent. Assigning the corresponding clocks.
 
 Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/am335x-evm.dts | 5 +++++
+ arch/arm/boot/dts/am335x-evmsk.dts | 5 +++++
  1 file changed, 5 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index e82432c..c2186ec 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -783,3 +783,8 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&dcan1_pins_default>;
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index 975c36e..e2548d1 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -715,3 +715,8 @@
+ 
+ 	blue-and-red-wiring = "crossed";
  };
 +
 +&rtc {
