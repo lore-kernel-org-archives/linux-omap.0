@@ -1,55 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/5] Minimal cpuidle fixes for omap5 and dra7
-Date: Wed, 26 Oct 2016 14:31:58 -0700
-Message-ID: <20161026213158.hvfvvlqafqkap5lf@atomide.com>
-References: <20161026151703.24730-1-tony@atomide.com>
- <c1b6bf69-ed11-3355-323f-9d6503180310@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH 5/5] gpio: davinci: Add a separate compatible for k2g
+Date: Thu, 27 Oct 2016 08:58:43 +0530
+Message-ID: <9b50700c-f7c2-4374-0e7a-2d5b8302f5c0@ti.com>
+References: <1476855239-32730-1-git-send-email-j-keerthy@ti.com>
+ <1476855239-32730-6-git-send-email-j-keerthy@ti.com>
+ <20161026210851.jt2xoo2ap6zijowg@rob-hp-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <c1b6bf69-ed11-3355-323f-9d6503180310@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>, Dave Gerlach <d-gerlach@ti.com>, Enric Balletbo Serra <eballetbo@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Pau Pajuel <ppajuel@gmail.com>, Grazvydas Ignotas <notasas@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Santosh Shilimkar <ssantosh@kernel.org>, Javier Martinez Canillas <javier@dowhile0.org>, linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, Marek Belisko <marek@goldelico.com>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20161026210851.jt2xoo2ap6zijowg@rob-hp-laptop>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: linus.walleij@linaro.org, gnurou@gmail.com, lokeshvutla@ti.com, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, rogerq@ti.com, grygorii.strashko@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm@ti.com> [161026 13:57]:
-> Tony,
-> On 10/26/2016 10:16 AM, Tony Lindgren wrote:
-> > Hi all,
-> > 
-> > Here are some fixes to get minimal cpuidle support working with omap5
-> > and dra7. Not sure if there are still some unsorted issues on enabling
-> > this on dra7, but at least omap5 has been behving for me for few
-> > weeks with these.
-> 
-> I am OK with cpuidle for OMAP5, but NOT dra7. we have enabled this series of
-> patches close to a couple of years back and hit quiet a few issues that do
-> not have silicon resolution. CPU states lower than WFI will not work in
-> cpuidle for DRA7 and has already been "descoped" from TI investigation
-> charter. details of the issue remain TI internal, given that the descope was
-> already done.
 
-Hmm OK, no point adding it if not supported by hardware. I'll modify the
-series for omap5 only.
 
-> Again, OMAP5 has only had limited exposure from verification point of view -
-> and all of it TI internal (unlike OMAP4 which has had production devices go
-> ahead) -> at the very least, I'd link it with experimental.
+On Thursday 27 October 2016 02:38 AM, Rob Herring wrote:
+> On Wed, Oct 19, 2016 at 11:03:59AM +0530, Keerthy wrote:
+>> In the case of k2g the clocks are handled differently as when compared
+>> with other keystones. Hence adding a separate compatible and match tables
+>> accordingly.
+>>
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> ---
+>>  .../devicetree/bindings/gpio/gpio-davinci.txt      |  2 +-
+>>  drivers/gpio/gpio-davinci.c                        | 45 ++++++++++++++++++++--
+>>  2 files changed, 42 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/gpio/gpio-davinci.txt b/Documentation/devicetree/bindings/gpio/gpio-davinci.txt
+>> index 5079ba7..a76abd2 100644
+>> --- a/Documentation/devicetree/bindings/gpio/gpio-davinci.txt
+>> +++ b/Documentation/devicetree/bindings/gpio/gpio-davinci.txt
+>> @@ -1,7 +1,7 @@
+>>  Davinci/Keystone GPIO controller bindings
+>>
+>>  Required Properties:
+>> -- compatible: should be "ti,dm6441-gpio", "ti,keystone-gpio"
+>> +- compatible: should be "ti,dm6441-gpio", "ti,keystone-gpio", "ti,k2g-gpio"
+>
+> Is this "one of" or all? Seems line the former in which case please
+> reformat to one per line.
 
-Sure, this is a subset already to let's see how that works before adding
-any other modes.
+It is One of. I will reformat.
 
-Regards,
-
-Tony
+>
+>>
+>>  - reg: Physical base address of the controller and the size of memory mapped
+>>         registers.
