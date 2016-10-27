@@ -1,104 +1,179 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH v3 1/3] PM / OPP: Expose _of_get_opp_desc_node as dev_pm_opp API
-Date: Thu, 27 Oct 2016 16:41:29 -0500
-Message-ID: <20161027214131.1725-2-d-gerlach@ti.com>
+From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 2/3] Documentation: dt: add bindings for ti-cpufreq
+Date: Thu, 27 Oct 2016 16:41:30 -0500
+Message-ID: <20161027214131.1725-3-d-gerlach@ti.com>
 References: <20161027214131.1725-1-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20161027214131.1725-1-d-gerlach@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>, Rob Herring <robh+dt@kernel.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161027214131.1725-1-d-gerlach-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J . Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Move _of_get_opp_desc_node into include/linux/pm_opp.h and rename it
-dev_pm_opp_of_get_opp_desc_node to allow other drivers, such as platform
-OPP and cpufreq drivers, to make use of it.
+Add the device tree bindings document for the TI CPUFreq/OPP driver
+on AM33xx and AM43xx SoCs. The operating-points-v2 binding allows us
+to provide an opp-supported-hw property for each OPP to define when
+it is available. This driver is responsible for reading and parsing
+registers to determine which OPPs can be selectively enabled based
+on the specific SoC in use by matching against the opp-supported-hw
+data.
 
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
 ---
- drivers/base/power/opp/of.c  | 8 ++++----
- drivers/base/power/opp/opp.h | 1 -
- include/linux/pm_opp.h       | 6 ++++++
- 3 files changed, 10 insertions(+), 5 deletions(-)
+v2->v3:
+- Move ti,syscon-* properties under opp table instead of cpu node, as
+  that is a better location for them.
+- For the opp table do not use platform specific compatible strings
+  but instead a operating-points-v2-ti-cpu
 
-diff --git a/drivers/base/power/opp/of.c b/drivers/base/power/opp/of.c
-index 5552211e6fcd..215f5a538c78 100644
---- a/drivers/base/power/opp/of.c
-+++ b/drivers/base/power/opp/of.c
-@@ -198,7 +198,7 @@ void dev_pm_opp_of_remove_table(struct device *dev)
- EXPORT_SYMBOL_GPL(dev_pm_opp_of_remove_table);
- 
- /* Returns opp descriptor node for a device, caller must do of_node_put() */
--struct device_node *_of_get_opp_desc_node(struct device *dev)
-+struct device_node *dev_pm_opp_of_get_opp_desc_node(struct device *dev)
- {
- 	/*
- 	 * TODO: Support for multiple OPP tables.
-@@ -450,7 +450,7 @@ int dev_pm_opp_of_add_table(struct device *dev)
- 	 * OPPs have two version of bindings now. The older one is deprecated,
- 	 * try for the new binding first.
- 	 */
--	opp_np = _of_get_opp_desc_node(dev);
-+	opp_np = dev_pm_opp_of_get_opp_desc_node(dev);
- 	if (!opp_np) {
- 		/*
- 		 * Try old-deprecated bindings for backward compatibility with
-@@ -560,7 +560,7 @@ int dev_pm_opp_of_get_sharing_cpus(struct device *cpu_dev,
- 	int cpu, ret = 0;
- 
- 	/* Get OPP descriptor node */
--	np = _of_get_opp_desc_node(cpu_dev);
-+	np = dev_pm_opp_of_get_opp_desc_node(cpu_dev);
- 	if (!np) {
- 		dev_dbg(cpu_dev, "%s: Couldn't find cpu_dev node.\n", __func__);
- 		return -ENOENT;
-@@ -585,7 +585,7 @@ int dev_pm_opp_of_get_sharing_cpus(struct device *cpu_dev,
- 		}
- 
- 		/* Get OPP descriptor node */
--		tmp_np = _of_get_opp_desc_node(tcpu_dev);
-+		tmp_np = dev_pm_opp_of_get_opp_desc_node(tcpu_dev);
- 		if (!tmp_np) {
- 			dev_err(tcpu_dev, "%s: Couldn't find tcpu_dev node.\n",
- 				__func__);
-diff --git a/drivers/base/power/opp/opp.h b/drivers/base/power/opp/opp.h
-index fabd5ca1a083..96cd30ac6c1d 100644
---- a/drivers/base/power/opp/opp.h
-+++ b/drivers/base/power/opp/opp.h
-@@ -190,7 +190,6 @@ struct opp_table {
- /* Routines internal to opp core */
- struct opp_table *_find_opp_table(struct device *dev);
- struct opp_device *_add_opp_dev(const struct device *dev, struct opp_table *opp_table);
--struct device_node *_of_get_opp_desc_node(struct device *dev);
- void _dev_pm_opp_remove_table(struct device *dev, bool remove_all);
- struct dev_pm_opp *_allocate_opp(struct device *dev, struct opp_table **opp_table);
- int _opp_add(struct device *dev, struct dev_pm_opp *new_opp, struct opp_table *opp_table);
-diff --git a/include/linux/pm_opp.h b/include/linux/pm_opp.h
-index bca26157f5b6..9e8c138f55b7 100644
---- a/include/linux/pm_opp.h
-+++ b/include/linux/pm_opp.h
-@@ -208,6 +208,7 @@ void dev_pm_opp_of_remove_table(struct device *dev);
- int dev_pm_opp_of_cpumask_add_table(const struct cpumask *cpumask);
- void dev_pm_opp_of_cpumask_remove_table(const struct cpumask *cpumask);
- int dev_pm_opp_of_get_sharing_cpus(struct device *cpu_dev, struct cpumask *cpumask);
-+struct device_node *dev_pm_opp_of_get_opp_desc_node(struct device *dev);
- #else
- static inline int dev_pm_opp_of_add_table(struct device *dev)
- {
-@@ -231,6 +232,11 @@ static inline int dev_pm_opp_of_get_sharing_cpus(struct device *cpu_dev, struct
- {
- 	return -ENOTSUPP;
- }
+ .../devicetree/bindings/cpufreq/ti-cpufreq.txt     | 132 +++++++++++++++++++++
+ 1 file changed, 132 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
+
+diff --git a/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt b/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
+new file mode 100644
+index 000000000000..467ad29c75c9
+--- /dev/null
++++ b/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
+@@ -0,0 +1,132 @@
++TI CPUFreq and OPP bindings
++================================
 +
-+static inline struct device_node *dev_pm_opp_of_get_opp_desc_node(struct device *dev)
-+{
-+	return NULL;
-+}
- #endif
- 
- #endif		/* __LINUX_OPP_H__ */
++Certain TI SoCs, like those in the am335x, am437x, am57xx, and dra7xx
++families support different OPPs depending on the silicon variant in use.
++The ti_cpufreq driver can use revision and an efuse value from the SoC to
++provide the OPP framework with supported hardware information. This is
++used to determine which OPPs from the operating-points-v2 table get enabled
++when it is parsed by the OPP framework.
++
++Required properties:
++--------------------
++In 'cpus' nodes:
++- operating-points-v2: Phandle to the operating-points-v2 table to use.
++
++In 'operating-points-v2' table:
++- compatible: Should be 'operating-points-v2-ti-cpu' for am335x, am43xx,
++	      and dra7xx/am57xx SoCs
++- ti,syscon-efuse: Syscon phandle, offset to efuse register, efuse register
++		   mask, and efuse register shift to get the relevant bits
++		   that describe OPP availability.
++- ti,syscon-rev: Syscon and offset used to look up revision value on SoC.
++
++Optional properties:
++--------------------
++For each opp entry in 'operating-points-v2' table:
++- opp-supported-hw: Two bitfields indicating:
++	1. Which revision of the SoC the OPP is supported by
++	2. Which eFuse bits indicate this OPP is available
++
++	A bitwise AND is performed against these values and if any bit
++	matches, the OPP gets enabled. Not providing the property for an
++	entry indicates that an OPP is always supported.
++
++Example:
++--------
++
++/* From arch/arm/boot/dts/am33xx.dtsi */
++cpus {
++	#address-cells = <1>;
++	#size-cells = <0>;
++	cpu@0 {
++		compatible = "arm,cortex-a8";
++		device_type = "cpu";
++		reg = <0>;
++
++		operating-points-v2 = <&cpu0_opp_table>;
++
++		clocks = <&dpll_mpu_ck>;
++		clock-names = "cpu";
++
++		clock-latency = <300000>; /* From omap-cpufreq driver */
++	};
++};
++
++/*
++ * cpu0 has different OPPs depending on SoC revision and some on revisions
++ * 0x2 and 0x4 have eFuse bits that indicate if they are available or not
++ */
++cpu0_opp_table: opp_table0 {
++	compatible = "operating-points-v2-ti-am3352-cpu";
++	ti,syscon-efuse = <&scm_conf 0x7fc 0x1fff 0>;
++	ti,syscon-rev = <&scm_conf 0x600>;
++
++	/*
++	 * The three following nodes are marked with opp-suspend
++	 * because they can not be enabled simultaneously on a
++	 * single SoC.
++	 */
++	opp50@300000000 {
++		opp-hz = /bits/ 64 <300000000>;
++		opp-microvolt = <950000 931000 969000>;
++		opp-supported-hw = <0x06 0x0010>;
++		opp-suspend;
++	};
++
++	opp100@275000000 {
++		opp-hz = /bits/ 64 <275000000>;
++		opp-microvolt = <1100000 1078000 1122000>;
++		opp-supported-hw = <0x01 0x00FF>;
++		opp-suspend;
++	};
++
++	opp100@300000000 {
++		opp-hz = /bits/ 64 <300000000>;
++		opp-microvolt = <1100000 1078000 1122000>;
++		opp-supported-hw = <0x06 0x0020>;
++		opp-suspend;
++	};
++
++	opp100@500000000 {
++		opp-hz = /bits/ 64 <500000000>;
++		opp-microvolt = <1100000 1078000 1122000>;
++		opp-supported-hw = <0x01 0xFFFF>;
++	};
++
++	opp100@600000000 {
++		opp-hz = /bits/ 64 <600000000>;
++		opp-microvolt = <1100000 1078000 1122000>;
++		opp-supported-hw = <0x06 0x0040>;
++	};
++
++	opp120@600000000 {
++		opp-hz = /bits/ 64 <600000000>;
++		opp-microvolt = <1200000 1176000 1224000>;
++		opp-supported-hw = <0x01 0xFFFF>;
++	};
++
++	opp120@720000000 {
++		opp-hz = /bits/ 64 <720000000>;
++		opp-microvolt = <1200000 1176000 1224000>;
++		opp-supported-hw = <0x06 0x0080>;
++	};
++
++	oppturbo@720000000 {
++		opp-hz = /bits/ 64 <720000000>;
++		opp-microvolt = <1260000 1234800 1285200>;
++		opp-supported-hw = <0x01 0xFFFF>;
++	};
++
++	oppturbo@800000000 {
++		opp-hz = /bits/ 64 <800000000>;
++		opp-microvolt = <1260000 1234800 1285200>;
++		opp-supported-hw = <0x06 0x0100>;
++	};
++
++	oppnitro@1000000000 {
++		opp-hz = /bits/ 64 <1000000000>;
++		opp-microvolt = <1325000 1298500 1351500>;
++		opp-supported-hw = <0x04 0x0200>;
++	};
++};
 -- 
 2.9.3
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
