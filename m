@@ -1,82 +1,49 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/4] pinctrl: single: Use generic parser and
- #pinctrl-cells for pinctrl-single,pins
-Date: Fri, 28 Oct 2016 09:55:47 -0700
-Message-ID: <20161028165547.7pigv2bh6eydtg5m@atomide.com>
-References: <20161025164538.453-1-tony@atomide.com>
- <20161025164538.453-3-tony@atomide.com>
- <20161026141628.x42rbn5o2ekdoluk@atomide.com>
+Subject: Re: [PATCH v2] net: cpsw: fix obtaining mac address for am3517
+Date: Fri, 28 Oct 2016 11:19:14 -0700
+Message-ID: <20161028181914.mskebckucukzhxhz@atomide.com>
+References: <1477668756-2651-1-git-send-email-jhofstee@victronenergy.com>
+ <20161028155213.2t3nwwe3lqaynaer@atomide.com>
+ <d8ad5cab-5183-cddf-fa9a-4e7b9b8c9377@victronenergy.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20161026141628.x42rbn5o2ekdoluk@atomide.com>
+In-Reply-To: <d8ad5cab-5183-cddf-fa9a-4e7b9b8c9377@victronenergy.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Jon Hunter <jonathanh@nvidia.com>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Jeroen Hofstee <jhofstee@victronenergy.com>
+Cc: netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, "open list:TI ETHERNET SWITCH DRIVER (CPSW)" <linux-omap@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [161026 07:17]:
-> * Tony Lindgren <tony@atomide.com> [161025 09:51]:
-> > We can now use generic parser. To support the legacy binding without
-> > #pinctrl-cells, add pcs_quirk_missing_pinctrl_cells() and warn about
-> > missing #pinctrl-cells.
-> ...
+* Jeroen Hofstee <jhofstee@victronenergy.com> [161028 11:19]:
+> Hello Tony,
 > 
-> > +/**
-> > + * pcs_quirk_missing_pinctrl_cells - handle legacy binding
-> > + * @pcs: pinctrl driver instance
-> > + * @np: device tree node
-> > + * @cells: number of cells
-> > + *
-> > + * Handle legacy binding with no #pinctrl-cells. This should be
-> > + * always two pinctrl-single,bit-per-mux and one for others.
-> > + * At some point we may want to consider removing this.
-> > + */
-> > +static int pcs_quirk_missing_pinctrl_cells(struct pcs_device *pcs,
-> > +					   struct device_node *np,
-> > +					   int cells)
-> > +{
-> > +	struct property *p;
-> > +	const char *name = "#pinctrl-cells";
-> > +	int error;
-> > +	u32 val;
-> > +
-> > +	error = of_property_read_u32(np, name, &val);
-> > +	if (!error)
-> > +		return 0;
-> > +
-> > +	dev_warn(pcs->dev, "please update dts to use %s = <%i>\n",
-> > +		 name, cells);
-> > +
-> > +	p = devm_kzalloc(pcs->dev, sizeof(*p), GFP_KERNEL);
-> > +	if (!p)
-> > +		return -ENOMEM;
-> > +
-> > +	p->length = sizeof(__be32);
-> > +	p->value = devm_kzalloc(pcs->dev, sizeof(__be32), GFP_KERNEL);
-> > +	if (!p->value)
-> > +		return -ENOMEM;
-> > +	*(__be32 *)p->value = cpu_to_be32(cells);
-> > +
-> > +	p->name = devm_kstrdup(pcs->dev, name, GFP_KERNEL);
-> > +	if (!p->name)
-> > +		return -ENOMEM;
-> > +
-> > +	pcs->missing_nr_pinctrl_cells = p;
-> > +
-> > +	return of_add_property(np, pcs->missing_nr_pinctrl_cells);
-> > +}
+> On 28-10-16 17:52, Tony Lindgren wrote:
+> > * Jeroen Hofstee <jhofstee@victronenergy.com> [161028 08:33]:
+> > > Commit b6745f6e4e63 ("drivers: net: cpsw: davinci_emac: move reading mac
+> > > id to common file") did not only move the code for an am3517, it also
+> > > added the slave parameter, resulting in an invalid (all zero) mac address
+> > > being returned for an am3517, since it only has a single emac and the slave
+> > > parameter is pointing to the second. So simply always read the first and
+> > > valid mac-address for a ti,am3517-emac.
+> > And others davinci_emac.c users can have more than one. So is the
+> > reason the slave parameter points to the second instance because
+> > of the location in the hardware?
 > 
-> Looking at some make randconfig results, looks like we don't have
-> of_add_property() and of_remove_property() exported. Is there some
-> reason not to export them?
+> Sort of, the slave parameter gets determined by the fact if there is one
+> or two register range(s) associated with the davinci_emac. In davinci_emac.c
+> 
+>     res_ctrl = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+>     ...
+>     rc = davinci_emac_try_get_mac(pdev, res_ctrl ? 0 : 1,
+>                           priv->mac_addr);
+> 
+> So it there are two ranges, the slave param becomes 0. It there is only one,
+> it
+> will be 1. Since the am3517 only has a single regs entry it ends up with
+> slave 1,
+> while there is only a single davinci_emac.
 
-I'll only do of_add_property() and of_remove_property() if we have
-IS_BUILTIN(CONFIG_PINCTRL_SINGLE). I bet I'm the only one using it
-as a loadable module right now :) Then we can remove those if we
-decide to export of_add_property() and of_remove_property().
+OK thanks for clarifying it:
 
-Regards,
-
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
