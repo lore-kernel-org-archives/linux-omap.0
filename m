@@ -1,35 +1,30 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] Few pinctrl-single clean-ups
-Date: Fri, 28 Oct 2016 05:52:28 -0700
-Message-ID: <20161028125227.p4blfwzpm3uefuti@atomide.com>
-References: <20161025160900.2724-1-tony@atomide.com>
- <CACRpkdYDfyd_+uLfMD+Zd6SzYbHMCtuF4fsa=CQwftTWXuPGjA@mail.gmail.com>
- <20161027150045.q3cx6mvdadi7wshi@atomide.com>
- <CACRpkdZ36CDU3OWRYKFbhoa5y5pLyESQ-PFiBvKVTg4=156OFw@mail.gmail.com>
- <20161027211929.ld57xmvvuxdptzmp@atomide.com>
- <CACRpkdYDEKg19fiaCxaqqv9xgQgMq5Ts6TV1XP1=8=TODbc79w@mail.gmail.com>
+Subject: Re: [PATCH resent v3 2/3] dts: omap5: board-common: enable twl6040
+ headset jack detection
+Date: Fri, 28 Oct 2016 06:11:00 -0700
+Message-ID: <20161028131059.jbcmlmakfmovq2jj@atomide.com>
+References: <cover.1477417090.git.hns@goldelico.com>
+ <b918b86fd1d1f7e6fb2c15bb507b84d5cf1f0d3e.1477417090.git.hns@goldelico.com>
+ <06084abe-015a-ed84-2ce3-779be5744773@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CACRpkdYDEKg19fiaCxaqqv9xgQgMq5Ts6TV1XP1=8=TODbc79w@mail.gmail.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Haojian Zhuang <haojian.zhuang@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>
+In-Reply-To: <06084abe-015a-ed84-2ce3-779be5744773@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, Russell King <linux@armlinux.org.uk>, devicetree@vger.kernel.org, letux-kernel@openphoenux.org, linux-kernel@vger.kernel.org, ldewangan@nvidia.com, kernel@pyra-handheld.com, marek@goldelico.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Linus Walleij <linus.walleij@linaro.org> [161028 04:54]:
-> On Thu, Oct 27, 2016 at 11:19 PM, Tony Lindgren <tony@atomide.com> wrote:
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [161026 01:03]:
+> On 10/25/16 20:38, H. Nikolaus Schaller wrote:
+> > Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 > 
-> >> I wonder what happened :/
-> >
-> > Maybe the delivery got delayed? Seems to be appearing at least
-> > in k.o patchwork:
-> >
-> > https://patchwork.kernel.org/patch/9399687/
-> 
-> APplied it from patchwork.
+> I'm not sure if this is valid for igep0500 as I have not seen the schematics.
+> It might be safer to enable the jack detection only for omap5-uevm?
 
-OK thanks.
+FYI it's pretty much the same design and audio worked fine on igepv5
+the last time I tested it. I guess a good reason to drill a new hole
+to my pi-top case for the audio jack :)
 
 Tony
