@@ -1,55 +1,48 @@
 From: Milo Kim <woogyom.kim@gmail.com>
-Subject: [PATCH v2 8/8] mfd: tps65217: Fix mismatched interrupt number
-Date: Fri, 28 Oct 2016 21:37:02 +0900
-Message-ID: <20161028123702.21849-9-woogyom.kim@gmail.com>
+Subject: [PATCH v2 2/8] ARM: dts: tps65217: Add the charger device
+Date: Fri, 28 Oct 2016 21:36:56 +0900
+Message-ID: <20161028123702.21849-3-woogyom.kim@gmail.com>
 References: <20161028123702.21849-1-woogyom.kim@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20161028123702.21849-1-woogyom.kim@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Robert Nelson <robertcnelson@gmail.com>, Milo Kim <woogyom.kim@gmail.com>
+Cc: devicetree@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-kernel@vger.kernel.org, Milo Kim <woogyom.kim@gmail.com>, linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Enum value of 'tps65217_irq_type' is not matched with DT parsed hwirq
-number[*].
-
-The MFD driver gets the IRQ data by referencing hwirq, but the value is
-different. So, irq_to_tps65217_irq() returns mismatched IRQ data.
-Eventually, the power button driver enables not PB but USB interrupt
-when it is probed.
-
-According to the TPS65217 register map[**], USB interrupt is the LSB.
-This patch defines synchronized IRQ value.
-
-[*]  include/dt-bindings/mfd/tps65217.h
-[**] http://www.ti.com/lit/ds/symlink/tps65217.pdf
+Support the charger driver and disable it by default.
 
 Signed-off-by: Milo Kim <woogyom.kim@gmail.com>
 ---
- include/linux/mfd/tps65217.h | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ arch/arm/boot/dts/tps65217.dtsi | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/include/linux/mfd/tps65217.h b/include/linux/mfd/tps65217.h
-index 4ccda89..3cbec4b 100644
---- a/include/linux/mfd/tps65217.h
-+++ b/include/linux/mfd/tps65217.h
-@@ -234,12 +234,11 @@ struct tps65217_bl_pdata {
- 	int dft_brightness;
- };
+diff --git a/arch/arm/boot/dts/tps65217.dtsi b/arch/arm/boot/dts/tps65217.dtsi
+index 27935f8..8f77d0d 100644
+--- a/arch/arm/boot/dts/tps65217.dtsi
++++ b/arch/arm/boot/dts/tps65217.dtsi
+@@ -16,6 +16,11 @@
+ 	interrupt-controller;
+ 	#interrupt-cells = <1>;
  
--enum tps65217_irq_type {
--	TPS65217_IRQ_PB,
--	TPS65217_IRQ_AC,
--	TPS65217_IRQ_USB,
--	TPS65217_NUM_IRQ
--};
-+/* Interrupt numbers */
-+#define TPS65217_IRQ_USB		0
-+#define TPS65217_IRQ_AC			1
-+#define TPS65217_IRQ_PB			2
-+#define TPS65217_NUM_IRQ		3
- 
- /**
-  * struct tps65217_board - packages regulator init data
++	charger {
++		compatible = "ti,tps65217-charger";
++		status = "disabled";
++	};
++
+ 	regulators {
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
 -- 
 2.9.3
