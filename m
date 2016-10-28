@@ -1,7 +1,7 @@
 From: Milo Kim <woogyom.kim@gmail.com>
-Subject: [PATCH v2 4/8] ARM: dts: am335x: Support the PMIC interrupt
-Date: Fri, 28 Oct 2016 21:36:58 +0900
-Message-ID: <20161028123702.21849-5-woogyom.kim@gmail.com>
+Subject: [PATCH v2 1/8] ARM: dts: tps65217: Specify the interrupt controller
+Date: Fri, 28 Oct 2016 21:36:55 +0900
+Message-ID: <20161028123702.21849-2-woogyom.kim@gmail.com>
 References: <20161028123702.21849-1-woogyom.kim@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20161028123702.21849-1-woogyom.kim@gmail.com>
@@ -10,29 +10,30 @@ To: bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Robert Nelson <robertcnelson@gmail.com>, Milo Kim <woogyom.kim@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-AM335x bone based boards have the PMIC interrupt named NMI which is
-connected to TPS65217 device. AM335x main interrupt controller provides it
-and the number is 7.
+TPS65217 MFD driver supports the IRQ domain to handle the charger input
+interrupts and push button status event. The interrupt controller enables
+corresponding IRQ handling in the charger[*] and power button driver[**].
+
+[*]  drivers/power/supply/tps65217_charger.c
+[**] drivers/input/misc/tps65218-pwrbutton.c
 
 Signed-off-by: Milo Kim <woogyom.kim@gmail.com>
 ---
- arch/arm/boot/dts/am335x-bone-common.dtsi | 4 ++++
- 1 file changed, 4 insertions(+)
+ arch/arm/boot/dts/tps65217.dtsi | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index 007b5e5..25303d9 100644
---- a/arch/arm/boot/dts/am335x-bone-common.dtsi
-+++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-@@ -310,6 +310,10 @@
- 	 * by the hardware problems. (Tip: double-check by performing a current
- 	 * measurement after shutdown: it should be less than 1 mA.)
- 	 */
-+
-+	interrupts = <7>; /* NMI */
-+	interrupt-parent = <&intc>;
-+
- 	ti,pmic-shutdown-controller;
+diff --git a/arch/arm/boot/dts/tps65217.dtsi b/arch/arm/boot/dts/tps65217.dtsi
+index a632724..27935f8 100644
+--- a/arch/arm/boot/dts/tps65217.dtsi
++++ b/arch/arm/boot/dts/tps65217.dtsi
+@@ -13,6 +13,8 @@
+ 
+ &tps {
+ 	compatible = "ti,tps65217";
++	interrupt-controller;
++	#interrupt-cells = <1>;
  
  	regulators {
+ 		#address-cells = <1>;
 -- 
 2.9.3
