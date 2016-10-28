@@ -1,62 +1,35 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCHv4 11/15] clk: ti: clockdomain: add clock provider support
- to clockdomains
-Date: Fri, 28 Oct 2016 05:51:12 -0700
-Message-ID: <20161028125112.xfyrx7l7m64z6cu6@atomide.com>
-References: <1476805568-19264-1-git-send-email-t-kristo@ti.com>
- <1476805568-19264-12-git-send-email-t-kristo@ti.com>
- <20161028005047.GQ26139@codeaurora.org>
- <cd32a554-ba0a-33cd-c15c-121524ce679b@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2] Few pinctrl-single clean-ups
+Date: Fri, 28 Oct 2016 05:52:28 -0700
+Message-ID: <20161028125227.p4blfwzpm3uefuti@atomide.com>
+References: <20161025160900.2724-1-tony@atomide.com>
+ <CACRpkdYDfyd_+uLfMD+Zd6SzYbHMCtuF4fsa=CQwftTWXuPGjA@mail.gmail.com>
+ <20161027150045.q3cx6mvdadi7wshi@atomide.com>
+ <CACRpkdZ36CDU3OWRYKFbhoa5y5pLyESQ-PFiBvKVTg4=156OFw@mail.gmail.com>
+ <20161027211929.ld57xmvvuxdptzmp@atomide.com>
+ <CACRpkdYDEKg19fiaCxaqqv9xgQgMq5Ts6TV1XP1=8=TODbc79w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-gpio-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <cd32a554-ba0a-33cd-c15c-121524ce679b-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Cc: Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <CACRpkdYDEKg19fiaCxaqqv9xgQgMq5Ts6TV1XP1=8=TODbc79w@mail.gmail.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Haojian Zhuang <haojian.zhuang@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org> [161028 00:43]:
-> On 28/10/16 03:50, Stephen Boyd wrote:
-> > I suppose a PRCM is
-> > like an MFD that has clocks and resets under it? On other
-> > platforms we've combined that all into one node and just had
-> > #clock-cells and #reset-cells in that node. Is there any reason
-> > we can't do that here?
+* Linus Walleij <linus.walleij@linaro.org> [161028 04:54]:
+> On Thu, Oct 27, 2016 at 11:19 PM, Tony Lindgren <tony@atomide.com> wrote:
 > 
-> For OMAPs, there are typically multiple instances of the PRCM around; OMAP4
-> for example has:
+> >> I wonder what happened :/
+> >
+> > Maybe the delivery got delayed? Seems to be appearing at least
+> > in k.o patchwork:
+> >
+> > https://patchwork.kernel.org/patch/9399687/
 > 
-> cm1 @ 0x4a004000 (clocks + clockdomains)
-> cm2 @ 0x4a008000 (clocks + clockdomains)
-> prm @ 0x4a306000 (few clocks + resets + power state handling)
-> scrm @ 0x4a30a000 (few external clocks + plenty of misc stuff)
-> 
-> These instances are also under different power/voltage domains which means
-> their PM behavior is different.
-> 
-> The idea behind having a clockdomain as a provider was mostly to have the
-> topology visible : prcm-instance -> clockdomain -> clocks
+> APplied it from patchwork.
 
-Yeah that's needed to get the interconnect hierarchy right for
-genpd :)
-
-> ... but basically I think it would be possible to drop the clockdomain
-> representation and just mark the prcm-instance as a clock provider. Tony,
-> any thoughts on that?
-
-No let's not drop the clockdomains as those will be needed when we
-move things into proper hierarchy within the interconnect instances.
-This will then help with getting things right with genpd.
-
-In the long run we just want to specify clockdomain and the offset of
-the clock instance within the clockdomain in the dts files.
-
-Regards,
+OK thanks.
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
