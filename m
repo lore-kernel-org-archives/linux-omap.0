@@ -1,44 +1,86 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [PATCH v3 1/3] PM / OPP: Expose _of_get_opp_desc_node as
- dev_pm_opp API
-Date: Fri, 28 Oct 2016 09:35:07 +0530
-Message-ID: <20161028040507.GJ10423@vireshk-i7>
-References: <20161027214131.1725-1-d-gerlach@ti.com>
- <20161027214131.1725-2-d-gerlach@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv4 00/15] clk: ti: add support for hwmod clocks
+Date: Fri, 28 Oct 2016 10:19:15 +0300
+Message-ID: <2cfa10a9-9ea0-23e4-30de-9aece13e47e3@ti.com>
+References: <1476805568-19264-1-git-send-email-t-kristo@ti.com>
+ <20161028005341.GR26139@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161027214131.1725-2-d-gerlach@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: Rob Herring <robh+dt@kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <20161028005341.GR26139@codeaurora.org>
+Sender: linux-clk-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, tony@atomide.com, mturquette@baylibre.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 27-10-16, 16:41, Dave Gerlach wrote:
-> Move _of_get_opp_desc_node into include/linux/pm_opp.h and rename it
-> dev_pm_opp_of_get_opp_desc_node to allow other drivers, such as platform
-> OPP and cpufreq drivers, to make use of it.
-> 
-> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-> ---
->  drivers/base/power/opp/of.c  | 8 ++++----
->  drivers/base/power/opp/opp.h | 1 -
->  include/linux/pm_opp.h       | 6 ++++++
->  3 files changed, 10 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/base/power/opp/of.c b/drivers/base/power/opp/of.c
-> index 5552211e6fcd..215f5a538c78 100644
-> --- a/drivers/base/power/opp/of.c
-> +++ b/drivers/base/power/opp/of.c
-> @@ -198,7 +198,7 @@ void dev_pm_opp_of_remove_table(struct device *dev)
->  EXPORT_SYMBOL_GPL(dev_pm_opp_of_remove_table);
->  
->  /* Returns opp descriptor node for a device, caller must do of_node_put() */
-> -struct device_node *_of_get_opp_desc_node(struct device *dev)
-> +struct device_node *dev_pm_opp_of_get_opp_desc_node(struct device *dev)
+On 28/10/16 03:53, Stephen Boyd wrote:
+> On 10/18, Tero Kristo wrote:
+>> Hi,
+>>
+>> As a recap, this series is part of the ongoing work to get rid of the
+>> hwmod database under mach-omap2 folder. This series converts the
+>> existing clock related functionality to a new clock type, which will
+>> allow removing all the .clkctrl related items from hwmod database.
+>> This series adds sample solution for OMAP4 only, rest of the SoCs can
+>> be converted automatically once the approach is acceptable.
+>>
+>> v4 has the following high level changes compared to v3:
+>> - Clock data is now statically built-in to the driver
+>> - Adds clockdomain provider support, which can be used to fetch
+>>   clocks based on clockdomain relation. Only clockdomains need to be
+>>   registered within DT.
+>> - Added some automatic clock alias generation support to the TI clock
+>>   drivers, if this is not acceptable, I can change this to add all the
+>>   aliases under the individual drivers/clk/ti/clk-xyz.c files
+>
+> Is there a plan to get rid of the aliases entirely? Or we can't
+> do that because DT is not fully supported on these platforms? I'm
+> mostly wondering how long that sort of code is going to stick
+> around and if it's better to fully compartmentalize it to the
+> SoCs that are affected or if it should be a core feature of TI
+> driver.
 
-Export as well ?
+Eventually that should happen. However, we have plenty of legacy code 
+still in place which depend on clk_get functionality within kernel. The 
+major contributing factor is the hwmod codebase, for which we have plans to:
 
--- 
-viresh
+- get this clock driver merged
+- implement a new interconnect driver for OMAP family SoCs
+- interconnect driver will use DT handles for fetching clocks, rather 
+than clock aliases
+- reset handling will be implemented as part of the interconnect driver 
+somehow (no prototype / clear plans for that as of yet)
+- all the hwmod stuff can be dropped
+
+The clock alias handling is still needed as a transition phase until all 
+the above is done, then we can start dropping them. Basically anything 
+that is using omap_hwmod depends on the clock aliases right now.
+
+>
+>> - As a sample, only omap4 clock data is available with this set
+>>
+>> After this series, the clock data can be dropped from the hwmod database
+>> for OMAP4, I have working patches for this for anybody interested. Also,
+>> the DT files require some modifications to add proper support for
+>> clockdomain providers, and drop some unnecessary clock nodes.
+>
+> Can this be shared as a git tree on the web? Hopefully I can see
+> the resulting DTS and understand what's going on better.
+
+Sure, here is a test branch I've been using, it has some extra hacks on 
+top for debugging purposes, but the DTS changes are visible also.
+
+https://github.com/t-kristo/linux-pm/tree/4.9-rc1-hwmod-clks-w-data
+
+
+>
+>>
+>> Boot + simple PM test seems to be working on OMAP4 with this set, and
+>> boot test with other boards I have access to don't seem to cause any
+>> issues. Applies on top of 4.9-rc1.
+>>
+>
+> Awesome!
+>
+
