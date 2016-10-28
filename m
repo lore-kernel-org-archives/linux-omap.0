@@ -1,7 +1,7 @@
 From: Milo Kim <woogyom.kim@gmail.com>
-Subject: [PATCH v2 3/8] ARM: dts: tps65217: Add the power button device
-Date: Fri, 28 Oct 2016 21:36:57 +0900
-Message-ID: <20161028123702.21849-4-woogyom.kim@gmail.com>
+Subject: [PATCH v2 7/8] ARM: dts: am335x: Add the power button interrupt
+Date: Fri, 28 Oct 2016 21:37:01 +0900
+Message-ID: <20161028123702.21849-8-woogyom.kim@gmail.com>
 References: <20161028123702.21849-1-woogyom.kim@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20161028123702.21849-1-woogyom.kim@gmail.com>
@@ -10,28 +10,29 @@ To: bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Robert Nelson <robertcnelson@gmail.com>, Milo Kim <woogyom.kim@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Support the power button driver and disable it by default.
+This enables the power button driver gets corresponding IRQ number by
+using platform_get_irq().
 
 Signed-off-by: Milo Kim <woogyom.kim@gmail.com>
 ---
- arch/arm/boot/dts/tps65217.dtsi | 5 +++++
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 5 +++++
  1 file changed, 5 insertions(+)
 
-diff --git a/arch/arm/boot/dts/tps65217.dtsi b/arch/arm/boot/dts/tps65217.dtsi
-index 8f77d0d..02de56b 100644
---- a/arch/arm/boot/dts/tps65217.dtsi
-+++ b/arch/arm/boot/dts/tps65217.dtsi
-@@ -21,6 +21,11 @@
- 		status = "disabled";
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index cec9d91..0c0a90c 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -324,6 +324,11 @@
+ 		status = "okay";
  	};
  
 +	pwrbutton {
-+		compatible = "ti,tps65217-pwrbutton";
-+		status = "disabled";
++		interrupts = <TPS65217_IRQ_PB>;
++		status = "okay";
 +	};
 +
  	regulators {
- 		#address-cells = <1>;
- 		#size-cells = <0>;
+ 		dcdc1_reg: regulator@0 {
+ 			regulator-name = "vdds_dpr";
 -- 
 2.9.3
