@@ -1,78 +1,106 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv4 11/15] clk: ti: clockdomain: add clock provider support
- to clockdomains
-Date: Fri, 28 Oct 2016 16:54:48 -0700
-Message-ID: <20161028235448.57squdf6cu2wxxvm@atomide.com>
-References: <1476805568-19264-1-git-send-email-t-kristo@ti.com>
- <1476805568-19264-12-git-send-email-t-kristo@ti.com>
- <20161028005047.GQ26139@codeaurora.org>
- <cd32a554-ba0a-33cd-c15c-121524ce679b@ti.com>
- <20161028125112.xfyrx7l7m64z6cu6@atomide.com>
- <20161028233617.GP16026@codeaurora.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161028233617.GP16026@codeaurora.org>
-Sender: linux-clk-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, mturquette@baylibre.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH 00/15] use permission-specific DEVICE_ATTR variants
+Date: Sat, 29 Oct 2016 21:36:54 +0200
+Message-ID: <1477769829-22230-1-git-send-email-Julia.Lawall@lip6.fr>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linuxppc-dev@lists.ozlabs.org, linux-mips@linux-mips.org, linux-pm@vger.kernel.org, patches@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, linux-pci@vger.kernel.org, linux-atm-general@lists.sourceforge.net
 List-Id: linux-omap@vger.kernel.org
 
-* Stephen Boyd <sboyd@codeaurora.org> [161028 16:37]:
-> On 10/28, Tony Lindgren wrote:
-> > * Tero Kristo <t-kristo@ti.com> [161028 00:43]:
-> > > On 28/10/16 03:50, Stephen Boyd wrote:
-> > > > I suppose a PRCM is
-> > > > like an MFD that has clocks and resets under it? On other
-> > > > platforms we've combined that all into one node and just had
-> > > > #clock-cells and #reset-cells in that node. Is there any reason
-> > > > we can't do that here?
-> > > 
-> > > For OMAPs, there are typically multiple instances of the PRCM around; OMAP4
-> > > for example has:
-> > > 
-> > > cm1 @ 0x4a004000 (clocks + clockdomains)
-> > > cm2 @ 0x4a008000 (clocks + clockdomains)
-> > > prm @ 0x4a306000 (few clocks + resets + power state handling)
-> > > scrm @ 0x4a30a000 (few external clocks + plenty of misc stuff)
-> > > 
-> > > These instances are also under different power/voltage domains which means
-> > > their PM behavior is different.
-> > > 
-> > > The idea behind having a clockdomain as a provider was mostly to have the
-> > > topology visible : prcm-instance -> clockdomain -> clocks
-> > 
-> > Yeah that's needed to get the interconnect hierarchy right for
-> > genpd :)
-> > 
-> > > ... but basically I think it would be possible to drop the clockdomain
-> > > representation and just mark the prcm-instance as a clock provider. Tony,
-> > > any thoughts on that?
-> > 
-> > No let's not drop the clockdomains as those will be needed when we
-> > move things into proper hierarchy within the interconnect instances.
-> > This will then help with getting things right with genpd.
-> > 
-> > In the long run we just want to specify clockdomain and the offset of
-> > the clock instance within the clockdomain in the dts files.
-> > 
-> 
-> Sorry, I have very little idea how OMAP hardware works. Do you
-> mean that you will have different nodes for each clockdomain so
-> that genpd can map 1:1 to the node in dts? But in hardware
-> there's a prcm that allows us to control many clock domains
-> through register read/writes? How is the interconnect involved?
 
-There are multiple clockdomains, at least one for each interconnect
-instance. Once a clockdomain is idle, the related interconnect can
-idle too. So yeah genpd pretty much maps 1:1 with the clockdomains.
+Use DEVICE_ATTR_RO etc. for read only attributes etc.  This simplifies the
+source code, improves readbility, and reduces the chance of
+inconsistencies.
 
-There's more info in for example omap4 TRM section "3.4.1 Device
-Power-Management Layout" that shows the voltage/power/clock domains.
-The interconnect instances are mostly named there too looking at
-the L4/L3 naming.
+The complete semantic patch is as follows:
+(http://coccinelle.lip6.fr/)
 
-Regards,
+// <smpl>
+@ro@
+declarer name DEVICE_ATTR;
+identifier x,x_show;
+@@
 
-Tony
+DEVICE_ATTR(x, \(0444\|S_IRUGO\), x_show, NULL);
+
+@wo@
+declarer name DEVICE_ATTR;
+identifier x,x_store;
+@@
+
+DEVICE_ATTR(x, \(0200\|S_IWUSR\), NULL, x_store);
+
+@rw@
+declarer name DEVICE_ATTR;
+identifier x,x_show,x_store;
+@@
+
+DEVICE_ATTR(x, \(0644\|S_IRUGO|S_IWUSR\), x_show, x_store);
+
+@script:ocaml@
+x << ro.x;
+x_show << ro.x_show;
+@@
+
+if not (x^"_show" = x_show) then Coccilib.include_match false
+
+@script:ocaml@
+x << wo.x;
+x_store << wo.x_store;
+@@
+
+if not (x^"_store" = x_store) then Coccilib.include_match false
+
+@script:ocaml@
+x << rw.x;
+x_show << rw.x_show;
+x_store << rw.x_store;
+@@
+
+if not (x^"_show" = x_show && x^"_store" = x_store)
+then Coccilib.include_match false
+
+@@
+declarer name DEVICE_ATTR_RO;
+identifier ro.x,ro.x_show;
+@@
+
+- DEVICE_ATTR(x, \(0444\|S_IRUGO\), x_show, NULL);
++ DEVICE_ATTR_RO(x);
+
+@@
+declarer name DEVICE_ATTR_WO;
+identifier wo.x,wo.x_store;
+@@
+
+- DEVICE_ATTR(x, \(0200\|S_IWUSR\), NULL, x_store);
++ DEVICE_ATTR_WO(x);
+
+@@
+declarer name DEVICE_ATTR_RW;
+identifier rw.x,rw.x_show,rw.x_store;
+@@
+
+- DEVICE_ATTR(x, \(0644\|S_IRUGO|S_IWUSR\), x_show, x_store);
++ DEVICE_ATTR_RW(x);
+// </smpl>
+
+---
+
+ arch/mips/txx9/generic/7segled.c                  |    4 ++--
+ arch/powerpc/kernel/iommu.c                       |    3 +--
+ arch/tile/kernel/sysfs.c                          |   14 +++++++-------
+ drivers/atm/solos-pci.c                           |    2 +-
+ drivers/pci/pcie/aspm.c                           |    4 ++--
+ drivers/power/supply/wm8350_power.c               |    2 +-
+ drivers/ptp/ptp_sysfs.c                           |    2 +-
+ drivers/thermal/int340x_thermal/int3400_thermal.c |    2 +-
+ drivers/thermal/thermal_hwmon.c                   |    2 +-
+ drivers/tty/nozomi.c                              |    4 ++--
+ drivers/usb/wusbcore/dev-sysfs.c                  |    6 +++---
+ drivers/usb/wusbcore/wusbhc.c                     |   13 +++++--------
+ drivers/video/fbdev/wm8505fb.c                    |    2 +-
+ sound/soc/omap/mcbsp.c                            |    4 ++--
+ sound/soc/soc-dapm.c                              |    2 +-
+ 15 files changed, 31 insertions(+), 35 deletions(-)
