@@ -1,50 +1,24 @@
 From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH 4/4] ARM: dts: Add #pinctrl-cells for pinctrl-single
- instances
-Date: Sun, 30 Oct 2016 22:06:13 -0500
-Message-ID: <20161031030613.avo2qvv7aj5wr62o@rob-hp-laptop>
-References: <20161025164538.453-1-tony@atomide.com>
- <20161025164538.453-5-tony@atomide.com>
+Subject: Re: [PATCH resent v3 3/3] ASoC: omap-abe-twl6040: fix typo in
+ bindings documentation
+Date: Sun, 30 Oct 2016 22:07:40 -0500
+Message-ID: <20161031030740.lih7ptbzv4vn7ll6@rob-hp-laptop>
+References: <cover.1477417090.git.hns@goldelico.com>
+ <f2ade237f55685f4fdb2aaa127995f3ccb986bb3.1477417090.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20161025164538.453-5-tony@atomide.com>
+In-Reply-To: <f2ade237f55685f4fdb2aaa127995f3ccb986bb3.1477417090.git.hns@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Jon Hunter <jonathanh@nvidia.com>, Mark Rutland <mark.rutland@arm.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, Russell King <linux@armlinux.org.uk>, ldewangan@nvidia.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, marek@goldelico.com, kernel@pyra-handheld.com, letux-kernel@openphoenux.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 25, 2016 at 09:45:38AM -0700, Tony Lindgren wrote:
-> Drivers using pinctrl-single,pins have #pinctrl-cells = <1>, while
-> pinctrl-single,bits need #pinctrl-cells = <2>.
-> 
-> Note that this patch can be optionally applied separately from the
-> driver changes as the driver supports also the legacy binding without
-> #pinctrl-cells.
-> 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+On Tue, Oct 25, 2016 at 07:38:11PM +0200, H. Nikolaus Schaller wrote:
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 > ---
->  Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt | 3 +++
->  arch/arm/boot/dts/am33xx.dtsi                                | 2 ++
->  arch/arm/boot/dts/am3517.dtsi                                | 1 +
->  arch/arm/boot/dts/am4372.dtsi                                | 1 +
->  arch/arm/boot/dts/da850.dtsi                                 | 1 +
->  arch/arm/boot/dts/dm814x.dtsi                                | 1 +
->  arch/arm/boot/dts/dm816x.dtsi                                | 2 ++
->  arch/arm/boot/dts/dra7.dtsi                                  | 1 +
->  arch/arm/boot/dts/hi3620.dtsi                                | 2 ++
->  arch/arm/boot/dts/keystone-k2g.dtsi                          | 1 +
->  arch/arm/boot/dts/keystone-k2l.dtsi                          | 1 +
->  arch/arm/boot/dts/omap2420.dtsi                              | 2 ++
->  arch/arm/boot/dts/omap2430.dtsi                              | 2 ++
->  arch/arm/boot/dts/omap3.dtsi                                 | 2 ++
->  arch/arm/boot/dts/omap34xx.dtsi                              | 1 +
->  arch/arm/boot/dts/omap36xx.dtsi                              | 1 +
->  arch/arm/boot/dts/omap4.dtsi                                 | 2 ++
->  arch/arm/boot/dts/omap5.dtsi                                 | 2 ++
->  arch/arm/boot/dts/pxa3xx.dtsi                                | 1 +
->  arch/arm64/boot/dts/hisilicon/hi6220.dtsi                    | 3 +++
->  20 files changed, 32 insertions(+)
+>  Documentation/devicetree/bindings/sound/omap-abe-twl6040.txt | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
 Acked-by: Rob Herring <robh@kernel.org>
