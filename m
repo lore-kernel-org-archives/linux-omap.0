@@ -1,65 +1,50 @@
-From: Nicolae Rosia <Nicolae_Rosia-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] Documentation: bindings: fix twl-rtc documentation
-Date: Tue, 1 Nov 2016 11:42:36 +0200
-Message-ID: <1477993356-9195-1-git-send-email-Nicolae_Rosia@mentor.com>
-Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+From: Nicolae Rosia <Nicolae_Rosia@mentor.com>
+Subject: [PATCH] ARM: OMAP2+: avoid NULL pointer dereference
+Date: Tue, 1 Nov 2016 11:49:25 +0200
+Message-ID: <1477993765-9980-1-git-send-email-Nicolae_Rosia@mentor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <rtc-linux+bncBAABBFGH4HAAKGQE4CLZM2Q-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <https://groups.google.com/group/rtc-linux
-List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <https://groups.google.com/group/rtc-linux/subscribe>
-To: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Nicolae Rosia <Nicolae_Rosia-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Nicolae Rosia <Nicolae_Rosia@mentor.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add interrupts documentation
-Fix example and formatting
+For OMAP4, volt_data is set in omap44xx_voltagedomains_init.
+If the SoC is neither OMAP443X or OMAP446X, we end up with a
+NULL in volt_data which causes a kernel oops.
+This is the case when booting OMAP4470.
 
-Signed-off-by: Nicolae Rosia <Nicolae_Rosia-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Nicolae Rosia <Nicolae_Rosia@mentor.com>
 ---
- Documentation/devicetree/bindings/rtc/twl-rtc.txt | 19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/voltage.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/rtc/twl-rtc.txt b/Documentation/devicetree/bindings/rtc/twl-rtc.txt
-index 596e0c9..8f9a94f 100644
---- a/Documentation/devicetree/bindings/rtc/twl-rtc.txt
-+++ b/Documentation/devicetree/bindings/rtc/twl-rtc.txt
-@@ -1,12 +1,11 @@
--* TI twl RTC
--
--The TWL family (twl4030/6030) contains a RTC.
-+* Texas Instruments TWL4030/6030 RTC
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index cba8cad..cd15dbd 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -87,6 +87,12 @@ int voltdm_scale(struct voltagedomain *voltdm,
+ 		return -ENODATA;
+ 	}
  
- Required properties:
--- compatible : Should be twl4030-rtc
--
--Examples:
--
--rtc@0 {
--    compatible = "ti,twl4030-rtc";
--};
-+- compatible : Should be "ti,twl4030-rtc"
-+- interrupts : Should be the interrupt number.
++	if (!voltdm->volt_data) {
++		pr_err("%s: No voltage data defined for vdd_%s\n",
++			__func__, voltdm->name);
++		return -ENODATA;
++	}
 +
-+Example:
-+	rtc {
-+		compatible = "ti,twl4030-rtc";
-+		interrupts = <11>;
-+	};
+ 	/* Adjust voltage to the exact voltage from the OPP table */
+ 	for (i = 0; voltdm->volt_data[i].volt_nominal != 0; i++) {
+ 		if (voltdm->volt_data[i].volt_nominal >= target_volt) {
 -- 
 2.5.5
-
--- 
-You received this message because you are subscribed to "rtc-linux".
-Membership options at http://groups.google.com/group/rtc-linux .
-Please read http://groups.google.com/group/rtc-linux/web/checklist
-before submitting a driver.
---- 
-You received this message because you are subscribed to the Google Groups "rtc-linux" group.
-To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-For more options, visit https://groups.google.com/d/optout.
