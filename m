@@ -1,70 +1,59 @@
-From: Nicolae Rosia <Nicolae_Rosia@mentor.com>
-Subject: [PATCH 5/5] ARM: OMAP: kill omap_pmic_init
-Date: Tue, 1 Nov 2016 13:36:46 +0200
-Message-ID: <1478000206-10855-6-git-send-email-Nicolae_Rosia@mentor.com>
-References: <1478000206-10855-1-git-send-email-Nicolae_Rosia@mentor.com>
+From: Matt Ranostay <mranostay@gmail.com>
+Subject: Re: [PATCH v2 2/2] power: bq27xxx_battery: add poll interval property query
+Date: Tue, 1 Nov 2016 12:58:57 -0700
+Message-ID: <CAKzfze8Bom1XYRfiix_qYFckMggUD0eJm3Fz=GhNi6H_PBFyXA@mail.gmail.com>
+References: <1475092512-30555-1-git-send-email-matt@ranostay.consulting>
+ <1475092512-30555-3-git-send-email-matt@ranostay.consulting>
+ <CAKzfze9uvMvrF=gWph_HKFk_cH0qzRz6Wa2VJafK+H+wdnP0rg@mail.gmail.com>
+ <20161024201443.GB5989@amd> <CAKzfze_rv29gwuBGctwTONyw8Oy6fwE+xcN0HMh-ZPB47HKzuQ@mail.gmail.com>
+ <CAJ_EiSRzmQHLP2PTfzsLF4uWgYgCiRGsSk=MHbtOC5rgXnnFpw@mail.gmail.com> <20161031213846.GA21014@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1478000206-10855-1-git-send-email-Nicolae_Rosia@mentor.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Nicolae Rosia <Nicolae_Rosia@mentor.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161031213846.GA21014@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Matt Ranostay <matt@ranostay.consulting>, pali.rohar@gmail.com, Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, Patrik Bachan <patrikbachan@gmail.com>, serge@hallyn.com, =?UTF-8?B?TWlja3Vsw6HFoSBRd2VydHo=?= <abcloriens@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Remove dead code
+On Mon, Oct 31, 2016 at 2:38 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> On Mon 2016-10-31 13:22:18, Matt Ranostay wrote:
+>> On Tue, Oct 25, 2016 at 11:47 AM, Matt Ranostay <mranostay@gmail.com> wrote:
+>> > On Mon, Oct 24, 2016 at 1:14 PM, Pavel Machek <pavel@ucw.cz> wrote:
+>> >> On Mon 2016-10-24 12:58:25, Matt Ranostay wrote:
+>> >>> Pavel + Sebastian this is the patchset that need I some input on :)
+>> >>
+>> >> Better then previous one.
+>> >>
+>> >> But my version of bq27xxx_battery.c already contains this:
+>> >
+>> > This is for allowing udev rule to set the properties as well.
+>> > otherwise a kinda crude RUN = " echo value >
+>> > /sys/module/bq27xxx_battery/parameters/poll_interval" is required.
+>>
+>> Any thoughts on this?
+>
+> I'd say  echo value >
+> /sys/module/bq27xxx_battery/parameters/poll_interval .. is quite
+> adequate solution...?
+>
+> Alternatively, convince us that something else is useful for everyone,
+> and we can do the right thing (poll more often when battery is nearly
+> empty), automatically...
 
-Signed-off-by: Nicolae Rosia <Nicolae_Rosia@mentor.com>
----
- arch/arm/mach-omap2/twl-common.c | 13 -------------
- arch/arm/mach-omap2/twl-common.h |  2 --
- 2 files changed, 15 deletions(-)
+Ok should have had the patchset set it per device, and not use the
+global poll_interval. Of need to add some logic to see if uses the
+global poll_interval or it's own setting.
 
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index cf3d81b..876772c 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -39,19 +39,6 @@ static struct i2c_board_info __initdata pmic_i2c_board_info = {
- 	.flags		= I2C_CLIENT_WAKE,
- };
- 
--void __init omap_pmic_init(int bus, u32 clkrate,
--			   const char *pmic_type, int pmic_irq,
--			   struct twl4030_platform_data *pmic_data)
--{
--	omap_mux_init_signal("sys_nirq", OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE);
--	strlcpy(pmic_i2c_board_info.type, pmic_type,
--		sizeof(pmic_i2c_board_info.type));
--	pmic_i2c_board_info.irq = pmic_irq;
--	pmic_i2c_board_info.platform_data = pmic_data;
--
--	omap_register_i2c_bus(bus, clkrate, &pmic_i2c_board_info, 1);
--}
--
- void __init omap_pmic_late_init(void)
- {
- 	/* Init the OMAP TWL parameters (if PMIC has been registerd) */
-diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-common.h
-index 5579bd6..44713bb 100644
---- a/arch/arm/mach-omap2/twl-common.h
-+++ b/arch/arm/mach-omap2/twl-common.h
-@@ -35,8 +35,6 @@ struct twl6040_platform_data;
- struct omap_tw4030_pdata;
- struct i2c_board_info;
- 
--void omap_pmic_init(int bus, u32 clkrate, const char *pmic_type, int pmic_irq,
--		    struct twl4030_platform_data *pmic_data);
- void omap_pmic_late_init(void);
- 
- void omap_twl4030_audio_init(char *card_name, struct omap_tw4030_pdata *pdata);
--- 
-2.5.5
+There are times where you could have multiple batteries connected to
+multiple fuel gauges, and want to up the polling interval on certain
+ones that are discharging at different rates.
+
+But of course I'll let you guys let me know if this seems useful at all.
+
+
+>
+>                                                                         Pavel
+> --
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
