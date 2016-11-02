@@ -1,114 +1,89 @@
-From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 4/9] regulator: lp873x: Add support for populating
- input supply
-Date: Wed, 2 Nov 2016 10:58:40 +0530
-Message-ID: <e5619d78-5752-c8fb-8a11-6629c4b7c3f6@ti.com>
-References: <20161021103841.8044-1-lokeshvutla@ti.com>
- <20161021103841.8044-5-lokeshvutla@ti.com>
- <20161030204118.ojeetnxl5qsi6lp7@rob-hp-laptop>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH v2 2/2] power: bq27xxx_battery: add poll interval
+ property query
+Date: Wed, 2 Nov 2016 09:22:06 +0100
+Message-ID: <20161102082206.GE21488@amd>
+References: <1475092512-30555-1-git-send-email-matt@ranostay.consulting>
+ <1475092512-30555-3-git-send-email-matt@ranostay.consulting>
+ <CAKzfze9uvMvrF=gWph_HKFk_cH0qzRz6Wa2VJafK+H+wdnP0rg@mail.gmail.com>
+ <20161024201443.GB5989@amd>
+ <CAKzfze_rv29gwuBGctwTONyw8Oy6fwE+xcN0HMh-ZPB47HKzuQ@mail.gmail.com>
+ <CAJ_EiSRzmQHLP2PTfzsLF4uWgYgCiRGsSk=MHbtOC5rgXnnFpw@mail.gmail.com>
+ <20161031213846.GA21014@amd>
+ <CAKzfze8Bom1XYRfiix_qYFckMggUD0eJm3Fz=GhNi6H_PBFyXA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161030204118.ojeetnxl5qsi6lp7@rob-hp-laptop>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="gMR3gsNFwZpnI/Ts"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAKzfze8Bom1XYRfiix_qYFckMggUD0eJm3Fz=GhNi6H_PBFyXA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matt Ranostay <mranostay@gmail.com>
+Cc: Matt Ranostay <matt@ranostay.consulting>, pali.rohar@gmail.com, Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, Patrik Bachan <patrikbachan@gmail.com>, serge@hallyn.com, =?utf-8?B?TWlja3Vsw6HFoQ==?= Qwertz <abcloriens@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
 
+--gMR3gsNFwZpnI/Ts
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Monday 31 October 2016 02:11 AM, Rob Herring wrote:
-> On Fri, Oct 21, 2016 at 04:08:36PM +0530, Lokesh Vutla wrote:
->> In order to have a proper topology of regulators for a platform, each
->> registering regulator needs to populate supply_name field for identifying
->> its supply's name. Add supply_name field for lp873x regulators.
->>
->> Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->> Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
->> Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
->> ---
->>  Documentation/devicetree/bindings/mfd/lp873x.txt | 8 ++++++++
->>  drivers/regulator/lp873x-regulator.c             | 1 +
->>  2 files changed, 9 insertions(+)
->>
->> diff --git a/Documentation/devicetree/bindings/mfd/lp873x.txt b/Documentation/devicetree/bindings/mfd/lp873x.txt
->> index 52766c2..998837a 100644
->> --- a/Documentation/devicetree/bindings/mfd/lp873x.txt
->> +++ b/Documentation/devicetree/bindings/mfd/lp873x.txt
->> @@ -7,6 +7,9 @@ Required properties:
->>    - #gpio-cells:	Should be two.  The first cell is the pin number and
->>  			the second cell is used to specify flags.
->>  			See ../gpio/gpio.txt for more information.
->> +  - xxx-in-supply:	Phandle to parent supply node of each regulator
->> +			populated under regulators node. xxx should match
->> +			the supply_name populated in driver.
-> 
-> The driver is irrelevant. This should reference a list in this document.
+Hi!
 
-okay. See if the below updated patch is fine.
+> >> >> Better then previous one.
+> >> >>
+> >> >> But my version of bq27xxx_battery.c already contains this:
+> >> >
+> >> > This is for allowing udev rule to set the properties as well.
+> >> > otherwise a kinda crude RUN =3D " echo value >
+> >> > /sys/module/bq27xxx_battery/parameters/poll_interval" is required.
+> >>
+> >> Any thoughts on this?
+> >
+> > I'd say  echo value >
+> > /sys/module/bq27xxx_battery/parameters/poll_interval .. is quite
+> > adequate solution...?
+> >
+> > Alternatively, convince us that something else is useful for everyone,
+> > and we can do the right thing (poll more often when battery is nearly
+> > empty), automatically...
+>=20
+> Ok should have had the patchset set it per device, and not use the
+> global poll_interval. Of need to add some logic to see if uses the
+> global poll_interval or it's own setting.
+>=20
+> There are times where you could have multiple batteries connected to
+> multiple fuel gauges, and want to up the polling interval on certain
+> ones that are discharging at different rates.
+>=20
+> But of course I'll let you guys let me know if this seems useful at all.
 
------------------------------8<----------------------------8<----------------------------
->From 666f925423fa35c7bfcc77fa3c883cbea5d8ef8e Mon Sep 17 00:00:00 2001
-From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Date: Wed, 21 Sep 2016 11:50:49 +0530
-Subject: [PATCH v3] regulator: lp873x: Add support for populating input
-supply
+I agree per-device polling would be cleaner.
 
-In order to have a proper topology of regulators for a platform, each
-registering regulator needs to populate supply_name field for identifying
-its supply's name. Add supply_name field for lp873x regulators.
+But unless you have hardware with more than one bq27xxx, I'd avoid the
+work...
 
-Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
----
- Documentation/devicetree/bindings/mfd/lp873x.txt | 8 ++++++++
- drivers/regulator/lp873x-regulator.c             | 1 +
- 2 files changed, 9 insertions(+)
+Now... its also possible that poll_interval should change itself
+(within kernel) to do the right thing.
 
-diff --git a/Documentation/devicetree/bindings/mfd/lp873x.txt
-b/Documentation/devicetree/bindings/mfd/lp873x.txt
-index 52766c2..ae9cf39 100644
---- a/Documentation/devicetree/bindings/mfd/lp873x.txt
-+++ b/Documentation/devicetree/bindings/mfd/lp873x.txt
-@@ -7,6 +7,9 @@ Required properties:
-   - #gpio-cells:	Should be two.  The first cell is the pin number and
- 			the second cell is used to specify flags.
- 			See ../gpio/gpio.txt for more information.
-+  - xxx-in-supply:	Phandle to parent supply node of each regulator
-+			populated under regulators node. xxx can be
-+			buck0, buck1, ldo0 or ldo1.
-   - regulators:	List of child nodes that specify the regulator
- 			initialization data.
- Example:
-@@ -17,6 +20,11 @@ pmic: lp8733@60 {
- 	gpio-controller;
- 	#gpio-cells = <2>;
+Best regards,
 
-+	buck0-in-supply = <&vsys_3v3>;
-+	buck1-in-supply = <&vsys_3v3>;
-+	ldo0-in-supply = <&vsys_3v3>;
-+	ldo1-in-supply = <&vsys_3v3>;
-+
- 	regulators {
- 		lp8733_buck0: buck0 {
- 			regulator-name = "lp8733-buck0";
-diff --git a/drivers/regulator/lp873x-regulator.c
-b/drivers/regulator/lp873x-regulator.c
-index e504b91..70e3df6 100644
---- a/drivers/regulator/lp873x-regulator.c
-+++ b/drivers/regulator/lp873x-regulator.c
-@@ -24,6 +24,7 @@
- 	[_id] = {							\
- 		.desc = {						\
- 			.name			= _name,		\
-+			.supply_name		= _of "-in",		\
- 			.id			= _id,			\
- 			.of_match		= of_match_ptr(_of),	\
- 			.regulators_node	= of_match_ptr("regulators"),\
--- 
-2.10.1
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--gMR3gsNFwZpnI/Ts
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlgZoi0ACgkQMOfwapXb+vLSKQCgsxrli5H77QV7lr9M3wlYm5Va
+aQkAoLgZXf5Oe0K8ozBRq9uj5ab8vJDI
+=kryH
+-----END PGP SIGNATURE-----
+
+--gMR3gsNFwZpnI/Ts--
