@@ -1,98 +1,140 @@
-From: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
-Subject: Re: [PATCH 0/2] musb-fixes for v4.9-rc2
-Date: Tue, 1 Nov 2016 22:13:58 +0100
-Message-ID: <20161101211358.GA2597@localhost.localdomain>
-References: <1476896620-15432-1-git-send-email-b-liu@ti.com>
- <20161020082318.GA2903@localhost.localdomain>
- <20161020123524.oepmqvlhzzu7elgj@atomide.com>
- <20161020193612.GA29736@localhost.localdomain>
- <20161021071722.2cetd2mt23t245ao@atomide.com>
- <20161024180708.kpx6s2jb7dpg6xfx@atomide.com>
+From: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v3 2/3] Documentation: dt: add bindings for ti-cpufreq
+Date: Wed, 2 Nov 2016 09:29:41 +0530
+Message-ID: <20161102035941.GA10786@vireshk-i7>
+References: <20161027214131.1725-1-d-gerlach@ti.com>
+ <20161027214131.1725-3-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161024180708.kpx6s2jb7dpg6xfx-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20161027214131.1725-3-d-gerlach-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J . Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Mon, Oct 24, 2016 at 11:07:08AM -0700, Tony Lindgren wrote:
-> Hi,
+On 27-10-16, 16:41, Dave Gerlach wrote:
+> Add the device tree bindings document for the TI CPUFreq/OPP driver
+> on AM33xx and AM43xx SoCs. The operating-points-v2 binding allows us
+> to provide an opp-supported-hw property for each OPP to define when
+> it is available. This driver is responsible for reading and parsing
+> registers to determine which OPPs can be selectively enabled based
+> on the specific SoC in use by matching against the opp-supported-hw
+> data.
 > 
-> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [161021 00:18]:
-> > * Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org> [161020 12:37]:
-> > > [  186.457519] musb-hdrc musb-hdrc.0.auto: VBUS_ERROR in a_wait_bcon (90, <VBusValid), retry #3, port1 0008010c
-> > > 
-> > > And that's the end, since now it does not react on hub plug/unplug.
-> > > 
-> > > Also all that VBUS_ERROR conditions are strange as hub is powered separately
-> > > and power lines from phy are not used.
-> > 
-> > Hmm yeah. I'd like to be able to reproduce this. Can you email me
-> > your .config (again)? You have things in host mode with a powered
-> > hub plus few devices with no USB gadgets configured?
+> Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+> ---
+> v2->v3:
+> - Move ti,syscon-* properties under opp table instead of cpu node, as
+>   that is a better location for them.
+> - For the opp table do not use platform specific compatible strings
+>   but instead a operating-points-v2-ti-cpu
 > 
-> Well I found your earlier .config so presumably that did not change.
-> Below patch seems to do the trick for me, but I need to test more.
+>  .../devicetree/bindings/cpufreq/ti-cpufreq.txt     | 132 +++++++++++++++++++++
+>  1 file changed, 132 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
 > 
-> Care to test if it helps for you? Please test with v4.9-rc2 and the
-> following two fixes heading in Greg's usb-linus branch:
-> 
-> cacaaf80c3a6 ("usb: musb: Call pm_runtime from musb_gadget_queue")
-> d8e5f0eca1e8 ("usb: musb: Fix hardirq-safe hardirq-unsafe lock order error")
+> diff --git a/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt b/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
+> new file mode 100644
+> index 000000000000..467ad29c75c9
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
+> @@ -0,0 +1,132 @@
+> +TI CPUFreq and OPP bindings
+> +================================
+> +
+> +Certain TI SoCs, like those in the am335x, am437x, am57xx, and dra7xx
+> +families support different OPPs depending on the silicon variant in use.
+> +The ti_cpufreq driver can use revision and an efuse value from the SoC to
+> +provide the OPP framework with supported hardware information. This is
+> +used to determine which OPPs from the operating-points-v2 table get enabled
+> +when it is parsed by the OPP framework.
+> +
+> +Required properties:
+> +--------------------
+> +In 'cpus' nodes:
+> +- operating-points-v2: Phandle to the operating-points-v2 table to use.
+> +
+> +In 'operating-points-v2' table:
+> +- compatible: Should be 'operating-points-v2-ti-cpu' for am335x, am43xx,
+> +	      and dra7xx/am57xx SoCs
+> +- ti,syscon-efuse: Syscon phandle, offset to efuse register, efuse register
+> +		   mask, and efuse register shift to get the relevant bits
+> +		   that describe OPP availability.
+> +- ti,syscon-rev: Syscon and offset used to look up revision value on SoC.
+> +
+> +Optional properties:
+> +--------------------
+> +For each opp entry in 'operating-points-v2' table:
+> +- opp-supported-hw: Two bitfields indicating:
+> +	1. Which revision of the SoC the OPP is supported by
+> +	2. Which eFuse bits indicate this OPP is available
+> +
+> +	A bitwise AND is performed against these values and if any bit
+> +	matches, the OPP gets enabled. Not providing the property for an
+> +	entry indicates that an OPP is always supported.
+> +
+> +Example:
+> +--------
+> +
+> +/* From arch/arm/boot/dts/am33xx.dtsi */
+> +cpus {
+> +	#address-cells = <1>;
+> +	#size-cells = <0>;
+> +	cpu@0 {
+> +		compatible = "arm,cortex-a8";
+> +		device_type = "cpu";
+> +		reg = <0>;
+> +
+> +		operating-points-v2 = <&cpu0_opp_table>;
+> +
+> +		clocks = <&dpll_mpu_ck>;
+> +		clock-names = "cpu";
+> +
+> +		clock-latency = <300000>; /* From omap-cpufreq driver */
+> +	};
+> +};
+> +
+> +/*
+> + * cpu0 has different OPPs depending on SoC revision and some on revisions
+> + * 0x2 and 0x4 have eFuse bits that indicate if they are available or not
+> + */
+> +cpu0_opp_table: opp_table0 {
+> +	compatible = "operating-points-v2-ti-am3352-cpu";
+> +	ti,syscon-efuse = <&scm_conf 0x7fc 0x1fff 0>;
+> +	ti,syscon-rev = <&scm_conf 0x600>;
+> +
+> +	/*
+> +	 * The three following nodes are marked with opp-suspend
+> +	 * because they can not be enabled simultaneously on a
+> +	 * single SoC.
+> +	 */
+> +	opp50@300000000 {
+> +		opp-hz = /bits/ 64 <300000000>;
+> +		opp-microvolt = <950000 931000 969000>;
+> +		opp-supported-hw = <0x06 0x0010>;
+> +		opp-suspend;
+> +	};
+> +
+> +	opp100@275000000 {
+> +		opp-hz = /bits/ 64 <275000000>;
+> +		opp-microvolt = <1100000 1078000 1122000>;
+> +		opp-supported-hw = <0x01 0x00FF>;
+> +		opp-suspend;
+> +	};
+> +
+> +	opp100@300000000 {
+> +		opp-hz = /bits/ 64 <300000000>;
+> +		opp-microvolt = <1100000 1078000 1122000>;
+> +		opp-supported-hw = <0x06 0x0020>;
+> +		opp-suspend;
 
-tested with v4.9-rc3 which have these included.
+Only one OPP in the table can be marked as suspend OPP.
 
-> I'll send a proper patch if that works for you.
-
-Unfortunately it's still the same. Direct connection (without hub) remains
-untested as there's not enough power to supply display:
-usb 2-1: USB disconnect, device number 2
-usb 2-1: new high-speed USB device number 3 using musb-hdrc
-usb 2-1: New USB device found, idVendor=17e9, idProduct=0335
-usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-usb 2-1: Product: MIMO
-usb 2-1: Manufacturer: DisplayLink
-usb 2-1: SerialNumber: 1071007195
-usb 2-1: rejected 1 configuration due to insufficient available bus power
-usb 2-1: no configuration chosen from 1 choice
-
-Regards,
-	ladis
-
-> Regards,
-> 
-> Tony
-> 
-> 8< ------------------------
-> diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
-> --- a/drivers/phy/phy-twl4030-usb.c
-> +++ b/drivers/phy/phy-twl4030-usb.c
-> @@ -459,8 +459,6 @@ static int twl4030_phy_power_off(struct phy *phy)
->  	struct twl4030_usb *twl = phy_get_drvdata(phy);
->  
->  	dev_dbg(twl->dev, "%s\n", __func__);
-> -	pm_runtime_mark_last_busy(twl->dev);
-> -	pm_runtime_put_autosuspend(twl->dev);
->  
->  	return 0;
->  }
-> @@ -472,6 +470,8 @@ static int twl4030_phy_power_on(struct phy *phy)
->  	dev_dbg(twl->dev, "%s\n", __func__);
->  	pm_runtime_get_sync(twl->dev);
->  	schedule_delayed_work(&twl->id_workaround_work, HZ);
-> +	pm_runtime_mark_last_busy(twl->dev);
-> +	pm_runtime_put_autosuspend(twl->dev);
->  
->  	return 0;
->  }
-> -- 
-> 2.9.3
+-- 
+viresh
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
