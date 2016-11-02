@@ -1,60 +1,113 @@
-From: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v3 3/3] cpufreq: ti: Add cpufreq driver to determine
- available OPPs at runtime
-Date: Wed, 2 Nov 2016 09:33:11 +0530
-Message-ID: <20161102040311.GB10786@vireshk-i7>
-References: <20161027214131.1725-1-d-gerlach@ti.com>
- <20161027214131.1725-4-d-gerlach@ti.com>
+From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 4/9] regulator: lp873x: Add support for populating
+ input supply
+Date: Wed, 2 Nov 2016 10:58:40 +0530
+Message-ID: <e5619d78-5752-c8fb-8a11-6629c4b7c3f6@ti.com>
+References: <20161021103841.8044-1-lokeshvutla@ti.com>
+ <20161021103841.8044-5-lokeshvutla@ti.com>
+ <20161030204118.ojeetnxl5qsi6lp7@rob-hp-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161027214131.1725-4-d-gerlach-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20161030204118.ojeetnxl5qsi6lp7@rob-hp-laptop>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J . Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 27-10-16, 16:41, Dave Gerlach wrote:
-> Some TI SoCs, like those in the AM335x, AM437x, DRA7x, and AM57x families,
-> have different OPPs available for the MPU depending on which specific
-> variant of the SoC is in use. This can be determined through use of the
-> revision and an eFuse register present in the silicon. Introduce a
-> ti-cpufreq driver that can read the aformentioned values and provide
-> them as version matching data to the opp framework. Through this the
-> opp-supported-hw dt binding that is part of the operating-points-v2
-> table can be used to indicate availability of OPPs for each device.
-> 
-> This driver also creates the "cpufreq-dt" platform_device after passing
-> the version matching data to the OPP framework so that the cpufreq-dt
-> handles the actual cpufreq implementation. Even without the necessary
-> data to pass the version matching data the driver will still create this
-> device to maintain backwards compatibility with operating-points v1
-> tables.
-> 
-> Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-> ---
-> v2-v3:
->  - Use common ti compatible as described in binding and then match
->    against machine type for platform data.
->  - Use newly exposed dev_pm_opp_of_get_opp_desc_node to get
->    operating-points-v2 table now that properties needed by driver are
->    there.
->  - Parse syscon properties from operating-points-v2 node rather
->    than cpu node.
->  - Do not make ti-cpufreq a module-platform-driver and do not allow
->    building as module.
-> 
->  drivers/cpufreq/Kconfig.arm  |  11 ++
->  drivers/cpufreq/Makefile     |   1 +
->  drivers/cpufreq/ti-cpufreq.c | 288 +++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 300 insertions(+)
->  create mode 100644 drivers/cpufreq/ti-cpufreq.c
 
-Acked-by: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
+On Monday 31 October 2016 02:11 AM, Rob Herring wrote:
+> On Fri, Oct 21, 2016 at 04:08:36PM +0530, Lokesh Vutla wrote:
+>> In order to have a proper topology of regulators for a platform, each
+>> registering regulator needs to populate supply_name field for identifying
+>> its supply's name. Add supply_name field for lp873x regulators.
+>>
+>> Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>> Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+>> Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  Documentation/devicetree/bindings/mfd/lp873x.txt | 8 ++++++++
+>>  drivers/regulator/lp873x-regulator.c             | 1 +
+>>  2 files changed, 9 insertions(+)
+>>
+>> diff --git a/Documentation/devicetree/bindings/mfd/lp873x.txt b/Documentation/devicetree/bindings/mfd/lp873x.txt
+>> index 52766c2..998837a 100644
+>> --- a/Documentation/devicetree/bindings/mfd/lp873x.txt
+>> +++ b/Documentation/devicetree/bindings/mfd/lp873x.txt
+>> @@ -7,6 +7,9 @@ Required properties:
+>>    - #gpio-cells:	Should be two.  The first cell is the pin number and
+>>  			the second cell is used to specify flags.
+>>  			See ../gpio/gpio.txt for more information.
+>> +  - xxx-in-supply:	Phandle to parent supply node of each regulator
+>> +			populated under regulators node. xxx should match
+>> +			the supply_name populated in driver.
+> 
+> The driver is irrelevant. This should reference a list in this document.
+
+okay. See if the below updated patch is fine.
+
+-----------------------------8<----------------------------8<----------------------------
+>From 666f925423fa35c7bfcc77fa3c883cbea5d8ef8e Mon Sep 17 00:00:00 2001
+From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Date: Wed, 21 Sep 2016 11:50:49 +0530
+Subject: [PATCH v3] regulator: lp873x: Add support for populating input
+supply
+
+In order to have a proper topology of regulators for a platform, each
+registering regulator needs to populate supply_name field for identifying
+its supply's name. Add supply_name field for lp873x regulators.
+
+Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+---
+ Documentation/devicetree/bindings/mfd/lp873x.txt | 8 ++++++++
+ drivers/regulator/lp873x-regulator.c             | 1 +
+ 2 files changed, 9 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/mfd/lp873x.txt
+b/Documentation/devicetree/bindings/mfd/lp873x.txt
+index 52766c2..ae9cf39 100644
+--- a/Documentation/devicetree/bindings/mfd/lp873x.txt
++++ b/Documentation/devicetree/bindings/mfd/lp873x.txt
+@@ -7,6 +7,9 @@ Required properties:
+   - #gpio-cells:	Should be two.  The first cell is the pin number and
+ 			the second cell is used to specify flags.
+ 			See ../gpio/gpio.txt for more information.
++  - xxx-in-supply:	Phandle to parent supply node of each regulator
++			populated under regulators node. xxx can be
++			buck0, buck1, ldo0 or ldo1.
+   - regulators:	List of child nodes that specify the regulator
+ 			initialization data.
+ Example:
+@@ -17,6 +20,11 @@ pmic: lp8733@60 {
+ 	gpio-controller;
+ 	#gpio-cells = <2>;
+
++	buck0-in-supply = <&vsys_3v3>;
++	buck1-in-supply = <&vsys_3v3>;
++	ldo0-in-supply = <&vsys_3v3>;
++	ldo1-in-supply = <&vsys_3v3>;
++
+ 	regulators {
+ 		lp8733_buck0: buck0 {
+ 			regulator-name = "lp8733-buck0";
+diff --git a/drivers/regulator/lp873x-regulator.c
+b/drivers/regulator/lp873x-regulator.c
+index e504b91..70e3df6 100644
+--- a/drivers/regulator/lp873x-regulator.c
++++ b/drivers/regulator/lp873x-regulator.c
+@@ -24,6 +24,7 @@
+ 	[_id] = {							\
+ 		.desc = {						\
+ 			.name			= _name,		\
++			.supply_name		= _of "-in",		\
+ 			.id			= _id,			\
+ 			.of_match		= of_match_ptr(_of),	\
+ 			.regulators_node	= of_match_ptr("regulators"),\
 -- 
-viresh
+2.10.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
