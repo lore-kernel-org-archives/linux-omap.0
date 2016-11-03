@@ -1,84 +1,63 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
-Date: Thu, 3 Nov 2016 11:27:27 +0100
-Message-ID: <20161103102727.GA10084@amd>
-References: <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd>
- <20160805102611.GA13116@amd>
- <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
- <20160808214132.GB2946@xo-6d-61-c0.localdomain>
- <20160810120105.GP3182@valkosipuli.retiisi.org.uk>
- <20160808232323.GC2946@xo-6d-61-c0.localdomain>
- <20160811111633.GR3182@valkosipuli.retiisi.org.uk>
- <20160818104539.GA7427@amd>
- <20160818202559.GF3182@valkosipuli.retiisi.org.uk>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="qMm9M+Fa2AknHoGS"
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCHv2 0/4] Generic #pinctrl-cells and and pinctrl_parse_index_with_args
+Date: Thu,  3 Nov 2016 09:35:46 -0700
+Message-ID: <20161103163550.27330-1-tony@atomide.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160818202559.GF3182@valkosipuli.retiisi.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Jon Hunter <jonathanh@nvidia.com>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi all,
 
---qMm9M+Fa2AknHoGS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Here a repost of some pinctrl changes to introduce #pinctrl-cells and
+a generic parser pinctrl_parse_index_with_args that the drivers can
+optionally use.
 
-Hi!
+Regards,
 
-> > > > > Yeah. I just compiled it but haven't tested it. I presume it'll w=
-ork. :-)
-> > > >=20
-> > > > I'm testing it on n900. I guess simpler hardware with ad5820 would =
-be better for the
-> > > > test...
-> > > >=20
-> > > > What hardware do you have?
-> > >=20
-> > > N900. What else could it be? :-) :-)
-> >=20
-> > Heh. Basically anything is easier to develop for than n900 :-(.
->=20
-> Is it?
->=20
-> I actually find the old Nokia devices very practical. It's easy to boot y=
-our
-> own kernel and things just work... until musb broke a bit recently. It
-> requires reconnecting the usb cable again to function.
->=20
-> I have to admit I mostly use an N9.
+Tony
 
-Well, if you compare that to development on PC, I prefer PC.
+Changes from v1:
 
-Even arm development boards are usually easier, as they don't need too
-complex userspace, and do have working serial ports.
+- Update based on comments from Linus Walleij to not pass
+  #pinctrl-cells as an argument and improve the binding
+  documentation
 
-But I do have a serial adapter for N900 now (thanks, sre), so my main
-problem now is that N900 takes a lot of time to boot into usable
-state.
+Tony Lindgren (4):
+  pinctrl: Introduce generic #pinctrl-cells and
+    pinctrl_parse_index_with_args
+  pinctrl: single: Use generic parser and #pinctrl-cells for
+    pinctrl-single,pins
+  pinctrl: single: Use generic parser and #pinctrl-cells for
+    pinctrl-single,bits
+  ARM: dts: Add #pinctrl-cells for pinctrl-single instances
 
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+ .../bindings/pinctrl/pinctrl-bindings.txt          |  44 +++++-
+ .../devicetree/bindings/pinctrl/pinctrl-single.txt |   3 +
+ arch/arm/boot/dts/am33xx.dtsi                      |   2 +
+ arch/arm/boot/dts/am3517.dtsi                      |   1 +
+ arch/arm/boot/dts/am4372.dtsi                      |   1 +
+ arch/arm/boot/dts/da850.dtsi                       |   1 +
+ arch/arm/boot/dts/dm814x.dtsi                      |   1 +
+ arch/arm/boot/dts/dm816x.dtsi                      |   2 +
+ arch/arm/boot/dts/dra7.dtsi                        |   1 +
+ arch/arm/boot/dts/hi3620.dtsi                      |   2 +
+ arch/arm/boot/dts/keystone-k2g.dtsi                |   1 +
+ arch/arm/boot/dts/keystone-k2l.dtsi                |   1 +
+ arch/arm/boot/dts/omap2420.dtsi                    |   2 +
+ arch/arm/boot/dts/omap2430.dtsi                    |   2 +
+ arch/arm/boot/dts/omap3.dtsi                       |   2 +
+ arch/arm/boot/dts/omap34xx.dtsi                    |   1 +
+ arch/arm/boot/dts/omap36xx.dtsi                    |   1 +
+ arch/arm/boot/dts/omap4.dtsi                       |   2 +
+ arch/arm/boot/dts/omap5.dtsi                       |   2 +
+ arch/arm/boot/dts/pxa3xx.dtsi                      |   1 +
+ arch/arm64/boot/dts/hisilicon/hi6220.dtsi          |   3 +
+ drivers/pinctrl/devicetree.c                       | 144 +++++++++++++++++++
+ drivers/pinctrl/devicetree.h                       |  21 +++
+ drivers/pinctrl/pinctrl-single.c                   | 159 +++++++++++++++------
+ 24 files changed, 357 insertions(+), 43 deletions(-)
 
---qMm9M+Fa2AknHoGS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlgbEQ8ACgkQMOfwapXb+vKhQQCfcJlJ7yvxB3FtoUg8aQQ02yYa
-WZ0An15sp7dXK6wjiUkR8LNpejkMskg1
-=SgiJ
------END PGP SIGNATURE-----
-
---qMm9M+Fa2AknHoGS--
+--
+2.10.2
