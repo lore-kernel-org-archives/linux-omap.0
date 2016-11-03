@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/4] pinctrl: single: Use generic parser and #pinctrl-cells for pinctrl-single,pins
-Date: Thu,  3 Nov 2016 09:35:48 -0700
-Message-ID: <20161103163550.27330-3-tony@atomide.com>
+Subject: [PATCH 4/4] ARM: dts: Add #pinctrl-cells for pinctrl-single instances
+Date: Thu,  3 Nov 2016 09:35:50 -0700
+Message-ID: <20161103163550.27330-5-tony@atomide.com>
 References: <20161103163550.27330-1-tony@atomide.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20161103163550.27330-1-tony@atomide.com>
@@ -10,217 +10,339 @@ To: Linus Walleij <linus.walleij@linaro.org>
 Cc: Jon Hunter <jonathanh@nvidia.com>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-We can now use generic parser. To support the legacy binding without
-#pinctrl-cells, add pcs_quirk_missing_pinctrl_cells() and warn about
-missing #pinctrl-cells.
+Drivers using pinctrl-single,pins have #pinctrl-cells = <1>, while
+pinctrl-single,bits need #pinctrl-cells = <2>.
 
-Let's also update the documentation for struct pcs_soc_data while at it
-as that seems to be out of date.
+Note that this patch can be optionally applied separately from the
+driver changes as the driver supports also the legacy binding without
+#pinctrl-cells.
 
+Acked-by: Rob Herring <robh@kernel.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/pinctrl/pinctrl-single.c | 111 ++++++++++++++++++++++++++++++++-------
- 1 file changed, 93 insertions(+), 18 deletions(-)
+ Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt | 3 +++
+ arch/arm/boot/dts/am33xx.dtsi                                | 2 ++
+ arch/arm/boot/dts/am3517.dtsi                                | 1 +
+ arch/arm/boot/dts/am4372.dtsi                                | 1 +
+ arch/arm/boot/dts/da850.dtsi                                 | 1 +
+ arch/arm/boot/dts/dm814x.dtsi                                | 1 +
+ arch/arm/boot/dts/dm816x.dtsi                                | 2 ++
+ arch/arm/boot/dts/dra7.dtsi                                  | 1 +
+ arch/arm/boot/dts/hi3620.dtsi                                | 2 ++
+ arch/arm/boot/dts/keystone-k2g.dtsi                          | 1 +
+ arch/arm/boot/dts/keystone-k2l.dtsi                          | 1 +
+ arch/arm/boot/dts/omap2420.dtsi                              | 2 ++
+ arch/arm/boot/dts/omap2430.dtsi                              | 2 ++
+ arch/arm/boot/dts/omap3.dtsi                                 | 2 ++
+ arch/arm/boot/dts/omap34xx.dtsi                              | 1 +
+ arch/arm/boot/dts/omap36xx.dtsi                              | 1 +
+ arch/arm/boot/dts/omap4.dtsi                                 | 2 ++
+ arch/arm/boot/dts/omap5.dtsi                                 | 2 ++
+ arch/arm/boot/dts/pxa3xx.dtsi                                | 1 +
+ arch/arm64/boot/dts/hisilicon/hi6220.dtsi                    | 3 +++
+ 20 files changed, 32 insertions(+)
 
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -31,10 +31,10 @@
- #include <linux/platform_data/pinctrl-single.h>
+diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt
+--- a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt
++++ b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt
+@@ -7,6 +7,9 @@ Required properties:
  
- #include "core.h"
-+#include "devicetree.h"
- #include "pinconf.h"
+ - reg : offset and length of the register set for the mux registers
  
- #define DRIVER_NAME			"pinctrl-single"
--#define PCS_MUX_PINS_NAME		"pinctrl-single,pins"
- #define PCS_MUX_BITS_NAME		"pinctrl-single,bits"
- #define PCS_OFF_DISABLED		~0U
++- #pinctrl-cells : number of cells in addition to the index, set to 1
++  for pinctrl-single,pins and 2 for pinctrl-single,bits
++
+ - pinctrl-single,register-width : pinmux register access width in bits
  
-@@ -162,8 +162,11 @@ struct pcs_soc_data {
-  * @base:	virtual address of the controller
-  * @size:	size of the ioremapped area
-  * @dev:	device entry
-+ * @np:		device tree node
-  * @pctl:	pin controller device
-  * @flags:	mask of PCS_FEAT_xxx values
-+ * @missing_nr_pinctrl_cells: for legacy binding, may go away
-+ * @socdata:	soc specific data
-  * @lock:	spinlock for register access
-  * @mutex:	mutex protecting the lists
-  * @width:	bits per mux register
-@@ -171,7 +174,8 @@ struct pcs_soc_data {
-  * @fshift:	function register shift
-  * @foff:	value to turn mux off
-  * @fmax:	max number of functions in fmask
-- * @bits_per_pin:number of bits per pin
-+ * @bits_per_mux: number of bits per mux
-+ * @bits_per_pin: number of bits per pin
-  * @pins:	physical pins on the SoC
-  * @pgtree:	pingroup index radix tree
-  * @ftree:	function index radix tree
-@@ -192,11 +196,13 @@ struct pcs_device {
- 	void __iomem *base;
- 	unsigned size;
- 	struct device *dev;
-+	struct device_node *np;
- 	struct pinctrl_dev *pctl;
- 	unsigned flags;
- #define PCS_QUIRK_SHARED_IRQ	(1 << 2)
- #define PCS_FEAT_IRQ		(1 << 1)
- #define PCS_FEAT_PINCONF	(1 << 0)
-+	struct property *missing_nr_pinctrl_cells;
- 	struct pcs_soc_data socdata;
- 	raw_spinlock_t lock;
- 	struct mutex mutex;
-@@ -1125,20 +1131,14 @@ static int pcs_parse_one_pinctrl_entry(struct pcs_device *pcs,
- 						unsigned *num_maps,
- 						const char **pgnames)
- {
-+	const char *name = "pinctrl-single,pins";
- 	struct pcs_func_vals *vals;
--	const __be32 *mux;
--	int size, rows, *pins, index = 0, found = 0, res = -ENOMEM;
-+	int rows, *pins, found = 0, res = -ENOMEM, i;
- 	struct pcs_function *function;
+ - pinctrl-single,function-mask : mask of allowed pinmux function bits
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -130,6 +130,7 @@
+ 				reg = <0x210000 0x2000>;
+ 				#address-cells = <1>;
+ 				#size-cells = <1>;
++				#pinctrl-cells = <1>;
+ 				ranges = <0 0x210000 0x2000>;
  
--	mux = of_get_property(np, PCS_MUX_PINS_NAME, &size);
--	if ((!mux) || (size < sizeof(*mux) * 2)) {
--		dev_err(pcs->dev, "bad data for mux %s\n",
--			np->name);
--		return -EINVAL;
--	}
--
--	size /= sizeof(*mux);	/* Number of elements in array */
--	rows = size / 2;
-+	rows = pinctrl_count_index_with_args(np, name);
-+	if (rows == -EINVAL)
-+		return rows;
+ 				am33xx_pinmux: pinmux@800 {
+@@ -137,6 +138,7 @@
+ 					reg = <0x800 0x238>;
+ 					#address-cells = <1>;
+ 					#size-cells = <0>;
++					#pinctrl-cells = <1>;
+ 					pinctrl-single,register-width = <32>;
+ 					pinctrl-single,function-mask = <0x7f>;
+ 				};
+diff --git a/arch/arm/boot/dts/am3517.dtsi b/arch/arm/boot/dts/am3517.dtsi
+--- a/arch/arm/boot/dts/am3517.dtsi
++++ b/arch/arm/boot/dts/am3517.dtsi
+@@ -66,6 +66,7 @@
+ 			reg = <0x480025d8 0x24>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
++			#pinctrl-cells = <1>;
+ 			#interrupt-cells = <1>;
+ 			interrupt-controller;
+ 			pinctrl-single,register-width = <16>;
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -189,6 +189,7 @@
+ 					reg = <0x800 0x31c>;
+ 					#address-cells = <1>;
+ 					#size-cells = <0>;
++					#pinctrl-cells = <1>;
+ 					#interrupt-cells = <1>;
+ 					interrupt-controller;
+ 					pinctrl-single,register-width = <32>;
+diff --git a/arch/arm/boot/dts/da850.dtsi b/arch/arm/boot/dts/da850.dtsi
+--- a/arch/arm/boot/dts/da850.dtsi
++++ b/arch/arm/boot/dts/da850.dtsi
+@@ -36,6 +36,7 @@
+ 			reg = <0x14120 0x50>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
++			#pinctrl-cells = <2>;
+ 			pinctrl-single,bit-per-mux;
+ 			pinctrl-single,register-width = <32>;
+ 			pinctrl-single,function-mask = <0xf>;
+diff --git a/arch/arm/boot/dts/dm814x.dtsi b/arch/arm/boot/dts/dm814x.dtsi
+--- a/arch/arm/boot/dts/dm814x.dtsi
++++ b/arch/arm/boot/dts/dm814x.dtsi
+@@ -374,6 +374,7 @@
+ 					reg = <0x800 0x438>;
+ 					#address-cells = <1>;
+ 					#size-cells = <0>;
++					#pinctrl-cells = <1>;
+ 					pinctrl-single,register-width = <32>;
+ 					pinctrl-single,function-mask = <0x307ff>;
+ 				};
+diff --git a/arch/arm/boot/dts/dm816x.dtsi b/arch/arm/boot/dts/dm816x.dtsi
+--- a/arch/arm/boot/dts/dm816x.dtsi
++++ b/arch/arm/boot/dts/dm816x.dtsi
+@@ -83,6 +83,7 @@
+ 			reg = <0x48140000 0x21000>;
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
++			#pinctrl-cells = <1>;
+ 			ranges = <0 0x48140000 0x21000>;
  
- 	vals = devm_kzalloc(pcs->dev, sizeof(*vals) * rows, GFP_KERNEL);
- 	if (!vals)
-@@ -1148,14 +1148,28 @@ static int pcs_parse_one_pinctrl_entry(struct pcs_device *pcs,
- 	if (!pins)
- 		goto free_vals;
+ 			dm816x_pinmux: pinmux@800 {
+@@ -90,6 +91,7 @@
+ 				reg = <0x800 0x50a>;
+ 				#address-cells = <1>;
+ 				#size-cells = <0>;
++				#pinctrl-cells = <1>;
+ 				pinctrl-single,register-width = <16>;
+ 				pinctrl-single,function-mask = <0xf>;
+ 			};
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -171,6 +171,7 @@
+ 					reg = <0x1400 0x0468>;
+ 					#address-cells = <1>;
+ 					#size-cells = <0>;
++					#pinctrl-cells = <1>;
+ 					#interrupt-cells = <1>;
+ 					interrupt-controller;
+ 					pinctrl-single,register-width = <32>;
+diff --git a/arch/arm/boot/dts/hi3620.dtsi b/arch/arm/boot/dts/hi3620.dtsi
+--- a/arch/arm/boot/dts/hi3620.dtsi
++++ b/arch/arm/boot/dts/hi3620.dtsi
+@@ -537,6 +537,7 @@
+ 			reg = <0x803000 0x188>;
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
++			#pinctrl-cells = <1>;
+ 			#gpio-range-cells = <3>;
+ 			ranges;
  
--	while (index < size) {
--		unsigned offset, val;
-+	for (i = 0; i < rows; i++) {
-+		struct of_phandle_args pinctrl_spec;
-+		unsigned int offset;
- 		int pin;
+@@ -558,6 +559,7 @@
+ 			reg = <0x803800 0x2dc>;
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
++			#pinctrl-cells = <1>;
+ 			ranges;
  
--		offset = be32_to_cpup(mux + index++);
--		val = be32_to_cpup(mux + index++);
-+		res = pinctrl_parse_index_with_args(np, name, i, &pinctrl_spec);
-+		if (res)
-+			return res;
-+
-+		if (pinctrl_spec.args_count < 2) {
-+			dev_err(pcs->dev, "invalid args_count for spec: %i\n",
-+				pinctrl_spec.args_count);
-+			break;
-+		}
-+
-+		/* Index plus one value cell */
-+		offset = pinctrl_spec.args[0];
- 		vals[found].reg = pcs->base + offset;
--		vals[found].val = val;
-+		vals[found].val = pinctrl_spec.args[1];
-+
-+		dev_dbg(pcs->dev, "%s index: 0x%x value: 0x%x\n",
-+			pinctrl_spec.np->name, offset, pinctrl_spec.args[1]);
+ 			pinctrl-single,register-width = <32>;
+diff --git a/arch/arm/boot/dts/keystone-k2g.dtsi b/arch/arm/boot/dts/keystone-k2g.dtsi
+--- a/arch/arm/boot/dts/keystone-k2g.dtsi
++++ b/arch/arm/boot/dts/keystone-k2g.dtsi
+@@ -72,6 +72,7 @@
+ 	soc {
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
++		#pinctrl-cells = <1>;
+ 		compatible = "ti,keystone","simple-bus";
+ 		ranges = <0x0 0x0 0x0 0xc0000000>;
+ 		dma-ranges = <0x80000000 0x8 0x00000000 0x80000000>;
+diff --git a/arch/arm/boot/dts/keystone-k2l.dtsi b/arch/arm/boot/dts/keystone-k2l.dtsi
+--- a/arch/arm/boot/dts/keystone-k2l.dtsi
++++ b/arch/arm/boot/dts/keystone-k2l.dtsi
+@@ -59,6 +59,7 @@
+ 			reg = <0x02620690 0xc>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
++			#pinctrl-cells = <2>;
+ 			pinctrl-single,bit-per-mux;
+ 			pinctrl-single,register-width = <32>;
+ 			pinctrl-single,function-mask = <0x1>;
+diff --git a/arch/arm/boot/dts/omap2420.dtsi b/arch/arm/boot/dts/omap2420.dtsi
+--- a/arch/arm/boot/dts/omap2420.dtsi
++++ b/arch/arm/boot/dts/omap2420.dtsi
+@@ -38,6 +38,7 @@
+ 				reg = <0x0 0x1000>;
+ 				#address-cells = <1>;
+ 				#size-cells = <1>;
++				#pinctrl-cells = <1>;
+ 				ranges = <0 0x0 0x1000>;
  
- 		pin = pcs_get_pin_by_offset(pcs, offset);
- 		if (pin < 0) {
-@@ -1473,6 +1487,10 @@ static void pcs_free_resources(struct pcs_device *pcs)
- 	pinctrl_unregister(pcs->pctl);
- 	pcs_free_funcs(pcs);
- 	pcs_free_pingroups(pcs);
-+#if IS_BUILTIN(CONFIG_PINCTRL_SINGLE)
-+	if (pcs->missing_nr_pinctrl_cells)
-+		of_remove_property(pcs->np, pcs->missing_nr_pinctrl_cells);
-+#endif
- }
+ 				omap2420_pmx: pinmux@30 {
+@@ -46,6 +47,7 @@
+ 					reg = <0x30 0x0113>;
+ 					#address-cells = <1>;
+ 					#size-cells = <0>;
++					#pinctrl-cells = <1>;
+ 					pinctrl-single,register-width = <8>;
+ 					pinctrl-single,function-mask = <0x3f>;
+ 				};
+diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
+--- a/arch/arm/boot/dts/omap2430.dtsi
++++ b/arch/arm/boot/dts/omap2430.dtsi
+@@ -38,6 +38,7 @@
+ 				reg = <0x2000 0x1000>;
+ 				#address-cells = <1>;
+ 				#size-cells = <1>;
++				#pinctrl-cells = <1>;
+ 				ranges = <0 0x2000 0x1000>;
  
- static const struct of_device_id pcs_of_match[];
-@@ -1790,6 +1808,55 @@ static int pinctrl_single_resume(struct platform_device *pdev)
- }
- #endif
+ 				omap2430_pmx: pinmux@30 {
+@@ -46,6 +47,7 @@
+ 					reg = <0x30 0x0154>;
+ 					#address-cells = <1>;
+ 					#size-cells = <0>;
++					#pinctrl-cells = <1>;
+ 					pinctrl-single,register-width = <8>;
+ 					pinctrl-single,function-mask = <0x3f>;
+ 				};
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -106,6 +106,7 @@
+ 					reg = <0x30 0x238>;
+ 					#address-cells = <1>;
+ 					#size-cells = <0>;
++					#pinctrl-cells = <1>;
+ 					#interrupt-cells = <1>;
+ 					interrupt-controller;
+ 					pinctrl-single,register-width = <16>;
+@@ -145,6 +146,7 @@
+ 					reg = <0xa00 0x5c>;
+ 					#address-cells = <1>;
+ 					#size-cells = <0>;
++					#pinctrl-cells = <1>;
+ 					#interrupt-cells = <1>;
+ 					interrupt-controller;
+ 					pinctrl-single,register-width = <16>;
+diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34xx.dtsi
+--- a/arch/arm/boot/dts/omap34xx.dtsi
++++ b/arch/arm/boot/dts/omap34xx.dtsi
+@@ -34,6 +34,7 @@
+ 			reg = <0x480025d8 0x24>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
++			#pinctrl-cells = <1>;
+ 			#interrupt-cells = <1>;
+ 			interrupt-controller;
+ 			pinctrl-single,register-width = <16>;
+diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
+--- a/arch/arm/boot/dts/omap36xx.dtsi
++++ b/arch/arm/boot/dts/omap36xx.dtsi
+@@ -66,6 +66,7 @@
+ 			reg = <0x480025a0 0x5c>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
++			#pinctrl-cells = <1>;
+ 			#interrupt-cells = <1>;
+ 			interrupt-controller;
+ 			pinctrl-single,register-width = <16>;
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -184,6 +184,7 @@
+ 					reg = <0x40 0x0196>;
+ 					#address-cells = <1>;
+ 					#size-cells = <0>;
++					#pinctrl-cells = <1>;
+ 					#interrupt-cells = <1>;
+ 					interrupt-controller;
+ 					pinctrl-single,register-width = <16>;
+@@ -256,6 +257,7 @@
+ 					reg = <0x1e040 0x0038>;
+ 					#address-cells = <1>;
+ 					#size-cells = <0>;
++					#pinctrl-cells = <1>;
+ 					#interrupt-cells = <1>;
+ 					interrupt-controller;
+ 					pinctrl-single,register-width = <16>;
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -171,6 +171,7 @@
+ 					reg = <0x40 0x01b6>;
+ 					#address-cells = <1>;
+ 					#size-cells = <0>;
++					#pinctrl-cells = <1>;
+ 					#interrupt-cells = <1>;
+ 					interrupt-controller;
+ 					pinctrl-single,register-width = <16>;
+@@ -270,6 +271,7 @@
+ 				reg = <0xc840 0x003c>;
+ 				#address-cells = <1>;
+ 				#size-cells = <0>;
++				#pinctrl-cells = <1>;
+ 				#interrupt-cells = <1>;
+ 				interrupt-controller;
+ 				pinctrl-single,register-width = <16>;
+diff --git a/arch/arm/boot/dts/pxa3xx.dtsi b/arch/arm/boot/dts/pxa3xx.dtsi
+--- a/arch/arm/boot/dts/pxa3xx.dtsi
++++ b/arch/arm/boot/dts/pxa3xx.dtsi
+@@ -138,6 +138,7 @@
+ 			reg = <0x40e10000 0xffff>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
++			#pinctrl-cells = <1>;
+ 			pinctrl-single,register-width = <32>;
+ 			pinctrl-single,function-mask = <0x7>;
+ 		};
+diff --git a/arch/arm64/boot/dts/hisilicon/hi6220.dtsi b/arch/arm64/boot/dts/hisilicon/hi6220.dtsi
+--- a/arch/arm64/boot/dts/hisilicon/hi6220.dtsi
++++ b/arch/arm64/boot/dts/hisilicon/hi6220.dtsi
+@@ -364,6 +364,7 @@
+ 			reg = <0x0 0xf7010000  0x0 0x27c>;
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
++			#pinctrl-cells = <1>;
+ 			#gpio-range-cells = <3>;
+ 			pinctrl-single,register-width = <32>;
+ 			pinctrl-single,function-mask = <7>;
+@@ -402,6 +403,7 @@
+ 			reg = <0x0 0xf7010800 0x0 0x28c>;
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
++			#pinctrl-cells = <1>;
+ 			pinctrl-single,register-width = <32>;
+ 		};
  
-+/**
-+ * pcs_quirk_missing_pinctrl_cells - handle legacy binding
-+ * @pcs: pinctrl driver instance
-+ * @np: device tree node
-+ * @cells: number of cells
-+ *
-+ * Handle legacy binding with no #pinctrl-cells. This should be
-+ * always two pinctrl-single,bit-per-mux and one for others.
-+ * At some point we may want to consider removing this.
-+ */
-+static int pcs_quirk_missing_pinctrl_cells(struct pcs_device *pcs,
-+					   struct device_node *np,
-+					   int cells)
-+{
-+	struct property *p;
-+	const char *name = "#pinctrl-cells";
-+	int error;
-+	u32 val;
-+
-+	error = of_property_read_u32(np, name, &val);
-+	if (!error)
-+		return 0;
-+
-+	dev_warn(pcs->dev, "please update dts to use %s = <%i>\n",
-+		 name, cells);
-+
-+	p = devm_kzalloc(pcs->dev, sizeof(*p), GFP_KERNEL);
-+	if (!p)
-+		return -ENOMEM;
-+
-+	p->length = sizeof(__be32);
-+	p->value = devm_kzalloc(pcs->dev, sizeof(__be32), GFP_KERNEL);
-+	if (!p->value)
-+		return -ENOMEM;
-+	*(__be32 *)p->value = cpu_to_be32(cells);
-+
-+	p->name = devm_kstrdup(pcs->dev, name, GFP_KERNEL);
-+	if (!p->name)
-+		return -ENOMEM;
-+
-+	pcs->missing_nr_pinctrl_cells = p;
-+
-+#if IS_BUILTIN(CONFIG_PINCTRL_SINGLE)
-+	error = of_add_property(np, pcs->missing_nr_pinctrl_cells);
-+#endif
-+
-+	return error;
-+}
-+
- static int pcs_probe(struct platform_device *pdev)
- {
- 	struct device_node *np = pdev->dev.of_node;
-@@ -1810,6 +1877,7 @@ static int pcs_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 	}
- 	pcs->dev = &pdev->dev;
-+	pcs->np = np;
- 	raw_spin_lock_init(&pcs->lock);
- 	mutex_init(&pcs->mutex);
- 	INIT_LIST_HEAD(&pcs->pingroups);
-@@ -1846,6 +1914,13 @@ static int pcs_probe(struct platform_device *pdev)
+@@ -410,6 +412,7 @@
+ 			reg = <0x0 0xf8001800 0x0 0x78>;
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
++			#pinctrl-cells = <1>;
+ 			pinctrl-single,register-width = <32>;
+ 		};
  
- 	pcs->bits_per_mux = of_property_read_bool(np,
- 						  "pinctrl-single,bit-per-mux");
-+	ret = pcs_quirk_missing_pinctrl_cells(pcs, np,
-+					      pcs->bits_per_mux ? 2 : 1);
-+	if (ret) {
-+		dev_err(&pdev->dev, "unable to patch #pinctrl-cells\n");
-+
-+		return ret;
-+	}
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!res) {
 -- 
 2.10.2
