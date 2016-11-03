@@ -1,82 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCHv2] ARM: OMAP3: Fix formatting of features printed
-Date: Thu,  3 Nov 2016 10:34:39 -0700
-Message-ID: <20161103173439.20657-1-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-arm-kernel@lists.infradead.org
+From: Johan Hovold <johan@kernel.org>
+Subject: [PATCH net v2 3/4] net: ethernet: ti: davinci_emac: fix device reference leak
+Date: Thu,  3 Nov 2016 18:40:21 +0100
+Message-ID: <1478194822-29545-4-git-send-email-johan@kernel.org>
+References: <1478194822-29545-1-git-send-email-johan@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1478194822-29545-1-git-send-email-johan@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Florian Fainelli <f.fainelli@gmail.com>, Mugunthan V N <mugunthanvnm@ti.com>, Yisen Zhuang <yisen.zhuang@huawei.com>, Salil Mehta <salil.mehta@huawei.com>, "David S. Miller" <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-With the printk cleanups merged into v4.9-rc1, we now get the omap
-revision printed on multiple lines. Let's fix that and also remove the
-extra empty space at the end of the features. And let's update things
-to use scnprintf as suggested by Ivaylo Dimitrov
-<ivo.g.dimitrov.75@gmail.com>.
+Make sure to drop the references taken by bus_find_device() before
+returning from emac_dev_open().
 
-Reported-by: Adam Ford <aford173@gmail.com>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Note that phy_connect still takes a reference to the phy device.
+
+Fixes: 5d69e0076a72 ("net: davinci_emac: switch to new mdio")
+Cc: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: linux-omap@vger.kernel.org
+Signed-off-by: Johan Hovold <johan@kernel.org>
 ---
- arch/arm/mach-omap2/id.c | 16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ drivers/net/ethernet/ti/davinci_emac.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -205,11 +205,15 @@ void __init omap2xxx_check_revision(void)
+diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
+index 2fd94a5bc1f3..84fbe5714f8b 100644
+--- a/drivers/net/ethernet/ti/davinci_emac.c
++++ b/drivers/net/ethernet/ti/davinci_emac.c
+@@ -1410,6 +1410,7 @@ static int emac_dev_open(struct net_device *ndev)
+ 	int i = 0;
+ 	struct emac_priv *priv = netdev_priv(ndev);
+ 	struct phy_device *phydev = NULL;
++	struct device *phy = NULL;
  
- #define OMAP3_SHOW_FEATURE(feat)		\
- 	if (omap3_has_ ##feat())		\
--		printk(#feat" ");
-+		n += scnprintf(buf + n, sizeof(buf) - n, #feat " ");
+ 	ret = pm_runtime_get_sync(&priv->pdev->dev);
+ 	if (ret < 0) {
+@@ -1488,19 +1489,20 @@ static int emac_dev_open(struct net_device *ndev)
  
- static void __init omap3_cpuinfo(void)
- {
- 	const char *cpu_name;
-+	char buf[64];
-+	int n = 0;
-+
-+	memset(buf, 0, sizeof(buf));
- 
- 	/*
- 	 * OMAP3430 and OMAP3530 are assumed to be same.
-@@ -241,10 +245,10 @@ static void __init omap3_cpuinfo(void)
- 		cpu_name = "OMAP3503";
+ 	/* use the first phy on the bus if pdata did not give us a phy id */
+ 	if (!phydev && !priv->phy_id) {
+-		struct device *phy;
+-
+ 		phy = bus_find_device(&mdio_bus_type, NULL, NULL,
+ 				      match_first_device);
+-		if (phy)
++		if (phy) {
+ 			priv->phy_id = dev_name(phy);
++			if (!priv->phy_id || !*priv->phy_id)
++				put_device(phy);
++		}
  	}
  
--	sprintf(soc_name, "%s", cpu_name);
-+	scnprintf(soc_name, sizeof(soc_name), "%s", cpu_name);
- 
- 	/* Print verbose information */
--	pr_info("%s %s (", soc_name, soc_rev);
-+	n += scnprintf(buf, sizeof(buf) - n, "%s %s (", soc_name, soc_rev);
- 
- 	OMAP3_SHOW_FEATURE(l2cache);
- 	OMAP3_SHOW_FEATURE(iva);
-@@ -252,8 +256,10 @@ static void __init omap3_cpuinfo(void)
- 	OMAP3_SHOW_FEATURE(neon);
- 	OMAP3_SHOW_FEATURE(isp);
- 	OMAP3_SHOW_FEATURE(192mhz_clk);
+ 	if (!phydev && priv->phy_id && *priv->phy_id) {
+ 		phydev = phy_connect(ndev, priv->phy_id,
+ 				     &emac_adjust_link,
+ 				     PHY_INTERFACE_MODE_MII);
 -
--	printk(")\n");
-+	if (*(buf + n - 1) == ' ')
-+		n--;
-+	n += scnprintf(buf + n, sizeof(buf) - n, ")\n");
-+	pr_info("%s", buf);
- }
- 
- #define OMAP3_CHECK_FEATURE(status,feat)				\
++		put_device(phy);	/* reference taken by bus_find_device */
+ 		if (IS_ERR(phydev)) {
+ 			dev_err(emac_dev, "could not connect to phy %s\n",
+ 				priv->phy_id);
 -- 
-2.10.2
+2.7.3
