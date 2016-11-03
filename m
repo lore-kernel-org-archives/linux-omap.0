@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/4] pinctrl: single: Use generic parser and #pinctrl-cells for pinctrl-single,bits
-Date: Thu,  3 Nov 2016 09:35:49 -0700
-Message-ID: <20161103163550.27330-4-tony@atomide.com>
+Subject: [PATCH 1/4] pinctrl: Introduce generic #pinctrl-cells and pinctrl_parse_index_with_args
+Date: Thu,  3 Nov 2016 09:35:47 -0700
+Message-ID: <20161103163550.27330-2-tony@atomide.com>
 References: <20161103163550.27330-1-tony@atomide.com>
 Return-path: <linux-gpio-owner@vger.kernel.org>
 In-Reply-To: <20161103163550.27330-1-tony@atomide.com>
@@ -10,101 +10,271 @@ To: Linus Walleij <linus.walleij@linaro.org>
 Cc: Jon Hunter <jonathanh@nvidia.com>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-We can now use generic parser and keep things compatible with the
-old binding.
+Introduce #pinctrl-cells helper binding and generic helper functions
+pinctrl_count_index_with_args() and pinctrl_parse_index_with_args().
 
+Acked-by: Rob Herring <robh@kernel.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/pinctrl/pinctrl-single.c | 48 ++++++++++++++++++++--------------------
- 1 file changed, 24 insertions(+), 24 deletions(-)
+ .../bindings/pinctrl/pinctrl-bindings.txt          |  44 ++++++-
+ drivers/pinctrl/devicetree.c                       | 144 +++++++++++++++++++++
+ drivers/pinctrl/devicetree.h                       |  21 +++
+ 3 files changed, 208 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -35,7 +35,6 @@
- #include "pinconf.h"
+diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-bindings.txt b/Documentation/devicetree/bindings/pinctrl/pinctrl-bindings.txt
+--- a/Documentation/devicetree/bindings/pinctrl/pinctrl-bindings.txt
++++ b/Documentation/devicetree/bindings/pinctrl/pinctrl-bindings.txt
+@@ -97,6 +97,11 @@ For example:
+ 	};
  
- #define DRIVER_NAME			"pinctrl-single"
--#define PCS_MUX_BITS_NAME		"pinctrl-single,bits"
- #define PCS_OFF_DISABLED		~0U
+ == Pin controller devices ==
++Required properties: See the pin controller driver specific documentation
++
++Optional properties:
++#pinctrl-cells:	Number of pin control cells in addition to the index within the
++		pin controller device instance
  
- /**
-@@ -1219,36 +1218,22 @@ static int pcs_parse_one_pinctrl_entry(struct pcs_device *pcs,
- 	return res;
+ Pin controller devices should contain the pin configuration nodes that client
+ devices reference.
+@@ -119,7 +124,8 @@ For example:
+ 
+ The contents of each of those pin configuration child nodes is defined
+ entirely by the binding for the individual pin controller device. There
+-exists no common standard for this content.
++exists no common standard for this content. The pinctrl framework only
++provides generic helper bindings that the pin controller driver can use.
+ 
+ The pin configuration nodes need not be direct children of the pin controller
+ device; they may be grandchildren, for example. Whether this is legal, and
+@@ -156,6 +162,42 @@ state_2_node_a {
+ 	pins = "mfio29", "mfio30";
+ };
+ 
++Optionally an altenative binding can be used if more suitable depending on the
++pin controller hardware. For hardaware where there is a large number of identical
++pin controller instances, naming each pin and function can easily become
++unmaintainable. This is especially the case if the same controller is used for
++different pins and functions depending on the SoC revision and packaging.
++
++For cases like this, the pin controller driver may use pinctrl-pin-array helper
++binding with a hardware based index and a number of pin configuration values:
++
++pincontroller {
++	... /* Standard DT properties for the device itself elided */
++	#pinctrl-cells = <2>;
++
++	state_0_node_a {
++		pinctrl-pin-array = <
++			0 A_DELAY_PS(0) G_DELAY_PS(120)
++			4 A_DELAY_PS(0) G_DELAY_PS(360)
++			...
++		>;
++	};
++	...
++};
++
++Above #pinctrl-cells specifies the number of value cells in addition to the
++index of the registers. This is similar to the interrupts-extended binding with
++one exception. There is no need to specify the phandle for each entry as that
++is already known as the defined pins are always children of the pin controller
++node. Further having the phandle pointing to another pin controller would not
++currently work as the pinctrl framework uses named modes to group pins for each
++pin control device.
++
++The index for pinctrl-pin-array must relate to the hardware for the pinctrl
++registers, and must not be a virtual index of pin instances. The reason for
++this is to avoid mapping of the index in the dts files and the pin controller
++driver as it can change.
++
+ == Generic pin configuration node content ==
+ 
+ Many data items that are represented in a pin configuration node are common
+diff --git a/drivers/pinctrl/devicetree.c b/drivers/pinctrl/devicetree.c
+--- a/drivers/pinctrl/devicetree.c
++++ b/drivers/pinctrl/devicetree.c
+@@ -253,3 +253,147 @@ int pinctrl_dt_to_map(struct pinctrl *p)
+ 	pinctrl_dt_free_maps(p);
+ 	return ret;
+ }
++
++/*
++ * For pinctrl binding, typically #pinctrl-cells is for the pin controller
++ * device, so either parent or grandparent. See pinctrl-bindings.txt.
++ */
++static int pinctrl_find_cells_size(const struct device_node *np)
++{
++	const char *cells_name = "#pinctrl-cells";
++	int cells_size, error;
++
++	error = of_property_read_u32(np->parent, cells_name, &cells_size);
++	if (error) {
++		error = of_property_read_u32(np->parent->parent,
++					     cells_name, &cells_size);
++		if (error)
++			return -ENOENT;
++	}
++
++	return cells_size;
++}
++
++/**
++ * pinctrl_get_list_and_count - Gets the list and it's cell size and number
++ * @np: pointer to device node with the property
++ * @list_name: property that contains the list
++ * @list: pointer for the list found
++ * @cells_size: pointer for the cell size found
++ * @nr_elements: pointer for the number of elements found
++ *
++ * Typically np is a single pinctrl entry containing the list.
++ */
++static int pinctrl_get_list_and_count(const struct device_node *np,
++				      const char *list_name,
++				      const __be32 **list,
++				      int *cells_size,
++				      int *nr_elements)
++{
++	int size;
++
++	*cells_size = 0;
++	*nr_elements = 0;
++
++	*list = of_get_property(np, list_name, &size);
++	if (!*list)
++		return -ENOENT;
++
++	*cells_size = pinctrl_find_cells_size(np);
++	if (*cells_size < 0)
++		return -ENOENT;
++
++	/* First element is always the index within the pinctrl device */
++	*nr_elements = (size / sizeof(**list)) / (*cells_size + 1);
++
++	return 0;
++}
++
++/**
++ * pinctrl_count_index_with_args - Count number of elements in a pinctrl entry
++ * @np: pointer to device node with the property
++ * @list_name: property that contains the list
++ *
++ * Counts the number of elements in a pinctrl array consisting of an index
++ * within the controller and a number of u32 entries specified for each
++ * entry. Note that device_node is always for the parent pin controller device.
++ */
++int pinctrl_count_index_with_args(const struct device_node *np,
++				  const char *list_name)
++{
++	const __be32 *list;
++	int size, nr_cells, error;
++
++	error = pinctrl_get_list_and_count(np, list_name, &list,
++					   &nr_cells, &size);
++	if (error)
++		return error;
++
++	return size;
++}
++EXPORT_SYMBOL_GPL(pinctrl_count_index_with_args);
++
++/**
++ * pinctrl_copy_args - Populates of_phandle_args based on index
++ * @np: pointer to device node with the property
++ * @list: pointer to a list with the elements
++ * @index: entry within the list of elements
++ * @nr_cells: number of cells in the list
++ * @nr_elem: number of elements for each entry in the list
++ * @out_args: returned values
++ *
++ * Populates the of_phandle_args based on the index in the list.
++ */
++static int pinctrl_copy_args(const struct device_node *np,
++			     const __be32 *list,
++			     int index, int nr_cells, int nr_elem,
++			     struct of_phandle_args *out_args)
++{
++	int i;
++
++	memset(out_args, 0, sizeof(*out_args));
++	out_args->np = (struct device_node *)np;
++	out_args->args_count = nr_cells + 1;
++
++	if (index >= nr_elem)
++		return -EINVAL;
++
++	list += index * (nr_cells + 1);
++
++	for (i = 0; i < nr_cells + 1; i++)
++		out_args->args[i] = be32_to_cpup(list++);
++
++	return 0;
++}
++
++/**
++ * pinctrl_parse_index_with_args - Find a node pointed by index in a list
++ * @np: pointer to device node with the property
++ * @list_name: property that contains the list
++ * @index: index within the list
++ * @out_arts: entries in the list pointed by index
++ *
++ * Finds the selected element in a pinctrl array consisting of an index
++ * within the controller and a number of u32 entries specified for each
++ * entry. Note that device_node is always for the parent pin controller device.
++ */
++int pinctrl_parse_index_with_args(const struct device_node *np,
++				  const char *list_name, int index,
++				  struct of_phandle_args *out_args)
++{
++	const __be32 *list;
++	int nr_elem, nr_cells, error;
++
++	error = pinctrl_get_list_and_count(np, list_name, &list,
++					   &nr_cells, &nr_elem);
++	if (error || !nr_cells)
++		return error;
++
++	error = pinctrl_copy_args(np, list, index, nr_cells, nr_elem,
++				  out_args);
++	if (error)
++		return error;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(pinctrl_parse_index_with_args);
+diff --git a/drivers/pinctrl/devicetree.h b/drivers/pinctrl/devicetree.h
+--- a/drivers/pinctrl/devicetree.h
++++ b/drivers/pinctrl/devicetree.h
+@@ -21,6 +21,13 @@
+ void pinctrl_dt_free_maps(struct pinctrl *p);
+ int pinctrl_dt_to_map(struct pinctrl *p);
+ 
++int pinctrl_count_index_with_args(const struct device_node *np,
++				  const char *list_name);
++
++int pinctrl_parse_index_with_args(const struct device_node *np,
++				  const char *list_name, int index,
++				  struct of_phandle_args *out_args);
++
+ #else
+ 
+ static inline int pinctrl_dt_to_map(struct pinctrl *p)
+@@ -32,4 +39,18 @@ static inline void pinctrl_dt_free_maps(struct pinctrl *p)
+ {
  }
  
--#define PARAMS_FOR_BITS_PER_MUX 3
--
- static int pcs_parse_bits_in_pinctrl_entry(struct pcs_device *pcs,
- 						struct device_node *np,
- 						struct pinctrl_map **map,
- 						unsigned *num_maps,
- 						const char **pgnames)
- {
-+	const char *name = "pinctrl-single,pins";
- 	struct pcs_func_vals *vals;
--	const __be32 *mux;
--	int size, rows, *pins, index = 0, found = 0, res = -ENOMEM;
-+	int rows, *pins, found = 0, res = -ENOMEM, i;
- 	int npins_in_row;
- 	struct pcs_function *function;
- 
--	mux = of_get_property(np, PCS_MUX_BITS_NAME, &size);
--
--	if (!mux) {
--		dev_err(pcs->dev, "no valid property for %s\n", np->name);
--		return -EINVAL;
--	}
--
--	if (size < (sizeof(*mux) * PARAMS_FOR_BITS_PER_MUX)) {
--		dev_err(pcs->dev, "bad data for %s\n", np->name);
--		return -EINVAL;
--	}
--
--	/* Number of elements in array */
--	size /= sizeof(*mux);
-+	rows = pinctrl_count_index_with_args(np, name);
-+	if (rows == -EINVAL)
-+		return rows;
- 
--	rows = size / PARAMS_FOR_BITS_PER_MUX;
- 	npins_in_row = pcs->width / pcs->bits_per_pin;
- 
- 	vals = devm_kzalloc(pcs->dev, sizeof(*vals) * rows * npins_in_row,
-@@ -1261,15 +1246,30 @@ static int pcs_parse_bits_in_pinctrl_entry(struct pcs_device *pcs,
- 	if (!pins)
- 		goto free_vals;
- 
--	while (index < size) {
-+	for (i = 0; i < rows; i++) {
-+		struct of_phandle_args pinctrl_spec;
- 		unsigned offset, val;
- 		unsigned mask, bit_pos, val_pos, mask_pos, submask;
- 		unsigned pin_num_from_lsb;
- 		int pin;
- 
--		offset = be32_to_cpup(mux + index++);
--		val = be32_to_cpup(mux + index++);
--		mask = be32_to_cpup(mux + index++);
-+		res = pinctrl_parse_index_with_args(np, name, i, &pinctrl_spec);
-+		if (res)
-+			return res;
++static inline int pinctrl_count_index_with_args(const struct device_node *np,
++						const char *list_name)
++{
++	return -ENODEV;
++}
 +
-+		if (pinctrl_spec.args_count < 3) {
-+			dev_err(pcs->dev, "invalid args_count for spec: %i\n",
-+				pinctrl_spec.args_count);
-+			break;
-+		}
++static inline int
++pinctrl_parse_index_with_args(const struct device_node *np,
++			      const char *list_name, int index,
++			      struct of_phandle_args *out_args)
++{
++	return -ENODEV;
++}
 +
-+		/* Index plus two value cells */
-+		offset = pinctrl_spec.args[0];
-+		val = pinctrl_spec.args[1];
-+		mask = pinctrl_spec.args[2];
-+
-+		dev_dbg(pcs->dev, "%s index: 0x%x value: 0x%x mask: 0x%x\n",
-+			pinctrl_spec.np->name, offset, val, mask);
- 
- 		/* Parse pins in each row from LSB */
- 		while (mask) {
+ #endif
 -- 
 2.10.2
