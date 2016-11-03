@@ -1,149 +1,67 @@
-From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+From: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 Subject: Re: [PATCH v3 2/3] Documentation: dt: add bindings for ti-cpufreq
-Date: Wed, 2 Nov 2016 11:03:13 -0500
-Message-ID: <9a185460-a241-4876-2915-6975c57527ca@ti.com>
+Date: Thu, 3 Nov 2016 07:44:55 +0530
+Message-ID: <20161103021455.GE10786@vireshk-i7>
 References: <20161027214131.1725-1-d-gerlach@ti.com>
- <20161027214131.1725-3-d-gerlach@ti.com> <20161102035941.GA10786@vireshk-i7>
+ <20161027214131.1725-3-d-gerlach@ti.com>
+ <20161102035941.GA10786@vireshk-i7>
+ <9a185460-a241-4876-2915-6975c57527ca@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161102035941.GA10786@vireshk-i7>
+Content-Disposition: inline
+In-Reply-To: <9a185460-a241-4876-2915-6975c57527ca-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+To: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
 Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J . Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-On 11/01/2016 10:59 PM, Viresh Kumar wrote:
-> On 27-10-16, 16:41, Dave Gerlach wrote:
->> Add the device tree bindings document for the TI CPUFreq/OPP driver
->> on AM33xx and AM43xx SoCs. The operating-points-v2 binding allows us
->> to provide an opp-supported-hw property for each OPP to define when
->> it is available. This driver is responsible for reading and parsing
->> registers to determine which OPPs can be selectively enabled based
->> on the specific SoC in use by matching against the opp-supported-hw
->> data.
->>
->> Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
->> ---
->> v2->v3:
->> - Move ti,syscon-* properties under opp table instead of cpu node, as
->>   that is a better location for them.
->> - For the opp table do not use platform specific compatible strings
->>   but instead a operating-points-v2-ti-cpu
->>
->>  .../devicetree/bindings/cpufreq/ti-cpufreq.txt     | 132 +++++++++++++++++++++
->>  1 file changed, 132 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
->>
->> diff --git a/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt b/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
->> new file mode 100644
->> index 000000000000..467ad29c75c9
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
->> @@ -0,0 +1,132 @@
->> +TI CPUFreq and OPP bindings
->> +================================
->> +
->> +Certain TI SoCs, like those in the am335x, am437x, am57xx, and dra7xx
->> +families support different OPPs depending on the silicon variant in use.
->> +The ti_cpufreq driver can use revision and an efuse value from the SoC to
->> +provide the OPP framework with supported hardware information. This is
->> +used to determine which OPPs from the operating-points-v2 table get enabled
->> +when it is parsed by the OPP framework.
->> +
->> +Required properties:
->> +--------------------
->> +In 'cpus' nodes:
->> +- operating-points-v2: Phandle to the operating-points-v2 table to use.
->> +
->> +In 'operating-points-v2' table:
->> +- compatible: Should be 'operating-points-v2-ti-cpu' for am335x, am43xx,
->> +	      and dra7xx/am57xx SoCs
->> +- ti,syscon-efuse: Syscon phandle, offset to efuse register, efuse register
->> +		   mask, and efuse register shift to get the relevant bits
->> +		   that describe OPP availability.
->> +- ti,syscon-rev: Syscon and offset used to look up revision value on SoC.
->> +
->> +Optional properties:
->> +--------------------
->> +For each opp entry in 'operating-points-v2' table:
->> +- opp-supported-hw: Two bitfields indicating:
->> +	1. Which revision of the SoC the OPP is supported by
->> +	2. Which eFuse bits indicate this OPP is available
->> +
->> +	A bitwise AND is performed against these values and if any bit
->> +	matches, the OPP gets enabled. Not providing the property for an
->> +	entry indicates that an OPP is always supported.
->> +
->> +Example:
->> +--------
->> +
->> +/* From arch/arm/boot/dts/am33xx.dtsi */
->> +cpus {
->> +	#address-cells = <1>;
->> +	#size-cells = <0>;
->> +	cpu@0 {
->> +		compatible = "arm,cortex-a8";
->> +		device_type = "cpu";
->> +		reg = <0>;
->> +
->> +		operating-points-v2 = <&cpu0_opp_table>;
->> +
->> +		clocks = <&dpll_mpu_ck>;
->> +		clock-names = "cpu";
->> +
->> +		clock-latency = <300000>; /* From omap-cpufreq driver */
->> +	};
->> +};
->> +
->> +/*
->> + * cpu0 has different OPPs depending on SoC revision and some on revisions
->> + * 0x2 and 0x4 have eFuse bits that indicate if they are available or not
->> + */
->> +cpu0_opp_table: opp_table0 {
->> +	compatible = "operating-points-v2-ti-am3352-cpu";
->> +	ti,syscon-efuse = <&scm_conf 0x7fc 0x1fff 0>;
->> +	ti,syscon-rev = <&scm_conf 0x600>;
->> +
->> +	/*
->> +	 * The three following nodes are marked with opp-suspend
->> +	 * because they can not be enabled simultaneously on a
->> +	 * single SoC.
->> +	 */
->> +	opp50@300000000 {
->> +		opp-hz = /bits/ 64 <300000000>;
->> +		opp-microvolt = <950000 931000 969000>;
->> +		opp-supported-hw = <0x06 0x0010>;
->> +		opp-suspend;
->> +	};
->> +
->> +	opp100@275000000 {
->> +		opp-hz = /bits/ 64 <275000000>;
->> +		opp-microvolt = <1100000 1078000 1122000>;
->> +		opp-supported-hw = <0x01 0x00FF>;
->> +		opp-suspend;
->> +	};
->> +
->> +	opp100@300000000 {
->> +		opp-hz = /bits/ 64 <300000000>;
->> +		opp-microvolt = <1100000 1078000 1122000>;
->> +		opp-supported-hw = <0x06 0x0020>;
->> +		opp-suspend;
->
-> Only one OPP in the table can be marked as suspend OPP.
->
+On 02-11-16, 11:03, Dave Gerlach wrote:
+> >>+cpu0_opp_table: opp_table0 {
+> >>+	compatible = "operating-points-v2-ti-am3352-cpu";
+> >>+	ti,syscon-efuse = <&scm_conf 0x7fc 0x1fff 0>;
+> >>+	ti,syscon-rev = <&scm_conf 0x600>;
+> >>+
+> >>+	/*
+> >>+	 * The three following nodes are marked with opp-suspend
+> >>+	 * because they can not be enabled simultaneously on a
+> >>+	 * single SoC.
+> >>+	 */
 
-Does that still apply when opp-supported-hw is involved? Based on the 
-comment at the start of the table, those OPPs are all mutually exclusive 
-and will not ever be enabled on the same piece of silicon, they 
-represent the lowest OPP for each of three different supported-hw 
-configurations.
+I missed reading this comment :(
 
-Regards,
-Dave
+>>+	opp50@300000000 {
+> >>+		opp-hz = /bits/ 64 <300000000>;
+> >>+		opp-microvolt = <950000 931000 969000>;
+> >>+		opp-supported-hw = <0x06 0x0010>;
+> >>+		opp-suspend;
+> >>+	};
+> >>+
+> >>+	opp100@275000000 {
+> >>+		opp-hz = /bits/ 64 <275000000>;
+> >>+		opp-microvolt = <1100000 1078000 1122000>;
+> >>+		opp-supported-hw = <0x01 0x00FF>;
+> >>+		opp-suspend;
+> >>+	};
+> >>+
+> >>+	opp100@300000000 {
+> >>+		opp-hz = /bits/ 64 <300000000>;
+> >>+		opp-microvolt = <1100000 1078000 1122000>;
+> >>+		opp-supported-hw = <0x06 0x0020>;
+> >>+		opp-suspend;
+> >
+> >Only one OPP in the table can be marked as suspend OPP.
+> >
+> 
+> Does that still apply when opp-supported-hw is involved? Based on the
+> comment at the start of the table, those OPPs are all mutually exclusive and
+> will not ever be enabled on the same piece of silicon, they represent the
+> lowest OPP for each of three different supported-hw configurations.
 
+You are right, its fine.
+
+-- 
+viresh
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
