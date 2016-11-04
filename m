@@ -1,53 +1,30 @@
-From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/4] pinctrl: Introduce generic #pinctrl-cells and pinctrl_parse_index_with_args
-Date: Fri, 4 Nov 2016 22:50:39 +0100
-Message-ID: <CACRpkdaCF4Jc7QY+L44obce=V_W4xgVbPXfuiE7bXJs7ud9q9A@mail.gmail.com>
-References: <20161103163550.27330-1-tony@atomide.com> <20161103163550.27330-2-tony@atomide.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 2/4] pinctrl: single: Use generic parser and
+ #pinctrl-cells for pinctrl-single,pins
+Date: Fri, 4 Nov 2016 22:52:39 +0100
+Message-ID: <CACRpkdaJ5gvZdXtJn3PaBZs1hM0jsuN=MQs+wPmu70s0jdT00w@mail.gmail.com>
+References: <20161103163550.27330-1-tony@atomide.com> <20161103163550.27330-3-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161103163550.27330-2-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, "linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20161103163550.27330-3-tony@atomide.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jon Hunter <jonathanh@nvidia.com>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 3, 2016 at 5:35 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+On Thu, Nov 3, 2016 at 5:35 PM, Tony Lindgren <tony@atomide.com> wrote:
 
-> Introduce #pinctrl-cells helper binding and generic helper functions
-> pinctrl_count_index_with_args() and pinctrl_parse_index_with_args().
+> We can now use generic parser. To support the legacy binding without
+> #pinctrl-cells, add pcs_quirk_missing_pinctrl_cells() and warn about
+> missing #pinctrl-cells.
 >
-> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Let's also update the documentation for struct pcs_soc_data while at it
+> as that seems to be out of date.
+>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Ooops applied this v2 version instead of the v1.
-
-* kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> [161103 13:29]:
->    In file included from drivers/pinctrl/core.c:36:0:
-> >> drivers/pinctrl/devicetree.h:29:14: warning: 'struct of_phandle_args' declared inside parameter list will not be visible outside of this
-definition or declaratio
-
-> Hmm maybe we should just include of.h in core.c?
-
-Nah. I just did this:
-
-diff --git a/drivers/pinctrl/devicetree.h b/drivers/pinctrl/devicetree.h
-index 7f0a5c4e15ad..c2d1a5505850 100644
---- a/drivers/pinctrl/devicetree.h
-+++ b/drivers/pinctrl/devicetree.h
-@@ -16,6 +16,8 @@
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
-
-+struct of_phandle_args;
-+
- #ifdef CONFIG_OF
-
-Let's see if it works!
+This v2 patch applied.
 
 Yours,
 Linus Walleij
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
