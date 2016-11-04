@@ -1,135 +1,135 @@
-From: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
-Subject: Re: [PATCH 0/2] musb-fixes for v4.9-rc2
-Date: Fri, 4 Nov 2016 19:02:12 +0100
-Message-ID: <20161104180212.GB898@localhost.localdomain>
-References: <20161020082318.GA2903@localhost.localdomain>
- <20161020123524.oepmqvlhzzu7elgj@atomide.com>
- <20161020193612.GA29736@localhost.localdomain>
- <20161021071722.2cetd2mt23t245ao@atomide.com>
- <20161024180708.kpx6s2jb7dpg6xfx@atomide.com>
- <20161101211358.GA2597@localhost.localdomain>
- <20161103205902.GB21430@atomide.com>
- <20161103225532.GD21430@atomide.com>
- <20161104104026.GA27621@localhost.localdomain>
- <20161104144813.GF21430@atomide.com>
+From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/5] drivers: gpio: Add support for multiple IPs
+Date: Fri, 4 Nov 2016 14:59:43 -0500
+Message-ID: <b92f729b-5897-c29a-31ec-97510776d85d@ti.com>
+References: <1476855239-32730-1-git-send-email-j-keerthy@ti.com>
+ <1476855239-32730-3-git-send-email-j-keerthy@ti.com>
+ <CACRpkdbsgM-yiWpiA5G35jQR8v3FO=Me+4rhe6TzE0qsWOJ8Ew@mail.gmail.com>
+ <c5c95d86-2c89-3819-725c-ee0b86c37ec0@ti.com>
+ <98447580-cbc4-152e-f2cb-7c4756545479@ti.com>
+ <c047fb27-a8bb-c10d-2b16-a3e6bf45d88f@ti.com>
+ <CACRpkdZmuc__QL6b7Jvb8xL5Bm+PD2X60NtiugrnH7iAO=-tLQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161104144813.GF21430-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CACRpkdZmuc__QL6b7Jvb8xL5Bm+PD2X60NtiugrnH7iAO=-tLQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 04, 2016 at 07:48:13AM -0700, Tony Lindgren wrote:
-> * Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org> [161104 03:41]:
-> > All your patches on top of current Linus' git and revert of:
-> > commit 87326e858448c40e32f142c0b8dcc59d7b27c641
-> > Author: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> > Date:   Tue May 31 10:05:20 2016 -0500
-> > 
-> >     usb: musb: Remove extra PM runtime calls from 2430 glue layer
-> > 
-> > does the trick for me (reverted patch which applies bellow). I also
-> > alternatively tried to increase pm_runtime_set_autosuspend_delay up
-> > to 1000 without luck.
-> 
-> OK thanks for narrowing it down. The patch does not seem to change
-> anything for me with 2430 glue layer, things work for me with and
-> without it. Care to check if all hunks of the patch are needed
-> for you..
-> 
-> > diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> > index 451b372..a623e45 100644
-> > --- a/drivers/usb/musb/omap2430.c
-> > +++ b/drivers/usb/musb/omap2430.c
-> > @@ -218,8 +218,13 @@ static void omap_musb_mailbox_work(struct work_struct *mailbox_work)
-> >  {
-> >  	struct omap2430_glue *glue = container_of(mailbox_work,
-> >  				struct omap2430_glue, omap_musb_mailbox_work);
-> > +	struct musb *musb = glue_to_musb(glue);
-> > +	struct device *dev = musb->controller;
-> >  
-> > +	pm_runtime_get_sync(dev);
-> >  	omap_musb_set_mailbox(glue);
-> > +	pm_runtime_mark_last_busy(dev);
-> > +	pm_runtime_put_autosuspend(dev);
-> >  }
-> >  
-> >  static irqreturn_t omap2430_musb_interrupt(int irq, void *__hci)
-> 
-> ..is just the above enough..
 
-No, does not work with only this hunk:
-[   94.980102] udlfb: wait for urb interrupted: ffffffc2 available: 0
-[  124.642456] musb_ep_program 921: broken !rx_reinit, ep2 csr 0003
-[  124.648986] musb_host_rx 1912: RX2 dma busy, csr a203
-[  124.654754] musb_host_rx 1970: Rx interrupt with no errors or packet!
-[  124.661743] musb_host_rx 1970: Rx interrupt with no errors or packet!
-[  124.668762] musb_host_rx 1970: Rx interrupt with no errors or packet!
-[  124.675720] musb_host_rx 1970: Rx interrupt with no errors or packet!
-[  124.682830] musb_ep_program 921: broken !rx_reinit, ep2 csr 0003
-[  124.689178] musb_host_rx 1970: Rx interrupt with no errors or packet!
-[  124.696105] musb_host_rx 1970: Rx interrupt with no errors or packet!
-[  124.772552] udlfb: released /dev/fb0 user=1 count=0
 
-> > @@ -289,6 +294,16 @@ static int omap2430_musb_init(struct musb *musb)
-> >  	phy_init(musb->phy);
-> >  	phy_power_on(musb->phy);
-> >  
-> > +	/*
-> > +	 * Enable runtime PM for musb parent (this driver). We can't
-> > +	 * do it earlier as struct musb is not yet allocated and we
-> > +	 * need to touch the musb registers for runtime PM.
-> > +	 */
-> > +	pm_runtime_enable(glue->dev);
-> > +	status = pm_runtime_get_sync(glue->dev);
-> > +	if (status < 0)
-> > +		goto err1;
-> > +
-> >  	l = musb_readl(musb->mregs, OTG_INTERFSEL);
-> >  
-> >  	if (data->interface_type == MUSB_INTERFACE_UTMI) {
-> > @@ -312,7 +327,11 @@ static int omap2430_musb_init(struct musb *musb)
-> >  	if (glue->status != MUSB_UNKNOWN)
-> >  		omap_musb_set_mailbox(glue);
-> >  
-> > +	pm_runtime_put(glue->dev);
-> >  	return 0;
-> > +
-> > +err1:
-> > +	return status;
-> >  }
-> >  
-> >  static void omap2430_musb_enable(struct musb *musb)
-> > @@ -512,10 +531,6 @@ static int omap2430_probe(struct platform_device *pdev)
-> >  		goto err2;
-> >  	}
-> >  
-> > -	pm_runtime_enable(glue->dev);
-> > -	pm_runtime_use_autosuspend(glue->dev);
-> > -	pm_runtime_set_autosuspend_delay(glue->dev, 100);
-> > -
-> >  	ret = platform_device_add(musb);
-> >  	if (ret) {
-> >  		dev_err(&pdev->dev, "failed to register musb device\n");
-> > @@ -538,7 +553,6 @@ static int omap2430_remove(struct platform_device *pdev)
-> >  	pm_runtime_get_sync(glue->dev);
-> >  	platform_device_unregister(glue->musb);
-> >  	pm_runtime_put_sync(glue->dev);
-> > -	pm_runtime_dont_use_autosuspend(glue->dev);
-> >  	pm_runtime_disable(glue->dev);
-> >  
-> >  	return 0;
+On 11/04/2016 09:28 AM, Linus Walleij wrote:
+> On Thu, Oct 27, 2016 at 10:07 AM, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> wrote:
+>> On Thursday 27 October 2016 01:23 PM, Roger Quadros wrote:
+>>> On 27/10/16 06:42, Keerthy wrote:
+>>>> On Sunday 23 October 2016 04:02 PM, Linus Walleij wrote:
+>>>>> On Wed, Oct 19, 2016 at 7:33 AM, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> wrote:
+>>>>>> From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 > 
-> ..or are these init changes needed too?
+>>>> In case of k2g. There are 2 big GPIO modules GPIO0 and GPIO1.
+>>>> GPIO0 comprises of 144 GPIOs
+>>>> and GPIO1 has about 68 GPIOs. Wanted feedback from you on how this is
+>>>> being modeled.
+>>>>
+>>>> I am creating a controller for every 32 GPIOs under the big module each
+>>>> containing a gpio_chip. Each 32 GPIOs chip has 2 banks of 16 GPIOs each.
+>>>> Each 16 GPIO bank has an interrupt.
+>>>>
+>>>> Is this modeling fine or do you think creating one chip with 144 pins and
+>>>> another with 68 pins is a better way?
+>>>
+>>>
+>>> If GPIO0 has 144 GPIOs, why don't we model it as a gpiochip with 144
+>>> GPIOs?
+>>> What is the benefit of partitioning it into gpiochips of 32 GPIOs each?
+>>
+>> 144 GPIOs where in 16 GPIOs form a bank. So about 9 banks with one interrupt
+>> each. So split it into gpiochips with 32 GPIOs each handling 2 Interrupts.
+> 
+> I'm a bit confused.
+> 
+> This sounds like you should either have one gpio_chip per interrupt
+> (if that fits with how the device tree looks) or one big gpio_chip for
+> all the lines.
 
-Yes, also tried to move pm_runtime_use_autosuspend into omap2430_musb_init
-and drop omap_musb_mailbox_work changes, but that does not work either.
+yep. This HW confuses a bit :(, So, there are few links on TRMs/DM and
+my brief overview:
+Keystone k2g (66AK2G02) http://www.ti.com/lit/ug/spruhy8d/spruhy8d.pdf
+Keystone k2hk/e/l http://www.ti.com/lit/ug/sprugv1/sprugv1.pdf
+omap-l138 http://www.ti.com/lit/ug/spruh77c/spruh77c.pdf
 
-	ladis
+Each GPIO IP is implemented as GPIO controller which has some set of
+common registers (minimum BINTEN) and up to 16 (?) gpio banks - 16 pins per bank.
+SoC may contain more than one GPIO controllers.  
+
+GPIO banks groped by two in 32 bit registers, so overall registers structure:
+
+common		0h GPIO_PID Peripheral Identification Register
+common		8h GPIO_BINTEN Interrupt Per-Bank Enable Register
+		
+banks0&1	10h GPIO_DIR01 Direction 0 and 1 Register
+		14h GPIO_OUT_DATA01 Output Data 0 and 1 Register
+		18h GPIO_SET_DATA01 Set Data 0 and 1 Register
+		1Ch GPIO_CLR_DATA01 Clear Data 0 and 1 Register
+		
+		20h GPIO_IN_DATA01 Input Data 0 and 1
+		24h GPIO_SET_RIS_TRIG01 Set Rising Edge Interrupt 0 and 1
+		28h GPIO_CLR_RIS_TRIG01 Clear Rising Edge Interrupt 0 and 1
+		2Ch GPIO_SET_FAL_TRIG01 Set Falling Edge Interrupt 0 and 1
+		30h GPIO_CLR_FAL_TRIG01 Clear Falling Edge Interrupt 0 and 1
+		34h GPIO_INTSTAT01 GPIO Interrupt status 0 and 1 Register
+		
+banks2&3	38h DIR23 GPIO Banks 2 and 3 Direction Register
+...
+
+IRQ handling can be done in two ways - depending on SoC - which can be combined
+on some SoCs (not supported by current driver)
+1) Direct IRQs - each GPIO pin has separate IRQ line assigned in Main IRQ controller (example k2hk/e/l)
+2) banked IRQs - each bank (16 pins) has one assigned IRQ. So, two IRQs per banksX&Y register set.
+
+> 
+> The DT model sort of mandates how the interrupts should be mapped
+> at this point, and as far as I can tell from the binding the example looks
+> like so:
+> 
+> gpio: gpio@1e26000 {
+>         compatible = "ti,dm6441-gpio";
+>         gpio-controller;
+>         #gpio-cells = <2>;
+>         reg = <0x226000 0x1000>;
+>         interrupt-parent = <&intc>;
+>         interrupts = <42 IRQ_TYPE_EDGE_BOTH 43 IRQ_TYPE_EDGE_BOTH
+>                 44 IRQ_TYPE_EDGE_BOTH 45 IRQ_TYPE_EDGE_BOTH
+>                 46 IRQ_TYPE_EDGE_BOTH 47 IRQ_TYPE_EDGE_BOTH
+>                 48 IRQ_TYPE_EDGE_BOTH 49 IRQ_TYPE_EDGE_BOTH
+>                 50 IRQ_TYPE_EDGE_BOTH>;
+>         ti,ngpio = <144>;
+>         ti,davinci-gpio-unbanked = <0>;
+>         interrupt-controller;
+>         #interrupt-cells = <2>;
+> };
+
+Above, DT bindings models Davinci GPIO IP as monolithic GPIO controller
+with N gpio pins, but internally separate GPIO chips are created for each
+banksX&Y register set (32 pins, 2 banked irq -or- 32 direct irqs).
+
+Translation from linear GPIO numbering to the proper internal GPIO chip is done
+using chip.of_xlate().
+
+> 
+> So I don't see any reason to split this up in subchips internally in
+> Linux?
+> 
+
+
+
+-- 
+regards,
+-grygorii
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
