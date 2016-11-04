@@ -1,65 +1,71 @@
-From: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
-Subject: Re: [PATCH 0/2] musb-fixes for v4.9-rc2
-Date: Fri, 4 Nov 2016 01:09:03 +0100
-Message-ID: <20161104000903.GA27632@localhost.localdomain>
-References: <1476896620-15432-1-git-send-email-b-liu@ti.com>
- <20161020082318.GA2903@localhost.localdomain>
- <20161020123524.oepmqvlhzzu7elgj@atomide.com>
- <20161020193612.GA29736@localhost.localdomain>
- <20161021071722.2cetd2mt23t245ao@atomide.com>
- <20161024180708.kpx6s2jb7dpg6xfx@atomide.com>
- <20161101211358.GA2597@localhost.localdomain>
- <20161103205902.GB21430@atomide.com>
- <20161103225532.GD21430@atomide.com>
+From: Matt Ranostay <mranostay@gmail.com>
+Subject: Re: [PATCH v2 2/2] power: bq27xxx_battery: add poll interval property query
+Date: Thu, 3 Nov 2016 22:00:56 -0700
+Message-ID: <CAKzfze8d_MZJzR1a6rbwVXCWhb30C5GqFamUt2Viw1CzvyaQxw@mail.gmail.com>
+References: <1475092512-30555-1-git-send-email-matt@ranostay.consulting>
+ <1475092512-30555-3-git-send-email-matt@ranostay.consulting>
+ <CAKzfze9uvMvrF=gWph_HKFk_cH0qzRz6Wa2VJafK+H+wdnP0rg@mail.gmail.com>
+ <20161024201443.GB5989@amd> <CAKzfze_rv29gwuBGctwTONyw8Oy6fwE+xcN0HMh-ZPB47HKzuQ@mail.gmail.com>
+ <CAJ_EiSRzmQHLP2PTfzsLF4uWgYgCiRGsSk=MHbtOC5rgXnnFpw@mail.gmail.com>
+ <20161031213846.GA21014@amd> <CAKzfze8Bom1XYRfiix_qYFckMggUD0eJm3Fz=GhNi6H_PBFyXA@mail.gmail.com>
+ <20161102082206.GE21488@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161103225532.GD21430-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161102082206.GE21488@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Matt Ranostay <matt@ranostay.consulting>, pali.rohar@gmail.com, Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, Patrik Bachan <patrikbachan@gmail.com>, serge@hallyn.com, =?UTF-8?B?TWlja3Vsw6HFoSBRd2VydHo=?= <abcloriens@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 03, 2016 at 03:55:32PM -0700, Tony Lindgren wrote:
-> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [161103 13:59]:
-> > * Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org> [161101 14:14]:
-> > > > cacaaf80c3a6 ("usb: musb: Call pm_runtime from musb_gadget_queue")
-> > > > d8e5f0eca1e8 ("usb: musb: Fix hardirq-safe hardirq-unsafe lock order error")
-> > > 
-> > > tested with v4.9-rc3 which have these included.
-> > 
-> > OK thanks.
-> 
-> So here's something to test, v4.9-rc3 + the PHY patch I
-> posted + the patch below.
-> 
-> > Hmm yeah playing with a hub connected devices don't always enumerate.
-> > When that happens, I get this:
-> > 
-> > usb 1-1: reset high-speed USB device number 45 using musb-hdrc
-> > usb 1-1: reset high-speed USB device number 45 using musb-hdrc
-> > usb 1-1: reset high-speed USB device number 45 using musb-hdrc
-> > usb 1-1: USB disconnect, device number 45
-> > usb 1-1: new high-speed USB device number 47 using musb-hdrc
-> > usb 1-1: new high-speed USB device number 48 using musb-hdrc
-> > ...
-> > 
-> > And that keeps on going until I reconnect the hub.
-> 
-> The patch below seems to work with PM for me, except I
-> the dsps glue layer won't go to idle after disconnecting
-> the hub. On 2430 glue layer things idle for me properly
-> and I don't seem to get any more vbus errors.
+On Wed, Nov 2, 2016 at 1:22 AM, Pavel Machek <pavel@ucw.cz> wrote:
+> Hi!
+>
+>> >> >> Better then previous one.
+>> >> >>
+>> >> >> But my version of bq27xxx_battery.c already contains this:
+>> >> >
+>> >> > This is for allowing udev rule to set the properties as well.
+>> >> > otherwise a kinda crude RUN = " echo value >
+>> >> > /sys/module/bq27xxx_battery/parameters/poll_interval" is required.
+>> >>
+>> >> Any thoughts on this?
+>> >
+>> > I'd say  echo value >
+>> > /sys/module/bq27xxx_battery/parameters/poll_interval .. is quite
+>> > adequate solution...?
+>> >
+>> > Alternatively, convince us that something else is useful for everyone,
+>> > and we can do the right thing (poll more often when battery is nearly
+>> > empty), automatically...
+>>
+>> Ok should have had the patchset set it per device, and not use the
+>> global poll_interval. Of need to add some logic to see if uses the
+>> global poll_interval or it's own setting.
+>>
+>> There are times where you could have multiple batteries connected to
+>> multiple fuel gauges, and want to up the polling interval on certain
+>> ones that are discharging at different rates.
+>>
+>> But of course I'll let you guys let me know if this seems useful at all.
+>
+> I agree per-device polling would be cleaner.
+>
 
-Well, at least musb reacts on hub disconnects now. Devices
-get enumerated, but do not work. Also musb does notice
-only hub connect/disconnect, but does not react on
-disconnection of devices in hub.
+Ok I'll work something up for RFC.
 
-Best regards,
-	ladis
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> But unless you have hardware with more than one bq27xxx, I'd avoid the
+> work...
+>
+> Now... its also possible that poll_interval should change itself
+> (within kernel) to do the right thing.
+>
+
+True but that is state machine territory, but I'll worry about that later...
+
+> Best regards,
+>
+>                                                                         Pavel
+> --
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
