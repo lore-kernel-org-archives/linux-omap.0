@@ -1,120 +1,53 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/2] musb-fixes for v4.9-rc2
-Date: Fri, 4 Nov 2016 07:48:13 -0700
-Message-ID: <20161104144813.GF21430@atomide.com>
-References: <1476896620-15432-1-git-send-email-b-liu@ti.com>
- <20161020082318.GA2903@localhost.localdomain>
- <20161020123524.oepmqvlhzzu7elgj@atomide.com>
- <20161020193612.GA29736@localhost.localdomain>
- <20161021071722.2cetd2mt23t245ao@atomide.com>
- <20161024180708.kpx6s2jb7dpg6xfx@atomide.com>
- <20161101211358.GA2597@localhost.localdomain>
- <20161103205902.GB21430@atomide.com>
- <20161103225532.GD21430@atomide.com>
- <20161104104026.GA27621@localhost.localdomain>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
+Date: Fri, 4 Nov 2016 07:49:36 -0700
+Message-ID: <20161104144936.GG21430@atomide.com>
+References: <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
+ <20160808214132.GB2946@xo-6d-61-c0.localdomain>
+ <20160810120105.GP3182@valkosipuli.retiisi.org.uk>
+ <20160808232323.GC2946@xo-6d-61-c0.localdomain>
+ <20160811111633.GR3182@valkosipuli.retiisi.org.uk>
+ <20160818104539.GA7427@amd>
+ <20160818202559.GF3182@valkosipuli.retiisi.org.uk>
+ <20161103102727.GA10084@amd>
+ <20161103214900.GH3217@valkosipuli.retiisi.org.uk>
+ <20161104074533.GB3679@amd>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20161104104026.GA27621-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20161104074533.GB3679@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-* Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org> [161104 03:41]:
-> All your patches on top of current Linus' git and revert of:
-> commit 87326e858448c40e32f142c0b8dcc59d7b27c641
-> Author: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> Date:   Tue May 31 10:05:20 2016 -0500
+* Pavel Machek <pavel@ucw.cz> [161104 00:45]:
+> Hi!
 > 
->     usb: musb: Remove extra PM runtime calls from 2430 glue layer
+> > > > I have to admit I mostly use an N9.
+> > > 
+> > > Well, if you compare that to development on PC, I prefer PC.
+> > > 
+> > > Even arm development boards are usually easier, as they don't need too
+> > > complex userspace, and do have working serial ports.
+> > > 
+> > > But I do have a serial adapter for N900 now (thanks, sre), so my main
+> > > problem now is that N900 takes a lot of time to boot into usable
+> > > state.
+> > 
+> > Yeah... I just upgraded my Debian installation (armel over NFS) a few major
+> > numbers and I find it a lot slower than it used to do. I presume that's
+> > mostly because of systemd...
 > 
-> does the trick for me (reverted patch which applies bellow). I also
-> alternatively tried to increase pm_runtime_set_autosuspend_delay up
-> to 1000 without luck.
+> I'm not sure if systemd is to blame. (I'm booting into full GUI...)
+> 
+> And yes, I noticed the slowdown in Debian 7 -> 8 transition, so I'm
+> basically staying at Debian 7 as far as I can.
 
-OK thanks for narrowing it down. The patch does not seem to change
-anything for me with 2430 glue layer, things work for me with and
-without it. Care to check if all hunks of the patch are needed
-for you..
-
-> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> index 451b372..a623e45 100644
-> --- a/drivers/usb/musb/omap2430.c
-> +++ b/drivers/usb/musb/omap2430.c
-> @@ -218,8 +218,13 @@ static void omap_musb_mailbox_work(struct work_struct *mailbox_work)
->  {
->  	struct omap2430_glue *glue = container_of(mailbox_work,
->  				struct omap2430_glue, omap_musb_mailbox_work);
-> +	struct musb *musb = glue_to_musb(glue);
-> +	struct device *dev = musb->controller;
->  
-> +	pm_runtime_get_sync(dev);
->  	omap_musb_set_mailbox(glue);
-> +	pm_runtime_mark_last_busy(dev);
-> +	pm_runtime_put_autosuspend(dev);
->  }
->  
->  static irqreturn_t omap2430_musb_interrupt(int irq, void *__hci)
-
-..is just the above enough..
-
-> @@ -289,6 +294,16 @@ static int omap2430_musb_init(struct musb *musb)
->  	phy_init(musb->phy);
->  	phy_power_on(musb->phy);
->  
-> +	/*
-> +	 * Enable runtime PM for musb parent (this driver). We can't
-> +	 * do it earlier as struct musb is not yet allocated and we
-> +	 * need to touch the musb registers for runtime PM.
-> +	 */
-> +	pm_runtime_enable(glue->dev);
-> +	status = pm_runtime_get_sync(glue->dev);
-> +	if (status < 0)
-> +		goto err1;
-> +
->  	l = musb_readl(musb->mregs, OTG_INTERFSEL);
->  
->  	if (data->interface_type == MUSB_INTERFACE_UTMI) {
-> @@ -312,7 +327,11 @@ static int omap2430_musb_init(struct musb *musb)
->  	if (glue->status != MUSB_UNKNOWN)
->  		omap_musb_set_mailbox(glue);
->  
-> +	pm_runtime_put(glue->dev);
->  	return 0;
-> +
-> +err1:
-> +	return status;
->  }
->  
->  static void omap2430_musb_enable(struct musb *musb)
-> @@ -512,10 +531,6 @@ static int omap2430_probe(struct platform_device *pdev)
->  		goto err2;
->  	}
->  
-> -	pm_runtime_enable(glue->dev);
-> -	pm_runtime_use_autosuspend(glue->dev);
-> -	pm_runtime_set_autosuspend_delay(glue->dev, 100);
-> -
->  	ret = platform_device_add(musb);
->  	if (ret) {
->  		dev_err(&pdev->dev, "failed to register musb device\n");
-> @@ -538,7 +553,6 @@ static int omap2430_remove(struct platform_device *pdev)
->  	pm_runtime_get_sync(glue->dev);
->  	platform_device_unregister(glue->musb);
->  	pm_runtime_put_sync(glue->dev);
-> -	pm_runtime_dont_use_autosuspend(glue->dev);
->  	pm_runtime_disable(glue->dev);
->  
->  	return 0;
-
-..or are these init changes needed too?
+Maybe it's the armel vs armhf causing the slowdown?
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
