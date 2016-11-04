@@ -1,14 +1,13 @@
 From: Nicolae Rosia <Nicolae_Rosia@mentor.com>
-Subject: [PATCH v2 3/5] ARM: OMAP3: kill omap3_pmic_init
-Date: Fri, 4 Nov 2016 16:02:16 +0200
-Message-ID: <1478268138-7044-4-git-send-email-Nicolae_Rosia@mentor.com>
+Subject: [PATCH v2 0/5] ARM: OMAP: dead code removal
+Date: Fri, 4 Nov 2016 16:02:13 +0200
+Message-ID: <1478268138-7044-1-git-send-email-Nicolae_Rosia@mentor.com>
 References: <1478000206-10855-1-git-send-email-Nicolae_Rosia@mentor.com>
- <1478268138-7044-1-git-send-email-Nicolae_Rosia@mentor.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1478268138-7044-1-git-send-email-Nicolae_Rosia@mentor.com>
+In-Reply-To: <1478000206-10855-1-git-send-email-Nicolae_Rosia@mentor.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,31 +21,23 @@ To: linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Nicolae Rosia <Nicolae_Rosia@mentor.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Last user of this function was removed in commit
-e92fc4 ("ARM: OMAP2+: Drop legacy board file for LDP") during
-legacy board file removal.
+Hi,
 
-Signed-off-by: Nicolae Rosia <Nicolae_Rosia@mentor.com>
----
- arch/arm/mach-omap2/twl-common.h | 6 ------
- 1 file changed, 6 deletions(-)
+I have identified some dead code which can be removed.
 
-diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-common.h
-index 048f6b2..397722d 100644
---- a/arch/arm/mach-omap2/twl-common.h
-+++ b/arch/arm/mach-omap2/twl-common.h
-@@ -45,12 +45,6 @@ static inline void omap2_pmic_init(const char *pmic_type,
- 	omap_pmic_init(2, 2600, pmic_type, 7 + OMAP_INTC_START, pmic_data);
- }
- 
--static inline void omap3_pmic_init(const char *pmic_type,
--				   struct twl4030_platform_data *pmic_data)
--{
--	omap_pmic_init(1, 2600, pmic_type, 7 + OMAP_INTC_START, pmic_data);
--}
--
- void omap_twl4030_audio_init(char *card_name, struct omap_tw4030_pdata *pdata);
- 
- #endif /* __OMAP_PMIC_COMMON__ */
+v2:
+- Added details on each commit on how the code ended up unused.
+
+Nicolae Rosia (5):
+  ARM: OMAP4: kill omap4_pmic_init and omap4_pmic_get_config
+  ARM: OMAP3: kill omap3_pmic_get_config and twl_{get,set}_voltage
+  ARM: OMAP3: kill omap3_pmic_init
+  ARM: OMAP2: kill omap2_pmic_init
+  ARM: OMAP: kill omap_pmic_init
+
+ arch/arm/mach-omap2/twl-common.c | 483 ---------------------------------------
+ arch/arm/mach-omap2/twl-common.h |  24 --
+ 2 files changed, 507 deletions(-)
+
 -- 
 2.5.5
