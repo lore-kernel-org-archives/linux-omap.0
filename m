@@ -1,54 +1,44 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH 10/10] clk: ti: make clk-dra7-atl explicitly non-modular
-Date: Fri, 4 Nov 2016 13:35:15 -0700
-Message-ID: <20161104203515.GJ16026@codeaurora.org>
-References: <20160704211220.5685-1-paul.gortmaker@windriver.com>
- <20160704211220.5685-11-paul.gortmaker@windriver.com>
+From: Matt Ranostay <mranostay@gmail.com>
+Subject: Re: [PATCH v2 2/2] power: bq27xxx_battery: add poll interval property query
+Date: Fri, 4 Nov 2016 13:39:19 -0700
+Message-ID: <CAKzfze_FrerJF6JOjVJ2XdyJgPm9OkEziX+oVOr7Aix3N31anw@mail.gmail.com>
+References: <CAKzfze9uvMvrF=gWph_HKFk_cH0qzRz6Wa2VJafK+H+wdnP0rg@mail.gmail.com>
+ <20161024201443.GB5989@amd> <CAKzfze_rv29gwuBGctwTONyw8Oy6fwE+xcN0HMh-ZPB47HKzuQ@mail.gmail.com>
+ <CAJ_EiSRzmQHLP2PTfzsLF4uWgYgCiRGsSk=MHbtOC5rgXnnFpw@mail.gmail.com>
+ <20161031213846.GA21014@amd> <CAKzfze8Bom1XYRfiix_qYFckMggUD0eJm3Fz=GhNi6H_PBFyXA@mail.gmail.com>
+ <20161102082206.GE21488@amd> <CAKzfze8d_MZJzR1a6rbwVXCWhb30C5GqFamUt2Viw1CzvyaQxw@mail.gmail.com>
+ <20161104070955.GA3679@amd> <20161104145855.GH21430@atomide.com> <20161104202924.GA6841@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160704211220.5685-11-paul.gortmaker@windriver.com>
+In-Reply-To: <20161104202924.GA6841@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Michael Turquette <mturquette@baylibre.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Tony Lindgren <tony@atomide.com>, Matt Ranostay <matt@ranostay.consulting>, pali.rohar@gmail.com, Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Linux OMAP List <linux-omap@vger.kernel.org>, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, Patrik Bachan <patrikbachan@gmail.com>, serge@hallyn.com, =?UTF-8?B?TWlja3Vsw6HFoSBRd2VydHo=?= <abcloriens@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 07/04, Paul Gortmaker wrote:
-> The Kconfig currently controlling compilation of this code is:
-> 
-> arch/arm/mach-omap2/Kconfig:config SOC_DRA7XX
-> arch/arm/mach-omap2/Kconfig:    bool "TI DRA7XX"
-> 
-> ...meaning that it currently is not being built as a module by anyone.
-> 
-> Lets remove the modular code that is essentially orphaned, so that
-> when reading the driver there is no doubt it is builtin-only.
-> 
-> We explicitly disallow a driver unbind, since that doesn't have a
-> sensible use case anyway, and it allows us to drop the ".remove"
-> code for non-modular drivers.
-> 
-> Since module_platform_driver() uses the same init level priority as
-> builtin_platform_driver() the init ordering remains unchanged with
-> this commit.
-> 
-> Also note that MODULE_DEVICE_TABLE is a no-op for non-modular code.
-> 
-> We also delete the MODULE_LICENSE tags etc. since all that information
-> is already contained at the top of the file in the comments.
-> 
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Cc: Michael Turquette <mturquette@baylibre.com>
-> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Cc: Stephen Boyd <sboyd@codeaurora.org>
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-clk@vger.kernel.org
-> Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
-> ---
+On Fri, Nov 4, 2016 at 1:29 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> On Fri 2016-11-04 07:58:55, Tony Lindgren wrote:
+>> * Pavel Machek <pavel@ucw.cz> [161104 00:10]:
+>> > On Thu 2016-11-03 22:00:56, Matt Ranostay wrote:
+>> > Do you actually have hardware with more than one bq27xxx?
+>>
+>> I can at least see the twl4030 battery/charger features
+>> being used together with some bq device to monitor the
+>> battery state. Not sure if that counts as multiple
+>> instances here though :)
+>
+> I have that, too, but that was not what i was asking.
+>
+> Matt wanted support for different polling intervals on different
+> bq27xxx chips. I'd like to know know if he actually has more than one
+> bq27xxx in his device...
+>
 
-Applied to clk-next
+Actually only one bq27xxx chip but in theory we could have more.
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+> Best regards,
+>                                                                         Pavel
+> --
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
