@@ -1,52 +1,36 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
-Date: Fri, 4 Nov 2016 07:49:36 -0700
-Message-ID: <20161104144936.GG21430@atomide.com>
-References: <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
- <20160808214132.GB2946@xo-6d-61-c0.localdomain>
- <20160810120105.GP3182@valkosipuli.retiisi.org.uk>
- <20160808232323.GC2946@xo-6d-61-c0.localdomain>
- <20160811111633.GR3182@valkosipuli.retiisi.org.uk>
- <20160818104539.GA7427@amd>
- <20160818202559.GF3182@valkosipuli.retiisi.org.uk>
- <20161103102727.GA10084@amd>
- <20161103214900.GH3217@valkosipuli.retiisi.org.uk>
- <20161104074533.GB3679@amd>
+Subject: Re: [PATCH v2 2/2] power: bq27xxx_battery: add poll interval
+ property query
+Date: Fri, 4 Nov 2016 07:58:55 -0700
+Message-ID: <20161104145855.GH21430@atomide.com>
+References: <1475092512-30555-3-git-send-email-matt@ranostay.consulting>
+ <CAKzfze9uvMvrF=gWph_HKFk_cH0qzRz6Wa2VJafK+H+wdnP0rg@mail.gmail.com>
+ <20161024201443.GB5989@amd>
+ <CAKzfze_rv29gwuBGctwTONyw8Oy6fwE+xcN0HMh-ZPB47HKzuQ@mail.gmail.com>
+ <CAJ_EiSRzmQHLP2PTfzsLF4uWgYgCiRGsSk=MHbtOC5rgXnnFpw@mail.gmail.com>
+ <20161031213846.GA21014@amd>
+ <CAKzfze8Bom1XYRfiix_qYFckMggUD0eJm3Fz=GhNi6H_PBFyXA@mail.gmail.com>
+ <20161102082206.GE21488@amd>
+ <CAKzfze8d_MZJzR1a6rbwVXCWhb30C5GqFamUt2Viw1CzvyaQxw@mail.gmail.com>
+ <20161104070955.GA3679@amd>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20161104074533.GB3679@amd>
+In-Reply-To: <20161104070955.GA3679@amd>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com
+Cc: Matt Ranostay <mranostay@gmail.com>, Matt Ranostay <matt@ranostay.consulting>, pali.rohar@gmail.com, Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Linux OMAP List <linux-omap@vger.kernel.org>, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, Patrik Bachan <patrikbachan@gmail.com>, serge@hallyn.com, =?utf-8?B?TWlja3Vsw6HFoQ==?= Qwertz <abcloriens@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [161104 00:45]:
-> Hi!
-> 
-> > > > I have to admit I mostly use an N9.
-> > > 
-> > > Well, if you compare that to development on PC, I prefer PC.
-> > > 
-> > > Even arm development boards are usually easier, as they don't need too
-> > > complex userspace, and do have working serial ports.
-> > > 
-> > > But I do have a serial adapter for N900 now (thanks, sre), so my main
-> > > problem now is that N900 takes a lot of time to boot into usable
-> > > state.
-> > 
-> > Yeah... I just upgraded my Debian installation (armel over NFS) a few major
-> > numbers and I find it a lot slower than it used to do. I presume that's
-> > mostly because of systemd...
-> 
-> I'm not sure if systemd is to blame. (I'm booting into full GUI...)
-> 
-> And yes, I noticed the slowdown in Debian 7 -> 8 transition, so I'm
-> basically staying at Debian 7 as far as I can.
+* Pavel Machek <pavel@ucw.cz> [161104 00:10]:
+> On Thu 2016-11-03 22:00:56, Matt Ranostay wrote:
+> Do you actually have hardware with more than one bq27xxx?
 
-Maybe it's the armel vs armhf causing the slowdown?
+I can at least see the twl4030 battery/charger features
+being used together with some bq device to monitor the
+battery state. Not sure if that counts as multiple
+instances here though :)
 
 Regards,
 
