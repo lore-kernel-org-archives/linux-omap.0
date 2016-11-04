@@ -1,36 +1,76 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 2/4] pinctrl: single: Use generic parser and
- #pinctrl-cells for pinctrl-single,pins
-Date: Fri, 4 Nov 2016 22:41:26 +0100
-Message-ID: <CACRpkdY4X8MEUWU4_zuzqT9Vg7d8i236dostABEWFPcK76_w5A@mail.gmail.com>
-References: <20161025164538.453-1-tony@atomide.com> <20161025164538.453-3-tony@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH v2 2/2] power: bq27xxx_battery: add poll interval
+ property query
+Date: Fri, 4 Nov 2016 22:43:04 +0100
+Message-ID: <20161104214303.GA7938@amd>
+References: <CAKzfze_rv29gwuBGctwTONyw8Oy6fwE+xcN0HMh-ZPB47HKzuQ@mail.gmail.com>
+ <CAJ_EiSRzmQHLP2PTfzsLF4uWgYgCiRGsSk=MHbtOC5rgXnnFpw@mail.gmail.com>
+ <20161031213846.GA21014@amd>
+ <CAKzfze8Bom1XYRfiix_qYFckMggUD0eJm3Fz=GhNi6H_PBFyXA@mail.gmail.com>
+ <20161102082206.GE21488@amd>
+ <CAKzfze8d_MZJzR1a6rbwVXCWhb30C5GqFamUt2Viw1CzvyaQxw@mail.gmail.com>
+ <20161104070955.GA3679@amd>
+ <20161104145855.GH21430@atomide.com>
+ <20161104202924.GA6841@amd>
+ <CAKzfze_FrerJF6JOjVJ2XdyJgPm9OkEziX+oVOr7Aix3N31anw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="OXfL5xGRrasGEqWY"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161025164538.453-3-tony@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <CAKzfze_FrerJF6JOjVJ2XdyJgPm9OkEziX+oVOr7Aix3N31anw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Jon Hunter <jonathanh@nvidia.com>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>
+To: Matt Ranostay <mranostay@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Matt Ranostay <matt@ranostay.consulting>, pali.rohar@gmail.com, Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Linux OMAP List <linux-omap@vger.kernel.org>, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, Patrik Bachan <patrikbachan@gmail.com>, serge@hallyn.com, =?utf-8?B?TWlja3Vsw6HFoQ==?= Qwertz <abcloriens@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 25, 2016 at 6:45 PM, Tony Lindgren <tony@atomide.com> wrote:
 
-> We can now use generic parser. To support the legacy binding without
-> #pinctrl-cells, add pcs_quirk_missing_pinctrl_cells() and warn about
-> missing #pinctrl-cells.
->
-> Let's also update the documentation for struct pcs_soc_data while at it
-> as that seems to be out of date.
->
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+--OXfL5xGRrasGEqWY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Patch applied.
+On Fri 2016-11-04 13:39:19, Matt Ranostay wrote:
+> On Fri, Nov 4, 2016 at 1:29 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> > On Fri 2016-11-04 07:58:55, Tony Lindgren wrote:
+> >> * Pavel Machek <pavel@ucw.cz> [161104 00:10]:
+> >> > On Thu 2016-11-03 22:00:56, Matt Ranostay wrote:
+> >> > Do you actually have hardware with more than one bq27xxx?
+> >>
+> >> I can at least see the twl4030 battery/charger features
+> >> being used together with some bq device to monitor the
+> >> battery state. Not sure if that counts as multiple
+> >> instances here though :)
+> >
+> > I have that, too, but that was not what i was asking.
+> >
+> > Matt wanted support for different polling intervals on different
+> > bq27xxx chips. I'd like to know know if he actually has more than one
+> > bq27xxx in his device...
+> >
+>=20
+> Actually only one bq27xxx chip but in theory we could have more.
 
-> Looking at some make randconfig results, looks like we don't have
-> of_add_property() and of_remove_property() exported. Is there some
-> reason not to export them?
+Hmm. As we'd have to keep both old and new interfaces to change the
+polling interfaces. Lets not due that unless we really need to, ok?
 
-If there is too much fuzz from the builders we need to think of something.
+Thanks,
+		    	     	      	     	       	    	Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-Yours,
-Linus Walleij
+--OXfL5xGRrasGEqWY
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlgdAOcACgkQMOfwapXb+vIyswCgozaQDQHLQxHUym85wrX54/DV
+zxEAnRvZL4irepubo1ADZNegASmfbJQZ
+=R+Tb
+-----END PGP SIGNATURE-----
+
+--OXfL5xGRrasGEqWY--
