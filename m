@@ -1,88 +1,62 @@
-From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Subject: Re: [PATCH 0/3] Add memremap executable mapping and extend
- drivers/misc/sram.c
-Date: Sat, 5 Nov 2016 03:47:46 +0100
-Message-ID: <20161105024746.hgkdrgjmu6lehy6a@piout.net>
-References: <20161027185612.22362-1-d-gerlach@ti.com>
+From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 2/5] drivers: gpio: Add support for multiple IPs
+Date: Sat, 5 Nov 2016 09:23:05 +0100
+Message-ID: <CACRpkdac_UgM=xeXkSZ+rOvZvutt40USjCoEt5-SoFkqspuExw@mail.gmail.com>
+References: <1476855239-32730-1-git-send-email-j-keerthy@ti.com>
+ <1476855239-32730-3-git-send-email-j-keerthy@ti.com> <CACRpkdbsgM-yiWpiA5G35jQR8v3FO=Me+4rhe6TzE0qsWOJ8Ew@mail.gmail.com>
+ <c5c95d86-2c89-3819-725c-ee0b86c37ec0@ti.com> <98447580-cbc4-152e-f2cb-7c4756545479@ti.com>
+ <c047fb27-a8bb-c10d-2b16-a3e6bf45d88f@ti.com> <CACRpkdZmuc__QL6b7Jvb8xL5Bm+PD2X60NtiugrnH7iAO=-tLQ@mail.gmail.com>
+ <b92f729b-5897-c29a-31ec-97510776d85d@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161027185612.22362-1-d-gerlach@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Russell King <linux@arm.linux.org.uk>, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Shawn Guo <shawnguo@kernel.org>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <b92f729b-5897-c29a-31ec-97510776d85d-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Fri, Nov 4, 2016 at 8:59 PM, Grygorii Strashko
+<grygorii.strashko-l0cyMroinI0@public.gmane.org> wrote:
+> On 11/04/2016 09:28 AM, Linus Walleij wrote:
 
-On 27/10/2016 at 13:56:09 -0500, Dave Gerlach wrote :
-> There are several instances when one would want to execute out of on-chip
-> SRAM, such as PM code on ARM platforms, so once again revisiting this
-> series to allow that in a generic manner. Seems that having a solution for
-> allowing SRAM to be mapped as executable will help clean up PM code on several
-> ARM platforms that are using ARM internal __arm_ioremap_exec API
-> and also open the door for PM support on new platforms like TI AM335x and
-> AM437x. This was last sent as RFC here [1] and based on comments from Russell
-> King and Arnd Bergmann has been rewritten to use memremap API rather than
-> ioremap API, as executable iomem does not really make sense.
-> 
-> I still see several platforms (at-91, imx6, socfpga) that could make use
-> of this and use the generic sram driver to allocate the SRAM needed for PM.
-> This series allows direct allocation of SRAM using the generic SRAM driver
-> that will be already mapped as executable. Otherwise platform SRAM allocation
-> code must be used or if the generic sram driver is used as-is the memory
-> must be remapped as executable after it has been mapped normally by the
-> SRAM driver.
-> 
+>> The DT model sort of mandates how the interrupts should be mapped
+>> at this point, and as far as I can tell from the binding the example looks
+>> like so:
+>>
+>> gpio: gpio@1e26000 {
+>>         compatible = "ti,dm6441-gpio";
+>>         gpio-controller;
+>>         #gpio-cells = <2>;
+>>         reg = <0x226000 0x1000>;
+>>         interrupt-parent = <&intc>;
+>>         interrupts = <42 IRQ_TYPE_EDGE_BOTH 43 IRQ_TYPE_EDGE_BOTH
+>>                 44 IRQ_TYPE_EDGE_BOTH 45 IRQ_TYPE_EDGE_BOTH
+>>                 46 IRQ_TYPE_EDGE_BOTH 47 IRQ_TYPE_EDGE_BOTH
+>>                 48 IRQ_TYPE_EDGE_BOTH 49 IRQ_TYPE_EDGE_BOTH
+>>                 50 IRQ_TYPE_EDGE_BOTH>;
+>>         ti,ngpio = <144>;
+>>         ti,davinci-gpio-unbanked = <0>;
+>>         interrupt-controller;
+>>         #interrupt-cells = <2>;
+>> };
+>
+> Above, DT bindings models Davinci GPIO IP as monolithic GPIO controller
+> with N gpio pins, but internally separate GPIO chips are created for each
+> banksX&Y register set (32 pins, 2 banked irq -or- 32 direct irqs).
 
-Rockchip also actually needs that.
+Hm it would be good to get away from that and just have one big gpio
+chip.
 
-> I had sent omap3 series to convert from using old omap sram platform
-> mapping code to using the generic sram driver instead here [2] which was
-> based on previous RFC but can easily be rebased on this updated series.
-> Finally, forthcoming TI am335x and am437x PM code must make use of
-> it as well, as portions of PM code are moving in to drivers.
-> 
-> Changes from the RFC include:
-> 
-> - Rather than introduce ioremap_exec API, use memremap API, as the concept
->   of executable iomem does not make sense; any memory that can used to
->   run code should not have io side effects like iomem.
-> - Rather than having a fallback mapping if a platform does not support
->   exec mappings under the memremap API, have the mapping fail, as if you
->   are mapping memory as exec, presumably you will then try to run code
->   from it which will fail anyway, so it makes more sense to prevent the
->   mapping in the first place.
-> - Update sram driver to use memremap rather than ioremap for exec flags.
-> 
-> Regards,
-> Dave
-> 
-> [1] http://www.spinics.net/lists/arm-kernel/msg503071.html
-> [2] http://www.spinics.net/lists/linux-omap/msg128753.html
-> 
-> Dave Gerlach (3):
->   ARM: memremap: implement arch_memremap_exec/exec_nocache
->   memremap: add MEMREMAP_EXEC and MEMREMAP_EXEC_NOCACHE flags
->   misc: SRAM: Add option to map SRAM to allow code execution
-> 
->  Documentation/devicetree/bindings/sram/sram.txt |  2 ++
->  arch/arm/include/asm/io.h                       |  5 ++++
->  arch/arm/mm/ioremap.c                           | 16 ++++++++++++
->  arch/arm/mm/nommu.c                             | 12 +++++++++
->  drivers/misc/sram.c                             |  7 +++++
->  include/linux/io.h                              |  2 ++
->  kernel/memremap.c                               | 34 ++++++++++++++++++++++++-
->  7 files changed, 77 insertions(+), 1 deletion(-)
-> 
+> Translation from linear GPIO numbering to the proper internal GPIO chip is done
+> using chip.of_xlate().
 
-To the whole series:
-Tested-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Yeah :/ this could be made simpler with a single chip just spanning all
+the banks and the common registers I think.
 
-
-
--- 
-Alexandre Belloni, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+Yours,
+Linus Walleij
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
