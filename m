@@ -1,78 +1,88 @@
-From: Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH 1/2] rtc: omap: Fix selecting external osc
-Date: Sat, 5 Nov 2016 03:35:41 +0100
-Message-ID: <20161105023541.udo27ehloo22mtlq@piout.net>
-References: <1477547846-5335-1-git-send-email-j-keerthy@ti.com>
-Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Subject: Re: [PATCH 0/3] Add memremap executable mapping and extend
+ drivers/misc/sram.c
+Date: Sat, 5 Nov 2016 03:47:46 +0100
+Message-ID: <20161105024746.hgkdrgjmu6lehy6a@piout.net>
+References: <20161027185612.22362-1-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <rtc-linux+bncBCKYNX7Y3IMBB7UK6XAAKGQEI5FMHBA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1477547846-5335-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
-List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <https://groups.google.com/group/rtc-linux
-List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <https://groups.google.com/group/rtc-linux/subscribe>
-To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Cc: a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lokeshvutla-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
+In-Reply-To: <20161027185612.22362-1-d-gerlach@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Russell King <linux@arm.linux.org.uk>, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Shawn Guo <shawnguo@kernel.org>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 27/10/2016 at 11:27:25 +0530, Keerthy wrote :
-> From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Hi,
+
+On 27/10/2016 at 13:56:09 -0500, Dave Gerlach wrote :
+> There are several instances when one would want to execute out of on-chip
+> SRAM, such as PM code on ARM platforms, so once again revisiting this
+> series to allow that in a generic manner. Seems that having a solution for
+> allowing SRAM to be mapped as executable will help clean up PM code on several
+> ARM platforms that are using ARM internal __arm_ioremap_exec API
+> and also open the door for PM support on new platforms like TI AM335x and
+> AM437x. This was last sent as RFC here [1] and based on comments from Russell
+> King and Arnd Bergmann has been rewritten to use memremap API rather than
+> ioremap API, as executable iomem does not really make sense.
 > 
-> RTC can be clocked from an external 32KHz oscillator, or from the
-> Peripheral PLL. The RTC has an internal oscillator buffer to support
-> direct operation with a crystal.
+> I still see several platforms (at-91, imx6, socfpga) that could make use
+> of this and use the generic sram driver to allocate the SRAM needed for PM.
+> This series allows direct allocation of SRAM using the generic SRAM driver
+> that will be already mapped as executable. Otherwise platform SRAM allocation
+> code must be used or if the generic sram driver is used as-is the memory
+> must be remapped as executable after it has been mapped normally by the
+> SRAM driver.
 > 
->             ----------------------------------------
->             |       Device          ---------       |
->             |                       |       |       |
->             |                       | RTCSS |       |
->             |       ---------       |       |       |
->     OSC     |<------| RTC   |       |       |       |
->             |------>| OSC   |---    |       |       |
->             |       --------   |    |       |       |
->             |                   ----|clk    |       |
->             |       --------   |    |       |       |
->             |       | PRCM  |---    |       |       |
->             |       --------        --------        |
->             ----------------------------------------
+
+Rockchip also actually needs that.
+
+> I had sent omap3 series to convert from using old omap sram platform
+> mapping code to using the generic sram driver instead here [2] which was
+> based on previous RFC but can easily be rebased on this updated series.
+> Finally, forthcoming TI am335x and am437x PM code must make use of
+> it as well, as portions of PM code are moving in to drivers.
 > 
-> The RTC functional clock is sourced by default from the clock derived
-> from the Peripheral PLL. In order to select source as external osc clk
-> the following changes needs to be done:
-> - Enable the RTC OSC (RTC_OSC_REG[4]OSC32K_GZ = 0)
-> - Enable the clock mux(RTC_OSC_REG[6]K32CLK_EN = 1)
-> - Select the external clock source (RTC_OSC_REG[3]32KCLK_SEL = 1)
+> Changes from the RFC include:
 > 
-> Fixes: 399cf0f63f6f2 ("rtc: omap: Add external clock enabling support")
-> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-> ---
+> - Rather than introduce ioremap_exec API, use memremap API, as the concept
+>   of executable iomem does not make sense; any memory that can used to
+>   run code should not have io side effects like iomem.
+> - Rather than having a fallback mapping if a platform does not support
+>   exec mappings under the memremap API, have the mapping fail, as if you
+>   are mapping memory as exec, presumably you will then try to run code
+>   from it which will fail anyway, so it makes more sense to prevent the
+>   mapping in the first place.
+> - Update sram driver to use memremap rather than ioremap for exec flags.
 > 
-> Boot tested and checked for rtc ticking on am335x-boneblack, am335x-bone
-> am437x-gp-evm, dra7-evm, dra72-evm.
+> Regards,
+> Dave
 > 
->  drivers/rtc/rtc-omap.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
+> [1] http://www.spinics.net/lists/arm-kernel/msg503071.html
+> [2] http://www.spinics.net/lists/linux-omap/msg128753.html
 > 
-Both applied, thanks.
+> Dave Gerlach (3):
+>   ARM: memremap: implement arch_memremap_exec/exec_nocache
+>   memremap: add MEMREMAP_EXEC and MEMREMAP_EXEC_NOCACHE flags
+>   misc: SRAM: Add option to map SRAM to allow code execution
+> 
+>  Documentation/devicetree/bindings/sram/sram.txt |  2 ++
+>  arch/arm/include/asm/io.h                       |  5 ++++
+>  arch/arm/mm/ioremap.c                           | 16 ++++++++++++
+>  arch/arm/mm/nommu.c                             | 12 +++++++++
+>  drivers/misc/sram.c                             |  7 +++++
+>  include/linux/io.h                              |  2 ++
+>  kernel/memremap.c                               | 34 ++++++++++++++++++++++++-
+>  7 files changed, 77 insertions(+), 1 deletion(-)
+> 
+
+To the whole series:
+Tested-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+
+
 
 -- 
 Alexandre Belloni, Free Electrons
 Embedded Linux and Kernel engineering
 http://free-electrons.com
-
--- 
-You received this message because you are subscribed to "rtc-linux".
-Membership options at http://groups.google.com/group/rtc-linux .
-Please read http://groups.google.com/group/rtc-linux/web/checklist
-before submitting a driver.
---- 
-You received this message because you are subscribed to the Google Groups "rtc-linux" group.
-To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-For more options, visit https://groups.google.com/d/optout.
