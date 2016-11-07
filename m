@@ -1,62 +1,73 @@
-From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 0/9] ARM: DRA7: Add support for DRA718-evm
-Date: Mon, 7 Nov 2016 09:19:55 +0530
-Message-ID: <1b9c4d14-78d7-841f-776c-63a8c1ae1fb1@ti.com>
-References: <20161021103841.8044-1-lokeshvutla@ti.com>
+From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/5] drivers: gpio: Add support for multiple IPs
+Date: Mon, 7 Nov 2016 09:29:55 +0530
+Message-ID: <f8e5e82b-3611-0d7d-7545-5edf1db8d056@ti.com>
+References: <1476855239-32730-1-git-send-email-j-keerthy@ti.com>
+ <1476855239-32730-3-git-send-email-j-keerthy@ti.com>
+ <CACRpkdbsgM-yiWpiA5G35jQR8v3FO=Me+4rhe6TzE0qsWOJ8Ew@mail.gmail.com>
+ <c5c95d86-2c89-3819-725c-ee0b86c37ec0@ti.com>
+ <98447580-cbc4-152e-f2cb-7c4756545479@ti.com>
+ <c047fb27-a8bb-c10d-2b16-a3e6bf45d88f@ti.com>
+ <CACRpkdZmuc__QL6b7Jvb8xL5Bm+PD2X60NtiugrnH7iAO=-tLQ@mail.gmail.com>
+ <b92f729b-5897-c29a-31ec-97510776d85d@ti.com>
+ <CACRpkdac_UgM=xeXkSZ+rOvZvutt40USjCoEt5-SoFkqspuExw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161021103841.8044-1-lokeshvutla-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <CACRpkdac_UgM=xeXkSZ+rOvZvutt40USjCoEt5-SoFkqspuExw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Linux ARM Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+To: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
 
-On Friday 21 October 2016 04:08 PM, Lokesh Vutla wrote:
-> This series does minor dts cleanup for dra72-evm and adds support for
-> DRA718-evm.
 
-Do you have any comments on this series?
+On Saturday 05 November 2016 01:53 PM, Linus Walleij wrote:
+> On Fri, Nov 4, 2016 at 8:59 PM, Grygorii Strashko
+> <grygorii.strashko-l0cyMroinI0@public.gmane.org> wrote:
+>> On 11/04/2016 09:28 AM, Linus Walleij wrote:
+>
+>>> The DT model sort of mandates how the interrupts should be mapped
+>>> at this point, and as far as I can tell from the binding the example looks
+>>> like so:
+>>>
+>>> gpio: gpio@1e26000 {
+>>>         compatible = "ti,dm6441-gpio";
+>>>         gpio-controller;
+>>>         #gpio-cells = <2>;
+>>>         reg = <0x226000 0x1000>;
+>>>         interrupt-parent = <&intc>;
+>>>         interrupts = <42 IRQ_TYPE_EDGE_BOTH 43 IRQ_TYPE_EDGE_BOTH
+>>>                 44 IRQ_TYPE_EDGE_BOTH 45 IRQ_TYPE_EDGE_BOTH
+>>>                 46 IRQ_TYPE_EDGE_BOTH 47 IRQ_TYPE_EDGE_BOTH
+>>>                 48 IRQ_TYPE_EDGE_BOTH 49 IRQ_TYPE_EDGE_BOTH
+>>>                 50 IRQ_TYPE_EDGE_BOTH>;
+>>>         ti,ngpio = <144>;
+>>>         ti,davinci-gpio-unbanked = <0>;
+>>>         interrupt-controller;
+>>>         #interrupt-cells = <2>;
+>>> };
+>>
+>> Above, DT bindings models Davinci GPIO IP as monolithic GPIO controller
+>> with N gpio pins, but internally separate GPIO chips are created for each
+>> banksX&Y register set (32 pins, 2 banked irq -or- 32 direct irqs).
+>
+> Hm it would be good to get away from that and just have one big gpio
+> chip.
+>
+>> Translation from linear GPIO numbering to the proper internal GPIO chip is done
+>> using chip.of_xlate().
+>
+> Yeah :/ this could be made simpler with a single chip just spanning all
+> the banks and the common registers I think.
 
-Thanks and regards,
-Lokesh
+Okay Linus. Thanks for the direction.
 
-> 
-> Changes since v1:
-> - Updated xxx-supply to xxx-in-supply in Documentation.
-> 
-> Lokesh Vutla (7):
->   ARM: dts: dra72-evm: Remove pinmux configurations for erratum i869
->   ARM: dra72-evm: Fix modelling of regulators
->   ARM: dts: dra72: Add separate dtsi for tps65917
->   regulator: lp873x: Add support for populating input supply
->   ARM: OMAP2+: board-generic: add support for DRA71x family
->   ARM: omap2plus_defconfig: Enable REGULATOR_GPIO
->   ARM: omap2plus_defconfig: Enable LP873X support
-> 
-> Nishanth Menon (2):
->   ARM: DRA7: hwmod: Do not register RTC on DRA71
->   ARM: dts: Add support for dra718-evm
-> 
->  .../devicetree/bindings/arm/omap/omap.txt          |   6 +
->  Documentation/devicetree/bindings/mfd/lp873x.txt   |   8 +
->  arch/arm/boot/dts/Makefile                         |   3 +-
->  arch/arm/boot/dts/dra71-evm.dts                    | 230 ++++++++++++++
->  arch/arm/boot/dts/dra72-evm-common.dtsi            | 348 +++------------------
->  arch/arm/boot/dts/dra72-evm-revc.dts               |  21 +-
->  arch/arm/boot/dts/dra72-evm-tps65917.dtsi          | 134 ++++++++
->  arch/arm/boot/dts/dra72-evm.dts                    |  14 +-
->  arch/arm/configs/omap2plus_defconfig               |   3 +
->  arch/arm/mach-omap2/board-generic.c                |   1 +
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  10 +-
->  drivers/regulator/lp873x-regulator.c               |   1 +
->  12 files changed, 453 insertions(+), 326 deletions(-)
->  create mode 100644 arch/arm/boot/dts/dra71-evm.dts
->  create mode 100644 arch/arm/boot/dts/dra72-evm-tps65917.dtsi
-> 
+>
+> Yours,
+> Linus Walleij
+>
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
