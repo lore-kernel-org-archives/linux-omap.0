@@ -1,62 +1,32 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 4/4] phy: twl4030-usb: Fix for musb session bit based PM
-Date: Mon,  7 Nov 2016 14:50:20 -0700
-Message-ID: <20161107215020.31399-5-tony@atomide.com>
-References: <20161107215020.31399-1-tony@atomide.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161107215020.31399-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Cc: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH RESEND] ARM: AM43XX: Select OMAP_INTERCONNECT in Kconfig
+Date: Mon, 7 Nov 2016 16:20:38 -0700
+Message-ID: <20161107232038.GE2428@atomide.com>
+References: <20161019204412.18607-1-d-gerlach@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20161019204412.18607-1-d-gerlach@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Now with musb driver implementing generic session bit based
-PM, we need to have the USB PHYs behaving in a sane way for
-platforms implementing PM.
+* Dave Gerlach <d-gerlach@ti.com> [161019 13:45]:
+> AM437x makes use of the omap_l3_noc driver so explicitly select
+> OMAP_INTERCONNECT in the Kconfig for SOC_AM43XX to ensure it gets enabled
+> for AM43XX only builds.
 
-Currently twl4030-usb enables PM in twl4030_phy_power_on()
-and then disables it in twl4030_phy_power_off(). This will
-block PM runtime for the SoC when no cable is connected.
+Applying into omap-for-v4.9/fixes thanks.
 
-Fix the issue by moving PM runtime autosuspend call to
-happen where it gets called in twl4030_phy_power_on().
-
-Note that this patch should not be backported to anything
-before commit 467d5c980709 ("usb: musb: Implement session bit
-based runtime PM for musb-core") as before that all the
-glue layers implemented their own PM.
-
-Fixes: 467d5c980709 ("usb: musb: Implement session bit based
-runtime PM for musb-core")
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- drivers/phy/phy-twl4030-usb.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
---- a/drivers/phy/phy-twl4030-usb.c
-+++ b/drivers/phy/phy-twl4030-usb.c
-@@ -459,8 +459,6 @@ static int twl4030_phy_power_off(struct phy *phy)
- 	struct twl4030_usb *twl = phy_get_drvdata(phy);
- 
- 	dev_dbg(twl->dev, "%s\n", __func__);
--	pm_runtime_mark_last_busy(twl->dev);
--	pm_runtime_put_autosuspend(twl->dev);
- 
- 	return 0;
- }
-@@ -472,6 +470,8 @@ static int twl4030_phy_power_on(struct phy *phy)
- 	dev_dbg(twl->dev, "%s\n", __func__);
- 	pm_runtime_get_sync(twl->dev);
- 	schedule_delayed_work(&twl->id_workaround_work, HZ);
-+	pm_runtime_mark_last_busy(twl->dev);
-+	pm_runtime_put_autosuspend(twl->dev);
- 
- 	return 0;
- }
--- 
-2.10.2
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
