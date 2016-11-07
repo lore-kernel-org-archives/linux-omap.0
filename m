@@ -1,83 +1,317 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [PATCH 0/3] Add memremap executable mapping and extend
- drivers/misc/sram.c
-Date: Mon, 7 Nov 2016 15:34:36 -0600
-Message-ID: <efe01282-002a-e0f6-7267-aae846b02e58@ti.com>
-References: <20161027185612.22362-1-d-gerlach@ti.com>
- <20161107110444.GA23750@n2100.armlinux.org.uk>
- <20161107174309.GC2428@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161107174309.GC2428@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Kees Cook <keescook@chromium.org>, Arnd Bergmann <arnd@arndb.de>, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Shawn Guo <shawnguo@kernel.org>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Nishanth Menon <nm@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 2/4] usb: musb: Fix sleeping function called from invalid context for hdrc glue
+Date: Mon,  7 Nov 2016 14:50:18 -0700
+Message-ID: <20161107215020.31399-3-tony@atomide.com>
+References: <20161107215020.31399-1-tony@atomide.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161107215020.31399-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Cc: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11/07/2016 11:43 AM, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@armlinux.org.uk> [161107 04:05]:
->> On Thu, Oct 27, 2016 at 01:56:09PM -0500, Dave Gerlach wrote:
->>> There are several instances when one would want to execute out of on-chip
->>> SRAM, such as PM code on ARM platforms, so once again revisiting this
->>> series to allow that in a generic manner. Seems that having a solution for
->>> allowing SRAM to be mapped as executable will help clean up PM code on several
->>> ARM platforms that are using ARM internal __arm_ioremap_exec API
->>> and also open the door for PM support on new platforms like TI AM335x and
->>> AM437x. This was last sent as RFC here [1] and based on comments from Russell
->>> King and Arnd Bergmann has been rewritten to use memremap API rather than
->>> ioremap API, as executable iomem does not really make sense.
->>
->> This is better, as it avoids the issue that I pointed out last time
->> around, but I'm still left wondering about the approach.
->>
->> Sure, having executable SRAM mappings sounds nice and easy, but we're
->> creating WX mappings.  Folk have spent a while improving the security of
->> the kernel by ensuring that there are no WX mappings, and this series
->> reintroduces them.  The sad thing is that any WX mapping which appears
->> at a known address can be exploited.
->>
->> "A known address" can be something that appears to be random, but ends
->> up being the same across the same device type... or can be discovered
->> by some means.  Eg, consider if the WX mapping is dynamically allocated,
->> but occurs at exactly the same point at boot - and if this happens with
->> android phones, consider how many of those are out there.  Or if the
->> address of the WX mapping is available via some hardware register.
->> Or...
->>
->> See Kees Cook's slides at last years kernel summit -
->> 	https://outflux.net/slides/2015/ks/security.pdf
->>
->> So, I think avoiding WX mappings - mappings should be either W or X but
->> not both simultaneously (see page 19.)
->>
->> I guess what I'm angling at is that we don't want memremap_exec(), but
->> we need an API which changes the permissions of a SRAM mapping between
->> allowing writes and allowing execution.
->
-> That should work just fine. So first copy the code to SRAM,
-> then set it read-only and exectuable. Note that we need to
-> restore the state of SRAM every time when returning from
-> off mode during idle on some SoCs.
+Commit 65b3f50ed6fa ("usb: musb: Add PM runtime support for MUSB DSPS
+glue layer") wrongly added a call for pm_runtime_get_sync to otg_timer
+that runs in softirq context. That causes a "BUG: sleeping function called
+from invalid context" every time when polling the cable status:
 
-Thanks for all the comments. This seems like a reasonable concern. I do 
-agree that we would need to be able to briefly restore write permission 
-for things like Tony has described.
+[<c015ebb4>] (__might_sleep) from [<c0413d60>] (__pm_runtime_resume+0x9c/0xa0)
+[<c0413d60>] (__pm_runtime_resume) from [<c04d0bc4>] (otg_timer+0x3c/0x254)
+[<c04d0bc4>] (otg_timer) from [<c0191180>] (call_timer_fn+0xfc/0x41c)
+[<c0191180>] (call_timer_fn) from [<c01915c0>] (expire_timers+0x120/0x210)
+[<c01915c0>] (expire_timers) from [<c0191acc>] (run_timer_softirq+0xa4/0xdc)
+[<c0191acc>] (run_timer_softirq) from [<c010168c>] (__do_softirq+0x12c/0x594)
 
-In fact, I suppose we would need this ability for every copy so that  we 
-switch from exec to write and do the copy, then switch back to read-only 
-executable. We have situations where we copy multiple things, from 
-drivers that don't necessarily have knowledge of one another to the SRAM 
-space at different times.
+I did not notice that as I did not have CONFIG_DEBUG_ATOMIC_SLEEP enabled.
+And looks like also musb_gadget_queue() suffers from the same problem.
 
-Any opinions on where this API should live?
+Let's fix the issue by using a list of delayed work then call it on
+resume. Note that we want to do this only when musb core and it's
+parent devices are awake as noted by Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>.
 
-Regards,
-Dave
+Also note that we now also need to get rid of static int first as
+that won't work right on devices with two musb instances like am335x.
 
->
-> Regards,
->
-> Tony
->
+Later on we may be able to remove other delayed work in the musb driver
+and just do it from pending_resume_work. But this should be done only
+for delayed work that does not have other timing requirements beyond
+just being run on resume.
+
+Fixes: 65b3f50ed6fa ("usb: musb: Add PM runtime support for MUSB DSPS
+glue layer")
+Reported-by: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/usb/musb/musb_core.c   | 69 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/usb/musb/musb_core.h   |  7 +++++
+ drivers/usb/musb/musb_dsps.c   | 24 ++++++++++-----
+ drivers/usb/musb/musb_gadget.c | 22 ++++++++++++--
+ 4 files changed, 112 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -1969,6 +1969,7 @@ static struct musb *allocate_instance(struct device *dev,
+ 	INIT_LIST_HEAD(&musb->control);
+ 	INIT_LIST_HEAD(&musb->in_bulk);
+ 	INIT_LIST_HEAD(&musb->out_bulk);
++	INIT_LIST_HEAD(&musb->pending_list);
+ 
+ 	musb->vbuserr_retry = VBUSERR_RETRY_COUNT;
+ 	musb->a_wait_bcon = OTG_TIME_A_WAIT_BCON;
+@@ -2018,6 +2019,66 @@ static void musb_free(struct musb *musb)
+ 	musb_host_free(musb);
+ }
+ 
++struct musb_pending_work {
++	void (*callback)(struct musb *musb, void *data);
++	void *data;
++	struct list_head node;
++};
++
++static void musb_pending_work(struct work_struct *work)
++{
++	struct musb *musb;
++	struct musb_pending_work *w;
++	unsigned long flags;
++	int error;
++
++	musb = container_of(work, struct musb, pending_resume_work.work);
++	error = pm_runtime_get_sync(musb->controller);
++	if (error < 0) {
++		dev_err(musb->controller, "failed resume for pending work: %i\n",
++			error);
++
++		return;
++	}
++	spin_lock_irqsave(&musb->list_lock, flags);
++	while (!list_empty(&musb->pending_list)) {
++		w = list_first_entry(&musb->pending_list,
++				     struct musb_pending_work,
++				     node);
++		list_del(&w->node);
++		spin_unlock_irqrestore(&musb->list_lock, flags);
++		if (w->callback)
++			w->callback(musb, w->data);
++		devm_kfree(musb->controller, w);
++		spin_lock_irqsave(&musb->list_lock, flags);
++	}
++	spin_unlock_irqrestore(&musb->list_lock, flags);
++	pm_runtime_mark_last_busy(musb->controller);
++	pm_runtime_put_autosuspend(musb->controller);
++}
++
++void musb_queue_resume_work(struct musb *musb,
++			    void (*callback)(struct musb *musb, void *data),
++			    void *data)
++{
++	struct musb_pending_work *w;
++	unsigned long flags;
++
++	if (WARN_ON(!callback))
++		return;
++
++	w = devm_kzalloc(musb->controller, sizeof(*w), GFP_ATOMIC);
++	if (!w)
++		return;
++
++	w->callback = callback;
++	w->data = data;
++	spin_lock_irqsave(&musb->list_lock, flags);
++	list_add_tail(&w->node, &musb->pending_list);
++	spin_unlock_irqrestore(&musb->list_lock, flags);
++}
++EXPORT_SYMBOL_GPL(musb_queue_resume_work);
++
+ static void musb_deassert_reset(struct work_struct *work)
+ {
+ 	struct musb *musb;
+@@ -2065,6 +2126,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+ 	}
+ 
+ 	spin_lock_init(&musb->lock);
++	spin_lock_init(&musb->list_lock);
+ 	musb->board_set_power = plat->set_power;
+ 	musb->min_power = plat->min_power;
+ 	musb->ops = plat->platform_ops;
+@@ -2215,6 +2277,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+ 	/* Init IRQ workqueue before request_irq */
+ 	INIT_WORK(&musb->irq_work, musb_irq_work);
+ 	INIT_DELAYED_WORK(&musb->deassert_reset_work, musb_deassert_reset);
++	INIT_DELAYED_WORK(&musb->pending_resume_work, musb_pending_work);
+ 	INIT_DELAYED_WORK(&musb->finish_resume_work, musb_host_finish_resume);
+ 
+ 	/* setup musb parts of the core (especially endpoints) */
+@@ -2312,6 +2375,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+ fail3:
+ 	cancel_work_sync(&musb->irq_work);
+ 	cancel_delayed_work_sync(&musb->finish_resume_work);
++	cancel_delayed_work_sync(&musb->pending_resume_work);
+ 	cancel_delayed_work_sync(&musb->deassert_reset_work);
+ 	if (musb->dma_controller)
+ 		musb_dma_controller_destroy(musb->dma_controller);
+@@ -2379,6 +2443,7 @@ static int musb_remove(struct platform_device *pdev)
+ 
+ 	cancel_work_sync(&musb->irq_work);
+ 	cancel_delayed_work_sync(&musb->finish_resume_work);
++	cancel_delayed_work_sync(&musb->pending_resume_work);
+ 	cancel_delayed_work_sync(&musb->deassert_reset_work);
+ 	pm_runtime_get_sync(musb->controller);
+ 	musb_host_cleanup(musb);
+@@ -2604,6 +2669,9 @@ static int musb_resume(struct device *dev)
+ 	mask = MUSB_DEVCTL_BDEVICE | MUSB_DEVCTL_FSDEV | MUSB_DEVCTL_LSDEV;
+ 	if ((devctl & mask) != (musb->context.devctl & mask))
+ 		musb->port1_status = 0;
++
++	schedule_delayed_work(&musb->pending_resume_work, 0);
++
+ 	if (musb->need_finish_resume) {
+ 		musb->need_finish_resume = 0;
+ 		schedule_delayed_work(&musb->finish_resume_work,
+@@ -2649,6 +2717,7 @@ static int musb_runtime_resume(struct device *dev)
+ 		return 0;
+ 
+ 	musb_restore_context(musb);
++	schedule_delayed_work(&musb->pending_resume_work, 0);
+ 
+ 	if (musb->need_finish_resume) {
+ 		musb->need_finish_resume = 0;
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -303,6 +303,7 @@ struct musb_context_registers {
+ struct musb {
+ 	/* device lock */
+ 	spinlock_t		lock;
++	spinlock_t		list_lock;	/* resume work list lock */
+ 
+ 	struct musb_io		io;
+ 	const struct musb_platform_ops *ops;
+@@ -311,6 +312,7 @@ struct musb {
+ 	irqreturn_t		(*isr)(int, void *);
+ 	struct work_struct	irq_work;
+ 	struct delayed_work	deassert_reset_work;
++	struct delayed_work	pending_resume_work;
+ 	struct delayed_work	finish_resume_work;
+ 	struct delayed_work	gadget_work;
+ 	u16			hwvers;
+@@ -337,6 +339,7 @@ struct musb {
+ 	struct list_head	control;	/* of musb_qh */
+ 	struct list_head	in_bulk;	/* of musb_qh */
+ 	struct list_head	out_bulk;	/* of musb_qh */
++	struct list_head	pending_list;	/* pending work list */
+ 
+ 	struct timer_list	otg_timer;
+ 	struct notifier_block	nb;
+@@ -542,6 +545,10 @@ extern irqreturn_t musb_interrupt(struct musb *);
+ 
+ extern void musb_hnp_stop(struct musb *musb);
+ 
++void musb_queue_resume_work(struct musb *musb,
++			    void (*callback)(struct musb *musb, void *data),
++			    void *data);
++
+ static inline void musb_platform_set_vbus(struct musb *musb, int is_on)
+ {
+ 	if (musb->ops->set_vbus)
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -188,9 +188,8 @@ static void dsps_musb_disable(struct musb *musb)
+ 	musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
+ }
+ 
+-static void otg_timer(unsigned long _musb)
++static void dsps_check_status(struct musb *musb, void *unused)
+ {
+-	struct musb *musb = (void *)_musb;
+ 	void __iomem *mregs = musb->mregs;
+ 	struct device *dev = musb->controller;
+ 	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
+@@ -198,11 +197,6 @@ static void otg_timer(unsigned long _musb)
+ 	u8 devctl;
+ 	unsigned long flags;
+ 	int skip_session = 0;
+-	int err;
+-
+-	err = pm_runtime_get_sync(dev);
+-	if (err < 0)
+-		dev_err(dev, "Poll could not pm_runtime_get: %i\n", err);
+ 
+ 	/*
+ 	 * We poll because DSPS IP's won't expose several OTG-critical
+@@ -246,6 +240,22 @@ static void otg_timer(unsigned long _musb)
+ 		break;
+ 	}
+ 	spin_unlock_irqrestore(&musb->lock, flags);
++}
++
++static void otg_timer(unsigned long _musb)
++{
++	struct musb *musb = (void *)_musb;
++	struct device *dev = musb->controller;
++	int err;
++
++	err = pm_runtime_get(dev);
++	if (err < 0)
++		dev_err(dev, "Poll could not pm_runtime_get: %i\n", err);
++
++	if (pm_runtime_active(dev))
++		dsps_check_status(musb, NULL);
++	else
++		musb_queue_resume_work(musb, dsps_check_status, NULL);
+ 
+ 	pm_runtime_mark_last_busy(dev);
+ 	pm_runtime_put_autosuspend(dev);
+diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+--- a/drivers/usb/musb/musb_gadget.c
++++ b/drivers/usb/musb/musb_gadget.c
+@@ -1222,6 +1222,16 @@ void musb_ep_restart(struct musb *musb, struct musb_request *req)
+ 		rxstate(musb, req);
+ }
+ 
++void musb_ep_restart_resume_work(struct musb *musb, void *data)
++{
++	struct musb_request *req = data;
++	unsigned long flags;
++
++	spin_lock_irqsave(&musb->lock, flags);
++	musb_ep_restart(musb, req);
++	spin_unlock_irqrestore(&musb->lock, flags);
++}
++
+ static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
+ 			gfp_t gfp_flags)
+ {
+@@ -1255,7 +1265,7 @@ static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
+ 
+ 	map_dma_buffer(request, musb, musb_ep);
+ 
+-	pm_runtime_get_sync(musb->controller);
++	pm_runtime_get(musb->controller);
+ 	spin_lock_irqsave(&musb->lock, lockflags);
+ 
+ 	/* don't queue if the ep is down */
+@@ -1271,8 +1281,14 @@ static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
+ 	list_add_tail(&request->list, &musb_ep->req_list);
+ 
+ 	/* it this is the head of the queue, start i/o ... */
+-	if (!musb_ep->busy && &request->list == musb_ep->req_list.next)
+-		musb_ep_restart(musb, request);
++	if (!musb_ep->busy && &request->list == musb_ep->req_list.next) {
++		if (pm_runtime_active(musb->controller))
++			musb_ep_restart(musb, request);
++		else
++			musb_queue_resume_work(musb,
++					       musb_ep_restart_resume_work,
++					       request);
++	}
+ 
+ unlock:
+ 	spin_unlock_irqrestore(&musb->lock, lockflags);
+-- 
+2.10.2
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
