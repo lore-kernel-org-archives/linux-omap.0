@@ -1,32 +1,29 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH RESEND] ARM: AM43XX: Select OMAP_INTERCONNECT in Kconfig
-Date: Mon, 7 Nov 2016 16:20:38 -0700
-Message-ID: <20161107232038.GE2428@atomide.com>
-References: <20161019204412.18607-1-d-gerlach@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: PRM: initialize en_uart4_mask and
+ grpsel_uart4_mask
+Date: Mon, 7 Nov 2016 16:23:06 -0700
+Message-ID: <20161107232306.GF2428@atomide.com>
+References: <20161024110021.10259-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20161019204412.18607-1-d-gerlach@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20161024110021.10259-1-colin.king@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Colin King <colin.king@canonical.com>
+Cc: Rajendra Nayak <rnayak@codeaurora.org>, Paul Walmsley <paul@pwsan.com>, Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Dave Gerlach <d-gerlach@ti.com> [161019 13:45]:
-> AM437x makes use of the omap_l3_noc driver so explicitly select
-> OMAP_INTERCONNECT in the Kconfig for SOC_AM43XX to ensure it gets enabled
-> for AM43XX only builds.
+* Colin King <colin.king@canonical.com> [161024 04:01]:
+> From: Colin Ian King <colin.king@canonical.com>
+> 
+> In the case where has_uart4 is false, en_uart4_mask and grpsel_uart4_mask
+> are not initialized and so any garbage value is being logically or'd into
+> the write of PM_WKEN and OMAP3430_PM_MPUGRPSEL.  Fix this by initializing
+> these masks to zero.
 
-Applying into omap-for-v4.9/fixes thanks.
+Thanks applying into omap-for-v4.9/fixes.
+
+Regards,
 
 Tony
