@@ -1,45 +1,69 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 0/4] musb fixes for v4.9-rc cycle
-Date: Mon,  7 Nov 2016 14:50:16 -0700
-Message-ID: <20161107215020.31399-1-tony@atomide.com>
+Subject: [PATCH 1/4] usb: musb: Fix broken use of static variable for multiple instances
+Date: Mon,  7 Nov 2016 14:50:17 -0700
+Message-ID: <20161107215020.31399-2-tony@atomide.com>
+References: <20161107215020.31399-1-tony@atomide.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161107215020.31399-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
 Cc: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+We can't use static variable first for checking when musb is
+initialized when we have multiple musb instances like on am335x.
 
-Here are musb fixes for the issues that I've been able to track down.
-Not sure if these will help with the problem Ladis was seeing as I'm
-not able to reproduce that one it seems.
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/usb/musb/musb_core.c | 9 +++++----
+ drivers/usb/musb/musb_core.h | 2 ++
+ 2 files changed, 7 insertions(+), 4 deletions(-)
 
-As many people depend on this driver I'd like to have these merged
-for v4.9-rc cycle after review and testing.
-
-Please review and test. You need to use v4.9-rc3 or later for testing
-because of the earlier fixes.
-
-Regards,
-
-Tony
-
-
-Tony Lindgren (4):
-  usb: musb: Fix broken use of static variable for multiple instances
-  usb: musb: Fix sleeping function called from invalid context for hdrc
-    glue
-  usb: musb: Fix PM for hub disconnect
-  phy: twl4030-usb: Fix for musb session bit based PM
-
- drivers/phy/phy-twl4030-usb.c  |   4 +-
- drivers/usb/musb/musb_core.c   | 107 +++++++++++++++++++++++++++++++++++------
- drivers/usb/musb/musb_core.h   |  13 ++++-
- drivers/usb/musb/musb_dsps.c   |  24 ++++++---
- drivers/usb/musb/musb_gadget.c |  28 ++++++++---
- drivers/usb/musb/tusb6010.c    |   6 +--
- 6 files changed, 148 insertions(+), 34 deletions(-)
-
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -2296,6 +2296,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+ 	if (status)
+ 		goto fail5;
+ 
++	musb->is_initialized = 1;
+ 	pm_runtime_mark_last_busy(musb->controller);
+ 	pm_runtime_put_autosuspend(musb->controller);
+ 
+@@ -2634,7 +2635,6 @@ static int musb_runtime_suspend(struct device *dev)
+ static int musb_runtime_resume(struct device *dev)
+ {
+ 	struct musb	*musb = dev_to_musb(dev);
+-	static int	first = 1;
+ 
+ 	/*
+ 	 * When pm_runtime_get_sync called for the first time in driver
+@@ -2645,9 +2645,10 @@ static int musb_runtime_resume(struct device *dev)
+ 	 * Also context restore without save does not make
+ 	 * any sense
+ 	 */
+-	if (!first)
+-		musb_restore_context(musb);
+-	first = 0;
++	if (!musb->is_initialized)
++		return 0;
++
++	musb_restore_context(musb);
+ 
+ 	if (musb->need_finish_resume) {
+ 		musb->need_finish_resume = 0;
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -385,6 +385,8 @@ struct musb {
+ 	int			a_wait_bcon;	/* VBUS timeout in msecs */
+ 	unsigned long		idle_timeout;	/* Next timeout in jiffies */
+ 
++	unsigned		is_initialized:1;
++
+ 	/* active means connected and not suspended */
+ 	unsigned		is_active:1;
+ 
 -- 
 2.10.2
 --
