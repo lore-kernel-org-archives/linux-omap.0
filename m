@@ -1,35 +1,207 @@
-From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/4] pinctrl: Introduce generic #pinctrl-cells and pinctrl_parse_index_with_args
-Date: Tue, 8 Nov 2016 11:32:10 +0100
-Message-ID: <CACRpkdbdfM8qtMSE1O-VEsnOHGbVuMDhOFtELvqoYuE1JJ=GRg@mail.gmail.com>
-References: <20161103163550.27330-1-tony@atomide.com> <20161103163550.27330-2-tony@atomide.com>
- <CACRpkdaCF4Jc7QY+L44obce=V_W4xgVbPXfuiE7bXJs7ud9q9A@mail.gmail.com> <20161107152613.GA2428@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161107152613.GA2428-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, "linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [PATCH] net: ethernet: ti: davinci_cpdma: fix fixed prio cpdma ctlr configuration
+Date: Tue,  8 Nov 2016 15:10:56 +0200
+Message-ID: <1478610656-24634-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: mugunthanvnm@ti.com, grygorii.strashko@ti.com, netdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 7, 2016 at 4:26 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> * Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> [161104 14:50]:
+The dma ctlr is reseted to 0 while cpdma start, thus cpdma ctlr
+cannot be configured after cpdma is stopped. So, restore content
+of cpdma ctlr while off/on procedure.
 
->> +struct of_phandle_args;
->> +
->>  #ifdef CONFIG_OF
->>
->> Let's see if it works!
->
-> OK so do we know now? It seems there was one more email
-> about it but it may have been without it.
+Based on net-next/master
 
-I haven't seen anything, I think it JustWorks(TM).
+Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+---
+ drivers/net/ethernet/ti/cpsw.c          |   6 +-
+ drivers/net/ethernet/ti/davinci_cpdma.c | 103 +++++++++++++++++---------------
+ drivers/net/ethernet/ti/davinci_cpdma.h |   2 +
+ 3 files changed, 58 insertions(+), 53 deletions(-)
 
-Yours,
-Linus Walleij
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index b1ddf89..4d04b8e 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -1376,10 +1376,6 @@ static int cpsw_ndo_open(struct net_device *ndev)
+ 				  ALE_ALL_PORTS, ALE_ALL_PORTS, 0, 0);
+ 
+ 	if (!cpsw_common_res_usage_state(cpsw)) {
+-		/* setup tx dma to fixed prio and zero offset */
+-		cpdma_control_set(cpsw->dma, CPDMA_TX_PRIO_FIXED, 1);
+-		cpdma_control_set(cpsw->dma, CPDMA_RX_BUFFER_OFFSET, 0);
+-
+ 		/* disable priority elevation */
+ 		__raw_writel(0, &cpsw->regs->ptype);
+ 
+@@ -2710,6 +2706,8 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	dma_params.desc_align		= 16;
+ 	dma_params.has_ext_regs		= true;
+ 	dma_params.desc_hw_addr         = dma_params.desc_mem_phys;
++	dma_params.rxbuf_offset		= 0;
++	dma_params.fixed_prio		= 1;
+ 
+ 	cpsw->dma = cpdma_ctlr_create(&dma_params);
+ 	if (!cpsw->dma) {
+diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
+index c3f35f1..05afc05 100644
+--- a/drivers/net/ethernet/ti/davinci_cpdma.c
++++ b/drivers/net/ethernet/ti/davinci_cpdma.c
+@@ -124,6 +124,29 @@ struct cpdma_chan {
+ 	int	int_set, int_clear, td;
+ };
+ 
++struct cpdma_control_info {
++	u32		reg;
++	u32		shift, mask;
++	int		access;
++#define ACCESS_RO	BIT(0)
++#define ACCESS_WO	BIT(1)
++#define ACCESS_RW	(ACCESS_RO | ACCESS_WO)
++};
++
++static struct cpdma_control_info controls[] = {
++	[CPDMA_CMD_IDLE]	  = {CPDMA_DMACONTROL,	3,  1,      ACCESS_WO},
++	[CPDMA_COPY_ERROR_FRAMES] = {CPDMA_DMACONTROL,	4,  1,      ACCESS_RW},
++	[CPDMA_RX_OFF_LEN_UPDATE] = {CPDMA_DMACONTROL,	2,  1,      ACCESS_RW},
++	[CPDMA_RX_OWNERSHIP_FLIP] = {CPDMA_DMACONTROL,	1,  1,      ACCESS_RW},
++	[CPDMA_TX_PRIO_FIXED]	  = {CPDMA_DMACONTROL,	0,  1,      ACCESS_RW},
++	[CPDMA_STAT_IDLE]	  = {CPDMA_DMASTATUS,	31, 1,      ACCESS_RO},
++	[CPDMA_STAT_TX_ERR_CODE]  = {CPDMA_DMASTATUS,	20, 0xf,    ACCESS_RW},
++	[CPDMA_STAT_TX_ERR_CHAN]  = {CPDMA_DMASTATUS,	16, 0x7,    ACCESS_RW},
++	[CPDMA_STAT_RX_ERR_CODE]  = {CPDMA_DMASTATUS,	12, 0xf,    ACCESS_RW},
++	[CPDMA_STAT_RX_ERR_CHAN]  = {CPDMA_DMASTATUS,	8,  0x7,    ACCESS_RW},
++	[CPDMA_RX_BUFFER_OFFSET]  = {CPDMA_RXBUFFOFS,	0,  0xffff, ACCESS_RW},
++};
++
+ #define tx_chan_num(chan)	(chan)
+ #define rx_chan_num(chan)	((chan) + CPDMA_MAX_CHANNELS)
+ #define is_rx_chan(chan)	((chan)->chan_num >= CPDMA_MAX_CHANNELS)
+@@ -253,6 +276,31 @@ static void cpdma_desc_free(struct cpdma_desc_pool *pool,
+ 	gen_pool_free(pool->gen_pool, (unsigned long)desc, pool->desc_size);
+ }
+ 
++static int _cpdma_control_set(struct cpdma_ctlr *ctlr, int control, int value)
++{
++	struct cpdma_control_info *info = &controls[control];
++	u32 val;
++
++	if (!ctlr->params.has_ext_regs)
++		return -ENOTSUPP;
++
++	if (ctlr->state != CPDMA_STATE_ACTIVE)
++		return -EINVAL;
++
++	if (control < 0 || control >= ARRAY_SIZE(controls))
++		return -ENOENT;
++
++	if ((info->access & ACCESS_WO) != ACCESS_WO)
++		return -EPERM;
++
++	val  = dma_reg_read(ctlr, info->reg);
++	val &= ~(info->mask << info->shift);
++	val |= (value & info->mask) << info->shift;
++	dma_reg_write(ctlr, info->reg, val);
++
++	return 0;
++}
++
+ struct cpdma_ctlr *cpdma_ctlr_create(struct cpdma_params *params)
+ {
+ 	struct cpdma_ctlr *ctlr;
+@@ -324,6 +372,11 @@ int cpdma_ctlr_start(struct cpdma_ctlr *ctlr)
+ 		if (ctlr->channels[i])
+ 			cpdma_chan_start(ctlr->channels[i]);
+ 	}
++
++	_cpdma_control_set(ctlr, CPDMA_TX_PRIO_FIXED, ctlr->params.fixed_prio);
++	_cpdma_control_set(ctlr, CPDMA_RX_BUFFER_OFFSET,
++			   ctlr->params.rxbuf_offset);
++
+ 	spin_unlock_irqrestore(&ctlr->lock, flags);
+ 	return 0;
+ }
+@@ -874,29 +927,6 @@ int cpdma_chan_int_ctrl(struct cpdma_chan *chan, bool enable)
+ 	return 0;
+ }
+ 
+-struct cpdma_control_info {
+-	u32		reg;
+-	u32		shift, mask;
+-	int		access;
+-#define ACCESS_RO	BIT(0)
+-#define ACCESS_WO	BIT(1)
+-#define ACCESS_RW	(ACCESS_RO | ACCESS_WO)
+-};
+-
+-static struct cpdma_control_info controls[] = {
+-	[CPDMA_CMD_IDLE]	  = {CPDMA_DMACONTROL,	3,  1,      ACCESS_WO},
+-	[CPDMA_COPY_ERROR_FRAMES] = {CPDMA_DMACONTROL,	4,  1,      ACCESS_RW},
+-	[CPDMA_RX_OFF_LEN_UPDATE] = {CPDMA_DMACONTROL,	2,  1,      ACCESS_RW},
+-	[CPDMA_RX_OWNERSHIP_FLIP] = {CPDMA_DMACONTROL,	1,  1,      ACCESS_RW},
+-	[CPDMA_TX_PRIO_FIXED]	  = {CPDMA_DMACONTROL,	0,  1,      ACCESS_RW},
+-	[CPDMA_STAT_IDLE]	  = {CPDMA_DMASTATUS,	31, 1,      ACCESS_RO},
+-	[CPDMA_STAT_TX_ERR_CODE]  = {CPDMA_DMASTATUS,	20, 0xf,    ACCESS_RW},
+-	[CPDMA_STAT_TX_ERR_CHAN]  = {CPDMA_DMASTATUS,	16, 0x7,    ACCESS_RW},
+-	[CPDMA_STAT_RX_ERR_CODE]  = {CPDMA_DMASTATUS,	12, 0xf,    ACCESS_RW},
+-	[CPDMA_STAT_RX_ERR_CHAN]  = {CPDMA_DMASTATUS,	8,  0x7,    ACCESS_RW},
+-	[CPDMA_RX_BUFFER_OFFSET]  = {CPDMA_RXBUFFOFS,	0,  0xffff, ACCESS_RW},
+-};
+-
+ int cpdma_control_get(struct cpdma_ctlr *ctlr, int control)
+ {
+ 	unsigned long flags;
+@@ -931,35 +961,10 @@ int cpdma_control_get(struct cpdma_ctlr *ctlr, int control)
+ int cpdma_control_set(struct cpdma_ctlr *ctlr, int control, int value)
+ {
+ 	unsigned long flags;
+-	struct cpdma_control_info *info = &controls[control];
+ 	int ret;
+-	u32 val;
+ 
+ 	spin_lock_irqsave(&ctlr->lock, flags);
+-
+-	ret = -ENOTSUPP;
+-	if (!ctlr->params.has_ext_regs)
+-		goto unlock_ret;
+-
+-	ret = -EINVAL;
+-	if (ctlr->state != CPDMA_STATE_ACTIVE)
+-		goto unlock_ret;
+-
+-	ret = -ENOENT;
+-	if (control < 0 || control >= ARRAY_SIZE(controls))
+-		goto unlock_ret;
+-
+-	ret = -EPERM;
+-	if ((info->access & ACCESS_WO) != ACCESS_WO)
+-		goto unlock_ret;
+-
+-	val  = dma_reg_read(ctlr, info->reg);
+-	val &= ~(info->mask << info->shift);
+-	val |= (value & info->mask) << info->shift;
+-	dma_reg_write(ctlr, info->reg, val);
+-	ret = 0;
+-
+-unlock_ret:
++	ret = _cpdma_control_set(ctlr, control, value);
+ 	spin_unlock_irqrestore(&ctlr->lock, flags);
+ 	return ret;
+ }
+diff --git a/drivers/net/ethernet/ti/davinci_cpdma.h b/drivers/net/ethernet/ti/davinci_cpdma.h
+index a07b22b..e66420f 100644
+--- a/drivers/net/ethernet/ti/davinci_cpdma.h
++++ b/drivers/net/ethernet/ti/davinci_cpdma.h
+@@ -31,6 +31,8 @@ struct cpdma_params {
+ 	void __iomem		*rxthresh, *rxfree;
+ 	int			num_chan;
+ 	bool			has_soft_reset;
++	bool			fixed_prio;
++	int			rxbuf_offset;
+ 	int			min_packet_size;
+ 	u32			desc_mem_phys;
+ 	u32			desc_hw_addr;
+-- 
+1.9.1
