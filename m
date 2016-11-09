@@ -1,40 +1,45 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: Re: [PATCH net v2 2/4] net: ethernet: ti: cpsw: fix device and
- of_node leaks
-Date: Wed, 9 Nov 2016 10:58:25 +0100
-Message-ID: <20161109095825.GE14744@localhost>
-References: <1478194822-29545-1-git-send-email-johan@kernel.org>
- <1478194822-29545-3-git-send-email-johan@kernel.org>
- <0c76f9db-ab5f-bce3-897d-5f325c2b84c4@ti.com>
+From: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+Subject: [PATCH] usb: ehci-omap: don't complain on -EPROBE_DEFER when no PHY
+ found
+Date: Wed, 9 Nov 2016 15:02:47 +0100
+Message-ID: <20161109140247.GC20859@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <0c76f9db-ab5f-bce3-897d-5f325c2b84c4@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Johan Hovold <johan@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, Mugunthan V N <mugunthanvnm@ti.com>, Yisen Zhuang <yisen.zhuang@huawei.com>, Salil Mehta <salil.mehta@huawei.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 08, 2016 at 05:19:29PM -0600, Grygorii Strashko wrote:
-> 
-> 
-> On 11/03/2016 12:40 PM, Johan Hovold wrote:
-> > Make sure to drop the references taken by of_get_child_by_name() and
-> > bus_find_device() before returning from cpsw_phy_sel().
-> >
-> > Note that holding a reference to the cpsw-phy-sel device does not
-> > prevent the devres-managed private data from going away.
-> >
-> > Fixes: 5892cd135e16 ("drivers: net: cpsw-phy-sel: Add new driver...")
-> > Cc: Mugunthan V N <mugunthanvnm@ti.com>
-> > Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-> > Cc: linux-omap@vger.kernel.org
-> > Signed-off-by: Johan Hovold <johan@kernel.org>
-> > ---
-> 
-> Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Don't complain on -EPROBE_DEFER when when no PHY found, the driver
+probe will be retried later.
 
-Thanks for the review. Note that David has already applied these, though.
+Signed-off-by: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+---
+ drivers/usb/host/ehci-omap.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-Johan
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index 94ea9ff..44945eb 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -181,8 +181,9 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ 				continue;
+ 
+ 			ret = PTR_ERR(phy);
+-			dev_err(dev, "Can't get PHY device for port %d: %d\n",
+-					i, ret);
++			if (ret != -EPROBE_DEFER)
++				dev_err(dev, "Can't get PHY device for port "
++					"%d: %d\n", i, ret);
+ 			goto err_phy;
+ 		}
+ 
+-- 
+2.1.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
