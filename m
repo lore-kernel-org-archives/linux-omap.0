@@ -1,42 +1,39 @@
-From: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
-Subject: [PATCH] usb: musb: omap2430: make complain on -EPROBE_DEFER dev_dbg
-Date: Wed, 9 Nov 2016 15:10:26 +0100
-Message-ID: <20161109141026.GF20859@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Axel Haslam <ahaslam@baylibre.com>
+Subject: [PATCH] pinctrl: single: check for any error when getting rows
+Date: Wed,  9 Nov 2016 15:17:06 +0100
+Message-ID: <20161109141706.12624-1-ahaslam@baylibre.com>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: tony@atomide.com, haojian.zhuang@linaro.org, linus.walleij@linaro.org, khilman@baylibre.com, nsekhar@ti.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Axel Haslam <ahaslam@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-There is no point having this complaint to be dev_err as it is just adding
-noise to bootlog.
+pinctrl_count_index_with_args returns -ENOENT not
+-EINVAL. The return check would pass, and we would
+try to kzalloc with a negative error size throwing
+a warning.
 
-Signed-off-by: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+Instead of checking for -EINVAL specifically, lets
+check for any error and avoid negative size allocations.
+
+Signed-off-by: Axel Haslam <ahaslam@baylibre.com>
 ---
- drivers/usb/musb/omap2430.c | 2 +-
+ drivers/pinctrl/pinctrl-single.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 451b372..7c9aa5e 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -277,7 +277,7 @@ static int omap2430_musb_init(struct musb *musb)
- 		if (status == -ENXIO)
- 			return status;
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index 539f31c..56e22be 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -1228,7 +1228,7 @@ static int pcs_parse_bits_in_pinctrl_entry(struct pcs_device *pcs,
+ 	struct pcs_function *function;
  
--		dev_err(dev, "HS USB OTG: no transceiver configured\n");
-+		dev_dbg(dev, "HS USB OTG: no transceiver configured\n");
- 		return -EPROBE_DEFER;
- 	}
+ 	rows = pinctrl_count_index_with_args(np, name);
+-	if (rows == -EINVAL)
++	if (rows < 0)
+ 		return rows;
  
+ 	npins_in_row = pcs->width / pcs->bits_per_pin;
 -- 
-2.1.4
+2.10.1
 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
