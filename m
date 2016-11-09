@@ -1,42 +1,71 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 0/2] pinctrl: single: fixes for davinci
-Date: Wed, 9 Nov 2016 08:20:25 -0700
-Message-ID: <20161109152024.GT2428@atomide.com>
-References: <20161109145401.25327-1-ahaslam@baylibre.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 2/4] usb: musb: Fix sleeping function called from invalid
+ context for hdrc glue
+Date: Wed, 9 Nov 2016 08:34:10 -0700
+Message-ID: <20161109153409.GU2428@atomide.com>
+References: <20161107215020.31399-1-tony@atomide.com>
+ <20161107215020.31399-3-tony@atomide.com>
+ <20161108170917.GA3328@localhost>
+ <20161108173413.GM2428@atomide.com>
+ <20161108190331.GA14744@localhost>
+ <20161109012606.GR2428@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161109145401.25327-1-ahaslam@baylibre.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Axel Haslam <ahaslam@baylibre.com>
-Cc: haojian.zhuang@linaro.org, linus.walleij@linaro.org, khilman@baylibre.com, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20161109012606.GR2428-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Axel Haslam <ahaslam@baylibre.com> [161109 07:54]:
-> After recent pinctl patches we see a warning when booting davinci
-> due to a bad memory allocation:
-> 
-> ------------[ cut here ]------------
-> WARNING: CPU: 0 PID: 1 at mm/page_alloc.c:3511 __alloc_pages_nodemask+0x16c/0xb18
-> Modules linked in:
-> CPU: 0 PID: 1 Comm: swapper Not tainted 4.9.0-rc2-00023-g22d5127-dirty #1019
-> Hardware name: Generic DA850/OMAP-L138/AM18x
-> Backtrace: 
-> [<c000d670>] (dump_backtrace) from [<c000d794>] (show_stack+0x18/0x1c)
-> [<c000d77c>] (show_stack) from [<c021a0d0>] (dump_stack+0x20/0x28)
-> [<c021a0b0>] (dump_stack) from [<c001bb10>] (__warn+0xe8/0x100)
-> [<c001ba28>] (__warn) from [<c001bb50>] (warn_slowpath_null+0x28/0x30)
-> [<c001bb28>] (warn_slowpath_null) from [<c0097e7c>] (__alloc_pages_nodemask+0x16c/0xb18)
-> [<c0097d10>] (__alloc_pages_nodemask) from [<c00afef4>] (kmalloc_order+0x20/0x58)
-> [<c00afed4>] (kmalloc_order) from [<c00ce7ac>] (__kmalloc_track_caller+0x188/0x190)
-> [<c00ce624>] (__kmalloc_track_caller) from [<c02a762c>] (devm_kmalloc+0x24/0x70)
-> [<c02a7608>] (devm_kmalloc) from [<c0247d10>] (pcs_dt_node_to_map+0x1d0/0xa40)
-> [<c0245ec8>] (pinctrl_dt_to_map) from [<c0242fd0>] (pinctrl_get+0xe8/0x484)
-> [snip]
-> 
-> This series fixes this error.
+* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [161108 18:26]:
+> * Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [161108 12:03]:
+> +int musb_queue_resume_work(struct musb *musb,
+> +			   int (*callback)(struct musb *musb, void *data),
+> +			   void *data)
+> +{
+> +	struct musb_pending_work *w;
+> +	unsigned long flags;
+> +	int error;
+> +
+> +	if (WARN_ON(!callback))
+> +		return -EINVAL;
+> +
+> +	if (pm_runtime_active(musb->controller))
+> +		return callback(musb, data);
+> +
+> +	w = devm_kzalloc(musb->controller, sizeof(*w), GFP_ATOMIC);
+> +	if (!w)
+> +		return -ENOMEM;
+> +
+> +	w->callback = callback;
+> +	w->data = data;
+> +	spin_lock_irqsave(&musb->list_lock, flags);
+> +	if (musb->is_runtime_suspended) {
+> +		list_add_tail(&w->node, &musb->pending_list);
+> +		error = 0;
+> +	} else {
+> +		dev_err(musb->controller, "could not add resume work %p\n",
+> +			callback);
+> +		devm_kfree(musb->controller, w);
+> +		error = -EINPROGRESS;
+> +	}
+> +	spin_unlock_irqrestore(&musb->list_lock, flags);
+> +
+> +	if (pm_runtime_active(musb->controller))
+> +		return musb_run_resume_work(musb);
+> +
+> +	return error;
+> +}
 
-Thanks for fixing these and sorry about breaking pinctrl-bits:
+Hmm I think we can also leave out musb_run_resume_work() at the end,
+we should not hit that case any longer.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
