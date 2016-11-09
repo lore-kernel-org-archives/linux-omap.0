@@ -1,50 +1,51 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 1/2] dma: cppi41: Fix list not empty warning on module removal
-Date: Wed,  9 Nov 2016 09:47:58 -0700
-Message-ID: <20161109164759.24913-2-tony@atomide.com>
-References: <20161109164759.24913-1-tony@atomide.com>
+Subject: Re: [PATCH] usb: ehci-omap: don't complain on -EPROBE_DEFER when no
+ PHY found
+Date: Wed, 9 Nov 2016 10:46:19 -0700
+Message-ID: <20161109174619.GV2428@atomide.com>
+References: <20161109140247.GC20859@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161109164759.24913-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161109140247.GC20859-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-If musb controller is configured with USB peripherals and we have
-enumerated with a USB host, we can get warnings on removal of the
-modules:
+* Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org> [161109 07:03]:
+> Don't complain on -EPROBE_DEFER when when no PHY found, the driver
+> probe will be retried later.
 
-WARNING: CPU: 0 PID: 1269 at drivers/dma/cppi41.c:391
-cppi41_dma_free_chan_resources
+Please send this directly to Alan and Greg:
 
-Fix the issue by adding the missing pm_runtime_get to
-cppi41_dma_free_chan_resources to make sure the pending work
-list is cleared on removal.
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 
-Fixes: fdea2d09b997 ("dmaengine: cppi41: Add basic PM runtime support")
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- drivers/dma/cppi41.c | 5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
---- a/drivers/dma/cppi41.c
-+++ b/drivers/dma/cppi41.c
-@@ -1072,7 +1072,12 @@ static int cppi41_dma_probe(struct platform_device *pdev)
- static int cppi41_dma_remove(struct platform_device *pdev)
- {
- 	struct cppi41_dd *cdd = platform_get_drvdata(pdev);
-+	int error;
- 
-+	error = pm_runtime_get_sync(&pdev->dev);
-+	if (error < 0)
-+		dev_err(&pdev->dev, "%s could not pm_runtime_get: %i\n",
-+			__func__, error);
- 	of_dma_controller_free(pdev->dev.of_node);
- 	dma_async_device_unregister(&cdd->ddev);
- 
--- 
-2.10.2
+> Signed-off-by: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+> ---
+>  drivers/usb/host/ehci-omap.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+> index 94ea9ff..44945eb 100644
+> --- a/drivers/usb/host/ehci-omap.c
+> +++ b/drivers/usb/host/ehci-omap.c
+> @@ -181,8 +181,9 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+>  				continue;
+>  
+>  			ret = PTR_ERR(phy);
+> -			dev_err(dev, "Can't get PHY device for port %d: %d\n",
+> -					i, ret);
+> +			if (ret != -EPROBE_DEFER)
+> +				dev_err(dev, "Can't get PHY device for port "
+> +					"%d: %d\n", i, ret);
+>  			goto err_phy;
+>  		}
+>  
+> -- 
+> 2.1.4
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
