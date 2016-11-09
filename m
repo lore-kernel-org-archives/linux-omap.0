@@ -1,32 +1,49 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 0/8] Support TPS65217 PMIC interrupt in DT
-Date: Wed, 9 Nov 2016 14:38:06 -0700
-Message-ID: <20161109213805.GB2428@atomide.com>
-References: <20161028123702.21849-1-woogyom.kim@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 0/5] ARM: OMAP: dead code removal
+Date: Wed, 9 Nov 2016 14:47:18 -0700
+Message-ID: <20161109214718.GE2428@atomide.com>
+References: <1478000206-10855-1-git-send-email-Nicolae_Rosia@mentor.com>
+ <1478268138-7044-1-git-send-email-Nicolae_Rosia@mentor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20161028123702.21849-1-woogyom.kim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Milo Kim <woogyom.kim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1478268138-7044-1-git-send-email-Nicolae_Rosia@mentor.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Nicolae Rosia <Nicolae_Rosia@mentor.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Milo Kim <woogyom.kim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [161028 05:38]:
-> TPS65217 interrupt events include push button pressed/released, USB and AC 
-> voltage status change. AM335x bone based boards (like BB, BBB, BBG) have 
-> common PMIC interrupt pin (named NMI) of AM335x core.
+* Nicolae Rosia <Nicolae_Rosia@mentor.com> [161104 07:02]:
+> Hi,
 > 
-> This patchset support interrupts in device tree file.
+> I have identified some dead code which can be removed.
+> 
+> v2:
+> - Added details on each commit on how the code ended up unused.
+> 
+> Nicolae Rosia (5):
+>   ARM: OMAP4: kill omap4_pmic_init and omap4_pmic_get_config
+>   ARM: OMAP3: kill omap3_pmic_get_config and twl_{get,set}_voltage
+>   ARM: OMAP3: kill omap3_pmic_init
+>   ARM: OMAP2: kill omap2_pmic_init
+>   ARM: OMAP: kill omap_pmic_init
+> 
+>  arch/arm/mach-omap2/twl-common.c | 483 ---------------------------------------
+>  arch/arm/mach-omap2/twl-common.h |  24 --
+>  2 files changed, 507 deletions(-)
 
-Applying into omap-for-v4.10/dt except the last patch I'll apply into
-omap-for-v4.10/fixes-not-urgent.
+Thanks applying all these into omap-for-v4.10/legacy.
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
