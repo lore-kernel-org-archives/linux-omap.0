@@ -1,42 +1,66 @@
-From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Subject: Re: PM regression with LED changes in next-20161109
-Date: Wed, 9 Nov 2016 21:45:28 +0100
-Message-ID: <28234714-3994-6747-9cf8-1ff0b3257f7a@gmail.com>
-References: <20161109192301.GS26979@atomide.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH] net: ethernet: ti: davinci_cpdma: fix fixed prio cpdma
+ ctlr configuration
+Date: Wed, 9 Nov 2016 15:09:22 -0600
+Message-ID: <a20ab87c-4f9d-0eaa-e486-156d9f359866@ti.com>
+References: <1478610656-24634-1-git-send-email-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161109192301.GS26979@atomide.com>
+In-Reply-To: <1478610656-24634-1-git-send-email-ivan.khoronzhuk@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Hans de Goede <hdegoede@redhat.com>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>, linux-leds@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Darren Hart <dvhart@infradead.org>
+To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, mugunthanvnm@ti.com, netdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
 
-On 11/09/2016 08:23 PM, Tony Lindgren wrote:
-> Hi,
->
-> Looks like commit 883d32ce3385 ("leds: core: Add support for poll()ing
-> the sysfs brightness attr for changes.") breaks runtime PM for me.
->
-> On my omap dm3730 based test system, idle power consumption is over 70
-> times higher now with this patch! It goes from about 6mW for the core
-> system to over 440mW during idle meaning there's some busy timer now
-> active.
->
-> Reverting this patch fixes the issue. Any ideas?
 
-Thanks for the report. This is probably caused by sysfs_notify_dirent().
-I'm afraid that we can't keep this feature in the current shape.
-Hans, I'm dropping the patch. We probably will have to delegate this
-call to a workqueue task. Think about use cases when the LED is blinked
-with high frequency e.g. from ledtrig-disk.c.
+On 11/08/2016 07:10 AM, Ivan Khoronzhuk wrote:
+> The dma ctlr is reseted to 0 while cpdma start, thus cpdma ctlr
 
-Also, IMHO the notifications should be enabled only if explicitly
-selected in the kernel config.
+I assume this is because cpdma_ctlr_start() does soft reset. Is it correct?
+
+> cannot be configured after cpdma is stopped. So, restore content
+> of cpdma ctlr while off/on procedure.
+> 
+> Based on net-next/master
+
+^ remove it
+
+> 
+> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> ---
+>  drivers/net/ethernet/ti/cpsw.c          |   6 +-
+>  drivers/net/ethernet/ti/davinci_cpdma.c | 103 +++++++++++++++++---------------
+>  drivers/net/ethernet/ti/davinci_cpdma.h |   2 +
+>  3 files changed, 58 insertions(+), 53 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+> index b1ddf89..4d04b8e 100644
+> --- a/drivers/net/ethernet/ti/cpsw.c
+> +++ b/drivers/net/ethernet/ti/cpsw.c
+> @@ -1376,10 +1376,6 @@ static int cpsw_ndo_open(struct net_device *ndev)
+>  				  ALE_ALL_PORTS, ALE_ALL_PORTS, 0, 0);
+>  
+>  	if (!cpsw_common_res_usage_state(cpsw)) {
+> -		/* setup tx dma to fixed prio and zero offset */
+> -		cpdma_control_set(cpsw->dma, CPDMA_TX_PRIO_FIXED, 1);
+> -		cpdma_control_set(cpsw->dma, CPDMA_RX_BUFFER_OFFSET, 0);
+> -
+>  		/* disable priority elevation */
+>  		__raw_writel(0, &cpsw->regs->ptype);
+>  
+> @@ -2710,6 +2706,8 @@ static int cpsw_probe(struct platform_device *pdev)
+>  	dma_params.desc_align		= 16;
+>  	dma_params.has_ext_regs		= true;
+>  	dma_params.desc_hw_addr         = dma_params.desc_mem_phys;
+> +	dma_params.rxbuf_offset		= 0;
+> +	dma_params.fixed_prio		= 1;
+
+Do we really need this new parameters? Do you have plans to use other values?
+
 
 -- 
-Best regards,
-Jacek Anaszewski
+regards,
+-grygorii
