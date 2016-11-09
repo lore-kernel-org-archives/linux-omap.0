@@ -1,95 +1,50 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] mfd: tps65217: Drop call to irq_set_parent()
-Date: Wed, 9 Nov 2016 15:08:42 +0000
-Message-ID: <20161109150842.GF13127@dell>
-References: <1476479886-10208-1-git-send-email-linux@roeck-us.net>
- <20161026123516.GC11267@dell>
- <alpine.DEB.2.20.1610261437320.4983@nanos>
- <20161026125854.GA12618@dell>
- <3b280a00-271a-c743-d076-4f55813fe43f@roeck-us.net>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] pinctrl: single: check for any error when getting rows
+Date: Wed, 9 Nov 2016 08:19:27 -0700
+Message-ID: <20161109151926.GS2428@atomide.com>
+References: <20161109141706.12624-1-ahaslam@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <3b280a00-271a-c743-d076-4f55813fe43f@roeck-us.net>
+In-Reply-To: <20161109141706.12624-1-ahaslam@baylibre.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Marcin Niestroj <m.niestroj@grinn-global.com>, Arnd Bergmann <arnd@arndb.de>
+To: Axel Haslam <ahaslam@baylibre.com>
+Cc: haojian.zhuang@linaro.org, linus.walleij@linaro.org, khilman@baylibre.com, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 26 Oct 2016, Guenter Roeck wrote:
+* Axel Haslam <ahaslam@baylibre.com> [161109 07:19]:
+> pinctrl_count_index_with_args returns -ENOENT not
+> -EINVAL. The return check would pass, and we would
+> try to kzalloc with a negative error size throwing
+> a warning.
+> 
+> Instead of checking for -EINVAL specifically, lets
+> check for any error and avoid negative size allocations.
+> 
+> Signed-off-by: Axel Haslam <ahaslam@baylibre.com>
 
-> On 10/26/2016 05:58 AM, Lee Jones wrote:
-> > On Wed, 26 Oct 2016, Thomas Gleixner wrote:
-> > 
-> > > On Wed, 26 Oct 2016, Lee Jones wrote:
-> > > > On Fri, 14 Oct 2016, Guenter Roeck wrote:
-> > > > 
-> > > > > The call to irq_set_parent() causes the following build error if tps65217
-> > > > > is built as module.
-> > > > > 
-> > > > > ERROR: ".irq_set_parent" [drivers/mfd/tps65217.ko] undefined!
-> > > > > 
-> > > > > The problem was introduced with commit 6556bdacf646f ("mfd: tps65217: Add
-> > > > > support for IRQs").
-> > > > > 
-> > > > > The author states: "I have added irq_set_parent() similarly as in
-> > > > > drivers/base/regmap/regmap-irq.c. But to be honest I am not sure what it
-> > > > > really does in case of tps65217."
-> > > > > 
-> > > > > So let's drop it.
-> > > > > 
-> > > > > Fixes: 6556bdacf646f ("mfd: tps65217: Add support for IRQs")
-> > > > > Cc: Marcin Niestroj <m.niestroj@grinn-global.com>
-> > > > > Cc: Arnd Bergmann <arnd@arndb.de>
-> > > > > Cc: Thomas Gleixner <tglx@linutronix.de>
-> > > > > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> > > > > ---
-> > > > >  drivers/mfd/tps65217.c | 1 -
-> > > > >  1 file changed, 1 deletion(-)
-> > > > 
-> > > > This has been fixed now.
-> > > 
-> > > It was not fixed. The export was a work around as everyone was bitching
-> > > about the build robots failing forever.
-> > > 
-> > > So if the irq_set_parent() call is not required for functionality of the
-> > > driver then it should not be there in the first place.
-> > 
-> > Ah, I thought this was just another one of the many hacks I received
-> > in response to the auto-builder's complains.  I've just been NACKing
-> > them out of habit.
-> > 
-> 
-> Well, it was, in a way. However, with the driver author being silent,
-> and with irq_set_parent() not that well documented, I considered it
-> a better solution than blindly exporting the function.
-> 
-> Having said that, I do suspect that its use might possibly be warranted
-> in this case, since the driver uses edge triggered interrupts and calls
-> handle_nested_irq(). But then many other drivers do the same and don't
-> call irq_set_parent(), so who knows. The use case for irq_set_parent()
-> isn't exactly well explained.
+Thanks for fixing that:
 
-Final call; am I taking this patch or not?
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-> FWIW, since everyone seems to be bitching about auto-builders: You may not
-> care, but problems like this end up hiding other problems, can make
-> bisecting a pain, and can end up costing a lot of time in the future.
-> I have worked for companies where the common attitude was "who cares about
-> any builds but ours". Sounds great, until one needs to enable one more
-> configuration option and everything falls apart.
+> ---
+>  drivers/pinctrl/pinctrl-single.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> If you don't care about a driver being buildable as module, make it boolean.
-> Please.
+> diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+> index 539f31c..56e22be 100644
+> --- a/drivers/pinctrl/pinctrl-single.c
+> +++ b/drivers/pinctrl/pinctrl-single.c
+> @@ -1228,7 +1228,7 @@ static int pcs_parse_bits_in_pinctrl_entry(struct pcs_device *pcs,
+>  	struct pcs_function *function;
+>  
+>  	rows = pinctrl_count_index_with_args(np, name);
+> -	if (rows == -EINVAL)
+> +	if (rows < 0)
+>  		return rows;
+>  
+>  	npins_in_row = pcs->width / pcs->bits_per_pin;
+> -- 
+> 2.10.1
 > 
-> Thanks,
-> Guenter
-> 
-
--- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
