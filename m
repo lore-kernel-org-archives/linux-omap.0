@@ -1,123 +1,88 @@
-From: John Syne <john3909@gmail.com>
-Subject: Re: [PATCH] drivers: mfd: ti_am335x_tscadc: increase ADC ref clock to
- 24MHz
-Date: Wed, 9 Nov 2016 15:53:37 -0800
-Message-ID: <D0AA78D0-9562-4E4D-A949-A771289D7570@gmail.com>
-References: <20161024060226.4170-1-mugunthanvnm@ti.com>
- <038C6B01-8443-4321-9C65-BAC4095237D3@gmail.com>
- <086ab2fa-63ee-c5ab-2715-b2efd78270d7@ti.com>
- <12725C92-9BB8-4F77-A7B4-F3C3DA9F8B0B@gmail.com>
- <DB09B26E-C5AB-427A-82D5-6FE857E7C218@gmail.com> <20161025063847.GD8574@dell>
- <CC15CFB4-60D0-4A63-A3D3-2079CFA31274@gmail.com> <20161026084811.GI8574@dell>
- <A5F6974F-5793-4E85-BF82-2D9309980991@gmail.com>
- <d7fadbf6-8026-d821-1ef8-981f536a8fdf@ti.com>
-Mime-Version: 1.0 (Mac OS X Mail 10.1 \(3251\))
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <d7fadbf6-8026-d821-1ef8-981f536a8fdf@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Lee Jones <lee.jones@linaro.org>, Mugunthan V N <mugunthanvnm@ti.com>, linux-iio@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: Re: [PATCH] net: ethernet: ti: davinci_cpdma: fix fixed prio cpdma
+ ctlr configuration
+Date: Thu, 10 Nov 2016 01:56:44 +0200
+Message-ID: <592966c0-ae4c-ba6b-43ba-8ca837e9a700@linaro.org>
+References: <1478610656-24634-1-git-send-email-ivan.khoronzhuk@linaro.org>
+ <a20ab87c-4f9d-0eaa-e486-156d9f359866@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <a20ab87c-4f9d-0eaa-e486-156d9f359866@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, mugunthanvnm@ti.com, netdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
-> On Oct 31, 2016, at 4:39 AM, Vignesh R <vigneshr@ti.com> wrote:
->=20
->=20
->=20
-> On Friday 28 October 2016 02:47 AM, John Syne wrote:
->=20
->>>>>>>>>>>=20
->>>>>>>>>>> ---
->>>>>>>>>>> include/linux/mfd/ti_am335x_tscadc.h | 4 ++--
->>>>>>>>>>> 1 file changed, 2 insertions(+), 2 deletions(-)
->>>>>>>>>>>=20
->>>>>>>>>>> diff --git a/include/linux/mfd/ti_am335x_tscadc.h =
-b/include/linux/mfd/ti_am335x_tscadc.h
->>>>>>>>>>> index b9a53e0..96c4207 100644
->>>>>>>>>>> --- a/include/linux/mfd/ti_am335x_tscadc.h
->>>>>>>>>>> +++ b/include/linux/mfd/ti_am335x_tscadc.h
->>>>>>>>>>> @@ -90,7 +90,7 @@
->>>>>>>>>>> /* Delay register */
->>>>>>>>>>> #define STEPDELAY_OPEN_MASK	(0x3FFFF << 0)
->>>>>>>>>>> #define STEPDELAY_OPEN(val)	((val) << 0)
->>>>>>>>>>> -#define STEPCONFIG_OPENDLY	STEPDELAY_OPEN(0x098)
->>>>>>>>> Wouldn=E2=80=99t this be better to add this to the devicetree?
->>>>>>>>>=20
->>>>>>>>> 	ti,chan-step-avg =3D <0x16 0x16 0x16 0x16 0x16 0x16 =
-0x16>;
->>>>>>>>> 	ti,chan-step-opendelay =3D <0x500 0x500 0x500 0x500 =
-0x500 0x500 0x500>;
->>>>>>>>> 	ti,chan-step-sampledelay =3D <0x0 0x0 0x0 0x0 0x0 0x0 =
-0x0>;
->>>>>>>>=20
->>>>>>>> For a touch screen, there is not need to change in these =
-parameter
->>>>>>>> settings, so my opinion is to keep it as is. Or am I missing =
-something?
->>>>>>> I was thinking that if you are using this driver as an ADC, you =
-may want the flexibility to make these changes in the DT. I=E2=80=99m =
-doing this by connecting sensors to the ADC inputs. I=E2=80=99m not =
-using this driver for a touchscreen.=20
->>>>>>=20
->>>>>> Here is a DT overlay were this gets using on the BeagleBoneBlack. =
-=20
->>>>>>=20
->>>>>> =
-https://github.com/RobertCNelson/bb.org-overlays/blob/master/src/arm/BB-AD=
-C-00A0.dts
->>>>>>=20
->>>>>> Besides, these DT features are already implemented in the driver =
-so it is just a matter of adding these entries to the am33xx.dtsi & =
-am4372.dtsi, which you modified in this patch series.
->>>>>=20
->>>>> This looks like configuration, no?
->>>>>=20
->>>>> DT should be used to describe the hardware.
->>>> You may be right, but how is this different to setting the baud =
-rate on a serial channel or sampling rate on a audio channel? Looking =
-through the DT, there are many configuration settings, so I=E2=80=99m =
-not sure what is the correct way to handle this. Surely it is better to =
-handle this in DT vs hard coding these settings?
->>>=20
->>> I think setting the UART baud rate is also an invalid DT entry.
->>>=20
->>> It's okay to list all of the options in DT, but to actually select
->>> one, that should be done either in userspace or as a kernel option.
->>> Perhaps as a Kconfig selection.
->> Yeah, this has been inconsistent for a long time. My only point was =
-that these DT parameters had already been implemented in the =
-ti_am335x_adc KM and I thought that this was better than hard coding =
-these settings. Implementing this in Kconfig means rebuilding the KM, =
-which isn=E2=80=99t desirable.=20
->=20
->> Perhaps this should be done via sysfs attributes so as you say, a =
-userspace app can configure this driver.=20
->=20
-> This was discussed when DT properties were added.  Patches are welcome
-> to add sysfs entries. There is nothing wrong with specifying an =
-initial
-> value in the DT.
->=20
->> I guess the DT code in ti_am335x_adc.c should be removed.=20
->>=20
->=20
-> Removing DT properties is not an option as it will break DT backward
-> compatibility.
-Hi Vignesh,
 
-OK, then back to my original question. Given that these DT properties =
-are supported in the driver, shouldn=E2=80=99t the following be added to =
-am33xx.dtsi and am4372.dtsi?
+On 09.11.16 23:09, Grygorii Strashko wrote:
+>
+>
+> On 11/08/2016 07:10 AM, Ivan Khoronzhuk wrote:
+>> The dma ctlr is reseted to 0 while cpdma start, thus cpdma ctlr
+>
+> I assume this is because cpdma_ctlr_start() does soft reset. Is it correct?
+Probably not. I've seen this register doesn't hold any previous settings (just trash)
+after cpdma_ctlr_stop(), actually after last channel is stopped (inside of cpdma_ctlr_stop()).
+Then cpdma_ctlr_start() just reset it to 0.
 
-ti,chan-step-avg =3D <0x16 0x16 0x16 0x16 0x16 0x16 0x16>;
-ti,chan-step-opendelay =3D <0x500 0x500 0x500 0x500 0x500 0x500 0x500>;
-ti,chan-step-sampledelay =3D <0x0 0x0 0x0 0x0 0x0 0x0 0x0>;
+>
+>> cannot be configured after cpdma is stopped. So, restore content
+>> of cpdma ctlr while off/on procedure.
+>>
+>> Based on net-next/master
+>
+> ^ remove it
+sure
 
+>
+>>
+>> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+>> ---
+>>  drivers/net/ethernet/ti/cpsw.c          |   6 +-
+>>  drivers/net/ethernet/ti/davinci_cpdma.c | 103 +++++++++++++++++---------------
+>>  drivers/net/ethernet/ti/davinci_cpdma.h |   2 +
+>>  3 files changed, 58 insertions(+), 53 deletions(-)
+>>
+>> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+>> index b1ddf89..4d04b8e 100644
+>> --- a/drivers/net/ethernet/ti/cpsw.c
+>> +++ b/drivers/net/ethernet/ti/cpsw.c
+>> @@ -1376,10 +1376,6 @@ static int cpsw_ndo_open(struct net_device *ndev)
+>>  				  ALE_ALL_PORTS, ALE_ALL_PORTS, 0, 0);
+>>
+>>  	if (!cpsw_common_res_usage_state(cpsw)) {
+>> -		/* setup tx dma to fixed prio and zero offset */
+>> -		cpdma_control_set(cpsw->dma, CPDMA_TX_PRIO_FIXED, 1);
+>> -		cpdma_control_set(cpsw->dma, CPDMA_RX_BUFFER_OFFSET, 0);
+>> -
+>>  		/* disable priority elevation */
+>>  		__raw_writel(0, &cpsw->regs->ptype);
+>>
+>> @@ -2710,6 +2706,8 @@ static int cpsw_probe(struct platform_device *pdev)
+>>  	dma_params.desc_align		= 16;
+>>  	dma_params.has_ext_regs		= true;
+>>  	dma_params.desc_hw_addr         = dma_params.desc_mem_phys;
+>> +	dma_params.rxbuf_offset		= 0;
+>> +	dma_params.fixed_prio		= 1;
+>
+> Do we really need this new parameters? Do you have plans to use other values?
+I'm ok if this is static (equally as a bunch of rest in dma_params), no see reason to use other values,
+it at least now. But the issue is not only in these two parameters and not only in cpsw_ndo_open().
+It touches cpsw_set_channels() also, where ctlr stop/start is present.
+In order to not copy cpdma_control_set(cpsw->dma, CPDMA_TX_PRIO_FIXED, 1)...
+in all such kind places in eth drivers, better to allow the cpdma to control it's parameters...
+
+The cpdma ctlr register holds a little more parameters (but only two of them are set in cpsw)
+Maybe there is reason to save them also. Actually I'd seen this problem when playing with
+on/off channel shapers, unfortunately the cpdma ctlr holds this info also, and it was lost
+while on/off (but I'm going to restore it in chan_start()).
+
+
+>
+
+-- 
 Regards,
-John
->=20
-> --=20
-> Regards
-> Vignesh
+Ivan Khoronzhuk
