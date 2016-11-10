@@ -1,40 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: PM regression with LED changes in next-20161109
-Date: Thu, 10 Nov 2016 10:55:37 -0700
-Message-ID: <20161110175537.GF27724@atomide.com>
-References: <20161109192301.GS26979@atomide.com>
- <28234714-3994-6747-9cf8-1ff0b3257f7a@gmail.com>
- <CGME20161110084919epcas3p2e8fbdd2905cabe15c5301b7a8e22416c@epcas3p2.samsung.com>
- <f627c778-4378-e5da-09dd-3e0fb2ea4aba@redhat.com>
- <5bd5333e-0dbb-6333-0a48-ca4d3a990f9c@samsung.com>
- <20161110162925.GA28832@amd>
+From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Subject: Re: [PATCH] ARM: OMAP2+: Remove unused MUSB initialization code
+Date: Thu, 10 Nov 2016 19:56:17 +0200
+Message-ID: <2624325.4PiB8SBptT@avalon>
+References: <1478799800-27945-1-git-send-email-laurent.pinchart@ideasonboard.com> <20161110175402.GE27724@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161110162925.GA28832@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>, Hans de Goede <hdegoede@redhat.com>, Jacek Anaszewski <jacek.anaszewski@gmail.com>, linux-leds@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Darren Hart <dvhart@infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161110175402.GE27724-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [161110 09:29]:
-> Hi!
-> 
-> > >>>Looks like commit 883d32ce3385 ("leds: core: Add support for poll()ing
-> > >>>the sysfs brightness attr for changes.") breaks runtime PM for me.
-> > >>>
-> > >>>On my omap dm3730 based test system, idle power consumption is over 70
-> > >>>times higher now with this patch! It goes from about 6mW for the core
-> > >>>system to over 440mW during idle meaning there's some busy timer now
-> > >>>active.
-> > >>>
-> > >>>Reverting this patch fixes the issue. Any ideas?
-> 
-> Are you using any LED that toggles with high frequency? Like perhaps
-> LED that is lit when CPU is active?
+Hi Tony,
 
-Yeah one of them seems to have cpu0 as the default trigger.
+On Thursday 10 Nov 2016 10:54:02 Tony Lindgren wrote:
+> * Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [161110 10:43]:
+> > With the removal of board-ldp.c and board-rx51.c, the last users of the
+> > MUSB initialization board code are gone. Remove it.
+> 
+> Thanks, I have the same patch already from 3 years ago in omap-for-
+> v3.14/omap3-board-removal branch that I'll use.
 
-Tony
+v3.14 ? That feels like cheating :-)
+
+> Still need to rebase and check few other patches there before reposting them
+> all.
+
+Will you get that one in v4.10 ?
+
+> FYI, to avoid duplicate work, the old barnch is at [0].
+> 
+> Regards,
+> 
+> Tony
+> 
+> https://git.kernel.org/cgit/linux/kernel/git/tmlind/linux-omap.git/log/?h=om
+> ap-for-v3.14/omap3-board-removal
+
+-- 
+Regards,
+
+Laurent Pinchart
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
