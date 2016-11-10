@@ -1,78 +1,97 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: PM regression with LED changes in next-20161109
-Date: Thu, 10 Nov 2016 21:29:10 +0100
-Message-ID: <20161110202910.GE28832@amd>
-References: <20161109192301.GS26979@atomide.com>
- <28234714-3994-6747-9cf8-1ff0b3257f7a@gmail.com>
- <CGME20161110084919epcas3p2e8fbdd2905cabe15c5301b7a8e22416c@epcas3p2.samsung.com>
- <f627c778-4378-e5da-09dd-3e0fb2ea4aba@redhat.com>
- <5bd5333e-0dbb-6333-0a48-ca4d3a990f9c@samsung.com>
- <20161110162925.GA28832@amd>
- <20161110175537.GF27724@atomide.com>
+From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Subject: Re: [PATCH 0/4] musb fixes for v4.9-rc cycle
+Date: Thu, 10 Nov 2016 22:29:34 +0200
+Message-ID: <13695022.UUbBUaRpJY@avalon>
+References: <20161107215020.31399-1-tony@atomide.com> <2615056.HmWtlhPO5J@avalon> <20161110175033.GD27724@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="vv4Sf/kQfcwinyKX"
-Return-path: <linux-leds-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161110175537.GF27724@atomide.com>
-Sender: linux-leds-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>, Hans de Goede <hdegoede@redhat.com>, Jacek Anaszewski <jacek.anaszewski@gmail.com>, linux-leds@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Darren Hart <dvhart@infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161110175033.GD27724-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Tony,
 
---vv4Sf/kQfcwinyKX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thursday 10 Nov 2016 10:50:33 Tony Lindgren wrote:
+> * Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [161110 10:18]:
+> > I'll try to give it a go, but right now I'm stuck with a different MUSB
+> > problem :-) I'm trying to boot my panda board over the SMSC95xx ethernet,
+> > and have switched gadget support from being compiled in to being compiled
+> > as a module. I then get
+> > 
+> > [    2.766174] musb_bus_suspend 2586: trying to suspend as a_idle while
+> > active
+> > 
+> > printed in a loop at boot time. I've traced musb->is_active being set to 1
+> > in musb_start() with
+> > 
+> > musb->port_mode = MUSB_PORT_MODE_DUAL_ROLE
+> > musb->xceiv->otg->state = OTG_STATE_A_IDLE
+> > devctl = MUSB_DEVCTL_BDEVICE | MUSB_DEVCTL_VBUS
+> > 
+> > I can disable gadget support completely which will I believe fix the
+> > problem, but that's just a workaround. Help would be appreciated.
+> 
+> Do you have the ID pin grounded
 
-On Thu 2016-11-10 10:55:37, Tony Lindgren wrote:
-> * Pavel Machek <pavel@ucw.cz> [161110 09:29]:
-> > Hi!
-> >=20
-> > > >>>Looks like commit 883d32ce3385 ("leds: core: Add support for poll(=
-)ing
-> > > >>>the sysfs brightness attr for changes.") breaks runtime PM for me.
-> > > >>>
-> > > >>>On my omap dm3730 based test system, idle power consumption is ove=
-r 70
-> > > >>>times higher now with this patch! It goes from about 6mW for the c=
-ore
-> > > >>>system to over 440mW during idle meaning there's some busy timer n=
-ow
-> > > >>>active.
-> > > >>>
-> > > >>>Reverting this patch fixes the issue. Any ideas?
-> >=20
-> > Are you using any LED that toggles with high frequency? Like perhaps
-> > LED that is lit when CPU is active?
->=20
-> Yeah one of them seems to have cpu0 as the default trigger.
+I've measured it on the board and I don't. Booting with the USB cable 
+unplugged and the board powered through the power jack gives the same result.
 
-Aha. Its quite obvious we don't want to notify sysfs each time that
-one is toggled, right?
+> or how do you get to the A_IDLE state?
 
-IMO brightness should display max brightness for the trigger, as Hans
-suggested, anything else is madness for trigger such as cpu activity.
+Don't ask me :-)
 
-Thanks and best regards,
+> I'm pretty much only testing with loadable modules as in
+> omap2plus_defconfig, I don't think I've seen this issue..
+> 
+> Maybe check the changes in your .config against just plain
+> omap2plus_defconfig? Are you trying to force host only mode?
 
-								Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+I started anew from omap2plus_defconfig and applied the following changes to 
+enable NFS root.
 
---vv4Sf/kQfcwinyKX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+-CONFIG_USB_NET_DRIVERS=m
+-CONFIG_USB_USBNET=m
+-CONFIG_USB_NET_SMSC95XX=m
+-CONFIG_USB=m
+-CONFIG_USB_EHCI_HCD=m
+-CONFIG_USB_EHCI_HCD_OMAP=m
+-CONFIG_NOP_USB_XCEIV=m
+-CONFIG_USB_GADGET=m
+-CONFIG_OMAP_USB2=m
++CONFIG_USB_NET_DRIVERS=y
++CONFIG_USB_USBNET=y
++CONFIG_USB_NET_SMSC95XX=y
++CONFIG_USB=y
++CONFIG_USB_EHCI_HCD=y
++CONFIG_USB_EHCI_HCD_OMAP=y
++CONFIG_NOP_USB_XCEIV=y
++# CONFIG_USB_GADGET is not set
++CONFIG_OMAP_USB2=y
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+I had to disable CONFIG_USB_GADGET is compiling it as a module prevents 
+selecting CONFIG_NOP_USB_XCEIV=y, which is a dependency for 
+CONFIG_USB_EHCI_HCD_OMAP=m.
 
-iEYEARECAAYFAlgk2JYACgkQMOfwapXb+vIqvACgio501ouK+/EMLvFEPdOiKMuK
-w2YAoINJ1X7Ehl/PKJDbBGVjpfYtg0Fr
-=Vr2J
------END PGP SIGNATURE-----
+The new configuration resulted in a few changes, among which the most notable 
+is
 
---vv4Sf/kQfcwinyKX--
+-# CONFIG_USB_MUSB_HOST is not set
+-# CONFIG_USB_MUSB_GADGET is not set
+-CONFIG_USB_MUSB_DUAL_ROLE=y
++CONFIG_USB_MUSB_HOST=y
+
+I then get the same error as originally reported.
+
+-- 
+Regards,
+
+Laurent Pinchart
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
