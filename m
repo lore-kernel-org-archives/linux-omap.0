@@ -1,109 +1,103 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: PM regression with LED changes in next-20161109
-Date: Thu, 10 Nov 2016 09:49:08 +0100
-Message-ID: <f627c778-4378-e5da-09dd-3e0fb2ea4aba@redhat.com>
-References: <20161109192301.GS26979@atomide.com>
- <28234714-3994-6747-9cf8-1ff0b3257f7a@gmail.com>
+From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Subject: Re: [PATCH 0/4] musb fixes for v4.9-rc cycle
+Date: Thu, 10 Nov 2016 14:46:13 +0200
+Message-ID: <7547144.tJtJXeDM1m@avalon>
+References: <20161107215020.31399-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-leds-owner@vger.kernel.org>
-In-Reply-To: <28234714-3994-6747-9cf8-1ff0b3257f7a@gmail.com>
-Sender: linux-leds-owner@vger.kernel.org
-To: Jacek Anaszewski <jacek.anaszewski@gmail.com>, Tony Lindgren <tony@atomide.com>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>, linux-leds@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Darren Hart <dvhart@infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161107215020.31399-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Tony,
 
-On 09-11-16 21:45, Jacek Anaszewski wrote:
-> Hi Tony,
->
-> On 11/09/2016 08:23 PM, Tony Lindgren wrote:
->> Hi,
->>
->> Looks like commit 883d32ce3385 ("leds: core: Add support for poll()ing
->> the sysfs brightness attr for changes.") breaks runtime PM for me.
->>
->> On my omap dm3730 based test system, idle power consumption is over 70
->> times higher now with this patch! It goes from about 6mW for the core
->> system to over 440mW during idle meaning there's some busy timer now
->> active.
->>
->> Reverting this patch fixes the issue. Any ideas?
->
-> Thanks for the report. This is probably caused by sysfs_notify_dirent().
-> I'm afraid that we can't keep this feature in the current shape.
-> Hans, I'm dropping the patch. We probably will have to delegate this
-> call to a workqueue task. Think about use cases when the LED is blinked
-> with high frequency e.g. from ledtrig-disk.c.
+Thank you for the patches.
 
-sysfs_notify_dirent() already uses a workqueue, here is the actual
-implementation of it (from fs/kernfs/file.c) :
+On Monday 07 Nov 2016 14:50:16 Tony Lindgren wrote:
+> Hi all,
+> 
+> Here are musb fixes for the issues that I've been able to track down.
+> Not sure if these will help with the problem Ladis was seeing as I'm
+> not able to reproduce that one it seems.
+> 
+> As many people depend on this driver I'd like to have these merged
+> for v4.9-rc cycle after review and testing.
+> 
+> Please review and test. You need to use v4.9-rc3 or later for testing
+> because of the earlier fixes.
 
-void kernfs_notify(struct kernfs_node *kn)
-{
-         static DECLARE_WORK(kernfs_notify_work, kernfs_notify_workfn);
-         unsigned long flags;
+The series fixes my problems, both with the original and latest version of
+patch 2/4.
 
-         if (WARN_ON(kernfs_type(kn) != KERNFS_FILE))
-                 return;
+Tested-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 
-         spin_lock_irqsave(&kernfs_notify_lock, flags);
-         if (!kn->attr.notify_next) {
-                 kernfs_get(kn);
-                 kn->attr.notify_next = kernfs_notify_list;
-                 kernfs_notify_list = kn;
-                 schedule_work(&kernfs_notify_work);
-         }
-         spin_unlock_irqrestore(&kernfs_notify_lock, flags);
-}
+I have however seen the following warning once with the original version of 2/4.
 
-So using a workqueue is not going to help. Note that I already
-feared this, which is why my initial implementation only called
-sysfs_notify_dirent() for user initiated changes and not for
-triggers / blinking.
+[    3.094116] usb 1-1: New USB device found, idVendor=0424, idProduct=9514
+[    3.101257] usb 1-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+[    3.110626] ------------[ cut here ]------------
+[    3.110717] WARNING: CPU: 0 PID: 4 at /home/laurent/src/kernel/omap4/linux-2.6/drivers/bus/omap_l3_noc.c:147 l3_interrupt_handler+0x220/0x348
+[    3.110717] 44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4CFG (Read): Data Access in User mode during Functional access
+[    3.110717] Modules linked in:
+[    3.110717] CPU: 0 PID: 4 Comm: kworker/0:0 Not tainted 4.9.0-rc4-00577-g1cd727de4a19 #29
+[    3.110717] Hardware name: Generic OMAP4 (Flattened Device Tree)
+[    3.110717] Workqueue: events musb_irq_work
+[    3.158813] [<c0110118>] (unwind_backtrace) from [<c010c0cc>] (show_stack+0x10/0x14)
+[    3.158813] [<c010c0cc>] (show_stack) from [<c0490dec>] (dump_stack+0xa8/0xe0)
+[    3.158813] [<c0490dec>] (dump_stack) from [<c01377e4>] (__warn+0xd8/0x104)
+[    3.158813] [<c01377e4>] (__warn) from [<c01378b8>] (warn_slowpath_fmt+0x38/0x48)
+[    3.158813] [<c01378b8>] (warn_slowpath_fmt) from [<c04c49d4>] (l3_interrupt_handler+0x220/0x348)
+[    3.203613] [<c04c49d4>] (l3_interrupt_handler) from [<c01a03d0>] (__handle_irq_event_percpu+0x98/0x3ec)
+[    3.203613] [<c01a03d0>] (__handle_irq_event_percpu) from [<c01a0740>] (handle_irq_event_percpu+0x1c/0x58)
+[    3.203613] [<c01a0740>] (handle_irq_event_percpu) from [<c01a07b4>] (handle_irq_event+0x38/0x5c)
+[    3.233123] [<c01a07b4>] (handle_irq_event) from [<c01a3c38>] (handle_fasteoi_irq+0xcc/0x1a4)
+[    3.233123] [<c01a3c38>] (handle_fasteoi_irq) from [<c019fb40>] (generic_handle_irq+0x18/0x28)
+[    3.233123] [<c019fb40>] (generic_handle_irq) from [<c019fc54>] (__handle_domain_irq+0x64/0xdc)
+[    3.251190] [<c019fc54>] (__handle_domain_irq) from [<c010152c>] (gic_handle_irq+0x48/0x9c)
+[    3.251190] [<c010152c>] (gic_handle_irq) from [<c087fdb0>] (__irq_svc+0x70/0x98)
+[    3.251190] Exception stack(0xee8c7e18 to 0xee8c7e60)
+[    3.251190] 7e00:                                                       fc0ab000 00000060
+[    3.282348] 7e20: 0000001f 00000000 00000000 ef6a7ac0 fc0ab000 00000060 c0dcda2c c06a2928
+[    3.282348] 7e40: c0d0512c c0d0512c 00000000 ee8c7e68 c06a2928 c06a34b8 60000153 ffffffff
+[    3.282348] [<c087fdb0>] (__irq_svc) from [<c06a34b8>] (musb_default_readb+0x48/0x184)
+[    3.282348] [<c06a34b8>] (musb_default_readb) from [<c06a2928>] (musb_irq_work+0x1c/0x1cc)
+[    3.316528] [<c06a2928>] (musb_irq_work) from [<c0154c94>] (process_one_work+0x1d4/0x6b8)
+[    3.325256] [<c0154c94>] (process_one_work) from [<c0155314>] (worker_thread+0x164/0x488)
+[    3.325256] [<c0155314>] (worker_thread) from [<c015b7e4>] (kthread+0xd0/0xec)
+[    3.325256] [<c015b7e4>] (kthread) from [<c01083f0>] (ret_from_fork+0x14/0x24)
+[    3.325256] ---[ end trace 0c154bedf8e63312 ]---
+[    3.363372] twl6030_usb 48070000.i2c:twl@48:usb-comparator: Initialized TWL6030 USB module
+[    3.365051] hub 1-1:1.0: USB hub found
+[    3.365325] hub 1-1:1.0: 5 ports detected
 
-I think we may need to reconsider what getting the brightness
-sysfs atrribute actually returns. Currently when a LED is
-blinking it will return 0 resp. the actual brightness depending
-on when in the blink cycle the user reads the brightness
-sysfs atrribute.
+It never occurred with the latest version of the patch, but I can't seem to
+reproduce it either with the original version.
 
-So a user can do "echo 128 > brightness && cat brightness" and
-get out 0, or 128, depending purely on timing.
+> Tony Lindgren (4):
+>   usb: musb: Fix broken use of static variable for multiple instances
+>   usb: musb: Fix sleeping function called from invalid context for hdrc
+>     glue
+>   usb: musb: Fix PM for hub disconnect
+>   phy: twl4030-usb: Fix for musb session bit based PM
+> 
+>  drivers/phy/phy-twl4030-usb.c  |   4 +-
+>  drivers/usb/musb/musb_core.c   | 107 ++++++++++++++++++++++++++++++++------
+>  drivers/usb/musb/musb_core.h   |  13 ++++-
+>  drivers/usb/musb/musb_dsps.c   |  24 ++++++---
+>  drivers/usb/musb/musb_gadget.c |  28 ++++++++---
+>  drivers/usb/musb/tusb6010.c    |   6 +--
+>  6 files changed, 148 insertions(+), 34 deletions(-)
 
-This seems to contradict what Documentation/ABI/testing/sysfs-class-led
-has to say:
-
-What:           /sys/class/leds/<led>/brightness
-Date:           March 2006
-KernelVersion:  2.6.17
-Contact:        Richard Purdie <rpurdie@rpsys.net>
-Description:
-                 Set the brightness of the LED. Most LEDs don't
-                 have hardware brightness support, so will just be turned on for
-                 non-zero brightness settings. The value is between 0 and
-                 /sys/class/leds/<led>/max_brightness.
-
-                 Writing 0 to this file clears active trigger.
-
-                 Writing non-zero to this file while trigger is active changes the
-                 top brightness trigger is going to use.
-
-Even though it only talks about writing, the logical thing would be for
-reading to be the exact opposite of writing, so we would get:
-
-                 Reading from this file while a trigger is active returns the
-                 top brightness trigger is going to use.
-
-The current docs say not about (sw) blinking, but that should be treated just
-like a trigger IMHO.
-
-If we can get consensus on what the read behavior for the brightness attribute
-should be, then I think that a better poll() behavior will automatically follow
-from that.
-
+-- 
 Regards,
 
-Hans
+Laurent Pinchart
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
