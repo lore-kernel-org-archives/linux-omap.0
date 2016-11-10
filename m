@@ -1,126 +1,78 @@
-From: "ivan.khoronzhuk" <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH] net: ethernet: ti: davinci_cpdma: fix fixed prio cpdma
- ctlr configuration
-Date: Thu, 10 Nov 2016 21:52:24 +0200
-Message-ID: <1501d6bd-ef97-cfb4-f02b-2b03b97ae636@globallogic.com>
-References: <1478610656-24634-1-git-send-email-ivan.khoronzhuk@linaro.org>
- <a20ab87c-4f9d-0eaa-e486-156d9f359866@ti.com>
- <592966c0-ae4c-ba6b-43ba-8ca837e9a700@linaro.org>
- <37548a54-c54b-3194-691a-22fa8118ed3d@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: PM regression with LED changes in next-20161109
+Date: Thu, 10 Nov 2016 21:29:10 +0100
+Message-ID: <20161110202910.GE28832@amd>
+References: <20161109192301.GS26979@atomide.com>
+ <28234714-3994-6747-9cf8-1ff0b3257f7a@gmail.com>
+ <CGME20161110084919epcas3p2e8fbdd2905cabe15c5301b7a8e22416c@epcas3p2.samsung.com>
+ <f627c778-4378-e5da-09dd-3e0fb2ea4aba@redhat.com>
+ <5bd5333e-0dbb-6333-0a48-ca4d3a990f9c@samsung.com>
+ <20161110162925.GA28832@amd>
+ <20161110175537.GF27724@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <37548a54-c54b-3194-691a-22fa8118ed3d@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, mugunthanvnm@ti.com, netdev@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="vv4Sf/kQfcwinyKX"
+Return-path: <linux-leds-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20161110175537.GF27724@atomide.com>
+Sender: linux-leds-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>, Hans de Goede <hdegoede@redhat.com>, Jacek Anaszewski <jacek.anaszewski@gmail.com>, linux-leds@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Darren Hart <dvhart@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
 
+--vv4Sf/kQfcwinyKX
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 10.11.16 18:37, Grygorii Strashko wrote:
->
->
-> On 11/09/2016 05:56 PM, Ivan Khoronzhuk wrote:
->>
->>
->> On 09.11.16 23:09, Grygorii Strashko wrote:
->>>
->>>
->>> On 11/08/2016 07:10 AM, Ivan Khoronzhuk wrote:
->>>> The dma ctlr is reseted to 0 while cpdma start, thus cpdma ctlr
->>>
->>> I assume this is because cpdma_ctlr_start() does soft reset. Is it
->>> correct?
->> Probably not. I've seen this register doesn't hold any previous settings
->> (just trash)
->
-> What register CPDMA_DMACONTROL or CPSW_DMACTRL?
->
->> after cpdma_ctlr_stop(), actually after last channel is stopped (inside
->> of cpdma_ctlr_stop()).
->
-> So, You are stating that Registers context is changed after stop?
->
->> Then cpdma_ctlr_start() just reset it to 0.
->
-> "just trash" or "0".
->
-> Sry, I do not see how cpdma_ctlr_stop() can affect on registers state :(
-> and I'd very appreciated if can provide more detailed information.
->
-I've checked again, it was my mistake. It simply reset to 0 while soft reset.
+On Thu 2016-11-10 10:55:37, Tony Lindgren wrote:
+> * Pavel Machek <pavel@ucw.cz> [161110 09:29]:
+> > Hi!
+> >=20
+> > > >>>Looks like commit 883d32ce3385 ("leds: core: Add support for poll(=
+)ing
+> > > >>>the sysfs brightness attr for changes.") breaks runtime PM for me.
+> > > >>>
+> > > >>>On my omap dm3730 based test system, idle power consumption is ove=
+r 70
+> > > >>>times higher now with this patch! It goes from about 6mW for the c=
+ore
+> > > >>>system to over 440mW during idle meaning there's some busy timer n=
+ow
+> > > >>>active.
+> > > >>>
+> > > >>>Reverting this patch fixes the issue. Any ideas?
+> >=20
+> > Are you using any LED that toggles with high frequency? Like perhaps
+> > LED that is lit when CPU is active?
+>=20
+> Yeah one of them seems to have cpu0 as the default trigger.
 
->>
->>>
->>>> cannot be configured after cpdma is stopped. So, restore content
->>>> of cpdma ctlr while off/on procedure.
->>>>
->>>> Based on net-next/master
->>>
->>> ^ remove it
->> sure
->>
->>>
->>>>
->>>> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
->>>> ---
->>>>  drivers/net/ethernet/ti/cpsw.c          |   6 +-
->>>>  drivers/net/ethernet/ti/davinci_cpdma.c | 103
->>>> +++++++++++++++++---------------
->>>>  drivers/net/ethernet/ti/davinci_cpdma.h |   2 +
->>>>  3 files changed, 58 insertions(+), 53 deletions(-)
->>>>
->>>> diff --git a/drivers/net/ethernet/ti/cpsw.c
->>>> b/drivers/net/ethernet/ti/cpsw.c
->>>> index b1ddf89..4d04b8e 100644
->>>> --- a/drivers/net/ethernet/ti/cpsw.c
->>>> +++ b/drivers/net/ethernet/ti/cpsw.c
->>>> @@ -1376,10 +1376,6 @@ static int cpsw_ndo_open(struct net_device *ndev)
->>>>                    ALE_ALL_PORTS, ALE_ALL_PORTS, 0, 0);
->>>>
->>>>      if (!cpsw_common_res_usage_state(cpsw)) {
->>>> -        /* setup tx dma to fixed prio and zero offset */
->>>> -        cpdma_control_set(cpsw->dma, CPDMA_TX_PRIO_FIXED, 1);
->>>> -        cpdma_control_set(cpsw->dma, CPDMA_RX_BUFFER_OFFSET, 0);
->>>> -
->>>>          /* disable priority elevation */
->>>>          __raw_writel(0, &cpsw->regs->ptype);
->>>>
->>>> @@ -2710,6 +2706,8 @@ static int cpsw_probe(struct platform_device
->>>> *pdev)
->>>>      dma_params.desc_align        = 16;
->>>>      dma_params.has_ext_regs        = true;
->>>>      dma_params.desc_hw_addr         = dma_params.desc_mem_phys;
->>>> +    dma_params.rxbuf_offset        = 0;
->>>> +    dma_params.fixed_prio        = 1;
->>>
->>> Do we really need this new parameters? Do you have plans to use other
->>> values?
->> I'm ok if this is static (equally as a bunch of rest in dma_params), no
->> see reason to use other values,
->
-> That's what i wanted to know :) - go static, pls.
->
->> it at least now. But the issue is not only in these two parameters and
->> not only in cpsw_ndo_open().
->> It touches cpsw_set_channels() also, where ctlr stop/start is present.
->> In order to not copy cpdma_control_set(cpsw->dma, CPDMA_TX_PRIO_FIXED,
->> 1)...
->> in all such kind places in eth drivers, better to allow the cpdma to
->> control it's parameters...
->>
->> The cpdma ctlr register holds a little more parameters (but only two of
->> them are set in cpsw)
->> Maybe there is reason to save them also. Actually I'd seen this problem
->> when playing with
->> on/off channel shapers, unfortunately the cpdma ctlr holds this info
->> also, and it was lost
->> while on/off (but I'm going to restore it in chan_start()).
->>
->
-> I understand you change, but I'm note sure about real root cause :(
-so, are you Ok with current version?
+Aha. Its quite obvious we don't want to notify sysfs each time that
+one is toggled, right?
 
->
+IMO brightness should display max brightness for the trigger, as Hans
+suggested, anything else is madness for trigger such as cpu activity.
+
+Thanks and best regards,
+
+								Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--vv4Sf/kQfcwinyKX
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlgk2JYACgkQMOfwapXb+vIqvACgio501ouK+/EMLvFEPdOiKMuK
+w2YAoINJ1X7Ehl/PKJDbBGVjpfYtg0Fr
+=Vr2J
+-----END PGP SIGNATURE-----
+
+--vv4Sf/kQfcwinyKX--
