@@ -1,65 +1,71 @@
-From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 3/5] mfd: palmas: Reset the POWERHOLD mux during power off
-Date: Thu, 10 Nov 2016 10:39:18 +0530
-Message-ID: <1478754560-27923-4-git-send-email-j-keerthy@ti.com>
-References: <1478754560-27923-1-git-send-email-j-keerthy@ti.com>
+From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v4] regulator: lp873x: Add support for populating input supply
+Date: Thu, 10 Nov 2016 10:59:15 +0530
+Message-ID: <20161110052915.4898-1-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1478754560-27923-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, j-keerthy-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
+To: lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Linux ARM Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-POWERHOLD signal has higher priority  over the DEV_ON bit.
-So power off will not happen if the POWERHOLD is held high.
-Hence reset the MUX to GPIO_7 mode to release the POWERHOLD
-and the DEV_ON bit to take effect to power off the PMIC.
+In order to have a proper topology of regulators for a platform, each
+registering regulator needs to populate supply_name field for identifying
+its supply's name. Add supply_name field for lp873x regulators.
 
-PMIC Power off happens in dire situations like thermal shutdown
-so irrespective of the POWERHOLD setting go ahead and turn off
-the powerhold.  Currently poweroff is broken on boards that have
-powerhold enabled. This fixes poweroff on those boards.
-
-Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 ---
+Changes since v3:
+- Applied Rob's ack.
+- Sending this patch separately so that this can be merged via Regulator tree.
+- Link to v3: https://patchwork.kernel.org/patch/9408545/
 
-Changes in v2:
+ Documentation/devicetree/bindings/mfd/lp873x.txt | 8 ++++++++
+ drivers/regulator/lp873x-regulator.c             | 1 +
+ 2 files changed, 9 insertions(+)
 
-  * Changed pr_err to dev_err
-  * removed redundant boolean variable override-powerhold
-
- drivers/mfd/palmas.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
-
-diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
-index ee9e9ea..da90124 100644
---- a/drivers/mfd/palmas.c
-+++ b/drivers/mfd/palmas.c
-@@ -430,6 +430,20 @@ static void palmas_power_off(void)
- {
- 	unsigned int addr;
- 	int ret, slave;
-+	struct device_node *np = palmas_dev->dev->of_node;
-+
-+	if (of_property_read_bool(np, "ti,palmas-override-powerhold")) {
-+		addr = PALMAS_BASE_TO_REG(PALMAS_PU_PD_OD_BASE,
-+					  PALMAS_PRIMARY_SECONDARY_PAD2);
-+		slave = PALMAS_BASE_TO_SLAVE(PALMAS_PU_PD_OD_BASE);
-+
-+		ret = regmap_update_bits(palmas_dev->regmap[slave], addr,
-+				PALMAS_PRIMARY_SECONDARY_PAD2_GPIO_7_MASK, 0);
-+		if (ret)
-+			dev_err(palmas_dev->dev,
-+				"Unable to write PRIMARY_SECONDARY_PAD2 %d\n",
-+				ret);
-+	}
+diff --git a/Documentation/devicetree/bindings/mfd/lp873x.txt b/Documentation/devicetree/bindings/mfd/lp873x.txt
+index 52766c2..ae9cf39 100644
+--- a/Documentation/devicetree/bindings/mfd/lp873x.txt
++++ b/Documentation/devicetree/bindings/mfd/lp873x.txt
+@@ -7,6 +7,9 @@ Required properties:
+   - #gpio-cells:	Should be two.  The first cell is the pin number and
+ 			the second cell is used to specify flags.
+ 			See ../gpio/gpio.txt for more information.
++  - xxx-in-supply:	Phandle to parent supply node of each regulator
++			populated under regulators node. xxx can be
++			buck0, buck1, ldo0 or ldo1.
+   - regulators:	List of child nodes that specify the regulator
+ 			initialization data.
+ Example:
+@@ -17,6 +20,11 @@ pmic: lp8733@60 {
+ 	gpio-controller;
+ 	#gpio-cells = <2>;
  
- 	slave = PALMAS_BASE_TO_SLAVE(PALMAS_PMU_CONTROL_BASE);
- 	addr = PALMAS_BASE_TO_REG(PALMAS_PMU_CONTROL_BASE, PALMAS_DEV_CTRL);
++	buck0-in-supply = <&vsys_3v3>;
++	buck1-in-supply = <&vsys_3v3>;
++	ldo0-in-supply = <&vsys_3v3>;
++	ldo1-in-supply = <&vsys_3v3>;
++
+ 	regulators {
+ 		lp8733_buck0: buck0 {
+ 			regulator-name = "lp8733-buck0";
+diff --git a/drivers/regulator/lp873x-regulator.c b/drivers/regulator/lp873x-regulator.c
+index e504b91..70e3df6 100644
+--- a/drivers/regulator/lp873x-regulator.c
++++ b/drivers/regulator/lp873x-regulator.c
+@@ -24,6 +24,7 @@
+ 	[_id] = {							\
+ 		.desc = {						\
+ 			.name			= _name,		\
++			.supply_name		= _of "-in",		\
+ 			.id			= _id,			\
+ 			.of_match		= of_match_ptr(_of),	\
+ 			.regulators_node	= of_match_ptr("regulators"),\
 -- 
-1.9.1
+2.10.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
