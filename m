@@ -1,92 +1,137 @@
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: Re: [PATCH 0/4] musb fixes for v4.9-rc cycle
-Date: Fri, 11 Nov 2016 01:39:28 +0200
-Message-ID: <113757813.bcfInlKJc6@avalon>
-References: <20161107215020.31399-1-tony@atomide.com> <20161110204233.GJ27724@atomide.com> <32864936.qtvKvn2hnh@avalon>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH] net: ethernet: ti: davinci_cpdma: fix fixed prio cpdma
+ ctlr configuration
+Date: Thu, 10 Nov 2016 16:58:41 -0600
+Message-ID: <2ccb346e-e5d7-0b13-1956-099f69868696@ti.com>
+References: <1478610656-24634-1-git-send-email-ivan.khoronzhuk@linaro.org>
+ <a20ab87c-4f9d-0eaa-e486-156d9f359866@ti.com>
+ <592966c0-ae4c-ba6b-43ba-8ca837e9a700@linaro.org>
+ <37548a54-c54b-3194-691a-22fa8118ed3d@ti.com>
+ <1501d6bd-ef97-cfb4-f02b-2b03b97ae636@globallogic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <32864936.qtvKvn2hnh@avalon>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1501d6bd-ef97-cfb4-f02b-2b03b97ae636@globallogic.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "ivan.khoronzhuk" <ivan.khoronzhuk@linaro.org>, mugunthanvnm@ti.com, netdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
 
-On Friday 11 Nov 2016 00:27:52 Laurent Pinchart wrote:
-> On Thursday 10 Nov 2016 13:42:34 Tony Lindgren wrote:
-> > * Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [161110 13:29]:
-> >> I had to disable CONFIG_USB_GADGET is compiling it as a module prevents
-> >> selecting CONFIG_NOP_USB_XCEIV=y, which is a dependency for
-> >> CONFIG_USB_EHCI_HCD_OMAP=m.
-> >> 
-> >> The new configuration resulted in a few changes, among which the most
-> >> notable is
-> >> 
-> >> -# CONFIG_USB_MUSB_HOST is not set
-> >> -# CONFIG_USB_MUSB_GADGET is not set
-> >> -CONFIG_USB_MUSB_DUAL_ROLE=y
-> >> +CONFIG_USB_MUSB_HOST=y
-> >> 
-> >> I then get the same error as originally reported.
-> > 
-> > Yeah OK, that's the problem.. We still have musb hardware
-> > trying to do things on it's own and phy trying to detect
-> > the state.
-> > 
-> > Any ideas why we have a dependency like that in Kconfig?
-> 
-> Well, with CONFIG_USB_GADGET disabled, I don't expect CONFIG_USB_MUSB_GADGET
-> to be enabled. MUSB can only operate in host mode in that case, so musb->
-> xceiv->otg->state = OTG_STATE_A_IDLE makes sense.
 
-I've tried to investigate this but I'm not familiar enough with the MUSB 
-driver to reach any conclusion. Felipe, if you have time could you give me a 
-hand ?
+On 11/10/2016 01:52 PM, ivan.khoronzhuk wrote:
+>
+>
+> On 10.11.16 18:37, Grygorii Strashko wrote:
+>>
+>>
+>> On 11/09/2016 05:56 PM, Ivan Khoronzhuk wrote:
+>>>
+>>>
+>>> On 09.11.16 23:09, Grygorii Strashko wrote:
+>>>>
+>>>>
+>>>> On 11/08/2016 07:10 AM, Ivan Khoronzhuk wrote:
+>>>>> The dma ctlr is reseted to 0 while cpdma start, thus cpdma ctlr
+>>>>
+>>>> I assume this is because cpdma_ctlr_start() does soft reset. Is it
+>>>> correct?
+>>> Probably not. I've seen this register doesn't hold any previous settings
+>>> (just trash)
+>>
+>> What register CPDMA_DMACONTROL or CPSW_DMACTRL?
+>>
+>>> after cpdma_ctlr_stop(), actually after last channel is stopped (inside
+>>> of cpdma_ctlr_stop()).
+>>
+>> So, You are stating that Registers context is changed after stop?
+>>
+>>> Then cpdma_ctlr_start() just reset it to 0.
+>>
+>> "just trash" or "0".
+>>
+>> Sry, I do not see how cpdma_ctlr_stop() can affect on registers state :(
+>> and I'd very appreciated if can provide more detailed information.
+>>
+> I've checked again, it was my mistake. It simply reset to 0 while soft
+> reset.
+>
+>>>
+>>>>
+>>>>> cannot be configured after cpdma is stopped. So, restore content
+>>>>> of cpdma ctlr while off/on procedure.
+>>>>>
+>>>>> Based on net-next/master
+>>>>
+>>>> ^ remove it
+>>> sure
+>>>
+>>>>
+>>>>>
+>>>>> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+>>>>> ---
+>>>>>  drivers/net/ethernet/ti/cpsw.c          |   6 +-
+>>>>>  drivers/net/ethernet/ti/davinci_cpdma.c | 103
+>>>>> +++++++++++++++++---------------
+>>>>>  drivers/net/ethernet/ti/davinci_cpdma.h |   2 +
+>>>>>  3 files changed, 58 insertions(+), 53 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/net/ethernet/ti/cpsw.c
+>>>>> b/drivers/net/ethernet/ti/cpsw.c
+>>>>> index b1ddf89..4d04b8e 100644
+>>>>> --- a/drivers/net/ethernet/ti/cpsw.c
+>>>>> +++ b/drivers/net/ethernet/ti/cpsw.c
+>>>>> @@ -1376,10 +1376,6 @@ static int cpsw_ndo_open(struct net_device
+>>>>> *ndev)
+>>>>>                    ALE_ALL_PORTS, ALE_ALL_PORTS, 0, 0);
+>>>>>
+>>>>>      if (!cpsw_common_res_usage_state(cpsw)) {
+>>>>> -        /* setup tx dma to fixed prio and zero offset */
+>>>>> -        cpdma_control_set(cpsw->dma, CPDMA_TX_PRIO_FIXED, 1);
+>>>>> -        cpdma_control_set(cpsw->dma, CPDMA_RX_BUFFER_OFFSET, 0);
+>>>>> -
+>>>>>          /* disable priority elevation */
+>>>>>          __raw_writel(0, &cpsw->regs->ptype);
+>>>>>
+>>>>> @@ -2710,6 +2706,8 @@ static int cpsw_probe(struct platform_device
+>>>>> *pdev)
+>>>>>      dma_params.desc_align        = 16;
+>>>>>      dma_params.has_ext_regs        = true;
+>>>>>      dma_params.desc_hw_addr         = dma_params.desc_mem_phys;
+>>>>> +    dma_params.rxbuf_offset        = 0;
+>>>>> +    dma_params.fixed_prio        = 1;
+>>>>
+>>>> Do we really need this new parameters? Do you have plans to use other
+>>>> values?
+>>> I'm ok if this is static (equally as a bunch of rest in dma_params), no
+>>> see reason to use other values,
+>>
+>> That's what i wanted to know :) - go static, pls.
+>>
+>>> it at least now. But the issue is not only in these two parameters and
+>>> not only in cpsw_ndo_open().
+>>> It touches cpsw_set_channels() also, where ctlr stop/start is present.
+>>> In order to not copy cpdma_control_set(cpsw->dma, CPDMA_TX_PRIO_FIXED,
+>>> 1)...
+>>> in all such kind places in eth drivers, better to allow the cpdma to
+>>> control it's parameters...
+>>>
+>>> The cpdma ctlr register holds a little more parameters (but only two of
+>>> them are set in cpsw)
+>>> Maybe there is reason to save them also. Actually I'd seen this problem
+>>> when playing with
+>>> on/off channel shapers, unfortunately the cpdma ctlr holds this info
+>>> also, and it was lost
+>>> while on/off (but I'm going to restore it in chan_start()).
+>>>
+>>
+>> I understand you change, but I'm note sure about real root cause :(
+> so, are you Ok with current version?
 
-To summarize the issue, on a pandaboard-es where the MUSB is wired to an OTG 
-connector with mode rightfully set to MUSB_PORT_MODE_DUAL_ROLE in DT, a kernel 
-configured with CONFIG_USB_MUSB_HOST=y (for instance because CONFIG_USB_GADGET 
-is disabled) will print an endless stream of the following meessage.
-
-[    2.766174] musb_bus_suspend 2586: trying to suspend as a_idle while active
-
-musb_init_controller() performs the following actions
-
-        case MUSB_PORT_MODE_DUAL_ROLE:
-                status = musb_host_setup(musb, plat->power);
-                if (status < 0)
-                        goto fail3;
-                status = musb_gadget_setup(musb);
-                if (status) {
-                        musb_host_cleanup(musb);
-                        goto fail3;
-                }
-                status = musb_platform_set_mode(musb, MUSB_OTG);
-                break;
-
-and as gadget support is disabled musb_gadget_setup() compiles to a no-op 
-inline function. The system is thus configured in host mode by 
-musb_host_setup() with musb->xceiv->otg->state = OTG_STATE_A_IDLE. A later 
-call to musb_start() verifies the condition
-
-        if (musb->port_mode != MUSB_PORT_MODE_HOST &&
-                        musb->xceiv->otg->state != OTG_STATE_A_WAIT_BCON &&
-                        (devctl & MUSB_DEVCTL_VBUS) == MUSB_DEVCTL_VBUS) {
-
-and sets musb->is_active to 1. Later, musb_bus_suspend() complains because 
-is_active is not 0.
-
-What is wrong in that sequence ?
+No. pls, use constant values and do not introduce additional parameters.
+Also, pls update commit message with new information.
 
 -- 
-Regards,
-
-Laurent Pinchart
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards,
+-grygorii
