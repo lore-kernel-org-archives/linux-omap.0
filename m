@@ -1,79 +1,31 @@
-From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Subject: Re: PM regression with LED changes in next-20161109
-Date: Thu, 10 Nov 2016 22:34:07 +0100
-Message-ID: <80b645e7-c3fa-8001-d9b1-c3c8c40394fd@gmail.com>
-References: <20161109192301.GS26979@atomide.com>
- <28234714-3994-6747-9cf8-1ff0b3257f7a@gmail.com>
- <CGME20161110084919epcas3p2e8fbdd2905cabe15c5301b7a8e22416c@epcas3p2.samsung.com>
- <f627c778-4378-e5da-09dd-3e0fb2ea4aba@redhat.com>
- <5bd5333e-0dbb-6333-0a48-ca4d3a990f9c@samsung.com>
- <20161110162925.GA28832@amd> <20161110175537.GF27724@atomide.com>
- <20161110202910.GE28832@amd>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/4] musb fixes for v4.9-rc cycle
+Date: Thu, 10 Nov 2016 14:56:25 -0700
+Message-ID: <20161110215625.GL27724@atomide.com>
+References: <20161107215020.31399-1-tony@atomide.com>
+ <20161110175033.GD27724@atomide.com>
+ <13695022.UUbBUaRpJY@avalon>
+ <1557347.d3YjqqaO81@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-leds-owner@vger.kernel.org>
-In-Reply-To: <20161110202910.GE28832@amd>
-Sender: linux-leds-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, Tony Lindgren <tony@atomide.com>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>, Hans de Goede <hdegoede@redhat.com>, linux-leds@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Darren Hart <dvhart@infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1557347.d3YjqqaO81@avalon>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [161110 14:26]:
+> On Thursday 10 Nov 2016 22:29:34 Laurent Pinchart wrote:
+> Actually disabling CONFIG_USB_MUSB_HDRC gets rid of the problem, quite 
+> understandably. It's not a fix though, just a workaround. Are you interested 
+> in investigating this ?
 
-On 11/10/2016 09:29 PM, Pavel Machek wrote:
-> On Thu 2016-11-10 10:55:37, Tony Lindgren wrote:
->> * Pavel Machek <pavel@ucw.cz> [161110 09:29]:
->>> Hi!
->>>
->>>>>>> Looks like commit 883d32ce3385 ("leds: core: Add support for poll()ing
->>>>>>> the sysfs brightness attr for changes.") breaks runtime PM for me.
->>>>>>>
->>>>>>> On my omap dm3730 based test system, idle power consumption is over 70
->>>>>>> times higher now with this patch! It goes from about 6mW for the core
->>>>>>> system to over 440mW during idle meaning there's some busy timer now
->>>>>>> active.
->>>>>>>
->>>>>>> Reverting this patch fixes the issue. Any ideas?
->>>
->>> Are you using any LED that toggles with high frequency? Like perhaps
->>> LED that is lit when CPU is active?
->>
->> Yeah one of them seems to have cpu0 as the default trigger.
->
-> Aha. Its quite obvious we don't want to notify sysfs each time that
-> one is toggled, right?
->
-> IMO brightness should display max brightness for the trigger, as Hans
-> suggested, anything else is madness for trigger such as cpu activity.
+OK I think I have my hands full already..
 
-Are you suggesting that we should revert changes introduced
-by below patch?
-
-commit 29d76dfa29fe22583aefddccda0bc56aa81035dc
-Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Date:   Tue Mar 18 09:47:48 2008 +0000
-
-     leds: Add support to leds with readable status
-
-     Some led hardware allows drivers to query the led state, and this patch
-     adds a hook to let the led class take advantage of that information 
-when
-     available.
-
-     Without this functionality, when access to the led hardware is not
-     exclusive (i.e. firmware or hardware might change its state behind the
-     kernel's back), reality goes out of sync with the led class' idea 
-of what
-     the led is doing, which is annoying at best.
-
-     Behaviour for drivers that do not or cannot read the led status is
-     unchanged.
-
-     Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-     Signed-off-by: Richard Purdie <rpurdie@rpsys.net>
-
-
--- 
-Best regards,
-Jacek Anaszewski
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
