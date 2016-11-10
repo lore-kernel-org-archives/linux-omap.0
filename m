@@ -1,121 +1,81 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH] net: ethernet: ti: davinci_cpdma: fix fixed prio cpdma
- ctlr configuration
-Date: Thu, 10 Nov 2016 10:37:29 -0600
-Message-ID: <37548a54-c54b-3194-691a-22fa8118ed3d@ti.com>
-References: <1478610656-24634-1-git-send-email-ivan.khoronzhuk@linaro.org>
- <a20ab87c-4f9d-0eaa-e486-156d9f359866@ti.com>
- <592966c0-ae4c-ba6b-43ba-8ca837e9a700@linaro.org>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: PM regression with LED changes in next-20161109
+Date: Thu, 10 Nov 2016 17:44:42 +0100
+Message-ID: <de3b4ae7-6a08-2a03-d80e-059c71c58aed@redhat.com>
+References: <20161109192301.GS26979@atomide.com>
+ <28234714-3994-6747-9cf8-1ff0b3257f7a@gmail.com>
+ <CGME20161110084919epcas3p2e8fbdd2905cabe15c5301b7a8e22416c@epcas3p2.samsung.com>
+ <f627c778-4378-e5da-09dd-3e0fb2ea4aba@redhat.com>
+ <5bd5333e-0dbb-6333-0a48-ca4d3a990f9c@samsung.com>
+ <20161110162925.GA28832@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <592966c0-ae4c-ba6b-43ba-8ca837e9a700@linaro.org>
-Sender: netdev-owner@vger.kernel.org
-To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, mugunthanvnm@ti.com, netdev@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-leds-owner@vger.kernel.org>
+In-Reply-To: <20161110162925.GA28832@amd>
+Sender: linux-leds-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>, Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: Jacek Anaszewski <jacek.anaszewski@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-leds@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Darren Hart <dvhart@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
+On 10-11-16 17:29, Pavel Machek wrote:
+> Hi!
+>
+>>>>> Looks like commit 883d32ce3385 ("leds: core: Add support for poll()ing
+>>>>> the sysfs brightness attr for changes.") breaks runtime PM for me.
+>>>>>
+>>>>> On my omap dm3730 based test system, idle power consumption is over 70
+>>>>> times higher now with this patch! It goes from about 6mW for the core
+>>>>> system to over 440mW during idle meaning there's some busy timer now
+>>>>> active.
+>>>>>
+>>>>> Reverting this patch fixes the issue. Any ideas?
+>
+> Are you using any LED that toggles with high frequency? Like perhaps
+> LED that is lit when CPU is active?
+>
+>>> So a user can do "echo 128 > brightness && cat brightness" and
+>>> get out 0, or 128, depending purely on timing.
+> ...
+>>>                Reading from this file while a trigger is active returns
+>>> the
+>>>                top brightness trigger is going to use.
+>
+> Yes, that sounds sane.
+>
+>> It seems that we should get back to your initial approach. i.e. only
+>> brightness changes caused by hardware should be reported.
+>
+> I don't think enabling poll() here is good idea. Some hardware won't
+> be able to tell you that it changed the state. Returning maximum
+> brightness trigger is going to use seems easier/better.
 
-On 11/09/2016 05:56 PM, Ivan Khoronzhuk wrote:
-> 
-> 
-> On 09.11.16 23:09, Grygorii Strashko wrote:
->>
->>
->> On 11/08/2016 07:10 AM, Ivan Khoronzhuk wrote:
->>> The dma ctlr is reseted to 0 while cpdma start, thus cpdma ctlr
->>
->> I assume this is because cpdma_ctlr_start() does soft reset. Is it
->> correct?
-> Probably not. I've seen this register doesn't hold any previous settings
-> (just trash)
+The idea here is to allow userspace to poll() on the brightness
+sysfs atrribute to detect changes autonomously done by the hardware,
+such as e.g. happens on both Dell and Thinkpad laptops when pressing
+the keyboard backlight cycle hotkey. Note that these keys do not
+generate key-press events, the cycling through the brightness levels
+(including off) is done entirely in firmware.
 
-What register CPDMA_DMACONTROL or CPSW_DMACTRL?
+But we do get other ACPI events for this which we can use to let
+userspace know this happens, which is something which user-
+interfaces which allow control over the kbd backlight want to know.
 
-> after cpdma_ctlr_stop(), actually after last channel is stopped (inside
-> of cpdma_ctlr_stop()).
+I understand that we will not always be able to do this, here is the
+Documentation/ABI/testing/sysfs-class-led text I have in mind:
 
-So, You are stating that Registers context is changed after stop?
+		The file supports poll() to detect changes, changes are only
+		signalled when this file is written or when the hardware /
+		firmware changes the brightness itself and the driver can detect
+		this. Changes done by kernel triggers / software blinking are
+		not signalled.
 
-> Then cpdma_ctlr_start() just reset it to 0.
+Note the "and the driver can detect this" language, that has been there
+since v1 of the poll() notification patch since I already expected not
+all hardware to be able to signal this.
 
-"just trash" or "0".
+Regards,
 
-Sry, I do not see how cpdma_ctlr_stop() can affect on registers state :(
-and I'd very appreciated if can provide more detailed information.
-
-> 
->>
->>> cannot be configured after cpdma is stopped. So, restore content
->>> of cpdma ctlr while off/on procedure.
->>>
->>> Based on net-next/master
->>
->> ^ remove it
-> sure
-> 
->>
->>>
->>> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
->>> ---
->>>  drivers/net/ethernet/ti/cpsw.c          |   6 +-
->>>  drivers/net/ethernet/ti/davinci_cpdma.c | 103
->>> +++++++++++++++++---------------
->>>  drivers/net/ethernet/ti/davinci_cpdma.h |   2 +
->>>  3 files changed, 58 insertions(+), 53 deletions(-)
->>>
->>> diff --git a/drivers/net/ethernet/ti/cpsw.c
->>> b/drivers/net/ethernet/ti/cpsw.c
->>> index b1ddf89..4d04b8e 100644
->>> --- a/drivers/net/ethernet/ti/cpsw.c
->>> +++ b/drivers/net/ethernet/ti/cpsw.c
->>> @@ -1376,10 +1376,6 @@ static int cpsw_ndo_open(struct net_device *ndev)
->>>                    ALE_ALL_PORTS, ALE_ALL_PORTS, 0, 0);
->>>
->>>      if (!cpsw_common_res_usage_state(cpsw)) {
->>> -        /* setup tx dma to fixed prio and zero offset */
->>> -        cpdma_control_set(cpsw->dma, CPDMA_TX_PRIO_FIXED, 1);
->>> -        cpdma_control_set(cpsw->dma, CPDMA_RX_BUFFER_OFFSET, 0);
->>> -
->>>          /* disable priority elevation */
->>>          __raw_writel(0, &cpsw->regs->ptype);
->>>
->>> @@ -2710,6 +2706,8 @@ static int cpsw_probe(struct platform_device
->>> *pdev)
->>>      dma_params.desc_align        = 16;
->>>      dma_params.has_ext_regs        = true;
->>>      dma_params.desc_hw_addr         = dma_params.desc_mem_phys;
->>> +    dma_params.rxbuf_offset        = 0;
->>> +    dma_params.fixed_prio        = 1;
->>
->> Do we really need this new parameters? Do you have plans to use other
->> values?
-> I'm ok if this is static (equally as a bunch of rest in dma_params), no
-> see reason to use other values,
-
-That's what i wanted to know :) - go static, pls.
-
-> it at least now. But the issue is not only in these two parameters and
-> not only in cpsw_ndo_open().
-> It touches cpsw_set_channels() also, where ctlr stop/start is present.
-> In order to not copy cpdma_control_set(cpsw->dma, CPDMA_TX_PRIO_FIXED,
-> 1)...
-> in all such kind places in eth drivers, better to allow the cpdma to
-> control it's parameters...
-> 
-> The cpdma ctlr register holds a little more parameters (but only two of
-> them are set in cpsw)
-> Maybe there is reason to save them also. Actually I'd seen this problem
-> when playing with
-> on/off channel shapers, unfortunately the cpdma ctlr holds this info
-> also, and it was lost
-> while on/off (but I'm going to restore it in chan_start()).
-> 
-
-I understand you change, but I'm note sure about real root cause :(
-
--- 
-regards,
--grygorii
+Hans
