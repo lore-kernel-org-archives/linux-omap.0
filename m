@@ -1,138 +1,115 @@
 From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: [PATCH] ARM: OMAP2+: Remove unused MUSB initialization code
-Date: Thu, 10 Nov 2016 19:43:20 +0200
-Message-ID: <1478799800-27945-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 0/4] musb fixes for v4.9-rc cycle
+Date: Thu, 10 Nov 2016 19:43:34 +0200
+Message-ID: <2434575.h7usg10hMK@avalon>
+References: <20161107215020.31399-1-tony@atomide.com> <20161110150152.GA27724@atomide.com> <2615056.HmWtlhPO5J@avalon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <2615056.HmWtlhPO5J@avalon>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-With the removal of board-ldp.c and board-rx51.c, the last users of the
-MUSB initialization board code are gone. Remove it.
+On Thursday 10 Nov 2016 19:18:23 Laurent Pinchart wrote:
+> Hi Tony,
+> 
+> On Thursday 10 Nov 2016 08:01:52 Tony Lindgren wrote:
+> > * Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [161110 05:46]:
+> > > On Monday 07 Nov 2016 14:50:16 Tony Lindgren wrote:
+> > > > Hi all,
+> > > > 
+> > > > Here are musb fixes for the issues that I've been able to track down.
+> > > > Not sure if these will help with the problem Ladis was seeing as I'm
+> > > > not able to reproduce that one it seems.
+> > > > 
+> > > > As many people depend on this driver I'd like to have these merged
+> > > > for v4.9-rc cycle after review and testing.
+> > > > 
+> > > > Please review and test. You need to use v4.9-rc3 or later for testing
+> > > > because of the earlier fixes.
+> > > 
+> > > The series fixes my problems, both with the original and latest version
+> > > of
+> > > patch 2/4.
+> > > 
+> > > Tested-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+> > 
+> > OK good to hear and thanks for testing.
+> > 
+> > > I have however seen the following warning once with the original version
+> > > of 2/4.
+> > > 
+> > > [    3.094116] usb 1-1: New USB device found, idVendor=0424,
+> > > idProduct=9514
+> > > [    3.101257] usb 1-1: New USB device strings: Mfr=0, Product=0,
+> > > SerialNumber=0 [    3.110626] ------------[ cut here ]------------
+> > > [    3.110717] WARNING: CPU: 0 PID: 4 at
+> > > /home/laurent/src/kernel/omap4/linux-2.6/drivers/bus/omap_l3_noc.c:147
+> > > l3_interrupt_handler+0x220/0x348 [    3.110717] 44000000.ocp:L3 Custom
+> > > Error: MASTER MPU TARGET L4CFG (Read): Data Access in User mode during
+> > > Functional access
+> > 
+> > I've seen similar with interconnect target was not ready in time
+> > on ti81xx when booting that got fixed with commit ebf244148092
+> > ("ARM: OMAP2+: Use srst_udelay for USB on dm814x"). It is possible
+> > that omap4 needs similar fix but hard to say unless we have it
+> > reproducable. Anyways, below is an untested patch for omap4 to play
+> > with. Maybe repeated reboot or modprobe test would make it
+> > reproducable?
+> 
+> I'll try to give it a go, but right now I'm stuck with a different MUSB
+> problem :-) I'm trying to boot my panda board over the SMSC95xx ethernet,
+> and have switched gadget support from being compiled in to being compiled
+> as a module. I then get
+> 
+> [    2.766174] musb_bus_suspend 2586: trying to suspend as a_idle while
+> active
+> 
+> printed in a loop at boot time. I've traced musb->is_active being set to 1
+> in musb_start() with
+> 
+> musb->port_mode = MUSB_PORT_MODE_DUAL_ROLE
+> musb->xceiv->otg->state = OTG_STATE_A_IDLE
+> devctl = MUSB_DEVCTL_BDEVICE | MUSB_DEVCTL_VBUS
+> 
+> I can disable gadget support completely which will I believe fix the
+> problem, but that's just a workaround. Help would be appreciated.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
----
- arch/arm/mach-omap2/Makefile   |   1 -
- arch/arm/mach-omap2/usb-musb.c | 106 -----------------------------------------
- arch/arm/mach-omap2/usb.h      |   1 -
- 3 files changed, 108 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/usb-musb.c
+Turns out it doesn't :-(
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 5b37ec29996e..76e8ba70d952 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -242,7 +242,6 @@ obj-y					+= $(omap-flash-y) $(omap-flash-m)
- omap-hsmmc-$(CONFIG_MMC_OMAP_HS)	:= hsmmc.o
- obj-y					+= $(omap-hsmmc-m) $(omap-hsmmc-y)
- 
--obj-y					+= usb-musb.o
- obj-y					+= omap_phy_internal.o
- 
- obj-$(CONFIG_MACH_OMAP2_TUSB6010)	+= usb-tusb6010.o
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-deleted file mode 100644
-index e4562b2b973b..000000000000
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ /dev/null
-@@ -1,106 +0,0 @@
--/*
-- * linux/arch/arm/mach-omap2/usb-musb.c
-- *
-- * This file will contain the board specific details for the
-- * MENTOR USB OTG controller on OMAP3430
-- *
-- * Copyright (C) 2007-2008 Texas Instruments
-- * Copyright (C) 2008 Nokia Corporation
-- * Author: Vikram Pandita
-- *
-- * Generalization by:
-- * Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#include <linux/types.h>
--#include <linux/errno.h>
--#include <linux/delay.h>
--#include <linux/platform_device.h>
--#include <linux/clk.h>
--#include <linux/dma-mapping.h>
--#include <linux/io.h>
--#include <linux/usb/musb.h>
--
--#include "omap_device.h"
--#include "soc.h"
--#include "mux.h"
--#include "usb.h"
--
--static struct musb_hdrc_config musb_config = {
--	.multipoint	= 1,
--	.dyn_fifo	= 1,
--	.num_eps	= 16,
--	.ram_bits	= 12,
--};
--
--static struct musb_hdrc_platform_data musb_plat = {
--	.mode		= MUSB_OTG,
--
--	/* .clock is set dynamically */
--	.config		= &musb_config,
--
--	/* REVISIT charge pump on TWL4030 can supply up to
--	 * 100 mA ... but this value is board-specific, like
--	 * "mode", and should be passed to usb_musb_init().
--	 */
--	.power		= 50,			/* up to 100 mA */
--};
--
--static u64 musb_dmamask = DMA_BIT_MASK(32);
--
--static struct omap_musb_board_data musb_default_board_data = {
--	.interface_type		= MUSB_INTERFACE_ULPI,
--	.mode			= MUSB_OTG,
--	.power			= 100,
--};
--
--void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
--{
--	struct omap_hwmod		*oh;
--	struct platform_device		*pdev;
--	struct device			*dev;
--	int				bus_id = -1;
--	const char			*oh_name, *name;
--	struct omap_musb_board_data	*board_data;
--
--	if (musb_board_data)
--		board_data = musb_board_data;
--	else
--		board_data = &musb_default_board_data;
--
--	/*
--	 * REVISIT: This line can be removed once all the platforms using
--	 * musb_core.c have been converted to use use clkdev.
--	 */
--	musb_plat.clock = "ick";
--	musb_plat.board_data = board_data;
--	musb_plat.power = board_data->power >> 1;
--	musb_plat.mode = board_data->mode;
--	musb_plat.extvbus = board_data->extvbus;
--
--	oh_name = "usb_otg_hs";
--	name = "musb-omap2430";
--
--        oh = omap_hwmod_lookup(oh_name);
--        if (WARN(!oh, "%s: could not find omap_hwmod for %s\n",
--                 __func__, oh_name))
--                return;
--
--	pdev = omap_device_build(name, bus_id, oh, &musb_plat,
--				 sizeof(musb_plat));
--	if (IS_ERR(pdev)) {
--		pr_err("Could not build omap_device for %s %s\n",
--						name, oh_name);
--		return;
--	}
+CONFIG_USB_MUSB_HDRC=y
+CONFIG_USB_MUSB_HOST=y
+# CONFIG_USB_GADGET is not set
+
+and the problem still occurs.
+
+> > 8< ------------------------------
+> > diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> > b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c ---
+> > a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> > +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> > @@ -2982,6 +2982,7 @@ static struct omap_hwmod_class_sysconfig
+> > omap44xx_usb_otg_hs_sysc = { .rev_offs	= 0x0400,
+> > 
+> >  	.sysc_offs	= 0x0404,
+> >  	.syss_offs	= 0x0408,
+> > 
+> > +	.srst_udelay	= 2,
+> > 
+> >  	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_ENAWAKEUP |
+> >  	
+> >  			   SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE |
+> >  			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
+
+-- 
+Regards,
+
+Laurent Pinchart
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
