@@ -1,81 +1,56 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: PM regression with LED changes in next-20161109
-Date: Thu, 10 Nov 2016 17:44:42 +0100
-Message-ID: <de3b4ae7-6a08-2a03-d80e-059c71c58aed@redhat.com>
-References: <20161109192301.GS26979@atomide.com>
- <28234714-3994-6747-9cf8-1ff0b3257f7a@gmail.com>
- <CGME20161110084919epcas3p2e8fbdd2905cabe15c5301b7a8e22416c@epcas3p2.samsung.com>
- <f627c778-4378-e5da-09dd-3e0fb2ea4aba@redhat.com>
- <5bd5333e-0dbb-6333-0a48-ca4d3a990f9c@samsung.com>
- <20161110162925.GA28832@amd>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [PATCH v2 0/3] increase TSCADC clock to 24MHz and fix ti,charge-delay to represent in nS
+Date: Thu, 10 Nov 2016 22:05:12 +0530
+Message-ID: <20161110163515.27598-1-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-leds-owner@vger.kernel.org>
-In-Reply-To: <20161110162925.GA28832@amd>
-Sender: linux-leds-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Jacek Anaszewski <jacek.anaszewski@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-leds@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Darren Hart <dvhart@infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-input@vger.kernel.org
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Jonathan Cameron <jic23@kernel.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Lee Jones <lee.jones@linaro.org>, Sekhar Nori <nsekhar@ti.com>, Vignesh R <vigneshr@ti.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+This patch series enables ADC to be clocked at 24MHz as the
+TI AM335x ADC driver has already adopted to use DMA to transfer
+ADC samples. Now ADC can generated upto 800K Samples per second
+with the patch [1] on AM335x BBB and AM437x GP EVM.
 
-On 10-11-16 17:29, Pavel Machek wrote:
-> Hi!
->
->>>>> Looks like commit 883d32ce3385 ("leds: core: Add support for poll()ing
->>>>> the sysfs brightness attr for changes.") breaks runtime PM for me.
->>>>>
->>>>> On my omap dm3730 based test system, idle power consumption is over 70
->>>>> times higher now with this patch! It goes from about 6mW for the core
->>>>> system to over 440mW during idle meaning there's some busy timer now
->>>>> active.
->>>>>
->>>>> Reverting this patch fixes the issue. Any ideas?
->
-> Are you using any LED that toggles with high frequency? Like perhaps
-> LED that is lit when CPU is active?
->
->>> So a user can do "echo 128 > brightness && cat brightness" and
->>> get out 0, or 128, depending purely on timing.
-> ...
->>>                Reading from this file while a trigger is active returns
->>> the
->>>                top brightness trigger is going to use.
->
-> Yes, that sounds sane.
->
->> It seems that we should get back to your initial approach. i.e. only
->> brightness changes caused by hardware should be reported.
->
-> I don't think enabling poll() here is good idea. Some hardware won't
-> be able to tell you that it changed the state. Returning maximum
-> brightness trigger is going to use seems easier/better.
+when ADC ref clock is set at 24MHz, I am seeing some issue with
+touch screen pointer as the pointer jumps to random locations
+with free draw application. The issue is due to increase in ADC
+clock and charge delay for the touchscreen ADC line duration
+reduced.
 
-The idea here is to allow userspace to poll() on the brightness
-sysfs atrribute to detect changes autonomously done by the hardware,
-such as e.g. happens on both Dell and Thinkpad laptops when pressing
-the keyboard backlight cycle hotkey. Note that these keys do not
-generate key-press events, the cycling through the brightness levels
-(including off) is done entirely in firmware.
+So the notation of ti,charge-delay in terms of ADC clock is
+wrong, it has to be represented in time and driver has to convert
+the charge delay time to ADC clocks based on what ADC clock
+frequency is set.
 
-But we do get other ACPI events for this which we can use to let
-userspace know this happens, which is something which user-
-interfaces which allow control over the kbd backlight want to know.
+Measured the performance with the iio_generic_buffer with the
+patch [2] applied
 
-I understand that we will not always be able to do this, here is the
-Documentation/ABI/testing/sysfs-class-led text I have in mind:
+Verified the touch screen on AM335x GP EVM and AM335x BBB LCD7
+cape with [3] dts for display and touch screen to work.
 
-		The file supports poll() to detect changes, changes are only
-		signalled when this file is written or when the hardware /
-		firmware changes the brightness itself and the driver can detect
-		this. Changes done by kernel triggers / software blinking are
-		not signalled.
+Changes from initial version:
+* Removed modification to STEPCONFIG_OPENDLY defined as it
+  doesn't affect/improve touchscreen performance.
+* Changed ti,charge-delay to ti,charge-delay-ns
 
-Note the "and the driver can detect this" language, that has been there
-since v1 of the poll() notification patch since I already expected not
-all hardware to be able to signal this.
+[1] - http://pastebin.ubuntu.com/23357935/
+[2] - http://pastebin.ubuntu.com/23357939/
+[3] - http://pastebin.ubuntu.com/23456616/
 
-Regards,
+Mugunthan V N (3):
+  dt/binding: ti-tsc-adc: deprecate ti,charge-delay and add binding doc
+    for ti,charge-delay-ns
+  Input: ti_am335x_tsc: Add support for ti,charge-delay-ns
+  drivers: mfd: ti_am335x_tscadc: increase ADC ref clock to 24MHz
 
-Hans
+ .../bindings/input/touchscreen/ti-tsc-adc.txt      | 32 ++++++++++++++--------
+ drivers/input/touchscreen/ti_am335x_tsc.c          | 31 +++++++++++++++------
+ include/linux/mfd/ti_am335x_tscadc.h               |  2 +-
+ 3 files changed, 45 insertions(+), 20 deletions(-)
+
+-- 
+2.11.0.rc0.7.gbe5a750
