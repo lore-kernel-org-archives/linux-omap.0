@@ -1,175 +1,77 @@
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: Re: PM regression with LED changes in next-20161109
-Date: Thu, 10 Nov 2016 14:55:18 +0100
-Message-ID: <7cc1ba55-1bd0-ae3f-5c9b-f16efb8dcc80@samsung.com>
-References: <20161109192301.GS26979@atomide.com>
- <28234714-3994-6747-9cf8-1ff0b3257f7a@gmail.com>
- <CGME20161110084919epcas3p2e8fbdd2905cabe15c5301b7a8e22416c@epcas3p2.samsung.com>
- <f627c778-4378-e5da-09dd-3e0fb2ea4aba@redhat.com>
- <5bd5333e-0dbb-6333-0a48-ca4d3a990f9c@samsung.com>
- <d2941e6f-d277-a68d-2837-00b628dd3be7@redhat.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/4] musb fixes for v4.9-rc cycle
+Date: Thu, 10 Nov 2016 08:01:52 -0700
+Message-ID: <20161110150152.GA27724@atomide.com>
+References: <20161107215020.31399-1-tony@atomide.com>
+ <7547144.tJtJXeDM1m@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <d2941e6f-d277-a68d-2837-00b628dd3be7@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, Jacek Anaszewski <jacek.anaszewski@gmail.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-leds@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Darren Hart <dvhart@infradead.org>, Pavel Machek <pavel@ucw.cz>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <7547144.tJtJXeDM1m@avalon>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [161110 05:46]:
+> Hi Tony,
+> 
+> Thank you for the patches.
+> 
+> On Monday 07 Nov 2016 14:50:16 Tony Lindgren wrote:
+> > Hi all,
+> > 
+> > Here are musb fixes for the issues that I've been able to track down.
+> > Not sure if these will help with the problem Ladis was seeing as I'm
+> > not able to reproduce that one it seems.
+> > 
+> > As many people depend on this driver I'd like to have these merged
+> > for v4.9-rc cycle after review and testing.
+> > 
+> > Please review and test. You need to use v4.9-rc3 or later for testing
+> > because of the earlier fixes.
+> 
+> The series fixes my problems, both with the original and latest version of
+> patch 2/4.
+> 
+> Tested-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 
-On 11/10/2016 02:04 PM, Hans de Goede wrote:
-> Hi,
->
-> On 10-11-16 13:56, Jacek Anaszewski wrote:
->> Hi,
->>
->> On 11/10/2016 09:49 AM, Hans de Goede wrote:
->>> Hi,
->>>
->>> On 09-11-16 21:45, Jacek Anaszewski wrote:
->>>> Hi Tony,
->>>>
->>>> On 11/09/2016 08:23 PM, Tony Lindgren wrote:
->>>>> Hi,
->>>>>
->>>>> Looks like commit 883d32ce3385 ("leds: core: Add support for poll()ing
->>>>> the sysfs brightness attr for changes.") breaks runtime PM for me.
->>>>>
->>>>> On my omap dm3730 based test system, idle power consumption is over 70
->>>>> times higher now with this patch! It goes from about 6mW for the core
->>>>> system to over 440mW during idle meaning there's some busy timer now
->>>>> active.
->>>>>
->>>>> Reverting this patch fixes the issue. Any ideas?
->>>>
->>>> Thanks for the report. This is probably caused by
->>>> sysfs_notify_dirent().
->>>> I'm afraid that we can't keep this feature in the current shape.
->>>> Hans, I'm dropping the patch. We probably will have to delegate this
->>>> call to a workqueue task. Think about use cases when the LED is blinked
->>>> with high frequency e.g. from ledtrig-disk.c.
->>>
->>> sysfs_notify_dirent() already uses a workqueue, here is the actual
->>> implementation of it (from fs/kernfs/file.c) :
->>>
->>> void kernfs_notify(struct kernfs_node *kn)
->>> {
->>>         static DECLARE_WORK(kernfs_notify_work, kernfs_notify_workfn);
->>>         unsigned long flags;
->>>
->>>         if (WARN_ON(kernfs_type(kn) != KERNFS_FILE))
->>>                 return;
->>>
->>>         spin_lock_irqsave(&kernfs_notify_lock, flags);
->>>         if (!kn->attr.notify_next) {
->>>                 kernfs_get(kn);
->>>                 kn->attr.notify_next = kernfs_notify_list;
->>>                 kernfs_notify_list = kn;
->>>                 schedule_work(&kernfs_notify_work);
->>>         }
->>>         spin_unlock_irqrestore(&kernfs_notify_lock, flags);
->>> }
->>
->> Indeed. As a next step of this investigation Tony could disable
->> particular calls made in kernfs_notify_workfn to check what
->> exactly causes excessive power consumption.
->>
->>> So using a workqueue is not going to help. Note that I already
->>> feared this, which is why my initial implementation only called
->>> sysfs_notify_dirent() for user initiated changes and not for
->>> triggers / blinking.
->>
->> AFAIR there were no calls to led_notify_brightness_change() in
->> the initial implementation and it was entirely predestined for
->> being called by LED class drivers on brightness changes made
->> by firmware.
->>
->>> I think we may need to reconsider what getting the brightness
->>> sysfs atrribute actually returns. Currently when a LED is
->>> blinking it will return 0 resp. the actual brightness depending
->>> on when in the blink cycle the user reads the brightness
->>> sysfs atrribute.
->>>
->>> So a user can do "echo 128 > brightness && cat brightness" and
->>> get out 0, or 128, depending purely on timing.
->>>
->>> This seems to contradict what Documentation/ABI/testing/sysfs-class-led
->>> has to say:
->>>
->>> What:           /sys/class/leds/<led>/brightness
->>> Date:           March 2006
->>> KernelVersion:  2.6.17
->>> Contact:        Richard Purdie <rpurdie@rpsys.net>
->>> Description:
->>>                 Set the brightness of the LED. Most LEDs don't
->>>                 have hardware brightness support, so will just be turned
->>> on for
->>>                 non-zero brightness settings. The value is between 0 and
->>>                 /sys/class/leds/<led>/max_brightness.
->>>
->>>                 Writing 0 to this file clears active trigger.
->>>
->>>                 Writing non-zero to this file while trigger is active
->>> changes the
->>>                 top brightness trigger is going to use.
->>>
->>> Even though it only talks about writing, the logical thing would be for
->>> reading to be the exact opposite of writing, so we would get:
->>>
->>>                 Reading from this file while a trigger is active returns
->>> the
->>>                 top brightness trigger is going to use.
->>>
->>> The current docs say not about (sw) blinking, but that should be treated
->>> just
->>> like a trigger IMHO.
->>
->> You'r right, we should describe the semantics on reading, but it would
->> have to be as follows:
->>
->> Reading from this file returns LED brightness at given moment, i.e.
->> even though LED class device brightness setting is greater than 0, the
->> momentary brightness can be 0 if the readout occurred during low phase
->> of blink cycle.
->
-> Why would it need to read like this, because this is the current behavior ?
+OK good to hear and thanks for testing.
 
-We have led_update_brightness() which was introduced long time ago and
-is used in brightness_show(). Note that if LED controller changed
-actual LED brightness e.g. due to battery voltage dropping below
-certain threshold, we wouldn't be able to find it out otherwise
-(except if we added separate sysfs file for that).
+> I have however seen the following warning once with the original version of 2/4.
+> 
+> [    3.094116] usb 1-1: New USB device found, idVendor=0424, idProduct=9514
+> [    3.101257] usb 1-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+> [    3.110626] ------------[ cut here ]------------
+> [    3.110717] WARNING: CPU: 0 PID: 4 at /home/laurent/src/kernel/omap4/linux-2.6/drivers/bus/omap_l3_noc.c:147 l3_interrupt_handler+0x220/0x348
+> [    3.110717] 44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4CFG (Read): Data Access in User mode during Functional access
 
->
-> I doubt anyone is relying on this current behavior because it is really
-> unpredictable which value one can get.
->
-> I believe it would be better to change the read semantics to follow
-> the write semantics, this would be much more consistent.
->
-> Making the read behavior match the write behavior should be easy I would
-> be happy to write a patch for this.
+I've seen similar with interconnect target was not ready in time
+on ti81xx when booting that got fixed with commit ebf244148092
+("ARM: OMAP2+: Use srst_udelay for USB on dm814x"). It is possible
+that omap4 needs similar fix but hard to say unless we have it
+reproducable. Anyways, below is an untested patch for omap4 to play
+with. Maybe repeated reboot or modprobe test would make it
+reproducable?
 
-Let's better agree on the description of the current semantics.
-It has been around for a long time.
+Regards,
 
->>> If we can get consensus on what the read behavior for the brightness
->>> attribute
->>> should be, then I think that a better poll() behavior will automatically
->>> follow
->>> from that.
->>
->> It seems that we should get back to your initial approach. i.e. only
->> brightness changes caused by hardware should be reported.
->
-> Ok, if you really want to keep the read behavior as is, I can provide
-> an updated patch for this.
+Tony
 
-Yes please.
-
--- 
-Best regards,
-Jacek Anaszewski
+8< ------------------------------
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -2982,6 +2982,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_usb_otg_hs_sysc = {
+ 	.rev_offs	= 0x0400,
+ 	.sysc_offs	= 0x0404,
+ 	.syss_offs	= 0x0408,
++	.srst_udelay	= 2,
+ 	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_ENAWAKEUP |
+ 			   SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE |
+ 			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
