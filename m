@@ -1,56 +1,99 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [PATCH v2 0/3] increase TSCADC clock to 24MHz and fix ti,charge-delay to represent in nS
-Date: Thu, 10 Nov 2016 22:05:12 +0530
-Message-ID: <20161110163515.27598-1-mugunthanvnm@ti.com>
+From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Subject: Re: [PATCH 0/4] musb fixes for v4.9-rc cycle
+Date: Thu, 10 Nov 2016 19:18:23 +0200
+Message-ID: <2615056.HmWtlhPO5J@avalon>
+References: <20161107215020.31399-1-tony@atomide.com> <7547144.tJtJXeDM1m@avalon> <20161110150152.GA27724@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-input@vger.kernel.org
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Jonathan Cameron <jic23@kernel.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Lee Jones <lee.jones@linaro.org>, Sekhar Nori <nsekhar@ti.com>, Vignesh R <vigneshr@ti.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161110150152.GA27724-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch series enables ADC to be clocked at 24MHz as the
-TI AM335x ADC driver has already adopted to use DMA to transfer
-ADC samples. Now ADC can generated upto 800K Samples per second
-with the patch [1] on AM335x BBB and AM437x GP EVM.
+Hi Tony,
 
-when ADC ref clock is set at 24MHz, I am seeing some issue with
-touch screen pointer as the pointer jumps to random locations
-with free draw application. The issue is due to increase in ADC
-clock and charge delay for the touchscreen ADC line duration
-reduced.
+On Thursday 10 Nov 2016 08:01:52 Tony Lindgren wrote:
+> * Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [161110 05:46]:
+> > On Monday 07 Nov 2016 14:50:16 Tony Lindgren wrote:
+> > > Hi all,
+> > > 
+> > > Here are musb fixes for the issues that I've been able to track down.
+> > > Not sure if these will help with the problem Ladis was seeing as I'm
+> > > not able to reproduce that one it seems.
+> > > 
+> > > As many people depend on this driver I'd like to have these merged
+> > > for v4.9-rc cycle after review and testing.
+> > > 
+> > > Please review and test. You need to use v4.9-rc3 or later for testing
+> > > because of the earlier fixes.
+> > 
+> > The series fixes my problems, both with the original and latest version of
+> > patch 2/4.
+> > 
+> > Tested-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+> 
+> OK good to hear and thanks for testing.
+> 
+> > I have however seen the following warning once with the original version
+> > of 2/4.
+> > 
+> > [    3.094116] usb 1-1: New USB device found, idVendor=0424,
+> > idProduct=9514
+> > [    3.101257] usb 1-1: New USB device strings: Mfr=0, Product=0,
+> > SerialNumber=0 [    3.110626] ------------[ cut here ]------------
+> > [    3.110717] WARNING: CPU: 0 PID: 4 at
+> > /home/laurent/src/kernel/omap4/linux-2.6/drivers/bus/omap_l3_noc.c:147
+> > l3_interrupt_handler+0x220/0x348 [    3.110717] 44000000.ocp:L3 Custom
+> > Error: MASTER MPU TARGET L4CFG (Read): Data Access in User mode during
+> > Functional access
+> I've seen similar with interconnect target was not ready in time
+> on ti81xx when booting that got fixed with commit ebf244148092
+> ("ARM: OMAP2+: Use srst_udelay for USB on dm814x"). It is possible
+> that omap4 needs similar fix but hard to say unless we have it
+> reproducable. Anyways, below is an untested patch for omap4 to play
+> with. Maybe repeated reboot or modprobe test would make it
+> reproducable?
 
-So the notation of ti,charge-delay in terms of ADC clock is
-wrong, it has to be represented in time and driver has to convert
-the charge delay time to ADC clocks based on what ADC clock
-frequency is set.
+I'll try to give it a go, but right now I'm stuck with a different MUSB 
+problem :-) I'm trying to boot my panda board over the SMSC95xx ethernet, and 
+have switched gadget support from being compiled in to being compiled as a 
+module. I then get
 
-Measured the performance with the iio_generic_buffer with the
-patch [2] applied
+[    2.766174] musb_bus_suspend 2586: trying to suspend as a_idle while active
 
-Verified the touch screen on AM335x GP EVM and AM335x BBB LCD7
-cape with [3] dts for display and touch screen to work.
+printed in a loop at boot time. I've traced musb->is_active being set to 1 in 
+musb_start() with 
 
-Changes from initial version:
-* Removed modification to STEPCONFIG_OPENDLY defined as it
-  doesn't affect/improve touchscreen performance.
-* Changed ti,charge-delay to ti,charge-delay-ns
+musb->port_mode = MUSB_PORT_MODE_DUAL_ROLE
+musb->xceiv->otg->state = OTG_STATE_A_IDLE
+devctl = MUSB_DEVCTL_BDEVICE | MUSB_DEVCTL_VBUS
 
-[1] - http://pastebin.ubuntu.com/23357935/
-[2] - http://pastebin.ubuntu.com/23357939/
-[3] - http://pastebin.ubuntu.com/23456616/
+I can disable gadget support completely which will I believe fix the problem, 
+but that's just a workaround. Help would be appreciated.
 
-Mugunthan V N (3):
-  dt/binding: ti-tsc-adc: deprecate ti,charge-delay and add binding doc
-    for ti,charge-delay-ns
-  Input: ti_am335x_tsc: Add support for ti,charge-delay-ns
-  drivers: mfd: ti_am335x_tscadc: increase ADC ref clock to 24MHz
-
- .../bindings/input/touchscreen/ti-tsc-adc.txt      | 32 ++++++++++++++--------
- drivers/input/touchscreen/ti_am335x_tsc.c          | 31 +++++++++++++++------
- include/linux/mfd/ti_am335x_tscadc.h               |  2 +-
- 3 files changed, 45 insertions(+), 20 deletions(-)
+> 8< ------------------------------
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c ---
+> a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -2982,6 +2982,7 @@ static struct omap_hwmod_class_sysconfig
+> omap44xx_usb_otg_hs_sysc = { .rev_offs	= 0x0400,
+>  	.sysc_offs	= 0x0404,
+>  	.syss_offs	= 0x0408,
+> +	.srst_udelay	= 2,
+>  	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_ENAWAKEUP |
+>  			   SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE |
+>  			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
 
 -- 
-2.11.0.rc0.7.gbe5a750
+Regards,
+
+Laurent Pinchart
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
