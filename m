@@ -1,88 +1,112 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH] net: ethernet: ti: davinci_cpdma: fix fixed prio cpdma
- ctlr configuration
-Date: Thu, 10 Nov 2016 01:56:44 +0200
-Message-ID: <592966c0-ae4c-ba6b-43ba-8ca837e9a700@linaro.org>
-References: <1478610656-24634-1-git-send-email-ivan.khoronzhuk@linaro.org>
- <a20ab87c-4f9d-0eaa-e486-156d9f359866@ti.com>
+From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/4] mfd: palmas: Reset the POWERHOLD mux during power off
+Date: Thu, 10 Nov 2016 09:48:51 +0530
+Message-ID: <7f78b9be-8f47-c4f6-7392-15d9b1441496@ti.com>
+References: <1477559414-12520-1-git-send-email-j-keerthy@ti.com>
+ <1477559414-12520-3-git-send-email-j-keerthy@ti.com>
+ <20161109161419.GJ13127@dell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <a20ab87c-4f9d-0eaa-e486-156d9f359866@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, mugunthanvnm@ti.com, netdev@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161109161419.GJ13127@dell>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On 09.11.16 23:09, Grygorii Strashko wrote:
+On Wednesday 09 November 2016 09:44 PM, Lee Jones wrote:
+> On Thu, 27 Oct 2016, Keerthy wrote:
 >
->
-> On 11/08/2016 07:10 AM, Ivan Khoronzhuk wrote:
->> The dma ctlr is reseted to 0 while cpdma start, thus cpdma ctlr
->
-> I assume this is because cpdma_ctlr_start() does soft reset. Is it correct?
-Probably not. I've seen this register doesn't hold any previous settings (just trash)
-after cpdma_ctlr_stop(), actually after last channel is stopped (inside of cpdma_ctlr_stop()).
-Then cpdma_ctlr_start() just reset it to 0.
-
->
->> cannot be configured after cpdma is stopped. So, restore content
->> of cpdma ctlr while off/on procedure.
+>> POWERHOLD signal has higher priority  over the DEV_ON bit.
+>> So power off will not happen if the POWERHOLD is held high.
+>> Hence reset the MUX to GPIO_7 mode to release the POWERHOLD
+>> and the DEV_ON bit to take effect to power off the PMIC.
 >>
->> Based on net-next/master
->
-> ^ remove it
-sure
-
->
+>> PMIC Power off happens in dire situations like thermal shutdown
+>> so irrespective of the POWERHOLD setting go ahead and turn off
+>> the powerhold.  Currently poweroff is broken on boards that have
+>> powerhold enabled. This fixes poweroff on those boards.
 >>
->> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+>> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 >> ---
->>  drivers/net/ethernet/ti/cpsw.c          |   6 +-
->>  drivers/net/ethernet/ti/davinci_cpdma.c | 103 +++++++++++++++++---------------
->>  drivers/net/ethernet/ti/davinci_cpdma.h |   2 +
->>  3 files changed, 58 insertions(+), 53 deletions(-)
+>>  drivers/mfd/palmas.c | 18 ++++++++++++++++++
+>>  1 file changed, 18 insertions(+)
 >>
->> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
->> index b1ddf89..4d04b8e 100644
->> --- a/drivers/net/ethernet/ti/cpsw.c
->> +++ b/drivers/net/ethernet/ti/cpsw.c
->> @@ -1376,10 +1376,6 @@ static int cpsw_ndo_open(struct net_device *ndev)
->>  				  ALE_ALL_PORTS, ALE_ALL_PORTS, 0, 0);
+>> diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
+>> index 8f8bacb..8fbc5e0 100644
+>> --- a/drivers/mfd/palmas.c
+>> +++ b/drivers/mfd/palmas.c
+>> @@ -430,10 +430,28 @@ static void palmas_power_off(void)
+>>  {
+>>  	unsigned int addr;
+>>  	int ret, slave;
+>> +	struct device_node *node;
+>> +	bool override_powerhold;
 >>
->>  	if (!cpsw_common_res_usage_state(cpsw)) {
->> -		/* setup tx dma to fixed prio and zero offset */
->> -		cpdma_control_set(cpsw->dma, CPDMA_TX_PRIO_FIXED, 1);
->> -		cpdma_control_set(cpsw->dma, CPDMA_RX_BUFFER_OFFSET, 0);
->> -
->>  		/* disable priority elevation */
->>  		__raw_writel(0, &cpsw->regs->ptype);
->>
->> @@ -2710,6 +2706,8 @@ static int cpsw_probe(struct platform_device *pdev)
->>  	dma_params.desc_align		= 16;
->>  	dma_params.has_ext_regs		= true;
->>  	dma_params.desc_hw_addr         = dma_params.desc_mem_phys;
->> +	dma_params.rxbuf_offset		= 0;
->> +	dma_params.fixed_prio		= 1;
+>>  	if (!palmas_dev)
 >
-> Do we really need this new parameters? Do you have plans to use other values?
-I'm ok if this is static (equally as a bunch of rest in dma_params), no see reason to use other values,
-it at least now. But the issue is not only in these two parameters and not only in cpsw_ndo_open().
-It touches cpsw_set_channels() also, where ctlr stop/start is present.
-In order to not copy cpdma_control_set(cpsw->dma, CPDMA_TX_PRIO_FIXED, 1)...
-in all such kind places in eth drivers, better to allow the cpdma to control it's parameters...
+> Can this happen?
 
-The cpdma ctlr register holds a little more parameters (but only two of them are set in cpsw)
-Maybe there is reason to save them also. Actually I'd seen this problem when playing with
-on/off channel shapers, unfortunately the cpdma ctlr holds this info also, and it was lost
-while on/off (but I'm going to restore it in chan_start()).
-
+pm_power_off and palmas_dev are always assigned together. You are right 
+this is redundant and can be removed.
 
 >
+>>  		return;
+>>
+>> +	node = palmas_dev->dev->of_node;
+>
+> Just do:
+>
+> struct device_node *np = palmas_dev->dev->of_node;
+>
+>> +	override_powerhold = of_property_read_bool(node,
+>> +					"ti,palmas-override-powerhold");
+>
+> Break the line after the '=' instead.
 
--- 
-Regards,
-Ivan Khoronzhuk
+okay.
+
+>
+>> +	if (override_powerhold) {
+>
+> if (of_property_read_bool(node,	"ti,palmas-override-powerhold"))
+>
+> Then remove 'override_powerhold'.
+
+Okay.
+
+>
+>> +		addr = PALMAS_BASE_TO_REG(PALMAS_PU_PD_OD_BASE,
+>> +					  PALMAS_PRIMARY_SECONDARY_PAD2);
+>> +		slave = PALMAS_BASE_TO_SLAVE(PALMAS_PU_PD_OD_BASE);
+>> +
+>> +		ret = regmap_update_bits(palmas_dev->regmap[slave], addr,
+>> +					 PALMAS_PRIMARY_SECONDARY_PAD2_GPIO_7_MASK, 0);
+>> +		if (ret)
+>> +			pr_err("%s: Unable to write PALMAS_PRIMARY_SECONDARY_PAD2 %d\n",
+>> +			       __func__, ret);
+>
+> Don't use __func__ in live code.
+
+okay.
+
+>
+> And use dev_err();
+
+sure.
+
+>
+>
+>> +	}
+>> +
+>>  	slave = PALMAS_BASE_TO_SLAVE(PALMAS_PMU_CONTROL_BASE);
+>>  	addr = PALMAS_BASE_TO_REG(PALMAS_PMU_CONTROL_BASE, PALMAS_DEV_CTRL);
+>>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
