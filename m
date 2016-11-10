@@ -1,163 +1,138 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 2/4] usb: musb: Fix sleeping function called from invalid
- context for hdrc glue
-Date: Thu, 10 Nov 2016 10:41:50 -0700
-Message-ID: <20161110174150.GC27724@atomide.com>
-References: <20161107215020.31399-1-tony@atomide.com>
- <20161107215020.31399-3-tony@atomide.com>
- <20161108170917.GA3328@localhost>
- <20161108173413.GM2428@atomide.com>
- <20161108190331.GA14744@localhost>
- <20161109012606.GR2428@atomide.com>
- <20161109153953.GG14744@localhost>
- <20161109175437.GZ2428@atomide.com>
- <20161110160423.GJ14744@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Subject: [PATCH] ARM: OMAP2+: Remove unused MUSB initialization code
+Date: Thu, 10 Nov 2016 19:43:20 +0200
+Message-ID: <1478799800-27945-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161110160423.GJ14744@localhost>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [161110 09:04]:
-> On Wed, Nov 09, 2016 at 10:54:38AM -0700, Tony Lindgren wrote:
-> > * Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [161109 08:40]:
-> > > On Tue, Nov 08, 2016 at 06:26:07PM -0700, Tony Lindgren wrote:
-> > > > * Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [161108 12:03]:
-> > > > > On Tue, Nov 08, 2016 at 10:34:13AM -0700, Tony Lindgren wrote:
-> > > > > > * Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [161108 10:09]:
-> 
-> > > > > > > In fact, the dsps timer must also be cancelled on suspend, or you could
-> > > > > > > end up calling dsps_check_status() while suspended (it is currently not
-> > > > > > > cancelled until the parent device is suspended, which could be too
-> > > > > > > late).
-> > > > > > 
-> > > > > > And then this should no longer be an issue either.
-> > > > > 
-> > > > > It would still be an issue as a system-suspending device could already
-> > > > > have been runtime-resumed so that dsps_check_status() would be called
-> > > > > directly from the timer function.
-> > > > 
-> > > > The glue layers should do pm_runtime_get_sync(musb->controller) which
-> > > > dsps glue already does. So that's the musb_core.c device instance. And
-> > > > looks like we have dsps_suspend() call del_timer_sync(&glue->timer)
-> > > > already. I think we're safe here.
-> > > 
-> > > But the point is that the controller might be RPM_ACTIVE if the
-> > > controller was already runtime resumed when it is system suspended.
-> > > 
-> > > Since this (and the previous) patch run the work directly from the timer
-> > > callback if active, it could end up accessing the controller after it
-> > > has been system suspended. Specifically, stopping the timer in the glue
-> > > (parent) suspend callback is too late to avoid this.
-> > > 
-> > > 	pm_runtime_get_sync(musb->controller);
-> > > 		musb_runtime_resume()
-> > > 			musb_restore_context();
-> > > 	
-> > > 	...
-> > > 
-> > > 	musb_suspend()
-> > > 		musb_save_context();
-> > > 
-> > > 	otg_timer()
-> > > 		pm_runtime_get();
-> > > 		if (pm_runtime_active(musb->controller))
-> > > 			dsps_check_status();
-> > > 		pm_runtime_put_autosuspend();
-> > > 
-> > > 	dsps_suspend()
-> > > 		del_timer_sync();
-> > > 
-> > 
-> > OK so we need to return without doing anything from otg_timer() on
-> > pm_runtime_get() to avoid that.
-> 
-> I'm afraid that won't work as pm_runtime_get() would still succeed (i.e.
-> even after musb_suspend()).
-> 
-> See 6f3c77b040fc ("PM / Runtime: let rpm_resume() succeed if RPM_ACTIVE,
-> even when disabled, v2").
+With the removal of board-ldp.c and board-rx51.c, the last users of the
+MUSB initialization board code are gone. Remove it.
 
-But doesn't that assume that we have musb core as in musb->controller
-in RPM_ACTIVE state? While if it's been suspended that's not the
-case meaning rpm_resume would fail?
+Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+---
+ arch/arm/mach-omap2/Makefile   |   1 -
+ arch/arm/mach-omap2/usb-musb.c | 106 -----------------------------------------
+ arch/arm/mach-omap2/usb.h      |   1 -
+ 3 files changed, 108 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/usb-musb.c
 
-If we have a window for a race there with RPM_ACTIVE set, we could
-add musb->is_disabled flag that gets set in musb_suspend().
-
-> > In the long run it would be nice to make whatever optional state polling
-> > musb generic with just a glue layer callback.
-> 
-> Yes, and make sure to stop polling in musb_suspend(). Would it be
-> possible to use the enable and disable ops for this until then?
-
-Hmm care to explain a bit more? That is assuming that rpm_resume()
-won't fail above.. And that using musb->is_disabled flag won't
-work..
-
-> > > > +	if (musb->is_runtime_suspended) {
-> > > > +		list_add_tail(&w->node, &musb->pending_list);
-> > > > +		error = 0;
-> > > > +	} else {
-> > > > +		dev_err(musb->controller, "could not add resume work %p\n",
-> > > > +			callback);
-> > > > +		devm_kfree(musb->controller, w);
-> > > > +		error = -EINPROGRESS;
-> > > 
-> > > But this means you should be able to run the callback below, right? It
-> > > has to be run from somewhere so otherwise the caller needs to retry
-> > > instead.
-> > 
-> > Well there's no longer need to run the callback at that point any longer
-> > and with that removed that should not be an issue.
-> > 
-> > Anyways, musb->is_runtime_suspended is needed to protect anything from
-> > being queued between runtime resume having called musb_run_resume_work()
-> > and before pm_runtime_active() is true. At that point the caller could
-> > just wait for pm_runtime_active() to be set and run the code. But based
-> > on my tests that does not happen and queueing is faster than getting to
-> > the pm_runtime_active() state so we just print errors in those cases if
-> > we ever hit it later on.
-> 
-> But for a generic solution, this race could still be an issue. What
-> about musb_gadget_queue() for example? Would not failing to start I/O
-> if racing with resume be a problem?
-
-It's probably safest to return an error for cases like that rather
-than attempt to do something and risk corrupting packets. I'll move
-the check to happen earlier musb_gadget_queue() so we don't do
-anything with the request if pm_runtime_get() fails there. That
-should make it easy to add further handling if we ever start really
-hitting that issue.
-
-> > Sounds like the rest of your comments are no longer an issue, please
-> > let me know if that's not the case.
-> 
-> I think the barrier comment for the WARN_ON on musb_runtime_suspend()
-> still applies.
-
-OK, will remove that like you suggested.
-
-> > @@ -1255,7 +1264,7 @@ static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
-> >  
-> >  	map_dma_buffer(request, musb, musb_ep);
-> >  
-> > -	pm_runtime_get_sync(musb->controller);
-> > +	pm_runtime_get(musb->controller);
-> 
-> Add the missing error handling here too?
-
-Will do and move it earlier to bail out before doing anything
-with the request.
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 5b37ec29996e..76e8ba70d952 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -242,7 +242,6 @@ obj-y					+= $(omap-flash-y) $(omap-flash-m)
+ omap-hsmmc-$(CONFIG_MMC_OMAP_HS)	:= hsmmc.o
+ obj-y					+= $(omap-hsmmc-m) $(omap-hsmmc-y)
+ 
+-obj-y					+= usb-musb.o
+ obj-y					+= omap_phy_internal.o
+ 
+ obj-$(CONFIG_MACH_OMAP2_TUSB6010)	+= usb-tusb6010.o
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+deleted file mode 100644
+index e4562b2b973b..000000000000
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ /dev/null
+@@ -1,106 +0,0 @@
+-/*
+- * linux/arch/arm/mach-omap2/usb-musb.c
+- *
+- * This file will contain the board specific details for the
+- * MENTOR USB OTG controller on OMAP3430
+- *
+- * Copyright (C) 2007-2008 Texas Instruments
+- * Copyright (C) 2008 Nokia Corporation
+- * Author: Vikram Pandita
+- *
+- * Generalization by:
+- * Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#include <linux/types.h>
+-#include <linux/errno.h>
+-#include <linux/delay.h>
+-#include <linux/platform_device.h>
+-#include <linux/clk.h>
+-#include <linux/dma-mapping.h>
+-#include <linux/io.h>
+-#include <linux/usb/musb.h>
+-
+-#include "omap_device.h"
+-#include "soc.h"
+-#include "mux.h"
+-#include "usb.h"
+-
+-static struct musb_hdrc_config musb_config = {
+-	.multipoint	= 1,
+-	.dyn_fifo	= 1,
+-	.num_eps	= 16,
+-	.ram_bits	= 12,
+-};
+-
+-static struct musb_hdrc_platform_data musb_plat = {
+-	.mode		= MUSB_OTG,
+-
+-	/* .clock is set dynamically */
+-	.config		= &musb_config,
+-
+-	/* REVISIT charge pump on TWL4030 can supply up to
+-	 * 100 mA ... but this value is board-specific, like
+-	 * "mode", and should be passed to usb_musb_init().
+-	 */
+-	.power		= 50,			/* up to 100 mA */
+-};
+-
+-static u64 musb_dmamask = DMA_BIT_MASK(32);
+-
+-static struct omap_musb_board_data musb_default_board_data = {
+-	.interface_type		= MUSB_INTERFACE_ULPI,
+-	.mode			= MUSB_OTG,
+-	.power			= 100,
+-};
+-
+-void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
+-{
+-	struct omap_hwmod		*oh;
+-	struct platform_device		*pdev;
+-	struct device			*dev;
+-	int				bus_id = -1;
+-	const char			*oh_name, *name;
+-	struct omap_musb_board_data	*board_data;
+-
+-	if (musb_board_data)
+-		board_data = musb_board_data;
+-	else
+-		board_data = &musb_default_board_data;
+-
+-	/*
+-	 * REVISIT: This line can be removed once all the platforms using
+-	 * musb_core.c have been converted to use use clkdev.
+-	 */
+-	musb_plat.clock = "ick";
+-	musb_plat.board_data = board_data;
+-	musb_plat.power = board_data->power >> 1;
+-	musb_plat.mode = board_data->mode;
+-	musb_plat.extvbus = board_data->extvbus;
+-
+-	oh_name = "usb_otg_hs";
+-	name = "musb-omap2430";
+-
+-        oh = omap_hwmod_lookup(oh_name);
+-        if (WARN(!oh, "%s: could not find omap_hwmod for %s\n",
+-                 __func__, oh_name))
+-                return;
+-
+-	pdev = omap_device_build(name, bus_id, oh, &musb_plat,
+-				 sizeof(musb_plat));
+-	if (IS_ERR(pdev)) {
+-		pr_err("Could not build omap_device for %s %s\n",
+-						name, oh_name);
+-		return;
+-	}
