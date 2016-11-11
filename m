@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 08/14] ARM: OMAP2+: Remove legacy hwmod mux code
-Date: Fri, 11 Nov 2016 11:17:05 -0800
-Message-ID: <20161111191711.5079-9-tony@atomide.com>
+Subject: [PATCH 13/14] ARM: OMAP2+: Drop legacy ads7846 init
+Date: Fri, 11 Nov 2016 11:17:10 -0800
+Message-ID: <20161111191711.5079-14-tony@atomide.com>
 References: <20161111191711.5079-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,207 +21,221 @@ To: linux-omap@vger.kernel.org
 Cc: Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This is no longer needed when booted with device tree.
-
-Cc: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/devices.c    |   1 -
- arch/arm/mach-omap2/omap_hwmod.c | 107 +--------------------------------------
- 2 files changed, 1 insertion(+), 107 deletions(-)
+ arch/arm/mach-omap2/Makefile               |   3 -
+ arch/arm/mach-omap2/common-board-devices.c | 102 -----------------------------
+ arch/arm/mach-omap2/common-board-devices.h |   7 --
+ arch/arm/mach-omap2/dss-common.c           |  36 ----------
+ arch/arm/mach-omap2/dss-common.h           |  13 ----
+ arch/arm/mach-omap2/pdata-quirks.c         |   1 -
+ 6 files changed, 162 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/common-board-devices.c
+ delete mode 100644 arch/arm/mach-omap2/dss-common.c
+ delete mode 100644 arch/arm/mach-omap2/dss-common.h
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -30,7 +30,6 @@
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -244,6 +244,3 @@ obj-y					+= $(onenand-m) $(onenand-y)
  
- #include "soc.h"
+ nand-$(CONFIG_MTD_NAND_OMAP2)		:= gpmc-nand.o
+ obj-y					+= $(nand-m) $(nand-y)
+-
+-
+-obj-y					+= common-board-devices.o dss-common.o
+diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
+deleted file mode 100644
+--- a/arch/arm/mach-omap2/common-board-devices.c
++++ /dev/null
+@@ -1,102 +0,0 @@
+-/*
+- * common-board-devices.c
+- *
+- * Copyright (C) 2011 CompuLab, Ltd.
+- * Author: Mike Rapoport <mike@compulab.co.il>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * version 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+- * 02110-1301 USA
+- *
+- */
+-
+-#include <linux/gpio.h>
+-#include <linux/spi/spi.h>
+-#include <linux/spi/ads7846.h>
+-
+-#include <linux/platform_data/spi-omap2-mcspi.h>
+-
+-#include "common.h"
+-#include "common-board-devices.h"
+-
+-#if IS_ENABLED(CONFIG_TOUCHSCREEN_ADS7846)
+-static struct omap2_mcspi_device_config ads7846_mcspi_config = {
+-	.turbo_mode	= 0,
+-};
+-
+-static struct ads7846_platform_data ads7846_config = {
+-	.x_max			= 0x0fff,
+-	.y_max			= 0x0fff,
+-	.x_plate_ohms		= 180,
+-	.pressure_max		= 255,
+-	.debounce_max		= 10,
+-	.debounce_tol		= 3,
+-	.debounce_rep		= 1,
+-	.gpio_pendown		= -EINVAL,
+-	.keep_vref_on		= 1,
+-};
+-
+-static struct spi_board_info ads7846_spi_board_info __initdata = {
+-	.modalias		= "ads7846",
+-	.bus_num		= -EINVAL,
+-	.chip_select		= 0,
+-	.max_speed_hz		= 1500000,
+-	.controller_data	= &ads7846_mcspi_config,
+-	.irq			= -EINVAL,
+-	.platform_data		= &ads7846_config,
+-};
+-
+-void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
+-			      struct ads7846_platform_data *board_pdata)
+-{
+-	struct spi_board_info *spi_bi = &ads7846_spi_board_info;
+-	int err;
+-
+-	/*
+-	 * If a board defines get_pendown_state() function, request the pendown
+-	 * GPIO and set the GPIO debounce time.
+-	 * If a board does not define the get_pendown_state() function, then
+-	 * the ads7846 driver will setup the pendown GPIO itself.
+-	 */
+-	if (board_pdata && board_pdata->get_pendown_state) {
+-		err = gpio_request_one(gpio_pendown, GPIOF_IN, "TSPenDown");
+-		if (err) {
+-			pr_err("Couldn't obtain gpio for TSPenDown: %d\n", err);
+-			return;
+-		}
+-
+-		if (gpio_debounce)
+-			gpio_set_debounce(gpio_pendown, gpio_debounce);
+-
+-		gpio_export(gpio_pendown, 0);
+-	}
+-
+-	spi_bi->bus_num	= bus_num;
+-	spi_bi->irq	= gpio_to_irq(gpio_pendown);
+-
+-	ads7846_config.gpio_pendown = gpio_pendown;
+-
+-	if (board_pdata) {
+-		board_pdata->gpio_pendown = gpio_pendown;
+-		board_pdata->gpio_pendown_debounce = gpio_debounce;
+-		spi_bi->platform_data = board_pdata;
+-	}
+-
+-	spi_register_board_info(&ads7846_spi_board_info, 1);
+-}
+-#else
+-void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
+-			      struct ads7846_platform_data *board_pdata)
+-{
+-}
+-#endif
+diff --git a/arch/arm/mach-omap2/common-board-devices.h b/arch/arm/mach-omap2/common-board-devices.h
+--- a/arch/arm/mach-omap2/common-board-devices.h
++++ b/arch/arm/mach-omap2/common-board-devices.h
+@@ -4,13 +4,6 @@
+ #include <sound/tlv320aic3x.h>
+ #include <linux/mfd/menelaus.h>
+ 
+-#define NAND_BLOCK_SIZE	SZ_128K
+-
+-struct mtd_partition;
+-struct ads7846_platform_data;
+-
+-void omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
+-		       struct ads7846_platform_data *board_pdata);
+ void *n8x0_legacy_init(void);
+ 
+ extern struct menelaus_platform_data n8x0_menelaus_platform_data;
+diff --git a/arch/arm/mach-omap2/dss-common.c b/arch/arm/mach-omap2/dss-common.c
+deleted file mode 100644
+--- a/arch/arm/mach-omap2/dss-common.c
++++ /dev/null
+@@ -1,36 +0,0 @@
+-/*
+- * Copyright (C) 2012 Texas Instruments, Inc..
+- * Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * version 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+- * 02110-1301 USA
+- *
+- */
+-
+-/*
+- * NOTE: this is a transitional file to help with DT adaptation.
+- * This file will be removed when DSS supports DT.
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/gpio.h>
+-#include <linux/platform_device.h>
+-
+-#include <linux/platform_data/omapdss.h>
+-#include <video/omap-panel-data.h>
+-
+-#include "soc.h"
+-#include "dss-common.h"
+-#include "display.h"
+-
+diff --git a/arch/arm/mach-omap2/dss-common.h b/arch/arm/mach-omap2/dss-common.h
+deleted file mode 100644
+--- a/arch/arm/mach-omap2/dss-common.h
++++ /dev/null
+@@ -1,13 +0,0 @@
+-#ifndef __OMAP_DSS_COMMON__
+-#define __OMAP_DSS_COMMON__
+-
+-/*
+- * NOTE: this is a transitional file to help with DT adaptation.
+- * This file will be removed when DSS supports DT.
+- */
+-
+-void __init omap4_panda_display_init_of(void);
+-void __init omap_4430sdp_display_init_of(void);
+-void __init omap3_igep2_display_init_of(void);
+-
+-#endif
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -31,7 +31,6 @@
+ 
  #include "common.h"
--#include "mux.h"
+ #include "common-board-devices.h"
+-#include "dss-common.h"
  #include "control.h"
- #include "display.h"
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -160,7 +160,6 @@
- #include "prm44xx.h"
- #include "prm33xx.h"
- #include "prminst44xx.h"
--#include "mux.h"
- #include "pm.h"
- 
- /* Name of the OMAP hwmod for the MPU */
-@@ -217,9 +216,6 @@ static LIST_HEAD(omap_hwmod_list);
- /* mpu_oh: used to add/remove MPU initiator from sleepdep list */
- static struct omap_hwmod *mpu_oh;
- 
--/* io_chain_lock: used to serialize reconfigurations of the I/O chain */
--static DEFINE_SPINLOCK(io_chain_lock);
--
- /*
-  * linkspace: ptr to a buffer that struct omap_hwmod_link records are
-  * allocated from - used to reduce the number of small memory
-@@ -594,51 +590,6 @@ static int _set_module_autoidle(struct omap_hwmod *oh, u8 autoidle,
- }
- 
- /**
-- * _set_idle_ioring_wakeup - enable/disable IO pad wakeup on hwmod idle for mux
-- * @oh: struct omap_hwmod *
-- * @set_wake: bool value indicating to set (true) or clear (false) wakeup enable
-- *
-- * Set or clear the I/O pad wakeup flag in the mux entries for the
-- * hwmod @oh.  This function changes the @oh->mux->pads_dynamic array
-- * in memory.  If the hwmod is currently idled, and the new idle
-- * values don't match the previous ones, this function will also
-- * update the SCM PADCTRL registers.  Otherwise, if the hwmod is not
-- * currently idled, this function won't touch the hardware: the new
-- * mux settings are written to the SCM PADCTRL registers when the
-- * hwmod is idled.  No return value.
-- */
--static void _set_idle_ioring_wakeup(struct omap_hwmod *oh, bool set_wake)
--{
--	struct omap_device_pad *pad;
--	bool change = false;
--	u16 prev_idle;
--	int j;
--
--	if (!oh->mux || !oh->mux->enabled)
--		return;
--
--	for (j = 0; j < oh->mux->nr_pads_dynamic; j++) {
--		pad = oh->mux->pads_dynamic[j];
--
--		if (!(pad->flags & OMAP_DEVICE_PAD_WAKEUP))
--			continue;
--
--		prev_idle = pad->idle;
--
--		if (set_wake)
--			pad->idle |= OMAP_WAKEUP_EN;
--		else
--			pad->idle &= ~OMAP_WAKEUP_EN;
--
--		if (prev_idle != pad->idle)
--			change = true;
--	}
--
--	if (change && oh->_state == _HWMOD_STATE_IDLE)
--		omap_hwmod_mux(oh->mux, _HWMOD_STATE_IDLE);
--}
--
--/**
-  * _enable_wakeup: set OCP_SYSCONFIG.ENAWAKEUP bit in the hardware
-  * @oh: struct omap_hwmod *
-  *
-@@ -2018,29 +1969,6 @@ static int _reset(struct omap_hwmod *oh)
- }
- 
- /**
-- * _reconfigure_io_chain - clear any I/O chain wakeups and reconfigure chain
-- *
-- * Call the appropriate PRM function to clear any logged I/O chain
-- * wakeups and to reconfigure the chain.  This apparently needs to be
-- * done upon every mux change.  Since hwmods can be concurrently
-- * enabled and idled, hold a spinlock around the I/O chain
-- * reconfiguration sequence.  No return value.
-- *
-- * XXX When the PRM code is moved to drivers, this function can be removed,
-- * as the PRM infrastructure should abstract this.
-- */
--static void _reconfigure_io_chain(void)
--{
--	unsigned long flags;
--
--	spin_lock_irqsave(&io_chain_lock, flags);
--
--	omap_prm_reconfigure_io_chain();
--
--	spin_unlock_irqrestore(&io_chain_lock, flags);
--}
--
--/**
-  * _omap4_update_context_lost - increment hwmod context loss counter if
-  * hwmod context was lost, and clear hardware context loss reg
-  * @oh: hwmod to check for context loss
-@@ -2109,18 +2037,9 @@ static int _enable(struct omap_hwmod *oh)
- 
- 	/*
- 	 * hwmods with HWMOD_INIT_NO_IDLE flag set are left in enabled
--	 * state at init.  Now that someone is really trying to enable
--	 * them, just ensure that the hwmod mux is set.
-+	 * state at init.
- 	 */
- 	if (oh->_int_flags & _HWMOD_SKIP_ENABLE) {
--		/*
--		 * If the caller has mux data populated, do the mux'ing
--		 * which wouldn't have been done as part of the _enable()
--		 * done during setup.
--		 */
--		if (oh->mux)
--			omap_hwmod_mux(oh->mux, _HWMOD_STATE_ENABLED);
--
- 		oh->_int_flags &= ~_HWMOD_SKIP_ENABLE;
- 		return 0;
- 	}
-@@ -2145,16 +2064,6 @@ static int _enable(struct omap_hwmod *oh)
- 	if (_are_all_hardreset_lines_asserted(oh))
- 		return 0;
- 
--	/* Mux pins for device runtime if populated */
--	if (oh->mux && (!oh->mux->enabled ||
--			((oh->_state == _HWMOD_STATE_IDLE) &&
--			 oh->mux->pads_dynamic))) {
--		omap_hwmod_mux(oh->mux, _HWMOD_STATE_ENABLED);
--		_reconfigure_io_chain();
--	} else if (oh->flags & HWMOD_RECONFIG_IO_CHAIN) {
--		_reconfigure_io_chain();
--	}
--
- 	_add_initiator_dep(oh, mpu_oh);
- 
- 	if (oh->clkdm) {
-@@ -2260,14 +2169,6 @@ static int _idle(struct omap_hwmod *oh)
- 		clkdm_hwmod_disable(oh->clkdm, oh);
- 	}
- 
--	/* Mux pins for device idle if populated */
--	if (oh->mux && oh->mux->pads_dynamic) {
--		omap_hwmod_mux(oh->mux, _HWMOD_STATE_IDLE);
--		_reconfigure_io_chain();
--	} else if (oh->flags & HWMOD_RECONFIG_IO_CHAIN) {
--		_reconfigure_io_chain();
--	}
--
- 	oh->_state = _HWMOD_STATE_IDLE;
- 
- 	return 0;
-@@ -2334,10 +2235,6 @@ static int _shutdown(struct omap_hwmod *oh)
- 	for (i = 0; i < oh->rst_lines_cnt; i++)
- 		_assert_hardreset(oh, oh->rst_lines[i].name);
- 
--	/* Mux pins to safe mode or use populated off mode values */
--	if (oh->mux)
--		omap_hwmod_mux(oh->mux, _HWMOD_STATE_DISABLED);
--
- 	oh->_state = _HWMOD_STATE_DISABLED;
- 
- 	return 0;
-@@ -3729,7 +3626,6 @@ int omap_hwmod_enable_wakeup(struct omap_hwmod *oh)
- 		_write_sysconfig(v, oh);
- 	}
- 
--	_set_idle_ioring_wakeup(oh, true);
- 	spin_unlock_irqrestore(&oh->_lock, flags);
- 
- 	return 0;
-@@ -3762,7 +3658,6 @@ int omap_hwmod_disable_wakeup(struct omap_hwmod *oh)
- 		_write_sysconfig(v, oh);
- 	}
- 
--	_set_idle_ioring_wakeup(oh, false);
- 	spin_unlock_irqrestore(&oh->_lock, flags);
- 
- 	return 0;
+ #include "omap_device.h"
+ #include "omap-pm.h"
 -- 
 2.10.2
