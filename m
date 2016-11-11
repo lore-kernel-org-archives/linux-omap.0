@@ -1,65 +1,55 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v7 2/9] drivers:input:tsc2007: send pendown and penup only once like ads7846(+tsc2046) driver does
-Date: Fri, 11 Nov 2016 20:01:59 +0100
-Message-ID: <2c0c66456fbb971db8a3785d82747c2699eaa99c.1478890925.git.hns@goldelico.com>
+From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Subject: [PATCH v7 8/9] drivers:input:ads7846(+tsc2046): fix spi module table
+Date: Fri, 11 Nov 2016 20:02:05 +0100
+Message-ID: <7ef117b4e0f312ecd4d914915edfd55e4327948f.1478890925.git.hns@goldelico.com>
 References: <cover.1478890925.git.hns@goldelico.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1478890925.git.hns@goldelico.com>
-In-Reply-To: <cover.1478890925.git.hns@goldelico.com>
-References: <cover.1478890925.git.hns@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Michael Welling <mwelling@ieee.org>, =?UTF-8?q?Mika=20Penttil=C3=A4?= <mika.penttila@nextfour.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Igor Grinberg <grinberg@compulab.co.il>, "Andrew F. Davis" <afd@ti.com>, Mark Brown <broonie@kernel.org>, Jonathan Cameron <jic23@kernel.org>
-Cc: linux-input@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, letux-kernel@openphoenux.org, linux-iio@vger.kernel.org, kernel@pyra-handheld.com, "H. Nikolaus Schaller" <hns@goldelico.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1478890925.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+In-Reply-To: <cover.1478890925.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+References: <cover.1478890925.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, =?UTF-8?q?Mika=20Penttil=C3=A4?= <mika.penttila-MRsr7dthA9VWk0Htik3J/w@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-this should reduce unnecessary input events.
+Fix module table so that the driver is loaded if compiled
+as module and requested by DT.
 
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 ---
- drivers/input/touchscreen/tsc2007.c | 17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+ drivers/input/touchscreen/ads7846.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/input/touchscreen/tsc2007.c b/drivers/input/touchscreen/tsc2007.c
-index c1d9593..e9d5086 100644
---- a/drivers/input/touchscreen/tsc2007.c
-+++ b/drivers/input/touchscreen/tsc2007.c
-@@ -94,6 +94,7 @@ struct tsc2007 {
+diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touchscreen/ads7846.c
+index 400e421..50c85d2 100644
+--- a/drivers/input/touchscreen/ads7846.c
++++ b/drivers/input/touchscreen/ads7846.c
+@@ -1532,6 +1532,16 @@ static int ads7846_remove(struct spi_device *spi)
+ 	return 0;
+ }
  
- 	wait_queue_head_t	wait;
- 	bool			stopped;
-+	bool			pendown;
- 
- 	int			(*get_pendown_state)(struct device *);
- 	void			(*clear_penirq)(void);
-@@ -227,7 +228,11 @@ static irqreturn_t tsc2007_soft_irq(int irq, void *handle)
- 				sx, sy, rt);
- 
- 			/* report event */
--			input_report_key(input, BTN_TOUCH, 1);
-+			if (!ts->pendown) {
-+				input_report_key(input, BTN_TOUCH, 1);
-+				ts->pendown = true;
-+			}
++static const struct spi_device_id ads7846_idtable[] = {
++	{ "tsc2046", 0 },
++	{ "ads7843", 0 },
++	{ "ads7845", 0 },
++	{ "ads7846", 0 },
++	{ "ads7873", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(spi, ads7846_idtable);
 +
- 			touchscreen_report_pos(ts->input, &ts->prop,
- 						(unsigned int) sx,
- 						(unsigned int) sy,
-@@ -250,9 +255,13 @@ static irqreturn_t tsc2007_soft_irq(int irq, void *handle)
+ static struct spi_driver ads7846_driver = {
+ 	.driver = {
+ 		.name	= "ads7846",
+@@ -1546,4 +1556,3 @@ module_spi_driver(ads7846_driver);
  
- 	dev_dbg(&ts->client->dev, "UP\n");
- 
--	input_report_key(input, BTN_TOUCH, 0);
--	input_report_abs(input, ABS_PRESSURE, 0);
--	input_sync(input);
-+	if (ts->pendown) {
-+		input_report_key(input, BTN_TOUCH, 0);
-+		input_report_abs(input, ABS_PRESSURE, 0);
-+		input_sync(input);
-+
-+		ts->pendown = false;
-+	}
- 
- 	if (ts->clear_penirq)
- 		ts->clear_penirq();
+ MODULE_DESCRIPTION("ADS7846 TouchScreen Driver");
+ MODULE_LICENSE("GPL");
+-MODULE_ALIAS("spi:ads7846");
 -- 
 2.7.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
