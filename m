@@ -1,50 +1,65 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH -next] PCI: dra7xx: Add missing of_node_put() in
- dra7xx_pcie_init_irq_domain()
-Date: Fri, 11 Nov 2016 15:38:06 -0600
-Message-ID: <20161111213806.GI9868@bhelgaas-glaptop.roam.corp.google.com>
-References: <1476716077-30379-1-git-send-email-weiyj.lk@gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: PM regression with LED changes in next-20161109
+Date: Fri, 11 Nov 2016 23:06:32 +0100
+Message-ID: <20161111220631.GA10983@amd>
+References: <28234714-3994-6747-9cf8-1ff0b3257f7a@gmail.com>
+ <CGME20161110084919epcas3p2e8fbdd2905cabe15c5301b7a8e22416c@epcas3p2.samsung.com>
+ <f627c778-4378-e5da-09dd-3e0fb2ea4aba@redhat.com>
+ <5bd5333e-0dbb-6333-0a48-ca4d3a990f9c@samsung.com>
+ <20161110162925.GA28832@amd>
+ <20161110175537.GF27724@atomide.com>
+ <20161110202910.GE28832@amd>
+ <80b645e7-c3fa-8001-d9b1-c3c8c40394fd@gmail.com>
+ <20161111120114.GA1076@amd>
+ <f7c9b2be-0003-f342-a4c7-802532faa424@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="mYCpIKhGyMATD0i+"
+Return-path: <linux-leds-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1476716077-30379-1-git-send-email-weiyj.lk@gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Wei Yongjun <weiyj.lk@gmail.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Wei Yongjun <weiyongjun1@huawei.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
+In-Reply-To: <f7c9b2be-0003-f342-a4c7-802532faa424@gmail.com>
+Sender: linux-leds-owner@vger.kernel.org
+To: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Jacek Anaszewski <j.anaszewski@samsung.com>, Hans de Goede <hdegoede@redhat.com>, linux-leds@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Darren Hart <dvhart@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Oct 17, 2016 at 02:54:37PM +0000, Wei Yongjun wrote:
-> From: Wei Yongjun <weiyongjun1@huawei.com>
-> 
-> This node pointer is returned by of_get_next_child() with refcount
-> incremented in this function. of_node_put() on it before exitting
-> this function on error.
-> 
-> This is detected by Coccinelle semantic patch.
-> 
-> Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
 
-Kishon, this looks correct to me, so I applied it to pci/host-dra7xx for
-v4.10.  Let me know if you have any issue with it.
+--mYCpIKhGyMATD0i+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> ---
->  drivers/pci/host/pci-dra7xx.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-> index 9595fad..79297e9 100644
-> --- a/drivers/pci/host/pci-dra7xx.c
-> +++ b/drivers/pci/host/pci-dra7xx.c
-> @@ -177,6 +177,7 @@ static int dra7xx_pcie_init_irq_domain(struct pcie_port *pp)
->  					       &intx_domain_ops, pp);
->  	if (!pp->irq_domain) {
->  		dev_err(dev, "Failed to get a INTx IRQ domain\n");
-> +		of_node_put(pcie_intc_node);
->  		return -ENODEV;
->  	}
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi!
+
+> >Hmm. So userland can read the LED state, and it can get _some_ value
+> >back, but it can not know if it is current state or not.
+> >
+> >I don't think that's a good interface. I see it is from 2008... is
+> >someone using it? Maybe it is too late for revert.
+>=20
+> I can imagine it being used in flash LED use case. E.g. one
+> could use oneshot trigger to trigger flash strobe, and then
+> he could periodically read brightness file to check, for whatever
+> reason, whether the flash is strobing.
+
+I'm pretty sure nobody does that for flah strobe.
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--mYCpIKhGyMATD0i+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlgmQOcACgkQMOfwapXb+vI8sACeImsqzf26l0r7vdzBe5nM1XM2
+/BcAnR2H22RgnQXbmAJWYWWbovIgjohc
+=P3Px
+-----END PGP SIGNATURE-----
+
+--mYCpIKhGyMATD0i+--
