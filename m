@@ -1,137 +1,78 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH] net: ethernet: ti: davinci_cpdma: fix fixed prio cpdma
- ctlr configuration
-Date: Thu, 10 Nov 2016 16:58:41 -0600
-Message-ID: <2ccb346e-e5d7-0b13-1956-099f69868696@ti.com>
-References: <1478610656-24634-1-git-send-email-ivan.khoronzhuk@linaro.org>
- <a20ab87c-4f9d-0eaa-e486-156d9f359866@ti.com>
- <592966c0-ae4c-ba6b-43ba-8ca837e9a700@linaro.org>
- <37548a54-c54b-3194-691a-22fa8118ed3d@ti.com>
- <1501d6bd-ef97-cfb4-f02b-2b03b97ae636@globallogic.com>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: Re: [PATCH 0/2] mmc: allow mmc_alloc_host() and tmio_mmc_host_alloc()
+Date: Fri, 11 Nov 2016 12:19:05 +0900
+Message-ID: <CAK7LNAThxsE3QW4EdPUyxmxbnt_PPjeogi8Fox5AHkddsuu-Sg@mail.gmail.com>
+References: <1478784263-18777-1-git-send-email-yamada.masahiro@socionext.com>
+ <20161110133559.GA10191@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1501d6bd-ef97-cfb4-f02b-2b03b97ae636@globallogic.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "ivan.khoronzhuk" <ivan.khoronzhuk@linaro.org>, mugunthanvnm@ti.com, netdev@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20161110133559.GA10191@kroah.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Adrian Hunter <adrian.hunter@intel.com>, Wolfram Sang <wsa+renesas@sang-engineering.com>, Sascha Sommer <saschasommer@freenet.de>, Johan Hovold <johan@kernel.org>, Sonic Zhang <sonic.zhang@analog.com>, devel@driverdev.osuosl.org, Russell King <linux@armlinux.org.uk>, Jaehoon Chung <jh80.chung@samsung.com>, Chen-Yu Tsai <wens@csie.org>, Pierre Ossman <pierre@ossman.eu>, Harald Welte <HaraldWelte@viatech.com>, Alex Dubov <oakad@yahoo.com>, adi-buildroot-devel@lists.sourceforge.net, =?UTF-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirq-linux@rere.qmqm.pl>, "moderated list:ARM/Mediatek SoC support" <linux-mediatek@lists.infradead.org>, Ben Dooks <ben-linux@fluff.org>, Tony Olech <tony.olech@elandigitalsystems.com>, Matthias Brugger <matthias.bgg@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Nicol
 List-Id: linux-omap@vger.kernel.org
 
+2016-11-10 22:35 GMT+09:00 Greg Kroah-Hartman <gregkh@linuxfoundation.org>:
+> On Thu, Nov 10, 2016 at 10:24:21PM +0900, Masahiro Yamada wrote:
+>>
+>> sdhci_alloc_host() returns an error pointer when it fails.
+>> but mmc_alloc_host() cannot.
+>>
+>> This series allow to propagate a proper error code
+>> when host-allocation fails.
+>
+> Why?  What can we really do about the error except give up?  Why does
+> having a explicit error value make any difference to the caller, they
+> can't do anything different, right?
 
 
-On 11/10/2016 01:52 PM, ivan.khoronzhuk wrote:
->
->
-> On 10.11.16 18:37, Grygorii Strashko wrote:
->>
->>
->> On 11/09/2016 05:56 PM, Ivan Khoronzhuk wrote:
->>>
->>>
->>> On 09.11.16 23:09, Grygorii Strashko wrote:
->>>>
->>>>
->>>> On 11/08/2016 07:10 AM, Ivan Khoronzhuk wrote:
->>>>> The dma ctlr is reseted to 0 while cpdma start, thus cpdma ctlr
->>>>
->>>> I assume this is because cpdma_ctlr_start() does soft reset. Is it
->>>> correct?
->>> Probably not. I've seen this register doesn't hold any previous settings
->>> (just trash)
->>
->> What register CPDMA_DMACONTROL or CPSW_DMACTRL?
->>
->>> after cpdma_ctlr_stop(), actually after last channel is stopped (inside
->>> of cpdma_ctlr_stop()).
->>
->> So, You are stating that Registers context is changed after stop?
->>
->>> Then cpdma_ctlr_start() just reset it to 0.
->>
->> "just trash" or "0".
->>
->> Sry, I do not see how cpdma_ctlr_stop() can affect on registers state :(
->> and I'd very appreciated if can provide more detailed information.
->>
-> I've checked again, it was my mistake. It simply reset to 0 while soft
-> reset.
->
->>>
->>>>
->>>>> cannot be configured after cpdma is stopped. So, restore content
->>>>> of cpdma ctlr while off/on procedure.
->>>>>
->>>>> Based on net-next/master
->>>>
->>>> ^ remove it
->>> sure
->>>
->>>>
->>>>>
->>>>> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
->>>>> ---
->>>>>  drivers/net/ethernet/ti/cpsw.c          |   6 +-
->>>>>  drivers/net/ethernet/ti/davinci_cpdma.c | 103
->>>>> +++++++++++++++++---------------
->>>>>  drivers/net/ethernet/ti/davinci_cpdma.h |   2 +
->>>>>  3 files changed, 58 insertions(+), 53 deletions(-)
->>>>>
->>>>> diff --git a/drivers/net/ethernet/ti/cpsw.c
->>>>> b/drivers/net/ethernet/ti/cpsw.c
->>>>> index b1ddf89..4d04b8e 100644
->>>>> --- a/drivers/net/ethernet/ti/cpsw.c
->>>>> +++ b/drivers/net/ethernet/ti/cpsw.c
->>>>> @@ -1376,10 +1376,6 @@ static int cpsw_ndo_open(struct net_device
->>>>> *ndev)
->>>>>                    ALE_ALL_PORTS, ALE_ALL_PORTS, 0, 0);
->>>>>
->>>>>      if (!cpsw_common_res_usage_state(cpsw)) {
->>>>> -        /* setup tx dma to fixed prio and zero offset */
->>>>> -        cpdma_control_set(cpsw->dma, CPDMA_TX_PRIO_FIXED, 1);
->>>>> -        cpdma_control_set(cpsw->dma, CPDMA_RX_BUFFER_OFFSET, 0);
->>>>> -
->>>>>          /* disable priority elevation */
->>>>>          __raw_writel(0, &cpsw->regs->ptype);
->>>>>
->>>>> @@ -2710,6 +2706,8 @@ static int cpsw_probe(struct platform_device
->>>>> *pdev)
->>>>>      dma_params.desc_align        = 16;
->>>>>      dma_params.has_ext_regs        = true;
->>>>>      dma_params.desc_hw_addr         = dma_params.desc_mem_phys;
->>>>> +    dma_params.rxbuf_offset        = 0;
->>>>> +    dma_params.fixed_prio        = 1;
->>>>
->>>> Do we really need this new parameters? Do you have plans to use other
->>>> values?
->>> I'm ok if this is static (equally as a bunch of rest in dma_params), no
->>> see reason to use other values,
->>
->> That's what i wanted to know :) - go static, pls.
->>
->>> it at least now. But the issue is not only in these two parameters and
->>> not only in cpsw_ndo_open().
->>> It touches cpsw_set_channels() also, where ctlr stop/start is present.
->>> In order to not copy cpdma_control_set(cpsw->dma, CPDMA_TX_PRIO_FIXED,
->>> 1)...
->>> in all such kind places in eth drivers, better to allow the cpdma to
->>> control it's parameters...
->>>
->>> The cpdma ctlr register holds a little more parameters (but only two of
->>> them are set in cpsw)
->>> Maybe there is reason to save them also. Actually I'd seen this problem
->>> when playing with
->>> on/off channel shapers, unfortunately the cpdma ctlr holds this info
->>> also, and it was lost
->>> while on/off (but I'm going to restore it in chan_start()).
->>>
->>
->> I understand you change, but I'm note sure about real root cause :(
-> so, are you Ok with current version?
+The error code is shown in the console, like
 
-No. pls, use constant values and do not introduce additional parameters.
-Also, pls update commit message with new information.
+  probe of 5a000000.sdhc failed with error -12
+
+
+The proper error code will give a clue
+why the driver failed to probe.
+
+
+> I suggest just leaving it as-is, it's simple, and you don't have to mess
+> with PTR_ERR() anywhere.
+
+
+Why?
+
+Most of driver just give up probing for any error,
+but we still do ERR_PTR()/PTR_ERR() here and there.
+I think this patch is the same pattern.
+
+If a function returns NULL on failure, we need to think about
+"what is the most common failure case".
+
+Currently, MMC drivers assume -ENOMEM is the best
+fit for mmc_alloc_host(), but the assumption is fragile.
+
+Already, mmc_alloc_host() calls a function
+that returns not only -ENOMEM, but also -ENOSPC.
+
+In the future, some other failure cases might be
+added to mmc_alloc_host().
+
+Once we decide the API returns an error pointer,
+drivers just propagate the return value from the API.
+This is much more stable implementation.
+
+
 
 -- 
-regards,
--grygorii
+Best Regards
+Masahiro Yamada
