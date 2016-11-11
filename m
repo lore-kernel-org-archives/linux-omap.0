@@ -1,55 +1,120 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/5] pinctrl: core: Use delayed work for hogs
-Date: Fri, 11 Nov 2016 12:56:18 -0800
-Message-ID: <20161111205617.GK7138@atomide.com>
-References: <20161025210221.9150-1-tony@atomide.com>
- <20161025210221.9150-2-tony@atomide.com>
- <CACRpkdaP3_6x0GMpy_+fSok5r+5CP6RvP6dmDCtz4ayAm-TuSQ@mail.gmail.com>
- <20161111202650.GI7138@atomide.com>
- <20161111203210.GJ7138@atomide.com>
+From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 3/4] PCI: dra7xx: Add support to force RC to work in GEN1
+ mode
+Date: Fri, 11 Nov 2016 15:15:28 -0600
+Message-ID: <20161111211528.GF9868@bhelgaas-glaptop.roam.corp.google.com>
+References: <1476190715-16884-1-git-send-email-kishon@ti.com>
+ <1476190715-16884-4-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161111203210.GJ7138-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1476190715-16884-4-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Haojian Zhuang <haojian.zhuang-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, "linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [161111 12:32]:
-> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [161111 12:27]:
-> > * Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> [161111 12:17]:
-> > > On Tue, Oct 25, 2016 at 11:02 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> > > 
-> > > > Having the pin control framework call pin controller functions
-> > > > before it's probe has finished is not nice as the pin controller
-> > > > device driver does not yet have struct pinctrl_dev handle.
-> > > >
-> > > > Let's fix this issue by adding deferred work for hogs. This is
-> > > > needed to be able to add pinctrl generic helper functions.
-> > > >
-> > > > Note that the pinctrl functions already take care of the necessary
-> > > > locking.
-> > > >
-> > > > Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> > > 
-> > > I don't see why this is necessary?
-> > 
-> > It's needed because the pin controller driver has not yet
-> > finished it's probe at this point. We end up calling functions
-> > in the device driver where no struct pinctrl_dev is yet known
-> > to the driver. Asking a device driver to do something before
-> > it's probe is done does not quite follow the Linux driver model :)
+Hi Kishon,
+
+On Tue, Oct 11, 2016 at 06:28:34PM +0530, Kishon Vijay Abraham I wrote:
+> PCIe in AM57x/DRA7x devices is by default
+> configured to work in GEN2 mode.  However there
+> may be situations when working in GEN1 mode is
+> desired. One example is limitation i925 (PCIe GEN2
+> mode not supported at junction temperatures < 0C).
 > 
-> To clarify, that's an issue with multiple instances of the same
-> driver probing as there's no static pointer to driver specific
-> data.
+> Add support to force Root Complex to work in GEN1
+> mode if so desired, but don't force GEN1 mode on
+> any board just yet.
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+> ---
+>  Documentation/devicetree/bindings/pci/ti-pci.txt |    1 +
+>  drivers/pci/host/pci-dra7xx.c                    |   27 ++++++++++++++++++++++
+>  2 files changed, 28 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
+> index 60e2516..a3d6ca3 100644
+> --- a/Documentation/devicetree/bindings/pci/ti-pci.txt
+> +++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
+> @@ -25,6 +25,7 @@ PCIe Designware Controller
+>  
+>  Optional Property:
+>   - gpios : Should be added if a gpio line is required to drive PERST# line
+> + - ti,pcie-is-gen1 : Force the PCIe controller to work in GEN1 (2.5 GT/s).
 
-To clarify even more, the following patches in this series need
-struct pinctrl_dev to pass to the generic functions :)
+Can we use "max-link-speed" so it's similar to imx6?
 
-Tony
+>  Example:
+>  axi {
+> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
+> index 4ccba6d..2a669cb 100644
+> --- a/drivers/pci/host/pci-dra7xx.c
+> +++ b/drivers/pci/host/pci-dra7xx.c
+> @@ -63,11 +63,14 @@
+>  #define	LINK_UP						BIT(16)
+>  #define	DRA7XX_CPU_TO_BUS_ADDR				0x0FFFFFFF
+>  
+> +#define EXP_CAP_ID_OFFSET				0x70
+> +
+>  struct dra7xx_pcie {
+>  	struct pcie_port	pp;
+>  	void __iomem		*base;		/* DT ti_conf */
+>  	int			phy_count;	/* DT phy-names count */
+>  	struct phy		**phy;
+> +	bool			is_gen1;
+>  };
+>  
+>  #define to_dra7xx_pcie(x)	container_of((x), struct dra7xx_pcie, pp)
+> @@ -96,12 +99,33 @@ static int dra7xx_pcie_establish_link(struct dra7xx_pcie *dra7xx_pcie)
+>  	struct pcie_port *pp = &dra7xx_pcie->pp;
+>  	struct device *dev = pp->dev;
+>  	u32 reg;
+> +	u32 exp_cap_off = EXP_CAP_ID_OFFSET;
+>  
+>  	if (dw_pcie_link_up(pp)) {
+>  		dev_err(dev, "link is already up\n");
+>  		return 0;
+>  	}
+>  
+> +	if (dra7xx_pcie->is_gen1) {
+> +		dw_pcie_cfg_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCAP,
+> +				 4, &reg);
+> +		if ((reg & PCI_EXP_LNKCAP_SLS) != PCI_EXP_LNKCAP_SLS_2_5GB) {
+> +			reg &= ~((u32)PCI_EXP_LNKCAP_SLS);
+> +			reg |= PCI_EXP_LNKCAP_SLS_2_5GB;
+> +			dw_pcie_cfg_write(pp->dbi_base + exp_cap_off +
+> +					  PCI_EXP_LNKCAP, 4, reg);
+> +		}
+> +
+> +		dw_pcie_cfg_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCTL2,
+> +				 2, &reg);
+> +		if ((reg & PCI_EXP_LNKCAP_SLS) != PCI_EXP_LNKCAP_SLS_2_5GB) {
+> +			reg &= ~((u32)PCI_EXP_LNKCAP_SLS);
+> +			reg |= PCI_EXP_LNKCAP_SLS_2_5GB;
+> +			dw_pcie_cfg_write(pp->dbi_base + exp_cap_off +
+> +					  PCI_EXP_LNKCTL2, 2, reg);
+> +		}
+> +	}
+> +
+>  	reg = dra7xx_pcie_readl(dra7xx_pcie, PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
+>  	reg |= LTSSM_EN;
+>  	dra7xx_pcie_writel(dra7xx_pcie, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
+> @@ -402,6 +426,9 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>  	reg &= ~LTSSM_EN;
+>  	dra7xx_pcie_writel(dra7xx_pcie, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
+>  
+> +	if (of_property_read_bool(np, "ti,pcie-is-gen1"))
+> +		dra7xx_pcie->is_gen1 = true;
+> +
+>  	ret = dra7xx_add_pcie_port(dra7xx_pcie, pdev);
+>  	if (ret < 0)
+>  		goto err_gpio;
+> -- 
+> 1.7.9.5
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
