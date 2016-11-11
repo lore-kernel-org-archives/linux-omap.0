@@ -1,110 +1,72 @@
-From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: [PATCH v7 0/9] drivers: touchscreen: tsc2007 and ads7846/tsc2046 improvements (use common touchscreen bindings, pre-calibration, spi fix and provide iio raw values)
-Date: Fri, 11 Nov 2016 20:01:57 +0100
-Message-ID: <cover.1478890925.git.hns@goldelico.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, =?UTF-8?q?Mika=20Penttil=C3=A4?= <mika.penttila-MRsr7dthA9VWk0Htik3J/w@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: [PATCH v7 5/9] DT:omap3+tsc2007: use new common touchscreen bindings
+Date: Fri, 11 Nov 2016 20:02:02 +0100
+Message-ID: <85b14efb0756558054b6d1f60c7734a549b30f82.1478890925.git.hns@goldelico.com>
+References: <cover.1478890925.git.hns@goldelico.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1478890925.git.hns@goldelico.com>
+In-Reply-To: <cover.1478890925.git.hns@goldelico.com>
+References: <cover.1478890925.git.hns@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Michael Welling <mwelling@ieee.org>, =?UTF-8?q?Mika=20Penttil=C3=A4?= <mika.penttila@nextfour.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Igor Grinberg <grinberg@compulab.co.il>, "Andrew F. Davis" <afd@ti.com>, Mark Brown <broonie@kernel.org>, Jonathan Cameron <jic23@kernel.org>
+Cc: linux-input@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, letux-kernel@openphoenux.org, linux-iio@vger.kernel.org, kernel@pyra-handheld.com, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-Changes V7:
-* rearranged the include files (asked for by Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>)
-* forward reference struct iio_dev * instead of condition in tsc2007.h (asked for by Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>)
-* add some Acked-by:
+While we fix the GTA04 we add proper pinmux for the
+penirq gpio.
 
-2016-10-27 10:44:29: Changes V6:
-* iio patch (no changes elsewhere)
-	- tsc2007_iio: fix a missing return 0 for non-iio case (found by kbuid test robot)
-	- tsc2007_core: group error return paths so that tsc2007_iio_unconfigure is called at only one place
-	- tsc2007_iio: fix copyright (this file is 100% original work)
+Tested on: GTA04A4 and Pyra-Handheld
 
-2016-10-25 21:26:46: Changes V5:
-* ads7846: remove an empty line (suggested by Andrew F. Davis <afd-l0cyMroinI0@public.gmane.org>)
-* ads7846: remove MODULE_ALIAS for SPI (suggested by Andrew F. Davis <afd-l0cyMroinI0@public.gmane.org>)
-* tsc2007: fix a bug from swapping patch 3/n and patch 4/n (found by kbuild test robot)
-* refactored tsc2007 into tsc2007_core and tsc2007_iio (asked for by Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>)
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/boot/dts/omap3-gta04.dtsi | 25 +++++++++++++++++++++++--
+ 1 file changed, 23 insertions(+), 2 deletions(-)
 
-2016-10-17 16:00:02: Changes V4:
-* fix a merge/squash issue resulting in a non-bisectable patch set (suggested by kbuid test robot)
-* remove some unnecessary #include (suggested by Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>)
-* make the iio extension depend on CONFIG_IIO rather than selecting it (suggested by Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>)
-* swapped patch 3/n and patch 4/n to remove internal dependency
-
-2016-09-23 14:41:23: Changes V3:
-* fix an issue with swapping
-* remove hard clipping to min/max rectangle - some systems expect to handle negative coordinates
-* make use of commit ed7c9870c9bc ("Input: of_touchscreen - add support for inverted / swapped axes")
-
-2015-11-13 21:36:07: Changes V2:
-* add a patch to make drivers still recognise the old "ti,swap-xy" property (suggested by Rob Herring)
-
-2015-11-06 16:14:53: This patch series improves the drivers for the tsc2007 and
-ads7846/tsc2046 touchscreen controllers which are e.g. used by the GTA04
-OpenPandora and Pyra devices.
-
-New common bindings have been defined by
-commit b98abe52fa8e ("Input: add common DT binding for touchscreens"):
-
-	Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
-
-which also defines a helper function to parse the DT. These new parameters
-allow to specify the fuzz factors (jitter suppression), inversion of x or y axis and
-swapping of x and y to achieve inversion and rotation so that the touch
-coordinate axes match the natural orientation of the display panel.
-
-Another improvement is to better use the min/max ADC values and
-scale to the screen size as defined by the DT. This allows to coarsely
-calibrate the touch to match the LCD to which it is glued on so that the
-touch can quite precisely be operated before any user-space fine-calibration
-can be (and needs to be) started.
-
-For the adc7846 we fix an issue with the spi module table.
-
-Finally we add an iio interface for the AUX and temperature ADC channels of
-the tsc2007 and also provide the touch screen raw values. This allows to read
-an optional ambient light sensor installed on the gta04 board and improves
-calibration and hardware monitoring.
-
-
-H. Nikolaus Schaller (9):
-  drivers:input:tsc2007: add new common binding names, pre-calibration,
-    flipping and rotation
-  drivers:input:tsc2007: send pendown and penup only once like
-    ads7846(+tsc2046) driver does
-  drivers:input:tsc2007: check for presence and power down tsc2007
-    during probe
-  drivers:input:tsc2007: add iio interface to read external ADC input
-    and temperature
-  DT:omap3+tsc2007: use new common touchscreen bindings
-  drivers:input:ads7846(+tsc2046): add new common binding names,
-    pre-calibration and flipping
-  dt-bindings: input: move ads7846 bindings to touchscreen subdirectory
-  drivers:input:ads7846(+tsc2046): fix spi module table
-  DT:omap3+ads7846: use new common touchscreen bindings
-
- .../bindings/input/{ => touchscreen}/ads7846.txt   |   9 +-
- .../bindings/input/touchscreen/tsc2007.txt         |  20 +-
- arch/arm/boot/dts/omap3-gta04.dtsi                 |  25 ++-
- arch/arm/boot/dts/omap3-lilly-a83x.dtsi            |   2 +-
- arch/arm/boot/dts/omap3-pandora-common.dtsi        |  17 +-
- .../boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi    |   3 +-
- drivers/input/touchscreen/Makefile                 |   2 +
- drivers/input/touchscreen/ads7846.c                |  71 +++++--
- drivers/input/touchscreen/tsc2007.h                | 118 +++++++++++
- .../touchscreen/{tsc2007.c => tsc2007_core.c}      | 236 +++++++++++++--------
- drivers/input/touchscreen/tsc2007_iio.c            | 152 +++++++++++++
- include/linux/i2c/tsc2007.h                        |   8 +
- 12 files changed, 541 insertions(+), 122 deletions(-)
- rename Documentation/devicetree/bindings/input/{ => touchscreen}/ads7846.txt (90%)
- create mode 100644 drivers/input/touchscreen/tsc2007.h
- rename drivers/input/touchscreen/{tsc2007.c => tsc2007_core.c} (70%)
- create mode 100644 drivers/input/touchscreen/tsc2007_iio.c
-
+diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+index b3a8b1f..64d6ee3 100644
+--- a/arch/arm/boot/dts/omap3-gta04.dtsi
++++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+@@ -273,6 +273,13 @@
+ 			OMAP3_CORE1_IOPAD(0x2134, PIN_INPUT_PULLUP | MUX_MODE4) /* gpio112 */
+ 		>;
+ 	};
++
++	penirq_pins: pinmux_penirq_pins {
++		pinctrl-single,pins = <
++			/* here we could enable to wakeup the cpu from suspend by a pen touch */
++			OMAP3_CORE1_IOPAD(0x2194, PIN_INPUT_PULLUP | MUX_MODE4) /* gpio160 */
++		>;
++	};
+ };
+ 
+ &omap3_pmx_core2 {
+@@ -410,10 +417,24 @@
+ 	tsc2007@48 {
+ 		compatible = "ti,tsc2007";
+ 		reg = <0x48>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&penirq_pins>;
+ 		interrupt-parent = <&gpio6>;
+ 		interrupts = <0 IRQ_TYPE_EDGE_FALLING>; /* GPIO_160 */
+-		gpios = <&gpio6 0 GPIO_ACTIVE_LOW>;
+-		ti,x-plate-ohms = <600>;
++		gpios = <&gpio6 0 GPIO_ACTIVE_LOW>;	/* GPIO_160 */
++		touchscreen-size-x = <480>;
++		touchscreen-size-y = <640>;
++		touchscreen-max-pressure = <1000>;
++		touchscreen-fuzz-x = <3>;
++		touchscreen-fuzz-y = <8>;
++		touchscreen-fuzz-pressure = <10>;
++		touchscreen-inverted-y;
++		ti,min-x = <0x100>;
++		ti,max-x = <0xf00>;
++		ti,min-y = <0x100>;
++		ti,max-y = <0xf00>;
++		ti,max-rt = <4096>;
++		ti,x-plate-ohms = <550>;
+ 	};
+ 
+ 	/* RFID EEPROM */
 -- 
 2.7.3
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
