@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 05/14] ARM: OMAP2+: Remove legacy usb-host.c platform init code
-Date: Fri, 11 Nov 2016 11:17:02 -0800
-Message-ID: <20161111191711.5079-6-tony@atomide.com>
+Subject: [PATCH 14/14] ARM: OMAP2+: Drop legacy sdram timings
+Date: Fri, 11 Nov 2016 11:17:11 -0800
+Message-ID: <20161111191711.5079-15-tony@atomide.com>
 References: <20161111191711.5079-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,526 +21,578 @@ To: linux-omap@vger.kernel.org
 Cc: Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This is no longer needed when booted with device tree.
+These are no longer used. If somebody needs to configure
+memory timings for various idle modes, they should be
+implemented as a device driver callbacks from the PM
+code.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/Makefile   |   1 -
- arch/arm/mach-omap2/usb-host.c | 496 -----------------------------------------
- 2 files changed, 497 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/usb-host.c
+ arch/arm/mach-omap2/sdram-hynix-h8mbx00u0mer-0em.h |  51 ----
+ arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h  |  55 ----
+ arch/arm/mach-omap2/sdram-nokia.c                  | 299 ---------------------
+ arch/arm/mach-omap2/sdram-nokia.h                  |  12 -
+ arch/arm/mach-omap2/sdram-numonyx-m65kxxxxam.h     |  51 ----
+ .../mach-omap2/sdram-qimonda-hyb18m512160af-6.h    |  54 ----
+ 6 files changed, 522 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/sdram-hynix-h8mbx00u0mer-0em.h
+ delete mode 100644 arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h
+ delete mode 100644 arch/arm/mach-omap2/sdram-nokia.c
+ delete mode 100644 arch/arm/mach-omap2/sdram-nokia.h
+ delete mode 100644 arch/arm/mach-omap2/sdram-numonyx-m65kxxxxam.h
+ delete mode 100644 arch/arm/mach-omap2/sdram-qimonda-hyb18m512160af-6.h
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -246,7 +246,6 @@ obj-y					+= usb-musb.o
- obj-y					+= omap_phy_internal.o
- 
- obj-$(CONFIG_MACH_OMAP2_TUSB6010)	+= usb-tusb6010.o
--obj-y					+= usb-host.o
- 
- onenand-$(CONFIG_MTD_ONENAND_OMAP2)	:= gpmc-onenand.o
- obj-y					+= $(onenand-m) $(onenand-y)
-diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+diff --git a/arch/arm/mach-omap2/sdram-hynix-h8mbx00u0mer-0em.h b/arch/arm/mach-omap2/sdram-hynix-h8mbx00u0mer-0em.h
 deleted file mode 100644
---- a/arch/arm/mach-omap2/usb-host.c
+--- a/arch/arm/mach-omap2/sdram-hynix-h8mbx00u0mer-0em.h
 +++ /dev/null
-@@ -1,496 +0,0 @@
+@@ -1,51 +0,0 @@
 -/*
-- * usb-host.c - OMAP USB Host
+- * SDRC register values for the Hynix H8MBX00U0MER-0EM
 - *
-- * This file will contain the board specific details for the
-- * Synopsys EHCI/OHCI host controller on OMAP3430 and onwards
-- *
-- * Copyright (C) 2007-2011 Texas Instruments
-- * Author: Vikram Pandita <vikram.pandita@ti.com>
-- * Author: Keshava Munegowda <keshava_mgowda@ti.com>
-- *
-- * Generalization by:
-- * Felipe Balbi <balbi@ti.com>
+- * Copyright (C) 2009 Texas Instruments, Inc.
 - *
 - * This program is free software; you can redistribute it and/or modify
 - * it under the terms of the GNU General Public License version 2 as
 - * published by the Free Software Foundation.
 - */
 -
--#include <linux/types.h>
--#include <linux/errno.h>
--#include <linux/delay.h>
--#include <linux/platform_device.h>
--#include <linux/slab.h>
--#include <linux/dma-mapping.h>
--#include <linux/regulator/machine.h>
--#include <linux/regulator/fixed.h>
--#include <linux/string.h>
--#include <linux/io.h>
--#include <linux/gpio.h>
--#include <linux/usb/phy.h>
--#include <linux/usb/usb_phy_generic.h>
+-#ifndef __ARCH_ARM_MACH_OMAP2_SDRAM_HYNIX_H8MBX00U0MER0EM
+-#define __ARCH_ARM_MACH_OMAP2_SDRAM_HYNIX_H8MBX00U0MER0EM
 -
--#include "soc.h"
--#include "omap_device.h"
--#include "mux.h"
--#include "usb.h"
+-#include "sdrc.h"
 -
--#ifdef CONFIG_MFD_OMAP_USB_HOST
--
--#define OMAP_USBHS_DEVICE	"usbhs_omap"
--#define OMAP_USBTLL_DEVICE	"usbhs_tll"
--#define	USBHS_UHH_HWMODNAME	"usb_host_hs"
--#define USBHS_TLL_HWMODNAME	"usb_tll_hs"
--
--/* MUX settings for EHCI pins */
--/*
-- * setup_ehci_io_mux - initialize IO pad mux for USBHOST
-- */
--static void __init setup_ehci_io_mux(const enum usbhs_omap_port_mode *port_mode)
--{
--	switch (port_mode[0]) {
--	case OMAP_EHCI_PORT_MODE_PHY:
--		omap_mux_init_signal("hsusb1_stp", OMAP_PIN_OUTPUT);
--		omap_mux_init_signal("hsusb1_clk", OMAP_PIN_OUTPUT);
--		omap_mux_init_signal("hsusb1_dir", OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb1_nxt", OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb1_data0", OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb1_data1", OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb1_data2", OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb1_data3", OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb1_data4", OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb1_data5", OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb1_data6", OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb1_data7", OMAP_PIN_INPUT_PULLDOWN);
--		break;
--	case OMAP_EHCI_PORT_MODE_TLL:
--		omap_mux_init_signal("hsusb1_tll_stp",
--			OMAP_PIN_INPUT_PULLUP);
--		omap_mux_init_signal("hsusb1_tll_clk",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb1_tll_dir",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb1_tll_nxt",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb1_tll_data0",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb1_tll_data1",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb1_tll_data2",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb1_tll_data3",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb1_tll_data4",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb1_tll_data5",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb1_tll_data6",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb1_tll_data7",
--			OMAP_PIN_INPUT_PULLDOWN);
--		break;
--	case OMAP_USBHS_PORT_MODE_UNUSED:
--		/* FALLTHROUGH */
--	default:
--		break;
--	}
--
--	switch (port_mode[1]) {
--	case OMAP_EHCI_PORT_MODE_PHY:
--		omap_mux_init_signal("hsusb2_stp", OMAP_PIN_OUTPUT);
--		omap_mux_init_signal("hsusb2_clk", OMAP_PIN_OUTPUT);
--		omap_mux_init_signal("hsusb2_dir", OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb2_nxt", OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb2_data0",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb2_data1",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb2_data2",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb2_data3",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb2_data4",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb2_data5",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb2_data6",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb2_data7",
--			OMAP_PIN_INPUT_PULLDOWN);
--		break;
--	case OMAP_EHCI_PORT_MODE_TLL:
--		omap_mux_init_signal("hsusb2_tll_stp",
--			OMAP_PIN_INPUT_PULLUP);
--		omap_mux_init_signal("hsusb2_tll_clk",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb2_tll_dir",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb2_tll_nxt",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb2_tll_data0",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb2_tll_data1",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb2_tll_data2",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb2_tll_data3",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb2_tll_data4",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb2_tll_data5",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb2_tll_data6",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb2_tll_data7",
--			OMAP_PIN_INPUT_PULLDOWN);
--		break;
--	case OMAP_USBHS_PORT_MODE_UNUSED:
--		/* FALLTHROUGH */
--	default:
--		break;
--	}
--
--	switch (port_mode[2]) {
--	case OMAP_EHCI_PORT_MODE_PHY:
--		printk(KERN_WARNING "Port3 can't be used in PHY mode\n");
--		break;
--	case OMAP_EHCI_PORT_MODE_TLL:
--		omap_mux_init_signal("hsusb3_tll_stp",
--			OMAP_PIN_INPUT_PULLUP);
--		omap_mux_init_signal("hsusb3_tll_clk",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb3_tll_dir",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb3_tll_nxt",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb3_tll_data0",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb3_tll_data1",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb3_tll_data2",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb3_tll_data3",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb3_tll_data4",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb3_tll_data5",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb3_tll_data6",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("hsusb3_tll_data7",
--			OMAP_PIN_INPUT_PULLDOWN);
--		break;
--	case OMAP_USBHS_PORT_MODE_UNUSED:
--		/* FALLTHROUGH */
--	default:
--		break;
--	}
--
--	return;
--}
--
--static void __init setup_ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
--{
--	switch (port_mode[0]) {
--	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0:
--	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DPDM:
--	case OMAP_OHCI_PORT_MODE_TLL_6PIN_DATSE0:
--	case OMAP_OHCI_PORT_MODE_TLL_6PIN_DPDM:
--		omap_mux_init_signal("mm1_rxdp",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("mm1_rxdm",
--			OMAP_PIN_INPUT_PULLDOWN);
--		/* FALLTHROUGH */
--	case OMAP_OHCI_PORT_MODE_PHY_4PIN_DPDM:
--	case OMAP_OHCI_PORT_MODE_TLL_4PIN_DPDM:
--		omap_mux_init_signal("mm1_rxrcv",
--			OMAP_PIN_INPUT_PULLDOWN);
--		/* FALLTHROUGH */
--	case OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0:
--	case OMAP_OHCI_PORT_MODE_TLL_3PIN_DATSE0:
--		omap_mux_init_signal("mm1_txen_n", OMAP_PIN_OUTPUT);
--		/* FALLTHROUGH */
--	case OMAP_OHCI_PORT_MODE_TLL_2PIN_DATSE0:
--	case OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM:
--		omap_mux_init_signal("mm1_txse0",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("mm1_txdat",
--			OMAP_PIN_INPUT_PULLDOWN);
--		break;
--	case OMAP_USBHS_PORT_MODE_UNUSED:
--		/* FALLTHROUGH */
--	default:
--		break;
--	}
--	switch (port_mode[1]) {
--	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0:
--	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DPDM:
--	case OMAP_OHCI_PORT_MODE_TLL_6PIN_DATSE0:
--	case OMAP_OHCI_PORT_MODE_TLL_6PIN_DPDM:
--		omap_mux_init_signal("mm2_rxdp",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("mm2_rxdm",
--			OMAP_PIN_INPUT_PULLDOWN);
--		/* FALLTHROUGH */
--	case OMAP_OHCI_PORT_MODE_PHY_4PIN_DPDM:
--	case OMAP_OHCI_PORT_MODE_TLL_4PIN_DPDM:
--		omap_mux_init_signal("mm2_rxrcv",
--			OMAP_PIN_INPUT_PULLDOWN);
--		/* FALLTHROUGH */
--	case OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0:
--	case OMAP_OHCI_PORT_MODE_TLL_3PIN_DATSE0:
--		omap_mux_init_signal("mm2_txen_n", OMAP_PIN_OUTPUT);
--		/* FALLTHROUGH */
--	case OMAP_OHCI_PORT_MODE_TLL_2PIN_DATSE0:
--	case OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM:
--		omap_mux_init_signal("mm2_txse0",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("mm2_txdat",
--			OMAP_PIN_INPUT_PULLDOWN);
--		break;
--	case OMAP_USBHS_PORT_MODE_UNUSED:
--		/* FALLTHROUGH */
--	default:
--		break;
--	}
--	switch (port_mode[2]) {
--	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0:
--	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DPDM:
--	case OMAP_OHCI_PORT_MODE_TLL_6PIN_DATSE0:
--	case OMAP_OHCI_PORT_MODE_TLL_6PIN_DPDM:
--		omap_mux_init_signal("mm3_rxdp",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("mm3_rxdm",
--			OMAP_PIN_INPUT_PULLDOWN);
--		/* FALLTHROUGH */
--	case OMAP_OHCI_PORT_MODE_PHY_4PIN_DPDM:
--	case OMAP_OHCI_PORT_MODE_TLL_4PIN_DPDM:
--		omap_mux_init_signal("mm3_rxrcv",
--			OMAP_PIN_INPUT_PULLDOWN);
--		/* FALLTHROUGH */
--	case OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0:
--	case OMAP_OHCI_PORT_MODE_TLL_3PIN_DATSE0:
--		omap_mux_init_signal("mm3_txen_n", OMAP_PIN_OUTPUT);
--		/* FALLTHROUGH */
--	case OMAP_OHCI_PORT_MODE_TLL_2PIN_DATSE0:
--	case OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM:
--		omap_mux_init_signal("mm3_txse0",
--			OMAP_PIN_INPUT_PULLDOWN);
--		omap_mux_init_signal("mm3_txdat",
--			OMAP_PIN_INPUT_PULLDOWN);
--		break;
--	case OMAP_USBHS_PORT_MODE_UNUSED:
--		/* FALLTHROUGH */
--	default:
--		break;
--	}
--}
--
--void __init usbhs_init(struct usbhs_omap_platform_data *pdata)
--{
--	struct omap_hwmod	*uhh_hwm, *tll_hwm;
--	struct platform_device	*pdev;
--	int			bus_id = -1;
--
--	if (cpu_is_omap34xx()) {
--		setup_ehci_io_mux(pdata->port_mode);
--		setup_ohci_io_mux(pdata->port_mode);
--
--		if (omap_rev() <= OMAP3430_REV_ES2_1)
--			pdata->single_ulpi_bypass = true;
--
--	}
--
--	uhh_hwm = omap_hwmod_lookup(USBHS_UHH_HWMODNAME);
--	if (!uhh_hwm) {
--		pr_err("Could not look up %s\n", USBHS_UHH_HWMODNAME);
--		return;
--	}
--
--	tll_hwm = omap_hwmod_lookup(USBHS_TLL_HWMODNAME);
--	if (!tll_hwm) {
--		pr_err("Could not look up %s\n", USBHS_TLL_HWMODNAME);
--		return;
--	}
--
--	pdev = omap_device_build(OMAP_USBTLL_DEVICE, bus_id, tll_hwm,
--				pdata, sizeof(*pdata));
--	if (IS_ERR(pdev)) {
--		pr_err("Could not build hwmod device %s\n",
--		       USBHS_TLL_HWMODNAME);
--		return;
--	}
--
--	pdev = omap_device_build(OMAP_USBHS_DEVICE, bus_id, uhh_hwm,
--				pdata, sizeof(*pdata));
--	if (IS_ERR(pdev)) {
--		pr_err("Could not build hwmod devices %s\n",
--		       USBHS_UHH_HWMODNAME);
--		return;
--	}
--}
--
--#else
--
--void __init usbhs_init(struct usbhs_omap_platform_data *pdata)
--{
--}
--
--#endif
--
--/* Template for PHY regulators */
--static struct fixed_voltage_config hsusb_reg_config = {
--	/* .supply_name filled later */
--	.microvolts = 3300000,
--	.gpio = -1,		/* updated later */
--	.startup_delay = 70000, /* 70msec */
--	.enable_high = 1,	/* updated later */
--	.enabled_at_boot = 0,	/* keep in RESET */
--	/* .init_data filled later */
+-/* Hynix H8MBX00U0MER-0EM */
+-static struct omap_sdrc_params h8mbx00u0mer0em_sdrc_params[] = {
+-	[0] = {
+-		.rate        = 200000000,
+-		.actim_ctrla = 0xa2e1b4c6,
+-		.actim_ctrlb = 0x0002131c,
+-		.rfr_ctrl    = 0x0005e601,
+-		.mr          = 0x00000032,
+-	},
+-	[1] = {
+-		.rate        = 166000000,
+-		.actim_ctrla = 0x629db4c6,
+-		.actim_ctrlb = 0x00012214,
+-		.rfr_ctrl    = 0x0004dc01,
+-		.mr          = 0x00000032,
+-	},
+-	[2] = {
+-		.rate        = 100000000,
+-		.actim_ctrla = 0x51912284,
+-		.actim_ctrlb = 0x0002120e,
+-		.rfr_ctrl    = 0x0002d101,
+-		.mr          = 0x00000022,
+-	},
+-	[3] = {
+-		.rate        = 83000000,
+-		.actim_ctrla = 0x31512283,
+-		.actim_ctrlb = 0x0001220a,
+-		.rfr_ctrl    = 0x00025501,
+-		.mr          = 0x00000022,
+-	},
+-	[4] = {
+-		.rate        = 0
+-	},
 -};
 -
--static const char *nop_name = "usb_phy_generic"; /* NOP PHY driver */
--static const char *reg_name = "reg-fixed-voltage"; /* Regulator driver */
--
--/**
-- * usbhs_add_regulator - Add a gpio based fixed voltage regulator device
-- * @name: name for the regulator
-- * @dev_id: device id of the device this regulator supplies power to
-- * @dev_supply: supply name that the device expects
-- * @gpio: GPIO number
-- * @polarity: 1 - Active high, 0 - Active low
+-#endif
+diff --git a/arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h b/arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h
+deleted file mode 100644
+--- a/arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h
++++ /dev/null
+@@ -1,55 +0,0 @@
+-/*
+- * SDRC register values for the Micron MT46H32M32LF-6
+- *
+- * Copyright (C) 2008 Texas Instruments, Inc.
+- * Copyright (C) 2008-2009 Nokia Corporation
+- *
+- * Paul Walmsley
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
 - */
--static int usbhs_add_regulator(char *name, char *dev_id, char *dev_supply,
--						int gpio, int polarity)
+-
+-#ifndef ARCH_ARM_MACH_OMAP2_SDRAM_MICRON_MT46H32M32LF
+-#define ARCH_ARM_MACH_OMAP2_SDRAM_MICRON_MT46H32M32LF
+-
+-#include "sdrc.h"
+-
+-/* Micron MT46H32M32LF-6 */
+-/* XXX Using ARE = 0x1 (no autorefresh burst) -- can this be changed? */
+-static struct omap_sdrc_params mt46h32m32lf6_sdrc_params[] = {
+-	[0] = {
+-		.rate	     = 166000000,
+-		.actim_ctrla = 0x9a9db4c6,
+-		.actim_ctrlb = 0x00011217,
+-		.rfr_ctrl    = 0x0004dc01,
+-		.mr	     = 0x00000032,
+-	},
+-	[1] = {
+-		.rate	     = 165941176,
+-		.actim_ctrla = 0x9a9db4c6,
+-		.actim_ctrlb = 0x00011217,
+-		.rfr_ctrl    = 0x0004dc01,
+-		.mr	     = 0x00000032,
+-	},
+-	[2] = {
+-		.rate	     = 83000000,
+-		.actim_ctrla = 0x51512283,
+-		.actim_ctrlb = 0x0001120c,
+-		.rfr_ctrl    = 0x00025501,
+-		.mr	     = 0x00000032,
+-	},
+-	[3] = {
+-		.rate	     = 82970588,
+-		.actim_ctrla = 0x51512283,
+-		.actim_ctrlb = 0x0001120c,
+-		.rfr_ctrl    = 0x00025501,
+-		.mr	     = 0x00000032,
+-	},
+-	[4] = {
+-		.rate	     = 0
+-	},
+-};
+-
+-#endif
+diff --git a/arch/arm/mach-omap2/sdram-nokia.c b/arch/arm/mach-omap2/sdram-nokia.c
+deleted file mode 100644
+--- a/arch/arm/mach-omap2/sdram-nokia.c
++++ /dev/null
+@@ -1,299 +0,0 @@
+-/*
+- * SDRC register values for Nokia boards
+- *
+- * Copyright (C) 2008, 2010-2011 Nokia Corporation
+- *
+- * Lauri Leukkunen <lauri.leukkunen@nokia.com>
+- *
+- * Original code by Juha Yrjola <juha.yrjola@solidboot.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/clk.h>
+-#include <linux/err.h>
+-#include <linux/io.h>
+-
+-#include "common.h"
+-#include "sdram-nokia.h"
+-#include "sdrc.h"
+-
+-/* In picoseconds, except for tREF (ns), tXP, tCKE, tWTR (clks) */
+-struct sdram_timings {
+-	u32 casl;
+-	u32 tDAL;
+-	u32 tDPL;
+-	u32 tRRD;
+-	u32 tRCD;
+-	u32 tRP;
+-	u32 tRAS;
+-	u32 tRC;
+-	u32 tRFC;
+-	u32 tXSR;
+-
+-	u32 tREF; /* in ns */
+-
+-	u32 tXP;
+-	u32 tCKE;
+-	u32 tWTR;
+-};
+-
+-static const struct sdram_timings nokia_97dot6mhz_timings[] = {
+-	{
+-		.casl = 3,
+-		.tDAL = 30725,
+-		.tDPL = 15362,
+-		.tRRD = 10241,
+-		.tRCD = 20483,
+-		.tRP = 15362,
+-		.tRAS = 40967,
+-		.tRC = 56330,
+-		.tRFC = 138266,
+-		.tXSR = 204839,
+-
+-		.tREF = 7798,
+-
+-		.tXP = 2,
+-		.tCKE = 4,
+-		.tWTR = 2,
+-	},
+-};
+-
+-static const struct sdram_timings nokia_166mhz_timings[] = {
+-	{
+-		.casl = 3,
+-		.tDAL = 33000,
+-		.tDPL = 15000,
+-		.tRRD = 12000,
+-		.tRCD = 22500,
+-		.tRP = 18000,
+-		.tRAS = 42000,
+-		.tRC = 66000,
+-		.tRFC = 138000,
+-		.tXSR = 200000,
+-
+-		.tREF = 7800,
+-
+-		.tXP = 2,
+-		.tCKE = 2,
+-		.tWTR = 2
+-	},
+-};
+-
+-static const struct sdram_timings nokia_195dot2mhz_timings[] = {
+-	{
+-		.casl = 3,
+-		.tDAL = 30725,
+-		.tDPL = 15362,
+-		.tRRD = 10241,
+-		.tRCD = 20483,
+-		.tRP = 15362,
+-		.tRAS = 40967,
+-		.tRC = 56330,
+-		.tRFC = 138266,
+-		.tXSR = 204839,
+-
+-		.tREF = 7752,
+-
+-		.tXP = 2,
+-		.tCKE = 4,
+-		.tWTR = 2,
+-	},
+-};
+-
+-static const struct sdram_timings nokia_200mhz_timings[] = {
+-	{
+-		.casl = 3,
+-		.tDAL = 30000,
+-		.tDPL = 15000,
+-		.tRRD = 10000,
+-		.tRCD = 20000,
+-		.tRP = 15000,
+-		.tRAS = 40000,
+-		.tRC = 55000,
+-		.tRFC = 140000,
+-		.tXSR = 200000,
+-
+-		.tREF = 7800,
+-
+-		.tXP = 2,
+-		.tCKE = 4,
+-		.tWTR = 2
+-	},
+-};
+-
+-static const struct {
+-	long rate;
+-	struct sdram_timings const *data;
+-} nokia_timings[] = {
+-	{ 83000000, nokia_166mhz_timings },
+-	{ 97600000, nokia_97dot6mhz_timings },
+-	{ 100000000, nokia_200mhz_timings },
+-	{ 166000000, nokia_166mhz_timings },
+-	{ 195200000, nokia_195dot2mhz_timings },
+-	{ 200000000, nokia_200mhz_timings },
+-};
+-static struct omap_sdrc_params nokia_sdrc_params[ARRAY_SIZE(nokia_timings) + 1];
+-
+-static unsigned long sdrc_get_fclk_period(long rate)
 -{
--	struct regulator_consumer_supply *supplies;
--	struct regulator_init_data *reg_data;
--	struct fixed_voltage_config *config;
--	struct platform_device *pdev;
--	struct platform_device_info pdevinfo;
--	int ret = -ENOMEM;
+-	/* In picoseconds */
+-	return 1000000000 / rate;
+-}
 -
--	supplies = kzalloc(sizeof(*supplies), GFP_KERNEL);
--	if (!supplies)
--		return -ENOMEM;
+-static unsigned int sdrc_ps_to_ticks(unsigned int time_ps, long rate)
+-{
+-	unsigned long tick_ps;
 -
--	supplies->supply = dev_supply;
--	supplies->dev_name = dev_id;
+-	/* Calculate in picosecs to yield more exact results */
+-	tick_ps = sdrc_get_fclk_period(rate);
 -
--	reg_data = kzalloc(sizeof(*reg_data), GFP_KERNEL);
--	if (!reg_data)
--		goto err_data;
+-	return (time_ps + tick_ps - 1) / tick_ps;
+-}
+-#undef DEBUG
+-#ifdef DEBUG
+-static int set_sdrc_timing_regval(u32 *regval, int st_bit, int end_bit,
+-				int ticks, long rate, const char *name)
+-#else
+-static int set_sdrc_timing_regval(u32 *regval, int st_bit, int end_bit,
+-			       int ticks)
+-#endif
+-{
+-	int mask, nr_bits;
 -
--	reg_data->constraints.valid_ops_mask = REGULATOR_CHANGE_STATUS;
--	reg_data->consumer_supplies = supplies;
--	reg_data->num_consumer_supplies = 1;
--
--	config = kmemdup(&hsusb_reg_config, sizeof(hsusb_reg_config),
--			GFP_KERNEL);
--	if (!config)
--		goto err_config;
--
--	config->supply_name = kstrdup(name, GFP_KERNEL);
--	if (!config->supply_name)
--		goto err_supplyname;
--
--	config->gpio = gpio;
--	config->enable_high = polarity;
--	config->init_data = reg_data;
--
--	/* create a regulator device */
--	memset(&pdevinfo, 0, sizeof(pdevinfo));
--	pdevinfo.name = reg_name;
--	pdevinfo.id = PLATFORM_DEVID_AUTO;
--	pdevinfo.data = config;
--	pdevinfo.size_data = sizeof(*config);
--
--	pdev = platform_device_register_full(&pdevinfo);
--	if (IS_ERR(pdev)) {
--		ret = PTR_ERR(pdev);
--		pr_err("%s: Failed registering regulator %s for %s : %d\n",
--				__func__, name, dev_id, ret);
--		goto err_register;
--	}
+-	nr_bits = end_bit - st_bit + 1;
+-	if (ticks >= 1 << nr_bits)
+-		return -1;
+-	mask = (1 << nr_bits) - 1;
+-	*regval &= ~(mask << st_bit);
+-	*regval |= ticks << st_bit;
+-#ifdef DEBUG
+-	printk(KERN_INFO "SDRC %s: %i ticks %i ns\n", name, ticks,
+-			(unsigned int)sdrc_get_fclk_period(rate) * ticks /
+-			1000);
+-#endif
 -
 -	return 0;
+-}
 -
--err_register:
--	kfree(config->supply_name);
--err_supplyname:
--	kfree(config);
--err_config:
--	kfree(reg_data);
--err_data:
--	kfree(supplies);
+-#ifdef DEBUG
+-#define SDRC_SET_ONE(reg, st, end, field, rate) \
+-	if (set_sdrc_timing_regval((reg), (st), (end), \
+-			memory_timings->field, (rate), #field) < 0) \
+-		err = -1;
+-#else
+-#define SDRC_SET_ONE(reg, st, end, field, rate) \
+-	if (set_sdrc_timing_regval((reg), (st), (end), \
+-			memory_timings->field) < 0) \
+-		err = -1;
+-#endif
+-
+-#ifdef DEBUG
+-static int set_sdrc_timing_regval_ps(u32 *regval, int st_bit, int end_bit,
+-				int time, long rate, const char *name)
+-#else
+-static int set_sdrc_timing_regval_ps(u32 *regval, int st_bit, int end_bit,
+-				int time, long rate)
+-#endif
+-{
+-	int ticks, ret;
+-	ret = 0;
+-
+-	if (time == 0)
+-		ticks = 0;
+-	else
+-		ticks = sdrc_ps_to_ticks(time, rate);
+-
+-#ifdef DEBUG
+-	ret = set_sdrc_timing_regval(regval, st_bit, end_bit, ticks,
+-				     rate, name);
+-#else
+-	ret = set_sdrc_timing_regval(regval, st_bit, end_bit, ticks);
+-#endif
+-
 -	return ret;
 -}
 -
--#define MAX_STR 20
+-#ifdef DEBUG
+-#define SDRC_SET_ONE_PS(reg, st, end, field, rate) \
+-	if (set_sdrc_timing_regval_ps((reg), (st), (end), \
+-			memory_timings->field, \
+-			(rate), #field) < 0) \
+-		err = -1;
 -
--int usbhs_init_phys(struct usbhs_phy_data *phy, int num_phys)
+-#else
+-#define SDRC_SET_ONE_PS(reg, st, end, field, rate) \
+-	if (set_sdrc_timing_regval_ps((reg), (st), (end), \
+-			memory_timings->field, (rate)) < 0) \
+-		err = -1;
+-#endif
+-
+-static int sdrc_timings(int id, long rate,
+-			const struct sdram_timings *memory_timings)
 -{
--	char rail_name[MAX_STR];
+-	u32 ticks_per_ms;
+-	u32 rfr, l;
+-	u32 actim_ctrla = 0, actim_ctrlb = 0;
+-	u32 rfr_ctrl;
+-	int err = 0;
+-	long l3_rate = rate / 1000;
+-
+-	SDRC_SET_ONE_PS(&actim_ctrla,  0,  4, tDAL, l3_rate);
+-	SDRC_SET_ONE_PS(&actim_ctrla,  6,  8, tDPL, l3_rate);
+-	SDRC_SET_ONE_PS(&actim_ctrla,  9, 11, tRRD, l3_rate);
+-	SDRC_SET_ONE_PS(&actim_ctrla, 12, 14, tRCD, l3_rate);
+-	SDRC_SET_ONE_PS(&actim_ctrla, 15, 17, tRP, l3_rate);
+-	SDRC_SET_ONE_PS(&actim_ctrla, 18, 21, tRAS, l3_rate);
+-	SDRC_SET_ONE_PS(&actim_ctrla, 22, 26, tRC, l3_rate);
+-	SDRC_SET_ONE_PS(&actim_ctrla, 27, 31, tRFC, l3_rate);
+-
+-	SDRC_SET_ONE_PS(&actim_ctrlb,  0,  7, tXSR, l3_rate);
+-
+-	SDRC_SET_ONE(&actim_ctrlb,  8, 10, tXP, l3_rate);
+-	SDRC_SET_ONE(&actim_ctrlb, 12, 14, tCKE, l3_rate);
+-	SDRC_SET_ONE(&actim_ctrlb, 16, 17, tWTR, l3_rate);
+-
+-	ticks_per_ms = l3_rate;
+-	rfr = memory_timings[0].tREF * ticks_per_ms / 1000000;
+-	if (rfr > 65535 + 50)
+-		rfr = 65535;
+-	else
+-		rfr -= 50;
+-
+-#ifdef DEBUG
+-	printk(KERN_INFO "SDRC tREF: %i ticks\n", rfr);
+-#endif
+-
+-	l = rfr << 8;
+-	rfr_ctrl = l | 0x1; /* autorefresh, reload counter with 1xARCV */
+-
+-	nokia_sdrc_params[id].rate = rate;
+-	nokia_sdrc_params[id].actim_ctrla = actim_ctrla;
+-	nokia_sdrc_params[id].actim_ctrlb = actim_ctrlb;
+-	nokia_sdrc_params[id].rfr_ctrl = rfr_ctrl;
+-	nokia_sdrc_params[id].mr = 0x32;
+-
+-	nokia_sdrc_params[id + 1].rate = 0;
+-
+-	return err;
+-}
+-
+-struct omap_sdrc_params *nokia_get_sdram_timings(void)
+-{
+-	int err = 0;
 -	int i;
--	struct platform_device *pdev;
--	char *phy_id;
--	struct platform_device_info pdevinfo;
--	struct usb_phy_generic_platform_data nop_pdata;
 -
--	for (i = 0; i < num_phys; i++) {
--
--		if (!phy->port) {
--			pr_err("%s: Invalid port 0. Must start from 1\n",
--						__func__);
--			continue;
--		}
--
--		/* do we need a NOP PHY device ? */
--		if (!gpio_is_valid(phy->reset_gpio) &&
--			!gpio_is_valid(phy->vcc_gpio))
--			continue;
--
--		phy_id = kmalloc(MAX_STR, GFP_KERNEL);
--		if (!phy_id) {
--			pr_err("%s: kmalloc() failed\n", __func__);
--			return -ENOMEM;
--		}
--
--		/* set platform data */
--		memset(&nop_pdata, 0, sizeof(nop_pdata));
--		if (gpio_is_valid(phy->vcc_gpio))
--			nop_pdata.needs_vcc = true;
--		nop_pdata.gpio_reset = phy->reset_gpio;
--		nop_pdata.type = USB_PHY_TYPE_USB2;
--
--		/* create a NOP PHY device */
--		memset(&pdevinfo, 0, sizeof(pdevinfo));
--		pdevinfo.name = nop_name;
--		pdevinfo.id = phy->port;
--		pdevinfo.data = &nop_pdata;
--		pdevinfo.size_data =
--			sizeof(struct usb_phy_generic_platform_data);
--		scnprintf(phy_id, MAX_STR, "usb_phy_generic.%d",
--					phy->port);
--		pdev = platform_device_register_full(&pdevinfo);
--		if (IS_ERR(pdev)) {
--			pr_err("%s: Failed to register device %s : %ld\n",
--				__func__,  phy_id, PTR_ERR(pdev));
--			kfree(phy_id);
--			continue;
--		}
--
--		usb_bind_phy("ehci-omap.0", phy->port - 1, phy_id);
--
--		/* Do we need VCC regulator ? */
--		if (gpio_is_valid(phy->vcc_gpio)) {
--			scnprintf(rail_name, MAX_STR, "hsusb%d_vcc", phy->port);
--			usbhs_add_regulator(rail_name, phy_id, "vcc",
--					phy->vcc_gpio, phy->vcc_polarity);
--		}
--
--		phy++;
+-	for (i = 0; i < ARRAY_SIZE(nokia_timings); i++) {
+-		err |= sdrc_timings(i, nokia_timings[i].rate,
+-				       nokia_timings[i].data);
+-		if (err)
+-			pr_err("%s: error with rate %ld: %d\n", __func__,
+-			       nokia_timings[i].rate, err);
 -	}
 -
--	return 0;
+-	return err ? NULL : nokia_sdrc_params;
 -}
+-
+diff --git a/arch/arm/mach-omap2/sdram-nokia.h b/arch/arm/mach-omap2/sdram-nokia.h
+deleted file mode 100644
+--- a/arch/arm/mach-omap2/sdram-nokia.h
++++ /dev/null
+@@ -1,12 +0,0 @@
+-/*
+- * SDRC register values for Nokia boards
+- *
+- * Copyright (C) 2010 Nokia
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-struct omap_sdrc_params *nokia_get_sdram_timings(void);
+-
+diff --git a/arch/arm/mach-omap2/sdram-numonyx-m65kxxxxam.h b/arch/arm/mach-omap2/sdram-numonyx-m65kxxxxam.h
+deleted file mode 100644
+--- a/arch/arm/mach-omap2/sdram-numonyx-m65kxxxxam.h
++++ /dev/null
+@@ -1,51 +0,0 @@
+-/*
+- * SDRC register values for the Numonyx M65KXXXXAM
+- *
+- * Copyright (C) 2009 Integration Software and Electronic Engineering.
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef __ARCH_ARM_MACH_OMAP2_SDRAM_NUMONYX_M65KXXXXAM
+-#define __ARCH_ARM_MACH_OMAP2_SDRAM_NUMONYX_M65KXXXXAM
+-
+-#include "sdrc.h"
+-
+-/* Numonyx  M65KXXXXAM */
+-static struct omap_sdrc_params m65kxxxxam_sdrc_params[] = {
+-	[0] = {
+-		.rate		= 200000000,
+-		.actim_ctrla	= 0xe321d4c6,
+-		.actim_ctrlb	= 0x00022328,
+-		.rfr_ctrl	= 0x0005e601,
+-		.mr		= 0x00000032,
+-	},
+-	[1] = {
+-		.rate		= 166000000,
+-		.actim_ctrla	= 0xba9dc485,
+-		.actim_ctrlb	= 0x00022321,
+-		.rfr_ctrl	= 0x0004dc01,
+-		.mr		= 0x00000032,
+-	},
+-	[2] = {
+-		.rate		= 133000000,
+-		.actim_ctrla	= 0x9a19b485,
+-		.actim_ctrlb	= 0x0002231b,
+-		.rfr_ctrl	= 0x0003de01,
+-		.mr		= 0x00000032,
+-	},
+-	[3] = {
+-		.rate		= 83000000,
+-		.actim_ctrla	= 0x594ca242,
+-		.actim_ctrlb	= 0x00022310,
+-		.rfr_ctrl	= 0x00025501,
+-		.mr		= 0x00000032,
+-	},
+-	[4] = {
+-		.rate			= 0
+-	},
+-};
+-
+-#endif
+diff --git a/arch/arm/mach-omap2/sdram-qimonda-hyb18m512160af-6.h b/arch/arm/mach-omap2/sdram-qimonda-hyb18m512160af-6.h
+deleted file mode 100644
+--- a/arch/arm/mach-omap2/sdram-qimonda-hyb18m512160af-6.h
++++ /dev/null
+@@ -1,54 +0,0 @@
+-/*
+- * SDRC register values for the Qimonda HYB18M512160AF-6
+- *
+- * Copyright (C) 2008-2009 Texas Instruments, Inc.
+- * Copyright (C) 2008-2009 Nokia Corporation
+- *
+- * Paul Walmsley
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef ARCH_ARM_MACH_OMAP2_SDRAM_QIMONDA_HYB18M512160AF6
+-#define ARCH_ARM_MACH_OMAP2_SDRAM_QIMONDA_HYB18M512160AF6
+-
+-#include "sdrc.h"
+-
+-/* Qimonda HYB18M512160AF-6 */
+-static struct omap_sdrc_params hyb18m512160af6_sdrc_params[] = {
+-	[0] = {
+-		.rate	     = 166000000,
+-		.actim_ctrla = 0x629db4c6,
+-		.actim_ctrlb = 0x00012214,
+-		.rfr_ctrl    = 0x0004dc01,
+-		.mr	     = 0x00000032,
+-	},
+-	[1] = {
+-		.rate	     = 165941176,
+-		.actim_ctrla = 0x629db4c6,
+-		.actim_ctrlb = 0x00012214,
+-		.rfr_ctrl    = 0x0004dc01,
+-		.mr	     = 0x00000032,
+-	},
+-	[2] = {
+-		.rate	     = 83000000,
+-		.actim_ctrla = 0x31512283,
+-		.actim_ctrlb = 0x0001220a,
+-		.rfr_ctrl    = 0x00025501,
+-		.mr	     = 0x00000022,
+-	},
+-	[3] = {
+-		.rate	     = 82970588,
+-		.actim_ctrla = 0x31512283,
+-		.actim_ctrlb = 0x0001220a,
+-		.rfr_ctrl    = 0x00025501,
+-		.mr	     = 0x00000022,
+-	},
+-	[4] = {
+-		.rate	     = 0
+-	},
+-};
+-
+-#endif
 -- 
 2.10.2
