@@ -1,64 +1,43 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 4/6] phy: twl4030-usb: Fix for musb session bit based PM
-Date: Fri, 11 Nov 2016 10:43:00 -0800
-Message-ID: <20161111184302.2438-5-tony@atomide.com>
-References: <20161111184302.2438-1-tony@atomide.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161111184302.2438-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Cc: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Subject: [PATCH v7 3/9] drivers:input:tsc2007: check for presence and power down tsc2007 during probe
+Date: Fri, 11 Nov 2016 20:02:00 +0100
+Message-ID: <0c45f364b0231477b81e0c820d20a14211d6c759.1478890925.git.hns@goldelico.com>
+References: <cover.1478890925.git.hns@goldelico.com>
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1478890925.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+In-Reply-To: <cover.1478890925.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+References: <cover.1478890925.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, =?UTF-8?q?Mika=20Penttil=C3=A4?= <mika.penttila-MRsr7dthA9VWk0Htik3J/w@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Now with musb driver implementing generic session bit based
-PM, we need to have the USB PHYs behaving in a sane way for
-platforms implementing PM.
+1. check if chip is really present and don't succeed if it isn't.
+2. if it succeeds, power down the chip until accessed
 
-Currently twl4030-usb enables PM in twl4030_phy_power_on()
-and then disables it in twl4030_phy_power_off(). This will
-block PM runtime for the SoC when no cable is connected.
-
-Fix the issue by moving PM runtime autosuspend call to
-happen where it gets called in twl4030_phy_power_on().
-
-Note that this patch should not be backported to anything
-before commit 467d5c980709 ("usb: musb: Implement session bit
-based runtime PM for musb-core") as before that all the
-glue layers implemented their own PM.
-
-Fixes: 467d5c980709 ("usb: musb: Implement session bit based
-runtime PM for musb-core")
-Tested-by: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
-Tested-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 ---
- drivers/phy/phy-twl4030-usb.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/input/touchscreen/tsc2007.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
---- a/drivers/phy/phy-twl4030-usb.c
-+++ b/drivers/phy/phy-twl4030-usb.c
-@@ -459,8 +459,6 @@ static int twl4030_phy_power_off(struct phy *phy)
- 	struct twl4030_usb *twl = phy_get_drvdata(phy);
+diff --git a/drivers/input/touchscreen/tsc2007.c b/drivers/input/touchscreen/tsc2007.c
+index e9d5086..5e3c4bf 100644
+--- a/drivers/input/touchscreen/tsc2007.c
++++ b/drivers/input/touchscreen/tsc2007.c
+@@ -538,6 +538,14 @@ static int tsc2007_probe(struct i2c_client *client,
  
- 	dev_dbg(twl->dev, "%s\n", __func__);
--	pm_runtime_mark_last_busy(twl->dev);
--	pm_runtime_put_autosuspend(twl->dev);
+ 	tsc2007_stop(ts);
  
- 	return 0;
- }
-@@ -472,6 +470,8 @@ static int twl4030_phy_power_on(struct phy *phy)
- 	dev_dbg(twl->dev, "%s\n", __func__);
- 	pm_runtime_get_sync(twl->dev);
- 	schedule_delayed_work(&twl->id_workaround_work, HZ);
-+	pm_runtime_mark_last_busy(twl->dev);
-+	pm_runtime_put_autosuspend(twl->dev);
- 
- 	return 0;
- }
++	/* power down the chip (TSC2007_SETUP does not ACK on I2C) */
++	err = tsc2007_xfer(ts, PWRDOWN);
++	if (err < 0) {
++		dev_err(&client->dev,
++			"Failed to setup chip: %d\n", err);
++		return err;	/* usually, chip does not respond */
++	}
++
+ 	err = input_register_device(input_dev);
+ 	if (err) {
+ 		dev_err(&client->dev,
 -- 
-2.10.2
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.7.3
