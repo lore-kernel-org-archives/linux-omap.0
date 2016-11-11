@@ -1,13 +1,11 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 04/14] ARM: OMAP2+: Remove legacy twl4030 platform init code
-Date: Fri, 11 Nov 2016 11:17:01 -0800
-Message-ID: <20161111191711.5079-5-tony@atomide.com>
-References: <20161111191711.5079-1-tony@atomide.com>
+Subject: [PATCH 00/14] Drop some unused omap platform_data
+Date: Fri, 11 Nov 2016 11:16:57 -0800
+Message-ID: <20161111191711.5079-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20161111191711.5079-1-tony@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,171 +19,113 @@ To: linux-omap@vger.kernel.org
 Cc: Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This code is no longer used and can be removed as we
-are using device tree.
+Hi all,
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/Makefile               |  2 +-
- arch/arm/mach-omap2/common-board-devices.h |  1 -
- arch/arm/mach-omap2/twl-common.c           | 81 ------------------------------
- arch/arm/mach-omap2/twl-common.h           | 42 ----------------
- 4 files changed, 1 insertion(+), 125 deletions(-)
+I've rebased the earlier legacy platform data removal
+patches from few years ago that I've kept stashed in the
+omap-for-v3.14/omap3-board-removal branch until omap3
+became device tree only.
+
+Looks like we still have hwmod data at least for omap4
+that is not yet populated in the dts files. I'll fix
+that up later on.
+
+Meanwhile, if you notice some other unused platform_data
+related code in mach-omap2, please send patches. I'll
+be queueing them into omap-for-v4.10/legacy branch.
+
+Regards,
+
+Tony
+
+
+Javier Martinez Canillas (2):
+  ARM: OMAP2+: Remove legacy smsc911x and smc91x GPMC support
+  ARM: OMAP2+: Remove legacy board-flash.c
+
+Tony Lindgren (12):
+  ARM: OMAP2+: Remove legacy serial.c
+  ARM: OMAP2+: Remove legacy i2c.c platform init code
+  ARM: OMAP2+: Remove legacy PM init
+  ARM: OMAP2+: Remove legacy twl4030 platform init code
+  ARM: OMAP2+: Remove legacy usb-host.c platform init code
+  ARM: OMAP2+: Remove legacy muxing for usb-tusb6010.c
+  ARM: OMAP2+: Remove legacy usb-musb.c platform init code
+  ARM: OMAP2+: Remove legacy hwmod mux code
+  ARM: OMAP2+: Remove legacy mux code
+  ARM: OMAP2+: Remove legacy data from hwmod for omap3
+  ARM: OMAP2+: Drop legacy ads7846 init
+  ARM: OMAP2+: Drop legacy sdram timings
+
+ arch/arm/mach-omap1/Kconfig                        |   26 +
+ arch/arm/mach-omap1/i2c.c                          |   83 +
+ arch/arm/mach-omap2/Makefile                       |   16 +-
+ arch/arm/mach-omap2/board-flash.c                  |  242 ---
+ arch/arm/mach-omap2/board-flash.h                  |   56 -
+ arch/arm/mach-omap2/common-board-devices.c         |  102 -
+ arch/arm/mach-omap2/common-board-devices.h         |    8 -
+ arch/arm/mach-omap2/common.h                       |    9 -
+ arch/arm/mach-omap2/devices.c                      |    1 -
+ arch/arm/mach-omap2/dss-common.c                   |   37 -
+ arch/arm/mach-omap2/dss-common.h                   |   13 -
+ arch/arm/mach-omap2/gpmc-smsc911x.c                |  100 -
+ arch/arm/mach-omap2/gpmc-smsc911x.h                |   35 -
+ arch/arm/mach-omap2/hsmmc.c                        |   88 -
+ arch/arm/mach-omap2/i2c.c                          |   97 -
+ arch/arm/mach-omap2/io.c                           |    1 -
+ arch/arm/mach-omap2/msdi.c                         |    1 -
+ arch/arm/mach-omap2/mux.c                          | 1153 -----------
+ arch/arm/mach-omap2/mux.h                          |  352 ----
+ arch/arm/mach-omap2/mux34xx.c                      | 2061 --------------------
+ arch/arm/mach-omap2/mux34xx.h                      |  402 ----
+ arch/arm/mach-omap2/omap_hwmod.c                   |  107 +-
+ .../omap_hwmod_2xxx_3xxx_interconnect_data.c       |  149 +-
+ .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |  201 +-
+ .../mach-omap2/omap_hwmod_2xxx_interconnect_data.c |    4 -
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    1 -
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  787 +-------
+ arch/arm/mach-omap2/omap_hwmod_common_data.h       |   15 -
+ arch/arm/mach-omap2/pdata-quirks.c                 |    1 -
+ arch/arm/mach-omap2/pm.c                           |   66 +-
+ arch/arm/mach-omap2/sdram-hynix-h8mbx00u0mer-0em.h |   51 -
+ arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h  |   55 -
+ arch/arm/mach-omap2/sdram-nokia.c                  |  299 ---
+ arch/arm/mach-omap2/sdram-nokia.h                  |   12 -
+ arch/arm/mach-omap2/sdram-numonyx-m65kxxxxam.h     |   51 -
+ .../mach-omap2/sdram-qimonda-hyb18m512160af-6.h    |   54 -
+ arch/arm/mach-omap2/serial.c                       |  332 ----
+ arch/arm/mach-omap2/twl-common.c                   |   81 -
+ arch/arm/mach-omap2/twl-common.h                   |   42 -
+ arch/arm/mach-omap2/usb-host.c                     |  496 -----
+ arch/arm/mach-omap2/usb-musb.c                     |  106 -
+ arch/arm/mach-omap2/usb-tusb6010.c                 |   21 -
+ arch/arm/plat-omap/Kconfig                         |   26 -
+ arch/arm/plat-omap/Makefile                        |    3 -
+ arch/arm/plat-omap/i2c.c                           |  116 --
+ 45 files changed, 160 insertions(+), 7799 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/board-flash.c
+ delete mode 100644 arch/arm/mach-omap2/board-flash.h
+ delete mode 100644 arch/arm/mach-omap2/common-board-devices.c
+ delete mode 100644 arch/arm/mach-omap2/dss-common.c
+ delete mode 100644 arch/arm/mach-omap2/dss-common.h
+ delete mode 100644 arch/arm/mach-omap2/gpmc-smsc911x.c
+ delete mode 100644 arch/arm/mach-omap2/gpmc-smsc911x.h
+ delete mode 100644 arch/arm/mach-omap2/mux.c
+ delete mode 100644 arch/arm/mach-omap2/mux.h
+ delete mode 100644 arch/arm/mach-omap2/mux34xx.c
+ delete mode 100644 arch/arm/mach-omap2/mux34xx.h
+ delete mode 100644 arch/arm/mach-omap2/sdram-hynix-h8mbx00u0mer-0em.h
+ delete mode 100644 arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h
+ delete mode 100644 arch/arm/mach-omap2/sdram-nokia.c
+ delete mode 100644 arch/arm/mach-omap2/sdram-nokia.h
+ delete mode 100644 arch/arm/mach-omap2/sdram-numonyx-m65kxxxxam.h
+ delete mode 100644 arch/arm/mach-omap2/sdram-qimonda-hyb18m512160af-6.h
+ delete mode 100644 arch/arm/mach-omap2/serial.c
  delete mode 100644 arch/arm/mach-omap2/twl-common.c
  delete mode 100644 arch/arm/mach-omap2/twl-common.h
+ delete mode 100644 arch/arm/mach-omap2/usb-host.c
+ delete mode 100644 arch/arm/mach-omap2/usb-musb.c
+ delete mode 100644 arch/arm/plat-omap/i2c.c
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -257,4 +257,4 @@ obj-y					+= $(nand-m) $(nand-y)
- smsc911x-$(CONFIG_SMSC911X)		:= gpmc-smsc911x.o
- obj-y					+= $(smsc911x-m) $(smsc911x-y)
- 
--obj-y					+= common-board-devices.o twl-common.o dss-common.o
-+obj-y					+= common-board-devices.o dss-common.o
-diff --git a/arch/arm/mach-omap2/common-board-devices.h b/arch/arm/mach-omap2/common-board-devices.h
---- a/arch/arm/mach-omap2/common-board-devices.h
-+++ b/arch/arm/mach-omap2/common-board-devices.h
-@@ -3,7 +3,6 @@
- 
- #include <sound/tlv320aic3x.h>
- #include <linux/mfd/menelaus.h>
--#include "twl-common.h"
- 
- #define NAND_BLOCK_SIZE	SZ_128K
- 
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-deleted file mode 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ /dev/null
-@@ -1,81 +0,0 @@
--/*
-- * twl-common.c
-- *
-- * Copyright (C) 2011 Texas Instruments, Inc..
-- * Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
-- * version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-- * 02110-1301 USA
-- *
-- */
--
--#include <linux/i2c.h>
--#include <linux/i2c/twl.h>
--#include <linux/gpio.h>
--#include <linux/string.h>
--#include <linux/phy/phy.h>
--#include <linux/regulator/machine.h>
--#include <linux/regulator/fixed.h>
--
--#include "soc.h"
--#include "twl-common.h"
--#include "pm.h"
--#include "voltage.h"
--#include "mux.h"
--
--static struct i2c_board_info __initdata pmic_i2c_board_info = {
--	.addr		= 0x48,
--	.flags		= I2C_CLIENT_WAKE,
--};
--
--void __init omap_pmic_late_init(void)
--{
--	/* Init the OMAP TWL parameters (if PMIC has been registerd) */
--	if (!pmic_i2c_board_info.irq)
--		return;
--
--	omap3_twl_init();
--	omap4_twl_init();
--}
--
--#if IS_ENABLED(CONFIG_SND_OMAP_SOC_OMAP_TWL4030)
--#include <linux/platform_data/omap-twl4030.h>
--
--/* Commonly used configuration */
--static struct omap_tw4030_pdata omap_twl4030_audio_data;
--
--static struct platform_device audio_device = {
--	.name		= "omap-twl4030",
--	.id		= -1,
--};
--
--void omap_twl4030_audio_init(char *card_name,
--				    struct omap_tw4030_pdata *pdata)
--{
--	if (!pdata)
--		pdata = &omap_twl4030_audio_data;
--
--	pdata->card_name = card_name;
--
--	audio_device.dev.platform_data = pdata;
--	platform_device_register(&audio_device);
--}
--
--#else /* SOC_OMAP_TWL4030 */
--void omap_twl4030_audio_init(char *card_name,
--				    struct omap_tw4030_pdata *pdata)
--{
--	return;
--}
--#endif /* SOC_OMAP_TWL4030 */
-diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-common.h
-deleted file mode 100644
---- a/arch/arm/mach-omap2/twl-common.h
-+++ /dev/null
-@@ -1,42 +0,0 @@
--#ifndef __OMAP_PMIC_COMMON__
--#define __OMAP_PMIC_COMMON__
--
--#include "common.h"
--
--#define TWL_COMMON_PDATA_USB		(1 << 0)
--#define TWL_COMMON_PDATA_BCI		(1 << 1)
--#define TWL_COMMON_PDATA_MADC		(1 << 2)
--#define TWL_COMMON_PDATA_AUDIO		(1 << 3)
--
--/* Common LDO regulators for TWL4030/TWL6030 */
--#define TWL_COMMON_REGULATOR_VDAC	(1 << 0)
--#define TWL_COMMON_REGULATOR_VAUX1	(1 << 1)
--#define TWL_COMMON_REGULATOR_VAUX2	(1 << 2)
--#define TWL_COMMON_REGULATOR_VAUX3	(1 << 3)
--
--/* TWL6030 LDO regulators */
--#define TWL_COMMON_REGULATOR_VMMC	(1 << 4)
--#define TWL_COMMON_REGULATOR_VPP	(1 << 5)
--#define TWL_COMMON_REGULATOR_VUSIM	(1 << 6)
--#define TWL_COMMON_REGULATOR_VANA	(1 << 7)
--#define TWL_COMMON_REGULATOR_VCXIO	(1 << 8)
--#define TWL_COMMON_REGULATOR_VUSB	(1 << 9)
--#define TWL_COMMON_REGULATOR_CLK32KG	(1 << 10)
--#define TWL_COMMON_REGULATOR_V1V8	(1 << 11)
--#define TWL_COMMON_REGULATOR_V2V1	(1 << 12)
--
--/* TWL4030 LDO regulators */
--#define TWL_COMMON_REGULATOR_VPLL1	(1 << 4)
--#define TWL_COMMON_REGULATOR_VPLL2	(1 << 5)
--
--
--struct twl4030_platform_data;
--struct twl6040_platform_data;
--struct omap_tw4030_pdata;
--struct i2c_board_info;
--
--void omap_pmic_late_init(void);
--
--void omap_twl4030_audio_init(char *card_name, struct omap_tw4030_pdata *pdata);
--
--#endif /* __OMAP_PMIC_COMMON__ */
 -- 
 2.10.2
