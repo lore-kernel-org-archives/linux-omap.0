@@ -1,29 +1,77 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net: ethernet: ti: davinci_cpdma: free memory while
- channel destroy
-Date: Sat, 12 Nov 2016 21:07:37 -0500 (EST)
-Message-ID: <20161112.210737.1176459612012588179.davem@davemloft.net>
-References: <1478610965-25288-1-git-send-email-ivan.khoronzhuk@linaro.org>
+From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 2/3] Input: ti_am335x_tsc: Add support for ti,charge-delay-ns
+Date: Fri, 11 Nov 2016 13:28:19 +0530
+Message-ID: <20161111075819.5760-1-mugunthanvnm@ti.com>
+References: <20161110163515.27598-1-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1478610965-25288-1-git-send-email-ivan.khoronzhuk@linaro.org>
-Sender: netdev-owner@vger.kernel.org
-To: ivan.khoronzhuk@linaro.org
-Cc: mugunthanvnm@ti.com, grygorii.strashko@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161110163515.27598-1-mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Date: Tue,  8 Nov 2016 15:16:05 +0200
+ti,charge-delay will be deprecated as it represents number of
+clock cycles and the DT entries are done in assumption of 3MHz
+TSCADC clock, but clock can be set upto 24MHz. So driver add
+support for ti,charge-delay-ns and do not drop support for
+ti,charge-delay to support old dtbs and it will be assumed that
+it is for 3MHz TSCADC clock and will be calculated as per current
+clock speed.
 
-> While create/destroy channel operation memory is not freed. It was
-> supposed that memory is freed while driver remove. But a channel
-> can be created and destroyed many times while changing number of
-> channels with ethtool.
-> 
-> Based on net-next/master
-> 
-> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Signed-off-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+---
+ drivers/input/touchscreen/ti_am335x_tsc.c | 31 +++++++++++++++++++++++--------
+ 1 file changed, 23 insertions(+), 8 deletions(-)
 
-Applied.
+diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
+index 7953381d939a..104b3640f728 100644
+--- a/drivers/input/touchscreen/ti_am335x_tsc.c
++++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+@@ -379,15 +379,30 @@ static int titsc_parse_dt(struct platform_device *pdev,
+ 		ts_dev->coordinate_readouts = 5;
+ 	}
+ 
+-	err = of_property_read_u32(node, "ti,charge-delay",
++	err = of_property_read_u32(node, "ti,charge-delay-ns",
+ 				   &ts_dev->charge_delay);
+-	/*
+-	 * If ti,charge-delay value is not specified, then use
+-	 * CHARGEDLY_OPENDLY as the default value.
+-	 */
+-	if (err < 0) {
+-		ts_dev->charge_delay = CHARGEDLY_OPENDLY;
+-		dev_warn(&pdev->dev, "ti,charge-delay not specified\n");
++	if (err >= 0) {
++		u64 charge_delay = ts_dev->charge_delay;
++
++		charge_delay *= ADC_CLK;
++		do_div(charge_delay, 1E9);
++		ts_dev->charge_delay = (u32)charge_delay;
++	} else {
++		err = of_property_read_u32(node, "ti,charge-delay",
++					   &ts_dev->charge_delay);
++		/*
++		 * If ti,charge-delay value is not specified, then use
++		 * CHARGEDLY_OPENDLY as the default value.
++		 */
++		if (err < 0) {
++			ts_dev->charge_delay = CHARGEDLY_OPENDLY;
++			dev_warn(&pdev->dev, "ti,charge-delay not specified\n");
++		}
++		/*
++		 * ti,charge-delay is specified with referrence to 3MHz,
++		 * so convert it to in referrence to current clock
++		 */
++		ts_dev->charge_delay *= ADC_CLK / 3000000;
+ 	}
+ 
+ 	return of_property_read_u32_array(node, "ti,wire-config",
+-- 
+2.11.0.rc0.7.gbe5a750
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
