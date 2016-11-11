@@ -1,11 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 00/14] Drop some unused omap platform_data
-Date: Fri, 11 Nov 2016 11:16:57 -0800
-Message-ID: <20161111191711.5079-1-tony@atomide.com>
+Subject: [PATCH 03/14] ARM: OMAP2+: Remove legacy PM init
+Date: Fri, 11 Nov 2016 11:17:00 -0800
+Message-ID: <20161111191711.5079-4-tony@atomide.com>
+References: <20161111191711.5079-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20161111191711.5079-1-tony@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,113 +21,153 @@ To: linux-omap@vger.kernel.org
 Cc: Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+This is no longer needed when booted with device tree.
+And let's replace cpu_is with soc_is for the PM code to
+avoid confusion, they do the same thing.
 
-I've rebased the earlier legacy platform data removal
-patches from few years ago that I've kept stashed in the
-omap-for-v3.14/omap3-board-removal branch until omap3
-became device tree only.
+Note that omap_pmic_late_init() now just calls
+omap3_twl_init() and omap4_twl_init() to initialize the
+voltage layer so we can remove the remaining references
+to twl-common code and remove it in the following patch.
 
-Looks like we still have hwmod data at least for omap4
-that is not yet populated in the dts files. I'll fix
-that up later on.
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/pm.c | 66 +++++-------------------------------------------
+ 1 file changed, 6 insertions(+), 60 deletions(-)
 
-Meanwhile, if you notice some other unused platform_data
-related code in mach-omap2, please send patches. I'll
-be queueing them into omap-for-v4.10/legacy branch.
-
-Regards,
-
-Tony
-
-
-Javier Martinez Canillas (2):
-  ARM: OMAP2+: Remove legacy smsc911x and smc91x GPMC support
-  ARM: OMAP2+: Remove legacy board-flash.c
-
-Tony Lindgren (12):
-  ARM: OMAP2+: Remove legacy serial.c
-  ARM: OMAP2+: Remove legacy i2c.c platform init code
-  ARM: OMAP2+: Remove legacy PM init
-  ARM: OMAP2+: Remove legacy twl4030 platform init code
-  ARM: OMAP2+: Remove legacy usb-host.c platform init code
-  ARM: OMAP2+: Remove legacy muxing for usb-tusb6010.c
-  ARM: OMAP2+: Remove legacy usb-musb.c platform init code
-  ARM: OMAP2+: Remove legacy hwmod mux code
-  ARM: OMAP2+: Remove legacy mux code
-  ARM: OMAP2+: Remove legacy data from hwmod for omap3
-  ARM: OMAP2+: Drop legacy ads7846 init
-  ARM: OMAP2+: Drop legacy sdram timings
-
- arch/arm/mach-omap1/Kconfig                        |   26 +
- arch/arm/mach-omap1/i2c.c                          |   83 +
- arch/arm/mach-omap2/Makefile                       |   16 +-
- arch/arm/mach-omap2/board-flash.c                  |  242 ---
- arch/arm/mach-omap2/board-flash.h                  |   56 -
- arch/arm/mach-omap2/common-board-devices.c         |  102 -
- arch/arm/mach-omap2/common-board-devices.h         |    8 -
- arch/arm/mach-omap2/common.h                       |    9 -
- arch/arm/mach-omap2/devices.c                      |    1 -
- arch/arm/mach-omap2/dss-common.c                   |   37 -
- arch/arm/mach-omap2/dss-common.h                   |   13 -
- arch/arm/mach-omap2/gpmc-smsc911x.c                |  100 -
- arch/arm/mach-omap2/gpmc-smsc911x.h                |   35 -
- arch/arm/mach-omap2/hsmmc.c                        |   88 -
- arch/arm/mach-omap2/i2c.c                          |   97 -
- arch/arm/mach-omap2/io.c                           |    1 -
- arch/arm/mach-omap2/msdi.c                         |    1 -
- arch/arm/mach-omap2/mux.c                          | 1153 -----------
- arch/arm/mach-omap2/mux.h                          |  352 ----
- arch/arm/mach-omap2/mux34xx.c                      | 2061 --------------------
- arch/arm/mach-omap2/mux34xx.h                      |  402 ----
- arch/arm/mach-omap2/omap_hwmod.c                   |  107 +-
- .../omap_hwmod_2xxx_3xxx_interconnect_data.c       |  149 +-
- .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |  201 +-
- .../mach-omap2/omap_hwmod_2xxx_interconnect_data.c |    4 -
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    1 -
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  787 +-------
- arch/arm/mach-omap2/omap_hwmod_common_data.h       |   15 -
- arch/arm/mach-omap2/pdata-quirks.c                 |    1 -
- arch/arm/mach-omap2/pm.c                           |   66 +-
- arch/arm/mach-omap2/sdram-hynix-h8mbx00u0mer-0em.h |   51 -
- arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h  |   55 -
- arch/arm/mach-omap2/sdram-nokia.c                  |  299 ---
- arch/arm/mach-omap2/sdram-nokia.h                  |   12 -
- arch/arm/mach-omap2/sdram-numonyx-m65kxxxxam.h     |   51 -
- .../mach-omap2/sdram-qimonda-hyb18m512160af-6.h    |   54 -
- arch/arm/mach-omap2/serial.c                       |  332 ----
- arch/arm/mach-omap2/twl-common.c                   |   81 -
- arch/arm/mach-omap2/twl-common.h                   |   42 -
- arch/arm/mach-omap2/usb-host.c                     |  496 -----
- arch/arm/mach-omap2/usb-musb.c                     |  106 -
- arch/arm/mach-omap2/usb-tusb6010.c                 |   21 -
- arch/arm/plat-omap/Kconfig                         |   26 -
- arch/arm/plat-omap/Makefile                        |    3 -
- arch/arm/plat-omap/i2c.c                           |  116 --
- 45 files changed, 160 insertions(+), 7799 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/board-flash.c
- delete mode 100644 arch/arm/mach-omap2/board-flash.h
- delete mode 100644 arch/arm/mach-omap2/common-board-devices.c
- delete mode 100644 arch/arm/mach-omap2/dss-common.c
- delete mode 100644 arch/arm/mach-omap2/dss-common.h
- delete mode 100644 arch/arm/mach-omap2/gpmc-smsc911x.c
- delete mode 100644 arch/arm/mach-omap2/gpmc-smsc911x.h
- delete mode 100644 arch/arm/mach-omap2/mux.c
- delete mode 100644 arch/arm/mach-omap2/mux.h
- delete mode 100644 arch/arm/mach-omap2/mux34xx.c
- delete mode 100644 arch/arm/mach-omap2/mux34xx.h
- delete mode 100644 arch/arm/mach-omap2/sdram-hynix-h8mbx00u0mer-0em.h
- delete mode 100644 arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h
- delete mode 100644 arch/arm/mach-omap2/sdram-nokia.c
- delete mode 100644 arch/arm/mach-omap2/sdram-nokia.h
- delete mode 100644 arch/arm/mach-omap2/sdram-numonyx-m65kxxxxam.h
- delete mode 100644 arch/arm/mach-omap2/sdram-qimonda-hyb18m512160af-6.h
- delete mode 100644 arch/arm/mach-omap2/serial.c
- delete mode 100644 arch/arm/mach-omap2/twl-common.c
- delete mode 100644 arch/arm/mach-omap2/twl-common.h
- delete mode 100644 arch/arm/mach-omap2/usb-host.c
- delete mode 100644 arch/arm/mach-omap2/usb-musb.c
- delete mode 100644 arch/arm/plat-omap/i2c.c
-
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -30,7 +30,6 @@
+ #include "powerdomain.h"
+ #include "clockdomain.h"
+ #include "pm.h"
+-#include "twl-common.h"
+ 
+ #ifdef CONFIG_SUSPEND
+ /*
+@@ -72,42 +71,6 @@ void omap_pm_get_oscillator(u32 *tstart, u32 *tshut)
+ }
+ #endif
+ 
+-static int __init _init_omap_device(char *name)
+-{
+-	struct omap_hwmod *oh;
+-	struct platform_device *pdev;
+-
+-	oh = omap_hwmod_lookup(name);
+-	if (WARN(!oh, "%s: could not find omap_hwmod for %s\n",
+-		 __func__, name))
+-		return -ENODEV;
+-
+-	pdev = omap_device_build(oh->name, 0, oh, NULL, 0);
+-	if (WARN(IS_ERR(pdev), "%s: could not build omap_device for %s\n",
+-		 __func__, name))
+-		return -ENODEV;
+-
+-	return 0;
+-}
+-
+-/*
+- * Build omap_devices for processors and bus.
+- */
+-static void __init omap2_init_processor_devices(void)
+-{
+-	_init_omap_device("mpu");
+-	if (omap3_has_iva())
+-		_init_omap_device("iva");
+-
+-	if (cpu_is_omap44xx()) {
+-		_init_omap_device("l3_main_1");
+-		_init_omap_device("dsp");
+-		_init_omap_device("iva");
+-	} else {
+-		_init_omap_device("l3_main");
+-	}
+-}
+-
+ int __init omap_pm_clkdms_setup(struct clockdomain *clkdm, void *unused)
+ {
+ 	clkdm_allow_idle(clkdm);
+@@ -215,7 +178,7 @@ static int omap_pm_enter(suspend_state_t suspend_state)
+ static int omap_pm_begin(suspend_state_t state)
+ {
+ 	cpu_idle_poll_ctrl(true);
+-	if (cpu_is_omap34xx())
++	if (soc_is_omap34xx())
+ 		omap_prcm_irq_prepare();
+ 	return 0;
+ }
+@@ -227,7 +190,7 @@ static void omap_pm_end(void)
+ 
+ static void omap_pm_finish(void)
+ {
+-	if (cpu_is_omap34xx())
++	if (soc_is_omap34xx())
+ 		omap_prcm_irq_complete();
+ }
+ 
+@@ -252,7 +215,7 @@ void omap_common_suspend_init(void *pm_suspend)
+ 
+ static void __init omap3_init_voltages(void)
+ {
+-	if (!cpu_is_omap34xx())
++	if (!soc_is_omap34xx())
+ 		return;
+ 
+ 	omap2_set_init_voltage("mpu_iva", "dpll1_ck", "mpu");
+@@ -261,7 +224,7 @@ static void __init omap3_init_voltages(void)
+ 
+ static void __init omap4_init_voltages(void)
+ {
+-	if (!cpu_is_omap44xx())
++	if (!soc_is_omap44xx())
+ 		return;
+ 
+ 	omap2_set_init_voltage("mpu", "dpll_mpu_ck", "mpu");
+@@ -269,18 +232,8 @@ static void __init omap4_init_voltages(void)
+ 	omap2_set_init_voltage("iva", "dpll_iva_m5x2_ck", "iva");
+ }
+ 
+-static inline void omap_init_cpufreq(void)
+-{
+-	struct platform_device_info devinfo = { .name = "omap-cpufreq" };
+-
+-	if (!of_have_populated_dt())
+-		platform_device_register_full(&devinfo);
+-}
+-
+ static int __init omap2_common_pm_init(void)
+ {
+-	if (!of_have_populated_dt())
+-		omap2_init_processor_devices();
+ 	omap_pm_if_init();
+ 
+ 	return 0;
+@@ -289,13 +242,9 @@ omap_postcore_initcall(omap2_common_pm_init);
+ 
+ int __init omap2_common_pm_late_init(void)
+ {
+-	if (of_have_populated_dt()) {
+-		omap3_twl_init();
+-		omap4_twl_init();
+-	}
+-
+ 	/* Init the voltage layer */
+-	omap_pmic_late_init();
++	omap3_twl_init();
++	omap4_twl_init();
+ 	omap_voltage_late_init();
+ 
+ 	/* Initialize the voltages */
+@@ -305,8 +254,5 @@ int __init omap2_common_pm_late_init(void)
+ 	/* Smartreflex device init */
+ 	omap_devinit_smartreflex();
+ 
+-	/* cpufreq dummy device instantiation */
+-	omap_init_cpufreq();
+-
+ 	return 0;
+ }
 -- 
 2.10.2
