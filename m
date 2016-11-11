@@ -1,53 +1,53 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/6] usb: musb: Fix broken use of static variable for
- multiple instances
-Date: Fri, 11 Nov 2016 12:05:19 -0800
-Message-ID: <20161111200519.GG7138@atomide.com>
-References: <20161111184302.2438-1-tony@atomide.com>
- <20161111184302.2438-2-tony@atomide.com>
- <20161111191430.GB17372@uda0271908>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 1/5] pinctrl: core: Use delayed work for hogs
+Date: Fri, 11 Nov 2016 21:17:42 +0100
+Message-ID: <CACRpkdaP3_6x0GMpy_+fSok5r+5CP6RvP6dmDCtz4ayAm-TuSQ@mail.gmail.com>
+References: <20161025210221.9150-1-tony@atomide.com> <20161025210221.9150-2-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161111191430.GB17372@uda0271908>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20161025210221.9150-2-tony@atomide.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Haojian Zhuang <haojian.zhuang@linaro.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [161111 11:15]:
-> On Fri, Nov 11, 2016 at 10:42:57AM -0800, Tony Lindgren wrote:
-> > --- a/drivers/usb/musb/musb_core.h
-> > +++ b/drivers/usb/musb/musb_core.h
-> > @@ -385,6 +385,8 @@ struct musb {
-> >  	int			a_wait_bcon;	/* VBUS timeout in msecs */
-> >  	unsigned long		idle_timeout;	/* Next timeout in jiffies */
-> >  
-> > +	unsigned		is_initialized:1;
-> > +
-> 
-> The musb strcut is getting bigger and bigger. Is it possible to not add
-> a new variable but use one initialized in musb_init_controller() for
-> this flag purpose? Readability shouldn't be an issue, since it is only
-> used once in musb_runtime_resume().
+On Tue, Oct 25, 2016 at 11:02 PM, Tony Lindgren <tony@atomide.com> wrote:
 
-Well I was initially checking for delayed work being initialized,
-but Johan did not like the idea of using it. Looking at
-musb_init_controller(), we only initialize musb->nIrq after
-pm_runtime_get_sync(), but that's no better either.. Do you have
-any better ideas for something to use?
+> Having the pin control framework call pin controller functions
+> before it's probe has finished is not nice as the pin controller
+> device driver does not yet have struct pinctrl_dev handle.
+>
+> Let's fix this issue by adding deferred work for hogs. This is
+> needed to be able to add pinctrl generic helper functions.
+>
+> Note that the pinctrl functions already take care of the necessary
+> locking.
+>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-I agree in the long run we should split struct musb into smaller
-structs though.
+I don't see why this is necessary?
 
-Meanwhile the new flags added in this series are bitfields, so it's
-probably better to use that and overloading something that's not
-strictly related.
+The hogging was placed inside pinctrl_register() so that any hogs
+would be taken before it returns, so nothing else can take it
+before the controller itself has the first chance. This semantic
+needs to be preserved I think.
 
-Regards,
+> +       schedule_delayed_work(&pctldev->hog_work,
+> +                                     msecs_to_jiffies(100));
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If we arbitrarily delay, something else can go in and take the
+pins used by the hogs before the pinctrl core? That is what
+we want to avoid.
+
+Hm, 100ms seems arbitrarily chosen BTW. Can it be 1 ms?
+1 ns?
+
+I'm pretty sure that whatever it is that needs to happen before
+the hog work runs can race with this delayed work under
+some circumstances (such as slow external expanders
+on i2c). It should be impossible for that to happen
+and I don't think it is?
+
+Yours,
+Linus Walleij
