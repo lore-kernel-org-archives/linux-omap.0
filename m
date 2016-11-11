@@ -1,77 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] PM / wakeirq: report wakeup events in dedicated wake-IRQs
-Date: Fri, 11 Nov 2016 12:17:52 -0800
-Message-ID: <20161111201751.GH7138@atomide.com>
-References: <1478801227-65527-1-git-send-email-briannorris@chromium.org>
- <CAKdAkRRWUWmGUFaD=95Zd=wZfqXcs47YXL335Y4A+VmhtdJFTA@mail.gmail.com>
- <20161110184910.GA135921@google.com>
- <20161110204911.GK27724@atomide.com>
- <20161110213038.GA108490@google.com>
- <20161111164753.GD7138@atomide.com>
- <20161111194041.GA111624@google.com>
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/6] usb: musb: Fix broken use of static variable for
+ multiple instances
+Date: Fri, 11 Nov 2016 14:12:31 -0600
+Message-ID: <20161111201231.GC17372@uda0271908>
+References: <20161111184302.2438-1-tony@atomide.com>
+ <20161111184302.2438-2-tony@atomide.com>
+ <20161111191430.GB17372@uda0271908>
+ <20161111200519.GG7138@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161111194041.GA111624@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Brian Norris <briannorris@chromium.org>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, lkml <linux-kernel@vger.kernel.org>, Brian Norris <computersforpeace@gmail.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap@vger.kernel.org
+In-Reply-To: <20161111200519.GG7138-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Brian Norris <briannorris@chromium.org> [161111 11:40]:
+On Fri, Nov 11, 2016 at 12:05:19PM -0800, Tony Lindgren wrote:
+> * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [161111 11:15]:
+> > On Fri, Nov 11, 2016 at 10:42:57AM -0800, Tony Lindgren wrote:
+> > > --- a/drivers/usb/musb/musb_core.h
+> > > +++ b/drivers/usb/musb/musb_core.h
+> > > @@ -385,6 +385,8 @@ struct musb {
+> > >  	int			a_wait_bcon;	/* VBUS timeout in msecs */
+> > >  	unsigned long		idle_timeout;	/* Next timeout in jiffies */
+> > >  
+> > > +	unsigned		is_initialized:1;
+> > > +
+> > 
+> > The musb strcut is getting bigger and bigger. Is it possible to not add
+> > a new variable but use one initialized in musb_init_controller() for
+> > this flag purpose? Readability shouldn't be an issue, since it is only
+> > used once in musb_runtime_resume().
 > 
-> BTW, for context, I'm working on using dev_pm_set_dedicated_wake_irq()
-> for a Wifi driver which supports out-of-band (e.g., GPIO-based) wakeup.
-> I see it's used in the I2C core, but the I2C code never actually calls
-> dev_pm_enable_wake_irq(). So while I think I can use this API OK for
-> my Wifi driver (calling dev_pm_{en,dis}able_wake_irq() at system
-> suspend/resume), I'm not sure this will help the I2C case.
+> Well I was initially checking for delayed work being initialized,
+> but Johan did not like the idea of using it. Looking at
+> musb_init_controller(), we only initialize musb->nIrq after
+> pm_runtime_get_sync(), but that's no better either.. Do you have
+> any better ideas for something to use?
 
-OK it's used for that purpose with the SDIO dat1 interrupt for
-omaps. This allows the WLAN to stay on and connected while the
-SoC can hit deeper idle states.
+I only spent a few seconds on musb_init_controller(), and musb->nIrq is
+what I found.
 
-The calling of dev_pm_enable_wake_irq() happens automagically from
-rpm_suspend() and then it's disabled after rpm_resume().
+> 
+> I agree in the long run we should split struct musb into smaller
+> structs though.
+> 
+> Meanwhile the new flags added in this series are bitfields, so it's
+> probably better to use that and overloading something that's not
+> strictly related.
 
-> The more I look at this API, the more I'm confused, especially about its
-> seeming dependence on runtime PM.
+Ok, just leave it as is. We will clean up musb struct later. *cough* not
+sure when it will ever happen...
 
-Are you talking about suspend/resume only? If so, see if the
-following snippet from Grygorii helps. Grygorii, care to send it with
-proper description and Signed-off-by if you did not yet do that?
+> 
+> Regards,
+> 
+> Tony
 
 Regards,
-
-Tony
-
-8< ----------------------
---- a/drivers/base/power/wakeirq.c
-+++ b/drivers/base/power/wakeirq.c
-@@ -256,8 +256,12 @@ void dev_pm_arm_wake_irq(struct wake_irq *wirq)
- 	if (!wirq)
- 		return;
- 
--	if (device_may_wakeup(wirq->dev))
-+	if (device_may_wakeup(wirq->dev)) {
-+		if (wirq->dedicated_irq)
-+			enable_irq(wirq->irq);
-+
- 		enable_irq_wake(wirq->irq);
-+	}
- }
- 
- /**
-@@ -272,6 +276,10 @@ void dev_pm_disarm_wake_irq(struct wake_irq *wirq)
- 	if (!wirq)
- 		return;
- 
--	if (device_may_wakeup(wirq->dev))
-+	if (device_may_wakeup(wirq->dev)) {
- 		disable_irq_wake(wirq->irq);
-+
-+		if (wirq->dedicated_irq)
-+			disable_irq_nosync(wirq->irq);
-+	}
- }
+-Bin.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
