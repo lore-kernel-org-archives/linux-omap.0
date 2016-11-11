@@ -1,83 +1,99 @@
-From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] drivers: mfd: ti_am335x_tscadc: increase ADC ref clock to
- 24MHz
-Date: Fri, 11 Nov 2016 11:47:19 +0530
-Message-ID: <e83fb53b-94ab-4273-a7d0-410013bc0dc4@ti.com>
-References: <20161024060226.4170-1-mugunthanvnm@ti.com>
- <038C6B01-8443-4321-9C65-BAC4095237D3@gmail.com>
- <086ab2fa-63ee-c5ab-2715-b2efd78270d7@ti.com>
- <12725C92-9BB8-4F77-A7B4-F3C3DA9F8B0B@gmail.com>
- <DB09B26E-C5AB-427A-82D5-6FE857E7C218@gmail.com> <20161025063847.GD8574@dell>
- <CC15CFB4-60D0-4A63-A3D3-2079CFA31274@gmail.com> <20161026084811.GI8574@dell>
- <A5F6974F-5793-4E85-BF82-2D9309980991@gmail.com>
- <d7fadbf6-8026-d821-1ef8-981f536a8fdf@ti.com>
- <D0AA78D0-9562-4E4D-A949-A771289D7570@gmail.com>
- <b7232421-10f7-2bac-0ad8-847804126bf2@ti.com>
- <30CF3CC1-A4F1-4C31-B51F-A1AB1D352AF5@gmail.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: PM regression with LED changes in next-20161109
+Date: Fri, 11 Nov 2016 09:25:56 +0100
+Message-ID: <64de0593-606a-2fff-3726-b0293a624210@redhat.com>
+References: <20161109192301.GS26979@atomide.com>
+ <28234714-3994-6747-9cf8-1ff0b3257f7a@gmail.com>
+ <CGME20161110084919epcas3p2e8fbdd2905cabe15c5301b7a8e22416c@epcas3p2.samsung.com>
+ <f627c778-4378-e5da-09dd-3e0fb2ea4aba@redhat.com>
+ <5bd5333e-0dbb-6333-0a48-ca4d3a990f9c@samsung.com>
+ <20161110162925.GA28832@amd>
+ <de3b4ae7-6a08-2a03-d80e-059c71c58aed@redhat.com>
+ <20161110204852.GA31728@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <30CF3CC1-A4F1-4C31-B51F-A1AB1D352AF5-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: John Syne <john3909-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "N, Mugunthan V" <mugunthanvnm-l0cyMroinI0@public.gmane.org>, "linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "Ujfalusi, Peter" <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161110204852.GA31728@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>, Jacek Anaszewski <jacek.anaszewski@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-leds@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Darren Hart <dvhart@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
-
-On Friday 11 November 2016 09:00 AM, John Syne wrote:
-> 
->> On Nov 9, 2016, at 9:07 PM, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org> wrote:
->>
->> Hi,
->>
->> On Thursday 10 November 2016 05:23 AM, John Syne wrote:
->>> OK, then back to my original question. Given that these DT properties are supported in the driver
+On 10-11-16 21:48, Pavel Machek wrote:
+> Hi!
+>
+>>>> It seems that we should get back to your initial approach. i.e. only
+>>>> brightness changes caused by hardware should be reported.
 >>>
+>>> I don't think enabling poll() here is good idea. Some hardware won't
+>>> be able to tell you that it changed the state. Returning maximum
+>>> brightness trigger is going to use seems easier/better.
 >>
->> Below properties are supported by only by ti_am3335x_adc driver and not
->> ti_am335x_tsc driver. As author of this patch pointed out in another
->> reply, there is no need to change step-opendelay for tsc. AFAIK, I don't
->> see a use case where these values needs to be tweaked for tsc channels,
->> therefore it does not make sense to be DT properties.
-> Yeah, the confusion was mine because the author of this patch series was proposing to hard code these settings while DT properties already existed in the ti_am335x_adc driver. I use the ADC for sensor measurement and do not use the touchscreen features. I already pointed out where these DT parameters should be added by referencing how this was done in one of the BBB DT overlay files [1]. I am just proposing the same is done as a default in the AM33xx.dtsi and AM4372.dtsi files. Here is what I was proposing. 
+>> The idea here is to allow userspace to poll() on the brightness
+>> sysfs atrribute to detect changes autonomously done by the hardware,
+>> such as e.g. happens on both Dell and Thinkpad laptops when pressing
+>> the keyboard backlight cycle hotkey. Note that these keys do not
+>> generate key-press events, the cycling through the brightness levels
+>> (including off) is done entirely in firmware.
+>
+> Ok, so you can do that for keyboard backlight on thinkpad... I guess
+> you handle that as a special trigger on the keyboard leds?
 
-> Granted, the adc-channels should be restricted to the subset of channels not used by tsc, but you get the idea.
+No, as said this is all done in firmware, as in this is all dealt
+with by (presumably) the acpi-ec (acpi-embedded-controller) the kernel
+does not do anything here, the key is "hardwired" to control the
+keyboard backlight from the kernels pov.
 
-There are 4 wire, 5 wire and 8 wire touchscreens. Therefore there is no
-way to know in advance, how many channels are available for adc. IMO,
-this is not a SoC specific configuration but board dependent. Hence, all
-channel related configurations need to be in board specific dts files
-and not in top level dtsi files.
+ > Can other
+> triggers, such as heartbeat, be assigned to that "led"?
+>
+>> But we do get other ACPI events for this which we can use to let
+>> userspace know this happens, which is something which user-
+>> interfaces which allow control over the kbd backlight want to know.
+>
+> Yes, you can do that for keyboard backlight... but on thinkpads there
+> are more leds, such as battery led. That can blink on battery low, and
+> I don't think you can read the current status from hardware.
 
-> 
-> tscadc: tscadc@44e0d000 {
-> 			compatible = "ti,am3359-tscadc";
-> 			reg = <0x44e0d000 0x1000>;
-> 			interrupt-parent = <&intc>;
-> 			interrupts = <16>;
-> 			ti,hwmods = "adc_tsc";
-> 			status = "disabled";
-> 			dmas = <&edma 53 0>, <&edma 57 0>;
-> 			dma-names = "fifo0", "fifo1”;
-> 
-> 			tsc {
-> 				compatible = "ti,am3359-tsc";
-> 			};
-> 			am335x_adc: adc {
-> 				#io-channel-cells = <1>;
-> 				ti,adc-channels = <0 1 2 3 4 5 6>;
-> 				ti,chan-step-avg = <0x16 0x16 0x16 0x16 0x16 0x16 0x16>;
-> 				ti,chan-step-opendelay = <0x98 0x98 0x98 0x98 0x98 0x98 0x98>;
-> 				ti,chan-step-sampledelay = <0x0 0x0 0x0 0x0 0x0 0x0 0x0>;
-> 				compatible = "ti,am3359-adc";
-> 			};
-> };
-> 
-> [1]https://github.com/RobertCNelson/bb.org-overlays/blob/master/src/arm/BB-ADC-00A0.dts
-> 
+Well the battery LED does not show up under /sys/class/led so that
+is not relevant for this situation, anyways ...
 
--- 
-Regards
-Vignesh
+> Getting current state of led blinking with cpu trigger is also not
+> quite a good idea.
+
+I agree with you that it would be better if reading the brightness
+sysfs attribute would always return the max brightness for LEDs
+which are blinking or have a trigger set. But it seems that Jacek
+disagrees, I will leave further discussion of this up to you and
+Jacek.
+
+> So IMO this should not be done in generic code. Instead,
+> kbd-backlight trigger should have special attribute, and that one
+> should be pollable.
+
+Again there is no kbd-backlight trigger.
+
+>> I understand that we will not always be able to do this, here is the
+>> Documentation/ABI/testing/sysfs-class-led text I have in mind:
+>>
+>> 		The file supports poll() to detect changes, changes are only
+>> 		signalled when this file is written or when the hardware /
+>> 		firmware changes the brightness itself and the driver can detect
+>> 		this. Changes done by kernel triggers / software blinking are
+>> 		not signalled.
+>>
+>> Note the "and the driver can detect this" language, that has been there
+>> since v1 of the poll() notification patch since I already expected not
+>> all hardware to be able to signal this.
+>
+> Lets move it to separate attribute, for triggers that can do that,
+> please.
+
+As explained above this has nothing to do with triggers...
+
+Regards,
+
+Hans
