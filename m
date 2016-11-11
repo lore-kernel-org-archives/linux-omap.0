@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 01/14] ARM: OMAP2+: Remove legacy serial.c
-Date: Fri, 11 Nov 2016 11:16:58 -0800
-Message-ID: <20161111191711.5079-2-tony@atomide.com>
+Subject: [PATCH 02/14] ARM: OMAP2+: Remove legacy i2c.c platform init code
+Date: Fri, 11 Nov 2016 11:16:59 -0800
+Message-ID: <20161111191711.5079-3-tony@atomide.com>
 References: <20161111191711.5079-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,363 +21,369 @@ To: linux-omap@vger.kernel.org
 Cc: Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-We can now initialize the UARTs using device tree.
+We can now initialize I2C for mach-omap2 using device tree. And we
+can move the remaining code in plat-omap/i2c.c into mach-omap1/i2c.c.
+
+Note that we cannot remove some of the I2C bus reset functions
+as they are being used by hwmod code.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/Makefile |   2 +-
- arch/arm/mach-omap2/serial.c | 332 -------------------------------------------
- 2 files changed, 1 insertion(+), 333 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/serial.c
+ arch/arm/mach-omap1/i2c.c   |  83 +++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/i2c.c   |  97 ------------------------------------
+ arch/arm/plat-omap/Makefile |   3 --
+ arch/arm/plat-omap/i2c.c    | 116 --------------------------------------------
+ 4 files changed, 83 insertions(+), 216 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/i2c.c
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -6,7 +6,7 @@ ccflags-y := -I$(srctree)/$(src)/include \
- 	-I$(srctree)/arch/arm/plat-omap/include
+diff --git a/arch/arm/mach-omap1/i2c.c b/arch/arm/mach-omap1/i2c.c
+--- a/arch/arm/mach-omap1/i2c.c
++++ b/arch/arm/mach-omap1/i2c.c
+@@ -19,6 +19,7 @@
+  *
+  */
  
- # Common support
--obj-y := id.o io.o control.o mux.o devices.o fb.o serial.o timer.o pm.o \
-+obj-y := id.o io.o control.o mux.o devices.o fb.o timer.o pm.o \
- 	 common.o gpio.o dma.o wd_timer.o display.o i2c.o hdq1w.o omap_hwmod.o \
- 	 omap_device.o omap-headsmp.o sram.o drm.o
++#include <linux/i2c.h>
+ #include <linux/i2c-omap.h>
+ #include <mach/mux.h>
+ #include "soc.h"
+@@ -91,6 +92,88 @@ int __init omap_i2c_add_bus(struct omap_i2c_bus_platform_data *pdata,
+ 	return platform_device_register(pdev);
+ }
  
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-deleted file mode 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ /dev/null
-@@ -1,332 +0,0 @@
--/*
-- * arch/arm/mach-omap2/serial.c
-- *
-- * OMAP2 serial support.
-- *
-- * Copyright (C) 2005-2008 Nokia Corporation
-- * Author: Paul Mundt <paul.mundt@nokia.com>
-- *
-- * Major rework for PM support by Kevin Hilman
-- *
-- * Based off of arch/arm/mach-omap/omap1/serial.c
-- *
-- * Copyright (C) 2009 Texas Instruments
-- * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com
-- *
-- * This file is subject to the terms and conditions of the GNU General Public
-- * License. See the file "COPYING" in the main directory of this archive
-- * for more details.
-- */
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/clk.h>
--#include <linux/io.h>
--#include <linux/delay.h>
--#include <linux/platform_device.h>
--#include <linux/slab.h>
--#include <linux/pm_runtime.h>
--#include <linux/console.h>
--#include <linux/omap-dma.h>
--#include <linux/platform_data/serial-omap.h>
--
--#include "common.h"
--#include "omap_hwmod.h"
--#include "omap_device.h"
--#include "omap-pm.h"
--#include "soc.h"
--#include "prm2xxx_3xxx.h"
--#include "pm.h"
--#include "cm2xxx_3xxx.h"
--#include "prm-regbits-34xx.h"
--#include "control.h"
++#define OMAP_I2C_MAX_CONTROLLERS 4
++static struct omap_i2c_bus_platform_data i2c_pdata[OMAP_I2C_MAX_CONTROLLERS];
++
++#define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
++
++/**
++ * omap_i2c_bus_setup - Process command line options for the I2C bus speed
++ * @str: String of options
++ *
++ * This function allow to override the default I2C bus speed for given I2C
++ * bus with a command line option.
++ *
++ * Format: i2c_bus=bus_id,clkrate (in kHz)
++ *
++ * Returns 1 on success, 0 otherwise.
++ */
++static int __init omap_i2c_bus_setup(char *str)
++{
++	int ints[3];
++
++	get_options(str, 3, ints);
++	if (ints[0] < 2 || ints[1] < 1 ||
++			ints[1] > OMAP_I2C_MAX_CONTROLLERS)
++		return 0;
++	i2c_pdata[ints[1] - 1].clkrate = ints[2];
++	i2c_pdata[ints[1] - 1].clkrate |= OMAP_I2C_CMDLINE_SETUP;
++
++	return 1;
++}
++__setup("i2c_bus=", omap_i2c_bus_setup);
++
++/*
++ * Register busses defined in command line but that are not registered with
++ * omap_register_i2c_bus from board initialization code.
++ */
++int __init omap_register_i2c_bus_cmdline(void)
++{
++	int i, err = 0;
++
++	for (i = 0; i < ARRAY_SIZE(i2c_pdata); i++)
++		if (i2c_pdata[i].clkrate & OMAP_I2C_CMDLINE_SETUP) {
++			i2c_pdata[i].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
++			err = omap_i2c_add_bus(&i2c_pdata[i], i + 1);
++			if (err)
++				goto out;
++		}
++
++out:
++	return err;
++}
++
++/**
++ * omap_register_i2c_bus - register I2C bus with device descriptors
++ * @bus_id: bus id counting from number 1
++ * @clkrate: clock rate of the bus in kHz
++ * @info: pointer into I2C device descriptor table or NULL
++ * @len: number of descriptors in the table
++ *
++ * Returns 0 on success or an error code.
++ */
++int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
++			  struct i2c_board_info const *info,
++			  unsigned len)
++{
++	int err;
++
++	BUG_ON(bus_id < 1 || bus_id > OMAP_I2C_MAX_CONTROLLERS);
++
++	if (info) {
++		err = i2c_register_board_info(bus_id, info, len);
++		if (err)
++			return err;
++	}
++
++	if (!i2c_pdata[bus_id - 1].clkrate)
++		i2c_pdata[bus_id - 1].clkrate = clkrate;
++
++	i2c_pdata[bus_id - 1].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
++
++	return omap_i2c_add_bus(&i2c_pdata[bus_id - 1], bus_id);
++}
++
+ static  int __init omap_i2c_cmdline(void)
+ {
+ 	return omap_register_i2c_bus_cmdline();
+diff --git a/arch/arm/mach-omap2/i2c.c b/arch/arm/mach-omap2/i2c.c
+--- a/arch/arm/mach-omap2/i2c.c
++++ b/arch/arm/mach-omap2/i2c.c
+@@ -26,7 +26,6 @@
+ 
+ #include "prm.h"
+ #include "common.h"
 -#include "mux.h"
--#include "serial.h"
--
--/*
-- * NOTE: By default the serial auto_suspend timeout is disabled as it causes
-- * lost characters over the serial ports. This means that the UART clocks will
-- * stay on until power/autosuspend_delay is set for the uart from sysfs.
-- * This also causes that any deeper omap sleep states are blocked.
-- */
--#define DEFAULT_AUTOSUSPEND_DELAY	-1
--
--#define MAX_UART_HWMOD_NAME_LEN		16
--
--struct omap_uart_state {
--	int num;
--
--	struct list_head node;
--	struct omap_hwmod *oh;
--	struct omap_device_pad default_omap_uart_pads[2];
--};
--
--static LIST_HEAD(uart_list);
--static u8 num_uarts;
--static u8 console_uart_id = -1;
--static u8 uart_debug;
--
--#define DEFAULT_RXDMA_POLLRATE		1	/* RX DMA polling rate (us) */
--#define DEFAULT_RXDMA_BUFSIZE		4096	/* RX DMA buffer size */
--#define DEFAULT_RXDMA_TIMEOUT		(3 * HZ)/* RX DMA timeout (jiffies) */
--
--static struct omap_uart_port_info omap_serial_default_info[] __initdata = {
--	{
--		.dma_enabled	= false,
--		.dma_rx_buf_size = DEFAULT_RXDMA_BUFSIZE,
--		.dma_rx_poll_rate = DEFAULT_RXDMA_POLLRATE,
--		.dma_rx_timeout = DEFAULT_RXDMA_TIMEOUT,
--		.autosuspend_timeout = DEFAULT_AUTOSUSPEND_DELAY,
--	},
--};
--
--#ifdef CONFIG_PM
--static void omap_uart_enable_wakeup(struct device *dev, bool enable)
+ #include "i2c.h"
+ 
+ /* In register I2C_CON, Bit 15 is the I2C enable bit */
+@@ -36,20 +35,6 @@
+ 
+ #define MAX_OMAP_I2C_HWMOD_NAME_LEN	16
+ 
+-static void __init omap2_i2c_mux_pins(int bus_id)
 -{
--	struct platform_device *pdev = to_platform_device(dev);
--	struct omap_device *od = to_omap_device(pdev);
+-	char mux_name[sizeof("i2c2_scl.i2c2_scl")];
 -
--	if (!od)
+-	/* First I2C bus is not muxable */
+-	if (bus_id == 1)
 -		return;
 -
--	if (enable)
--		omap_hwmod_enable_wakeup(od->hwmods[0]);
--	else
--		omap_hwmod_disable_wakeup(od->hwmods[0]);
+-	sprintf(mux_name, "i2c%i_scl.i2c%i_scl", bus_id, bus_id);
+-	omap_mux_init_signal(mux_name, OMAP_PIN_INPUT);
+-	sprintf(mux_name, "i2c%i_sda.i2c%i_sda", bus_id, bus_id);
+-	omap_mux_init_signal(mux_name, OMAP_PIN_INPUT);
 -}
 -
--#else
--static void omap_uart_enable_wakeup(struct device *dev, bool enable)
--{}
--#endif /* CONFIG_PM */
+ /**
+  * omap_i2c_reset - reset the omap i2c module.
+  * @oh: struct omap_hwmod *
+@@ -107,85 +92,3 @@ int omap_i2c_reset(struct omap_hwmod *oh)
+ 
+ 	return 0;
+ }
 -
--#ifdef CONFIG_OMAP_MUX
--
--#define OMAP_UART_DEFAULT_PAD_NAME_LEN	28
--static char rx_pad_name[OMAP_UART_DEFAULT_PAD_NAME_LEN],
--		tx_pad_name[OMAP_UART_DEFAULT_PAD_NAME_LEN] __initdata;
--
--static void  __init
--omap_serial_fill_uart_tx_rx_pads(struct omap_board_data *bdata,
--				struct omap_uart_state *uart)
+-static int __init omap_i2c_nr_ports(void)
 -{
--	uart->default_omap_uart_pads[0].name = rx_pad_name;
--	uart->default_omap_uart_pads[0].flags = OMAP_DEVICE_PAD_REMUX |
--							OMAP_DEVICE_PAD_WAKEUP;
--	uart->default_omap_uart_pads[0].enable = OMAP_PIN_INPUT |
--							OMAP_MUX_MODE0;
--	uart->default_omap_uart_pads[0].idle = OMAP_PIN_INPUT | OMAP_MUX_MODE0;
--	uart->default_omap_uart_pads[1].name = tx_pad_name;
--	uart->default_omap_uart_pads[1].enable = OMAP_PIN_OUTPUT |
--							OMAP_MUX_MODE0;
--	bdata->pads = uart->default_omap_uart_pads;
--	bdata->pads_cnt = ARRAY_SIZE(uart->default_omap_uart_pads);
+-	int ports = 0;
+-
+-	if (cpu_is_omap24xx())
+-		ports = 2;
+-	else if (cpu_is_omap34xx())
+-		ports = 3;
+-	else if (cpu_is_omap44xx())
+-		ports = 4;
+-	return ports;
 -}
 -
--static void  __init omap_serial_check_wakeup(struct omap_board_data *bdata,
--						struct omap_uart_state *uart)
--{
--	struct omap_mux_partition *tx_partition = NULL, *rx_partition = NULL;
--	struct omap_mux *rx_mux = NULL, *tx_mux = NULL;
--	char *rx_fmt, *tx_fmt;
--	int uart_nr = bdata->id + 1;
--
--	if (bdata->id != 2) {
--		rx_fmt = "uart%d_rx.uart%d_rx";
--		tx_fmt = "uart%d_tx.uart%d_tx";
--	} else {
--		rx_fmt = "uart%d_rx_irrx.uart%d_rx_irrx";
--		tx_fmt = "uart%d_tx_irtx.uart%d_tx_irtx";
--	}
--
--	snprintf(rx_pad_name, OMAP_UART_DEFAULT_PAD_NAME_LEN, rx_fmt,
--			uart_nr, uart_nr);
--	snprintf(tx_pad_name, OMAP_UART_DEFAULT_PAD_NAME_LEN, tx_fmt,
--			uart_nr, uart_nr);
--
--	if (omap_mux_get_by_name(rx_pad_name, &rx_partition, &rx_mux) >= 0 &&
--			omap_mux_get_by_name
--				(tx_pad_name, &tx_partition, &tx_mux) >= 0) {
--		u16 tx_mode, rx_mode;
--
--		tx_mode = omap_mux_read(tx_partition, tx_mux->reg_offset);
--		rx_mode = omap_mux_read(rx_partition, rx_mux->reg_offset);
--
--		/*
--		 * Check if uart is used in default tx/rx mode i.e. in mux mode0
--		 * if yes then configure rx pin for wake up capability
--		 */
--		if (OMAP_MODE_UART(rx_mode) && OMAP_MODE_UART(tx_mode))
--			omap_serial_fill_uart_tx_rx_pads(bdata, uart);
--	}
--}
--#else
--static void __init omap_serial_check_wakeup(struct omap_board_data *bdata,
--		struct omap_uart_state *uart)
--{
--}
--#endif
--
--static char *cmdline_find_option(char *str)
--{
--	extern char *saved_command_line;
--
--	return strstr(saved_command_line, str);
--}
--
--static int __init omap_serial_early_init(void)
--{
--	if (of_have_populated_dt())
--		return -ENODEV;
--
--	do {
--		char oh_name[MAX_UART_HWMOD_NAME_LEN];
--		struct omap_hwmod *oh;
--		struct omap_uart_state *uart;
--		char uart_name[MAX_UART_HWMOD_NAME_LEN];
--
--		snprintf(oh_name, MAX_UART_HWMOD_NAME_LEN,
--			 "uart%d", num_uarts + 1);
--		oh = omap_hwmod_lookup(oh_name);
--		if (!oh)
--			break;
--
--		uart = kzalloc(sizeof(struct omap_uart_state), GFP_KERNEL);
--		if (WARN_ON(!uart))
--			return -ENODEV;
--
--		uart->oh = oh;
--		uart->num = num_uarts++;
--		list_add_tail(&uart->node, &uart_list);
--		snprintf(uart_name, MAX_UART_HWMOD_NAME_LEN,
--				"%s%d", OMAP_SERIAL_NAME, uart->num);
--
--		if (cmdline_find_option(uart_name)) {
--			console_uart_id = uart->num;
--
--			if (console_loglevel >= CONSOLE_LOGLEVEL_DEBUG) {
--				uart_debug = true;
--				pr_info("%s used as console in debug mode: uart%d clocks will not be gated",
--					uart_name, uart->num);
--			}
--		}
--	} while (1);
--
--	return 0;
--}
--omap_postcore_initcall(omap_serial_early_init);
--
--/**
-- * omap_serial_init_port() - initialize single serial port
-- * @bdata: port specific board data pointer
-- * @info: platform specific data pointer
-- *
-- * This function initialies serial driver for given port only.
-- * Platforms can call this function instead of omap_serial_init()
-- * if they don't plan to use all available UARTs as serial ports.
-- *
-- * Don't mix calls to omap_serial_init_port() and omap_serial_init(),
-- * use only one of the two.
+-/*
+- * XXX This function is a temporary compatibility wrapper - only
+- * needed until the I2C driver can be converted to call
+- * omap_pm_set_max_dev_wakeup_lat() and handle a return code.
 - */
--void __init omap_serial_init_port(struct omap_board_data *bdata,
--			struct omap_uart_port_info *info)
+-static void omap_pm_set_max_mpu_wakeup_lat_compat(struct device *dev, long t)
 -{
--	struct omap_uart_state *uart;
+-	omap_pm_set_max_mpu_wakeup_lat(dev, t);
+-}
+-
+-static const char name[] = "omap_i2c";
+-
+-int __init omap_i2c_add_bus(struct omap_i2c_bus_platform_data *i2c_pdata,
+-				int bus_id)
+-{
+-	int l;
 -	struct omap_hwmod *oh;
 -	struct platform_device *pdev;
--	void *pdata = NULL;
--	u32 pdata_size = 0;
--	char *name;
--	struct omap_uart_port_info omap_up;
+-	char oh_name[MAX_OMAP_I2C_HWMOD_NAME_LEN];
+-	struct omap_i2c_bus_platform_data *pdata;
+-	struct omap_i2c_dev_attr *dev_attr;
 -
--	if (WARN_ON(!bdata))
--		return;
--	if (WARN_ON(bdata->id < 0))
--		return;
--	if (WARN_ON(bdata->id >= num_uarts))
--		return;
+-	if (bus_id > omap_i2c_nr_ports())
+-		return -EINVAL;
 -
--	list_for_each_entry(uart, &uart_list, node)
--		if (bdata->id == uart->num)
--			break;
--	if (!info)
--		info = omap_serial_default_info;
+-	omap2_i2c_mux_pins(bus_id);
 -
--	oh = uart->oh;
--	name = OMAP_SERIAL_DRIVER_NAME;
--
--	omap_up.dma_enabled = info->dma_enabled;
--	omap_up.uartclk = OMAP24XX_BASE_BAUD * 16;
--	omap_up.flags = UPF_BOOT_AUTOCONF;
--	omap_up.get_context_loss_count = omap_pm_get_dev_context_loss_count;
--	omap_up.enable_wakeup = omap_uart_enable_wakeup;
--	omap_up.dma_rx_buf_size = info->dma_rx_buf_size;
--	omap_up.dma_rx_timeout = info->dma_rx_timeout;
--	omap_up.dma_rx_poll_rate = info->dma_rx_poll_rate;
--	omap_up.autosuspend_timeout = info->autosuspend_timeout;
--
--	pdata = &omap_up;
--	pdata_size = sizeof(struct omap_uart_port_info);
--
--	if (WARN_ON(!oh))
--		return;
--
--	pdev = omap_device_build(name, uart->num, oh, pdata, pdata_size);
--	if (IS_ERR(pdev)) {
--		WARN(1, "Could not build omap_device for %s: %s.\n", name,
--		     oh->name);
--		return;
+-	l = snprintf(oh_name, MAX_OMAP_I2C_HWMOD_NAME_LEN, "i2c%d", bus_id);
+-	WARN(l >= MAX_OMAP_I2C_HWMOD_NAME_LEN,
+-		"String buffer overflow in I2C%d device setup\n", bus_id);
+-	oh = omap_hwmod_lookup(oh_name);
+-	if (!oh) {
+-			pr_err("Could not look up %s\n", oh_name);
+-			return -EEXIST;
 -	}
 -
--	oh->mux = omap_hwmod_mux_init(bdata->pads, bdata->pads_cnt);
+-	pdata = i2c_pdata;
+-	/*
+-	 * pass the hwmod class's CPU-specific knowledge of I2C IP revision in
+-	 * use, and functionality implementation flags, up to the OMAP I2C
+-	 * driver via platform data
+-	 */
+-	pdata->rev = oh->class->rev;
 -
--	if (console_uart_id == bdata->id) {
--		omap_device_enable(pdev);
--		pm_runtime_set_active(&pdev->dev);
--	}
+-	dev_attr = (struct omap_i2c_dev_attr *)oh->dev_attr;
+-	pdata->flags = dev_attr->flags;
 -
--	oh->dev_attr = uart;
+-	/*
+-	 * When waiting for completion of a i2c transfer, we need to
+-	 * set a wake up latency constraint for the MPU. This is to
+-	 * ensure quick enough wakeup from idle, when transfer
+-	 * completes.
+-	 * Only omap3 has support for constraints
+-	 */
+-	if (cpu_is_omap34xx())
+-		pdata->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
+-	pdev = omap_device_build(name, bus_id, oh, pdata,
+-				 sizeof(struct omap_i2c_bus_platform_data));
+-	WARN(IS_ERR(pdev), "Could not build omap_device for %s\n", name);
 -
--	if (((cpu_is_omap34xx() || cpu_is_omap44xx()) && bdata->pads)
--			&& !uart_debug)
--		device_init_wakeup(&pdev->dev, true);
+-	return PTR_ERR_OR_ZERO(pdev);
+-}
+-
+-static  int __init omap_i2c_cmdline(void)
+-{
+-	return omap_register_i2c_bus_cmdline();
+-}
+-omap_subsys_initcall(omap_i2c_cmdline);
+diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+--- a/arch/arm/plat-omap/Makefile
++++ b/arch/arm/plat-omap/Makefile
+@@ -11,6 +11,3 @@ obj-y := sram.o dma.o counter_32k.o
+ 
+ obj-$(CONFIG_OMAP_DM_TIMER) += dmtimer.o
+ obj-$(CONFIG_OMAP_DEBUG_LEDS) += debug-leds.o
+-i2c-omap-$(CONFIG_I2C_OMAP) := i2c.o
+-obj-y += $(i2c-omap-m) $(i2c-omap-y)
+-
+diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+deleted file mode 100644
+--- a/arch/arm/plat-omap/i2c.c
++++ /dev/null
+@@ -1,116 +0,0 @@
+-/*
+- * linux/arch/arm/plat-omap/i2c.c
+- *
+- * Helper module for board specific I2C bus registration
+- *
+- * Copyright (C) 2007 Nokia Corporation.
+- *
+- * Contact: Jarkko Nikula <jhnikula@gmail.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * version 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+- * 02110-1301 USA
+- *
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/platform_device.h>
+-#include <linux/i2c.h>
+-#include <linux/i2c-omap.h>
+-#include <linux/slab.h>
+-#include <linux/err.h>
+-#include <linux/clk.h>
+-
+-#include <plat/i2c.h>
+-
+-#define OMAP_I2C_MAX_CONTROLLERS 4
+-static struct omap_i2c_bus_platform_data i2c_pdata[OMAP_I2C_MAX_CONTROLLERS];
+-
+-#define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
+-
+-/**
+- * omap_i2c_bus_setup - Process command line options for the I2C bus speed
+- * @str: String of options
+- *
+- * This function allow to override the default I2C bus speed for given I2C
+- * bus with a command line option.
+- *
+- * Format: i2c_bus=bus_id,clkrate (in kHz)
+- *
+- * Returns 1 on success, 0 otherwise.
+- */
+-static int __init omap_i2c_bus_setup(char *str)
+-{
+-	int ints[3];
+-
+-	get_options(str, 3, ints);
+-	if (ints[0] < 2 || ints[1] < 1 ||
+-			ints[1] > OMAP_I2C_MAX_CONTROLLERS)
+-		return 0;
+-	i2c_pdata[ints[1] - 1].clkrate = ints[2];
+-	i2c_pdata[ints[1] - 1].clkrate |= OMAP_I2C_CMDLINE_SETUP;
+-
+-	return 1;
+-}
+-__setup("i2c_bus=", omap_i2c_bus_setup);
+-
+-/*
+- * Register busses defined in command line but that are not registered with
+- * omap_register_i2c_bus from board initialization code.
+- */
+-int __init omap_register_i2c_bus_cmdline(void)
+-{
+-	int i, err = 0;
+-
+-	for (i = 0; i < ARRAY_SIZE(i2c_pdata); i++)
+-		if (i2c_pdata[i].clkrate & OMAP_I2C_CMDLINE_SETUP) {
+-			i2c_pdata[i].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
+-			err = omap_i2c_add_bus(&i2c_pdata[i], i + 1);
+-			if (err)
+-				goto out;
+-		}
+-
+-out:
+-	return err;
 -}
 -
 -/**
-- * omap_serial_board_init() - initialize all supported serial ports
-- * @info: platform specific data pointer
+- * omap_register_i2c_bus - register I2C bus with device descriptors
+- * @bus_id: bus id counting from number 1
+- * @clkrate: clock rate of the bus in kHz
+- * @info: pointer into I2C device descriptor table or NULL
+- * @len: number of descriptors in the table
 - *
-- * Initializes all available UARTs as serial ports. Platforms
-- * can call this function when they want to have default behaviour
-- * for serial ports (e.g initialize them all as serial ports).
+- * Returns 0 on success or an error code.
 - */
--void __init omap_serial_board_init(struct omap_uart_port_info *info)
+-int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
+-			  struct i2c_board_info const *info,
+-			  unsigned len)
 -{
--	struct omap_uart_state *uart;
--	struct omap_board_data bdata;
+-	int err;
 -
--	list_for_each_entry(uart, &uart_list, node) {
--		bdata.id = uart->num;
--		bdata.flags = 0;
--		bdata.pads = NULL;
--		bdata.pads_cnt = 0;
+-	BUG_ON(bus_id < 1 || bus_id > OMAP_I2C_MAX_CONTROLLERS);
 -
--		omap_serial_check_wakeup(&bdata, uart);
--
--		if (!info)
--			omap_serial_init_port(&bdata, NULL);
--		else
--			omap_serial_init_port(&bdata, &info[uart->num]);
+-	if (info) {
+-		err = i2c_register_board_info(bus_id, info, len);
+-		if (err)
+-			return err;
 -	}
--}
 -
--/**
-- * omap_serial_init() - initialize all supported serial ports
-- *
-- * Initializes all available UARTs.
-- * Platforms can call this function when they want to have default behaviour
-- * for serial ports (e.g initialize them all as serial ports).
-- */
--void __init omap_serial_init(void)
--{
--	omap_serial_board_init(NULL);
+-	if (!i2c_pdata[bus_id - 1].clkrate)
+-		i2c_pdata[bus_id - 1].clkrate = clkrate;
+-
+-	i2c_pdata[bus_id - 1].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
+-
+-	return omap_i2c_add_bus(&i2c_pdata[bus_id - 1], bus_id);
 -}
 -- 
 2.10.2
