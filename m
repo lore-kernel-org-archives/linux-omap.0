@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 07/14] ARM: OMAP2+: Remove legacy usb-musb.c platform init code
-Date: Fri, 11 Nov 2016 11:17:04 -0800
-Message-ID: <20161111191711.5079-8-tony@atomide.com>
+Subject: [PATCH 08/14] ARM: OMAP2+: Remove legacy hwmod mux code
+Date: Fri, 11 Nov 2016 11:17:05 -0800
+Message-ID: <20161111191711.5079-9-tony@atomide.com>
 References: <20161111191711.5079-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,134 +23,205 @@ List-Id: linux-omap@vger.kernel.org
 
 This is no longer needed when booted with device tree.
 
+Cc: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/Makefile   |   1 -
- arch/arm/mach-omap2/usb-musb.c | 106 -----------------------------------------
- 2 files changed, 107 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/usb-musb.c
+ arch/arm/mach-omap2/devices.c    |   1 -
+ arch/arm/mach-omap2/omap_hwmod.c | 107 +--------------------------------------
+ 2 files changed, 1 insertion(+), 107 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -242,7 +242,6 @@ obj-y					+= $(omap-flash-y) $(omap-flash-m)
- omap-hsmmc-$(CONFIG_MMC_OMAP_HS)	:= hsmmc.o
- obj-y					+= $(omap-hsmmc-m) $(omap-hsmmc-y)
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -30,7 +30,6 @@
  
--obj-y					+= usb-musb.o
- obj-y					+= omap_phy_internal.o
- 
- obj-$(CONFIG_MACH_OMAP2_TUSB6010)	+= usb-tusb6010.o
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-deleted file mode 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ /dev/null
-@@ -1,106 +0,0 @@
--/*
-- * linux/arch/arm/mach-omap2/usb-musb.c
-- *
-- * This file will contain the board specific details for the
-- * MENTOR USB OTG controller on OMAP3430
-- *
-- * Copyright (C) 2007-2008 Texas Instruments
-- * Copyright (C) 2008 Nokia Corporation
-- * Author: Vikram Pandita
-- *
-- * Generalization by:
-- * Felipe Balbi <felipe.balbi@nokia.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#include <linux/types.h>
--#include <linux/errno.h>
--#include <linux/delay.h>
--#include <linux/platform_device.h>
--#include <linux/clk.h>
--#include <linux/dma-mapping.h>
--#include <linux/io.h>
--#include <linux/usb/musb.h>
--
--#include "omap_device.h"
--#include "soc.h"
+ #include "soc.h"
+ #include "common.h"
 -#include "mux.h"
--#include "usb.h"
+ #include "control.h"
+ #include "display.h"
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -160,7 +160,6 @@
+ #include "prm44xx.h"
+ #include "prm33xx.h"
+ #include "prminst44xx.h"
+-#include "mux.h"
+ #include "pm.h"
+ 
+ /* Name of the OMAP hwmod for the MPU */
+@@ -217,9 +216,6 @@ static LIST_HEAD(omap_hwmod_list);
+ /* mpu_oh: used to add/remove MPU initiator from sleepdep list */
+ static struct omap_hwmod *mpu_oh;
+ 
+-/* io_chain_lock: used to serialize reconfigurations of the I/O chain */
+-static DEFINE_SPINLOCK(io_chain_lock);
 -
--static struct musb_hdrc_config musb_config = {
--	.multipoint	= 1,
--	.dyn_fifo	= 1,
--	.num_eps	= 16,
--	.ram_bits	= 12,
--};
--
--static struct musb_hdrc_platform_data musb_plat = {
--	.mode		= MUSB_OTG,
--
--	/* .clock is set dynamically */
--	.config		= &musb_config,
--
--	/* REVISIT charge pump on TWL4030 can supply up to
--	 * 100 mA ... but this value is board-specific, like
--	 * "mode", and should be passed to usb_musb_init().
--	 */
--	.power		= 50,			/* up to 100 mA */
--};
--
--static u64 musb_dmamask = DMA_BIT_MASK(32);
--
--static struct omap_musb_board_data musb_default_board_data = {
--	.interface_type		= MUSB_INTERFACE_ULPI,
--	.mode			= MUSB_OTG,
--	.power			= 100,
--};
--
--void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
+ /*
+  * linkspace: ptr to a buffer that struct omap_hwmod_link records are
+  * allocated from - used to reduce the number of small memory
+@@ -594,51 +590,6 @@ static int _set_module_autoidle(struct omap_hwmod *oh, u8 autoidle,
+ }
+ 
+ /**
+- * _set_idle_ioring_wakeup - enable/disable IO pad wakeup on hwmod idle for mux
+- * @oh: struct omap_hwmod *
+- * @set_wake: bool value indicating to set (true) or clear (false) wakeup enable
+- *
+- * Set or clear the I/O pad wakeup flag in the mux entries for the
+- * hwmod @oh.  This function changes the @oh->mux->pads_dynamic array
+- * in memory.  If the hwmod is currently idled, and the new idle
+- * values don't match the previous ones, this function will also
+- * update the SCM PADCTRL registers.  Otherwise, if the hwmod is not
+- * currently idled, this function won't touch the hardware: the new
+- * mux settings are written to the SCM PADCTRL registers when the
+- * hwmod is idled.  No return value.
+- */
+-static void _set_idle_ioring_wakeup(struct omap_hwmod *oh, bool set_wake)
 -{
--	struct omap_hwmod		*oh;
--	struct platform_device		*pdev;
--	struct device			*dev;
--	int				bus_id = -1;
--	const char			*oh_name, *name;
--	struct omap_musb_board_data	*board_data;
+-	struct omap_device_pad *pad;
+-	bool change = false;
+-	u16 prev_idle;
+-	int j;
 -
--	if (musb_board_data)
--		board_data = musb_board_data;
--	else
--		board_data = &musb_default_board_data;
--
--	/*
--	 * REVISIT: This line can be removed once all the platforms using
--	 * musb_core.c have been converted to use use clkdev.
--	 */
--	musb_plat.clock = "ick";
--	musb_plat.board_data = board_data;
--	musb_plat.power = board_data->power >> 1;
--	musb_plat.mode = board_data->mode;
--	musb_plat.extvbus = board_data->extvbus;
--
--	oh_name = "usb_otg_hs";
--	name = "musb-omap2430";
--
--        oh = omap_hwmod_lookup(oh_name);
--        if (WARN(!oh, "%s: could not find omap_hwmod for %s\n",
--                 __func__, oh_name))
--                return;
--
--	pdev = omap_device_build(name, bus_id, oh, &musb_plat,
--				 sizeof(musb_plat));
--	if (IS_ERR(pdev)) {
--		pr_err("Could not build omap_device for %s %s\n",
--						name, oh_name);
+-	if (!oh->mux || !oh->mux->enabled)
 -		return;
+-
+-	for (j = 0; j < oh->mux->nr_pads_dynamic; j++) {
+-		pad = oh->mux->pads_dynamic[j];
+-
+-		if (!(pad->flags & OMAP_DEVICE_PAD_WAKEUP))
+-			continue;
+-
+-		prev_idle = pad->idle;
+-
+-		if (set_wake)
+-			pad->idle |= OMAP_WAKEUP_EN;
+-		else
+-			pad->idle &= ~OMAP_WAKEUP_EN;
+-
+-		if (prev_idle != pad->idle)
+-			change = true;
 -	}
 -
--	dev = &pdev->dev;
--	get_device(dev);
--	dev->dma_mask = &musb_dmamask;
--	dev->coherent_dma_mask = musb_dmamask;
--	put_device(dev);
+-	if (change && oh->_state == _HWMOD_STATE_IDLE)
+-		omap_hwmod_mux(oh->mux, _HWMOD_STATE_IDLE);
 -}
+-
+-/**
+  * _enable_wakeup: set OCP_SYSCONFIG.ENAWAKEUP bit in the hardware
+  * @oh: struct omap_hwmod *
+  *
+@@ -2018,29 +1969,6 @@ static int _reset(struct omap_hwmod *oh)
+ }
+ 
+ /**
+- * _reconfigure_io_chain - clear any I/O chain wakeups and reconfigure chain
+- *
+- * Call the appropriate PRM function to clear any logged I/O chain
+- * wakeups and to reconfigure the chain.  This apparently needs to be
+- * done upon every mux change.  Since hwmods can be concurrently
+- * enabled and idled, hold a spinlock around the I/O chain
+- * reconfiguration sequence.  No return value.
+- *
+- * XXX When the PRM code is moved to drivers, this function can be removed,
+- * as the PRM infrastructure should abstract this.
+- */
+-static void _reconfigure_io_chain(void)
+-{
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&io_chain_lock, flags);
+-
+-	omap_prm_reconfigure_io_chain();
+-
+-	spin_unlock_irqrestore(&io_chain_lock, flags);
+-}
+-
+-/**
+  * _omap4_update_context_lost - increment hwmod context loss counter if
+  * hwmod context was lost, and clear hardware context loss reg
+  * @oh: hwmod to check for context loss
+@@ -2109,18 +2037,9 @@ static int _enable(struct omap_hwmod *oh)
+ 
+ 	/*
+ 	 * hwmods with HWMOD_INIT_NO_IDLE flag set are left in enabled
+-	 * state at init.  Now that someone is really trying to enable
+-	 * them, just ensure that the hwmod mux is set.
++	 * state at init.
+ 	 */
+ 	if (oh->_int_flags & _HWMOD_SKIP_ENABLE) {
+-		/*
+-		 * If the caller has mux data populated, do the mux'ing
+-		 * which wouldn't have been done as part of the _enable()
+-		 * done during setup.
+-		 */
+-		if (oh->mux)
+-			omap_hwmod_mux(oh->mux, _HWMOD_STATE_ENABLED);
+-
+ 		oh->_int_flags &= ~_HWMOD_SKIP_ENABLE;
+ 		return 0;
+ 	}
+@@ -2145,16 +2064,6 @@ static int _enable(struct omap_hwmod *oh)
+ 	if (_are_all_hardreset_lines_asserted(oh))
+ 		return 0;
+ 
+-	/* Mux pins for device runtime if populated */
+-	if (oh->mux && (!oh->mux->enabled ||
+-			((oh->_state == _HWMOD_STATE_IDLE) &&
+-			 oh->mux->pads_dynamic))) {
+-		omap_hwmod_mux(oh->mux, _HWMOD_STATE_ENABLED);
+-		_reconfigure_io_chain();
+-	} else if (oh->flags & HWMOD_RECONFIG_IO_CHAIN) {
+-		_reconfigure_io_chain();
+-	}
+-
+ 	_add_initiator_dep(oh, mpu_oh);
+ 
+ 	if (oh->clkdm) {
+@@ -2260,14 +2169,6 @@ static int _idle(struct omap_hwmod *oh)
+ 		clkdm_hwmod_disable(oh->clkdm, oh);
+ 	}
+ 
+-	/* Mux pins for device idle if populated */
+-	if (oh->mux && oh->mux->pads_dynamic) {
+-		omap_hwmod_mux(oh->mux, _HWMOD_STATE_IDLE);
+-		_reconfigure_io_chain();
+-	} else if (oh->flags & HWMOD_RECONFIG_IO_CHAIN) {
+-		_reconfigure_io_chain();
+-	}
+-
+ 	oh->_state = _HWMOD_STATE_IDLE;
+ 
+ 	return 0;
+@@ -2334,10 +2235,6 @@ static int _shutdown(struct omap_hwmod *oh)
+ 	for (i = 0; i < oh->rst_lines_cnt; i++)
+ 		_assert_hardreset(oh, oh->rst_lines[i].name);
+ 
+-	/* Mux pins to safe mode or use populated off mode values */
+-	if (oh->mux)
+-		omap_hwmod_mux(oh->mux, _HWMOD_STATE_DISABLED);
+-
+ 	oh->_state = _HWMOD_STATE_DISABLED;
+ 
+ 	return 0;
+@@ -3729,7 +3626,6 @@ int omap_hwmod_enable_wakeup(struct omap_hwmod *oh)
+ 		_write_sysconfig(v, oh);
+ 	}
+ 
+-	_set_idle_ioring_wakeup(oh, true);
+ 	spin_unlock_irqrestore(&oh->_lock, flags);
+ 
+ 	return 0;
+@@ -3762,7 +3658,6 @@ int omap_hwmod_disable_wakeup(struct omap_hwmod *oh)
+ 		_write_sysconfig(v, oh);
+ 	}
+ 
+-	_set_idle_ioring_wakeup(oh, false);
+ 	spin_unlock_irqrestore(&oh->_lock, flags);
+ 
+ 	return 0;
 -- 
 2.10.2
