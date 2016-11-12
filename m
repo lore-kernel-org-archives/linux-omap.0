@@ -1,86 +1,46 @@
 From: Nicolae Rosia <Nicolae_Rosia@mentor.com>
-Subject: [PATCH 1/4] regulator: twl: make driver DT only
-Date: Sat, 12 Nov 2016 14:42:12 +0200
-Message-ID: <1478954535-17325-2-git-send-email-Nicolae_Rosia@mentor.com>
-References: <1478954535-17325-1-git-send-email-Nicolae_Rosia@mentor.com>
+Subject: [PATCH 0/4] regulator: twl: preparation for TWL6032 support
+Date: Sat, 12 Nov 2016 14:42:11 +0200
+Message-ID: <1478954535-17325-1-git-send-email-Nicolae_Rosia@mentor.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1478954535-17325-1-git-send-email-Nicolae_Rosia@mentor.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Nicolae Rosia <Nicolae_Rosia@mentor.com>
 List-Id: linux-omap@vger.kernel.org
 
-All users are DT only, remove unused code.
+Hello,
 
-Signed-off-by: Nicolae Rosia <Nicolae_Rosia@mentor.com>
----
- drivers/regulator/twl-regulator.c | 37 ++++++-------------------------------
- 1 file changed, 6 insertions(+), 31 deletions(-)
+I'm planning on adding TWL6032 support but working with the existing twl
+regulator driver is hard because of a lot of legacy code.
+This series removes unused code and splits up the TWL6030 logic
+from TWL4030 so it is easier to build on.
 
-diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
-index 210681d..f92b13a 100644
---- a/drivers/regulator/twl-regulator.c
-+++ b/drivers/regulator/twl-regulator.c
-@@ -1165,37 +1165,20 @@ static int twlreg_probe(struct platform_device *pdev)
- 	struct regulator_init_data	*initdata;
- 	struct regulation_constraints	*c;
- 	struct regulator_dev		*rdev;
--	struct twl_regulator_driver_data	*drvdata;
- 	const struct of_device_id	*match;
- 	struct regulator_config		config = { };
- 
- 	match = of_match_device(twl_of_match, &pdev->dev);
--	if (match) {
--		template = match->data;
--		id = template->desc.id;
--		initdata = of_get_regulator_init_data(&pdev->dev,
--						      pdev->dev.of_node,
--						      &template->desc);
--		drvdata = NULL;
--	} else {
--		id = pdev->id;
--		initdata = dev_get_platdata(&pdev->dev);
--		for (i = 0, template = NULL; i < ARRAY_SIZE(twl_of_match); i++) {
--			template = twl_of_match[i].data;
--			if (template && template->desc.id == id)
--				break;
--		}
--		if (i == ARRAY_SIZE(twl_of_match))
--			return -ENODEV;
--
--		drvdata = initdata->driver_data;
--		if (!drvdata)
--			return -EINVAL;
--	}
-+	if (!match)
-+		return -ENODEV;
- 
-+	template = match->data;
- 	if (!template)
- 		return -ENODEV;
- 
-+	id = template->desc.id;
-+	initdata = of_get_regulator_init_data(&pdev->dev, pdev->dev.of_node,
-+						&template->desc);
- 	if (!initdata)
- 		return -EINVAL;
- 
-@@ -1203,14 +1186,6 @@ static int twlreg_probe(struct platform_device *pdev)
- 	if (!info)
- 		return -ENOMEM;
- 
--	if (drvdata) {
--		/* copy the driver data into regulator data */
--		info->features = drvdata->features;
--		info->data = drvdata->data;
--		info->set_voltage = drvdata->set_voltage;
--		info->get_voltage = drvdata->get_voltage;
--	}
--
- 	/* Constrain board-specific capabilities according to what
- 	 * this driver and the chip itself can actually do.
- 	 */
+I'm keeping the same name for TWL4030 (twl-regulator.c) to have a clean history
+and same CONFIG symbol for both files so we don't break existing users.
+
+Checkpatch warnings are inherited from twl-regulator.c and will be fixed in a
+subsequent patch.
+
+Depends on [0] which is already queued in Tony's for-next [1]
+branch.
+
+[0] http://www.spinics.net/lists/arm-kernel/msg539812.html
+[1] https://git.kernel.org/cgit/linux/kernel/git/tmlind/linux-omap.git/log/?h=for-next
+
+Nicolae Rosia (4):
+  regulator: twl: make driver DT only
+  regulator: twl: kill unused functions
+  regulator: twl-regulator: rework fixed regulator definition
+  regulator: twl: split twl6030 logic into its own file
+
+ MAINTAINERS                           |   1 +
+ drivers/regulator/Makefile            |   2 +-
+ drivers/regulator/twl-regulator.c     | 666 +---------------------------
+ drivers/regulator/twl6030-regulator.c | 805 ++++++++++++++++++++++++++++++++++
+ 4 files changed, 825 insertions(+), 649 deletions(-)
+ create mode 100644 drivers/regulator/twl6030-regulator.c
+
 -- 
 2.5.5
