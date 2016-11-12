@@ -1,29 +1,57 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2] net: ethernet: ti: davinci_cpdma: fix fixed prio
- cpdma ctlr configuration
-Date: Sun, 13 Nov 2016 13:40:40 -0500 (EST)
-Message-ID: <20161113.134040.2130627876291744441.davem@davemloft.net>
-References: <1478871924-20985-1-git-send-email-ivan.khoronzhuk@linaro.org>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 3/4] PCI: dra7xx: Add support to force RC to work in GEN1
+ mode
+Date: Sat, 12 Nov 2016 12:40:10 +0530
+Message-ID: <8ecc1325-365d-bdec-d435-729e0ea49d20@ti.com>
+References: <1476190715-16884-1-git-send-email-kishon@ti.com>
+ <1476190715-16884-4-git-send-email-kishon@ti.com>
+ <20161111211528.GF9868@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1478871924-20985-1-git-send-email-ivan.khoronzhuk@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ivan.khoronzhuk@linaro.org
-Cc: mugunthanvnm@ti.com, grygorii.strashko@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20161111211528.GF9868@bhelgaas-glaptop.roam.corp.google.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Date: Fri, 11 Nov 2016 15:45:24 +0200
+Hi,
 
-> The dma ctlr is reseted to 0 while cpdma soft reset, thus cpdma ctlr
-> cannot be configured after cpdma is stopped. So restoring content
-> of cpdma ctlr while off/on procedure is needed. The cpdma ctlr off/on
-> procedure is present while interface down/up and while changing number
-> of channels with ethtool. In order to not restore content in many
-> places, move it to cpdma_ctlr_start().
+On Saturday 12 November 2016 02:45 AM, Bjorn Helgaas wrote:
+> Hi Kishon,
 > 
-> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> On Tue, Oct 11, 2016 at 06:28:34PM +0530, Kishon Vijay Abraham I wrote:
+>> PCIe in AM57x/DRA7x devices is by default
+>> configured to work in GEN2 mode.  However there
+>> may be situations when working in GEN1 mode is
+>> desired. One example is limitation i925 (PCIe GEN2
+>> mode not supported at junction temperatures < 0C).
+>>
+>> Add support to force Root Complex to work in GEN1
+>> mode if so desired, but don't force GEN1 mode on
+>> any board just yet.
+>>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+>> ---
+>>  Documentation/devicetree/bindings/pci/ti-pci.txt |    1 +
+>>  drivers/pci/host/pci-dra7xx.c                    |   27 ++++++++++++++++++++++
+>>  2 files changed, 28 insertions(+)
+>>
+>> diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
+>> index 60e2516..a3d6ca3 100644
+>> --- a/Documentation/devicetree/bindings/pci/ti-pci.txt
+>> +++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
+>> @@ -25,6 +25,7 @@ PCIe Designware Controller
+>>  
+>>  Optional Property:
+>>   - gpios : Should be added if a gpio line is required to drive PERST# line
+>> + - ti,pcie-is-gen1 : Force the PCIe controller to work in GEN1 (2.5 GT/s).
+> 
+> Can we use "max-link-speed" so it's similar to imx6?
 
-Applied.
+yeah, maybe we should make it a generic PCI property?
+
+Thanks
+Kishon
