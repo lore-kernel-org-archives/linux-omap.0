@@ -1,109 +1,75 @@
-From: Nicolae Rosia <Nicolae_Rosia@mentor.com>
-Subject: [PATCH] input: twl4030_keypad: make driver DT only
-Date: Sat, 12 Nov 2016 12:55:55 +0200
-Message-ID: <1478948155-30219-1-git-send-email-Nicolae_Rosia@mentor.com>
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 3/3] rtc: rtc-twl: use irq_of_parse_and_map helper
+Date: Sat, 12 Nov 2016 12:20:10 +0100
+Message-ID: <20161112112009.34gwcedl57v77ng5@earth>
+References: <1478945246-32056-1-git-send-email-Nicolae_Rosia@mentor.com>
+ <1478945246-32056-4-git-send-email-Nicolae_Rosia@mentor.com>
+Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-input-owner@vger.kernel.org>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Nicolae Rosia <Nicolae_Rosia@mentor.com>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="vr2xnynlu3eayejn"
+Return-path: <rtc-linux+bncBDXMLNOH5ANRB37VTPAQKGQEJPUVUKQ-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Content-Disposition: inline
+In-Reply-To: <1478945246-32056-4-git-send-email-Nicolae_Rosia-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>
+List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <https://groups.google.com/group/rtc-linux
+List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <https://groups.google.com/group/rtc-linux/subscribe>
+To: Nicolae Rosia <Nicolae_Rosia-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>
+Cc: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-All users are DT-only and it makes no sense to keep
-unused code
 
-Signed-off-by: Nicolae Rosia <Nicolae_Rosia@mentor.com>
----
- drivers/input/keyboard/Kconfig          |  1 +
- drivers/input/keyboard/twl4030_keypad.c | 32 ++++++++++++--------------------
- 2 files changed, 13 insertions(+), 20 deletions(-)
+--vr2xnynlu3eayejn
+Content-Type: text/plain; charset=UTF-8
+Content-Disposition: inline
 
-diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
-index cbd75cf..5c290b6 100644
---- a/drivers/input/keyboard/Kconfig
-+++ b/drivers/input/keyboard/Kconfig
-@@ -669,6 +669,7 @@ config KEYBOARD_TC3589X
- config KEYBOARD_TWL4030
- 	tristate "TI TWL4030/TWL5030/TPS659x0 keypad support"
- 	depends on TWL4030_CORE
-+	depends on OF
- 	select INPUT_MATRIXKMAP
- 	help
- 	  Say Y here if your board use the keypad controller on
-diff --git a/drivers/input/keyboard/twl4030_keypad.c b/drivers/input/keyboard/twl4030_keypad.c
-index 323a0fb..af68330 100644
---- a/drivers/input/keyboard/twl4030_keypad.c
-+++ b/drivers/input/keyboard/twl4030_keypad.c
-@@ -335,13 +335,18 @@ static int twl4030_kp_program(struct twl4030_keypad *kp)
-  */
- static int twl4030_kp_probe(struct platform_device *pdev)
- {
--	struct twl4030_keypad_data *pdata = dev_get_platdata(&pdev->dev);
- 	const struct matrix_keymap_data *keymap_data = NULL;
- 	struct twl4030_keypad *kp;
- 	struct input_dev *input;
-+	struct device_node *np = pdev->dev.of_node;
- 	u8 reg;
- 	int error;
- 
-+	if (!np) {
-+		dev_err(&pdev->dev, "no DT info\n");
-+		return -EINVAL;
-+	}
-+
- 	kp = devm_kzalloc(&pdev->dev, sizeof(*kp), GFP_KERNEL);
- 	if (!kp)
- 		return -ENOMEM;
-@@ -363,28 +368,17 @@ static int twl4030_kp_probe(struct platform_device *pdev)
- 	input->id.product	= 0x0001;
- 	input->id.version	= 0x0003;
- 
--	if (pdata) {
--		if (!pdata->rows || !pdata->cols || !pdata->keymap_data) {
--			dev_err(&pdev->dev, "Missing platform_data\n");
--			return -EINVAL;
--		}
-+	error = matrix_keypad_parse_of_params(&pdev->dev, &kp->n_rows,
-+					      &kp->n_cols);
-+	if (error)
-+		return error;
- 
--		kp->n_rows = pdata->rows;
--		kp->n_cols = pdata->cols;
--		kp->autorepeat = pdata->rep;
--		keymap_data = pdata->keymap_data;
--	} else {
--		error = matrix_keypad_parse_of_params(&pdev->dev, &kp->n_rows,
--						      &kp->n_cols);
--		if (error)
--			return error;
-+	kp->autorepeat = true;
- 
--		kp->autorepeat = true;
--	}
- 
- 	if (kp->n_rows > TWL4030_MAX_ROWS || kp->n_cols > TWL4030_MAX_COLS) {
- 		dev_err(&pdev->dev,
--			"Invalid rows/cols amount specified in platform/devicetree data\n");
-+			"Invalid rows/cols amount specified in DT\n");
- 		return -EINVAL;
- 	}
- 
-@@ -445,13 +439,11 @@ static int twl4030_kp_probe(struct platform_device *pdev)
- 	return 0;
- }
- 
--#ifdef CONFIG_OF
- static const struct of_device_id twl4030_keypad_dt_match_table[] = {
- 	{ .compatible = "ti,twl4030-keypad" },
- 	{},
- };
- MODULE_DEVICE_TABLE(of, twl4030_keypad_dt_match_table);
--#endif
- 
- /*
-  * NOTE: twl4030 are multi-function devices connected via I2C.
+Hi,
+
+> Signed-off-by: Nicolae Rosia <Nicolae_Rosia-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/rtc/Kconfig   | 2 +-
+>  drivers/rtc/rtc-twl.c | 4 +++-
+>  2 files changed, 4 insertions(+), 2 deletions(-)
+
+
+This patch is missing long description. I would have patched it the
+other way around. There is no reason to use irq_of_parse_and_map if
+generic platform_get_irq can be used.
+
+-- Sebastian
+
 -- 
-2.5.5
+You received this message because you are subscribed to "rtc-linux".
+Membership options at http://groups.google.com/group/rtc-linux .
+Please read http://groups.google.com/group/rtc-linux/web/checklist
+before submitting a driver.
+--- 
+You received this message because you are subscribed to the Google Groups "rtc-linux" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit https://groups.google.com/d/optout.
 
+--vr2xnynlu3eayejn
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlgm+ucACgkQ2O7X88g7
++pq3Uw/+I7VKFgSzpOlI+Y4WHX+xUm7fF+RcV5mert6L1IqQbnTwJa/f7vmzb77k
+GBf1H0dwkA+AD12jkChXRYG7bfw2qiSgWBhKEO0sEEzxiAYCNBnQ+BF4OV3Hs0O7
+CUSG4yfI7V66sL93yRz3xJ1YzJ2sXlUFR2eMQyzgVoKmve4Dbrhhi3hBGLf1eT45
+ar3B6if+Qjz0jWicphWAtFXlJ33SOITNa9iNSDq8UNa6dvLnBsQN4u1NbFLHVWZQ
+odPqfj7nL3hyl6BJCMBzL3rMhQL9Z1u9O0pAzYVw/3cwpgVJBsfyCqllwZObLAyw
+SJRO9Byrea8PujFFuAa86Ydew59UgqOwQEafXzq48TqUB5sH9tUoaHK4E78jJ14B
+xkW2aCd+LU6aSqfs8RCyXh8GIsbv3G6CgVeTdeSReEnutONsEgTufZj0W3vJHDII
+T4fuAaaKQuCR8mXxOkN8sg+ajYQirJhYxi/4R3+sT3vbbaZEnEkspHuJ3Sny/6ta
+dlbRoCq6beo0wXF5lpeG91MdnJ5Dv1eyp2jX5SGhDm0mC0p/+qQmNlGw61DhqgJl
+5Q3V8Ngt7cLJNKp/IpDKgAFe3Yjkefj6txPhD/8BFm1qiNK8CbihXiu5fsux8m88
+pDFmGQojD0T12MQriqBSnhFTWeFLbY+yDOJU8gUT1qqqQZGYGmU=
+=t3di
+-----END PGP SIGNATURE-----
+
+--vr2xnynlu3eayejn--
