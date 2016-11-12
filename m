@@ -1,86 +1,82 @@
-From: Nicolae Rosia <Nicolae_Rosia@mentor.com>
-Subject: [PATCH] phy: twl4030-usb: make driver DT only
-Date: Sat, 12 Nov 2016 12:39:51 +0200
-Message-ID: <1478947191-30532-1-git-send-email-Nicolae_Rosia@mentor.com>
+From: Nicolae Rosia <Nicolae_Rosia-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] usb: twl6030-usb: make driver DT only
+Date: Sat, 12 Nov 2016 12:47:43 +0200
+Message-ID: <1478947663-19539-1-git-send-email-Nicolae_Rosia@mentor.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-kernel@vger.kernel.org, Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Nicolae Rosia <Nicolae_Rosia@mentor.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Nicolae Rosia <Nicolae_Rosia-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
 All users are DT-only and it makes no sense to keep
 unused code
 
-Signed-off-by: Nicolae Rosia <Nicolae_Rosia@mentor.com>
+Signed-off-by: Nicolae Rosia <Nicolae_Rosia-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/phy/Kconfig           |  1 +
- drivers/phy/phy-twl4030-usb.c | 22 +++++++---------------
- 2 files changed, 8 insertions(+), 15 deletions(-)
+ drivers/usb/phy/Kconfig           |  1 +
+ drivers/usb/phy/phy-twl6030-usb.c | 23 ++++++-----------------
+ 2 files changed, 7 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
-index fe00f91..265391e 100644
---- a/drivers/phy/Kconfig
-+++ b/drivers/phy/Kconfig
-@@ -196,6 +196,7 @@ config TWL4030_USB
- 	depends on TWL4030_CORE && REGULATOR_TWL4030 && USB_MUSB_OMAP2PLUS
- 	depends on USB_SUPPORT
- 	depends on USB_GADGET || !USB_GADGET # if USB_GADGET=m, this can't 'y'
+diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
+index b9c409a..61cef75 100644
+--- a/drivers/usb/phy/Kconfig
++++ b/drivers/usb/phy/Kconfig
+@@ -84,6 +84,7 @@ config SAMSUNG_USBPHY
+ config TWL6030_USB
+ 	tristate "TWL6030 USB Transceiver Driver"
+ 	depends on TWL4030_CORE && OMAP_USB2 && USB_MUSB_OMAP2PLUS
 +	depends on OF
- 	select GENERIC_PHY
- 	select USB_PHY
  	help
-diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
-index 87e6334..a5e4927 100644
---- a/drivers/phy/phy-twl4030-usb.c
-+++ b/drivers/phy/phy-twl4030-usb.c
-@@ -656,7 +656,6 @@ static const struct dev_pm_ops twl4030_usb_pm_ops = {
+ 	  Enable this to support the USB OTG transceiver on TWL6030
+ 	  family chips. This TWL6030 transceiver has the VBUS and ID GND
+diff --git a/drivers/usb/phy/phy-twl6030-usb.c b/drivers/usb/phy/phy-twl6030-usb.c
+index a72e8d6..628b600 100644
+--- a/drivers/usb/phy/phy-twl6030-usb.c
++++ b/drivers/usb/phy/phy-twl6030-usb.c
+@@ -108,7 +108,6 @@ struct twl6030_usb {
+ 	enum musb_vbus_id_status linkstat;
+ 	u8			asleep;
+ 	bool			vbus_enable;
+-	const char		*regulator;
+ };
  
- static int twl4030_usb_probe(struct platform_device *pdev)
- {
--	struct twl4030_usb_data *pdata = dev_get_platdata(&pdev->dev);
- 	struct twl4030_usb	*twl;
- 	struct phy		*phy;
+ #define	comparator_to_twl(x) container_of((x), struct twl6030_usb, comparator)
+@@ -166,7 +165,7 @@ static int twl6030_usb_ldo_init(struct twl6030_usb *twl)
+ 	/* Program MISC2 register and set bit VUSB_IN_VBAT */
+ 	twl6030_writeb(twl, TWL6030_MODULE_ID0, 0x10, TWL6030_MISC2);
+ 
+-	twl->usb3v3 = regulator_get(twl->dev, twl->regulator);
++	twl->usb3v3 = regulator_get(twl->dev, "usb");
+ 	if (IS_ERR(twl->usb3v3))
+ 		return -ENODEV;
+ 
+@@ -341,7 +340,11 @@ static int twl6030_usb_probe(struct platform_device *pdev)
  	int			status, err;
-@@ -664,19 +663,17 @@ static int twl4030_usb_probe(struct platform_device *pdev)
  	struct device_node	*np = pdev->dev.of_node;
- 	struct phy_provider	*phy_provider;
- 
+ 	struct device		*dev = &pdev->dev;
+-	struct twl4030_usb_data	*pdata = dev_get_platdata(dev);
++
 +	if (!np) {
-+		dev_err(&pdev->dev, "no DT info\n");
++		dev_err(dev, "no DT info\n");
 +		return -EINVAL;
 +	}
-+
- 	twl = devm_kzalloc(&pdev->dev, sizeof(*twl), GFP_KERNEL);
+ 
+ 	twl = devm_kzalloc(dev, sizeof(*twl), GFP_KERNEL);
  	if (!twl)
- 		return -ENOMEM;
- 
--	if (np)
--		of_property_read_u32(np, "usb_mode",
--				(enum twl4030_usb_mode *)&twl->usb_mode);
--	else if (pdata) {
--		twl->usb_mode = pdata->usb_mode;
--	} else {
--		dev_err(&pdev->dev, "twl4030 initialized without pdata\n");
--		return -EINVAL;
--	}
-+	of_property_read_u32(np, "usb_mode",
-+			(enum twl4030_usb_mode *)&twl->usb_mode);
- 
- 	otg = devm_kzalloc(&pdev->dev, sizeof(*otg), GFP_KERNEL);
- 	if (!otg)
-@@ -750,11 +747,6 @@ static int twl4030_usb_probe(struct platform_device *pdev)
- 		return status;
+@@ -361,18 +364,6 @@ static int twl6030_usb_probe(struct platform_device *pdev)
+ 		return -EPROBE_DEFER;
  	}
  
--	if (pdata)
--		err = phy_create_lookup(phy, "usb", "musb-hdrc.0");
--	if (err)
--		return err;
--
- 	pm_runtime_mark_last_busy(&pdev->dev);
- 	pm_runtime_put_autosuspend(twl->dev);
- 
--- 
-2.5.5
+-	if (np) {
+-		twl->regulator = "usb";
+-	} else if (pdata) {
+-		if (pdata->features & TWL6032_SUBCLASS)
+-			twl->regulator = "ldousb";
+-		else
+-			twl->regulator = "vusb";
+-	} else {
+-		dev_err(&pdev->dev, "twl6030 initialized without pdata\n");
+-		return -EINVAL;
+-	}
