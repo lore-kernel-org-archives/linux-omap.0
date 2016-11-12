@@ -1,52 +1,45 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH -next] PCI: dra7xx: Add missing of_node_put() in
- dra7xx_pcie_init_irq_domain()
-Date: Sat, 12 Nov 2016 12:39:01 +0530
-Message-ID: <1d95b915-ddc0-b48f-270b-fffb60ecfe5e@ti.com>
-References: <1476716077-30379-1-git-send-email-weiyj.lk@gmail.com>
- <20161111213806.GI9868@bhelgaas-glaptop.roam.corp.google.com>
+From: Nicolae Rosia <Nicolae_Rosia-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 0/3] rtc: rtc-twl: cleanup
+Date: Sat, 12 Nov 2016 12:07:23 +0200
+Message-ID: <1478945246-32056-1-git-send-email-Nicolae_Rosia@mentor.com>
+Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20161111213806.GI9868@bhelgaas-glaptop.roam.corp.google.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>, Wei Yongjun <weiyj.lk@gmail.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Wei Yongjun <weiyongjun1@huawei.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <rtc-linux+bncBAABB4GTTPAQKGQEWNEGIHA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <https://groups.google.com/group/rtc-linux
+List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <https://groups.google.com/group/rtc-linux/subscribe>
+To: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Cc: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Nicolae Rosia <Nicolae_Rosia-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+This is a cleanup and preparation of rtc-twl to reduce the usage of
+twl-core exported functions.
+The next patch series will further reduce the usage of exported functions
+but first it requires some changes in mfd/twl-core.c
 
-On Saturday 12 November 2016 03:08 AM, Bjorn Helgaas wrote:
-> On Mon, Oct 17, 2016 at 02:54:37PM +0000, Wei Yongjun wrote:
->> From: Wei Yongjun <weiyongjun1@huawei.com>
->>
->> This node pointer is returned by of_get_next_child() with refcount
->> incremented in this function. of_node_put() on it before exitting
->> this function on error.
->>
->> This is detected by Coccinelle semantic patch.
->>
->> Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
-> 
-> Kishon, this looks correct to me, so I applied it to pci/host-dra7xx for
-> v4.10.  Let me know if you have any issue with it.
-> 
->> ---
->>  drivers/pci/host/pci-dra7xx.c | 1 +
->>  1 file changed, 1 insertion(+)
->>
->> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
->> index 9595fad..79297e9 100644
->> --- a/drivers/pci/host/pci-dra7xx.c
->> +++ b/drivers/pci/host/pci-dra7xx.c
->> @@ -177,6 +177,7 @@ static int dra7xx_pcie_init_irq_domain(struct pcie_port *pp)
->>  					       &intx_domain_ops, pp);
->>  	if (!pp->irq_domain) {
->>  		dev_err(dev, "Failed to get a INTx IRQ domain\n");
->> +		of_node_put(pcie_intc_node);
+Nicolae Rosia (3):
+  rtc: rtc-twl: kill static variables
+  rtc: rtc-twl: make driver DT only
+  rtc: rtc-twl: use irq_of_parse_and_map helper
 
-I think of_node_put should be used for both the error case and non-error case.
+ drivers/rtc/Kconfig   |   1 +
+ drivers/rtc/rtc-twl.c | 191 +++++++++++++++++++++++++++++---------------------
+ 2 files changed, 114 insertions(+), 78 deletions(-)
 
-Thanks
-Kishon
+-- 
+2.5.5
+
+-- 
+You received this message because you are subscribed to "rtc-linux".
+Membership options at http://groups.google.com/group/rtc-linux .
+Please read http://groups.google.com/group/rtc-linux/web/checklist
+before submitting a driver.
+--- 
+You received this message because you are subscribed to the Google Groups "rtc-linux" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit https://groups.google.com/d/optout.
