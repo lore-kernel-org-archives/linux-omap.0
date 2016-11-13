@@ -1,96 +1,152 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 0/2] mmc: allow mmc_alloc_host() and tmio_mmc_host_alloc()
-Date: Sun, 13 Nov 2016 11:58:03 +0100
-Message-ID: <20161113105803.GD8388@kroah.com>
-References: <1478784263-18777-1-git-send-email-yamada.masahiro@socionext.com>
- <20161110133559.GA10191@kroah.com>
- <CAK7LNAThxsE3QW4EdPUyxmxbnt_PPjeogi8Fox5AHkddsuu-Sg@mail.gmail.com>
+From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Subject: Re: PM regression with LED changes in next-20161109
+Date: Sun, 13 Nov 2016 12:44:05 +0100
+Message-ID: <b5ae20d7-8394-7ad5-1830-13173e9105c4@gmail.com>
+References: <20161109192301.GS26979@atomide.com>
+ <28234714-3994-6747-9cf8-1ff0b3257f7a@gmail.com>
+ <CGME20161110084919epcas3p2e8fbdd2905cabe15c5301b7a8e22416c@epcas3p2.samsung.com>
+ <f627c778-4378-e5da-09dd-3e0fb2ea4aba@redhat.com>
+ <5bd5333e-0dbb-6333-0a48-ca4d3a990f9c@samsung.com>
+ <20161110162925.GA28832@amd> <20161110175537.GF27724@atomide.com>
+ <20161110202910.GE28832@amd> <80b645e7-c3fa-8001-d9b1-c3c8c40394fd@gmail.com>
+ <20161111120114.GA1076@amd> <f7c9b2be-0003-f342-a4c7-802532faa424@gmail.com>
+ <d7ddbbb0-b99c-14a3-f462-3534b5ec67e6@redhat.com>
+ <4c31faef-144d-289c-0e32-83e76aff6178@gmail.com>
+ <3eb60c78-d891-27e5-6b7b-a54a5b547a1c@redhat.com>
+ <c01cac8b-a921-56d1-7e57-8071d4b9faf6@gmail.com>
+ <cb0aa3ce-ee48-66b8-510c-bd70917afec9@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAK7LNAThxsE3QW4EdPUyxmxbnt_PPjeogi8Fox5AHkddsuu-Sg@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Adrian Hunter <adrian.hunter@intel.com>, Wolfram Sang <wsa+renesas@sang-engineering.com>, Sascha Sommer <saschasommer@freenet.de>, Johan Hovold <johan@kernel.org>, Sonic Zhang <sonic.zhang@analog.com>, devel@driverdev.osuosl.org, Russell King <linux@armlinux.org.uk>, Jaehoon Chung <jh80.chung@samsung.com>, Chen-Yu Tsai <wens@csie.org>, Pierre Ossman <pierre@ossman.eu>, Harald Welte <HaraldWelte@viatech.com>, Alex Dubov <oakad@yahoo.com>, adi-buildroot-devel@lists.sourceforge.net, =?utf-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirq-linux@rere.qmqm.pl>, "moderated list:ARM/Mediatek SoC support" <linux-mediatek@lists.infradead.org>, Ben Dooks <ben-linux@fluff.org>, Tony Olech <tony.olech@elandigitalsystems.com>, Matthias
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-leds-owner@vger.kernel.org>
+In-Reply-To: <cb0aa3ce-ee48-66b8-510c-bd70917afec9@redhat.com>
+Sender: linux-leds-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>, Pavel Machek <pavel@ucw.cz>
+Cc: Tony Lindgren <tony@atomide.com>, Jacek Anaszewski <j.anaszewski@samsung.com>, linux-leds@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Darren Hart <dvhart@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 11, 2016 at 12:19:05PM +0900, Masahiro Yamada wrote:
-> 2016-11-10 22:35 GMT+09:00 Greg Kroah-Hartman <gregkh@linuxfoundation.org>:
-> > On Thu, Nov 10, 2016 at 10:24:21PM +0900, Masahiro Yamada wrote:
-> >>
-> >> sdhci_alloc_host() returns an error pointer when it fails.
-> >> but mmc_alloc_host() cannot.
-> >>
-> >> This series allow to propagate a proper error code
-> >> when host-allocation fails.
-> >
-> > Why?  What can we really do about the error except give up?  Why does
-> > having a explicit error value make any difference to the caller, they
-> > can't do anything different, right?
-> 
-> 
-> The error code is shown in the console, like
-> 
->   probe of 5a000000.sdhc failed with error -12
-> 
-> 
-> The proper error code will give a clue why the driver failed to probe.
+Hi,
 
-Can't the mmc core show the reason once, and not require each and every
-individual driver to show/say the same thing?  All a driver needs to
-know is if it worked or didn't work.  Every time it didn't work, it
-needs to unwind stuff and then recover properly.
+On 11/12/2016 10:14 PM, Hans de Goede wrote:
+> Hi,
+>
+> On 12-11-16 20:14, Jacek Anaszewski wrote:
+>
+> <snip>
+>
+>>>>> Why a dedicated file? Are we going to mirror brightness here
+>>>>> wrt r/w (show/store) behavior ? If not userspace now needs
+>>>>> 2 open fds which is not really nice. If we are and we are
+>>>>> not going to use poll for something else on brightness itself
+>>>>> then why not just poll directly on brightness ?
+>>>>
+>>>> My main concern is that reporting only hw brightness changes
+>>>> wouldn't be consistent with general brightness file purpose.
+>>>> One could expect that brightness changes made by triggers
+>>>> should be also reported.
+>>>
+>>> Ok, I agree that not notifying poll() while an actual
+>>> read() would result in a different value is not really good
+>>> semantics.
+>>>
+>>> I don't like to call it hw_brightness_change though, as
+>>> mentioned before I believe that if we were to start with
+>>> a clean slate we would make the brightness file's read/write
+>>> behavior more a mirror of itself.
+>>>
+>>> So I would like to propose creating a new read-write
+>>> user_brightness file.
+>>>
+>>> The write behavior would be 100% identical to the brightness
+>>> file (in code terms it will call the same store function).
+>>>
+>>> The the read behavior otoh will be different: it will shows
+>>> the last brightness as set by the user, this would show the
+>>> read behavior we really want of brightness: show the real
+>>> brightness when not blinking / triggers are active and show
+>>> the brightness used when on when blinking / triggers are active.
+>>>
+>>> We could then add poll support on this new user_brightness
+>>> file, thus avoiding the problem with the extra cpu-load on
+>>> notifications on blinking / triggers.
+>>
+>> I agree that user_brightness allows to solve the issues you raised
+>> about inconsistent write and read brightness' semantics
+>> (which is not that painful IMHO).
+>>
+>> Reporting non-user brightness changes on user_brightness file
+>> doesn't sound reasonable though.
+>
+> The changes I'm interested in are user brightness changes they
+> are just not done through sysfs, but through a hardwired hotkey,
+> they are however very much done by the user.
 
-The drivers do not do different things based on what type of error
-happened, as they don't care at all.
+Ah, so this file name would be misleading especially taking into account
+the context in which "user" is used in kernel, which predominantly
+means "userspace", e.g. copy_to_user(), copy_from_user().
 
-So I strongly suggest leaving it simple, as it is today, as this makes
-drivers simpler, they don't have to duplicate the same type of error
-reporting all over the place, and it's easy to audit for.
+>> Also, how would we read the
+>> brightness set by the firmware? We'd have to read brightness
+>> file, so still two files would have to be opened which is
+>> a second drawback of this approach.
+>
+> No, look carefully at the definition of the read behavior
+> I plan to put in the ABI doc:
 
-It also makes it so that large patchsets that touch every driver like
-this are not needed at all.
+OK, "user" was what confused me. So in this case changes made
+by the firmware even if in a result of user activity
+(pressing hardware key) obviously cannot be treated similarly
+to the changes made from the userspace context.
 
-> > I suggest just leaving it as-is, it's simple, and you don't have to mess
-> > with PTR_ERR() anywhere.
-> 
-> 
-> Why?
-> 
-> Most of driver just give up probing for any error,
-> but we still do ERR_PTR()/PTR_ERR() here and there.
-> I think this patch is the same pattern.
+Unless you're able to give references to the kernel code which
+contradict my judgement.
 
-I think we need to get rid of more of the ERR_PTR() stuff, as again,
-it's useless.  All we need to know is an error happened, that's it.
+>
+> "Reading this file will return the actual led brightness
+> when not blinking and no triggers are active; reading this
+> file will return the brightness used when the led is on
+> when blinking or triggers are active."
 
-> If a function returns NULL on failure, we need to think about
-> "what is the most common failure case".
-> 
-> Currently, MMC drivers assume -ENOMEM is the best
-> fit for mmc_alloc_host(), but the assumption is fragile.
-> 
-> Already, mmc_alloc_host() calls a function
-> that returns not only -ENOMEM, but also -ENOSPC.
-> 
-> In the future, some other failure cases might be
-> added to mmc_alloc_host().
-> 
-> Once we decide the API returns an error pointer,
-> drivers just propagate the return value from the API.
-> This is much more stable implementation.
+This is unnecessarily entangled. Blinking means timer trigger
+is active.
 
-Again, no, it makes more work for the different drivers, duplicates code
-all over the place, and really doesn't help any user, or developer, out
-at all.
+> So for e.g. the backlit keyboard case reading this single
+> file will return the actual brightness of the backlight,
+> since this does not involve blinking or triggers.
+>
+> Basically the idea is that the user_brightness file
+> will have the semantics which IMHO the brightness file
+> itself should have had from the beginning, but which
+> we can't change now due to ABI reasons.
 
-Just have the mmc core properly log what went wrong, and all should be
-fine.
+And in fact introducing user_brightness file would indeed
+fix that shortcoming. However without providing notifications
+of hw brightness changes on it.
 
-Again, keep it simple, that's the best policy for the kernel, and
-really, most software :)
+>> Having no difference in this area between the two approaches
+>> I'm still in favour of the read-only file for notifying
+>> brightness changes procured by hardware.
+>
+> That brings back the needing 2 fds problem; and does
+> not solve userspace not being able to reliably read
+> the led on brightness when blinking or using triggers.
+>
+> And this also has the issue that one is doing poll() on
+> one fd to detect changes on another fd,
 
-thanks,
+It is not necessarily true. We can treat the polling on
+hw_brightness_change file as a means to detect brightness
+changes procured by hardware and we can read that brightness
+by executing read on this same fd. It could return -ENODATA
+if no such an event has occurred so far.
 
-greg k-h
+> which is completely
+> unheard of in any kernel API, so I still vote NACK for the
+> entire idea of having a different file purely for notifying
+> changes. The way unix defines poll to work means that the
+> poll() and read() must be on the same fd, anything else
+> does not make sense.
+
+-- 
+Best regards,
+Jacek Anaszewski
