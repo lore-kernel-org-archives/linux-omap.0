@@ -1,105 +1,139 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Three different LED brightnesses (was Re: PM regression with LED
- changes in next-20161109)
-Date: Sun, 13 Nov 2016 21:45:25 +0100
-Message-ID: <20161113204525.GA15072@amd>
-References: <20161110175537.GF27724@atomide.com>
- <20161110202910.GE28832@amd>
- <80b645e7-c3fa-8001-d9b1-c3c8c40394fd@gmail.com>
- <20161111120114.GA1076@amd>
- <f7c9b2be-0003-f342-a4c7-802532faa424@gmail.com>
- <d7ddbbb0-b99c-14a3-f462-3534b5ec67e6@redhat.com>
- <20161111221224.GB10983@amd>
- <3ca04742-6376-5a88-8d10-5b88fcd8f5e5@redhat.com>
- <20161113091054.GA17790@amd>
- <3a3bb3f8-e54a-e7d0-da30-7f90b00c29b3@redhat.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH 2/2] dmaengine: omap-dma: Support for slave devices with
+ data port window
+Date: Mon, 14 Nov 2016 10:05:17 +0530
+Message-ID: <20161114043517.GO3000@localhost>
+References: <20161025105019.24475-1-peter.ujfalusi@ti.com>
+ <20161025105019.24475-3-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="2fHTh5uZTiUOsy+g"
-Return-path: <linux-leds-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <3a3bb3f8-e54a-e7d0-da30-7f90b00c29b3@redhat.com>
-Sender: linux-leds-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Jacek Anaszewski <jacek.anaszewski@gmail.com>, Tony Lindgren <tony@atomide.com>, Jacek Anaszewski <j.anaszewski@samsung.com>, linux-leds@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Darren Hart <dvhart@infradead.org>
+In-Reply-To: <20161025105019.24475-3-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: dan.j.williams@intel.com, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@armlinux.org.uk>, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, arnd@arndb.de
 List-Id: linux-omap@vger.kernel.org
 
+On Tue, Oct 25, 2016 at 01:50:19PM +0300, Peter Ujfalusi wrote:
+> Based on the src/dst_port_window_size - if it is set - configure the DMA
+> channel to use double indexing in order to be able to loop within the
+> address window.
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+>  drivers/dma/omap-dma.c | 45 +++++++++++++++++++++++++++++++++++++++++++--
+>  1 file changed, 43 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+> index 025f499cb20d..29350f936154 100644
+> --- a/drivers/dma/omap-dma.c
+> +++ b/drivers/dma/omap-dma.c
+> @@ -166,6 +166,9 @@ enum {
+>  	CSDP_DST_BURST_16	= 1 << 14,
+>  	CSDP_DST_BURST_32	= 2 << 14,
+>  	CSDP_DST_BURST_64	= 3 << 14,
+> +	CSDP_WRITE_NON_POSTED	= (0 << 16),
 
---2fHTh5uZTiUOsy+g
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+and that would be..?
 
-Hi!
+> +	CSDP_WRITE_POSTED	= (1 << 16),
+> +	CSDP_WRITE_LAST_NON_POSTED = (2 << 16),
+>  
+>  	CICR_TOUT_IE		= BIT(0),	/* OMAP1 only */
+>  	CICR_DROP_IE		= BIT(1),
+> @@ -883,15 +886,18 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+>  	unsigned i, es, en, frame_bytes;
+>  	bool ll_failed = false;
+>  	u32 burst;
+> +	int32_t port_window;
 
-> >No, that's just adding more mess on the system.
-> >
-> >Here's better proposal:
-> >
-> >brightness (write): what we do today. (Mess, but too late to change it)
-> >	   (read): -Esomething or what we do today (if someone
-> >	   	   	       	       	  	   acutally uses it)
->=20
-> As said Jacek has already nacked any changes to read behavior.
->=20
-> >           (poll): -Esomething
->=20
-> Making poll() on sysfs attributes return -Esomething is not possible,
-> the internal sysfs API does not allow this.
->=20
-> >current_brightness (write): -Esomething, or maybe change brightness
-> >		   for triggers that can work with that
-> >              (read, poll): if the current trigger can get current
-> >	             state of led, do it, otherwise -Esomething...
-> >		     or maybe file should be simply hidden from sysfs.
->=20
-> So write is -EINVAL and read is the same as what brightness currently doe=
-s,
-> so I see no use in introducing this new file.
+not u32?
 
-No, read is not same as current brightness file. Currently, reading
-brightness file returns either current brightness or maximum
-brightness, and userspace can't tell which is which.
+>  
+>  	if (dir == DMA_DEV_TO_MEM) {
+>  		dev_addr = c->cfg.src_addr;
+>  		dev_width = c->cfg.src_addr_width;
+>  		burst = c->cfg.src_maxburst;
+> +		port_window = c->cfg.src_port_window_size;
+>  	} else if (dir == DMA_MEM_TO_DEV) {
+>  		dev_addr = c->cfg.dst_addr;
+>  		dev_width = c->cfg.dst_addr_width;
+>  		burst = c->cfg.dst_maxburst;
+> +		port_window = c->cfg.dst_port_window_size;
+>  	} else {
+>  		dev_err(chan->device->dev, "%s: bad direction?\n", __func__);
+>  		return NULL;
+> @@ -923,11 +929,39 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+>  
+>  	d->ccr = c->ccr | CCR_SYNC_FRAME;
+>  	if (dir == DMA_DEV_TO_MEM) {
+> -		d->ccr |= CCR_DST_AMODE_POSTINC | CCR_SRC_AMODE_CONSTANT;
+>  		d->csdp = CSDP_DST_BURST_64 | CSDP_DST_PACKED;
+> +
+> +		d->ccr |= CCR_DST_AMODE_POSTINC;
+> +		if (port_window) {
+> +			d->ccr |= CCR_SRC_AMODE_DBLIDX;
+> +			d->ei = 1;
+> +			d->fi = (-1) * (port_window - 1);
+> +
+> +			if (port_window / 64)
+> +				d->csdp = CSDP_SRC_BURST_64 | CSDP_SRC_PACKED;
+> +			else if (port_window / 32)
+> +				d->csdp = CSDP_SRC_BURST_32 | CSDP_SRC_PACKED;
+> +			else if (port_window / 16)
+> +				d->csdp = CSDP_SRC_BURST_16 | CSDP_SRC_PACKED;
+> +		} else {
+> +			d->ccr |= CCR_SRC_AMODE_CONSTANT;
 
-> >trigger_max_brightness (read,write): change the maximum brightness for
-> >		       a trigger.
-> >	       (poll): -Esomething
->=20
-> The write behavior here is the same as what brightness currently does
-> and the read behavior is that of what I suggested for
+okay does all your hw support this mode, should this not be checked to be
+supported, perhpas a DT property which describes thsi capablity and then you
+use it, if supported
 
-No, it is not. "brightness" behaviour is currently broken, as it sets
-either current brightness or maximum trigger brightness.
+> +		}
+>  	} else {
+> -		d->ccr |= CCR_DST_AMODE_CONSTANT | CCR_SRC_AMODE_POSTINC;
+>  		d->csdp = CSDP_SRC_BURST_64 | CSDP_SRC_PACKED;
+> +
+> +		d->ccr |= CCR_SRC_AMODE_POSTINC;
+> +		if (port_window) {
+> +			d->ccr |= CCR_DST_AMODE_DBLIDX;
+> +
+> +			if (port_window / 64)
+> +				d->csdp = CSDP_DST_BURST_64 | CSDP_DST_PACKED;
+> +			else if (port_window / 32)
+> +				d->csdp = CSDP_DST_BURST_32 | CSDP_DST_PACKED;
+> +			else if (port_window / 16)
+> +				d->csdp = CSDP_DST_BURST_16 | CSDP_DST_PACKED;
 
-> We've 2 sorts of brightness really:
->=20
-> 1) transient brightness, aka current brightness, when blinking or
-> triggers are used this will switch many times a second
-> between off and some on level.
->=20
-> 2) non-transient brightness, for non blinking leds this is the
-> actual brightness, for blinking leds this is the brightness
-> level used when the led is on.
+what does these mean?
 
-Yes, and we want reasonable interface where userspace sees those two
-brightnesses.
+> +		} else {
+> +			d->ccr |= CCR_DST_AMODE_CONSTANT;
+> +		}
+>  	}
+>  
+>  	d->cicr = CICR_DROP_IE | CICR_BLOCK_IE;
+> @@ -945,6 +979,9 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+>  			d->ccr |= CCR_TRIGGER_SRC;
+>  
+>  		d->cicr |= CICR_MISALIGNED_ERR_IE | CICR_TRANS_ERR_IE;
+> +
+> +		if (port_window)
+> +			d->csdp |= CSDP_WRITE_LAST_NON_POSTED;
+>  	}
+>  	if (od->plat->errata & DMA_ERRATA_PARALLEL_CHANNELS)
+>  		d->clnk_ctrl = c->dma_ch;
+> @@ -970,6 +1007,10 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+>  		osg->addr = sg_dma_address(sgent);
+>  		osg->en = en;
+>  		osg->fn = sg_dma_len(sgent) / frame_bytes;
+> +		if (port_window && dir == DMA_MEM_TO_DEV) {
+> +			osg->ei = 1;
+> +			osg->fi = (-1) * (port_window - 1);
+> +		}
 
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+can you describe what you are trying here..
 
---2fHTh5uZTiUOsy+g
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlgo0OUACgkQMOfwapXb+vKF8wCggW5FxPc9J+i9Dbc0N473Gfmp
-TgYAoJVAyrjIij7H81udzI3QRS9Cyguk
-=h1zT
------END PGP SIGNATURE-----
-
---2fHTh5uZTiUOsy+g--
+-- 
+~Vinod
