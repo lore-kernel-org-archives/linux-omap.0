@@ -1,48 +1,26 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 6/6] usb: musb: Drop pointless PM runtime code for dsps
- glue
-Date: Mon, 14 Nov 2016 13:26:51 -0800
-Message-ID: <20161114212651.GA4082@atomide.com>
-References: <20161111184302.2438-1-tony@atomide.com>
- <20161111184302.2438-7-tony@atomide.com>
- <20161114155916.GV14744@localhost>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v7 9/9] DT:omap3+ads7846: use new common touchscreen
+ bindings
+Date: Mon, 14 Nov 2016 13:28:56 -0800
+Message-ID: <20161114212855.GB4082@atomide.com>
+References: <cover.1478890925.git.hns@goldelico.com>
+ <bb3b82c63810026cd6c23a5788c3efc79fa53e60.1478890925.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20161114155916.GV14744@localhost>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <bb3b82c63810026cd6c23a5788c3efc79fa53e60.1478890925.git.hns@goldelico.com>
+Sender: linux-input-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Sebastian Reichel <sre@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Michael Welling <mwelling@ieee.org>, Mika =?utf-8?B?UGVudHRpbMOk?= <mika.penttila@nextfour.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Igor Grinberg <grinberg@compulab.co.il>, "Andrew F. Davis" <afd@ti.com>, Mark Brown <broonie@kernel.org>, Jonathan Cameron <jic23@kernel.org>, linux-input@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, letux-kernel@openphoenux.org, linux-iio@vger.kernel.org, kernel@pyra-handheld.com
 List-Id: linux-omap@vger.kernel.org
 
-* Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [161114 07:59]:
-> On Fri, Nov 11, 2016 at 10:43:02AM -0800, Tony Lindgren wrote:
-> > This already gets done automatically by PM runtime and we have
-> > a separate autosuspend timeout in musb_core.c.
-> > 
-> > Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> 
-> > @@ -816,8 +801,6 @@ static int dsps_remove(struct platform_device *pdev)
-> >  	platform_device_unregister(glue->musb);
-> >  
-> >  	/* disable usbss clocks */
-> 
-> Perhaps also drop this comment which no longer applies.
+* H. Nikolaus Schaller <hns@goldelico.com> [161111 11:03]:
+> The standard touch screen bindings [1] replace the private ti,swap-xy
+> with touchscreen-swaped-x-y. And for the Openpandora we use
+> touchscreen-size etc. to match the LCD screen size.
 
-OK will drop and repost the whole series one more time on Tuesday
-in case more comments are still coming.
+This one should not cause conflicts, so please feel free to merge along
+with the driver changes:
 
-> > -	pm_runtime_dont_use_autosuspend(&pdev->dev);
-> > -	pm_runtime_put_sync(&pdev->dev);
-> >  	pm_runtime_disable(&pdev->dev);
-> 
-> Reviewed-by: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-
-Thanks,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Tony Lindgren <tony@atomide.com>
