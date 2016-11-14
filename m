@@ -1,49 +1,34 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] dma: cpp41: Fix handling of error path
-Date: Mon, 14 Nov 2016 06:47:31 -0800
-Message-ID: <20161114144731.GQ7138@atomide.com>
-References: <20161111192852.25399-1-tony@atomide.com>
- <20161114143454.GQ14744@localhost>
+Subject: Re: [PATCH 0/2] Two cpp41 pm runtime found when testing with usb
+Date: Mon, 14 Nov 2016 06:49:12 -0800
+Message-ID: <20161114144912.GR7138@atomide.com>
+References: <20161109164759.24913-1-tony@atomide.com>
+ <20161114052830.GA3000@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161114143454.GQ14744@localhost>
+In-Reply-To: <20161114052830.GA3000@localhost>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-* Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [161114 06:35]:
-> On Fri, Nov 11, 2016 at 11:28:52AM -0800, Tony Lindgren wrote:
-> > If we return early on pm_runtime_get() error, we need to also call
-> > pm_runtime_put_noidle() as pointed out in a musb related thread
-> > by Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>. This is to keep the PM runtime
-> > use counts happy.
+* Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> [161113 21:19]:
+> On Wed, Nov 09, 2016 at 09:47:57AM -0700, Tony Lindgren wrote:
+> > Hi,
 > > 
-> > Fixes: fdea2d09b997 ("dmaengine: cppi41: Add basic PM runtime support")
-> > Cc: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> > ---
-> >  drivers/dma/cppi41.c | 11 +++++++++--
-> >  1 file changed, 9 insertions(+), 2 deletions(-)
->  
-> > @@ -466,6 +472,7 @@ static void cppi41_dma_issue_pending(struct dma_chan *chan)
-> >  
-> >  	error = pm_runtime_get(cdd->ddev.dev);
-> >  	if ((error != -EINPROGRESS) && error < 0) {
-> > +		pm_runtime_put_noidle(cdd->ddev.dev);
-> >  		dev_err(cdd->ddev.dev, "Failed to pm_runtime_get: %i\n",
-> >  			error);
+> > I found two pm runtime issues when testing with usb on beaglebone.
+> > 
+> > In the am335x case cppi41 and two instances of musb controller share
+> > the same interconnect wrapper module, so any pm issues with musb or
+> > cppi41 will keep the interconnect wrapper module busy.
 > 
-> Will this chunk not introduce rather than fix an imbalance, though? An
-> error is never returned above, and the corresponding put is done
-> unconditionally as far as I can tell.
+> Applied both. And as I have told you previously please use the correct
+> subsystem tag. I have fixed them again!
 
-There is already an early return in cppi41_dma_issue_pending() on
-error.
+Sorry about that. What do you prefer for future reference? We are using
+both "dma: cppi41" and "dmaengine: cppi41" currently..
 
 Regards,
 
