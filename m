@@ -1,155 +1,191 @@
-From: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] usb: twl6030-usb: make driver DT only
-Date: Mon, 14 Nov 2016 10:50:11 +0200
-Message-ID: <87wpg6wim4.fsf@linux.intel.com>
-References: <1478947663-19539-1-git-send-email-Nicolae_Rosia@mentor.com>
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: Re: PM regression with LED changes in next-20161109
+Date: Mon, 14 Nov 2016 10:12:55 +0100
+Message-ID: <127cdd42-6fd8-c671-60b7-3826b351577f@samsung.com>
+References: <20161109192301.GS26979@atomide.com>
+ <28234714-3994-6747-9cf8-1ff0b3257f7a@gmail.com>
+ <CGME20161110084919epcas3p2e8fbdd2905cabe15c5301b7a8e22416c@epcas3p2.samsung.com>
+ <f627c778-4378-e5da-09dd-3e0fb2ea4aba@redhat.com>
+ <5bd5333e-0dbb-6333-0a48-ca4d3a990f9c@samsung.com>
+ <20161110162925.GA28832@amd> <20161110175537.GF27724@atomide.com>
+ <20161110202910.GE28832@amd> <80b645e7-c3fa-8001-d9b1-c3c8c40394fd@gmail.com>
+ <20161111120114.GA1076@amd> <f7c9b2be-0003-f342-a4c7-802532faa424@gmail.com>
+ <d7ddbbb0-b99c-14a3-f462-3534b5ec67e6@redhat.com>
+ <4c31faef-144d-289c-0e32-83e76aff6178@gmail.com>
+ <3eb60c78-d891-27e5-6b7b-a54a5b547a1c@redhat.com>
+ <c01cac8b-a921-56d1-7e57-8071d4b9faf6@gmail.com>
+ <cb0aa3ce-ee48-66b8-510c-bd70917afec9@redhat.com>
+ <b5ae20d7-8394-7ad5-1830-13173e9105c4@gmail.com>
+ <9b476f85-d45e-deb6-335d-fc56f6d90350@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-        micalg=pgp-sha256; protocol="application/pgp-signature"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1478947663-19539-1-git-send-email-Nicolae_Rosia-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Nicolae Rosia <Nicolae_Rosia-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-reply-to: <9b476f85-d45e-deb6-335d-fc56f6d90350@redhat.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Hans de Goede <hdegoede@redhat.com>, Jacek Anaszewski <jacek.anaszewski@gmail.com>, Pavel Machek <pavel@ucw.cz>
+Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-leds@vger.kernel.org, Darren Hart <dvhart@infradead.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
 
 Hi,
 
-Nicolae Rosia <Nicolae_Rosia-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org> writes:
-> All users are DT-only and it makes no sense to keep
-> unused code
+On 11/13/2016 02:52 PM, Hans de Goede wrote:
+> Hi,
 >
-> Signed-off-by: Nicolae Rosia <Nicolae_Rosia-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>
-
-I need an Acked-by from either Tony, Roger or Bin
-
-> ---
->  drivers/usb/phy/Kconfig           |  1 +
->  drivers/usb/phy/phy-twl6030-usb.c | 23 ++++++-----------------
->  2 files changed, 7 insertions(+), 17 deletions(-)
+> On 13-11-16 12:44, Jacek Anaszewski wrote:
+>> Hi,
+>>
+>> On 11/12/2016 10:14 PM, Hans de Goede wrote:
 >
-> diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
-> index b9c409a..61cef75 100644
-> --- a/drivers/usb/phy/Kconfig
-> +++ b/drivers/usb/phy/Kconfig
-> @@ -84,6 +84,7 @@ config SAMSUNG_USBPHY
->  config TWL6030_USB
->  	tristate "TWL6030 USB Transceiver Driver"
->  	depends on TWL4030_CORE && OMAP_USB2 && USB_MUSB_OMAP2PLUS
-> +	depends on OF
->  	help
->  	  Enable this to support the USB OTG transceiver on TWL6030
->  	  family chips. This TWL6030 transceiver has the VBUS and ID GND
-> diff --git a/drivers/usb/phy/phy-twl6030-usb.c b/drivers/usb/phy/phy-twl6=
-030-usb.c
-> index a72e8d6..628b600 100644
-> --- a/drivers/usb/phy/phy-twl6030-usb.c
-> +++ b/drivers/usb/phy/phy-twl6030-usb.c
-> @@ -108,7 +108,6 @@ struct twl6030_usb {
->  	enum musb_vbus_id_status linkstat;
->  	u8			asleep;
->  	bool			vbus_enable;
-> -	const char		*regulator;
->  };
->=20=20
->  #define	comparator_to_twl(x) container_of((x), struct twl6030_usb, compa=
-rator)
-> @@ -166,7 +165,7 @@ static int twl6030_usb_ldo_init(struct twl6030_usb *t=
-wl)
->  	/* Program MISC2 register and set bit VUSB_IN_VBAT */
->  	twl6030_writeb(twl, TWL6030_MODULE_ID0, 0x10, TWL6030_MISC2);
->=20=20
-> -	twl->usb3v3 =3D regulator_get(twl->dev, twl->regulator);
-> +	twl->usb3v3 =3D regulator_get(twl->dev, "usb");
->  	if (IS_ERR(twl->usb3v3))
->  		return -ENODEV;
->=20=20
-> @@ -341,7 +340,11 @@ static int twl6030_usb_probe(struct platform_device =
-*pdev)
->  	int			status, err;
->  	struct device_node	*np =3D pdev->dev.of_node;
->  	struct device		*dev =3D &pdev->dev;
-> -	struct twl4030_usb_data	*pdata =3D dev_get_platdata(dev);
-> +
-> +	if (!np) {
-> +		dev_err(dev, "no DT info\n");
-> +		return -EINVAL;
-> +	}
->=20=20
->  	twl =3D devm_kzalloc(dev, sizeof(*twl), GFP_KERNEL);
->  	if (!twl)
-> @@ -361,18 +364,6 @@ static int twl6030_usb_probe(struct platform_device =
-*pdev)
->  		return -EPROBE_DEFER;
->  	}
->=20=20
-> -	if (np) {
-> -		twl->regulator =3D "usb";
-> -	} else if (pdata) {
-> -		if (pdata->features & TWL6032_SUBCLASS)
-> -			twl->regulator =3D "ldousb";
-> -		else
-> -			twl->regulator =3D "vusb";
-> -	} else {
-> -		dev_err(&pdev->dev, "twl6030 initialized without pdata\n");
-> -		return -EINVAL;
-> -	}
-> -
->  	/* init spinlock for workqueue */
->  	spin_lock_init(&twl->lock);
->=20=20
-> @@ -436,13 +427,11 @@ static int twl6030_usb_remove(struct platform_devic=
-e *pdev)
->  	return 0;
->  }
->=20=20
-> -#ifdef CONFIG_OF
->  static const struct of_device_id twl6030_usb_id_table[] =3D {
->  	{ .compatible =3D "ti,twl6030-usb" },
->  	{}
->  };
->  MODULE_DEVICE_TABLE(of, twl6030_usb_id_table);
-> -#endif
->=20=20
->  static struct platform_driver twl6030_usb_driver =3D {
->  	.probe		=3D twl6030_usb_probe,
-> --=20
-> 2.5.5
+> <snip>
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>> So I would like to propose creating a new read-write
+>>>>> user_brightness file.
+>>>>>
+>>>>> The write behavior would be 100% identical to the brightness
+>>>>> file (in code terms it will call the same store function).
+>>>>>
+>>>>> The the read behavior otoh will be different: it will shows
+>>>>> the last brightness as set by the user, this would show the
+>>>>> read behavior we really want of brightness: show the real
+>>>>> brightness when not blinking / triggers are active and show
+>>>>> the brightness used when on when blinking / triggers are active.
+>>>>>
+>>>>> We could then add poll support on this new user_brightness
+>>>>> file, thus avoiding the problem with the extra cpu-load on
+>>>>> notifications on blinking / triggers.
+>>>>
+>>>> I agree that user_brightness allows to solve the issues you raised
+>>>> about inconsistent write and read brightness' semantics
+>>>> (which is not that painful IMHO).
+>>>>
+>>>> Reporting non-user brightness changes on user_brightness file
+>>>> doesn't sound reasonable though.
+>>>
+>>> The changes I'm interested in are user brightness changes they
+>>> are just not done through sysfs, but through a hardwired hotkey,
+>>> they are however very much done by the user.
+>>
+>> Ah, so this file name would be misleading especially taking into account
+>> the context in which "user" is used in kernel, which predominantly
+>> means "userspace", e.g. copy_to_user(), copy_from_user().
+>>
+>>>> Also, how would we read the
+>>>> brightness set by the firmware? We'd have to read brightness
+>>>> file, so still two files would have to be opened which is
+>>>> a second drawback of this approach.
+>>>
+>>> No, look carefully at the definition of the read behavior
+>>> I plan to put in the ABI doc:
+>>
+>> OK, "user" was what confused me. So in this case changes made
+>> by the firmware even if in a result of user activity
+>> (pressing hardware key) obviously cannot be treated similarly
+>> to the changes made from the userspace context.
+>
+> In the end both result on the brightness of the device
+> changing, so any userspace process interested in monitoring
+> the brightness will want to know about both type of changes.
+>
+>> Unless you're able to give references to the kernel code which
+>> contradict my judgement.
+>
+> AFAIK the audio code will signal volume changes done by
+> hardwired buttons the same way as audio changes done
+> by userspace calling into the kernel. This also makes
+> sense because in the end, what is interesting for a
+> mixer app, is that the volume changed, and what the
+> new volume is.
 
-=2D-=20
-balbi
+OK, so it is indeed similar to your LED use case. Nonetheless
+in case of LED controllers it is also possible that hardware
+adjusts LED brightness in case of low battery voltage.
 
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
+If a device is able e.g. to generate an interrupt to notify this
+kind of event, then we would like also to be able to notify the client
+about that. It wouldn't be user generated brightness change though.
 
------BEGIN PGP SIGNATURE-----
+>>> "Reading this file will return the actual led brightness
+>>> when not blinking and no triggers are active; reading this
+>>> file will return the brightness used when the led is on
+>>> when blinking or triggers are active."
+>>
+>> This is unnecessarily entangled. Blinking means timer trigger
+>> is active.
+>
+> Ok.
+>
+>>> So for e.g. the backlit keyboard case reading this single
+>>> file will return the actual brightness of the backlight,
+>>> since this does not involve blinking or triggers.
+>>>
+>>> Basically the idea is that the user_brightness file
+>>> will have the semantics which IMHO the brightness file
+>>> itself should have had from the beginning, but which
+>>> we can't change now due to ABI reasons.
+>>
+>> And in fact introducing user_brightness file would indeed
+>> fix that shortcoming. However without providing notifications
+>> of hw brightness changes on it.
+>
+> See above, I believe such a file should report any
+> changes in brightness, except those caused by triggers,
+> so it would report hw brightness changes.
+>
+> Anyways if you're not interested in fixing the
+> shortcomings of the current read behavior on the
+> brightness file (I'm fine with that, I can live
+> with the shortcomings) I suggest that we simply go
+> with v2 of my poll() patch.
 
-iQIzBAEBCAAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAlgpesMACgkQzL64meEa
-mQZGiRAAgpg/G3Dm2VDrwSNXMntMdne3u8csPGd3szMTN3saq3SlqxUsEP26YCZM
-RBxdpLEv+mRYMltpyxyrJv7Wzdfhrf/H2Ikt7rrVfOT/UxGcNqdkYg2CGvMfKVBH
-9MAKZzMUB6HU3TkxFVBLkYQrDytd3HoedUrfXcAUu8kApWETDcMyAa8nER1uQypK
-UE5hHMHy7xQMmN/7jzIrv0ZGOWU/15YNx7HxngQ4WxmJyVht5q8GA36VOKdt/MNa
-tFNmy0aEx9TXTb0Y9TzN21zDP6YmuFRa97zXgqa1ZvMmh5HlchqbYs3gPMJHFutn
-yqMQjFS5BnQxs51SfUSqhPRPj9PMld3E/cSsDxIGy/AACsZsOwWPIJX18VhroFeA
-wbHE1GbsFIBVgSw/ZJchwt3fq0GlLnpMLcBGTp1IefOAcwYb/5JJX3dNdgH37Owu
-/tyWuitpwSpqtyZvRYrefD2By7O5jzR2SKSv38sawa4WBmQmX1g8THc7Ps2hCrIp
-qQsi5HeGZQItwUZPzNARrGHIbDwIU3COkzWoRkr/FXZZInC3DDHuf3rvm/IX1oWF
-ODhYpI/p8w8yTCrzj2d44HBBaWqBgJo087CojG5xzci3eoi+qPM6mJMBWzbmhL6B
-djEuo8YJvl7H5PWnguUxgU8hu1x6xeFizB2w5pYsYwjBkDd129k=
-=kxf7
------END PGP SIGNATURE-----
---=-=-=--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+v2 entails power consumption related issues.
+
+Generally I think that we could add the file you proposed,
+however it would be good to devise a name which will cover
+also the cases when brightness is changed by firmware without
+user interaction.
+
+>>>> Having no difference in this area between the two approaches
+>>>> I'm still in favour of the read-only file for notifying
+>>>> brightness changes procured by hardware.
+>>>
+>>> That brings back the needing 2 fds problem; and does
+>>> not solve userspace not being able to reliably read
+>>> the led on brightness when blinking or using triggers.
+>>>
+>>> And this also has the issue that one is doing poll() on
+>>> one fd to detect changes on another fd,
+>>
+>> It is not necessarily true. We can treat the polling on
+>> hw_brightness_change file as a means to detect brightness
+>> changes procured by hardware and we can read that brightness
+>> by executing read on this same fd. It could return -ENODATA
+>> if no such an event has occurred so far.
+>
+> That would still require 2 fds as userspace also wants to
+> be able to set the keyboard backlight, but allowing read()
+> on the hw_brightness_change file at least fixes the weirdness
+> where userspace gets woken from poll() without being able to
+> read. So if you insist on going the hw_brightness_change file
+> route, then I can live with that (and upower will simply
+> need to open 2 fds, that is doable).
+>
+> But, BUT, I would greatly prefer to just go for v4 of my
+> patch, which fixes the only real problem we've seen with
+> my patch as original merged without adding a new, somewhat
+> convoluted sysfs attribute.
+
+Hmm, v4 still calls led_notify_brightness_change(led_cdev)
+from both __led_set_brightness() and __led_set_brightness_blocking().
+
+-- 
+Best regards,
+Jacek Anaszewski
