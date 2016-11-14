@@ -1,66 +1,68 @@
 From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH -next] PCI: dra7xx: Add missing of_node_put() in
- dra7xx_pcie_init_irq_domain()
-Date: Mon, 14 Nov 2016 15:19:28 -0600
-Message-ID: <20161114211928.GD9868@bhelgaas-glaptop.roam.corp.google.com>
-References: <1476716077-30379-1-git-send-email-weiyj.lk@gmail.com>
- <20161111213806.GI9868@bhelgaas-glaptop.roam.corp.google.com>
- <1d95b915-ddc0-b48f-270b-fffb60ecfe5e@ti.com>
+Subject: Re: [PATCH 3/4] PCI: dra7xx: Add support to force RC to work in GEN1
+ mode
+Date: Mon, 14 Nov 2016 15:24:00 -0600
+Message-ID: <20161114212400.GA19092@bhelgaas-glaptop.roam.corp.google.com>
+References: <1476190715-16884-1-git-send-email-kishon@ti.com>
+ <1476190715-16884-4-git-send-email-kishon@ti.com>
+ <20161111211528.GF9868@bhelgaas-glaptop.roam.corp.google.com>
+ <8ecc1325-365d-bdec-d435-729e0ea49d20@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1d95b915-ddc0-b48f-270b-fffb60ecfe5e-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <8ecc1325-365d-bdec-d435-729e0ea49d20-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shawn Lin <shawn.lin-TNX95d0MmH7DzftRWevZcw@public.gmane.org>, Heiko Stuebner <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>, michal.simek-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, soren.brinkmann-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, bharat.kumar.gogada-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, Shawn Lin <shawn.lin-TNX95d0MmH7DzftRWevZcw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-[+cc Shawn, Heiko, Michal, Soren, Bharat, Rob H, Frank, devicetree@vger]
+[+cc Shawn]
 
-On Sat, Nov 12, 2016 at 12:39:01PM +0530, Kishon Vijay Abraham I wrote:
+On Sat, Nov 12, 2016 at 12:40:10PM +0530, Kishon Vijay Abraham I wrote:
 > Hi,
 > 
-> On Saturday 12 November 2016 03:08 AM, Bjorn Helgaas wrote:
-> > On Mon, Oct 17, 2016 at 02:54:37PM +0000, Wei Yongjun wrote:
-> >> From: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> >>
-> >> This node pointer is returned by of_get_next_child() with refcount
-> >> incremented in this function. of_node_put() on it before exitting
-> >> this function on error.
-> >>
-> >> This is detected by Coccinelle semantic patch.
-> >>
-> >> Signed-off-by: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> On Saturday 12 November 2016 02:45 AM, Bjorn Helgaas wrote:
+> > Hi Kishon,
 > > 
-> > Kishon, this looks correct to me, so I applied it to pci/host-dra7xx for
-> > v4.10.  Let me know if you have any issue with it.
-> > 
+> > On Tue, Oct 11, 2016 at 06:28:34PM +0530, Kishon Vijay Abraham I wrote:
+> >> PCIe in AM57x/DRA7x devices is by default
+> >> configured to work in GEN2 mode.  However there
+> >> may be situations when working in GEN1 mode is
+> >> desired. One example is limitation i925 (PCIe GEN2
+> >> mode not supported at junction temperatures < 0C).
+> >>
+> >> Add support to force Root Complex to work in GEN1
+> >> mode if so desired, but don't force GEN1 mode on
+> >> any board just yet.
+> >>
+> >> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> >> Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 > >> ---
-> >>  drivers/pci/host/pci-dra7xx.c | 1 +
-> >>  1 file changed, 1 insertion(+)
+> >>  Documentation/devicetree/bindings/pci/ti-pci.txt |    1 +
+> >>  drivers/pci/host/pci-dra7xx.c                    |   27 ++++++++++++++++++++++
+> >>  2 files changed, 28 insertions(+)
 > >>
-> >> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-> >> index 9595fad..79297e9 100644
-> >> --- a/drivers/pci/host/pci-dra7xx.c
-> >> +++ b/drivers/pci/host/pci-dra7xx.c
-> >> @@ -177,6 +177,7 @@ static int dra7xx_pcie_init_irq_domain(struct pcie_port *pp)
-> >>  					       &intx_domain_ops, pp);
-> >>  	if (!pp->irq_domain) {
-> >>  		dev_err(dev, "Failed to get a INTx IRQ domain\n");
-> >> +		of_node_put(pcie_intc_node);
+> >> diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
+> >> index 60e2516..a3d6ca3 100644
+> >> --- a/Documentation/devicetree/bindings/pci/ti-pci.txt
+> >> +++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
+> >> @@ -25,6 +25,7 @@ PCIe Designware Controller
+> >>  
+> >>  Optional Property:
+> >>   - gpios : Should be added if a gpio line is required to drive PERST# line
+> >> + - ti,pcie-is-gen1 : Force the PCIe controller to work in GEN1 (2.5 GT/s).
+> > 
+> > Can we use "max-link-speed" so it's similar to imx6?
 > 
-> I think of_node_put should be used for both the error case and non-error case.
+> yeah, maybe we should make it a generic PCI property?
 
-Hmm, OK.  I don't know what the rules are.  Certainly if we made these
-drivers modular, I don't think we'd want to leak these references
-every time we unload/reload the module.  Should we do the put
-immediately here, or in the module remove path, or ...?
+I forgot that Shawn has already done this!  I had already merged those
+patches on pci/host-rockchip, but I moved them to pci/host since
+they're not Rockchip-specific.  Can you take a look at that and see if
+you can do what you need based on that pci/host branch?
 
-Adding other driver and DT folks for comment.
-
-I dropped these patches for now (dra7xx, rockchip, xilinx-nwl,
-xilinx).
+Bjorn
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
