@@ -1,74 +1,77 @@
-From: Cor Peters <cpeters-JQzsJ8WnmGqc6Wr4J9gsBQC/G2K4zDHf@public.gmane.org>
-Subject: [PATCH 1/2] Watchdog: omap_wdt: Retrieve bootstatus via syscon
-Date: Tue, 15 Nov 2016 09:44:03 +0100
-Message-ID: <2736782.ivGPcGWbll@corpeters>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: LEDs that change brightness "itself" -- that's a trigger. Re: PM
+ regression with LED changes in next-20161109
+Date: Tue, 15 Nov 2016 11:31:33 +0100
+Message-ID: <20161115103133.GA22860@amd>
+References: <f7c9b2be-0003-f342-a4c7-802532faa424@gmail.com>
+ <d7ddbbb0-b99c-14a3-f462-3534b5ec67e6@redhat.com>
+ <4c31faef-144d-289c-0e32-83e76aff6178@gmail.com>
+ <3eb60c78-d891-27e5-6b7b-a54a5b547a1c@redhat.com>
+ <c01cac8b-a921-56d1-7e57-8071d4b9faf6@gmail.com>
+ <cb0aa3ce-ee48-66b8-510c-bd70917afec9@redhat.com>
+ <b5ae20d7-8394-7ad5-1830-13173e9105c4@gmail.com>
+ <9b476f85-d45e-deb6-335d-fc56f6d90350@redhat.com>
+ <127cdd42-6fd8-c671-60b7-3826b351577f@samsung.com>
+ <15cafbf5-d842-e184-2fd4-65f8272f505a@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="VbJkn9YxBvnuCH5J"
+Return-path: <linux-leds-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <15cafbf5-d842-e184-2fd4-65f8272f505a@redhat.com>
+Sender: linux-leds-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>, Jacek Anaszewski <jacek.anaszewski@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-leds@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Darren Hart <dvhart@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-The current way to retrieve the bootstatus does not work with
-device-tree based systems. This patch uses syscon to retrieve the
-watchdog boot status from the PRM_DEV registers.
 
-Signed-off-by: Cor Peters <cpeters-JQzsJ8WnmGqc6Wr4J9gsBQC/G2K4zDHf@public.gmane.org>
----
- drivers/watchdog/omap_wdt.c | 16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+--VbJkn9YxBvnuCH5J
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
-index 1b02bfa..fed3f9c 100644
---- a/drivers/watchdog/omap_wdt.c
-+++ b/drivers/watchdog/omap_wdt.c
-@@ -41,6 +41,8 @@
- #include <linux/slab.h>
- #include <linux/pm_runtime.h>
- #include <linux/platform_data/omap-wd-timer.h>
-+#include <linux/regmap.h>
-+#include <linux/mfd/syscon.h>
- 
- #include "omap_wdt.h"
- 
-@@ -230,9 +232,11 @@ static unsigned int omap_wdt_get_timeleft(struct watchdog_device *wdog)
- static int omap_wdt_probe(struct platform_device *pdev)
- {
-        struct omap_wd_timer_platform_data *pdata = dev_get_platdata(&pdev->dev);
-+       struct regmap *rm = syscon_regmap_lookup_by_compatible("ti,omap3-prcm-dev");
-        struct resource *res;
-        struct omap_wdt_dev *wdev;
-        int ret;
-+       u32 rs = 0;
- 
-        wdev = devm_kzalloc(&pdev->dev, sizeof(*wdev), GFP_KERNEL);
-        if (!wdev)
-@@ -267,9 +271,17 @@ static int omap_wdt_probe(struct platform_device *pdev)
- 
-        if (pdata && pdata->read_reset_sources) {
-                u32 rs = pdata->read_reset_sources();
--               if (rs & (1 << OMAP_MPU_WD_RST_SRC_ID_SHIFT))
--                       wdev->wdog.bootstatus = WDIOF_CARDRESET;
-        }
-+       else if (!IS_ERR(rm)) {
-+               if (regmap_read(rm, 2 * sizeof(u32), &rs) >= 0) {
-+                       /* reset register */
-+                       regmap_write(rm, 2 * sizeof(u32),
-+                               (1 << OMAP_MPU_WD_RST_SRC_ID_SHIFT) );
-+               }
-+       }
-+
-+       if (rs & (1 << OMAP_MPU_WD_RST_SRC_ID_SHIFT))
-+               wdev->wdog.bootstatus = WDIOF_CARDRESET;
- 
-        if (!early_enable)
-                omap_wdt_disable(wdev);
--- 
-1.9.1
+Hi!
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >Hmm, v4 still calls led_notify_brightness_change(led_cdev)
+> >from both __led_set_brightness() and __led_set_brightness_blocking().
+>=20
+> Ugh, I see I accidentally send a v4 twice, instead of
+> calling the version which dropped those called v5 as
+> I should have, sorry.
+>=20
+> The v4 which I would like to see merged, the one with
+> those calls dropped, is here:
+>=20
+> https://patchwork.kernel.org/patch/9423093/
+
+Please, lets fix this properly.
+
+The LED you are talking about _has_ a trigger, implemented in
+hardware. That trigger can change LED brightness behind kernel's (and
+userspace's) back. Don't pretend the trigger does not exist, it does.
+
+And when you do that, you'll have nice place to report changes to
+userspace -- trigger can now export that information, and offer poll()
+interface.
+
+Thanks,
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--VbJkn9YxBvnuCH5J
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlgq5AUACgkQMOfwapXb+vKkpwCfcis/f6fII+BfuIb/yk30c1FS
+eioAn258U0uF+uLGRk6Abj9JlR0Lcvzz
+=hiq6
+-----END PGP SIGNATURE-----
+
+--VbJkn9YxBvnuCH5J--
