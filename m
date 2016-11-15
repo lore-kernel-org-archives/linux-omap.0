@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 2/6] usb: musb: Fix sleeping function called from invalid context for hdrc glue
-Date: Tue, 15 Nov 2016 13:37:51 -0800
-Message-ID: <20161115213755.12316-3-tony@atomide.com>
+Subject: [PATCH 3/6] usb: musb: Fix PM for hub disconnect
+Date: Tue, 15 Nov 2016 13:37:52 -0800
+Message-ID: <20161115213755.12316-4-tony@atomide.com>
 References: <20161115213755.12316-1-tony@atomide.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161115213755.12316-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
@@ -10,399 +10,200 @@ To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
 Cc: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Commit 65b3f50ed6fa ("usb: musb: Add PM runtime support for MUSB DSPS
-glue layer") wrongly added a call for pm_runtime_get_sync to otg_timer
-that runs in softirq context. That causes a "BUG: sleeping function called
-from invalid context" every time when polling the cable status:
+With a USB hub disconnected, devctl can be 0x19 for about a second
+on am335x and will stay forever on at least omap3. And we get no
+further interrupts when devctl session bit clears. This keeps
+PM runtime active.
 
-[<c015ebb4>] (__might_sleep) from [<c0413d60>] (__pm_runtime_resume+0x9c/0xa0)
-[<c0413d60>] (__pm_runtime_resume) from [<c04d0bc4>] (otg_timer+0x3c/0x254)
-[<c04d0bc4>] (otg_timer) from [<c0191180>] (call_timer_fn+0xfc/0x41c)
-[<c0191180>] (call_timer_fn) from [<c01915c0>] (expire_timers+0x120/0x210)
-[<c01915c0>] (expire_timers) from [<c0191acc>] (run_timer_softirq+0xa4/0xdc)
-[<c0191acc>] (run_timer_softirq) from [<c010168c>] (__do_softirq+0x12c/0x594)
+Let's fix the issue by polling devctl until the session bit clears
+or times out. We can do this by making musb->irq_work into
+delayed_work.
 
-I did not notice that as I did not have CONFIG_DEBUG_ATOMIC_SLEEP enabled.
-And looks like also musb_gadget_queue() suffers from the same problem.
+And with the polling implemented, we can now also have the quirk
+for invalid VBUS it to avoid disconnecting too early while VBUS
+is ramping up.
 
-Let's fix the issue by using a list of delayed work then call it on
-resume. Note that we want to do this only when musb core and it's
-parent devices are awake, and we need to make sure the DSPS glue
-timer is stopped as noted by Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>.
-Note that we already are re-enabling the timer with mod_timer() in
-dsps_musb_enable().
-
-Later on we may be able to remove other delayed work in the musb driver
-and just do it from pending_resume_work. But this should be done only
-for delayed work that does not have other timing requirements beyond
-just being run on resume.
-
+Fixes: 467d5c980709 ("usb: musb: Implement session bit based runtime
+PM for musb-core")
 Fixes: 65b3f50ed6fa ("usb: musb: Add PM runtime support for MUSB DSPS
-glue layer")
-Reported-by: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Reviewed-by: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Tested-by: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
 Tested-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/usb/musb/musb_core.c   | 109 +++++++++++++++++++++++++++++++++++++++--
- drivers/usb/musb/musb_core.h   |   7 +++
- drivers/usb/musb/musb_dsps.c   |  36 ++++++++++----
- drivers/usb/musb/musb_gadget.c |  33 +++++++++++--
- 4 files changed, 167 insertions(+), 18 deletions(-)
+ drivers/usb/musb/musb_core.c   | 29 +++++++++++++++++++----------
+ drivers/usb/musb/musb_core.h   |  4 ++--
+ drivers/usb/musb/musb_gadget.c |  6 +++---
+ drivers/usb/musb/tusb6010.c    |  6 +++---
+ 4 files changed, 27 insertions(+), 18 deletions(-)
 
 diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
 --- a/drivers/usb/musb/musb_core.c
 +++ b/drivers/usb/musb/musb_core.c
-@@ -1969,6 +1969,7 @@ static struct musb *allocate_instance(struct device *dev,
- 	INIT_LIST_HEAD(&musb->control);
- 	INIT_LIST_HEAD(&musb->in_bulk);
- 	INIT_LIST_HEAD(&musb->out_bulk);
-+	INIT_LIST_HEAD(&musb->pending_list);
+@@ -986,7 +986,7 @@ static irqreturn_t musb_stage0_irq(struct musb *musb, u8 int_usb,
+ 	}
+ #endif
  
- 	musb->vbuserr_retry = VBUSERR_RETRY_COUNT;
- 	musb->a_wait_bcon = OTG_TIME_A_WAIT_BCON;
-@@ -2018,6 +2019,84 @@ static void musb_free(struct musb *musb)
- 	musb_host_free(musb);
+-	schedule_work(&musb->irq_work);
++	schedule_delayed_work(&musb->irq_work, 0);
+ 
+ 	return handled;
  }
- 
-+struct musb_pending_work {
-+	int (*callback)(struct musb *musb, void *data);
-+	void *data;
-+	struct list_head node;
-+};
+@@ -1855,14 +1855,23 @@ static void musb_pm_runtime_check_session(struct musb *musb)
+ 		MUSB_DEVCTL_HR;
+ 	switch (devctl & ~s) {
+ 	case MUSB_QUIRK_B_INVALID_VBUS_91:
+-		if (!musb->session && !musb->quirk_invalid_vbus) {
+-			musb->quirk_invalid_vbus = true;
++		if (musb->quirk_retries--) {
+ 			musb_dbg(musb,
+-				 "First invalid vbus, assume no session");
++				 "Poll devctl on invalid vbus, assume no session");
++			schedule_delayed_work(&musb->irq_work,
++					      msecs_to_jiffies(1000));
 +
-+/*
-+ * Called from musb_runtime_resume(), musb_resume(), and
-+ * musb_queue_resume_work(). Callers must take musb->lock.
-+ */
-+static int musb_run_resume_work(struct musb *musb)
-+{
-+	struct musb_pending_work *w, *_w;
-+	unsigned long flags;
-+	int error = 0;
+ 			return;
+ 		}
+-		break;
+ 	case MUSB_QUIRK_A_DISCONNECT_19:
++		if (musb->quirk_retries--) {
++			musb_dbg(musb,
++				 "Poll devctl on possible host mode disconnect");
++			schedule_delayed_work(&musb->irq_work,
++					      msecs_to_jiffies(1000));
 +
-+	spin_lock_irqsave(&musb->list_lock, flags);
-+	list_for_each_entry_safe(w, _w, &musb->pending_list, node) {
-+		if (w->callback) {
-+			error = w->callback(musb, w->data);
-+			if (error < 0) {
-+				dev_err(musb->controller,
-+					"resume callback %p failed: %i\n",
-+					w->callback, error);
-+			}
++			return;
 +		}
-+		list_del(&w->node);
-+		devm_kfree(musb->controller, w);
-+	}
-+	spin_unlock_irqrestore(&musb->list_lock, flags);
-+
-+	return error;
-+}
-+
-+/*
-+ * Called to run work if device is active or else queue the work to happen
-+ * on resume. Caller must take musb->lock and must hold an RPM reference.
-+ *
-+ * Note that we cowardly refuse queuing work after musb PM runtime
-+ * resume is done calling musb_run_resume_work() and return -EINPROGRESS
-+ * instead.
-+ */
-+int musb_queue_resume_work(struct musb *musb,
-+			   int (*callback)(struct musb *musb, void *data),
-+			   void *data)
-+{
-+	struct musb_pending_work *w;
-+	unsigned long flags;
-+	int error;
-+
-+	if (WARN_ON(!callback))
-+		return -EINVAL;
-+
-+	if (pm_runtime_active(musb->controller))
-+		return callback(musb, data);
-+
-+	w = devm_kzalloc(musb->controller, sizeof(*w), GFP_ATOMIC);
-+	if (!w)
-+		return -ENOMEM;
-+
-+	w->callback = callback;
-+	w->data = data;
-+	spin_lock_irqsave(&musb->list_lock, flags);
-+	if (musb->is_runtime_suspended) {
-+		list_add_tail(&w->node, &musb->pending_list);
-+		error = 0;
-+	} else {
-+		dev_err(musb->controller, "could not add resume work %p\n",
-+			callback);
-+		devm_kfree(musb->controller, w);
-+		error = -EINPROGRESS;
-+	}
-+	spin_unlock_irqrestore(&musb->list_lock, flags);
-+
-+	return error;
-+}
-+EXPORT_SYMBOL_GPL(musb_queue_resume_work);
-+
- static void musb_deassert_reset(struct work_struct *work)
- {
- 	struct musb *musb;
-@@ -2065,6 +2144,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+ 		if (!musb->session)
+ 			break;
+ 		musb_dbg(musb, "Allow PM on possible host mode disconnect");
+@@ -1886,9 +1895,9 @@ static void musb_pm_runtime_check_session(struct musb *musb)
+ 		if (error < 0)
+ 			dev_err(musb->controller, "Could not enable: %i\n",
+ 				error);
++		musb->quirk_retries = 3;
+ 	} else {
+ 		musb_dbg(musb, "Allow PM with no session: %02x", devctl);
+-		musb->quirk_invalid_vbus = false;
+ 		pm_runtime_mark_last_busy(musb->controller);
+ 		pm_runtime_put_autosuspend(musb->controller);
  	}
+@@ -1899,7 +1908,7 @@ static void musb_pm_runtime_check_session(struct musb *musb)
+ /* Only used to provide driver mode change events */
+ static void musb_irq_work(struct work_struct *data)
+ {
+-	struct musb *musb = container_of(data, struct musb, irq_work);
++	struct musb *musb = container_of(data, struct musb, irq_work.work);
  
- 	spin_lock_init(&musb->lock);
-+	spin_lock_init(&musb->list_lock);
- 	musb->board_set_power = plat->set_power;
- 	musb->min_power = plat->min_power;
- 	musb->ops = plat->platform_ops;
-@@ -2558,6 +2638,7 @@ static int musb_suspend(struct device *dev)
+ 	musb_pm_runtime_check_session(musb);
  
- 	musb_platform_disable(musb);
+@@ -2288,7 +2297,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
  	musb_generic_disable(musb);
-+	WARN_ON(!list_empty(&musb->pending_list));
  
- 	spin_lock_irqsave(&musb->lock, flags);
+ 	/* Init IRQ workqueue before request_irq */
+-	INIT_WORK(&musb->irq_work, musb_irq_work);
++	INIT_DELAYED_WORK(&musb->irq_work, musb_irq_work);
+ 	INIT_DELAYED_WORK(&musb->deassert_reset_work, musb_deassert_reset);
+ 	INIT_DELAYED_WORK(&musb->finish_resume_work, musb_host_finish_resume);
  
-@@ -2579,9 +2660,11 @@ static int musb_suspend(struct device *dev)
+@@ -2385,7 +2394,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+ 	musb_host_cleanup(musb);
  
- static int musb_resume(struct device *dev)
- {
--	struct musb	*musb = dev_to_musb(dev);
--	u8		devctl;
--	u8		mask;
-+	struct musb *musb = dev_to_musb(dev);
-+	unsigned long flags;
-+	int error;
-+	u8 devctl;
-+	u8 mask;
+ fail3:
+-	cancel_work_sync(&musb->irq_work);
++	cancel_delayed_work_sync(&musb->irq_work);
+ 	cancel_delayed_work_sync(&musb->finish_resume_work);
+ 	cancel_delayed_work_sync(&musb->deassert_reset_work);
+ 	if (musb->dma_controller)
+@@ -2452,7 +2461,7 @@ static int musb_remove(struct platform_device *pdev)
+ 	 */
+ 	musb_exit_debugfs(musb);
  
- 	/*
- 	 * For static cmos like DaVinci, register values were preserved
-@@ -2615,6 +2698,13 @@ static int musb_resume(struct device *dev)
- 
- 	musb_start(musb);
- 
-+	spin_lock_irqsave(&musb->lock, flags);
-+	error = musb_run_resume_work(musb);
-+	if (error)
-+		dev_err(musb->controller, "resume work failed with %i\n",
-+			error);
-+	spin_unlock_irqrestore(&musb->lock, flags);
-+
- 	return 0;
- }
- 
-@@ -2623,13 +2713,16 @@ static int musb_runtime_suspend(struct device *dev)
- 	struct musb	*musb = dev_to_musb(dev);
- 
- 	musb_save_context(musb);
-+	musb->is_runtime_suspended = 1;
- 
- 	return 0;
- }
- 
- static int musb_runtime_resume(struct device *dev)
- {
--	struct musb	*musb = dev_to_musb(dev);
-+	struct musb *musb = dev_to_musb(dev);
-+	unsigned long flags;
-+	int error;
- 
- 	/*
- 	 * When pm_runtime_get_sync called for the first time in driver
-@@ -2651,6 +2744,14 @@ static int musb_runtime_resume(struct device *dev)
- 				msecs_to_jiffies(USB_RESUME_TIMEOUT));
- 	}
- 
-+	spin_lock_irqsave(&musb->lock, flags);
-+	error = musb_run_resume_work(musb);
-+	if (error)
-+		dev_err(musb->controller, "resume work failed with %i\n",
-+			error);
-+	musb->is_runtime_suspended = 0;
-+	spin_unlock_irqrestore(&musb->lock, flags);
-+
- 	return 0;
- }
- 
+-	cancel_work_sync(&musb->irq_work);
++	cancel_delayed_work_sync(&musb->irq_work);
+ 	cancel_delayed_work_sync(&musb->finish_resume_work);
+ 	cancel_delayed_work_sync(&musb->deassert_reset_work);
+ 	pm_runtime_get_sync(musb->controller);
 diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
 --- a/drivers/usb/musb/musb_core.h
 +++ b/drivers/usb/musb/musb_core.h
-@@ -303,6 +303,7 @@ struct musb_context_registers {
- struct musb {
- 	/* device lock */
- 	spinlock_t		lock;
-+	spinlock_t		list_lock;	/* resume work list lock */
+@@ -310,7 +310,7 @@ struct musb {
+ 	struct musb_context_registers context;
  
- 	struct musb_io		io;
- 	const struct musb_platform_ops *ops;
-@@ -337,6 +338,7 @@ struct musb {
- 	struct list_head	control;	/* of musb_qh */
- 	struct list_head	in_bulk;	/* of musb_qh */
- 	struct list_head	out_bulk;	/* of musb_qh */
-+	struct list_head	pending_list;	/* pending work list */
+ 	irqreturn_t		(*isr)(int, void *);
+-	struct work_struct	irq_work;
++	struct delayed_work	irq_work;
+ 	struct delayed_work	deassert_reset_work;
+ 	struct delayed_work	finish_resume_work;
+ 	struct delayed_work	gadget_work;
+@@ -381,7 +381,7 @@ struct musb {
  
- 	struct timer_list	otg_timer;
- 	struct notifier_block	nb;
-@@ -386,6 +388,7 @@ struct musb {
- 	unsigned long		idle_timeout;	/* Next timeout in jiffies */
+ 	int			port_mode;	/* MUSB_PORT_MODE_* */
+ 	bool			session;
+-	bool			quirk_invalid_vbus;
++	unsigned long		quirk_retries;
+ 	bool			is_host;
  
- 	unsigned		is_initialized:1;
-+	unsigned		is_runtime_suspended:1;
- 
- 	/* active means connected and not suspended */
- 	unsigned		is_active:1;
-@@ -542,6 +545,10 @@ extern irqreturn_t musb_interrupt(struct musb *);
- 
- extern void musb_hnp_stop(struct musb *musb);
- 
-+int musb_queue_resume_work(struct musb *musb,
-+			   int (*callback)(struct musb *musb, void *data),
-+			   void *data);
-+
- static inline void musb_platform_set_vbus(struct musb *musb, int is_on)
- {
- 	if (musb->ops->set_vbus)
-diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
---- a/drivers/usb/musb/musb_dsps.c
-+++ b/drivers/usb/musb/musb_dsps.c
-@@ -185,24 +185,19 @@ static void dsps_musb_disable(struct musb *musb)
- 	musb_writel(reg_base, wrp->coreintr_clear, wrp->usb_bitmap);
- 	musb_writel(reg_base, wrp->epintr_clear,
- 			 wrp->txep_bitmap | wrp->rxep_bitmap);
-+	del_timer_sync(&glue->timer);
- 	musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
- }
- 
--static void otg_timer(unsigned long _musb)
-+/* Caller must take musb->lock */
-+static int dsps_check_status(struct musb *musb, void *unused)
- {
--	struct musb *musb = (void *)_musb;
- 	void __iomem *mregs = musb->mregs;
- 	struct device *dev = musb->controller;
- 	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
- 	const struct dsps_musb_wrapper *wrp = glue->wrp;
- 	u8 devctl;
--	unsigned long flags;
- 	int skip_session = 0;
--	int err;
--
--	err = pm_runtime_get_sync(dev);
--	if (err < 0)
--		dev_err(dev, "Poll could not pm_runtime_get: %i\n", err);
- 
- 	/*
- 	 * We poll because DSPS IP's won't expose several OTG-critical
-@@ -212,7 +207,6 @@ static void otg_timer(unsigned long _musb)
- 	dev_dbg(musb->controller, "Poll devctl %02x (%s)\n", devctl,
- 				usb_otg_state_string(musb->xceiv->otg->state));
- 
--	spin_lock_irqsave(&musb->lock, flags);
- 	switch (musb->xceiv->otg->state) {
- 	case OTG_STATE_A_WAIT_VRISE:
- 		mod_timer(&glue->timer, jiffies +
-@@ -245,8 +239,30 @@ static void otg_timer(unsigned long _musb)
- 	default:
- 		break;
- 	}
--	spin_unlock_irqrestore(&musb->lock, flags);
- 
-+	return 0;
-+}
-+
-+static void otg_timer(unsigned long _musb)
-+{
-+	struct musb *musb = (void *)_musb;
-+	struct device *dev = musb->controller;
-+	unsigned long flags;
-+	int err;
-+
-+	err = pm_runtime_get(dev);
-+	if ((err != -EINPROGRESS) && err < 0) {
-+		dev_err(dev, "Poll could not pm_runtime_get: %i\n", err);
-+		pm_runtime_put_noidle(dev);
-+
-+		return;
-+	}
-+
-+	spin_lock_irqsave(&musb->lock, flags);
-+	err = musb_queue_resume_work(musb, dsps_check_status, NULL);
-+	if (err < 0)
-+		dev_err(dev, "%s resume work: %i\n", __func__, err);
-+	spin_unlock_irqrestore(&musb->lock, flags);
- 	pm_runtime_mark_last_busy(dev);
- 	pm_runtime_put_autosuspend(dev);
- }
+ 	int			a_wait_bcon;	/* VBUS timeout in msecs */
 diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
 --- a/drivers/usb/musb/musb_gadget.c
 +++ b/drivers/usb/musb/musb_gadget.c
-@@ -1222,13 +1222,22 @@ void musb_ep_restart(struct musb *musb, struct musb_request *req)
- 		rxstate(musb, req);
+@@ -1114,7 +1114,7 @@ static int musb_gadget_enable(struct usb_ep *ep,
+ 			musb_ep->dma ? "dma, " : "",
+ 			musb_ep->packet_sz);
+ 
+-	schedule_work(&musb->irq_work);
++	schedule_delayed_work(&musb->irq_work, 0);
+ 
+ fail:
+ 	spin_unlock_irqrestore(&musb->lock, flags);
+@@ -1158,7 +1158,7 @@ static int musb_gadget_disable(struct usb_ep *ep)
+ 	musb_ep->desc = NULL;
+ 	musb_ep->end_point.desc = NULL;
+ 
+-	schedule_work(&musb->irq_work);
++	schedule_delayed_work(&musb->irq_work, 0);
+ 
+ 	spin_unlock_irqrestore(&(musb->lock), flags);
+ 
+@@ -1994,7 +1994,7 @@ static int musb_gadget_stop(struct usb_gadget *g)
+ 	 */
+ 
+ 	/* Force check of devctl register for PM runtime */
+-	schedule_work(&musb->irq_work);
++	schedule_delayed_work(&musb->irq_work, 0);
+ 
+ 	pm_runtime_mark_last_busy(musb->controller);
+ 	pm_runtime_put_autosuspend(musb->controller);
+diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
+--- a/drivers/usb/musb/tusb6010.c
++++ b/drivers/usb/musb/tusb6010.c
+@@ -724,7 +724,7 @@ tusb_otg_ints(struct musb *musb, u32 int_src, void __iomem *tbase)
+ 			dev_dbg(musb->controller, "vbus change, %s, otg %03x\n",
+ 				usb_otg_state_string(musb->xceiv->otg->state), otg_stat);
+ 			idle_timeout = jiffies + (1 * HZ);
+-			schedule_work(&musb->irq_work);
++			schedule_delayed_work(&musb->irq_work, 0);
+ 
+ 		} else /* A-dev state machine */ {
+ 			dev_dbg(musb->controller, "vbus change, %s, otg %03x\n",
+@@ -814,7 +814,7 @@ tusb_otg_ints(struct musb *musb, u32 int_src, void __iomem *tbase)
+ 			break;
+ 		}
+ 	}
+-	schedule_work(&musb->irq_work);
++	schedule_delayed_work(&musb->irq_work, 0);
+ 
+ 	return idle_timeout;
  }
- 
-+static int musb_ep_restart_resume_work(struct musb *musb, void *data)
-+{
-+	struct musb_request *req = data;
-+
-+	musb_ep_restart(musb, req);
-+
-+	return 0;
-+}
-+
- static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
- 			gfp_t gfp_flags)
- {
- 	struct musb_ep		*musb_ep;
- 	struct musb_request	*request;
- 	struct musb		*musb;
--	int			status = 0;
-+	int			status;
- 	unsigned long		lockflags;
- 
- 	if (!ep || !req)
-@@ -1245,6 +1254,17 @@ static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
- 	if (request->ep != musb_ep)
- 		return -EINVAL;
- 
-+	status = pm_runtime_get(musb->controller);
-+	if ((status != -EINPROGRESS) && status < 0) {
-+		dev_err(musb->controller,
-+			"pm runtime get failed in %s\n",
-+			__func__);
-+		pm_runtime_put_noidle(musb->controller);
-+
-+		return status;
-+	}
-+	status = 0;
-+
- 	trace_musb_req_enq(request);
- 
- 	/* request is mine now... */
-@@ -1255,7 +1275,6 @@ static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
- 
- 	map_dma_buffer(request, musb, musb_ep);
- 
--	pm_runtime_get_sync(musb->controller);
- 	spin_lock_irqsave(&musb->lock, lockflags);
- 
- 	/* don't queue if the ep is down */
-@@ -1271,8 +1290,14 @@ static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
- 	list_add_tail(&request->list, &musb_ep->req_list);
- 
- 	/* it this is the head of the queue, start i/o ... */
--	if (!musb_ep->busy && &request->list == musb_ep->req_list.next)
--		musb_ep_restart(musb, request);
-+	if (!musb_ep->busy && &request->list == musb_ep->req_list.next) {
-+		status = musb_queue_resume_work(musb,
-+						musb_ep_restart_resume_work,
-+						request);
-+		if (status < 0)
-+			dev_err(musb->controller, "%s resume work: %i\n",
-+				__func__, status);
-+	}
- 
- unlock:
- 	spin_unlock_irqrestore(&musb->lock, lockflags);
+@@ -864,7 +864,7 @@ static irqreturn_t tusb_musb_interrupt(int irq, void *__hci)
+ 		musb_writel(tbase, TUSB_PRCM_WAKEUP_CLEAR, reg);
+ 		if (reg & ~TUSB_PRCM_WNORCS) {
+ 			musb->is_active = 1;
+-			schedule_work(&musb->irq_work);
++			schedule_delayed_work(&musb->irq_work, 0);
+ 		}
+ 		dev_dbg(musb->controller, "wake %sactive %02x\n",
+ 				musb->is_active ? "" : "in", reg);
 -- 
 2.10.2
 --
