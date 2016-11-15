@@ -1,75 +1,60 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] dma: cpp41: Fix handling of error path
-Date: Tue, 15 Nov 2016 15:27:08 -0600
-Message-ID: <20161115212708.GI11011@uda0271908>
-References: <20161111192852.25399-1-tony@atomide.com>
- <8d1e380a-ec75-3893-ea50-65e1526d58ea@ti.com>
- <20161115205816.GN4082@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCHv3 0/6] musb fixes for v4.9-rc cycle
+Date: Tue, 15 Nov 2016 13:37:49 -0800
+Message-ID: <20161115213755.12316-1-tony@atomide.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161115205816.GN4082-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Cc: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 15, 2016 at 12:58:17PM -0800, Tony Lindgren wrote:
-> * Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org> [161115 00:35]:
-> > On Saturday 12 November 2016 12:58 AM, Tony Lindgren wrote:
-> > > If we return early on pm_runtime_get() error, we need to also call
-> > > pm_runtime_put_noidle() as pointed out in a musb related thread
-> > > by Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>. This is to keep the PM runtime
-> > > use counts happy.
-> > > 
-> > > Fixes: fdea2d09b997 ("dmaengine: cppi41: Add basic PM runtime support")
-> > > Cc: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > > Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> > > ---
-> > >  drivers/dma/cppi41.c | 11 +++++++++--
-> > >  1 file changed, 9 insertions(+), 2 deletions(-)
-> > > 
-> > > diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
-> > > --- a/drivers/dma/cppi41.c
-> > > +++ b/drivers/dma/cppi41.c
-> > > @@ -366,8 +366,11 @@ static int cppi41_dma_alloc_chan_resources(struct dma_chan *chan)
-> > >  	int error;
-> > >  
-> > >  	error = pm_runtime_get_sync(cdd->ddev.dev);
-> > > -	if (error < 0)
-> > > +	if (error < 0) {
-> > > +		pm_runtime_put_noidle(cdd->ddev.dev);
-> > > +
-> > 
-> > If pm_runtime_get_sync() fails due to callback error, then
-> > rpm_callback() sets dev.power.runtime_error to an error value which gets
-> > cleared by an explicit call to pm_runtime_set_suspended().
-> > 
-> > This will tell the framework that the status of device is suspended.
-> > Else, the failure will be sticky and on subsequent attempts,
-> > rpm_resume() will keep returning early instead of trying to resume the
-> > device again.
-> > 
-> > This is as far as I can gather from code. So, I believe the recovery
-> > path should be:
-> > 
-> > 	if (error < 0) {
-> > 		pm_runtime_set_suspended(cdd->ddev.dev);
-> > 		pm_runtime_put_noidle(cdd->ddev.dev);
-> > 
-> > 		...
-> 
-> Well we should test this :)
-> 
-> BTW, what other users of cppi41 do we have in addition to musb? I think
-> davinci is or will be using it too?
+Hi all,
 
-AFAIK, musb on am335x, da8xx, am35x uses cppi41. davinci musb uses cppi,
-not cppi41.
+Here's v3 of musb fixes for issues that I've been able to track down.
+The PM changes merged for v4.9 popped up various issues reported by
+people that I had not seen earlier with my tests.
+
+As many people depend on this driver, I'd like to have these merged
+for v4.9-rc cycle.
 
 Regards,
--Bin.
+
+Tony
+
+
+Changes since v2:
+
+- Collect acks, update patch descriptions and remove one comment
+  line based on comments from Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+
+Changes since v1:
+
+- Numerous changes to patch 2/4 for the sleeping function fix
+  based on comments from Johan
+
+  - Two new patches to fix issues with devices not always
+    enumerating by removing pointless PM runtime code
+
+Tony Lindgren (6):
+  usb: musb: Fix broken use of static variable for multiple instances
+  usb: musb: Fix sleeping function called from invalid context for hdrc
+    glue
+  usb: musb: Fix PM for hub disconnect
+  usb: musb: Add missing pm_runtime_disable and drop 2430 PM timeout
+  usb: musb: Drop pointless PM runtime code for dsps glue
+  phy: twl4030-usb: Fix for musb session bit based PM
+
+ drivers/phy/phy-twl4030-usb.c  |   4 +-
+ drivers/usb/musb/musb_core.c   | 147 ++++++++++++++++++++++++++++++++++++-----
+ drivers/usb/musb/musb_core.h   |  13 +++-
+ drivers/usb/musb/musb_dsps.c   |  58 ++++++++--------
+ drivers/usb/musb/musb_gadget.c |  39 +++++++++--
+ drivers/usb/musb/omap2430.c    |  10 ++-
+ drivers/usb/musb/tusb6010.c    |   6 +-
+ 7 files changed, 209 insertions(+), 68 deletions(-)
+
+-- 
+2.10.2
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
