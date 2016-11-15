@@ -1,54 +1,65 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] usb: musb: omap2430: make complain on -EPROBE_DEFER
- dev_dbg
-Date: Tue, 15 Nov 2016 15:13:31 -0600
-Message-ID: <20161115211331.GD11011@uda0271908>
-References: <20161109141026.GF20859@localhost.localdomain>
- <20161109174847.GY2428@atomide.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 1/2] ASoC: omap-twl4030: rework probing for
+ device tree only
+Date: Tue, 15 Nov 2016 17:23:33 +0000
+Message-ID: <20161115172333.qlxsfwwzn7cmoxkk@sirena.org.uk>
+References: <1479196880-20344-1-git-send-email-Nicolae_Rosia@mentor.com>
+ <1479196880-20344-2-git-send-email-Nicolae_Rosia@mentor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161109174847.GY2428-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/mixed; boundary="===============4778156892154095511=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1479196880-20344-2-git-send-email-Nicolae_Rosia@mentor.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Nicolae Rosia <Nicolae_Rosia@mentor.com>
+Cc: alsa-devel@alsa-project.org, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Nov 09, 2016 at 10:48:48AM -0700, Tony Lindgren wrote:
-> * Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org> [161109 07:11]:
-> > There is no point having this complaint to be dev_err as it is just adding
-> > noise to bootlog.
-> 
-> Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 
-Applied. Thanks.
--Bin.
+--===============4778156892154095511==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="bywibhkaxmbmi7l5"
+Content-Disposition: inline
 
-> 
-> > Signed-off-by: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
-> > ---
-> >  drivers/usb/musb/omap2430.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> > index 451b372..7c9aa5e 100644
-> > --- a/drivers/usb/musb/omap2430.c
-> > +++ b/drivers/usb/musb/omap2430.c
-> > @@ -277,7 +277,7 @@ static int omap2430_musb_init(struct musb *musb)
-> >  		if (status == -ENXIO)
-> >  			return status;
-> >  
-> > -		dev_err(dev, "HS USB OTG: no transceiver configured\n");
-> > +		dev_dbg(dev, "HS USB OTG: no transceiver configured\n");
-> >  		return -EPROBE_DEFER;
-> >  	}
-> >  
-> > -- 
-> > 2.1.4
-> > 
-> > 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--bywibhkaxmbmi7l5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Nov 15, 2016 at 10:01:19AM +0200, Nicolae Rosia wrote:
+> This code is no longer used since all users are
+> using device tree
+
+Acked-by: Mark Brown <broonie@kernel.org>
+
+--bywibhkaxmbmi7l5
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEcBAABCAAGBQJYK0SRAAoJECTWi3JdVIfQ8vIH/3Pqi+LkGmJgO8KtCznEx1hp
+tZE8AQhZHsOV+bmCFSIHhv3ueGe9ChAxSpzHeyLcMkhiUnXFYjLN82PV9mkXE3gW
+YT+1LZCZbIdlCaoraHT3oqUTXiwInNkxPgnuKM+GV0VQZ6C9+3tgcpr3dFYSV3wW
+F1Ni5/5TSRC2pSbai/+mSxHrgYtgjEllaxSDTOKux56XrlmHCLzm/mLJp4I5MHg5
+W1kzIS0Pe1AnkQ/4oejpsgUw6Xk+zFHxxp1GufwUWZipFdJzjg7KRTvgu8bR7eMT
+Z3noImo3+ilUd99JgBggvffOuAoeuattyXrslqFj8E9rjv3EmTimucerEqH1yx0=
+=WBi2
+-----END PGP SIGNATURE-----
+
+--bywibhkaxmbmi7l5--
+
+--===============4778156892154095511==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============4778156892154095511==--
