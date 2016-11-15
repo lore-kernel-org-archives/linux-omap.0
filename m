@@ -1,11 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/5] non-urgent omap fixes for v4.10
-Date: Tue, 15 Nov 2016 13:22:19 -0800
-Message-ID: <25524.3005035029$1505294611@news.gmane.org>
+Subject: [GIT PULL 2/5] omap soc changes for v4.10
+Date: Tue, 15 Nov 2016 13:22:20 -0800
+Message-ID: <19605.3388681777$1505294613@news.gmane.org>
+References: <pull-1479236877-351747>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1479236877-351747>
+In-Reply-To: <pull-1479236877-351747>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -25,35 +28,62 @@ The following changes since commit 1001354ca34179f3db924eb66672442a173147dc:
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.10/fixes-not-urgent-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.10/soc-signed
 
-for you to fetch changes up to 5c02b01d234f8410010c952069d3fb9ec5d9124a:
+for you to fetch changes up to 2bb6375f5c03cc5bf510402b646c1a23046b3f12:
 
-  ARM: OMAP2+: pm-debug: Use seq_putc() in two functions (2016-11-09 15:33:33 -0700)
-
-----------------------------------------------------------------
-Non-urgent fixes for omaps for v4.10 merge window:
-
-- Fix mismatched interrupt numbers for tps65217, these are not yet
-  used
-
-- Remove unused omapdss_early_init_of()
-
-- Use seq_putc() for pm-debug.c
+  Merge branch 'omap-for-v4.10/cpuidle-v2' into omap-for-v4.10/soc (2016-11-14 15:58:18 -0800)
 
 ----------------------------------------------------------------
-Laurent Pinchart (1):
-      ARM: OMAP2+: Remove the omapdss_early_init_of() function
+SoC changes for omaps for v4.10 merge window:
 
-Markus Elfring (1):
-      ARM: OMAP2+: pm-debug: Use seq_putc() in two functions
+- Add hwmod interconnect target wrapper module data for crypto
+  accelerators for am3xxx, am43xx and dra7
 
-Milo Kim (1):
-      mfd: tps65217: Fix mismatched interrupt number
+- Add support for dra71x family of SoCs
 
- arch/arm/mach-omap2/board-generic.c |  2 --
- arch/arm/mach-omap2/common.h        |  1 -
- arch/arm/mach-omap2/display.c       |  5 -----
- arch/arm/mach-omap2/pm-debug.c      |  5 ++---
- include/linux/mfd/tps65217.h        | 11 +++++------
- 5 files changed, 7 insertions(+), 17 deletions(-)
+- PM fixes for omap4/5 needed for omap5 cpuidle
+
+----------------------------------------------------------------
+Joel Fernandes (4):
+      ARM: DRA7: hwmod: Add data for DES IP
+      ARM: DRA7: hwmod: Add data for AES IP
+      ARM: DRA7: hwmod: Add data for RNG IP
+      ARM: OMAP: DRA7xx: Make L4SEC clock domain SWSUP only
+
+Lokesh Vutla (4):
+      ARM: DRA7: hwmod: Add data for SHA IP
+      ARM: AM43xx: hwmod: Add data for DES
+      ARM: AMx3xx: hwmod: Add data for RNG
+      ARM: OMAP2+: board-generic: add support for DRA71x family
+
+Nishanth Menon (1):
+      ARM: DRA7: hwmod: Do not register RTC on DRA71
+
+Santosh Shilimkar (1):
+      ARM: OMAP5: Add basic cpuidle MPU CSWR support
+
+Tony Lindgren (4):
+      ARM: OMAP5: Fix build for PM code
+      ARM: OMAP5: Fix mpuss_early_init
+      ARM: OMAP4+: Fix bad fallthrough for cpuidle
+      Merge branch 'omap-for-v4.10/cpuidle-v2' into omap-for-v4.10/soc
+
+ .../devicetree/bindings/arm/omap/omap.txt          |   6 +
+ arch/arm/mach-omap2/Makefile                       |   2 +-
+ arch/arm/mach-omap2/board-generic.c                |   1 +
+ arch/arm/mach-omap2/clockdomains7xx_data.c         |   2 +-
+ arch/arm/mach-omap2/common.h                       |  38 ++++-
+ arch/arm/mach-omap2/cpuidle44xx.c                  |  80 ++++++++-
+ arch/arm/mach-omap2/io.c                           |   3 +-
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c          |  37 +++--
+ arch/arm/mach-omap2/omap4-sar-layout.h             |   2 +
+ .../mach-omap2/omap_hwmod_33xx_43xx_common_data.h  |   2 +
+ .../omap_hwmod_33xx_43xx_interconnect_data.c       |   8 +
+ .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |  29 ++++
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |  35 ----
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |  34 ++++
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          | 182 ++++++++++++++++++++-
+ arch/arm/mach-omap2/pm44xx.c                       |   2 +-
+ arch/arm/mach-omap2/prcm43xx.h                     |   2 +
+ 17 files changed, 405 insertions(+), 60 deletions(-)
