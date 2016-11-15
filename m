@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 1/6] usb: musb: Fix broken use of static variable for multiple instances
-Date: Tue, 15 Nov 2016 13:37:50 -0800
-Message-ID: <20161115213755.12316-2-tony@atomide.com>
+Subject: [PATCH 2/6] usb: musb: Fix sleeping function called from invalid context for hdrc glue
+Date: Tue, 15 Nov 2016 13:37:51 -0800
+Message-ID: <20161115213755.12316-3-tony@atomide.com>
 References: <20161115213755.12316-1-tony@atomide.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161115213755.12316-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
@@ -10,63 +10,399 @@ To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
 Cc: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-We can't use static variable first for checking when musb is
-initialized when we have multiple musb instances like on am335x.
+Commit 65b3f50ed6fa ("usb: musb: Add PM runtime support for MUSB DSPS
+glue layer") wrongly added a call for pm_runtime_get_sync to otg_timer
+that runs in softirq context. That causes a "BUG: sleeping function called
+from invalid context" every time when polling the cable status:
 
-Tested-by: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
-Reviewed-by: Johan Hovold <johan-UKKVnA4tBMC5azolltMz9laTQe2KTcn/@public.gmane.org>
+[<c015ebb4>] (__might_sleep) from [<c0413d60>] (__pm_runtime_resume+0x9c/0xa0)
+[<c0413d60>] (__pm_runtime_resume) from [<c04d0bc4>] (otg_timer+0x3c/0x254)
+[<c04d0bc4>] (otg_timer) from [<c0191180>] (call_timer_fn+0xfc/0x41c)
+[<c0191180>] (call_timer_fn) from [<c01915c0>] (expire_timers+0x120/0x210)
+[<c01915c0>] (expire_timers) from [<c0191acc>] (run_timer_softirq+0xa4/0xdc)
+[<c0191acc>] (run_timer_softirq) from [<c010168c>] (__do_softirq+0x12c/0x594)
+
+I did not notice that as I did not have CONFIG_DEBUG_ATOMIC_SLEEP enabled.
+And looks like also musb_gadget_queue() suffers from the same problem.
+
+Let's fix the issue by using a list of delayed work then call it on
+resume. Note that we want to do this only when musb core and it's
+parent devices are awake, and we need to make sure the DSPS glue
+timer is stopped as noted by Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>.
+Note that we already are re-enabling the timer with mod_timer() in
+dsps_musb_enable().
+
+Later on we may be able to remove other delayed work in the musb driver
+and just do it from pending_resume_work. But this should be done only
+for delayed work that does not have other timing requirements beyond
+just being run on resume.
+
+Fixes: 65b3f50ed6fa ("usb: musb: Add PM runtime support for MUSB DSPS
+glue layer")
+Reported-by: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Reviewed-by: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Tested-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/usb/musb/musb_core.c | 9 +++++----
- drivers/usb/musb/musb_core.h | 2 ++
- 2 files changed, 7 insertions(+), 4 deletions(-)
+ drivers/usb/musb/musb_core.c   | 109 +++++++++++++++++++++++++++++++++++++++--
+ drivers/usb/musb/musb_core.h   |   7 +++
+ drivers/usb/musb/musb_dsps.c   |  36 ++++++++++----
+ drivers/usb/musb/musb_gadget.c |  33 +++++++++++--
+ 4 files changed, 167 insertions(+), 18 deletions(-)
 
 diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
 --- a/drivers/usb/musb/musb_core.c
 +++ b/drivers/usb/musb/musb_core.c
-@@ -2291,6 +2291,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
- 	if (status)
- 		goto fail5;
+@@ -1969,6 +1969,7 @@ static struct musb *allocate_instance(struct device *dev,
+ 	INIT_LIST_HEAD(&musb->control);
+ 	INIT_LIST_HEAD(&musb->in_bulk);
+ 	INIT_LIST_HEAD(&musb->out_bulk);
++	INIT_LIST_HEAD(&musb->pending_list);
  
-+	musb->is_initialized = 1;
- 	pm_runtime_mark_last_busy(musb->controller);
- 	pm_runtime_put_autosuspend(musb->controller);
+ 	musb->vbuserr_retry = VBUSERR_RETRY_COUNT;
+ 	musb->a_wait_bcon = OTG_TIME_A_WAIT_BCON;
+@@ -2018,6 +2019,84 @@ static void musb_free(struct musb *musb)
+ 	musb_host_free(musb);
+ }
  
-@@ -2629,7 +2630,6 @@ static int musb_runtime_suspend(struct device *dev)
++struct musb_pending_work {
++	int (*callback)(struct musb *musb, void *data);
++	void *data;
++	struct list_head node;
++};
++
++/*
++ * Called from musb_runtime_resume(), musb_resume(), and
++ * musb_queue_resume_work(). Callers must take musb->lock.
++ */
++static int musb_run_resume_work(struct musb *musb)
++{
++	struct musb_pending_work *w, *_w;
++	unsigned long flags;
++	int error = 0;
++
++	spin_lock_irqsave(&musb->list_lock, flags);
++	list_for_each_entry_safe(w, _w, &musb->pending_list, node) {
++		if (w->callback) {
++			error = w->callback(musb, w->data);
++			if (error < 0) {
++				dev_err(musb->controller,
++					"resume callback %p failed: %i\n",
++					w->callback, error);
++			}
++		}
++		list_del(&w->node);
++		devm_kfree(musb->controller, w);
++	}
++	spin_unlock_irqrestore(&musb->list_lock, flags);
++
++	return error;
++}
++
++/*
++ * Called to run work if device is active or else queue the work to happen
++ * on resume. Caller must take musb->lock and must hold an RPM reference.
++ *
++ * Note that we cowardly refuse queuing work after musb PM runtime
++ * resume is done calling musb_run_resume_work() and return -EINPROGRESS
++ * instead.
++ */
++int musb_queue_resume_work(struct musb *musb,
++			   int (*callback)(struct musb *musb, void *data),
++			   void *data)
++{
++	struct musb_pending_work *w;
++	unsigned long flags;
++	int error;
++
++	if (WARN_ON(!callback))
++		return -EINVAL;
++
++	if (pm_runtime_active(musb->controller))
++		return callback(musb, data);
++
++	w = devm_kzalloc(musb->controller, sizeof(*w), GFP_ATOMIC);
++	if (!w)
++		return -ENOMEM;
++
++	w->callback = callback;
++	w->data = data;
++	spin_lock_irqsave(&musb->list_lock, flags);
++	if (musb->is_runtime_suspended) {
++		list_add_tail(&w->node, &musb->pending_list);
++		error = 0;
++	} else {
++		dev_err(musb->controller, "could not add resume work %p\n",
++			callback);
++		devm_kfree(musb->controller, w);
++		error = -EINPROGRESS;
++	}
++	spin_unlock_irqrestore(&musb->list_lock, flags);
++
++	return error;
++}
++EXPORT_SYMBOL_GPL(musb_queue_resume_work);
++
+ static void musb_deassert_reset(struct work_struct *work)
+ {
+ 	struct musb *musb;
+@@ -2065,6 +2144,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+ 	}
+ 
+ 	spin_lock_init(&musb->lock);
++	spin_lock_init(&musb->list_lock);
+ 	musb->board_set_power = plat->set_power;
+ 	musb->min_power = plat->min_power;
+ 	musb->ops = plat->platform_ops;
+@@ -2558,6 +2638,7 @@ static int musb_suspend(struct device *dev)
+ 
+ 	musb_platform_disable(musb);
+ 	musb_generic_disable(musb);
++	WARN_ON(!list_empty(&musb->pending_list));
+ 
+ 	spin_lock_irqsave(&musb->lock, flags);
+ 
+@@ -2579,9 +2660,11 @@ static int musb_suspend(struct device *dev)
+ 
+ static int musb_resume(struct device *dev)
+ {
+-	struct musb	*musb = dev_to_musb(dev);
+-	u8		devctl;
+-	u8		mask;
++	struct musb *musb = dev_to_musb(dev);
++	unsigned long flags;
++	int error;
++	u8 devctl;
++	u8 mask;
+ 
+ 	/*
+ 	 * For static cmos like DaVinci, register values were preserved
+@@ -2615,6 +2698,13 @@ static int musb_resume(struct device *dev)
+ 
+ 	musb_start(musb);
+ 
++	spin_lock_irqsave(&musb->lock, flags);
++	error = musb_run_resume_work(musb);
++	if (error)
++		dev_err(musb->controller, "resume work failed with %i\n",
++			error);
++	spin_unlock_irqrestore(&musb->lock, flags);
++
+ 	return 0;
+ }
+ 
+@@ -2623,13 +2713,16 @@ static int musb_runtime_suspend(struct device *dev)
+ 	struct musb	*musb = dev_to_musb(dev);
+ 
+ 	musb_save_context(musb);
++	musb->is_runtime_suspended = 1;
+ 
+ 	return 0;
+ }
+ 
  static int musb_runtime_resume(struct device *dev)
  {
- 	struct musb	*musb = dev_to_musb(dev);
--	static int	first = 1;
+-	struct musb	*musb = dev_to_musb(dev);
++	struct musb *musb = dev_to_musb(dev);
++	unsigned long flags;
++	int error;
  
  	/*
  	 * When pm_runtime_get_sync called for the first time in driver
-@@ -2640,9 +2640,10 @@ static int musb_runtime_resume(struct device *dev)
- 	 * Also context restore without save does not make
- 	 * any sense
- 	 */
--	if (!first)
--		musb_restore_context(musb);
--	first = 0;
-+	if (!musb->is_initialized)
-+		return 0;
-+
-+	musb_restore_context(musb);
+@@ -2651,6 +2744,14 @@ static int musb_runtime_resume(struct device *dev)
+ 				msecs_to_jiffies(USB_RESUME_TIMEOUT));
+ 	}
  
- 	if (musb->need_finish_resume) {
- 		musb->need_finish_resume = 0;
++	spin_lock_irqsave(&musb->lock, flags);
++	error = musb_run_resume_work(musb);
++	if (error)
++		dev_err(musb->controller, "resume work failed with %i\n",
++			error);
++	musb->is_runtime_suspended = 0;
++	spin_unlock_irqrestore(&musb->lock, flags);
++
+ 	return 0;
+ }
+ 
 diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
 --- a/drivers/usb/musb/musb_core.h
 +++ b/drivers/usb/musb/musb_core.h
-@@ -385,6 +385,8 @@ struct musb {
- 	int			a_wait_bcon;	/* VBUS timeout in msecs */
+@@ -303,6 +303,7 @@ struct musb_context_registers {
+ struct musb {
+ 	/* device lock */
+ 	spinlock_t		lock;
++	spinlock_t		list_lock;	/* resume work list lock */
+ 
+ 	struct musb_io		io;
+ 	const struct musb_platform_ops *ops;
+@@ -337,6 +338,7 @@ struct musb {
+ 	struct list_head	control;	/* of musb_qh */
+ 	struct list_head	in_bulk;	/* of musb_qh */
+ 	struct list_head	out_bulk;	/* of musb_qh */
++	struct list_head	pending_list;	/* pending work list */
+ 
+ 	struct timer_list	otg_timer;
+ 	struct notifier_block	nb;
+@@ -386,6 +388,7 @@ struct musb {
  	unsigned long		idle_timeout;	/* Next timeout in jiffies */
  
-+	unsigned		is_initialized:1;
-+
+ 	unsigned		is_initialized:1;
++	unsigned		is_runtime_suspended:1;
+ 
  	/* active means connected and not suspended */
  	unsigned		is_active:1;
+@@ -542,6 +545,10 @@ extern irqreturn_t musb_interrupt(struct musb *);
  
+ extern void musb_hnp_stop(struct musb *musb);
+ 
++int musb_queue_resume_work(struct musb *musb,
++			   int (*callback)(struct musb *musb, void *data),
++			   void *data);
++
+ static inline void musb_platform_set_vbus(struct musb *musb, int is_on)
+ {
+ 	if (musb->ops->set_vbus)
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -185,24 +185,19 @@ static void dsps_musb_disable(struct musb *musb)
+ 	musb_writel(reg_base, wrp->coreintr_clear, wrp->usb_bitmap);
+ 	musb_writel(reg_base, wrp->epintr_clear,
+ 			 wrp->txep_bitmap | wrp->rxep_bitmap);
++	del_timer_sync(&glue->timer);
+ 	musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
+ }
+ 
+-static void otg_timer(unsigned long _musb)
++/* Caller must take musb->lock */
++static int dsps_check_status(struct musb *musb, void *unused)
+ {
+-	struct musb *musb = (void *)_musb;
+ 	void __iomem *mregs = musb->mregs;
+ 	struct device *dev = musb->controller;
+ 	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
+ 	const struct dsps_musb_wrapper *wrp = glue->wrp;
+ 	u8 devctl;
+-	unsigned long flags;
+ 	int skip_session = 0;
+-	int err;
+-
+-	err = pm_runtime_get_sync(dev);
+-	if (err < 0)
+-		dev_err(dev, "Poll could not pm_runtime_get: %i\n", err);
+ 
+ 	/*
+ 	 * We poll because DSPS IP's won't expose several OTG-critical
+@@ -212,7 +207,6 @@ static void otg_timer(unsigned long _musb)
+ 	dev_dbg(musb->controller, "Poll devctl %02x (%s)\n", devctl,
+ 				usb_otg_state_string(musb->xceiv->otg->state));
+ 
+-	spin_lock_irqsave(&musb->lock, flags);
+ 	switch (musb->xceiv->otg->state) {
+ 	case OTG_STATE_A_WAIT_VRISE:
+ 		mod_timer(&glue->timer, jiffies +
+@@ -245,8 +239,30 @@ static void otg_timer(unsigned long _musb)
+ 	default:
+ 		break;
+ 	}
+-	spin_unlock_irqrestore(&musb->lock, flags);
+ 
++	return 0;
++}
++
++static void otg_timer(unsigned long _musb)
++{
++	struct musb *musb = (void *)_musb;
++	struct device *dev = musb->controller;
++	unsigned long flags;
++	int err;
++
++	err = pm_runtime_get(dev);
++	if ((err != -EINPROGRESS) && err < 0) {
++		dev_err(dev, "Poll could not pm_runtime_get: %i\n", err);
++		pm_runtime_put_noidle(dev);
++
++		return;
++	}
++
++	spin_lock_irqsave(&musb->lock, flags);
++	err = musb_queue_resume_work(musb, dsps_check_status, NULL);
++	if (err < 0)
++		dev_err(dev, "%s resume work: %i\n", __func__, err);
++	spin_unlock_irqrestore(&musb->lock, flags);
+ 	pm_runtime_mark_last_busy(dev);
+ 	pm_runtime_put_autosuspend(dev);
+ }
+diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+--- a/drivers/usb/musb/musb_gadget.c
++++ b/drivers/usb/musb/musb_gadget.c
+@@ -1222,13 +1222,22 @@ void musb_ep_restart(struct musb *musb, struct musb_request *req)
+ 		rxstate(musb, req);
+ }
+ 
++static int musb_ep_restart_resume_work(struct musb *musb, void *data)
++{
++	struct musb_request *req = data;
++
++	musb_ep_restart(musb, req);
++
++	return 0;
++}
++
+ static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
+ 			gfp_t gfp_flags)
+ {
+ 	struct musb_ep		*musb_ep;
+ 	struct musb_request	*request;
+ 	struct musb		*musb;
+-	int			status = 0;
++	int			status;
+ 	unsigned long		lockflags;
+ 
+ 	if (!ep || !req)
+@@ -1245,6 +1254,17 @@ static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
+ 	if (request->ep != musb_ep)
+ 		return -EINVAL;
+ 
++	status = pm_runtime_get(musb->controller);
++	if ((status != -EINPROGRESS) && status < 0) {
++		dev_err(musb->controller,
++			"pm runtime get failed in %s\n",
++			__func__);
++		pm_runtime_put_noidle(musb->controller);
++
++		return status;
++	}
++	status = 0;
++
+ 	trace_musb_req_enq(request);
+ 
+ 	/* request is mine now... */
+@@ -1255,7 +1275,6 @@ static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
+ 
+ 	map_dma_buffer(request, musb, musb_ep);
+ 
+-	pm_runtime_get_sync(musb->controller);
+ 	spin_lock_irqsave(&musb->lock, lockflags);
+ 
+ 	/* don't queue if the ep is down */
+@@ -1271,8 +1290,14 @@ static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
+ 	list_add_tail(&request->list, &musb_ep->req_list);
+ 
+ 	/* it this is the head of the queue, start i/o ... */
+-	if (!musb_ep->busy && &request->list == musb_ep->req_list.next)
+-		musb_ep_restart(musb, request);
++	if (!musb_ep->busy && &request->list == musb_ep->req_list.next) {
++		status = musb_queue_resume_work(musb,
++						musb_ep_restart_resume_work,
++						request);
++		if (status < 0)
++			dev_err(musb->controller, "%s resume work: %i\n",
++				__func__, status);
++	}
+ 
+ unlock:
+ 	spin_unlock_irqrestore(&musb->lock, lockflags);
 -- 
 2.10.2
 --
