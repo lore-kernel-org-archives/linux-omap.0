@@ -1,62 +1,91 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: [PATCH 4/6] net: ethernet: ti: cpts: add ptp pps support
-Date: Wed, 30 Nov 2016 23:17:38 +0100
-Message-ID: <20161130221738.GA13099@localhost.localdomain>
-References: <20161128230428.6872-1-grygorii.strashko@ti.com>
- <20161128230428.6872-5-grygorii.strashko@ti.com>
- <20161130184511.GB8209@netboy>
- <875d4cc2-8a47-b06d-fb46-0cacc28dbaee@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fixes for v4.9-rc cycle
+Date: Mon, 14 Nov 2016 16:33:35 -0800
+Message-ID: <41406.9648054012$1505294585@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <875d4cc2-8a47-b06d-fb46-0cacc28dbaee@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Murali Karicheri <m-karicheri2@ti.com>, Wingman Kwok <w-kwok2@ti.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Nov 30, 2016 at 02:43:57PM -0600, Grygorii Strashko wrote:
-> > In order to produce the PPS edge correctly, you would have to adjust
-> > the comparison value whenever cc.mult changes, 
-> 
-> yes. And that is done in cpts_ptp_adjfreq()
-> 	if (cpts->ts_comp_enabled)
-> 		cpts->ts_comp_one_sec_cycs = cpts_cc_ns2cyc(cpts, NSEC_PER_SEC);
-> 	^^^ re-calculate reload value for 
->  
-> 	cpts_ts_comp_settime(cpts, ns);
-> 	^^^ adjust the ts_comp
+The following changes since commit 1001354ca34179f3db924eb66672442a173147dc:
 
-And it races with the pulse itself.  You forgot about this part:
+  Linux 4.9-rc1 (2016-10-15 12:17:50 -0700)
 
-> @@ -172,14 +232,31 @@ static int cpts_ptp_adjfreq(struct ptp_clock_info *ptp, s32 ppb)
->  	adj *= ppb;
->  	diff = div_u64(adj, 1000000000ULL);
->  
-> +	mutex_lock(&cpts->ptp_clk_mutex);
-> +
->  	spin_lock_irqsave(&cpts->lock, flags);
-> +	if (cpts->ts_comp_enabled) {
-> +		cpts_ts_comp_disable(cpts);
+are available in the git repository at:
 
-Sorry, but this is a train wreck.
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.9/fixes-for-rc-cycle
 
-> > but of course this is unworkable.
-> > 
-> 
-> Sry, but this is questionable - code for pps comes from TI internal
-> branches (SDK releases) where it survived for a pretty long time.
+for you to fetch changes up to 1bc2f5fac34535aeb3878ce32a762a221be7a851:
 
-That doesn't mean the code is any good.  If you adjust at the right
-moment, then no pulse occurs at all!
+  ARM: dts: omap5: board-common: fix wrong SMPS6 (VDD-DDR3) voltage (2016-11-14 13:03:21 -0800)
 
-> I'm, of course, agree that without HW support for freq adjustment
-> this PPS feature is not super precise and has some limitation,
-> but that is what we agree to live with. 
+----------------------------------------------------------------
+Fixes for omaps for v4.9-rc cycle. Except for the omap3 fix for the SoC
+features printed, all these are quite trivial and tiny. The omap5 jack
+detection and gpadc patches are not strictly fixes, but I wanted to get
+binding document typo fixed before it pops up on other boards. The
+gpadc one liner was in the same series and I applied and pushed it out
+already before noticing it could have waited. The list of changes is:
 
-I do NOT agree to live with this.  I am one who is going to have to
-explain to the world why their beagle bone PPS sucks.
- 
-Thanks,
-Richard
+- Fix omap3 SoC features printed
+
+- Make sure OMAP_INTERCONNECT is selected for am43xx only configurations
+
+- Add missing memory node for torpedo
+
+- Initialize uart4_mask properly to avoid writing garbage to PRM registers
+
+- Fix NULL pointer dereference for omap4 volt_data
+
+- Add alias for omap5 gpadc needed by iio drivers
+
+- Enable omap5 jack headset jack detection and fix it's binding typo
+
+- Add missing memory node for logicpd-som-lv
+
+- Fix wrong SMPS6 voltage for VDD-DDR3 for omap5
+
+----------------------------------------------------------------
+Adam Ford (2):
+      ARM: dts: omap3: Fix memory node in Torpedo board
+      ARM: omap3: Add missing memory node in SOM-LV
+
+Colin Ian King (1):
+      ARM: OMAP2+: PRM: initialize en_uart4_mask and grpsel_uart4_mask
+
+Dave Gerlach (1):
+      ARM: AM43XX: Select OMAP_INTERCONNECT in Kconfig
+
+H. Nikolaus Schaller (4):
+      dts: omap5: board-common: add phandle to reference Palmas gpadc
+      dts: omap5: board-common: enable twl6040 headset jack detection
+      ASoC: omap-abe-twl6040: fix typo in bindings documentation
+      ARM: dts: omap5: board-common: fix wrong SMPS6 (VDD-DDR3) voltage
+
+Nicolae Rosia (1):
+      ARM: OMAP2+: avoid NULL pointer dereference
+
+Tony Lindgren (1):
+      ARM: OMAP3: Fix formatting of features printed
+
+ .../devicetree/bindings/sound/omap-abe-twl6040.txt       |  2 +-
+ arch/arm/boot/dts/logicpd-som-lv.dtsi                    |  5 +++++
+ arch/arm/boot/dts/logicpd-torpedo-som.dtsi               |  4 ++--
+ arch/arm/boot/dts/omap5-board-common.dtsi                |  7 ++++---
+ arch/arm/mach-omap2/Kconfig                              |  1 +
+ arch/arm/mach-omap2/id.c                                 | 16 +++++++++++-----
+ arch/arm/mach-omap2/prm3xxx.c                            |  3 +++
+ arch/arm/mach-omap2/voltage.c                            |  6 ++++++
+ 8 files changed, 33 insertions(+), 11 deletions(-)
