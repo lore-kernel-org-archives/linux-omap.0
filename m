@@ -1,11 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] add #pinctrl-cells for v4.10
-Date: Mon, 14 Nov 2016 16:34:19 -0800
-Message-ID: <28349.054818$1505294588@news.gmane.org>
+Subject: [GIT PULL 5/5] omap defconfig changes for v4.10
+Date: Tue, 15 Nov 2016 13:22:23 -0800
+Message-ID: <32558.9610067711$1505294607@news.gmane.org>
+References: <pull-1479236877-351747>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1479236877-351747>
+In-Reply-To: <pull-1479236877-351747>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -25,40 +28,34 @@ The following changes since commit 1001354ca34179f3db924eb66672442a173147dc:
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.10/pinctrl-cells-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.10/defconfig-signed
 
-for you to fetch changes up to be76fd3197df608e1b010bf5ab90377205f54344:
+for you to fetch changes up to 9c106e4efab2ec96daebb7bdd0bb61602fd52e7a:
 
-  ARM: dts: Add #pinctrl-cells for pinctrl-single instances (2016-11-07 08:27:49 -0700)
-
-----------------------------------------------------------------
-Add #pinctrl-cells for pinctrl-single using dts files. This allows
-us to use generic parser later on. Note that the driver supports
-handling the legacy binding also with no #pinctrl-cells so these
-changes can be queued separately from the driver changes.
+  ARM: omap2plus_defconfig: Run make savedefconfig to save some space (2016-11-15 11:01:24 -0800)
 
 ----------------------------------------------------------------
+Defconfig changes for omaps for v4.10 merge window:
+
+- Enable tsc2004 touchscreen as a loadable module
+
+- Enable REGULATOR_GPIO, dra71-evm needs this for MMC voltage
+
+- Enable LP873x PMICs for dra71x-evm
+
+- Run make savedefconfig to save some space and make it
+  easier to generate minimal patches against it
+
+----------------------------------------------------------------
+Adam Ford (1):
+      ARM: omap2plus_defconfig: Enable TOUCHSCREEN_TSC2004
+
+Lokesh Vutla (2):
+      ARM: omap2plus_defconfig: Enable REGULATOR_GPIO
+      ARM: omap2plus_defconfig: Enable LP873X support
+
 Tony Lindgren (1):
-      ARM: dts: Add #pinctrl-cells for pinctrl-single instances
+      ARM: omap2plus_defconfig: Run make savedefconfig to save some space
 
- Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt | 3 +++
- arch/arm/boot/dts/am33xx.dtsi                                | 2 ++
- arch/arm/boot/dts/am3517.dtsi                                | 1 +
- arch/arm/boot/dts/am4372.dtsi                                | 1 +
- arch/arm/boot/dts/da850.dtsi                                 | 1 +
- arch/arm/boot/dts/dm814x.dtsi                                | 1 +
- arch/arm/boot/dts/dm816x.dtsi                                | 2 ++
- arch/arm/boot/dts/dra7.dtsi                                  | 1 +
- arch/arm/boot/dts/hi3620.dtsi                                | 2 ++
- arch/arm/boot/dts/keystone-k2g.dtsi                          | 1 +
- arch/arm/boot/dts/keystone-k2l.dtsi                          | 1 +
- arch/arm/boot/dts/omap2420.dtsi                              | 2 ++
- arch/arm/boot/dts/omap2430.dtsi                              | 2 ++
- arch/arm/boot/dts/omap3.dtsi                                 | 2 ++
- arch/arm/boot/dts/omap34xx.dtsi                              | 1 +
- arch/arm/boot/dts/omap36xx.dtsi                              | 1 +
- arch/arm/boot/dts/omap4.dtsi                                 | 2 ++
- arch/arm/boot/dts/omap5.dtsi                                 | 2 ++
- arch/arm/boot/dts/pxa3xx.dtsi                                | 1 +
- arch/arm64/boot/dts/hisilicon/hi6220.dtsi                    | 3 +++
- 20 files changed, 32 insertions(+)
+ arch/arm/configs/omap2plus_defconfig | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
