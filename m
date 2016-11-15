@@ -1,71 +1,56 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] dma: cpp41: Fix handling of error path
-Date: Tue, 15 Nov 2016 12:58:17 -0800
-Message-ID: <20161115205816.GN4082@atomide.com>
-References: <20161111192852.25399-1-tony@atomide.com>
- <8d1e380a-ec75-3893-ea50-65e1526d58ea@ti.com>
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] usb: musb: don't complain on -EPROBE_DEFER when
+ initializing controller
+Date: Tue, 15 Nov 2016 15:13:00 -0600
+Message-ID: <20161115211300.GB11011@uda0271908>
+References: <20161109140804.GD20859@localhost.localdomain>
+ <20161109174809.GW2428@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <8d1e380a-ec75-3893-ea50-65e1526d58ea-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20161109174809.GW2428-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org> [161115 00:35]:
-> On Saturday 12 November 2016 12:58 AM, Tony Lindgren wrote:
-> > If we return early on pm_runtime_get() error, we need to also call
-> > pm_runtime_put_noidle() as pointed out in a musb related thread
-> > by Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>. This is to keep the PM runtime
-> > use counts happy.
+On Wed, Nov 09, 2016 at 10:48:10AM -0700, Tony Lindgren wrote:
+> * Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org> [161109 07:08]:
+> > Don't complain on -EPROBE_DEFER when initializing controller,
+> > the driver probe will be retried later.
 > > 
-> > Fixes: fdea2d09b997 ("dmaengine: cppi41: Add basic PM runtime support")
-> > Cc: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> > Signed-off-by: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+> 
+> Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+
+Applied. Thanks.
+-Bin.
+
+> 
 > > ---
-> >  drivers/dma/cppi41.c | 11 +++++++++--
-> >  1 file changed, 9 insertions(+), 2 deletions(-)
+> >  drivers/usb/musb/musb_core.c | 5 +++--
+> >  1 file changed, 3 insertions(+), 2 deletions(-)
 > > 
-> > diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
-> > --- a/drivers/dma/cppi41.c
-> > +++ b/drivers/dma/cppi41.c
-> > @@ -366,8 +366,11 @@ static int cppi41_dma_alloc_chan_resources(struct dma_chan *chan)
-> >  	int error;
+> > diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+> > index 27dadc0..77fd97b 100644
+> > --- a/drivers/usb/musb/musb_core.c
+> > +++ b/drivers/usb/musb/musb_core.c
+> > @@ -2329,8 +2329,9 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+> >  	musb_platform_exit(musb);
 > >  
-> >  	error = pm_runtime_get_sync(cdd->ddev.dev);
-> > -	if (error < 0)
-> > +	if (error < 0) {
-> > +		pm_runtime_put_noidle(cdd->ddev.dev);
-> > +
-> 
-> If pm_runtime_get_sync() fails due to callback error, then
-> rpm_callback() sets dev.power.runtime_error to an error value which gets
-> cleared by an explicit call to pm_runtime_set_suspended().
-> 
-> This will tell the framework that the status of device is suspended.
-> Else, the failure will be sticky and on subsequent attempts,
-> rpm_resume() will keep returning early instead of trying to resume the
-> device again.
-> 
-> This is as far as I can gather from code. So, I believe the recovery
-> path should be:
-> 
-> 	if (error < 0) {
-> 		pm_runtime_set_suspended(cdd->ddev.dev);
-> 		pm_runtime_put_noidle(cdd->ddev.dev);
-> 
-> 		...
-
-Well we should test this :)
-
-BTW, what other users of cppi41 do we have in addition to musb? I think
-davinci is or will be using it too?
-
-Regards,
-
-Tony
+> >  fail1:
+> > -	dev_err(musb->controller,
+> > -		"musb_init_controller failed with status %d\n", status);
+> > +	if (status != -EPROBE_DEFER)
+> > +		dev_err(musb->controller,
+> > +			"%s failed with status %d\n", __func__, status);
+> >  
+> >  	musb_free(musb);
+> >  
+> > -- 
+> > 2.1.4
+> > 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
