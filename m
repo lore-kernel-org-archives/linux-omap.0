@@ -1,60 +1,78 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] dma: cpp41: Fix handling of error path
-Date: Wed, 16 Nov 2016 06:54:56 -0800
-Message-ID: <20161116145455.GP4082@atomide.com>
-References: <20161111192852.25399-1-tony@atomide.com>
- <8d1e380a-ec75-3893-ea50-65e1526d58ea@ti.com>
- <20161115205816.GN4082@atomide.com>
- <91726bb9-4919-22a4-174b-9c89e1001421@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 6/6] phy: twl4030-usb: Fix for musb session bit based PM
+Date: Wed, 16 Nov 2016 22:12:08 +0530
+Message-ID: <4da6e47c-1577-709a-8abc-e007158efb5c@ti.com>
+References: <20161115213755.12316-1-tony@atomide.com>
+ <20161115213755.12316-7-tony@atomide.com> <20161115215927.GA22683@uda0271908>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <91726bb9-4919-22a4-174b-9c89e1001421-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20161115215927.GA22683@uda0271908>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org> [161115 22:25]:
-> On Wednesday 16 November 2016 02:28 AM, Tony Lindgren wrote:
-> > * Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org> [161115 00:35]:
-> >> If pm_runtime_get_sync() fails due to callback error, then
-> >> rpm_callback() sets dev.power.runtime_error to an error value which gets
-> >> cleared by an explicit call to pm_runtime_set_suspended().
-> >>
-> >> This will tell the framework that the status of device is suspended.
-> >> Else, the failure will be sticky and on subsequent attempts,
-> >> rpm_resume() will keep returning early instead of trying to resume the
-> >> device again.
-> >>
-> >> This is as far as I can gather from code. So, I believe the recovery
-> >> path should be:
-> >>
-> >> 	if (error < 0) {
-> >> 		pm_runtime_set_suspended(cdd->ddev.dev);
-> >> 		pm_runtime_put_noidle(cdd->ddev.dev);
-> >>
-> >> 		...
-> > 
-> > Well we should test this :)
+
+
+On Wednesday 16 November 2016 03:29 AM, Bin Liu wrote:
+> On Tue, Nov 15, 2016 at 01:37:55PM -0800, Tony Lindgren wrote:
+>> Now with musb driver implementing generic session bit based
+>> PM, we need to have the USB PHYs behaving in a sane way for
+>> platforms implementing PM.
+>>
+>> Currently twl4030-usb enables PM in twl4030_phy_power_on()
+>> and then disables it in twl4030_phy_power_off(). This will
+>> block PM runtime for the SoC when no cable is connected.
+>>
+>> Fix the issue by moving PM runtime autosuspend call to
+>> happen where it gets called in twl4030_phy_power_on().
+>>
+>> Note that this patch should not be backported to anything
+>> before commit 467d5c980709 ("usb: musb: Implement session bit
+>> based runtime PM for musb-core") as before that all the
+>> glue layers implemented their own PM.
+>>
+>> Fixes: 467d5c980709 ("usb: musb: Implement session bit based
+>> runtime PM for musb-core")
+>> Tested-by: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+>> Tested-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+>> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 > 
-> Yes, right! Was this patch created to fix an error in practice or just
-> based on code review?
+> I would need Kishon's Acked-by, or he picks it to his tree.
 
-Based on code review for related musb fixes. I'll test the above today
-at some point.
-
-> > BTW, what other users of cppi41 do we have in addition to musb? I think
-> > davinci is or will be using it too?
+Acked-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 > 
-> The list Bin provided seems accurate.
-
-OK so it's used by musb only with no other hardware blocks using cppi41?
-
-Regards,
-
-Tony
+> Thanks,
+> -Bin.
+> 
+>> ---
+>>  drivers/phy/phy-twl4030-usb.c | 4 ++--
+>>  1 file changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
+>> --- a/drivers/phy/phy-twl4030-usb.c
+>> +++ b/drivers/phy/phy-twl4030-usb.c
+>> @@ -459,8 +459,6 @@ static int twl4030_phy_power_off(struct phy *phy)
+>>  	struct twl4030_usb *twl = phy_get_drvdata(phy);
+>>  
+>>  	dev_dbg(twl->dev, "%s\n", __func__);
+>> -	pm_runtime_mark_last_busy(twl->dev);
+>> -	pm_runtime_put_autosuspend(twl->dev);
+>>  
+>>  	return 0;
+>>  }
+>> @@ -472,6 +470,8 @@ static int twl4030_phy_power_on(struct phy *phy)
+>>  	dev_dbg(twl->dev, "%s\n", __func__);
+>>  	pm_runtime_get_sync(twl->dev);
+>>  	schedule_delayed_work(&twl->id_workaround_work, HZ);
+>> +	pm_runtime_mark_last_busy(twl->dev);
+>> +	pm_runtime_put_autosuspend(twl->dev);
+>>  
+>>  	return 0;
+>>  }
+>> -- 
+>> 2.10.2
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
