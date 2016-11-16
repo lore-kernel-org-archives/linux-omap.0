@@ -1,32 +1,53 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v7 7/9] dt-bindings: input: move ads7846 bindings to
- touchscreen subdirectory
-Date: Tue, 15 Nov 2016 16:16:21 -0600
-Message-ID: <20161115221621.pedbsb5jgskla3av@rob-hp-laptop>
-References: <cover.1478890925.git.hns@goldelico.com>
- <3a0b4f67ae4a40b6fea2f61089ef03cc88f29294.1478890925.git.hns@goldelico.com>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] dma: cpp41: Fix handling of error path
+Date: Wed, 16 Nov 2016 11:55:20 +0530
+Message-ID: <91726bb9-4919-22a4-174b-9c89e1001421@ti.com>
+References: <20161111192852.25399-1-tony@atomide.com>
+ <8d1e380a-ec75-3893-ea50-65e1526d58ea@ti.com>
+ <20161115205816.GN4082@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <3a0b4f67ae4a40b6fea2f61089ef03cc88f29294.1478890925.git.hns@goldelico.com>
-Sender: linux-input-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Mark Rutland <mark.rutland@arm.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Michael Welling <mwelling@ieee.org>, Mika =?iso-8859-1?Q?Penttil=E4?= <mika.penttila@nextfour.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Igor Grinberg <grinberg@compulab.co.il>, "Andrew F. Davis" <afd@ti.com>, Mark Brown <broonie@kernel.org>, Jonathan Cameron <jic23@kernel.org>, linux-input@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, letux-kernel@openphoenux.org, linux-iio@vger.kernel.org, kernel@pyra-handheld.c
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161115205816.GN4082-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 11, 2016 at 08:02:04PM +0100, H. Nikolaus Schaller wrote:
-> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
-> ---
->  Documentation/devicetree/bindings/input/{ => touchscreen}/ads7846.txt | 0
->  1 file changed, 0 insertions(+), 0 deletions(-)
->  rename Documentation/devicetree/bindings/input/{ => touchscreen}/ads7846.txt (100%)
+On Wednesday 16 November 2016 02:28 AM, Tony Lindgren wrote:
+> * Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org> [161115 00:35]:
+>> If pm_runtime_get_sync() fails due to callback error, then
+>> rpm_callback() sets dev.power.runtime_error to an error value which gets
+>> cleared by an explicit call to pm_runtime_set_suspended().
+>>
+>> This will tell the framework that the status of device is suspended.
+>> Else, the failure will be sticky and on subsequent attempts,
+>> rpm_resume() will keep returning early instead of trying to resume the
+>> device again.
+>>
+>> This is as far as I can gather from code. So, I believe the recovery
+>> path should be:
+>>
+>> 	if (error < 0) {
+>> 		pm_runtime_set_suspended(cdd->ddev.dev);
+>> 		pm_runtime_put_noidle(cdd->ddev.dev);
+>>
+>> 		...
 > 
-> diff --git a/Documentation/devicetree/bindings/input/ads7846.txt b/Documentation/devicetree/bindings/input/touchscreen/ads7846.txt
-> similarity index 100%
-> rename from Documentation/devicetree/bindings/input/ads7846.txt
-> rename to Documentation/devicetree/bindings/input/touchscreen/ads7846.txt
-> -- 
-> 2.7.3
+> Well we should test this :)
 
-Acked-by: Rob Herring <robh@kernel.org> 
+Yes, right! Was this patch created to fix an error in practice or just
+based on code review?
+
+> BTW, what other users of cppi41 do we have in addition to musb? I think
+> davinci is or will be using it too?
+
+The list Bin provided seems accurate.
+
+Thanks,
+Sekhar
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
