@@ -1,68 +1,77 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 2/2] ARM: am33xx.dtsi: Added syscon compatible prcm_dev
- device
-Date: Wed, 16 Nov 2016 09:14:42 -0800
-Message-ID: <20161116171442.GR4082@atomide.com>
-References: <3071466.kDDk30H73u@corpeters>
- <20161115173515.GL4082@atomide.com>
- <20161115173816.GM4082@atomide.com>
- <6861ab40-8727-86ab-17bc-6bb7dc3de30a@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <6861ab40-8727-86ab-17bc-6bb7dc3de30a-l0cyMroinI0@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Cc: Cor Peters <cpeters-JQzsJ8WnmGqc6Wr4J9gsBQC/G2K4zDHf@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: [PATCH] dmaengine: cppi41: More PM runtime fixes
+Date: Wed, 16 Nov 2016 10:24:15 -0800
+Message-ID: <20161116182415.3149-1-tony@atomide.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org> [161115 11:18]:
-> On 15/11/16 19:38, Tony Lindgren wrote:
-> > * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [161115 09:35]:
-> > > * Cor Peters <cpeters-JQzsJ8WnmGqc6Wr4J9gsBQC/G2K4zDHf@public.gmane.org> [161115 01:00]:
-> > > > This patch adds the PRM_DEV as a syscon compatible device to
-> > > > am33xx.dtsi. This is needed for the watchdog bootstatus patch.
-> > > 
-> > > We somehow need to see the bootreason for sure.. But we need to
-> > > check with Tero on the reset driver work too.
-> > > 
-> > > Tero, does setting up of PRM_DEVICE as syscon cause issues for
-> > > your reset driver work?
-> 
-> Good question, currently the reset driver is on hold waiting for hwmod /
-> interconnect work to nudge forward. We could probably try to even re-use the
-> syscon reset driver for OMAPs (drivers/reset/reset-ti-syscon.c); reset
-> handling is not performance critical as such, and we only have few sources
-> for these so...
-> 
-> > 
-> > The nightmare scenario is that we have drivers calling random
-> > syscon areas across various interconnect targets and then we have
-> > zero chance of getting genpd to ever to work properly.
-> 
-> Exporting this specific area exposes a few interesting features, like
-> performing a system wide reset or tweaking SRAM PM configs (preventing SRAM
-> LDOs from idling for example.)
-> 
-> > Do the reset drivers offer some way of exporting the reset status?
-> 
-> reset_control_status() can be used to read the reset status, this is however
-> mostly meant for checking if reset line is currently asserted or not. We
-> could in theory overload this for checking if reset has been asserted
-> previously or not (checking current status for watchdog reset doesn't make
-> much sense for example.)
+Fix use of u32 instead of int for checking for negative errors values
+as pointed out by Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>.
 
-OK in that case I'd prefer that we get the status from a reset driver.
-I think a minimal reset driver could be already done as a regular
-device driver that works also as a loadable module. It probably still
-needs some callback functions passed to it in platform_data via
-pdata-quirks.c though.
+And while testing the PM runtime error path by randomly returning
+failed values in runtime resume, I noticed two more places that need
+fixing:
 
-Regards,
+- If pm_runtime_get_sync() fails in probe, we still need to do
+  pm_runtime_put_sync() to keep the use count happy. We could call
+  pm_runtime_put_noidle() on the error path, but we're just going
+  to call pm_runtime_disable() after that so pm_runtime_put_sync()
+  will do what we want
 
-Tony
+- We should print an error if pm_runtime_get_sync() fails in
+  cppi41_dma_alloc_chan_resources() so we know where it happens
+
+Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Fixes: 740b4be3f742 ("dmaengine: cpp41: Fix handling of error path")
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/dma/cppi41.c | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
+--- a/drivers/dma/cppi41.c
++++ b/drivers/dma/cppi41.c
+@@ -317,11 +317,12 @@ static irqreturn_t cppi41_irq(int irq, void *data)
+ 
+ 		while (val) {
+ 			u32 desc, len;
++			int error;
+ 
+-			status = pm_runtime_get(cdd->ddev.dev);
+-			if (status < 0)
++			error = pm_runtime_get(cdd->ddev.dev);
++			if (error < 0)
+ 				dev_err(cdd->ddev.dev, "%s pm runtime get: %i\n",
+-					__func__, status);
++					__func__, error);
+ 
+ 			q_num = __fls(val);
+ 			val &= ~(1 << q_num);
+@@ -367,6 +368,8 @@ static int cppi41_dma_alloc_chan_resources(struct dma_chan *chan)
+ 
+ 	error = pm_runtime_get_sync(cdd->ddev.dev);
+ 	if (error < 0) {
++		dev_err(cdd->ddev.dev, "%s pm runtime get: %i\n",
++			__func__, error);
+ 		pm_runtime_put_noidle(cdd->ddev.dev);
+ 
+ 		return error;
+@@ -1072,8 +1075,8 @@ static int cppi41_dma_probe(struct platform_device *pdev)
+ 	deinit_cppi41(dev, cdd);
+ err_init_cppi:
+ 	pm_runtime_dont_use_autosuspend(dev);
+-	pm_runtime_put_sync(dev);
+ err_get_sync:
++	pm_runtime_put_sync(dev);
+ 	pm_runtime_disable(dev);
+ 	iounmap(cdd->usbss_mem);
+ 	iounmap(cdd->ctrl_mem);
+-- 
+2.10.2
 --
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
