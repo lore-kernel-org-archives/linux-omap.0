@@ -1,44 +1,36 @@
-From: Nicolae Rosia <Nicolae_Rosia@mentor.com>
-Subject: [PATCH 0/2] ASoC: omap-twl4030: remove legacy code
-Date: Tue, 15 Nov 2016 10:01:18 +0200
-Message-ID: <1479196880-20344-1-git-send-email-Nicolae_Rosia@mentor.com>
+From: Johan Hovold <johan@kernel.org>
+Subject: Re: [PATCH net v2 7/7] net: ethernet: ti: cpsw: fix fixed-link phy
+ probe deferral
+Date: Thu, 17 Nov 2016 18:19:20 +0100
+Message-ID: <20161117171920.GD10490@localhost>
+References: <1479400804-9847-1-git-send-email-johan@kernel.org>
+ <1479400804-9847-8-git-send-email-johan@kernel.org>
+ <20161117.120416.1443476818715961812.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: alsa-devel@alsa-project.org, Lee Jones <lee.jones@linaro.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, Nicolae Rosia <Nicolae_Rosia@mentor.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20161117.120416.1443476818715961812.davem@davemloft.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: johan@kernel.org, mugunthanvnm@ti.com, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch series removes the omap-twl4030 platform data since
-all users are now device tree based. 
+On Thu, Nov 17, 2016 at 12:04:16PM -0500, David Miller wrote:
+> From: Johan Hovold <johan@kernel.org>
+> Date: Thu, 17 Nov 2016 17:40:04 +0100
+> 
+> > Make sure to propagate errors from of_phy_register_fixed_link() which
+> > can fail with -EPROBE_DEFER.
+> > 
+> > Fixes: 1f71e8c96fc6 ("drivers: net: cpsw: Add support for fixed-link
+> > PHY")
+> > Signed-off-by: Johan Hovold <johan@kernel.org>
+> 
+> Johan, when you update a patch within a series you must post the
+> entire series freshly to the lists, cover posting and all.
 
-These patches are based on Tony's omap-for-v4.10/legacy branch [0]
-and also on [1].
+I'm quite sure that is exactly what I did. Did you only get this last
+patch out of the seven?
 
-[0] https://git.kernel.org/cgit/linux/kernel/git/tmlind/linux-omap.git/log/?h=omap-for-v4.10/legacy
-[1] https://patchwork.kernel.org/patch/9424067/
-
-Nicolae Rosia (2):
-  ASoC: omap-twl4030: rework probing for device tree only
-  mfd: twl4030-audio: make module DT only
-
- drivers/mfd/twl4030-audio.c                |  46 ++--------
- include/linux/i2c/twl.h                    |  23 -----
- include/linux/platform_data/omap-twl4030.h |  58 -------------
- sound/soc/codecs/twl4030.c                 |   8 ++
- sound/soc/omap/omap-twl4030.c              | 133 ++++++++++-------------------
- 5 files changed, 61 insertions(+), 207 deletions(-)
- delete mode 100644 include/linux/platform_data/omap-twl4030.h
-
--- 
-2.7.4
+Johan
