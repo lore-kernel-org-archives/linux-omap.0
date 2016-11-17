@@ -1,41 +1,55 @@
-From: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] dmaengine: cppi41: More PM runtime fixes
-Date: Thu, 17 Nov 2016 16:10:04 +0530
-Message-ID: <20161117104004.GE2698@localhost>
-References: <20161116182415.3149-1-tony@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH -next] ARM: dts: omap5: replace gpio-key,wakeup with
+ wakeup-source property
+Date: Thu, 17 Nov 2016 07:27:18 -0800
+Message-ID: <20161117152717.GS4082@atomide.com>
+References: <1479138250-17780-1-git-send-email-sudeep.holla@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20161116182415.3149-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1479138250-17780-1-git-send-email-sudeep.holla@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Nov 16, 2016 at 10:24:15AM -0800, Tony Lindgren wrote:
-> Fix use of u32 instead of int for checking for negative errors values
-> as pointed out by Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>.
-> 
-> And while testing the PM runtime error path by randomly returning
-> failed values in runtime resume, I noticed two more places that need
-> fixing:
-> 
-> - If pm_runtime_get_sync() fails in probe, we still need to do
->   pm_runtime_put_sync() to keep the use count happy. We could call
->   pm_runtime_put_noidle() on the error path, but we're just going
->   to call pm_runtime_disable() after that so pm_runtime_put_sync()
->   will do what we want
-> 
-> - We should print an error if pm_runtime_get_sync() fails in
->   cppi41_dma_alloc_chan_resources() so we know where it happens
-
-Applied now. Would have been ideal if the patches were split per fix
-
-Thanks
--- 
-~Vinod
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+KiBTdWRlZXAgSG9sbGEgPHN1ZGVlcC5ob2xsYUBhcm0uY29tPiBbMTYxMTE0IDA3OjQ0XToKPiBU
+aG91Z2ggdGhlIGtleWJvYXJkIGRyaXZlciBmb3IgR1BJTyBidXR0b25zKGdwaW8ta2V5cykgd2ls
+bCBjb250aW51ZSB0bwo+IGNoZWNrIGZvci9zdXBwb3J0IHRoZSBsZWdhY3kgImdwaW8ta2V5LHdh
+a2V1cCIgYm9vbGVhbiBwcm9wZXJ0eSB0bwo+IGVuYWJsZSBncGlvIGJ1dHRvbnMgYXMgd2FrZXVw
+IHNvdXJjZSwgIndha2V1cC1zb3VyY2UiIGlzIHRoZSBuZXcKPiBzdGFuZGFyZCBiaW5kaW5nLgo+
+IAo+IFRoaXMgcGF0Y2ggcmVwbGFjZXMgdGhlIGxlZ2FjeSAiZ3Bpby1rZXksd2FrZXVwIiB3aXRo
+IHRoZSB1bmlmaWVkCj4gIndha2V1cC1zb3VyY2UiIHByb3BlcnR5IGluIG9yZGVyIHRvIGF2b2lk
+IGFueSBmdXJ0aGVyIGNvcHktcGFzdGUKPiBkdXBsaWNhdGlvbi4KPiAKPiBDYzogIkJlbm/DrnQg
+Q291c3NvbiIgPGJjb3Vzc29uQGJheWxpYnJlLmNvbT4KPiBDYzogVG9ueSBMaW5kZ3JlbiA8dG9u
+eUBhdG9taWRlLmNvbT4KPiBTaWduZWQtb2ZmLWJ5OiBTdWRlZXAgSG9sbGEgPHN1ZGVlcC5ob2xs
+YUBhcm0uY29tPgo+IC0tLQo+ICBhcmNoL2FybS9ib290L2R0cy9vbWFwNS11ZXZtLmR0cyB8IDIg
+Ky0KPiAgMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspLCAxIGRlbGV0aW9uKC0pCj4gCj4g
+SGksCj4gCj4gSW5zcGl0ZSBvZiBnZXR0aW5nIHJpZCBvZiBtb3N0IG9mIHRoZSBsZWdhY3kgcHJv
+cGVydHkgYWxtb3N0IGEgeWVhciBhZ28sCj4gYWRkaXRpb24gb2YgbmV3IHBsYXRmb3JtcyBoYXZl
+IGJyb3VnaHQgdGhpcyBiYWNrIGFuZCBvdmVyIHRpbWUgaXQncwo+IG5vdyBmb3VuZCBhZ2FpbiBp
+biBmZXcgcGxhY2VzLiBKdXN0IGdldCByaWQgb2YgdGhlbSAqYWdhaW4qCgpUaGFua3MgZm9yIHRo
+ZSBhbm51YWwgY2hlY2sgdXAgOikKCkFja2VkLWJ5OiBUb255IExpbmRncmVuIDx0b255QGF0b21p
+ZGUuY29tPgoKUGxlYXNlIGxldCBtZSBrbm93IGlmIHlvdSB3YW50IG1lIHRvIHBpY2sgdGhpcyB1
+cCBpbnN0ZWFkLgoKPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5k
+dHMgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNS11ZXZtLmR0cwo+IGluZGV4IDJmY2RjNTE2ZGE0
+NS4uYThjNzI2MTFmYmUzIDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LXVl
+dm0uZHRzCj4gKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMKPiBAQCAtNDEs
+NyArNDEsNyBAQAo+ICAJCQlsYWJlbCA9ICJCVE4xIjsKPiAgCQkJbGludXgsY29kZSA9IDwxNjk+
+Owo+ICAJCQlncGlvcyA9IDwmZ3BpbzMgMTkgR1BJT19BQ1RJVkVfTE9XPjsJLyogZ3BpbzNfODMg
+Ki8KPiAtCQkJZ3Bpby1rZXksd2FrZXVwOwo+ICsJCQl3YWtldXAtc291cmNlOwo+ICAJCQlhdXRv
+cmVwZWF0Owo+ICAJCQlkZWJvdW5jZV9pbnRlcnZhbCA9IDw1MD47Cj4gIAkJfTsKPiAtLQo+IDIu
+Ny40Cj4gCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwps
+aW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJh
+ZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51
+eC1hcm0ta2VybmVsCg==
