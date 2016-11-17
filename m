@@ -1,44 +1,52 @@
-From: Nicolae Rosia <nicolae.rosia.oss@gmail.com>
-Subject: Re: [PATCH] mfd: twl-core: make driver DT only
-Date: Sun, 20 Nov 2016 14:57:24 +0200
-Message-ID: <CAKP5S=1R0otWP_YFRn-jL8Q0HhPLhqy1YeF2m0CxFdbHLQGUng@mail.gmail.com>
-References: <1478952153-26592-1-git-send-email-Nicolae_Rosia@mentor.com>
- <20161118190115.GB23246@dell.home>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 1/2] dmaengine: dma_slave_config: add support for slave port window
+Date: Thu, 17 Nov 2016 14:50:16 +0200
+Message-ID: <20161117125017.14954-2-peter.ujfalusi@ti.com>
+References: <20161117125017.14954-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20161118190115.GB23246@dell.home>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Nicolae Rosia <Nicolae_Rosia@mentor.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161117125017.14954-1-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: vinod.koul@intel.com, dan.j.williams@intel.com, tony@atomide.com, linux@armlinux.org.uk
+Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, arnd@arndb.de
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Some slave devices uses address window instead of single register for read
+and/or write of data. With the src/dst_port_window_size the address window
+can be specified and the DMAengine driver should use this information to
+correctly set up the transfer to loop within the provided window.
 
-On Fri, Nov 18, 2016 at 9:01 PM, Lee Jones <lee.jones@linaro.org> wrote:
-> On Sat, 12 Nov 2016, Nicolae Rosia wrote:
->
->> All users are DT-only and it makes no sense to keep
->> unused code
->>
->> Signed-off-by: Nicolae Rosia <Nicolae_Rosia@mentor.com>
->> ---
->>  drivers/mfd/Kconfig    |   1 +
->>  drivers/mfd/twl-core.c | 395 ++-----------------------------------------------
->>  2 files changed, 10 insertions(+), 386 deletions(-)
->
-> I think it would be courteous to add some of the serious contributors
-> to the review list.
->
-> There may still be some out of tree users who might wish for a
-> heads-up that this change is about to be merged.
-Thanks, sure, I will do that in v2.
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ include/linux/dmaengine.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+index cc535a478bae..689d44327ef3 100644
+--- a/include/linux/dmaengine.h
++++ b/include/linux/dmaengine.h
+@@ -336,6 +336,12 @@ enum dma_slave_buswidth {
+  * may or may not be applicable on memory sources.
+  * @dst_maxburst: same as src_maxburst but for destination target
+  * mutatis mutandis.
++ * @src_port_window_size: The length of the register area the data need to be
++ * written on the device side. It is only used for devices which is using an
++ * area instead of a single register to receive the data. Typically the DMA
++ * loops in this area in order to transfer the data.
++ * @dst_port_window_size: same as src_port_window_size but for the destination
++ * port.
+  * @device_fc: Flow Controller Settings. Only valid for slave channels. Fill
+  * with 'true' if peripheral should be flow controller. Direction will be
+  * selected at Runtime.
+@@ -363,6 +369,8 @@ struct dma_slave_config {
+ 	enum dma_slave_buswidth dst_addr_width;
+ 	u32 src_maxburst;
+ 	u32 dst_maxburst;
++	u32 src_port_window_size;
++	u32 dst_port_window_size;
+ 	bool device_fc;
+ 	unsigned int slave_id;
+ };
+-- 
+2.10.2
