@@ -1,66 +1,41 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: Re: [PATCH net 1/7] net: ethernet: ti: cpsw: fix bad register access
- in probe error path
-Date: Thu, 17 Nov 2016 10:41:03 +0100
-Message-ID: <20161117094103.GB21237@localhost>
-References: <1479306916-27673-1-git-send-email-johan@kernel.org>
- <1479306916-27673-2-git-send-email-johan@kernel.org>
- <664c1f10-dd31-8566-852f-ee5ca0b5c46e@ti.com>
+From: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] dmaengine: cppi41: More PM runtime fixes
+Date: Thu, 17 Nov 2016 16:10:04 +0530
+Message-ID: <20161117104004.GE2698@localhost>
+References: <20161116182415.3149-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <664c1f10-dd31-8566-852f-ee5ca0b5c46e@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Johan Hovold <johan@kernel.org>, Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20161116182415.3149-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Nov 16, 2016 at 02:33:18PM -0600, Grygorii Strashko wrote:
-> On 11/16/2016 08:35 AM, Johan Hovold wrote:
-> > Make sure to resume the platform device to enable clocks before
-> > accessing the CPSW registers in the probe error path (e.g. for deferred
-> > probe).
-> > 
-> > Unhandled fault: external abort on non-linefetch (0x1008) at 0xd0872d08
-> > ...
-> > [<c04fabcc>] (cpsw_ale_control_set) from [<c04fb8b4>] (cpsw_ale_destroy+0x2c/0x44)
-> > [<c04fb8b4>] (cpsw_ale_destroy) from [<c04fea58>] (cpsw_probe+0xbd0/0x10c4)
-> > [<c04fea58>] (cpsw_probe) from [<c047b2a0>] (platform_drv_probe+0x5c/0xc0)
-> > 
-> > Note that in the unlikely event of a runtime-resume failure, we'll leak
-> > the ale struct.
-> > 
-> > Fixes: df828598a755 ("netdev: driver: ethernet: Add TI CPSW driver")
-> > Signed-off-by: Johan Hovold <johan@kernel.org>
-> > ---
-> >  drivers/net/ethernet/ti/cpsw.c | 7 ++++++-
-> >  1 file changed, 6 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> > index c6cff3d2ff05..5bc5e6189661 100644
-> > --- a/drivers/net/ethernet/ti/cpsw.c
-> > +++ b/drivers/net/ethernet/ti/cpsw.c
-> > @@ -2818,7 +2818,12 @@ static int cpsw_probe(struct platform_device *pdev)
-> >  	return 0;
-> >  
-> >  clean_ale_ret:
-> > -	cpsw_ale_destroy(cpsw->ale);
-> > +	if (pm_runtime_get_sync(&pdev->dev) < 0) {
-> > +		pm_runtime_put_noidle(&pdev->dev);
-> > +	} else {
-> > +		cpsw_ale_destroy(cpsw->ale);
-> > +		pm_runtime_put_sync(&pdev->dev);
-> > +	}
-> >  clean_dma_ret:
-> >  	cpdma_ctlr_destroy(cpsw->dma);
-> >  clean_runtime_disable_ret:
-> > 
+On Wed, Nov 16, 2016 at 10:24:15AM -0800, Tony Lindgren wrote:
+> Fix use of u32 instead of int for checking for negative errors values
+> as pointed out by Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>.
 > 
-> I think, wouldn't it be logically more simple to just keep CPSW PM
-> runtime enabled during probe?
+> And while testing the PM runtime error path by randomly returning
+> failed values in runtime resume, I noticed two more places that need
+> fixing:
+> 
+> - If pm_runtime_get_sync() fails in probe, we still need to do
+>   pm_runtime_put_sync() to keep the use count happy. We could call
+>   pm_runtime_put_noidle() on the error path, but we're just going
+>   to call pm_runtime_disable() after that so pm_runtime_put_sync()
+>   will do what we want
+> 
+> - We should print an error if pm_runtime_get_sync() fails in
+>   cppi41_dma_alloc_chan_resources() so we know where it happens
 
-Indeed it would. I'll do that in a v2.
+Applied now. Would have been ideal if the patches were split per fix
 
-Thanks,
-Johan
+Thanks
+-- 
+~Vinod
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
