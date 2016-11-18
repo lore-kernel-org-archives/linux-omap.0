@@ -1,27 +1,71 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/7] ARM: dts: am335x-icev2: Add Industrial input support
-Date: Fri, 18 Nov 2016 07:08:06 -0800
-Message-ID: <20161118150805.GU4082@atomide.com>
-References: <20161007144428.16671-1-afd@ti.com>
- <7095f8b0-efdb-6187-7580-43e8a0fa2cf3@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 5/8] dt-bindings: mfd: Provide human readable defines
+ for TPS65217 interrupts
+Date: Fri, 18 Nov 2016 07:10:52 -0800
+Message-ID: <20161118151051.GV4082@atomide.com>
+References: <20161028123702.21849-1-woogyom.kim@gmail.com>
+ <20161028123702.21849-6-woogyom.kim@gmail.com>
+ <20161118145353.GE2301@dell.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <7095f8b0-efdb-6187-7580-43e8a0fa2cf3-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20161118145353.GE2301@dell.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Milo Kim <woogyom.kim@gmail.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Andrew F. Davis <afd-l0cyMroinI0@public.gmane.org> [161118 07:00]:
-> ping?
+* Lee Jones <lee.jones@linaro.org> [161118 06:51]:
+> On Fri, 28 Oct 2016, Milo Kim wrote:
+> 
+> > TPS65217 supports three interrupt sources. This patch enables assigning
+> > each IRQ number in the charger and power button node. Then corresponding
+> > IRQ will be requested by each driver.
+> > 
+> > Signed-off-by: Milo Kim <woogyom.kim@gmail.com>
+> > ---
+> >  include/dt-bindings/mfd/tps65217.h | 26 ++++++++++++++++++++++++++
+> >  1 file changed, 26 insertions(+)
+> >  create mode 100644 include/dt-bindings/mfd/tps65217.h
+> > 
+> > diff --git a/include/dt-bindings/mfd/tps65217.h b/include/dt-bindings/mfd/tps65217.h
+> > new file mode 100644
+> > index 0000000..cafb9e6
+> > --- /dev/null
+> > +++ b/include/dt-bindings/mfd/tps65217.h
+> > @@ -0,0 +1,26 @@
+> > +/*
+> > + * This header provides macros for TI TPS65217 DT bindings.
+> > + *
+> > + * Copyright (C) 2016 Texas Instruments
+> > + *
+> > + * This program is free software; you can redistribute it and/or modify
+> > + * it under the terms of the GNU General Public License version 2 as
+> > + * published by the Free Software Foundation.
+> > + *
+> > + * This program is distributed in the hope that it will be useful, but
+> > + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> > + * General Public License for more details.
+> > + *
+> > + * You should have received a copy of the GNU General Public License along with
+> > + * this program.  If not, see <http://www.gnu.org/licenses/>.
+> > + */
+> > +
+> > +#ifndef __DT_BINDINGS_TPS65217_H__
+> > +#define __DT_BINDINGS_TPS65217_H__
+> > +
+> > +#define TPS65217_IRQ_USB	0
+> > +#define TPS65217_IRQ_AC		1
+> > +#define TPS65217_IRQ_PB		2
+> 
+> What are "AC" and "PB".  Seeing as these are meant to be "human
+> readable", let's make them more human friendly.
 
-Sorry somehow I missed this series, looks good to me so applying
-to omap-for-v4.10/dt thanks.
+Good idea. Milo, please do an incremental single follow-up patch as
+I already have applied this and the dts changes using it.
+
+Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
