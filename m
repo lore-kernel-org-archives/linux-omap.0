@@ -1,14 +1,14 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] add #pinctrl-cells for v4.10
-Date: Fri, 18 Nov 2016 09:56:29 -0800
-Message-ID: <20161118175629.GC8882@localhost>
-References: <582a5813.1bc0620a.e65a9.b2cbSMTPIN_ADDED_BROKEN@mx.google.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH] mfd: twl-core: export twl_get_regmap
+Date: Fri, 18 Nov 2016 18:55:48 +0000
+Message-ID: <20161118185548.GA23246@dell.home>
+References: <1478950693-13959-1-git-send-email-Nicolae_Rosia@mentor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <582a5813.1bc0620a.e65a9.b2cbSMTPIN_ADDED_BROKEN@mx.google.com>
+In-Reply-To: <1478950693-13959-1-git-send-email-Nicolae_Rosia@mentor.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,37 +18,40 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+To: Nicolae Rosia <Nicolae_Rosia@mentor.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Mon, Nov 14, 2016 at 04:34:19PM -0800, Tony Lindgren wrote:
-> The following changes since commit 1001354ca34179f3db924eb66672442a173147dc:
-> 
->   Linux 4.9-rc1 (2016-10-15 12:17:50 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.10/pinctrl-cells-signed
-> 
-> for you to fetch changes up to be76fd3197df608e1b010bf5ab90377205f54344:
-> 
->   ARM: dts: Add #pinctrl-cells for pinctrl-single instances (2016-11-07 08:27:49 -0700)
-> 
-> ----------------------------------------------------------------
-> Add #pinctrl-cells for pinctrl-single using dts files. This allows
-> us to use generic parser later on. Note that the driver supports
-> handling the legacy binding also with no #pinctrl-cells so these
-> changes can be queued separately from the driver changes.
-
-You forgot to make one commit per file to maximize your patch contribution
-count! :-)
-
-Merged, but note that we normally keep arm64 and arm DT updates
-separate. I'm gambling on not seeing any conflicts on the hi6220 dtsi
-this time around though, and took it in as-is.
-
-
--Olof
+T24gU2F0LCAxMiBOb3YgMjAxNiwgTmljb2xhZSBSb3NpYSB3cm90ZToKCj4gV2Ugd2FudCB0byBn
+ZXQgcmlkIG9mIGdsb2JhbCB0d2xfaTJjX3t3cml0ZS9yZWFkfS4KPiBBcyBhIGZpcnN0IHN0ZXAs
+IGFsbG93IGNsaWVudHMgdG8gZ2V0IHRoZSByZWdtYXAgYW5kIHdyaXRlIGRpcmVjdGx5CgpXaGF0
+J3Mgc3RvcHBpbmcgeW91IGZyb20gcGFzc2luZyBpdCB0aHJvdWdoIGRldmljZSBkYXRhPwoKPiBT
+aWduZWQtb2ZmLWJ5OiBOaWNvbGFlIFJvc2lhIDxOaWNvbGFlX1Jvc2lhQG1lbnRvci5jb20+Cj4g
+LS0tCj4gIGRyaXZlcnMvbWZkL3R3bC1jb3JlLmMgIHwgMyArKy0KPiAgaW5jbHVkZS9saW51eC9p
+MmMvdHdsLmggfCAyICsrCj4gIDIgZmlsZXMgY2hhbmdlZCwgNCBpbnNlcnRpb25zKCspLCAxIGRl
+bGV0aW9uKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWZkL3R3bC1jb3JlLmMgYi9kcml2
+ZXJzL21mZC90d2wtY29yZS5jCj4gaW5kZXggYzY0NjE1ZC4uNDllNmE0YiAxMDA2NDQKPiAtLS0g
+YS9kcml2ZXJzL21mZC90d2wtY29yZS5jCj4gKysrIGIvZHJpdmVycy9tZmQvdHdsLWNvcmUuYwo+
+IEBAIC00MjEsNyArNDIxLDcgQEAgRVhQT1JUX1NZTUJPTCh0d2xfcmV2KTsKPiAgICoKPiAgICog
+UmV0dXJucyB0aGUgcmVnbWFwIHBvaW50ZXIgb3IgTlVMTCBpbiBjYXNlIG9mIGZhaWx1cmUuCj4g
+ICAqLwo+IC1zdGF0aWMgc3RydWN0IHJlZ21hcCAqdHdsX2dldF9yZWdtYXAodTggbW9kX25vKQo+
+ICtzdHJ1Y3QgcmVnbWFwICp0d2xfZ2V0X3JlZ21hcCh1OCBtb2Rfbm8pCj4gIHsKPiAgCWludCBz
+aWQ7Cj4gIAlzdHJ1Y3QgdHdsX2NsaWVudCAqdHdsOwo+IEBAIC00NDAsNiArNDQwLDcgQEAgc3Rh
+dGljIHN0cnVjdCByZWdtYXAgKnR3bF9nZXRfcmVnbWFwKHU4IG1vZF9ubykKPiAgCj4gIAlyZXR1
+cm4gdHdsLT5yZWdtYXA7Cj4gIH0KPiArRVhQT1JUX1NZTUJPTCh0d2xfZ2V0X3JlZ21hcCk7Cj4g
+IAo+ICAvKioKPiAgICogdHdsX2kyY193cml0ZSAtIFdyaXRlcyBhIG4gYml0IHJlZ2lzdGVyIGlu
+IFRXTDQwMzAvVFdMNTAzMC9UV0w2MFgwCj4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvaTJj
+L3R3bC5oIGIvaW5jbHVkZS9saW51eC9pMmMvdHdsLmgKPiBpbmRleCA5YWQ3ODI4Li40YzQzY2Ri
+MyAxMDA2NDQKPiAtLS0gYS9pbmNsdWRlL2xpbnV4L2kyYy90d2wuaAo+ICsrKyBiL2luY2x1ZGUv
+bGludXgvaTJjL3R3bC5oCj4gQEAgLTE3NCw2ICsxNzQsOCBAQCBzdGF0aWMgaW5saW5lIGludCB0
+d2xfY2xhc3NfaXNfICMjY2xhc3Modm9pZCkJXAo+ICBUV0xfQ0xBU1NfSVMoNDAzMCwgVFdMNDAz
+MF9DTEFTU19JRCkKPiAgVFdMX0NMQVNTX0lTKDYwMzAsIFRXTDYwMzBfQ0xBU1NfSUQpCj4gIAo+
+ICtzdHJ1Y3QgcmVnbWFwICp0d2xfZ2V0X3JlZ21hcCh1OCBtb2Rfbm8pOwo+ICsKPiAgLyogU2V0
+IHRoZSByZWdjYWNoZSBieXBhc3MgZm9yIHRoZSByZWdtYXAgYXNzb2NpYXRlZCB3aXRoIHRoZSBu
+b2R1bGUgKi8KPiAgaW50IHR3bF9zZXRfcmVnY2FjaGVfYnlwYXNzKHU4IG1vZF9ubywgYm9vbCBl
+bmFibGUpOwo+ICAKCi0tIApMZWUgSm9uZXMKTGluYXJvIFNUTWljcm9lbGVjdHJvbmljcyBMYW5k
+aW5nIFRlYW0gTGVhZApMaW5hcm8ub3JnIOKUgiBPcGVuIHNvdXJjZSBzb2Z0d2FyZSBmb3IgQVJN
+IFNvQ3MKRm9sbG93IExpbmFybzogRmFjZWJvb2sgfCBUd2l0dGVyIHwgQmxvZwoKX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBt
+YWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9s
+aXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
