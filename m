@@ -1,47 +1,49 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: Re: [PATCH net v2 7/7] net: ethernet: ti: cpsw: fix fixed-link phy
- probe deferral
-Date: Fri, 18 Nov 2016 10:33:10 +0100
-Message-ID: <20161118093310.GE10490@localhost>
-References: <1479400804-9847-1-git-send-email-johan@kernel.org>
- <1479400804-9847-8-git-send-email-johan@kernel.org>
- <20161117.120416.1443476818715961812.davem@davemloft.net>
- <20161117171920.GD10490@localhost>
+From: Lucas Stach <l.stach-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: Re: [RFC 5/6] ARM: dts: dra7: add vivante for bb2d module
+Date: Fri, 18 Nov 2016 11:55:59 +0100
+Message-ID: <1479466559.20533.3.camel@pengutronix.de>
+References: <20161118024436.13447-1-robertcnelson@gmail.com>
+         <20161118024436.13447-5-robertcnelson@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161117171920.GD10490@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: johan@kernel.org, mugunthanvnm@ti.com, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161118024436.13447-5-robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Julien <jboulnois-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 17, 2016 at 06:19:20PM +0100, Johan Hovold wrote:
-> On Thu, Nov 17, 2016 at 12:04:16PM -0500, David Miller wrote:
-> > From: Johan Hovold <johan@kernel.org>
-> > Date: Thu, 17 Nov 2016 17:40:04 +0100
-> > 
-> > > Make sure to propagate errors from of_phy_register_fixed_link() which
-> > > can fail with -EPROBE_DEFER.
-> > > 
-> > > Fixes: 1f71e8c96fc6 ("drivers: net: cpsw: Add support for fixed-link
-> > > PHY")
-> > > Signed-off-by: Johan Hovold <johan@kernel.org>
-> > 
-> > Johan, when you update a patch within a series you must post the
-> > entire series freshly to the lists, cover posting and all.
+Am Donnerstag, den 17.11.2016, 20:44 -0600 schrieb Robert Nelson:
+> Signed-off-by: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> CC: Julien <jboulnois-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> CC: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> CC: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+> CC: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> ---
+>  arch/arm/boot/dts/dra7.dtsi | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> I'm quite sure that is exactly what I did. Did you only get this last
-> patch out of the seven?
+> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+> index 43488b6..22bd0a5 100644
+> --- a/arch/arm/boot/dts/dra7.dtsi
+> +++ b/arch/arm/boot/dts/dra7.dtsi
+> @@ -960,7 +960,7 @@
+>  		};
+>  
+>  		bb2d: bb2d@59000000 {
+> -			compatible = "ti,dra7-bb2d";
+> +			compatible = "ti,dra7-bb2d","vivante,gc";
 
-The full series has made it to the lists:
+This is what the driver expects as a compatible, but it's not consistent
+with the DT documentation patch you sent. As the driver can work out the
+HW version from the identification registers I would say fix your DT
+binding to only require "vivante,gc"
 
-	https://marc.info/?l=linux-netdev&m=147940433115984&w=2
+Regards,
+Lucas
 
-Perhaps some messages just got held up.
-
-Let me know if you still want me to resend.
-
-Thanks,
-Johan
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
