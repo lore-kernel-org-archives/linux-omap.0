@@ -1,58 +1,39 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC 6/6] ARM: dts: am57xx-beagle-x15-common: enable etnaviv
-Date: Fri, 18 Nov 2016 10:42:10 -0600
-Message-ID: <20161118164210.xumqsn3gfd54vv5g@rob-hp-laptop>
-References: <20161118024436.13447-1-robertcnelson@gmail.com>
- <20161118024436.13447-6-robertcnelson@gmail.com>
- <e69a797c-bec3-2243-5c19-9d7633092369@ti.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net v2 7/7] net: ethernet: ti: cpsw: fix fixed-link phy
+ probe deferral
+Date: Fri, 18 Nov 2016 13:48:05 -0500 (EST)
+Message-ID: <20161118.134805.1178638605544036871.davem@davemloft.net>
+References: <1479400804-9847-8-git-send-email-johan@kernel.org>
+        <20161117.120416.1443476818715961812.davem@davemloft.net>
+        <20161117171920.GD10490@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <e69a797c-bec3-2243-5c19-9d7633092369-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Julien <jboulnois-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161117171920.GD10490@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: johan@kernel.org
+Cc: mugunthanvnm@ti.com, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 17, 2016 at 08:56:18PM -0600, Nishanth Menon wrote:
-> On 11/17/2016 08:44 PM, Robert Nelson wrote:
-> again.. a short commit message at least please? :)
+From: Johan Hovold <johan@kernel.org>
+Date: Thu, 17 Nov 2016 18:19:20 +0100
+
+> On Thu, Nov 17, 2016 at 12:04:16PM -0500, David Miller wrote:
+>> From: Johan Hovold <johan@kernel.org>
+>> Date: Thu, 17 Nov 2016 17:40:04 +0100
+>> 
+>> > Make sure to propagate errors from of_phy_register_fixed_link() which
+>> > can fail with -EPROBE_DEFER.
+>> > 
+>> > Fixes: 1f71e8c96fc6 ("drivers: net: cpsw: Add support for fixed-link
+>> > PHY")
+>> > Signed-off-by: Johan Hovold <johan@kernel.org>
+>> 
+>> Johan, when you update a patch within a series you must post the
+>> entire series freshly to the lists, cover posting and all.
 > 
-> > Signed-off-by: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> > CC: Julien <jboulnois-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> > CC: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-> > CC: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-> > CC: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> > ---
-> >  arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi | 11 +++++++++++
-> >  1 file changed, 11 insertions(+)
-> > 
-> > diff --git a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
-> > index 6df7829..3bc47be 100644
-> > --- a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
-> > +++ b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
-> > @@ -97,6 +97,12 @@
-> >  		#cooling-cells = <2>;
-> >  	};
-> > 
-> > +	gpu-subsystem {
-> A) do we want to make things clear that this is gpu subsystem for gc320?
+> I'm quite sure that is exactly what I did. Did you only get this last
+> patch out of the seven?
 
-No.
-
-> B) How about other platforms that could equally reuse?
-
-Better yet, get rid of this nonsense. You are defining a wrapper to 
-group 1 nodes. Yes, I know this is what the driver wants, but you should 
-be able to make it deal with this situation and only have a gc320 node.
-
-> > +		compatible = "ti,gc320-gpu-subsystem";
-> > +		cores = <&bb2d>;
-> > +		status = "okay";
-> > +	};
-> > +
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I ended up getting it delayed, thanks.
