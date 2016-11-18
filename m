@@ -1,7 +1,7 @@
 From: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [RFC 3/6] Documentation: dt: add bindings for ti bb2d
-Date: Thu, 17 Nov 2016 20:44:33 -0600
-Message-ID: <20161118024436.13447-3-robertcnelson@gmail.com>
+Subject: [RFC 4/6] ARM: dts: dra7: add entry for bb2d module
+Date: Thu, 17 Nov 2016 20:44:34 -0600
+Message-ID: <20161118024436.13447-4-robertcnelson@gmail.com>
 References: <20161118024436.13447-1-robertcnelson@gmail.com>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161118024436.13447-1-robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
@@ -12,49 +12,36 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Gowtham Tammana <g-tammana-l0cyMroinI0@public.gmane.org>
 
-Add documentation for device tree bindings description for
-2D GPU blitter module present in Texas Instruments family of SoCs.
+BB2D entry is added to the dts file. Crossbar index number is used
+for interrupt mapping.
 
 Signed-off-by: Gowtham Tammana <g-tammana-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
 ---
- Documentation/devicetree/bindings/gpu/ti-bb2d.txt | 27 +++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/gpu/ti-bb2d.txt
+ arch/arm/boot/dts/dra7.dtsi | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/gpu/ti-bb2d.txt b/Documentation/devicetree/bindings/gpu/ti-bb2d.txt
-new file mode 100644
-index 0000000..af47488
---- /dev/null
-+++ b/Documentation/devicetree/bindings/gpu/ti-bb2d.txt
-@@ -0,0 +1,27 @@
-+* Texas Instruments BB2D blitter module
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index addb753..43488b6 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -959,6 +959,16 @@
+ 			ti,hwmods = "dmm";
+ 		};
+ 
++		bb2d: bb2d@59000000 {
++			compatible = "ti,dra7-bb2d";
++			reg = <0x59000000 0x0700>;
++			interrupts = <GIC_SPI 120 IRQ_TYPE_LEVEL_HIGH>;
++			ti,hwmods = "bb2d";
++			clocks = <&dpll_core_h24x2_ck>;
++			clock-names = "fclk";
++			status = "disabled";
++		};
 +
-+This binding describes the 2D BitBlit (BB2D) graphics accelerator
-+subsystem based on the GC320 core from Vivante Corporation available
-+in Texas Instruments SoCs.
-+
-+Required properties:
-+  - compatible: value should take the following format:
-+        "ti,<soc>-bb2d", "vivante,<gpuversion>"
-+    accepted values:
-+     (a) "ti,dra7-bb2d", "vivante,gc320" for TI DRA7xx / AM57x
-+
-+  - reg : base address and length of BB2D IP registers
-+  - interrupts : BB2D interrupt line number
-+  - ti,hwmods : name of the hwmod associated with BB2D module
-+  - clocks : handle to BB2D functional clock
-+  - clock-names : fclk
-+
-+Example for DRA7x SoC:
-+        bb2d: bb2d@59000000 {
-+            compatible = "ti,dra7-bb2d", "vivante,gc320";
-+            reg = <0x59000000 0x0700>;
-+            interrupts = <GIC_SPI 120 IRQ_TYPE_LEVEL_HIGH>;
-+            ti,hwmods = "bb2d";
-+            clocks = <&dpll_core_h24x2_ck>;
-+            clock-names = "fclk";
-+        };
+ 		i2c1: i2c@48070000 {
+ 			compatible = "ti,omap4-i2c";
+ 			reg = <0x48070000 0x100>;
 -- 
 2.10.2
 
