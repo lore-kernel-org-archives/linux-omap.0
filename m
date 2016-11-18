@@ -1,71 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 5/8] dt-bindings: mfd: Provide human readable defines
- for TPS65217 interrupts
-Date: Fri, 18 Nov 2016 07:10:52 -0800
-Message-ID: <20161118151051.GV4082@atomide.com>
-References: <20161028123702.21849-1-woogyom.kim@gmail.com>
- <20161028123702.21849-6-woogyom.kim@gmail.com>
- <20161118145353.GE2301@dell.home>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC 2/6] drm/etnaviv: allow building etnaviv on omap devices
+Date: Fri, 18 Nov 2016 10:33:42 -0600
+Message-ID: <20161118163342.5t2tbsw54k2gmqe3@rob-hp-laptop>
+References: <20161118024436.13447-1-robertcnelson@gmail.com>
+ <20161118024436.13447-2-robertcnelson@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161118145353.GE2301@dell.home>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Milo Kim <woogyom.kim@gmail.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>
+In-Reply-To: <20161118024436.13447-2-robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christian Gmeiner <christian.gmeiner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Lucas Stach <l.stach-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Lee Jones <lee.jones@linaro.org> [161118 06:51]:
-> On Fri, 28 Oct 2016, Milo Kim wrote:
+On Thu, Nov 17, 2016 at 08:44:32PM -0600, Robert Nelson wrote:
+> Signed-off-by: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> CC: Christian Gmeiner <christian.gmeiner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> CC: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+> CC: Lucas Stach <l.stach-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+> ---
+>  drivers/gpu/drm/etnaviv/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> > TPS65217 supports three interrupt sources. This patch enables assigning
-> > each IRQ number in the charger and power button node. Then corresponding
-> > IRQ will be requested by each driver.
-> > 
-> > Signed-off-by: Milo Kim <woogyom.kim@gmail.com>
-> > ---
-> >  include/dt-bindings/mfd/tps65217.h | 26 ++++++++++++++++++++++++++
-> >  1 file changed, 26 insertions(+)
-> >  create mode 100644 include/dt-bindings/mfd/tps65217.h
-> > 
-> > diff --git a/include/dt-bindings/mfd/tps65217.h b/include/dt-bindings/mfd/tps65217.h
-> > new file mode 100644
-> > index 0000000..cafb9e6
-> > --- /dev/null
-> > +++ b/include/dt-bindings/mfd/tps65217.h
-> > @@ -0,0 +1,26 @@
-> > +/*
-> > + * This header provides macros for TI TPS65217 DT bindings.
-> > + *
-> > + * Copyright (C) 2016 Texas Instruments
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License version 2 as
-> > + * published by the Free Software Foundation.
-> > + *
-> > + * This program is distributed in the hope that it will be useful, but
-> > + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> > + * General Public License for more details.
-> > + *
-> > + * You should have received a copy of the GNU General Public License along with
-> > + * this program.  If not, see <http://www.gnu.org/licenses/>.
-> > + */
-> > +
-> > +#ifndef __DT_BINDINGS_TPS65217_H__
-> > +#define __DT_BINDINGS_TPS65217_H__
-> > +
-> > +#define TPS65217_IRQ_USB	0
-> > +#define TPS65217_IRQ_AC		1
-> > +#define TPS65217_IRQ_PB		2
+> diff --git a/drivers/gpu/drm/etnaviv/Kconfig b/drivers/gpu/drm/etnaviv/Kconfig
+> index 2cde7a5..b776f41 100644
+> --- a/drivers/gpu/drm/etnaviv/Kconfig
+> +++ b/drivers/gpu/drm/etnaviv/Kconfig
+> @@ -2,7 +2,7 @@
+>  config DRM_ETNAVIV
+>  	tristate "ETNAVIV (DRM support for Vivante GPU IP cores)"
+>  	depends on DRM
+> -	depends on ARCH_MXC || ARCH_DOVE
+> +	depends on ARCH_MXC || ARCH_DOVE || ARCH_OMAP2PLUS
+
+Why not just drop this line. Then it will get better build testing, too.
+
+>  	select SHMEM
+>  	select TMPFS
+>  	select IOMMU_API
+> -- 
+> 2.10.2
 > 
-> What are "AC" and "PB".  Seeing as these are meant to be "human
-> readable", let's make them more human friendly.
-
-Good idea. Milo, please do an incremental single follow-up patch as
-I already have applied this and the dts changes using it.
-
-Regards,
-
-Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe devicetree" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
