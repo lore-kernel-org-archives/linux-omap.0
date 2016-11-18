@@ -1,129 +1,57 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Applied "regulator: twl: kill unused functions" to the regulator tree
-Date: Fri, 18 Nov 2016 12:02:00 +0000
-Message-ID: <E1c7hrk-0005LN-Aw@debutante>
-References: <1478954535-17325-3-git-send-email-Nicolae_Rosia@mentor.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1478954535-17325-3-git-send-email-Nicolae_Rosia@mentor.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nicolae Rosia <Nicolae_Rosia@mentor.com>
-Cc: Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
+Subject: Re: [RFC 1/6] drm/etnaviv: add binding for the gc320 found in ti socs
+Date: Fri, 18 Nov 2016 12:13:40 +0000
+Message-ID: <20161118121340.GC23750@n2100.armlinux.org.uk>
+References: <20161118024436.13447-1-robertcnelson@gmail.com>
+ <0bf288ee-33bc-c3b5-389f-08d9bb89ccb5@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <0bf288ee-33bc-c3b5-389f-08d9bb89ccb5-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Cc: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Julien <jboulnois-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Christian Gmeiner <christian.gmeiner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lucas Stach <l.stach-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The patch
+On Thu, Nov 17, 2016 at 08:53:38PM -0600, Nishanth Menon wrote:
+> >diff --git a/drivers/gpu/drm/etnaviv/etnaviv_drv.c b/drivers/gpu/drm/etnaviv/etnaviv_drv.c
+> >index a6799b0..ce51270 100644
+> >--- a/drivers/gpu/drm/etnaviv/etnaviv_drv.c
+> >+++ b/drivers/gpu/drm/etnaviv/etnaviv_drv.c
+> >@@ -653,6 +653,7 @@ static int etnaviv_pdev_remove(struct platform_device *pdev)
+> > static const struct of_device_id dt_match[] = {
+> > 	{ .compatible = "fsl,imx-gpu-subsystem" },
+> > 	{ .compatible = "marvell,dove-gpu-subsystem" },
+> >+	{ .compatible = "ti,gc320-gpu-subsystem" },
 
-   regulator: twl: kill unused functions
+We need to get away from this ever-increasing set of compatible
+strings here, as this is not long-term maintainable.
 
-has been applied to the regulator tree at
+What we should have is a common compatible which describes that
+the node is compatible with this driver, and then use SoC specific
+compatible strings later if we need to (eg, because of some GPU
+subsystem SoC specifics.)
 
-   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
+So, I'd suggest that we update the documentation and add:
 
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.  
+	"vivante,gc-gpu-subsystem"
 
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
+as a common compatible now, and if necessary move on to more specific
+compatibles if we need to later.
 
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
+Also, I'd strongly suggest that no compatibles should contain the ID
+number of the GPU core for exactly the same reason - Vivante GPU cores
+vary according to features, and we don't want to end up with a long
+list of specific compatibles (eg)
+	"ti,gc2000-and-gc320-and-gc355-gpu-subsystem" because TI
+decides to integrate a 3d, 2d and VG core.
 
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
-
-Thanks,
-Mark
-
->From 8313a4fb66b15816883792c9beed45b8978b1c8b Mon Sep 17 00:00:00 2001
-From: Nicolae Rosia <Nicolae_Rosia@mentor.com>
-Date: Sat, 12 Nov 2016 14:42:13 +0200
-Subject: [PATCH] regulator: twl: kill unused functions
-
-This code was used by OMAP platform based boards
-which are now DT only.
-Proper support for SMPS is missing in this driver.
-
-Signed-off-by: Nicolae Rosia <Nicolae_Rosia@mentor.com>
-Signed-off-by: Mark Brown <broonie@kernel.org>
----
- drivers/regulator/twl-regulator.c | 29 ++---------------------------
- 1 file changed, 2 insertions(+), 27 deletions(-)
-
-diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
-index a777c9d0d2df..3f9f53d98ef0 100644
---- a/drivers/regulator/twl-regulator.c
-+++ b/drivers/regulator/twl-regulator.c
-@@ -60,13 +60,6 @@ struct twlreg_info {
- 	/* chip specific features */
- 	unsigned long		features;
- 
--	/*
--	 * optional override functions for voltage set/get
--	 * these are currently only used for SMPS regulators
--	 */
--	int			(*get_voltage)(void *data);
--	int			(*set_voltage)(void *data, int target_uV);
--
- 	/* data passed from board for external get/set voltage */
- 	void			*data;
- };
-@@ -565,12 +558,7 @@ twl4030smps_set_voltage(struct regulator_dev *rdev, int min_uV, int max_uV,
- 	struct twlreg_info *info = rdev_get_drvdata(rdev);
- 	int vsel = DIV_ROUND_UP(min_uV - 600000, 12500);
- 
--	if (info->set_voltage) {
--		return info->set_voltage(info->data, min_uV);
--	} else {
--		twlreg_write(info, TWL_MODULE_PM_RECEIVER,
--			VREG_VOLTAGE_SMPS_4030, vsel);
--	}
-+	twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_VOLTAGE_SMPS_4030, vsel);
- 
- 	return 0;
- }
-@@ -580,9 +568,6 @@ static int twl4030smps_get_voltage(struct regulator_dev *rdev)
- 	struct twlreg_info *info = rdev_get_drvdata(rdev);
- 	int vsel;
- 
--	if (info->get_voltage)
--		return info->get_voltage(info->data);
--
- 	vsel = twlreg_read(info, TWL_MODULE_PM_RECEIVER,
- 		VREG_VOLTAGE_SMPS_4030);
- 
-@@ -597,21 +582,11 @@ static struct regulator_ops twl4030smps_ops = {
- static int twl6030coresmps_set_voltage(struct regulator_dev *rdev, int min_uV,
- 	int max_uV, unsigned *selector)
- {
--	struct twlreg_info *info = rdev_get_drvdata(rdev);
--
--	if (info->set_voltage)
--		return info->set_voltage(info->data, min_uV);
--
- 	return -ENODEV;
- }
- 
- static int twl6030coresmps_get_voltage(struct regulator_dev *rdev)
- {
--	struct twlreg_info *info = rdev_get_drvdata(rdev);
--
--	if (info->get_voltage)
--		return info->get_voltage(info->data);
--
- 	return -ENODEV;
- }
- 
-@@ -1169,7 +1144,7 @@ MODULE_DEVICE_TABLE(of, twl_of_match);
- 
- static int twlreg_probe(struct platform_device *pdev)
- {
--	int				i, id;
-+	int id;
- 	struct twlreg_info		*info;
- 	const struct twlreg_info	*template;
- 	struct regulator_init_data	*initdata;
 -- 
-2.10.2
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
