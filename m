@@ -1,32 +1,58 @@
 From: Milo Kim <woogyom.kim@gmail.com>
-Subject: Re: [PATCH v2 5/8] dt-bindings: mfd: Provide human readable defines
- for TPS65217 interrupts
-Date: Mon, 21 Nov 2016 22:05:21 +0900
-Message-ID: <c04af1ac-b692-f3df-47b0-72c5263374bf@gmail.com>
-References: <20161028123702.21849-1-woogyom.kim@gmail.com>
- <20161028123702.21849-6-woogyom.kim@gmail.com>
- <20161118145353.GE2301@dell.home> <20161118151051.GV4082@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH] dt-bindings: mfd: Improve readability for TPS65217 interrupt sources
+Date: Mon, 21 Nov 2016 22:15:15 +0900
+Message-ID: <20161121131515.8040-1-woogyom.kim@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161118151051.GV4082@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>
-Cc: bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>
+To: bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>
+Cc: Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, Milo Kim <woogyom.kim@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/19/2016 12:10 AM, Tony Lindgren wrote:
->>> +#define TPS65217_IRQ_USB	0
->>> > > +#define TPS65217_IRQ_AC		1
->>> > > +#define TPS65217_IRQ_PB		2
->> >
->> > What are "AC" and "PB".  Seeing as these are meant to be "human
->> > readable", let's make them more human friendly.
-> Good idea. Milo, please do an incremental single follow-up patch as
-> I already have applied this and the dts changes using it.
+AC and USB interrupts are related with external power input.
+PB interrupt means push button pressed or released event.
+Use better human readable definitions.
 
-Thanks for catching this. Let me send a patch soon.
+Signed-off-by: Milo Kim <woogyom.kim@gmail.com>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 4 ++--
+ include/dt-bindings/mfd/tps65217.h        | 6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-Best regards,
-Milo
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index dc561d5..1848d58 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -319,13 +319,13 @@
+ 	ti,pmic-shutdown-controller;
+ 
+ 	charger {
+-		interrupts = <TPS65217_IRQ_AC>, <TPS65217_IRQ_USB>;
++		interrupts = <TPS65217_IRQ_AC_POWER>, <TPS65217_IRQ_USB_POWER>;
+ 		interrupts-names = "AC", "USB";
+ 		status = "okay";
+ 	};
+ 
+ 	pwrbutton {
+-		interrupts = <TPS65217_IRQ_PB>;
++		interrupts = <TPS65217_IRQ_PUSHBUTTON>;
+ 		status = "okay";
+ 	};
+ 
+diff --git a/include/dt-bindings/mfd/tps65217.h b/include/dt-bindings/mfd/tps65217.h
+index cafb9e6..0293fdd 100644
+--- a/include/dt-bindings/mfd/tps65217.h
++++ b/include/dt-bindings/mfd/tps65217.h
+@@ -19,8 +19,8 @@
+ #ifndef __DT_BINDINGS_TPS65217_H__
+ #define __DT_BINDINGS_TPS65217_H__
+ 
+-#define TPS65217_IRQ_USB	0
+-#define TPS65217_IRQ_AC		1
+-#define TPS65217_IRQ_PB		2
++#define TPS65217_IRQ_USB_POWER		0	/* USB power state change */
++#define TPS65217_IRQ_AC_POWER		1	/* AC power state change */
++#define TPS65217_IRQ_PUSHBUTTON		2	/* Push button state change */
+ 
+ #endif
+-- 
+2.9.3
