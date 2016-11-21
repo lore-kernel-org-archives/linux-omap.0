@@ -1,16 +1,17 @@
-From: Lee Jones <lee.jones@linaro.org>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
 Subject: Re: [PATCH] mfd: twl-core: export twl_get_regmap
-Date: Mon, 21 Nov 2016 09:23:39 +0000
-Message-ID: <20161121092339.GA32509@dell>
+Date: Mon, 21 Nov 2016 09:31:45 +0000
+Message-ID: <20161121093144.GE23750@n2100.armlinux.org.uk>
 References: <1478950693-13959-1-git-send-email-Nicolae_Rosia@mentor.com>
  <20161118185548.GA23246@dell.home>
  <CAKP5S=3quz8f1H0xnaffJ35L8qSOpSkBEGS8GsNhB5F=v3DoBg@mail.gmail.com>
+ <20161121092339.GA32509@dell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <CAKP5S=3quz8f1H0xnaffJ35L8qSOpSkBEGS8GsNhB5F=v3DoBg@mail.gmail.com>
+In-Reply-To: <20161121092339.GA32509@dell>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,33 +21,31 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nicolae Rosia <nicolae.rosia.oss@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Nicolae Rosia <Nicolae_Rosia@mentor.com>, linux-arm-kernel@lists.infradead.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, Nicolae Rosia <nicolae.rosia.oss@gmail.com>, linux-omap@vger.kernel.org, Nicolae Rosia <Nicolae_Rosia@mentor.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gU3VuLCAyMCBOb3YgMjAxNiwgTmljb2xhZSBSb3NpYSB3cm90ZToKCj4gT24gRnJpLCBOb3Yg
-MTgsIDIwMTYgYXQgODo1NSBQTSwgTGVlIEpvbmVzIDxsZWUuam9uZXNAbGluYXJvLm9yZz4gd3Jv
-dGU6Cj4gPiBPbiBTYXQsIDEyIE5vdiAyMDE2LCBOaWNvbGFlIFJvc2lhIHdyb3RlOgo+ID4KPiA+
-PiBXZSB3YW50IHRvIGdldCByaWQgb2YgZ2xvYmFsIHR3bF9pMmNfe3dyaXRlL3JlYWR9Lgo+ID4+
-IEFzIGEgZmlyc3Qgc3RlcCwgYWxsb3cgY2xpZW50cyB0byBnZXQgdGhlIHJlZ21hcCBhbmQgd3Jp
-dGUgZGlyZWN0bHkKPiA+Cj4gPiBXaGF0J3Mgc3RvcHBpbmcgeW91IGZyb20gcGFzc2luZyBpdCB0
-aHJvdWdoIGRldmljZSBkYXRhPwo+ID4KPiBDb3VsZCB5b3UgZWxhYm9yYXRlIGEgYml0Pwo+IFRo
-ZSByZWdtYXBzIGFyZSBzdG9yZWQgaW4gc3RydWN0IHR3bF9jbGllbnQgWzBdLCBzdG9yZWQgaW4g
-c3RydWN0Cj4gdHdsX3ByaXZhdGUgWzFdLCBib3RoIHN0cnVjdHMgYXJlIGRlZmluZWQgaW4gdGhl
-IHNvdXJjZSBmaWxlLCBub3QgaW4KPiBoZWFkZXIuCj4gSSBjb3VsZCBob3dldmVyIGp1c3QgZml4
-IHRoZSBwcm9ibGVtIGJ5IHJld29ya2luZyB0aGUgc3RydWN0LCBleHBvc2luZwo+IGl0IGFuZCB1
-c2UgbWZkX2FkZF9kZXZpY2UgYXMgcmVhbCBtZmQgZHJpdmVycyBkby4KCldvYWghICBUaGFua3Mg
-Zm9yIHByb21wdGluZyBtZSB0byByZWFkIHRoaXMgZHJpdmVyLiAgSXQncyBhIGJpdCBvZiBhCm1l
-c3MgaXNuJ3QgaXQ/ICBJIHRoaW5rIGl0IHdvdWxkIGJlIGJlc3QgdG8gY29udmVydCBpdCB0byB1
-c2UgdGhlIE1GRApBUEksIHllcy4KCkl0J3MgY29tbW9uIHBsYWNlIHRvIHBhc3Mgc2hhcmVkIHJl
-c291cmNlcyBzdWNoIGFzICdyZWdtYXAnIHRob3VnaApkZXZpY2UgZGF0YS4gIFlvdSBjYW4gZmlu
-ZCBtYW55IGV4YW1wbGVzIG9mICpfX3NldF9kcnZkYXRhIHRocm91Z2hvdXQKdGhlIGtlcm5lbC4K
-Cj4gWzBdIGh0dHA6Ly9seHIuZnJlZS1lbGVjdHJvbnMuY29tL3NvdXJjZS9kcml2ZXJzL21mZC90
-d2wtY29yZS5jI0wxNTIKPiBbMV0gaHR0cDovL2x4ci5mcmVlLWVsZWN0cm9ucy5jb20vc291cmNl
-L2RyaXZlcnMvbWZkL3R3bC1jb3JlLmMjTDE2MwoKLS0gCkxlZSBKb25lcwpMaW5hcm8gU1RNaWNy
-b2VsZWN0cm9uaWNzIExhbmRpbmcgVGVhbSBMZWFkCkxpbmFyby5vcmcg4pSCIE9wZW4gc291cmNl
-IHNvZnR3YXJlIGZvciBBUk0gU29DcwpGb2xsb3cgTGluYXJvOiBGYWNlYm9vayB8IFR3aXR0ZXIg
-fCBCbG9nCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwps
-aW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJh
-ZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51
-eC1hcm0ta2VybmVsCg==
+On Mon, Nov 21, 2016 at 09:23:39AM +0000, Lee Jones wrote:
+> It's common place to pass shared resources such as 'regmap' though
+> device data.  You can find many examples of *__set_drvdata throughout
+> the kernel.
+
+Passing data between drivers using *_set_drvdata() is a layering
+violation:
+
+1. Driver data is supposed to be driver private data associated with
+   the currently bound driver.
+2. The driver data pointer is NULL'd when the driver unbinds from the
+   device.  See __device_release_driver() and the
+   dev_set_drvdata(dev, NULL).
+3. It will break with CONFIG_DEBUG_TEST_DRIVER_REMOVE enabled for a
+   similar reason to (2).
+
+So, do not pass data between drivers using *_set_drvdata() - any
+examples in the kernel already are founded on bad practice, are
+fragile, and are already broken for some kernel configurations.
+
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
