@@ -1,171 +1,52 @@
-From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] ARM: dts: AM571x-IDK Initial Support
-Date: Mon, 21 Nov 2016 11:28:01 +0530
-Message-ID: <20161121055801.573-1-lokeshvutla@ti.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH] mfd: twl-core: export twl_get_regmap
+Date: Mon, 21 Nov 2016 09:23:39 +0000
+Message-ID: <20161121092339.GA32509@dell>
+References: <1478950693-13959-1-git-send-email-Nicolae_Rosia@mentor.com>
+ <20161118185548.GA23246@dell.home>
+ <CAKP5S=3quz8f1H0xnaffJ35L8qSOpSkBEGS8GsNhB5F=v3DoBg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux ARM Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, spatton-l0cyMroinI0@public.gmane.org, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <CAKP5S=3quz8f1H0xnaffJ35L8qSOpSkBEGS8GsNhB5F=v3DoBg@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Nicolae Rosia <nicolae.rosia.oss@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Nicolae Rosia <Nicolae_Rosia@mentor.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Schuyler Patton <spatton-l0cyMroinI0@public.gmane.org>
-
-The AM571x-IDK board is a board based on TI's AM5718 SOC
-which has a single core 1.5GHz A15 processor. This board is a
-development platform for the Industrial market with:
-- 1GB of DDR3L
-- Dual 1Gbps Ethernet
-- HDMI,
-- PRU-ICSS
-- uSD
-- 16GB eMMC
-- CAN
-- RS-485
-- PCIe
-- USB3.0
-- Video Input Port
-- Industrial IO port and expansion connector
-
-The link to the data sheet and TRM can be found here:
-
-http://www.ti.com/product/AM5718
-
-Initial support is only for basic peripherals.
-
-Signed-off-by: Schuyler Patton <spatton-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
----
-
-Logs: http://pastebin.ubuntu.com/23510390/
-
- .../devicetree/bindings/arm/omap/omap.txt          |  3 +
- arch/arm/boot/dts/Makefile                         |  1 +
- arch/arm/boot/dts/am571x-idk.dts                   | 82 ++++++++++++++++++++++
- 3 files changed, 86 insertions(+)
- create mode 100644 arch/arm/boot/dts/am571x-idk.dts
-
-diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-index f53e2ee..647ffd3 100644
---- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-@@ -175,6 +175,9 @@ Boards:
- - AM5728 IDK
-   compatible = "ti,am5728-idk", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7"
- 
-+- AM5718 IDK
-+  compatible = "ti,am5718-idk", "ti,am5728", "ti,dra722", "ti,dra72", "ti,dra7"
-+
- - DRA742 EVM:  Software Development Board for DRA742
-   compatible = "ti,dra7-evm", "ti,dra742", "ti,dra74", "ti,dra7"
- 
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index befcd26..c298078 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -588,6 +588,7 @@ dtb-$(CONFIG_SOC_DRA7XX) += \
- 	am57xx-cl-som-am57x.dtb \
- 	am57xx-sbc-am57x.dtb \
- 	am572x-idk.dtb \
-+	am571x-idk.dtb \
- 	dra7-evm.dtb \
- 	dra72-evm.dtb \
- 	dra72-evm-revc.dtb
-diff --git a/arch/arm/boot/dts/am571x-idk.dts b/arch/arm/boot/dts/am571x-idk.dts
-new file mode 100644
-index 0000000..a6a743e
---- /dev/null
-+++ b/arch/arm/boot/dts/am571x-idk.dts
-@@ -0,0 +1,82 @@
-+/*
-+ * Copyright (C) 2015-2016 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+/dts-v1/;
-+
-+#include "dra72x.dtsi"
-+#include <dt-bindings/gpio/gpio.h>
-+#include <dt-bindings/interrupt-controller/irq.h>
-+#include "am57xx-idk-common.dtsi"
-+
-+/ {
-+	model = "TI AM5718 IDK";
-+	compatible = "ti,am5718-idk", "ti,am5718", "ti,dra722",
-+		     "ti,dra72", "ti,dra7";
-+
-+	memory@0 {
-+		device_type = "memory";
-+		reg = <0x0 0x80000000 0x0 0x40000000>;
-+	};
-+
-+	status-leds {
-+		compatible = "gpio-leds";
-+		cpu0-led {
-+			label = "status0:red:cpu0";
-+			gpios = <&gpio2 25 GPIO_ACTIVE_HIGH>;
-+			default-state = "off";
-+			linux,default-trigger = "cpu0";
-+		};
-+
-+		usr0-led {
-+			label = "status0:green:usr";
-+			gpios = <&gpio2 26 GPIO_ACTIVE_HIGH>;
-+			default-state = "off";
-+		};
-+
-+		heartbeat-led {
-+			label = "status0:blue:heartbeat";
-+			gpios = <&gpio2 27 GPIO_ACTIVE_HIGH>;
-+			default-state = "off";
-+			linux,default-trigger = "heartbeat";
-+		};
-+
-+		usr1-led {
-+			label = "status1:red:usr";
-+			gpios = <&gpio2 28 GPIO_ACTIVE_HIGH>;
-+			default-state = "off";
-+		};
-+
-+		usr2-led {
-+			label = "status1:green:usr";
-+			gpios = <&gpio2 21 GPIO_ACTIVE_HIGH>;
-+			default-state = "off";
-+		};
-+
-+		mmc0-led {
-+			label = "status1:blue:mmc0";
-+			gpios = <&gpio2 19 GPIO_ACTIVE_HIGH>;
-+			default-state = "off";
-+			linux,default-trigger = "mmc0";
-+		};
-+	};
-+
-+	extcon_usb2: extcon_usb2 {
-+	     compatible = "linux,extcon-usb-gpio";
-+	     id-gpio = <&gpio5 7 GPIO_ACTIVE_HIGH>;
-+	};
-+};
-+
-+&mmc1 {
-+	status = "okay";
-+	vmmc-supply = <&ldo1_reg>;
-+	bus-width = <4>;
-+	cd-gpios = <&gpio6 27 0>; /* gpio 219 */
-+};
-+
-+&omap_dwc3_2 {
-+	extcon = <&extcon_usb2>;
-+};
--- 
-2.10.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gU3VuLCAyMCBOb3YgMjAxNiwgTmljb2xhZSBSb3NpYSB3cm90ZToKCj4gT24gRnJpLCBOb3Yg
+MTgsIDIwMTYgYXQgODo1NSBQTSwgTGVlIEpvbmVzIDxsZWUuam9uZXNAbGluYXJvLm9yZz4gd3Jv
+dGU6Cj4gPiBPbiBTYXQsIDEyIE5vdiAyMDE2LCBOaWNvbGFlIFJvc2lhIHdyb3RlOgo+ID4KPiA+
+PiBXZSB3YW50IHRvIGdldCByaWQgb2YgZ2xvYmFsIHR3bF9pMmNfe3dyaXRlL3JlYWR9Lgo+ID4+
+IEFzIGEgZmlyc3Qgc3RlcCwgYWxsb3cgY2xpZW50cyB0byBnZXQgdGhlIHJlZ21hcCBhbmQgd3Jp
+dGUgZGlyZWN0bHkKPiA+Cj4gPiBXaGF0J3Mgc3RvcHBpbmcgeW91IGZyb20gcGFzc2luZyBpdCB0
+aHJvdWdoIGRldmljZSBkYXRhPwo+ID4KPiBDb3VsZCB5b3UgZWxhYm9yYXRlIGEgYml0Pwo+IFRo
+ZSByZWdtYXBzIGFyZSBzdG9yZWQgaW4gc3RydWN0IHR3bF9jbGllbnQgWzBdLCBzdG9yZWQgaW4g
+c3RydWN0Cj4gdHdsX3ByaXZhdGUgWzFdLCBib3RoIHN0cnVjdHMgYXJlIGRlZmluZWQgaW4gdGhl
+IHNvdXJjZSBmaWxlLCBub3QgaW4KPiBoZWFkZXIuCj4gSSBjb3VsZCBob3dldmVyIGp1c3QgZml4
+IHRoZSBwcm9ibGVtIGJ5IHJld29ya2luZyB0aGUgc3RydWN0LCBleHBvc2luZwo+IGl0IGFuZCB1
+c2UgbWZkX2FkZF9kZXZpY2UgYXMgcmVhbCBtZmQgZHJpdmVycyBkby4KCldvYWghICBUaGFua3Mg
+Zm9yIHByb21wdGluZyBtZSB0byByZWFkIHRoaXMgZHJpdmVyLiAgSXQncyBhIGJpdCBvZiBhCm1l
+c3MgaXNuJ3QgaXQ/ICBJIHRoaW5rIGl0IHdvdWxkIGJlIGJlc3QgdG8gY29udmVydCBpdCB0byB1
+c2UgdGhlIE1GRApBUEksIHllcy4KCkl0J3MgY29tbW9uIHBsYWNlIHRvIHBhc3Mgc2hhcmVkIHJl
+c291cmNlcyBzdWNoIGFzICdyZWdtYXAnIHRob3VnaApkZXZpY2UgZGF0YS4gIFlvdSBjYW4gZmlu
+ZCBtYW55IGV4YW1wbGVzIG9mICpfX3NldF9kcnZkYXRhIHRocm91Z2hvdXQKdGhlIGtlcm5lbC4K
+Cj4gWzBdIGh0dHA6Ly9seHIuZnJlZS1lbGVjdHJvbnMuY29tL3NvdXJjZS9kcml2ZXJzL21mZC90
+d2wtY29yZS5jI0wxNTIKPiBbMV0gaHR0cDovL2x4ci5mcmVlLWVsZWN0cm9ucy5jb20vc291cmNl
+L2RyaXZlcnMvbWZkL3R3bC1jb3JlLmMjTDE2MwoKLS0gCkxlZSBKb25lcwpMaW5hcm8gU1RNaWNy
+b2VsZWN0cm9uaWNzIExhbmRpbmcgVGVhbSBMZWFkCkxpbmFyby5vcmcg4pSCIE9wZW4gc291cmNl
+IHNvZnR3YXJlIGZvciBBUk0gU29DcwpGb2xsb3cgTGluYXJvOiBGYWNlYm9vayB8IFR3aXR0ZXIg
+fCBCbG9nCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwps
+aW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJh
+ZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51
+eC1hcm0ta2VybmVsCg==
