@@ -1,114 +1,104 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: [PATCH] mfd: twl-core: export twl_get_regmap
-Date: Mon, 21 Nov 2016 13:37:55 +0000
-Message-ID: <20161121133755.GF23750@n2100.armlinux.org.uk>
-References: <1478950693-13959-1-git-send-email-Nicolae_Rosia@mentor.com>
- <20161118185548.GA23246@dell.home>
- <CAKP5S=3quz8f1H0xnaffJ35L8qSOpSkBEGS8GsNhB5F=v3DoBg@mail.gmail.com>
- <20161121092339.GA32509@dell>
- <20161121093144.GE23750@n2100.armlinux.org.uk>
- <CAKP5S=28xVyNE=Q7hd2UbtOmT=12ayrcWM5m1OTvk5kGN5pZrw@mail.gmail.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH] mfd: cpcap: Add minimal support
+Date: Mon, 21 Nov 2016 10:34:39 -0600
+Message-ID: <20161121163439.22ztjxnq535lo6dd@rob-hp-laptop>
+References: <20161119012748.17224-1-tony@atomide.com>
+ <20161121114558.GJ32509@dell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAKP5S=28xVyNE=Q7hd2UbtOmT=12ayrcWM5m1OTvk5kGN5pZrw@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nicolae Rosia <nicolae.rosia.oss@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Nicolae Rosia <Nicolae_Rosia@mentor.com>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20161121114558.GJ32509@dell>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Marcel Partap <mpartap@gmx.net>, Mark Rutland <mark.rutland@arm.com>, Michael Scott <michael.scott@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 21, 2016 at 12:03:03PM +0200, Nicolae Rosia wrote:
-> On Mon, Nov 21, 2016 at 11:31 AM, Russell King - ARM Linux
-> <linux@armlinux.org.uk> wrote:
-> > Passing data between drivers using *_set_drvdata() is a layering
-> > violation:
-> >
-> > 1. Driver data is supposed to be driver private data associated with
-> >    the currently bound driver.
-> > 2. The driver data pointer is NULL'd when the driver unbinds from the
-> >    device.  See __device_release_driver() and the
-> >    dev_set_drvdata(dev, NULL).
-> > 3. It will break with CONFIG_DEBUG_TEST_DRIVER_REMOVE enabled for a
-> >    similar reason to (2).
-> >
-> > So, do not pass data between drivers using *_set_drvdata() - any
-> > examples in the kernel already are founded on bad practice, are
-> > fragile, and are already broken for some kernel configurations.
+On Mon, Nov 21, 2016 at 11:45:58AM +0000, Lee Jones wrote:
+> On Fri, 18 Nov 2016, Tony Lindgren wrote:
 > 
-> After inspecting mfd_add_device, it seems that it creates a
-> platform_device which has the parent set to the driver calling the
-> function.
-> Isn't module unloading forbidden if there is a parent->child
-> relationship in place and you're removing the parent?
+> > Many Motorola phones like droid 4 are using a custom PMIC called CPCAP
+> > or 6556002. We can support it's core features quite easily with regmap_spi
+> > and regmap_irq.
+> > 
+> > The children of cpcap, such as regulators, ADC and USB, can be just regular
+> > device drivers and defined in the dts file. They get probed as we call
+> > of_platform_populate() at the end of our probe, and then the children
+> > can just call dev_get_regmap(dev.parent, NULL) to get the regmap.
+> > 
+> > Cc: devicetree@vger.kernel.org
+> > Cc: Marcel Partap <mpartap@gmx.net>
+> > Cc: Mark Rutland <mark.rutland@arm.com>
+> > Cc: Michael Scott <michael.scott@linaro.org>
+> > Cc: Rob Herring <robh+dt@kernel.org>
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> >  Documentation/devicetree/bindings/mfd/cpcap.txt |  36 ++++
+> >  drivers/mfd/Kconfig                             |   8 +
+> >  drivers/mfd/Makefile                            |   1 +
+> >  drivers/mfd/cpcap.c                             | 255 ++++++++++++++++++++++++
+> >  include/linux/mfd/cpcap.h                       | 238 ++++++++++++++++++++++
+> >  5 files changed, 538 insertions(+)
+> >  create mode 100644 Documentation/devicetree/bindings/mfd/cpcap.txt
+> >  create mode 100644 drivers/mfd/cpcap.c
+> >  create mode 100644 include/linux/mfd/cpcap.h
+> > 
+> > diff --git a/Documentation/devicetree/bindings/mfd/cpcap.txt b/Documentation/devicetree/bindings/mfd/cpcap.txt
+> > new file mode 100644
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/mfd/cpcap.txt
+> > @@ -0,0 +1,36 @@
+> > +CPCAP PMIC device tree binding
+> > +
+> > +Required properties:
+> > +- compatible		: Motorola device "motorola,cpcap", others "st,6556002"
+> > +- reg			: Chip select and size
+> > +- interrupt-parent	: The parent interrupt controller
+> > +- interrupts		: The interrupt line the device is connected to
+> > +- interrupt-controller	: Marks the device node as an interrupt controller
+> > +- #interrupt-cells	: The number of cells to describe an IRQ, should be 2
+> > +- #address-cells	: Child device offset number of cells, typically 1
+> > +- #size-cells		: Child device size number of cells, typically 1
+> > +- ranges		: Child device register range
+> > +- spi-max-frequency	: Typically set to 3000000
+> > +- spi-cs_high		: SPI chip select direction
+> > +
+> > +Example:
+> > +
+> > +&mcspi1 {
+> > +	#address-cells = <1>;
+> > +	#size-cells = <1>;
+> > +	ranges;
+> > +	cpcap: pmic@0 {
+> > +		compatible = "motorola,cpcap", "st,6556002";
+> > +		reg = <0 0>;	/* cs0, size 0 */
+> 
+> Is this really correct?
 
-Forget this idea that there's any connection between modules and
-the struct device relationships - there isn't anything of the kind!
+No, SPI devices are 1 cell and there shouldn't be a ranges prop.
 
-Each struct device is refcounted, and child devices will hold a
-reference to their parent device, so the parent device doesn't get
-freed before its children are all gone.
+> 
+> How can ranges have a size of 0x8000 and this 0?
 
-That's a completely separate issue to when a struct device is bound
-to a struct device_driver - it's entirely possible for parent drivers
-to be unbound at any time, even when there are child drivers in place.
+reg here doesn't affect ranges and address translation.
 
-There are cases where we want that to happen - think of any driver
-which is a bus driver in itself - eg, PCMCIA, MMC, USB, etc.  These
-drivers enumerate their children, and destroy their children when
-the driver is unbound - but the driver has to be in the process of
-being unbound for that to happen.  That process may very well start
-with the child devices being bound to their drivers.
+Perhaps this is trying to make address translation work, but if that 
+does, it is by chance. Children of pmic addresses in the range of 
+0-0x8000 would get translated to "cpu address" 0-0x8000 as long as the 
+DT has empty ranges up to the root. If the parent bus (i.e. SoC bus) has 
+any base address, then that is going to get added which would not be 
+good.
 
-What makes the child drivers unbind is when the bus driver deletes
-the child struct devices.
-
-> What should be the best practice to share data between drivers?
-> Reference counted data?
-
-I guess so, but you will still have a race if you do something like:
-
-	struct parent_private_data *parent_priv = dev_get_drvdata(dev->parent);
-
-Yes, that'll get the parent's driver private data, but what you don't
-know is whether the pointer remains valid, and even if you do as the
-very next step:
-
-	kref_get(&parent_priv->kref);
-
-you don't know whether parent_priv was kfree()d between these two
-statements.
-
-However, if the parent driver creates the struct device that you're
-using and deletes the struct device before it frees its private data,
-then you can be sure that parent_priv will be valid, because the child
-drivers will be unbound during the parent driver's ->remove function,
-_before_ the private data is freed.
-
-> In the case of TWL, the twl-core is just a simple container for
-> regmaps - all other "sub devices" are using those regmaps to access
-> the I2C device's registers, it makes no sense to remove the parent
-> driver since it does *nothing*.
-
-I can't comment on what twl-core is doing, I haven't looked at it in
-ages, but most MFD drivers have the parent device creating and destroying
-their children, so it should be fine.
-
-My original comment was more along the lines of a parent device poking
-driver-private data into the child devices it was creating for the
-child drivers to pick up.  However, it's worth discussing the validity
-cases of the parent's driver data too, as per the above.
-
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+> 
+> > +		interrupt-parent = <&gpio1>;
+> > +		interrupts = <7 IRQ_TYPE_EDGE_RISING>;
+> > +		interrupt-controller;
+> > +		#interrupt-cells = <2>;
+> > +		#address-cells = <1>;
+> > +		#size-cells = <1>;
+> > +		ranges = <0 0 0x8000>;
+> > +		spi-max-frequency = <3000000>;
+> > +		spi-cs-high;
+> > +	};
+> > +};
+> > +
