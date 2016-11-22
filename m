@@ -1,31 +1,65 @@
-From: Nicolae Rosia <nicolae.rosia.oss@gmail.com>
-Subject: Re: [PATCH v2] mfd: twl-core: make driver DT only
-Date: Tue, 22 Nov 2016 12:55:06 +0200
-Message-ID: <CAKP5S=3y6GAzs34c6-qsxHFZ1PaLC-_nT4LKd=3dd34wepnBMw@mail.gmail.com>
-References: <1479810090-12183-1-git-send-email-Nicolae_Rosia@mentor.com> <20161122104510.iujd5revibqgbldl@tarshish>
+From: Nicolae Rosia <Nicolae_Rosia@mentor.com>
+Subject: [PATCH] Input: twl4030-vibra: remove legacy pdata support
+Date: Tue, 22 Nov 2016 12:59:58 +0200
+Message-ID: <1479812398-1122-1-git-send-email-Nicolae_Rosia@mentor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161122104510.iujd5revibqgbldl@tarshish>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Baruch Siach <baruch@tkos.co.il>
-Cc: Nicolae Rosia <Nicolae_Rosia@mentor.com>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, linux-kernel@vger.kernel.org, Paul Gortmaker <paul.gortmaker@windriver.com>, Graeme Gregory <gg@slimlogic.co.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Marek Belisko <marek@goldelico.com>, Baruch Siach <baruch@tkos.co.il>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Nicolae Rosia <Nicolae_Rosia@mentor.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Remove dead code since all users are device tree enabled.
 
-On Tue, Nov 22, 2016 at 12:45 PM, Baruch Siach <baruch@tkos.co.il> wrote:
-> Hi Nicolae,
->
->
-> Can struct twl4030_platform_data declaration be removed now from
-> include/linux/i2c/twl.h?
->
-> baruch
->
-Yes, I have the patches ready and plan on doing that in the next cycle.
-I have been sending multiple patches to convert twl related drivers to
-DT only and I don't want to create merge conflicts on twl.h
+Signed-off-by: Nicolae Rosia <Nicolae_Rosia@mentor.com>
+---
+ drivers/input/misc/twl4030-vibra.c | 13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-Thanks,
-Nicolae
+diff --git a/drivers/input/misc/twl4030-vibra.c b/drivers/input/misc/twl4030-vibra.c
+index caa5a62..5acc241 100644
+--- a/drivers/input/misc/twl4030-vibra.c
++++ b/drivers/input/misc/twl4030-vibra.c
+@@ -177,12 +177,8 @@ static int __maybe_unused twl4030_vibra_resume(struct device *dev)
+ static SIMPLE_DEV_PM_OPS(twl4030_vibra_pm_ops,
+ 			 twl4030_vibra_suspend, twl4030_vibra_resume);
+ 
+-static bool twl4030_vibra_check_coexist(struct twl4030_vibra_data *pdata,
+-			      struct device_node *node)
++static bool twl4030_vibra_check_coexist(struct device_node *node)
+ {
+-	if (pdata && pdata->coexist)
+-		return true;
+-
+ 	node = of_find_node_by_name(node, "codec");
+ 	if (node) {
+ 		of_node_put(node);
+@@ -194,13 +190,12 @@ static bool twl4030_vibra_check_coexist(struct twl4030_vibra_data *pdata,
+ 
+ static int twl4030_vibra_probe(struct platform_device *pdev)
+ {
+-	struct twl4030_vibra_data *pdata = dev_get_platdata(&pdev->dev);
+ 	struct device_node *twl4030_core_node = pdev->dev.parent->of_node;
+ 	struct vibra_info *info;
+ 	int ret;
+ 
+-	if (!pdata && !twl4030_core_node) {
+-		dev_dbg(&pdev->dev, "platform_data not available\n");
++	if (!twl4030_core_node) {
++		dev_err(&pdev->dev, "no DT info\n\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -209,7 +204,7 @@ static int twl4030_vibra_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 
+ 	info->dev = &pdev->dev;
+-	info->coexist = twl4030_vibra_check_coexist(pdata, twl4030_core_node);
++	info->coexist = twl4030_vibra_check_coexist(twl4030_core_node);
+ 	INIT_WORK(&info->play_work, vibra_play_work);
+ 
+ 	info->input_dev = devm_input_allocate_device(&pdev->dev);
+-- 
+2.7.4
+
