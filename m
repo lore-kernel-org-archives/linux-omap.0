@@ -1,56 +1,62 @@
-From: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2] ARM: dts: AM571x-IDK Initial Support
-Date: Tue, 22 Nov 2016 09:43:16 -0600
-Message-ID: <CAL_JsqLv2t0qzJ1V6NGPj3iy9tOmMcnr3nsHxojb9aJxp9+8BQ@mail.gmail.com>
-References: <20161122041732.8385-1-lokeshvutla@ti.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 2/5] mfd: tps65217: Specify the IRQ name
+Date: Tue, 22 Nov 2016 15:45:56 +0000
+Message-ID: <20161122154556.GB10134@dell.home>
+References: <20161115130215.3301-1-woogyom.kim@gmail.com>
+ <20161115130215.3301-3-woogyom.kim@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161122041732.8385-1-lokeshvutla-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, spatton-l0cyMroinI0@public.gmane.org, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20161115130215.3301-3-woogyom.kim@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Milo Kim <woogyom.kim@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 21, 2016 at 10:17 PM, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org> wrote:
-> From: Schuyler Patton <spatton-l0cyMroinI0@public.gmane.org>
->
-> The AM571x-IDK board is a board based on TI's AM5718 SOC
-> which has a single core 1.5GHz A15 processor. This board is a
-> development platform for the Industrial market with:
-> - 1GB of DDR3L
-> - Dual 1Gbps Ethernet
-> - HDMI,
-> - PRU-ICSS
-> - uSD
-> - 16GB eMMC
-> - CAN
-> - RS-485
-> - PCIe
-> - USB3.0
-> - Video Input Port
-> - Industrial IO port and expansion connector
->
-> The link to the data sheet and TRM can be found here:
->
-> http://www.ti.com/product/AM5718
->
-> Initial support is only for basic peripherals.
->
-> Signed-off-by: Schuyler Patton <spatton-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+On Tue, 15 Nov 2016, Milo Kim wrote:
+
+> TPS65217 MFD is an interrupt controller and MFD slave devices like
+> tps65217-charger and tps65217-pwrbutton request an interrupt to handle
+> each HW event.
+> 
+> Currently, TPS65217 IRQ name is not defined, so the result is as below.
+> 
+> root@arm:~# cat /proc/interrupts
+> ...
+> 182:          0      INTC   7 Level     tps65217-irq
+> 183:          0         -   1 Edge      tps65217-charger
+> 185:          0         -   2 Edge      tps65217_pwrbutton
+> 
+> This patch specifies the name of the interrupt controller.
+> 
+> 182:          0      INTC   7 Level     tps65217-irq
+> 183:          0  tps65217   1 Edge      tps65217-charger
+> 185:          0  tps65217   2 Edge      tps65217_pwrbutton
+> 
+> Signed-off-by: Milo Kim <woogyom.kim@gmail.com>
 > ---
-> Cahnges since v1:
-> - Dropped "ti,dra722", and "ti,dra72" from compatibles
-> - Fixes few node names as suggested by Rob.
-> Logs: http://pastebin.ubuntu.com/23515001/
+>  drivers/mfd/tps65217.c | 1 +
+>  1 file changed, 1 insertion(+)
 
-Please add acks when posting new versions.
+Applied, thanks.
 
-Rob
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
+> index df2e775..77fb812 100644
+> --- a/drivers/mfd/tps65217.c
+> +++ b/drivers/mfd/tps65217.c
+> @@ -105,6 +105,7 @@ static void tps65217_irq_disable(struct irq_data *data)
+>  }
+>  
+>  static struct irq_chip tps65217_irq_chip = {
+> +	.name			= "tps65217",
+>  	.irq_bus_lock		= tps65217_irq_lock,
+>  	.irq_bus_sync_unlock	= tps65217_irq_sync_unlock,
+>  	.irq_enable		= tps65217_irq_enable,
+
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
