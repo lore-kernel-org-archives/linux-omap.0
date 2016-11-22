@@ -1,74 +1,55 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] Input: twl4030-vibra: remove legacy pdata support
-Date: Tue, 22 Nov 2016 13:19:36 +0200
-Message-ID: <d30d4cca-9fcf-befa-0389-1aafaef99ce8@ti.com>
-References: <1479812398-1122-1-git-send-email-Nicolae_Rosia@mentor.com>
+From: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 2/5] mfd: palmas: Remove redundant check in
+ palmas_power_off
+Date: Tue, 22 Nov 2016 13:02:08 +0000
+Message-ID: <20161122130208.GD316@dell.lan>
+References: <1478754560-27923-1-git-send-email-j-keerthy@ti.com>
+ <1478754560-27923-3-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1479812398-1122-1-git-send-email-Nicolae_Rosia@mentor.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Nicolae Rosia <Nicolae_Rosia@mentor.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Marek Belisko <marek@goldelico.com>, Baruch Siach <baruch@tkos.co.il>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1478754560-27923-3-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On Thu, 10 Nov 2016, Keerthy wrote:
 
-
-On 11/22/2016 12:59 PM, Nicolae Rosia wrote:
-> Remove dead code since all users are device tree enabled.
-
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-
-> Signed-off-by: Nicolae Rosia <Nicolae_Rosia@mentor.com>
+> palmas_dev and palmas_power_off are always assigned together.
+> So the check for palmas_dev inside palmas_power_off function
+> is redundant. Removing the same.
+> 
+> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 > ---
->  drivers/input/misc/twl4030-vibra.c | 13 ++++---------
->  1 file changed, 4 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/input/misc/twl4030-vibra.c b/drivers/input/misc/twl4030-vibra.c
-> index caa5a62..5acc241 100644
-> --- a/drivers/input/misc/twl4030-vibra.c
-> +++ b/drivers/input/misc/twl4030-vibra.c
-> @@ -177,12 +177,8 @@ static int __maybe_unused twl4030_vibra_resume(struct device *dev)
->  static SIMPLE_DEV_PM_OPS(twl4030_vibra_pm_ops,
->  			 twl4030_vibra_suspend, twl4030_vibra_resume);
+>  drivers/mfd/palmas.c | 3 ---
+>  1 file changed, 3 deletions(-)
+
+Applied, thanks.
+
+> diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
+> index 8f8bacb..ee9e9ea 100644
+> --- a/drivers/mfd/palmas.c
+> +++ b/drivers/mfd/palmas.c
+> @@ -431,9 +431,6 @@ static void palmas_power_off(void)
+>  	unsigned int addr;
+>  	int ret, slave;
 >  
-> -static bool twl4030_vibra_check_coexist(struct twl4030_vibra_data *pdata,
-> -			      struct device_node *node)
-> +static bool twl4030_vibra_check_coexist(struct device_node *node)
->  {
-> -	if (pdata && pdata->coexist)
-> -		return true;
+> -	if (!palmas_dev)
+> -		return;
 > -
->  	node = of_find_node_by_name(node, "codec");
->  	if (node) {
->  		of_node_put(node);
-> @@ -194,13 +190,12 @@ static bool twl4030_vibra_check_coexist(struct twl4030_vibra_data *pdata,
+>  	slave = PALMAS_BASE_TO_SLAVE(PALMAS_PMU_CONTROL_BASE);
+>  	addr = PALMAS_BASE_TO_REG(PALMAS_PMU_CONTROL_BASE, PALMAS_DEV_CTRL);
 >  
->  static int twl4030_vibra_probe(struct platform_device *pdev)
->  {
-> -	struct twl4030_vibra_data *pdata = dev_get_platdata(&pdev->dev);
->  	struct device_node *twl4030_core_node = pdev->dev.parent->of_node;
->  	struct vibra_info *info;
->  	int ret;
->  
-> -	if (!pdata && !twl4030_core_node) {
-> -		dev_dbg(&pdev->dev, "platform_data not available\n");
-> +	if (!twl4030_core_node) {
-> +		dev_err(&pdev->dev, "no DT info\n\n");
->  		return -EINVAL;
->  	}
->  
-> @@ -209,7 +204,7 @@ static int twl4030_vibra_probe(struct platform_device *pdev)
->  		return -ENOMEM;
->  
->  	info->dev = &pdev->dev;
-> -	info->coexist = twl4030_vibra_check_coexist(pdata, twl4030_core_node);
-> +	info->coexist = twl4030_vibra_check_coexist(twl4030_core_node);
->  	INIT_WORK(&info->play_work, vibra_play_work);
->  
->  	info->input_dev = devm_input_allocate_device(&pdev->dev);
-> 
 
 -- 
-Péter
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org â”‚ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
