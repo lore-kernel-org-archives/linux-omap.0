@@ -1,172 +1,493 @@
-From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2] ARM: dts: AM571x-IDK Initial Support
-Date: Tue, 22 Nov 2016 09:47:32 +0530
-Message-ID: <20161122041732.8385-1-lokeshvutla@ti.com>
+From: Nicolae Rosia <Nicolae_Rosia@mentor.com>
+Subject: [PATCH v2] mfd: twl-core: make driver DT only
+Date: Tue, 22 Nov 2016 12:21:30 +0200
+Message-ID: <1479810090-12183-1-git-send-email-Nicolae_Rosia@mentor.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux ARM Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, spatton-l0cyMroinI0@public.gmane.org, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Graeme Gregory <gg@slimlogic.co.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Nicolae Rosia <Nicolae_Rosia@mentor.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Schuyler Patton <spatton-l0cyMroinI0@public.gmane.org>
+All users are DT-only and it makes no sense to keep
+unused code which also prevents further cleanups.
 
-The AM571x-IDK board is a board based on TI's AM5718 SOC
-which has a single core 1.5GHz A15 processor. This board is a
-development platform for the Industrial market with:
-- 1GB of DDR3L
-- Dual 1Gbps Ethernet
-- HDMI,
-- PRU-ICSS
-- uSD
-- 16GB eMMC
-- CAN
-- RS-485
-- PCIe
-- USB3.0
-- Video Input Port
-- Industrial IO port and expansion connector
-
-The link to the data sheet and TRM can be found here:
-
-http://www.ti.com/product/AM5718
-
-Initial support is only for basic peripherals.
-
-Signed-off-by: Schuyler Patton <spatton-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Nicolae Rosia <Nicolae_Rosia@mentor.com>
 ---
-Cahnges since v1:
-- Dropped "ti,dra722", and "ti,dra72" from compatibles
-- Fixes few node names as suggested by Rob.
-Logs: http://pastebin.ubuntu.com/23515001/
+Changes in v2:
+Increased audience in CC list
 
- .../devicetree/bindings/arm/omap/omap.txt          |  3 +
- arch/arm/boot/dts/Makefile                         |  1 +
- arch/arm/boot/dts/am571x-idk.dts                   | 81 ++++++++++++++++++++++
- 3 files changed, 85 insertions(+)
- create mode 100644 arch/arm/boot/dts/am571x-idk.dts
+ drivers/mfd/Kconfig    |   1 +
+ drivers/mfd/twl-core.c | 395 ++-----------------------------------------------
+ 2 files changed, 10 insertions(+), 386 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-index f53e2ee..6cf680e 100644
---- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-@@ -175,6 +175,9 @@ Boards:
- - AM5728 IDK
-   compatible = "ti,am5728-idk", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7"
- 
-+- AM5718 IDK
-+  compatible = "ti,am5718-idk", "ti,am5718", "ti,dra7"
-+
- - DRA742 EVM:  Software Development Board for DRA742
-   compatible = "ti,dra7-evm", "ti,dra742", "ti,dra74", "ti,dra7"
- 
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index befcd26..c298078 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -588,6 +588,7 @@ dtb-$(CONFIG_SOC_DRA7XX) += \
- 	am57xx-cl-som-am57x.dtb \
- 	am57xx-sbc-am57x.dtb \
- 	am572x-idk.dtb \
-+	am571x-idk.dtb \
- 	dra7-evm.dtb \
- 	dra72-evm.dtb \
- 	dra72-evm-revc.dtb
-diff --git a/arch/arm/boot/dts/am571x-idk.dts b/arch/arm/boot/dts/am571x-idk.dts
-new file mode 100644
-index 0000000..d6e43e5
---- /dev/null
-+++ b/arch/arm/boot/dts/am571x-idk.dts
-@@ -0,0 +1,81 @@
-+/*
-+ * Copyright (C) 2015-2016 Texas Instruments Incorporated - http://www.ti.com/
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index c6df644..c180f8b 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -1333,6 +1333,7 @@ config MFD_TPS80031
+ config TWL4030_CORE
+ 	bool "TI TWL4030/TWL5030/TWL6030/TPS659x0 Support"
+ 	depends on I2C=y
++	depends on OF
+ 	select IRQ_DOMAIN
+ 	select REGMAP_I2C
+ 	help
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index c64615d..2025326 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -13,6 +13,9 @@
+  * Code cleanup and modifications to IRQ handler.
+  * by syed khasim <x0khasim@ti.com>
+  *
++ * Code cleanup and modifications:
++ * Copyright (C) 2016 Nicolae Rosia <nicolae.rosia@gmail.com>
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+/dts-v1/;
-+
-+#include "dra72x.dtsi"
-+#include <dt-bindings/gpio/gpio.h>
-+#include <dt-bindings/interrupt-controller/irq.h>
-+#include "am57xx-idk-common.dtsi"
-+
-+/ {
-+	model = "TI AM5718 IDK";
-+	compatible = "ti,am5718-idk", "ti,am5718", "ti,dra7";
-+
-+	memory@80000000 {
-+		device_type = "memory";
-+		reg = <0x0 0x80000000 0x0 0x40000000>;
-+	};
-+
-+	leds {
-+		compatible = "gpio-leds";
-+		cpu0-led {
-+			label = "status0:red:cpu0";
-+			gpios = <&gpio2 25 GPIO_ACTIVE_HIGH>;
-+			default-state = "off";
-+			linux,default-trigger = "cpu0";
-+		};
-+
-+		usr0-led {
-+			label = "status0:green:usr";
-+			gpios = <&gpio2 26 GPIO_ACTIVE_HIGH>;
-+			default-state = "off";
-+		};
-+
-+		heartbeat-led {
-+			label = "status0:blue:heartbeat";
-+			gpios = <&gpio2 27 GPIO_ACTIVE_HIGH>;
-+			default-state = "off";
-+			linux,default-trigger = "heartbeat";
-+		};
-+
-+		usr1-led {
-+			label = "status1:red:usr";
-+			gpios = <&gpio2 28 GPIO_ACTIVE_HIGH>;
-+			default-state = "off";
-+		};
-+
-+		usr2-led {
-+			label = "status1:green:usr";
-+			gpios = <&gpio2 21 GPIO_ACTIVE_HIGH>;
-+			default-state = "off";
-+		};
-+
-+		mmc0-led {
-+			label = "status1:blue:mmc0";
-+			gpios = <&gpio2 19 GPIO_ACTIVE_HIGH>;
-+			default-state = "off";
-+			linux,default-trigger = "mmc0";
-+		};
-+	};
-+
-+	extcon_usb2: extcon_usb2 {
-+	     compatible = "linux,extcon-usb-gpio";
-+	     id-gpio = <&gpio5 7 GPIO_ACTIVE_HIGH>;
-+	};
-+};
-+
-+&mmc1 {
-+	status = "okay";
-+	vmmc-supply = <&ldo1_reg>;
-+	bus-width = <4>;
-+	cd-gpios = <&gpio6 27 0>; /* gpio 219 */
-+};
-+
-+&omap_dwc3_2 {
-+	extcon = <&extcon_usb2>;
-+};
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation; either version 2 of the License, or
+@@ -604,376 +607,6 @@ int twl_get_hfclk_rate(void)
+ }
+ EXPORT_SYMBOL_GPL(twl_get_hfclk_rate);
+ 
+-static struct device *
+-add_numbered_child(unsigned mod_no, const char *name, int num,
+-		void *pdata, unsigned pdata_len,
+-		bool can_wakeup, int irq0, int irq1)
+-{
+-	struct platform_device	*pdev;
+-	struct twl_client	*twl;
+-	int			status, sid;
+-
+-	if (unlikely(mod_no >= twl_get_last_module())) {
+-		pr_err("%s: invalid module number %d\n", DRIVER_NAME, mod_no);
+-		return ERR_PTR(-EPERM);
+-	}
+-	sid = twl_priv->twl_map[mod_no].sid;
+-	twl = &twl_priv->twl_modules[sid];
+-
+-	pdev = platform_device_alloc(name, num);
+-	if (!pdev)
+-		return ERR_PTR(-ENOMEM);
+-
+-	pdev->dev.parent = &twl->client->dev;
+-
+-	if (pdata) {
+-		status = platform_device_add_data(pdev, pdata, pdata_len);
+-		if (status < 0) {
+-			dev_dbg(&pdev->dev, "can't add platform_data\n");
+-			goto put_device;
+-		}
+-	}
+-
+-	if (irq0) {
+-		struct resource r[2] = {
+-			{ .start = irq0, .flags = IORESOURCE_IRQ, },
+-			{ .start = irq1, .flags = IORESOURCE_IRQ, },
+-		};
+-
+-		status = platform_device_add_resources(pdev, r, irq1 ? 2 : 1);
+-		if (status < 0) {
+-			dev_dbg(&pdev->dev, "can't add irqs\n");
+-			goto put_device;
+-		}
+-	}
+-
+-	status = platform_device_add(pdev);
+-	if (status)
+-		goto put_device;
+-
+-	device_init_wakeup(&pdev->dev, can_wakeup);
+-
+-	return &pdev->dev;
+-
+-put_device:
+-	platform_device_put(pdev);
+-	dev_err(&twl->client->dev, "failed to add device %s\n", name);
+-	return ERR_PTR(status);
+-}
+-
+-static inline struct device *add_child(unsigned mod_no, const char *name,
+-		void *pdata, unsigned pdata_len,
+-		bool can_wakeup, int irq0, int irq1)
+-{
+-	return add_numbered_child(mod_no, name, -1, pdata, pdata_len,
+-		can_wakeup, irq0, irq1);
+-}
+-
+-static struct device *
+-add_regulator_linked(int num, struct regulator_init_data *pdata,
+-		struct regulator_consumer_supply *consumers,
+-		unsigned num_consumers, unsigned long features)
+-{
+-	struct twl_regulator_driver_data drv_data;
+-
+-	/* regulator framework demands init_data ... */
+-	if (!pdata)
+-		return NULL;
+-
+-	if (consumers) {
+-		pdata->consumer_supplies = consumers;
+-		pdata->num_consumer_supplies = num_consumers;
+-	}
+-
+-	if (pdata->driver_data) {
+-		/* If we have existing drv_data, just add the flags */
+-		struct twl_regulator_driver_data *tmp;
+-		tmp = pdata->driver_data;
+-		tmp->features |= features;
+-	} else {
+-		/* add new driver data struct, used only during init */
+-		drv_data.features = features;
+-		drv_data.set_voltage = NULL;
+-		drv_data.get_voltage = NULL;
+-		drv_data.data = NULL;
+-		pdata->driver_data = &drv_data;
+-	}
+-
+-	/* NOTE:  we currently ignore regulator IRQs, e.g. for short circuits */
+-	return add_numbered_child(TWL_MODULE_PM_MASTER, "twl_reg", num,
+-		pdata, sizeof(*pdata), false, 0, 0);
+-}
+-
+-static struct device *
+-add_regulator(int num, struct regulator_init_data *pdata,
+-		unsigned long features)
+-{
+-	return add_regulator_linked(num, pdata, NULL, 0, features);
+-}
+-
+-/*
+- * NOTE:  We know the first 8 IRQs after pdata->base_irq are
+- * for the PIH, and the next are for the PWR_INT SIH, since
+- * that's how twl_init_irq() sets things up.
+- */
+-
+-static int
+-add_children(struct twl4030_platform_data *pdata, unsigned irq_base,
+-		unsigned long features)
+-{
+-	struct device	*child;
+-
+-	if (IS_ENABLED(CONFIG_GPIO_TWL4030) && pdata->gpio) {
+-		child = add_child(TWL4030_MODULE_GPIO, "twl4030_gpio",
+-				pdata->gpio, sizeof(*pdata->gpio),
+-				false, irq_base + GPIO_INTR_OFFSET, 0);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-	}
+-
+-	if (IS_ENABLED(CONFIG_KEYBOARD_TWL4030) && pdata->keypad) {
+-		child = add_child(TWL4030_MODULE_KEYPAD, "twl4030_keypad",
+-				pdata->keypad, sizeof(*pdata->keypad),
+-				true, irq_base + KEYPAD_INTR_OFFSET, 0);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-	}
+-
+-	if (IS_ENABLED(CONFIG_TWL4030_MADC) && pdata->madc &&
+-	    twl_class_is_4030()) {
+-		child = add_child(TWL4030_MODULE_MADC, "twl4030_madc",
+-				pdata->madc, sizeof(*pdata->madc),
+-				true, irq_base + MADC_INTR_OFFSET, 0);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-	}
+-
+-	if (IS_ENABLED(CONFIG_RTC_DRV_TWL4030)) {
+-		/*
+-		 * REVISIT platform_data here currently might expose the
+-		 * "msecure" line ... but for now we just expect board
+-		 * setup to tell the chip "it's always ok to SET_TIME".
+-		 * Eventually, Linux might become more aware of such
+-		 * HW security concerns, and "least privilege".
+-		 */
+-		child = add_child(TWL_MODULE_RTC, "twl_rtc", NULL, 0,
+-				true, irq_base + RTC_INTR_OFFSET, 0);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-	}
+-
+-	if (IS_ENABLED(CONFIG_PWM_TWL)) {
+-		child = add_child(TWL_MODULE_PWM, "twl-pwm", NULL, 0,
+-				  false, 0, 0);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-	}
+-
+-	if (IS_ENABLED(CONFIG_PWM_TWL_LED)) {
+-		child = add_child(TWL_MODULE_LED, "twl-pwmled", NULL, 0,
+-				  false, 0, 0);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-	}
+-
+-	if (IS_ENABLED(CONFIG_TWL4030_USB) && pdata->usb &&
+-	    twl_class_is_4030()) {
+-
+-		static struct regulator_consumer_supply usb1v5 = {
+-			.supply =	"usb1v5",
+-		};
+-		static struct regulator_consumer_supply usb1v8 = {
+-			.supply =	"usb1v8",
+-		};
+-		static struct regulator_consumer_supply usb3v1 = {
+-			.supply =	"usb3v1",
+-		};
+-
+-	/* First add the regulators so that they can be used by transceiver */
+-		if (IS_ENABLED(CONFIG_REGULATOR_TWL4030)) {
+-			/* this is a template that gets copied */
+-			struct regulator_init_data usb_fixed = {
+-				.constraints.valid_modes_mask =
+-					REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-				.constraints.valid_ops_mask =
+-					REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-			};
+-
+-			child = add_regulator_linked(TWL4030_REG_VUSB1V5,
+-						      &usb_fixed, &usb1v5, 1,
+-						      features);
+-			if (IS_ERR(child))
+-				return PTR_ERR(child);
+-
+-			child = add_regulator_linked(TWL4030_REG_VUSB1V8,
+-						      &usb_fixed, &usb1v8, 1,
+-						      features);
+-			if (IS_ERR(child))
+-				return PTR_ERR(child);
+-
+-			child = add_regulator_linked(TWL4030_REG_VUSB3V1,
+-						      &usb_fixed, &usb3v1, 1,
+-						      features);
+-			if (IS_ERR(child))
+-				return PTR_ERR(child);
+-
+-		}
+-
+-		child = add_child(TWL_MODULE_USB, "twl4030_usb",
+-				pdata->usb, sizeof(*pdata->usb), true,
+-				/* irq0 = USB_PRES, irq1 = USB */
+-				irq_base + USB_PRES_INTR_OFFSET,
+-				irq_base + USB_INTR_OFFSET);
+-
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		/* we need to connect regulators to this transceiver */
+-		if (IS_ENABLED(CONFIG_REGULATOR_TWL4030) && child) {
+-			usb1v5.dev_name = dev_name(child);
+-			usb1v8.dev_name = dev_name(child);
+-			usb3v1.dev_name = dev_name(child);
+-		}
+-	}
+-
+-	if (IS_ENABLED(CONFIG_TWL4030_WATCHDOG) && twl_class_is_4030()) {
+-		child = add_child(TWL_MODULE_PM_RECEIVER, "twl4030_wdt", NULL,
+-				  0, false, 0, 0);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-	}
+-
+-	if (IS_ENABLED(CONFIG_INPUT_TWL4030_PWRBUTTON) && twl_class_is_4030()) {
+-		child = add_child(TWL_MODULE_PM_MASTER, "twl4030_pwrbutton",
+-				  NULL, 0, true, irq_base + 8 + 0, 0);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-	}
+-
+-	if (IS_ENABLED(CONFIG_MFD_TWL4030_AUDIO) && pdata->audio &&
+-	    twl_class_is_4030()) {
+-		child = add_child(TWL4030_MODULE_AUDIO_VOICE, "twl4030-audio",
+-				pdata->audio, sizeof(*pdata->audio),
+-				false, 0, 0);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-	}
+-
+-	/* twl4030 regulators */
+-	if (IS_ENABLED(CONFIG_REGULATOR_TWL4030) && twl_class_is_4030()) {
+-		child = add_regulator(TWL4030_REG_VPLL1, pdata->vpll1,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL4030_REG_VIO, pdata->vio,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL4030_REG_VDD1, pdata->vdd1,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL4030_REG_VDD2, pdata->vdd2,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL4030_REG_VMMC1, pdata->vmmc1,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL4030_REG_VDAC, pdata->vdac,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator((features & TWL4030_VAUX2)
+-					? TWL4030_REG_VAUX2_4030
+-					: TWL4030_REG_VAUX2,
+-				pdata->vaux2, features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL4030_REG_VINTANA1, pdata->vintana1,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL4030_REG_VINTANA2, pdata->vintana2,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL4030_REG_VINTDIG, pdata->vintdig,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-	}
+-
+-	/* maybe add LDOs that are omitted on cost-reduced parts */
+-	if (IS_ENABLED(CONFIG_REGULATOR_TWL4030) && !(features & TPS_SUBSET)
+-	  && twl_class_is_4030()) {
+-		child = add_regulator(TWL4030_REG_VPLL2, pdata->vpll2,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL4030_REG_VMMC2, pdata->vmmc2,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL4030_REG_VSIM, pdata->vsim,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL4030_REG_VAUX1, pdata->vaux1,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL4030_REG_VAUX3, pdata->vaux3,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL4030_REG_VAUX4, pdata->vaux4,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-	}
+-
+-	if (IS_ENABLED(CONFIG_CHARGER_TWL4030) && pdata->bci &&
+-			!(features & (TPS_SUBSET | TWL5031))) {
+-		child = add_child(TWL_MODULE_MAIN_CHARGE, "twl4030_bci",
+-				pdata->bci, sizeof(*pdata->bci), false,
+-				/* irq0 = CHG_PRES, irq1 = BCI */
+-				irq_base + BCI_PRES_INTR_OFFSET,
+-				irq_base + BCI_INTR_OFFSET);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-	}
+-
+-	if (IS_ENABLED(CONFIG_TWL4030_POWER) && pdata->power) {
+-		child = add_child(TWL_MODULE_PM_MASTER, "twl4030_power",
+-				  pdata->power, sizeof(*pdata->power), false,
+-				  0, 0);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-	}
+-
+-	return 0;
+-}
+-
+-/*----------------------------------------------------------------------*/
+-
+ /*
+  * These three functions initialize the on-chip clock framework,
+  * letting it generate the right frequencies for USB, MADC, and
+@@ -1000,8 +633,7 @@ static inline int __init unprotect_pm_master(void)
+ 	return e;
+ }
+ 
+-static void clocks_init(struct device *dev,
+-			struct twl4030_clock_init_data *clock)
++static void clocks_init(struct device *dev)
+ {
+ 	int e = 0;
+ 	struct clk *osc;
+@@ -1031,8 +663,6 @@ static void clocks_init(struct device *dev,
+ 	}
+ 
+ 	ctrl |= HIGH_PERF_SQ;
+-	if (clock && clock->ck32k_lowpwr_enable)
+-		ctrl |= CK32K_LOWPWR_EN;
+ 
+ 	e |= unprotect_pm_master();
+ 	/* effect->MADC+USB ck en */
+@@ -1080,7 +710,6 @@ static struct of_dev_auxdata twl_auxdata_lookup[] = {
+ static int
+ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ {
+-	struct twl4030_platform_data	*pdata = dev_get_platdata(&client->dev);
+ 	struct device_node		*node = client->dev.of_node;
+ 	struct platform_device		*pdev;
+ 	const struct regmap_config	*twl_regmap_config;
+@@ -1088,8 +717,8 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	int				status;
+ 	unsigned			i, num_slaves;
+ 
+-	if (!node && !pdata) {
+-		dev_err(&client->dev, "no platform data\n");
++	if (!node) {
++		dev_err(&client->dev, "no DT info\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -1177,7 +806,7 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	twl_priv->ready = true;
+ 
+ 	/* setup clock framework */
+-	clocks_init(&pdev->dev, pdata ? pdata->clock : NULL);
++	clocks_init(&pdev->dev);
+ 
+ 	/* read TWL IDCODE Register */
+ 	if (twl_class_is_4030()) {
+@@ -1225,14 +854,8 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 				 TWL4030_DCDC_GLOBAL_CFG);
+ 	}
+ 
+-	if (node) {
+-		if (pdata)
+-			twl_auxdata_lookup[0].platform_data = pdata->gpio;
+-		status = of_platform_populate(node, NULL, twl_auxdata_lookup,
+-					      &client->dev);
+-	} else {
+-		status = add_children(pdata, irq_base, id->driver_data);
+-	}
++	status = of_platform_populate(node, NULL, twl_auxdata_lookup,
++					&client->dev);
+ 
+ fail:
+ 	if (status < 0)
 -- 
-2.10.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.5.5
