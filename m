@@ -1,74 +1,57 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v2 3/5] mfd: palmas: Reset the POWERHOLD mux during power
- off
-Date: Tue, 22 Nov 2016 13:03:08 +0000
-Message-ID: <20161122130308.GE316@dell.lan>
-References: <1478754560-27923-1-git-send-email-j-keerthy@ti.com>
- <1478754560-27923-4-git-send-email-j-keerthy@ti.com>
+From: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 3/3] drivers: mfd: ti_am335x_tscadc: increase ADC ref
+ clock to 24MHz
+Date: Tue, 22 Nov 2016 13:04:38 +0000
+Message-ID: <20161122130438.GF316@dell.lan>
+References: <20161110163515.27598-1-mugunthanvnm@ti.com>
+ <20161111075838.5815-1-mugunthanvnm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1478754560-27923-4-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: tony@atomide.com, robh+dt@kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-gpio@vger.kernel.org, nm@ti.com, t-kristo@ti.com
+In-Reply-To: <20161111075838.5815-1-mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Cc: linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 10 Nov 2016, Keerthy wrote:
+Don't make up $SUBJECT line format.
 
-> POWERHOLD signal has higher priority  over the DEV_ON bit.
-> So power off will not happen if the POWERHOLD is held high.
-> Hence reset the MUX to GPIO_7 mode to release the POWERHOLD
-> and the DEV_ON bit to take effect to power off the PMIC.
+> Increase ADC reference clock from 3MHz to 24MHz so that the
+> sampling rates goes up from 100K samples per second to 800K
+> samples per second on AM335x and AM437x SoC.
 > 
-> PMIC Power off happens in dire situations like thermal shutdown
-> so irrespective of the POWERHOLD setting go ahead and turn off
-> the powerhold.  Currently poweroff is broken on boards that have
-> powerhold enabled. This fixes poweroff on those boards.
-> 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> Signed-off-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
 > ---
-> 
-> Changes in v2:
-> 
->   * Changed pr_err to dev_err
->   * removed redundant boolean variable override-powerhold
-> 
->  drivers/mfd/palmas.c | 14 ++++++++++++++
->  1 file changed, 14 insertions(+)
+>  include/linux/mfd/ti_am335x_tscadc.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-Applied, thanks.
+Change looks okay though.
 
-> diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
-> index ee9e9ea..da90124 100644
-> --- a/drivers/mfd/palmas.c
-> +++ b/drivers/mfd/palmas.c
-> @@ -430,6 +430,20 @@ static void palmas_power_off(void)
->  {
->  	unsigned int addr;
->  	int ret, slave;
-> +	struct device_node *np = palmas_dev->dev->of_node;
-> +
-> +	if (of_property_read_bool(np, "ti,palmas-override-powerhold")) {
-> +		addr = PALMAS_BASE_TO_REG(PALMAS_PU_PD_OD_BASE,
-> +					  PALMAS_PRIMARY_SECONDARY_PAD2);
-> +		slave = PALMAS_BASE_TO_SLAVE(PALMAS_PU_PD_OD_BASE);
-> +
-> +		ret = regmap_update_bits(palmas_dev->regmap[slave], addr,
-> +				PALMAS_PRIMARY_SECONDARY_PAD2_GPIO_7_MASK, 0);
-> +		if (ret)
-> +			dev_err(palmas_dev->dev,
-> +				"Unable to write PRIMARY_SECONDARY_PAD2 %d\n",
-> +				ret);
-> +	}
+For my own reference:
+  Acked-for-MFD-by: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+
+> diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
+> index b9a53e013bff..f6c449b96ea5 100644
+> --- a/include/linux/mfd/ti_am335x_tscadc.h
+> +++ b/include/linux/mfd/ti_am335x_tscadc.h
+> @@ -137,7 +137,7 @@
+>  #define SEQ_STATUS BIT(5)
+>  #define CHARGE_STEP		0x11
 >  
->  	slave = PALMAS_BASE_TO_SLAVE(PALMAS_PMU_CONTROL_BASE);
->  	addr = PALMAS_BASE_TO_REG(PALMAS_PMU_CONTROL_BASE, PALMAS_DEV_CTRL);
+> -#define ADC_CLK			3000000
+> +#define ADC_CLK			24000000
+>  #define TOTAL_STEPS		16
+>  #define TOTAL_CHANNELS		8
+>  #define FIFO1_THRESHOLD		19
 
 -- 
 Lee Jones
 Linaro STMicroelectronics Landing Team Lead
 Linaro.org │ Open source software for ARM SoCs
 Follow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
