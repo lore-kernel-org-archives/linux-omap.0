@@ -1,204 +1,177 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v8 5/8] drivers:input:ads7846(+tsc2046): add new common binding names, pre-calibration and flipping
-Date: Tue, 22 Nov 2016 15:02:32 +0100
-Message-ID: <6a706062396edf536fe16c9ad4278efe75e40649.1479823354.git.hns@goldelico.com>
-References: <cover.1479823354.git.hns@goldelico.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 1/5] mfd: tps65217: Fix page fault on unloading modules
+Date: Tue, 22 Nov 2016 15:39:45 +0000
+Message-ID: <20161122153945.GA10134@dell.home>
+References: <20161115130215.3301-1-woogyom.kim@gmail.com>
+ <20161115130215.3301-2-woogyom.kim@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1479823354.git.hns@goldelico.com>
-In-Reply-To: <cover.1479823354.git.hns@goldelico.com>
-References: <cover.1479823354.git.hns@goldelico.com>
+Content-Disposition: inline
+In-Reply-To: <20161115130215.3301-2-woogyom.kim@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Michael Welling <mwelling@ieee.org>, =?UTF-8?q?Mika=20Penttil=C3=A4?= <mika.penttila@nextfour.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Igor Grinberg <grinberg@compulab.co.il>, "Andrew F. Davis" <afd@ti.com>, Mark Brown <broonie@kernel.org>, Jonathan Cameron <jic23@kernel.org>, Rob Herring <robh+dt@kernel.org>, "H. Nikolaus Schaller" <hns@goldelico.com>, Alexander Stein <alexander.stein@systec-electronic.com>, Eric Engestrom <eric@engestrom.ch>
-Cc: linux-input@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, letux-kernel@openphoenux.org, linux-iio@vger.kernel.org, kernel@pyra-handheld.com
+To: Milo Kim <woogyom.kim@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-commit b98abe52fa8e ("Input: add common DT binding for touchscreens")
-introduced common DT bindings for touchscreens [1] and a helper function to
-parse the DT.
+On Tue, 15 Nov 2016, Milo Kim wrote:
 
-commit ed7c9870c9bc ("Input: of_touchscreen - add support for inverted / swapped axes")
-added another helper for parsing axis inversion and swapping
-and applying them to x and y coordinates.
+> TPS65217 IRQ domain should be removed and initialised as NULL when the
+> module is unloaded for the next use. When tps65217.ko is loaded again,
+> it causes the page fault. This patch fixes the error below.
+> 
+> root@arm:~# lsmod | grep "tps"
+> tps65217_charger        3538  0
+> tps65218_pwrbutton      2974  0
+> tps65217                6710  1 tps65217_charger
+> 
+> root@arm:~# modprobe -r tps65217_charger
+> 
+> root@arm:~# modprobe tps65217.ko
+> [   71.990277] Unable to handle kernel paging request at virtual address bf055944
+> [   71.998063] pgd = dd3a4000
+> [   72.000904] [bf055944] *pgd=9e6f7811, *pte=00000000, *ppte=00000000
+> [   72.007567] Internal error: Oops: 7 [#1] SMP ARM
+> [   72.012404] Modules linked in: tps65217(+) evdev musb_dsps musb_hdrc udc_core tps65218_pwrbutton usbcore phy_am335]
+> [   72.055700] CPU: 0 PID: 243 Comm: modprobe Not tainted 4.9.0-rc5-next-20161114 #3
+> [   72.063531] Hardware name: Generic AM33XX (Flattened Device Tree)
+> [   72.069899] task: de714380 task.stack: de7e6000
+> [   72.074655] PC is at irq_find_matching_fwspec+0x88/0x100
+> [   72.080211] LR is at 0xde7e79d8
+> [   72.083496] pc : [<c01a5d88>]    lr : [<de7e79d8>]    psr: 200e0013
+> [   72.083496] sp : de7e7a78  ip : 00000000  fp : dd138a68
+> [   72.095506] r10: c0ca04f8  r9 : 00000018  r8 : de7e7ab8
+> [   72.100973] r7 : 00000001  r6 : c0c4517c  r5 : df963f68  r4 : de321980
+> [   72.107797] r3 : bf055940  r2 : de714380  r1 : 00000000  r0 : 00000000
+> [   72.114633] Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment none
+> [   72.122084] Control: 10c5387d  Table: 9d3a4019  DAC: 00000051
+> [   72.128097] Process modprobe (pid: 243, stack limit = 0xde7e6218)
+> [   72.134489] Stack: (0xde7e7a78 to 0xde7e8000)
+> [   72.139060] 7a60:                                                       df963f68 de7e7ab8
+> [   72.147643] 7a80: 00000000 dd0e1000 dd491e20 c01a6ea0 600e0013 c01a5dc0 dd138a68 c0c45138
+> [   72.156216] 7aa0: df963f68 00000000 df963f68 dd0e1010 00000000 c01a71a4 df963f68 00000001
+> [   72.164800] 7ac0: 00000002 de7e7ac0 c80048b8 dd0adf00 df963f68 c0c4517c 00000000 de7e7b50
+> [   72.173369] 7ae0: 00000018 c0ca04f8 dd138a68 c01a5dc0 df963f68 dd0e1010 00000000 dd0e1000
+> [   72.181942] 7b00: dd491e20 c0653a70 df963f58 00000001 00000002 00000000 00000000 00000000
+> [   72.190522] 7b20: 600e0093 c0cbf8f0 c0c0512c c0193674 00000001 00000080 00000000 c0554984
+> [   72.199096] 7b40: 00000000 00000000 800e0013 c0553858 df963f68 00000000 00000000 00000000
+> [   72.207674] 7b60: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+> [   72.216239] 7b80: 00000000 00000000 00000000 00000000 00000000 00000000 dd0e1000 c0544d24
+> [   72.224816] 7ba0: dd491e10 dd0e1010 dd16e800 bf1d517c bf1d5620 dd0e1010 c1497ed4 bf1d5620
+> [   72.233398] 7bc0: dd0e1010 fffffdfb bf1d5620 bf1d5620 00000000 c054537c c0545330 dd0e1010
+> [   72.241967] 7be0: c1497ed4 00000000 bf1d5620 c05433ac 00000000 00000000 de7e7c28 c0543570
+> [   72.250537] 7c00: 00000001 c1497e90 00000000 c0541884 de080cd4 dd44b7d4 dd0e1010 dd0e1010
+> [   72.259109] 7c20: dd0e1044 c05430c8 dd0e1010 00000001 dd0e1010 dd0e1018 dd0e1010 c0c9e328
+> [   72.267676] 7c40: de5d4020 c0542760 dd0e1018 dd0e1010 00000000 c0540ba8 dd138a40 c048dec4
+> [   72.276253] 7c60: 00000000 dd0e1000 00000001 dd0e1000 dd0e1010 dd0e1000 bf233de0 dd138a40
+> [   72.284829] 7c80: dd0e1010 c05450a0 000000bf 00000000 dd138a60 00000001 dd0e1000 c0571240
+> [   72.293398] 7ca0: 00000000 dd1ce9c0 00000040 dd1ce9cc bf233de0 00000003 de5d4020 ffffffff
+> [   72.301969] 7cc0: 00000004 dd0adf00 00000000 c0571408 00000000 00000000 dd0adf00 de5d4020
+> [   72.310543] 7ce0: c057146c dd1ce9c0 bf233d14 de5d4020 de7fb3d0 00000004 bf233d14 ffffffff
+> [   72.319120] 7d00: 00000018 dd49bf30 c01cedc0 c05714d0 00000000 00000000 dd0adf00 de322810
+> [   72.327692] 7d20: de322810 00000000 dd033000 000000f0 00000001 bf2333fc 00000000 00000000
+> [   72.336269] 7d40: dd0adf00 de5d4020 000000b6 bf233e40 de5d4020 bf233968 de5d4004 de5d4000
+> [   72.344848] 7d60: bf233314 c06148ac de5d4020 c1497ed4 00000000 bf233e40 00000000 c05433ac
+> [   72.353422] 7d80: 00000000 de5d4020 bf233e40 de5d4054 00000000 bf236000 00000000 c0543538
+> [   72.362002] 7da0: 00000000 bf233e40 c0543484 c05417e4 de1442a4 de5d04d0 bf233e40 de321300
+> [   72.370582] 7dc0: c0caa5a4 c05429fc bf233be0 bf233e40 c0cbfa44 bf233e40 c0cbfa44 dd2f7740
+> [   72.379148] 7de0: bf233f00 c05442f0 bf233e8c bf233e24 c0cbfa44 c0615ae0 00000000 bf233f00
+> [   72.387718] 7e00: c0cbfa44 c010186c 200f0013 c0191650 de714380 00000000 600f0013 00000040
+> [   72.396286] 7e20: dd2f7740 c018f1ac 00000001 c0c8356c 024000c0 c01a8854 c0c56e0e c028225c
+> [   72.404863] 7e40: dd2f7740 c0191984 de714380 dd2f7740 00000001 bf233f00 bf233f00 c0cbfa44
+> [   72.413440] 7e60: dd2f7740 bf233f00 00000001 dd49bf08 dd49bf30 c0230998 00000001 c0c8356c
+> [   72.421997] 7e80: c0c4c536 c0cbfa44 c0c0512c c01d2070 bf233f0c 00007fff bf233f00 c01cf5b8
+> [   72.430570] 7ea0: 00000000 c1475134 c01cee34 bf23411c bf233f48 bf234054 bf234150 00000000
+> [   72.439144] 7ec0: 024002c2 de7fbf40 0009bc20 c02776ac ff800000 00000000 00000000 bf233670
+> [   72.447723] 7ee0: 00000004 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+> [   72.456298] 7f00: 00000000 00000000 00000000 00000000 c01d2590 0000aa41 00000000 00000000
+> [   72.464862] 7f20: 000b2549 e12c3a41 00000051 de7e6000 0009bc20 c01d2630 00000530 e12b9000
+> [   72.473438] 7f40: 0000aa41 e12c1434 e12c1211 e12c336c 00001150 00001620 00000000 00000000
+> [   72.482003] 7f60: 00000000 000010fc 00000035 00000036 0000001d 0000001a 00000017 00000000
+> [   72.490564] 7f80: de7e6000 3ba39a00 0009b008 0009b718 00000080 c0107704 de7e6000 00000000
+> [   72.499141] 7fa0: 0009f609 c0107560 3ba39a00 0009b008 000a7b08 0000aa41 0009bc20 0000aa41
+> [   72.507717] 7fc0: 3ba39a00 0009b008 0009b718 00000080 00000001 00000008 0009ab14 0009f609
+> [   72.516290] 7fe0: bea31ab8 bea31aa8 0001e5eb b6e83b42 800f0030 000a7b08 0000ffff 0840ffff
+> [   72.524883] [<c01a5d88>] (irq_find_matching_fwspec) from [<c01a6ea0>] (irq_create_fwspec_mapping+0x28/0x2e0)
+> [   72.535174] [<c01a6ea0>] (irq_create_fwspec_mapping) from [<c01a71a4>] (irq_create_of_mapping+0x4c/0x54)
+> [   72.545115] [<c01a71a4>] (irq_create_of_mapping) from [<c0653a70>] (of_irq_get+0x58/0x68)
+> [   72.553699] [<c0653a70>] (of_irq_get) from [<c0544d24>] (platform_get_irq+0x1c/0xec)
+> [   72.561828] [<c0544d24>] (platform_get_irq) from [<bf1d517c>] (tps6521x_pb_probe+0xd0/0x1a8 [tps65218_pwrbutton])
+> [   72.572581] [<bf1d517c>] (tps6521x_pb_probe [tps65218_pwrbutton]) from [<c054537c>] (platform_drv_probe+0x4c/0xac)
+> [   72.583426] [<c054537c>] (platform_drv_probe) from [<c05433ac>] (driver_probe_device+0x204/0x2dc)
+> [   72.592729] [<c05433ac>] (driver_probe_device) from [<c0541884>] (bus_for_each_drv+0x58/0x8c)
+> [   72.601657] [<c0541884>] (bus_for_each_drv) from [<c05430c8>] (__device_attach+0xb0/0x114)
+> [   72.610324] [<c05430c8>] (__device_attach) from [<c0542760>] (bus_probe_device+0x88/0x90)
+> [   72.618898] [<c0542760>] (bus_probe_device) from [<c0540ba8>] (device_add+0x3b8/0x560)
+> [   72.627203] [<c0540ba8>] (device_add) from [<c05450a0>] (platform_device_add+0xa8/0x208)
+> [   72.635693] [<c05450a0>] (platform_device_add) from [<c0571240>] (mfd_add_device+0x240/0x338)
+> [   72.644634] [<c0571240>] (mfd_add_device) from [<c0571408>] (mfd_add_devices+0xa0/0x104)
+> [   72.653120] [<c0571408>] (mfd_add_devices) from [<c05714d0>] (devm_mfd_add_devices+0x60/0xa8)
+> [   72.662077] [<c05714d0>] (devm_mfd_add_devices) from [<bf2333fc>] (tps65217_probe+0xe8/0x2ec [tps65217])
+> [   72.672026] [<bf2333fc>] (tps65217_probe [tps65217]) from [<c06148ac>] (i2c_device_probe+0x168/0x1f4)
+> [   72.681695] [<c06148ac>] (i2c_device_probe) from [<c05433ac>] (driver_probe_device+0x204/0x2dc)
+> [   72.690816] [<c05433ac>] (driver_probe_device) from [<c0543538>] (__driver_attach+0xb4/0xb8)
+> [   72.699657] [<c0543538>] (__driver_attach) from [<c05417e4>] (bus_for_each_dev+0x60/0x94)
+> [   72.708224] [<c05417e4>] (bus_for_each_dev) from [<c05429fc>] (bus_add_driver+0x18c/0x214)
+> [   72.716892] [<c05429fc>] (bus_add_driver) from [<c05442f0>] (driver_register+0x78/0xf8)
+> [   72.725280] [<c05442f0>] (driver_register) from [<c0615ae0>] (i2c_register_driver+0x38/0x80)
+> [   72.734120] [<c0615ae0>] (i2c_register_driver) from [<c010186c>] (do_one_initcall+0x3c/0x178)
+> [   72.743055] [<c010186c>] (do_one_initcall) from [<c0230998>] (do_init_module+0x5c/0x1d0)
+> [   72.751537] [<c0230998>] (do_init_module) from [<c01d2070>] (load_module+0x1d10/0x21c0)
+> [   72.759933] [<c01d2070>] (load_module) from [<c01d2630>] (SyS_init_module+0x110/0x154)
+> [   72.768242] [<c01d2630>] (SyS_init_module) from [<c0107560>] (ret_fast_syscall+0x0/0x1c)
+> [   72.776725] Code: e5944000 e1540006 0a00001b e594300c (e593c004)
+> [   72.783181] ---[ end trace 0278ec325f4689b8 ]---
+> 
+> Fixes: 6556bdacf646 ("mfd: tps65217: Add support for IRQs")
+> Signed-off-by: Milo Kim <woogyom.kim@gmail.com>
+> ---
+>  drivers/mfd/tps65217.c | 19 +++++++++++++++++++
+>  1 file changed, 19 insertions(+)
 
-Both helpers have been integrated to accommodate any orientation of the
-touch panel in relation to the LCD.
+Applied, thanks.
 
-A new feature is to introduce scaling the min/max ADC values to the screen
-size.
+> diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
+> index 9a4d868..df2e775 100644
+> --- a/drivers/mfd/tps65217.c
+> +++ b/drivers/mfd/tps65217.c
+> @@ -424,6 +424,24 @@ static int tps65217_probe(struct i2c_client *client,
+>  	return 0;
+>  }
+>  
+> +static int tps65217_remove(struct i2c_client *client)
+> +{
+> +	struct tps65217 *tps = i2c_get_clientdata(client);
+> +	unsigned int virq;
+> +	int i;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(tps65217_irqs); i++) {
+> +		virq = irq_find_mapping(tps->irq_domain, i);
+> +		if (virq)
+> +			irq_dispose_mapping(virq);
+> +	}
+> +
+> +	irq_domain_remove(tps->irq_domain);
+> +	tps->irq_domain = NULL;
+> +
+> +	return 0;
+> +}
+> +
+>  static const struct i2c_device_id tps65217_id_table[] = {
+>  	{"tps65217", TPS65217},
+>  	{ /* sentinel */ }
+> @@ -437,6 +455,7 @@ static struct i2c_driver tps65217_driver = {
+>  	},
+>  	.id_table	= tps65217_id_table,
+>  	.probe		= tps65217_probe,
+> +	.remove		= tps65217_remove,
+>  };
+>  
+>  static int __init tps65217_init(void)
 
-This makes it possible to pre-calibrate the touch so that is (almost)
-exactly matches the LCD pixel coordinates it is glued onto. This allows to
-well enough operate the touch before a user space calibration step can
-improve the precision.
-
-[1]: Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
-
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
-Acked-by: Rob Herring <robh@kernel.org>
----
- .../devicetree/bindings/input/ads7846.txt          |  9 +++-
- drivers/input/touchscreen/ads7846.c                | 60 ++++++++++++++++++----
- 2 files changed, 57 insertions(+), 12 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/input/ads7846.txt b/Documentation/devicetree/bindings/input/ads7846.txt
-index 9fc47b0..29f91ed 100644
---- a/Documentation/devicetree/bindings/input/ads7846.txt
-+++ b/Documentation/devicetree/bindings/input/ads7846.txt
-@@ -26,6 +26,12 @@ Additional required properties:
- 
- Optional properties:
- 
-+You can optionally specify any of the touchscreen parameters described in
-+
-+	Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
-+
-+This allows to scale, invert or swap coordinates and define the fuzz factors.
-+
- 	ti,vref-delay-usecs		vref supply delay in usecs, 0 for
- 					external vref (u16).
- 	ti,vref-mv			The VREF voltage, in millivolts (u16).
-@@ -33,7 +39,7 @@ Optional properties:
- 					(ADS7846).
- 	ti,keep-vref-on			set to keep vref on for differential
- 					measurements as well
--	ti,swap-xy			swap x and y axis
-+	ti,swap-xy			deprecated name for touchscreen-swapped-x-y
- 	ti,settle-delay-usec		Settling time of the analog signals;
- 					a function of Vcc and the capacitance
- 					on the X/Y drivers.  If set to non-zero,
-@@ -82,6 +88,7 @@ Example for a TSC2046 chip connected to an McSPI controller of an OMAP SoC::
- 			pendown-gpio = <&gpio1 8 0>;
- 			vcc-supply = <&reg_vcc3>;
- 
-+			touchscreen-swapped-x-y;
- 			ti,x-min = /bits/ 16 <0>;
- 			ti,x-max = /bits/ 16 <8000>;
- 			ti,y-min = /bits/ 16 <0>;
-diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touchscreen/ads7846.c
-index 1ce3ecb..400e421 100644
---- a/drivers/input/touchscreen/ads7846.c
-+++ b/drivers/input/touchscreen/ads7846.c
-@@ -34,6 +34,7 @@
- #include <linux/spi/ads7846.h>
- #include <linux/regulator/consumer.h>
- #include <linux/module.h>
-+#include <linux/input/touchscreen.h>
- #include <asm/irq.h>
- 
- /*
-@@ -109,8 +110,13 @@ struct ads7846 {
- 	u16			vref_delay_usecs;
- 	u16			x_plate_ohms;
- 	u16			pressure_max;
-+	u16			x_min;
-+	u16			x_max;
-+	u16			y_min;
-+	u16			y_max;
-+
-+	struct touchscreen_properties prop;
- 
--	bool			swap_xy;
- 	bool			use_internal;
- 
- 	struct ads7846_packet	*packet;
-@@ -825,22 +831,36 @@ static void ads7846_report_state(struct ads7846 *ts)
- 	 */
- 	if (Rt) {
- 		struct input_dev *input = ts->input;
-+		int sx, sy;
-+
-+		dev_dbg(&ts->spi->dev,
-+			"Raw point(%4d,%4d), pressure (%4u)\n",
-+				x, y, Rt);
-+
-+		/* scale ADC values to desired output range */
-+		sx = (ts->prop.max_x * (x - ts->x_min))
-+			/ (ts->x_max - ts->x_min);
-+		sy = (ts->prop.max_y * (y - ts->y_min))
-+			/ (ts->y_max - ts->y_min);
- 
--		if (ts->swap_xy)
--			swap(x, y);
-+		dev_dbg(&ts->spi->dev,
-+			"Scaled point(%4d,%4d), pressure (%4u)\n",
-+				sx, sy, Rt);
- 
-+		/* report event */
- 		if (!ts->pendown) {
- 			input_report_key(input, BTN_TOUCH, 1);
- 			ts->pendown = true;
- 			dev_vdbg(&ts->spi->dev, "DOWN\n");
- 		}
- 
--		input_report_abs(input, ABS_X, x);
--		input_report_abs(input, ABS_Y, y);
-+		touchscreen_report_pos(ts->input, &ts->prop,
-+				       (unsigned int) sx, (unsigned int) sy,
-+				       false);
- 		input_report_abs(input, ABS_PRESSURE, ts->pressure_max - Rt);
- 
- 		input_sync(input);
--		dev_vdbg(&ts->spi->dev, "%4d/%4d/%4d\n", x, y, Rt);
-+		dev_vdbg(&ts->spi->dev, "%4d/%4d/%4d\n", sx, sy, Rt);
- 	}
- }
- 
-@@ -1212,6 +1232,8 @@ static const struct ads7846_platform_data *ads7846_probe_dt(struct device *dev)
- 	pdata->keep_vref_on = of_property_read_bool(node, "ti,keep-vref-on");
- 
- 	pdata->swap_xy = of_property_read_bool(node, "ti,swap-xy");
-+	if (pdata->swap_xy)
-+		dev_notice(dev, "please update device tree to use touchscreen-swapped-x-y");
- 
- 	of_property_read_u16(node, "ti,settle-delay-usec",
- 			     &pdata->settle_delay_usecs);
-@@ -1315,7 +1337,6 @@ static int ads7846_probe(struct spi_device *spi)
- 	ts->pressure_max = pdata->pressure_max ? : ~0;
- 
- 	ts->vref_mv = pdata->vref_mv;
--	ts->swap_xy = pdata->swap_xy;
- 
- 	if (pdata->filter != NULL) {
- 		if (pdata->filter_init != NULL) {
-@@ -1355,18 +1376,35 @@ static int ads7846_probe(struct spi_device *spi)
- 	input_dev->dev.parent = &spi->dev;
- 
- 	input_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_ABS);
-+	input_dev->absbit[0] = BIT_MASK(ABS_X) | BIT_MASK(ABS_Y) |
-+				BIT_MASK(ABS_PRESSURE);
- 	input_dev->keybit[BIT_WORD(BTN_TOUCH)] = BIT_MASK(BTN_TOUCH);
-+
-+	ts->x_min = pdata->x_min ? : 0;
-+	ts->x_max = pdata->x_max ? : MAX_12BIT;
-+	ts->y_min = pdata->y_min ? : 0;
-+	ts->y_max = pdata->y_max ? : MAX_12BIT;
-+
- 	input_set_abs_params(input_dev, ABS_X,
--			pdata->x_min ? : 0,
--			pdata->x_max ? : MAX_12BIT,
-+			ts->x_min,
-+			ts->x_max,
- 			0, 0);
- 	input_set_abs_params(input_dev, ABS_Y,
--			pdata->y_min ? : 0,
--			pdata->y_max ? : MAX_12BIT,
-+			ts->y_min,
-+			ts->y_max,
- 			0, 0);
- 	input_set_abs_params(input_dev, ABS_PRESSURE,
- 			pdata->pressure_min, pdata->pressure_max, 0, 0);
- 
-+	if (spi->dev.of_node) {
-+		input_abs_set_min(input_dev, ABS_X, 0);
-+		input_abs_set_min(input_dev, ABS_Y, 0);
-+
-+		touchscreen_parse_properties(ts->input, false, &ts->prop);
-+	}
-+
-+	ts->prop.swap_x_y |= pdata->swap_xy;
-+
- 	ads7846_setup_spi_msg(ts, pdata);
- 
- 	ts->reg = regulator_get(&spi->dev, "vcc");
 -- 
-2.7.3
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
