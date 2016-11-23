@@ -1,50 +1,31 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH] drivers: net: davinci_mdio: use builtin_platform_driver
-Date: Wed, 23 Nov 2016 11:22:32 -0600
-Message-ID: <00cc7fb8-6c2f-16ae-c589-bd9ad5bd7beb@ti.com>
-References: <055763562f90fd7e2d311308e1d731ba93c3eea9.1479912302.git.geliangtang@gmail.com>
+From: Florian Fainelli <f.fainelli@gmail.com>
+Subject: Re: [PATCH v2] cpsw: ethtool: add support for getting/setting EEE
+ registers
+Date: Wed, 23 Nov 2016 09:33:42 -0800
+Message-ID: <93e0bd06-3171-e12b-b763-1e2895a463f8@gmail.com>
+References: <1479911913-1761-1-git-send-email-yegorslists@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <055763562f90fd7e2d311308e1d731ba93c3eea9.1479912302.git.geliangtang@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Geliang Tang <geliangtang@gmail.com>, Mugunthan V N <mugunthanvnm@ti.com>
-Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1479911913-1761-1-git-send-email-yegorslists@googlemail.com>
+Sender: netdev-owner@vger.kernel.org
+To: yegorslists@googlemail.com, netdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, grygorii.strashko@ti.com, mugunthanvnm@ti.com, roszenrami@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
+On 11/23/2016 06:38 AM, yegorslists@googlemail.com wrote:
+> From: Yegor Yefremov <yegorslists@googlemail.com>
+> 
+> Add the ability to query and set Energy Efficient Ethernet parameters
+> via ethtool for applicable devices.
 
+Are you sure this is enough to actually enable EEE? I don't see where
+phy_init_eee() is called here, nor is the cpsw Ethernet controller part
+configured to enable/disable EEE. EEE is not just a PHY thing, it
+usually also needs to be configured properly at the Ethernet MAC/switch
+level as well.
 
-On 11/23/2016 08:45 AM, Geliang Tang wrote:
-> Use builtin_platform_driver() helper to simplify the code.
-
-Not sure about this. We do support this driver to be a module.
-
->
-> Signed-off-by: Geliang Tang <geliangtang@gmail.com>
-> ---
->  drivers/net/ethernet/ti/davinci_mdio.c | 6 +-----
->  1 file changed, 1 insertion(+), 5 deletions(-)
->
-> diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
-> index 33df340..b3f0a12 100644
-> --- a/drivers/net/ethernet/ti/davinci_mdio.c
-> +++ b/drivers/net/ethernet/ti/davinci_mdio.c
-> @@ -536,11 +536,7 @@ static struct platform_driver davinci_mdio_driver = {
->  	.remove = davinci_mdio_remove,
->  };
->
-> -static int __init davinci_mdio_init(void)
-> -{
-> -	return platform_driver_register(&davinci_mdio_driver);
-> -}
-> -device_initcall(davinci_mdio_init);
-> +builtin_platform_driver(davinci_mdio_driver);
->
->  static void __exit davinci_mdio_exit(void)
->  {
->
-
+Just curious here.
 -- 
-regards,
--grygorii
+Florian
