@@ -1,27 +1,69 @@
-From: Rami Rosen <roszenrami@gmail.com>
-Subject: Re: [PATCH] cpsw: ethtool: add support for getting/setting EEE registers
-Date: Wed, 23 Nov 2016 16:31:09 +0200
-Message-ID: <CAKoUArn8ndLaaEEr55DNFOqJL1hcRvpZCZ1e7WqhWZiaAHBiNw@mail.gmail.com>
-References: <1479897248-5923-1-git-send-email-yegorslists@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: yegorslists@googlemail.com
+Subject: [PATCH v2] cpsw: ethtool: add support for getting/setting EEE registers
+Date: Wed, 23 Nov 2016 15:38:33 +0100
+Message-ID: <1479911913-1761-1-git-send-email-yegorslists@googlemail.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1479897248-5923-1-git-send-email-yegorslists@googlemail.com>
 Sender: netdev-owner@vger.kernel.org
-To: yegorslists@googlemail.com
-Cc: Netdev <netdev@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, grygorii.strashko@ti.com, mugunthanvnm@ti.com
+To: netdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, grygorii.strashko@ti.com, mugunthanvnm@ti.com, roszenrami@gmail.com, Yegor Yefremov <yegorslists@googlemail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi, Yegor,
+From: Yegor Yefremov <yegorslists@googlemail.com>
 
-Minor comment: these methods should be static.
+Add the ability to query and set Energy Efficient Ethernet parameters
+via ethtool for applicable devices.
 
-+int cpsw_get_eee(struct net_device *ndev, struct ethtool_eee *edata)
+Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+---
+Changes:
+	v2: make routines static (Rami Rosen)
+
+ drivers/net/ethernet/ti/cpsw.c | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index c6cff3d..c706540 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -2239,6 +2239,30 @@ static int cpsw_set_channels(struct net_device *ndev,
+ 	return ret;
+ }
+ 
++static int cpsw_get_eee(struct net_device *ndev, struct ethtool_eee *edata)
 +{
-...
-...
-+int cpsw_set_eee(struct net_device *ndev, struct ethtool_eee *edata)
-...
-
-Regards,
-Rami Rosen
++	struct cpsw_priv *priv = netdev_priv(ndev);
++	struct cpsw_common *cpsw = priv->cpsw;
++	int slave_no = cpsw_slave_index(cpsw, priv);
++
++	if (cpsw->slaves[slave_no].phy)
++		return phy_ethtool_get_eee(cpsw->slaves[slave_no].phy, edata);
++	else
++		return -EOPNOTSUPP;
++}
++
++static int cpsw_set_eee(struct net_device *ndev, struct ethtool_eee *edata)
++{
++	struct cpsw_priv *priv = netdev_priv(ndev);
++	struct cpsw_common *cpsw = priv->cpsw;
++	int slave_no = cpsw_slave_index(cpsw, priv);
++
++	if (cpsw->slaves[slave_no].phy)
++		return phy_ethtool_set_eee(cpsw->slaves[slave_no].phy, edata);
++	else
++		return -EOPNOTSUPP;
++}
++
+ static const struct ethtool_ops cpsw_ethtool_ops = {
+ 	.get_drvinfo	= cpsw_get_drvinfo,
+ 	.get_msglevel	= cpsw_get_msglevel,
+@@ -2262,6 +2286,8 @@ static const struct ethtool_ops cpsw_ethtool_ops = {
+ 	.complete	= cpsw_ethtool_op_complete,
+ 	.get_channels	= cpsw_get_channels,
+ 	.set_channels	= cpsw_set_channels,
++	.get_eee	= cpsw_get_eee,
++	.set_eee	= cpsw_set_eee,
+ };
+ 
+ static void cpsw_slave_init(struct cpsw_slave *slave, struct cpsw_common *cpsw,
+-- 
+2.1.4
