@@ -1,44 +1,27 @@
-From: Axel Lin <axel.lin@ingics.com>
-Subject: [PATCH 1/2] regulator: twl: Remove unused fields from struct twlreg_info
-Date: Wed, 23 Nov 2016 21:13:20 +0800
-Message-ID: <20161123131321.12413-1-axel.lin@ingics.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Nicolae Rosia <Nicolae_Rosia@mentor.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Axel Lin <axel.lin@ingics.com>
+From: Rami Rosen <roszenrami@gmail.com>
+Subject: Re: [PATCH] cpsw: ethtool: add support for getting/setting EEE registers
+Date: Wed, 23 Nov 2016 16:31:09 +0200
+Message-ID: <CAKoUArn8ndLaaEEr55DNFOqJL1hcRvpZCZ1e7WqhWZiaAHBiNw@mail.gmail.com>
+References: <1479897248-5923-1-git-send-email-yegorslists@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1479897248-5923-1-git-send-email-yegorslists@googlemail.com>
+Sender: netdev-owner@vger.kernel.org
+To: yegorslists@googlemail.com
+Cc: Netdev <netdev@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, grygorii.strashko@ti.com, mugunthanvnm@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The min_mV, max_mV and flags fields are not used, so remove them.
+Hi, Yegor,
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
----
- drivers/regulator/twl-regulator.c | 7 -------
- 1 file changed, 7 deletions(-)
+Minor comment: these methods should be static.
 
-diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
-index d572b8a..6c9ec84 100644
---- a/drivers/regulator/twl-regulator.c
-+++ b/drivers/regulator/twl-regulator.c
-@@ -48,12 +48,6 @@ struct twlreg_info {
- 	/* State REMAP default configuration */
- 	u8			remap;
- 
--	/* chip constraints on regulator behavior */
--	u16			min_mV;
--	u16			max_mV;
--
--	u8			flags;
--
- 	/* used by regulator core */
- 	struct regulator_desc	desc;
- 
-@@ -497,7 +491,6 @@ static const struct twlreg_info TWL4030_INFO_##label = { \
- static const struct twlreg_info TWLFIXED_INFO_##label = { \
- 	.base = offset, \
- 	.id = num, \
--	.min_mV = mVolts, \
- 	.remap = remap_conf, \
- 	.desc = { \
- 		.name = #label, \
--- 
-2.9.3
++int cpsw_get_eee(struct net_device *ndev, struct ethtool_eee *edata)
++{
+...
+...
++int cpsw_set_eee(struct net_device *ndev, struct ethtool_eee *edata)
+...
+
+Regards,
+Rami Rosen
