@@ -1,47 +1,123 @@
-From: Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
-Subject: Re: [PATCH v6 7/8] drivers:input:ads7846(+tsc2046): fix spi module
- table
-Date: Wed, 23 Nov 2016 10:12:06 -0300
-Message-ID: <cc450963-16f9-10e6-a8c4-3b4e4771248e@osg.samsung.com>
-References: <cover.1477557860.git.hns@goldelico.com>
- <54f282e1adebeeb133687b6c430ecbb6f2fe6d5b.1477557860.git.hns@goldelico.com>
- <20161119181824.GB20446@dtor-ws>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161119181824.GB20446@dtor-ws>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, =?UTF-8?Q?Mika_Penttil=c3=a4?= <mika.penttila-MRsr7dthA9VWk0Htik3J/w@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sangwon Jee <jeesw-iQTvn4YitUrQT0dZR+AlfA@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel@pyra-handhel
+From: Axel Lin <axel.lin@ingics.com>
+Subject: [PATCH 2/2] regulator: twl6030: Remove unused fields from struct twlreg_info
+Date: Wed, 23 Nov 2016 21:13:21 +0800
+Message-ID: <20161123131321.12413-2-axel.lin@ingics.com>
+References: <20161123131321.12413-1-axel.lin@ingics.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161123131321.12413-1-axel.lin@ingics.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Nicolae Rosia <Nicolae_Rosia@mentor.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Axel Lin <axel.lin@ingics.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hello Dmitry,
+The table_len, *table, remap and max_mV fields are not used, so remove
+them.
 
-On 11/19/2016 03:18 PM, Dmitry Torokhov wrote:
-> On Thu, Oct 27, 2016 at 10:44:20AM +0200, H. Nikolaus Schaller wrote:
->> Fix module table so that the driver is loaded if compiled
->> as module and requested by DT.
-> 
-> We really need to fix it between spi/i23c core and module utils instead
-> of keeping adding duplicate IDs all over drivers. We already have OF
-> module device table containing the same data, we should be able to use
-> it.
-> 
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/regulator/twl6030-regulator.c | 46 +++++++++++++----------------------
+ 1 file changed, 17 insertions(+), 29 deletions(-)
 
-Agreed, unfortunately until the I2C and SPI core are changed to properly
-report OF modaliases, we will have to keep adding these duplicated IDs.
-
-And changing the I2C and SPI core isn't trivial since it could break a
-lot of drivers that rely on a platform modalias being reported (i.e: no
-OF device IDs present in the drivers even when are registered via DT).
-
-Best regards,
+diff --git a/drivers/regulator/twl6030-regulator.c b/drivers/regulator/twl6030-regulator.c
+index a446137..4864b9d 100644
+--- a/drivers/regulator/twl6030-regulator.c
++++ b/drivers/regulator/twl6030-regulator.c
+@@ -31,16 +31,8 @@ struct twlreg_info {
+ 	/* twl resource ID, for resource control state machine */
+ 	u8			id;
+ 
+-	/* voltage in mV = table[VSEL]; table_len must be a power-of-two */
+-	u8			table_len;
+-	const u16		*table;
+-
+-	/* State REMAP default configuration */
+-	u8			remap;
+-
+ 	/* chip constraints on regulator behavior */
+ 	u16			min_mV;
+-	u16			max_mV;
+ 
+ 	u8			flags;
+ 
+@@ -535,11 +527,10 @@ static const struct twlreg_info TWL6030_INFO_##label = { \
+ 		}, \
+ 	}
+ 
+-#define TWL6030_ADJUSTABLE_LDO(label, offset, min_mVolts, max_mVolts) \
++#define TWL6030_ADJUSTABLE_LDO(label, offset, min_mVolts) \
+ static const struct twlreg_info TWL6030_INFO_##label = { \
+ 	.base = offset, \
+ 	.min_mV = min_mVolts, \
+-	.max_mV = max_mVolts, \
+ 	.desc = { \
+ 		.name = #label, \
+ 		.id = TWL6030_REG_##label, \
+@@ -550,11 +541,10 @@ static const struct twlreg_info TWL6030_INFO_##label = { \
+ 		}, \
+ 	}
+ 
+-#define TWL6032_ADJUSTABLE_LDO(label, offset, min_mVolts, max_mVolts) \
++#define TWL6032_ADJUSTABLE_LDO(label, offset, min_mVolts) \
+ static const struct twlreg_info TWL6032_INFO_##label = { \
+ 	.base = offset, \
+ 	.min_mV = min_mVolts, \
+-	.max_mV = max_mVolts, \
+ 	.desc = { \
+ 		.name = #label, \
+ 		.id = TWL6032_REG_##label, \
+@@ -570,7 +560,6 @@ static const struct twlreg_info TWLFIXED_INFO_##label = { \
+ 	.base = offset, \
+ 	.id = 0, \
+ 	.min_mV = mVolts, \
+-	.remap = 0, \
+ 	.desc = { \
+ 		.name = #label, \
+ 		.id = TWL6030##_REG_##label, \
+@@ -588,7 +577,6 @@ static const struct twlreg_info TWLFIXED_INFO_##label = { \
+ static const struct twlreg_info TWLSMPS_INFO_##label = { \
+ 	.base = offset, \
+ 	.min_mV = 600, \
+-	.max_mV = 2100, \
+ 	.desc = { \
+ 		.name = #label, \
+ 		.id = TWL6032_REG_##label, \
+@@ -606,22 +594,22 @@ static const struct twlreg_info TWLSMPS_INFO_##label = { \
+ TWL6030_ADJUSTABLE_SMPS(VDD1);
+ TWL6030_ADJUSTABLE_SMPS(VDD2);
+ TWL6030_ADJUSTABLE_SMPS(VDD3);
+-TWL6030_ADJUSTABLE_LDO(VAUX1_6030, 0x54, 1000, 3300);
+-TWL6030_ADJUSTABLE_LDO(VAUX2_6030, 0x58, 1000, 3300);
+-TWL6030_ADJUSTABLE_LDO(VAUX3_6030, 0x5c, 1000, 3300);
+-TWL6030_ADJUSTABLE_LDO(VMMC, 0x68, 1000, 3300);
+-TWL6030_ADJUSTABLE_LDO(VPP, 0x6c, 1000, 3300);
+-TWL6030_ADJUSTABLE_LDO(VUSIM, 0x74, 1000, 3300);
++TWL6030_ADJUSTABLE_LDO(VAUX1_6030, 0x54, 1000);
++TWL6030_ADJUSTABLE_LDO(VAUX2_6030, 0x58, 1000);
++TWL6030_ADJUSTABLE_LDO(VAUX3_6030, 0x5c, 1000);
++TWL6030_ADJUSTABLE_LDO(VMMC, 0x68, 1000);
++TWL6030_ADJUSTABLE_LDO(VPP, 0x6c, 1000);
++TWL6030_ADJUSTABLE_LDO(VUSIM, 0x74, 1000);
+ /* 6025 are renamed compared to 6030 versions */
+-TWL6032_ADJUSTABLE_LDO(LDO2, 0x54, 1000, 3300);
+-TWL6032_ADJUSTABLE_LDO(LDO4, 0x58, 1000, 3300);
+-TWL6032_ADJUSTABLE_LDO(LDO3, 0x5c, 1000, 3300);
+-TWL6032_ADJUSTABLE_LDO(LDO5, 0x68, 1000, 3300);
+-TWL6032_ADJUSTABLE_LDO(LDO1, 0x6c, 1000, 3300);
+-TWL6032_ADJUSTABLE_LDO(LDO7, 0x74, 1000, 3300);
+-TWL6032_ADJUSTABLE_LDO(LDO6, 0x60, 1000, 3300);
+-TWL6032_ADJUSTABLE_LDO(LDOLN, 0x64, 1000, 3300);
+-TWL6032_ADJUSTABLE_LDO(LDOUSB, 0x70, 1000, 3300);
++TWL6032_ADJUSTABLE_LDO(LDO2, 0x54, 1000);
++TWL6032_ADJUSTABLE_LDO(LDO4, 0x58, 1000);
++TWL6032_ADJUSTABLE_LDO(LDO3, 0x5c, 1000);
++TWL6032_ADJUSTABLE_LDO(LDO5, 0x68, 1000);
++TWL6032_ADJUSTABLE_LDO(LDO1, 0x6c, 1000);
++TWL6032_ADJUSTABLE_LDO(LDO7, 0x74, 1000);
++TWL6032_ADJUSTABLE_LDO(LDO6, 0x60, 1000);
++TWL6032_ADJUSTABLE_LDO(LDOLN, 0x64, 1000);
++TWL6032_ADJUSTABLE_LDO(LDOUSB, 0x70, 1000);
+ TWL6030_FIXED_LDO(VANA, 0x50, 2100, 0);
+ TWL6030_FIXED_LDO(VCXIO, 0x60, 1800, 0);
+ TWL6030_FIXED_LDO(VDAC, 0x64, 1800, 0);
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.9.3
