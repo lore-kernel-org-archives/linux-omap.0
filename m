@@ -1,39 +1,63 @@
-From: Milo Kim <woogyom.kim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Arnd Bergmann <arnd@arndb.de>
 Subject: Re: [PATCH] dt-bindings: mfd: Improve readability for TPS65217
  interrupt sources
-Date: Wed, 23 Nov 2016 20:38:00 +0900
-Message-ID: <bd4944d8-3cef-b3f7-4fba-6de590493047@gmail.com>
+Date: Wed, 23 Nov 2016 12:51:27 +0100
+Message-ID: <33562327.jVWx4tN2gP@wuerfel>
 References: <20161121131515.8040-1-woogyom.kim@gmail.com>
  <20161122155759.GG10134@dell.home>
+ <bd4944d8-3cef-b3f7-4fba-6de590493047@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161122155759.GG10134-Re9dqnLqz4GzQB+pC5nmwQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <bd4944d8-3cef-b3f7-4fba-6de590493047@gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Robert Nelson <robertcnelson@gmail.com>, linux-kernel@vger.kernel.org, bcousson@baylibre.com, Milo Kim <woogyom.kim@gmail.com>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/23/2016 12:57 AM, Lee Jones wrote:
->>  	pwrbutton {
->> > -		interrupts = <TPS65217_IRQ_PB>;
->> > +		interrupts = <TPS65217_IRQ_PUSHBUTTON>;
-> Push button or power button?
->
+On Wednesday, November 23, 2016 8:38:00 PM CET Milo Kim wrote:
+> On 11/23/2016 12:57 AM, Lee Jones wrote:
+> >>      pwrbutton {
+> >> > -          interrupts = <TPS65217_IRQ_PB>;
+> >> > +          interrupts = <TPS65217_IRQ_PUSHBUTTON>;
+> > Push button or power button?
+> >
+> 
+> According to the datasheet, push button interrupt is correct.
+> 
+>         http://www.ti.com/lit/ds/symlink/tps65217.pdf
+> 
+> This is used for a power button input in Beaglebone boards. In other 
+> words, the power button is one of push button usages.
+> 
+> So, I'd like to keep general name for the interrupt.
 
-According to the datasheet, push button interrupt is correct.
+Ah, the numbers come from the data sheet. Please just remove the
+header then, there is no need to keep them as an ABI, in particular
+when the driver doesn't even include that header today.
 
-	http://www.ti.com/lit/ds/symlink/tps65217.pdf
+I see you even have names for them in the node:
 
-This is used for a power button input in Beaglebone boards. In other 
-words, the power button is one of push button usages.
+        charger {
+-               interrupts = <TPS65217_IRQ_AC>, <TPS65217_IRQ_USB>;
++               interrupts = <TPS65217_IRQ_AC_POWER>, <TPS65217_IRQ_USB_POWER>;
+                interrupts-names = "AC", "USB";
+                status = "okay";
 
-So, I'd like to keep general name for the interrupt.
+What matters here is the binding documentation in
+Documentation/devicetree/bindings/power/supply/tps65217_charger.txt
 
-Best regards,
-Milo
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please fix that instead to mandate that the two interrupts are
+required, what their functions are, and what the interrupt-names
+(not interrupts-names) property must list.
+
+	Arnd
