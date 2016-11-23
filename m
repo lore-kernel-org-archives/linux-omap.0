@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Subject: Re: [PATCH 0/4] musb fixes for v4.9-rc cycle
-Date: Wed, 23 Nov 2016 08:44:13 -0800
-Message-ID: <20161123164412.GK4082@atomide.com>
+Date: Wed, 23 Nov 2016 08:34:49 -0800
+Message-ID: <20161123163448.GJ4082@atomide.com>
 References: <20161107215020.31399-1-tony@atomide.com>
  <1557347.d3YjqqaO81@avalon>
  <839f0f26-3bb0-d368-8cff-dbccaffa7244@ti.com>
@@ -9,41 +9,57 @@ References: <20161107215020.31399-1-tony@atomide.com>
  <47c6e11e-3725-8955-5cc4-654df4d1c3bc@ti.com>
  <20161123155747.GF4082@atomide.com>
  <c76fd922-9ac8-3b32-902a-7839a4817109@ti.com>
- <20161123163448.GJ4082@atomide.com>
- <19526c30-5f18-337a-1e73-7f8965a778c1@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <19526c30-5f18-337a-1e73-7f8965a778c1-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <c76fd922-9ac8-3b32-902a-7839a4817109-l0cyMroinI0@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
 Cc: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org> [161123 08:40]:
-> On 23/11/16 18:34, Tony Lindgren wrote:
-> 
-> > OK. And what changes to your current .config make the musb_bus_suspend()
-> > issues show up?
+* Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org> [161123 08:13]:
+> On 23/11/16 17:57, Tony Lindgren wrote:
+> > * Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org> [161123 07:54]:
+> >> On 23/11/16 17:49, Laurent Pinchart wrote:
+> >>> Hi Tomi,
+> >>>
+> >>> On Wednesday 23 Nov 2016 12:14:17 Tomi Valkeinen wrote:
+> >>>> On 10/11/16 23:25, Laurent Pinchart wrote:
+> >>>>>>>> [    2.766174] musb_bus_suspend 2586: trying to suspend as a_idle while
+> >>>>>>>> active
+> >>>>>>>>
+> >>>>>>>> printed in a loop at boot time. I've traced musb->is_active being set
+> >>>>>>>> to 1 in musb_start() with
+> >>>>>
+> >>>>> Actually disabling CONFIG_USB_MUSB_HDRC gets rid of the problem, quite
+> >>>>> understandably. It's not a fix though, just a workaround. Are you
+> >>>>> interested in investigating this ?
+> >>>>
+> >>>> I'm seeing this too. Did you manage to boot your Panda? If I disable
+> >>>> CONFIG_USB_MUSB_HDRC, I don't see that error print, but the ethernet
+> >>>> doesn't work, and so my nfsroot doesn't mount.
+> >>>
+> >>> Do you use ethernet over USB gadget or over LAN9514 (smsx95xx) ? The LAN9514 
+> >>> is connected to the EHCI USB interface so it shouldn't depend on MUSB.
+> >>
+> >> smsx95xx. I didn't look at it further, so possibly there's something
+> >> else broken/changed that prevented the ethernet from working.
 > > 
-> > If it happens with USB-B cable from host to musb with musb set to host
-> > only mode I'm not suprised there are errors :)
+> > I have omap2plus_defconfig with initramfs work just fine for nfsroot
+> > and musb peripheral mode on pandaboard es. Well I have not tried it
+> > since last week with Linux next.
 > 
-> I have no USB cables connected. I have attached my config. If
-> CONFIG_USB_MUSB_HDRC is disabled, the musb error goes away.
+> Ok, I found the issue. I had to enable CONFIG_NOP_USB_XCEIV. (the
+> musb_bus_suspend issue is still there, though).
 
-Maybe compare against omap2plus_defconfig? If you have musb
-set to host only mode it still tries to follow the ID pin
-from phy and do things on it's own. And ID pin is floating
-in B mode and with no cable connected.
+OK. And what changes to your current .config make the musb_bus_suspend()
+issues show up?
 
-AFAIK, the only sane configuration for musb is the OTG mode
-because the hardware tries to do things on it's own. And the
-host only mode only really works if phy has ID pin grounded
-or else the phy has to do trickery to rewrite the state to
-musb.
+If it happens with USB-B cable from host to musb with musb set to host
+only mode I'm not suprised there are errors :)
 
 Regards,
 
