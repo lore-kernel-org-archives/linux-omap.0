@@ -1,87 +1,49 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH] Input: twl4030-vibra: remove legacy pdata support
-Date: Tue, 22 Nov 2016 17:33:48 -0800
-Message-ID: <20161123013348.GB21078@dtor-ws>
-References: <1479812398-1122-1-git-send-email-Nicolae_Rosia@mentor.com>
- <d30d4cca-9fcf-befa-0389-1aafaef99ce8@ti.com>
+From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 4/5] arm: dts: am57xx-beagle-x15-common: Add overide
+ powerhold property
+Date: Wed, 23 Nov 2016 09:05:19 +0530
+Message-ID: <6ac3b28e-4891-83bc-a2f7-c903541acc18@ti.com>
+References: <1478754560-27923-1-git-send-email-j-keerthy@ti.com>
+ <1478754560-27923-5-git-send-email-j-keerthy@ti.com>
+ <20161115000849.GD4082@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <d30d4cca-9fcf-befa-0389-1aafaef99ce8@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Nicolae Rosia <Nicolae_Rosia@mentor.com>, Marek Belisko <marek@goldelico.com>, Baruch Siach <baruch@tkos.co.il>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161115000849.GD4082-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 22, 2016 at 01:19:36PM +0200, Peter Ujfalusi wrote:
-> 
-> 
-> On 11/22/2016 12:59 PM, Nicolae Rosia wrote:
-> > Remove dead code since all users are device tree enabled.
-> 
-> Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> 
-> > Signed-off-by: Nicolae Rosia <Nicolae_Rosia@mentor.com>
-> > ---
-> >  drivers/input/misc/twl4030-vibra.c | 13 ++++---------
-> >  1 file changed, 4 insertions(+), 9 deletions(-)
-> > 
-> > diff --git a/drivers/input/misc/twl4030-vibra.c b/drivers/input/misc/twl4030-vibra.c
-> > index caa5a62..5acc241 100644
-> > --- a/drivers/input/misc/twl4030-vibra.c
-> > +++ b/drivers/input/misc/twl4030-vibra.c
-> > @@ -177,12 +177,8 @@ static int __maybe_unused twl4030_vibra_resume(struct device *dev)
-> >  static SIMPLE_DEV_PM_OPS(twl4030_vibra_pm_ops,
-> >  			 twl4030_vibra_suspend, twl4030_vibra_resume);
-> >  
-> > -static bool twl4030_vibra_check_coexist(struct twl4030_vibra_data *pdata,
-> > -			      struct device_node *node)
-> > +static bool twl4030_vibra_check_coexist(struct device_node *node)
-> >  {
-> > -	if (pdata && pdata->coexist)
-> > -		return true;
-> > -
-> >  	node = of_find_node_by_name(node, "codec");
-> >  	if (node) {
-> >  		of_node_put(node);
 
-Do we need this wrapper anymore?
 
-> > @@ -194,13 +190,12 @@ static bool twl4030_vibra_check_coexist(struct twl4030_vibra_data *pdata,
-> >  
-> >  static int twl4030_vibra_probe(struct platform_device *pdev)
-> >  {
-> > -	struct twl4030_vibra_data *pdata = dev_get_platdata(&pdev->dev);
+On Tuesday 15 November 2016 05:38 AM, Tony Lindgren wrote:
+> * Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> [161109 21:10]:
+>> The PMICs have POWERHOLD set by default which prevents PMIC shutdown
+>> even on DEV_CTRL On bit set to 0 as the Powerhold has higher priority.
+>> So to enable pmic power off this property lets one over ride the default
+>> value and enable pmic power off.
+>
+> This should not cause merge conflicts so probably best to merge along
+> with the driver changes:
+>
+> Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>
+> If you guys want me to pick up this separately let me know.
 
-Should we also remove twl4030_vibra_data definition?
+Hi Lee Jones,
 
-> >  	struct device_node *twl4030_core_node = pdev->dev.parent->of_node;
-> >  	struct vibra_info *info;
-> >  	int ret;
-> >  
-> > -	if (!pdata && !twl4030_core_node) {
-> > -		dev_dbg(&pdev->dev, "platform_data not available\n");
-> > +	if (!twl4030_core_node) {
-> > +		dev_err(&pdev->dev, "no DT info\n\n");
+Are you planning to pull DT and Documentation patches as well?
 
-Why double newline?
-
-> >  		return -EINVAL;
-> >  	}
-> >  
-> > @@ -209,7 +204,7 @@ static int twl4030_vibra_probe(struct platform_device *pdev)
-> >  		return -ENOMEM;
-> >  
-> >  	info->dev = &pdev->dev;
-> > -	info->coexist = twl4030_vibra_check_coexist(pdata, twl4030_core_node);
-> > +	info->coexist = twl4030_vibra_check_coexist(twl4030_core_node);
-> >  	INIT_WORK(&info->play_work, vibra_play_work);
-> >  
-> >  	info->input_dev = devm_input_allocate_device(&pdev->dev);
-> >
-
-Thanks.
-
--- 
-Dmitry
+Regards,
+Keerthy
+>
+> Regards,
+>
+> Tony
+>
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
