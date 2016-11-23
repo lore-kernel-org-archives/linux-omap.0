@@ -1,69 +1,52 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/4] musb fixes for v4.9-rc cycle
-Date: Wed, 23 Nov 2016 08:34:49 -0800
-Message-ID: <20161123163448.GJ4082@atomide.com>
-References: <20161107215020.31399-1-tony@atomide.com>
- <1557347.d3YjqqaO81@avalon>
- <839f0f26-3bb0-d368-8cff-dbccaffa7244@ti.com>
- <10445300.62NO2xvFpp@avalon>
- <47c6e11e-3725-8955-5cc4-654df4d1c3bc@ti.com>
- <20161123155747.GF4082@atomide.com>
- <c76fd922-9ac8-3b32-902a-7839a4817109@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+Subject: [PATCH] usb: musb: Fix trying to free already-free IRQ 4
+Date: Wed, 23 Nov 2016 08:51:27 -0800
+Message-ID: <20161123165127.1795-1-tony@atomide.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <c76fd922-9ac8-3b32-902a-7839a4817109-l0cyMroinI0@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Cc: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Cc: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org> [161123 08:13]:
-> On 23/11/16 17:57, Tony Lindgren wrote:
-> > * Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org> [161123 07:54]:
-> >> On 23/11/16 17:49, Laurent Pinchart wrote:
-> >>> Hi Tomi,
-> >>>
-> >>> On Wednesday 23 Nov 2016 12:14:17 Tomi Valkeinen wrote:
-> >>>> On 10/11/16 23:25, Laurent Pinchart wrote:
-> >>>>>>>> [    2.766174] musb_bus_suspend 2586: trying to suspend as a_idle while
-> >>>>>>>> active
-> >>>>>>>>
-> >>>>>>>> printed in a loop at boot time. I've traced musb->is_active being set
-> >>>>>>>> to 1 in musb_start() with
-> >>>>>
-> >>>>> Actually disabling CONFIG_USB_MUSB_HDRC gets rid of the problem, quite
-> >>>>> understandably. It's not a fix though, just a workaround. Are you
-> >>>>> interested in investigating this ?
-> >>>>
-> >>>> I'm seeing this too. Did you manage to boot your Panda? If I disable
-> >>>> CONFIG_USB_MUSB_HDRC, I don't see that error print, but the ethernet
-> >>>> doesn't work, and so my nfsroot doesn't mount.
-> >>>
-> >>> Do you use ethernet over USB gadget or over LAN9514 (smsx95xx) ? The LAN9514 
-> >>> is connected to the EHCI USB interface so it shouldn't depend on MUSB.
-> >>
-> >> smsx95xx. I didn't look at it further, so possibly there's something
-> >> else broken/changed that prevented the ethernet from working.
-> > 
-> > I have omap2plus_defconfig with initramfs work just fine for nfsroot
-> > and musb peripheral mode on pandaboard es. Well I have not tried it
-> > since last week with Linux next.
-> 
-> Ok, I found the issue. I had to enable CONFIG_NOP_USB_XCEIV. (the
-> musb_bus_suspend issue is still there, though).
+When unloading omap2430, we can get the following splat:
 
-OK. And what changes to your current .config make the musb_bus_suspend()
-issues show up?
+WARNING: CPU: 1 PID: 295 at kernel/irq/manage.c:1478 __free_irq+0xa8/0x2c8
+Trying to free already-free IRQ 4
+...
+[<c01a8b78>] (free_irq) from [<bf0aea84>]
+(musbhs_dma_controller_destroy+0x28/0xb0 [musb_hdrc])
+[<bf0aea84>] (musbhs_dma_controller_destroy [musb_hdrc]) from
+[<bf09f88c>] (musb_remove+0xf0/0x12c [musb_hdrc])
+[<bf09f88c>] (musb_remove [musb_hdrc]) from [<c056a384>]
+(platform_drv_remove+0x24/0x3c)
+...
 
-If it happens with USB-B cable from host to musb with musb set to host
-only mode I'm not suprised there are errors :)
+This is because the irq number in use is 260 nowadays, and the dma
+controller is using u8 instead of int.
 
-Regards,
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
 
-Tony
+Found one more issue.. This has been around for years so can probably
+wait until after v4.10-rc1. Probably should be tagged stable to avoid
+multiple people debugging this over and over.
+
+---
+ drivers/usb/musb/musbhsdma.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/usb/musb/musbhsdma.h b/drivers/usb/musb/musbhsdma.h
+--- a/drivers/usb/musb/musbhsdma.h
++++ b/drivers/usb/musb/musbhsdma.h
+@@ -157,5 +157,5 @@ struct musb_dma_controller {
+ 	void __iomem			*base;
+ 	u8				channel_count;
+ 	u8				used_channels;
+-	u8				irq;
++	int				irq;
+ };
+-- 
+2.10.2
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
