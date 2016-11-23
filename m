@@ -1,39 +1,112 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH] dmaengine: edma: re-initialize dummy slot during system resume
-Date: Wed, 23 Nov 2016 14:57:55 +0530
-Message-ID: <20161123092755.8522-1-vigneshr@ti.com>
+From: yegorslists@googlemail.com
+Subject: [PATCH] ARM: dts: am335x-baltos: use phy-phandle declarations
+Date: Wed, 23 Nov 2016 10:52:37 +0100
+Message-ID: <1479894757-32736-1-git-send-email-yegorslists@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vinod Koul <vinod.koul@intel.com>
-Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, Vignesh R <vigneshr@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, Yegor Yefremov <yegorslists@googlemail.com>
 List-Id: linux-omap@vger.kernel.org
 
-The last param set in a transfer should always be pointing to dummy
-param set in non-cyclic mode. When system wakes from low power state
-EDMA PARAM slots may be reset to random values. Hence, re-initialize
-dummy slot to dummy param set on system resume.
+From: Yegor Yefremov <yegorslists@googlemail.com>
 
-Signed-off-by: Vignesh R <vigneshr@ti.com>
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
 ---
- drivers/dma/edma.c | 3 +++
- 1 file changed, 3 insertions(+)
+ arch/arm/boot/dts/am335x-baltos-ir2110.dts | 10 ++++++++--
+ arch/arm/boot/dts/am335x-baltos-ir3220.dts |  2 +-
+ arch/arm/boot/dts/am335x-baltos-ir5221.dts |  2 +-
+ arch/arm/boot/dts/am335x-baltos.dtsi       |  5 ++++-
+ 4 files changed, 14 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index 77242b37ef87..3879f80a4815 100644
---- a/drivers/dma/edma.c
-+++ b/drivers/dma/edma.c
-@@ -2451,6 +2451,9 @@ static int edma_pm_resume(struct device *dev)
- 	int i;
- 	s8 (*queue_priority_mapping)[2];
+diff --git a/arch/arm/boot/dts/am335x-baltos-ir2110.dts b/arch/arm/boot/dts/am335x-baltos-ir2110.dts
+index a9a9730..501c752 100644
+--- a/arch/arm/boot/dts/am335x-baltos-ir2110.dts
++++ b/arch/arm/boot/dts/am335x-baltos-ir2110.dts
+@@ -54,16 +54,22 @@
+ 	dr_mode = "host";
+ };
  
-+	/* re initialize dummy slot to dummy param set */
-+	edma_write_slot(ecc, ecc->dummy_slot, &dummy_paramset);
++&davinci_mdio {
++	phy0: ethernet-phy@0 {
++		reg = <1>;
++	};
++};
 +
- 	queue_priority_mapping = ecc->info->queue_priority_mapping;
+ &cpsw_emac0 {
+-	phy_id = <&davinci_mdio>, <1>;
+ 	phy-mode = "rmii";
+ 	dual_emac_res_vlan = <1>;
++	phy-handle = <&phy0>;
+ };
  
- 	/* Event queue priority mapping */
+ &cpsw_emac1 {
+-	phy_id = <&davinci_mdio>, <7>;
+ 	phy-mode = "rgmii-txid";
+ 	dual_emac_res_vlan = <2>;
++	phy-handle = <&phy1>;
+ };
+ 
+ &phy_sel {
+diff --git a/arch/arm/boot/dts/am335x-baltos-ir3220.dts b/arch/arm/boot/dts/am335x-baltos-ir3220.dts
+index fe002a1..19f53b8 100644
+--- a/arch/arm/boot/dts/am335x-baltos-ir3220.dts
++++ b/arch/arm/boot/dts/am335x-baltos-ir3220.dts
+@@ -109,9 +109,9 @@
+ };
+ 
+ &cpsw_emac1 {
+-	phy_id = <&davinci_mdio>, <7>;
+ 	phy-mode = "rgmii-txid";
+ 	dual_emac_res_vlan = <2>;
++	phy-handle = <&phy1>;
+ };
+ 
+ &phy_sel {
+diff --git a/arch/arm/boot/dts/am335x-baltos-ir5221.dts b/arch/arm/boot/dts/am335x-baltos-ir5221.dts
+index f599350..2b9d7f4 100644
+--- a/arch/arm/boot/dts/am335x-baltos-ir5221.dts
++++ b/arch/arm/boot/dts/am335x-baltos-ir5221.dts
+@@ -127,9 +127,9 @@
+ };
+ 
+ &cpsw_emac1 {
+-	phy_id = <&davinci_mdio>, <7>;
+ 	phy-mode = "rgmii-txid";
+ 	dual_emac_res_vlan = <2>;
++	phy-handle = <&phy1>;
+ };
+ 
+ &phy_sel {
+diff --git a/arch/arm/boot/dts/am335x-baltos.dtsi b/arch/arm/boot/dts/am335x-baltos.dtsi
+index 09b9541..efb5eae 100644
+--- a/arch/arm/boot/dts/am335x-baltos.dtsi
++++ b/arch/arm/boot/dts/am335x-baltos.dtsi
+@@ -364,11 +364,14 @@
+ };
+ 
+ &davinci_mdio {
++	status = "okay";
+ 	pinctrl-names = "default", "sleep";
+ 	pinctrl-0 = <&davinci_mdio_default>;
+ 	pinctrl-1 = <&davinci_mdio_sleep>;
+ 
+-	status = "okay";
++	phy1: ethernet-phy@1 {
++		reg = <7>;
++	};
+ };
+ 
+ &mmc1 {
 -- 
-2.10.2
+2.1.4
