@@ -1,112 +1,65 @@
-From: yegorslists@googlemail.com
-Subject: [PATCH] ARM: dts: am335x-baltos: use phy-phandle declarations
-Date: Wed, 23 Nov 2016 10:52:37 +0100
-Message-ID: <1479894757-32736-1-git-send-email-yegorslists@googlemail.com>
+From: Nicolae Rosia <nicolae.rosia.oss@gmail.com>
+Subject: Re: [PATCH] Input: twl4030-vibra: remove legacy pdata support
+Date: Wed, 23 Nov 2016 11:59:31 +0200
+Message-ID: <CAKP5S=3QcanPT9J848NFj=YWesKi+Qx+dSXiBvCehV1Jv85Gjw@mail.gmail.com>
+References: <1479812398-1122-1-git-send-email-Nicolae_Rosia@mentor.com>
+ <d30d4cca-9fcf-befa-0389-1aafaef99ce8@ti.com> <20161123013348.GB21078@dtor-ws>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, Yegor Yefremov <yegorslists@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20161123013348.GB21078@dtor-ws>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Nicolae Rosia <Nicolae_Rosia@mentor.com>, Marek Belisko <marek@goldelico.com>, Baruch Siach <baruch@tkos.co.il>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Yegor Yefremov <yegorslists@googlemail.com>
+Hi Dmitry,
 
-Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
----
- arch/arm/boot/dts/am335x-baltos-ir2110.dts | 10 ++++++++--
- arch/arm/boot/dts/am335x-baltos-ir3220.dts |  2 +-
- arch/arm/boot/dts/am335x-baltos-ir5221.dts |  2 +-
- arch/arm/boot/dts/am335x-baltos.dtsi       |  5 ++++-
- 4 files changed, 14 insertions(+), 5 deletions(-)
+On Wed, Nov 23, 2016 at 3:33 AM, Dmitry Torokhov
+<dmitry.torokhov@gmail.com> wrote:
+>> > -static bool twl4030_vibra_check_coexist(struct twl4030_vibra_data *pdata,
+>> > -                         struct device_node *node)
+>> > +static bool twl4030_vibra_check_coexist(struct device_node *node)
+>> >  {
+>> > -   if (pdata && pdata->coexist)
+>> > -           return true;
+>> > -
+>> >     node = of_find_node_by_name(node, "codec");
+>> >     if (node) {
+>> >             of_node_put(node);
+>
+> Do we need this wrapper anymore?
+>
+I kept the original logic.
+It seems that when there's also a "codec" DT entry, the logic is different.
 
-diff --git a/arch/arm/boot/dts/am335x-baltos-ir2110.dts b/arch/arm/boot/dts/am335x-baltos-ir2110.dts
-index a9a9730..501c752 100644
---- a/arch/arm/boot/dts/am335x-baltos-ir2110.dts
-+++ b/arch/arm/boot/dts/am335x-baltos-ir2110.dts
-@@ -54,16 +54,22 @@
- 	dr_mode = "host";
- };
- 
-+&davinci_mdio {
-+	phy0: ethernet-phy@0 {
-+		reg = <1>;
-+	};
-+};
-+
- &cpsw_emac0 {
--	phy_id = <&davinci_mdio>, <1>;
- 	phy-mode = "rmii";
- 	dual_emac_res_vlan = <1>;
-+	phy-handle = <&phy0>;
- };
- 
- &cpsw_emac1 {
--	phy_id = <&davinci_mdio>, <7>;
- 	phy-mode = "rgmii-txid";
- 	dual_emac_res_vlan = <2>;
-+	phy-handle = <&phy1>;
- };
- 
- &phy_sel {
-diff --git a/arch/arm/boot/dts/am335x-baltos-ir3220.dts b/arch/arm/boot/dts/am335x-baltos-ir3220.dts
-index fe002a1..19f53b8 100644
---- a/arch/arm/boot/dts/am335x-baltos-ir3220.dts
-+++ b/arch/arm/boot/dts/am335x-baltos-ir3220.dts
-@@ -109,9 +109,9 @@
- };
- 
- &cpsw_emac1 {
--	phy_id = <&davinci_mdio>, <7>;
- 	phy-mode = "rgmii-txid";
- 	dual_emac_res_vlan = <2>;
-+	phy-handle = <&phy1>;
- };
- 
- &phy_sel {
-diff --git a/arch/arm/boot/dts/am335x-baltos-ir5221.dts b/arch/arm/boot/dts/am335x-baltos-ir5221.dts
-index f599350..2b9d7f4 100644
---- a/arch/arm/boot/dts/am335x-baltos-ir5221.dts
-+++ b/arch/arm/boot/dts/am335x-baltos-ir5221.dts
-@@ -127,9 +127,9 @@
- };
- 
- &cpsw_emac1 {
--	phy_id = <&davinci_mdio>, <7>;
- 	phy-mode = "rgmii-txid";
- 	dual_emac_res_vlan = <2>;
-+	phy-handle = <&phy1>;
- };
- 
- &phy_sel {
-diff --git a/arch/arm/boot/dts/am335x-baltos.dtsi b/arch/arm/boot/dts/am335x-baltos.dtsi
-index 09b9541..efb5eae 100644
---- a/arch/arm/boot/dts/am335x-baltos.dtsi
-+++ b/arch/arm/boot/dts/am335x-baltos.dtsi
-@@ -364,11 +364,14 @@
- };
- 
- &davinci_mdio {
-+	status = "okay";
- 	pinctrl-names = "default", "sleep";
- 	pinctrl-0 = <&davinci_mdio_default>;
- 	pinctrl-1 = <&davinci_mdio_sleep>;
- 
--	status = "okay";
-+	phy1: ethernet-phy@1 {
-+		reg = <7>;
-+	};
- };
- 
- &mmc1 {
--- 
-2.1.4
+>> > @@ -194,13 +190,12 @@ static bool twl4030_vibra_check_coexist(struct twl4030_vibra_data *pdata,
+>> >
+>> >  static int twl4030_vibra_probe(struct platform_device *pdev)
+>> >  {
+>> > -   struct twl4030_vibra_data *pdata = dev_get_platdata(&pdev->dev);
+>
+> Should we also remove twl4030_vibra_data definition?
+>
+Yes, but that is defined in include/linux/i2c/twl.h. Since I've sent
+multiple cleanup patches regarding twl, I thought it would be wise to
+wait until the next cycle to remove them all to avoid merge conflicts.
+I don't know how I should go with this, since I could:
+a) make another commit removing the pdata definition
+b) include the pdata definition removal in this commit
+c) wait until the next cycle
+
+>> >     struct device_node *twl4030_core_node = pdev->dev.parent->of_node;
+>> >     struct vibra_info *info;
+>> >     int ret;
+>> >
+>> > -   if (!pdata && !twl4030_core_node) {
+>> > -           dev_dbg(&pdev->dev, "platform_data not available\n");
+>> > +   if (!twl4030_core_node) {
+>> > +           dev_err(&pdev->dev, "no DT info\n\n");
+>
+> Why double newline?
+This is a typo. Should I send v2 or you can modify it while applying?
+
+Thanks,
+Nicolae
