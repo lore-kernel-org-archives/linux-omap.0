@@ -1,31 +1,33 @@
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: Re: [PATCH v2] cpsw: ethtool: add support for getting/setting EEE
- registers
-Date: Wed, 23 Nov 2016 09:33:42 -0800
-Message-ID: <93e0bd06-3171-e12b-b763-1e2895a463f8@gmail.com>
-References: <1479911913-1761-1-git-send-email-yegorslists@googlemail.com>
+From: Yegor Yefremov <yegorslists@googlemail.com>
+Subject: Re: [PATCH v2] cpsw: ethtool: add support for getting/setting EEE registers
+Date: Wed, 23 Nov 2016 21:08:00 +0100
+Message-ID: <CAGm1_ksC_6afhzK39uVTSk2PoC9CrR4Fow89YCZfihS2f6wzOw@mail.gmail.com>
+References: <1479911913-1761-1-git-send-email-yegorslists@googlemail.com> <93e0bd06-3171-e12b-b763-1e2895a463f8@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1479911913-1761-1-git-send-email-yegorslists@googlemail.com>
+In-Reply-To: <93e0bd06-3171-e12b-b763-1e2895a463f8@gmail.com>
 Sender: netdev-owner@vger.kernel.org
-To: yegorslists@googlemail.com, netdev@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, grygorii.strashko@ti.com, mugunthanvnm@ti.com, roszenrami@gmail.com
+To: Florian Fainelli <f.fainelli@gmail.com>
+Cc: netdev <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "N, Mugunthan V" <mugunthanvnm@ti.com>, Rami Rosen <roszenrami@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/23/2016 06:38 AM, yegorslists@googlemail.com wrote:
-> From: Yegor Yefremov <yegorslists@googlemail.com>
-> 
-> Add the ability to query and set Energy Efficient Ethernet parameters
-> via ethtool for applicable devices.
+On Wed, Nov 23, 2016 at 6:33 PM, Florian Fainelli <f.fainelli@gmail.com> wrote:
+> On 11/23/2016 06:38 AM, yegorslists@googlemail.com wrote:
+>> From: Yegor Yefremov <yegorslists@googlemail.com>
+>>
+>> Add the ability to query and set Energy Efficient Ethernet parameters
+>> via ethtool for applicable devices.
+>
+> Are you sure this is enough to actually enable EEE? I don't see where
+> phy_init_eee() is called here, nor is the cpsw Ethernet controller part
+> configured to enable/disable EEE. EEE is not just a PHY thing, it
+> usually also needs to be configured properly at the Ethernet MAC/switch
+> level as well.
+>
+> Just curious here.
 
-Are you sure this is enough to actually enable EEE? I don't see where
-phy_init_eee() is called here, nor is the cpsw Ethernet controller part
-configured to enable/disable EEE. EEE is not just a PHY thing, it
-usually also needs to be configured properly at the Ethernet MAC/switch
-level as well.
+I'm sure I want to disable EEE :-) So I need this patch in order to
+check and disable EEE advertising.
 
-Just curious here.
--- 
-Florian
+Yegor
