@@ -1,44 +1,39 @@
-From: Nicolae Rosia <nicolae.rosia.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/3] rtc: rtc-twl: kill static variables
-Date: Wed, 23 Nov 2016 10:57:19 +0200
-Message-ID: <CAKP5S=1GXx5PMxo-Ns82FyzJQw1MCESZr051VdsCO5DUifV+QA@mail.gmail.com>
-References: <1478945246-32056-1-git-send-email-Nicolae_Rosia@mentor.com>
- <1478945246-32056-2-git-send-email-Nicolae_Rosia@mentor.com>
- <20161122223103.qd44b3z5aj4ahroi@piout.net> <CAKP5S=0vLb+7az4aaFyPjGSEE5cG+epM2qpGP=zpzhvt6x69qA@mail.gmail.com>
- <20161123084657.or53k7tlyjxcmrr2@piout.net>
-Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH] dmaengine: edma: re-initialize dummy slot during system resume
+Date: Wed, 23 Nov 2016 14:57:55 +0530
+Message-ID: <20161123092755.8522-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <rtc-linux+bncBDL53MW2W4EBB4FT2XAQKGQEKAPBU7I-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-In-Reply-To: <20161123084657.or53k7tlyjxcmrr2-m++hUPXGwpdeoWH0uzbU5w@public.gmane.org>
-List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <https://groups.google.com/group/rtc-linux
-List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <https://groups.google.com/group/rtc-linux/subscribe>
-To: Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Cc: Nicolae Rosia <Nicolae_Rosia-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vinod Koul <vinod.koul@intel.com>
+Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, Vignesh R <vigneshr@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+The last param set in a transfer should always be pointing to dummy
+param set in non-cyclic mode. When system wakes from low power state
+EDMA PARAM slots may be reset to random values. Hence, re-initialize
+dummy slot to dummy param set on system resume.
 
-On Wed, Nov 23, 2016 at 10:46 AM, Alexandre Belloni
-<alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org> wrote:
->> Ok, could you please indicate which lines so I can fix them instead of
->> wasting your time?
->>
->
-> checkpatch.pl --strict will find them for you
-Thanks, I had the wrong tab setting.
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ drivers/dma/edma.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index 77242b37ef87..3879f80a4815 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -2451,6 +2451,9 @@ static int edma_pm_resume(struct device *dev)
+ 	int i;
+ 	s8 (*queue_priority_mapping)[2];
+ 
++	/* re initialize dummy slot to dummy param set */
++	edma_write_slot(ecc, ecc->dummy_slot, &dummy_paramset);
++
+ 	queue_priority_mapping = ecc->info->queue_priority_mapping;
+ 
+ 	/* Event queue priority mapping */
 -- 
-You received this message because you are subscribed to "rtc-linux".
-Membership options at http://groups.google.com/group/rtc-linux .
-Please read http://groups.google.com/group/rtc-linux/web/checklist
-before submitting a driver.
---- 
-You received this message because you are subscribed to the Google Groups "rtc-linux" group.
-To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-For more options, visit https://groups.google.com/d/optout.
+2.10.2
