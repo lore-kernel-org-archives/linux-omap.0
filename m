@@ -1,76 +1,66 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH] bq24190_charger: Fix PM runtime use for
- bq24190_battery_set_property
-Date: Wed, 23 Nov 2016 23:35:33 +0100
-Message-ID: <20161123223533.gmt7joee3kzhjk5p@earth>
-References: <20161115033831.7620-1-tony@atomide.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v2] ARM: dts: AM571x-IDK Initial Support
+Date: Wed, 23 Nov 2016 17:02:17 -0600
+Message-ID: <20161123230217.iq5fyyazgzdaccqv@rob-hp-laptop>
+References: <20161122041732.8385-1-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="u4p7jirqhaqww3yg"
-Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20161115033831.7620-1-tony@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <20161122041732.8385-1-lokeshvutla@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, spatton@ti.com, Tony Lindgren <tony@atomide.com>, Dave Gerlach <d-gerlach@ti.com>, Sekhar Nori <nsekhar@ti.com>, Tero Kristo <t-kristo@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-
---u4p7jirqhaqww3yg
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Mon, Nov 14, 2016 at 07:38:31PM -0800, Tony Lindgren wrote:
-> There's a typo, it should do pm_runtime_get_sync, not put.
->=20
-> Cc: Mark A. Greer <mgreer@animalcreek.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+On Tue, Nov 22, 2016 at 09:47:32AM +0530, Lokesh Vutla wrote:
+> From: Schuyler Patton <spatton@ti.com>
+> 
+> The AM571x-IDK board is a board based on TI's AM5718 SOC
+> which has a single core 1.5GHz A15 processor. This board is a
+> development platform for the Industrial market with:
+> - 1GB of DDR3L
+> - Dual 1Gbps Ethernet
+> - HDMI,
+> - PRU-ICSS
+> - uSD
+> - 16GB eMMC
+> - CAN
+> - RS-485
+> - PCIe
+> - USB3.0
+> - Video Input Port
+> - Industrial IO port and expansion connector
+> 
+> The link to the data sheet and TRM can be found here:
+> 
+> http://www.ti.com/product/AM5718
+> 
+> Initial support is only for basic peripherals.
+> 
+> Signed-off-by: Schuyler Patton <spatton@ti.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
 > ---
->  drivers/power/supply/bq24190_charger.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/drivers/power/supply/bq24190_charger.c b/drivers/power/suppl=
-y/bq24190_charger.c
-> --- a/drivers/power/supply/bq24190_charger.c
-> +++ b/drivers/power/supply/bq24190_charger.c
-> @@ -1141,7 +1141,7 @@ static int bq24190_battery_set_property(struct powe=
-r_supply *psy,
-> =20
->  	dev_dbg(bdi->dev, "prop: %d\n", psp);
-> =20
-> -	pm_runtime_put_sync(bdi->dev);
-> +	pm_runtime_get_sync(bdi->dev);
-> =20
->  	switch (psp) {
->  	case POWER_SUPPLY_PROP_ONLINE:
+> Cahnges since v1:
+> - Dropped "ti,dra722", and "ti,dra72" from compatibles
+> - Fixes few node names as suggested by Rob.
+> Logs: http://pastebin.ubuntu.com/23515001/
+> 
+>  .../devicetree/bindings/arm/omap/omap.txt          |  3 +
+>  arch/arm/boot/dts/Makefile                         |  1 +
+>  arch/arm/boot/dts/am571x-idk.dts                   | 81 ++++++++++++++++++++++
+>  3 files changed, 85 insertions(+)
+>  create mode 100644 arch/arm/boot/dts/am571x-idk.dts
 
-Thanks, queued to power-supply's for-next branch. I added
-
-Fixes: d7bf353fd0aa3
-
--- Sebastian
-
---u4p7jirqhaqww3yg
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlg2GbAACgkQ2O7X88g7
-+por6w/8CTAw1hFoS25Wtaq9AdwDX37NREcZyGTWyAxPeTPO/ja1sRdbUhlb7Nn1
-W2J5IF0WCBXcSa0aJTdzYyMJsaSMnU9baUK8VhndxAkdXpfmw4zzZhyuTA+DQ9xT
-TG0ji0bZ3E7g4sxTcItXnKJyZFWvdHLGVch8pCskfglgtSS9+e5NavZI2U5m86ZM
-zZt9S2fgtz48Ui5q8LFzNloQeyQ1MsyLtvv1JPIutcGcnjk0hjGFFodVCrqXLdfH
-DwGM9RR/LFyy7zLxIqkQhZkPsdBhB2mkAYPwGAdbKf7euYUKOV1rEaa+F3RNJ4Tx
-5W1r8w6/wKQTumSZwlNByxj1q/6vITmxQYbesZrfZ2IWTRG4tas7w31J/RXdwNB3
-aQPo5zPUFkZCmrnVrApHdEOprf/0+V0WzS346Ow9hEeNWwlNwpvMvRVwICKRSdnC
-7TdbLfc2RCbacYdRlBecM1Funrx5Bkow/74/HJIn/aHkGF9WnErRBFNGMXQLTwXg
-NYxbkjNLPiZYyBDsC8RYmON3H+S+YOhDLmdxAVqvLi/+Rq7lgDuVzK/SNIlJgeg6
-bMDB7vDTQxnlfuOTtDSlAM5SqlppTSruu79igsqLA/pz2x909yiEzHK/ef1Zw+Cj
-lq7zue0vWnBQPQPE/Qtthflrxecj5zpKwauZGKqy1Iot6J/RJ1g=
-=zk0G
------END PGP SIGNATURE-----
-
---u4p7jirqhaqww3yg--
+Acked-by: Rob Herring <robh@kernel.org>
