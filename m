@@ -1,57 +1,83 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH] mfd: cpcap: Add minimal support
-Date: Wed, 23 Nov 2016 07:03:01 -0800
-Message-ID: <20161123150300.GA4082@atomide.com>
+Date: Wed, 23 Nov 2016 07:26:52 -0800
+Message-ID: <20161123152652.GB4082@atomide.com>
 References: <20161119012748.17224-1-tony@atomide.com>
  <20161121114558.GJ32509@dell>
- <20161121163439.22ztjxnq535lo6dd@rob-hp-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20161121163439.22ztjxnq535lo6dd@rob-hp-laptop>
+In-Reply-To: <20161121114558.GJ32509@dell>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Marcel Partap <mpartap@gmx.net>, Mark Rutland <mark.rutland@arm.com>, Michael Scott <michael.scott@linaro.org>
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Marcel Partap <mpartap@gmx.net>, Mark Rutland <mark.rutland@arm.com>, Michael Scott <michael.scott@linaro.org>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Rob Herring <robh@kernel.org> [161121 08:34]:
-> On Mon, Nov 21, 2016 at 11:45:58AM +0000, Lee Jones wrote:
-> > On Fri, 18 Nov 2016, Tony Lindgren wrote:
-> > > +Example:
-> > > +
-> > > +&mcspi1 {
-> > > +	#address-cells = <1>;
-> > > +	#size-cells = <1>;
-> > > +	ranges;
-> > > +	cpcap: pmic@0 {
-> > > +		compatible = "motorola,cpcap", "st,6556002";
-> > > +		reg = <0 0>;	/* cs0, size 0 */
-> > 
-> > Is this really correct?
+* Lee Jones <lee.jones@linaro.org> [161121 03:43]:
+> On Fri, 18 Nov 2016, Tony Lindgren wrote:
+> > --- a/drivers/mfd/Makefile
+> > +++ b/drivers/mfd/Makefile
+> > @@ -97,6 +97,7 @@ obj-$(CONFIG_MFD_MC13XXX_I2C)	+= mc13xxx-i2c.o
+> >  obj-$(CONFIG_MFD_CORE)		+= mfd-core.o
+> >  
+> >  obj-$(CONFIG_EZX_PCAP)		+= ezx-pcap.o
+> > +obj-$(CONFIG_MFD_CPCAP)		+= cpcap.o
 > 
-> No, SPI devices are 1 cell and there shouldn't be a ranges prop.
-> 
-> > 
-> > How can ranges have a size of 0x8000 and this 0?
-> 
-> reg here doesn't affect ranges and address translation.
-> 
-> Perhaps this is trying to make address translation work, but if that 
-> does, it is by chance. Children of pmic addresses in the range of 
-> 0-0x8000 would get translated to "cpu address" 0-0x8000 as long as the 
-> DT has empty ranges up to the root. If the parent bus (i.e. SoC bus) has 
-> any base address, then that is going to get added which would not be 
-> good.
+> Who is the manufacturer?
 
-Yes I was thinking we can just get the register offset from the
-cpcap base from dts for children. So a range from 0-0x8000.
+Hmm that I don't know. There seems to be both ST and TI versions
+of this chip manufactured for Motorola. So my guess is that it
+should be Motorola unless there's some similar catalog part
+available from ST used by others. If anybody has more info
+on this please let me know :)
 
-Rob, do you have any better suggestions for doing that?
+> > +	cpcap->vendor = (val >> 6) & 0x0007;
+> > +	cpcap->revision = ((val >> 3) & 0x0007) | ((val << 3) & 0x0038);
+> 
+> Lots of magic numbers here.  I suggest you define them.
 
-Anyways, the children can just rely on regmap too, so I'll just
-drop the ranges here. If we ever come up with suitable ranges for
-cases like this we can change it later.
+I'll check if some earlier code has these defined. Otherwise I'll
+just add a comment on the lack of available documentation.
+
+> > +	error = cpcap_init_irq_bank(cpcap, 0, 0, 16);
+> 
+> 'ret' is more traditional.
+
+FYI error seems to be preferred over ret as it's meaning is
+clear, git grep "error =" drivers/input for example.
+I can of course change it if you prefer ret over error.
+
+> > +	error = cpcap_init_irq_bank(cpcap, 2, 32, 64);
+> > +	if (error)
+> > +		return error;
+> 
+> I don't think I've seen this method of adding bulk IRQ chips before.
+> Isn't there a cleaner or generic way to do this?
+
+I'll check.
+
+...
+> > +#define CPCAP_REG_LDEB		0x1270	/* LMR Debounce Settings */
+> > +#define CPCAP_REG_LGDET		0x1274	/* LMR GCAI Detach Detect */
+> > +#define CPCAP_REG_LMISC		0x1278	/* LMR Misc Bits */
+> > +#define CPCAP_REG_LMACE		0x127c	/* LMR Mace IC Support */
+> > +
+> > +#define CPCAP_REG_TEST		0x7c00	/* Test */
+> > +
+> > +#define CPCAP_REG_ST_TEST1	0x7d08	/* ST Test1 */
+> > +
+> > +#define CPCAP_REG_ST_TEST2	0x7d18	/* ST Test2 */
+> 
+> It would be nice to line up the entire file. #OCD
+
+Hmm care to clarify what you mean here? I think it's lined up with
+tabs to line up. I left empty lines where the registers are not
+contiguous. What does #OCD mean, Obsessive Compulsive Disorder over
+header files maybe? :)
+
+Anywys thanks for the review, the rest of the comments I will just
+fix and repost.
 
 Regards,
 
