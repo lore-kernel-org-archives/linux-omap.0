@@ -1,59 +1,87 @@
-From: Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH 2/3] rtc: rtc-twl: make driver DT only
-Date: Tue, 22 Nov 2016 23:33:00 +0100
-Message-ID: <20161122223300.3mgdlvrkhwcasthe@piout.net>
-References: <1478945246-32056-1-git-send-email-Nicolae_Rosia@mentor.com>
- <1478945246-32056-3-git-send-email-Nicolae_Rosia@mentor.com>
-Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH] Input: twl4030-vibra: remove legacy pdata support
+Date: Tue, 22 Nov 2016 17:33:48 -0800
+Message-ID: <20161123013348.GB21078@dtor-ws>
+References: <1479812398-1122-1-git-send-email-Nicolae_Rosia@mentor.com>
+ <d30d4cca-9fcf-befa-0389-1aafaef99ce8@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <rtc-linux+bncBCKYNX7Y3IMBBJUP2PAQKGQEKVKET7A-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1478945246-32056-3-git-send-email-Nicolae_Rosia-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>
-List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <https://groups.google.com/group/rtc-linux
-List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <https://groups.google.com/group/rtc-linux/subscribe>
-To: Nicolae Rosia <Nicolae_Rosia-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>
-Cc: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <d30d4cca-9fcf-befa-0389-1aafaef99ce8@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Nicolae Rosia <Nicolae_Rosia@mentor.com>, Marek Belisko <marek@goldelico.com>, Baruch Siach <baruch@tkos.co.il>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 12/11/2016 at 12:07:25 +0200, Nicolae Rosia wrote :
-> @@ -625,15 +631,11 @@ static int twl_rtc_resume(struct device *dev)
->  
->  static SIMPLE_DEV_PM_OPS(twl_rtc_pm_ops, twl_rtc_suspend, twl_rtc_resume);
->  
-> -#ifdef CONFIG_OF
->  static const struct of_device_id twl_rtc_of_match[] = {
->  	{.compatible = "ti,twl4030-rtc", },
->  	{ },
->  };
->  MODULE_DEVICE_TABLE(of, twl_rtc_of_match);
-> -#endif
-> -
-> -MODULE_ALIAS("platform:twl_rtc");
->  
->  static struct platform_driver twl4030rtc_driver = {
->  	.probe		= twl_rtc_probe,
+On Tue, Nov 22, 2016 at 01:19:36PM +0200, Peter Ujfalusi wrote:
+> 
+> 
+> On 11/22/2016 12:59 PM, Nicolae Rosia wrote:
+> > Remove dead code since all users are device tree enabled.
+> 
+> Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> 
+> > Signed-off-by: Nicolae Rosia <Nicolae_Rosia@mentor.com>
+> > ---
+> >  drivers/input/misc/twl4030-vibra.c | 13 ++++---------
+> >  1 file changed, 4 insertions(+), 9 deletions(-)
+> > 
+> > diff --git a/drivers/input/misc/twl4030-vibra.c b/drivers/input/misc/twl4030-vibra.c
+> > index caa5a62..5acc241 100644
+> > --- a/drivers/input/misc/twl4030-vibra.c
+> > +++ b/drivers/input/misc/twl4030-vibra.c
+> > @@ -177,12 +177,8 @@ static int __maybe_unused twl4030_vibra_resume(struct device *dev)
+> >  static SIMPLE_DEV_PM_OPS(twl4030_vibra_pm_ops,
+> >  			 twl4030_vibra_suspend, twl4030_vibra_resume);
+> >  
+> > -static bool twl4030_vibra_check_coexist(struct twl4030_vibra_data *pdata,
+> > -			      struct device_node *node)
+> > +static bool twl4030_vibra_check_coexist(struct device_node *node)
+> >  {
+> > -	if (pdata && pdata->coexist)
+> > -		return true;
+> > -
+> >  	node = of_find_node_by_name(node, "codec");
+> >  	if (node) {
+> >  		of_node_put(node);
 
+Do we need this wrapper anymore?
 
-You can then get rid of of_match_ptr()
+> > @@ -194,13 +190,12 @@ static bool twl4030_vibra_check_coexist(struct twl4030_vibra_data *pdata,
+> >  
+> >  static int twl4030_vibra_probe(struct platform_device *pdev)
+> >  {
+> > -	struct twl4030_vibra_data *pdata = dev_get_platdata(&pdev->dev);
 
+Should we also remove twl4030_vibra_data definition?
+
+> >  	struct device_node *twl4030_core_node = pdev->dev.parent->of_node;
+> >  	struct vibra_info *info;
+> >  	int ret;
+> >  
+> > -	if (!pdata && !twl4030_core_node) {
+> > -		dev_dbg(&pdev->dev, "platform_data not available\n");
+> > +	if (!twl4030_core_node) {
+> > +		dev_err(&pdev->dev, "no DT info\n\n");
+
+Why double newline?
+
+> >  		return -EINVAL;
+> >  	}
+> >  
+> > @@ -209,7 +204,7 @@ static int twl4030_vibra_probe(struct platform_device *pdev)
+> >  		return -ENOMEM;
+> >  
+> >  	info->dev = &pdev->dev;
+> > -	info->coexist = twl4030_vibra_check_coexist(pdata, twl4030_core_node);
+> > +	info->coexist = twl4030_vibra_check_coexist(twl4030_core_node);
+> >  	INIT_WORK(&info->play_work, vibra_play_work);
+> >  
+> >  	info->input_dev = devm_input_allocate_device(&pdev->dev);
+> >
+
+Thanks.
 
 -- 
-Alexandre Belloni, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
-
--- 
-You received this message because you are subscribed to "rtc-linux".
-Membership options at http://groups.google.com/group/rtc-linux .
-Please read http://groups.google.com/group/rtc-linux/web/checklist
-before submitting a driver.
---- 
-You received this message because you are subscribed to the Google Groups "rtc-linux" group.
-To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-For more options, visit https://groups.google.com/d/optout.
+Dmitry
