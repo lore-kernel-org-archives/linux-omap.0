@@ -1,41 +1,47 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH v2 1/5] Documentation: pinctrl: palmas: Add
- ti,palmas-powerhold-override property definition
-Date: Thu, 24 Nov 2016 10:58:39 +0530
-Message-ID: <23bf98ee-bcdc-e100-54ce-6f4b1e13ffcf@ti.com>
-References: <1478754560-27923-1-git-send-email-j-keerthy@ti.com>
- <1478754560-27923-2-git-send-email-j-keerthy@ti.com>
- <20161115014352.5d3qwoonlo63mp5p@rob-hp-laptop>
+Subject: [PATCH 2/2] ARM: omap: timers: reduce rating of gp_timer clocksource
+Date: Thu, 24 Nov 2016 11:49:15 +0530
+Message-ID: <1479968355-18860-2-git-send-email-j-keerthy@ti.com>
+References: <1479968355-18860-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161115014352.5d3qwoonlo63mp5p@rob-hp-laptop>
+In-Reply-To: <1479968355-18860-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: tony@atomide.com, lee.jones@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-gpio@vger.kernel.org, nm@ti.com, t-kristo@ti.com
+To: tony@atomide.com
+Cc: j-keerthy@ti.com, t-kristo@ti.com, linux@armlinux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+From: Grygorii Strashko <grygorii.strashko@ti.com>
 
+Now ARM Global timer (rating 300) will not be selected as clocksource,
+because it's initialized after OMAP GP Timer (rating 300) and
+Timekeeping core will not allow to replace clocksource with new one if
+both of them have the same rating.
 
-On Tuesday 15 November 2016 07:13 AM, Rob Herring wrote:
-> On Thu, Nov 10, 2016 at 10:39:16AM +0530, Keerthy wrote:
->> GPIO7 is configured in POWERHOLD mode which has higher priority
->> over DEV_ON bit and keeps the PMIC supplies on even after the DEV_ON
->> bit is turned off. This property enables driver to over ride the
->> POWERHOLD value to GPIO7 so as to turn off the PMIC in power off
->> scenarios.
->>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->> ---
->>  Documentation/devicetree/bindings/pinctrl/pinctrl-palmas.txt | 9 +++++++++
->>  1 file changed, 9 insertions(+)
->
-> Acked-by: Rob Herring <robh@kernel.org>
+Reduce rating of OMAP GP Timer (300->290) when it's used as
+clocksource device - this will allow to select ARM Global timer (300)
+as clocksource when enabled.
 
-Tony,
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
+ arch/arm/mach-omap2/timer.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Are you planning to pick this one as well?
-
-- Keerthy
->
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index b2f2448..a0dbb0b 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -376,7 +376,7 @@ static cycle_t clocksource_read_cycles(struct clocksource *cs)
+ }
+ 
+ static struct clocksource clocksource_gpt = {
+-	.rating		= 300,
++	.rating		= 290,
+ 	.read		= clocksource_read_cycles,
+ 	.mask		= CLOCKSOURCE_MASK(32),
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+-- 
+1.9.1
