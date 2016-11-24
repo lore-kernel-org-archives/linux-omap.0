@@ -1,80 +1,50 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 1/2] ARM: omap2: am437x: rollback to use omap3_gptimer_timer_init()
-Date: Thu, 24 Nov 2016 11:49:14 +0530
-Message-ID: <1479968355-18860-1-git-send-email-j-keerthy@ti.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v2 1/5] Documentation: pinctrl: palmas: Add
+ ti,palmas-powerhold-override property definition
+Date: Thu, 24 Nov 2016 08:45:44 +0000
+Message-ID: <20161124084544.GS10134@dell.home>
+References: <1478754560-27923-1-git-send-email-j-keerthy@ti.com>
+ <1478754560-27923-2-git-send-email-j-keerthy@ti.com>
+ <20161115014352.5d3qwoonlo63mp5p@rob-hp-laptop>
+ <23bf98ee-bcdc-e100-54ce-6f4b1e13ffcf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: j-keerthy@ti.com, t-kristo@ti.com, linux@armlinux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <23bf98ee-bcdc-e100-54ce-6f4b1e13ffcf@ti.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: Rob Herring <robh@kernel.org>, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-gpio@vger.kernel.org, nm@ti.com, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@ti.com>
+On Thu, 24 Nov 2016, Keerthy wrote:
 
-The commit 55ee7017ee31 ("arm: omap2: board-generic: use
-omap4_local_timer_init for AM437x") unintentionally changes the
-clocksource devices for AM437x from OMAP GP Timer to SyncTimer32K.
+> 
+> 
+> On Tuesday 15 November 2016 07:13 AM, Rob Herring wrote:
+> > On Thu, Nov 10, 2016 at 10:39:16AM +0530, Keerthy wrote:
+> > > GPIO7 is configured in POWERHOLD mode which has higher priority
+> > > over DEV_ON bit and keeps the PMIC supplies on even after the DEV_ON
+> > > bit is turned off. This property enables driver to over ride the
+> > > POWERHOLD value to GPIO7 so as to turn off the PMIC in power off
+> > > scenarios.
+> > > 
+> > > Signed-off-by: Keerthy <j-keerthy@ti.com>
+> > > ---
+> > >  Documentation/devicetree/bindings/pinctrl/pinctrl-palmas.txt | 9 +++++++++
+> > >  1 file changed, 9 insertions(+)
+> > 
+> > Acked-by: Rob Herring <robh@kernel.org>
+> 
+> Tony,
+> 
+> Are you planning to pick this one as well?
 
-Unfortunately, the SyncTimer32K is starving from frequency deviation
-as mentioned in commit 5b5c01359152 ("ARM: OMAP2+: AM43x: Use gptimer
-as clocksource") and, as reported by Franklin [1], even its monotonic
-nature is under question (most probably there is a HW issue, but it's
-still under investigation).
+This should be taken by LinusW.
 
-Taking into account above facts It's reasonable to rollback to the use
-of omap3_gptimer_timer_init().
-
-[1] http://www.spinics.net/lists/linux-omap/msg127425.html
-Reported-by: Cooper Jr., Franklin <fcooper@ti.com>
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- arch/arm/mach-omap2/board-generic.c | 2 +-
- arch/arm/mach-omap2/timer.c         | 9 +++++----
- 2 files changed, 6 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 36d9943..dc9e34e 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -304,7 +304,7 @@ static void __init rx51_reserve(void)
- 	.init_late	= am43xx_init_late,
- 	.init_irq	= omap_gic_of_init,
- 	.init_machine	= omap_generic_init,
--	.init_time	= omap4_local_timer_init,
-+	.init_time	= omap3_gptimer_timer_init,
- 	.dt_compat	= am43_boards_compat,
- 	.restart	= omap44xx_restart,
- MACHINE_END
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 5e2e221..b2f2448 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -510,18 +510,19 @@ void __init omap3_secure_sync32k_timer_init(void)
- }
- #endif /* CONFIG_ARCH_OMAP3 */
- 
--#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX)
-+#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX) || \
-+	defined(CONFIG_SOC_AM43XX)
- void __init omap3_gptimer_timer_init(void)
- {
- 	__omap_sync32k_timer_init(2, "timer_sys_ck", NULL,
- 			1, "timer_sys_ck", "ti,timer-alwon", true);
--
--	clocksource_probe();
-+	if (of_have_populated_dt())
-+		clocksource_probe();
- }
- #endif
- 
- #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) ||		\
--	defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM43XX)
-+	defined(CONFIG_SOC_DRA7XX)
- static void __init omap4_sync32k_timer_init(void)
- {
- 	__omap_sync32k_timer_init(1, "timer_32k_ck", "ti,timer-alwon",
 -- 
-1.9.1
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
