@@ -1,121 +1,75 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] mfd: cpcap: Add minimal support
-Date: Thu, 24 Nov 2016 08:59:26 +0000
-Message-ID: <20161124085926.GV10134@dell.home>
-References: <20161119012748.17224-1-tony@atomide.com>
- <20161121114558.GJ32509@dell>
- <20161123152652.GB4082@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161123152652.GB4082@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Marcel Partap <mpartap@gmx.net>, Mark Rutland <mark.rutland@arm.com>, Michael Scott <michael.scott@linaro.org>, Rob Herring <robh+dt@kernel.org>
+From: yegorslists@googlemail.com
+Subject: [PATCH v3] cpsw: ethtool: add support for getting/setting EEE registers
+Date: Thu, 24 Nov 2016 10:17:01 +0100
+Message-ID: <1479979021-13715-1-git-send-email-yegorslists@googlemail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, grygorii.strashko@ti.com, mugunthanvnm@ti.com, roszenrami@gmail.com, f.fainelli@gmail.com, Yegor Yefremov <yegorslists@googlemail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 23 Nov 2016, Tony Lindgren wrote:
+From: Yegor Yefremov <yegorslists@googlemail.com>
 
-> * Lee Jones <lee.jones@linaro.org> [161121 03:43]:
-> > On Fri, 18 Nov 2016, Tony Lindgren wrote:
-> > > --- a/drivers/mfd/Makefile
-> > > +++ b/drivers/mfd/Makefile
-> > > @@ -97,6 +97,7 @@ obj-$(CONFIG_MFD_MC13XXX_I2C)	+= mc13xxx-i2c.o
-> > >  obj-$(CONFIG_MFD_CORE)		+= mfd-core.o
-> > >  
-> > >  obj-$(CONFIG_EZX_PCAP)		+= ezx-pcap.o
-> > > +obj-$(CONFIG_MFD_CPCAP)		+= cpcap.o
-> > 
-> > Who is the manufacturer?
-> 
-> Hmm that I don't know. There seems to be both ST and TI versions
-> of this chip manufactured for Motorola. So my guess is that it
-> should be Motorola unless there's some similar catalog part
-> available from ST used by others. If anybody has more info
-> on this please let me know :)
+Add the ability to query and set Energy Efficient Ethernet parameters
+via ethtool for applicable devices.
 
-If this IP is shared amongst vendors, it usually means it was designed
-by someone else?  Synopsis perhaps?
+This patch doesn't activate full EEE support in cpsw driver, but it
+enables reading and writing EEE advertising settings. This way one
+can disable advertising EEE for certain speeds.
 
-> > > +	cpcap->vendor = (val >> 6) & 0x0007;
-> > > +	cpcap->revision = ((val >> 3) & 0x0007) | ((val << 3) & 0x0038);
-> > 
-> > Lots of magic numbers here.  I suggest you define them.
-> 
-> I'll check if some earlier code has these defined. Otherwise I'll
-> just add a comment on the lack of available documentation.
+Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+Acked-by: Rami Rosen <roszenrami@gmail.com>
+---
+Changes:
+	v3: explain what features will be available with this patch (Florian Fainelli)
+	v2: make routines static (Rami Rosen)
 
-*sad face*
+ drivers/net/ethernet/ti/cpsw.c | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-Does that mean you don't even know what they're for?
-
-> > > +	error = cpcap_init_irq_bank(cpcap, 0, 0, 16);
-> > 
-> > 'ret' is more traditional.
-> 
-> FYI error seems to be preferred over ret as it's meaning is
-> clear, git grep "error =" drivers/input for example.
-> I can of course change it if you prefer ret over error.
-
-I'd prefer to stick to the conventions of *this* subsystem.
-
-... and the most common convention used kernel wide:
-
-$ git grep "ret =" | wc -l
-117976
-$ git grep "err =" | wc -l
-56708
-$ git grep "error =" | wc -l
-14427
-
-
-> > > +	error = cpcap_init_irq_bank(cpcap, 2, 32, 64);
-> > > +	if (error)
-> > > +		return error;
-> > 
-> > I don't think I've seen this method of adding bulk IRQ chips before.
-> > Isn't there a cleaner or generic way to do this?
-> 
-> I'll check.
-> 
-> ...
-> > > +#define CPCAP_REG_LDEB		0x1270	/* LMR Debounce Settings */
-> > > +#define CPCAP_REG_LGDET		0x1274	/* LMR GCAI Detach Detect */
-> > > +#define CPCAP_REG_LMISC		0x1278	/* LMR Misc Bits */
-> > > +#define CPCAP_REG_LMACE		0x127c	/* LMR Mace IC Support */
-> > > +
-> > > +#define CPCAP_REG_TEST		0x7c00	/* Test */
-> > > +
-> > > +#define CPCAP_REG_ST_TEST1	0x7d08	/* ST Test1 */
-> > > +
-> > > +#define CPCAP_REG_ST_TEST2	0x7d18	/* ST Test2 */
-> > 
-> > It would be nice to line up the entire file. #OCD
-> 
-> Hmm care to clarify what you mean here? I think it's lined up with
-
-I'm missing context now you've <snip>ed.
-
-These look straight, however is the whole file lined up (as much as
-*practically* possible)?
-
-> tabs to line up. I left empty lines where the registers are not
-> contiguous. What does #OCD mean, Obsessive Compulsive Disorder over
-> header files maybe? :)
-
-Yes, that's what it means.
-
-/me likes straight lines. :)
-
-> Anywys thanks for the review, the rest of the comments I will just
-> fix and repost.
-
-Welcome.
-
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index c6cff3d..c706540 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -2239,6 +2239,30 @@ static int cpsw_set_channels(struct net_device *ndev,
+ 	return ret;
+ }
+ 
++static int cpsw_get_eee(struct net_device *ndev, struct ethtool_eee *edata)
++{
++	struct cpsw_priv *priv = netdev_priv(ndev);
++	struct cpsw_common *cpsw = priv->cpsw;
++	int slave_no = cpsw_slave_index(cpsw, priv);
++
++	if (cpsw->slaves[slave_no].phy)
++		return phy_ethtool_get_eee(cpsw->slaves[slave_no].phy, edata);
++	else
++		return -EOPNOTSUPP;
++}
++
++static int cpsw_set_eee(struct net_device *ndev, struct ethtool_eee *edata)
++{
++	struct cpsw_priv *priv = netdev_priv(ndev);
++	struct cpsw_common *cpsw = priv->cpsw;
++	int slave_no = cpsw_slave_index(cpsw, priv);
++
++	if (cpsw->slaves[slave_no].phy)
++		return phy_ethtool_set_eee(cpsw->slaves[slave_no].phy, edata);
++	else
++		return -EOPNOTSUPP;
++}
++
+ static const struct ethtool_ops cpsw_ethtool_ops = {
+ 	.get_drvinfo	= cpsw_get_drvinfo,
+ 	.get_msglevel	= cpsw_get_msglevel,
+@@ -2262,6 +2286,8 @@ static const struct ethtool_ops cpsw_ethtool_ops = {
+ 	.complete	= cpsw_ethtool_op_complete,
+ 	.get_channels	= cpsw_get_channels,
+ 	.set_channels	= cpsw_set_channels,
++	.get_eee	= cpsw_get_eee,
++	.set_eee	= cpsw_set_eee,
+ };
+ 
+ static void cpsw_slave_init(struct cpsw_slave *slave, struct cpsw_common *cpsw,
 -- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+2.1.4
