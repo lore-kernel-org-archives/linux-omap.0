@@ -1,51 +1,36 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] bq24190_charger: Fix PM runtime use for
- bq24190_battery_set_property
-Date: Fri, 25 Nov 2016 05:34:22 -0800
-Message-ID: <20161125133421.GO4082@atomide.com>
-References: <20161115033831.7620-1-tony@atomide.com>
- <20161123223533.gmt7joee3kzhjk5p@earth>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] drivers: net: davinci_mdio: use builtin_platform_driver
+Date: Fri, 25 Nov 2016 16:23:57 -0500 (EST)
+Message-ID: <20161125.162357.1584801226397085201.davem@davemloft.net>
+References: <055763562f90fd7e2d311308e1d731ba93c3eea9.1479912302.git.geliangtang@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161123223533.gmt7joee3kzhjk5p@earth>
-Sender: linux-pm-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <055763562f90fd7e2d311308e1d731ba93c3eea9.1479912302.git.geliangtang@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: geliangtang@gmail.com
+Cc: mugunthanvnm@ti.com, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@kernel.org> [161123 14:35]:
-> Hi,
-> 
-> On Mon, Nov 14, 2016 at 07:38:31PM -0800, Tony Lindgren wrote:
-> > There's a typo, it should do pm_runtime_get_sync, not put.
-> > 
-> > Cc: Mark A. Greer <mgreer@animalcreek.com>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > ---
-> >  drivers/power/supply/bq24190_charger.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/power/supply/bq24190_charger.c b/drivers/power/supply/bq24190_charger.c
-> > --- a/drivers/power/supply/bq24190_charger.c
-> > +++ b/drivers/power/supply/bq24190_charger.c
-> > @@ -1141,7 +1141,7 @@ static int bq24190_battery_set_property(struct power_supply *psy,
-> >  
-> >  	dev_dbg(bdi->dev, "prop: %d\n", psp);
-> >  
-> > -	pm_runtime_put_sync(bdi->dev);
-> > +	pm_runtime_get_sync(bdi->dev);
-> >  
-> >  	switch (psp) {
-> >  	case POWER_SUPPLY_PROP_ONLINE:
-> 
-> Thanks, queued to power-supply's for-next branch. I added
-> 
-> Fixes: d7bf353fd0aa3
+From: Geliang Tang <geliangtang@gmail.com>
+Date: Wed, 23 Nov 2016 22:45:43 +0800
 
-Thanks!
+> @@ -536,11 +536,7 @@ static struct platform_driver davinci_mdio_driver = {
+>  	.remove = davinci_mdio_remove,
+>  };
+>  
+> -static int __init davinci_mdio_init(void)
+> -{
+> -	return platform_driver_register(&davinci_mdio_driver);
+> -}
+> -device_initcall(davinci_mdio_init);
+> +builtin_platform_driver(davinci_mdio_driver);
+>  
 
-Tony
+As noted by others this is not a correct transformation, the existing
+code works properly when modular.  But it will not with this change.
 
+device_initcall() is rerouted to module_init() inside of a module
+build, whereas the thing builtin_platform_driver() expands to does
+not.
