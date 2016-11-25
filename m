@@ -1,69 +1,47 @@
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: Re: [PATCH v2] cpsw: ethtool: add support for getting/setting EEE
- registers
-Date: Thu, 24 Nov 2016 10:23:15 -0800
-Message-ID: <11549d93-4b51-25c8-e693-509048475bef@gmail.com>
-References: <1479911913-1761-1-git-send-email-yegorslists@googlemail.com>
- <93e0bd06-3171-e12b-b763-1e2895a463f8@gmail.com>
- <CAGm1_ksC_6afhzK39uVTSk2PoC9CrR4Fow89YCZfihS2f6wzOw@mail.gmail.com>
- <c91dcd74-3983-3ab6-91f6-3657b1e601af@gmail.com>
- <CAGm1_ktuAbt0pr_NJu2GLDOavFV_bvMBmH5RvDxr5AyXvfwB3A@mail.gmail.com>
- <20161124153809.GA20455@lunn.ch>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH v2 0/3] increase TSCADC clock to 24MHz and fix
+ ti,charge-delay to represent in nS
+Date: Fri, 25 Nov 2016 10:27:09 +0530
+Message-ID: <71482721-fd60-65b2-d601-f1698ce5fa0a@ti.com>
+References: <20161110163515.27598-1-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20161124153809.GA20455@lunn.ch>
-Sender: netdev-owner@vger.kernel.org
-To: Andrew Lunn <andrew@lunn.ch>, Yegor Yefremov <yegorslists@googlemail.com>, Giuseppe Cavallaro <peppe.cavallaro@st.com>
-Cc: netdev <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "N, Mugunthan V" <mugunthanvnm@ti.com>, Rami Rosen <roszenrami@gmail.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20161110163515.27598-1-mugunthanvnm@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: linux-input@vger.kernel.org
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Jonathan Cameron <jic23@kernel.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Lee Jones <lee.jones@linaro.org>, Sekhar Nori <nsekhar@ti.com>, Vignesh R <vigneshr@ti.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-+Peppe,
+Hi Dmitry Torokhov,
 
-Le 24/11/2016 à 07:38, Andrew Lunn a écrit :
->> As for enabling advertising and correct working of cpsw do you mean it
->> would be better to disable EEE in any PHY on cpsw initialization as
->> long as cpsw doesn't provide support for EEE?
->>
->> We observe some strange behavior with our gigabit PHYs and a link
->> partner in a EEE-capable unmanaged NetGear switch. Disabling
->> advertising seems to help. Though we're still investigating the issue.
+On Thursday 10 November 2016 10:05 PM, Mugunthan V N wrote:
+> This patch series enables ADC to be clocked at 24MHz as the
+> TI AM335x ADC driver has already adopted to use DMA to transfer
+> ADC samples. Now ADC can generated upto 800K Samples per second
+> with the patch [1] on AM335x BBB and AM437x GP EVM.
 > 
-> Hi Florian
+> when ADC ref clock is set at 24MHz, I am seeing some issue with
+> touch screen pointer as the pointer jumps to random locations
+> with free draw application. The issue is due to increase in ADC
+> clock and charge delay for the touchscreen ADC line duration
+> reduced.
 > 
-> Am i right in saying, a PHY should not advertise EEE until the MAC
-> driver calls phy_init_eee(), indicating the MAC supports EEE?
-
-You would think so, but I don't see how this could possibly work if that
-was not the case already, see below.
-
+> So the notation of ti,charge-delay in terms of ADC clock is
+> wrong, it has to be represented in time and driver has to convert
+> the charge delay time to ADC clocks based on what ADC clock
+> frequency is set.
 > 
-> If so, it looks like we need to change a few of the PHY drivers, in
-> particular, the bcm-*.c.
+> Measured the performance with the iio_generic_buffer with the
+> patch [2] applied
+> 
+> Verified the touch screen on AM335x GP EVM and AM335x BBB LCD7
+> cape with [3] dts for display and touch screen to work.
+> 
 
-The first part that bcm-phy-lib.c does is make sure that EEE is enabled
-such that this gets reflected in MDIO_PCS_EEE_ABLE, without this, we
-won't be able to pass the first test in phy_init_eee(). The second part
-is to advertise EEE such that this gets reflected in MDIO_AN_EEE_ADV,
-also to make sure that we can pass the second check in phy_init_eee().
+Since there are acks from DT and MFD maintainers, can you pull the patch
+series if you do not have any more comments.
 
-Now, looking at phy_init_eee(), and what stmmac does (and bcmgenet,
-copied after stmmac), we need to somehow, have EEE advertised for
-phy_init_eee() to succeed, prepare the MAC to support EEE, and finally
-conclude with a call to phy_ethtool_set_eee(), which writes to the
-MDIO_AN_EEE_ADV register, and concludes the EEE auto-negotiated process.
-Since we already have EEE advertised, we are essentially just checking
-that the EEE advertised settings and the LP advertised settings actually
-do match, so it sounds like the final call to phy_ethtool_set_eee() is
-potentially useless if the resolved advertised and link partner
-advertised settings already match...
-
-So it sounds like at least, the first time you try to initialize EEE, we
-should start with EEE not advertised, and then, if we have EEE enabled
-at some point, and we re-negotiate the link parameters, somehow
-phy_init_eee() does a right job for that.
-
-Peppe, any thoughts on this?
--- 
-Florian
+Regards
+Mugunthan V N
