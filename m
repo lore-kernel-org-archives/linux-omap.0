@@ -1,48 +1,48 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v2 2/2] dmaengine: omap-dma: Support for slave devices
- with data port window
-Date: Fri, 25 Nov 2016 11:42:26 +0530
-Message-ID: <20161125061225.GJ2698@localhost>
-References: <20161117125017.14954-1-peter.ujfalusi@ti.com>
- <20161117125017.14954-3-peter.ujfalusi@ti.com>
+From: Nicolae Rosia <Nicolae_Rosia@mentor.com>
+Subject: [PATCH] regulator: twl6030: add dependency on OF
+Date: Fri, 25 Nov 2016 09:43:35 +0200
+Message-ID: <20161125074335.6947-1-Nicolae_Rosia@mentor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161117125017.14954-3-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: dan.j.williams@intel.com, tony@atomide.com, linux@armlinux.org.uk, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, arnd@arndb.de
+To: Mark Brown <broonie@kernel.org>
+Cc: Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Nicolae Rosia <Nicolae_Rosia@mentor.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 17, 2016 at 02:50:17PM +0200, Peter Ujfalusi wrote:
-> @@ -921,11 +931,45 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
->  
->  	d->ccr = c->ccr | CCR_SYNC_FRAME;
->  	if (dir == DMA_DEV_TO_MEM) {
-> -		d->ccr |= CCR_DST_AMODE_POSTINC | CCR_SRC_AMODE_CONSTANT;
->  		d->csdp = CSDP_DST_BURST_64 | CSDP_DST_PACKED;
-> +
-> +		d->ccr |= CCR_DST_AMODE_POSTINC;
-> +		if (port_window) {
-> +			d->ccr |= CCR_SRC_AMODE_DBLIDX;
-> +			d->ei = 1;
-> +			/*
-> +			 * One frame covers the port_window and by  configure
-> +			 * the source frame index to be -1 * (port_window - 1)
-> +			 * we instruct the sDMA that after a frame is processed
-> +			 * it should move back to the start of the window.
-> +			 */
-> +			d->fi = -(port_window - 1);
-> +
-> +			if (port_window >= 64)
-> +				d->csdp = CSDP_SRC_BURST_64 | CSDP_SRC_PACKED;
-> +			else if (port_window >= 32)
-> +				d->csdp = CSDP_SRC_BURST_32 | CSDP_SRC_PACKED;
-> +			else if (port_window >= 16)
-> +				d->csdp = CSDP_SRC_BURST_16 | CSDP_SRC_PACKED;
+This driver was converted to device tree only,
+add dependency on OF symbol and drop of_match_ptr
 
-this and other would look better with a switch..
+Signed-off-by: Nicolae Rosia <Nicolae_Rosia@mentor.com>
+---
+ drivers/regulator/Kconfig             | 1 +
+ drivers/regulator/twl6030-regulator.c | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
+index 936f7cc..ef70672 100644
+--- a/drivers/regulator/Kconfig
++++ b/drivers/regulator/Kconfig
+@@ -839,6 +839,7 @@ config REGULATOR_TPS80031
+ config REGULATOR_TWL4030
+ 	tristate "TI TWL4030/TWL5030/TWL6030/TPS659x0 PMIC"
+ 	depends on TWL4030_CORE
++	depends on OF
+ 	help
+ 	  This driver supports the voltage regulators provided by
+ 	  this family of companion chips.
+diff --git a/drivers/regulator/twl6030-regulator.c b/drivers/regulator/twl6030-regulator.c
+index 4864b9d..1f327d7 100644
+--- a/drivers/regulator/twl6030-regulator.c
++++ b/drivers/regulator/twl6030-regulator.c
+@@ -773,7 +773,7 @@ static struct platform_driver twlreg_driver = {
+ 	 */
+ 	.driver  = {
+ 		.name  = "twl6030_reg",
+-		.of_match_table = of_match_ptr(twl_of_match),
++		.of_match_table = twl_of_match,
+ 	},
+ };
+ 
 -- 
-~Vinod
+2.9.3
