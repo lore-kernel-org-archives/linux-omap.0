@@ -1,64 +1,580 @@
-From: "Rosia, Nicolae" <Nicolae_Rosia@mentor.com>
-Subject: Re: [PATCH 4/5] regulator: Add support for TI TWL6032
-Date: Sat, 26 Nov 2016 20:24:10 +0000
-Message-ID: <1480191847.18423.1.camel@mentor.com>
-References: <201611270236.UFgW5zDA%fengguang.wu@intel.com>
+From: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v8 3/8] drivers:input:tsc2007: add iio interface to read
+ external ADC input and temperature
+Date: Sun, 27 Nov 2016 11:02:30 +0000
+Message-ID: <8d3fc752-e69c-f568-4f71-4f1768a3fffe@kernel.org>
+References: <cover.1479823354.git.hns@goldelico.com>
+ <cover.1479823354.git.hns@goldelico.com>
+ <99f236df48b03b3188e12f94a20097f8440db7a5.1479823354.git.hns@goldelico.com>
+ <E42B1EF7-222E-46D6-878B-30C789CFBBC5@jic23.retrosnub.co.uk>
+ <811B6F6A-2E3D-45B4-A984-74ABE0E37192@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201611270236.UFgW5zDA%fengguang.wu@intel.com>
-Content-Language: en-US
-Content-ID: <89D839F4FDDFDE43B67082DFE4914196@mentor.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "lkp@intel.com" <lkp@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "lee.jones@linaro.org" <lee.jones@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@kernel.org" <broonie@kernel.org>, "baruch@tkos.co.il" <baruch@tkos.co.il>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "lgirdwood@gmail.com" <lgirdwood@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul.gortmaker@windriver.com" <paul.gortmaker@windriver.com>, "tony@atomide.com" <tony@atomide.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <811B6F6A-2E3D-45B4-A984-74ABE0E37192-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Jonathan Cameron <jic23-tko9wxEg+fIOOJlXag/Snyp2UmYkHbXO@public.gmane.org>
+Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, =?UTF-8?Q?Mika_Penttil=c3=a4?= <mika.penttila-MRsr7dthA9VWk0Htik3J/w@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alexander Stein <alexander.stein-93q1YBGzJSMe9JSWTWOYM3xStJ4P+DSV@public.gmane.org>, Eric Engestrom <eric-op+oiCINJLTt9jDmeYuA0g@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Tissoires <benjamin.tissoires-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Denis
 List-Id: linux-omap@vger.kernel.org
 
-SGksDQoNCk9uIFN1biwgMjAxNi0xMS0yNyBhdCAwMjo1NSArMDgwMCwga2J1aWxkIHRlc3Qgcm9i
-b3Qgd3JvdGU6DQo+IEhpIE5pY29sYWUsDQo+IA0KPiBbYXV0byBidWlsZCB0ZXN0IEVSUk9SIG9u
-IG9tYXAvZm9yLW5leHRdDQo+IFthbHNvIGJ1aWxkIHRlc3QgRVJST1Igb24gdjQuOS1yYzZdDQo+
-IFtjYW5ub3QgYXBwbHkgdG8gbmV4dC0yMDE2MTEyNV0NCj4gW2lmIHlvdXIgcGF0Y2ggaXMgYXBw
-bGllZCB0byB0aGUgd3JvbmcgZ2l0IHRyZWUsIHBsZWFzZSBkcm9wIHVzIGENCj4gbm90ZSB0byBo
-ZWxwIGltcHJvdmUgdGhlIHN5c3RlbV0NCj4gDQo+IHVybDrCoMKgwqDCoGh0dHBzOi8vZ2l0aHVi
-LmNvbS8wZGF5LWNpL2xpbnV4L2NvbW1pdHMvTmljb2xhZS1Sb3NpYS9tZmQtdHcNCj4gbC1pbXBy
-b3ZlbWVudHMtYW5kLW5ldy1yZWd1bGF0b3ItZHJpdmVyLzIwMTYxMTI3LTAyMjIwMQ0KPiBiYXNl
-OsKgwqDCoGh0dHBzOi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L3Rt
-bGluZC9saW51eC0NCj4gb21hcC5naXQgZm9yLW5leHQNCj4gY29uZmlnOiBpMzg2LWFsbG1vZGNv
-bmZpZyAoYXR0YWNoZWQgYXMgLmNvbmZpZykNCj4gY29tcGlsZXI6IGdjYy02IChEZWJpYW4gNi4y
-LjAtMykgNi4yLjAgMjAxNjA5MDENCj4gcmVwcm9kdWNlOg0KPiDCoMKgwqDCoMKgwqDCoMKgIyBz
-YXZlIHRoZSBhdHRhY2hlZCAuY29uZmlnIHRvIGxpbnV4IGJ1aWxkIHRyZWUNCj4gwqDCoMKgwqDC
-oMKgwqDCoG1ha2UgQVJDSD1pMzg2wqANCj4gDQo+IEFsbCBlcnJvci93YXJuaW5ncyAobmV3IG9u
-ZXMgcHJlZml4ZWQgYnkgPj4pOg0KPiANCj4gwqDCoMKgSW4gZmlsZSBpbmNsdWRlZCBmcm9tIGRy
-aXZlcnMvcmVndWxhdG9yL3R3bDYwMzItcmVndWxhdG9yLmM6MTE6MDoNCj4gPiA+IGRyaXZlcnMv
-cmVndWxhdG9yL3R3bDYwMzItcmVndWxhdG9yLmM6NTU3OjMxOiBlcnJvcjoNCj4gPiA+ICd0d2w2
-MDMyX3JlZ3VsYXRvcl9kcml2ZXJfaWRzJyB1bmRlY2xhcmVkIGhlcmUgKG5vdCBpbiBhDQo+ID4g
-PiBmdW5jdGlvbikNCj4gDQo+IMKgwqDCoMKgTU9EVUxFX0RFVklDRV9UQUJMRShwbGF0Zm9ybSwg
-dHdsNjAzMl9yZWd1bGF0b3JfZHJpdmVyX2lkcyk7DQo+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgXg0KPiDCoMKgwqBp
-bmNsdWRlL2xpbnV4L21vZHVsZS5oOjIxMzoyMTogbm90ZTogaW4gZGVmaW5pdGlvbiBvZiBtYWNy
-bw0KPiAnTU9EVUxFX0RFVklDRV9UQUJMRScNCj4gwqDCoMKgwqBleHRlcm4gY29uc3QgdHlwZW9m
-KG5hbWUpDQo+IF9fbW9kXyMjdHlwZSMjX18jI25hbWUjI19kZXZpY2VfdGFibGXCoMKgXA0KPiDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBefn5+DQo+ID4g
-PiBpbmNsdWRlL2xpbnV4L21vZHVsZS5oOjIxMzoyNzogZXJyb3I6DQo+ID4gPiAnX19tb2RfcGxh
-dGZvcm1fX3R3bDYwMzJfcmVndWxhdG9yX2RyaXZlcl9pZHNfZGV2aWNlX3RhYmxlJw0KPiA+ID4g
-YWxpYXNlZCB0byB1bmRlZmluZWQgc3ltYm9sICd0d2w2MDMyX3JlZ3VsYXRvcl9kcml2ZXJfaWRz
-Jw0KPiANCj4gwqDCoMKgwqBleHRlcm4gY29uc3QgdHlwZW9mKG5hbWUpDQo+IF9fbW9kXyMjdHlw
-ZSMjX18jI25hbWUjI19kZXZpY2VfdGFibGXCoMKgXA0KPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBeDQo+ID4gPiBkcml2ZXJzL3Jl
-Z3VsYXRvci90d2w2MDMyLXJlZ3VsYXRvci5jOjU1NzoxOiBub3RlOiBpbiBleHBhbnNpb24NCj4g
-PiA+IG9mIG1hY3JvICdNT0RVTEVfREVWSUNFX1RBQkxFJw0KPiANCj4gwqDCoMKgwqBNT0RVTEVf
-REVWSUNFX1RBQkxFKHBsYXRmb3JtLCB0d2w2MDMyX3JlZ3VsYXRvcl9kcml2ZXJfaWRzKTsNCj4g
-wqDCoMKgwqBefn5+fn5+fn5+fn5+fn5+fn5+DQo+IA0KPiB2aW0gKy90d2w2MDMyX3JlZ3VsYXRv
-cl9kcml2ZXJfaWRzICs1NTcgZHJpdmVycy9yZWd1bGF0b3IvdHdsNjAzMi0NCj4gcmVndWxhdG9y
-LmMNCj4gDQo+IMKgwqDCoDU1MQkNCj4gwqDCoMKgNTUyCXN0YXRpYyBjb25zdCBzdHJ1Y3Qgb2Zf
-ZGV2aWNlX2lkIHR3bDYwMzJfZHRfbWF0Y2hbXSA9IHsNCj4gwqDCoMKgNTUzCQl7IC5jb21wYXRp
-YmxlID0gInRpLHR3bDYwMzItcmVndWxhdG9yIiB9LA0KPiDCoMKgwqA1NTQJCXsgLyogbGFzdCBl
-bnRyeSAqLyB9DQo+IMKgwqDCoDU1NQl9Ow0KPiDCoMKgwqA1NTYJDQo+IMKgPiA1NTcJTU9EVUxF
-X0RFVklDRV9UQUJMRShwbGF0Zm9ybSwNCj4gdHdsNjAzMl9yZWd1bGF0b3JfZHJpdmVyX2lkcyk7
-DQo+IMKgwqDCoDU1OAkNCj4gwqDCoMKgNTU5CXN0YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZHJpdmVy
-IHR3bDYwMzJfcmVndWxhdG9yX2RyaXZlcg0KPiA9IHsNCj4gwqDCoMKgNTYwCQkuZHJpdmVyID0g
-ew0KDQpUaGFua3MsIEkgZGlkIG5vdCBub3RpY2UgdGhpcyBzaW5jZSBJIHdhcyBvbmx5IHRlc3Rp
-bmcgdXNpbmcgYnVpbHQtaW4NCm1vZHVsZS4NCkkgd2lsbCB3YWl0IGZvciBjb21tZW50cyBiZWZv
-cmUgc2VuZGluZyBWMiwgdW50aWxsIHRoZW4gaGVyZSdzIGFuDQppbmxpbmUgcGF0Y2ggd2l0aCB0
-aGUgZml4Lg0KDQoNCkJlc3QgcmVnYXJkcywNCk5pY29sYWUNCg0K
+On 24/11/16 18:05, H. Nikolaus Schaller wrote:
+> 
+>> Am 24.11.2016 um 18:38 schrieb Jonathan Cameron <jic23-tko9wxEg+fIOOJlXag/Snyp2UmYkHbXO@public.gmane.org>:
+>>
+>>
+>>
+>> On 22 November 2016 14:02:30 GMT+00:00, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> wrote:
+>>> The tsc2007 chip not only has a resistive touch screen controller but
+>>> also an external AUX adc imput which can be used for an ambient
+>>> light sensor, battery voltage monitoring or any general purpose.
+>>>
+>>> Additionally it can measure the chip temperature.
+>>>
+>>> This extension provides an iio interface for these adc channels.
+>>>
+>>> Since it is not wasting much resources and is very straightforward,
+>>> we simply provide all other adc channels as optional iio interfaces
+>>> as weel. This can be used for debugging or special applications.
+>>>
+>>> This patch also splits the tsc2007 driver in several source files:
+>>> tsc2007.h -- constants, structs and stubs
+>>> tsc2007_core.c -- functional parts of the original driver
+>>> tsc2007_iio.c -- the optional iio stuff
+>>>
+>>> Makefile magic allows to conditionally link the iio stuff
+>>> if CONFIG_IIO=y or =m in a way that it works with
+>>> CONFIG_TOUCHSCREEN_TSC2007=m.
+>>>
+>>> Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+>>> Reviewed-by: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>>> ---
+>>> drivers/input/touchscreen/Makefile                 |   7 +
+>>> drivers/input/touchscreen/tsc2007.h                | 116
+>>> ++++++++++++++++
+>>> .../touchscreen/{tsc2007.c => tsc2007_core.c}      |  95 +++----------
+>>> drivers/input/touchscreen/tsc2007_iio.c            | 150
+>>> +++++++++++++++++++++
+>>> 4 files changed, 294 insertions(+), 74 deletions(-)
+>>> create mode 100644 drivers/input/touchscreen/tsc2007.h
+>>> rename drivers/input/touchscreen/{tsc2007.c => tsc2007_core.c} (86%)
+>>> create mode 100644 drivers/input/touchscreen/tsc2007_iio.c
+>>>
+>>> diff --git a/drivers/input/touchscreen/Makefile
+>>> b/drivers/input/touchscreen/Makefile
+>>> index 81b8645..3be0d19 100644
+>>> --- a/drivers/input/touchscreen/Makefile
+>>> +++ b/drivers/input/touchscreen/Makefile
+>>> @@ -80,6 +80,13 @@ obj-$(CONFIG_TOUCHSCREEN_TSC_SERIO)	+= tsc40.o
+>>> obj-$(CONFIG_TOUCHSCREEN_TSC200X_CORE)	+= tsc200x-core.o
+>>> obj-$(CONFIG_TOUCHSCREEN_TSC2004)	+= tsc2004.o
+>>> obj-$(CONFIG_TOUCHSCREEN_TSC2005)	+= tsc2005.o
+>>> +tsc2007-y				:= tsc2007_core.o
+>>> +ifeq ($(CONFIG_IIO),y)
+>>> +tsc2007-y				+= tsc2007_iio.o
+>>> +endif
+>>> +ifeq ($(CONFIG_IIO),m)
+>>> +tsc2007-y				+= tsc2007_iio.o
+>>
+>> Not tsc2007-m ?
+>>
+>> I don't follow how this works!
+> 
+> I guess tsc2007-y is an internal collector variable name
+> for multiple .o components. Sort of a "library" object.
+> 
+> While
+> 
+> obj-y += tsc2007.o adds it to the kernel
+> obj-m += tsc2007.o adds it to the modules
+> 
+> I am not sure if my explanation is correct but it appears
+> to work that way.
+> 
+> Anyways what shall we do? If CONFIG_TOUCHSCREEN_TSC2007=y
+> and IIO=m we have a problem that we need dynamic binding.
+Yes, we just need to block that particular combination. Only build in the IIO support
+if it is also built in.  That's way I thought we'd want to add it tsc2007-m which would
+only be used if tsc2007 as a whole was built as a module.
+Otherwise it would be ignored (I think!)
+
+I'm not seeing this structure anywhere else in kernel - hence cc'd Yann and the Kbuild list
+to see if they can offer some advices.
+
+As a quick summary, we are looking to add IIO support to this driver in the following circumstances.
+
+IIO and this driver are modules.  (ideally handling the dependencies nicely)
+IIO and this driver are both built in.
+
+Problem case is driver built in and IIO as a module.
+
+Jonathan
+> 
+>>> +endif
+>>> obj-$(CONFIG_TOUCHSCREEN_TSC2007)	+= tsc2007.o
+>>> obj-$(CONFIG_TOUCHSCREEN_UCB1400)	+= ucb1400_ts.o
+>>> obj-$(CONFIG_TOUCHSCREEN_WACOM_W8001)	+= wacom_w8001.o
+>>> diff --git a/drivers/input/touchscreen/tsc2007.h
+>>> b/drivers/input/touchscreen/tsc2007.h
+>>> new file mode 100644
+>>> index 0000000..c25932f
+>>> --- /dev/null
+>>> +++ b/drivers/input/touchscreen/tsc2007.h
+>>> @@ -0,0 +1,116 @@
+>>> +/*
+>>> + * Copyright (c) 2008 MtekVision Co., Ltd.
+>>> + *	Kwangwoo Lee <kwlee-ec7hoAtq5SbSUeElwK9/Pw@public.gmane.org>
+>>> + *
+>>> + * Using code from:
+>>> + *  - ads7846.c
+>>> + *	Copyright (c) 2005 David Brownell
+>>> + *	Copyright (c) 2006 Nokia Corporation
+>>> + *  - corgi_ts.c
+>>> + *	Copyright (C) 2004-2005 Richard Purdie
+>>> + *  - omap_ts.[hc], ads7846.h, ts_osk.c
+>>> + *	Copyright (C) 2002 MontaVista Software
+>>> + *	Copyright (C) 2004 Texas Instruments
+>>> + *	Copyright (C) 2005 Dirk Behme
+>>> + *
+>>> + *  This program is free software; you can redistribute it and/or
+>>> modify
+>>> + *  it under the terms of the GNU General Public License version 2 as
+>>> + *  published by the Free Software Foundation.
+>>> + */
+>>> +
+>>> +#include <linux/input/touchscreen.h>
+>>> +
+>>> +#define TSC2007_MEASURE_TEMP0		(0x0 << 4)
+>>> +#define TSC2007_MEASURE_AUX		(0x2 << 4)
+>>> +#define TSC2007_MEASURE_TEMP1		(0x4 << 4)
+>>> +#define TSC2007_ACTIVATE_XN		(0x8 << 4)
+>>> +#define TSC2007_ACTIVATE_YN		(0x9 << 4)
+>>> +#define TSC2007_ACTIVATE_YP_XN		(0xa << 4)
+>>> +#define TSC2007_SETUP			(0xb << 4)
+>>> +#define TSC2007_MEASURE_X		(0xc << 4)
+>>> +#define TSC2007_MEASURE_Y		(0xd << 4)
+>>> +#define TSC2007_MEASURE_Z1		(0xe << 4)
+>>> +#define TSC2007_MEASURE_Z2		(0xf << 4)
+>>> +
+>>> +#define TSC2007_POWER_OFF_IRQ_EN	(0x0 << 2)
+>>> +#define TSC2007_ADC_ON_IRQ_DIS0		(0x1 << 2)
+>>> +#define TSC2007_ADC_OFF_IRQ_EN		(0x2 << 2)
+>>> +#define TSC2007_ADC_ON_IRQ_DIS1		(0x3 << 2)
+>>> +
+>>> +#define TSC2007_12BIT			(0x0 << 1)
+>>> +#define TSC2007_8BIT			(0x1 << 1)
+>>> +
+>>> +#define	MAX_12BIT			((1 << 12) - 1)
+>>> +
+>>> +#define ADC_ON_12BIT	(TSC2007_12BIT | TSC2007_ADC_ON_IRQ_DIS0)
+>>> +
+>>> +#define READ_Y		(ADC_ON_12BIT | TSC2007_MEASURE_Y)
+>>> +#define READ_Z1		(ADC_ON_12BIT | TSC2007_MEASURE_Z1)
+>>> +#define READ_Z2		(ADC_ON_12BIT | TSC2007_MEASURE_Z2)
+>>> +#define READ_X		(ADC_ON_12BIT | TSC2007_MEASURE_X)
+>>> +#define PWRDOWN		(TSC2007_12BIT | TSC2007_POWER_OFF_IRQ_EN)
+>>> +
+>>> +struct ts_event {
+>>> +	u16	x;
+>>> +	u16	y;
+>>> +	u16	z1, z2;
+>>> +};
+>>> +
+>>> +struct tsc2007 {
+>>> +	struct input_dev	*input;
+>>> +	char			phys[32];
+>>> +
+>>> +	struct i2c_client	*client;
+>>> +
+>>> +	u16			model;
+>>> +	u16			x_plate_ohms;
+>>> +
+>>> +	struct touchscreen_properties prop;
+>>> +
+>>> +	bool			report_resistance;
+>>> +	u16			min_x;
+>>> +	u16			min_y;
+>>> +	u16			max_x;
+>>> +	u16			max_y;
+>>> +	u16			max_rt;
+>>> +	unsigned long		poll_period; /* in jiffies */
+>>> +	int			fuzzx;
+>>> +	int			fuzzy;
+>>> +	int			fuzzz;
+>>> +
+>>> +	unsigned int		gpio;
+>>> +	int			irq;
+>>> +
+>>> +	wait_queue_head_t	wait;
+>>> +	bool			stopped;
+>>> +	bool			pendown;
+>>> +
+>>> +	int			(*get_pendown_state)(struct device *);
+>>> +	void			(*clear_penirq)(void);
+>>> +
+>>> +	struct mutex		mlock;
+>>> +	struct iio_dev		*iio_dev;	/* optional */
+>>> +};
+>>> +
+>>> +int tsc2007_xfer(struct tsc2007 *tsc, u8 cmd);
+>>> +u32 tsc2007_calculate_resistance(struct tsc2007 *tsc,
+>>> +					struct ts_event *tc);
+>>> +bool tsc2007_is_pen_down(struct tsc2007 *ts);
+>>> +
+>>> +#if IS_ENABLED(CONFIG_IIO)
+>>> +
+>>> +/* defined in tsc2007_iio.c */
+>>> +int tsc2007_iio_configure(struct tsc2007 *ts);
+>>> +void tsc2007_iio_unconfigure(struct tsc2007 *ts);
+>>> +
+>>> +#else /* CONFIG_IIO */
+>>> +
+>>> +static inline int tsc2007_iio_configure(struct tsc2007 *ts)
+>>> +{
+>>> +	return 0;
+>>> +}
+>>> +static inline void tsc2007_iio_unconfigure(struct tsc2007 *ts)
+>>> +{
+>>> +}
+>>> +
+>>> +#endif /* CONFIG_IIO */
+>>> diff --git a/drivers/input/touchscreen/tsc2007.c
+>>> b/drivers/input/touchscreen/tsc2007_core.c
+>>> similarity index 86%
+>>> rename from drivers/input/touchscreen/tsc2007.c
+>>> rename to drivers/input/touchscreen/tsc2007_core.c
+>>> index 76b462b..812ded8 100644
+>>> --- a/drivers/input/touchscreen/tsc2007.c
+>>> +++ b/drivers/input/touchscreen/tsc2007_core.c
+>>> @@ -27,79 +27,11 @@
+>>> #include <linux/i2c.h>
+>>> #include <linux/i2c/tsc2007.h>
+>>> #include <linux/of_device.h>
+>>> -#include <linux/of.h>
+>>> #include <linux/of_gpio.h>
+>>> -#include <linux/input/touchscreen.h>
+>>> -
+>>> -#define TSC2007_MEASURE_TEMP0		(0x0 << 4)
+>>> -#define TSC2007_MEASURE_AUX		(0x2 << 4)
+>>> -#define TSC2007_MEASURE_TEMP1		(0x4 << 4)
+>>> -#define TSC2007_ACTIVATE_XN		(0x8 << 4)
+>>> -#define TSC2007_ACTIVATE_YN		(0x9 << 4)
+>>> -#define TSC2007_ACTIVATE_YP_XN		(0xa << 4)
+>>> -#define TSC2007_SETUP			(0xb << 4)
+>>> -#define TSC2007_MEASURE_X		(0xc << 4)
+>>> -#define TSC2007_MEASURE_Y		(0xd << 4)
+>>> -#define TSC2007_MEASURE_Z1		(0xe << 4)
+>>> -#define TSC2007_MEASURE_Z2		(0xf << 4)
+>>> -
+>>> -#define TSC2007_POWER_OFF_IRQ_EN	(0x0 << 2)
+>>> -#define TSC2007_ADC_ON_IRQ_DIS0		(0x1 << 2)
+>>> -#define TSC2007_ADC_OFF_IRQ_EN		(0x2 << 2)
+>>> -#define TSC2007_ADC_ON_IRQ_DIS1		(0x3 << 2)
+>>> -
+>>> -#define TSC2007_12BIT			(0x0 << 1)
+>>> -#define TSC2007_8BIT			(0x1 << 1)
+>>> -
+>>> -#define	MAX_12BIT			((1 << 12) - 1)
+>>> -
+>>> -#define ADC_ON_12BIT	(TSC2007_12BIT | TSC2007_ADC_ON_IRQ_DIS0)
+>>> -
+>>> -#define READ_Y		(ADC_ON_12BIT | TSC2007_MEASURE_Y)
+>>> -#define READ_Z1		(ADC_ON_12BIT | TSC2007_MEASURE_Z1)
+>>> -#define READ_Z2		(ADC_ON_12BIT | TSC2007_MEASURE_Z2)
+>>> -#define READ_X		(ADC_ON_12BIT | TSC2007_MEASURE_X)
+>>> -#define PWRDOWN		(TSC2007_12BIT | TSC2007_POWER_OFF_IRQ_EN)
+>>> -
+>>> -struct ts_event {
+>>> -	u16	x;
+>>> -	u16	y;
+>>> -	u16	z1, z2;
+>>> -};
+>>> -
+>>> -struct tsc2007 {
+>>> -	struct input_dev	*input;
+>>> -	char			phys[32];
+>>> -
+>>> -	struct i2c_client	*client;
+>>> -
+>>> -	u16			model;
+>>> -	u16			x_plate_ohms;
+>>> -
+>>> -	struct touchscreen_properties prop;
+>>> -
+>>> -	bool			report_resistance;
+>>> -	u16			min_x;
+>>> -	u16			min_y;
+>>> -	u16			max_x;
+>>> -	u16			max_y;
+>>> -	u16			max_rt;
+>>> -	unsigned long		poll_period; /* in jiffies */
+>>> -	int			fuzzx;
+>>> -	int			fuzzy;
+>>> -	int			fuzzz;
+>>> -
+>>> -	unsigned		gpio;
+>>> -	int			irq;
+>>> -
+>>> -	wait_queue_head_t	wait;
+>>> -	bool			stopped;
+>>> +#include "tsc2007.h"
+>>>
+>>> -	int			(*get_pendown_state)(struct device *);
+>>> -	void			(*clear_penirq)(void);
+>>> -};
+>>>
+>>> -static inline int tsc2007_xfer(struct tsc2007 *tsc, u8 cmd)
+>>> +int tsc2007_xfer(struct tsc2007 *tsc, u8 cmd)
+>>> {
+>>> 	s32 data;
+>>> 	u16 val;
+>>> @@ -137,7 +69,7 @@ static void tsc2007_read_values(struct tsc2007 *tsc,
+>>> struct ts_event *tc)
+>>> 	tsc2007_xfer(tsc, PWRDOWN);
+>>> }
+>>>
+>>> -static u32 tsc2007_calculate_resistance(struct tsc2007 *tsc,
+>>> +u32 tsc2007_calculate_resistance(struct tsc2007 *tsc,
+>>> 					struct ts_event *tc)
+>>> {
+>>> 	u32 rt = 0;
+>>> @@ -158,7 +90,7 @@ static u32 tsc2007_calculate_resistance(struct
+>>> tsc2007 *tsc,
+>>> 	return rt;
+>>> }
+>>>
+>>> -static bool tsc2007_is_pen_down(struct tsc2007 *ts)
+>>> +bool tsc2007_is_pen_down(struct tsc2007 *ts)
+>>> {
+>>> 	/*
+>>> 	 * NOTE: We can't rely on the pressure to determine the pen down
+>>> @@ -191,7 +123,10 @@ static irqreturn_t tsc2007_soft_irq(int irq, void
+>>> *handle)
+>>> 	while (!ts->stopped && tsc2007_is_pen_down(ts)) {
+>>>
+>>> 		/* pen is down, continue with the measurement */
+>>> +
+>>> +		mutex_lock(&ts->mlock);
+>>> 		tsc2007_read_values(ts, &tc);
+>>> +		mutex_unlock(&ts->mlock);
+>>>
+>>> 		rt = tsc2007_calculate_resistance(ts, &tc);
+>>>
+>>> @@ -441,7 +376,8 @@ static void tsc2007_call_exit_platform_hw(void
+>>> *data)
+>>> static int tsc2007_probe(struct i2c_client *client,
+>>> 			 const struct i2c_device_id *id)
+>>> {
+>>> -	const struct tsc2007_platform_data *pdata =
+>>> dev_get_platdata(&client->dev);
+>>> +	const struct tsc2007_platform_data *pdata =
+>>> +		dev_get_platdata(&client->dev);
+>>> 	struct tsc2007 *ts;
+>>> 	struct input_dev *input_dev;
+>>> 	int err;
+>>> @@ -463,7 +399,9 @@ static int tsc2007_probe(struct i2c_client *client,
+>>> 	ts->client = client;
+>>> 	ts->irq = client->irq;
+>>> 	ts->input = input_dev;
+>>> +
+>>> 	init_waitqueue_head(&ts->wait);
+>>> +	mutex_init(&ts->mlock);
+>>>
+>>> 	snprintf(ts->phys, sizeof(ts->phys),
+>>> 		 "%s/input0", dev_name(&client->dev));
+>>> @@ -534,7 +472,7 @@ static int tsc2007_probe(struct i2c_client *client,
+>>> 	if (err < 0) {
+>>> 		dev_err(&client->dev,
+>>> 			"Failed to setup chip: %d\n", err);
+>>> -		return err;	/* usually, chip does not respond */
+>>> +		return err;	/* chip does not respond */
+>>> 	}
+>>>
+>>> 	err = input_register_device(input_dev);
+>>> @@ -544,6 +482,14 @@ static int tsc2007_probe(struct i2c_client
+>>> *client,
+>>> 		return err;
+>>> 	}
+>>>
+>>> +	return tsc2007_iio_configure(ts);
+>>> +}
+>>> +
+>>> +static int tsc2007_remove(struct i2c_client *client)
+>>> +{
+>>> +	struct tsc2007 *ts = i2c_get_clientdata(client);
+>>> +
+>>> +	tsc2007_iio_unconfigure(ts);
+>>> 	return 0;
+>>> }
+>>>
+>>> @@ -569,6 +515,7 @@ static struct i2c_driver tsc2007_driver = {
+>>> 	},
+>>> 	.id_table	= tsc2007_idtable,
+>>> 	.probe		= tsc2007_probe,
+>>> +	.remove		= tsc2007_remove,
+>>> };
+>>>
+>>> module_i2c_driver(tsc2007_driver);
+>>> diff --git a/drivers/input/touchscreen/tsc2007_iio.c
+>>> b/drivers/input/touchscreen/tsc2007_iio.c
+>>> new file mode 100644
+>>> index 0000000..ed79944
+>>> --- /dev/null
+>>> +++ b/drivers/input/touchscreen/tsc2007_iio.c
+>>> @@ -0,0 +1,150 @@
+>>> +/*
+>>> + * Copyright (c) 2016 Golden Delicious Comp. GmbH&Co. KG
+>>> + *	Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+>>> + *
+>>> + *  This program is free software; you can redistribute it and/or
+>>> modify
+>>> + *  it under the terms of the GNU General Public License version 2 as
+>>> + *  published by the Free Software Foundation.
+>>> + */
+>>> +
+>>> +#include <linux/i2c.h>
+>>> +#include <linux/iio/iio.h>
+>>> +#include "tsc2007.h"
+>>> +
+>>> +struct tsc2007_iio {
+>>> +	struct tsc2007 *ts;
+>>> +};
+>>> +
+>>> +#define TSC2007_CHAN_IIO(_chan, _name, _type, _chan_info) \
+>>> +{ \
+>>> +	.datasheet_name = _name, \
+>>> +	.type = _type, \
+>>> +	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |	\
+>>> +			BIT(_chan_info), \
+>>> +	.indexed = 1, \
+>>> +	.channel = _chan, \
+>>> +}
+>>> +
+>>> +static const struct iio_chan_spec tsc2007_iio_channel[] = {
+>>> +	TSC2007_CHAN_IIO(0, "x", IIO_VOLTAGE, IIO_CHAN_INFO_RAW),
+>>> +	TSC2007_CHAN_IIO(1, "y", IIO_VOLTAGE, IIO_CHAN_INFO_RAW),
+>>> +	TSC2007_CHAN_IIO(2, "z1", IIO_VOLTAGE, IIO_CHAN_INFO_RAW),
+>>> +	TSC2007_CHAN_IIO(3, "z2", IIO_VOLTAGE, IIO_CHAN_INFO_RAW),
+>>> +	TSC2007_CHAN_IIO(4, "adc", IIO_VOLTAGE, IIO_CHAN_INFO_RAW),
+>>> +	TSC2007_CHAN_IIO(5, "rt", IIO_VOLTAGE, IIO_CHAN_INFO_RAW), /* Ohms?
+>>> */
+>>> +	TSC2007_CHAN_IIO(6, "pen", IIO_PRESSURE, IIO_CHAN_INFO_RAW),
+>>> +	TSC2007_CHAN_IIO(7, "temp0", IIO_TEMP, IIO_CHAN_INFO_RAW),
+>>> +	TSC2007_CHAN_IIO(8, "temp1", IIO_TEMP, IIO_CHAN_INFO_RAW),
+>>> +};
+>>> +
+>>> +static int tsc2007_read_raw(struct iio_dev *indio_dev,
+>>> +	struct iio_chan_spec const *chan, int *val, int *val2, long mask)
+>>> +{
+>>> +	struct tsc2007_iio *iio = iio_priv(indio_dev);
+>>> +	struct tsc2007 *tsc = iio->ts;
+>>> +	int adc_chan = chan->channel;
+>>> +	int ret = 0;
+>>> +
+>>> +	if (adc_chan >= ARRAY_SIZE(tsc2007_iio_channel))
+>>> +		return -EINVAL;
+>>> +
+>>> +	if (mask != IIO_CHAN_INFO_RAW)
+>>> +		return -EINVAL;
+>>> +
+>>> +	mutex_lock(&tsc->mlock);
+>>> +
+>>> +	switch (chan->channel) {
+>>> +	case 0:
+>>> +		*val = tsc2007_xfer(tsc, READ_X);
+>>> +		break;
+>>> +	case 1:
+>>> +		*val = tsc2007_xfer(tsc, READ_Y);
+>>> +		break;
+>>> +	case 2:
+>>> +		*val = tsc2007_xfer(tsc, READ_Z1);
+>>> +		break;
+>>> +	case 3:
+>>> +		*val = tsc2007_xfer(tsc, READ_Z2);
+>>> +		break;
+>>> +	case 4:
+>>> +		*val = tsc2007_xfer(tsc, (ADC_ON_12BIT | TSC2007_MEASURE_AUX));
+>>> +		break;
+>>> +	case 5: {
+>>> +		struct ts_event tc;
+>>> +
+>>> +		tc.x = tsc2007_xfer(tsc, READ_X);
+>>> +		tc.z1 = tsc2007_xfer(tsc, READ_Z1);
+>>> +		tc.z2 = tsc2007_xfer(tsc, READ_Z2);
+>>> +		*val = tsc2007_calculate_resistance(tsc, &tc);
+>>> +		break;
+>>> +	}
+>>> +	case 6:
+>>> +		*val = tsc2007_is_pen_down(tsc);
+>>> +		break;
+>>> +	case 7:
+>>> +		*val = tsc2007_xfer(tsc,
+>>> +				    (ADC_ON_12BIT | TSC2007_MEASURE_TEMP0));
+>>> +		break;
+>>> +	case 8:
+>>> +		*val = tsc2007_xfer(tsc,
+>>> +				    (ADC_ON_12BIT | TSC2007_MEASURE_TEMP1));
+>>> +		break;
+>>> +	}
+>>> +
+>>> +	/* Prepare for next touch reading - power down ADC, enable PENIRQ */
+>>> +	tsc2007_xfer(tsc, PWRDOWN);
+>>> +
+>>> +	mutex_unlock(&tsc->mlock);
+>>> +
+>>> +	ret = IIO_VAL_INT;
+>>> +
+>>> +	return ret;
+>>> +}
+>>> +
+>>> +static const struct iio_info tsc2007_iio_info = {
+>>> +	.read_raw = tsc2007_read_raw,
+>>> +	.driver_module = THIS_MODULE,
+>>> +};
+>>> +
+>>> +int tsc2007_iio_configure(struct tsc2007 *ts)
+>>> +{
+>>> +	int err;
+>>> +	struct iio_dev *indio_dev;
+>>> +	struct tsc2007_iio *iio;
+>>> +
+>>> +	indio_dev = devm_iio_device_alloc(&ts->client->dev,
+>>> +		sizeof(struct tsc2007_iio));
+>>> +	if (!indio_dev) {
+>>> +		dev_err(&ts->client->dev, "iio_device_alloc failed\n");
+>>> +		return -ENOMEM;
+>>> +	}
+>>> +
+>>> +	iio = iio_priv(indio_dev);
+>>> +	iio->ts = ts;
+>>> +	ts->iio_dev = (void *) indio_dev;
+>>> +
+>>> +	indio_dev->name = "tsc2007";
+>>> +	indio_dev->dev.parent = &ts->client->dev;
+>>> +	indio_dev->info = &tsc2007_iio_info;
+>>> +	indio_dev->modes = INDIO_DIRECT_MODE;
+>>> +	indio_dev->channels = tsc2007_iio_channel;
+>>> +	indio_dev->num_channels = ARRAY_SIZE(tsc2007_iio_channel);
+>>> +
+>>> +	err = iio_device_register(indio_dev);
+>>> +	if (err < 0) {
+>>> +		dev_err(&ts->client->dev, "iio_device_register() failed: %d\n",
+>>> +			err);
+>>> +		return err;
+>>> +	}
+>>> +
+>>> +	return 0;
+>>> +}
+>>> +EXPORT_SYMBOL(tsc2007_iio_configure);
+>>> +
+>>> +void tsc2007_iio_unconfigure(struct tsc2007 *ts)
+>>> +{
+>>> +	struct iio_dev *indio_dev = ts->iio_dev;
+>>> +
+>>> +	iio_device_unregister(indio_dev);
+>>> +}
+>>> +EXPORT_SYMBOL(tsc2007_iio_unconfigure);
+>>
+>> -- 
+>> Sent from my Android device with K-9 Mail. Please excuse my brevity.
+> 
