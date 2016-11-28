@@ -1,59 +1,62 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH v2 00/13] net: ethernet: ti: cpts: update and fixes
-Date: Mon, 28 Nov 2016 17:03:24 -0600
-Message-ID: <20161128230337.6731-1-grygorii.strashko@ti.com>
+Subject: [PATCH  v2 04/13] net: ethernet: ti: cpts: fix unbalanced clk api usage in cpts_register/unregister
+Date: Mon, 28 Nov 2016 17:03:28 -0600
+Message-ID: <20161128230337.6731-5-grygorii.strashko@ti.com>
+References: <20161128230337.6731-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20161128230337.6731-1-grygorii.strashko@ti.com>
 Sender: netdev-owner@vger.kernel.org
 To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Richard Cochran <richardcochran@gmail.com>
 Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Wingman Kwok <w-kwok2@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-It is preparation series intended to clean up and optimize TI CPTS driver to
-facilitate further integration with other TI's SoCs like Keystone 2.
+There are two issues with TI CPTS code which are reproducible when TI
+CPSW ethX device passes few up/down iterations:
+- cpts refclk prepare counter continuously incremented after each
+up/down iteration;
+- devm_clk_get(dev, "cpts") is called many times.
 
-Changes in v2:
-- patch "net: ethernet: ti: cpts: rework initialization/deinitialization"
-  was split on 4 patches
-- applied comments from Richard Cochran
-- dropped patch
-  "net: ethernet: ti: cpts: add return value to tx and rx timestamp funcitons"
-- new patches added:
-  "net: ethernet: ti: cpts: drop excessive writes to CTRL and INT_EN regs"
-  and "clocksource: export the clocks_calc_mult_shift to use by timestamp code"
+Hence, fix these issues by using clk_disable_unprepare() in
+cpts_clk_release() and skipping devm_clk_get() if cpts refclk has been
+acquired already.
 
-Link on v1:
- http://www.spinics.net/lists/linux-omap/msg131925.html
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+ drivers/net/ethernet/ti/cpts.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-Grygorii Strashko (11):
-  net: ethernet: ti: cpts: switch to readl/writel_relaxed()
-  net: ethernet: ti: allow cpts to be built separately
-  net: ethernet: ti: cpsw: minimize direct access to struct cpts
-  net: ethernet: ti: cpts: fix unbalanced clk api usage in cpts_register/unregister
-  net: ethernet: ti: cpts: fix registration order
-  net: ethernet: ti: cpts: disable cpts when unregistered
-  net: ethernet: ti: cpts: rework initialization/deinitialization
-  net: ethernet: ti: cpts: move dt props parsing to cpts driver
-  net: ethernet: ti: cpts: drop excessive writes to CTRL and INT_EN regs
-  net: ethernet: ti: cpts: calc mult and shift from refclk freq
-  net: ethernet: ti: cpts: fix overflow check period
-
-Murali Karicheri (1):
-  clocksource: export the clocks_calc_mult_shift to use by timestamp code
-
-WingMan Kwok (1):
-  net: ethernet: ti: cpts: clean up event list if event pool is empty
-
- Documentation/devicetree/bindings/net/cpsw.txt |   8 +-
- drivers/net/ethernet/ti/Kconfig                |   2 +-
- drivers/net/ethernet/ti/Makefile               |   3 +-
- drivers/net/ethernet/ti/cpsw.c                 |  84 ++++-----
- drivers/net/ethernet/ti/cpsw.h                 |   2 -
- drivers/net/ethernet/ti/cpts.c                 | 232 ++++++++++++++++++-------
- drivers/net/ethernet/ti/cpts.h                 |  80 ++++++++-
- kernel/time/clocksource.c                      |   1 +
- 8 files changed, 297 insertions(+), 115 deletions(-)
-
+diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
+index b26d6fe..101e17b 100644
+--- a/drivers/net/ethernet/ti/cpts.c
++++ b/drivers/net/ethernet/ti/cpts.c
+@@ -230,18 +230,20 @@ static void cpts_overflow_check(struct work_struct *work)
+ 
+ static void cpts_clk_init(struct device *dev, struct cpts *cpts)
+ {
+-	cpts->refclk = devm_clk_get(dev, "cpts");
+-	if (IS_ERR(cpts->refclk)) {
+-		dev_err(dev, "Failed to get cpts refclk\n");
+-		cpts->refclk = NULL;
+-		return;
++	if (!cpts->refclk) {
++		cpts->refclk = devm_clk_get(dev, "cpts");
++		if (IS_ERR(cpts->refclk)) {
++			dev_err(dev, "Failed to get cpts refclk\n");
++			cpts->refclk = NULL;
++			return;
++		}
+ 	}
+ 	clk_prepare_enable(cpts->refclk);
+ }
+ 
+ static void cpts_clk_release(struct cpts *cpts)
+ {
+-	clk_disable(cpts->refclk);
++	clk_disable_unprepare(cpts->refclk);
+ }
+ 
+ static int cpts_match(struct sk_buff *skb, unsigned int ptp_class,
 -- 
 2.10.1
