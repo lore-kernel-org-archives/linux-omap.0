@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH  v2 01/13] net: ethernet: ti: cpts: switch to readl/writel_relaxed()
-Date: Mon, 28 Nov 2016 17:03:25 -0600
-Message-ID: <20161128230337.6731-2-grygorii.strashko@ti.com>
+Subject: [PATCH  v2 06/13] net: ethernet: ti: cpts: disable cpts when unregistered
+Date: Mon, 28 Nov 2016 17:03:30 -0600
+Message-ID: <20161128230337.6731-7-grygorii.strashko@ti.com>
 References: <20161128230337.6731-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,29 +12,28 @@ To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V
 Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Wingman Kwok <w-kwok2@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Switch to readl/writel_relaxed() APIs, because this is recommended
-API and the CPTS IP is reused on Keystone 2 SoCs
-where LE/BE modes are supported.
+The cpts now is left enabled after unregistration.
+Hence, disable it in cpts_unregister().
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/net/ethernet/ti/cpts.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/ti/cpts.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
-index 85a55b4..a42c449 100644
+index cb851a7..9ad0998 100644
 --- a/drivers/net/ethernet/ti/cpts.c
 +++ b/drivers/net/ethernet/ti/cpts.c
-@@ -33,8 +33,8 @@
- 
- #ifdef CONFIG_TI_CPTS
- 
--#define cpts_read32(c, r)	__raw_readl(&c->reg->r)
--#define cpts_write32(c, v, r)	__raw_writel(v, &c->reg->r)
-+#define cpts_read32(c, r)	readl_relaxed(&c->reg->r)
-+#define cpts_write32(c, v, r)	writel_relaxed(v, &c->reg->r)
- 
- static int event_expired(struct cpts_event *event)
- {
+@@ -404,6 +404,10 @@ void cpts_unregister(struct cpts *cpts)
+ 		ptp_clock_unregister(cpts->clock);
+ 		cancel_delayed_work_sync(&cpts->overflow_work);
+ 	}
++
++	cpts_write32(cpts, 0, int_enable);
++	cpts_write32(cpts, 0, control);
++
+ 	if (cpts->refclk)
+ 		cpts_clk_release(cpts);
+ }
 -- 
 2.10.1
