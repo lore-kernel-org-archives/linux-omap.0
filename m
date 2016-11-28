@@ -1,27 +1,62 @@
-From: Yegor Yefremov <yegorslists@googlemail.com>
-Subject: Re: [PATCH] cpsw: ethtool: add support for nway reset
-Date: Mon, 28 Nov 2016 16:25:38 +0100
-Message-ID: <CAGm1_kssM4qZzrLKf=NZDX7Ts9ZHHcnsu_0DNy3Ltwy0XZopBQ@mail.gmail.com>
-References: <1480326472-5849-1-git-send-email-yegorslists@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Johan Hovold <johan@kernel.org>
+Subject: [PATCH net 04/16] net: ethernet: aurora: nb8800: fix fixed-link phydev leaks
+Date: Mon, 28 Nov 2016 19:24:57 +0100
+Message-ID: <1480357509-28074-5-git-send-email-johan@kernel.org>
+References: <1480357509-28074-1-git-send-email-johan@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1480326472-5849-1-git-send-email-yegorslists@googlemail.com>
+In-Reply-To: <1480357509-28074-1-git-send-email-johan@kernel.org>
 Sender: netdev-owner@vger.kernel.org
-To: netdev <netdev@vger.kernel.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "N, Mugunthan V" <mugunthanvnm@ti.com>, David Miller <davem@davemloft.net>, Yegor Yefremov <yegorslists@googlemail.com>
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Vince Bridgers <vbridger@opensource.altera.com>, Florian Fainelli <f.fainelli@gmail.com>, Fugang Duan <fugang.duan@nxp.com>, Pantelis Antoniou <pantelis.antoniou@gmail.com>, Vitaly Bordug <vbordug@ru.mvista.com>, Claudiu Manoil <claudiu.manoil@freescale.com>, Li Yang <leoli@freescale.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Felix Fietkau <nbd@openwrt.org>, John Crispin <blogic@openwrt.org>, Matthias Brugger <matthias.bgg@gmail.com>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, Lars Persson <lars.persson@axis.com>, Mugunthan V N <mugunthanvnm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Andrew Lunn <andrew@lunn.ch>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 28, 2016 at 10:47 AM,  <yegorslists@googlemail.com> wrote:
-> From: Yegor Yefremov <yegorslists@googlemail.com>
->
-> This patch adds support for ethtool's '-r' command. Restarting
-> N-WAY negotiation can be useful to activate newly changed EEE
-> settings etc.
->
-> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+Make sure to deregister and free any fixed-link PHY registered using
+of_phy_register_fixed_link() on probe errors and on driver unbind.
 
-This patch applies on top of
-http://marc.info/?l=linux-netdev&m=148032251729251&w=2
+Fixes: c7dfe3abf40e ("net: ethernet: nb8800: support fixed-link DT
+node")
+Signed-off-by: Johan Hovold <johan@kernel.org>
+---
+ drivers/net/ethernet/aurora/nb8800.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-Yegor
+diff --git a/drivers/net/ethernet/aurora/nb8800.c b/drivers/net/ethernet/aurora/nb8800.c
+index 00c38bf151e6..e078d8da978c 100644
+--- a/drivers/net/ethernet/aurora/nb8800.c
++++ b/drivers/net/ethernet/aurora/nb8800.c
+@@ -1466,12 +1466,12 @@ static int nb8800_probe(struct platform_device *pdev)
+ 
+ 	ret = nb8800_hw_init(dev);
+ 	if (ret)
+-		goto err_free_bus;
++		goto err_deregister_fixed_link;
+ 
+ 	if (ops && ops->init) {
+ 		ret = ops->init(dev);
+ 		if (ret)
+-			goto err_free_bus;
++			goto err_deregister_fixed_link;
+ 	}
+ 
+ 	dev->netdev_ops = &nb8800_netdev_ops;
+@@ -1504,6 +1504,9 @@ static int nb8800_probe(struct platform_device *pdev)
+ 
+ err_free_dma:
+ 	nb8800_dma_free(dev);
++err_deregister_fixed_link:
++	if (of_phy_is_fixed_link(pdev->dev.of_node))
++		of_phy_deregister_fixed_link(pdev->dev.of_node);
+ err_free_bus:
+ 	of_node_put(priv->phy_node);
+ 	mdiobus_unregister(bus);
+@@ -1521,6 +1524,8 @@ static int nb8800_remove(struct platform_device *pdev)
+ 	struct nb8800_priv *priv = netdev_priv(ndev);
+ 
+ 	unregister_netdev(ndev);
++	if (of_phy_is_fixed_link(pdev->dev.of_node))
++		of_phy_deregister_fixed_link(pdev->dev.of_node);
+ 	of_node_put(priv->phy_node);
+ 
+ 	mdiobus_unregister(priv->mii_bus);
+-- 
+2.7.3
