@@ -1,72 +1,62 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v2 2/2] dmaengine: omap-dma: Support for slave devices
- with data port window
-Date: Tue, 29 Nov 2016 08:47:14 +0530
-Message-ID: <20161129031714.GP6408@localhost>
-References: <20161117125017.14954-1-peter.ujfalusi@ti.com>
- <20161117125017.14954-3-peter.ujfalusi@ti.com>
- <20161125061225.GJ2698@localhost>
- <985d5898-843b-c3d5-464d-f8b8a1452b43@ti.com>
+From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 0/3] increase TSCADC clock to 24MHz and fix
+ ti,charge-delay to represent in nS
+Date: Tue, 29 Nov 2016 11:11:35 +0530
+Message-ID: <8b97b7e6-1ea4-bf13-7da5-55135a994231@ti.com>
+References: <20161110163515.27598-1-mugunthanvnm@ti.com>
+ <71482721-fd60-65b2-d601-f1698ce5fa0a@ti.com>
+ <20161125095918.GZ10134@dell.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <985d5898-843b-c3d5-464d-f8b8a1452b43@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: dan.j.williams@intel.com, tony@atomide.com, linux@armlinux.org.uk, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, arnd@arndb.de
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161125095918.GZ10134-Re9dqnLqz4GzQB+pC5nmwQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 25, 2016 at 11:38:51AM +0200, Peter Ujfalusi wrote:
+On Friday 25 November 2016 03:29 PM, Lee Jones wrote:
+> On Fri, 25 Nov 2016, Mugunthan V N wrote:
 > 
+>> Hi Dmitry Torokhov,
+>>
+>> On Thursday 10 November 2016 10:05 PM, Mugunthan V N wrote:
+>>> This patch series enables ADC to be clocked at 24MHz as the
+>>> TI AM335x ADC driver has already adopted to use DMA to transfer
+>>> ADC samples. Now ADC can generated upto 800K Samples per second
+>>> with the patch [1] on AM335x BBB and AM437x GP EVM.
+>>>
+>>> when ADC ref clock is set at 24MHz, I am seeing some issue with
+>>> touch screen pointer as the pointer jumps to random locations
+>>> with free draw application. The issue is due to increase in ADC
+>>> clock and charge delay for the touchscreen ADC line duration
+>>> reduced.
+>>>
+>>> So the notation of ti,charge-delay in terms of ADC clock is
+>>> wrong, it has to be represented in time and driver has to convert
+>>> the charge delay time to ADC clocks based on what ADC clock
+>>> frequency is set.
+>>>
+>>> Measured the performance with the iio_generic_buffer with the
+>>> patch [2] applied
+>>>
+>>> Verified the touch screen on AM335x GP EVM and AM335x BBB LCD7
+>>> cape with [3] dts for display and touch screen to work.
+>>>
+>>
+>> Since there are acks from DT and MFD maintainers, can you pull the patch
+>> series if you do not have any more comments.
 > 
-> On 11/25/2016 08:12 AM, Vinod Koul wrote:
-> > On Thu, Nov 17, 2016 at 02:50:17PM +0200, Peter Ujfalusi wrote:
-> >> @@ -921,11 +931,45 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
-> >>  
-> >>  	d->ccr = c->ccr | CCR_SYNC_FRAME;
-> >>  	if (dir == DMA_DEV_TO_MEM) {
-> >> -		d->ccr |= CCR_DST_AMODE_POSTINC | CCR_SRC_AMODE_CONSTANT;
-> >>  		d->csdp = CSDP_DST_BURST_64 | CSDP_DST_PACKED;
-> >> +
-> >> +		d->ccr |= CCR_DST_AMODE_POSTINC;
-> >> +		if (port_window) {
-> >> +			d->ccr |= CCR_SRC_AMODE_DBLIDX;
-> >> +			d->ei = 1;
-> >> +			/*
-> >> +			 * One frame covers the port_window and by  configure
-> >> +			 * the source frame index to be -1 * (port_window - 1)
-> >> +			 * we instruct the sDMA that after a frame is processed
-> >> +			 * it should move back to the start of the window.
-> >> +			 */
-> >> +			d->fi = -(port_window - 1);
-> >> +
-> >> +			if (port_window >= 64)
-> >> +				d->csdp = CSDP_SRC_BURST_64 | CSDP_SRC_PACKED;
-> >> +			else if (port_window >= 32)
-> >> +				d->csdp = CSDP_SRC_BURST_32 | CSDP_SRC_PACKED;
-> >> +			else if (port_window >= 16)
-> >> +				d->csdp = CSDP_SRC_BURST_16 | CSDP_SRC_PACKED;
-> > 
-> > this and other would look better with a switch..
+> Cant do anything without *all* Acks.
 > 
-> I'm not sure if it will be any better:
-> 
-> switch (port_window) {
-> case 0 ... 15:
-> 	break;
-> case 16 ... 31:
-> 	d->csdp = CSDP_SRC_BURST_16 | CSDP_SRC_PACKED;
-> 	break;
-> case 32 ... 63:
-> 	d->csdp = CSDP_SRC_BURST_32 | CSDP_SRC_PACKED;
-> 	break;
-> default:
-> 	d->csdp = CSDP_SRC_BURST_64 | CSDP_SRC_PACKED;
-> 	break;
-> }
+Hi Dmitry Torokhov,
 
-Yeah agree with you on this..
+Can you provide your inputs on the patch series.
 
--- 
-~Vinod
+Regards
+Mugunthan V N
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
