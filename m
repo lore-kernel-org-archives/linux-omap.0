@@ -1,60 +1,41 @@
-From: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Subject: Re: [PATCH v2 11/13] clocksource: export the clocks_calc_mult_shift
- to use by timestamp code
-Date: Tue, 29 Nov 2016 10:08:53 +0100 (CET)
-Message-ID: <alpine.DEB.2.20.1611291008410.4358@nanos>
-References: <20161128230337.6731-1-grygorii.strashko@ti.com> <20161128230337.6731-12-grygorii.strashko@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: [PATCH 0/2] ARM: dts: dra7-evm: pinmuxing updates
+Date: Tue, 29 Nov 2016 14:54:46 +0530
+Message-ID: <cover.1480411308.git.nsekhar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161128230337.6731-12-grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Murali Karicheri <m-karicheri2-l0cyMroinI0@public.gmane.org>, Wingman Kwok <w-kwok2-l0cyMroinI0@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 28 Nov 2016, Grygorii Strashko wrote:
+Hi,
 
-> From: Murali Karicheri <m-karicheri2-l0cyMroinI0@public.gmane.org>
-> 
-> The CPSW CPTS driver is capable of doing timestamping on tx/rx packets and
-> requires to know mult and shift factors for timestamp conversion from raw
-> value to nanoseconds (ptp clock). Now these mult and shift factors are
-> calculated manually and provided through DT, which makes very hard to
-> support of a lot number of platforms, especially if CPTS refclk is not the
-> same for some kind of boards and depends on efuse settings (Keystone 2
-> platforms). Hence, export clocks_calc_mult_shift() to allow drivers like
-> CPSW CPTS (and other ptp drivesr) to benefit from automaitc calculation of
-> mult and shift factors.
-> 
-> Cc: John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-> Signed-off-by: Murali Karicheri <m-karicheri2-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+This patch series drops most of the pinmuxing from dra7-evm
+to satisfy erratum i869 and adds missing eMMC and SD card pinmuxing.
 
-Acked-by: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+The patches apply to latest linux-next. Tested on DRA74x EVM Rev H
+using U-Boot 2016.11. Boot tested using NFS and basic testing carried
+out on SD card, eMMC, Audio capture and playback.
 
-> ---
->  kernel/time/clocksource.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/kernel/time/clocksource.c b/kernel/time/clocksource.c
-> index 7e4fad7..150242c 100644
-> --- a/kernel/time/clocksource.c
-> +++ b/kernel/time/clocksource.c
-> @@ -89,6 +89,7 @@ clocks_calc_mult_shift(u32 *mult, u32 *shift, u32 from, u32 to, u32 maxsec)
->  	*mult = tmp;
->  	*shift = sft;
->  }
-> +EXPORT_SYMBOL_GPL(clocks_calc_mult_shift);
->  
->  /*[Clocksource internal variables]---------
->   * curr_clocksource:
-> -- 
-> 2.10.1
-> 
-> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kishon Vijay Abraham I (1):
+  ARM: dts: dra7-evm: add pinmux configuration for mmc1/2
+
+Sekhar Nori (1):
+  ARM: dts: dra7-evm: Remove pinmux configurations for erratum i869
+
+ arch/arm/boot/dts/dra7-evm.dts | 275 ++++-------------------------------------
+ 1 file changed, 23 insertions(+), 252 deletions(-)
+
+-- 
+2.9.0
