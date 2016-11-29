@@ -1,87 +1,62 @@
-From: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 2/3] Input: ti_am335x_tsc: Add support for
- ti,charge-delay-ns
-Date: Tue, 29 Nov 2016 13:09:17 -0800
-Message-ID: <20161129210917.GA20680@dtor-ws>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH v2 0/3] increase TSCADC clock to 24MHz and fix
+ ti,charge-delay to represent in nS
+Date: Tue, 29 Nov 2016 13:09:49 -0800
+Message-ID: <20161129210949.GB20680@dtor-ws>
 References: <20161110163515.27598-1-mugunthanvnm@ti.com>
- <20161111075819.5760-1-mugunthanvnm@ti.com>
+ <71482721-fd60-65b2-d601-f1698ce5fa0a@ti.com>
+ <20161125095918.GZ10134@dell.home>
+ <8b97b7e6-1ea4-bf13-7da5-55135a994231@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20161111075819.5760-1-mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Cc: linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <8b97b7e6-1ea4-bf13-7da5-55135a994231@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: Lee Jones <lee.jones@linaro.org>, linux-input@vger.kernel.org, Jonathan Cameron <jic23@kernel.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sekhar Nori <nsekhar@ti.com>, Vignesh R <vigneshr@ti.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 11, 2016 at 01:28:19PM +0530, Mugunthan V N wrote:
-> ti,charge-delay will be deprecated as it represents number of
-> clock cycles and the DT entries are done in assumption of 3MHz
-> TSCADC clock, but clock can be set upto 24MHz. So driver add
-> support for ti,charge-delay-ns and do not drop support for
-> ti,charge-delay to support old dtbs and it will be assumed that
-> it is for 3MHz TSCADC clock and will be calculated as per current
-> clock speed.
+On Tue, Nov 29, 2016 at 11:11:35AM +0530, Mugunthan V N wrote:
+> On Friday 25 November 2016 03:29 PM, Lee Jones wrote:
+> > On Fri, 25 Nov 2016, Mugunthan V N wrote:
+> > 
+> >> Hi Dmitry Torokhov,
+> >>
+> >> On Thursday 10 November 2016 10:05 PM, Mugunthan V N wrote:
+> >>> This patch series enables ADC to be clocked at 24MHz as the
+> >>> TI AM335x ADC driver has already adopted to use DMA to transfer
+> >>> ADC samples. Now ADC can generated upto 800K Samples per second
+> >>> with the patch [1] on AM335x BBB and AM437x GP EVM.
+> >>>
+> >>> when ADC ref clock is set at 24MHz, I am seeing some issue with
+> >>> touch screen pointer as the pointer jumps to random locations
+> >>> with free draw application. The issue is due to increase in ADC
+> >>> clock and charge delay for the touchscreen ADC line duration
+> >>> reduced.
+> >>>
+> >>> So the notation of ti,charge-delay in terms of ADC clock is
+> >>> wrong, it has to be represented in time and driver has to convert
+> >>> the charge delay time to ADC clocks based on what ADC clock
+> >>> frequency is set.
+> >>>
+> >>> Measured the performance with the iio_generic_buffer with the
+> >>> patch [2] applied
+> >>>
+> >>> Verified the touch screen on AM335x GP EVM and AM335x BBB LCD7
+> >>> cape with [3] dts for display and touch screen to work.
+> >>>
+> >>
+> >> Since there are acks from DT and MFD maintainers, can you pull the patch
+> >> series if you do not have any more comments.
+> > 
+> > Cant do anything without *all* Acks.
+> > 
+> Hi Dmitry Torokhov,
 > 
-> Signed-off-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+> Can you provide your inputs on the patch series.
 
-Acked-by: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-
-> ---
->  drivers/input/touchscreen/ti_am335x_tsc.c | 31 +++++++++++++++++++++++--------
->  1 file changed, 23 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
-> index 7953381d939a..104b3640f728 100644
-> --- a/drivers/input/touchscreen/ti_am335x_tsc.c
-> +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
-> @@ -379,15 +379,30 @@ static int titsc_parse_dt(struct platform_device *pdev,
->  		ts_dev->coordinate_readouts = 5;
->  	}
->  
-> -	err = of_property_read_u32(node, "ti,charge-delay",
-> +	err = of_property_read_u32(node, "ti,charge-delay-ns",
->  				   &ts_dev->charge_delay);
-> -	/*
-> -	 * If ti,charge-delay value is not specified, then use
-> -	 * CHARGEDLY_OPENDLY as the default value.
-> -	 */
-> -	if (err < 0) {
-> -		ts_dev->charge_delay = CHARGEDLY_OPENDLY;
-> -		dev_warn(&pdev->dev, "ti,charge-delay not specified\n");
-> +	if (err >= 0) {
-> +		u64 charge_delay = ts_dev->charge_delay;
-> +
-> +		charge_delay *= ADC_CLK;
-> +		do_div(charge_delay, 1E9);
-> +		ts_dev->charge_delay = (u32)charge_delay;
-> +	} else {
-> +		err = of_property_read_u32(node, "ti,charge-delay",
-> +					   &ts_dev->charge_delay);
-> +		/*
-> +		 * If ti,charge-delay value is not specified, then use
-> +		 * CHARGEDLY_OPENDLY as the default value.
-> +		 */
-> +		if (err < 0) {
-> +			ts_dev->charge_delay = CHARGEDLY_OPENDLY;
-> +			dev_warn(&pdev->dev, "ti,charge-delay not specified\n");
-> +		}
-> +		/*
-> +		 * ti,charge-delay is specified with referrence to 3MHz,
-> +		 * so convert it to in referrence to current clock
-> +		 */
-> +		ts_dev->charge_delay *= ADC_CLK / 3000000;
->  	}
->  
->  	return of_property_read_u32_array(node, "ti,wire-config",
-> -- 
-> 2.11.0.rc0.7.gbe5a750
-> 
+You have my ack for the input bit.
 
 -- 
 Dmitry
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
