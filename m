@@ -1,25 +1,35 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: [PATCH  v2 01/13] net: ethernet: ti: cpts: switch to
- readl/writel_relaxed()
-Date: Tue, 29 Nov 2016 10:38:17 +0100
-Message-ID: <20161129093817.GB3110@localhost.localdomain>
+From: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH  v2 04/13] net: ethernet: ti: cpts: fix unbalanced clk
+ api usage in cpts_register/unregister
+Date: Tue, 29 Nov 2016 10:48:19 +0100
+Message-ID: <20161129094819.GC3110@localhost.localdomain>
 References: <20161128230337.6731-1-grygorii.strashko@ti.com>
- <20161128230337.6731-2-grygorii.strashko@ti.com>
+ <20161128230337.6731-5-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161128230337.6731-2-grygorii.strashko@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Wingman Kwok <w-kwok2@ti.com>
+In-Reply-To: <20161128230337.6731-5-grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Murali Karicheri <m-karicheri2-l0cyMroinI0@public.gmane.org>, Wingman Kwok <w-kwok2-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 28, 2016 at 05:03:25PM -0600, Grygorii Strashko wrote:
-> Switch to readl/writel_relaxed() APIs, because this is recommended
-> API and the CPTS IP is reused on Keystone 2 SoCs
-> where LE/BE modes are supported.
+On Mon, Nov 28, 2016 at 05:03:28PM -0600, Grygorii Strashko wrote:
+> There are two issues with TI CPTS code which are reproducible when TI
+> CPSW ethX device passes few up/down iterations:
+> - cpts refclk prepare counter continuously incremented after each
+> up/down iteration;
+> - devm_clk_get(dev, "cpts") is called many times.
 > 
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> Hence, fix these issues by using clk_disable_unprepare() in
+> cpts_clk_release() and skipping devm_clk_get() if cpts refclk has been
+> acquired already.
+> 
+> Signed-off-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
 
-Acked-by: Richard Cochran <richardcochran@gmail.com>
+Acked-by: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
