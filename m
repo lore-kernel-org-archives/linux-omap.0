@@ -1,57 +1,58 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v2 1/2] dmaengine: dma_slave_config: add support for
- slave port window
-Date: Tue, 29 Nov 2016 18:44:44 +0530
-Message-ID: <20161129131444.GR6408@localhost>
-References: <20161117125017.14954-1-peter.ujfalusi@ti.com>
- <20161117125017.14954-2-peter.ujfalusi@ti.com>
- <1c9221e8-c2e9-4d87-4d74-670e1bc2fec1@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v3 0/2] dmaengine: core/omap-dma: Support for port window
+Date: Tue, 29 Nov 2016 16:23:40 +0200
+Message-ID: <20161129142342.30949-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1c9221e8-c2e9-4d87-4d74-670e1bc2fec1@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: dan.j.williams@intel.com, tony@atomide.com, linux@armlinux.org.uk, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, arnd@arndb.de
+To: vinod.koul@intel.com, dan.j.williams@intel.com, tony@atomide.com, linux@armlinux.org.uk
+Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, arnd@arndb.de
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 29, 2016 at 12:47:48PM +0200, Peter Ujfalusi wrote:
-> Vinod,
-> 
-> On 11/17/2016 02:50 PM, Peter Ujfalusi wrote:
-> > Some slave devices uses address window instead of single register for read
-> > and/or write of data. With the src/dst_port_window_size the address window
-> > can be specified and the DMAengine driver should use this information to
-> > correctly set up the transfer to loop within the provided window.
-> > 
-> > Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> > ---
-> >  include/linux/dmaengine.h | 8 ++++++++
-> >  1 file changed, 8 insertions(+)
-> > 
-> > diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
-> > index cc535a478bae..689d44327ef3 100644
-> > --- a/include/linux/dmaengine.h
-> > +++ b/include/linux/dmaengine.h
-> > @@ -336,6 +336,12 @@ enum dma_slave_buswidth {
-> >   * may or may not be applicable on memory sources.
-> >   * @dst_maxburst: same as src_maxburst but for destination target
-> >   * mutatis mutandis.
-> > + * @src_port_window_size: The length of the register area the data need to be
-> > + * written on the device side. It is only used for devices which is using an
-> > + * area instead of a single register to receive the data. Typically the DMA
-> > + * loops in this area in order to transfer the data.
-> > + * @dst_port_window_size: same as src_port_window_size but for the destination
-> > + * port.
-> 
-> I think this needs some clarification.
-> Should the src/dst_port_window_size be in bytes or in words? I think it would
-> make more sense to define it as number of words to be in sync with the
-> src/dst_maxburst.
+Hi,
 
-Yes good catch, I would indeed prefer words here
+Changes since v2:
+- the src/dst_port_window_size is in words, not in bytes (comment updated)
+- correct the port_window based configuration in the omap-dma driver
 
+Changes since v1:
+- Make sure that the one frame covers the port_window (burst = port_window)
+- added comment to explain the double indexed setup to cover the port_window
+- Simplifications for the code mentioned by Russell and Vinod
+
+Cover letter from v1:
+
+as I'm trying to convert the remaining OMAP driver to use DMAengine instead of
+the legacy omap-dma API I have encountered with the
+drivers/usb/musb/tusb6010_omap.c driver.
+
+The TUSB6010 is connected via NOR FLASH interface and it's register space is
+mapped in the GPMC memory area. In OMAP SoCs we have support for external DMA
+request lines and the TUSB6010 is using those as well.
+
+With asynchronous access the DMA needs to read/write within the FIFO 'window' in
+incremental address mode to read/write data.
+The constant addressing only works in synchronous mode.
+
+Since the DMA is driven by external DMA requests, the asynchronous mode is also
+slave DMA operation, but currently the port window can not be 'swiped' as the
+DMAengine only supports single register/address on the slave side.
+
+This series will add support in dma_slave_config to specify the port side window
+size and the second patch implements the setup needs in omap-dma driver for such
+a transfer.
+
+Regards,
+Peter
+---
+Peter Ujfalusi (2):
+  dmaengine: dma_slave_config: add support for slave port window
+  dmaengine: omap-dma: Support for slave devices with data port window
+
+ drivers/dma/omap-dma.c    | 63 +++++++++++++++++++++++++++++++++++++++++++++--
+ include/linux/dmaengine.h |  8 ++++++
+ 2 files changed, 69 insertions(+), 2 deletions(-)
 
 -- 
-~Vinod
+2.11.0.rc2
