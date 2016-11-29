@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 1/2] dmaengine: dma_slave_config: add support for slave port window
-Date: Tue, 29 Nov 2016 16:23:41 +0200
-Message-ID: <20161129142342.30949-2-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 2/2] dmaengine: omap-dma: Support for slave devices with data port window
+Date: Tue, 29 Nov 2016 16:23:42 +0200
+Message-ID: <20161129142342.30949-3-peter.ujfalusi@ti.com>
 References: <20161129142342.30949-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,41 +12,135 @@ To: vinod.koul@intel.com, dan.j.williams@intel.com, tony@atomide.com, linux@arml
 Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, arnd@arndb.de
 List-Id: linux-omap@vger.kernel.org
 
-Some slave devices uses address window instead of single register for read
-and/or write of data. With the src/dst_port_window_size the address window
-can be specified and the DMAengine driver should use this information to
-correctly set up the transfer to loop within the provided window.
+Based on the src/dst_port_window_size - if it is set - configure the DMA
+channel to use double indexing in order to be able to loop within the
+address window.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- include/linux/dmaengine.h | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/dma/omap-dma.c | 63 ++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 61 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
-index cc535a478bae..feee6ec6a13b 100644
---- a/include/linux/dmaengine.h
-+++ b/include/linux/dmaengine.h
-@@ -336,6 +336,12 @@ enum dma_slave_buswidth {
-  * may or may not be applicable on memory sources.
-  * @dst_maxburst: same as src_maxburst but for destination target
-  * mutatis mutandis.
-+ * @src_port_window_size: The length of the register area in words the data need
-+ * to be accessed on the device side. It is only used for devices which is using
-+ * an area instead of a single register to receive the data. Typically the DMA
-+ * loops in this area in order to transfer the data.
-+ * @dst_port_window_size: same as src_port_window_size but for the destination
-+ * port.
-  * @device_fc: Flow Controller Settings. Only valid for slave channels. Fill
-  * with 'true' if peripheral should be flow controller. Direction will be
-  * selected at Runtime.
-@@ -363,6 +369,8 @@ struct dma_slave_config {
- 	enum dma_slave_buswidth dst_addr_width;
- 	u32 src_maxburst;
- 	u32 dst_maxburst;
-+	u32 src_port_window_size;
-+	u32 dst_port_window_size;
- 	bool device_fc;
- 	unsigned int slave_id;
- };
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index 15eb8024666b..ac68666cd3f4 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -166,6 +166,9 @@ enum {
+ 	CSDP_DST_BURST_16	= 1 << 14,
+ 	CSDP_DST_BURST_32	= 2 << 14,
+ 	CSDP_DST_BURST_64	= 3 << 14,
++	CSDP_WRITE_NON_POSTED	= 0 << 16,
++	CSDP_WRITE_POSTED	= 1 << 16,
++	CSDP_WRITE_LAST_NON_POSTED = 2 << 16,
+ 
+ 	CICR_TOUT_IE		= BIT(0),	/* OMAP1 only */
+ 	CICR_DROP_IE		= BIT(1),
+@@ -881,15 +884,18 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+ 	unsigned i, es, en, frame_bytes;
+ 	bool ll_failed = false;
+ 	u32 burst;
++	u32 port_window, port_window_bytes;
+ 
+ 	if (dir == DMA_DEV_TO_MEM) {
+ 		dev_addr = c->cfg.src_addr;
+ 		dev_width = c->cfg.src_addr_width;
+ 		burst = c->cfg.src_maxburst;
++		port_window = c->cfg.src_port_window_size;
+ 	} else if (dir == DMA_MEM_TO_DEV) {
+ 		dev_addr = c->cfg.dst_addr;
+ 		dev_width = c->cfg.dst_addr_width;
+ 		burst = c->cfg.dst_maxburst;
++		port_window = c->cfg.dst_port_window_size;
+ 	} else {
+ 		dev_err(chan->device->dev, "%s: bad direction?\n", __func__);
+ 		return NULL;
+@@ -910,6 +916,12 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+ 		return NULL;
+ 	}
+ 
++	/* When the port_window is used, one frame must cover the window */
++	if (port_window) {
++		burst = port_window;
++		port_window_bytes = port_window * es_bytes[es];
++	}
++
+ 	/* Now allocate and setup the descriptor. */
+ 	d = kzalloc(sizeof(*d) + sglen * sizeof(d->sg[0]), GFP_ATOMIC);
+ 	if (!d)
+@@ -921,11 +933,45 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+ 
+ 	d->ccr = c->ccr | CCR_SYNC_FRAME;
+ 	if (dir == DMA_DEV_TO_MEM) {
+-		d->ccr |= CCR_DST_AMODE_POSTINC | CCR_SRC_AMODE_CONSTANT;
+ 		d->csdp = CSDP_DST_BURST_64 | CSDP_DST_PACKED;
++
++		d->ccr |= CCR_DST_AMODE_POSTINC;
++		if (port_window) {
++			d->ccr |= CCR_SRC_AMODE_DBLIDX;
++			d->ei = 1;
++			/*
++			 * One frame covers the port_window and by  configure
++			 * the source frame index to be -1 * (port_window - 1)
++			 * we instruct the sDMA that after a frame is processed
++			 * it should move back to the start of the window.
++			 */
++			d->fi = -(port_window_bytes - 1);
++
++			if (port_window_bytes >= 64)
++				d->csdp = CSDP_SRC_BURST_64 | CSDP_SRC_PACKED;
++			else if (port_window_bytes >= 32)
++				d->csdp = CSDP_SRC_BURST_32 | CSDP_SRC_PACKED;
++			else if (port_window_bytes >= 16)
++				d->csdp = CSDP_SRC_BURST_16 | CSDP_SRC_PACKED;
++		} else {
++			d->ccr |= CCR_SRC_AMODE_CONSTANT;
++		}
+ 	} else {
+-		d->ccr |= CCR_DST_AMODE_CONSTANT | CCR_SRC_AMODE_POSTINC;
+ 		d->csdp = CSDP_SRC_BURST_64 | CSDP_SRC_PACKED;
++
++		d->ccr |= CCR_SRC_AMODE_POSTINC;
++		if (port_window) {
++			d->ccr |= CCR_DST_AMODE_DBLIDX;
++
++			if (port_window_bytes >= 64)
++				d->csdp = CSDP_DST_BURST_64 | CSDP_DST_PACKED;
++			else if (port_window_bytes >= 32)
++				d->csdp = CSDP_DST_BURST_32 | CSDP_DST_PACKED;
++			else if (port_window_bytes >= 16)
++				d->csdp = CSDP_DST_BURST_16 | CSDP_DST_PACKED;
++		} else {
++			d->ccr |= CCR_DST_AMODE_CONSTANT;
++		}
+ 	}
+ 
+ 	d->cicr = CICR_DROP_IE | CICR_BLOCK_IE;
+@@ -943,6 +989,9 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+ 			d->ccr |= CCR_TRIGGER_SRC;
+ 
+ 		d->cicr |= CICR_MISALIGNED_ERR_IE | CICR_TRANS_ERR_IE;
++
++		if (port_window)
++			d->csdp |= CSDP_WRITE_LAST_NON_POSTED;
+ 	}
+ 	if (od->plat->errata & DMA_ERRATA_PARALLEL_CHANNELS)
+ 		d->clnk_ctrl = c->dma_ch;
+@@ -968,6 +1017,16 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+ 		osg->addr = sg_dma_address(sgent);
+ 		osg->en = en;
+ 		osg->fn = sg_dma_len(sgent) / frame_bytes;
++		if (port_window && dir == DMA_MEM_TO_DEV) {
++			osg->ei = 1;
++			/*
++			 * One frame covers the port_window and by  configure
++			 * the source frame index to be -1 * (port_window - 1)
++			 * we instruct the sDMA that after a frame is processed
++			 * it should move back to the start of the window.
++			 */
++			osg->fi = -(port_window_bytes - 1);
++		}
+ 
+ 		if (d->using_ll) {
+ 			osg->t2_desc = dma_pool_alloc(od->desc_pool, GFP_ATOMIC,
 -- 
 2.11.0.rc2
