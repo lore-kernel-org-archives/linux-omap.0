@@ -1,76 +1,72 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH  v2 09/13] net: ethernet: ti: cpts: clean up event list if event pool is empty
-Date: Mon, 28 Nov 2016 17:03:33 -0600
-Message-ID: <20161128230337.6731-10-grygorii.strashko@ti.com>
-References: <20161128230337.6731-1-grygorii.strashko@ti.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH v2 2/2] dmaengine: omap-dma: Support for slave devices
+ with data port window
+Date: Tue, 29 Nov 2016 08:47:14 +0530
+Message-ID: <20161129031714.GP6408@localhost>
+References: <20161117125017.14954-1-peter.ujfalusi@ti.com>
+ <20161117125017.14954-3-peter.ujfalusi@ti.com>
+ <20161125061225.GJ2698@localhost>
+ <985d5898-843b-c3d5-464d-f8b8a1452b43@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161128230337.6731-1-grygorii.strashko@ti.com>
+Content-Disposition: inline
+In-Reply-To: <985d5898-843b-c3d5-464d-f8b8a1452b43@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Richard Cochran <richardcochran@gmail.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Wingman Kwok <w-kwok2@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: dan.j.williams@intel.com, tony@atomide.com, linux@armlinux.org.uk, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, arnd@arndb.de
 List-Id: linux-omap@vger.kernel.org
 
-From: WingMan Kwok <w-kwok2@ti.com>
+On Fri, Nov 25, 2016 at 11:38:51AM +0200, Peter Ujfalusi wrote:
+> 
+> 
+> On 11/25/2016 08:12 AM, Vinod Koul wrote:
+> > On Thu, Nov 17, 2016 at 02:50:17PM +0200, Peter Ujfalusi wrote:
+> >> @@ -921,11 +931,45 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+> >>  
+> >>  	d->ccr = c->ccr | CCR_SYNC_FRAME;
+> >>  	if (dir == DMA_DEV_TO_MEM) {
+> >> -		d->ccr |= CCR_DST_AMODE_POSTINC | CCR_SRC_AMODE_CONSTANT;
+> >>  		d->csdp = CSDP_DST_BURST_64 | CSDP_DST_PACKED;
+> >> +
+> >> +		d->ccr |= CCR_DST_AMODE_POSTINC;
+> >> +		if (port_window) {
+> >> +			d->ccr |= CCR_SRC_AMODE_DBLIDX;
+> >> +			d->ei = 1;
+> >> +			/*
+> >> +			 * One frame covers the port_window and by  configure
+> >> +			 * the source frame index to be -1 * (port_window - 1)
+> >> +			 * we instruct the sDMA that after a frame is processed
+> >> +			 * it should move back to the start of the window.
+> >> +			 */
+> >> +			d->fi = -(port_window - 1);
+> >> +
+> >> +			if (port_window >= 64)
+> >> +				d->csdp = CSDP_SRC_BURST_64 | CSDP_SRC_PACKED;
+> >> +			else if (port_window >= 32)
+> >> +				d->csdp = CSDP_SRC_BURST_32 | CSDP_SRC_PACKED;
+> >> +			else if (port_window >= 16)
+> >> +				d->csdp = CSDP_SRC_BURST_16 | CSDP_SRC_PACKED;
+> > 
+> > this and other would look better with a switch..
+> 
+> I'm not sure if it will be any better:
+> 
+> switch (port_window) {
+> case 0 ... 15:
+> 	break;
+> case 16 ... 31:
+> 	d->csdp = CSDP_SRC_BURST_16 | CSDP_SRC_PACKED;
+> 	break;
+> case 32 ... 63:
+> 	d->csdp = CSDP_SRC_BURST_32 | CSDP_SRC_PACKED;
+> 	break;
+> default:
+> 	d->csdp = CSDP_SRC_BURST_64 | CSDP_SRC_PACKED;
+> 	break;
+> }
 
-When a CPTS user does not exit gracefully by disabling cpts
-timestamping and leaving a joined multicast group, the system
-continues to receive and timestamps the ptp packets which eventually
-occupy all the event list entries.  When this happns, the added code
-tries to remove some list entries which are expired.
+Yeah agree with you on this..
 
-Signed-off-by: WingMan Kwok <w-kwok2@ti.com>
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
- drivers/net/ethernet/ti/cpts.c | 26 ++++++++++++++++++++++++--
- 1 file changed, 24 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
-index e743361..1b766eb 100644
---- a/drivers/net/ethernet/ti/cpts.c
-+++ b/drivers/net/ethernet/ti/cpts.c
-@@ -57,6 +57,26 @@ static int cpts_fifo_pop(struct cpts *cpts, u32 *high, u32 *low)
- 	return -1;
- }
- 
-+static int cpts_purge_events(struct cpts *cpts)
-+{
-+	struct list_head *this, *next;
-+	struct cpts_event *event;
-+	int removed = 0;
-+
-+	list_for_each_safe(this, next, &cpts->events) {
-+		event = list_entry(this, struct cpts_event, list);
-+		if (event_expired(event)) {
-+			list_del_init(&event->list);
-+			list_add(&event->list, &cpts->pool);
-+			++removed;
-+		}
-+	}
-+
-+	if (removed)
-+		dev_dbg(cpts->dev, "cpts: event pool cleaned up %d\n", removed);
-+	return removed ? 0 : -1;
-+}
-+
- /*
-  * Returns zero if matching event type was found.
-  */
-@@ -69,10 +89,12 @@ static int cpts_fifo_read(struct cpts *cpts, int match)
- 	for (i = 0; i < CPTS_FIFO_DEPTH; i++) {
- 		if (cpts_fifo_pop(cpts, &hi, &lo))
- 			break;
--		if (list_empty(&cpts->pool)) {
--			pr_err("cpts: event pool is empty\n");
-+
-+		if (list_empty(&cpts->pool) && cpts_purge_events(cpts)) {
-+			dev_err(cpts->dev, "cpts: event pool empty\n");
- 			return -1;
- 		}
-+
- 		event = list_first_entry(&cpts->pool, struct cpts_event, list);
- 		event->tmo = jiffies + 2;
- 		event->high = hi;
 -- 
-2.10.1
+~Vinod
