@@ -1,42 +1,70 @@
-From: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH  v2 12/13] net: ethernet: ti: cpts: calc mult and shift
- from refclk freq
-Date: Tue, 29 Nov 2016 11:34:53 +0100
-Message-ID: <20161129103453.GJ3110@localhost.localdomain>
-References: <20161128230337.6731-1-grygorii.strashko@ti.com>
- <20161128230337.6731-13-grygorii.strashko@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2 1/2] dmaengine: dma_slave_config: add support for slave
+ port window
+Date: Tue, 29 Nov 2016 12:47:48 +0200
+Message-ID: <1c9221e8-c2e9-4d87-4d74-670e1bc2fec1@ti.com>
+References: <20161117125017.14954-1-peter.ujfalusi@ti.com>
+ <20161117125017.14954-2-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161128230337.6731-13-grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Murali Karicheri <m-karicheri2-l0cyMroinI0@public.gmane.org>, Wingman Kwok <w-kwok2-l0cyMroinI0@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161117125017.14954-2-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: vinod.koul@intel.com, dan.j.williams@intel.com, tony@atomide.com, linux@armlinux.org.uk
+Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, arnd@arndb.de
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 28, 2016 at 05:03:36PM -0600, Grygorii Strashko wrote:
-> +static void cpts_calc_mult_shift(struct cpts *cpts)
-> +{
-> +	u64 frac, maxsec, ns;
-> +	u32 freq, mult, shift;
-> +
-> +	freq = clk_get_rate(cpts->refclk);
-> +
-> +	/* Calc the maximum number of seconds which we can run before
-> +	 * wrapping around.
-> +	 */
-> +	maxsec = cpts->cc.mask;
-> +	do_div(maxsec, freq);
-> +	if (maxsec > 600 && cpts->cc.mask > UINT_MAX)
-> +		maxsec = 600;
+Vinod,
 
-The reason for this test is not obvious.  Why check cc.mask against
-UINT_MAX?  Please use the comment to explain it.
+On 11/17/2016 02:50 PM, Peter Ujfalusi wrote:
+> Some slave devices uses address window instead of single register for read
+> and/or write of data. With the src/dst_port_window_size the address window
+> can be specified and the DMAengine driver should use this information to
+> correctly set up the transfer to loop within the provided window.
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+>  include/linux/dmaengine.h | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+> index cc535a478bae..689d44327ef3 100644
+> --- a/include/linux/dmaengine.h
+> +++ b/include/linux/dmaengine.h
+> @@ -336,6 +336,12 @@ enum dma_slave_buswidth {
+>   * may or may not be applicable on memory sources.
+>   * @dst_maxburst: same as src_maxburst but for destination target
+>   * mutatis mutandis.
+> + * @src_port_window_size: The length of the register area the data need to be
+> + * written on the device side. It is only used for devices which is using an
+> + * area instead of a single register to receive the data. Typically the DMA
+> + * loops in this area in order to transfer the data.
+> + * @dst_port_window_size: same as src_port_window_size but for the destination
+> + * port.
 
-Thanks,
-Richard
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I think this needs some clarification.
+Should the src/dst_port_window_size be in bytes or in words? I think it would
+make more sense to define it as number of words to be in sync with the
+src/dst_maxburst.
+
+I will need to resend the series either way. The omap-dma patch does not
+handle this correctly.
+
+>   * @device_fc: Flow Controller Settings. Only valid for slave channels. Fill
+>   * with 'true' if peripheral should be flow controller. Direction will be
+>   * selected at Runtime.
+> @@ -363,6 +369,8 @@ struct dma_slave_config {
+>  	enum dma_slave_buswidth dst_addr_width;
+>  	u32 src_maxburst;
+>  	u32 dst_maxburst;
+> +	u32 src_port_window_size;
+> +	u32 dst_port_window_size;
+>  	bool device_fc;
+>  	unsigned int slave_id;
+>  };
+> 
+
+
+-- 
+Péter
