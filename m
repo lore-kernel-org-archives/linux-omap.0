@@ -1,58 +1,52 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 0/2] dmaengine: core/omap-dma: Support for port window
-Date: Tue, 29 Nov 2016 16:23:40 +0200
-Message-ID: <20161129142342.30949-1-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 1/2] dmaengine: dma_slave_config: add support for slave port window
+Date: Tue, 29 Nov 2016 16:23:41 +0200
+Message-ID: <20161129142342.30949-2-peter.ujfalusi@ti.com>
+References: <20161129142342.30949-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161129142342.30949-1-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: vinod.koul@intel.com, dan.j.williams@intel.com, tony@atomide.com, linux@armlinux.org.uk
 Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, arnd@arndb.de
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Some slave devices uses address window instead of single register for read
+and/or write of data. With the src/dst_port_window_size the address window
+can be specified and the DMAengine driver should use this information to
+correctly set up the transfer to loop within the provided window.
 
-Changes since v2:
-- the src/dst_port_window_size is in words, not in bytes (comment updated)
-- correct the port_window based configuration in the omap-dma driver
-
-Changes since v1:
-- Make sure that the one frame covers the port_window (burst = port_window)
-- added comment to explain the double indexed setup to cover the port_window
-- Simplifications for the code mentioned by Russell and Vinod
-
-Cover letter from v1:
-
-as I'm trying to convert the remaining OMAP driver to use DMAengine instead of
-the legacy omap-dma API I have encountered with the
-drivers/usb/musb/tusb6010_omap.c driver.
-
-The TUSB6010 is connected via NOR FLASH interface and it's register space is
-mapped in the GPMC memory area. In OMAP SoCs we have support for external DMA
-request lines and the TUSB6010 is using those as well.
-
-With asynchronous access the DMA needs to read/write within the FIFO 'window' in
-incremental address mode to read/write data.
-The constant addressing only works in synchronous mode.
-
-Since the DMA is driven by external DMA requests, the asynchronous mode is also
-slave DMA operation, but currently the port window can not be 'swiped' as the
-DMAengine only supports single register/address on the slave side.
-
-This series will add support in dma_slave_config to specify the port side window
-size and the second patch implements the setup needs in omap-dma driver for such
-a transfer.
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-Peter Ujfalusi (2):
-  dmaengine: dma_slave_config: add support for slave port window
-  dmaengine: omap-dma: Support for slave devices with data port window
+ include/linux/dmaengine.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
- drivers/dma/omap-dma.c    | 63 +++++++++++++++++++++++++++++++++++++++++++++--
- include/linux/dmaengine.h |  8 ++++++
- 2 files changed, 69 insertions(+), 2 deletions(-)
-
+diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+index cc535a478bae..feee6ec6a13b 100644
+--- a/include/linux/dmaengine.h
++++ b/include/linux/dmaengine.h
+@@ -336,6 +336,12 @@ enum dma_slave_buswidth {
+  * may or may not be applicable on memory sources.
+  * @dst_maxburst: same as src_maxburst but for destination target
+  * mutatis mutandis.
++ * @src_port_window_size: The length of the register area in words the data need
++ * to be accessed on the device side. It is only used for devices which is using
++ * an area instead of a single register to receive the data. Typically the DMA
++ * loops in this area in order to transfer the data.
++ * @dst_port_window_size: same as src_port_window_size but for the destination
++ * port.
+  * @device_fc: Flow Controller Settings. Only valid for slave channels. Fill
+  * with 'true' if peripheral should be flow controller. Direction will be
+  * selected at Runtime.
+@@ -363,6 +369,8 @@ struct dma_slave_config {
+ 	enum dma_slave_buswidth dst_addr_width;
+ 	u32 src_maxburst;
+ 	u32 dst_maxburst;
++	u32 src_port_window_size;
++	u32 dst_port_window_size;
+ 	bool device_fc;
+ 	unsigned int slave_id;
+ };
 -- 
 2.11.0.rc2
