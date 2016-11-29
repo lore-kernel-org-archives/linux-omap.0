@@ -1,54 +1,50 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH v2 08/13] net: ethernet: ti: cpts: move dt props parsing
- to cpts driver
-Date: Tue, 29 Nov 2016 09:54:26 -0600
-Message-ID: <b4503f15-6927-9b09-7cb0-ce1c8a8c4f59@ti.com>
+Subject: Re: [PATCH v2 12/13] net: ethernet: ti: cpts: calc mult and shift
+ from refclk freq
+Date: Tue, 29 Nov 2016 10:22:21 -0600
+Message-ID: <cfa767c3-9ff4-d1b3-14a2-2f2118356bf1@ti.com>
 References: <20161128230337.6731-1-grygorii.strashko@ti.com>
- <20161128230337.6731-9-grygorii.strashko@ti.com>
- <20161129101112.GG3110@localhost.localdomain>
+ <20161128230337.6731-13-grygorii.strashko@ti.com>
+ <20161129103453.GJ3110@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20161129101112.GG3110@localhost.localdomain>
-Sender: netdev-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161129103453.GJ3110@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Richard Cochran <richardcochran@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Wingman Kwok <w-kwok2@ti.com>
+Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Wingman Kwok <w-kwok2@ti.com>, John Stultz <john.stultz@linaro.org>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On 11/29/2016 04:11 AM, Richard Cochran wrote:
-> On Mon, Nov 28, 2016 at 05:03:32PM -0600, Grygorii Strashko wrote:
->> +static int cpts_of_parse(struct cpts *cpts, struct device_node *node)
+On 11/29/2016 04:34 AM, Richard Cochran wrote:
+> On Mon, Nov 28, 2016 at 05:03:36PM -0600, Grygorii Strashko wrote:
+>> +static void cpts_calc_mult_shift(struct cpts *cpts)
 >> +{
->> +	int ret = -EINVAL;
->> +	u32 prop;
+>> +	u64 frac, maxsec, ns;
+>> +	u32 freq, mult, shift;
 >> +
->> +	if (of_property_read_u32(node, "cpts_clock_mult", &prop))
->> +		goto  of_error;
->> +	cpts->cc_mult = prop;
+>> +	freq = clk_get_rate(cpts->refclk);
+>> +
+>> +	/* Calc the maximum number of seconds which we can run before
+>> +	 * wrapping around.
+>> +	 */
+>> +	maxsec = cpts->cc.mask;
+>> +	do_div(maxsec, freq);
+>> +	if (maxsec > 600 && cpts->cc.mask > UINT_MAX)
+>> +		maxsec = 600;
 > 
-> Why not set cc.mult here at the same time?
-
-The same reason as in prev patch - cpts->cc_mult is original/initial mult
-value loaded from DT (or calculated), while cc.mult is dynamic value
-which can be changed as part of freq adjustment.
-
-> 
->> +
->> +	if (of_property_read_u32(node, "cpts_clock_shift", &prop))
->> +		goto  of_error;
->> +	cpts->cc.shift = prop;
->> +
->> +	return 0;
->> +
->> +of_error:
->> +	dev_err(cpts->dev, "CPTS: Missing property in the DT.\n");
->> +	return ret;
->> +}
+> The reason for this test is not obvious.  Why check cc.mask against
+> UINT_MAX?  Please use the comment to explain it.
 > 
 
+Yeah. This is copy paste from __clocksource_update_freq_scale(), but
+I'm going to limit it to 10 sec for now, because otherwise it will result in too small
+mult in case of 64bit counter.
+
+if (maxsec > 10)
+	maxsec = 10;
 
 -- 
 regards,
