@@ -1,59 +1,88 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mfd: cpcap: Add minimal support
-Date: Tue, 29 Nov 2016 07:48:04 -0800
-Message-ID: <20161129154803.GA3430@atomide.com>
-References: <20161119012748.17224-1-tony@atomide.com>
- <20161121114558.GJ32509@dell>
- <20161123152652.GB4082@atomide.com>
- <20161124085926.GV10134@dell.home>
- <CAL_Jsq+8_O483raD97B8-ssaFGeVOPJcadyY4x7m0T64EbVA3g@mail.gmail.com>
+From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 07/13] net: ethernet: ti: cpts: rework
+ initialization/deinitialization
+Date: Tue, 29 Nov 2016 09:50:30 -0600
+Message-ID: <2037427d-0ab6-9446-450d-21c34123c03b@ti.com>
+References: <20161128230337.6731-1-grygorii.strashko@ti.com>
+ <20161128230337.6731-8-grygorii.strashko@ti.com>
+ <20161129100737.GF3110@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAL_Jsq+8_O483raD97B8-ssaFGeVOPJcadyY4x7m0T64EbVA3g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh+dt@kernel.org>
-Cc: Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Marcel Partap <mpartap@gmx.net>, Mark Rutland <mark.rutland@arm.com>, Michael Scott <michael.scott@linaro.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161129100737.GF3110-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Murali Karicheri <m-karicheri2-l0cyMroinI0@public.gmane.org>, Wingman Kwok <w-kwok2-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Rob Herring <robh+dt@kernel.org> [161129 07:20]:
-> On Thu, Nov 24, 2016 at 2:59 AM, Lee Jones <lee.jones@linaro.org> wrote:
-> > On Wed, 23 Nov 2016, Tony Lindgren wrote:
-> >
-> >> * Lee Jones <lee.jones@linaro.org> [161121 03:43]:
-> >> > On Fri, 18 Nov 2016, Tony Lindgren wrote:
-> >> > > --- a/drivers/mfd/Makefile
-> >> > > +++ b/drivers/mfd/Makefile
-> >> > > @@ -97,6 +97,7 @@ obj-$(CONFIG_MFD_MC13XXX_I2C)   += mc13xxx-i2c.o
-> >> > >  obj-$(CONFIG_MFD_CORE)           += mfd-core.o
-> >> > >
-> >> > >  obj-$(CONFIG_EZX_PCAP)           += ezx-pcap.o
-> >> > > +obj-$(CONFIG_MFD_CPCAP)          += cpcap.o
-> >> >
-> >> > Who is the manufacturer?
-> >>
-> >> Hmm that I don't know. There seems to be both ST and TI versions
-> >> of this chip manufactured for Motorola. So my guess is that it
-> >> should be Motorola unless there's some similar catalog part
-> >> available from ST used by others. If anybody has more info
-> >> on this please let me know :)
-> >
-> > If this IP is shared amongst vendors, it usually means it was designed
-> > by someone else?  Synopsis perhaps?
+Hi Richard,
+
+On 11/29/2016 04:07 AM, Richard Cochran wrote:
+> On Mon, Nov 28, 2016 at 05:03:31PM -0600, Grygorii Strashko wrote:
+>> +int cpts_register(struct cpts *cpts)
+>>  {
+>>  	int err, i;
+>>  
+>> -	cpts->info = cpts_info;
+>> -	spin_lock_init(&cpts->lock);
+>> -
+>> -	cpts->cc.read = cpts_systim_read;
+>> -	cpts->cc.mask = CLOCKSOURCE_MASK(32);
+>> -	cpts->cc_mult = mult;
+>> -	cpts->cc.mult = mult;
+>> -	cpts->cc.shift = shift;
+>> -
+>>  	INIT_LIST_HEAD(&cpts->events);
+>>  	INIT_LIST_HEAD(&cpts->pool);
+>>  	for (i = 0; i < CPTS_MAX_EVENTS; i++)
+>>  		list_add(&cpts->pool_data[i].list, &cpts->pool);
+>>  
+>> -	cpts_clk_init(dev, cpts);
+>> +	clk_enable(cpts->refclk);
+>> +
+>>  	cpts_write32(cpts, CPTS_EN, control);
+>>  	cpts_write32(cpts, TS_PEND_EN, int_enable);
+>>  
+>> +	cpts->cc.mult = cpts->cc_mult;
 > 
-> xCAP names originated from Motorola cellular group with parts (going
-> back to analog/2G days) coming from Motorola Semi, TI, and ST it
-> seems. All individually developed AFAIK.
+> It is not clear why you set cc.mult in a different place than
+> cc.shift.  That isn't logical, but maybe later patches make it
+> clear...
 
-OK thanks. Looking at the Motorola Linux kernel source, the child
-device drivers do test for both revision and vendor and apply
-different workarounds based on that. It also seems that CPCAP is
-only used on Motorola devices.
+cc.mult has to be reloaded to original value each time CPTS is registered(restarted)
+as it can be modified by cpts_ptp_adjfreq().
 
-So based on the above, we should call it motorola-cpcap with just
-a secondary device tree compatible string for the STE part numbers.
+While cc.shift is static.
 
-Regards,
 
-Tony
+
+> 
+>>  	timecounter_init(&cpts->tc, &cpts->cc, ktime_to_ns(ktime_get_real()));
+>>  
+
+[...]
+
+>>  }
+>>  EXPORT_SYMBOL_GPL(cpts_unregister);
+>>  
+>> +struct cpts *cpts_create(struct device *dev, void __iomem *regs,
+>> +			 u32 mult, u32 shift)
+>> +{
+>> +	struct cpts *cpts;
+>> +
+>> +	if (!regs || !dev)
+>> +		return ERR_PTR(-EINVAL);
+> 
+> There is no need for this test, as the caller will always pass valid
+> pointers.  (This isn't a user space library!)
+> 
+ok
+
+-- 
+regards,
+-grygorii
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
