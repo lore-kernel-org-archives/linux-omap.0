@@ -1,13 +1,13 @@
 From: Felipe Balbi <balbi@kernel.org>
-Subject: Re: [PATCH 08/12] usb: phy: msm: Replace the extcon API
-Date: Wed, 30 Nov 2016 12:40:52 +0200
-Message-ID: <871sxtntcb.fsf@linux.intel.com>
-References: <1480485460-2663-1-git-send-email-cw00.choi@samsung.com> <1480485460-2663-9-git-send-email-cw00.choi@samsung.com>
+Subject: Re: [PATCH 09/12] usb: phy: omap-otg: Replace the extcon API
+Date: Wed, 30 Nov 2016 12:41:27 +0200
+Message-ID: <87y401meqw.fsf@linux.intel.com>
+References: <1480485460-2663-1-git-send-email-cw00.choi@samsung.com> <1480485460-2663-10-git-send-email-cw00.choi@samsung.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; boundary="=-=-=";
         micalg=pgp-sha256; protocol="application/pgp-signature"
 Return-path: <linux-renesas-soc-owner@vger.kernel.org>
-In-Reply-To: <1480485460-2663-9-git-send-email-cw00.choi@samsung.com>
+In-Reply-To: <1480485460-2663-10-git-send-email-cw00.choi@samsung.com>
 Sender: linux-renesas-soc-owner@vger.kernel.org
 To: gregkh@linuxfoundation.org, kishon@ti.com, sre@kernel.org
 Cc: Peter.Chen@nxp.com, wens@csie.org, yoshihiro.shimoda.uh@renesas.com, maxime.ripard@free-electrons.com, b-liu@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org, cw00.choi@samsung.com, chanwoo@kernel.org
@@ -38,18 +38,18 @@ Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAlg+rLQACgkQzL64meEa
-mQbmCg/9GmrJlt+AlHyt4v9JEz4aWS76lpaYF3SfKXC8HGK5QQa9bplll2GZWqYs
-3RNUIfvtxSfb/wC6nHzgke306yuuuIjsVvN9xK6YpZmkrO4ozyMT+mciso1uJHeV
-ZK9aUKq0zmULIwhYkndWf3vvrGS8A69Hutj5C6awWB6tpyqask51NhILPbWxTTJy
-CXJ9Lm6BSWv70JXvxMNHefep8z20cKIHJd6qgWXM9lxRH4EpPq9dNM3r6T5usbn8
-1Q9yaT1ixDuu3Ju6FSmWh4B8hMvoGSInZdkEAZyiznDUos3brD8wBBp5chPziRez
-0XHv+fBK7NDEcm6eW1z3ox8jbJpBD8aktGNou53FFQdsg+POPRFTAiURlU62WA9H
-uVrDV0ahqhe7adEYvdHCM7JorN7R1JTT5mYcVRWoBFm1zxurZj0C1y22QQRMFQfI
-HrqKTKQGwVYsvsqnSJla2RZnX8KUamZ/QQTnP8fVF8N6JFgbyuYIWkm0nK5Oc0Kx
-00pmzX9yIZ2bEfR1q0w7HfkPR5SzW5GVYTATKrbCpqKeaQA+HloELlS5fFLX74vT
-jyy3iX2jauzmJGsniBWqxXAzSb9f9zvpzREzSTgO8pppQgCT5eS0mRUOWn1SWmzk
-dGJTTA5G1DlT5wYiwFq5XZ69HK0UVvITFqBcyUWLXrKM6BBS2ns=
-=4V4e
+iQIzBAEBCAAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAlg+rNcACgkQzL64meEa
+mQbkbxAAoo67GsGCO1SaplhXumYC84wIib+fHIr+Lfnkwk6hC7a6Cm6EqYm1l8DX
+TcoHfLaho7Lq/jVkC8NLAmKnuQFT2C+GdcTNxzHNHG3j5ViWBqqk/WmLAmvGm8Lq
+SVc7XmPbcBkP+AZF1k+N9UMR6pEmSs9W9ACyFKxSc8D0lBEbuTsrGlq2TFl/cuZe
+ggSvSgFKNu2EW2eh2EdloeL0hBXCAC0Q1us91MGPGR1wx+DLQiyFoNHH9RrI7WJv
+b5jwqt2d17IvkjmApSCcs2r/MwAP/Rax0MFbDBTrzOKqhNIQ3xUe2pSY/GSdZxmh
+4o34GBeRnDuj8JtTFPnguYYy83gtTqBE2TJNtvI7URVK7rdWMmghEFXvB1frV3gW
+pshyG30Y5Ip/hHtWNXyMVGFz9d2IjMm8/vkDjczokPOvvJBlZr53GqkjIPMpQHMO
+sI20POnY2VAnEJ665aZCa/svx2ziFuzqj5tdmKmOkYnc/YQdZ+sFRCME/DHYZF6Y
+Q3czc+vCXJ/9FjTtfUlanaZTIELLmiBKxZ+FTe1IHDIvw8TWLBOVhOe9PELxyamn
+hUVtta5dGSJs6tiojWuDmFF9h43OQPHLqKkDDWMF5n+MrtqZjeZQvT7krZOoAbfJ
+XH8+PClLuiASh22d32pDtLjzWm0PqLR/EPdln5PA8q+XzuBUBnQ=
+=OehZ
 -----END PGP SIGNATURE-----
 --=-=-=--
