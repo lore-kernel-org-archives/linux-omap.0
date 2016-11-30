@@ -1,53 +1,49 @@
-From: Felipe Balbi <balbi@kernel.org>
-Subject: Re: [PATCH 12/12] usb: renesas_usbhs: Replace the deprecated extcon API
-Date: Wed, 30 Nov 2016 12:43:39 +0200
-Message-ID: <87poldmen8.fsf@linux.intel.com>
-References: <1480485460-2663-1-git-send-email-cw00.choi@samsung.com> <1480485460-2663-13-git-send-email-cw00.choi@samsung.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-        micalg=pgp-sha256; protocol="application/pgp-signature"
-Return-path: <linux-renesas-soc-owner@vger.kernel.org>
-In-Reply-To: <1480485460-2663-13-git-send-email-cw00.choi@samsung.com>
-Sender: linux-renesas-soc-owner@vger.kernel.org
-To: gregkh@linuxfoundation.org, kishon@ti.com, sre@kernel.org
-Cc: Peter.Chen@nxp.com, wens@csie.org, yoshihiro.shimoda.uh@renesas.com, maxime.ripard@free-electrons.com, b-liu@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org, cw00.choi@samsung.com, chanwoo@kernel.org
+From: Maninder Singh <maninder1.s@samsung.com>
+Subject: [PATCH 1/1] mach-omap2: fixing wrong strcat for Non-NULL terminated
+ string
+Date: Wed, 30 Nov 2016 16:10:28 +0530
+Message-ID: <1480502428-19509-1-git-send-email-maninder1.s@samsung.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bcousson@baylibre.com, paul@pwsan.com, tony@atomide.com, linux@armlinux.org.uk
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, ajeet.y@samsung.com, pankaj.m@samsung.com, Maninder Singh <maninder1.s@samsung.com>, Vaneet Narang <v.narang@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+variable name can have Non NULL terminated string after cropping
+which may result strcat to fail, and cropping is not
+required if (strlen(oh->name) + 8 < MOD_CLK_MAX_NAME_LEN).
 
+Issue caught with static analysis tool:
+"Dangerous usage of 'name' (strncpy doesn't always 0-terminate it)"
 
-Hi,
+Signed-off-by: Vaneet Narang <v.narang@samsung.com>
+Signed-off-by: Maninder Singh <maninder1.s@samsung.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-Chanwoo Choi <cw00.choi@samsung.com> writes:
-> This patch replaces the deprecated extcon API as following:
-> - extcon_get_cable_state_() -> extcon_get_state()
->
-> Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
-
-Acked-by: Felipe Balbi <felipe.balbi@linux.intel.com>
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAlg+rVsACgkQzL64meEa
-mQb/WhAA0sSM3coKRSXBr8sUHuz8nXjwXC5EqmSKYJoDlxlLeEsaEDsH1zf8kwTN
-cgVZ7kOVUPdscjpcHeCVh6uNzxCm66s/rO+zio+qlIo9ylBsbhRbjz4bDa1Hh+43
-gt6uq0GOF7VmA+x7FOrf6mdoezXPUrBIxh7Dj41BqW23unBx6HM/D235XILj7AeL
-qDOBhCEpy3vls2USBep5c6TJiz9HB9zuRkIvMYIs2J+6eRUgPLxjDnyue9ffmHpm
-tzaGZs8xqkDOnobhlehXA20r23jO4M557Bc6sukpCeJxYBb1592h1EZcP41eSpsS
-ooyBebc1VitoFun5WfxZPG7Kz9w13wdIJR69LXr4EkPUajWP8STVvwaRuM/S1UAx
-6yp4o/TXhj6RkJ/WV9YR/d5nFU08pnC/bWF96c/fVXWKLAMuZrzkE967qKa0GYo1
-OmHQvVyjmo1AQN0c1JWsfUhnC8GNwBjIX5ZixW3MLWzmjHCURgdx8jgepDziR8V7
-AZywYUp9llgoPPKvl00g1OEkHnEKfARIrSKZW7UNUQFFy4lJmZpcUkqVwvCJ6blj
-AWUaGhVYst3BVk4KYl9x3SoJ6TYyK86tcs3O2n6cpqoPTmUt3uS3s/Hjj6j769PG
-HAYb9mEJHVmFwtIuJ0ooRjFHhwDS+ju5J9XOwmrEs3i18nycmog=
-=Tb5p
------END PGP SIGNATURE-----
---=-=-=--
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 759e1d4..8adf272 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -742,12 +742,15 @@ static int _init_main_clk(struct omap_hwmod *oh)
+ 	char name[MOD_CLK_MAX_NAME_LEN];
+ 	struct clk *clk;
+ 
+-	/* +7 magic comes from '_mod_ck' suffix */
+-	if (strlen(oh->name) + 7 > MOD_CLK_MAX_NAME_LEN)
++	/* +8 magic comes from strlen("_mod_ck") added as suffix */
++	if (strlen(oh->name) + 8 > MOD_CLK_MAX_NAME_LEN) {
+ 		pr_warn("%s: warning: cropping name for %s\n", __func__,
+ 			oh->name);
++		strncpy(name, oh->name, MOD_CLK_MAX_NAME_LEN - 8);
++		name[MOD_CLK_MAX_NAME_LEN - 8] = '\0';
++	} else
++		strcpy(name, oh->name);
+ 
+-	strncpy(name, oh->name, MOD_CLK_MAX_NAME_LEN - 7);
+ 	strcat(name, "_mod_ck");
+ 
+ 	clk = clk_get(NULL, name);
+-- 
+1.9.1
