@@ -1,38 +1,62 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH] clk: ti: dra7: fix "failed to lookup clock node gmac_gmii_ref_clk_div" boot message
-Date: Tue, 29 Nov 2016 17:07:57 -0600
-Message-ID: <20161129230757.29183-1-grygorii.strashko@ti.com>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: Re: [PATCH] net: ethernet: ti: cpsw: fix ASSERT_RTNL() warning
+ during resume
+Date: Wed, 30 Nov 2016 02:18:57 +0200
+Message-ID: <20161130001857.GB18604@khorivan>
+References: <20161129222703.10908-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-clk-owner@vger.kernel.org>
-Sender: linux-clk-owner@vger.kernel.org
-To: Michael Turquette <mturquette@baylibre.com>, Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, Stephen Boyd <sboyd@codeaurora.org>
-Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20161129222703.10908-1-grygorii.strashko@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Prevent creating clk alias for non existing gmac_gmii_ref_clk_div clock and,
-this way, eliminate excessive error message during boot:
+On Tue, Nov 29, 2016 at 04:27:03PM -0600, Grygorii Strashko wrote:
+> netif_set_real_num_tx/rx_queues() are required to be called with rtnl_lock
+> taken, otherwise ASSERT_RTNL() warning will be triggered - which happens
+> now during System resume from suspend:
+> cpsw_resume()
+> |- cpsw_ndo_open()
+>   |- netif_set_real_num_tx/rx_queues()
+>      |- ASSERT_RTNL();
+> 
+> Hence, fix it by surrounding cpsw_ndo_open() by rtnl_lock/unlock() calls.
+> 
+> Cc: Dave Gerlach <d-gerlach@ti.com>
+> Cc: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> Fixes: commit e05107e6b747 ("net: ethernet: ti: cpsw: add multi queue support")
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Reviewed-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 
- "ti_dt_clocks_register: failed to lookup clock node gmac_gmii_ref_clk_div"
-
-Fixes: c097338ebd3f ("ARM: dts: dra7: cpsw: fix clocks tree")
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
- drivers/clk/ti/clk-7xx.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
-index bfa17d3..9fd6043 100644
---- a/drivers/clk/ti/clk-7xx.c
-+++ b/drivers/clk/ti/clk-7xx.c
-@@ -201,7 +201,6 @@ static struct ti_dt_clk dra7xx_clks[] = {
- 	DT_CLK(NULL, "atl_dpll_clk_mux", "atl_dpll_clk_mux"),
- 	DT_CLK(NULL, "atl_gfclk_mux", "atl_gfclk_mux"),
- 	DT_CLK(NULL, "dcan1_sys_clk_mux", "dcan1_sys_clk_mux"),
--	DT_CLK(NULL, "gmac_gmii_ref_clk_div", "gmac_gmii_ref_clk_div"),
- 	DT_CLK(NULL, "gmac_rft_clk_mux", "gmac_rft_clk_mux"),
- 	DT_CLK(NULL, "gpu_core_gclk_mux", "gpu_core_gclk_mux"),
- 	DT_CLK(NULL, "gpu_hyd_gclk_mux", "gpu_hyd_gclk_mux"),
--- 
-2.10.1
-
+> ---
+>  drivers/net/ethernet/ti/cpsw.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+> index ae1ec6a..fd6c03b 100644
+> --- a/drivers/net/ethernet/ti/cpsw.c
+> +++ b/drivers/net/ethernet/ti/cpsw.c
+> @@ -2944,6 +2944,8 @@ static int cpsw_resume(struct device *dev)
+>  	/* Select default pin state */
+>  	pinctrl_pm_select_default_state(dev);
+>  
+> +	/* shut up ASSERT_RTNL() warning in netif_set_real_num_tx/rx_queues */
+> +	rtnl_lock();
+>  	if (cpsw->data.dual_emac) {
+>  		int i;
+>  
+> @@ -2955,6 +2957,8 @@ static int cpsw_resume(struct device *dev)
+>  		if (netif_running(ndev))
+>  			cpsw_ndo_open(ndev);
+>  	}
+> +	rtnl_unlock();
+> +
+>  	return 0;
+>  }
+>  #endif
+> -- 
+> 2.10.1
+> 
