@@ -1,64 +1,45 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: [PATCH 1/1] mach-omap2: fixing wrong strcat for Non-NULL
- terminated string
-Date: Wed, 30 Nov 2016 13:27:35 +0000
-Message-ID: <20161130132735.GH23750@n2100.armlinux.org.uk>
-References: <1480502428-19509-1-git-send-email-maninder1.s@samsung.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] cpsw: ethtool: add support for nway reset
+Date: Wed, 30 Nov 2016 10:13:49 -0500 (EST)
+Message-ID: <20161130.101349.1062107841922687589.davem@davemloft.net>
+References: <1480326472-5849-1-git-send-email-yegorslists@googlemail.com>
+        <20161129.194158.1482957574907674651.davem@davemloft.net>
+        <CAGm1_ktxyxVxYdF0Aq-Nv2rVGjEccPsGRZSXHBOE9egybiV1Lg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1480502428-19509-1-git-send-email-maninder1.s@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Maninder Singh <maninder1.s@samsung.com>
-Cc: bcousson@baylibre.com, paul@pwsan.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, ajeet.y@samsung.com, pankaj.m@samsung.com, Vaneet Narang <v.narang@samsung.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CAGm1_ktxyxVxYdF0Aq-Nv2rVGjEccPsGRZSXHBOE9egybiV1Lg@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: yegorslists@googlemail.com
+Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, grygorii.strashko@ti.com, mugunthanvnm@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Nov 30, 2016 at 04:10:28PM +0530, Maninder Singh wrote:
-> variable name can have Non NULL terminated string after cropping
-> which may result strcat to fail, and cropping is not
-> required if (strlen(oh->name) + 8 < MOD_CLK_MAX_NAME_LEN).
-> 
-> Issue caught with static analysis tool:
-> "Dangerous usage of 'name' (strncpy doesn't always 0-terminate it)"
+From: Yegor Yefremov <yegorslists@googlemail.com>
+Date: Wed, 30 Nov 2016 10:31:30 +0100
 
-Maybe switch to strlcpy() ?
+> Hi David,
+> 
+> On Wed, Nov 30, 2016 at 1:41 AM, David Miller <davem@davemloft.net> wrote:
+>> From: yegorslists@googlemail.com
+>> Date: Mon, 28 Nov 2016 10:47:52 +0100
+>>
+>>> From: Yegor Yefremov <yegorslists@googlemail.com>
+>>>
+>>> This patch adds support for ethtool's '-r' command. Restarting
+>>> N-WAY negotiation can be useful to activate newly changed EEE
+>>> settings etc.
+>>>
+>>> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+>>
+>> This doesn't apply cleanly to net-next.
+> 
+> My previous patch [1] doesn't show up in net-next. This could explain,
+> why nway patch doesn't apply.
+> Should I resend them both as series?
+> 
+> [1] http://marc.info/?l=linux-omap&m=148036822211869&w=2
 
-> 
-> Signed-off-by: Vaneet Narang <v.narang@samsung.com>
-> Signed-off-by: Maninder Singh <maninder1.s@samsung.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod.c | 9 ++++++---
->  1 file changed, 6 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index 759e1d4..8adf272 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -742,12 +742,15 @@ static int _init_main_clk(struct omap_hwmod *oh)
->  	char name[MOD_CLK_MAX_NAME_LEN];
->  	struct clk *clk;
->  
-> -	/* +7 magic comes from '_mod_ck' suffix */
-> -	if (strlen(oh->name) + 7 > MOD_CLK_MAX_NAME_LEN)
-> +	/* +8 magic comes from strlen("_mod_ck") added as suffix */
-> +	if (strlen(oh->name) + 8 > MOD_CLK_MAX_NAME_LEN) {
->  		pr_warn("%s: warning: cropping name for %s\n", __func__,
->  			oh->name);
-> +		strncpy(name, oh->name, MOD_CLK_MAX_NAME_LEN - 8);
-> +		name[MOD_CLK_MAX_NAME_LEN - 8] = '\0';
-> +	} else
-> +		strcpy(name, oh->name);
->  
-> -	strncpy(name, oh->name, MOD_CLK_MAX_NAME_LEN - 7);
->  	strcat(name, "_mod_ck");
->  
->  	clk = clk_get(NULL, name);
-> -- 
-> 1.9.1
-> 
+My bad, I sorted this out and applied the nway-reset patch too.
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Sorry about that.
