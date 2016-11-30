@@ -1,28 +1,35 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/5] cpsw: add per channel shaper configuration
-Date: Wed, 30 Nov 2016 14:37:30 -0500 (EST)
-Message-ID: <20161130.143730.198414925220029543.davem@davemloft.net>
-References: <1480431651-6081-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Subject: Re: [PATCH] net: ethernet: ti: cpsw: fix ASSERT_RTNL() warning
+ during resume
+Date: Wed, 30 Nov 2016 14:59:36 -0500 (EST)
+Message-ID: <20161130.145936.1357519815495012632.davem@davemloft.net>
+References: <20161129222703.10908-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1480431651-6081-1-git-send-email-ivan.khoronzhuk@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ivan.khoronzhuk@linaro.org
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, mugunthanvnm@ti.com, grygorii.strashko@ti.com, linux-omap@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20161129222703.10908-1-grygorii.strashko@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: grygorii.strashko@ti.com
+Cc: netdev@vger.kernel.org, mugunthanvnm@ti.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, ivan.khoronzhuk@linaro.org, d-gerlach@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Date: Tue, 29 Nov 2016 17:00:46 +0200
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Date: Tue, 29 Nov 2016 16:27:03 -0600
 
-> This series is intended to allow user to set rate for per channel
-> shapers at cpdma level. This patchset doesn't have impact on performance.
-> The rate can be set with:
+> netif_set_real_num_tx/rx_queues() are required to be called with rtnl_lock
+> taken, otherwise ASSERT_RTNL() warning will be triggered - which happens
+> now during System resume from suspend:
+> cpsw_resume()
+> |- cpsw_ndo_open()
+>   |- netif_set_real_num_tx/rx_queues()
+>      |- ASSERT_RTNL();
 > 
-> echo 100 > /sys/class/net/ethX/queues/tx-0/tx_maxrate
+> Hence, fix it by surrounding cpsw_ndo_open() by rtnl_lock/unlock() calls.
 > 
-> Tested on am572xx
-> Based on net-next/master
+> Cc: Dave Gerlach <d-gerlach@ti.com>
+> Cc: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> Fixes: commit e05107e6b747 ("net: ethernet: ti: cpsw: add multi queue support")
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
-Series applied, thanks.
+Applied.
