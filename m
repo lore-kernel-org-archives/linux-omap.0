@@ -1,26 +1,35 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH] dmaengine: edma: re-initialize dummy slot during system
- resume
-Date: Wed, 30 Nov 2016 08:55:23 +0530
-Message-ID: <20161130032522.GA6408@localhost>
-References: <20161123092755.8522-1-vigneshr@ti.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net 00/16] net: fix fixed-link phydev leaks
+Date: Tue, 29 Nov 2016 23:17:21 -0500 (EST)
+Message-ID: <20161129.231721.971587311467577164.davem@davemloft.net>
+References: <1480357509-28074-1-git-send-email-johan@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161123092755.8522-1-vigneshr@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-renesas-soc-owner@vger.kernel.org>
+In-Reply-To: <1480357509-28074-1-git-send-email-johan@kernel.org>
+Sender: linux-renesas-soc-owner@vger.kernel.org
+To: johan@kernel.org
+Cc: vbridger@opensource.altera.com, f.fainelli@gmail.com, fugang.duan@nxp.com, pantelis.antoniou@gmail.com, vbordug@ru.mvista.com, claudiu.manoil@freescale.com, leoli@freescale.com, thomas.petazzoni@free-electrons.com, nbd@openwrt.org, blogic@openwrt.org, matthias.bgg@gmail.com, sergei.shtylyov@cogentembedded.com, lars.persson@axis.com, mugunthanvnm@ti.com, grygorii.strashko@ti.com, robh+dt@kernel.org, frowand.list@gmail.com, andrew@lunn.ch, vivien.didelot@savoirfairelinux.com, netdev@vger.kernel.org, nios2-dev@lists.rocketboards.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mediatek@lists.infradead.org, linux-renesas-soc@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Nov 23, 2016 at 02:57:55PM +0530, Vignesh R wrote:
-> The last param set in a transfer should always be pointing to dummy
-> param set in non-cyclic mode. When system wakes from low power state
-> EDMA PARAM slots may be reset to random values. Hence, re-initialize
-> dummy slot to dummy param set on system resume.
+From: Johan Hovold <johan@kernel.org>
+Date: Mon, 28 Nov 2016 19:24:53 +0100
 
-Applied, thanks
+> This series fixes failures to deregister and free fixed-link phydevs
+> that have been registered using the of_phy_register_fixed_link()
+> interface.
+> 
+> All but two drivers currently fail to do this and this series fixes most
+> of them with the exception of a staging driver and the stmmac drivers
+> which will be fixed by follow-on patches.
+> 
+> Included are also a couple of fixes for related of-node leaks.
+> 
+> Note that all patches except the of_mdio one have been compile-tested
+> only.
+> 
+> Also note that the series is against net due to dependencies not yet in
+> net-next.
 
--- 
-~Vinod
+Series applied, thanks Johan.
