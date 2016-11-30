@@ -1,53 +1,63 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 3/6] net: ethernet: ti: cpts: add support of cpts
- HW_TS_PUSH
-Date: Wed, 30 Nov 2016 14:15:04 -0600
-Message-ID: <86be8bbd-39c6-6173-9e84-b8afe92e5474@ti.com>
-References: <20161128230428.6872-1-grygorii.strashko@ti.com>
- <20161128230428.6872-4-grygorii.strashko@ti.com>
- <1480504100.9183.72.camel@pengutronix.de>
+From: Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH v2 0/2] rtc: rtc-twl: cleanup
+Date: Wed, 30 Nov 2016 21:27:28 +0100
+Message-ID: <20161130202728.zoldekjlc5qrcpgt@piout.net>
+References: <20161123085557.5656-1-Nicolae_Rosia@mentor.com>
+Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1480504100.9183.72.camel@pengutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?Q?Jan_L=c3=bcbbe?= <jlu@pengutronix.de>, Murali Karicheri <m-karicheri2@ti.com>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Richard Cochran <richardcochran@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Wingman Kwok <w-kwok2@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <rtc-linux+bncBCKYNX7Y3IMBBMPM7TAQKGQEC2KO6DY-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Content-Disposition: inline
+In-Reply-To: <20161123085557.5656-1-Nicolae_Rosia-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>
+List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <https://groups.google.com/group/rtc-linux
+List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <https://groups.google.com/group/rtc-linux/subscribe>
+To: Nicolae Rosia <Nicolae_Rosia-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>
+Cc: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 11/30/2016 05:08 AM, Jan Lübbe wrote:
-> On Mo, 2016-11-28 at 17:04 -0600, Grygorii Strashko wrote:
->> This patch adds support of the CPTS HW_TS_PUSH events which are generated
->> by external low frequency time stamp channels on TI's OMAP CPSW and
->> Keystone 2 platforms. It supports up to 8 external time stamp channels for
->> HW_TS_PUSH input pins (the number of supported channel is different for
->> different SoCs and CPTS versions, check corresponding Data maual before
->> enabling it). Therefore, new DT property "cpts-ext-ts-inputs" is introduced
->> for specifying number of available external timestamp channels.
+On 23/11/2016 at 10:55:55 +0200, Nicolae Rosia wrote :
+> This is a cleanup and preparation of rtc-twl to reduce the usage of
+> twl-core exported functions.
+> The next patch series will further reduce the usage of exported functions
+> but first it requires some changes in mfd/twl-core.c
 > 
-> If this only depends on SoC and CTPS, it should be possible to derive
-> the correct value from the compatible value and possibly a CPTS version
-> register? If the existing compatible strings are not specific enough,
-> possible a new one should be added.
+> v2:
+> - dropped patch "rtc: rtc-twl: use irq_of_parse_and_map helper"
+> - fixed style problems
+> - retained old logic of checking TWL class by introducing an enum
+> - dropped of_match_ptr since we depend on OF
+> 
+> v1 was Tested-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> I did not add it in new version of patches because of the changes.
+> If you consider that the changes are not big, you could add Tony's Tested-by.
+> 
+> Nicolae Rosia (2):
+>   rtc: rtc-twl: kill static variables
+>   rtc: rtc-twl: make driver DT only
+> 
+>  drivers/rtc/Kconfig   |   1 +
+>  drivers/rtc/rtc-twl.c | 202 ++++++++++++++++++++++++++++++--------------------
+>  2 files changed, 122 insertions(+), 81 deletions(-)
 > 
 
-In general, I can try to add and use new compat strings
-"ti,netcp-k2hk"
-"ti,netcp-k2l"
-"ti,netcp-k2e"
-"ti,netcp-k2g" 
-for determining CPTS capabilities.
-
-CPTS version is not the choice due to very poor documentation
-which do not allow identify relations between CPTS ver and supported
-features :(
-
-Murali, what do you think?
-
+Both applied, thanks
 
 -- 
-regards,
--grygorii
+Alexandre Belloni, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
+
+-- 
+You received this message because you are subscribed to "rtc-linux".
+Membership options at http://groups.google.com/group/rtc-linux .
+Please read http://groups.google.com/group/rtc-linux/web/checklist
+before submitting a driver.
+--- 
+You received this message because you are subscribed to the Google Groups "rtc-linux" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit https://groups.google.com/d/optout.
