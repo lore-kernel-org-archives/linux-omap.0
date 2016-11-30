@@ -1,52 +1,83 @@
-From: Chanwoo Choi <cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 02/12] phy: sun4i-usb: Replace the deprecated extcon API
-Date: Wed, 30 Nov 2016 14:57:30 +0900
-Message-ID: <1480485460-2663-3-git-send-email-cw00.choi@samsung.com>
+From: Chanwoo Choi <cw00.choi@samsung.com>
+Subject: [PATCH 06/12] usb: dwc3: omap: Replace the extcon API
+Date: Wed, 30 Nov 2016 14:57:34 +0900
+Message-ID: <1480485460-2663-7-git-send-email-cw00.choi@samsung.com>
 References: <1480485460-2663-1-git-send-email-cw00.choi@samsung.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <1480485460-2663-1-git-send-email-cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Peter.Chen-3arQi8VN3Tc@public.gmane.org, wens-jdAy2FN1RRM@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-renesas-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, chanwoo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-reply-to: <1480485460-2663-1-git-send-email-cw00.choi@samsung.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: balbi@kernel.org, gregkh@linuxfoundation.org, kishon@ti.com, sre@kernel.org
+Cc: Peter.Chen@nxp.com, wens@csie.org, yoshihiro.shimoda.uh@renesas.com, maxime.ripard@free-electrons.com, b-liu@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org, cw00.choi@samsung.com, chanwoo@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch replaces the deprecated extcon API as following:
-- extcon_set_cable_state_() -> extcon_set_state_sync()
+This patch uses the resource-managed extcon API for extcon_register_notifier()
+and replaces the deprecated extcon API as following:
+- extcon_get_cable_state_() -> extcon_get_state()
 
-Cc: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Cc: Chen-Yu Tsai <wens-jdAy2FN1RRM@public.gmane.org>
-Signed-off-by: Chanwoo Choi <cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
 ---
- drivers/phy/phy-sun4i-usb.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/dwc3/dwc3-omap.c | 20 +++++++-------------
+ 1 file changed, 7 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/phy/phy-sun4i-usb.c b/drivers/phy/phy-sun4i-usb.c
-index eeda5134c777..95cdb08c339f 100644
---- a/drivers/phy/phy-sun4i-usb.c
-+++ b/drivers/phy/phy-sun4i-usb.c
-@@ -528,7 +528,7 @@ static void sun4i_usb_phy0_id_vbus_det_scan(struct work_struct *work)
- 	mutex_unlock(&phy0->mutex);
+diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+index 29e80cc9b634..2d2e9aa1db08 100644
+--- a/drivers/usb/dwc3/dwc3-omap.c
++++ b/drivers/usb/dwc3/dwc3-omap.c
+@@ -425,20 +425,20 @@ static int dwc3_omap_extcon_register(struct dwc3_omap *omap)
+ 		}
  
- 	if (id_notify) {
--		extcon_set_cable_state_(data->extcon, EXTCON_USB_HOST,
-+		extcon_set_state_sync(data->extcon, EXTCON_USB_HOST,
- 					!id_det);
- 		/* When leaving host mode force end the session here */
- 		if (force_session_end && id_det == 1) {
-@@ -541,7 +541,7 @@ static void sun4i_usb_phy0_id_vbus_det_scan(struct work_struct *work)
+ 		omap->vbus_nb.notifier_call = dwc3_omap_vbus_notifier;
+-		ret = extcon_register_notifier(edev, EXTCON_USB,
+-						&omap->vbus_nb);
++		ret = devm_extcon_register_notifier(omap->dev, edev,
++						EXTCON_USB, &omap->vbus_nb);
+ 		if (ret < 0)
+ 			dev_vdbg(omap->dev, "failed to register notifier for USB\n");
+ 
+ 		omap->id_nb.notifier_call = dwc3_omap_id_notifier;
+-		ret = extcon_register_notifier(edev, EXTCON_USB_HOST,
+-						&omap->id_nb);
++		ret = devm_extcon_register_notifier(omap->dev, edev,
++						EXTCON_USB_HOST, &omap->id_nb);
+ 		if (ret < 0)
+ 			dev_vdbg(omap->dev, "failed to register notifier for USB-HOST\n");
+ 
+-		if (extcon_get_cable_state_(edev, EXTCON_USB) == true)
++		if (extcon_get_state(edev, EXTCON_USB) == true)
+ 			dwc3_omap_set_mailbox(omap, OMAP_DWC3_VBUS_VALID);
+-		if (extcon_get_cable_state_(edev, EXTCON_USB_HOST) == true)
++		if (extcon_get_state(edev, EXTCON_USB_HOST) == true)
+ 			dwc3_omap_set_mailbox(omap, OMAP_DWC3_ID_GROUND);
+ 
+ 		omap->edev = edev;
+@@ -527,17 +527,13 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+ 	ret = of_platform_populate(node, NULL, NULL, dev);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to create dwc3 core\n");
+-		goto err2;
++		goto err1;
  	}
  
- 	if (vbus_notify)
--		extcon_set_cable_state_(data->extcon, EXTCON_USB, vbus_det);
-+		extcon_set_state_sync(data->extcon, EXTCON_USB, vbus_det);
+ 	dwc3_omap_enable_irqs(omap);
  
- 	if (sun4i_usb_phy0_poll(data))
- 		queue_delayed_work(system_wq, &data->detect, POLL_TIME);
+ 	return 0;
+ 
+-err2:
+-	extcon_unregister_notifier(omap->edev, EXTCON_USB, &omap->vbus_nb);
+-	extcon_unregister_notifier(omap->edev, EXTCON_USB_HOST, &omap->id_nb);
+-
+ err1:
+ 	pm_runtime_put_sync(dev);
+ 	pm_runtime_disable(dev);
+@@ -549,8 +545,6 @@ static int dwc3_omap_remove(struct platform_device *pdev)
+ {
+ 	struct dwc3_omap	*omap = platform_get_drvdata(pdev);
+ 
+-	extcon_unregister_notifier(omap->edev, EXTCON_USB, &omap->vbus_nb);
+-	extcon_unregister_notifier(omap->edev, EXTCON_USB_HOST, &omap->id_nb);
+ 	dwc3_omap_disable_irqs(omap);
+ 	of_platform_depopulate(omap->dev);
+ 	pm_runtime_put_sync(&pdev->dev);
 -- 
 1.9.1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
