@@ -1,16 +1,16 @@
-From: Felipe Balbi <balbi@kernel.org>
-Subject: Re: [PATCH 10/12] usb: phy: qcom-8x16-usb: Replace the extcon API
-Date: Wed, 30 Nov 2016 12:42:08 +0200
-Message-ID: <87vav5mepr.fsf@linux.intel.com>
-References: <1480485460-2663-1-git-send-email-cw00.choi@samsung.com> <1480485460-2663-11-git-send-email-cw00.choi@samsung.com>
+From: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 11/12] usb: phy: tahvo: Replace the deprecated extcon API
+Date: Wed, 30 Nov 2016 12:42:41 +0200
+Message-ID: <87shq9meou.fsf@linux.intel.com>
+References: <1480485460-2663-1-git-send-email-cw00.choi@samsung.com> <1480485460-2663-12-git-send-email-cw00.choi@samsung.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; boundary="=-=-=";
         micalg=pgp-sha256; protocol="application/pgp-signature"
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1480485460-2663-11-git-send-email-cw00.choi@samsung.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: gregkh@linuxfoundation.org, kishon@ti.com, sre@kernel.org
-Cc: Peter.Chen@nxp.com, wens@csie.org, yoshihiro.shimoda.uh@renesas.com, maxime.ripard@free-electrons.com, b-liu@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org, cw00.choi@samsung.com, chanwoo@kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1480485460-2663-12-git-send-email-cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: Peter.Chen-3arQi8VN3Tc@public.gmane.org, wens-jdAy2FN1RRM@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-renesas-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, chanwoo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 --=-=-=
@@ -20,15 +20,13 @@ Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-Chanwoo Choi <cw00.choi@samsung.com> writes:
-> This patch uses the resource-managed extcon API for extcon_register_notif=
-ier()
-> and replaces the deprecated extcon API as following:
-> - extcon_get_cable_state_() -> extcon_get_state()
+Chanwoo Choi <cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org> writes:
+> This patch replaces the deprecated extcon API as following:
+> - extcon_set_cable_state_() -> extcon_set_state_sync()
 >
-> Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
+> Signed-off-by: Chanwoo Choi <cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 
-Acked-by: Felipe Balbi <felipe.balbi@linux.intel.com>
+Acked-by: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 
 =2D-=20
 balbi
@@ -38,18 +36,22 @@ Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAlg+rQEACgkQzL64meEa
-mQbHQBAAkHgsJpqwzZjg0zQOE/2YIN6Ey3yJxmsH2pMMNl0pfxWgeovxfckXnx7n
-JKe6vSgPenixprb0aFdqvP9iflfOSe621F+SaKfoKuf1/Yy02h22DOl99JwpGJYx
-/HIb+NG3T2OaOsYkxoIQjaqoqbVJ8ZTquQUgnUn2NOId6xqkU5riPIXgvJq+PE5P
-+g3wf7N1GF4WNvpBng3XhkVnDdkgpsaPRMLnA/L2bykDrUWQnYcyxZkfBl0tgCjj
-glsw2sSEbO9Y5r9QMyRF6/rpgJHZbISZdmyljytVGVVGtFtmxYrFw1+79XQTPBqE
-tbsG4wG4ehFaNCXI3dyirXfNzTAQBxLDUx0XNsek0CFi9yuVtzp0EGRVOwjnYI96
-Ibgl0XqfZLTLcNyezx6F4HIyPt2eN0lX8RyT+GiVm1rWKfcLxg6Uwmqt4YDU3Psk
-8ay9cN4eEnXREeSupjP7XNo3QbqrAFwDxuy1vJy1aNVdNmzrzMYVrpjgtxYqz61S
-ejauss9JmTw8lwuAffOmHVvjWMDRc+ePoYzljYPj8zT9PBhlBrvJFAthpdjp11q5
-07rvIhUci3mcIWLFwwD2x0IQxtGSiqhW/MKrfsipgjhygsGml2CnmY8TJLfY9/xO
-97BgKAjVPxZYGX/u/XjzGIffVL3fGcN+1+UoShKpytY6u59bU9o=
-=d47u
+iQIzBAEBCAAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAlg+rSEACgkQzL64meEa
+mQYu4w/+O+zzVwXdA9Dnr8vT8b4IqP9TCXF3bY+HfyrSQL4EQWpM7TQVjxmLm0U1
+auWGuqYGH3uMo3NVOv6iVEV8//hipl1VF5aSnvJqqCuT2HCqJ9IWIDG4r/OsTB9l
+tkNVOz2WFr+m+DujvYninh0nKroWhJjU3c4AO0dIjv/ItibEGCRCIGSQfEuWgxf0
+NrCoOr7tRl8J1EjdToCv8VFAzvcccUpSgrTEFqGxw/H3JCycWUyl4HEYrSS24mYI
+83oEu4fPAFO0ak8cIHJrcbzdIhI3a7LJvZACVkHueTU09FfQRlO8giDyUim+djKh
+ibSJOnZY3yKMHEpZbD2xrp5C2PBHfy3cNWxHc8c+TwRdV4SiD/HTx4787sdI9T1B
+RaoKIjLj8YKsxgry1xj/dh/u6ZHgBZbIzJDXv4q5XruB89UkENLAABCv1ApduOl9
+q2kmwAjutMHJgfndLoAEaDPqyw5xBHBpe1JwFeWUuuJxr0KhDdehzjUIfAhcCd+8
+s/B4yHOpzL+TL5qZCvwwwdziTfpCCAdVS3uMUqeOo+90N48AW/HguVzba3oLAeL5
+9uWV7q+WJESB3gnAsZqJtW6pSyVwJucI+R7ZwbIdnvt3uL1Vfw29padVkf0rSSuM
+mXw/bzVw+VpQ+ALq3t/1zoDCS1z1+84fCARmdxafPSfbfyaAL0Y=
+=0Y/E
 -----END PGP SIGNATURE-----
 --=-=-=--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
