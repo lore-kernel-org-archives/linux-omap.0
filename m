@@ -1,64 +1,37 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: [PATCH 1/6] net: ethernet: ti: netcp: add support of cpts
-Date: Wed, 30 Nov 2016 10:44:41 +0100
-Message-ID: <20161130094441.GB28680@localhost.localdomain>
-References: <20161128230428.6872-1-grygorii.strashko@ti.com>
- <20161128230428.6872-2-grygorii.strashko@ti.com>
+From: Yegor Yefremov <yegorslists@googlemail.com>
+Subject: Re: [PATCH] cpsw: ethtool: add support for nway reset
+Date: Wed, 30 Nov 2016 10:31:30 +0100
+Message-ID: <CAGm1_ktxyxVxYdF0Aq-Nv2rVGjEccPsGRZSXHBOE9egybiV1Lg@mail.gmail.com>
+References: <1480326472-5849-1-git-send-email-yegorslists@googlemail.com> <20161129.194158.1482957574907674651.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161128230428.6872-2-grygorii.strashko@ti.com>
+In-Reply-To: <20161129.194158.1482957574907674651.davem@davemloft.net>
 Sender: netdev-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Wingman Kwok <w-kwok2@ti.com>
+To: David Miller <davem@davemloft.net>
+Cc: netdev <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "N, Mugunthan V" <mugunthanvnm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 28, 2016 at 05:04:23PM -0600, Grygorii Strashko wrote:
-> @@ -678,6 +744,9 @@ struct gbe_priv {
->  	int				num_et_stats;
->  	/*  Lock for updating the hwstats */
->  	spinlock_t			hw_stats_lock;
-> +
-> +	int                             cpts_registered;
+Hi David,
 
-The usage of this counter is racy.
+On Wed, Nov 30, 2016 at 1:41 AM, David Miller <davem@davemloft.net> wrote:
+> From: yegorslists@googlemail.com
+> Date: Mon, 28 Nov 2016 10:47:52 +0100
+>
+>> From: Yegor Yefremov <yegorslists@googlemail.com>
+>>
+>> This patch adds support for ethtool's '-r' command. Restarting
+>> N-WAY negotiation can be useful to activate newly changed EEE
+>> settings etc.
+>>
+>> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+>
+> This doesn't apply cleanly to net-next.
 
-> +	struct cpts                     *cpts;
->  };
+My previous patch [1] doesn't show up in net-next. This could explain,
+why nway patch doesn't apply.
+Should I resend them both as series?
 
-This ++ and -- business ...
+[1] http://marc.info/?l=linux-omap&m=148036822211869&w=2
 
-> +static void gbe_register_cpts(struct gbe_priv *gbe_dev)
-> +{
-> +	if (!gbe_dev->cpts)
-> +		return;
-> +
-> +	if (gbe_dev->cpts_registered > 0)
-> +		goto done;
-> +
-> +	if (cpts_register(gbe_dev->cpts)) {
-> +		dev_err(gbe_dev->dev, "error registering cpts device\n");
-> +		return;
-> +	}
-> +
-> +done:
-> +	++gbe_dev->cpts_registered;
-> +}
-> +
-> +static void gbe_unregister_cpts(struct gbe_priv *gbe_dev)
-> +{
-> +	if (!gbe_dev->cpts || (gbe_dev->cpts_registered <= 0))
-> +		return;
-> +
-> +	if (--gbe_dev->cpts_registered)
-> +		return;
-> +
-> +	cpts_unregister(gbe_dev->cpts);
-> +}
-
-is invoked from your open() and close() methods, but those methods
-are not serialized among multiple ports.
-
-Thanks,
-Richard
+Yegor
