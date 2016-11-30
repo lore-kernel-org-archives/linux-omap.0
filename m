@@ -1,85 +1,148 @@
-From: Chanwoo Choi <cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 05/12] usb: chipdata: Replace the extcon API
-Date: Wed, 30 Nov 2016 14:57:33 +0900
-Message-ID: <1480485460-2663-6-git-send-email-cw00.choi@samsung.com>
+From: Chanwoo Choi <cw00.choi@samsung.com>
+Subject: [PATCH 03/12] power_supply: axp288_charger: Replace the extcon API
+Date: Wed, 30 Nov 2016 14:57:31 +0900
+Message-ID: <1480485460-2663-4-git-send-email-cw00.choi@samsung.com>
 References: <1480485460-2663-1-git-send-email-cw00.choi@samsung.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <1480485460-2663-1-git-send-email-cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Peter.Chen-3arQi8VN3Tc@public.gmane.org, wens-jdAy2FN1RRM@public.gmane.org, yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-renesas-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, chanwoo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-reply-to: <1480485460-2663-1-git-send-email-cw00.choi@samsung.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: balbi@kernel.org, gregkh@linuxfoundation.org, kishon@ti.com, sre@kernel.org
+Cc: Peter.Chen@nxp.com, wens@csie.org, yoshihiro.shimoda.uh@renesas.com, maxime.ripard@free-electrons.com, b-liu@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org, cw00.choi@samsung.com, chanwoo@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 This patch uses the resource-managed extcon API for extcon_register_notifier()
 and replaces the deprecated extcon API as following:
 - extcon_get_cable_state_() -> extcon_get_state()
 
-Signed-off-by: Chanwoo Choi <cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
 ---
- drivers/usb/chipidea/core.c | 30 ++++++------------------------
- 1 file changed, 6 insertions(+), 24 deletions(-)
+ drivers/power/supply/axp288_charger.c | 51 +++++++++--------------------------
+ 1 file changed, 13 insertions(+), 38 deletions(-)
 
-diff --git a/drivers/usb/chipidea/core.c b/drivers/usb/chipidea/core.c
-index 69426e644d17..a5b44963eaea 100644
---- a/drivers/usb/chipidea/core.c
-+++ b/drivers/usb/chipidea/core.c
-@@ -742,7 +742,7 @@ static int ci_get_platdata(struct device *dev,
- 	cable->edev = ext_vbus;
+diff --git a/drivers/power/supply/axp288_charger.c b/drivers/power/supply/axp288_charger.c
+index 75b8e0c7402b..1115052e9a69 100644
+--- a/drivers/power/supply/axp288_charger.c
++++ b/drivers/power/supply/axp288_charger.c
+@@ -581,15 +581,15 @@ static void axp288_charger_extcon_evt_worker(struct work_struct *work)
+ 	bool old_connected = info->cable.connected;
  
- 	if (!IS_ERR(ext_vbus)) {
--		ret = extcon_get_cable_state_(cable->edev, EXTCON_USB);
-+		ret = extcon_get_state(cable->edev, EXTCON_USB);
- 		if (ret)
- 			cable->state = true;
- 		else
-@@ -754,7 +754,7 @@ static int ci_get_platdata(struct device *dev,
- 	cable->edev = ext_id;
+ 	/* Determine cable/charger type */
+-	if (extcon_get_cable_state_(edev, EXTCON_CHG_USB_SDP) > 0) {
++	if (extcon_get_state(edev, EXTCON_CHG_USB_SDP) > 0) {
+ 		dev_dbg(&info->pdev->dev, "USB SDP charger  is connected");
+ 		info->cable.connected = true;
+ 		info->cable.chg_type = POWER_SUPPLY_TYPE_USB;
+-	} else if (extcon_get_cable_state_(edev, EXTCON_CHG_USB_CDP) > 0) {
++	} else if (extcon_get_state(edev, EXTCON_CHG_USB_CDP) > 0) {
+ 		dev_dbg(&info->pdev->dev, "USB CDP charger is connected");
+ 		info->cable.connected = true;
+ 		info->cable.chg_type = POWER_SUPPLY_TYPE_USB_CDP;
+-	} else if (extcon_get_cable_state_(edev, EXTCON_CHG_USB_DCP) > 0) {
++	} else if (extcon_get_state(edev, EXTCON_CHG_USB_DCP) > 0) {
+ 		dev_dbg(&info->pdev->dev, "USB DCP charger is connected");
+ 		info->cable.connected = true;
+ 		info->cable.chg_type = POWER_SUPPLY_TYPE_USB_DCP;
+@@ -686,7 +686,7 @@ static int axp288_charger_handle_otg_evt(struct notifier_block *nb,
+ 	struct axp288_chrg_info *info =
+ 	    container_of(nb, struct axp288_chrg_info, otg.id_nb);
+ 	struct extcon_dev *edev = info->otg.cable;
+-	int usb_host = extcon_get_cable_state_(edev, EXTCON_USB_HOST);
++	int usb_host = extcon_get_state(edev, EXTCON_USB_HOST);
  
- 	if (!IS_ERR(ext_id)) {
--		ret = extcon_get_cable_state_(cable->edev, EXTCON_USB_HOST);
-+		ret = extcon_get_state(cable->edev, EXTCON_USB_HOST);
- 		if (ret)
- 			cable->state = false;
- 		else
-@@ -771,8 +771,8 @@ static int ci_extcon_register(struct ci_hdrc *ci)
- 	id = &ci->platdata->id_extcon;
- 	id->ci = ci;
- 	if (!IS_ERR(id->edev)) {
--		ret = extcon_register_notifier(id->edev, EXTCON_USB_HOST,
--					       &id->nb);
-+		ret = devm_extcon_register_notifier(ci->dev, id->edev,
-+						EXTCON_USB_HOST, &id->nb);
- 		if (ret < 0) {
- 			dev_err(ci->dev, "register ID failed\n");
- 			return ret;
-@@ -782,11 +782,9 @@ static int ci_extcon_register(struct ci_hdrc *ci)
- 	vbus = &ci->platdata->vbus_extcon;
- 	vbus->ci = ci;
- 	if (!IS_ERR(vbus->edev)) {
--		ret = extcon_register_notifier(vbus->edev, EXTCON_USB,
--					       &vbus->nb);
-+		ret = devm_extcon_register_notifier(ci->dev, vbus->edev,
-+						EXTCON_USB, &vbus->nb);
- 		if (ret < 0) {
--			extcon_unregister_notifier(id->edev, EXTCON_USB_HOST,
--						   &id->nb);
- 			dev_err(ci->dev, "register VBUS failed\n");
- 			return ret;
- 		}
-@@ -795,20 +793,6 @@ static int ci_extcon_register(struct ci_hdrc *ci)
+ 	dev_dbg(&info->pdev->dev, "external connector USB-Host is %s\n",
+ 				usb_host ? "attached" : "detached");
+@@ -841,33 +841,27 @@ static int axp288_charger_probe(struct platform_device *pdev)
+ 	/* Register for extcon notification */
+ 	INIT_WORK(&info->cable.work, axp288_charger_extcon_evt_worker);
+ 	info->cable.nb.notifier_call = axp288_charger_handle_cable_evt;
+-	ret = extcon_register_notifier(info->cable.edev, EXTCON_CHG_USB_SDP,
+-					&info->cable.nb);
++	ret = devm_extcon_register_notifier(&pdev->dev, info->cable.edev,
++					EXTCON_CHG_USB_SDP, &info->cable.nb);
+ 	if (ret) {
+ 		dev_err(&info->pdev->dev,
+ 			"failed to register extcon notifier for SDP %d\n", ret);
+ 		return ret;
+ 	}
+ 
+-	ret = extcon_register_notifier(info->cable.edev, EXTCON_CHG_USB_CDP,
+-					&info->cable.nb);
++	ret = devm_extcon_register_notifier(&pdev->dev, info->cable.edev,
++					EXTCON_CHG_USB_CDP, &info->cable.nb);
+ 	if (ret) {
+ 		dev_err(&info->pdev->dev,
+ 			"failed to register extcon notifier for CDP %d\n", ret);
+-		extcon_unregister_notifier(info->cable.edev,
+-				EXTCON_CHG_USB_SDP, &info->cable.nb);
+ 		return ret;
+ 	}
+ 
+-	ret = extcon_register_notifier(info->cable.edev, EXTCON_CHG_USB_DCP,
+-					&info->cable.nb);
++	ret = devm_extcon_register_notifier(&pdev->dev, info->cable.edev,
++					EXTCON_CHG_USB_DCP, &info->cable.nb);
+ 	if (ret) {
+ 		dev_err(&info->pdev->dev,
+ 			"failed to register extcon notifier for DCP %d\n", ret);
+-		extcon_unregister_notifier(info->cable.edev,
+-				EXTCON_CHG_USB_SDP, &info->cable.nb);
+-		extcon_unregister_notifier(info->cable.edev,
+-				EXTCON_CHG_USB_CDP, &info->cable.nb);
+ 		return ret;
+ 	}
+ 
+@@ -887,13 +881,13 @@ static int axp288_charger_probe(struct platform_device *pdev)
+ 	/* Register for OTG notification */
+ 	INIT_WORK(&info->otg.work, axp288_charger_otg_evt_worker);
+ 	info->otg.id_nb.notifier_call = axp288_charger_handle_otg_evt;
+-	ret = extcon_register_notifier(info->otg.cable, EXTCON_USB_HOST,
+-				       &info->otg.id_nb);
++	ret = devm_extcon_register_notifier(&pdev->dev, info->otg.cable,
++					EXTCON_USB_HOST, &info->otg.id_nb);
+ 	if (ret)
+ 		dev_warn(&pdev->dev, "failed to register otg notifier\n");
+ 
+ 	if (info->otg.cable)
+-		info->otg.id_short = extcon_get_cable_state_(
++		info->otg.id_short = extcon_get_state(
+ 					info->otg.cable, EXTCON_USB_HOST);
+ 
+ 	/* Register charger interrupts */
+@@ -921,17 +915,8 @@ static int axp288_charger_probe(struct platform_device *pdev)
  	return 0;
+ 
+ intr_reg_failed:
+-	if (info->otg.cable)
+-		extcon_unregister_notifier(info->otg.cable, EXTCON_USB_HOST,
+-					&info->otg.id_nb);
+ 	power_supply_unregister(info->psy_usb);
+ psy_reg_failed:
+-	extcon_unregister_notifier(info->cable.edev, EXTCON_CHG_USB_SDP,
+-					&info->cable.nb);
+-	extcon_unregister_notifier(info->cable.edev, EXTCON_CHG_USB_CDP,
+-					&info->cable.nb);
+-	extcon_unregister_notifier(info->cable.edev, EXTCON_CHG_USB_DCP,
+-					&info->cable.nb);
+ 	return ret;
  }
  
--static void ci_extcon_unregister(struct ci_hdrc *ci)
--{
--	struct ci_hdrc_cable *cable;
+@@ -939,16 +924,6 @@ static int axp288_charger_remove(struct platform_device *pdev)
+ {
+ 	struct axp288_chrg_info *info =  dev_get_drvdata(&pdev->dev);
+ 
+-	if (info->otg.cable)
+-		extcon_unregister_notifier(info->otg.cable, EXTCON_USB_HOST,
+-					&info->otg.id_nb);
 -
--	cable = &ci->platdata->id_extcon;
--	if (!IS_ERR(cable->edev))
--		extcon_unregister_notifier(cable->edev, EXTCON_USB_HOST,
--					   &cable->nb);
--
--	cable = &ci->platdata->vbus_extcon;
--	if (!IS_ERR(cable->edev))
--		extcon_unregister_notifier(cable->edev, EXTCON_USB, &cable->nb);
--}
+-	extcon_unregister_notifier(info->cable.edev, EXTCON_CHG_USB_SDP,
+-					&info->cable.nb);
+-	extcon_unregister_notifier(info->cable.edev, EXTCON_CHG_USB_CDP,
+-					&info->cable.nb);
+-	extcon_unregister_notifier(info->cable.edev, EXTCON_CHG_USB_DCP,
+-					&info->cable.nb);
+ 	power_supply_unregister(info->psy_usb);
+ 
+ 	return 0;
+-- 
+1.9.1
+
