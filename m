@@ -1,62 +1,27 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH] net: ethernet: ti: cpsw: fix ASSERT_RTNL() warning
- during resume
-Date: Wed, 30 Nov 2016 02:18:57 +0200
-Message-ID: <20161130001857.GB18604@khorivan>
-References: <20161129222703.10908-1-grygorii.strashko@ti.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] cpsw: ethtool: add support for nway reset
+Date: Tue, 29 Nov 2016 19:41:58 -0500 (EST)
+Message-ID: <20161129.194158.1482957574907674651.davem@davemloft.net>
+References: <1480326472-5849-1-git-send-email-yegorslists@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161129222703.10908-1-grygorii.strashko@ti.com>
+In-Reply-To: <1480326472-5849-1-git-send-email-yegorslists@googlemail.com>
 Sender: netdev-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>
+To: yegorslists@googlemail.com
+Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, grygorii.strashko@ti.com, mugunthanvnm@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 29, 2016 at 04:27:03PM -0600, Grygorii Strashko wrote:
-> netif_set_real_num_tx/rx_queues() are required to be called with rtnl_lock
-> taken, otherwise ASSERT_RTNL() warning will be triggered - which happens
-> now during System resume from suspend:
-> cpsw_resume()
-> |- cpsw_ndo_open()
->   |- netif_set_real_num_tx/rx_queues()
->      |- ASSERT_RTNL();
-> 
-> Hence, fix it by surrounding cpsw_ndo_open() by rtnl_lock/unlock() calls.
-> 
-> Cc: Dave Gerlach <d-gerlach@ti.com>
-> Cc: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-> Fixes: commit e05107e6b747 ("net: ethernet: ti: cpsw: add multi queue support")
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Reviewed-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+From: yegorslists@googlemail.com
+Date: Mon, 28 Nov 2016 10:47:52 +0100
 
-> ---
->  drivers/net/ethernet/ti/cpsw.c | 4 ++++
->  1 file changed, 4 insertions(+)
+> From: Yegor Yefremov <yegorslists@googlemail.com>
 > 
-> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> index ae1ec6a..fd6c03b 100644
-> --- a/drivers/net/ethernet/ti/cpsw.c
-> +++ b/drivers/net/ethernet/ti/cpsw.c
-> @@ -2944,6 +2944,8 @@ static int cpsw_resume(struct device *dev)
->  	/* Select default pin state */
->  	pinctrl_pm_select_default_state(dev);
->  
-> +	/* shut up ASSERT_RTNL() warning in netif_set_real_num_tx/rx_queues */
-> +	rtnl_lock();
->  	if (cpsw->data.dual_emac) {
->  		int i;
->  
-> @@ -2955,6 +2957,8 @@ static int cpsw_resume(struct device *dev)
->  		if (netif_running(ndev))
->  			cpsw_ndo_open(ndev);
->  	}
-> +	rtnl_unlock();
-> +
->  	return 0;
->  }
->  #endif
-> -- 
-> 2.10.1
+> This patch adds support for ethtool's '-r' command. Restarting
+> N-WAY negotiation can be useful to activate newly changed EEE
+> settings etc.
 > 
+> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+
+This doesn't apply cleanly to net-next.
