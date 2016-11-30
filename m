@@ -1,67 +1,80 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [PATCH] net: ethernet: ti: cpsw: fix ASSERT_RTNL() warning during
- resume
-Date: Wed, 30 Nov 2016 10:03:40 -0600
-Message-ID: <573b4b9d-190a-c374-d047-5a971653f766@ti.com>
-References: <20161129222703.10908-1-grygorii.strashko@ti.com>
- <20161130001857.GB18604@khorivan>
+From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/6] net: ethernet: ti: netcp: add support of cpts
+Date: Wed, 30 Nov 2016 11:31:56 -0600
+Message-ID: <4d69aff4-70a0-e6b8-38b0-8e95cfea7601@ti.com>
+References: <20161128230428.6872-1-grygorii.strashko@ti.com>
+ <20161128230428.6872-2-grygorii.strashko@ti.com>
+ <20161130094441.GB28680@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161130001857.GB18604@khorivan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161130094441.GB28680-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Murali Karicheri <m-karicheri2-l0cyMroinI0@public.gmane.org>, Wingman Kwok <w-kwok2-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/29/2016 06:18 PM, Ivan Khoronzhuk wrote:
-> On Tue, Nov 29, 2016 at 04:27:03PM -0600, Grygorii Strashko wrote:
->> netif_set_real_num_tx/rx_queues() are required to be called with rtnl_lock
->> taken, otherwise ASSERT_RTNL() warning will be triggered - which happens
->> now during System resume from suspend:
->> cpsw_resume()
->> |- cpsw_ndo_open()
->>   |- netif_set_real_num_tx/rx_queues()
->>      |- ASSERT_RTNL();
->>
->> Hence, fix it by surrounding cpsw_ndo_open() by rtnl_lock/unlock() calls.
->>
->> Cc: Dave Gerlach <d-gerlach@ti.com>
->> Cc: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
->> Fixes: commit e05107e6b747 ("net: ethernet: ti: cpsw: add multi queue support")
->> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> Reviewed-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
->
 
-Tested-by: Dave Gerlach <d-gerlach@ti.com>
 
->> ---
->>  drivers/net/ethernet/ti/cpsw.c | 4 ++++
->>  1 file changed, 4 insertions(+)
->>
->> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
->> index ae1ec6a..fd6c03b 100644
->> --- a/drivers/net/ethernet/ti/cpsw.c
->> +++ b/drivers/net/ethernet/ti/cpsw.c
->> @@ -2944,6 +2944,8 @@ static int cpsw_resume(struct device *dev)
->>  	/* Select default pin state */
->>  	pinctrl_pm_select_default_state(dev);
->>
->> +	/* shut up ASSERT_RTNL() warning in netif_set_real_num_tx/rx_queues */
->> +	rtnl_lock();
->>  	if (cpsw->data.dual_emac) {
->>  		int i;
->>
->> @@ -2955,6 +2957,8 @@ static int cpsw_resume(struct device *dev)
->>  		if (netif_running(ndev))
->>  			cpsw_ndo_open(ndev);
->>  	}
->> +	rtnl_unlock();
+On 11/30/2016 03:44 AM, Richard Cochran wrote:
+> On Mon, Nov 28, 2016 at 05:04:23PM -0600, Grygorii Strashko wrote:
+>> @@ -678,6 +744,9 @@ struct gbe_priv {
+>>  	int				num_et_stats;
+>>  	/*  Lock for updating the hwstats */
+>>  	spinlock_t			hw_stats_lock;
 >> +
->>  	return 0;
->>  }
->>  #endif
->> --
->> 2.10.1
->>
+>> +	int                             cpts_registered;
+> 
+> The usage of this counter is racy.
+> 
+>> +	struct cpts                     *cpts;
+>>  };
+> 
+> This ++ and -- business ...
+> 
+>> +static void gbe_register_cpts(struct gbe_priv *gbe_dev)
+>> +{
+>> +	if (!gbe_dev->cpts)
+>> +		return;
+>> +
+>> +	if (gbe_dev->cpts_registered > 0)
+>> +		goto done;
+>> +
+>> +	if (cpts_register(gbe_dev->cpts)) {
+>> +		dev_err(gbe_dev->dev, "error registering cpts device\n");
+>> +		return;
+>> +	}
+>> +
+>> +done:
+>> +	++gbe_dev->cpts_registered;
+>> +}
+>> +
+>> +static void gbe_unregister_cpts(struct gbe_priv *gbe_dev)
+>> +{
+>> +	if (!gbe_dev->cpts || (gbe_dev->cpts_registered <= 0))
+>> +		return;
+>> +
+>> +	if (--gbe_dev->cpts_registered)
+>> +		return;
+>> +
+>> +	cpts_unregister(gbe_dev->cpts);
+>> +}
+> 
+> is invoked from your open() and close() methods, but those methods
+> are not serialized among multiple ports.
+> 
+
+ok. Seems my assumption that ndo_open/ndo_close serialized by rtnl_lock is incorrect. Right?
+net_device_ops.ndo_open ->
+ netcp_ndo_open
+ gbe_open
+ gbe_register_cpts
+
+-- 
+regards,
+-grygorii
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
