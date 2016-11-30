@@ -1,35 +1,51 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net 00/16] net: fix fixed-link phydev leaks
-Date: Tue, 29 Nov 2016 23:17:21 -0500 (EST)
-Message-ID: <20161129.231721.971587311467577164.davem@davemloft.net>
-References: <1480357509-28074-1-git-send-email-johan@kernel.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Chanwoo Choi <cw00.choi@samsung.com>
+Subject: [PATCH 00/12] extcon: Replace the deprecated extcon API
+Date: Wed, 30 Nov 2016 14:57:28 +0900
+Message-ID: <1480485460-2663-1-git-send-email-cw00.choi@samsung.com>
 Return-path: <linux-renesas-soc-owner@vger.kernel.org>
-In-Reply-To: <1480357509-28074-1-git-send-email-johan@kernel.org>
 Sender: linux-renesas-soc-owner@vger.kernel.org
-To: johan@kernel.org
-Cc: vbridger@opensource.altera.com, f.fainelli@gmail.com, fugang.duan@nxp.com, pantelis.antoniou@gmail.com, vbordug@ru.mvista.com, claudiu.manoil@freescale.com, leoli@freescale.com, thomas.petazzoni@free-electrons.com, nbd@openwrt.org, blogic@openwrt.org, matthias.bgg@gmail.com, sergei.shtylyov@cogentembedded.com, lars.persson@axis.com, mugunthanvnm@ti.com, grygorii.strashko@ti.com, robh+dt@kernel.org, frowand.list@gmail.com, andrew@lunn.ch, vivien.didelot@savoirfairelinux.com, netdev@vger.kernel.org, nios2-dev@lists.rocketboards.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mediatek@lists.infradead.org, linux-renesas-soc@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+To: balbi@kernel.org, gregkh@linuxfoundation.org, kishon@ti.com, sre@kernel.org
+Cc: Peter.Chen@nxp.com, wens@csie.org, yoshihiro.shimoda.uh@renesas.com, maxime.ripard@free-electrons.com, b-liu@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org, cw00.choi@samsung.com, chanwoo@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Johan Hovold <johan@kernel.org>
-Date: Mon, 28 Nov 2016 19:24:53 +0100
+This patches just replace the deprecated extcon API without any change
+of extcon operation and use the resource-managed function for
+extcon_register_notifier().
 
-> This series fixes failures to deregister and free fixed-link phydevs
-> that have been registered using the of_phy_register_fixed_link()
-> interface.
-> 
-> All but two drivers currently fail to do this and this series fixes most
-> of them with the exception of a staging driver and the stmmac drivers
-> which will be fixed by follow-on patches.
-> 
-> Included are also a couple of fixes for related of-node leaks.
-> 
-> Note that all patches except the of_mdio one have been compile-tested
-> only.
-> 
-> Also note that the series is against net due to dependencies not yet in
-> net-next.
+The new extcon API instead of deprecated API.
+- extcon_set_cable_state_() -> extcon_set_state_sync();
+- extcon_get_cable_state_() -> extcon_get_state();
 
-Series applied, thanks Johan.
+The each patch has not any dependency among patches. So, each maintainer
+could pick up each patch without any problem.
+
+Chanwoo Choi (12):
+  phy: rcar-gen3-usb2: Replace the deprecated extcon API
+  phy: sun4i-usb: Replace the deprecated extcon API
+  power_supply: axp288_charger: Replace the extcon API
+  power_supply: qcom_smbb: Replace the deprecated extcon API
+  usb: chipdata: Replace the extcon API
+  usb: dwc3: omap: Replace the extcon API
+  usb: sunxi: Uses the resource-managed extcon API when registering extcon notifier
+  usb: phy: msm: Replace the extcon API
+  usb: phy: omap-otg: Replace the extcon API
+  usb: phy: qcom-8x16-usb: Replace the extcon API
+  usb: phy: tahvo: Replace the deprecated extcon API
+  usb: renesas_usbhs: Replace the deprecated extcon API
+
+ drivers/phy/phy-rcar-gen3-usb2.c      |  8 +++---
+ drivers/phy/phy-sun4i-usb.c           |  4 +--
+ drivers/power/supply/axp288_charger.c | 51 +++++++++--------------------------
+ drivers/power/supply/qcom_smbb.c      |  2 +-
+ drivers/usb/chipidea/core.c           | 30 +++++----------------
+ drivers/usb/dwc3/dwc3-omap.c          | 20 +++++---------
+ drivers/usb/musb/sunxi.c              | 12 +++------
+ drivers/usb/phy/phy-msm-usb.c         | 33 ++++++++---------------
+ drivers/usb/phy/phy-omap-otg.c        | 24 +++++------------
+ drivers/usb/phy/phy-qcom-8x16-usb.c   | 13 +++------
+ drivers/usb/phy/phy-tahvo.c           | 10 +++----
+ drivers/usb/renesas_usbhs/common.c    |  2 +-
+ 12 files changed, 63 insertions(+), 146 deletions(-)
+
+-- 
+1.9.1
