@@ -1,49 +1,45 @@
-From: Maninder Singh <maninder1.s@samsung.com>
-Subject: [PATCH 1/1] mach-omap2: fixing wrong strcat for Non-NULL terminated
- string
-Date: Wed, 30 Nov 2016 16:10:28 +0530
-Message-ID: <1480502428-19509-1-git-send-email-maninder1.s@samsung.com>
+From: Jan =?ISO-8859-1?Q?L=FCbbe?= <jlu@pengutronix.de>
+Subject: Re: [PATCH 4/6] net: ethernet: ti: cpts: add ptp pps support
+Date: Wed, 30 Nov 2016 12:01:26 +0100
+Message-ID: <1480503686.9183.69.camel@pengutronix.de>
+References: <20161128230428.6872-1-grygorii.strashko@ti.com>
+         <20161128230428.6872-5-grygorii.strashko@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161128230428.6872-5-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: bcousson@baylibre.com, paul@pwsan.com, tony@atomide.com, linux@armlinux.org.uk
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, ajeet.y@samsung.com, pankaj.m@samsung.com, Maninder Singh <maninder1.s@samsung.com>, Vaneet Narang <v.narang@samsung.com>
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Richard Cochran <richardcochran@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Wingman Kwok <w-kwok2@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-variable name can have Non NULL terminated string after cropping
-which may result strcat to fail, and cropping is not
-required if (strlen(oh->name) + 8 < MOD_CLK_MAX_NAME_LEN).
+On Mo, 2016-11-28 at 17:04 -0600, Grygorii Strashko wrote:
+> --- a/Documentation/devicetree/bindings/net/keystone-netcp.txt
+> +++ b/Documentation/devicetree/bindings/net/keystone-netcp.txt
+> @@ -127,6 +127,16 @@ Optional properties:
+>                 The number of external time stamp channels.
+>                 The different CPTS versions might support up 8
+>                 external time stamp channels. if absent - unsupported.
+> +       - cpts-ts-comp-length:
+> +               Enable time stamp comparison event and TS_COMP signal output
+> +               generation when CPTS counter reaches a value written to
+> +               the TS_COMP_VAL register.
+> +               The generated pulse width is 3 refclk cycles if this property
+> +               has no value (empty) or, otherwise, it should specify desired
+> +               pulse width in number of refclk periods - max value 2^16.
+> +               TS_COMP functionality will be disabled if not present.
+> +       - cpts-ts-comp-polarity-low:
+> +               Set polarity of TS_COMP signal to low. Default is hight.
 
-Issue caught with static analysis tool:
-"Dangerous usage of 'name' (strncpy doesn't always 0-terminate it)"
+Why is this configured via DT? Are the values fixed for a given board,
+depending on external components? Couldn't this be configured somewhere
+else?
 
-Signed-off-by: Vaneet Narang <v.narang@samsung.com>
-Signed-off-by: Maninder Singh <maninder1.s@samsung.com>
----
- arch/arm/mach-omap2/omap_hwmod.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 759e1d4..8adf272 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -742,12 +742,15 @@ static int _init_main_clk(struct omap_hwmod *oh)
- 	char name[MOD_CLK_MAX_NAME_LEN];
- 	struct clk *clk;
- 
--	/* +7 magic comes from '_mod_ck' suffix */
--	if (strlen(oh->name) + 7 > MOD_CLK_MAX_NAME_LEN)
-+	/* +8 magic comes from strlen("_mod_ck") added as suffix */
-+	if (strlen(oh->name) + 8 > MOD_CLK_MAX_NAME_LEN) {
- 		pr_warn("%s: warning: cropping name for %s\n", __func__,
- 			oh->name);
-+		strncpy(name, oh->name, MOD_CLK_MAX_NAME_LEN - 8);
-+		name[MOD_CLK_MAX_NAME_LEN - 8] = '\0';
-+	} else
-+		strcpy(name, oh->name);
- 
--	strncpy(name, oh->name, MOD_CLK_MAX_NAME_LEN - 7);
- 	strcat(name, "_mod_ck");
- 
- 	clk = clk_get(NULL, name);
+Regards,
+Jan
 -- 
-1.9.1
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
