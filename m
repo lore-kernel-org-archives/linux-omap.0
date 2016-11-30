@@ -1,83 +1,87 @@
-From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: [PATCH 06/12] usb: dwc3: omap: Replace the extcon API
-Date: Wed, 30 Nov 2016 14:57:34 +0900
-Message-ID: <1480485460-2663-7-git-send-email-cw00.choi@samsung.com>
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: Re: [PATCH 07/12] usb: sunxi: Uses the resource-managed extcon API
+ when registering extcon notifier
+Date: Wed, 30 Nov 2016 09:45:03 +0100
+Message-ID: <20161130084503.v5klzl6silp6323s@lukather>
 References: <1480485460-2663-1-git-send-email-cw00.choi@samsung.com>
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-reply-to: <1480485460-2663-1-git-send-email-cw00.choi@samsung.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: balbi@kernel.org, gregkh@linuxfoundation.org, kishon@ti.com, sre@kernel.org
-Cc: Peter.Chen@nxp.com, wens@csie.org, yoshihiro.shimoda.uh@renesas.com, maxime.ripard@free-electrons.com, b-liu@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org, cw00.choi@samsung.com, chanwoo@kernel.org
+ <1480485460-2663-8-git-send-email-cw00.choi@samsung.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============7833765109884036205=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1480485460-2663-8-git-send-email-cw00.choi@samsung.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Chanwoo Choi <cw00.choi@samsung.com>
+Cc: balbi@kernel.org, linux-usb@vger.kernel.org, Peter.Chen@nxp.com, gregkh@linuxfoundation.org, yoshihiro.shimoda.uh@renesas.com, linux-pm@vger.kernel.org, sre@kernel.org, kishon@ti.com, linux-renesas-soc@vger.kernel.org, wens@csie.org, linux-arm-kernel@lists.infradead.org, chanwoo@kernel.org, linux-omap@vger.kernel.org, b-liu@ti.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch uses the resource-managed extcon API for extcon_register_notifier()
-and replaces the deprecated extcon API as following:
-- extcon_get_cable_state_() -> extcon_get_state()
 
-Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
----
- drivers/usb/dwc3/dwc3-omap.c | 20 +++++++-------------
- 1 file changed, 7 insertions(+), 13 deletions(-)
+--===============7833765109884036205==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="j6lqhgavrhxtdjiy"
+Content-Disposition: inline
 
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index 29e80cc9b634..2d2e9aa1db08 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -425,20 +425,20 @@ static int dwc3_omap_extcon_register(struct dwc3_omap *omap)
- 		}
- 
- 		omap->vbus_nb.notifier_call = dwc3_omap_vbus_notifier;
--		ret = extcon_register_notifier(edev, EXTCON_USB,
--						&omap->vbus_nb);
-+		ret = devm_extcon_register_notifier(omap->dev, edev,
-+						EXTCON_USB, &omap->vbus_nb);
- 		if (ret < 0)
- 			dev_vdbg(omap->dev, "failed to register notifier for USB\n");
- 
- 		omap->id_nb.notifier_call = dwc3_omap_id_notifier;
--		ret = extcon_register_notifier(edev, EXTCON_USB_HOST,
--						&omap->id_nb);
-+		ret = devm_extcon_register_notifier(omap->dev, edev,
-+						EXTCON_USB_HOST, &omap->id_nb);
- 		if (ret < 0)
- 			dev_vdbg(omap->dev, "failed to register notifier for USB-HOST\n");
- 
--		if (extcon_get_cable_state_(edev, EXTCON_USB) == true)
-+		if (extcon_get_state(edev, EXTCON_USB) == true)
- 			dwc3_omap_set_mailbox(omap, OMAP_DWC3_VBUS_VALID);
--		if (extcon_get_cable_state_(edev, EXTCON_USB_HOST) == true)
-+		if (extcon_get_state(edev, EXTCON_USB_HOST) == true)
- 			dwc3_omap_set_mailbox(omap, OMAP_DWC3_ID_GROUND);
- 
- 		omap->edev = edev;
-@@ -527,17 +527,13 @@ static int dwc3_omap_probe(struct platform_device *pdev)
- 	ret = of_platform_populate(node, NULL, NULL, dev);
- 	if (ret) {
- 		dev_err(&pdev->dev, "failed to create dwc3 core\n");
--		goto err2;
-+		goto err1;
- 	}
- 
- 	dwc3_omap_enable_irqs(omap);
- 
- 	return 0;
- 
--err2:
--	extcon_unregister_notifier(omap->edev, EXTCON_USB, &omap->vbus_nb);
--	extcon_unregister_notifier(omap->edev, EXTCON_USB_HOST, &omap->id_nb);
--
- err1:
- 	pm_runtime_put_sync(dev);
- 	pm_runtime_disable(dev);
-@@ -549,8 +545,6 @@ static int dwc3_omap_remove(struct platform_device *pdev)
- {
- 	struct dwc3_omap	*omap = platform_get_drvdata(pdev);
- 
--	extcon_unregister_notifier(omap->edev, EXTCON_USB, &omap->vbus_nb);
--	extcon_unregister_notifier(omap->edev, EXTCON_USB_HOST, &omap->id_nb);
- 	dwc3_omap_disable_irqs(omap);
- 	of_platform_depopulate(omap->dev);
- 	pm_runtime_put_sync(&pdev->dev);
--- 
-1.9.1
 
+--j6lqhgavrhxtdjiy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, Nov 30, 2016 at 02:57:35PM +0900, Chanwoo Choi wrote:
+> This patch just uses the resource-managed extcon API when registering
+> the extcon notifier.
+>=20
+> Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
+
+Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+
+Thanks!
+Maxime
+
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
+
+--j6lqhgavrhxtdjiy
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBCAAGBQJYPpGLAAoJEBx+YmzsjxAgzhwQALAQn0DfF8/InflvzuNveuQA
+vwaRBz/VJQsZPAjD3a0JHzaaJFtTJIezntb4dnOO/U5yGwKXrgmeWdkxLiWh06j1
+J5JswBANHB7z88Lil2zD4Jf4wwbwTu6MG2+F5zWuEUusiJD3c3s9pnFIQjvbVzO7
+LJqA81NYymz46oYq5KD3lER/zcqPHNo99aYPCXb8veGTloAwJHBto1sfOCcfeqLg
+ZT0GK9coPsLHRZrgJaJEWhxpFNugxJ4+WAq5suA/XpNBfBDBVA3gxxzV8Drvx4Qe
+sOW8JAuUqXstmPaanh1ims/qeflgsijCRLxpZDg99uwS08EGJn3Le15kbiyhnqGE
+klVCoh3gHKztP5WHz8Sd9NCwowRglglGbMyOQAjA6B+lA8XM07ZFnR6Wrngbcepo
+J5l1tYuAoaBgBchJubh+paMo/rGK4FTbSflgNoK3YXt3CX4AW0Tg0hbC1cCag+Ru
+cPHtglrAXzvy/hqdRBNxl9gEBLeCo2IAm1jc42v64dtkKZRPxV0to/9hpTZE1j7Q
+4ofswXk4kADR/0WCdG0q9eEPsQoFpmYn7F8/ClMtRoZGiisw6ic5bnBd3QJg+kT2
+9UAcDm0moXC/iqb0Sb4eIXS7p9KfxOHNmkXDzHuzk9xLk0QdYFciXPYUgmk+rHvD
+80obQxOJe+19L5ozmEeM
+=A8h7
+-----END PGP SIGNATURE-----
+
+--j6lqhgavrhxtdjiy--
+
+
+--===============7833765109884036205==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============7833765109884036205==--
