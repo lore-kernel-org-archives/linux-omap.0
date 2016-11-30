@@ -1,69 +1,28 @@
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: [PATCH] ARM: omap3: beagleboard-xm: dt: Add ethernet to the device tree
-Date: Wed, 30 Nov 2016 19:58:05 +0200
-Message-ID: <1480528685-26259-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+From: Richard Cochran <richardcochran@gmail.com>
+Subject: Re: [PATCH 1/6] net: ethernet: ti: netcp: add support of cpts
+Date: Wed, 30 Nov 2016 19:22:06 +0100
+Message-ID: <20161130182206.GA8209@netboy>
+References: <20161128230428.6872-1-grygorii.strashko@ti.com>
+ <20161128230428.6872-2-grygorii.strashko@ti.com>
+ <20161130094441.GB28680@localhost.localdomain>
+ <4d69aff4-70a0-e6b8-38b0-8e95cfea7601@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4d69aff4-70a0-e6b8-38b0-8e95cfea7601@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Wingman Kwok <w-kwok2@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The Beagleboard-xM has a LAN9514 USB hub and ethernet controller,
-connected to port 2 of the OMAP EHCI controller. The board however has
-no EEPROM to store the ethernet MAC address, which is programmed by the
-boot loader.
+On Wed, Nov 30, 2016 at 11:31:56AM -0600, Grygorii Strashko wrote:
 
-To allow Linux to use the same MAC address as the boot loader (or for
-that matter any fixed MAC address), we need a node in the device tree
-for the ethernet controller that the boot loader can update at runtime
-with a local-mac-address property. Add it, along with an alias for the
-ethernet controller to let the boot loader locate it easily.
+> ok. Seems my assumption that ndo_open/ndo_close serialized by
+> rtnl_lock is incorrect. Right?
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
----
- arch/arm/boot/dts/omap3-beagle-xm.dts | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+No, you were right in the first place.  The open/close are indeed
+serialized by the rtnl lock.
 
-diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-index 85e297ed0ea1..75ac56cdf954 100644
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -27,6 +27,7 @@
- 	aliases {
- 		display0 = &dvi0;
- 		display1 = &tv0;
-+		ethernet = &ethernet;
- 	};
- 
- 	leds {
-@@ -348,6 +349,21 @@
- 
- &usbhsehci {
- 	phys = <0 &hsusb2_phy>;
-+
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+
-+	usb2@2 {
-+		compatible = "usb424,9514";
-+		reg = <2>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		ethernet: usbether@1 {
-+			compatible = "usb424,ec00";
-+			reg = <1>;
-+		};
-+	};
- };
- 
- &vaux2 {
--- 
-Regards,
-
-Laurent Pinchart
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sorry for the noise,
+Richard
