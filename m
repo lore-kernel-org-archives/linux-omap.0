@@ -1,39 +1,28 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: [PATCH 4/6] net: ethernet: ti: cpts: add ptp pps support
-Date: Wed, 30 Nov 2016 19:45:11 +0100
-Message-ID: <20161130184511.GB8209@netboy>
-References: <20161128230428.6872-1-grygorii.strashko@ti.com>
- <20161128230428.6872-5-grygorii.strashko@ti.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/5] cpsw: add per channel shaper configuration
+Date: Wed, 30 Nov 2016 14:37:30 -0500 (EST)
+Message-ID: <20161130.143730.198414925220029543.davem@davemloft.net>
+References: <1480431651-6081-1-git-send-email-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161128230428.6872-5-grygorii.strashko@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Wingman Kwok <w-kwok2@ti.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1480431651-6081-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ivan.khoronzhuk@linaro.org
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, mugunthanvnm@ti.com, grygorii.strashko@ti.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 28, 2016 at 05:04:26PM -0600, Grygorii Strashko wrote:
-> +static cycle_t cpts_cc_ns2cyc(struct cpts *cpts, u64 nsecs)
-> +{
-> +	cycle_t cyc = (nsecs << cpts->cc.shift) + nsecs;
-> +
-> +	do_div(cyc, cpts->cc.mult);
-> +
-> +	return cyc;
-> +}
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Date: Tue, 29 Nov 2016 17:00:46 +0200
 
-So you set the comparison value once per second, based on cc.mult.
-But when the clock is being actively synchronized, user space calls to
-clock_adjtimex() will change cc.mult.  This can happen several times
-per second, depending on the PTP Sync rate.
+> This series is intended to allow user to set rate for per channel
+> shapers at cpdma level. This patchset doesn't have impact on performance.
+> The rate can be set with:
+> 
+> echo 100 > /sys/class/net/ethX/queues/tx-0/tx_maxrate
+> 
+> Tested on am572xx
+> Based on net-next/master
 
-In order to produce the PPS edge correctly, you would have to adjust
-the comparison value whenever cc.mult changes, but of course this is
-unworkable.
-
-So I'll have to say NAK for this patch.
-
-Thanks,
-Richard
+Series applied, thanks.
