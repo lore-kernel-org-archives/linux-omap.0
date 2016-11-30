@@ -1,63 +1,70 @@
-From: Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH v2 0/2] rtc: rtc-twl: cleanup
-Date: Wed, 30 Nov 2016 21:27:28 +0100
-Message-ID: <20161130202728.zoldekjlc5qrcpgt@piout.net>
-References: <20161123085557.5656-1-Nicolae_Rosia@mentor.com>
-Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 4/6] net: ethernet: ti: cpts: add ptp pps support
+Date: Wed, 30 Nov 2016 14:43:57 -0600
+Message-ID: <875d4cc2-8a47-b06d-fb46-0cacc28dbaee@ti.com>
+References: <20161128230428.6872-1-grygorii.strashko@ti.com>
+ <20161128230428.6872-5-grygorii.strashko@ti.com>
+ <20161130184511.GB8209@netboy>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <rtc-linux+bncBCKYNX7Y3IMBBMPM7TAQKGQEC2KO6DY-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-Content-Disposition: inline
-In-Reply-To: <20161123085557.5656-1-Nicolae_Rosia-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>
-List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <https://groups.google.com/group/rtc-linux
-List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <https://groups.google.com/group/rtc-linux/subscribe>
-To: Nicolae Rosia <Nicolae_Rosia-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>
-Cc: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20161130184511.GB8209@netboy>
+Sender: netdev-owner@vger.kernel.org
+To: Richard Cochran <richardcochran@gmail.com>, Murali Karicheri <m-karicheri2@ti.com>, Wingman Kwok <w-kwok2@ti.com>
+Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 23/11/2016 at 10:55:55 +0200, Nicolae Rosia wrote :
-> This is a cleanup and preparation of rtc-twl to reduce the usage of
-> twl-core exported functions.
-> The next patch series will further reduce the usage of exported functions
-> but first it requires some changes in mfd/twl-core.c
+
+
+On 11/30/2016 12:45 PM, Richard Cochran wrote:
+> On Mon, Nov 28, 2016 at 05:04:26PM -0600, Grygorii Strashko wrote:
+>> +static cycle_t cpts_cc_ns2cyc(struct cpts *cpts, u64 nsecs)
+>> +{
+>> +	cycle_t cyc = (nsecs << cpts->cc.shift) + nsecs;
+>> +
+>> +	do_div(cyc, cpts->cc.mult);
+>> +
+>> +	return cyc;
+>> +}
 > 
-> v2:
-> - dropped patch "rtc: rtc-twl: use irq_of_parse_and_map helper"
-> - fixed style problems
-> - retained old logic of checking TWL class by introducing an enum
-> - dropped of_match_ptr since we depend on OF
-> 
-> v1 was Tested-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> I did not add it in new version of patches because of the changes.
-> If you consider that the changes are not big, you could add Tony's Tested-by.
-> 
-> Nicolae Rosia (2):
->   rtc: rtc-twl: kill static variables
->   rtc: rtc-twl: make driver DT only
-> 
->  drivers/rtc/Kconfig   |   1 +
->  drivers/rtc/rtc-twl.c | 202 ++++++++++++++++++++++++++++++--------------------
->  2 files changed, 122 insertions(+), 81 deletions(-)
+> So you set the comparison value once per second, based on cc.mult.
+> But when the clock is being actively synchronized, user space calls to
+> clock_adjtimex() will change cc.mult.  This can happen several times
+> per second, depending on the PTP Sync rate.
 > 
 
-Both applied, thanks
+Right.
+
+> In order to produce the PPS edge correctly, you would have to adjust
+> the comparison value whenever cc.mult changes, 
+
+yes. And that is done in cpts_ptp_adjfreq()
+	if (cpts->ts_comp_enabled)
+		cpts->ts_comp_one_sec_cycs = cpts_cc_ns2cyc(cpts, NSEC_PER_SEC);
+	^^^ re-calculate reload value for 
+ 
+	cpts_ts_comp_settime(cpts, ns);
+	^^^ adjust the ts_comp
+
+> but of course this is unworkable.
+> 
+
+Sry, but this is questionable - code for pps comes from TI internal
+branches (SDK releases) where it survived for a pretty long time.
+I'm, of course, agree that without HW support for freq adjustment
+this PPS feature is not super precise and has some limitation,
+but that is what we agree to live with. 
+
+Murali, do you have any comments regarding usability of SW
+freq freq adjustment approach? 
+
+> So I'll have to say NAK for this patch.
+> 
+
+:) 
+
 
 -- 
-Alexandre Belloni, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
-
--- 
-You received this message because you are subscribed to "rtc-linux".
-Membership options at http://groups.google.com/group/rtc-linux .
-Please read http://groups.google.com/group/rtc-linux/web/checklist
-before submitting a driver.
---- 
-You received this message because you are subscribed to the Google Groups "rtc-linux" group.
-To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-For more options, visit https://groups.google.com/d/optout.
+regards,
+-grygorii
