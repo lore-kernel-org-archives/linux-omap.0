@@ -1,38 +1,34 @@
-From: Jan =?ISO-8859-1?Q?L=FCbbe?= <jlu@pengutronix.de>
-Subject: Re: [PATCH 3/6] net: ethernet: ti: cpts: add support of cpts
- HW_TS_PUSH
-Date: Wed, 30 Nov 2016 12:08:20 +0100
-Message-ID: <1480504100.9183.72.camel@pengutronix.de>
-References: <20161128230428.6872-1-grygorii.strashko@ti.com>
-         <20161128230428.6872-4-grygorii.strashko@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v3] Documentation: pinctrl: palmas: Add
+ ti,palmas-powerhold-override property definition
+Date: Wed, 30 Nov 2016 13:55:22 +0100
+Message-ID: <CACRpkdb36Au+QSM4mnGHunKVz-0qJ2n2dCwTV4tq5H7nxQEo1w@mail.gmail.com>
+References: <1480305718-5127-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20161128230428.6872-4-grygorii.strashko@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Richard Cochran <richardcochran@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Wingman Kwok <w-kwok2@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1480305718-5127-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>, ext Tony Lindgren <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mo, 2016-11-28 at 17:04 -0600, Grygorii Strashko wrote:
-> This patch adds support of the CPTS HW_TS_PUSH events which are generated
-> by external low frequency time stamp channels on TI's OMAP CPSW and
-> Keystone 2 platforms. It supports up to 8 external time stamp channels for
-> HW_TS_PUSH input pins (the number of supported channel is different for
-> different SoCs and CPTS versions, check corresponding Data maual before
-> enabling it). Therefore, new DT property "cpts-ext-ts-inputs" is introduced
-> for specifying number of available external timestamp channels.
+On Mon, Nov 28, 2016 at 5:01 AM, Keerthy <j-keerthy@ti.com> wrote:
+> GPIO7 is configured in POWERHOLD mode which has higher priority
+> over DEV_ON bit and keeps the PMIC supplies on even after the DEV_ON
+> bit is turned off. This property enables driver to over ride the
+> POWERHOLD value to GPIO7 so as to turn off the PMIC in power off
+> scenarios.
+>
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> Acked-by: Rob Herring <robh@kernel.org>
+> ---
+>
+> Remaining patches of the series are already queued.
+>
+> Changes in v3: Added Rob's Ack.
 
-If this only depends on SoC and CTPS, it should be possible to derive
-the correct value from the compatible value and possibly a CPTS version
-register? If the existing compatible strings are not specific enough,
-possible a new one should be added.
+Patch applied to the pinctrl tree.
 
-Regards,
-Jan
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Yours,
+Linus Walleij
