@@ -1,34 +1,64 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v3] Documentation: pinctrl: palmas: Add
- ti,palmas-powerhold-override property definition
-Date: Wed, 30 Nov 2016 13:55:22 +0100
-Message-ID: <CACRpkdb36Au+QSM4mnGHunKVz-0qJ2n2dCwTV4tq5H7nxQEo1w@mail.gmail.com>
-References: <1480305718-5127-1-git-send-email-j-keerthy@ti.com>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: [PATCH 1/1] mach-omap2: fixing wrong strcat for Non-NULL
+ terminated string
+Date: Wed, 30 Nov 2016 13:27:35 +0000
+Message-ID: <20161130132735.GH23750@n2100.armlinux.org.uk>
+References: <1480502428-19509-1-git-send-email-maninder1.s@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1480305718-5127-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>, ext Tony Lindgren <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1480502428-19509-1-git-send-email-maninder1.s@samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Maninder Singh <maninder1.s@samsung.com>
+Cc: bcousson@baylibre.com, paul@pwsan.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, ajeet.y@samsung.com, pankaj.m@samsung.com, Vaneet Narang <v.narang@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 28, 2016 at 5:01 AM, Keerthy <j-keerthy@ti.com> wrote:
-> GPIO7 is configured in POWERHOLD mode which has higher priority
-> over DEV_ON bit and keeps the PMIC supplies on even after the DEV_ON
-> bit is turned off. This property enables driver to over ride the
-> POWERHOLD value to GPIO7 so as to turn off the PMIC in power off
-> scenarios.
->
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> Acked-by: Rob Herring <robh@kernel.org>
+On Wed, Nov 30, 2016 at 04:10:28PM +0530, Maninder Singh wrote:
+> variable name can have Non NULL terminated string after cropping
+> which may result strcat to fail, and cropping is not
+> required if (strlen(oh->name) + 8 < MOD_CLK_MAX_NAME_LEN).
+> 
+> Issue caught with static analysis tool:
+> "Dangerous usage of 'name' (strncpy doesn't always 0-terminate it)"
+
+Maybe switch to strlcpy() ?
+
+> 
+> Signed-off-by: Vaneet Narang <v.narang@samsung.com>
+> Signed-off-by: Maninder Singh <maninder1.s@samsung.com>
 > ---
->
-> Remaining patches of the series are already queued.
->
-> Changes in v3: Added Rob's Ack.
+>  arch/arm/mach-omap2/omap_hwmod.c | 9 ++++++---
+>  1 file changed, 6 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> index 759e1d4..8adf272 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -742,12 +742,15 @@ static int _init_main_clk(struct omap_hwmod *oh)
+>  	char name[MOD_CLK_MAX_NAME_LEN];
+>  	struct clk *clk;
+>  
+> -	/* +7 magic comes from '_mod_ck' suffix */
+> -	if (strlen(oh->name) + 7 > MOD_CLK_MAX_NAME_LEN)
+> +	/* +8 magic comes from strlen("_mod_ck") added as suffix */
+> +	if (strlen(oh->name) + 8 > MOD_CLK_MAX_NAME_LEN) {
+>  		pr_warn("%s: warning: cropping name for %s\n", __func__,
+>  			oh->name);
+> +		strncpy(name, oh->name, MOD_CLK_MAX_NAME_LEN - 8);
+> +		name[MOD_CLK_MAX_NAME_LEN - 8] = '\0';
+> +	} else
+> +		strcpy(name, oh->name);
+>  
+> -	strncpy(name, oh->name, MOD_CLK_MAX_NAME_LEN - 7);
+>  	strcat(name, "_mod_ck");
+>  
+>  	clk = clk_get(NULL, name);
+> -- 
+> 1.9.1
+> 
 
-Patch applied to the pinctrl tree.
-
-Yours,
-Linus Walleij
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
