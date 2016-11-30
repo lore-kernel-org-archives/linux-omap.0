@@ -1,70 +1,39 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 07/13] net: ethernet: ti: cpts: rework
- initialization/deinitialization
-Date: Wed, 30 Nov 2016 12:30:06 -0600
-Message-ID: <79e4cb8d-b824-d7cb-56e1-7828ded5caef@ti.com>
-References: <20161128230337.6731-1-grygorii.strashko@ti.com>
- <20161128230337.6731-8-grygorii.strashko@ti.com>
- <20161129100737.GF3110@localhost.localdomain>
- <2037427d-0ab6-9446-450d-21c34123c03b@ti.com>
+From: Richard Cochran <richardcochran@gmail.com>
+Subject: Re: [PATCH 4/6] net: ethernet: ti: cpts: add ptp pps support
+Date: Wed, 30 Nov 2016 19:45:11 +0100
+Message-ID: <20161130184511.GB8209@netboy>
+References: <20161128230428.6872-1-grygorii.strashko@ti.com>
+ <20161128230428.6872-5-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2037427d-0ab6-9446-450d-21c34123c03b-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Murali Karicheri <m-karicheri2-l0cyMroinI0@public.gmane.org>, Wingman Kwok <w-kwok2-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20161128230428.6872-5-grygorii.strashko@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Wingman Kwok <w-kwok2@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Richard,
+On Mon, Nov 28, 2016 at 05:04:26PM -0600, Grygorii Strashko wrote:
+> +static cycle_t cpts_cc_ns2cyc(struct cpts *cpts, u64 nsecs)
+> +{
+> +	cycle_t cyc = (nsecs << cpts->cc.shift) + nsecs;
+> +
+> +	do_div(cyc, cpts->cc.mult);
+> +
+> +	return cyc;
+> +}
 
-On 11/29/2016 09:50 AM, Grygorii Strashko wrote:
-> On 11/29/2016 04:07 AM, Richard Cochran wrote:
->> On Mon, Nov 28, 2016 at 05:03:31PM -0600, Grygorii Strashko wrote:
->>> +int cpts_register(struct cpts *cpts)
->>>  {
->>>  	int err, i;
->>>
->>> -	cpts->info = cpts_info;
->>> -	spin_lock_init(&cpts->lock);
->>> -
->>> -	cpts->cc.read = cpts_systim_read;
->>> -	cpts->cc.mask = CLOCKSOURCE_MASK(32);
->>> -	cpts->cc_mult = mult;
->>> -	cpts->cc.mult = mult;
->>> -	cpts->cc.shift = shift;
->>> -
->>>  	INIT_LIST_HEAD(&cpts->events);
->>>  	INIT_LIST_HEAD(&cpts->pool);
->>>  	for (i = 0; i < CPTS_MAX_EVENTS; i++)
->>>  		list_add(&cpts->pool_data[i].list, &cpts->pool);
->>>
->>> -	cpts_clk_init(dev, cpts);
->>> +	clk_enable(cpts->refclk);
->>> +
->>>  	cpts_write32(cpts, CPTS_EN, control);
->>>  	cpts_write32(cpts, TS_PEND_EN, int_enable);
->>>
->>> +	cpts->cc.mult = cpts->cc_mult;
->>
->> It is not clear why you set cc.mult in a different place than
->> cc.shift.  That isn't logical, but maybe later patches make it
->> clear...
->
-> cc.mult has to be reloaded to original value each time CPTS is registered(restarted)
-> as it can be modified by cpts_ptp_adjfreq().
->
-> While cc.shift is static.
->
->
+So you set the comparison value once per second, based on cc.mult.
+But when the clock is being actively synchronized, user space calls to
+clock_adjtimex() will change cc.mult.  This can happen several times
+per second, depending on the PTP Sync rate.
 
-Will it ok if i will add comment here and re-send series?
+In order to produce the PPS edge correctly, you would have to adjust
+the comparison value whenever cc.mult changes, but of course this is
+unworkable.
 
--- 
-regards,
--grygorii
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So I'll have to say NAK for this patch.
+
+Thanks,
+Richard
