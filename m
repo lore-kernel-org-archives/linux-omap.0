@@ -1,164 +1,50 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] net: ethernet: ti: davinci_cpdma: sanitize inter-module API
-Date: Thu,  1 Dec 2016 22:51:27 +0100
-Message-ID: <20161201215150.320245-1-arnd@arndb.de>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH 0/7]  net: ethernet: ti: cpsw: support placing CPDMA descriptors into DDR
+Date: Thu, 1 Dec 2016 17:34:25 -0600
+Message-ID: <20161201233432.6182-1-grygorii.strashko@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S. Miller" <davem@davemloft.net>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The davinci_cpdma module is a helper library that is used by the
-actual device drivers and does nothing by itself, so all its API
-functions need to be exported.
+This series intended to add support for placing CPDMA descriptors into DDR by
+introducing new DT property "descs_pool_size" to specify buffer descriptor's
+pool size. The "descs_pool_size" defines total number of CPDMA
+CPPI descriptors to be used for both ingress/egress packets
+processing. If not specified - the default value 256 will be used
+which will allow to place descriptor's pool into the internal CPPI
+RAM.
 
-Four new functions were added recently without an export, so now
-we get a build error:
+This allows significantly to reduce UDP packets drop rate
+for bandwidth >301 Mbits/sec (am57x).  
 
-ERROR: "cpdma_chan_set_weight" [drivers/net/ethernet/ti/ti_cpsw.ko] undefined!
-ERROR: "cpdma_chan_get_rate" [drivers/net/ethernet/ti/ti_cpsw.ko] undefined!
-ERROR: "cpdma_chan_get_min_rate" [drivers/net/ethernet/ti/ti_cpsw.ko] undefined!
-ERROR: "cpdma_chan_set_rate" [drivers/net/ethernet/ti/ti_cpsw.ko] undefined!
+Before enabling this feature, the am437x SoC has to be fixed as it's proved
+that it's not working when CPDMA descriptors placed in DDR.
+So, the patch 1 fixes this issue.
 
-This exports those symbols. After taking a closer look, I found two
-more global functions in this file that are not exported and not used
-anywhere, so they can obviously be removed. There is also one function
-that is only used internally in this module, and should be 'static'.
+Grygorii Strashko (7):
+  net: ethernet: ti: cpdma: am437x: allow descs to be plased in ddr
+  net: ethernet: ti: cpdma: fix desc re-queuing
+  net: ethernet: ti: cpdma: minimize number of parameters in
+    cpdma_desc_pool_create/destroy()
+  net: ethernet: ti: cpdma: use devm_ioremap
+  Documentation: DT: net: cpsw: allow to specify descriptors pool size
+  net: ethernet: ti: cpsw: add support for descs_pool_size dt property
+  Documentation: DT: net: cpsw: remove no_bd_ram property
 
-Fixes: 8f32b90981dc ("net: ethernet: ti: davinci_cpdma: add set rate for a channel")
-Fixes: 0fc6432cc78d ("net: ethernet: ti: davinci_cpdma: add weight function for channels")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/net/ethernet/ti/davinci_cpdma.c | 63 +++++++++++----------------------
- drivers/net/ethernet/ti/davinci_cpdma.h |  4 ---
- 2 files changed, 21 insertions(+), 46 deletions(-)
+ Documentation/devicetree/bindings/net/cpsw.txt |  8 ++-
+ arch/arm/boot/dts/am33xx.dtsi                  |  1 -
+ arch/arm/boot/dts/am4372.dtsi                  |  1 -
+ arch/arm/boot/dts/dm814x.dtsi                  |  1 -
+ arch/arm/boot/dts/dra7.dtsi                    |  1 -
+ drivers/net/ethernet/ti/cpsw.c                 |  5 ++
+ drivers/net/ethernet/ti/cpsw.h                 |  1 +
+ drivers/net/ethernet/ti/davinci_cpdma.c        | 90 +++++++++++++++-----------
+ drivers/net/ethernet/ti/davinci_cpdma.h        |  1 +
+ 9 files changed, 63 insertions(+), 46 deletions(-)
 
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-index c776e4575d2d..b9d40f0cdf6c 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.c
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-@@ -628,6 +628,23 @@ int cpdma_ctlr_destroy(struct cpdma_ctlr *ctlr)
- }
- EXPORT_SYMBOL_GPL(cpdma_ctlr_destroy);
- 
-+static int cpdma_chan_int_ctrl(struct cpdma_chan *chan, bool enable)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&chan->lock, flags);
-+	if (chan->state != CPDMA_STATE_ACTIVE) {
-+		spin_unlock_irqrestore(&chan->lock, flags);
-+		return -EINVAL;
-+	}
-+
-+	dma_reg_write(chan->ctlr, enable ? chan->int_set : chan->int_clear,
-+		      chan->mask);
-+	spin_unlock_irqrestore(&chan->lock, flags);
-+
-+	return 0;
-+}
-+
- int cpdma_ctlr_int_ctrl(struct cpdma_ctlr *ctlr, bool enable)
- {
- 	unsigned long flags;
-@@ -796,6 +813,7 @@ int cpdma_chan_set_weight(struct cpdma_chan *ch, int weight)
- 	spin_unlock_irqrestore(&ctlr->lock, flags);
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(cpdma_chan_set_weight);
- 
- /* cpdma_chan_get_min_rate - get minimum allowed rate for channel
-  * Should be called before cpdma_chan_set_rate.
-@@ -810,6 +828,7 @@ u32 cpdma_chan_get_min_rate(struct cpdma_ctlr *ctlr)
- 
- 	return DIV_ROUND_UP(divident, divisor);
- }
-+EXPORT_SYMBOL_GPL(cpdma_chan_get_min_rate);
- 
- /* cpdma_chan_set_rate - limits bandwidth for transmit channel.
-  * The bandwidth * limited channels have to be in order beginning from lowest.
-@@ -853,6 +872,7 @@ int cpdma_chan_set_rate(struct cpdma_chan *ch, u32 rate)
- 	spin_unlock_irqrestore(&ctlr->lock, flags);
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(cpdma_chan_set_rate);
- 
- u32 cpdma_chan_get_rate(struct cpdma_chan *ch)
- {
-@@ -865,6 +885,7 @@ u32 cpdma_chan_get_rate(struct cpdma_chan *ch)
- 
- 	return rate;
- }
-+EXPORT_SYMBOL_GPL(cpdma_chan_get_rate);
- 
- struct cpdma_chan *cpdma_chan_create(struct cpdma_ctlr *ctlr, int chan_num,
- 				     cpdma_handler_fn handler, int rx_type)
-@@ -1270,46 +1291,4 @@ int cpdma_chan_stop(struct cpdma_chan *chan)
- }
- EXPORT_SYMBOL_GPL(cpdma_chan_stop);
- 
--int cpdma_chan_int_ctrl(struct cpdma_chan *chan, bool enable)
--{
--	unsigned long flags;
--
--	spin_lock_irqsave(&chan->lock, flags);
--	if (chan->state != CPDMA_STATE_ACTIVE) {
--		spin_unlock_irqrestore(&chan->lock, flags);
--		return -EINVAL;
--	}
--
--	dma_reg_write(chan->ctlr, enable ? chan->int_set : chan->int_clear,
--		      chan->mask);
--	spin_unlock_irqrestore(&chan->lock, flags);
--
--	return 0;
--}
--
--int cpdma_control_get(struct cpdma_ctlr *ctlr, int control)
--{
--	unsigned long flags;
--	int ret;
--
--	spin_lock_irqsave(&ctlr->lock, flags);
--	ret = _cpdma_control_get(ctlr, control);
--	spin_unlock_irqrestore(&ctlr->lock, flags);
--
--	return ret;
--}
--
--int cpdma_control_set(struct cpdma_ctlr *ctlr, int control, int value)
--{
--	unsigned long flags;
--	int ret;
--
--	spin_lock_irqsave(&ctlr->lock, flags);
--	ret = _cpdma_control_set(ctlr, control, value);
--	spin_unlock_irqrestore(&ctlr->lock, flags);
--
--	return ret;
--}
--EXPORT_SYMBOL_GPL(cpdma_control_set);
--
- MODULE_LICENSE("GPL");
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.h b/drivers/net/ethernet/ti/davinci_cpdma.h
-index 4a167db2abab..36d0a09a3d44 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.h
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.h
-@@ -87,7 +87,6 @@ int cpdma_chan_process(struct cpdma_chan *chan, int quota);
- 
- int cpdma_ctlr_int_ctrl(struct cpdma_ctlr *ctlr, bool enable);
- void cpdma_ctlr_eoi(struct cpdma_ctlr *ctlr, u32 value);
--int cpdma_chan_int_ctrl(struct cpdma_chan *chan, bool enable);
- u32 cpdma_ctrl_rxchs_state(struct cpdma_ctlr *ctlr);
- u32 cpdma_ctrl_txchs_state(struct cpdma_ctlr *ctlr);
- bool cpdma_check_free_tx_desc(struct cpdma_chan *chan);
-@@ -111,7 +110,4 @@ enum cpdma_control {
- 	CPDMA_RX_BUFFER_OFFSET,		/* read-write */
- };
- 
--int cpdma_control_get(struct cpdma_ctlr *ctlr, int control);
--int cpdma_control_set(struct cpdma_ctlr *ctlr, int control, int value);
--
- #endif
 -- 
-2.9.0
+2.10.1
