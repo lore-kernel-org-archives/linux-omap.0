@@ -1,74 +1,38 @@
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: [PATCH -next] net: ethernet: ti: davinci_cpdma: add missing EXPORTs
-Date: Thu, 1 Dec 2016 15:25:28 -0500
-Message-ID: <20161201202528.12531-1-paul.gortmaker@windriver.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] ARM: omap3: beagleboard-xm: dt: Add ethernet to the
+ device tree
+Date: Thu, 1 Dec 2016 13:12:34 -0800
+Message-ID: <20161201211234.GA3703@atomide.com>
+References: <1480528685-26259-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Mugunthan V N <mugunthanvnm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1480528685-26259-1-git-send-email-laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-As of commit 8f32b90981dcdb355516fb95953133f8d4e6b11d
-("net: ethernet: ti: davinci_cpdma: add set rate for a channel") the
-ARM allmodconfig builds would fail modpost with:
+* Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [161130 09:58]:
+> The Beagleboard-xM has a LAN9514 USB hub and ethernet controller,
+> connected to port 2 of the OMAP EHCI controller. The board however has
+> no EEPROM to store the ethernet MAC address, which is programmed by the
+> boot loader.
+> 
+> To allow Linux to use the same MAC address as the boot loader (or for
+> that matter any fixed MAC address), we need a node in the device tree
+> for the ethernet controller that the boot loader can update at runtime
+> with a local-mac-address property. Add it, along with an alias for the
+> ethernet controller to let the boot loader locate it easily.
 
-ERROR: "cpdma_chan_set_weight" [drivers/net/ethernet/ti/ti_cpsw.ko] undefined!
-ERROR: "cpdma_chan_get_rate" [drivers/net/ethernet/ti/ti_cpsw.ko] undefined!
-ERROR: "cpdma_chan_get_min_rate" [drivers/net/ethernet/ti/ti_cpsw.ko] undefined!
-ERROR: "cpdma_chan_set_rate" [drivers/net/ethernet/ti/ti_cpsw.ko] undefined!
+Does not seem to work here.. Do I need to set something in u-boot?
+I'm using U-Boot 2016.09-00004-g26bb688.
 
-Since these weren't declared as static, it is assumed they were
-meant to be shared outside the file, and that modular build testing
-was simply overlooked.
+Regards,
 
-Fixes: 8f32b90981dc ("net: ethernet: ti: davinci_cpdma: add set rate for a channel")
-Cc: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Cc: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: linux-omap@vger.kernel.org
-Cc: netdev@vger.kernel.org
-Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
----
- drivers/net/ethernet/ti/davinci_cpdma.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-index c776e4575d2d..36518fc5c7cc 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.c
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-@@ -796,6 +796,7 @@ int cpdma_chan_set_weight(struct cpdma_chan *ch, int weight)
- 	spin_unlock_irqrestore(&ctlr->lock, flags);
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(cpdma_chan_set_weight);
- 
- /* cpdma_chan_get_min_rate - get minimum allowed rate for channel
-  * Should be called before cpdma_chan_set_rate.
-@@ -810,6 +811,7 @@ u32 cpdma_chan_get_min_rate(struct cpdma_ctlr *ctlr)
- 
- 	return DIV_ROUND_UP(divident, divisor);
- }
-+EXPORT_SYMBOL_GPL(cpdma_chan_get_min_rate);
- 
- /* cpdma_chan_set_rate - limits bandwidth for transmit channel.
-  * The bandwidth * limited channels have to be in order beginning from lowest.
-@@ -853,6 +855,7 @@ int cpdma_chan_set_rate(struct cpdma_chan *ch, u32 rate)
- 	spin_unlock_irqrestore(&ctlr->lock, flags);
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(cpdma_chan_set_rate);
- 
- u32 cpdma_chan_get_rate(struct cpdma_chan *ch)
- {
-@@ -865,6 +868,7 @@ u32 cpdma_chan_get_rate(struct cpdma_chan *ch)
- 
- 	return rate;
- }
-+EXPORT_SYMBOL_GPL(cpdma_chan_get_rate);
- 
- struct cpdma_chan *cpdma_chan_create(struct cpdma_ctlr *ctlr, int chan_num,
- 				     cpdma_handler_fn handler, int rx_type)
--- 
-2.11.0
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
