@@ -1,21 +1,21 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: omap3: beagleboard-xm: dt: Add ethernet to the
- device tree
-Date: Thu, 1 Dec 2016 13:35:16 -0800
-Message-ID: <20161201213515.GB3703@atomide.com>
-References: <1480528685-26259-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <20161201211234.GA3703@atomide.com>
+From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Subject: Re: [PATCH] ARM: omap3: beagleboard-xm: dt: Add ethernet to the device tree
+Date: Thu, 01 Dec 2016 23:37:10 +0200
+Message-ID: <34435805.uoQ87SrZdl@avalon>
+References: <1480528685-26259-1-git-send-email-laurent.pinchart@ideasonboard.com> <20161201211234.GA3703@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 In-Reply-To: <20161201211234.GA3703-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [161201 13:14]:
+Hi Tony,
+
+On Thursday 01 Dec 2016 13:12:34 Tony Lindgren wrote:
 > * Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [161130 09:58]:
 > > The Beagleboard-xM has a LAN9514 USB hub and ethernet controller,
 > > connected to port 2 of the OMAP EHCI controller. The board however has
@@ -31,12 +31,18 @@ List-Id: linux-omap@vger.kernel.org
 > Does not seem to work here.. Do I need to set something in u-boot?
 > I'm using U-Boot 2016.09-00004-g26bb688.
 
-Looks like my u-boot only has usbethaddr in the environment. After doing
-setenv ethaddr it's now working :)
+Some versions (possibly forked by vendors) might set the MAC address
+automatically in DT, but in my case I have the following in my boot script:
 
+tftp 0x80800000 beagle/omap3-beagle-xm.dtb
+fdt addr ${fileaddr} ${filesize}
+fdt resize
+fdt set /ocp@68000000/usbhshost@48064000/ehci@48064800/usb2@2/usbether@1 local-mac-address "[7a d2 a0 00 d1 f0]"
+
+-- 
 Regards,
 
-Tony
+Laurent Pinchart
 
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
