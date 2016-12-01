@@ -1,160 +1,74 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH 4/5] regulator: Add support for TI TWL6032
-Date: Thu, 1 Dec 2016 10:10:00 -0600
-Message-ID: <20161201161000.3g3eqi2xuch62lwy@rob-hp-laptop>
-References: <20161126181326.14951-1-Nicolae_Rosia@mentor.com>
- <20161126181326.14951-5-Nicolae_Rosia@mentor.com>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Subject: [PATCH -next] net: ethernet: ti: davinci_cpdma: add missing EXPORTs
+Date: Thu, 1 Dec 2016 15:25:28 -0500
+Message-ID: <20161201202528.12531-1-paul.gortmaker@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161126181326.14951-5-Nicolae_Rosia@mentor.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nicolae Rosia <Nicolae_Rosia@mentor.com>
-Cc: Lee Jones <lee.jones@linaro.org>, Mark Brown <broonie@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Graeme Gregory <gg@slimlogic.co.uk>, Baruch Siach <baruch@tkos.co.il>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Mugunthan V N <mugunthanvnm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Nov 26, 2016 at 08:13:25PM +0200, Nicolae Rosia wrote:
-> The TWL6032 PMIC is similar to TWL6030, has different
-> output names, and regulator control logic.
-> It is used on Barnes & Noble Nook HD and HD+.
-> 
-> Signed-off-by: Nicolae Rosia <Nicolae_Rosia@mentor.com>
-> ---
->  .../bindings/regulator/twl6032-regulator.txt       | 109 ++++
->  drivers/regulator/Kconfig                          |   7 +
->  drivers/regulator/Makefile                         |   1 +
->  drivers/regulator/twl6032-regulator.c              | 582 +++++++++++++++++++++
->  4 files changed, 699 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/regulator/twl6032-regulator.txt
->  create mode 100644 drivers/regulator/twl6032-regulator.c
-> 
-> diff --git a/Documentation/devicetree/bindings/regulator/twl6032-regulator.txt b/Documentation/devicetree/bindings/regulator/twl6032-regulator.txt
-> new file mode 100644
-> index 0000000..323f5a9
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/regulator/twl6032-regulator.txt
-> @@ -0,0 +1,109 @@
-> +TWL6032 PMIC Voltage Regulator Bindings
-> +
-> +The parent node must be MFD TWL Core, ti,twl6032.
-> +
-> +Required properties:
-> +- compatible: "ti,twl6032"
-> +
-> +Optional properties:
-> +- regulators node containing regulator childs.
+As of commit 8f32b90981dcdb355516fb95953133f8d4e6b11d
+("net: ethernet: ti: davinci_cpdma: add set rate for a channel") the
+ARM allmodconfig builds would fail modpost with:
 
-s/childs/children/
+ERROR: "cpdma_chan_set_weight" [drivers/net/ethernet/ti/ti_cpsw.ko] undefined!
+ERROR: "cpdma_chan_get_rate" [drivers/net/ethernet/ti/ti_cpsw.ko] undefined!
+ERROR: "cpdma_chan_get_min_rate" [drivers/net/ethernet/ti/ti_cpsw.ko] undefined!
+ERROR: "cpdma_chan_set_rate" [drivers/net/ethernet/ti/ti_cpsw.ko] undefined!
 
-regulators node is not a property.
+Since these weren't declared as static, it is assumed they were
+meant to be shared outside the file, and that modular build testing
+was simply overlooked.
 
-> +
-> +The child regulators  must be named after their hardware
+Fixes: 8f32b90981dc ("net: ethernet: ti: davinci_cpdma: add set rate for a channel")
+Cc: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Cc: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: linux-omap@vger.kernel.org
+Cc: netdev@vger.kernel.org
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+---
+ drivers/net/ethernet/ti/davinci_cpdma.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-extra space             ^
-
-> +counterparts: LDO[1-6], LDOLN, LDOUSB and VANA.
-> +
-> +Each regulator is defined using the standard binding
-> +for regulators as described in ./regulator.txt
-> +
-> +Example:
-> +twl {
-> +	compatible = "ti,twl6032";
-> +
-> +	[...]
-> +
-> +	pmic {
-> +		compatible = "ti,twl6032-regulator";
-
-Not documented.
-
-> +
-> +		regulators {
-
-Do you really need pmic node and regulators node?
-
-> +			ldo1: LDO1 {
-> +				regulator-min-microvolt = <1800000>;
-> +				regulator-max-microvolt = <2500000>;
-> +
-> +				regulator-state-mem {
-> +					regulator-off-in-suspend;
-> +				};
-> +			};
-> +
-> +			ldo2: LDO2 {
-> +				regulator-min-microvolt = <1000000>;
-> +				regulator-max-microvolt = <3000000>;
-> +
-> +				regulator-state-mem {
-> +					regulator-off-in-suspend;
-> +				};
-> +			};
-> +
-> +			ldo3: LDO3 {
-> +				regulator-min-microvolt = <1800000>;
-> +				regulator-max-microvolt = <1800000>;
-> +				regulator-boot-on;
-> +
-> +				regulator-state-mem {
-> +					regulator-off-in-suspend;
-> +				};
-> +			};
-> +
-> +			ldo4: LDO4 {
-> +				regulator-min-microvolt = <1800000>;
-> +				regulator-max-microvolt = <1800000>;
-> +
-> +				regulator-state-mem {
-> +					regulator-off-in-suspend;
-> +				};
-> +			};
-> +
-> +			ldo5: LDO5 {
-> +				regulator-min-microvolt = <1200000>;
-> +				regulator-max-microvolt = <3000000>;
-> +
-> +				regulator-state-mem {
-> +					regulator-off-in-suspend;
-> +				};
-> +			};
-> +
-> +			ldo6: LDO6 {
-> +				regulator-min-microvolt = <1800000>;
-> +				regulator-max-microvolt = <1800000>;
-> +				regulator-always-on;
-> +
-> +				regulator-state-mem {
-> +					regulator-off-in-suspend;
-> +				};
-> +			};
-> +
-> +			ldo7: LDO7 {
-> +				regulator-min-microvolt = <1800000>;
-> +				regulator-max-microvolt = <1800000>;
-> +				regulator-boot-on;
-> +				regulator-always-on;
-> +			};
-> +
-> +			ldoln: LDOLN {
-> +				regulator-min-microvolt = <1000000>;
-> +				regulator-max-microvolt = <3000000>;
-> +			};
-> +
-> +			ldousb: LDOUSB {
-> +				regulator-min-microvolt = <1000000>;
-> +				regulator-max-microvolt = <3000000>;
-> +			};
-> +
-> +			vana: VANA {
-> +				regulator-min-microvolt = <2100000>;
-> +				regulator-max-microvolt = <2100000>;
-> +				regulator-always-on;
-> +			};
-> +		};
-> +	};
-> +
-> +	[...]
-> +};
+diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
+index c776e4575d2d..36518fc5c7cc 100644
+--- a/drivers/net/ethernet/ti/davinci_cpdma.c
++++ b/drivers/net/ethernet/ti/davinci_cpdma.c
+@@ -796,6 +796,7 @@ int cpdma_chan_set_weight(struct cpdma_chan *ch, int weight)
+ 	spin_unlock_irqrestore(&ctlr->lock, flags);
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(cpdma_chan_set_weight);
+ 
+ /* cpdma_chan_get_min_rate - get minimum allowed rate for channel
+  * Should be called before cpdma_chan_set_rate.
+@@ -810,6 +811,7 @@ u32 cpdma_chan_get_min_rate(struct cpdma_ctlr *ctlr)
+ 
+ 	return DIV_ROUND_UP(divident, divisor);
+ }
++EXPORT_SYMBOL_GPL(cpdma_chan_get_min_rate);
+ 
+ /* cpdma_chan_set_rate - limits bandwidth for transmit channel.
+  * The bandwidth * limited channels have to be in order beginning from lowest.
+@@ -853,6 +855,7 @@ int cpdma_chan_set_rate(struct cpdma_chan *ch, u32 rate)
+ 	spin_unlock_irqrestore(&ctlr->lock, flags);
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(cpdma_chan_set_rate);
+ 
+ u32 cpdma_chan_get_rate(struct cpdma_chan *ch)
+ {
+@@ -865,6 +868,7 @@ u32 cpdma_chan_get_rate(struct cpdma_chan *ch)
+ 
+ 	return rate;
+ }
++EXPORT_SYMBOL_GPL(cpdma_chan_get_rate);
+ 
+ struct cpdma_chan *cpdma_chan_create(struct cpdma_ctlr *ctlr, int chan_num,
+ 				     cpdma_handler_fn handler, int rx_type)
+-- 
+2.11.0
