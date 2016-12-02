@@ -1,78 +1,96 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH] clk: ti: divider: Add the table parsing to get the best divider value
-Date: Fri, 2 Dec 2016 14:35:43 +0530
-Message-ID: <1480669543-16197-1-git-send-email-j-keerthy@ti.com>
+From: Giuseppe CAVALLARO <peppe.cavallaro@st.com>
+Subject: Re: [PATCH v2] cpsw: ethtool: add support for getting/setting EEE
+ registers
+Date: Fri, 2 Dec 2016 10:11:10 +0100
+Message-ID: <2b4912e6-c380-b2bd-762a-d1da2b0a7d82@st.com>
+References: <1479911913-1761-1-git-send-email-yegorslists@googlemail.com>
+ <93e0bd06-3171-e12b-b763-1e2895a463f8@gmail.com>
+ <CAGm1_ksC_6afhzK39uVTSk2PoC9CrR4Fow89YCZfihS2f6wzOw@mail.gmail.com>
+ <c91dcd74-3983-3ab6-91f6-3657b1e601af@gmail.com>
+ <CAGm1_ktuAbt0pr_NJu2GLDOavFV_bvMBmH5RvDxr5AyXvfwB3A@mail.gmail.com>
+ <20161124153809.GA20455@lunn.ch>
+ <11549d93-4b51-25c8-e693-509048475bef@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: t-kristo@ti.com
-Cc: mturquette@baylibre.com, sboyd@codeaurora.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, j-keerthy@ti.com
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <11549d93-4b51-25c8-e693-509048475bef@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Florian Fainelli <f.fainelli@gmail.com>, Andrew Lunn <andrew@lunn.ch>, Yegor Yefremov <yegorslists@googlemail.com>
+Cc: netdev <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "N, Mugunthan V" <mugunthanvnm@ti.com>, Rami Rosen <roszenrami@gmail.com>, Fabrice GASNIER <fabrice.gasnier@st.com>
 List-Id: linux-omap@vger.kernel.org
 
-Currently the divider selection logic blindly divides the parent_rate
-by the clk rate and gives the divider value for the divider clocks
-which do not have the CLK_SET_RATE_PARENT flag set. Add the clk divider
-table parsing to get the closest divider available in the table
-provided via Device tree.
+Hi Florian
+sorry for my delay.
 
-The code is pretty much taken from: drivers/clk/clk-divider.c.
-and used here to fix up the best divider selection logic.
+On 11/24/2016 7:23 PM, Florian Fainelli wrote:
+> +Peppe,
+>
+> Le 24/11/2016 à 07:38, Andrew Lunn a écrit :
+>>> As for enabling advertising and correct working of cpsw do you mean it
+>>> would be better to disable EEE in any PHY on cpsw initialization as
+>>> long as cpsw doesn't provide support for EEE?
+>>>
+>>> We observe some strange behavior with our gigabit PHYs and a link
+>>> partner in a EEE-capable unmanaged NetGear switch. Disabling
+>>> advertising seems to help. Though we're still investigating the issue.
+>>
+>> Hi Florian
+>>
+>> Am i right in saying, a PHY should not advertise EEE until the MAC
+>> driver calls phy_init_eee(), indicating the MAC supports EEE?
+>
+> You would think so, but I don't see how this could possibly work if that
+> was not the case already, see below.
+>
+>>
+>> If so, it looks like we need to change a few of the PHY drivers, in
+>> particular, the bcm-*.c.
+>
+> The first part that bcm-phy-lib.c does is make sure that EEE is enabled
+> such that this gets reflected in MDIO_PCS_EEE_ABLE, without this, we
+> won't be able to pass the first test in phy_init_eee(). The second part
+> is to advertise EEE such that this gets reflected in MDIO_AN_EEE_ADV,
+> also to make sure that we can pass the second check in phy_init_eee().
+>
+> Now, looking at phy_init_eee(), and what stmmac does (and bcmgenet,
+> copied after stmmac), we need to somehow, have EEE advertised for
+> phy_init_eee() to succeed, prepare the MAC to support EEE, and finally
+> conclude with a call to phy_ethtool_set_eee(), which writes to the
+> MDIO_AN_EEE_ADV register, and concludes the EEE auto-negotiated process.
+> Since we already have EEE advertised, we are essentially just checking
+> that the EEE advertised settings and the LP advertised settings actually
+> do match, so it sounds like the final call to phy_ethtool_set_eee() is
+> potentially useless if the resolved advertised and link partner
+> advertised settings already match...
+>
+> So it sounds like at least, the first time you try to initialize EEE, we
+> should start with EEE not advertised, and then, if we have EEE enabled
+> at some point, and we re-negotiate the link parameters, somehow
+> phy_init_eee() does a right job for that.
+>
+> Peppe, any thoughts on this?
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
-Reported-by: Richard Woodruff <r-woodruff2@ti.com>
----
- drivers/clk/ti/divider.c | 31 ++++++++++++++++++++++++++++++-
- 1 file changed, 30 insertions(+), 1 deletion(-)
+I share what you say.
 
-diff --git a/drivers/clk/ti/divider.c b/drivers/clk/ti/divider.c
-index b4e5de1..6bb8778 100644
---- a/drivers/clk/ti/divider.c
-+++ b/drivers/clk/ti/divider.c
-@@ -140,6 +140,35 @@ static bool _is_valid_div(struct clk_divider *divider, unsigned int div)
- 	return true;
- }
- 
-+static int _div_round_up(const struct clk_div_table *table,
-+			 unsigned long parent_rate, unsigned long rate)
-+{
-+	const struct clk_div_table *clkt;
-+	int up = INT_MAX;
-+	int div = DIV_ROUND_UP_ULL((u64)parent_rate, rate);
-+
-+	for (clkt = table; clkt->div; clkt++) {
-+		if (clkt->div == div)
-+			return clkt->div;
-+		else if (clkt->div < div)
-+			continue;
-+
-+		if ((clkt->div - div) < (up - div))
-+			up = clkt->div;
-+	}
-+
-+	return up;
-+}
-+
-+static int _div_round(const struct clk_div_table *table,
-+		      unsigned long parent_rate, unsigned long rate)
-+{
-+	if (!table)
-+		return DIV_ROUND_UP(parent_rate, rate);
-+
-+	return _div_round_up(table, parent_rate, rate);
-+}
-+
- static int ti_clk_divider_bestdiv(struct clk_hw *hw, unsigned long rate,
- 				  unsigned long *best_parent_rate)
- {
-@@ -155,7 +184,7 @@ static int ti_clk_divider_bestdiv(struct clk_hw *hw, unsigned long rate,
- 
- 	if (!(clk_hw_get_flags(hw) & CLK_SET_RATE_PARENT)) {
- 		parent_rate = *best_parent_rate;
--		bestdiv = DIV_ROUND_UP(parent_rate, rate);
-+		bestdiv = _div_round(divider->table, parent_rate, rate);
- 		bestdiv = bestdiv == 0 ? 1 : bestdiv;
- 		bestdiv = bestdiv > maxdiv ? maxdiv : bestdiv;
- 		return bestdiv;
--- 
-1.9.1
+In sum, the EEE management inside the stmmac is:
+
+- the driver looks at own HW cap register if EEE is supported
+
+     (indeed the user could keep disable EEE if bugged on some HW
+      + Alex, Fabrice: we had some patches for this to propose where we
+              called the phy_ethtool_set_eee to disable feature at phy
+              level
+
+- then the stmmac asks PHY layer to understand if transceiver and
+   partners are EEE capable.
+
+- If all matches the EEE is actually initialized.
+
+the logic above should be respected when use ethtool, hmm, I will
+check the stmmac_ethtool_op_set_eee asap.
+
+Hoping this is useful
+
+Regards
+Peppe
