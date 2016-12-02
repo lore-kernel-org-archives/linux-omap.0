@@ -1,51 +1,53 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH 5/7] Documentation: DT: net: cpsw: allow to specify
- descriptors pool size
-Date: Fri, 2 Dec 2016 13:28:33 +0200
-Message-ID: <20161202112832.GB1213@khorivan>
-References: <20161201233432.6182-1-grygorii.strashko@ti.com>
- <20161201233432.6182-6-grygorii.strashko@ti.com>
+From: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
+Subject: Re: [RFC PATCH] PCI: designware: add host_init() error handling
+Date: Fri, 2 Dec 2016 11:51:26 +0000
+Message-ID: <d416f9b3-20d9-0339-a4d2-9a4ba0669633@linaro.org>
+References: <1480593077-15402-1-git-send-email-srinivas.kandagatla@linaro.org>
+ <f2c8ebba-e51a-5f47-2d96-c75f7e086c0e@synopsys.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161201233432.6182-6-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <f2c8ebba-e51a-5f47-2d96-c75f7e086c0e@synopsys.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Joao Pinto <Joao.Pinto@synopsys.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Richard Zhu <Richard.Zhu@freescale.com>, Lucas Stach <l.stach@pengutronix.de>, Murali Karicheri <m-karicheri2@ti.com>, Minghuan Lian <minghuan.Lian@freescale.com>, Mingkai Hu <mingkai.hu@freescale.com>, Roy Zang <tie-fei.zang@freescale.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Jose Abreu <Jose.Abreu@synopsys.com>, Pratyush Anand <pratyush.anand@gmail.com>, Stanimir Varbanov <svarbanov@mm-sol.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linuxppc-dev
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Dec 01, 2016 at 05:34:30PM -0600, Grygorii Strashko wrote:
-> Add optional property "descs_pool_size" to specify buffer descriptor's
-> pool size. The "descs_pool_size" should define total number of CPDMA
-> CPPI descriptors to be used for both ingress/egress packets
-> processing. If not specified - the default value 256 will be used
-> which will allow to place descriptor's pool into the internal CPPI
-> RAM on most of TI SoC.
-> 
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> ---
->  Documentation/devicetree/bindings/net/cpsw.txt | 5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
-> index 5ad439f..b99d196 100644
-> --- a/Documentation/devicetree/bindings/net/cpsw.txt
-> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
-> @@ -35,6 +35,11 @@ Optional properties:
->  			  For example in dra72x-evm, pcf gpio has to be
->  			  driven low so that cpsw slave 0 and phy data
->  			  lines are connected via mux.
-> +- descs_pool_size	: total number of CPDMA CPPI descriptors to be used for
-> +			  both ingress/egress packets processing. if not
-> +			  specified the default value 256 will be used which
-> +			  will allow to place descriptors pool into the
-> +			  internal CPPI RAM.
-Does it describe h/w? Why now module parameter? or even smth like ethtool num
-ring entries?
 
->  
->  Slave Properties:
-> -- 
-> 2.10.1
-> 
+
+On 02/12/16 10:32, Joao Pinto wrote:
+>
+> Hi Srinivas,
+>
+> Às 11:51 AM de 12/1/2016, Srinivas Kandagatla escreveu:
+>>  drivers/pci/host/pci-dra7xx.c           |  4 +++-
+>>  drivers/pci/host/pci-exynos.c           |  4 +++-
+>>  drivers/pci/host/pci-imx6.c             |  4 +++-
+>>  drivers/pci/host/pci-keystone.c         |  4 +++-
+>>  drivers/pci/host/pci-layerscape.c       | 12 ++++++++----
+>>  drivers/pci/host/pcie-armada8k.c        |  4 +++-
+>>  drivers/pci/host/pcie-designware-plat.c |  4 +++-
+>>  drivers/pci/host/pcie-designware.c      |  4 +++-
+>>  drivers/pci/host/pcie-designware.h      |  2 +-
+>>  drivers/pci/host/pcie-qcom.c            |  6 ++++--
+>>  drivers/pci/host/pcie-spear13xx.c       |  4 +++-
+>>  11 files changed, 37 insertions(+), 15 deletions(-)
+>>
+>
+> Thanks for the patch!
+>
+> In my opinion your idea is good but only qcom driver is able to detect failure
+> in the specific host init routine, all others have a 'return 0' even if
+> something not well init. I would recomend that we take this issue a bit further
+> and add the error checking to all specific pci drivers in order to make them as
+> robust as qcom'.
+I totally agree with you, I can give this a go in next version.
+
+Thanks,
+srini
+
+>
+> Thanks,
+> Joao
+>
