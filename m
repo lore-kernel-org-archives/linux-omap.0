@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH v3 05/13] net: ethernet: ti: cpts: fix registration order
-Date: Fri, 2 Dec 2016 14:30:15 -0600
-Message-ID: <20161202203023.25526-6-grygorii.strashko@ti.com>
+Subject: [PATCH v3 08/13] net: ethernet: ti: cpts: drop excessive writes to CTRL and INT_EN regs
+Date: Fri, 2 Dec 2016 14:30:18 -0600
+Message-ID: <20161202203023.25526-9-grygorii.strashko@ti.com>
 References: <20161202203023.25526-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,67 +12,30 @@ To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V
 Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Wingman Kwok <w-kwok2@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The ptp clock registered before spinlock, which is protecting it, and
-before timecounter and cyclecounter initialization in cpts_register().
-
-So, ensure that ptp clock is registered the last, after everything
-else is done.
+CPTS module and IRQs are always enabled when CPTS is registered,
+before starting overflow check work, and disabled during
+deregistration, when overflow check work has been canceled already.
+So, It doesn't require to (re)enable CPTS module and IRQs in
+cpts_overflow_check().
 
 Acked-by: Richard Cochran <richardcochran@gmail.com>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/net/ethernet/ti/cpts.c | 24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+ drivers/net/ethernet/ti/cpts.c | 2 --
+ 1 file changed, 2 deletions(-)
 
 diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
-index 61198f1..3dda6d5 100644
+index 8266459..a662c33 100644
 --- a/drivers/net/ethernet/ti/cpts.c
 +++ b/drivers/net/ethernet/ti/cpts.c
-@@ -356,15 +356,8 @@ int cpts_register(struct device *dev, struct cpts *cpts,
- 		  u32 mult, u32 shift)
- {
- 	int err, i;
--	unsigned long flags;
+@@ -243,8 +243,6 @@ static void cpts_overflow_check(struct work_struct *work)
+ 	struct timespec64 ts;
+ 	struct cpts *cpts = container_of(work, struct cpts, overflow_work.work);
  
- 	cpts->info = cpts_info;
--	cpts->clock = ptp_clock_register(&cpts->info, dev);
--	if (IS_ERR(cpts->clock)) {
--		err = PTR_ERR(cpts->clock);
--		cpts->clock = NULL;
--		return err;
--	}
- 	spin_lock_init(&cpts->lock);
- 
- 	cpts->cc.read = cpts_systim_read;
-@@ -382,15 +375,26 @@ int cpts_register(struct device *dev, struct cpts *cpts,
- 	cpts_write32(cpts, CPTS_EN, control);
- 	cpts_write32(cpts, TS_PEND_EN, int_enable);
- 
--	spin_lock_irqsave(&cpts->lock, flags);
- 	timecounter_init(&cpts->tc, &cpts->cc, ktime_to_ns(ktime_get_real()));
--	spin_unlock_irqrestore(&cpts->lock, flags);
- 
- 	INIT_DELAYED_WORK(&cpts->overflow_work, cpts_overflow_check);
--	schedule_delayed_work(&cpts->overflow_work, CPTS_OVERFLOW_PERIOD);
- 
-+	cpts->clock = ptp_clock_register(&cpts->info, dev);
-+	if (IS_ERR(cpts->clock)) {
-+		err = PTR_ERR(cpts->clock);
-+		cpts->clock = NULL;
-+		goto err_ptp;
-+	}
- 	cpts->phc_index = ptp_clock_index(cpts->clock);
-+
-+	schedule_delayed_work(&cpts->overflow_work, CPTS_OVERFLOW_PERIOD);
-+
- 	return 0;
-+
-+err_ptp:
-+	if (cpts->refclk)
-+		cpts_clk_release(cpts);
-+	return err;
- }
- EXPORT_SYMBOL_GPL(cpts_register);
- 
+-	cpts_write32(cpts, CPTS_EN, control);
+-	cpts_write32(cpts, TS_PEND_EN, int_enable);
+ 	cpts_ptp_gettime(&cpts->info, &ts);
+ 	pr_debug("cpts overflow check at %lld.%09lu\n", ts.tv_sec, ts.tv_nsec);
+ 	schedule_delayed_work(&cpts->overflow_work, CPTS_OVERFLOW_PERIOD);
 -- 
 2.10.1
