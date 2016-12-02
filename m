@@ -1,128 +1,91 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH] USB: OHCI: ohci-omap: remove useless functions
-Date: Fri, 2 Dec 2016 14:46:15 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1612021445530.1510-100000@iolanthe.rowland.org>
-References: <1480640144-13485-1-git-send-email-csmanjuvijay@gmail.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH v3 13/13] net: ethernet: ti: cpts: fix overflow check period
+Date: Fri, 2 Dec 2016 14:30:23 -0600
+Message-ID: <20161202203023.25526-14-grygorii.strashko@ti.com>
+References: <20161202203023.25526-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1480640144-13485-1-git-send-email-csmanjuvijay@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: csmanjuvijay@gmail.com
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20161202203023.25526-1-grygorii.strashko@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Richard Cochran <richardcochran@gmail.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Wingman Kwok <w-kwok2@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Grygorii Strashko <grygorii.strashko@ti.com>, John Stultz <john.stultz@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 2 Dec 2016 csmanjuvijay@gmail.com wrote:
+The CPTS drivers uses 8sec period for overflow checking with
+assumption that CPTS retclk will not exceed 500MHz. But that's not
+true on some TI platforms (Kesytone 2). As result, it is possible that
+CPTS counter will overflow more than once between two readings.
 
-> From: Manjunath Goudar <csmanjuvijay@gmail.com>
-> 
-> The ohci_hcd_omap_drv_probe and ohci_hcd_omap_drv_remove
-> functions are removed as these are useless functions except calling
-> usb_hcd_omap_probe and usb_hcd_omap_remove functions.
-> 
-> The usb_hcd_omap_probe function renamed to ohci_hcd_omap_probe
-> and usb_hcd_omap_remove function renamed to ohci_hcd_omap_remove
-> for proper naming.
-> 
-> Signed-off-by: Manjunath Goudar <csmanjuvijay@gmail.com>
-> Cc: Alan Stern <stern@rowland.harvard.edu>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: linux-usb@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> ---
+Hence, fix it by selecting overflow check period dynamically as
+max_sec_before_overflow/2, where
+ max_sec_before_overflow = max_counter_val / rftclk_freq.
 
-Acked-by: Alan Stern <stern@rowland.harvard.edu>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Richard Cochran <richardcochran@gmail.com>
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+ drivers/net/ethernet/ti/cpts.c | 10 +++++++---
+ drivers/net/ethernet/ti/cpts.h |  4 +---
+ 2 files changed, 8 insertions(+), 6 deletions(-)
 
->  drivers/usb/host/ohci-omap.c | 36 +++++++++++-------------------------
->  1 file changed, 11 insertions(+), 25 deletions(-)
-> 
-> diff --git a/drivers/usb/host/ohci-omap.c b/drivers/usb/host/ohci-omap.c
-> index 495c145..1e809d7 100644
-> --- a/drivers/usb/host/ohci-omap.c
-> +++ b/drivers/usb/host/ohci-omap.c
-> @@ -296,15 +296,14 @@ static int ohci_omap_reset(struct usb_hcd *hcd)
->  /*-------------------------------------------------------------------------*/
->  
->  /**
-> - * usb_hcd_omap_probe - initialize OMAP-based HCDs
-> + * ohci_hcd_omap_probe - initialize OMAP-based HCDs
->   * Context: !in_interrupt()
->   *
->   * Allocates basic resources for this USB host controller, and
->   * then invokes the start() method for the HCD associated with it
->   * through the hotplug entry's driver_data.
->   */
-> -static int usb_hcd_omap_probe (const struct hc_driver *driver,
-> -			  struct platform_device *pdev)
-> +static int ohci_hcd_omap_probe(struct platform_device *pdev)
->  {
->  	int retval, irq;
->  	struct usb_hcd *hcd = 0;
-> @@ -336,7 +335,8 @@ static int usb_hcd_omap_probe (const struct hc_driver *driver,
->  	}
->  
->  
-> -	hcd = usb_create_hcd (driver, &pdev->dev, dev_name(&pdev->dev));
-> +	hcd = usb_create_hcd(&ohci_omap_hc_driver, &pdev->dev,
-> +			dev_name(&pdev->dev));
->  	if (!hcd) {
->  		retval = -ENOMEM;
->  		goto err0;
-> @@ -384,17 +384,18 @@ static int usb_hcd_omap_probe (const struct hc_driver *driver,
->  /* may be called with controller, bus, and devices active */
->  
->  /**
-> - * usb_hcd_omap_remove - shutdown processing for OMAP-based HCDs
-> + * ohci_hcd_omap_remove - shutdown processing for OMAP-based HCDs
->   * @dev: USB Host Controller being removed
->   * Context: !in_interrupt()
->   *
-> - * Reverses the effect of usb_hcd_omap_probe(), first invoking
-> + * Reverses the effect of ohci_hcd_omap_probe(), first invoking
->   * the HCD's stop() method.  It is always called from a thread
->   * context, normally "rmmod", "apmd", or something similar.
->   */
-> -static inline void
-> -usb_hcd_omap_remove (struct usb_hcd *hcd, struct platform_device *pdev)
-> +static int ohci_hcd_omap_remove(struct platform_device *pdev)
->  {
-> +	struct usb_hcd	*hcd = platform_get_drvdata(pdev);
-> +
->  	dev_dbg(hcd->self.controller, "stopping USB Controller\n");
->  	usb_remove_hcd(hcd);
->  	omap_ohci_clock_power(0);
-> @@ -409,21 +410,6 @@ usb_hcd_omap_remove (struct usb_hcd *hcd, struct platform_device *pdev)
->  	usb_put_hcd(hcd);
->  	clk_put(usb_dc_ck);
->  	clk_put(usb_host_ck);
-> -}
-> -
-> -/*-------------------------------------------------------------------------*/
-> -
-> -static int ohci_hcd_omap_drv_probe(struct platform_device *dev)
-> -{
-> -	return usb_hcd_omap_probe(&ohci_omap_hc_driver, dev);
-> -}
-> -
-> -static int ohci_hcd_omap_drv_remove(struct platform_device *dev)
-> -{
-> -	struct usb_hcd		*hcd = platform_get_drvdata(dev);
-> -
-> -	usb_hcd_omap_remove(hcd, dev);
-> -
->  	return 0;
->  }
->  
-> @@ -472,8 +458,8 @@ static int ohci_omap_resume(struct platform_device *dev)
->   * Driver definition to register with the OMAP bus
->   */
->  static struct platform_driver ohci_hcd_omap_driver = {
-> -	.probe		= ohci_hcd_omap_drv_probe,
-> -	.remove		= ohci_hcd_omap_drv_remove,
-> +	.probe		= ohci_hcd_omap_probe,
-> +	.remove		= ohci_hcd_omap_remove,
->  	.shutdown	= usb_hcd_platform_shutdown,
->  #ifdef	CONFIG_PM
->  	.suspend	= ohci_omap_suspend,
-> 
+diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
+index 806241b..e9a8b12 100644
+--- a/drivers/net/ethernet/ti/cpts.c
++++ b/drivers/net/ethernet/ti/cpts.c
+@@ -245,7 +245,7 @@ static void cpts_overflow_check(struct work_struct *work)
+ 
+ 	cpts_ptp_gettime(&cpts->info, &ts);
+ 	pr_debug("cpts overflow check at %lld.%09lu\n", ts.tv_sec, ts.tv_nsec);
+-	schedule_delayed_work(&cpts->overflow_work, CPTS_OVERFLOW_PERIOD);
++	schedule_delayed_work(&cpts->overflow_work, cpts->ov_check_period);
+ }
+ 
+ static int cpts_match(struct sk_buff *skb, unsigned int ptp_class,
+@@ -382,8 +382,7 @@ int cpts_register(struct cpts *cpts)
+ 	}
+ 	cpts->phc_index = ptp_clock_index(cpts->clock);
+ 
+-	schedule_delayed_work(&cpts->overflow_work, CPTS_OVERFLOW_PERIOD);
+-
++	schedule_delayed_work(&cpts->overflow_work, cpts->ov_check_period);
+ 	return 0;
+ 
+ err_ptp:
+@@ -427,6 +426,11 @@ static void cpts_calc_mult_shift(struct cpts *cpts)
+ 	if (maxsec > 10)
+ 		maxsec = 10;
+ 
++	/* Calc overflow check period (maxsec / 2) */
++	cpts->ov_check_period = (HZ * maxsec) / 2;
++	dev_info(cpts->dev, "cpts: overflow check period %lu (jiffies)\n",
++		 cpts->ov_check_period);
++
+ 	if (cpts->cc_mult || cpts->cc.shift)
+ 		return;
+ 
+diff --git a/drivers/net/ethernet/ti/cpts.h b/drivers/net/ethernet/ti/cpts.h
+index 5da23af..c96eca2 100644
+--- a/drivers/net/ethernet/ti/cpts.h
++++ b/drivers/net/ethernet/ti/cpts.h
+@@ -97,9 +97,6 @@ enum {
+ 	CPTS_EV_TX,   /* Ethernet Transmit Event */
+ };
+ 
+-/* This covers any input clock up to about 500 MHz. */
+-#define CPTS_OVERFLOW_PERIOD (HZ * 8)
+-
+ #define CPTS_FIFO_DEPTH 16
+ #define CPTS_MAX_EVENTS 32
+ 
+@@ -127,6 +124,7 @@ struct cpts {
+ 	struct list_head events;
+ 	struct list_head pool;
+ 	struct cpts_event pool_data[CPTS_MAX_EVENTS];
++	unsigned long ov_check_period;
+ };
+ 
+ void cpts_rx_timestamp(struct cpts *cpts, struct sk_buff *skb);
+-- 
+2.10.1
