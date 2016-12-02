@@ -1,96 +1,33 @@
-From: Giuseppe CAVALLARO <peppe.cavallaro@st.com>
-Subject: Re: [PATCH v2] cpsw: ethtool: add support for getting/setting EEE
- registers
-Date: Fri, 2 Dec 2016 10:11:10 +0100
-Message-ID: <2b4912e6-c380-b2bd-762a-d1da2b0a7d82@st.com>
-References: <1479911913-1761-1-git-send-email-yegorslists@googlemail.com>
- <93e0bd06-3171-e12b-b763-1e2895a463f8@gmail.com>
- <CAGm1_ksC_6afhzK39uVTSk2PoC9CrR4Fow89YCZfihS2f6wzOw@mail.gmail.com>
- <c91dcd74-3983-3ab6-91f6-3657b1e601af@gmail.com>
- <CAGm1_ktuAbt0pr_NJu2GLDOavFV_bvMBmH5RvDxr5AyXvfwB3A@mail.gmail.com>
- <20161124153809.GA20455@lunn.ch>
- <11549d93-4b51-25c8-e693-509048475bef@gmail.com>
+From: Richard Cochran <richardcochran@gmail.com>
+Subject: Re: [PATCH 4/6] net: ethernet: ti: cpts: add ptp pps support
+Date: Fri, 2 Dec 2016 10:58:48 +0100
+Message-ID: <20161202095848.GA14586@localhost.localdomain>
+References: <20161128230428.6872-1-grygorii.strashko@ti.com>
+ <20161128230428.6872-5-grygorii.strashko@ti.com>
+ <20161130184511.GB8209@netboy>
+ <875d4cc2-8a47-b06d-fb46-0cacc28dbaee@ti.com>
+ <20161130221738.GA13099@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <11549d93-4b51-25c8-e693-509048475bef@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Florian Fainelli <f.fainelli@gmail.com>, Andrew Lunn <andrew@lunn.ch>, Yegor Yefremov <yegorslists@googlemail.com>
-Cc: netdev <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "N, Mugunthan V" <mugunthanvnm@ti.com>, Rami Rosen <roszenrami@gmail.com>, Fabrice GASNIER <fabrice.gasnier@st.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20161130221738.GA13099@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Murali Karicheri <m-karicheri2@ti.com>, Wingman Kwok <w-kwok2@ti.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Florian
-sorry for my delay.
+On Wed, Nov 30, 2016 at 11:17:38PM +0100, Richard Cochran wrote:
+> On Wed, Nov 30, 2016 at 02:43:57PM -0600, Grygorii Strashko wrote:
+> > Sry, but this is questionable - code for pps comes from TI internal
+> > branches (SDK releases) where it survived for a pretty long time.
 
-On 11/24/2016 7:23 PM, Florian Fainelli wrote:
-> +Peppe,
->
-> Le 24/11/2016 à 07:38, Andrew Lunn a écrit :
->>> As for enabling advertising and correct working of cpsw do you mean it
->>> would be better to disable EEE in any PHY on cpsw initialization as
->>> long as cpsw doesn't provide support for EEE?
->>>
->>> We observe some strange behavior with our gigabit PHYs and a link
->>> partner in a EEE-capable unmanaged NetGear switch. Disabling
->>> advertising seems to help. Though we're still investigating the issue.
->>
->> Hi Florian
->>
->> Am i right in saying, a PHY should not advertise EEE until the MAC
->> driver calls phy_init_eee(), indicating the MAC supports EEE?
->
-> You would think so, but I don't see how this could possibly work if that
-> was not the case already, see below.
->
->>
->> If so, it looks like we need to change a few of the PHY drivers, in
->> particular, the bcm-*.c.
->
-> The first part that bcm-phy-lib.c does is make sure that EEE is enabled
-> such that this gets reflected in MDIO_PCS_EEE_ABLE, without this, we
-> won't be able to pass the first test in phy_init_eee(). The second part
-> is to advertise EEE such that this gets reflected in MDIO_AN_EEE_ADV,
-> also to make sure that we can pass the second check in phy_init_eee().
->
-> Now, looking at phy_init_eee(), and what stmmac does (and bcmgenet,
-> copied after stmmac), we need to somehow, have EEE advertised for
-> phy_init_eee() to succeed, prepare the MAC to support EEE, and finally
-> conclude with a call to phy_ethtool_set_eee(), which writes to the
-> MDIO_AN_EEE_ADV register, and concludes the EEE auto-negotiated process.
-> Since we already have EEE advertised, we are essentially just checking
-> that the EEE advertised settings and the LP advertised settings actually
-> do match, so it sounds like the final call to phy_ethtool_set_eee() is
-> potentially useless if the resolved advertised and link partner
-> advertised settings already match...
->
-> So it sounds like at least, the first time you try to initialize EEE, we
-> should start with EEE not advertised, and then, if we have EEE enabled
-> at some point, and we re-negotiate the link parameters, somehow
-> phy_init_eee() does a right job for that.
->
-> Peppe, any thoughts on this?
+Actually, there is a way to get an accurate PPS from the am335x.  See
+this recent thread:
 
-I share what you say.
+   https://www.mail-archive.com/linuxptp-devel@lists.sourceforge.net/msg01726.html
 
-In sum, the EEE management inside the stmmac is:
+That is the way to go, and so, please drop this present patch.
 
-- the driver looks at own HW cap register if EEE is supported
-
-     (indeed the user could keep disable EEE if bugged on some HW
-      + Alex, Fabrice: we had some patches for this to propose where we
-              called the phy_ethtool_set_eee to disable feature at phy
-              level
-
-- then the stmmac asks PHY layer to understand if transceiver and
-   partners are EEE capable.
-
-- If all matches the EEE is actually initialized.
-
-the logic above should be respected when use ethtool, hmm, I will
-check the stmmac_ethtool_op_set_eee asap.
-
-Hoping this is useful
-
-Regards
-Peppe
+Thanks,
+Richard
