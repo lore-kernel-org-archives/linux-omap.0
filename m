@@ -1,44 +1,44 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv4 00/15] clk: ti: add support for hwmod clocks
-Date: Fri, 2 Dec 2016 10:15:53 +0200
-Message-ID: <7371ef35-5d95-bf78-4c97-c61091a1fa4b@ti.com>
-References: <1476805568-19264-1-git-send-email-t-kristo@ti.com>
- <20161028005341.GR26139@codeaurora.org>
- <2cfa10a9-9ea0-23e4-30de-9aece13e47e3@ti.com>
- <20161028233750.GQ16026@codeaurora.org>
+From: Felipe Balbi <balbi@kernel.org>
+Subject: Re: [PATCH 06/12] usb: dwc3: omap: Replace the extcon API
+Date: Fri, 02 Dec 2016 11:03:46 +0200
+Message-ID: <87fum6vh1p.fsf@linux.intel.com>
+References: <1480485460-2663-1-git-send-email-cw00.choi@samsung.com> <1480485460-2663-7-git-send-email-cw00.choi@samsung.com> <CGME20161130103827epcas4p268ee1cbc6b7b2ace7c987dd7baba82d4@epcas4p2.samsung.com> <877f7lntjq.fsf@linux.intel.com> <58412848.5070209@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <20161028233750.GQ16026@codeaurora.org>
-Sender: linux-clk-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, tony@atomide.com, mturquette@baylibre.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-renesas-soc-owner@vger.kernel.org>
+In-Reply-To: <58412848.5070209@samsung.com>
+Sender: linux-renesas-soc-owner@vger.kernel.org
+To: Chanwoo Choi <cw00.choi@samsung.com>, gregkh@linuxfoundation.org, kishon@ti.com, sre@kernel.org
+Cc: Peter.Chen@nxp.com, wens@csie.org, yoshihiro.shimoda.uh@renesas.com, maxime.ripard@free-electrons.com, b-liu@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org, chanwoo@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 29/10/16 02:37, Stephen Boyd wrote:
-> On 10/28, Tero Kristo wrote:
->> Eventually that should happen. However, we have plenty of legacy
->> code still in place which depend on clk_get functionality within
->> kernel. The major contributing factor is the hwmod codebase, for
->> which we have plans to:
->>
->> - get this clock driver merged
->> - implement a new interconnect driver for OMAP family SoCs
->> - interconnect driver will use DT handles for fetching clocks,
->> rather than clock aliases
->> - reset handling will be implemented as part of the interconnect
->> driver somehow (no prototype / clear plans for that as of yet)
->> - all the hwmod stuff can be dropped
->>
->> The clock alias handling is still needed as a transition phase until
->> all the above is done, then we can start dropping them. Basically
->> anything that is using omap_hwmod depends on the clock aliases right
->> now.
+
+Hi,
+
+Chanwoo Choi <cw00.choi@samsung.com> writes:
+> Hi Felipe,
 >
-> Ok, sounds good. Thanks.
+> On 2016년 11월 30일 19:36, Felipe Balbi wrote:
+>> 
+>> Hi,
+>> 
+>> Chanwoo Choi <cw00.choi@samsung.com> writes:
+>>> This patch uses the resource-managed extcon API for extcon_register_notifier()
+>>> and replaces the deprecated extcon API as following:
+>>> - extcon_get_cable_state_() -> extcon_get_state()
+>>>
+>>> Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
+>> 
+>> Acked-by: Felipe Balbi <felipe.balbi@linux.intel.com>
+>> 
+>
+> Thanks for your review.
+>
+> Each patch has no any dependency among patches.
+> So, If possible, could you pick the patch6/8/9/10/11/12 on your tree?
 
-Stephen, any final comments on this series? I guess its too late to push 
-for 4.10, but I would like to get this merged early for 4.11 window.
+my tree is closed for v4.10, I can pick it up for v4.11
 
--Tero
+-- 
+balbi
