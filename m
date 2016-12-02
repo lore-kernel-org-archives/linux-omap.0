@@ -1,83 +1,128 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 5/7] Documentation: DT: net: cpsw: allow to specify
- descriptors pool size
-Date: Fri, 2 Dec 2016 11:21:24 -0600
-Message-ID: <23737800-cca5-fbd4-e21c-5430ecf7ab34@ti.com>
-References: <20161201233432.6182-1-grygorii.strashko@ti.com>
- <20161201233432.6182-6-grygorii.strashko@ti.com>
- <20161202112832.GB1213@khorivan>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH] USB: OHCI: ohci-omap: remove useless functions
+Date: Fri, 2 Dec 2016 14:46:15 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1612021445530.1510-100000@iolanthe.rowland.org>
+References: <1480640144-13485-1-git-send-email-csmanjuvijay@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161202112832.GB1213@khorivan>
+In-Reply-To: <1480640144-13485-1-git-send-email-csmanjuvijay@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: csmanjuvijay@gmail.com
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On Fri, 2 Dec 2016 csmanjuvijay@gmail.com wrote:
 
-
-On 12/02/2016 05:28 AM, Ivan Khoronzhuk wrote:
-> On Thu, Dec 01, 2016 at 05:34:30PM -0600, Grygorii Strashko wrote:
->> Add optional property "descs_pool_size" to specify buffer descriptor's
->> pool size. The "descs_pool_size" should define total number of CPDMA
->> CPPI descriptors to be used for both ingress/egress packets
->> processing. If not specified - the default value 256 will be used
->> which will allow to place descriptor's pool into the internal CPPI
->> RAM on most of TI SoC.
->>
->> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->> ---
->>  Documentation/devicetree/bindings/net/cpsw.txt | 5 +++++
->>  1 file changed, 5 insertions(+)
->>
->> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
->> index 5ad439f..b99d196 100644
->> --- a/Documentation/devicetree/bindings/net/cpsw.txt
->> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
->> @@ -35,6 +35,11 @@ Optional properties:
->>  			  For example in dra72x-evm, pcf gpio has to be
->>  			  driven low so that cpsw slave 0 and phy data
->>  			  lines are connected via mux.
->> +- descs_pool_size	: total number of CPDMA CPPI descriptors to be used for
->> +			  both ingress/egress packets processing. if not
->> +			  specified the default value 256 will be used which
->> +			  will allow to place descriptors pool into the
->> +			  internal CPPI RAM.
-> Does it describe h/w? Why now module parameter? or even smth like ethtool num
-> ring entries?
+> From: Manjunath Goudar <csmanjuvijay@gmail.com>
 > 
+> The ohci_hcd_omap_drv_probe and ohci_hcd_omap_drv_remove
+> functions are removed as these are useless functions except calling
+> usb_hcd_omap_probe and usb_hcd_omap_remove functions.
+> 
+> The usb_hcd_omap_probe function renamed to ohci_hcd_omap_probe
+> and usb_hcd_omap_remove function renamed to ohci_hcd_omap_remove
+> for proper naming.
+> 
+> Signed-off-by: Manjunath Goudar <csmanjuvijay@gmail.com>
+> Cc: Alan Stern <stern@rowland.harvard.edu>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Cc: linux-usb@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
+> ---
 
-It can be module parameter too. for the use cases i'm aware of -
-this is one-time boot setting only.  
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
 
------ OR
-So, do you propose to use 
-       ethtool -g ethX
-
-       ethtool -G ethX [rx N] [tx N]
-?
-
-Now cpdma has one pool for all RX/TX channels, so changing this settings
-by ethtool will require: pause interfaces, reallocate cpdma pool, 
-re-arrange buffers between channels, resume interface. Correct?
-
-How do you think - we can move forward with one pool or better to have two (Rx and Tx)?
-
-Wouldn't it be reasonable to still have DT (or module) parameter to avoid 
-cpdma reconfiguration on system startup (pause/resume interfaces) (faster boot)?
-
-How about cpdma re-allocation policy (with expectation that is shouldn't happen too often)?
-- increasing of Rx, Tx will grow total number of physically allocated buffers (total_desc_num)
-- decreasing of Rx, Tx will just change number of available buffers (no memory re-allocation)
-
------ OR ----
-Can we move forward with current patch (total number of CPDMA CPPI descriptors defined in DT) 
-and add ethtool -G ethX [rx N] [tx N] which will allow to re-split descs between RX and TX?
-
-
-
--- 
-regards,
--grygorii
+>  drivers/usb/host/ohci-omap.c | 36 +++++++++++-------------------------
+>  1 file changed, 11 insertions(+), 25 deletions(-)
+> 
+> diff --git a/drivers/usb/host/ohci-omap.c b/drivers/usb/host/ohci-omap.c
+> index 495c145..1e809d7 100644
+> --- a/drivers/usb/host/ohci-omap.c
+> +++ b/drivers/usb/host/ohci-omap.c
+> @@ -296,15 +296,14 @@ static int ohci_omap_reset(struct usb_hcd *hcd)
+>  /*-------------------------------------------------------------------------*/
+>  
+>  /**
+> - * usb_hcd_omap_probe - initialize OMAP-based HCDs
+> + * ohci_hcd_omap_probe - initialize OMAP-based HCDs
+>   * Context: !in_interrupt()
+>   *
+>   * Allocates basic resources for this USB host controller, and
+>   * then invokes the start() method for the HCD associated with it
+>   * through the hotplug entry's driver_data.
+>   */
+> -static int usb_hcd_omap_probe (const struct hc_driver *driver,
+> -			  struct platform_device *pdev)
+> +static int ohci_hcd_omap_probe(struct platform_device *pdev)
+>  {
+>  	int retval, irq;
+>  	struct usb_hcd *hcd = 0;
+> @@ -336,7 +335,8 @@ static int usb_hcd_omap_probe (const struct hc_driver *driver,
+>  	}
+>  
+>  
+> -	hcd = usb_create_hcd (driver, &pdev->dev, dev_name(&pdev->dev));
+> +	hcd = usb_create_hcd(&ohci_omap_hc_driver, &pdev->dev,
+> +			dev_name(&pdev->dev));
+>  	if (!hcd) {
+>  		retval = -ENOMEM;
+>  		goto err0;
+> @@ -384,17 +384,18 @@ static int usb_hcd_omap_probe (const struct hc_driver *driver,
+>  /* may be called with controller, bus, and devices active */
+>  
+>  /**
+> - * usb_hcd_omap_remove - shutdown processing for OMAP-based HCDs
+> + * ohci_hcd_omap_remove - shutdown processing for OMAP-based HCDs
+>   * @dev: USB Host Controller being removed
+>   * Context: !in_interrupt()
+>   *
+> - * Reverses the effect of usb_hcd_omap_probe(), first invoking
+> + * Reverses the effect of ohci_hcd_omap_probe(), first invoking
+>   * the HCD's stop() method.  It is always called from a thread
+>   * context, normally "rmmod", "apmd", or something similar.
+>   */
+> -static inline void
+> -usb_hcd_omap_remove (struct usb_hcd *hcd, struct platform_device *pdev)
+> +static int ohci_hcd_omap_remove(struct platform_device *pdev)
+>  {
+> +	struct usb_hcd	*hcd = platform_get_drvdata(pdev);
+> +
+>  	dev_dbg(hcd->self.controller, "stopping USB Controller\n");
+>  	usb_remove_hcd(hcd);
+>  	omap_ohci_clock_power(0);
+> @@ -409,21 +410,6 @@ usb_hcd_omap_remove (struct usb_hcd *hcd, struct platform_device *pdev)
+>  	usb_put_hcd(hcd);
+>  	clk_put(usb_dc_ck);
+>  	clk_put(usb_host_ck);
+> -}
+> -
+> -/*-------------------------------------------------------------------------*/
+> -
+> -static int ohci_hcd_omap_drv_probe(struct platform_device *dev)
+> -{
+> -	return usb_hcd_omap_probe(&ohci_omap_hc_driver, dev);
+> -}
+> -
+> -static int ohci_hcd_omap_drv_remove(struct platform_device *dev)
+> -{
+> -	struct usb_hcd		*hcd = platform_get_drvdata(dev);
+> -
+> -	usb_hcd_omap_remove(hcd, dev);
+> -
+>  	return 0;
+>  }
+>  
+> @@ -472,8 +458,8 @@ static int ohci_omap_resume(struct platform_device *dev)
+>   * Driver definition to register with the OMAP bus
+>   */
+>  static struct platform_driver ohci_hcd_omap_driver = {
+> -	.probe		= ohci_hcd_omap_drv_probe,
+> -	.remove		= ohci_hcd_omap_drv_remove,
+> +	.probe		= ohci_hcd_omap_probe,
+> +	.remove		= ohci_hcd_omap_remove,
+>  	.shutdown	= usb_hcd_platform_shutdown,
+>  #ifdef	CONFIG_PM
+>  	.suspend	= ohci_omap_suspend,
+> 
