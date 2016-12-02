@@ -1,112 +1,83 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: omap3: beagleboard-xm: dt: Add ethernet to the
- device tree
-Date: Fri, 2 Dec 2016 08:53:24 -0800
-Message-ID: <20161202165323.GC4705@atomide.com>
-References: <1480528685-26259-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <20161202011807.GF3703@atomide.com>
- <4245212.aFfvVGINdT@avalon>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 5/7] Documentation: DT: net: cpsw: allow to specify
+ descriptors pool size
+Date: Fri, 2 Dec 2016 11:22:28 -0600
+Message-ID: <31a048c2-74e4-772e-ab63-9eacc2f49953@ti.com>
+References: <20161201233432.6182-1-grygorii.strashko@ti.com>
+ <20161201233432.6182-6-grygorii.strashko@ti.com>
+ <20161202112832.GB1213@khorivan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4245212.aFfvVGINdT@avalon>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161202112832.GB1213@khorivan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [161202 05:38]:
-> Hi Tony,
+
+
+On 12/02/2016 05:28 AM, Ivan Khoronzhuk wrote:
+> On Thu, Dec 01, 2016 at 05:34:30PM -0600, Grygorii Strashko wrote:
+>> Add optional property "descs_pool_size" to specify buffer descriptor's
+>> pool size. The "descs_pool_size" should define total number of CPDMA
+>> CPPI descriptors to be used for both ingress/egress packets
+>> processing. If not specified - the default value 256 will be used
+>> which will allow to place descriptor's pool into the internal CPPI
+>> RAM on most of TI SoC.
+>>
+>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>> ---
+>>  Documentation/devicetree/bindings/net/cpsw.txt | 5 +++++
+>>  1 file changed, 5 insertions(+)
+>>
+>> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
+>> index 5ad439f..b99d196 100644
+>> --- a/Documentation/devicetree/bindings/net/cpsw.txt
+>> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
+>> @@ -35,6 +35,11 @@ Optional properties:
+>>  			  For example in dra72x-evm, pcf gpio has to be
+>>  			  driven low so that cpsw slave 0 and phy data
+>>  			  lines are connected via mux.
+>> +- descs_pool_size	: total number of CPDMA CPPI descriptors to be used for
+>> +			  both ingress/egress packets processing. if not
+>> +			  specified the default value 256 will be used which
+>> +			  will allow to place descriptors pool into the
+>> +			  internal CPPI RAM.
+> Does it describe h/w? Why now module parameter? or even smth like ethtool num
+> ring entries?
 > 
-> On Thursday 01 Dec 2016 17:18:08 Tony Lindgren wrote:
-> > * Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [161130 09:58]:
-> > >  &usbhsehci {
-> > >  
-> > >  	phys = <0 &hsusb2_phy>;
-> > > 
-> > > +
-> > > +	#address-cells = <1>;
-> > > +	#size-cells = <0>;
-> > > +
-> > > +	usb2@2 {
-> > 
-> > I think this should be usb1@2 instead of usb2@2? That's because it's
-> > at /sys/bus/usb/devices/1-2 and not at /sys/bus/usb/devices/2-2?
-> > 
-> > Or what's the naming standard here?
-> 
-> Good question. As far as I know, the node name is irrelevant, only the reg 
-> value is important. Maybe we should call it hub@2 ?
 
-Yeah hub sounds good to me, Rob?
+It can be module parameter too. in general this is expected to be 
+ one-time boot setting only.  
 
-Sohow does the kernel know which instance it is if there
-are multiple devices? For example, below is a patch for
-igepv5 (not yet using "hub" naming), note how it has things
-at 3-2 and 3-2.3. So if it also had something at 1-2 and
-1-2.1, how would we name them?
+----- OR
+So, do you propose to use 
+       ethtool -g ethX
 
-Regards,
+       ethtool -G ethX [rx N] [tx N]
+?
 
-Tony
+Now cpdma has one pool for all RX/TX channels, so changing this settings
+by ethtool will require: pause interfaces, reallocate cpdma pool, 
+re-arrange buffers between channels, resume interface. Correct?
 
-8< ------------------------
+How do you think - we can move forward with one pool or better to have two (Rx and Tx)?
 
->From tony Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Date: Thu, 1 Dec 2016 17:04:50 -0800
-Subject: [PATCH] ARM: dts: omap5-igep0050: Allow bootloader to configure
- USB Ethernet MAC
+Wouldn't it be reasonable to still have DT (or module) parameter to avoid 
+cpdma reconfiguration on system startup (pause/resume interfaces) (faster boot)?
 
-This is slightly different wiring compared to omap5-uevm or pandaboard:
+How about cpdma re-allocation policy (with expectation that is shouldn't happen too often)?
+- increasing of Rx, Tx will grow total number of physically allocated buffers (total_desc_num)
+- decreasing of Rx, Tx will just change number of available buffers (no memory re-allocation)
 
-/sys/bus/usb/devices/3-2	hub
-/sys/bus/usb/devices/3-2.3	7500
+----- OR ----
+Can we move forward with current patch (total number of CPDMA CPPI descriptors defined in DT) 
+and add ethtool -G ethX [rx N] [tx N] which will allow to re-split descs between RX and TX?
 
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- arch/arm/boot/dts/omap5-igep0050.dts | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap5-igep0050.dts b/arch/arm/boot/dts/omap5-igep0050.dts
---- a/arch/arm/boot/dts/omap5-igep0050.dts
-+++ b/arch/arm/boot/dts/omap5-igep0050.dts
-@@ -19,6 +19,10 @@
- 		reg = <0x0 0x80000000 0 0x7f000000>;	/* 2032 MB */
- 	};
- 
-+	aliases {
-+		ethernet = &ethernet;
-+	};
-+
- 	gpio_keys {
- 		compatible = "gpio-keys";
- 		pinctrl-0 = <&power_button_pin>;
-@@ -116,3 +120,20 @@
- 		OMAP5_IOPAD(0x1ca, PIN_OUTPUT | MUX_MODE6)	/* perslimbus2_clock.gpio5_145 */
- 	>;
- };
-+
-+&usbhsehci {
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+
-+	usb3@2 {
-+		compatible = "usb424,3503";
-+		reg = <2>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		ethernet: usbether@3 {
-+			compatible = "usb424,7500";
-+			reg = <3>;
-+		};
-+	};
-+};
+
 -- 
-2.11.0
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards,
+-grygorii
