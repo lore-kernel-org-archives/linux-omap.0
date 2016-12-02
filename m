@@ -1,73 +1,230 @@
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: [PATCH v2] ARM: omap3: beagleboard-xm: dt: Add ethernet to the device tree
-Date: Fri,  2 Dec 2016 23:11:37 +0200
-Message-ID: <1480713097-5931-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v3] clk: ti: omap36xx: Work around sprz319 advisory 2.1
+Date: Fri,  2 Dec 2016 23:14:38 +0200
+Message-ID: <1480713278-6884-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Return-path: <linux-clk-owner@vger.kernel.org>
+Sender: linux-clk-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-clk@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, Richard Watts <rrw@kynesim.co.uk>, Tony Lindgren <tony@atomide.com>, Alexander Kinzer <a.kinzer@plusoptix.de>
 List-Id: linux-omap@vger.kernel.org
 
-The Beagleboard-xM has a LAN9514 USB hub and ethernet controller,
-connected to port 2 of the OMAP EHCI controller. The board however has
-no EEPROM to store the ethernet MAC address, which is programmed by the
-boot loader.
+From: Richard Watts <rrw@kynesim.co.uk>
 
-To allow Linux to use the same MAC address as the boot loader (or for
-that matter any fixed MAC address), we need a node in the device tree
-for the ethernet controller that the boot loader can update at runtime
-with a local-mac-address property. Add it, along with an alias for the
-ethernet controller to let the boot loader locate it easily.
+The OMAP36xx DPLL5, driving EHCI USB, can be subject to a long-term
+frequency drift. The frequency drift magnitude depends on the VCO update
+rate, which is inversely proportional to the PLL divider. The kernel
+DPLL configuration code results in a high value for the divider, leading
+to a long term drift high enough to cause USB transmission errors. In
+the worst case the USB PHY's ULPI interface can stop responding,
+breaking USB operation completely. This manifests itself on the
+Beagleboard xM by the LAN9514 reporting 'Cannot enable port 2. Maybe the
+cable is bad?' in the kernel log.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Errata sprz319 advisory 2.1 documents PLL values that minimize the
+drift. Use them automatically when DPLL5 is used for USB operation,
+which we detect based on the requested clock rate. The clock framework
+will still compute the PLL parameters and resulting rate as usual, but
+the PLL M and N values will then be overridden. This can result in the
+effective clock rate being slightly different than the rate cached by
+the clock framework, but won't cause any adverse effect to USB
+operation.
+
+Signed-off-by: Richard Watts <rrw@kynesim.co.uk>
+[Upported from v3.2 to v4.9]
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
-Changes since v1:
+Changes since v2:
 
-- Renamed usb2 DT node to hub
+- Added spaces around +
 ---
- arch/arm/boot/dts/omap3-beagle-xm.dts | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ drivers/clk/ti/clk-3xxx.c | 20 +++++++-------
+ drivers/clk/ti/clock.h    |  9 +++++++
+ drivers/clk/ti/dpll.c     | 19 +++++++++++++-
+ drivers/clk/ti/dpll3xxx.c | 67 +++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 104 insertions(+), 11 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-index 85e297ed0ea1..673cee2234b2 100644
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -27,6 +27,7 @@
- 	aliases {
- 		display0 = &dvi0;
- 		display1 = &tv0;
-+		ethernet = &ethernet;
- 	};
+diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
+index 8831e1a05367..11d8aa3ec186 100644
+--- a/drivers/clk/ti/clk-3xxx.c
++++ b/drivers/clk/ti/clk-3xxx.c
+@@ -22,13 +22,6 @@
  
- 	leds {
-@@ -348,6 +349,21 @@
+ #include "clock.h"
  
- &usbhsehci {
- 	phys = <0 &hsusb2_phy>;
+-/*
+- * DPLL5_FREQ_FOR_USBHOST: USBHOST and USBTLL are the only clocks
+- * that are sourced by DPLL5, and both of these require this clock
+- * to be at 120 MHz for proper operation.
+- */
+-#define DPLL5_FREQ_FOR_USBHOST		120000000
+-
+ #define OMAP3430ES2_ST_DSS_IDLE_SHIFT			1
+ #define OMAP3430ES2_ST_HSOTGUSB_IDLE_SHIFT		5
+ #define OMAP3430ES2_ST_SSI_IDLE_SHIFT			8
+@@ -546,14 +539,21 @@ void __init omap3_clk_lock_dpll5(void)
+ 	struct clk *dpll5_clk;
+ 	struct clk *dpll5_m2_clk;
+ 
++	/*
++	 * Errata sprz319f advisory 2.1 documents a USB host clock drift issue
++	 * that can be worked around using specially crafted dpll5 settings
++	 * with a dpll5_m2 divider set to 8. Set the dpll5 rate to 8x the USB
++	 * host clock rate, its .set_rate handler() will detect that frequency
++	 * and use the errata settings.
++	 */
+ 	dpll5_clk = clk_get(NULL, "dpll5_ck");
+-	clk_set_rate(dpll5_clk, DPLL5_FREQ_FOR_USBHOST);
++	clk_set_rate(dpll5_clk, OMAP3_DPLL5_FREQ_FOR_USBHOST * 8);
+ 	clk_prepare_enable(dpll5_clk);
+ 
+-	/* Program dpll5_m2_clk divider for no division */
++	/* Program dpll5_m2_clk divider */
+ 	dpll5_m2_clk = clk_get(NULL, "dpll5_m2_ck");
+ 	clk_prepare_enable(dpll5_m2_clk);
+-	clk_set_rate(dpll5_m2_clk, DPLL5_FREQ_FOR_USBHOST);
++	clk_set_rate(dpll5_m2_clk, OMAP3_DPLL5_FREQ_FOR_USBHOST);
+ 
+ 	clk_disable_unprepare(dpll5_m2_clk);
+ 	clk_disable_unprepare(dpll5_clk);
+diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
+index 90f3f472ae1c..13c37f48d9d6 100644
+--- a/drivers/clk/ti/clock.h
++++ b/drivers/clk/ti/clock.h
+@@ -257,11 +257,20 @@ long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
+ unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
+ 				    unsigned long parent_rate);
+ 
++/*
++ * OMAP3_DPLL5_FREQ_FOR_USBHOST: USBHOST and USBTLL are the only clocks
++ * that are sourced by DPLL5, and both of these require this clock
++ * to be at 120 MHz for proper operation.
++ */
++#define OMAP3_DPLL5_FREQ_FOR_USBHOST	120000000
 +
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+
-+	hub@2 {
-+		compatible = "usb424,9514";
-+		reg = <2>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		ethernet: usbether@1 {
-+			compatible = "usb424,ec00";
-+			reg = <1>;
-+		};
-+	};
+ unsigned long omap3_dpll_recalc(struct clk_hw *hw, unsigned long parent_rate);
+ int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
+ 			 unsigned long parent_rate);
+ int omap3_dpll4_set_rate_and_parent(struct clk_hw *hw, unsigned long rate,
+ 				    unsigned long parent_rate, u8 index);
++int omap3_dpll5_set_rate(struct clk_hw *hw, unsigned long rate,
++			 unsigned long parent_rate);
+ void omap3_clk_lock_dpll5(void);
+ 
+ unsigned long omap4_dpll_regm4xen_recalc(struct clk_hw *hw,
+diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
+index 9fc8754a6e61..4b9a419d8e14 100644
+--- a/drivers/clk/ti/dpll.c
++++ b/drivers/clk/ti/dpll.c
+@@ -114,6 +114,18 @@ static const struct clk_ops omap3_dpll_ck_ops = {
+ 	.round_rate	= &omap2_dpll_round_rate,
  };
  
- &vaux2 {
++static const struct clk_ops omap3_dpll5_ck_ops = {
++	.enable		= &omap3_noncore_dpll_enable,
++	.disable	= &omap3_noncore_dpll_disable,
++	.get_parent	= &omap2_init_dpll_parent,
++	.recalc_rate	= &omap3_dpll_recalc,
++	.set_rate	= &omap3_dpll5_set_rate,
++	.set_parent	= &omap3_noncore_dpll_set_parent,
++	.set_rate_and_parent	= &omap3_noncore_dpll_set_rate_and_parent,
++	.determine_rate	= &omap3_noncore_dpll_determine_rate,
++	.round_rate	= &omap2_dpll_round_rate,
++};
++
+ static const struct clk_ops omap3_dpll_per_ck_ops = {
+ 	.enable		= &omap3_noncore_dpll_enable,
+ 	.disable	= &omap3_noncore_dpll_disable,
+@@ -474,7 +486,12 @@ static void __init of_ti_omap3_dpll_setup(struct device_node *node)
+ 		.modes = (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
+ 	};
+ 
+-	of_ti_dpll_setup(node, &omap3_dpll_ck_ops, &dd);
++	if ((of_machine_is_compatible("ti,omap3630") ||
++	     of_machine_is_compatible("ti,omap36xx")) &&
++	    !strcmp(node->name, "dpll5_ck"))
++		of_ti_dpll_setup(node, &omap3_dpll5_ck_ops, &dd);
++	else
++		of_ti_dpll_setup(node, &omap3_dpll_ck_ops, &dd);
+ }
+ CLK_OF_DECLARE(ti_omap3_dpll_clock, "ti,omap3-dpll-clock",
+ 	       of_ti_omap3_dpll_setup);
+diff --git a/drivers/clk/ti/dpll3xxx.c b/drivers/clk/ti/dpll3xxx.c
+index 88f2ce81ba55..4cdd28a25584 100644
+--- a/drivers/clk/ti/dpll3xxx.c
++++ b/drivers/clk/ti/dpll3xxx.c
+@@ -838,3 +838,70 @@ int omap3_dpll4_set_rate_and_parent(struct clk_hw *hw, unsigned long rate,
+ 	return omap3_noncore_dpll_set_rate_and_parent(hw, rate, parent_rate,
+ 						      index);
+ }
++
++/* Apply DM3730 errata sprz319 advisory 2.1. */
++static bool omap3_dpll5_apply_errata(struct clk_hw *hw,
++				     unsigned long parent_rate)
++{
++	struct omap3_dpll5_settings {
++		unsigned int rate, m, n;
++	};
++
++	static const struct omap3_dpll5_settings precomputed[] = {
++		/*
++		 * From DM3730 errata advisory 2.1, table 35 and 36.
++		 * The N value is increased by 1 compared to the tables as the
++		 * errata lists register values while last_rounded_field is the
++		 * real divider value.
++		 */
++		{ 12000000,  80,  0 + 1 },
++		{ 13000000, 443,  5 + 1 },
++		{ 19200000,  50,  0 + 1 },
++		{ 26000000, 443, 11 + 1 },
++		{ 38400000,  25,  0 + 1 }
++	};
++
++	const struct omap3_dpll5_settings *d;
++	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
++	struct dpll_data *dd;
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(precomputed); ++i) {
++		if (parent_rate == precomputed[i].rate)
++			break;
++	}
++
++	if (i == ARRAY_SIZE(precomputed))
++		return false;
++
++	d = &precomputed[i];
++
++	/* Update the M, N and rounded rate values and program the DPLL. */
++	dd = clk->dpll_data;
++	dd->last_rounded_m = d->m;
++	dd->last_rounded_n = d->n;
++	dd->last_rounded_rate = div_u64((u64)parent_rate * d->m, d->n);
++	omap3_noncore_dpll_program(clk, 0);
++
++	return true;
++}
++
++/**
++ * omap3_dpll5_set_rate - set rate for omap3 dpll5
++ * @hw: clock to change
++ * @rate: target rate for clock
++ * @parent_rate: rate of the parent clock
++ *
++ * Set rate for the DPLL5 clock. Apply the sprz319 advisory 2.1 on OMAP36xx if
++ * the DPLL is used for USB host (detected through the requested rate).
++ */
++int omap3_dpll5_set_rate(struct clk_hw *hw, unsigned long rate,
++			 unsigned long parent_rate)
++{
++	if (rate == OMAP3_DPLL5_FREQ_FOR_USBHOST * 8) {
++		if (omap3_dpll5_apply_errata(hw, parent_rate))
++			return 0;
++	}
++
++	return omap3_noncore_dpll_set_rate(hw, rate, parent_rate);
++}
 -- 
 Regards,
 
 Laurent Pinchart
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
