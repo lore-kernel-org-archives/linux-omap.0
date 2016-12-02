@@ -1,169 +1,71 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 10/13] net: ethernet: ti: cpts: move dt props parsing to cpts driver
-Date: Fri, 2 Dec 2016 14:30:20 -0600
-Message-ID: <20161202203023.25526-11-grygorii.strashko@ti.com>
-References: <20161202203023.25526-1-grygorii.strashko@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Subject: [PATCH v2] ARM: omap3: beagleboard-xm: dt: Add ethernet to the device tree
+Date: Fri,  2 Dec 2016 23:11:37 +0200
+Message-ID: <1480713097-5931-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161202203023.25526-1-grygorii.strashko-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Murali Karicheri <m-karicheri2-l0cyMroinI0@public.gmane.org>, Wingman Kwok <w-kwok2-l0cyMroinI0@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Move DT properties parsing into CPTS driver to simplify CPSW
-code and CPTS driver porting on other SoC in the future
-(like Keystone 2) - with this change it will not be required
-to add the same DT parsing code in Keystone 2 NETCP driver.
+The Beagleboard-xM has a LAN9514 USB hub and ethernet controller,
+connected to port 2 of the OMAP EHCI controller. The board however has
+no EEPROM to store the ethernet MAC address, which is programmed by the
+boot loader.
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+To allow Linux to use the same MAC address as the boot loader (or for
+that matter any fixed MAC address), we need a node in the device tree
+for the ethernet controller that the boot loader can update at runtime
+with a local-mac-address property. Add it, along with an alias for the
+ethernet controller to let the boot loader locate it easily.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 ---
- drivers/net/ethernet/ti/cpsw.c | 16 +---------------
- drivers/net/ethernet/ti/cpsw.h |  2 --
- drivers/net/ethernet/ti/cpts.c | 32 +++++++++++++++++++++++++++++---
- drivers/net/ethernet/ti/cpts.h |  5 +++--
- 4 files changed, 33 insertions(+), 22 deletions(-)
+Changes since v1:
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 6c28ef1..ae1ec6a 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -2312,18 +2312,6 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
- 	}
- 	data->active_slave = prop;
- 
--	if (of_property_read_u32(node, "cpts_clock_mult", &prop)) {
--		dev_err(&pdev->dev, "Missing cpts_clock_mult property in the DT.\n");
--		return -EINVAL;
--	}
--	data->cpts_clock_mult = prop;
--
--	if (of_property_read_u32(node, "cpts_clock_shift", &prop)) {
--		dev_err(&pdev->dev, "Missing cpts_clock_shift property in the DT.\n");
--		return -EINVAL;
--	}
--	data->cpts_clock_shift = prop;
--
- 	data->slave_data = devm_kzalloc(&pdev->dev, data->slaves
- 					* sizeof(struct cpsw_slave_data),
- 					GFP_KERNEL);
-@@ -2789,9 +2777,7 @@ static int cpsw_probe(struct platform_device *pdev)
- 		goto clean_dma_ret;
- 	}
- 
--	cpsw->cpts = cpts_create(cpsw->dev, cpts_regs,
--				 cpsw->data.cpts_clock_mult,
--				 cpsw->data.cpts_clock_shift);
-+	cpsw->cpts = cpts_create(cpsw->dev, cpts_regs, cpsw->dev->of_node);
- 	if (IS_ERR(cpsw->cpts)) {
- 		ret = PTR_ERR(cpsw->cpts);
- 		goto clean_ale_ret;
-diff --git a/drivers/net/ethernet/ti/cpsw.h b/drivers/net/ethernet/ti/cpsw.h
-index 16b54c6..6c3037a 100644
---- a/drivers/net/ethernet/ti/cpsw.h
-+++ b/drivers/net/ethernet/ti/cpsw.h
-@@ -31,8 +31,6 @@ struct cpsw_platform_data {
- 	u32	channels;	/* number of cpdma channels (symmetric) */
- 	u32	slaves;		/* number of slave cpgmac ports */
- 	u32	active_slave; /* time stamping, ethtool and SIOCGMIIPHY slave */
--	u32	cpts_clock_mult;  /* convert input clock ticks to nanoseconds */
--	u32	cpts_clock_shift; /* convert input clock ticks to nanoseconds */
- 	u32	ale_entries;	/* ale table size */
- 	u32	bd_ram_size;  /*buffer descriptor ram size */
- 	u32	mac_control;	/* Mac control register */
-diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
-index 47831b2..5d5c46d 100644
---- a/drivers/net/ethernet/ti/cpts.c
-+++ b/drivers/net/ethernet/ti/cpts.c
-@@ -409,10 +409,34 @@ void cpts_unregister(struct cpts *cpts)
- }
- EXPORT_SYMBOL_GPL(cpts_unregister);
- 
-+static int cpts_of_parse(struct cpts *cpts, struct device_node *node)
-+{
-+	int ret = -EINVAL;
-+	u32 prop;
-+
-+	if (of_property_read_u32(node, "cpts_clock_mult", &prop))
-+		goto  of_error;
-+	/* save cc.mult original value as it can be modified
-+	 * by cpts_ptp_adjfreq().
-+	 */
-+	cpts->cc_mult = prop;
-+
-+	if (of_property_read_u32(node, "cpts_clock_shift", &prop))
-+		goto  of_error;
-+	cpts->cc.shift = prop;
-+
-+	return 0;
-+
-+of_error:
-+	dev_err(cpts->dev, "CPTS: Missing property in the DT.\n");
-+	return ret;
-+}
-+
- struct cpts *cpts_create(struct device *dev, void __iomem *regs,
--			 u32 mult, u32 shift)
-+			 struct device_node *node)
- {
- 	struct cpts *cpts;
-+	int ret;
- 
- 	cpts = devm_kzalloc(dev, sizeof(*cpts), GFP_KERNEL);
- 	if (!cpts)
-@@ -423,6 +447,10 @@ struct cpts *cpts_create(struct device *dev, void __iomem *regs,
- 	spin_lock_init(&cpts->lock);
- 	INIT_DELAYED_WORK(&cpts->overflow_work, cpts_overflow_check);
- 
-+	ret = cpts_of_parse(cpts, node);
-+	if (ret)
-+		return ERR_PTR(ret);
-+
- 	cpts->refclk = devm_clk_get(dev, "cpts");
- 	if (IS_ERR(cpts->refclk)) {
- 		dev_err(dev, "Failed to get cpts refclk\n");
-@@ -433,8 +461,6 @@ struct cpts *cpts_create(struct device *dev, void __iomem *regs,
- 
- 	cpts->cc.read = cpts_systim_read;
- 	cpts->cc.mask = CLOCKSOURCE_MASK(32);
--	cpts->cc.shift = shift;
--	cpts->cc_mult = mult;
- 	cpts->info = cpts_info;
- 
- 	return cpts;
-diff --git a/drivers/net/ethernet/ti/cpts.h b/drivers/net/ethernet/ti/cpts.h
-index e7d857c..5da23af 100644
---- a/drivers/net/ethernet/ti/cpts.h
-+++ b/drivers/net/ethernet/ti/cpts.h
+- Renamed usb2 DT node to hub
+---
+ arch/arm/boot/dts/omap3-beagle-xm.dts | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
+index 85e297ed0ea1..673cee2234b2 100644
+--- a/arch/arm/boot/dts/omap3-beagle-xm.dts
++++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
 @@ -27,6 +27,7 @@
- #include <linux/clocksource.h>
- #include <linux/device.h>
- #include <linux/list.h>
-+#include <linux/of.h>
- #include <linux/ptp_clock_kernel.h>
- #include <linux/skbuff.h>
- #include <linux/timecounter.h>
-@@ -133,7 +134,7 @@ void cpts_tx_timestamp(struct cpts *cpts, struct sk_buff *skb);
- int cpts_register(struct cpts *cpts);
- void cpts_unregister(struct cpts *cpts);
- struct cpts *cpts_create(struct device *dev, void __iomem *regs,
--			 u32 mult, u32 shift);
-+			 struct device_node *node);
- void cpts_release(struct cpts *cpts);
+ 	aliases {
+ 		display0 = &dvi0;
+ 		display1 = &tv0;
++		ethernet = &ethernet;
+ 	};
  
- static inline void cpts_rx_enable(struct cpts *cpts, int enable)
-@@ -168,7 +169,7 @@ static inline void cpts_tx_timestamp(struct cpts *cpts, struct sk_buff *skb)
+ 	leds {
+@@ -348,6 +349,21 @@
  
- static inline
- struct cpts *cpts_create(struct device *dev, void __iomem *regs,
--			 u32 mult, u32 shift)
-+			 struct device_node *node)
- {
- 	return NULL;
- }
+ &usbhsehci {
+ 	phys = <0 &hsusb2_phy>;
++
++	#address-cells = <1>;
++	#size-cells = <0>;
++
++	hub@2 {
++		compatible = "usb424,9514";
++		reg = <2>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		ethernet: usbether@1 {
++			compatible = "usb424,ec00";
++			reg = <1>;
++		};
++	};
+ };
+ 
+ &vaux2 {
 -- 
-2.10.1
+Regards,
+
+Laurent Pinchart
 
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
