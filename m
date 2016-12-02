@@ -1,44 +1,78 @@
-From: Felipe Balbi <balbi@kernel.org>
-Subject: Re: [PATCH 06/12] usb: dwc3: omap: Replace the extcon API
-Date: Fri, 02 Dec 2016 11:03:46 +0200
-Message-ID: <87fum6vh1p.fsf@linux.intel.com>
-References: <1480485460-2663-1-git-send-email-cw00.choi@samsung.com> <1480485460-2663-7-git-send-email-cw00.choi@samsung.com> <CGME20161130103827epcas4p268ee1cbc6b7b2ace7c987dd7baba82d4@epcas4p2.samsung.com> <877f7lntjq.fsf@linux.intel.com> <58412848.5070209@samsung.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH] clk: ti: divider: Add the table parsing to get the best divider value
+Date: Fri, 2 Dec 2016 14:35:43 +0530
+Message-ID: <1480669543-16197-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-renesas-soc-owner@vger.kernel.org>
-In-Reply-To: <58412848.5070209@samsung.com>
-Sender: linux-renesas-soc-owner@vger.kernel.org
-To: Chanwoo Choi <cw00.choi@samsung.com>, gregkh@linuxfoundation.org, kishon@ti.com, sre@kernel.org
-Cc: Peter.Chen@nxp.com, wens@csie.org, yoshihiro.shimoda.uh@renesas.com, maxime.ripard@free-electrons.com, b-liu@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org, chanwoo@kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: t-kristo@ti.com
+Cc: mturquette@baylibre.com, sboyd@codeaurora.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+Currently the divider selection logic blindly divides the parent_rate
+by the clk rate and gives the divider value for the divider clocks
+which do not have the CLK_SET_RATE_PARENT flag set. Add the clk divider
+table parsing to get the closest divider available in the table
+provided via Device tree.
 
-Hi,
+The code is pretty much taken from: drivers/clk/clk-divider.c.
+and used here to fix up the best divider selection logic.
 
-Chanwoo Choi <cw00.choi@samsung.com> writes:
-> Hi Felipe,
->
-> On 2016년 11월 30일 19:36, Felipe Balbi wrote:
->> 
->> Hi,
->> 
->> Chanwoo Choi <cw00.choi@samsung.com> writes:
->>> This patch uses the resource-managed extcon API for extcon_register_notifier()
->>> and replaces the deprecated extcon API as following:
->>> - extcon_get_cable_state_() -> extcon_get_state()
->>>
->>> Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
->> 
->> Acked-by: Felipe Balbi <felipe.balbi@linux.intel.com>
->> 
->
-> Thanks for your review.
->
-> Each patch has no any dependency among patches.
-> So, If possible, could you pick the patch6/8/9/10/11/12 on your tree?
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+Reported-by: Richard Woodruff <r-woodruff2@ti.com>
+---
+ drivers/clk/ti/divider.c | 31 ++++++++++++++++++++++++++++++-
+ 1 file changed, 30 insertions(+), 1 deletion(-)
 
-my tree is closed for v4.10, I can pick it up for v4.11
-
+diff --git a/drivers/clk/ti/divider.c b/drivers/clk/ti/divider.c
+index b4e5de1..6bb8778 100644
+--- a/drivers/clk/ti/divider.c
++++ b/drivers/clk/ti/divider.c
+@@ -140,6 +140,35 @@ static bool _is_valid_div(struct clk_divider *divider, unsigned int div)
+ 	return true;
+ }
+ 
++static int _div_round_up(const struct clk_div_table *table,
++			 unsigned long parent_rate, unsigned long rate)
++{
++	const struct clk_div_table *clkt;
++	int up = INT_MAX;
++	int div = DIV_ROUND_UP_ULL((u64)parent_rate, rate);
++
++	for (clkt = table; clkt->div; clkt++) {
++		if (clkt->div == div)
++			return clkt->div;
++		else if (clkt->div < div)
++			continue;
++
++		if ((clkt->div - div) < (up - div))
++			up = clkt->div;
++	}
++
++	return up;
++}
++
++static int _div_round(const struct clk_div_table *table,
++		      unsigned long parent_rate, unsigned long rate)
++{
++	if (!table)
++		return DIV_ROUND_UP(parent_rate, rate);
++
++	return _div_round_up(table, parent_rate, rate);
++}
++
+ static int ti_clk_divider_bestdiv(struct clk_hw *hw, unsigned long rate,
+ 				  unsigned long *best_parent_rate)
+ {
+@@ -155,7 +184,7 @@ static int ti_clk_divider_bestdiv(struct clk_hw *hw, unsigned long rate,
+ 
+ 	if (!(clk_hw_get_flags(hw) & CLK_SET_RATE_PARENT)) {
+ 		parent_rate = *best_parent_rate;
+-		bestdiv = DIV_ROUND_UP(parent_rate, rate);
++		bestdiv = _div_round(divider->table, parent_rate, rate);
+ 		bestdiv = bestdiv == 0 ? 1 : bestdiv;
+ 		bestdiv = bestdiv > maxdiv ? maxdiv : bestdiv;
+ 		return bestdiv;
 -- 
-balbi
+1.9.1
