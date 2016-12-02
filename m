@@ -1,82 +1,91 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 2/7] net: ethernet: ti: cpdma: fix desc re-queuing
-Date: Fri, 2 Dec 2016 10:45:07 -0600
-Message-ID: <9171f321-32bf-81d9-3491-43d12e8fe8b2@ti.com>
-References: <20161201233432.6182-1-grygorii.strashko@ti.com>
- <20161201233432.6182-3-grygorii.strashko@ti.com>
- <20161202110321.GA1213@khorivan>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/2] ARM: omap: timers: reduce rating of gp_timer
+ clocksource
+Date: Fri, 2 Dec 2016 08:47:14 -0800
+Message-ID: <20161202164714.GB4705@atomide.com>
+References: <1479968355-18860-1-git-send-email-j-keerthy@ti.com>
+ <1479968355-18860-2-git-send-email-j-keerthy@ti.com>
+ <d3a71d3d-3015-bb1f-80a4-4bb9adecaa4c@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161202110321.GA1213@khorivan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <d3a71d3d-3015-bb1f-80a4-4bb9adecaa4c@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, linux@armlinux.org.uk, linux-kernel@vger.kernel.org, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 12/02/2016 05:03 AM, Ivan Khoronzhuk wrote:
-> On Thu, Dec 01, 2016 at 05:34:27PM -0600, Grygorii Strashko wrote:
->> The currently processing cpdma descriptor with EOQ flag set may
->> contain two values in Next Descriptor Pointer field:
->> - valid pointer: means CPDMA missed addition of new desc in queue;
-> It shouldn't happen in normal circumstances, right?
-
-it might happen, because desc push compete with desc pop.
-You can check stats values:
-chan->stats.misqueued
-chan->stats.requeue
- under different types of net-loads.
-
-TRM:
-"
-If the pNext pointer is initially NULL, and more packets need to be queued for transmit, the software
-application may alter this pointer to point to a newly appended descriptor. The EMAC will use the new
-pointer value and proceed to the next descriptor unless the pNext value has already been read. In this
-latter case, the transmitter will halt on the transmit channel in question, and the software application may
-restart it at that time. The software can detect this case by checking for an end of queue (EOQ) condition
-flag on the updated packet descriptor when it is returned by the EMAC.
-"
-
-
-> So, why it happens only for egress channels? And Does that mean
-> there is some resynchronization between submit and process function,
-> or this is h/w issue?
-
-no hw issues. this patch just removes one unnecessary I/O access 
-
+* Grygorii Strashko <grygorii.strashko@ti.com> [161129 08:43]:
 > 
->> - null: no more descriptors in queue.
->> In the later case, it's not required to write to HDP register, but now
->> CPDMA does it.
->>
->> Hence, add additional check for Next Descriptor Pointer != null in
->> cpdma_chan_process() function before writing in HDP register.
->>
->> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->> ---
->>  drivers/net/ethernet/ti/davinci_cpdma.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
->> index 0924014..379314f 100644
->> --- a/drivers/net/ethernet/ti/davinci_cpdma.c
->> +++ b/drivers/net/ethernet/ti/davinci_cpdma.c
->> @@ -1152,7 +1152,7 @@ static int __cpdma_chan_process(struct cpdma_chan *chan)
->>  	chan->count--;
->>  	chan->stats.good_dequeue++;
->>  
->> -	if (status & CPDMA_DESC_EOQ) {
->> +	if ((status & CPDMA_DESC_EOQ) && chan->head) {
->>  		chan->stats.requeue++;
->>  		chan_write(chan, hdp, desc_phys(pool, chan->head));
->>  	}
->> -- 
->> 2.10.1
->>
+> 
+> On 11/24/2016 12:19 AM, Keerthy wrote:
+> > From: Grygorii Strashko <grygorii.strashko@ti.com>
+> > 
+> > Now ARM Global timer (rating 300) will not be selected as clocksource,
+> > because it's initialized after OMAP GP Timer (rating 300) and
+> > Timekeeping core will not allow to replace clocksource with new one if
+> > both of them have the same rating.
+> > 
+> > Reduce rating of OMAP GP Timer (300->290) when it's used as
+> > clocksource device - this will allow to select ARM Global timer (300)
+> > as clocksource when enabled.
+> > 
+> > Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> > Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> > Signed-off-by: Keerthy <j-keerthy@ti.com>
+> 
+> Unfortunately, this patch has dependency [1] and can't be used alone as
+> it will cause ARM Global timer to be selected as clocksource
+> always on am437x and this will kill cpuidle, because ARM Global timer
+> is not in always_on domain.
+> 
+> The intention of enabling ARM Global timer is only for non-pm aware use
+> cases for RT-kernel latency improvement - where deep cpuidle states are not
+> enabled.
 
--- 
-regards,
--grygorii
+Yeah we need to fix up things to be able to change the clocksource
+in addition to clockevent. However, currently only cpuidle_coupled
+knows when the whole system is idle, so quite a bit of work is
+needed to do that in a sane way.
+
+What about the first patch in this series?
+
+Regards,
+
+Tony
+
+
+> [1] https://patchwork.kernel.org/patch/8940051/
+> 
+> > ---
+> >  arch/arm/mach-omap2/timer.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> > index b2f2448..a0dbb0b 100644
+> > --- a/arch/arm/mach-omap2/timer.c
+> > +++ b/arch/arm/mach-omap2/timer.c
+> > @@ -376,7 +376,7 @@ static cycle_t clocksource_read_cycles(struct clocksource *cs)
+> >  }
+> > 
+> >  static struct clocksource clocksource_gpt = {
+> > -	.rating		= 300,
+> > +	.rating		= 290,
+> >  	.read		= clocksource_read_cycles,
+> >  	.mask		= CLOCKSOURCE_MASK(32),
+> >  	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+> > 
+> 
+> -- 
+> regards,
+> -grygorii
