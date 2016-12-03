@@ -1,41 +1,54 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH -next] net: ethernet: ti: davinci_cpdma: add missing
- EXPORTs
-Date: Sat, 03 Dec 2016 15:27:57 -0500 (EST)
-Message-ID: <20161203.152757.961499505116275188.davem@davemloft.net>
-References: <20161201202528.12531-1-paul.gortmaker@windriver.com>
+Subject: Re: [PATCH 1/7] net: ethernet: ti: cpdma: am437x: allow descs to
+ be plased in ddr
+Date: Sat, 03 Dec 2016 15:34:19 -0500 (EST)
+Message-ID: <20161203.153419.482900037601991931.davem@davemloft.net>
+References: <20161201233432.6182-1-grygorii.strashko@ti.com>
+        <20161201233432.6182-2-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20161201202528.12531-1-paul.gortmaker@windriver.com>
-Sender: netdev-owner@vger.kernel.org
-To: paul.gortmaker@windriver.com
-Cc: ivan.khoronzhuk@linaro.org, mugunthanvnm@ti.com, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161201233432.6182-2-grygorii.strashko@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: grygorii.strashko@ti.com
+Cc: netdev@vger.kernel.org, mugunthanvnm@ti.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, ivan.khoronzhuk@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Date: Thu, 1 Dec 2016 15:25:28 -0500
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Date: Thu, 1 Dec 2016 17:34:26 -0600
 
-> As of commit 8f32b90981dcdb355516fb95953133f8d4e6b11d
-> ("net: ethernet: ti: davinci_cpdma: add set rate for a channel") the
-> ARM allmodconfig builds would fail modpost with:
-> 
-> ERROR: "cpdma_chan_set_weight" [drivers/net/ethernet/ti/ti_cpsw.ko] undefined!
-> ERROR: "cpdma_chan_get_rate" [drivers/net/ethernet/ti/ti_cpsw.ko] undefined!
-> ERROR: "cpdma_chan_get_min_rate" [drivers/net/ethernet/ti/ti_cpsw.ko] undefined!
-> ERROR: "cpdma_chan_set_rate" [drivers/net/ethernet/ti/ti_cpsw.ko] undefined!
-> 
-> Since these weren't declared as static, it is assumed they were
-> meant to be shared outside the file, and that modular build testing
-> was simply overlooked.
-> 
-> Fixes: 8f32b90981dc ("net: ethernet: ti: davinci_cpdma: add set rate for a channel")
-> Cc: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-> Cc: Mugunthan V N <mugunthanvnm@ti.com>
-> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-> Cc: linux-omap@vger.kernel.org
-> Cc: netdev@vger.kernel.org
-> Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+> @@ -167,10 +167,10 @@ static struct cpdma_control_info controls[] = {
+>  
+>  /* various accessors */
+>  #define dma_reg_read(ctlr, ofs)		__raw_readl((ctlr)->dmaregs + (ofs))
+> -#define chan_read(chan, fld)		__raw_readl((chan)->fld)
+> +#define chan_read(chan, fld)		readl((chan)->fld)
+>  #define desc_read(desc, fld)		__raw_readl(&(desc)->fld)
+>  #define dma_reg_write(ctlr, ofs, v)	__raw_writel(v, (ctlr)->dmaregs + (ofs))
+> -#define chan_write(chan, fld, v)	__raw_writel(v, (chan)->fld)
+> +#define chan_write(chan, fld, v)	writel(v, (chan)->fld)
+>  #define desc_write(desc, fld, v)	__raw_writel((u32)(v), &(desc)->fld)
 
-Applied.
+Unless you want to keep running into subtle errors all over the
+place wrt. register vs. memory write ordering, I strong suggest
+you use strongly ordered readl/writel for all register accesses.
+
+I see no tangible, worthwhile, advantage to using these relaxed
+ordering primitives.  The only result is potential bugs.
+
+People who use the relaxed ordering primitives properly are only
+doing so in extremely carefully coded sequences where a series
+of writes has no dependency on main memory operations and is
+explicitly completed with a barrier operation such as a read
+back of a register in the same device.
+
+That's not at all what is going on here, instead the driver is wildly
+using relaxed ordered register accesses for basically everything.
+This is extremely unwise and it's why you ran into this bug in the
+first place.
+
+Therefore, I absolutely require that you fix this by eliminating
+any and all usese of relaxed ordering I/O accessors in this driver.
+
+Thank you.
