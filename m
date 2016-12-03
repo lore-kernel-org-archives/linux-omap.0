@@ -1,35 +1,42 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH] net: ethernet: ti: cpdma: use desc_read in chan_process instead of raw read
-Date: Sat,  3 Dec 2016 04:05:15 +0200
-Message-ID: <1480730715-16000-1-git-send-email-ivan.khoronzhuk@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: mugunthanvnm@ti.com, grygorii.strashko@ti.com
-Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+From: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3 00/13] net: ethernet: ti: cpts: update and fixes
+Date: Sat, 3 Dec 2016 10:22:11 +0100
+Message-ID: <20161203092211.GA2762@netboy>
+References: <20161202203023.25526-1-grygorii.strashko@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161202203023.25526-1-grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Murali Karicheri <m-karicheri2-l0cyMroinI0@public.gmane.org>, Wingman Kwok <w-kwok2-l0cyMroinI0@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-There is desc_read() macros to read desc fields, so no need to
-use __raw_readl();
+On Fri, Dec 02, 2016 at 02:30:10PM -0600, Grygorii Strashko wrote:
+> It is preparation series intended to clean up and optimize TI CPTS driver to
+> facilitate further integration with other TI's SoCs like Keystone 2.
+> 
+> Changes in v3:
+> - patches reordered: fixes and small updates moved first
+> - added comments in code about cpts->cc_mult
+> - conversation range (maxsec) limited to 10sec
 
-Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
----
-Based on net-next/master
+On net-next:
 
- drivers/net/ethernet/ti/davinci_cpdma.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+$ git am ~/grygorii.strashko
+Applying: net: ethernet: ti: cpts: switch to readl/writel_relaxed()
+Applying: net: ethernet: ti: allow cpts to be built separately
+error: patch failed: drivers/net/ethernet/ti/cpsw.c:1963
+error: drivers/net/ethernet/ti/cpsw.c: patch does not apply
+Patch failed at 0002 net: ethernet: ti: allow cpts to be built separately
 
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-index c776e45..d96dca5 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.c
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-@@ -1132,7 +1132,7 @@ static int __cpdma_chan_process(struct cpdma_chan *chan)
- 	}
- 	desc_dma = desc_phys(pool, desc);
- 
--	status	= __raw_readl(&desc->hw_mode);
-+	status = desc_read(desc, hw_mode);
- 	outlen	= status & 0x7ff;
- 	if (status & CPDMA_DESC_OWNER) {
- 		chan->stats.busy_dequeue++;
--- 
-2.7.4
+Also, you have the order of the SOB tags wrong.  The author's SOB goes
+first.
+
+Thanks,
+Richard
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
