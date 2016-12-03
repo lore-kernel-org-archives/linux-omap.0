@@ -1,54 +1,51 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 1/7] net: ethernet: ti: cpdma: am437x: allow descs to
- be plased in ddr
-Date: Sat, 03 Dec 2016 15:34:19 -0500 (EST)
-Message-ID: <20161203.153419.482900037601991931.davem@davemloft.net>
-References: <20161201233432.6182-1-grygorii.strashko@ti.com>
-        <20161201233432.6182-2-grygorii.strashko@ti.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH] ARM: OMAP2+: PRM: Delete an error message for a failed memory
+ allocation
+Date: Sat, 3 Dec 2016 21:56:48 +0100
+Message-ID: <6212b730-8e09-bf87-2a6b-23df9bc43e2d@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161201233432.6182-2-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@ti.com
-Cc: netdev@vger.kernel.org, mugunthanvnm@ti.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, ivan.khoronzhuk@linaro.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@codeaurora.org>, Russell King <linux@armlinux.org.uk>, Tony Lindgren <tony@atomide.com>
+Cc: kernel-janitors@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Wolfram Sang <wsa@the-dreams.de>
 List-Id: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Date: Thu, 1 Dec 2016 17:34:26 -0600
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 3 Dec 2016 21:46:02 +0100
 
-> @@ -167,10 +167,10 @@ static struct cpdma_control_info controls[] = {
->  
->  /* various accessors */
->  #define dma_reg_read(ctlr, ofs)		__raw_readl((ctlr)->dmaregs + (ofs))
-> -#define chan_read(chan, fld)		__raw_readl((chan)->fld)
-> +#define chan_read(chan, fld)		readl((chan)->fld)
->  #define desc_read(desc, fld)		__raw_readl(&(desc)->fld)
->  #define dma_reg_write(ctlr, ofs, v)	__raw_writel(v, (ctlr)->dmaregs + (ofs))
-> -#define chan_write(chan, fld, v)	__raw_writel(v, (chan)->fld)
-> +#define chan_write(chan, fld, v)	writel(v, (chan)->fld)
->  #define desc_write(desc, fld, v)	__raw_writel((u32)(v), &(desc)->fld)
+Omit an extra message for a memory allocation failure in this function.
 
-Unless you want to keep running into subtle errors all over the
-place wrt. register vs. memory write ordering, I strong suggest
-you use strongly ordered readl/writel for all register accesses.
+Link: http://events.linuxfoundation.org/sites/events/files/slides/LCJ16-Refactor_Strings-WSang_0.pdf
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ arch/arm/mach-omap2/prm_common.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-I see no tangible, worthwhile, advantage to using these relaxed
-ordering primitives.  The only result is potential bugs.
-
-People who use the relaxed ordering primitives properly are only
-doing so in extremely carefully coded sequences where a series
-of writes has no dependency on main memory operations and is
-explicitly completed with a barrier operation such as a read
-back of a register in the same device.
-
-That's not at all what is going on here, instead the driver is wildly
-using relaxed ordered register accesses for basically everything.
-This is extremely unwise and it's why you ran into this bug in the
-first place.
-
-Therefore, I absolutely require that you fix this by eliminating
-any and all usese of relaxed ordering I/O accessors in this driver.
-
-Thank you.
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+index 5b2f5138d938..2b138b65129a 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -295,10 +295,8 @@ int omap_prcm_register_chain_handler(struct omap_prcm_irq_setup *irq_setup)
+ 		GFP_KERNEL);
+ 
+ 	if (!prcm_irq_chips || !prcm_irq_setup->saved_mask ||
+-	    !prcm_irq_setup->priority_mask) {
+-		pr_err("PRCM: kzalloc failed\n");
++	    !prcm_irq_setup->priority_mask)
+ 		goto err;
+-	}
+ 
+ 	memset(mask, 0, sizeof(mask));
+ 
+-- 
+2.11.0
