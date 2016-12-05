@@ -1,92 +1,217 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v3] ASoC: omap-mcbsp: Add PM QoS support
- for McBSP to prevent glitches
-Date: Mon, 5 Dec 2016 11:35:04 +0200
-Message-ID: <730ed491-ebe7-86c1-b131-5d9441ae2b7c@ti.com>
-References: <1480555145-8300-1-git-send-email-matt@ranostay.consulting>
- <e8e9a552-14d9-15eb-bf9a-48fdc79965e2@ti.com>
- <CAJ_EiSToYsRyxKF47WEZjcr5Jb4LC-3x310=JNdA7vSrYNoAdw@mail.gmail.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v3] clk: ti: omap36xx: Work around sprz319 advisory 2.1
+Date: Mon, 05 Dec 2016 10:46:43 +0200
+Message-ID: <2239782.MNuANFihMe@avalon>
+References: <1480713278-6884-1-git-send-email-laurent.pinchart@ideasonboard.com> <20161205082210.GA2901@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <CAJ_EiSToYsRyxKF47WEZjcr5Jb4LC-3x310=JNdA7vSrYNoAdw@mail.gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Matt Ranostay <matt@ranostay.consulting>
-Cc: Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, Linux OMAP List <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <20161205082210.GA2901@localhost.localdomain>
+Sender: linux-clk-owner@vger.kernel.org
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, Richard Watts <rrw@kynesim.co.uk>, Tony Lindgren <tony@atomide.com>, Alexander Kinzer <a.kinzer@plusoptix.de>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMTIvMDQvMjAxNiAwMzozMyBBTSwgTWF0dCBSYW5vc3RheSB3cm90ZToKPj4+ICsgKgo+Pj4g
-KyAqIEFsc28gc2V0dGluZyBvZiB0aGUgUW9TIGxhdGVuY3kgZm9yIHRoZSBGSUZPIHdoaWNoIHZh
-cmllcyB1cG9uIHRoZSBidWZmZXIKPj4+ICsgKiBzaXplLiBBcHByb3hpbWF0ZWx5IDIuMyBtaWxs
-aXNlY29uZHMgcGVyIEZJRk8gbG9jYXRpb24uCj4+PiAgICovCj4+PiAgdm9pZCBvbWFwX21jYnNw
-X3N0YXJ0KHN0cnVjdCBvbWFwX21jYnNwICptY2JzcCwgaW50IHR4LCBpbnQgcngpCj4+PiAgewo+
-Pj4gICAgICAgaW50IGVuYWJsZV9zcmcgPSAwOwo+Pj4gKyAgICAgaW50IGxhdGVuY3kgPSBtY2Jz
-cC0+cGRhdGEtPmJ1ZmZlcl9zaXplICogMjM7Cj4+Cj4+IEkgdGhpbmsgdGhpcyBpcyBub3QgY29y
-cmVjdC4KPj4gVGhlIE1jQlNQIEZJRk8gdGltZSBkZXBlbmRzIG9uIHRoZSBzYW1wbGUgcmF0ZSBh
-bmQgb24gdGhlIG51bWJlciBvZgo+PiBjaGFubmVscyB0aGUgYXVkaW8gaXMgdXNpbmcuIFdpdGgg
-OEtIeiBtb25vIHlvdSBoYXZlIDEyIHRpbWVzIG1vcmUgdGltZQo+PiBwZXIgRklGTyBlbGVtZW50
-IGNvbXBhcmVkIHRvIDQ4S0h6IHN0ZXJlby4KPj4KPj4gQXMgaXQgaGFzIGJlZW4gZGlzY3Vzc2Vk
-IHdpdGggVG9ueSB3ZSBzaG91bGQgY2FsY3VsYXRlIHRoZSBRb1MgbGF0ZW5jeQo+PiBpbiBod19w
-YXJhbXM6Cj4+Cj4gCj4gT2sgeWVhaCBtaXNzZWQgdGhhdCBwYXJ0IG9mIHRoZSB0aHJlYWQgYnV0
-IGl0IG1ha2VzIHNlbnNlLiBKdXN0IG9uZQo+IHF1ZXN0aW9uIHNob3VsZCB0aGUgbGF0ZW5jeSB2
-YWx1ZSBiZSBvbmx5IGJhc2VkIG9uIHRoZSBUWCBGSUZPCj4gdGhyZXNob2xkPyBJIGFzc3VtZSBj
-YXB0dXJlIGFuZCB0cmFuc21pdCBoYXZlIHR3byBkaWZmZXJlbnQgc2V0dGluZ3MuCgpZZXMsIEkg
-YmVsaWV2ZSB3ZSBzaG91bGQgYXBwbHkgdGhlIGxvd2VzdCBRb1Mgd2hlbiBib3RoIGRpcmVjdGlv
-biBpcwphY3RpdmUuIElmIHRoZSBzZWNvbmQgc3RyZWFtIG5lZWRzIGxvd2VyIFFvUywgd2Ugc2hv
-dWxkIHN3aXRjaCB0byB1c2UKdGhhdCwgaWYgaXQgd291bGQgbmVlZCBsb25nZXIsIHdlIHNob3Vs
-ZCBrZWVwIHRoZSBRb1MgcGxhY2VkIGZvciB0aGUKZmlyc3Qgc3RyZWFtLgoKPj4gbGF0ZW5jeV9t
-cyA9ICgoRklGT3NpemUgLSBGSUZPdGhyZXNob2xkKSAvIGNoYW5uZWxzKSAqIDEwMDAvc2FtcGxp
-bmctcmF0ZQo+Pgo+PiBPbiBPTUFQMy5NY0JTUDIgZm9yIGV4YW1wbGUgKDQ0LjFLSHosIHN0ZXJl
-byk6Cj4+IEZJRk8gdGhyZXNob2xkIDEyOAo+PiAgLSBETUEgcmVxdWVzdCB3aWxsIGJlIHRyaWdn
-ZXJlZCB3aGVuIDEyOCBzbG90cyBhcmUgZnJlZSBpbiB0aGUgRklGTwo+PiAgLSBhdCB0aGF0IHBv
-aW50IHdlIGhhdmUgc3RpbGwgMTE1MiB3b3JkcyBpbiB0aGUgRklGTy4KPj4gIC0gaWYgdGhlIEMg
-d2FrZXVwIGxhdGVuY3kgaXMgbG9uZ2VyIHRoZW4gd2hhdCBpdCB0YWtlcyB0byBwbGF5IG91dCB0
-aGUKPj4gc2FtcGxlcyBmcm9tIHRoZSBGSUZPICgxMy4wNm1zKSwgd2Ugd2lsbCBkcmFpbiB0aGUg
-RklGTyBhbmQgZ290IHVuZGVyZmxvdy4KPj4gIC0gaW4gdGhpcyBjYXNlIHRoZSBRT1Mgc2hvdWxk
-IGJlIHNldCBhcyAxMy4wNm1zCj4+Cj4+IEZJRk8gdGhyZXNob2xkIDEwMjQKPj4gIC0gRE1BIHJl
-cXVlc3Qgd2lsbCBiZSB0cmlnZ2VyZWQgd2hlbiAxMDI0IHNsb3RzIGFyZSBmcmVlIGluIHRoZSBG
-SUZPCj4+ICAtIGF0IHRoYXQgcG9pbnQgd2UgaGF2ZSBzdGlsbCAyNTYgd29yZHMgaW4gdGhlIEZJ
-Rk8uCj4+ICAtIGlmIHRoZSBDIHdha2V1cCBsYXRlbmN5IGlzIGxvbmdlciB0aGVuIHdoYXQgaXQg
-dGFrZXMgdG8gcGxheSBvdXQgdGhlCj4+IHNhbXBsZXMgZnJvbSB0aGUgRklGTyAoMi45bXMpLCB3
-ZSB3aWxsIGRyYWluIHRoZSBGSUZPIGFuZCBnb3QgdW5kZXJmbG93Lgo+PiAgLSBpbiB0aGlzIGNh
-c2UgdGhlIFFPUyBzaG91bGQgYmUgMi45bXMKPj4KPj4gT24gb3RoZXIgTWNCU1BzIHdpdGggMTI4
-IHdvcmQgRklGTyB0aGUgcmVxdWlyZWQgbGF0ZW5jeSBpcyBzaG9ydGVyIHRvIGVuc3VyZQo+PiB3
-ZSBkb24ndCBkcmFpbiB0aGUgRklGTy4KPj4KPj4KPj4+ICAgICAgIHUxNiB3Owo+Pj4KPj4+ICsg
-ICAgIC8qIFByZXZlbnQgb21hcCBoYXJkd2FyZSBmcm9tIGhpdHRpbmcgb2ZmIGJldHdlZW4gZmlm
-byBmaWxscyAqLwo+Pj4gKyAgICAgaWYgKGxhdGVuY3kpCj4+PiArICAgICAgICAgICAgIHBtX3Fv
-c19hZGRfcmVxdWVzdCgmbWNic3AtPnBtX3Fvc19yZXEsCj4+PiArICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICBQTV9RT1NfQ1BVX0RNQV9MQVRFTkNZLCBsYXRlbmN5KTsKPj4+ICsKPj4+
-ICAgICAgIGlmIChtY2JzcC0+c3RfZGF0YSkKPj4+ICAgICAgICAgICAgICAgb21hcF9zdF9zdGFy
-dChtY2JzcCk7Cj4+Pgo+Pj4gQEAgLTczMSw2ICs3NDEsOCBAQCB2b2lkIG9tYXBfbWNic3Bfc3Rv
-cChzdHJ1Y3Qgb21hcF9tY2JzcCAqbWNic3AsIGludCB0eCwgaW50IHJ4KQo+Pj4KPj4+ICAgICAg
-IGlmIChtY2JzcC0+c3RfZGF0YSkKPj4+ICAgICAgICAgICAgICAgb21hcF9zdF9zdG9wKG1jYnNw
-KTsKPj4+ICsKPj4+ICsgICAgIHBtX3Fvc19yZW1vdmVfcmVxdWVzdCgmbWNic3AtPnBtX3Fvc19y
-ZXEpOwo+Pj4gIH0KPj4+Cj4+PiAgaW50IG9tYXAyX21jYnNwX3NldF9jbGtzX3NyYyhzdHJ1Y3Qg
-b21hcF9tY2JzcCAqbWNic3AsIHU4IGZja19zcmNfaWQpCj4+PiBAQCAtMTA5OCw2ICsxMTEwLDkg
-QEAgaW50IG9tYXBfbWNic3BfaW5pdChzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQo+Pj4K
-Pj4+ICB2b2lkIG9tYXBfbWNic3BfY2xlYW51cChzdHJ1Y3Qgb21hcF9tY2JzcCAqbWNic3ApCj4+
-PiAgewo+Pj4gKyAgICAgaWYgKHBtX3Fvc19yZXF1ZXN0X2FjdGl2ZSgmbWNic3AtPnBtX3Fvc19y
-ZXEpKQo+Pj4gKyAgICAgICAgICAgICBwbV9xb3NfcmVtb3ZlX3JlcXVlc3QoJm1jYnNwLT5wbV9x
-b3NfcmVxKTsKPj4+ICsKPj4+ICAgICAgIGlmIChtY2JzcC0+cGRhdGEtPmJ1ZmZlcl9zaXplKQo+
-Pj4gICAgICAgICAgICAgICBzeXNmc19yZW1vdmVfZ3JvdXAoJm1jYnNwLT5kZXYtPmtvYmosICZh
-ZGRpdGlvbmFsX2F0dHJfZ3JvdXApOwo+Pj4KPj4+IGRpZmYgLS1naXQgYS9zb3VuZC9zb2Mvb21h
-cC9tY2JzcC5oIGIvc291bmQvc29jL29tYXAvbWNic3AuaAo+Pj4gaW5kZXggNjFlOTNiMWMxODVk
-Li5lNjAzZjMzZjQwODIgMTAwNjQ0Cj4+PiAtLS0gYS9zb3VuZC9zb2Mvb21hcC9tY2JzcC5oCj4+
-PiArKysgYi9zb3VuZC9zb2Mvb21hcC9tY2JzcC5oCj4+PiBAQCAtMzI1LDYgKzMyNSw4IEBAIHN0
-cnVjdCBvbWFwX21jYnNwIHsKPj4+ICAgICAgIHVuc2lnbmVkIGludCBpbl9mcmVxOwo+Pj4gICAg
-ICAgaW50IGNsa19kaXY7Cj4+PiAgICAgICBpbnQgd2xlbjsKPj4+ICsKPj4+ICsgICAgIHN0cnVj
-dCBwbV9xb3NfcmVxdWVzdCBwbV9xb3NfcmVxOwo+Pj4gIH07Cj4+Pgo+Pj4gIHZvaWQgb21hcF9t
-Y2JzcF9jb25maWcoc3RydWN0IG9tYXBfbWNic3AgKm1jYnNwLAo+Pj4KPj4KPj4gLS0KPj4gUMOp
-dGVyCgotLSAKUMOpdGVyCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCkFsc2EtZGV2ZWwgbWFpbGluZyBsaXN0CkFsc2EtZGV2ZWxAYWxzYS1wcm9qZWN0Lm9y
-ZwpodHRwOi8vbWFpbG1hbi5hbHNhLXByb2plY3Qub3JnL21haWxtYW4vbGlzdGluZm8vYWxzYS1k
-ZXZlbAo=
+Hi Ladislav,
+
+On Monday 05 Dec 2016 09:22:10 Ladislav Michl wrote:
+> Hi Laurent,
+> 
+> I'm happy someone is stepping into this again :-) Just a few comments bellow
+> (and this thread for more:
+> http://www.spinics.net/lists/linux-omap/msg126591.html)
+>
+> On Fri, Dec 02, 2016 at 11:14:38PM +0200, Laurent Pinchart wrote:
+> > From: Richard Watts <rrw@kynesim.co.uk>
+> > 
+> > The OMAP36xx DPLL5, driving EHCI USB, can be subject to a long-term
+> > frequency drift. The frequency drift magnitude depends on the VCO update
+> > rate, which is inversely proportional to the PLL divider. The kernel
+> > DPLL configuration code results in a high value for the divider, leading
+> > to a long term drift high enough to cause USB transmission errors. In
+> > the worst case the USB PHY's ULPI interface can stop responding,
+> > breaking USB operation completely. This manifests itself on the
+> > Beagleboard xM by the LAN9514 reporting 'Cannot enable port 2. Maybe the
+> > cable is bad?' in the kernel log.
+> > 
+> > Errata sprz319 advisory 2.1 documents PLL values that minimize the
+> > drift. Use them automatically when DPLL5 is used for USB operation,
+> > which we detect based on the requested clock rate. The clock framework
+> > will still compute the PLL parameters and resulting rate as usual, but
+> > the PLL M and N values will then be overridden. This can result in the
+> > effective clock rate being slightly different than the rate cached by
+> > the clock framework, but won't cause any adverse effect to USB
+> > operation.
+> > 
+> > Signed-off-by: Richard Watts <rrw@kynesim.co.uk>
+> > [Upported from v3.2 to v4.9]
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > Changes since v2:
+> > 
+> > - Added spaces around +
+> > ---
+> > 
+> >  drivers/clk/ti/clk-3xxx.c | 20 +++++++-------
+> >  drivers/clk/ti/clock.h    |  9 +++++++
+> >  drivers/clk/ti/dpll.c     | 19 +++++++++++++-
+> >  drivers/clk/ti/dpll3xxx.c | 67 ++++++++++++++++++++++++++++++++++++++++++
+> >  4 files changed, 104 insertions(+), 11 deletions(-)
+
+[snip]
+
+> > diff --git a/drivers/clk/ti/dpll3xxx.c b/drivers/clk/ti/dpll3xxx.c
+> > index 88f2ce81ba55..4cdd28a25584 100644
+> > --- a/drivers/clk/ti/dpll3xxx.c
+> > +++ b/drivers/clk/ti/dpll3xxx.c
+> > @@ -838,3 +838,70 @@ int omap3_dpll4_set_rate_and_parent(struct clk_hw
+> > *hw, unsigned long rate,
+> >  	return omap3_noncore_dpll_set_rate_and_parent(hw, rate, parent_rate,
+> >  						      index);
+> >  }
+> > +
+> > +/* Apply DM3730 errata sprz319 advisory 2.1. */
+> > +static bool omap3_dpll5_apply_errata(struct clk_hw *hw,
+> > +				     unsigned long parent_rate)
+> > +{
+> > +	struct omap3_dpll5_settings {
+> > +		unsigned int rate, m, n;
+> > +	};
+> > +
+> > +	static const struct omap3_dpll5_settings precomputed[] = {
+> > +		/*
+> > +		 * From DM3730 errata advisory 2.1, table 35 and 36.
+> > +		 * The N value is increased by 1 compared to the tables as the
+> > +		 * errata lists register values while last_rounded_field is
+> > the
+> > +		 * real divider value.
+> > +		 */
+> > +		{ 12000000,  80,  0 + 1 },
+> > +		{ 13000000, 443,  5 + 1 },
+> > +		{ 19200000,  50,  0 + 1 },
+> > +		{ 26000000, 443, 11 + 1 },
+> > +		{ 38400000,  25,  0 + 1 }
+> > +	};
+> 
+> Table 36 list two options with 26MHz clocks: m=443, n=11 and m=480, n=12
+> with a statement: "The choice between these two options with a 26 MHz input
+> should be based on characterization on the end system."
+> 
+> Shall we care about that?
+
+I'd like to, but at the moment I don't see how. Proposals are welcome :-) I 
+don't think addressing that issue should be a blocker to get this patch merged 
+though.
+
+> > +	const struct omap3_dpll5_settings *d;
+> > +	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
+> > +	struct dpll_data *dd;
+> > +	unsigned int i;
+> > +
+> > +	for (i = 0; i < ARRAY_SIZE(precomputed); ++i) {
+> > +		if (parent_rate == precomputed[i].rate)
+> > +			break;
+> > +	}
+> > +
+> > +	if (i == ARRAY_SIZE(precomputed))
+> > +		return false;
+> > +
+> > +	d = &precomputed[i];
+> > +
+> > +	/* Update the M, N and rounded rate values and program the DPLL. */
+> > +	dd = clk->dpll_data;
+> > +	dd->last_rounded_m = d->m;
+> > +	dd->last_rounded_n = d->n;
+> > +	dd->last_rounded_rate = div_u64((u64)parent_rate * d->m, d->n);
+> > +	omap3_noncore_dpll_program(clk, 0);
+> > +
+> > +	return true;
+> > +}
+> 
+> What about small optimization? Gives a few tens of bytes smaller code...
+> 
+> diff --git a/drivers/clk/ti/dpll3xxx.c b/drivers/clk/ti/dpll3xxx.c
+> index 88f2ce8..cd22bcc 100644
+> --- a/drivers/clk/ti/dpll3xxx.c
+> +++ b/drivers/clk/ti/dpll3xxx.c
+> @@ -838,3 +838,67 @@ int omap3_dpll4_set_rate_and_parent(struct clk_hw *hw,
+> unsigned long rate, return omap3_noncore_dpll_set_rate_and_parent(hw, rate,
+> parent_rate, index);
+>  }
+> +
+> +/* Apply DM3730 errata sprz319 advisory 2.1. */
+> +static bool omap3_dpll5_apply_errata(struct clk_hw *hw,
+> +				     unsigned long parent_rate)
+> +{
+> +	struct omap3_dpll5_settings {
+> +		unsigned int rate, m, n;
+> +	};
+> +
+> +	static const struct omap3_dpll5_settings precomputed[] = {
+> +		/*
+> +		 * From DM3730 errata advisory 2.1, table 35 and 36.
+> +		 * The N value is increased by 1 compared to the tables as the
+> +		 * errata lists register values while last_rounded_field is 
+the
+> +		 * real divider value.
+> +		 */
+> +		{ 12000000,  80,  0 + 1 },
+> +		{ 13000000, 443,  5 + 1 },
+> +		{ 19200000,  50,  0 + 1 },
+> +		{ 26000000, 443, 11 + 1 },
+> +		{ 38400000,  25,  0 + 1 }
+> +	};
+> +
+> +	struct clk_hw_omap *clk;
+> +	struct dpll_data *dd;
+> +	unsigned int i;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(precomputed); i++)
+> +		if (parent_rate == precomputed[i].rate) {
+> +			clk = to_clk_hw_omap(hw);
+> +			/* Update the M, N and rounded rate values */
+> +			dd = clk->dpll_data;
+> +			dd->last_rounded_m = precomputed[i].m;
+> +			dd->last_rounded_n = precomputed[i].n;
+> +			dd->last_rounded_rate =
+> +				div_u64((u64)parent_rate * dd->last_rounded_m,
+> +					dd->last_rounded_n);
+> +			omap3_noncore_dpll_program(clk, 0);
+> +
+> +			return true;
+> +		}
+> +
+> +	return false;
+> +}
+
+I had tried that, but I find the code less readable :-S
+
+(I wish C had a for (...) { ... } else { ... } construct like Python does.)
+
+> > +/**
+> > + * omap3_dpll5_set_rate - set rate for omap3 dpll5
+> > + * @hw: clock to change
+> > + * @rate: target rate for clock
+> > + * @parent_rate: rate of the parent clock
+> > + *
+> > + * Set rate for the DPLL5 clock. Apply the sprz319 advisory 2.1 on
+> > OMAP36xx if
+> > + * the DPLL is used for USB host (detected through the requested rate).
+> > + */
+> > +int omap3_dpll5_set_rate(struct clk_hw *hw, unsigned long rate,
+> > +			 unsigned long parent_rate)
+> > +{
+> > +	if (rate == OMAP3_DPLL5_FREQ_FOR_USBHOST * 8) {
+> > +		if (omap3_dpll5_apply_errata(hw, parent_rate))
+> > +			return 0;
+> > +	}
+> > +
+> > +	return omap3_noncore_dpll_set_rate(hw, rate, parent_rate);
+> > +}
+
+-- 
+Regards,
+
+Laurent Pinchart
+
