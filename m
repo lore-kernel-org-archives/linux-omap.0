@@ -1,88 +1,84 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v2] ARM: omap2: am437x: rollback to use omap3_gptimer_timer_init()
-Date: Mon, 5 Dec 2016 09:27:44 +0530
-Message-ID: <1480910264-5126-1-git-send-email-j-keerthy@ti.com>
+Subject: Re: [PATCH 2/2] ARM: omap: timers: reduce rating of gp_timer
+ clocksource
+Date: Mon, 5 Dec 2016 09:42:24 +0530
+Message-ID: <e4a6cf51-ff9f-68ce-7486-202bae842c3d@ti.com>
+References: <1479968355-18860-1-git-send-email-j-keerthy@ti.com>
+ <1479968355-18860-2-git-send-email-j-keerthy@ti.com>
+ <d3a71d3d-3015-bb1f-80a4-4bb9adecaa4c@ti.com>
+ <20161202164714.GB4705@atomide.com>
+ <14878d85-1b08-5df1-4e67-6f982ba72019@ti.com>
+ <20161202183139.GF4705@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161202183139.GF4705@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: j-keerthy@ti.com, t-kristo@ti.com, linux@armlinux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
+To: Tony Lindgren <tony@atomide.com>, Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: t-kristo@ti.com, linux@armlinux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@ti.com>
 
-The commit 55ee7017ee31 ("arm: omap2: board-generic: use
-omap4_local_timer_init for AM437x") unintentionally changes the
-clocksource devices for AM437x from OMAP GP Timer to SyncTimer32K.
 
-Unfortunately, the SyncTimer32K is starving from frequency deviation
-as mentioned in commit 5b5c01359152 ("ARM: OMAP2+: AM43x: Use gptimer
-as clocksource") and, as reported by Franklin [1], even its monotonic
-nature is under question (most probably there is a HW issue, but it's
-still under investigation).
+On Saturday 03 December 2016 12:01 AM, Tony Lindgren wrote:
+> * Grygorii Strashko <grygorii.strashko@ti.com> [161202 10:02]:
+>>
+>>
+>> On 12/02/2016 10:47 AM, Tony Lindgren wrote:
+>>> * Grygorii Strashko <grygorii.strashko@ti.com> [161129 08:43]:
+>>>>
+>>>>
+>>>> On 11/24/2016 12:19 AM, Keerthy wrote:
+>>>>> From: Grygorii Strashko <grygorii.strashko@ti.com>
+>>>>>
+>>>>> Now ARM Global timer (rating 300) will not be selected as clocksource,
+>>>>> because it's initialized after OMAP GP Timer (rating 300) and
+>>>>> Timekeeping core will not allow to replace clocksource with new one if
+>>>>> both of them have the same rating.
+>>>>>
+>>>>> Reduce rating of OMAP GP Timer (300->290) when it's used as
+>>>>> clocksource device - this will allow to select ARM Global timer (300)
+>>>>> as clocksource when enabled.
+>>>>>
+>>>>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>>>>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+>>>>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>>>>
+>>>> Unfortunately, this patch has dependency [1] and can't be used alone as
+>>>> it will cause ARM Global timer to be selected as clocksource
+>>>> always on am437x and this will kill cpuidle, because ARM Global timer
+>>>> is not in always_on domain.
+>>>>
+>>>> The intention of enabling ARM Global timer is only for non-pm aware use
+>>>> cases for RT-kernel latency improvement - where deep cpuidle states are not
+>>>> enabled.
+>>>
+>>> Yeah we need to fix up things to be able to change the clocksource
+>>> in addition to clockevent. However, currently only cpuidle_coupled
+>>> knows when the whole system is idle, so quite a bit of work is
+>>> needed to do that in a sane way.
+>>
+>> Also sched_clock and timer_delay ;)
+>
+> Yeah sched_clock would need something to save and restore it..
+> Not nice :)
+>
+>>> What about the first patch in this series?
+>>>
+>>
+>> Fist one is ok. It was originally posted long time ago.
+>
+> OK so can you please resend that one more time with proper
+> Fixes tag on it?
 
-Taking into account above facts It's reasonable to rollback to the use
-of omap3_gptimer_timer_init().
+Tony,
 
-[1] http://www.spinics.net/lists/linux-omap/msg127425.html
+I have posted a v2 with the proper Fixes tag.
 
-Fixes: 55ee7017ee31 ("arm: omap2: board-generic: use
-omap4_local_timer_init for AM437x")
-Reported-by: Cooper Jr., Franklin <fcooper@ti.com>
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
-
-Changes in v2:
-
-  * Added a proper Fixes tag with the commit ID.
-
- arch/arm/mach-omap2/board-generic.c | 2 +-
- arch/arm/mach-omap2/timer.c         | 9 +++++----
- 2 files changed, 6 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 36d9943..dc9e34e 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -304,7 +304,7 @@ static void __init rx51_reserve(void)
- 	.init_late	= am43xx_init_late,
- 	.init_irq	= omap_gic_of_init,
- 	.init_machine	= omap_generic_init,
--	.init_time	= omap4_local_timer_init,
-+	.init_time	= omap3_gptimer_timer_init,
- 	.dt_compat	= am43_boards_compat,
- 	.restart	= omap44xx_restart,
- MACHINE_END
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 5e2e221..b2f2448 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -510,18 +510,19 @@ void __init omap3_secure_sync32k_timer_init(void)
- }
- #endif /* CONFIG_ARCH_OMAP3 */
- 
--#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX)
-+#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX) || \
-+	defined(CONFIG_SOC_AM43XX)
- void __init omap3_gptimer_timer_init(void)
- {
- 	__omap_sync32k_timer_init(2, "timer_sys_ck", NULL,
- 			1, "timer_sys_ck", "ti,timer-alwon", true);
--
--	clocksource_probe();
-+	if (of_have_populated_dt())
-+		clocksource_probe();
- }
- #endif
- 
- #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) ||		\
--	defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM43XX)
-+	defined(CONFIG_SOC_DRA7XX)
- static void __init omap4_sync32k_timer_init(void)
- {
- 	__omap_sync32k_timer_init(1, "timer_32k_ck", "ti,timer-alwon",
--- 
-1.9.1
+- Keerthy
+>
+> Regards,
+>
+> Tony
+>
