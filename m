@@ -1,77 +1,67 @@
-From: Joao Pinto <Joao.Pinto@synopsys.com>
-Subject: Re: [RFC PATCH] PCI: designware: add host_init() error handling
-Date: Mon, 5 Dec 2016 10:24:33 +0000
-Message-ID: <05a1f59e-b5da-7a6a-149e-7e9037deb7bd@synopsys.com>
-References: <1480593077-15402-1-git-send-email-srinivas.kandagatla@linaro.org>
- <f2c8ebba-e51a-5f47-2d96-c75f7e086c0e@synopsys.com>
- <d416f9b3-20d9-0339-a4d2-9a4ba0669633@linaro.org>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v3] clk: ti: omap36xx: Work around sprz319 advisory 2.1
+Date: Mon, 05 Dec 2016 13:08:20 +0200
+Message-ID: <3176488.xoM6adFiVO@avalon>
+References: <1480713278-6884-1-git-send-email-laurent.pinchart@ideasonboard.com> <2239782.MNuANFihMe@avalon> <20161205093649.GA31898@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <d416f9b3-20d9-0339-a4d2-9a4ba0669633@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org
-Cc: Roy Zang <tie-fei.zang@freescale.com>, linux-samsung-soc@vger.kernel.org, Pratyush Anand <pratyush.anand@gmail.com>, Krzysztof Kozlowski <krzk@kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Kukjin Kim <kgene@kernel.org>, Jose Abreu <Jose.Abreu@synopsys.com>, linux-arm-msm@vger.kernel.org, Joao Pinto <Joao.Pinto@synopsys.com>, Murali Karicheri <m-karicheri2@ti.com>, Mingkai Hu <mingkai.hu@freescale.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Jingoo Han <jingoohan1@gmail.com>, Richard Zhu <Richard.Zhu@freescale.com>, linux-kernel@vger.kernel.org, Stanimir Varbanov <svarbanov@mm-sol.com>, Minghuan Lian <minghuan.Lian@freescale.com>, linuxppc-dev@lists.ozlabs.org, Lucas Stach <l.stach@pengutronix.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <20161205093649.GA31898@localhost.localdomain>
+Sender: linux-clk-owner@vger.kernel.org
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, Richard Watts <rrw@kynesim.co.uk>, Tony Lindgren <tony@atomide.com>, Alexander Kinzer <a.kinzer@plusoptix.de>
 List-Id: linux-omap@vger.kernel.org
 
-=C0s 11:51 AM de 12/2/2016, Srinivas Kandagatla escreveu:
-> =
+Hi Ladislav,
 
-> =
+On Monday 05 Dec 2016 10:36:49 Ladislav Michl wrote:
+> On Mon, Dec 05, 2016 at 10:46:43AM +0200, Laurent Pinchart wrote:
+> > On Monday 05 Dec 2016 09:22:10 Ladislav Michl wrote:
+>
+> [snip]
+> 
+> >> Table 36 list two options with 26MHz clocks: m=443, n=11 and m=480, n=12
+> >> with a statement: "The choice between these two options with a 26 MHz
+> >> input should be based on characterization on the end system."
+> >> 
+> >> Shall we care about that?
+> > 
+> > I'd like to, but at the moment I don't see how. Proposals are welcome :-)
+> > I
+> 
+> One of proposals raised earlier was DT property, but that idea was scratched
+> later.
 
-> On 02/12/16 10:32, Joao Pinto wrote:
->>
->> Hi Srinivas,
->>
->> =C0s 11:51 AM de 12/1/2016, Srinivas Kandagatla escreveu:
->>>  drivers/pci/host/pci-dra7xx.c           |  4 +++-
->>>  drivers/pci/host/pci-exynos.c           |  4 +++-
->>>  drivers/pci/host/pci-imx6.c             |  4 +++-
->>>  drivers/pci/host/pci-keystone.c         |  4 +++-
->>>  drivers/pci/host/pci-layerscape.c       | 12 ++++++++----
->>>  drivers/pci/host/pcie-armada8k.c        |  4 +++-
->>>  drivers/pci/host/pcie-designware-plat.c |  4 +++-
->>>  drivers/pci/host/pcie-designware.c      |  4 +++-
->>>  drivers/pci/host/pcie-designware.h      |  2 +-
->>>  drivers/pci/host/pcie-qcom.c            |  6 ++++--
->>>  drivers/pci/host/pcie-spear13xx.c       |  4 +++-
->>>  11 files changed, 37 insertions(+), 15 deletions(-)
->>>
->>
->> Thanks for the patch!
->>
->> In my opinion your idea is good but only qcom driver is able to detect f=
-ailure
->> in the specific host init routine, all others have a 'return 0' even if
->> something not well init. I would recomend that we take this issue a bit =
-further
->> and add the error checking to all specific pci drivers in order to make =
-them as
->> robust as qcom'.
-> I totally agree with you, I can give this a go in next version.
+It might not be such a bad idea, given that the decision should be made based 
+on the characterization of the whole system. One could argue that such 
+platform information could have its place in DT.
 
-Sure, but I think it would be better to finish now since we are on top of t=
-he
-task. I can help you if you need.
+> > don't think addressing that issue should be a blocker to get this patch
+> > merged though.
+> 
+> Of course not. I'd like to even see it in stable ;-)
+> 
+> [snip]
+> 
+> > I had tried that, but I find the code less readable :-S
+> 
+> Oh... Please reconsider (I really do not like that extra test and extra
+> assignment to local variables (also I had 'precomputed' as mixed definition,
+> but Tero did not quite like that)) :-)
 
-Thanks Joao
+I still like to favour code readability when possible (especially when the 
+compiler should optimize both versions the same way). I'm not the maintainer 
+of this driver though, so I'll let Tero decides what he prefers.
 
-> =
+> Also, checked if the same values are written to clk as with my patch, so
+> here's my:
+> Tested-by: Ladislav Michl <ladis@linux-mips.org>
 
-> Thanks,
-> srini
-> =
+Thank you.
 
->>
->> Thanks,
->> Joao
->>
+-- 
+Regards,
+
+Laurent Pinchart
+
