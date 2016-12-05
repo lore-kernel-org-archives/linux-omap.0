@@ -1,92 +1,68 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCHv2] mfd: cpcap: Add minimal support
-Date: Mon, 5 Dec 2016 16:25:21 -0600
-Message-ID: <20161205222521.lm7pyyjnmdi6asei@rob-hp-laptop>
-References: <20161129164702.5334-1-tony@atomide.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v3] clk: ti: omap36xx: Work around sprz319 advisory 2.1
+Date: Tue, 06 Dec 2016 01:59:56 +0200
+Message-ID: <3238104.GnrXpa3VZc@avalon>
+References: <1480713278-6884-1-git-send-email-laurent.pinchart@ideasonboard.com> <2239782.MNuANFihMe@avalon> <20161205093649.GA31898@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161129164702.5334-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <20161205093649.GA31898@localhost.localdomain>
+Sender: linux-clk-owner@vger.kernel.org
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, Richard Watts <rrw@kynesim.co.uk>, Tony Lindgren <tony@atomide.com>, Alexander Kinzer <a.kinzer@plusoptix.de>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 29, 2016 at 08:47:02AM -0800, Tony Lindgren wrote:
-> Many Motorola phones like droid 4 are using a custom PMIC called CPCAP
-> or 6556002. We can support it's core features quite easily with regmap_spi
-> and regmap_irq.
-> 
-> The children of cpcap, such as regulators, ADC and USB, can be just regular
-> device drivers and defined in the dts file. They get probed as we call
-> of_platform_populate() at the end of our probe, and then the children
-> can just call dev_get_regmap(dev.parent, NULL) to get the regmap.
-> 
-> Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
-> Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-> Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> ---
-> 
-> Changes from v1:
-> 
-> - Addressed comments from Lee Jones except did not start
->   generalizing bulk adding of IRQ chips. That can be done
->   later as needed.
-> 
-> - Dropped the ranges translation based on comments from
->   Lee Jones and Rob Herring. We are using regmap anyways.
-> 
-> - Changed naming to use motorola-cpcap as this is Motorola
->   custom PMIC manufactured by STE and TI.
-> 
-> - Moved the revision and vendor check to motorola-cpcap.h.
->   This keeps the undocumented register bits limited to
->   these functions and the child device drivers can use
->   them for the related workarounds.
-> 
-> - Checked that motorola-cpcap.h is really aligned despite
->   how the patch looks for some of the lines.
-> 
-> ---
->  .../devicetree/bindings/mfd/motorola-cpcap.txt     |  31 +++
->  drivers/mfd/Kconfig                                |  11 +
->  drivers/mfd/Makefile                               |   1 +
->  drivers/mfd/motorola-cpcap.c                       | 244 +++++++++++++++++
->  include/linux/mfd/motorola-cpcap.h                 | 289 +++++++++++++++++++++
->  5 files changed, 576 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/mfd/motorola-cpcap.txt
->  create mode 100644 drivers/mfd/motorola-cpcap.c
->  create mode 100644 include/linux/mfd/motorola-cpcap.h
-> 
-> diff --git a/Documentation/devicetree/bindings/mfd/motorola-cpcap.txt b/Documentation/devicetree/bindings/mfd/motorola-cpcap.txt
-> new file mode 100644
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/mfd/motorola-cpcap.txt
-> @@ -0,0 +1,31 @@
-> +Motorola CPCAP PMIC device tree binding
-> +
-> +Required properties:
-> +- compatible		: One or both of "motorola,cpcap" or "ste,6556002"
-> +- reg			: SPI chip select
-> +- interrupt-parent	: The parent interrupt controller
-> +- interrupts		: The interrupt line the device is connected to
-> +- interrupt-controller	: Marks the device node as an interrupt controller
-> +- #interrupt-cells	: The number of cells to describe an IRQ, should be 2
-> +- #address-cells	: Child device offset number of cells, typically 1
-> +- #size-cells		: Child device size number of cells, typically 1
-> +- spi-max-frequency	: Typically set to 3000000
-> +- spi-cs_high		: SPI chip select direction
+Hi Ladislav,
 
-Should be spi-cs-high.
+On Monday 05 Dec 2016 10:36:49 Ladislav Michl wrote:
+> On Mon, Dec 05, 2016 at 10:46:43AM +0200, Laurent Pinchart wrote:
+> > On Monday 05 Dec 2016 09:22:10 Ladislav Michl wrote:
+> [snip]
+> 
+> >> Table 36 list two options with 26MHz clocks: m=443, n=11 and m=480, n=12
+> >> with a statement: "The choice between these two options with a 26 MHz
+> >> input should be based on characterization on the end system."
+> >> 
+> >> Shall we care about that?
+> > 
+> > I'd like to, but at the moment I don't see how. Proposals are welcome :-)
+> > I
+> 
+> One of proposals raised earlier was DT property, but that idea was scratched
+> later.
+> 
+> > don't think addressing that issue should be a blocker to get this patch
+> > merged though.
+> 
+> Of course not. I'd like to even see it in stable ;-)
+> 
+> [snip]
+> 
+> > I had tried that, but I find the code less readable :-S
+> 
+> Oh... Please reconsider (I really do not like that extra test and extra
+> assignment to local variables (also I had 'precomputed' as mixed definition,
+> but Tero did not quite like that)) :-)
 
-With that:
+I've tested both versions with gcc 4.7.3 [1] and 4.8.5 [2]. With 4.7.3 my 
+version is 4 bytes longer, and with 4.8.5 it's 4 bytes shorter. Interestingly 
+enough the "break + test after loop" pattern doesn't make a difference, it's 
+only the intermediate variable that results in changes to the generated code.
 
-Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[1] arm-linux-gnueabihf-gcc (crosstool-NG 
+linaro-1.13.1-4.7-2013.02-01-20130221 - Linaro GCC 2013.02) 4.7.3 20130205 
+(prerelease)
+
+[2] arm-buildroot-linux-uclibcgnueabihf-gcc.br_real (Buildroot 2016.08-dirty) 
+4.8.5
+
+> Also, checked if the same values are
+> written to clk as with my patch, so here's my:
+> Tested-by: Ladislav Michl <ladis@linux-mips.org>
+
+-- 
+Regards,
+
+Laurent Pinchart
+
