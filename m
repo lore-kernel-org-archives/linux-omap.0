@@ -1,124 +1,65 @@
-From: Matt Ranostay <matt@ranostay.consulting>
-Subject: Re: [PATCH v3] ASoC: omap-mcbsp: Add PM QoS support
- for McBSP to prevent glitches
-Date: Sat, 3 Dec 2016 17:33:10 -0800
-Message-ID: <CAJ_EiSToYsRyxKF47WEZjcr5Jb4LC-3x310=JNdA7vSrYNoAdw@mail.gmail.com>
-References: <1480555145-8300-1-git-send-email-matt@ranostay.consulting>
- <e8e9a552-14d9-15eb-bf9a-48fdc79965e2@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 1/7] net: ethernet: ti: cpdma: am437x: allow descs to be
+ plased in ddr
+Date: Mon, 5 Dec 2016 11:57:42 -0600
+Message-ID: <1fbfc83f-c48b-45da-6bc3-d37b2bb129b6@ti.com>
+References: <20161201233432.6182-1-grygorii.strashko@ti.com>
+ <20161201233432.6182-2-grygorii.strashko@ti.com>
+ <20161203.153419.482900037601991931.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <e8e9a552-14d9-15eb-bf9a-48fdc79965e2@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, Linux OMAP List <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161203.153419.482900037601991931.davem@davemloft.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, mugunthanvnm@ti.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, ivan.khoronzhuk@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCBEZWMgMiwgMjAxNiBhdCAxMjoyMyBBTSwgUGV0ZXIgVWpmYWx1c2kgPHBldGVyLnVq
-ZmFsdXNpQHRpLmNvbT4gd3JvdGU6Cj4gSGksCj4KPiBPbiAxMi8wMS8yMDE2IDAzOjE5IEFNLCBN
-YXR0IFJhbm9zdGF5IHdyb3RlOgo+PiBXZSBjYW4gZ2V0IGF1ZGlvIGVycm9ycyBpZiBoaXR0aW5n
-IGRlZXBlciBpZGxlIHN0YXRlcyBvbiBvbWFwczoKPj4KPj4gW2Fsc2EuYzoyMzBdIGVycm9yOiBG
-YXRhbCBwcm9ibGVtIHdpdGggYWxzYSBvdXRwdXQsIGVycm9yIC01Lgo+PiBbYXVkaW8uYzo2MTRd
-IGVycm9yOiBFcnJvciBpbiB3cml0aW5nIGF1ZGlvIChJbnB1dC9vdXRwdXQgZXJyb3I/KSEKPj4K
-Pj4gVGhpcyBzZWVtcyB0byBoYXBwZW4gd2l0aCBvZmYgbW9kZSBpZGxlIGVuYWJsZWQgYXMgcG93
-ZXIgZm9yIHRoZQo+PiB3aG9sZSBTb0MgbWF5IGdldCBjdXQgb2ZmIGJldHdlZW4gZmlsbGluZyB0
-aGUgTWNCU1AgZmlmbyB1c2luZyBETUEuCj4+IFdoaWxlIGFjdGl2ZSBETUEgYmxvY2tzIGRlZXBl
-ciBpZGxlIHN0YXRlcyBpbiBoYXJkd2FyZSwgTWNCU1AKPj4gYWN0aXZpdHkgZG9lcyBub3Qgc2Vl
-bSB0byBkbyBzby4KPj4KPj4gQmFzaW5nIHRoZSBRb1MgbGF0ZW5jeSBvbiB0aGUgRklGTyBzaXpl
-IHdpdGggdGhlIGFwcHJveGltYXRlIGRlbGF5Cj4+IHJlcXVpcmVkIGJlaW5nIDIuMyBtaWxsaXNl
-Y29uZHMgcGVyIGJ1ZmZlciBsb2NhdGlvbi4KPj4KPj4gTm90ZSB0aGF0IHRoaXMgaXMgZGlmZmVy
-ZW50IGZyb20gc25kX3BjbV9od19jb25zdHJhaW50X3N0ZXAoKSBhcwo+PiB0aGF0IGNhbiBjb25m
-aWd1cmUgdGhpbmdzIGJhc2VkIG9uIHRoZSBidWZmZXIgYW5kIHBlcmlvZCBzaXplLgo+PiBIb3dl
-dmVyLCB0aGF0IGRvZXMgbm90IGhlbHAgdG8gYmxvY2sgaWRsZSBiZXR3ZWVuIHRoZSBmaWZvIGZp
-bGxzLgo+Pgo+PiBOb3RlIHRoYXQgaW4gdGhlb3J5IHNvbWUgb21hcHMgYXJlIGNhcGFibGUgb2Yg
-cGxheWluZyBhdWRpbyB3aGlsZQo+PiBoaXR0aW5nIGRlZXBlciBpZGxlIHN0YXRlcy4gSWYgc29t
-ZWJvZHkgbmVlZHMgdGhhdCBhbmQgZ2V0cyBpdAo+PiB3b3JraW5nLCB3ZSBjYW4gc2V0IHRoZSBs
-YXRlbmN5IHJlcXVpcmVtZW50cyBhY2NvcmRpbmdseS4KPj4KPj4gQmFzZWQgb24gdGhlIG9yaWdp
-bmFsIHBhdGNoIGJ5IFRvbnkgTGluZGdyZW4KPj4gTGluazogaHR0cHM6Ly9wYXRjaHdvcmsua2Vy
-bmVsLm9yZy9wYXRjaC85MzA1ODY3Lwo+Pgo+PiBDYzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9t
-aWRlLmNvbT4KPj4gQ2M6IFBldGVyIFVqZmFsdXNpIDxwZXRlci51amZhbHVzaUB0aS5jb20+Cj4+
-IFNpZ25lZC1vZmYtYnk6IE1hdHQgUmFub3N0YXkgPG1hdHRAcmFub3N0YXkuY29uc3VsdGluZz4K
-Pj4gLS0tCj4+IENoYW5nZXMgZnJvbSB2MToKPj4gKiBhZGQgY2FsY3VsYXRpb25zIGZvciBsYXRl
-bmN5IHBlciBudW1iZXIgb2YgRklGTyBsb2NhdGlvbnMKPj4KPj4gQ2hhbmdlcyBmcm9tIHYyOgo+
-PiAqIGFkZCBtaXNzaW5nIG1jYnNwLmggaGVhZGVyIGNoYW5nZQo+Pgo+PiAgc291bmQvc29jL29t
-YXAvbWNic3AuYyB8IDE1ICsrKysrKysrKysrKysrKwo+PiAgc291bmQvc29jL29tYXAvbWNic3Au
-aCB8ICAyICsrCj4+ICAyIGZpbGVzIGNoYW5nZWQsIDE3IGluc2VydGlvbnMoKykKPj4KPj4gZGlm
-ZiAtLWdpdCBhL3NvdW5kL3NvYy9vbWFwL21jYnNwLmMgYi9zb3VuZC9zb2Mvb21hcC9tY2JzcC5j
-Cj4+IGluZGV4IDA2ZmVjNTY5OWNjOC4uYjRhNzczY2EyYmFjIDEwMDY0NAo+PiAtLS0gYS9zb3Vu
-ZC9zb2Mvb21hcC9tY2JzcC5jCj4+ICsrKyBiL3NvdW5kL3NvYy9vbWFwL21jYnNwLmMKPj4gQEAg
-LTI1LDYgKzI1LDcgQEAKPj4gICNpbmNsdWRlIDxsaW51eC9pby5oPgo+PiAgI2luY2x1ZGUgPGxp
-bnV4L3NsYWIuaD4KPj4gICNpbmNsdWRlIDxsaW51eC9wbV9ydW50aW1lLmg+Cj4+ICsjaW5jbHVk
-ZSA8bGludXgvcG1fcW9zLmg+Cj4+Cj4+ICAjaW5jbHVkZSA8bGludXgvcGxhdGZvcm1fZGF0YS9h
-c29jLXRpLW1jYnNwLmg+Cj4+Cj4+IEBAIC02MzcsMTIgKzYzOCwyMSBAQCB2b2lkIG9tYXBfbWNi
-c3BfZnJlZShzdHJ1Y3Qgb21hcF9tY2JzcCAqbWNic3ApCj4+ICAgKiBIZXJlIHdlIHN0YXJ0IHRo
-ZSBNY0JTUCwgYnkgZW5hYmxpbmcgdHJhbnNtaXR0ZXIsIHJlY2VpdmVyIG9yIGJvdGguCj4+ICAg
-KiBJZiBubyB0cmFuc21pdHRlciBvciByZWNlaXZlciBpcyBhY3RpdmUgcHJpb3IgY2FsbGluZywg
-dGhlbiBzYW1wbGUtcmF0ZQo+PiAgICogZ2VuZXJhdG9yIGFuZCBmcmFtZSBzeW5jIGFyZSBzdGFy
-dGVkLgo+PiArICoKPj4gKyAqIEFsc28gc2V0dGluZyBvZiB0aGUgUW9TIGxhdGVuY3kgZm9yIHRo
-ZSBGSUZPIHdoaWNoIHZhcmllcyB1cG9uIHRoZSBidWZmZXIKPj4gKyAqIHNpemUuIEFwcHJveGlt
-YXRlbHkgMi4zIG1pbGxpc2Vjb25kcyBwZXIgRklGTyBsb2NhdGlvbi4KPj4gICAqLwo+PiAgdm9p
-ZCBvbWFwX21jYnNwX3N0YXJ0KHN0cnVjdCBvbWFwX21jYnNwICptY2JzcCwgaW50IHR4LCBpbnQg
-cngpCj4+ICB7Cj4+ICAgICAgIGludCBlbmFibGVfc3JnID0gMDsKPj4gKyAgICAgaW50IGxhdGVu
-Y3kgPSBtY2JzcC0+cGRhdGEtPmJ1ZmZlcl9zaXplICogMjM7Cj4KPiBJIHRoaW5rIHRoaXMgaXMg
-bm90IGNvcnJlY3QuCj4gVGhlIE1jQlNQIEZJRk8gdGltZSBkZXBlbmRzIG9uIHRoZSBzYW1wbGUg
-cmF0ZSBhbmQgb24gdGhlIG51bWJlciBvZgo+IGNoYW5uZWxzIHRoZSBhdWRpbyBpcyB1c2luZy4g
-V2l0aCA4S0h6IG1vbm8geW91IGhhdmUgMTIgdGltZXMgbW9yZSB0aW1lCj4gcGVyIEZJRk8gZWxl
-bWVudCBjb21wYXJlZCB0byA0OEtIeiBzdGVyZW8uCj4KPiBBcyBpdCBoYXMgYmVlbiBkaXNjdXNz
-ZWQgd2l0aCBUb255IHdlIHNob3VsZCBjYWxjdWxhdGUgdGhlIFFvUyBsYXRlbmN5Cj4gaW4gaHdf
-cGFyYW1zOgo+CgpPayB5ZWFoIG1pc3NlZCB0aGF0IHBhcnQgb2YgdGhlIHRocmVhZCBidXQgaXQg
-bWFrZXMgc2Vuc2UuIEp1c3Qgb25lCnF1ZXN0aW9uIHNob3VsZCB0aGUgbGF0ZW5jeSB2YWx1ZSBi
-ZSBvbmx5IGJhc2VkIG9uIHRoZSBUWCBGSUZPCnRocmVzaG9sZD8gSSBhc3N1bWUgY2FwdHVyZSBh
-bmQgdHJhbnNtaXQgaGF2ZSB0d28gZGlmZmVyZW50IHNldHRpbmdzLgoKPiBsYXRlbmN5X21zID0g
-KChGSUZPc2l6ZSAtIEZJRk90aHJlc2hvbGQpIC8gY2hhbm5lbHMpICogMTAwMC9zYW1wbGluZy1y
-YXRlCj4KPiBPbiBPTUFQMy5NY0JTUDIgZm9yIGV4YW1wbGUgKDQ0LjFLSHosIHN0ZXJlbyk6Cj4g
-RklGTyB0aHJlc2hvbGQgMTI4Cj4gIC0gRE1BIHJlcXVlc3Qgd2lsbCBiZSB0cmlnZ2VyZWQgd2hl
-biAxMjggc2xvdHMgYXJlIGZyZWUgaW4gdGhlIEZJRk8KPiAgLSBhdCB0aGF0IHBvaW50IHdlIGhh
-dmUgc3RpbGwgMTE1MiB3b3JkcyBpbiB0aGUgRklGTy4KPiAgLSBpZiB0aGUgQyB3YWtldXAgbGF0
-ZW5jeSBpcyBsb25nZXIgdGhlbiB3aGF0IGl0IHRha2VzIHRvIHBsYXkgb3V0IHRoZQo+IHNhbXBs
-ZXMgZnJvbSB0aGUgRklGTyAoMTMuMDZtcyksIHdlIHdpbGwgZHJhaW4gdGhlIEZJRk8gYW5kIGdv
-dCB1bmRlcmZsb3cuCj4gIC0gaW4gdGhpcyBjYXNlIHRoZSBRT1Mgc2hvdWxkIGJlIHNldCBhcyAx
-My4wNm1zCj4KPiBGSUZPIHRocmVzaG9sZCAxMDI0Cj4gIC0gRE1BIHJlcXVlc3Qgd2lsbCBiZSB0
-cmlnZ2VyZWQgd2hlbiAxMDI0IHNsb3RzIGFyZSBmcmVlIGluIHRoZSBGSUZPCj4gIC0gYXQgdGhh
-dCBwb2ludCB3ZSBoYXZlIHN0aWxsIDI1NiB3b3JkcyBpbiB0aGUgRklGTy4KPiAgLSBpZiB0aGUg
-QyB3YWtldXAgbGF0ZW5jeSBpcyBsb25nZXIgdGhlbiB3aGF0IGl0IHRha2VzIHRvIHBsYXkgb3V0
-IHRoZQo+IHNhbXBsZXMgZnJvbSB0aGUgRklGTyAoMi45bXMpLCB3ZSB3aWxsIGRyYWluIHRoZSBG
-SUZPIGFuZCBnb3QgdW5kZXJmbG93Lgo+ICAtIGluIHRoaXMgY2FzZSB0aGUgUU9TIHNob3VsZCBi
-ZSAyLjltcwo+Cj4gT24gb3RoZXIgTWNCU1BzIHdpdGggMTI4IHdvcmQgRklGTyB0aGUgcmVxdWly
-ZWQgbGF0ZW5jeSBpcyBzaG9ydGVyIHRvIGVuc3VyZQo+IHdlIGRvbid0IGRyYWluIHRoZSBGSUZP
-Lgo+Cj4KPj4gICAgICAgdTE2IHc7Cj4+Cj4+ICsgICAgIC8qIFByZXZlbnQgb21hcCBoYXJkd2Fy
-ZSBmcm9tIGhpdHRpbmcgb2ZmIGJldHdlZW4gZmlmbyBmaWxscyAqLwo+PiArICAgICBpZiAobGF0
-ZW5jeSkKPj4gKyAgICAgICAgICAgICBwbV9xb3NfYWRkX3JlcXVlc3QoJm1jYnNwLT5wbV9xb3Nf
-cmVxLAo+PiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBQTV9RT1NfQ1BVX0RNQV9M
-QVRFTkNZLCBsYXRlbmN5KTsKPj4gKwo+PiAgICAgICBpZiAobWNic3AtPnN0X2RhdGEpCj4+ICAg
-ICAgICAgICAgICAgb21hcF9zdF9zdGFydChtY2JzcCk7Cj4+Cj4+IEBAIC03MzEsNiArNzQxLDgg
-QEAgdm9pZCBvbWFwX21jYnNwX3N0b3Aoc3RydWN0IG9tYXBfbWNic3AgKm1jYnNwLCBpbnQgdHgs
-IGludCByeCkKPj4KPj4gICAgICAgaWYgKG1jYnNwLT5zdF9kYXRhKQo+PiAgICAgICAgICAgICAg
-IG9tYXBfc3Rfc3RvcChtY2JzcCk7Cj4+ICsKPj4gKyAgICAgcG1fcW9zX3JlbW92ZV9yZXF1ZXN0
-KCZtY2JzcC0+cG1fcW9zX3JlcSk7Cj4+ICB9Cj4+Cj4+ICBpbnQgb21hcDJfbWNic3Bfc2V0X2Ns
-a3Nfc3JjKHN0cnVjdCBvbWFwX21jYnNwICptY2JzcCwgdTggZmNrX3NyY19pZCkKPj4gQEAgLTEw
-OTgsNiArMTExMCw5IEBAIGludCBvbWFwX21jYnNwX2luaXQoc3RydWN0IHBsYXRmb3JtX2Rldmlj
-ZSAqcGRldikKPj4KPj4gIHZvaWQgb21hcF9tY2JzcF9jbGVhbnVwKHN0cnVjdCBvbWFwX21jYnNw
-ICptY2JzcCkKPj4gIHsKPj4gKyAgICAgaWYgKHBtX3Fvc19yZXF1ZXN0X2FjdGl2ZSgmbWNic3At
-PnBtX3Fvc19yZXEpKQo+PiArICAgICAgICAgICAgIHBtX3Fvc19yZW1vdmVfcmVxdWVzdCgmbWNi
-c3AtPnBtX3Fvc19yZXEpOwo+PiArCj4+ICAgICAgIGlmIChtY2JzcC0+cGRhdGEtPmJ1ZmZlcl9z
-aXplKQo+PiAgICAgICAgICAgICAgIHN5c2ZzX3JlbW92ZV9ncm91cCgmbWNic3AtPmRldi0+a29i
-aiwgJmFkZGl0aW9uYWxfYXR0cl9ncm91cCk7Cj4+Cj4+IGRpZmYgLS1naXQgYS9zb3VuZC9zb2Mv
-b21hcC9tY2JzcC5oIGIvc291bmQvc29jL29tYXAvbWNic3AuaAo+PiBpbmRleCA2MWU5M2IxYzE4
-NWQuLmU2MDNmMzNmNDA4MiAxMDA2NDQKPj4gLS0tIGEvc291bmQvc29jL29tYXAvbWNic3AuaAo+
-PiArKysgYi9zb3VuZC9zb2Mvb21hcC9tY2JzcC5oCj4+IEBAIC0zMjUsNiArMzI1LDggQEAgc3Ry
-dWN0IG9tYXBfbWNic3Agewo+PiAgICAgICB1bnNpZ25lZCBpbnQgaW5fZnJlcTsKPj4gICAgICAg
-aW50IGNsa19kaXY7Cj4+ICAgICAgIGludCB3bGVuOwo+PiArCj4+ICsgICAgIHN0cnVjdCBwbV9x
-b3NfcmVxdWVzdCBwbV9xb3NfcmVxOwo+PiAgfTsKPj4KPj4gIHZvaWQgb21hcF9tY2JzcF9jb25m
-aWcoc3RydWN0IG9tYXBfbWNic3AgKm1jYnNwLAo+Pgo+Cj4gLS0KPiBQw6l0ZXIKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KQWxzYS1kZXZlbCBtYWlsaW5n
-IGxpc3QKQWxzYS1kZXZlbEBhbHNhLXByb2plY3Qub3JnCmh0dHA6Ly9tYWlsbWFuLmFsc2EtcHJv
-amVjdC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbHNhLWRldmVsCg==
+
+
+On 12/03/2016 02:34 PM, David Miller wrote:
+> From: Grygorii Strashko <grygorii.strashko@ti.com>
+> Date: Thu, 1 Dec 2016 17:34:26 -0600
+> 
+>> @@ -167,10 +167,10 @@ static struct cpdma_control_info controls[] = {
+>>  
+>>  /* various accessors */
+>>  #define dma_reg_read(ctlr, ofs)		__raw_readl((ctlr)->dmaregs + (ofs))
+>> -#define chan_read(chan, fld)		__raw_readl((chan)->fld)
+>> +#define chan_read(chan, fld)		readl((chan)->fld)
+>>  #define desc_read(desc, fld)		__raw_readl(&(desc)->fld)
+>>  #define dma_reg_write(ctlr, ofs, v)	__raw_writel(v, (ctlr)->dmaregs + (ofs))
+>> -#define chan_write(chan, fld, v)	__raw_writel(v, (chan)->fld)
+>> +#define chan_write(chan, fld, v)	writel(v, (chan)->fld)
+>>  #define desc_write(desc, fld, v)	__raw_writel((u32)(v), &(desc)->fld)
+> 
+> Unless you want to keep running into subtle errors all over the
+> place wrt. register vs. memory write ordering, I strong suggest
+> you use strongly ordered readl/writel for all register accesses.
+> 
+> I see no tangible, worthwhile, advantage to using these relaxed
+> ordering primitives.  The only result is potential bugs.
+> 
+> People who use the relaxed ordering primitives properly are only
+> doing so in extremely carefully coded sequences where a series
+> of writes has no dependency on main memory operations and is
+> explicitly completed with a barrier operation such as a read
+> back of a register in the same device.
+> 
+> That's not at all what is going on here, instead the driver is wildly
+> using relaxed ordered register accesses for basically everything.
+> This is extremely unwise and it's why you ran into this bug in the
+> first place.
+> 
+> Therefore, I absolutely require that you fix this by eliminating
+> any and all usese of relaxed ordering I/O accessors in this driver.
+
+Thanks for your comments - that's what I've tried first, but that decided
+to find out minimal change which still works.
+
+I'll update it. 
+
+-- 
+regards,
+-grygorii
