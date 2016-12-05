@@ -1,73 +1,88 @@
-From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 0/3] increase TSCADC clock to 24MHz and fix
- ti,charge-delay to represent in nS
-Date: Mon, 5 Dec 2016 09:24:57 +0530
-Message-ID: <bed2095b-9a1b-3740-6f57-f2766ad65cde@ti.com>
-References: <20161110163515.27598-1-mugunthanvnm@ti.com>
- <71482721-fd60-65b2-d601-f1698ce5fa0a@ti.com>
- <20161125095918.GZ10134@dell.home>
- <8b97b7e6-1ea4-bf13-7da5-55135a994231@ti.com>
- <20161129210949.GB20680@dtor-ws>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v2] ARM: omap2: am437x: rollback to use omap3_gptimer_timer_init()
+Date: Mon, 5 Dec 2016 09:27:44 +0530
+Message-ID: <1480910264-5126-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161129210949.GB20680@dtor-ws>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: j-keerthy@ti.com, t-kristo@ti.com, linux@armlinux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Lee Jones
+From: Grygorii Strashko <grygorii.strashko@ti.com>
 
-On Wednesday 30 November 2016 02:39 AM, Dmitry Torokhov wrote:
-> On Tue, Nov 29, 2016 at 11:11:35AM +0530, Mugunthan V N wrote:
->> On Friday 25 November 2016 03:29 PM, Lee Jones wrote:
->>> On Fri, 25 Nov 2016, Mugunthan V N wrote:
->>>
->>>> Hi Dmitry Torokhov,
->>>>
->>>> On Thursday 10 November 2016 10:05 PM, Mugunthan V N wrote:
->>>>> This patch series enables ADC to be clocked at 24MHz as the
->>>>> TI AM335x ADC driver has already adopted to use DMA to transfer
->>>>> ADC samples. Now ADC can generated upto 800K Samples per second
->>>>> with the patch [1] on AM335x BBB and AM437x GP EVM.
->>>>>
->>>>> when ADC ref clock is set at 24MHz, I am seeing some issue with
->>>>> touch screen pointer as the pointer jumps to random locations
->>>>> with free draw application. The issue is due to increase in ADC
->>>>> clock and charge delay for the touchscreen ADC line duration
->>>>> reduced.
->>>>>
->>>>> So the notation of ti,charge-delay in terms of ADC clock is
->>>>> wrong, it has to be represented in time and driver has to convert
->>>>> the charge delay time to ADC clocks based on what ADC clock
->>>>> frequency is set.
->>>>>
->>>>> Measured the performance with the iio_generic_buffer with the
->>>>> patch [2] applied
->>>>>
->>>>> Verified the touch screen on AM335x GP EVM and AM335x BBB LCD7
->>>>> cape with [3] dts for display and touch screen to work.
->>>>>
->>>>
->>>> Since there are acks from DT and MFD maintainers, can you pull the patch
->>>> series if you do not have any more comments.
->>>
->>> Cant do anything without *all* Acks.
->>>
->> Hi Dmitry Torokhov,
->>
->> Can you provide your inputs on the patch series.
-> 
-> You have my ack for the input bit.
-> 
+The commit 55ee7017ee31 ("arm: omap2: board-generic: use
+omap4_local_timer_init for AM437x") unintentionally changes the
+clocksource devices for AM437x from OMAP GP Timer to SyncTimer32K.
 
-A gentle ping
+Unfortunately, the SyncTimer32K is starving from frequency deviation
+as mentioned in commit 5b5c01359152 ("ARM: OMAP2+: AM43x: Use gptimer
+as clocksource") and, as reported by Franklin [1], even its monotonic
+nature is under question (most probably there is a HW issue, but it's
+still under investigation).
 
-Regards
-Mugunthan V N
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Taking into account above facts It's reasonable to rollback to the use
+of omap3_gptimer_timer_init().
+
+[1] http://www.spinics.net/lists/linux-omap/msg127425.html
+
+Fixes: 55ee7017ee31 ("arm: omap2: board-generic: use
+omap4_local_timer_init for AM437x")
+Reported-by: Cooper Jr., Franklin <fcooper@ti.com>
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
+
+Changes in v2:
+
+  * Added a proper Fixes tag with the commit ID.
+
+ arch/arm/mach-omap2/board-generic.c | 2 +-
+ arch/arm/mach-omap2/timer.c         | 9 +++++----
+ 2 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 36d9943..dc9e34e 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -304,7 +304,7 @@ static void __init rx51_reserve(void)
+ 	.init_late	= am43xx_init_late,
+ 	.init_irq	= omap_gic_of_init,
+ 	.init_machine	= omap_generic_init,
+-	.init_time	= omap4_local_timer_init,
++	.init_time	= omap3_gptimer_timer_init,
+ 	.dt_compat	= am43_boards_compat,
+ 	.restart	= omap44xx_restart,
+ MACHINE_END
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 5e2e221..b2f2448 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -510,18 +510,19 @@ void __init omap3_secure_sync32k_timer_init(void)
+ }
+ #endif /* CONFIG_ARCH_OMAP3 */
+ 
+-#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX)
++#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX) || \
++	defined(CONFIG_SOC_AM43XX)
+ void __init omap3_gptimer_timer_init(void)
+ {
+ 	__omap_sync32k_timer_init(2, "timer_sys_ck", NULL,
+ 			1, "timer_sys_ck", "ti,timer-alwon", true);
+-
+-	clocksource_probe();
++	if (of_have_populated_dt())
++		clocksource_probe();
+ }
+ #endif
+ 
+ #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) ||		\
+-	defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM43XX)
++	defined(CONFIG_SOC_DRA7XX)
+ static void __init omap4_sync32k_timer_init(void)
+ {
+ 	__omap_sync32k_timer_init(1, "timer_32k_ck", "ti,timer-alwon",
+-- 
+1.9.1
