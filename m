@@ -1,252 +1,85 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 02/13] net: ethernet: ti: allow cpts to be built separately
-Date: Mon, 5 Dec 2016 14:05:14 -0600
-Message-ID: <20161205200525.16664-3-grygorii.strashko@ti.com>
-References: <20161205200525.16664-1-grygorii.strashko@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 0/5] cpsw: add per channel shaper configuration
+Date: Mon, 5 Dec 2016 14:33:40 -0600
+Message-ID: <4640ce88-75b0-8508-05f0-849e8fd4927f@ti.com>
+References: <1480431651-6081-1-git-send-email-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161205200525.16664-1-grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Murali Karicheri <m-karicheri2-l0cyMroinI0@public.gmane.org>, Wingman Kwok <w-kwok2-l0cyMroinI0@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1480431651-6081-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, mugunthanvnm@ti.com
+Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-TI CPTS IP is used as part of TI OMAP CPSW driver, but it's also
-present as part of NETCP on TI Keystone 2 SoCs. So, It's required
-to enable build of CPTS for both this drivers and this can be
-achieved by allowing CPTS to be built separately.
+Hi Ivan,
 
-Hence, allow cpts to be built separately and convert it to be
-a module as both CPSW and NETCP drives can be built as modules.
+On 11/29/2016 09:00 AM, Ivan Khoronzhuk wrote:
+> This series is intended to allow user to set rate for per channel
+> shapers at cpdma level. This patchset doesn't have impact on performance.
+> The rate can be set with:
+> 
+> echo 100 > /sys/class/net/ethX/queues/tx-0/tx_maxrate
+> 
+> Tested on am572xx
+> Based on net-next/master
+> 
+> Ivan Khoronzhuk (5):
+>   net: ethernet: ti: davinci_cpdma: add weight function for channels
+>   net: ethernet: ti: davinci_cpdma: add set rate for a channel
+>   net: ethernet: ti: cpsw: add .ndo to set per-queue rate
+>   net: ethernet: ti: cpsw: optimize end of poll cycle
+>   net: ethernet: ti: cpsw: split tx budget according between channels
+> 
+>  drivers/net/ethernet/ti/cpsw.c          | 264 +++++++++++++++----
+>  drivers/net/ethernet/ti/davinci_cpdma.c | 453 ++++++++++++++++++++++++++++----
+>  drivers/net/ethernet/ti/davinci_cpdma.h |   6 +
+>  3 files changed, 624 insertions(+), 99 deletions(-)
+> 
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
----
- drivers/net/ethernet/ti/Kconfig  |  2 +-
- drivers/net/ethernet/ti/Makefile |  3 ++-
- drivers/net/ethernet/ti/cpsw.c   | 22 +++++++++++++++++-----
- drivers/net/ethernet/ti/cpts.c   | 16 ++++++++--------
- drivers/net/ethernet/ti/cpts.h   | 18 ++++++++++++++----
- 5 files changed, 42 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/net/ethernet/ti/Kconfig b/drivers/net/ethernet/ti/Kconfig
-index 9904d74..ff7f518 100644
---- a/drivers/net/ethernet/ti/Kconfig
-+++ b/drivers/net/ethernet/ti/Kconfig
-@@ -74,7 +74,7 @@ config TI_CPSW
- 	  will be called cpsw.
- 
- config TI_CPTS
--	bool "TI Common Platform Time Sync (CPTS) Support"
-+	tristate "TI Common Platform Time Sync (CPTS) Support"
- 	depends on TI_CPSW
- 	select PTP_1588_CLOCK
- 	---help---
-diff --git a/drivers/net/ethernet/ti/Makefile b/drivers/net/ethernet/ti/Makefile
-index d420d94..1e7c10b 100644
---- a/drivers/net/ethernet/ti/Makefile
-+++ b/drivers/net/ethernet/ti/Makefile
-@@ -12,8 +12,9 @@ obj-$(CONFIG_TI_DAVINCI_MDIO) += davinci_mdio.o
- obj-$(CONFIG_TI_DAVINCI_CPDMA) += davinci_cpdma.o
- obj-$(CONFIG_TI_CPSW_PHY_SEL) += cpsw-phy-sel.o
- obj-$(CONFIG_TI_CPSW_ALE) += cpsw_ale.o
-+obj-$(CONFIG_TI_CPTS) += cpts.o
- obj-$(CONFIG_TI_CPSW) += ti_cpsw.o
--ti_cpsw-y := cpsw.o cpts.o
-+ti_cpsw-y := cpsw.o
- 
- obj-$(CONFIG_TI_KEYSTONE_NETCP) += keystone_netcp.o
- keystone_netcp-y := netcp_core.o
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 3f96c57..323174d 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -1594,7 +1594,7 @@ static netdev_tx_t cpsw_ndo_start_xmit(struct sk_buff *skb,
- 	return NETDEV_TX_BUSY;
- }
- 
--#ifdef CONFIG_TI_CPTS
-+#if IS_ENABLED(CONFIG_TI_CPTS)
- 
- static void cpsw_hwtstamp_v1(struct cpsw_common *cpsw)
- {
-@@ -1742,7 +1742,16 @@ static int cpsw_hwtstamp_get(struct net_device *dev, struct ifreq *ifr)
- 
- 	return copy_to_user(ifr->ifr_data, &cfg, sizeof(cfg)) ? -EFAULT : 0;
- }
-+#else
-+static int cpsw_hwtstamp_get(struct net_device *dev, struct ifreq *ifr)
-+{
-+	return -EOPNOTSUPP;
-+}
- 
-+static int cpsw_hwtstamp_set(struct net_device *dev, struct ifreq *ifr)
-+{
-+	return -EOPNOTSUPP;
-+}
- #endif /*CONFIG_TI_CPTS*/
- 
- static int cpsw_ndo_ioctl(struct net_device *dev, struct ifreq *req, int cmd)
-@@ -1755,12 +1764,10 @@ static int cpsw_ndo_ioctl(struct net_device *dev, struct ifreq *req, int cmd)
- 		return -EINVAL;
- 
- 	switch (cmd) {
--#ifdef CONFIG_TI_CPTS
- 	case SIOCSHWTSTAMP:
- 		return cpsw_hwtstamp_set(dev, req);
- 	case SIOCGHWTSTAMP:
- 		return cpsw_hwtstamp_get(dev, req);
--#endif
- 	}
- 
- 	if (!cpsw->slaves[slave_no].phy)
-@@ -2100,10 +2107,10 @@ static void cpsw_set_msglevel(struct net_device *ndev, u32 value)
- 	priv->msg_enable = value;
- }
- 
-+#if IS_ENABLED(CONFIG_TI_CPTS)
- static int cpsw_get_ts_info(struct net_device *ndev,
- 			    struct ethtool_ts_info *info)
- {
--#ifdef CONFIG_TI_CPTS
- 	struct cpsw_common *cpsw = ndev_to_cpsw(ndev);
- 
- 	info->so_timestamping =
-@@ -2120,7 +2127,12 @@ static int cpsw_get_ts_info(struct net_device *ndev,
- 	info->rx_filters =
- 		(1 << HWTSTAMP_FILTER_NONE) |
- 		(1 << HWTSTAMP_FILTER_PTP_V2_EVENT);
-+	return 0;
-+}
- #else
-+static int cpsw_get_ts_info(struct net_device *ndev,
-+			    struct ethtool_ts_info *info)
-+{
- 	info->so_timestamping =
- 		SOF_TIMESTAMPING_TX_SOFTWARE |
- 		SOF_TIMESTAMPING_RX_SOFTWARE |
-@@ -2128,9 +2140,9 @@ static int cpsw_get_ts_info(struct net_device *ndev,
- 	info->phc_index = -1;
- 	info->tx_types = 0;
- 	info->rx_filters = 0;
--#endif
- 	return 0;
- }
-+#endif
- 
- static int cpsw_get_link_ksettings(struct net_device *ndev,
- 				   struct ethtool_link_ksettings *ecmd)
-diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
-index a42c449..8cb0369 100644
---- a/drivers/net/ethernet/ti/cpts.c
-+++ b/drivers/net/ethernet/ti/cpts.c
-@@ -31,8 +31,6 @@
- 
- #include "cpts.h"
- 
--#ifdef CONFIG_TI_CPTS
--
- #define cpts_read32(c, r)	readl_relaxed(&c->reg->r)
- #define cpts_write32(c, v, r)	writel_relaxed(v, &c->reg->r)
- 
-@@ -334,6 +332,7 @@ void cpts_rx_timestamp(struct cpts *cpts, struct sk_buff *skb)
- 	memset(ssh, 0, sizeof(*ssh));
- 	ssh->hwtstamp = ns_to_ktime(ns);
- }
-+EXPORT_SYMBOL_GPL(cpts_rx_timestamp);
- 
- void cpts_tx_timestamp(struct cpts *cpts, struct sk_buff *skb)
- {
-@@ -349,13 +348,11 @@ void cpts_tx_timestamp(struct cpts *cpts, struct sk_buff *skb)
- 	ssh.hwtstamp = ns_to_ktime(ns);
- 	skb_tstamp_tx(skb, &ssh);
- }
--
--#endif /*CONFIG_TI_CPTS*/
-+EXPORT_SYMBOL_GPL(cpts_tx_timestamp);
- 
- int cpts_register(struct device *dev, struct cpts *cpts,
- 		  u32 mult, u32 shift)
- {
--#ifdef CONFIG_TI_CPTS
- 	int err, i;
- 	unsigned long flags;
- 
-@@ -391,18 +388,21 @@ int cpts_register(struct device *dev, struct cpts *cpts,
- 	schedule_delayed_work(&cpts->overflow_work, CPTS_OVERFLOW_PERIOD);
- 
- 	cpts->phc_index = ptp_clock_index(cpts->clock);
--#endif
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(cpts_register);
- 
- void cpts_unregister(struct cpts *cpts)
- {
--#ifdef CONFIG_TI_CPTS
- 	if (cpts->clock) {
- 		ptp_clock_unregister(cpts->clock);
- 		cancel_delayed_work_sync(&cpts->overflow_work);
- 	}
- 	if (cpts->refclk)
- 		cpts_clk_release(cpts);
--#endif
- }
-+EXPORT_SYMBOL_GPL(cpts_unregister);
-+
-+MODULE_LICENSE("GPL v2");
-+MODULE_DESCRIPTION("TI CPTS driver");
-+MODULE_AUTHOR("Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>");
-diff --git a/drivers/net/ethernet/ti/cpts.h b/drivers/net/ethernet/ti/cpts.h
-index 69a46b9..416ba2c 100644
---- a/drivers/net/ethernet/ti/cpts.h
-+++ b/drivers/net/ethernet/ti/cpts.h
-@@ -111,7 +111,7 @@ struct cpts {
- 	struct cpsw_cpts __iomem *reg;
- 	int tx_enable;
- 	int rx_enable;
--#ifdef CONFIG_TI_CPTS
-+#if IS_ENABLED(CONFIG_TI_CPTS)
- 	struct ptp_clock_info info;
- 	struct ptp_clock *clock;
- 	spinlock_t lock; /* protects time registers */
-@@ -127,9 +127,11 @@ struct cpts {
- #endif
- };
- 
--#ifdef CONFIG_TI_CPTS
-+#if IS_ENABLED(CONFIG_TI_CPTS)
- void cpts_rx_timestamp(struct cpts *cpts, struct sk_buff *skb);
- void cpts_tx_timestamp(struct cpts *cpts, struct sk_buff *skb);
-+int cpts_register(struct device *dev, struct cpts *cpts, u32 mult, u32 shift);
-+void cpts_unregister(struct cpts *cpts);
- #else
- static inline void cpts_rx_timestamp(struct cpts *cpts, struct sk_buff *skb)
- {
-@@ -137,9 +139,17 @@ static inline void cpts_rx_timestamp(struct cpts *cpts, struct sk_buff *skb)
- static inline void cpts_tx_timestamp(struct cpts *cpts, struct sk_buff *skb)
- {
- }
-+
-+static inline int
-+cpts_register(struct device *dev, struct cpts *cpts, u32 mult, u32 shift)
-+{
-+	return 0;
-+}
-+
-+static inline void cpts_unregister(struct cpts *cpts)
-+{
-+}
- #endif
- 
--int cpts_register(struct device *dev, struct cpts *cpts, u32 mult, u32 shift);
--void cpts_unregister(struct cpts *cpts);
- 
- #endif
+I've just tried net-next on BBB and got below back-trace:
+INIT: Entering runlevel: 5
+Configuring network interfaces... [   15.018356] net eth0: initializing cpsw version 1.12 (0)
+[   15.120153] SMSC LAN8710/LAN8720 4a101000.mdio:00: attached PHY driver [SMSC LAN8710/LAN8720] (mii_bus:phy_addr=4a101000.mdio:00, irq=-1)
+[   15.138578] Division by zero in kernel.
+[   15.142667] CPU: 0 PID: 755 Comm: ifconfig Not tainted 4.9.0-rc7-01617-g6ea3f00 #5
+[   15.150277] Hardware name: Generic AM33XX (Flattened Device Tree)
+[   15.156399] Backtrace: 
+[   15.158898] [<c010bbf8>] (dump_backtrace) from [<c010beb4>] (show_stack+0x18/0x1c)
+[   15.166508]  r7:00000000 r6:600f0013 r5:00000000 r4:c0d395d0
+[   15.172200] [<c010be9c>] (show_stack) from [<c03ce6cc>] (dump_stack+0x8c/0xa0)
+[   15.179460] [<c03ce640>] (dump_stack) from [<c010bd60>] (__div0+0x1c/0x20)
+[   15.186368]  r7:00000000 r6:ddf1c010 r5:00000001 r4:00000001
+[   15.192068] [<c010bd44>] (__div0) from [<c03cd17c>] (Ldiv0+0x8/0x14)
+[   15.198503] [<bf07ba38>] (cpsw_split_budget [ti_cpsw]) from [<bf07ee8c>] (cpsw_ndo_open+0x4b8/0x5e4 [ti_cpsw])
+[   15.208554]  r10:ddf1c010 r9:00000000 r8:00000000 r7:ddf1c010 r6:dcc88000 r5:dcc88500
+[   15.216418]  r4:ddf1c0b0
+[   15.218985] [<bf07e9d4>] (cpsw_ndo_open [ti_cpsw]) from [<c0731c68>] (__dev_open+0xb0/0x114)
+[   15.227466]  r10:00000000 r9:00000000 r8:00000000 r7:dcc88030 r6:bf080364 r5:00000000
+[   15.235330]  r4:dcc88000
+[   15.237880] [<c0731bb8>] (__dev_open) from [<c0731f24>] (__dev_change_flags+0x9c/0x14c)
+[   15.245923]  r7:00001002 r6:00000001 r5:00001043 r4:dcc88000
+[   15.251613] [<c0731e88>] (__dev_change_flags) from [<c0731ff4>] (dev_change_flags+0x20/0x50)
+[   15.260093]  r9:00000000 r8:00000000 r7:dcbabf0c r6:00001002 r5:dcc8813c r4:dcc88000
+[   15.267886] [<c0731fd4>] (dev_change_flags) from [<c07a3168>] (devinet_ioctl+0x6d4/0x794)
+[   15.276105]  r9:00000000 r8:bee8cc64 r7:dcbabf0c r6:00000000 r5:dc921e80 r4:00000000
+[   15.283891] [<c07a2a94>] (devinet_ioctl) from [<c07a54bc>] (inet_ioctl+0x19c/0x1c8)
+[   15.291587]  r10:00000000 r9:dc920000 r8:bee8cc64 r7:c0d64bc0 r6:bee8cc64 r5:dd2728e0
+[   15.299450]  r4:00008914
+[   15.302002] [<c07a5320>] (inet_ioctl) from [<c07112dc>] (sock_ioctl+0x14c/0x300)
+[   15.309443] [<c0711190>] (sock_ioctl) from [<c0241868>] (do_vfs_ioctl+0xa8/0x98c)
+[   15.316962]  r7:00000003 r6:ddf0a780 r5:dd2728e0 r4:bee8cc64
+[   15.322653] [<c02417c0>] (do_vfs_ioctl) from [<c0242188>] (SyS_ioctl+0x3c/0x64)
+[   15.330000]  r10:00000000 r9:dc920000 r8:bee8cc64 r7:00008914 r6:ddf0a780 r5:00000003
+[   15.337864]  r4:ddf0a780
+[   15.340416] [<c024214c>] (SyS_ioctl) from [<c0107d60>] (ret_fast_syscall+0x0/0x3c)
+[   15.348024]  r9:dc920000 r8:c0107f24 r7:00000036 r6:bee8cf4d r5:bee8ce4c r4:000949f0
+[   15.361174] IPv6: ADDRCONF(NETDEV_UP): eth0: link is not ready
+udhcpc (v1.23.1) started
+
+
 -- 
-2.10.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards,
+-grygorii
