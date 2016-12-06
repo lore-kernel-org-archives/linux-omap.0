@@ -1,132 +1,261 @@
-From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH 03/12] power_supply: axp288_charger: Replace the extcon API
-Date: Tue, 06 Dec 2016 09:26:14 +0900
-Message-ID: <584605A6.1010803@samsung.com>
-References: <1480485460-2663-1-git-send-email-cw00.choi@samsung.com>
- <CGME20161130055742epcas1p3cbb269d69275ed6684a7baab0841519b@epcas1p3.samsung.com>
- <1480485460-2663-4-git-send-email-cw00.choi@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-reply-to: <1480485460-2663-4-git-send-email-cw00.choi@samsung.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: balbi@kernel.org, gregkh@linuxfoundation.org, kishon@ti.com, sre@kernel.org
-Cc: Peter.Chen@nxp.com, linux-pm@vger.kernel.org, yoshihiro.shimoda.uh@renesas.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org, wens@csie.org, chanwoo@kernel.org, maxime.ripard@free-electrons.com, linux-omap@vger.kernel.org, b-liu@ti.com, linux-arm-kernel@lists.infradead.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] PM / wakeirq: Fix dedicated wakeirq for drivers not using autosuspend
+Date: Mon,  5 Dec 2016 16:38:16 -0800
+Message-ID: <20161206003816.22696-1-tony@atomide.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Alan Stern <stern@rowland.harvard.edu>
+Cc: Brian Norris <briannorris@chromium.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Len Brown <len.brown@intel.com>, Nishanth Menon <nm@ti.com>, Pavel Machek <pavel@ucw.cz>, Ulf Hansson <ulf.hansson@linaro.org>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgU2ViYXN0aWFuLAoKQ291bGQgeW91IHBsZWFzZSByZXZpZXcgYW5kIHBpY2sgdGhlIHBhdGNo
-My80IGZvciBwb3dlci1zdXBwbHkgZHJpdmVyPwoKQmVzdCBSZWdhcmRzLApDaGFud29vIENob2kK
-Ck9uIDIwMTbrhYQgMTHsm5QgMzDsnbwgMTQ6NTcsIENoYW53b28gQ2hvaSB3cm90ZToKPiBUaGlz
-IHBhdGNoIHVzZXMgdGhlIHJlc291cmNlLW1hbmFnZWQgZXh0Y29uIEFQSSBmb3IgZXh0Y29uX3Jl
-Z2lzdGVyX25vdGlmaWVyKCkKPiBhbmQgcmVwbGFjZXMgdGhlIGRlcHJlY2F0ZWQgZXh0Y29uIEFQ
-SSBhcyBmb2xsb3dpbmc6Cj4gLSBleHRjb25fZ2V0X2NhYmxlX3N0YXRlXygpIC0+IGV4dGNvbl9n
-ZXRfc3RhdGUoKQo+IAo+IFNpZ25lZC1vZmYtYnk6IENoYW53b28gQ2hvaSA8Y3cwMC5jaG9pQHNh
-bXN1bmcuY29tPgo+IC0tLQo+ICBkcml2ZXJzL3Bvd2VyL3N1cHBseS9heHAyODhfY2hhcmdlci5j
-IHwgNTEgKysrKysrKysrLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KPiAgMSBmaWxlIGNoYW5n
-ZWQsIDEzIGluc2VydGlvbnMoKyksIDM4IGRlbGV0aW9ucygtKQo+IAo+IGRpZmYgLS1naXQgYS9k
-cml2ZXJzL3Bvd2VyL3N1cHBseS9heHAyODhfY2hhcmdlci5jIGIvZHJpdmVycy9wb3dlci9zdXBw
-bHkvYXhwMjg4X2NoYXJnZXIuYwo+IGluZGV4IDc1YjhlMGM3NDAyYi4uMTExNTA1MmU5YTY5IDEw
-MDY0NAo+IC0tLSBhL2RyaXZlcnMvcG93ZXIvc3VwcGx5L2F4cDI4OF9jaGFyZ2VyLmMKPiArKysg
-Yi9kcml2ZXJzL3Bvd2VyL3N1cHBseS9heHAyODhfY2hhcmdlci5jCj4gQEAgLTU4MSwxNSArNTgx
-LDE1IEBAIHN0YXRpYyB2b2lkIGF4cDI4OF9jaGFyZ2VyX2V4dGNvbl9ldnRfd29ya2VyKHN0cnVj
-dCB3b3JrX3N0cnVjdCAqd29yaykKPiAgCWJvb2wgb2xkX2Nvbm5lY3RlZCA9IGluZm8tPmNhYmxl
-LmNvbm5lY3RlZDsKPiAgCj4gIAkvKiBEZXRlcm1pbmUgY2FibGUvY2hhcmdlciB0eXBlICovCj4g
-LQlpZiAoZXh0Y29uX2dldF9jYWJsZV9zdGF0ZV8oZWRldiwgRVhUQ09OX0NIR19VU0JfU0RQKSA+
-IDApIHsKPiArCWlmIChleHRjb25fZ2V0X3N0YXRlKGVkZXYsIEVYVENPTl9DSEdfVVNCX1NEUCkg
-PiAwKSB7Cj4gIAkJZGV2X2RiZygmaW5mby0+cGRldi0+ZGV2LCAiVVNCIFNEUCBjaGFyZ2VyICBp
-cyBjb25uZWN0ZWQiKTsKPiAgCQlpbmZvLT5jYWJsZS5jb25uZWN0ZWQgPSB0cnVlOwo+ICAJCWlu
-Zm8tPmNhYmxlLmNoZ190eXBlID0gUE9XRVJfU1VQUExZX1RZUEVfVVNCOwo+IC0JfSBlbHNlIGlm
-IChleHRjb25fZ2V0X2NhYmxlX3N0YXRlXyhlZGV2LCBFWFRDT05fQ0hHX1VTQl9DRFApID4gMCkg
-ewo+ICsJfSBlbHNlIGlmIChleHRjb25fZ2V0X3N0YXRlKGVkZXYsIEVYVENPTl9DSEdfVVNCX0NE
-UCkgPiAwKSB7Cj4gIAkJZGV2X2RiZygmaW5mby0+cGRldi0+ZGV2LCAiVVNCIENEUCBjaGFyZ2Vy
-IGlzIGNvbm5lY3RlZCIpOwo+ICAJCWluZm8tPmNhYmxlLmNvbm5lY3RlZCA9IHRydWU7Cj4gIAkJ
-aW5mby0+Y2FibGUuY2hnX3R5cGUgPSBQT1dFUl9TVVBQTFlfVFlQRV9VU0JfQ0RQOwo+IC0JfSBl
-bHNlIGlmIChleHRjb25fZ2V0X2NhYmxlX3N0YXRlXyhlZGV2LCBFWFRDT05fQ0hHX1VTQl9EQ1Ap
-ID4gMCkgewo+ICsJfSBlbHNlIGlmIChleHRjb25fZ2V0X3N0YXRlKGVkZXYsIEVYVENPTl9DSEdf
-VVNCX0RDUCkgPiAwKSB7Cj4gIAkJZGV2X2RiZygmaW5mby0+cGRldi0+ZGV2LCAiVVNCIERDUCBj
-aGFyZ2VyIGlzIGNvbm5lY3RlZCIpOwo+ICAJCWluZm8tPmNhYmxlLmNvbm5lY3RlZCA9IHRydWU7
-Cj4gIAkJaW5mby0+Y2FibGUuY2hnX3R5cGUgPSBQT1dFUl9TVVBQTFlfVFlQRV9VU0JfRENQOwo+
-IEBAIC02ODYsNyArNjg2LDcgQEAgc3RhdGljIGludCBheHAyODhfY2hhcmdlcl9oYW5kbGVfb3Rn
-X2V2dChzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgKm5iLAo+ICAJc3RydWN0IGF4cDI4OF9jaHJnX2lu
-Zm8gKmluZm8gPQo+ICAJICAgIGNvbnRhaW5lcl9vZihuYiwgc3RydWN0IGF4cDI4OF9jaHJnX2lu
-Zm8sIG90Zy5pZF9uYik7Cj4gIAlzdHJ1Y3QgZXh0Y29uX2RldiAqZWRldiA9IGluZm8tPm90Zy5j
-YWJsZTsKPiAtCWludCB1c2JfaG9zdCA9IGV4dGNvbl9nZXRfY2FibGVfc3RhdGVfKGVkZXYsIEVY
-VENPTl9VU0JfSE9TVCk7Cj4gKwlpbnQgdXNiX2hvc3QgPSBleHRjb25fZ2V0X3N0YXRlKGVkZXYs
-IEVYVENPTl9VU0JfSE9TVCk7Cj4gIAo+ICAJZGV2X2RiZygmaW5mby0+cGRldi0+ZGV2LCAiZXh0
-ZXJuYWwgY29ubmVjdG9yIFVTQi1Ib3N0IGlzICVzXG4iLAo+ICAJCQkJdXNiX2hvc3QgPyAiYXR0
-YWNoZWQiIDogImRldGFjaGVkIik7Cj4gQEAgLTg0MSwzMyArODQxLDI3IEBAIHN0YXRpYyBpbnQg
-YXhwMjg4X2NoYXJnZXJfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKPiAgCS8q
-IFJlZ2lzdGVyIGZvciBleHRjb24gbm90aWZpY2F0aW9uICovCj4gIAlJTklUX1dPUksoJmluZm8t
-PmNhYmxlLndvcmssIGF4cDI4OF9jaGFyZ2VyX2V4dGNvbl9ldnRfd29ya2VyKTsKPiAgCWluZm8t
-PmNhYmxlLm5iLm5vdGlmaWVyX2NhbGwgPSBheHAyODhfY2hhcmdlcl9oYW5kbGVfY2FibGVfZXZ0
-Owo+IC0JcmV0ID0gZXh0Y29uX3JlZ2lzdGVyX25vdGlmaWVyKGluZm8tPmNhYmxlLmVkZXYsIEVY
-VENPTl9DSEdfVVNCX1NEUCwKPiAtCQkJCQkmaW5mby0+Y2FibGUubmIpOwo+ICsJcmV0ID0gZGV2
-bV9leHRjb25fcmVnaXN0ZXJfbm90aWZpZXIoJnBkZXYtPmRldiwgaW5mby0+Y2FibGUuZWRldiwK
-PiArCQkJCQlFWFRDT05fQ0hHX1VTQl9TRFAsICZpbmZvLT5jYWJsZS5uYik7Cj4gIAlpZiAocmV0
-KSB7Cj4gIAkJZGV2X2VycigmaW5mby0+cGRldi0+ZGV2LAo+ICAJCQkiZmFpbGVkIHRvIHJlZ2lz
-dGVyIGV4dGNvbiBub3RpZmllciBmb3IgU0RQICVkXG4iLCByZXQpOwo+ICAJCXJldHVybiByZXQ7
-Cj4gIAl9Cj4gIAo+IC0JcmV0ID0gZXh0Y29uX3JlZ2lzdGVyX25vdGlmaWVyKGluZm8tPmNhYmxl
-LmVkZXYsIEVYVENPTl9DSEdfVVNCX0NEUCwKPiAtCQkJCQkmaW5mby0+Y2FibGUubmIpOwo+ICsJ
-cmV0ID0gZGV2bV9leHRjb25fcmVnaXN0ZXJfbm90aWZpZXIoJnBkZXYtPmRldiwgaW5mby0+Y2Fi
-bGUuZWRldiwKPiArCQkJCQlFWFRDT05fQ0hHX1VTQl9DRFAsICZpbmZvLT5jYWJsZS5uYik7Cj4g
-IAlpZiAocmV0KSB7Cj4gIAkJZGV2X2VycigmaW5mby0+cGRldi0+ZGV2LAo+ICAJCQkiZmFpbGVk
-IHRvIHJlZ2lzdGVyIGV4dGNvbiBub3RpZmllciBmb3IgQ0RQICVkXG4iLCByZXQpOwo+IC0JCWV4
-dGNvbl91bnJlZ2lzdGVyX25vdGlmaWVyKGluZm8tPmNhYmxlLmVkZXYsCj4gLQkJCQlFWFRDT05f
-Q0hHX1VTQl9TRFAsICZpbmZvLT5jYWJsZS5uYik7Cj4gIAkJcmV0dXJuIHJldDsKPiAgCX0KPiAg
-Cj4gLQlyZXQgPSBleHRjb25fcmVnaXN0ZXJfbm90aWZpZXIoaW5mby0+Y2FibGUuZWRldiwgRVhU
-Q09OX0NIR19VU0JfRENQLAo+IC0JCQkJCSZpbmZvLT5jYWJsZS5uYik7Cj4gKwlyZXQgPSBkZXZt
-X2V4dGNvbl9yZWdpc3Rlcl9ub3RpZmllcigmcGRldi0+ZGV2LCBpbmZvLT5jYWJsZS5lZGV2LAo+
-ICsJCQkJCUVYVENPTl9DSEdfVVNCX0RDUCwgJmluZm8tPmNhYmxlLm5iKTsKPiAgCWlmIChyZXQp
-IHsKPiAgCQlkZXZfZXJyKCZpbmZvLT5wZGV2LT5kZXYsCj4gIAkJCSJmYWlsZWQgdG8gcmVnaXN0
-ZXIgZXh0Y29uIG5vdGlmaWVyIGZvciBEQ1AgJWRcbiIsIHJldCk7Cj4gLQkJZXh0Y29uX3VucmVn
-aXN0ZXJfbm90aWZpZXIoaW5mby0+Y2FibGUuZWRldiwKPiAtCQkJCUVYVENPTl9DSEdfVVNCX1NE
-UCwgJmluZm8tPmNhYmxlLm5iKTsKPiAtCQlleHRjb25fdW5yZWdpc3Rlcl9ub3RpZmllcihpbmZv
-LT5jYWJsZS5lZGV2LAo+IC0JCQkJRVhUQ09OX0NIR19VU0JfQ0RQLCAmaW5mby0+Y2FibGUubmIp
-Owo+ICAJCXJldHVybiByZXQ7Cj4gIAl9Cj4gIAo+IEBAIC04ODcsMTMgKzg4MSwxMyBAQCBzdGF0
-aWMgaW50IGF4cDI4OF9jaGFyZ2VyX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYp
-Cj4gIAkvKiBSZWdpc3RlciBmb3IgT1RHIG5vdGlmaWNhdGlvbiAqLwo+ICAJSU5JVF9XT1JLKCZp
-bmZvLT5vdGcud29yaywgYXhwMjg4X2NoYXJnZXJfb3RnX2V2dF93b3JrZXIpOwo+ICAJaW5mby0+
-b3RnLmlkX25iLm5vdGlmaWVyX2NhbGwgPSBheHAyODhfY2hhcmdlcl9oYW5kbGVfb3RnX2V2dDsK
-PiAtCXJldCA9IGV4dGNvbl9yZWdpc3Rlcl9ub3RpZmllcihpbmZvLT5vdGcuY2FibGUsIEVYVENP
-Tl9VU0JfSE9TVCwKPiAtCQkJCSAgICAgICAmaW5mby0+b3RnLmlkX25iKTsKPiArCXJldCA9IGRl
-dm1fZXh0Y29uX3JlZ2lzdGVyX25vdGlmaWVyKCZwZGV2LT5kZXYsIGluZm8tPm90Zy5jYWJsZSwK
-PiArCQkJCQlFWFRDT05fVVNCX0hPU1QsICZpbmZvLT5vdGcuaWRfbmIpOwo+ICAJaWYgKHJldCkK
-PiAgCQlkZXZfd2FybigmcGRldi0+ZGV2LCAiZmFpbGVkIHRvIHJlZ2lzdGVyIG90ZyBub3RpZmll
-clxuIik7Cj4gIAo+ICAJaWYgKGluZm8tPm90Zy5jYWJsZSkKPiAtCQlpbmZvLT5vdGcuaWRfc2hv
-cnQgPSBleHRjb25fZ2V0X2NhYmxlX3N0YXRlXygKPiArCQlpbmZvLT5vdGcuaWRfc2hvcnQgPSBl
-eHRjb25fZ2V0X3N0YXRlKAo+ICAJCQkJCWluZm8tPm90Zy5jYWJsZSwgRVhUQ09OX1VTQl9IT1NU
-KTsKPiAgCj4gIAkvKiBSZWdpc3RlciBjaGFyZ2VyIGludGVycnVwdHMgKi8KPiBAQCAtOTIxLDE3
-ICs5MTUsOCBAQCBzdGF0aWMgaW50IGF4cDI4OF9jaGFyZ2VyX3Byb2JlKHN0cnVjdCBwbGF0Zm9y
-bV9kZXZpY2UgKnBkZXYpCj4gIAlyZXR1cm4gMDsKPiAgCj4gIGludHJfcmVnX2ZhaWxlZDoKPiAt
-CWlmIChpbmZvLT5vdGcuY2FibGUpCj4gLQkJZXh0Y29uX3VucmVnaXN0ZXJfbm90aWZpZXIoaW5m
-by0+b3RnLmNhYmxlLCBFWFRDT05fVVNCX0hPU1QsCj4gLQkJCQkJJmluZm8tPm90Zy5pZF9uYik7
-Cj4gIAlwb3dlcl9zdXBwbHlfdW5yZWdpc3RlcihpbmZvLT5wc3lfdXNiKTsKPiAgcHN5X3JlZ19m
-YWlsZWQ6Cj4gLQlleHRjb25fdW5yZWdpc3Rlcl9ub3RpZmllcihpbmZvLT5jYWJsZS5lZGV2LCBF
-WFRDT05fQ0hHX1VTQl9TRFAsCj4gLQkJCQkJJmluZm8tPmNhYmxlLm5iKTsKPiAtCWV4dGNvbl91
-bnJlZ2lzdGVyX25vdGlmaWVyKGluZm8tPmNhYmxlLmVkZXYsIEVYVENPTl9DSEdfVVNCX0NEUCwK
-PiAtCQkJCQkmaW5mby0+Y2FibGUubmIpOwo+IC0JZXh0Y29uX3VucmVnaXN0ZXJfbm90aWZpZXIo
-aW5mby0+Y2FibGUuZWRldiwgRVhUQ09OX0NIR19VU0JfRENQLAo+IC0JCQkJCSZpbmZvLT5jYWJs
-ZS5uYik7Cj4gIAlyZXR1cm4gcmV0Owo+ICB9Cj4gIAo+IEBAIC05MzksMTYgKzkyNCw2IEBAIHN0
-YXRpYyBpbnQgYXhwMjg4X2NoYXJnZXJfcmVtb3ZlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBk
-ZXYpCj4gIHsKPiAgCXN0cnVjdCBheHAyODhfY2hyZ19pbmZvICppbmZvID0gIGRldl9nZXRfZHJ2
-ZGF0YSgmcGRldi0+ZGV2KTsKPiAgCj4gLQlpZiAoaW5mby0+b3RnLmNhYmxlKQo+IC0JCWV4dGNv
-bl91bnJlZ2lzdGVyX25vdGlmaWVyKGluZm8tPm90Zy5jYWJsZSwgRVhUQ09OX1VTQl9IT1NULAo+
-IC0JCQkJCSZpbmZvLT5vdGcuaWRfbmIpOwo+IC0KPiAtCWV4dGNvbl91bnJlZ2lzdGVyX25vdGlm
-aWVyKGluZm8tPmNhYmxlLmVkZXYsIEVYVENPTl9DSEdfVVNCX1NEUCwKPiAtCQkJCQkmaW5mby0+
-Y2FibGUubmIpOwo+IC0JZXh0Y29uX3VucmVnaXN0ZXJfbm90aWZpZXIoaW5mby0+Y2FibGUuZWRl
-diwgRVhUQ09OX0NIR19VU0JfQ0RQLAo+IC0JCQkJCSZpbmZvLT5jYWJsZS5uYik7Cj4gLQlleHRj
-b25fdW5yZWdpc3Rlcl9ub3RpZmllcihpbmZvLT5jYWJsZS5lZGV2LCBFWFRDT05fQ0hHX1VTQl9E
-Q1AsCj4gLQkJCQkJJmluZm8tPmNhYmxlLm5iKTsKPiAgCXBvd2VyX3N1cHBseV91bnJlZ2lzdGVy
-KGluZm8tPnBzeV91c2IpOwo+ICAKPiAgCXJldHVybiAwOwo+IAoKCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBs
-aXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5m
-cmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+I noticed some wakeirq flakeyness with consumer drivers not using
+autosuspend. For drivers not using autosuspend, the wakeirq may never
+get unmasked in rpm_suspend() because of irq desc->depth.
+
+We are configuring dedicated wakeirqs to start with IRQ_NOAUTOEN as we
+naturally don't want them running until rpm_suspend() is called.
+
+However, when a consumer driver initially calls pm_runtime_get, we now
+wrongly start with disable_irq_nosync() call on the dedicated wakeirq
+that is disabled to start with.
+
+This causes desc->depth to toggle between 1 and 2 instead of the usual
+0 and 1. This can prevent enable_irq() from unmasking the wakeirq as
+that only happens at desc->depth 1.
+
+This does not necessarily show up with drivers using autosuspend as
+there is time for disable_irq_nosync() before rpm_suspend() gets called
+after the autosuspend timeout.
+
+Let's fix the issue by adding wirq->status that lazily gets set on
+the first rpm_suspend(). We also need PM runtime core private functions
+for dev_pm_enable_wake_irq_check() and dev_pm_disable_wake_irq_check()
+so we can enable the dedicated wakeirq on the first rpm_suspend().
+
+While at it, let's also fix the comments for dev_pm_enable_wake_irq()
+and dev_pm_disable_wake_irq(). Those can still be used by the consumer
+drivers as needed because the irq core manages the interrupt usecount
+for us.
+
+Fixes: 4990d4fe327b ("PM / Wakeirq: Add automated device wake IRQ
+handling")
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/base/power/power.h   | 19 ++++++++++-
+ drivers/base/power/runtime.c |  8 ++---
+ drivers/base/power/wakeirq.c | 76 ++++++++++++++++++++++++++++++++++++++------
+ 3 files changed, 88 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/base/power/power.h b/drivers/base/power/power.h
+--- a/drivers/base/power/power.h
++++ b/drivers/base/power/power.h
+@@ -21,14 +21,22 @@ extern void pm_runtime_init(struct device *dev);
+ extern void pm_runtime_reinit(struct device *dev);
+ extern void pm_runtime_remove(struct device *dev);
+ 
++#define WAKE_IRQ_DEDICATED_ALLOCATED	BIT(0)
++#define WAKE_IRQ_DEDICATED_MANAGED	BIT(1)
++#define WAKE_IRQ_DEDICATED_MASK		(WAKE_IRQ_DEDICATED_ALLOCATED | \
++					 WAKE_IRQ_DEDICATED_MANAGED)
++
+ struct wake_irq {
+ 	struct device *dev;
++	unsigned int status;
+ 	int irq;
+-	bool dedicated_irq:1;
+ };
+ 
+ extern void dev_pm_arm_wake_irq(struct wake_irq *wirq);
+ extern void dev_pm_disarm_wake_irq(struct wake_irq *wirq);
++extern void dev_pm_enable_wake_irq_check(struct device *dev,
++					 bool can_change_status);
++extern void dev_pm_disable_wake_irq_check(struct device *dev);
+ 
+ #ifdef CONFIG_PM_SLEEP
+ 
+@@ -104,6 +112,15 @@ static inline void dev_pm_disarm_wake_irq(struct wake_irq *wirq)
+ {
+ }
+ 
++static inline void dev_pm_enable_wake_irq_check(struct device *dev,
++						bool can_change_status)
++{
++}
++
++static inline void dev_pm_disable_wake_irq_check(struct device *dev)
++{
++}
++
+ #endif
+ 
+ #ifdef CONFIG_PM_SLEEP
+diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
+--- a/drivers/base/power/runtime.c
++++ b/drivers/base/power/runtime.c
+@@ -592,7 +592,7 @@ static int rpm_suspend(struct device *dev, int rpmflags)
+ 
+ 	callback = RPM_GET_CALLBACK(dev, runtime_suspend);
+ 
+-	dev_pm_enable_wake_irq(dev);
++	dev_pm_enable_wake_irq_check(dev, true);
+ 	retval = rpm_callback(callback, dev);
+ 	if (retval)
+ 		goto fail;
+@@ -631,7 +631,7 @@ static int rpm_suspend(struct device *dev, int rpmflags)
+ 	return retval;
+ 
+  fail:
+-	dev_pm_disable_wake_irq(dev);
++	dev_pm_disable_wake_irq_check(dev);
+ 	__update_runtime_status(dev, RPM_ACTIVE);
+ 	dev->power.deferred_resume = false;
+ 	wake_up_all(&dev->power.wait_queue);
+@@ -814,12 +814,12 @@ static int rpm_resume(struct device *dev, int rpmflags)
+ 
+ 	callback = RPM_GET_CALLBACK(dev, runtime_resume);
+ 
+-	dev_pm_disable_wake_irq(dev);
++	dev_pm_disable_wake_irq_check(dev);
+ 	retval = rpm_callback(callback, dev);
+ 	if (retval) {
+ 		__update_runtime_status(dev, RPM_SUSPENDED);
+ 		pm_runtime_cancel_pending(dev);
+-		dev_pm_enable_wake_irq(dev);
++		dev_pm_enable_wake_irq_check(dev, false);
+ 	} else {
+  no_callback:
+ 		__update_runtime_status(dev, RPM_ACTIVE);
+diff --git a/drivers/base/power/wakeirq.c b/drivers/base/power/wakeirq.c
+--- a/drivers/base/power/wakeirq.c
++++ b/drivers/base/power/wakeirq.c
+@@ -110,8 +110,10 @@ void dev_pm_clear_wake_irq(struct device *dev)
+ 	dev->power.wakeirq = NULL;
+ 	spin_unlock_irqrestore(&dev->power.lock, flags);
+ 
+-	if (wirq->dedicated_irq)
++	if (wirq->status & WAKE_IRQ_DEDICATED_ALLOCATED) {
+ 		free_irq(wirq->irq, wirq);
++		wirq->status &= ~WAKE_IRQ_DEDICATED_MASK;
++	}
+ 	kfree(wirq);
+ }
+ EXPORT_SYMBOL_GPL(dev_pm_clear_wake_irq);
+@@ -181,7 +183,6 @@ int dev_pm_set_dedicated_wake_irq(struct device *dev, int irq)
+ 
+ 	wirq->dev = dev;
+ 	wirq->irq = irq;
+-	wirq->dedicated_irq = true;
+ 	irq_set_status_flags(irq, IRQ_NOAUTOEN);
+ 
+ 	/*
+@@ -197,6 +198,8 @@ int dev_pm_set_dedicated_wake_irq(struct device *dev, int irq)
+ 	if (err)
+ 		goto err_free_irq;
+ 
++	wirq->status = WAKE_IRQ_DEDICATED_ALLOCATED;
++
+ 	return err;
+ 
+ err_free_irq:
+@@ -212,9 +215,9 @@ EXPORT_SYMBOL_GPL(dev_pm_set_dedicated_wake_irq);
+  * dev_pm_enable_wake_irq - Enable device wake-up interrupt
+  * @dev: Device
+  *
+- * Called from the bus code or the device driver for
+- * runtime_suspend() to enable the wake-up interrupt while
+- * the device is running.
++ * Optionally called from the bus code or the device driver for
++ * runtime_resume() to override the PM runtime core managed wake-up
++ * interrupt handling to enable the wake-up interrupt.
+  *
+  * Note that for runtime_suspend()) the wake-up interrupts
+  * should be unconditionally enabled unlike for suspend()
+@@ -224,7 +227,7 @@ void dev_pm_enable_wake_irq(struct device *dev)
+ {
+ 	struct wake_irq *wirq = dev->power.wakeirq;
+ 
+-	if (wirq && wirq->dedicated_irq)
++	if (wirq && (wirq->status & WAKE_IRQ_DEDICATED_ALLOCATED))
+ 		enable_irq(wirq->irq);
+ }
+ EXPORT_SYMBOL_GPL(dev_pm_enable_wake_irq);
+@@ -233,20 +236,73 @@ EXPORT_SYMBOL_GPL(dev_pm_enable_wake_irq);
+  * dev_pm_disable_wake_irq - Disable device wake-up interrupt
+  * @dev: Device
+  *
+- * Called from the bus code or the device driver for
+- * runtime_resume() to disable the wake-up interrupt while
+- * the device is running.
++ * Optionally called from the bus code or the device driver for
++ * runtime_suspend() to override the PM runtime core managed wake-up
++ * interrupt handling to disable the wake-up interrupt.
+  */
+ void dev_pm_disable_wake_irq(struct device *dev)
+ {
+ 	struct wake_irq *wirq = dev->power.wakeirq;
+ 
+-	if (wirq && wirq->dedicated_irq)
++	if (wirq && (wirq->status & WAKE_IRQ_DEDICATED_ALLOCATED))
+ 		disable_irq_nosync(wirq->irq);
+ }
+ EXPORT_SYMBOL_GPL(dev_pm_disable_wake_irq);
+ 
+ /**
++ * dev_pm_enable_wake_irq_check - Checks and enables wake-up interrupt
++ * @dev: Device
++ * @can_change_status: Can change wake-up interrupt status
++ *
++ * Enables wakeirq conditionally. We need to enable wake-up interrupt
++ * lazily on the first rpm_suspend(). This is needed as the consumer device
++ * starts in RPM_SUSPENDED state, and the the first pm_runtime_get() would
++ * otherwise try to disable already disabled wakeirq. The wake-up interrupt
++ * starts disabled with IRQ_NOAUTOEN set.
++ *
++ * Should be only called from rpm_suspend() and rpm_resume() path.
++ * Caller must hold &dev->power.lock to change wirq->status
++ */
++void dev_pm_enable_wake_irq_check(struct device *dev,
++				  bool can_change_status)
++{
++	struct wake_irq *wirq = dev->power.wakeirq;
++
++	if (!wirq || !((wirq->status & WAKE_IRQ_DEDICATED_MASK)))
++		return;
++
++	if (likely(wirq->status & WAKE_IRQ_DEDICATED_MANAGED)) {
++		goto enable;
++	} else if (can_change_status) {
++		wirq->status |= WAKE_IRQ_DEDICATED_MANAGED;
++		goto enable;
++	}
++
++	return;
++
++enable:
++	enable_irq(wirq->irq);
++}
++
++/**
++ * dev_pm_disable_wake_irq_check - Checks and disables wake-up interrupt
++ * @dev: Device
++ *
++ * Disables wake-up interrupt conditionally based on status.
++ * Should be only called from rpm_suspend() and rpm_resume() path.
++ */
++void dev_pm_disable_wake_irq_check(struct device *dev)
++{
++	struct wake_irq *wirq = dev->power.wakeirq;
++
++	if (!wirq || !((wirq->status & WAKE_IRQ_DEDICATED_MASK)))
++		return;
++
++	if (wirq->status & WAKE_IRQ_DEDICATED_MANAGED)
++		disable_irq_nosync(wirq->irq);
++}
++
++/**
+  * dev_pm_arm_wake_irq - Arm device wake-up
+  * @wirq: Device wake-up interrupt
+  *
+-- 
+2.11.0
