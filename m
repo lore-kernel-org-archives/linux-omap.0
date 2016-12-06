@@ -1,96 +1,39 @@
-From: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v4 09/13] net: ethernet: ti: cpts: rework
- initialization/deinitialization
-Date: Tue, 6 Dec 2016 14:40:37 +0100
-Message-ID: <20161206134037.GA15946@localhost.localdomain>
-References: <20161205200525.16664-1-grygorii.strashko@ti.com>
- <20161205200525.16664-10-grygorii.strashko@ti.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] drivers: net: cpsw-phy-sel: Clear RGMII_IDMODE on
+ "rgmii" links
+Date: Tue, 06 Dec 2016 11:36:30 -0500 (EST)
+Message-ID: <20161206.113630.1454582039498444818.davem@davemloft.net>
+References: <1480988033-16535-1-git-send-email-alex.g@adaptrum.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161205200525.16664-10-grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Murali Karicheri <m-karicheri2-l0cyMroinI0@public.gmane.org>, Wingman Kwok <w-kwok2-l0cyMroinI0@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1480988033-16535-1-git-send-email-alex.g@adaptrum.com>
+Sender: netdev-owner@vger.kernel.org
+To: alex.g@adaptrum.com
+Cc: mugunthanvnm@ti.com, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, gokhan@adaptrum.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Dec 05, 2016 at 02:05:21PM -0600, Grygorii Strashko wrote:
-> @@ -372,34 +354,27 @@ void cpts_tx_timestamp(struct cpts *cpts, struct sk_buff *skb)
->  }
->  EXPORT_SYMBOL_GPL(cpts_tx_timestamp);
->  
-> -int cpts_register(struct device *dev, struct cpts *cpts,
-> -		  u32 mult, u32 shift)
-> +int cpts_register(struct cpts *cpts)
->  {
->  	int err, i;
->  
-> -	cpts->info = cpts_info;
-> -	spin_lock_init(&cpts->lock);
-> -
-> -	cpts->cc.read = cpts_systim_read;
-> -	cpts->cc.mask = CLOCKSOURCE_MASK(32);
-> -	cpts->cc_mult = mult;
-> -	cpts->cc.mult = mult;
-> -	cpts->cc.shift = shift;
-> -
->  	INIT_LIST_HEAD(&cpts->events);
->  	INIT_LIST_HEAD(&cpts->pool);
->  	for (i = 0; i < CPTS_MAX_EVENTS; i++)
->  		list_add(&cpts->pool_data[i].list, &cpts->pool);
->  
-> -	cpts_clk_init(dev, cpts);
-> +	clk_enable(cpts->refclk);
-> +
->  	cpts_write32(cpts, CPTS_EN, control);
->  	cpts_write32(cpts, TS_PEND_EN, int_enable);
->  
-> +	/* reinitialize cc.mult to original value as it can be modified
-> +	 * by cpts_ptp_adjfreq().
-> +	 */
-> +	cpts->cc.mult = cpts->cc_mult;
+From: Alexandru Gagniuc <alex.g@adaptrum.com>
+Date: Mon,  5 Dec 2016 17:33:53 -0800
 
-This still isn't quite right.  First of all, you shouldn't clobber the
-learned cc.mult value in cpts_register().  Presumably, if PTP had been
-run on this port before, then the learned frequency is approximately
-correct, and it should be left alone.
+> Support for setting the RGMII_IDMODE bit was added in commit:
+> "drivers: net: cpsw-phy-sel: add support to configure rgmii internal delay"
+> However, that commit did not add the symmetrical clearing of the bit
+> by way of setting it in "mask". Add it here.
+> 
+> Note that the documentation marks clearing this bit as "reserved",
+> however, according to TI, support for delaying the clock does exist in
+> the MAC, although it is not officially supported.
+> We tested this on a board with an RGMII to RGMII link that will not
+> work unless this bit is cleared.
+> 
+> Signed-off-by: Alexandru Gagniuc <alex.g@adaptrum.com>
 
-[ BTW, resetting the timecounter here makes no sense either.  Why
-  reset the clock just because the interface goes down?  ]
+Commits must be referenced by both short-form SHA1-ID as well as
+the commit header text.
 
-Secondly, you have made the initialization order of these fields hard
-to follow.  With the whole series applied:
+And since this change is fixing that commit, you should also provide
+a proper "Fixes: " tag on the line right before your signoff.
 
-probe()
-	cpts_create()
-		cpts_of_parse()
-		{
-			/* Set cc_mult but not cc.mult! */
-			set cc_mult
-			set cc.shift
-		}
-		cpts_calc_mult_shift()
-		{
-			/* Set them both. */
-			cpts->cc_mult = mult;
-			cpts->cc.mult = mult;
-			cpts->cc.shift = shift;
-		}
-/* later on */
-cpts_register()
-	cpts->cc.mult = cpts->cc_mult;
-
-There is no need for such complexity.  Simply set cc.mult in
-cpts_create() _once_, immediately after the call to
-cpts_calc_mult_shift().
-
-You can remove the assignment from cpts_calc_mult_shift() and
-cpts_register().
-
-Thanks,
-Richard
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks.
