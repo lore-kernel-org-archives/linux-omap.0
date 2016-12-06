@@ -1,212 +1,72 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH] net: ethernet: ti: cpsw: fix early budget split
-Date: Tue,  6 Dec 2016 03:45:00 +0200
-Message-ID: <1480988700-17046-1-git-send-email-ivan.khoronzhuk@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: mugunthanvnm@ti.com, grygorii.strashko@ti.com
-Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+From: Mark Jackson <mpfj-list@newflow.co.uk>
+Subject: How do I define SRAM chip in GPMC device tree ?
+Date: Tue, 6 Dec 2016 12:33:10 +0000
+Message-ID: <3f98534e-2176-e03e-ac53-b60b8d0ead7c@newflow.co.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-The budget split function requires the phy speed to be known.
-While ndo open a phy speed identification is postponed till the
-moment link is up. Hence, move it to appropriate callback, when link
-is up.
+Hi
 
-Reported-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Fixes: 8feb0a196507 ("net: ethernet: ti: cpsw: split tx budget according between channels")
-Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
----
-Based on net-next/master
+We have an existing board supported in Linux v4.1 (see am335x-nano.dts)
+and I was looking to update to a more recent kernel but have hit a stumbling
+block.
 
- drivers/net/ethernet/ti/cpsw.c | 154 ++++++++++++++++++++---------------------
- 1 file changed, 77 insertions(+), 77 deletions(-)
+Our unit has an SRAM device connected to CS1 and we currently rely on uboot
+to init the GPMC settings.
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 3f96c57..f373a4b 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -753,6 +753,82 @@ static void cpsw_rx_handler(void *token, int len, int status)
- 		dev_kfree_skb_any(new_skb);
- }
- 
-+/* split budget depending on channel rates */
-+static void cpsw_split_budget(struct net_device *ndev)
-+{
-+	struct cpsw_priv *priv = netdev_priv(ndev);
-+	struct cpsw_common *cpsw = priv->cpsw;
-+	struct cpsw_vector *txv = cpsw->txv;
-+	u32 consumed_rate, bigest_rate = 0;
-+	int budget, bigest_rate_ch = 0;
-+	struct cpsw_slave *slave;
-+	int i, rlim_ch_num = 0;
-+	u32 ch_rate, max_rate;
-+	int ch_budget = 0;
-+
-+	if (cpsw->data.dual_emac)
-+		slave = &cpsw->slaves[priv->emac_port];
-+	else
-+		slave = &cpsw->slaves[cpsw->data.active_slave];
-+
-+	max_rate = slave->phy->speed * 1000;
-+
-+	consumed_rate = 0;
-+	for (i = 0; i < cpsw->tx_ch_num; i++) {
-+		ch_rate = cpdma_chan_get_rate(txv[i].ch);
-+		if (!ch_rate)
-+			continue;
-+
-+		rlim_ch_num++;
-+		consumed_rate += ch_rate;
-+	}
-+
-+	if (cpsw->tx_ch_num == rlim_ch_num) {
-+		max_rate = consumed_rate;
-+	} else {
-+		ch_budget = (consumed_rate * CPSW_POLL_WEIGHT) / max_rate;
-+		ch_budget = (CPSW_POLL_WEIGHT - ch_budget) /
-+			    (cpsw->tx_ch_num - rlim_ch_num);
-+		bigest_rate = (max_rate - consumed_rate) /
-+			      (cpsw->tx_ch_num - rlim_ch_num);
-+	}
-+
-+	/* split tx budget */
-+	budget = CPSW_POLL_WEIGHT;
-+	for (i = 0; i < cpsw->tx_ch_num; i++) {
-+		ch_rate = cpdma_chan_get_rate(txv[i].ch);
-+		if (ch_rate) {
-+			txv[i].budget = (ch_rate * CPSW_POLL_WEIGHT) / max_rate;
-+			if (!txv[i].budget)
-+				txv[i].budget = 1;
-+			if (ch_rate > bigest_rate) {
-+				bigest_rate_ch = i;
-+				bigest_rate = ch_rate;
-+			}
-+		} else {
-+			txv[i].budget = ch_budget;
-+			if (!bigest_rate_ch)
-+				bigest_rate_ch = i;
-+		}
-+
-+		budget -= txv[i].budget;
-+	}
-+
-+	if (budget)
-+		txv[bigest_rate_ch].budget += budget;
-+
-+	/* split rx budget */
-+	budget = CPSW_POLL_WEIGHT;
-+	ch_budget = budget / cpsw->rx_ch_num;
-+	for (i = 0; i < cpsw->rx_ch_num; i++) {
-+		cpsw->rxv[i].budget = ch_budget;
-+		budget -= ch_budget;
-+	}
-+
-+	if (budget)
-+		cpsw->rxv[0].budget += budget;
-+}
-+
- static irqreturn_t cpsw_tx_interrupt(int irq, void *dev_id)
- {
- 	struct cpsw_common *cpsw = dev_id;
-@@ -941,6 +1017,7 @@ static void cpsw_adjust_link(struct net_device *ndev)
- 	for_each_slave(priv, _cpsw_adjust_link, priv, &link);
- 
- 	if (link) {
-+		cpsw_split_budget(priv->ndev);
- 		netif_carrier_on(ndev);
- 		if (netif_running(ndev))
- 			netif_tx_wake_all_queues(ndev);
-@@ -1280,82 +1357,6 @@ static void cpsw_init_host_port(struct cpsw_priv *priv)
- 	}
- }
- 
--/* split budget depending on channel rates */
--static void cpsw_split_budget(struct net_device *ndev)
--{
--	struct cpsw_priv *priv = netdev_priv(ndev);
--	struct cpsw_common *cpsw = priv->cpsw;
--	struct cpsw_vector *txv = cpsw->txv;
--	u32 consumed_rate, bigest_rate = 0;
--	int budget, bigest_rate_ch = 0;
--	struct cpsw_slave *slave;
--	int i, rlim_ch_num = 0;
--	u32 ch_rate, max_rate;
--	int ch_budget = 0;
--
--	if (cpsw->data.dual_emac)
--		slave = &cpsw->slaves[priv->emac_port];
--	else
--		slave = &cpsw->slaves[cpsw->data.active_slave];
--
--	max_rate = slave->phy->speed * 1000;
--
--	consumed_rate = 0;
--	for (i = 0; i < cpsw->tx_ch_num; i++) {
--		ch_rate = cpdma_chan_get_rate(txv[i].ch);
--		if (!ch_rate)
--			continue;
--
--		rlim_ch_num++;
--		consumed_rate += ch_rate;
--	}
--
--	if (cpsw->tx_ch_num == rlim_ch_num) {
--		max_rate = consumed_rate;
--	} else {
--		ch_budget = (consumed_rate * CPSW_POLL_WEIGHT) / max_rate;
--		ch_budget = (CPSW_POLL_WEIGHT - ch_budget) /
--			    (cpsw->tx_ch_num - rlim_ch_num);
--		bigest_rate = (max_rate - consumed_rate) /
--			      (cpsw->tx_ch_num - rlim_ch_num);
--	}
--
--	/* split tx budget */
--	budget = CPSW_POLL_WEIGHT;
--	for (i = 0; i < cpsw->tx_ch_num; i++) {
--		ch_rate = cpdma_chan_get_rate(txv[i].ch);
--		if (ch_rate) {
--			txv[i].budget = (ch_rate * CPSW_POLL_WEIGHT) / max_rate;
--			if (!txv[i].budget)
--				txv[i].budget = 1;
--			if (ch_rate > bigest_rate) {
--				bigest_rate_ch = i;
--				bigest_rate = ch_rate;
--			}
--		} else {
--			txv[i].budget = ch_budget;
--			if (!bigest_rate_ch)
--				bigest_rate_ch = i;
--		}
--
--		budget -= txv[i].budget;
--	}
--
--	if (budget)
--		txv[bigest_rate_ch].budget += budget;
--
--	/* split rx budget */
--	budget = CPSW_POLL_WEIGHT;
--	ch_budget = budget / cpsw->rx_ch_num;
--	for (i = 0; i < cpsw->rx_ch_num; i++) {
--		cpsw->rxv[i].budget = ch_budget;
--		budget -= ch_budget;
--	}
--
--	if (budget)
--		cpsw->rxv[0].budget += budget;
--}
--
- static int cpsw_fill_rx_channels(struct cpsw_priv *priv)
- {
- 	struct cpsw_common *cpsw = priv->cpsw;
-@@ -1501,7 +1502,6 @@ static int cpsw_ndo_open(struct net_device *ndev)
- 		cpsw_set_coalesce(ndev, &coal);
- 	}
- 
--	cpsw_split_budget(ndev);
- 	cpdma_ctlr_start(cpsw->dma);
- 	cpsw_intr_enable(cpsw);
- 
--- 
-2.7.4
+>From v4.2+ I now see that the GPMC code has been changed to reset all the
+GPMC settings when the kernel starts, so our SRAM is now inaccessible.
+
+I've tried the following to add an extra device to the GPMC, but no go:-
+
+	sram@1,0 {
+		reg = <1 0x00000000 0x01000000>;
+		/*compatible = "mmio-sram";*/
+		bank-width = <2>;
+
+		gpmc,mux-add-data = <2>;
+
+		gpmc,sync-clk-ps = <0>;
+		gpmc,cs-on-ns = <0>;
+		gpmc,cs-rd-off-ns = <160>;
+		gpmc,cs-wr-off-ns = <160>;
+		gpmc,adv-on-ns = <10>;
+		gpmc,adv-rd-off-ns = <30>;
+		gpmc,adv-wr-off-ns = <30>;
+		gpmc,oe-on-ns = <40>;
+		gpmc,oe-off-ns = <160>;
+		gpmc,we-on-ns = <40>;
+		gpmc,we-off-ns = <160>;
+		gpmc,rd-cycle-ns = <160>;
+		gpmc,wr-cycle-ns = <160>;
+		gpmc,access-ns = <150>;
+		gpmc,page-burst-access-ns = <10>;
+		gpmc,cycle2cycle-samecsen;
+		gpmc,cycle2cycle-delay-ns = <20>;
+		gpmc,wr-data-mux-bus-ns = <70>;
+		gpmc,wr-access-ns = <80>;
+	};
+
+Looking at drivers/memory/omap-gpmc.c, I can see that when the GPMC
+children are scanned, only the following are matched:-
+
+"nand","onenand","ethernet","nor","uart"
+
+So can anyone explain how to add a standard SRAM chip ?
+
+Cheers
+Mark J.
