@@ -1,42 +1,34 @@
-From: Alexandru Gagniuc <alex.g@adaptrum.com>
-Subject: [PATCH] drivers: net: cpsw-phy-sel: Clear RGMII_IDMODE on "rgmii" links
-Date: Mon,  5 Dec 2016 17:33:53 -0800
-Message-ID: <1480988033-16535-1-git-send-email-alex.g@adaptrum.com>
+From: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
+Subject: RE: [PATCH 01/12] phy: rcar-gen3-usb2: Replace the deprecated extcon
+ API
+Date: Tue, 6 Dec 2016 01:35:17 +0000
+Message-ID: <HK2PR06MB05489F8F613E9FEE6B9D262CD8820@HK2PR06MB0548.apcprd06.prod.outlook.com>
+References: <1480485460-2663-1-git-send-email-cw00.choi@samsung.com>
+ <1480485460-2663-2-git-send-email-cw00.choi@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: mugunthanvnm@ti.com
-Cc: grygorii.strashko@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, gokhan@adaptrum.com, Alexandru Gagniuc <alex.g@adaptrum.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-renesas-soc-owner@vger.kernel.org>
+In-Reply-To: <1480485460-2663-2-git-send-email-cw00.choi@samsung.com>
+Content-Language: ja-JP
+Sender: linux-renesas-soc-owner@vger.kernel.org
+To: Chanwoo Choi <cw00.choi@samsung.com>, "balbi@kernel.org" <balbi@kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "kishon@ti.com" <kishon@ti.com>, "sre@kernel.org" <sre@kernel.org>
+Cc: "Peter.Chen@nxp.com" <Peter.Chen@nxp.com>, "wens@csie.org" <wens@csie.org>, "maxime.ripard@free-electrons.com" <maxime.ripard@free-electrons.com>, "b-liu@ti.com" <b-liu@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-renesas-soc@vger.kernel.org" <linux-renesas-soc@vger.kernel.org>, "chanwoo@kernel.org" <chanwoo@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Support for setting the RGMII_IDMODE bit was added in commit:
-"drivers: net: cpsw-phy-sel: add support to configure rgmii internal delay"
-However, that commit did not add the symmetrical clearing of the bit
-by way of setting it in "mask". Add it here.
+Hi,
 
-Note that the documentation marks clearing this bit as "reserved",
-however, according to TI, support for delaying the clock does exist in
-the MAC, although it is not officially supported.
-We tested this on a board with an RGMII to RGMII link that will not
-work unless this bit is cleared.
+> From: Chanwoo Choi
+> Sent: Wednesday, November 30, 2016 2:57 PM
+>=20
+> This patch replaces the deprecated extcon API as following:
+> - extcon_set_cable_state_() -> extcon_set_state_sync()
+>=20
+> Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
 
-Signed-off-by: Alexandru Gagniuc <alex.g@adaptrum.com>
----
- drivers/net/ethernet/ti/cpsw-phy-sel.c | 1 +
- 1 file changed, 1 insertion(+)
+Thank you for the patch!
 
-diff --git a/drivers/net/ethernet/ti/cpsw-phy-sel.c b/drivers/net/ethernet/ti/cpsw-phy-sel.c
-index ba1e45f..1801364 100644
---- a/drivers/net/ethernet/ti/cpsw-phy-sel.c
-+++ b/drivers/net/ethernet/ti/cpsw-phy-sel.c
-@@ -81,6 +81,7 @@ static void cpsw_gmii_sel_am3352(struct cpsw_phy_sel_priv *priv,
- 	};
- 
- 	mask = GMII_SEL_MODE_MASK << (slave * 2) | BIT(slave + 6);
-+	mask |= BIT(slave + 4);
- 	mode <<= slave * 2;
- 
- 	if (priv->rmii_clock_external) {
--- 
-2.7.4
+Acked-by: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
+
+Best regards,
+Yoshihiro Shimoda
