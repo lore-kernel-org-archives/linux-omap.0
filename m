@@ -1,36 +1,48 @@
-From: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 4/6] net: ethernet: ti: cpts: add ptp pps support
-Date: Tue, 6 Dec 2016 19:08:57 +0100
-Message-ID: <20161206180857.GA20680@localhost.localdomain>
-References: <20161128230428.6872-1-grygorii.strashko@ti.com>
- <20161128230428.6872-5-grygorii.strashko@ti.com>
- <20161130100519.GD28680@localhost.localdomain>
+From: Alex <alex.g@adaptrum.com>
+Subject: Re: [PATCH] drivers: net: cpsw-phy-sel: Clear RGMII_IDMODE on "rgmii"
+ links
+Date: Tue, 6 Dec 2016 10:56:08 -0800
+Message-ID: <4e431f17-272e-54f9-e7b8-0365d712634e@adaptrum.com>
+References: <1480988033-16535-1-git-send-email-alex.g@adaptrum.com>
+ <20161206.113630.1454582039498444818.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161130100519.GD28680-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Murali Karicheri <m-karicheri2-l0cyMroinI0@public.gmane.org>, Wingman Kwok <w-kwok2-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161206.113630.1454582039498444818.davem@davemloft.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: mugunthanvnm@ti.com, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, gokhan@adaptrum.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Nov 30, 2016 at 11:05:19AM +0100, Richard Cochran wrote:
-> Can you adjust the frequency of the keystone devices in hardware?  If
-> so, then please implement it, and just disable PPS for the CPSW.
-> 
-> The only reason I used the timecounter for frequency adjustment was
-> because the am335x HW is broken.  But this shouldn't hold back other
-> newer HW without the same silicon flaws.
 
-I am talking here about the ADPLLLJ units.  Are they usable on the
-keystone?
 
-If so, please implement the frequency adjustment with them.
+On 12/06/2016 08:36 AM, David Miller wrote:
+> From: Alexandru Gagniuc <alex.g@adaptrum.com>
+> Date: Mon,  5 Dec 2016 17:33:53 -0800
+>
+>> Support for setting the RGMII_IDMODE bit was added in commit:
+>> "drivers: net: cpsw-phy-sel: add support to configure rgmii internal delay"
+>> However, that commit did not add the symmetrical clearing of the bit
+>> by way of setting it in "mask". Add it here.
+>>
+>> Note that the documentation marks clearing this bit as "reserved",
+>> however, according to TI, support for delaying the clock does exist in
+>> the MAC, although it is not officially supported.
+>> We tested this on a board with an RGMII to RGMII link that will not
+>> work unless this bit is cleared.
+>>
+>> Signed-off-by: Alexandru Gagniuc <alex.g@adaptrum.com>
+>
+> Commits must be referenced by both short-form SHA1-ID as well as
+> the commit header text.
+>
+> And since this change is fixing that commit, you should also provide
+> a proper "Fixes: " tag on the line right before your signoff.
 
-Thanks,
-Richard
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thank you very much for the feedback. I will update accordingly.
+
+Alex
+
+> Thanks.
+>
