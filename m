@@ -1,44 +1,40 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 4/6] net: ethernet: ti: cpts: add ptp pps support
-Date: Tue, 6 Dec 2016 14:43:49 -0600
-Message-ID: <e67cfba3-7e57-cc1d-6654-00c0a5378382@ti.com>
-References: <20161128230428.6872-1-grygorii.strashko@ti.com>
- <20161128230428.6872-5-grygorii.strashko@ti.com>
- <20161130100519.GD28680@localhost.localdomain>
- <20161206180857.GA20680@localhost.localdomain>
+Subject: [PATCH v5 06/13] net: ethernet: ti: cpts: disable cpts when unregistered
+Date: Tue, 6 Dec 2016 18:00:38 -0600
+Message-ID: <20161207000045.28333-7-grygorii.strashko@ti.com>
+References: <20161207000045.28333-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161206180857.GA20680@localhost.localdomain>
+In-Reply-To: <20161207000045.28333-1-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Richard Cochran <richardcochran@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Wingman Kwok <w-kwok2@ti.com>
+To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Richard Cochran <richardcochran@gmail.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Wingman Kwok <w-kwok2@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+The cpts now is left enabled after unregistration.
+Hence, disable it in cpts_unregister().
 
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Acked-by: Richard Cochran <richardcochran@gmail.com>
+---
+ drivers/net/ethernet/ti/cpts.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-On 12/06/2016 12:08 PM, Richard Cochran wrote:
-> On Wed, Nov 30, 2016 at 11:05:19AM +0100, Richard Cochran wrote:
->> Can you adjust the frequency of the keystone devices in hardware?  If
->> so, then please implement it, and just disable PPS for the CPSW.
->>
->> The only reason I used the timecounter for frequency adjustment was
->> because the am335x HW is broken.  But this shouldn't hold back other
->> newer HW without the same silicon flaws.
->
-> I am talking here about the ADPLLLJ units.  Are they usable on the
-> keystone?
->
-> If so, please implement the frequency adjustment with them.
->
-
-No, I think it's not impossible (at least as I know now).
-i'll drop this patch for now.
-
-By the way, I've tested am335 (BBB)+ HW_TS_PUSH + PWM.
-Seems works.
-
+diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
+index 3dda6d5..d3c1ac5 100644
+--- a/drivers/net/ethernet/ti/cpts.c
++++ b/drivers/net/ethernet/ti/cpts.c
+@@ -404,6 +404,10 @@ void cpts_unregister(struct cpts *cpts)
+ 		ptp_clock_unregister(cpts->clock);
+ 		cancel_delayed_work_sync(&cpts->overflow_work);
+ 	}
++
++	cpts_write32(cpts, 0, int_enable);
++	cpts_write32(cpts, 0, control);
++
+ 	if (cpts->refclk)
+ 		cpts_clk_release(cpts);
+ }
 -- 
-regards,
--grygorii
+2.10.1
