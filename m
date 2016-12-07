@@ -1,76 +1,57 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH v5 00/13] net: ethernet: ti: cpts: update and fixes
-Date: Tue, 6 Dec 2016 18:00:32 -0600
-Message-ID: <20161207000045.28333-1-grygorii.strashko@ti.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH 03/12] power_supply: axp288_charger: Replace the extcon
+ API
+Date: Wed, 7 Dec 2016 04:05:27 +0100
+Message-ID: <20161207030527.n2u4q4tf7po74clg@earth>
+References: <1480485460-2663-1-git-send-email-cw00.choi@samsung.com>
+ <CGME20161130055742epcas1p3cbb269d69275ed6684a7baab0841519b@epcas1p3.samsung.com>
+ <1480485460-2663-4-git-send-email-cw00.choi@samsung.com>
+ <584605A6.1010803@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="q7qlgssekejc346v"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <584605A6.1010803@samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Richard Cochran <richardcochran@gmail.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Wingman Kwok <w-kwok2@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Grygorii Strashko <grygorii.strashko@ti.com>
+To: Chanwoo Choi <cw00.choi@samsung.com>
+Cc: balbi@kernel.org, gregkh@linuxfoundation.org, kishon@ti.com, Peter.Chen@nxp.com, wens@csie.org, yoshihiro.shimoda.uh@renesas.com, maxime.ripard@free-electrons.com, b-liu@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org, chanwoo@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-It is preparation series intended to clean up and optimize TI CPTS driver to
-facilitate further integration with other TI's SoCs like Keystone 2.
 
-Changes in v5:
-- fixed copy paste error in cpts_release
-- reworked cc.mult/shift and cc_mult initialization 
+--q7qlgssekejc346v
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Changes in v4:
-- fixed build error in patch
-  "net: ethernet: ti: cpts: clean up event list if event pool is empty"
-- rebased on top of net-next
- 
-Changes in v3:
-- patches reordered: fixes and small updates moved first
-- added comments in code about cpts->cc_mult
-- conversation range (maxsec) limited to 10sec
+Hi Chanwoo,
 
-Changes in v2:
-- patch "net: ethernet: ti: cpts: rework initialization/deinitialization"
-  was split on 4 patches
-- applied comments from Richard Cochran
-- dropped patch
-  "net: ethernet: ti: cpts: add return value to tx and rx timestamp funcitons"
-- new patches added:
-  "net: ethernet: ti: cpts: drop excessive writes to CTRL and INT_EN regs"
-  and "clocksource: export the clocks_calc_mult_shift to use by timestamp code"
+On Tue, Dec 06, 2016 at 09:26:14AM +0900, Chanwoo Choi wrote:
+> Could you please review and pick the patch3/4 for power-supply driver?
 
-Links on prev versions:
-v4: https://lkml.org/lkml/2016/12/6/496
-v3: https://www.spinics.net/lists/devicetree/msg153474.html
-v2: http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1282034.html
-v1: http://www.spinics.net/lists/linux-omap/msg131925.html
+Patches look fine. As I expect the merge window to open next week I
+would rather not queue this for 4.10 and instead do it once 4.10-rc1
+has been tagged.
 
-Grygorii Strashko (11):
-  net: ethernet: ti: cpts: switch to readl/writel_relaxed()
-  net: ethernet: ti: allow cpts to be built separately
-  net: ethernet: ti: cpsw: minimize direct access to struct cpts
-  net: ethernet: ti: cpts: fix unbalanced clk api usage in cpts_register/unregister
-  net: ethernet: ti: cpts: fix registration order
-  net: ethernet: ti: cpts: disable cpts when unregistered
-  net: ethernet: ti: cpts: drop excessive writes to CTRL and INT_EN regs
-  net: ethernet: ti: cpts: rework initialization/deinitialization
-  net: ethernet: ti: cpts: move dt props parsing to cpts driver
-  net: ethernet: ti: cpts: calc mult and shift from refclk freq
-  net: ethernet: ti: cpts: fix overflow check period
+-- Sebastian
 
-Murali Karicheri (1):
-  clocksource: export the clocks_calc_mult_shift to use by timestamp code
+--q7qlgssekejc346v
+Content-Type: application/pgp-signature; name="signature.asc"
 
-WingMan Kwok (1):
-  net: ethernet: ti: cpts: clean up event list if event pool is empty
+-----BEGIN PGP SIGNATURE-----
 
- Documentation/devicetree/bindings/net/cpsw.txt |   8 +-
- drivers/net/ethernet/ti/Kconfig                |   2 +-
- drivers/net/ethernet/ti/Makefile               |   3 +-
- drivers/net/ethernet/ti/cpsw.c                 |  84 ++++-----
- drivers/net/ethernet/ti/cpsw.h                 |   2 -
- drivers/net/ethernet/ti/cpts.c                 | 233 ++++++++++++++++++-------
- drivers/net/ethernet/ti/cpts.h                 |  80 ++++++++-
- kernel/time/clocksource.c                      |   1 +
- 8 files changed, 297 insertions(+), 116 deletions(-)
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlhHfHQACgkQ2O7X88g7
++prFpxAAqP/w2pJaL/br9YQqakmUKvXOMVfsXG0PkYe9w44C9LGy9CL65bMjnU6G
+EpGF71NglC81KLJ3hiK7W4RAN/v+LhIe59TThZJR6LMpzfk7Y0Gntuy7AmueF6b4
+bJOSYcsLsXMfRjDo1bTCF8/38GWihIbI8cgAPzrfBECgbq2ZSs3EsFS4gtbUkeQU
+gDH4QEsc9upwcUfinHj4IGgK8ZE7fOeQHicPuBeYrWPtssPDLop0pPns3dnTFxYl
+yxYi6IRKmxf7blzx0smMBXHeTml+ulXFfo+4PADBUnJbpxhHq3CSRSItiURxCTVI
+KJ5pME6tcpEbmsrRsDFvzH4RvzCD924fHS0CbGDgK8n1VuehGeCEO57mobOtnddf
+i7wVTwIPVlfzXqIB91tD5egMANeOwKTSkPhJy7zmmBO8bJjREWWINGzCbI8enZsO
+CHJJDbPHqezooTzSOevGUEj39st5hlgf4eFGqpPY55+a1C+3pAuM8gPzQuc7p3Kz
+75zwNr6OtXaW4S+jd9stQARmEv8W/ulQOg9Jje0XRvL512ODbxKZtbMTN6gW+WDf
+ZM2Q18cGgFz7dvyq0kpl9dPEE3O/hqHjYwAQTEEk+U1xqyasyjoZi/GnR6Ol8uBM
+JFWB0zEehTSDcCM5tCd1ArQs/Ycomy7HR998oZeShTaX/SsDHAA=
+=LVYQ
+-----END PGP SIGNATURE-----
 
--- 
-2.10.1
+--q7qlgssekejc346v--
