@@ -1,77 +1,84 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH v3] clk: ti: omap36xx: Work around sprz319 advisory 2.1
-Date: Wed, 7 Dec 2016 16:16:54 -0800
-Message-ID: <20161208001654.GD5423@codeaurora.org>
-References: <1480713278-6884-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <2239782.MNuANFihMe@avalon>
- <20161205093649.GA31898@localhost.localdomain>
- <3176488.xoM6adFiVO@avalon>
- <f020ef5f-0f0b-fd4c-d4da-55daa539c3d0@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <f020ef5f-0f0b-fd4c-d4da-55daa539c3d0@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Ladislav Michl <ladis@linux-mips.org>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Richard Watts <rrw@kynesim.co.uk>, Tony Lindgren <tony@atomide.com>, Alexander Kinzer <a.kinzer@plusoptix.de>, Michael Turquette <mturquette@baylibre.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] usb: dwc3: omap: Fix imprecise external abort and oops on boot
+Date: Wed,  7 Dec 2016 19:21:08 -0800
+Message-ID: <20161208032108.21962-1-tony@atomide.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 12/05, Tero Kristo wrote:
-> On 05/12/16 13:08, Laurent Pinchart wrote:
-> >Hi Ladislav,
-> >
-> >On Monday 05 Dec 2016 10:36:49 Ladislav Michl wrote:
-> >>On Mon, Dec 05, 2016 at 10:46:43AM +0200, Laurent Pinchart wrote:
-> >>>On Monday 05 Dec 2016 09:22:10 Ladislav Michl wrote:
-> >>
-> >>[snip]
-> >>
-> >>>>Table 36 list two options with 26MHz clocks: m=443, n=11 and m=480, n=12
-> >>>>with a statement: "The choice between these two options with a 26 MHz
-> >>>>input should be based on characterization on the end system."
-> >>>>
-> >>>>Shall we care about that?
-> >>>
-> >>>I'd like to, but at the moment I don't see how. Proposals are welcome :-)
-> >>>I
-> >>
-> >>One of proposals raised earlier was DT property, but that idea was scratched
-> >>later.
-> >
-> >It might not be such a bad idea, given that the decision should be made based
-> >on the characterization of the whole system. One could argue that such
-> >platform information could have its place in DT.
-> >
-> >>>don't think addressing that issue should be a blocker to get this patch
-> >>>merged though.
-> >>
-> >>Of course not. I'd like to even see it in stable ;-)
-> >>
-> >>[snip]
-> >>
-> >>>I had tried that, but I find the code less readable :-S
-> >>
-> >>Oh... Please reconsider (I really do not like that extra test and extra
-> >>assignment to local variables (also I had 'precomputed' as mixed definition,
-> >>but Tero did not quite like that)) :-)
-> >
-> >I still like to favour code readability when possible (especially when the
-> >compiler should optimize both versions the same way). I'm not the maintainer
-> >of this driver though, so I'll let Tero decides what he prefers.
-> 
-> The compiler should ideally generate same size code for these both.
-> Personally, I don't mind which version goes in; I'd say both are as
-> readable.
-> 
-> Stephen, Mike, is one of you going to pick this up? I don't think I
-> have anything else to pull due to the ongoing discussion with the
-> other pending stuff.
-> 
+Somehow starting with v4.9-rc7 there have been imprecise
+external aborts on omap5-uevm dwc3 controller. I have not been
+able to bisect what exactly triggered this as it does not always
+happen. It seems that something changed with probing that
+now exposes the issue:
 
-I have no problem picking up either version. Please send it with
-the appropriate tags added and I can merge it.
+Unhandled fault: imprecise external abort (0x1406) at 0x00000000
+...
+PC is at dwc3_omap_interrupt_thread+0x20/0x80
+LR is at irq_thread_fn+0x1c/0x54
+...
+[<c0989fa8>] (dwc3_omap_interrupt_thread) from [<c038a4d8>]
+(irq_thread_fn+0x1c/0x54)
+[<c038a4d8>] (irq_thread_fn) from [<c038a7b0>] (irq_thread+0x12c/0x1f0)
+[<c038a7b0>] (irq_thread) from [<c035d6f0>] (kthread+0xdc/0xf4)
+[<c035d6f0>] (kthread) from [<c0307d78>] (ret_from_fork+0x14/0x3c)
+...
 
+Unable to handle kernel paging request at virtual address ffffffec
+...
+Internal error: Oops: 37 [#2] SMP ARM
+PC is at kthread_data+0x4/0xc
+LR is at irq_thread_dtor+0x28/0xd0
+...
+[<c035e0b4>] (kthread_data) from [<c038a5dc>] (irq_thread_dtor+0x28/0xd0)
+[<c038a5dc>] (irq_thread_dtor) from [<c035bef0>] (task_work_run+0xb8/0xdc)
+[<c035bef0>] (task_work_run) from [<c03448d4>] (do_exit+0x314/0xa20)
+[<c03448d4>] (do_exit) from [<c030bea8>] (die+0x410/0x474)
+[<c030bea8>] (die) from [<c0301350>] (do_DataAbort+0xb4/0xb8)
+[<c0301350>] (do_DataAbort) from [<c030c578>] (__dabt_svc+0x58/0x80)
+Exception stack(0xee777ec8 to 0xee777f10)
+7ec0:                   0000014d ee6e6f10 00000034 fc020034 ee6e6f10 ee1eec00
+7ee0: 00000000 00000000 ee6ec640 c038a4bc 00000000 00000000 00000000 ee777f18
+7f00: c038a4d8 c0989fa8 60000013 ffffffff
+[<c030c578>] (__dabt_svc) from [<c0989fa8>] (dwc3_omap_interrupt_thread+0x20/0x80)
+[<c0989fa8>] (dwc3_omap_interrupt_thread) from [<c038a4d8>] (irq_thread_fn+0x1c/0x54)
+[<c038a4d8>] (irq_thread_fn) from [<c038a7b0>] (irq_thread+0x12c/0x1f0)
+[<c038a7b0>] (irq_thread) from [<c035d6f0>] (kthread+0xdc/0xf4)
+[<c035d6f0>] (kthread) from [<c0307d78>] (ret_from_fork+0x14/0x3c)
+
+Fix the issue by making sure the dwc3 interrupts are disabled
+before we call devm_request_threaded_irq().
+
+Note that there does not seem to be issues with the dwc3 wrapper
+accessing these registers even before the dwc3 core is probed.
+If some of these registers are specific to the dwc3 core, we can
+have IRQ disabled with irq_set_status_flags(omap->irq, IRQ_NOAUTOEN)
+on start-up instead of accessing the dwc3 registers.
+
+Reported-by: Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/usb/dwc3/dwc3-omap.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+--- a/drivers/usb/dwc3/dwc3-omap.c
++++ b/drivers/usb/dwc3/dwc3-omap.c
+@@ -511,6 +511,8 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+ 	/* check the DMA Status */
+ 	reg = dwc3_omap_readl(omap->base, USBOTGSS_SYSCONFIG);
+ 
++	dwc3_omap_disable_irqs(omap);
++
+ 	ret = devm_request_threaded_irq(dev, omap->irq, dwc3_omap_interrupt,
+ 					dwc3_omap_interrupt_thread, IRQF_SHARED,
+ 					"dwc3-omap", omap);
 -- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+2.11.0
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
