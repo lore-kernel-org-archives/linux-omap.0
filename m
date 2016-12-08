@@ -1,89 +1,70 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] usb: dwc3: omap: Fix imprecise external abort and oops
- on boot
-Date: Thu, 8 Dec 2016 10:44:26 -0800
-Message-ID: <20161208184425.GB4920@atomide.com>
-References: <20161208032108.21962-1-tony@atomide.com>
- <87lgvqkb6f.fsf@linux.intel.com>
- <20161208153734.GF4264@atomide.com>
- <87a8c6pavm.fsf@linux.intel.com>
- <20161208182521.GA4920@atomide.com>
+Subject: Re: [PATCH 0/4] musb fixes for v4.9-rc cycle
+Date: Thu, 8 Dec 2016 10:47:25 -0800
+Message-ID: <20161208184725.GC4920@atomide.com>
+References: <20161107215020.31399-1-tony@atomide.com>
+ <32195517.5VSIMIXRqn@avalon>
+ <20161208055122.GC4264@atomide.com>
+ <1502451.JdlAJZmj6G@avalon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161208182521.GA4920-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1502451.JdlAJZmj6G@avalon>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Cc: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [161208 10:25]:
-> * Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [161208 09:52]:
-> > 
-> > Hi,
-> > 
-> > Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
-> > > * Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [161208 01:45]:
-> > >> 
-> > >> Hi,
-> > >> 
-> > >> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
-> > >> > Somehow starting with v4.9-rc7 there have been imprecise
-> > >> 
-> > >> There's nothing touching dwc3 since v4.9-rc5.
-> > >
-> > > Right, nothing obvious has changed. I think it's just a slight timing
-> > > change in the code that started triggering it.
-> > 
-> > could be
-> > 
-> > >> > external aborts on omap5-uevm dwc3 controller. I have not been
-> > >> > able to bisect what exactly triggered this as it does not always
-> > >> > happen. It seems that something changed with probing that
-> > >> > now exposes the issue:
-> > >> >
-> > >> > Unhandled fault: imprecise external abort (0x1406) at 0x00000000
-> > >> 
-> > >> hmmm, clock disabled... dwc3-omap shouldn't have pm runtime at all.
-> > >
-> > > It does for the interconnect target module clkctrl register via PM
-> > > runtime. That's the "usb_otg_ss" module.
-> > 
-> > but that's all hidden in omap_device.c, we don't touch it from driver
-> > perspective.
+* Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [161208 04:03]:
+> Hi Tony,
 > 
-> The call to pm_runtime_get_sync() in dwc3_omap_probe() will use it.
+> On Wednesday 07 Dec 2016 21:51:23 Tony Lindgren wrote:
+> > * Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [161123 08:44]:
+> > > On Wednesday 23 Nov 2016 18:40:09 Tomi Valkeinen wrote:
+> > >> On 23/11/16 18:34, Tony Lindgren wrote:
+> > >>> OK. And what changes to your current .config make the
+> > >>> musb_bus_suspend() issues show up?
+> > >>> 
+> > >>> If it happens with USB-B cable from host to musb with musb set to host
+> > >>> only mode I'm not suprised there are errors :)
+> > >> 
+> > >> I have no USB cables connected. I have attached my config. If
+> > >> CONFIG_USB_MUSB_HDRC is disabled, the musb error goes away.
+> > > 
+> > > For what it's worth, that's exactly the same problem I experienced. See
+> > > https://www.spinics.net/lists/linux-usb/msg149172.html for an analysis.
+> > 
+> > The problem is that with the built-in musb configuration we're trying to
+> > set USB-B cable to host mode with ID pin not grounded. That's not going
+> > to work on most hardware unless the PHY can configure the ID pin.
+> > 
+> > Here's how to fix the .config for built-in musb:
+> > 
+> > 1. Change to have CONFIG_USB_GADGET=y
+> >
+> > 2. Then change CONFIG_USB_MUSB_DUAL_ROLE=y instead of CONFIG_USB_MUSB_HOST
+> >
+> > We should probably get rid of CONFIG_USB_MUSB_HOST to avoid this.
 > 
-> Is there also some dwc3 internal clock? If we assume the usb_otg_ss
-> module is properly enabled it could be some dwc3 internal clock not
-> enabled?
-> 
-> We do have a srst_udelay needed for enabling musb controller for some
-> SoCs, I'll check if that's the case here.
+> The reason I went for host mode is that I had to disable CONFIG_USB_GADGET as 
+> compiling it as a module prevents selecting CONFIG_NOP_USB_XCEIV=y, which is a 
+> dependency for CONFIG_USB_EHCI_HCD_OMAP=m.
 
-If there are no dwc3 internal clocks that may be causing the imprecise
-external abort, then most likely we should apply the following change
-for srst_udelay. Looks like srst_udelay value of 2 is not enough here
-but 3 seems to do the job.
+OK well like I said the CONFIG_USB_MUSB_HOST selection for a USB-B cable
+won't work from the hardware point of view. The only case where it works
+is if the PHY ID pin is grounded. Anything else will be flakey and won't
+prevent musb from attempting to change it's state on it's own.
 
-The issue of the spurious interrupts on dwc3 probe remains though.
+> config NOP_USB_XCEIV
+>         tristate "NOP USB Transceiver Driver"
+>         depends on USB_GADGET || !USB_GADGET # if USB_GADGET=m, NOP can't be 
+> built-in
+>         select USB_PHY
 
-Regards,
+No idea why it's done that way..
 
 Tony
-
-8< ------------------------------------
---- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-@@ -1952,6 +1952,7 @@ static struct omap_hwmod omap54xx_usb_tll_hs_hwmod = {
- static struct omap_hwmod_class_sysconfig omap54xx_usb_otg_ss_sysc = {
- 	.rev_offs	= 0x0000,
- 	.sysc_offs	= 0x0010,
-+	.srst_udelay	= 3,
- 	.sysc_flags	= (SYSC_HAS_DMADISABLE | SYSC_HAS_MIDLEMODE |
- 			   SYSC_HAS_SIDLEMODE),
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
