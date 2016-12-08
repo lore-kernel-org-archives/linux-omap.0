@@ -1,46 +1,103 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 3/6] net: ethernet: ti: cpts: add support of cpts
- HW_TS_PUSH
-Date: Thu, 8 Dec 2016 13:04:11 -0600
-Message-ID: <58eea45f-b8fe-6892-e784-b41638c62fd8@ti.com>
-References: <20161128230428.6872-1-grygorii.strashko@ti.com>
- <20161128230428.6872-4-grygorii.strashko@ti.com>
- <20161203232130.GA17944@netboy>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] usb: dwc3: omap: Fix imprecise external abort and oops
+ on boot
+Date: Thu, 8 Dec 2016 11:09:42 -0800
+Message-ID: <20161208190942.GD4920@atomide.com>
+References: <20161208032108.21962-1-tony@atomide.com>
+ <87lgvqkb6f.fsf@linux.intel.com>
+ <20161208153734.GF4264@atomide.com>
+ <87a8c6pavm.fsf@linux.intel.com>
+ <20161208182521.GA4920@atomide.com>
+ <20161208184425.GB4920@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161203232130.GA17944@netboy>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Murali Karicheri <m-karicheri2-l0cyMroinI0@public.gmane.org>, Wingman Kwok <w-kwok2-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161208184425.GB4920-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 12/03/2016 05:21 PM, Richard Cochran wrote:
-> On Mon, Nov 28, 2016 at 05:04:25PM -0600, Grygorii Strashko wrote:
->> This also change overflow polling period when HW_TS_PUSH feature is
->> enabled - overflow check work will be scheduled more often (every
->> 200ms) for proper HW_TS_PUSH events reporting.
+* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [161208 10:45]:
+> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [161208 10:25]:
+> > * Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [161208 09:52]:
+> > > 
+> > > Hi,
+> > > 
+> > > Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
+> > > > * Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [161208 01:45]:
+> > > >> 
+> > > >> Hi,
+> > > >> 
+> > > >> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
+> > > >> > Somehow starting with v4.9-rc7 there have been imprecise
+> > > >> 
+> > > >> There's nothing touching dwc3 since v4.9-rc5.
+> > > >
+> > > > Right, nothing obvious has changed. I think it's just a slight timing
+> > > > change in the code that started triggering it.
+> > > 
+> > > could be
+> > > 
+> > > >> > external aborts on omap5-uevm dwc3 controller. I have not been
+> > > >> > able to bisect what exactly triggered this as it does not always
+> > > >> > happen. It seems that something changed with probing that
+> > > >> > now exposes the issue:
+> > > >> >
+> > > >> > Unhandled fault: imprecise external abort (0x1406) at 0x00000000
+> > > >> 
+> > > >> hmmm, clock disabled... dwc3-omap shouldn't have pm runtime at all.
+> > > >
+> > > > It does for the interconnect target module clkctrl register via PM
+> > > > runtime. That's the "usb_otg_ss" module.
+> > > 
+> > > but that's all hidden in omap_device.c, we don't touch it from driver
+> > > perspective.
+> > 
+> > The call to pm_runtime_get_sync() in dwc3_omap_probe() will use it.
+> > 
+> > Is there also some dwc3 internal clock? If we assume the usb_otg_ss
+> > module is properly enabled it could be some dwc3 internal clock not
+> > enabled?
+> > 
+> > We do have a srst_udelay needed for enabling musb controller for some
+> > SoCs, I'll check if that's the case here.
 > 
-> For proper reporting, you should make use of the interrupt.  The small
-> fifo (16 iirc) could very well overflow in 200 ms.  The interrupt
-> handler should read out the entire fifo at each interrupt.
+> If there are no dwc3 internal clocks that may be causing the imprecise
+> external abort, then most likely we should apply the following change
+> for srst_udelay. Looks like srst_udelay value of 2 is not enough here
+> but 3 seems to do the job.
 > 
+> The issue of the spurious interrupts on dwc3 probe remains though.
 
-huh. Seems this is not really good idea, because MISC Irq will be 
-triggered for *any* CPTS event and there is no way to enable it just for
-HW_TS_PUSH. So, this doesn't work will with current code for RX/TX timestamping
-(which uses polling mode). + runtime overhead in net RX/TX caused by 
-triggering more interrupts. 
+And for doing the reset looks like USBOTGSS_SYSCONFIG needs custom
+handling as it's type2 byt with reset register in bit 17.
 
-May be, overflow check/polling timeout can be made configurable (module parameter). 
+Anyways, for a minimal fix below is probably corrent if there are
+no dw3 internal clocks to consider.
 
--- 
-regards,
--grygorii
+Regards,
+
+Tony
+
+
+> 8< ------------------------------------
+> --- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+> @@ -1952,6 +1952,7 @@ static struct omap_hwmod omap54xx_usb_tll_hs_hwmod = {
+>  static struct omap_hwmod_class_sysconfig omap54xx_usb_otg_ss_sysc = {
+>  	.rev_offs	= 0x0000,
+>  	.sysc_offs	= 0x0010,
+> +	.srst_udelay	= 3,
+>  	.sysc_flags	= (SYSC_HAS_DMADISABLE | SYSC_HAS_MIDLEMODE |
+>  			   SYSC_HAS_SIDLEMODE),
+>  	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
