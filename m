@@ -1,12 +1,12 @@
 From: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Subject: Re: [PATCH] usb: dwc3: omap: Fix imprecise external abort and oops on boot
-Date: Thu, 08 Dec 2016 22:09:13 +0200
-Message-ID: <87fulyuqs6.fsf@linux.intel.com>
-References: <20161208032108.21962-1-tony@atomide.com> <87lgvqkb6f.fsf@linux.intel.com> <20161208153734.GF4264@atomide.com> <87a8c6pavm.fsf@linux.intel.com> <20161208182521.GA4920@atomide.com> <20161208184425.GB4920@atomide.com> <8737hy8c1s.fsf@linux.intel.com> <20161208193208.GE4920@atomide.com>
+Date: Thu, 08 Dec 2016 22:11:45 +0200
+Message-ID: <87d1h2uqny.fsf@linux.intel.com>
+References: <20161208032108.21962-1-tony@atomide.com> <87lgvqkb6f.fsf@linux.intel.com> <20161208153734.GF4264@atomide.com> <87a8c6pavm.fsf@linux.intel.com> <20161208182521.GA4920@atomide.com> <8760mu8c4m.fsf@linux.intel.com> <20161208194557.GF4920@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161208193208.GE4920-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20161208194557.GF4920-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
@@ -16,38 +16,37 @@ List-Id: linux-omap@vger.kernel.org
 Hi,
 
 Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
->> nothing against it. Would be nice if TI could confirm this is needed and
->> check if other families might also need it.
+> * Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [161208 11:17]:
+>> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
+>> > The call to pm_runtime_get_sync() in dwc3_omap_probe() will use it.
+>> 
+>> right, but there's no runtime suspend until ->remove(). IOW, after
+>> pm_runtime_get_sync(), all necessary clocks should already be
+>> enabled. If they aren't, there's either an erratum or a bug in drivers/clk/ti/
 >
-> But as we currently are not using the WRAPRESET bit, the reset
-> function is nop except for the delay. So this just papers over
-> the problem with the delay. We are not really resetting anything
-> until WRAPRESET and probably also CORE_SW_RESET reset are used.
+> I think it's some dependency to the dwc3 core probe. That's because I'm
+> able to read and print out the wrapper interrupt registers just fine
+> before the imprecise external abort happens in probe. So that means it's
+> something dwc3 specific after the TI wrapper module clckctl bit.
 >
-> I'm now thinking the original $subject patch for dwc3-omap.c
-> is the way to go for the fix. Or possibly even writing to the
-> CORE_SW_RESET bit in dwc3-omap.c probe. The driver needs to be
-> able to initialize the hardware no matter what it's state is
-> in probe :)
+>> > Is there also some dwc3 internal clock? If we assume the usb_otg_ss
+>> > module is properly enabled it could be some dwc3 internal clock not
+>> > enabled?
+>> 
+>> no extra clocks.
+>
+> It seems that if we get an interrupt before dwc3 core has probed with
+> of_platform_populate(), we get the imprecise external abort.
 
-in theory, yeah. In practice, this doesn't work always. For starters,
-we'd probably loose connection to host while handing over IP from
-e.g. u-boot to kernel.
+that's pretty odd. hwmod doesn't know about dwc3 core device, only
+usb_otg_ss (dwc3-omap.c).
 
-Not to mention tht with dwc3 we can't simply read EP registers and
-figure out what's the state of the EP. EP registers are a command
-interface to some HW-based command parser/processor. IOW, we can't
-extrapolate internal state machine from a read of the registers.
+>> is IRQ status already 0x2121 from u-boot prompt?
+>
+> Yes md 0x4A020034 shows 0x2121.
 
-All this to say, that we rely on properly reset HW from probe(). At
-least in the context of dwc3 :-)
-
-> Then later on we can add separate resets for the wrapper module
-> and dwc3 core. But that's way too intrusive for a fix for sure.
-
-yeah, that's something for v4.11. Let's go with your fix that just
-clears interrupts early on. Once proper resets are added, then we should
-revert that change.
+okay, so maybe something left from even earlier? OMAP5 can boot off USB
+peripheral.
 
 -- 
 balbi
