@@ -1,72 +1,50 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] usb: dwc3: omap: Fix imprecise external abort and oops
- on boot
-Date: Thu, 8 Dec 2016 12:26:57 -0800
-Message-ID: <20161208202656.GH4920@atomide.com>
-References: <20161208032108.21962-1-tony@atomide.com>
- <87lgvqkb6f.fsf@linux.intel.com>
- <20161208153734.GF4264@atomide.com>
- <87a8c6pavm.fsf@linux.intel.com>
- <20161208182521.GA4920@atomide.com>
- <20161208184425.GB4920@atomide.com>
- <8737hy8c1s.fsf@linux.intel.com>
- <20161208193208.GE4920@atomide.com>
- <87fulyuqs6.fsf@linux.intel.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH v3] clk: ti: omap36xx: Work around sprz319 advisory 2.1
+Date: Thu, 8 Dec 2016 13:14:35 -0800
+Message-ID: <20161208211435.GJ5423@codeaurora.org>
+References: <1480713278-6884-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20161208001654.GD5423@codeaurora.org>
+ <20161208071155.GA7530@localhost.localdomain>
+ <3225321.q72K2erxPs@avalon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-clk-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <87fulyuqs6.fsf-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <3225321.q72K2erxPs@avalon>
+Sender: linux-clk-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Ladislav Michl <ladis@linux-mips.org>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Richard Watts <rrw@kynesim.co.uk>, Tony Lindgren <tony@atomide.com>, Alexander Kinzer <a.kinzer@plusoptix.de>, Michael Turquette <mturquette@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [161208 12:10]:
+On 12/08, Laurent Pinchart wrote:
+> Hi Ladislav,
 > 
-> Hi,
+> On Thursday 08 Dec 2016 08:11:55 Ladislav Michl wrote:
+> > On Wed, Dec 07, 2016 at 04:16:54PM -0800, Stephen Boyd wrote:
+> > > On 12/05, Tero Kristo wrote:
+> > > > The compiler should ideally generate same size code for these both.
+> > > > Personally, I don't mind which version goes in; I'd say both are as
+> > > > readable.
+> > > > 
+> > > > Stephen, Mike, is one of you going to pick this up? I don't think I
+> > > > have anything else to pull due to the ongoing discussion with the
+> > > > other pending stuff.
+> > > 
+> > > I have no problem picking up either version. Please send it with
+> > > the appropriate tags added and I can merge it.
+> > 
+> > Here it is for your convenience. Of course I'd like to see smaller code
+> > to go in as exactly those sneaky tiny incremental code size increases
+> > made Linux kernel unusable on most of my hardware over time ;-)
+> > However, if Laurent is unhappy with changes I made, I will not object
+> > merging his version any more.
 > 
-> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
-> >> nothing against it. Would be nice if TI could confirm this is needed and
-> >> check if other families might also need it.
-> >
-> > But as we currently are not using the WRAPRESET bit, the reset
-> > function is nop except for the delay. So this just papers over
-> > the problem with the delay. We are not really resetting anything
-> > until WRAPRESET and probably also CORE_SW_RESET reset are used.
-> >
-> > I'm now thinking the original $subject patch for dwc3-omap.c
-> > is the way to go for the fix. Or possibly even writing to the
-> > CORE_SW_RESET bit in dwc3-omap.c probe. The driver needs to be
-> > able to initialize the hardware no matter what it's state is
-> > in probe :)
+> I'd rather keep my version, thank you. Let's not spend time chasing bytes.
 > 
-> in theory, yeah. In practice, this doesn't work always. For starters,
-> we'd probably loose connection to host while handing over IP from
-> e.g. u-boot to kernel.
-> 
-> Not to mention tht with dwc3 we can't simply read EP registers and
-> figure out what's the state of the EP. EP registers are a command
-> interface to some HW-based command parser/processor. IOW, we can't
-> extrapolate internal state machine from a read of the registers.
-> 
-> All this to say, that we rely on properly reset HW from probe(). At
-> least in the context of dwc3 :-)
 
-Yeah I agree we should reset it properly also from PM point of view
-to get things into sane state after the bootloader.
+Ok so I'll go apply the original patch v3 in this thread and dig
+out the tags myself.
 
-> > Then later on we can add separate resets for the wrapper module
-> > and dwc3 core. But that's way too intrusive for a fix for sure.
-> 
-> yeah, that's something for v4.11. Let's go with your fix that just
-> clears interrupts early on. Once proper resets are added, then we should
-> revert that change.
-
-OK
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
