@@ -1,265 +1,392 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH v3] clk: ti: omap36xx: Work around sprz319 advisory 2.1
-Date: Thu, 8 Dec 2016 08:11:55 +0100
-Message-ID: <20161208071155.GA7530@localhost.localdomain>
-References: <1480713278-6884-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <2239782.MNuANFihMe@avalon>
- <20161205093649.GA31898@localhost.localdomain>
- <3176488.xoM6adFiVO@avalon>
- <f020ef5f-0f0b-fd4c-d4da-55daa539c3d0@ti.com>
- <20161208001654.GD5423@codeaurora.org>
+From: Jisheng Zhang <jszhang@marvell.com>
+Subject: Re: [PATCH v2] PCI: designware: add host_init error handling
+Date: Thu, 8 Dec 2016 15:24:51 +0800
+Message-ID: <20161208152451.4b3603dd@xhacker>
+References: <1481106769-1404-1-git-send-email-srinivas.kandagatla@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161208001654.GD5423@codeaurora.org>
-Sender: linux-clk-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Tero Kristo <t-kristo@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Richard Watts <rrw@kynesim.co.uk>, Tony Lindgren <tony@atomide.com>, Alexander Kinzer <a.kinzer@plusoptix.de>, Michael Turquette <mturquette@baylibre.com>
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1481106769-1404-1-git-send-email-srinivas.kandagatla@linaro.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Roy Zang <tie-fei.zang@freescale.com>, linux-samsung-soc@vger.kernel.org, Pratyush Anand <pratyush.anand@gmail.com>, Krzysztof Kozlowski <krzk@kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Kukjin Kim <kgene@kernel.org>, Richard Zhu <hongxing.zhu@nxp.com>, linux-arm-msm@vger.kernel.org, Joao Pinto <Joao.Pinto@synopsys.com>, Murali Karicheri <m-karicheri2@ti.com>, Mingkai Hu <mingkai.hu@freescale.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Jingoo Han <jingoohan1@gmail.com>, linux-kernel@vger.kernel.org, Stanimir Varbanov <svar>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Dec 07, 2016 at 04:16:54PM -0800, Stephen Boyd wrote:
-> On 12/05, Tero Kristo wrote:
-> > The compiler should ideally generate same size code for these both.
-> > Personally, I don't mind which version goes in; I'd say both are as
-> > readable.
-> > 
-> > Stephen, Mike, is one of you going to pick this up? I don't think I
-> > have anything else to pull due to the ongoing discussion with the
-> > other pending stuff.
+Hi Srinivas,
+
+On Wed,  7 Dec 2016 10:32:49 +0000 Srinivas Kandagatla wrote:
+
+> This patch add support to return value from host_init() callback from drivers,
+> so that the designware libary can handle or pass it to proper place. Issue with
+> void return type is that errors or error handling within host_init() callback
+> are never know to designware code, which could go ahead and access registers
+> even in error cases.
 > 
-> I have no problem picking up either version. Please send it with
-> the appropriate tags added and I can merge it.
+> Typical case in qcom controller driver is to turn off clks in case of errors,
 
-Here it is for your convenience. Of course I'd like to see smaller code
-to go in as exactly those sneaky tiny incremental code size increases
-made Linux kernel unusable on most of my hardware over time ;-)
-However, if Laurent is unhappy with changes I made, I will not object
-merging his version any more.
+I have similar idea last year
 
-Best regards,
-	ladis
+https://patchwork.kernel.org/patch/7602421/
 
--- >8 --
-From: Richard Watts <rrw@kynesim.co.uk>
-Subject: [PATCH v4] clk: ti: omap36xx: Work around sprz319 advisory 2.1
+But finally I dropped the patch. The reason is PCIe supports hotplug. I
+noticed that most *errors* are due to the link can't be established, for
+example, the exynos, dra7xx in your below patch. I think FAIL_TO_ESTABLISH_LINK
+is a normal case if we didn't plug in the PCIe DP, then in this case I think
+it can't be considered as *error* and we still need to continue. What about
+your opinion?
 
-The OMAP36xx DPLL5, driving EHCI USB, can be subject to a long-term
-frequency drift. The frequency drift magnitude depends on the VCO update
-rate, which is inversely proportional to the PLL divider. The kernel
-DPLL configuration code results in a high value for the divider, leading
-to a long term drift high enough to cause USB transmission errors. In
-the worst case the USB PHY's ULPI interface can stop responding,
-breaking USB operation completely. This manifests itself on the
-Beagleboard xM by the LAN9514 reporting 'Cannot enable port 2. Maybe the
-cable is bad?' in the kernel log.
+Thanks,
+Jisheng
 
-Errata sprz319 advisory 2.1 documents PLL values that minimize the
-drift. Use them automatically when DPLL5 is used for USB operation,
-which we detect based on the requested clock rate. The clock framework
-will still compute the PLL parameters and resulting rate as usual, but
-the PLL M and N values will then be overridden. This can result in the
-effective clock rate being slightly different than the rate cached by
-the clock framework, but won't cause any adverse effect to USB
-operation.
-
-Signed-off-by: Richard Watts <rrw@kynesim.co.uk>
-[Upported from v3.2 to v4.9]
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
----
-Changes since v2:
- - Added spaces around '+'
-
-Changes since v3:
- - Small omap3_dpll5_apply_errata rewrite to save few bytes (92 with
-   gcc-5.4.0).
-
- drivers/clk/ti/clk-3xxx.c | 20 +++++++-------
- drivers/clk/ti/clock.h    |  9 +++++++
- drivers/clk/ti/dpll.c     | 19 +++++++++++++-
- drivers/clk/ti/dpll3xxx.c | 66 +++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 103 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
-index 8831e1a..11d8aa3 100644
---- a/drivers/clk/ti/clk-3xxx.c
-+++ b/drivers/clk/ti/clk-3xxx.c
-@@ -22,13 +22,6 @@
- 
- #include "clock.h"
- 
--/*
-- * DPLL5_FREQ_FOR_USBHOST: USBHOST and USBTLL are the only clocks
-- * that are sourced by DPLL5, and both of these require this clock
-- * to be at 120 MHz for proper operation.
-- */
--#define DPLL5_FREQ_FOR_USBHOST		120000000
--
- #define OMAP3430ES2_ST_DSS_IDLE_SHIFT			1
- #define OMAP3430ES2_ST_HSOTGUSB_IDLE_SHIFT		5
- #define OMAP3430ES2_ST_SSI_IDLE_SHIFT			8
-@@ -546,14 +539,21 @@ void __init omap3_clk_lock_dpll5(void)
- 	struct clk *dpll5_clk;
- 	struct clk *dpll5_m2_clk;
- 
-+	/*
-+	 * Errata sprz319f advisory 2.1 documents a USB host clock drift issue
-+	 * that can be worked around using specially crafted dpll5 settings
-+	 * with a dpll5_m2 divider set to 8. Set the dpll5 rate to 8x the USB
-+	 * host clock rate, its .set_rate handler() will detect that frequency
-+	 * and use the errata settings.
-+	 */
- 	dpll5_clk = clk_get(NULL, "dpll5_ck");
--	clk_set_rate(dpll5_clk, DPLL5_FREQ_FOR_USBHOST);
-+	clk_set_rate(dpll5_clk, OMAP3_DPLL5_FREQ_FOR_USBHOST * 8);
- 	clk_prepare_enable(dpll5_clk);
- 
--	/* Program dpll5_m2_clk divider for no division */
-+	/* Program dpll5_m2_clk divider */
- 	dpll5_m2_clk = clk_get(NULL, "dpll5_m2_ck");
- 	clk_prepare_enable(dpll5_m2_clk);
--	clk_set_rate(dpll5_m2_clk, DPLL5_FREQ_FOR_USBHOST);
-+	clk_set_rate(dpll5_m2_clk, OMAP3_DPLL5_FREQ_FOR_USBHOST);
- 
- 	clk_disable_unprepare(dpll5_m2_clk);
- 	clk_disable_unprepare(dpll5_clk);
-diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
-index 90f3f47..13c37f4 100644
---- a/drivers/clk/ti/clock.h
-+++ b/drivers/clk/ti/clock.h
-@@ -257,11 +257,20 @@ long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
- unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
- 				    unsigned long parent_rate);
- 
-+/*
-+ * OMAP3_DPLL5_FREQ_FOR_USBHOST: USBHOST and USBTLL are the only clocks
-+ * that are sourced by DPLL5, and both of these require this clock
-+ * to be at 120 MHz for proper operation.
-+ */
-+#define OMAP3_DPLL5_FREQ_FOR_USBHOST	120000000
-+
- unsigned long omap3_dpll_recalc(struct clk_hw *hw, unsigned long parent_rate);
- int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
- 			 unsigned long parent_rate);
- int omap3_dpll4_set_rate_and_parent(struct clk_hw *hw, unsigned long rate,
- 				    unsigned long parent_rate, u8 index);
-+int omap3_dpll5_set_rate(struct clk_hw *hw, unsigned long rate,
-+			 unsigned long parent_rate);
- void omap3_clk_lock_dpll5(void);
- 
- unsigned long omap4_dpll_regm4xen_recalc(struct clk_hw *hw,
-diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
-index 9fc8754..4b9a419 100644
---- a/drivers/clk/ti/dpll.c
-+++ b/drivers/clk/ti/dpll.c
-@@ -114,6 +114,18 @@ static const struct clk_ops omap3_dpll_ck_ops = {
- 	.round_rate	= &omap2_dpll_round_rate,
- };
- 
-+static const struct clk_ops omap3_dpll5_ck_ops = {
-+	.enable		= &omap3_noncore_dpll_enable,
-+	.disable	= &omap3_noncore_dpll_disable,
-+	.get_parent	= &omap2_init_dpll_parent,
-+	.recalc_rate	= &omap3_dpll_recalc,
-+	.set_rate	= &omap3_dpll5_set_rate,
-+	.set_parent	= &omap3_noncore_dpll_set_parent,
-+	.set_rate_and_parent	= &omap3_noncore_dpll_set_rate_and_parent,
-+	.determine_rate	= &omap3_noncore_dpll_determine_rate,
-+	.round_rate	= &omap2_dpll_round_rate,
-+};
-+
- static const struct clk_ops omap3_dpll_per_ck_ops = {
- 	.enable		= &omap3_noncore_dpll_enable,
- 	.disable	= &omap3_noncore_dpll_disable,
-@@ -474,7 +486,12 @@ static void __init of_ti_omap3_dpll_setup(struct device_node *node)
- 		.modes = (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
- 	};
- 
--	of_ti_dpll_setup(node, &omap3_dpll_ck_ops, &dd);
-+	if ((of_machine_is_compatible("ti,omap3630") ||
-+	     of_machine_is_compatible("ti,omap36xx")) &&
-+	    !strcmp(node->name, "dpll5_ck"))
-+		of_ti_dpll_setup(node, &omap3_dpll5_ck_ops, &dd);
-+	else
-+		of_ti_dpll_setup(node, &omap3_dpll_ck_ops, &dd);
- }
- CLK_OF_DECLARE(ti_omap3_dpll_clock, "ti,omap3-dpll-clock",
- 	       of_ti_omap3_dpll_setup);
-diff --git a/drivers/clk/ti/dpll3xxx.c b/drivers/clk/ti/dpll3xxx.c
-index 88f2ce8..f7772fc 100644
---- a/drivers/clk/ti/dpll3xxx.c
-+++ b/drivers/clk/ti/dpll3xxx.c
-@@ -838,3 +838,69 @@ int omap3_dpll4_set_rate_and_parent(struct clk_hw *hw, unsigned long rate,
- 	return omap3_noncore_dpll_set_rate_and_parent(hw, rate, parent_rate,
- 						      index);
- }
-+
-+/* Apply DM3730 errata sprz319 advisory 2.1. */
-+static bool omap3_dpll5_apply_errata(struct clk_hw *hw,
-+				     unsigned long parent_rate)
-+{
-+	struct omap3_dpll5_settings {
-+		unsigned int rate;
-+		unsigned short m, n;
-+	};
-+
-+	int i;
-+	struct dpll_data *dd;
-+	struct clk_hw_omap *clk;
-+	const struct omap3_dpll5_settings *p;
-+	static const struct omap3_dpll5_settings precomputed[] = {
-+		/*
-+		 * From DM3730 errata advisory 2.1, table 35 and 36.
-+		 * The N value is increased by 1 compared to the tables as the
-+		 * errata lists register values while last_rounded_field is the
-+		 * real divider value.
-+		 */
-+		{ 12000000,  80,  0 + 1 },
-+		{ 13000000, 443,  5 + 1 },
-+		{ 19200000,  50,  0 + 1 },
-+		{ 26000000, 443, 11 + 1 },
-+		{ 38400000,  25,  0 + 1 }
-+	};
-+
-+	for (i = 0; i< ARRAY_SIZE(precomputed); i++) {
-+		p = precomputed + i;
-+		if (parent_rate == p->rate) {
-+			clk = to_clk_hw_omap(hw);
-+			dd = clk->dpll_data;
-+			/* Update the M, N and rounded rate values */
-+			dd->last_rounded_m = p->m;
-+			dd->last_rounded_n = p->n;
-+			dd->last_rounded_rate =
-+				div_u64((u64)parent_rate * p->m, p->n);
-+			omap3_noncore_dpll_program(clk, 0);
-+
-+			return true;
-+		}
-+	}
-+
-+	return false;
-+}
-+
-+/**
-+ * omap3_dpll5_set_rate - set rate for omap3 dpll5
-+ * @hw: clock to change
-+ * @rate: target rate for clock
-+ * @parent_rate: rate of the parent clock
-+ *
-+ * Set rate for the DPLL5 clock. Apply the sprz319 advisory 2.1 on OMAP36xx if
-+ * the DPLL is used for USB host (detected through the requested rate).
-+ */
-+int omap3_dpll5_set_rate(struct clk_hw *hw, unsigned long rate,
-+			 unsigned long parent_rate)
-+{
-+	if (rate == OMAP3_DPLL5_FREQ_FOR_USBHOST * 8) {
-+		if (omap3_dpll5_apply_errata(hw, parent_rate))
-+			return 0;
-+	}
-+
-+	return omap3_noncore_dpll_set_rate(hw, rate, parent_rate);
-+}
--- 
-2.1.4
-
+> if designware code continues to read/write register when clocks are turned off
+> the board would reboot/lockup.
+> 
+> Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
+> ---
+> Currently designware code does not have a way return errors generated
+> as part of host_init() callback in controller drivers. This is an issue
+> with controller drivers like qcom which turns off the clocks in error
+> handling path. As the dw core is un aware of this would continue to
+> access registers which faults resulting in board reboots/hangs.
+> 
+> There are two ways to solve this issue,
+> one is remove error handling in the qcom controller host_init() function
+> other is to handle error and pass back to dw core code which would then
+> pass back to controller driver as part of dw_pcie_host_init() return value.
+> 
+> Second option seems more sensible and correct way to fix the issue,
+> this patch does the same.
+> 
+> As part of this change to host_init() return type I had to patch other
+> ihost controller drivers which use dw core. Most of the changes to other drivers
+> are to return proper error codes to upper layer.
+> Only compile tested drivers.
+> 
+> Changes since RFC:
+> 	- Add error handling to other drivers as suggested by Joao Pinto
+> 
+>  drivers/pci/host/pci-dra7xx.c           | 10 ++++++++--
+>  drivers/pci/host/pci-exynos.c           | 10 ++++++++--
+>  drivers/pci/host/pci-imx6.c             | 10 ++++++++--
+>  drivers/pci/host/pci-keystone.c         | 10 ++++++++--
+>  drivers/pci/host/pci-layerscape.c       | 22 +++++++++++++---------
+>  drivers/pci/host/pcie-armada8k.c        |  4 +++-
+>  drivers/pci/host/pcie-designware-plat.c | 10 ++++++++--
+>  drivers/pci/host/pcie-designware.c      |  4 +++-
+>  drivers/pci/host/pcie-designware.h      |  2 +-
+>  drivers/pci/host/pcie-qcom.c            |  5 +++--
+>  drivers/pci/host/pcie-spear13xx.c       | 10 ++++++++--
+>  11 files changed, 71 insertions(+), 26 deletions(-)
+> 
+> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
+> index 9595fad..811f0f9 100644
+> --- a/drivers/pci/host/pci-dra7xx.c
+> +++ b/drivers/pci/host/pci-dra7xx.c
+> @@ -127,9 +127,10 @@ static void dra7xx_pcie_enable_interrupts(struct dra7xx_pcie *dra7xx)
+>  				   LEG_EP_INTERRUPTS);
+>  }
+>  
+> -static void dra7xx_pcie_host_init(struct pcie_port *pp)
+> +static int dra7xx_pcie_host_init(struct pcie_port *pp)
+>  {
+>  	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
+> +	int ret;
+>  
+>  	pp->io_base &= DRA7XX_CPU_TO_BUS_ADDR;
+>  	pp->mem_base &= DRA7XX_CPU_TO_BUS_ADDR;
+> @@ -138,10 +139,15 @@ static void dra7xx_pcie_host_init(struct pcie_port *pp)
+>  
+>  	dw_pcie_setup_rc(pp);
+>  
+> -	dra7xx_pcie_establish_link(dra7xx);
+> +	ret = dra7xx_pcie_establish_link(dra7xx);
+> +	if (ret < 0)
+> +		return ret;
+> +
+>  	if (IS_ENABLED(CONFIG_PCI_MSI))
+>  		dw_pcie_msi_init(pp);
+>  	dra7xx_pcie_enable_interrupts(dra7xx);
+> +
+> +	return 0;
+>  }
+>  
+>  static struct pcie_host_ops dra7xx_pcie_host_ops = {
+> diff --git a/drivers/pci/host/pci-exynos.c b/drivers/pci/host/pci-exynos.c
+> index f1c544b..c116fd9 100644
+> --- a/drivers/pci/host/pci-exynos.c
+> +++ b/drivers/pci/host/pci-exynos.c
+> @@ -458,12 +458,18 @@ static int exynos_pcie_link_up(struct pcie_port *pp)
+>  	return 0;
+>  }
+>  
+> -static void exynos_pcie_host_init(struct pcie_port *pp)
+> +static int exynos_pcie_host_init(struct pcie_port *pp)
+>  {
+>  	struct exynos_pcie *exynos_pcie = to_exynos_pcie(pp);
+> +	int ret;
+> +
+> +	ret = exynos_pcie_establish_link(exynos_pcie);
+> +	if (ret < 0)
+> +		return ret;
+>  
+> -	exynos_pcie_establish_link(exynos_pcie);
+>  	exynos_pcie_enable_interrupts(exynos_pcie);
+> +
+> +	return 0;
+>  }
+>  
+>  static struct pcie_host_ops exynos_pcie_host_ops = {
+> diff --git a/drivers/pci/host/pci-imx6.c b/drivers/pci/host/pci-imx6.c
+> index c8cefb0..1251e92 100644
+> --- a/drivers/pci/host/pci-imx6.c
+> +++ b/drivers/pci/host/pci-imx6.c
+> @@ -550,18 +550,24 @@ static int imx6_pcie_establish_link(struct imx6_pcie *imx6_pcie)
+>  	return ret;
+>  }
+>  
+> -static void imx6_pcie_host_init(struct pcie_port *pp)
+> +static int imx6_pcie_host_init(struct pcie_port *pp)
+>  {
+>  	struct imx6_pcie *imx6_pcie = to_imx6_pcie(pp);
+> +	int ret;
+>  
+>  	imx6_pcie_assert_core_reset(imx6_pcie);
+>  	imx6_pcie_init_phy(imx6_pcie);
+>  	imx6_pcie_deassert_core_reset(imx6_pcie);
+>  	dw_pcie_setup_rc(pp);
+> -	imx6_pcie_establish_link(imx6_pcie);
+> +	ret = imx6_pcie_establish_link(imx6_pcie);
+> +
+> +	if (ret < 0)
+> +		return ret;
+>  
+>  	if (IS_ENABLED(CONFIG_PCI_MSI))
+>  		dw_pcie_msi_init(pp);
+> +
+> +	return 0;
+>  }
+>  
+>  static int imx6_pcie_link_up(struct pcie_port *pp)
+> diff --git a/drivers/pci/host/pci-keystone.c b/drivers/pci/host/pci-keystone.c
+> index 043c19a..4067a75 100644
+> --- a/drivers/pci/host/pci-keystone.c
+> +++ b/drivers/pci/host/pci-keystone.c
+> @@ -260,12 +260,16 @@ static int keystone_pcie_fault(unsigned long addr, unsigned int fsr,
+>  	return 0;
+>  }
+>  
+> -static void __init ks_pcie_host_init(struct pcie_port *pp)
+> +static int __init ks_pcie_host_init(struct pcie_port *pp)
+>  {
+>  	struct keystone_pcie *ks_pcie = to_keystone_pcie(pp);
+>  	u32 val;
+> +	int ret;
+> +
+> +	ret = ks_pcie_establish_link(ks_pcie);
+> +	if (ret < 0)
+> +		return ret;
+>  
+> -	ks_pcie_establish_link(ks_pcie);
+>  	ks_dw_pcie_setup_rc_app_regs(ks_pcie);
+>  	ks_pcie_setup_interrupts(ks_pcie);
+>  	writew(PCI_IO_RANGE_TYPE_32 | (PCI_IO_RANGE_TYPE_32 << 8),
+> @@ -287,6 +291,8 @@ static void __init ks_pcie_host_init(struct pcie_port *pp)
+>  	 */
+>  	hook_fault_code(17, keystone_pcie_fault, SIGBUS, 0,
+>  			"Asynchronous external abort");
+> +
+> +	return 0;
+>  }
+>  
+>  static struct pcie_host_ops keystone_pcie_host_ops = {
+> diff --git a/drivers/pci/host/pci-layerscape.c b/drivers/pci/host/pci-layerscape.c
+> index 6537079..60c8b84 100644
+> --- a/drivers/pci/host/pci-layerscape.c
+> +++ b/drivers/pci/host/pci-layerscape.c
+> @@ -103,30 +103,32 @@ static int ls1021_pcie_link_up(struct pcie_port *pp)
+>  	return 1;
+>  }
+>  
+> -static void ls1021_pcie_host_init(struct pcie_port *pp)
+> +static int ls1021_pcie_host_init(struct pcie_port *pp)
+>  {
+>  	struct device *dev = pp->dev;
+>  	struct ls_pcie *pcie = to_ls_pcie(pp);
+>  	u32 index[2];
+> +	int ret;
+>  
+>  	pcie->scfg = syscon_regmap_lookup_by_phandle(dev->of_node,
+>  						     "fsl,pcie-scfg");
+>  	if (IS_ERR(pcie->scfg)) {
+>  		dev_err(dev, "No syscfg phandle specified\n");
+> -		pcie->scfg = NULL;
+> -		return;
+> +		return PTR_ERR(pcie->scfg);
+>  	}
+>  
+> -	if (of_property_read_u32_array(dev->of_node,
+> -				       "fsl,pcie-scfg", index, 2)) {
+> -		pcie->scfg = NULL;
+> -		return;
+> -	}
+> +	ret = of_property_read_u32_array(dev->of_node,
+> +				       "fsl,pcie-scfg", index, 2);
+> +	if (ret < 0)
+> +		return ret;
+> +
+>  	pcie->index = index[1];
+>  
+>  	dw_pcie_setup_rc(pp);
+>  
+>  	ls_pcie_drop_msg_tlp(pcie);
+> +
+> +	return 0;
+>  }
+>  
+>  static int ls_pcie_link_up(struct pcie_port *pp)
+> @@ -144,7 +146,7 @@ static int ls_pcie_link_up(struct pcie_port *pp)
+>  	return 1;
+>  }
+>  
+> -static void ls_pcie_host_init(struct pcie_port *pp)
+> +static int ls_pcie_host_init(struct pcie_port *pp)
+>  {
+>  	struct ls_pcie *pcie = to_ls_pcie(pp);
+>  
+> @@ -153,6 +155,8 @@ static void ls_pcie_host_init(struct pcie_port *pp)
+>  	ls_pcie_clear_multifunction(pcie);
+>  	ls_pcie_drop_msg_tlp(pcie);
+>  	iowrite32(0, pcie->pp.dbi_base + PCIE_DBI_RO_WR_EN);
+> +
+> +	return 0;
+>  }
+>  
+>  static int ls_pcie_msi_host_init(struct pcie_port *pp,
+> diff --git a/drivers/pci/host/pcie-armada8k.c b/drivers/pci/host/pcie-armada8k.c
+> index 0ac0f18..29bdd8b 100644
+> --- a/drivers/pci/host/pcie-armada8k.c
+> +++ b/drivers/pci/host/pcie-armada8k.c
+> @@ -134,12 +134,14 @@ static void armada8k_pcie_establish_link(struct armada8k_pcie *pcie)
+>  		dev_err(pp->dev, "Link not up after reconfiguration\n");
+>  }
+>  
+> -static void armada8k_pcie_host_init(struct pcie_port *pp)
+> +static int armada8k_pcie_host_init(struct pcie_port *pp)
+>  {
+>  	struct armada8k_pcie *pcie = to_armada8k_pcie(pp);
+>  
+>  	dw_pcie_setup_rc(pp);
+>  	armada8k_pcie_establish_link(pcie);
+> +
+> +	return 0;
+>  }
+>  
+>  static irqreturn_t armada8k_pcie_irq_handler(int irq, void *arg)
+> diff --git a/drivers/pci/host/pcie-designware-plat.c b/drivers/pci/host/pcie-designware-plat.c
+> index 1a02038..e01adbb 100644
+> --- a/drivers/pci/host/pcie-designware-plat.c
+> +++ b/drivers/pci/host/pcie-designware-plat.c
+> @@ -35,13 +35,19 @@ static irqreturn_t dw_plat_pcie_msi_irq_handler(int irq, void *arg)
+>  	return dw_handle_msi_irq(pp);
+>  }
+>  
+> -static void dw_plat_pcie_host_init(struct pcie_port *pp)
+> +static int dw_plat_pcie_host_init(struct pcie_port *pp)
+>  {
+> +	int ret;
+> +
+>  	dw_pcie_setup_rc(pp);
+> -	dw_pcie_wait_for_link(pp);
+> +	ret = dw_pcie_wait_for_link(pp);
+> +	if (ret)
+> +		return ret;
+>  
+>  	if (IS_ENABLED(CONFIG_PCI_MSI))
+>  		dw_pcie_msi_init(pp);
+> +
+> +	return 0;
+>  }
+>  
+>  static struct pcie_host_ops dw_plat_pcie_host_ops = {
+> diff --git a/drivers/pci/host/pcie-designware.c b/drivers/pci/host/pcie-designware.c
+> index bed1999..4a81b72 100644
+> --- a/drivers/pci/host/pcie-designware.c
+> +++ b/drivers/pci/host/pcie-designware.c
+> @@ -638,7 +638,9 @@ int dw_pcie_host_init(struct pcie_port *pp)
+>  	}
+>  
+>  	if (pp->ops->host_init)
+> -		pp->ops->host_init(pp);
+> +		ret = pp->ops->host_init(pp);
+> +			if (ret < 0)
+> +				goto error;
+>  
+>  	pp->root_bus_nr = pp->busn->start;
+>  	if (IS_ENABLED(CONFIG_PCI_MSI)) {
+> diff --git a/drivers/pci/host/pcie-designware.h b/drivers/pci/host/pcie-designware.h
+> index a567ea2..eacf18f 100644
+> --- a/drivers/pci/host/pcie-designware.h
+> +++ b/drivers/pci/host/pcie-designware.h
+> @@ -63,7 +63,7 @@ struct pcie_host_ops {
+>  	int (*wr_other_conf)(struct pcie_port *pp, struct pci_bus *bus,
+>  			unsigned int devfn, int where, int size, u32 val);
+>  	int (*link_up)(struct pcie_port *pp);
+> -	void (*host_init)(struct pcie_port *pp);
+> +	int (*host_init)(struct pcie_port *pp);
+>  	void (*msi_set_irq)(struct pcie_port *pp, int irq);
+>  	void (*msi_clear_irq)(struct pcie_port *pp, int irq);
+>  	phys_addr_t (*get_msi_addr)(struct pcie_port *pp);
+> diff --git a/drivers/pci/host/pcie-qcom.c b/drivers/pci/host/pcie-qcom.c
+> index 3593640..7d5fb38 100644
+> --- a/drivers/pci/host/pcie-qcom.c
+> +++ b/drivers/pci/host/pcie-qcom.c
+> @@ -429,7 +429,7 @@ static int qcom_pcie_link_up(struct pcie_port *pp)
+>  	return !!(val & PCI_EXP_LNKSTA_DLLLA);
+>  }
+>  
+> -static void qcom_pcie_host_init(struct pcie_port *pp)
+> +static int qcom_pcie_host_init(struct pcie_port *pp)
+>  {
+>  	struct qcom_pcie *pcie = to_qcom_pcie(pp);
+>  	int ret;
+> @@ -455,12 +455,13 @@ static void qcom_pcie_host_init(struct pcie_port *pp)
+>  	if (ret)
+>  		goto err;
+>  
+> -	return;
+> +	return ret;
+>  err:
+>  	qcom_ep_reset_assert(pcie);
+>  	phy_power_off(pcie->phy);
+>  err_deinit:
+>  	pcie->ops->deinit(pcie);
+> +	return ret;
+>  }
+>  
+>  static int qcom_pcie_rd_own_conf(struct pcie_port *pp, int where, int size,
+> diff --git a/drivers/pci/host/pcie-spear13xx.c b/drivers/pci/host/pcie-spear13xx.c
+> index 3cf197b..2408f80 100644
+> --- a/drivers/pci/host/pcie-spear13xx.c
+> +++ b/drivers/pci/host/pcie-spear13xx.c
+> @@ -174,12 +174,18 @@ static int spear13xx_pcie_link_up(struct pcie_port *pp)
+>  	return 0;
+>  }
+>  
+> -static void spear13xx_pcie_host_init(struct pcie_port *pp)
+> +static int spear13xx_pcie_host_init(struct pcie_port *pp)
+>  {
+>  	struct spear13xx_pcie *spear13xx_pcie = to_spear13xx_pcie(pp);
+> +	int ret;
+> +
+> +	ret = spear13xx_pcie_establish_link(spear13xx_pcie);
+> +	if (ret < 0)
+> +		return ret;
+>  
+> -	spear13xx_pcie_establish_link(spear13xx_pcie);
+>  	spear13xx_pcie_enable_interrupts(spear13xx_pcie);
+> +
+> +	return 0;
+>  }
+>  
+>  static struct pcie_host_ops spear13xx_pcie_host_ops = {
