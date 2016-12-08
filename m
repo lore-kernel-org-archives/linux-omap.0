@@ -1,71 +1,46 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/4] musb fixes for v4.9-rc cycle
-Date: Thu, 8 Dec 2016 10:47:25 -0800
-Message-ID: <20161208184725.GC4920@atomide.com>
-References: <20161107215020.31399-1-tony@atomide.com>
- <32195517.5VSIMIXRqn@avalon>
- <20161208055122.GC4264@atomide.com>
- <1502451.JdlAJZmj6G@avalon>
+From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 3/6] net: ethernet: ti: cpts: add support of cpts
+ HW_TS_PUSH
+Date: Thu, 8 Dec 2016 13:04:11 -0600
+Message-ID: <58eea45f-b8fe-6892-e784-b41638c62fd8@ti.com>
+References: <20161128230428.6872-1-grygorii.strashko@ti.com>
+ <20161128230428.6872-4-grygorii.strashko@ti.com>
+ <20161203232130.GA17944@netboy>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1502451.JdlAJZmj6G@avalon>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Cc: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161203232130.GA17944@netboy>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Murali Karicheri <m-karicheri2-l0cyMroinI0@public.gmane.org>, Wingman Kwok <w-kwok2-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [161208 04:03]:
-> Hi Tony,
+
+
+On 12/03/2016 05:21 PM, Richard Cochran wrote:
+> On Mon, Nov 28, 2016 at 05:04:25PM -0600, Grygorii Strashko wrote:
+>> This also change overflow polling period when HW_TS_PUSH feature is
+>> enabled - overflow check work will be scheduled more often (every
+>> 200ms) for proper HW_TS_PUSH events reporting.
 > 
-> On Wednesday 07 Dec 2016 21:51:23 Tony Lindgren wrote:
-> > * Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [161123 08:44]:
-> > > On Wednesday 23 Nov 2016 18:40:09 Tomi Valkeinen wrote:
-> > >> On 23/11/16 18:34, Tony Lindgren wrote:
-> > >>> OK. And what changes to your current .config make the
-> > >>> musb_bus_suspend() issues show up?
-> > >>> 
-> > >>> If it happens with USB-B cable from host to musb with musb set to host
-> > >>> only mode I'm not suprised there are errors :)
-> > >> 
-> > >> I have no USB cables connected. I have attached my config. If
-> > >> CONFIG_USB_MUSB_HDRC is disabled, the musb error goes away.
-> > > 
-> > > For what it's worth, that's exactly the same problem I experienced. See
-> > > https://www.spinics.net/lists/linux-usb/msg149172.html for an analysis.
-> > 
-> > The problem is that with the built-in musb configuration we're trying to
-> > set USB-B cable to host mode with ID pin not grounded. That's not going
-> > to work on most hardware unless the PHY can configure the ID pin.
-> > 
-> > Here's how to fix the .config for built-in musb:
-> > 
-> > 1. Change to have CONFIG_USB_GADGET=y
-> >
-> > 2. Then change CONFIG_USB_MUSB_DUAL_ROLE=y instead of CONFIG_USB_MUSB_HOST
-> >
-> > We should probably get rid of CONFIG_USB_MUSB_HOST to avoid this.
+> For proper reporting, you should make use of the interrupt.  The small
+> fifo (16 iirc) could very well overflow in 200 ms.  The interrupt
+> handler should read out the entire fifo at each interrupt.
 > 
-> The reason I went for host mode is that I had to disable CONFIG_USB_GADGET as 
-> compiling it as a module prevents selecting CONFIG_NOP_USB_XCEIV=y, which is a 
-> dependency for CONFIG_USB_EHCI_HCD_OMAP=m.
 
-OK well like I said the CONFIG_USB_MUSB_HOST selection for a USB-B cable
-won't work from the hardware point of view. The only case where it works
-is if the PHY ID pin is grounded. Anything else will be flakey and won't
-prevent musb from attempting to change it's state on it's own.
+huh. Seems this is not really good idea, because MISC Irq will be 
+triggered for *any* CPTS event and there is no way to enable it just for
+HW_TS_PUSH. So, this doesn't work will with current code for RX/TX timestamping
+(which uses polling mode). + runtime overhead in net RX/TX caused by 
+triggering more interrupts. 
 
-> config NOP_USB_XCEIV
->         tristate "NOP USB Transceiver Driver"
->         depends on USB_GADGET || !USB_GADGET # if USB_GADGET=m, NOP can't be 
-> built-in
->         select USB_PHY
+May be, overflow check/polling timeout can be made configurable (module parameter). 
 
-No idea why it's done that way..
-
-Tony
+-- 
+regards,
+-grygorii
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
