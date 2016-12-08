@@ -1,62 +1,93 @@
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: Re: [PATCH 0/4] musb fixes for v4.9-rc cycle
-Date: Thu, 08 Dec 2016 14:03:50 +0200
-Message-ID: <1502451.JdlAJZmj6G@avalon>
-References: <20161107215020.31399-1-tony@atomide.com> <32195517.5VSIMIXRqn@avalon> <20161208055122.GC4264@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] usb: dwc3: omap: Fix imprecise external abort and oops
+ on boot
+Date: Thu, 8 Dec 2016 07:37:34 -0800
+Message-ID: <20161208153734.GF4264@atomide.com>
+References: <20161208032108.21962-1-tony@atomide.com>
+ <87lgvqkb6f.fsf@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161208055122.GC4264-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <87lgvqkb6f.fsf-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
-
-On Wednesday 07 Dec 2016 21:51:23 Tony Lindgren wrote:
-> * Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [161123 08:44]:
-> > On Wednesday 23 Nov 2016 18:40:09 Tomi Valkeinen wrote:
-> >> On 23/11/16 18:34, Tony Lindgren wrote:
-> >>> OK. And what changes to your current .config make the
-> >>> musb_bus_suspend() issues show up?
-> >>> 
-> >>> If it happens with USB-B cable from host to musb with musb set to host
-> >>> only mode I'm not suprised there are errors :)
-> >> 
-> >> I have no USB cables connected. I have attached my config. If
-> >> CONFIG_USB_MUSB_HDRC is disabled, the musb error goes away.
-> > 
-> > For what it's worth, that's exactly the same problem I experienced. See
-> > https://www.spinics.net/lists/linux-usb/msg149172.html for an analysis.
+* Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [161208 01:45]:
 > 
-> The problem is that with the built-in musb configuration we're trying to
-> set USB-B cable to host mode with ID pin not grounded. That's not going
-> to work on most hardware unless the PHY can configure the ID pin.
+> Hi,
 > 
-> Here's how to fix the .config for built-in musb:
+> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
+> > Somehow starting with v4.9-rc7 there have been imprecise
 > 
-> 1. Change to have CONFIG_USB_GADGET=y
->
-> 2. Then change CONFIG_USB_MUSB_DUAL_ROLE=y instead of CONFIG_USB_MUSB_HOST
->
-> We should probably get rid of CONFIG_USB_MUSB_HOST to avoid this.
+> There's nothing touching dwc3 since v4.9-rc5.
 
-The reason I went for host mode is that I had to disable CONFIG_USB_GADGET as 
-compiling it as a module prevents selecting CONFIG_NOP_USB_XCEIV=y, which is a 
-dependency for CONFIG_USB_EHCI_HCD_OMAP=m.
+Right, nothing obvious has changed. I think it's just a slight timing
+change in the code that started triggering it.
 
-config NOP_USB_XCEIV
-        tristate "NOP USB Transceiver Driver"
-        depends on USB_GADGET || !USB_GADGET # if USB_GADGET=m, NOP can't be 
-built-in
-        select USB_PHY
+> > external aborts on omap5-uevm dwc3 controller. I have not been
+> > able to bisect what exactly triggered this as it does not always
+> > happen. It seems that something changed with probing that
+> > now exposes the issue:
+> >
+> > Unhandled fault: imprecise external abort (0x1406) at 0x00000000
+> 
+> hmmm, clock disabled... dwc3-omap shouldn't have pm runtime at all.
 
--- 
+It does for the interconnect target module clkctrl register via PM
+runtime. That's the "usb_otg_ss" module.
+
+> > ...
+> > PC is at dwc3_omap_interrupt_thread+0x20/0x80
+> > LR is at irq_thread_fn+0x1c/0x54
+> > ...
+> > [<c0989fa8>] (dwc3_omap_interrupt_thread) from [<c038a4d8>]
+> > (irq_thread_fn+0x1c/0x54)
+> > [<c038a4d8>] (irq_thread_fn) from [<c038a7b0>] (irq_thread+0x12c/0x1f0)
+> > [<c038a7b0>] (irq_thread) from [<c035d6f0>] (kthread+0xdc/0xf4)
+> > [<c035d6f0>] (kthread) from [<c0307d78>] (ret_from_fork+0x14/0x3c)
+> > ...
+> >
+> > Unable to handle kernel paging request at virtual address ffffffec
+> > ...
+> > Internal error: Oops: 37 [#2] SMP ARM
+> > PC is at kthread_data+0x4/0xc
+> > LR is at irq_thread_dtor+0x28/0xd0
+> > ...
+> > [<c035e0b4>] (kthread_data) from [<c038a5dc>] (irq_thread_dtor+0x28/0xd0)
+> > [<c038a5dc>] (irq_thread_dtor) from [<c035bef0>] (task_work_run+0xb8/0xdc)
+> > [<c035bef0>] (task_work_run) from [<c03448d4>] (do_exit+0x314/0xa20)
+> > [<c03448d4>] (do_exit) from [<c030bea8>] (die+0x410/0x474)
+> > [<c030bea8>] (die) from [<c0301350>] (do_DataAbort+0xb4/0xb8)
+> > [<c0301350>] (do_DataAbort) from [<c030c578>] (__dabt_svc+0x58/0x80)
+> > Exception stack(0xee777ec8 to 0xee777f10)
+> > 7ec0:                   0000014d ee6e6f10 00000034 fc020034 ee6e6f10 ee1eec00
+> > 7ee0: 00000000 00000000 ee6ec640 c038a4bc 00000000 00000000 00000000 ee777f18
+> > 7f00: c038a4d8 c0989fa8 60000013 ffffffff
+> > [<c030c578>] (__dabt_svc) from [<c0989fa8>] (dwc3_omap_interrupt_thread+0x20/0x80)
+> > [<c0989fa8>] (dwc3_omap_interrupt_thread) from [<c038a4d8>] (irq_thread_fn+0x1c/0x54)
+> > [<c038a4d8>] (irq_thread_fn) from [<c038a7b0>] (irq_thread+0x12c/0x1f0)
+> > [<c038a7b0>] (irq_thread) from [<c035d6f0>] (kthread+0xdc/0xf4)
+> > [<c035d6f0>] (kthread) from [<c0307d78>] (ret_from_fork+0x14/0x3c)
+> >
+> > Fix the issue by making sure the dwc3 interrupts are disabled
+> > before we call devm_request_threaded_irq().
+> 
+> that should already be the case. Are you sure that register isn't zero
+> in probe?
+
+Looks like irq0_status = 0 and irqmisc_status = 0x2121. Also just
+clearing irqmisc with dwc3_omap_write_irqmisc_clr(omap, 0xffffffff)
+stops the issue from happening.
+
+There is some deferred probing happening but irqmisc is always 0x2121.
+
 Regards,
 
-Laurent Pinchart
+Tony
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
