@@ -1,34 +1,35 @@
-From: Milo Kim <woogyom.kim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 0/4] dt-bindings: mfd: Update TPS65217 interrupts
-Date: Fri,  9 Dec 2016 15:28:29 +0900
-Message-ID: <20161209062833.5768-1-woogyom.kim@gmail.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Milo Kim <woogyom.kim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Milo Kim <woogyom.kim@gmail.com>
+Subject: [PATCH 1/4] ARM: dts: am335x: Fix the interrupt name of TPS65217
+Date: Fri,  9 Dec 2016 15:28:30 +0900
+Message-ID: <20161209062833.5768-2-woogyom.kim@gmail.com>
+References: <20161209062833.5768-1-woogyom.kim@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161209062833.5768-1-woogyom.kim@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Milo Kim <woogyom.kim@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch-set fixes wrong property name and uses TPS65217 HW interrupt 
-number from the datasheet instead of the DT ABI. DT bindings are also 
-updated.
+Use 'interrupt-names' for getting the charger interrupt number.
 
-Milo Kim (4):
-  ARM: dts: am335x: Fix the interrupt name of TPS65217
-  dt-bindings: mfd: Remove TPS65217 interrupts
-  dt-bindings: power/supply: Update TPS65217 properties
-  dt-bindings: input: Add interrupt number for TPS65217
+Fixes: 1934e89a769b ("ARM: dts: am335x: Add the charger interrupt")
+Signed-off-by: Milo Kim <woogyom.kim@gmail.com>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- .../bindings/input/tps65218-pwrbutton.txt          |  4 +++-
- .../bindings/power/supply/tps65217_charger.txt     |  7 +++++-
- arch/arm/boot/dts/am335x-bone-common.dtsi          |  8 +++----
- include/dt-bindings/mfd/tps65217.h                 | 26 ----------------------
- 4 files changed, 12 insertions(+), 33 deletions(-)
- delete mode 100644 include/dt-bindings/mfd/tps65217.h
-
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index dc561d5..14b6269 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -320,7 +320,7 @@
+ 
+ 	charger {
+ 		interrupts = <TPS65217_IRQ_AC>, <TPS65217_IRQ_USB>;
+-		interrupts-names = "AC", "USB";
++		interrupt-names = "AC", "USB";
+ 		status = "okay";
+ 	};
+ 
 -- 
 2.9.3
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
