@@ -1,44 +1,48 @@
-From: Milo Kim <woogyom.kim@gmail.com>
-Subject: [PATCH 4/4] dt-bindings: input: Specify the interrupt number of TPS65217 power button
-Date: Fri,  9 Dec 2016 15:28:33 +0900
-Message-ID: <20161209062833.5768-5-woogyom.kim@gmail.com>
-References: <20161209062833.5768-1-woogyom.kim@gmail.com>
+From: Richard Cochran <richardcochran@gmail.com>
+Subject: Re: [PATCH 3/6] net: ethernet: ti: cpts: add support of cpts
+ HW_TS_PUSH
+Date: Fri, 9 Dec 2016 09:50:37 +0100
+Message-ID: <20161209085037.GA16009@localhost.localdomain>
+References: <20161128230428.6872-1-grygorii.strashko@ti.com>
+ <20161128230428.6872-4-grygorii.strashko@ti.com>
+ <20161203232130.GA17944@netboy>
+ <58eea45f-b8fe-6892-e784-b41638c62fd8@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161209062833.5768-1-woogyom.kim@gmail.com>
+Content-Disposition: inline
+In-Reply-To: <58eea45f-b8fe-6892-e784-b41638c62fd8@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Milo Kim <woogyom.kim@gmail.com>
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, Wingman Kwok <w-kwok2@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Specify the power button interrupt number which is from the datasheet.
+On Thu, Dec 08, 2016 at 01:04:11PM -0600, Grygorii Strashko wrote:
+> huh. Seems this is not really good idea, because MISC Irq will be 
+> triggered for *any* CPTS event and there is no way to enable it just for
+> HW_TS_PUSH.
 
-Signed-off-by: Milo Kim <woogyom.kim@gmail.com>
----
- Documentation/devicetree/bindings/input/tps65218-pwrbutton.txt | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+So what?  That is not a problem.
 
-diff --git a/Documentation/devicetree/bindings/input/tps65218-pwrbutton.txt b/Documentation/devicetree/bindings/input/tps65218-pwrbutton.txt
-index 3e5b979..8682ab6 100644
---- a/Documentation/devicetree/bindings/input/tps65218-pwrbutton.txt
-+++ b/Documentation/devicetree/bindings/input/tps65218-pwrbutton.txt
-@@ -8,8 +8,9 @@ This driver provides a simple power button event via an Interrupt.
- Required properties:
- - compatible: should be "ti,tps65217-pwrbutton" or "ti,tps65218-pwrbutton"
+> So, this doesn't work will with current code for RX/TX timestamping
+> (which uses polling mode).
+
+Why doesn't it work?
+
+> + runtime overhead in net RX/TX caused by 
+> triggering more interrupts. 
+
+This is not relevant.  Without HW_TS_PUSH, there is no need for
+enabling the interrupt simply because we don't need it.  Now, with
+HW_TS_PUSH, we do need it.
  
--Required properties for TPS65218:
-+Required properties:
- - interrupts: should be one of the following
-+   - <2>: For controllers compatible with tps65217
-    - <3 IRQ_TYPE_EDGE_BOTH>: For controllers compatible with tps65218
- 
- Examples:
-@@ -17,6 +18,7 @@ Examples:
- &tps {
- 	tps65217-pwrbutton {
- 		compatible = "ti,tps65217-pwrbutton";
-+		interrupts = <2>;
- 	};
- };
- 
--- 
-2.9.3
+> May be, overflow check/polling timeout can be made configurable (module parameter). 
+
+No, it should just work without any user space fiddling.
+
+I getting a bit tired of your half-baked implementations of the
+ancillary clock functions.  Either do it right, or just leave it
+unsupported.
+
+Thanks,
+Richard
