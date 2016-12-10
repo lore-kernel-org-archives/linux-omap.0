@@ -1,65 +1,37 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] usb: dwc3: omap: remove devm_request_threaded_irq
-Date: Fri, 9 Dec 2016 17:44:53 -0600
-Message-ID: <32eba9f6-c3c7-c56a-88c4-cf0fed569aba@ti.com>
-References: <20161209205508.6456-1-grygorii.strashko@ti.com>
- <20161209215958.GN4920@atomide.com>
- <db75608b-f92c-6bfa-80a9-a3ab3adf7c23@ti.com>
- <20161209230457.GO4920@atomide.com>
- <e394c44c-3ae3-b0ac-2b02-a886ca2510bd@ti.com>
- <20161209233728.GP4920@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161209233728.GP4920-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [PATCH 1/5] net: ethernet: ti: cpsw: use same macros to get active slave
+Date: Sat, 10 Dec 2016 14:23:46 +0200
+Message-ID: <1481372630-14914-2-git-send-email-ivan.khoronzhuk@linaro.org>
+References: <1481372630-14914-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1481372630-14914-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: mugunthanvnm@ti.com, grygorii.strashko@ti.com
+Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
+Use the same, more convenient macros, to get active slave.
 
+Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+---
+ drivers/net/ethernet/ti/cpsw.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-On 12/09/2016 05:37 PM, Tony Lindgren wrote:
-> * Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [161209 15:32]:
->>
->>
->> On 12/09/2016 05:04 PM, Tony Lindgren wrote:
->>> * Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [161209 14:46]:
->>>>
->>>>
->>>> On 12/09/2016 03:59 PM, Tony Lindgren wrote:
->>>>> * Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [161209 12:55]:
->>>>>> Switch back from devm_request_threaded_irq() to request_threaded_irq() to
->>>>>> avoid races between interrupt handler execution and PM runtime in error
->>>>>> handling code path in probe and in dwc3_omap_remove():
->>>>>
->>>>> Can't you just call disable_irq() on the exit path instead of removing
->>>>> devm?
->>>>>
->>>>
->>>> I can. But what will be the benefit from using devm then?
->>>
->>> Hmm good point. Probably the least number of code would be to just
->>> do NOAUTOEN before devm_request_irq(), then only do enable_irq()
->>> just before returning from the probe. After all, we don't really
->>> want the irq running until the probe is done.
->>>
->>> I think that would leave out the extra handling from the error
->>> path?
->>>
->>
->> Good question here is - do we need this irq to be enabled for sub-device
->> probing from of_platform_populate()? ;)
->
-> No!
-
-Ok, then it should work this way.
-
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index b62d958..c45f7d2 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -1624,10 +1624,7 @@ static void cpsw_hwtstamp_v2(struct cpsw_priv *priv)
+ 	struct cpsw_common *cpsw = priv->cpsw;
+ 	u32 ctrl, mtype;
+ 
+-	if (cpsw->data.dual_emac)
+-		slave = &cpsw->slaves[priv->emac_port];
+-	else
+-		slave = &cpsw->slaves[cpsw->data.active_slave];
++	slave = &cpsw->slaves[cpsw_slave_index(cpsw, priv)];
+ 
+ 	ctrl = slave_read(slave, CPSW2_CONTROL);
+ 	switch (cpsw->version) {
 -- 
-regards,
--grygorii
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.7.4
