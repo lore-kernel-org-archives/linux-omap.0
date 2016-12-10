@@ -1,35 +1,37 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH 2/5] net: ethernet: ti: cpsw: don't start queue twice
-Date: Sat, 10 Dec 2016 14:23:47 +0200
-Message-ID: <1481372630-14914-3-git-send-email-ivan.khoronzhuk@linaro.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 1/5] net: ethernet: ti: cpsw: improve re-split policy
+Date: Sat, 10 Dec 2016 17:30:25 -0500 (EST)
+Message-ID: <20161210.173025.1084307097879882075.davem@davemloft.net>
 References: <1481372630-14914-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1481372630-14914-1-git-send-email-ivan.khoronzhuk@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: mugunthanvnm@ti.com, grygorii.strashko@ti.com
-Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+To: ivan.khoronzhuk@linaro.org
+Cc: mugunthanvnm@ti.com, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-No need to start queues after cpsw is started as it will be done
-while cpsw_adjust_link(), after phy connection.
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Date: Sat, 10 Dec 2016 14:23:45 +0200
 
-Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
----
- drivers/net/ethernet/ti/cpsw.c | 2 --
- 1 file changed, 2 deletions(-)
+> This patches add several simplifications and improvements to set
+> maximum rate for channels taking in account switch and dual emac mode.
+> 
+> Don't re-split res in the following cases:
+> - speed of phys is not changed
+> - speed of phys is changed and no rate limited channels
+> - speed of phys is changed and all channels are rate limited
+> - phy is unlinked while dev is open
+> - phy is linked back but speed is not changed
+> 
+> The maximum speed is sum of "linked" phys, thus res are split taken
+> into account two interfaces, both for dual emac mode and for
+> switch mode.
+> 
+> Tested on am572x
+> 
+> Based on net-next/master
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index c45f7d2..23213a3 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -1506,8 +1506,6 @@ static int cpsw_ndo_open(struct net_device *ndev)
- 	if (cpsw->data.dual_emac)
- 		cpsw->slaves[priv->emac_port].open_stat = true;
- 
--	netif_tx_start_all_queues(ndev);
--
- 	return 0;
- 
- err_cleanup:
--- 
-2.7.4
+Applied.
