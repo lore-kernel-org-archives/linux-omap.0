@@ -1,35 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2] net: ethernet: ti: netcp: add support of cpts
-Date: Sat, 10 Dec 2016 23:32:00 -0500 (EST)
-Message-ID: <20161210.233200.1977977551861823820.davem@davemloft.net>
-References: <20161208222156.23625-1-grygorii.strashko@ti.com>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 2/4] dt-bindings: mfd: Remove TPS65217 interrupts
+Date: Mon, 12 Dec 2016 11:25:11 -0600
+Message-ID: <20161212172511.5nj7whzytpkmrk7z@rob-hp-laptop>
+References: <20161209062833.5768-1-woogyom.kim@gmail.com>
+ <20161209062833.5768-3-woogyom.kim@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161208222156.23625-1-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@ti.com
-Cc: netdev@vger.kernel.org, richardcochran@gmail.com, m-karicheri2@ti.com, w-kwok2@ti.com, nsekhar@ti.com, mugunthanvnm@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161209062833.5768-3-woogyom.kim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Milo Kim <woogyom.kim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Date: Thu, 8 Dec 2016 16:21:56 -0600
+On Fri, Dec 09, 2016 at 03:28:31PM +0900, Milo Kim wrote:
+> Interrupt numbers are from the datasheet, so no need to keep them in
+> the ABI. Use the number in the DT file.
 
-> From: WingMan Kwok <w-kwok2@ti.com>
-> 
-> This patch adds support of the cpts device found in the
-> gbe and 10gbe ethernet switches on the keystone 2 SoCs
-> (66AK2E/L/Hx, 66AK2Gx).
-> 
-> Cc: Richard Cochran <richardcochran@gmail.com>
-> Signed-off-by: WingMan Kwok <w-kwok2@ti.com>
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+I don't see the purpose of ripping this out. The headers have always 
+been for convienence, not whether the values come from the datasheet or 
+not.
+
+> Signed-off-by: Milo Kim <woogyom.kim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 > ---
-> changes in v2:
->  - dropped bindings changes
-> 
-> link on v1:
->  https://lkml.org/lkml/2016/11/28/781
-
-Applied.
+>  arch/arm/boot/dts/am335x-bone-common.dtsi |  8 +++-----
+>  include/dt-bindings/mfd/tps65217.h        | 26 --------------------------
+>  2 files changed, 3 insertions(+), 31 deletions(-)
+>  delete mode 100644 include/dt-bindings/mfd/tps65217.h
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
