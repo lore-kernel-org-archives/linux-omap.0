@@ -1,70 +1,73 @@
-From: Michael Turquette <mturquette@baylibre.com>
-Subject: Re: [PATCHv4 00/15] clk: ti: add support for hwmod clocks
-Date: Mon, 12 Dec 2016 10:25:09 -0800
-Message-ID: <148156710975.37646.2957511113527634913@resonance>
-References: <1476805568-19264-1-git-send-email-t-kristo@ti.com>
- <20161028005341.GR26139@codeaurora.org>
- <2cfa10a9-9ea0-23e4-30de-9aece13e47e3@ti.com>
- <20161028233750.GQ16026@codeaurora.org>
- <7371ef35-5d95-bf78-4c97-c61091a1fa4b@ti.com>
+From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2] usb: dwc3: omap: fix race of pm runtime with irq handler in probe
+Date: Mon, 12 Dec 2016 13:37:52 -0600
+Message-ID: <20161212193752.32029-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <7371ef35-5d95-bf78-4c97-c61091a1fa4b@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Stephen Boyd <sboyd@codeaurora.org>
-Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Quoting Tero Kristo (2016-12-02 00:15:53)
-> On 29/10/16 02:37, Stephen Boyd wrote:
-> > On 10/28, Tero Kristo wrote:
-> >> Eventually that should happen. However, we have plenty of legacy
-> >> code still in place which depend on clk_get functionality within
-> >> kernel. The major contributing factor is the hwmod codebase, for
-> >> which we have plans to:
-> >>
-> >> - get this clock driver merged
-> >> - implement a new interconnect driver for OMAP family SoCs
-> >> - interconnect driver will use DT handles for fetching clocks,
-> >> rather than clock aliases
-> >> - reset handling will be implemented as part of the interconnect
-> >> driver somehow (no prototype / clear plans for that as of yet)
-> >> - all the hwmod stuff can be dropped
-> >>
-> >> The clock alias handling is still needed as a transition phase until
-> >> all the above is done, then we can start dropping them. Basically
-> >> anything that is using omap_hwmod depends on the clock aliases right
-> >> now.
-> >
-> > Ok, sounds good. Thanks.
-> =
+Now races can happen between interrupt handler execution and PM runtime in
+error handling code path in probe and in dwc3_omap_remove() which will lead
+to system crash:
 
-> Stephen, any final comments on this series? I guess its too late to push =
+in probe:
+...
+ err1:
+	pm_runtime_put_sync(dev);
+^^ PM runtime can race with IRQ handler when deferred probing happening
+   due to extcon
+	pm_runtime_disable(dev);
 
-> for 4.10, but I would like to get this merged early for 4.11 window.
+	return ret;
 
-Hi Tero,
+in dwc3_omap_remove:
+...
+	dwc3_omap_disable_irqs(omap);
+^^ IRQs are disabled in HW, but handler may still run
+	of_platform_depopulate(omap->dev);
+	pm_runtime_put_sync(&pdev->dev);
+^^ PM runtime can race with IRQ handler
+	pm_runtime_disable(&pdev->dev);
 
-No final comments from me. I needed to go back and forth with Tony about
-the clockdomain modeling, but it seems sensible to create clock
-providers from the clock domains if you want to pass those struct clk
-objects down to the drivers.
+	return 0;
 
-One thing I wasn't able to follow exactly in the code is how the
-clockdomains are linking parent clocks from cm1, cm2, etc to the clock
-domains. Are the clockdomain providers calling clk_get() on the clocks
-that it *consumes*, or are the clockdomain providers never calling
-clk_get() on those clocks and just establishing the tree hierarchy at
-clk_register() time?
+So, OMAP DWC3 IRQ need to be disabled before calling
+pm_runtime_put() in probe and in dwc3_omap_remove().
 
-Unless Stephen has any more review comments we can merge this into a
-clk-next based on v4.10-rc1 when that drops.
+Signed-off-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+---
+Link on v1:
+ http://www.spinics.net/lists/linux-omap/msg133846.html 
 
-Regards,
-Mike
+ drivers/usb/dwc3/dwc3-omap.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-> =
-
-> -Tero
+diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+index 29e80cc..eb1b9cb 100644
+--- a/drivers/usb/dwc3/dwc3-omap.c
++++ b/drivers/usb/dwc3/dwc3-omap.c
+@@ -19,6 +19,7 @@
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
++#include <linux/irq.h>
+ #include <linux/interrupt.h>
+ #include <linux/platform_device.h>
+ #include <linux/platform_data/dwc3-omap.h>
+@@ -510,7 +511,7 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+ 
+ 	/* check the DMA Status */
+ 	reg = dwc3_omap_readl(omap->base, USBOTGSS_SYSCONFIG);
+-
++	irq_set_status_flags(omap->irq, IRQ_NOAUTOEN);
+ 	ret = devm_request_threaded_irq(dev, omap->irq, dwc3_omap_interrupt,
+ 					dwc3_omap_interrupt_thread, IRQF_SHARED,
+ 					"dwc3-omap", omap);
+@@ -531,7 +532,7 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	dwc3_omap_enable_irqs(omap);
