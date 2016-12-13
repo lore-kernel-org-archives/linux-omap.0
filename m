@@ -1,149 +1,81 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv4 00/15] clk: ti: add support for hwmod clocks
-Date: Tue, 13 Dec 2016 07:37:24 -0800
-Message-ID: <20161213153724.GT4920@atomide.com>
-References: <1476805568-19264-1-git-send-email-t-kristo@ti.com>
- <20161028005341.GR26139@codeaurora.org>
- <2cfa10a9-9ea0-23e4-30de-9aece13e47e3@ti.com>
- <20161028233750.GQ16026@codeaurora.org>
- <7371ef35-5d95-bf78-4c97-c61091a1fa4b@ti.com>
- <148156710975.37646.2957511113527634913@resonance>
- <20161213004914.GM5423@codeaurora.org>
- <20161213013133.GR4920@atomide.com>
- <148160402543.37646.6019420188689675769@resonance>
- <4b016883-e7c9-94d8-d964-3c8dfee6ee13@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 12/23] drm: omapdrm: plane: update fifo size on atomic
+ update
+Date: Tue, 13 Dec 2016 19:35:48 +0200
+Message-ID: <8209536.SBuD0B7HP3@avalon>
+References: <1457455195-1938-1-git-send-email-sre@kernel.org>
+ <1457455195-1938-13-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4b016883-e7c9-94d8-d964-3c8dfee6ee13@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <1457455195-1938-13-git-send-email-sre@kernel.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: dri-devel@lists.freedesktop.org
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [161213 00:31]:
-> On 13/12/16 06:40, Michael Turquette wrote:
-> > Quoting Tony Lindgren (2016-12-12 17:31:34)
-> > > * Stephen Boyd <sboyd@codeaurora.org> [161212 16:49]:
-> > > > I spent a bunch of time looking at this again today. From a DT
-> > > > perspective we don't want to have clocks or clockdomains nodes
-> > > > below the cm1/cm2/prm dt nodes. That's getting to the point of
-> > > > describing individual elements of a device that should be
-> > > > described in the driver instead of DT.
-> > > 
-> > > I agree we don't need separate clocks and clockdomain nodes.. But
-> > > I think you're missing something here though. The clockdomains in
-> > > this case are separate devices on the interconnect, not individual
-> > > elements within a device. The outputs of a clockdomain are individual
-> > > elements of a clockdomain and can be just described as indexed
-> > > outputs of the clockdomain.
-> > 
-> > Is the goal to describe this hardware topology in DT? Is that right
-> > thing to do? I think it's cool to have this modeled *somehow* in Linux,
-> > but I'm not sure DT is the right place to model the interconnect and
-> > every device hanging off of it.
-
-Well struct device is what we should use, the DT nodes pretty much
-map with that :)
-
-> > I don't want to put words in Stephen's mouth, but I think the issue over
-> > whether clockdomains are CCF clock providers or some genpd thing is
-> > probably less important to him than the fact that the DT bindings are
-> > super detailed to inner workings of the SoC.
-> 
-> Ok, so your preference would be to reduce the data under DT, and the ideal
-> approach would be a single prcm node. I think we still need to keep the prm
-> / cm1 / cm2 as separate nodes, as they are pretty individual from hardware
-> point of view, provide quite different features, and they reside in some
-> cases in quite different address spaces also. Anyway, here's what I gather
-> we should probably have in DT:
-> 
-> - reset provider
->   * example: resets = <&prm OMAP4_IVA2_RESET>;
->   * only from 'prm' node
-> 
-> - genpd provider (for the hwmods, clockdomains, powerdomains, voltage
-> domains)
->   * examples: power-domains = <&cm2 OMAP4_DSS_CORE_MOD>;
-> 		power-domains = <&cm2 OMAP4_DSS_CLKDM>;
-> 		power-domains = <&prm OMAP4_DSS_PWRDM>;
-> 		power-domains = <&prm OMAP4_CORE_VOLTDM>;
->   * from all 'prm', 'cm1' and 'cm2' nodes, though 'prm' would be the only
-> one providing _CLKDM, _PWRDM, _VOLTDM genpds.
-> 
-> - clock provider (for anything that requires clocks)
->   * example: clocks = <&cm1 OMAP4_DPLL_MPU_CK>;
->   * from all 'prm', 'cm1' and 'cm2' nodes
-
-Makes sense to me in general.
-
-For the clkctrl clocks, here's what I'd like to see. The driver should be
-just a regular device driver along the lines we did with the ADPLL as in
-Documentation/devicetree/bindings/clock/ti/adpll.txt.
-
-For the binding, something like the following should work as a minimal
-example, this follows what we have in the hardware:
-
-&prm {
-	...
-
-	/* See "CD_WKUP Clock Domain" in 4430 TRM page 393 */
-	wkup_cm: clock@1800 {
-		compatible = "ti,clkctrl";
-		reg = <0x1800 0x100>;
-		#clock-cells = <1>;
-		clocks = <&wkup_l4_iclk2 &wkup_32k_fclk
-			  &32k_fclk &gp1_fclk>;
-		clock-output-names =
-			"sysctrl_padconf_wkup",
-			"badgap",
-			"sysctrl_general_wkup",
-			"gpio1",
-			"keyboard",
-			"sar_ram",
-			"32ktimer",
-			"gptimer1";
-	};
-	...
-
-	/* See "CD_EMU Clock Domain" in 4430 TRM page 424 */
-	emu_cm: clock@1a00 {
-		compatible = "ti,clkctrl";
-		reg = <0x1a00 0x100>;
-		#clock-cells = <1>;
-		clocks = <&emu_sys_clk &core_dpll_emu_clk>;
-		clock-output-names = "debug";
-	};
-	...
-};
-
-So the device tree nodes could be minimal as above and the rest can
-be taken care of by the driver. We may need separate compatible strings
-for the various instances, not sure about that.
-
-Note that the clkctrl hardware manages multiple clocks for each
-interconnect target module. AFAIK we don't need to care about that from
-the consumer device driver point of view as it can't separately manage
-functional and interface clock.
-
-We need few clockctrl clocks early for system timers, but those can
-be registered earlier in the driver.
-
-Then some clkctrl clocks have optional aux clocks. I think those can
-be just be regular child clocks of the module clocks.
-
-> This would eventually cause an ABI breakage for the clock handles, if we
-> transfer the existing clocks to this format, and remove the existing clock
-> handles from DT. Otherwise, I think we could just transition the existing
-> hwmod data to this new format only, and add the clockdomain / powerdomain /
-> voltagedomain support a bit later.
-
-Let's not break anything while doing this.. And let's not mess with the
-hwmod except where it helps moving that into regular device drivers.
-If necessary we can maybe first register the new clock instances, then
-register the old clocks if new clock is not found?
-
-Regards,
-
-Tony
+SGkgU2ViYXN0aWFuLAoKVGhhbmsgeW91IGZvciB0aGUgcGF0Y2guCgpPbiBUdWVzZGF5IDA4IE1h
+ciAyMDE2IDE3OjM5OjQ0IFNlYmFzdGlhbiBSZWljaGVsIHdyb3RlOgo+IFRoaXMgaXMgYSB3b3Jr
+YXJvdW5kIGZvciBhIGhhcmR3YXJlIGJ1ZyBvY2N1cmluZwo+IG9uIE9NQVAzIHdpdGggbWFudWFs
+bHkgdXBkYXRlZCBwYW5lbHMuCgpDb3VsZCB5b3UgcGxlYXNlIGV4cGxhaW4gd2hhdCB0aGUgYnVn
+IGlzIGFuZCBob3cgdGhlIHdvcmthcm91bmQgb3BlcmF0ZXMgPyBEbyAKeW91IGhhdmUgYSByZWZl
+cmVuY2UgdG8gYW4gZXJyYXRhIGRvY3VtZW50ID8KCj4gU2lnbmVkLW9mZi1CeTogU2ViYXN0aWFu
+IFJlaWNoZWwgPHNyZUBrZXJuZWwub3JnPgo+IC0tLQo+ICBkcml2ZXJzL2dwdS9kcm0vb21hcGRy
+bS9vbWFwX2Rydi5oICAgfCAgMSArCj4gIGRyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL29tYXBfcGxh
+bmUuYyB8IDIzICsrKysrKysrKysrKysrKysrKysrKysrCj4gIDIgZmlsZXMgY2hhbmdlZCwgMjQg
+aW5zZXJ0aW9ucygrKQo+IAo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9v
+bWFwX2Rydi5oCj4gYi9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX2Rydi5oIGluZGV4IDcx
+ZTJjMjI4NGI4Ni4uM2FiNDkxOWFmZjRiCj4gMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9ncHUvZHJt
+L29tYXBkcm0vb21hcF9kcnYuaAo+ICsrKyBiL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL29tYXBf
+ZHJ2LmgKPiBAQCAtMTYxLDYgKzE2MSw3IEBAIHN0cnVjdCBkcm1fcGxhbmUgKm9tYXBfcGxhbmVf
+aW5pdChzdHJ1Y3QgZHJtX2RldmljZQo+ICpkZXYsIGludCBpZCwgZW51bSBkcm1fcGxhbmVfdHlw
+ZSB0eXBlKTsKPiAgdm9pZCBvbWFwX3BsYW5lX2luc3RhbGxfcHJvcGVydGllcyhzdHJ1Y3QgZHJt
+X3BsYW5lICpwbGFuZSwKPiAgCQlzdHJ1Y3QgZHJtX21vZGVfb2JqZWN0ICpvYmopOwo+ICt2b2lk
+IG9tYXBfcGxhbmVfdXBkYXRlX2ZpZm8oc3RydWN0IGRybV9wbGFuZSAqcGxhbmUpOwo+IAo+ICBz
+dHJ1Y3QgZHJtX2VuY29kZXIgKm9tYXBfZW5jb2Rlcl9pbml0KHN0cnVjdCBkcm1fZGV2aWNlICpk
+ZXYsCj4gIAkJc3RydWN0IG9tYXBfZHNzX2RldmljZSAqZHNzZGV2KTsKPiBkaWZmIC0tZ2l0IGEv
+ZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vb21hcF9wbGFuZS5jCj4gYi9kcml2ZXJzL2dwdS9kcm0v
+b21hcGRybS9vbWFwX3BsYW5lLmMgaW5kZXggZDc1YjE5N2VmZjQ2Li4wMTQ3ZTQxNjE0MGMKPiAx
+MDA2NDQKPiAtLS0gYS9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX3BsYW5lLmMKPiArKysg
+Yi9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX3BsYW5lLmMKPiBAQCAtNzUsNiArNzUsMjgg
+QEAgc3RhdGljIHZvaWQgb21hcF9wbGFuZV9jbGVhbnVwX2ZiKHN0cnVjdCBkcm1fcGxhbmUKPiAq
+cGxhbmUsIG9tYXBfZnJhbWVidWZmZXJfdW5waW4ob2xkX3N0YXRlLT5mYik7Cj4gIH0KPiAKPiAr
+dm9pZCBvbWFwX3BsYW5lX3VwZGF0ZV9maWZvKHN0cnVjdCBkcm1fcGxhbmUgKnBsYW5lKQo+ICt7
+Cj4gKwlzdHJ1Y3Qgb21hcF9wbGFuZSAqb21hcF9wbGFuZSA9IHRvX29tYXBfcGxhbmUocGxhbmUp
+Owo+ICsJc3RydWN0IGRybV9wbGFuZV9zdGF0ZSAqc3RhdGUgPSBwbGFuZS0+c3RhdGU7Cj4gKwlz
+dHJ1Y3QgZHJtX2RldmljZSAqZGV2ID0gcGxhbmUtPmRldjsKPiArCWJvb2wgdXNlX2ZpZm9fbWVy
+Z2UgPSBmYWxzZTsKPiArCXUzMiBmaWZvX2xvdywgZmlmb19oaWdoOwo+ICsJYm9vbCB1c2VfbWFu
+dWFsX3VwZGF0ZTsKPiArCj4gKwlpZiAoIWRpc3BjX292bF9lbmFibGVkKG9tYXBfcGxhbmUtPmlk
+KSkKPiArCQlyZXR1cm47CgpHaXZlbiB0aGF0IHRoaXMgZnVuY3Rpb24gaXMgY2FsbGVkIHJpZ2h0
+IGFmdGVyIGRpc3BjX292bF9lbmFibGUob21hcF9wbGFuZS0KPmlkLCB0cnVlKSwgY2FuIHRoaXMg
+Y29uZGl0aW9uIGJlIHRydWUgPwoKPiArCXVzZV9tYW51YWxfdXBkYXRlID0gb21hcF9jcnRjX2lz
+X21hbnVhbF91cGRhdGVkKHN0YXRlLT5jcnRjKTsKPiArCj4gKwlkaXNwY19vdmxfY29tcHV0ZV9m
+aWZvX3RocmVzaG9sZHMob21hcF9wbGFuZS0+aWQsICZmaWZvX2xvdywgCiZmaWZvX2hpZ2gsCj4g
+KwkJCXVzZV9maWZvX21lcmdlLCB1c2VfbWFudWFsX3VwZGF0ZSk7CgpZb3UgY2FuIHJlbW92ZSB0
+aGUgdXNlX2ZpZm9fbWVyZ2UgdmFyaWFibGUgYW5kIHNldCB0aGUgYXJndW1lbnQgdG8gZmFsc2Ug
+CmRpcmVjdGx5LgoKPiArCj4gKwlkZXZfZGJnKGRldi0+ZGV2LCAidXBkYXRlIGZpZm86ICVkICVk
+IiwgZmlmb19sb3csIGZpZm9faGlnaCk7CgpUaGUgdHdvIHZhcmlhYmxlcyBhcmUgdW5zaWduZWQs
+IHlvdSBzaG91bGQgdXNlICV1LgoKPiArCWRpc3BjX292bF9zZXRfZmlmb190aHJlc2hvbGQob21h
+cF9wbGFuZS0+aWQsIGZpZm9fbG93LCBmaWZvX2hpZ2gpOwoKT24gYSBzaWRlIG5vdGUsIHNob3Vs
+ZG4ndCB0aGUgZGlzcGNfb3ZsX2NvbXB1dGVfZmlmb190aHJlc2hvbGRzKCkgYW5kIApkaXNwY19v
+dmxfc2V0X2ZpZm9fdGhyZXNob2xkKCkgZnVuY3Rpb25zIGJlIG1lcmdlZCBpbnRvIGEgc2luZ2xl
+IG9uZSBhcyAKdGhleSdyZSBhbHdheXMgY2FsbGVkIHRvZ2V0aGVyID8KCj4gK30KPiArCj4gIHN0
+YXRpYyB2b2lkIG9tYXBfcGxhbmVfYXRvbWljX3VwZGF0ZShzdHJ1Y3QgZHJtX3BsYW5lICpwbGFu
+ZSwKPiAgCQkJCSAgICAgc3RydWN0IGRybV9wbGFuZV9zdGF0ZSAqb2xkX3N0YXRlKQo+ICB7Cj4g
+QEAgLTE0MSw2ICsxNjMsNyBAQCBzdGF0aWMgdm9pZCBvbWFwX3BsYW5lX2F0b21pY191cGRhdGUo
+c3RydWN0IGRybV9wbGFuZQo+ICpwbGFuZSwgfQo+IAo+ICAJZGlzcGNfb3ZsX2VuYWJsZShvbWFw
+X3BsYW5lLT5pZCwgdHJ1ZSk7Cj4gKwlvbWFwX3BsYW5lX3VwZGF0ZV9maWZvKHBsYW5lKTsKPiAg
+fQo+IAo+ICBzdGF0aWMgdm9pZCBvbWFwX3BsYW5lX2F0b21pY19kaXNhYmxlKHN0cnVjdCBkcm1f
+cGxhbmUgKnBsYW5lLAoKLS0gClJlZ2FyZHMsCgpMYXVyZW50IFBpbmNoYXJ0CgpfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBs
+aXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVz
+a3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
