@@ -1,34 +1,97 @@
-From: Milo Kim <woogyom.kim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/4] dt-bindings: mfd: Remove TPS65217 interrupts
-Date: Tue, 13 Dec 2016 08:24:47 +0900
-Message-ID: <fe4985c0-d60a-2562-12a7-064404efd64c@gmail.com>
-References: <20161209062833.5768-1-woogyom.kim@gmail.com>
- <20161209062833.5768-3-woogyom.kim@gmail.com>
- <20161212172511.5nj7whzytpkmrk7z@rob-hp-laptop>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCHv4 00/15] clk: ti: add support for hwmod clocks
+Date: Mon, 12 Dec 2016 16:49:14 -0800
+Message-ID: <20161213004914.GM5423@codeaurora.org>
+References: <1476805568-19264-1-git-send-email-t-kristo@ti.com>
+ <20161028005341.GR26139@codeaurora.org>
+ <2cfa10a9-9ea0-23e4-30de-9aece13e47e3@ti.com>
+ <20161028233750.GQ16026@codeaurora.org>
+ <7371ef35-5d95-bf78-4c97-c61091a1fa4b@ti.com>
+ <148156710975.37646.2957511113527634913@resonance>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161212172511.5nj7whzytpkmrk7z@rob-hp-laptop>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <148156710975.37646.2957511113527634913@resonance>
+Sender: linux-clk-owner@vger.kernel.org
+To: Michael Turquette <mturquette@baylibre.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 12/13/2016 02:25 AM, Rob Herring wrote:
-> On Fri, Dec 09, 2016 at 03:28:31PM +0900, Milo Kim wrote:
->> Interrupt numbers are from the datasheet, so no need to keep them in
->> the ABI. Use the number in the DT file.
-> I don't see the purpose of ripping this out. The headers have always
-> been for convienence, not whether the values come from the datasheet or
-> not.
+On 12/12, Michael Turquette wrote:
+> Quoting Tero Kristo (2016-12-02 00:15:53)
+> > On 29/10/16 02:37, Stephen Boyd wrote:
+> > > On 10/28, Tero Kristo wrote:
+> > >> Eventually that should happen. However, we have plenty of legacy
+> > >> code still in place which depend on clk_get functionality within
+> > >> kernel. The major contributing factor is the hwmod codebase, for
+> > >> which we have plans to:
+> > >>
+> > >> - get this clock driver merged
+> > >> - implement a new interconnect driver for OMAP family SoCs
+> > >> - interconnect driver will use DT handles for fetching clocks,
+> > >> rather than clock aliases
+> > >> - reset handling will be implemented as part of the interconnect
+> > >> driver somehow (no prototype / clear plans for that as of yet)
+> > >> - all the hwmod stuff can be dropped
+> > >>
+> > >> The clock alias handling is still needed as a transition phase until
+> > >> all the above is done, then we can start dropping them. Basically
+> > >> anything that is using omap_hwmod depends on the clock aliases right
+> > >> now.
+> > >
+> > > Ok, sounds good. Thanks.
+> > 
+> > Stephen, any final comments on this series? I guess its too late to push 
+> > for 4.10, but I would like to get this merged early for 4.11 window.
+> 
+> Hi Tero,
+> 
+> No final comments from me. I needed to go back and forth with Tony about
+> the clockdomain modeling, but it seems sensible to create clock
+> providers from the clock domains if you want to pass those struct clk
+> objects down to the drivers.
+> 
+> One thing I wasn't able to follow exactly in the code is how the
+> clockdomains are linking parent clocks from cm1, cm2, etc to the clock
+> domains. Are the clockdomain providers calling clk_get() on the clocks
+> that it *consumes*, or are the clockdomain providers never calling
+> clk_get() on those clocks and just establishing the tree hierarchy at
+> clk_register() time?
+> 
+> Unless Stephen has any more review comments we can merge this into a
+> clk-next based on v4.10-rc1 when that drops.
+> 
 
-My understanding is it's a same rule as other interrupt controllers.
-I'd like to have Arnd's opinion for this.
+I spent a bunch of time looking at this again today. From a DT
+perspective we don't want to have clocks or clockdomains nodes
+below the cm1/cm2/prm dt nodes. That's getting to the point of
+describing individual elements of a device that should be
+described in the driver instead of DT.
 
-Best regards,
-Milo
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'd also prefer we didn't have cm1/cm2/prm nodes and just had one
+prcm node as the clock provider (#clock-cells) because that's the
+aligned register address space that's visible on the bus.  From
+my perspective cm1/cm2/prm look like macros that are put inside
+the prcm container and they're at least aligned on some register
+address boundary so I'm not too worried if we keep describing
+down to the level of these modules in DT. Anything beyond that is
+not good though.
+
+Finally we come to using clock providers or genpds for the clock
+domains. If we don't put clockdomains into DT (because I don't
+want clockdomain nodes) then this problem almost goes away. At
+least, I don't really care what happens here because it will be
+an internal TI prcm driver question of implementation. A clk
+consumer will just see a provider that outputs some sort of clk.
+If that happens to go through a clockdomain and we need to toggle
+some bits inside the domain registers to make the clk actually
+output a signal, that's fine. The prcm driver can take care of it
+behind the scenes. Or at a later date we can model the domain as
+a genpd and have the framework turn on/off genpds attached to
+certain clocks. There's a lot of freedom here as long as we don't
+put things in DT.
+
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
