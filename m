@@ -1,7 +1,7 @@
 From: Sekhar Nori <nsekhar@ti.com>
-Subject: [PATCH v2 2/3] ARM: dts: dra7-evm: add pinmux configuration for mmc1/2
-Date: Tue, 13 Dec 2016 16:59:46 +0530
-Message-ID: <ec13212f4b5ad1ab2f200bde3c8525cdd7abf89d.1481628266.git.nsekhar@ti.com>
+Subject: [PATCH v2 3/3] ARM: dts: dra72-evm: drop NAND support
+Date: Tue, 13 Dec 2016 16:59:47 +0530
+Message-ID: <a2d251a432c5c8519dd31441a6427a261b16ca79.1481628266.git.nsekhar@ti.com>
 References: <cover.1481628266.git.nsekhar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,78 +21,35 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: Nishanth Menon <nm@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Kishon Vijay Abraham I <kishon@ti.com>
+For the existing IOdelay configuration via U-Boot, NAND is
+not supported on dra72-evm (both Rev B and Rev C).
 
-Add pinmux configuration for SD card slot and eMMC device
-found on TI's DRA74x EVM.
+Disable it. Commit 46cfc8945887 ("ARM: dts: dra72-evm: Remove
+pinmux configurations for erratum i869") has already removed
+pinmuxing for NAND making it unusable.
 
-Only the default modes are supported. For higher speed modes
-(UHS and HS200) to function, we need full fledged IODelay support
-in kernel. IODelay support is yet to be added.
-
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-[nsekhar@ti.com: rebase to mainline/master, use IOPAD() macro,
-		 update commit message]
 Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 ---
- arch/arm/boot/dts/dra7-evm.dts | 31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ arch/arm/boot/dts/dra72-evm-common.dtsi | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index 80ebfd6a5c7b..40465d5277e6 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -164,6 +164,33 @@
- 			DRA7XX_CORE_IOPAD(0x3818, MUX_MODE15 | PULL_UP)	/* wakeup0.off */
- 		>;
- 	};
-+
-+	mmc1_pins_default: mmc1_pins_default {
-+		pinctrl-single,pins = <
-+			DRA7XX_CORE_IOPAD(0x376c, PIN_INPUT | MUX_MODE14)	/* mmc1sdcd.gpio219 */
-+			DRA7XX_CORE_IOPAD(0x3754, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_clk.clk */
-+			DRA7XX_CORE_IOPAD(0x3758, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_cmd.cmd */
-+			DRA7XX_CORE_IOPAD(0x375c, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat0.dat0 */
-+			DRA7XX_CORE_IOPAD(0x3760, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat1.dat1 */
-+			DRA7XX_CORE_IOPAD(0x3764, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat2.dat2 */
-+			DRA7XX_CORE_IOPAD(0x3768, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat3.dat3 */
-+		>;
-+	};
-+
-+	mmc2_pins_default: mmc2_pins_default {
-+		pinctrl-single,pins = <
-+			DRA7XX_CORE_IOPAD(0x349c, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a23.mmc2_clk */
-+			DRA7XX_CORE_IOPAD(0x34b0, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_cs1.mmc2_cmd */
-+			DRA7XX_CORE_IOPAD(0x34a0, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a24.mmc2_dat0 */
-+			DRA7XX_CORE_IOPAD(0x34a4, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a25.mmc2_dat1 */
-+			DRA7XX_CORE_IOPAD(0x34a8, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a26.mmc2_dat2 */
-+			DRA7XX_CORE_IOPAD(0x34ac, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a27.mmc2_dat3 */
-+			DRA7XX_CORE_IOPAD(0x348c, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a19.mmc2_dat4 */
-+			DRA7XX_CORE_IOPAD(0x3490, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a20.mmc2_dat5 */
-+			DRA7XX_CORE_IOPAD(0x3494, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a21.mmc2_dat6 */
-+			DRA7XX_CORE_IOPAD(0x3498, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a22.mmc2_dat7 */
-+		>;
-+	};
+diff --git a/arch/arm/boot/dts/dra72-evm-common.dtsi b/arch/arm/boot/dts/dra72-evm-common.dtsi
+index e50fbeea96e0..64553476c678 100644
+--- a/arch/arm/boot/dts/dra72-evm-common.dtsi
++++ b/arch/arm/boot/dts/dra72-evm-common.dtsi
+@@ -280,7 +280,12 @@
  };
  
- &i2c1 {
-@@ -402,6 +429,8 @@
- 
- &mmc1 {
- 	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mmc1_pins_default>;
- 	vmmc-supply = <&evm_3v3_sd>;
- 	vmmc_aux-supply = <&ldo1_reg>;
- 	bus-width = <4>;
-@@ -414,6 +443,8 @@
- 
- &mmc2 {
- 	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mmc2_pins_default>;
- 	vmmc-supply = <&evm_3v3_sw>;
- 	bus-width = <8>;
- };
+ &gpmc {
+-	status = "okay";
++	/*
++	 * For the existing IOdelay configuration via U-Boot we don't
++	 * support NAND on dra72-evm. Keep it disabled. Enabling it
++	 * requires a different configuration by U-Boot.
++	 */
++	status = "disabled";
+ 	ranges = <0 0 0x08000000 0x01000000>;	/* minimum GPMC partition = 16MB */
+ 	nand@0,0 {
+ 		/* To use NAND, DIP switch SW5 must be set like so:
 -- 
 2.9.0
