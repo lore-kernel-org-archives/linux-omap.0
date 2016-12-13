@@ -1,81 +1,35 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 12/23] drm: omapdrm: plane: update fifo size on atomic
- update
-Date: Tue, 13 Dec 2016 19:35:48 +0200
-Message-ID: <8209536.SBuD0B7HP3@avalon>
-References: <1457455195-1938-1-git-send-email-sre@kernel.org>
- <1457455195-1938-13-git-send-email-sre@kernel.org>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 2/4] dt-bindings: mfd: Remove TPS65217 interrupts
+Date: Tue, 13 Dec 2016 15:09:23 -0600
+Message-ID: <CAL_JsqJL-oh9FwXSH=R2Vr1J2TDD1LqHfFY2es88rsq4Jz7DjQ@mail.gmail.com>
+References: <20161209062833.5768-1-woogyom.kim@gmail.com> <20161209062833.5768-3-woogyom.kim@gmail.com>
+ <20161212172511.5nj7whzytpkmrk7z@rob-hp-laptop> <fe4985c0-d60a-2562-12a7-064404efd64c@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1457455195-1938-13-git-send-email-sre@kernel.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: dri-devel@lists.freedesktop.org
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <fe4985c0-d60a-2562-12a7-064404efd64c@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Milo Kim <woogyom.kim@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-SGkgU2ViYXN0aWFuLAoKVGhhbmsgeW91IGZvciB0aGUgcGF0Y2guCgpPbiBUdWVzZGF5IDA4IE1h
-ciAyMDE2IDE3OjM5OjQ0IFNlYmFzdGlhbiBSZWljaGVsIHdyb3RlOgo+IFRoaXMgaXMgYSB3b3Jr
-YXJvdW5kIGZvciBhIGhhcmR3YXJlIGJ1ZyBvY2N1cmluZwo+IG9uIE9NQVAzIHdpdGggbWFudWFs
-bHkgdXBkYXRlZCBwYW5lbHMuCgpDb3VsZCB5b3UgcGxlYXNlIGV4cGxhaW4gd2hhdCB0aGUgYnVn
-IGlzIGFuZCBob3cgdGhlIHdvcmthcm91bmQgb3BlcmF0ZXMgPyBEbyAKeW91IGhhdmUgYSByZWZl
-cmVuY2UgdG8gYW4gZXJyYXRhIGRvY3VtZW50ID8KCj4gU2lnbmVkLW9mZi1CeTogU2ViYXN0aWFu
-IFJlaWNoZWwgPHNyZUBrZXJuZWwub3JnPgo+IC0tLQo+ICBkcml2ZXJzL2dwdS9kcm0vb21hcGRy
-bS9vbWFwX2Rydi5oICAgfCAgMSArCj4gIGRyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL29tYXBfcGxh
-bmUuYyB8IDIzICsrKysrKysrKysrKysrKysrKysrKysrCj4gIDIgZmlsZXMgY2hhbmdlZCwgMjQg
-aW5zZXJ0aW9ucygrKQo+IAo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9v
-bWFwX2Rydi5oCj4gYi9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX2Rydi5oIGluZGV4IDcx
-ZTJjMjI4NGI4Ni4uM2FiNDkxOWFmZjRiCj4gMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9ncHUvZHJt
-L29tYXBkcm0vb21hcF9kcnYuaAo+ICsrKyBiL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL29tYXBf
-ZHJ2LmgKPiBAQCAtMTYxLDYgKzE2MSw3IEBAIHN0cnVjdCBkcm1fcGxhbmUgKm9tYXBfcGxhbmVf
-aW5pdChzdHJ1Y3QgZHJtX2RldmljZQo+ICpkZXYsIGludCBpZCwgZW51bSBkcm1fcGxhbmVfdHlw
-ZSB0eXBlKTsKPiAgdm9pZCBvbWFwX3BsYW5lX2luc3RhbGxfcHJvcGVydGllcyhzdHJ1Y3QgZHJt
-X3BsYW5lICpwbGFuZSwKPiAgCQlzdHJ1Y3QgZHJtX21vZGVfb2JqZWN0ICpvYmopOwo+ICt2b2lk
-IG9tYXBfcGxhbmVfdXBkYXRlX2ZpZm8oc3RydWN0IGRybV9wbGFuZSAqcGxhbmUpOwo+IAo+ICBz
-dHJ1Y3QgZHJtX2VuY29kZXIgKm9tYXBfZW5jb2Rlcl9pbml0KHN0cnVjdCBkcm1fZGV2aWNlICpk
-ZXYsCj4gIAkJc3RydWN0IG9tYXBfZHNzX2RldmljZSAqZHNzZGV2KTsKPiBkaWZmIC0tZ2l0IGEv
-ZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vb21hcF9wbGFuZS5jCj4gYi9kcml2ZXJzL2dwdS9kcm0v
-b21hcGRybS9vbWFwX3BsYW5lLmMgaW5kZXggZDc1YjE5N2VmZjQ2Li4wMTQ3ZTQxNjE0MGMKPiAx
-MDA2NDQKPiAtLS0gYS9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX3BsYW5lLmMKPiArKysg
-Yi9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX3BsYW5lLmMKPiBAQCAtNzUsNiArNzUsMjgg
-QEAgc3RhdGljIHZvaWQgb21hcF9wbGFuZV9jbGVhbnVwX2ZiKHN0cnVjdCBkcm1fcGxhbmUKPiAq
-cGxhbmUsIG9tYXBfZnJhbWVidWZmZXJfdW5waW4ob2xkX3N0YXRlLT5mYik7Cj4gIH0KPiAKPiAr
-dm9pZCBvbWFwX3BsYW5lX3VwZGF0ZV9maWZvKHN0cnVjdCBkcm1fcGxhbmUgKnBsYW5lKQo+ICt7
-Cj4gKwlzdHJ1Y3Qgb21hcF9wbGFuZSAqb21hcF9wbGFuZSA9IHRvX29tYXBfcGxhbmUocGxhbmUp
-Owo+ICsJc3RydWN0IGRybV9wbGFuZV9zdGF0ZSAqc3RhdGUgPSBwbGFuZS0+c3RhdGU7Cj4gKwlz
-dHJ1Y3QgZHJtX2RldmljZSAqZGV2ID0gcGxhbmUtPmRldjsKPiArCWJvb2wgdXNlX2ZpZm9fbWVy
-Z2UgPSBmYWxzZTsKPiArCXUzMiBmaWZvX2xvdywgZmlmb19oaWdoOwo+ICsJYm9vbCB1c2VfbWFu
-dWFsX3VwZGF0ZTsKPiArCj4gKwlpZiAoIWRpc3BjX292bF9lbmFibGVkKG9tYXBfcGxhbmUtPmlk
-KSkKPiArCQlyZXR1cm47CgpHaXZlbiB0aGF0IHRoaXMgZnVuY3Rpb24gaXMgY2FsbGVkIHJpZ2h0
-IGFmdGVyIGRpc3BjX292bF9lbmFibGUob21hcF9wbGFuZS0KPmlkLCB0cnVlKSwgY2FuIHRoaXMg
-Y29uZGl0aW9uIGJlIHRydWUgPwoKPiArCXVzZV9tYW51YWxfdXBkYXRlID0gb21hcF9jcnRjX2lz
-X21hbnVhbF91cGRhdGVkKHN0YXRlLT5jcnRjKTsKPiArCj4gKwlkaXNwY19vdmxfY29tcHV0ZV9m
-aWZvX3RocmVzaG9sZHMob21hcF9wbGFuZS0+aWQsICZmaWZvX2xvdywgCiZmaWZvX2hpZ2gsCj4g
-KwkJCXVzZV9maWZvX21lcmdlLCB1c2VfbWFudWFsX3VwZGF0ZSk7CgpZb3UgY2FuIHJlbW92ZSB0
-aGUgdXNlX2ZpZm9fbWVyZ2UgdmFyaWFibGUgYW5kIHNldCB0aGUgYXJndW1lbnQgdG8gZmFsc2Ug
-CmRpcmVjdGx5LgoKPiArCj4gKwlkZXZfZGJnKGRldi0+ZGV2LCAidXBkYXRlIGZpZm86ICVkICVk
-IiwgZmlmb19sb3csIGZpZm9faGlnaCk7CgpUaGUgdHdvIHZhcmlhYmxlcyBhcmUgdW5zaWduZWQs
-IHlvdSBzaG91bGQgdXNlICV1LgoKPiArCWRpc3BjX292bF9zZXRfZmlmb190aHJlc2hvbGQob21h
-cF9wbGFuZS0+aWQsIGZpZm9fbG93LCBmaWZvX2hpZ2gpOwoKT24gYSBzaWRlIG5vdGUsIHNob3Vs
-ZG4ndCB0aGUgZGlzcGNfb3ZsX2NvbXB1dGVfZmlmb190aHJlc2hvbGRzKCkgYW5kIApkaXNwY19v
-dmxfc2V0X2ZpZm9fdGhyZXNob2xkKCkgZnVuY3Rpb25zIGJlIG1lcmdlZCBpbnRvIGEgc2luZ2xl
-IG9uZSBhcyAKdGhleSdyZSBhbHdheXMgY2FsbGVkIHRvZ2V0aGVyID8KCj4gK30KPiArCj4gIHN0
-YXRpYyB2b2lkIG9tYXBfcGxhbmVfYXRvbWljX3VwZGF0ZShzdHJ1Y3QgZHJtX3BsYW5lICpwbGFu
-ZSwKPiAgCQkJCSAgICAgc3RydWN0IGRybV9wbGFuZV9zdGF0ZSAqb2xkX3N0YXRlKQo+ICB7Cj4g
-QEAgLTE0MSw2ICsxNjMsNyBAQCBzdGF0aWMgdm9pZCBvbWFwX3BsYW5lX2F0b21pY191cGRhdGUo
-c3RydWN0IGRybV9wbGFuZQo+ICpwbGFuZSwgfQo+IAo+ICAJZGlzcGNfb3ZsX2VuYWJsZShvbWFw
-X3BsYW5lLT5pZCwgdHJ1ZSk7Cj4gKwlvbWFwX3BsYW5lX3VwZGF0ZV9maWZvKHBsYW5lKTsKPiAg
-fQo+IAo+ICBzdGF0aWMgdm9pZCBvbWFwX3BsYW5lX2F0b21pY19kaXNhYmxlKHN0cnVjdCBkcm1f
-cGxhbmUgKnBsYW5lLAoKLS0gClJlZ2FyZHMsCgpMYXVyZW50IFBpbmNoYXJ0CgpfX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBs
-aXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVz
-a3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+On Mon, Dec 12, 2016 at 5:24 PM, Milo Kim <woogyom.kim@gmail.com> wrote:
+> On 12/13/2016 02:25 AM, Rob Herring wrote:
+>>
+>> On Fri, Dec 09, 2016 at 03:28:31PM +0900, Milo Kim wrote:
+>>>
+>>> Interrupt numbers are from the datasheet, so no need to keep them in
+>>> the ABI. Use the number in the DT file.
+>>
+>> I don't see the purpose of ripping this out. The headers have always
+>> been for convienence, not whether the values come from the datasheet or
+>> not.
+>
+>
+> My understanding is it's a same rule as other interrupt controllers.
+
+Oh yes, that's true. We never use defines for interrupts. In that case:
+
+Acked-by: Rob Herring <robh@kernel.org>
+
+Rob
