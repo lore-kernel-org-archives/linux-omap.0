@@ -1,86 +1,63 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH/RFC 7/7] ARM: OMAP2+: Remove unused omapdrm platform device
-Date: Wed, 14 Dec 2016 01:38:26 +0200
-Message-ID: <1481672306-22564-8-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1481672306-22564-1-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv4 00/15] clk: ti: add support for hwmod clocks
+Date: Tue, 13 Dec 2016 16:43:34 -0800
+Message-ID: <20161214004334.GU4920@atomide.com>
+References: <2cfa10a9-9ea0-23e4-30de-9aece13e47e3@ti.com>
+ <20161028233750.GQ16026@codeaurora.org>
+ <7371ef35-5d95-bf78-4c97-c61091a1fa4b@ti.com>
+ <148156710975.37646.2957511113527634913@resonance>
+ <20161213004914.GM5423@codeaurora.org>
+ <20161213013133.GR4920@atomide.com>
+ <148160402543.37646.6019420188689675769@resonance>
+ <4b016883-e7c9-94d8-d964-3c8dfee6ee13@ti.com>
+ <20161213153724.GT4920@atomide.com>
+ <148166654419.37646.7680435609801736363@resonance>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1481672306-22564-1-git-send-email-laurent.pinchart@ideasonboard.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: dri-devel@lists.freedesktop.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <148166654419.37646.7680435609801736363@resonance>
+Sender: linux-clk-owner@vger.kernel.org
+To: Michael Turquette <mturquette@baylibre.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-VGhlIG9tYXBkcm0gcGxhdGZvcm0gZGV2aWNlIGlzIHVudXNlZCwgYXMgYSByZXBsYWNlbWVudCBp
-cyBub3cKcmVnaXN0ZXJlZCBpbiB0aGUgb21hcGRzcyBkcml2ZXIuIFJlbW92ZSBpdC4KClNpZ25l
-ZC1vZmYtYnk6IExhdXJlbnQgUGluY2hhcnQgPGxhdXJlbnQucGluY2hhcnRAaWRlYXNvbmJvYXJk
-LmNvbT4KLS0tCiBhcmNoL2FybS9tYWNoLW9tYXAyL01ha2VmaWxlICB8ICAyICstCiBhcmNoL2Fy
-bS9tYWNoLW9tYXAyL2Rpc3BsYXkuYyB8ICA3IC0tLS0tLS0KIGFyY2gvYXJtL21hY2gtb21hcDIv
-ZGlzcGxheS5oIHwgIDEgLQogYXJjaC9hcm0vbWFjaC1vbWFwMi9kcm0uYyAgICAgfCA0NiAtLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiA0IGZpbGVzIGNoYW5nZWQs
-IDEgaW5zZXJ0aW9uKCspLCA1NSBkZWxldGlvbnMoLSkKIGRlbGV0ZSBtb2RlIDEwMDY0NCBhcmNo
-L2FybS9tYWNoLW9tYXAyL2RybS5jCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9N
-YWtlZmlsZSBiL2FyY2gvYXJtL21hY2gtb21hcDIvTWFrZWZpbGUKaW5kZXggNzZlOGJhNzBkOTUy
-Li45MmM4YzVhY2JiODcgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvTWFrZWZpbGUK
-KysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9NYWtlZmlsZQpAQCAtOCw3ICs4LDcgQEAgY2NmbGFn
-cy15IDo9IC1JJChzcmN0cmVlKS8kKHNyYykvaW5jbHVkZSBcCiAjIENvbW1vbiBzdXBwb3J0CiBv
-YmoteSA6PSBpZC5vIGlvLm8gY29udHJvbC5vIG11eC5vIGRldmljZXMubyBmYi5vIHNlcmlhbC5v
-IHRpbWVyLm8gcG0ubyBcCiAJIGNvbW1vbi5vIGdwaW8ubyBkbWEubyB3ZF90aW1lci5vIGRpc3Bs
-YXkubyBpMmMubyBoZHExdy5vIG9tYXBfaHdtb2QubyBcCi0JIG9tYXBfZGV2aWNlLm8gb21hcC1o
-ZWFkc21wLm8gc3JhbS5vIGRybS5vCisJIG9tYXBfZGV2aWNlLm8gb21hcC1oZWFkc21wLm8gc3Jh
-bS5vCiAKIGh3bW9kLWNvbW1vbgkJCQk9IG9tYXBfaHdtb2QubyBvbWFwX2h3bW9kX3Jlc2V0Lm8g
-XAogCQkJCQkgIG9tYXBfaHdtb2RfY29tbW9uX2RhdGEubwpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0v
-bWFjaC1vbWFwMi9kaXNwbGF5LmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2Rpc3BsYXkuYwppbmRl
-eCA2ODZjZDIyYTQzNzMuLmI4MWIzOWFhNDdmZSAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vbWFjaC1v
-bWFwMi9kaXNwbGF5LmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9kaXNwbGF5LmMKQEAgLTM4
-NSwxMyArMzg1LDYgQEAgaW50IF9faW5pdCBvbWFwZHNzX2luaXRfb2Yodm9pZCkKIAkJcmV0dXJu
-IHI7CiAJfQogCi0JLyogY3JlYXRlIERSTSBkZXZpY2UgKi8KLQlyID0gb21hcF9pbml0X2RybSgp
-OwotCWlmIChyIDwgMCkgewotCQlwcl9lcnIoIlVuYWJsZSB0byByZWdpc3RlciBvbWFwZHJtIGRl
-dmljZVxuIik7Ci0JCXJldHVybiByOwotCX0KLQogCS8qIGNyZWF0ZSB2cmZiIGRldmljZSAqLwog
-CXIgPSBvbWFwX2luaXRfdnJmYigpOwogCWlmIChyIDwgMCkgewpkaWZmIC0tZ2l0IGEvYXJjaC9h
-cm0vbWFjaC1vbWFwMi9kaXNwbGF5LmggYi9hcmNoL2FybS9tYWNoLW9tYXAyL2Rpc3BsYXkuaApp
-bmRleCA5YTM5NjQ2ZDQzMTYuLjQyZWMyZTk5YTJmNCAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vbWFj
-aC1vbWFwMi9kaXNwbGF5LmgKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9kaXNwbGF5LmgKQEAg
-LTI2LDcgKzI2LDYgQEAgc3RydWN0IG9tYXBfZHNzX2Rpc3BjX2Rldl9hdHRyIHsKIAlib29sCWhh
-c19mcmFtZWRvbmV0dl9pcnE7CiB9OwogCi1pbnQgb21hcF9pbml0X2RybSh2b2lkKTsKIGludCBv
-bWFwX2luaXRfdnJmYih2b2lkKTsKIGludCBvbWFwX2luaXRfZmIodm9pZCk7CiBpbnQgb21hcF9p
-bml0X3ZvdXQodm9pZCk7CmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL2RybS5jIGIv
-YXJjaC9hcm0vbWFjaC1vbWFwMi9kcm0uYwpkZWxldGVkIGZpbGUgbW9kZSAxMDA2NDQKaW5kZXgg
-MDZmZDQwYzkyYjk2Li4wMDAwMDAwMDAwMDAKLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9kcm0u
-YworKysgL2Rldi9udWxsCkBAIC0xLDQ2ICswLDAgQEAKLS8qCi0gKiBEUk0vS01TIGRldmljZSBy
-ZWdpc3RyYXRpb24gZm9yIFRJIE9NQVAgcGxhdGZvcm1zCi0gKgotICogQ29weXJpZ2h0IChDKSAy
-MDEyIFRleGFzIEluc3RydW1lbnRzCi0gKiBBdXRob3I6IFJvYiBDbGFyayA8cm9iLmNsYXJrQGxp
-bmFyby5vcmc+Ci0gKgotICogVGhpcyBwcm9ncmFtIGlzIGZyZWUgc29mdHdhcmU7IHlvdSBjYW4g
-cmVkaXN0cmlidXRlIGl0IGFuZC9vciBtb2RpZnkgaXQKLSAqIHVuZGVyIHRoZSB0ZXJtcyBvZiB0
-aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UgdmVyc2lvbiAyIGFzIHB1Ymxpc2hlZCBieQot
-ICogdGhlIEZyZWUgU29mdHdhcmUgRm91bmRhdGlvbi4KLSAqCi0gKiBUaGlzIHByb2dyYW0gaXMg
-ZGlzdHJpYnV0ZWQgaW4gdGhlIGhvcGUgdGhhdCBpdCB3aWxsIGJlIHVzZWZ1bCwgYnV0IFdJVEhP
-VVQKLSAqIEFOWSBXQVJSQU5UWTsgd2l0aG91dCBldmVuIHRoZSBpbXBsaWVkIHdhcnJhbnR5IG9m
-IE1FUkNIQU5UQUJJTElUWSBvcgotICogRklUTkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBVUlBPU0Uu
-ICBTZWUgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGZvcgotICogbW9yZSBkZXRhaWxz
-LgotICoKLSAqIFlvdSBzaG91bGQgaGF2ZSByZWNlaXZlZCBhIGNvcHkgb2YgdGhlIEdOVSBHZW5l
-cmFsIFB1YmxpYyBMaWNlbnNlIGFsb25nIHdpdGgKLSAqIHRoaXMgcHJvZ3JhbS4gIElmIG5vdCwg
-c2VlIDxodHRwOi8vd3d3LmdudS5vcmcvbGljZW5zZXMvPi4KLSAqLwotCi0jaW5jbHVkZSA8bGlu
-dXgvbW9kdWxlLmg+Ci0jaW5jbHVkZSA8bGludXgva2VybmVsLmg+Ci0jaW5jbHVkZSA8bGludXgv
-bW0uaD4KLSNpbmNsdWRlIDxsaW51eC9pbml0Lmg+Ci0jaW5jbHVkZSA8bGludXgvcGxhdGZvcm1f
-ZGV2aWNlLmg+Ci0jaW5jbHVkZSA8bGludXgvZG1hLW1hcHBpbmcuaD4KLQotI2luY2x1ZGUgInNv
-Yy5oIgotI2luY2x1ZGUgImRpc3BsYXkuaCIKLQotI2lmIElTX0VOQUJMRUQoQ09ORklHX0RSTV9P
-TUFQKQotCi1zdGF0aWMgc3RydWN0IHBsYXRmb3JtX2RldmljZSBvbWFwX2RybV9kZXZpY2UgPSB7
-Ci0JLmRldiA9IHsKLQkJLmNvaGVyZW50X2RtYV9tYXNrID0gRE1BX0JJVF9NQVNLKDMyKSwKLQl9
-LAotCS5uYW1lID0gIm9tYXBkcm0iLAotCS5pZCA9IDAsCi19OwotCi1pbnQgX19pbml0IG9tYXBf
-aW5pdF9kcm0odm9pZCkKLXsKLQlyZXR1cm4gcGxhdGZvcm1fZGV2aWNlX3JlZ2lzdGVyKCZvbWFw
-X2RybV9kZXZpY2UpOwotfQotI2Vsc2UKLWludCBfX2luaXQgb21hcF9pbml0X2RybSh2b2lkKSB7
-IHJldHVybiAwOyB9Ci0jZW5kaWYKLS0gClJlZ2FyZHMsCgpMYXVyZW50IFBpbmNoYXJ0CgpfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFp
-bGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5m
-cmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+* Michael Turquette <mturquette@baylibre.com> [161213 14:02]:
+> Quoting Tony Lindgren (2016-12-13 07:37:24)
+> > For the clkctrl clocks, here's what I'd like to see. The driver should be
+> > just a regular device driver along the lines we did with the ADPLL as in
+> > Documentation/devicetree/bindings/clock/ti/adpll.txt.
+> > 
+> > For the binding, something like the following should work as a minimal
+> > example, this follows what we have in the hardware:
+> > 
+> > &prm {
+> >         ...
+> > 
+> >         /* See "CD_WKUP Clock Domain" in 4430 TRM page 393 */
+> >         wkup_cm: clock@1800 {
+> >                 compatible = "ti,clkctrl";
+> >                 reg = <0x1800 0x100>;
+> >                 #clock-cells = <1>;
+> >                 clocks = <&wkup_l4_iclk2 &wkup_32k_fclk
+> >                           &32k_fclk &gp1_fclk>;
+> >                 clock-output-names =
+> >                         "sysctrl_padconf_wkup",
+> >                         "badgap",
+> >                         "sysctrl_general_wkup",
+> >                         "gpio1",
+> >                         "keyboard",
+> >                         "sar_ram",
+> >                         "32ktimer",
+> >                         "gptimer1";
+> 
+> Is there a technical reason to use clock-output-names? If you share a
+> header between the clock provider driver and DT with the phandle offsets
+> then we should be able to avoid this property altogether. Stephen and I
+> are trying to phase this one out as much as possible.
+
+Oh OK no reason for names, defines for the offsets will work just fine.
+
+Regards,
+
+Tony
