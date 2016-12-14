@@ -1,92 +1,84 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] n900 device tree: cleanup
-Date: Wed, 14 Dec 2016 13:28:27 +0100
-Message-ID: <201612141328.27244@pali>
-References: <20161011075416.GA22453@amd> <20161011081243.GA24580@amd> <20161207031048.pi7j4dms5uuco3yf@earth>
+From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: dra72-evm-tps65917: Add voltage supplies to
+ usb_phy, mmc, dss
+Date: Wed, 14 Dec 2016 18:05:09 +0530
+Message-ID: <972859e0-30ff-8170-d5d3-af9b8591276b@ti.com>
+References: <20161214085703.506-1-lokeshvutla@ti.com>
+ <2bb73170-dbb5-01a3-5b3a-4d5d9414e3a9@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart3638040.DW2B4hSsXt";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161207031048.pi7j4dms5uuco3yf@earth>
+In-Reply-To: <2bb73170-dbb5-01a3-5b3a-4d5d9414e3a9-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, aaro.koskinen-X3B1VOXEql0@public.gmane.org, ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, patrikbachan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Carlos Hernandez <ceh-l0cyMroinI0@public.gmane.org>, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux ARM Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---nextPart3638040.DW2B4hSsXt
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Wednesday 07 December 2016 04:10:48 Sebastian Reichel wrote:
-> Hi Tony,
->=20
-> It looks like this fell through the cracks. Apart from inconsistent
-> patch subject:
->=20
-> Reviewed-By: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-=46ine for me too. Reviewed-By: Pali Roh=C3=A1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+On Wednesday 14 December 2016 04:30 PM, Roger Quadros wrote:
+> Lokesh,
+> 
+> On 14/12/16 10:57, Lokesh Vutla wrote:
+>> Commit 5d080aa30681 ("ARM: dts: dra72: Add separate dtsi for tps65917")
+>> added a separate dtsi for dra72-evm-tps65917 moving all the voltage supplies
+>> to this file. But it missed adding voltage supplies to usb_phy, mmc,
+>> dss and deleted from dra72-evm-common.dtsi. Adding the voltage supply
+>> phandles to these nodes in dra72-evm-tps65917.dtsi
+>>
+>> Fixes: 5d080aa30681 ("ARM: dts: dra72: Add separate dtsi for tps65917")
+>> Reported-by: Carlos Hernandez <ceh-l0cyMroinI0@public.gmane.org>
+>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>> Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+>> ---
+>> Logs:
+>> - DRA72-evm revC: http://pastebin.ubuntu.com/23627665/ 
+>> - DRA72-evm revB: http://pastebin.ubuntu.com/23627658/
+>>  arch/arm/boot/dts/dra72-evm-tps65917.dtsi | 16 ++++++++++++++++
+>>  1 file changed, 16 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/dra72-evm-tps65917.dtsi b/arch/arm/boot/dts/dra72-evm-tps65917.dtsi
+>> index ee6dac44edf1..e6df676886c0 100644
+>> --- a/arch/arm/boot/dts/dra72-evm-tps65917.dtsi
+>> +++ b/arch/arm/boot/dts/dra72-evm-tps65917.dtsi
+>> @@ -132,3 +132,19 @@
+>>  		ti,palmas-long-press-seconds = <6>;
+>>  	};
+>>  };
+>> +
+>> +&usb2_phy1 {
+>> +	phy-supply = <&ldo4_reg>;
+>> +};
+>> +
+>> +&usb2_phy2 {
+>> +	phy-supply = <&ldo4_reg>;
+>> +};
+>> +
+>> +&dss {
+>> +	vdda_video-supply = <&ldo5_reg>;
+>> +};
+>> +
+>> +&mmc1 {
+>> +	vmmc_aux-supply = <&ldo1_reg>;
+>> +};
+>>
+> 
+> Are you sure that all future users of dra72-evm-tps65917.dtsi will use this same configuration?
+> If not I'd rather put this in the board dts files.
 
-> -- Sebastian
->=20
-> On Tue, Oct 11, 2016 at 10:12:43AM +0200, Pavel Machek wrote:
-> > Fix GPIO comment to be consistent with rest of file and add comment
-> > what tpa6130 is.
-> >=20
-> > Signed-off-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-> >=20
-> > diff --git a/arch/arm/boot/dts/omap3-n900.dts
-> > b/arch/arm/boot/dts/omap3-n900.dts index bfffd6c..ca9fe8c 100644
-> > --- a/arch/arm/boot/dts/omap3-n900.dts
-> > +++ b/arch/arm/boot/dts/omap3-n900.dts
-> > @@ -47,7 +47,7 @@
-> >=20
-> >  		compatible =3D "gpio-leds";
-> >  		heartbeat {
-> >  	=09
-> >  			label =3D "debug::sleep";
-> >=20
-> > -			gpios =3D <&gpio6 2 GPIO_ACTIVE_HIGH>;  /* gpio162 */
-> > +			gpios =3D <&gpio6 2 GPIO_ACTIVE_HIGH>;  /* 162 */
-> >=20
-> >  			linux,default-trigger =3D "default-on";
-> >  			pinctrl-names =3D "default";
-> >  			pinctrl-0 =3D <&debug_leds>;
-> >=20
-> > @@ -637,6 +637,7 @@
-> >=20
-> >  		reg =3D <0x55>;
-> >  =09
-> >  	};
-> >=20
-> > +	/* Stereo headphone amplifier */
-> >=20
-> >  	tpa6130a2: tpa6130a2@60 {
-> >  =09
-> >  		compatible =3D "ti,tpa6130a2";
-> >  		reg =3D <0x60>;
+hmm..This debate already happened when creating dra72-evm-tps65917 file
+and concluded that all the common regulator stuff on dra72 evm revA,B,C
+should go in this file. Any new board which is not similar to dra72-evm
+will not be using this file.
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Thanks and regards,
+Lokesh
 
---nextPart3638040.DW2B4hSsXt
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlhROusACgkQi/DJPQPkQ1KqIgCgpXmjSy8k78ZLYJOuhYALLbsN
-Hk8An3Ol5j64MuvFtp3OJ0s1699hEmhu
-=0Yiq
------END PGP SIGNATURE-----
-
---nextPart3638040.DW2B4hSsXt--
+> 
+> cheers,
+> -roger
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
