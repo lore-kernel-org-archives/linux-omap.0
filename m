@@ -1,84 +1,69 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: dra72-evm-tps65917: Add voltage supplies to
- usb_phy, mmc, dss
-Date: Wed, 14 Dec 2016 14:46:04 +0200
-Message-ID: <0ebffa34-c095-46f7-431e-a8886b33a468@ti.com>
-References: <20161214085703.506-1-lokeshvutla@ti.com>
- <2bb73170-dbb5-01a3-5b3a-4d5d9414e3a9@ti.com>
- <972859e0-30ff-8170-d5d3-af9b8591276b@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: partial bluetooth success on n900 [was Re: bluetooth/uart
+ timeout handling]
+Date: Wed, 14 Dec 2016 13:53:23 +0100
+Message-ID: <20161214125323.GA4951@amd>
+References: <20161016002454.ul5rdqwubvkct4pf@earth>
+ <20161018224259.jrwbaal27irzjqyo@earth>
+ <20161019092506.GA1461@amd>
+ <201612141321.30181@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <972859e0-30ff-8170-d5d3-af9b8591276b-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Carlos Hernandez <ceh-l0cyMroinI0@public.gmane.org>, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux ARM Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="bp/iNruPH9dso1Pn"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201612141321.30181@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: tony@atomide.com, Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-On 14/12/16 14:35, Lokesh Vutla wrote:
-> 
-> 
-> On Wednesday 14 December 2016 04:30 PM, Roger Quadros wrote:
->> Lokesh,
->>
->> On 14/12/16 10:57, Lokesh Vutla wrote:
->>> Commit 5d080aa30681 ("ARM: dts: dra72: Add separate dtsi for tps65917")
->>> added a separate dtsi for dra72-evm-tps65917 moving all the voltage supplies
->>> to this file. But it missed adding voltage supplies to usb_phy, mmc,
->>> dss and deleted from dra72-evm-common.dtsi. Adding the voltage supply
->>> phandles to these nodes in dra72-evm-tps65917.dtsi
->>>
->>> Fixes: 5d080aa30681 ("ARM: dts: dra72: Add separate dtsi for tps65917")
->>> Reported-by: Carlos Hernandez <ceh-l0cyMroinI0@public.gmane.org>
->>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
->>> Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
->>> ---
->>> Logs:
->>> - DRA72-evm revC: http://pastebin.ubuntu.com/23627665/ 
->>> - DRA72-evm revB: http://pastebin.ubuntu.com/23627658/
->>>  arch/arm/boot/dts/dra72-evm-tps65917.dtsi | 16 ++++++++++++++++
->>>  1 file changed, 16 insertions(+)
->>>
->>> diff --git a/arch/arm/boot/dts/dra72-evm-tps65917.dtsi b/arch/arm/boot/dts/dra72-evm-tps65917.dtsi
->>> index ee6dac44edf1..e6df676886c0 100644
->>> --- a/arch/arm/boot/dts/dra72-evm-tps65917.dtsi
->>> +++ b/arch/arm/boot/dts/dra72-evm-tps65917.dtsi
->>> @@ -132,3 +132,19 @@
->>>  		ti,palmas-long-press-seconds = <6>;
->>>  	};
->>>  };
->>> +
->>> +&usb2_phy1 {
->>> +	phy-supply = <&ldo4_reg>;
->>> +};
->>> +
->>> +&usb2_phy2 {
->>> +	phy-supply = <&ldo4_reg>;
->>> +};
->>> +
->>> +&dss {
->>> +	vdda_video-supply = <&ldo5_reg>;
->>> +};
->>> +
->>> +&mmc1 {
->>> +	vmmc_aux-supply = <&ldo1_reg>;
->>> +};
->>>
->>
->> Are you sure that all future users of dra72-evm-tps65917.dtsi will use this same configuration?
->> If not I'd rather put this in the board dts files.
-> 
-> hmm..This debate already happened when creating dra72-evm-tps65917 file
-> and concluded that all the common regulator stuff on dra72 evm revA,B,C
-> should go in this file. Any new board which is not similar to dra72-evm
-> will not be using this file.
 
-OK, then it is fine. Thanks for clarifying.
+--bp/iNruPH9dso1Pn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi!
+
+> > [  220.248596] tty ttyO1: Radio packet sent
+> > [  220.249328] Bluetooth: hci0: Frame reassembly failed (-84)
+> > [  220.272949] tty ttyO1: wakeup received: 1 -> 0
+> > [  221.283477] tty ttyO1: radio packet timeout!
+> > [  221.283630] enqueue: hu c304cc80 skb cd4a9b40
+> > [  223.363372] Bluetooth: hci0 command 0xfc18 tx timeout
+> > pavel@n900:~$
+>=20
+> In log are still some failures, but ... is bluetooth working now?
+
+It is... for Sebastian. I'm playing with camera now.
+
+> I see that you applied this patch:=20
+> https://git.kernel.org/cgit/linux/kernel/git/pavel/linux-n900.git/commit/=
+?id=3D051aa3fbf03ac770d8344690f5a936a7f04c6884
+>=20
+> Looks like that pinmux is in DTS file incorrect. Can somebody verify it?=
+=20
+> Maybe Tony?
+
+Yes, it is. Sebastian was pretty certain about that.
+
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--bp/iNruPH9dso1Pn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlhRQMMACgkQMOfwapXb+vImVACfV20SxCy9Q6wkszEJZZT6t6nK
+obIAoIJZbo16tmQBnKSiv6uYHLCgbiQa
+=zBMr
+-----END PGP SIGNATURE-----
+
+--bp/iNruPH9dso1Pn--
