@@ -1,75 +1,65 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] ARM: dts: dra72-evm-tps65917: Add voltage supplies to
- usb_phy, mmc, dss
-Date: Wed, 14 Dec 2016 13:00:50 +0200
-Message-ID: <2bb73170-dbb5-01a3-5b3a-4d5d9414e3a9@ti.com>
-References: <20161214085703.506-1-lokeshvutla@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH/RFC 6/7] drm: omapdrm: Register omapdrm platform device in
+ omapdss driver
+Date: Wed, 14 Dec 2016 13:54 +0200
+Message-ID: <1669973.223xD2lWLV@avalon>
+References: <1481672306-22564-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1481672306-22564-7-git-send-email-laurent.pinchart@ideasonboard.com>
+ <717377fd-6f94-9311-6b2c-fc2cdb7b342e@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20161214085703.506-1-lokeshvutla@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lokesh Vutla <lokeshvutla@ti.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
-Cc: devicetree@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, Carlos Hernandez <ceh@ti.com>, Tero Kristo <t-kristo@ti.com>, robh+dt@kernel.org, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <717377fd-6f94-9311-6b2c-fc2cdb7b342e@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-Lokesh,
-
-On 14/12/16 10:57, Lokesh Vutla wrote:
-> Commit 5d080aa30681 ("ARM: dts: dra72: Add separate dtsi for tps65917")
-> added a separate dtsi for dra72-evm-tps65917 moving all the voltage supplies
-> to this file. But it missed adding voltage supplies to usb_phy, mmc,
-> dss and deleted from dra72-evm-common.dtsi. Adding the voltage supply
-> phandles to these nodes in dra72-evm-tps65917.dtsi
-> 
-> Fixes: 5d080aa30681 ("ARM: dts: dra72: Add separate dtsi for tps65917")
-> Reported-by: Carlos Hernandez <ceh@ti.com>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-> ---
-> Logs:
-> - DRA72-evm revC: http://pastebin.ubuntu.com/23627665/ 
-> - DRA72-evm revB: http://pastebin.ubuntu.com/23627658/
->  arch/arm/boot/dts/dra72-evm-tps65917.dtsi | 16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/dra72-evm-tps65917.dtsi b/arch/arm/boot/dts/dra72-evm-tps65917.dtsi
-> index ee6dac44edf1..e6df676886c0 100644
-> --- a/arch/arm/boot/dts/dra72-evm-tps65917.dtsi
-> +++ b/arch/arm/boot/dts/dra72-evm-tps65917.dtsi
-> @@ -132,3 +132,19 @@
->  		ti,palmas-long-press-seconds = <6>;
->  	};
->  };
-> +
-> +&usb2_phy1 {
-> +	phy-supply = <&ldo4_reg>;
-> +};
-> +
-> +&usb2_phy2 {
-> +	phy-supply = <&ldo4_reg>;
-> +};
-> +
-> +&dss {
-> +	vdda_video-supply = <&ldo5_reg>;
-> +};
-> +
-> +&mmc1 {
-> +	vmmc_aux-supply = <&ldo1_reg>;
-> +};
-> 
-
-Are you sure that all future users of dra72-evm-tps65917.dtsi will use this same configuration?
-If not I'd rather put this in the board dts files.
-
-cheers,
--roger
+SGkgVG9taSwKCk9uIFdlZG5lc2RheSAxNCBEZWMgMjAxNiAxMDoyMDozOSBUb21pIFZhbGtlaW5l
+biB3cm90ZToKPiBPbiAxNC8xMi8xNiAwMTozOCwgTGF1cmVudCBQaW5jaGFydCB3cm90ZToKPiA+
+IFRoZSBvbWFwZHJtIHBsYXRmb3JtIGRldmljZSBpcyBhIHZpcnR1YWwgZGV2aWNlIGNyZWF0ZWQg
+Zm9yIHRoZSBzb2xlCj4gPiBwdXJwb3NlIG9mIGhhbmRsaW5nIHRoZSBvbWFwZHNzL29tYXBkcm0g
+ZHJpdmVyIHNwbGl0LiBJdCBzaG91bGQKPiA+IGV2ZW50dWFsbHkgYmUgcmVtb3ZlZC4gQXMgYSBm
+aXJzdCBzdGVwIHRvIGVhc2UgcmVmYWN0b3JpbmcgbW92ZSBpdHMKPiA+IHJlZ2lzdHJhdGlvbiBm
+cm9tIHBsYXRmb3JtIGNvZGUgdG8gZHJpdmVyIGNvZGUuCj4gPiAKPiA+IFRoZSBvbWFwZHJtIGRy
+aXZlciBuYW1lIG11c3QgYmUgY2hhbmdlZCBpbnRlcm5hbGx5IHRvIGF2b2lkIHByb2JpbmcgYm90
+aAo+ID4gdGhlIGRldmljZSByZWdpc3RlcmVkIGluIHBsYXRmb3JtIGNvZGUgYW5kIHRoZSBkZXZp
+Y2UgcmVnaXN0ZXJlZCBpbiB0aGUKPiA+IG9tYXBkc3MgZHJpdmVyLCBhcyB0aGF0IHdvdWxkIG90
+aGVyd2lzZSBicmVhayBiaXNlY3Rpb24uCj4gPiAKPiA+IFNpZ25lZC1vZmYtYnk6IExhdXJlbnQg
+UGluY2hhcnQgPGxhdXJlbnQucGluY2hhcnRAaWRlYXNvbmJvYXJkLmNvbT4KPiA+IC0tLQo+ID4g
+IGRyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9jb3JlLmMgfCAxNyArKysrKysrKysrKysrKysr
+Kwo+ID4gIGRyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL29tYXBfZHJ2LmMgfCAgMiArLQo+ID4gIDIg
+ZmlsZXMgY2hhbmdlZCwgMTggaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQo+ID4gCj4gPiBk
+aWZmIC0tZ2l0IGEvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vZHNzL2NvcmUuYwo+ID4gYi9kcml2
+ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvY29yZS5jIGluZGV4IDFiZjk3OGI1YzViYy4uYjdjNDRi
+ODViN2MzCj4gPiAxMDA2NDQKPiA+IC0tLSBhL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9j
+b3JlLmMKPiA+ICsrKyBiL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9jb3JlLmMKCltzbmlw
+XQoKPiA+IEBAIC0yODUsNiArMjg2LDE2IEBAIHN0YXRpYyB2b2lkICgqZHNzX291dHB1dF9kcnZf
+dW5yZWdfZnVuY3NbXSkodm9pZCkgPSB7Cj4gPiAKPiA+ICAJZHNzX3VuaW5pdF9wbGF0Zm9ybV9k
+cml2ZXIsCj4gPiAgCj4gPiAgfTsKPiA+IAo+ID4gKyNpZiBJU19FTkFCTEVEKENPTkZJR19EUk1f
+T01BUCkKPiAKPiBUaGUgI2lmcyBhcmUgbm90IG5lZWRlZCwgZG9uJ3QgY29tcGlsZSB0aGlzIGZp
+bGUgaWYgdGhlcmUncyBubyBEUk1fT01BUC4KClJpZ2h0LCBmb3IgYSBtb21lbnQgSSBmb3Jnb3Qg
+dGhhdCB0aGUgZHNzIGNvcmUgaXNuJ3Qgc2hhcmVkIGFueW1vcmUgYmV0d2VlbiAKRFJNIGFuZCBG
+QkRFVi4gSSdsbCBmaXggdGhpcy4KCj4gPiArc3RhdGljIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2Ug
+b21hcF9kcm1fZGV2aWNlID0gewo+ID4gKwkuZGV2ID0gewo+ID4gKwkJLmNvaGVyZW50X2RtYV9t
+YXNrID0gRE1BX0JJVF9NQVNLKDMyKSwKPiA+ICsJfSwKPiA+ICsJLm5hbWUgPSAib21hcGRybV8i
+LAo+ID4gKwkuaWQgPSAwLAo+ID4gK307Cj4gPiArI2VuZGlmCj4gPiArCj4gPiAgc3RhdGljIGlu
+dCBfX2luaXQgb21hcF9kc3NfaW5pdCh2b2lkKQo+ID4gIHsKPiA+ICAJaW50IHI7Cj4gPiBAQCAt
+MzAwLDYgKzMxMSwxMiBAQCBzdGF0aWMgaW50IF9faW5pdCBvbWFwX2Rzc19pbml0KHZvaWQpCj4g
+PiAgCQkJZ290byBlcnJfcmVnOwo+ID4gIAl9Cj4gPiAKPiA+ICsjaWYgSVNfRU5BQkxFRChDT05G
+SUdfRFJNX09NQVApCj4gPiArCXIgPSBwbGF0Zm9ybV9kZXZpY2VfcmVnaXN0ZXIoJm9tYXBfZHJt
+X2RldmljZSk7Cj4gPiArCWlmIChyKQo+ID4gKwkJZ290byBlcnJfcmVnOwo+ID4gKyNlbmRpZgo+
+IAo+IFdoZXJlIGlzIHRoZSB1bnJlZ2lzdGVyPwoKT29wcy4gV2lsbCBmaXggdG9vLgoKLS0gClJl
+Z2FyZHMsCgpMYXVyZW50IFBpbmNoYXJ0CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5m
+cmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0
+aW5mby9kcmktZGV2ZWwK
