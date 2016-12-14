@@ -1,14 +1,15 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH/RFC 6/7] drm: omapdrm: Register omapdrm platform device in
- omapdss driver
-Date: Wed, 14 Dec 2016 10:20:39 +0200
-Message-ID: <717377fd-6f94-9311-6b2c-fc2cdb7b342e@ti.com>
-References: <1481672306-22564-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1481672306-22564-7-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 12/23] drm: omapdrm: plane: update fifo size on atomic
+ update
+Date: Wed, 14 Dec 2016 10:43:18 +0200
+Message-ID: <4c863692-d6d4-3940-b78e-3e7b9d114cad@ti.com>
+References: <1457455195-1938-1-git-send-email-sre@kernel.org>
+ <1457455195-1938-13-git-send-email-sre@kernel.org>
+ <8209536.SBuD0B7HP3@avalon>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0577021231=="
+Content-Type: multipart/mixed; boundary="===============0536498856=="
 Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1481672306-22564-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <8209536.SBuD0B7HP3@avalon>
 List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
 List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
@@ -19,102 +20,59 @@ List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
 Errors-To: dri-devel-bounces@lists.freedesktop.org
 Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org
-Cc: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
---===============0577021231==
+--===============0536498856==
 Content-Type: multipart/signed; micalg=pgp-sha256;
 	protocol="application/pgp-signature";
-	boundary="K3AAAgaruogaSUD9UUMqoHiXu6RwcgnJE"
+	boundary="xXiuDnCtLIaXRbXfrvSu3jA2tSBWg7Fd5"
 
---K3AAAgaruogaSUD9UUMqoHiXu6RwcgnJE
-Content-Type: multipart/mixed; boundary="mWcDFlE2PTWrs8R3FFX2nTxrfAnRXiLfN";
+--xXiuDnCtLIaXRbXfrvSu3jA2tSBWg7Fd5
+Content-Type: multipart/mixed; boundary="a1BueXqdL9Uxn1xC3qGo8tapBJU2nak2V";
  protected-headers="v1"
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
  dri-devel@lists.freedesktop.org
-Cc: linux-omap@vger.kernel.org
-Message-ID: <717377fd-6f94-9311-6b2c-fc2cdb7b342e@ti.com>
-Subject: Re: [PATCH/RFC 6/7] drm: omapdrm: Register omapdrm platform device in
- omapdss driver
-References: <1481672306-22564-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1481672306-22564-7-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1481672306-22564-7-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>,
+ Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Message-ID: <4c863692-d6d4-3940-b78e-3e7b9d114cad@ti.com>
+Subject: Re: [PATCH 12/23] drm: omapdrm: plane: update fifo size on atomic
+ update
+References: <1457455195-1938-1-git-send-email-sre@kernel.org>
+ <1457455195-1938-13-git-send-email-sre@kernel.org>
+ <8209536.SBuD0B7HP3@avalon>
+In-Reply-To: <8209536.SBuD0B7HP3@avalon>
 
---mWcDFlE2PTWrs8R3FFX2nTxrfAnRXiLfN
+--a1BueXqdL9Uxn1xC3qGo8tapBJU2nak2V
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 14/12/16 01:38, Laurent Pinchart wrote:
-> The omapdrm platform device is a virtual device created for the sole
-> purpose of handling the omapdss/omapdrm driver split. It should
-> eventually be removed. As a first step to ease refactoring move its
-> registration from platform code to driver code.
+On 13/12/16 19:35, Laurent Pinchart wrote:
+> Hi Sebastian,
 >=20
-> The omapdrm driver name must be changed internally to avoid probing bot=
-h
-> the device registered in platform code and the device registered in the=
-
-> omapdss driver, as that would otherwise break bisection.
+> Thank you for the patch.
 >=20
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/gpu/drm/omapdrm/dss/core.c | 17 +++++++++++++++++
->  drivers/gpu/drm/omapdrm/omap_drv.c |  2 +-
->  2 files changed, 18 insertions(+), 1 deletion(-)
+> On Tuesday 08 Mar 2016 17:39:44 Sebastian Reichel wrote:
+>> This is a workaround for a hardware bug occuring
+>> on OMAP3 with manually updated panels.
 >=20
-> diff --git a/drivers/gpu/drm/omapdrm/dss/core.c b/drivers/gpu/drm/omapd=
-rm/dss/core.c
-> index 1bf978b5c5bc..b7c44b85b7c3 100644
-> --- a/drivers/gpu/drm/omapdrm/dss/core.c
-> +++ b/drivers/gpu/drm/omapdrm/dss/core.c
-> @@ -22,6 +22,7 @@
-> =20
->  #define DSS_SUBSYS_NAME "CORE"
-> =20
-> +#include <linux/dma-mapping.h>
->  #include <linux/kernel.h>
->  #include <linux/module.h>
->  #include <linux/clk.h>
-> @@ -285,6 +286,16 @@ static void (*dss_output_drv_unreg_funcs[])(void) =
-=3D {
->  	dss_uninit_platform_driver,
->  };
-> =20
-> +#if IS_ENABLED(CONFIG_DRM_OMAP)
+> Could you please explain what the bug is and how the workaround operate=
+s ? Do=20
+> you have a reference to an errata document ?
 
-The #ifs are not needed, don't compile this file if there's no DRM_OMAP.
-
-> +static struct platform_device omap_drm_device =3D {
-> +	.dev =3D {
-> +		.coherent_dma_mask =3D DMA_BIT_MASK(32),
-> +	},
-> +	.name =3D "omapdrm_",
-> +	.id =3D 0,
-> +};
-> +#endif
-> +
->  static int __init omap_dss_init(void)
->  {
->  	int r;
-> @@ -300,6 +311,12 @@ static int __init omap_dss_init(void)
->  			goto err_reg;
->  	}
-> =20
-> +#if IS_ENABLED(CONFIG_DRM_OMAP)
-> +	r =3D platform_device_register(&omap_drm_device);
-> +	if (r)
-> +		goto err_reg;
-> +#endif
-
-Where is the unregister?
+I don't think I ever found out exactly why the problem happens. But on
+OMAP3 DSI, the fifo thresholds had to be tuned slightly, otherwise DISPC
+would stop. dispc_ovl_compute_fifo_thresholds() does that tuning if
+"manual_update" parameter is set on OMAP3.
 
  Tomi
 
 
---mWcDFlE2PTWrs8R3FFX2nTxrfAnRXiLfN--
+--a1BueXqdL9Uxn1xC3qGo8tapBJU2nak2V--
 
---K3AAAgaruogaSUD9UUMqoHiXu6RwcgnJE
+--xXiuDnCtLIaXRbXfrvSu3jA2tSBWg7Fd5
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -122,24 +80,24 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJYUQDXAAoJEPo9qoy8lh718wIP/jZJPw+dZlRaB4SNCdqnIxvl
-CFzX5JZVeBTPS/gSrzaOsCXO9JMBIH5pUrKVv03gPgLy2qs6OzFVtjGK+qY9V9Fi
-NSnlOu0FE9qfzttVUB/UNYM31xmmZR0wox9RzLVvF4Revn/vhJv7NaQ6ZXOEGeu5
-ngQA79LoVa4rtJcLKGtJLH3B2BnFSC+w0FWedIUir4fy184OVLYLJpKijhxEVUUc
-o+6oE28scLvmHN2PZyZ+G9RakrkWYjBR6S02N+qifoqG64uEYG6vV9CnHaEdXUaV
-pGHjQeK3rui6YYmajtBM1s4/zglEb+6nMEZnNlmOjGCaWekH6QNSagpyUCNd5z7k
-/NMwsEATG9VwKjiNbDaR1yuZrMIP653oO7IqyNX3G4OaedyaAur2T5GiG6USsDrp
-boMdAtFAZodGQfdGfVmyy1+k09iMEJsZvrCQQqnqUnaNZtueum8b9xXCcLT8kB2y
-Go/q9H8e6iOEzp5aoX6Syi3GrZ4BS2fnmCN49kEpUlKQIuC4PudoaeQH0YXwUC8M
-CrG4GewCKvnEpZ92yEEedYfDkIpvgvEbC87qcdlKfq/vKMbPmualImVQF7eMOWaW
-kHCVNhqbg7A5Qdij6nyjFxrDwZedollGSV9r/TMvKgRpbFwvpzXwidZRFJ1IcftH
-dzZFbZrdk9rqiP6YuJTc
-=khJ7
+iQIcBAEBCAAGBQJYUQYmAAoJEPo9qoy8lh71x+sQAKt1hGj4J6ZOy5iqntyzRHkM
+Wixci6A/67VZ6PR16gE6V09XDFvim7mQSIDfgK+xR1S1Lg4ypZiuHWNloxxSQ6WD
+m4crWOBLHURmBss0lDiJB2PFCqzBo0M2SVhcBJjTh5K2MavohPdWQKKuU2l6hI4c
+dAnTdE8Ka+RgiO5UsRau8s/fTm3Itg6/nTSTvZyHRKI44Xs4Wizo0EsLDSPiwX0T
+R6dYVtrqHM53xrrxRpbI+bJHwBoK+pCugNROlU/fLlzc/O6NOsRI0utAq9+8zjE/
+JfMGZ0X+HkAMW8sqMi31cqEid75rhIBofPbW4gldEZ/O+HmBB0knql9iq+iNZGc0
+wK4eK+5bEjpG0thl9walST/DNejrdEkz33pe9j3T9bV8jg2xhNdYxrR6zfAN8gYt
+LnMcvv7UrFV6HTqy5esTCk1JtMb0cQkMwmsjGkot1kx7ZKMfZROLo3/tGTqceTXd
+X30dxu5ECMIxtzFaUWztNCu4geXuoMVbnBF/LX1Iea6LEsGgCHlTYxEYC7F9TcXO
+GApr+UXpwkHSWAg4pWieheCRHoVWMElt7rxUoF0UeQ0S7vs7zZEfXnk42MvcwBsg
+kQYfJZfJ2x1RCIdpjRwMpdV7xmDifo6QRaO6YMRVAHJMZtjXA+UVXgc7aW0r0EBJ
+VpQKh1/qyAOydhOFEVB8
+=ncDS
 -----END PGP SIGNATURE-----
 
---K3AAAgaruogaSUD9UUMqoHiXu6RwcgnJE--
+--xXiuDnCtLIaXRbXfrvSu3jA2tSBWg7Fd5--
 
---===============0577021231==
+--===============0536498856==
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
@@ -149,4 +107,4 @@ X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
 IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
 dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
 
---===============0577021231==--
+--===============0536498856==--
