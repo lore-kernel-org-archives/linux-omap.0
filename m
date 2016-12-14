@@ -1,65 +1,242 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH/RFC 6/7] drm: omapdrm: Register omapdrm platform device in
- omapdss driver
-Date: Wed, 14 Dec 2016 13:54 +0200
-Message-ID: <1669973.223xD2lWLV@avalon>
-References: <1481672306-22564-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1481672306-22564-7-git-send-email-laurent.pinchart@ideasonboard.com>
- <717377fd-6f94-9311-6b2c-fc2cdb7b342e@ti.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: partial bluetooth success on n900 [was Re: bluetooth/uart timeout handling]
+Date: Wed, 14 Dec 2016 13:21:29 +0100
+Message-ID: <201612141321.30181@pali>
+References: <20161016002454.ul5rdqwubvkct4pf@earth> <20161018224259.jrwbaal27irzjqyo@earth> <20161019092506.GA1461@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <717377fd-6f94-9311-6b2c-fc2cdb7b342e@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
+Content-Type: multipart/signed;
+  boundary="nextPart1906015.vqFM4fM2j8";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161019092506.GA1461@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>, tony@atomide.com
+Cc: Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-SGkgVG9taSwKCk9uIFdlZG5lc2RheSAxNCBEZWMgMjAxNiAxMDoyMDozOSBUb21pIFZhbGtlaW5l
-biB3cm90ZToKPiBPbiAxNC8xMi8xNiAwMTozOCwgTGF1cmVudCBQaW5jaGFydCB3cm90ZToKPiA+
-IFRoZSBvbWFwZHJtIHBsYXRmb3JtIGRldmljZSBpcyBhIHZpcnR1YWwgZGV2aWNlIGNyZWF0ZWQg
-Zm9yIHRoZSBzb2xlCj4gPiBwdXJwb3NlIG9mIGhhbmRsaW5nIHRoZSBvbWFwZHNzL29tYXBkcm0g
-ZHJpdmVyIHNwbGl0LiBJdCBzaG91bGQKPiA+IGV2ZW50dWFsbHkgYmUgcmVtb3ZlZC4gQXMgYSBm
-aXJzdCBzdGVwIHRvIGVhc2UgcmVmYWN0b3JpbmcgbW92ZSBpdHMKPiA+IHJlZ2lzdHJhdGlvbiBm
-cm9tIHBsYXRmb3JtIGNvZGUgdG8gZHJpdmVyIGNvZGUuCj4gPiAKPiA+IFRoZSBvbWFwZHJtIGRy
-aXZlciBuYW1lIG11c3QgYmUgY2hhbmdlZCBpbnRlcm5hbGx5IHRvIGF2b2lkIHByb2JpbmcgYm90
-aAo+ID4gdGhlIGRldmljZSByZWdpc3RlcmVkIGluIHBsYXRmb3JtIGNvZGUgYW5kIHRoZSBkZXZp
-Y2UgcmVnaXN0ZXJlZCBpbiB0aGUKPiA+IG9tYXBkc3MgZHJpdmVyLCBhcyB0aGF0IHdvdWxkIG90
-aGVyd2lzZSBicmVhayBiaXNlY3Rpb24uCj4gPiAKPiA+IFNpZ25lZC1vZmYtYnk6IExhdXJlbnQg
-UGluY2hhcnQgPGxhdXJlbnQucGluY2hhcnRAaWRlYXNvbmJvYXJkLmNvbT4KPiA+IC0tLQo+ID4g
-IGRyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9jb3JlLmMgfCAxNyArKysrKysrKysrKysrKysr
-Kwo+ID4gIGRyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL29tYXBfZHJ2LmMgfCAgMiArLQo+ID4gIDIg
-ZmlsZXMgY2hhbmdlZCwgMTggaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQo+ID4gCj4gPiBk
-aWZmIC0tZ2l0IGEvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vZHNzL2NvcmUuYwo+ID4gYi9kcml2
-ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvY29yZS5jIGluZGV4IDFiZjk3OGI1YzViYy4uYjdjNDRi
-ODViN2MzCj4gPiAxMDA2NDQKPiA+IC0tLSBhL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9j
-b3JlLmMKPiA+ICsrKyBiL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9jb3JlLmMKCltzbmlw
-XQoKPiA+IEBAIC0yODUsNiArMjg2LDE2IEBAIHN0YXRpYyB2b2lkICgqZHNzX291dHB1dF9kcnZf
-dW5yZWdfZnVuY3NbXSkodm9pZCkgPSB7Cj4gPiAKPiA+ICAJZHNzX3VuaW5pdF9wbGF0Zm9ybV9k
-cml2ZXIsCj4gPiAgCj4gPiAgfTsKPiA+IAo+ID4gKyNpZiBJU19FTkFCTEVEKENPTkZJR19EUk1f
-T01BUCkKPiAKPiBUaGUgI2lmcyBhcmUgbm90IG5lZWRlZCwgZG9uJ3QgY29tcGlsZSB0aGlzIGZp
-bGUgaWYgdGhlcmUncyBubyBEUk1fT01BUC4KClJpZ2h0LCBmb3IgYSBtb21lbnQgSSBmb3Jnb3Qg
-dGhhdCB0aGUgZHNzIGNvcmUgaXNuJ3Qgc2hhcmVkIGFueW1vcmUgYmV0d2VlbiAKRFJNIGFuZCBG
-QkRFVi4gSSdsbCBmaXggdGhpcy4KCj4gPiArc3RhdGljIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2Ug
-b21hcF9kcm1fZGV2aWNlID0gewo+ID4gKwkuZGV2ID0gewo+ID4gKwkJLmNvaGVyZW50X2RtYV9t
-YXNrID0gRE1BX0JJVF9NQVNLKDMyKSwKPiA+ICsJfSwKPiA+ICsJLm5hbWUgPSAib21hcGRybV8i
-LAo+ID4gKwkuaWQgPSAwLAo+ID4gK307Cj4gPiArI2VuZGlmCj4gPiArCj4gPiAgc3RhdGljIGlu
-dCBfX2luaXQgb21hcF9kc3NfaW5pdCh2b2lkKQo+ID4gIHsKPiA+ICAJaW50IHI7Cj4gPiBAQCAt
-MzAwLDYgKzMxMSwxMiBAQCBzdGF0aWMgaW50IF9faW5pdCBvbWFwX2Rzc19pbml0KHZvaWQpCj4g
-PiAgCQkJZ290byBlcnJfcmVnOwo+ID4gIAl9Cj4gPiAKPiA+ICsjaWYgSVNfRU5BQkxFRChDT05G
-SUdfRFJNX09NQVApCj4gPiArCXIgPSBwbGF0Zm9ybV9kZXZpY2VfcmVnaXN0ZXIoJm9tYXBfZHJt
-X2RldmljZSk7Cj4gPiArCWlmIChyKQo+ID4gKwkJZ290byBlcnJfcmVnOwo+ID4gKyNlbmRpZgo+
-IAo+IFdoZXJlIGlzIHRoZSB1bnJlZ2lzdGVyPwoKT29wcy4gV2lsbCBmaXggdG9vLgoKLS0gClJl
-Z2FyZHMsCgpMYXVyZW50IFBpbmNoYXJ0CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5m
-cmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0
-aW5mby9kcmktZGV2ZWwK
+--nextPart1906015.vqFM4fM2j8
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Wednesday 19 October 2016 11:25:06 Pavel Machek wrote:
+> Hi!
+>=20
+> [Ccing lists.]
+>=20
+> > Can you push the patch, which gets further than negotiation into
+> > some git branch available to me? I tried to apply your patch to
+> > my code, but it did not work for me.
+>=20
+> Ok, I've pushed the branch to kernel.org:
+>=20
+> git push
+> git@gitolite.kernel.org:pub/scm/linux/kernel/git/pavel/linux-n900.gi
+> t bt-2-v4.9:bt-2-v4.9
+>=20
+> In retrospect, I did make some changes to dts, they may be
+> neccessary, too.
+>=20
+> If it still does not work, please try with my .config. I'm using
+> modules here, using this script:
+>=20
+> pavel@n900:/my/modules$ cat run2
+> echo removing...
+> sudo killall a.out
+> rmmod nokia_h4p
+> #rmmod omap_serial
+> #rmmod serial_core
+> rmmod hci_uart.ko
+> #rmmod bcm2048.ko
+> echo installing...
+> insmod serial_core.ko
+> insmod omap-serial.ko
+> insmod bcm2048.ko
+> insmod hci_uart.ko
+> ls -al /dev/ttyO1
+> sleep 1
+> stty crtscts < /dev/ttyO1
+> /my/tui/ofone/a.out &
+>=20
+> For the record, dmesg says:
+>=20
+> Good luck,
+> 									Pavel
+>=20
+> [   30.694274] g_ether gadget: notify connect true
+> [   30.714080] g_ether gadget: notify speed 425984000
+> [  127.719146] ssi-protocol ssi-protocol: WAKELINES TEST OK
+> [  218.542694] of_get_named_gpiod_flags: can't parse 'rts-gpio'
+> property of node '/ocp@68000000/serial@4806c000[0]'
+> [  218.546264] 4806c000.serial: ttyO1 at MMIO 0x4806c000 (irq =3D 89,
+> base_baud =3D 3000000) is a OMAP UART1
+> [  218.574157] of_get_named_gpiod_flags: can't parse 'rts-gpio'
+> property of node '/ocp@68000000/serial@49020000[0]'
+> [  218.574340] 49020000.serial: ttyO2 at MMIO 0x49020000 (irq =3D 90,
+> base_baud =3D 3000000) is a OMAP UART2
+> [  218.650115] bcm2048: probe
+> [  218.650177] bcm2048 4806c000.serial:bluetooth: GPIO lookup for
+> consumer reset
+> [  218.650177] bcm2048 4806c000.serial:bluetooth: using device tree
+> for GPIO lookup
+> [  218.650360] of_get_named_gpiod_flags: parsed 'reset-gpios'
+> property of node '/ocp@68000000/serial@4806c000/bluetooth[0]' -
+> status (0) [  218.650390] bcm2048 4806c000.serial:bluetooth: GPIO
+> lookup for consumer host-wakeup
+> [  218.650421] bcm2048 4806c000.serial:bluetooth: using device tree
+> for GPIO lookup
+> [  218.650482] of_get_named_gpiod_flags: parsed 'host-wakeup-gpios'
+> property of node '/ocp@68000000/serial@4806c000/bluetooth[0]' -
+> status (0)
+> [  218.650512] bcm2048 4806c000.serial:bluetooth: GPIO lookup for
+> consumer bluetooth-wakeup
+> [  218.650543] bcm2048 4806c000.serial:bluetooth: using device tree
+> for GPIO lookup
+> [  218.650604] of_get_named_gpiod_flags: parsed
+> 'bluetooth-wakeup-gpios' property of node
+> '/ocp@68000000/serial@4806c000/bluetooth[0]' - status (0)
+> [  218.650817] bcm2048 4806c000.serial:bluetooth: parent uart: ttyO1
+> [  218.650817] bcm2048 4806c000.serial:bluetooth: sysclk speed: 38400
+> kHz
+> [  218.650848] bcm2048 4806c000.serial:bluetooth: probe: 0
+> [  218.774139] Bluetooth: HCI UART driver ver 2.3
+> [  218.774169] Bluetooth: HCI UART protocol H4 registered
+> [  218.774169] Bluetooth: HCI UART protocol H4+ registered
+> [  218.774169] Bluetooth: HCI UART protocol BCSP registered
+> [  218.774200] Bluetooth: HCI UART protocol LL registered
+> [  218.774200] Bluetooth: HCI UART protocol ATH3K registered
+> [  218.774200] Bluetooth: HCI UART protocol Three-wire (H5)
+> registered [  219.904876] tty ttyO1: Nokia H4+ protocol initialized
+> with 4806c000.serial:bluetooth!
+> [  219.921112] tty ttyO1: Nokia H4+ protocol setup...
+> [  219.921142] h4p_reset: reset
+> [  219.921142] hci_uart_init_tty
+> [  219.983520] h4p_reset: flush
+> [  219.983551] h4p_reset: speed
+> [  219.983581] tty ttyO1: setting speed to 120000 baud
+> [  219.983673] h4p_reset: safety
+> [  219.986480] tty ttyO1: wakeup received: 0 -> 1
+> [  220.013488] tty ttyO1: wait for cts... received!
+> [  220.013519] h4p_reset: flow
+> [  220.013549] tty ttyO1: Sending negotiation...
+> [  220.013580] tty ttyO1: gpio state: reset=3D1 wakehost=3D1 wakebt=3D1
+> [  220.013610] enqueue: hu c304cc80 skb cd4da000
+> [  220.017425] tty ttyO1: H4P negotiation:
+> [  220.017456] tty ttyO1:     baudrate =3D 416
+> [  220.017486] tty ttyO1:     system clock =3D 38400
+> [  220.017486] tty ttyO1:     manufacturer id =3D 4
+> [  220.017486] tty ttyO1:     version id =3D 11
+> [  220.017578] tty ttyO1: setting speed to 921600 baud
+> [  220.043457] tty ttyO1: wait for cts... received!
+> [  220.043548] tty ttyO1: Negotiation successful...
+> [  220.043579] tty ttyO1: Sending alive packet...
+> [  220.043579] enqueue: hu c304cc80 skb cd4dacc0
+> [  220.043853] tty ttyO1: Received alive packet!
+> [  220.047851] tty ttyO1: FW: Skip negotion packet!
+> [  220.047882] tty ttyO1: FW: Skip alive packet!
+> [  220.052185] enqueue: hu c304cc80 skb cd4da480
+> [  220.055175] enqueue: hu c304cc80 skb cd4dae40
+> [  220.058776] enqueue: hu c304cc80 skb cd4da6c0
+> [  220.058898] Bluetooth: hci0: Frame reassembly failed (-84)
+> [  220.058929] Bluetooth: hci0: Frame reassembly failed (-84)
+> [  220.064605] enqueue: hu c304cc80 skb cd4daf00
+> [  220.068389] enqueue: hu c304cc80 skb cd4da0c0
+> [  220.068542] Bluetooth: hci0: Frame reassembly failed (-84)
+> [  220.068542] Bluetooth: hci0: Frame reassembly failed (-84)
+> [  220.071960] enqueue: hu c304cc80 skb cd4da840
+> [  220.072082] Bluetooth: hci0: Frame reassembly failed (-84)
+> [  220.072082] Bluetooth: hci0: Frame reassembly failed (-84)
+> [  220.075592] enqueue: hu c304cc80 skb cd4da180
+> [  220.079803] enqueue: hu c304cc80 skb cd479cc0
+> [  220.084381] enqueue: hu c304cc80 skb cd479180
+> [  220.087982] enqueue: hu c304cc80 skb cd4793c0
+> [  220.088104] Bluetooth: hci0: Frame reassembly failed (-84)
+> [  220.088134] Bluetooth: hci0: Frame reassembly failed (-84)
+> [  220.091522] enqueue: hu c304cc80 skb cd479e40
+> [  220.095336] enqueue: hu c304cc80 skb cd479540
+> [  220.098876] enqueue: hu c304cc80 skb cd479000
+> [  220.102386] enqueue: hu c304cc80 skb cd479600
+> [  220.102478] Bluetooth: hci0: Frame reassembly failed (-84)
+> [  220.102508] Bluetooth: hci0: Frame reassembly failed (-84)
+> [  220.105987] enqueue: hu c304cc80 skb cd479780
+> [  220.109527] enqueue: hu c304cc80 skb cd450cc0
+> [  220.109619] Bluetooth: hci0: Frame reassembly failed (-84)
+> [  220.109649] Bluetooth: hci0: Frame reassembly failed (-84)
+> [  220.113098] enqueue: hu c304cc80 skb cd484600
+> [  220.113220] Bluetooth: hci0: Frame reassembly failed (-84)
+> [  220.113250] Bluetooth: hci0: Frame reassembly failed (-84)
+> [  220.116760] enqueue: hu c304cc80 skb cd4a9b40
+> [  220.120300] enqueue: hu c304cc80 skb cd77c840
+> [  220.124786] enqueue: hu c304cc80 skb cd4f7900
+> [  220.128387] enqueue: hu c304cc80 skb c4fb2180
+> [  220.131896] enqueue: hu c304cc80 skb c4fb23c0
+> [  220.135498] enqueue: hu c304cc80 skb c4fb2cc0
+> [  220.139007] enqueue: hu c304cc80 skb c4fb2000
+> [  220.142486] enqueue: hu c304cc80 skb cd44fcc0
+> [  220.146118] enqueue: hu c304cc80 skb cd4b60c0
+> [  220.149627] enqueue: hu c304cc80 skb cf1986c0
+> [  220.153106] enqueue: hu c304cc80 skb cf198480
+> [  220.156738] enqueue: hu c304cc80 skb cf1980c0
+> [  220.160278] enqueue: hu c304cc80 skb cf198240
+> [  220.164733] enqueue: hu c304cc80 skb cd49f780
+> [  220.168365] enqueue: hu c304cc80 skb cd4daf00
+> [  220.171844] enqueue: hu c304cc80 skb cd4da6c0
+> [  220.175445] enqueue: hu c304cc80 skb cd4dab40
+> [  220.175567] Bluetooth: hci0: Frame reassembly failed (-84)
+> [  220.175567] Bluetooth: hci0: Frame reassembly failed (-84)
+> [  220.178955] enqueue: hu c304cc80 skb cd479780
+> [  220.182434] enqueue: hu c304cc80 skb cd479540
+> [  220.182525] Bluetooth: hci0: Frame reassembly failed (-84)
+> [  220.182556] Bluetooth: hci0: Frame reassembly failed (-84)
+> [  220.186035] enqueue: hu c304cc80 skb cd4793c0
+> [  220.188140] enqueue: hu c304cc80 skb cd479b40
+> [  220.188537] enqueue: hu c304cc80 skb cd484600
+> [  220.236480] enqueue: hu c304cc80 skb cd4a9f00
+> [  220.237701] enqueue: hu c304cc80 skb cd4f7900
+> [  220.238830] enqueue: hu c304cc80 skb c4fb23c0
+> [  220.239959] enqueue: hu c304cc80 skb c4fb2b40
+> [  220.241119] enqueue: hu c304cc80 skb c3107000
+> [  220.242187] enqueue: hu c304cc80 skb cd724240
+> [  220.243286] enqueue: hu c304cc80 skb cf198540
+> [  220.244781] enqueue: hu c304cc80 skb cf198540
+> [  220.245758] enqueue: hu c304cc80 skb cd49f780
+> [  220.246612] enqueue: hu c304cc80 skb cd4daf00
+> [  220.247436] enqueue: hu c304cc80 skb cd479540
+> [  220.248535] tty ttyO1: Sending radio packet...
+> [  220.248565] enqueue: hu c304cc80 skb cd479cc0
+> [  220.248596] tty ttyO1: Radio packet sent
+> [  220.249328] Bluetooth: hci0: Frame reassembly failed (-84)
+> [  220.272949] tty ttyO1: wakeup received: 1 -> 0
+> [  221.283477] tty ttyO1: radio packet timeout!
+> [  221.283630] enqueue: hu c304cc80 skb cd4a9b40
+> [  223.363372] Bluetooth: hci0 command 0xfc18 tx timeout
+> pavel@n900:~$
+
+In log are still some failures, but ... is bluetooth working now?
+
+I see that you applied this patch:=20
+https://git.kernel.org/cgit/linux/kernel/git/pavel/linux-n900.git/commit/?i=
+d=3D051aa3fbf03ac770d8344690f5a936a7f04c6884
+
+Looks like that pinmux is in DTS file incorrect. Can somebody verify it?=20
+Maybe Tony?
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart1906015.vqFM4fM2j8
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlhROUoACgkQi/DJPQPkQ1J8LQCePzgRKXDAmC8BEX1CPtSc1IMr
+HmQAoKfEC4GwQQCDwX7Gbdy2ybd3d7Hm
+=nVLF
+-----END PGP SIGNATURE-----
+
+--nextPart1906015.vqFM4fM2j8--
