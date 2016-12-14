@@ -1,119 +1,39 @@
 From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: [PATCH] usb: musb: debugfs: allow forcing host mode together with speed in testmode
-Date: Wed, 14 Dec 2016 20:23:45 +0100
-Message-ID: <1481743425-25847-1-git-send-email-pali.rohar@gmail.com>
-References: <1481726877-18548-1-git-send-email-pali.rohar@gmail.com>
+Subject: [PATCH] ARM: dts: n900: Mark eMMC slot with no-sdio and no-sd flags
+Date: Wed, 14 Dec 2016 22:29:44 +0100
+Message-ID: <1481750984-11239-1-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1481726877-18548-1-git-send-email-pali.rohar@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bin Liu <b-liu@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, joerg Reisenweber <joerg@openmoko.org>, linux-omap@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@kernel.org>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Aaro Koskinen <aaro.koskinen@iki.fi>, Chris Ball <chris@printf.net>, Ulf Hansson <ulf.hansson@linaro.org>, Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Based on the musb ug, force_host bit is allowed to be set along with
-force_hs or force_fs bit.
+Trying to initialize eMMC slot as SDIO or SD cause failure in n900 port of
+qemu. eMMC itself is not detected and is not working.
 
-It could help to implement forced host mode via testmode on Nokia N900.
+Real Nokia N900 harware does not have this problem. As eMMC is really not
+SDIO or SD based such change is harmless and will fix support for qemu.
 
 Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
 ---
- drivers/usb/musb/musb_debugfs.c |   44 +++++++++++++++++++++++++--------------
- 1 file changed, 28 insertions(+), 16 deletions(-)
+ arch/arm/boot/dts/omap3-n900.dts |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/usb/musb/musb_debugfs.c b/drivers/usb/musb/musb_debugfs.c
-index 9b22d94..62c13a2 100644
---- a/drivers/usb/musb/musb_debugfs.c
-+++ b/drivers/usb/musb/musb_debugfs.c
-@@ -147,28 +147,34 @@ static int musb_test_mode_show(struct seq_file *s, void *unused)
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+index bc8d6be..345a940 100644
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -770,6 +770,8 @@
+ 	vmmc_aux-supply = <&vsim>;
+ 	bus-width = <8>;
+ 	non-removable;
++	no-sdio;
++	no-sd;
+ };
  
- 	test = musb_readb(musb->mregs, MUSB_TESTMODE);
- 
--	if (test & MUSB_TEST_FORCE_HOST)
-+	if (test & (MUSB_TEST_FORCE_HOST | MUSB_TEST_FORCE_FS))
-+		seq_printf(s, "force host full-speed\n");
-+
-+	else if (test & (MUSB_TEST_FORCE_HOST | MUSB_TEST_FORCE_HS))
-+		seq_printf(s, "force host high-speed\n");
-+
-+	else if (test & MUSB_TEST_FORCE_HOST)
- 		seq_printf(s, "force host\n");
- 
--	if (test & MUSB_TEST_FIFO_ACCESS)
-+	else if (test & MUSB_TEST_FIFO_ACCESS)
- 		seq_printf(s, "fifo access\n");
- 
--	if (test & MUSB_TEST_FORCE_FS)
-+	else if (test & MUSB_TEST_FORCE_FS)
- 		seq_printf(s, "force full-speed\n");
- 
--	if (test & MUSB_TEST_FORCE_HS)
-+	else if (test & MUSB_TEST_FORCE_HS)
- 		seq_printf(s, "force high-speed\n");
- 
--	if (test & MUSB_TEST_PACKET)
-+	else if (test & MUSB_TEST_PACKET)
- 		seq_printf(s, "test packet\n");
- 
--	if (test & MUSB_TEST_K)
-+	else if (test & MUSB_TEST_K)
- 		seq_printf(s, "test K\n");
- 
--	if (test & MUSB_TEST_J)
-+	else if (test & MUSB_TEST_J)
- 		seq_printf(s, "test J\n");
- 
--	if (test & MUSB_TEST_SE0_NAK)
-+	else if (test & MUSB_TEST_SE0_NAK)
- 		seq_printf(s, "test SE0 NAK\n");
- 
- 	return 0;
-@@ -206,30 +212,36 @@ static ssize_t musb_test_mode_write(struct file *file,
- 	if (copy_from_user(buf, ubuf, min_t(size_t, sizeof(buf) - 1, count)))
- 		return -EFAULT;
- 
--	if (strstarts(buf, "force host"))
-+	if (strstarts(buf, "force host full-speed"))
-+		test = MUSB_TEST_FORCE_HOST | MUSB_TEST_FORCE_FS;
-+
-+	else if (strstarts(buf, "force host high-speed"))
-+		test = MUSB_TEST_FORCE_HOST | MUSB_TEST_FORCE_HS;
-+
-+	else if (strstarts(buf, "force host"))
- 		test = MUSB_TEST_FORCE_HOST;
- 
--	if (strstarts(buf, "fifo access"))
-+	else if (strstarts(buf, "fifo access"))
- 		test = MUSB_TEST_FIFO_ACCESS;
- 
--	if (strstarts(buf, "force full-speed"))
-+	else if (strstarts(buf, "force full-speed"))
- 		test = MUSB_TEST_FORCE_FS;
- 
--	if (strstarts(buf, "force high-speed"))
-+	else if (strstarts(buf, "force high-speed"))
- 		test = MUSB_TEST_FORCE_HS;
- 
--	if (strstarts(buf, "test packet")) {
-+	else if (strstarts(buf, "test packet")) {
- 		test = MUSB_TEST_PACKET;
- 		musb_load_testpacket(musb);
- 	}
- 
--	if (strstarts(buf, "test K"))
-+	else if (strstarts(buf, "test K"))
- 		test = MUSB_TEST_K;
- 
--	if (strstarts(buf, "test J"))
-+	else if (strstarts(buf, "test J"))
- 		test = MUSB_TEST_J;
- 
--	if (strstarts(buf, "test SE0 NAK"))
-+	else if (strstarts(buf, "test SE0 NAK"))
- 		test = MUSB_TEST_SE0_NAK;
- 
- 	musb_writeb(musb->mregs, MUSB_TESTMODE, test);
+ &mmc3 {
 -- 
 1.7.9.5
