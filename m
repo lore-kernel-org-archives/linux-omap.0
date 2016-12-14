@@ -1,57 +1,69 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: n900: Mark eMMC slot with no-sdio and no-sd
- flags
-Date: Wed, 14 Dec 2016 22:34:45 +0100
-Message-ID: <20161214213445.GD28424@amd>
-References: <1481750984-11239-1-git-send-email-pali.rohar@gmail.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 12/23] drm: omapdrm: plane: update fifo size on atomic update
+Date: Wed, 14 Dec 2016 23:36:50 +0200
+Message-ID: <6335179.lCaUdnt7KS@avalon>
+References: <1457455195-1938-1-git-send-email-sre@kernel.org> <a60e0657-e0cd-839c-20ea-d29a73e198ff@ti.com> <20161214140308.bpbykzp6yfghxfn6@earth>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="DiL7RhKs8rK9YGuF"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1481750984-11239-1-git-send-email-pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Chris Ball <chris-OsFVWbfNK3isTnJN9+BGXg@public.gmane.org>, Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161214140308.bpbykzp6yfghxfn6@earth>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel@lists.freedesktop.org, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+Hi Sebastian,
 
---DiL7RhKs8rK9YGuF
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+(CC'ing Peter Ujfalusi)
 
-On Wed 2016-12-14 22:29:44, Pali Roh=E1r wrote:
-> Trying to initialize eMMC slot as SDIO or SD cause failure in n900 port of
-> qemu. eMMC itself is not detected and is not working.
->=20
-> Real Nokia N900 harware does not have this problem. As eMMC is really not
-> SDIO or SD based such change is harmless and will fix support for qemu.
->=20
-> Signed-off-by: Pali Roh=E1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+On Wednesday 14 Dec 2016 15:03:08 Sebastian Reichel wrote:
+> On Wed, Dec 14, 2016 at 11:14:32AM +0200, Tomi Valkeinen wrote:
+> > On 14/12/16 11:10, Laurent Pinchart wrote:
+> >> On Wednesday 14 Dec 2016 10:43:18 Tomi Valkeinen wrote:
+> >>> On 13/12/16 19:35, Laurent Pinchart wrote:
+> >>>> On Tuesday 08 Mar 2016 17:39:44 Sebastian Reichel wrote:
+> >>>>> This is a workaround for a hardware bug occuring
+> >>>>> on OMAP3 with manually updated panels.
+> >>>> 
+> >>>> Could you please explain what the bug is and how the workaround
+> >>>> operates ? Do you have a reference to an errata document ?
+> 
+> FWIW I don't know anything about this bug. I just hit it while
+> getting omapdrm working on n950 and ported this over from omapfb.
 
-Acked-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+I wonder if it's a bug or an expected behaviour. In any case, looking at the 
+FIFO thresholds computation function it's quite clear that we need to 
+recompute and set the values when the panel mode changes. Maybe you should 
+explain this in the commit message.
 
+> >>> I don't think I ever found out exactly why the problem happens. But on
+> >>> OMAP3 DSI, the fifo thresholds had to be tuned slightly, otherwise
+> >>> DISPC would stop. dispc_ovl_compute_fifo_thresholds() does that tuning
+> >>> if "manual_update" parameter is set on OMAP3.
+> >> 
+> >> I've had a look at dispc_ovl_compute_fifo_thresholds() and the patch
+> >> makes sense to me. If Sebastian could address the small issues I pointed
+> >> out, we could then merge this. Alternatively I can take care of
+> >> addressing them.
+> > 
+> > It's only needed with the rest of the DSI manual update series, so I'd
+> > rather keep it as part of that series.
+> 
+> To be honest I haven't worked on this for some time. From some
+> comments on the patchset I think the biggest issue is, that omapdrm
+> does not use generic panel drivers and cannot easily use the
+> mipi_dsi_driver_register. I simply did not have enough time to
+> implement such a huge change.
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+I'll probably give it a go at some point, but it will take time.
 
---DiL7RhKs8rK9YGuF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> I guess a first step is Peter Ujfalusi's series:
+> https://lkml.org/lkml/2016/9/1/267
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Peter, do you plan to respin that patch series ?
 
-iEYEARECAAYFAlhRuvUACgkQMOfwapXb+vJ19gCdFcBlnsDZ02/yQ/dh60NRAzMf
-D2EAnjzsqBpmIzfcGGDvDEzqgAA5VaHy
-=fooM
------END PGP SIGNATURE-----
+-- 
+Regards,
 
---DiL7RhKs8rK9YGuF--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Laurent Pinchart
