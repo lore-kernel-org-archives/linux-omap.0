@@ -1,112 +1,49 @@
-From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: [PATCH] usb: musb: debugfs: allow forcing host mode together with speed in testmode
-Date: Wed, 14 Dec 2016 15:47:57 +0100
-Message-ID: <1481726877-18548-1-git-send-email-pali.rohar@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
+Date: Wed, 14 Dec 2016 07:08:19 -0800
+Message-ID: <20161214150819.GW4920@atomide.com>
+References: <20160521054336.GA27123@amd>
+ <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
+ <20160808214132.GB2946@xo-6d-61-c0.localdomain>
+ <201612141438.16603@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bin Liu <b-liu@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, joerg Reisenweber <joerg@openmoko.org>, linux-omap@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@kernel.org>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <201612141438.16603@pali>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-media@vger.kernel.org, khilman@kernel.org, mchehab@osg.samsung.com, aaro.koskinen@iki.fi, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
----
- drivers/usb/musb/musb_debugfs.c |   44 +++++++++++++++++++++++++--------------
- 1 file changed, 28 insertions(+), 16 deletions(-)
-
-diff --git a/drivers/usb/musb/musb_debugfs.c b/drivers/usb/musb/musb_debugfs.c
-index 9b22d94..62c13a2 100644
---- a/drivers/usb/musb/musb_debugfs.c
-+++ b/drivers/usb/musb/musb_debugfs.c
-@@ -147,28 +147,34 @@ static int musb_test_mode_show(struct seq_file *s, void *unused)
- 
- 	test = musb_readb(musb->mregs, MUSB_TESTMODE);
- 
--	if (test & MUSB_TEST_FORCE_HOST)
-+	if (test & (MUSB_TEST_FORCE_HOST | MUSB_TEST_FORCE_FS))
-+		seq_printf(s, "force host full-speed\n");
-+
-+	else if (test & (MUSB_TEST_FORCE_HOST | MUSB_TEST_FORCE_HS))
-+		seq_printf(s, "force host high-speed\n");
-+
-+	else if (test & MUSB_TEST_FORCE_HOST)
- 		seq_printf(s, "force host\n");
- 
--	if (test & MUSB_TEST_FIFO_ACCESS)
-+	else if (test & MUSB_TEST_FIFO_ACCESS)
- 		seq_printf(s, "fifo access\n");
- 
--	if (test & MUSB_TEST_FORCE_FS)
-+	else if (test & MUSB_TEST_FORCE_FS)
- 		seq_printf(s, "force full-speed\n");
- 
--	if (test & MUSB_TEST_FORCE_HS)
-+	else if (test & MUSB_TEST_FORCE_HS)
- 		seq_printf(s, "force high-speed\n");
- 
--	if (test & MUSB_TEST_PACKET)
-+	else if (test & MUSB_TEST_PACKET)
- 		seq_printf(s, "test packet\n");
- 
--	if (test & MUSB_TEST_K)
-+	else if (test & MUSB_TEST_K)
- 		seq_printf(s, "test K\n");
- 
--	if (test & MUSB_TEST_J)
-+	else if (test & MUSB_TEST_J)
- 		seq_printf(s, "test J\n");
- 
--	if (test & MUSB_TEST_SE0_NAK)
-+	else if (test & MUSB_TEST_SE0_NAK)
- 		seq_printf(s, "test SE0 NAK\n");
- 
- 	return 0;
-@@ -206,30 +212,36 @@ static ssize_t musb_test_mode_write(struct file *file,
- 	if (copy_from_user(buf, ubuf, min_t(size_t, sizeof(buf) - 1, count)))
- 		return -EFAULT;
- 
--	if (strstarts(buf, "force host"))
-+	if (strstarts(buf, "force host full-speed"))
-+		test = MUSB_TEST_FORCE_HOST | MUSB_TEST_FORCE_FS;
-+
-+	else if (strstarts(buf, "force host high-speed"))
-+		test = MUSB_TEST_FORCE_HOST | MUSB_TEST_FORCE_HS;
-+
-+	else if (strstarts(buf, "force host"))
- 		test = MUSB_TEST_FORCE_HOST;
- 
--	if (strstarts(buf, "fifo access"))
-+	else if (strstarts(buf, "fifo access"))
- 		test = MUSB_TEST_FIFO_ACCESS;
- 
--	if (strstarts(buf, "force full-speed"))
-+	else if (strstarts(buf, "force full-speed"))
- 		test = MUSB_TEST_FORCE_FS;
- 
--	if (strstarts(buf, "force high-speed"))
-+	else if (strstarts(buf, "force high-speed"))
- 		test = MUSB_TEST_FORCE_HS;
- 
--	if (strstarts(buf, "test packet")) {
-+	else if (strstarts(buf, "test packet")) {
- 		test = MUSB_TEST_PACKET;
- 		musb_load_testpacket(musb);
- 	}
- 
--	if (strstarts(buf, "test K"))
-+	else if (strstarts(buf, "test K"))
- 		test = MUSB_TEST_K;
- 
--	if (strstarts(buf, "test J"))
-+	else if (strstarts(buf, "test J"))
- 		test = MUSB_TEST_J;
- 
--	if (strstarts(buf, "test SE0 NAK"))
-+	else if (strstarts(buf, "test SE0 NAK"))
- 		test = MUSB_TEST_SE0_NAK;
- 
- 	musb_writeb(musb->mregs, MUSB_TESTMODE, test);
--- 
-1.7.9.5
+KiBQYWxpIFJvaMOhciA8cGFsaS5yb2hhckBnbWFpbC5jb20+IFsxNjEyMTQgMDU6MzhdOgo+IE9u
+IE1vbmRheSAwOCBBdWd1c3QgMjAxNiAyMzo0MTozMiBQYXZlbCBNYWNoZWsgd3JvdGU6Cj4gPiBP
+biBNb24gMjAxNi0wOC0wOCAxMTowOTo1NiwgU2FrYXJpIEFpbHVzIHdyb3RlOgo+ID4gPiBPbiBG
+cmksIEF1ZyAwNSwgMjAxNiBhdCAxMjoyNjoxMVBNICswMjAwLCBQYXZlbCBNYWNoZWsgd3JvdGU6
+Cj4gPiA+ID4gVGhpcyBhZGRzIHN1cHBvcnQgZm9yIEFENTgyMCBhdXRvZm9jdXMgY29pbCwgZm91
+bmQgZm9yIGV4YW1wbGUgaW4KPiA+ID4gPiBOb2tpYSBOOTAwIHNtYXJ0cGhvbmUuCj4gPiA+IAo+
+ID4gPiBUaGFua3MsIFBhdmVsIQo+ID4gPiAKPiA+ID4gTGV0J3MgdXNlIFY0TDJfQ0lEX0ZPQ1VT
+X0FCU09MVVRFLCBhcyBpcyBpbiB0aGUgcGF0Y2guIElmIHdlIGdldAo+ID4gPiBzb21ldGhpbmcg
+YmV0dGVyIGluIHRoZSBmdXR1cmUsIHdlJ2xsIHN3aXRjaCB0byB0aGF0IHRoZW4uCj4gPiA+IAo+
+ID4gPiBJJ3ZlIGFwcGxpZWQgdGhpcyB0byBhZDU4MjAgYnJhbmNoIGluIG15IHRyZWUuCj4gPiAK
+PiA+IFRoYW5rcy4gSWYgSSB1bmRlcnN0YW5kcyB0aGluZ3MgY29ycmVjdGx5LCBib3RoIERUUyBw
+YXRjaCBhbmQgdGhpcwo+ID4gcGF0Y2ggYXJlIHdhaXRpbmcgaW4geW91ciB0cmVlLCBzbyB3ZSBz
+aG91bGQgYmUgZ29vZCB0byBnbyBmb3IgNC45Cj4gPiAodW5sZXNzIHNvbWUgdW5leHBlY3RlZCBw
+cm9ibGVtcyBzdXJmYWNlKT8KPiA+IAo+ID4gQmVzdCByZWdhcmRzLAo+ID4gCQkJCQkJCQkJUGF2
+ZWwKPiAKPiBXYXMgRFRTIHBhdGNoIG1lcmdlZCBpbnRvIDQuOT8gQXQgbGVhc3QgSSBkbyBub3Qg
+c2VlIHVwZGF0ZWQgdGhhdCBkdHMgCj4gZmlsZSBvbWFwMy1uOTAwLmR0cyBpbiBsaW51cyB0cmVl
+Li4uCgpJZiBpdCdzIG5vdCBpbiBjdXJyZW50IG1haW5saW5lIG9yIG5leHQsIGl0J3Mgb2ZmIG15
+IHJhZGFyIHNvIHNvdW5kcwpsaWtlIEkndmUgc29tZWhvdyBtaXNzZWQgaXQgYW5kIG5lZWRzIHJl
+c2VuZGluZy4uCgpUb255CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxp
+c3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0
+aW5mby9saW51eC1hcm0ta2VybmVsCg==
