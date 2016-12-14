@@ -1,63 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv4 00/15] clk: ti: add support for hwmod clocks
-Date: Tue, 13 Dec 2016 16:43:34 -0800
-Message-ID: <20161214004334.GU4920@atomide.com>
-References: <2cfa10a9-9ea0-23e4-30de-9aece13e47e3@ti.com>
- <20161028233750.GQ16026@codeaurora.org>
- <7371ef35-5d95-bf78-4c97-c61091a1fa4b@ti.com>
- <148156710975.37646.2957511113527634913@resonance>
- <20161213004914.GM5423@codeaurora.org>
- <20161213013133.GR4920@atomide.com>
- <148160402543.37646.6019420188689675769@resonance>
- <4b016883-e7c9-94d8-d964-3c8dfee6ee13@ti.com>
- <20161213153724.GT4920@atomide.com>
- <148166654419.37646.7680435609801736363@resonance>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH/RFC 9/7] drm: omapdrm: Don't forward set_min_bus_tput() to
+ no-op platform code
+Date: Wed, 14 Dec 2016 03:58:01 +0200
+Message-ID: <1481680684-11585-2-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1481672306-22564-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1481680684-11585-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <148166654419.37646.7680435609801736363@resonance>
-Sender: linux-clk-owner@vger.kernel.org
-To: Michael Turquette <mturquette@baylibre.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <1481680684-11585-1-git-send-email-laurent.pinchart@ideasonboard.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: dri-devel@lists.freedesktop.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Michael Turquette <mturquette@baylibre.com> [161213 14:02]:
-> Quoting Tony Lindgren (2016-12-13 07:37:24)
-> > For the clkctrl clocks, here's what I'd like to see. The driver should be
-> > just a regular device driver along the lines we did with the ADPLL as in
-> > Documentation/devicetree/bindings/clock/ti/adpll.txt.
-> > 
-> > For the binding, something like the following should work as a minimal
-> > example, this follows what we have in the hardware:
-> > 
-> > &prm {
-> >         ...
-> > 
-> >         /* See "CD_WKUP Clock Domain" in 4430 TRM page 393 */
-> >         wkup_cm: clock@1800 {
-> >                 compatible = "ti,clkctrl";
-> >                 reg = <0x1800 0x100>;
-> >                 #clock-cells = <1>;
-> >                 clocks = <&wkup_l4_iclk2 &wkup_32k_fclk
-> >                           &32k_fclk &gp1_fclk>;
-> >                 clock-output-names =
-> >                         "sysctrl_padconf_wkup",
-> >                         "badgap",
-> >                         "sysctrl_general_wkup",
-> >                         "gpio1",
-> >                         "keyboard",
-> >                         "sar_ram",
-> >                         "32ktimer",
-> >                         "gptimer1";
-> 
-> Is there a technical reason to use clock-output-names? If you share a
-> header between the clock provider driver and DT with the phandle offsets
-> then we should be able to avoid this property altogether. Stephen and I
-> are trying to phase this one out as much as possible.
-
-Oh OK no reason for names, defines for the offsets will work just fine.
-
-Regards,
-
-Tony
+VGhlIE9NQVAgaW1wbGVtZW50YXRpb24gb2YgdGhlIHNldF9taW5fYnVzX3RwdXQoKSBBUEkgaXMg
+YSBuby1vcC4KVGhlcmUncyBubyBwb2ludCBpbiBmb3J3YXJkaW5nIHRoZSBkcml2ZXIgY2FsbHMg
+dG8gdGhlIHBsYXRmb3JtIGNvZGUuClJlbW92ZSB0aGUgdXNlIG9mIHRoZSByZWxhdGVkIHBsYXRm
+b3JtIGRhdGEgY2FsbGJhY2ssIGJ1dCBrZWVwIHRoZQppbnRlcm5hbCBmdW5jdGlvbiBhcyBhIHJl
+bWluZGVyIHRoYXQgdGhlIGZlYXR1cmUgd2lsbCBuZWVkIHRvIGJlCmltcGxlbWVudGVkIHdoZW4g
+dGhlIE9NQVAgcGxhdGZvcm0gd2lsbCBwcm92aWRlIHN1cHBvcnQuCgpTaWduZWQtb2ZmLWJ5OiBM
+YXVyZW50IFBpbmNoYXJ0IDxsYXVyZW50LnBpbmNoYXJ0QGlkZWFzb25ib2FyZC5jb20+Ci0tLQog
+ZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vZHNzL2NvcmUuYyB8IDggKystLS0tLS0KIDEgZmlsZSBj
+aGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDYgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJp
+dmVycy9ncHUvZHJtL29tYXBkcm0vZHNzL2NvcmUuYyBiL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJt
+L2Rzcy9jb3JlLmMKaW5kZXggYjE3M2YyODg5ODE5Li41ZGZiNzljMDJhYjMgMTAwNjQ0Ci0tLSBh
+L2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9jb3JlLmMKKysrIGIvZHJpdmVycy9ncHUvZHJt
+L29tYXBkcm0vZHNzL2NvcmUuYwpAQCAtNzgsMTIgKzc4LDggQEAgc3RydWN0IHBsYXRmb3JtX2Rl
+dmljZSAqZHNzX2dldF9jb3JlX3BkZXYodm9pZCkKIAogaW50IGRzc19zZXRfbWluX2J1c190cHV0
+KHN0cnVjdCBkZXZpY2UgKmRldiwgdW5zaWduZWQgbG9uZyB0cHV0KQogewotCXN0cnVjdCBvbWFw
+X2Rzc19ib2FyZF9pbmZvICpwZGF0YSA9IGNvcmUucGRldi0+ZGV2LnBsYXRmb3JtX2RhdGE7Ci0K
+LQlpZiAocGRhdGEtPnNldF9taW5fYnVzX3RwdXQpCi0JCXJldHVybiBwZGF0YS0+c2V0X21pbl9i
+dXNfdHB1dChkZXYsIHRwdXQpOwotCWVsc2UKLQkJcmV0dXJuIDA7CisJLyogVG8gYmUgaW1wbGVt
+ZW50ZWQgd2hlbiB0aGUgT01BUCBwbGF0Zm9ybSBwcm92aWRlcyB0aGlzIGZlYXR1cmUuICovCisJ
+cmV0dXJuIDA7CiB9CiAKICNpZiBkZWZpbmVkKENPTkZJR19PTUFQMl9EU1NfREVCVUdGUykKLS0g
+ClJlZ2FyZHMsCgpMYXVyZW50IFBpbmNoYXJ0CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0
+cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9kcmktZGV2ZWwK
