@@ -1,78 +1,67 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 12/23] drm: omapdrm: plane: update fifo size on atomic
- update
-Date: Thu, 15 Dec 2016 10:40:19 +0200
-Message-ID: <7b06a27b-316f-2036-9ece-f1ab2d44f172@ti.com>
-References: <1457455195-1938-1-git-send-email-sre@kernel.org>
- <a60e0657-e0cd-839c-20ea-d29a73e198ff@ti.com>
- <20161214140308.bpbykzp6yfghxfn6@earth> <6335179.lCaUdnt7KS@avalon>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH/RFC 0/7] Remove the omapdrm device from platform code
+Date: Thu, 15 Dec 2016 12:07:44 +0200
+Message-ID: <2042929.xqZ0CNKz48@avalon>
+References: <1481672306-22564-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20161214150506.GV4920@atomide.com>
+ <88473bd0-0273-3d80-2249-e3ec0d1ee928@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature";
-        boundary="xPOwG12NWQJrwR4N6whOtoprsbtFrVrfi"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <6335179.lCaUdnt7KS@avalon>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Sebastian Reichel <sre@kernel.org>
-Cc: dri-devel@lists.freedesktop.org, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <88473bd0-0273-3d80-2249-e3ec0d1ee928@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
---xPOwG12NWQJrwR4N6whOtoprsbtFrVrfi
-Content-Type: multipart/mixed; boundary="n8nlmXhhtbxHbQBiMvKmuniKMTWjhhp5c";
- protected-headers="v1"
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
- Sebastian Reichel <sre@kernel.org>
-Cc: dri-devel@lists.freedesktop.org, Tony Lindgren <tony@atomide.com>,
- Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org,
- linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
-Message-ID: <7b06a27b-316f-2036-9ece-f1ab2d44f172@ti.com>
-Subject: Re: [PATCH 12/23] drm: omapdrm: plane: update fifo size on atomic
- update
-References: <1457455195-1938-1-git-send-email-sre@kernel.org>
- <a60e0657-e0cd-839c-20ea-d29a73e198ff@ti.com>
- <20161214140308.bpbykzp6yfghxfn6@earth> <6335179.lCaUdnt7KS@avalon>
-In-Reply-To: <6335179.lCaUdnt7KS@avalon>
-
---n8nlmXhhtbxHbQBiMvKmuniKMTWjhhp5c
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-On 14/12/16 23:36, Laurent Pinchart wrote:
-
->> I guess a first step is Peter Ujfalusi's series:
->> https://lkml.org/lkml/2016/9/1/267
->=20
-> Peter, do you plan to respin that patch series ?
-
-That series has been merged already.
-
- Tomi
-
-
---n8nlmXhhtbxHbQBiMvKmuniKMTWjhhp5c--
-
---xPOwG12NWQJrwR4N6whOtoprsbtFrVrfi
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJYUlbzAAoJEPo9qoy8lh71lzoP+wTTHa8jmEhPjnhOwx6rRF/Q
-aNFGCj7WlJsvy1qXBKP9ceC6j4CzvI94YtZ8bSnRWfHg9dQjJtz8a3AcYQYPZ+39
-ZOdgebGazIcUtGYEFIc89c7QlpYpIUPMPdfOvhrU2fSNlkHSnG5jxIhemMaNI4EY
-RtvIQ2r3DkT3ErQJsEImea9AVlrB8EK81Jkl6KIOqT2pFT9xxrY8E9RpdHbHPu1h
-UeLG6KmkMdLvu/aB/eCsF5MIecdp6meRyVTRiotN7oFhqXUwKfSkPgGlnyoNJdMW
-YoxMek0guzGx+AKMtELOisevaA33LdYJTH3OfiSunfbzTBXO1e6zlEaAxKRpbB2j
-Q4NWoeaELob7KFwJOJfxd3JM3966oyyIRdRY6yhcJxAhhAdpS8p4WvqGnQkqkTPk
-bBoCN2iPxn6Ewm+WqaitDSleJC2+k4nBKi6xKsdwViktAvdN51Hs7W4Y28CQFCj9
-xOKfO8Kv4TNNGRIIldZqa/Lwpux5J4lTn7qKmKw7biv4UbQGw5w7LiDvZPkzjUfZ
-LjtyGCPZGJ6xEcEusGnf4LD+cTxyeOtw6YiwD/+kFc1tWbtpPArwbRzf66ZaBLd/
-MTc2dErLcvv4Z9ekicwZ2rqpw8wMqGjiTd3EXhjoLte0bRk53w2UfvXQHL3AjdJe
-bxXRe+S5YGLMQ1eWIgRR
-=ze/u
------END PGP SIGNATURE-----
-
---xPOwG12NWQJrwR4N6whOtoprsbtFrVrfi--
+SGkgVG9taSwKCk9uIFRodXJzZGF5IDE1IERlYyAyMDE2IDEwOjA4OjQ3IFRvbWkgVmFsa2VpbmVu
+IHdyb3RlOgo+IE9uIDE0LzEyLzE2IDE3OjA1LCBUb255IExpbmRncmVuIHdyb3RlOgo+ID4gKiBM
+YXVyZW50IFBpbmNoYXJ0IDxsYXVyZW50LnBpbmNoYXJ0QGlkZWFzb25ib2FyZC5jb20+IFsxNjEy
+MTMgMTU6MzhdOgo+ID4+IFRoZSBzZXJpZXMgd2lsbCBiZSBhbm5veWluZyB0byBtZXJnZSBnaXZl
+biBob3cgaW50ZXJsZWF2ZWQgdGhlIEFSTSBhbmQKPiA+PiBkcml2ZXIgcGF0Y2hlcyBhcmUuIFRo
+ZSBlYXNpZXN0IHNvbHV0aW9uIHdvdWxkIGJlIHRvIG1lcmdlIGV2ZXJ5dGhpbmcKPiA+PiB0aHJv
+dWdoIHRoZSBBUk0gdHJlZSAoYXMgdGhlIHJpc2sgb2YgY29uZmxpY3Qgb24gdGhlIERSTSBzaWRl
+IGlzIGxvdyksCj4gPj4gaW4gd2hpY2ggY2FzZSBzb21lIHBhdGNoZXMgY291bGQgYmUgc3F1YXNo
+ZWQgdG9nZXRoZXIgaWYgZGVzaXJlZAo+ID4+IChlc3BlY2lhbGx5IHRoZSBsYXN0IHR3byB0aGF0
+IHdvdWxkbid0IHJlcXVpcmUgcmVuYW1pbmcgdGhlIGRyaXZlcgo+ID4+IGludGVybmFsbHkgYW55
+bW9yZSkuCj4gPiAKPiA+IE1heWJlIFRvbWkgY2FuIHNldCB1cCBhbiBpbW11dGFibGUgYnJhbmNo
+IG9uY2UgdGhlIHBhdGNoZXMgaGF2ZSBiZWVuCj4gPiByZXZpZXdlZD8gVGhhdCB3YXkgYWxzbyBJ
+IGNhbiBtZXJnZSBpdCBpbiB0b28gYXMgbmVlZGVkLgo+IAo+IFllcywgSSB0aGluayB0aGF0J3Mg
+YSBnb29kIG9wdGlvbi4gVGhlbiB0aGUgc2VyaWVzIGRvZXNuJ3QgaGF2ZSB0byBiZSBzbwo+IGFy
+dGlmaWNpYWxseSBzcGxpdCBpbnRvIGxpbnV4LW9tYXAgYW5kIGRybSBwYXJ0cy4KPiAKPiBJIGRv
+bid0IHRoaW5rIHRoZXJlIGFyZSBtdWNoIGNoYW5jZXMgd2l0aCBjb25mbGljdHMgb24gdGhlIGxp
+bnV4LW9tYXAKPiBzaWRlLCBhcyB0aGUgb25seSBmaWxlcyB0b3VjaGVkIGFyZSBkaXNwbGF5LmMg
+YW5kIGRybS5jICh3ZWxsLCBhbmQgYQo+IHNtYWxsIGNoYW5nZSBpbiBNYWtlZmlsZSkuCj4gCj4g
+SSBsaWtlIHRoZSBzZXJpZXMgaW4gZ2VuZXJhbCwgYnV0IEkgc3RpbGwgbmVlZCB0byBnbyB0aHJv
+dWdoIGl0IGluIGRldGFpbC4KPiAKPiBBbmQgc3BlYWtpbmcgb2YgcmVtb3Zpbmcgb2YgcGxhdGZv
+cm0gZGF0YS4uLgo+IAo+IFRvbnksIHRoZSBvbmx5IGJpZyByZWFzb24gd2Ugc3RpbGwgaGF2ZSB0
+aGUgb21hcGRzcyBwbGF0Zm9ybSBkYXRhCj4gKGluY2x1ZGUvbGludXgvcGxhdGZvcm1fZGF0YS9v
+bWFwZHNzLmgpIGlzIHRoZSBvbWFwZHNzX3ZlcnNpb24sIHdoaWNoIGlzCj4gYmFzZWQgb24gdGhl
+IE9NQVAgU29DIHZlcnNpb24uCj4gCj4gV2UgbmVlZCB0aGF0IGluIHRoZSBkcml2ZXIsIGFzIHRo
+ZSBEU1MgSVAgcmV2aXNpb24gaGFzbid0IGJlZW4gdXBkYXRlZAo+IGluIGEgY291cGxlIG9mIGNh
+c2VzLCBvciB0aGUgaXNzdWUgY29tZXMgZnJvbSBvdXRzaWRlIERTUy4gQnV0IHRoZXJlIGFyZQo+
+IG9ubHkgYSBmZXcgb2YgdGhlc2UgY2FzZXMsIG1vc3RseSB3ZSB3b3VsZCBkbyBqdXN0IGZpbmUg
+d2l0aCB0aGUgRFNTIElQCj4gcmV2aXNpb24uCj4gCj4gV2hhdCBkbyB5b3UgdGhpbmsgb2YgYSBz
+Y2hlbWUsIHdoZXJlIHdlJ2QgZHJvcCB0aGUgcGxhdGZvcm0gZGF0YSwgYnV0IGF0Cj4gZWFybHkg
+cGxhdGZvcm0gaW5pdCBjb2RlIHdlIHdvdWxkIGluamVjdCBhIERUIHByb3BlcnR5IG9yIHR3byBp
+bnRvIERTUydzCj4gRFQgZGF0YSBpbiB0aG9zZSBwcm9ibGVtYXRpYyBjYXNlcz8KPiAKPiBPciBk
+byB5b3UgaGF2ZSBhbnkgb3RoZXIgaWRlYXMgaG93IHRvIHBhc3MgZmxhZ3MgdG8gdGhlIGRyaXZl
+ciBiYXNlZCBvbgo+IHRoZSBTb0MgcmV2aXNpb24/CgpPciByZXRyaWV2ZSB0aGUgU29DIHJldmlz
+aW9uIGluIHRoZSBkcml2ZXIuIEkga25vdyB0aGlzIGlzIGEgYmFkIHRoaW5nIHRvIGRvIAppbiBn
+ZW5lcmFsLCBidXQgd2hlbiBoYW5kbGluZyBlcnJhdGEgdGhhdCBhcmUgc3BlY2lmaWMgdG8gY2Vy
+dGFpbiBFUyB2ZXJzaW9ucywgCml0J3MgaGFyZCB0byBhdm9pZC4gaHR0cHM6Ly9wYXRjaHdvcmsu
+a2VybmVsLm9yZy9wYXRjaC85MTQxMzgxLyBoYXMgYmVlbiAKZGV2ZWxvcGVkIGZvciB0aGF0IChv
+ciBhdCBsZWFzdCBhIHZlcnkgc2ltaWxhcikgcHVycG9zZS4KCi0tIApSZWdhcmRzLAoKTGF1cmVu
+dCBQaW5jaGFydAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
+Cmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
+Cg==
