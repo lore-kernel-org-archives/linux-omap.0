@@ -1,15 +1,14 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Subject: Re: [PATCH/RFC 0/7] Remove the omapdrm device from platform code
-Date: Thu, 15 Dec 2016 12:07:44 +0200
-Message-ID: <2042929.xqZ0CNKz48@avalon>
+Date: Thu, 15 Dec 2016 13:04:38 +0200
+Message-ID: <c59e26d6-0475-7d13-6bf1-ca785d0aa8f3@ti.com>
 References: <1481672306-22564-1-git-send-email-laurent.pinchart@ideasonboard.com>
  <20161214150506.GV4920@atomide.com>
- <88473bd0-0273-3d80-2249-e3ec0d1ee928@ti.com>
+ <88473bd0-0273-3d80-2249-e3ec0d1ee928@ti.com> <2042929.xqZ0CNKz48@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============0644298602=="
 Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <88473bd0-0273-3d80-2249-e3ec0d1ee928@ti.com>
+In-Reply-To: <2042929.xqZ0CNKz48@avalon>
 List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
 List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
@@ -19,49 +18,87 @@ List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
 Errors-To: dri-devel-bounces@lists.freedesktop.org
 Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgVG9taSwKCk9uIFRodXJzZGF5IDE1IERlYyAyMDE2IDEwOjA4OjQ3IFRvbWkgVmFsa2VpbmVu
-IHdyb3RlOgo+IE9uIDE0LzEyLzE2IDE3OjA1LCBUb255IExpbmRncmVuIHdyb3RlOgo+ID4gKiBM
-YXVyZW50IFBpbmNoYXJ0IDxsYXVyZW50LnBpbmNoYXJ0QGlkZWFzb25ib2FyZC5jb20+IFsxNjEy
-MTMgMTU6MzhdOgo+ID4+IFRoZSBzZXJpZXMgd2lsbCBiZSBhbm5veWluZyB0byBtZXJnZSBnaXZl
-biBob3cgaW50ZXJsZWF2ZWQgdGhlIEFSTSBhbmQKPiA+PiBkcml2ZXIgcGF0Y2hlcyBhcmUuIFRo
-ZSBlYXNpZXN0IHNvbHV0aW9uIHdvdWxkIGJlIHRvIG1lcmdlIGV2ZXJ5dGhpbmcKPiA+PiB0aHJv
-dWdoIHRoZSBBUk0gdHJlZSAoYXMgdGhlIHJpc2sgb2YgY29uZmxpY3Qgb24gdGhlIERSTSBzaWRl
-IGlzIGxvdyksCj4gPj4gaW4gd2hpY2ggY2FzZSBzb21lIHBhdGNoZXMgY291bGQgYmUgc3F1YXNo
-ZWQgdG9nZXRoZXIgaWYgZGVzaXJlZAo+ID4+IChlc3BlY2lhbGx5IHRoZSBsYXN0IHR3byB0aGF0
-IHdvdWxkbid0IHJlcXVpcmUgcmVuYW1pbmcgdGhlIGRyaXZlcgo+ID4+IGludGVybmFsbHkgYW55
-bW9yZSkuCj4gPiAKPiA+IE1heWJlIFRvbWkgY2FuIHNldCB1cCBhbiBpbW11dGFibGUgYnJhbmNo
-IG9uY2UgdGhlIHBhdGNoZXMgaGF2ZSBiZWVuCj4gPiByZXZpZXdlZD8gVGhhdCB3YXkgYWxzbyBJ
-IGNhbiBtZXJnZSBpdCBpbiB0b28gYXMgbmVlZGVkLgo+IAo+IFllcywgSSB0aGluayB0aGF0J3Mg
-YSBnb29kIG9wdGlvbi4gVGhlbiB0aGUgc2VyaWVzIGRvZXNuJ3QgaGF2ZSB0byBiZSBzbwo+IGFy
-dGlmaWNpYWxseSBzcGxpdCBpbnRvIGxpbnV4LW9tYXAgYW5kIGRybSBwYXJ0cy4KPiAKPiBJIGRv
-bid0IHRoaW5rIHRoZXJlIGFyZSBtdWNoIGNoYW5jZXMgd2l0aCBjb25mbGljdHMgb24gdGhlIGxp
-bnV4LW9tYXAKPiBzaWRlLCBhcyB0aGUgb25seSBmaWxlcyB0b3VjaGVkIGFyZSBkaXNwbGF5LmMg
-YW5kIGRybS5jICh3ZWxsLCBhbmQgYQo+IHNtYWxsIGNoYW5nZSBpbiBNYWtlZmlsZSkuCj4gCj4g
-SSBsaWtlIHRoZSBzZXJpZXMgaW4gZ2VuZXJhbCwgYnV0IEkgc3RpbGwgbmVlZCB0byBnbyB0aHJv
-dWdoIGl0IGluIGRldGFpbC4KPiAKPiBBbmQgc3BlYWtpbmcgb2YgcmVtb3Zpbmcgb2YgcGxhdGZv
-cm0gZGF0YS4uLgo+IAo+IFRvbnksIHRoZSBvbmx5IGJpZyByZWFzb24gd2Ugc3RpbGwgaGF2ZSB0
-aGUgb21hcGRzcyBwbGF0Zm9ybSBkYXRhCj4gKGluY2x1ZGUvbGludXgvcGxhdGZvcm1fZGF0YS9v
-bWFwZHNzLmgpIGlzIHRoZSBvbWFwZHNzX3ZlcnNpb24sIHdoaWNoIGlzCj4gYmFzZWQgb24gdGhl
-IE9NQVAgU29DIHZlcnNpb24uCj4gCj4gV2UgbmVlZCB0aGF0IGluIHRoZSBkcml2ZXIsIGFzIHRo
-ZSBEU1MgSVAgcmV2aXNpb24gaGFzbid0IGJlZW4gdXBkYXRlZAo+IGluIGEgY291cGxlIG9mIGNh
-c2VzLCBvciB0aGUgaXNzdWUgY29tZXMgZnJvbSBvdXRzaWRlIERTUy4gQnV0IHRoZXJlIGFyZQo+
-IG9ubHkgYSBmZXcgb2YgdGhlc2UgY2FzZXMsIG1vc3RseSB3ZSB3b3VsZCBkbyBqdXN0IGZpbmUg
-d2l0aCB0aGUgRFNTIElQCj4gcmV2aXNpb24uCj4gCj4gV2hhdCBkbyB5b3UgdGhpbmsgb2YgYSBz
-Y2hlbWUsIHdoZXJlIHdlJ2QgZHJvcCB0aGUgcGxhdGZvcm0gZGF0YSwgYnV0IGF0Cj4gZWFybHkg
-cGxhdGZvcm0gaW5pdCBjb2RlIHdlIHdvdWxkIGluamVjdCBhIERUIHByb3BlcnR5IG9yIHR3byBp
-bnRvIERTUydzCj4gRFQgZGF0YSBpbiB0aG9zZSBwcm9ibGVtYXRpYyBjYXNlcz8KPiAKPiBPciBk
-byB5b3UgaGF2ZSBhbnkgb3RoZXIgaWRlYXMgaG93IHRvIHBhc3MgZmxhZ3MgdG8gdGhlIGRyaXZl
-ciBiYXNlZCBvbgo+IHRoZSBTb0MgcmV2aXNpb24/CgpPciByZXRyaWV2ZSB0aGUgU29DIHJldmlz
-aW9uIGluIHRoZSBkcml2ZXIuIEkga25vdyB0aGlzIGlzIGEgYmFkIHRoaW5nIHRvIGRvIAppbiBn
-ZW5lcmFsLCBidXQgd2hlbiBoYW5kbGluZyBlcnJhdGEgdGhhdCBhcmUgc3BlY2lmaWMgdG8gY2Vy
-dGFpbiBFUyB2ZXJzaW9ucywgCml0J3MgaGFyZCB0byBhdm9pZC4gaHR0cHM6Ly9wYXRjaHdvcmsu
-a2VybmVsLm9yZy9wYXRjaC85MTQxMzgxLyBoYXMgYmVlbiAKZGV2ZWxvcGVkIGZvciB0aGF0IChv
-ciBhdCBsZWFzdCBhIHZlcnkgc2ltaWxhcikgcHVycG9zZS4KCi0tIApSZWdhcmRzLAoKTGF1cmVu
-dCBQaW5jaGFydAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
-Cmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
-Cg==
+--===============0644298602==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="2fsBEeNxdM7hCfQ3ci7Jv8VluAsImJDGv"
+
+--2fsBEeNxdM7hCfQ3ci7Jv8VluAsImJDGv
+Content-Type: multipart/mixed; boundary="n9ui20GWbVd6xGSec7f946t0fwGb0FaMU";
+ protected-headers="v1"
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Tony Lindgren <tony@atomide.com>, dri-devel@lists.freedesktop.org,
+ linux-omap@vger.kernel.org
+Message-ID: <c59e26d6-0475-7d13-6bf1-ca785d0aa8f3@ti.com>
+Subject: Re: [PATCH/RFC 0/7] Remove the omapdrm device from platform code
+References: <1481672306-22564-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20161214150506.GV4920@atomide.com>
+ <88473bd0-0273-3d80-2249-e3ec0d1ee928@ti.com> <2042929.xqZ0CNKz48@avalon>
+In-Reply-To: <2042929.xqZ0CNKz48@avalon>
+
+--n9ui20GWbVd6xGSec7f946t0fwGb0FaMU
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+On 15/12/16 12:07, Laurent Pinchart wrote:
+
+>> Or do you have any other ideas how to pass flags to the driver based o=
+n
+>> the SoC revision?
+>=20
+> Or retrieve the SoC revision in the driver. I know this is a bad thing =
+to do=20
+> in general, but when handling errata that are specific to certain ES ve=
+rsions,=20
+> it's hard to avoid. https://patchwork.kernel.org/patch/9141381/ has bee=
+n=20
+> developed for that (or at least a very similar) purpose.
+
+Ah, that should work.
+
+ Tomi
+
+
+--n9ui20GWbVd6xGSec7f946t0fwGb0FaMU--
+
+--2fsBEeNxdM7hCfQ3ci7Jv8VluAsImJDGv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJYUnjGAAoJEPo9qoy8lh7174wP/iASbNKS+hl3hKyj/dad5swC
+ZSZsejDcGn+3Hzy0BdXI12thwnzTrOciDzaKTsUTKl3mi/1qcogkjL5GTFT5sxz+
+0GJ5+AG/A+ylkaeIHxm0bh1HlbpU7r1VJX2OhrQh2vx12aFBAbCxRrZjPRQNNg11
+LfzjvQ1+Ujt7muHgbAB+PFYkAgIfBt1xijP0AxVQIrasBLSyXt9uJ9Tzh/NkVJq3
++fLB53jfS/sLdV68s+cE3WOqMg34Mj3A0fbSrfAa3EUIINpC7mBW/TOe4/2g87kT
+8PDU8p2buDyqVkWFEU/CBKukEwjjAMO6RzP18tLJKwMRAkfrRtmg4Y/Wmjn5vNCM
+gcHcq/W9p70sGUPdAvESTjTAvV3mT4PlvtYrbXiHX6RQ+ScNcxBSrlplbvLKxJEV
+TnEVbpvHA2Rk09boCxB2vMajqt5BVuNP+hbLHxpV5N/lzVbPlfZpOH1IZdZM5ftT
+nXGmSrTFLWcXb1m5fTatEZ9hOQZnHq+9OCPMbxjcT0PhnvpvszprPfiQvhq88eHD
+4LOB0C1rv6MH3cNaAp9bl+OgptU5sYa8/LxEA6iPyd83SNSwQrxbOYJGJtUfoYUM
+gS8rv8GE6ZkMCToZS/pchniAywjuVgRkNdibKOa5qzRfUchgO1MlRFMfcDZhSCKD
+/kTobLxYC12wh2TiODFs
+=x/iL
+-----END PGP SIGNATURE-----
+
+--2fsBEeNxdM7hCfQ3ci7Jv8VluAsImJDGv--
+
+--===============0644298602==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
+IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+
+--===============0644298602==--
