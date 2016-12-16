@@ -1,146 +1,127 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH net 2/3] cpsw/netcp: davinci_cpdma: sanitize inter-module
- API
-Date: Fri, 16 Dec 2016 11:59:00 +0200
-Message-ID: <20161216095859.GA16712@khorivan>
-References: <20161216092017.2560717-1-arnd@arndb.de>
- <20161216092017.2560717-2-arnd@arndb.de>
+From: Lukasz Majewski <l.majewski@majess.pl>
+Subject: Problem with early debugging (arch/arm/boot/compressed/head.S)
+Date: Fri, 16 Dec 2016 07:34:48 +0100
+Message-ID: <20161216073448.1da2d374@jawa>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ boundary="Sig_/b9_AFNorlAo8edEGNsaSVhq"; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161216092017.2560717-2-arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mugunthan V N <mugunthanvnm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, "David S. Miller" <davem@davemloft.net>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Dec 16, 2016 at 10:19:58AM +0100, Arnd Bergmann wrote:
-> The davinci_cpdma module is a helper library that is used by the
-> actual device drivers and does nothing by itself, so all its API
-> functions need to be exported.
-> 
-> Four new functions were added recently without an export, so now
-> we get a build error:
-> 
-> ERROR: "cpdma_chan_set_weight" [drivers/net/ethernet/ti/ti_cpsw.ko] undefined!
-> ERROR: "cpdma_chan_get_rate" [drivers/net/ethernet/ti/ti_cpsw.ko] undefined!
-> ERROR: "cpdma_chan_get_min_rate" [drivers/net/ethernet/ti/ti_cpsw.ko] undefined!
-> ERROR: "cpdma_chan_set_rate" [drivers/net/ethernet/ti/ti_cpsw.ko] undefined!
-/\
-||
-A patch correcting this has been applied.
-(397c5ad153f0ea62023accb67b3d2b07e5039948)
+--Sig_/b9_AFNorlAo8edEGNsaSVhq
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-> 
-> This exports those symbols. After taking a closer look, I found two
-> more global functions in this file that are not exported and not used
-> anywhere, so they can obviously be removed. There is also one function
-> that is only used internally in this module, and should be 'static'.
-> 
-> Fixes: 8f32b90981dc ("net: ethernet: ti: davinci_cpdma: add set rate for a channel")
-> Fixes: 0fc6432cc78d ("net: ethernet: ti: davinci_cpdma: add weight function for channels")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->  drivers/net/ethernet/ti/davinci_cpdma.c | 59 ++++++++++-----------------------
->  drivers/net/ethernet/ti/davinci_cpdma.h |  4 ---
->  2 files changed, 17 insertions(+), 46 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-> index 36518fc5c7cc..b9d40f0cdf6c 100644
-> --- a/drivers/net/ethernet/ti/davinci_cpdma.c
-> +++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-> @@ -628,6 +628,23 @@ int cpdma_ctlr_destroy(struct cpdma_ctlr *ctlr)
->  }
->  EXPORT_SYMBOL_GPL(cpdma_ctlr_destroy);
->  
-> +static int cpdma_chan_int_ctrl(struct cpdma_chan *chan, bool enable)
-> +{
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&chan->lock, flags);
-> +	if (chan->state != CPDMA_STATE_ACTIVE) {
-> +		spin_unlock_irqrestore(&chan->lock, flags);
-> +		return -EINVAL;
-> +	}
-> +
-> +	dma_reg_write(chan->ctlr, enable ? chan->int_set : chan->int_clear,
-> +		      chan->mask);
-> +	spin_unlock_irqrestore(&chan->lock, flags);
-> +
-> +	return 0;
-> +}
-> +
->  int cpdma_ctlr_int_ctrl(struct cpdma_ctlr *ctlr, bool enable)
->  {
->  	unsigned long flags;
-> @@ -1274,46 +1291,4 @@ int cpdma_chan_stop(struct cpdma_chan *chan)
->  }
->  EXPORT_SYMBOL_GPL(cpdma_chan_stop);
->  
-> -int cpdma_chan_int_ctrl(struct cpdma_chan *chan, bool enable)
-> -{
-> -	unsigned long flags;
-> -
-> -	spin_lock_irqsave(&chan->lock, flags);
-> -	if (chan->state != CPDMA_STATE_ACTIVE) {
-> -		spin_unlock_irqrestore(&chan->lock, flags);
-> -		return -EINVAL;
-> -	}
-> -
-> -	dma_reg_write(chan->ctlr, enable ? chan->int_set : chan->int_clear,
-> -		      chan->mask);
-> -	spin_unlock_irqrestore(&chan->lock, flags);
-> -
-> -	return 0;
-> -}
-> -
-> -int cpdma_control_get(struct cpdma_ctlr *ctlr, int control)
-> -{
-> -	unsigned long flags;
-> -	int ret;
-> -
-> -	spin_lock_irqsave(&ctlr->lock, flags);
-> -	ret = _cpdma_control_get(ctlr, control);
-> -	spin_unlock_irqrestore(&ctlr->lock, flags);
-> -
-> -	return ret;
-> -}
-> -
-> -int cpdma_control_set(struct cpdma_ctlr *ctlr, int control, int value)
-> -{
-> -	unsigned long flags;
-> -	int ret;
-> -
-> -	spin_lock_irqsave(&ctlr->lock, flags);
-> -	ret = _cpdma_control_set(ctlr, control, value);
-> -	spin_unlock_irqrestore(&ctlr->lock, flags);
-> -
-> -	return ret;
-> -}
-> -EXPORT_SYMBOL_GPL(cpdma_control_set);
-> -
->  MODULE_LICENSE("GPL");
-> diff --git a/drivers/net/ethernet/ti/davinci_cpdma.h b/drivers/net/ethernet/ti/davinci_cpdma.h
-> index 4a167db2abab..36d0a09a3d44 100644
-> --- a/drivers/net/ethernet/ti/davinci_cpdma.h
-> +++ b/drivers/net/ethernet/ti/davinci_cpdma.h
-> @@ -87,7 +87,6 @@ int cpdma_chan_process(struct cpdma_chan *chan, int quota);
->  
->  int cpdma_ctlr_int_ctrl(struct cpdma_ctlr *ctlr, bool enable);
->  void cpdma_ctlr_eoi(struct cpdma_ctlr *ctlr, u32 value);
-> -int cpdma_chan_int_ctrl(struct cpdma_chan *chan, bool enable);
->  u32 cpdma_ctrl_rxchs_state(struct cpdma_ctlr *ctlr);
->  u32 cpdma_ctrl_txchs_state(struct cpdma_ctlr *ctlr);
->  bool cpdma_check_free_tx_desc(struct cpdma_chan *chan);
-> @@ -111,7 +110,4 @@ enum cpdma_control {
->  	CPDMA_RX_BUFFER_OFFSET,		/* read-write */
->  };
->  
-> -int cpdma_control_get(struct cpdma_ctlr *ctlr, int control);
-> -int cpdma_control_set(struct cpdma_ctlr *ctlr, int control, int value);
-> -
->  #endif
-> -- 
-> 2.9.0
-> 
+Dear All,
+
+My SoC: Cortex-A15, TI (AM57xx)
+
+My setup: Linux v4.9: tag v4.9-rc8
+
+Toolchain: TI's SDK:
+ti-am572x-idk-sdk/linux-devkit/sysroots/x86_64-arago-linux/usr/bin/arm-linu=
+x-gnueabihf-
+
+I'm trying to get early print messages on UART1 (0x4806a000).
+
+Relevant .config defines:
+
+CONFIG_DEBUG_LL=3Dy
+CONFIG_DEBUG_LL_INCLUDE=3D"debug/omap2plus.S"
+CONFIG_EARLY_PRINTK=3Dy
+CONFIG_DEBUG_OMAP2UART1=3Dy
+
+'ve enabled debugging in the arch/arm/boot/compressed/head.S file (#define =
+DEBUG).
+
+Unfortunately I do have following errors:
+
+CC arch/arm/boot/compressed/decompress.o
+arch/arm/boot/compressed/head.S: Assembler messages:
+arch/arm/boot/compressed/head.S:1286: Error: ARM register expected -- `sub =
+,r3,r1'
+arch/arm/boot/compressed/head.S:1286: Error: ARM register expected -- `ldr =
+r3,[,#0]'
+arch/arm/boot/compressed/head.S:1286: Error: ARM register expected -- `ldr =
+r1,[,#4]'
+arch/arm/boot/compressed/head.S:1286: Error: ARM register expected -- `str =
+r3,[,#0]'
+arch/arm/boot/compressed/head.S:1286: Error: ARM register expected -- `str =
+r3,[,#4]'
+arch/arm/boot/compressed/head.S:1286: Error: ARM register expected -- `str =
+r3,[,#8]'
+arch/arm/boot/compressed/head.S:1286: Error: ARM register expected -- `str =
+r3,[,#0]'
+arch/arm/boot/compressed/head.S:1286: Error: ARM register expected -- `str =
+r3,[,#4]'
+arch/arm/boot/compressed/head.S:1286: Error: ARM register expected -- `str =
+r3,[,#8]'
+arch/arm/boot/compressed/head.S:1286: Error: ARM register expected -- `ldr =
+,[,#8]'
+arch/arm/boot/compressed/head.S:1286: Error: shift expression expected -- `=
+add r3,r3,'
+arch/arm/boot/compressed/head.S:1286: Error: shift expression expected -- `=
+add r1,r1,'
+arch/arm/boot/compressed/head.S:1304: Error: ARM register expected -- `sub =
+,r3,r1'
+arch/arm/boot/compressed/head.S:1304: Error: ARM register expected -- `ldr =
+r3,[,#0]'
+arch/arm/boot/compressed/head.S:1304: Error: ARM register expected -- `ldr =
+r1,[,#4]'
+arch/arm/boot/compressed/head.S:1304: Error: ARM register expected -- `str =
+r3,[,#0]'
+arch/arm/boot/compressed/head.S:1304: Error: ARM register expected -- `str =
+r3,[,#4]'
+arch/arm/boot/compressed/head.S:1304: Error: ARM register expected -- `str =
+r3,[,#8]'
+arch/arm/boot/compressed/head.S:1304: Error: ARM register expected -- `str =
+r3,[,#0]'
+arch/arm/boot/compressed/head.S:1304: Error: ARM register expected -- `str =
+r3,[,#4]'
+arch/arm/boot/compressed/head.S:1304: Error: ARM register expected -- `str =
+r3,[,#8]'
+arch/arm/boot/compressed/head.S:1304: Error: ARM register expected -- `ldr =
+,[,#8]'
+arch/arm/boot/compressed/head.S:1304: Error: shift expression expected -- `=
+add r3,r3,'
+arch/arm/boot/compressed/head.S:1304: Error: shift expression expected -- `=
+add r1,r1,'
+scripts/Makefile.build:393: recipe for target 'arch/arm/boot/compressed/hea=
+d.o' failed
+
+Those are related to loadsp macro (also defined in head.S file), which
+is very short:
+
+ .macro	loadsp,	rb, tmp
+	        push {r7}
+	        addruart r7, \rb, \tmp
+	        pop {r7}
+		.endm
+
+Any ideas how to fix this issue? Any hints?
+
+I initially thought that this is compiler configuration issue - but
+those errors are on many compilers (also incliding TI's SDK compiler).
+
+Any ideas or hints how to proceed?
+
+Best regards,
+
+=C5=81ukasz Majewski
+
+
+--Sig_/b9_AFNorlAo8edEGNsaSVhq
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iEYEARECAAYFAlhTixEACgkQf9/hG2YwgjEyLgCdEg70gMj02GS25NNCutZoRuSE
+SI8An3xwboV1HshEGGh7lZcLoxCOkPnL
+=pvJX
+-----END PGP SIGNATURE-----
+
+--Sig_/b9_AFNorlAo8edEGNsaSVhq--
