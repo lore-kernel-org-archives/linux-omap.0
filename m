@@ -1,122 +1,63 @@
-From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: [PATCH v2] usb: musb: debugfs: allow forcing host mode together with speed in testmode
-Date: Sun, 18 Dec 2016 00:54:40 +0100
-Message-ID: <1482018880-1740-1-git-send-email-pali.rohar@gmail.com>
-References: <20161216040319.GA18350@uda0271908>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH/RFC v1.1 12/7] drm: omapdrm: Remove unused omapdss platform
+ data field
+Date: Sun, 18 Dec 2016 02:54:22 +0200
+Message-ID: <20161218005422.12785-1-laurent.pinchart@ideasonboard.com>
+References: <1481680684-11585-5-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161216040319.GA18350@uda0271908>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bin Liu <b-liu@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, joerg Reisenweber <joerg@openmoko.org>, linux-omap@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@kernel.org>
-Cc: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <1481680684-11585-5-git-send-email-laurent.pinchart@ideasonboard.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Based on the musb ug, force_host bit is allowed to be set along with
-force_hs or force_fs bit.
-
-It could help to implement forced host mode via testmode on Nokia N900.
-
-Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
----
-Changes in v2:
-* Use == instead of & for comparison of testmode
----
- drivers/usb/musb/musb_debugfs.c |   44 +++++++++++++++++++++++++--------------
- 1 file changed, 28 insertions(+), 16 deletions(-)
-
-diff --git a/drivers/usb/musb/musb_debugfs.c b/drivers/usb/musb/musb_debugfs.c
-index 9b22d94..5308cea 100644
---- a/drivers/usb/musb/musb_debugfs.c
-+++ b/drivers/usb/musb/musb_debugfs.c
-@@ -147,28 +147,34 @@ static int musb_test_mode_show(struct seq_file *s, void *unused)
- 
- 	test = musb_readb(musb->mregs, MUSB_TESTMODE);
- 
--	if (test & MUSB_TEST_FORCE_HOST)
-+	if (test == (MUSB_TEST_FORCE_HOST | MUSB_TEST_FORCE_FS))
-+		seq_printf(s, "force host full-speed\n");
-+
-+	else if (test == (MUSB_TEST_FORCE_HOST | MUSB_TEST_FORCE_HS))
-+		seq_printf(s, "force host high-speed\n");
-+
-+	else if (test == MUSB_TEST_FORCE_HOST)
- 		seq_printf(s, "force host\n");
- 
--	if (test & MUSB_TEST_FIFO_ACCESS)
-+	else if (test == MUSB_TEST_FIFO_ACCESS)
- 		seq_printf(s, "fifo access\n");
- 
--	if (test & MUSB_TEST_FORCE_FS)
-+	else if (test == MUSB_TEST_FORCE_FS)
- 		seq_printf(s, "force full-speed\n");
- 
--	if (test & MUSB_TEST_FORCE_HS)
-+	else if (test == MUSB_TEST_FORCE_HS)
- 		seq_printf(s, "force high-speed\n");
- 
--	if (test & MUSB_TEST_PACKET)
-+	else if (test == MUSB_TEST_PACKET)
- 		seq_printf(s, "test packet\n");
- 
--	if (test & MUSB_TEST_K)
-+	else if (test == MUSB_TEST_K)
- 		seq_printf(s, "test K\n");
- 
--	if (test & MUSB_TEST_J)
-+	else if (test == MUSB_TEST_J)
- 		seq_printf(s, "test J\n");
- 
--	if (test & MUSB_TEST_SE0_NAK)
-+	else if (test == MUSB_TEST_SE0_NAK)
- 		seq_printf(s, "test SE0 NAK\n");
- 
- 	return 0;
-@@ -206,30 +212,36 @@ static ssize_t musb_test_mode_write(struct file *file,
- 	if (copy_from_user(buf, ubuf, min_t(size_t, sizeof(buf) - 1, count)))
- 		return -EFAULT;
- 
--	if (strstarts(buf, "force host"))
-+	if (strstarts(buf, "force host full-speed"))
-+		test = MUSB_TEST_FORCE_HOST | MUSB_TEST_FORCE_FS;
-+
-+	else if (strstarts(buf, "force host high-speed"))
-+		test = MUSB_TEST_FORCE_HOST | MUSB_TEST_FORCE_HS;
-+
-+	else if (strstarts(buf, "force host"))
- 		test = MUSB_TEST_FORCE_HOST;
- 
--	if (strstarts(buf, "fifo access"))
-+	else if (strstarts(buf, "fifo access"))
- 		test = MUSB_TEST_FIFO_ACCESS;
- 
--	if (strstarts(buf, "force full-speed"))
-+	else if (strstarts(buf, "force full-speed"))
- 		test = MUSB_TEST_FORCE_FS;
- 
--	if (strstarts(buf, "force high-speed"))
-+	else if (strstarts(buf, "force high-speed"))
- 		test = MUSB_TEST_FORCE_HS;
- 
--	if (strstarts(buf, "test packet")) {
-+	else if (strstarts(buf, "test packet")) {
- 		test = MUSB_TEST_PACKET;
- 		musb_load_testpacket(musb);
- 	}
- 
--	if (strstarts(buf, "test K"))
-+	else if (strstarts(buf, "test K"))
- 		test = MUSB_TEST_K;
- 
--	if (strstarts(buf, "test J"))
-+	else if (strstarts(buf, "test J"))
- 		test = MUSB_TEST_J;
- 
--	if (strstarts(buf, "test SE0 NAK"))
-+	else if (strstarts(buf, "test SE0 NAK"))
- 		test = MUSB_TEST_SE0_NAK;
- 
- 	musb_writeb(musb->mregs, MUSB_TESTMODE, test);
--- 
-1.7.9.5
+VGhlIG9tYXBkc3MgcGxhdGZvcm0gZGF0YSBkZWZhdWx0X2Rpc3BsYXlfbmFtZSBmaWVsZCBpcyB1
+bnVzZWQuClJlbW92ZSBpdC4KClNpZ25lZC1vZmYtYnk6IExhdXJlbnQgUGluY2hhcnQgPGxhdXJl
+bnQucGluY2hhcnRAaWRlYXNvbmJvYXJkLmNvbT4KLS0tCkNoYW5nZXMgc2luY2UgdjE6CgotIERv
+bid0IHJlbW92ZSB0aGUgcGxhdGZvcm0gY2FsbGJhY2tzIGFzIHRoZXkncmUgc3RpbGwgdXNlZCBi
+eSB0aGUKICBvbWFwZmIgZHJpdmVyLgotLS0KIGRyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9j
+b3JlLmMgICAgICAgICAgfCAyIC0tCiBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9k
+c3MvY29yZS5jIHwgMiAtLQogaW5jbHVkZS9saW51eC9wbGF0Zm9ybV9kYXRhL29tYXBkc3MuaCAg
+ICAgICB8IDEgLQogMyBmaWxlcyBjaGFuZ2VkLCA1IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBh
+L2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9jb3JlLmMgYi9kcml2ZXJzL2dwdS9kcm0vb21h
+cGRybS9kc3MvY29yZS5jCmluZGV4IDNkMzYxNzQ2NjdlYy4uNDljNDEyYTZhOGE5IDEwMDY0NAot
+LS0gYS9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvY29yZS5jCisrKyBiL2RyaXZlcnMvZ3B1
+L2RybS9vbWFwZHJtL2Rzcy9jb3JlLmMKQEAgLTE3OCw4ICsxNzgsNiBAQCBzdGF0aWMgaW50IF9f
+aW5pdCBvbWFwX2Rzc19wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQogCiAJaWYg
+KGRlZl9kaXNwX25hbWUpCiAJCWNvcmUuZGVmYXVsdF9kaXNwbGF5X25hbWUgPSBkZWZfZGlzcF9u
+YW1lOwotCWVsc2UgaWYgKHBkYXRhLT5kZWZhdWx0X2Rpc3BsYXlfbmFtZSkKLQkJY29yZS5kZWZh
+dWx0X2Rpc3BsYXlfbmFtZSA9IHBkYXRhLT5kZWZhdWx0X2Rpc3BsYXlfbmFtZTsKIAogCXJldHVy
+biAwOwogCmRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kc3Mv
+Y29yZS5jIGIvZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2NvcmUuYwppbmRl
+eCAyOWRlNDgyNzU4OWQuLmVlY2Y2OTVjMTZmNCAxMDA2NDQKLS0tIGEvZHJpdmVycy92aWRlby9m
+YmRldi9vbWFwMi9vbWFwZmIvZHNzL2NvcmUuYworKysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29t
+YXAyL29tYXBmYi9kc3MvY29yZS5jCkBAIC0yMDYsOCArMjA2LDYgQEAgc3RhdGljIGludCBfX2lu
+aXQgb21hcF9kc3NfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIAogCWlmIChk
+ZWZfZGlzcF9uYW1lKQogCQljb3JlLmRlZmF1bHRfZGlzcGxheV9uYW1lID0gZGVmX2Rpc3BfbmFt
+ZTsKLQllbHNlIGlmIChwZGF0YS0+ZGVmYXVsdF9kaXNwbGF5X25hbWUpCi0JCWNvcmUuZGVmYXVs
+dF9kaXNwbGF5X25hbWUgPSBwZGF0YS0+ZGVmYXVsdF9kaXNwbGF5X25hbWU7CiAKIAlyZWdpc3Rl
+cl9wbV9ub3RpZmllcigmb21hcF9kc3NfcG1fbm90aWZfYmxvY2spOwogCmRpZmYgLS1naXQgYS9p
+bmNsdWRlL2xpbnV4L3BsYXRmb3JtX2RhdGEvb21hcGRzcy5oIGIvaW5jbHVkZS9saW51eC9wbGF0
+Zm9ybV9kYXRhL29tYXBkc3MuaAppbmRleCBlNzFiYjFkMWI3YmEuLjVkODdiZmE4ZGY2OSAxMDA2
+NDQKLS0tIGEvaW5jbHVkZS9saW51eC9wbGF0Zm9ybV9kYXRhL29tYXBkc3MuaAorKysgYi9pbmNs
+dWRlL2xpbnV4L3BsYXRmb3JtX2RhdGEvb21hcGRzcy5oCkBAIC0yNyw3ICsyNyw2IEBAIGVudW0g
+b21hcGRzc192ZXJzaW9uIHsKIAogLyogQm9hcmQgc3BlY2lmaWMgZGF0YSAqLwogc3RydWN0IG9t
+YXBfZHNzX2JvYXJkX2luZm8gewotCWNvbnN0IGNoYXIgKmRlZmF1bHRfZGlzcGxheV9uYW1lOwog
+CWludCAoKmRzaV9lbmFibGVfcGFkcykoaW50IGRzaV9pZCwgdW5zaWduZWQgaW50IGxhbmVfbWFz
+ayk7CiAJdm9pZCAoKmRzaV9kaXNhYmxlX3BhZHMpKGludCBkc2lfaWQsIHVuc2lnbmVkIGludCBs
+YW5lX21hc2spOwogCWludCAoKnNldF9taW5fYnVzX3RwdXQpKHN0cnVjdCBkZXZpY2UgKmRldiwg
+dW5zaWduZWQgbG9uZyByKTsKLS0gClJlZ2FyZHMsCgpMYXVyZW50IFBpbmNoYXJ0CgpfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGlu
+ZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVl
+ZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
