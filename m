@@ -1,63 +1,96 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH/RFC v1.1 12/7] drm: omapdrm: Remove unused omapdss platform
- data field
-Date: Sun, 18 Dec 2016 02:54:22 +0200
-Message-ID: <20161218005422.12785-1-laurent.pinchart@ideasonboard.com>
-References: <1481680684-11585-5-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv4 00/15] clk: ti: add support for hwmod clocks
+Date: Mon, 19 Dec 2016 08:22:07 +0200
+Message-ID: <88baee5e-48c3-f0d3-de5e-8e578fab0aa4@ti.com>
+References: <1476805568-19264-1-git-send-email-t-kristo@ti.com>
+ <20161028005341.GR26139@codeaurora.org>
+ <2cfa10a9-9ea0-23e4-30de-9aece13e47e3@ti.com>
+ <20161028233750.GQ16026@codeaurora.org>
+ <7371ef35-5d95-bf78-4c97-c61091a1fa4b@ti.com>
+ <148156710975.37646.2957511113527634913@resonance>
+ <20161213004914.GM5423@codeaurora.org> <20161213013133.GR4920@atomide.com>
+ <148160402543.37646.6019420188689675769@resonance>
+ <4b016883-e7c9-94d8-d964-3c8dfee6ee13@ti.com>
+ <20161217014626.GX5423@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1481680684-11585-5-git-send-email-laurent.pinchart@ideasonboard.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <20161217014626.GX5423@codeaurora.org>
+Sender: linux-clk-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Michael Turquette <mturquette@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-VGhlIG9tYXBkc3MgcGxhdGZvcm0gZGF0YSBkZWZhdWx0X2Rpc3BsYXlfbmFtZSBmaWVsZCBpcyB1
-bnVzZWQuClJlbW92ZSBpdC4KClNpZ25lZC1vZmYtYnk6IExhdXJlbnQgUGluY2hhcnQgPGxhdXJl
-bnQucGluY2hhcnRAaWRlYXNvbmJvYXJkLmNvbT4KLS0tCkNoYW5nZXMgc2luY2UgdjE6CgotIERv
-bid0IHJlbW92ZSB0aGUgcGxhdGZvcm0gY2FsbGJhY2tzIGFzIHRoZXkncmUgc3RpbGwgdXNlZCBi
-eSB0aGUKICBvbWFwZmIgZHJpdmVyLgotLS0KIGRyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9j
-b3JlLmMgICAgICAgICAgfCAyIC0tCiBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9k
-c3MvY29yZS5jIHwgMiAtLQogaW5jbHVkZS9saW51eC9wbGF0Zm9ybV9kYXRhL29tYXBkc3MuaCAg
-ICAgICB8IDEgLQogMyBmaWxlcyBjaGFuZ2VkLCA1IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBh
-L2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9jb3JlLmMgYi9kcml2ZXJzL2dwdS9kcm0vb21h
-cGRybS9kc3MvY29yZS5jCmluZGV4IDNkMzYxNzQ2NjdlYy4uNDljNDEyYTZhOGE5IDEwMDY0NAot
-LS0gYS9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvY29yZS5jCisrKyBiL2RyaXZlcnMvZ3B1
-L2RybS9vbWFwZHJtL2Rzcy9jb3JlLmMKQEAgLTE3OCw4ICsxNzgsNiBAQCBzdGF0aWMgaW50IF9f
-aW5pdCBvbWFwX2Rzc19wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQogCiAJaWYg
-KGRlZl9kaXNwX25hbWUpCiAJCWNvcmUuZGVmYXVsdF9kaXNwbGF5X25hbWUgPSBkZWZfZGlzcF9u
-YW1lOwotCWVsc2UgaWYgKHBkYXRhLT5kZWZhdWx0X2Rpc3BsYXlfbmFtZSkKLQkJY29yZS5kZWZh
-dWx0X2Rpc3BsYXlfbmFtZSA9IHBkYXRhLT5kZWZhdWx0X2Rpc3BsYXlfbmFtZTsKIAogCXJldHVy
-biAwOwogCmRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kc3Mv
-Y29yZS5jIGIvZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2NvcmUuYwppbmRl
-eCAyOWRlNDgyNzU4OWQuLmVlY2Y2OTVjMTZmNCAxMDA2NDQKLS0tIGEvZHJpdmVycy92aWRlby9m
-YmRldi9vbWFwMi9vbWFwZmIvZHNzL2NvcmUuYworKysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29t
-YXAyL29tYXBmYi9kc3MvY29yZS5jCkBAIC0yMDYsOCArMjA2LDYgQEAgc3RhdGljIGludCBfX2lu
-aXQgb21hcF9kc3NfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIAogCWlmIChk
-ZWZfZGlzcF9uYW1lKQogCQljb3JlLmRlZmF1bHRfZGlzcGxheV9uYW1lID0gZGVmX2Rpc3BfbmFt
-ZTsKLQllbHNlIGlmIChwZGF0YS0+ZGVmYXVsdF9kaXNwbGF5X25hbWUpCi0JCWNvcmUuZGVmYXVs
-dF9kaXNwbGF5X25hbWUgPSBwZGF0YS0+ZGVmYXVsdF9kaXNwbGF5X25hbWU7CiAKIAlyZWdpc3Rl
-cl9wbV9ub3RpZmllcigmb21hcF9kc3NfcG1fbm90aWZfYmxvY2spOwogCmRpZmYgLS1naXQgYS9p
-bmNsdWRlL2xpbnV4L3BsYXRmb3JtX2RhdGEvb21hcGRzcy5oIGIvaW5jbHVkZS9saW51eC9wbGF0
-Zm9ybV9kYXRhL29tYXBkc3MuaAppbmRleCBlNzFiYjFkMWI3YmEuLjVkODdiZmE4ZGY2OSAxMDA2
-NDQKLS0tIGEvaW5jbHVkZS9saW51eC9wbGF0Zm9ybV9kYXRhL29tYXBkc3MuaAorKysgYi9pbmNs
-dWRlL2xpbnV4L3BsYXRmb3JtX2RhdGEvb21hcGRzcy5oCkBAIC0yNyw3ICsyNyw2IEBAIGVudW0g
-b21hcGRzc192ZXJzaW9uIHsKIAogLyogQm9hcmQgc3BlY2lmaWMgZGF0YSAqLwogc3RydWN0IG9t
-YXBfZHNzX2JvYXJkX2luZm8gewotCWNvbnN0IGNoYXIgKmRlZmF1bHRfZGlzcGxheV9uYW1lOwog
-CWludCAoKmRzaV9lbmFibGVfcGFkcykoaW50IGRzaV9pZCwgdW5zaWduZWQgaW50IGxhbmVfbWFz
-ayk7CiAJdm9pZCAoKmRzaV9kaXNhYmxlX3BhZHMpKGludCBkc2lfaWQsIHVuc2lnbmVkIGludCBs
-YW5lX21hc2spOwogCWludCAoKnNldF9taW5fYnVzX3RwdXQpKHN0cnVjdCBkZXZpY2UgKmRldiwg
-dW5zaWduZWQgbG9uZyByKTsKLS0gClJlZ2FyZHMsCgpMYXVyZW50IFBpbmNoYXJ0CgpfX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGlu
-ZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVl
-ZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+On 17/12/16 03:46, Stephen Boyd wrote:
+> On 12/13, Tero Kristo wrote:
+>> On 13/12/16 06:40, Michael Turquette wrote:
+>>>>> On 12/12, Michael Turquette wrote:
+>>>
+>>> Is the goal to describe this hardware topology in DT? Is that right
+>>> thing to do? I think it's cool to have this modeled *somehow* in Linux,
+>>> but I'm not sure DT is the right place to model the interconnect and
+>>> every device hanging off of it.
+>>>
+>>> I don't want to put words in Stephen's mouth, but I think the issue over
+>>> whether clockdomains are CCF clock providers or some genpd thing is
+>>> probably less important to him than the fact that the DT bindings are
+>>> super detailed to inner workings of the SoC.
+>>
+>> Ok, so your preference would be to reduce the data under DT, and the
+>> ideal approach would be a single prcm node. I think we still need to
+>> keep the prm / cm1 / cm2 as separate nodes, as they are pretty
+>> individual from hardware point of view, provide quite different
+>> features, and they reside in some cases in quite different address
+>> spaces also. Anyway, here's what I gather we should probably have in
+>> DT:
+>>
+>> - reset provider
+>>   * example: resets = <&prm OMAP4_IVA2_RESET>;
+>>   * only from 'prm' node
+>>
+>> - genpd provider (for the hwmods, clockdomains, powerdomains,
+>> voltage domains)
+>>   * examples: power-domains = <&cm2 OMAP4_DSS_CORE_MOD>;
+>> 		power-domains = <&cm2 OMAP4_DSS_CLKDM>;
+>> 		power-domains = <&prm OMAP4_DSS_PWRDM>;
+>> 		power-domains = <&prm OMAP4_CORE_VOLTDM>;
+>>   * from all 'prm', 'cm1' and 'cm2' nodes, though 'prm' would be the
+>> only one providing _CLKDM, _PWRDM, _VOLTDM genpds.
+>>
+>> - clock provider (for anything that requires clocks)
+>>   * example: clocks = <&cm1 OMAP4_DPLL_MPU_CK>;
+>>   * from all 'prm', 'cm1' and 'cm2' nodes
+>>
+>> This would eventually cause an ABI breakage for the clock handles,
+>> if we transfer the existing clocks to this format, and remove the
+>> existing clock handles from DT. Otherwise, I think we could just
+>> transition the existing hwmod data to this new format only, and add
+>> the clockdomain / powerdomain / voltagedomain support a bit later.
+>>
+>
+> This sounds about right. Is the ABI break because we get rid of
+> clock nodes and just have a few big nodes?
+
+In the above plan, the ABI breakage is because we get rid of the 
+existing clock nodes and replace everything with a single (or few) clock 
+provider nodes.
+
+> I thought we had
+> already broken DT ABI here but if we didn't then that isn't
+> great. Perhaps to make things keep working we can detect the old
+> style one node per clock design and register a bunch of providers
+> individually from the single driver probe?  It would have to match
+> up the registers with a clk_hw pointer somewhere, but it should
+> be possible. Alternatively, we keep both designs around for some
+> time and have different compatibles and different driver entry
+> points.
+
+Keeping both around for a while should be okay, the design for this 
+series was done with that in mind. I didn't address the scrapping of old 
+clock data yet though, but that would be a step taken in the future.
+
+First thing to do here would be to implement the hwmod genpds, rest can 
+follow later, but we need an agreement if this is the way we want to go.
+
+-Tero
