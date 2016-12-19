@@ -1,54 +1,91 @@
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 6/9] ARM: dts: am4372: Add an empty chosen node to top level
- DTSI
-Date: Mon, 19 Dec 2016 11:44:38 -0300
-Message-ID: <1482158681-4530-7-git-send-email-javier@osg.samsung.com>
-References: <1482158681-4530-1-git-send-email-javier@osg.samsung.com>
+From: Bin Liu <b-liu@ti.com>
+Subject: Re: [PATCH v2] usb: musb: debugfs: allow forcing host mode together
+ with speed in testmode
+Date: Mon, 19 Dec 2016 09:10:39 -0600
+Message-ID: <20161219151039.GA17435@uda0271908>
+References: <20161216040319.GA18350@uda0271908>
+ <1482018880-1740-1-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1482158681-4530-1-git-send-email-javier@osg.samsung.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-kernel@vger.kernel.org
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Javier Martinez Canillas <javier@osg.samsung.com>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Pali Rohar <pali.rohar@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1482018880-1740-1-git-send-email-pali.rohar@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, joerg Reisenweber <joerg@openmoko.org>, linux-omap@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Commit 75813028bbd7 ("ARM: dts: am4372: Remove skeleton.dtsi usage")
-removed the skeleton.dtsi usage since we want to get rid of it.
+On Sun, Dec 18, 2016 at 12:54:40AM +0100, Pali Rohár wrote:
+> Based on the musb ug, force_host bit is allowed to be set along with
+> force_hs or force_fs bit.
+> 
+> It could help to implement forced host mode via testmode on Nokia N900.
+> 
+> Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
+> ---
+> Changes in v2:
+> * Use == instead of & for comparison of testmode
+> ---
+>  drivers/usb/musb/musb_debugfs.c |   44 +++++++++++++++++++++++++--------------
+>  1 file changed, 28 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/musb_debugfs.c b/drivers/usb/musb/musb_debugfs.c
+> index 9b22d94..5308cea 100644
+> --- a/drivers/usb/musb/musb_debugfs.c
+> +++ b/drivers/usb/musb/musb_debugfs.c
+> @@ -147,28 +147,34 @@ static int musb_test_mode_show(struct seq_file *s, void *unused)
+>  
+>  	test = musb_readb(musb->mregs, MUSB_TESTMODE);
+>  
+> -	if (test & MUSB_TEST_FORCE_HOST)
+> +	if (test == (MUSB_TEST_FORCE_HOST | MUSB_TEST_FORCE_FS))
+> +		seq_printf(s, "force host full-speed\n");
+> +
+> +	else if (test == (MUSB_TEST_FORCE_HOST | MUSB_TEST_FORCE_HS))
+> +		seq_printf(s, "force host high-speed\n");
+> +
+> +	else if (test == MUSB_TEST_FORCE_HOST)
+>  		seq_printf(s, "force host\n");
+>  
+> -	if (test & MUSB_TEST_FIFO_ACCESS)
+> +	else if (test == MUSB_TEST_FIFO_ACCESS)
+>  		seq_printf(s, "fifo access\n");
+>  
+> -	if (test & MUSB_TEST_FORCE_FS)
+> +	else if (test == MUSB_TEST_FORCE_FS)
+>  		seq_printf(s, "force full-speed\n");
+>  
+> -	if (test & MUSB_TEST_FORCE_HS)
+> +	else if (test == MUSB_TEST_FORCE_HS)
+>  		seq_printf(s, "force high-speed\n");
+>  
+> -	if (test & MUSB_TEST_PACKET)
+> +	else if (test == MUSB_TEST_PACKET)
+>  		seq_printf(s, "test packet\n");
+>  
+> -	if (test & MUSB_TEST_K)
+> +	else if (test == MUSB_TEST_K)
+>  		seq_printf(s, "test K\n");
+>  
+> -	if (test & MUSB_TEST_J)
+> +	else if (test == MUSB_TEST_J)
+>  		seq_printf(s, "test J\n");
+>  
+> -	if (test & MUSB_TEST_SE0_NAK)
+> +	else if (test == MUSB_TEST_SE0_NAK)
+>  		seq_printf(s, "test SE0 NAK\n");
+>  
+>  	return 0;
+> @@ -206,30 +212,36 @@ static ssize_t musb_test_mode_write(struct file *file,
+>  	if (copy_from_user(buf, ubuf, min_t(size_t, sizeof(buf) - 1, count)))
+>  		return -EFAULT;
+>  
+> -	if (strstarts(buf, "force host"))
+> +	if (strstarts(buf, "force host full-speed"))
 
-But this can cause issues when booting a kernel with a boot-loader
-that doesn't create a chosen node if this isn't present in the DTB
-since the decompressor relies on a pre-existing chosen node to be
-available to insert the command line and merge other ATAGS info.
+buf is only 18 bytes long, the string is not fully compared.
+You might have to increase buf[] to 24 bytes.
 
-Fixes: 75813028bbd7 ("ARM: dts: am4372: Remove skeleton.dtsi usage")
-Reported-by: Pali Rohar <pali.rohar@gmail.com>
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
-
- arch/arm/boot/dts/am4372.dtsi | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index ac55f93fc91e..2df9e6050c2f 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -16,6 +16,7 @@
- 	interrupt-parent = <&wakeupgen>;
- 	#address-cells = <1>;
- 	#size-cells = <1>;
-+	chosen { };
- 
- 	memory@0 {
- 		device_type = "memory";
--- 
-2.7.4
+Regards,
+-Bin.
