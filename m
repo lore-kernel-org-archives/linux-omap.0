@@ -1,142 +1,89 @@
-From: Bin Liu <b-liu@ti.com>
-Subject: Re: [PATCH v3] usb: musb: debugfs: allow forcing host mode together
- with speed in testmode
-Date: Mon, 19 Dec 2016 14:46:12 -0600
-Message-ID: <20161219204612.GB17435@uda0271908>
-References: <1482018880-1740-1-git-send-email-pali.rohar@gmail.com>
- <1482161027-19346-1-git-send-email-pali.rohar@gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
+Date: Mon, 19 Dec 2016 23:23:51 +0100
+Message-ID: <20161219201015.GB4974@amd>
+References: <20160521054336.GA27123@amd>
+ <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
+ <20160808214132.GB2946@xo-6d-61-c0.localdomain>
+ <201612141438.16603@pali>
+ <20161214150819.GW4920@atomide.com>
+ <20161215065022.GC16630@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="kfjH4zxOES6UT95V"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1482161027-19346-1-git-send-email-pali.rohar@gmail.com>
+In-Reply-To: <20161215065022.GC16630@valkosipuli.retiisi.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, joerg Reisenweber <joerg@openmoko.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@kernel.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Tony Lindgren <tony@atomide.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Dec 19, 2016 at 04:23:47PM +0100, Pali Rohár wrote:
-> Based on the musb ug, force_host bit is allowed to be set along with
-> force_hs or force_fs bit.
-> 
-> It could help to implement forced host mode via testmode on Nokia N900.
-> 
-> Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
 
-Applied. Thanks.
--Bin.
+--kfjH4zxOES6UT95V
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> ---
-> Changes in v2:
-> * Use == instead of & for comparison of testmode
-> Changes in v3:
-> * Increase buf[] to 24 bytes
-> ---
->  drivers/usb/musb/musb_debugfs.c |   46 ++++++++++++++++++++++++---------------
->  1 file changed, 29 insertions(+), 17 deletions(-)
-> 
-> diff --git a/drivers/usb/musb/musb_debugfs.c b/drivers/usb/musb/musb_debugfs.c
-> index 9b22d94..4d6c505 100644
-> --- a/drivers/usb/musb/musb_debugfs.c
-> +++ b/drivers/usb/musb/musb_debugfs.c
-> @@ -147,28 +147,34 @@ static int musb_test_mode_show(struct seq_file *s, void *unused)
->  
->  	test = musb_readb(musb->mregs, MUSB_TESTMODE);
->  
-> -	if (test & MUSB_TEST_FORCE_HOST)
-> +	if (test == (MUSB_TEST_FORCE_HOST | MUSB_TEST_FORCE_FS))
-> +		seq_printf(s, "force host full-speed\n");
-> +
-> +	else if (test == (MUSB_TEST_FORCE_HOST | MUSB_TEST_FORCE_HS))
-> +		seq_printf(s, "force host high-speed\n");
-> +
-> +	else if (test == MUSB_TEST_FORCE_HOST)
->  		seq_printf(s, "force host\n");
->  
-> -	if (test & MUSB_TEST_FIFO_ACCESS)
-> +	else if (test == MUSB_TEST_FIFO_ACCESS)
->  		seq_printf(s, "fifo access\n");
->  
-> -	if (test & MUSB_TEST_FORCE_FS)
-> +	else if (test == MUSB_TEST_FORCE_FS)
->  		seq_printf(s, "force full-speed\n");
->  
-> -	if (test & MUSB_TEST_FORCE_HS)
-> +	else if (test == MUSB_TEST_FORCE_HS)
->  		seq_printf(s, "force high-speed\n");
->  
-> -	if (test & MUSB_TEST_PACKET)
-> +	else if (test == MUSB_TEST_PACKET)
->  		seq_printf(s, "test packet\n");
->  
-> -	if (test & MUSB_TEST_K)
-> +	else if (test == MUSB_TEST_K)
->  		seq_printf(s, "test K\n");
->  
-> -	if (test & MUSB_TEST_J)
-> +	else if (test == MUSB_TEST_J)
->  		seq_printf(s, "test J\n");
->  
-> -	if (test & MUSB_TEST_SE0_NAK)
-> +	else if (test == MUSB_TEST_SE0_NAK)
->  		seq_printf(s, "test SE0 NAK\n");
->  
->  	return 0;
-> @@ -192,7 +198,7 @@ static ssize_t musb_test_mode_write(struct file *file,
->  	struct seq_file		*s = file->private_data;
->  	struct musb		*musb = s->private;
->  	u8			test;
-> -	char			buf[18];
-> +	char			buf[24];
->  
->  	test = musb_readb(musb->mregs, MUSB_TESTMODE);
->  	if (test) {
-> @@ -206,30 +212,36 @@ static ssize_t musb_test_mode_write(struct file *file,
->  	if (copy_from_user(buf, ubuf, min_t(size_t, sizeof(buf) - 1, count)))
->  		return -EFAULT;
->  
-> -	if (strstarts(buf, "force host"))
-> +	if (strstarts(buf, "force host full-speed"))
-> +		test = MUSB_TEST_FORCE_HOST | MUSB_TEST_FORCE_FS;
-> +
-> +	else if (strstarts(buf, "force host high-speed"))
-> +		test = MUSB_TEST_FORCE_HOST | MUSB_TEST_FORCE_HS;
-> +
-> +	else if (strstarts(buf, "force host"))
->  		test = MUSB_TEST_FORCE_HOST;
->  
-> -	if (strstarts(buf, "fifo access"))
-> +	else if (strstarts(buf, "fifo access"))
->  		test = MUSB_TEST_FIFO_ACCESS;
->  
-> -	if (strstarts(buf, "force full-speed"))
-> +	else if (strstarts(buf, "force full-speed"))
->  		test = MUSB_TEST_FORCE_FS;
->  
-> -	if (strstarts(buf, "force high-speed"))
-> +	else if (strstarts(buf, "force high-speed"))
->  		test = MUSB_TEST_FORCE_HS;
->  
-> -	if (strstarts(buf, "test packet")) {
-> +	else if (strstarts(buf, "test packet")) {
->  		test = MUSB_TEST_PACKET;
->  		musb_load_testpacket(musb);
->  	}
->  
-> -	if (strstarts(buf, "test K"))
-> +	else if (strstarts(buf, "test K"))
->  		test = MUSB_TEST_K;
->  
-> -	if (strstarts(buf, "test J"))
-> +	else if (strstarts(buf, "test J"))
->  		test = MUSB_TEST_J;
->  
-> -	if (strstarts(buf, "test SE0 NAK"))
-> +	else if (strstarts(buf, "test SE0 NAK"))
->  		test = MUSB_TEST_SE0_NAK;
->  
->  	musb_writeb(musb->mregs, MUSB_TESTMODE, test);
-> -- 
-> 1.7.9.5
-> 
+Hi!
+
+> Hi Pali and Tony,
+> On Wed, Dec 14, 2016 at 07:08:19AM -0800, Tony Lindgren wrote:
+> > * Pali Roh=E1r <pali.rohar@gmail.com> [161214 05:38]:
+> > > On Monday 08 August 2016 23:41:32 Pavel Machek wrote:
+> > > > On Mon 2016-08-08 11:09:56, Sakari Ailus wrote:
+> > > > > On Fri, Aug 05, 2016 at 12:26:11PM +0200, Pavel Machek wrote:
+> > > > > > This adds support for AD5820 autofocus coil, found for example =
+in
+> > > > > > Nokia N900 smartphone.
+> > > > >=20
+> > > > > Thanks, Pavel!
+> > > > >=20
+> > > > > Let's use V4L2_CID_FOCUS_ABSOLUTE, as is in the patch. If we get
+> > > > > something better in the future, we'll switch to that then.
+> > > > >=20
+> > > > > I've applied this to ad5820 branch in my tree.
+> > > >=20
+> > > > Thanks. If I understands things correctly, both DTS patch and this
+> > > > patch are waiting in your tree, so we should be good to go for 4.9
+> > > > (unless some unexpected problems surface)?
+> > > >=20
+> > > > Best regards,
+> > > > 									Pavel
+> > >=20
+> > > Was DTS patch merged into 4.9? At least I do not see updated that dts=
+=20
+> > > file omap3-n900.dts in linus tree...
+> >=20
+> > If it's not in current mainline or next, it's off my radar so sounds
+> > like I've somehow missed it and needs resending..
+>=20
+> Where's this patch? I remember seeing the driver patch and the DT
+> documentation but no actual DT source patch for the N900.
+
+The patch was not yet submitted. Autofocus coil is not too useful
+withou camera support, and we don't yet have support for v4l subdevs
+for omap3. I have it in the camera tree, but there are still pieces to
+be done before this is useful.
+
+Best regards,
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--kfjH4zxOES6UT95V
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlhYXfYACgkQMOfwapXb+vLADQCfein6AqiDmRvoFpBDk1TlLiZp
+d6cAn2EiP64csq+pU1S0esCmqpMokMkk
+=O+TD
+-----END PGP SIGNATURE-----
+
+--kfjH4zxOES6UT95V--
