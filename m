@@ -1,107 +1,52 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/4] musb fixes for v4.9-rc cycle
-Date: Tue, 20 Dec 2016 12:59:09 -0800
-Message-ID: <20161220205909.GK4920@atomide.com>
-References: <20161107215020.31399-1-tony@atomide.com>
- <3814185.kgidRBy8ST@avalon>
- <20161111230602.GA17429@uda0271908>
- <64319829.AAeNM2SzI6@avalon>
- <20161220184046.livxczyqrqub653l@lenoch>
+From: Murali Karicheri <m-karicheri2-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH net-next 00/10] netcp: enhancements and minor fixes
+Date: Tue, 20 Dec 2016 17:09:43 -0500
+Message-ID: <1482271793-7671-1-git-send-email-m-karicheri2@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161220184046.livxczyqrqub653l@lenoch>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
-Cc: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, mugunthanvnm-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org> [161220 10:41]:
-> Hi Laurent,
-> 
-> On Sat, Nov 12, 2016 at 03:21:24AM +0200, Laurent Pinchart wrote:
-> > Hi Bin,
-> > 
-> > http://pandaboard.org/sites/default/files/board_reference/ES/750-2170-002-sch_revb.pdf
-> > 
-> > It would seem that the voltage is provided by the TWL6030. I'm not sure what's 
-> > turning it on as the MUSB driver doesn't seem to perform any set_vbus call in 
-> > the faulty configuration (I've traced musb_platform_set_vbus(), 
-> > omap2430_musb_set_vbus(), otg_set_vbus(), omap_usb_set_vbus() and 
-> > twl6030_set_vbus() and none of them get called).
-> > 
-> > An interesting point to note is that the TWL6030 gets probed after MUSB when 
-> > MUSB is configured in host mode only, and that happens after the call to 
-> > musb_start().
-> 
-> just gave 4.9.0 more testing on IGEPv2 board (DM3730 based), schematics here:
-> https://www.isee.biz/support/downloads/item/igepv2-rc-schematics
-> 
-> musb is configured in host only mode, driver compiled in. ID pin is grounded,
-> VBUS not connected, D+, D-, and GND are connected to self powered hub.
-> 
-> $ lsusb -t
-> /:  Bus 03.Port 1: Dev 1, Class=root_hub, Driver=ehci-omap/3p, 480M
-> /:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=musb-hdrc/1p, 480M
->     |__ Port 1: Dev 2, If 0, Class=Hub, Driver=hub/4p, 480M
->         |__ Port 1: Dev 3, If 0, Class=Vendor Specific Class, Driver=udlfb, 480M
->         |__ Port 4: Dev 4, If 0, Class=Hub, Driver=hub/4p, 480M
->             |__ Port 4: Dev 5, If 1, Class=CDC Data, Driver=cdc_acm, 12M
->             |__ Port 4: Dev 5, If 0, Class=Communications, Driver=cdc_acm, 12M
-> /:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=ohci-omap3/3p, 12M
-> 
-> 1) without following patch I'm getting:
->    udlfb: wait for urb interrupted: ffffffc2 available: 0
->    however, devices get enumerated
+This series is for net-next. This propagates enhancements and minor
+bug fixes from internal version of the driver to keep the upstream
+in sync. Please review and apply if this looks good.
 
-So things are working..
+Tested on all of K2HK/E/L boards.
 
-> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> index 847d1c2..f043fb4 100644
-> --- a/drivers/usb/musb/musb_core.c
-> +++ b/drivers/usb/musb/musb_core.c
-> @@ -2275,7 +2274,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
->  	 * 500 ms for some margin.
->  	 */
->  	pm_runtime_use_autosuspend(musb->controller);
-> -	pm_runtime_set_autosuspend_delay(musb->controller, 500);
-> +	pm_runtime_set_autosuspend_delay(musb->controller, 100);
->  	pm_runtime_enable(musb->controller);
->  	pm_runtime_get_sync(musb->controller);
-> 
-> 2) With the patch above, everything is working correctly, until I unplug all
->    devices from hub. Usb core then tries to suspend port which leads to
->    endless flood of:
->    musb_bus_suspend 2586: trying to suspend as a_idle while active
->    Disabling CONFIG_PM causes usb device enumeration stop working.
+Thanks
+Murali Karicheri
 
-I think that's because musb needs to stay awake a little while to
-negotiate with the PHY over ULPI whatever. Otherwise I think the PHY
-might not idle properly, or might be in some unknown state?
+Michael Scherban (1):
+  net: netcp: store network statistics in 64 bits
 
-If you have ID pin grounded, then a_idle is where we'd expect things
-to be. That still does not explain why it's stuck in a loop though.
+Murali Karicheri (7):
+  net: netcp: extract eflag from desc for rx_hook handling
+  net: netcp: remove the redundant memmov()
+  net: netcp: ethss: get phy-handle only if link interface is MAC-to-PHY
+  net: netcp: use hw capability to remove FCS word from rx packets
+  net: netcp: ale: update to support unknown vlan controls for NU switch
+  net: netcp: ale: use ale_status to size the ale table
+  net: netcp: ale: add proper ale entry mask bits for netcp switch ALE
 
-> 3) Few boards were still suffering from:
->    musb-hdrc musb-hdrc.0.auto: VBUS_ERROR in a_idle (90, <VBusValid), retry #3, port1 00000104
->    but that turned out to be hardware problem as they came to customer with
->    OTG connector, tvs diodes and capacitor unpopulated and customer's
->    technician soldered C834 with wrong polarity, causing twl's charge
->    pump surrending its job after a while.
+WingMan Kwok (2):
+  net: netcp: ethss: add support of subsystem register region regmap
+  net: netcp: ethss: add support of 10gbe pcsr link status
 
-OK yeah host mode VBUS errors are common if the VBUS voltage does not
-come up fast enough for musb.
+ .../devicetree/bindings/net/keystone-netcp.txt     |  19 +-
+ drivers/net/ethernet/ti/cpsw_ale.c                 | 180 ++++++++++++++++---
+ drivers/net/ethernet/ti/cpsw_ale.h                 |  17 +-
+ drivers/net/ethernet/ti/netcp.h                    |  21 +++
+ drivers/net/ethernet/ti/netcp_core.c               | 102 ++++++++---
+ drivers/net/ethernet/ti/netcp_ethss.c              | 200 +++++++++++++++++----
+ include/linux/soc/ti/knav_dma.h                    |   2 +
+ 7 files changed, 456 insertions(+), 85 deletions(-)
 
-> Anyone has a clue how to fix 2?
+-- 
+1.9.1
 
-No idea.. Maybe try to add some printks to see why active is set
-at that point?
-
-Regards,
-
-Tony
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
