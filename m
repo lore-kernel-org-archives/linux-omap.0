@@ -1,116 +1,106 @@
-From: Murali Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH net-next 03/10] net: netcp: extract eflag from desc for rx_hook handling
-Date: Tue, 20 Dec 2016 17:09:46 -0500
-Message-ID: <1482271793-7671-4-git-send-email-m-karicheri2@ti.com>
-References: <1482271793-7671-1-git-send-email-m-karicheri2@ti.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCHv4 00/15] clk: ti: add support for hwmod clocks
+Date: Tue, 20 Dec 2016 14:56:27 -0800
+Message-ID: <20161220225627.GF5423@codeaurora.org>
+References: <2cfa10a9-9ea0-23e4-30de-9aece13e47e3@ti.com>
+ <20161028233750.GQ16026@codeaurora.org>
+ <7371ef35-5d95-bf78-4c97-c61091a1fa4b@ti.com>
+ <148156710975.37646.2957511113527634913@resonance>
+ <20161213004914.GM5423@codeaurora.org>
+ <20161213013133.GR4920@atomide.com>
+ <148160402543.37646.6019420188689675769@resonance>
+ <4b016883-e7c9-94d8-d964-3c8dfee6ee13@ti.com>
+ <20161217014626.GX5423@codeaurora.org>
+ <88baee5e-48c3-f0d3-de5e-8e578fab0aa4@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1482271793-7671-1-git-send-email-m-karicheri2@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org, linux-omap@vger.kernel.org, grygorii.strashko@ti.com, mugunthanvnm@ti.com, linux-kernel@vger.kernel.org, arnd@arndb.de, davem@davemloft.net, devicetree@vger.kernel.org, mark.rutland@arm.com, robh+dt@kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <88baee5e-48c3-f0d3-de5e-8e578fab0aa4@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Michael Turquette <mturquette@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Extract the eflag bits from the received desc and pass it down
-the rx_hook chain to be available for netcp modules. Also the
-psdata and epib data has to be inspected by the netcp modules.
-So the desc can be freed only after returning from the rx_hook.
-So move knav_pool_desc_put() after the rx_hook processing.
+On 12/19, Tero Kristo wrote:
+> On 17/12/16 03:46, Stephen Boyd wrote:
+> >On 12/13, Tero Kristo wrote:
+> >>On 13/12/16 06:40, Michael Turquette wrote:
+> >>>>>On 12/12, Michael Turquette wrote:
+> >>>
+> >>>Is the goal to describe this hardware topology in DT? Is that right
+> >>>thing to do? I think it's cool to have this modeled *somehow* in Linux,
+> >>>but I'm not sure DT is the right place to model the interconnect and
+> >>>every device hanging off of it.
+> >>>
+> >>>I don't want to put words in Stephen's mouth, but I think the issue over
+> >>>whether clockdomains are CCF clock providers or some genpd thing is
+> >>>probably less important to him than the fact that the DT bindings are
+> >>>super detailed to inner workings of the SoC.
+> >>
+> >>Ok, so your preference would be to reduce the data under DT, and the
+> >>ideal approach would be a single prcm node. I think we still need to
+> >>keep the prm / cm1 / cm2 as separate nodes, as they are pretty
+> >>individual from hardware point of view, provide quite different
+> >>features, and they reside in some cases in quite different address
+> >>spaces also. Anyway, here's what I gather we should probably have in
+> >>DT:
+> >>
+> >>- reset provider
+> >>  * example: resets = <&prm OMAP4_IVA2_RESET>;
+> >>  * only from 'prm' node
+> >>
+> >>- genpd provider (for the hwmods, clockdomains, powerdomains,
+> >>voltage domains)
+> >>  * examples: power-domains = <&cm2 OMAP4_DSS_CORE_MOD>;
+> >>		power-domains = <&cm2 OMAP4_DSS_CLKDM>;
+> >>		power-domains = <&prm OMAP4_DSS_PWRDM>;
+> >>		power-domains = <&prm OMAP4_CORE_VOLTDM>;
+> >>  * from all 'prm', 'cm1' and 'cm2' nodes, though 'prm' would be the
+> >>only one providing _CLKDM, _PWRDM, _VOLTDM genpds.
+> >>
+> >>- clock provider (for anything that requires clocks)
+> >>  * example: clocks = <&cm1 OMAP4_DPLL_MPU_CK>;
+> >>  * from all 'prm', 'cm1' and 'cm2' nodes
+> >>
+> >>This would eventually cause an ABI breakage for the clock handles,
+> >>if we transfer the existing clocks to this format, and remove the
+> >>existing clock handles from DT. Otherwise, I think we could just
+> >>transition the existing hwmod data to this new format only, and add
+> >>the clockdomain / powerdomain / voltagedomain support a bit later.
+> >>
+> >
+> >This sounds about right. Is the ABI break because we get rid of
+> >clock nodes and just have a few big nodes?
+> 
+> In the above plan, the ABI breakage is because we get rid of the
+> existing clock nodes and replace everything with a single (or few)
+> clock provider nodes.
 
-Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
----
- drivers/net/ethernet/ti/netcp.h      |  1 +
- drivers/net/ethernet/ti/netcp_core.c | 20 +++++++++++++++++---
- include/linux/soc/ti/knav_dma.h      |  2 ++
- 3 files changed, 20 insertions(+), 3 deletions(-)
+Thanks for confirming.
 
-diff --git a/drivers/net/ethernet/ti/netcp.h b/drivers/net/ethernet/ti/netcp.h
-index 0f58c58..a92abd6 100644
---- a/drivers/net/ethernet/ti/netcp.h
-+++ b/drivers/net/ethernet/ti/netcp.h
-@@ -115,6 +115,7 @@ struct netcp_packet {
- 	struct sk_buff		*skb;
- 	__le32			*epib;
- 	u32			*psdata;
-+	u32			eflags;
- 	unsigned int		psdata_len;
- 	struct netcp_intf	*netcp;
- 	struct netcp_tx_pipe	*tx_pipe;
-diff --git a/drivers/net/ethernet/ti/netcp_core.c b/drivers/net/ethernet/ti/netcp_core.c
-index c243335..a136c56 100644
---- a/drivers/net/ethernet/ti/netcp_core.c
-+++ b/drivers/net/ethernet/ti/netcp_core.c
-@@ -122,6 +122,13 @@ static void get_pkt_info(dma_addr_t *buff, u32 *buff_len, dma_addr_t *ndesc,
- 	*ndesc = le32_to_cpu(desc->next_desc);
- }
- 
-+static void get_desc_info(u32 *desc_info, u32 *pkt_info,
-+			  struct knav_dma_desc *desc)
-+{
-+	*desc_info = le32_to_cpu(desc->desc_info);
-+	*pkt_info = le32_to_cpu(desc->packet_info);
-+}
-+
- static u32 get_sw_data(int index, struct knav_dma_desc *desc)
- {
- 	/* No Endian conversion needed as this data is untouched by hw */
-@@ -653,6 +660,7 @@ static int netcp_process_one_rx_packet(struct netcp_intf *netcp)
- 	struct netcp_packet p_info;
- 	struct sk_buff *skb;
- 	void *org_buf_ptr;
-+	u32 tmp;
- 
- 	dma_desc = knav_queue_pop(netcp->rx_queue, &dma_sz);
- 	if (!dma_desc)
-@@ -724,9 +732,6 @@ static int netcp_process_one_rx_packet(struct netcp_intf *netcp)
- 		knav_pool_desc_put(netcp->rx_pool, ndesc);
- 	}
- 
--	/* Free the primary descriptor */
--	knav_pool_desc_put(netcp->rx_pool, desc);
--
- 	/* check for packet len and warn */
- 	if (unlikely(pkt_sz != accum_sz))
- 		dev_dbg(netcp->ndev_dev, "mismatch in packet size(%d) & sum of fragments(%d)\n",
-@@ -739,6 +744,11 @@ static int netcp_process_one_rx_packet(struct netcp_intf *netcp)
- 	p_info.skb = skb;
- 	skb->dev = netcp->ndev;
- 	p_info.rxtstamp_complete = false;
-+	get_desc_info(&tmp, &p_info.eflags, desc);
-+	p_info.epib = desc->epib;
-+	p_info.psdata = (u32 __force *)desc->psdata;
-+	p_info.eflags = ((p_info.eflags >> KNAV_DMA_DESC_EFLAGS_SHIFT) &
-+			 KNAV_DMA_DESC_EFLAGS_MASK);
- 	list_for_each_entry(rx_hook, &netcp->rxhook_list_head, list) {
- 		int ret;
- 
-@@ -748,10 +758,14 @@ static int netcp_process_one_rx_packet(struct netcp_intf *netcp)
- 			dev_err(netcp->ndev_dev, "RX hook %d failed: %d\n",
- 				rx_hook->order, ret);
- 			netcp->ndev->stats.rx_errors++;
-+			/* Free the primary descriptor */
-+			knav_pool_desc_put(netcp->rx_pool, desc);
- 			dev_kfree_skb(skb);
- 			return 0;
- 		}
- 	}
-+	/* Free the primary descriptor */
-+	knav_pool_desc_put(netcp->rx_pool, desc);
- 
- 	netcp->ndev->stats.rx_packets++;
- 	netcp->ndev->stats.rx_bytes += skb->len;
-diff --git a/include/linux/soc/ti/knav_dma.h b/include/linux/soc/ti/knav_dma.h
-index 35cb926..2b78826 100644
---- a/include/linux/soc/ti/knav_dma.h
-+++ b/include/linux/soc/ti/knav_dma.h
-@@ -41,6 +41,8 @@
- #define KNAV_DMA_DESC_RETQ_SHIFT		0
- #define KNAV_DMA_DESC_RETQ_MASK			MASK(14)
- #define KNAV_DMA_DESC_BUF_LEN_MASK		MASK(22)
-+#define KNAV_DMA_DESC_EFLAGS_MASK		MASK(4)
-+#define KNAV_DMA_DESC_EFLAGS_SHIFT		20
- 
- #define KNAV_DMA_NUM_EPIB_WORDS			4
- #define KNAV_DMA_NUM_PS_WORDS			16
+> 
+> >I thought we had
+> >already broken DT ABI here but if we didn't then that isn't
+> >great. Perhaps to make things keep working we can detect the old
+> >style one node per clock design and register a bunch of providers
+> >individually from the single driver probe?  It would have to match
+> >up the registers with a clk_hw pointer somewhere, but it should
+> >be possible. Alternatively, we keep both designs around for some
+> >time and have different compatibles and different driver entry
+> >points.
+> 
+> Keeping both around for a while should be okay, the design for this
+> series was done with that in mind. I didn't address the scrapping of
+> old clock data yet though, but that would be a step taken in the
+> future.
+> 
+> First thing to do here would be to implement the hwmod genpds, rest
+> can follow later, but we need an agreement if this is the way we
+> want to go.
+
+Ok. I guess we're just waiting on Tony then?
+
 -- 
-1.9.1
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
