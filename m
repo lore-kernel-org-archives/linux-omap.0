@@ -1,89 +1,89 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
-Date: Mon, 19 Dec 2016 23:23:51 +0100
-Message-ID: <20161219201015.GB4974@amd>
-References: <20160521054336.GA27123@amd>
- <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
- <20160808214132.GB2946@xo-6d-61-c0.localdomain>
- <201612141438.16603@pali>
- <20161214150819.GW4920@atomide.com>
- <20161215065022.GC16630@valkosipuli.retiisi.org.uk>
+From: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+Subject: Re: [PATCH 0/4] musb fixes for v4.9-rc cycle
+Date: Tue, 20 Dec 2016 19:40:46 +0100
+Message-ID: <20161220184046.livxczyqrqub653l@lenoch>
+References: <20161107215020.31399-1-tony@atomide.com>
+ <3814185.kgidRBy8ST@avalon>
+ <20161111230602.GA17429@uda0271908>
+ <64319829.AAeNM2SzI6@avalon>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="kfjH4zxOES6UT95V"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161215065022.GC16630@valkosipuli.retiisi.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Tony Lindgren <tony@atomide.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, linux-media@vger.kernel.org, mchehab@osg.samsung.com
+In-Reply-To: <64319829.AAeNM2SzI6@avalon>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Laurent,
 
---kfjH4zxOES6UT95V
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Sat, Nov 12, 2016 at 03:21:24AM +0200, Laurent Pinchart wrote:
+> Hi Bin,
+> 
+> http://pandaboard.org/sites/default/files/board_reference/ES/750-2170-002-sch_revb.pdf
+> 
+> It would seem that the voltage is provided by the TWL6030. I'm not sure what's 
+> turning it on as the MUSB driver doesn't seem to perform any set_vbus call in 
+> the faulty configuration (I've traced musb_platform_set_vbus(), 
+> omap2430_musb_set_vbus(), otg_set_vbus(), omap_usb_set_vbus() and 
+> twl6030_set_vbus() and none of them get called).
+> 
+> An interesting point to note is that the TWL6030 gets probed after MUSB when 
+> MUSB is configured in host mode only, and that happens after the call to 
+> musb_start().
 
-Hi!
+just gave 4.9.0 more testing on IGEPv2 board (DM3730 based), schematics here:
+https://www.isee.biz/support/downloads/item/igepv2-rc-schematics
 
-> Hi Pali and Tony,
-> On Wed, Dec 14, 2016 at 07:08:19AM -0800, Tony Lindgren wrote:
-> > * Pali Roh=E1r <pali.rohar@gmail.com> [161214 05:38]:
-> > > On Monday 08 August 2016 23:41:32 Pavel Machek wrote:
-> > > > On Mon 2016-08-08 11:09:56, Sakari Ailus wrote:
-> > > > > On Fri, Aug 05, 2016 at 12:26:11PM +0200, Pavel Machek wrote:
-> > > > > > This adds support for AD5820 autofocus coil, found for example =
-in
-> > > > > > Nokia N900 smartphone.
-> > > > >=20
-> > > > > Thanks, Pavel!
-> > > > >=20
-> > > > > Let's use V4L2_CID_FOCUS_ABSOLUTE, as is in the patch. If we get
-> > > > > something better in the future, we'll switch to that then.
-> > > > >=20
-> > > > > I've applied this to ad5820 branch in my tree.
-> > > >=20
-> > > > Thanks. If I understands things correctly, both DTS patch and this
-> > > > patch are waiting in your tree, so we should be good to go for 4.9
-> > > > (unless some unexpected problems surface)?
-> > > >=20
-> > > > Best regards,
-> > > > 									Pavel
-> > >=20
-> > > Was DTS patch merged into 4.9? At least I do not see updated that dts=
-=20
-> > > file omap3-n900.dts in linus tree...
-> >=20
-> > If it's not in current mainline or next, it's off my radar so sounds
-> > like I've somehow missed it and needs resending..
->=20
-> Where's this patch? I remember seeing the driver patch and the DT
-> documentation but no actual DT source patch for the N900.
+musb is configured in host only mode, driver compiled in. ID pin is grounded,
+VBUS not connected, D+, D-, and GND are connected to self powered hub.
 
-The patch was not yet submitted. Autofocus coil is not too useful
-withou camera support, and we don't yet have support for v4l subdevs
-for omap3. I have it in the camera tree, but there are still pieces to
-be done before this is useful.
+$ lsusb -t
+/:  Bus 03.Port 1: Dev 1, Class=root_hub, Driver=ehci-omap/3p, 480M
+/:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=musb-hdrc/1p, 480M
+    |__ Port 1: Dev 2, If 0, Class=Hub, Driver=hub/4p, 480M
+        |__ Port 1: Dev 3, If 0, Class=Vendor Specific Class, Driver=udlfb, 480M
+        |__ Port 4: Dev 4, If 0, Class=Hub, Driver=hub/4p, 480M
+            |__ Port 4: Dev 5, If 1, Class=CDC Data, Driver=cdc_acm, 12M
+            |__ Port 4: Dev 5, If 0, Class=Communications, Driver=cdc_acm, 12M
+/:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=ohci-omap3/3p, 12M
+
+1) without following patch I'm getting:
+   udlfb: wait for urb interrupted: ffffffc2 available: 0
+   however, devices get enumerated
+
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 847d1c2..f043fb4 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -2275,7 +2274,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+ 	 * 500 ms for some margin.
+ 	 */
+ 	pm_runtime_use_autosuspend(musb->controller);
+-	pm_runtime_set_autosuspend_delay(musb->controller, 500);
++	pm_runtime_set_autosuspend_delay(musb->controller, 100);
+ 	pm_runtime_enable(musb->controller);
+ 	pm_runtime_get_sync(musb->controller);
+
+2) With the patch above, everything is working correctly, until I unplug all
+   devices from hub. Usb core then tries to suspend port which leads to
+   endless flood of:
+   musb_bus_suspend 2586: trying to suspend as a_idle while active
+   Disabling CONFIG_PM causes usb device enumeration stop working.
+
+3) Few boards were still suffering from:
+   musb-hdrc musb-hdrc.0.auto: VBUS_ERROR in a_idle (90, <VBusValid), retry #3, port1 00000104
+   but that turned out to be hardware problem as they came to customer with
+   OTG connector, tvs diodes and capacitor unpopulated and customer's
+   technician soldered C834 with wrong polarity, causing twl's charge
+   pump surrending its job after a while.
+
+Anyone has a clue how to fix 2?
 
 Best regards,
-									Pavel
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---kfjH4zxOES6UT95V
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlhYXfYACgkQMOfwapXb+vLADQCfein6AqiDmRvoFpBDk1TlLiZp
-d6cAn2EiP64csq+pU1S0esCmqpMokMkk
-=O+TD
------END PGP SIGNATURE-----
-
---kfjH4zxOES6UT95V--
+	ladis
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
