@@ -1,34 +1,39 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH net-next 02/10] net: netcp: ethss: add support of 10gbe
- pcsr link status
-Date: Thu, 22 Dec 2016 16:30:13 -0600
-Message-ID: <20161222223013.5ho6hn3tokvn3btz@rob-hp-laptop>
-References: <1482271793-7671-1-git-send-email-m-karicheri2@ti.com>
- <1482271793-7671-3-git-send-email-m-karicheri2@ti.com>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] pinctrl: single: fix spelling mistakes on "Ivalid"
+Date: Fri, 23 Dec 2016 00:47:14 +0000
+Message-ID: <20161223004714.7491-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1482271793-7671-3-git-send-email-m-karicheri2@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Murali Karicheri <m-karicheri2@ti.com>
-Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, grygorii.strashko@ti.com, mugunthanvnm@ti.com, linux-kernel@vger.kernel.org, arnd@arndb.de, davem@davemloft.net, devicetree@vger.kernel.org, mark.rutland@arm.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 20, 2016 at 05:09:45PM -0500, Murali Karicheri wrote:
-> From: WingMan Kwok <w-kwok2@ti.com>
-> 
-> The 10GBASE-R Physical Coding Sublayer (PCS-R) module provides
-> functionality of a physical coding sublayer (PCS) on data being
-> transferred between a demuxed XGMII and SerDes supporting a 16
-> or 32 bit interface.  From the driver point of view, whether
-> a ethernet link is up or not depends also on the status of the
-> block-lock bit of the PCSR.  This patch adds the checking of that
-> bit in order to determine the link status.
+From: Colin Ian King <colin.king@canonical.com>
 
-I would think this would be a common thing and the phy driver should 
-provide the status, rather than trying to give the ethernet driver 
-direct access to the phy registers. Is the PCSR the serdes phy or 
-registers in addition to that?
+Trivial fixe to spelling mistake "Ivalid" to "Invalid" in
+dev_err  error message.
 
-Rob
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/pinctrl/pinctrl-single.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index a5a0392..25edadf 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -1134,7 +1134,7 @@ static int pcs_parse_one_pinctrl_entry(struct pcs_device *pcs,
+ 
+ 	rows = pinctrl_count_index_with_args(np, name);
+ 	if (rows <= 0) {
+-		dev_err(pcs->dev, "Ivalid number of rows: %d\n", rows);
++		dev_err(pcs->dev, "Invalid number of rows: %d\n", rows);
+ 		return -EINVAL;
+ 	}
+ 
+-- 
+2.10.2
+
