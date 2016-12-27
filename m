@@ -1,27 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: PRM: Delete an error message for a failed
- memory allocation
-Date: Tue, 27 Dec 2016 09:34:49 -0800
-Message-ID: <20161227173449.GR4920@atomide.com>
-References: <6212b730-8e09-bf87-2a6b-23df9bc43e2d@users.sourceforge.net>
+Subject: Re: [PATCH v2] ARM: omap2: am437x: rollback to use
+ omap3_gptimer_timer_init()
+Date: Tue, 27 Dec 2016 09:35:49 -0800
+Message-ID: <20161227173549.GS4920@atomide.com>
+References: <1480910264-5126-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-janitors-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <6212b730-8e09-bf87-2a6b-23df9bc43e2d@users.sourceforge.net>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@codeaurora.org>, Russell King <linux@armlinux.org.uk>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>
+In-Reply-To: <1480910264-5126-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: t-kristo@ti.com, linux@armlinux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* SF Markus Elfring <elfring@users.sourceforge.net> [161203 12:58]:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Sat, 3 Dec 2016 21:46:02 +0100
+* Keerthy <j-keerthy@ti.com> [161204 19:58]:
+> From: Grygorii Strashko <grygorii.strashko@ti.com>
 > 
-> Omit an extra message for a memory allocation failure in this function.
+> The commit 55ee7017ee31 ("arm: omap2: board-generic: use
+> omap4_local_timer_init for AM437x") unintentionally changes the
+> clocksource devices for AM437x from OMAP GP Timer to SyncTimer32K.
+> 
+> Unfortunately, the SyncTimer32K is starving from frequency deviation
+> as mentioned in commit 5b5c01359152 ("ARM: OMAP2+: AM43x: Use gptimer
+> as clocksource") and, as reported by Franklin [1], even its monotonic
+> nature is under question (most probably there is a HW issue, but it's
+> still under investigation).
+> 
+> Taking into account above facts It's reasonable to rollback to the use
+> of omap3_gptimer_timer_init().
+> 
+> [1] http://www.spinics.net/lists/linux-omap/msg127425.html
 
-Applying into omap-for-v4.10/fixes.
-
-Regards,
+Applying into omap-for-v4.10/fixes thanks.
 
 Tony
