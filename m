@@ -1,7 +1,7 @@
 From: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/4] ARM: dts: Add am335x-boneblack-wireless
-Date: Tue, 27 Dec 2016 11:58:35 -0600
-Message-ID: <20161227175837.28970-2-robertcnelson@gmail.com>
+Subject: [PATCH 4/4] ARM: dts: Add am335x-bonegreen-wireless
+Date: Tue, 27 Dec 2016 11:58:37 -0600
+Message-ID: <20161227175837.28970-4-robertcnelson@gmail.com>
 References: <20161227175837.28970-1-robertcnelson@gmail.com>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161227175837.28970-1-robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
@@ -10,45 +10,46 @@ To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-BeagleBone Black Wireless is clone of the BeagleBone Black (BBB) with the Ethernet
-replaced by a TI wl1835 wireless module.
+SeeedStudio BeagleBone Green Wireless (BBGW) is an expansion of the SeeedStudio
+Green (BBG) with the Ethernet replaced by a TI wl1835 wireless module.
 
-This board can be indentified by the BWAx value after A335BNLT (BBB) in the at24 eeprom:
-BWAx [aa 55 33 ee 41 33 33 35  42 4e 4c 54 42 57 41 35  |.U3.A335BNLTBWA5|]
+This board can be indentified by the GW1x value after A335BNLT (BBB) in the at24 eeprom:
+GW1x [aa 55 33 ee 41 33 33 35  42 4e 4c 54 47 57 31 41  |.U3.A335BNLTGW1A|]
 
-http://beagleboard.org/black-wireless
-https://github.com/beagleboard/beaglebone-black-wireless
+http://beagleboard.org/green-wireless
+http://wiki.seeed.cc/BeagleBone_Green_Wireless/
 
 firmware: https://github.com/beagleboard/beaglebone-black-wireless/tree/master/firmware
-wl18xx mac address: /proc/device-tree/ocp/ethernet@4a100000/slave@4a100200/mac-address
+wl18xx mac address: Stored in at24 eeprom at address 5-16:
+hexdump -e '8/1 "%c"' /sys/bus/i2c/devices/0-0050/eeprom | cut -b 5-16
 
 Signed-off-by: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 CC: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 CC: Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>
 ---
  arch/arm/boot/dts/Makefile                      |   1 +
- arch/arm/boot/dts/am335x-boneblack-wireless.dts | 109 ++++++++++++++++++++++++
- 2 files changed, 110 insertions(+)
- create mode 100644 arch/arm/boot/dts/am335x-boneblack-wireless.dts
+ arch/arm/boot/dts/am335x-bonegreen-wireless.dts | 126 ++++++++++++++++++++++++
+ 2 files changed, 127 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am335x-bonegreen-wireless.dts
 
 diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index cccdbcb557b6..9415a49bd11b 100644
+index 9415a49bd11b..6c0a3e3fdf30 100644
 --- a/arch/arm/boot/dts/Makefile
 +++ b/arch/arm/boot/dts/Makefile
-@@ -563,6 +563,7 @@ dtb-$(CONFIG_SOC_AM33XX) += \
- 	am335x-base0033.dtb \
- 	am335x-bone.dtb \
+@@ -565,6 +565,7 @@ dtb-$(CONFIG_SOC_AM33XX) += \
  	am335x-boneblack.dtb \
-+	am335x-boneblack-wireless.dtb \
+ 	am335x-boneblack-wireless.dtb \
  	am335x-bonegreen.dtb \
++	am335x-bonegreen-wireless.dtb \
  	am335x-chiliboard.dtb \
  	am335x-cm-t335.dtb \
-diff --git a/arch/arm/boot/dts/am335x-boneblack-wireless.dts b/arch/arm/boot/dts/am335x-boneblack-wireless.dts
+ 	am335x-evm.dtb \
+diff --git a/arch/arm/boot/dts/am335x-bonegreen-wireless.dts b/arch/arm/boot/dts/am335x-bonegreen-wireless.dts
 new file mode 100644
-index 000000000000..105bd10655f7
+index 000000000000..9d1a0fd555f3
 --- /dev/null
-+++ b/arch/arm/boot/dts/am335x-boneblack-wireless.dts
-@@ -0,0 +1,109 @@
++++ b/arch/arm/boot/dts/am335x-bonegreen-wireless.dts
+@@ -0,0 +1,126 @@
 +/*
 + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
 + *
@@ -60,12 +61,12 @@ index 000000000000..105bd10655f7
 +
 +#include "am33xx.dtsi"
 +#include "am335x-bone-common.dtsi"
-+#include "am335x-boneblack-common.dtsi"
++#include "am335x-bonegreen-common.dtsi"
 +#include <dt-bindings/interrupt-controller/irq.h>
 +
 +/ {
-+	model = "TI AM335x BeagleBone Black Wireless";
-+	compatible = "ti,am335x-bone-black-wireless", "ti,am335x-bone-black", "ti,am335x-bone", "ti,am33xx";
++	model = "TI AM335x BeagleBone Green Wireless";
++	compatible = "ti,am335x-bone-green-wireless", "ti,am335x-bone-green", "ti,am335x-bone-black", "ti,am335x-bone", "ti,am33xx";
 +
 +	wlan_en_reg: fixedregulator@2 {
 +		compatible = "regulator-fixed";
@@ -75,7 +76,7 @@ index 000000000000..105bd10655f7
 +		startup-delay-us= <70000>;
 +
 +		/* WL_EN */
-+		gpio = <&gpio3 9 0>;
++		gpio = <&gpio0 26 0>;
 +		enable-active-high;
 +	};
 +};
@@ -83,18 +84,18 @@ index 000000000000..105bd10655f7
 +&am33xx_pinmux {
 +	bt_pins: pinmux_bt_pins {
 +		pinctrl-single,pins = <
-+			AM33XX_IOPAD(0x928, PIN_OUTPUT_PULLUP | MUX_MODE7)	/* gmii1_txd0.gpio0_28 - BT_EN */
++			AM33XX_IOPAD(0x878, PIN_OUTPUT_PULLUP | MUX_MODE7)	/* gpmc_ad12.gpio1_28 BT_EN */
 +		>;
 +	};
 +
 +	mmc3_pins: pinmux_mmc3_pins {
 +		pinctrl-single,pins = <
-+			AM33XX_IOPAD(0x93c, PIN_INPUT_PULLUP | MUX_MODE6 ) /* (L15) gmii1_rxd1.mmc2_clk */
-+			AM33XX_IOPAD(0x914, PIN_INPUT_PULLUP | MUX_MODE6 ) /* (J16) gmii1_txen.mmc2_cmd */
-+			AM33XX_IOPAD(0x918, PIN_INPUT_PULLUP | MUX_MODE5 ) /* (J17) gmii1_rxdv.mmc2_dat0 */
-+			AM33XX_IOPAD(0x91c, PIN_INPUT_PULLUP | MUX_MODE5 ) /* (J18) gmii1_txd3.mmc2_dat1 */
-+			AM33XX_IOPAD(0x920, PIN_INPUT_PULLUP | MUX_MODE5 ) /* (K15) gmii1_txd2.mmc2_dat2 */
-+			AM33XX_IOPAD(0x908, PIN_INPUT_PULLUP | MUX_MODE5 ) /* (H16) gmii1_col.mmc2_dat3 */
++			AM33XX_IOPAD(0x830, PIN_INPUT_PULLUP | MUX_MODE3)	/* gpmc_ad12.mmc2_dat0 */
++			AM33XX_IOPAD(0x834, PIN_INPUT_PULLUP | MUX_MODE3)	/* gpmc_ad13.mmc2_dat1 */
++			AM33XX_IOPAD(0x838, PIN_INPUT_PULLUP | MUX_MODE3)	/* gpmc_ad14.mmc2_dat2 */
++			AM33XX_IOPAD(0x83c, PIN_INPUT_PULLUP | MUX_MODE3)	/* gpmc_ad15.mmc2_dat3 */
++			AM33XX_IOPAD(0x888, PIN_INPUT_PULLUP | MUX_MODE3)	/* gpmc_csn3.mmc2_cmd */
++			AM33XX_IOPAD(0x88c, PIN_INPUT_PULLUP | MUX_MODE3)	/* gpmc_clk.mmc2_clk */
 +		>;
 +	};
 +
@@ -109,9 +110,9 @@ index 000000000000..105bd10655f7
 +
 +	wl18xx_pins: pinmux_wl18xx_pins {
 +		pinctrl-single,pins = <
-+			AM33XX_IOPAD(0x92c, PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gmii1_txclk.gpio3_9 WL_EN */
-+			AM33XX_IOPAD(0x944, PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii1_refclk.gpio0_29 WL_IRQ */
-+			AM33XX_IOPAD(0x930, PIN_OUTPUT_PULLUP | MUX_MODE7)	/* gmii1_rxclk.gpio3_10 LS_BUF_EN */
++			AM33XX_IOPAD(0x828, PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad10.gpio0_26 WL_EN */
++			AM33XX_IOPAD(0x82C, PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad11.gpio0_27 WL_IRQ */
++			AM33XX_IOPAD(0x87C, PIN_OUTPUT_PULLUP | MUX_MODE7)	/* gpmc_csn0.gpio1_29 LS_BUF_EN */
 +		>;
 +	};
 +};
@@ -140,7 +141,7 @@ index 000000000000..105bd10655f7
 +		compatible = "ti,wl1835";
 +		reg = <2>;
 +		interrupt-parent = <&gpio0>;
-+		interrupts = <29 IRQ_TYPE_EDGE_RISING>;
++		interrupts = <27 IRQ_TYPE_EDGE_RISING>;
 +	};
 +};
 +
@@ -150,12 +151,29 @@ index 000000000000..105bd10655f7
 +	status = "okay";
 +};
 +
-+&gpio3 {
++&gpio1 {
 +	ls_buf_en {
 +		gpio-hog;
-+		gpios = <10 GPIO_ACTIVE_HIGH>;
++		gpios = <29 GPIO_ACTIVE_HIGH>;
 +		output-high;
 +		line-name = "LS_BUF_EN";
++	};
++};
++
++/* BT_AUD_OUT from wl1835 has to be pulled low when WL_EN is activated.*/
++/* in case it isn't, wilink8 ends up in one of the test modes that     */
++/* intruces various issues (elp wkaeup timeouts etc.)                  */
++/* On the BBGW this pin is routed through the level shifter (U21) that */
++/* introduces a pullup on the line and wilink8 ends up in a bad state. */
++/* use a gpio hog to force this pin low. An alternative may be adding  */
++/* an external pulldown on U21 pin 4.                                  */
++
++&gpio3 {
++	bt_aud_in {
++		gpio-hog;
++		gpios = <16 GPIO_ACTIVE_HIGH>;
++		output-low;
++		line-name = "MCASP0_AHCLKR";
 +	};
 +};
 -- 
