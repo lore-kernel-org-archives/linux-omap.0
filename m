@@ -1,33 +1,365 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: n900: Mark eMMC slot with no-sdio and no-sd
- flags
-Date: Tue, 27 Dec 2016 09:57:47 -0800
-Message-ID: <20161227175747.GX4920@atomide.com>
-References: <1481750984-11239-1-git-send-email-pali.rohar@gmail.com>
- <20161214213445.GD28424@amd>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161214213445.GD28424@amd>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Aaro Koskinen <aaro.koskinen@iki.fi>, Chris Ball <chris@printf.net>, Ulf Hansson <ulf.hansson@linaro.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org
+From: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/4] ARM: dts: Move most of am335x-boneblack.dts to am335x-boneblack-common.dtsi
+Date: Tue, 27 Dec 2016 11:58:34 -0600
+Message-ID: <20161227175837.28970-1-robertcnelson@gmail.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [161214 13:34]:
-> On Wed 2016-12-14 22:29:44, Pali Rohár wrote:
-> > Trying to initialize eMMC slot as SDIO or SD cause failure in n900 port of
-> > qemu. eMMC itself is not detected and is not working.
-> > 
-> > Real Nokia N900 harware does not have this problem. As eMMC is really not
-> > SDIO or SD based such change is harmless and will fix support for qemu.
-> > 
-> > Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
-> 
-> Acked-by: Pavel Machek <pavel@ucw.cz>
+This is going to be shared with the BeagleBone Black Wireless
 
-Applying into omap-for-v4.10/fixes thanks.
+Signed-off-by: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+CC: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+CC: Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>
+---
+ arch/arm/boot/dts/am335x-boneblack-common.dtsi | 163 +++++++++++++++++++++++++
+ arch/arm/boot/dts/am335x-boneblack.dts         | 155 +----------------------
+ 2 files changed, 164 insertions(+), 154 deletions(-)
+ create mode 100644 arch/arm/boot/dts/am335x-boneblack-common.dtsi
 
-Tony
+diff --git a/arch/arm/boot/dts/am335x-boneblack-common.dtsi b/arch/arm/boot/dts/am335x-boneblack-common.dtsi
+new file mode 100644
+index 000000000000..325daae40278
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-boneblack-common.dtsi
+@@ -0,0 +1,163 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <dt-bindings/display/tda998x.h>
++
++&ldo3_reg {
++	regulator-min-microvolt = <1800000>;
++	regulator-max-microvolt = <1800000>;
++	regulator-always-on;
++};
++
++&mmc1 {
++	vmmc-supply = <&vmmcsd_fixed>;
++};
++
++&mmc2 {
++	vmmc-supply = <&vmmcsd_fixed>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&emmc_pins>;
++	bus-width = <8>;
++	status = "okay";
++};
++
++&am33xx_pinmux {
++	nxp_hdmi_bonelt_pins: nxp_hdmi_bonelt_pins {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x9b0, PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr0 */
++			AM33XX_IOPAD(0x8a0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data0.lcd_data0 */
++			AM33XX_IOPAD(0x8a4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data1.lcd_data1 */
++			AM33XX_IOPAD(0x8a8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data2.lcd_data2 */
++			AM33XX_IOPAD(0x8ac, PIN_OUTPUT | MUX_MODE0)		/* lcd_data3.lcd_data3 */
++			AM33XX_IOPAD(0x8b0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data4.lcd_data4 */
++			AM33XX_IOPAD(0x8b4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data5.lcd_data5 */
++			AM33XX_IOPAD(0x8b8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data6.lcd_data6 */
++			AM33XX_IOPAD(0x8bc, PIN_OUTPUT | MUX_MODE0)		/* lcd_data7.lcd_data7 */
++			AM33XX_IOPAD(0x8c0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data8.lcd_data8 */
++			AM33XX_IOPAD(0x8c4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data9.lcd_data9 */
++			AM33XX_IOPAD(0x8c8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data10.lcd_data10 */
++			AM33XX_IOPAD(0x8cc, PIN_OUTPUT | MUX_MODE0)		/* lcd_data11.lcd_data11 */
++			AM33XX_IOPAD(0x8d0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data12.lcd_data12 */
++			AM33XX_IOPAD(0x8d4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data13.lcd_data13 */
++			AM33XX_IOPAD(0x8d8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data14.lcd_data14 */
++			AM33XX_IOPAD(0x8dc, PIN_OUTPUT | MUX_MODE0)		/* lcd_data15.lcd_data15 */
++			AM33XX_IOPAD(0x8e0, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_vsync.lcd_vsync */
++			AM33XX_IOPAD(0x8e4, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_hsync.lcd_hsync */
++			AM33XX_IOPAD(0x8e8, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_pclk.lcd_pclk */
++			AM33XX_IOPAD(0x8ec, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_ac_bias_en.lcd_ac_bias_en */
++		>;
++	};
++
++	nxp_hdmi_bonelt_off_pins: nxp_hdmi_bonelt_off_pins {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x9b0, PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr0 */
++		>;
++	};
++
++	mcasp0_pins: mcasp0_pins {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x9ac, PIN_INPUT_PULLUP | MUX_MODE0) /* mcasp0_ahcklx.mcasp0_ahclkx */
++			AM33XX_IOPAD(0x99c, PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* mcasp0_ahclkr.mcasp0_axr2*/
++			AM33XX_IOPAD(0x994, PIN_OUTPUT_PULLUP | MUX_MODE0) /* mcasp0_fsx.mcasp0_fsx */
++			AM33XX_IOPAD(0x990, PIN_OUTPUT_PULLDOWN | MUX_MODE0) /* mcasp0_aclkx.mcasp0_aclkx */
++			AM33XX_IOPAD(0x86c, PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* gpmc_a11.GPIO1_27 */
++		>;
++	};
++};
++
++&lcdc {
++	status = "okay";
++
++	/* If you want to get 24 bit RGB and 16 BGR mode instead of
++	 * current 16 bit RGB and 24 BGR modes, set the propety
++	 * below to "crossed" and uncomment the video-ports -property
++	 * in tda19988 node.
++	 */
++	blue-and-red-wiring = "straight";
++
++	port {
++		lcdc_0: endpoint@0 {
++			remote-endpoint = <&hdmi_0>;
++		};
++	};
++};
++
++&i2c0 {
++	tda19988: tda19988 {
++		compatible = "nxp,tda998x";
++		reg = <0x70>;
++
++		pinctrl-names = "default", "off";
++		pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
++		pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
++
++		/* Convert 24bit BGR to RGB, e.g. cross red and blue wiring */
++		/* video-ports = <0x234501>; */
++
++		#sound-dai-cells = <0>;
++		audio-ports = <	TDA998x_I2S	0x03>;
++
++		ports {
++			port@0 {
++				hdmi_0: endpoint@0 {
++					remote-endpoint = <&lcdc_0>;
++				};
++			};
++		};
++	};
++};
++
++&rtc {
++	system-power-controller;
++};
++
++&mcasp0	{
++	#sound-dai-cells = <0>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&mcasp0_pins>;
++	status = "okay";
++	op-mode = <0>;	/* MCASP_IIS_MODE */
++	tdm-slots = <2>;
++	serial-dir = <	/* 0: INACTIVE, 1: TX, 2: RX */
++			0 0 1 0
++		>;
++	tx-num-evt = <32>;
++	rx-num-evt = <32>;
++};
++
++/ {
++	clk_mcasp0_fixed: clk_mcasp0_fixed {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <24576000>;
++	};
++
++	clk_mcasp0: clk_mcasp0 {
++		#clock-cells = <0>;
++		compatible = "gpio-gate-clock";
++		clocks = <&clk_mcasp0_fixed>;
++		enable-gpios = <&gpio1 27 0>; /* BeagleBone Black Clk enable on GPIO1_27 */
++	};
++
++	sound {
++		compatible = "simple-audio-card";
++		simple-audio-card,name = "TI BeagleBone Black";
++		simple-audio-card,format = "i2s";
++		simple-audio-card,bitclock-master = <&dailink0_master>;
++		simple-audio-card,frame-master = <&dailink0_master>;
++
++		dailink0_master: simple-audio-card,cpu {
++			sound-dai = <&mcasp0>;
++			clocks = <&clk_mcasp0>;
++		};
++
++		simple-audio-card,codec {
++			sound-dai = <&tda19988>;
++		};
++	};
++};
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index db00d8ef7b19..77273df1a028 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -9,162 +9,9 @@
+ 
+ #include "am33xx.dtsi"
+ #include "am335x-bone-common.dtsi"
+-#include <dt-bindings/display/tda998x.h>
++#include "am335x-boneblack-common.dtsi"
+ 
+ / {
+ 	model = "TI AM335x BeagleBone Black";
+ 	compatible = "ti,am335x-bone-black", "ti,am335x-bone", "ti,am33xx";
+ };
+-
+-&ldo3_reg {
+-	regulator-min-microvolt = <1800000>;
+-	regulator-max-microvolt = <1800000>;
+-	regulator-always-on;
+-};
+-
+-&mmc1 {
+-	vmmc-supply = <&vmmcsd_fixed>;
+-};
+-
+-&mmc2 {
+-	vmmc-supply = <&vmmcsd_fixed>;
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&emmc_pins>;
+-	bus-width = <8>;
+-	status = "okay";
+-};
+-
+-&am33xx_pinmux {
+-	nxp_hdmi_bonelt_pins: nxp_hdmi_bonelt_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_IOPAD(0x9b0, PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr0 */
+-			AM33XX_IOPAD(0x8a0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data0.lcd_data0 */
+-			AM33XX_IOPAD(0x8a4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data1.lcd_data1 */
+-			AM33XX_IOPAD(0x8a8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data2.lcd_data2 */
+-			AM33XX_IOPAD(0x8ac, PIN_OUTPUT | MUX_MODE0)		/* lcd_data3.lcd_data3 */
+-			AM33XX_IOPAD(0x8b0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data4.lcd_data4 */
+-			AM33XX_IOPAD(0x8b4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data5.lcd_data5 */
+-			AM33XX_IOPAD(0x8b8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data6.lcd_data6 */
+-			AM33XX_IOPAD(0x8bc, PIN_OUTPUT | MUX_MODE0)		/* lcd_data7.lcd_data7 */
+-			AM33XX_IOPAD(0x8c0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data8.lcd_data8 */
+-			AM33XX_IOPAD(0x8c4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data9.lcd_data9 */
+-			AM33XX_IOPAD(0x8c8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data10.lcd_data10 */
+-			AM33XX_IOPAD(0x8cc, PIN_OUTPUT | MUX_MODE0)		/* lcd_data11.lcd_data11 */
+-			AM33XX_IOPAD(0x8d0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data12.lcd_data12 */
+-			AM33XX_IOPAD(0x8d4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data13.lcd_data13 */
+-			AM33XX_IOPAD(0x8d8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data14.lcd_data14 */
+-			AM33XX_IOPAD(0x8dc, PIN_OUTPUT | MUX_MODE0)		/* lcd_data15.lcd_data15 */
+-			AM33XX_IOPAD(0x8e0, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_vsync.lcd_vsync */
+-			AM33XX_IOPAD(0x8e4, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_hsync.lcd_hsync */
+-			AM33XX_IOPAD(0x8e8, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_pclk.lcd_pclk */
+-			AM33XX_IOPAD(0x8ec, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_ac_bias_en.lcd_ac_bias_en */
+-		>;
+-	};
+-	nxp_hdmi_bonelt_off_pins: nxp_hdmi_bonelt_off_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_IOPAD(0x9b0, PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr0 */
+-		>;
+-	};
+-
+-	mcasp0_pins: mcasp0_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_IOPAD(0x9ac, PIN_INPUT_PULLUP | MUX_MODE0) /* mcasp0_ahcklx.mcasp0_ahclkx */
+-			AM33XX_IOPAD(0x99c, PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* mcasp0_ahclkr.mcasp0_axr2*/
+-			AM33XX_IOPAD(0x994, PIN_OUTPUT_PULLUP | MUX_MODE0) /* mcasp0_fsx.mcasp0_fsx */
+-			AM33XX_IOPAD(0x990, PIN_OUTPUT_PULLDOWN | MUX_MODE0) /* mcasp0_aclkx.mcasp0_aclkx */
+-			AM33XX_IOPAD(0x86c, PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* gpmc_a11.GPIO1_27 */
+-		>;
+-	};
+-};
+-
+-&lcdc {
+-	status = "okay";
+-
+-	/* If you want to get 24 bit RGB and 16 BGR mode instead of
+-	 * current 16 bit RGB and 24 BGR modes, set the propety
+-	 * below to "crossed" and uncomment the video-ports -property
+-	 * in tda19988 node.
+-	 */
+-	blue-and-red-wiring = "straight";
+-
+-	port {
+-		lcdc_0: endpoint@0 {
+-			remote-endpoint = <&hdmi_0>;
+-		};
+-	};
+-};
+-
+-&i2c0 {
+-	tda19988: tda19988 {
+-		compatible = "nxp,tda998x";
+-		reg = <0x70>;
+-
+-		pinctrl-names = "default", "off";
+-		pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
+-		pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
+-
+-		/* Convert 24bit BGR to RGB, e.g. cross red and blue wiring */
+-		/* video-ports = <0x234501>; */
+-
+-		#sound-dai-cells = <0>;
+-		audio-ports = <	TDA998x_I2S	0x03>;
+-
+-		ports {
+-			port@0 {
+-				hdmi_0: endpoint@0 {
+-					remote-endpoint = <&lcdc_0>;
+-				};
+-			};
+-		};
+-	};
+-};
+-
+-&rtc {
+-	system-power-controller;
+-};
+-
+-&mcasp0	{
+-	#sound-dai-cells = <0>;
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&mcasp0_pins>;
+-	status = "okay";
+-	op-mode = <0>;	/* MCASP_IIS_MODE */
+-	tdm-slots = <2>;
+-	serial-dir = <	/* 0: INACTIVE, 1: TX, 2: RX */
+-			0 0 1 0
+-		>;
+-	tx-num-evt = <32>;
+-	rx-num-evt = <32>;
+-};
+-
+-/ {
+-	clk_mcasp0_fixed: clk_mcasp0_fixed {
+-		#clock-cells = <0>;
+-		compatible = "fixed-clock";
+-		clock-frequency = <24576000>;
+-	};
+-
+-	clk_mcasp0: clk_mcasp0 {
+-		#clock-cells = <0>;
+-		compatible = "gpio-gate-clock";
+-		clocks = <&clk_mcasp0_fixed>;
+-		enable-gpios = <&gpio1 27 0>; /* BeagleBone Black Clk enable on GPIO1_27 */
+-	};
+-
+-	sound {
+-		compatible = "simple-audio-card";
+-		simple-audio-card,name = "TI BeagleBone Black";
+-		simple-audio-card,format = "i2s";
+-		simple-audio-card,bitclock-master = <&dailink0_master>;
+-		simple-audio-card,frame-master = <&dailink0_master>;
+-
+-		dailink0_master: simple-audio-card,cpu {
+-			sound-dai = <&mcasp0>;
+-			clocks = <&clk_mcasp0>;
+-		};
+-
+-		simple-audio-card,codec {
+-			sound-dai = <&tda19988>;
+-		};
+-	};
+-};
+-- 
+2.11.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
