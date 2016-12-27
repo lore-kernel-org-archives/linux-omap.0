@@ -1,302 +1,321 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 5/5] pinctrl: single: Use generic pinmux helpers for managing functions
-Date: Tue, 27 Dec 2016 09:20:03 -0800
-Message-ID: <20161227172003.6517-6-tony@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 2/5] pinctrl: core: Add generic pinctrl functions for managing groups
+Date: Tue, 27 Dec 2016 09:20:00 -0800
+Message-ID: <20161227172003.6517-3-tony@atomide.com>
 References: <20161227172003.6517-1-tony@atomide.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161227172003.6517-1-tony@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Haojian Zhuang <haojian.zhuang@linaro.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161227172003.6517-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Haojian Zhuang <haojian.zhuang-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-We can now drop the driver specific code for managing functions.
+We can add generic helpers for pin group handling for cases where the pin
+controller driver does not need to use static arrays.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/pinctrl/Kconfig          |   2 +-
- drivers/pinctrl/pinctrl-single.c | 134 ++++++---------------------------------
- 2 files changed, 19 insertions(+), 117 deletions(-)
+ drivers/pinctrl/Kconfig |   3 +
+ drivers/pinctrl/core.c  | 178 ++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/pinctrl/core.h  |  47 +++++++++++++
+ 3 files changed, 228 insertions(+)
 
 diff --git a/drivers/pinctrl/Kconfig b/drivers/pinctrl/Kconfig
 --- a/drivers/pinctrl/Kconfig
 +++ b/drivers/pinctrl/Kconfig
-@@ -167,7 +167,7 @@ config PINCTRL_SINGLE
- 	tristate "One-register-per-pin type device tree based pinctrl driver"
- 	depends on OF
- 	select GENERIC_PINCTRL
--	select PINMUX
-+	select GENERIC_PINMUX
- 	select GENERIC_PINCONF
- 	help
- 	  This selects the device tree based generic pinctrl driver.
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -33,6 +33,7 @@
- #include "core.h"
- #include "devicetree.h"
- #include "pinconf.h"
-+#include "pinmux.h"
+@@ -8,6 +8,9 @@ config PINCTRL
+ menu "Pin controllers"
+ 	depends on PINCTRL
  
- #define DRIVER_NAME			"pinctrl-single"
- #define PCS_OFF_DISABLED		~0U
-@@ -160,13 +161,10 @@ struct pcs_soc_data {
-  * @bits_per_mux: number of bits per mux
-  * @bits_per_pin: number of bits per pin
-  * @pins:	physical pins on the SoC
-- * @ftree:	function index radix tree
-- * @functions:	list of functions
-  * @gpiofuncs:	list of gpio functions
-  * @irqs:	list of interrupt registers
-  * @chip:	chip container for this instance
-  * @domain:	IRQ domain for this instance
-- * @nfuncs:	number of functions
-  * @desc:	pin controller descriptor
-  * @read:	register read function to use
-  * @write:	register write function to use
-@@ -194,13 +192,10 @@ struct pcs_device {
- 	bool bits_per_mux;
- 	unsigned bits_per_pin;
- 	struct pcs_data pins;
--	struct radix_tree_root ftree;
--	struct list_head functions;
- 	struct list_head gpiofuncs;
- 	struct list_head irqs;
- 	struct irq_chip chip;
- 	struct irq_domain *domain;
--	unsigned nfuncs;
- 	struct pinctrl_desc desc;
- 	unsigned (*read)(void __iomem *reg);
- 	void (*write)(unsigned val, void __iomem *reg);
-@@ -307,59 +302,13 @@ static const struct pinctrl_ops pcs_pinctrl_ops = {
- 	.dt_free_map = pcs_dt_free_map,
- };
++config GENERIC_PINCTRL
++	bool
++
+ config PINMUX
+ 	bool "Support pin multiplexing controllers" if COMPILE_TEST
  
--static int pcs_get_functions_count(struct pinctrl_dev *pctldev)
--{
--	struct pcs_device *pcs;
--
--	pcs = pinctrl_dev_get_drvdata(pctldev);
--
--	return pcs->nfuncs;
--}
--
--static const char *pcs_get_function_name(struct pinctrl_dev *pctldev,
--						unsigned fselector)
--{
--	struct pcs_device *pcs;
--	struct pcs_function *func;
--
--	pcs = pinctrl_dev_get_drvdata(pctldev);
--	func = radix_tree_lookup(&pcs->ftree, fselector);
--	if (!func) {
--		dev_err(pcs->dev, "%s could not find function%i\n",
--			__func__, fselector);
--		return NULL;
--	}
--
--	return func->name;
--}
--
--static int pcs_get_function_groups(struct pinctrl_dev *pctldev,
--					unsigned fselector,
--					const char * const **groups,
--					unsigned * const ngroups)
--{
--	struct pcs_device *pcs;
--	struct pcs_function *func;
--
--	pcs = pinctrl_dev_get_drvdata(pctldev);
--	func = radix_tree_lookup(&pcs->ftree, fselector);
--	if (!func) {
--		dev_err(pcs->dev, "%s could not find function%i\n",
--			__func__, fselector);
--		return -EINVAL;
--	}
--	*groups = func->pgnames;
--	*ngroups = func->npgnames;
--
--	return 0;
--}
--
- static int pcs_get_function(struct pinctrl_dev *pctldev, unsigned pin,
- 			    struct pcs_function **func)
- {
- 	struct pcs_device *pcs = pinctrl_dev_get_drvdata(pctldev);
- 	struct pin_desc *pdesc = pin_desc_get(pctldev, pin);
- 	const struct pinctrl_setting_mux *setting;
-+	struct function_desc *function;
- 	unsigned fselector;
- 
- 	/* If pin is not described in DTS & enabled, mux_setting is NULL. */
-@@ -367,7 +316,8 @@ static int pcs_get_function(struct pinctrl_dev *pctldev, unsigned pin,
- 	if (!setting)
- 		return -ENOTSUPP;
- 	fselector = setting->func;
--	*func = radix_tree_lookup(&pcs->ftree, fselector);
-+	function = pinmux_generic_get_function(pctldev, fselector);
-+	*func = function->data;
- 	if (!(*func)) {
- 		dev_err(pcs->dev, "%s could not find function%i\n",
- 			__func__, fselector);
-@@ -380,6 +330,7 @@ static int pcs_set_mux(struct pinctrl_dev *pctldev, unsigned fselector,
- 	unsigned group)
- {
- 	struct pcs_device *pcs;
-+	struct function_desc *function;
- 	struct pcs_function *func;
- 	int i;
- 
-@@ -387,7 +338,8 @@ static int pcs_set_mux(struct pinctrl_dev *pctldev, unsigned fselector,
- 	/* If function mask is null, needn't enable it. */
- 	if (!pcs->fmask)
- 		return 0;
--	func = radix_tree_lookup(&pcs->ftree, fselector);
-+	function = pinmux_generic_get_function(pctldev, fselector);
-+	func = function->data;
- 	if (!func)
- 		return -EINVAL;
- 
-@@ -445,9 +397,9 @@ static int pcs_request_gpio(struct pinctrl_dev *pctldev,
+diff --git a/drivers/pinctrl/core.c b/drivers/pinctrl/core.c
+--- a/drivers/pinctrl/core.c
++++ b/drivers/pinctrl/core.c
+@@ -540,6 +540,182 @@ void pinctrl_remove_gpio_range(struct pinctrl_dev *pctldev,
  }
+ EXPORT_SYMBOL_GPL(pinctrl_remove_gpio_range);
  
- static const struct pinmux_ops pcs_pinmux_ops = {
--	.get_functions_count = pcs_get_functions_count,
--	.get_function_name = pcs_get_function_name,
--	.get_function_groups = pcs_get_function_groups,
-+	.get_functions_count = pinmux_generic_get_function_count,
-+	.get_function_name = pinmux_generic_get_function_name,
-+	.get_function_groups = pinmux_generic_get_function_groups,
- 	.set_mux = pcs_set_mux,
- 	.gpio_request_enable = pcs_request_gpio,
- };
-@@ -789,43 +741,24 @@ static struct pcs_function *pcs_add_function(struct pcs_device *pcs,
- 					unsigned npgnames)
- {
- 	struct pcs_function *function;
-+	int res;
- 
- 	function = devm_kzalloc(pcs->dev, sizeof(*function), GFP_KERNEL);
- 	if (!function)
- 		return NULL;
- 
--	function->name = name;
- 	function->vals = vals;
- 	function->nvals = nvals;
--	function->pgnames = pgnames;
--	function->npgnames = npgnames;
- 
--	mutex_lock(&pcs->mutex);
--	list_add_tail(&function->node, &pcs->functions);
--	radix_tree_insert(&pcs->ftree, pcs->nfuncs, function);
--	pcs->nfuncs++;
--	mutex_unlock(&pcs->mutex);
-+	res = pinmux_generic_add_function(pcs->pctl, name,
-+					  pgnames, npgnames,
-+					  function);
-+	if (res)
++#ifdef CONFIG_GENERIC_PINCTRL
++
++/**
++ * pinctrl_generic_get_group_count() - returns the number of pin groups
++ * @pctldev: pin controller device
++ */
++int pinctrl_generic_get_group_count(struct pinctrl_dev *pctldev)
++{
++	return pctldev->num_groups;
++}
++EXPORT_SYMBOL_GPL(pinctrl_generic_get_group_count);
++
++/**
++ * pinctrl_generic_get_group_name() - returns the name of a pin group
++ * @pctldev: pin controller device
++ * @selector: group number
++ */
++const char *pinctrl_generic_get_group_name(struct pinctrl_dev *pctldev,
++					   unsigned int selector)
++{
++	struct group_desc *group;
++
++	group = radix_tree_lookup(&pctldev->pin_group_tree,
++				  selector);
++	if (!group)
 +		return NULL;
- 
- 	return function;
- }
- 
--static void pcs_remove_function(struct pcs_device *pcs,
--				struct pcs_function *function)
--{
--	int i;
--
--	mutex_lock(&pcs->mutex);
--	for (i = 0; i < pcs->nfuncs; i++) {
--		struct pcs_function *found;
--
--		found = radix_tree_lookup(&pcs->ftree, i);
--		if (found == function)
--			radix_tree_delete(&pcs->ftree, i);
--	}
--	list_del(&function->node);
--	mutex_unlock(&pcs->mutex);
--}
--
++
++	return group->name;
++}
++EXPORT_SYMBOL_GPL(pinctrl_generic_get_group_name);
++
++/**
++ * pinctrl_generic_get_group_pins() - gets the pin group pins
++ * @pctldev: pin controller device
++ * @selector: group number
++ * @pins: pins in the group
++ * @num_pins: number of pins in the group
++ */
++int pinctrl_generic_get_group_pins(struct pinctrl_dev *pctldev,
++				   unsigned int selector,
++				   const unsigned int **pins,
++				   unsigned int *num_pins)
++{
++	struct group_desc *group;
++
++	group = radix_tree_lookup(&pctldev->pin_group_tree,
++				  selector);
++	if (!group) {
++		dev_err(pctldev->dev, "%s could not find pingroup%i\n",
++			__func__, selector);
++		return -EINVAL;
++	}
++
++	*pins = group->pins;
++	*num_pins = group->num_pins;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(pinctrl_generic_get_group_pins);
++
++/**
++ * pinctrl_generic_get_group() - returns a pin group based on the number
++ * @pctldev: pin controller device
++ * @gselector: group number
++ */
++struct group_desc *pinctrl_generic_get_group(struct pinctrl_dev *pctldev,
++					     unsigned int selector)
++{
++	struct group_desc *group;
++
++	group = radix_tree_lookup(&pctldev->pin_group_tree,
++				  selector);
++	if (!group)
++		return NULL;
++
++	return group;
++}
++EXPORT_SYMBOL_GPL(pinctrl_generic_get_group);
++
++/**
++ * pinctrl_generic_add_group() - adds a new pin group
++ * @pctldev: pin controller device
++ * @name: name of the pin group
++ * @pins: pins in the pin group
++ * @num_pins: number of pins in the pin group
++ * @data: pin controller driver specific data
++ *
++ * Note that the caller must take care of locking.
++ */
++int pinctrl_generic_add_group(struct pinctrl_dev *pctldev, const char *name,
++			      int *pins, int num_pins, void *data)
++{
++	struct group_desc *group;
++
++	group = devm_kzalloc(pctldev->dev, sizeof(*group), GFP_KERNEL);
++	if (!group)
++		return -ENOMEM;
++
++	group->name = name;
++	group->pins = pins;
++	group->num_pins = num_pins;
++	group->data = data;
++
++	radix_tree_insert(&pctldev->pin_group_tree, pctldev->num_groups,
++			  group);
++
++	pctldev->num_groups++;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(pinctrl_generic_add_group);
++
++/**
++ * pinctrl_generic_remove_group() - removes a numbered pin group
++ * @pctldev: pin controller device
++ * @selector: group number
++ *
++ * Note that the caller must take care of locking.
++ */
++int pinctrl_generic_remove_group(struct pinctrl_dev *pctldev,
++				 unsigned int selector)
++{
++	struct group_desc *group;
++
++	group = radix_tree_lookup(&pctldev->pin_group_tree,
++				  selector);
++	if (!group)
++		return -ENOENT;
++
++	radix_tree_delete(&pctldev->pin_group_tree, selector);
++	devm_kfree(pctldev->dev, group);
++
++	pctldev->num_groups--;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(pinctrl_generic_remove_group);
++
++/**
++ * pinctrl_generic_free_groups() - removes all pin groups
++ * @pctldev: pin controller device
++ *
++ * Note that the caller must take care of locking.
++ */
++static void pinctrl_generic_free_groups(struct pinctrl_dev *pctldev)
++{
++	struct radix_tree_iter iter;
++	struct group_desc *group;
++	unsigned long *indices;
++	void **slot;
++	int i = 0;
++
++	indices = devm_kzalloc(pctldev->dev, sizeof(*indices) *
++			       pctldev->num_groups, GFP_KERNEL);
++	if (!indices)
++		return;
++
++	radix_tree_for_each_slot(slot, &pctldev->pin_group_tree, &iter, 0)
++		indices[i++] = iter.index;
++
++	for (i = 0; i < pctldev->num_groups; i++) {
++		group = radix_tree_lookup(&pctldev->pin_group_tree,
++					  indices[i]);
++		radix_tree_delete(&pctldev->pin_group_tree, indices[i]);
++		devm_kfree(pctldev->dev, group);
++	}
++
++	pctldev->num_groups = 0;
++}
++
++#else
++static inline void pinctrl_generic_free_groups(struct pinctrl_dev *pctldev)
++{
++}
++#endif /* CONFIG_GENERIC_PINCTRL */
++
  /**
-  * pcs_get_pin_by_offset() - get a pin index based on the register offset
-  * @pcs: pcs driver instance
-@@ -1103,7 +1036,7 @@ static int pcs_parse_one_pinctrl_entry(struct pcs_device *pcs,
- 	pinctrl_generic_remove_last_group(pcs->pctl);
- 	*num_maps = 1;
- free_function:
--	pcs_remove_function(pcs, function);
-+	pinmux_generic_remove_last_function(pcs->pctl);
- 
- free_pins:
- 	devm_kfree(pcs->dev, pins);
-@@ -1235,8 +1168,7 @@ static int pcs_parse_bits_in_pinctrl_entry(struct pcs_device *pcs,
- 	pinctrl_generic_remove_last_group(pcs->pctl);
- 	*num_maps = 1;
- free_function:
--	pcs_remove_function(pcs, function);
--
-+	pinmux_generic_remove_last_function(pcs->pctl);
- free_pins:
- 	devm_kfree(pcs->dev, pins);
- 
-@@ -1304,33 +1236,6 @@ static int pcs_dt_node_to_map(struct pinctrl_dev *pctldev,
- }
+  * pinctrl_get_group_selector() - returns the group selector for a group
+  * @pctldev: the pin controller handling the group
+@@ -1811,6 +1987,7 @@ struct pinctrl_dev *pinctrl_register(struct pinctrl_desc *pctldesc,
+ 	pctldev->desc = pctldesc;
+ 	pctldev->driver_data = driver_data;
+ 	INIT_RADIX_TREE(&pctldev->pin_desc_tree, GFP_KERNEL);
++	INIT_RADIX_TREE(&pctldev->pin_group_tree, GFP_KERNEL);
+ 	INIT_LIST_HEAD(&pctldev->gpio_ranges);
+ 	INIT_DELAYED_WORK(&pctldev->late_init, pinctrl_late_init);
+ 	pctldev->dev = dev;
+@@ -1885,6 +2062,7 @@ void pinctrl_unregister(struct pinctrl_dev *pctldev)
+ 	mutex_lock(&pctldev->mutex);
+ 	/* TODO: check that no pinmuxes are still active? */
+ 	list_del(&pctldev->node);
++	pinctrl_generic_free_groups(pctldev);
+ 	/* Destroy descriptor tree */
+ 	pinctrl_free_pindescs(pctldev, pctldev->desc->pins,
+ 			      pctldev->desc->npins);
+diff --git a/drivers/pinctrl/core.h b/drivers/pinctrl/core.h
+--- a/drivers/pinctrl/core.h
++++ b/drivers/pinctrl/core.h
+@@ -24,6 +24,8 @@ struct pinctrl_gpio_range;
+  *	controller
+  * @pin_desc_tree: each pin descriptor for this pin controller is stored in
+  *	this radix tree
++ * @pin_group_tree: optionally each pin group can be stored in this radix tree
++ * @num_groups: optionally number of groups can be kept here
+  * @gpio_ranges: a list of GPIO ranges that is handled by this pin controller,
+  *	ranges are added to this list at runtime
+  * @dev: the device entry for this pin controller
+@@ -41,6 +43,8 @@ struct pinctrl_dev {
+ 	struct list_head node;
+ 	struct pinctrl_desc *desc;
+ 	struct radix_tree_root pin_desc_tree;
++	struct radix_tree_root pin_group_tree;
++	unsigned int num_groups;
+ 	struct list_head gpio_ranges;
+ 	struct device *dev;
+ 	struct module *owner;
+@@ -162,6 +166,20 @@ struct pin_desc {
+ };
  
  /**
-- * pcs_free_funcs() - free memory used by functions
-- * @pcs: pcs driver instance
-- */
--static void pcs_free_funcs(struct pcs_device *pcs)
--{
--	struct list_head *pos, *tmp;
--	int i;
--
--	mutex_lock(&pcs->mutex);
--	for (i = 0; i < pcs->nfuncs; i++) {
--		struct pcs_function *func;
--
--		func = radix_tree_lookup(&pcs->ftree, i);
--		if (!func)
--			continue;
--		radix_tree_delete(&pcs->ftree, i);
--	}
--	list_for_each_safe(pos, tmp, &pcs->functions) {
--		struct pcs_function *function;
--
--		function = list_entry(pos, struct pcs_function, node);
--		list_del(&function->node);
--	}
--	mutex_unlock(&pcs->mutex);
--}
--
--/**
-  * pcs_irq_free() - free interrupt
-  * @pcs: pcs driver instance
-  */
-@@ -1358,7 +1263,6 @@ static void pcs_free_resources(struct pcs_device *pcs)
- {
- 	pcs_irq_free(pcs);
- 	pinctrl_unregister(pcs->pctl);
--	pcs_free_funcs(pcs);
++ * struct group_desc - generic pin group descriptor
++ * @name: name of the pin group
++ * @pins: array of pins that belong to the group
++ * @num_pins: number of pins in the group
++ * @data: pin controller driver specific data
++ */
++struct group_desc {
++	const char *name;
++	int *pins;
++	int num_pins;
++	void *data;
++};
++
++/**
+  * struct pinctrl_maps - a list item containing part of the mapping table
+  * @node: mapping table list node
+  * @maps: array of mapping table entries
+@@ -173,6 +191,35 @@ struct pinctrl_maps {
+ 	unsigned num_maps;
+ };
  
- #if IS_BUILTIN(CONFIG_PINCTRL_SINGLE)
- 	if (pcs->missing_nr_pinctrl_cells)
-@@ -1753,7 +1657,6 @@ static int pcs_probe(struct platform_device *pdev)
- 	pcs->np = np;
- 	raw_spin_lock_init(&pcs->lock);
- 	mutex_init(&pcs->mutex);
--	INIT_LIST_HEAD(&pcs->functions);
- 	INIT_LIST_HEAD(&pcs->gpiofuncs);
- 	soc = match->data;
- 	pcs->flags = soc->flags;
-@@ -1814,7 +1717,6 @@ static int pcs_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
- 
--	INIT_RADIX_TREE(&pcs->ftree, GFP_KERNEL);
- 	platform_set_drvdata(pdev, pcs);
- 
- 	switch (pcs->width) {
++#ifdef CONFIG_GENERIC_PINCTRL
++
++int pinctrl_generic_get_group_count(struct pinctrl_dev *pctldev);
++
++const char *pinctrl_generic_get_group_name(struct pinctrl_dev *pctldev,
++					   unsigned int group_selector);
++
++int pinctrl_generic_get_group_pins(struct pinctrl_dev *pctldev,
++				   unsigned int group_selector,
++				   const unsigned int **pins,
++				   unsigned int *npins);
++
++struct group_desc *pinctrl_generic_get_group(struct pinctrl_dev *pctldev,
++					     unsigned int group_selector);
++
++int pinctrl_generic_add_group(struct pinctrl_dev *pctldev, const char *name,
++			      int *gpins, int ngpins, void *data);
++
++int pinctrl_generic_remove_group(struct pinctrl_dev *pctldev,
++				 unsigned int group_selector);
++
++static inline int
++pinctrl_generic_remove_last_group(struct pinctrl_dev *pctldev)
++{
++	return pinctrl_generic_remove_group(pctldev, pctldev->num_groups - 1);
++}
++
++#endif	/* CONFIG_GENERIC_PINCTRL */
++
+ struct pinctrl_dev *get_pinctrl_dev_from_devname(const char *dev_name);
+ struct pinctrl_dev *get_pinctrl_dev_from_of_node(struct device_node *np);
+ int pin_get_from_name(struct pinctrl_dev *pctldev, const char *name);
 -- 
 2.11.0
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
