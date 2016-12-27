@@ -1,85 +1,73 @@
-From: Robert Nelson <robertcnelson@gmail.com>
-Subject: Re: [PATCH 2/4] ARM: dts: Add am335x-boneblack-wireless
-Date: Tue, 27 Dec 2016 13:21:42 -0600
-Message-ID: <CAOCHtYgqvkqZ3ag1EgCj29EB5C58Rf8Mfhp8h_1ECc7G5wZwJA@mail.gmail.com>
-References: <20161227175837.28970-1-robertcnelson@gmail.com>
- <20161227175837.28970-2-robertcnelson@gmail.com>
- <CAOCHtYjx+KD3iy1cssjCLN0xjXBGJFZ_e1Qw2zRGbV4=X0+bHg@mail.gmail.com>
- <20161227181429.GY4920@atomide.com> <20161227185645.GZ4920@atomide.com>
+From: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v8 3/8] drivers:input:tsc2007: add iio interface to read
+ external ADC input and temperature
+Date: Tue, 27 Dec 2016 13:54:16 -0800
+Message-ID: <20161227215416.GB28140@dtor-ws>
+References: <cover.1479823354.git.hns@goldelico.com>
+ <cover.1479823354.git.hns@goldelico.com>
+ <99f236df48b03b3188e12f94a20097f8440db7a5.1479823354.git.hns@goldelico.com>
+ <E42B1EF7-222E-46D6-878B-30C789CFBBC5@jic23.retrosnub.co.uk>
+ <811B6F6A-2E3D-45B4-A984-74ABE0E37192@goldelico.com>
+ <8d3fc752-e69c-f568-4f71-4f1768a3fffe@kernel.org>
+ <AC7B3C1C-C05B-45B5-8426-5225F151DC26@goldelico.com>
+ <E4E31180-A686-4631-9713-519987C55F06@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20161227185645.GZ4920@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: devicetree <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jason Kridner <jkridner@beagleboard.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <E4E31180-A686-4631-9713-519987C55F06-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Cc: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jonathan Cameron <jic23-tko9wxEg+fIOOJlXag/Snyp2UmYkHbXO@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, Mika =?iso-8859-1?Q?Penttil=E4?= <mika.penttila-MRsr7dthA9VWk0Htik3J/w@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alexander Stein <alexander.stein-93q1YBGzJSMe9JSWTWOYM3xStJ4P+DSV@public.gmane.org>, Eric Engestrom <eric-op+oiCINJLTt9jDmeYuA0g@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 27, 2016 at 12:56 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Tony Lindgren <tony@atomide.com> [161227 10:15]:
->> * Robert Nelson <robertcnelson@gmail.com> [161227 10:02]:
->> > On Tue, Dec 27, 2016 at 11:58 AM, Robert Nelson <robertcnelson@gmail.com> wrote:
->> > > BeagleBone Black Wireless is clone of the BeagleBone Black (BBB) with the Ethernet
->> > > replaced by a TI wl1835 wireless module.
->> > >
->> > > This board can be indentified by the BWAx value after A335BNLT (BBB) in the at24 eeprom:
->> > > BWAx [aa 55 33 ee 41 33 33 35  42 4e 4c 54 42 57 41 35  |.U3.A335BNLTBWA5|]
->> > >
->> > > http://beagleboard.org/black-wireless
->> > > https://github.com/beagleboard/beaglebone-black-wireless
->> > >
->> > > firmware: https://github.com/beagleboard/beaglebone-black-wireless/tree/master/firmware
->> >
->> > Tony, this firmware should be there shortly, i have a pull request
->> > setup for Jason:
->> >
->> > https://github.com/beagleboard/beaglebone-black-wireless/pull/5
->>
->> OK great, good to have these working out of the box with mainline
->> kernel :)
->
-> Hmm so is this firmware file also something that should really be generated
-> separately for each board? Or can the same one be used for all BBB black
-> wireless and green boards?
->
-> See the LKML thread "[PATCH 0/6] wl1251: Fix MAC address for Nokia N900",
-> at least with wl1251 the calibration has been done for each n900 device
-> during production.
+On Mon, Dec 12, 2016 at 10:21:25PM +0100, H. Nikolaus Schaller wrote:
+> Hi,
+> 
+> 
+> > Am 27.11.2016 um 16:47 schrieb H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>:
+> > 
+> > Hi Jonathan,
+> > 
+> >> Am 27.11.2016 um 12:02 schrieb Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>:
+> >> 
+> >> On 24/11/16 18:05, H. Nikolaus Schaller wrote:
+> >>> 
+> >>>> Am 24.11.2016 um 18:38 schrieb Jonathan Cameron <jic23-tko9wxEg+fIOOJlXag/Snyp2UmYkHbXO@public.gmane.org>:
+> >>>> 
+> >>>> 
+> >>>> 
+> >>>> On 22 November 2016 14:02:30 GMT+00:00, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> wrote:
+> 
+> > 
+> >> - hence cc'd Yann and the Kbuild list
+> >> to see if they can offer some advices.
+> 
+> no response / advice so far.
 
->From what i can tell from TI, it should be good for all wl1835 modules
-that use two wifi antenna's.
+Since you are saying that IIO stuff is optional, add it to Kconfig
+explicitly:
 
-(that's the magic in: WL1835MOD_INI_C2PC.ini)
+config "TOUCHSCREEN_TSC2007_IIO"
+	bool "IIO interface for external ADC input and temperature"
+	depends on TOUCHSCREEN_TSC2007
+	depends on IIO=y || IIO=TOUCHSCREEN_TSC2007
+	help
+	  ...
 
-We are using the same wl18xx-conf.bin firmware for:
+and use this symbols in makefile:
 
-Original CircuitCo (now out of production) wl1835mod cape for BeagleBone Black
-updated GateWay Cape from embest (this was meant to replace the wl1835mod cape)
+and in Makefile:
 
-SeeedStudio BeagleBone Green Wireless
-BeagleBone Black Wireless
+obj-$(CONFIG_TOUCHSCREEN_TSC2007) += tsc2007.o
+tsc2007-y := tsc2007-core.o ...
+tsc2007-$(CONFIG_TOUCHSCREEN_TSC2007_IIO) += tsc2007_iio.o
 
-and the upcoming: (jason just sent me the next alpha, so i'll have a
-patch after i verify all changes..)
-BeagleBone Blue
-
-For FCC testing, this was the same firmware (wl18xx-conf.bin) that
-SeeedStudio used when they did the official FCC testing on the Green
-Wireless.  I believe GHI Electronics did the same with the BeagleBone
-Black Wireless, but i wasn't CC'ed in that email conversation, so i
-can't say with 100% certainty..
-
-Regards,
+Thanks.
 
 -- 
-Robert Nelson
-https://rcn-ee.com/
+Dmitry
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
