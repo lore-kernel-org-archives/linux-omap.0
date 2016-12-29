@@ -1,85 +1,62 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH] net: ethernet: ti: davinci_cpdma: fix access to
- uninitialized variable in cpdma_chan_set_descs()
-Date: Thu, 29 Dec 2016 10:04:01 -0600
-Message-ID: <9394fcbe-b285-ce9f-03c9-60e694cc1c0d@ti.com>
-References: <20161228234213.22166-1-grygorii.strashko@ti.com>
- <20161229014904.GA22718@khorivan>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: 4.10-rc1 on Nokia N900: regression, WARN_ON() omap_l3_smx.c
+Date: Fri, 30 Dec 2016 00:14:11 +0100
+Message-ID: <20161229231411.GA6865@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="7AUc2qLy4jB3hD7Z"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161229014904.GA22718@khorivan>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Ivan,
 
-On 12/28/2016 07:49 PM, Ivan Khoronzhuk wrote:
-> On Wed, Dec 28, 2016 at 05:42:13PM -0600, Grygorii Strashko wrote:
->> Now below code sequence causes "Unable to handle kernel NULL pointer
->> dereference.." exception and system crash during CPSW CPDMA initialization:
->>
->> cpsw_probe
->> |-cpdma_chan_create (TX channel)
->>   |-cpdma_chan_split_pool
->>     |-cpdma_chan_set_descs(for TX channels)
->>     |-cpdma_chan_set_descs(for RX channels) [1]
->>
->> - and -
->> static void cpdma_chan_set_descs(struct cpdma_ctlr *ctlr,
->> 				 int rx, int desc_num,
->> 				 int per_ch_desc)
->> {
->> 	struct cpdma_chan *chan, *most_chan = NULL;
->>
->> ...
->>
->> 	for (i = min; i < max; i++) {
->> 		chan = ctlr->channels[i];
->> 		if (!chan)
->> 			continue;
->> ...
->>
->> 		if (most_dnum < chan->desc_num) {
->> 			most_dnum = chan->desc_num;
->> 			most_chan = chan;
->> 		}
->> 	}
->> 	/* use remains */
->> 	most_chan->desc_num += desc_cnt; [2]
->> }
->>
->> So, most_chan value will never be reassigned when cpdma_chan_set_descs() is
->> called second time [1], because there are no RX channels yet and system
->> will crash at [2].
-> 
-> How did you get this?
-> I just remember as I fixed it before sending patchset.
-> 
-> Maybe it was some experiment with it.
-> I just wonder and want to find actual reason what's happening.
-> 
-> Look bellow:
-> 
-> cpsw_probe
-> |-cpdma_chan_create (TX channel)
->   |-cpdma_chan_split_pool
->     |-cpdma_chan_set_descs(for TX channels)
->     |-cpdma_chan_set_descs(for RX channels) [1]
-> 
-> |-cpdma_chan_set_descs(for RX channels) in case you'be described has to be
-> called with rx_desc_num = 0, because all descs are assigned already for tx
-> channel. And, if desc_num = 0, cpdma_chan_set_descs just exits and no issues.
-> So, could you please explain how you get this, in what circumstances.
+--7AUc2qLy4jB3hD7Z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-You are right. I've hit this issue while working on other feature which allows
-to split pool between RX and TX path and as part of it cpdma_chan_set_descs()
-is called with different set of arguments. I probably will just squash it in my changes or 
-or send as part of my series.
+Hi!
+
+I forgot I had v4.10-rc1 running, and now I got warning on all the
+consoles (hand-copied).
 
 
--- 
-regards,
--grygorii
+Unhandled fault: external abort on non-linefetch (0x1028) at
+0xfa0ab060
+=2E..
+Comm: kworker/0:0 Not tainted.
+Workqueue: events musb_irq_work
+=2E..
+PC is at musb_default_readb().
+=2E..
+WARNING: CPU: 0 ... at drivers/bus/omap_l3_smx.c:166
+omap3_l3_app_irq+0xcc/...
+Tainted: GDW.
+
+I do have patches to allow nfsroot over usb. But they worked ok in
+v4.9... Does anyone see it, too?
+
+Best regards,
+
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--7AUc2qLy4jB3hD7Z
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlhlmMMACgkQMOfwapXb+vKROgCggMfseN8PrVryDSyZwBdW0SW2
+i+sAn3BdiDOHu5QtfQDQQiwUP7HlpV8O
+=IQGa
+-----END PGP SIGNATURE-----
+
+--7AUc2qLy4jB3hD7Z--
