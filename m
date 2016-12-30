@@ -1,9 +1,9 @@
 From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: [PATCH v2 4/6] usb: phy: qcom-8x16-usb: Replace the extcon API
-Date: Fri, 30 Dec 2016 13:08:13 +0900
-Message-ID: <1483070895-8213-5-git-send-email-cw00.choi@samsung.com>
+Subject: [PATCH v2 1/6] usb: dwc3: omap: Replace the extcon API
+Date: Fri, 30 Dec 2016 13:08:10 +0900
+Message-ID: <1483070895-8213-2-git-send-email-cw00.choi@samsung.com>
 References: <1483070895-8213-1-git-send-email-cw00.choi@samsung.com>
- <CGME20161230040817epcas5p430bfef6b76d46ab5e69d5f45816b1af4@epcas5p4.samsung.com>
+ <CGME20161230040816epcas5p4c76ef8f364678a34e2a0ff67b0119ef9@epcas5p4.samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-reply-to: <1483070895-8213-1-git-send-email-cw00.choi@samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
@@ -18,57 +18,67 @@ and replaces the deprecated extcon API as following:
 Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
 Acked-by: Felipe Balbi <felipe.balbi@linux.intel.com>
 ---
- drivers/usb/phy/phy-qcom-8x16-usb.c | 13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+ drivers/usb/dwc3/dwc3-omap.c | 20 +++++++-------------
+ 1 file changed, 7 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/usb/phy/phy-qcom-8x16-usb.c b/drivers/usb/phy/phy-qcom-8x16-usb.c
-index d8593adb3621..fdf686398772 100644
---- a/drivers/usb/phy/phy-qcom-8x16-usb.c
-+++ b/drivers/usb/phy/phy-qcom-8x16-usb.c
-@@ -187,7 +187,7 @@ static int phy_8x16_init(struct usb_phy *phy)
- 	val = ULPI_PWR_OTG_COMP_DISABLE;
- 	usb_phy_io_write(phy, val, ULPI_SET(ULPI_PWR_CLK_MNG_REG));
+diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+index 29e80cc9b634..2d2e9aa1db08 100644
+--- a/drivers/usb/dwc3/dwc3-omap.c
++++ b/drivers/usb/dwc3/dwc3-omap.c
+@@ -425,20 +425,20 @@ static int dwc3_omap_extcon_register(struct dwc3_omap *omap)
+ 		}
  
--	state = extcon_get_cable_state_(qphy->vbus_edev, EXTCON_USB);
-+	state = extcon_get_state(qphy->vbus_edev, EXTCON_USB);
- 	if (state)
- 		phy_8x16_vbus_on(qphy);
- 	else
-@@ -316,23 +316,20 @@ static int phy_8x16_probe(struct platform_device *pdev)
- 		goto off_clks;
+ 		omap->vbus_nb.notifier_call = dwc3_omap_vbus_notifier;
+-		ret = extcon_register_notifier(edev, EXTCON_USB,
+-						&omap->vbus_nb);
++		ret = devm_extcon_register_notifier(omap->dev, edev,
++						EXTCON_USB, &omap->vbus_nb);
+ 		if (ret < 0)
+ 			dev_vdbg(omap->dev, "failed to register notifier for USB\n");
  
- 	qphy->vbus_notify.notifier_call = phy_8x16_vbus_notify;
--	ret = extcon_register_notifier(qphy->vbus_edev, EXTCON_USB,
--				       &qphy->vbus_notify);
-+	ret = devm_extcon_register_notifier(&pdev->dev, qphy->vbus_edev,
-+					EXTCON_USB, &qphy->vbus_notify);
- 	if (ret < 0)
- 		goto off_power;
+ 		omap->id_nb.notifier_call = dwc3_omap_id_notifier;
+-		ret = extcon_register_notifier(edev, EXTCON_USB_HOST,
+-						&omap->id_nb);
++		ret = devm_extcon_register_notifier(omap->dev, edev,
++						EXTCON_USB_HOST, &omap->id_nb);
+ 		if (ret < 0)
+ 			dev_vdbg(omap->dev, "failed to register notifier for USB-HOST\n");
  
- 	ret = usb_add_phy_dev(&qphy->phy);
- 	if (ret)
--		goto off_extcon;
-+		goto off_power;
+-		if (extcon_get_cable_state_(edev, EXTCON_USB) == true)
++		if (extcon_get_state(edev, EXTCON_USB) == true)
+ 			dwc3_omap_set_mailbox(omap, OMAP_DWC3_VBUS_VALID);
+-		if (extcon_get_cable_state_(edev, EXTCON_USB_HOST) == true)
++		if (extcon_get_state(edev, EXTCON_USB_HOST) == true)
+ 			dwc3_omap_set_mailbox(omap, OMAP_DWC3_ID_GROUND);
  
- 	qphy->reboot_notify.notifier_call = phy_8x16_reboot_notify;
- 	register_reboot_notifier(&qphy->reboot_notify);
+ 		omap->edev = edev;
+@@ -527,17 +527,13 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+ 	ret = of_platform_populate(node, NULL, NULL, dev);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to create dwc3 core\n");
+-		goto err2;
++		goto err1;
+ 	}
+ 
+ 	dwc3_omap_enable_irqs(omap);
  
  	return 0;
  
--off_extcon:
--	extcon_unregister_notifier(qphy->vbus_edev, EXTCON_USB,
--				   &qphy->vbus_notify);
- off_power:
- 	regulator_bulk_disable(ARRAY_SIZE(qphy->regulator), qphy->regulator);
- off_clks:
-@@ -347,8 +344,6 @@ static int phy_8x16_remove(struct platform_device *pdev)
- 	struct phy_8x16 *qphy = platform_get_drvdata(pdev);
+-err2:
+-	extcon_unregister_notifier(omap->edev, EXTCON_USB, &omap->vbus_nb);
+-	extcon_unregister_notifier(omap->edev, EXTCON_USB_HOST, &omap->id_nb);
+-
+ err1:
+ 	pm_runtime_put_sync(dev);
+ 	pm_runtime_disable(dev);
+@@ -549,8 +545,6 @@ static int dwc3_omap_remove(struct platform_device *pdev)
+ {
+ 	struct dwc3_omap	*omap = platform_get_drvdata(pdev);
  
- 	unregister_reboot_notifier(&qphy->reboot_notify);
--	extcon_unregister_notifier(qphy->vbus_edev, EXTCON_USB,
--				   &qphy->vbus_notify);
- 
- 	/*
- 	 * Ensure that D+/D- lines are routed to uB connector, so
+-	extcon_unregister_notifier(omap->edev, EXTCON_USB, &omap->vbus_nb);
+-	extcon_unregister_notifier(omap->edev, EXTCON_USB_HOST, &omap->id_nb);
+ 	dwc3_omap_disable_irqs(omap);
+ 	of_platform_depopulate(omap->dev);
+ 	pm_runtime_put_sync(&pdev->dev);
 -- 
 1.9.1
