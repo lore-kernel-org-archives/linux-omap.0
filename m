@@ -1,63 +1,36 @@
-From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH 06/12] usb: dwc3: omap: Replace the extcon API
-Date: Fri, 30 Dec 2016 15:45:29 +0900
-Message-ID: <58660289.6080906@samsung.com>
-References: <1480485460-2663-1-git-send-email-cw00.choi@samsung.com>
- <1480485460-2663-7-git-send-email-cw00.choi@samsung.com>
- <CGME20161130103827epcas4p268ee1cbc6b7b2ace7c987dd7baba82d4@epcas4p2.samsung.com>
- <877f7lntjq.fsf@linux.intel.com> <58412848.5070209@samsung.com>
- <87fum6vh1p.fsf@linux.intel.com> <5865CA76.1020001@samsung.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH] ARM: dts: am572x-idk: Add gpios property to control PCIE_RESETn
+Date: Fri, 30 Dec 2016 13:37:20 +0530
+Message-ID: <1483085240-16102-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-renesas-soc-owner@vger.kernel.org>
-In-reply-to: <5865CA76.1020001@samsung.com>
-Sender: linux-renesas-soc-owner@vger.kernel.org
-To: Felipe Balbi <balbi@kernel.org>, gregkh@linuxfoundation.org, kishon@ti.com, sre@kernel.org
-Cc: Peter.Chen@nxp.com, wens@csie.org, yoshihiro.shimoda.uh@renesas.com, maxime.ripard@free-electrons.com, b-liu@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org, chanwoo@kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Felipe,
+Add 'gpios' property to pcie1 dt node and populate it with
+GPIO3_23 in order to drive PCIE_RESETn high.
 
-On 2016년 12월 30일 11:46, Chanwoo Choi wrote:
-> Hi Felipe,
-> 
-> On 2016년 12월 02일 18:03, Felipe Balbi wrote:
->>
->> Hi,
->>
->> Chanwoo Choi <cw00.choi@samsung.com> writes:
->>> Hi Felipe,
->>>
->>> On 2016년 11월 30일 19:36, Felipe Balbi wrote:
->>>>
->>>> Hi,
->>>>
->>>> Chanwoo Choi <cw00.choi@samsung.com> writes:
->>>>> This patch uses the resource-managed extcon API for extcon_register_notifier()
->>>>> and replaces the deprecated extcon API as following:
->>>>> - extcon_get_cable_state_() -> extcon_get_state()
->>>>>
->>>>> Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
->>>>
->>>> Acked-by: Felipe Balbi <felipe.balbi@linux.intel.com>
->>>>
->>>
->>> Thanks for your review.
->>>
->>> Each patch has no any dependency among patches.
->>> So, If possible, could you pick the patch6/8/9/10/11/12 on your tree?
->>
->> my tree is closed for v4.10, I can pick it up for v4.11
-> 
-> Could you please pick up these patches(patch6/8/9/10/11/12)?
-> These patches were already reviewed by you.
-> 
+This gets PCIe cards to be detected in AM572X IDK board.
 
-I sent v2 patchset.
-[1] https://www.spinics.net/lists/kernel/msg2410950.html
-- "[PATCH v2 0/6] usb: Replace the deprecated extcon API"
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ arch/arm/boot/dts/am572x-idk.dts |    4 ++++
+ 1 file changed, 4 insertions(+)
 
+diff --git a/arch/arm/boot/dts/am572x-idk.dts b/arch/arm/boot/dts/am572x-idk.dts
+index 27d9149..1540f7a 100644
+--- a/arch/arm/boot/dts/am572x-idk.dts
++++ b/arch/arm/boot/dts/am572x-idk.dts
+@@ -87,3 +87,7 @@
+ &sn65hvs882 {
+ 	load-gpios = <&gpio3 19 GPIO_ACTIVE_LOW>;
+ };
++
++&pcie1 {
++	gpios = <&gpio3 23 GPIO_ACTIVE_HIGH>;
++};
 -- 
-Regards,
-Chanwoo Choi
+1.7.9.5
