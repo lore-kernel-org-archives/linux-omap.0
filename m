@@ -1,42 +1,36 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH 17/21] mmc: omap: Don't use mmc_card_present() when validating for inserted card
-Date: Fri, 30 Dec 2016 13:47:30 +0100
-Message-ID: <1483102054-1752-18-git-send-email-ulf.hansson@linaro.org>
-References: <1483102054-1752-1-git-send-email-ulf.hansson@linaro.org>
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1483102054-1752-1-git-send-email-ulf.hansson@linaro.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-mmc@vger.kernel.org, Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Jaehoon Chung <jh80.chung@samsung.com>, Adrian Hunter <adrian.hunter@intel.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] pinctrl: single: fix spelling mistakes on "Ivalid"
+Date: Fri, 30 Dec 2016 14:01:13 +0100
+Message-ID: <CACRpkdY1P4frkcLK3WZOunNDhf989shio3wYPdyQnPa5wWg3Xg@mail.gmail.com>
+References: <20161223004714.7491-1-colin.king@canonical.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20161223004714.7491-1-colin.king@canonical.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Colin King <colin.king@canonical.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-The mmc_card_present() function helps the mmc core to track an internal
-state of the card device. More importantly, it's not intended to be used by
-mmc host drivers to check for an inserted card. Therefore, let's stop using
-it and instead rely on checking for a valid pointer to a struct mmc_card,
-as it should be good enough.
+On Fri, Dec 23, 2016 at 1:47 AM, Colin King <colin.king@canonical.com> wrote:
 
-Cc: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
----
- drivers/mmc/host/omap.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> From: Colin Ian King <colin.king@canonical.com>
+>
+> Trivial fixe to spelling mistake "Ivalid" to "Invalid" in
+> dev_err  error message.
+>
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
 
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index be3c49f..bd49f34 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -893,7 +893,7 @@ static void mmc_omap_cover_handler(unsigned long param)
- 	 * If no card is inserted, we postpone polling until
- 	 * the cover has been closed.
- 	 */
--	if (slot->mmc->card == NULL || !mmc_card_present(slot->mmc->card))
-+	if (slot->mmc->card == NULL)
- 		return;
- 
- 	mod_timer(&slot->cover_timer,
--- 
-1.9.1
+Patch applied with Tony's ACK.
 
+Yours,
+Linus Walleij
