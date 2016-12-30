@@ -1,42 +1,67 @@
 From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: [PATCH v2 0/6] usb: Replace the deprecated extcon API
-Date: Fri, 30 Dec 2016 13:08:09 +0900
-Message-ID: <1483070895-8213-1-git-send-email-cw00.choi@samsung.com>
-References: <CGME20161230040816epcas5p4616cb93324a5d60bc2a763817e34e37d@epcas5p4.samsung.com>
-Return-path: <linux-renesas-soc-owner@vger.kernel.org>
-Sender: linux-renesas-soc-owner@vger.kernel.org
+Subject: [PATCH v2 5/6] usb: phy: tahvo: Replace the deprecated extcon API
+Date: Fri, 30 Dec 2016 13:08:14 +0900
+Message-ID: <1483070895-8213-6-git-send-email-cw00.choi@samsung.com>
+References: <1483070895-8213-1-git-send-email-cw00.choi@samsung.com>
+ <CGME20161230040817epcas5p403afe9ebb60e55eee9a5c47c27b82b65@epcas5p4.samsung.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <1483070895-8213-1-git-send-email-cw00.choi@samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: balbi@kernel.org, gregkh@linuxfoundation.org
 Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org, chanwoo@kernel.org, Chanwoo Choi <cw00.choi@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patches just replace the deprecated extcon API without any change
-of extcon operation and use the resource-managed function for
-extcon_register_notifier().
+This patch replaces the deprecated extcon API as following:
+- extcon_set_cable_state_() -> extcon_set_state_sync()
 
-The new extcon API instead of deprecated API.
-- extcon_set_cable_state_() -> extcon_set_state_sync();
-- extcon_get_cable_state_() -> extcon_get_state();
+Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
+Acked-by: Felipe Balbi <felipe.balbi@linux.intel.com>
+---
+ drivers/usb/phy/phy-tahvo.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-Changes from v1:
-- Rebase these patches based on v4.10-rc1.
-- Add acked-by tag from usb maintainer and reviewer.
-- Drop the phy/power-supply/chipidea patches.
-
-Chanwoo Choi (6):
-  usb: dwc3: omap: Replace the extcon API
-  usb: phy: msm: Replace the extcon API
-  usb: phy: omap-otg: Replace the extcon API
-  usb: phy: qcom-8x16-usb: Replace the extcon API
-  usb: phy: tahvo: Replace the deprecated extcon API
-  usb: renesas_usbhs: Replace the deprecated extcon API
-
- drivers/usb/dwc3/dwc3-omap.c        | 20 +++++++-------------
- drivers/usb/phy/phy-msm-usb.c       | 33 +++++++++++----------------------
- drivers/usb/phy/phy-omap-otg.c      | 24 ++++++------------------
- drivers/usb/phy/phy-qcom-8x16-usb.c | 13 ++++---------
- drivers/usb/phy/phy-tahvo.c         | 10 +++++-----
- drivers/usb/renesas_usbhs/common.c  |  2 +-
- 6 files changed, 34 insertions(+), 68 deletions(-)
-
+diff --git a/drivers/usb/phy/phy-tahvo.c b/drivers/usb/phy/phy-tahvo.c
+index ab5d364f6e8c..a31c8682e998 100644
+--- a/drivers/usb/phy/phy-tahvo.c
++++ b/drivers/usb/phy/phy-tahvo.c
+@@ -121,7 +121,7 @@ static void check_vbus_state(struct tahvo_usb *tu)
+ 	prev_state = tu->vbus_state;
+ 	tu->vbus_state = reg & TAHVO_STAT_VBUS;
+ 	if (prev_state != tu->vbus_state) {
+-		extcon_set_cable_state_(tu->extcon, EXTCON_USB, tu->vbus_state);
++		extcon_set_state_sync(tu->extcon, EXTCON_USB, tu->vbus_state);
+ 		sysfs_notify(&tu->pt_dev->dev.kobj, NULL, "vbus_state");
+ 	}
+ }
+@@ -130,7 +130,7 @@ static void tahvo_usb_become_host(struct tahvo_usb *tu)
+ {
+ 	struct retu_dev *rdev = dev_get_drvdata(tu->pt_dev->dev.parent);
+ 
+-	extcon_set_cable_state_(tu->extcon, EXTCON_USB_HOST, true);
++	extcon_set_state_sync(tu->extcon, EXTCON_USB_HOST, true);
+ 
+ 	/* Power up the transceiver in USB host mode */
+ 	retu_write(rdev, TAHVO_REG_USBR, USBR_REGOUT | USBR_NSUSPEND |
+@@ -149,7 +149,7 @@ static void tahvo_usb_become_peripheral(struct tahvo_usb *tu)
+ {
+ 	struct retu_dev *rdev = dev_get_drvdata(tu->pt_dev->dev.parent);
+ 
+-	extcon_set_cable_state_(tu->extcon, EXTCON_USB_HOST, false);
++	extcon_set_state_sync(tu->extcon, EXTCON_USB_HOST, false);
+ 
+ 	/* Power up transceiver and set it in USB peripheral mode */
+ 	retu_write(rdev, TAHVO_REG_USBR, USBR_SLAVE_CONTROL | USBR_REGOUT |
+@@ -379,9 +379,9 @@ static int tahvo_usb_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	/* Set the initial cable state. */
+-	extcon_set_cable_state_(tu->extcon, EXTCON_USB_HOST,
++	extcon_set_state_sync(tu->extcon, EXTCON_USB_HOST,
+ 			       tu->tahvo_mode == TAHVO_MODE_HOST);
+-	extcon_set_cable_state_(tu->extcon, EXTCON_USB, tu->vbus_state);
++	extcon_set_state_sync(tu->extcon, EXTCON_USB, tu->vbus_state);
+ 
+ 	/* Create OTG interface */
+ 	tahvo_usb_power_off(tu);
 -- 
 1.9.1
