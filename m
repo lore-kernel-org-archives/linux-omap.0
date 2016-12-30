@@ -1,37 +1,39 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 3/5] pinctrl: core: Add generic pinctrl functions for
+From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 2/5] pinctrl: core: Add generic pinctrl functions for
  managing groups
-Date: Fri, 30 Dec 2016 15:09:42 +0100
-Message-ID: <CACRpkdaKQDsNEWu9y1QeJXGARRvWEZ6U5CZH_tFDn4f2rLskwg@mail.gmail.com>
-References: <20161227172003.6517-1-tony@atomide.com> <20161227172003.6517-4-tony@atomide.com>
+Date: Fri, 30 Dec 2016 15:12:04 +0100
+Message-ID: <CACRpkdbNNfbq++NGhiSgKmaAN=VB_ZmV6YD2jSo2HgtpqaESBQ@mail.gmail.com>
+References: <20161227172003.6517-1-tony@atomide.com> <20161227172003.6517-3-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20161227172003.6517-4-tony@atomide.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Haojian Zhuang <haojian.zhuang@linaro.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161227172003.6517-3-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Haojian Zhuang <haojian.zhuang-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, "linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 27, 2016 at 6:20 PM, Tony Lindgren <tony@atomide.com> wrote:
+On Tue, Dec 27, 2016 at 6:20 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
 
-> We can add generic helpers for function handling for cases where the pin
+> We can add generic helpers for pin group handling for cases where the pin
 > controller driver does not need to use static arrays.
 >
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 
-Patch applied!
+Patch applied.
 
-> +config GENERIC_PINMUX
+> +config GENERIC_PINCTRL
 > +       bool
-> +       select PINMUX
 
-I applied the first that had GENERIC_PINCTRL instead,
+Then I renamed *this* to GENERIC_PINCTRL_GROUPS.
+(Not the other patch, I got confused because gmail threads the
+second and third patch together, sorry.)
 
-Then I went in and renamed this GENERIC_PINCTRL_GROUPS
-since that is what it's all about.
-
-Sent out as separate patch!
+Let's see if I manage to rebase the next patch on this.
 
 Yours,
 Linus Walleij
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
