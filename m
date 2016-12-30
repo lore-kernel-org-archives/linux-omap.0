@@ -1,9 +1,9 @@
 From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: [PATCH v2 3/6] usb: phy: omap-otg: Replace the extcon API
-Date: Fri, 30 Dec 2016 13:08:12 +0900
-Message-ID: <1483070895-8213-4-git-send-email-cw00.choi@samsung.com>
+Subject: [PATCH v2 4/6] usb: phy: qcom-8x16-usb: Replace the extcon API
+Date: Fri, 30 Dec 2016 13:08:13 +0900
+Message-ID: <1483070895-8213-5-git-send-email-cw00.choi@samsung.com>
 References: <1483070895-8213-1-git-send-email-cw00.choi@samsung.com>
- <CGME20161230040816epcas5p47433110fddafafca1a8b8a64acee1835@epcas5p4.samsung.com>
+ <CGME20161230040817epcas5p430bfef6b76d46ab5e69d5f45816b1af4@epcas5p4.samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-reply-to: <1483070895-8213-1-git-send-email-cw00.choi@samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
@@ -18,59 +18,57 @@ and replaces the deprecated extcon API as following:
 Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
 Acked-by: Felipe Balbi <felipe.balbi@linux.intel.com>
 ---
- drivers/usb/phy/phy-omap-otg.c | 24 ++++++------------------
- 1 file changed, 6 insertions(+), 18 deletions(-)
+ drivers/usb/phy/phy-qcom-8x16-usb.c | 13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/usb/phy/phy-omap-otg.c b/drivers/usb/phy/phy-omap-otg.c
-index 6523af4f8f93..800d1d90753d 100644
---- a/drivers/usb/phy/phy-omap-otg.c
-+++ b/drivers/usb/phy/phy-omap-otg.c
-@@ -118,19 +118,19 @@ static int omap_otg_probe(struct platform_device *pdev)
- 	otg_dev->id_nb.notifier_call = omap_otg_id_notifier;
- 	otg_dev->vbus_nb.notifier_call = omap_otg_vbus_notifier;
+diff --git a/drivers/usb/phy/phy-qcom-8x16-usb.c b/drivers/usb/phy/phy-qcom-8x16-usb.c
+index d8593adb3621..fdf686398772 100644
+--- a/drivers/usb/phy/phy-qcom-8x16-usb.c
++++ b/drivers/usb/phy/phy-qcom-8x16-usb.c
+@@ -187,7 +187,7 @@ static int phy_8x16_init(struct usb_phy *phy)
+ 	val = ULPI_PWR_OTG_COMP_DISABLE;
+ 	usb_phy_io_write(phy, val, ULPI_SET(ULPI_PWR_CLK_MNG_REG));
  
--	ret = extcon_register_notifier(extcon, EXTCON_USB_HOST, &otg_dev->id_nb);
-+	ret = devm_extcon_register_notifier(&pdev->dev, extcon,
-+					EXTCON_USB_HOST, &otg_dev->id_nb);
+-	state = extcon_get_cable_state_(qphy->vbus_edev, EXTCON_USB);
++	state = extcon_get_state(qphy->vbus_edev, EXTCON_USB);
+ 	if (state)
+ 		phy_8x16_vbus_on(qphy);
+ 	else
+@@ -316,23 +316,20 @@ static int phy_8x16_probe(struct platform_device *pdev)
+ 		goto off_clks;
+ 
+ 	qphy->vbus_notify.notifier_call = phy_8x16_vbus_notify;
+-	ret = extcon_register_notifier(qphy->vbus_edev, EXTCON_USB,
+-				       &qphy->vbus_notify);
++	ret = devm_extcon_register_notifier(&pdev->dev, qphy->vbus_edev,
++					EXTCON_USB, &qphy->vbus_notify);
+ 	if (ret < 0)
+ 		goto off_power;
+ 
+ 	ret = usb_add_phy_dev(&qphy->phy);
  	if (ret)
- 		return ret;
+-		goto off_extcon;
++		goto off_power;
  
--	ret = extcon_register_notifier(extcon, EXTCON_USB, &otg_dev->vbus_nb);
-+	ret = devm_extcon_register_notifier(&pdev->dev, extcon,
-+					EXTCON_USB, &otg_dev->vbus_nb);
- 	if (ret) {
--		extcon_unregister_notifier(extcon, EXTCON_USB_HOST,
--					&otg_dev->id_nb);
- 		return ret;
- 	}
+ 	qphy->reboot_notify.notifier_call = phy_8x16_reboot_notify;
+ 	register_reboot_notifier(&qphy->reboot_notify);
  
--	otg_dev->id = extcon_get_cable_state_(extcon, EXTCON_USB_HOST);
--	otg_dev->vbus = extcon_get_cable_state_(extcon, EXTCON_USB);
-+	otg_dev->id = extcon_get_state(extcon, EXTCON_USB_HOST);
-+	otg_dev->vbus = extcon_get_state(extcon, EXTCON_USB);
- 	omap_otg_set_mode(otg_dev);
- 
- 	rev = readl(otg_dev->base);
-@@ -145,20 +145,8 @@ static int omap_otg_probe(struct platform_device *pdev)
  	return 0;
- }
  
--static int omap_otg_remove(struct platform_device *pdev)
--{
--	struct otg_device *otg_dev = platform_get_drvdata(pdev);
--	struct extcon_dev *edev = otg_dev->extcon;
--
--	extcon_unregister_notifier(edev, EXTCON_USB_HOST, &otg_dev->id_nb);
--	extcon_unregister_notifier(edev, EXTCON_USB, &otg_dev->vbus_nb);
--
--	return 0;
--}
--
- static struct platform_driver omap_otg_driver = {
- 	.probe		= omap_otg_probe,
--	.remove		= omap_otg_remove,
- 	.driver		= {
- 		.name	= "omap_otg",
- 	},
+-off_extcon:
+-	extcon_unregister_notifier(qphy->vbus_edev, EXTCON_USB,
+-				   &qphy->vbus_notify);
+ off_power:
+ 	regulator_bulk_disable(ARRAY_SIZE(qphy->regulator), qphy->regulator);
+ off_clks:
+@@ -347,8 +344,6 @@ static int phy_8x16_remove(struct platform_device *pdev)
+ 	struct phy_8x16 *qphy = platform_get_drvdata(pdev);
+ 
+ 	unregister_reboot_notifier(&qphy->reboot_notify);
+-	extcon_unregister_notifier(qphy->vbus_edev, EXTCON_USB,
+-				   &qphy->vbus_notify);
+ 
+ 	/*
+ 	 * Ensure that D+/D- lines are routed to uB connector, so
 -- 
 1.9.1
