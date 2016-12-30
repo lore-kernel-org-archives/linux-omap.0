@@ -1,45 +1,54 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 0/5] Add generic pinctrl helpers for managing groups
- and function
-Date: Fri, 30 Dec 2016 07:59:57 -0800
-Message-ID: <20161230155957.GB3940@atomide.com>
-References: <20161227172003.6517-1-tony@atomide.com>
- <CACRpkda9Lv-WF+fLysoEbqBPuMtPBwo_xQT7y0_CHVjC+cAL2Q@mail.gmail.com>
- <CAAMH-ysDwyLst+EYtNNmO0qgAq4e=7ESxGYynDM1GOyDqXx3OQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAAMH-ysDwyLst+EYtNNmO0qgAq4e=7ESxGYynDM1GOyDqXx3OQ@mail.gmail.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Gary Bisson <gary.bisson@boundarydevices.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 1/2] pinctrl: core: Make dt_free_map optional
+Date: Fri, 30 Dec 2016 10:37:31 -0800
+Message-ID: <20161230183732.5595-2-tony@atomide.com>
+References: <20161230183732.5595-1-tony@atomide.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161230183732.5595-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Gary Bisson <gary.bisson-Q5RJGjKts06CY9SHAMCTRUEOCMrvLtNR@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Gary Bisson <gary.bisson@boundarydevices.com> [161230 07:43]:
-> Hi Linus,
-> 
-> On Fri, Dec 30, 2016 at 3:39 PM, Linus Walleij <linus.walleij@linaro.org> wrote:
-> > On Tue, Dec 27, 2016 at 6:19 PM, Tony Lindgren <tony@atomide.com> wrote:
-> >
-> >> Here are some changes to add generic helpers for managing pinctrl groups and
-> >> functions.
-> >
-> > I applied it, screwed around with it and pushed to the build servers to see
-> > if it survived.
-> >
-> > I really like the look of this and I hope lots of driver start to use it.
-> >
-> > Gary, I just applied your radix patches for i.MX, can you look if you can
-> > use the GENERIC_PINCTRL_GROUPS and GENERIC_PINMUX_FUCNTIONS
-> > that Tony invented and that I just merged to my devel branch in the
-> > pinctrl tree?
-> 
-> Yes I will have a look. It does sound like a good idea. I'll share my
-> findings beginning of next week.
+If the pin controller driver is using devm_kzalloc, there may not be
+anything to do for dt_free_map. Let's make it optional to avoid
+unncessary boilerplate code.
 
-OK great. Note that we may be able to come up also with a generic
-iterator function for the node_to_map functions so maybe see if
-you come up with some ideas for that while experimenting :)
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/pinctrl/core.c       | 3 ---
+ drivers/pinctrl/devicetree.c | 3 ++-
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-Tony
+diff --git a/drivers/pinctrl/core.c b/drivers/pinctrl/core.c
+--- a/drivers/pinctrl/core.c
++++ b/drivers/pinctrl/core.c
+@@ -1913,9 +1913,6 @@ static int pinctrl_check_ops(struct pinctrl_dev *pctldev)
+ 	    !ops->get_group_name)
+ 		return -EINVAL;
+ 
+-	if (ops->dt_node_to_map && !ops->dt_free_map)
+-		return -EINVAL;
+-
+ 	return 0;
+ }
+ 
+diff --git a/drivers/pinctrl/devicetree.c b/drivers/pinctrl/devicetree.c
+--- a/drivers/pinctrl/devicetree.c
++++ b/drivers/pinctrl/devicetree.c
+@@ -42,7 +42,8 @@ static void dt_free_map(struct pinctrl_dev *pctldev,
+ {
+ 	if (pctldev) {
+ 		const struct pinctrl_ops *ops = pctldev->desc->pctlops;
+-		ops->dt_free_map(pctldev, map, num_maps);
++		if (ops->dt_free_map)
++			ops->dt_free_map(pctldev, map, num_maps);
+ 	} else {
+ 		/* There is no pctldev for PIN_MAP_TYPE_DUMMY_STATE */
+ 		kfree(map);
+-- 
+2.11.0
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
