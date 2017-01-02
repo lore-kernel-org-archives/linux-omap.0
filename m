@@ -1,37 +1,39 @@
 From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: Nokia N900 sound driver and ECI GPIOs
-Date: Mon, 2 Jan 2017 20:49:45 +0200
-Message-ID: <20170102184945.m6maflaoihumd7nt@raspberrypi-2.musicnaut.iki.fi>
-References: <201701012054.54505@pali>
- <6462f543-0422-8146-a196-f4e07c3ebb6f@ti.com>
- <20170102084432.GA6728@pali>
+Subject: Re: [PATCH] dmaengine: omap-dma: Fix dynamic lch_map alocation
+Date: Mon, 2 Jan 2017 21:13:28 +0200
+Message-ID: <20170102191328.pssv24pzxhguyeby@raspberrypi-2.musicnaut.iki.fi>
+References: <20170102100737.11927-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170102084432.GA6728@pali>
+In-Reply-To: <20170102100737.11927-1-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, Eduardo Valentin <edubezval@gmail.com>, Lars-Peter Clausen <lars@metafoo.de>, Nishanth Menon <nm@ti.com>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, joerg Reisenweber <joerg@openmoko.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: vinod.koul@intel.com, dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-On Mon, Jan 02, 2017 at 09:44:32AM +0100, Pali Rohár wrote:
-> On Monday 02 January 2017 10:23:23 Peter Ujfalusi wrote:
-> > GPIO_182 is to select where to route the MIC line from the jack for the
-> > ECI core to handle (when the TVOUT is disabled).
+On Mon, Jan 02, 2017 at 12:07:37PM +0200, Peter Ujfalusi wrote:
+> The original patch did not done what it was supposed to be doing and even
+> worst it broke legacy boot (OMAP1).
 > 
-> Yes, already figured out from schematic.
+> The lch_map size should be the number of available logical channels in sDMA
+> and the od->dma_requests should store the number of available DMA request
+> lines usable in sDMA.
 > 
-> > I have no idea what the
-> > gpio_178 should have been used for. It might be only needed for early
-> > protos but not in production devices?
+> In legacy mode we do not have a way to get the DMA request count, in that
+> case we use OMAP_SDMA_REQUESTS (127), despite the fact that OMAP1510 have
+> only 31 DMA request line.
 > 
-> I do not know, reason why I'm asking.
+> Fixes: 2d1a9a946fae ("dmaengine: omap-dma: Dynamically allocate memory for lch_map")
+> Reported-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Cc: stable@vger.kernel.org   # v4.9
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-The schematic shows ECI(5:0), but only 3 are connected/used. There were
-3 other GPIOs reserved but not used in the final product.
+Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+
+Thanks,
 
 A.
