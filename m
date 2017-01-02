@@ -1,7 +1,7 @@
 From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH 3/3] ARM: OMAP1: USB: delete redundant CPU class checks
-Date: Mon,  2 Jan 2017 22:57:05 +0200
-Message-ID: <20170102205705.19001-3-aaro.koskinen@iki.fi>
+Subject: [PATCH 2/3] ARM: OMAP1: USB: make omap_otg_init() static
+Date: Mon,  2 Jan 2017 22:57:04 +0200
+Message-ID: <20170102205705.19001-2-aaro.koskinen@iki.fi>
 References: <20170102205705.19001-1-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,72 +21,48 @@ To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kern
 Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
-Delete redundant CPU class checks. This code is only used
-on OMAP1 nowadays.
+Make omap_otg_init() static.
 
 Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 ---
- arch/arm/mach-omap1/usb.c | 27 ++++++++++++---------------
- 1 file changed, 12 insertions(+), 15 deletions(-)
+ arch/arm/mach-omap1/include/mach/usb.h | 2 --
+ arch/arm/mach-omap1/usb.c              | 4 ++--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
+diff --git a/arch/arm/mach-omap1/include/mach/usb.h b/arch/arm/mach-omap1/include/mach/usb.h
+index a7c5559..eb76628 100644
+--- a/arch/arm/mach-omap1/include/mach/usb.h
++++ b/arch/arm/mach-omap1/include/mach/usb.h
+@@ -10,8 +10,6 @@
+ 
+ #include <linux/platform_data/usb-omap1.h>
+ 
+-void omap_otg_init(struct omap_usb_config *config);
+-
+ #if IS_ENABLED(CONFIG_USB)
+ void omap1_usb_init(struct omap_usb_config *pdata);
+ #else
 diff --git a/arch/arm/mach-omap1/usb.c b/arch/arm/mach-omap1/usb.c
-index 0b4ed94..455e2cf 100644
+index d4aa118..0b4ed94 100644
 --- a/arch/arm/mach-omap1/usb.c
 +++ b/arch/arm/mach-omap1/usb.c
-@@ -1,5 +1,5 @@
- /*
-- * Platform level USB initialization for FS USB OTG controller on omap1 and 24xx
-+ * Platform level USB initialization for FS USB OTG controller on omap1
-  *
-  * Copyright (C) 2004 Texas Instruments, Inc.
-  *
-@@ -63,6 +63,7 @@ omap_otg_init(struct omap_usb_config *config)
+@@ -58,7 +58,7 @@
+ 
+ #ifdef	CONFIG_ARCH_OMAP_OTG
+ 
+-void __init
++static void __init
+ omap_otg_init(struct omap_usb_config *config)
  {
  	u32		syscon;
- 	int		alt_pingroup = 0;
-+	u16		w;
+@@ -166,7 +166,7 @@ omap_otg_init(struct omap_usb_config *config)
+ }
  
- 	/* NOTE:  no bus or clock setup (yet?) */
- 
-@@ -87,9 +88,8 @@ omap_otg_init(struct omap_usb_config *config)
- 	if (config->otg)
- 		syscon |= OTG_EN;
+ #else
+-void omap_otg_init(struct omap_usb_config *config) {}
++static void omap_otg_init(struct omap_usb_config *config) {}
  #endif
--	if (cpu_class_is_omap1())
--		pr_debug("USB_TRANSCEIVER_CTRL = %03x\n",
--			 omap_readl(USB_TRANSCEIVER_CTRL));
-+	pr_debug("USB_TRANSCEIVER_CTRL = %03x\n",
-+		 omap_readl(USB_TRANSCEIVER_CTRL));
- 	pr_debug("OTG_SYSCON_2 = %08x\n", omap_readl(OTG_SYSCON_2));
- 	omap_writel(syscon, OTG_SYSCON_2);
  
-@@ -107,19 +107,16 @@ omap_otg_init(struct omap_usb_config *config)
- 		pr_cont(", Mini-AB on usb%d", config->otg - 1);
- 	pr_cont("\n");
- 
--	if (cpu_class_is_omap1()) {
--		u16 w;
-+	/* leave USB clocks/controllers off until needed */
-+	w = omap_readw(ULPD_SOFT_REQ);
-+	w &= ~SOFT_USB_CLK_REQ;
-+	omap_writew(w, ULPD_SOFT_REQ);
- 
--		/* leave USB clocks/controllers off until needed */
--		w = omap_readw(ULPD_SOFT_REQ);
--		w &= ~SOFT_USB_CLK_REQ;
--		omap_writew(w, ULPD_SOFT_REQ);
-+	w = omap_readw(ULPD_CLOCK_CTRL);
-+	w &= ~USB_MCLK_EN;
-+	w |= DIS_USB_PVCI_CLK;
-+	omap_writew(w, ULPD_CLOCK_CTRL);
- 
--		w = omap_readw(ULPD_CLOCK_CTRL);
--		w &= ~USB_MCLK_EN;
--		w |= DIS_USB_PVCI_CLK;
--		omap_writew(w, ULPD_CLOCK_CTRL);
--	}
- 	syscon = omap_readl(OTG_SYSCON_1);
- 	syscon |= HST_IDLE_EN|DEV_IDLE_EN|OTG_IDLE_EN;
- 
+ #if IS_ENABLED(CONFIG_USB_OMAP)
 -- 
 2.9.2
