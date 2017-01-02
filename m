@@ -1,83 +1,39 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH 2/9] ARM: dts: omap3: Add an empty chosen node to top
- level DTSI
-Date: Mon, 2 Jan 2017 19:01:22 +0100
-Message-ID: <201701021901.22476@pali>
-References: <1482158681-4530-1-git-send-email-javier@osg.samsung.com>
- <1482158681-4530-3-git-send-email-javier@osg.samsung.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 2/2] pinctrl: Introduce TI IOdelay configuration driver
+Date: Mon, 2 Jan 2017 10:04:25 -0800
+Message-ID: <20170102180424.GE9325@atomide.com>
+References: <20161230183732.5595-3-tony@atomide.com>
+ <201701010645.EBjk2p8Y%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1790374566702098828=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1482158681-4530-3-git-send-email-javier@osg.samsung.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Rob Herring <robh+dt@kernel.org>, =?utf-8?q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <201701010645.EBjk2p8Y%fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: kbuild-all-JC7UmRfGjtg@public.gmane.org, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Gary Bisson <gary.bisson-Q5RJGjKts06CY9SHAMCTRUEOCMrvLtNR@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---===============1790374566702098828==
-Content-Type: multipart/signed;
-  boundary="nextPart1589658.ne9uvhShho";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Hi,
 
---nextPart1589658.ne9uvhShho
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+* kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> [161231 14:53]:
+> Hi Nishanth,
+> 
+> [auto build test ERROR on pinctrl/for-next]
+> [also build test ERROR on v4.10-rc1 next-20161224]
+> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-On Monday 19 December 2016 15:44:34 Javier Martinez Canillas wrote:
-> Commit 008a2ebcd677 ("ARM: dts: omap3: Remove skeleton.dtsi usage")
-> removed the skeleton.dtsi usage since we want to get rid of it.
->=20
-> But this can cause issues when booting a kernel with a boot-loader
-> that doesn't create a chosen node if this isn't present in the DTB
-> since the decompressor relies on a pre-existing chosen node to be
-> available to insert the command line and merge other ATAGS info.
->=20
-> Fixes: 008a2ebcd677 ("ARM: dts: omap3: Remove skeleton.dtsi usage")
-> Reported-by: Pali Rohar <pali.rohar@gmail.com>
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+This patch is against pinctrl/devel as noted in the cover
+letter. Next does not yet have the dependencies.
 
-Including empty chosen node fixes (or rather workaround) this problem.=20
-You can add my Tested-By.
+I did note another build error with COMPILE_TEST
+though if DEBUG_FS is not selected, will send a fix for
+that.
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Regards,
 
---nextPart1589658.ne9uvhShho
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlhqlXIACgkQi/DJPQPkQ1KykgCdFEGHXJMGa9F2NDojt3FoYAP8
-N7IAoK8gbZurOMm8f2/DG9fuATNkyn6+
-=rCS9
------END PGP SIGNATURE-----
-
---nextPart1589658.ne9uvhShho--
-
-
---===============1790374566702098828==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============1790374566702098828==--
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
