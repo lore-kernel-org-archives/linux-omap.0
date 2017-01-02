@@ -1,71 +1,66 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [BISECTED] v4.9: OMAP MMC regression
-Date: Mon, 2 Jan 2017 11:08:44 +0200
-Message-ID: <92c33052-0469-1a17-a5fe-f18e88515d9b@ti.com>
-References: <20161217220120.xgyzq2hwxn3lsmm2@raspberrypi-2.musicnaut.iki.fi>
- <20161222205843.md4uggwyegcfuk3j@raspberrypi-2.musicnaut.iki.fi>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: Nokia N900 sound driver and ECI GPIOs
+Date: Mon, 2 Jan 2017 10:29:21 +0100
+Message-ID: <20170102092921.GC6728@pali>
+References: <201701012054.54505@pali>
+ <20170101223639.GA13868@amd>
+ <4f150265-aa9b-c1f3-4634-9df8b320836b@bitmer.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20161222205843.md4uggwyegcfuk3j@raspberrypi-2.musicnaut.iki.fi>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>, Vinod Koul <vinod.koul@intel.com>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4f150265-aa9b-c1f3-4634-9df8b320836b@bitmer.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Eduardo Valentin <edubezval@gmail.com>, Lars-Peter Clausen <lars@metafoo.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, Sebastian Reichel <sre@kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, joerg Reisenweber <joerg@openmoko.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On Monday 02 January 2017 11:01:48 Jarkko Nikula wrote:
+> Hi
+> 
+> On 01/02/2017 12:36 AM, Pavel Machek wrote:
+> >> Jarkko, you are listed as original author of that driver. Do you (or
+> >> anybody else) remember what that rx51_set_eci_switches() function is
+> >> doing? And what gpio 178 controls? I was even not able to find gpio 178
+> >> in RX-51 Schematics [6].
+> >>
+> >> And do you know something about Nokia ECI headsets supports for Nokia
+> >> N900. Looks like there is already some kernel code but support for ECI
+> >> bus or multibuttons headset is missing.
+> > 
+> Multibutton ECI headset support using GPIO was planned during early in
+> HW design phase but wasn't implemented for the actual product. I don't
+> remember was it due no actual product requirement for it or GPIO based
+> implementation was not reliable. If I remember correctly ECI protocol
+> carries information by shorting mic bias to ground at some 1 kHz rate so
+> trying to detect those pulses by SW won't work too well without hard
+> real-time OS.
+> 
+> Even ECI is not implemented in final product the production HW still has
+> two switches to route mic bias to voltage detection circuit, tv-out or
+> codec. One of the switches is statically driven because only codec or
+> tv-out route is needed. See commit 31164c7cf119 ("ASoC: omap: rx51: Add
+> headset support")
 
+I know about two gpio switches (TVOUT_EN and ECI_SWITCH=182). But
+nothing about gpio 178, which looks like third switch. That statically
+driven is gpio 182.
 
-On 12/22/2016 10:58 PM, Aaro Koskinen wrote:
-> Hi,
-> =
+> > I'd like to get detection of headset button presses to work in recent
+> > kernels, but could not figure it out :-(.
+> > 
+> My vague memory doesn't tell how basic button press detection was
+> implemented in Maemo kernel. Was it codec, same voltage detection
+> circuit than ECI or some another GPIO? I don't even remember did we
+> implement it for the MeeGo N900 developer edition :-(
 
-> On Sun, Dec 18, 2016 at 12:01:21AM +0200, Aaro Koskinen wrote:
->> OMAP MMC is silently missing when booting v4.9 on Nokia 770 (OMAP1).
->>
->> Bisected to:
->>
->> commit 2d1a9a946faebfedd660a1f1c2b90984fff41f91
->> Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
->> Date:   Wed Jul 20 11:50:29 2016 +0300
->>
->>     dmaengine: omap-dma: Dynamically allocate memory for lch_map
->>
->> Reveting the commit makes MMC to appear and work again...
-> =
+In Maemo 2.6.28 kernel is detection of pressing one button headset. It
+is implemented in nokia-av.c and rx51.c files.
 
-> This commit basically reduces dma_requests count to 17 (from 127)
-> on OMAP1.
-> =
+I started porting that code to mainline kernel, but I stopped at that
+unknown gpio 178.
 
-> This cannot be correct, since OMAP1 MMC is using requests (from
-> omap1_init_mmc):
-> =
-
->                         rx_req =3D 22;
->                         tx_req =3D 21;
-> [...]
->                         rx_req =3D 55;
->                         tx_req =3D 54;
-> =
-
-> MMC probe will fail because omap_dma_filter_fn() will fail during
-> dma_request_chan().
-> =
-
-> I think 2d1a9a946faebfedd660a1f1c2b90984fff41f91 should be reverted.
-> I cannot anymore boot my 770 with >=3D 4.9 kernel.
-
-I rather fix this instead of reverting the commit, I will send a patch
-today for this.
-
--- =
-
-P=E9ter
+-- 
+Pali Rohár
+pali.rohar@gmail.com
