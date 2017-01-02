@@ -1,43 +1,49 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [3/5] pinctrl: core: Add generic pinctrl functions for managing
- groups
-Date: Mon, 2 Jan 2017 09:08:50 -0800
-Message-ID: <20170102170850.GC9325@atomide.com>
-References: <20161227172003.6517-4-tony@atomide.com>
- <20170102162103.xp5ekyyc6dwpeh4j@t450s.lan>
+Subject: Re: [PATCH 17/21] mmc: omap: Don't use mmc_card_present() when
+ validating for inserted card
+Date: Mon, 2 Jan 2017 09:11:40 -0800
+Message-ID: <20170102171140.GD9325@atomide.com>
+References: <1483102054-1752-1-git-send-email-ulf.hansson@linaro.org>
+ <1483102054-1752-18-git-send-email-ulf.hansson@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170102162103.xp5ekyyc6dwpeh4j@t450s.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Gary Bisson <gary.bisson@boundarydevices.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <1483102054-1752-18-git-send-email-ulf.hansson@linaro.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: linux-mmc@vger.kernel.org, Jaehoon Chung <jh80.chung@samsung.com>, Adrian Hunter <adrian.hunter@intel.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Gary Bisson <gary.bisson@boundarydevices.com> [170102 08:21]:
-> Hi Tony,
+* Ulf Hansson <ulf.hansson@linaro.org> [161230 04:49]:
+> The mmc_card_present() function helps the mmc core to track an internal
+> state of the card device. More importantly, it's not intended to be used by
+> mmc host drivers to check for an inserted card. Therefore, let's stop using
+> it and instead rely on checking for a valid pointer to a struct mmc_card,
+> as it should be good enough.
 > 
-> On Tue, Dec 27, 2016 at 09:20:01AM -0800, Tony Lindgren wrote:
-> > We can add generic helpers for function handling for cases where the pin
-> > controller driver does not need to use static arrays.
-> > 
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> Cc: linux-omap@vger.kernel.org
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>
+> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+> ---
+>  drivers/mmc/host/omap.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> Shouldn't the patch title be:
-> pinctrl: core: Add generic pinmux functions for managing functions
-> 
-> It looks like a copy/paste issue since both patches have the same title:
-> 824bef17d16c pinctrl: core: Add generic pinctrl functions for managing
-> groups
-> d70a0fb14682 pinctrl: core: Add generic pinctrl functions for managing
-> groups
+> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+> index be3c49f..bd49f34 100644
+> --- a/drivers/mmc/host/omap.c
+> +++ b/drivers/mmc/host/omap.c
+> @@ -893,7 +893,7 @@ static void mmc_omap_cover_handler(unsigned long param)
+>  	 * If no card is inserted, we postpone polling until
+>  	 * the cover has been closed.
+>  	 */
+> -	if (slot->mmc->card == NULL || !mmc_card_present(slot->mmc->card))
+> +	if (slot->mmc->card == NULL)
+>  		return;
+>  
+>  	mod_timer(&slot->cover_timer,
 
-Oops, oh well.. At least the description is correct.
+Makes sense to me:
 
-> That's actually my only remark, I had another comment about freeing the
-> trees but it is actually done in the unregister so everything is good.
-
-OK cool.
-
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
