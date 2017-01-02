@@ -1,39 +1,60 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 2/2] pinctrl: Introduce TI IOdelay configuration driver
-Date: Mon, 2 Jan 2017 10:04:25 -0800
-Message-ID: <20170102180424.GE9325@atomide.com>
-References: <20161230183732.5595-3-tony@atomide.com>
- <201701010645.EBjk2p8Y%fengguang.wu@intel.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: 4.10-rc1 on Nokia N900: regression, WARN_ON() omap_l3_smx.c
+Date: Mon, 2 Jan 2017 10:10:59 -0800
+Message-ID: <20170102181058.GF9325@atomide.com>
+References: <20161229231411.GA6865@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <201701010645.EBjk2p8Y%fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: kbuild-all-JC7UmRfGjtg@public.gmane.org, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Gary Bisson <gary.bisson-Q5RJGjKts06CY9SHAMCTRUEOCMrvLtNR@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20161229231411.GA6865@amd>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, aaro.koskinen@iki.fi, kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org, abcloriens@gmail.com, pali.rohar@gmail.com, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-* kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> [161231 14:53]:
-> Hi Nishanth,
+* Pavel Machek <pavel@ucw.cz> [161229 15:14]:
+> Hi!
 > 
-> [auto build test ERROR on pinctrl/for-next]
-> [also build test ERROR on v4.10-rc1 next-20161224]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+> I forgot I had v4.10-rc1 running, and now I got warning on all the
+> consoles (hand-copied).
+> 
+> 
+> Unhandled fault: external abort on non-linefetch (0x1028) at
+> 0xfa0ab060
+> ...
+> Comm: kworker/0:0 Not tainted.
+> Workqueue: events musb_irq_work
+> ...
+> PC is at musb_default_readb().
+> ...
 
-This patch is against pinctrl/devel as noted in the cover
-letter. Next does not yet have the dependencies.
+This means the clocks are not enabled at that point.
 
-I did note another build error with COMPILE_TEST
-though if DEBUG_FS is not selected, will send a fix for
-that.
+> WARNING: CPU: 0 ... at drivers/bus/omap_l3_smx.c:166
+> omap3_l3_app_irq+0xcc/...
+> Tainted: GDW.
+
+If you comment out postcore_initcall_sync(omap3_l3_init);
+in drivers/bus/omap_l3_smx.c you'll see the proper stack
+trace instead of the l3 interrupt trace. The system will
+hang at that point most likely.
+
+> I do have patches to allow nfsroot over usb. But they worked ok in
+> v4.9... Does anyone see it, too?
+
+Hmm not much has changed since v4.9. Are you sure you
+had v4.9 or some earlier v4.9-rc version?
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
