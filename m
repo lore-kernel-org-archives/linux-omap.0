@@ -1,54 +1,64 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/4] ARM: dts: Add am335x-boneblack-wireless
-Date: Tue, 3 Jan 2017 12:43:44 -0800
-Message-ID: <20170103204343.GC25222@atomide.com>
-References: <20161227175837.28970-1-robertcnelson@gmail.com>
- <20161227175837.28970-2-robertcnelson@gmail.com>
- <CB5C8999-6CAE-41F6-85A6-D2A856BD8011@gmail.com>
- <20170103201103.GB25222@atomide.com>
- <2D5ABB5A-E332-4D77-89EA-9DBF9A2FECFB@gmail.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v3] clk: ti: omap36xx: Work around sprz319 advisory 2.1
+Date: Wed, 04 Jan 2017 00:16:55 +0200
+Message-ID: <8244231.MVTltJ04HJ@avalon>
+References: <1480713278-6884-1-git-send-email-laurent.pinchart@ideasonboard.com> <CAHCN7x+O6Y+pMhaWNZ+pPkjZqoF_SOckhzsfVG9c3xBKTG2MKw@mail.gmail.com> <20170103184956.GJ17126@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <2D5ABB5A-E332-4D77-89EA-9DBF9A2FECFB@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jason Kridner <jkridner@gmail.com>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, linux-arm-kernel@lists.infradead.org, Jason Kridner <jkridner@beagleboard.org>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <20170103184956.GJ17126@codeaurora.org>
+Sender: linux-clk-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Adam Ford <aford173@gmail.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, Richard Watts <rrw@kynesim.co.uk>, Tony Lindgren <tony@atomide.com>, Alexander Kinzer <a.kinzer@plusoptix.de>
 List-Id: linux-omap@vger.kernel.org
 
-* Jason Kridner <jkridner@gmail.com> [170103 12:30]:
-> 
-> 
-> > On Jan 3, 2017, at 3:11 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > 
-> > * Jason Kridner <jkridner@gmail.com> [161228 13:27]:
-> >> 
-> >> 
-> >>> On Dec 27, 2016, at 11:58 AM, Robert Nelson <robertcnelson@gmail.com> wrote:
+On Tuesday 03 Jan 2017 10:49:56 Stephen Boyd wrote:
+> On 01/03, Adam Ford wrote:
+> > On Thu, Dec 8, 2016 at 3:24 PM, Laurent Pinchart wrote:
+> >> On Thursday 08 Dec 2016 13:16:01 Stephen Boyd wrote:
+> >>> On 12/02, Laurent Pinchart wrote:
+> >>>> From: Richard Watts <rrw@kynesim.co.uk>
+> >>>> 
+> >>>> The OMAP36xx DPLL5, driving EHCI USB, can be subject to a long-term
+> >>>> frequency drift. The frequency drift magnitude depends on the VCO
+> >>>> update rate, which is inversely proportional to the PLL divider. The
+> >>>> kernel DPLL configuration code results in a high value for the divider,
+> >>>> leading to a long term drift high enough to cause USB transmission
+> >>>> errors. In the worst case the USB PHY's ULPI interface can stop
+> >>>> responding, breaking USB operation completely. This manifests itself on
+> >>>> the Beagleboard xM by the LAN9514 reporting 'Cannot enable port 2.
+> >>>> Maybe the cable is bad?' in the kernel log.
+> >>>> 
+> >>>> Errata sprz319 advisory 2.1 documents PLL values that minimize the
+> >>>> drift. Use them automatically when DPLL5 is used for USB operation,
+> >>>> which we detect based on the requested clock rate. The clock
+> >>>> framework will still compute the PLL parameters and resulting rate as
+> >>>> usual, but the PLL M and N values will then be overridden. This can
+> >>>> result in the effective clock rate being slightly different than the
+> >>>> rate cached by the clock framework, but won't cause any adverse effect
+> >>>> to USB operation.
+> >>>> 
+> >>>> Signed-off-by: Richard Watts <rrw@kynesim.co.uk>
+> >>>> [Upported from v3.2 to v4.9]
+> >>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >>>> ---
 > >>> 
-> >>> BeagleBone Black Wireless is clone of the BeagleBone Black (BBB) with the Ethernet
-> >>> replaced by a TI wl1835 wireless module.
-> >>> 
-> >>> This board can be indentified by the BWAx value after A335BNLT (BBB) in the at24 eeprom:
-> >>> BWAx [aa 55 33 ee 41 33 33 35  42 4e 4c 54 42 57 41 35  |.U3.A335BNLTBWA5|]
-> >> 
-> >> I believe the correct statement is BWxx, but BWBx reserves the option to be software incompatible in some way. My preference is to have it boot anyway, but I believe that is only dependent in the bootloader. 
+> >>> Applied to clk-next
 > > 
-> > So does this patch need updating for that?
+> > Since this fixes an errata issue, is there any way we can get this
+> > patch applied to the older LTS kernels?  (4.4 seems to apply cleanly,
+> > but I didn't try any older than that)
 > 
-> No, it is bootloader controlled. 
+> Sure. Just follow the stable kernel rules. See
+> Documentation/process/stable-kernel-rules.rst, specifically
+> option #2.
 
-What about the patch description? Does it need updating or is that
-an Acked-by?
+And needless to say, please test the backported patch before requesting it to 
+be included in stable kernels :-)
 
-Tony
+-- 
+Regards,
+
+Laurent Pinchart
+
