@@ -1,38 +1,45 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 2/4] ARM: dts: Add am335x-boneblack-wireless
-Date: Tue, 3 Jan 2017 16:41:48 -0800
-Message-ID: <20170104004147.GD25222@atomide.com>
-References: <20161227175837.28970-1-robertcnelson@gmail.com>
- <20161227175837.28970-2-robertcnelson@gmail.com>
- <CB5C8999-6CAE-41F6-85A6-D2A856BD8011@gmail.com>
- <20170103201103.GB25222@atomide.com>
- <2D5ABB5A-E332-4D77-89EA-9DBF9A2FECFB@gmail.com>
- <20170103204343.GC25222@atomide.com>
- <CA+T6QPnTS-XyV0G9X78hAh=D79TkZkU+evN2RA6VF3f_jyBtkA@mail.gmail.com>
+From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] ARM: dts: am335x-icev2: Remove the duplicated pinmux setting
+Date: Wed, 4 Jan 2017 10:39:40 +0530
+Message-ID: <20170104050940.25698-1-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CA+T6QPnTS-XyV0G9X78hAh=D79TkZkU+evN2RA6VF3f_jyBtkA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Kridner <jkridner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Jason Kridner <jdk-l0cyMroinI0@public.gmane.org>, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Linux ARM Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Jason Kridner <jkridner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [170103 12:58]:
-> Asked-by: Jason Kridner <jdk-l0cyMroinI0@public.gmane.org>
-> 
-> Sorry for the phone mailer (HTML).
+There is no mmc sd card detect on am335x-ice board. But the spi0_cs1
+pin being configured as mmcsd_cd. Removing it fixes the below warning
+during boot.
 
-OK fixed that to Acked-by :) Applied into omap-for-v4.11/dt and pushed
-out.
+[1.401303] pinctrl-single 44e10800.pinmux: pin 44e10960.0 already requested by 48030000.spi; cannot claim for 48060000.mmc
 
-BBB Green Wireless seems to work nicely for WLAN out of the box with
-these patches :)
+Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+---
+Logs:
+Before this patch: http://pastebin.ubuntu.com/23737509/
+After this patch: http://pastebin.ubuntu.com/23737467/
 
-Regards,
+ arch/arm/boot/dts/am335x-icev2.dts | 1 -
+ 1 file changed, 1 deletion(-)
 
-Tony
+diff --git a/arch/arm/boot/dts/am335x-icev2.dts b/arch/arm/boot/dts/am335x-icev2.dts
+index 1463df3b5b19..8ed46f9d79b7 100644
+--- a/arch/arm/boot/dts/am335x-icev2.dts
++++ b/arch/arm/boot/dts/am335x-icev2.dts
+@@ -170,7 +170,6 @@
+ 			AM33XX_IOPAD(0x8fc, PIN_INPUT_PULLUP | MUX_MODE0) /* (G16) mmc0_dat0.mmc0_dat0 */
+ 			AM33XX_IOPAD(0x900, PIN_INPUT_PULLUP | MUX_MODE0) /* (G17) mmc0_clk.mmc0_clk */
+ 			AM33XX_IOPAD(0x904, PIN_INPUT_PULLUP | MUX_MODE0) /* (G18) mmc0_cmd.mmc0_cmd */
+-			AM33XX_IOPAD(0x960, PIN_INPUT_PULLUP | MUX_MODE5) /* (C15) spi0_cs1.mmc0_sdcd */
+ 		>;
+ 	};
+ 
+-- 
+2.11.0
+
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
