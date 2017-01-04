@@ -1,112 +1,75 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH 2/2] pinctrl: Introduce TI IOdelay configuration driver
-Date: Wed, 4 Jan 2017 07:32:42 -0600
-Message-ID: <20170104133242.f4fis3hopegkwiab@rob-hp-laptop>
-References: <20161230183732.5595-1-tony@atomide.com>
- <20161230183732.5595-3-tony@atomide.com>
- <20170102221228.GH9325@atomide.com>
+From: Florian Fainelli <f.fainelli@gmail.com>
+Subject: Re: [PATCH v2] cpsw: ethtool: add support for getting/setting EEE
+ registers
+Date: Wed, 4 Jan 2017 06:33:03 -0800
+Message-ID: <eb4a3c77-6bf4-8749-85a3-b614bff69cf2@gmail.com>
+References: <1479911913-1761-1-git-send-email-yegorslists@googlemail.com>
+ <93e0bd06-3171-e12b-b763-1e2895a463f8@gmail.com>
+ <CAGm1_ksC_6afhzK39uVTSk2PoC9CrR4Fow89YCZfihS2f6wzOw@mail.gmail.com>
+ <c91dcd74-3983-3ab6-91f6-3657b1e601af@gmail.com>
+ <CAGm1_ktuAbt0pr_NJu2GLDOavFV_bvMBmH5RvDxr5AyXvfwB3A@mail.gmail.com>
+ <20161124153809.GA20455@lunn.ch>
+ <11549d93-4b51-25c8-e693-509048475bef@gmail.com>
+ <2b4912e6-c380-b2bd-762a-d1da2b0a7d82@st.com>
+ <5809df57-997b-3531-838f-8c5a61605fe5@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170102221228.GH9325@atomide.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Gary Bisson <gary.bisson@boundarydevices.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Mark Rutland <mark.rutland@arm.com>, Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, Lokesh Vutla <lokeshvutla@ti.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <5809df57-997b-3531-838f-8c5a61605fe5@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Giuseppe CAVALLARO <peppe.cavallaro@st.com>, Andrew Lunn <andrew@lunn.ch>, Yegor Yefremov <yegorslists@googlemail.com>
+Cc: netdev <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "N, Mugunthan V" <mugunthanvnm@ti.com>, Rami Rosen <roszenrami@gmail.com>, Fabrice GASNIER <fabrice.gasnier@st.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 02, 2017 at 02:12:28PM -0800, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [161230 10:38]:
-> > +static struct pinctrl_ops ti_iodelay_pinctrl_ops = {
-> > +	.get_groups_count = pinctrl_generic_get_group_count,
-> > +	.get_group_name = pinctrl_generic_get_group_name,
-> > +	.get_group_pins = pinctrl_generic_get_group_pins,
-> > +	.pin_dbg_show = ti_iodelay_pin_dbg_show,
-> > +	.dt_node_to_map = ti_iodelay_dt_node_to_map,
-> > +};
-> > +
-> > +static struct pinconf_ops ti_iodelay_pinctrl_pinconf_ops = {
-> > +	.pin_config_group_get = ti_iodelay_pinconf_group_get,
-> > +	.pin_config_group_set = ti_iodelay_pinconf_group_set,
-> > +#ifdef CONFIG_DEBUG_FS
-> > +	.pin_config_group_dbg_show = ti_iodelay_pinconf_group_dbg_show,
-> > +#endif
+On 12/02/2016 09:48 AM, Florian Fainelli wrote:
+>>> Peppe, any thoughts on this?
+>>
+>> I share what you say.
+>>
+>> In sum, the EEE management inside the stmmac is:
+>>
+>> - the driver looks at own HW cap register if EEE is supported
+>>
+>>     (indeed the user could keep disable EEE if bugged on some HW
+>>      + Alex, Fabrice: we had some patches for this to propose where we
+>>              called the phy_ethtool_set_eee to disable feature at phy
+>>              level
+>>
+>> - then the stmmac asks PHY layer to understand if transceiver and
+>>   partners are EEE capable.
+>>
+>> - If all matches the EEE is actually initialized.
+>>
+>> the logic above should be respected when use ethtool, hmm, I will
+>> check the stmmac_ethtool_op_set_eee asap.
+>>
+>> Hoping this is useful
 > 
-> I noticed that .pin_dbg_show above needs ifdef CONFIG_DEBUGFS.
-> Updated patch below.
+> This is definitively useful, the only part that I am struggling to
+> understand in phy_init_eee() is this:
 > 
-> Regards,
+>                 eee_adv = phy_read_mmd_indirect(phydev, MDIO_AN_EEE_ADV,
+>                                                 MDIO_MMD_AN);
+>                 if (eee_adv <= 0)
+>                         goto eee_exit_err;
 > 
-> Tony
+> if we are not already advertising EEE in the PHY's MMIO_MMD_AN page, by
+> the time we call phy_init_eee(), then we cannot complete the EEE
+> configuration at the PHY level, and presumably we should abort the EEE
+> configuration at the MAC level.
 > 
-> 8< --------------------
-> From tony Mon Sep 17 00:00:00 2001
-> From: Nishanth Menon <nm@ti.com>
-> Date: Tue, 27 Dec 2016 08:03:43 -0800
-> Subject: [PATCH] pinctrl: Introduce TI IOdelay configuration driver
+> While this condition makes sense if e.g: you are re-negotiating the link
+> with your partner for instance and if EEE was already advertised, the
+> very first time this function is called, it seems to be like we should
+> skip the check, because phy_init_eee() should actually tell us if, as a
+> result of a successful check, we should be setting EEE as something we
+> advertise?
 > 
-> SoC family such as DRA7 family of processors have, in addition
-> to the regular muxing of pins (as done by pinctrl-single), a separate
-> hardware module called IODelay which is also expected to be configured.
-> The "IODelay" module has it's own register space that is independent
-> of the control module and the padconf register area.
-> 
-> With recent changes to the pinctrl framework, we can now support
-> this hardware with a reasonably minimal driver by using #pinctrl-cells,
-> GENERIC_PINCTRL_GROUPS and GENERIC_PINMUX_FUNCTIONS.
-> 
-> It is advocated strongly in TI's official documentation considering
-> the existing design of the DRA7 family of processors during mux or
-> IODelay reconfiguration, there is a potential for a significant glitch
-> which may cause functional impairment to certain hardware. It is
-> hence recommended to do as little of muxing as absolutely necessary
-> without I/O isolation (which can only be done in initial stages of
-> bootloader).
-> 
-> NOTE: with the system wide I/O isolation scheme present in DRA7 SoC
-> family, it is not reasonable to do stop all I/O operations for every
-> such pad configuration scheme. So, we will let it glitch when used in
-> this mode.
-> 
-> Even with the above limitation, certain functionality such as MMC has
-> mandatory need for IODelay reconfiguration requirements, depending on
-> speed of transfer. In these cases, with careful examination of usecase
-> involved, the expected glitch can be controlled such that it does not
-> impact functionality.
-> 
-> In short, IODelay module support as a padconf driver being introduced
-> here is not expected to do SoC wide I/O Isolation and is meant for
-> a limited subset of IODelay configuration requirements that need to
-> be dynamic and whose glitchy behavior will not cause functionality
-> failure for that interface.
-> 
-> IMPORTANT NOTE: we take the approach of keeping LOCK_BITs cleared
-> to 0x0 at all times, even when configuring Manual IO Timing Modes.
-> This is done by eliminating the LOCK_BIT=1 setting from Step
-> of the Manual IO timing Mode configuration procedure. This option
-> leaves the CFG_* registers unprotected from unintended writes to the
-> CTRL_CORE_PAD_* registers while Manual IO Timing Modes are configured.
-> 
-> This approach is taken to allow for a generic driver to exist in kernel
-> world that has to be used carefully in required usecases.
-> 
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-> [tony@atomide.com: updated to use generic pinctrl functions, added
->  binding documentation, updated comments]
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  .../devicetree/bindings/pinctrl/ti,iodelay.txt     |  47 +
+> Do you remember what was the logic behind this check when you added it?
 
-Acked-by: Rob Herring <robh@kernel.org>
-
->  drivers/pinctrl/Kconfig                            |   1 +
->  drivers/pinctrl/Makefile                           |   1 +
->  drivers/pinctrl/ti/Kconfig                         |  10 +
->  drivers/pinctrl/ti/Makefile                        |   1 +
->  drivers/pinctrl/ti/pinctrl-ti-iodelay.c            | 947 +++++++++++++++++++++
->  6 files changed, 1007 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/pinctrl/ti,iodelay.txt
->  create mode 100644 drivers/pinctrl/ti/Kconfig
->  create mode 100644 drivers/pinctrl/ti/Makefile
->  create mode 100644 drivers/pinctrl/ti/pinctrl-ti-iodelay.c
+Peppe, can you remember why phy_init_eee() was written in a way that you
+need to have already locally advertised EEE for the function to
+successfully return? Thank you!
+-- 
+Florian
