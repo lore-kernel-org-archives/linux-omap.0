@@ -1,77 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] omap fixes for v4.10-rc cycle
-Date: Wed, 4 Jan 2017 07:58:37 -0800
-Message-ID: <20170104155837.GE25222@atomide.com>
-References: <3791843.yGbamM6pzm@wuerfel>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: Nokia N900 sound driver and ECI GPIOs
+Date: Thu, 5 Jan 2017 00:27:49 +0200
+Message-ID: <20170104222749.4xmyws6zcifeicz5@raspberrypi-2.musicnaut.iki.fi>
+References: <201701012054.54505@pali>
+ <20170102184945.m6maflaoihumd7nt@raspberrypi-2.musicnaut.iki.fi>
+ <201701022101.01341@pali>
+ <2036063.jAbaHqGlp2@saturn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <3791843.yGbamM6pzm@wuerfel>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <2036063.jAbaHqGlp2@saturn>
+Sender: linux-kernel-owner@vger.kernel.org
+To: joerg Reisenweber <joerg@openmoko.org>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, Eduardo Valentin <edubezval@gmail.com>, Lars-Peter Clausen <lars@metafoo.de>, Nishanth Menon <nm@ti.com>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [170104 07:18]:
-> On Friday, December 30, 2016 1:10:43 PM CET Tony Lindgren wrote:
-> > Fist set of fixes for omaps for v4.10-rc cycle, mostly
-> > to deal with various regressions noticed during the merge
-> > window and to fix various device tree configurations for
-> > boards. Also included is removal of mach-omap2/gpio.c that
-> > is now dead code with device tree based booting that should
-> > be OK for the early -rc cycle:
+Hi,
+
+On Mon, Jan 02, 2017 at 10:05:39PM +0100, joerg Reisenweber wrote:
+> On Mon 02 January 2017 21:01:01 Pali Rohár wrote:
+> > On Monday 02 January 2017 19:49:45 Aaro Koskinen wrote:
+> > > The schematic shows ECI(5:0), but only 3 are connected/used. There
+> > > were 3 other GPIOs reserved but not used in the final product.
 > > 
-> > - A series of fixes to add empty chosen node to fix regressions
-> >   caused for bootloaders that don't create chosen node as the
-> >   decompressor needs the chosen node to merge command line and
-> >   ATAGs into it
+> > Are you sure that this is truth (maybe you have some information)? Or
+> > you just looked at schematic and deduced this observation (as other
+> > people too)?
 > > 
-> > - Fix missing logicpd-som-lv-37xx-devkit.dtb entry in Makefile
-> > 
-> > - Fix regression for am437x timers
-> > 
-> > - Fix wrong strcat for non-NULL terminated string
-> > 
-> > - A series of changes to fix tps65217 interrupts to not use
-> >   defines as we don't do that for interrupts
-> > 
-> > - Two patches to fix USB VBUS detection on am57xx-idk and force it
-> >   to peripheral mode until dwc3 role detection is working
-> > 
-> > - Add missing dra72-evm-tps65917 missing voltage supplies
-> >   accidentally left out of an earlier patch
-> > 
-> > - Fix n900 eMMC detection when booted on qemu
-> > 
-> > - Remove unwanted pr_err on failed memory allocation for
-> >   prm_common.c
-> > 
-> > - Remove legacy mach-omap2/gpio.c that now is dead code
-> >   since we boot mach-omap2 in device tree only mode
-> > 
-> > - Fix am572x-idk pcie1 by adding the missing gpio reset pin
+> > Joerg already told us that RX51 schematic does not 100% match production
+> > N900 and e.g. there is missing UART3 pins...
 > 
-> I think I would have preferred to see the gpio.c removal as
-> a fixes-non-critical patch for 4.11 instead, but I don't feel
-> like making you respin the pull request for that, since I
-> really want to get the other fixes merged for -rc3.
+> We found this, see https://irclog.whitequark.org/neo900/2017-01-01 (has a lot 
+> of possibly useful references/links)
+> The question is if pin AA3 aka GPIO_178 is actually NotConnected in N900 or 
+> it's just an omission in schematics and there's actually some more 'stealth 
+> hardware' in N900 that doesn't show up in docs, just like the testpoint UART 
+> console http://wiki.maemo.org/N900_Hardware_Hacking#Debug_ports which also are 
+> missing in schematics.
+> 
+> 
+> > What we know that gpio 178 is *already* controlled and changed by
+> > production Nokia kernel running on production N900 devices (as I wrote
+> > in first email).
+> 
+> I could use one of the unpopulated N900 PCB and solder a wire to the OMAP AA3 
+> pad, then try to make sure it's not connected to anything, or if it is then 
+> find out about the details of this.
+> But I'm reluctant to do this, since it's an error prone and (in case of N/C) 
+> not verifiable procedure, so I'd appreciate any further info, whether from 
+> historical anecdote or from sourcecode review and conclusions, regarding that.
 
-Sorry yeah I had that queued for v4.11 but I forgot it and then
-the holidays came.. Anyways it's been sitting in Linux next since
-late November so should be safe to merge.
+Even if the published production kernel source controls GPIO 178, it
+does not mean the production device has it connected, as the same kernel
+also supported many older in-house prototype versions of the hardware
+(and some of those had it connected).
 
-> Pulled everything into fixes now.
+Probably the easiest test would be to take the final published source,
+and then comment out all the GPIO 178 related code and build and run
+the kernel on the production device. Then see if you can observe any
+difference in behaviour.
 
-Thanks,
-
-Tony
+A.
