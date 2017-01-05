@@ -1,70 +1,37 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2] ARM: omap3: beagleboard-xm: dt: Add ethernet to the
- device tree
-Date: Thu, 5 Jan 2017 08:51:18 -0800
-Message-ID: <20170105165118.GG4310@atomide.com>
-References: <1480713097-5931-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <CAL_Jsq+M7RWiytEA7zPZvR+7CK37WCxN5ZBOQkpjdswjLHL4fA@mail.gmail.com>
- <20170105163928.GD4310@atomide.com>
- <2557392.58vudoaMIY@avalon>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] Update Nanobone dts file to add external FRAM chip
+Date: Thu, 5 Jan 2017 09:09:32 -0800
+Message-ID: <20170105170932.GJ4310@atomide.com>
+References: <3e63c74c-1808-46bd-4c63-5ea049cca4e2@newflow.co.uk>
+ <4a2e83f2-64ed-df2b-947a-548df60f203b@newflow.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <2557392.58vudoaMIY@avalon>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <4a2e83f2-64ed-df2b-947a-548df60f203b@newflow.co.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Jackson <mpfj-list@newflow.co.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [170105 08:49]:
-> On Thursday 05 Jan 2017 08:39:29 Tony Lindgren wrote:
-> > * Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170105 08:28]:
-> > > On Fri, Dec 2, 2016 at 3:11 PM, Laurent Pinchart wrote:
-> > >> The Beagleboard-xM has a LAN9514 USB hub and ethernet controller,
-> > >> connected to port 2 of the OMAP EHCI controller. The board however has
-> > >> no EEPROM to store the ethernet MAC address, which is programmed by the
-> > >> boot loader.
-> > >> 
-> > >> To allow Linux to use the same MAC address as the boot loader (or for
-> > >> that matter any fixed MAC address), we need a node in the device tree
-> > >> for the ethernet controller that the boot loader can update at runtime
-> > >> with a local-mac-address property. Add it, along with an alias for the
-> > >> ethernet controller to let the boot loader locate it easily.
-> > >> 
-> > >> Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-> > >> ---
-> > >> Changes since v1:
-> > >> 
-> > >> - Renamed usb2 DT node to hub
-> > >> ---
-> > >> 
-> > >>  arch/arm/boot/dts/omap3-beagle-xm.dts | 16 ++++++++++++++++
-> > >>  1 file changed, 16 insertions(+)
-> > >> 
-> > >> diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts
-> > >> b/arch/arm/boot/dts/omap3-beagle-xm.dts index
-> > >> 85e297ed0ea1..673cee2234b2 100644
-> > >> --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-> > >> +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-> > >> @@ -27,6 +27,7 @@
-> > >>         aliases {
-> > >>                 display0 = &dvi0;
-> > >>                 display1 = &tv0;
-> > >> +               ethernet = &ethernet;
-> > > 
-> > > Sorry, just noticed this, but this should be dropped. It's not used
-> > > nor do we want an alias here.
+* Mark Jackson <mpfj-list@newflow.co.uk> [170104 02:56]:
+> On 15/12/16 10:52, Mark Jackson wrote:
+> >>From v4.2+ the GPMC code has been changed to reset all the bootloader
+> > GPMC settings when the kernel starts.
 > > 
-> > OK, will update locally as I have not pushed out yet.
+> > As such, this DTS file now needs the external FRAM defined.
+> > 
+> > Signed-off-by: Mark Jackson <mpfj@newflow.co.uk>
 > 
-> The ethernet alias is used by U-Boot to locate the ethernet controller and 
-> update the MAC address.
+> <snip>
+> 
+> Tony, any update on this patch ?
 
-OK let's wait a bit on this one then.
+Applying into omap-for-v4.11/dt thanks. I usually don't get around to
+applying new stuff until around -rc2 or after the fixes are out of
+the way. And then I usually don't apply much anything except fixes
+after -rc6 FYI.
+
+Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
