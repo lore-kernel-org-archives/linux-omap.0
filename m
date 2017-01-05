@@ -1,45 +1,82 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH] ARM: dts: Fix omap3 off mode pull defines
-Date: Thu,  5 Jan 2017 11:07:18 -0800
-Message-ID: <20170105190718.28010-1-tony@atomide.com>
+Subject: [PATCH] ARM: dts: Fix compatible for ti81xx uarts for 8250
+Date: Thu,  5 Jan 2017 11:17:30 -0800
+Message-ID: <20170105191730.29158-1-tony@atomide.com>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-We need to also have OFFPULLUDENABLE bit set to use the off mode pull values.
-Otherwise the line is pulled down internally if no external pull exists.
-
-This is has some documentation at:
-
-http://processors.wiki.ti.com/index.php/Optimizing_OMAP35x_and_AM/DM37x_OFF_mode_PAD_configuration
-
-Note that the value is still glitchy during off mode transitions as documented
-in spz319f.pdf "Advisory 1.45". It's best to use external pulls instead of
-relying on the internal ones for off mode and even then anything pulled up
-will get driven down momentarily on off mode restore for GPIO banks other
-than bank1.
+When using 8250_omap driver, we need to specify the right
+compatible value for the UART to work on dm814x and dm816x.
 
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- include/dt-bindings/pinctrl/omap.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/dm814x.dtsi | 6 +++---
+ arch/arm/boot/dts/dm816x.dtsi | 6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/include/dt-bindings/pinctrl/omap.h b/include/dt-bindings/pinctrl/omap.h
---- a/include/dt-bindings/pinctrl/omap.h
-+++ b/include/dt-bindings/pinctrl/omap.h
-@@ -45,8 +45,8 @@
- #define PIN_OFF_NONE		0
- #define PIN_OFF_OUTPUT_HIGH	(OFF_EN | OFFOUT_EN | OFFOUT_VAL)
- #define PIN_OFF_OUTPUT_LOW	(OFF_EN | OFFOUT_EN)
--#define PIN_OFF_INPUT_PULLUP	(OFF_EN | OFF_PULL_EN | OFF_PULL_UP)
--#define PIN_OFF_INPUT_PULLDOWN	(OFF_EN | OFF_PULL_EN)
-+#define PIN_OFF_INPUT_PULLUP	(OFF_EN | OFFOUT_EN | OFF_PULL_EN | OFF_PULL_UP)
-+#define PIN_OFF_INPUT_PULLDOWN	(OFF_EN | OFFOUT_EN | OFF_PULL_EN)
- #define PIN_OFF_WAKEUPENABLE	WAKEUP_EN
+diff --git a/arch/arm/boot/dts/dm814x.dtsi b/arch/arm/boot/dts/dm814x.dtsi
+--- a/arch/arm/boot/dts/dm814x.dtsi
++++ b/arch/arm/boot/dts/dm814x.dtsi
+@@ -252,7 +252,7 @@
+ 			};
  
- /*
+ 			uart1: uart@20000 {
+-				compatible = "ti,omap3-uart";
++				compatible = "ti,am3352-uart", "ti,omap3-uart";
+ 				ti,hwmods = "uart1";
+ 				reg = <0x20000 0x2000>;
+ 				clock-frequency = <48000000>;
+@@ -262,7 +262,7 @@
+ 			};
+ 
+ 			uart2: uart@22000 {
+-				compatible = "ti,omap3-uart";
++				compatible = "ti,am3352-uart", "ti,omap3-uart";
+ 				ti,hwmods = "uart2";
+ 				reg = <0x22000 0x2000>;
+ 				clock-frequency = <48000000>;
+@@ -272,7 +272,7 @@
+ 			};
+ 
+ 			uart3: uart@24000 {
+-				compatible = "ti,omap3-uart";
++				compatible = "ti,am3352-uart", "ti,omap3-uart";
+ 				ti,hwmods = "uart3";
+ 				reg = <0x24000 0x2000>;
+ 				clock-frequency = <48000000>;
+diff --git a/arch/arm/boot/dts/dm816x.dtsi b/arch/arm/boot/dts/dm816x.dtsi
+--- a/arch/arm/boot/dts/dm816x.dtsi
++++ b/arch/arm/boot/dts/dm816x.dtsi
+@@ -373,7 +373,7 @@
+ 		};
+ 
+ 		uart1: uart@48020000 {
+-			compatible = "ti,omap3-uart";
++			compatible = "ti,am3352-uart", "ti,omap3-uart";
+ 			ti,hwmods = "uart1";
+ 			reg = <0x48020000 0x2000>;
+ 			clock-frequency = <48000000>;
+@@ -383,7 +383,7 @@
+ 		};
+ 
+ 		uart2: uart@48022000 {
+-			compatible = "ti,omap3-uart";
++			compatible = "ti,am3352-uart", "ti,omap3-uart";
+ 			ti,hwmods = "uart2";
+ 			reg = <0x48022000 0x2000>;
+ 			clock-frequency = <48000000>;
+@@ -393,7 +393,7 @@
+ 		};
+ 
+ 		uart3: uart@48024000 {
+-			compatible = "ti,omap3-uart";
++			compatible = "ti,am3352-uart", "ti,omap3-uart";
+ 			ti,hwmods = "uart3";
+ 			reg = <0x48024000 0x2000>;
+ 			clock-frequency = <48000000>;
 -- 
 2.11.0
 --
