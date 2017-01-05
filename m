@@ -1,81 +1,52 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2] ARM: omap3: beagleboard-xm: dt: Add ethernet to the
- device tree
-Date: Thu, 5 Jan 2017 12:50:09 -0600
-Message-ID: <CAL_JsqKQLd2SFNVKwZDPTKL-spWknEe5aFDT5RZoCnV1qOP=4Q@mail.gmail.com>
-References: <1480713097-5931-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <CAL_Jsq+M7RWiytEA7zPZvR+7CK37WCxN5ZBOQkpjdswjLHL4fA@mail.gmail.com>
- <20170105163928.GD4310@atomide.com> <2557392.58vudoaMIY@avalon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2557392.58vudoaMIY@avalon>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCHv3 0/2] Add TI iodelay driver using #pinctrl-cells
+Date: Thu,  5 Jan 2017 10:54:12 -0800
+Message-ID: <20170105185414.27247-1-tony@atomide.com>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Gary Bisson <gary.bisson@boundarydevices.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Mark Rutland <mark.rutland@arm.com>, Nishanth Menon <nm@ti.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jan 5, 2017 at 10:48 AM, Laurent Pinchart
-<laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> wrote:
-> Hello,
->
-> On Thursday 05 Jan 2017 08:39:29 Tony Lindgren wrote:
->> * Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170105 08:28]:
->> > On Fri, Dec 2, 2016 at 3:11 PM, Laurent Pinchart wrote:
->> >> The Beagleboard-xM has a LAN9514 USB hub and ethernet controller,
->> >> connected to port 2 of the OMAP EHCI controller. The board however has
->> >> no EEPROM to store the ethernet MAC address, which is programmed by the
->> >> boot loader.
->> >>
->> >> To allow Linux to use the same MAC address as the boot loader (or for
->> >> that matter any fixed MAC address), we need a node in the device tree
->> >> for the ethernet controller that the boot loader can update at runtime
->> >> with a local-mac-address property. Add it, along with an alias for the
->> >> ethernet controller to let the boot loader locate it easily.
->> >>
->> >> Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
->> >> ---
->> >> Changes since v1:
->> >>
->> >> - Renamed usb2 DT node to hub
->> >> ---
->> >>
->> >>  arch/arm/boot/dts/omap3-beagle-xm.dts | 16 ++++++++++++++++
->> >>  1 file changed, 16 insertions(+)
->> >>
->> >> diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts
->> >> b/arch/arm/boot/dts/omap3-beagle-xm.dts index
->> >> 85e297ed0ea1..673cee2234b2 100644
->> >> --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
->> >> +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
->> >> @@ -27,6 +27,7 @@
->> >>         aliases {
->> >>                 display0 = &dvi0;
->> >>                 display1 = &tv0;
->> >> +               ethernet = &ethernet;
->> >
->> > Sorry, just noticed this, but this should be dropped. It's not used
->> > nor do we want an alias here.
->>
->> OK, will update locally as I have not pushed out yet.
->
-> The ethernet alias is used by U-Boot to locate the ethernet controller and
-> update the MAC address.
+Hi,
 
-Okay. Though with only only one, I don't see why that is hard to find.
-Anyway, this is the least of u-boot's DT abuses.
+Here's a v3 respin of Nishanth's iodelay driver that I've updated to
+use #pinctrl-cells and generic pinctrl group and function code.
 
->> > P.S. The display ones are questionable, too. Only OMAP has them and
->> > per platform alias names is not something we want.
->>
->> OK. What about the mmc ones? Otherwise the MMC devices keep moving
->> around depending on the kernel version..
+Gary, note that this one has an iterator function that you may
+be able to use too, and hopefully we can simplify things further
+eventually by introducing a generic iterator.
 
-This is a solved problem. Consistent dev numbering is not a feature of
-the kernel and MMC is not special.
+Regards,
 
-Rob
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
+
+Changes since v1
+- Fix compile error if CONFIG_DEBUG_FS is not set
+
+Changes since v2
+- Update with Nishanth's kerneldoc comments
+- Added Rob's ack
+
+Nishanth Menon (1):
+  pinctrl: Introduce TI IOdelay configuration driver
+
+Tony Lindgren (1):
+  pinctrl: core: Make dt_free_map optional
+
+ .../devicetree/bindings/pinctrl/ti,iodelay.txt     |  47 +
+ drivers/pinctrl/Kconfig                            |   1 +
+ drivers/pinctrl/Makefile                           |   1 +
+ drivers/pinctrl/core.c                             |   3 -
+ drivers/pinctrl/devicetree.c                       |   3 +-
+ drivers/pinctrl/ti/Kconfig                         |  10 +
+ drivers/pinctrl/ti/Makefile                        |   1 +
+ drivers/pinctrl/ti/pinctrl-ti-iodelay.c            | 944 +++++++++++++++++++++
+ 8 files changed, 1006 insertions(+), 4 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/pinctrl/ti,iodelay.txt
+ create mode 100644 drivers/pinctrl/ti/Kconfig
+ create mode 100644 drivers/pinctrl/ti/Makefile
+ create mode 100644 drivers/pinctrl/ti/pinctrl-ti-iodelay.c
+
+-- 
+2.11.0
